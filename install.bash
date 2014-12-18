@@ -4,12 +4,8 @@ function die() {
   exit 1
 }
 
+./copypt.bash || die "Could not copy pluggable transports?"
 mvn --version || die "Please install maven from http://maven.apache.org" 
 
-if [ $(uname) == "Darwin" ]
-then
-  ls -la configureNetworkServices | grep rwsr | grep wheel || ./setNetUidOsx.bash
-fi
-
-rm -f target/lantern*-small.jar
+rm -f target/lantern*-small.jar || die "Could not remove old jar?"
 mvn -U package -Dmaven.artifact.threads=1 -Dmaven.test.skip=true || die "Could not package"

@@ -1,16 +1,13 @@
 package org.lantern.util;
 
-import java.io.IOException;
 import java.net.InetAddress;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
-import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.params.CoreConnectionPNames;
 import org.lantern.LanternUtils;
-import org.lantern.proxy.FallbackProxy;
-import org.lantern.proxy.GiveModeHttpFilters;
+import org.lantern.geoip.GeoIpLookupService;
+import org.lantern.util.HostSpoofedHTTPGet.ResponseHandler;
 import org.littleshoot.util.PublicIp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,15 +17,14 @@ import org.slf4j.LoggerFactory;
  * 
  * It is a heavily modified version of original implementation from LittleShoot.
  * 
- * This version only makes calls to a proxy in order to obtain the public ip
- * from a response header. No calls are made to 3rd party sites, which is
- * intended to make Lantern less fingerprintable.
+ * This version makes a host-spoofed call to geo.getiantem.org (pretending to be
+ * some other host) in order to look up the public ip.
  */
 public class PublicIpAddress implements PublicIp {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(PublicIpAddress.class);
-    private static final HttpHost TEST_HOST = new HttpHost("www.getlantern.org");
+    private static final String X_REFLECTED_IP = "X-Reflected-Ip";
 
     private static InetAddress publicIp;
     private static long lastLookupTime;
@@ -73,51 +69,42 @@ public class PublicIpAddress implements PublicIp {
         }
 
         LOG.debug("Attempting to find public IP address");
-        if (!LanternUtils.isFallbackProxy()) {
-            LOG.debug("Fallback configured, doing safe lookup");
-            return lookupSafe();
-        } else {
-            LOG.debug("No fallback configured, doing unsafe lookup");
+        if (LanternUtils.isFallbackProxy()) {
+            LOG.debug("Running as fallback, doing unsafe lookup");
             return unsafePublicIpAddress.getPublicIpAddress(forceCheck);
+        } else {
+            LOG.debug("Running as client, doing safe lookup");
+            return lookupSafe();
         }
     }
-    
-    private InetAddress lookupSafe() {
-        HttpHead request = new HttpHead("/");
-        try {
-            request.getParams().setParameter(
-                    CoreConnectionPNames.CONNECTION_TIMEOUT, 60000);
-            // Unable to set SO_TIMEOUT because of bug in Java 7
-            // See https://github.com/getlantern/lantern/issues/942
-//            request.getParams().setParameter(
-//                    CoreConnectionPNames.SO_TIMEOUT, 60000);
-            HttpResponse response = HttpClientFactory.newProxiedClient()
-                    .execute(TEST_HOST, request);
-            Header header = response
-                    .getFirstHeader(GiveModeHttpFilters.X_LANTERN_OBSERVED_IP);
 
-            final int responseCode = response.getStatusLine().getStatusCode();
-            boolean twoHundredResponse = true;
-            if (responseCode < 200 || responseCode > 299) {
-                LOG.warn("Error on proxied request. No proxies working? {}, {}", 
-                        response.getStatusLine(), responseCode);
-                twoHundredResponse = false;
-            } 
-            if (header == null) {
-                if (twoHundredResponse) {
-                    LOG.warn("Running against an old-style proxy that doesn't provide ip addresses");
-                }
-                return InetAddress.getLocalHost();
-            } else {
-                return InetAddress.getByName(header.getValue());
-            }
-        } catch (IOException ioe) {
-            LOG.debug("Unable to do a proxy lookup", ioe);
-            return null;
-        } finally {
-            request.releaseConnection();
-        }
+    private InetAddress lookupSafe() {
+        return GeoIpLookupService
+                .httpLookup(null, new ResponseHandler<InetAddress>() {
+                    @Override
+                    public InetAddress onResponse(HttpResponse response) throws Exception {
+                        final int responseCode = response.getStatusLine()
+                                .getStatusCode();
+                        boolean ok = responseCode >= 200 && responseCode < 300;
+                        if (!ok) {
+                            LOG.warn(
+                                    "Error looking up public ip.  Got status: {}.  Body: {}",
+                                    response.getStatusLine(),
+                                    IOUtils.toString(response.getEntity()
+                                            .getContent()));
+                            return InetAddress.getLocalHost();
+                        } else {
+                            Header header = response
+                                    .getFirstHeader(X_REFLECTED_IP);
+                            return InetAddress.getByName(header.getValue());
+                        }
+                    }
+
+                    @Override
+                    public InetAddress onException(Exception e) {
+                        LOG.warn("Unable to do a safe lookup", e);
+                        return null;
+                    }
+                });
     }
-    
-    
 }

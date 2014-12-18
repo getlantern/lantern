@@ -105,7 +105,7 @@ public class Settings {
 
     private boolean showFriendPrompts = true;
 
-    private String configUrl;
+    private boolean chrome = false;
     
     public Settings() {
         whitelist.applyDefaultEntries();
@@ -442,12 +442,12 @@ public class Settings {
         this.showFriendPrompts = showFriendPrompts;
     }
 
-    @JsonView({Run.class, Persistent.class})
-    public String getConfigUrl() {
-        return configUrl;
+    public void setChrome(final boolean chrome) {
+        this.chrome = chrome;
     }
-
-    public void setConfigUrl(String configUrl) {
-        this.configUrl = configUrl;
+    
+    @JsonIgnore
+    public boolean isChrome() {
+        return chrome;
     }
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<install4j version="5.1.10" transformSequenceNumber="4">
-  <directoryPresets config="." />
-  <application name="Lantern" distributionSourceDir="" applicationId="3831-6452-7413-7646" mediaDir="." mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="true" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="lantern" publisher="Team Lantern" publisherWeb="http://www.getlantern.org" version="0.20.0" allPathsRelative="true" backupOnSave="false" autoSave="true" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
+<install4j version="5.1.14" transformSequenceNumber="4">
+  <directoryPresets config=".." />
+  <application name="Lantern" distributionSourceDir="" applicationId="3831-6452-7413-7646" mediaDir="." mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="true" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="lantern" publisher="Team Lantern" publisherWeb="https://www.getlantern.org" version="0.20.0" allPathsRelative="true" backupOnSave="false" autoSave="true" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
     <languages skipLanguageSelection="false" languageSelectionInPrincipalLanguage="false">
       <principalLanguage id="en" customLocalizationFile="" />
       <additionalLanguages />
@@ -44,7 +44,6 @@
       <dirEntry mountPoint="25" file="./common" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="common" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude />
       </dirEntry>
-      <fileEntry mountPoint="25" file="../proxy_on.pac" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
       <fileEntry mountPoint="25" file="../proxy_off.pac" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
       <fileEntry mountPoint="25" file="../proxy_all.pac" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
       <fileEntry mountPoint="25" file="../configureNetworkServices" overwriteMode="4" shared="false" fileMode="755" uninstallMode="0" overrideFileMode="true" overrideOverwriteMode="false" overrideUninstallMode="false" />
@@ -61,33 +60,32 @@
       <dirEntry mountPoint="25" file="./java6" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="subdir" subDirectory="java6" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude />
       </dirEntry>
+      <dirEntry mountPoint="25" file="../cloudflare-certs" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="subdir" subDirectory="cloudflare-certs" excludeSuffixes="" dirMode="755" overrideDirMode="false">
+        <exclude />
+      </dirEntry>
       <dirEntry mountPoint="149" file="./win" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="win" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude>
-          <entry location=".DS_Store" fileType="regular" />
-          <entry location="lantern-installer.ex_" fileType="regular" />
-          <entry location="lantern-installer.exe.zip" fileType="regular" />
           <entry location="pt" fileType="regular" />
         </exclude>
-      </dirEntry>
-      <dirEntry mountPoint="149" file="./win/pt" overwriteMode="4" shared="false" fileMode="755" uninstallMode="0" overrideFileMode="true" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="subdir" subDirectory="pt" excludeSuffixes="" dirMode="755" overrideDirMode="false">
-        <exclude />
       </dirEntry>
       <dirEntry mountPoint="150" file="./osx" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="osx" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude>
+          <entry location="log.txt" fileType="regular" />
           <entry location="pt" fileType="regular" />
         </exclude>
-      </dirEntry>
-      <dirEntry mountPoint="150" file="./osx/pt" overwriteMode="4" shared="false" fileMode="755" uninstallMode="0" overrideFileMode="true" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="subdir" subDirectory="pt" excludeSuffixes="" dirMode="755" overrideDirMode="false">
-        <exclude />
       </dirEntry>
       <dirEntry mountPoint="790" file="./linux" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="linux" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude />
       </dirEntry>
       <dirEntry mountPoint="1538" file="./linux_x86_64" overwriteMode="4" shared="false" fileMode="755" uninstallMode="0" overrideFileMode="true" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="linux_x86_64" excludeSuffixes="" dirMode="755" overrideDirMode="false">
-        <exclude />
+        <exclude>
+          <entry location="pt" fileType="regular" />
+        </exclude>
       </dirEntry>
       <dirEntry mountPoint="1539" file="./linux_x86_32" overwriteMode="4" shared="false" fileMode="755" uninstallMode="0" overrideFileMode="true" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="" excludeSuffixes="" dirMode="755" overrideDirMode="false">
-        <exclude />
+        <exclude>
+          <entry location="pt" fileType="regular" />
+        </exclude>
       </dirEntry>
     </entries>
     <components />
@@ -103,7 +101,7 @@
           <versionLine x="20" y="40" text="version ${compiler:sys.version}" font="Arial" fontSize="8" fontColor="0,0,0" fontWeight="500" />
         </text>
       </splashScreen>
-      <java mainClass="org.lantern.Launcher" vmParameters="-XX:+HeapDumpOnOutOfMemoryError" arguments="" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
+      <java mainClass="org.lantern.Launcher" vmParameters="-XX:+HeapDumpOnOutOfMemoryError -Xmx256m" arguments="" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
         <classPath>
           <archive location="lantern.jar" failOnError="false" />
         </classPath>
@@ -139,7 +137,7 @@
           <versionLine x="20" y="40" text="version ${compiler:sys.version}" font="Arial" fontSize="8" fontColor="0,0,0" fontWeight="500" />
         </text>
       </splashScreen>
-      <java mainClass="org.lantern.Launcher" vmParameters="-XX:+HeapDumpOnOutOfMemoryError" arguments="" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
+      <java mainClass="org.lantern.Launcher" vmParameters="-XX:+HeapDumpOnOutOfMemoryError -Xmx256m" arguments="" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
         <classPath>
           <archive location="lantern.jar" failOnError="false" />
         </classPath>
@@ -172,7 +170,7 @@
           <versionLine x="20" y="40" text="version ${compiler:sys.version}" font="Arial" fontSize="8" fontColor="0,0,0" fontWeight="500" />
         </text>
       </splashScreen>
-      <java mainClass="org.lantern.Launcher" vmParameters="-XX:+HeapDumpOnOutOfMemoryError -Djna.nosys=true" arguments="" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
+      <java mainClass="org.lantern.Launcher" vmParameters="-XX:+HeapDumpOnOutOfMemoryError -Djna.nosys=true -Xmx256m" arguments="" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
         <classPath>
           <archive location="lantern.jar" failOnError="false" />
         </classPath>
@@ -774,9 +772,6 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.desktop.CreateDesktopLinkAction">
-                      <void property="arguments">
-                        <string> --launchd</string>
-                      </void>
                       <void property="description">
                         <string>Lantern</string>
                       </void>
@@ -798,7 +793,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 </serializedBean>
                 <condition>return Util.isWindows();</condition>
               </action>
-              <action name="" id="1339" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.SetModeAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+              <action name="" id="1339" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.SetModeAction" enabled="false" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.files.SetModeAction">
@@ -881,6 +876,48 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                   </java>
                 </serializedBean>
                 <condition />
+              </action>
+              <action name="" id="1635" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.SetModeAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not fix file permissions.">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.files.SetModeAction">
+                      <void property="files">
+                        <array class="java.io.File" length="1">
+                          <void index="0">
+                            <object class="java.io.File">
+                              <string>upnpc</string>
+                            </object>
+                          </void>
+                        </array>
+                      </void>
+                      <void property="mode">
+                        <string>+x</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition>return !Util.isWindows();</condition>
+              </action>
+              <action name="" id="1636" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.SetModeAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not fix file permissions.">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.files.SetModeAction">
+                      <void property="files">
+                        <array class="java.io.File" length="1">
+                          <void index="0">
+                            <object class="java.io.File">
+                              <string>upnpc.exe</string>
+                            </object>
+                          </void>
+                        </array>
+                      </void>
+                      <void property="mode">
+                        <string>+x</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition>return Util.isWindows();</condition>
               </action>
               <action name="" id="11" customizedId="" beanClass="com.install4j.runtime.beans.actions.desktop.RegisterAddRemoveAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
@@ -996,7 +1033,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 </serializedBean>
                 <condition>return Util.isWindows();</condition>
               </action>
-              <action name="" id="692" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+              <action name="" id="692" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="false" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.files.CopyFileAction">
@@ -1027,7 +1064,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 </serializedBean>
                 <condition>return System.getProperty("java.version").startsWith("1.6");</condition>
               </action>
-              <action name="" id="694" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+              <action name="" id="694" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="false" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.files.CopyFileAction">
@@ -1344,7 +1381,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.files.DeleteFileAction">
                       <void property="files">
-                        <array class="java.io.File" length="4">
+                        <array class="java.io.File" length="3">
                           <void index="0">
                             <object class="java.io.File">
                               <string>./log.txt</string>
@@ -1356,11 +1393,6 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
                             </object>
                           </void>
                           <void index="2">
-                            <object class="java.io.File">
-                              <string>GeoIP.dat</string>
-                            </object>
-                          </void>
-                          <void index="3">
                             <object class="java.io.File">
                               <string>logs</string>
                             </object>
@@ -1438,7 +1470,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
       <excludedComponents />
       <includedDownloadableComponents />
     </windows>
-    <macos name="Mac OS X Single Bundle" id="157" customizedId="" mediaFileName="Lantern" installDir="Lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" bundleType="1" jreURL="" jreShared="false" directDownload="false" installOnlyIfNecessary="false" appleJre="true" requiredVmIdPrefix="" customInstallBaseDir="" contentFilesType="1" downloadURL="" signLaunchers="true" launcherId="27">
+    <macos name="Mac OS X Single Bundle" id="157" customizedId="" mediaFileName="Lantern" installDir="Lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" bundleType="1" jreURL="" jreShared="false" directDownload="false" installOnlyIfNecessary="false" appleJre="true" requiredVmIdPrefix="" customInstallBaseDir="" contentFilesType="1" downloadURL="" launcherId="27">
       <excludedBeans />
       <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
       <exclude>
@@ -1517,8 +1549,8 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
     </linuxDeb>
   </mediaSets>
   <buildIds buildAll="false">
-    <mediaSet refId="26" />
+    <mediaSet refId="157" />
   </buildIds>
-  <buildOptions verbose="true" faster="false" disableSigning="false" debug="false" />
+  <buildOptions verbose="true" faster="true" disableSigning="false" debug="false" />
 </install4j>
 

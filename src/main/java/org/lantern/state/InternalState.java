@@ -1,6 +1,7 @@
 package org.lantern.state;
 
 import static org.lantern.Tr.tr;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -37,8 +38,6 @@ public class InternalState {
     private final Collection<Modal> modalsCompleted = new HashSet<Modal>();
 
     private final Model model;
-
-    private boolean notInvited = false;
 
     private final Messages msgs;
 
@@ -93,6 +92,7 @@ public class InternalState {
                     log.warn("unsupported OS");
                     iconLoc = MessageKey.ICONLOC_UNKNOWN;
                 }
+                
                 this.msgs.info(MessageKey.SETUP, tr(iconLoc));
             }
         }
@@ -123,14 +123,5 @@ public class InternalState {
     @Subscribe
     public void onReset(final ResetEvent re) {
         modalsCompleted.clear();
-        setNotInvited(false);
     }
-
-	public boolean isNotInvited() {
-		return notInvited;
-	}
-
-	public void setNotInvited(boolean notInvited) {
-		this.notInvited = notInvited;
-	}
 }

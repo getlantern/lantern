@@ -3,7 +3,10 @@ package org.lantern.state;
 import java.lang.reflect.Field;
 import java.security.SecureRandom;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -23,9 +26,8 @@ import org.lantern.S3Config;
 import org.lantern.annotation.Keep;
 import org.lantern.event.Events;
 import org.lantern.event.SetupCompleteEvent;
+import org.lantern.monitoring.Stats;
 import org.lantern.state.Notification.MessageType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 /**
@@ -33,8 +35,6 @@ import org.slf4j.LoggerFactory;
  */
 @Keep
 public class Model {
-
-    private final Logger log = LoggerFactory.getLogger(getClass());
 
     public static class Persistent {}
 
@@ -64,7 +64,7 @@ public class Model {
 
     private String nodeId = String.valueOf(new SecureRandom().nextLong());
 
-    private final Global global = new Global();
+    private Stats globalStats = new Stats();
 
     private Peers peerCollector = new Peers();
 
@@ -74,7 +74,7 @@ public class Model {
 
     private Roster roster;
 
-    private Transfers transfers;
+    private InstanceStats instanceStats = new InstanceStats();
 
     private boolean isEverGetMode;
 
@@ -83,7 +83,9 @@ public class Model {
     private String xsrfToken;
 
     private CountryService countryService;
-
+    
+    private Set<String> dialogsToIgnore = new HashSet<String>();
+    
     public Model() {
         //used for JSON loading
     }
@@ -93,6 +95,8 @@ public class Model {
     }
 
     private String instanceId;
+    
+    private String userGuid;
 
     private String reportIp;
 
@@ -102,9 +106,9 @@ public class Model {
 
     private S3Config s3Config = new S3Config();
     
-    @JsonView({Run.class})
-    private Transfers getTransfers() {
-        return transfers;
+    @JsonView({Run.class, Persistent.class})
+    public InstanceStats getInstanceStats() {
+        return instanceStats;
     }
 
     @JsonView({Run.class})
@@ -223,8 +227,12 @@ public class Model {
         return;
     }
 
-    public Global getGlobal() {
-        return global;
+    public Stats getGlobalStats() {
+        return globalStats;
+    }
+    
+    public void setGlobalStats(Stats globalStats) {
+        this.globalStats = globalStats;
     }
 
     /*
@@ -248,30 +256,54 @@ public class Model {
     }
 
     public void closeNotification(int notification) {
-        notifications.remove(notification);
+        synchronized(notifications) {
+            notifications.remove(notification);
+        }
+    }
+    
+    /**
+     * Closes all notifications with the same message as what's given.
+     * 
+     * @param message
+     * @param type
+     */
+    public void closeNotifications(String message, MessageType type) {
+        synchronized (notifications) {
+            Iterator<Notification> it = notifications.values().iterator();
+            while (it.hasNext()) {
+                Notification existing = it.next();
+                if (existing.getMessage().equals(message)) {
+                    it.remove();
+                }
+            }
+        }
     }
 
     public Map<Integer, Notification> getNotifications() {
         return notifications;
     }
 
-    public void addNotification(String message, MessageType type, int timeout) {
-        Notification notification = new Notification(message, type, timeout);
-        addNotification(notification);
-    }
-
-    public void addNotification(Notification notification) {
-        int oldMax = maxNotificationId.get();
-        if (oldMax == 0) {
-            //this happens at startup?
-            for (Integer k : notifications.keySet()) {
-                if (k > oldMax)
-                    oldMax = k+1;
+    synchronized public void addNotification(Notification notification) {
+        synchronized (notifications) {
+            for (Notification existing : notifications.values()) {
+                if (existing.getMessage().equals(notification.getMessage())) {
+                    // Duplicate open notification, ignore
+                    return;
+                }
             }
-            maxNotificationId.compareAndSet(0, oldMax);
+
+            int oldMax = maxNotificationId.get();
+            if (oldMax == 0) {
+                // this happens at startup?
+                for (Integer k : notifications.keySet()) {
+                    if (k > oldMax)
+                        oldMax = k + 1;
+                }
+                maxNotificationId.compareAndSet(0, oldMax);
+            }
+            int id = maxNotificationId.getAndIncrement();
+            notifications.put(id, notification);
         }
-        int id = maxNotificationId.getAndIncrement();
-        notifications.put(id, notification);
     }
 
     public void clearNotifications() {
@@ -289,8 +321,8 @@ public class Model {
         this.roster = roster;
     }
 
-    public void setTransfers(Transfers transfers) {
-        this.transfers = transfers;
+    public void setInstanceStats(InstanceStats instanceStats) {
+        this.instanceStats = instanceStats;
     }
 
     @SuppressWarnings("unchecked")
@@ -366,6 +398,20 @@ public class Model {
     public void setInstanceId(String instanceId) {
         this.instanceId = instanceId;
     }
+    
+    /**
+     * userGuid is a unique identifier for a user, assigned by the controller.
+     * 
+     * @return
+     */
+    @JsonView({ Persistent.class })
+    public String getUserGuid() {
+        return userGuid;
+    }
+    
+    public void setUserGuid(String userGuid) {
+        this.userGuid = userGuid;
+    }
 
     @JsonView({Persistent.class})
     public String getReportIp() {
@@ -393,6 +439,7 @@ public class Model {
         this.remainingFriendingQuota = remainingFriendingQuota;
     }
 
+    @JsonView({Persistent.class})
     public S3Config getS3Config() {
         return this.s3Config;
     }
@@ -400,4 +447,22 @@ public class Model {
     public void setS3Config(final S3Config s3Config) {
         this.s3Config = s3Config;
     }
+
+    public boolean shouldShowDialog(final String key) {
+        return !dialogsToIgnore.contains(key);
+    }
+
+    public void doNotShowDialog(final String key) {
+        this.dialogsToIgnore.add(key);
+    }
+
+    @JsonView({Persistent.class})
+    public Set<String> getDialogsToIgnore() {
+        return dialogsToIgnore;
+    }
+
+    public void setDialogsToIgnore(final Set<String> dialogsToIgnore) {
+        this.dialogsToIgnore = dialogsToIgnore;
+    }
+    
 }

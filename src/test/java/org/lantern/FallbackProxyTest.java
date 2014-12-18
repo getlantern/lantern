@@ -24,6 +24,7 @@ import org.apache.http.util.EntityUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.proxy.BaseChainedProxy;
 import org.lantern.proxy.CertTrackingSslEngineSource;
 import org.lantern.proxy.GiveModeProxy;
@@ -71,8 +72,6 @@ public class FallbackProxyTest {
     public void testFallback() throws Exception {
         //System.setProperty("javax.net.debug", "all");
         //System.setProperty("javax.net.debug", "ssl");
-        Launcher.configureCipherSuites();
-        
         final File temp = new File(SystemUtils.getJavaIoTmpDir(), 
                 String.valueOf(RandomUtils.nextLong()));
         
@@ -106,14 +105,9 @@ public class FallbackProxyTest {
                 fail("Could not get server on expected port?");
             }
             
-            final LanternSocketsUtil util = new LanternSocketsUtil(null, trustStore);
+            final LanternSocketsUtil util = new LanternSocketsUtil(trustStore);
             
             final DefaultHttpClient httpClient = new DefaultHttpClient();
-            
-            // We prefer this one because this way the client can advertise a more
-            // typical set of suites, and the server can choose.
-            final SSLSocketFactory clientFactory = util.newTlsSocketFactoryJavaCipherSuites();
-            //final SSLSocketFactory client = util.newTlsSocketFactory(IceConfig.getCipherSuites());
             
             final HttpHost proxy = new HttpHost(GET_HOST, GET_PORT);
             httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
@@ -210,9 +204,8 @@ public class FallbackProxyTest {
         final SslEngineSource sslEngineSource = 
             new CertTrackingSslEngineSource(trustStore, keyStoreManager);
         PeerFactory peerFactory = mock(PeerFactory.class);
-        final ClientStats stats = mock(ClientStats.class);
         final GiveModeProxy proxy = 
-                new GiveModeProxy(stats, model, sslEngineSource, peerFactory);
+                new GiveModeProxy(model, sslEngineSource, peerFactory, new GeoIpLookupService());
         
         proxy.start();
         return proxy;

@@ -60,6 +60,9 @@ public class InstanceInfo<I, D> {
     }
 
     public boolean hasMappedEndpoint() {
+        if (addressOnInternet == null) {
+            return false;
+        }
         return !addressOnInternet.isUnresolved()
                 && addressOnInternet.getPort() > 1;
     }

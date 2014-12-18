@@ -2,6 +2,7 @@ package org.lantern;
 
 import java.io.IOException;
 
+import org.lantern.state.Model;
 import org.lantern.state.StaticSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,15 +19,16 @@ public class ChromeBrowserService implements BrowserService {
     private static final int SCREEN_WIDTH = 970;
     private static final int SCREEN_HEIGHT = 630;
     
-    private final ChromeRunner chrome = 
-            new ChromeRunner(SCREEN_WIDTH, SCREEN_HEIGHT);
+    private final ChromeRunner chrome;
 
 
     private final MessageService messageService;
-    
+
     @Inject
-    public ChromeBrowserService(final MessageService messageService) {
+    public ChromeBrowserService(final MessageService messageService,
+            final Model model) {
         this.messageService = messageService;
+        this.chrome = new ChromeRunner(SCREEN_WIDTH, SCREEN_HEIGHT, model);
     }
     
     /**
@@ -72,7 +74,7 @@ public class ChromeBrowserService implements BrowserService {
             this.messageService.showMessage("Chrome Required", 
                 "We're sorry, but Lantern requires you to have Google Chrome " +
                 "to run successfully. You can download Google Chrome from " +
-                "https://www.google.com/chrome/. Once Chrome is installed, " +
+                "<a href='https://www.google.com/chrome/'>https://www.google.com/chrome/</a>. Once Chrome is installed, " +
                 "please restart Lantern.");
             log.info("Lantern requires Google Chrome, exiting");
             System.exit(0);

@@ -33,6 +33,7 @@ public class DefaultCensored implements Censored {
             // "biggies":
             "CN", // China
             "VN", // Vietnam
+            "IQ", // Iraq
             "IR", // Iran
             "CU", // Cuba
 
@@ -45,7 +46,8 @@ public class DefaultCensored implements Censored {
             "UZ", // Uzbekistan
             "TM", // Turkmenistan
             "PK", // Pakistan [1]
-            "TR"  // Turkey
+            "TR", // Turkey
+            "VE"  // Venezuela
 
 
             // "some cybercensorship, but it’s either not much, nor not much
@@ -151,9 +153,11 @@ public class DefaultCensored implements Censored {
         return isExportRestricted(InetAddress.getByName(address));
     }
     
-    private boolean isCensored(final InetAddress address) {
+    @Override
+    public boolean isCensored(final InetAddress address) {
         return isMatch(address, CENSORED);
     }
+    
     private boolean isMatch(final InetAddress address, 
         final Collection<String> countries) { 
         if (address == null) {
@@ -163,7 +167,7 @@ public class DefaultCensored implements Censored {
     }
     
     private String countryCode(final InetAddress address) {
-        return lookupService.getGeoData(address).getCountrycode();
+        return lookupService.getGeoData(address).getCountry().getIsoCode();
     }
 
     @Override

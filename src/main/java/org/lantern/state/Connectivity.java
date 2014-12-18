@@ -11,7 +11,6 @@ import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
-import org.lantern.state.Peer.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +30,7 @@ public class Connectivity {
 
     private boolean gtalkAuthorized = false;
 
-    private Boolean internet = null;
+    private volatile Boolean internet = null;
 
     private boolean invited = false;
 
@@ -41,7 +40,7 @@ public class Connectivity {
 
     private String connectingStatus;
 
-    private Type type = LanternConstants.ON_APP_ENGINE ? Type.cloud : Type.pc;
+    private PeerType type = LanternConstants.ON_APP_ENGINE ? PeerType.cloud : PeerType.pc;
 
     private long lastConnectedLong;
 
@@ -143,11 +142,11 @@ public class Connectivity {
         this.connectingStatus = connectingStatus;
     }
 
-    public Type getType() {
+    public PeerType getType() {
         return type;
     }
 
-    public void setType(Type type) {
+    public void setType(PeerType type) {
         this.type = type;
     }
 
@@ -158,6 +157,15 @@ public class Connectivity {
     public void setLastConnected(Date lastConnected) {
         this.lastConnectedLong = lastConnected.getTime();
     }
+    
+    @JsonView({Run.class})
+    public int getNProxies() {
+        return nProxies;
+    }
+
+    public void setNProxies(int nProxies) {
+        this.nProxies = nProxies;
+    }
 
     @Subscribe
     protected void onPeerLastConnectedChangedEvent(final PeerLastConnectedChangedEvent event) {
@@ -166,17 +174,11 @@ public class Connectivity {
             lastConnectedLong = peer.getLastConnectedLong();
         }
     }
+    
 
     @Override
     public String toString() {
         return "Connectivity(" + ip + ", " + internet + ")";
     }
 
-    public int getNProxies() {
-        return nProxies;
-    }
-
-    public void setNProxies(int nProxies) {
-        this.nProxies = nProxies;
-    }
 }

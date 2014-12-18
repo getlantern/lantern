@@ -7,6 +7,7 @@ import java.net.URI;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.Security;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -18,8 +19,10 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManagerFactory;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.lantern.event.Events;
 import org.lantern.event.PeerCertEvent;
+import org.lastbamboo.common.offer.answer.IceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,10 +40,12 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class LanternTrustStore {
-
-    private final static Logger log = 
+    private final static Logger LOGGER = 
         LoggerFactory.getLogger(LanternTrustStore.class);
     
+    private static final String CIPHER_SUITE_LOW_BIT =
+            "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA";
+
     private final AtomicReference<SSLContext> sslContextRef = 
             new AtomicReference<SSLContext>();
     private final LanternKeyStoreManager ksm;
@@ -48,6 +53,21 @@ public class LanternTrustStore {
     private final KeyStore trustStore;
 
     private TrustManagerFactory tmf;
+    
+    static {
+        try {
+            configureCipherSuites();
+        } catch (Throwable t) {
+            LOGGER.error("Unable to configure cipher suites: {}", t.getMessage(), t);
+        }
+    }
+        
+    private static void configureCipherSuites() {
+        Security.addProvider(new BouncyCastleProvider());
+        IceConfig.setCipherSuites(new String[] {
+                CIPHER_SUITE_LOW_BIT
+        });
+    }
     
     @Inject
     public LanternTrustStore(final LanternKeyStoreManager ksm) {
@@ -77,10 +97,10 @@ public class LanternTrustStore {
             trustManagerFactory.init(this.trustStore);
             return trustManagerFactory;
         } catch (final NoSuchAlgorithmException e) {
-            log.error("Could not load algorithm?", e);
+            LOGGER.error("Could not load algorithm?", e);
             throw new Error("Could not load algorithm", e);
         } catch (final KeyStoreException e) {
-            log.error("Could not load keystore?", e);
+            LOGGER.error("Could not load keystore?", e);
             throw new Error("Could not load keystore for tmf", e);
         }
     }
@@ -97,16 +117,16 @@ public class LanternTrustStore {
             addCert(ks, cf, "equifaxsecureca2", EQUIFAX2);
             return ks;
         } catch (final KeyStoreException e) {
-            log.error("Could not load keystore?", e);
+            LOGGER.error("Could not load keystore?", e);
             throw new Error("Could not load blank trust store", e);
         } catch (final NoSuchAlgorithmException e) {
-            log.error("No such algo?", e);
+            LOGGER.error("No such algo?", e);
             throw new Error("Could not load blank trust store", e);
         } catch (final CertificateException e) {
-            log.error("Bad cert?", e);
+            LOGGER.error("Bad cert?", e);
             throw new Error("Could not load blank trust store", e);
         } catch (final IOException e) {
-            log.error("Could not load?", e);
+            LOGGER.error("Could not load?", e);
             throw new Error("Could not load blank trust store", e);
         } 
     }
@@ -131,9 +151,9 @@ public class LanternTrustStore {
             this.trustStore.setCertificateEntry(alias, cert);
             onTrustStoreChanged();
         } catch (CertificateException e) {
-            log.error("Couldn't create certificate", e);
+            LOGGER.error("Couldn't create certificate", e);
         } catch (KeyStoreException e) {
-            log.error("Could not load cert into keystore", e);
+            LOGGER.error("Could not load cert into keystore", e);
         }
     }
 
@@ -145,12 +165,12 @@ public class LanternTrustStore {
     }
 
     public void addCert(URI jid, Certificate cert) {
-        log.debug("Adding cert for {} to trust store", jid);
+        LOGGER.debug("Adding cert for {} to trust store", jid);
         Events.asyncEventBus().post(new PeerCertEvent(jid, cert));
         try {
             this.trustStore.setCertificateEntry(jid.toASCIIString(), cert);
         } catch (KeyStoreException e) {
-            log.error("Could not load cert into keystore?", e);
+            LOGGER.error("Could not load cert into keystore?", e);
         } 
         onTrustStoreChanged();
     }
@@ -166,7 +186,7 @@ public class LanternTrustStore {
             this.sslContextRef.set(provideSslContext());
         }
         final SSLContext context = sslContextRef.get();
-        log.debug("Returning context: {}", context);
+        LOGGER.debug("Returning context: {}", context);
         return context;
     }
     
@@ -175,7 +195,14 @@ public class LanternTrustStore {
      * For performance, these are created eagerly ahead of time.
      */
     public SSLEngine newSSLEngine() {
-        return getSslContext().createSSLEngine();
+        LOGGER.debug("Creating a new SSL engine...");
+        final SSLEngine engine = getSslContext().createSSLEngine();
+        
+        // Make sure only TLS is enabled to get around SSLv3 attacks such as 
+        // poodle. See:
+        // http://www.oracle.com/technetwork/java/javase/documentation/cve-2014-3566-2342133.html
+        engine.setEnabledProtocols(new String[] {"TLSv1"});
+        return engine;
     }
 
     private SSLContext provideSslContext() {
@@ -187,7 +214,7 @@ public class LanternTrustStore {
                 this.tmf.getTrustManagers(), null);
             return context;
         } catch (final Exception e) {
-            log.error("Failed to initialize the client-side SSLContext", e);
+            LOGGER.error("Failed to initialize the client-side SSLContext", e);
             throw new Error(
                     "Failed to initialize the client-side SSLContext", e);
         }
@@ -198,7 +225,7 @@ public class LanternTrustStore {
             this.trustStore.deleteEntry(alias);
             onTrustStoreChanged();
         } catch (final KeyStoreException e) {
-            log.debug("Error removing entry -- doesn't exist?", e);
+            LOGGER.debug("Error removing entry -- doesn't exist?", e);
         }
     }
 
@@ -212,26 +239,26 @@ public class LanternTrustStore {
      * otherwise <code>false</code>.
      */
     public boolean containsCertificate(final X509Certificate cert) {
-        log.debug("Loading trust store...");
+        LOGGER.debug("Loading trust store...");
         
         // We could use KeyStore.getCertificateAlias here, but that will
         // iterate through everything, potentially causing issues when there
         // are a lot of certs.
         final String alias = getCertAlias(cert);
-        log.debug("Looking for alias {}", alias);
+        LOGGER.debug("Looking for alias {}", alias);
         try {
-            if (log.isDebugEnabled()) {
-                log.debug("All aliases");
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("All aliases");
                 Enumeration<String> aliases = this.trustStore.aliases();
                 while (aliases.hasMoreElements()) {
-                    log.debug(aliases.nextElement());
+                    LOGGER.debug(aliases.nextElement());
                 }
             }
             final Certificate existingCert = this.trustStore.getCertificate(alias);
-            log.trace("Existing certificate: {}", (existingCert));
+            LOGGER.trace("Existing certificate: {}", (existingCert));
             return existingCert != null && existingCert.equals(cert);
         } catch (final KeyStoreException e) {
-            log.warn("Exception accessing keystore", e);
+            LOGGER.warn("Exception accessing keystore", e);
             return false;
         }
     }
@@ -247,10 +274,10 @@ public class LanternTrustStore {
                 final String alias = aliases.nextElement();
                 //System.err.println(alias+": "+ks.getCertificate(alias));
                 System.err.println(alias);
-                log.debug(alias);
+                LOGGER.debug(alias);
             }
         } catch (final KeyStoreException e) {
-            log.warn("KeyStore error", e);
+            LOGGER.warn("KeyStore error", e);
         }
     }
     

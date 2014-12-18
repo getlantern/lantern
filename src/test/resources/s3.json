@@ -1,0 +1,44 @@
+{
+  "controller" : "lanternctrl1-2",
+  "minpoll" : 5,
+  "maxpoll" : 15,
+  "fallbacks" : [ {
+    "jid" : "fallback@getlantern.org",
+    "type" : "cloud",
+    "wanHost" : "1.2.3.4",
+    "wanPort" : 443,
+    "lanHost" : null,
+    "lanPort" : 0,
+    "useLanAddress" : false,
+    "protocol" : "TCP",
+    "authToken" : "1234",
+    "cert" : "-----BEGIN CERTIFICATE-----\nMIIE7zCCAtegAwIBAgIEFdX7+DANBgkqhkiG9w0BAQsFADAoMQ4wDAYDVQQKEwVCb3VuZDEWMBQG\nA1UEAxMNU29tbWUgU3RpcnJlcjAeFw0xMzEyMjIyMDA1NDhaFw0xNTEyMjIyMDA1NDhaMCgxDjAM\nBgNVBAoTBUJvdW5kMRYwFAYDVQQDEw1Tb21tZSBTdGlycmVyMIICIjANBgkqhkiG9w0BAQEFAAOC\nAg8AMIICCgKCAgEAtUW3ZD8lAgv3X031xTSt4fkb+nxbQk+dN7NXM9FFo7uyw55X5nF8fAqSRQS1\nYjsx38sZ/HB4R1Dh7qyxY8ycQUT1HeJ4FdHribvLwC+ZMU4FT08vgnVAuCOumgogkZLibHvPlFn+\nuXydCfqOhdPTBTOtG5GalNQMfFp3vGoMnp7zZfM8UDfl8yFt5zwBOz79CXNpHsAdq9sACnjOdv1M\nf8pmYF7XcaXuVkQLuR2z9zprjIGjeRM39Dyw4SAaHhNkrbXBnAjVfOgqj9zwe986A4+CHbRO3h/r\nMtISiCuwP08fewUOxBInPNa+rga+dVzCuQQZEUWcNYqr2jD+OOvX++ikoGREigw9p5GSxPBUBU93\n+3waP1au67UTeDWV6mAUGkfTOhqBi1dwRxPrJoaNwwfdLyhIOw9TiCGDcbieljyW9UxaAxrCb6fB\nqR52yeIRKlANyM3XMKhVhYkp2VrGXhwx/EE+BhwN8eA281VTaw4lslEtUoQDVa+Lv4Nzoix\nLt8sXesdYmWQbcPoTqIqPbifJiCPWDMczBOyBJss8FRWZLDSF/cOofajA6h45m3KIdstp6fTMXtS\nHYLFbUOmkXlvpqJyDW7BgoBj8WrpCf2mk160l03viAvGa32uMGwpYFqVt9u5vuQfIpJuYKpd1Cud\nRB1HW67m9DeAIiMCAwEAAaMhMB8wHQYDVR0OYY\nSIb3DQEBCwUAA4ICAQCYQVjDXkA1thJbHUuSyWjSd8DaQrVhqHcuE8pBEDzfy3FcUyiRX8797VdX\n4makMJZaakxCzOCSXqv6Af66HY7x5Z+jQcfNHPfvVM6J8fMgo6KmuKFjQG1af1moHC4AzD2LD8ow\ncybfjSemZH318zKjdC0KEerYAiLxZSuV4gHEs5E3ZTEgEUpoTQlFS4MK7u3ks1ddowZ5Wnv65Xio\nNZ6YrFKASmCW5nXiIqDNN5alJRFTnTkPml0T4CHtG026FqdLTNpRWJLom9iccpABK0h7+vmdxw1K\nKmunUQg699ckAWJLbWRwXHJpSrzPAz0/vvkW4BOsqNG+BRfDcTEK4CmS3dsUMrSucArAHHhFjfA4\nYLVQpIZj238njqK9CUqsHfQRaw6VR9Ih9ku1j3UGGmAQi/w44weFmF7uBOpjsZKWe6515FuMREqV\nVc14/Lm0LQ8KzpVkvk1ChKz72oHl4kiBk1wGD65w1d2dt18mztBnl6QmptZ2zMxVsCroftoxFL/0\nhQbEm3eN/CUWCf3c2cEJNvvZajSnbfAQtQZTE8lXwmjcG825RBWSLYtGEYLWaVKdPEPiG2rxXKi3\nPKmtn0ttEMDhZZskWjIQzE9hBc6aHiDLqxuKwi05qrS9rKbtGDxj95EiTuAiap31n4dzLnE2XmvK\nBaY2RuizIDj8tXu2jw==\n-----END CERTIFICATE-----\n",
+    "pt" : null,
+    "priority" : 0,
+    "ptType" : null
+  }, {
+    "jid" : "flashlight@roundrobin.getiantem.org",
+    "type" : "cloud",
+    "wanHost" : "elance.com",
+    "wanPort" : 443,
+    "lanHost" : null,
+    "lanPort" : 0,
+    "useLanAddress" : false,
+    "protocol" : "TCP",
+    "authToken" : null,
+    "cert" : null,
+    "pt" : {
+      "rootca" : "-----BEGIN CERTIFICATE-----\nMIIGWDCCBUCgAwIBAgIQCl8RTQNbF5EX0u/UA4w/OzANBgkqhkiG9w0BAQUFADBs\nMQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3\nd3cuZGlnaWNlcnQuY29tMSswKQYDVQQDEyJEaWdpQ2VydCBIaWdoIEFzc3VyYW5j\nZSBFViBSb290IENBMB4XDTA4MDQwMjEyMDAwMFoXDTIyMDQwMzAwMDAwMFowZjEL\nMAkGA1UEBhMCVVMxFTATBgNVBAoTDERpZ2lDZXJ0IEluYzEZMBcGA1UECxMQd3d3\nLmRpZ2ljZXJ0LmNvbTElMCMGA1UEAxMcRGlnaUNlcnQgSGlnaCBBc3N1cmFuY2Ug\nQ0EtMzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAL9hCikQH17+NDdR\nCPge+yLtYb4LDXBMUGMmdRW5QYiXtvCgFbsIYOBC6AUpEIc2iihlqO8xB3RtNpcv\nKEZmBMcqeSZ6mdWOw21PoF6tvD2Rwll7XjZswFPPAAgyPhBkWBATaccM7pxCUQD5\nBUTuJM56H+2MEb0SqPMV9Bx6MWkBG6fmXcCabH4JnudSREoQOiPkm7YDr6ictFuf\n1EutkozOtREqqjcYjbTCuNhcBoz4/yO9NV7UfD5+gw6RlgWYw7If48hl66l7XaAs\nzPw82W3tzPpLQ4zJ1LilYRyyQLYoEt+5+F/+07LJ7z20Hkt8HEyZNp496+ynaF4d\n32duXvsCAwEAAaOCAvowggL2MA4GA1UdDwEB/wQEAwIBhjCCAcYGA1UdIASCAb0w\nggG5MIIBtQYLYIZIAYb9bAEDAAIwggGkMDoGCCsGAQUFBwIBFi5odHRwOi8vd3d3\nLmRpZ2ljZXJ0LmNvbS9zc2wtY3BzLXJlcG9zaXRvcnkuaHRtMIIBZAYIKwYBBQUH\nAgIwggFWHoIBUgBBAG4AeQAgAHUAcwBlACAAbwBmACAAdABoAGkAcwAgAEMAZQBy\nAHQAaQBmAGkAYwBhAHQAZQAgAGMAbwBuAHMAdABpAHQAdQB0AGUAcwAgAGEAYwBj\nAGUAcAB0AGEAbgBjAGUAIABvAGYAIAB0AGgAZQAgAEQAaQBnAGkAQwBlAHIAdAAg\nAEMAUAAvAEMAUABTACAAYQBuAGQAIAB0AGgAZQAgAFIAZQBsAHkAaQBuAGcAIABQ\nAGEAcgB0AHkAIABBAGcAcgBlAGUAbQBlAG4AdAAgAHcAaABpAGMAaAAgAGwAaQBt\nAGkAdAAgAGwAaQBhAGIAaQBsAGkAdAB5ACAAYQBuAGQAIABhAHIAZQAgAGkAbgBj\nAG8AcgBwAG8AcgBhAHQAZQBkACAAaABlAHIAZQBpAG4AIABiAHkAIAByAGUAZgBl\nAHIAZQBuAGMAZQAuMBIGA1UdEwEB/wQIMAYBAf8CAQAwNAYIKwYBBQUHAQEEKDAm\nMCQGCCsGAQUFBzABhhhodHRwOi8vb2NzcC5kaWdpY2VydC5jb20wgY8GA1UdHwSB\nhzCBhDBAoD6gPIY6aHR0cDovL2NybDMuZGlnaWNlcnQuY29tL0RpZ2lDZXJ0SGln\naEFzc3VyYW5jZUVWUm9vdENBLmNybDBAoD6gPIY6aHR0cDovL2NybDQuZGlnaWNl\ncnQuY29tL0RpZ2lDZXJ0SGlnaEFzc3VyYW5jZUVWUm9vdENBLmNybDAfBgNVHSME\nGDAWgBSxPsNpA/i/RwHUmCYaCALvY2QrwzAdBgNVHQ4EFgQUUOpzidsp+xCPnuUB\nINTeeZlIg/cwDQYJKoZIhvcNAQEFBQADggEBAB7ipUiebNtTOA/vphoqrOIDQ+2a\nvD6OdRvw/S4iWawTwGHi5/rpmc2HCXVUKL9GYNy+USyS8xuRfDEIcOI3ucFbqL2j\nCwD7GhX9A61YasXHJJlIR0YxHpLvtF9ONMeQvzHB+LGEhtCcAarfilYGzjrpDq6X\ndF3XcZpCdF/ejUN83ulV7WkAywXgemFhM9EZTfkI7qA5xSU1tyvED7Ld8aW3DiTE\nJiiNeXf1L/BXunwH1OH8zVowV36GEEfdMR/X/KLCvzB8XSSq6PmuX2p0ws5rs0bY\nIb4p1I5eFdZCSucyb6Sxa1GDWL4/bcf72gMhy2oWGU4K8K2Eyl2Us1p292E=\n-----END CERTIFICATE-----",
+      "type" : "flashlight",
+      "masquerade" : "elance.com",
+      "server" : "roundrobin.getiantem.org"
+    },
+    "priority" : 1,
+    "ptType" : "FLASHLIGHT"
+  } ],
+  "signalingRetryTime" : 6000,
+  "statsGetInterval" : 60,
+  "statsPostInterval" : 300,
+  "masqueradeHosts" : [ "elance.com", "ojooo.com", "news.ycombinator.com" ],
+  "dnsRegUrl" : "cloudflare-peerdnsreg.herokuapp.com"
+}

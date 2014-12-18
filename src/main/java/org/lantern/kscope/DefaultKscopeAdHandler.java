@@ -13,14 +13,12 @@ import org.kaleidoscope.TrustGraphNodeId;
 import org.lantern.JsonUtils;
 import org.lantern.LanternTrustStore;
 import org.lantern.LanternUtils;
+import org.lantern.LanternXmppUtils;
 import org.lantern.event.Events;
 import org.lantern.event.KscopeAdEvent;
 import org.lantern.network.InstanceInfo;
 import org.lantern.network.NetworkTracker;
 import org.lantern.network.NetworkTrackerListener;
-import org.lantern.proxy.ProxyInfo;
-import org.lantern.proxy.ProxyTracker;
-import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,18 +31,15 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler,
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final ProxyTracker proxyTracker;
     private final LanternTrustStore trustStore;
     private final RandomRoutingTable routingTable;
     private final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker;
 
     @Inject
     public DefaultKscopeAdHandler(
-            final ProxyTracker proxyTracker,
             final LanternTrustStore trustStore,
             final RandomRoutingTable routingTable,
             final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker) {
-        this.proxyTracker = proxyTracker;
         this.trustStore = trustStore;
         this.routingTable = routingTable;
         this.networkTracker = networkTracker;
@@ -60,15 +55,15 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler,
         Events.asyncEventBus().post(new KscopeAdEvent(ad));
         try {
             URI jid = new URI(from);
-            String advertisingUser = XmppUtils.jidToUser(from);
+            String advertisingUser = LanternXmppUtils.jidToEmail(from);
             return networkTracker
                     .instanceOnline(
                             advertisingUser,
                             jid,
                             new InstanceInfo<URI, ReceivedKScopeAd>(
                                     jid,
-                                    ad.getProxyInfo().getLanAddress(),
-                                    ad.getProxyInfo().getWanAddress(),
+                                    ad.getProxyInfo().lanAddress(),
+                                    ad.getProxyInfo().wanAddress(),
                                     new ReceivedKScopeAd(from, ad)));
         } catch (final URISyntaxException e) {
             log.error("Could not create URI from: {}", from);
@@ -91,7 +86,6 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler,
     @Override
     public void instanceOnlineAndTrusted(
             InstanceInfo<URI, ReceivedKScopeAd> instance) {
-        addProxy(instance);
         relayKScopeAd(instance);
     }
 
@@ -134,19 +128,4 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler,
 
         tgn.sendAdvertisement(message, nextNid, relayAd.getTtl());
     }
-
-    private void addProxy(
-            InstanceInfo<URI, ReceivedKScopeAd> instance) {
-        log.debug("Adding proxy... {}", instance);
-        ProxyInfo info = instance.hasMappedEndpoint() ?
-                instance.getData().getAd().getProxyInfo() :
-                null;
-        this.proxyTracker.addProxy(info);
-        if (info != null) {
-            // Also add the local network advertisement in case they're on
-            // the local network.
-            this.proxyTracker.addProxy(info.onLan());
-        }
-    }
-
 }

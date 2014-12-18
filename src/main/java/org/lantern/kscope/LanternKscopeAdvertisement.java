@@ -6,6 +6,7 @@ import java.net.URI;
 import java.net.UnknownHostException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.lantern.LanternClientConstants;
 import org.lantern.proxy.ProxyInfo;
 
@@ -74,6 +75,7 @@ public class LanternKscopeAdvertisement {
         this.ttl = DEFAULT_TTL;
     }
     
+    @JsonIgnore
     public ProxyInfo getProxyInfo() {
         return proxyInfo;
     }

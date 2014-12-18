@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -19,12 +20,14 @@ import java.util.Map.Entry;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
+import org.lantern.state.Model;
 import org.lantern.state.StaticSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
+import com.sun.jna.platform.win32.Win32Exception;
 
 public class ChromeRunner {
 
@@ -34,10 +37,13 @@ public class ChromeRunner {
     private volatile Process process;
     private final int screenWidth;
     private final int screenHeight;
+    private final Model model;
     
-    public ChromeRunner(final int screenWidth, final int screenHeight) {
+    public ChromeRunner(final int screenWidth, final int screenHeight, 
+            final Model model) {
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
+        this.model = model;
         this.location = 
             LanternUtils.getScreenCenter(screenWidth, screenHeight);
     }
@@ -99,7 +105,7 @@ public class ChromeRunner {
     }
     
     private String findWindowsExe() {//final String... opts) {
-        final Map<String, Integer> opts = new HashMap<String, Integer>();
+        final Map<String, Integer> opts = new LinkedHashMap<String, Integer>();
         opts.put("APPDATA", ShlObj.CSIDL_APPDATA);
         opts.put("LOCALAPPDATA", ShlObj.CSIDL_LOCAL_APPDATA);
         opts.put("PROGRAMFILES", ShlObj.CSIDL_PROGRAM_FILES);
@@ -107,15 +113,21 @@ public class ChromeRunner {
         final String chromePath = "/Google/Chrome/Application/chrome.exe";
         final Collection<String> paths = new HashSet<String>();
         for (final Entry<String, Integer> entry : opts.entrySet()) {
-            final String base;
-            final String envBase = System.getenv(entry.getKey());
+            final String envvar = entry.getKey();
+            String base;
+            final String envBase = System.getenv(envvar);
             if (StringUtils.isBlank(envBase)) {
-                base = Shell32Util.getFolderPath(entry.getValue().intValue());
+                try {
+                    base = Shell32Util.getFolderPath(entry.getValue().intValue());
+                } catch (Win32Exception we) {
+                    // This means that we couldn't find the executable
+                    base = null;
+                }
             } else {
                 base = envBase;
             }
             if (StringUtils.isBlank(base)) {
-                log.error("Could not resolve env variable: {}", base);
+                log.error("Could not resolve env variable: {}", envvar);
                 continue;
             }
             final String path = base + chromePath;
@@ -126,6 +138,7 @@ public class ChromeRunner {
                 return path;
             }
         }
+        
         final String msg = 
                 "Could not find Chrome on Windows!! Searched paths:\n"+paths;
         log.warn(msg);
@@ -151,11 +164,27 @@ public class ChromeRunner {
         final String endpoint = StaticSettings.getLocalEndpoint(port, prefix);
         log.info("Opening browser to: {}", endpoint);
         final List<String> commands = new ArrayList<String>();
+        
+        final String uri = StaticSettings.getLocalEndpoint(port, prefix)
+                + "/index.html";
         final String executable = determineExecutable();
-        if (executable == null) {
-            String uri = StaticSettings.getLocalEndpoint(port, prefix)
-                    + "/index.html";
+        if (LanternUtils.isDevMode() && model.getSettings().isChrome()) {
             openSystemDefaultBrowser(uri);
+        } else if (executable == null) {
+            if (!SystemUtils.IS_OS_WINDOWS) {
+                openSystemDefaultBrowser(uri);
+            } else {
+                // At this point we've effectively only searched for Chrome and
+                // have not found it. If the user has firefox, though, we should
+                // use it. This checks that. Note this is windows only!
+                if (LanternUtils.firefoxIsDefaultBrowser()) {
+                    openSystemDefaultBrowser(uri);
+                } else {
+                    // This will trigger a message telling the user they need
+                    // to install Chrome.
+                    throw new UnsupportedOperationException("Could not find Chrome!");
+                }
+            }
         } else {
             commands.add(executable);
             if (SystemUtils.IS_OS_MAC_OSX) {
@@ -175,7 +204,6 @@ public class ChromeRunner {
                 commands.add("--disable-plugins");
                 commands.add("--disable-java");
                 commands.add("--disable-extensions");
-                commands.add("--no-default-browser-check");
                 commands.add("--app=" + endpoint + "/index.html");
             }
     

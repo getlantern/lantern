@@ -78,8 +78,9 @@ public class LanternClientConstants {
 
     public static final long START_TIME = System.currentTimeMillis();
 
-
     public static final int SYNC_INTERVAL_SECONDS = 6;
+    
+    public static volatile boolean FORCE_FLASHLIGHT = false;
 
     /**
      * Plist file for launchd on OSX.
@@ -134,14 +135,12 @@ public class LanternClientConstants {
     public static final String LANTERN_VERSION_HTTP_HEADER_VALUE = VERSION;
     public static final String LOCALHOST = "127.0.0.1";
     public static final long CONNECTIVITY_UPDATE_INTERVAL = 120 * 1000;
+    public static final int ASYNC_APPENDER_BUFFER_SIZE = 1024;
 
 
     // Not final because it may be set from the command line for debugging.
     public static String LANTERN_JID;
 
-    // Not final because it may be set from the command line for debugging.
-    public static String STATS_URL;
-    
     public static String CONTROLLER_URL;
 
     public static void setControllerId(final String id) {
@@ -151,7 +150,6 @@ public class LanternClientConstants {
         }
         LANTERN_JID = id + "@appspot.com";
         CONTROLLER_URL = "https://" + id + ".appspot.com";
-        STATS_URL = CONTROLLER_URL +"/stats";
     }
 
     static {

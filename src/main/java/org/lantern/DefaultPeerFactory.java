@@ -19,11 +19,12 @@ import org.lantern.event.KscopeAdEvent;
 import org.lantern.event.PeerCertEvent;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.geoip.GeoIpLookupService;
+import org.lantern.geoip.GeoData;
 import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
-import org.lantern.state.Peer.Type;
+import org.lantern.state.PeerType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,18 +40,19 @@ public class DefaultPeerFactory implements PeerFactory {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final GeoIpLookupService geoIpLookupService;
-
-    private final Roster roster;
+    private final RosterHandler roster;
 
     private final Model model;
+
+    private final GeoIpLookupService geoIpLookupService;
+
 
     @Inject
     public DefaultPeerFactory(final GeoIpLookupService geoIpLookupService,
             final Model model,
-            final Roster roster) {
-        this.geoIpLookupService = geoIpLookupService;
+            final RosterHandler roster) {
         this.model = model;
+        this.geoIpLookupService = geoIpLookupService;
         this.roster = roster;
         Events.register(this);
     }
@@ -74,7 +76,7 @@ public class DefaultPeerFactory implements PeerFactory {
         if (StringUtils.isBlank(from)) {
             log.warn("Presence with blank from?");
         } else {
-            addPeer(LanternUtils.newURI(from), Type.pc);
+            addPeer(LanternUtils.newURI(from), PeerType.pc);
         }
     }
 
@@ -92,7 +94,7 @@ public class DefaultPeerFactory implements PeerFactory {
         if (existing == null) {
             // The following can be null.
             final Peer peer = new Peer(uri, "",
-                    ad.hasMappedEndpoint(), 0, 0, Type.pc, ad.getAddress(),
+                    ad.hasMappedEndpoint(), 0, 0, PeerType.pc, ad.getAddress(),
                     ad.getPort(), Mode.give, false, entry);
             this.model.getPeerCollector().addPeer(uri, peer);
             updateGeoData(peer, ad.getAddress());
@@ -110,24 +112,26 @@ public class DefaultPeerFactory implements PeerFactory {
         }
     }
 
-    private void updateGeoData(final Peer peer, final InetAddress address) {
+    @Override
+    public void updateGeoData(final Peer peer, final InetAddress address) {
         updateGeoData(peer, address.getHostAddress());
     }
 
     private void updateGeoData(final Peer peer, final String address) {
         if (peer.hasGeoData()) {
-            log.debug("Peer already had geo data: {}", peer);
-            return;
+          log.debug("Peer already had geo data: {}", peer);
+          return;
         }
 
-        final GeoData geo = geoIpLookupService.getGeoData(address);
-        peer.setCountry(geo.getCountrycode());
-        peer.setLat(geo.getLatitude());
-        peer.setLon(geo.getLongitude());
+        final GeoData geo = this.geoIpLookupService.getGeoData(address);
+        peer.setCountry(geo.getCountry().getIsoCode());
+        peer.setLat(geo.getLocation().getLatitude());
+        peer.setLon(geo.getLocation().getLongitude());
     }
 
+
     private void updatePeer(final URI fullJid, final InetSocketAddress isa,
-            final Type type) {
+            final PeerType type) {
         final Peer peer = this.model.getPeerCollector().getPeer(fullJid);
         if (peer == null) {
             log.warn("No peer for {}", fullJid);
@@ -137,7 +141,7 @@ public class DefaultPeerFactory implements PeerFactory {
     }
 
     private void updatePeer(final Peer peer, final InetSocketAddress isa,
-            final Type type) {
+            final PeerType type) {
         final String address = isa.getAddress().getHostAddress();
         if (StringUtils.isBlank(peer.getIp())) {
             peer.setIp(address);
@@ -151,19 +155,18 @@ public class DefaultPeerFactory implements PeerFactory {
             peer.setRosterEntry(rosterEntry(uri));
         }
         peer.setType(type.toString());
-        updateGeoData(peer, isa.getAddress());
         // Note we don't sync peers with the frontend here because the timer
         // will do it for us
     }
 
     @Override
     public void onOutgoingConnection(final URI fullJid,
-            final InetSocketAddress isa, final Type type) {
+            final InetSocketAddress isa, final PeerType type) {
         updatePeer(fullJid, isa, type);
     }
 
     @Override
-    public Peer addPeer(final URI fullJid, final Type type) {
+    public Peer addPeer(final URI fullJid, final PeerType type) {
 
         // This is a peer we know very little about at this point, as we
         // haven't made any network connections with them.
@@ -246,7 +249,7 @@ public class DefaultPeerFactory implements PeerFactory {
         if (peer != null) {
             log.debug("Found peer by certificate!!!");
             peer.setMode(Mode.get);
-            updatePeer(peer, peerAddress, Type.pc);
+            updatePeer(peer, peerAddress, PeerType.pc);
         } else {
             log.error("No peer found for ssl session: {}", sslSession);
         }

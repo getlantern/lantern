@@ -3,6 +3,8 @@ package org.lantern.proxy.pt;
 import java.net.InetSocketAddress;
 import java.util.Properties;
 
+import org.littleshoot.util.NetworkUtils;
+
 /**
  * <p>
  * This simple program runs two local LittleProxies that talk to each other via
@@ -30,7 +32,8 @@ public class FTEMain extends ChainedMain {
 
         InetSocketAddress getModeAddress = new InetSocketAddress("localhost",
                 FTEPROXY_CLIENT_PORT);
-        InetSocketAddress serverAddress = new InetSocketAddress("localhost",
+        InetSocketAddress serverAddress = new InetSocketAddress(NetworkUtils
+                .getLocalHost().getHostAddress(),
                 FTEPROXY_SERVER_PORT);
         InetSocketAddress upstreamProxyAddress = new InetSocketAddress(
                 "localhost", LITTLEPROXY_UPSTREAM_PORT);

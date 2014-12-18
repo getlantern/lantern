@@ -11,6 +11,7 @@ import javax.net.SocketFactory;
 
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.littleshoot.commom.xmpp.XmppConfig;
+import org.littleshoot.commom.xmpp.XmppConnectionRetyStrategyFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,19 +23,19 @@ public class LanternXmppUtil {
 
 
     private final Logger LOG = LoggerFactory.getLogger(getClass());
-    private final LanternSocketsUtil socketsUtil;
     private final ProxySocketFactory proxySocketFactory;
     
     @Inject
-    public LanternXmppUtil(final LanternSocketsUtil socketsUtil,
-            final ProxySocketFactory proxySocketFactory) {
-        this.socketsUtil = socketsUtil;
+    public LanternXmppUtil(
+            final ProxySocketFactory proxySocketFactory,
+            final XmppConnectionRetyStrategyFactory retryStrategy) {
         this.proxySocketFactory = proxySocketFactory;
-        XmppConfig.setRetyStrategyFactory(new LanternXmppRetryStrategyFactory());
+        XmppConfig.setRetyStrategyFactory(retryStrategy);
     }
     
     public ConnectionConfiguration xmppConfig(boolean proxied) {
-        final ConnectionConfiguration config = new ConnectionConfiguration("talk.google.com", 5222, 
+        final ConnectionConfiguration config = 
+                new ConnectionConfiguration("talk.google.com", 5222, 
                 "gmail.com");
         SocketFactory socketFactory =
                 proxied ? proxySocketFactory : new DirectSocketFactory();
@@ -97,6 +98,10 @@ public class LanternXmppUtil {
         return config;
     }
     
+    /**
+     * TODO: Where does this actually use our trust store? Seems like this
+     * will trust the default certs?
+     */
     private final class DirectSocketFactory extends SocketFactory {
         
         @Override

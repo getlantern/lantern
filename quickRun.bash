@@ -17,7 +17,7 @@ done
 
 ls *.hprof &> /dev/null && echo "don't run now, there's an hprof file:" && ls *.hprof && die
 
-jar=`ls target/lantern-*SNAPSHOT.jar | sort | tail -n 1`
+jar=`ls target/lantern*.jar | sort | tail -n 1`
 
 echo "Running jar $jar" 
 
@@ -29,6 +29,11 @@ javaArgs="-XX:+HeapDumpOnOutOfMemoryError -Djna.nosys=true -jar $jar $*"
 if [ "$RUN_LANTERN_DEBUG_PORT" ]
 then
   javaArgs="-Xdebug -Xrunjdwp:transport=dt_socket,address=$RUN_LANTERN_DEBUG_PORT,server=y,suspend=y $javaArgs"
+fi
+
+if [ "$LANTERN_JAVA_ARGS" ]
+then
+  javaArgs="$LANTERN_JAVA_ARGS $javaArgs"
 fi
 
 if [ $(uname) == "Linux" ]

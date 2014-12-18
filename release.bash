@@ -11,14 +11,16 @@ then
 fi
 
 
+./copypt.bash || die "Could not copy pluggable transports?"
+
 VERSION=$(./parseversionfrompom.py | sed s/-SNAPSHOT//)
 
 mvn release:clean || die "Could not clean release?"
 mvn release:prepare || die "Could not prepare release?"
 
-echo "Tagging newest release"
 git=`git rev-parse --verify lantern-$VERSION^{commit} | cut -c1-7` || die "Could not get git version?"
-git tag -f -a newest -m "newest tagged release" $git || die "Could not tag newest?" 
+echo "Tagging newest release at $git"
+git tag -f -a latest -m "The most recent official Lantern release." $git || die "Could not tag newest?" 
 
 echo "Pushing tags..."
 git push -f --tags || die "Could not push newest tag?"

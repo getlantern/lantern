@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import javax.security.auth.login.CredentialException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -25,28 +24,32 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.lantern.JsonUtils;
 import org.lantern.LanternConstants;
+import org.lantern.LanternUtils;
 import org.lantern.MessageKey;
-import org.lantern.NotInClosedBetaException;
 import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.ProxyService;
 import org.lantern.Tr;
-import org.lantern.XmppHandler;
 import org.lantern.event.Events;
-import org.lantern.event.RefreshTokenEvent;
 import org.lantern.oauth.OauthUtils;
+import org.lantern.proxy.GetModeProxyFilter;
 import org.lantern.state.InternalState;
 import org.lantern.state.Modal;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Profile;
+import org.lantern.state.Settings;
 import org.lantern.state.StaticSettings;
 import org.lantern.state.SyncPath;
 import org.lantern.util.HttpClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Charsets;
 
 /**
  * Servlet for handling OAuth callbacks from Google. The associated code is
@@ -61,11 +64,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
 
     private final GoogleOauth2CallbackServer googleOauth2CallbackServer;
 
-    private final XmppHandler xmppHandler;
-
     private final Model model;
-
-    private final InternalState internalState;
 
     private final ModelIo modelIo;
 
@@ -75,20 +74,25 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
 
     private final ModelUtils modelUtils;
 
+    private final InternalState internalState;
+
+    private final GetModeProxyFilter proxyFilter;
+
     public GoogleOauth2CallbackServlet(
         final GoogleOauth2CallbackServer googleOauth2CallbackServer,
-        final XmppHandler xmppHandler, final Model model,
-        final InternalState internalState, final ModelIo modelIo,
+        final Model model, final ModelIo modelIo,
         final ProxyService proxifier, final HttpClientFactory httpClientFactory,
-        final ModelUtils modelUtils) {
+        final ModelUtils modelUtils,
+        final InternalState internalState,
+        final GetModeProxyFilter proxyFilter) {
         this.googleOauth2CallbackServer = googleOauth2CallbackServer;
-        this.xmppHandler = xmppHandler;
         this.model = model;
-        this.internalState = internalState;
         this.modelIo = modelIo;
         this.proxifier = proxifier;
         this.httpClientFactory = httpClientFactory;
         this.modelUtils = modelUtils;
+        this.internalState = internalState;
+        this.proxyFilter = proxyFilter;
     }
 
     @Override
@@ -115,6 +119,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         // Before redirecting to Google, we set up the proxy to proxy
         // access to accounts.google.com for the oauth exchange. That's just
         // temporary, though, and we now cancel it.
+        this.proxyFilter.setHighQos(false);
         try {
             this.proxifier.stopProxying();
         } catch (final ProxyConfigurationError e) {
@@ -129,7 +134,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             // This will happen when the user cancels oauth.
             log.debug("Did not get authorization code in params: {}", params);
             final String error = params.get("error");
-            log.debug("Got error: {}", error);
+            log.error("Got error: {}", error);
             log.debug("Setting modal on model: {}", model);
             this.model.setModal(Modal.authorize);
             redirectToDashboard(resp);
@@ -142,7 +147,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         // dashboard is about to get fully reloaded.
         modelUtils.syncConnectingStatus(Tr.tr(MessageKey.TALK_SERVERS));
         log.debug("Setting modal to connecting...");
-        this.model.setModal(Modal.connecting);
+        advanceModal();
         redirectToDashboard(resp);
 
         int port = this.googleOauth2CallbackServer.getPort();
@@ -151,7 +156,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
 
         final HttpClient client = this.httpClientFactory.newClient();
 
-        final Map<String, String> allToks;
+        final Map<String, Object> allToks;
         try {
             allToks = loadAllToks(code, port, client);
         } catch (final IOException e) {
@@ -160,8 +165,17 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             return;
         }
 
-        connectToGoogleTalk(allToks);
+        configureOauthTokens(allToks);
         fetchEmail(allToks, client);
+    }
+
+    private void advanceModal() {
+        log.debug("Still setting up...");
+        // Handle states associated with the Google login screen
+        // during the setup sequence.
+        model.getConnectivity().setGtalkAuthorized(true);
+        internalState.setModalCompleted(Modal.authorize);
+        internalState.advanceModal(null);
     }
 
     /**
@@ -170,11 +184,11 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
      * @param allToks OAuth tokens.
      * @param httpClient The HTTP client.
      */
-    public int fetchEmail(final Map<String, String> allToks,
+    public int fetchEmail(final Map<String, Object> allToks,
             final HttpClient httpClient) {
         final String endpoint =
             "https://www.googleapis.com/oauth2/v1/userinfo";
-        final String accessToken = allToks.get("access_token");
+        final Object accessToken = allToks.get("access_token");
         final HttpGet get = new HttpGet(endpoint);
         get.setHeader(HttpHeaders.Names.AUTHORIZATION, "Bearer "+accessToken);
 
@@ -208,71 +222,28 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         return -1;
     }
 
-    private void connectToGoogleTalk(final Map<String, String> allToks) {
-        final String accessToken = allToks.get("access_token");
-        final String refreshToken = allToks.get("refresh_token");
-
-        if (StringUtils.isBlank(accessToken) ||
-            StringUtils.isBlank(refreshToken)) {
-            log.warn("Not access or refresh token -- not logging in!!");
-            return;
-        } else {
-            // Treat this the same as a credential exception? I.e. what
-            // happens if the user cancels?
-        }
-
-
-        this.model.getSettings().setAccessToken(accessToken);
-        this.model.getSettings().setRefreshToken(refreshToken);
-        this.model.getSettings().setUseGoogleOAuth2(true);
-        this.modelIo.write();
-        Events.asyncEventBus().post(new RefreshTokenEvent(refreshToken));
-
-        // We kick this off on another thread, as otherwise it would be
-        // a Jetty thread, and we're about to kill the server. When the
-        // server is killed, the connecting thread would otherwise be
-        // interrupted.
-        final Thread t = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                try {
-                    xmppHandler.connect();
-                    log.debug("Setting gtalk authorized");
-                    model.getConnectivity().setGtalkAuthorized(true);
-                    internalState.setNotInvited(false);
-                    internalState.setModalCompleted(Modal.authorize);
-                    internalState.advanceModal(null);
-                } catch (final CredentialException e) {
-                    log.error("Could not log in with OAUTH?", e);
-                    Events.syncModal(model, Modal.authorize);
-                } catch (final NotInClosedBetaException e) {
-                    log.info("This user is not invited");
-                    internalState.setNotInvited(true);
-                    Events.syncModal(model, Modal.notInvited);
-                } catch (final IOException e) {
-                    log.info("We can't connect (internet connection died?).  Retry.", e);
-                    Events.syncModal(model, Modal.authorize);
-                }
-            }
-
-        }, "Google-Talk-Connect-From-Oauth-Servlet-Thread");
-        t.setDaemon(true);
-        t.start();
+    private void configureOauthTokens(final Map<String, Object> allToks) {
+        final String accessToken = (String) allToks.get("access_token");
+        final String refreshToken = (String) allToks.get("refresh_token");
+        final Integer expiry = (Integer) allToks.get("expires_in");
+        final Settings set = this.model.getSettings();
+        LanternUtils.setOauth(set, refreshToken, accessToken, expiry, modelIo);
     }
 
-    private Map<String, String> loadAllToks(final String code, int port,
+    private Map<String, Object> loadAllToks(final String code, int port,
         final HttpClient httpClient) throws IOException {
+        log.debug("Loading oauth tokens from https://accounts.google.com/o/oauth2/token");
         final HttpPost post =
             new HttpPost("https://accounts.google.com/o/oauth2/token");
+        final List<? extends NameValuePair> nvps = Arrays.asList(
+            new BasicNameValuePair("code", code),
+            new BasicNameValuePair("client_id", model.getSettings().getClientID()),
+            new BasicNameValuePair("client_secret", model.getSettings().getClientSecret()),
+            new BasicNameValuePair("redirect_uri", OauthUtils.getRedirectUrl(port)),
+            new BasicNameValuePair("grant_type", "authorization_code")
+            );
         try {
-            final List<? extends NameValuePair> nvps = Arrays.asList(
-                new BasicNameValuePair("code", code),
-                new BasicNameValuePair("client_id", model.getSettings().getClientID()),
-                new BasicNameValuePair("client_secret", model.getSettings().getClientSecret()),
-                new BasicNameValuePair("redirect_uri", OauthUtils.getRedirectUrl(port)),
-                new BasicNameValuePair("grant_type", "authorization_code")
-                );
+
             final HttpEntity entity =
                 new UrlEncodedFormEntity(nvps, LanternConstants.UTF8);
             post.setEntity(entity);
@@ -280,13 +251,31 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             log.debug("About to execute post!");
             final HttpResponse response = httpClient.execute(post);
 
-            log.debug("Got response status: {}", response.getStatusLine());
+            final StatusLine line = response.getStatusLine();
+            log.debug("Got response status: {}", line);
             final HttpEntity responseEntity = response.getEntity();
-            final String body = IOUtils.toString(responseEntity.getContent());
+            final String body = IOUtils.toString(responseEntity.getContent(), 
+                    Charsets.UTF_8);
             EntityUtils.consume(responseEntity);
+            
+            final int statusCode = line.getStatusCode();
+            if (statusCode < 200 || statusCode > 299) {
+                final String msg = 
+                        "Unexpected status code: "+statusCode+ " with body "+body;
+                log.error(msg);
+                throw new IOException(msg);
+            }
 
-            final Map<String, String> oauthToks =
-                    JsonUtils.OBJECT_MAPPER.readValue(body, Map.class);
+            final Map<String, Object> oauthToks;
+            try {
+                oauthToks = JsonUtils.OBJECT_MAPPER.readValue(body, Map.class);
+            } catch (final JsonParseException e) {
+                log.error("Could not parse JSON: "+body, e);
+                throw e;
+            } catch (final JsonMappingException e) {
+                log.error("Could not map JSON: "+body, e);
+                throw e;
+            }
             log.debug("Got oath data: {}", oauthToks);
             return oauthToks;
         } finally {

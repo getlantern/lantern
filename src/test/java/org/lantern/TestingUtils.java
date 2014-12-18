@@ -1,6 +1,7 @@
 package org.lantern;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
@@ -44,8 +45,10 @@ import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.NetworkTracker;
 import org.lantern.oauth.OauthUtils;
 import org.lantern.oauth.RefreshToken;
+import org.lantern.proxy.BaseChainedProxy;
 import org.lantern.proxy.DefaultProxyTracker;
 import org.lantern.proxy.GetModeProxy;
+import org.lantern.proxy.GetModeProxyFilter;
 import org.lantern.proxy.ProxyTracker;
 import org.lantern.proxy.UdtServerFiveTupleListener;
 import org.lantern.state.DefaultFriendsHandler;
@@ -54,13 +57,14 @@ import org.lantern.state.FriendsHandler;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Settings;
+import org.lantern.util.DefaultHttpClientFactory;
 import org.lantern.util.HttpClientFactory;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
 import org.lastbamboo.common.portmapping.UpnpService;
+import org.littleshoot.commom.xmpp.XmppConnectionRetyStrategyFactory;
 import org.littleshoot.proxy.ChainedProxy;
-import org.littleshoot.proxy.ChainedProxyAdapter;
 import org.littleshoot.proxy.ChainedProxyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,13 +100,14 @@ public class TestingUtils {
                 IOUtils.closeQuietly(is);
             }
             
-            if (StringUtils.isBlank(getRefreshToken()) ||
-                StringUtils.isBlank(getAccessToken())) {
-                System.err.println("NO REFRESH OR ACCESS TOKENS!!");
-                throw new Error("Tokens not in "+privatePropsFile);
+            if (StringUtils.isBlank(getRefreshToken())) {
+                fail(String.format("NO REFRESH TOKEN IN %1$s, MAKE SURE TO LOG IN TO LANTERN BEFORE RUNNING TEST !!!", privatePropsFile));
             }
         } else {
-            throw new Error("Could not load!!");
+            fail(String.format(
+                    "NO test.properties FOUND AT %1$s OR %2$s, MAKE SURE TO LOG IN TO LANTERN BEFORE RUNNING TEST !!!",
+                    LanternClientConstants.TEST_PROPS,
+                    LanternClientConstants.TEST_PROPS2));
         }
     }
 
@@ -136,11 +141,10 @@ public class TestingUtils {
         //trustStore.addBase64Cert(new URI(testId), ksm.getBase64Cert(testId));
         
         final LanternSocketsUtil socketsUtil = 
-            new LanternSocketsUtil(null, trustStore);
+            new LanternSocketsUtil(trustStore);
         
         // Using a mock here creates an OOME and/or stack overflow when trying
         // to convert to JSON. Use a stub instead.
-        final ClientStats stats = new StatsStub();
         final java.util.Timer updateTimer = new java.util.Timer();
 
         //final ProxyTracker proxyTracker = newProxyTracker();
@@ -164,10 +168,9 @@ public class TestingUtils {
         final PeerFactory peerFactory = 
             new DefaultPeerFactory(geoIpLookupService, model, roster);
         final ProxyTracker proxyTracker = 
-            new DefaultProxyTracker(model, peerFactory, trustStore);
+            new DefaultProxyTracker(model, peerFactory, trustStore, new NetworkTracker<String, URI, ReceivedKScopeAd>());
         final KscopeAdHandler kscopeAdHandler = 
-            new DefaultKscopeAdHandler(proxyTracker, trustStore, routingTable, 
-                networkTracker);
+            new DefaultKscopeAdHandler(trustStore, routingTable, networkTracker);
         final NatPmpService natPmpService = new NatPmpService() {
             @Override
             public void shutdown() {}
@@ -192,11 +195,13 @@ public class TestingUtils {
         };
         
         final ProxySocketFactory proxySocketFactory = new ProxySocketFactory();
-        final LanternXmppUtil xmppUtil = new LanternXmppUtil(socketsUtil, 
-                proxySocketFactory);
+        final XmppConnectionRetyStrategyFactory retryStrategy = 
+                new LanternXmppRetryStrategyFactory(model);
+        final LanternXmppUtil xmppUtil = new LanternXmppUtil(proxySocketFactory, 
+                retryStrategy);
         
         final XmppHandler xmppHandler = new DefaultXmppHandler(model,
-            updateTimer, stats, ksm, socketsUtil, xmppUtil, modelUtils,
+            updateTimer, ksm, socketsUtil, xmppUtil, modelUtils,
             roster, proxyTracker, kscopeAdHandler, natPmpService, upnpService,
             new UdtServerFiveTupleListener(null, model),
             friendsHandler, networkTracker, censored);
@@ -211,14 +216,6 @@ public class TestingUtils {
         return oauth;
      }
 
-    public static String getAccessToken() {
-        final String oauth = System.getenv("LANTERN_OAUTH_ACCTOKEN");
-        if (StringUtils.isBlank(oauth)) {
-            return privateProps.getProperty("access_token");
-        }
-        return oauth;
-    }
-
     public static HttpRequest createGetRequest(final String uri) {
         return new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, uri);
     }
@@ -231,7 +228,7 @@ public class TestingUtils {
     public static HttpClientFactory newHttClientFactory() {
         final Censored censored = new DefaultCensored();
         final HttpClientFactory factory = 
-                new HttpClientFactory(censored);
+                new DefaultHttpClientFactory(censored);
         return factory;
     }
 
@@ -292,16 +289,24 @@ public class TestingUtils {
 
         LanternKeyStoreManager ksm = TestingUtils.newKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
-        ClientStats clientStats = new StatsStub();
+        
+        final String s3ConfigString = FileUtils.readFileToString(new File(".s3config"));
+        final S3Config s3Config =
+                JsonUtils.OBJECT_MAPPER.readValue(s3ConfigString, S3Config.class);
+        
+        final org.lantern.proxy.FallbackProxy fallback = s3Config.getFallbacks().iterator().next();
+        LOGGER.info("Using fallback {} at: {}:{}", fallback.getJid(),
+                fallback.getWanHost(), fallback.getWanPort());
+        trustStore.addCert(fallback.getCert());
         ChainedProxyManager proxyManager =
                 new ChainedProxyManager() {
             @Override
             public void lookupChainedProxies(HttpRequest httpRequest,
                     Queue<ChainedProxy> chainedProxies) {
-                chainedProxies.add(new ChainedProxyAdapter() {
+                chainedProxies.add(new BaseChainedProxy(fallback.getAuthToken()) {
                     @Override
                     public InetSocketAddress getChainedProxyAddress() {
-                        return new InetSocketAddress("54.254.96.14", 16589);
+                        return fallback.wanAddress();
                     }
                     
                     @Override
@@ -316,7 +321,8 @@ public class TestingUtils {
                 });
             }
         };
-        GetModeProxy getModeProxy = new GetModeProxy(clientStats, proxyManager);
+        GetModeProxy getModeProxy = new GetModeProxy(model, proxyManager, 
+                new GetModeProxyFilter());
         getModeProxy.start();
         try {
             return work.call();

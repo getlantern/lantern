@@ -1,23 +1,26 @@
 package org.lantern;
 
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
+import java.io.File;
 import java.net.URI;
 
+import javax.net.ssl.SSLException;
+
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.ssl.AbstractVerifier;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.util.EntityUtils;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.lantern.TestCategories.TrustStoreTests;
-import org.lantern.util.LanternHostNameVerifier;
 import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,18 +38,23 @@ public class LanternTrustStoreTest {
         final LanternKeyStoreManager ksm = TestingUtils.newKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(ksm);
         final LanternSocketsUtil socketsUtil =
-            new LanternSocketsUtil(null, trustStore);
+            new LanternSocketsUtil(trustStore);
 
         //System.setProperty("javax.net.ssl.trustStore",
           //      trustStore.TRUSTSTORE_FILE.getAbsolutePath());
 
         //trustStore.listEntries();
         
-        final HttpHost proxy = new HttpHost("54.254.96.14", 16589, "https");
         final org.apache.http.conn.ssl.SSLSocketFactory socketFactory =
             new org.apache.http.conn.ssl.SSLSocketFactory(
                 socketsUtil.newTlsSocketFactoryJavaCipherSuites(),
-                new LanternHostNameVerifier(proxy));
+                new AbstractVerifier() {
+                    @Override
+                    public void verify(String host, String[] cns,
+                            String[] subjectAlts) throws SSLException {
+                        super.verify(host, cns, subjectAlts, true);
+                    }
+                });
         //log.debug("CONFIGURED TRUSTSTORE: "+
           //      System.getProperty("javax.net.ssl.trustStore"));
         final Scheme sch = new Scheme("https", 443, socketFactory);
@@ -73,7 +81,6 @@ public class LanternTrustStoreTest {
             }
         }
 
-        /*
         // URIs that should fail (signing certs we don't trust). Note this would
         // succeed (with the test failing as a result) with the normal root CAs,
         // which trust more signing certs than ours, such as verisign. We
@@ -112,7 +119,6 @@ public class LanternTrustStoreTest {
         trustStore.addCert(new URI("equifaxsecureca"), LanternUtils
                 .certFromBytes(FileUtils.readFileToByteArray(new File(
                         "certs/equifaxsecureca.cer"))));
-                        */
     }
 
     private String trySite(final HttpClient client, final String uri)

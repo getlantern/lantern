@@ -63,8 +63,8 @@ public class DefaultEncryptedFileService implements EncryptedFileService {
     
     private void checkFile(final File file) {
         final File dir = file.getParentFile();
-        if (!dir.isDirectory()) {
-            log.error("No parent directory at: {}", dir);
+        if (dir == null || !dir.isDirectory()) {
+            log.error("No parent directory for {} at: {}", file, dir);
             if (!dir.mkdirs()) {
                 log.error("Could not make directory for parent: {}", dir);
             }

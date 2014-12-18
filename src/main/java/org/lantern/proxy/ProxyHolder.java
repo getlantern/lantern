@@ -1,6 +1,6 @@
 package org.lantern.proxy;
 
-import static org.littleshoot.util.FiveTuple.Protocol.*;
+import static org.littleshoot.util.FiveTuple.Protocol.UDP;
 
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
@@ -12,12 +12,13 @@ import javax.net.ssl.SSLEngine;
 
 import org.lantern.LanternConstants;
 import org.lantern.LanternTrustStore;
+import org.lantern.LanternXmppUtils;
 import org.lantern.PeerFactory;
 import org.lantern.proxy.pt.PluggableTransport;
 import org.lantern.proxy.pt.PluggableTransports;
 import org.lantern.proxy.pt.PtType;
 import org.lantern.state.Peer;
-import org.lantern.state.Peer.Type;
+import org.lantern.state.PeerType;
 import org.littleshoot.proxy.TransportProtocol;
 import org.littleshoot.util.FiveTuple;
 import org.slf4j.Logger;
@@ -73,7 +74,11 @@ public final class ProxyHolder extends BaseChainedProxy
         this.peerFactory = peerFactory;
         this.lanternTrustStore = lanternTrustStore;
         this.info = info;
-        this.fiveTuple = info.getFiveTuple();
+        this.fiveTuple = info.fiveTuple();
+    }
+    
+    public ProxyInfo getInfo() {
+        return info;
     }
 
     public FiveTuple getFiveTuple() {
@@ -116,8 +121,13 @@ public final class ProxyHolder extends BaseChainedProxy
         int result = 1;
         result = prime * result
                 + ((fiveTuple == null) ? 0 : fiveTuple.hashCode());
+        
+        // We only consider the base node and domain (the email) portion
+        // of the JID here because we specifically want to overwrite
+        // duplicate entries for the same IP and port but JIDs that only
+        // differ in their resource portions in our hash-based collections.
         result = prime * result
-                + ((getJid() == null) ? 0 : getJid().hashCode());
+                + ((getJidNodeAndDomain() == null) ? 0 : getJidNodeAndDomain().hashCode());
         return result;
     }
 
@@ -138,7 +148,11 @@ public final class ProxyHolder extends BaseChainedProxy
         if (getJid() == null) {
             if (other.getJid() != null)
                 return false;
-        } else if (!getJid().equals(other.getJid()))
+        } else if (!getJidNodeAndDomain().equals(other.getJidNodeAndDomain()))
+            // We only consider the base node and domain (the email) portion
+            // of the JID here because we specifically want to overwrite
+            // duplicate entries for the same IP and port but JIDs that only
+            // differ in their resource portions in our hash-based collections.
             return false;
         return true;
     }
@@ -209,9 +223,30 @@ public final class ProxyHolder extends BaseChainedProxy
     public URI getJid() {
         return info.getJid();
     }
+    
+    /**
+     * This is useful if we want to compare base users versus their specific
+     * logged in resource. When judging equality, for example, two users on
+     * the same IP and port but with different resource parts of their JIDs
+     * should be considered equal for our use cases. See the hashCode and 
+     * equals methods in this class.
+     * 
+     * @return The node and domain portions of the JID as a string.
+     */
+    private String getJidNodeAndDomain() {
+        return LanternXmppUtils.jidToEmail(getJid().toASCIIString());
+    }
 
-    public Type getType() {
+    public PeerType getType() {
         return info.getType();
+    }
+    
+    public int getPriority() {
+        return info.getPriority();
+    }
+
+    public int getWeight() {
+        return info.getWeight();
     }
 
     public boolean isConnected() {

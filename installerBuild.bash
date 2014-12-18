@@ -3,9 +3,10 @@
 CONSTANTS_FILE=src/main/java/org/lantern/LanternClientConstants.java
 LOCAL_BUILD=false
 
+
 if [[ $VERSION == "local" ]] || [[ $VERSION == "quick" ]];
 then
-	LOCAL_BUILD=true
+	export LOCAL_BUILD=true
 fi
 
 function die() {
@@ -34,21 +35,17 @@ printenv | grep INSTALL4J_KEY || die "Must have INSTALL4J_KEY defined with the I
 printenv | grep INSTALL4J_MAC_PASS || die "Must have OSX signing key password defined in INSTALL4J_MAC_PASS"
 printenv | grep INSTALL4J_WIN_PASS || die "Must have windows signing key password defined in INSTALL4J_WIN_PASS"
 test -f $CONSTANTS_FILE || die "No constants file at $CONSTANTS_FILE?? Exiting"
-GE_API_KEY=`cat lantern_getexceptional.txt`
-if [ ! -n "$GE_API_KEY" ]
-  then
-  die "No API key!!" 
-fi
 
 VERSION=$1
 MVN_ARGS=$2
 echo "*******MAVEN ARGS*******: $MVN_ARGS"
 
-if [[ LOCAL_BUILD ]];
+if [ "$LOCAL_BUILD" = true  ];
 then
 	echo "Building from local code, not performing git ops"
 else
 	git pull || die "Could not git pull?"
+	git pull --tags || die "Could not git pull --tags?"
 	if [[ $VERSION == "HEAD" ]]; 
 	then 
 	    CHECKOUT=HEAD; 
@@ -70,8 +67,6 @@ then
     export VERSION=$(./parseversionfrompom.py);
 fi
 
-perl -pi -e "s/ExceptionalUtils.NO_OP_KEY/\"$GE_API_KEY\"/g" $CONSTANTS_FILE || die "Could not set exceptional key"
-
 if [[ $VERSION == "quick" ]];
 then
 	echo "Skipping maven for quick build"
@@ -91,10 +86,8 @@ elif [[ $VERSION == "quick" ]];
 then
 	cp -f `ls -1t target/lantern-*.jar | head -1` install/common/lantern.jar || die "Could not copy jar?"
 else
-    cp -f target/lantern-$VERSION-small.jar install/common/lantern.jar || die "Could not copy jar?"
+    cp -f target/lantern-$VERSION-small.jar install/common/lantern.jar || die "Could not copy jar from lantern-$VERSION-small.jar"
 fi
-
-cp -f GeoIP.dat install/common/ || die "Could not copy GeoIP.dat?"
 
 ./bin/searchForJava7ClassFiles.bash install/common/lantern.jar || die "Found java 7 class files in build!!"
 

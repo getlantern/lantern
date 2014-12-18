@@ -13,14 +13,13 @@ import org.jivesoftware.smack.SASLAuthentication;
 import org.kaleidoscope.BasicRandomRoutingTable;
 import org.kaleidoscope.RandomRoutingTable;
 import org.lantern.geoip.GeoIpLookupService;
-import org.lantern.http.GeoIp;
 import org.lantern.http.GoogleOauth2RedirectServlet;
 import org.lantern.http.InteractionServlet;
 import org.lantern.http.JettyLauncher;
 import org.lantern.http.PhotoServlet;
 import org.lantern.kscope.DefaultKscopeAdHandler;
 import org.lantern.kscope.KscopeAdHandler;
-import org.lantern.monitoring.StatsReporter;
+import org.lantern.monitoring.StatsManager;
 import org.lantern.network.NetworkTracker;
 import org.lantern.oauth.LanternSaslGoogleOAuth2Mechanism;
 import org.lantern.privacy.DefaultEncryptedFileService;
@@ -38,6 +37,7 @@ import org.lantern.proxy.GetModeProxy;
 import org.lantern.proxy.GiveModeProxy;
 import org.lantern.proxy.ProxyTracker;
 import org.lantern.proxy.UdtServerFiveTupleListener;
+import org.lantern.proxy.pt.FlashlightServerManager;
 import org.lantern.state.CometDSyncStrategy;
 import org.lantern.state.DefaultFriendsHandler;
 import org.lantern.state.DefaultModelService;
@@ -49,12 +49,13 @@ import org.lantern.state.ModelService;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.SyncService;
 import org.lantern.state.SyncStrategy;
-import org.lantern.state.Transfers;
-import org.lantern.state.TransfersIo;
 import org.lantern.ui.NotificationManager;
 import org.lantern.ui.SwingMessageService;
+import org.lantern.util.DefaultHttpClientFactory;
+import org.lantern.util.HttpClientFactory;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.UpnpService;
+import org.littleshoot.commom.xmpp.XmppConnectionRetyStrategyFactory;
 import org.littleshoot.proxy.ChainedProxyManager;
 import org.littleshoot.proxy.SslEngineSource;
 import org.slf4j.Logger;
@@ -94,22 +95,20 @@ public class LanternModule extends AbstractModule {
 
         bind(NetworkTracker.class);
         bind(ModelUtils.class).to(DefaultModelUtils.class);
-        bind(ClientStats.class).to(StatsTracker.class);
-        bind(StatsReporter.class);
+        bind(HttpClientFactory.class).to(DefaultHttpClientFactory.class);
         bind(LanternSocketsUtil.class);
         bind(LanternXmppUtil.class);
         bind(MessageService.class).to(SwingMessageService.class);
         bind(KscopeAdHandler.class).to(DefaultKscopeAdHandler.class);
+        bind(XmppConnectionRetyStrategyFactory.class).to(LanternXmppRetryStrategyFactory.class);
 
         bind(FriendsHandler.class).to(DefaultFriendsHandler.class);
         bind(PeerFactory.class).to(DefaultPeerFactory.class);
         bind(ProxyService.class).to(Proxifier.class);
         bind(SyncStrategy.class).to(CometDSyncStrategy.class);
         bind(SyncService.class);
-        bind(TransfersIo.class);
         //bind(EncryptedFileService.class).to(DefaultEncryptedFileService.class);
         bind(BrowserService.class).to(ChromeBrowserService.class);
-        bind(Transfers.class).toProvider(TransfersIo.class).in(Singleton.class);
         bind(Model.class).toProvider(ModelIo.class).in(Singleton.class);
 
         bind(ModelService.class).to(DefaultModelService.class);
@@ -117,7 +116,7 @@ public class LanternModule extends AbstractModule {
         bind(RandomRoutingTable.class).to(BasicRandomRoutingTable.class);
 
         //bind(HttpsEverywhere.class);
-        bind(Roster.class);
+        bind(RosterHandler.class).to(Roster.class);
         bind(InteractionServlet.class);
         bind(LanternTrustStore.class);
         bind(PhotoServlet.class);
@@ -130,10 +129,10 @@ public class LanternModule extends AbstractModule {
         bind(GoogleOauth2RedirectServlet.class);
         bind(JettyLauncher.class);
         bind(AppIndicatorTray.class);
+        
         bind(GetModeProxy.class);
-        bind(StatsUpdater.class);
+        bind(StatsManager.class);
         bind(ConnectivityChecker.class);
-        bind(GeoIp.class);
         bind(CountryService.class);
         bind(NotificationManager.class);
         bind(ChainedProxyManager.class).to(DispatchingChainedProxyManager.class);
@@ -141,6 +140,7 @@ public class LanternModule extends AbstractModule {
         bind(GetModeProxy.class);
         bind(GiveModeProxy.class);
         bind(UdtServerFiveTupleListener.class);
+        bind(FlashlightServerManager.class);
 
         try {
             copyFireFoxExtension();
@@ -164,21 +164,21 @@ public class LanternModule extends AbstractModule {
     }
 
     @Provides @Singleton
-    public UpnpService provideUpnpService(final ClientStats stats) {
+    public UpnpService provideUpnpService() {
         // Testing.
         if (this.upnpService != null) {
             return this.upnpService;
         }
-        return new Upnp(stats);
+        return new UpnpCli();
     }
 
     @Provides @Singleton
-    public NatPmpService provideNatPmpService(final ClientStats stats) {
+    public NatPmpService provideNatPmpService() {
         // Testing.
         if (this.natPmpService != null) {
             return this.natPmpService;
         }
-        natPmpService = new NatPmpImpl(stats);
+        natPmpService = new NatPmpImpl();
         return natPmpService;
     }
 
@@ -195,10 +195,14 @@ public class LanternModule extends AbstractModule {
     SystemTray provideSystemTray(final BrowserService browserService,
         final Model model) {
         if (SystemUtils.IS_OS_LINUX) {
-            return new AppIndicatorTray(browserService, model);
-        } else {
-            return new SystemTrayImpl(browserService, model);
+            try {
+                return new AppIndicatorTray(browserService, model);
+            } catch (final java.lang.UnsatisfiedLinkError ex) {
+                log.warn("no supported version of appindicator libs found, "
+                         + "falling back to generic system tray");
+            }
         }
+        return new SystemTrayImpl(browserService, model);
     }
 
     @Provides @Singleton

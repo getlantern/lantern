@@ -1,22 +1,39 @@
 package org.lantern.ui;
 
-import static javax.swing.JOptionPane.*;
+import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
+import static javax.swing.JOptionPane.OK_OPTION;
+import static javax.swing.JOptionPane.YES_OPTION;
+import static javax.swing.JOptionPane.showMessageDialog;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.swing.JCheckBox;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
+import org.lantern.MessageKey;
 import org.lantern.MessageService;
+import org.lantern.Tr;
 import org.lantern.event.Events;
 import org.lantern.event.MessageEvent;
+import org.lantern.state.Model;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
 public class SwingMessageService implements MessageService {
 
-    public SwingMessageService() {
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    
+    private final Model model;
+
+    @Inject
+    public SwingMessageService(final Model model) {
+        this.model = model;
         Events.register(this);
     }
 
@@ -47,7 +64,9 @@ public class SwingMessageService implements MessageService {
     }
 
     private void doShowMessage(String title, String message) {
-        showMessageDialog(null, message, title, INFORMATION_MESSAGE | OK_OPTION);
+        final String html = 
+                "<html><body><div style='width: 280px;'>"+message+"</div></body></html>";
+        showMessageDialog(null, html, title, INFORMATION_MESSAGE | OK_OPTION);
     }
 
     /**
@@ -62,33 +81,65 @@ public class SwingMessageService implements MessageService {
      */
     @Override
     public boolean askQuestion(final String title, final String message) {
-        if (SwingUtilities.isEventDispatchThread()) {
-            return doAskQuestion(title, message);
-        } else {
-            final AtomicBoolean result = new AtomicBoolean();
-            try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    @Override
-                    public void run() {
-                        result.set(doAskQuestion(title, message));
-                    }
-                });
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-            return result.get();
+        final AtomicBoolean result = new AtomicBoolean();
+        try {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
+                public void run() {
+                    result.set(doAskQuestion(title, message));
+                }
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
+        return result.get();
+    }
+    
+    @Override
+    public boolean okCancel(final String title, final String message) {
+        final AtomicBoolean result = new AtomicBoolean();
+        try {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
+                public void run() {
+                    result.set(doOkCancel(title, message));
+                }
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return result.get();
     }
 
-    private boolean doAskQuestion(String title, String message) {
-        return showOptionDialog(null,
-                message,
-                title,
-                YES_NO_OPTION,
-                INFORMATION_MESSAGE,
-                null,
-                null,
-                null) == YES_OPTION;
+    private boolean doAskQuestion(final String title, final String message) {
+        return twoChoiceMessage(title, message, JOptionPane.YES_NO_OPTION, YES_OPTION);
+    }
+    
+    private boolean doOkCancel(final String title, final String message) {
+        return twoChoiceMessage(title, message, JOptionPane.OK_CANCEL_OPTION, OK_OPTION);
+    }
+    
+    private boolean twoChoiceMessage(final String title, final String message, 
+            final int options, final int affirmative) {
+        final String key = title + message;
+        if (!this.model.shouldShowDialog(key)) {
+            return false;
+        }
+        
+        final JCheckBox cb = new JCheckBox(Tr.tr(MessageKey.DO_NOT_SHOW));
+        cb.setSelected(false);
+        final String html = 
+                "<html><body><div style='width: 280px;'>"+message+"</div></body></html>";
+        final Object[] params = {html, cb};
+        final int response = 
+                JOptionPane.showConfirmDialog(null, params, title, options);
+        final boolean dontShow = cb.isSelected();
+        if (dontShow) {
+            this.model.doNotShowDialog(key);
+        }
+        final boolean yes = response == affirmative;
+        log.debug("User answered yes: {}", yes);
+        return yes;
     }
 
     @Override

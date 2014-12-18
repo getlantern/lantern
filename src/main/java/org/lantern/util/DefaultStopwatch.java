@@ -2,6 +2,7 @@ package org.lantern.util;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.RandomUtils;
@@ -15,7 +16,7 @@ class DefaultStopwatch implements Stopwatch, Comparable<DefaultStopwatch> {
 
     private final Logger logger;
 
-    private volatile int numCalls;
+    private final AtomicInteger numCalls = new AtomicInteger(0);
 
     private volatile long total;
 
@@ -51,7 +52,6 @@ class DefaultStopwatch implements Stopwatch, Comparable<DefaultStopwatch> {
     @Override
     public void reset() {
         startTimes.clear();
-        numCalls = 0;
         total = 0L;
         minTime = Long.MAX_VALUE;
         maxTime = 0L;
@@ -79,7 +79,7 @@ class DefaultStopwatch implements Stopwatch, Comparable<DefaultStopwatch> {
         }
         final long lastStartTime = startTimes.get(threadName);
         final long lastTime = lastStopTime - lastStartTime;
-        numCalls++;
+        numCalls.incrementAndGet();
         total += lastTime;
         if (lastTime < minTime) {
             minTime = lastTime;
@@ -94,14 +94,14 @@ class DefaultStopwatch implements Stopwatch, Comparable<DefaultStopwatch> {
 
     @Override
     public int getNumCalls() {
-        return numCalls;
+        return numCalls.get();
     }
 
     @Override
     public long getAverage() {
-        if (numCalls == 0)
+        if (numCalls.get() == 0)
             return 0L;
-        return total / numCalls;
+        return total / numCalls.get();
     }
 
     @Override

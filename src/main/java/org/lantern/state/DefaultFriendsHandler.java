@@ -1,6 +1,5 @@
 package org.lantern.state;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
@@ -14,17 +13,17 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.SystemUtils;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.packet.Presence;
+import org.lantern.EmailAddressUtils;
 import org.lantern.LanternUtils;
+import org.lantern.LanternXmppUtils;
 import org.lantern.MessageKey;
 import org.lantern.Messages;
 import org.lantern.Roster;
@@ -32,8 +31,7 @@ import org.lantern.XmppHandler;
 import org.lantern.endpoints.FriendApi;
 import org.lantern.event.Events;
 import org.lantern.event.FriendStatusChangedEvent;
-import org.lantern.event.ProxyConnectionEvent;
-import org.lantern.event.RefreshTokenEvent;
+import org.lantern.event.PublicIpAndTokenEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.NetworkTracker;
@@ -65,9 +63,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
 
     private final XmppHandler xmppHandler;
 
-    private final AtomicBoolean friendsLoading = new AtomicBoolean(false);
-    
-    private final AtomicBoolean friendsLoaded = new AtomicBoolean(false);
+    private final AtomicBoolean loadRequested = new AtomicBoolean(false);
     
     private final NotificationManager notificationManager;
     
@@ -75,12 +71,9 @@ public class DefaultFriendsHandler implements FriendsHandler {
 
     private Future<Map<String, ClientFriend>> loadedFriends;
 
-    private String refreshToken;
-
     private final Messages msgs;
     
-    private final ScheduledExecutorService bulkInvitesChecker = 
-            Threads.newSingleThreadScheduledExecutor("Bulk-Invites-Thread");
+    private final AtomicReference<AtomicBoolean> stopRequested = new AtomicReference<AtomicBoolean>(new AtomicBoolean());
     
     @Inject
     public DefaultFriendsHandler(final Model model, final FriendApi api,
@@ -95,46 +88,35 @@ public class DefaultFriendsHandler implements FriendsHandler {
         this.networkTracker = networkTracker;
         this.msgs = msgs;
         
-        // If we already have a refresh token, just use it to load friends.
-        // Otherwise register for refresh token events.
-        this.refreshToken = model.getSettings().getRefreshToken();
-        if (StringUtils.isNotBlank(this.refreshToken)) {
-            loadFriends();
-        }
         Events.register(this);
     }
     
+    /**
+     * The public IP is necessary because it lets us know if we're censored, 
+     * which determines (along with whether or not we're in get mode) 
+     * whether or not we should run with a proxy. We also need an oauth token
+     * in order to hit the friends API, and this event tells us we have a
+     * token.
+     *
+     * @param event The public ip and token event.
+     */
     @Subscribe
-    public void onRefreshToken(final RefreshTokenEvent refresh) {
-        log.debug("Got refresh token -- loading friends");
-        this.refreshToken = refresh.getRefreshToken();
-        loadFriends();
+    public void onPublicIpAndToken(final PublicIpAndTokenEvent event) {
+        loadFriendsIfNecessary();
     }
     
-    @Subscribe
-    public void onProxyConnection(final ProxyConnectionEvent event) {
-        // This may be a proxy connection event due to being reconnected to
-        // the Internet, so just make sure we load friends in that case.
-        // This will do no harm if we're connecting to the proxy for some
-        // other reason.
-        
-        // We also need to make sure we have a refresh token here -- otherwise
-        // we'll connect when we get one!
-        if (StringUtils.isNotBlank(this.refreshToken)) {
-            loadFriends();
-        }
-    }
-    
-    private void loadFriends() {
+    private void loadFriendsIfNecessary() {
         // If we're currently loading friends or have already successfully 
         // loaded friends, ignore this call.
-        if (this.friendsLoading.getAndSet(true) || this.friendsLoaded.get()) {
-            log.debug("Friends currently loading...");
+        if (this.loadRequested.getAndSet(true)) {
+            log.debug("Friends load already requested...");
             return;
         }
         final ExecutorService friendsLoader = 
                 Executors.newSingleThreadExecutor(
                         Threads.newDaemonThreadFactory("Friends-Loader"));
+        
+        final AtomicBoolean wasStopRequested = stopRequested.get();
         
         // We make this a future because we only want to manage friends based
         // on the server's copy. So any local changes wait for that copy to
@@ -143,46 +125,55 @@ public class DefaultFriendsHandler implements FriendsHandler {
             @Override
             public Map<String, ClientFriend> call() throws IOException {
                 log.debug("Loading friends");
-                final Map<String, ClientFriend> tempFriends =
-                        new ConcurrentHashMap<String, ClientFriend>();
-                
-                Collection<ClientFriend> friends = Collections.emptyList();
-                try {
-                    final Collection<ClientFriend> serverFriends = 
-                            Arrays.asList(api.listFriends());
-                    log.debug("All friends from server: {}", serverFriends);
-                    for (final ClientFriend friend : serverFriends) {
-                        tempFriends.put(friend.getEmail().toLowerCase(), friend);
+                int i = 4;
+                int maxDelay = (int) Math.pow(4, 8);
+                while(true) {
+                    if (wasStopRequested.get()) {
+                        log.info("Stop requested, no longer retrying load");
+                        return Collections.emptyMap();
                     }
-                    log.debug("Finished loading friends");
-                    friends = vals(tempFriends);
-                    for (ClientFriend friend : friends) {
-                        trackFriend(friend);
+                    try {
+                        return doLoadFriends();
+                    } catch (Exception e) {
+                        int delay = (int) Math.min(maxDelay,  Math.pow(4, i)); 
+                        log.info("Unable to load friends, will try again in {}ms: {}", delay, e.getMessage(), e);
+                        try {
+                            Thread.sleep(delay);
+                        } catch (InterruptedException ie) {
+                            // ignore
+                        }
+                        i += 1;
                     }
-                    friendsLoaded.set(true);
-                    return tempFriends;
-                } catch (final IOException e) {
-                    log.error("Could not list friends?", e);
-                    friends = Collections.emptyList();
-                    friendsLoaded.set(false);
-                    return new HashMap<String, ClientFriend>();
-                } catch (final CredentialException e) {
-                    log.error("Could not list friends?", e);
-                    friends = Collections.emptyList();
-                    friendsLoaded.set(false);
-                    return new HashMap<String, ClientFriend>();
-                } finally {
-                    friendsLoading.set(false);
-                    model.setFriends(friends);
-                    Events.sync(SyncPath.FRIENDS, friends);
                 }
             }
         });
     }
+    
+    private Map<String, ClientFriend> doLoadFriends() throws Exception {
+        final Map<String, ClientFriend> tempFriends =
+                new ConcurrentHashMap<String, ClientFriend>();
+        
+        Collection<ClientFriend> friends = Collections.emptyList();
+        final Collection<ClientFriend> serverFriends = 
+                Arrays.asList(api.listFriends());
+        log.debug("All friends from server: {}", serverFriends);
+        for (final ClientFriend friend : serverFriends) {
+            tempFriends.put(friend.getEmail().toLowerCase(), friend);
+        }
+        log.debug("Finished loading friends");
+        friends = vals(tempFriends);
+        for (ClientFriend friend : friends) {
+            trackFriend(friend);
+        }
+        model.setFriends(friends);
+        Events.sync(SyncPath.FRIENDS, friends);
+        return tempFriends;
+    }
 
     @Override
-    public void addFriend(final String email) {
+    public void addFriend(String email) {
         log.debug("Adding friend...");
+        email = EmailAddressUtils.normalizedEmail(email);
         final ClientFriend existingFriend = getFriend(email);
         
         // If the friend previously didn't exist, friend them.
@@ -340,7 +331,8 @@ public class DefaultFriendsHandler implements FriendsHandler {
      * @param email The email address of the peer
      * @param pres The presence event
      */
-    private void handlePeer(final String email, final Presence pres) {
+    private void handlePeer(String email, final Presence pres) {
+        email = EmailAddressUtils.normalizedEmail(email);
         final ClientFriend existing = getFriend(email);
         if (existing != null) {
             log.debug("We already know about the peer...");
@@ -532,14 +524,8 @@ public class DefaultFriendsHandler implements FriendsHandler {
         }
     }
 
-    public void clear() {
-        friends().clear();
-    }
-
     private Map<String, ClientFriend> friends() {
-        if (!friendsLoaded.get()) {
-            loadFriends();
-        }
+        loadFriendsIfNecessary();
         try {
             final Map<String, ClientFriend> friends = loadedFriends.get();
             return friends;
@@ -559,7 +545,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
     
     @Override
     public boolean isFriend(final String from) {
-        final String email = XmppUtils.jidToUser(from);
+        final String email = LanternXmppUtils.jidToEmail(from);
         final ClientFriend friend = getFriend(email);
         return isFriend(friend);
     }
@@ -570,7 +556,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
     
     @Override
     public boolean isRejected(final String from) {
-        final String email = XmppUtils.jidToUser(from);
+        final String email = LanternXmppUtils.jidToEmail(from);
         final ClientFriend friend = getFriend(email);
         return isRejected(friend);
     }
@@ -658,6 +644,10 @@ public class DefaultFriendsHandler implements FriendsHandler {
 
     @Override
     public void updateName(final String address, final String name) {
+        if (StringUtils.isBlank(name)) {
+            log.warn("No name?");
+            return;
+        }
         final ClientFriend friend = getFriend(address);
         if (friend != null && !name.equals(friend.getName())) {
             if (!isOnServer(friend)) {
@@ -674,45 +664,9 @@ public class DefaultFriendsHandler implements FriendsHandler {
         }
     }
 
-    public void start() {
-        log.debug("Starting");
-        final Runnable runner = new Runnable() {
-            
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(40000);
-                } catch (final InterruptedException e) {
-                }
-                checkForBulkInvites();
-            }
-        };
-        bulkInvitesChecker.scheduleWithFixedDelay(
-                runner,
-                40, 
-                1,
-                TimeUnit.SECONDS);
-    }
-    
     @Override
     public void stop() {
         log.debug("Stopping");
-        bulkInvitesChecker.shutdown();
-    }
-    
-    /**
-     * See if there's a bulk invite file to process, and process it if so.
-     */
-    private void checkForBulkInvites() {
-        final File file = new File(SystemUtils.USER_HOME, 
-            "lantern-bulk-friends.txt");
-        if (!file.isFile()) {
-            return;
-        }
-        
-        log.debug("BulkInvite: Found lantern-bulk-friends.txt");
-        log.warn("Bulk invites are currently disabled");
-        return;
     }
 
     @Override
@@ -723,10 +677,11 @@ public class DefaultFriendsHandler implements FriendsHandler {
     
     @Subscribe
     public void onReset(final ResetEvent event) {
-        this.friendsLoaded.set(false);
-        this.friendsLoading.set(false);
+        this.loadRequested.set(false);
         this.loadedFriends = null;
-        this.friends().clear();
+        // Stop the processing of any outstanding load request
+        AtomicBoolean wasStopRequested = stopRequested.getAndSet(new AtomicBoolean());
+        wasStopRequested.set(true);
     }
     
 }

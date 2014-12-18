@@ -1,5 +1,8 @@
 package org.lantern;
 
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpRequest;
+
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -9,16 +12,17 @@ import java.io.ByteArrayOutputStream;
 import java.io.Console;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOError;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
@@ -56,17 +60,27 @@ import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
+import org.lantern.event.Events;
+import org.lantern.event.RefreshTokenEvent;
+import org.lantern.proxy.pt.Flashlight;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
+import org.lantern.state.ModelIo;
+import org.lantern.state.Settings;
 import org.lantern.state.StaticSettings;
 import org.lantern.util.PublicIpAddress;
+import org.lantern.win.Registry;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
 import org.littleshoot.commom.xmpp.XmppUtils;
+import org.littleshoot.proxy.impl.ProxyUtils;
 import org.littleshoot.util.FiveTuple;
+import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 
 /**
@@ -77,6 +91,9 @@ public class LanternUtils {
 
     private static final Logger LOG =
         LoggerFactory.getLogger(LanternUtils.class);
+    
+    private static final String REQUESTED_MODE_TOO_SOON =
+            "Requesting mode before model populated! Testing?";
 
     private static final SecureRandom secureRandom = new SecureRandom();
 
@@ -122,12 +139,6 @@ public class LanternUtils {
                         privatePropsFile);
             } finally {
                 IOUtils.closeQuietly(is);
-            }
-            
-            if (StringUtils.isBlank(getRefreshToken()) ||
-                StringUtils.isBlank(getAccessToken())) {
-                System.err.println("NO REFRESH OR ACCESS TOKENS!!");
-                //throw new Error("Tokens not in "+privatePropsFile);
             }
         } else {
             LOG.debug("NO PRIVATE PROPS FILE AT: "+privatePropsFile);
@@ -668,7 +679,7 @@ public class LanternUtils {
 
     public static String toEmail(final XMPPConnection conn) {
         final String jid = conn.getUser().trim();
-        return XmppUtils.jidToUser(jid);
+        return LanternXmppUtils.jidToEmail(jid);
     }
 
     public static boolean isAnonymizedGoogleTalkAddress(final String email) {
@@ -720,8 +731,8 @@ public class LanternUtils {
                 LOG.info("Interrupted?");
             }
         }
-        LOG.error("Never able to connect with local server! " +
-            "Maybe couldn't bind?");
+        LOG.error("Never able to connect with local server on port {}! " +
+            "Maybe couldn't bind? "+ThreadUtils.dumpStack(), address.getPort());
         return false;
     }
 
@@ -966,6 +977,7 @@ public class LanternUtils {
         for (String path : paths) {
             policies.add(path + ":" + StaticSettings.getApiPort());
         }
+        policies.add("http://" + Flashlight.STATS_ADDR);
         String localhost = StringUtils.join(policies, " ");
         resp.addHeader("Content-Security-Policy",
             "default-src " + localhost + " 'unsafe-inline' 'unsafe-eval'; " +
@@ -1001,22 +1013,6 @@ public class LanternUtils {
         final String prop = System.getProperty("testing");
         return "true".equalsIgnoreCase(prop);
     }
-    
-    public static String getRefreshToken() {
-        final String oauth = System.getenv("LANTERN_OAUTH_REFTOKEN");
-        if (StringUtils.isBlank(oauth)) {
-            return privateProps.getProperty("refresh_token");
-        }
-        return oauth;
-     }
-
-    public static String getAccessToken() {
-        final String oauth = System.getenv("LANTERN_OAUTH_ACCTOKEN");
-        if (StringUtils.isBlank(oauth)) {
-            return privateProps.getProperty("access_token");
-        }
-        return oauth;
-    }
 
     public static byte[] compress(final String str) {
         if (StringUtils.isBlank(str)) {
@@ -1045,14 +1041,39 @@ public class LanternUtils {
      */
     public static void setModel(final Model model) {
         LanternUtils.model = model;
+        
+        // If we're testing on CI, use the pro-configured refresh token.
+        if (SystemUtils.IS_OS_LINUX && privatePropsFile != null && privatePropsFile.isFile()) {
+            final Settings set = model.getSettings();
+            final String existing = set.getRefreshToken();
+            if (StringUtils.isNotBlank(existing)) {
+                final String rt = privateProps.getProperty("refresh_token");
+                set.setRefreshToken(rt);
+            }
+        }
+    }
+    
+    public static Model getModel() {
+        if (model == null) {
+            LOG.error("No model yet? Testing?");
+        }
+        return model;
     }
 
     public static boolean isGet() {
         if (model == null) {
-            LOG.error("Calling isGet before model populated! Testing?");
+            LOG.error(REQUESTED_MODE_TOO_SOON);
             return true;
         }
         return model.getSettings().getMode() == Mode.get;
+    }
+    
+    public static boolean isGive() {
+        if (model == null) {
+            LOG.error(REQUESTED_MODE_TOO_SOON);
+            return false;
+        }
+        return model.getSettings().getMode() == Mode.give;
     }
     
     public static Certificate certFromBase64(String base64Cert)
@@ -1093,5 +1114,278 @@ public class LanternUtils {
             }
         }
         return -1;
+    }
+    
+    /**
+     * Finds a free port, returning the specified port if it's available.
+     * 
+     * @param suggestedPort The preferred port to use.
+     * @return A free port, which may or may not be the preferred port.
+     */
+    public static int findFreePort(final int suggestedPort) {
+        ServerSocket socket = null;
+        try {
+            socket = new ServerSocket(suggestedPort);
+            return socket.getLocalPort();
+        } catch (IOException e) {
+            return findFreePort();
+        } finally {
+            IOUtils.closeQuietly(socket);
+        }
+    }
+
+    public static String[] hostAndPortFrom(HttpRequest httpRequest) {
+        String hostAndPort = ProxyUtils.parseHostAndPort(httpRequest);
+        if (StringUtils.isBlank(hostAndPort)) {
+            List<String> hosts = httpRequest.headers().getAll(
+                    HttpHeaders.Names.HOST);
+            if (hosts != null && !hosts.isEmpty()) {
+                hostAndPort = hosts.get(0);
+            }
+        }
+        String[] result = new String[2];
+        String[] parsed = hostAndPort.split(":");
+        result[0] = parsed[0];
+        result[1] = parsed.length == 2 ? parsed[1] : null;
+        return result;
+    }
+
+    /**
+     * Method for finding an OS-specific file with the given name that will
+     * reside in a different location in installed versions that it will in
+     * dev versions.
+     * 
+     * @param fileName The name of the file.
+     * @return The correct file instance, normalizing across installed and
+     * uninstalled versions and operating systems.
+     */
+    public static File osSpecificExecutable(final String fileName) {
+        final File installed;
+        if (SystemUtils.IS_OS_WINDOWS) {
+            installed = new File(fileName+".exe");
+        } else {
+            installed = new File(fileName);
+        }
+        if (installed.isFile()) {
+            return installed;
+        }
+        if (SystemUtils.IS_OS_MAC_OSX) {
+            return new File("./install/osx", fileName);
+        }
+
+        if (SystemUtils.IS_OS_WINDOWS) {
+            return new File("./install/win", fileName);
+        }
+
+        if (SystemUtils.OS_ARCH.contains("64")) {
+            return new File("./install/linux_x86_64", fileName);
+        }
+        return new File("./install/linux_x86_32", fileName);
+    }
+    
+    /**
+     * Checks if FireFox is the user's default browser on Windows. As of this
+     * writing, this is only tested on Windows 8.1 but should theoretically
+     * work on other Windows versions as well.
+     * 
+     * @return <code>true</code> if Firefox is the user's default browser,
+     * otherwise <code>false</code>.
+     */
+    public static boolean firefoxIsDefaultBrowser() {
+        if (!SystemUtils.IS_OS_WINDOWS) {
+            return false;
+        }
+        final String key = "Software\\Microsoft\\Windows\\Shell\\Associations"
+                + "\\UrlAssociations\\http\\UserChoice";
+        final String name = "ProgId";
+        final String result = Registry.read(key, name);
+        if (StringUtils.isBlank(result)) {
+            LOG.error("Could not find browser registry entry on: {}, {}", 
+                SystemUtils.OS_NAME, SystemUtils.OS_VERSION);
+            return false;
+        }
+        return result.toLowerCase().contains("firefox");
+    }
+
+    /**
+     * Sets oauth tokens. WARNING: This is not thread safe. Callers should
+     * ensure they will not call this method from different threads
+     * simultaneously.
+     * 
+     * @param set The settings
+     * @param refreshToken The refresh token
+     * @param accessToken The access token
+     * @param expiresInSeconds The number of seconds the access token expires in
+     * @param modelIo The class for storing the tokens.
+     */
+    public static void setOauth(final Settings set, final String refreshToken,
+            final String accessToken, final long expiresInSeconds,
+            final ModelIo modelIo) {
+        if (StringUtils.isBlank(accessToken)) {
+            LOG.warn("Null access {} token -- not logging in!", accessToken);
+            return;
+        }
+        set.setAccessToken(accessToken);
+        
+        // Set our expiry time 30 seconds before the actual expiry time to
+        // make sure we never cut this too close (for example checking the 
+        // expiry time and then making a request that itself takes 30 seconds
+        // to connect).
+        set.setExpiryTime(System.currentTimeMillis() + 
+                ((expiresInSeconds-30) * 1000));
+        set.setUseGoogleOAuth2(true);
+        
+        // Only set the refresh token if it's not null. OAuth endpoints will
+        // often return blank refresh tokens if they expect you to just keep
+        // using the same one.
+        if (StringUtils.isNotBlank(refreshToken)) {
+            set.setRefreshToken(refreshToken);
+            Events.asyncEventBus().post(new RefreshTokenEvent(refreshToken));
+        }
+        // Could be null for testing.
+        if (modelIo != null) {
+            modelIo.write();
+        }
+    }
+    
+    /**
+     * Extracts a file from the current classloader/jar executable to a
+     * specified directory.
+     * 
+     * @param path The path of the file in the jar
+     * @param dir The desired directory to extract to.
+     * @return The path to the extracted file copied to the file system.
+     * @throws IOException If there's an error finding or copying the file.
+     */
+    public static File extractExecutableFromJar(final String path,
+            final File dir) throws IOException {
+        final File tmpFile = extractFileFromJar(path);
+        File destFile = new File(dir, tmpFile.getName());
+
+        if (destFile.exists() && isSame(destFile, tmpFile)) {
+            LOG.info("File {} is unchanged, leaving alone",
+                    destFile.getAbsolutePath());
+            tmpFile.delete();
+            return destFile;
+        } else {
+            if (!destFile.exists()) {
+                File targetDir = destFile.getParentFile();
+                LOG.info("Making target directory {}",
+                        targetDir.getAbsolutePath());
+                if (!targetDir.exists() && !targetDir.mkdirs()) {
+                    String msg = "Could not make target directory "
+                            + targetDir.getAbsolutePath();
+                    LOG.error(msg);
+                    throw new IOException(msg);
+                }
+            } else {
+                // We need to delete the old file before trying to move the new
+                // file in place over it.
+                // See https://docs.oracle.com/javase/7/docs/api/java/io/File.html#renameTo(java.io.File)
+                LOG.info("File {} is out of date, deleting",
+                        destFile.getAbsolutePath());
+                if (!destFile.delete()) {
+                    LOG.warn("Could not delete old file at {}", destFile);
+                }
+            }
+            
+            LOG.info("Moving {} to {}", tmpFile.getAbsolutePath(), destFile.getAbsolutePath());
+            try {
+                FileUtils.moveFile(tmpFile, destFile);
+            } catch (Exception e) {
+                String msg = String.format(
+                        "Unable to move file to destination %1$s: %2$s",
+                        destFile.getAbsolutePath(), e.getMessage());
+                LOG.error(msg);
+                throw new IOException(msg);
+            }            
+        }
+        
+        if (!destFile.setExecutable(true)) {
+            final String msg = "Could not make file executable at "
+                    + destFile.getAbsolutePath();
+            LOG.error(msg);
+            throw new IOException(msg);
+        }
+        
+        return destFile;
+    }
+    
+    public static boolean isSame(File a, File b) throws IOException {
+        HashCode hashA = Files.hash(b, Hashing.sha256());
+        HashCode hashB = Files.hash(a, Hashing.sha256());
+        return hashA.equals(hashB);
+    }
+    
+    /**
+     * Extracts a file from the current classloader/jar file to a temporary
+     * directory.
+     * 
+     * @param path The path of the file in the jar
+     * @return The path to the extracted file copied to the file system.
+     * @throws IOException If there's an error finding or copying the file.
+     */
+    public static File extractFileFromJar(final String path) throws IOException {
+        final File dir = Files.createTempDir();
+        return extractFileFromJar(path, dir);
+    }
+    
+    /**
+     * Extracts a file from the current classloader/jar file to the specified
+     * directory.
+     * 
+     * @param path The path of the file in the jar.
+     * @param dir The directory to extract to.
+     * @return The path to the extracted file copied to the file system.
+     * @throws IOException If there's an error finding or copying the file.
+     */
+    public static File extractFileFromJar(final String path, final File dir) 
+            throws IOException {
+        if (!dir.isDirectory() && !dir.mkdirs()) {
+            throw new IOException("Could not make temp dir at: "+path);
+        }
+        final String name = StringUtils.substringAfterLast(path, "/");
+        if (StringUtils.isBlank(name)) {
+            throw new IllegalArgumentException("Bad path: "+path);
+        }
+        final File temp = new File(dir, name);
+        if (temp.isFile()) {
+            if (!temp.delete()) {
+                LOG.error("Could not delete existing file at path {}", temp);
+            }
+        }
+        
+        InputStream is = null;
+        OutputStream os  = null;
+        try {
+            is = ClassLoader.getSystemResourceAsStream(path);
+            if (is == null) {
+                throw new IOException("No input at "+path);
+            }
+            os = new FileOutputStream(temp);
+            IOUtils.copy(is, os);
+        } finally {
+            IOUtils.closeQuietly(is);
+            IOUtils.closeQuietly(os);
+        }
+        return temp;
+    }
+    
+    /**
+     * Hack to determine whether or not Lantern is in the process of shutting
+     * down.
+     * 
+     * @return <code>true</code> if Lantern is shutting down, otherwise
+     * <code>false</code>
+     */
+    public static boolean isShuttingDown() {
+        final Thread shutdown = new Thread();
+        try {
+            Runtime.getRuntime().addShutdownHook(shutdown);
+            Runtime.getRuntime().removeShutdownHook(shutdown);
+        } catch (final IllegalStateException e ) {
+            return true;
+        }
+        return false;
     }
 }

@@ -2,9 +2,6 @@ package org.lantern.http;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -16,23 +13,21 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.lantern.Censored;
-import org.lantern.ConnectivityChangedEvent;
 import org.lantern.JsonUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
 import org.lantern.LogglyHelper;
 import org.lantern.MessageKey;
 import org.lantern.Messages;
+import org.lantern.NativeUtils;
 import org.lantern.SecurityUtils;
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
 import org.lantern.oauth.RefreshToken;
-import org.lantern.state.Connectivity;
 import org.lantern.state.FriendsHandler;
 import org.lantern.state.InternalState;
 import org.lantern.state.JsonModelModifier;
@@ -42,9 +37,9 @@ import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelService;
-import org.lantern.state.Settings;
 import org.lantern.state.SyncPath;
 import org.lantern.util.Desktop;
+import org.lantern.util.GatewayUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,7 +77,8 @@ public class InteractionServlet extends HttpServlet {
         FRIEND,
         UPDATEAVAILABLE,
         CHANGELANG, // TODO https://github.com/getlantern/lantern/issues/1088
-        REJECT
+        REJECT,
+        ROUTERCONFIG
     }
 
     // modals the user can switch to from other modals
@@ -202,6 +198,17 @@ public class InteractionServlet extends HttpServlet {
                 return;
             }
         }
+        
+        if (inter == Interaction.ROUTERCONFIG) {
+            log.debug("Got router config request!!");
+            try {
+                GatewayUtil.openGateway();
+            } catch (IOException e) {
+                log.error("Could not open gateway?", e);
+            } catch (InterruptedException e) {
+                log.error("Could not open gateway?", e);
+            }
+        }
 
         if (inter == Interaction.URL) {
             final String url = JsonUtils.getValueFromJson("url", json);
@@ -211,44 +218,7 @@ public class InteractionServlet extends HttpServlet {
                 HttpUtils.sendClientError(resp, "http(s) urls only");
                 return;
             }
-            try {
-                new URL(url);
-            } catch (MalformedURLException e) {
-                log.error("invalid url: {}", url);
-                HttpUtils.sendClientError(resp, "invalid url");
-                return;
-            }
-
-            final String cmd;
-            if (SystemUtils.IS_OS_MAC_OSX) {
-                cmd = "open";
-            } else if (SystemUtils.IS_OS_LINUX) {
-                cmd = "gnome-open";
-            } else if (SystemUtils.IS_OS_WINDOWS) {
-                cmd = "start";
-            } else {
-                log.error("unsupported OS");
-                HttpUtils.sendClientError(resp, "unsupported OS");
-                return;
-            }
-            try {
-                if (SystemUtils.IS_OS_WINDOWS) {
-                    // On Windows, we have to quote the url to allow for
-                    // e.g. ? and & characters in query string params.
-                    // To quote the url, we supply a dummy first argument,
-                    // since otherwise start treats the first argument as a
-                    // title for the new console window when it's quoted.
-                    LanternUtils.runCommand(cmd, "\"\"", "\""+url+"\"");
-                } else {
-                    // on OS X and Linux, special characters in the url make
-                    // it through this call without our having to quote them.
-                    LanternUtils.runCommand(cmd, url);
-                }
-            } catch (IOException e) {
-                log.error("open url failed");
-                HttpUtils.sendClientError(resp, "open url failed");
-                return;
-            }
+            NativeUtils.openUri(url);
             return;
         }
 
@@ -740,35 +710,6 @@ public class InteractionServlet extends HttpServlet {
                     Events.syncModal(model, Modal.giveModeForbidden);
                 }
             }
-        }
-    }
-
-    @Subscribe
-    public void onConnectivityChanged(final ConnectivityChangedEvent e) {
-        Connectivity connectivity = model.getConnectivity();
-        if (!e.isConnected()) {
-            connectivity.setInternet(false);
-            Events.sync(SyncPath.CONNECTIVITY_INTERNET, false);
-            return;
-        }
-        InetAddress ip = e.getNewIp();
-        connectivity.setIp(ip.getHostAddress());
-
-        connectivity.setInternet(true);
-        Events.sync(SyncPath.CONNECTIVITY, model.getConnectivity());
-
-        Settings set = model.getSettings();
-
-        if (set.getMode() == null || set.getMode() == Mode.unknown) {
-            if (censored.isCensored()) {
-                set.setMode(Mode.get);
-            }
-        } else if (set.getMode() == Mode.give && censored.isCensored()) {
-            // want to set the mode to get now so that we don't mistakenly
-            // proxy any more than necessary
-            set.setMode(Mode.get);
-            log.info("Disconnected; setting giveModeForbidden");
-            Events.syncModal(model, Modal.giveModeForbidden);
         }
     }
 }

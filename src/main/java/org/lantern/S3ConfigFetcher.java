@@ -1,81 +1,56 @@
 package org.lantern;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.security.SecureRandom;
 import java.util.Collection;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.SystemUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
 import org.lantern.event.Events;
+import org.lantern.oauth.OauthUtils;
 import org.lantern.proxy.FallbackProxy;
-import org.lantern.event.MessageEvent;
 import org.lantern.state.Model;
-import org.lantern.state.Notification.MessageType;
-import org.lantern.util.HttpClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
-import com.google.common.io.Files;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * This class continually fetches new Lantern configuration files on S3, 
  * dispatching events to any interested classes when and if a new configuration
  * file is found.
  */
+@Singleton
 public class S3ConfigFetcher {
 
     private static final Logger log
         = LoggerFactory.getLogger(S3ConfigFetcher.class);
 
-    // DRY: wrapper.install4j and configureUbuntu.txt
-    private static final File[] CONFIG_DIRS = {
-        new File(SystemUtils.USER_HOME),
-        new File(SystemUtils.USER_DIR)
-    };
-    
-    private static final String URL_FILENAME = ".lantern-configurl.txt";
-    private static final String LOCAL_S3_CONFIG = ".s3config";
-
-    private final Optional<String> url;
-
     private final SecureRandom random = new SecureRandom();
     
-    private static final File URL_CONFIG_FILE = 
-            new File(LanternClientConstants.CONFIG_DIR, URL_FILENAME);
-    
-    private final Timer configCheckTimer = new Timer("S3-Config-Check", true);
+    private Timer configCheckTimer;
 
     private final Model model;
+    private final OauthUtils oauth;
 
     /**
      * Creates a new class for fetching the Lantern config from S3.
      * 
      * @param model The persistent settings.
+     * @param oauth OauthUtils for performing authenticated calls to controller
      */
-    public S3ConfigFetcher(final Model model) {
+    @Inject
+    public S3ConfigFetcher(final Model model, OauthUtils oauth) {
         log.debug("Creating s3 config fetcher...");
         this.model = model;
-        this.url = readUrl();
+        this.oauth = oauth;
+        Events.register(this);
     }
     
-
-    public void start() {
+    public void init() throws InitException {
         log.debug("Starting config loading...");
         if (LanternUtils.isFallbackProxy()) {
-            return;
-        }
-        if (!this.url.isPresent()) {
-            log.debug("No url to use for downloading config");
             return;
         }
         final S3Config config = model.getS3Config();
@@ -84,25 +59,38 @@ public class S3ConfigFetcher {
         // thread here because a lot depends on this value, particularly on
         // the first run of Lantern, and we want to make sure it takes priority.
         if (config != null) {
+            log.debug("Stored S3 config: {}", config);
             // The config in the model could just be the default, so check
             // for actual fallbacks.
-            final Collection<FallbackProxy> fallbacks = config.getFallbacks();
+            final Collection<FallbackProxy> fallbacks = config.getAllFallbacks();
             if (fallbacks == null || fallbacks.isEmpty()) {
-                recheck();
+                downloadAndCompareConfig();
             } else {
                 log.debug("Using existing config...");
-                Events.asyncEventBus().post(config);
-                // If we've already got valid fallbacks, thread this so we
-                // don't hold up the rest of Lantern initialization.
-                scheduleConfigRecheck(0.0);
+                //Events.asyncEventBus().post(config);
             }
         } else {
-            recheck();
+            downloadAndCompareConfig();
         }
+        if (model.getS3Config() == null) {
+            throw new InitException("No S3Config!  This shouldn't happen, since there's both a default S3Config available as well as one that we try to fetch remotely.");
+        }
+    }
+    
+    synchronized public void stop() {
+        configCheckTimer.cancel();
+        configCheckTimer = null;
+    }
+    
+    public void start() {
+        scheduleConfigRecheck(0.0);
     }
     
     private void scheduleConfigRecheck(final double minutesToSleep) {
         log.debug("Scheduling config check...");
+        if (configCheckTimer == null) {
+            configCheckTimer = new Timer("S3-Config-Check", true);
+        }
         configCheckTimer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -112,9 +100,15 @@ public class S3ConfigFetcher {
         }, (long)(minutesToSleep * 60000));
     }
 
-    private void recheck() {
-        recheckConfig();
+    synchronized private void recheck() {
+        boolean changed = downloadAndCompareConfig();
         final S3Config config = model.getS3Config();
+        if (changed) {
+            log.info("Configuration changed");
+            Events.eventBus().post(config);
+        } else {
+            log.debug("Configuration unchanged.");
+        }
         final double newMinutesToSleep
         // Temporary network problems?  Let's retry in a few seconds.
         = (config == null) ? 0.2
@@ -125,31 +119,21 @@ public class S3ConfigFetcher {
         scheduleConfigRecheck(newMinutesToSleep);
     }
 
-
-    private void recheckConfig() {
+    private boolean downloadAndCompareConfig() {
         log.debug("Rechecking configuration");
-        final Optional<S3Config> newConfig = fetchConfig();
+        final Optional<S3Config> newConfig = fetchRemoteConfig();
         if (!newConfig.isPresent()) {
             log.error("Couldn't get new config.");
-            return;
+            return false;
         }
 
         final S3Config config = this.model.getS3Config();
-        this.model.setS3Config(newConfig.get());
-
-
-        boolean changed;
-        if (config == null) {
-            log.warn("Rechecking config with no old one.");
-            changed = true;
+        if (newConfig.isPresent()) {
+            this.model.setS3Config(newConfig.get());
+            return !newConfig.get().equals(config);
         } else {
-            changed = !newConfig.get().equals(config);
-        }
-        if (changed) {
-            log.info("Configuration changed! Reapplying...");
-            Events.eventBus().post(newConfig.get());
-        } else {
-            log.debug("Configuration unchanged.");
+            log.info("Couldn't get a remote S3 config, sticking with what we have");
+            return false;
         }
     }
 
@@ -158,138 +142,20 @@ public class S3ConfigFetcher {
         return a + (b - a) * t;
     }
 
-    private Optional<String> readUrl() {
+    private Optional<S3Config> fetchRemoteConfig() {
+        String url = LanternClientConstants.CONTROLLER_URL + "/_ah/api/s3config/v1/s3config/get";
         try {
-            copyUrlFile();
-            if (!URL_CONFIG_FILE.isFile()) {
-                log.error("Still no config file at {}", URL_CONFIG_FILE);
-                return Optional.absent();
-            }
-        } catch (final IOException e) {
-            log.warn("Couldn't copy config URL file?", e);
-            return Optional.absent();
-        }
-        
-        try {
-            final String folder = 
-                    FileUtils.readFileToString(URL_CONFIG_FILE, "UTF-8");
-            return Optional.of(LanternConstants.S3_CONFIG_BASE_URL
-                + folder.trim()
-                + "/config.json");
-        } catch (final IOException e) {
-            log.error("Couldn't read config URL file?", e);
-        }
-
-        return Optional.absent();
-    }
-
-    private Optional<S3Config> fetchConfig() {
-        Optional<S3Config> local = fetchLocalConfig();
-        if (local.isPresent()) {
-            return local;
-        }
-        if (!url.isPresent()) {
-            log.error("URL initialization failed.");
-            return Optional.absent();
-        }
-        final HttpClient client = HttpClientFactory.newDirectClient();
-        final HttpGet get = new HttpGet(url.get());
-        InputStream is = null;
-        try {
-            final HttpResponse res = client.execute(get);
-            is = res.getEntity().getContent();
-            final String cfgStr = IOUtils.toString(is);
-            //log.error("S3 Config is***********************\n{}\n**********************", cfgStr);
-            final S3Config cfg = 
+            // Note this call will block until a refresh token is available.
+            // This behavior is non-obvious, but this will only return once
+            // the user has logged in and accordingly provided a refresh
+            // token.
+            String cfgStr = oauth.getRequest(url);
+            log.debug("Fetched config string:\n{}", cfgStr);
+            S3Config cfg = 
                 JsonUtils.OBJECT_MAPPER.readValue(cfgStr, S3Config.class);
-            log.debug("Controller: " + cfg.getController());
-            log.debug("Minimum poll time: " + cfg.getMinpoll());
-            log.debug("Maximum poll time: " + cfg.getMaxpoll());
-            for (final FallbackProxy fp : cfg.getFallbacks()) {
-                log.debug("Proxy: " + fp);
-            }
             return Optional.of(cfg);
-        } catch (final IOException e) {
-            log.error("Couldn't fetch config at "+url.get(), e);
-        } finally {
-            IOUtils.closeQuietly(is);
-            get.reset();
+        } catch (Exception e) {
+            log.error("Unable to get updated S3Config from network: {}", e.getMessage(), e);
+            return Optional.absent();
         }
-        return Optional.absent();
-    }
-    
-    /**
-     * Looks for a local S3 configuration in the program's startup folder under
-     * the name .s3config
-     * 
-     * @return
-     */
-    private Optional<S3Config> fetchLocalConfig() {
-        for (File directory : CONFIG_DIRS) {
-            File file = new File(directory, LOCAL_S3_CONFIG);
-            log.debug("Checking for config at: {}", file.getAbsolutePath());
-            if (file.exists()) {
-                try {
-                    String cfgStr = FileUtils.readFileToString(file);
-                    S3Config cfg = JsonUtils.OBJECT_MAPPER.readValue(cfgStr,
-                            S3Config.class);
-                    log.info("Using local S3 configuration from: "
-                            + file.getAbsolutePath());
-                    return Optional.of(cfg);
-                } catch (Exception e) {
-                    log.warn(String.format(
-                            "Couldn't read local S3 configuration from %1$s: %2$s",
-                            file.getAbsolutePath(), e.getMessage()), e);
-                }
-            }
-        }
-        return Optional.absent();
-    }
-
-    private void copyUrlFile() throws IOException {
-        log.debug("Copying config URL file");
-        
-        final Collection<File> filesToTry = Lists.newArrayList(
-            new File(SystemUtils.getUserHome(), URL_FILENAME),
-            new File(SystemUtils.getUserDir(), URL_FILENAME)
-        );
-        if (SystemUtils.IS_OS_WINDOWS) {
-            filesToTry.add(new File(System.getenv("APPDATA")));
-        }
-        final File par = LanternClientConstants.CONFIG_DIR;
-        if (!par.isDirectory() && !par.mkdirs()) {
-            log.error("Could not make config dir at "+par);
-            throw new IOException("Could not make config dir at "+par);
-        }
-        
-        for (final File from : filesToTry) {
-            if (!from.getParentFile().isDirectory()) {
-                log.error("Parent file is not a directory at {}", 
-                        from.getParentFile());
-            }
-            if (from.isFile() && isFileNewer(from, URL_CONFIG_FILE)) {
-                log.debug("Copying from {} to {}", from, URL_CONFIG_FILE);
-                Files.copy(from, URL_CONFIG_FILE);
-                return;
-            } else {
-                log.debug("No config file at {}", from);
-            }
-        }
-        
-        if (!URL_CONFIG_FILE.isFile()) {
-            //  If we exit the loop and end up here it means we could not find
-            // a config file to copy in any of the expected locations.
-            log.error("Config file not found at any of {}", filesToTry);
-            Events.asyncEventBus().post(
-                new MessageEvent(Tr.tr(MessageKey.NO_CONFIG), MessageType.error));
-        }
-    }
-
-
-    private boolean isFileNewer(final File file, final File reference) {
-        if (reference == null || !reference.isFile()) {
-            return true;
-        }
-        return FileUtils.isFileNewer(file, reference);
-    }
-}
+    }}

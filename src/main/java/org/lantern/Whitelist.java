@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.annotation.Keep;
@@ -47,7 +48,11 @@ public class Whitelist {
      */
     private static final String[] WHITELISTS = new String[] {
             "1.0.1.txt",
-            "1.2.0.txt"
+            "1.2.0.txt",
+            "1.3.1.txt",
+            "1.4.4.txt",
+            "1.4.5.txt",
+            "1.4.7.txt"
     };
     
     private static final String ORIGINAL_WHITELIST = "original.txt";
@@ -63,7 +68,7 @@ public class Whitelist {
      */
     private Collection<WhitelistEntry> whitelist =
             new TreeSet<WhitelistEntry>();
-
+    
     /**
      * Applies the default entries from any whitelists that haven't been
      * recorded in appliedWhitelists yet.
@@ -105,7 +110,7 @@ public class Whitelist {
         } catch (Throwable t) {
             log.warn("Unable to apply whitelist {}", whitelistPath, t);
         } finally {
-
+            IOUtils.closeQuietly(reader);
         }
     }
 

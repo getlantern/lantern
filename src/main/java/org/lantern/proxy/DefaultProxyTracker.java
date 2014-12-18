@@ -1,7 +1,6 @@
 package org.lantern.proxy;
 
-import static org.lantern.state.Peer.Type.*;
-import static org.littleshoot.util.FiveTuple.Protocol.*;
+import static org.littleshoot.util.FiveTuple.Protocol.TCP;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -11,39 +10,39 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.lantern.ConnectivityChangedEvent;
 import org.lantern.ConnectivityStatus;
 import org.lantern.LanternTrustStore;
-import org.lantern.LanternUtils;
 import org.lantern.PeerFactory;
 import org.lantern.S3Config;
 import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.ResetEvent;
+import org.lantern.kscope.ReceivedKScopeAd;
+import org.lantern.network.InstanceInfo;
+import org.lantern.network.NetworkTracker;
+import org.lantern.network.NetworkTrackerListener;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
-import org.lantern.state.Peer.Type;
+import org.lantern.state.PeerType;
 import org.lantern.state.SyncPath;
 import org.lantern.util.Threads;
-import org.littleshoot.util.FiveTuple;
 import org.littleshoot.util.FiveTuple.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -52,15 +51,13 @@ import com.google.inject.Singleton;
  * Class for keeping track of all proxies we know about.
  */
 @Singleton
-public class DefaultProxyTracker implements ProxyTracker {
-    private static final FiveTuple EMPTY_UDP_TUPLE = new FiveTuple(null, null,
-            UDP);
+public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener<URI, ReceivedKScopeAd> {
 
     private static final Logger LOG = LoggerFactory
             .getLogger(DefaultProxyTracker.class);
 
-    private final ProxyPrioritizer PROXY_PRIORITIZER = new ProxyPrioritizer();
-
+    // Tracks proxies in the current configuration, used to identify when the
+    // configuration has changed.
     private final Set<ProxyInfo> configuredProxies = new HashSet<ProxyInfo>();
     
     /**
@@ -73,31 +70,42 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private final PeerFactory peerFactory;
 
-    private final ScheduledExecutorService proxyRetryService = Threads
-            .newScheduledThreadPool("Proxy-Retry");
+    private ScheduledExecutorService proxyRetryService;
 
     private final LanternTrustStore lanternTrustStore;
-
+    
     /**
-     * This is a lock for when we need to block on retrieving a TCP proxy, such
-     * as when we need to access a blocked site over HTTP during initial setup.
+     * We offload TCP connections to a thread to avoid callers waiting on
+     * potentially slow connections to peers.
      */
-    private final ReentrantLock tcpProxyLock = new ReentrantLock();
-
-    /**
-     * Condition for when there are no proxies -- threads needing proxies wait
-     * on this until proxies are available within the timeout or not.
-     */
-    private final Condition noProxies = this.tcpProxyLock.newCondition();
+    private final ExecutorService proxyConnect = 
+            Threads.newCachedThreadPool("Proxy-Connect-Thread-");
 
     @Inject
-    public DefaultProxyTracker(final Model model,
+    public DefaultProxyTracker(
+            final Model model,
             final PeerFactory peerFactory,
-            final LanternTrustStore lanternTrustStore) {
+            final LanternTrustStore lanternTrustStore,
+            final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker) {
         this.model = model;
         this.peerFactory = peerFactory;
         this.lanternTrustStore = lanternTrustStore;
+        networkTracker.addListener(this);
 
+        Events.register(this);
+    }
+    
+    @Override
+    public void init() {
+        onNewS3Config(this.model.getS3Config());
+        restoreDeceasedProxies();
+    }
+    
+    @Override
+    public void start() {
+        LOG.debug("Starting...");
+        proxyRetryService = Threads
+                .newScheduledThreadPool("Proxy-Retry");
         // Periodically restore timed in proxies
         proxyRetryService.scheduleWithFixedDelay(new Runnable() {
             @Override
@@ -105,37 +113,83 @@ public class DefaultProxyTracker implements ProxyTracker {
                 restoreTimedInProxies();
             }
         }, 100, 100, TimeUnit.MILLISECONDS);
-
-        Events.register(this);
+    }
+    
+    @Override
+    public void stop() {
+        LOG.debug("Stopping...");
+        // The proxyRetryService could be null if we haven't started yet.
+        if (proxyRetryService != null) {
+            proxyRetryService.shutdownNow();
+        }
     }
 
     @Subscribe
     public void onNewS3Config(final S3Config config) {
-        LOG.debug("Refreshing fallbacks");
-        Set<ProxyHolder> fallbacks = new HashSet<ProxyHolder>();
-        for (ProxyHolder p : proxies) {
-            if (p.getType() == Type.cloud) {
-                LOG.debug("Removing fallback (I may readd it shortly): ",
-                        p.getJid());
-                fallbacks.add(p);
-                p.stopPtIfNecessary();
+        Set<ProxyInfo> newFallbacks = new HashSet<ProxyInfo>(config.getAllFallbacks());
+        Set<ProxyInfo> removed = new HashSet<ProxyInfo>();
+        
+        LOG.info("Processing new S3Config with {} fallbacks", newFallbacks.size());
+        synchronized (configuredProxies) {
+            // Remove proxies from configuration that are no longer in the S3 config
+            Iterator<ProxyInfo> it = configuredProxies.iterator();
+            while (it.hasNext()) {
+                ProxyInfo info = it.next();
+                if (info.getType() == PeerType.cloud
+                        && !newFallbacks.contains(info)) {
+                    LOG.info("Removing proxy from configuration: {}", info);
+                    it.remove();
+                    removed.add(info);
+                }
             }
         }
-        proxies.removeAll(fallbacks);
-        Iterator<ProxyInfo> it = configuredProxies.iterator();
-        while (it.hasNext()) {
-            ProxyInfo info = it.next();
-            if (info.getType() == Type.cloud) {
-                it.remove();
+        synchronized (proxies) {
+            // Remove proxies that are no longer configured
+            Iterator<ProxyHolder> it = proxies.iterator();
+            while (it.hasNext()) {
+                ProxyHolder proxy = it.next();
+                if (removed.contains(proxy.getInfo())) {
+                    LOG.info("Removing proxy from rotation: {}", proxy);
+                    it.remove();
+                    proxy.stopPtIfNecessary();
+                }
             }
         }
         addFallbackProxies(config);
+        
+        LOG.info("Done processing new S3Config with {} fallbacks", newFallbacks.size());
+    }
+    
+    @Override
+    public void instanceOnlineAndTrusted(
+            InstanceInfo<URI, ReceivedKScopeAd> instance) {
+        LOG.debug("Adding proxy... {}", instance);
+        if (instance.hasMappedEndpoint()) {
+            final ProxyInfo info = instance.getData().getAd().getProxyInfo();
+            
+            if (info != null) {
+                addProxy(info);
+                // Also add the local network advertisement in case they're on
+                // the local network.
+                addProxy(info.onLan());
+            }
+        }
+    }
+    
+    @Override
+    public void instanceOfflineOrUntrusted(
+            InstanceInfo<URI, ReceivedKScopeAd> instance) {
+        URI jid = instance.getId();
+        LOG.debug("Removing proxy for {}", jid);
+        removeNattedProxy(jid);
     }
 
     @Override
     public void clear() {
-        for (ProxyHolder proxy : proxies) {
-            proxy.stopPtIfNecessary();
+        synchronized (proxies) {
+            for (ProxyHolder proxy : proxies) {
+                proxy.stopPtIfNecessary();
+            }
         }
         proxies.clear();
 
@@ -145,17 +199,19 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public void clearPeerProxySet() {
-        Iterator<ProxyHolder> it = proxies.iterator();
-        while (it.hasNext()) {
-            if (it.next().isNatTraversed()) {
-                it.remove();
+        synchronized (proxies) {
+            Iterator<ProxyHolder> it = proxies.iterator();
+            while (it.hasNext()) {
+                if (it.next().isNatTraversed()) {
+                    it.remove();
+                }
             }
         }
     }
 
     @Override
-    public void addProxy(ProxyInfo info) {
-        synchronized (this) {
+    public void addProxy(final ProxyInfo info) {
+        synchronized (configuredProxies) {
             if (configuredProxies.contains(info)) {
                 LOG.debug("Proxy already configured.  Configured proxies is: {}", configuredProxies);
                 return;
@@ -163,8 +219,8 @@ public class DefaultProxyTracker implements ProxyTracker {
             configuredProxies.add(info);
         }
         InetAddress remoteAddress = null;
-        if (info != null && info.getWanAddress() != null) {
-            remoteAddress = info.getWanAddress().getAddress();
+        if (info != null && info.wanAddress() != null) {
+            remoteAddress = info.wanAddress().getAddress();
         }
         if (remoteAddress != null) {
             if (remoteAddress.isLoopbackAddress()
@@ -183,26 +239,22 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public void removeNattedProxy(final URI uri) {
-        Iterator<ProxyHolder> it = proxies.iterator();
-        while (it.hasNext()) {
-            ProxyHolder proxy = it.next();
-            if (proxy.getJid().equals(uri) && proxy.isNatTraversed()) {
-                LOG.debug("Removing peer by request: {}", uri);
-                it.remove();
+        synchronized (this.proxies) {
+            Iterator<ProxyHolder> it = proxies.iterator();
+            while (it.hasNext()) {
+                ProxyHolder proxy = it.next();
+                if (proxy.getJid().equals(uri) && proxy.isNatTraversed()) {
+                    LOG.debug("Removing peer by request: {}", uri);
+                    it.remove();
+                }
             }
-        }
-    }
-
-    @Subscribe
-    public void onConnectivityChanged(ConnectivityChangedEvent e) {
-        LOG.debug("Got connectivity changed event: {}", e);
-        if (e.isConnected()) {
-            restoreDeceasedProxies();
         }
     }
 
     @Override
     public void onCouldNotConnect(final ProxyHolder proxy) {
+        LOG.info("Could not connect!!");
+        
         // This can happen in several scenarios. First, it can happen if you've
         // actually disconnected from the internet. Second, it can happen if
         // the proxy is blocked. Third, it can happen when the proxy is simply
@@ -218,9 +270,12 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public void onError(final URI peerUri) {
-        for (ProxyHolder proxy : proxies) {
-            if (proxy.getJid().equals(peerUri)) {
-                proxy.failedToConnect();
+        LOG.info("Error on peer {}", peerUri);
+        synchronized (proxies) {
+            for (ProxyHolder proxy : proxies) {
+                if (proxy.getJid().equals(peerUri)) {
+                    proxy.failedToConnect();
+                }
             }
         }
         notifyProxiesSize();
@@ -236,11 +291,6 @@ public class DefaultProxyTracker implements ProxyTracker {
         clear();
     }
 
-    @Override
-    public void stop() {
-        proxyRetryService.shutdownNow();
-    }
-
     @Subscribe
     public void onModeChanged(final ModeChangedEvent event) {
         LOG.debug("Received mode changed event: {}", event);
@@ -250,13 +300,16 @@ public class DefaultProxyTracker implements ProxyTracker {
     @Override
     public Collection<ProxyHolder> getConnectedProxiesInOrderOfFallbackPreference() {
         List<ProxyHolder> result = new ArrayList<ProxyHolder>();
-        for (ProxyHolder proxy : proxies) {
-            if (proxy.isConnected()) {
-                result.add(proxy);
+        synchronized (this.proxies) {
+            for (ProxyHolder proxy : proxies) {
+                if (proxy.isConnected()) {
+                    result.add(proxy);
+                }
             }
         }
-        Collections.sort(result, PROXY_PRIORITIZER);
-        return result;
+        Collections.sort(result, 
+                new ProxyPrioritizer(this.model.getSettings().getUdpProxyPriority()));
+        return ImmutableList.copyOf(result);
     }
 
     @Override
@@ -271,16 +324,22 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private void doAddProxy(final ProxyHolder proxy) {
         LOG.info("Adding proxy {} {}", proxy.getJid(), proxy);
-        proxies.add(proxy);
-        LOG.info("Proxies is now {}", proxies);
-        if (proxy.getType() == Peer.Type.cloud) {
+        
+        synchronized (proxies) {
+            // We need to remove the old proxy that may match the base JID and
+            // IP/port pair of this new proxy and replace it with all the new
+            // info. This will overwrite any connection retry data, for example,
+            // and will ensure that we don't have duplicate entries for the
+            // same remote peer on the same machine.
+            proxies.remove(proxy);
+            proxies.add(proxy);
+            LOG.info("Proxies is now {}", proxies);
+        }
+        if (proxy.getType() == PeerType.cloud) {
             // Assume cloud proxies to be connected
             successfullyConnectedToProxy(proxy);
         } else {
-            // Assume other proxies to not be connected and let the
-            // {@link #restoreTimedInProxies()} logic pick it up on its next
-            // run
-            onCouldNotConnect(proxy);
+            checkConnectivityToProxy(proxy);
         }
 
     }
@@ -290,9 +349,12 @@ public class DefaultProxyTracker implements ProxyTracker {
             // NAT traversed UDP proxies are currently disabled
             // checkConnectivityToNattedProxy(proxy);
         } else {
-            if (proxy.getType() == Peer.Type.cloud) {
+            if (proxy.getType() == PeerType.cloud) {
                 // Assume cloud proxies to be connected
-                proxy.markConnected();
+                
+                // Make sure our bookkeeping is in order, particularly our
+                // nproxies count.
+                successfullyConnectedToProxy(proxy);
             } else if (proxy.getFiveTuple().getProtocol() == TCP) {
                 checkConnectivityToTcpProxy(proxy);
             } else {
@@ -301,52 +363,52 @@ public class DefaultProxyTracker implements ProxyTracker {
             }
         }
     }
-
-    private void checkConnectivityToTcpProxy(final ProxyHolder proxy) {
-        final Socket sock = new Socket();
-        final InetSocketAddress remote = proxy.getFiveTuple()
-                .getRemote();
-        try {
-            sock.connect(remote, 60 * 1000);
-            notifyTcpProxyAvailable();
-            successfullyConnectedToProxy(proxy);
-        } catch (final IOException e) {
-            // This can happen if the user has subsequently gone
-            // offline, for example.
-            LOG.debug("Could not connect to proxy: {}", proxy, e);
-            onCouldNotConnect(proxy);
-
-            if (proxy.attemptNatTraversalIfConnectionFailed()) {
-                addProxy(new ProxyInfo(proxy.getJid()));
-            }
-        } finally {
-            IOUtils.closeQuietly(sock);
-        }
-    }
+    
 
     /**
-     * Let threads waiting on the first connected TCP proxy know that we now
-     * have one.
+     * Threaded connectivity check to peer TCP proxies to avoid callers
+     * unexpectedly blocking on checks for as much as the socket connect
+     * timeout.
+     * 
+     * @param proxy The proxy to check.
      */
-    private void notifyTcpProxyAvailable() {
-        LOG.debug("Got TCP proxy...unlocking");
-        this.tcpProxyLock.lock();
-        try {
-            noProxies.signalAll();
-        } finally {
-            this.tcpProxyLock.unlock();
-        }
+    private void checkConnectivityToTcpProxy(final ProxyHolder proxy) {
+        proxyConnect.submit(new Runnable() {
+
+            @Override
+            public void run() {
+                final Socket sock = new Socket();
+                final InetSocketAddress remote = proxy.getFiveTuple()
+                        .getRemote();
+                try {
+                    sock.connect(remote, 60 * 1000);
+                    successfullyConnectedToProxy(proxy);
+                } catch (final IOException e) {
+                    // This can happen if the user has subsequently gone
+                    // offline, for example.
+                    LOG.debug("Could not connect to proxy: {}", proxy, e);
+                    onCouldNotConnect(proxy);
+
+                    if (proxy.attemptNatTraversalIfConnectionFailed()) {
+                        addProxy(new ProxyInfo(proxy.getJid(), 1000));
+                    }
+                } finally {
+                    IOUtils.closeQuietly(sock);
+                }
+            }
+        });
     }
 
     /**
      * Let the world know that we've successfully connected to the proxy.
      * 
-     * @param proxy
+     * @param proxy The proxy we connected.
      */
     private void successfullyConnectedToProxy(ProxyHolder proxy) {
+        final InetSocketAddress isa = proxy.getFiveTuple().getRemote();
+        final URI fullJid =  proxy.getJid();
         LOG.debug("Connected to proxy: {}", proxy);
-        peerFactory.onOutgoingConnection(proxy.getJid(), proxy.getFiveTuple()
-                .getRemote(), proxy.getType());
+        peerFactory.onOutgoingConnection(proxy.getJid(), isa, proxy.getType());
         proxy.markConnected();
 
         LOG.debug("Dispatching CONNECTED event");
@@ -354,13 +416,20 @@ public class DefaultProxyTracker implements ProxyTracker {
                 new ProxyConnectionEvent(ConnectivityStatus.CONNECTED));
 
         notifyProxiesSize();
+        
+        /* do geolocation now that we've registered a proxy */
+        final Peer peer = this.model.getPeerCollector().getPeer(fullJid);
+        peerFactory.updateGeoData(peer, isa.getAddress());
     }
 
     private void notifyProxiesSize() {
         int numberOfConnectedProxies = 0;
-        for (ProxyHolder proxy : proxies) {
-            if (proxy.isConnected()) {
-                numberOfConnectedProxies += 1;
+        synchronized (proxies) {
+            LOG.debug("Proxies are: {}", proxies);
+            for (ProxyHolder proxy : proxies) {
+                if (proxy.isConnected()) {
+                    numberOfConnectedProxies += 1;
+                }
             }
         }
         model.getConnectivity().setNProxies(numberOfConnectedProxies);
@@ -374,31 +443,35 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private void restoreTimedInProxies() {
         long now = new Date().getTime();
-        for (ProxyHolder proxy : proxies) {
-            if (proxy.needsConnectionTest()) {
-                if (now > proxy.getRetryTime()) {
-                    LOG.debug("Attempting to restore timed-in proxy: {}", proxy);
-                    checkConnectivityToProxy(proxy);
-                } else {
-                    LOG.debug("Proxy not yet ready to retry: {}", proxy);
-                    break;
+        synchronized (proxies) {
+            for (ProxyHolder proxy : proxies) {
+                if (proxy.needsConnectionTest()) {
+                    if (now > proxy.getRetryTime()) {
+                        LOG.debug("Attempting to restore timed-in proxy: {}", proxy);
+                        checkConnectivityToProxy(proxy);
+                    } else {
+                        LOG.debug("Proxy not yet ready to retry: {}", proxy);
+                        break;
+                    }
                 }
             }
         }
     }
 
     private void restoreDeceasedProxies() {
-        LOG.debug("Checking to restore {} proxies", proxies.size());
-        for (ProxyHolder proxy : proxies) {
-            if (proxy.needsConnectionTest()) {
-                LOG.debug("Attempting to restore deceased proxy: {}", proxy);
-                // Proxy may have accumulated a long back-off time while we
-                // were offline, so let's reset its failures.
-                proxy.resetRetryInterval();
-                checkConnectivityToProxy(proxy);
-            } else {
-                LOG.debug("Proxy does not need a connection test: {}", proxy);
-                break;
+        synchronized (proxies) {
+            LOG.debug("Checking to restore {} proxies", proxies.size());
+            for (ProxyHolder proxy : proxies) {
+                if (proxy.needsConnectionTest()) {
+                    LOG.debug("Attempting to restore deceased proxy: {}", proxy);
+                    // Proxy may have accumulated a long back-off time while we
+                    // were offline, so let's reset its failures.
+                    proxy.resetRetryInterval();
+                    checkConnectivityToProxy(proxy);
+                } else {
+                    LOG.debug("Proxy does not need a connection test: {}", proxy);
+                    break;
+                }
             }
         }
     }
@@ -409,84 +482,26 @@ public class DefaultProxyTracker implements ProxyTracker {
             return;
         }
         LOG.debug("Attempting to add fallback proxies");
-        for (final FallbackProxy fp : config.getFallbacks()) {
+        for (final FallbackProxy fp : config.getAllFallbacks()) {
             addSingleFallbackProxy(fp);
         }
     }
 
-    private void addSingleFallbackProxy(FallbackProxy fallbackProxy) {
-        LOG.debug("Attempting to add single fallback proxy");
+    @Override
+    public void addSingleFallbackProxy(FallbackProxy fallbackProxy) {
+        LOG.debug("Attempting to add single fallback proxy: {}", fallbackProxy);
 
         final String cert = fallbackProxy.getCert();
         if (StringUtils.isNotBlank(cert)) {
             lanternTrustStore.addCert(cert);
         } else {
-            LOG.warn("Fallback with no cert? {}", fallbackProxy);
+            // Likely flashlight -- the cert is handled internally there.
+            LOG.debug("Fallback with no cert? {}", fallbackProxy);
         }
-        final URI uri = LanternUtils.newURI("fallback-" + fallbackProxy.getWanHost()
-                + "@getlantern.org");
-        fallbackProxy.setJid(uri);
-        final Peer cloud = this.peerFactory.addPeer(uri, Type.cloud);
+        final Peer cloud = this.peerFactory.addPeer(fallbackProxy.getJid(), PeerType.cloud);
         cloud.setMode(org.lantern.state.Mode.give);
 
         LOG.debug("Adding fallback: {}", fallbackProxy.getWanHost());
         addProxy(fallbackProxy);
-    }
-
-    /**
-     * <p>
-     * Prioritizes proxies based on the following rules (highest to lowest):
-     * </p>
-     * 
-     * <ol>
-     * <li>Prioritize other Lanterns over fallback proxies</li>
-     * <li>Prioritize TCP over UDP</li>
-     * <li>Prioritize proxies to whom we have fewer open sockets</li>
-     * </ol>
-     */
-    private class ProxyPrioritizer implements Comparator<ProxyHolder> {
-        @Override
-        public int compare(ProxyHolder a, ProxyHolder b) {
-            // Prioritize other Lanterns over fallback proxies
-            Type typeA = a.getType();
-            Type typeB = b.getType();
-            if (typeA == pc && typeB != pc) {
-                return -1;
-            } else if (typeB == pc && typeA != pc) {
-                return 1;
-            }
-
-            // Prioritize TCP over UDP
-            int protocolPriority = 0;
-            Protocol protocolA = a.getFiveTuple().getProtocol();
-            Protocol protocolB = b.getFiveTuple().getProtocol();
-            if (protocolA == TCP && protocolB != TCP) {
-                protocolPriority = -1;
-            } else if (protocolB == TCP && protocolA != TCP) {
-                protocolPriority = 1;
-            }
-            // Adjust protocolPriority based on configured UDP proxy priority
-            protocolPriority = model.getSettings().getUdpProxyPriority()
-                    .adjustComparisonResult(protocolPriority);
-            if (protocolPriority != 0) {
-                return protocolPriority;
-            }
-
-            // Prioritize based on least number of open sockets
-            long numberOfSocketsA = a.getPeer().getNSockets();
-            long numberOfSocketsB = b.getPeer().getNSockets();
-            if (numberOfSocketsA < numberOfSocketsB) {
-                return -1;
-            } else if (numberOfSocketsB > numberOfSocketsA) {
-                return 1;
-            } else {
-                return 0;
-            }
-        }
-    }
-
-    @Override
-    public void start() throws Exception {
-        // Do nothing.
     }
 }

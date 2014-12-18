@@ -41,11 +41,6 @@ public class ProxifierTest {
             }
             
             @Override
-            public boolean isOauthConfigured() {
-                return false;
-            }
-            
-            @Override
             public boolean isInClosedBeta(String email) {
                 return false;
             }
