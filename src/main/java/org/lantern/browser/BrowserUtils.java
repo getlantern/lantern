@@ -35,8 +35,29 @@ public class BrowserUtils {
      * @param windowWidth The desired window width.
      * @param windowHeight The desired window height.
      */
-    public static void addDefaultChromeArgs(final List<String> commands, 
-            final int windowWidth, final int windowHeight) {
+    public static void addDefaultChromeArgs(final List<String> commands) {
+        commands.add("--disable-translate");
+        commands.add("--disable-sync");
+        commands.add("--no-default-browser-check");
+        commands.add("--disable-metrics");
+        commands.add("--disable-metrics-reporting");
+        commands.add("--temp-profile");
+        commands.add("--no-first-run");
+        commands.add("--disable-plugins");
+        commands.add("--disable-java");
+        commands.add("--disable-extensions");
+    }
+    
+    /**
+     * Adds arguments to make chrome as app-like as possible.
+     * 
+     * @param commands The list of commands to add arguments to.
+     * @param windowWidth The desired window width.
+     * @param windowHeight The desired window height.
+     * @param uri The URI to open in the browser.
+     */
+    public static void addAppWindowArgs(final List<String> commands, 
+            final int windowWidth, final int windowHeight, final String uri) {
         
         // We need to use a custom data directory because if we
         // don't the process ID we get back will correspond with
@@ -51,17 +72,8 @@ public class BrowserUtils {
         final Point location = 
                 LanternUtils.getScreenCenter(windowWidth, windowHeight);
         commands.add("--window-position=" + location.x + "," + location.y);
-        commands.add("--disable-translate");
-        commands.add("--disable-sync");
-        commands.add("--no-default-browser-check");
-        commands.add("--disable-metrics");
-        commands.add("--disable-metrics-reporting");
-        commands.add("--temp-profile");
         commands.add("--new-window");
-        commands.add("--no-first-run");
-        commands.add("--disable-plugins");
-        commands.add("--disable-java");
-        commands.add("--disable-extensions");
+        commands.add("--app=" + uri);
     }
     
     /**

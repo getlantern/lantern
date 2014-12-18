@@ -37,7 +37,7 @@ public class LanternBrowserService implements BrowserService {
         if (SystemUtils.IS_OS_WINDOWS) {
             this.browser = new WindowsBrowser(SCREEN_WIDTH, SCREEN_HEIGHT);
         } else if (SystemUtils.IS_OS_MAC_OSX) {
-            this.browser = new OsxBrowser(SCREEN_WIDTH, SCREEN_WIDTH);
+            this.browser = new OsxBrowser();
         } else if (SystemUtils.IS_OS_LINUX) {
             this.browser = new UbuntuBrowser(SCREEN_WIDTH, SCREEN_WIDTH);
         } else {
@@ -49,12 +49,10 @@ public class LanternBrowserService implements BrowserService {
     /**
      * Opens the browser.
      */
-    @Override
-    public void openBrowser() {
+    private void openBrowser() {
         final Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
-                //buildBrowser();
                 launchBrowser(StaticSettings.getApiPort(), StaticSettings.getPrefix());
             }
         }, "Chrome-Browser-Launch-Thread");
@@ -66,12 +64,10 @@ public class LanternBrowserService implements BrowserService {
      * Opens the browser.
      * @param port 
      */
-    @Override
-    public void openBrowser(final int port, final String prefix) {
+    private void openBrowser(final int port, final String prefix) {
         final Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
-                //buildBrowser();
                 launchBrowser(port, prefix);
             }
         }, "Chrome-Browser-Launch-Thread");
@@ -120,8 +116,7 @@ public class LanternBrowserService implements BrowserService {
         openBrowserWhenPortReady(port, prefix);
     }
     
-    @Override
-    public void openBrowserWhenPortReady(final int port, final String prefix) {
+    private void openBrowserWhenPortReady(final int port, final String prefix) {
         log.debug("Waiting for server...");
         final long start = System.currentTimeMillis();
         LanternUtils.waitForServer(port);

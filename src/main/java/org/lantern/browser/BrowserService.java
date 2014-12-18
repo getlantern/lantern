@@ -2,14 +2,10 @@ package org.lantern.browser;
 
 import org.lantern.LanternService;
 
-
+/**
+ * Interface for interacting with the browser.
+ */
 public interface BrowserService extends LanternService {
-
-    void openBrowser();
-
-    void openBrowser(int port, final String prefix);
-
-    void openBrowserWhenPortReady(int port, final String prefix);
 
     void openBrowserWhenPortReady();
 

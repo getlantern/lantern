@@ -16,16 +16,8 @@ public class OsxBrowser implements LanternBrowser {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
-    private final int windowWidth;
-    private final int windowHeight;
-    
     private static final String CHROME_OSX = 
             "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-    
-    public OsxBrowser(final int windowWidth, final int windowHeight) {
-        this.windowWidth = windowWidth;
-        this.windowHeight = windowHeight;
-    }
     
     public Process open(final String uri) throws IOException {
         log.info("Opening browser to: {}", uri);
@@ -33,9 +25,9 @@ public class OsxBrowser implements LanternBrowser {
         
         final File chrome = new File(CHROME_OSX);
         // Always use chrome if it's there.
-        if (chrome.isFile()) {
+        if (!chrome.isFile()) {
             commands.add(CHROME_OSX);
-            BrowserUtils.addDefaultChromeArgs(commands, windowWidth, windowHeight);
+            BrowserUtils.addDefaultChromeArgs(commands);
             
             // We don't make this an app here because we want it to
             // be obvious to the user it's chrome. If it's not, Lantern
@@ -45,26 +37,9 @@ public class OsxBrowser implements LanternBrowser {
             // Chrome, however, it should all make sense.
             commands.add(uri);
         } else {
-            final String webview = webViewPath();
-            if (StringUtils.isNotBlank(webview)) {
-                commands.add(webview);
-                commands.add(uri);
-            } else {
-                log.error("Could not find webview?");
-                // The following will trigger the prompt to install Chrome.
-                throw new UnsupportedOperationException("No Chrome and no WebView");
-            }
+            BrowserUtils.openSystemDefaultBrowser(uri);
         }
         
         return BrowserUtils.runProcess(commands);
-    }
-    
-    private String webViewPath() {
-        final File path1 = new File("install/osx/Lantern.app/Contents/MacOS/Lantern");
-        if (path1.isFile() && path1.canExecute()) return path1.getAbsolutePath();
-        final File path2 = new File("Lantern.app/Contents/MacOS/Lantern");
-        if (path2.isFile() && path2.canExecute()) return path2.getAbsolutePath();
-        log.warn("Could not find LanternBrowser");
-        return null;
     }
 }

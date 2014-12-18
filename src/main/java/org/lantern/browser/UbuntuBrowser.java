@@ -46,7 +46,9 @@ public class UbuntuBrowser implements LanternBrowser {
                 // http://peter.sh/experiments/chromium-command-line-switches/
                 final List<String> commands = new ArrayList<String>();
                 commands.add(path);
-                BrowserUtils.addDefaultChromeArgs(commands, this.windowWidth, this.windowHeight);
+                BrowserUtils.addDefaultChromeArgs(commands);
+                BrowserUtils.addAppWindowArgs(commands, this.windowWidth, 
+                        this.windowHeight, uri);
                 commands.add("--app=" + uri);
                 return BrowserUtils.runProcess(commands);
             }

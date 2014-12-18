@@ -35,34 +35,33 @@ public class WindowsBrowser implements LanternBrowser {
     public Process open(final String uri) throws IOException {    
         final List<String> commands = new ArrayList<String>();
         final String path;
-    	final String chromePath = determineExecutablePath("/Google/Chrome/Application/chrome.exe");
-    	if (StringUtils.isBlank(chromePath)) {
-    		log.info("Looking for firefox...");
-    		path = determineExecutablePath("/Mozilla Firefox/firefox.exe");
-    		commands.add(path);
-    		commands.add("-width");
-    		commands.add(String.valueOf(windowWidth));
+        final String chromePath = determineExecutablePath("/Google/Chrome/Application/chrome.exe");
+        if (StringUtils.isBlank(chromePath)) {
+            log.info("Looking for firefox...");
+            path = determineExecutablePath("/Mozilla Firefox/firefox.exe");
+            commands.add(path);
+            commands.add("-width");
+            commands.add(String.valueOf(windowWidth));
             commands.add("-height");
             commands.add(String.valueOf(windowHeight));
-    		commands.add(uri);
-    	} else {
-    		path = chromePath;
-    		commands.add(path);
-            BrowserUtils.addDefaultChromeArgs(commands, this.windowWidth, 
-                    this.windowHeight);
-            commands.add("--app=" + uri);
-    	}
-    	
-    	if (!StringUtils.isBlank(path)) {
-    		log.info("Running with commands: {}", commands);
-    		return BrowserUtils.runProcess(commands);
-    	};
-    	
+            commands.add(uri);
+        } else {
+            path = chromePath;
+            commands.add(path);
+            BrowserUtils.addDefaultChromeArgs(commands);
+            BrowserUtils.addAppWindowArgs(commands, windowWidth, windowHeight, uri);
+        }
+        
+        if (!StringUtils.isBlank(path)) {
+            log.info("Running with commands: {}", commands);
+            return BrowserUtils.runProcess(commands);
+        };
+        
         // At this point we've searched for Chrome and Firefox but have not found 
-    	// either. It's always possible either exists but in another location,
-    	// so check if they're the default and launch if they are. This has the 
-    	// downside of the browser window not getting killed when Lantern
-    	// shuts down because we don't know the process ID.
+        // either. It's always possible either exists but in another location,
+        // so check if they're the default and launch if they are. This has the 
+        // downside of the browser window not getting killed when Lantern
+        // shuts down because we don't know the process ID.
         if (BrowserUtils.firefoxOrChromeIsDefaultBrowser()) {
             BrowserUtils.openSystemDefaultBrowser(uri);
             return null;
