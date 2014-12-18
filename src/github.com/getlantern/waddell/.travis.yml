@@ -6,7 +6,7 @@ go:
 install:
   - go get -d -t -v ./...
   - go build -v ./...
-  - go get code.google.com/p/go.tools/cmd/cover
+  - go get golang.org/x/tools/cmd/cover
   - go get -v github.com/axw/gocov/gocov
   - go get -v github.com/mattn/goveralls
 

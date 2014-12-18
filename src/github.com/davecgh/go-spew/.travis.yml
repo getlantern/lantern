@@ -1,7 +1,7 @@
 language: go
 go: 1.2
 install:
-    - go get -v code.google.com/p/go.tools/cmd/cover
+    - go get -v golang.org/x/tools/cmd/cover
 script:
     - go test -v -tags=testcgo ./spew -covermode=count -coverprofile=profile.cov
 after_success:
