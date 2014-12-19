@@ -22,8 +22,9 @@
 package igdman
 
 import (
-	"log"
 	"time"
+
+	"github.com/getlantern/golog"
 )
 
 // protocol is TCP or UDP
@@ -35,6 +36,8 @@ const (
 )
 
 var (
+	log = golog.LoggerFor("igdman")
+
 	opTimeout = 10 * time.Second
 )
 
@@ -55,7 +58,7 @@ type IGD interface {
 func NewIGD() (igd IGD, err error) {
 	igd, err = NewUpnpIGD()
 	if err != nil {
-		log.Printf("Unable to initialize UPnP IGD, falling back to NAT-PMP: %s", err)
+		log.Debugf("Unable to initialize UPnP IGD, falling back to NAT-PMP: %s", err)
 		igd, err = NewNATPMPIGD()
 	}
 	return
