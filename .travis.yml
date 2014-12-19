@@ -10,4 +10,6 @@ install:
 
 script:
   - ./testandcover.bash
+
+after_success:
   - GOPATH=`pwd`:$GOPATH $HOME/gopath/bin/goveralls -coverprofile=profile.cov -service=travis-ci
