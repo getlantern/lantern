@@ -343,7 +343,7 @@ public class Flashlight extends BasePluggableTransport {
         }
     }
 
-    private void postConfig(String path, Map data) throws Exception {
+    private void postConfig(String path, Map<String, Object> data) throws Exception {
         postConfig(path, new Yaml().dump(data));
     }
 
