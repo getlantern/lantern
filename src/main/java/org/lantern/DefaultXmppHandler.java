@@ -699,7 +699,7 @@ public class DefaultXmppHandler implements XmppHandler {
         else {
             LOG.info("Removing JID for peer '" + from);
             try {
-                String advertisingUser = XmppUtils.jidToUser(from);
+                String advertisingUser = LanternXmppUtils.jidToEmail(from);
                 this.networkTracker.instanceOffline(advertisingUser, new URI(
                         from));
             } catch (URISyntaxException e) {
