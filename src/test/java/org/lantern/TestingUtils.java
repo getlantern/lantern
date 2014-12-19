@@ -168,7 +168,7 @@ public class TestingUtils {
         final PeerFactory peerFactory = 
             new DefaultPeerFactory(geoIpLookupService, model, roster);
         final ProxyTracker proxyTracker = 
-            new DefaultProxyTracker(model, peerFactory, trustStore, new NetworkTracker<String, URI, ReceivedKScopeAd>(), null);
+            new DefaultProxyTracker(model, peerFactory, trustStore, new NetworkTracker<String, URI, ReceivedKScopeAd>());
         final KscopeAdHandler kscopeAdHandler = 
             new DefaultKscopeAdHandler(trustStore, routingTable, networkTracker);
         final NatPmpService natPmpService = new NatPmpService() {
