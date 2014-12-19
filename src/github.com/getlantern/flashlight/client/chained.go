@@ -55,8 +55,10 @@ func (s *ChainedServerInfo) dialer() (*balancer.Dialer, error) {
 			return nil, fmt.Errorf("Unable to parse certificate: %s", err)
 		}
 		x509cert := cert.X509()
+		sessionCache := tls.NewLRUClientSessionCache(1000)
 		dial = func() (net.Conn, error) {
 			conn, err := tlsdialer.DialWithDialer(netd, "tcp", s.Addr, false, &tls.Config{
+				ClientSessionCache: sessionCache,
 				InsecureSkipVerify: true,
 			})
 			if err != nil {
