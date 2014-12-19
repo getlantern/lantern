@@ -10,7 +10,7 @@ echo Checked first
 if "%2" == "" goto error
 echo Checked second
 
-set FLASHLIGHT=%APPDATA%\flashlight.exe
+set FLASHLIGHT=%APPDATA%\Lantern\flashlight.exe
 set BE_HOME=%APPDATA%\byteexec
 set NATTY=%BE_HOME%\natty.exe
 
