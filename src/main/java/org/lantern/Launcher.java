@@ -2,6 +2,8 @@ package org.lantern;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.InetSocketAddress;
 import java.util.Collection;
@@ -71,6 +73,8 @@ public class Launcher {
     }
 
     public static final long START_TIME = System.currentTimeMillis();
+
+    private static final long LOG_PROP_CHECK_DELAY_MILLIS = 5000;
     
     private static Logger LOG;
     private static Launcher s_instance;
@@ -597,18 +601,33 @@ public class Launcher {
     }
 
     void configureDefaultLogger() {
+        final File logDir = LanternClientConstants.LOG_DIR;
+        File log4jProps = new File(logDir, LanternClientConstants.LOG4J_PROPS_NAME);
         if (LanternUtils.isDevMode()) {
             System.out.println("Running from source");
-            PropertyConfigurator.configure(LanternClientConstants.LOG4J_PROPS_PATH);
+            File f = new File(LanternClientConstants.LOG4J_PROPS_PATH);
+            try {
+                if (!log4jProps.exists()){
+                    FileUtils.copyFile(f, log4jProps);
+                }
+            } catch (final IOException e) {
+                System.out.println("Exception copying log4j props file: "
+                    + f.getPath());
+                e.printStackTrace();
+           }
         } else {
             System.out.println("Not on main line...");
-            configureProductionLogger();
+            if (!log4jProps.exists()) {
+                configureProductionLogger(logDir, log4jProps);
+            }
         }
-        System.err.println("CONFIGURED LOGGER");
+        PropertyConfigurator.configureAndWatch(log4jProps.getPath(),
+               LOG_PROP_CHECK_DELAY_MILLIS);
+        System.out.println("Set log4j properties file: " + log4jProps);
+        System.out.println("CONFIGURED LOGGER");
     }
 
-    private void configureProductionLogger() {
-        final File logDir = LanternClientConstants.LOG_DIR;
+    private void configureProductionLogger(File logDir, File log4jProps) {
         final File logFile = new File(logDir, "java.log");
         final Properties props = new Properties();
         try {
@@ -625,7 +644,8 @@ public class Launcher {
                     "log4j.appender.RollingTextFile.layout.ConversionPattern",
                     "%-6r %d{ISO8601} %-5p [%t] %c{2}.%M (%F:%L) - %m%n");
 
-            PropertyConfigurator.configure(props);
+            OutputStream output = new FileOutputStream(log4jProps);
+            props.store(output, null);
             System.out.println("Set logger file to: " + logPath);
         } catch (final IOException e) {
             System.out.println("Exception setting log4j props with file: "
