@@ -2,9 +2,11 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"net"
 	"os"
+	"os/exec"
 	"runtime"
 	"sort"
 	"strings"
@@ -75,8 +77,12 @@ func main() {
 	go feedDomains()
 	cas, masquerades := coalesceMasquerades()
 	model := buildModel(cas, masquerades)
-	generateTemplate(model, masqueradesTmpl, "../config/masquerades.go")
 	generateTemplate(model, yamlTmpl, "cloud.yaml")
+	generateTemplate(model, masqueradesTmpl, "../config/masquerades.go")
+	_, err := run("gofmt", "-w", "../config/masquerades.go")
+	if err != nil {
+		log.Fatalf("Unable to format masquerades.go: %s", err)
+	}
 }
 
 func loadDomains() {
@@ -234,6 +240,16 @@ func generateTemplate(model map[string]interface{}, tmplString string, filename 
 	if err != nil {
 		log.Errorf("Unable to generate %s: %s", filename, err)
 	}
+}
+
+func run(prg string, args ...string) (string, error) {
+	cmd := exec.Command(prg, args...)
+	log.Debugf("Running %s %s", prg, strings.Join(args, " "))
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("%s says %s", prg, string(out))
+	}
+	return string(out), nil
 }
 
 type ByDomain []*masquerade
