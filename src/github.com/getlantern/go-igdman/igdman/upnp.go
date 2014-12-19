@@ -67,7 +67,7 @@ func (igd *upnpIGD) AddPortMapping(proto protocol, internalIP string, internalPo
 	if expiration > 0 {
 		params = append(params, fmt.Sprintf("%d", expiration/time.Second))
 	}
-	out, err := upnpcbe.Command(params...).CombinedOutput()
+	out, err := execTimeout(opTimeout, upnpcbe.Command(params...))
 	if err != nil {
 		return fmt.Errorf("Unable to add port mapping: %s\n%s", err, out)
 	} else if strings.Contains(string(out), "failed with") {

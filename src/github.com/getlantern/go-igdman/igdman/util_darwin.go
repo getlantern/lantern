@@ -2,7 +2,6 @@ package igdman
 
 import (
 	"fmt"
-	"log"
 	"os/exec"
 	"regexp"
 	"time"
@@ -21,11 +20,13 @@ func init() {
 }
 
 func defaultGatewayIp() (string, error) {
+	log.Trace("Calling netstat")
 	cmd := exec.Command("netstat", "-f", "inet", "-rn")
 	out, err := execTimeout(10*time.Second, cmd)
 	if err != nil {
 		return "", fmt.Errorf("Unable to call netstat: %s\n%s", err, out)
 	}
+	log.Tracef("Netstat output\n------------\n%s\n\n", out)
 
 	submatches := searchRegex.FindSubmatch(out)
 	if len(submatches) < 2 {

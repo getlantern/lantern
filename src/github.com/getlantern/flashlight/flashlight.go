@@ -317,8 +317,12 @@ func mapPort(cfg *config.Config) error {
 	return nil
 }
 
+// determineInternalIP determines the internal IP to use for mapping ports. It
+// does this by dialing a website on the public Internet and then finding out
+// the LocalAddr for the corresponding connection. This gives us an interface
+// that we know has Internet access, which makes it suitable for port mapping.
 func determineInternalIP() (string, error) {
-	conn, err := net.Dial("tcp", "s3.amazonaws.com:443")
+	conn, err := net.DialTimeout("tcp", "s3.amazonaws.com:443", 20 * time.Second)
 	if err != nil {
 		return "", fmt.Errorf("Unable to determine local IP: %s", err)
 	}
