@@ -31,6 +31,8 @@ public class LanternClientConstants {
     
     public static final String LOG4J_PROPS_PATH = "src/main/resources/log4j.properties";
 
+    public static final String LOG4J_PROPS_NAME = "log4j.properties";
+
     static {
         final Properties prop = new Properties();
         try {
