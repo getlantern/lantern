@@ -43,8 +43,8 @@ public class FlashlightServerManager implements Shutdownable {
     /**
      * Use internal port 443 plus myleshorton's lucky number 77.
      */
-    public static final int PREFERRED_FLASHLIGHT_INTERNAL_PORT = 44377;
-    public static final int FLASHLIGHT_EXTERNAL_PORT = 443;
+    private static final int PREFERRED_FLASHLIGHT_INTERNAL_PORT = 44377;
+    private static final int FLASHLIGHT_EXTERNAL_PORT = 443;
     private static final long HEARTBEAT_PERIOD_MINUTES = 2;
     
     private final Model model;

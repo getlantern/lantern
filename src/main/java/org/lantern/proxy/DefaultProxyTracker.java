@@ -7,6 +7,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -19,9 +20,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import javax.crypto.Cipher;
-
-import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.lantern.ConnectivityStatus;
@@ -37,11 +36,11 @@ import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.InstanceInfo;
 import org.lantern.network.NetworkTracker;
 import org.lantern.network.NetworkTrackerListener;
-import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
 import org.lantern.state.PeerType;
 import org.lantern.state.SyncPath;
+import org.lantern.util.Hashed;
 import org.lantern.util.Threads;
 import org.littleshoot.util.FiveTuple.Protocol;
 import org.slf4j.Logger;
@@ -86,19 +85,15 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
     private final ExecutorService proxyConnect = 
             Threads.newCachedThreadPool("Proxy-Connect-Thread-");
     
-    private final LocalCipherProvider cipherProvider;
-
     @Inject
     public DefaultProxyTracker(
             final Model model,
             final PeerFactory peerFactory,
             final LanternTrustStore lanternTrustStore,
-            final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker,
-            final LocalCipherProvider cipherProvider) {
+            final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker) {
         this.model = model;
         this.peerFactory = peerFactory;
         this.lanternTrustStore = lanternTrustStore;
-        this.cipherProvider = cipherProvider;
         networkTracker.addListener(this);
         
         Events.register(this);
@@ -180,7 +175,7 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
                     ad.getAd().getWaddellId(),
                     ad.getAd().getWaddellAddr());
             Events.asyncEventBus().post(WaddellPeerAvailabilityEvent.available(
-                    encryptJID(ad.getFrom()),
+                    hashJid(ad.getFrom()),
                     ad.getAd().getWaddellId(),
                     ad.getAd().getWaddellAddr(),
                     model.getLocation().getCountry()));
@@ -206,7 +201,7 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
         LOG.debug("Removing waddell peer {}", jid);
         Events.asyncEventBus().post(
                 WaddellPeerAvailabilityEvent.unavailable(
-                        encryptJID(jid.toString())));
+                        hashJid(jid.toString())));
     }
 
     @Override
@@ -530,13 +525,15 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
         addProxy(fallbackProxy);
     }
 
-    private String encryptJID(String jid) {
+    private String hashJid(String jid) {
         try {
-            // We encrypt the peer ID so as to avoid exposing it in the
-            // flashlight.yaml.
-            return Hex.encodeHexString(
-                    cipherProvider.newLocalCipher(Cipher.ENCRYPT_MODE).doFinal(
-                            jid.getBytes()));
+            // We hash the peer ID so as to avoid exposing it in the
+            // flashlight.yaml. We salt it with the instance id.
+            MessageDigest digest = DigestUtils.getSha256Digest();
+            digest.update(model.getInstanceId().getBytes());
+            return new Hashed(model.getInstanceId().getBytes(),
+                    jid.getBytes(),
+                    2000).hashHex();
         } catch (Exception e) {
             throw new RuntimeException(String.format(
                     "Unable to encrypt JID: ", e.getMessage()),
