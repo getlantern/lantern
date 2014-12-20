@@ -1,12 +1,13 @@
 package org.lantern.proxy;
 
-import static org.littleshoot.util.FiveTuple.Protocol.TCP;
+import static org.littleshoot.util.FiveTuple.Protocol.*;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -19,6 +20,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.lantern.ConnectivityStatus;
@@ -29,6 +31,7 @@ import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.ResetEvent;
+import org.lantern.event.WaddellPeerAvailabilityEvent;
 import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.InstanceInfo;
 import org.lantern.network.NetworkTracker;
@@ -37,6 +40,7 @@ import org.lantern.state.Model;
 import org.lantern.state.Peer;
 import org.lantern.state.PeerType;
 import org.lantern.state.SyncPath;
+import org.lantern.util.Hashed;
 import org.lantern.util.Threads;
 import org.littleshoot.util.FiveTuple.Protocol;
 import org.slf4j.Logger;
@@ -80,7 +84,7 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
      */
     private final ExecutorService proxyConnect = 
             Threads.newCachedThreadPool("Proxy-Connect-Thread-");
-
+    
     @Inject
     public DefaultProxyTracker(
             final Model model,
@@ -91,7 +95,7 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
         this.peerFactory = peerFactory;
         this.lanternTrustStore = lanternTrustStore;
         networkTracker.addListener(this);
-
+        
         Events.register(this);
     }
     
@@ -164,6 +168,18 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
     public void instanceOnlineAndTrusted(
             InstanceInfo<URI, ReceivedKScopeAd> instance) {
         LOG.debug("Adding proxy... {}", instance);
+        ReceivedKScopeAd ad = instance.getData();
+        if (ad.getAd().getWaddellId() != null) {
+            LOG.debug("Adding waddell peer {} with id {} at {}",
+                    ad.getFrom(),
+                    ad.getAd().getWaddellId(),
+                    ad.getAd().getWaddellAddr());
+            Events.asyncEventBus().post(WaddellPeerAvailabilityEvent.available(
+                    hashJid(ad.getFrom()),
+                    ad.getAd().getWaddellId(),
+                    ad.getAd().getWaddellAddr(),
+                    model.getLocation().getCountry()));
+        }
         if (instance.hasMappedEndpoint()) {
             final ProxyInfo info = instance.getData().getAd().getProxyInfo();
             
@@ -182,6 +198,10 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
         URI jid = instance.getId();
         LOG.debug("Removing proxy for {}", jid);
         removeNattedProxy(jid);
+        LOG.debug("Removing waddell peer {}", jid);
+        Events.asyncEventBus().post(
+                WaddellPeerAvailabilityEvent.unavailable(
+                        hashJid(jid.toString())));
     }
 
     @Override
@@ -503,5 +523,21 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
 
         LOG.debug("Adding fallback: {}", fallbackProxy.getWanHost());
         addProxy(fallbackProxy);
+    }
+
+    private String hashJid(String jid) {
+        try {
+            // We hash the peer ID so as to avoid exposing it in the
+            // flashlight.yaml. We salt it with the instance id.
+            MessageDigest digest = DigestUtils.getSha256Digest();
+            digest.update(model.getInstanceId().getBytes());
+            return new Hashed(model.getInstanceId().getBytes(),
+                    jid.getBytes(),
+                    2000).hashHex();
+        } catch (Exception e) {
+            throw new RuntimeException(String.format(
+                    "Unable to encrypt JID: ", e.getMessage()),
+                    e);
+        }
     }
 }

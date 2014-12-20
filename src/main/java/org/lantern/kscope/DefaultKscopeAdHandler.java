@@ -70,7 +70,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler,
             return false;
         }
     }
-
+    
     @Override
     public void onBase64Cert(final URI jid, final String base64Cert) {
         log.debug("Received cert for {}", jid);

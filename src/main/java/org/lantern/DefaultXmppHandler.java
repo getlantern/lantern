@@ -699,7 +699,9 @@ public class DefaultXmppHandler implements XmppHandler {
         else {
             LOG.info("Removing JID for peer '" + from);
             try {
-                this.networkTracker.instanceOffline(from, new URI(from));
+                String advertisingUser = LanternXmppUtils.jidToEmail(from);
+                this.networkTracker.instanceOffline(advertisingUser, new URI(
+                        from));
             } catch (URISyntaxException e) {
                 LOG.error("Unable to parse JabberID: {}", from, e);
             }

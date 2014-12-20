@@ -30,6 +30,7 @@ import org.lantern.event.ResetEvent;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.kscope.LanternTrustGraphNode;
+import org.lantern.proxy.pt.ConnectedToWaddellEvent;
 import org.lantern.state.Friend;
 import org.lantern.state.FriendsHandler;
 import org.lantern.state.Mode;
@@ -75,6 +76,10 @@ public class Roster implements RosterListener, RosterHandler {
     
     private final ExecutorService rosterExecutor = 
             Threads.newSingleThreadExecutor("Unified-Roster-Thread");
+    
+    private volatile String waddellId;
+    private volatile String waddellAddr;
+    private final Object waddellLock = new Object();
 
     /**
      * Creates a new roster.
@@ -353,7 +358,7 @@ public class Roster implements RosterListener, RosterHandler {
             if (friendsHandler.isFriend(lre.getEmail())) {
                 sendKscope(lre.getUser());
             } else {
-                log.debug("Not sending kscope ad to non-friend: {}", 
+                log.debug("Not sending kscope ad to non-friend: {}",
                         lre.getEmail());
             }
         }
@@ -396,7 +401,12 @@ public class Roster implements RosterListener, RosterHandler {
         } else {
             ad = new LanternKscopeAdvertisement(user, address, ms.getHostAddress());
         }
-
+        synchronized (waddellLock) {
+            waitForWaddell();
+            ad.setWaddellId(waddellId);
+            ad.setWaddellAddr(waddellAddr);
+        }
+        
         final TrustGraphNode tgn = new LanternTrustGraphNode();
         // set ttl to max for now
         ad.setTtl(tgn.getMaxRouteLength());
@@ -501,5 +511,28 @@ public class Roster implements RosterListener, RosterHandler {
     private void fullRosterSync() {
         updateIndex();
         Events.syncRoster(this);
+    }
+    
+    public void waitForWaddell() {
+        if (waddellId != null) {
+            return;
+        }
+        try {
+            log.debug("Waiting for waddell");
+            waddellLock.wait();
+            log.debug("waddell available!");
+        } catch (InterruptedException ie) {
+            log.warn("Interrupted while waiting for waddell info", ie);
+        }
+    }
+    
+    @Subscribe
+    public void onConnectedToWaddell(final ConnectedToWaddellEvent event) {
+        log.debug("Got ConnectedToWaddellEvent!");
+        synchronized(waddellLock) {
+            this.waddellId = event.getId();
+            this.waddellAddr = event.getWaddellAddr();
+            waddellLock.notifyAll();
+        }
     }
 }
