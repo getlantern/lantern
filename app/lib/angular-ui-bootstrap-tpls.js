@@ -980,7 +980,7 @@ angular.module('ui.bootstrap.position', [])
                 left = mousePos.x;
               targetElPos = {
                 top: top,
-                left: left
+                left: left - 100
               };
             break;
           case 'left':

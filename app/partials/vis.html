@@ -4,7 +4,7 @@
   Only show yourself on the map if you've either managed to do a geoip lookup or have a stored geolocation.
 -->
 <div id="vis" ng-controller="VisCtrl">
-    <svg id="map" width="960" height="500" style="pointer-events: all;"
+    <svg id="map" width="960" height="500"
       viewBox="0 0 960 500"
         preserveAspectRatio="xMidYMid">
     <g id="zoomGroup" transform="matrix(1 0 0 1 0 0)">
@@ -40,9 +40,9 @@
           </div>" tooltip-placement="right" />
     </g>
     <div class="control-zoom">
-        <!--<a id="zoomIn" ng-click="adjustZoom(0.25)" class="leaflet-control-zoom-in" href="#" title="Zoom in">+</a>-->
-        <a id="zoomCenter" ng-click="centerZoom()" class="center leaflet-control-zoom-center" href="#" title="Zoom center"><img width="60%" height="80%" src="img/mapcenter.png"></a>
-        <!--<a id="zoomOut" ng-click="adjustZoom(-0.25)" class="leaflet-control-zoom-out" href="#" title="Zoom out">-</a>-->
+        <a id="zoomIn" ng-click="adjustZoom(1.25)" class="leaflet-control-zoom-in" href="#" title="Zoom in">+</a>
+        <a id="zoomCenter" ng-click="centerZoom()" class="zoomFilter center leaflet-control-zoom-center" href="#" title="Zoom center"><img id="zoomCenterIcon" width="60%" height="80%" src="img/mapcenter.png"></a>
+        <a id="zoomOut" ng-click="adjustZoom(0.8)" class="leaflet-control-zoom-out" href="#" title="Zoom out">-</a>
     </div>
     </svg>
     <style>

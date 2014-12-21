@@ -1,0 +1,31 @@
+{
+  "name": "topojson",
+  "version": "1.6.18",
+  "main": "topojson.js",
+  "scripts": [
+    "topojson.js"
+  ],
+  "ignore": [
+    ".DS_Store",
+    ".git",
+    "Makefile",
+    "bin",
+    "examples",
+    "index.js",
+    "lib",
+    "node_modules",
+    "package.json",
+    "test"
+  ],
+  "homepage": "https://github.com/mbostock/topojson",
+  "_release": "1.6.18",
+  "_resolution": {
+    "type": "version",
+    "tag": "v1.6.18",
+    "commit": "f7e97fc2b8ed4464558d813e2f9f5a411157ff3f"
+  },
+  "_source": "git://github.com/mbostock/topojson.git",
+  "_target": "~1.6.18",
+  "_originalSource": "topojson",
+  "_direct": true
+}
