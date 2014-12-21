@@ -2,7 +2,6 @@ package igdman
 
 import (
 	"fmt"
-	"log"
 	"os/exec"
 	"regexp"
 )
