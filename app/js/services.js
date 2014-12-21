@@ -55,6 +55,7 @@ angular.module('app.services', [])
     function disconnect() {
       cometd.disconnect(true);
     }
+
     $($window).unload(disconnect);
 
     // http://cometd.org/documentation/cometd-javascript/subscription
@@ -112,6 +113,7 @@ angular.module('app.services', [])
       if (connected) {
         key.sub = cometd.subscribe(key.chan, key.cb);
         log.debug('subscribed', key);
+
       } else {
         log.debug('queuing subscription request', key);
       }
