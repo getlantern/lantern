@@ -795,8 +795,6 @@ public class DefaultXmppHandler implements XmppHandler {
         //final String mac = (String) msg.getProperty(P2PConstants.MAC);
         final String base64Cert = (String) msg.getProperty(P2PConstants.CERT);
 
-        LOG.debug("Base 64 cert: {}", base64Cert);
-
         if (StringUtils.isNotBlank(base64Cert)) {
             LOG.trace("Got certificate for {}:\n{}", uri, 
                 new String(Base64.decodeBase64(base64Cert),
