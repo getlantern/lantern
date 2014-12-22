@@ -51,7 +51,6 @@ public class Cli {
     public static final String OPTION_REPORT_IP = "report-ip";
     public static final String OPTION_PLUGGABLE_TRANSPORT = "pt";
     public static final String OPTION_CHECK_FALLBACKS = "check-fallbacks";
-    public static final String OPTION_CHROME = "chrome";
     public static final String OPTION_FORCE_FLASHLIGHT = "force-flashlight";
     
     private CommandLine cmd;
@@ -159,8 +158,6 @@ public class Cli {
             "(Fallback's listen) IP to report to controller");
         options.addOption(null, OPTION_CHECK_FALLBACKS, true,
                 "run in check-fallbacks mode, using the supplied file for fallback info, to periodically make sure we can proxy through all fallbacks. implies --disable-ui");
-        options.addOption(null, OPTION_CHROME, false,
-                "Use the default browser, typically chrome, if in development mode");
         options.addOption(OptionBuilder
                 .withLongOpt(OPTION_PLUGGABLE_TRANSPORT)
                 .withArgName("property=value")

@@ -20,6 +20,7 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.PropertyConfigurator;
+import org.lantern.browser.BrowserService;
 import org.lantern.event.Events;
 import org.lantern.event.MessageEvent;
 import org.lantern.event.PublicIpAndTokenTracker;

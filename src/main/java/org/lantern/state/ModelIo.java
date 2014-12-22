@@ -283,10 +283,6 @@ public class ModelIo extends Storage<Model> {
             model.getSettings().setMode(Mode.get);
         }
         
-        if (cmd.hasOption(Cli.OPTION_CHROME)) {
-            set.setChrome(true);
-        }
-        
         if (cmd.hasOption(Cli.OPTION_FORCE_FLASHLIGHT)) {
             LanternClientConstants.FORCE_FLASHLIGHT = true;
         }
