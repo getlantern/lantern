@@ -1,6 +1,7 @@
 package org.lantern.browser;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.lantern.LanternUtils;
@@ -28,7 +29,8 @@ public class LanternBrowserService implements BrowserService {
     
     private final LanternBrowser browser;
     private final MessageService messageService;
-    private Process process;
+    private final AtomicReference<Process> process = 
+            new AtomicReference<Process>();
 
     @Inject
     public LanternBrowserService(final MessageService messageService,
@@ -50,14 +52,7 @@ public class LanternBrowserService implements BrowserService {
      * Opens the browser.
      */
     private void openBrowser() {
-        final Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                launchBrowser(StaticSettings.getApiPort(), StaticSettings.getPrefix());
-            }
-        }, "Chrome-Browser-Launch-Thread");
-        t.setDaemon(true);
-        t.start();
+        openBrowser(StaticSettings.getApiPort(), StaticSettings.getPrefix());
     }
     
     /**
@@ -79,9 +74,9 @@ public class LanternBrowserService implements BrowserService {
         log.info("Launching browser...");
         // If there's an existing process for any reason, make sure it's exited
         // before opening a new one.
-        if (this.process != null) {
+        if (this.process.get() != null) {
             try {
-                final int exitValue = this.process.exitValue();
+                final int exitValue = this.process.get().exitValue();
                 log.info("Got exit value from former process: ", exitValue);
             } catch (final IllegalThreadStateException e) {
                 // This indicates the existing process is still running.
@@ -94,7 +89,7 @@ public class LanternBrowserService implements BrowserService {
         
         final String uri = endpoint + "/index.html";
         try {
-            this.process = this.browser.open(uri);
+            this.process.set(this.browser.open(uri));
         } catch (final IOException e) {
             log.error("Could not open chrome?", e);
         } catch (final UnsupportedOperationException e) {
@@ -112,7 +107,7 @@ public class LanternBrowserService implements BrowserService {
     public void openBrowserWhenPortReady() {
         final int port = StaticSettings.getApiPort();
         final String prefix = StaticSettings.getPrefix();
-        log.info("Waiting on port: "+port);
+        log.debug("Waiting on port: "+port);
         openBrowserWhenPortReady(port, prefix);
     }
     
@@ -133,12 +128,12 @@ public class LanternBrowserService implements BrowserService {
 
     @Override
     public void stop() {
-        log.info("Closing OSX browser...process is: {}", process);
-        if (process != null) {
+        log.info("Closing Lantern browser...process is: {}", process);
+        if (process.get() != null) {
             log.info("Really closing Chrome browser...");
-            process.destroy();
+            process.get().destroy();
         }
-        this.process = null;
+        this.process.set(null);
     }
 
     @Override
