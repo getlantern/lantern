@@ -36,7 +36,7 @@ public class WindowsBrowser implements LanternBrowser {
         final List<String> commands = new ArrayList<String>();
         final String path;
         final String chromePath = determineExecutablePath("/Google/Chrome/Application/chrome.exe");
-        if (!StringUtils.isBlank(chromePath)) {
+        if (StringUtils.isBlank(chromePath)) {
             log.info("Looking for firefox...");
             path = determineExecutablePath("/Mozilla Firefox/firefox.exe");
             commands.add(path);
