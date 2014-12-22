@@ -93,6 +93,9 @@ func TestCloudFlare(t *testing.T) {
 	}()
 	waitForServer(SERVER_ADDR, 2*time.Second, t)
 
+	// Give servers time to finish startup
+	time.Sleep(250 * time.Millisecond)
+
 	clt := &client.Client{
 		Addr:         CLIENT_ADDR,
 		ReadTimeout:  0, // don't timeout
