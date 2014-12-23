@@ -47,7 +47,7 @@ func New(dialers ...*Dialer) *Balancer {
 // remaining Dialers until it either manages to connect, or runs out of dialers
 // in which case it returns an error.
 func (b *Balancer) DialQOS(network, addr string, targetQOS int) (net.Conn, error) {
-	dialers := b.getDialers()
+	dialers := b.dialers
 	for {
 		if len(dialers) == 0 {
 			return nil, fmt.Errorf("No dialers left to try")
@@ -81,12 +81,6 @@ func (b *Balancer) Close() {
 	for _, d := range b.dialers {
 		d.stop()
 	}
-}
-
-func (b *Balancer) getDialers() []*dialer {
-	result := make([]*dialer, len(b.dialers))
-	copy(result, b.dialers)
-	return result
 }
 
 func randomDialer(dialers []*dialer, targetQOS int) (chosen *dialer, others []*dialer) {
