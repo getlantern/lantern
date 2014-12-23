@@ -85,33 +85,11 @@ func (b *Balancer) Close() {
 
 func randomDialer(dialers []*dialer, targetQOS int) (chosen *dialer, others []*dialer) {
 	// Weed out inactive dialers and those with too low QOS
-	filtered := make([]*dialer, 0)
-	highestQOS := 0
-	for _, d := range dialers {
-		if !d.isActive() {
-			log.Trace("Excluding inactive dialer")
-			continue
-		}
-
-		highestQOS = d.QOS // don't need to compare since dialers are already sorted by QOS (ascending)
-		if d.QOS >= targetQOS {
-			log.Tracef("Including dialer with QOS %d meeting targetQOS %d", d.QOS, targetQOS)
-			filtered = append(filtered, d)
-		}
-	}
+	filtered, highestQOS := dialersMeetingQOS(dialers, targetQOS)
 
 	if len(filtered) == 0 {
-		log.Trace("No dialers meet targetQOS, finding remaining with highest QOS")
-		for _, d := range dialers {
-			if !d.isActive() {
-				log.Trace("Excluding inactive dialer")
-				continue
-			}
-
-			if d.QOS == highestQOS {
-				filtered = append(filtered, d)
-			}
-		}
+		log.Trace("No dialers meet targetQOS, using those with highest QOS")
+		filtered, _ = dialersMeetingQOS(dialers, highestQOS)
 	}
 
 	if len(filtered) == 0 {
@@ -137,6 +115,25 @@ func randomDialer(dialers []*dialer, targetQOS int) (chosen *dialer, others []*d
 
 	// We should never reach this
 	panic("No dialer found!")
+}
+
+func dialersMeetingQOS(dialers []*dialer, targetQOS int) ([]*dialer, int) {
+	filtered := make([]*dialer, 0)
+	highestQOS := 0
+	for _, d := range dialers {
+		if !d.isActive() {
+			log.Trace("Excluding inactive dialer")
+			continue
+		}
+
+		highestQOS = d.QOS // don't need to compare since dialers are already sorted by QOS (ascending)
+		if d.QOS >= targetQOS {
+			log.Tracef("Including dialer with QOS %d meeting targetQOS %d", d.QOS, targetQOS)
+			filtered = append(filtered, d)
+		}
+	}
+
+	return filtered, highestQOS
 }
 
 func withoutDialer(dialers []*dialer, d *dialer) []*dialer {
