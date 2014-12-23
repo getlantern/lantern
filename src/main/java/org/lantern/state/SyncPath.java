@@ -14,6 +14,7 @@ public enum SyncPath {
     ALL(""),
     PROFILE("profile"),
     MODE("settings/mode"),
+    PING("ping"),
     CONNECTIVITY_GTALK("connectivity/gtalk"),
     CONNECTING_STATUS("connectivity/connectingStatus"),
     CONNECTIVITY_INTERNET("connectivity/internet"),
