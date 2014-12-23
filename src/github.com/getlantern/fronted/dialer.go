@@ -23,7 +23,7 @@ const (
 )
 
 var (
-	log = golog.LoggerFor("domainfronted")
+	log = golog.LoggerFor("fronted")
 
 	// Cutoff for logging warnings about a dial having taken a long time.
 	longDialLimit = 10 * time.Second
