@@ -84,8 +84,7 @@ func (b *Balancer) Close() {
 }
 
 func randomDialer(dialers []*dialer, targetQOS int) (chosen *dialer, others []*dialer) {
-	// Weed out inactive dialers and those with too low QOS, preferring higher
-	// QOS
+	// Weed out inactive dialers and those with too low QOS
 	filtered := make([]*dialer, 0)
 	highestQOS := 0
 	for _, d := range dialers {
