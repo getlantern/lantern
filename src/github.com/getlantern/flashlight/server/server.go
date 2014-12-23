@@ -117,7 +117,7 @@ func (server *Server) ListenAndServe() error {
 	}
 
 	if server.cfg.Unencrypted {
-		log.Debug("Running in unencrypted")
+		log.Debug("Running in unencrypted mode")
 		fs.CertContext = nil
 	}
 
