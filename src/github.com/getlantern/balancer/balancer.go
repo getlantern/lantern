@@ -30,8 +30,8 @@ func New(dialers ...*Dialer) *Balancer {
 		dl.start()
 		dhs = append(dhs, dl)
 	}
-	// Sort dialers by QOS for later selection
-	sort.Sort(byQOS(dhs))
+	// Sort dialers by QOS (ascending) for later selection
+	sort.Sort(byQOSAscending(dhs))
 	return &Balancer{
 		dialers: dhs,
 	}
@@ -100,7 +100,7 @@ func randomDialer(dialers []*dialer, targetQOS int) (chosen *dialer, others []*d
 			continue
 		}
 
-		highestQOS = d.QOS // don't need to compare since dialers are already sorted by QOS
+		highestQOS = d.QOS // don't need to compare since dialers are already sorted by QOS (ascending)
 		if d.QOS >= targetQOS {
 			log.Tracef("Including dialer with QOS %d meeting targetQOS %d", d.QOS, targetQOS)
 			filtered = append(filtered, d)
@@ -169,9 +169,10 @@ func without(dialers []*dialer, i int) []*dialer {
 	}
 }
 
-// byQOS implements sort.Interface for []*dialer based on the QOS
-type byQOS []*dialer
+// byQOSAscending implements sort.Interface for []*dialer based on the QOS
+// (ascending)
+type byQOSAscending []*dialer
 
-func (a byQOS) Len() int           { return len(a) }
-func (a byQOS) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a byQOS) Less(i, j int) bool { return a[i].QOS < a[j].QOS }
+func (a byQOSAscending) Len() int           { return len(a) }
+func (a byQOSAscending) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a byQOSAscending) Less(i, j int) bool { return a[i].QOS < a[j].QOS }
