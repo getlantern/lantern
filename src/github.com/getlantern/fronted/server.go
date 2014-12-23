@@ -52,7 +52,7 @@ type Server struct {
 	WriteTimeout time.Duration
 
 	// CertContext for server's certificates. If nil, the server will use
-	// unencrypted connections instead of TLS
+	// unencrypted connections instead of TLS.
 	CertContext *CertContext
 
 	// TLSConfig: tls configuration to use on inbound connections. If nil, will
