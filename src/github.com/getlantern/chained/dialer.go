@@ -21,11 +21,6 @@ type Dialer struct {
 	// the server and is allowed to modify the http.Request before it passes to
 	// the server.
 	OnRequest func(req *http.Request)
-
-	// Pipelined: if true, Dial() will return before receiving a response to the
-	// CONNECT request. If false, the dialer function will wait for and check
-	// the response to the CONNECT request before returning.
-	Pipelined bool
 }
 
 // Dial implements the method from proxy.Dialer
@@ -62,17 +57,7 @@ func (d *Dialer) sendCONNECT(network, addr string, conn net.Conn) error {
 	}
 
 	r := bufio.NewReader(conn)
-	if d.Pipelined {
-		go func() {
-			err := checkCONNECTResponse(r, req)
-			if err != nil {
-				conn.Close()
-				log.Error(err)
-			}
-		}()
-	} else {
-		err = checkCONNECTResponse(r, req)
-	}
+	err = checkCONNECTResponse(r, req)
 	return err
 }
 

@@ -104,22 +104,13 @@ func TestBadAddressToServer(t *testing.T) {
 	assert.Error(t, err, "Connect response should be bad")
 }
 
-func TestSuccessNotPipelined(t *testing.T) {
-	doTest(t, false)
-}
-
-func TestSuccessPipelined(t *testing.T) {
-	doTest(t, true)
-}
-
-func doTest(t *testing.T, pipelined bool) {
+func TestSuccess(t *testing.T) {
 	l := startServer(t)
 
 	dialer := &Dialer{
 		DialServer: func() (net.Conn, error) {
 			return net.Dial(l.Addr().Network(), l.Addr().String())
 		},
-		Pipelined: false,
 	}
 
 	proxy.Test(t, dialer)
