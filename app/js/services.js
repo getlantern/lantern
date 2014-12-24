@@ -178,6 +178,10 @@ angular.module('app.services', [])
         log.debug('ignoring', msg, 'while model has not yet been populated');
         return;
       }
+      if (patch[0].path == '/ping') {
+        alert("Lantern UI is already running!");
+        return;
+      }
       try {
         $rootScope.$apply(function() {
           var shouldUpdateInstanceStats = false;
