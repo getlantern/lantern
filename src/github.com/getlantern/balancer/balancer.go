@@ -1,3 +1,5 @@
+// package balancer provides weighted round-robin load balancing of network
+// connections with the ability to specify quality of service (QOS) levels.
 package balancer
 
 import (
