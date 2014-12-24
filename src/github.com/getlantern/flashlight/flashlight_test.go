@@ -50,8 +50,8 @@ func TestCloudFlare(t *testing.T) {
 	defer mockServer.deleteCerts()
 
 	mockServer.run(t)
-	waitForServer(HTTP_ADDR, 2*time.Second, t)
-	waitForServer(HTTPS_ADDR, 2*time.Second, t)
+	waitForServer(HTTP_ADDR, 5*time.Second, t)
+	waitForServer(HTTPS_ADDR, 5*time.Second, t)
 
 	// Set up a mock CloudFlare
 	cf := &MockCloudFlare{}
@@ -67,7 +67,7 @@ func TestCloudFlare(t *testing.T) {
 			t.Fatalf("Unable to run mock CloudFlare: %s", err)
 		}
 	}()
-	waitForServer(CF_ADDR, 2*time.Second, t)
+	waitForServer(CF_ADDR, 5*time.Second, t)
 
 	// Set up common certContext for proxies
 	certContext := &fronted.CertContext{
@@ -91,7 +91,7 @@ func TestCloudFlare(t *testing.T) {
 			t.Fatalf("Unable to run server: %s", err)
 		}
 	}()
-	waitForServer(SERVER_ADDR, 2*time.Second, t)
+	waitForServer(SERVER_ADDR, 5*time.Second, t)
 
 	// Give servers time to finish startup
 	time.Sleep(250 * time.Millisecond)
