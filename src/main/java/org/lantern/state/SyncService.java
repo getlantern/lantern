@@ -115,8 +115,19 @@ public class SyncService implements LanternService {
                 delegateSync(SyncPath.ALL, model);
                 Events.asyncEventBus().post(new UiLoadedEvent());
                 clientSynced = true;
+                /* when the server receives a disconnect message
+                 * from the client or the session expires
+                 * the rmeove listener is triggered
+                 */
+                remote.addListener(
+                    new ServerSession.RemoveListener() {
+                        public void removed(ServerSession session, 
+                            boolean timeout) {
+                            clientSynced = false;
+                            log.info("Frontend disconnected...");
+                        }
+                });
             }
-
         }, "CometD-Sync-OnConnect-Thread");
         t.setDaemon(true);
         t.start();

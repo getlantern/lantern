@@ -13,7 +13,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<slf4j.version>1.7.2</slf4j.version>
-		<cometd.version>2.5.1</cometd.version>
+		<cometd.version>2.9.1</cometd.version>
 		<github.global.server>github</github.global.server>
 		<rt.path>${java.home}/lib/rt.jar</rt.path>
 		<jce.path>${java.home}/lib/jce.jar</jce.path>
