@@ -61,17 +61,6 @@ func (d *Dialer) sendCONNECT(network, addr string, conn net.Conn) error {
 	return err
 }
 
-func checkCONNECTResponse(r *bufio.Reader, req *http.Request) error {
-	resp, err := http.ReadResponse(r, req)
-	if err != nil {
-		return fmt.Errorf("Error reading CONNECT response: %s", err)
-	}
-	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		return fmt.Errorf("Bad status code on CONNECT response: %d", resp.StatusCode)
-	}
-	return nil
-}
-
 func buildCONNECTRequest(addr string, onRequest func(req *http.Request)) (*http.Request, error) {
 	req, err := http.NewRequest(CONNECT, addr, nil)
 	if err != nil {
@@ -82,4 +71,15 @@ func buildCONNECTRequest(addr string, onRequest func(req *http.Request)) (*http.
 		onRequest(req)
 	}
 	return req, nil
+}
+
+func checkCONNECTResponse(r *bufio.Reader, req *http.Request) error {
+	resp, err := http.ReadResponse(r, req)
+	if err != nil {
+		return fmt.Errorf("Error reading CONNECT response: %s", err)
+	}
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		return fmt.Errorf("Bad status code on CONNECT response: %d", resp.StatusCode)
+	}
+	return nil
 }
