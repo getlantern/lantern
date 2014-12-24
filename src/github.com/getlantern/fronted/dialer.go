@@ -136,7 +136,7 @@ func (d *Dialer) Dial(network, addr string) (net.Conn, error) {
 	return conn, nil
 }
 
-// Close closes the cilent, in particular closing the underlying connection
+// Close closes the dialer, in particular closing the underlying connection
 // pool.
 func (d *Dialer) Close() error {
 	if d.connPool != nil {
