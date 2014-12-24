@@ -133,40 +133,41 @@ public class StatsManager implements Shutdownable {
 
     private final Runnable postStats = new Runnable() {
         public void run() {
-            // Only report stats if user enabled auto-reporting
-            if (model.getSettings().isAutoReport()) {
-                try {
-                    String userGuid = model.getUserGuid();
-                    String countryCode = model.getLocation().getCountry();
-                    if (StringUtils.isBlank(countryCode)
-                            || "--".equals(countryCode)) {
-                        countryCode = UNKNOWN_COUNTRY;
-                    }
-
-                    String instanceId = model.getInstanceId();
-                    Stats instanceStats =
-                            model.getInstanceStats().toInstanceStats();
-                    addSystemStats(instanceStats);
-                    statshub.postInstanceStats(
-                            instanceId,
-                            userGuid,
-                            countryCode,
-                            LanternUtils.isFallbackProxy(),
-                            instanceStats);
-
-                    if (userGuid != null) {
-                        Stats userStats = model.getInstanceStats()
-                                .toUserStats(
-                                        userGuid,
-                                        Mode.give == model.getSettings()
-                                                .getMode(),
-                                        Mode.get == model.getSettings()
-                                                .getMode());
-                        statshub.postUserStats(userGuid, countryCode, userStats);
-                    }
-                } catch (Exception e) {
-                    LOGGER.warn("Unable to postStats: " + e.getMessage(), e);
+            if (!model.getSettings().isAutoReport()) {
+                // Don't report stats if user didn't enable auto-reporting
+                return;
+            }
+            try {
+                String userGuid = model.getUserGuid();
+                String countryCode = model.getLocation().getCountry();
+                if (StringUtils.isBlank(countryCode)
+                        || "--".equals(countryCode)) {
+                    countryCode = UNKNOWN_COUNTRY;
                 }
+
+                String instanceId = model.getInstanceId();
+                Stats instanceStats =
+                        model.getInstanceStats().toInstanceStats();
+                addSystemStats(instanceStats);
+                statshub.postInstanceStats(
+                        instanceId,
+                        userGuid,
+                        countryCode,
+                        LanternUtils.isFallbackProxy(),
+                        instanceStats);
+
+                if (userGuid != null) {
+                    Stats userStats = model.getInstanceStats()
+                            .toUserStats(
+                                    userGuid,
+                                    Mode.give == model.getSettings()
+                                            .getMode(),
+                                    Mode.get == model.getSettings()
+                                            .getMode());
+                    statshub.postUserStats(userGuid, countryCode, userStats);
+                }
+            } catch (Exception e) {
+                LOGGER.warn("Unable to postStats: " + e.getMessage(), e);
             }
         }
     };

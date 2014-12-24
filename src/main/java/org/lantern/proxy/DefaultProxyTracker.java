@@ -1,17 +1,16 @@
 package org.lantern.proxy;
 
-import static org.lantern.state.PeerType.pc;
-import static org.littleshoot.util.FiveTuple.Protocol.TCP;
+import static org.littleshoot.util.FiveTuple.Protocol.*;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -21,6 +20,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.lantern.ConnectivityStatus;
@@ -31,6 +31,7 @@ import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.ResetEvent;
+import org.lantern.event.WaddellPeerAvailabilityEvent;
 import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.InstanceInfo;
 import org.lantern.network.NetworkTracker;
@@ -39,11 +40,13 @@ import org.lantern.state.Model;
 import org.lantern.state.Peer;
 import org.lantern.state.PeerType;
 import org.lantern.state.SyncPath;
+import org.lantern.util.Hashed;
 import org.lantern.util.Threads;
 import org.littleshoot.util.FiveTuple.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -56,8 +59,6 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
 
     private static final Logger LOG = LoggerFactory
             .getLogger(DefaultProxyTracker.class);
-
-    private final ProxyPrioritizer PROXY_PRIORITIZER = new ProxyPrioritizer();
 
     // Tracks proxies in the current configuration, used to identify when the
     // configuration has changed.
@@ -83,7 +84,7 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
      */
     private final ExecutorService proxyConnect = 
             Threads.newCachedThreadPool("Proxy-Connect-Thread-");
-
+    
     @Inject
     public DefaultProxyTracker(
             final Model model,
@@ -94,7 +95,7 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
         this.peerFactory = peerFactory;
         this.lanternTrustStore = lanternTrustStore;
         networkTracker.addListener(this);
-
+        
         Events.register(this);
     }
     
@@ -167,6 +168,18 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
     public void instanceOnlineAndTrusted(
             InstanceInfo<URI, ReceivedKScopeAd> instance) {
         LOG.debug("Adding proxy... {}", instance);
+        ReceivedKScopeAd ad = instance.getData();
+        if (ad.getAd().getWaddellId() != null) {
+            LOG.debug("Adding waddell peer {} with id {} at {}",
+                    ad.getFrom(),
+                    ad.getAd().getWaddellId(),
+                    ad.getAd().getWaddellAddr());
+            Events.asyncEventBus().post(WaddellPeerAvailabilityEvent.available(
+                    hashJid(ad.getFrom()),
+                    ad.getAd().getWaddellId(),
+                    ad.getAd().getWaddellAddr(),
+                    model.getLocation().getCountry()));
+        }
         if (instance.hasMappedEndpoint()) {
             final ProxyInfo info = instance.getData().getAd().getProxyInfo();
             
@@ -185,6 +198,10 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
         URI jid = instance.getId();
         LOG.debug("Removing proxy for {}", jid);
         removeNattedProxy(jid);
+        LOG.debug("Removing waddell peer {}", jid);
+        Events.asyncEventBus().post(
+                WaddellPeerAvailabilityEvent.unavailable(
+                        hashJid(jid.toString())));
     }
 
     @Override
@@ -310,8 +327,9 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
                 }
             }
         }
-        Collections.sort(result, PROXY_PRIORITIZER);
-        return result;
+        Collections.sort(result, 
+                new ProxyPrioritizer(this.model.getSettings().getUdpProxyPriority()));
+        return ImmutableList.copyOf(result);
     }
 
     @Override
@@ -392,7 +410,7 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
                     onCouldNotConnect(proxy);
 
                     if (proxy.attemptNatTraversalIfConnectionFailed()) {
-                        addProxy(new ProxyInfo(proxy.getJid()));
+                        addProxy(new ProxyInfo(proxy.getJid(), 1000));
                     }
                 } finally {
                     IOUtils.closeQuietly(sock);
@@ -507,61 +525,19 @@ public class DefaultProxyTracker implements ProxyTracker, NetworkTrackerListener
         addProxy(fallbackProxy);
     }
 
-    /**
-     * <p>
-     * Prioritizes proxies based on the following rules (highest to lowest):
-     * </p>
-     * 
-     * <ol>
-     * <li>Prioritize other Lanterns over fallback proxies</li>
-     * <li>Prioritize TCP over UDP</li>
-     * <li>Prioritize proxies to whom we have fewer open sockets</li>
-     * </ol>
-     */
-    private class ProxyPrioritizer implements Comparator<ProxyHolder> {
-        @Override
-        public int compare(ProxyHolder a, ProxyHolder b) {
-         // Prioritize other Lanterns over fallback proxies
-            PeerType typeA = a.getType();
-            PeerType typeB = b.getType();
-            if (typeA == pc && typeB != pc) {
-                return -1;
-            } else if (typeB == pc && typeA != pc) {
-                return 1;
-            }
-
-            // Prioritize TCP over UDP
-            int protocolPriority = 0;
-            Protocol protocolA = a.getFiveTuple().getProtocol();
-            Protocol protocolB = b.getFiveTuple().getProtocol();
-            if (protocolA == TCP && protocolB != TCP) {
-                protocolPriority = -1;
-            } else if (protocolB == TCP && protocolA != TCP) {
-                protocolPriority = 1;
-            }
-            // Adjust protocolPriority based on configured UDP proxy priority
-            protocolPriority = model.getSettings().getUdpProxyPriority()
-                    .adjustComparisonResult(protocolPriority);
-            if (protocolPriority != 0) {
-                return protocolPriority;
-            }
-            
-            // Next prioritize based on relative priority, if different
-            int priority = a.getPriority() - b.getPriority();
-            if (priority != 0) {
-                return priority;
-            }
-
-            // Lastly prioritize based on least number of open sockets
-            long numberOfSocketsA = a.getPeer().getNSockets();
-            long numberOfSocketsB = b.getPeer().getNSockets();
-            if (numberOfSocketsA < numberOfSocketsB) {
-                return -1;
-            } else if (numberOfSocketsB > numberOfSocketsA) {
-                return 1;
-            } else {
-                return 0;
-            }
+    private String hashJid(String jid) {
+        try {
+            // We hash the peer ID so as to avoid exposing it in the
+            // flashlight.yaml. We salt it with the instance id.
+            MessageDigest digest = DigestUtils.getSha256Digest();
+            digest.update(model.getInstanceId().getBytes());
+            return new Hashed(model.getInstanceId().getBytes(),
+                    jid.getBytes(),
+                    2000).hashHex();
+        } catch (Exception e) {
+            throw new RuntimeException(String.format(
+                    "Unable to encrypt JID: ", e.getMessage()),
+                    e);
         }
     }
 }

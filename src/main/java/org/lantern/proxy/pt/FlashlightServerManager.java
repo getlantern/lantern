@@ -91,7 +91,17 @@ public class FlashlightServerManager implements Shutdownable {
     @Override
     synchronized public void stop() {
         LOGGER.debug("Flashlight manager closing.");
-        stopFlashlight(model.getConnectivity().isInternet());
+        final Boolean internet = model.getConnectivity().isInternet();
+        final boolean normalized;
+        
+        // The value for internet is initially null, so we need to account for
+        // it.
+        if (internet == null) {
+            normalized = false;
+        } else {
+            normalized = internet.booleanValue();
+        }
+        stopFlashlight(normalized);
     }
 
     synchronized private void update(boolean inGiveMode, boolean isConnected) {
@@ -155,7 +165,8 @@ public class FlashlightServerManager implements Shutdownable {
             externalPort = Integer.toString(FLASHLIGHT_EXTERNAL_PORT);
         }
         props.setProperty(Flashlight.PORTMAP_KEY, externalPort);
-
+        props.setProperty(Flashlight.WADDELL_ADDR_KEY, model.getS3Config().getWaddellAddr());
+        
         LOGGER.debug("Props: {}", props);
         flashlight = new Flashlight(props);
         int localPort = LanternUtils

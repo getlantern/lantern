@@ -107,14 +107,10 @@ public class LoggingStreamHandler implements ExecuteStreamHandler {
                             panicTrace.append("\n");
                             continue;
                         }
-                        if (logToError) {
-                            log.error(line);
-                        } else {
-                            log.debug(line);
-                        }
+                        handleLine(line, logToError);
                     }
                 } catch (IOException ioe) {
-                    log.error("Unable to read line from stdout: {}",
+                    log.error("Unable to read line from pipe: {}",
                             ioe.getMessage(), ioe);
                 }
                 if (panicTrace != null) {
@@ -122,6 +118,14 @@ public class LoggingStreamHandler implements ExecuteStreamHandler {
                 }
             }
         }, "LoggingStreamHandler-error-"+logToError);
+    }
+    
+    protected void handleLine(String line, boolean logToError) {
+        if (logToError) {
+            log.error(line);
+        } else {
+            log.debug(line);
+        }
     }
 
     /**

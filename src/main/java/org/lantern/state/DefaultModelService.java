@@ -9,6 +9,7 @@ import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
 import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.ProxyService;
+import org.lantern.event.AutoReportChangedEvent;
 import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
 import org.lantern.event.SyncEvent;
@@ -166,8 +167,13 @@ public class DefaultModelService implements ModelService {
 
     @Override
     public void setAutoReport(final boolean autoReport) {
-        this.model.getSettings().setAutoReport(autoReport);
+        Settings settings = this.model.getSettings();
+        boolean wasAutoReport = settings.isAutoReport();
+        settings.setAutoReport(autoReport);
         Events.sync(SyncPath.AUTO_REPORT, autoReport);
+        if (autoReport != wasAutoReport) {
+            Events.asyncEventBus().post(new AutoReportChangedEvent(autoReport));
+        }
     }
 
     @Override

@@ -5,16 +5,13 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
+import org.lantern.proxy.ProxyHolder;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,23 +19,21 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+/**
+ * Utility class for creating SSL/TLS sockets that use the SSL engine from
+ * LanternTrustStore. That ensures we only visit sites with explicitl 
+ * trusted/pinned certificates to avoid MITM attacks from adversaries capable
+ * of compromising CAs.
+ * 
+ * In practice this particular class is really only used for Google Talk
+ * connections while all other sockets are created through the rather
+ * obscure call to {@link LanternTrustStore} newSSLEngine from within
+ * {@link ProxyHolder}.
+ */
 @Singleton
 public class LanternSocketsUtil {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-
-    private final ExecutorService threadPool =
-        Executors.newCachedThreadPool(new ThreadFactory() {
-        private final AtomicInteger threadNumber = new AtomicInteger();
-
-        @Override
-        public Thread newThread(final Runnable r) {
-            final Thread t = new Thread(r, "Peer-Reading-Thread-"+threadNumber);
-            t.setDaemon(true);
-            threadNumber.incrementAndGet();
-            return t;
-        }
-    });
 
     private final LanternTrustStore trustStore;
 

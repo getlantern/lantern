@@ -34,28 +34,27 @@ public class WindowsBrowser implements LanternBrowser {
 
     public Process open(final String uri) throws IOException {    
         final List<String> commands = new ArrayList<String>();
-        final String path;
         final String chromePath = determineExecutablePath("/Google/Chrome/Application/chrome.exe");
         if (StringUtils.isBlank(chromePath)) {
-            log.info("Looking for firefox...");
-            path = determineExecutablePath("/Mozilla Firefox/firefox.exe");
-            commands.add(path);
-            commands.add("-width");
-            commands.add(String.valueOf(windowWidth));
-            commands.add("-height");
-            commands.add(String.valueOf(windowHeight));
-            commands.add(uri);
+            log.debug("Looking for firefox...");
+            final String ffPath = determineExecutablePath("/Mozilla Firefox/firefox.exe");
+            if (StringUtils.isNotBlank(ffPath)) {
+                commands.add(ffPath);
+                commands.add(uri);
+                BrowserUtils.runProcess(commands);
+                
+                // We don't return the process on Firefox because it's a real
+                // browser window the user could have other tabs open in.
+                return null;
+            }
         } else {
-            path = chromePath;
-            commands.add(path);
+            commands.add(chromePath);
             BrowserUtils.addDefaultChromeArgs(commands);
             BrowserUtils.addAppWindowArgs(commands, windowWidth, windowHeight, uri);
-        }
-        
-        if (!StringUtils.isBlank(path)) {
             log.info("Running with commands: {}", commands);
             return BrowserUtils.runProcess(commands);
-        };
+        }
+
         
         // At this point we've searched for Chrome and Firefox but have not found 
         // either. It's always possible either exists but in another location,

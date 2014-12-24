@@ -129,7 +129,7 @@ public class UpnpCli implements UpnpService, Shutdownable {
                 try {
                     runCommand(exe, "-d", String.valueOf(port), "TCP");
                 } catch (final IOException e) {
-                    log.error("Exception deleting port mapping", e);
+                    log.debug("Exception deleting port mapping", e);
                 }
             }
         };

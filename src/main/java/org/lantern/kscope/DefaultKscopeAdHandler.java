@@ -13,13 +13,12 @@ import org.kaleidoscope.TrustGraphNodeId;
 import org.lantern.JsonUtils;
 import org.lantern.LanternTrustStore;
 import org.lantern.LanternUtils;
+import org.lantern.LanternXmppUtils;
 import org.lantern.event.Events;
 import org.lantern.event.KscopeAdEvent;
 import org.lantern.network.InstanceInfo;
 import org.lantern.network.NetworkTracker;
 import org.lantern.network.NetworkTrackerListener;
-import org.lantern.proxy.ProxyTracker;
-import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,18 +31,15 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler,
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final ProxyTracker proxyTracker;
     private final LanternTrustStore trustStore;
     private final RandomRoutingTable routingTable;
     private final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker;
 
     @Inject
     public DefaultKscopeAdHandler(
-            final ProxyTracker proxyTracker,
             final LanternTrustStore trustStore,
             final RandomRoutingTable routingTable,
             final NetworkTracker<String, URI, ReceivedKScopeAd> networkTracker) {
-        this.proxyTracker = proxyTracker;
         this.trustStore = trustStore;
         this.routingTable = routingTable;
         this.networkTracker = networkTracker;
@@ -59,7 +55,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler,
         Events.asyncEventBus().post(new KscopeAdEvent(ad));
         try {
             URI jid = new URI(from);
-            String advertisingUser = XmppUtils.jidToUser(from);
+            String advertisingUser = LanternXmppUtils.jidToEmail(from);
             return networkTracker
                     .instanceOnline(
                             advertisingUser,
@@ -74,7 +70,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler,
             return false;
         }
     }
-
+    
     @Override
     public void onBase64Cert(final URI jid, final String base64Cert) {
         log.debug("Received cert for {}", jid);
