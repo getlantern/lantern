@@ -232,7 +232,7 @@ func determineInternalIP() (string, error) {
 }
 
 func onBytesGiven(bytes int64) {
-	dims := statreporter.CountryDim()
+	dims := statreporter.CountryDim().And("flserver", globals.InstanceId)
 	dims.Increment("bytesGiven").Add(bytes)
 	dims.Increment("bytesGivenByFlashlight").Add(bytes)
 }
