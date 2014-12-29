@@ -78,15 +78,16 @@ func TestCloudFlare(t *testing.T) {
 	defer os.Remove(certContext.ServerCertFile)
 
 	// Run server proxy
-	server := &server.Server{
+	srv := &server.Server{
 		Addr:                       SERVER_ADDR,
 		ReadTimeout:                0, // don't timeout
 		WriteTimeout:               0,
 		CertContext:                certContext,
 		AllowNonGlobalDestinations: true,
 	}
+	srv.Configure(&server.ServerConfig{})
 	go func() {
-		err := server.ListenAndServe()
+		err := srv.ListenAndServe()
 		if err != nil {
 			t.Fatalf("Unable to run server: %s", err)
 		}
