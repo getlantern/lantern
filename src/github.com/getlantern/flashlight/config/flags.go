@@ -59,6 +59,8 @@ func (updated *Config) applyFlags() error {
 			updated.Role = *role
 		case "statsaddr":
 			updated.StatsAddr = *statsaddr
+		case "instanceid":
+			updated.InstanceId = *instanceid
 		case "country":
 			updated.Country = *country
 		case "cpuprofile":
@@ -73,8 +75,6 @@ func (updated *Config) applyFlags() error {
 			updated.Stats.ReportingPeriod = time.Duration(*statsPeriod) * time.Second
 		case "statshub":
 			updated.Stats.StatshubAddr = *statshubAddr
-		case "instanceid":
-			updated.Stats.InstanceId = *instanceid
 
 		// Server
 		case "portmap":
