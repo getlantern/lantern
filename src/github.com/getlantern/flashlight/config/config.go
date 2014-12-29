@@ -211,7 +211,7 @@ func (cfg *Config) applyClientDefaults() {
 	if cfg.Client.FrontedServers == nil {
 		cfg.Client.FrontedServers = make([]*client.FrontedServerInfo, 0)
 	}
-	if len(cfg.Client.FrontedServers) == 0 {
+	if len(cfg.Client.FrontedServers) == 0 && len(cfg.Client.ChainedServers) == 0 {
 		cfg.Client.FrontedServers = append(cfg.Client.FrontedServers, &client.FrontedServerInfo{
 			Host:          "roundrobin.getiantem.org",
 			Port:          443,
