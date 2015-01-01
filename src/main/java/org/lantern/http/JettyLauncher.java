@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.cometd.server.CometdServlet;
 import org.eclipse.jetty.http.HttpContent;
 import org.eclipse.jetty.server.Connector;
@@ -119,7 +120,9 @@ public class JettyLauncher implements LanternService {
         connector.setAcceptQueueSize(5000);
 
 
-        if (this.model.getSettings().isBindToLocalhost()) {
+        // We always allow anyone to connect to Lantern Pi (arm).
+        if (this.model.getSettings().isBindToLocalhost() && 
+                !SystemUtils.OS_ARCH.contains("arm")) {
             log.info("Binding to localhost");
             connector.setHost("127.0.0.1");
         } else {
