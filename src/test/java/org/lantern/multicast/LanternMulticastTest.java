@@ -24,7 +24,8 @@ public class LanternMulticastTest {
                 new AtomicReference<MulticastMessage>();
         listen(ms, ref);
         final LanternMulticast lm = 
-                new LanternMulticast(ms.getLocalPort(), LanternMulticast.MC_PORT);
+                new LanternMulticast(ms.getLocalPort());
+        lm.join();
         
         synchronized (ref) {
             if (ref.get() == null) {
@@ -45,7 +46,6 @@ public class LanternMulticastTest {
                     final DatagramPacket recv = new DatagramPacket(buf, buf.length);
                     try {
                         ms.receive(recv);
-                        System.out.println("GOT PACKET: "+new String(buf));
                         final MulticastMessage msg = 
                                 JsonUtils.decode(new ByteArrayInputStream(buf), 
                                         MulticastMessage.class);

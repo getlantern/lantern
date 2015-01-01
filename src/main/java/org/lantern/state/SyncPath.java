@@ -38,7 +38,7 @@ public enum SyncPath {
     SHOWVIS("showVis"),
     FRIENDS("friends"),
     FRIENDING_QUOTA("remainingFriendingQuota"),
-    LOCAL_LANTERNS("local_lanterns");
+    LOCAL_LANTERNS("localLanterns");
 
     private final String path;
 
