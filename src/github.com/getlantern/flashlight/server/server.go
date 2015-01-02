@@ -240,21 +240,22 @@ func determineInternalIP() (string, error) {
 }
 
 func onBytesGiven(destAddr string, req *http.Request, bytes int64) {
-	given := statreporter.CountryDim().And("flserver", globals.InstanceId)
-	given.Increment("bytesGiven").Add(bytes)
-	given.Increment("bytesGivenByFlashlight").Add(bytes)
-
 	port := "0"
 	parts := strings.Split(destAddr, ":")
 	if len(parts) > 1 {
 		port = parts[1]
 	}
 
-	givenTo := statreporter.Dim("destport", port)
+	given := statreporter.CountryDim().
+		And("flserver", globals.InstanceId).
+		And("destport", port)
+	given.Increment("bytesGiven").Add(bytes)
+	given.Increment("bytesGivenByFlashlight").Add(bytes)
+
 	clientCountry := req.Header.Get(CF_IPCOUNTRY)
 	if clientCountry != "" {
-		givenTo = givenTo.WithCountryAs(clientCountry)
+		givenTo := statreporter.Country(clientCountry)
+		givenTo.Increment("bytesGivenTo").Add(bytes)
+		givenTo.Increment("bytesGivenToByFlashlight").Add(bytes)
 	}
-	givenTo.Increment("bytesGivenTo").Add(bytes)
-	givenTo.Increment("bytesGivenToByFlashlight").Add(bytes)
 }
