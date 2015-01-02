@@ -42,6 +42,7 @@ type Config struct {
 	CloudConfigCA string
 	Addr          string
 	Role          string
+	InstanceId    string
 	Country       string
 	StatsAddr     string
 	CpuProfile    string
@@ -115,6 +116,7 @@ func Start(updateHandler func(updated *Config)) (*Config, error) {
 }
 
 func updateGlobals(cfg *Config) {
+	globals.InstanceId = cfg.InstanceId
 	globals.Country = cfg.Country
 	if cfg.WaddellCert != "" {
 		globals.WaddellCert = cfg.WaddellCert

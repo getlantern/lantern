@@ -116,6 +116,11 @@ func (server *Server) ListenAndServe() error {
 		AllowNonGlobalDestinations: server.AllowNonGlobalDestinations,
 	}
 
+	if server.cfg.Unencrypted {
+		log.Debug("Running in unencrypted mode")
+		fs.CertContext = nil
+	}
+
 	// Add callbacks to track bytes given
 	fs.OnBytesReceived = func(ip string, bytes int64) {
 		onBytesGiven(bytes)
@@ -232,7 +237,7 @@ func determineInternalIP() (string, error) {
 }
 
 func onBytesGiven(bytes int64) {
-	dims := statreporter.CountryDim()
+	dims := statreporter.CountryDim().And("flserver", globals.InstanceId)
 	dims.Increment("bytesGiven").Add(bytes)
 	dims.Increment("bytesGivenByFlashlight").Add(bytes)
 }

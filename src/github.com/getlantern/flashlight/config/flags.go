@@ -15,6 +15,7 @@ var (
 	cloudconfig    = flag.String("cloudconfig", "", "optional http(s) URL to a cloud-based source for configuration updates")
 	cloudconfigca  = flag.String("cloudconfigca", "", "optional PEM encoded certificate used to verify TLS connections to fetch cloudconfig")
 	addr           = flag.String("addr", "", "ip:port on which to listen for requests. When running as a client proxy, we'll listen with http, when running as a server proxy we'll listen with https (required)")
+	unencrypted    = flag.Bool("unencrypted", false, "set to true to run server in unencrypted mode (no TLS)")
 	role           = flag.String("role", "", "either 'client' or 'server' (required)")
 	statsPeriod    = flag.Int("statsperiod", 0, "time in seconds to wait between reporting stats. If not specified, stats are not reported. If specified, statshub, instanceid and statsaddr must also be specified.")
 	statshubAddr   = flag.String("statshub", "pure-journey-3547.herokuapp.com", "address of statshub server")
@@ -58,6 +59,8 @@ func (updated *Config) applyFlags() error {
 			updated.Role = *role
 		case "statsaddr":
 			updated.StatsAddr = *statsaddr
+		case "instanceid":
+			updated.InstanceId = *instanceid
 		case "country":
 			updated.Country = *country
 		case "cpuprofile":
@@ -72,8 +75,6 @@ func (updated *Config) applyFlags() error {
 			updated.Stats.ReportingPeriod = time.Duration(*statsPeriod) * time.Second
 		case "statshub":
 			updated.Stats.StatshubAddr = *statshubAddr
-		case "instanceid":
-			updated.Stats.InstanceId = *instanceid
 
 		// Server
 		case "portmap":
@@ -84,6 +85,9 @@ func (updated *Config) applyFlags() error {
 			updated.Server.WaddellAddr = *waddelladdr
 		}
 	})
+
+	// Settings that get set no matter what
+	updated.Server.Unencrypted = *unencrypted
 
 	return nil
 }

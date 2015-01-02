@@ -51,7 +51,8 @@ type Server struct {
 	// WriteTimeout: (optional) timeout for write ops
 	WriteTimeout time.Duration
 
-	// CertContext for server's certificates
+	// CertContext for server's certificates. If nil, the server will use
+	// unencrypted connections instead of TLS.
 	CertContext *CertContext
 
 	// TLSConfig: tls configuration to use on inbound connections. If nil, will
@@ -83,6 +84,25 @@ type CertContext struct {
 }
 
 func (server *Server) Listen() (net.Listener, error) {
+	listener, err := server.listen()
+	if err != nil {
+		return nil, err
+	}
+
+	// We use an idle timing listener to time out idle HTTP connections, since
+	// the CDNs seem to like keeping lots of connections open indefinitely.
+	return idletiming.Listener(listener, httpIdleTimeout, nil), nil
+}
+
+func (server *Server) listen() (net.Listener, error) {
+	if server.CertContext != nil {
+		return server.listenTLS()
+	} else {
+		return server.listenUnencrypted()
+	}
+}
+
+func (server *Server) listenTLS() (net.Listener, error) {
 	err := server.CertContext.InitServerCert(strings.Split(server.Addr, ":")[0])
 	if err != nil {
 		return nil, fmt.Errorf("Unable to init server cert: %s", err)
@@ -103,9 +123,16 @@ func (server *Server) Listen() (net.Listener, error) {
 		return nil, fmt.Errorf("Unable to listen for tls connections at %s: %s", server.Addr, err)
 	}
 
-	// We use an idle timing listener to time out idle HTTP connections, since
-	// the CDNs seem to like keeping lots of connections open indefinitely.
-	return idletiming.Listener(listener, httpIdleTimeout, nil), nil
+	return listener, err
+}
+
+func (server *Server) listenUnencrypted() (net.Listener, error) {
+	listener, err := net.Listen("tcp", server.Addr)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to listen for unencrypted connections at %s: %s", server.Addr, err)
+	}
+
+	return listener, err
 }
 
 func (server *Server) Serve(l net.Listener) error {

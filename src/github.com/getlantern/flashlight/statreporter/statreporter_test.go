@@ -6,10 +6,12 @@ import (
 	"time"
 
 	"github.com/getlantern/testify/assert"
+
+	"github.com/getlantern/flashlight/globals"
 )
 
 func TestAll(t *testing.T) {
-	instanceid := "testinstance"
+	globals.InstanceId = "testinstance"
 
 	// Set up fake statshub
 	reportCh := make(chan report)
@@ -21,7 +23,6 @@ func TestAll(t *testing.T) {
 	// Start reporting
 	err := doConfigure(&Config{
 		ReportingPeriod: 100 * time.Millisecond,
-		InstanceId:      instanceid,
 	}, func(r report) error {
 		go func() {
 			reportCh <- r
@@ -47,7 +48,6 @@ func TestAll(t *testing.T) {
 	// Reconfigure reporting
 	doConfigure(&Config{
 		ReportingPeriod: 200 * time.Millisecond,
-		InstanceId:      instanceid,
 	}, func(r report) error {
 		go func() {
 			reportCh <- r
