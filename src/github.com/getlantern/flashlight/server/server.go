@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"net"
+	"net/http"
 	"os"
 	"reflect"
 	"strconv"
@@ -24,6 +25,8 @@ import (
 
 const (
 	PortmapFailure = 50
+
+	CF_IPCOUNTRY = "Cf-Ipcountry"
 )
 
 var (
@@ -122,12 +125,12 @@ func (server *Server) ListenAndServe() error {
 	}
 
 	// Add callbacks to track bytes given
-	fs.OnBytesReceived = func(ip string, bytes int64) {
-		onBytesGiven(bytes)
+	fs.OnBytesReceived = func(ip string, destAddr string, req *http.Request, bytes int64) {
+		onBytesGiven(destAddr, req, bytes)
 		statserver.OnBytesReceived(ip, bytes)
 	}
-	fs.OnBytesSent = func(ip string, bytes int64) {
-		onBytesGiven(bytes)
+	fs.OnBytesSent = func(ip string, destAddr string, req *http.Request, bytes int64) {
+		onBytesGiven(destAddr, req, bytes)
 		statserver.OnBytesSent(ip, bytes)
 	}
 
@@ -236,8 +239,22 @@ func determineInternalIP() (string, error) {
 	return strings.Split(conn.LocalAddr().String(), ":")[0], nil
 }
 
-func onBytesGiven(bytes int64) {
-	dims := statreporter.CountryDim().And("flserver", globals.InstanceId)
-	dims.Increment("bytesGiven").Add(bytes)
-	dims.Increment("bytesGivenByFlashlight").Add(bytes)
+func onBytesGiven(destAddr string, req *http.Request, bytes int64) {
+	given := statreporter.CountryDim().And("flserver", globals.InstanceId)
+	given.Increment("bytesGiven").Add(bytes)
+	given.Increment("bytesGivenByFlashlight").Add(bytes)
+
+	port := "0"
+	parts := strings.Split(destAddr, ":")
+	if len(parts) > 1 {
+		port = parts[1]
+	}
+
+	givenTo := statreporter.Dim("destport", port)
+	clientCountry := req.Header.Get(CF_IPCOUNTRY)
+	if clientCountry != "" {
+		givenTo = givenTo.WithCountryAs(clientCountry)
+	}
+	givenTo.Increment("bytesGivenTo").Add(bytes)
+	givenTo.Increment("bytesGivenToByFlashlight").Add(bytes)
 }

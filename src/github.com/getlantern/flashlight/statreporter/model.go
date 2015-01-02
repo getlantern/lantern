@@ -61,6 +61,10 @@ func (dg *DimGroup) WithCountry() *DimGroup {
 	return dg.And(countryDim, globals.Country)
 }
 
+func (dg *DimGroup) WithCountryAs(country string) *DimGroup {
+	return dg.And(countryDim, country)
+}
+
 // String returns a string representation of this DimGroup with keys in
 // alphabetical order, making it suitable for using as a key representing this
 // DimGroup.
