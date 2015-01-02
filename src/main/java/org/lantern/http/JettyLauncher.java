@@ -168,9 +168,11 @@ public class JettyLauncher implements LanternService {
                 } else if (uri.startsWith("/proxy_google")) {
                     writeFileToResponse(resp, Proxifier.PROXY_GOOGLE);
                 } else {
-                    resp.addCookie(new Cookie("XSRF-TOKEN", model.getXsrfToken()));
-                    if (!resp.containsHeader("Content-Security-Policy")) {
-                        LanternUtils.addCSPHeader(resp);
+                    if (!LanternUtils.isDevMode() && !LanternUtils.isLanternPi()) {
+                        resp.addCookie(new Cookie("XSRF-TOKEN", model.getXsrfToken()));
+                        if (!resp.containsHeader("Content-Security-Policy")) {
+                            LanternUtils.addCSPHeader(resp);
+                        }
                     }
                     super.doGet(req, resp);
                 }

@@ -1371,4 +1371,14 @@ public class LanternUtils {
         }
         return false;
     }
+
+    /**
+     * Utility for whether or not we're running on a Pi. Just checks for ARM 
+     * for now.
+     * 
+     * @return <code>true</code> if we're on ARM, otherwise <code>false</code>.
+     */
+    public static boolean isLanternPi() {
+        return SystemUtils.OS_ARCH.toLowerCase().contains("arm");
+    }
 }

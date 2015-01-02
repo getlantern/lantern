@@ -55,7 +55,7 @@ public class LanternMulticast {
                     MulticastMessage.newHello(StaticSettings.getLocalEndpoint());
             final String msg = JsonUtils.jsonify(mm);
 
-            if (LanternUtils.isDevMode() || SystemUtils.OS_ARCH.contains("arm")) {
+            if (LanternUtils.isDevMode() || LanternUtils.isLanternPi()) {
                 final DatagramPacket hi = 
                     new DatagramPacket(msg.getBytes(Charsets.UTF_8), msg.length(),
                                         group, this.sendPort);
