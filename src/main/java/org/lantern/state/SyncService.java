@@ -46,6 +46,8 @@ public class SyncService implements LanternService {
     private final Timer timer;
 
     private boolean clientSynced;
+    
+    private String browserType;
 
     /**
      * Creates a new sync service.
@@ -60,6 +62,7 @@ public class SyncService implements LanternService {
         this.model = model;
         this.timer = timer;
         this.clientSynced = false;
+        this.browserType = "unknown";
         // Make sure the config class is added as a listener before this class.
         Events.register(this);
     }
@@ -95,6 +98,14 @@ public class SyncService implements LanternService {
 
     public boolean clientSynced() {
         return clientSynced;
+    }
+
+    public void setBrowserType(String browserType) {
+        this.browserType = browserType;
+    }
+
+    public String getBrowserType() {
+        return this.browserType;
     }
 
     @Configure("/service/sync")
