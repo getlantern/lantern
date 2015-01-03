@@ -56,6 +56,23 @@ angular.module('app.services', [])
       cometd.disconnect(true);
     }
 
+    $rootScope.sendBrowserInfo = function() {
+        var type = 'unknown';
+        var isOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+        if (isOpera) {
+            type = 'Opera';
+        } else if (typeof InstallTrigger !== 'undefined') {
+            type = 'Firefox';
+        } else if (Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0) {
+            type = 'Safari';
+        } else if (!!window.chrome && !isOpera) {
+            type = 'Chrome';
+        } else if (false || !!document.documentMode) {
+            type = 'IE';
+        }
+        apiSrvc.interaction('/browserRef', {'type': type });
+    }
+
     $($window).unload(disconnect);
 
     // http://cometd.org/documentation/cometd-javascript/subscription
@@ -85,6 +102,7 @@ angular.module('app.services', [])
       }
       if (!wasConnected && connected) { // reconnected
         log.debug('connection established');
+        $rootScope.sendBrowserInfo();
         $rootScope.$apply(function () {
           $rootScope.cometdConnected = true;
         });
@@ -164,7 +182,7 @@ angular.module('app.services', [])
       disconnect: disconnect
     };
   })
-  .service('modelSrvc', function($rootScope, apiSrvc, MODEL_SYNC_CHANNEL, cometdSrvc, logFactory, flashlightStats) {
+  .service('modelSrvc', function($rootScope, apiSrvc, $window, MODEL_SYNC_CHANNEL, cometdSrvc, logFactory, flashlightStats) {
     var log = logFactory('modelSrvc'),
         model = {},
         syncSubscriptionKey;
