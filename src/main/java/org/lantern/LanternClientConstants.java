@@ -145,6 +145,8 @@ public class LanternClientConstants {
 
     public static String CONTROLLER_URL;
 
+    public static boolean SKIP_LOGIN = false;
+
     public static void setControllerId(final String id) {
         if (StringUtils.isBlank(id)) {
             LOG.warn("Blank controller id?");
