@@ -42,7 +42,6 @@ func Conn(conn net.Conn, idleTimeout time.Duration, onClose func()) *IdleTimingC
 				atomic.StoreInt64(&c.lastActivityTime, time.Now().UnixNano())
 				continue
 			case <-timer.C:
-				//c.Close()
 				return
 			case <-c.closedCh:
 				c.Close()

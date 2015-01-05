@@ -38,6 +38,6 @@ func WaitForServer(protocol string, addr string, limit time.Duration) error {
 			c.Close()
 			return nil
 		}
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
 	}
 }
