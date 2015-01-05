@@ -68,11 +68,11 @@ type Server struct {
 
 	// OnBytesSent: optional callback for learning about bytes sent by this
 	// server to upstream destinations.
-	OnBytesSent func(ip string, bytes int64)
+	OnBytesSent func(ip string, destAddr string, req *http.Request, bytes int64)
 
 	// OnBytesSent: optional callback for learning about bytes received by this
 	// server from upstream destinations.
-	OnBytesReceived func(ip string, bytes int64)
+	OnBytesReceived func(ip string, destAddr string, req *http.Request, bytes int64)
 }
 
 // CertContext encapsulates the certificates used by a Server

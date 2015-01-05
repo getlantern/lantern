@@ -44,7 +44,11 @@ func Dim(key string, value string) *DimGroup {
 }
 
 func CountryDim() *DimGroup {
-	return Dim(countryDim, globals.Country)
+	return Country(globals.Country)
+}
+
+func Country(country string) *DimGroup {
+	return Dim(countryDim, country)
 }
 
 // And creates a new DimGroup that adds the given dim to the existing ones in
