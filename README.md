@@ -24,7 +24,7 @@ go wherever you like. Ox keeps his at ~/go_native.
 go get github.com/mitchellh/gox
 go get github.com/getlantern/gonative
 cd ~
-gonative -version="1.4" -platforms="darwin_amd64 linux_386 linux_amd64 windows_386"
+gonative build -version="1.4" -platforms="darwin_amd64 linux_386 linux_amd64 windows_386"
 mv go go_native
 ```
 
