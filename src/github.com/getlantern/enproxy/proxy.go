@@ -160,10 +160,7 @@ func (p *Proxy) handleWrite(resp http.ResponseWriter, req *http.Request, lc *laz
 	// Pipe request
 	n, err := io.Copy(connOut, req.Body)
 	if p.OnBytesReceived != nil && n > 0 {
-		clientIp := clientIpFor(req)
-		if clientIp != "" {
-			p.OnBytesReceived(clientIp, lc.addr, req, n)
-		}
+		p.OnBytesReceived(clientIpFor(req), lc.addr, req, n)
 	}
 	if err != nil && err != io.EOF {
 		badGateway(resp, fmt.Sprintf("Unable to write to connOut: %s", err))
@@ -225,7 +222,7 @@ func (p *Proxy) handleRead(resp http.ResponseWriter, req *http.Request, lc *lazy
 
 		// Write if necessary
 		if n > 0 {
-			if clientIp != "" && p.OnBytesSent != nil && n > 0 {
+			if p.OnBytesSent != nil && n > 0 {
 				p.OnBytesSent(clientIp, lc.addr, req, int64(n))
 			}
 
