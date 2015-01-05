@@ -90,7 +90,7 @@ func (s *server) listenAndServe() {
 	var err error
 	s.l, err = net.Listen("tcp", s.addr)
 	if err != nil {
-		log.Errorf("Unable to listen at %v: %v", err)
+		log.Errorf("Unable to listen at %v: %v", s.addr, err)
 		return
 	}
 	s.clients = make(map[int]*client)

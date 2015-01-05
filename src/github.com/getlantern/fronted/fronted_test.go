@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/http"
 	"strconv"
-	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -236,9 +235,11 @@ func startServer(t *testing.T, allowNonGlobal bool) net.Listener {
 }
 
 func dialerFor(t *testing.T, l net.Listener) *Dialer {
-	addrParts := strings.Split(l.Addr().String(), ":")
-	host := addrParts[0]
-	port, err := strconv.Atoi(addrParts[1])
+	host, portString, err := net.SplitHostPort(l.Addr().String())
+	if err != nil {
+		t.Fatalf("Unable to split host and port: %v", err)
+	}
+	port, err := strconv.Atoi(portString)
 	if err != nil {
 		t.Fatalf("Unable to parse port: %s", err)
 	}
