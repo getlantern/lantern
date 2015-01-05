@@ -63,10 +63,6 @@ func (updated *Config) applyFlags() error {
 			updated.InstanceId = *instanceid
 		case "country":
 			updated.Country = *country
-		case "cpuprofile":
-			updated.CpuProfile = *cpuprofile
-		case "memprofile":
-			updated.MemProfile = *memprofile
 		case "waddellcert":
 			updated.WaddellCert = *waddellcert
 
@@ -87,6 +83,8 @@ func (updated *Config) applyFlags() error {
 	})
 
 	// Settings that get set no matter what
+	updated.CpuProfile = *cpuprofile
+	updated.MemProfile = *memprofile
 	updated.Server.Unencrypted = *unencrypted
 
 	return nil
