@@ -105,12 +105,13 @@ func (c *IdleTimingConn) Read(b []byte) (int, error) {
 			n, err := c.conn.Read(b)
 			c.markActive(n)
 			totalN = totalN + n
-			timedOut := isTimeout(err)
-			if timedOut {
-				// Ignore timeouts when using deadline based on IdleTimeout
+			hitMaxDeadline := isTimeout(err) && !time.Now().Before(maxDeadline)
+			if hitMaxDeadline {
+				// Ignore timeouts when encountering deadline based on
+				// IdleTimeout
 				err = nil
 			}
-			if n == 0 || !timedOut {
+			if n == 0 || !hitMaxDeadline {
 				return totalN, err
 			}
 			b = b[n:]
@@ -141,12 +142,13 @@ func (c *IdleTimingConn) Write(b []byte) (int, error) {
 			n, err := c.conn.Write(b)
 			c.markActive(n)
 			totalN = totalN + n
-			timedOut := isTimeout(err)
-			if timedOut {
-				// Ignore timeouts when using deadline based on IdleTimeout
+			hitMaxDeadline := isTimeout(err) && !time.Now().Before(maxDeadline)
+			if hitMaxDeadline {
+				// Ignore timeouts when encountering deadline based on
+				// IdleTimeout
 				err = nil
 			}
-			if n == 0 || !timedOut {
+			if n == 0 || !hitMaxDeadline {
 				return totalN, err
 			}
 			b = b[n:]
