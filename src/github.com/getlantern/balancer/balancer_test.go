@@ -153,6 +153,10 @@ func TestAll(t *testing.T) {
 		b.Close()
 		time.Sleep(250 * time.Millisecond)
 		assert.Equal(t, int32(1), dialer1Closed, "Dialer 1 should have been closed")
+		_, err := b.Dial("tcp", addr)
+		if assert.Error(t, err, "Dialing on closed balancer should fail") {
+			assert.Contains(t, "No dialers left to try", err.Error(), "Error should have mentioned that there were no dialers left to try")
+		}
 	}()
 	conn, err := b.Dial("tcp", addr)
 	assert.NoError(t, err, "Dialing should have succeeded")

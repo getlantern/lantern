@@ -5,6 +5,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"sync"
 )
 
 // Server provides the upstream side of a chained proxy setup. It can be run as
@@ -49,6 +50,7 @@ func (s *Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(resp, "Unable to dial %s : %s", address, err)
 		return
 	}
+	defer connOut.Close()
 	resp.WriteHeader(200)
 	fmt.Fprint(resp, "CONNECT OK")
 	fl.Flush()
@@ -56,10 +58,19 @@ func (s *Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	connIn, _, err := hj.Hijack()
 	if err != nil {
 		log.Errorf("Unable to hijack connection: %s", err)
-		connOut.Close()
 		return
 	}
+	defer connIn.Close()
 
-	go io.Copy(connOut, connIn)
-	go io.Copy(connIn, connOut)
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		io.Copy(connOut, connIn)
+		wg.Done()
+	}()
+	go func() {
+		go io.Copy(connIn, connOut)
+		wg.Done()
+	}()
+	wg.Wait()
 }

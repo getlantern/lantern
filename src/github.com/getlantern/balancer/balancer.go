@@ -80,7 +80,9 @@ func (b *Balancer) Dial(network, addr string) (net.Conn, error) {
 // Close closes this Balancer, stopping all background processing. You must call
 // Close to avoid leaking goroutines.
 func (b *Balancer) Close() {
-	for _, d := range b.dialers {
+	oldDialers := b.dialers
+	b.dialers = nil
+	for _, d := range oldDialers {
 		d.stop()
 	}
 }
