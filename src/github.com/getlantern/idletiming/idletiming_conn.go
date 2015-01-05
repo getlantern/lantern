@@ -4,6 +4,7 @@ package idletiming
 
 import (
 	"net"
+	"strings"
 	"sync/atomic"
 	"time"
 )
@@ -99,7 +100,7 @@ func (c *IdleTimingConn) Read(b []byte) (int, error) {
 			n, err := c.conn.Read(b)
 			c.markActive(n)
 			totalN = totalN + n
-			timedOut := isTimeout(err)
+			timedOut := isTimeout(err) && strings.Index(err.Error(), "read") == 0
 			if timedOut {
 				// Ignore timeouts when using deadline based on IdleTimeout
 				err = nil
@@ -133,7 +134,7 @@ func (c *IdleTimingConn) Write(b []byte) (int, error) {
 			n, err := c.conn.Write(b)
 			c.markActive(n)
 			totalN = totalN + n
-			timedOut := isTimeout(err)
+			timedOut := isTimeout(err) && strings.Index(err.Error(), "write") == 0
 			if timedOut {
 				// Ignore timeouts when using deadline based on IdleTimeout
 				err = nil
