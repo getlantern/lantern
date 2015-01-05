@@ -25,8 +25,6 @@ import (
 
 const (
 	PortmapFailure = 50
-
-	CF_IPCOUNTRY = "Cf-Ipcountry"
 )
 
 var (
@@ -252,7 +250,7 @@ func onBytesGiven(destAddr string, req *http.Request, bytes int64) {
 	given.Increment("bytesGiven").Add(bytes)
 	given.Increment("bytesGivenByFlashlight").Add(bytes)
 
-	clientCountry := req.Header.Get(CF_IPCOUNTRY)
+	clientCountry := req.Header.Get("Cf-Ipcountry")
 	if clientCountry != "" {
 		givenTo := statreporter.Country(clientCountry)
 		givenTo.Increment("bytesGivenTo").Add(bytes)

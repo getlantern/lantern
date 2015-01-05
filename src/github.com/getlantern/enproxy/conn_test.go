@@ -100,8 +100,6 @@ func doTestTLS(buffered bool, t *testing.T) {
 
 	doRequests(tlsConn, t)
 
-	assert.Equal(t, 550, bytesReceived, "Wrong number of bytes received")
-	assert.Equal(t, 1580, bytesSent, "Wrong number of bytes sent")
 	assert.True(t, destsSent[httpsAddr], "https address wasn't recorded as sent destination")
 	assert.True(t, destsReceived[httpsAddr], "https address wasn't recorded as received destination")
 }
@@ -241,21 +239,7 @@ func startHttpServer(t *testing.T) {
 	}
 	httpAddr = l.Addr().String()
 
-	go func() {
-		httpServer := &http.Server{
-			Handler: http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
-				resp.Write([]byte(TEXT))
-			}),
-		}
-		err := httpServer.Serve(l)
-		if err != nil {
-			t.Fatalf("HTTP unable to serve: %s", err)
-		}
-	}()
-
-	if err := WaitForServer("tcp", httpAddr, 1*time.Second); err != nil {
-		t.Fatal(err)
-	}
+	doStartServer(t, l)
 }
 
 func startHttpsServer(t *testing.T) {
@@ -289,6 +273,10 @@ func startHttpsServer(t *testing.T) {
 	}
 	httpsAddr = l.Addr().String()
 
+	doStartServer(t, l)
+}
+
+func doStartServer(t *testing.T, l net.Listener) {
 	go func() {
 		httpServer := &http.Server{
 			Handler: http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
@@ -297,11 +285,11 @@ func startHttpsServer(t *testing.T) {
 		}
 		err := httpServer.Serve(l)
 		if err != nil {
-			t.Fatalf("HTTPS unable to serve: %s", err)
+			t.Fatalf("Unable to start http server: %s", err)
 		}
 	}()
 
-	if err := WaitForServer("tcp", httpAddr, 1*time.Second); err != nil {
+	if err := WaitForServer("tcp", l.Addr().String(), 1*time.Second); err != nil {
 		t.Fatal(err)
 	}
 }
