@@ -36,8 +36,7 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 	// Hijack underlying connection
 	clientConn, _, err := resp.(http.Hijacker).Hijack()
 	if err != nil {
-		resp.WriteHeader(502)
-		fmt.Fprintf(resp, "Unable to hijack connection: %s", err)
+		respondBadGateway(resp, fmt.Sprintf("Unable to hijack connection: %s", err))
 		return
 	}
 	defer clientConn.Close()
@@ -47,8 +46,7 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 	// Establish outbound connection
 	connOut, err := client.getBalancer().DialQOS("tcp", addr, targetQOS(req))
 	if err != nil {
-		resp.WriteHeader(502)
-		fmt.Fprintf(resp, "Unable to handle CONNECT request: %s", err)
+		respondBadGateway(clientConn, fmt.Sprintf("Unable to handle CONNECT request: %s", err))
 		return
 	}
 	defer connOut.Close()
@@ -96,6 +94,20 @@ func respondOK(writer io.Writer, req *http.Request) error {
 		ProtoMinor: 1,
 	}
 	return resp.Write(writer)
+}
+
+func respondBadGateway(w io.Writer, msg string) error {
+	log.Debugf("Responding BadGateway: %v", msg)
+	resp := &http.Response{
+		StatusCode: 502,
+		ProtoMajor: 1,
+		ProtoMinor: 1,
+	}
+	err := resp.Write(w)
+	if err == nil {
+		_, err = w.Write([]byte(msg))
+	}
+	return err
 }
 
 // hostIncludingPort extracts the host:port from a request.  It fills in a
