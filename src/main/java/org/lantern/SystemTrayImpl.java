@@ -149,13 +149,11 @@ public class SystemTrayImpl implements org.lantern.SystemTray {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     log.debug("Reopening browser?");
-                    if (!syncService.clientSynced()) {
-                        /* only re-open if UI 
-                         * isn't already open 
-                         */
-                        browserService.reopenBrowser();
-                    } else {
+                    if (syncService.getClientBrowser().equals("Chrome") &&
+                        syncService.clientSynced()) {
                         syncService.sendClientPing();
+                    } else {
+                        browserService.reopenBrowser();
                     }
                 }
             });

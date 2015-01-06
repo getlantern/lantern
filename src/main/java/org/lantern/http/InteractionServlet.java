@@ -32,6 +32,7 @@ import org.lantern.state.FriendsHandler;
 import org.lantern.state.InternalState;
 import org.lantern.state.JsonModelModifier;
 import org.lantern.state.LocationChangedEvent;
+import org.lantern.state.SyncService;
 import org.lantern.state.Modal;
 import org.lantern.state.Mode;
 import org.lantern.state.Model;
@@ -78,7 +79,8 @@ public class InteractionServlet extends HttpServlet {
         UPDATEAVAILABLE,
         CHANGELANG, // TODO https://github.com/getlantern/lantern/issues/1088
         REJECT,
-        ROUTERCONFIG
+        ROUTERCONFIG,
+        BROWSERREF
     }
 
     // modals the user can switch to from other modals
@@ -108,6 +110,8 @@ public class InteractionServlet extends HttpServlet {
 
     private final Censored censored;
 
+    private final SyncService syncService;
+
     private final LogglyHelper logglyHelper;
 
     private final FriendsHandler friender;
@@ -121,6 +125,7 @@ public class InteractionServlet extends HttpServlet {
         final ModelService modelService,
         final InternalState internalState,
         final ModelIo modelIo, 
+        final SyncService syncService,
         final Censored censored, final LogglyHelper logglyHelper,
         final FriendsHandler friender,
         final Messages msgs,
@@ -134,6 +139,7 @@ public class InteractionServlet extends HttpServlet {
         this.friender = friender;
         this.msgs = msgs;
         this.refreshToken = refreshToken;
+        this.syncService = syncService;
         Events.register(this);
     }
 
@@ -208,6 +214,12 @@ public class InteractionServlet extends HttpServlet {
             } catch (InterruptedException e) {
                 log.error("Could not open gateway?", e);
             }
+        }
+
+        if (inter == Interaction.BROWSERREF) {
+            final String clientBrowser = JsonUtils.getValueFromJson("type", json);
+            syncService.setClientBrowser(clientBrowser);
+            return;
         }
 
         if (inter == Interaction.URL) {
