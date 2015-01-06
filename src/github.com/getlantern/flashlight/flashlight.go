@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"runtime"
 	"runtime/pprof"
 	"strconv"
@@ -322,7 +323,7 @@ func mapPort(cfg *config.Config) error {
 // the LocalAddr for the corresponding connection. This gives us an interface
 // that we know has Internet access, which makes it suitable for port mapping.
 func determineInternalIP() (string, error) {
-	conn, err := net.DialTimeout("tcp", "s3.amazonaws.com:443", 20 * time.Second)
+	conn, err := net.DialTimeout("tcp", "s3.amazonaws.com:443", 20*time.Second)
 	if err != nil {
 		return "", fmt.Errorf("Unable to determine local IP: %s", err)
 	}
@@ -337,6 +338,7 @@ func useAllCores() {
 }
 
 func startCPUProfiling(filename string) {
+	filename = withTimestamp(filename)
 	f, err := os.Create(filename)
 	if err != nil {
 		log.Fatal(err)
@@ -351,6 +353,7 @@ func stopCPUProfiling(filename string) {
 }
 
 func saveMemProfile(filename string) {
+	filename = withTimestamp(filename)
 	f, err := os.Create(filename)
 	if err != nil {
 		log.Errorf("Unable to create file to save memprofile: %s", err)
@@ -374,4 +377,17 @@ func saveProfilingOnSigINT(cfg *config.Config) {
 		}
 		os.Exit(Interrupted)
 	}()
+}
+
+func withTimestamp(filename string) string {
+	file := filename
+	ext := filepath.Ext(file)
+	if ext != "" {
+		file = file[:len(file)-len(ext)]
+	}
+	file = fmt.Sprintf("%s_%s", file, time.Now().Format("20060102_150405.000000000"))
+	if ext != "" {
+		file = file + ext
+	}
+	return file
 }
