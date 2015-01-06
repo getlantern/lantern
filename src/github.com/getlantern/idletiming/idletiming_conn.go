@@ -14,7 +14,9 @@ var (
 
 // Conn creates a new net.Conn wrapping the given net.Conn that times out after
 // the specified period. Read and Write calls will timeout if they take longer
-// than the indicated
+// than the indicated idleTimeout.
+//
+// Once a connection is determined to be idle, it is closed.
 //
 // idleTimeout specifies how long to wait for inactivity before considering
 // connection idle.
@@ -26,15 +28,18 @@ func Conn(conn net.Conn, idleTimeout time.Duration, onClose func()) *IdleTimingC
 		conn:             conn,
 		idleTimeout:      idleTimeout,
 		halfIdleTimeout:  time.Duration(idleTimeout.Nanoseconds() / 2),
-		activeCh:         make(chan bool, 10),
-		closedCh:         make(chan bool, 10),
+		activeCh:         make(chan bool, 1),
+		closedCh:         make(chan bool, 1),
 		lastActivityTime: int64(time.Now().UnixNano()),
 	}
 
 	go func() {
-		if onClose != nil {
-			defer onClose()
-		}
+		defer func() {
+			conn.Close()
+			if onClose != nil {
+				onClose()
+			}
+		}()
 
 		timer := time.NewTimer(idleTimeout)
 		defer timer.Stop()
@@ -48,7 +53,6 @@ func Conn(conn net.Conn, idleTimeout time.Duration, onClose func()) *IdleTimingC
 			case <-timer.C:
 				return
 			case <-c.closedCh:
-				c.Close()
 				return
 			}
 		}
@@ -157,7 +161,10 @@ func (c *IdleTimingConn) Write(b []byte) (int, error) {
 }
 
 func (c *IdleTimingConn) Close() error {
-	c.closedCh <- true
+	select {
+	case c.closedCh <- true:
+		// close accepted
+	}
 	return c.conn.Close()
 }
 
