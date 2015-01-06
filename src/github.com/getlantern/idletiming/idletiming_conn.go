@@ -22,8 +22,8 @@ var (
 // onClose is an optional function to call after the connection has idled or
 // been closed.
 //
-// Note - idletiming.Conn does not close the underlying connection, it is up to
-// clients to handle this in their onClose callback.
+// Note - idletiming.Conn does not close the underlying connection if it idled,
+// it is up to clients to handle this in their onClose callback.
 func Conn(conn net.Conn, idleTimeout time.Duration, onClose func()) *IdleTimingConn {
 	c := &IdleTimingConn{
 		conn:             conn,
