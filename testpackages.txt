@@ -6,6 +6,7 @@ github.com/getlantern/chained
 github.com/getlantern/connpool
 github.com/getlantern/deepcopy
 github.com/getlantern/enproxy
+github.com/getlantern/fdcount
 github.com/getlantern/framed
 github.com/getlantern/fronted
 github.com/getlantern/golog
