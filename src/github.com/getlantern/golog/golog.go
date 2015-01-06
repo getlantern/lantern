@@ -118,14 +118,22 @@ func (l *logger) IsTraceEnabled() bool {
 func (l *logger) newTraceWriter() io.Writer {
 	pr, pw := io.Pipe()
 	br := bufio.NewReader(pr)
+
 	go func() {
+		defer pr.Close()
+		defer pw.Close()
+
 		for {
 			line, err := br.ReadString('\n')
 			if err == nil {
 				// Log the line (minus the trailing newline)
 				l.Trace(line[:len(line)-1])
+			} else {
+				l.Tracef("TraceWriter closed due to unexpected error: %v", err)
+				return
 			}
 		}
 	}()
+
 	return pw
 }
