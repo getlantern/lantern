@@ -80,7 +80,7 @@ func (c *IdleTimingConn) TimesOutIn() time.Duration {
 // TimesOutAt returns the time at which this connection will time out, assuming
 // there is no further activity
 func (c *IdleTimingConn) TimesOutAt() time.Time {
-	return time.Unix(0, c.lastActivityTime).Add(c.idleTimeout)
+	return time.Unix(0, atomic.LoadInt64(&c.lastActivityTime)).Add(c.idleTimeout)
 }
 
 // Read implements the method from io.Reader
