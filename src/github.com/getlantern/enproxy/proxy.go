@@ -160,7 +160,10 @@ func (p *Proxy) handleWrite(resp http.ResponseWriter, req *http.Request, lc *laz
 	// Pipe request
 	n, err := io.Copy(connOut, req.Body)
 	if p.OnBytesReceived != nil && n > 0 {
-		p.OnBytesReceived(clientIpFor(req), lc.addr, req, n)
+		clientIp := clientIpFor(req)
+		if clientIp != "" {
+			p.OnBytesReceived(clientIp, lc.addr, req, n)
+		}
 	}
 	if err != nil && err != io.EOF {
 		badGateway(resp, fmt.Sprintf("Unable to write to connOut: %s", err))
@@ -222,7 +225,7 @@ func (p *Proxy) handleRead(resp http.ResponseWriter, req *http.Request, lc *lazy
 
 		// Write if necessary
 		if n > 0 {
-			if p.OnBytesSent != nil && n > 0 {
+			if clientIp != "" && p.OnBytesSent != nil && n > 0 {
 				p.OnBytesSent(clientIp, lc.addr, req, int64(n))
 			}
 
@@ -303,7 +306,12 @@ func (p *Proxy) getLazyConn(id string, addr string) (l *lazyConn, isNew bool) {
 func clientIpFor(req *http.Request) string {
 	clientIp := req.Header.Get("X-Forwarded-For")
 	if clientIp == "" {
-		clientIp = strings.Split(req.RemoteAddr, ":")[0]
+		clientIp, _, err := net.SplitHostPort(req.RemoteAddr)
+		if err != nil {
+			log.Debugf("Unable to split RemoteAddr %v: %v", err)
+			return ""
+		}
+		return clientIp
 	}
 	// clientIp may contain multiple ips, use the first
 	ips := strings.Split(clientIp, ",")

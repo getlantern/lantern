@@ -7,7 +7,6 @@ import (
 	"os"
 	"reflect"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -181,14 +180,16 @@ func (server *Server) stopNattywad() {
 }
 
 func mapPort(addr string, port int) error {
-	parts := strings.Split(addr, ":")
+	internalIP, internalPortString, err := net.SplitHostPort(addr)
+	if err != nil {
+		return fmt.Errorf("Unable to split host and port for %v: %v", addr, err)
+	}
 
-	internalPort, err := strconv.Atoi(parts[1])
+	internalPort, err := strconv.Atoi(internalPortString)
 	if err != nil {
 		return fmt.Errorf("Unable to parse local port: ")
 	}
 
-	internalIP := parts[0]
 	if internalIP == "" {
 		internalIP, err = determineInternalIP()
 		if err != nil {
@@ -234,14 +235,14 @@ func determineInternalIP() (string, error) {
 		return "", fmt.Errorf("Unable to determine local IP: %s", err)
 	}
 	defer conn.Close()
-	return strings.Split(conn.LocalAddr().String(), ":")[0], nil
+	host, _, err := net.SplitHostPort(conn.LocalAddr().String())
+	return host, err
 }
 
 func onBytesGiven(destAddr string, req *http.Request, bytes int64) {
-	port := "0"
-	parts := strings.Split(destAddr, ":")
-	if len(parts) > 1 {
-		port = parts[1]
+	_, port, _ := net.SplitHostPort(destAddr)
+	if port == "" {
+		port = "0"
 	}
 
 	given := statreporter.CountryDim().

@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/getlantern/enproxy"
@@ -103,7 +102,11 @@ func (server *Server) listen() (net.Listener, error) {
 }
 
 func (server *Server) listenTLS() (net.Listener, error) {
-	err := server.CertContext.InitServerCert(strings.Split(server.Addr, ":")[0])
+	host, _, err := net.SplitHostPort(server.Addr)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to split host and port for %v: %v", server.Addr, err)
+	}
+	err = server.CertContext.InitServerCert(host)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to init server cert: %s", err)
 	}
@@ -161,7 +164,12 @@ func (server *Server) Serve(l net.Listener) error {
 // in a countingConn if an InstanceId was configured.
 func (server *Server) dialDestination(addr string) (net.Conn, error) {
 	if !server.AllowNonGlobalDestinations {
-		host := strings.Split(addr, ":")[0]
+		host, _, err := net.SplitHostPort(addr)
+		if err != nil {
+			err = fmt.Errorf("Unable to split host and port for %v: %v", addr, err)
+			log.Error(err.Error())
+			return nil, err
+		}
 		ipAddr, err := net.ResolveIPAddr("ip", host)
 		if err != nil {
 			err = fmt.Errorf("Unable to resolve destination IP addr: %s", err)

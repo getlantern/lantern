@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
 const (
@@ -113,8 +112,8 @@ func respondBadGateway(w io.Writer, msg string) error {
 // hostIncludingPort extracts the host:port from a request.  It fills in a
 // a default port if none was found in the request.
 func hostIncludingPort(req *http.Request, defaultPort int) string {
-	parts := strings.Split(req.Host, ":")
-	if len(parts) == 1 {
+	_, port, err := net.SplitHostPort(req.Host)
+	if port == "" || err != nil {
 		return req.Host + ":" + strconv.Itoa(defaultPort)
 	} else {
 		return req.Host

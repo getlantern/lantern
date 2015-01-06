@@ -2,7 +2,6 @@ package client
 
 import (
 	"net"
-	"strings"
 
 	"github.com/getlantern/bytecounting"
 
@@ -16,7 +15,12 @@ func withStats(conn net.Conn, err error) (net.Conn, error) {
 	if err != nil {
 		return conn, err
 	}
-	ip := strings.Split(conn.RemoteAddr().String(), ":")[0]
+	remoteAddr := conn.RemoteAddr().String()
+	ip, _, err := net.SplitHostPort(remoteAddr)
+	if err != nil {
+		log.Debugf("Unable to split host and port for %v, skipping byte counting: %v", remoteAddr, err)
+		return conn, nil
+	}
 	return &bytecounting.Conn{
 		Orig: conn,
 		OnRead: func(bytes int64) {

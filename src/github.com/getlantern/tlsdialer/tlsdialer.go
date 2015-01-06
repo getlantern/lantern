@@ -6,8 +6,8 @@ package tlsdialer
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"fmt"
 	"net"
-	"strings"
 	"time"
 
 	"github.com/getlantern/golog"
@@ -126,11 +126,10 @@ func DialForTimings(dialer *net.Dialer, network, addr string, sendServerName boo
 	result.ConnectTime = time.Now().Sub(start)
 	log.Tracef("Dialed in %s", result.ConnectTime)
 
-	colonPos := strings.LastIndex(addr, ":")
-	if colonPos == -1 {
-		colonPos = len(addr)
+	hostname, _, err := net.SplitHostPort(addr)
+	if err != nil {
+		return result, fmt.Errorf("Unable to split host and port for %v: %v", addr, err)
 	}
-	hostname := addr[:colonPos]
 
 	if config == nil {
 		config = &tls.Config{}
