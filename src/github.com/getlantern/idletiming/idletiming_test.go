@@ -228,9 +228,17 @@ func TestClose(t *testing.T) {
 		t.Fatalf("Unable to dial %s: %s", addr, err)
 	}
 
-	c := Conn(conn, clientTimeout, nil)
+	closeCallbackCalled := int32(0)
+	c := Conn(conn, clientTimeout, func() {
+		atomic.StoreInt32(&closeCallbackCalled, 1)
+	})
 	for i := 0; i < 100; i++ {
 		c.Close()
+	}
+
+	time.Sleep(1 * time.Second)
+	if closeCallbackCalled == 0 {
+		t.Errorf("Close callback was not called")
 	}
 }
 
