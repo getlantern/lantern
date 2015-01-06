@@ -90,7 +90,12 @@ func (server *Server) Listen() (net.Listener, error) {
 
 	// We use an idle timing listener to time out idle HTTP connections, since
 	// the CDNs seem to like keeping lots of connections open indefinitely.
-	return idletiming.Listener(listener, httpIdleTimeout, nil), nil
+	return idletiming.Listener(listener, httpIdleTimeout, func(conn net.Conn) {
+		err := conn.Close()
+		if err != nil {
+			log.Debugf("Unable to close connection: %v", err)
+		}
+	}), nil
 }
 
 func (server *Server) listen() (net.Listener, error) {

@@ -1,16 +1,13 @@
 package tlsdialer
 
 import (
-	"bytes"
 	"crypto/tls"
-	"fmt"
 	"math/rand"
 	"net"
-	"os"
-	"os/exec"
 	"testing"
 	"time"
 
+	"github.com/getlantern/fdcount"
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/testify/assert"
 )
@@ -69,7 +66,11 @@ func init() {
 }
 
 func TestOKWithServerName(t *testing.T) {
-	fdStart := countTCPFiles()
+	_, fdc, err := fdcount.Matching("TCP")
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	cwt, err := DialForTimings(new(net.Dialer), "tcp", ADDR, true, &tls.Config{
 		RootCAs: cert.PoolContainingCert(),
 	})
@@ -78,11 +79,16 @@ func TestOKWithServerName(t *testing.T) {
 	serverName := <-receivedServerNames
 	assert.Equal(t, "localhost", serverName, "Unexpected ServerName on server")
 	assert.NotNil(t, cwt.ResolvedAddr, "Should have resolved addr")
-	closeAndCountFDs(t, conn, err, fdStart)
+
+	closeAndCountFDs(t, conn, err, fdc)
 }
 
 func TestOKWithServerNameAndLongTimeout(t *testing.T) {
-	fdStart := countTCPFiles()
+	_, fdc, err := fdcount.Matching("TCP")
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	conn, err := DialWithDialer(&net.Dialer{
 		Timeout: 25 * time.Second,
 	}, "tcp", ADDR, true, &tls.Config{
@@ -91,11 +97,16 @@ func TestOKWithServerNameAndLongTimeout(t *testing.T) {
 	assert.NoError(t, err, "Unable to dial")
 	serverName := <-receivedServerNames
 	assert.Equal(t, "localhost", serverName, "Unexpected ServerName on server")
-	closeAndCountFDs(t, conn, err, fdStart)
+
+	closeAndCountFDs(t, conn, err, fdc)
 }
 
 func TestOKWithoutServerName(t *testing.T) {
-	fdStart := countTCPFiles()
+	_, fdc, err := fdcount.Matching("TCP")
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	config := &tls.Config{
 		RootCAs:    cert.PoolContainingCert(),
 		ServerName: "localhost", // we manually set a ServerName to make sure it doesn't get sent
@@ -105,32 +116,47 @@ func TestOKWithoutServerName(t *testing.T) {
 	serverName := <-receivedServerNames
 	assert.Empty(t, serverName, "Unexpected ServerName on server")
 	assert.False(t, config.InsecureSkipVerify, "Original config shouldn't have been modified, but it was")
-	closeAndCountFDs(t, conn, err, fdStart)
+
+	closeAndCountFDs(t, conn, err, fdc)
 }
 
 func TestOKWithInsecureSkipVerify(t *testing.T) {
-	fdStart := countTCPFiles()
+	_, fdc, err := fdcount.Matching("TCP")
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	conn, err := Dial("tcp", ADDR, false, &tls.Config{
 		InsecureSkipVerify: true,
 	})
 	assert.NoError(t, err, "Unable to dial")
 	<-receivedServerNames
-	closeAndCountFDs(t, conn, err, fdStart)
+
+	closeAndCountFDs(t, conn, err, fdc)
 }
 
 func TestNotOKWithServerName(t *testing.T) {
-	fdStart := countTCPFiles()
+	_, fdc, err := fdcount.Matching("TCP")
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	conn, err := Dial("tcp", ADDR, true, nil)
 	assert.Error(t, err, "There should have been a problem dialing")
 	if err != nil {
 		assert.Contains(t, err.Error(), CERTIFICATE_ERROR, "Wrong error on dial")
 	}
 	<-receivedServerNames
-	closeAndCountFDs(t, conn, err, fdStart)
+
+	closeAndCountFDs(t, conn, err, fdc)
 }
 
 func TestNotOKWithoutServerName(t *testing.T) {
-	fdStart := countTCPFiles()
+	_, fdc, err := fdcount.Matching("TCP")
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	conn, err := Dial("tcp", ADDR, true, &tls.Config{
 		ServerName: "localhost",
 	})
@@ -140,7 +166,8 @@ func TestNotOKWithoutServerName(t *testing.T) {
 	}
 	serverName := <-receivedServerNames
 	assert.Empty(t, serverName, "Unexpected ServerName on server")
-	closeAndCountFDs(t, conn, err, fdStart)
+
+	closeAndCountFDs(t, conn, err, fdc)
 }
 
 func TestNotOKWithBadRootCert(t *testing.T) {
@@ -148,7 +175,12 @@ func TestNotOKWithBadRootCert(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to load GoogleInternetAuthority cert: %s", err)
 	}
-	fdStart := countTCPFiles()
+
+	_, fdc, err := fdcount.Matching("TCP")
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	conn, err := Dial("tcp", ADDR, true, &tls.Config{
 		RootCAs: badCert.PoolContainingCert(),
 	})
@@ -157,20 +189,25 @@ func TestNotOKWithBadRootCert(t *testing.T) {
 		assert.Contains(t, err.Error(), CERTIFICATE_ERROR, "Wrong error on dial")
 	}
 	<-receivedServerNames
-	closeAndCountFDs(t, conn, err, fdStart)
+
+	closeAndCountFDs(t, conn, err, fdc)
 }
 
 func TestVariableTimeouts(t *testing.T) {
 	// Timeouts can happen in different places, run a bunch of randomized trials
 	// to try to cover all of them.
-	fdStart := countTCPFiles()
+	_, fdc, err := fdcount.Matching("TCP")
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	for i := 0; i < 500; i++ {
 		doTestTimeout(t, time.Duration(rand.Intn(5000)+1)*time.Microsecond)
 	}
+
 	// Wait to give the sockets time to close
 	time.Sleep(1 * time.Second)
-	fdEnd := countTCPFiles()
-	assert.Equal(t, fdStart, fdEnd, "Number of open files should be the same after test as before")
+	assert.NoError(t, fdc.AssertDelta(0), "Number of open files should be the same after test as before")
 }
 
 func doTestTimeout(t *testing.T, timeout time.Duration) {
@@ -184,7 +221,11 @@ func doTestTimeout(t *testing.T, timeout time.Duration) {
 }
 
 func TestDeadlineBeforeTimeout(t *testing.T) {
-	fdStart := countTCPFiles()
+	_, fdc, err := fdcount.Matching("TCP")
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	conn, err := DialWithDialer(&net.Dialer{
 		Timeout:  500 * time.Second,
 		Deadline: time.Now().Add(5 * time.Microsecond),
@@ -193,24 +234,15 @@ func TestDeadlineBeforeTimeout(t *testing.T) {
 	if err != nil {
 		assert.True(t, err.(net.Error).Timeout(), "Dial error should be timeout")
 	}
-	closeAndCountFDs(t, conn, err, fdStart)
+
+	closeAndCountFDs(t, conn, err, fdc)
 }
 
-func closeAndCountFDs(t *testing.T, conn *tls.Conn, err error, fdStart int) {
+func closeAndCountFDs(t *testing.T, conn *tls.Conn, err error, fdc *fdcount.Counter) {
 	if err == nil {
 		conn.Close()
 	}
-	fdEnd := countTCPFiles()
-	assert.Equal(t, fdStart, fdEnd, "Number of open TCP files should be the same after test as before")
-}
-
-// see https://groups.google.com/forum/#!topic/golang-nuts/c0AnWXjzNIA
-func countTCPFiles() int {
-	out, err := exec.Command("lsof", "-p", fmt.Sprintf("%v", os.Getpid())).Output()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return bytes.Count(out, []byte("TCP")) - 1
+	assert.NoError(t, fdc.AssertDelta(0), "Number of open TCP files should be the same after test as before")
 }
 
 const GoogleInternetAuthority = `-----BEGIN CERTIFICATE-----

@@ -1,18 +1,16 @@
 package waddell
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"net"
-	"os"
-	"os/exec"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/getlantern/fdcount"
 	"github.com/getlantern/testify/assert"
 )
 
@@ -104,17 +102,21 @@ func TestPeersTLS(t *testing.T) {
 }
 
 func doTestPeers(t *testing.T, useTLS bool) {
-	socketsAtStart := countTCPFiles()
+	_, fdc, err := fdcount.Matching("TCP")
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	closeActions := make([]func(), 0)
 	peers := make([]*Client, 0, NumPeers)
 	defer func() {
 		for _, action := range closeActions {
 			action()
 		}
+
 		// Wait a short time to let sockets finish closing
 		time.Sleep(250 * time.Millisecond)
-		socketsAtEnd := countTCPFiles()
-		assert.Equal(t, socketsAtStart, socketsAtEnd, "All file descriptors should have been closed")
+		assert.NoError(t, fdc.AssertDelta(0), "All file descriptors should have been closed")
 
 		// Make sure we can't do stuff with closed client
 		client := peers[0]
@@ -319,14 +321,4 @@ func largeData() []byte {
 		b[i] = byte(rand.Int())
 	}
 	return b
-}
-
-// see https://groups.google.com/forum/#!topic/golang-nuts/c0AnWXjzNIA
-func countTCPFiles() int {
-	out, err := exec.Command("lsof", "-p", fmt.Sprintf("%v", os.Getpid())).Output()
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Tracef("lsof result: %s", string(out))
-	return bytes.Count(out, []byte("TCP"))
 }
