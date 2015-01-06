@@ -15,20 +15,25 @@ import (
 //
 // onClose is an optional function to call after the connection has been closed,
 // whether or not that was due to the connection idling.
-func Listener(listener net.Listener, idleTimeout time.Duration, onClose func()) net.Listener {
+//
+// Note - idletiming.Listener does not close the underlying connections upon
+// timing out, it is up to clients to handle this in their onClose callback.
+func Listener(listener net.Listener, idleTimeout time.Duration, onClose func(conn net.Conn)) net.Listener {
 	return &idleTimingListener{listener, idleTimeout, onClose}
 }
 
 type idleTimingListener struct {
 	orig        net.Listener
 	idleTimeout time.Duration
-	onClose     func()
+	onClose     func(conn net.Conn)
 }
 
 func (l *idleTimingListener) Accept() (c net.Conn, err error) {
 	c, err = l.orig.Accept()
 	if err == nil {
-		c = Conn(c, l.idleTimeout, l.onClose)
+		c = Conn(c, l.idleTimeout, func() {
+			l.onClose(c)
+		})
 	}
 	return
 }

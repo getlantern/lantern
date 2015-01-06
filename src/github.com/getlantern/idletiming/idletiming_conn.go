@@ -16,13 +16,14 @@ var (
 // the specified period. Read and Write calls will timeout if they take longer
 // than the indicated idleTimeout.
 //
-// Once a connection is determined to be idle, it is closed.
-//
 // idleTimeout specifies how long to wait for inactivity before considering
 // connection idle.
 //
 // onClose is an optional function to call after the connection has been closed,
 // whether or not that was due to the connection idling.
+//
+// Note - idletiming.Conn does not close the underlying connection, it is up to
+// clients to handle this in their onClose callback.
 func Conn(conn net.Conn, idleTimeout time.Duration, onClose func()) *IdleTimingConn {
 	c := &IdleTimingConn{
 		conn:             conn,
@@ -34,12 +35,9 @@ func Conn(conn net.Conn, idleTimeout time.Duration, onClose func()) *IdleTimingC
 	}
 
 	go func() {
-		defer func() {
-			conn.Close()
-			if onClose != nil {
-				onClose()
-			}
-		}()
+		if onClose != nil {
+			defer onClose()
+		}
 
 		timer := time.NewTimer(idleTimeout)
 		defer timer.Stop()

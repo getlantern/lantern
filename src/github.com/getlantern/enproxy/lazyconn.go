@@ -49,6 +49,7 @@ func (l *lazyConn) get() (conn net.Conn, err error) {
 			l.p.connMapMutex.Lock()
 			defer l.p.connMapMutex.Unlock()
 			delete(l.p.connMap, l.id)
+			conn.Close()
 		})
 	}
 

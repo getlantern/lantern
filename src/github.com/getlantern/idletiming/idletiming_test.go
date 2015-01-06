@@ -37,8 +37,9 @@ func TestWrite(t *testing.T) {
 	}
 
 	addr := l.Addr().String()
-	il := Listener(l, serverTimeout, func() {
+	il := Listener(l, serverTimeout, func(conn net.Conn) {
 		atomic.StoreInt32(&listenerIdled, 1)
+		conn.Close()
 	})
 
 	go func() {
@@ -61,6 +62,7 @@ func TestWrite(t *testing.T) {
 
 	c := Conn(conn, clientTimeout, func() {
 		atomic.StoreInt32(&connIdled, 1)
+		conn.Close()
 	})
 
 	// Write messages
@@ -120,8 +122,9 @@ func TestRead(t *testing.T) {
 		t.Fatalf("Unable to listen: %s", err)
 	}
 
-	il := Listener(l, serverTimeout, func() {
+	il := Listener(l, serverTimeout, func(conn net.Conn) {
 		atomic.StoreInt32(&listenerIdled, 1)
+		conn.Close()
 	})
 
 	addr := l.Addr().String()
@@ -142,15 +145,16 @@ func TestRead(t *testing.T) {
 		}()
 	}()
 
-	c, err := net.Dial("tcp", addr)
+	conn, err := net.Dial("tcp", addr)
 	if err != nil {
 		t.Fatalf("Unable to dial %s: %s", addr, err)
 	}
 
-	c = &slowConn{orig: c, targetDuration: slightlyLessThanClientTimeout}
+	conn = &slowConn{orig: conn, targetDuration: slightlyLessThanClientTimeout}
 
-	c = Conn(c, clientTimeout, func() {
+	c := Conn(conn, clientTimeout, func() {
 		atomic.StoreInt32(&connIdled, 1)
+		conn.Close()
 	})
 
 	// Read messages (we use a buffer matching the message size to make sure
