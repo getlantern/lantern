@@ -31,9 +31,13 @@ type idleTimingListener struct {
 func (l *idleTimingListener) Accept() (c net.Conn, err error) {
 	c, err = l.orig.Accept()
 	if err == nil {
-		c = Conn(c, l.idleTimeout, func() {
-			l.onClose(c)
-		})
+		var closeFn func()
+		if l.onClose != nil {
+			closeFn = func() {
+				l.onClose(c)
+			}
+		}
+		c = Conn(c, l.idleTimeout, closeFn)
 	}
 	return
 }
