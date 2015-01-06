@@ -41,6 +41,14 @@ func TestWrite(t *testing.T) {
 		atomic.StoreInt32(&listenerIdled, 1)
 		conn.Close()
 	})
+	defer func() {
+		il.Close()
+		time.Sleep(1 * time.Second)
+		err = fdc.AssertDelta(0)
+		if err != nil {
+			t.Errorf("File descriptors didn't return to original: %s", err)
+		}
+	}()
 
 	go func() {
 		conn, err := il.Accept()
@@ -98,14 +106,6 @@ func TestWrite(t *testing.T) {
 	if listenerIdled == 0 {
 		t.Errorf("Listener failed to idle!")
 	}
-
-	l.Close()
-
-	time.Sleep(1 * time.Second)
-	err = fdc.AssertDelta(0)
-	if err != nil {
-		t.Errorf("File descriptors didn't return to original: %s", err)
-	}
 }
 
 func TestRead(t *testing.T) {
@@ -126,6 +126,14 @@ func TestRead(t *testing.T) {
 		atomic.StoreInt32(&listenerIdled, 1)
 		conn.Close()
 	})
+	defer func() {
+		il.Close()
+		time.Sleep(1 * time.Second)
+		err = fdc.AssertDelta(0)
+		if err != nil {
+			t.Errorf("File descriptors didn't return to original: %s", err)
+		}
+	}()
 
 	addr := l.Addr().String()
 
@@ -193,13 +201,36 @@ func TestRead(t *testing.T) {
 	if listenerIdled == 0 {
 		t.Errorf("Listener failed to idle!")
 	}
+}
 
-	l.Close()
-
-	time.Sleep(1 * time.Second)
-	err = fdc.AssertDelta(0)
+func TestClose(t *testing.T) {
+	_, fdc, err := fdcount.Matching("TCP")
 	if err != nil {
-		t.Errorf("File descriptors didn't return to original: %s", err)
+		t.Fatal(err)
+	}
+
+	l, err := net.Listen("tcp", "localhost:0")
+	if err != nil {
+		t.Fatalf("Unable to listen: %s", err)
+	}
+	defer func() {
+		l.Close()
+		time.Sleep(1 * time.Second)
+		err = fdc.AssertDelta(0)
+		if err != nil {
+			t.Errorf("File descriptors didn't return to original: %s", err)
+		}
+	}()
+
+	addr := l.Addr().String()
+	conn, err := net.Dial("tcp", addr)
+	if err != nil {
+		t.Fatalf("Unable to dial %s: %s", addr, err)
+	}
+
+	c := Conn(conn, clientTimeout, nil)
+	for i := 0; i < 100; i++ {
+		c.Close()
 	}
 }
 

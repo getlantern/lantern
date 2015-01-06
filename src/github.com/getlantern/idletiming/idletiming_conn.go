@@ -19,8 +19,8 @@ var (
 // idleTimeout specifies how long to wait for inactivity before considering
 // connection idle.
 //
-// onClose is an optional function to call after the connection has been closed,
-// whether or not that was due to the connection idling.
+// onClose is an optional function to call after the connection has idled or
+// been closed.
 //
 // Note - idletiming.Conn does not close the underlying connection, it is up to
 // clients to handle this in their onClose callback.
@@ -51,6 +51,7 @@ func Conn(conn net.Conn, idleTimeout time.Duration, onClose func()) *IdleTimingC
 			case <-timer.C:
 				return
 			case <-c.closedCh:
+				c.Close()
 				return
 			}
 		}
@@ -158,10 +159,14 @@ func (c *IdleTimingConn) Write(b []byte) (int, error) {
 	}
 }
 
+// Close this IdleTimingConn. This will close the underlying net.Conn as well,
+// however any error from closing that connection is NOT returned here.
 func (c *IdleTimingConn) Close() error {
 	select {
 	case c.closedCh <- true:
 		// close accepted
+	default:
+		// already closing, ignore
 	}
 	return c.conn.Close()
 }
