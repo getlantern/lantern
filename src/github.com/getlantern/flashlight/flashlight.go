@@ -3,9 +3,11 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"math/rand"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"runtime"
 	"runtime/pprof"
 	"time"
@@ -170,6 +172,7 @@ func useAllCores() {
 }
 
 func startCPUProfiling(filename string) {
+	filename = withTimestamp(filename)
 	f, err := os.Create(filename)
 	if err != nil {
 		log.Fatal(err)
@@ -184,6 +187,7 @@ func stopCPUProfiling(filename string) {
 }
 
 func saveMemProfile(filename string) {
+	filename = withTimestamp(filename)
 	f, err := os.Create(filename)
 	if err != nil {
 		log.Errorf("Unable to create file to save memprofile: %s", err)
@@ -207,4 +211,17 @@ func saveProfilingOnSigINT(cfg *config.Config) {
 		}
 		os.Exit(Interrupted)
 	}()
+}
+
+func withTimestamp(filename string) string {
+	file := filename
+	ext := filepath.Ext(file)
+	if ext != "" {
+		file = file[:len(file)-len(ext)]
+	}
+	file = fmt.Sprintf("%s_%s", file, time.Now().Format("20060102_150405.000000000"))
+	if ext != "" {
+		file = file + ext
+	}
+	return file
 }

@@ -6,7 +6,7 @@ provides repeatable builds and consolidated pull requests for flashlight.
 
 ### Building Flashlight
 
-Flashlight requires [Go 1.3.x](http://golang.org/dl/).
+Flashlight requires [Go 1.4.x](http://golang.org/dl/).
 
 It is convenient to build flashlight for multiple platforms using
 [gox](https://github.com/mitchellh/gox).
@@ -24,7 +24,7 @@ go wherever you like. Ox keeps his at ~/go_native.
 go get github.com/mitchellh/gox
 go get github.com/getlantern/gonative
 cd ~
-gonative -version="1.3.3" -platforms="darwin_amd64 linux_386 linux_amd64 windows_386"
+gonative build -version="1.4" -platforms="darwin_amd64 linux_386 linux_amd64 windows_386"
 mv go go_native
 ```
 

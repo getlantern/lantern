@@ -3,6 +3,7 @@ package byteexec
 import (
 	"io/ioutil"
 	"os"
+	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -47,7 +48,7 @@ func TestExec(t *testing.T) {
 	}
 	be = createByteExec(t, data)
 	updatedInfo = testByteExec(t, be)
-	assert.Equal(t, fileMode, updatedInfo.Mode(), "File mode is changed back to %v", fileMode)
+	assert.True(t, fileMode == updatedInfo.Mode(), fmt.Sprintf("File mode was %v instead of %v", updatedInfo.Mode(), fileMode))
 
 	// Now mess with the file contents and make sure it gets overwritten on next
 	// ByteExec
