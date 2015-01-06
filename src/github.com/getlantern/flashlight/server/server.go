@@ -241,6 +241,9 @@ func determineInternalIP() (string, error) {
 
 func onBytesGiven(destAddr string, req *http.Request, bytes int64) {
 	_, port, _ := net.SplitHostPort(destAddr)
+	if port == "" {
+		port = "0"
+	}
 
 	given := statreporter.CountryDim().
 		And("flserver", globals.InstanceId).
