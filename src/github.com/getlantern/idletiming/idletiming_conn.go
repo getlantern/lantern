@@ -19,12 +19,14 @@ var (
 // idleTimeout specifies how long to wait for inactivity before considering
 // connection idle.
 //
-// onClose is an optional function to call after the connection has idled or
-// been closed.
-//
-// Note - idletiming.Conn does not close the underlying connection if it idled,
-// it is up to clients to handle this in their onClose callback.
-func Conn(conn net.Conn, idleTimeout time.Duration, onClose func()) *IdleTimingConn {
+// onIdle is a required function that's called if a connection idles.
+// idletiming.Conn does not close the underlying connection on idle, you have to
+// do that in your onIdle callback.
+func Conn(conn net.Conn, idleTimeout time.Duration, onIdle func()) *IdleTimingConn {
+	if onIdle == nil {
+		panic("onIdle is required")
+	}
+
 	c := &IdleTimingConn{
 		conn:             conn,
 		idleTimeout:      idleTimeout,
@@ -35,10 +37,6 @@ func Conn(conn net.Conn, idleTimeout time.Duration, onClose func()) *IdleTimingC
 	}
 
 	go func() {
-		if onClose != nil {
-			defer onClose()
-		}
-
 		timer := time.NewTimer(idleTimeout)
 		defer timer.Stop()
 		for {
@@ -49,6 +47,7 @@ func Conn(conn net.Conn, idleTimeout time.Duration, onClose func()) *IdleTimingC
 				atomic.StoreInt64(&c.lastActivityTime, time.Now().UnixNano())
 				continue
 			case <-timer.C:
+				onIdle()
 				return
 			case <-c.closedCh:
 				return
