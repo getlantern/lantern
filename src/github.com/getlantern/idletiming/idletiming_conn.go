@@ -51,7 +51,6 @@ func Conn(conn net.Conn, idleTimeout time.Duration, onClose func()) *IdleTimingC
 			case <-timer.C:
 				return
 			case <-c.closedCh:
-				c.Close()
 				return
 			}
 		}
@@ -160,7 +159,7 @@ func (c *IdleTimingConn) Write(b []byte) (int, error) {
 }
 
 // Close this IdleTimingConn. This will close the underlying net.Conn as well,
-// however any error from closing that connection is NOT returned here.
+// returning the error from calling its Close method.
 func (c *IdleTimingConn) Close() error {
 	select {
 	case c.closedCh <- true:
