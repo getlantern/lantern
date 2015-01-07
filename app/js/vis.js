@@ -97,13 +97,10 @@ angular.module('app.vis', ['ngSanitize'])
             el.attr('d', scope.path).attr('stroke-opacity', 0);
             el.attr('class', 'COUNTRY_KNOWN');
             if (d.alpha2) {
-              //var bbox = el.node().getBBox();
-              //var center = [bbox.x + bbox.width/2, bbox.y + bbox.height/2];
               var $content = ttTmpl(d.alpha2);
 
               el.attr('class', d.alpha2 + " COUNTRY_KNOWN")
                 .attr('tooltip-placement', 'mouse')
-               // .attr('tooltip-trigger', 'mouseover') // uncomment out to make it easier to inspect tooltips when debugging  
                 .attr('tooltip-html-unsafe', $content);
                 $compile(this)(scope);
             } else {
@@ -330,7 +327,6 @@ angular.module('app.vis', ['ngSanitize'])
           // Set paths for arcs for all peers
           allPeers.select("path.connection")
           .attr("d", scope.pathConnection)
-          //.attr("stroke-width", 0.5)
           .attr("stroke-opacity", function(peer) {
               // scale connective arcs between peers as we zoom in
               return connectionOpacityScale(peer.bpsUpDn || 0);
@@ -438,6 +434,9 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
 
   $scope.once = false;
 
+  /* the self dot isn't dynamically appended to the SVG
+   * and we need a separate method to scale it when we zoom in/out
+   */
   $scope.scaleSelf = function(factor) {
       var self = document.getElementById("self");
       var lat = self.getAttribute("lat");
@@ -452,6 +451,8 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
 
   function scaleMapElements(scale) {
       var scaleFactor = (scale > 2) ? (5/scale) : DEFAULT_POINT_RADIUS;
+      // stroke width is based off minimum threshold or scaled amount
+      // according to user zoom-level
       var strokeWidth = Math.min(0.5, 1/scale);
       path.pointRadius(scaleFactor);
       $scope.scaleSelf(scaleFactor);
@@ -459,8 +460,8 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
         strokeWidth);
       d3.selectAll("path.connection").attr("stroke-width",
         strokeWidth);
-        d3.select("#zoomCenterIcon").attr('src', 
-         (scale == 1) ? 'img/mapcenter.png' : 'img/mapcenterzoomed.png');
+      d3.select("#zoomCenterIcon").attr('src', 
+        (scale == 1) ? 'img/mapcenter.png' : 'img/mapcenterzoomed.png');
 
        /* scale peer radius as we zoom in */
       d3.selectAll("g.peer path.peer").attr("d", function(peer) {
@@ -504,6 +505,10 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
    $scope.svg = d3.select('svg');
    $scope.filterBlur = $scope.svg.append("filter").attr("id", "defaultBlur").append("feGaussianBlur").attr("stdDeviation", "1");
   
+  /* translation matrix on container zoom group element 
+  *  used for combining scaling and translation transformations
+  *  and for programmatically setting scale and zoom settings
+  * */
   $scope.transMatrix = [1,0,0,1,0,0];
 
   $scope.centerZoom = function() {
@@ -524,11 +529,16 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
       var width = map.offsetWidth;
       var height = map.offsetHeight;
 
+      /* multiply values in our translation matrix
+       * by the scaling factor
+       */
       for (var i=0; i< $scope.transMatrix.length; i++)
       {
           $scope.transMatrix[i] *= scale;
       }
 
+      /* this preserves the position of the center
+       * even after we've applied the scale factor */
       $scope.transMatrix[4] += (1-scale)*width/2;
       $scope.transMatrix[5] += (1-scale)*height/2;
 
