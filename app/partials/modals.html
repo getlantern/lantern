@@ -600,7 +600,7 @@
           </label>
         </div>
 
-        <div id="autoreport-warning" ng-show="model.settings.autoReport">
+        <div id="autoreport-warning" ng-show="!model.settings.autoReport">
           <i class="icon-exclamation-sign"></i>
           {{ 'NO_AUTOREPORT_WARNING' | i18n }}
         </div>
