@@ -42,7 +42,7 @@ func TestAll(t *testing.T) {
 	dg1.Gauge("gaugea").Add(2)
 	dg1.Gauge("gaugeb").Set(2)
 	dg1.Gauge("gaugeb").Set(48)
-	dg1.Member("membera").Member("I")
+	dg1.Member("membera", "I")
 
 	originalReporter := currentReporter
 
@@ -67,7 +67,8 @@ func TestAll(t *testing.T) {
 	dg2.Gauge("gaugea").Add(2)
 	dg2.Gauge("gaugeb").Set(2)
 	dg2.Gauge("gaugeb").Set(48)
-	dg2.Member("membera").Member("II")
+	dg2.Member("membera", "II")
+	dg2.Member("membera", "II")
 
 	updatedReporter := currentReporter
 
@@ -87,7 +88,7 @@ func TestAll(t *testing.T) {
 			"gaugea": int64(4),
 			"gaugeb": int64(48),
 		},
-		"members": stats{
+		"multiMembers": stats{
 			"membera": []string{"I"},
 		},
 	}
@@ -105,7 +106,7 @@ func TestAll(t *testing.T) {
 			"gaugea": int64(4),
 			"gaugeb": int64(48),
 		},
-		"members": stats{
+		"multiMembers": stats{
 			"membera": []string{"II"},
 		},
 	}
@@ -133,5 +134,5 @@ func compareReports(t *testing.T, expected report, actual report, index string) 
 
 	assert.Equal(t, expected["increments"], actual["increments"], fmt.Sprintf("On %s, increments should match", index))
 	assert.Equal(t, expected["gauges"], actual["gauges"], fmt.Sprintf("On %s, gauges should match", index))
-	assert.Equal(t, expected["members"], actual["members"], fmt.Sprintf("On %s, members should match", index))
+	assert.Equal(t, expected["multiMembers"], actual["multiMembers"], fmt.Sprintf("On %s, members should match", index))
 }

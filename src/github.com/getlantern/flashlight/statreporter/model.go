@@ -10,7 +10,7 @@ import (
 const (
 	increments = "increments"
 	gauges     = "gauges"
-	members    = "members"
+	members    = "multiMembers"
 )
 
 // DimGroup represents a group of dimensions for categorizing stats.
@@ -103,18 +103,16 @@ func (dg *DimGroup) Gauge(key string) *UpdateBuilder {
 	}
 }
 
-func (dg *DimGroup) Member(key string) *UpdateBuilder {
-	return &UpdateBuilder{
+func (dg *DimGroup) Member(key string, val string) {
+	postUpdate(&update{
 		dg,
 		members,
 		key,
-	}
+		member(val),
+	})
 }
 
 func (b *UpdateBuilder) Add(val int64) {
-	if b.category == members {
-		panic("Can't add an integer to members")
-	}
 	postUpdate(&update{
 		b.dg,
 		b.category,
@@ -124,25 +122,10 @@ func (b *UpdateBuilder) Add(val int64) {
 }
 
 func (b *UpdateBuilder) Set(val int64) {
-	if b.category == members {
-		panic("Can't set an integer for members")
-	}
 	postUpdate(&update{
 		b.dg,
 		b.category,
 		b.key,
 		set(val),
-	})
-}
-
-func (b *UpdateBuilder) Member(val string) {
-	if b.category != members {
-		panic("Can only add membership to members")
-	}
-	postUpdate(&update{
-		b.dg,
-		b.category,
-		b.key,
-		member(val),
 	})
 }

@@ -160,9 +160,9 @@ func (r *reporter) run() {
 				case member:
 					existing, found := categoryStats[update.key]
 					if !found {
-						categoryStats[update.key] = []string{string(a)}
+						categoryStats[update.key] = map[string]bool{string(a): true}
 					} else {
-						categoryStats[update.key] = append(existing.([]string), string(a))
+						existing.(map[string]bool)[string(a)] = true
 					}
 				}
 			case <-timer.C:
@@ -208,8 +208,22 @@ func (dgAccum *dimGroupAccumulator) makeReport() report {
 		"dims": dgAccum.dg.dims,
 	}
 
-	for category, accum := range dgAccum.categories {
-		report[category] = accum
+	for category, s := range dgAccum.categories {
+		if category == members {
+			// Transform maps into arrays
+			s2 := make(stats)
+
+			for k, v := range s {
+				m := v.(map[string]bool)
+				a := make([]string, 0, len(m))
+				for member, _ := range m {
+					a = append(a, member)
+				}
+				s2[k] = a
+			}
+			s = s2
+		}
+		report[category] = s
 	}
 
 	return report
@@ -228,11 +242,13 @@ func posterForDimGroupStats(cfg *Config) reportPoster {
 			return fmt.Errorf("Unable to post stats to statshub: %s", err)
 		}
 		defer resp.Body.Close()
+
+		jsonString := string(jsonBytes)
 		if resp.StatusCode != 200 {
-			return fmt.Errorf("Unexpected response status posting stats to statshub: %d", resp.StatusCode)
+			return fmt.Errorf("Unexpected response status posting stats %s to statshub: %d", jsonString, resp.StatusCode)
 		}
 
-		log.Debugf("Reported %s to statshub", string(jsonBytes))
+		log.Debugf("Reported %s to statshub", jsonString)
 		return nil
 	}
 }
