@@ -10,14 +10,10 @@ import (
 const (
 	increments = "increments"
 	gauges     = "gauges"
+	members    = "members"
 )
 
-const (
-	set = iota
-	add
-)
-
-// DimGroup represents a group of dimensions for
+// DimGroup represents a group of dimensions for categorizing stats.
 type DimGroup struct {
 	dims map[string]string
 }
@@ -33,10 +29,13 @@ type UpdateBuilder struct {
 type update struct {
 	dg       *DimGroup
 	category string
-	action   int
 	key      string
-	val      int64
+	action   interface{} // one of set, add or member
 }
+
+type set int64
+type add int64
+type member string
 
 // Dim constructs a DimGroup starting with a single dimension.
 func Dim(key string, value string) *DimGroup {
@@ -104,22 +103,46 @@ func (dg *DimGroup) Gauge(key string) *UpdateBuilder {
 	}
 }
 
+func (dg *DimGroup) Member(key string) *UpdateBuilder {
+	return &UpdateBuilder{
+		dg,
+		members,
+		key,
+	}
+}
+
 func (b *UpdateBuilder) Add(val int64) {
+	if b.category == members {
+		panic("Can't add an integer to members")
+	}
 	postUpdate(&update{
 		b.dg,
 		b.category,
-		add,
 		b.key,
-		val,
+		add(val),
 	})
 }
 
 func (b *UpdateBuilder) Set(val int64) {
+	if b.category == members {
+		panic("Can't set an integer for members")
+	}
 	postUpdate(&update{
 		b.dg,
 		b.category,
-		set,
 		b.key,
-		val,
+		set(val),
+	})
+}
+
+func (b *UpdateBuilder) Member(val string) {
+	if b.category != members {
+		panic("Can only add membership to members")
+	}
+	postUpdate(&update{
+		b.dg,
+		b.category,
+		b.key,
+		member(val),
 	})
 }

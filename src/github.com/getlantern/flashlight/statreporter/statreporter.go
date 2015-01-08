@@ -47,7 +47,7 @@ type dimGroupAccumulator struct {
 	categories map[string]stats
 }
 
-type stats map[string]int64
+type stats map[string]interface{} // either int64 or string
 
 type report map[string]interface{}
 
@@ -147,11 +147,23 @@ func (r *reporter) run() {
 					categoryStats = make(stats)
 					dgAccum.categories[update.category] = categoryStats
 				}
-				switch update.action {
+				switch a := update.action.(type) {
 				case set:
-					categoryStats[update.key] = update.val
+					categoryStats[update.key] = int64(a)
 				case add:
-					categoryStats[update.key] = categoryStats[update.key] + update.val
+					existing, found := categoryStats[update.key]
+					if !found {
+						categoryStats[update.key] = int64(a)
+					} else {
+						categoryStats[update.key] = existing.(int64) + int64(a)
+					}
+				case member:
+					existing, found := categoryStats[update.key]
+					if !found {
+						categoryStats[update.key] = []string{string(a)}
+					} else {
+						categoryStats[update.key] = append(existing.([]string), string(a))
+					}
 				}
 			case <-timer.C:
 				r.post()
