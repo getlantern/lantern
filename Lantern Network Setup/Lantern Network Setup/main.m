@@ -93,21 +93,21 @@ void toggleAutoProxyConfigFile(NSString *onOff, NSString *autoProxyConfigFileUrl
             goto freeProxyProtocolRef;
         }
         
-        success = SCPreferencesCommitChanges(prefsRef);
-        if(!success) {
-            NSLog(@"Failed to Commit Changes");
-            goto freeProxyProtocolRef;
-        }
-        
-        success = SCPreferencesApplyChanges(prefsRef);
-        if(!success) {
-            NSLog(@"Failed to Apply Changes");
-            goto freeProxyProtocolRef;
-        }
     freeProxyProtocolRef:
         CFRelease(proxyProtocolRef);
     }
     
+    success = SCPreferencesCommitChanges(prefsRef);
+    if(!success) {
+        NSLog(@"Failed to Commit Changes");
+        goto freeNetworkServicesArrayRef;
+    }
+    
+    success = SCPreferencesApplyChanges(prefsRef);
+    if(!success) {
+        NSLog(@"Failed to Apply Changes");
+        goto freeNetworkServicesArrayRef;
+    }
     //Free Resources
 freeNetworkServicesArrayRef:
     CFRelease(networkServicesArrayRef);
@@ -128,7 +128,7 @@ int main() {
     setuid(0);
     
     toggleAutoProxyConfigFile([args objectAtIndex:1],
-                             [args objectAtIndex:2]);
+                              [args objectAtIndex:2]);
     
     return 0;
 }
