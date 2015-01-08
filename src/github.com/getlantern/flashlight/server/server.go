@@ -264,7 +264,7 @@ func onBytesGiven(destAddr string, req *http.Request, bytes int64) {
 			// clientIp may contain multiple ips, use the first
 			ips := strings.Split(clientIp, ",")
 			clientIp := strings.TrimSpace(ips[0])
-			givenTo.Member("distinctClientIPs", clientIp)
+			givenTo.Member("distinctClients", clientIp)
 		}
 
 	}
