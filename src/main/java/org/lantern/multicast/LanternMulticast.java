@@ -9,8 +9,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
-import org.apache.commons.lang3.SystemUtils;
 import org.lantern.JsonUtils;
 import org.lantern.LanternUtils;
 import org.lantern.event.Events;
@@ -51,40 +52,59 @@ public class LanternMulticast {
             final MulticastSocket ms = new MulticastSocket(MC_PORT);
             ms.joinGroup(group);
             
-            final MulticastMessage mm = 
-                    MulticastMessage.newHello(StaticSettings.getLocalEndpoint());
-            final String msg = JsonUtils.jsonify(mm);
-
             if (LanternUtils.isDevMode() || LanternUtils.isLanternPi()) {
-                final DatagramPacket hi = 
-                    new DatagramPacket(msg.getBytes(Charsets.UTF_8), msg.length(),
-                                        group, this.sendPort);
-                ms.send(hi);
-                Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        final Map<String, String> map = new HashMap<String, String>();
-                        map.put("type", "bye");
-                        map.put("endpoint", StaticSettings.getLocalEndpoint());
-                        final String msg = JsonUtils.jsonify(map);
-                        final DatagramPacket dp = 
-                                new DatagramPacket(msg.getBytes(Charsets.UTF_8), msg.length(),
-                                                    group, sendPort);
-                        try {
-                            ms.send(dp);
-                        } catch (final IOException e) {
-                            log.error("Could not leave group", e);
-                        }
-                    }
-                    
-                }, "Multicast-Leave"));
+                sendHellos(group, ms);
+                addShutdownHook(group, ms);
             }
             
             listen(ms);
         } catch (final IOException e) {
             log.error("Error starting multicast?", e);
         }
+    }
+
+    private void sendHellos(final InetAddress group, final MulticastSocket ms) {
+        final Timer t = new Timer("Multicast-Send", true);
+        t.schedule(new TimerTask() {
+            
+            @Override
+            public void run() {
+                final MulticastMessage mm = 
+                        MulticastMessage.newHello(StaticSettings.getLocalEndpoint());
+                final String msg = JsonUtils.jsonify(mm);
+                final DatagramPacket hi = 
+                    new DatagramPacket(msg.getBytes(Charsets.UTF_8), msg.length(),
+                                        group, sendPort);
+                try {
+                    ms.send(hi);
+                } catch (final IOException e) {
+                    log.warn("Could not send multicast message?", e);
+                }
+            }
+        }, 1000, 10*1000);
+    }
+
+    private void addShutdownHook(final InetAddress group, 
+            final MulticastSocket ms) {
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                final Map<String, String> map = new HashMap<String, String>();
+                map.put("type", "bye");
+                map.put("endpoint", StaticSettings.getLocalEndpoint());
+                final String msg = JsonUtils.jsonify(map);
+                final DatagramPacket dp = 
+                        new DatagramPacket(msg.getBytes(Charsets.UTF_8), msg.length(),
+                                            group, sendPort);
+                try {
+                    ms.send(dp);
+                } catch (final IOException e) {
+                    log.error("Could not leave group", e);
+                }
+            }
+            
+        }, "Multicast-Leave"));
     }
 
     private void listen(final MulticastSocket ms) {

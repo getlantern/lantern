@@ -555,7 +555,9 @@ public class DefaultXmppHandler implements XmppHandler {
         handleSetDelay(json);
         handleVersionUpdate(json);
 
-        model.setUserGuid((String) json.get(LanternConstants.USER_GUID));
+        final String guid = (String) json.get(LanternConstants.USER_GUID);
+        LOG.info("Setting GUID to {}", guid);
+        model.setUserGuid(guid);
         sendOnDemandValuesToControllerIfNecessary(json);
     }
 
