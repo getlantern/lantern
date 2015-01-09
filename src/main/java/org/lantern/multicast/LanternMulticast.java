@@ -52,7 +52,7 @@ public class LanternMulticast {
             final MulticastSocket ms = new MulticastSocket(MC_PORT);
             ms.joinGroup(group);
             
-            if (LanternUtils.isDevMode() || LanternUtils.isLanternPi()) {
+            if (LanternUtils.isLanternPi()) {
                 sendHellos(group, ms);
                 addShutdownHook(group, ms);
             }

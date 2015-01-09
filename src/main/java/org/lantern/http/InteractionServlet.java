@@ -153,7 +153,7 @@ public class InteractionServlet extends HttpServlet {
 
     protected void processRequest(final HttpServletRequest req,
         final HttpServletResponse resp) {
-        if (!LanternUtils.isDevMode() && !LanternUtils.isLanternPi()) {
+        if (!LanternUtils.isLanternPi()) {
             LanternUtils.addCSPHeader(resp);
         }
         final String uri = req.getRequestURI();
@@ -173,7 +173,7 @@ public class InteractionServlet extends HttpServlet {
             return;
         }
 
-        if (!LanternUtils.isDevMode() && !LanternUtils.isLanternPi()) {
+        if (!LanternUtils.isLanternPi()) {
             if (!SecurityUtils.constantTimeEquals(model.getXsrfToken(),
                     req.getHeader("X-XSRF-TOKEN"))) {
                 log.debug("X-XSRF-TOKEN wrong: got {} expected {}", req.getHeader("X-XSRF-TOKEN"), model.getXsrfToken());

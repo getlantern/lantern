@@ -122,7 +122,7 @@ public class JettyLauncher implements LanternService {
 
         // We always allow anyone to connect to Lantern Pi (arm).
         if (this.model.getSettings().isBindToLocalhost() && 
-                !SystemUtils.OS_ARCH.contains("arm")) {
+                !LanternUtils.isLanternPi()) {
             log.info("Binding to localhost");
             connector.setHost("127.0.0.1");
         } else {
@@ -168,7 +168,7 @@ public class JettyLauncher implements LanternService {
                 } else if (uri.startsWith("/proxy_google")) {
                     writeFileToResponse(resp, Proxifier.PROXY_GOOGLE);
                 } else {
-                    if (!LanternUtils.isDevMode() && !LanternUtils.isLanternPi()) {
+                    if (!LanternUtils.isLanternPi()) {
                         resp.addCookie(new Cookie("XSRF-TOKEN", model.getXsrfToken()));
                         if (!resp.containsHeader("Content-Security-Policy")) {
                             LanternUtils.addCSPHeader(resp);

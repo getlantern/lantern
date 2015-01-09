@@ -1379,6 +1379,7 @@ public class LanternUtils {
      * @return <code>true</code> if we're on ARM, otherwise <code>false</code>.
      */
     public static boolean isLanternPi() {
-        return SystemUtils.OS_ARCH.toLowerCase().contains("arm");
+        return LanternUtils.isDevMode() || 
+                SystemUtils.OS_ARCH.toLowerCase().contains("arm");
     }
 }
