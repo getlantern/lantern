@@ -15,7 +15,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.SystemUtils;
 import org.cometd.server.CometdServlet;
 import org.eclipse.jetty.http.HttpContent;
 import org.eclipse.jetty.server.Connector;
@@ -168,8 +167,8 @@ public class JettyLauncher implements LanternService {
                 } else if (uri.startsWith("/proxy_google")) {
                     writeFileToResponse(resp, Proxifier.PROXY_GOOGLE);
                 } else {
+                    resp.addCookie(new Cookie("XSRF-TOKEN", model.getXsrfToken()));
                     if (!LanternUtils.isLanternPi()) {
-                        resp.addCookie(new Cookie("XSRF-TOKEN", model.getXsrfToken()));
                         if (!resp.containsHeader("Content-Security-Policy")) {
                             LanternUtils.addCSPHeader(resp);
                         }

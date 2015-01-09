@@ -173,13 +173,11 @@ public class InteractionServlet extends HttpServlet {
             return;
         }
 
-        if (!LanternUtils.isLanternPi()) {
-            if (!SecurityUtils.constantTimeEquals(model.getXsrfToken(),
-                    req.getHeader("X-XSRF-TOKEN"))) {
-                log.debug("X-XSRF-TOKEN wrong: got {} expected {}", req.getHeader("X-XSRF-TOKEN"), model.getXsrfToken());
-                HttpUtils.sendClientError(resp, "invalid X-XSRF-TOKEN");
-                return;
-            }
+        if (!SecurityUtils.constantTimeEquals(model.getXsrfToken(),
+                req.getHeader("X-XSRF-TOKEN"))) {
+            log.debug("X-XSRF-TOKEN wrong: got {} expected {}", req.getHeader("X-XSRF-TOKEN"), model.getXsrfToken());
+            HttpUtils.sendClientError(resp, "invalid X-XSRF-TOKEN");
+            return;
         }
 
         final int cl = req.getContentLength();
