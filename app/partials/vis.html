@@ -4,9 +4,10 @@
   Only show yourself on the map if you've either managed to do a geoip lookup or have a stored geolocation.
 -->
 <div id="vis" ng-controller="VisCtrl">
-    <svg id="map" width="960" height="400"
+    <!--<svg id="map" width="960" height="400"
       viewBox="0 0 960 400"
-        preserveAspectRatio="xMidYMid">
+      preserveAspectRatio="xMidYMid">-->
+    <svg id="map" resizable>
     <g id="zoomGroup" transform="matrix(1 0 0 1 0 0)">
     <g id="countries" countries />
     <g id="peers" peers></g>

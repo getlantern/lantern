@@ -328,7 +328,6 @@ angular.module('app.vis', ['ngSanitize'])
           allPeers.select("path.connection")
           .attr("d", scope.pathConnection)
           .attr("stroke-opacity", function(peer) {
-              // scale connective arcs between peers as we zoom in
               return connectionOpacityScale(peer.bpsUpDn || 0);
           });
 
@@ -424,8 +423,9 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
 
   var log = logFactory('VisCtrl'),
       model = modelSrvc.model,
-      width = document.getElementById('map').offsetWidth,
-      height = document.getElementById('map').offsetHeight,
+      isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0,
+      width = document.getElementById('vis').offsetWidth,
+      height = document.getElementById('vis').offsetHeight,
       projection = d3.geo.mercator(),
       path = d3.geo.path().projection(projection),
       DEFAULT_POINT_RADIUS = 3;
@@ -485,6 +485,10 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
 
       var translate = $scope.zoom.translate();
 
+      /*translate[0] = Math.min(width / 2 * (scale - 1), 
+                     Math.max(width / 2 * (1 - scale), translate[0])
+                             );*/
+
       /* reset translation matrix */
       $scope.transMatrix = [scale, 0, 0, scale, 
         translate[0], translate[1]]; 
@@ -526,8 +530,9 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
       }
 
       var map = document.getElementById("map");
-      var width = map.offsetWidth;
-      var height = map.offsetHeight;
+      var rect = map.getBoundingClientRect();
+      var width = rect.width;
+      var height = rect.height;
 
       /* multiply values in our translation matrix
        * by the scaling factor

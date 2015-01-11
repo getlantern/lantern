@@ -244,7 +244,7 @@ var app = angular.module('app', [
               // treat the backend as gone
               $log.debug("Backend is gone");
               $rootScope.backendIsGone = true;
-              window.close();
+              //window.close();
             } else {
               $rootScope.backendIsGone = false;
             }

@@ -10,7 +10,7 @@
     "angular-ui-utils": "0.1.1",
     "cometd-js-jquery": "2.6.0",
     "cssesc": "0.1.0",
-    "d3": "3.4.13",
+    "d3": "3.5.3",
     "jquery": "2.1.1",
     "jsonpatch": "1.0.0-rc1",
     "lodash": "2.4.1",
