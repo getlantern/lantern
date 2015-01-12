@@ -174,7 +174,7 @@ func (server *Server) Serve(l net.Listener) error {
 // in a countingConn if an InstanceId was configured.
 func (server *Server) dialDestination(addr string) (net.Conn, error) {
 	if !server.AllowNonGlobalDestinations {
-		err := server.checkForLocalAddress(addr)
+		err := server.checkForNonGlobalDestination(addr)
 		if err != nil {
 			log.Error(err.Error())
 			return nil, err
@@ -192,7 +192,7 @@ func (server *Server) dialDestination(addr string) (net.Conn, error) {
 	return net.DialTimeout("tcp", addr, dialTimeout)
 }
 
-func (server *Server) checkForLocalAddress(addr string) error {
+func (server *Server) checkForNonGlobalDestination(addr string) error {
 	host, _, err := net.SplitHostPort(addr)
 	if err != nil {
 		return fmt.Errorf("Unable to split host and port for %v: %v", addr, err)
