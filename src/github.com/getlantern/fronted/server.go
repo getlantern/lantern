@@ -211,14 +211,19 @@ func (server *Server) checkForNonGlobalDestination(addr string) error {
 }
 
 func (server *Server) checkForDisallowedPort(addr string) error {
-	_, port, err := net.SplitHostPort(addr)
+	_, portString, err := net.SplitHostPort(addr)
 	if err != nil {
 		return fmt.Errorf("Unable to split host and port for %v: %v", addr, err)
 	}
 
+	port, err := strconv.Atoi(portString)
+	if err != nil {
+		return fmt.Errorf("Unable to convert port %v to integer: %v", portString, err)
+	}
+
 	portAllowed := false
 	for _, allowed := range server.AllowedPorts {
-		if port == strconv.Itoa(allowed) {
+		if port == allowed {
 			portAllowed = true
 			break
 		}
