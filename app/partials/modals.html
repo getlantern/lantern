@@ -324,7 +324,7 @@
             </div>
           </div>
 
-          <input type="search" ng-model="searchText" results="0" placeholder="{{ 'SEARCH' | translate }}"
+          <input type="search" ng-model="searchText" results="0" placeholder="{{ 'SEARCH' | i18n }}"
             ng-mouseenter="searchActive=true" ng-focus="searchActive=true; searchFocused=true"
             ng-mouseleave="searchActive=searchFocused || !!searchText" ng-blur="searchActive=!!searchText; searchFocused=false"
             id="friendsListSearch" class="{{searchText && 'non' || ''}}empty">
@@ -381,7 +381,7 @@
       <div ng-show="model.friends != null">
         <input type="hidden" id="addFriendInput" name="addFriendInput"
           select2-focus-on="show" select2-focus-on-broadcast="focusAddFriendsInput"
-          placeholder="{{ 'ADD_FRIENDS_PROMPT' | translate }}"
+          placeholder="{{ 'ADD_FRIENDS_PROMPT' | i18n }}"
           ng-disabled="pendingFriendUpdate || (model.remainingFriendingQuota == 0 && nFreeToFriend == 0)"
           ng-model="added" ui-select2="select2opts">
           <!-- XXX https://github.com/angular-ui/ui-select2/issues/59 -->

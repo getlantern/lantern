@@ -434,6 +434,11 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
 
   $scope.once = false;
 
+  if (!isSafari) {
+      /* remove background if browser is safari */
+    d3.select("#friendsListSearch").classed("glass", true);
+  }
+
   /* the self dot isn't dynamically appended to the SVG
    * and we need a separate method to scale it when we zoom in/out
    */
@@ -505,7 +510,7 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
 
    /* apply zoom behavior to container if we're running in webview since
     * it doesn't detect panning/zooming otherwise */
-   d3.select('svg').call($scope.zoom);
+   d3.select(isSafari ? '#vis' : 'svg').call($scope.zoom);
    $scope.svg = d3.select('svg');
    $scope.filterBlur = $scope.svg.append("filter").attr("id", "defaultBlur").append("feGaussianBlur").attr("stdDeviation", "1");
   

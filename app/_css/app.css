@@ -7201,9 +7201,11 @@ body[dir=rtl] .control-extra {
   width: 230px;
   height: 27px;
   margin: -3px 0 10px;
+  padding-right: 3px;
   -webkit-border-radius: 18px;
   -moz-border-radius: 18px;
   border-radius: 18px;
+
 }
 body[dir=rtl] #proxiedSitesSearch {
   float: left;
@@ -7243,6 +7245,11 @@ body[dir=rtl] .proxiedSitesTip {
   -moz-border-radius: 18px;
   border-radius: 18px;
 }
+
+#friendsListSearch.glass {
+    background: url("../bower_components/select2/select2.png") no-repeat 100% -22px;
+}
+
 body[dir=rtl] #friendsListSearch {
   float: left;
 }
@@ -7254,6 +7261,7 @@ body[dir=rtl] #friendsListSearch {
 }
 #friendsListSearch:focus, #friendsListSearch:hover, #friendsListSearch.nonempty {
   width: 500px !important;
+  padding-right: 4px;
   border-color: #cccccc !important;
 }
 
