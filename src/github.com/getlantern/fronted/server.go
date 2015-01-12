@@ -199,8 +199,8 @@ func (server *Server) checkForLocalAddress(addr string) error {
 	}
 
 	ipAddr, err := net.ResolveIPAddr("ip", host)
-	if err != nil {
-		return fmt.Errorf("Unable to resolve destination IP addr: %s", err)
+	if err != nil || len(ipAddr.IP) == 0 {
+		return fmt.Errorf("Unable to resolve destination IP addr %v: %v", host, err)
 	}
 
 	if !ipAddr.IP.IsGlobalUnicast() {

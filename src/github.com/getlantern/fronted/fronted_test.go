@@ -81,14 +81,18 @@ func TestBadCertificateFile(t *testing.T) {
 }
 
 func TestNonGlobalAddress(t *testing.T) {
-	doTestNonGlobalAddress(t, true)
+	doTestNonGlobalAddress(t, "")
 }
 
-func TestNonGlobalAddressBadAddr(t *testing.T) {
-	doTestNonGlobalAddress(t, false)
+func TestNonGlobalAddressNoPort(t *testing.T) {
+	doTestNonGlobalAddress(t, "localhost")
 }
 
-func doTestNonGlobalAddress(t *testing.T, useRealAddress bool) {
+func TestNonGlobalAddressNoHost(t *testing.T) {
+	doTestNonGlobalAddress(t, ":0")
+}
+
+func doTestNonGlobalAddress(t *testing.T, overrideAddr string) {
 	l := startServer(t, false, nil)
 	d := dialerFor(t, l)
 	defer d.Close()
@@ -107,8 +111,8 @@ func doTestNonGlobalAddress(t *testing.T, useRealAddress bool) {
 	}()
 
 	addr := tl.Addr().String()
-	if !useRealAddress {
-		addr = "asdflklsdkfjhladskfjhlasdkfjhlsads.asflkjshadlfkadsjhflk:0"
+	if overrideAddr != "" {
+		addr = overrideAddr
 	}
 	conn, err := d.Dial("tcp", addr)
 	defer conn.Close()
