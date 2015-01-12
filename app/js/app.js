@@ -4,6 +4,7 @@ var app = angular.module('app', [
   'app.constants',
   'app.helpers',
   'app.i18n',
+  'pascalprecht.translate',
   'app.filters',
   'app.services',
   'app.directives',
@@ -28,7 +29,14 @@ var app = angular.module('app', [
       }
     };
   })
-  .config(function($tooltipProvider, $httpProvider) {
+  .config(function($tooltipProvider, $httpProvider, $translateProvider, DEFAULT_LANG) {
+
+      $translateProvider.preferredLanguage(DEFAULT_LANG);
+
+      $translateProvider.useStaticFilesLoader({
+          prefix: './locale/',
+          suffix: '.json'
+      });
     // Add the X-Requested-With header back in when we configure http provider; otherwise, making POST requests doesn't work
     // version 1.1.* and above of AngularJS dropped this default behavior
     // see here for related info http://django-angular.readthedocs.org/en/latest/integration.html

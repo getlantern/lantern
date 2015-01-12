@@ -31,6 +31,8 @@
     <script src="bower_components/lodash/dist/lodash.js"></script>
     <script src="bower_components/select2/select2.js"></script>
     <script src="bower_components/angular-ui-select2/src/select2.js"></script>
+    <script src="bower_components/angular-translate/angular-translate.min.js"></script>
+    <script src="bower_components/angular-translate-loader-static-files/angular-translate-loader-static-files.min.js"></script>
     <script src="bower_components/d3/d3.min.js"></script>
     <script src="bower_components/cssesc/cssesc.js"></script>
     <!-- XXX see "XXX" in js/vis.js before switching to more recent topojson -->
@@ -70,12 +72,12 @@
 
     <div id="waiting" ng-show="!cometdConnected">
       <div ng-show="!backendIsGone">
-        <div>{{ 'WAITING_FOR_LANTERN' | i18n }}</div>
+        <div>{{ 'WAITING_FOR_LANTERN' | translate }}</div>
         <img src="img/spinner.gif">
       </div>
       <div ng-show="backendIsGone">
-        <div>{{ 'LANTERN_GONE' | i18n }}</div>
-        <button type="button" class="btn btn-primary" onclick="window.close();">{{ 'CLOSE_WINDOW' | i18n }}</button>
+        <div>{{ 'LANTERN_GONE' | translate }}</div>
+        <button type="button" class="btn btn-primary" onclick="window.close();">{{ 'CLOSE_WINDOW' | translate }}</button>
       </div>
     </div>
 

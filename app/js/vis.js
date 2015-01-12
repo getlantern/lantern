@@ -31,19 +31,19 @@ angular.module('app.vis', ['ngSanitize'])
   .directive('countries', function ($compile, $timeout) {
     function ttTmpl(alpha2) {
       return '<div class="vis" style="min-width:150px; cursor:pointer;">'+
-        '<div class="header">{{ "'+alpha2+'" | i18n }}</div>'+
-        '<div class="give-colored">{{ "NUSERS_ONLINE" | i18n:model.countries.'+alpha2+'.stats.gauges.userOnlineGiving || 0:true }} {{ "GIVING_ACCESS" | i18n }}</div>'+
-        '<div class="get-colored">{{ "NUSERS_ONLINE" | i18n:model.countries.'+alpha2+'.stats.gauges.userOnlineGetting || 0:true }} {{ "GETTING_ACCESS" | i18n }}</div>'+
+        '<div class="header">{{ "'+alpha2+'" | translate }}</div>'+
+        '<div class="give-colored">{{ "NUSERS_ONLINE" | i18n:model.countries.'+alpha2+'.stats.gauges.userOnlineGiving || 0:true }} {{ "GIVING_ACCESS" | translate }}</div>'+
+        '<div class="get-colored">{{ "NUSERS_ONLINE" | i18n:model.countries.'+alpha2+'.stats.gauges.userOnlineGetting || 0:true }} {{ "GETTING_ACCESS" | translate }}</div>'+
         '<div class="nusers {{ (!model.countries.'+alpha2+'.stats.gauges.userOnlineEver && !model.countries.'+alpha2+'.stats.counters.userOnlineEverOld) && \'gray\' || \'\' }}">'+
           '{{ "NUSERS_EVER" | i18n:(model.countries.'+alpha2+'.stats.gauges.userOnlineEver + model.countries.'+alpha2+'.stats.gauges.userOnlineEverOld) }}'+
         '</div>'+
         '<div class="stats">'+
           '<div class="bps{{ model.countries.'+alpha2+'.bps || 0 }}">'+
-            '{{ model.countries.'+alpha2+'.bps || 0 | prettyBps }} {{ "TRANSFERRING_NOW" | i18n }}'+
+            '{{ model.countries.'+alpha2+'.bps || 0 | prettyBps }} {{ "TRANSFERRING_NOW" | translate }}'+
           '</div>'+
           '<div class="bytes{{ model.countries.'+alpha2+'.bytesEver || 0 }}">'+
-            '{{model.countries.'+alpha2+'.stats.counters.bytesGiven | prettyBytes}} {{"GIVEN" | i18n}}, ' +
-            '{{model.countries.'+alpha2+'.stats.counters.bytesGotten | prettyBytes}} {{"GOTTEN" | i18n}}' +
+            '{{model.countries.'+alpha2+'.stats.counters.bytesGiven | prettyBytes}} {{"GIVEN" | translate}}, ' +
+            '{{model.countries.'+alpha2+'.stats.counters.bytesGotten | prettyBytes}} {{"GOTTEN" | translate}}' +
           '</div>'+
         '</div>'+
       '</div>';
@@ -179,19 +179,19 @@ angular.module('app.vis', ['ngSanitize'])
             <div class=header>{{peer.rosterEntry.name}}</div> \
             <div class=email>{{peer.rosterEntry.email}}</div> \
             <div class='peerid ip'>{{peer.peerid}}{{peer.formattedIp}}</div> \
-            <div class=type>{{peer.type && peer.mode && (((peer.type|upper)+(peer.mode|upper))|i18n) || ''}}</div> \
+            <div class=type>{{peer.type && peer.mode && (((peer.type|upper)+(peer.mode|upper))|translate) || ''}}</div> \
           </div> \
           <div class=stats> \
             <div class=bps{{peer.bpsUpDn}}> \
-              {{peer.bpsUp | prettyBps}} {{'UP' | i18n}}, \
-              {{peer.bpsDn | prettyBps}} {{'DN' | i18n}} \
+              {{peer.bpsUp | prettyBps}} {{'UP' | translate}}, \
+              {{peer.bpsDn | prettyBps}} {{'DN' | translate}} \
             </div> \
             <div class=bytes{{peer.bytesUpDn}}> \
-              {{peer.bytesUp | prettyBytes}} {{'SENT' | i18n}}, \
-              {{peer.bytesDn | prettyBytes}} {{'RECEIVED' | i18n}} \
+              {{peer.bytesUp | prettyBytes}} {{'SENT' | translate}}, \
+              {{peer.bytesDn | prettyBytes}} {{'RECEIVED' | translate}} \
             </div> \
             <div class=lastConnected> \
-              {{!peer.connected && peer.lastConnected && 'LAST_CONNECTED' || '' | i18n }} \
+              {{!peer.connected && peer.lastConnected && 'LAST_CONNECTED' || '' | translate }} \
               <time>{{!peer.connected && (peer.lastConnected | date:'short') || ''}}</time> \
             </div> \
           </div> \

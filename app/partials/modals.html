@@ -7,32 +7,32 @@
 </div>
 -->
 <!--
-    <li><a ng-click="openExternal(EXTERNAL_URL.helpTranslate)">{{ 'HELP_TRANSLATE' | i18n }}<sup><i class="icon-external-link"></i></sup></a></li>
+    <li><a ng-click="openExternal(EXTERNAL_URL.helpTranslate)">{{ 'HELP_TRANSLATE' | translate }}<sup><i class="icon-external-link"></i></sup></a></li>
 -->
 
 <!-- XXX DRY - contact modal, settings load failure modal -->
 <div ng-controller="UnexpectedStateCtrl" ng-show="show" modal="show" class="modal">
   <div class="modal-header">
-    <h3>{{ 'UNEXPECTED_STATE_TITLE' | i18n }}</h3>
+    <h3>{{ 'UNEXPECTED_STATE_TITLE' | translate }}</h3>
   </div>
   <div class="modal-body" ng-init="notify = true">
-    <div>{{ 'UNEXPECTED_STATE_PROMPT' | i18n }}</div>
+    <div>{{ 'UNEXPECTED_STATE_PROMPT' | translate }}</div>
     <form class="notify" name="contactForm">
       <p>
         <label class="checkbox inline">
           <input type="checkbox" ng-model="notify" tabindex="{{ show && 1 || ''}}">
-          {{ 'NOTIFY_LANTERN_DEVS' | i18n }}
+          {{ 'NOTIFY_LANTERN_DEVS' | translate }}
         </label>
       </p>
       <div ng-show="notify">
         <textarea class="report noHeightWhenHidden" name="contactMsg"
           ng-model="message" tabindex="{{ show && 2 || '' }}" focus-on="show"
-          placeholder="{{'MESSAGE_PLACEHOLDER'|i18n}}" ng-maxlength="500000"></textarea><!-- XXX https://github.com/angular/angular.js/issues/1405 -->
+          placeholder="{{'MESSAGE_PLACEHOLDER'|translate}}" ng-maxlength="500000"></textarea><!-- XXX https://github.com/angular/angular.js/issues/1405 -->
         <div class="text-error pagination-centered" ng-show="contactForm.contactMsg.$error.maxlength">
           {{ 'ERROR_TOO_LONG' | i18n:(contactForm.contactMsg.$viewValue.length - CONTACT_FORM_MAXLEN) }}&nbsp;
         </div>
         <details class="diagnosticInfo">
-          <summary>{{'DIAGNOSTIC_INFO'|i18n}}</summary>
+          <summary>{{'DIAGNOSTIC_INFO'|translate}}</summary>
           <textarea class="diagnosticInfo" name="diagnosticInfo" ng-model="diagnosticInfo"
             ng-maxlength="500000"></textarea><!-- XXX https://github.com/angular/angular.js/issues/1405 -->
           <div class="text-error pagination-centered" ng-show="contactForm.diagnosticInfo.$error.maxlength">
@@ -46,36 +46,36 @@
     <button type="button" class="btn pull-left" tabindex="{{ show && 5 || ''}}" ng-disabled="contactForm.$invalid"
       ng-click="interactionWithNotify(INTERACTION.unexpectedStateReset, this, true)">
       <i class="icon-warning-sign warning-colored"></i>
-      {{ 'RESET' | i18n }}
+      {{ 'RESET' | translate }}
     </button>
     <button type="button" class="btn btn-primary" tabindex="{{ show && 3 || ''}}" ng-disabled="contactForm.$invalid"
-       ng-click="interactionWithNotify(INTERACTION.unexpectedStateRefresh, this, true)">{{ 'REFRESH' | i18n }}</button>
+       ng-click="interactionWithNotify(INTERACTION.unexpectedStateRefresh, this, true)">{{ 'REFRESH' | translate }}</button>
   </div>
 </div>
 
 <!-- XXX DRY - contact modal, unexpected state modal -->
 <div ng-controller="SettingsLoadFailureCtrl" ng-show="show" modal="show" class="modal">
   <div class="modal-header">
-    <h3>{{ 'SETTINGS_LOAD_FAILURE_TITLE' | i18n }}</h3>
+    <h3>{{ 'SETTINGS_LOAD_FAILURE_TITLE' | translate }}</h3>
   </div>
   <div class="modal-body" ng-init="notify = true">
-    <div>{{ 'SETTINGS_LOAD_FAILURE_PROMPT' | i18n }}</div>
+    <div>{{ 'SETTINGS_LOAD_FAILURE_PROMPT' | translate }}</div>
     <form class="notify" name="contactForm">
       <p>
         <label class="checkbox inline">
           <input type="checkbox" ng-model="notify" tabindex="{{ show && 1 || ''}}">
-          {{ 'NOTIFY_LANTERN_DEVS' | i18n }}
+          {{ 'NOTIFY_LANTERN_DEVS' | translate }}
         </label>
       </p>
       <div ng-show="notify">
         <textarea class="report noHeightWhenHidden" name="contactMsg"
           ng-model="message" tabindex="{{ show && 2 || '' }}" focus-on="show"
-          placeholder="{{'MESSAGE_PLACEHOLDER'|i18n}}" ng-maxlength="500000"></textarea><!-- XXX https://github.com/angular/angular.js/issues/1405 -->
+          placeholder="{{'MESSAGE_PLACEHOLDER'|translate}}" ng-maxlength="500000"></textarea><!-- XXX https://github.com/angular/angular.js/issues/1405 -->
         <div class="text-error pagination-centered" ng-show="contactForm.contactMsg.$error.maxlength">
           {{ 'ERROR_TOO_LONG' | i18n:(contactForm.contactMsg.$viewValue.length - CONTACT_FORM_MAXLEN) }}&nbsp;
         </div>
         <details class="diagnosticInfo">
-          <summary>{{'DIAGNOSTIC_INFO'|i18n}}</summary>
+          <summary>{{'DIAGNOSTIC_INFO'| translate}}</summary>
           <textarea class="diagnosticInfo" name="diagnosticInfo" ng-model="diagnosticInfo"
             ng-maxlength="500000"></textarea><!-- XXX https://github.com/angular/angular.js/issues/1405 -->
           <div class="text-error pagination-centered" ng-show="contactForm.diagnosticInfo.$error.maxlength">
@@ -88,22 +88,22 @@
   <div class="modal-footer">
     <button type="button" ng-click="interactionWithNotify(INTERACTION.reset, this)" class="btn pull-left" tabindex="{{ show && 5 || ''}}" ng-disabled="contactForm.$invalid">
       <i class="icon-warning-sign warning-colored"></i>
-      {{ 'RESET' | i18n }}
+      {{ 'RESET' | translate }}
     </button>
-    <button type="button" ng-click="interactionWithNotify(INTERACTION.retry, this)" class="btn btn-primary" tabindex="{{ show && 3 || ''}}" ng-disabled="contactForm.$invalid">{{ 'RETRY' | i18n }}</button>
+    <button type="button" ng-click="interactionWithNotify(INTERACTION.retry, this)" class="btn btn-primary" tabindex="{{ show && 3 || ''}}" ng-disabled="contactForm.$invalid">{{ 'RETRY' | translate }}</button>
   </div>
 </div>
 
 <div ng-controller="WelcomeCtrl" ng-show="show" modal="show" class="modal">
   <div class="modal-body" id="welcome">
     <div class="logo">
-      <div><img src="img/logo.png" alt="{{ 'LANTERN' | i18n }}"></div>
-      <div class="beta">{{ 'BETA' | i18n }}</div><!-- XXX remove this when we graduate from beta -->
+      <div><img src="img/logo.png" alt="{{ 'LANTERN' | translate }}"></div>
+      <div class="beta">{{ 'BETA' | translate }}</div><!-- XXX remove this when we graduate from beta -->
     </div>
-    <div class="tagLine">{{ 'TAG_LINE' | i18n }}</div>
+    <div class="tagLine">{{ 'TAG_LINE' | translate }}</div>
     <!-- not connected to internet -->
     <div class="internetRequired fadeInOut" ng-hide="model.connectivity.internet">
-      {{ 'INTERNET_REQUIRED' | i18n }}
+      {{ 'INTERNET_REQUIRED' | translate }}
     </div>
     <!-- connected to internet -->
     <div ng-show="model.connectivity.internet">
@@ -115,17 +115,17 @@
       <div ng-show="model.connectivity.ip">
         <div ng-show="inCensoringCountry">
           <button type="button" class="btn btn-large btn-get-inverse enter-get-mode" ng-click="interaction(MODE.get)"
-            focus-on="show">{{ 'GET_ACCESS' | i18n }}</button>
+            focus-on="show">{{ 'GET_ACCESS' | translate }}</button>
         </div>
         <div ng-hide="inCensoringCountry">
           <button type="button" ng-hide="inCensoringCountry" ng-click="interaction(MODE.give)"
             class="btn btn-large btn-give-inverse enter-give-mode" focus-on="show" tabindex="{{show && 1 || ''}}">
             <i ng-show="inCensoringCountry" class="icon-warning-sign"></i>
-            {{ 'GIVE_ACCESS' | i18n }}
+            {{ 'GIVE_ACCESS' | translate }}
           </button>
           <div class="orIfYouNeed">
-            {{ 'OR_IF_YOU_NEED' | i18n }}
-            <a href="#" class="get-colored always-underlined enter-get-mode" ng-click="interaction(MODE.get)" tabindex="{{show && 2 || ''}}">{{ 'GET_ACCESS' | i18n }}</a>
+            {{ 'OR_IF_YOU_NEED' | translate }}
+            <a href="#" class="get-colored always-underlined enter-get-mode" ng-click="interaction(MODE.get)" tabindex="{{show && 2 || ''}}">{{ 'GET_ACCESS' | translate }}</a>
           </div>
         </div>
       </div>
@@ -135,17 +135,17 @@
 
 <div ng-controller="SponsorToContinueCtrl" ng-show="show" modal="show" class="modal">
   <div class="modal-header">
-    <h3>{{ 'SPONSOR_TO_CONTINUE_TITLE' | i18n }}</h3>
+    <h3>{{ 'SPONSOR_TO_CONTINUE_TITLE' | translate }}</h3>
   </div>
   <div class="modal-body" id="sponsorToContinue">
-    {{ 'SPONSOR_TO_CONTINUE_PROMPT' | i18n }}
+    {{ 'SPONSOR_TO_CONTINUE_PROMPT' | translate }}
     <a ng-click="openExternal(EXTERNAL_URL.cloudServers)" class="more-info">
-      {{ 'MORE_INFO' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
+      {{ 'MORE_INFO' | translate }}<sup><i class="icon-external-link"></i></sup></a>
   </div>
   <div class="modal-footer">
     <span class="icon-external-link-wrapper">
       <button class="btn btn-primary" ng-click="openExternal(EXTERNAL_URL.rally)" focus-on="show">
-        {{ 'SPONSOR' | i18n }}
+        {{ 'SPONSOR' | translate }}
       </button><sup><i class="icon-external-link"></i></sup>
     </span>
   </div>
@@ -153,19 +153,19 @@
 
 <div ng-controller="AuthorizeCtrl" ng-show="show" modal="show" class="modal">
   <div class="modal-header">
-    <h3>{{ 'AUTHORIZE_TITLE' | i18n }}</h3>
+    <h3>{{ 'AUTHORIZE_TITLE' | translate }}</h3>
   </div>
   <div class="modal-body" id="authorize">
     <div>
-      {{ 'AUTHORIZE_PROMPT' | i18n }}
-      <a ng-click="helpExpanded = !helpExpanded" class="more-info">{{ 'MORE_INFO' | i18n }}</a>
+      {{ 'AUTHORIZE_PROMPT' | translate }}
+      <a ng-click="helpExpanded = !helpExpanded" class="more-info">{{ 'MORE_INFO' | translate }}</a>
     </div>
     <div class="prompt-extra" ng-show="helpExpanded">
-      <p ng-bind-html="'AUTHORIZE_EXTRA' | i18n"></p>
-      <p ng-bind-html="'EMAIL_USE' | i18n"></p>
-      <p ng-bind-html="'DIRECT_FROM_GOOGLE' | i18n"></p>
+      <p ng-bind-html="'AUTHORIZE_EXTRA' | translate"></p>
+      <p ng-bind-html="'EMAIL_USE' | translate"></p>
+      <p ng-bind-html="'DIRECT_FROM_GOOGLE' | translate"></p>
     </div>
-    <p class="small gray indented" style="padding-top:10px;">{{ 'INVITE_EMAIL' | i18n }}</p><!-- XXX remove this when we go to open beta -->
+    <p class="small gray indented" style="padding-top:10px;">{{ 'INVITE_EMAIL' | translate }}</p><!-- XXX remove this when we go to open beta -->
   </div>
   <div class="modal-footer">
     <div class="modal-status" ng-show="showSpinner">
@@ -173,14 +173,14 @@
     </div>
     <a class="btn btn-primary sign-in" href="{{ model.connectivity.gtalkOauthUrl }}"
        target="{{ model.mock && '_blank' || ''}}" focus-on="show" ng-click="signInClicked()">
-      {{ 'SIGN_IN' | i18n }}
+      {{ 'SIGN_IN' | translate }}
     </a>
   </div>
 </div>
 
 <div ng-show="model.modal == MODAL.connecting" modal="show" class="modal">
   <div class="modal-header">
-    <h3>{{ 'CONNECTING_TITLE' | i18n }}</h3>
+    <h3>{{ 'CONNECTING_TITLE' | translate }}</h3>
   </div>
   <div class="modal-body" id="connecting">
     <!-- XXX progress bar would be nice here -->
@@ -192,39 +192,39 @@
 
 <div ng-controller="ConfirmResetCtrl" ng-show="show" modal="show" class="modal">
   <div class="modal-header">
-    <h3>{{ 'CONFIRM_RESET_TITLE' | i18n }}</h3>
+    <h3>{{ 'CONFIRM_RESET_TITLE' | translate }}</h3>
   </div>
   <div class="modal-body" id="confirmReset">
-    <div>{{ 'CONFIRM_RESET_PROMPT' | i18n }}</div>
+    <div>{{ 'CONFIRM_RESET_PROMPT' | translate }}</div>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn" focus-on="show" ng-click="interaction(INTERACTION.cancel)">{{ 'CANCEL' | i18n }}</button>
-    <button type="button" class="btn btn-danger" ng-click="interaction(INTERACTION.reset)">{{ 'RESET' | i18n }}</button>
+    <button type="button" class="btn" focus-on="show" ng-click="interaction(INTERACTION.cancel)">{{ 'CANCEL' | translate }}</button>
+    <button type="button" class="btn btn-danger" ng-click="interaction(INTERACTION.reset)">{{ 'RESET' | translate }}</button>
   </div>
 </div>
 
 <div ng-controller="GiveModeForbiddenCtrl" ng-show="show" modal="show" class="modal">
   <div class="modal-header">
-    <h3>{{ 'GIVE_MODE_FORBIDDEN_TITLE' | i18n }}</h3>
+    <h3>{{ 'GIVE_MODE_FORBIDDEN_TITLE' | translate }}</h3>
   </div>
   <div class="modal-body" id="giveModeForbidden">
-    <div>{{ 'GIVE_MODE_FORBIDDEN_PROMPT' | i18n }}</div>
+    <div>{{ 'GIVE_MODE_FORBIDDEN_PROMPT' | translate }}</div>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn" ng-hide="model.setupComplete" ng-click="interaction(INTERACTION.cancel)">{{ 'BACK' | i18n }}</button>
-    <button type="button" class="btn btn-primary btn-get-mode" focus-on="show" ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE_IN_GET_MODE' | i18n }}</button>
+    <button type="button" class="btn" ng-hide="model.setupComplete" ng-click="interaction(INTERACTION.cancel)">{{ 'BACK' | translate }}</button>
+    <button type="button" class="btn btn-primary btn-get-mode" focus-on="show" ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE_IN_GET_MODE' | translate }}</button>
   </div>
 </div>
 
 <div ng-controller="NotInvitedCtrl" ng-show="show" modal="show" class="modal">
   <div class="modal-header">
-    <h3>{{ 'NOT_INVITED_TITLE' | i18n }}</h3>
+    <h3>{{ 'NOT_INVITED_TITLE' | translate }}</h3>
   </div>
   <div class="modal-body" id="notInvited">
-    <div>{{ 'NOT_INVITED_PROMPT' | i18n }}</div>
+    <div>{{ 'NOT_INVITED_PROMPT' | translate }}</div>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn btn-primary" focus-on="show" ng-click="interaction(INTERACTION.retry)">{{ 'TRY_ANOTHER_USER' | i18n }}</button>
+    <button type="button" class="btn btn-primary" focus-on="show" ng-click="interaction(INTERACTION.retry)">{{ 'TRY_ANOTHER_USER' | translate }}</button>
   </div>
 </div>
 
@@ -232,7 +232,7 @@
   <div class="modal-header">
     <h3>
       <i class="lsf-icon lsf-web"></i>
-      {{ 'PROXIED_SITES_TITLE' | i18n }}
+      {{ 'PROXIED_SITES_TITLE' | translate }}
     </h3>
   </div>
   <div class="modal-body" id="proxiedSites">
@@ -240,24 +240,24 @@
     <div class="warning" ng-show="model.settings.proxyAllSites">
       <div style="margin-bottom: 8px">
         <i class="icon icon-warning-sign"></i>
-        <span ng-bind-html="'PROXYING_ALL_WARNING' | i18n"></span>
+        <span ng-bind-html="'PROXYING_ALL_WARNING' | translate"></span>
       </div>
-      <div class="small" ng-bind-html="'PROXYING_ALL_WARNING_EXPLANATION' | i18n"></div>
+      <div class="small" ng-bind-html="'PROXYING_ALL_WARNING_EXPLANATION' | translate"></div>
       <div style="margin-top: 14px">
         <a class="btn btn-warning btn-small" ng-click="changeSetting(SETTING.proxyAllSites, false)">
-          {{ 'DISABLE_PROXY_ALL' | i18n }}
+          {{ 'DISABLE_PROXY_ALL' | translate }}
         </a>
       </div>
     </div>
 
     <div ng-hide="model.settings.proxyAllSites">
-      <p>{{ 'CONFIGURE_PROXIED_SITES' | i18n }}</p>
+      <p>{{ 'CONFIGURE_PROXIED_SITES' | translate }}</p>
       <div>
         <div id="proxiedSitesLabelAndSearchContainer">
-          <div class="smaller proxiedSitesTip">{{ 'ENTER_PROXIED_SITES_TIP' | i18n }}</div>
+          <div class="smaller proxiedSitesTip">{{ 'ENTER_PROXIED_SITES_TIP' | translate }}</div>
           <input type="search" ng-model="searchText" results="0" id="proxiedSitesSearch"
               ng-class="{empty: !searchText}"
-              placeholder="{{ 'SEARCH' | i18n }}">
+              placeholder="{{ 'SEARCH' | translate }}">
         </div>
         <form name="proxiedSitesForm">
           <textarea ng-model="input" name="input" placeholder="example.com" required
@@ -265,15 +265,15 @@
             ng-hide="!!searchText" ng-readonly="!!searchText" focus-on="show"
             ui-validate="'validate($value)'" id="proxiedSitesInput"
             dir="ltr" tabindex="{{ show && 1 || '' }}"></textarea>
-          <textarea ng-model="inputFiltered" placeholder="{{ 'NO_MATCHING_SITES' | i18n }} &quot;{{searchText}}&quot;"
+          <textarea ng-model="inputFiltered" placeholder="{{ 'NO_MATCHING_SITES' | translate }} &quot;{{searchText}}&quot;"
             ng-show="!!searchText" readonly dir="ltr"></textarea>
         </form>
       </div>
       <p class="smaller">
-        <strong>{{'TIP'|i18n}}</strong> {{ 'PROXIED_SITES_WIKI_TIP' | i18n }}
+        <strong>{{'TIP'|translate}}</strong> {{ 'PROXIED_SITES_WIKI_TIP' | translate }}
         <a ng-click="openExternal(EXTERNAL_URL.proxiedSitesWiki)">
-          {{ 'PROXIED_SITES_WIKI_LINK_TEXT' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
-        {{ 'PROXIED_SITES_WIKI_TIP_CONTINUED' | i18n }}
+          {{ 'PROXIED_SITES_WIKI_LINK_TEXT' | translate }}<sup><i class="icon-external-link"></i></sup></a>
+        {{ 'PROXIED_SITES_WIKI_TIP_CONTINUED' | translate }}
       </p>
       <div class="error" ui-toggle="errorLabelKey">
         {{ errorLabelKey && (errorLabelKey | i18n) || '' }}
@@ -282,7 +282,7 @@
     </div>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn" ng-disabled="!hasUpdate || updating" ng-click="handleReset()" tabindex="{{ show && 3 || '' }">{{ 'RESET' | i18n }}</button>
+    <button type="button" class="btn" ng-disabled="!hasUpdate || updating" ng-click="handleReset()" tabindex="{{ show && 3 || '' }">{{ 'RESET' | translate }}</button>
     <button id="continueFromProxiedSites" 
             type="button" class="btn btn-primary" tabindex="{{ show && 2 || '' }}"
             ng-disabled="updating || proxiedSitesForm.$invalid"
@@ -294,7 +294,7 @@
   <div class="modal-header">
     <h3>
       <i class="lsf-icon lsf-friends"></i>
-      {{ 'LANTERN_FRIENDS' | i18n }}
+      {{ 'LANTERN_FRIENDS' | translate }}
     </h3>
   </div>
   <div class="modal-body" id="lanternFriends">
@@ -302,13 +302,13 @@
       <p class="small" ng-bind-html="'LANTERN_FRIENDS_EXP_INTRO' | i18n"></p>
       <p class="small error-colored">
         <i class="icon-warning-sign warning-colored"></i>
-        {{ 'SUGGESTED_FRIEND_WARNING' | i18n }}
+        {{ 'SUGGESTED_FRIEND_WARNING' | translate }}
       </p>
     </div>
 
     <div class="addFriendsControls">
       <div id="fetchingFriends" class="centered muted" ng-show="model.friends == null">
-        <div>{{ 'LOADING_FRIENDS' | i18n }}</div><br><br>
+        <div>{{ 'LOADING_FRIENDS' | translate }}</div><br><br>
         <img src="img/spinner.gif">
       </div>
 
@@ -324,14 +324,14 @@
             </div>
           </div>
 
-          <input type="search" ng-model="searchText" results="0" placeholder="{{ 'SEARCH' | i18n }}"
+          <input type="search" ng-model="searchText" results="0" placeholder="{{ 'SEARCH' | translate }}"
             ng-mouseenter="searchActive=true" ng-focus="searchActive=true; searchFocused=true"
             ng-mouseleave="searchActive=searchFocused || !!searchText" ng-blur="searchActive=!!searchText; searchFocused=false"
             id="friendsListSearch" class="{{searchText && 'non' || ''}}empty">
 
           <ul id="friendlist">
             <li ng-show="searchText && displayedSuggestions.length == 0 && displayedFriends.length == 0" class="no-friends-matching">
-              <div class="gray">{{'NO_FRIENDS_MATCHING' | i18n}} "{{searchText}}"</div>
+              <div class="gray">{{'NO_FRIENDS_MATCHING' | translate}} "{{searchText}}"</div>
             </li>
             <li ng-repeat="suggestion in displayedSuggestions" class="entry suggested">
               <div ng-mouseenter="state.showAddRmIdx = $index">
@@ -345,13 +345,13 @@
                           class="btn btn-mini btn-success {{!model.remainingFriendingQuota && !suggestion.freeToFriend && 'disabled' || ''}}"
                           tooltip-placement="bottom"
                           tooltip-html-unsafe="{{(suggestion.freeToFriend && ('FREE_TO_FRIEND' | i18n)) || (model.remainingFriendingQuota && ('NOT_FREE_TO_FRIEND' | i18n)) || ('REACHED_AND_NOT_FREE_TO_FRIEND' | i18n)}}">{{'ADD' | i18n}}</button>
-                  <button ng-click="reject(suggestion.email)" class="btn btn-mini" ng-disabled="pendingFriendUpdate">{{'DISMISS' | i18n}}</button>
+                  <button ng-click="reject(suggestion.email)" class="btn btn-mini" ng-disabled="pendingFriendUpdate">{{'DISMISS' | translate}}</button>
                 </div>
               </div>
               <div class="reason">
                 <div ng-switch="suggestion.reason">
-                  <span ng-switch-when="runningLantern">{{'SUGGESTED_BECAUSE_RUNNING' | i18n}}</span>
-                  <span ng-switch-when="friendedYou">{{'SUGGESTED_BECAUSE_FRIENDED_YOU' | i18n}}</span>
+                  <span ng-switch-when="runningLantern">{{'SUGGESTED_BECAUSE_RUNNING' | translate}}</span>
+                  <span ng-switch-when="friendedYou">{{'SUGGESTED_BECAUSE_FRIENDED_YOU' | translate}}</span>
                 </div>
               </div>
             </li>
@@ -365,11 +365,11 @@
               </div>
               <div class="friendConnectedStatus">
                 <div ng-switch="friend.connectedStatus">
-                  <span ng-switch-when="transferringNow">{{friend.bpsUpDnSum | prettyBps}} {{'TRANSFERRING_NOW'|i18n}}</span>
-                  <span ng-switch-when="connected">{{'CONNECTED'|i18n}}</span>
-                  <span ng-switch-when="lastConnected">{{'LAST_CONNECTED'|i18n}} {{friend.lastConnected|date:'short'}}</span>
-                  <span ng-switch-when="notYetConnected">{{'NOT_YET_CONNECTED'|i18n}}</span>
-                  <span ng-switch-default>{{'UNKNOWN_CONNECTED_STATUS'|i18n}}</span><!-- should not get here -->
+                  <span ng-switch-when="transferringNow">{{friend.bpsUpDnSum | prettyBps}} {{'TRANSFERRING_NOW'|translate}}</span>
+                  <span ng-switch-when="connected">{{'CONNECTED'|translate}}</span>
+                  <span ng-switch-when="lastConnected">{{'LAST_CONNECTED'|translate}} {{friend.lastConnected|date:'short'}}</span>
+                  <span ng-switch-when="notYetConnected">{{'NOT_YET_CONNECTED'|translate}}</span>
+                  <span ng-switch-default>{{'UNKNOWN_CONNECTED_STATUS'|translate}}</span><!-- should not get here -->
                 </div>
               </div>
             </li>
@@ -381,7 +381,7 @@
       <div ng-show="model.friends != null">
         <input type="hidden" id="addFriendInput" name="addFriendInput"
           select2-focus-on="show" select2-focus-on-broadcast="focusAddFriendsInput"
-          placeholder="{{ 'ADD_FRIENDS_PROMPT' | i18n }}"
+          placeholder="{{ 'ADD_FRIENDS_PROMPT' | translate }}"
           ng-disabled="pendingFriendUpdate || (model.remainingFriendingQuota == 0 && nFreeToFriend == 0)"
           ng-model="added" ui-select2="select2opts">
           <!-- XXX https://github.com/angular-ui/ui-select2/issues/59 -->
@@ -402,8 +402,8 @@
           {{'CAN_ADD_N_MORE_FRIENDS'|i18n:model.remainingFriendingQuota}}
         </div>
         <div ng-show="model.remainingFriendingQuota == 0">
-          <div class="bold grayDark">{{'CAN_ADD_NO_MORE_FRIENDS'|i18n}}</div>
-          <div class="smaller gray">{{'CAN_STILL_ADD_BACK'|i18n}}</div>
+          <div class="bold grayDark">{{'CAN_ADD_NO_MORE_FRIENDS'|translate}}</div>
+          <div class="smaller gray">{{'CAN_STILL_ADD_BACK'|translate}}</div>
         </div>
       </div>
     </div>
@@ -414,7 +414,7 @@
 
 <div ng-controller="FinishedCtrl" ng-show="show" modal="show" class="modal">
   <div class="modal-header">
-    <h3>{{ 'FINISHED_TITLE' | i18n }}</h3>
+    <h3>{{ 'FINISHED_TITLE' | translate }}</h3>
   </div>
   <div class="modal-body" id="finished">
     <p>{{ inGiveMode && 'FINISHED_PROMPT_GIVE' || 'FINISHED_PROMPT_GET' | i18n }}</p>
@@ -424,25 +424,25 @@
       <label class="checkbox smallest">
         <input type="checkbox" ng-model="autoReport"
                ng-change="changeSetting(SETTING.autoReport, autoReport)">
-          {{ 'AUTOREPORT_PROMPT' | i18n }}<a style="margin-{{rtl && 'right' || 'left'}}: 9px" ng-click="openExternal(EXTERNAL_URL.autoReportPrivacy)">{{ 'MORE_INFO' | i18n }}<sup><i class="icon-external-link"></i></sup>
+          {{ 'AUTOREPORT_PROMPT' | translate }}<a style="margin-{{rtl && 'right' || 'left'}}: 9px" ng-click="openExternal(EXTERNAL_URL.autoReportPrivacy)">{{ 'MORE_INFO' | translate }}<sup><i class="icon-external-link"></i></sup>
         </a>
       </label>
       <div class="smallest indented warning-colored" style="margin-top: 5px; min-height: 15px;" ng-show="!autoReport">
         <i class="icon-exclamation-sign"></i>
-        {{ 'NO_AUTOREPORT_WARNING' | i18n }}
+        {{ 'NO_AUTOREPORT_WARNING' | translate }}
       </div>
     </div>
     <button id="finishSetup"
             type="button" class="btn btn-primary btn-{{ model.settings.mode }}-mode"
             focus-on="show"
-            ng-click="finish()">{{ 'FINISH' | i18n }}</button>
+            ng-click="finish()">{{ 'FINISH' | translate }}</button>
   </div>
 </div>
 
 <!-- XXX DRY - settings load failure modal, unexpected state modal -->
 <div ng-controller="ContactCtrl" ng-show="show" modal="show" class="modal">
   <div class="modal-header">
-    <h3>{{ 'CONTACT_TITLE' | i18n }}</h3>
+    <h3>{{ 'CONTACT_TITLE' | translate }}</h3>
   </div>
   <div class="modal-body" id="contact">
     <div class="smaller" compile-unsafe="'CONTACT_PRELUDE' | i18n"></div>
@@ -454,7 +454,7 @@
         {{ 'ERROR_TOO_LONG' | i18n:(contactForm.contactMsg.$viewValue.length - CONTACT_FORM_MAXLEN) }}&nbsp;
       </div>
       <details class="diagnosticInfo">
-        <summary>{{'DIAGNOSTIC_INFO'|i18n}}</summary>
+        <summary>{{'DIAGNOSTIC_INFO'|translate}}</summary>
         <textarea class="diagnosticInfo" name="diagnosticInfo" ng-model="diagnosticInfo"
           ng-maxlength="500000"></textarea><!-- XXX https://github.com/angular/angular.js/issues/1405 -->
         <div class="text-error pagination-centered" ng-show="contactForm.diagnosticInfo.$error.maxlength">
@@ -465,110 +465,110 @@
   </div>
   <div class="modal-footer">
     <button type="button" class="btn" tabindex="{{ show && 3 || '' }}"
-            ng-click="interactionWithNotify(INTERACTION.cancel, true)">{{ 'CANCEL' | i18n }}</button>
+            ng-click="interactionWithNotify(INTERACTION.cancel, true)">{{ 'CANCEL' | translate }}</button>
     <button type="button" class="btn btn-primary" tabindex="{{ show && 2 || '' }}"
             ng-disabled="contactForm.$invalid"
-            ng-click="interactionWithNotify(INTERACTION.continue, this)">{{ 'SEND' | i18n }}</button>
+            ng-click="interactionWithNotify(INTERACTION.continue, this)">{{ 'SEND' | translate }}</button>
   </div>
 </div>
 
 <div ng-controller="AboutCtrl" ng-show="show" modal="show" class="modal">
   <div class="modal-header about">
-    <div>{{ 'LANTERN' | i18n }} {{ 'VERSION' | i18n }} {{ model.version.installed | version:true:true }}</div>
+    <div>{{ 'LANTERN' | translate }} {{ 'VERSION' | translate }} {{ model.version.installed | version:true:true }}</div>
     <div ng-show="model.dev" class="smaller">Development version. lantern-ui v{{ lanternUiVersion }}.</div>
     <div class="smaller">
-      <a ng-click="openExternal(EXTERNAL_URL.homepage)">{{ 'HOMEPAGE' | i18n }}<sup><i class="icon-external-link"></i></sup></a> ·
-      <a ng-click="openExternal(valByLang(EXTERNAL_URL.userForums))">{{ 'FORUMS' | i18n }}<sup><i class="icon-external-link"></i></sup></a> ·
-      <a ng-click="openExternal(EXTERNAL_URL.docs)">{{ 'DOCS' | i18n }}<sup><i class="icon-external-link"></i></sup></a> ·
-      <a ng-click="openExternal(EXTERNAL_URL.developers)">{{ 'DEVELOPERS' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
+      <a ng-click="openExternal(EXTERNAL_URL.homepage)">{{ 'HOMEPAGE' | translate }}<sup><i class="icon-external-link"></i></sup></a> ·
+      <a ng-click="openExternal(valByLang(EXTERNAL_URL.userForums))">{{ 'FORUMS' | translate }}<sup><i class="icon-external-link"></i></sup></a> ·
+      <a ng-click="openExternal(EXTERNAL_URL.docs)">{{ 'DOCS' | translate }}<sup><i class="icon-external-link"></i></sup></a> ·
+      <a ng-click="openExternal(EXTERNAL_URL.developers)">{{ 'DEVELOPERS' | translate }}<sup><i class="icon-external-link"></i></sup></a>
     </div>
   </div>
   <div class="modal-body" id="about" dir="ltr"><!-- XXX -->
     <div>
-      <strong>{{ 'BETA' | i18n }}</strong>
-      <textarea readonly rows="4">{{ 'BETA_STATEMENT' | i18n }}</textarea><!-- XXX remove this when we graduate from beta -->
+      <strong>{{ 'BETA' | translate }}</strong>
+      <textarea readonly rows="4">{{ 'BETA_STATEMENT' | translate }}</textarea><!-- XXX remove this when we graduate from beta -->
       <p class="contributing-prompt">
-        {{ 'VIEW_THE' | i18n }}
-        <a ng-click="openExternal(EXTERNAL_URL.getInvolved)">{{ 'GET_INVOLVED' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
-        {{ 'GET_INVOLVED_CONTINUED' | i18n }}
+        {{ 'VIEW_THE' | translate }}
+        <a ng-click="openExternal(EXTERNAL_URL.getInvolved)">{{ 'GET_INVOLVED' | translate }}<sup><i class="icon-external-link"></i></sup></a>
+        {{ 'GET_INVOLVED_CONTINUED' | translate }}
       </p>
     </div>
     <div>
-      <strong>{{ 'PRIVACY' | i18n }}</strong>
-      <textarea readonly rows="3">{{ 'PRIVACY_STATEMENT' | i18n }}</textarea>
+      <strong>{{ 'PRIVACY' | translate }}</strong>
+      <textarea readonly rows="3">{{ 'PRIVACY_STATEMENT' | translate }}</textarea>
     </div>
     <div>
-      <strong>{{ 'LICENSE' | i18n }}</strong>
-      <textarea readonly rows="3">{{ 'LICENSE_STATEMENT' | i18n }}</textarea>
+      <strong>{{ 'LICENSE' | translate }}</strong>
+      <textarea readonly rows="3">{{ 'LICENSE_STATEMENT' | translate }}</textarea>
     </div>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn btn-primary" focus-on="show" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | i18n }}</button>
+    <button type="button" class="btn btn-primary" focus-on="show" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | translate }}</button>
   </div>
 </div>
 
 <div ng-controller="UpdateAvailableCtrl" ng-show="show" modal="show" class="modal">
   <div class="modal-header">
-    <h3>{{ 'UPDATE_AVAILABLE_TITLE' | i18n }}</h3>
+    <h3>{{ 'UPDATE_AVAILABLE_TITLE' | translate }}</h3>
   </div>
   <div class="modal-body" id="updateAvailable">
-    <p>{{ 'UPDATE_AVAILABLE_PROMPT' | i18n }}</p>
+    <p>{{ 'UPDATE_AVAILABLE_PROMPT' | translate }}</p>
     <details open id="latestDetails">
       <summary><span class="capitalize">{{ 'VERSION' | upper | i18n }}</span> {{ model.version.latest | version:true }}</summary>
       <dl class="dl-horizontal">
-        <dt>{{ 'RELEASED' | i18n }}</dt>
+        <dt>{{ 'RELEASED' | translate }}</dt>
         <!-- XXX include correct locale script from http://code.angularjs.org/1.0.8/i18n/ 
                  to properly localize this date string -->
         <dd><time>{{ model.version.latest.releaseDate | date:'longDate' }}</time>&nbsp;</dd>
-        <dt ng-show="model.version.latest.infoUrl">{{ 'MORE_INFO' | i18n }}</dt>
+        <dt ng-show="model.version.latest.infoUrl">{{ 'MORE_INFO' | translate }}</dt>
         <dd ng-show="model.version.latest.infoUrl" dir="ltr"><a title="{{model.version.latest.infoUrl}}" ng-click="openExternal(model.version.latest.infoUrl)">{{ model.version.latest.infoUrl }}</a></dd>
       </dl>
     </details>
-    <p class="smaller indented">{{ 'UPDATE_AVAILABLE_PROMPT_RUNNING' | i18n }}
-      {{ 'VERSION' | i18n }} {{ model.version.installed | version:true }},
+    <p class="smaller indented">{{ 'UPDATE_AVAILABLE_PROMPT_RUNNING' | translate }}
+      {{ 'VERSION' | translate }} {{ model.version.installed | version:true }},
       <!-- XXX include correct locale script from http://code.angularjs.org/1.0.8/i18n/ 
                to properly localize this date string -->
-      {{ 'RELEASED' | i18n }} <time>{{ model.version.installed.releaseDate | date:'longDate' }}.</time></p><!-- XXX i18n -->
+      {{ 'RELEASED' | translate }} <time>{{ model.version.installed.releaseDate | date:'longDate' }}.</time></p><!-- XXX i18n -->
     <br>
-    <p class="indented bold">{{ 'UPDATE_PROMPT' | i18n }}</p>
+    <p class="indented bold">{{ 'UPDATE_PROMPT' | translate }}</p>
   </div>
   <div class="modal-footer">
     <button type="button" class="btn" ng-click="interaction(INTERACTION.close)"
             tabindex="{{ show && 2 || '' }}">
-      {{ 'CLOSE' | i18n }}
+      {{ 'CLOSE' | translate }}
     </button>
     <button type="button" class="btn btn-primary" ng-click="openExternal(model.version.latest.installerUrl)"
        focus-on="show" tabindex="{{ show && 1 || '' }}">
-      {{ 'DOWNLOAD' | i18n }}
+      {{ 'DOWNLOAD' | translate }}
     </button>
   </div>
 </div>
 
 <div ng-controller="SponsorCtrl" ng-show="show" modal="show" class="modal">
   <div class="modal-header">
-    <h3>{{ 'SPONSOR_CLOUD_PROXY' | i18n }}</h3>
+    <h3>{{ 'SPONSOR_CLOUD_PROXY' | translate }}</h3>
   </div>
   <div class="modal-body" id="sponsor">
     <p>
       {{ inGetMode && 'SPONSOR_PROMPT_GET' || 'SPONSOR_PROMPT_GIVE' | i18n }}
       <a ng-click="openExternal(EXTERNAL_URL.cloudServers)" class="more-info">
-        {{ 'MORE_INFO' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
+        {{ 'MORE_INFO' | translate }}<sup><i class="icon-external-link"></i></sup></a>
     </p>
     <p class="actions">
       <span class="icon-external-link-wrapper">
         <button class="btn btn-primary" ng-click="openExternal(EXTERNAL_URL.rally)" focus-on="show">
-          {{ 'SPONSOR_CLOUD_PROXY' | i18n }}
+          {{ 'SPONSOR_CLOUD_PROXY' | translate }}
         </button><sup><i class="icon-external-link"></i></sup>
       </span>
       <small>
-        {{ 'OR' | i18n }}
+        {{ 'OR' | translate }}
         <a class="always-underlined" ng-click="openExternal(EXTERNAL_URL.getInvolved)">
-          {{ 'VIEW_WAYS_TO_GET_INVOLVED' | i18n }}<sup><i class="icon-external-link"></i></sup></a>
+          {{ 'VIEW_WAYS_TO_GET_INVOLVED' | translate }}<sup><i class="icon-external-link"></i></sup></a>
       </small>
     </p>
   </div>
   <div class="modal-footer">
-    <button class="btn" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | i18n }}</button>
+    <button class="btn" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | translate }}</button>
   </div>
 </div>
 
@@ -576,37 +576,37 @@
   <div class="modal-header">
     <h3>
       <i class="lsf-icon lsf-gear"></i>
-      {{ 'SETTINGS' | i18n }}
+      {{ 'SETTINGS' | translate }}
     </h3>
   </div>
   <div class="modal-body" id="settings">
     <dl class="dl-horizontal">
-      <dt>{{ 'APP' | i18n }}</dt>
+      <dt>{{ 'APP' | translate }}</dt>
       <dd id="app-settings">
         <label class="checkbox">
           <input type="checkbox" ng-model="runAtSystemStart" focus-on="show"
                  ng-click="changeSetting(SETTING.runAtSystemStart, runAtSystemStart)">
-          {{ 'AUTO_START' | i18n }}
+          {{ 'AUTO_START' | translate }}
         </label>
 
         <div>
           <label class="checkbox">
             <input type="checkbox" ng-model="autoReport"
                    ng-click="changeSetting(SETTING.autoReport, autoReport)">
-            {{ 'AUTOREPORT_PROMPT' | i18n }}
+            {{ 'AUTOREPORT_PROMPT' | translate }}
             <a ng-click="openExternal(EXTERNAL_URL.autoReportPrivacy)" class="more-info">
-              {{ 'MORE_INFO' | i18n }}<sup><i class="icon-external-link"></i></sup>
+              {{ 'MORE_INFO' | translate }}<sup><i class="icon-external-link"></i></sup>
             </a>
           </label>
         </div>
 
         <div id="autoreport-warning" ng-show="!model.settings.autoReport">
           <i class="icon-exclamation-sign"></i>
-          {{ 'NO_AUTOREPORT_WARNING' | i18n }}
+          {{ 'NO_AUTOREPORT_WARNING' | translate }}
         </div>
       </dd>
 
-      <dt ng-hide="inCensoringCountry">{{ 'MODE' | i18n }}</dt>
+      <dt ng-hide="inCensoringCountry">{{ 'MODE' | translate }}</dt>
       <dd ng-hide="inCensoringCountry">
         <div class="btn-group">
           <button type="button" class="btn btn-mini btn-give"
@@ -614,44 +614,44 @@
                   ng-disabled="inGiveMode"
                   ng-click="interaction(MODE.give)">
                   <i ng-show="inCensoringCountry" class="icon-warning-sign"></i>
-                  {{ 'GIVE_ACCESS' | i18n }}
+                  {{ 'GIVE_ACCESS' | translate }}
           </button>
           <button type="button" class="btn btn-mini btn-get"
                   ng-class="{active: inGetMode}"
                   ng-disabled="inGetMode"
                   ng-click="interaction(MODE.get)">
-                  {{ 'GET_ACCESS' | i18n }}
+                  {{ 'GET_ACCESS' | translate }}
           </button>
         </div>
       </dd>
 
-      <dt ng-show="!inGiveMode">{{ 'PROXY' | i18n }}</dt>
+      <dt ng-show="!inGiveMode">{{ 'PROXY' | translate }}</dt>
       <dd ng-show="!inGiveMode" id="proxy-settings">
         <button type="button" class="btn btn-mini"
                 ng-click="interaction(INTERACTION.proxiedSites)">
           <i ui-if="model.settings.proxyAllSites" class="icon-warning-sign warning-colored"></i>
-          {{ 'MANAGE_PROXIED_SITES' | i18n }}
+          {{ 'MANAGE_PROXIED_SITES' | translate }}
         </button>
         <br>
         <div class="details" ng-init="isExpanded = model.settings.proxyAllSites || model.settings.systemProxy == false">
-          <div class="summary" ng-class="{expanded: isExpanded}" ng-click="isExpanded=!isExpanded">{{ 'ADVANCED' | i18n }}</div>
+          <div class="summary" ng-class="{expanded: isExpanded}" ng-click="isExpanded=!isExpanded">{{ 'ADVANCED' | translate }}</div>
           <div class="collapsible advanced" ng-show="isExpanded">
             <div>
               <label class="checkbox inline proxyAllSitesLabel">
                 <input type="checkbox" ng-model="proxyAllSites"
                        ng-click="changeSetting(SETTING.proxyAllSites, proxyAllSites)">
-                  {{'PROXY_ALL_TRAFFIC' | i18n }}
+                  {{'PROXY_ALL_TRAFFIC' | translate }}
               </label>
             </div>
             <div>
               <label class="checkbox inline">
                 <input type="checkbox" ng-model="systemProxy"
                        ng-click="changeSetting(SETTING.systemProxy, systemProxy)">
-                {{ 'SET_AS_SYSTEM_PROXY' | i18n }}
+                {{ 'SET_AS_SYSTEM_PROXY' | translate }}
               </label>
               <div id="manualProxyInfo">
                 <i class="icon-info-sign"></i>
-                {{ 'PAC_FILE_LOC' | i18n }}
+                {{ 'PAC_FILE_LOC' | translate }}
                 <div class="pacUrl">
                   {{ model.connectivity.pacUrl }}
                 </div>
@@ -666,9 +666,9 @@
     <button type="button" ng-click="interaction(INTERACTION.reset)" tabindex="-1"
             class="btn btn-mini pull-left">
       <i class="icon-warning-sign warning-colored"></i>
-      {{ 'RESET_ELLIPSIS' | i18n }}
+      {{ 'RESET_ELLIPSIS' | translate }}
     </button>
-    <button type="button" id="settings-close" class="btn btn-primary" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | i18n }}</button>
+    <button type="button" id="settings-close" class="btn btn-primary" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | translate }}</button>
   </div>
 </div>
 
