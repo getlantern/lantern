@@ -89,7 +89,7 @@ func TestNonGlobalAddressBadAddr(t *testing.T) {
 }
 
 func doTestNonGlobalAddress(t *testing.T, useRealAddress bool) {
-	l := startServer(t, false)
+	l := startServer(t, false, nil)
 	d := dialerFor(t, l)
 	defer d.Close()
 
@@ -106,7 +106,7 @@ func doTestNonGlobalAddress(t *testing.T, useRealAddress bool) {
 		gotConnMutex.Unlock()
 	}()
 
-	addr := l.Addr().String()
+	addr := tl.Addr().String()
 	if !useRealAddress {
 		addr = "asdflklsdkfjhladskfjhlasdkfjhlsads.asflkjshadlfkadsjhflk:0"
 	}
@@ -122,8 +122,49 @@ func doTestNonGlobalAddress(t *testing.T, useRealAddress bool) {
 	assert.False(t, gotConn, "Sending data to local address should never have resulted in connection")
 }
 
+func TestAllowedPorts(t *testing.T) {
+	gotConn := false
+	var gotConnMutex sync.Mutex
+	tl, err := net.Listen("tcp", "localhost:0")
+	if err != nil {
+		t.Fatalf("Unable to listen: %s", err)
+	}
+	go func() {
+		tl.Accept()
+		gotConnMutex.Lock()
+		gotConn = true
+		gotConnMutex.Unlock()
+	}()
+
+	_, portString, err := net.SplitHostPort(tl.Addr().String())
+	if err != nil {
+		t.Fatalf("Unable to get port for test server: %v", err)
+	}
+
+	port, err := strconv.Atoi(portString)
+	if err != nil {
+		t.Fatalf("Unable to convert port %v to integer: %v", portString, err)
+	}
+	// Only allow some port other than the actual port
+	l := startServer(t, true, []int{port + 1})
+	d := dialerFor(t, l)
+	defer d.Close()
+
+	addr := tl.Addr().String()
+	conn, err := d.Dial("tcp", addr)
+	defer conn.Close()
+
+	data := []byte("Some Meaningless Data")
+	conn.Write(data)
+	// Give enproxy time to flush
+	time.Sleep(500 * time.Millisecond)
+	_, err = conn.Write(data)
+	assert.Error(t, err, "Sending data after previous attempt to write to disallowed port should have failed")
+	assert.False(t, gotConn, "Sending data to disallowed port should never have resulted in connection")
+}
+
 func TestRoundTrip(t *testing.T) {
-	l := startServer(t, true)
+	l := startServer(t, true, nil)
 	d := dialerFor(t, l)
 	defer d.Close()
 
@@ -212,10 +253,11 @@ func TestIntegration(t *testing.T) {
 	assert.NotEqual(t, time.Duration(0), actualHandshakeTime, "Should have received a handshakeTime")
 }
 
-func startServer(t *testing.T, allowNonGlobal bool) net.Listener {
+func startServer(t *testing.T, allowNonGlobal bool, allowedPorts []int) net.Listener {
 	server := &Server{
 		Addr: "localhost:0",
 		AllowNonGlobalDestinations: allowNonGlobal,
+		AllowedPorts:               allowedPorts,
 		CertContext: &CertContext{
 			PKFile:         "testpk.pem",
 			ServerCertFile: "testcert.pem",

@@ -114,6 +114,7 @@ func (server *Server) ListenAndServe() error {
 		WriteTimeout:               server.WriteTimeout,
 		CertContext:                server.CertContext,
 		AllowNonGlobalDestinations: server.AllowNonGlobalDestinations,
+		AllowedPorts:               []int{80, 443, 8080, 8443},
 	}
 
 	if server.cfg.Unencrypted {

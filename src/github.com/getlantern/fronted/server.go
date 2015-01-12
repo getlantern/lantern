@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/getlantern/enproxy"
@@ -64,6 +65,10 @@ type Server struct {
 	// AllowNonGlobalDestinations: if false, requests to LAN, Loopback, etc.
 	// will be disallowed.
 	AllowNonGlobalDestinations bool
+
+	// AllowedPorts: if specified, only connections to ports listed in this
+	// slice will be allowed.
+	AllowedPorts []int
 
 	// OnBytesSent: optional callback for learning about bytes sent by this
 	// server to upstream destinations.
@@ -169,25 +174,61 @@ func (server *Server) Serve(l net.Listener) error {
 // in a countingConn if an InstanceId was configured.
 func (server *Server) dialDestination(addr string) (net.Conn, error) {
 	if !server.AllowNonGlobalDestinations {
-		host, _, err := net.SplitHostPort(addr)
+		err := server.checkForLocalAddress(addr)
 		if err != nil {
-			err = fmt.Errorf("Unable to split host and port for %v: %v", addr, err)
-			log.Error(err.Error())
-			return nil, err
-		}
-		ipAddr, err := net.ResolveIPAddr("ip", host)
-		if err != nil {
-			err = fmt.Errorf("Unable to resolve destination IP addr: %s", err)
-			log.Error(err.Error())
-			return nil, err
-		}
-		if !ipAddr.IP.IsGlobalUnicast() {
-			err = fmt.Errorf("Not accepting connections to non-global address: %s", host)
 			log.Error(err.Error())
 			return nil, err
 		}
 	}
+
+	if server.AllowedPorts != nil {
+		err := server.checkForDisallowedPort(addr)
+		if err != nil {
+			log.Error(err.Error())
+			return nil, err
+		}
+	}
+
 	return net.DialTimeout("tcp", addr, dialTimeout)
+}
+
+func (server *Server) checkForLocalAddress(addr string) error {
+	host, _, err := net.SplitHostPort(addr)
+	if err != nil {
+		return fmt.Errorf("Unable to split host and port for %v: %v", addr, err)
+	}
+
+	ipAddr, err := net.ResolveIPAddr("ip", host)
+	if err != nil {
+		return fmt.Errorf("Unable to resolve destination IP addr: %s", err)
+	}
+
+	if !ipAddr.IP.IsGlobalUnicast() {
+		return fmt.Errorf("Not accepting connections to non-global address: %s", addr)
+	}
+
+	return nil
+}
+
+func (server *Server) checkForDisallowedPort(addr string) error {
+	_, port, err := net.SplitHostPort(addr)
+	if err != nil {
+		return fmt.Errorf("Unable to split host and port for %v: %v", addr, err)
+	}
+
+	portAllowed := false
+	for _, allowed := range server.AllowedPorts {
+		if port == strconv.Itoa(allowed) {
+			portAllowed = true
+			break
+		}
+	}
+
+	if !portAllowed {
+		return fmt.Errorf("Not accepting connections to port %v", port)
+	}
+
+	return nil
 }
 
 // InitServerCert initializes a PK + cert for use by a server proxy, signed by
