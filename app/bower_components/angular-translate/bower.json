@@ -1,6 +1,14 @@
 {
   "name": "angular-translate",
-  "version": "2.4.2",
+  "description": "A translation module for AngularJS",
+  "version": "2.5.2",
   "main": "./angular-translate.js",
-  "ignore": []
+  "ignore": [],
+  "author": "Pascal Precht",
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://www.opensource.org/licenses/MIT"
+    }
+  ]
 }
