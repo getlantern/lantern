@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/getlantern/golog"
+
+	"github.com/getlantern/flashlight/globals"
 )
 
 const (
@@ -31,9 +33,6 @@ type Config struct {
 
 	// StatshubAddr: the address of the statshub server to which to report
 	StatshubAddr string
-
-	// InstanceId: the instanceid under which to report
-	InstanceId string
 }
 
 type reporter struct {
@@ -85,11 +84,11 @@ func doConfigure(cfg *Config, poster reportPoster) error {
 		return nil
 	}
 
-	if cfg.InstanceId == "" {
+	if globals.InstanceId == "" {
 		return fmt.Errorf("Must specify InstanceId if reporting stats")
 	}
 
-	log.Debugf("Reporting stats to %s every %s under instance id '%s'", cfg.StatshubAddr, cfg.ReportingPeriod, cfg.InstanceId)
+	log.Debugf("Reporting stats to %s every %s under instance id '%s'", cfg.StatshubAddr, cfg.ReportingPeriod, globals.InstanceId)
 	currentReporter = &reporter{
 		cfg:    cfg,
 		poster: poster,
@@ -211,7 +210,7 @@ func posterForDimGroupStats(cfg *Config) reportPoster {
 			return fmt.Errorf("Unable to marshal json for stats: %s", err)
 		}
 
-		url := fmt.Sprintf(statshubUrlTemplate, cfg.StatshubAddr, cfg.InstanceId)
+		url := fmt.Sprintf(statshubUrlTemplate, cfg.StatshubAddr, globals.InstanceId)
 		resp, err := http.Post(url, "application/json", bytes.NewReader(jsonBytes))
 		if err != nil {
 			return fmt.Errorf("Unable to post stats to statshub: %s", err)

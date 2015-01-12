@@ -1,17 +1,15 @@
 package connpool
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"net"
-	"os"
-	"os/exec"
 	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/getlantern/fdcount"
 	"github.com/getlantern/testify/assert"
 	"github.com/getlantern/waitforserver"
 )
@@ -37,7 +35,10 @@ func TestIt(t *testing.T) {
 		},
 	}
 
-	fdCountStart := countTCPFiles()
+	_, fdc, err := fdcount.Matching("TCP")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	p.Start()
 	// Run another Start() concurrently just to make sure it doesn't muck things up
@@ -45,15 +46,13 @@ func TestIt(t *testing.T) {
 
 	time.Sleep(fillTime)
 
-	openConns := countTCPFiles() - fdCountStart
-	assert.Equal(t, poolSize, openConns, "Pool should initially open the right number of conns")
+	assert.NoError(t, fdc.AssertDelta(poolSize), "Pool should initially open the right number of conns")
 
 	// Use more than the pooled connections
 	connectAndRead(t, p, poolSize*2)
 
 	time.Sleep(fillTime)
-	openConns = countTCPFiles() - fdCountStart
-	assert.Equal(t, poolSize, openConns, "Pool should fill itself back up to the right number of conns")
+	assert.NoError(t, fdc.AssertDelta(poolSize), "Pool should fill itself back up to the right number of conns")
 
 	// Wait for connections to time out
 	time.Sleep(claimTimeout * 2)
@@ -62,8 +61,7 @@ func TestIt(t *testing.T) {
 	connectAndRead(t, p, poolSize*2)
 
 	time.Sleep(fillTime)
-	openConns = countTCPFiles() - fdCountStart
-	assert.Equal(t, poolSize, openConns, "After pooled conns time out, pool should fill itself back up to the right number of conns")
+	assert.NoError(t, fdc.AssertDelta(poolSize), "After pooled conns time out, pool should fill itself back up to the right number of conns")
 
 	// Make a dial function that randomly returns closed connections
 	p.Dial = func() (net.Conn, error) {
@@ -85,8 +83,7 @@ func TestIt(t *testing.T) {
 	// Run another Stop() concurrently just to make sure it doesn't muck things up
 	go p.Stop()
 
-	openConns = countTCPFiles() - fdCountStart
-	assert.Equal(t, 0, openConns, "After stopping pool, there should be no more open conns")
+	assert.NoError(t, fdc.AssertDelta(0), "After stopping pool, there should be no more open conns")
 }
 
 func TestDialFailure(t *testing.T) {
@@ -166,13 +163,4 @@ func startTestServer() (string, error) {
 		}
 	}()
 	return l.Addr().String(), nil
-}
-
-// see https://groups.google.com/forum/#!topic/golang-nuts/c0AnWXjzNIA
-func countTCPFiles() int {
-	out, err := exec.Command("lsof", "-p", fmt.Sprintf("%v", os.Getpid())).Output()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return bytes.Count(out, []byte("TCP")) - 1
 }

@@ -1,17 +1,17 @@
 package config
 
-import "github.com/getlantern/flashlight/client"
+import "github.com/getlantern/fronted"
 
 var defaultTrustedCAs = []*CA{ {{range .cas}}
-    &CA{
-        CommonName: "{{.CommonName}}",
-        Cert:       "{{.Cert}}",
-    }, {{end}}
+	&CA{
+		CommonName: "{{.CommonName}}",
+		Cert:       "{{.Cert}}",
+	}, {{end}}
 }
 
-var cloudflareMasquerades = []*client.Masquerade{ {{range .masquerades}}
-    &client.Masquerade{
-        Domain:    "{{.Domain}}",
-        IpAddress: "{{.IpAddress}}",
-    }, {{end}}
+var cloudflareMasquerades = []*fronted.Masquerade{ {{range .masquerades}}
+	&fronted.Masquerade{
+		Domain:    "{{.Domain}}",
+		IpAddress: "{{.IpAddress}}",
+	}, {{end}}
 }

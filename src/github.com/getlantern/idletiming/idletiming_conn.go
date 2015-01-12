@@ -14,28 +14,29 @@ var (
 
 // Conn creates a new net.Conn wrapping the given net.Conn that times out after
 // the specified period. Read and Write calls will timeout if they take longer
-// than the indicated
+// than the indicated idleTimeout.
 //
 // idleTimeout specifies how long to wait for inactivity before considering
 // connection idle.
 //
-// onClose is an optional function to call after the connection has been closed,
-// whether or not that was due to the connection idling.
-func Conn(conn net.Conn, idleTimeout time.Duration, onClose func()) *IdleTimingConn {
+// onIdle is a required function that's called if a connection idles.
+// idletiming.Conn does not close the underlying connection on idle, you have to
+// do that in your onIdle callback.
+func Conn(conn net.Conn, idleTimeout time.Duration, onIdle func()) *IdleTimingConn {
+	if onIdle == nil {
+		panic("onIdle is required")
+	}
+
 	c := &IdleTimingConn{
 		conn:             conn,
 		idleTimeout:      idleTimeout,
 		halfIdleTimeout:  time.Duration(idleTimeout.Nanoseconds() / 2),
-		activeCh:         make(chan bool, 10),
-		closedCh:         make(chan bool, 10),
+		activeCh:         make(chan bool, 1),
+		closedCh:         make(chan bool, 1),
 		lastActivityTime: int64(time.Now().UnixNano()),
 	}
 
 	go func() {
-		if onClose != nil {
-			defer onClose()
-		}
-
 		timer := time.NewTimer(idleTimeout)
 		defer timer.Stop()
 		for {
@@ -46,9 +47,9 @@ func Conn(conn net.Conn, idleTimeout time.Duration, onClose func()) *IdleTimingC
 				atomic.StoreInt64(&c.lastActivityTime, time.Now().UnixNano())
 				continue
 			case <-timer.C:
+				onIdle()
 				return
 			case <-c.closedCh:
-				c.Close()
 				return
 			}
 		}
@@ -156,8 +157,15 @@ func (c *IdleTimingConn) Write(b []byte) (int, error) {
 	}
 }
 
+// Close this IdleTimingConn. This will close the underlying net.Conn as well,
+// returning the error from calling its Close method.
 func (c *IdleTimingConn) Close() error {
-	c.closedCh <- true
+	select {
+	case c.closedCh <- true:
+		// close accepted
+	default:
+		// already closing, ignore
+	}
 	return c.conn.Close()
 }
 

@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -15,7 +14,8 @@ import (
 	"time"
 
 	"code.google.com/p/go-uuid/uuid"
-	"github.com/getlantern/enproxy"
+	"github.com/getlantern/fronted"
+
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/server"
@@ -50,8 +50,8 @@ func TestCloudFlare(t *testing.T) {
 	defer mockServer.deleteCerts()
 
 	mockServer.run(t)
-	waitForServer(HTTP_ADDR, 2*time.Second, t)
-	waitForServer(HTTPS_ADDR, 2*time.Second, t)
+	waitForServer(HTTP_ADDR, 5*time.Second, t)
+	waitForServer(HTTPS_ADDR, 5*time.Second, t)
 
 	// Set up a mock CloudFlare
 	cf := &MockCloudFlare{}
@@ -67,10 +67,10 @@ func TestCloudFlare(t *testing.T) {
 			t.Fatalf("Unable to run mock CloudFlare: %s", err)
 		}
 	}()
-	waitForServer(CF_ADDR, 2*time.Second, t)
+	waitForServer(CF_ADDR, 5*time.Second, t)
 
 	// Set up common certContext for proxies
-	certContext := &server.CertContext{
+	certContext := &fronted.CertContext{
 		PKFile:         randomTempPath(),
 		ServerCertFile: randomTempPath(),
 	}
@@ -78,20 +78,24 @@ func TestCloudFlare(t *testing.T) {
 	defer os.Remove(certContext.ServerCertFile)
 
 	// Run server proxy
-	server := &server.Server{
+	srv := &server.Server{
 		Addr:                       SERVER_ADDR,
 		ReadTimeout:                0, // don't timeout
 		WriteTimeout:               0,
 		CertContext:                certContext,
 		AllowNonGlobalDestinations: true,
 	}
+	srv.Configure(&server.ServerConfig{})
 	go func() {
-		err := server.ListenAndServe()
+		err := srv.ListenAndServe()
 		if err != nil {
 			t.Fatalf("Unable to run server: %s", err)
 		}
 	}()
-	waitForServer(SERVER_ADDR, 2*time.Second, t)
+	waitForServer(SERVER_ADDR, 5*time.Second, t)
+
+	// Give servers time to finish startup
+	time.Sleep(250 * time.Millisecond)
 
 	clt := &client.Client{
 		Addr:         CLIENT_ADDR,
@@ -99,31 +103,20 @@ func TestCloudFlare(t *testing.T) {
 		WriteTimeout: 0,
 	}
 
-	globals.SetTrustedCAs([]string{"-----BEGIN CERTIFICATE-----\nMIIEYDCCA0igAwIBAgILBAAAAAABL07hRQwwDQYJKoZIhvcNAQEFBQAwVzELMAkG\nA1UEBhMCQkUxGTAXBgNVBAoTEEdsb2JhbFNpZ24gbnYtc2ExEDAOBgNVBAsTB1Jv\nb3QgQ0ExGzAZBgNVBAMTEkdsb2JhbFNpZ24gUm9vdCBDQTAeFw0xMTA0MTMxMDAw\nMDBaFw0yMjA0MTMxMDAwMDBaMF0xCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9i\nYWxTaWduIG52LXNhMTMwMQYDVQQDEypHbG9iYWxTaWduIE9yZ2FuaXphdGlvbiBW\nYWxpZGF0aW9uIENBIC0gRzIwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIB\nAQDdNR3yIFQmGtDvpW+Bdllw3Of01AMkHyQOnSKf1Ccyeit87ovjYWI4F6+0S3qf\nZyEcLZVUunm6tsTyDSF0F2d04rFkCJlgePtnwkv3J41vNnbPMYzl8QbX3FcOW6zu\nzi2rqqlwLwKGyLHQCAeV6irs0Z7kNlw7pja1Q4ur944+ABv/hVlrYgGNguhKujiz\n4MP0bRmn6gXdhGfCZsckAnNate6kGdn8AM62pI3ffr1fsjqdhDFPyGMM5NgNUqN+\nARvUZ6UYKOsBp4I82Y4d5UcNuotZFKMfH0vq4idGhs6dOcRmQafiFSNrVkfB7cVT\n5NSAH2v6gEaYsgmmD5W+ZoiTAgMBAAGjggElMIIBITAOBgNVHQ8BAf8EBAMCAQYw\nEgYDVR0TAQH/BAgwBgEB/wIBADAdBgNVHQ4EFgQUXUayjcRLdBy77fVztjq3OI91\nnn4wRwYDVR0gBEAwPjA8BgRVHSAAMDQwMgYIKwYBBQUHAgEWJmh0dHBzOi8vd3d3\nLmdsb2JhbHNpZ24uY29tL3JlcG9zaXRvcnkvMDMGA1UdHwQsMCowKKAmoCSGImh0\ndHA6Ly9jcmwuZ2xvYmFsc2lnbi5uZXQvcm9vdC5jcmwwPQYIKwYBBQUHAQEEMTAv\nMC0GCCsGAQUFBzABhiFodHRwOi8vb2NzcC5nbG9iYWxzaWduLmNvbS9yb290cjEw\nHwYDVR0jBBgwFoAUYHtmGkUNl8qJUC99BM00qP/8/UswDQYJKoZIhvcNAQEFBQAD\nggEBABvgiADHBREc/6stSEJSzSBo53xBjcEnxSxZZ6CaNduzUKcbYumlO/q2IQen\nfPMOK25+Lk2TnLryhj5jiBDYW2FQEtuHrhm70t8ylgCoXtwtI7yw07VKoI5lkS/Z\n9oL2dLLffCbvGSuXL+Ch7rkXIkg/pfcNYNUNUUflWP63n41edTzGQfDPgVRJEcYX\npOBWYdw9P91nbHZF2krqrhqkYE/Ho9aqp9nNgSvBZnWygI/1h01fwlr1kMbawb30\nhag8IyrhFHvBN91i0ZJsumB9iOQct+R2UTjEqUdOqCsukNK1OFHrwZyKarXMsh3o\nwFZUTKiL8IkyhtyTMr5NGvo1dbU=\n-----END CERTIFICATE-----\n"})
+	globals.SetTrustedCAs([]string{
+		"-----BEGIN CERTIFICATE-----\nMIIDdTCCAl2gAwIBAgILBAAAAAABFUtaw5QwDQYJKoZIhvcNAQEFBQAwVzELMAkG\nA1UEBhMCQkUxGTAXBgNVBAoTEEdsb2JhbFNpZ24gbnYtc2ExEDAOBgNVBAsTB1Jv\nb3QgQ0ExGzAZBgNVBAMTEkdsb2JhbFNpZ24gUm9vdCBDQTAeFw05ODA5MDExMjAw\nMDBaFw0yODAxMjgxMjAwMDBaMFcxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9i\nYWxTaWduIG52LXNhMRAwDgYDVQQLEwdSb290IENBMRswGQYDVQQDExJHbG9iYWxT\naWduIFJvb3QgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDaDuaZ\njc6j40+Kfvvxi4Mla+pIH/EqsLmVEQS98GPR4mdmzxzdzxtIK+6NiY6arymAZavp\nxy0Sy6scTHAHoT0KMM0VjU/43dSMUBUc71DuxC73/OlS8pF94G3VNTCOXkNz8kHp\n1Wrjsok6Vjk4bwY8iGlbKk3Fp1S4bInMm/k8yuX9ifUSPJJ4ltbcdG6TRGHRjcdG\nsnUOhugZitVtbNV4FpWi6cgKOOvyJBNPc1STE4U6G7weNLWLBYy5d4ux2x8gkasJ\nU26Qzns3dLlwR5EiUWMWea6xrkEmCMgZK9FGqkjWZCrXgzT/LCrBbBlDSgeF59N8\n9iFo7+ryUp9/k5DPAgMBAAGjQjBAMA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMBAf8E\nBTADAQH/MB0GA1UdDgQWBBRge2YaRQ2XyolQL30EzTSo//z9SzANBgkqhkiG9w0B\nAQUFAAOCAQEA1nPnfE920I2/7LqivjTFKDK1fPxsnCwrvQmeU79rXqoRSLblCKOz\nyj1hTdNGCbM+w6DjY1Ub8rrvrTnhQ7k4o+YviiY776BQVvnGCv04zcQLcFGUl5gE\n38NflNUVyRRBnMRddWQVDf9VMOyGj/8N7yy5Y0b2qvzfvGn9LhJIZJrglfCm7ymP\nAbEVtQwdpf5pLGkkeB6zpxxxYu7KyJesF12KwvhHhm4qxFYxldBniYUr+WymXUad\nDKqC5JlR3XC321Y9YeRq4VzW9v493kHMB65jUr9TU/Qr6cf9tveCX4XSQRjbgbME\nHMUfpIBvFSDJ3gyICh3WZlXi/EjJKSZp4A==\n-----END CERTIFICATE-----\n",
+		string(cf.certContext.ServerCert.PEMEncoded()),
+	})
 	clt.Configure(&client.ClientConfig{
-		MasqueradeSets: map[string][]*client.Masquerade{
-			"cloudflare": []*client.Masquerade{
-				&client.Masquerade{
-					Domain: "filmesonlinegratis.net",
+		MasqueradeSets: map[string][]*fronted.Masquerade{
+			"cloudflare": []*fronted.Masquerade{
+				&fronted.Masquerade{
+					Domain: HOST,
 				},
 			},
 		},
-		Servers: []*client.ServerInfo{
-			&client.ServerInfo{Weight: 100, Port: 443, MasqueradeSet: "cloudflare"},
-		},
-	}, []*enproxy.Config{
-		&enproxy.Config{
-			DialProxy: func(addr string) (net.Conn, error) {
-				return tls.Dial("tcp", CF_ADDR, &tls.Config{
-					RootCAs: cf.certContext.ServerCert.PoolContainingCert(),
-				})
-			},
-			NewRequest: func(host string, method string, body io.Reader) (req *http.Request, err error) {
-				if host == "" {
-					host = SERVER_ADDR
-				}
-				return http.NewRequest(method, "http://"+host, body)
-			},
+		FrontedServers: []*client.FrontedServerInfo{
+			&client.FrontedServerInfo{Host: HOST, Port: CF_PORT, Weight: 100, MasqueradeSet: "cloudflare"},
 		},
 	})
 	go func() {
@@ -191,12 +184,12 @@ func testRequest(testCase string, t *testing.T, requests chan *http.Request, htt
 
 // MockServer is an HTTP+S server that serves up simple responses
 type MockServer struct {
-	certContext *server.CertContext
+	certContext *fronted.CertContext
 	requests    chan *http.Request // publishes received requests
 }
 
 func (srv *MockServer) init() error {
-	srv.certContext = &server.CertContext{
+	srv.certContext = &fronted.CertContext{
 		PKFile:         randomTempPath(),
 		ServerCertFile: randomTempPath(),
 	}
@@ -250,11 +243,11 @@ func (server *MockServer) handle(resp http.ResponseWriter, req *http.Request) {
 
 // MockCloudFlare is a ReverseProxy that pretends to be CloudFlare
 type MockCloudFlare struct {
-	certContext *server.CertContext
+	certContext *fronted.CertContext
 }
 
 func (cf *MockCloudFlare) init() error {
-	cf.certContext = &server.CertContext{
+	cf.certContext = &fronted.CertContext{
 		PKFile:         randomTempPath(),
 		ServerCertFile: randomTempPath(),
 	}

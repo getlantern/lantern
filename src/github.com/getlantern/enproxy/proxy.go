@@ -61,7 +61,18 @@ type Proxy struct {
 	connMapMutex sync.Mutex
 }
 
-type statCallback func(clientIp string, bytes int64)
+// statCallback is a function for receiving stat information.
+//
+// clientIp: ip address of client
+// destAddr: the destination address to which we're proxying
+// req: the http.Request that's being served
+// countryCode: the country-code of the client (only available when using CloudFlare)
+// bytes: the number of bytes sent/received
+type statCallback func(
+	clientIp string,
+	destAddr string,
+	req *http.Request,
+	bytes int64)
 
 // Start() starts this proxy
 func (p *Proxy) Start() {
@@ -88,14 +99,23 @@ func (p *Proxy) Start() {
 // ListenAndServe: convenience function for quickly starting up a dedicated HTTP
 // server using this Proxy as its handler
 func (p *Proxy) ListenAndServe(addr string) error {
+	l, err := net.Listen("tcp", addr)
+	if err != nil {
+		return fmt.Errorf("Unable to listen at %v: %v", addr, err)
+	}
+	return p.Serve(l)
+}
+
+// Serve: convenience function for quickly starting up a dedicated HTTP server
+// using this Proxy as its handler
+func (p *Proxy) Serve(l net.Listener) error {
 	p.Start()
 	httpServer := &http.Server{
-		Addr:         addr,
 		Handler:      p,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
-	return httpServer.ListenAndServe()
+	return httpServer.Serve(l)
 }
 
 // ServeHTTP: implements the http.Handler interface
@@ -140,7 +160,10 @@ func (p *Proxy) handleWrite(resp http.ResponseWriter, req *http.Request, lc *laz
 	// Pipe request
 	n, err := io.Copy(connOut, req.Body)
 	if p.OnBytesReceived != nil && n > 0 {
-		p.OnBytesReceived(clientIpFor(req), n)
+		clientIp := clientIpFor(req)
+		if clientIp != "" {
+			p.OnBytesReceived(clientIp, lc.addr, req, n)
+		}
 	}
 	if err != nil && err != io.EOF {
 		badGateway(resp, fmt.Sprintf("Unable to write to connOut: %s", err))
@@ -202,8 +225,8 @@ func (p *Proxy) handleRead(resp http.ResponseWriter, req *http.Request, lc *lazy
 
 		// Write if necessary
 		if n > 0 {
-			if p.OnBytesSent != nil && n > 0 {
-				p.OnBytesSent(clientIp, int64(n))
+			if clientIp != "" && p.OnBytesSent != nil && n > 0 {
+				p.OnBytesSent(clientIp, lc.addr, req, int64(n))
 			}
 
 			haveRead = true
@@ -283,7 +306,12 @@ func (p *Proxy) getLazyConn(id string, addr string) (l *lazyConn, isNew bool) {
 func clientIpFor(req *http.Request) string {
 	clientIp := req.Header.Get("X-Forwarded-For")
 	if clientIp == "" {
-		clientIp = strings.Split(req.RemoteAddr, ":")[0]
+		clientIp, _, err := net.SplitHostPort(req.RemoteAddr)
+		if err != nil {
+			log.Debugf("Unable to split RemoteAddr %v: %v", err)
+			return ""
+		}
+		return clientIp
 	}
 	// clientIp may contain multiple ips, use the first
 	ips := strings.Split(clientIp, ",")

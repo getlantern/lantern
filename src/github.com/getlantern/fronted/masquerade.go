@@ -1,4 +1,4 @@
-package client
+package fronted
 
 import (
 	"fmt"
@@ -10,16 +10,28 @@ import (
 )
 
 const (
-	NumWorkers     = 25 // number of worker goroutines for verifying
+	NumWorkers     = 10 // number of worker goroutines for verifying
 	MaxMasquerades = 20 // cap number of verified masquerades at this
 )
+
+// Masquerade contains the data for a single masquerade host, including
+// the domain and the root CA.
+type Masquerade struct {
+	// Domain: the domain to use for domain fronting
+	Domain string
+
+	// IpAddress: pre-resolved ip address to use instead of Domain (if
+	// available)
+	IpAddress string
+}
+
+type MasqueradeSet []*Masquerade
 
 // verifiedMasqueradeSet represents a set of Masquerade configurations.
 // verifiedMasqueradeSet verifies each configured Masquerade by attempting to
 // proxy using it.
 type verifiedMasqueradeSet struct {
-	testServer         *ServerInfo
-	masquerades        []*Masquerade
+	dialer             *Dialer
 	candidatesCh       chan *Masquerade
 	stopCh             chan interface{}
 	verifiedCh         chan *Masquerade
@@ -37,19 +49,17 @@ func (vms *verifiedMasqueradeSet) nextVerified() *Masquerade {
 	return masquerade
 }
 
-// newVerifiedMasqueradeSet sets up a new verifiedMasqueradeSet that verifies
-// each of the given masquerades against the given testServer.
-func newVerifiedMasqueradeSet(testServer *ServerInfo, masquerades []*Masquerade) *verifiedMasqueradeSet {
+// verified sets up a new verifiedMasqueradeSet that verifies each of the
+// Masquerades in this MasqueradeSet for the given Dialer.
+func (d *Dialer) verifiedMasquerades() *verifiedMasqueradeSet {
 	// Size verifiedChSize to be able to hold the smaller of MaxMasquerades or
 	// the number of configured masquerades.
-	verifiedChSize := len(masquerades)
+	verifiedChSize := len(d.Masquerades)
 	if MaxMasquerades < verifiedChSize {
 		verifiedChSize = MaxMasquerades
 	}
-
 	vms := &verifiedMasqueradeSet{
-		testServer:   testServer,
-		masquerades:  masquerades,
+		dialer:       d,
 		candidatesCh: make(chan *Masquerade),
 		stopCh:       make(chan interface{}, 1),
 		verifiedCh:   make(chan *Masquerade, verifiedChSize),
@@ -70,8 +80,8 @@ func newVerifiedMasqueradeSet(testServer *ServerInfo, masquerades []*Masquerade)
 // feedCandidates feeds the candidate masquerades to our worker routines in
 // random order
 func (vms *verifiedMasqueradeSet) feedCandidates() {
-	for _, i := range rand.Perm(len(vms.masquerades)) {
-		if !vms.feedCandidate(vms.masquerades[i]) {
+	for _, i := range rand.Perm(len(vms.dialer.Masquerades)) {
+		if !vms.feedCandidate(vms.dialer.Masquerades[i]) {
 			break
 		}
 	}
@@ -91,11 +101,11 @@ func (vms *verifiedMasqueradeSet) feedCandidate(candidate *Masquerade) bool {
 
 // stop stops the verification process
 func (vms *verifiedMasqueradeSet) stop() {
-	log.Trace("Stop called")
+	log.Trace("masquerades stop called")
 	vms.stopCh <- nil
-	log.Trace("Waiting for workers to finish")
+	log.Trace("masquerades waiting for workers to finish")
 	vms.wg.Wait()
-	log.Trace("Stopped")
+	log.Trace("masquerades stopped")
 }
 
 // verify checks masquerades obtained from candidatesCh to see if they work on
@@ -124,20 +134,20 @@ func (vms *verifiedMasqueradeSet) doVerify(masquerade *Masquerade) bool {
 	}()
 	go func() {
 		start := time.Now()
-		httpClient := HttpClient(vms.testServer, masquerade)
+		httpClient := vms.dialer.HttpClientUsing(masquerade)
 		req, _ := http.NewRequest("HEAD", "http://www.google.com/humans.txt", nil)
 		resp, err := httpClient.Do(req)
 		if err != nil {
-			log.Debugf("Error verifying masquerade %v: %v", masquerade.Domain, err)
+			errCh <- fmt.Errorf("HTTP ERROR FOR MASQUERADE %v: %v", masquerade.Domain, err)
 			return
 		} else {
 			body, err := ioutil.ReadAll(resp.Body)
 			defer resp.Body.Close()
 			if err != nil {
-				errCh <- fmt.Errorf("Error verifying masquerade %v: %v", masquerade.Domain, err)
+				errCh <- fmt.Errorf("HTTP Body Error: %s", body)
 			} else {
 				delta := time.Now().Sub(start)
-				log.Tracef("Successful masquerade check for %s in %s, %s", masquerade.Domain, delta, body)
+				log.Tracef("SUCCESSFUL CHECK FOR: %s IN %s, %s", masquerade.Domain, delta, body)
 				errCh <- nil
 			}
 		}

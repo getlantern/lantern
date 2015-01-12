@@ -8,6 +8,7 @@ import (
 )
 
 var (
+	InstanceId  = ""
 	Country     = "xx"
 	WaddellCert = nattywad.DefaultWaddellCert
 	TrustedCAs  *x509.CertPool

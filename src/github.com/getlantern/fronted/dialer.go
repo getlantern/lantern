@@ -1,0 +1,281 @@
+// package fronted provides a client and server for domain-fronted proxying.
+package fronted
+
+import (
+	"crypto/tls"
+	"crypto/x509"
+	"fmt"
+	"io"
+	"net"
+	"net/http"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/getlantern/connpool"
+	"github.com/getlantern/enproxy"
+	"github.com/getlantern/golog"
+	"github.com/getlantern/tlsdialer"
+)
+
+const (
+	CONNECT = "CONNECT" // HTTP CONNECT method
+)
+
+var (
+	log = golog.LoggerFor("fronted")
+
+	// Cutoff for logging warnings about a dial having taken a long time.
+	longDialLimit = 10 * time.Second
+
+	// idleTimeout needs to be small enough that we stop using connections
+	// before the upstream server/CDN closes them itself.
+	// TODO: make this configurable.
+	idleTimeout = 10 * time.Second
+)
+
+// Config captures the configuration of a domain-fronted dialer.
+type Config struct {
+	// Host: the host (e.g. getiantem.org)
+	Host string
+
+	// Port: the port (e.g. 443)
+	Port int
+
+	// Masquerades: the Masquerades to use when domain-fronting. These will be
+	// verified when the Dialer starts.
+	Masquerades []*Masquerade
+
+	// InsecureSkipVerify: if true, server's certificate is not verified.
+	InsecureSkipVerify bool
+
+	// RootCAs: optional CertPool specifying the root CAs to use for verifying
+	// servers
+	RootCAs *x509.CertPool
+
+	// BufferRequests: if true, requests to the proxy will be buffered and sent
+	// with identity encoding.  If false, they'll be streamed with chunked
+	// encoding.
+	BufferRequests bool
+
+	// DialTimeoutMillis: how long to wait on dialing server before timing out
+	// (defaults to 20 seconds)
+	DialTimeoutMillis int
+
+	// RedialAttempts: number of times to try redialing. The total number of
+	// dial attempts will be 1 + RedialAttempts.
+	RedialAttempts int
+
+	// Weight: relative weight versus other servers (for round-robin)
+	Weight int
+
+	// QOS: relative quality of service offered. Should be >= 0, with higher
+	// values indicating higher QOS.
+	QOS int
+
+	// OnDial: optional callback that gets invoked whenever we dial the server.
+	// The Conn and error returned from this callback will be used in lieu of
+	// the originals.
+	OnDial func(conn net.Conn, err error) (net.Conn, error)
+
+	// OnDialStats is an optional callback that will get called on every dial to
+	// the server to report stats on what was dialed and how long each step
+	// took.
+	OnDialStats func(success bool, domain, addr string, resolutionTime, connectTime, handshakeTime time.Duration)
+}
+
+// Dialer implements the proxy.Dialer interface by dialing domain-fronted
+// servers.
+type Dialer struct {
+	*Config
+	masquerades     *verifiedMasqueradeSet
+	connPool        *connpool.Pool
+	enproxyConfig   *enproxy.Config
+	tlsConfigs      map[string]*tls.Config
+	tlsConfigsMutex sync.Mutex
+}
+
+// NewDialer creates a new Dialer for the given Config.
+func NewDialer(cfg *Config) *Dialer {
+	d := &Dialer{
+		Config:     cfg,
+		tlsConfigs: make(map[string]*tls.Config),
+	}
+	if d.Masquerades != nil {
+		d.masquerades = d.verifiedMasquerades()
+	}
+	d.connPool = &connpool.Pool{
+		MinSize:      30,
+		ClaimTimeout: idleTimeout,
+		Dial:         d.dialServer,
+	}
+	d.enproxyConfig = d.enproxyConfigWith(func(addr string) (net.Conn, error) {
+		conn, err := d.connPool.Get()
+		if d.OnDial != nil {
+			conn, err = d.OnDial(conn, err)
+		}
+		return conn, err
+	})
+	return d
+}
+
+// Dial dials upstream using domain-fronting.
+func (d *Dialer) Dial(network, addr string) (net.Conn, error) {
+	if !strings.Contains(network, "tcp") {
+		return nil, fmt.Errorf("Protocol %s is not supported, only tcp is supported", network)
+	}
+
+	conn := &enproxy.Conn{
+		Addr:   addr,
+		Config: d.enproxyConfig,
+	}
+	err := conn.Connect()
+	if err != nil {
+		return nil, err
+	}
+	return conn, nil
+}
+
+// Close closes the dialer, in particular closing the underlying connection
+// pool.
+func (d *Dialer) Close() error {
+	if d.connPool != nil {
+		// We stop the connPool on a goroutine so as not to wait for Stop to finish
+		go d.connPool.Stop()
+	}
+	if d.masquerades != nil {
+		go d.masquerades.stop()
+	}
+	return nil
+}
+
+// HttpClientUsing creates a simple domain-fronted HTTP client using the
+// specified Masquerade.
+func (d *Dialer) HttpClientUsing(masquerade *Masquerade) *http.Client {
+	enproxyConfig := d.enproxyConfigWith(func(addr string) (net.Conn, error) {
+		return d.dialServerWith(masquerade)
+	})
+
+	return &http.Client{
+		Transport: &http.Transport{
+			Dial: func(network, addr string) (net.Conn, error) {
+				conn := &enproxy.Conn{
+					Addr:   addr,
+					Config: enproxyConfig,
+				}
+				err := conn.Connect()
+				if err != nil {
+					return nil, err
+				}
+				return conn, nil
+			},
+		},
+	}
+}
+
+func (d *Dialer) enproxyConfigWith(dialProxy func(addr string) (net.Conn, error)) *enproxy.Config {
+	return &enproxy.Config{
+		DialProxy: dialProxy,
+		NewRequest: func(upstreamHost string, method string, body io.Reader) (req *http.Request, err error) {
+			if upstreamHost == "" {
+				// No specific host requested, use configured one
+				upstreamHost = d.Host
+			}
+			return http.NewRequest(method, "http://"+upstreamHost+"/", body)
+		},
+		BufferRequests: d.BufferRequests,
+		IdleTimeout:    idleTimeout, // TODO: make this configurable
+	}
+}
+
+func (d *Dialer) dialServer() (net.Conn, error) {
+	var masquerade *Masquerade
+	if d.masquerades != nil {
+		masquerade = d.masquerades.nextVerified()
+	}
+	return d.dialServerWith(masquerade)
+}
+
+func (d *Dialer) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
+	dialTimeout := time.Duration(d.DialTimeoutMillis) * time.Millisecond
+	if dialTimeout == 0 {
+		dialTimeout = 20 * time.Second
+	}
+
+	// Note - we need to suppress the sending of the ServerName in the client
+	// handshake to make host-spoofing work with Fastly.  If the client Hello
+	// includes a server name, Fastly checks to make sure that this matches the
+	// Host header in the HTTP request and if they don't match, it returns
+	// a 400 Bad Request error.
+	sendServerNameExtension := false
+
+	cwt, err := tlsdialer.DialForTimings(
+		&net.Dialer{
+			Timeout: dialTimeout,
+		},
+		"tcp",
+		d.addressForServer(masquerade),
+		sendServerNameExtension,
+		d.tlsConfig(masquerade))
+
+	if d.OnDialStats != nil {
+		domain := ""
+		if masquerade != nil {
+			domain = masquerade.Domain
+		}
+
+		resultAddr := ""
+		if err == nil {
+			resultAddr = cwt.Conn.RemoteAddr().String()
+		}
+
+		d.OnDialStats(err == nil, domain, resultAddr, cwt.ResolutionTime, cwt.ConnectTime, cwt.HandshakeTime)
+	}
+
+	if err != nil && masquerade != nil {
+		err = fmt.Errorf("Unable to dial masquerade %s: %s", masquerade.Domain, err)
+	}
+	return cwt.Conn, err
+}
+
+// Get the address to dial for reaching the server
+func (d *Dialer) addressForServer(masquerade *Masquerade) string {
+	return fmt.Sprintf("%s:%d", d.serverHost(masquerade), d.Port)
+}
+
+func (d *Dialer) serverHost(masquerade *Masquerade) string {
+	serverHost := d.Host
+	if masquerade != nil {
+		if masquerade.IpAddress != "" {
+			serverHost = masquerade.IpAddress
+		} else if masquerade.Domain != "" {
+			serverHost = masquerade.Domain
+		}
+	}
+	return serverHost
+}
+
+// tlsConfig builds a tls.Config for dialing the upstream host. Constructed
+// tls.Configs are cached on a per-masquerade basis to enable client session
+// caching and reduce the amount of PEM certificate parsing.
+func (d *Dialer) tlsConfig(masquerade *Masquerade) *tls.Config {
+	d.tlsConfigsMutex.Lock()
+	defer d.tlsConfigsMutex.Unlock()
+
+	serverName := d.Host
+	if masquerade != nil {
+		serverName = masquerade.Domain
+	}
+	tlsConfig := d.tlsConfigs[serverName]
+	if tlsConfig == nil {
+		tlsConfig = &tls.Config{
+			ClientSessionCache: tls.NewLRUClientSessionCache(1000),
+			InsecureSkipVerify: d.InsecureSkipVerify,
+			ServerName:         serverName,
+			RootCAs:            d.RootCAs,
+		}
+		d.tlsConfigs[serverName] = tlsConfig
+	}
+
+	return tlsConfig
+}

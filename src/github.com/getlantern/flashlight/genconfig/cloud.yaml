@@ -1,7 +1,7 @@
 # cloud.yaml contains the default configuration that's made available on the
 # internet.
 client:
-  servers:
+  frontedservers:
   - host: roundrobin.getiantem.org
     port: 443
     masqueradeset: "cloudflare"
@@ -31,54 +31,50 @@ client:
     qos: 2
   masqueradesets:
     cloudflare:
-    - domain: 100partnerprogramme.de
-      ipaddress: 162.159.248.14
     - domain: 10minutemail.com
       ipaddress: 162.159.250.16
     - domain: 1news.az
-      ipaddress: 162.159.240.30
+      ipaddress: 162.159.241.30
     - domain: 2ch.hk
       ipaddress: 104.20.22.31
     - domain: a2hosting.com
-      ipaddress: 198.41.191.199
+      ipaddress: 198.41.184.200
     - domain: abs-cbnnews.com
-      ipaddress: 198.41.186.77
+      ipaddress: 104.16.14.162
     - domain: addmefast.com
-      ipaddress: 198.41.184.158
+      ipaddress: 198.41.190.157
     - domain: adf.ly
-      ipaddress: 104.20.0.4
+      ipaddress: 104.20.1.4
     - domain: adfoc.us
-      ipaddress: 162.159.255.16
+      ipaddress: 162.159.253.17
     - domain: adlure.net
-      ipaddress: 190.93.240.94
+      ipaddress: 141.101.113.94
     - domain: ads.id
-      ipaddress: 162.159.250.152
+      ipaddress: 162.159.251.152
     - domain: affiliatetechnology.com
-      ipaddress: 198.41.189.51
+      ipaddress: 198.41.184.52
     - domain: agentlk.com
       ipaddress: 190.93.240.73
     - domain: aitnews.com
-      ipaddress: 104.20.19.79
+      ipaddress: 190.93.253.92
     - domain: al-akhbar.com
-      ipaddress: 162.159.243.97
-    - domain: alexaboostup.com
-      ipaddress: 162.159.247.193
+      ipaddress: 162.159.244.97
     - domain: allanalpass.com
-      ipaddress: 162.159.244.34
+      ipaddress: 162.159.245.34
     - domain: allbusiness.com
-      ipaddress: 162.159.247.140
+      ipaddress: 162.159.246.140
     - domain: almasryalyoum.com
       ipaddress: 141.101.113.103
     - domain: alrakoba.net
-      ipaddress: 198.41.184.73
+      ipaddress: 198.41.190.72
     - domain: alwatanvoice.com
       ipaddress: 162.159.255.143
     - domain: amazinglytimedphotos.com
       ipaddress: 198.41.185.180
     - domain: amino.dk
-      ipaddress: 198.41.191.121
+      ipaddress: 198.41.184.122
     - domain: anakbnet.com
-      ipaddress: 162.159.250.168
+      ipaddress: 162.159.251.168
     - domain: anazahra.com
       ipaddress: 162.159.254.7
     - domain: any.gs
@@ -88,29 +84,25 @@ client:
     - domain: appstorm.net
       ipaddress: 162.159.243.165
     - domain: aqarcity.com
-      ipaddress: 198.41.185.74
+      ipaddress: 198.41.184.74
     - domain: aqarmap.com
-      ipaddress: 162.159.250.95
-    - domain: arabi21.com
-      ipaddress: 108.162.202.13
+      ipaddress: 162.159.249.95
     - domain: arabnews.com
-      ipaddress: 108.162.203.20
+      ipaddress: 108.162.204.20
     - domain: arabseed.com
-      ipaddress: 198.41.185.132
-    - domain: arageek.com
-      ipaddress: 162.159.245.215
+      ipaddress: 198.41.188.132
     - domain: armorgames.com
-      ipaddress: 104.20.5.17
+      ipaddress: 104.20.4.17
     - domain: asianbookie.com
-      ipaddress: 162.159.250.133
+      ipaddress: 162.159.249.133
     - domain: asianwiki.com
-      ipaddress: 162.159.247.82
+      ipaddress: 162.159.246.82
     - domain: authorstream.com
-      ipaddress: 190.93.247.194
+      ipaddress: 190.93.246.194
     - domain: avaz.ba
-      ipaddress: 162.159.243.253
+      ipaddress: 162.159.244.253
     - domain: avpixlat.info
-      ipaddress: 141.101.112.138
+      ipaddress: 190.93.242.137
     - domain: axsam.az
       ipaddress: 162.159.243.133
     - domain: azvision.az
@@ -118,17 +110,15 @@ client:
     - domain: b1.org
       ipaddress: 162.159.243.39
     - domain: babyou.com
-      ipaddress: 108.162.205.67
+      ipaddress: 108.162.206.67
     - domain: banahosting.com
-      ipaddress: 162.159.246.11
-    - domain: bannersbroker.com
-      ipaddress: 108.162.204.17
+      ipaddress: 162.159.245.11
     - domain: baykoreans.net
-      ipaddress: 190.93.241.11
+      ipaddress: 190.93.240.11
     - domain: bezuzyteczna.pl
-      ipaddress: 198.41.180.34
+      ipaddress: 198.41.176.34
     - domain: bikroy.com
-      ipaddress: 162.159.255.158
+      ipaddress: 162.159.253.158
     - domain: bittrex.com
       ipaddress: 162.159.246.225
     - domain: bizimyol.info
@@ -137,14 +127,12 @@ client:
       ipaddress: 162.159.247.184
     - domain: bleepingcomputer.com
       ipaddress: 141.101.112.117
-    - domain: blockchain.info
-      ipaddress: 190.93.243.195
     - domain: bloody-disgusting.com
-      ipaddress: 162.159.248.220
+      ipaddress: 162.159.249.220
     - domain: brainstorm9.com.br
-      ipaddress: 162.159.251.96
+      ipaddress: 162.159.250.96
     - domain: btalah.com
-      ipaddress: 162.159.248.103
+      ipaddress: 162.159.247.103
     - domain: btc-e.com
       ipaddress: 141.101.121.193
     - domain: bubblews.com
@@ -158,9 +146,9 @@ client:
     - domain: buzznews.asia
       ipaddress: 198.41.186.124
     - domain: buzzsumo.com
-      ipaddress: 108.162.201.208
+      ipaddress: 108.162.202.208
     - domain: cairokora.com
-      ipaddress: 104.16.1.117
+      ipaddress: 104.16.31.116
     - domain: canva.com
       ipaddress: 162.159.245.88
     - domain: careers360.com
@@ -168,11 +156,11 @@ client:
     - domain: catracalivre.com.br
       ipaddress: 198.41.247.124
     - domain: cdn-cachefront.net
-      ipaddress: 162.159.245.124
+      ipaddress: 162.159.244.124
     - domain: censor.net.ua
-      ipaddress: 198.41.191.113
+      ipaddress: 198.41.188.113
     - domain: chinabuye.com
-      ipaddress: 198.41.184.203
+      ipaddress: 198.41.185.203
     - domain: cihan.com.tr
       ipaddress: 104.16.3.7
     - domain: cinetux.org
@@ -182,153 +170,147 @@ client:
     - domain: clixsense.com
       ipaddress: 198.41.188.40
     - domain: cloudify.cc
-      ipaddress: 162.159.255.61
+      ipaddress: 162.159.254.62
     - domain: coinmarketcap.com
-      ipaddress: 198.41.249.182
+      ipaddress: 162.159.240.183
     - domain: col3negoriginal.lk
-      ipaddress: 141.101.113.10
+      ipaddress: 190.93.242.9
     - domain: collective-evolution.com
       ipaddress: 198.41.189.248
     - domain: com-2014.org
-      ipaddress: 162.159.241.96
+      ipaddress: 162.159.240.96
     - domain: conservativetribune.com
       ipaddress: 162.159.242.147
     - domain: conversionxl.com
-      ipaddress: 162.159.243.170
+      ipaddress: 162.159.242.170
     - domain: convinceandconvert.com
-      ipaddress: 141.101.124.136
+      ipaddress: 190.93.251.116
     - domain: copacet.com
       ipaddress: 108.162.202.100
     - domain: cpagrip.com
-      ipaddress: 198.41.187.139
+      ipaddress: 198.41.186.139
     - domain: cpasbien.pe
       ipaddress: 104.16.15.124
     - domain: cssmenumaker.com
-      ipaddress: 162.159.251.136
+      ipaddress: 162.159.250.136
     - domain: cuevana2.tv
-      ipaddress: 162.159.241.105
+      ipaddress: 162.159.242.105
     - domain: culturacolectiva.com
       ipaddress: 162.159.240.99
     - domain: curse.com
-      ipaddress: 190.93.246.101
+      ipaddress: 190.93.244.102
     - domain: cursecdn.com
-      ipaddress: 198.41.209.102
-    - domain: customer-poll.com
-      ipaddress: 190.93.246.140
+      ipaddress: 198.41.209.101
     - domain: dangerousminds.net
-      ipaddress: 108.162.203.197
+      ipaddress: 108.162.200.38
     - domain: datatables.net
-      ipaddress: 162.159.245.98
+      ipaddress: 162.159.244.98
     - domain: dealcatcher.com
       ipaddress: 162.159.249.16
     - domain: delivery-club.ru
       ipaddress: 104.16.24.8
     - domain: demotywatory.pl
-      ipaddress: 95.211.149.170
+      ipaddress: 95.211.149.169
     - domain: deperu.com
-      ipaddress: 162.159.240.213
+      ipaddress: 198.41.249.212
     - domain: designboom.com
       ipaddress: 162.159.245.146
     - domain: deutsche-wirtschafts-nachrichten.de
-      ipaddress: 198.41.186.52
+      ipaddress: 198.41.185.52
     - domain: diablofans.com
-      ipaddress: 198.41.208.102
+      ipaddress: 198.41.208.103
     - domain: digital-photography-school.com
-      ipaddress: 162.159.248.46
+      ipaddress: 162.159.249.46
     - domain: dnevnik.hr
-      ipaddress: 141.101.113.21
+      ipaddress: 190.93.240.21
     - domain: download-genius.com
       ipaddress: 162.159.240.171
     - domain: downloadming.nu
-      ipaddress: 198.41.184.77
+      ipaddress: 198.41.188.76
     - domain: dpstream.net
-      ipaddress: 198.41.191.151
-    - domain: drakulastream.eu
-      ipaddress: 162.159.248.189
+      ipaddress: 198.41.189.151
     - domain: drp.su
-      ipaddress: 162.159.243.17
+      ipaddress: 162.159.244.17
     - domain: dumpaday.com
-      ipaddress: 162.159.242.119
+      ipaddress: 162.159.241.119
     - domain: e-cigarette-forum.com
-      ipaddress: 198.41.186.238
+      ipaddress: 162.159.255.238
     - domain: e-monsite.com
       ipaddress: 141.101.120.123
     - domain: e-radio.gr
-      ipaddress: 198.41.183.19
+      ipaddress: 198.41.181.19
     - domain: eclypsia.com
       ipaddress: 190.93.242.97
     - domain: ecuavisa.com
       ipaddress: 141.101.113.36
     - domain: edublogs.org
-      ipaddress: 104.16.1.23
+      ipaddress: 104.16.0.23
     - domain: egaliteetreconciliation.fr
-      ipaddress: 190.93.243.80
+      ipaddress: 190.93.242.80
     - domain: egyup.com
       ipaddress: 108.162.201.33
     - domain: eharmony.com
-      ipaddress: 198.41.209.54
+      ipaddress: 199.83.133.3
     - domain: einthusan.com
-      ipaddress: 198.41.189.126
+      ipaddress: 198.41.184.127
     - domain: elakiri.com
-      ipaddress: 162.159.249.73
+      ipaddress: 162.159.250.73
     - domain: elhacker.net
-      ipaddress: 108.162.205.73
+      ipaddress: 108.162.206.73
     - domain: elwatannews.com
-      ipaddress: 190.93.240.93
+      ipaddress: 104.20.14.106
     - domain: en.bitcoin.it
       ipaddress: 162.159.245.241
     - domain: eslamoda.com
-      ipaddress: 162.159.255.119
+      ipaddress: 162.159.254.119
     - domain: esteghlali.com
-      ipaddress: 141.101.124.41
+      ipaddress: 108.162.205.71
     - domain: etorrent.co.kr
-      ipaddress: 198.41.185.120
+      ipaddress: 198.41.190.119
     - domain: eurostreaming.tv
-      ipaddress: 162.159.241.231
+      ipaddress: 162.159.242.231
     - domain: euw.leagueoflegends.com
-      ipaddress: 104.16.21.33
+      ipaddress: 104.16.30.33
     - domain: evozi.com
       ipaddress: 198.41.202.14
     - domain: explosm.net
       ipaddress: 108.162.203.152
     - domain: expressleech.com
-      ipaddress: 108.162.201.115
+      ipaddress: 108.162.202.115
     - domain: extratorrent.cc
-      ipaddress: 162.159.254.82
-    - domain: eztv.it
-      ipaddress: 108.162.200.14
+      ipaddress: 162.159.255.81
     - domain: faithtap.com
-      ipaddress: 198.41.188.57
+      ipaddress: 198.41.185.57
     - domain: famousbirthdays.com
-      ipaddress: 190.93.245.80
+      ipaddress: 141.101.114.80
     - domain: fasttech.com
       ipaddress: 141.101.112.98
     - domain: feedly.com
-      ipaddress: 162.159.253.4
+      ipaddress: 162.159.252.4
     - domain: filesfetcher.com
-      ipaddress: 198.41.186.168
+      ipaddress: 198.41.185.168
     - domain: filmesonlinegratis.net
-      ipaddress: 141.101.112.38
+      ipaddress: 190.93.243.37
     - domain: fiverr.com
-      ipaddress: 192.33.31.51
+      ipaddress: 192.33.31.61
     - domain: flashgames.it
-      ipaddress: 141.101.120.119
+      ipaddress: 141.101.120.118
     - domain: follow.net
       ipaddress: 198.41.189.9
     - domain: food52.com
-      ipaddress: 104.20.0.127
+      ipaddress: 104.20.1.127
     - domain: footballchannel.jp
       ipaddress: 162.159.247.145
     - domain: forbes.com.mx
       ipaddress: 162.159.249.40
     - domain: forexpeacearmy.com
-      ipaddress: 141.101.123.28
+      ipaddress: 190.93.242.28
     - domain: forgifs.com
       ipaddress: 162.159.251.66
     - domain: freebitco.in
-      ipaddress: 162.159.245.200
+      ipaddress: 162.159.244.200
     - domain: freedoge.co.in
-      ipaddress: 108.162.200.24
+      ipaddress: 141.101.127.23
     - domain: freemalaysiatoday.com
       ipaddress: 162.159.248.43
     - domain: freenode.net
@@ -336,159 +318,145 @@ client:
     - domain: frontpage.fok.nl
       ipaddress: 108.162.200.126
     - domain: fshare.vn
-      ipaddress: 141.101.113.23
+      ipaddress: 118.69.164.133
     - domain: fsplay.net
-      ipaddress: 198.41.247.238
+      ipaddress: 198.41.189.238
     - domain: full-stream.net
-      ipaddress: 198.41.203.82
+      ipaddress: 198.41.202.82
     - domain: fun698.com
-      ipaddress: 198.41.186.185
+      ipaddress: 198.41.206.118
     - domain: funnymama.com
       ipaddress: 198.41.249.64
     - domain: futhead.com
       ipaddress: 190.93.246.99
     - domain: gahe.com
-      ipaddress: 162.159.252.233
+      ipaddress: 198.41.247.233
     - domain: gamebaby.com
-      ipaddress: 162.159.241.107
+      ipaddress: 162.159.242.107
     - domain: gameninja.com
-      ipaddress: 198.41.187.17
+      ipaddress: 198.41.189.17
     - domain: gamepedia.com
-      ipaddress: 190.93.244.101
+      ipaddress: 190.93.245.101
     - domain: games.co.id
-      ipaddress: 190.93.242.19
+      ipaddress: 141.101.113.20
     - domain: gamescaptain.com
       ipaddress: 162.159.249.247
     - domain: gameskwala.com
       ipaddress: 162.159.241.227
     - domain: gamingruff.com
-      ipaddress: 162.159.251.14
+      ipaddress: 162.159.250.14
     - domain: gazetatema.net
       ipaddress: 198.41.249.104
     - domain: gcflearnfree.org
-      ipaddress: 141.101.113.72
+      ipaddress: 190.93.240.72
     - domain: geo.tv
-      ipaddress: 190.93.244.11
+      ipaddress: 141.101.114.11
     - domain: getsecuredfiles.com
-      ipaddress: 162.159.245.76
+      ipaddress: 162.159.244.76
     - domain: getsoftfree.com
-      ipaddress: 162.159.248.115
-    - domain: gfxtra.net
-      ipaddress: 162.159.246.161
+      ipaddress: 162.159.247.115
     - domain: gfycat.com
-      ipaddress: 198.41.209.27
+      ipaddress: 190.93.254.72
     - domain: ghost.org
-      ipaddress: 190.93.246.19
+      ipaddress: 190.93.247.19
     - domain: gigacircle.com
-      ipaddress: 104.16.28.35
+      ipaddress: 104.16.31.35
     - domain: gilt.com
-      ipaddress: 198.41.209.111
+      ipaddress: 198.41.209.113
     - domain: gizmodo.com.au
-      ipaddress: 190.93.244.73
+      ipaddress: 190.93.247.73
     - domain: glamora.ma
       ipaddress: 162.159.250.147
     - domain: glassdoor.com
-      ipaddress: 190.93.244.224
+      ipaddress: 190.93.245.224
     - domain: globalresearch.ca
       ipaddress: 162.159.247.162
     - domain: goldentowns.com
-      ipaddress: 162.159.250.240
+      ipaddress: 162.159.251.240
     - domain: gooddrama.net
       ipaddress: 108.162.203.51
     - domain: goodmenproject.com
-      ipaddress: 162.159.249.216
+      ipaddress: 162.159.248.216
     - domain: goodsearch.com
-      ipaddress: 141.101.123.98
+      ipaddress: 190.93.241.98
     - domain: gooool.org
-      ipaddress: 162.159.243.194
-    - domain: gosugamers.net
-      ipaddress: 162.159.240.238
+      ipaddress: 162.159.242.194
     - domain: gottabemobile.com
-      ipaddress: 190.93.242.110
+      ipaddress: 190.93.243.110
     - domain: graphpaperpress.com
       ipaddress: 162.159.250.94
     - domain: gtspirit.com
       ipaddress: 162.159.243.151
-    - domain: guardianlv.com
-      ipaddress: 162.159.249.39
     - domain: gurufocus.com
       ipaddress: 162.159.251.182
     - domain: haber1903.com
-      ipaddress: 108.162.201.135
-    - domain: haber61.net
-      ipaddress: 141.101.126.44
+      ipaddress: 108.162.202.135
     - domain: hackforums.net
       ipaddress: 141.101.121.11
     - domain: haqqin.az
-      ipaddress: 198.41.189.53
+      ipaddress: 104.20.18.96
     - domain: hardmob.com.br
-      ipaddress: 190.93.241.96
+      ipaddress: 141.101.113.96
     - domain: hearthpwn.com
-      ipaddress: 190.93.247.113
+      ipaddress: 190.93.246.113
     - domain: hesport.com
-      ipaddress: 162.159.242.209
+      ipaddress: 162.159.241.209
     - domain: hibapress.com
       ipaddress: 162.159.245.178
     - domain: highcharts.com
       ipaddress: 162.159.250.193
     - domain: hitleap.com
-      ipaddress: 198.41.182.88
+      ipaddress: 198.41.183.88
     - domain: hltv.org
       ipaddress: 162.159.241.196
-    - domain: hobbyking.com
-      ipaddress: 141.101.112.125
     - domain: home.ijreview.com
       ipaddress: 104.16.3.43
     - domain: i-fit.com.tw
-      ipaddress: 108.162.202.108
+      ipaddress: 108.162.201.108
     - domain: ibuildapp.com
-      ipaddress: 141.101.113.201
+      ipaddress: 141.101.112.201
     - domain: ifilez.org
-      ipaddress: 141.101.112.94
+      ipaddress: 141.101.123.94
     - domain: iitv.info
-      ipaddress: 198.41.249.221
+      ipaddress: 162.159.251.221
     - domain: ikman.lk
-      ipaddress: 198.41.249.242
-    - domain: imagetwist.com
-      ipaddress: 162.159.240.244
+      ipaddress: 162.159.240.243
     - domain: imgchili.net
-      ipaddress: 162.159.249.105
+      ipaddress: 104.20.27.113
     - domain: imgflip.com
-      ipaddress: 141.101.114.143
+      ipaddress: 141.101.115.143
     - domain: imgspice.com
       ipaddress: 198.41.249.212
     - domain: imscrapidmailer.com
       ipaddress: 162.159.249.226
     - domain: imsuccesscenter.com
       ipaddress: 162.159.251.79
-    - domain: indeksonline.net
-      ipaddress: 190.93.254.155
     - domain: index.hr
-      ipaddress: 198.41.176.5
+      ipaddress: 198.41.181.4
     - domain: inflexwetrust.com
       ipaddress: 162.159.250.202
     - domain: inforesist.org
-      ipaddress: 108.162.205.29
+      ipaddress: 108.162.206.29
     - domain: informe21.com
       ipaddress: 162.159.244.121
     - domain: intercambiosvirtuales.org
       ipaddress: 162.159.243.146
     - domain: ionicframework.com
-      ipaddress: 162.159.248.203
+      ipaddress: 162.159.247.203
     - domain: ipiccy.com
-      ipaddress: 141.101.123.33
+      ipaddress: 190.93.240.33
     - domain: iplocation.net
-      ipaddress: 162.159.242.87
+      ipaddress: 104.20.15.186
     - domain: iptorrents.com
       ipaddress: 190.93.243.131
     - domain: israelvideonetwork.com
-      ipaddress: 198.41.185.73
+      ipaddress: 198.41.184.73
     - domain: italia-film.org
-      ipaddress: 190.93.241.91
+      ipaddress: 141.101.123.91
     - domain: iwebchk.com
       ipaddress: 162.159.241.191
     - domain: ixl.com
-      ipaddress: 190.93.246.136
+      ipaddress: 190.93.247.136
     - domain: j.gs
       ipaddress: 162.159.251.35
     - domain: jamiiforums.com
@@ -498,67 +466,65 @@ client:
     - domain: joomla.fr
       ipaddress: 162.159.246.52
     - domain: jquery.com
-      ipaddress: 104.16.14.15
+      ipaddress: 104.16.15.15
     - domain: jquerymobile.com
       ipaddress: 104.16.11.13
     - domain: jqueryui.com
-      ipaddress: 104.16.2.14
+      ipaddress: 104.16.3.14
     - domain: jumia.com.ng
-      ipaddress: 198.41.188.216
+      ipaddress: 198.41.187.216
     - domain: k2s.cc
       ipaddress: 162.159.245.42
     - domain: karatbars.com
-      ipaddress: 162.159.242.93
+      ipaddress: 205.204.91.35
     - domain: karnaval.com
-      ipaddress: 141.101.121.195
+      ipaddress: 141.101.121.196
     - domain: kaymu.com.ng
-      ipaddress: 104.20.26.2
+      ipaddress: 104.20.27.2
     - domain: kaymu.pk
-      ipaddress: 141.101.113.175
-    - domain: keywordtool.io
-      ipaddress: 162.159.244.204
+      ipaddress: 141.101.112.175
     - domain: kickerdaily.com
       ipaddress: 162.159.241.39
     - domain: kidsactivitiesblog.com
       ipaddress: 162.159.247.80
     - domain: kinogo.net
-      ipaddress: 190.93.241.114
+      ipaddress: 190.93.254.44
     - domain: kinoman.tv
-      ipaddress: 198.41.186.174
+      ipaddress: 190.93.253.89
     - domain: klix.ba
-      ipaddress: 141.101.112.88
+      ipaddress: 190.93.241.87
     - domain: korben.info
       ipaddress: 162.159.250.186
     - domain: kwejk.pl
-      ipaddress: 162.159.255.38
+      ipaddress: 162.159.255.37
     - domain: ladygames.com
-      ipaddress: 162.159.242.107
+      ipaddress: 162.159.241.107
     - domain: lamido.co.id
       ipaddress: 198.41.188.224
     - domain: lapatilla.com
       ipaddress: 141.101.123.240
     - domain: lasvegassun.com
-      ipaddress: 141.101.123.129
+      ipaddress: 190.93.240.129
     - domain: laughingsquid.com
-      ipaddress: 162.159.247.97
+      ipaddress: 162.159.248.97
     - domain: lbcgroup.tv
-      ipaddress: 141.101.112.51
+      ipaddress: 190.93.241.50
     - domain: legacyclix.com
-      ipaddress: 162.159.250.65
+      ipaddress: 162.159.249.65
     - domain: legiaodosherois.com.br
       ipaddress: 162.159.245.5
     - domain: libertyland.tv
-      ipaddress: 162.159.255.101
+      ipaddress: 162.159.253.102
     - domain: lifebuzz.com
-      ipaddress: 162.159.242.246
+      ipaddress: 162.159.243.246
     - domain: lifehacker.com.au
-      ipaddress: 190.93.247.73
+      ipaddress: 141.101.114.74
     - domain: likemag.com
       ipaddress: 162.159.251.215
     - domain: likes.com
-      ipaddress: 141.101.115.34
+      ipaddress: 190.93.247.34
     - domain: listenpersian.net
-      ipaddress: 198.41.249.9
+      ipaddress: 162.159.251.9
     - domain: livefootballol.com
       ipaddress: 162.159.246.67
     - domain: livefootballvideo.com
@@ -566,9 +532,9 @@ client:
     - domain: localbitcoins.com
       ipaddress: 104.20.31.3
     - domain: lowendbox.com
-      ipaddress: 141.101.113.78
+      ipaddress: 190.93.253.64
     - domain: lowendtalk.com
-      ipaddress: 190.93.241.77
+      ipaddress: 190.93.255.75
     - domain: maannews.net
       ipaddress: 198.41.180.81
     - domain: macacovelho.com.br
@@ -576,89 +542,83 @@ client:
     - domain: macworld.co.uk
       ipaddress: 104.16.14.54
     - domain: madmimi.com
-      ipaddress: 141.101.123.192
+      ipaddress: 141.101.113.192
     - domain: mafiashare.net
       ipaddress: 141.101.120.97
     - domain: makeagif.com
-      ipaddress: 162.159.249.46
+      ipaddress: 162.159.248.46
     - domain: makeupandbeauty.com
-      ipaddress: 162.159.241.54
-    - domain: makezine.com
-      ipaddress: 108.162.206.21
+      ipaddress: 190.93.254.95
     - domain: mamamia.com.au
       ipaddress: 162.159.244.187
     - domain: manicomio-share.com
-      ipaddress: 162.159.247.208
+      ipaddress: 198.41.206.93
     - domain: manygames.com
-      ipaddress: 162.159.242.107
+      ipaddress: 162.159.241.107
     - domain: maplestage.com
-      ipaddress: 162.159.255.194
+      ipaddress: 162.159.253.194
     - domain: marketinggenesis.com
       ipaddress: 162.159.250.110
     - domain: marunadanmalayali.com
       ipaddress: 141.101.126.226
     - domain: matchesfashion.com
-      ipaddress: 198.41.184.14
+      ipaddress: 198.41.188.14
     - domain: mazika2day.com
-      ipaddress: 198.41.190.107
+      ipaddress: 198.41.204.242
     - domain: media-fire.org
-      ipaddress: 198.41.188.89
+      ipaddress: 198.41.185.89
     - domain: medialoot.com
-      ipaddress: 162.159.241.192
+      ipaddress: 162.159.240.192
     - domain: megafilmeshd.net
-      ipaddress: 198.41.188.137
+      ipaddress: 198.41.185.137
     - domain: mg.co.za
-      ipaddress: 162.159.245.60
+      ipaddress: 162.159.244.60
     - domain: microworkers.com
-      ipaddress: 141.101.112.148
+      ipaddress: 190.93.243.147
     - domain: minecraftforum.net
       ipaddress: 141.101.114.118
     - domain: minecraftservers.org
       ipaddress: 190.93.242.14
     - domain: missmalini.com
-      ipaddress: 162.159.251.41
+      ipaddress: 198.41.249.41
     - domain: mixedmartialarts.com
-      ipaddress: 141.101.113.57
+      ipaddress: 190.93.243.56
     - domain: mixergy.com
-      ipaddress: 198.41.249.147
+      ipaddress: 162.159.251.147
     - domain: mmo-champion.com
-      ipaddress: 190.93.246.118
+      ipaddress: 190.93.244.118
     - domain: mo.gov
-      ipaddress: 104.16.24.39
+      ipaddress: 104.16.23.39
     - domain: mobafire.com
-      ipaddress: 141.101.121.23
+      ipaddress: 141.101.121.20
     - domain: modern.az
-      ipaddress: 108.162.205.159
+      ipaddress: 108.162.206.159
     - domain: moneyplatform.biz
-      ipaddress: 108.162.202.215
+      ipaddress: 108.162.201.215
     - domain: monitorbacklinks.com
-      ipaddress: 198.41.249.24
+      ipaddress: 162.159.240.25
     - domain: morguefile.com
       ipaddress: 162.159.247.132
-    - domain: mp3olimp.net
-      ipaddress: 162.159.248.237
     - domain: mylikes.com
-      ipaddress: 141.101.115.38
+      ipaddress: 190.93.245.37
     - domain: naijaloaded.com.ng
-      ipaddress: 141.101.127.195
+      ipaddress: 141.101.126.140
     - domain: nairaland.com
-      ipaddress: 198.41.190.67
+      ipaddress: 198.41.184.68
     - domain: naosalvo.com.br
       ipaddress: 108.162.207.184
     - domain: nbadraft.net
-      ipaddress: 162.159.250.170
+      ipaddress: 162.159.251.170
     - domain: nerdfitness.com
       ipaddress: 162.159.243.153
     - domain: network-tools.com
       ipaddress: 141.101.123.110
     - domain: network54.com
-      ipaddress: 162.159.250.43
+      ipaddress: 162.159.249.43
     - domain: new.elfagr.org
-      ipaddress: 198.41.191.53
-    - domain: newcoupons.info
-      ipaddress: 108.162.200.39
+      ipaddress: 198.41.189.53
     - domain: newmobilelife.com
-      ipaddress: 108.162.207.54
+      ipaddress: 141.101.124.54
     - domain: nextinpact.com
       ipaddress: 162.159.249.65
     - domain: nextmedia.com
@@ -668,55 +628,53 @@ client:
     - domain: niebezpiecznik.pl
       ipaddress: 198.41.203.16
     - domain: noticiaaldia.com
-      ipaddress: 198.41.179.92
+      ipaddress: 198.41.181.92
     - domain: noticierodigital.com
-      ipaddress: 141.101.112.96
+      ipaddress: 190.93.243.95
     - domain: ocioso.com.br
       ipaddress: 108.162.204.94
-    - domain: officegeteasy.com
-      ipaddress: 108.162.206.208
     - domain: ojooo.com
-      ipaddress: 198.41.189.230
+      ipaddress: 198.41.190.230
     - domain: omgtorrent.com
       ipaddress: 198.41.200.19
     - domain: onegreenplanet.org
       ipaddress: 162.159.243.192
     - domain: oneplus.net
-      ipaddress: 141.101.125.10
+      ipaddress: 141.101.126.10
     - domain: onlineclock.net
-      ipaddress: 190.93.242.58
+      ipaddress: 190.93.251.94
     - domain: onlinesoccermanager.com
-      ipaddress: 162.159.255.17
+      ipaddress: 162.159.252.18
     - domain: opencart.com
       ipaddress: 104.20.14.19
     - domain: opensoftwareupdater.com
-      ipaddress: 190.93.255.159
+      ipaddress: 162.159.248.241
     - domain: opposingviews.com
-      ipaddress: 162.159.253.201
+      ipaddress: 162.159.254.200
     - domain: optionow.com
-      ipaddress: 141.101.123.94
+      ipaddress: 190.93.241.94
     - domain: oscaro.com
-      ipaddress: 104.16.9.97
+      ipaddress: 104.16.13.97
     - domain: osdir.com
-      ipaddress: 162.159.254.185
+      ipaddress: 162.159.255.185
     - domain: oyunkolu.com
       ipaddress: 162.159.248.209
     - domain: palemoon.org
-      ipaddress: 162.159.255.211
+      ipaddress: 162.159.252.211
     - domain: pangu.io
       ipaddress: 108.162.201.127
     - domain: parimatch.com
-      ipaddress: 198.41.185.98
+      ipaddress: 198.41.190.97
     - domain: partis.si
       ipaddress: 108.162.201.127
     - domain: pastebin.com
-      ipaddress: 190.93.241.15
+      ipaddress: 190.93.242.15
     - domain: pcadvisor.co.uk
-      ipaddress: 104.16.28.51
+      ipaddress: 104.16.27.51
     - domain: pelis24.com
-      ipaddress: 198.41.190.143
+      ipaddress: 198.41.189.143
     - domain: photoyoum7.com
-      ipaddress: 104.16.4.117
+      ipaddress: 104.16.7.117
     - domain: pijamasurf.com
       ipaddress: 162.159.242.249
     - domain: piktochart.com
@@ -724,127 +682,125 @@ client:
     - domain: pixroute.com
       ipaddress: 162.159.242.52
     - domain: planetminecraft.com
-      ipaddress: 141.101.113.126
+      ipaddress: 190.93.242.126
     - domain: playit.pk
-      ipaddress: 162.159.240.198
+      ipaddress: 162.159.241.198
     - domain: plp.cl
       ipaddress: 198.41.200.28
     - domain: podomatic.com
       ipaddress: 104.20.21.4
     - domain: podrobnosti.ua
-      ipaddress: 198.41.178.97
+      ipaddress: 198.41.181.97
     - domain: popcash.net
       ipaddress: 162.159.244.37
     - domain: popnhop.com
       ipaddress: 162.159.248.205
     - domain: post852.com
-      ipaddress: 198.41.188.113
+      ipaddress: 198.41.191.113
     - domain: postcron.com
       ipaddress: 162.159.242.38
     - domain: postto.me
-      ipaddress: 141.101.120.156
-    - domain: powvideo.net
-      ipaddress: 190.93.255.95
+      ipaddress: 141.101.120.157
     - domain: premium.wpmudev.org
-      ipaddress: 104.16.24.10
+      ipaddress: 104.16.25.10
     - domain: premiumwp.com
-      ipaddress: 162.159.251.100
-    - domain: prensa.com
-      ipaddress: 162.159.254.69
+      ipaddress: 162.159.250.100
     - domain: prlog.ru
       ipaddress: 162.159.242.63
     - domain: prntscr.com
       ipaddress: 198.41.191.131
     - domain: proprofs.com
-      ipaddress: 198.41.204.34
+      ipaddress: 198.41.206.245
     - domain: prosperent.com
-      ipaddress: 162.159.241.24
+      ipaddress: 162.159.240.24
     - domain: proteusthemes.com
-      ipaddress: 162.159.247.215
+      ipaddress: 162.159.248.215
+    - domain: proxybay.info
+      ipaddress: 91.236.116.48
     - domain: ptcstair.com
-      ipaddress: 162.159.249.107
+      ipaddress: 162.159.250.107
     - domain: puu.sh
       ipaddress: 162.159.243.139
     - domain: q.gs
       ipaddress: 162.159.247.88
-    - domain: qafqazinfo.az
-      ipaddress: 162.159.245.58
     - domain: qatarliving.com
       ipaddress: 198.41.249.175
     - domain: qol.az
       ipaddress: 162.159.244.133
     - domain: r10.net
-      ipaddress: 162.159.252.82
+      ipaddress: 162.159.254.82
     - domain: rapgenius.com
       ipaddress: 104.16.27.4
     - domain: rapradar.com
-      ipaddress: 190.93.243.15
+      ipaddress: 141.101.112.16
     - domain: rassd.com
-      ipaddress: 162.159.253.222
+      ipaddress: 198.41.247.222
     - domain: rcwlightning.com
       ipaddress: 108.162.200.227
     - domain: re-direcciona.me
       ipaddress: 162.159.242.146
     - domain: repelis.tv
-      ipaddress: 162.159.246.193
+      ipaddress: 162.159.245.193
     - domain: reshareworthy.com
-      ipaddress: 141.101.127.122
+      ipaddress: 108.162.200.123
     - domain: ritegamer.com
-      ipaddress: 162.159.250.247
+      ipaddress: 162.159.249.247
     - domain: riverplate.com
-      ipaddress: 162.159.244.32
+      ipaddress: 162.159.245.32
     - domain: rollingout.com
-      ipaddress: 198.41.185.117
+      ipaddress: 198.41.188.117
     - domain: rsw-systems.com
-      ipaddress: 198.41.191.70
+      ipaddress: 104.20.20.116
     - domain: rudaw.net
-      ipaddress: 190.93.242.83
+      ipaddress: 190.93.240.83
     - domain: rus.ec
-      ipaddress: 198.41.185.201
+      ipaddress: 198.41.187.201
     - domain: rusvesna.su
-      ipaddress: 190.93.248.92
+      ipaddress: 162.159.253.6
     - domain: sa.ae
       ipaddress: 162.159.240.111
     - domain: saaid.net
-      ipaddress: 198.41.178.75
+      ipaddress: 198.41.182.75
     - domain: sabq.org
-      ipaddress: 141.101.115.116
+      ipaddress: 141.101.114.116
     - domain: sanakirja.org
-      ipaddress: 190.93.240.90
+      ipaddress: 141.101.112.91
+    - domain: say7.info
+      ipaddress: 162.159.245.26
     - domain: sayidaty.net
       ipaddress: 108.162.201.30
     - domain: scotch.io
-      ipaddress: 141.101.125.86
+      ipaddress: 141.101.126.86
     - domain: searchengines.guru
-      ipaddress: 190.93.240.113
+      ipaddress: 190.93.242.113
     - domain: searchengines.ru
-      ipaddress: 141.101.123.113
+      ipaddress: 190.93.240.113
     - domain: seemorgh.com
       ipaddress: 141.101.120.194
     - domain: sendgrid.com
-      ipaddress: 104.20.21.26
+      ipaddress: 104.20.20.26
     - domain: sergey-mavrodi-mmm.net
       ipaddress: 162.159.244.38
     - domain: sergey-mavrodi-mmm.org
-      ipaddress: 162.159.251.160
+      ipaddress: 162.159.250.160
     - domain: sergey-mavrodi.com
-      ipaddress: 162.159.253.253
+      ipaddress: 162.159.254.253
     - domain: sergeymavrodi.com
       ipaddress: 162.159.255.203
     - domain: shahiya.com
-      ipaddress: 162.159.241.128
+      ipaddress: 162.159.240.128
     - domain: shapeways.com
-      ipaddress: 198.41.189.36
+      ipaddress: 198.41.188.36
     - domain: sheknows.com
-      ipaddress: 162.159.243.215
+      ipaddress: 162.159.244.215
     - domain: shippuden.tv
-      ipaddress: 108.162.205.85
+      ipaddress: 108.162.206.85
     - domain: shmoop.com
-      ipaddress: 190.93.241.48
+      ipaddress: 174.34.229.43
     - domain: siam-movie.com
-      ipaddress: 198.41.182.78
+      ipaddress: 198.41.179.78
     - domain: siliconera.com
-      ipaddress: 190.93.247.99
+      ipaddress: 190.93.245.99
     - domain: siliconrus.com
       ipaddress: 198.41.191.66
     - domain: sinchew.com.my
@@ -852,21 +808,21 @@ client:
     - domain: sitetalk.com
       ipaddress: 190.93.241.207
     - domain: skladchik.com
-      ipaddress: 104.20.3.89
+      ipaddress: 104.20.2.89
     - domain: smallpdf.com
-      ipaddress: 162.159.249.205
+      ipaddress: 162.159.250.205
     - domain: smartpassiveincome.com
       ipaddress: 162.159.243.132
     - domain: smittenkitchen.com
-      ipaddress: 141.101.112.139
+      ipaddress: 190.93.240.139
     - domain: smofast.com
       ipaddress: 141.101.124.55
     - domain: smosh.com
-      ipaddress: 162.159.254.34
+      ipaddress: 162.159.253.34
     - domain: smotrisport.tv
-      ipaddress: 198.41.176.23
+      ipaddress: 198.41.178.23
     - domain: snapengage.com
-      ipaddress: 141.101.113.133
+      ipaddress: 190.93.241.132
     - domain: snapwidget.com
       ipaddress: 162.159.246.49
     - domain: snip.ly
@@ -878,99 +834,105 @@ client:
     - domain: somuch.com
       ipaddress: 141.101.127.228
     - domain: songspk.name
-      ipaddress: 108.162.202.183
+      ipaddress: 108.162.201.183
     - domain: soompi.com
-      ipaddress: 104.20.19.19
+      ipaddress: 104.20.18.19
     - domain: sooperarticles.com
-      ipaddress: 108.162.205.236
+      ipaddress: 108.162.206.236
     - domain: sott.net
       ipaddress: 162.159.250.111
     - domain: spi0n.com
-      ipaddress: 198.41.181.58
+      ipaddress: 198.41.183.58
     - domain: sportbox.az
       ipaddress: 108.162.206.207
     - domain: sprotyv.info
-      ipaddress: 141.101.126.17
+      ipaddress: 141.101.125.17
     - domain: stadt-bremerhaven.de
-      ipaddress: 198.41.191.15
+      ipaddress: 198.41.184.16
     - domain: stagram.com
       ipaddress: 190.93.240.45
     - domain: stansberryresearch.com
       ipaddress: 104.20.26.17
     - domain: steamdb.info
-      ipaddress: 162.159.254.177
+      ipaddress: 162.159.254.176
     - domain: streamallthis.me
-      ipaddress: 162.159.242.171
+      ipaddress: 162.159.241.171
     - domain: subscene.com
-      ipaddress: 162.159.249.9
+      ipaddress: 162.159.250.9
     - domain: sudaneseonline.com
       ipaddress: 198.41.205.254
     - domain: super.ae
-      ipaddress: 162.159.254.6
+      ipaddress: 162.159.253.7
     - domain: survzilla.com
-      ipaddress: 108.162.201.107
+      ipaddress: 108.162.202.107
     - domain: t24.com.tr
-      ipaddress: 141.101.125.79
+      ipaddress: 141.101.126.79
     - domain: tahrirnews.com
-      ipaddress: 198.41.191.205
+      ipaddress: 198.41.186.206
     - domain: tarafdari.com
       ipaddress: 198.41.190.174
+    - domain: tech-recipes.com
+      ipaddress: 108.162.207.86
     - domain: tecnoblog.net
-      ipaddress: 108.162.206.195
+      ipaddress: 108.162.205.195
     - domain: teebik.com
-      ipaddress: 198.41.187.108
+      ipaddress: 198.41.189.108
     - domain: templatemonster.com
-      ipaddress: 198.41.187.147
+      ipaddress: 190.93.254.48
     - domain: temptalia.com
       ipaddress: 108.162.200.113
     - domain: terafile.co
       ipaddress: 162.159.250.139
     - domain: tert.am
-      ipaddress: 108.162.202.195
+      ipaddress: 108.162.201.195
     - domain: teveonline.net
-      ipaddress: 108.162.205.133
+      ipaddress: 198.41.204.151
+    - domain: tgju.org
+      ipaddress: 198.41.206.180
     - domain: the-open-mind.com
       ipaddress: 141.101.126.65
     - domain: thebot.net
-      ipaddress: 162.159.249.116
+      ipaddress: 162.159.248.116
     - domain: thediplomat.com
-      ipaddress: 162.159.240.235
+      ipaddress: 198.41.249.234
     - domain: thedirty.com
-      ipaddress: 190.93.240.32
+      ipaddress: 141.101.112.32
     - domain: thefile.me
-      ipaddress: 162.159.252.33
+      ipaddress: 162.159.255.32
     - domain: thefreethoughtproject.com
-      ipaddress: 198.41.249.156
+      ipaddress: 162.159.240.157
     - domain: thehackernews.com
-      ipaddress: 162.159.246.166
+      ipaddress: 162.159.247.166
     - domain: theladbible.com
-      ipaddress: 198.41.214.5
+      ipaddress: 198.41.215.5
     - domain: themattwalshblog.com
-      ipaddress: 108.162.204.50
+      ipaddress: 108.162.203.50
     - domain: theme-fusion.com
-      ipaddress: 162.159.245.243
+      ipaddress: 104.20.26.96
     - domain: thenationonlineng.net
-      ipaddress: 162.159.253.179
+      ipaddress: 162.159.252.179
     - domain: thenewstribe.com
-      ipaddress: 162.159.246.82
+      ipaddress: 162.159.247.82
     - domain: thepioneerwoman.com
       ipaddress: 198.41.186.138
     - domain: thepointsguy.com
-      ipaddress: 162.159.248.114
+      ipaddress: 162.159.249.114
     - domain: therakyatpost.com
-      ipaddress: 198.41.190.126
+      ipaddress: 198.41.189.177
     - domain: thesportbible.com
-      ipaddress: 190.93.246.96
+      ipaddress: 190.93.247.96
     - domain: thevideo.me
-      ipaddress: 162.159.243.240
+      ipaddress: 162.159.242.240
     - domain: thisiswhyimbroke.com
       ipaddress: 162.159.250.214
     - domain: tickld.com
       ipaddress: 104.16.26.6
     - domain: tielabs.com
       ipaddress: 162.159.244.157
+    - domain: tivionline.vn
+      ipaddress: 198.41.202.81
     - domain: todayifoundout.com
-      ipaddress: 162.159.250.149
+      ipaddress: 141.101.126.98
     - domain: torlock.com
       ipaddress: 198.41.201.25
     - domain: torrentfreak.com
@@ -982,77 +944,75 @@ client:
     - domain: trafficgenesis.com
       ipaddress: 162.159.241.133
     - domain: tribalfootball.com
-      ipaddress: 141.101.113.4
+      ipaddress: 141.101.112.4
     - domain: tripleclicks.com
-      ipaddress: 141.101.126.214
+      ipaddress: 141.101.125.214
     - domain: tructiepbongda.com
       ipaddress: 198.41.200.45
     - domain: trueactivist.com
-      ipaddress: 162.159.255.134
+      ipaddress: 162.159.253.134
     - domain: tutsplus.com
-      ipaddress: 141.101.112.16
+      ipaddress: 190.93.241.15
     - domain: tuvaro.com
       ipaddress: 162.159.251.141
     - domain: twentytwowords.com
       ipaddress: 162.159.245.22
     - domain: udemy.com
-      ipaddress: 190.93.243.22
+      ipaddress: 141.101.112.23
     - domain: ummat.net
       ipaddress: 141.101.124.43
     - domain: uniladmag.com
-      ipaddress: 190.93.241.37
+      ipaddress: 190.93.242.37
     - domain: unwire.hk
       ipaddress: 198.41.186.172
     - domain: updatenowpro.com
-      ipaddress: 162.159.242.60
+      ipaddress: 162.159.243.60
     - domain: updatersoft.com
-      ipaddress: 162.159.248.72
+      ipaddress: 162.159.249.72
     - domain: uploadboy.com
       ipaddress: 141.101.125.9
     - domain: uppit.com
-      ipaddress: 162.159.241.136
+      ipaddress: 162.159.240.136
     - domain: uptimerobot.com
-      ipaddress: 108.162.200.240
+      ipaddress: 141.101.127.239
     - domain: uptobox.com
       ipaddress: 190.93.240.95
     - domain: urbanfonts.com
       ipaddress: 162.159.240.64
     - domain: urdupoint.com
-      ipaddress: 162.159.242.213
+      ipaddress: 162.159.241.213
     - domain: verseriesynovelas.com
       ipaddress: 198.41.188.202
     - domain: vertele.com
-      ipaddress: 162.159.245.94
+      ipaddress: 162.159.244.94
     - domain: vetogate.com
-      ipaddress: 190.93.240.58
+      ipaddress: 190.93.254.146
     - domain: vidbull.com
-      ipaddress: 162.159.247.224
+      ipaddress: 162.159.246.224
     - domain: video.az
-      ipaddress: 162.159.249.246
+      ipaddress: 198.41.207.238
     - domain: videomega.tv
       ipaddress: 162.159.253.156
     - domain: videostripe.com
-      ipaddress: 198.41.187.157
+      ipaddress: 198.41.186.157
     - domain: videoyoum7.com
-      ipaddress: 104.16.25.116
+      ipaddress: 104.16.24.116
     - domain: viralistas.com
-      ipaddress: 108.162.206.182
+      ipaddress: 108.162.205.182
     - domain: vitorrent.org
       ipaddress: 162.159.244.211
     - domain: vladtv.com
-      ipaddress: 162.159.253.31
+      ipaddress: 162.159.254.30
     - domain: vodlocker.com
-      ipaddress: 162.159.246.224
+      ipaddress: 162.159.247.224
     - domain: vodly.to
-      ipaddress: 190.93.241.35
+      ipaddress: 190.93.243.35
     - domain: voetbalzone.nl
       ipaddress: 198.41.185.200
     - domain: vr-zone.com
       ipaddress: 162.159.251.175
     - domain: watch32.com
-      ipaddress: 162.159.248.45
-    - domain: watchfomny.net
-      ipaddress: 108.162.204.30
+      ipaddress: 162.159.247.45
     - domain: watchfreemovies.ch
       ipaddress: 141.101.123.21
     - domain: watchseries-online.ch
@@ -1062,85 +1022,87 @@ client:
     - domain: webcamtoy.com
       ipaddress: 162.159.244.254
     - domain: webdesignerdepot.com
-      ipaddress: 162.159.240.101
+      ipaddress: 198.41.249.100
     - domain: weknowmemes.com
-      ipaddress: 162.159.255.34
+      ipaddress: 162.159.252.34
     - domain: what-character-are-you.com
       ipaddress: 162.159.240.83
     - domain: what.cd
-      ipaddress: 198.41.189.106
+      ipaddress: 198.41.188.106
     - domain: whatculture.com
-      ipaddress: 162.159.240.81
+      ipaddress: 198.41.249.80
     - domain: wholehk.com
       ipaddress: 198.41.204.227
     - domain: wikiwiki.jp
-      ipaddress: 141.101.123.68
+      ipaddress: 190.93.242.68
     - domain: wiziq.com
       ipaddress: 190.93.244.247
     - domain: wiziwig.tv
-      ipaddress: 198.41.189.159
+      ipaddress: 198.41.185.160
     - domain: wmpoweruser.com
       ipaddress: 162.159.246.134
     - domain: woorank.com
-      ipaddress: 190.93.241.25
+      ipaddress: 190.93.242.25
     - domain: www.4chan.org
-      ipaddress: 190.93.245.6
+      ipaddress: 141.101.114.6
     - domain: www.aciprensa.com
-      ipaddress: 198.41.190.166
+      ipaddress: 198.41.184.167
     - domain: www.addtoany.com
       ipaddress: 141.101.125.160
     - domain: www.altibbi.com
-      ipaddress: 108.162.204.135
+      ipaddress: 108.162.203.135
     - domain: www.alweeam.com.sa
       ipaddress: 141.101.126.49
     - domain: www.animenewsnetwork.com
       ipaddress: 198.41.177.81
     - domain: www.autostraddle.com
-      ipaddress: 162.159.247.115
+      ipaddress: 162.159.248.115
     - domain: www.bien.hu
       ipaddress: 162.159.244.232
     - domain: www.binary.com
       ipaddress: 190.93.240.81
     - domain: www.bj2.me
-      ipaddress: 190.93.242.108
+      ipaddress: 141.101.123.108
     - domain: www.brasil247.com
       ipaddress: 162.159.251.62
     - domain: www.bulletproofexec.com
       ipaddress: 104.20.11.19
     - domain: www.burnews.com
-      ipaddress: 190.93.241.102
+      ipaddress: 190.93.243.102
     - domain: www.cairodar.com
       ipaddress: 104.16.26.116
     - domain: www.cairoportal.com
       ipaddress: 108.162.205.162
+    - domain: www.campingworld.com
+      ipaddress: 141.101.112.210
     - domain: www.caracoltv.com
       ipaddress: 141.101.123.64
     - domain: www.cbinsights.com
-      ipaddress: 162.159.248.250
-    - domain: www.cbox.ws
-      ipaddress: 162.159.244.249
+      ipaddress: 162.159.249.250
     - domain: www.change.org
-      ipaddress: 104.16.4.13
+      ipaddress: 104.16.5.13
     - domain: www.clubedohardware.com.br
-      ipaddress: 141.101.127.28
+      ipaddress: 108.162.200.29
     - domain: www.connectify.me
       ipaddress: 141.101.112.191
     - domain: www.cozi.com
-      ipaddress: 162.159.241.100
+      ipaddress: 162.159.240.100
     - domain: www.cpalead.com
-      ipaddress: 198.41.187.57
+      ipaddress: 198.41.188.57
     - domain: www.cryptocoinsnews.com
-      ipaddress: 104.20.4.21
+      ipaddress: 104.20.5.21
     - domain: www.cssauthor.com
-      ipaddress: 108.162.206.9
+      ipaddress: 108.162.205.9
     - domain: www.cyanogenmod.org
       ipaddress: 162.159.245.104
     - domain: www.davidicke.com
-      ipaddress: 198.41.185.87
+      ipaddress: 198.41.187.87
     - domain: www.dawn.com
-      ipaddress: 162.159.241.171
+      ipaddress: 162.159.242.171
     - domain: www.daz3d.com
-      ipaddress: 190.93.242.173
+      ipaddress: 190.93.241.173
+    - domain: www.desi-tashan.com
+      ipaddress: 198.41.247.243
     - domain: www.diggita.it
       ipaddress: 162.159.245.162
     - domain: www.digitalpoint.com
@@ -1154,47 +1116,45 @@ client:
     - domain: www.erepublik.com
       ipaddress: 108.162.205.105
     - domain: www.ezilon.com
-      ipaddress: 190.93.240.65
+      ipaddress: 190.93.241.65
     - domain: www.fatosdesconhecidos.com.br
-      ipaddress: 190.93.250.184
+      ipaddress: 190.93.250.4
     - domain: www.filmpertutti.eu
-      ipaddress: 162.159.245.197
+      ipaddress: 162.159.246.197
     - domain: www.firedrive.com
-      ipaddress: 190.93.245.69
+      ipaddress: 190.93.246.69
     - domain: www.foodpanda.in
-      ipaddress: 104.16.1.10
+      ipaddress: 104.16.0.10
     - domain: www.forosdelweb.com
-      ipaddress: 141.101.121.35
-    - domain: www.forosperu.net
-      ipaddress: 198.41.190.72
+      ipaddress: 141.101.121.37
     - domain: www.freeonlinegames.com
-      ipaddress: 141.101.123.38
+      ipaddress: 190.93.241.38
     - domain: www.frmtr.com
       ipaddress: 162.159.242.133
     - domain: www.furaffinity.net
-      ipaddress: 141.101.124.102
+      ipaddress: 190.93.249.71
     - domain: www.geenstijl.nl
-      ipaddress: 162.159.252.153
+      ipaddress: 162.159.254.153
     - domain: www.giltcity.com
       ipaddress: 141.101.114.238
     - domain: www.globallshare.com
       ipaddress: 141.101.127.226
     - domain: www.grandbux.net
-      ipaddress: 141.101.127.161
+      ipaddress: 108.162.200.162
     - domain: www.gulli.com
-      ipaddress: 141.101.113.28
+      ipaddress: 190.93.243.27
     - domain: www.hespress.com
-      ipaddress: 162.159.255.97
+      ipaddress: 162.159.253.98
     - domain: www.iab.net
-      ipaddress: 141.101.112.75
+      ipaddress: 141.101.113.75
     - domain: www.india-forums.com
-      ipaddress: 108.162.200.45
+      ipaddress: 141.101.127.44
     - domain: www.infusionsoft.com
       ipaddress: 198.41.247.138
     - domain: www.iol.co.za
-      ipaddress: 104.20.29.75
+      ipaddress: 104.20.31.75
     - domain: www.jobscore.com
-      ipaddress: 141.101.112.224
+      ipaddress: 190.93.243.223
     - domain: www.joe.ie
       ipaddress: 108.162.202.217
     - domain: www.jonloomer.com
@@ -1204,35 +1164,35 @@ client:
     - domain: www.jotform.com
       ipaddress: 141.101.121.40
     - domain: www.jumia.com.eg
-      ipaddress: 198.41.191.223
+      ipaddress: 198.41.184.224
     - domain: www.knownhost.com
-      ipaddress: 162.159.242.146
-    - domain: www.kora.com
-      ipaddress: 104.20.3.49
+      ipaddress: 162.159.243.146
     - domain: www.lebanese-forces.com
       ipaddress: 141.101.121.66
+    - domain: www.levelup.com
+      ipaddress: 162.159.254.190
     - domain: www.life.com.tw
-      ipaddress: 141.101.123.19
+      ipaddress: 141.101.112.19
     - domain: www.like4like.org
-      ipaddress: 190.93.240.75
+      ipaddress: 141.101.112.76
     - domain: www.lostfilm.tv
       ipaddress: 5.199.162.26
     - domain: www.maduradas.com
       ipaddress: 162.159.242.224
     - domain: www.mafa.com
-      ipaddress: 162.159.254.249
+      ipaddress: 162.159.252.249
     - domain: www.maxmind.com
-      ipaddress: 141.101.114.190
+      ipaddress: 141.101.115.190
     - domain: www.mindtools.com
-      ipaddress: 162.159.254.124
+      ipaddress: 162.159.252.124
     - domain: www.mkyong.com
-      ipaddress: 108.162.203.6
+      ipaddress: 108.162.205.6
     - domain: www.mobofree.com
-      ipaddress: 162.159.252.219
+      ipaddress: 162.159.255.219
     - domain: www.modernghana.com
-      ipaddress: 162.159.252.105
+      ipaddress: 162.159.253.104
     - domain: www.mp3xd.com
-      ipaddress: 162.159.251.214
+      ipaddress: 108.162.206.143
     - domain: www.myitworks.com
       ipaddress: 162.159.249.96
     - domain: www.myvidster.com
@@ -1244,41 +1204,41 @@ client:
     - domain: www.newgrounds.com
       ipaddress: 198.41.187.234
     - domain: www.nomadicmatt.com
-      ipaddress: 162.159.247.103
+      ipaddress: 162.159.248.103
     - domain: www.nthwall.com
-      ipaddress: 104.20.2.28
+      ipaddress: 104.20.3.28
     - domain: www.oboom.com
       ipaddress: 104.20.4.7
     - domain: www.ofreegames.com
-      ipaddress: 162.159.253.249
+      ipaddress: 162.159.255.249
     - domain: www.okcupid.com
-      ipaddress: 198.41.209.132
+      ipaddress: 198.41.209.131
     - domain: www.pccomponentes.com
-      ipaddress: 162.159.254.66
+      ipaddress: 162.159.255.66
     - domain: www.pdftoword.com
-      ipaddress: 162.159.242.180
+      ipaddress: 162.159.243.180
     - domain: www.perrymarshall.com
-      ipaddress: 162.159.250.212
+      ipaddress: 162.159.251.212
     - domain: www.plugrush.com
-      ipaddress: 162.159.252.157
+      ipaddress: 162.159.254.156
     - domain: www.portalnet.cl
-      ipaddress: 162.159.246.34
+      ipaddress: 162.159.247.34
     - domain: www.powned.tv
-      ipaddress: 162.159.244.144
+      ipaddress: 162.159.245.144
     - domain: www.preciolandia.com
-      ipaddress: 162.159.243.104
+      ipaddress: 162.159.242.104
     - domain: www.primewire.ag
-      ipaddress: 104.20.31.76
+      ipaddress: 104.20.5.77
     - domain: www.problogger.net
       ipaddress: 162.159.249.46
     - domain: www.producthunt.com
       ipaddress: 162.159.251.254
     - domain: www.pushbullet.com
-      ipaddress: 162.159.242.182
+      ipaddress: 162.159.243.182
     - domain: www.quadratin.com.mx
-      ipaddress: 162.159.252.45
+      ipaddress: 162.159.252.44
     - domain: www.racing-games.com
-      ipaddress: 162.159.252.249
+      ipaddress: 162.159.254.249
     - domain: www.rapidvideo.org
       ipaddress: 162.159.240.68
     - domain: www.ratemds.com
@@ -1286,23 +1246,21 @@ client:
     - domain: www.renuevodeplenitud.com
       ipaddress: 162.159.240.79
     - domain: www.rome2rio.com
-      ipaddress: 108.162.205.115
-    - domain: www.sage.com
-      ipaddress: 104.16.1.19
+      ipaddress: 108.162.206.115
     - domain: www.shortlist.com
       ipaddress: 141.101.123.31
     - domain: www.sockshare.com
       ipaddress: 190.93.246.172
     - domain: www.somethingawful.com
-      ipaddress: 198.41.185.131
+      ipaddress: 198.41.191.130
     - domain: www.songspk.name
-      ipaddress: 108.162.201.183
+      ipaddress: 108.162.202.183
     - domain: www.ssense.com
       ipaddress: 104.20.13.4
     - domain: www.stoiximan.gr
-      ipaddress: 190.93.241.131
+      ipaddress: 141.101.123.131
     - domain: www.sundayworld.com
-      ipaddress: 198.41.186.49
+      ipaddress: 198.41.187.49
     - domain: www.surveygizmo.com
       ipaddress: 104.16.18.4
     - domain: www.sweetfunnycool.com
@@ -1310,19 +1268,17 @@ client:
     - domain: www.techdirt.com
       ipaddress: 162.159.243.199
     - domain: www.teefury.com
-      ipaddress: 190.93.240.12
+      ipaddress: 141.101.112.12
     - domain: www.thedarewall.com
-      ipaddress: 198.41.191.162
+      ipaddress: 198.41.185.163
     - domain: www.thegrommet.com
       ipaddress: 198.41.188.212
     - domain: www.theladbible.com
-      ipaddress: 198.41.215.4
-    - domain: www.thenewslens.com
-      ipaddress: 108.162.204.219
+      ipaddress: 198.41.214.4
     - domain: www.thingiverse.com
-      ipaddress: 162.159.251.32
+      ipaddress: 162.159.250.32
     - domain: www.thisiscolossal.com
-      ipaddress: 108.162.203.135
+      ipaddress: 108.162.204.135
     - domain: www.torrentfunk.com
       ipaddress: 198.41.201.42
     - domain: www.traidnt.net
@@ -1330,51 +1286,51 @@ client:
     - domain: www.tunisia-sat.com
       ipaddress: 162.159.243.166
     - domain: www.tvrage.com
-      ipaddress: 162.159.242.117
+      ipaddress: 141.101.125.12
     - domain: www.twickerz.com
-      ipaddress: 198.41.249.234
+      ipaddress: 162.159.240.235
     - domain: www.vavel.com
-      ipaddress: 190.93.241.103
+      ipaddress: 190.93.243.103
     - domain: www.wayn.com
-      ipaddress: 141.101.112.110
+      ipaddress: 190.93.243.109
     - domain: www.webmastersitesi.com
       ipaddress: 141.101.120.109
     - domain: www.whatismyip.com
       ipaddress: 141.101.120.15
     - domain: www.whmcs.com
-      ipaddress: 190.93.241.179
+      ipaddress: 104.20.20.8
     - domain: www.wphub.com
       ipaddress: 162.159.242.55
     - domain: www.yokboylebirsey.com.tr
-      ipaddress: 162.159.244.252
+      ipaddress: 162.159.245.252
     - domain: www.yougetsignal.com
       ipaddress: 141.101.127.83
     - domain: www.zaman.com.tr
-      ipaddress: 141.101.114.170
+      ipaddress: 190.93.245.170
     - domain: www.zopim.com
       ipaddress: 190.93.240.200
     - domain: www.zumba.com
-      ipaddress: 190.93.246.77
+      ipaddress: 190.93.245.77
     - domain: x-kom.pl
       ipaddress: 104.20.29.24
     - domain: xat.com
-      ipaddress: 141.101.123.82
+      ipaddress: 190.93.240.82
     - domain: xendan.org
-      ipaddress: 190.93.243.133
+      ipaddress: 108.162.205.126
     - domain: yell.ru
-      ipaddress: 190.93.254.197
+      ipaddress: 198.41.191.82
     - domain: yifysubtitles.com
       ipaddress: 141.101.127.79
     - domain: youm7.com
-      ipaddress: 104.16.18.116
+      ipaddress: 104.16.17.116
     - domain: yourbittorrent.com
-      ipaddress: 198.41.202.40
+      ipaddress: 198.41.203.40
     - domain: yourdailyscoop.com
-      ipaddress: 162.159.248.210
+      ipaddress: 162.159.249.210
     - domain: yourvideofile.org
       ipaddress: 198.41.249.128
     - domain: yyv.co
-      ipaddress: 141.101.112.66
+      ipaddress: 190.93.242.65
     - domain: z6.com
       ipaddress: 162.159.248.121
     - domain: zemtv.com
@@ -1384,7 +1340,7 @@ client:
     - domain: zentrum-der-gesundheit.de
       ipaddress: 141.101.112.102
     - domain: zerozero.pt
-      ipaddress: 198.41.185.108
+      ipaddress: 198.41.190.107
     - domain: zurb.com
       ipaddress: 104.20.4.2
     - domain: zwaar.net
