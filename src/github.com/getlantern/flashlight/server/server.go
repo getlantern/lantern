@@ -45,6 +45,7 @@ type Server struct {
 
 	CertContext                *fronted.CertContext // context for certificate management
 	AllowNonGlobalDestinations bool                 // if true, requests to LAN, Loopback, etc. will be allowed
+	AllowedPorts               []int                // if specified, only connections to these ports will be allowed
 
 	waddellClient  *waddell.Client
 	nattywadServer *nattywad.Server
@@ -114,6 +115,7 @@ func (server *Server) ListenAndServe() error {
 		WriteTimeout:               server.WriteTimeout,
 		CertContext:                server.CertContext,
 		AllowNonGlobalDestinations: server.AllowNonGlobalDestinations,
+		AllowedPorts:               server.AllowedPorts,
 	}
 
 	if server.cfg.Unencrypted {
