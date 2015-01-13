@@ -3,7 +3,6 @@ package enproxy
 import (
 	"bytes"
 	"io"
-	"sync"
 )
 
 // request is an outgoing request to the upstream proxy
@@ -31,10 +30,8 @@ type bufferingRequestStrategy struct {
 // streamingRequestStrategy is an implementation of requestStrategy that streams
 // requests upstream.
 type streamingRequestStrategy struct {
-	c               *Conn
-	writer          *io.PipeWriter
-	requestErr      error
-	requestErrMutex sync.Mutex
+	c      *Conn
+	writer *io.PipeWriter
 }
 
 // Writes the given buffer to the upstream proxy encapsulated in an HTTP
@@ -92,13 +89,6 @@ func (brs *bufferingRequestStrategy) write(b []byte) (int, error) {
 // Writes the given buffer to the upstream proxy encapsulated in an HTTP
 // request.
 func (srs *streamingRequestStrategy) write(b []byte) (int, error) {
-	srs.requestErrMutex.Lock()
-	defer srs.requestErrMutex.Unlock()
-
-	if srs.requestErr != nil {
-		return 0, srs.requestErr
-	}
-
 	if srs.writer == nil {
 		// Lazily initialize our next request to the proxy
 		// Construct a pipe for piping data to proxy
@@ -112,12 +102,10 @@ func (srs *streamingRequestStrategy) write(b []byte) (int, error) {
 			return 0, io.EOF
 		}
 		go func() {
-			// Drain requestFinishedCh
+			// Drain the requestFinishedCh
 			err := <-srs.c.requestFinishedCh
-			if err != nil {
-				srs.requestErrMutex.Lock()
-				defer srs.requestErrMutex.Unlock()
-				srs.requestErr = err
+			if err != nil && err != io.EOF {
+				srs.c.fail(err)
 			}
 		}()
 	}
