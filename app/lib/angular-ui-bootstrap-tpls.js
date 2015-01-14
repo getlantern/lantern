@@ -978,9 +978,19 @@ angular.module('ui.bootstrap.position', [])
               var mousePos = $position.mouse(),
                 top = mousePos.y,
                 left = mousePos.x;
+
+              // move the tooltip left and/or up if the mouse is too close to
+              // the bottom or right edge of the window for the tooltip to fit
+              if (top + targetElHeight > $window.innerHeight) {
+                  top -= targetElHeight;
+              }
+              if (left + targetElWidth > $window.innerWidth) {
+                  left -= targetElWidth;
+              }
+
               targetElPos = {
                 top: top,
-                left: left - 100
+                left: left
               };
             break;
           case 'left':
