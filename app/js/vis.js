@@ -400,9 +400,11 @@ angular.module('app.vis', ['ngSanitize'])
       // Handle resize
       scope.$on("mapResized", function() {
 
+        d3.selectAll('#countries path').attr('d', scope.path);
+
         // Whenever the map resizes, we need to re-render the peers and arcs
         renderPeers(scope.model.peers, scope.model.peers);
-        
+
         // The above render call left the arcs alone because there were no
         // changes.  We now need to do some additional maintenance on the arcs.
         
@@ -415,6 +417,8 @@ angular.module('app.vis', ['ngSanitize'])
         peersContainer.selectAll("path.connection.active")
           .attr("stroke-dashoffset", 0)
           .attr("stroke-dasharray", getDashArray);
+
+        scope.redraw(scope.zoom.translate(), scope.zoom.scale());
       });
     };
   });
