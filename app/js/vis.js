@@ -494,10 +494,6 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
 
       var translate = $scope.zoom.translate();
 
-      /*translate[0] = Math.min(width / 2 * (scale - 1), 
-                     Math.max(width / 2 * (1 - scale), translate[0])
-                             );*/
-
       /* reset translation matrix */
       $scope.transMatrix = [scale, 0, 0, scale, 
         translate[0], translate[1]]; 
