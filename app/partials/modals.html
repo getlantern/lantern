@@ -29,14 +29,14 @@
           ng-model="message" tabindex="{{ show && 2 || '' }}" focus-on="show"
           placeholder="{{'MESSAGE_PLACEHOLDER'|translate}}" ng-maxlength="500000"></textarea><!-- XXX https://github.com/angular/angular.js/issues/1405 -->
         <div class="text-error pagination-centered" ng-show="contactForm.contactMsg.$error.maxlength">
-          {{ 'ERROR_TOO_LONG' | i18n:(contactForm.contactMsg.$viewValue.length - CONTACT_FORM_MAXLEN) }}&nbsp;
+          {{ 'ERROR_TOO_LONG' | translate:'{value: (contactForm.contactMsg.$viewValue.length - CONTACT_FORM_MAXLEN) }' }}&nbsp;
         </div>
         <details class="diagnosticInfo">
           <summary>{{'DIAGNOSTIC_INFO'|translate}}</summary>
           <textarea class="diagnosticInfo" name="diagnosticInfo" ng-model="diagnosticInfo"
             ng-maxlength="500000"></textarea><!-- XXX https://github.com/angular/angular.js/issues/1405 -->
           <div class="text-error pagination-centered" ng-show="contactForm.diagnosticInfo.$error.maxlength">
-            {{ 'ERROR_TOO_LONG' | i18n:(contactForm.diagnosticInfo.$viewValue.length - CONTACT_FORM_MAXLEN) }}&nbsp;
+            {{ 'ERROR_TOO_LONG' | translate: '{value:(contactForm.diagnosticInfo.$viewValue.length - CONTACT_FORM_MAXLEN) }' }}&nbsp;
           </div>
         </details>
       </div>
@@ -72,14 +72,14 @@
           ng-model="message" tabindex="{{ show && 2 || '' }}" focus-on="show"
           placeholder="{{'MESSAGE_PLACEHOLDER'|translate}}" ng-maxlength="500000"></textarea><!-- XXX https://github.com/angular/angular.js/issues/1405 -->
         <div class="text-error pagination-centered" ng-show="contactForm.contactMsg.$error.maxlength">
-          {{ 'ERROR_TOO_LONG' | i18n:(contactForm.contactMsg.$viewValue.length - CONTACT_FORM_MAXLEN) }}&nbsp;
+          {{ 'ERROR_TOO_LONG' | translate: '{value:(contactForm.contactMsg.$viewValue.length - CONTACT_FORM_MAXLEN) }' }}&nbsp;
         </div>
         <details class="diagnosticInfo">
           <summary>{{'DIAGNOSTIC_INFO'| translate}}</summary>
           <textarea class="diagnosticInfo" name="diagnosticInfo" ng-model="diagnosticInfo"
             ng-maxlength="500000"></textarea><!-- XXX https://github.com/angular/angular.js/issues/1405 -->
           <div class="text-error pagination-centered" ng-show="contactForm.diagnosticInfo.$error.maxlength">
-            {{ 'ERROR_TOO_LONG' | i18n:(contactForm.diagnosticInfo.$viewValue.length - CONTACT_FORM_MAXLEN) }}&nbsp;
+            {{ 'ERROR_TOO_LONG' | translate: '{ value: (contactForm.diagnosticInfo.$viewValue.length - CONTACT_FORM_MAXLEN) }' }}&nbsp;
           </div>
         </details>
       </div>
@@ -276,7 +276,7 @@
         {{ 'PROXIED_SITES_WIKI_TIP_CONTINUED' | translate }}
       </p>
       <div class="error" ui-toggle="errorLabelKey">
-        {{ errorLabelKey && (errorLabelKey | i18n) || '' }}
+        {{ errorLabelKey && (errorLabelKey | translate) || '' }}
         <pre class="errorCause" ng-show="!!errorCause">{{ errorCause }}</pre>
       </div>
     </div>
@@ -286,7 +286,7 @@
     <button id="continueFromProxiedSites" 
             type="button" class="btn btn-primary" tabindex="{{ show && 2 || '' }}"
             ng-disabled="updating || proxiedSitesForm.$invalid"
-            ng-click="handleContinue()">{{ updating && 'UPDATING' || (hasUpdate && 'UPDATE') || (model.setupComplete && 'CLOSE' || 'CONTINUE') | i18n }}</button>
+            ng-click="handleContinue()">{{ updating && 'UPDATING' || (hasUpdate && 'UPDATE') || (model.setupComplete && 'CLOSE' || 'CONTINUE') | translate }}</button>
   </div>
 </div>
 
@@ -448,17 +448,17 @@
     <div class="smaller" compile-unsafe="'CONTACT_PRELUDE' | i18n"></div>
     <form name="contactForm">
       <textarea class="report" name="contactMsg" ng-model="message" tabindex="{{ show && 1 || '' }}"
-        focus-on="show" placeholder="{{'MESSAGE_PLACEHOLDER'|i18n}}"
+        focus-on="show" placeholder="{{'MESSAGE_PLACEHOLDER'| translate}}"
         ng-maxlength="500000" required></textarea><!-- XXX https://github.com/angular/angular.js/issues/1405 -->
       <div class="text-error pagination-centered" ng-show="contactForm.contactMsg.$error.maxlength">
-        {{ 'ERROR_TOO_LONG' | i18n:(contactForm.contactMsg.$viewValue.length - CONTACT_FORM_MAXLEN) }}&nbsp;
+          {{ 'ERROR_TOO_LONG' | translate:'{value : (contactForm.contactMsg.$viewValue.length - CONTACT_FORM_MAXLEN) }' }}&nbsp;
       </div>
       <details class="diagnosticInfo">
         <summary>{{'DIAGNOSTIC_INFO'|translate}}</summary>
         <textarea class="diagnosticInfo" name="diagnosticInfo" ng-model="diagnosticInfo"
           ng-maxlength="500000"></textarea><!-- XXX https://github.com/angular/angular.js/issues/1405 -->
         <div class="text-error pagination-centered" ng-show="contactForm.diagnosticInfo.$error.maxlength">
-          {{ 'ERROR_TOO_LONG' | i18n:(contactForm.diagnosticInfo.$viewValue.length - CONTACT_FORM_MAXLEN) }}&nbsp;
+            {{ 'ERROR_TOO_LONG' | translate: '{value: (contactForm.diagnosticInfo.$viewValue.length - CONTACT_FORM_MAXLEN) }' }}&nbsp;
         </div>
       </details>
     </form>
@@ -514,7 +514,7 @@
   <div class="modal-body" id="updateAvailable">
     <p>{{ 'UPDATE_AVAILABLE_PROMPT' | translate }}</p>
     <details open id="latestDetails">
-      <summary><span class="capitalize">{{ 'VERSION' | upper | i18n }}</span> {{ model.version.latest | version:true }}</summary>
+      <summary><span class="capitalize">{{ 'VERSION' | upper | translate }}</span> {{ model.version.latest | version:true }}</summary>
       <dl class="dl-horizontal">
         <dt>{{ 'RELEASED' | translate }}</dt>
         <!-- XXX include correct locale script from http://code.angularjs.org/1.0.8/i18n/ 
