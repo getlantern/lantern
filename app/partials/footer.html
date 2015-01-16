@@ -1,23 +1,19 @@
 <div id="footer">
   <div id="offline" ng-show="model.connectivity.internet == false">
-    {{ 'CONNECTION_OFFLINE' | i18n }}
+    {{ 'CONNECTION_OFFLINE' | translate }}
   </div>
   <div ng-show="model.connectivity.internet != false">
     <div id="still-connecting" ng-show="inGetMode && model.connectivity.nproxies == -1">
-      {{ 'CONNECTING' | i18n }}<br>
+      {{ 'CONNECTING' | translate }}<br>
     </div>
     <div id="noproxies" ng-show="inGetMode && model.connectivity.nproxies == 0">
-      {{ 'NO_PROXIES' | i18n }}<br>
-      <!--
-      {{ 'WAIT_FOR_FRIEND_OR' | i18n }}
-      <a class="always-underlined warning-colored" ng-click="interaction(INTERACTION.sponsor)">{{ 'SPONSOR_NOW' | i18n }}</a>
-      -->
+      {{ 'NO_PROXIES' | translate }}<br>
     </div>
     <div id="stats" ng-show="!inGetMode || model.connectivity.nproxies > 0">
       <div ng-show="statsLoaded">
-        {{ 'NUSERS_ONLINE' | i18n:(model.globalStats.gauges.userOnline || 0) }} ·
-        {{ 'NUSERS_EVER' | i18n:(model.globalStats.gauges.userOnlineEver + model.globalStats.counters.userOnlineEverOld) }} ·
-        {{ model.globalStats.counters.bytesGotten | prettyBytes }} {{ 'TRANSFERRED_GLOBALLY' | i18n }}
+          {{ model.globalStats.gauges.userOnline == 1 ? "NUSERS_ONLINE_1" : "NUSERS_ONLINE_OTHER" | translate:'{value: model.globalStats.gauges.userOnline}'  }} ·
+          {{ "NUSERS_EVER_OTHER" | translate: '{value: model.glboalStats.gauges.userOnlineEver + model.globalStats.counters.userOnlineEverOld}' }} ·
+        {{ model.globalStats.counters.bytesGotten | prettyBytes }} {{ 'TRANSFERRED_GLOBALLY' | translate }}
       </div>
       <div ng-hide="statsLoaded">
         <!-- just show an empty line instead of "Loading stats..." -->
@@ -30,17 +26,17 @@
   </div>
 
   <div id="appInfo">
-    {{ 'LANTERN' | i18n }}
+    {{ 'LANTERN' | translate }}
     {{ model.version.installed | version:true }}
     <span ng-show="model.version.updateAvailable" class="update-available">
       · <i class="icon-exclamation-sign"></i>
-      <a ng-click="interaction(INTERACTION.updateAvailable)">{{ 'UPDATE_AVAILABLE_TITLE' | i18n }}</a>
+      <a ng-click="interaction(INTERACTION.updateAvailable)">{{ 'UPDATE_AVAILABLE_TITLE' | translate }}</a>
     </span>
     <span>
-      · <a ng-click="interaction(INTERACTION.about)">{{ 'ABOUT' | i18n }}</a>
+      · <a ng-click="interaction(INTERACTION.about)">{{ 'ABOUT' | translate }}</a>
     </span>
     <span>
-      · <a ng-click="interaction(INTERACTION.contact)">{{ 'CONTACT' | i18n }}</a>
+      · <a ng-click="interaction(INTERACTION.contact)">{{ 'CONTACT' | translate }}</a>
     </span>
     <!--
     <span>
@@ -54,7 +50,7 @@
             ng-disabled="!model.setupComplete"
             ng-click="interaction(INTERACTION.lanternFriends)"
             ng-class="{active: model.modal == MODAL.lanternFriends}"
-            tooltip="{{ 'LANTERN_FRIENDS' | i18n }}">
+            tooltip="{{ 'LANTERN_FRIENDS' | translate }}">
       <i class="lsf-icon lsf-friends"></i>
     </button>
     <button type="button" class="btn btn-large btn-inverse"
@@ -62,14 +58,14 @@
             ng-show="inGetMode"
             ng-click="interaction(INTERACTION.proxiedSites)"
             ng-class="{active: model.modal == MODAL.proxiedSites}"
-            tooltip="{{ 'PROXIED_SITES_TITLE' | i18n }}">
+            tooltip="{{ 'PROXIED_SITES_TITLE' | translate }}">
       <i class="lsf-icon lsf-web"></i>
     </button>
     <button type="button" class="btn btn-large btn-inverse"
             ng-disabled="!model.setupComplete"
             ng-click="interaction(INTERACTION.settings)"
             ng-class="{active: model.modal == MODAL.settings}"
-            tooltip="{{ 'SETTINGS' | i18n }}">
+            tooltip="{{ 'SETTINGS' | translate }}">
       <i class="lsf-icon lsf-gear"></i>
     </button>
   </div>

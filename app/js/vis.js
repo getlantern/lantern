@@ -28,14 +28,14 @@ angular.module('app.vis', ['ngSanitize'])
       element.attr('d', d);
     };
   })
-  .directive('countries', function ($compile, $timeout) {
+  .directive('countries', function ($compile, $timeout, $window) {
     function ttTmpl(alpha2) {
       return '<div class="vis" style="min-width:150px; cursor:pointer;">'+
         '<div class="header">{{ "'+alpha2+'" | translate }}</div>'+
-        '<div class="give-colored">{{ "NUSERS_ONLINE" | i18n:model.countries.'+alpha2+'.stats.gauges.userOnlineGiving || 0:true }} {{ "GIVING_ACCESS" | translate }}</div>'+
-        '<div class="get-colored">{{ "NUSERS_ONLINE" | i18n:model.countries.'+alpha2+'.stats.gauges.userOnlineGetting || 0:true }} {{ "GETTING_ACCESS" | translate }}</div>'+
+        '<div class="give-colored">{{ (model.countries.'+ alpha2+'.stats.gauges.userOnlineGiving == 1 ? "NUSERS_ONLINE_1" : "NUSERS_ONLINE_OTHER") | translate: \'{ value: model.countries.'+alpha2+'.stats.gauges.userOnlineGiving || 0 }\' }} {{ "GIVING_ACCESS" | translate }}</div>'+
+        '<div class="get-colored">{{ (model.countries.'+alpha2+'.stats.gauges.userOnlineGetting == 1 ? "NUSERS_ONLINE_1" : "NUSERS_ONLINE_OTHER") | translate: \'{value: model.countries.'+alpha2+'.stats.gauges.userOnlineGetting || 0 }\' }} {{ "GETTING_ACCESS" | translate }}</div>'+
         '<div class="nusers {{ (!model.countries.'+alpha2+'.stats.gauges.userOnlineEver && !model.countries.'+alpha2+'.stats.counters.userOnlineEverOld) && \'gray\' || \'\' }}">'+
-          '{{ "NUSERS_EVER" | i18n:(model.countries.'+alpha2+'.stats.gauges.userOnlineEver + model.countries.'+alpha2+'.stats.gauges.userOnlineEverOld) }}'+
+          '{{ (model.countries.'+alpha2+'.stats.gauges.userOnlineEver + model.countries.'+alpha2+'.stats.gauges.userOnlineEverOld) == 1 ? "NUSERS_EVER_1" : "NUSERS_EVER_OTHER" | translate: \'{ value: (model.countries.'+alpha2+'.stats.gauges.userOnlineEver + model.countries.'+alpha2+'.stats.gauges.userOnlineEverOld) }\' }}'+
         '</div>'+
         '<div class="stats">'+
           '<div class="bps{{ model.countries.'+alpha2+'.bps || 0 }}">'+
@@ -316,7 +316,7 @@ angular.module('app.vis', ['ngSanitize'])
         // Configure hover areas for all peers
         allPeers.select("g.peer path.peer-hover-area")
         .attr("d", function(peer) {
-          return scope.path({type: 'Point', coordinates: [peer.lon, peer.lat]}, 1);
+          return scope.path({type: 'Point', coordinates: [peer.lon, peer.lat]}, 2);
         });
         
         // Add arcs for new peers
