@@ -19,7 +19,6 @@ import javax.swing.SwingUtilities;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.lantern.browser.BrowserService;
-import org.lantern.state.SyncService;
 import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.ProxyConnectionEvent;
@@ -59,7 +58,6 @@ public class SystemTrayImpl implements org.lantern.SystemTray {
     private final static String ICON_CONNECTED = "16on.png";
 
     private final BrowserService browserService;
-    private final SyncService syncService;
     private final Model model;
     private String connectionStatusText;
     private Image trayImage;
@@ -70,10 +68,8 @@ public class SystemTrayImpl implements org.lantern.SystemTray {
      */
     @Inject
     public SystemTrayImpl(final BrowserService browserService,
-            final SyncService syncService,
             final Model model) {
         this.browserService = browserService;
-        this.syncService = syncService;
         this.model = model;
         Events.register(this);
     }
@@ -149,12 +145,7 @@ public class SystemTrayImpl implements org.lantern.SystemTray {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     log.debug("Reopening browser?");
-                    if (syncService.getBrowserType().equals("Chrome") &&
-                        syncService.clientSynced()) {
-                        syncService.sendClientPing();
-                    } else {
-                        browserService.reopenBrowser();
-                    }
+                    browserService.reopenBrowser();
                 }
             });
             menu.add(dashboardItem);
