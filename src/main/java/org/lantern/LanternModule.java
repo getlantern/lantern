@@ -195,7 +195,6 @@ public class LanternModule extends AbstractModule {
 
     @Provides @Singleton
     SystemTray provideSystemTray(final BrowserService browserService,
-        final SyncService syncService,
         final Model model) {
         if (SystemUtils.IS_OS_LINUX) {
             try {
@@ -205,7 +204,7 @@ public class LanternModule extends AbstractModule {
                          + "falling back to generic system tray");
             }
         }
-        return new SystemTrayImpl(browserService, syncService, model);
+        return new SystemTrayImpl(browserService, model);
     }
 
     @Provides @Singleton
