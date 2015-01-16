@@ -49,7 +49,8 @@ var app = angular.module('app', [
   .value('ui.config', {
     animate: 'ui-hide',
   })
-  .run(function ($filter, $log, $rootScope, $timeout, $window, apiSrvc, gaMgr, modelSrvc, ENUMS, EXTERNAL_URL, LANTERNUI_VER, MODAL, CONTACT_FORM_MAXLEN) {
+  .run(function ($filter, $log, $rootScope, $timeout, $window, 
+                 $translate, apiSrvc, gaMgr, modelSrvc, ENUMS, EXTERNAL_URL, LANTERNUI_VER, MODAL, CONTACT_FORM_MAXLEN) {
     var CONNECTIVITY = ENUMS.CONNECTIVITY,
         MODE = ENUMS.MODE,
         i18nFltr = $filter('i18n'),
@@ -169,10 +170,18 @@ var app = angular.module('app', [
       location.reload(true); // true to bypass cache and force request to server
     };
 
+    $rootScope.switchLang = function (lang) {
+        $rootScope.lang = lang;
+        $translate.use(lang);
+    };
+
     $rootScope.interaction = function (interactionid, extra) {
       var stopTracking = interactionid === INTERACTION.reset && model.modal === MODAL.confirmReset;
       return apiSrvc.interaction(interactionid, extra)
         .success(function(data, status, headers, config) {
+          if (extra && extra.lang !== 'undefined') {
+              $rootScope.switchLang(extra.lang);
+          }
           $log.debug('interaction(', interactionid, extra || '', ') successful');
           if (stopTracking) {
             gaMgr.stopTracking();
