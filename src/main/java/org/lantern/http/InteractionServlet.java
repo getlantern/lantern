@@ -217,8 +217,8 @@ public class InteractionServlet extends HttpServlet {
         }
 
         if (inter == Interaction.BROWSERREF) {
-            final String clientBrowser = JsonUtils.getValueFromJson("type", json);
-            syncService.setClientBrowser(clientBrowser);
+            final String browserType = JsonUtils.getValueFromJson("type", json);
+            syncService.setBrowserType(browserType);
             return;
         }
 

@@ -149,7 +149,7 @@ public class SystemTrayImpl implements org.lantern.SystemTray {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     log.debug("Reopening browser?");
-                    if (syncService.getClientBrowser().equals("Chrome") &&
+                    if (syncService.getBrowserType().equals("Chrome") &&
                         syncService.clientSynced()) {
                         syncService.sendClientPing();
                     } else {
