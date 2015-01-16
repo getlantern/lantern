@@ -10,7 +10,6 @@ import org.cometd.annotation.Session;
 import org.cometd.bayeux.Channel;
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.ConfigurableServerChannel;
-import org.cometd.bayeux.client.ClientSessionChannel;
 import org.cometd.bayeux.server.ServerSession;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternService;
@@ -45,8 +44,6 @@ public class SyncService implements LanternService {
 
     private final Timer timer;
 
-    private boolean clientSynced;
-
     /**
      * Creates a new sync service.
      *
@@ -59,7 +56,6 @@ public class SyncService implements LanternService {
         this.strategy = strategy;
         this.model = model;
         this.timer = timer;
-        this.clientSynced = false;
         // Make sure the config class is added as a listener before this class.
         Events.register(this);
     }
@@ -88,15 +84,6 @@ public class SyncService implements LanternService {
         }
     }
 
-    public void sendClientPing() {
-        delegateSync(SyncType.PING, SyncPath.PING, "");
-        log.debug("Sending ping to client");
-    }
-
-    public boolean clientSynced() {
-        return clientSynced;
-    }
-
     @Configure("/service/sync")
     private void configureSync(final ConfigurableServerChannel channel) {
         channel.setPersistent(true);
@@ -114,24 +101,11 @@ public class SyncService implements LanternService {
                 log.info("Syncing with frontend...");
                 delegateSync(SyncPath.ALL, model);
                 Events.asyncEventBus().post(new UiLoadedEvent());
-                clientSynced = true;
-                /* when the server receives a disconnect message
-                 * from the client or the session expires
-                 * the rmeove listener is triggered
-                 */
-                remote.addListener(
-                    new ServerSession.RemoveListener() {
-                        public void removed(ServerSession session, 
-                            boolean timeout) {
-                            clientSynced = false;
-                            log.info("Frontend disconnected...");
-                        }
-                });
             }
+
         }, "CometD-Sync-OnConnect-Thread");
         t.setDaemon(true);
         t.start();
-
     }
 
     @Subscribe
