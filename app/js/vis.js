@@ -316,7 +316,7 @@ angular.module('app.vis', ['ngSanitize'])
         // Configure hover areas for all peers
         allPeers.select("g.peer path.peer-hover-area")
         .attr("d", function(peer) {
-          return scope.path({type: 'Point', coordinates: [peer.lon, peer.lat]}, 5);
+          return scope.path({type: 'Point', coordinates: [peer.lon, peer.lat]}, 1);
         });
         
         // Add arcs for new peers
@@ -450,7 +450,7 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
       var self = document.getElementById("self");
       var lat = self.getAttribute("lat");
       var lon = self.getAttribute("lon");
-      if (self.getAttribute('d') !== 'undefined' &&
+      if (self.getAttribute('d') != null &&
           lat != '' && lon != '') {
         var d = {type: 'Point', coordinates: [lon, 
                 lat]};
@@ -478,6 +478,7 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
           return path(d);
       });
 
+
       /* adjust gaussian blur by zoom level */
       if (scale > 2) {
           $scope.filterBlur.attr("stdDeviation", Math.min(1.0, 1/scale));
@@ -497,7 +498,7 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
       /* reset translation matrix */
       $scope.transMatrix = [scale, 0, 0, scale, 
         translate[0], translate[1]]; 
-      
+
       d3.select("#zoomGroup").attr("transform", 
         "translate(" + translate.join(",") + ")scale(" + scale + ")");
     
