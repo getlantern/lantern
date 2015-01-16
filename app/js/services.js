@@ -102,7 +102,6 @@ angular.module('app.services', [])
       }
       if (!wasConnected && connected) { // reconnected
         log.debug('connection established');
-        $rootScope.sendBrowserInfo();
         $rootScope.$apply(function () {
           $rootScope.cometdConnected = true;
         });
@@ -194,10 +193,6 @@ angular.module('app.services', [])
       // https://github.com/getlantern/lantern/issues/587
       if (patch[0].path !== '' && _.isEmpty(model)) {
         log.debug('ignoring', msg, 'while model has not yet been populated');
-        return;
-      }
-      if (patch[0].path == '/ping') {
-        alert("Lantern UI is already running!");
         return;
       }
       try {
