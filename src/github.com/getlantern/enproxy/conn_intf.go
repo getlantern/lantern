@@ -123,6 +123,9 @@ type Conn struct {
 	/* Fields for tracking activity/closed status */
 	lastActivityTime  time.Time    // time of last read or write
 	lastActivityMutex sync.RWMutex // mutex controlling access to lastActivityTime
+	asyncErr          error        // error that occurred during asynchronous processing
+	asyncErrMutex     sync.RWMutex // mutex guarding asyncErr
+	asyncErrCh        chan error   // channel used to interrupted any waiting reads/writes with an async error
 	closed            bool         // whether or not this Conn is closed
 	closedMutex       sync.RWMutex // mutex controlling access to closed flag
 
@@ -187,12 +190,21 @@ type hostWithResponse struct {
 
 // Write() implements the function from net.Conn
 func (c *Conn) Write(b []byte) (n int, err error) {
+	err = c.getAsyncErr()
+	if err != nil {
+		return
+	}
+
 	if c.submitWrite(b) {
-		res, ok := <-c.writeResponsesCh
-		if !ok {
-			return 0, io.EOF
-		} else {
-			return res.n, res.err
+		select {
+		case res, ok := <-c.writeResponsesCh:
+			if !ok {
+				return 0, io.EOF
+			} else {
+				return res.n, res.err
+			}
+		case err := <-c.asyncErrCh:
+			return 0, err
 		}
 	} else {
 		return 0, io.EOF
@@ -201,16 +213,50 @@ func (c *Conn) Write(b []byte) (n int, err error) {
 
 // Read() implements the function from net.Conn
 func (c *Conn) Read(b []byte) (n int, err error) {
+	err = c.getAsyncErr()
+	if err != nil {
+		return
+	}
+
 	if c.submitRead(b) {
-		res, ok := <-c.readResponsesCh
-		if !ok {
-			return 0, io.EOF
-		} else {
-			return res.n, res.err
+		select {
+		case res, ok := <-c.readResponsesCh:
+			if !ok {
+				return 0, io.EOF
+			} else {
+				return res.n, res.err
+			}
+		case err := <-c.asyncErrCh:
+			return 0, err
 		}
 	} else {
 		return 0, io.EOF
 	}
+}
+
+func (c *Conn) fail(err error) {
+	c.asyncErrMutex.Lock()
+	if c.asyncErr != nil {
+		c.asyncErr = err
+	}
+	c.asyncErrMutex.Unlock()
+
+	// Let any waiting readers or writers know about the error
+	for i := 0; i < 2; i++ {
+		select {
+		case c.asyncErrCh <- err:
+			// submitted okay
+		default:
+			// channel full, continue
+		}
+	}
+}
+
+func (c *Conn) getAsyncErr() error {
+	c.asyncErrMutex.RLock()
+	err := c.asyncErr
+	c.asyncErrMutex.RUnlock()
+	return err
 }
 
 // Close() implements the function from net.Conn

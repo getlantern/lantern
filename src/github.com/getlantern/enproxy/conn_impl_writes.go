@@ -54,12 +54,7 @@ func (c *Conn) processWrites() {
 				c.rs.write(emptyBytes)
 			}
 
-			err := c.rs.finishBody()
-			if err != nil {
-				c.writeResponsesCh <- rwResponse{0, err}
-				return
-			}
-
+			c.rs.finishBody()
 			firstRequest = false
 		}
 	}
