@@ -94,7 +94,7 @@ func TestNonGlobalAddressNoHost(t *testing.T) {
 
 func doTestNonGlobalAddress(t *testing.T, overrideAddr string) {
 	l := startServer(t, false, nil)
-	d := dialerFor(t, l)
+	d := dialerFor(t, l, 0)
 	defer d.Close()
 
 	gotConn := false
@@ -151,7 +151,7 @@ func TestAllowedPorts(t *testing.T) {
 	}
 	// Only allow some port other than the actual port
 	l := startServer(t, true, []int{port + 1})
-	d := dialerFor(t, l)
+	d := dialerFor(t, l, 0)
 	defer d.Close()
 
 	addr := tl.Addr().String()
@@ -167,9 +167,17 @@ func TestAllowedPorts(t *testing.T) {
 	assert.False(t, gotConn, "Sending data to disallowed port should never have resulted in connection")
 }
 
-func TestRoundTrip(t *testing.T) {
+func TestRoundTripPooled(t *testing.T) {
 	l := startServer(t, true, nil)
-	d := dialerFor(t, l)
+	d := dialerFor(t, l, 30)
+	defer d.Close()
+
+	proxy.Test(t, d)
+}
+
+func TestRoundTripUnpooled(t *testing.T) {
+	l := startServer(t, true, nil)
+	d := dialerFor(t, l, 0)
 	defer d.Close()
 
 	proxy.Test(t, d)
@@ -280,7 +288,7 @@ func startServer(t *testing.T, allowNonGlobal bool, allowedPorts []int) net.List
 	return l
 }
 
-func dialerFor(t *testing.T, l net.Listener) *Dialer {
+func dialerFor(t *testing.T, l net.Listener, poolSize int) *Dialer {
 	host, portString, err := net.SplitHostPort(l.Addr().String())
 	if err != nil {
 		t.Fatalf("Unable to split host and port: %v", err)
@@ -293,6 +301,7 @@ func dialerFor(t *testing.T, l net.Listener) *Dialer {
 	return NewDialer(&Config{
 		Host:               host,
 		Port:               port,
+		PoolSize:           poolSize,
 		InsecureSkipVerify: true,
 	})
 }

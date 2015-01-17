@@ -53,6 +53,7 @@ func (s *FrontedServerInfo) dialer(masqueradeSets map[string][]*fronted.Masquera
 	fd := fronted.NewDialer(&fronted.Config{
 		Host:               s.Host,
 		Port:               s.Port,
+		PoolSize:           30,
 		InsecureSkipVerify: s.InsecureSkipVerify,
 		BufferRequests:     s.BufferRequests,
 		DialTimeoutMillis:  s.DialTimeoutMillis,

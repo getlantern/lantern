@@ -46,6 +46,11 @@ type Config struct {
 	// verified when the Dialer starts.
 	Masquerades []*Masquerade
 
+	// PoolSize: if greater than 0, outbound connections will be pooled in an
+	// eagerly loading connection pool. This can reduce latency when using
+	// enproxy.
+	PoolSize int
+
 	// InsecureSkipVerify: if true, server's certificate is not verified.
 	InsecureSkipVerify bool
 
@@ -96,6 +101,9 @@ type Dialer struct {
 }
 
 // NewDialer creates a new Dialer for the given Config.
+// WARNING - depending on configuration, this Dialer may contain a connection
+// pool and/or a set of Masquerades that will leak resources.  Make sure to call
+// Close() to clean these up when the Dialer is no longer in use.
 func NewDialer(cfg *Config) *Dialer {
 	d := &Dialer{
 		Config:     cfg,
@@ -104,13 +112,21 @@ func NewDialer(cfg *Config) *Dialer {
 	if d.Masquerades != nil {
 		d.masquerades = d.verifiedMasquerades()
 	}
-	d.connPool = &connpool.Pool{
-		MinSize:      30,
-		ClaimTimeout: idleTimeout,
-		Dial:         d.dialServer,
+	if cfg.PoolSize > 0 {
+		d.connPool = &connpool.Pool{
+			MinSize:      30,
+			ClaimTimeout: idleTimeout,
+			Dial:         d.dialServer,
+		}
 	}
 	d.enproxyConfig = d.enproxyConfigWith(func(addr string) (net.Conn, error) {
-		conn, err := d.connPool.Get()
+		var conn net.Conn
+		var err error
+		if d.connPool != nil {
+			conn, err = d.connPool.Get()
+		} else {
+			conn, err = d.dialServer()
+		}
 		if d.OnDial != nil {
 			conn, err = d.OnDial(conn, err)
 		}
