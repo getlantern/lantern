@@ -26,26 +26,6 @@ func New(domain string, username string, apiKey string) (*Util, error) {
 	return &Util{client, nil, domain}, nil
 }
 
-func (util *Util) RemoveIpFromRotation(ip string, subdomain string) error {
-	Rotation, err := util.GetRotationRecords(subdomain)
-	if err != nil {
-		return err
-	}
-	return util.RemoveIpFromRotationRecords(ip, Rotation)
-
-}
-
-func (util *Util) RemoveIpFromRotationRecords(ip string, Rotation []cloudflare.Record) error {
-	for _, rec := range Rotation {
-		if rec.Value == ip {
-			log.Tracef("Destroying record: %v", rec.Value)
-			err := util.Client.DestroyRecord(rec.Domain, rec.Id)
-			return err
-		}
-	}
-	return nil
-}
-
 func (util *Util) GetRotationRecords(subdomain string) ([]cloudflare.Record, error) {
 	recs, err := util.GetAllRecords()
 	if err != nil {
@@ -82,4 +62,49 @@ func (util *Util) GetAllRecords() ([]cloudflare.Record, error) {
 	log.Trace("Setting cached records")
 	util.Cached = allRecords
 	return allRecords, nil
+}
+
+func (util *Util) Register(name string, ip string) (*cloudflare.Record, error) {
+	cr := cloudflare.CreateRecord{Type: "A", Name: name, Content: ip}
+	rec, err := util.Client.CreateRecord(util.domain, &cr)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Update the record to set the ServiceMode to 1 (orange cloud). For
+	// whatever reason we can't do this on create.
+	// Note for some reason CloudFlare seems to ignore the TTL here.
+	ur := cloudflare.UpdateRecord{Type: "A", Name: name, Content: ip, Ttl: "360", ServiceMode: "1"}
+	err = util.Client.UpdateRecord(util.domain, rec.Id, &ur)
+	if err != nil {
+		log.Tracef("Error updating record %v, destroying", rec)
+		err2 := util.Client.DestroyRecord(util.domain, rec.Id)
+		if err2 != nil {
+			log.Errorf("Unable to destroy incomplete record %v: %v", rec, err2)
+		}
+		return nil, err
+	}
+
+	return rec, nil
+}
+
+func (util *Util) RemoveIpFromRotation(ip string, subdomain string) error {
+	Rotation, err := util.GetRotationRecords(subdomain)
+	if err != nil {
+		return err
+	}
+	return util.RemoveIpFromRotationRecords(ip, Rotation)
+
+}
+
+func (util *Util) RemoveIpFromRotationRecords(ip string, Rotation []cloudflare.Record) error {
+	for _, rec := range Rotation {
+		if rec.Value == ip {
+			log.Tracef("Destroying record: %v", rec.Value)
+			err := util.Client.DestroyRecord(util.Domain, rec.Id)
+			return err
+		}
+	}
+	return nil
 }

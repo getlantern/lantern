@@ -4,14 +4,12 @@ import (
 	"fmt"
 	"github.com/getlantern/cloudflare"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 	"sync/atomic"
 	"time"
 
 	"github.com/getlantern/flashlight/client"
-	"github.com/getlantern/peerscanner/common"
 )
 
 var (
@@ -25,6 +23,9 @@ var (
 
 // host represents a host entry in CloudFlare
 type host struct {
+	name string
+	ip   string
+
 	record     cloudflare.Record
 	peers      *group
 	fallbacks  *group
@@ -45,8 +46,8 @@ func (h *host) run() {
 
 		// Attempt to proxy
 		start := time.Now()
-		log.Printf("Testing %v", h.hostname())
-		err := common.AttemptToProxy(h.fullHostname(), "GET")
+		log.Printf("Testing %v", h.name)
+		err := AttemptToProxy(h.fullName(), "GET")
 		if err != nil {
 			log.Print(err)
 			cf = atomic.AddInt32(&h.consecutiveFailures, 1)
@@ -56,24 +57,73 @@ func (h *host) run() {
 			continue
 		}
 
-		log.Printf("%v is able to proxy!", h.hostname())
-		h.registerIfNecessary()
+		log.Printf("%v is able to proxy!", h.name)
+		err = h.register()
+		if err != nil {
+			log.Error(err)
+		}
 
 		// Limit the rate at which we run successful tests
 		time.Sleep(start.Add(hostTestRateLimit).Sub(time.Now()))
 	}
 }
 
-func (h *host) register() {
-	if h.isFallback() {
-		h.fallbacks.register(h)
-		h.roundrobin.register(h)
-	} else {
-		h.peers.register(h)
+func (h *host) register() error {
+	log.Debugf("Regisering %v", h.name)
+
+	err := registerHost()
+	if err != nil {
+		return fmt.Errorf("Unable to register host: %v", err)
 	}
+	err = registerRotations()
+	if err != nil {
+		return fmt.Errorf("Unable to register rotations: %v", err)
+	}
+	return nil
+}
+
+func (h *host) registerHost() error {
+	rec, err := cf.Register(h.name, h.ip)
+	if err == nil {
+		h.record = rec
+	}
+	return err
+}
+
+func (h *host) registerRotations() error {
+	if h.isFallback() {
+		err := h.fallbacks.register(h)
+		if err != nil {
+			return err
+		}
+		return h.roundrobin.register(h)
+	}
+	return h.peers.register(h)
 }
 
 func (h *host) deregister() {
+	log.Debugf("Deregistering %v", h.name)
+
+	h.deregisterHost()
+	h.deregisterRotations()
+}
+
+func (h *host) deregisterHost() {
+	if h.record == nil {
+		log.Tracef("Host not registered, no need to deregister: %v", h.name)
+		return
+	}
+
+	err := util.Client.DestroyRecord(h.record.Domain, h.record.Id)
+	if err != nil {
+		log.Errorf("Unable to deregister host %v: %v", h.name, err)
+		return
+	}
+
+	h.record = nil
+}
+
+func (h *host) deregisterRotations() {
 	if h.isFallback() {
 		h.fallbacks.deregister(h)
 		h.roundrobin.deregister(h)
@@ -82,14 +132,10 @@ func (h *host) deregister() {
 	}
 }
 
-func (h *host) hostname() string {
-	return h.record.Name
-}
-
-func (h *host) fullHostname() string {
-	return h.hostname() + ".getiantem.org"
+func (h *host) fullName() string {
+	return h.name + ".getiantem.org"
 }
 
 func (h *host) isFallback() bool {
-	return strings.HasPrefix(h.record.Name, "fl-")
+	return isFallback(h.name)
 }

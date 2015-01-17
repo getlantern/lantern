@@ -14,26 +14,8 @@ import (
 	"time"
 
 	"github.com/getlantern/cf"
+	"github.com/getlantern/cloudflare"
 	"github.com/getlantern/golog"
-)
-
-const (
-	MASQUERADE_AS = "cdnjs.com"
-	ROOT_CA       = "-----BEGIN CERTIFICATE-----\nMIIDdTCCAl2gAwIBAgILBAAAAAABFUtaw5QwDQYJKoZIhvcNAQEFBQAwVzELMAkG\nA1UEBhMCQkUxGTAXBgNVBAoTEEdsb2JhbFNpZ24gbnYtc2ExEDAOBgNVBAsTB1Jv\nb3QgQ0ExGzAZBgNVBAMTEkdsb2JhbFNpZ24gUm9vdCBDQTAeFw05ODA5MDExMjAw\nMDBaFw0yODAxMjgxMjAwMDBaMFcxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9i\nYWxTaWduIG52LXNhMRAwDgYDVQQLEwdSb290IENBMRswGQYDVQQDExJHbG9iYWxT\naWduIFJvb3QgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDaDuaZ\njc6j40+Kfvvxi4Mla+pIH/EqsLmVEQS98GPR4mdmzxzdzxtIK+6NiY6arymAZavp\nxy0Sy6scTHAHoT0KMM0VjU/43dSMUBUc71DuxC73/OlS8pF94G3VNTCOXkNz8kHp\n1Wrjsok6Vjk4bwY8iGlbKk3Fp1S4bInMm/k8yuX9ifUSPJJ4ltbcdG6TRGHRjcdG\nsnUOhugZitVtbNV4FpWi6cgKOOvyJBNPc1STE4U6G7weNLWLBYy5d4ux2x8gkasJ\nU26Qzns3dLlwR5EiUWMWea6xrkEmCMgZK9FGqkjWZCrXgzT/LCrBbBlDSgeF59N8\n9iFo7+ryUp9/k5DPAgMBAAGjQjBAMA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMBAf8E\nBTADAQH/MB0GA1UdDgQWBBRge2YaRQ2XyolQL30EzTSo//z9SzANBgkqhkiG9w0B\nAQUFAAOCAQEA1nPnfE920I2/7LqivjTFKDK1fPxsnCwrvQmeU79rXqoRSLblCKOz\nyj1hTdNGCbM+w6DjY1Ub8rrvrTnhQ7k4o+YviiY776BQVvnGCv04zcQLcFGUl5gE\n38NflNUVyRRBnMRddWQVDf9VMOyGj/8N7yy5Y0b2qvzfvGn9LhJIZJrglfCm7ymP\nAbEVtQwdpf5pLGkkeB6zpxxxYu7KyJesF12KwvhHhm4qxFYxldBniYUr+WymXUad\nDKqC5JlR3XC321Y9YeRq4VzW9v493kHMB65jUr9TU/Qr6cf9tveCX4XSQRjbgbME\nHMUfpIBvFSDJ3gyICh3WZlXi/EjJKSZp4A==\n-----END CERTIFICATE-----\n"
-	ROUNDROBIN    = "test_roundrobin"
-	PEERS         = "test_peers"
-	FALLBACKS     = "test_fallbacks"
-)
-
-var (
-	log = golog.LoggerFor("peerscanner")
-
-	port     = flag.Int("port", 62443, "Port, defaults to 62443")
-	cfdomain = flag.String("cfdomain", "getiantem.org", "CloudFlare domain, defaults to getiantem.org")
-	cfuser   = flag.String("cfuser", "", "CloudFlare username")
-	cfkey    = flag.String("cfkey", "", "CloudFlare api key")
-
-	cfutil *cf.Util
 )
 
 type Reg struct {
@@ -42,29 +24,10 @@ type Reg struct {
 	Port int
 }
 
-var cf = common.NewCloudFlareUtil()
-
-func main() {
-	if cf == nil {
-		panic("Could not create CloudFlare client?")
-		return
-	}
-
-	go func() {
-		// We periodically grab all the records in CloudFlare to avoid making constant
-		// calls to add or remove records that are already either present or absent.
-		cf.GetAllRecords()
-		for {
-			select {
-			case <-time.After(20 * time.Second):
-				log.Println("Refreshing cf records")
-				cf.GetAllRecords()
-			}
-		}
-	}()
+func startHttp() {
 	http.HandleFunc("/register", register)
 	http.HandleFunc("/unregister", unregister)
-	http.ListenAndServe(getPort(), nil)
+	http.ListenAndServe(*port, nil)
 }
 
 // register is the entry point for peers registering themselves with the service.
@@ -213,6 +176,7 @@ func registerPeer(reg *Reg) {
 		log.Println("No cached records")
 	}
 	cr := cloudflare.CreateRecord{Type: "A", Name: reg.Name, Content: reg.Ip}
+	cr.
 	rec, err := cf.Client.CreateRecord(common.CF_DOMAIN, &cr)
 
 	if err != nil {
@@ -264,34 +228,12 @@ func requestToReg(r *http.Request) (*Reg, error) {
 }
 
 func clientIpFor(req *http.Request) string {
-	// If we're running in production on Heroku, use the IP of the client.
-	// Otherwise use whatever IP is passed to the API.
-	if onHeroku() {
-		// Client requested their info
-		clientIp := req.Header.Get("X-Forwarded-For")
-		if clientIp == "" {
-			clientIp = strings.Split(req.RemoteAddr, ":")[0]
-		}
-		// clientIp may contain multiple ips, use the first
-		ips := strings.Split(clientIp, ",")
-		return strings.TrimSpace(ips[0])
-	} else {
-		return req.FormValue("ip")
+	// Client requested their info
+	clientIp := req.Header.Get("X-Forwarded-For")
+	if clientIp == "" {
+		clientIp = strings.Split(req.RemoteAddr, ":")[0]
 	}
-}
-
-// Get the Port from the environment so we can run on Heroku
-func getPort() string {
-	var port = os.Getenv("PORT")
-	// Set a default port if there is nothing in the environment
-	if port == "" {
-		port = "7777"
-		fmt.Println("INFO: No PORT environment variable detected, defaulting to " + port)
-	}
-	return ":" + port
-}
-
-func onHeroku() bool {
-	var dyno = os.Getenv("DYNO")
-	return dyno != ""
+	// clientIp may contain multiple ips, use the first
+	ips := strings.Split(clientIp, ",")
+	return strings.TrimSpace(ips[0])
 }

@@ -79,7 +79,7 @@ func testHosts() {
 		if isPeer(record) {
 			//log.Println("PEER: ", record.Value)
 			hosts = append(hosts, &host{record, 1, peerGroups})
-		} else if strings.HasPrefix(record.Name, "fl-") {
+		} else if isFallback(record) {
 			//log.Println("SERVER: ", record.Name, record.Value)
 			hosts = append(hosts, &host{record, 10, fallbackGroups})
 		} else if record.Name == common.ROUNDROBIN {
@@ -229,6 +229,10 @@ func isPeer(r cloudflare.Record) bool {
 	// peer GUID. While it's possible something else could have a subdomain
 	// this long, it's unlikely.
 	return len(r.Name) == 32
+}
+
+func isFallback(r cloudflare.Record) bool {
+	return strings.HasPrefix(h.record.Name, "fl-")
 }
 
 func clientFor(upstreamHost string, masqueradeHost string, rootCA string) *http.Client {
