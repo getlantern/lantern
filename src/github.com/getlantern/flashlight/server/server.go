@@ -7,6 +7,7 @@ import (
 	"os"
 	"reflect"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -242,7 +243,7 @@ func determineInternalIP() (string, error) {
 }
 
 func onBytesGiven(destAddr string, req *http.Request, bytes int64) {
-	_, port, _ := net.SplitHostPort(destAddr)
+	host, port, _ := net.SplitHostPort(destAddr)
 	if port == "" {
 		port = "0"
 	}
@@ -258,5 +259,15 @@ func onBytesGiven(destAddr string, req *http.Request, bytes int64) {
 		givenTo := statreporter.Country(clientCountry)
 		givenTo.Increment("bytesGivenTo").Add(bytes)
 		givenTo.Increment("bytesGivenToByFlashlight").Add(bytes)
+		givenTo.Member("distinctDestHosts", host)
+
+		clientIp := req.Header.Get("X-Forwarded-For")
+		if clientIp != "" {
+			// clientIp may contain multiple ips, use the first
+			ips := strings.Split(clientIp, ",")
+			clientIp := strings.TrimSpace(ips[0])
+			givenTo.Member("distinctClients", clientIp)
+		}
+
 	}
 }
