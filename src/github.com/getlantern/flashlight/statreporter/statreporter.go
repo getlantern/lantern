@@ -47,7 +47,7 @@ type dimGroupAccumulator struct {
 	categories map[string]stats
 }
 
-type stats map[string]int64
+type stats map[string]interface{} // either int64 or string
 
 type report map[string]interface{}
 
@@ -147,11 +147,23 @@ func (r *reporter) run() {
 					categoryStats = make(stats)
 					dgAccum.categories[update.category] = categoryStats
 				}
-				switch update.action {
+				switch a := update.action.(type) {
 				case set:
-					categoryStats[update.key] = update.val
+					categoryStats[update.key] = int64(a)
 				case add:
-					categoryStats[update.key] = categoryStats[update.key] + update.val
+					existing, found := categoryStats[update.key]
+					if !found {
+						categoryStats[update.key] = int64(a)
+					} else {
+						categoryStats[update.key] = existing.(int64) + int64(a)
+					}
+				case member:
+					existing, found := categoryStats[update.key]
+					if !found {
+						categoryStats[update.key] = map[string]bool{string(a): true}
+					} else {
+						existing.(map[string]bool)[string(a)] = true
+					}
 				}
 			case <-timer.C:
 				r.post()
@@ -196,8 +208,22 @@ func (dgAccum *dimGroupAccumulator) makeReport() report {
 		"dims": dgAccum.dg.dims,
 	}
 
-	for category, accum := range dgAccum.categories {
-		report[category] = accum
+	for category, s := range dgAccum.categories {
+		if category == members {
+			// Transform maps into arrays
+			s2 := make(stats)
+
+			for k, v := range s {
+				m := v.(map[string]bool)
+				a := make([]string, 0, len(m))
+				for member := range m {
+					a = append(a, member)
+				}
+				s2[k] = a
+			}
+			s = s2
+		}
+		report[category] = s
 	}
 
 	return report
@@ -216,11 +242,13 @@ func posterForDimGroupStats(cfg *Config) reportPoster {
 			return fmt.Errorf("Unable to post stats to statshub: %s", err)
 		}
 		defer resp.Body.Close()
+
+		jsonString := string(jsonBytes)
 		if resp.StatusCode != 200 {
-			return fmt.Errorf("Unexpected response status posting stats to statshub: %d", resp.StatusCode)
+			return fmt.Errorf("Unexpected response status posting stats %s to statshub: %d", jsonString, resp.StatusCode)
 		}
 
-		log.Debugf("Reported %s to statshub", string(jsonBytes))
+		log.Debugf("Reported %s to statshub", jsonString)
 		return nil
 	}
 }
