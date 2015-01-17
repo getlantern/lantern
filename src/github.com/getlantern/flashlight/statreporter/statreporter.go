@@ -216,7 +216,7 @@ func (dgAccum *dimGroupAccumulator) makeReport() report {
 			for k, v := range s {
 				m := v.(map[string]bool)
 				a := make([]string, 0, len(m))
-				for member, _ := range m {
+				for member := range m {
 					a = append(a, member)
 				}
 				s2[k] = a
