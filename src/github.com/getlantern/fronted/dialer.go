@@ -141,15 +141,7 @@ func (d *Dialer) Dial(network, addr string) (net.Conn, error) {
 		return nil, fmt.Errorf("Protocol %s is not supported, only tcp is supported", network)
 	}
 
-	conn := &enproxy.Conn{
-		Addr:   addr,
-		Config: d.enproxyConfig,
-	}
-	err := conn.Connect()
-	if err != nil {
-		return nil, err
-	}
-	return conn, nil
+	return enproxy.Dial(addr, d.enproxyConfig)
 }
 
 // Close closes the dialer, in particular closing the underlying connection
@@ -175,15 +167,7 @@ func (d *Dialer) HttpClientUsing(masquerade *Masquerade) *http.Client {
 	return &http.Client{
 		Transport: &http.Transport{
 			Dial: func(network, addr string) (net.Conn, error) {
-				conn := &enproxy.Conn{
-					Addr:   addr,
-					Config: enproxyConfig,
-				}
-				err := conn.Connect()
-				if err != nil {
-					return nil, err
-				}
-				return conn, nil
+				return enproxy.Dial(addr, enproxyConfig)
 			},
 		},
 	}

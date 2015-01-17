@@ -78,11 +78,11 @@ var (
 //      from the destination server, return EOF to the reader
 //
 type Conn struct {
-	// Addr: the host:port of the destination server that we're trying to reach
-	Addr string
+	// addr: the host:port of the destination server that we're trying to reach
+	addr string
 
-	// Config: configuration of this Conn
-	Config *Config
+	// config: configuration of this Conn
+	config *Config
 
 	// initialResponseCh: Self-reported FQDN of the proxy serving this connection
 	// plus initial response from proxy.
