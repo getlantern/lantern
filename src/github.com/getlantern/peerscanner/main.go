@@ -13,7 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/getlantern/cf"
+	"./cf"
+	"github.com/getlantern/cloudflare"
 	"github.com/getlantern/golog"
 )
 
@@ -34,6 +35,7 @@ var (
 	cfkey    = flag.String("cfkey", "", "CloudFlare api key")
 
 	cfutil *cf.Util
+	groups map[string]map[string]cloudflare.Record
 )
 
 type Reg struct {
@@ -45,6 +47,30 @@ type Reg struct {
 var cf = common.NewCloudFlareUtil()
 
 func main() {
+	parseFlags()
+	connectToCloudFlare()
+}
+
+func parseFlags() {
+	flag.Parse()
+	if *cfuser == "" {
+		log.Fatalf("Please specify a cfuser")
+	}
+	if *cfkey == "" {
+		log.Fatalf("Please specify a cfkey")
+	}
+}
+
+func connectToCloudFlare() {
+	var err error
+	cfutil, err = cf.New(*cfdomain, *cfuser, *cfkey)
+	if err != nil {
+		log.Fatalf("Unable to create CloudFlare utility: %v", err)
+	}
+}
+
+
+
 	if cf == nil {
 		panic("Could not create CloudFlare client?")
 		return
