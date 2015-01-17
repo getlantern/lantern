@@ -3,6 +3,7 @@ github.com/getlantern/buuid
 github.com/getlantern/bytecounting
 github.com/getlantern/byteexec
 github.com/getlantern/chained
+github.com/getlantern/cf
 github.com/getlantern/connpool
 github.com/getlantern/deepcopy
 github.com/getlantern/enproxy
