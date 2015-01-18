@@ -1,6 +1,12 @@
-// main simply contains the primary web serving code that allows peers to
-// register and unregister as give mode peers running within the Lantern
-// network
+// peerscanner is program that maintains proxy hosts in CloudFlare's DNS based
+// on whether or not the peers are currently online. Online status is determined
+// based on whether or not we can successfully proxy requests to popular sites
+// like www.google.com in a reasonable amount of time via each host.
+//
+// Peers are registered and unregistered via a web-baesd API (see file web.go).
+//
+// Each host is modeled as an actor with its own goroutine that constantly
+// tests connectivity via the host.
 package main
 
 import (
@@ -67,39 +73,19 @@ func connectToCloudFlare() {
 	}
 }
 
-func getOrCreateHost(name string, ip string) *host {
-	hostsMutex.Lock()
-	defer hostsMutex.Unlock()
+/*******************************************************************************
+ * Functions for managing map of hosts
+ ******************************************************************************/
 
-	h := hostsByIp[ip]
-	if h == nil {
-		h := newHost(name, ip, nil)
-		hostsByIp[ip] = h
-		go h.run()
-		return h
-	}
-	h.reset(name)
-	return h
-}
-
-func getHostByIp(ip string) *host {
-	hostsMutex.Lock()
-	defer hostsMutex.Unlock()
-	return hostsByIp[ip]
-}
-
-func removeHost(h *host) {
-	hostsMutex.Lock()
-	delete(hostsByIp, h.ip)
-	defer hostsMutex.Unlock()
-}
-
+// loadHosts loads the initial list of hosts based on what's in CloudFlare's
+// DNS at startup.
 func loadHosts() (map[string]*host, error) {
 	recs, err := cfutil.GetAllRecords()
 	if err != nil {
 		return nil, fmt.Errorf("Unable to load hosts: %v", err)
 	}
 
+	// Keep track of different rotations
 	groups := map[string]map[string]*cloudflare.Record{
 		RoundRobin: make(map[string]*cloudflare.Record),
 		Fallbacks:  make(map[string]*cloudflare.Record),
@@ -174,6 +160,33 @@ func removeFromRotation(wg *sync.WaitGroup, k string, r *cloudflare.Record) {
 		log.Debugf("Unable to remove %v from %v: %v", r.Value, k, err)
 	}
 	wg.Done()
+}
+
+func getOrCreateHost(name string, ip string) *host {
+	hostsMutex.Lock()
+	defer hostsMutex.Unlock()
+
+	h := hostsByIp[ip]
+	if h == nil {
+		h := newHost(name, ip, nil)
+		hostsByIp[ip] = h
+		go h.run()
+		return h
+	}
+	h.reset(name)
+	return h
+}
+
+func getHostByIp(ip string) *host {
+	hostsMutex.Lock()
+	defer hostsMutex.Unlock()
+	return hostsByIp[ip]
+}
+
+func removeHost(h *host) {
+	hostsMutex.Lock()
+	delete(hostsByIp, h.ip)
+	defer hostsMutex.Unlock()
 }
 
 func isPeer(name string) bool {
