@@ -130,9 +130,12 @@ func (h *host) doRun() {
 			lastSuccess = time.Now()
 			lastTest = time.Time{}
 			if newName != h.name {
-				log.Debugf("hostname for %v changed to %v", h, newName)
+				log.Debugf("Hostname for %v changed to %v", h, newName)
 				h.name = newName
-				h.record = nil
+				if h.record != nil {
+					log.Debugf("Deregistering old hostname %v", h.name)
+					h.doDeregisterHost()
+				}
 			}
 		case <-h.unregisterCh:
 			log.Debugf("Unregistering %v and terminating", h)
@@ -257,7 +260,10 @@ func (h *host) deregisterHost() {
 	}
 
 	log.Debugf("Deregistering %v", h)
+	h.doDeregisterHost()
+}
 
+func (h *host) doDeregisterHost() {
 	err := cfutil.DestroyRecord(h.record)
 	if err != nil {
 		log.Errorf("Unable to deregister host %v: %v", h, err)
