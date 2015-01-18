@@ -85,17 +85,11 @@ func loadHosts() (map[string]*host, error) {
 		return nil, fmt.Errorf("Unable to load hosts: %v", err)
 	}
 
-	// Keep track of different rotations
+	// Keep track of different groups of hosts
 	groups := map[string]map[string]*cloudflare.Record{
 		RoundRobin: make(map[string]*cloudflare.Record),
 		Fallbacks:  make(map[string]*cloudflare.Record),
 		Peers:      make(map[string]*cloudflare.Record),
-	}
-	hosts := make(map[string]*host, 0)
-
-	addHost := func(r cloudflare.Record) {
-		h := newHost(r.Name, r.Value, &r)
-		hosts[h.ip] = h
 	}
 
 	addToGroup := func(name string, r cloudflare.Record) {
@@ -103,6 +97,15 @@ func loadHosts() (map[string]*host, error) {
 		groups[name][r.Value] = &r
 	}
 
+	// Build map of existing hosts
+	hosts := make(map[string]*host, 0)
+
+	addHost := func(r cloudflare.Record) {
+		h := newHost(r.Name, r.Value, &r)
+		hosts[h.ip] = h
+	}
+
+	// Look through all records to find peers, fallbacks and groups
 	for _, r := range recs {
 		// We just check the length of the subdomain here, which is the unique
 		// peer GUID. While it's possible something else could have a subdomain
@@ -124,7 +127,7 @@ func loadHosts() (map[string]*host, error) {
 		}
 	}
 
-	// Update hosts with rotation info
+	// Update hosts with group info
 	for _, h := range hosts {
 		for _, hg := range h.groups {
 			g, found := groups[hg.subdomain]
