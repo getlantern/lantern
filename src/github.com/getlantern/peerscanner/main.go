@@ -31,11 +31,9 @@ var (
 
 	cfutil *cf.Util
 
-	// Map of all hosts being tracked by us, keyed to the combination of
-	// name+ip.  We use the combination of name+ip so that we can smoothly
-	// handle hosts of a given name changing their ip.
-	hosts      map[hostkey]*host
-	hostsMutex sync.Mutex
+	hostsByName map[string]*host
+	hostsByIp   map[string]*host
+	hostsMutex  sync.Mutex
 )
 
 func main() {
@@ -43,7 +41,7 @@ func main() {
 	connectToCloudFlare()
 
 	var err error
-	hosts, err = loadHosts()
+	hostsByIp, err = loadHosts()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -73,33 +71,30 @@ func getOrCreateHost(name string, ip string) *host {
 	hostsMutex.Lock()
 	defer hostsMutex.Unlock()
 
-	key := hostkey{name, ip}
-	h := hosts[key]
+	h := hostsByIp[ip]
 	if h == nil {
-		h := newHost(key, nil)
-		hosts[key] = h
+		h := newHost(name, ip, nil)
+		hostsByIp[ip] = h
 		go h.run()
 		return h
 	}
-	h.reset()
+	h.reset(name)
 	return h
 }
 
-func getHost(name string, ip string) *host {
+func getHostByIp(ip string) *host {
 	hostsMutex.Lock()
 	defer hostsMutex.Unlock()
-
-	key := hostkey{name, ip}
-	return hosts[key]
+	return hostsByIp[ip]
 }
 
 func removeHost(h *host) {
 	hostsMutex.Lock()
-	delete(hosts, h.key)
+	delete(hostsByIp, h.ip)
 	defer hostsMutex.Unlock()
 }
 
-func loadHosts() (map[hostkey]*host, error) {
+func loadHosts() (map[string]*host, error) {
 	recs, err := cfutil.GetAllRecords()
 	if err != nil {
 		return nil, fmt.Errorf("Unable to load hosts: %v", err)
@@ -110,12 +105,11 @@ func loadHosts() (map[hostkey]*host, error) {
 		Fallbacks:  make(map[string]*cloudflare.Record),
 		Peers:      make(map[string]*cloudflare.Record),
 	}
-	hosts := make(map[hostkey]*host, 0)
+	hosts := make(map[string]*host, 0)
 
 	addHost := func(r cloudflare.Record) {
-		key := hostkey{r.Name, r.Value}
-		h := newHost(key, &r)
-		hosts[h.key] = h
+		h := newHost(r.Name, r.Value, &r)
+		hosts[h.ip] = h
 	}
 
 	addToGroup := func(name string, r cloudflare.Record) {
@@ -149,8 +143,8 @@ func loadHosts() (map[hostkey]*host, error) {
 		for _, hg := range h.groups {
 			g, found := groups[hg.subdomain]
 			if found {
-				hg.existing = g[h.key.ip]
-				delete(g, h.key.ip)
+				hg.existing = g[h.ip]
+				delete(g, h.ip)
 			}
 		}
 	}

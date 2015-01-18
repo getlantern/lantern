@@ -8,7 +8,6 @@ import (
 	"net"
 	"net/http"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/getlantern/cloudflare"
@@ -37,42 +36,40 @@ var (
 	testSites = []string{"www.google.com", "www.youtube.com", "www.facebook.com"}
 )
 
-// hostkey is a unique key for a host
-type hostkey struct {
-	name string // e.g. fl-singapore-004-1
-	ip   string // e.g. 66.66.67.183
-}
-
-func (k hostkey) String() string {
-	return fmt.Sprintf("%v (%v)", k.name, k.ip)
+type status struct {
+	online            bool
+	connectionRefused bool
 }
 
 // host is an actor that represents a host entry in CloudFlare and is
 // responsible for checking connectivity to the host and updating CloudFlare DNS
 // accordingly.
 type host struct {
-	key    hostkey
+	name   string
+	ip     string
 	record *cloudflare.Record
 	groups map[string]*group
 
-	online            bool
-	connectionRefused bool
-	statusReady       sync.WaitGroup
-	statusMutex       sync.RWMutex
-
-	resetCh      chan interface{}
+	resetCh      chan string
 	unregisterCh chan interface{}
+	statusCh     chan chan *status
 
 	proxiedClient *http.Client
 }
 
-// newHost creates a new host for the given name+ip and optional DNS record.
-func newHost(key hostkey, record *cloudflare.Record) *host {
+func (h *host) String() string {
+	return fmt.Sprintf("%v (%v)", h.name, h.ip)
+}
+
+// newHost creates a new host for the given name, ip and optional DNS record.
+func newHost(name string, ip string, record *cloudflare.Record) *host {
 	h := &host{
-		key:          key,
+		name:         name,
+		ip:           ip,
 		record:       record,
-		resetCh:      make(chan interface{}, 1),
+		resetCh:      make(chan string, 1000),
 		unregisterCh: make(chan interface{}, 1),
+		statusCh:     make(chan chan *status, 1000),
 		proxiedClient: &http.Client{
 			Transport: &http.Transport{
 				Dial: func(network, addr string) (net.Conn, error) {
@@ -80,12 +77,12 @@ func newHost(key hostkey, record *cloudflare.Record) *host {
 						DialProxy: func(addr string) (net.Conn, error) {
 							return tlsdialer.DialWithDialer(&net.Dialer{
 								Timeout: dialTimeout,
-							}, "tcp", key.ip+":443", true, &tls.Config{
+							}, "tcp", ip+":443", true, &tls.Config{
 								InsecureSkipVerify: true,
 							})
 						},
 						NewRequest: func(upstreamHost string, method string, body io.Reader) (req *http.Request, err error) {
-							return http.NewRequest(method, "http://"+key.ip+"/", body)
+							return http.NewRequest(method, "http://"+ip+"/", body)
 						},
 					})
 				},
@@ -104,7 +101,6 @@ func newHost(key hostkey, record *cloudflare.Record) *host {
 			Peers: &group{subdomain: Peers},
 		}
 	}
-	h.statusReady.Add(1)
 
 	return h
 }
@@ -129,38 +125,38 @@ func (h *host) doRun() {
 		terminateTimer.Reset(lastSuccess.Add(terminateAfter).Sub(time.Now()))
 
 		select {
-		case <-h.resetCh:
+		case newName := <-h.resetCh:
 			// Host notified us of its presence
 			lastSuccess = time.Now()
 			lastTest = time.Time{}
+			if newName != h.name {
+				log.Debugf("hostname for %v changed to %v", h, newName)
+				h.name = newName
+				h.record = nil
+			}
 		case <-h.unregisterCh:
-			log.Debugf("Unregistering %v and terminating", h.key)
+			log.Debugf("Unregistering %v and terminating", h)
 			h.terminate()
 			return
 		case <-terminateTimer.C:
-			log.Debugf("%v had no successul checks or resets in %v, terminating", h.key, terminateAfter)
+			log.Debugf("%v had no successul checks or resets in %v, terminating", h, terminateAfter)
 			h.terminate()
 			return
 		case <-periodTimer.C:
-			log.Tracef("Testing %v", h.key)
-			success, connectionRefused, err := h.isAbleToProxy()
+			log.Tracef("Testing %v", h.name)
+			online, connectionRefused, err := h.isAbleToProxy()
+			h.reportStatus(online, connectionRefused)
 			lastTest = time.Now()
-			h.statusMutex.Lock()
-			h.online, h.connectionRefused = success, connectionRefused
-			h.statusMutex.Unlock()
-			if first {
-				h.statusReady.Done()
-				first = false
-			}
-			if success {
-				log.Tracef("Test for %v successful", h.key)
+			first = false
+			if online {
+				log.Tracef("Test for %v successful", h)
 				lastSuccess = time.Now()
 				err := h.register()
 				if err != nil {
 					log.Error(err)
 				}
 			} else {
-				log.Tracef("Test for %v failed with error: %v", h.key, err)
+				log.Tracef("Test for %v failed with error: %v", h, err)
 				// Deregister this host from its rotations. We leave the host
 				// itself registered to support continued sticky routing in case
 				// any clients still have connections open to it.
@@ -171,10 +167,22 @@ func (h *host) doRun() {
 }
 
 func (h *host) status() (online bool, connectionRefused bool) {
-	h.statusReady.Wait()
-	h.statusMutex.RLock()
-	defer h.statusMutex.RUnlock()
-	return h.online, h.connectionRefused
+	sch := make(chan *status)
+	h.statusCh <- sch
+	s := <-sch
+	return s.online, s.connectionRefused
+}
+
+func (h *host) reportStatus(online bool, connectionRefused bool) {
+	s := &status{online, connectionRefused}
+	for {
+		select {
+		case sch := <-h.statusCh:
+			sch <- s
+		default:
+			return
+		}
+	}
 }
 
 func (h *host) terminate() {
@@ -182,21 +190,16 @@ func (h *host) terminate() {
 	h.deregister()
 }
 
-func (h *host) reset() {
-	select {
-	case h.resetCh <- nil:
-		log.Tracef("Resetting host %v", h.key)
-	default:
-		log.Tracef("Already resetting host %v, ignoring new request", h.key)
-	}
+func (h *host) reset(name string) {
+	h.resetCh <- name
 }
 
 func (h *host) unregister() {
 	select {
 	case h.unregisterCh <- nil:
-		log.Tracef("Unregistering host %v", h.key)
+		log.Tracef("Unregistering host %v", h)
 	default:
-		log.Tracef("Already unregistering host %v, ignoring new request", h.key)
+		log.Tracef("Already unregistering host %v, ignoring new request", h)
 	}
 }
 
@@ -214,13 +217,13 @@ func (h *host) register() error {
 
 func (h *host) registerHost() error {
 	if h.record != nil {
-		log.Tracef("Host already registered, no need to re-register: %v", h.key)
+		log.Tracef("Host already registered, no need to re-register: %v", h)
 		return nil
 	}
 
-	log.Debugf("Registering %v", h.key)
+	log.Debugf("Registering %v", h)
 
-	rec, err := cfutil.Register(h.key.name, h.key.ip)
+	rec, err := cfutil.Register(h.name, h.ip)
 	if err == nil {
 		h.record = rec
 	}
@@ -244,20 +247,20 @@ func (h *host) deregister() {
 
 func (h *host) deregisterHost() {
 	if h.record == nil {
-		log.Tracef("Host not registered, no need to deregister: %v", h.key)
+		log.Tracef("Host not registered, no need to deregister: %v", h)
 		return
 	}
 
 	if true {
-		log.Debugf("Currently not deregistering hosts like %v", h.key)
+		log.Debugf("Currently not deregistering hosts like %v", h)
 		return
 	}
 
-	log.Debugf("Deregistering %v", h.key)
+	log.Debugf("Deregistering %v", h)
 
 	err := cfutil.DestroyRecord(h.record)
 	if err != nil {
-		log.Errorf("Unable to deregister host %v: %v", h.key, err)
+		log.Errorf("Unable to deregister host %v: %v", h, err)
 		return
 	}
 
@@ -271,11 +274,11 @@ func (h *host) deregisterFromRotations() {
 }
 
 func (h *host) fullName() string {
-	return h.key.name + ".getiantem.org"
+	return h.name + ".getiantem.org"
 }
 
 func (h *host) isFallback() bool {
-	return isFallback(h.key.name)
+	return isFallback(h.name)
 }
 
 func (h *host) isAbleToProxy() (bool, bool, error) {
@@ -301,7 +304,7 @@ func (h *host) doIsAbleToProxy() (bool, bool, error) {
 	// TCP-level error is consumed in the flashlight layer, and we need that
 	// to be accessible on the client side in the logic for deciding whether
 	// or not to display the port mapping message.
-	addr := h.key.ip + ":443"
+	addr := h.ip + ":443"
 	conn, err := net.DialTimeout("tcp", addr, dialTimeout)
 	if err != nil {
 		err2 := fmt.Errorf("Unable to connect to %v: %v", addr, err)
@@ -313,13 +316,13 @@ func (h *host) doIsAbleToProxy() (bool, bool, error) {
 	site := testSites[rand.Intn(len(testSites))]
 	resp, err := h.proxiedClient.Head("http://" + site)
 	if err != nil {
-		err2 := fmt.Errorf("Unable to proxy to %v via %v: %v", site, h.key.ip, err)
+		err2 := fmt.Errorf("Unable to proxy to %v via %v: %v", site, h.ip, err)
 		return false, false, err2
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 && resp.StatusCode != 301 {
-		err2 := fmt.Errorf("Proxying to %v via %v returned unexpected status %d,", site, h.key.ip, resp.StatusCode)
+		err2 := fmt.Errorf("Proxying to %v via %v returned unexpected status %d,", site, h.ip, resp.StatusCode)
 		return false, false, err2
 	}
 

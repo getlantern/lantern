@@ -14,13 +14,13 @@ type group struct {
 // registered.
 func (g *group) register(h *host) error {
 	if g.existing != nil {
-		log.Tracef("%v is already registered in %v, no need to re-register:", h.key, g.subdomain)
+		log.Tracef("%v is already registered in %v, no need to re-register:", h, g.subdomain)
 		return nil
 	}
 
-	log.Debugf("Registering to %v: %v", g.subdomain, h.key)
+	log.Debugf("Registering to %v: %v", g.subdomain, h)
 
-	rec, err := cfutil.Register(g.subdomain, h.key.ip)
+	rec, err := cfutil.Register(g.subdomain, h.ip)
 	if err == nil {
 		g.existing = rec
 	}
@@ -31,16 +31,16 @@ func (g *group) register(h *host) error {
 // currently registered
 func (g *group) deregister(h *host) {
 	if g.existing == nil {
-		log.Tracef("%v is not registered in %v, no need to deregister", h.key, g.subdomain)
+		log.Tracef("%v is not registered in %v, no need to deregister", h, g.subdomain)
 		return
 	}
 
-	log.Debugf("Deregistering from %v: %v", g.subdomain, h.key)
+	log.Debugf("Deregistering from %v: %v", g.subdomain, h)
 
 	// Destroy the record in the rotation...
-	err := cfutil.RemoveIpFromRotation(h.key.ip, g.subdomain)
+	err := cfutil.RemoveIpFromRotation(h.ip, g.subdomain)
 	if err != nil {
-		log.Errorf("Unable to deregister host %v from rotation %v: %v", h.key, g.subdomain, err)
+		log.Errorf("Unable to deregister host %v from rotation %v: %v", h, g.subdomain, err)
 		return
 	}
 

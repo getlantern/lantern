@@ -25,6 +25,9 @@ func register(resp http.ResponseWriter, req *http.Request) {
 	if err == nil && port != 443 {
 		err = fmt.Errorf("Port %d not supported, only port 443 is supported", port)
 	}
+	if name == "" {
+		err = fmt.Errorf("Please specify a name")
+	}
 	if err != nil {
 		resp.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintln(resp, err.Error())
@@ -35,6 +38,7 @@ func register(resp http.ResponseWriter, req *http.Request) {
 	online, connectionRefused := h.status()
 	if online {
 		resp.WriteHeader(200)
+		fmt.Fprintln(resp, "Connectivity confirmed")
 		return
 	}
 
@@ -45,22 +49,24 @@ func register(resp http.ResponseWriter, req *http.Request) {
 	if connectionRefused {
 		// 417 response code.
 		resp.WriteHeader(http.StatusExpectationFailed)
+		fmt.Fprintln(resp, "Connection refused")
 	} else {
 		// 408 response code.
 		resp.WriteHeader(http.StatusRequestTimeout)
+		fmt.Fprintln(resp, "Test request timed out")
 	}
 }
 
 // unregister is the HTTP endpoint for removing peers from DNS.
 func unregister(resp http.ResponseWriter, req *http.Request) {
-	name, ip, _, err := getHostInfo(req)
+	_, ip, _, err := getHostInfo(req)
 	if err != nil {
 		resp.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintln(resp, err.Error())
 		return
 	}
 
-	h := getHost(name, ip)
+	h := getHostByIp(ip)
 	msg := "Host not registered"
 	if h != nil {
 		h.unregister()
@@ -72,10 +78,6 @@ func unregister(resp http.ResponseWriter, req *http.Request) {
 
 func getHostInfo(req *http.Request) (name string, ip string, port int, err error) {
 	name = req.FormValue("name")
-	if name == "" {
-		err = fmt.Errorf("Please specify a name")
-		return
-	}
 	ip = clientIpFor(req)
 	portString := req.FormValue("port")
 
