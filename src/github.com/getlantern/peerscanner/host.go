@@ -3,7 +3,7 @@ package main
 import (
 	"crypto/tls"
 	"fmt"
-	"math"
+	"io"
 	"math/rand"
 	"net"
 	"net/http"
@@ -23,13 +23,18 @@ var (
 	// Test with a period of half the ttl
 	testPeriod = ttl / 2
 
-	dialTimeout    = 3 * time.Second
-	requestTimeout = 6 * time.Second
+	// If we haven't had a successul test or reset after this amount of time,
+	// terminate.
+	terminateAfter = 10 * time.Minute
+
+	dialTimeout    = 6 * time.Second
+	requestTimeout = 20 * time.Second
 	proxyAttempts  = 3
 
-	terminateAfter = 20 * ttl
-
-	testSites = []string{"www.google.com", "www.facebook.com", "www.youtube.com", "www.yahoo.com", "www.twitter.com", "www.live.com"}
+	// Sites to use for testing connectivity. WARNING - these should only be
+	// sites with consistent fast response times, around the world, otherwise
+	// tests may time out.
+	testSites = []string{"www.google.com", "www.youtube.com", "www.facebook.com"}
 )
 
 // hostkey is a unique key for a host
@@ -79,6 +84,9 @@ func newHost(key hostkey, record *cloudflare.Record) *host {
 								InsecureSkipVerify: true,
 							})
 						},
+						NewRequest: func(upstreamHost string, method string, body io.Reader) (req *http.Request, err error) {
+							return http.NewRequest(method, "http://"+key.ip+"/", body)
+						},
 					})
 				},
 			},
@@ -110,14 +118,15 @@ func (h *host) doRun() {
 	lastSuccess := time.Now()
 	lastTest := time.Now()
 	periodTimer := time.NewTimer(0)
-	terminateTimer := time.NewTimer(time.Duration(math.MaxInt32))
+	terminateTimer := time.NewTimer(0)
 
 	for {
 		if !first {
 			// Limit the rate at which we run tests
 			periodTimer.Reset(lastTest.Add(testPeriod).Sub(time.Now()))
-			terminateTimer.Reset(lastSuccess.Add(terminateAfter).Sub(time.Now()))
 		}
+
+		terminateTimer.Reset(lastSuccess.Add(terminateAfter).Sub(time.Now()))
 
 		select {
 		case <-h.resetCh:
@@ -125,15 +134,16 @@ func (h *host) doRun() {
 			lastSuccess = time.Now()
 			lastTest = time.Time{}
 		case <-h.unregisterCh:
+			log.Debugf("Unregistering %v and terminating", h.key)
+			h.terminate()
+			return
 		case <-terminateTimer.C:
-			// Host notified us that it's gone
-			// or testing has failed for a long time
-			removeHost(h)
-			h.deregister()
+			log.Debugf("%v had no successul checks or resets in %v, terminating", h.key, terminateAfter)
+			h.terminate()
 			return
 		case <-periodTimer.C:
-			// It's time to test again
-			success, connectionRefused := h.isAbleToProxy()
+			log.Tracef("Testing %v", h.key)
+			success, connectionRefused, err := h.isAbleToProxy()
 			lastTest = time.Now()
 			h.statusMutex.Lock()
 			h.online, h.connectionRefused = success, connectionRefused
@@ -143,13 +153,18 @@ func (h *host) doRun() {
 				first = false
 			}
 			if success {
+				log.Tracef("Test for %v successful", h.key)
 				lastSuccess = time.Now()
 				err := h.register()
 				if err != nil {
 					log.Error(err)
 				}
 			} else {
-				h.deregister()
+				log.Tracef("Test for %v failed with error: %v", h.key, err)
+				// Deregister this host from its rotations. We leave the host
+				// itself registered to support continued sticky routing in case
+				// any clients still have connections open to it.
+				h.deregisterFromRotations()
 			}
 		}
 	}
@@ -160,6 +175,11 @@ func (h *host) status() (online bool, connectionRefused bool) {
 	h.statusMutex.RLock()
 	defer h.statusMutex.RUnlock()
 	return h.online, h.connectionRefused
+}
+
+func (h *host) terminate() {
+	removeHost(h)
+	h.deregister()
 }
 
 func (h *host) reset() {
@@ -181,13 +201,11 @@ func (h *host) unregister() {
 }
 
 func (h *host) register() error {
-	log.Debugf("Registering %v", h.key)
-
 	err := h.registerHost()
-	if err != nil {
+	if err != nil && !isDuplicateError(err) {
 		return fmt.Errorf("Unable to register host: %v", err)
 	}
-	err = h.registerGroups()
+	err = h.registerToRotations()
 	if err != nil {
 		return fmt.Errorf("Unable to register rotations: %v", err)
 	}
@@ -195,6 +213,13 @@ func (h *host) register() error {
 }
 
 func (h *host) registerHost() error {
+	if h.record != nil {
+		log.Tracef("Host already registered, no need to re-register: %v", h.key)
+		return nil
+	}
+
+	log.Debugf("Registering %v", h.key)
+
 	rec, err := cfutil.Register(h.key.name, h.key.ip)
 	if err == nil {
 		h.record = rec
@@ -202,10 +227,10 @@ func (h *host) registerHost() error {
 	return err
 }
 
-func (h *host) registerGroups() error {
+func (h *host) registerToRotations() error {
 	for _, group := range h.groups {
 		err := group.register(h)
-		if err != nil {
+		if err != nil && !isDuplicateError(err) {
 			return err
 		}
 	}
@@ -213,9 +238,8 @@ func (h *host) registerGroups() error {
 }
 
 func (h *host) deregister() {
-	log.Debugf("Deregistering %v", h.key)
 	h.deregisterHost()
-	h.deregisterGroups()
+	h.deregisterFromRotations()
 }
 
 func (h *host) deregisterHost() {
@@ -229,7 +253,9 @@ func (h *host) deregisterHost() {
 		return
 	}
 
-	err := cfutil.Client.DestroyRecord(h.record.Domain, h.record.Id)
+	log.Debugf("Deregistering %v", h.key)
+
+	err := cfutil.DestroyRecord(h.record)
 	if err != nil {
 		log.Errorf("Unable to deregister host %v: %v", h.key, err)
 		return
@@ -238,7 +264,7 @@ func (h *host) deregisterHost() {
 	h.record = nil
 }
 
-func (h *host) deregisterGroups() {
+func (h *host) deregisterFromRotations() {
 	for _, group := range h.groups {
 		group.deregister(h)
 	}
@@ -252,27 +278,34 @@ func (h *host) isFallback() bool {
 	return isFallback(h.key.name)
 }
 
-func (h *host) isAbleToProxy() (bool, bool) {
+func (h *host) isAbleToProxy() (bool, bool, error) {
 	// Check whether or not we can proxy a few times
+	var lastErr error
 	for i := 0; i < proxyAttempts; i++ {
-		success, connectionRefused := h.doIsAbleToProxy()
+		success, connectionRefused, err := h.doIsAbleToProxy()
+		if err != nil {
+			log.Trace(err.Error())
+		}
+		lastErr = err
 		if success || connectionRefused {
 			// If we've succeeded, or our connection was flat-out refused, don't
 			// bother trying to proxy again
-			return success, connectionRefused
+			return success, connectionRefused, lastErr
 		}
 	}
-	return false, false
+	return false, false, lastErr
 }
 
-func (h *host) doIsAbleToProxy() (bool, bool) {
+func (h *host) doIsAbleToProxy() (bool, bool, error) {
 	// First just try a plain TCP connection. This is useful because the underlying
 	// TCP-level error is consumed in the flashlight layer, and we need that
 	// to be accessible on the client side in the logic for deciding whether
 	// or not to display the port mapping message.
-	conn, err := net.DialTimeout("tcp", h.key.ip+":443", dialTimeout)
+	addr := h.key.ip + ":443"
+	conn, err := net.DialTimeout("tcp", addr, dialTimeout)
 	if err != nil {
-		return false, strings.Contains(err.Error(), "connection refused")
+		err2 := fmt.Errorf("Unable to connect to %v: %v", addr, err)
+		return false, strings.Contains(err.Error(), "connection refused"), err2
 	}
 	conn.Close()
 
@@ -280,13 +313,19 @@ func (h *host) doIsAbleToProxy() (bool, bool) {
 	site := testSites[rand.Intn(len(testSites))]
 	resp, err := h.proxiedClient.Head("http://" + site)
 	if err != nil {
-		log.Tracef("Unable to proxy to %v via %v", site, h.key.ip)
-		return false, false
+		err2 := fmt.Errorf("Unable to proxy to %v via %v: %v", site, h.key.ip, err)
+		return false, false, err2
 	}
-	resp.Body.Close()
+	defer resp.Body.Close()
+
 	if resp.StatusCode != 200 && resp.StatusCode != 301 {
-		log.Tracef("Proxying to %v via %v returned unexpected status %d,", site, h.key.ip, resp.StatusCode)
-		return false, false
+		err2 := fmt.Errorf("Proxying to %v via %v returned unexpected status %d,", site, h.key.ip, resp.StatusCode)
+		return false, false, err2
 	}
-	return true, false
+
+	return true, false, nil
+}
+
+func isDuplicateError(err error) bool {
+	return strings.Contains(err.Error(), "The record already exists.")
 }

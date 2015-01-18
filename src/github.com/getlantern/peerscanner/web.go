@@ -13,7 +13,9 @@ import (
 func startHttp() {
 	http.HandleFunc("/register", register)
 	http.HandleFunc("/unregister", unregister)
-	http.ListenAndServe(fmt.Sprintf(":%d", *port), nil)
+	laddr := fmt.Sprintf(":%d", *port)
+	log.Debugf("About to listen at %v", laddr)
+	http.ListenAndServe(laddr, nil)
 }
 
 // register is the entry point for peers registering themselves with the service.
@@ -25,7 +27,7 @@ func register(resp http.ResponseWriter, req *http.Request) {
 	}
 	if err != nil {
 		resp.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(resp, err.Error())
+		fmt.Fprintln(resp, err.Error())
 		return
 	}
 
@@ -54,7 +56,7 @@ func unregister(resp http.ResponseWriter, req *http.Request) {
 	name, ip, _, err := getHostInfo(req)
 	if err != nil {
 		resp.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(resp, err.Error())
+		fmt.Fprintln(resp, err.Error())
 		return
 	}
 
@@ -65,11 +67,15 @@ func unregister(resp http.ResponseWriter, req *http.Request) {
 		msg = "Host unregistered"
 	}
 	resp.WriteHeader(200)
-	fmt.Fprint(resp, msg)
+	fmt.Fprintln(resp, msg)
 }
 
 func getHostInfo(req *http.Request) (name string, ip string, port int, err error) {
 	name = req.FormValue("name")
+	if name == "" {
+		err = fmt.Errorf("Please specify a name")
+		return
+	}
 	ip = clientIpFor(req)
 	portString := req.FormValue("port")
 

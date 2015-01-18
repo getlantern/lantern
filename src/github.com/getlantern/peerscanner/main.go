@@ -16,9 +16,9 @@ import (
 )
 
 const (
-	RoundRobin = "test_roundrobin"
-	Peers      = "test_peers"
-	Fallbacks  = "test_fallbacks"
+	RoundRobin = "atest_roundrobin"
+	Peers      = "atest_apeers"
+	Fallbacks  = "atest_fallbacks"
 )
 
 var (
@@ -112,27 +112,33 @@ func loadHosts() (map[hostkey]*host, error) {
 	}
 	hosts := make(map[hostkey]*host, 0)
 
-	addHost := func(r *cloudflare.Record) {
+	addHost := func(r cloudflare.Record) {
 		key := hostkey{r.Name, r.Value}
-		h := newHost(key, r)
+		h := newHost(key, &r)
 		hosts[h.key] = h
 	}
 
-	for _, record := range recs {
-		r := &record
+	addToGroup := func(name string, r cloudflare.Record) {
+		log.Tracef("Adding to %v: %v", name, r.Value)
+		groups[name][r.Value] = &r
+	}
+
+	for _, r := range recs {
 		// We just check the length of the subdomain here, which is the unique
 		// peer GUID. While it's possible something else could have a subdomain
 		// this long, it's unlikely.
 		if isPeer(r.Name) {
+			log.Tracef("Adding peer: %v", r.Name)
 			addHost(r)
 		} else if isFallback(r.Name) {
+			log.Tracef("Adding fallback: %v", r.Name)
 			addHost(r)
 		} else if r.Name == RoundRobin {
-			groups[RoundRobin][r.Value] = r
+			addToGroup(RoundRobin, r)
 		} else if r.Name == Fallbacks {
-			groups[Fallbacks][r.Value] = r
+			addToGroup(Fallbacks, r)
 		} else if r.Name == Peers {
-			groups[Peers][r.Value] = r
+			addToGroup(Peers, r)
 		} else {
 			log.Tracef("Unrecognized record: %v", r.FullName)
 		}
@@ -141,28 +147,47 @@ func loadHosts() (map[hostkey]*host, error) {
 	// Update hosts with rotation info
 	for _, h := range hosts {
 		for _, hg := range h.groups {
-			g := groups[hg.subdomain]
-			hg.existing = g[h.key.ip]
-			delete(g, hg.subdomain)
+			g, found := groups[hg.subdomain]
+			if found {
+				hg.existing = g[h.key.ip]
+				delete(g, h.key.ip)
+			}
 		}
 	}
 
 	// Remove items from rotation that don't have a corresponding host
+	var wg sync.WaitGroup
 	for k, g := range groups {
 		for _, r := range g {
-			log.Debugf("%v in %v is missing host, removing from rotation", r.Value, k)
-			cfutil.RemoveIpFromRotation(r.Value, k)
+			wg.Add(1)
+			go removeFromRotation(&wg, k, r)
 		}
+	}
+	wg.Wait()
+
+	// Start hosts
+	for _, h := range hosts {
+		h.run()
 	}
 
 	return hosts, nil
+}
+
+func removeFromRotation(wg *sync.WaitGroup, k string, r *cloudflare.Record) {
+	log.Debugf("%v in %v is missing host, removing from rotation", r.Value, k)
+	err := cfutil.DestroyRecord(r)
+	if err != nil {
+		log.Debugf("Unable to remove %v from %v: %v", r.Value, k, err)
+	}
+	wg.Done()
 }
 
 func isPeer(name string) bool {
 	// We just check the length of the subdomain here, which is the unique
 	// peer GUID. While it's possible something else could have a subdomain
 	// this long, it's unlikely.
-	return len(name) == 32
+	// We also accept anything with a name beginning with peer- as a peer
+	return len(name) == 32 || strings.Index(name, "peer-") == 0
 }
 
 func isFallback(name string) bool {

@@ -14,7 +14,6 @@ var (
 
 type Util struct {
 	Client *cloudflare.Client
-	Cached []cloudflare.Record
 	domain string
 }
 
@@ -23,7 +22,7 @@ func New(domain string, username string, apiKey string) (*Util, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to initialize client: %v", err)
 	}
-	return &Util{client, nil, domain}, nil
+	return &Util{client, domain}, nil
 }
 
 func (util *Util) GetRotationRecords(subdomain string) ([]cloudflare.Record, error) {
@@ -35,10 +34,7 @@ func (util *Util) GetRotationRecords(subdomain string) ([]cloudflare.Record, err
 	rotation := make([]cloudflare.Record, 0)
 	for _, record := range recs {
 		if record.Name == subdomain {
-			log.Tracef("IN Rotation IP: %v - %v", record.Name, record.Value)
 			rotation = append(rotation, record)
-		} else {
-			log.Tracef("NON Rotation IP:  %v - %v", record.Name, record.Value)
 		}
 	}
 	return rotation, nil
@@ -59,8 +55,6 @@ func (util *Util) GetAllRecords() ([]cloudflare.Record, error) {
 		allRecords = append(allRecords, resp.Response.Recs.Records...)
 	}
 
-	log.Trace("Setting cached records")
-	util.Cached = allRecords
 	return allRecords, nil
 }
 
@@ -79,7 +73,7 @@ func (util *Util) Register(name string, ip string) (*cloudflare.Record, error) {
 	err = util.Client.UpdateRecord(util.domain, rec.Id, &ur)
 	if err != nil {
 		log.Tracef("Error updating record %v, destroying", rec)
-		err2 := util.Client.DestroyRecord(util.domain, rec.Id)
+		err2 := util.DestroyRecord(rec)
 		if err2 != nil {
 			log.Errorf("Unable to destroy incomplete record %v: %v", rec, err2)
 		}
@@ -102,9 +96,13 @@ func (util *Util) RemoveIpFromRotationRecords(ip string, Rotation []cloudflare.R
 	for _, rec := range Rotation {
 		if rec.Value == ip {
 			log.Tracef("Destroying record: %v", rec.Value)
-			err := util.Client.DestroyRecord(util.domain, rec.Id)
+			err := util.DestroyRecord(&rec)
 			return err
 		}
 	}
 	return nil
+}
+
+func (util *Util) DestroyRecord(r *cloudflare.Record) error {
+	return util.Client.DestroyRecord(util.domain, r.Id)
 }
