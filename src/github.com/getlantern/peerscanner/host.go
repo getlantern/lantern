@@ -26,9 +26,9 @@ var (
 	// terminate.
 	terminateAfter = 10 * time.Minute
 
-	dialTimeout    = 6 * time.Second
-	requestTimeout = 20 * time.Second
-	proxyAttempts  = 3
+	dialTimeout    = 6 * time.Second  // how long to wait on connecting to host
+	requestTimeout = 20 * time.Second // how long to wait for test requests to process
+	proxyAttempts  = 3                // how many times to try a test request before considering host down
 
 	// Sites to use for testing connectivity. WARNING - these should only be
 	// sites with consistent fast response times, around the world, otherwise
@@ -105,6 +105,7 @@ func newHost(name string, ip string, record *cloudflare.Record) *host {
 	return h
 }
 
+// run starts the main run loop for this host on a goroutine
 func (h *host) run() {
 	go h.doRun()
 }
@@ -122,11 +123,12 @@ func (h *host) doRun() {
 			periodTimer.Reset(lastTest.Add(testPeriod).Sub(time.Now()))
 		}
 
+		// Terminate run loop after some largish amount of time
 		terminateTimer.Reset(lastSuccess.Add(terminateAfter).Sub(time.Now()))
 
 		select {
 		case newName := <-h.resetCh:
-			// Host notified us of its presence
+			log.Tracef("Host notified us of its presence")
 			lastSuccess = time.Now()
 			lastTest = time.Time{}
 			if newName != h.name {
@@ -169,6 +171,7 @@ func (h *host) doRun() {
 	}
 }
 
+// status returns the status of this host as of the next scheduled check
 func (h *host) status() (online bool, connectionRefused bool) {
 	sch := make(chan *status)
 	h.statusCh <- sch
@@ -176,6 +179,8 @@ func (h *host) status() (online bool, connectionRefused bool) {
 	return s.online, s.connectionRefused
 }
 
+// reportStatus reports the given status back to any callers that are waiting
+// for it.
 func (h *host) reportStatus(online bool, connectionRefused bool) {
 	s := &status{online, connectionRefused}
 	for {
@@ -188,15 +193,14 @@ func (h *host) reportStatus(online bool, connectionRefused bool) {
 	}
 }
 
-func (h *host) terminate() {
-	removeHost(h)
-	h.deregister()
-}
-
+// reset resets this host's run loop in response to the host having reported in,
+// which can include changing the name if the given name is new.
 func (h *host) reset(name string) {
 	h.resetCh <- name
 }
 
+// unregister unregisters this host in response to the host having requested
+// unregistration.
 func (h *host) unregister() {
 	select {
 	case h.unregisterCh <- nil:
@@ -204,6 +208,16 @@ func (h *host) unregister() {
 	default:
 		log.Tracef("Already unregistering host %v, ignoring new request", h)
 	}
+}
+
+/*******************************************************************************
+ * Functions for managing DNS
+ ******************************************************************************/
+
+// terminate cleans up DNS on termination of this host's run loop
+func (h *host) terminate() {
+	removeHost(h)
+	h.deregister()
 }
 
 func (h *host) register() error {
