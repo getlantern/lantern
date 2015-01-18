@@ -6,24 +6,19 @@ package main
 import (
 	"flag"
 	"fmt"
-	"net"
-	"net/http"
 	"os"
-	"strconv"
 	"strings"
-	"time"
+	"sync"
 
-	"./cf"
 	"github.com/getlantern/cloudflare"
 	"github.com/getlantern/golog"
+	"github.com/getlantern/peerscanner/cf"
 )
 
 const (
-	MASQUERADE_AS = "cdnjs.com"
-	ROOT_CA       = "-----BEGIN CERTIFICATE-----\nMIIDdTCCAl2gAwIBAgILBAAAAAABFUtaw5QwDQYJKoZIhvcNAQEFBQAwVzELMAkG\nA1UEBhMCQkUxGTAXBgNVBAoTEEdsb2JhbFNpZ24gbnYtc2ExEDAOBgNVBAsTB1Jv\nb3QgQ0ExGzAZBgNVBAMTEkdsb2JhbFNpZ24gUm9vdCBDQTAeFw05ODA5MDExMjAw\nMDBaFw0yODAxMjgxMjAwMDBaMFcxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9i\nYWxTaWduIG52LXNhMRAwDgYDVQQLEwdSb290IENBMRswGQYDVQQDExJHbG9iYWxT\naWduIFJvb3QgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDaDuaZ\njc6j40+Kfvvxi4Mla+pIH/EqsLmVEQS98GPR4mdmzxzdzxtIK+6NiY6arymAZavp\nxy0Sy6scTHAHoT0KMM0VjU/43dSMUBUc71DuxC73/OlS8pF94G3VNTCOXkNz8kHp\n1Wrjsok6Vjk4bwY8iGlbKk3Fp1S4bInMm/k8yuX9ifUSPJJ4ltbcdG6TRGHRjcdG\nsnUOhugZitVtbNV4FpWi6cgKOOvyJBNPc1STE4U6G7weNLWLBYy5d4ux2x8gkasJ\nU26Qzns3dLlwR5EiUWMWea6xrkEmCMgZK9FGqkjWZCrXgzT/LCrBbBlDSgeF59N8\n9iFo7+ryUp9/k5DPAgMBAAGjQjBAMA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMBAf8E\nBTADAQH/MB0GA1UdDgQWBBRge2YaRQ2XyolQL30EzTSo//z9SzANBgkqhkiG9w0B\nAQUFAAOCAQEA1nPnfE920I2/7LqivjTFKDK1fPxsnCwrvQmeU79rXqoRSLblCKOz\nyj1hTdNGCbM+w6DjY1Ub8rrvrTnhQ7k4o+YviiY776BQVvnGCv04zcQLcFGUl5gE\n38NflNUVyRRBnMRddWQVDf9VMOyGj/8N7yy5Y0b2qvzfvGn9LhJIZJrglfCm7ymP\nAbEVtQwdpf5pLGkkeB6zpxxxYu7KyJesF12KwvhHhm4qxFYxldBniYUr+WymXUad\nDKqC5JlR3XC321Y9YeRq4VzW9v493kHMB65jUr9TU/Qr6cf9tveCX4XSQRjbgbME\nHMUfpIBvFSDJ3gyICh3WZlXi/EjJKSZp4A==\n-----END CERTIFICATE-----\n"
-	ROUNDROBIN    = "test_roundrobin"
-	PEERS         = "test_peers"
-	FALLBACKS     = "test_fallbacks"
+	RoundRobin = "test_roundrobin"
+	Peers      = "test_peers"
+	Fallbacks  = "test_fallbacks"
 )
 
 var (
@@ -35,7 +30,12 @@ var (
 	cfkey    = os.Getenv("CF_API_KEY")
 
 	cfutil *cf.Util
-	hosts  map[string]*host
+
+	// Map of all hosts being tracked by us, keyed to the combination of
+	// name+ip.  We use the combination of name+ip so that we can smoothly
+	// handle hosts of a given name changing their ip.
+	hosts      map[hostkey]*host
+	hostsMutex sync.Mutex
 )
 
 func main() {
@@ -69,69 +69,93 @@ func connectToCloudFlare() {
 	}
 }
 
-func loadHosts() ([]*host, error) {
+func getOrCreateHost(name string, ip string) *host {
+	hostsMutex.Lock()
+	defer hostsMutex.Unlock()
+
+	key := hostkey{name, ip}
+	h := hosts[key]
+	if h == nil {
+		h := newHost(key, nil)
+		hosts[key] = h
+		go h.run()
+		return h
+	}
+	h.reset()
+	return h
+}
+
+func getHost(name string, ip string) *host {
+	hostsMutex.Lock()
+	defer hostsMutex.Unlock()
+
+	key := hostkey{name, ip}
+	return hosts[key]
+}
+
+func removeHost(h *host) {
+	hostsMutex.Lock()
+	delete(hosts, h.key)
+	defer hostsMutex.Unlock()
+}
+
+func loadHosts() (map[hostkey]*host, error) {
 	recs, err := cfutil.GetAllRecords()
 	if err != nil {
 		return nil, fmt.Errorf("Unable to load hosts: %v", err)
 	}
 
-	roundRobins := make(map[string]cloudflare.Record)
-	fallbacks := make(map[string]cloudflare.Record)
-	peers := make(map[string]cloudflare.Record)
-	hosts := make([]*host, 0)
+	groups := map[string]map[string]*cloudflare.Record{
+		RoundRobin: make(map[string]*cloudflare.Record),
+		Fallbacks:  make(map[string]*cloudflare.Record),
+		Peers:      make(map[string]*cloudflare.Record),
+	}
+	hosts := make(map[hostkey]*host, 0)
 
-	addHost := func(r cloudflare.Record) {
-		hosts[r.Name] = &host{record: r}
+	addHost := func(r *cloudflare.Record) {
+		key := hostkey{r.Name, r.Value}
+		h := newHost(key, r)
+		hosts[h.key] = h
 	}
 
 	for _, record := range recs {
+		r := &record
 		// We just check the length of the subdomain here, which is the unique
 		// peer GUID. While it's possible something else could have a subdomain
 		// this long, it's unlikely.
-		if isPeer(record.Name) {
-			addHost(record)
-		} else if isFallback(record.Name) {
-			addHost(record)
-		} else if record.Name == ROUNDROBIN {
-			roundRobins[record.Value] = record
-		} else if record.Name == FALLBACKS {
-			fallbacks[record.Value] = record
-		} else if record.Name == PEERS {
-			peers[record.Value] = record
+		if isPeer(r.Name) {
+			addHost(r)
+		} else if isFallback(r.Name) {
+			addHost(r)
+		} else if r.Name == RoundRobin {
+			groups[RoundRobin][r.Value] = r
+		} else if r.Name == Fallbacks {
+			groups[Fallbacks][r.Value] = r
+		} else if r.Name == Peers {
+			groups[Peers][r.Value] = r
 		} else {
-			log.Tracef("Unrecognized record: %v", record.FullName)
+			log.Tracef("Unrecognized record: %v", r.FullName)
 		}
 	}
 
 	// Update hosts with rotation info
 	for _, h := range hosts {
-		ip := h.record.Value
-		h.roundrobin = roundRobins[ip]
-		h.fallbacks = fallbacks[ip]
-		h.peers = peers[ip]
-		delete(roundRobins, ip)
-		delete(fallbacks, ip)
-		delete(peers, ip)
+		for _, hg := range h.groups {
+			g := groups[hg.subdomain]
+			hg.existing = g[h.key.ip]
+			delete(g, hg.subdomain)
+		}
 	}
 
 	// Remove items from rotation that don't have a corresponding host
-	cleanupRotation(ROUNDROBIN, roundRobins)
-	cleanupRotation(FALLBACKS, fallbacks)
-	cleanupRotation(PEERS, peers)
-
-	// Start processing hosts
-	for _, h := range hosts {
-		go h.run()
+	for k, g := range groups {
+		for _, r := range g {
+			log.Debugf("%v in %v is missing host, removing from rotation", r.Value, k)
+			cfutil.RemoveIpFromRotation(r.Value, k)
+		}
 	}
 
 	return hosts, nil
-}
-
-func cleanupRotation(rotation string, recs map[string]cloudflare.Record) {
-	for _, r := range recs {
-		log.Debugf("%v in %v is missing host, removing from rotation", r.Value, rotation)
-		cf.RemoveIpFromRoundRobin(r.Value, rotation)
-	}
 }
 
 func isPeer(name string) bool {

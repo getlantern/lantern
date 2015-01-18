@@ -102,7 +102,7 @@ func (util *Util) RemoveIpFromRotationRecords(ip string, Rotation []cloudflare.R
 	for _, rec := range Rotation {
 		if rec.Value == ip {
 			log.Tracef("Destroying record: %v", rec.Value)
-			err := util.Client.DestroyRecord(util.Domain, rec.Id)
+			err := util.Client.DestroyRecord(util.domain, rec.Id)
 			return err
 		}
 	}
