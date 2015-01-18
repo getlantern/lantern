@@ -38,7 +38,7 @@ func register(resp http.ResponseWriter, req *http.Request) {
 	online, connectionRefused := h.status()
 	if online {
 		resp.WriteHeader(200)
-		fmt.Fprintln(resp, "Connectivity confirmed")
+		fmt.Fprintln(resp, "Connectivity to proxy confirmed")
 		return
 	}
 
@@ -49,11 +49,11 @@ func register(resp http.ResponseWriter, req *http.Request) {
 	if connectionRefused {
 		// 417 response code.
 		resp.WriteHeader(http.StatusExpectationFailed)
-		fmt.Fprintln(resp, "Connection refused")
+		fmt.Fprintln(resp, "No connectivity to proxy - connection refused")
 	} else {
 		// 408 response code.
 		resp.WriteHeader(http.StatusRequestTimeout)
-		fmt.Fprintln(resp, "Test request timed out")
+		fmt.Fprintln(resp, "No connectivity to proxy - test request timed out")
 	}
 }
 

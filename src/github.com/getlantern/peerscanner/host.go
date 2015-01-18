@@ -131,11 +131,11 @@ func (h *host) doRun() {
 			lastTest = time.Time{}
 			if newName != h.name {
 				log.Debugf("Hostname for %v changed to %v", h, newName)
-				h.name = newName
 				if h.record != nil {
 					log.Debugf("Deregistering old hostname %v", h.name)
 					h.doDeregisterHost()
 				}
+				h.name = newName
 			}
 		case <-h.unregisterCh:
 			log.Debugf("Unregistering %v and terminating", h)
