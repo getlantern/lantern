@@ -57,7 +57,8 @@ func register(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
-// unregister is the HTTP endpoint for removing peers from DNS.
+// unregister is the HTTP endpoint for removing peers from DNS. Peers are
+// unregistered based on their ip (not their name).
 func unregister(resp http.ResponseWriter, req *http.Request) {
 	_, ip, _, err := getHostInfo(req)
 	if err != nil {

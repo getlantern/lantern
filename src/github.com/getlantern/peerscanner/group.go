@@ -27,8 +27,8 @@ func (g *group) register(h *host) error {
 	return err
 }
 
-// deregister deregisters the host from this group in CloudFlare if is is
-// currently registered
+// deregister deregisters the host from this group in CloudFlare if it is
+// currently registered.
 func (g *group) deregister(h *host) {
 	if g.existing == nil {
 		log.Tracef("%v is not registered in %v, no need to deregister", h, g.subdomain)
