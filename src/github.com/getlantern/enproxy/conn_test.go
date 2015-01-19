@@ -13,6 +13,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/getlantern/fdcount"
+	"github.com/getlantern/testify/assert"
 	. "github.com/getlantern/waitforserver"
 )
 
@@ -52,6 +54,48 @@ func TestBadBuffered(t *testing.T) {
 	doTestBad(true, t)
 }
 
+// This test stimulates a connection leak as seen in
+// https://github.com/getlantern/lantern/issues/2174.
+func TestHTTPRedirect(t *testing.T) {
+	startProxy(t)
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			Dial: func(network, addr string) (net.Conn, error) {
+				conn := &Conn{
+					Addr: addr,
+					Config: &Config{
+						DialProxy: func(addr string) (net.Conn, error) {
+							return net.Dial("tcp", PROXY_ADDR)
+						},
+						NewRequest: func(upstreamHost string, method string, body io.Reader) (req *http.Request, err error) {
+							return http.NewRequest(method, "http://"+PROXY_ADDR+"/", body)
+						},
+					},
+				}
+				err := conn.Connect()
+				if err != nil {
+					return nil, err
+				}
+				return conn, nil
+			},
+			DisableKeepAlives: true,
+		},
+	}
+
+	_, counter, err := fdcount.Matching("TCP")
+	if err != nil {
+		t.Fatalf("Unable to get fdcount: %v", err)
+	}
+
+	resp, err := client.Head("http://www.facebook.com")
+	if assert.NoError(t, err, "Head request to facebook should have succeeded") {
+		resp.Body.Close()
+	}
+
+	assert.NoError(t, counter.AssertDelta(2), "All file descriptors except the connection from proxy to destination site should have been closed")
+}
+
 func doTestPlainText(buffered bool, t *testing.T) {
 	startProxy(t)
 
@@ -66,8 +110,8 @@ func doTestPlainText(buffered bool, t *testing.T) {
 	if bytesReceived != 226 {
 		t.Errorf("Bytes received of %d did not match expected %d", bytesReceived, 226)
 	}
-	if bytesSent != 1336 {
-		t.Errorf("Bytes sent of %d did not match expected %d", bytesSent, 1336)
+	if bytesSent != 1378 {
+		t.Errorf("Bytes sent of %d did not match expected %d", bytesSent, 1378)
 	}
 }
 
@@ -94,8 +138,8 @@ func doTestTLS(buffered bool, t *testing.T) {
 	if bytesReceived != 555 {
 		t.Errorf("Bytes received of %d did not match expected %d", bytesReceived, 555)
 	}
-	if bytesSent != 4968 {
-		t.Errorf("Bytes sent of %d did not match expected %d", bytesSent, 4968)
+	if bytesSent != 5010 {
+		t.Errorf("Bytes sent of %d did not match expected %d", bytesSent, 5010)
 	}
 }
 
