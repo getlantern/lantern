@@ -88,9 +88,9 @@ func newHost(name string, ip string, record *cloudflare.Record) *host {
 						NewRequest: func(upstreamHost string, method string, body io.Reader) (req *http.Request, err error) {
 							return http.NewRequest(method, "http://"+ip+"/", body)
 						},
-						DisableKeepAlives: true,
 					})
 				},
+				DisableKeepAlives: true,
 			},
 			Timeout: requestTimeout,
 		},
