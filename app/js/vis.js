@@ -101,7 +101,6 @@ angular.module('app.vis', ['ngSanitize'])
 
               el.attr('class', d.alpha2 + " COUNTRY_KNOWN")
                 .attr('tooltip-placement', 'mouse')
-                .attr('tooltip-popup-delay', 100)
                 .attr('tooltip-html-unsafe', $content);
                 $compile(this)(scope);
             } else {
@@ -280,7 +279,6 @@ angular.module('app.vis', ['ngSanitize'])
           .attr("id", peerIdentifier)
           .classed("peer", true)
           .attr("tooltip-placement", "bottom")
-          .attr("tooltip-popup-delay", 100)
           .attr("tooltip-html-unsafe", peerTooltipTemplate)
           .each(function(peer) {
             // Compile the tooltip target dom element to enable the tooltip-html-unsafe directive
