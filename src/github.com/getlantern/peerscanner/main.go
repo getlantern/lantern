@@ -143,8 +143,6 @@ func loadHosts() (map[string]*host, error) {
 		}
 	}
 
-	hosts = make(map[string]*host)
-
 	// Update hosts with group info
 	for _, h := range hosts {
 		for _, hg := range h.groups {
