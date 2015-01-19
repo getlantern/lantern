@@ -100,6 +100,9 @@ func (c *Conn) cleanupAfterWrites() {
 			c.doneWriting = true
 			c.writeMutex.Unlock()
 			close(c.writeRequestsCh)
+			if c.rs != nil {
+				c.rs.finishBody()
+			}
 			return
 		}
 	}

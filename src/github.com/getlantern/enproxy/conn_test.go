@@ -61,6 +61,38 @@ func TestBadBuffered(t *testing.T) {
 	doTestBad(true, t)
 }
 
+func TestHTTPRedirect(t *testing.T) {
+	startProxy(t)
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			Dial: func(network, addr string) (net.Conn, error) {
+				return Dial(addr, &Config{
+					DialProxy: func(addr string) (net.Conn, error) {
+						return net.Dial("tcp", proxyAddr)
+					},
+					NewRequest: func(upstreamHost string, method string, body io.Reader) (req *http.Request, err error) {
+						return http.NewRequest(method, "http://"+proxyAddr+"/", body)
+					},
+				})
+			},
+			DisableKeepAlives: true,
+		},
+	}
+
+	_, counter, err := fdcount.Matching("TCP")
+	if err != nil {
+		t.Fatalf("Unable to get fdcount: %v", err)
+	}
+
+	resp, err := client.Head("http://www.facebook.com")
+	if assert.NoError(t, err, "Head request to facebook should have succeeded") {
+		resp.Body.Close()
+	}
+
+	assert.NoError(t, counter.AssertDelta(2), "All file descriptors except the connection from proxy to destination site should have been closed")
+}
+
 func doTestPlainText(buffered bool, t *testing.T) {
 	startServers(t)
 
