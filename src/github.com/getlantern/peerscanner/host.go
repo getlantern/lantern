@@ -13,6 +13,7 @@ import (
 	"github.com/getlantern/cloudflare"
 	"github.com/getlantern/enproxy"
 	"github.com/getlantern/tlsdialer"
+	"github.com/getlantern/withtimeout"
 )
 
 var (
@@ -54,7 +55,9 @@ type host struct {
 	unregisterCh chan interface{}
 	statusCh     chan chan *status
 
-	proxiedClient *http.Client
+	// Note - we use a Transport directly rather than a Client to avoid
+	// following redirects.
+	proxiedTransport *http.Transport
 }
 
 func (h *host) String() string {
@@ -73,26 +76,23 @@ func newHost(name string, ip string, record *cloudflare.Record) *host {
 		resetCh:      make(chan string, 1000),
 		unregisterCh: make(chan interface{}, 1),
 		statusCh:     make(chan chan *status, 1000),
-		proxiedClient: &http.Client{
-			Transport: &http.Transport{
-				Dial: func(network, addr string) (net.Conn, error) {
-					return enproxy.Dial(addr, &enproxy.Config{
-						DialProxy: func(addr string) (net.Conn, error) {
-							return tlsdialer.DialWithDialer(&net.Dialer{
-								Timeout: dialTimeout,
-							}, "tcp", ip+":443", true, &tls.Config{
-								InsecureSkipVerify: true,
-								ClientSessionCache: clientSessionCache,
-							})
-						},
-						NewRequest: func(upstreamHost string, method string, body io.Reader) (req *http.Request, err error) {
-							return http.NewRequest(method, "http://"+ip+"/", body)
-						},
-					})
-				},
-				DisableKeepAlives: true,
+		proxiedTransport: &http.Transport{
+			Dial: func(network, addr string) (net.Conn, error) {
+				return enproxy.Dial(addr, &enproxy.Config{
+					DialProxy: func(addr string) (net.Conn, error) {
+						return tlsdialer.DialWithDialer(&net.Dialer{
+							Timeout: dialTimeout,
+						}, "tcp", ip+":443", true, &tls.Config{
+							InsecureSkipVerify: true,
+							ClientSessionCache: clientSessionCache,
+						})
+					},
+					NewRequest: func(upstreamHost string, method string, body io.Reader) (req *http.Request, err error) {
+						return http.NewRequest(method, "http://"+ip+"/", body)
+					},
+				})
 			},
-			Timeout: requestTimeout,
+			DisableKeepAlives: true,
 		},
 	}
 
@@ -153,7 +153,7 @@ func (h *host) doRun() {
 			h.terminate()
 			return
 		case <-periodTimer.C:
-			log.Tracef("Testing %v", h.name)
+			log.Debugf("Testing %v", h.name)
 			online, connectionRefused, err := h.isAbleToProxy()
 			h.reportStatus(online, connectionRefused)
 			lastTest = time.Now()
@@ -339,11 +339,22 @@ func (h *host) doIsAbleToProxy() (bool, bool, error) {
 
 	// Now actually try to proxy an http request
 	site := testSites[rand.Intn(len(testSites))]
-	resp, err := h.proxiedClient.Head("http://" + site)
+	req, err := http.NewRequest("HEAD", "http://"+site, nil)
+	if err != nil {
+		return false, false, fmt.Errorf("Unable to create HEAD request: %v", err)
+	}
+
+	iresp, timedOut, err := withtimeout.Do(requestTimeout, func() (interface{}, error) {
+		return h.proxiedTransport.RoundTrip(req)
+	})
+	if timedOut {
+		h.proxiedTransport.CancelRequest(req)
+	}
 	if err != nil {
 		err2 := fmt.Errorf("Unable to proxy to %v via %v: %v", site, h.ip, err)
 		return false, false, err2
 	}
+	resp := iresp.(*http.Response)
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 && resp.StatusCode != 301 {

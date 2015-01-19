@@ -14,13 +14,13 @@ import (
 	"fmt"
 	"os"
 	"runtime"
-	"runtime/pprof"
 	"strings"
 	"sync"
 
 	"github.com/getlantern/cloudflare"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/peerscanner/cf"
+	"github.com/getlantern/profiling"
 )
 
 const (
@@ -53,14 +53,8 @@ func main() {
 
 	parseFlags()
 
-	if *cpuprofile != "" {
-		startCPUProfiling(*cpuprofile)
-		defer stopCPUProfiling(*cpuprofile)
-	}
-	if *memprofile != "" {
-		defer saveMemProfile(*memprofile)
-	}
-	saveProfilingOnSigINT(cfg)
+	finishProfiling := profiling.Start(*cpuprofile, *memprofile)
+	defer finishProfiling()
 
 	connectToCloudFlare()
 
@@ -120,7 +114,7 @@ func loadHosts() (map[string]*host, error) {
 	}
 
 	// Build map of existing hosts
-	hosts := make(map[string]*host, 0)
+	hosts := make(map[string]*host)
 
 	addHost := func(r cloudflare.Record) {
 		h := newHost(r.Name, r.Value, &r)
@@ -148,6 +142,8 @@ func loadHosts() (map[string]*host, error) {
 			log.Tracef("Unrecognized record: %v", r.FullName)
 		}
 	}
+
+	hosts = make(map[string]*host)
 
 	// Update hosts with group info
 	for _, h := range hosts {
@@ -224,46 +220,4 @@ func isPeer(name string) bool {
 
 func isFallback(name string) bool {
 	return strings.HasPrefix(name, "fl-")
-}
-
-func startCPUProfiling(filename string) {
-	filename = withTimestamp(filename)
-	f, err := os.Create(filename)
-	if err != nil {
-		log.Fatal(err)
-	}
-	pprof.StartCPUProfile(f)
-	log.Debugf("Process will save cpu profile to %s after terminating", filename)
-}
-
-func stopCPUProfiling(filename string) {
-	log.Debugf("Saving CPU profile to: %s", filename)
-	pprof.StopCPUProfile()
-}
-
-func saveMemProfile(filename string) {
-	filename = withTimestamp(filename)
-	f, err := os.Create(filename)
-	if err != nil {
-		log.Errorf("Unable to create file to save memprofile: %s", err)
-		return
-	}
-	log.Debugf("Saving heap profile to: %s", filename)
-	pprof.WriteHeapProfile(f)
-	f.Close()
-}
-
-func saveProfilingOnSigINT(cfg *config.Config) {
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-	go func() {
-		<-c
-		if cfg.CpuProfile != "" {
-			stopCPUProfiling(cfg.CpuProfile)
-		}
-		if cfg.MemProfile != "" {
-			saveMemProfile(cfg.MemProfile)
-		}
-		os.Exit(Interrupted)
-	}()
 }
