@@ -315,16 +315,16 @@
       <div ng-show="model.friends != null && (nfriends || nfriendSuggestions)">
         <div ng-class="{hasSearchText: !!searchText}">
           <div id="friendCounts" ng-hide="searchActive || searchText">
-            <div id="currentFriendsHeading" ng-show="nfriends">{{ 'NFRIENDS' | i18n:nfriends }}</div>
+              <div id="currentFriendsHeading" ng-show="nfriends">{{ 'NFRIENDS' | translate:'{value:nfriends }' }}</div>
             <div ng-show="nfriendSuggestions" id="suggestedFriendsHeading">
-              {{ 'NSUGGESTED' | i18n:nfriendSuggestions }}
+                {{ 'NSUGGESTED' | translate:'{value:nfriendSuggestions }' }}
               <a id="toggleSuggestions" ng-click="toggleSuggestions()">
-                {{showSuggestions && 'HIDE' || 'SHOW' | i18n}}
+                {{showSuggestions && 'HIDE' || 'SHOW' | translate}}
               </a>
             </div>
           </div>
 
-          <input type="search" ng-model="searchText" results="0" placeholder="{{ 'SEARCH' | i18n }}"
+          <input type="search" ng-model="searchText" results="0" placeholder="{{ 'SEARCH' | translate }}"
             ng-mouseenter="searchActive=true" ng-focus="searchActive=true; searchFocused=true"
             ng-mouseleave="searchActive=searchFocused || !!searchText" ng-blur="searchActive=!!searchText; searchFocused=false"
             id="friendsListSearch" class="{{searchText && 'non' || ''}}empty">
@@ -659,6 +659,12 @@
             </div>
           </div>
         </div>
+        <dt>{{ 'LOCAL_LANTERNS' | translate }}</dt>
+        <dd id="local-lanterns-list">
+        <a ng-click="openExternal(EXTERNAL_URL.autoReportPrivacy)" class="local-lantern-link">
+            192.168.1.118:15837/_aFV10KD3y26qQ-4u4f_bQ/index.html<sup><i class="icon-external-link"></i></sup>
+        </a>
+        </dd>
       </dd>
     </dl>
   </div>

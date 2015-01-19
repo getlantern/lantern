@@ -6547,9 +6547,14 @@ i[class*=icon] {
   font-style: normal;
 }
 
+.local-lantern-link,
 .more-info {
   font-size: 11.9px;
   margin-left: 2px;
+}
+
+#local-lanterns-list {
+    width: 500px !important;
 }
 
 .capitalize {
@@ -7684,6 +7689,15 @@ body[dir=rtl] #latestDetails dd {
   cursor: pointer;
   height: 100%;
   display: block;
+}
+
+.noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 div.control-zoom {
