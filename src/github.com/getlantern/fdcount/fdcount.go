@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 type Counter struct {
@@ -43,8 +44,8 @@ func (c *Counter) AssertDelta(expected int) error {
 	}
 	actual := c.countMatches(out) - c.startingCount
 	if actual != expected {
-		return fmt.Errorf("Unexpected TCP file descriptor count. Expected %d, have %d.\n\nInitial lsof output\n-----------------------------\n%s\n\nCurrent lsof output\n-----------------------------\n%s\n",
-			expected, actual, string(c.startingOut), string(out))
+		return fmt.Errorf("Unexpected TCP file descriptor count. Expected %d, have %d.\n\n%s",
+			expected, actual, lsofDelta(string(c.startingOut), string(out)))
 	}
 	return nil
 }
@@ -59,4 +60,40 @@ func runLsof() ([]byte, error) {
 		err = fmt.Errorf("Unable to run lsof: %v", err)
 	}
 	return out, err
+}
+
+func lsofDelta(start string, end string) string {
+	startLines := strings.Split(start, "\n")
+	endLines := strings.Split(end, "\n")
+
+	added := make(map[string]interface{})
+	removed := make(map[string]interface{})
+
+	for _, line := range startLines {
+		removed[line] = nil
+	}
+
+	for _, line := range endLines {
+		added[line] = nil
+		delete(removed, line)
+	}
+
+	for _, line := range startLines {
+		delete(added, line)
+	}
+
+	a := make([]string, 0, len(added))
+	r := make([]string, 0, len(removed))
+
+	for line := range added {
+		a = append(a, line)
+	}
+
+	for line := range removed {
+		r = append(r, line)
+	}
+
+	return fmt.Sprintf("New file descriptors\n-----------------------------\n%v\n\nRemoved file descriptors\n-----------------------------\n%v\n",
+		strings.Join(a, "\n"),
+		strings.Join(r, "\n"))
 }
