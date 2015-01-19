@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"runtime/pprof"
 	"strings"
 	"sync"
 
@@ -31,10 +32,12 @@ const (
 var (
 	log = golog.LoggerFor("peerscanner")
 
-	port     = flag.Int("port", 62443, "Port, defaults to 62443")
-	cfdomain = flag.String("cfdomain", "getiantem.org", "CloudFlare domain, defaults to getiantem.org")
-	cfuser   = os.Getenv("CF_USER")
-	cfkey    = os.Getenv("CF_API_KEY")
+	port       = flag.Int("port", 62443, "Port, defaults to 62443")
+	cfdomain   = flag.String("cfdomain", "getiantem.org", "CloudFlare domain, defaults to getiantem.org")
+	cpuprofile = flag.String("cpuprofile", "", "(optional) specify the name of a file to which to write cpu profiling info")
+	memprofile = flag.String("memprofile", "", "(optional) specify the name of a file to which to write memory profiling info")
+	cfuser     = os.Getenv("CF_USER")
+	cfkey      = os.Getenv("CF_API_KEY")
 
 	cfutil *cf.Util
 
@@ -49,6 +52,16 @@ func main() {
 	runtime.GOMAXPROCS(numCores)
 
 	parseFlags()
+
+	if *cpuprofile != "" {
+		startCPUProfiling(*cpuprofile)
+		defer stopCPUProfiling(*cpuprofile)
+	}
+	if *memprofile != "" {
+		defer saveMemProfile(*memprofile)
+	}
+	saveProfilingOnSigINT(cfg)
+
 	connectToCloudFlare()
 
 	var err error
@@ -211,4 +224,46 @@ func isPeer(name string) bool {
 
 func isFallback(name string) bool {
 	return strings.HasPrefix(name, "fl-")
+}
+
+func startCPUProfiling(filename string) {
+	filename = withTimestamp(filename)
+	f, err := os.Create(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	pprof.StartCPUProfile(f)
+	log.Debugf("Process will save cpu profile to %s after terminating", filename)
+}
+
+func stopCPUProfiling(filename string) {
+	log.Debugf("Saving CPU profile to: %s", filename)
+	pprof.StopCPUProfile()
+}
+
+func saveMemProfile(filename string) {
+	filename = withTimestamp(filename)
+	f, err := os.Create(filename)
+	if err != nil {
+		log.Errorf("Unable to create file to save memprofile: %s", err)
+		return
+	}
+	log.Debugf("Saving heap profile to: %s", filename)
+	pprof.WriteHeapProfile(f)
+	f.Close()
+}
+
+func saveProfilingOnSigINT(cfg *config.Config) {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		<-c
+		if cfg.CpuProfile != "" {
+			stopCPUProfiling(cfg.CpuProfile)
+		}
+		if cfg.MemProfile != "" {
+			saveMemProfile(cfg.MemProfile)
+		}
+		os.Exit(Interrupted)
+	}()
 }
