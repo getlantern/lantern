@@ -48,13 +48,12 @@ func (c *Conn) makeChannels() {
 	c.initialResponseCh = make(chan hostWithResponse)
 	c.writeRequestsCh = make(chan []byte)
 	c.writeResponsesCh = make(chan rwResponse)
-	c.stopWriteCh = make(chan interface{}, closeChannelDepth)
 	c.readRequestsCh = make(chan []byte)
 	c.readResponsesCh = make(chan rwResponse)
-	c.stopReadCh = make(chan interface{}, closeChannelDepth)
+	c.doneReadingCh = make(chan bool)
 	c.requestOutCh = make(chan *request)
 	c.requestFinishedCh = make(chan error)
-	c.stopRequestCh = make(chan interface{}, closeChannelDepth)
+	c.doneRequestingCh = make(chan bool)
 }
 
 func (c *Conn) initRequestStrategy() {

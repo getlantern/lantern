@@ -1,7 +1,6 @@
 package enproxy
 
 import (
-	"io"
 	"time"
 )
 
@@ -24,19 +23,17 @@ func (c *Conn) processWrites() {
 	hasWritten := false
 
 	for {
-		if c.isClosed() {
-			return
-		}
-
 		select {
-		case b := <-c.writeRequestsCh:
+		case b, more := <-c.writeRequestsCh:
+			if !more {
+				return
+			}
+
 			hasWritten = true
 			if !c.processWrite(b) {
 				// There was a problem processing a write, stop
 				return
 			}
-		case <-c.stopWriteCh:
-			return
 		case <-time.After(c.Config.FlushTimeout):
 			// We waited more than FlushTimeout for a write, finish our request
 
@@ -88,27 +85,12 @@ func (c *Conn) submitWrite(b []byte) bool {
 }
 
 func (c *Conn) cleanupAfterWrites() {
-	panicked := recover()
-
-	for {
-		select {
-		case <-c.writeRequestsCh:
-			if panicked != nil {
-				c.writeResponsesCh <- rwResponse{0, io.ErrUnexpectedEOF}
-			} else {
-				c.writeResponsesCh <- rwResponse{0, io.EOF}
-			}
-		case <-c.stopWriteCh:
-			// do nothing
-		default:
-			c.writeMutex.Lock()
-			c.doneWriting = true
-			c.writeMutex.Unlock()
-			close(c.writeRequestsCh)
-			if c.rs != nil {
-				c.rs.finishBody()
-			}
-			return
-		}
+	c.writeMutex.Lock()
+	c.doneWriting = true
+	c.writeMutex.Unlock()
+	if c.rs != nil {
+		c.rs.finishBody()
 	}
+	close(c.requestOutCh)
+	return
 }

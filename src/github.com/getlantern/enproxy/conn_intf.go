@@ -101,30 +101,29 @@ type Conn struct {
 	/* Write processing */
 	writeRequestsCh  chan []byte     // requests to write
 	writeResponsesCh chan rwResponse // responses for writes
-	stopWriteCh      chan interface{}
 	doneWriting      bool
 	writeMutex       sync.RWMutex // synchronizes access to doneWriting flag
 	rs               requestStrategy
 
+	/* Request processing (for writes) */
+	requestOutCh      chan *request // channel for next outgoing request body
+	requestFinishedCh chan error
+	doneRequestingCh  chan bool
+	doneRequesting    bool
+	requestMutex      sync.RWMutex // synchronizes access to doneRequesting flag
+
 	/* Read processing */
 	readRequestsCh  chan []byte     // requests to read
 	readResponsesCh chan rwResponse // responses for reads
-	stopReadCh      chan interface{}
+	doneReadingCh   chan bool
 	doneReading     bool
 	readMutex       sync.RWMutex // synchronizes access to doneReading flag
-
-	/* Request processing */
-	requestOutCh      chan *request // channel for next outgoing request body
-	requestFinishedCh chan error
-	stopRequestCh     chan interface{}
-	doneRequesting    bool
-	requestMutex      sync.RWMutex // synchronizes access to doneRequesting flag
 
 	/* Fields for tracking activity/closed status */
 	lastActivityTime  time.Time    // time of last read or write
 	lastActivityMutex sync.RWMutex // mutex controlling access to lastActivityTime
 	closed            bool         // whether or not this Conn is closed
-	closedMutex       sync.RWMutex // mutex controlling access to closed flag
+	closedMutex       sync.Mutex   // mutex controlling access to closed flag
 
 	/* Track current response */
 	resp *http.Response // the current response being used to read data
@@ -218,19 +217,13 @@ func (c *Conn) Close() error {
 	c.closedMutex.Lock()
 	defer c.closedMutex.Unlock()
 	if !c.closed {
-		c.stopReadCh <- nil
-		c.stopWriteCh <- nil
-		c.stopRequestCh <- nil
+		close(c.writeRequestsCh)
+		close(c.readRequestsCh)
+		<-c.doneReadingCh
+		<-c.doneRequestingCh
 		c.closed = true
 	}
 	return nil
-}
-
-// isClosed checks whether or not this connection is closed
-func (c *Conn) isClosed() bool {
-	c.closedMutex.RLock()
-	defer c.closedMutex.RUnlock()
-	return c.closed
 }
 
 // LocalAddr() is not implemented
