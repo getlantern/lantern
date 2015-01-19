@@ -438,9 +438,9 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
 
   $scope.once = false;
 
-  if (!isSafari) {
+  if (isSafari) {
       /* remove background if browser is safari */
-    d3.select("#friendsListSearch").classed("glass", true);
+    d3.select("#friendsListSearch").classed("glass", false);
   }
 
   /* the self dot isn't dynamically appended to the SVG
