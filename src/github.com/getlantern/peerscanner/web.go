@@ -42,7 +42,10 @@ func startHttp() {
 	}
 
 	log.Debug("About to serve")
-	http.Serve(l, nil)
+	err = http.Serve(l, nil)
+	if err != nil {
+		log.Fatalf("Unable to serve: %s", err)
+	}
 }
 
 // register is the entry point for peers registering themselves with the service.
