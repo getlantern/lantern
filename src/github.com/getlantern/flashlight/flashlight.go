@@ -3,17 +3,14 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"math/rand"
 	"os"
-	"os/signal"
-	"path/filepath"
 	"runtime"
-	"runtime/pprof"
 	"time"
 
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
+	"github.com/getlantern/profiling"
 
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
@@ -25,7 +22,6 @@ import (
 const (
 	// Exit Statuses
 	ConfigError    = 1
-	Interrupted    = 2
 	PortmapFailure = 50
 )
 
@@ -61,16 +57,8 @@ func main() {
 		os.Exit(ConfigError)
 	}
 
-	if cfg.CpuProfile != "" {
-		startCPUProfiling(cfg.CpuProfile)
-		defer stopCPUProfiling(cfg.CpuProfile)
-	}
-
-	if cfg.MemProfile != "" {
-		defer saveMemProfile(cfg.MemProfile)
-	}
-
-	saveProfilingOnSigINT(cfg)
+	finishProfiling := profiling.Start(cfg.CpuProfile, cfg.MemProfile)
+	defer finishProfiling()
 
 	// Configure stats initially
 	configureStats(cfg, true)
@@ -173,59 +161,4 @@ func useAllCores() {
 	numcores := runtime.NumCPU()
 	log.Debugf("Using all %d cores on machine", numcores)
 	runtime.GOMAXPROCS(numcores)
-}
-
-func startCPUProfiling(filename string) {
-	filename = withTimestamp(filename)
-	f, err := os.Create(filename)
-	if err != nil {
-		log.Fatal(err)
-	}
-	pprof.StartCPUProfile(f)
-	log.Debugf("Process will save cpu profile to %s after terminating", filename)
-}
-
-func stopCPUProfiling(filename string) {
-	log.Debugf("Saving CPU profile to: %s", filename)
-	pprof.StopCPUProfile()
-}
-
-func saveMemProfile(filename string) {
-	filename = withTimestamp(filename)
-	f, err := os.Create(filename)
-	if err != nil {
-		log.Errorf("Unable to create file to save memprofile: %s", err)
-		return
-	}
-	log.Debugf("Saving heap profile to: %s", filename)
-	pprof.WriteHeapProfile(f)
-	f.Close()
-}
-
-func saveProfilingOnSigINT(cfg *config.Config) {
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-	go func() {
-		<-c
-		if cfg.CpuProfile != "" {
-			stopCPUProfiling(cfg.CpuProfile)
-		}
-		if cfg.MemProfile != "" {
-			saveMemProfile(cfg.MemProfile)
-		}
-		os.Exit(Interrupted)
-	}()
-}
-
-func withTimestamp(filename string) string {
-	file := filename
-	ext := filepath.Ext(file)
-	if ext != "" {
-		file = file[:len(file)-len(ext)]
-	}
-	file = fmt.Sprintf("%s_%s", file, time.Now().Format("20060102_150405.000000000"))
-	if ext != "" {
-		file = file + ext
-	}
-	return file
 }
