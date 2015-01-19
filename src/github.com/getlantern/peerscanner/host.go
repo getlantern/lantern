@@ -63,6 +63,9 @@ func (h *host) String() string {
 
 // newHost creates a new host for the given name, ip and optional DNS record.
 func newHost(name string, ip string, record *cloudflare.Record) *host {
+	// Cache TLS sessions
+	clientSessionCache := tls.NewLRUClientSessionCache(1000)
+
 	h := &host{
 		name:         name,
 		ip:           ip,
@@ -79,6 +82,7 @@ func newHost(name string, ip string, record *cloudflare.Record) *host {
 								Timeout: dialTimeout,
 							}, "tcp", ip+":443", true, &tls.Config{
 								InsecureSkipVerify: true,
+								ClientSessionCache: clientSessionCache,
 							})
 						},
 						NewRequest: func(upstreamHost string, method string, body io.Reader) (req *http.Request, err error) {
