@@ -4,18 +4,45 @@
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/getlantern/keyman"
+	"github.com/getlantern/tlsdefaults"
+)
+
+const (
+	PKFile   = "pk.pem"
+	CertFile = "cert.pem"
 )
 
 func startHttp() {
 	http.HandleFunc("/register", register)
 	http.HandleFunc("/unregister", unregister)
 	laddr := fmt.Sprintf(":%d", *port)
+
+	tlsConfig := tlsdefaults.Server()
+	_, _, err := keyman.StoredPKAndCert(PKFile, CertFile, "Lantern", "localhost")
+	if err != nil {
+		log.Fatalf("Unable to initialize private key and certificate: %v", err)
+	}
+	cert, err := tls.LoadX509KeyPair(CertFile, PKFile)
+	if err != nil {
+		log.Fatalf("Unable to load certificate and key from %s and %s: %s", CertFile, PKFile, err)
+	}
+	tlsConfig.Certificates = []tls.Certificate{cert}
+
 	log.Debugf("About to listen at %v", laddr)
-	http.ListenAndServe(laddr, nil)
+	l, err := tls.Listen("tcp", laddr, tlsConfig)
+	if err != nil {
+		log.Fatalf("Unable to listen for tls connections at %s: %s", laddr, err)
+	}
+
+	log.Debug("About to serve")
+	http.Serve(l, nil)
 }
 
 // register is the entry point for peers registering themselves with the service.

@@ -13,6 +13,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 	"sync"
 
@@ -43,6 +44,10 @@ var (
 )
 
 func main() {
+	numCores := runtime.NumCPU()
+	log.Debugf("Using all %d cores", numCores)
+	runtime.GOMAXPROCS(numCores)
+
 	parseFlags()
 	connectToCloudFlare()
 
@@ -66,6 +71,8 @@ func parseFlags() {
 }
 
 func connectToCloudFlare() {
+	log.Debug("Connecting to CloudFlare ...")
+
 	var err error
 	cfutil, err = cf.New(*cfdomain, cfuser, cfkey)
 	if err != nil {
@@ -80,6 +87,8 @@ func connectToCloudFlare() {
 // loadHosts loads the initial list of hosts based on what's in CloudFlare's
 // DNS at startup.
 func loadHosts() (map[string]*host, error) {
+	log.Debug("Loading existing hosts from CloudFlare ...")
+
 	recs, err := cfutil.GetAllRecords()
 	if err != nil {
 		return nil, fmt.Errorf("Unable to load hosts: %v", err)
