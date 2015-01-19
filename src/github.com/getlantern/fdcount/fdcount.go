@@ -10,8 +10,8 @@ import (
 
 type Counter struct {
 	match         string
+	startingLines string
 	startingCount int
-	startingOut   []byte
 }
 
 // Returns a count of the file descriptors matching the given string (not a
@@ -30,8 +30,7 @@ func Matching(s string) (int, *Counter, error) {
 	if err != nil {
 		return 0, nil, err
 	}
-	c.startingOut = out
-	c.startingCount = c.countMatches(out)
+	c.startingLines, c.startingCount = c.matchingLines(out)
 	return c.startingCount, c, nil
 }
 
@@ -42,12 +41,23 @@ func (c *Counter) AssertDelta(expected int) error {
 	if err != nil {
 		return err
 	}
-	actual := c.countMatches(out) - c.startingCount
+	endingLines, endingCount := c.matchingLines(out)
+	actual := endingCount - c.startingCount
 	if actual != expected {
 		return fmt.Errorf("Unexpected TCP file descriptor count. Expected %d, have %d.\n\n%s",
-			expected, actual, lsofDelta(string(c.startingOut), string(out)))
+			expected, actual, lsofDelta(c.startingLines, endingLines))
 	}
 	return nil
+}
+
+func (c *Counter) matchingLines(out []byte) (string, int) {
+	lines := make([]string, 0)
+	for _, line := range strings.Split(string(out), "\n") {
+		if strings.Contains(line, c.match) {
+			lines = append(lines, line)
+		}
+	}
+	return strings.Join(lines, "\n"), len(lines)
 }
 
 func (c *Counter) countMatches(out []byte) int {
