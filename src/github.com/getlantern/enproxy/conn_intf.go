@@ -246,6 +246,8 @@ func (c *Conn) fail(err error) {
 			// channel full, continue
 		}
 	}
+
+	go c.Close()
 }
 
 func (c *Conn) getAsyncErr() error {
