@@ -102,6 +102,7 @@ type Conn struct {
 	writeRequestsCh  chan []byte     // requests to write
 	writeResponsesCh chan rwResponse // responses for writes
 	doneWriting      bool
+	doneWritingCh    chan bool
 	writeMutex       sync.RWMutex // synchronizes access to doneWriting flag
 	rs               requestStrategy
 
@@ -220,6 +221,7 @@ func (c *Conn) Close() error {
 		close(c.writeRequestsCh)
 		close(c.readRequestsCh)
 		<-c.doneReadingCh
+		<-c.doneWritingCh
 		<-c.doneRequestingCh
 		c.closed = true
 	}

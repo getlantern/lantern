@@ -92,5 +92,6 @@ func (c *Conn) cleanupAfterWrites() {
 		c.rs.finishBody()
 	}
 	close(c.requestOutCh)
+	c.doneWritingCh <- true
 	return
 }
