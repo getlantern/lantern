@@ -24,16 +24,10 @@ func Dial(addr string, config *Config) (net.Conn, error) {
 		return nil, fmt.Errorf("Unable to resolve TCP addr %v: %v", addr, err)
 	}
 
-	host, _, err := net.SplitHostPort(addr)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to split host and port on addr %v: %v", err)
-	}
-
 	c := &Conn{
 		id:      uuid.NewRandom().String(),
 		addr:    addr,
 		tcpAddr: tcpAddr,
-		host:    host,
 		config:  config,
 	}
 
@@ -67,9 +61,6 @@ func (c *Conn) initDefaults() {
 	}
 	if c.config.NewRequest == nil {
 		c.config.NewRequest = func(host string, method string, body io.Reader) (req *http.Request, err error) {
-			if host == "" {
-				host = c.host
-			}
 			return http.NewRequest(method, "http://"+host, body)
 		}
 	}

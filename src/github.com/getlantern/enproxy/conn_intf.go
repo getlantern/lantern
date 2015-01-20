@@ -82,7 +82,6 @@ type Conn struct {
 	addr string
 
 	tcpAddr *net.TCPAddr
-	host    string
 
 	// config: configuration of this Conn
 	config *Config
