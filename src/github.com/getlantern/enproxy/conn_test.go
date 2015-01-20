@@ -75,7 +75,6 @@ func TestIdle(t *testing.T) {
 		IdleTimeout: idleTimeout,
 	})
 	if assert.NoError(t, err, "Dialing should have succeeded") {
-		assert.NoError(t, counter.AssertDelta(4), "All file descriptors including the connection from proxy to destination site should still be open")
 		time.Sleep(idleTimeout * 2)
 		assert.NoError(t, counter.AssertDelta(2), "All file descriptors except the connection from proxy to destination site should have been closed")
 	}
@@ -125,7 +124,6 @@ func doTestPlainText(buffered bool, t *testing.T) {
 		t.Fatalf("Unable to prepareConn: %s", err)
 	}
 	defer func() {
-		assert.NoError(t, counter.AssertDelta(6), "All file descriptors including the connection from proxy to destination site should still be open")
 		err := conn.Close()
 		assert.Nil(t, err, "Closing conn should succeed")
 		assert.NoError(t, counter.AssertDelta(2), "All file descriptors except the connection from proxy to destination site should have been closed")
@@ -157,7 +155,6 @@ func doTestTLS(buffered bool, t *testing.T) {
 		RootCAs:    cert.PoolContainingCert(),
 	})
 	defer func() {
-		assert.NoError(t, counter.AssertDelta(6), "All file descriptors including the connection from proxy to destination site should still be open")
 		err := conn.Close()
 		assert.Nil(t, err, "Closing conn should succeed")
 		assert.NoError(t, counter.AssertDelta(2), "All file descriptors except the connection from proxy to destination site should have been closed")
