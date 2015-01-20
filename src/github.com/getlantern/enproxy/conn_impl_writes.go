@@ -17,14 +17,19 @@ var (
 // accept writes and pipe these to the request body while actually sending that
 // request body to the server.
 func (c *Conn) processWrites() {
+	increment(&writing)
+
 	defer c.finishWriting()
 
 	firstRequest := true
 	hasWritten := false
 
 	for {
+		increment(&writingSelecting)
 		select {
 		case b, more := <-c.writeRequestsCh:
+			decrement(&writingSelecting)
+
 			if !more {
 				return
 			}
@@ -35,6 +40,7 @@ func (c *Conn) processWrites() {
 			}
 		case <-time.After(c.config.FlushTimeout):
 			// We waited more than FlushTimeout for a write, finish our request
+			decrement(&writingSelecting)
 
 			if firstRequest && !hasWritten {
 				// Write empty data just so that we can get a response and get
@@ -42,10 +48,15 @@ func (c *Conn) processWrites() {
 				// TODO: it might be more efficient to instead start by reading,
 				// but that's a fairly big structural change on client and
 				// server.
+				increment(&writingWritingEmpty)
 				c.rs.write(emptyBytes)
+				decrement(&writingWritingEmpty)
 			}
 
+			increment(&writingFinishingBody)
 			c.rs.finishBody()
+			decrement(&writingFinishingBody)
+
 			firstRequest = false
 		}
 	}
@@ -55,29 +66,40 @@ func (c *Conn) processWrites() {
 // POST request to the proxy. It uses the configured requestStrategy to process
 // the request. It returns true if the write was successful.
 func (c *Conn) processWrite(b []byte) bool {
+	increment(&writingWriting)
 	n, err := c.rs.write(b)
+	decrement(&writingWriting)
+
+	increment(&writingPostingResponse)
 	c.writeResponsesCh <- rwResponse{n, err}
+	decrement(&writingPostingResponse)
+
 	return err == nil
 }
 
 // submitWrite submits a write to the processWrites goroutine, returning true if
 // the write was accepted or false if writes are no longer being accepted
 func (c *Conn) submitWrite(b []byte) bool {
-	c.closedMutex.RLock()
-	defer c.closedMutex.RUnlock()
-	if c.closed {
+	c.closingMutex.RLock()
+	defer c.closingMutex.RUnlock()
+	if c.closing {
 		return false
 	} else {
+		increment(&blockedOnWrite)
 		c.writeRequestsCh <- b
 		return true
 	}
 }
 
 func (c *Conn) finishWriting() {
+	increment(&writingFinishing)
 	if c.rs != nil {
 		c.rs.finishBody()
 	}
 	close(c.requestOutCh)
+	close(c.initialResponseCh)
 	c.doneWritingCh <- true
+	decrement(&writingFinishing)
+	decrement(&writing)
 	return
 }

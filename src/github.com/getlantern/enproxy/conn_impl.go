@@ -6,7 +6,6 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"time"
 
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/getlantern/idletiming"
@@ -33,15 +32,19 @@ func Dial(addr string, config *Config) (net.Conn, error) {
 
 	c.initDefaults()
 	c.makeChannels()
-	c.markActive()
 	c.initRequestStrategy()
 
 	go c.processWrites()
 	go c.processReads()
 
+	increment(&open)
+
 	// Dial proxy
 	proxyConn, err := c.dialProxy()
 	if err != nil {
+		// Post to doneRequestingCh since we never started requesting
+		c.doneRequestingCh <- true
+		c.Close()
 		return nil, fmt.Errorf("Unable to dial proxy: %s", err)
 	}
 
@@ -49,6 +52,8 @@ func Dial(addr string, config *Config) (net.Conn, error) {
 
 	return idletiming.Conn(c, c.config.IdleTimeout, func() {
 		c.Close()
+		// Close the initial proxyConn just in case
+		proxyConn.conn.Close()
 	}), nil
 }
 
@@ -67,17 +72,23 @@ func (c *Conn) initDefaults() {
 }
 
 func (c *Conn) makeChannels() {
-	c.initialResponseCh = make(chan hostWithResponse)
-	c.writeRequestsCh = make(chan []byte)
-	c.writeResponsesCh = make(chan rwResponse)
-	c.doneWritingCh = make(chan bool)
-	c.readRequestsCh = make(chan []byte)
-	c.readResponsesCh = make(chan rwResponse)
-	c.doneReadingCh = make(chan bool)
-	c.requestOutCh = make(chan *request)
-	c.requestFinishedCh = make(chan error)
+	c.initialResponseCh = make(chan hostWithResponse, 100)
+	c.writeRequestsCh = make(chan []byte, 100)
+	c.writeResponsesCh = make(chan rwResponse, 100)
+	c.readRequestsCh = make(chan []byte, 100)
+	c.readResponsesCh = make(chan rwResponse, 100)
+	c.requestOutCh = make(chan *request, 100)
+	c.requestFinishedCh = make(chan error, 100)
+
+	// Buffered to depth 2 because we report async errors to the reading and
+	// writing goroutines.
 	c.asyncErrCh = make(chan error, 2)
-	c.doneRequestingCh = make(chan bool)
+
+	// Buffered so that even if conn.Close() hasn't been called, we can report
+	// finished.
+	c.doneWritingCh = make(chan bool, 1)
+	c.doneReadingCh = make(chan bool, 1)
+	c.doneRequestingCh = make(chan bool, 1)
 }
 
 func (c *Conn) initRequestStrategy() {
@@ -166,19 +177,6 @@ func (c *Conn) doRequest(proxyConn *connInfo, host string, op string, request *r
 	}
 
 	return
-}
-
-func (c *Conn) markActive() {
-	c.lastActivityMutex.Lock()
-	defer c.lastActivityMutex.Unlock()
-	c.lastActivityTime = time.Now()
-}
-
-func (c *Conn) isIdle() bool {
-	c.lastActivityMutex.RLock()
-	defer c.lastActivityMutex.RUnlock()
-	timeSinceLastActivity := time.Now().Sub(c.lastActivityTime)
-	return timeSinceLastActivity > c.config.IdleTimeout
 }
 
 type closer struct {

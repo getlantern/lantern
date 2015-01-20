@@ -48,7 +48,6 @@ func (brs *bufferingRequestStrategy) write(b []byte) (int, error) {
 		if bytesToCopy == 0 {
 			break
 		} else {
-			brs.c.markActive()
 			if brs.currentBody == nil {
 				brs.initBody()
 			}
@@ -110,11 +109,7 @@ func (srs *streamingRequestStrategy) write(b []byte) (int, error) {
 		}()
 	}
 
-	n, err := srs.writer.Write(b)
-	if n > 0 {
-		srs.c.markActive()
-	}
-	return n, err
+	return srs.writer.Write(b)
 }
 
 func (brs *bufferingRequestStrategy) initBody() {

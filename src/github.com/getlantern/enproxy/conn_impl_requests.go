@@ -11,6 +11,8 @@ import (
 // required because we are encapsulating a stream of data inside the bodies of
 // successive requests.
 func (c *Conn) processRequests(proxyConn *connInfo) {
+	increment(&requesting)
+
 	var resp *http.Response
 
 	first := true
@@ -89,9 +91,9 @@ func (c *Conn) processRequests(proxyConn *connInfo) {
 // true if the request was accepted or false if requests are no longer being
 // accepted
 func (c *Conn) submitRequest(request *request) bool {
-	c.closedMutex.RLock()
-	defer c.closedMutex.RUnlock()
-	if c.closed {
+	c.closingMutex.RLock()
+	defer c.closingMutex.RUnlock()
+	if c.closing {
 		return false
 	} else {
 		c.requestOutCh <- request
@@ -100,9 +102,12 @@ func (c *Conn) submitRequest(request *request) bool {
 }
 
 func (c *Conn) finishRequesting(resp *http.Response, first bool) {
+	increment(&requestingFinishing)
 	if !first && resp != nil {
 		resp.Body.Close()
 	}
 	c.doneRequestingCh <- true
+	decrement(&requestingFinishing)
+	decrement(&requesting)
 	return
 }

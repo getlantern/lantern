@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/getlantern/golog"
@@ -42,6 +43,79 @@ var (
 
 	oneSecond = 1 * time.Second
 )
+
+var (
+	// Connection metrics
+	open                   = int32(0)
+	reading                = int32(0)
+	readingFinishing       = int32(0)
+	blockedOnRead          = int32(0)
+	writing                = int32(0)
+	writingSelecting       = int32(0)
+	writingWriting         = int32(0)
+	writingWritingEmpty    = int32(0)
+	writingFinishingBody   = int32(0)
+	writingPostingResponse = int32(0)
+	writingFinishing       = int32(0)
+	blockedOnWrite         = int32(0)
+	requesting             = int32(0)
+	requestingFinishing    = int32(0)
+	closing                = int32(0)
+	blockedOnClosing       = int32(0)
+)
+
+func init() {
+	go func() {
+		for {
+			time.Sleep(5 * time.Second)
+			log.Debugf(
+				`---- Connections----
+Open:                  %4d
+Closing:               %4d
+Blocked on Closing:    %4d
+Blocked on Read:       %4d
+Reading:               %4d
+Reading Finishing:     %4d
+Blocked on Write:      %4d
+Writing:               %4d
+    Selecting:         %4d
+    Writing:           %4d
+    Posting Response:  %4d
+    Writing Empty:     %4d
+    Finishing Body:    %4d
+    Finishing:         %4d
+Requesting:            %4d
+Requesting Finishing:  %4d
+`, atomic.LoadInt32(&open),
+				atomic.LoadInt32(&closing),
+				atomic.LoadInt32(&blockedOnClosing),
+				atomic.LoadInt32(&blockedOnRead),
+				atomic.LoadInt32(&reading),
+				atomic.LoadInt32(&readingFinishing),
+				atomic.LoadInt32(&blockedOnWrite),
+				atomic.LoadInt32(&writing),
+				atomic.LoadInt32(&writingSelecting),
+				atomic.LoadInt32(&writingWriting),
+				atomic.LoadInt32(&writingPostingResponse),
+				atomic.LoadInt32(&writingWritingEmpty),
+				atomic.LoadInt32(&writingFinishingBody),
+				atomic.LoadInt32(&writingFinishing),
+				atomic.LoadInt32(&requesting),
+				atomic.LoadInt32(&requestingFinishing),
+			)
+		}
+	}()
+}
+
+// Increment a metric
+func increment(val *int32) {
+	atomic.AddInt32(val, 1)
+}
+
+// Decrement a metric
+func decrement(val *int32) {
+	atomic.AddInt32(val, -1)
+}
 
 // Conn is a net.Conn that tunnels its data via an httpconn.Proxy using HTTP
 // requests and responses.  It assumes that streaming requests are not supported
@@ -116,14 +190,12 @@ type Conn struct {
 	readResponsesCh chan rwResponse // responses for reads
 	doneReadingCh   chan bool
 
-	/* Fields for tracking activity/closed status */
-	lastActivityTime  time.Time    // time of last read or write
-	lastActivityMutex sync.RWMutex // mutex controlling access to lastActivityTime
-	asyncErr          error        // error that occurred during asynchronous processing
-	asyncErrMutex     sync.RWMutex // mutex guarding asyncErr
-	asyncErrCh        chan error   // channel used to interrupted any waiting reads/writes with an async error
-	closed            bool         // whether or not this Conn is closed
-	closedMutex       sync.RWMutex // mutex controlling access to closed flag
+	/* Fields for tracking error and closed status */
+	asyncErr      error        // error that occurred during asynchronous processing
+	asyncErrMutex sync.RWMutex // mutex guarding asyncErr
+	asyncErrCh    chan error   // channel used to interrupted any waiting reads/writes with an async error
+	closing       bool         // whether or not this Conn is closing
+	closingMutex  sync.RWMutex // mutex controlling access to the closing flag
 
 	/* Track current response */
 	resp *http.Response // the current response being used to read data
@@ -192,6 +264,8 @@ func (c *Conn) Write(b []byte) (n int, err error) {
 	}
 
 	if c.submitWrite(b) {
+		defer decrement(&blockedOnWrite)
+
 		select {
 		case res, ok := <-c.writeResponsesCh:
 			if !ok {
@@ -215,6 +289,8 @@ func (c *Conn) Read(b []byte) (n int, err error) {
 	}
 
 	if c.submitRead(b) {
+		defer decrement(&blockedOnRead)
+
 		select {
 		case res, ok := <-c.readResponsesCh:
 			if !ok {
@@ -259,15 +335,22 @@ func (c *Conn) getAsyncErr() error {
 
 // Close() implements the function from net.Conn
 func (c *Conn) Close() error {
-	c.closedMutex.Lock()
-	defer c.closedMutex.Unlock()
-	if !c.closed {
+	increment(&closing)
+	defer decrement(&closing)
+
+	c.closingMutex.Lock()
+	wasClosing := c.closing
+	c.closing = true
+	c.closingMutex.Unlock()
+	if !wasClosing {
+		increment(&blockedOnClosing)
 		close(c.writeRequestsCh)
 		close(c.readRequestsCh)
 		<-c.doneReadingCh
 		<-c.doneWritingCh
 		<-c.doneRequestingCh
-		c.closed = true
+		decrement(&blockedOnClosing)
+		decrement(&open)
 	}
 	return nil
 }
