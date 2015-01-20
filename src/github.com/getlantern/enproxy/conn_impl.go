@@ -56,6 +56,7 @@ func (c *Conn) makeChannels() {
 	c.initialResponseCh = make(chan hostWithResponse)
 	c.writeRequestsCh = make(chan []byte)
 	c.writeResponsesCh = make(chan rwResponse)
+	c.doneWritingCh = make(chan bool)
 	c.readRequestsCh = make(chan []byte)
 	c.readResponsesCh = make(chan rwResponse)
 	c.doneReadingCh = make(chan bool)
