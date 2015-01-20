@@ -115,7 +115,7 @@ func getHostInfo(req *http.Request) (name string, ip string, port int, err error
 	if portString != "" {
 		port, err = strconv.Atoi(portString)
 		if err != nil {
-			err = fmt.Errorf("Received invalid port for %v - %v: %d", name, ip, portString)
+			err = fmt.Errorf("Received invalid port for %v - %v: %v", name, ip, portString)
 		}
 	}
 
