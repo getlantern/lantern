@@ -2,7 +2,6 @@ package enproxy
 
 import (
 	"fmt"
-	"io"
 	"net/http"
 	"time"
 )
@@ -34,12 +33,12 @@ func (c *Conn) processRequests(proxyConn *connInfo) {
 	}
 
 	for {
-		if c.isClosed() {
-			return
-		}
-
 		select {
-		case request := <-c.requestOutCh:
+		case request, more := <-c.requestOutCh:
+			if !more {
+				log.Trace("Requestor detected close")
+				return
+			}
 			proxyConn, err = c.redialProxyIfNecessary(proxyConn)
 			if err != nil {
 				err = mkerror("Unable to redial proxy", err)
@@ -52,6 +51,7 @@ func (c *Conn) processRequests(proxyConn *connInfo) {
 
 			// Then issue new request
 			resp, err = c.doRequest(proxyConn, proxyHost, OP_WRITE, request)
+			log.Tracef("Issued write request with result: %v", err)
 			c.requestFinishedCh <- err
 			if err != nil {
 				err = mkerror("Unable to issue write request", err)
@@ -89,8 +89,6 @@ func (c *Conn) processRequests(proxyConn *connInfo) {
 			} else {
 				resp.Body.Close()
 			}
-		case <-c.stopRequestCh:
-			return
 		case <-time.After(c.config.IdleTimeout):
 			if c.isIdle() {
 				return
@@ -114,27 +112,12 @@ func (c *Conn) submitRequest(request *request) bool {
 }
 
 func (c *Conn) cleanupAfterRequests(resp *http.Response, first bool) {
-	panicked := recover()
-
-	for {
-		select {
-		case <-c.requestOutCh:
-			if panicked != nil {
-				c.requestFinishedCh <- io.ErrUnexpectedEOF
-			} else {
-				c.requestFinishedCh <- io.EOF
-			}
-		case <-c.stopRequestCh:
-			// do nothing
-		default:
-			c.requestMutex.Lock()
-			c.doneRequesting = true
-			c.requestMutex.Unlock()
-			close(c.requestOutCh)
-			if !first && resp != nil {
-				resp.Body.Close()
-			}
-			return
-		}
+	c.requestMutex.Lock()
+	c.doneRequesting = true
+	c.requestMutex.Unlock()
+	if !first && resp != nil {
+		resp.Body.Close()
 	}
+	c.doneRequestingCh <- true
+	return
 }

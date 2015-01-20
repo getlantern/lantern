@@ -13,7 +13,6 @@ import (
 
 	"github.com/getlantern/fdcount"
 	"github.com/getlantern/keyman"
-
 	"github.com/getlantern/testify/assert"
 	. "github.com/getlantern/waitforserver"
 )
@@ -61,6 +60,8 @@ func TestBadBuffered(t *testing.T) {
 	doTestBad(true, t)
 }
 
+// This test stimulates a connection leak as seen in
+// https://github.com/getlantern/lantern/issues/2174.
 func TestHTTPRedirect(t *testing.T) {
 	startProxy(t)
 

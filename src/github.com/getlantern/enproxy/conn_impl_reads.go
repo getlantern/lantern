@@ -37,12 +37,13 @@ func (c *Conn) processReads() {
 	}
 
 	for {
-		if c.isClosed() {
-			return
-		}
-
 		select {
-		case b := <-c.readRequestsCh:
+		case b, more := <-c.readRequestsCh:
+			if !more {
+				log.Trace("Reader detected close")
+				return
+			}
+
 			if resp == nil {
 				// Old response finished
 				if c.isIdle() {
@@ -95,8 +96,6 @@ func (c *Conn) processReads() {
 					return
 				}
 			}
-		case <-c.stopReadCh:
-			return
 		case <-time.After(c.config.IdleTimeout):
 			if c.isIdle() {
 				return
@@ -119,27 +118,12 @@ func (c *Conn) submitRead(b []byte) bool {
 }
 
 func (c *Conn) cleanupAfterReads(resp *http.Response) {
-	panicked := recover()
-
-	for {
-		select {
-		case <-c.readRequestsCh:
-			if panicked != nil {
-				c.readResponsesCh <- rwResponse{0, io.ErrUnexpectedEOF}
-			} else {
-				c.readResponsesCh <- rwResponse{0, io.EOF}
-			}
-		case <-c.stopReadCh:
-			// do nothing
-		default:
-			c.readMutex.Lock()
-			c.doneReading = true
-			c.readMutex.Unlock()
-			close(c.readRequestsCh)
-			if resp != nil {
-				resp.Body.Close()
-			}
-			return
-		}
+	c.readMutex.Lock()
+	c.doneReading = true
+	c.readMutex.Unlock()
+	if resp != nil {
+		resp.Body.Close()
 	}
+	c.doneReadingCh <- true
+	return
 }

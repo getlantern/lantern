@@ -1,7 +1,6 @@
 package fdcount
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
@@ -60,10 +59,6 @@ func (c *Counter) matchingLines(out []byte) (string, int) {
 	return strings.Join(lines, "\n"), len(lines)
 }
 
-func (c *Counter) countMatches(out []byte) int {
-	return bytes.Count(out, []byte(c.match))
-}
-
 func runLsof() ([]byte, error) {
 	out, err := exec.Command("lsof", "-p", fmt.Sprintf("%v", os.Getpid())).Output()
 	if err != nil {
@@ -103,7 +98,17 @@ func lsofDelta(start string, end string) string {
 		r = append(r, line)
 	}
 
-	return fmt.Sprintf("New file descriptors\n-----------------------------\n%v\n\nRemoved file descriptors\n-----------------------------\n%v\n",
-		strings.Join(a, "\n"),
-		strings.Join(r, "\n"))
+	result := ""
+	if len(a) > 0 {
+		result = fmt.Sprintf("New file descriptors\n-----------------------------\n%v\n",
+			strings.Join(a, "\n"))
+	}
+	if len(r) > 0 {
+		if len(a) > 0 {
+			result = result + "\n"
+		}
+		result = fmt.Sprintf("%sRemoved file descriptors\n-----------------------------\n%v\n",
+			result, strings.Join(r, "\n"))
+	}
+	return result
 }
