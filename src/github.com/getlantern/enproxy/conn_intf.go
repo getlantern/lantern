@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/http"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/getlantern/golog"
@@ -43,79 +42,6 @@ var (
 
 	oneSecond = 1 * time.Second
 )
-
-var (
-	// Connection metrics
-	open                   = int32(0)
-	reading                = int32(0)
-	readingFinishing       = int32(0)
-	blockedOnRead          = int32(0)
-	writing                = int32(0)
-	writingSelecting       = int32(0)
-	writingWriting         = int32(0)
-	writingWritingEmpty    = int32(0)
-	writingFinishingBody   = int32(0)
-	writingPostingResponse = int32(0)
-	writingFinishing       = int32(0)
-	blockedOnWrite         = int32(0)
-	requesting             = int32(0)
-	requestingFinishing    = int32(0)
-	closing                = int32(0)
-	blockedOnClosing       = int32(0)
-)
-
-func init() {
-	go func() {
-		for {
-			time.Sleep(5 * time.Second)
-			log.Debugf(
-				`---- Connections----
-Open:                  %4d
-Closing:               %4d
-Blocked on Closing:    %4d
-Blocked on Read:       %4d
-Reading:               %4d
-Reading Finishing:     %4d
-Blocked on Write:      %4d
-Writing:               %4d
-    Selecting:         %4d
-    Writing:           %4d
-    Posting Response:  %4d
-    Writing Empty:     %4d
-    Finishing Body:    %4d
-    Finishing:         %4d
-Requesting:            %4d
-Requesting Finishing:  %4d
-`, atomic.LoadInt32(&open),
-				atomic.LoadInt32(&closing),
-				atomic.LoadInt32(&blockedOnClosing),
-				atomic.LoadInt32(&blockedOnRead),
-				atomic.LoadInt32(&reading),
-				atomic.LoadInt32(&readingFinishing),
-				atomic.LoadInt32(&blockedOnWrite),
-				atomic.LoadInt32(&writing),
-				atomic.LoadInt32(&writingSelecting),
-				atomic.LoadInt32(&writingWriting),
-				atomic.LoadInt32(&writingPostingResponse),
-				atomic.LoadInt32(&writingWritingEmpty),
-				atomic.LoadInt32(&writingFinishingBody),
-				atomic.LoadInt32(&writingFinishing),
-				atomic.LoadInt32(&requesting),
-				atomic.LoadInt32(&requestingFinishing),
-			)
-		}
-	}()
-}
-
-// Increment a metric
-func increment(val *int32) {
-	atomic.AddInt32(val, 1)
-}
-
-// Decrement a metric
-func decrement(val *int32) {
-	atomic.AddInt32(val, -1)
-}
 
 // Conn is a net.Conn that tunnels its data via an httpconn.Proxy using HTTP
 // requests and responses.  It assumes that streaming requests are not supported
@@ -253,7 +179,6 @@ type hostWithResponse struct {
 	proxyHost string
 	proxyConn *connInfo
 	resp      *http.Response
-	err       error
 }
 
 // Write() implements the function from net.Conn
@@ -307,6 +232,8 @@ func (c *Conn) Read(b []byte) (n int, err error) {
 }
 
 func (c *Conn) fail(err error) {
+	log.Debugf("Failing on %v", err)
+
 	c.asyncErrMutex.Lock()
 	if c.asyncErr != nil {
 		c.asyncErr = err

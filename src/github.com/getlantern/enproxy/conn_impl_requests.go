@@ -34,26 +34,25 @@ func (c *Conn) processRequests(proxyConn *connInfo) {
 	}
 
 	for request := range c.requestOutCh {
+		decrement(&writingRequestPending)
+		increment(&writingProcessingRequestRedialing)
 		proxyConn, err = c.redialProxyIfNecessary(proxyConn)
+		decrement(&writingProcessingRequestRedialing)
 		if err != nil {
-			err = mkerror("Unable to redial proxy", err)
-			log.Error(err)
-			if first {
-				c.initialResponseCh <- hostWithResponse{err: err}
-			}
+			c.fail(mkerror("Unable to redial proxy", err))
 			return
 		}
 
 		// Then issue new request
+		increment(&writingProcessingRequest)
 		resp, err = c.doRequest(proxyConn, proxyHost, OP_WRITE, request)
+		decrement(&writingProcessingRequest)
 		log.Tracef("Issued write request with result: %v", err)
+		increment(&writingProcessingRequestPostingRequestFinished)
 		c.requestFinishedCh <- err
+		decrement(&writingProcessingRequestPostingRequestFinished)
 		if err != nil {
-			err = mkerror("Unable to issue write request", err)
-			log.Error(err)
-			if first {
-				c.initialResponseCh <- hostWithResponse{err: err}
-			}
+			c.fail(mkerror("Unable to issue write request", err))
 			return
 		}
 
@@ -67,20 +66,23 @@ func (c *Conn) processRequests(proxyConn *connInfo) {
 			// Also post it to initialResponseCh so that the processReads()
 			// routine knows which proxyHost to use and gets the initial
 			// response data
+			increment(&writingProcessingRequestPostingResponse)
 			c.initialResponseCh <- hostWithResponse{
 				proxyHost: proxyHost,
 				proxyConn: proxyConn,
 				resp:      resp,
 			}
+			decrement(&writingProcessingRequestPostingResponse)
 
 			first = false
 
 			// Dial again because our old proxyConn is now being used by the
 			// reader goroutine
+			increment(&writingProcessingRequestDialingFirst)
 			proxyConn, err = c.dialProxy()
+			decrement(&writingProcessingRequestDialingFirst)
 			if err != nil {
-				err = mkerror("Unable to dial proxy for 2nd request", err)
-				log.Error(err)
+				c.fail(mkerror("Unable to dial proxy for 2nd request", err))
 				return
 			}
 		}
@@ -96,6 +98,7 @@ func (c *Conn) submitRequest(request *request) bool {
 	if c.closing {
 		return false
 	} else {
+		increment(&writingRequestPending)
 		c.requestOutCh <- request
 		return true
 	}
@@ -105,6 +108,11 @@ func (c *Conn) finishRequesting(resp *http.Response, first bool) {
 	increment(&requestingFinishing)
 	if !first && resp != nil {
 		resp.Body.Close()
+	}
+	// Drain requestsOutCh
+	for req := range c.requestOutCh {
+		decrement(&writingRequestPending)
+		req.body.Close()
 	}
 	c.doneRequestingCh <- true
 	decrement(&requestingFinishing)

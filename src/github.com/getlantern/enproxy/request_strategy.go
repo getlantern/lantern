@@ -92,23 +92,30 @@ func (srs *streamingRequestStrategy) write(b []byte) (int, error) {
 		// Lazily initialize our next request to the proxy
 		// Construct a pipe for piping data to proxy
 		reader, writer := io.Pipe()
+		increment(&writePipeOpen)
 		srs.writer = writer
 		request := &request{
 			body:   reader,
 			length: 0, // forces chunked encoding
 		}
+		increment(&writingSubmittingRequest)
 		if !srs.c.submitRequest(request) {
+			decrement(&writingSubmittingRequest)
 			return 0, io.EOF
 		}
+		decrement(&writingSubmittingRequest)
 		go func() {
 			// Drain the requestFinishedCh
 			err := <-srs.c.requestFinishedCh
+			writer.Close()
 			if err != nil && err != io.EOF {
 				srs.c.fail(err)
 			}
 		}()
 	}
 
+	increment(&writingDoingWrite)
+	defer decrement(&writingDoingWrite)
 	return srs.writer.Write(b)
 }
 
@@ -152,6 +159,7 @@ func (srs *streamingRequestStrategy) finishBody() error {
 
 	srs.writer.Close()
 	srs.writer = nil
+	decrement(&writePipeOpen)
 
 	return nil
 }

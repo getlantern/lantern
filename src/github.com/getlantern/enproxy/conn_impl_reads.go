@@ -13,6 +13,7 @@ func (c *Conn) processReads() {
 
 	var resp *http.Response
 	var proxyConn *connInfo
+	var err error
 
 	defer func() {
 		increment(&readingFinishing)
@@ -31,10 +32,6 @@ func (c *Conn) processReads() {
 	// where to send read requests.
 	initialResponse, more := <-c.initialResponseCh
 	if !more {
-		return
-	}
-	err := initialResponse.err
-	if err != nil {
 		return
 	}
 
