@@ -115,7 +115,9 @@ func doTestNonGlobalAddress(t *testing.T, overrideAddr string) {
 		addr = overrideAddr
 	}
 	conn, err := d.Dial("tcp", addr)
-	defer conn.Close()
+	if err != nil {
+		t.Fatalf("Unable to dial %v: %v", addr, err)
+	}
 
 	data := []byte("Some Meaningless Data")
 	conn.Write(data)
