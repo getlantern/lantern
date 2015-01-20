@@ -3,7 +3,6 @@ package enproxy
 import (
 	"fmt"
 	"net/http"
-	"time"
 )
 
 // processRequests handles writing outbound requests to the proxy.  Note - this
@@ -15,7 +14,7 @@ func (c *Conn) processRequests(proxyConn *connInfo) {
 	var resp *http.Response
 
 	first := true
-	defer c.cleanupAfterRequests(resp, first)
+	defer c.finishRequesting(resp, first)
 
 	defer func() {
 		// If there's a proxyConn at the time that processRequests() exits,
@@ -32,65 +31,54 @@ func (c *Conn) processRequests(proxyConn *connInfo) {
 		return fmt.Errorf("Dest: %s    ProxyHost: %s    %s: %s", c.addr, proxyHost, text, err)
 	}
 
-	for {
-		select {
-		case request, more := <-c.requestOutCh:
-			if !more {
-				log.Trace("Requestor detected close")
-				return
-			}
-			proxyConn, err = c.redialProxyIfNecessary(proxyConn)
-			if err != nil {
-				err = mkerror("Unable to redial proxy", err)
-				log.Error(err)
-				if first {
-					c.initialResponseCh <- hostWithResponse{err: err}
-				}
-				return
-			}
-
-			// Then issue new request
-			resp, err = c.doRequest(proxyConn, proxyHost, OP_WRITE, request)
-			log.Tracef("Issued write request with result: %v", err)
-			c.requestFinishedCh <- err
-			if err != nil {
-				err = mkerror("Unable to issue write request", err)
-				log.Error(err)
-				if first {
-					c.initialResponseCh <- hostWithResponse{err: err}
-				}
-				return
-			}
-
+	for request := range c.requestOutCh {
+		proxyConn, err = c.redialProxyIfNecessary(proxyConn)
+		if err != nil {
+			err = mkerror("Unable to redial proxy", err)
+			log.Error(err)
 			if first {
-				// On our first request, find out what host we're actually
-				// talking to and remember that for future requests.
-				proxyHost = resp.Header.Get(X_ENPROXY_PROXY_HOST)
-
-				// Also post it to initialResponseCh so that the processReads()
-				// routine knows which proxyHost to use and gets the initial
-				// response data
-				c.initialResponseCh <- hostWithResponse{
-					proxyHost: proxyHost,
-					proxyConn: proxyConn,
-					resp:      resp,
-				}
-
-				first = false
-
-				// Dial again because our old proxyConn is now being used by the
-				// reader goroutine
-				proxyConn, err = c.dialProxy()
-				if err != nil {
-					err = mkerror("Unable to dial proxy for 2nd request", err)
-					log.Error(err)
-					return
-				}
-			} else {
-				resp.Body.Close()
+				c.initialResponseCh <- hostWithResponse{err: err}
 			}
-		case <-time.After(c.config.IdleTimeout):
-			if c.isIdle() {
+			return
+		}
+
+		// Then issue new request
+		resp, err = c.doRequest(proxyConn, proxyHost, OP_WRITE, request)
+		log.Tracef("Issued write request with result: %v", err)
+		c.requestFinishedCh <- err
+		if err != nil {
+			err = mkerror("Unable to issue write request", err)
+			log.Error(err)
+			if first {
+				c.initialResponseCh <- hostWithResponse{err: err}
+			}
+			return
+		}
+
+		if !first {
+			resp.Body.Close()
+		} else {
+			// On our first request, find out what host we're actually
+			// talking to and remember that for future requests.
+			proxyHost = resp.Header.Get(X_ENPROXY_PROXY_HOST)
+
+			// Also post it to initialResponseCh so that the processReads()
+			// routine knows which proxyHost to use and gets the initial
+			// response data
+			c.initialResponseCh <- hostWithResponse{
+				proxyHost: proxyHost,
+				proxyConn: proxyConn,
+				resp:      resp,
+			}
+
+			first = false
+
+			// Dial again because our old proxyConn is now being used by the
+			// reader goroutine
+			proxyConn, err = c.dialProxy()
+			if err != nil {
+				err = mkerror("Unable to dial proxy for 2nd request", err)
+				log.Error(err)
 				return
 			}
 		}
@@ -101,9 +89,9 @@ func (c *Conn) processRequests(proxyConn *connInfo) {
 // true if the request was accepted or false if requests are no longer being
 // accepted
 func (c *Conn) submitRequest(request *request) bool {
-	c.requestMutex.RLock()
-	defer c.requestMutex.RUnlock()
-	if c.doneRequesting {
+	c.closedMutex.RLock()
+	defer c.closedMutex.RUnlock()
+	if c.closed {
 		return false
 	} else {
 		c.requestOutCh <- request
@@ -111,10 +99,7 @@ func (c *Conn) submitRequest(request *request) bool {
 	}
 }
 
-func (c *Conn) cleanupAfterRequests(resp *http.Response, first bool) {
-	c.requestMutex.Lock()
-	c.doneRequesting = true
-	c.requestMutex.Unlock()
+func (c *Conn) finishRequesting(resp *http.Response, first bool) {
 	if !first && resp != nil {
 		resp.Body.Close()
 	}

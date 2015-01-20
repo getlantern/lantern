@@ -81,6 +81,9 @@ type Conn struct {
 	// addr: the host:port of the destination server that we're trying to reach
 	addr string
 
+	tcpAddr *net.TCPAddr
+	host    string
+
 	// config: configuration of this Conn
 	config *Config
 
@@ -101,24 +104,18 @@ type Conn struct {
 	/* Write processing */
 	writeRequestsCh  chan []byte     // requests to write
 	writeResponsesCh chan rwResponse // responses for writes
-	doneWriting      bool
 	doneWritingCh    chan bool
-	writeMutex       sync.RWMutex // synchronizes access to doneWriting flag
 	rs               requestStrategy
 
 	/* Request processing (for writes) */
 	requestOutCh      chan *request // channel for next outgoing request body
 	requestFinishedCh chan error
 	doneRequestingCh  chan bool
-	doneRequesting    bool
-	requestMutex      sync.RWMutex // synchronizes access to doneRequesting flag
 
 	/* Read processing */
 	readRequestsCh  chan []byte     // requests to read
 	readResponsesCh chan rwResponse // responses for reads
 	doneReadingCh   chan bool
-	doneReading     bool
-	readMutex       sync.RWMutex // synchronizes access to doneReading flag
 
 	/* Fields for tracking activity/closed status */
 	lastActivityTime  time.Time    // time of last read or write
@@ -127,7 +124,7 @@ type Conn struct {
 	asyncErrMutex     sync.RWMutex // mutex guarding asyncErr
 	asyncErrCh        chan error   // channel used to interrupted any waiting reads/writes with an async error
 	closed            bool         // whether or not this Conn is closed
-	closedMutex       sync.Mutex   // mutex controlling access to closed flag
+	closedMutex       sync.RWMutex // mutex controlling access to closed flag
 
 	/* Track current response */
 	resp *http.Response // the current response being used to read data
@@ -281,20 +278,23 @@ func (c *Conn) LocalAddr() net.Addr {
 
 // RemoteAddr() is not implemented
 func (c *Conn) RemoteAddr() net.Addr {
-	panic("RemoteAddr() not implemented")
+	return c.tcpAddr
 }
 
 // SetDeadline() is currently unimplemented.
 func (c *Conn) SetDeadline(t time.Time) error {
-	panic("SetDeadline not implemented")
+	log.Tracef("SetDeadline not implemented")
+	return nil
 }
 
 // SetReadDeadline() is currently unimplemented.
 func (c *Conn) SetReadDeadline(t time.Time) error {
-	panic("SetReadDeadline not implemented")
+	log.Tracef("SetReadDeadline not implemented")
+	return nil
 }
 
 // SetWriteDeadline() is currently unimplemented.
 func (c *Conn) SetWriteDeadline(t time.Time) error {
-	panic("SetWriteDeadline not implemented")
+	log.Tracef("SetWriteDeadline not implemented")
+	return nil
 }

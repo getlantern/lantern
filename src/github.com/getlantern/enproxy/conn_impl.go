@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"time"
 
@@ -17,11 +18,23 @@ import (
 // addr: the host:port of the destination server that we're trying to reach
 //
 // config: configuration for this Conn
-func Dial(addr string, config *Config) (*Conn, error) {
+func Dial(addr string, config *Config) (net.Conn, error) {
+	tcpAddr, err := net.ResolveTCPAddr("tcp", addr)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to resolve TCP addr %v: %v", addr, err)
+	}
+
+	host, _, err := net.SplitHostPort(addr)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to split host and port on addr %v: %v", err)
+	}
+
 	c := &Conn{
-		id:     uuid.NewRandom().String(),
-		addr:   addr,
-		config: config,
+		id:      uuid.NewRandom().String(),
+		addr:    addr,
+		tcpAddr: tcpAddr,
+		host:    host,
+		config:  config,
 	}
 
 	c.initDefaults()
@@ -40,7 +53,9 @@ func Dial(addr string, config *Config) (*Conn, error) {
 
 	go c.processRequests(proxyConn)
 
-	return c, nil
+	return idletiming.Conn(c, c.config.IdleTimeout, func() {
+		c.Close()
+	}), nil
 }
 
 func (c *Conn) initDefaults() {
@@ -49,6 +64,14 @@ func (c *Conn) initDefaults() {
 	}
 	if c.config.IdleTimeout == 0 {
 		c.config.IdleTimeout = defaultIdleTimeoutClient
+	}
+	if c.config.NewRequest == nil {
+		c.config.NewRequest = func(host string, method string, body io.Reader) (req *http.Request, err error) {
+			if host == "" {
+				host = c.host
+			}
+			return http.NewRequest(method, "http://"+host, body)
+		}
 	}
 }
 

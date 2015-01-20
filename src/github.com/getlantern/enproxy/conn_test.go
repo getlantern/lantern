@@ -60,6 +60,27 @@ func TestBadBuffered(t *testing.T) {
 	doTestBad(true, t)
 }
 
+func TestIdle(t *testing.T) {
+	idleTimeout := 100 * time.Millisecond
+
+	_, counter, err := fdcount.Matching("TCP")
+	if err != nil {
+		t.Fatalf("Unable to get fdcount: %v", err)
+	}
+
+	_, err = Dial(httpAddr, &Config{
+		DialProxy: func(addr string) (net.Conn, error) {
+			return net.Dial("tcp", proxyAddr)
+		},
+		IdleTimeout: idleTimeout,
+	})
+	if assert.NoError(t, err, "Dialing should have succeeded") {
+		assert.NoError(t, counter.AssertDelta(4), "All file descriptors including the connection from proxy to destination site should still be open")
+		time.Sleep(idleTimeout * 2)
+		assert.NoError(t, counter.AssertDelta(2), "All file descriptors except the connection from proxy to destination site should have been closed")
+	}
+}
+
 // This test stimulates a connection leak as seen in
 // https://github.com/getlantern/lantern/issues/2174.
 func TestHTTPRedirect(t *testing.T) {
@@ -71,9 +92,6 @@ func TestHTTPRedirect(t *testing.T) {
 				return Dial(addr, &Config{
 					DialProxy: func(addr string) (net.Conn, error) {
 						return net.Dial("tcp", proxyAddr)
-					},
-					NewRequest: func(upstreamHost string, method string, body io.Reader) (req *http.Request, err error) {
-						return http.NewRequest(method, "http://"+proxyAddr+"/", body)
 					},
 				})
 			},
@@ -107,6 +125,7 @@ func doTestPlainText(buffered bool, t *testing.T) {
 		t.Fatalf("Unable to prepareConn: %s", err)
 	}
 	defer func() {
+		assert.NoError(t, counter.AssertDelta(6), "All file descriptors including the connection from proxy to destination site should still be open")
 		err := conn.Close()
 		assert.Nil(t, err, "Closing conn should succeed")
 		assert.NoError(t, counter.AssertDelta(2), "All file descriptors except the connection from proxy to destination site should have been closed")
@@ -138,6 +157,7 @@ func doTestTLS(buffered bool, t *testing.T) {
 		RootCAs:    cert.PoolContainingCert(),
 	})
 	defer func() {
+		assert.NoError(t, counter.AssertDelta(6), "All file descriptors including the connection from proxy to destination site should still be open")
 		err := conn.Close()
 		assert.Nil(t, err, "Closing conn should succeed")
 		assert.NoError(t, counter.AssertDelta(2), "All file descriptors except the connection from proxy to destination site should have been closed")
@@ -164,7 +184,7 @@ func doTestBad(buffered bool, t *testing.T) {
 	}
 }
 
-func prepareConn(addr string, buffered bool, fail bool, t *testing.T) (conn *Conn, err error) {
+func prepareConn(addr string, buffered bool, fail bool, t *testing.T) (conn net.Conn, err error) {
 	return Dial(addr,
 		&Config{
 			DialProxy: func(addr string) (net.Conn, error) {
@@ -173,12 +193,6 @@ func prepareConn(addr string, buffered bool, fail bool, t *testing.T) (conn *Con
 					proto = "fakebad"
 				}
 				return net.Dial(proto, proxyAddr)
-			},
-			NewRequest: func(host string, method string, body io.Reader) (req *http.Request, err error) {
-				if host == "" {
-					host = proxyAddr
-				}
-				return http.NewRequest(method, "http://"+host, body)
 			},
 			BufferRequests: buffered,
 		})

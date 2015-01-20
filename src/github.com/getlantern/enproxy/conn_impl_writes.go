@@ -17,7 +17,7 @@ var (
 // accept writes and pipe these to the request body while actually sending that
 // request body to the server.
 func (c *Conn) processWrites() {
-	defer c.cleanupAfterWrites()
+	defer c.finishWriting()
 
 	firstRequest := true
 	hasWritten := false
@@ -28,7 +28,6 @@ func (c *Conn) processWrites() {
 			if !more {
 				return
 			}
-
 			hasWritten = true
 			if !c.processWrite(b) {
 				// There was a problem processing a write, stop
@@ -36,11 +35,6 @@ func (c *Conn) processWrites() {
 			}
 		case <-time.After(c.config.FlushTimeout):
 			// We waited more than FlushTimeout for a write, finish our request
-
-			if c.isIdle() {
-				// Connection is idle, stop writing
-				return
-			}
 
 			if firstRequest && !hasWritten {
 				// Write empty data just so that we can get a response and get
@@ -69,9 +63,9 @@ func (c *Conn) processWrite(b []byte) bool {
 // submitWrite submits a write to the processWrites goroutine, returning true if
 // the write was accepted or false if writes are no longer being accepted
 func (c *Conn) submitWrite(b []byte) bool {
-	c.writeMutex.RLock()
-	defer c.writeMutex.RUnlock()
-	if c.doneWriting {
+	c.closedMutex.RLock()
+	defer c.closedMutex.RUnlock()
+	if c.closed {
 		return false
 	} else {
 		c.writeRequestsCh <- b
@@ -79,10 +73,7 @@ func (c *Conn) submitWrite(b []byte) bool {
 	}
 }
 
-func (c *Conn) cleanupAfterWrites() {
-	c.writeMutex.Lock()
-	c.doneWriting = true
-	c.writeMutex.Unlock()
+func (c *Conn) finishWriting() {
 	if c.rs != nil {
 		c.rs.finishBody()
 	}

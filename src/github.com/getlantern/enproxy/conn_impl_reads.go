@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"time"
 )
 
 // processReads processes read requests by polling the proxy with GET requests
@@ -22,7 +21,7 @@ func (c *Conn) processReads() {
 	proxyConn := initialResponse.proxyConn
 	resp := initialResponse.resp
 
-	defer c.cleanupAfterReads(resp)
+	defer c.finishReading(resp)
 
 	defer func() {
 		// If there's a proxyConn at the time that processReads() exits, close
@@ -36,68 +35,56 @@ func (c *Conn) processReads() {
 		return fmt.Errorf("Dest: %s    ProxyHost: %s    %s: %s", c.addr, proxyHost, text, err)
 	}
 
-	for {
-		select {
-		case b, more := <-c.readRequestsCh:
-			if !more {
-				log.Trace("Reader detected close")
+	for b := range c.readRequestsCh {
+		if resp == nil {
+			// Old response finished
+			if c.isIdle() {
+				// We're idle, don't bother reading again
+				c.readResponsesCh <- rwResponse{0, io.EOF}
 				return
 			}
 
-			if resp == nil {
-				// Old response finished
-				if c.isIdle() {
-					// We're idle, don't bother reading again
-					c.readResponsesCh <- rwResponse{0, io.EOF}
-					return
-				}
-
-				proxyConn, err = c.redialProxyIfNecessary(proxyConn)
-				if err != nil {
-					c.readResponsesCh <- rwResponse{0, mkerror("Unable to redial proxy", err)}
-					return
-				}
-
-				resp, err = c.doRequest(proxyConn, proxyHost, OP_READ, nil)
-				if err != nil {
-					err = mkerror("Unable to issue read request", err)
-					log.Error(err)
-					c.readResponsesCh <- rwResponse{0, err}
-					return
-				}
-			}
-
-			n, err := resp.Body.Read(b)
-			if n > 0 {
-				c.markActive()
-			}
-
-			hitEOFUpstream := resp.Header.Get(X_ENPROXY_EOF) == "true"
-			errToClient := err
-			if err == io.EOF && !hitEOFUpstream {
-				// The current response hit EOF, but we haven't hit EOF upstream
-				// so suppress EOF to reader
-				errToClient = nil
-			}
-			c.readResponsesCh <- rwResponse{n, errToClient}
-
+			proxyConn, err = c.redialProxyIfNecessary(proxyConn)
 			if err != nil {
-				if err == io.EOF {
-					// Current response is done
-					resp.Body.Close()
-					resp = nil
-					if hitEOFUpstream {
-						// True EOF, stop reading
-						return
-					}
-					continue
-				} else {
-					log.Errorf("Error reading: %s", err)
+				c.readResponsesCh <- rwResponse{0, mkerror("Unable to redial proxy", err)}
+				return
+			}
+
+			resp, err = c.doRequest(proxyConn, proxyHost, OP_READ, nil)
+			if err != nil {
+				err = mkerror("Unable to issue read request", err)
+				log.Error(err)
+				c.readResponsesCh <- rwResponse{0, err}
+				return
+			}
+		}
+
+		n, err := resp.Body.Read(b)
+		if n > 0 {
+			c.markActive()
+		}
+
+		hitEOFUpstream := resp.Header.Get(X_ENPROXY_EOF) == "true"
+		errToClient := err
+		if err == io.EOF && !hitEOFUpstream {
+			// The current response hit EOF, but we haven't hit EOF upstream
+			// so suppress EOF to reader
+			errToClient = nil
+		}
+		c.readResponsesCh <- rwResponse{n, errToClient}
+
+		if err != nil {
+			if err == io.EOF {
+				// Current response is done
+				resp.Body.Close()
+				resp = nil
+				if hitEOFUpstream {
+					// True EOF, stop reading
 					return
 				}
-			}
-		case <-time.After(c.config.IdleTimeout):
-			if c.isIdle() {
+				continue
+			} else {
+				log.Errorf("Error reading: %s", err)
 				return
 			}
 		}
@@ -107,9 +94,9 @@ func (c *Conn) processReads() {
 // submitRead submits a read to the processReads goroutine, returning true if
 // the read was accepted or false if reads are no longer being accepted
 func (c *Conn) submitRead(b []byte) bool {
-	c.readMutex.RLock()
-	defer c.readMutex.RUnlock()
-	if c.doneReading {
+	c.closedMutex.RLock()
+	defer c.closedMutex.RUnlock()
+	if c.closed {
 		return false
 	} else {
 		c.readRequestsCh <- b
@@ -117,10 +104,7 @@ func (c *Conn) submitRead(b []byte) bool {
 	}
 }
 
-func (c *Conn) cleanupAfterReads(resp *http.Response) {
-	c.readMutex.Lock()
-	c.doneReading = true
-	c.readMutex.Unlock()
+func (c *Conn) finishReading(resp *http.Response) {
 	if resp != nil {
 		resp.Body.Close()
 	}

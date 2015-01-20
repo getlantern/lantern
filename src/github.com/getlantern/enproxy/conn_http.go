@@ -42,7 +42,7 @@ func (c *Config) Intercept(resp http.ResponseWriter, req *http.Request) {
 
 // pipeData pipes data between the client and proxy connections.  It's also
 // responsible for responding to the initial CONNECT request with a 200 OK.
-func pipeData(clientConn net.Conn, connOut *Conn, req *http.Request) {
+func pipeData(clientConn net.Conn, connOut net.Conn, req *http.Request) {
 	// Start piping to proxy
 	go io.Copy(connOut, clientConn)
 
