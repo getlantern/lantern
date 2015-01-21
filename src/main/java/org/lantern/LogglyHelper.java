@@ -46,6 +46,6 @@ public class LogglyHelper {
                 .setExtraFromJson(json)
                 .sanitized(false);
         loggly.log(msg);
-        LOG.info("submitted to Loggly: %s", json);
+        LOG.info("submitted to Loggly: {}", json);
     }
 }
