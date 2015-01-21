@@ -3,17 +3,14 @@ language: go
 go:
   - 1.4.1
 
-env:
-  global:
-    secure: "QbyAEJyyOszmPVgsZkCzcB8sq27g78ZfOIlOs2uccf/oge0vLD1Qb05C5d1yMKZrTGYAyidLolar92ySslVJmpEQKF/f9Xtny8Xx+dN8FXY6jJszbWX/d5lWcPzJ0gdc2FbR58YgAuN/NTNpIiPK6E6rFVXomkT8BNO4nZWRMcc="
-    secure: "JqJHo/Nv3eewYQ6q3gest+koRNOaJAyR0h8oO4QxUaW9ROYD4/5kF0/bIe5YL/MVzptkdcLpgo16hJQ7PSFYYT1KRvHsnySk9tTnOMgVHkB5bZyiTWs1SuLPN9Jhyr1/yzhmxV3lhi4qJ0Di7fWK7qAkS2JBOTI18PFM9t3aVJ4="
-
 install:
   - go get golang.org/x/tools/cmd/cover
   - go get -v github.com/axw/gocov/gocov
   - go get -v github.com/mattn/goveralls
 
 script:
+  # This unencryptes envvars.bash.enc into envvars.bash so that we can run the tests
+  - openssl aes-256-cbc -K $encrypted_263604b5b445_key -iv $encrypted_263604b5b445_iv -in envvars.bash.enc -out envvars.bash -d
   - ./testandcover.bash
 
 after_success:
