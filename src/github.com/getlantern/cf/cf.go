@@ -3,6 +3,8 @@ package cf
 
 import (
 	"fmt"
+	"net/http"
+	"time"
 
 	"github.com/getlantern/cloudflare"
 	"github.com/getlantern/golog"
@@ -23,7 +25,15 @@ func New(domain string, username string, apiKey string) (*Util, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to initialize client: %v", err)
 	}
+	// Set a longish timeout on the HTTP client just in case
+	client.Http.Timeout = 5 * time.Minute
 	return &Util{client, nil, domain}, nil
+}
+
+func (util *Util) DisableKeepAlives() {
+	util.Client.Http.Transport = &http.Transport{
+		DisableKeepAlives: true,
+	}
 }
 
 func (util *Util) RemoveIpFromRotation(ip string, subdomain string) error {
@@ -67,14 +77,14 @@ func (util *Util) GetRotationRecords(subdomain string) ([]cloudflare.Record, err
 func (util *Util) GetAllRecords() ([]cloudflare.Record, error) {
 	resp, err := util.Client.LoadAll(util.domain)
 	if err != nil {
-		return nil, fmt.Errorf("Error retrieving records!", err)
+		return nil, fmt.Errorf("Error retrieving records: %v", err)
 	}
 
 	allRecords := resp.Response.Recs.Records
 	for resp.Response.Recs.HasMore {
 		resp, err = util.Client.LoadAllAtIndex(util.domain, len(allRecords))
 		if err != nil {
-			return nil, fmt.Errorf("Error retrieving records at index!", err)
+			return nil, fmt.Errorf("Error retrieving records at index: %v", err)
 		}
 		allRecords = append(allRecords, resp.Response.Recs.Records...)
 	}

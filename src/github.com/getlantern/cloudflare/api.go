@@ -112,6 +112,6 @@ func checkResp(resp *http.Response, err error) (*http.Response, error) {
 	case i == 200:
 		return resp, nil
 	default:
-		return nil, fmt.Errorf("API Error: %s", resp.Status)
+		return resp, fmt.Errorf("API Error: %s", resp.Status)
 	}
 }

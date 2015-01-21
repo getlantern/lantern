@@ -139,10 +139,12 @@ func (c *Client) CreateRecord(domain string, opts *CreateRecord) (*Record, error
 	}
 
 	resp, err := checkResp(c.Http.Do(req))
+	if resp != nil && resp.Body != nil {
+		defer resp.Body.Close()
+	}
 	if err != nil {
 		return nil, fmt.Errorf("Error creating record: %s", err)
 	}
-	defer resp.Body.Close()
 
 	recordResp := new(RecordResponse)
 
@@ -175,10 +177,12 @@ func (c *Client) DestroyRecord(domain string, id string) error {
 	}
 
 	resp, err := checkResp(c.Http.Do(req))
+	if resp != nil && resp.Body != nil {
+		defer resp.Body.Close()
+	}
 	if err != nil {
 		return fmt.Errorf("Error deleting record: %s", err)
 	}
-	defer resp.Body.Close()
 
 	recordResp := new(RecordResponse)
 
@@ -243,10 +247,12 @@ func (c *Client) UpdateRecord(domain string, id string, opts *UpdateRecord) erro
 	}
 
 	resp, err := checkResp(c.Http.Do(req))
+	if resp != nil && resp.Body != nil {
+		defer resp.Body.Close()
+	}
 	if err != nil {
 		return fmt.Errorf("Error updating record: %s", err)
 	}
-	defer resp.Body.Close()
 
 	recordResp := new(RecordResponse)
 
@@ -323,10 +329,14 @@ func (c *Client) loadAll(params *map[string]string) (*RecordsResponse, error) {
 	}
 
 	resp, err := checkResp(c.Http.Do(req))
-	if err != nil {
-		return nil, fmt.Errorf("Error destroying record: %s", err)
+	if resp != nil && resp.Body != nil {
+		defer func() {
+			resp.Body.Close()
+		}()
 	}
-	defer resp.Body.Close()
+	if err != nil {
+		return nil, fmt.Errorf("Error loading all: %s", err)
+	}
 
 	records := new(RecordsResponse)
 
