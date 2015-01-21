@@ -107,6 +107,7 @@ public class FlashlightServerManager implements Shutdownable {
     synchronized private void update(boolean inGiveMode, boolean isConnected) {
         boolean eligibleToRun = inGiveMode && isConnected;
         boolean running = flashlight != null;
+        LOGGER.debug("eligibleToRun: {}   running: {}", eligibleToRun, running);
         needPortMappingWarning.set(true);
         if (eligibleToRun && !running) {
             connectivityCheckFailing.set(false);
