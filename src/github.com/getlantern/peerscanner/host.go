@@ -149,7 +149,7 @@ func (h *host) doRun() {
 			h.terminate()
 			return
 		case <-terminateTimer.C:
-			log.Debugf("%v had no successul checks or resets in %v, terminating", h, terminateAfter)
+			log.Debugf("%v had no successful checks or resets in %v, terminating", h, terminateAfter)
 			h.terminate()
 			return
 		case <-periodTimer.C:

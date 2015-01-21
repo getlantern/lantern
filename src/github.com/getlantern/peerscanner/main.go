@@ -24,9 +24,9 @@ import (
 )
 
 const (
-	RoundRobin = "atest_roundrobin"
-	Peers      = "atest_apeers"
-	Fallbacks  = "atest_fallbacks"
+	RoundRobin = "roundrobin"
+	Peers      = "peers"
+	Fallbacks  = "fallbacks"
 )
 
 var (
