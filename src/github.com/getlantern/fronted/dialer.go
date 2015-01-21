@@ -114,7 +114,7 @@ func NewDialer(cfg *Config) *Dialer {
 	}
 	if cfg.PoolSize > 0 {
 		d.connPool = &connpool.Pool{
-			MinSize:      30,
+			MinSize:      cfg.PoolSize,
 			ClaimTimeout: idleTimeout,
 			Dial:         d.dialServer,
 		}

@@ -171,7 +171,7 @@ func TestAllowedPorts(t *testing.T) {
 
 func TestRoundTripPooled(t *testing.T) {
 	l := startServer(t, true, nil)
-	d := dialerFor(t, l, 30)
+	d := dialerFor(t, l, 20)
 	defer d.Close()
 
 	proxy.Test(t, d)
