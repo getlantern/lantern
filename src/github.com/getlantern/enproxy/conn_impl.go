@@ -55,11 +55,6 @@ func (c *conn) initDefaults() {
 	if c.config.IdleTimeout == 0 {
 		c.config.IdleTimeout = defaultIdleTimeoutClient
 	}
-	if c.config.NewRequest == nil {
-		c.config.NewRequest = func(host string, method string, body io.Reader) (req *http.Request, err error) {
-			return http.NewRequest(method, "http://"+host, body)
-		}
-	}
 }
 
 func (c *conn) makeChannels() {

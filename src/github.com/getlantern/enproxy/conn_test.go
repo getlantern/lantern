@@ -72,6 +72,7 @@ func TestIdle(t *testing.T) {
 		DialProxy: func(addr string) (net.Conn, error) {
 			return net.Dial("tcp", proxyAddr)
 		},
+		NewRequest:  newRequest,
 		IdleTimeout: idleTimeout,
 	})
 	if assert.NoError(t, err, "Dialing should have succeeded") {
@@ -92,6 +93,7 @@ func TestHTTPRedirect(t *testing.T) {
 					DialProxy: func(addr string) (net.Conn, error) {
 						return net.Dial("tcp", proxyAddr)
 					},
+					NewRequest: newRequest,
 				})
 			},
 			DisableKeepAlives: true,
@@ -191,8 +193,13 @@ func prepareConn(addr string, buffered bool, fail bool, t *testing.T) (conn net.
 				}
 				return net.Dial(proto, proxyAddr)
 			},
+			NewRequest:     newRequest,
 			BufferRequests: buffered,
 		})
+}
+
+func newRequest(host string, method string, body io.Reader) (req *http.Request, err error) {
+	return http.NewRequest(method, "http://"+proxyAddr, body)
 }
 
 func doRequests(conn net.Conn, t *testing.T) {
