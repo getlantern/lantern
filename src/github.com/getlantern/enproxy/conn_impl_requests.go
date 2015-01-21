@@ -10,7 +10,7 @@ import (
 // deliver requests to the enproxy server in order. In-order delivery is
 // required because we are encapsulating a stream of data inside the bodies of
 // successive requests.
-func (c *Conn) processRequests(proxyConn *connInfo) {
+func (c *conn) processRequests(proxyConn *connInfo) {
 	increment(&requesting)
 
 	var resp *http.Response
@@ -92,7 +92,7 @@ func (c *Conn) processRequests(proxyConn *connInfo) {
 // submitRequest submits a request to the processRequests goroutine, returning
 // true if the request was accepted or false if requests are no longer being
 // accepted
-func (c *Conn) submitRequest(request *request) bool {
+func (c *conn) submitRequest(request *request) bool {
 	c.closingMutex.RLock()
 	defer c.closingMutex.RUnlock()
 	if c.closing {
@@ -104,7 +104,7 @@ func (c *Conn) submitRequest(request *request) bool {
 	}
 }
 
-func (c *Conn) finishRequesting(resp *http.Response, first bool) {
+func (c *conn) finishRequesting(resp *http.Response, first bool) {
 	increment(&requestingFinishing)
 	if !first && resp != nil {
 		resp.Body.Close()

@@ -77,7 +77,7 @@ var (
 //   5. If a response is received with a special header indicating a true EOF
 //      from the destination server, return EOF to the reader
 //
-type Conn struct {
+type conn struct {
 	// addr: the host:port of the destination server that we're trying to reach
 	addr string
 
@@ -180,7 +180,7 @@ type hostWithResponse struct {
 }
 
 // Write() implements the function from net.Conn
-func (c *Conn) Write(b []byte) (n int, err error) {
+func (c *conn) Write(b []byte) (n int, err error) {
 	err = c.getAsyncErr()
 	if err != nil {
 		return
@@ -205,7 +205,7 @@ func (c *Conn) Write(b []byte) (n int, err error) {
 }
 
 // Read() implements the function from net.Conn
-func (c *Conn) Read(b []byte) (n int, err error) {
+func (c *conn) Read(b []byte) (n int, err error) {
 	err = c.getAsyncErr()
 	if err != nil {
 		return
@@ -229,7 +229,7 @@ func (c *Conn) Read(b []byte) (n int, err error) {
 	}
 }
 
-func (c *Conn) fail(err error) {
+func (c *conn) fail(err error) {
 	log.Debugf("Failing on %v", err)
 
 	c.asyncErrMutex.Lock()
@@ -251,7 +251,7 @@ func (c *Conn) fail(err error) {
 	go c.Close()
 }
 
-func (c *Conn) getAsyncErr() error {
+func (c *conn) getAsyncErr() error {
 	c.asyncErrMutex.RLock()
 	err := c.asyncErr
 	c.asyncErrMutex.RUnlock()
@@ -259,7 +259,7 @@ func (c *Conn) getAsyncErr() error {
 }
 
 // Close() implements the function from net.Conn
-func (c *Conn) Close() error {
+func (c *conn) Close() error {
 	increment(&closing)
 	defer decrement(&closing)
 
@@ -281,29 +281,29 @@ func (c *Conn) Close() error {
 }
 
 // LocalAddr() is not implemented
-func (c *Conn) LocalAddr() net.Addr {
+func (c *conn) LocalAddr() net.Addr {
 	panic("LocalAddr() not implemented")
 }
 
 // RemoteAddr() is not implemented
-func (c *Conn) RemoteAddr() net.Addr {
+func (c *conn) RemoteAddr() net.Addr {
 	panic("RemoteAddr() not implemented")
 }
 
 // SetDeadline() is currently unimplemented.
-func (c *Conn) SetDeadline(t time.Time) error {
+func (c *conn) SetDeadline(t time.Time) error {
 	log.Tracef("SetDeadline not implemented")
 	return nil
 }
 
 // SetReadDeadline() is currently unimplemented.
-func (c *Conn) SetReadDeadline(t time.Time) error {
+func (c *conn) SetReadDeadline(t time.Time) error {
 	log.Tracef("SetReadDeadline not implemented")
 	return nil
 }
 
 // SetWriteDeadline() is currently unimplemented.
-func (c *Conn) SetWriteDeadline(t time.Time) error {
+func (c *conn) SetWriteDeadline(t time.Time) error {
 	log.Tracef("SetWriteDeadline not implemented")
 	return nil
 }

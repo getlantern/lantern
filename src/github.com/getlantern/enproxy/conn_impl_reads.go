@@ -8,7 +8,7 @@ import (
 
 // processReads processes read requests by polling the proxy with GET requests
 // and reading the data from the resulting response body
-func (c *Conn) processReads() {
+func (c *conn) processReads() {
 	increment(&reading)
 
 	var resp *http.Response
@@ -92,7 +92,7 @@ func (c *Conn) processReads() {
 
 // submitRead submits a read to the processReads goroutine, returning true if
 // the read was accepted or false if reads are no longer being accepted
-func (c *Conn) submitRead(b []byte) bool {
+func (c *conn) submitRead(b []byte) bool {
 	c.closingMutex.RLock()
 	defer c.closingMutex.RUnlock()
 	if c.closing {

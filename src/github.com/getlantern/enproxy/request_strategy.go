@@ -22,7 +22,7 @@ type requestStrategy interface {
 // bufferingRequestStrategy is an implementation of requestStrategy that buffers
 // requests upstream.
 type bufferingRequestStrategy struct {
-	c                   *Conn
+	c                   *conn
 	currentBody         []byte
 	currentBytesWritten int
 }
@@ -30,7 +30,7 @@ type bufferingRequestStrategy struct {
 // streamingRequestStrategy is an implementation of requestStrategy that streams
 // requests upstream.
 type streamingRequestStrategy struct {
-	c      *Conn
+	c      *conn
 	writer *io.PipeWriter
 }
 

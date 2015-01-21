@@ -19,7 +19,7 @@ import (
 //
 // config: configuration for this Conn
 func Dial(addr string, config *Config) (net.Conn, error) {
-	c := &Conn{
+	c := &conn{
 		id:     uuid.NewRandom().String(),
 		addr:   addr,
 		config: config,
@@ -48,7 +48,7 @@ func Dial(addr string, config *Config) (net.Conn, error) {
 	}), nil
 }
 
-func (c *Conn) initDefaults() {
+func (c *conn) initDefaults() {
 	if c.config.FlushTimeout == 0 {
 		c.config.FlushTimeout = defaultWriteFlushTimeout
 	}
@@ -62,7 +62,7 @@ func (c *Conn) initDefaults() {
 	}
 }
 
-func (c *Conn) makeChannels() {
+func (c *conn) makeChannels() {
 	c.initialResponseCh = make(chan hostWithResponse, 100)
 	c.writeRequestsCh = make(chan []byte, 100)
 	c.writeResponsesCh = make(chan rwResponse, 100)
@@ -82,7 +82,7 @@ func (c *Conn) makeChannels() {
 	c.doneRequestingCh = make(chan bool, 1)
 }
 
-func (c *Conn) initRequestStrategy() {
+func (c *conn) initRequestStrategy() {
 	if c.config.BufferRequests {
 		c.rs = &bufferingRequestStrategy{
 			c: c,
@@ -94,7 +94,7 @@ func (c *Conn) initRequestStrategy() {
 	}
 }
 
-func (c *Conn) dialProxy() (*connInfo, error) {
+func (c *conn) dialProxy() (*connInfo, error) {
 	conn, err := c.config.DialProxy(c.addr)
 	if err != nil {
 		log.Debugf("Unable to dial proxy: %s", err)
@@ -112,7 +112,7 @@ func (c *Conn) dialProxy() (*connInfo, error) {
 	return proxyConn, nil
 }
 
-func (c *Conn) redialProxyIfNecessary(proxyConn *connInfo) (*connInfo, error) {
+func (c *conn) redialProxyIfNecessary(proxyConn *connInfo) (*connInfo, error) {
 	proxyConn.closedMutex.Lock()
 	defer proxyConn.closedMutex.Unlock()
 	if proxyConn.closed || proxyConn.conn.TimesOutIn() < oneSecond {
@@ -123,7 +123,7 @@ func (c *Conn) redialProxyIfNecessary(proxyConn *connInfo) (*connInfo, error) {
 	}
 }
 
-func (c *Conn) doRequest(proxyConn *connInfo, host string, op string, request *request) (resp *http.Response, err error) {
+func (c *conn) doRequest(proxyConn *connInfo, host string, op string, request *request) (resp *http.Response, err error) {
 	var body io.Reader
 	if request != nil {
 		body = request.body
