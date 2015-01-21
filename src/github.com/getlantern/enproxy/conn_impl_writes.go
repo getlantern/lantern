@@ -37,7 +37,7 @@ func (c *Conn) processWrites() {
 			}
 		case <-c.stopWriteCh:
 			return
-		case <-time.After(c.Config.FlushTimeout):
+		case <-time.After(c.config.FlushTimeout):
 			// We waited more than FlushTimeout for a write, finish our request
 
 			if c.isIdle() {

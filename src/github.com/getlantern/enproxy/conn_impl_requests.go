@@ -30,7 +30,7 @@ func (c *Conn) processRequests(proxyConn *connInfo) {
 	var proxyHost string
 
 	mkerror := func(text string, err error) error {
-		return fmt.Errorf("Dest: %s    ProxyHost: %s    %s: %s", c.Addr, proxyHost, text, err)
+		return fmt.Errorf("Dest: %s    ProxyHost: %s    %s: %s", c.addr, proxyHost, text, err)
 	}
 
 	for {
@@ -91,7 +91,7 @@ func (c *Conn) processRequests(proxyConn *connInfo) {
 			}
 		case <-c.stopRequestCh:
 			return
-		case <-time.After(c.Config.IdleTimeout):
+		case <-time.After(c.config.IdleTimeout):
 			if c.isIdle() {
 				return
 			}

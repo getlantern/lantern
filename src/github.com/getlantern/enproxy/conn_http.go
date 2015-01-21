@@ -21,17 +21,19 @@ func (c *Config) Intercept(resp http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		resp.WriteHeader(502)
 		fmt.Fprintf(resp, "Unable to hijack connection: %s", err)
+		return
 	}
 	defer clientConn.Close()
 
 	addr := hostIncludingPort(req, 443)
 
 	// Establish outbound connection
-	connOut := &Conn{
-		Addr:   addr,
-		Config: c,
+	connOut, err := Dial(addr, c)
+	if err != nil {
+		resp.WriteHeader(502)
+		fmt.Fprintf(resp, "Unable to open enproxy connection: %s", err)
+		return
 	}
-	connOut.Connect()
 	defer connOut.Close()
 
 	// Pipe data

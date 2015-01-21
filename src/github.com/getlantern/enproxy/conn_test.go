@@ -115,9 +115,8 @@ func doTestBad(buffered bool, t *testing.T) {
 }
 
 func prepareConn(addr string, buffered bool, fail bool, t *testing.T) (conn *Conn, err error) {
-	conn = &Conn{
-		Addr: addr,
-		Config: &Config{
+	return Dial(addr,
+		&Config{
 			DialProxy: func(addr string) (net.Conn, error) {
 				proto := "tcp"
 				if fail {
@@ -132,10 +131,7 @@ func prepareConn(addr string, buffered bool, fail bool, t *testing.T) (conn *Con
 				return http.NewRequest(method, "http://"+host, body)
 			},
 			BufferRequests: buffered,
-		},
-	}
-	err = conn.Connect()
-	return
+		})
 }
 
 func doRequests(conn net.Conn, t *testing.T) {
