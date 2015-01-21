@@ -86,6 +86,7 @@ func (c *Client) NewRequest(params map[string]string, method string, action stri
 // decodeBody is used to JSON decode a body
 func decodeBody(resp *http.Response, out interface{}) error {
 	body, err := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
 
 	if err != nil {
 		return err
