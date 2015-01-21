@@ -67,7 +67,7 @@ public class Cli {
         }
         catch (final ParseException e) {
             printHelp(options, e.getMessage()+" args: "+Arrays.asList(args));
-            return;
+            System.exit(0);
         }
 
 
