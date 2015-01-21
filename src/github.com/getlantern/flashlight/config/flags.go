@@ -20,6 +20,7 @@ var (
 	statsPeriod    = flag.Int("statsperiod", 0, "time in seconds to wait between reporting stats. If not specified, stats are not reported. If specified, statshub, instanceid and statsaddr must also be specified.")
 	statshubAddr   = flag.String("statshub", "pure-journey-3547.herokuapp.com", "address of statshub server")
 	instanceid     = flag.String("instanceid", "", "instanceId under which to report stats to statshub. If not specified, no stats are reported.")
+	registerat     = flag.String("registerat", "", "base URL for peer DNS registry at which to register (e.g. https://peerscanner.getiantem.org)")
 	statsaddr      = flag.String("statsaddr", "", "host:port at which to make detailed stats available using server-sent events (optional)")
 	country        = flag.String("country", "xx", "2 digit country code under which to report stats. Defaults to xx.")
 	cpuprofile     = flag.String("cpuprofile", "", "write cpu profile to given file")
@@ -77,6 +78,8 @@ func (updated *Config) applyFlags() error {
 			updated.Server.Portmap = *portmap
 		case "server":
 			updated.Server.AdvertisedHost = *advertisedHost
+		case "registerat":
+			updated.Server.RegisterAt = *registerat
 		case "waddelladdr":
 			updated.Server.WaddellAddr = *waddelladdr
 		}
