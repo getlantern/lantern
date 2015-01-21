@@ -46,7 +46,8 @@ func init() {
 		for {
 			time.Sleep(5 * time.Second)
 			log.Debugf(
-				`\n---- Connections----
+				`
+---- Connections----
 Open:                      %4d
 Closing:                   %4d
 Blocked on Closing:        %4d
