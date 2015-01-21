@@ -114,6 +114,7 @@ func (c *conn) finishRequesting(resp *http.Response, first bool) {
 		decrement(&writingRequestPending)
 		req.body.Close()
 	}
+	close(c.initialResponseCh)
 	c.doneRequestingCh <- true
 	decrement(&requestingFinishing)
 	decrement(&requesting)

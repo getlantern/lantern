@@ -97,7 +97,6 @@ func (c *conn) finishWriting() {
 		c.rs.finishBody()
 	}
 	close(c.requestOutCh)
-	close(c.initialResponseCh)
 	c.doneWritingCh <- true
 	decrement(&writingFinishing)
 	decrement(&writing)
