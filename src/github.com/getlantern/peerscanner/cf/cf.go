@@ -3,6 +3,8 @@ package cf
 
 import (
 	"fmt"
+	"net/http"
+	"time"
 
 	"github.com/getlantern/cloudflare"
 	"github.com/getlantern/golog"
@@ -22,7 +24,15 @@ func New(domain string, username string, apiKey string) (*Util, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to initialize client: %v", err)
 	}
+	// Set a longish timeout on the HTTP client just in case
+	client.Http.Timeout = 5 * time.Minute
 	return &Util{client, domain}, nil
+}
+
+func (util *Util) DisableKeepAlives() {
+	util.Client.Http.Transport = &http.Transport{
+		DisableKeepAlives: true,
+	}
 }
 
 func (util *Util) GetRotationRecords(subdomain string) ([]cloudflare.Record, error) {
