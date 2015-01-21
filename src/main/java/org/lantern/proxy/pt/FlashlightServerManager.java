@@ -118,25 +118,26 @@ public class FlashlightServerManager implements Shutdownable {
 
     private void startFlashlight() {
         LOGGER.debug("Starting flashlight");
+        heartbeat = Threads
+                .newSingleThreadScheduledExecutor("FlashlightServerManager-Heartbeat");
+        heartbeat.scheduleAtFixedRate(peerRegistrar,
+                10,
+                HEARTBEAT_PERIOD_MINUTES * 60,
+                TimeUnit.SECONDS);
         try {
+            // Note if this call succeeds it blocks indefinitely.
             runFlashlight(true);
         } catch (RuntimeException re) {
             final String msg = re.getMessage();
             if (msg != null && msg.contains("Exit value: 50")) {
                 LOGGER.info("Unable to start flashlight with automatically mapped external port, try without mapping");
+                // Note if this call succeeds it blocks indefinitely.
                 runFlashlight(false);
             } else {
                 LOGGER.error("Unexpected runtime exception", re);
                 throw re;
             }
         }
-
-        heartbeat = Threads
-                .newSingleThreadScheduledExecutor("FlashlightServerManager-Heartbeat");
-        heartbeat.scheduleAtFixedRate(peerRegistrar,
-                0,
-                HEARTBEAT_PERIOD_MINUTES,
-                TimeUnit.MINUTES);
     }
 
     private void stopFlashlight(boolean unregister) {
@@ -172,6 +173,7 @@ public class FlashlightServerManager implements Shutdownable {
         int localPort = LanternUtils
                 .findFreePort(PREFERRED_FLASHLIGHT_INTERNAL_PORT);
         flashlight.startServer(localPort, null);
+        LOGGER.info("Finished starting server...");
     }
 
     private Runnable peerRegistrar = new Runnable() {
@@ -213,6 +215,7 @@ public class FlashlightServerManager implements Shutdownable {
     }
 
     private boolean registerPeer() {
+        LOGGER.info("Registering peer...");
         Response response = null;
         try {
             response = Request

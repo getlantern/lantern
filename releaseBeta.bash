@@ -11,7 +11,7 @@ then
 fi
 
 STABLE_VERSION=$1
-BETA_VERSION=$1
+BETA_VERSION=$2
 ./releaseExisting.bash $STABLE_VERSION lantern-installer || die "Could not
 release stable"
 ./releaseExisting.bash $BETA_VERSION lantern-installer-beta || die "Could not
