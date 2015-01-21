@@ -106,6 +106,7 @@ func (c *conn) submitRequest(request *request) bool {
 
 func (c *conn) finishRequesting(resp *http.Response, first bool) {
 	increment(&requestingFinishing)
+	close(c.initialResponseCh)
 	if !first && resp != nil {
 		resp.Body.Close()
 	}
@@ -114,7 +115,6 @@ func (c *conn) finishRequesting(resp *http.Response, first bool) {
 		decrement(&writingRequestPending)
 		req.body.Close()
 	}
-	close(c.initialResponseCh)
 	c.doneRequestingCh <- true
 	decrement(&requestingFinishing)
 	decrement(&requesting)
