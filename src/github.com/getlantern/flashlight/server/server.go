@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -166,7 +167,8 @@ func (server *Server) register() {
 				if err != nil {
 					log.Errorf("Unable to register at %v: %v", registerUrl, err)
 				} else if resp.StatusCode != 200 {
-					log.Errorf("Unexpected response status registering at %v: %d", registerUrl, resp.StatusCode)
+					bodyString, _ := ioutil.ReadAll(resp.Body)
+					log.Errorf("Unexpected response status registering at %v: %d    %v", registerUrl, resp.StatusCode, string(bodyString))
 				} else {
 					log.Debugf("Successfully registered server at %v", registerUrl)
 				}
