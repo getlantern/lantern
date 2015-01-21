@@ -2,6 +2,7 @@
 package cf
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net/http"
 	"time"
@@ -26,6 +27,11 @@ func New(domain string, username string, apiKey string) (*Util, error) {
 	}
 	// Set a longish timeout on the HTTP client just in case
 	client.Http.Timeout = 5 * time.Minute
+	client.Http.Transport = &http.Transport{
+		TLSClientConfig: &tls.Config{
+			ClientSessionCache: tls.NewLRUClientSessionCache(1000),
+		},
+	}
 	return &Util{client, domain}, nil
 }
 
