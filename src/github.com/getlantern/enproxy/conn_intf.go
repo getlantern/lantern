@@ -81,8 +81,6 @@ type Conn struct {
 	// addr: the host:port of the destination server that we're trying to reach
 	addr string
 
-	tcpAddr *net.TCPAddr
-
 	// config: configuration of this Conn
 	config *Config
 
@@ -289,7 +287,7 @@ func (c *Conn) LocalAddr() net.Addr {
 
 // RemoteAddr() is not implemented
 func (c *Conn) RemoteAddr() net.Addr {
-	return c.tcpAddr
+	panic("RemoteAddr() not implemented")
 }
 
 // SetDeadline() is currently unimplemented.

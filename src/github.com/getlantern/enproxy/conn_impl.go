@@ -19,36 +19,26 @@ import (
 //
 // config: configuration for this Conn
 func Dial(addr string, config *Config) (net.Conn, error) {
-	tcpAddr, err := net.ResolveTCPAddr("tcp", addr)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to resolve TCP addr %v: %v", addr, err)
-	}
-
 	c := &Conn{
-		id:      uuid.NewRandom().String(),
-		addr:    addr,
-		tcpAddr: tcpAddr,
-		config:  config,
+		id:     uuid.NewRandom().String(),
+		addr:   addr,
+		config: config,
 	}
 
 	c.initDefaults()
 	c.makeChannels()
 	c.initRequestStrategy()
 
-	go c.processWrites()
-	go c.processReads()
-
 	increment(&open)
 
 	// Dial proxy
 	proxyConn, err := c.dialProxy()
 	if err != nil {
-		// Post to doneRequestingCh since we never started requesting
-		c.doneRequestingCh <- true
-		c.Close()
 		return nil, fmt.Errorf("Unable to dial proxy: %s", err)
 	}
 
+	go c.processWrites()
+	go c.processReads()
 	go c.processRequests(proxyConn)
 
 	return idletiming.Conn(c, c.config.IdleTimeout, func() {
@@ -107,6 +97,7 @@ func (c *Conn) initRequestStrategy() {
 func (c *Conn) dialProxy() (*connInfo, error) {
 	conn, err := c.config.DialProxy(c.addr)
 	if err != nil {
+		log.Debugf("Unable to dial proxy: %s", err)
 		return nil, fmt.Errorf("Unable to dial proxy: %s", err)
 	}
 	proxyConn := &connInfo{
