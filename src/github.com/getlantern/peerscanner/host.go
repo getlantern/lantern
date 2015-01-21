@@ -272,8 +272,8 @@ func (h *host) deregisterHost() {
 		return
 	}
 
-	if true {
-		log.Debugf("Currently not deregistering hosts like %v", h)
+	if h.isFallback() {
+		log.Debugf("Currently not deregistering fallbacks like %v", h)
 		return
 	}
 
