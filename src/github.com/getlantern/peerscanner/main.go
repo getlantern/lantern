@@ -123,14 +123,11 @@ func loadHosts() (map[string]*host, error) {
 
 	// Look through all records to find peers, fallbacks and groups
 	for _, r := range recs {
-		// We just check the length of the subdomain here, which is the unique
-		// peer GUID. While it's possible something else could have a subdomain
-		// this long, it's unlikely.
-		if isPeer(r.Name) {
-			log.Tracef("Adding peer: %v", r.Name)
-			addHost(r)
-		} else if isFallback(r.Name) {
+		if isFallback(r.Name) {
 			log.Tracef("Adding fallback: %v", r.Name)
+			addHost(r)
+		} else if isPeer(r.Name) {
+			log.Tracef("Adding peer: %v", r.Name)
 			addHost(r)
 		} else if r.Name == RoundRobin {
 			addToGroup(RoundRobin, r)

@@ -99,26 +99,6 @@ func (util *Util) Register(name string, ip string) (*cloudflare.Record, error) {
 	return rec, nil
 }
 
-func (util *Util) RemoveIpFromRotation(ip string, subdomain string) error {
-	Rotation, err := util.GetRotationRecords(subdomain)
-	if err != nil {
-		return err
-	}
-	return util.RemoveIpFromRotationRecords(ip, Rotation)
-
-}
-
-func (util *Util) RemoveIpFromRotationRecords(ip string, Rotation []cloudflare.Record) error {
-	for _, rec := range Rotation {
-		if rec.Value == ip {
-			log.Tracef("Destroying record: %v", rec.Value)
-			err := util.DestroyRecord(&rec)
-			return err
-		}
-	}
-	return nil
-}
-
 func (util *Util) DestroyRecord(r *cloudflare.Record) error {
 	return util.Client.DestroyRecord(util.domain, r.Id)
 }

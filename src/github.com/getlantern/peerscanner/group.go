@@ -37,8 +37,9 @@ func (g *group) deregister(h *host) {
 
 	log.Debugf("Deregistering from %v: %v", g.subdomain, h)
 
+	// TODO: see if we can just destroy the record that we're already holding
 	// Destroy the record in the rotation...
-	err := cfutil.RemoveIpFromRotation(h.ip, g.subdomain)
+	err := cfutil.DestroyRecord(g.existing)
 	if err != nil {
 		log.Errorf("Unable to deregister host %v from rotation %v: %v", h, g.subdomain, err)
 		return
