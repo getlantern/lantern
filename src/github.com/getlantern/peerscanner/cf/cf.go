@@ -29,7 +29,6 @@ func New(domain string, username string, apiKey string) *Util {
 			TLSClientConfig: &tls.Config{
 				ClientSessionCache: tls.NewLRUClientSessionCache(1000),
 			},
-			DisableKeepAlives: true,
 		},
 	}
 	return &Util{client, domain}

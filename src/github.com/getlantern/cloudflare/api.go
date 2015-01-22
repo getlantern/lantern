@@ -79,7 +79,6 @@ func (c *Client) NewRequest(params map[string]string, method string, action stri
 		return nil, fmt.Errorf("Error creating request: %s", err)
 	}
 
-	req.Close = true
 	return req, nil
 
 }

@@ -26,6 +26,9 @@ var (
 	// terminate.
 	terminateAfter = 10 * time.Minute
 
+	// Limit how long we're willing to wait for status
+	statusTimeout = terminateAfter / 2
+
 	dialTimeout    = 3 * time.Second // how long to wait on connecting to host
 	requestTimeout = 6 * time.Second // how long to wait for test requests to process
 	proxyAttempts  = 3               // how many times to try a test request before considering host down
@@ -122,6 +125,8 @@ func (h *host) doRun() {
 	periodTimer := time.NewTimer(0)
 	terminateTimer := time.NewTimer(0)
 
+	defer h.terminate()
+
 	for {
 		if !first {
 			// Limit the rate at which we run tests
@@ -146,11 +151,9 @@ func (h *host) doRun() {
 			}
 		case <-h.unregisterCh:
 			log.Debugf("Unregistering %v and terminating", h)
-			h.terminate()
 			return
 		case <-terminateTimer.C:
 			log.Debugf("%v had no successful checks or resets in %v, terminating", h, terminateAfter)
-			h.terminate()
 			return
 		case <-periodTimer.C:
 			online, connectionRefused, err := h.isAbleToProxy()
@@ -176,11 +179,15 @@ func (h *host) doRun() {
 }
 
 // status returns the status of this host as of the next scheduled check
-func (h *host) status() (online bool, connectionRefused bool) {
+func (h *host) status() (online bool, connectionRefused bool, timedOut bool) {
 	sch := make(chan *status)
 	h.statusCh <- sch
-	s := <-sch
-	return s.online, s.connectionRefused
+	select {
+	case s := <-sch:
+		return s.online, s.connectionRefused, false
+	case <-time.After(statusTimeout):
+		return false, false, true
+	}
 }
 
 // reportStatus reports the given status back to any callers that are waiting
@@ -190,7 +197,12 @@ func (h *host) reportStatus(online bool, connectionRefused bool) {
 	for {
 		select {
 		case sch := <-h.statusCh:
-			sch <- s
+			select {
+			case sch <- s:
+				log.Trace("Status reported")
+			default:
+				log.Trace("No one waiting for status anymore, not reporting")
+			}
 		default:
 			return
 		}
@@ -222,6 +234,7 @@ func (h *host) unregister() {
 func (h *host) terminate() {
 	removeHost(h)
 	h.deregister()
+	h.reportStatus(false, false)
 }
 
 func (h *host) register() error {

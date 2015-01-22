@@ -65,7 +65,14 @@ func register(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	h := getOrCreateHost(name, ip)
-	online, connectionRefused := h.status()
+	online, connectionRefused, timedOut := h.status()
+	if timedOut {
+		log.Debugf("%v timed out waiting for status, returning 500 error", h)
+		resp.WriteHeader(500)
+		fmt.Fprintf(resp, "Timed out waiting for status")
+		return
+	}
+
 	if online {
 		resp.WriteHeader(200)
 		fmt.Fprintln(resp, "Connectivity to proxy confirmed")

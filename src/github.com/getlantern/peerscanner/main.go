@@ -197,7 +197,7 @@ func getHostByIp(ip string) *host {
 func removeHost(h *host) {
 	hostsMutex.Lock()
 	delete(hostsByIp, h.ip)
-	defer hostsMutex.Unlock()
+	hostsMutex.Unlock()
 }
 
 func isPeer(name string) bool {
