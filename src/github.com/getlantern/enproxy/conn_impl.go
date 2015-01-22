@@ -6,7 +6,6 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"time"
 
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/getlantern/idletiming"
@@ -150,7 +149,6 @@ func (c *conn) doRequest(proxyConn *connInfo, host string, op string, request *r
 		return
 	}
 
-	proxyConn.conn.SetDeadline(time.Now().Add(c.config.IdleTimeout))
 	resp, err = http.ReadResponse(proxyConn.bufReader, req)
 	if err != nil {
 		err = fmt.Errorf("Error reading response from proxy: %s", err)
