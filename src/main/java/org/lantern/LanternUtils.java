@@ -1373,12 +1373,13 @@ public class LanternUtils {
     }
 
     /**
-     * Utility for whether or not we're running on a Pi. Just checks for ARM 
-     * for now.
+     * Utility for whether or not we should advertise ourselves on the local
+     * network so that other Lantern's can view the UI for this Lantern, for
+     * example.
      * 
      * @return <code>true</code> if we're on ARM, otherwise <code>false</code>.
      */
-    public static boolean isLanternPi() {
+    public static boolean shouldAdvertizeOnLocalNetwork() {
         return LanternUtils.isDevMode() || 
                 SystemUtils.OS_ARCH.toLowerCase().contains("arm");
     }
