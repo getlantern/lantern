@@ -31,14 +31,9 @@ func New(domain string, username string, apiKey string) (*Util, error) {
 		TLSClientConfig: &tls.Config{
 			ClientSessionCache: tls.NewLRUClientSessionCache(1000),
 		},
-	}
-	return &Util{client, domain}, nil
-}
-
-func (util *Util) DisableKeepAlives() {
-	util.Client.Http.Transport = &http.Transport{
 		DisableKeepAlives: true,
 	}
+	return &Util{client, domain}, nil
 }
 
 func (util *Util) GetRotationRecords(subdomain string) ([]cloudflare.Record, error) {
