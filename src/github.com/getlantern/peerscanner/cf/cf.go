@@ -26,12 +26,14 @@ func New(domain string, username string, apiKey string) (*Util, error) {
 		return nil, fmt.Errorf("Unable to initialize client: %v", err)
 	}
 	// Set a longish timeout on the HTTP client just in case
-	client.Http.Timeout = 5 * time.Minute
-	client.Http.Transport = &http.Transport{
-		TLSClientConfig: &tls.Config{
-			ClientSessionCache: tls.NewLRUClientSessionCache(1000),
+	client.Http = &http.Client{
+		Timeout: 5 * time.Minute,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				ClientSessionCache: tls.NewLRUClientSessionCache(1000),
+			},
+			DisableKeepAlives: true,
 		},
-		DisableKeepAlives: true,
 	}
 	return &Util{client, domain}, nil
 }
