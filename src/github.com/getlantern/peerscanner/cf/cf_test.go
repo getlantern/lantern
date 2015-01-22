@@ -16,7 +16,7 @@ func TestAll(t *testing.T) {
 	}
 
 	u := New("getiantem.org", os.Getenv("CF_USER"), os.Getenv("CF_API_KEY"))
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 10; i++ {
 		recs, err := u.GetAllRecords()
 		if assert.NoError(t, err, "Should be able to get all records") {
 			for _, r := range recs {
@@ -55,7 +55,7 @@ func TestRegister(t *testing.T) {
 	}
 
 	u := New("getiantem.org", os.Getenv("CF_USER"), os.Getenv("CF_API_KEY"))
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 10; i++ {
 		rec, err := u.Register("cf-test-entry", "127.0.0.1")
 		if assert.NoError(t, err, "Should be able to register") {
 			err := u.DestroyRecord(rec)
