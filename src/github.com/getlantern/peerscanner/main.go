@@ -79,12 +79,7 @@ func parseFlags() {
 
 func connectToCloudFlare() {
 	log.Debug("Connecting to CloudFlare ...")
-
-	var err error
-	cfutil, err = cf.New(*cfdomain, cfuser, cfkey)
-	if err != nil {
-		log.Fatalf("Unable to create CloudFlare utility: %v", err)
-	}
+	cfutil = cf.New(*cfdomain, cfuser, cfkey)
 }
 
 /*******************************************************************************

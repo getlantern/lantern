@@ -20,11 +20,8 @@ type Util struct {
 	domain string
 }
 
-func New(domain string, username string, apiKey string) (*Util, error) {
-	client, err := cloudflare.NewClient(username, apiKey)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to initialize client: %v", err)
-	}
+func New(domain string, username string, apiKey string) *Util {
+	client := cloudflare.NewClient(username, apiKey)
 	// Set a longish timeout on the HTTP client just in case
 	client.Http = &http.Client{
 		Timeout: 5 * time.Minute,
@@ -35,7 +32,7 @@ func New(domain string, username string, apiKey string) (*Util, error) {
 			DisableKeepAlives: true,
 		},
 	}
-	return &Util{client, domain}, nil
+	return &Util{client, domain}
 }
 
 func (util *Util) GetRotationRecords(subdomain string) ([]cloudflare.Record, error) {

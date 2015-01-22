@@ -29,7 +29,7 @@ type Client struct {
 // requires an authorization token. You can generate
 // an OAuth token by visiting the Apps & API section
 // of the CloudflAre control panel for your account.
-func NewClient(email string, token string) (*Client, error) {
+func NewClient(email string, token string) *Client {
 	// If it exists, grab teh token from the environment
 	if token == "" {
 		token = os.Getenv("CLOUDFLARE_TOKEN")
@@ -45,7 +45,7 @@ func NewClient(email string, token string) (*Client, error) {
 		URL:   "https://www.cloudflare.com/api_json.html",
 		Http:  http.DefaultClient,
 	}
-	return &client, nil
+	return &client
 }
 
 // Creates a new request with the params
