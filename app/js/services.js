@@ -41,6 +41,7 @@ angular.module('app.services', [])
         connected = false,
         clientId,
         subscriptions = [];
+    cometd.websocketsEnabled = true;
     cometd.configure({
       url: COMETD_URL,
       //logLevel: 'debug',
@@ -50,7 +51,6 @@ angular.module('app.services', [])
       // https://groups.google.com/d/msg/faye-users/8cr_4QZ-7cU/sKVLbCFDkEUJ
       appendMessageTypeToURL: false
     });
-    //cometd.websocketsEnabled = false; // XXX can we re-enable in Lantern?
 
     function disconnect() {
       cometd.disconnect(true);
