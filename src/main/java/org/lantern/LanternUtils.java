@@ -1377,7 +1377,8 @@ public class LanternUtils {
      * network so that other Lantern's can view the UI for this Lantern, for
      * example.
      * 
-     * @return <code>true</code> if we're on ARM, otherwise <code>false</code>.
+     * @return <code>true</code> if we should advertise on the local network,
+     * otherwise <code>false</code>.
      */
     public static boolean shouldAdvertizeOnLocalNetwork() {
         return LanternUtils.isDevMode() || 

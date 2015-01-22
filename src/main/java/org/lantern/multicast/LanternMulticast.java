@@ -115,14 +115,15 @@ public class LanternMulticast {
                     final byte[] buf = new byte[1000];
                     final DatagramPacket recv = new DatagramPacket(buf, buf.length);
                     try {
+                        // Note that this call blocks.
                         ms.receive(recv);
                         final MulticastMessage msg = 
                                 JsonUtils.decode(new ByteArrayInputStream(buf), 
                                         MulticastMessage.class);
                         final String endpoint = msg.getEndpoint();
-                        if (endpoint.equals(StaticSettings.getLocalEndpoint())) {
+                        if (StaticSettings.getLocalEndpoint().equals(endpoint)) {
                             log.info("Ignoring messages from ourselves");
-                            return;
+                            continue;
                         }
                         if (msg.isBye()) {
                             endpoints.remove(msg.getEndpoint());
