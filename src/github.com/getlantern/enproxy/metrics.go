@@ -47,7 +47,7 @@ func init() {
 			time.Sleep(5 * time.Second)
 			log.Debugf(
 				`
----- Connections----
+---- Enproxy Connections----
 Open:                      %4d
 Closing:                   %4d
 Blocked on Closing:        %4d

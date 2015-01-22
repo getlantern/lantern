@@ -47,7 +47,7 @@ just set the environment variable `TRACE_CONN_STATE=true`. This will cause the
 program to output information like the below every 5 seconds:
 
 ```
----- Connections----
+---- Enproxy Connections----
 Open:                        34
 Closing:                      0
 Blocked on Closing:           0
