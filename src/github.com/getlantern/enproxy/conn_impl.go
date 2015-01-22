@@ -29,8 +29,6 @@ func Dial(addr string, config *Config) (net.Conn, error) {
 	c.makeChannels()
 	c.initRequestStrategy()
 
-	increment(&open)
-
 	// Dial proxy
 	proxyConn, err := c.dialProxy()
 	if err != nil {
@@ -40,6 +38,8 @@ func Dial(addr string, config *Config) (net.Conn, error) {
 	go c.processWrites()
 	go c.processReads()
 	go c.processRequests(proxyConn)
+
+	increment(&open)
 
 	return idletiming.Conn(c, c.config.IdleTimeout, func() {
 		c.Close()
@@ -58,13 +58,14 @@ func (c *conn) initDefaults() {
 }
 
 func (c *conn) makeChannels() {
-	c.initialResponseCh = make(chan hostWithResponse, 100)
-	c.writeRequestsCh = make(chan []byte, 100)
-	c.writeResponsesCh = make(chan rwResponse, 100)
-	c.readRequestsCh = make(chan []byte, 100)
-	c.readResponsesCh = make(chan rwResponse, 100)
-	c.requestOutCh = make(chan *request, 100)
-	c.requestFinishedCh = make(chan error, 100)
+	// All channels are buffered to prevent deadlocks
+	c.initialResponseCh = make(chan hostWithResponse, 1)
+	c.writeRequestsCh = make(chan []byte, 1)
+	c.writeResponsesCh = make(chan rwResponse, 1)
+	c.readRequestsCh = make(chan []byte, 1)
+	c.readResponsesCh = make(chan rwResponse, 1)
+	c.requestOutCh = make(chan *request, 1)
+	c.requestFinishedCh = make(chan error, 1)
 
 	// Buffered to depth 2 because we report async errors to the reading and
 	// writing goroutines.
