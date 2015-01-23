@@ -52,6 +52,7 @@ public class Cli {
     public static final String OPTION_PLUGGABLE_TRANSPORT = "pt";
     public static final String OPTION_CHECK_FALLBACKS = "check-fallbacks";
     public static final String OPTION_FORCE_FLASHLIGHT = "force-flashlight";
+    public static final String OPTION_SKIP_LOGIN = "skip-login";
     
     private CommandLine cmd;
     
@@ -166,6 +167,7 @@ public class Cli {
                 .withDescription("(Optional) Specify pluggable transport properties")
                 .create());
         options.addOption(null, OPTION_FORCE_FLASHLIGHT, false, "Force all traffic through flashlight (useful for testing)");
+        options.addOption(null, OPTION_SKIP_LOGIN, false, "Don't login.");
         return options;
     }
 

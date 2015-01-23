@@ -286,6 +286,9 @@ public class ModelIo extends Storage<Model> {
         if (cmd.hasOption(Cli.OPTION_FORCE_FLASHLIGHT)) {
             LanternClientConstants.FORCE_FLASHLIGHT = true;
         }
+        if (cmd.hasOption(Cli.OPTION_SKIP_LOGIN)) {
+            LanternClientConstants.SKIP_LOGIN = true;
+        }
     }
     
     private void loadServerAuthTokenFile(final String filename, final Settings set) {

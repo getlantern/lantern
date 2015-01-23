@@ -27,6 +27,7 @@ import org.lantern.event.PublicIpAndTokenTracker;
 import org.lantern.http.JettyLauncher;
 import org.lantern.loggly.LogglyAppender;
 import org.lantern.monitoring.StatsManager;
+import org.lantern.multicast.LanternMulticast;
 import org.lantern.papertrail.PapertrailAppender;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.proxy.GetModeProxy;
@@ -329,6 +330,9 @@ public class Launcher {
         giveModeProxy = instance(GiveModeProxy.class);
         
         friendsHandler = instance(FriendsHandler.class);
+        
+        final LanternMulticast lm = new LanternMulticast();
+        lm.join();
         
         startServices(checkFallbacks);
         
