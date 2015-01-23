@@ -305,6 +305,7 @@ angular.module('app.services', [])
         var data = JSON.parse(e.data);
         if (data.type == "peer") {
           var peer = data.data;
+          peer.mode = 'get';
           flashlightPeers[peer.peerid] = peer;
         }
       }, false);
