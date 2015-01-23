@@ -6547,9 +6547,14 @@ i[class*=icon] {
   font-style: normal;
 }
 
+.local-lantern-link,
 .more-info {
   font-size: 11.9px;
   margin-left: 2px;
+}
+
+#local-lanterns-list {
+    width: 500px !important;
 }
 
 .capitalize {
