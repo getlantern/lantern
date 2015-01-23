@@ -311,7 +311,7 @@ angular.module('app.vis', ['ngSanitize'])
             result += " connected";
           }
           return result;
-        });
+        }).attr("filter", "url(#defaultBlur)");
 
         // Configure hover areas for all peers
         allPeers.select("g.peer path.peer-hover-area")
@@ -392,6 +392,8 @@ angular.module('app.vis', ['ngSanitize'])
         
         // Remove departed peers
         departedPeers.remove();
+
+        scope.redraw(scope.zoom.translate(), scope.zoom.scale());
       }
       
       // Handle model changes
