@@ -7784,17 +7784,12 @@ path.peer-hover-area {
   opacity: 0;
 }
 
-path.peer.connected {
-  opacity: 1 !important;
-}
-
 #self {
   fill: white;
 }
 
 path.peer.get, #self.get {
   fill: #ffcc66;
-  opacity: 1;
 }
 
 path.peer.give, #self.give {
