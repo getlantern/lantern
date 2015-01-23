@@ -73,7 +73,7 @@ public class LanternMulticast {
             @Override
             public void run() {
                 final MulticastMessage mm = 
-                        MulticastMessage.newHello(StaticSettings.getLocalEndpoint());
+                        MulticastMessage.newHello(StaticSettings.getNetworkEndpoint());
                 send(ms, mm, group);
             }
         }, 1000, 10*1000);
@@ -86,7 +86,7 @@ public class LanternMulticast {
             @Override
             public void run() {
                 final MulticastMessage mm = 
-                        MulticastMessage.newBye(StaticSettings.getLocalEndpoint());
+                        MulticastMessage.newBye(StaticSettings.getNetworkEndpoint());
                 send(ms, mm, group);
             }
             
@@ -121,7 +121,7 @@ public class LanternMulticast {
                                 JsonUtils.decode(new ByteArrayInputStream(buf), 
                                         MulticastMessage.class);
                         final String endpoint = msg.getEndpoint();
-                        if (StaticSettings.getLocalEndpoint().equals(endpoint)) {
+                        if (StaticSettings.getNetworkEndpoint().equals(endpoint)) {
                             log.info("Ignoring messages from ourselves");
                             continue;
                         }
