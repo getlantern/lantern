@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.security.SecureRandom;
 import java.util.Properties;
 
@@ -13,6 +15,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.lantern.LanternClientConstants;
 import org.lantern.LanternUtils;
+import org.littleshoot.proxy.impl.NetworkUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,7 +95,22 @@ public class StaticSettings {
     }
 
     public static String getLocalEndpoint(final int port, String prefix) {
-        return "http://127.0.0.1:" + port + prefix;
+        return getEndpoint("127.0.0.1", port, prefix);
+    }
+    
+    public static String getNetworkEndpoint() {
+        try {
+            return getEndpoint(NetworkUtils.getLocalHost().getHostAddress(),
+                    API_PORT, prefix);
+        } catch (final UnknownHostException e) {
+            LOG.error("Could not get local network address", e);
+            return "";
+        }
+    }
+
+    private static String getEndpoint(final String address, final int port,
+            final String prefix) {
+        return "http://" + address + ":" + port + prefix;
     }
 
     public static String getPrefix() {
