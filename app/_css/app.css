@@ -7794,6 +7794,7 @@ path.peer.connected {
 
 path.peer.get, #self.get {
   fill: #ffcc66;
+  opacity: 0.4;
 }
 
 path.peer.give, #self.give {
