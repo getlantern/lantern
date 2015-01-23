@@ -125,8 +125,6 @@ func (h *host) doRun() {
 	periodTimer := time.NewTimer(0)
 	terminateTimer := time.NewTimer(0)
 
-	defer h.terminate()
-
 	for {
 		if !first {
 			// Limit the rate at which we run tests
@@ -151,9 +149,11 @@ func (h *host) doRun() {
 			}
 		case <-h.unregisterCh:
 			log.Debugf("Unregistering %v and terminating", h)
+			h.terminate()
 			return
 		case <-terminateTimer.C:
 			log.Debugf("%v had no successful checks or resets in %v, terminating", h, terminateAfter)
+			h.terminate()
 			return
 		case <-periodTimer.C:
 			online, connectionRefused, err := h.isAbleToProxy()
@@ -180,7 +180,9 @@ func (h *host) doRun() {
 
 // status returns the status of this host as of the next scheduled check
 func (h *host) status() (online bool, connectionRefused bool, timedOut bool) {
-	sch := make(chan *status)
+	// Buffer the channel so that if we time out, reportStatus can still report
+	// without blocking.
+	sch := make(chan *status, 1)
 	h.statusCh <- sch
 	select {
 	case s := <-sch:
@@ -197,12 +199,7 @@ func (h *host) reportStatus(online bool, connectionRefused bool) {
 	for {
 		select {
 		case sch := <-h.statusCh:
-			select {
-			case sch <- s:
-				log.Trace("Status reported")
-			default:
-				log.Trace("No one waiting for status anymore, not reporting")
-			}
+			sch <- s
 		default:
 			return
 		}

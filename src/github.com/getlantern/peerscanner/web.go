@@ -131,7 +131,7 @@ func getHostInfo(req *http.Request) (name string, ip string, port int, err error
 
 func clientIpFor(req *http.Request) string {
 	// Client requested their info
-	clientIp := req.Header.Get("X-Forwarded-For")
+	clientIp := req.Header.Get("X-Peerscanner-Forwarded-For")
 	if clientIp == "" {
 		clientIp = strings.Split(req.RemoteAddr, ":")[0]
 	}
