@@ -315,11 +315,10 @@
       <div ng-show="model.friends != null && (nfriends || nfriendSuggestions)">
         <div ng-class="{hasSearchText: !!searchText}">
           <div id="friendCounts" ng-hide="searchActive || searchText">
-              <div id="currentFriendsHeading" ng-show="nfriends">{{ 'NFRIENDS' | translate:'{value:nfriends }' }}</div>
-            <div ng-show="nfriendSuggestions" id="suggestedFriendsHeading">
-                {{ 'NSUGGESTED' | translate:'{value:nfriendSuggestions }' }}
+              <div id="currentFriendsHeading" ng-show="nfriends" translate="{{  (nfriends == 1) ? 'NFRIENDS_1' : 'NFRIENDS_OTHER'}}" translate-values="{ value: nfriends }"></div>
+              <div ng-show="nfriendSuggestions" id="suggestedFriendsHeading" translate="{{ (nfriendSuggestions == 1) ? 'NSUGGESTED_1' : 'NSUGGESTED_OTHER'" translate-values="{value: nfriendSuggestions}">
               <a id="toggleSuggestions" ng-click="toggleSuggestions()">
-                {{showSuggestions && 'HIDE' || 'SHOW' | translate}}
+                {{showSuggestions && 'HIDE' || 'SHOW' | translate }}
               </a>
             </div>
           </div>
@@ -327,7 +326,7 @@
           <input type="search" ng-model="searchText" results="0" placeholder="{{ 'SEARCH' | translate }}"
             ng-mouseenter="searchActive=true" ng-focus="searchActive=true; searchFocused=true"
             ng-mouseleave="searchActive=searchFocused || !!searchText" ng-blur="searchActive=!!searchText; searchFocused=false"
-            id="friendsListSearch" class="{{searchText && 'non' || ''}}empty">
+            id="friendsListSearch" class="glass {{searchText && 'non' || ''}}empty">
 
           <ul id="friendlist">
             <li ng-show="searchText && displayedSuggestions.length == 0 && displayedFriends.length == 0" class="no-friends-matching">
@@ -344,7 +343,7 @@
                   <button ng-click="add(suggestion.email)"
                           class="btn btn-mini btn-success {{!model.remainingFriendingQuota && !suggestion.freeToFriend && 'disabled' || ''}}"
                           tooltip-placement="bottom"
-                          tooltip-html-unsafe="{{(suggestion.freeToFriend && ('FREE_TO_FRIEND' | i18n)) || (model.remainingFriendingQuota && ('NOT_FREE_TO_FRIEND' | i18n)) || ('REACHED_AND_NOT_FREE_TO_FRIEND' | i18n)}}">{{'ADD' | i18n}}</button>
+                          tooltip-html-unsafe="{{(suggestion.freeToFriend && ('FREE_TO_FRIEND' | translate)) || (model.remainingFriendingQuota && ('NOT_FREE_TO_FRIEND' | translate)) || ('REACHED_AND_NOT_FREE_TO_FRIEND' | translate)}}">{{'ADD' | translate}}</button>
                   <button ng-click="reject(suggestion.email)" class="btn btn-mini" ng-disabled="pendingFriendUpdate">{{'DISMISS' | translate}}</button>
                 </div>
               </div>
@@ -381,14 +380,14 @@
       <div ng-show="model.friends != null">
         <input type="hidden" id="addFriendInput" name="addFriendInput"
           select2-focus-on="show" select2-focus-on-broadcast="focusAddFriendsInput"
-          placeholder="{{ 'ADD_FRIENDS_PROMPT' | i18n }}"
+          placeholder="{{ 'ADD_FRIENDS_PROMPT' | translate }}"
           ng-disabled="pendingFriendUpdate || (model.remainingFriendingQuota == 0 && nFreeToFriend == 0)"
           ng-model="added" ui-select2="select2opts">
           <!-- XXX https://github.com/angular-ui/ui-select2/issues/59 -->
       </div>
 
       <div class="error error-colored pagination-centered" ng-show="errorLabelKey" style="margin-top:30px">
-        {{ errorLabelKey && (errorLabelKey | i18n) || '' }}
+        {{ errorLabelKey && (errorLabelKey | translate) || '' }}
       </div>
     </div>
   </div>
@@ -399,7 +398,7 @@
       </div>
       <div ng-hide="pendingFriendUpdate">
         <div ng-show="model.remainingFriendingQuota > 0">
-          {{'CAN_ADD_N_MORE_FRIENDS'|i18n:model.remainingFriendingQuota}}
+            {{ (model.remainingFriendingQuota == 1) ? 'CAN_ADD_N_MORE_FRIENDS_1' : 'CAN_ADD_N_MORE_FRIENDS_OTHER'| translate: '{value: model.remainingFriendingQuota }' }}
         </div>
         <div ng-show="model.remainingFriendingQuota == 0">
           <div class="bold grayDark">{{'CAN_ADD_NO_MORE_FRIENDS'|translate}}</div>
@@ -408,7 +407,7 @@
       </div>
     </div>
     <button id="continueFromFriends" class="btn btn-primary"
-      ng-click="interaction(INTERACTION.continue)">{{ model.setupComplete && 'CLOSE' || 'CONTINUE' | i18n }}</button>
+      ng-click="interaction(INTERACTION.continue)">{{ model.setupComplete && 'CLOSE' || 'CONTINUE' | translate }}</button>
   </div>
 </div>
 
@@ -550,7 +549,7 @@
   </div>
   <div class="modal-body" id="sponsor">
     <p>
-      {{ inGetMode && 'SPONSOR_PROMPT_GET' || 'SPONSOR_PROMPT_GIVE' | i18n }}
+      {{ inGetMode && 'SPONSOR_PROMPT_GET' || 'SPONSOR_PROMPT_GIVE' | translate }}
       <a ng-click="openExternal(EXTERNAL_URL.cloudServers)" class="more-info">
         {{ 'MORE_INFO' | translate }}<sup><i class="icon-external-link"></i></sup></a>
     </p>
@@ -659,10 +658,10 @@
             </div>
           </div>
         </div>
-        <dt>{{ 'LOCAL_LANTERNS' | translate }}</dt>
+        <dt ng-if="model.localLanterns.length > 0">{{ 'LOCAL_LANTERNS' | translate }}</dt>
         <dd id="local-lanterns-list">
-        <a ng-click="openExternal(EXTERNAL_URL.autoReportPrivacy)" class="local-lantern-link">
-            192.168.1.118:15837/_aFV10KD3y26qQ-4u4f_bQ/index.html<sup><i class="icon-external-link"></i></sup>
+        <a ng-repeat="n in model.localLanterns" ng-click="openExternal(n)" class="local-lantern-link">
+            {{n}}<sup><i class="icon-external-link"></i></sup>
         </a>
         </dd>
       </dd>

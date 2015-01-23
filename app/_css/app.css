@@ -7242,7 +7242,8 @@ body[dir=rtl] .proxiedSitesTip {
   -webkit-transition: all 0.5s ease;
   transition: all 0.5s ease;
   float: right;
-  width: 30px;
+  width: 25px;
+  padding-left: 15px;
   height: 27px;
   margin: 0 0 7px;
   border-color: white;
@@ -7266,6 +7267,7 @@ body[dir=rtl] #friendsListSearch {
 }
 #friendsListSearch:focus, #friendsListSearch:hover, #friendsListSearch.nonempty {
   width: 500px !important;
+  background: none;
   padding-right: 4px;
   border-color: #cccccc !important;
 }
