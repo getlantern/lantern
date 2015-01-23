@@ -6,9 +6,7 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -44,7 +42,6 @@ public class LanternMulticast {
     public LanternMulticast(final int port) {
         this.sendPort = port;
     }
-    
 
     public void join() {
         try {
@@ -52,7 +49,7 @@ public class LanternMulticast {
             final MulticastSocket ms = new MulticastSocket(MC_PORT);
             ms.joinGroup(group);
             
-            if (LanternUtils.isLanternPi()) {
+            if (LanternUtils.shouldAdvertizeOnLocalNetwork()) {
                 sendHellos(group, ms);
                 addShutdownHook(group, ms);
             }
@@ -63,6 +60,12 @@ public class LanternMulticast {
         }
     }
 
+    /**
+     * Periodically announce ourselves to the network.
+     * 
+     * @param group The multicast group.
+     * @param ms The multicast socket.
+     */
     private void sendHellos(final InetAddress group, final MulticastSocket ms) {
         final Timer t = new Timer("Multicast-Send", true);
         t.schedule(new TimerTask() {
@@ -71,15 +74,7 @@ public class LanternMulticast {
             public void run() {
                 final MulticastMessage mm = 
                         MulticastMessage.newHello(StaticSettings.getLocalEndpoint());
-                final String msg = JsonUtils.jsonify(mm);
-                final DatagramPacket hi = 
-                    new DatagramPacket(msg.getBytes(Charsets.UTF_8), msg.length(),
-                                        group, sendPort);
-                try {
-                    ms.send(hi);
-                } catch (final IOException e) {
-                    log.warn("Could not send multicast message?", e);
-                }
+                send(ms, mm, group);
             }
         }, 1000, 10*1000);
     }
@@ -90,21 +85,25 @@ public class LanternMulticast {
 
             @Override
             public void run() {
-                final Map<String, String> map = new HashMap<String, String>();
-                map.put("type", "bye");
-                map.put("endpoint", StaticSettings.getLocalEndpoint());
-                final String msg = JsonUtils.jsonify(map);
-                final DatagramPacket dp = 
-                        new DatagramPacket(msg.getBytes(Charsets.UTF_8), msg.length(),
-                                            group, sendPort);
-                try {
-                    ms.send(dp);
-                } catch (final IOException e) {
-                    log.error("Could not leave group", e);
-                }
+                final MulticastMessage mm = 
+                        MulticastMessage.newBye(StaticSettings.getLocalEndpoint());
+                send(ms, mm, group);
             }
             
         }, "Multicast-Leave"));
+    }
+
+    private void send(final MulticastSocket ms, final MulticastMessage mm, 
+            final InetAddress group) {
+        final String msg = JsonUtils.jsonify(mm);
+        final DatagramPacket dp = 
+                new DatagramPacket(msg.getBytes(Charsets.UTF_8), msg.length(),
+                                    group, sendPort);
+        try {
+            ms.send(dp);
+        } catch (final IOException e) {
+            log.error("Could not leave group", e);
+        }
     }
 
     private void listen(final MulticastSocket ms) {
@@ -116,17 +115,22 @@ public class LanternMulticast {
                     final byte[] buf = new byte[1000];
                     final DatagramPacket recv = new DatagramPacket(buf, buf.length);
                     try {
+                        // Note that this call blocks.
                         ms.receive(recv);
                         final MulticastMessage msg = 
                                 JsonUtils.decode(new ByteArrayInputStream(buf), 
                                         MulticastMessage.class);
+                        final String endpoint = msg.getEndpoint();
+                        if (StaticSettings.getLocalEndpoint().equals(endpoint)) {
+                            log.info("Ignoring messages from ourselves");
+                            continue;
+                        }
                         if (msg.isBye()) {
                             endpoints.remove(msg.getEndpoint());
-                            Events.sync(SyncPath.LOCAL_LANTERNS, endpoints);
                         } else {
                             endpoints.add(msg.getEndpoint());
-                            Events.sync(SyncPath.LOCAL_LANTERNS, endpoints);
                         }
+                        Events.sync(SyncPath.LOCAL_LANTERNS, endpoints);
                     } catch (final IOException e) {
                         log.error("Error receiving multicast?", e);
                     }

@@ -153,7 +153,7 @@ public class InteractionServlet extends HttpServlet {
 
     protected void processRequest(final HttpServletRequest req,
         final HttpServletResponse resp) {
-        if (!LanternUtils.isLanternPi()) {
+        if (!LanternUtils.shouldAdvertizeOnLocalNetwork()) {
             LanternUtils.addCSPHeader(resp);
         }
         final String uri = req.getRequestURI();
