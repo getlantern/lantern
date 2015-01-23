@@ -80,7 +80,6 @@ func (c *Client) NewRequest(params map[string]string, method string, action stri
 	}
 
 	return req, nil
-
 }
 
 // decodeBody is used to JSON decode a body
