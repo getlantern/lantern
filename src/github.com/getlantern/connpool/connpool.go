@@ -20,17 +20,20 @@ var (
 
 type DialFunc func() (net.Conn, error)
 
-// Pool is a pool of connections.  Connections are pooled eagerly up to MinSize
-// and expire after ClaimTimeout.  Pool attempts to always have MinSize
-// unexpired connections ready to go so that callers don't have to wait on a
-// connection being established when they're ready to use it.
+// Pool is a pool of connections. Connections are pooled lazily up to Size and
+// expire after ClaimTimeout. Lazily here means that the Pool won't start to
+// fill until the first request for a connection. As long as the Pool is
+// actively being used, it will attempt to always have Size number of
+// connections ready to use.
 type Pool struct {
-	// MinSize: the pool will always attempt to maintain at least these many
+	// Size: while active, the pool will attempt to maintain at these many
 	// connections.
-	MinSize int
+	Size int
 
 	// ClaimTimeout: connections will be removed from pool if unclaimed for
-	// longer than ClaimTimeout.  The default ClaimTimeout is 10 minutes.
+	// longer than ClaimTimeout. The default ClaimTimeout is 10 minutes. Once
+	// connections have been removed from the Pool, they won't be replaced until
+	// another connection is requested, at which point the pool will fill again.
 	ClaimTimeout time.Duration
 
 	// RedialDelayIncrement: amount by which to increase the redial delay with
@@ -46,11 +49,12 @@ type Pool struct {
 	runMutex   sync.Mutex
 	running    bool
 	actualSize int
+	freshenCh  chan interface{}
 	connCh     chan net.Conn
 	stopCh     chan *sync.WaitGroup
 }
 
-// Start starts the pool, filling it to the MinSize and maintaining fresh
+// Start starts the pool, filling it to the Size and maintaining fresh
 // connections.
 func (p *Pool) Start() {
 	p.runMutex.Lock()
@@ -61,7 +65,7 @@ func (p *Pool) Start() {
 		return
 	}
 
-	log.Trace("Starting connection pool")
+	log.Tracef("Starting connection pool with size %d", p.Size)
 	if p.ClaimTimeout == 0 {
 		log.Tracef("Defaulting ClaimTimeout to %s", DefaultClaimTimeout)
 		p.ClaimTimeout = DefaultClaimTimeout
@@ -75,11 +79,12 @@ func (p *Pool) Start() {
 		p.MaxRedialDelay = DefaultMaxRedialDelay
 	}
 
+	p.freshenCh = make(chan interface{}, p.Size)
 	p.connCh = make(chan net.Conn)
-	p.stopCh = make(chan *sync.WaitGroup, p.MinSize)
+	p.stopCh = make(chan *sync.WaitGroup, p.Size)
 
-	log.Tracef("Remembering actual size %d in case MinSize is later changed", p.MinSize)
-	p.actualSize = p.MinSize
+	log.Tracef("Remembering actual size %d in case Size is later changed", p.Size)
+	p.actualSize = p.Size
 	for i := 0; i < p.actualSize; i++ {
 		go p.feedConn()
 	}
@@ -111,6 +116,7 @@ func (p *Pool) Stop() {
 
 func (p *Pool) Get() (net.Conn, error) {
 	log.Trace("Getting conn")
+	defer p.freshen()
 	select {
 	case conn := <-p.connCh:
 		log.Trace("Using pooled conn")
@@ -121,10 +127,23 @@ func (p *Pool) Get() (net.Conn, error) {
 	}
 }
 
+func (p *Pool) freshen() {
+	for {
+		select {
+		case p.freshenCh <- nil:
+			log.Trace("Freshened one connection")
+		default:
+			log.Trace("No more to freshen")
+			return
+		}
+	}
+}
+
 // feedConn works on continuously feeding the connCh with fresh connections.
 func (p *Pool) feedConn() {
 	newConnTimedOut := time.NewTimer(0)
 	consecutiveDialFailures := time.Duration(0)
+	nextDialAt := time.Now()
 
 	for {
 		select {
@@ -132,7 +151,13 @@ func (p *Pool) feedConn() {
 			log.Trace("Stopped before next dial")
 			wg.Done()
 			return
-		default:
+		case <-p.freshenCh:
+			delay := nextDialAt.Sub(time.Now())
+			if delay > 0 {
+				log.Tracef("Sleeping %s before dialing again", delay)
+				time.Sleep(delay)
+			}
+
 			log.Trace("Dialing")
 			conn, err := p.Dial()
 			if err != nil {
@@ -141,8 +166,7 @@ func (p *Pool) feedConn() {
 				if delay > p.MaxRedialDelay {
 					delay = p.MaxRedialDelay
 				}
-				log.Tracef("Sleeping %s before dialing again", delay)
-				time.Sleep(delay)
+				nextDialAt = time.Now().Add(delay)
 				consecutiveDialFailures = consecutiveDialFailures + 1
 				continue
 			}

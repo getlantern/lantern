@@ -28,7 +28,7 @@ func TestIt(t *testing.T) {
 		t.Fatalf("Unable to start test server: %s", err)
 	}
 	p := &Pool{
-		MinSize:      poolSize,
+		Size:         poolSize,
 		ClaimTimeout: claimTimeout,
 		Dial: func() (net.Conn, error) {
 			return net.DialTimeout("tcp", addr, 15*time.Millisecond)
@@ -46,7 +46,7 @@ func TestIt(t *testing.T) {
 
 	time.Sleep(fillTime)
 
-	assert.NoError(t, fdc.AssertDelta(poolSize), "Pool should initially open the right number of conns")
+	assert.NoError(t, fdc.AssertDelta(0), "Pool should initially contain no conns")
 
 	// Use more than the pooled connections
 	connectAndRead(t, p, poolSize*2)
@@ -56,6 +56,8 @@ func TestIt(t *testing.T) {
 
 	// Wait for connections to time out
 	time.Sleep(claimTimeout * 2)
+
+	assert.NoError(t, fdc.AssertDelta(0), "After connections time out, but before dialing again, pool should be empty")
 
 	// Test our connections again
 	connectAndRead(t, p, poolSize*2)
@@ -95,7 +97,7 @@ func TestDialFailure(t *testing.T) {
 		t.Fatalf("Unable to start test server: %s", err)
 	}
 	p := &Pool{
-		MinSize:              10,
+		Size:                 10,
 		RedialDelayIncrement: 10 * time.Millisecond,
 		MaxRedialDelay:       100 * time.Millisecond,
 		Dial: func() (net.Conn, error) {
