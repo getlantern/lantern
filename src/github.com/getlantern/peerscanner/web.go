@@ -133,6 +133,9 @@ func clientIpFor(req *http.Request) string {
 	// Client requested their info
 	clientIp := req.Header.Get("X-Peerscanner-Forwarded-For")
 	if clientIp == "" {
+		clientIp = req.Header.Get("X-Forwarded-For")
+	}
+	if clientIp == "" {
 		clientIp = strings.Split(req.RemoteAddr, ":")[0]
 	}
 	// clientIp may contain multiple ips, use the first
