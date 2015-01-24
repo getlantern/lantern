@@ -114,10 +114,11 @@ func NewDialer(cfg *Config) *Dialer {
 	}
 	if cfg.PoolSize > 0 {
 		d.connPool = &connpool.Pool{
-			MinSize:      cfg.PoolSize,
+			Size:         cfg.PoolSize,
 			ClaimTimeout: idleTimeout,
 			Dial:         d.dialServer,
 		}
+		d.connPool.Start()
 	}
 	d.enproxyConfig = d.enproxyConfigWith(func(addr string) (net.Conn, error) {
 		var conn net.Conn
