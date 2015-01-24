@@ -128,12 +128,15 @@ func (p *Pool) Get() (net.Conn, error) {
 }
 
 func (p *Pool) freshen() {
+	log.Trace("Freshen requested")
+
+	freshened := 0
 	for {
 		select {
 		case p.freshenCh <- nil:
-			log.Trace("Freshened one connection")
+			freshened += 1
 		default:
-			log.Trace("No more to freshen")
+			log.Tracef("No more to freshen, freshened %d connections", freshened)
 			return
 		}
 	}
