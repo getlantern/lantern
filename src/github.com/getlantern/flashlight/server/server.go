@@ -166,6 +166,7 @@ func (server *Server) register() {
 				resp, err := http.PostForm(registerUrl, vals)
 				if err != nil {
 					log.Errorf("Unable to register at %v: %v", registerUrl, err)
+					return
 				} else if resp.StatusCode != 200 {
 					bodyString, _ := ioutil.ReadAll(resp.Body)
 					log.Errorf("Unexpected response status registering at %v: %d    %v", registerUrl, resp.StatusCode, string(bodyString))
