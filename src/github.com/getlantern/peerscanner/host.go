@@ -23,11 +23,11 @@ var (
 	testPeriod = ttl / 2
 
 	// If we haven't had a successul test or reset after this amount of time,
-	// terminate.
-	terminateAfter = 10 * time.Minute
+	// pause testing until receipt of next register call.
+	pauseAfter = 10 * time.Minute
 
 	// Limit how long we're willing to wait for status
-	statusTimeout = terminateAfter / 2
+	statusTimeout = pauseAfter / 2
 
 	dialTimeout    = 3 * time.Second // how long to wait on connecting to host
 	requestTimeout = 6 * time.Second // how long to wait for test requests to process
@@ -46,12 +46,16 @@ type status struct {
 
 // host is an actor that represents a host entry in CloudFlare and is
 // responsible for checking connectivity to the host and updating CloudFlare DNS
-// accordingly.
+// accordingly. Once a host has been created, it sticks around ad infinitum.
+// If the host hasn't heard from the real-world host in over 10 minutes, it
+// pauses its processing and only resumes once it hears from the client again.
 type host struct {
-	name   string
-	ip     string
-	record *cloudflare.Record
-	groups map[string]*group
+	name        string
+	ip          string
+	record      *cloudflare.Record
+	groups      map[string]*group
+	lastSuccess time.Time
+	lastTest    time.Time
 
 	resetCh      chan string
 	unregisterCh chan interface{}
@@ -63,6 +67,10 @@ type host struct {
 func (h *host) String() string {
 	return fmt.Sprintf("%v (%v)", h.name, h.ip)
 }
+
+/*******************************************************************************
+ * API for interacting with host
+ ******************************************************************************/
 
 // newHost creates a new host for the given name, ip and optional DNS record.
 func newHost(name string, ip string, record *cloudflare.Record) *host {
@@ -118,51 +126,76 @@ func (h *host) run() {
 	go h.doRun()
 }
 
+// status returns the status of this host as of the next scheduled check
+func (h *host) status() (online bool, connectionRefused bool, timedOut bool) {
+	// Buffer the channel so that if we time out, reportStatus can still report
+	// without blocking.
+	sch := make(chan *status, 1)
+	h.statusCh <- sch
+	select {
+	case s := <-sch:
+		return s.online, s.connectionRefused, false
+	case <-time.After(statusTimeout):
+		return false, false, true
+	}
+}
+
+// reset resets this host's run loop in response to the host having reported in,
+// which can include changing the name if the given name is new.
+func (h *host) reset(newName string) {
+	h.resetCh <- newName
+}
+
+// unregister unregisters this host in response to the host having requested
+// unregistration.
+func (h *host) unregister() {
+	select {
+	case h.unregisterCh <- nil:
+		log.Tracef("Unregistering host %v", h)
+	default:
+		log.Tracef("Already unregistering host %v, ignoring new request", h)
+	}
+}
+
+/*******************************************************************************
+ * Implementation
+ ******************************************************************************/
+
 func (h *host) doRun() {
-	first := true
-	lastSuccess := time.Now()
-	lastTest := time.Now()
+	checkImmediately := true
+	h.lastSuccess = time.Now()
+	h.lastTest = time.Now()
 	periodTimer := time.NewTimer(0)
-	terminateTimer := time.NewTimer(0)
+	pauseTimer := time.NewTimer(0)
 
 	for {
-		if !first {
+		if !checkImmediately {
 			// Limit the rate at which we run tests
-			periodTimer.Reset(lastTest.Add(testPeriod).Sub(time.Now()))
+			periodTimer.Reset(h.lastTest.Add(testPeriod).Sub(time.Now()))
 		}
 
-		// Terminate run loop after some largish amount of time
-		terminateTimer.Reset(lastSuccess.Add(terminateAfter).Sub(time.Now()))
+		// Pause run loop after some largish amount of time
+		pauseTimer.Reset(h.lastSuccess.Add(pauseAfter).Sub(time.Now()))
 
 		select {
 		case newName := <-h.resetCh:
-			log.Tracef("Host notified us of its presence")
-			lastSuccess = time.Now()
-			lastTest = time.Time{}
-			if newName != h.name {
-				log.Debugf("Hostname for %v changed to %v", h, newName)
-				if h.record != nil {
-					log.Debugf("Deregistering old hostname %v", h.name)
-					h.doDeregisterHost()
-				}
-				h.name = newName
-			}
+			h.doReset(newName)
 		case <-h.unregisterCh:
-			log.Debugf("Unregistering %v and terminating", h)
-			h.terminate()
-			return
-		case <-terminateTimer.C:
-			log.Debugf("%v had no successful checks or resets in %v, terminating", h, terminateAfter)
-			h.terminate()
-			return
+			log.Debugf("Unregistering %v and pausing", h)
+			h.pause()
+			checkImmediately = true
+		case <-pauseTimer.C:
+			log.Debugf("%v had no successful checks or resets in %v, pausing", h, pauseAfter)
+			h.pause()
+			checkImmediately = true
 		case <-periodTimer.C:
 			online, connectionRefused, err := h.isAbleToProxy()
 			h.reportStatus(online, connectionRefused)
-			lastTest = time.Now()
-			first = false
+			h.lastTest = time.Now()
+			checkImmediately = false
 			if online {
 				log.Tracef("Test for %v successful", h)
-				lastSuccess = time.Now()
+				h.lastSuccess = time.Now()
 				err := h.register()
 				if err != nil {
 					log.Error(err)
@@ -178,17 +211,20 @@ func (h *host) doRun() {
 	}
 }
 
-// status returns the status of this host as of the next scheduled check
-func (h *host) status() (online bool, connectionRefused bool, timedOut bool) {
-	// Buffer the channel so that if we time out, reportStatus can still report
-	// without blocking.
-	sch := make(chan *status, 1)
-	h.statusCh <- sch
-	select {
-	case s := <-sch:
-		return s.online, s.connectionRefused, false
-	case <-time.After(statusTimeout):
-		return false, false, true
+// pause deregisters this host completely and then waits for the next reset
+// before continuing
+func (h *host) pause() {
+	h.deregister()
+	log.Debugf("%v paused", h)
+	for {
+		select {
+		case newName := <-h.resetCh:
+			log.Debugf("Unpausing checks for %v", h)
+			h.doReset(newName)
+			return
+		case <-h.unregisterCh:
+			log.Tracef("Ignoring unregister while paused")
+		}
 	}
 }
 
@@ -206,33 +242,23 @@ func (h *host) reportStatus(online bool, connectionRefused bool) {
 	}
 }
 
-// reset resets this host's run loop in response to the host having reported in,
-// which can include changing the name if the given name is new.
-func (h *host) reset(name string) {
-	h.resetCh <- name
-}
-
-// unregister unregisters this host in response to the host having requested
-// unregistration.
-func (h *host) unregister() {
-	select {
-	case h.unregisterCh <- nil:
-		log.Tracef("Unregistering host %v", h)
-	default:
-		log.Tracef("Already unregistering host %v, ignoring new request", h)
+func (h *host) doReset(newName string) {
+	log.Tracef("Host notified us of its presence")
+	h.lastSuccess = time.Now()
+	h.lastTest = time.Time{}
+	if newName != h.name {
+		log.Debugf("Hostname for %v changed to %v", h, newName)
+		if h.record != nil {
+			log.Debugf("Deregistering old hostname %v", h.name)
+			h.doDeregisterHost()
+		}
+		h.name = newName
 	}
 }
 
 /*******************************************************************************
  * Functions for managing DNS
  ******************************************************************************/
-
-// terminate cleans up DNS on termination of this host's run loop
-func (h *host) terminate() {
-	removeHost(h)
-	h.deregister()
-	h.reportStatus(false, false)
-}
 
 func (h *host) register() error {
 	err := h.registerHost()
@@ -248,7 +274,7 @@ func (h *host) register() error {
 
 func (h *host) registerHost() error {
 	if h.record != nil {
-		log.Debugf("Host already registered, no need to re-register: %v", h)
+		log.Tracef("Host already registered, no need to re-register: %v", h)
 		return nil
 	}
 

@@ -194,12 +194,6 @@ func getHostByIp(ip string) *host {
 	return hostsByIp[ip]
 }
 
-func removeHost(h *host) {
-	hostsMutex.Lock()
-	delete(hostsByIp, h.ip)
-	hostsMutex.Unlock()
-}
-
 func isPeer(name string) bool {
 	// We just check the length of the subdomain here, which is the unique
 	// peer GUID. While it's possible something else could have a subdomain
