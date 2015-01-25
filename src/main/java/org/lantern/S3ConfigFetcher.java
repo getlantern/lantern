@@ -64,7 +64,9 @@ public class S3ConfigFetcher {
             // for actual fallbacks.
             final Collection<FallbackProxy> fallbacks = config.getAllFallbacks();
             if (fallbacks == null || fallbacks.isEmpty()) {
-                downloadAndCompareConfig();
+                if (downloadAndCompareConfig()) {
+                    Events.asyncEventBus().post(model.getS3Config());
+                }
             } else {
                 log.debug("Using existing config...");
                 //Events.asyncEventBus().post(config);
