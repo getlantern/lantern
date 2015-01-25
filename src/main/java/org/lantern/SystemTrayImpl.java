@@ -18,6 +18,7 @@ import javax.swing.SwingUtilities;
 
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.lantern.browser.BrowserService;
 import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.ProxyConnectionEvent;

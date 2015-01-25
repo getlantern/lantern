@@ -10,14 +10,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetSocketAddress;
 import java.net.URI;
 import java.security.Security;
 import java.util.Properties;
-import java.util.Queue;
 import java.util.concurrent.Callable;
 
-import javax.net.ssl.SSLEngine;
 import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.cli.CommandLine;
@@ -37,14 +34,12 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.kaleidoscope.BasicRandomRoutingTable;
 import org.kaleidoscope.RandomRoutingTable;
 import org.lantern.endpoints.FriendApi;
-import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.kscope.DefaultKscopeAdHandler;
 import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.NetworkTracker;
 import org.lantern.oauth.OauthUtils;
 import org.lantern.oauth.RefreshToken;
-import org.lantern.proxy.BaseChainedProxy;
 import org.lantern.proxy.GetModeProxy;
 import org.lantern.proxy.UdtServerFiveTupleListener;
 import org.lantern.state.DefaultFriendsHandler;
@@ -60,8 +55,6 @@ import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
 import org.lastbamboo.common.portmapping.UpnpService;
 import org.littleshoot.commom.xmpp.XmppConnectionRetyStrategyFactory;
-import org.littleshoot.proxy.ChainedProxy;
-import org.littleshoot.proxy.ChainedProxyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -159,10 +152,6 @@ public class TestingUtils {
                 new DefaultFriendsHandler(model, api, null, null, networkTracker, new Messages(new Model()));
         final Roster roster = new Roster(routingTable, model, censored, friendsHandler);
         
-        final GeoIpLookupService geoIpLookupService = new GeoIpLookupService();
-        
-        final PeerFactory peerFactory = 
-            new DefaultPeerFactory(geoIpLookupService, model, roster);
         final KscopeAdHandler kscopeAdHandler = 
             new DefaultKscopeAdHandler(trustStore, routingTable, networkTracker);
         final NatPmpService natPmpService = new NatPmpService() {
@@ -292,29 +281,6 @@ public class TestingUtils {
         LOGGER.info("Using fallback {} at: {}:{}", fallback.getJid(),
                 fallback.getWanHost(), fallback.getWanPort());
         trustStore.addCert(fallback.getCert());
-        ChainedProxyManager proxyManager =
-                new ChainedProxyManager() {
-            @Override
-            public void lookupChainedProxies(HttpRequest httpRequest,
-                    Queue<ChainedProxy> chainedProxies) {
-                chainedProxies.add(new BaseChainedProxy(fallback.getAuthToken()) {
-                    @Override
-                    public InetSocketAddress getChainedProxyAddress() {
-                        return fallback.wanAddress();
-                    }
-                    
-                    @Override
-                    public boolean requiresEncryption() {
-                        return true;
-                    }
-                    
-                    @Override
-                    public SSLEngine newSslEngine() {
-                        return trustStore.newSSLEngine();
-                    }
-                });
-            }
-        };
         GetModeProxy getModeProxy = new GetModeProxy(model);
         getModeProxy.start();
         try {

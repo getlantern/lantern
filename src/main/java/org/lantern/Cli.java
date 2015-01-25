@@ -50,8 +50,8 @@ public class Cli {
     public static final String OPTION_KEYSTORE = "keystore";
     public static final String OPTION_REPORT_IP = "report-ip";
     public static final String OPTION_PLUGGABLE_TRANSPORT = "pt";
-    public static final String OPTION_CHROME = "chrome";
     public static final String OPTION_FORCE_FLASHLIGHT = "force-flashlight";
+    public static final String OPTION_SKIP_LOGIN = "skip-login";
     
     private CommandLine cmd;
     
@@ -67,7 +67,7 @@ public class Cli {
         }
         catch (final ParseException e) {
             printHelp(options, e.getMessage()+" args: "+Arrays.asList(args));
-            return;
+            System.exit(0);
         }
 
 
@@ -156,8 +156,6 @@ public class Cli {
             "[XXX: perhaps provisional] path to keystore file where the fallback proxy should find its own keypair.");
         options.addOption(null, OPTION_REPORT_IP, true,
             "(Fallback's listen) IP to report to controller");
-        options.addOption(null, OPTION_CHROME, false,
-                "Use the default browser, typically chrome, if in development mode");
         options.addOption(OptionBuilder
                 .withLongOpt(OPTION_PLUGGABLE_TRANSPORT)
                 .withArgName("property=value")
@@ -166,6 +164,7 @@ public class Cli {
                 .withDescription("(Optional) Specify pluggable transport properties")
                 .create());
         options.addOption(null, OPTION_FORCE_FLASHLIGHT, false, "Force all traffic through flashlight (useful for testing)");
+        options.addOption(null, OPTION_SKIP_LOGIN, false, "Don't login.");
         return options;
     }
 

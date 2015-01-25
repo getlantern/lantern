@@ -33,6 +33,7 @@ public class DefaultCensored implements Censored {
             // "biggies":
             "CN", // China
             "VN", // Vietnam
+            "IN", // India
             "IQ", // Iraq
             "IR", // Iran
             "CU", // Cuba

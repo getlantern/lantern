@@ -14,6 +14,7 @@ public enum SyncPath {
     ALL(""),
     PROFILE("profile"),
     MODE("settings/mode"),
+    PING("ping"),
     CONNECTIVITY_GTALK("connectivity/gtalk"),
     CONNECTING_STATUS("connectivity/connectingStatus"),
     CONNECTIVITY_INTERNET("connectivity/internet"),
@@ -36,7 +37,8 @@ public enum SyncPath {
     SETUPCOMPLETE("setupComplete"),
     SHOWVIS("showVis"),
     FRIENDS("friends"),
-    FRIENDING_QUOTA("remainingFriendingQuota");
+    FRIENDING_QUOTA("remainingFriendingQuota"),
+    LOCAL_LANTERNS("localLanterns");
 
     private final String path;
 

@@ -12,6 +12,8 @@ import org.apache.commons.lang3.SystemUtils;
 import org.jivesoftware.smack.SASLAuthentication;
 import org.kaleidoscope.BasicRandomRoutingTable;
 import org.kaleidoscope.RandomRoutingTable;
+import org.lantern.browser.BrowserService;
+import org.lantern.browser.LanternBrowserService;
 import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.http.GoogleOauth2RedirectServlet;
 import org.lantern.http.InteractionServlet;
@@ -104,7 +106,7 @@ public class LanternModule extends AbstractModule {
         bind(SyncStrategy.class).to(CometDSyncStrategy.class);
         bind(SyncService.class);
         //bind(EncryptedFileService.class).to(DefaultEncryptedFileService.class);
-        bind(BrowserService.class).to(ChromeBrowserService.class);
+        bind(BrowserService.class).to(LanternBrowserService.class);
         bind(Model.class).toProvider(ModelIo.class).in(Singleton.class);
 
         bind(ModelService.class).to(DefaultModelService.class);

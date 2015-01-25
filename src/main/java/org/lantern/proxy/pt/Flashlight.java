@@ -390,7 +390,7 @@ public class Flashlight extends BasePluggableTransport {
         }
     }
 
-    private void postConfig(String path, Map data) throws Exception {
+    private void postConfig(String path, Map<String, ?> data) throws Exception {
         DumperOptions options = new DumperOptions();
         options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
         options.setDefaultScalarStyle(DumperOptions.ScalarStyle.DOUBLE_QUOTED);

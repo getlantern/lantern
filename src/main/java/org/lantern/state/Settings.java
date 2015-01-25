@@ -441,13 +441,4 @@ public class Settings {
     public void setShowFriendPrompts(boolean showFriendPrompts) {
         this.showFriendPrompts = showFriendPrompts;
     }
-
-    public void setChrome(final boolean chrome) {
-        this.chrome = chrome;
-    }
-    
-    @JsonIgnore
-    public boolean isChrome() {
-        return chrome;
-    }
 }

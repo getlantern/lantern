@@ -548,7 +548,9 @@ public class DefaultXmppHandler implements XmppHandler {
         handleSetDelay(json);
         handleVersionUpdate(json);
 
-        model.setUserGuid((String) json.get(LanternConstants.USER_GUID));
+        final String guid = (String) json.get(LanternConstants.USER_GUID);
+        LOG.info("Setting GUID to {}", guid);
+        model.setUserGuid(guid);
         sendOnDemandValuesToControllerIfNecessary(json);
     }
 
@@ -692,7 +694,7 @@ public class DefaultXmppHandler implements XmppHandler {
         else {
             LOG.info("Removing JID for peer '" + from);
             try {
-                String advertisingUser = XmppUtils.jidToUser(from);
+                String advertisingUser = LanternXmppUtils.jidToEmail(from);
                 this.networkTracker.instanceOffline(advertisingUser, new URI(
                         from));
             } catch (URISyntaxException e) {
@@ -787,8 +789,6 @@ public class DefaultXmppHandler implements XmppHandler {
 
         //final String mac = (String) msg.getProperty(P2PConstants.MAC);
         final String base64Cert = (String) msg.getProperty(P2PConstants.CERT);
-
-        LOG.debug("Base 64 cert: {}", base64Cert);
 
         if (StringUtils.isNotBlank(base64Cert)) {
             LOG.trace("Got certificate for {}:\n{}", uri, 

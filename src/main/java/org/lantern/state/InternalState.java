@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.HashSet;
 
 import org.apache.commons.lang.SystemUtils;
+import org.lantern.LanternClientConstants;
 import org.lantern.MessageKey;
 import org.lantern.Messages;
 import org.lantern.event.Events;
@@ -24,15 +25,26 @@ public class InternalState {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private Modal lastModal;
-
-    private final Modal[] modalSeqGive = {
+    
+    private final Modal[] modalSeqGive;
+    private final Modal[] modalSeqGet;
+    
+    private final Modal[] MODAL_SEQ_GIVE = {
         Modal.authorize, Modal.lanternFriends,
         Modal.finished, Modal.none,
     };
 
-    private final Modal[] modalSeqGet = {
+    private final Modal[] MODAL_SEQ_GET = {
         Modal.authorize, Modal.lanternFriends, Modal.proxiedSites,
         Modal.finished, Modal.none,
+    };
+    
+    private final Modal[] MODAL_SEQ_GIVE_NO_LOGIN = {
+        Modal.finished, Modal.none,
+    };
+
+    private final Modal[] MODAL_SEQ_GET_NO_LOGIN = {
+        Modal.proxiedSites, Modal.finished, Modal.none,
     };
 
     private final Collection<Modal> modalsCompleted = new HashSet<Modal>();
@@ -53,6 +65,13 @@ public class InternalState {
     public InternalState(final Model model, final Messages msgs) {
         this.model = model;
         this.msgs = msgs;
+        if (LanternClientConstants.SKIP_LOGIN) {
+            this.modalSeqGet = MODAL_SEQ_GET_NO_LOGIN;
+            this.modalSeqGive = MODAL_SEQ_GIVE_NO_LOGIN;
+        } else {
+            this.modalSeqGet = MODAL_SEQ_GET;
+            this.modalSeqGive = MODAL_SEQ_GIVE;
+        }
         Events.register(this);
     }
 

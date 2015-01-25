@@ -7,6 +7,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 import org.cometd.bayeux.client.ClientSessionChannel;
+import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.ServerSession;
 import org.lantern.annotation.Keep;
 import org.lantern.event.SyncType;

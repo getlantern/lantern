@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		086B4E1D16E05D660089B972 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 086B4E1C16E05D660089B972 /* main.m */; };
+		D73DDEA81A5E4991000A75D7 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D73DDEA71A5E4990000A75D7 /* SystemConfiguration.framework */; settings = {ATTRIBUTES = (Required, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,6 +26,7 @@
 /* Begin PBXFileReference section */
 		086B4E1916E05D660089B972 /* Lantern Network Setup */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "Lantern Network Setup"; sourceTree = BUILT_PRODUCTS_DIR; };
 		086B4E1C16E05D660089B972 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		D73DDEA71A5E4990000A75D7 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,6 +34,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D73DDEA81A5E4991000A75D7 /* SystemConfiguration.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -41,6 +44,7 @@
 		086B4E1016E05D660089B972 = {
 			isa = PBXGroup;
 			children = (
+				D73DDEA71A5E4990000A75D7 /* SystemConfiguration.framework */,
 				086B4E1B16E05D660089B972 /* Lantern Network Setup */,
 				086B4E1A16E05D660089B972 /* Products */,
 			);
@@ -88,7 +92,7 @@
 		086B4E1116E05D660089B972 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0460;
+				LastUpgradeCheck = 0610;
 				ORGANIZATIONNAME = "Brave New Software";
 			};
 			buildConfigurationList = 086B4E1416E05D660089B972 /* Build configuration list for PBXProject "Lantern Network Setup" */;
@@ -124,7 +128,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -157,7 +160,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_OBJC_ARC = YES;

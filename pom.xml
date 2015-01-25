@@ -3,7 +3,7 @@
 	<groupId>org.lantern</groupId>
 	<artifactId>lantern</artifactId>
 	<packaging>jar</packaging>
-	<version>1.5.16-SNAPSHOT</version>
+	<version>1.5.18-SNAPSHOT</version>
 	<name>Lantern</name>
 	<description>Defeat censorship. Give or get access to the open internet with people around the world through your social network.</description>
 	<url>https://github.com/getlantern/lantern</url>
@@ -13,7 +13,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<slf4j.version>1.7.2</slf4j.version>
-		<cometd.version>2.5.1</cometd.version>
+		<cometd.version>2.9.1</cometd.version>
 		<github.global.server>github</github.global.server>
 		<rt.path>${java.home}/lib/rt.jar</rt.path>
 		<jce.path>${java.home}/lib/jce.jar</jce.path>

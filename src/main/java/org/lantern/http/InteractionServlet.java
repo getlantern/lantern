@@ -153,7 +153,9 @@ public class InteractionServlet extends HttpServlet {
 
     protected void processRequest(final HttpServletRequest req,
         final HttpServletResponse resp) {
-        LanternUtils.addCSPHeader(resp);
+        if (!LanternUtils.shouldAdvertizeOnLocalNetwork()) {
+            LanternUtils.addCSPHeader(resp);
+        }
         final String uri = req.getRequestURI();
         log.debug("Received URI: {}", uri);
         final String interactionStr = StringUtils.substringAfterLast(uri, "/");
@@ -261,7 +263,7 @@ public class InteractionServlet extends HttpServlet {
             }
             break;
         case authorize:
-           log.debug("Processing authorize modal...");
+            log.debug("Processing authorize modal...");
             this.internalState.setModalCompleted(Modal.authorize);
             this.internalState.advanceModal(null);
             break;
@@ -656,9 +658,9 @@ public class InteractionServlet extends HttpServlet {
     }
 
     private void handleSetModeWelcome(final Mode mode) {
-        this.model.setModal(Modal.authorize);
-        this.internalState.setModalCompleted(Modal.welcome);
         this.modelService.setMode(mode);
+        this.internalState.setModalCompleted(Modal.welcome);
+        this.internalState.advanceModal(null);
         Events.syncModal(model);
     }
 
