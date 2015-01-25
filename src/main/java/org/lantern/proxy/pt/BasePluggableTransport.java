@@ -40,7 +40,7 @@ public abstract class BasePluggableTransport implements PluggableTransport {
     private static final Set<Class> ALREADY_COPIED_TRANSPORTS = new HashSet<Class>();
 
     protected File exe;
-    private CommandLine cmd;
+    protected CommandLine cmd;
     private Executor cmdExec;
 
     protected String ptBasePath;
@@ -281,7 +281,7 @@ public abstract class BasePluggableTransport implements PluggableTransport {
         ptBasePath = to.getAbsolutePath();
     }
 
-    private Future<Integer> exec() {
+    protected Future<Integer> exec() {
         cmdExec = new DefaultExecutor();
         cmdExec.setStreamHandler(buildLoggingStreamHandler(LOGGER, System.in));
         cmdExec.setProcessDestroyer(new ShutdownHookProcessDestroyer());
@@ -304,7 +304,7 @@ public abstract class BasePluggableTransport implements PluggableTransport {
         return new LoggingStreamHandler(logger, is);
     }
 
-    private String getLogName() {
+    protected String getLogName() {
         return getClass().getSimpleName();
     }
 

@@ -1,6 +1,6 @@
 package org.lantern;
 
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,8 +20,6 @@ import org.lantern.http.JettyLauncher;
 import org.lantern.oauth.LanternGoogleOAuth2Credentials;
 import org.lantern.privacy.EncryptedFileService;
 import org.lantern.privacy.LocalCipherProvider;
-import org.lantern.proxy.DefaultProxyTracker;
-import org.lantern.proxy.ProxyTracker;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelService;
@@ -78,8 +76,6 @@ public class TestUtils {
     private static ModelUtils modelUtils;
 
     private static boolean loaded;
-
-    private static DefaultProxyTracker proxyTracker;
 
     private static LanternTrustStore trustStore;
 
@@ -156,7 +152,6 @@ public class TestUtils {
         proxifier = instance(Proxifier.class);
         modelUtils = instance(ModelUtils.class);
         modelIo = instance(ModelIo.class);
-        proxyTracker = instance(DefaultProxyTracker.class);
         trustStore = instance(LanternTrustStore.class);
         
         httpClientFactory = instance(HttpClientFactory.class);
@@ -378,11 +373,6 @@ public class TestUtils {
     public static ModelUtils getModelUtils() {
         if (!loaded) load();
         return modelUtils;
-    }
-
-    public static ProxyTracker getProxyTracker() {
-        if (!loaded) load();
-        return proxyTracker;
     }
 
     public static LanternTrustStore getTrustStore() {

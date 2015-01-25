@@ -33,11 +33,8 @@ import org.lantern.privacy.SecretServiceLocalCipherProvider;
 import org.lantern.privacy.UnencryptedFileService;
 import org.lantern.privacy.WindowsLocalCipherProvider;
 import org.lantern.proxy.CertTrackingSslEngineSource;
-import org.lantern.proxy.DefaultProxyTracker;
-import org.lantern.proxy.DispatchingChainedProxyManager;
 import org.lantern.proxy.GetModeProxy;
 import org.lantern.proxy.GiveModeProxy;
-import org.lantern.proxy.ProxyTracker;
 import org.lantern.proxy.UdtServerFiveTupleListener;
 import org.lantern.proxy.pt.FlashlightServerManager;
 import org.lantern.state.CometDSyncStrategy;
@@ -58,7 +55,6 @@ import org.lantern.util.HttpClientFactory;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.UpnpService;
 import org.littleshoot.commom.xmpp.XmppConnectionRetyStrategyFactory;
-import org.littleshoot.proxy.ChainedProxyManager;
 import org.littleshoot.proxy.SslEngineSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -125,7 +121,6 @@ public class LanternModule extends AbstractModule {
         bind(LogglyHelper.class);
 
         bind(Censored.class).to(DefaultCensored.class);
-        bind(ProxyTracker.class).to(DefaultProxyTracker.class);
         bind(XmppHandler.class).to(DefaultXmppHandler.class);
         //bind(PeerProxyManager.class).to(DefaultPeerProxyManager.class);
         bind(GoogleOauth2RedirectServlet.class);
@@ -137,7 +132,6 @@ public class LanternModule extends AbstractModule {
         bind(ConnectivityChecker.class);
         bind(CountryService.class);
         bind(NotificationManager.class);
-        bind(ChainedProxyManager.class).to(DispatchingChainedProxyManager.class);
         bind(SslEngineSource.class).to(CertTrackingSslEngineSource.class);
         bind(GetModeProxy.class);
         bind(GiveModeProxy.class);

@@ -74,10 +74,7 @@ public class S3Config extends BaseS3Config {
     @JsonIgnore
     public Collection<FallbackProxy> getAllFallbacks() {
         final Collection<FallbackProxy> all = new HashSet<FallbackProxy>();
-        if (!LanternClientConstants.FORCE_FLASHLIGHT) {
-            all.addAll(getFallbacks());
-        }
-        all.add(FLASHLIGHT_PROXY);
+        all.addAll(getFallbacks());
         return all;
     }
 

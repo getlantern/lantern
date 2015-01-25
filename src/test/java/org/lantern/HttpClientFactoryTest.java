@@ -26,6 +26,7 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.util.EntityUtils;
 import org.junit.Test;
+import org.lantern.proxy.pt.Flashlight;
 import org.lantern.util.DefaultHttpClientFactory;
 import org.lantern.util.HttpClientFactory;
 import org.slf4j.Logger;
@@ -54,6 +55,7 @@ public class HttpClientFactoryTest {
                httpClient.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 8000);
 
                final HttpHead head = new HttpHead("https://www.google.com");
+               head.setHeader(Flashlight.X_FLASHLIGHT_QOS, Flashlight.HIGH_QOS);
                
                log.debug("About to execute get!");
                final HttpResponse response = httpClient.execute(head);
@@ -67,46 +69,5 @@ public class HttpClientFactoryTest {
                 return null;
             } 
         });
-    }
-    
-    /**
-     * We've seen issues with HttpClient redirects from HTTPS sites to HTTP
-     * sites. In practice though it shouldn't really affect us because none
-     * of the HTTPS sites we hit should do that, nor should we allow it.
-     * We just make sure to test all the sites we use to ensure this doesn't
-     * happen.
-     *
-     * docs.google.com (feedback form)
-     * exceptional.io -- error reporting
-     * www.googleapis.com
-     * lanternctrl.appspot.com (stats)
-     *
-     * @throws Exception If any unexpected errors occur.
-     */
-    @Test
-    public void testAllInternallyProxiedSites() throws Exception {
-        final HttpClientFactory factory = new DefaultHttpClientFactory(new AllCensored());
-        final HttpClient client = factory.newClient();
-        TestingUtils.assertIsUsingGetModeProxy(client);
-
-        TestingUtils.doWithGetModeProxy(new Callable<Void>() {
-           @Override
-            public Void call() throws Exception {
-                testStats(client);
-                return null;
-            } 
-        });
-    }
-
-    private void testStats(final HttpClient client) throws Exception {
-        final String uri = "https://lanternctrl.appspot.com/stats";
-
-        final HttpGet get = new HttpGet(uri);
-        final HttpResponse response = client.execute(get);
-        final StatusLine line = response.getStatusLine();
-        final int code = line.getStatusCode();
-        get.reset();
-        assertEquals(200, code);
-    }
-
+    }    
 }

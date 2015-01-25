@@ -1,8 +1,8 @@
 package org.lantern;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.InetSocketAddress;
@@ -32,7 +32,6 @@ import org.lantern.papertrail.PapertrailAppender;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.proxy.GetModeProxy;
 import org.lantern.proxy.GiveModeProxy;
-import org.lantern.proxy.ProxyTracker;
 import org.lantern.proxy.pt.FlashlightServerManager;
 import org.lantern.state.FriendsHandler;
 import org.lantern.state.InternalState;
@@ -128,7 +127,7 @@ public class Launcher {
     private HttpClientFactory httpClientFactory;
     private final LanternModule lanternModule;
 
-    private ProxyTracker proxyTracker;
+    //private ProxyTracker proxyTracker;
 
     private LanternKeyStoreManager keyStoreManager;
 
@@ -214,8 +213,7 @@ public class Launcher {
         preInstanceWatch.start();
         
         final CommandLine cmd = this.lanternModule.commandLine();
-        final boolean checkFallbacks = cmd.hasOption(Cli.OPTION_CHECK_FALLBACKS);
-
+        
         // There are four cases here:
         // 1) We're just starting normally
         // 2) We're running with --disable-ui (or a flag that implies it), in
@@ -227,7 +225,7 @@ public class Launcher {
         // 4) We're running on system startup (specified with --launchd flag)
         //    and setup IS complete, in which case we show no splash screen,
         //    do not show the UI, but do put the app in the system tray.
-        final boolean uiDisabled = checkFallbacks || cmd.hasOption(Cli.OPTION_DISABLE_UI);
+        final boolean uiDisabled = cmd.hasOption(Cli.OPTION_DISABLE_UI);
         final boolean launchD = cmd.hasOption(Cli.OPTION_LAUNCHD);
 
         preInstanceWatch.stop();
@@ -285,26 +283,11 @@ public class Launcher {
             }
         }
         
-        proxyTracker = instance(ProxyTracker.class);
+        //proxyTracker = instance(ProxyTracker.class);
         httpClientFactory = instance(HttpClientFactory.class);
 
         s3ConfigFetcher = instance(S3ConfigFetcher.class);
         
-        if (checkFallbacks) {
-            LOG.debug("Running in check-fallbacks mode");
-            String configFolderPath = cmd.getOptionValue(Cli.OPTION_CHECK_FALLBACKS);
-            try {
-                final FallbackChecker fbc = new FallbackChecker(proxyTracker, 
-                        configFolderPath, httpClientFactory);
-                Thread t = new Thread(fbc);
-                t.start();
-            } catch (Exception e) {
-                LOG.error("Error instantiating FallbackChecker:");
-                e.printStackTrace();
-                System.exit(1);
-            }
-        }
-
         xmpp = instance(DefaultXmppHandler.class);
 
         instance(LocalCipherProvider.class);
@@ -334,7 +317,7 @@ public class Launcher {
         final LanternMulticast lm = new LanternMulticast();
         lm.join();
         
-        startServices(checkFallbacks);
+        startServices();
         
         if (uiDisabled) {
             // Run a little main loop to keep the program running
@@ -352,7 +335,7 @@ public class Launcher {
      * This starts all of the services on a separate thread to avoid holding
      * up the main thread that is in charge of displaying the UI.
      */
-    private void startServices(final boolean checkFallbacks) {
+    private void startServices() {
         final Thread t = new Thread(new Runnable() {
 
             @Override
@@ -361,19 +344,12 @@ public class Launcher {
 
                 shutdownable(ModelIo.class);
                 
-                // don't need to start the rest of these services when running in check-fallbacks mode
-                if (checkFallbacks) {
-                    return;
-                }
-                
                 // Immediately start getModeProxy
                 getModeProxy.start();
                 
-                if (!checkFallbacks) {
-                    configureLoggly();
-                    configurePapertrail();
-                }
-
+                configureLoggly();
+                configurePapertrail();
+            
                 final ConnectivityChecker connectivityChecker =
                     instance(ConnectivityChecker.class);
 
@@ -418,14 +394,12 @@ public class Launcher {
         try {
             publicIpAndTokenTracker.reset();
             s3ConfigFetcher.init();
-            proxyTracker.init();
             // Needs a fallback.
             //publicIpInfoHandler.init();
             
             // Once network services are successfully initialized, start
             // background tasks.
             s3ConfigFetcher.start();
-            proxyTracker.start();
         } catch (final InitException e) {
             LOG.debug("Something couldn't connect: {}", e.getMessage(), e);
         } catch (final Throwable t) {
@@ -438,7 +412,6 @@ public class Launcher {
         xmpp.stop();
         statsManager.stop();
         friendsHandler.stop();
-        proxyTracker.stop();
         s3ConfigFetcher.stop();
     }
 

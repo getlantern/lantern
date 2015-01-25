@@ -22,6 +22,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.util.EntityUtils;
 import org.junit.Test;
+import org.lantern.proxy.pt.Flashlight;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,6 +86,8 @@ public class LanternProxyingTest {
             get.setHeader("Accept",
                     "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
             get.setHeader("Accept-Language", "en-us,en;q=0.5");
+            // Force test to avoid flashlight peers
+            get.setHeader(Flashlight.X_FLASHLIGHT_QOS, Flashlight.HIGH_QOS);
             //get.setHeader("Accept-Encoding", "gzip, deflate");
 
             client.getParams().setParameter(

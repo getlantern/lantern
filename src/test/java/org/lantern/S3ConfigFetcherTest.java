@@ -67,14 +67,14 @@ public class S3ConfigFetcherTest {
 
         final S3ConfigFetcher fetcher = new S3ConfigFetcher(model, oauth);
 
-        assertEquals(1, model.getS3Config().getAllFallbacks().size());
+        assertEquals(0, model.getS3Config().getAllFallbacks().size());
 
         model.getS3Config().setFallbacks(Arrays.asList(new FallbackProxy()));
 
         assertNull(messageRef.get());
         fetcher.init();
 
-        assertEquals(2, model.getS3Config().getAllFallbacks().size());
+        assertEquals(1, model.getS3Config().getAllFallbacks().size());
 
         Thread.sleep(200);
 

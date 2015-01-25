@@ -976,7 +976,8 @@ public class LanternUtils {
         for (String path : paths) {
             policies.add(path + ":" + StaticSettings.getApiPort());
         }
-        policies.add("http://" + Flashlight.STATS_ADDR);
+        policies.add("http://" + Flashlight.CLIENT_STATS_ADDR);
+        policies.add("http://" + Flashlight.SERVER_STATS_ADDR);
         String localhost = StringUtils.join(policies, " ");
         resp.addHeader("Content-Security-Policy",
             "default-src " + localhost + " 'unsafe-inline' 'unsafe-eval'; " +
