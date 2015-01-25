@@ -65,7 +65,7 @@ func (p *Pool) Start() {
 		return
 	}
 
-	log.Tracef("Starting connection pool with size %d", p.Size)
+	log.Debugf("Starting connection pool with size %d", p.Size)
 	if p.ClaimTimeout == 0 {
 		log.Tracef("Defaulting ClaimTimeout to %s", DefaultClaimTimeout)
 		p.ClaimTimeout = DefaultClaimTimeout

@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	"io"
+	"math"
 	"net"
 	"net/http"
 	"strings"
@@ -45,6 +46,10 @@ type Config struct {
 	// Masquerades: the Masquerades to use when domain-fronting. These will be
 	// verified when the Dialer starts.
 	Masquerades []*Masquerade
+
+	// MaxMasquerades: the maximum number of masquerades to verify. If 0,
+	// the masquerades are uncapped.
+	MaxMasquerades int
 
 	// PoolSize: if greater than 0, outbound connections will be pooled in an
 	// eagerly loading connection pool. This can reduce latency when using
@@ -111,6 +116,9 @@ func NewDialer(cfg *Config) *Dialer {
 	}
 	if d.Masquerades != nil {
 		d.masquerades = d.verifiedMasquerades()
+	}
+	if d.MaxMasquerades == 0 {
+		d.MaxMasquerades = math.MaxInt32
 	}
 	if cfg.PoolSize > 0 {
 		d.connPool = &connpool.Pool{

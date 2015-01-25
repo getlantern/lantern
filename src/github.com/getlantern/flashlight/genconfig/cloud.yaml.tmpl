@@ -4,7 +4,9 @@ client:
   frontedservers:
   - host: roundrobin.getiantem.org
     port: 443
+    poolsize: 30
     masqueradeset: "cloudflare"
+    maxmasquerades: 20
     insecureskipverify: false
     dialtimeoutmillis: 0
     redialattempts: 2
@@ -13,7 +15,9 @@ client:
     qos: 5
   - host: fallbacks.getiantem.org
     port: 443
+    poolsize: 30
     masqueradeset: "cloudflare"
+    maxmasquerades: 20
     insecureskipverify: false
     dialtimeoutmillis: 0
     redialattempts: 2
@@ -22,7 +26,9 @@ client:
     qos: 10
   - host: peers.getiantem.org
     port: 443
+    poolsize: 30
     masqueradeset: "cloudflare"
+    maxmasquerades: 20
     insecureskipverify: false
     dialtimeoutmillis: 0
     redialattempts: 2

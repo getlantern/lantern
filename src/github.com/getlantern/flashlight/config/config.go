@@ -215,11 +215,13 @@ func (cfg *Config) applyClientDefaults() {
 	}
 	if len(cfg.Client.FrontedServers) == 0 && len(cfg.Client.ChainedServers) == 0 {
 		cfg.Client.FrontedServers = append(cfg.Client.FrontedServers, &client.FrontedServerInfo{
-			Host:          "roundrobin.getiantem.org",
-			Port:          443,
-			MasqueradeSet: cloudflare,
-			QOS:           10,
-			Weight:        1000000,
+			Host:           "roundrobin.getiantem.org",
+			Port:           443,
+			PoolSize:       30,
+			MasqueradeSet:  cloudflare,
+			MaxMasquerades: 20,
+			QOS:            10,
+			Weight:         1000000,
 		})
 	}
 

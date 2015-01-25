@@ -193,7 +193,8 @@ func TestIntegration(t *testing.T) {
 		t.Fatalf("Unable to set up cert pool")
 	}
 
-	masquerades := make([]*Masquerade, MaxMasquerades*2)
+	maxMasquerades := 10
+	masquerades := make([]*Masquerade, maxMasquerades*2)
 	for i := 0; i < len(masquerades); i++ {
 		switch i % 3 {
 		case 0:
@@ -223,10 +224,11 @@ func TestIntegration(t *testing.T) {
 	var statsMutex sync.Mutex
 
 	d := NewDialer(&Config{
-		Host:        "fallbacks.getiantem.org",
-		Port:        443,
-		Masquerades: masquerades,
-		RootCAs:     rootCAs,
+		Host:           "fallbacks.getiantem.org",
+		Port:           443,
+		Masquerades:    masquerades,
+		MaxMasquerades: maxMasquerades,
+		RootCAs:        rootCAs,
 		OnDialStats: func(success bool, domain, addr string, resolutionTime, connectTime, handshakeTime time.Duration) {
 			if success {
 				statsMutex.Lock()
