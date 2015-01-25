@@ -1,7 +1,6 @@
 package org.lantern;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
@@ -46,10 +45,7 @@ import org.lantern.network.NetworkTracker;
 import org.lantern.oauth.OauthUtils;
 import org.lantern.oauth.RefreshToken;
 import org.lantern.proxy.BaseChainedProxy;
-import org.lantern.proxy.DefaultProxyTracker;
 import org.lantern.proxy.GetModeProxy;
-import org.lantern.proxy.GetModeProxyFilter;
-import org.lantern.proxy.ProxyTracker;
 import org.lantern.proxy.UdtServerFiveTupleListener;
 import org.lantern.state.DefaultFriendsHandler;
 import org.lantern.state.DefaultModelUtils;
@@ -167,8 +163,6 @@ public class TestingUtils {
         
         final PeerFactory peerFactory = 
             new DefaultPeerFactory(geoIpLookupService, model, roster);
-        final ProxyTracker proxyTracker = 
-            new DefaultProxyTracker(model, peerFactory, trustStore, new NetworkTracker<String, URI, ReceivedKScopeAd>(), null);
         final KscopeAdHandler kscopeAdHandler = 
             new DefaultKscopeAdHandler(trustStore, routingTable, networkTracker);
         final NatPmpService natPmpService = new NatPmpService() {
@@ -202,7 +196,7 @@ public class TestingUtils {
         
         final XmppHandler xmppHandler = new DefaultXmppHandler(model,
             updateTimer, ksm, socketsUtil, xmppUtil, modelUtils,
-            roster, proxyTracker, kscopeAdHandler, natPmpService, upnpService,
+            roster, kscopeAdHandler, natPmpService, upnpService,
             new UdtServerFiveTupleListener(null, model),
             friendsHandler, networkTracker, censored);
         return xmppHandler;

@@ -44,7 +44,6 @@ import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.kscope.ReceivedKScopeAd;
 import org.lantern.network.NetworkTracker;
-import org.lantern.proxy.ProxyTracker;
 import org.lantern.proxy.UdtServerFiveTupleListener;
 import org.lantern.state.ClientFriend;
 import org.lantern.state.Connectivity;
@@ -140,8 +139,6 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private final RosterHandler roster;
 
-    private final ProxyTracker proxyTracker;
-
     private final KscopeAdHandler kscopeAdHandler;
 
     private final ExecutorService xmppProcessors =
@@ -166,7 +163,6 @@ public class DefaultXmppHandler implements XmppHandler {
         final LanternXmppUtil xmppUtil,
         final ModelUtils modelUtils,
         final RosterHandler roster, 
-        final ProxyTracker proxyTracker,
         final KscopeAdHandler kscopeAdHandler,
         final NatPmpService natPmpService,
         final UpnpService upnpService,
@@ -181,7 +177,6 @@ public class DefaultXmppHandler implements XmppHandler {
         this.xmppUtil = xmppUtil;
         this.modelUtils = modelUtils;
         this.roster = roster;
-        this.proxyTracker = proxyTracker;
         this.kscopeAdHandler = kscopeAdHandler;
         this.natPmpService = natPmpService;
         this.upnpService = upnpService;
@@ -532,8 +527,6 @@ public class DefaultXmppHandler implements XmppHandler {
 
         Events.eventBus().post(
             new GoogleTalkStateEvent("", GoogleTalkState.notConnected));
-
-        this.proxyTracker.clearPeerProxySet();
 
         // This is mostly logged for debugging thorny shutdown issues...
         LOG.debug("Finished disconnecting XMPP...");
@@ -1015,9 +1008,4 @@ public class DefaultXmppHandler implements XmppHandler {
         }
     }
     */
-
-    @Override
-    public ProxyTracker getProxyTracker() {
-        return proxyTracker;
-    }
 }

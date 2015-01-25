@@ -20,7 +20,7 @@ public class ProxifierTest {
         // Just make sure we don't get an exception
         final Censored censored = new DefaultCensored();
         final CountryService countryService = new CountryService(censored);
-        new Proxifier(null, stub, new Model(countryService), null);
+        new Proxifier(null, stub, new Model(countryService));
     }
 
     private ModelUtils newModelUtils() {

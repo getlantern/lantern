@@ -13,7 +13,6 @@ import org.lantern.event.QuitEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.event.SetupCompleteEvent;
 import org.lantern.event.SystemProxyChangedEvent;
-import org.lantern.proxy.ProxyTracker;
 import org.lantern.state.Connectivity;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
@@ -69,16 +68,12 @@ public class Proxifier implements ProxyService, LanternService {
 
     private ProxyConnectionEvent lastProxyConnectionEvent;
 
-    private final ProxyTracker proxyTracker;
-
     @Inject 
     public Proxifier(final MessageService messageService,
-        final ModelUtils modelUtils, final Model model, 
-        final ProxyTracker proxyTracker) {
+        final ModelUtils modelUtils, final Model model) {
         this.messageService = messageService;
         this.modelUtils = modelUtils;
         this.model = model;
-        this.proxyTracker = proxyTracker;
         copyFromLocal(PROXY_ALL);
         copyFromLocal(PROXY_OFF);
         Events.register(this);
@@ -111,12 +106,12 @@ public class Proxifier implements ProxyService, LanternService {
     @Subscribe
     public synchronized void onSetupComplete(final SetupCompleteEvent event) {
         LOG.debug("Got setup complete!");
-        if (this.lastProxyConnectionEvent != null && this.proxyTracker.hasProxy()) {
+        if (this.lastProxyConnectionEvent != null) {
             LOG.debug("Re-firing last proxy connection event...");
             onProxyConnectionEvent(this.lastProxyConnectionEvent);
         } else {
-            LOG.debug("No proxy connection event to refire or no proxy {}, {}", 
-                this.lastProxyConnectionEvent, this.proxyTracker.hasProxy());
+            LOG.debug("No proxy connection event to refire{}", 
+                this.lastProxyConnectionEvent);
         }
     }
     
@@ -176,10 +171,6 @@ public class Proxifier implements ProxyService, LanternService {
     private void proxyWithChecks() {
         if (!this.model.isSetupComplete()) {
             LOG.debug("Not proxying when setup up not complete");
-            return;
-        }
-        if (!this.proxyTracker.hasProxy()) {
-            LOG.debug("Not proxying when we have no proxies!");
             return;
         }
         if (modelUtils.shouldProxy()) {

@@ -11,7 +11,6 @@ import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
-import org.lantern.proxy.ProxyHolder;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
