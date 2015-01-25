@@ -236,7 +236,7 @@ func (h *host) terminate() {
 
 func (h *host) register() error {
 	err := h.registerHost()
-	if err != nil && !isDuplicateError(err) {
+	if err != nil {
 		return fmt.Errorf("Unable to register host: %v", err)
 	}
 	err = h.registerToRotations()
@@ -248,15 +248,16 @@ func (h *host) register() error {
 
 func (h *host) registerHost() error {
 	if h.record != nil {
-		log.Tracef("Host already registered, no need to re-register: %v", h)
+		log.Debugf("Host already registered, no need to re-register: %v", h)
 		return nil
 	}
 
 	log.Debugf("Registering %v", h)
 
 	rec, err := cfutil.Register(h.name, h.ip)
-	if err == nil {
+	if err == nil || isDuplicateError(err) {
 		h.record = rec
+		err = nil
 	}
 	return err
 }
@@ -278,7 +279,7 @@ func (h *host) deregister() {
 
 func (h *host) deregisterHost() {
 	if h.record == nil {
-		log.Tracef("Host not registered, no need to deregister: %v", h)
+		log.Debugf("Host not registered, no need to deregister: %v", h)
 		return
 	}
 

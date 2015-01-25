@@ -21,7 +21,7 @@ func (g *group) register(h *host) error {
 	log.Debugf("Registering to %v: %v", g.subdomain, h)
 
 	rec, err := cfutil.Register(g.subdomain, h.ip)
-	if err == nil {
+	if err == nil || isDuplicateError(err) {
 		g.existing = rec
 	}
 	return err
