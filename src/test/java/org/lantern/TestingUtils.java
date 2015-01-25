@@ -321,8 +321,7 @@ public class TestingUtils {
                 });
             }
         };
-        GetModeProxy getModeProxy = new GetModeProxy(model, proxyManager, 
-                new GetModeProxyFilter());
+        GetModeProxy getModeProxy = new GetModeProxy(model);
         getModeProxy.start();
         try {
             return work.call();
