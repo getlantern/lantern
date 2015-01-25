@@ -6,7 +6,6 @@ import (
 	"crypto/x509"
 	"fmt"
 	"io"
-	"math"
 	"net"
 	"net/http"
 	"strings"
@@ -115,10 +114,10 @@ func NewDialer(cfg *Config) *Dialer {
 		tlsConfigs: make(map[string]*tls.Config),
 	}
 	if d.Masquerades != nil {
+		if d.MaxMasquerades == 0 {
+			d.MaxMasquerades = len(d.Masquerades)
+		}
 		d.masquerades = d.verifiedMasquerades()
-	}
-	if d.MaxMasquerades == 0 {
-		d.MaxMasquerades = math.MaxInt32
 	}
 	if cfg.PoolSize > 0 {
 		d.connPool = &connpool.Pool{
