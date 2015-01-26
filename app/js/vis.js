@@ -495,12 +495,14 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
       translate = !translate ? d3.event.translate : translate;
       scale = !scale ? d3.event.scale : scale;
 
+      var vz = document.getElementById('vis'); 
+      var w = vz.offsetWidth;
+      var h = vz.offsetHeight;
       // Constrain translate to prevent panning off map
       var topLeft = [0, 0];
-      var bottomRight = [width * (scale - 1), height * (scale - 1)];  
+      var bottomRight = [w * (scale - 1), h * (scale - 1)];  
       bottomRight[0] = -1 * bottomRight[0];
       bottomRight[1] = -1 * bottomRight[1];
-      console.log(topLeft, bottomRight, translate);
       translate[0] = Math.max(Math.min(translate[0], topLeft[0]), bottomRight[0]);
       translate[1] = Math.max(Math.min(translate[1], topLeft[1]), bottomRight[1]);
       
