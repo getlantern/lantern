@@ -13,6 +13,7 @@ import (
 	"github.com/getlantern/cloudflare"
 	"github.com/getlantern/enproxy"
 	"github.com/getlantern/tlsdialer"
+	"github.com/getlantern/withtimeout"
 )
 
 var (
@@ -27,7 +28,7 @@ var (
 	pauseAfter = 10 * time.Minute
 
 	// Limit how long we're willing to wait for status
-	statusTimeout = pauseAfter / 2
+	statusTimeout = ttl * 2
 
 	dialTimeout    = 3 * time.Second // how long to wait on connecting to host
 	requestTimeout = 6 * time.Second // how long to wait for test requests to process
@@ -171,7 +172,9 @@ func (h *host) doRun() {
 	for {
 		if !checkImmediately {
 			// Limit the rate at which we run tests
-			periodTimer.Reset(h.lastTest.Add(testPeriod).Sub(time.Now()))
+			waitTime := h.lastTest.Add(testPeriod).Sub(time.Now())
+			log.Tracef("Waiting %v until testing %v", waitTime, h)
+			periodTimer.Reset(waitTime)
 		}
 
 		// Pause run loop after some largish amount of time
@@ -189,19 +192,30 @@ func (h *host) doRun() {
 			h.pause()
 			checkImmediately = true
 		case <-periodTimer.C:
-			online, connectionRefused, err := h.isAbleToProxy()
-			h.reportStatus(online, connectionRefused)
+			log.Debugf("Testing %v", h)
+			_s, timedOut, err := withtimeout.Do(ttl, func() (interface{}, error) {
+				online, connectionRefused, err := h.isAbleToProxy()
+				return &status{online, connectionRefused}, err
+			})
+			s := &status{false, false}
+			if timedOut {
+				log.Errorf("Testing %v timed out unexpectedly", h)
+			}
+			if _s != nil {
+				s = _s.(*status)
+			}
+			h.reportStatus(s)
 			h.lastTest = time.Now()
 			checkImmediately = false
-			if online {
-				log.Tracef("Test for %v successful", h)
+			if s.online {
+				log.Debugf("Test for %v successful", h)
 				h.lastSuccess = time.Now()
 				err := h.register()
 				if err != nil {
 					log.Error(err)
 				}
 			} else {
-				log.Tracef("Test for %v failed with error: %v", h, err)
+				log.Debugf("Test for %v failed with error: %v", h, err)
 				// Deregister this host from its rotations. We leave the host
 				// itself registered to support continued sticky routing in case
 				// any clients still have connections open to it.
@@ -230,8 +244,7 @@ func (h *host) pause() {
 
 // reportStatus reports the given status back to any callers that are waiting
 // for it.
-func (h *host) reportStatus(online bool, connectionRefused bool) {
-	s := &status{online, connectionRefused}
+func (h *host) reportStatus(s *status) {
 	for {
 		select {
 		case sch := <-h.statusCh:
@@ -348,7 +361,7 @@ func (h *host) isAbleToProxy() (bool, bool, error) {
 	for i := 0; i < proxyAttempts; i++ {
 		success, connectionRefused, err := h.doIsAbleToProxy()
 		if err != nil {
-			log.Trace(err.Error())
+			log.Debugf("Error testing %v: %v", h, err.Error())
 		}
 		lastErr = err
 		if success || connectionRefused {
