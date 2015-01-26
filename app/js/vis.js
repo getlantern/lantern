@@ -495,17 +495,19 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
       translate = !translate ? d3.event.translate : translate;
       scale = !scale ? d3.event.scale : scale;
 
-      /* limit x-axis boundaries to current map width
-       * factoring in the current scale value
-       *
-       * note: this currently distorts zooming
-       * https://stackoverflow.com/questions/10422738/limiting-domain-when-zooming-or-panning-in-d3-js
-       *
-       *
-      translate[0] = Math.min(width / 2 * (scale - 1), 
-                        Math.max(width / 2 * (1 - scale), translate[0])
-                     );*/
-
+      // Constrain translate to prevent panning off map
+      var topLeft = [0, 0];
+      var bottomRight = [width * (scale - 1), height * (scale - 1)];  
+      bottomRight[0] = -1 * bottomRight[0];
+      bottomRight[1] = -1 * bottomRight[1];
+      console.log(topLeft, bottomRight, translate);
+      translate[0] = Math.max(Math.min(translate[0], topLeft[0]), bottomRight[0]);
+      translate[1] = Math.max(Math.min(translate[1], topLeft[1]), bottomRight[1]);
+      
+      // Update the translate on the D3 zoom behavior to our constrained
+      // value to keep them in sync.
+      $scope.zoom.translate(translate);
+      
       /* reset translation matrix */
       $scope.transMatrix = [scale, 0, 0, scale, 
         translate[0], translate[1]];
