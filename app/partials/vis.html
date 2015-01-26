@@ -9,7 +9,7 @@
     <g id="countries" countries />
     <g id="peers" peers></g>
     <path id="self" ng-show="model.location.resolved" self class="{{ model.settings.mode }}"
-          ng-attr-d="{{ path({type: 'Point', coordinates: [model.location.lon, model.location.lat]}) }}"
+          ng-attr-d="{{ path({type: 'Point', coordinates: [model.location.lon, model.location.lat]}, 2) }}"
           lat="{{model.location.lat}}"
           lon="{{model.location.lon}}"
           tooltip-html-unsafe="<div class=vis>

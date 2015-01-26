@@ -6837,6 +6837,7 @@ a.get-colored:hover {
 
 .ui-hide {
   opacity: 0 !important;
+  display: none !important;
 }
 
 .transparent {

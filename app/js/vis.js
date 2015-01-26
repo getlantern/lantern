@@ -456,7 +456,7 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
           lat != '' && lon != '') {
         var d = {type: 'Point', coordinates: [lon, 
                 lat]};
-        self.setAttribute('d', path(d));
+        self.setAttribute('d', path(d, 2));
       }
   };
 
@@ -477,7 +477,7 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
        /* scale peer radius as we zoom in */
       d3.selectAll("g.peer path.peer").attr("d", function(peer) {
           var d = {type: 'Point', coordinates: [peer.lon, peer.lat]};
-          return path(d);
+          return path(d, 2);
       });
 
 
@@ -485,7 +485,7 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
       if (scale > 2) {
           $scope.filterBlur.attr("stdDeviation", Math.min(1.0, 1/scale));
       } else {
-          $scope.filterBlur.attr("stdDeviation", "1");
+          $scope.filterBlur.attr("stdDeviation", 1);
       }
       
   }
