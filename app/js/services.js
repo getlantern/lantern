@@ -47,6 +47,7 @@ angular.module('app.services', [])
       //logLevel: 'debug',
       backoffIncrement: 100,
       maxBackoff: 500,
+      useWebSockets: true,
       // necessary to work with Faye backend when browser lacks websockets:
       // https://groups.google.com/d/msg/faye-users/8cr_4QZ-7cU/sKVLbCFDkEUJ
       appendMessageTypeToURL: false

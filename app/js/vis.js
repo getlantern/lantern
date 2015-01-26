@@ -471,8 +471,7 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
         strokeWidth);
       d3.selectAll("path.connection").attr("stroke-width",
         strokeWidth);
-      d3.select("#zoomCenterIcon").attr('src', 
-        (scale == 1) ? 'img/mapcenter.png' : 'img/mapcenterzoomed.png');
+      d3.select("#zoomCenter").classed('zoomedIn', scale != 1);
 
        /* scale peer radius as we zoom in */
       d3.selectAll("g.peer path.peer").attr("d", function(peer) {
