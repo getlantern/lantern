@@ -55,9 +55,6 @@ func register(resp http.ResponseWriter, req *http.Request) {
 	if err == nil && port != 443 {
 		err = fmt.Errorf("Port %d not supported, only port 443 is supported", port)
 	}
-	if name == "" {
-		err = fmt.Errorf("Please specify a name")
-	}
 	if err != nil {
 		resp.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintln(resp, err.Error())
@@ -116,7 +113,15 @@ func unregister(resp http.ResponseWriter, req *http.Request) {
 
 func getHostInfo(req *http.Request) (name string, ip string, port int, err error) {
 	name = req.FormValue("name")
-	ip = clientIpFor(req)
+	if name == "" {
+		err = fmt.Errorf("Please specify a name")
+		return
+	}
+	ip = clientIpFor(req, name)
+	if ip == "" {
+		err = fmt.Errorf("Unable to determine IP address")
+		return
+	}
 	portString := req.FormValue("port")
 
 	if portString != "" {
@@ -129,13 +134,14 @@ func getHostInfo(req *http.Request) (name string, ip string, port int, err error
 	return
 }
 
-func clientIpFor(req *http.Request) string {
+func clientIpFor(req *http.Request, name string) string {
 	// Client requested their info
 	clientIp := req.Header.Get("X-Peerscanner-Forwarded-For")
 	if clientIp == "" {
 		clientIp = req.Header.Get("X-Forwarded-For")
 	}
-	if clientIp == "" {
+	if clientIp == "" && isFallback(name) {
+		// Use direct IP for fallbacks
 		clientIp = strings.Split(req.RemoteAddr, ":")[0]
 	}
 	// clientIp may contain multiple ips, use the first

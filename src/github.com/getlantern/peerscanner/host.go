@@ -192,14 +192,14 @@ func (h *host) doRun() {
 			h.pause()
 			checkImmediately = true
 		case <-periodTimer.C:
-			log.Debugf("Testing %v", h)
+			log.Tracef("Testing %v", h)
 			_s, timedOut, err := withtimeout.Do(ttl, func() (interface{}, error) {
 				online, connectionRefused, err := h.isAbleToProxy()
 				return &status{online, connectionRefused}, err
 			})
 			s := &status{false, false}
 			if timedOut {
-				log.Errorf("Testing %v timed out unexpectedly", h)
+				log.Debugf("Testing %v timed out unexpectedly", h)
 			}
 			if _s != nil {
 				s = _s.(*status)
@@ -208,14 +208,14 @@ func (h *host) doRun() {
 			h.lastTest = time.Now()
 			checkImmediately = false
 			if s.online {
-				log.Debugf("Test for %v successful", h)
+				log.Tracef("Test for %v successful", h)
 				h.lastSuccess = time.Now()
 				err := h.register()
 				if err != nil {
 					log.Error(err)
 				}
 			} else {
-				log.Debugf("Test for %v failed with error: %v", h, err)
+				log.Tracef("Test for %v failed with error: %v", h, err)
 				// Deregister this host from its rotations. We leave the host
 				// itself registered to support continued sticky routing in case
 				// any clients still have connections open to it.
