@@ -489,22 +489,26 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
       }
       
   }
+  
+  // Constrain translate to prevent panning off map
+  function constrainTranslate(translate, scale) {
+    var vz = document.getElementById('vis'); 
+    var w = vz.offsetWidth;
+    var h = vz.offsetHeight;
+    var topLeft = [0, 0];
+    var bottomRight = [w * (scale - 1), h * (scale - 1)];  
+    bottomRight[0] = -1 * bottomRight[0];
+    bottomRight[1] = -1 * bottomRight[1];
+    return [ Math.max(Math.min(translate[0], topLeft[0]), bottomRight[0]),
+             Math.max(Math.min(translate[1], topLeft[1]), bottomRight[1]) ];
+  }
 
   $scope.redraw = function(translate, scale) {
 
       translate = !translate ? d3.event.translate : translate;
       scale = !scale ? d3.event.scale : scale;
 
-      var vz = document.getElementById('vis'); 
-      var w = vz.offsetWidth;
-      var h = vz.offsetHeight;
-      // Constrain translate to prevent panning off map
-      var topLeft = [0, 0];
-      var bottomRight = [w * (scale - 1), h * (scale - 1)];  
-      bottomRight[0] = -1 * bottomRight[0];
-      bottomRight[1] = -1 * bottomRight[1];
-      translate[0] = Math.max(Math.min(translate[0], topLeft[0]), bottomRight[0]);
-      translate[1] = Math.max(Math.min(translate[1], topLeft[1]), bottomRight[1]);
+      translate = constrainTranslate(translate, scale);
       
       // Update the translate on the D3 zoom behavior to our constrained
       // value to keep them in sync.
@@ -565,9 +569,12 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
 
       /* this preserves the position of the center
        * even after we've applied the scale factor */
-      $scope.transMatrix[4] += (1-scale)*width/2;
-      $scope.transMatrix[5] += (1-scale)*height/2;
-
+      var translate = [$scope.transMatrix[4] + (1-scale)*width/2,
+                       $scope.transMatrix[5] + (1-scale)*height/2];
+      translate = constrainTranslate(translate, $scope.transMatrix[0]);
+      $scope.transMatrix[4] = translate[0];
+      $scope.transMatrix[5] = translate[1];
+      
       var newMatrix = "matrix(" +  $scope.transMatrix.join(' ') + ")";
       d3.select("#zoomGroup").attr("transform", newMatrix);
 
