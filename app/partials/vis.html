@@ -19,15 +19,15 @@
                 <div class=header>{{model.profile.name}}</div>
                 <div class=email>{{model.profile.email}}</div>
                 <div class='peerid ip'>{{model.connectivity.peerid}}{{model.connectivity.formattedIp}}</div>
-                <div class=type>{{model.connectivity.type && model.settings.mode && (((model.connectivity.type|upper)+(model.settings.mode|upper))|i18n) || ''}}</div>
+                <div class=type>{{model.connectivity.type && model.settings.mode && (((model.connectivity.type|upper)+(model.settings.mode|upper))|translate) || ''}}</div>
               </div>
               <div class=stats>
                 <div class=bps{{model.instanceStats.allBytes.rate}}>
                   {{model.instanceStats.allBytes.rate | prettyBps}}
                 </div>
                 <div class=bytes{{model.instanceStats.allBytes.total}}>
-                  {{model.instanceStats.bytesGiven.total | prettyBytes}} {{'GIVEN' | i18n}},
-                  {{model.instanceStats.bytesGotten.total | prettyBytes}} {{'GOTTEN' | i18n}}
+                  {{model.instanceStats.bytesGiven.total | prettyBytes}} {{'GIVEN' | translate}},
+                  {{model.instanceStats.bytesGotten.total | prettyBytes}} {{'GOTTEN' | translate}}
                 </div>
                 <div class=lastConnected>
                   {{model.connectivity.lastConnected && ('LAST_CONNECTED' | i18n) || '' }}
