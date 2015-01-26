@@ -299,7 +299,7 @@
   </div>
   <div class="modal-body" id="lanternFriends">
     <div>
-      <p class="small" ng-bind-html="'LANTERN_FRIENDS_EXP_INTRO' | i18n"></p>
+      <p class="small" ng-bind-html="'LANTERN_FRIENDS_EXP_INTRO' | translate"></p>
       <p class="small error-colored">
         <i class="icon-warning-sign warning-colored"></i>
         {{ 'SUGGESTED_FRIEND_WARNING' | translate }}
@@ -416,7 +416,7 @@
     <h3>{{ 'FINISHED_TITLE' | translate }}</h3>
   </div>
   <div class="modal-body" id="finished">
-    <p>{{ inGiveMode && 'FINISHED_PROMPT_GIVE' || 'FINISHED_PROMPT_GET' | i18n }}</p>
+    <p>{{ inGiveMode && 'FINISHED_PROMPT_GIVE' || 'FINISHED_PROMPT_GET' | translate }}</p>
   </div>
   <div class="modal-footer">
     <div class="modal-status smallest">
@@ -444,7 +444,7 @@
     <h3>{{ 'CONTACT_TITLE' | translate }}</h3>
   </div>
   <div class="modal-body" id="contact">
-    <div class="smaller" compile-unsafe="'CONTACT_PRELUDE' | i18n"></div>
+    <div class="smaller" compile-unsafe="'CONTACT_PRELUDE' | translate"></div>
     <form name="contactForm">
       <textarea class="report" name="contactMsg" ng-model="message" tabindex="{{ show && 1 || '' }}"
         focus-on="show" placeholder="{{'MESSAGE_PLACEHOLDER'| translate}}"
