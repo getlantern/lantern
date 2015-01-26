@@ -136,6 +136,8 @@ public class JettyLauncher implements LanternService {
         final ServletHolder cometd = new ServletHolder(cometdServlet);
         cometd.setInitParameter("jsonContext", 
             "org.lantern.SettingsJSONContextServer");
+        cometd.setInitParameter("transports",
+                "org.cometd.websocket.server.WebSocketTransport");
 
         // An init order of -1 means to initialize upon first use.
         cometd.setInitOrder(-11);
