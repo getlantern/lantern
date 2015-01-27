@@ -440,11 +440,6 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
 
   $scope.once = false;
 
-  if (isSafari) {
-      /* remove background if browser is safari */
-    d3.select("#friendsListSearch").classed("glass", false);
-  }
-
   /* the self dot isn't dynamically appended to the SVG
    * and we need a separate method to scale it when we zoom in/out
    */
