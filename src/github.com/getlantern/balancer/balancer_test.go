@@ -112,7 +112,7 @@ func TestAll(t *testing.T) {
 			atomic.StoreInt32(&dialedBy, 3)
 			if atomic.LoadInt32(&checkAttempts) < 6 {
 				// Fail for a while
-				return nil, fmt.Errorf("Me no dialee")
+				return nil, fmt.Errorf("Failing intentionally")
 			} else {
 				// Eventually succeed
 				return net.Dial(network, addr)
@@ -134,7 +134,7 @@ func TestAll(t *testing.T) {
 			defer atomic.AddInt32(&d4attempts, 1)
 			if atomic.LoadInt32(&d4attempts) < 1 {
 				// Fail once
-				return nil, fmt.Errorf("Me no dialee")
+				return nil, fmt.Errorf("Failing intentionally")
 			} else {
 				// Eventually succeed
 				return net.Dial(network, addr)
