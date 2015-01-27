@@ -57,8 +57,7 @@ type Pool struct {
 	stopCh    chan *sync.WaitGroup
 }
 
-// Start starts the pool, filling it to the Size and maintaining fresh
-// connections.
+// New creates and starts a Pool.
 func New(cfg Config) *Pool {
 	p := &Pool{
 		Config:  cfg,
