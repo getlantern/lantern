@@ -14,6 +14,7 @@ var (
 
 // ClientConfig captures configuration information for a Client
 type ClientConfig struct {
+	MinQOS         int
 	DumpHeaders    bool // whether or not to dump headers of requests and responses
 	FrontedServers []*FrontedServerInfo
 	ChainedServers map[string]*ChainedServerInfo
