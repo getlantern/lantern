@@ -34,21 +34,6 @@ func New(domain string, username string, apiKey string) *Util {
 	return &Util{client, domain}
 }
 
-func (util *Util) GetRotationRecords(subdomain string) ([]cloudflare.Record, error) {
-	recs, err := util.GetAllRecords()
-	if err != nil {
-		return nil, fmt.Errorf("Could not get records:", err)
-	}
-
-	rotation := make([]cloudflare.Record, 0)
-	for _, record := range recs {
-		if record.Name == subdomain {
-			rotation = append(rotation, record)
-		}
-	}
-	return rotation, nil
-}
-
 func (util *Util) GetAllRecords() ([]cloudflare.Record, error) {
 	resp, err := util.Client.LoadAll(util.domain)
 	if err != nil {
