@@ -30,7 +30,7 @@ type MasqueradeSet []*Masquerade
 // verifiedMasqueradeSet verifies each configured Masquerade by attempting to
 // proxy using it.
 type verifiedMasqueradeSet struct {
-	dialer             *Dialer
+	dialer             *dialer
 	candidatesCh       chan *Masquerade
 	stopCh             chan interface{}
 	verifiedChSize     int
@@ -51,7 +51,7 @@ func (vms *verifiedMasqueradeSet) nextVerified() *Masquerade {
 
 // verified sets up a new verifiedMasqueradeSet that verifies each of the
 // Masquerades in this MasqueradeSet for the given Dialer.
-func (d *Dialer) verifiedMasquerades() *verifiedMasqueradeSet {
+func (d *dialer) verifiedMasquerades() *verifiedMasqueradeSet {
 	// Size verifiedChSize to be able to hold the smaller of MaxMasquerades or
 	// the number of configured masquerades.
 	verifiedChSize := len(d.Masquerades)

@@ -20,6 +20,21 @@ var (
 
 type DialFunc func() (net.Conn, error)
 
+// Pool is a pool of connections, built from a Config using the New method.
+// Connections are pooled lazily up to Size and expire after ClaimTimeout.
+// Lazily here means that the Pool won't start to fill until the first request
+// for a connection. As long as the Pool is actively being used, it will attempt
+// to always have Size number of connections ready to use.
+type Pool interface {
+	// Get gets a connection from the pool, or dials a new one if none are
+	// available.
+	Get() (net.Conn, error)
+
+	// Close stops the goroutines that are filling the pool, blocking until
+	// they've all terminated.
+	Close()
+}
+
 // Config contains configuration information for a Pool.
 type Config struct {
 	// Size: while active, the pool will attempt to maintain at these many
@@ -43,13 +58,9 @@ type Config struct {
 	Dial DialFunc
 }
 
-// Pool is a pool of connections. Connections are pooled lazily up to Size and
-// expire after ClaimTimeout. Lazily here means that the Pool won't start to
-// fill until the first request for a connection. As long as the Pool is
-// actively being used, it will attempt to always have Size number of
-// connections ready to use.
-type Pool struct {
+type pool struct {
 	Config
+
 	runMutex  sync.Mutex
 	running   bool
 	freshenCh chan interface{}
@@ -58,8 +69,8 @@ type Pool struct {
 }
 
 // New creates and starts a Pool.
-func New(cfg Config) *Pool {
-	p := &Pool{
+func New(cfg Config) Pool {
+	p := &pool{
 		Config:  cfg,
 		running: true,
 	}
@@ -90,9 +101,7 @@ func New(cfg Config) *Pool {
 	return p
 }
 
-// Close stops the goroutines that are filling the pool, blocking until they've
-// all terminated.
-func (p *Pool) Close() {
+func (p *pool) Close() {
 	p.runMutex.Lock()
 	defer p.runMutex.Unlock()
 
@@ -112,7 +121,7 @@ func (p *Pool) Close() {
 	p.running = false
 }
 
-func (p *Pool) Get() (net.Conn, error) {
+func (p *pool) Get() (net.Conn, error) {
 	log.Trace("Getting conn")
 	defer p.freshen()
 	select {
@@ -125,7 +134,7 @@ func (p *Pool) Get() (net.Conn, error) {
 	}
 }
 
-func (p *Pool) freshen() {
+func (p *pool) freshen() {
 	log.Trace("Freshen requested")
 
 	freshened := 0
@@ -141,7 +150,7 @@ func (p *Pool) freshen() {
 }
 
 // feedConn works on continuously feeding the connCh with fresh connections.
-func (p *Pool) feedConn() {
+func (p *pool) feedConn() {
 	newConnTimedOut := time.NewTimer(0)
 	consecutiveDialFailures := time.Duration(0)
 	nextDialAt := time.Now()

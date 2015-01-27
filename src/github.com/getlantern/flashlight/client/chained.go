@@ -72,14 +72,15 @@ func (s *ChainedServerInfo) dialer() (*balancer.Dialer, error) {
 		}
 	}
 
-	d := &chained.Dialer{
+	ccfg := chained.Config{
 		DialServer: dial,
 	}
 	if s.AuthToken != "" {
-		d.OnRequest = func(req *http.Request) {
+		ccfg.OnRequest = func(req *http.Request) {
 			req.Header.Set("X-LANTERN-AUTH-TOKEN", s.AuthToken)
 		}
 	}
+	d := chained.NewDialer(ccfg)
 
 	return &balancer.Dialer{
 		Label:  fmt.Sprintf("chained proxy at %s", s.Addr),

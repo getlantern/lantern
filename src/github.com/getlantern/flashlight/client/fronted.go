@@ -57,7 +57,7 @@ type FrontedServerInfo struct {
 }
 
 func (s *FrontedServerInfo) dialer(masqueradeSets map[string][]*fronted.Masquerade) *balancer.Dialer {
-	fd := fronted.NewDialer(&fronted.Config{
+	fd := fronted.NewDialer(fronted.Config{
 		Host:               s.Host,
 		Port:               s.Port,
 		PoolSize:           s.PoolSize,

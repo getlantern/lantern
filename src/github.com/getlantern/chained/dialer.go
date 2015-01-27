@@ -5,15 +5,13 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-
 	"strings"
+
+	"github.com/getlantern/proxy"
 )
 
-// Dialer is an implementation of proxy.Dialer that proxies traffic via an
-// upstream server proxy.  Its Dial function uses DialServer to dial the server
-// proxy and then issues a CONNECT request to instruct the server to connect to
-// the destination at the specified network and addr.
-type Dialer struct {
+// Config is a configuration for a Dialer.
+type Config struct {
 	// DialServer: function that dials the upstream server proxy
 	DialServer func() (net.Conn, error)
 
@@ -23,8 +21,20 @@ type Dialer struct {
 	OnRequest func(req *http.Request)
 }
 
+// dialer is an implementation of proxy.Dialer that proxies traffic via an
+// upstream server proxy.  Its Dial function uses DialServer to dial the server
+// proxy and then issues a CONNECT request to instruct the server to connect to
+// the destination at the specified network and addr.
+type dialer struct {
+	Config
+}
+
+func NewDialer(cfg Config) proxy.Dialer {
+	return &dialer{Config: cfg}
+}
+
 // Dial implements the method from proxy.Dialer
-func (d *Dialer) Dial(network, addr string) (net.Conn, error) {
+func (d *dialer) Dial(network, addr string) (net.Conn, error) {
 	conn, err := d.DialServer()
 	if err != nil {
 		return nil, fmt.Errorf("Unable to dial server: %s", err)
@@ -38,11 +48,11 @@ func (d *Dialer) Dial(network, addr string) (net.Conn, error) {
 }
 
 // Close implements the method from proxy.Dialer
-func (d *Dialer) Close() error {
+func (d *dialer) Close() error {
 	return nil
 }
 
-func (d *Dialer) sendCONNECT(network, addr string, conn net.Conn) error {
+func (d *dialer) sendCONNECT(network, addr string, conn net.Conn) error {
 	if !strings.Contains(network, "tcp") {
 		return fmt.Errorf("%s connections are not supported, only tcp is supported", network)
 	}

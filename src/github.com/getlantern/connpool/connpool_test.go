@@ -33,11 +33,21 @@ func TestIt(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	randomlyClose := int32(0)
+
 	p := New(Config{
 		Size:         poolSize,
 		ClaimTimeout: claimTimeout,
 		Dial: func() (net.Conn, error) {
-			return net.DialTimeout("tcp", addr, 15*time.Millisecond)
+			conn, err := net.DialTimeout("tcp", addr, 15*time.Millisecond)
+			if atomic.LoadInt32(&randomlyClose) == 1 {
+				// Close about half of the connections immediately to test
+				/// closed checking
+				if err == nil && rand.Float32() > 0.5 {
+					conn.Close()
+				}
+			}
+			return conn, err
 		},
 	})
 
@@ -62,15 +72,7 @@ func TestIt(t *testing.T) {
 	time.Sleep(fillTime)
 	assert.NoError(t, fdc.AssertDelta(poolSize), "After pooled conns time out, pool should fill itself back up to the right number of conns")
 
-	// Make a dial function that randomly returns closed connections
-	p.Dial = func() (net.Conn, error) {
-		conn, err := net.DialTimeout("tcp", addr, 15*time.Millisecond)
-		// Close about half of the connections immediately to test closed checking
-		if err == nil && rand.Float32() > 0.5 {
-			conn.Close()
-		}
-		return conn, err
-	}
+	atomic.StoreInt32(&randomlyClose, 1)
 
 	// Make sure we can still get connections and use them
 	connectAndRead(t, p, poolSize)
@@ -134,7 +136,7 @@ func TestPropertyChange(t *testing.T) {
 	assert.NotEqual(t, claimTimeout, cfg.ClaimTimeout, "Property changed on config shouldn't be reflected in pool")
 }
 
-func connectAndRead(t *testing.T, p *Pool, loops int) {
+func connectAndRead(t *testing.T, p Pool, loops int) {
 	for i := 0; i < loops; i++ {
 		c, err := p.Get()
 		if err != nil {

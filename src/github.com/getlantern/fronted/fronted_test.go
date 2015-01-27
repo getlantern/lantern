@@ -20,13 +20,13 @@ const (
 )
 
 func TestBadProtocol(t *testing.T) {
-	d := NewDialer(&Config{})
+	d := NewDialer(Config{})
 	_, err := d.Dial("udp", "127.0.0.1:25324")
 	assert.Error(t, err, "Using a non-tcp protocol should have resulted in an error")
 }
 
 func TestBadEnproxyConn(t *testing.T) {
-	d := NewDialer(&Config{
+	d := NewDialer(Config{
 		Host: "localhost",
 		Port: 3253,
 	})
@@ -35,7 +35,7 @@ func TestBadEnproxyConn(t *testing.T) {
 }
 
 func TestReplaceBadOnDial(t *testing.T) {
-	d := NewDialer(&Config{
+	d := NewDialer(Config{
 		Host: "fallbacks.getiantem.org",
 		Port: 443,
 		OnDial: func(conn net.Conn, err error) (net.Conn, error) {
@@ -47,7 +47,7 @@ func TestReplaceBadOnDial(t *testing.T) {
 }
 
 func TestHttpClientWithBadEnproxyConn(t *testing.T) {
-	d := NewDialer(&Config{
+	d := NewDialer(Config{
 		Host: "localhost",
 		Port: 3253,
 	})
@@ -223,7 +223,7 @@ func TestIntegration(t *testing.T) {
 	actualHandshakeTime := time.Duration(0)
 	var statsMutex sync.Mutex
 
-	d := NewDialer(&Config{
+	d := NewDialer(Config{
 		Host:           "fallbacks.getiantem.org",
 		Port:           443,
 		Masquerades:    masquerades,
@@ -292,7 +292,7 @@ func startServer(t *testing.T, allowNonGlobal bool, allowedPorts []int) net.List
 	return l
 }
 
-func dialerFor(t *testing.T, l net.Listener, poolSize int) *Dialer {
+func dialerFor(t *testing.T, l net.Listener, poolSize int) Dialer {
 	host, portString, err := net.SplitHostPort(l.Addr().String())
 	if err != nil {
 		t.Fatalf("Unable to split host and port: %v", err)
@@ -302,7 +302,7 @@ func dialerFor(t *testing.T, l net.Listener, poolSize int) *Dialer {
 		t.Fatalf("Unable to parse port: %s", err)
 	}
 
-	return NewDialer(&Config{
+	return NewDialer(Config{
 		Host:               host,
 		Port:               port,
 		PoolSize:           poolSize,
