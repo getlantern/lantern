@@ -43,7 +43,7 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 	addr := hostIncludingPort(req, 443)
 
 	// Establish outbound connection
-	connOut, err := client.getBalancer().DialQOS("tcp", addr, targetQOS(req))
+	connOut, err := client.getBalancer().DialQOS("tcp", addr, client.targetQOS(req))
 	if err != nil {
 		respondBadGateway(clientConn, fmt.Sprintf("Unable to handle CONNECT request: %s", err))
 		return
@@ -55,8 +55,8 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 }
 
 // targetQOS determines the target quality of service given the X-Flashlight-QOS
-// header if available, else returns 0.
-func targetQOS(req *http.Request) int {
+// header if available, else returns MinQOS.
+func (client *Client) targetQOS(req *http.Request) int {
 	requestedQOS := req.Header.Get(XFlashlightQOS)
 	if requestedQOS != "" {
 		rqos, err := strconv.Atoi(requestedQOS)
@@ -65,7 +65,7 @@ func targetQOS(req *http.Request) int {
 		}
 	}
 
-	return 0
+	return client.MinQOS
 }
 
 // pipeData pipes data between the client and proxy connections.  It's also

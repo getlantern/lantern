@@ -306,6 +306,7 @@ func (cfg Config) doFetchCloudConfig(proxyAddr string) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == 304 {
+		log.Debugf("Config unchanged in cloud")
 		return nil, nil
 	} else if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("Unexpected response status: %d", resp.StatusCode)
