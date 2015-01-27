@@ -16,7 +16,7 @@ import org.lantern.Proxifier;
 import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.ProxyService;
 import org.lantern.oauth.OauthUtils;
-import org.lantern.proxy.GetModeProxyFilter;
+import org.lantern.proxy.GetModeProxy;
 import org.lantern.state.InternalState;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
@@ -51,7 +51,7 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
 
     private final ModelUtils modelUtils;
 
-    private final GetModeProxyFilter proxyFilter;
+    private final GetModeProxy proxy;
 
     @Inject
     public GoogleOauth2RedirectServlet(
@@ -59,7 +59,7 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
         final ModelIo modelIo, final ProxyService proxifier,
         final HttpClientFactory httpClientFactory,
         final Censored censored, final ModelUtils modelUtils,
-        final GetModeProxyFilter proxyFilter) {
+        final GetModeProxy proxy) {
         this.model = model;
         this.internalState = internalState;
         this.modelIo = modelIo;
@@ -67,7 +67,7 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
         this.httpClientFactory = httpClientFactory;
         this.censored = censored;
         this.modelUtils = modelUtils;
-        this.proxyFilter = proxyFilter;
+        this.proxy = proxy;
     }
     
     @Override
@@ -97,7 +97,7 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
         // requests to allow the Google authentication screen to appear in
         // the dashboard/browser.
         if (this.censored.isCensored() || LanternUtils.isGet()) {
-            proxyFilter.setHighQos(true);
+            proxy.requireHighQOS();
             try {
                 proxifier.startProxying(true, Proxifier.PROXY_ALL);
             } catch (final ProxyConfigurationError e) {
@@ -110,7 +110,7 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
         GoogleOauth2CallbackServer server =
             new GoogleOauth2CallbackServer(model, this.internalState, 
                 this.modelIo, this.proxifier, this.httpClientFactory, 
-                modelUtils, this.proxyFilter);
+                modelUtils, this.proxy);
         
         // Note that this call absolutely ensures the server is started.
         server.start();

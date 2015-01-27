@@ -1,6 +1,7 @@
 package org.lantern.event;
 
 import org.apache.commons.lang3.StringUtils;
+import org.lantern.ConnectivityChangedEvent;
 import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,58 +11,52 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 /**
- * This class centralizes tracking of the combination of a valid refresh 
- * token and a valid proxy. Several services rely on that combination,
- * including the XMPP server login and connecting to the friends API.
+ * This class centralizes tracking of the combination of a valid refresh token
+ * and a valid proxy. Several services rely on that combination, including the
+ * XMPP server login and connecting to the friends API.
  */
 @Singleton
 public class PublicIpAndTokenTracker {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    
-    private boolean hasRefresh = false;
 
-    private boolean hasPublicIp = false;
+    private volatile boolean hasPublicIp = false;
+    private volatile String refresh;
 
-    private String refresh;
-    
     @Inject
     public PublicIpAndTokenTracker(final Model model) {
         log.debug("Creating tracker");
         Events.register(this);
         this.refresh = model.getSettings().getRefreshToken();
+    }
+    
+    @Subscribe
+    synchronized public void onPublicIp(final PublicIpEvent pce) {
+        log.debug("Got public IP");
+        this.hasPublicIp = true;
         if (StringUtils.isNotBlank(refresh)) {
-            this.hasRefresh = true;
+            log.debug("Have both public IP and refresh token, posting event");
+            Events.asyncEventBus()
+                    .post(new PublicIpAndTokenEvent(this.refresh));
         }
     }
-    
-    /**
-     * Resets the state of the tracker (useful when reinitializing system).
-     */
-    public void reset() {
-        this.hasPublicIp = false;
-    }
-    
+
     @Subscribe
-    public void onRefreshToken(final RefreshTokenEvent refreshEvent) {
-        log.debug("Got refresh token -- loading friends");
+    synchronized public void onConnectivityChanged(ConnectivityChangedEvent cce) {
+        if (!cce.isConnected()) {
+            log.debug("Lost connectivity, resetting public IP to false");
+            this.hasPublicIp = false;
+        }
+    }
+
+    @Subscribe
+    synchronized public void onRefreshToken(final RefreshTokenEvent refreshEvent) {
+        log.debug("Got refresh token");
         this.refresh = refreshEvent.getRefreshToken();
-        synchronized (this) {
-            this.hasRefresh = true;
-            if (this.hasPublicIp) {
-                Events.asyncEventBus().post(new PublicIpAndTokenEvent(this.refresh));
-            }
+        if (this.hasPublicIp) {
+            log.debug("Have both refresh token and public IP, posting event");
+            Events.asyncEventBus()
+                    .post(new PublicIpAndTokenEvent(this.refresh));
         }
-    }
-    
-    @Subscribe
-    public void onPublicIp(final PublicIpEvent pce) {
-        synchronized (this) {
-            this.hasPublicIp = true;
-            if (this.hasRefresh) {
-                log.debug("Posting event!!");
-                Events.asyncEventBus().post(new PublicIpAndTokenEvent(this.refresh));
-            }
-        }
-    }
+    }    
 }

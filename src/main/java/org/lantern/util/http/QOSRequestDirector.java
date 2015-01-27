@@ -88,7 +88,7 @@ public class QOSRequestDirector extends DefaultRequestDirector {
     protected HttpRequest createConnectRequest(HttpRoute route,
             HttpContext context) {
         HttpRequest request = super.createConnectRequest(route, context);
-        request.setHeader(Flashlight.X_FLASHLIGHT_QOS, Flashlight.HIGH_QOS);
+        request.setHeader(Flashlight.X_FLASHLIGHT_QOS, Integer.toString(Flashlight.HIGH_QOS));
         return request;
     }
 }

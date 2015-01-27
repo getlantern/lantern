@@ -49,6 +49,14 @@ public class GetModeProxy extends AbstractHttpProxyServerAdapter {
         fl.stopClient();
     }
     
+    public void requireHighQOS() {
+        fl.setMinQOS(Flashlight.HIGH_QOS);
+    }
+    
+    public void unrequireHighQOS() {
+        fl.setMinQOS(0);
+    }
+    
     @Subscribe
     public void onNewS3Config(final S3Config config) {
         LOGGER.info("Got new S3Config, sending {} fallbacks in flashlight", config.getFallbacks().size());

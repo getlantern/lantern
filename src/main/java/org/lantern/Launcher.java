@@ -392,7 +392,6 @@ public class Launcher {
     private void startNetworkServices() {
         // Try to initialize network services once
         try {
-            publicIpAndTokenTracker.reset();
             s3ConfigFetcher.init();
             // Needs a fallback.
             //publicIpInfoHandler.init();

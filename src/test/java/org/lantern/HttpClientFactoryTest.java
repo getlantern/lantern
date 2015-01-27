@@ -55,7 +55,7 @@ public class HttpClientFactoryTest {
                httpClient.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 8000);
 
                final HttpHead head = new HttpHead("https://www.google.com");
-               head.setHeader(Flashlight.X_FLASHLIGHT_QOS, Flashlight.HIGH_QOS);
+               head.setHeader(Flashlight.X_FLASHLIGHT_QOS, Integer.toString(Flashlight.HIGH_QOS));
                
                log.debug("About to execute get!");
                final HttpResponse response = httpClient.execute(head);

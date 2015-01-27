@@ -40,7 +40,6 @@ import org.lantern.state.Friend.SuggestionReason;
 import org.lantern.ui.FriendNotificationDialog;
 import org.lantern.ui.NotificationManager;
 import org.lantern.util.Threads;
-import org.littleshoot.commom.xmpp.XmppUtils;
 import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,6 +101,7 @@ public class DefaultFriendsHandler implements FriendsHandler {
      */
     @Subscribe
     public void onPublicIpAndToken(final PublicIpAndTokenEvent event) {
+        log.debug("Got PublicIpAndTokenEvent");
         loadFriendsIfNecessary();
     }
     

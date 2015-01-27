@@ -87,7 +87,7 @@ public class LanternProxyingTest {
                     "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
             get.setHeader("Accept-Language", "en-us,en;q=0.5");
             // Force test to avoid flashlight peers
-            get.setHeader(Flashlight.X_FLASHLIGHT_QOS, Flashlight.HIGH_QOS);
+            get.setHeader(Flashlight.X_FLASHLIGHT_QOS, Integer.toString(Flashlight.HIGH_QOS));
             //get.setHeader("Accept-Encoding", "gzip, deflate");
 
             client.getParams().setParameter(

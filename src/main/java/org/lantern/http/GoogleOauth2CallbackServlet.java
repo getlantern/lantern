@@ -35,7 +35,7 @@ import org.lantern.ProxyService;
 import org.lantern.Tr;
 import org.lantern.event.Events;
 import org.lantern.oauth.OauthUtils;
-import org.lantern.proxy.GetModeProxyFilter;
+import org.lantern.proxy.GetModeProxy;
 import org.lantern.state.InternalState;
 import org.lantern.state.Modal;
 import org.lantern.state.Model;
@@ -76,7 +76,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
 
     private final InternalState internalState;
 
-    private final GetModeProxyFilter proxyFilter;
+    private final GetModeProxy proxy;
 
     public GoogleOauth2CallbackServlet(
         final GoogleOauth2CallbackServer googleOauth2CallbackServer,
@@ -84,7 +84,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         final ProxyService proxifier, final HttpClientFactory httpClientFactory,
         final ModelUtils modelUtils,
         final InternalState internalState,
-        final GetModeProxyFilter proxyFilter) {
+        final GetModeProxy proxy) {
         this.googleOauth2CallbackServer = googleOauth2CallbackServer;
         this.model = model;
         this.modelIo = modelIo;
@@ -92,7 +92,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         this.httpClientFactory = httpClientFactory;
         this.modelUtils = modelUtils;
         this.internalState = internalState;
-        this.proxyFilter = proxyFilter;
+        this.proxy = proxy;
     }
 
     @Override
@@ -119,7 +119,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         // Before redirecting to Google, we set up the proxy to proxy
         // access to accounts.google.com for the oauth exchange. That's just
         // temporary, though, and we now cancel it.
-        this.proxyFilter.setHighQos(false);
+        this.proxy.unrequireHighQOS();
         try {
             this.proxifier.stopProxying();
         } catch (final ProxyConfigurationError e) {

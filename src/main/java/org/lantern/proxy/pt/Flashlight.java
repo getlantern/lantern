@@ -71,10 +71,11 @@ public class Flashlight extends BasePluggableTransport {
     public static final String CLIENT_STATS_ADDR = "127.0.0.1:15670";
     public static final String SERVER_STATS_ADDR = "127.0.0.1:15671";
     public static final String X_FLASHLIGHT_QOS = "X-Flashlight-QOS";
-    public static final String HIGH_QOS = "10";
+    public static final int HIGH_QOS = 10;
 
     private static final Pattern WADDELL_ID_PATTERN = Pattern
             .compile("^.*Connected to Waddell!! Id is: (.*)$");
+    private static final String CLIENT_PATH = "/Client";
     private static final String PEERS_PATH = "/Client/Peers";
     private static final String CHAINED_PATH = "/Client/ChainedServers";
 
@@ -333,9 +334,8 @@ public class Flashlight extends BasePluggableTransport {
             proxy.put("addr", fallback.getWanHost() + ":" + fallback.getWanPort());
             proxy.put("cert", fallback.getCert());
             proxy.put("authtoken", fallback.getAuthToken());
-            proxy.put("pipelined", true);
             // Set really high priority
-            int domainFrontedPriority = 1000000;
+            int domainFrontedPriority = 4000;
             proxy.put("weight", domainFrontedPriority * 100);
             // Set high QOS
             proxy.put("qos", Flashlight.HIGH_QOS);
@@ -387,6 +387,18 @@ public class Flashlight extends BasePluggableTransport {
             LOGGER.debug("Deleted waddell peer with id {}", encryptedJid);
         } catch (Exception e) {
             LOGGER.error("Unable to delete waddell peer: {}", e.getMessage(), e);
+        }
+    }
+    
+    public void setMinQOS(int qos) {
+        LOGGER.info("Setting minimum QOS to {}", qos);
+        Map<String, Object> client = new HashMap<String, Object>();
+        client.put("minqos", qos);
+        try {
+            postConfig(CLIENT_PATH, client);
+            LOGGER.info("Set minimum QOS to {}", qos);
+        } catch (Exception e) {
+            LOGGER.error("Unable to set minimum QOS to {}: {}", qos, e.getMessage(), e);
         }
     }
 
