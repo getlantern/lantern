@@ -228,7 +228,7 @@ func (cfg *Config) applyClientDefaults() {
 			PoolSize:       30,
 			MasqueradeSet:  cloudflare,
 			MaxMasquerades: 20,
-			QOS:            10,
+			QOS:            2,
 			Weight:         1000000,
 		})
 	}
