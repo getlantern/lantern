@@ -229,7 +229,7 @@ func (cfg *Config) applyClientDefaults() {
 			MasqueradeSet:  cloudflare,
 			MaxMasquerades: 20,
 			QOS:            2,
-			Weight:         1000000,
+			Weight:         1000,
 		})
 	}
 
