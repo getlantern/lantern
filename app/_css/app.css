@@ -7243,18 +7243,13 @@ body[dir=rtl] .proxiedSitesTip {
   -webkit-transition: all 0.5s ease;
   transition: all 0.5s ease;
   float: right;
-  width: 25px;
-  padding-left: 15px;
+  width: 230px;
   height: 27px;
   margin: 0 0 7px;
   border-color: white;
   -webkit-border-radius: 18px;
   -moz-border-radius: 18px;
   border-radius: 18px;
-}
-
-#friendsListSearch.glass {
-    background: url("../bower_components/select2/select2.png") no-repeat 100% -22px;
 }
 
 body[dir=rtl] #friendsListSearch {
