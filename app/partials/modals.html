@@ -314,7 +314,7 @@
 
       <div ng-show="model.friends != null && (nfriends || nfriendSuggestions)">
         <div ng-class="{hasSearchText: !!searchText}">
-          <div id="friendCounts" ng-hide="searchActive || searchText">
+          <div id="friendCounts">
               <div id="currentFriendsHeading" ng-show="nfriends" translate="{{  (nfriends == 1) ? 'NFRIENDS_1' : 'NFRIENDS_OTHER'}}" translate-values="{ value: nfriends }"></div>
               <div ng-show="nfriendSuggestions" id="suggestedFriendsHeading" translate="{{ (nfriendSuggestions == 1) ? 'NSUGGESTED_1' : 'NSUGGESTED_OTHER'}}" translate-values="{value: nfriendSuggestions}">
               <a id="toggleSuggestions" ng-click="toggleSuggestions()">
