@@ -1,56 +1,59 @@
 # Lantern on Android
 
+```java
+import go.flashlight.Flashlight;
+```
+
 The `lantern-android` repository provides documentation and scripts for
-building a basic [flashlight][1] client library for Android devices.
+building a basic [flashlight][1] shared library that exports special methods
+that can be used from Java code, making it possible to run the [flashlight][1]
+client on Android devices.
+
+```java
+try {
+  Flashlight.RunClientProxy("0.0.0.0:9192");
+} catch (Exception e) {
+  throw new RuntimeException(e);
+}
+```
 
 ## Prerequisites
 
 * An OSX or Linux box
 * [docker][2]
 * [Android Studio][3]
-* [Go][4]
+* [Go 1.4][4]
 * [GNUMake][6]
 
-### Setting up the experimental environment
+### Setting up a development environment
 
-This is an experimental feature so we need to do some minor hacks in order to
-test it. We're going to work with the `experimental/lantern-android` branch of
-[flashlight-build][5]:
+We're going to clone and use the [flashlight-build][5] repository, that
+project provides us with everything we need to build Lantern tools and
+libraries.
 
 ```sh
 mkdir -p $GOPATH/src/github.com/getlantern
 cd $GOPATH/src/github.com/getlantern
 git clone https://github.com/getlantern/flashlight-build.git
-cd flashlight-build
-git checkout -b experimental/lantern-android remotes/origin/experimental/lantern-android
 ```
 
-Please note this is only a temporary hack while we wait for the required
-changes to hit upstream.
+After cloning the repository use the `setenv.bash` script to export development
+enviromental variables to the current terminal session.
+
+```
+cd flashlight-build
+source setenv.bash
+```
 
 ## Building the Android library
 
-Set the `GOPATH` environment variable to
-`$GOPATH/src/github.com/getlantern/flashlight-build` for the current session,
-the [flashlight-build][5] repository has everything we need to build the
-[flashlight][1] lightweight web proxy:
-
-```sh
-export GOPATH=$GOPATH/src/github.com/getlantern/flashlight-build
-```
-
-Change directory to `$GOPATH/src/github.com/getlantern` and clone the
-`lantern-android` repository with git.
-
-```sh
-cd $GOPATH/src/github.com/getlantern
-git clone https://github.com/getlantern/lantern-android.git
-```
-
-Finally, change directory into `lantern-android` and pass the build task to the
-`make` command.
+`flashlight-build` will provide you with a copy of `lantern-android`, change
+directory into `lantern-android` and execute `make` to start compiling our
+shared library:
 
 ```
+cd $GOPATH/src/github.com/getlantern/lantern-android
+
 make
 # ...
 # BUILD SUCCESSFUL
