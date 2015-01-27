@@ -27,22 +27,19 @@ func TestIt(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to start test server: %s", err)
 	}
-	p := &Pool{
-		Size:         poolSize,
-		ClaimTimeout: claimTimeout,
-		Dial: func() (net.Conn, error) {
-			return net.DialTimeout("tcp", addr, 15*time.Millisecond)
-		},
-	}
 
 	_, fdc, err := fdcount.Matching("TCP")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	p.Start()
-	// Run another Start() concurrently just to make sure it doesn't muck things up
-	go p.Start()
+	p := New(Config{
+		Size:         poolSize,
+		ClaimTimeout: claimTimeout,
+		Dial: func() (net.Conn, error) {
+			return net.DialTimeout("tcp", addr, 15*time.Millisecond)
+		},
+	})
 
 	time.Sleep(fillTime)
 
@@ -81,9 +78,9 @@ func TestIt(t *testing.T) {
 	// Wait for pool to fill again
 	time.Sleep(fillTime)
 
-	p.Stop()
+	p.Close()
 	// Run another Stop() concurrently just to make sure it doesn't muck things up
-	go p.Stop()
+	go p.Close()
 
 	assert.NoError(t, fdc.AssertDelta(0), "After stopping pool, there should be no more open conns")
 }
@@ -96,7 +93,7 @@ func TestDialFailure(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to start test server: %s", err)
 	}
-	p := &Pool{
+	p := New(Config{
 		Size:                 10,
 		RedialDelayIncrement: 10 * time.Millisecond,
 		MaxRedialDelay:       100 * time.Millisecond,
@@ -107,10 +104,7 @@ func TestDialFailure(t *testing.T) {
 			}
 			return net.DialTimeout("tcp", addr, 15*time.Millisecond)
 		},
-	}
-
-	p.Start()
-	defer p.Stop()
+	})
 
 	// Wait for fill to run for a while with a failing connection
 	time.Sleep(1 * time.Second)
@@ -125,6 +119,19 @@ func TestDialFailure(t *testing.T) {
 	// while failing (tests a different code path for stopping)
 	atomic.StoreInt32(&fail, 1)
 	time.Sleep(100 * time.Millisecond)
+}
+
+func TestPropertyChange(t *testing.T) {
+	claimTimeout := 5 * time.Second
+
+	cfg := &Config{
+		ClaimTimeout: claimTimeout,
+	}
+	p := New(*cfg)
+	defer p.Close()
+
+	cfg.ClaimTimeout = 7 * time.Second
+	assert.NotEqual(t, claimTimeout, cfg.ClaimTimeout, "Property changed on config shouldn't be reflected in pool")
 }
 
 func connectAndRead(t *testing.T, p *Pool, loops int) {

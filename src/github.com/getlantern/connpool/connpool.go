@@ -20,12 +20,8 @@ var (
 
 type DialFunc func() (net.Conn, error)
 
-// Pool is a pool of connections. Connections are pooled lazily up to Size and
-// expire after ClaimTimeout. Lazily here means that the Pool won't start to
-// fill until the first request for a connection. As long as the Pool is
-// actively being used, it will attempt to always have Size number of
-// connections ready to use.
-type Pool struct {
+// Config contains configuration information for a Pool.
+type Config struct {
 	// Size: while active, the pool will attempt to maintain at these many
 	// connections.
 	Size int
@@ -45,24 +41,28 @@ type Pool struct {
 
 	// Dial: specifies the function used to create new connections
 	Dial DialFunc
+}
 
-	runMutex   sync.Mutex
-	running    bool
-	actualSize int
-	freshenCh  chan interface{}
-	connCh     chan net.Conn
-	stopCh     chan *sync.WaitGroup
+// Pool is a pool of connections. Connections are pooled lazily up to Size and
+// expire after ClaimTimeout. Lazily here means that the Pool won't start to
+// fill until the first request for a connection. As long as the Pool is
+// actively being used, it will attempt to always have Size number of
+// connections ready to use.
+type Pool struct {
+	Config
+	runMutex  sync.Mutex
+	running   bool
+	freshenCh chan interface{}
+	connCh    chan net.Conn
+	stopCh    chan *sync.WaitGroup
 }
 
 // Start starts the pool, filling it to the Size and maintaining fresh
 // connections.
-func (p *Pool) Start() {
-	p.runMutex.Lock()
-	defer p.runMutex.Unlock()
-
-	if p.running {
-		log.Trace("Already running, ignoring additional Start() call")
-		return
+func New(cfg Config) *Pool {
+	p := &Pool{
+		Config:  cfg,
+		running: true,
 	}
 
 	log.Debugf("Starting connection pool with size %d", p.Size)
@@ -83,18 +83,17 @@ func (p *Pool) Start() {
 	p.connCh = make(chan net.Conn)
 	p.stopCh = make(chan *sync.WaitGroup, p.Size)
 
-	log.Tracef("Remembering actual size %d in case Size is later changed", p.Size)
-	p.actualSize = p.Size
-	for i := 0; i < p.actualSize; i++ {
+	for i := 0; i < p.Size; i++ {
 		go p.feedConn()
 	}
 
 	p.running = true
+	return p
 }
 
-// Stop stops the goroutines that are filling the pool, blocking until they've
+// Close stops the goroutines that are filling the pool, blocking until they've
 // all terminated.
-func (p *Pool) Stop() {
+func (p *Pool) Close() {
 	p.runMutex.Lock()
 	defer p.runMutex.Unlock()
 
@@ -105,8 +104,8 @@ func (p *Pool) Stop() {
 
 	log.Trace("Stopping all feedConn goroutines")
 	var wg sync.WaitGroup
-	wg.Add(p.actualSize)
-	for i := 0; i < p.actualSize; i++ {
+	wg.Add(p.Size)
+	for i := 0; i < p.Size; i++ {
 		p.stopCh <- &wg
 	}
 	wg.Wait()

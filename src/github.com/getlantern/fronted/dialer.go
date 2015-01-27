@@ -120,12 +120,11 @@ func NewDialer(cfg *Config) *Dialer {
 		d.masquerades = d.verifiedMasquerades()
 	}
 	if cfg.PoolSize > 0 {
-		d.connPool = &connpool.Pool{
+		d.connPool = connpool.New(connpool.Config{
 			Size:         cfg.PoolSize,
 			ClaimTimeout: idleTimeout,
 			Dial:         d.dialServer,
-		}
-		d.connPool.Start()
+		})
 	}
 	d.enproxyConfig = d.enproxyConfigWith(func(addr string) (net.Conn, error) {
 		var conn net.Conn
@@ -156,8 +155,8 @@ func (d *Dialer) Dial(network, addr string) (net.Conn, error) {
 // pool.
 func (d *Dialer) Close() error {
 	if d.connPool != nil {
-		// We stop the connPool on a goroutine so as not to wait for Stop to finish
-		go d.connPool.Stop()
+		// We close the connPool on a goroutine so as not to wait for Close to finish
+		go d.connPool.Close()
 	}
 	if d.masquerades != nil {
 		go d.masquerades.stop()
