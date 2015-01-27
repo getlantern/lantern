@@ -259,7 +259,6 @@ input[type="search"] {
 input[type="search"]::-webkit-search-decoration,
 input[type="search"]::-webkit-search-cancel-button {
   -webkit-appearance: none;
-  display: none;
 }
 
 textarea {
@@ -7263,7 +7262,6 @@ body[dir=rtl] #friendsListSearch {
   -webkit-appearance: searchfield-cancel-button;
 }
 #friendsListSearch:focus, #friendsListSearch:hover, #friendsListSearch.nonempty {
-  width: 500px !important;
   background: none;
   padding-right: 4px;
   border-color: #cccccc !important;
