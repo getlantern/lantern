@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -158,18 +159,28 @@ func TestPropertyChange(t *testing.T) {
 }
 
 func connectAndRead(t *testing.T, p Pool, loops int) {
+	var wg sync.WaitGroup
+
 	for i := 0; i < loops; i++ {
-		c, err := p.Get()
-		if err != nil {
-			t.Fatalf("Error getting connection: %s", err)
-		}
-		read, err := ioutil.ReadAll(c)
-		if err != nil {
-			t.Fatalf("Error reading from connection: %s", err)
-		}
-		assert.Equal(t, msg, read, "Should have received %s from server", string(msg))
-		c.Close()
+		wg.Add(1)
+
+		func(wg *sync.WaitGroup) {
+			c, err := p.Get()
+			if err != nil {
+				t.Fatalf("Error getting connection: %s", err)
+			}
+			read, err := ioutil.ReadAll(c)
+			if err != nil {
+				t.Fatalf("Error reading from connection: %s", err)
+			}
+			assert.Equal(t, msg, read, "Should have received %s from server", string(msg))
+			c.Close()
+
+			wg.Done()
+		}(&wg)
 	}
+
+	wg.Wait()
 }
 
 func startTestServer() (string, error) {
