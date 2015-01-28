@@ -69,14 +69,21 @@ public class GetModeProxy extends AbstractHttpProxyServerAdapter {
     private void startWhenReady(boolean started, boolean hasPublicIp) {
         if (started && hasPublicIp) {
             LOGGER.debug("Starting");
-            fl.startStandaloneClient();
-            fl.addFallbackProxies(model.getS3Config().getFallbacks());
-            Events.asyncEventBus().post(new ProxyConnectedEvent());
+            doStart();
         } else {
             LOGGER.debug(
                     "Not yet ready to start. started: {}   hasPublicIp: {}",
                     started, hasPublicIp);
         }
+    }
+    
+    /**
+     * Don't call this, use start() unless you're testing.
+     */
+    public void doStart() {
+        fl.startStandaloneClient();
+        fl.addFallbackProxies(model.getS3Config().getFallbacks());
+        Events.asyncEventBus().post(new ProxyConnectedEvent());
     }
 
     @Override

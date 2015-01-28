@@ -282,7 +282,7 @@ public class TestingUtils {
                 fallback.getWanHost(), fallback.getWanPort());
         trustStore.addCert(fallback.getCert());
         GetModeProxy getModeProxy = new GetModeProxy(model);
-        getModeProxy.start();
+        getModeProxy.doStart();
         try {
             return work.call();
         } finally {
