@@ -1,33 +1,30 @@
 {
   "name": "lodash",
-  "version": "2.4.1",
-  "main": "dist/lodash.compat.js",
+  "version": "3.0.0",
+  "main": "lodash.js",
   "ignore": [
     ".*",
     "*.custom.*",
-    "*.template.*",
+    "*.log",
     "*.map",
     "*.md",
-    "/*.min.*",
-    "/lodash.js",
-    "index.js",
+    "lodash.src.js",
     "component.json",
     "package.json",
     "doc",
-    "modularize",
     "node_modules",
     "perf",
     "test",
     "vendor"
   ],
   "homepage": "https://github.com/lodash/lodash",
-  "_release": "2.4.1",
+  "_release": "3.0.0",
   "_resolution": {
     "type": "version",
-    "tag": "2.4.1",
-    "commit": "c7aa842eded639d6d90a5714d3195a8802c86687"
+    "tag": "3.0.0",
+    "commit": "ad7c423a3e79e5ecb4efde32f5a82b6cdb17a91d"
   },
   "_source": "git://github.com/lodash/lodash.git",
-  "_target": "2.4.1",
+  "_target": "3.0.0",
   "_originalSource": "lodash"
 }
