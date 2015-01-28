@@ -43,30 +43,18 @@ public class GetModeProxy extends AbstractHttpProxyServerAdapter {
     }
 
     @Override
-    public void start() {
-        boolean started = false;
-        boolean hasPublicIp = false;
-        synchronized (this) {
-            started = this.started = true;
-            hasPublicIp = this.hasPublicIp;
-        }
-
-        startWhenReady(started, hasPublicIp);
+    synchronized public void start() {
+        this.started = true;
+        startWhenReady();
     }
 
     @Subscribe
-    public void onPublicIp(PublicIpEvent pie) {
-        boolean started = false;
-        boolean hasPublicIp = false;
-        synchronized (this) {
-            started = this.started;
-            hasPublicIp = this.hasPublicIp = true;
-        }
-
-        startWhenReady(started, hasPublicIp);
+    synchronized public void onPublicIp(PublicIpEvent pie) {
+        this.hasPublicIp = true;
+        startWhenReady();
     }
 
-    private void startWhenReady(boolean started, boolean hasPublicIp) {
+    private void startWhenReady() {
         if (started && hasPublicIp) {
             LOGGER.debug("Starting");
             doStart();
