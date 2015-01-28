@@ -154,7 +154,7 @@ func TestPropertyChange(t *testing.T) {
 	defer p.Close()
 
 	cfg.ClaimTimeout = 7 * time.Second
-	assert.NotEqual(t, claimTimeout, cfg.ClaimTimeout, "Property changed on config shouldn't be reflected in pool")
+	assert.Equal(t, claimTimeout, p.(*pool).Config.ClaimTimeout, "Property changed on config shouldn't be reflected in pool")
 }
 
 func connectAndRead(t *testing.T, p Pool, loops int) {
