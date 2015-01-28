@@ -15,13 +15,13 @@ import (
 )
 
 var (
-	msg = []byte("HELLO")
+	msg          = []byte("HELLO")
+	fillTime     = 100 * time.Millisecond
+	claimTimeout = 1 * time.Second
 )
 
 func TestIt(t *testing.T) {
 	poolSize := 20
-	claimTimeout := 1 * time.Second
-	fillTime := 100 * time.Millisecond
 
 	addr, err := startTestServer()
 	if err != nil {
@@ -81,7 +81,7 @@ func TestIt(t *testing.T) {
 	time.Sleep(fillTime)
 
 	p.Close()
-	// Run another Stop() concurrently just to make sure it doesn't muck things up
+	// Run another Close() concurrently just to make sure it doesn't muck things up
 	go p.Close()
 
 	assert.NoError(t, fdc.AssertDelta(0), "After stopping pool, there should be no more open conns")
@@ -95,31 +95,53 @@ func TestDialFailure(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to start test server: %s", err)
 	}
+
+	_, fdc, err := fdcount.Matching("TCP")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	poolSize := 10
+
 	p := New(Config{
-		Size: 10,
+		Size: poolSize,
 		Dial: func() (net.Conn, error) {
 			atomic.AddInt32(&dialAttempts, 1)
 			if fail == int32(1) {
-				return nil, fmt.Errorf("I'm failing!")
+				return nil, fmt.Errorf("I'm failing intentionally!")
 			}
 			return net.DialTimeout("tcp", addr, 15*time.Millisecond)
 		},
 	})
 
+	// Try to get connection, make sure it fails
+	conn, err := p.Get()
+	if !assert.Error(t, err, "Dialing should have failed") {
+		conn.Close()
+	}
+
 	// Wait for fill to run for a while with a failing connection
 	time.Sleep(1 * time.Second)
-	log.Debugf("Dial attempts: %d", atomic.LoadInt32(&dialAttempts))
-	assert.True(t, atomic.LoadInt32(&dialAttempts) < 500, fmt.Sprintf("Should have had a small number of dial attempts, but had %d", dialAttempts))
+	assert.Equal(t, 1, atomic.LoadInt32(&dialAttempts), fmt.Sprintf("There should have been only 1 dial attempt"))
+	assert.NoError(t, fdc.AssertDelta(0), "There should be no additional file descriptors open")
 
 	// Now make connection succeed and verify that it works
 	atomic.StoreInt32(&fail, 0)
 	time.Sleep(100 * time.Millisecond)
 	connectAndRead(t, p, 1)
 
+	time.Sleep(fillTime)
+	log.Debug("Testing")
+	assert.NoError(t, fdc.AssertDelta(10), "Pool should have filled")
+
 	// Now make the connection fail again so that when we stop, we're stopping
 	// while failing (tests a different code path for stopping)
 	atomic.StoreInt32(&fail, 1)
 	time.Sleep(100 * time.Millisecond)
+
+	p.Close()
+
+	assert.NoError(t, fdc.AssertDelta(0), "All connections should be closed")
 }
 
 func TestPropertyChange(t *testing.T) {
