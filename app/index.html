@@ -12,8 +12,9 @@
     -->
 
     <link href="bower_components/select2/select2.css" rel="stylesheet">
-    <link href="bower_components/normalize.css/normalize.css" rel="stylesheet">
     <link href="_css/app.css" rel="stylesheet">
+    <link href="bower_components/normalize.css/normalize.css" rel="stylesheet">
+
 
     <script src="bower_components/jsonpatch/lib/jsonpatch.js"></script>
     <script src="bower_components/jquery/dist/jquery.min.js"></script>
@@ -68,6 +69,17 @@
           '</div>'
         );
         $(document.body).removeAttr('ng-cloak');
+      }
+      if (typeof InstallTrigger !== 'undefined') {
+        /* custom firefox code to add cancel button to search input */
+        function toggle(v){return v ? 'addClass' : 'removeClass';} 
+        $(document).on('input', '.clearable', function(){
+            $(this)[toggle(this.value)]('x');
+        }).on('mousemove', '.x', function( e ){
+            $(this)[toggle(this.offsetWidth-18 < e.clientX-this.getBoundingClientRect().left)]('onX');   
+        }).on('click', '.onX', function(){
+            $(this).removeClass('x onX').val('');
+        });
       }
     </script>
 

@@ -7267,6 +7267,22 @@ body[dir=rtl] #friendsListSearch {
   border-color: #cccccc !important;
 }
 
+@-moz-document url-prefix() {
+    .clearable {
+        background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAHCAYAAADEUlfTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAABNSURBVHjaXI7BDcAwCAMvyQjMyQ6dAbZiKfqoUK34g2zJh1dENIC7M8pMAPYdzAVY3d0ajNz9aypS/b5R6o+ZPdqoKgCq6h80KH3xDgBqNR97p8oAGQAAAABJRU5ErkJggg==) no-repeat right -10px center !important;
+        transition: background 0.4s;
+        border:1px solid #999;
+        border-radius:3px;
+    }
+
+    .clearable.x {
+        background-position: right 5px center !important;
+    }
+    .clearable.onX { 
+        cursor:pointer;
+    }
+}
+
 #lanternFriends {
   min-height: 115px;
   max-height: 445px;
