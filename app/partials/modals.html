@@ -324,8 +324,8 @@
           </div>
 
           <input type="search" ng-model="searchText" results="0" placeholder="{{ 'SEARCH' | translate }}"
-            ng-mouseenter="searchActive=true" ng-focus="searchActive=true; searchFocused=true"
-            ng-mouseleave="searchActive=searchFocused || !!searchText" ng-blur="searchActive=!!searchText; searchFocused=false"
+            ng-focus="searchActive=true; searchFocused=true"
+            ng-blur="searchActive=!!searchText; searchFocused=false"
             id="friendsListSearch" class="{{searchText && 'non' || ''}}empty clearable">
 
           <ul id="friendlist">
