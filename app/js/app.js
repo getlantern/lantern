@@ -50,7 +50,7 @@ var app = angular.module('app', [
     animate: 'ui-hide',
   })
   .run(function ($filter, $log, $rootScope, $timeout, $window, 
-                 $translate, apiSrvc, gaMgr, modelSrvc, ENUMS, EXTERNAL_URL, LANTERNUI_VER, MODAL, CONTACT_FORM_MAXLEN) {
+                 $translate, $http, apiSrvc, gaMgr, modelSrvc, ENUMS, EXTERNAL_URL, MODAL, CONTACT_FORM_MAXLEN) {
     var CONNECTIVITY = ENUMS.CONNECTIVITY,
         MODE = ENUMS.MODE,
         i18nFltr = $filter('i18n'),
@@ -64,7 +64,20 @@ var app = angular.module('app', [
     $window.model = model;
 
     $rootScope.EXTERNAL_URL = EXTERNAL_URL;
-    $rootScope.lanternUiVersion = LANTERNUI_VER.join('.');
+
+
+    $http.get('data/package.json').
+      success(function(pkg, status, headers, config) {
+      var version = pkg.version,
+        components = version.split('.'),
+        major = components[0],
+        minor = components[1],
+        patch = (components[2] || '').split('-')[0];
+        $rootScope.lanternUiVersion = [major, minor, patch].join('.');
+    }).error(function(data, status, headers, config) {
+       console.log("Error retrieving UI version!");
+    });
+
     $rootScope.model = model;
     $rootScope.DEFAULT_AVATAR_URL = 'img/default-avatar.png';
     $rootScope.CONTACT_FORM_MAXLEN = CONTACT_FORM_MAXLEN;
