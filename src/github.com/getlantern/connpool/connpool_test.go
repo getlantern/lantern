@@ -96,9 +96,7 @@ func TestDialFailure(t *testing.T) {
 		t.Fatalf("Unable to start test server: %s", err)
 	}
 	p := New(Config{
-		Size:                 10,
-		RedialDelayIncrement: 10 * time.Millisecond,
-		MaxRedialDelay:       100 * time.Millisecond,
+		Size: 10,
 		Dial: func() (net.Conn, error) {
 			atomic.AddInt32(&dialAttempts, 1)
 			if fail == int32(1) {
@@ -110,7 +108,8 @@ func TestDialFailure(t *testing.T) {
 
 	// Wait for fill to run for a while with a failing connection
 	time.Sleep(1 * time.Second)
-	assert.True(t, dialAttempts < 500, fmt.Sprintf("Should have had a small number of dial attempts, but had %d", dialAttempts))
+	log.Debugf("Dial attempts: %d", atomic.LoadInt32(&dialAttempts))
+	assert.True(t, atomic.LoadInt32(&dialAttempts) < 500, fmt.Sprintf("Should have had a small number of dial attempts, but had %d", dialAttempts))
 
 	// Now make connection succeed and verify that it works
 	atomic.StoreInt32(&fail, 0)

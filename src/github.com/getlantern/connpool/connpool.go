@@ -9,9 +9,7 @@ import (
 )
 
 const (
-	DefaultClaimTimeout         = 10 * time.Minute
-	DefaultRedialDelayIncrement = 50 * time.Millisecond
-	DefaultMaxRedialDelay       = 1 * time.Second
+	DefaultClaimTimeout = 10 * time.Minute
 )
 
 var (
@@ -47,13 +45,6 @@ type Config struct {
 	// another connection is requested, at which point the pool will fill again.
 	ClaimTimeout time.Duration
 
-	// RedialDelayIncrement: amount by which to increase the redial delay with
-	// each consecutive dial failure.
-	RedialDelayIncrement time.Duration
-
-	// MaxRedialDelay: the maximum amount of time to wait before redialing.
-	MaxRedialDelay time.Duration
-
 	// Dial: specifies the function used to create new connections
 	Dial DialFunc
 }
@@ -79,14 +70,6 @@ func New(cfg Config) Pool {
 	if p.ClaimTimeout == 0 {
 		log.Tracef("Defaulting ClaimTimeout to %s", DefaultClaimTimeout)
 		p.ClaimTimeout = DefaultClaimTimeout
-	}
-	if p.RedialDelayIncrement == 0 {
-		log.Tracef("Defaulting p.RedialDelayIncrement to %s", DefaultRedialDelayIncrement)
-		p.RedialDelayIncrement = DefaultRedialDelayIncrement
-	}
-	if p.MaxRedialDelay == 0 {
-		log.Tracef("Defaulting p.MaxRedialDelay to %s", DefaultMaxRedialDelay)
-		p.MaxRedialDelay = DefaultMaxRedialDelay
 	}
 
 	p.freshenCh = make(chan interface{}, p.Size)
@@ -123,14 +106,21 @@ func (p *pool) Close() {
 
 func (p *pool) Get() (net.Conn, error) {
 	log.Trace("Getting conn")
-	defer p.freshen()
 	select {
 	case conn := <-p.connCh:
 		log.Trace("Using pooled conn")
+		p.freshen()
 		return conn, nil
 	default:
 		log.Trace("No pooled conn, dialing our own")
-		return p.Dial()
+		conn, err := p.Dial()
+		if err == nil {
+			log.Trace("Dial succeeded, freshening")
+			p.freshen()
+		} else {
+			log.Trace("Dial failed, not bothering to freshen since subsequent dials may fail too")
+		}
+		return conn, err
 	}
 }
 
@@ -149,11 +139,12 @@ func (p *pool) freshen() {
 	}
 }
 
-// feedConn works on continuously feeding the connCh with fresh connections.
+// feedConn works on feeding the connCh with fresh connections. For every
+// request to freshen, it will dial once and make the connection available iff
+// dialing succeeded. If the connection remains queued longer than
+// p.ClaimTimeout, it will be closed.
 func (p *pool) feedConn() {
 	newConnTimedOut := time.NewTimer(0)
-	consecutiveDialFailures := time.Duration(0)
-	nextDialAt := time.Now()
 
 	for {
 		select {
@@ -162,26 +153,13 @@ func (p *pool) feedConn() {
 			wg.Done()
 			return
 		case <-p.freshenCh:
-			delay := nextDialAt.Sub(time.Now())
-			if delay > 0 {
-				log.Tracef("Sleeping %s before dialing again", delay)
-				time.Sleep(delay)
-			}
-
 			log.Trace("Dialing")
 			conn, err := p.Dial()
 			if err != nil {
 				log.Tracef("Error dialing: %s", err)
-				delay := consecutiveDialFailures * p.RedialDelayIncrement
-				if delay > p.MaxRedialDelay {
-					delay = p.MaxRedialDelay
-				}
-				nextDialAt = time.Now().Add(delay)
-				consecutiveDialFailures = consecutiveDialFailures + 1
 				continue
 			}
 			log.Trace("Dial successful")
-			consecutiveDialFailures = 0
 			newConnTimedOut.Reset(p.ClaimTimeout)
 
 			select {
