@@ -18,7 +18,12 @@ var (
 
 type DialFunc func() (net.Conn, error)
 
-// Pool is a pool of connections, built from a Config using the New method.
+// Pool is a pool of connections, built from a Config using the New method. The
+// purpose of connpool is to accelerate bursty clients, that is to say clients
+// that tend to do a lot of dialing in rapid succeession. At steady state, the
+// pool is usually empty, but once activity is detected it starts to fill itself
+// up and keeps itself filled as long as activity continues.
+//
 // Connections are pooled lazily up to Size and expire after ClaimTimeout.
 // Lazily here means that the Pool won't start to fill until the first request
 // for a connection. As long as the Pool is actively being used, it will attempt
