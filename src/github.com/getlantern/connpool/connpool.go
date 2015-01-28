@@ -149,7 +149,8 @@ func (p *pool) freshen() {
 // dialing succeeded. If the connection remains queued longer than
 // p.ClaimTimeout, it will be closed.
 func (p *pool) feedConn() {
-	newConnTimedOut := time.NewTimer(365 * 24 * time.Hour)
+	longDuration := 10 * 365 * 24 * time.Hour
+	newConnTimedOut := time.NewTimer(longDuration)
 	defer newConnTimedOut.Stop()
 
 	for {
@@ -170,6 +171,8 @@ func (p *pool) feedConn() {
 
 			select {
 			case p.connCh <- conn:
+				// Reset timer so that it doesn't fire while we're waiting to freshen
+				newConnTimedOut.Reset(longDuration)
 				log.Trace("Fed conn")
 			case <-newConnTimedOut.C:
 				log.Trace("Queued conn timed out, closing")
