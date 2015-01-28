@@ -294,7 +294,7 @@ app.controller('LanternFriendsCtrl', ['$scope', '$timeout', 'logFactory', '$filt
       max = Math.max,
       model = $scope.model,
       EMAIL = INPUT_PAT.EMAIL_INSIDE,
-      i18nFltr = $filter('i18n'),
+      //i18nFltr = $filter('i18n'),
       prettyUserFltr = $filter('prettyUser');
 
   $scope.show = false;
@@ -466,7 +466,7 @@ app.controller('LanternFriendsCtrl', ['$scope', '$timeout', 'logFactory', '$filt
         return {id: match, text: match, email: match};
       }
     },
-    formatNoMatches: function () {
+    /*formatNoMatches: function () {
       if (!model.remainingFriendingQuota) {
         return i18nFltr('ONLY_FREE_FRIENDS');
       }
@@ -474,7 +474,7 @@ app.controller('LanternFriendsCtrl', ['$scope', '$timeout', 'logFactory', '$filt
     },
     formatSearching: function () {
       return i18nFltr('SEARCHING_ELLIPSIS');
-    },
+    },*/
     width: '100%'
   };
 }]);

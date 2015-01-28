@@ -3,7 +3,6 @@
 var app = angular.module('app', [
   'app.constants',
   'app.helpers',
-  'app.i18n',
   'pascalprecht.translate',
   'app.filters',
   'app.services',
@@ -53,7 +52,6 @@ var app = angular.module('app', [
                  $translate, $http, apiSrvc, gaMgr, modelSrvc, ENUMS, EXTERNAL_URL, MODAL, CONTACT_FORM_MAXLEN) {
     var CONNECTIVITY = ENUMS.CONNECTIVITY,
         MODE = ENUMS.MODE,
-        i18nFltr = $filter('i18n'),
         jsonFltr = $filter('json'),
         model = modelSrvc.model,
         prettyUserFltr = $filter('prettyUser'),
