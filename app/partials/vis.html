@@ -30,7 +30,7 @@
                   {{model.instanceStats.bytesGotten.total | prettyBytes}} {{'GOTTEN' | translate}}
                 </div>
                 <div class=lastConnected>
-                  {{model.connectivity.lastConnected && ('LAST_CONNECTED' | i18n) || '' }}
+                  {{model.connectivity.lastConnected && ('LAST_CONNECTED' | translate) || '' }}
                   <time>{{model.connectivity.lastConnected && (model.connectivity.lastConnected | date:'short') || ''}}</time>
                 </div>
               </div>
