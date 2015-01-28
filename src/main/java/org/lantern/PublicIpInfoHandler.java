@@ -2,11 +2,10 @@ package org.lantern;
 
 import java.net.ConnectException;
 import java.net.InetAddress;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.lantern.event.Events;
-import org.lantern.event.ProxyConnectedEvent;
 import org.lantern.event.PublicIpEvent;
+import org.lantern.geoip.GeoData;
 import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.state.Location;
 import org.lantern.state.Modal;
@@ -18,16 +17,14 @@ import org.lantern.util.PublicIpAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.lantern.geoip.GeoData;
-
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 /**
  * This class handles everything associated with a public IP address, including
- * waiting for Internet connectivity before looking up an address,
- * performing a geo IP lookup on that address, etc.
+ * waiting for Internet connectivity before looking up an address, performing a
+ * geo IP lookup on that address, etc.
  */
 @Singleton
 public class PublicIpInfoHandler {
@@ -36,10 +33,7 @@ public class PublicIpInfoHandler {
     private final Model model;
     private final Censored censored;
     private final GeoIpLookupService geoIpLookupService;
-    private final AtomicBoolean recheck = new AtomicBoolean(true);
-    private volatile boolean proxyConnected = false;
-    private volatile boolean internetConnected = false;
-    
+
     @Inject
     public PublicIpInfoHandler(final Model model, final Censored censored,
             final GeoIpLookupService geoIpLookupService) {
@@ -48,78 +42,17 @@ public class PublicIpInfoHandler {
         this.geoIpLookupService = geoIpLookupService;
         Events.register(this);
     }
-    
+
     /**
-     * We set the IP address on a proxy connection because we use the proxy
-     * itself to determine the IP address. This helps to minimize Lantern's
-     * network footprint.
+     * We determine the public ip anytime that we've achieved internet
+     * connectivity.
      * 
-     * @throws ConnectException If there was an error fetching the public IP. 
+     * @param event
      */
-    private void determinePublicIp() throws ConnectException {
-        if (!this.recheck.get()) {
-            log.debug("Not rechecking for public IP");
-            return;
-        }
-        
-        final InetAddress address = new PublicIpAddress().getPublicIpAddress();
-        this.model.getConnectivity().setIp(address != null ? address.getHostAddress() : null);
-        if (address == null) {
-            throw new ConnectException("Could not determine public IP");
-        }
-        
-        this.recheck.set(false);
-        handleCensored(address);
-        handleGeoIp(address);
-        
-        // Post PublicIpEvent so that downstream services like xmpp,
-        // FriendsHandler, StatsManager and Loggly can start.
-        Events.asyncEventBus().post(new PublicIpEvent());
-    }
-    
     @Subscribe
     public void onConnectivityChanged(final ConnectivityChangedEvent event) {
         log.debug("Got ConnectivityChangedEvent");
-        
-        // Always force a recheck when connectivity changed.
-        this.recheck.set(true);
-        
-        boolean proxyConnected;
-        boolean internetConnected;
-        synchronized (this) {
-            proxyConnected = this.proxyConnected;
-            this.internetConnected = internetConnected = event.isConnected();
-        }
-
-        this.determinePublicIpIfPossible(proxyConnected, internetConnected);
-    }
-    
-    /**
-     * We perform the public IP lookup on a proxy connection event because
-     * we need the proxy in order to perform the lookup. We need this both
-     * at startup as well as every time we re-connect to a proxy after
-     * potentially losing proxy connectivity.
-     * 
-     * @param pce The connection event.
-     */
-    @Subscribe
-    public void onProxyConnectedEvent(ProxyConnectedEvent pce) {
-        log.debug("Got ProxyConnectedEvent");
-        
-        boolean proxyConnected;
-        boolean internetConnected;
-        synchronized (this) {
-            this.proxyConnected = proxyConnected = true;
-            internetConnected = this.internetConnected;
-        }
-
-        this.determinePublicIpIfPossible(proxyConnected, internetConnected);
-    }
-    
-    private void determinePublicIpIfPossible(
-            boolean proxyConnected,
-            boolean internetConnected) {
-        if (proxyConnected && internetConnected) {
+        if (event.isConnected()) {
             log.debug("Determining public ip");
             try {
                 determinePublicIp();
@@ -127,9 +60,47 @@ public class PublicIpInfoHandler {
                 log.warn("Could not get public IP?", e);
             }
         } else {
-            log.debug("Not determining public ip. proxyConnected: {}   internetConnected: {}",
-                    proxyConnected, internetConnected);
+            log.debug("Not connected to the internet, not determining public ip");
         }
+    }
+
+    /**
+     * Determines the public ip address using PublicIpAddress.
+     * 
+     * @throws ConnectException
+     *             If there was an error fetching the public IP.
+     */
+    private void determinePublicIp() throws ConnectException {
+        InetAddress address = null;
+        for (int i = 0; i < 10; i++) {
+            // Try a few times to get the public ip address
+            // We do this because for some reason, if we've just restored
+            // connectivity and gotten a connected event, connecting to the
+            // geo service to do an IP lookup sometimes fails.
+            try {
+                // Back off a little on each try
+                Thread.sleep(i * i * 100);
+            } catch (InterruptedException ie) {
+                // ignore
+            }
+            address = new PublicIpAddress().getPublicIpAddress();
+            if (address != null) {
+                break;
+            }
+        }
+
+        this.model.getConnectivity().setIp(
+                address != null ? address.getHostAddress() : null);
+        if (address == null) {
+            throw new ConnectException("Could not determine public IP");
+        }
+
+        handleCensored(address);
+        handleGeoIp(address);
+
+        // Post PublicIpEvent so that downstream services like xmpp,
+        // FriendsHandler, StatsManager and Loggly can start.
+        Events.asyncEventBus().post(new PublicIpEvent());
     }
 
     private void handleGeoIp(final InetAddress address) {
