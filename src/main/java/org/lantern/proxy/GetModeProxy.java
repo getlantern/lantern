@@ -2,10 +2,9 @@ package org.lantern.proxy;
 
 import java.util.Properties;
 
-import org.lantern.ConnectivityStatus;
 import org.lantern.S3Config;
 import org.lantern.event.Events;
-import org.lantern.event.ProxyConnectionEvent;
+import org.lantern.event.ProxyConnectedEvent;
 import org.lantern.proxy.pt.Flashlight;
 import org.lantern.state.Model;
 import org.slf4j.Logger;
@@ -41,7 +40,7 @@ public class GetModeProxy extends AbstractHttpProxyServerAdapter {
     synchronized public void start() {
         fl.startStandaloneClient();
         fl.addFallbackProxies(model.getS3Config().getFallbacks());
-        Events.asyncEventBus().post(new ProxyConnectionEvent(ConnectivityStatus.CONNECTED));
+        Events.asyncEventBus().post(new ProxyConnectedEvent());
     }
     
     @Override

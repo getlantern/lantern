@@ -21,7 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.lantern.browser.BrowserService;
 import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
-import org.lantern.event.ProxyConnectionEvent;
+import org.lantern.event.ProxyConnectedEvent;
 import org.lantern.event.QuitEvent;
 import org.lantern.event.UpdateEvent;
 import org.lantern.state.Mode;
@@ -269,14 +269,13 @@ public class SystemTrayImpl implements org.lantern.SystemTray {
     }
 
     @Subscribe
-    public void onConnectivityStateChanged(final ProxyConnectionEvent csce) {
-        final ConnectivityStatus cs = csce.getConnectivityStatus();
-        log.debug("Received connectivity state changed: {}", cs);
+    public void onConnectivityStateChanged(final ProxyConnectedEvent csce) {
+        log.debug("Proxy connected");
         if (!this.model.getSettings().isUiEnabled()) {
             log.info("Ignoring event with UI disabled");
             return;
         }
-        onConnectivityStatus(cs);
+        onConnectivityStatus(ConnectivityStatus.CONNECTED);
     }
 
     @Subscribe

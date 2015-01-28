@@ -5,7 +5,7 @@ import java.net.InetAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.lantern.event.Events;
-import org.lantern.event.ProxyConnectionEvent;
+import org.lantern.event.ProxyConnectedEvent;
 import org.lantern.event.PublicIpEvent;
 import org.lantern.geoip.GeoIpLookupService;
 import org.lantern.state.Location;
@@ -37,6 +37,8 @@ public class PublicIpInfoHandler {
     private final Censored censored;
     private final GeoIpLookupService geoIpLookupService;
     private final AtomicBoolean recheck = new AtomicBoolean(true);
+    private volatile boolean proxyConnected = false;
+    private volatile boolean internetConnected = false;
     
     @Inject
     public PublicIpInfoHandler(final Model model, final Censored censored,
@@ -77,9 +79,19 @@ public class PublicIpInfoHandler {
     
     @Subscribe
     public void onConnectivityChanged(final ConnectivityChangedEvent event) {
-        // Make sure we re-check your public IP after any change in 
-        // connectivity.
+        log.debug("Got ConnectivityChangedEvent");
+        
+        // Always force a recheck when connectivity changed.
         this.recheck.set(true);
+        
+        boolean proxyConnected;
+        boolean internetConnected;
+        synchronized (this) {
+            proxyConnected = this.proxyConnected;
+            this.internetConnected = internetConnected = event.isConnected();
+        }
+
+        this.determinePublicIpIfPossible(proxyConnected, internetConnected);
     }
     
     /**
@@ -91,25 +103,32 @@ public class PublicIpInfoHandler {
      * @param pce The connection event.
      */
     @Subscribe
-    public void onProxyConnectionEvent(
-        final ProxyConnectionEvent pce) {
-        final ConnectivityStatus stat = pce.getConnectivityStatus();
-        switch (stat) {
-        case CONNECTED:
-            log.debug("Got connected event");
+    public void onProxyConnectedEvent(ProxyConnectedEvent pce) {
+        log.debug("Got ProxyConnectedEvent");
+        
+        boolean proxyConnected;
+        boolean internetConnected;
+        synchronized (this) {
+            this.proxyConnected = proxyConnected = true;
+            internetConnected = this.internetConnected;
+        }
+
+        this.determinePublicIpIfPossible(proxyConnected, internetConnected);
+    }
+    
+    private void determinePublicIpIfPossible(
+            boolean proxyConnected,
+            boolean internetConnected) {
+        if (proxyConnected && internetConnected) {
+            log.debug("Determining public ip");
             try {
                 determinePublicIp();
             } catch (final ConnectException e) {
                 log.warn("Could not get public IP?", e);
             }
-            break;
-        case CONNECTING:
-            break;
-        case DISCONNECTED:
-            break;
-        default:
-            break;
-        
+        } else {
+            log.debug("Not determining public ip. proxyConnected: {}   internetConnected: {}",
+                    proxyConnected, internetConnected);
         }
     }
 

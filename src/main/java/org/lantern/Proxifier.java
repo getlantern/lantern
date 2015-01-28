@@ -8,7 +8,7 @@ import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.lantern.event.Events;
 import org.lantern.event.ModeChangedEvent;
-import org.lantern.event.ProxyConnectionEvent;
+import org.lantern.event.ProxyConnectedEvent;
 import org.lantern.event.QuitEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.event.SetupCompleteEvent;
@@ -66,7 +66,7 @@ public class Proxifier implements ProxyService, LanternService {
 
     private final Model model;
 
-    private ProxyConnectionEvent lastProxyConnectionEvent;
+    private ProxyConnectedEvent lastProxyConnectionEvent;
 
     @Inject 
     public Proxifier(final MessageService messageService,
@@ -108,9 +108,9 @@ public class Proxifier implements ProxyService, LanternService {
         LOG.debug("Got setup complete!");
         if (this.lastProxyConnectionEvent != null) {
             LOG.debug("Re-firing last proxy connection event...");
-            onProxyConnectionEvent(this.lastProxyConnectionEvent);
+            onProxyConnectedEvent(this.lastProxyConnectionEvent);
         } else {
-            LOG.debug("No proxy connection event to refire{}", 
+            LOG.debug("No proxy connection event to refire {}", 
                 this.lastProxyConnectionEvent);
         }
     }
@@ -138,30 +138,11 @@ public class Proxifier implements ProxyService, LanternService {
      * @param pce The proxy connection event.
      */
     @Subscribe
-    public synchronized void onProxyConnectionEvent(
-        final ProxyConnectionEvent pce) {
+    public synchronized void onProxyConnectedEvent(
+            final ProxyConnectedEvent pce) {
         this.lastProxyConnectionEvent = pce;
-        final ConnectivityStatus stat = pce.getConnectivityStatus();
-        switch (stat) {
-        case CONNECTED:
-            LOG.debug("Got connected event");
-            proxyWithChecks();
-            break;
-        case CONNECTING:
-            LOG.debug("Got connecting event");
-            break;
-        case DISCONNECTED:
-            LOG.debug("Got disconnected event");
-            try {
-                stopProxying();
-            } catch (final ProxyConfigurationError e) {
-                LOG.warn("Could not unproxy?", e);
-            }
-            break;
-        default:
-            break;
-        
-        }
+        LOG.debug("Got connected event");
+        proxyWithChecks();
     }
     
     /**

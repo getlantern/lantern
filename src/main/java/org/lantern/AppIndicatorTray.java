@@ -3,11 +3,10 @@ package org.lantern;
 import java.io.File;
 import java.util.Map;
 
-import org.apache.commons.lang3.SystemUtils;
 import org.lantern.browser.BrowserService;
 import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
-import org.lantern.event.ProxyConnectionEvent;
+import org.lantern.event.ProxyConnectedEvent;
 import org.lantern.event.QuitEvent;
 import org.lantern.linux.AppIndicator;
 import org.lantern.linux.Glib;
@@ -258,10 +257,9 @@ public class AppIndicatorTray implements SystemTray {
     }
 
     @Subscribe
-    public void onConnectivityStateChanged(final ProxyConnectionEvent csce) {
-        final ConnectivityStatus cs = csce.getConnectivityStatus();
-        LOG.debug("Got connectivity state changed {}", cs);
-        onConnectivityStatus(cs);
+    public void onConnectivityStateChanged(final ProxyConnectedEvent csce) {
+        LOG.debug("Got ProxyConnectedEvent");
+        onConnectivityStatus(ConnectivityStatus.CONNECTED);
     }
     
     @Subscribe
