@@ -32,7 +32,7 @@ var (
 
 	dialTimeout    = 3 * time.Second // how long to wait on connecting to host
 	requestTimeout = 6 * time.Second // how long to wait for test requests to process
-	proxyAttempts  = 3               // how many times to try a test request before considering host down
+	proxyAttempts  = 1               // how many times to try a test request before considering host down
 
 	// Sites to use for testing connectivity. WARNING - these should only be
 	// sites with consistent fast response times, around the world, otherwise
@@ -374,10 +374,10 @@ func (h *host) isAbleToProxy() (bool, bool, error) {
 }
 
 func (h *host) doIsAbleToProxy() (bool, bool, error) {
-	// First just try a plain TCP connection. This is useful because the underlying
-	// TCP-level error is consumed in the flashlight layer, and we need that
-	// to be accessible on the client side in the logic for deciding whether
-	// or not to display the port mapping message.
+	// First just try a plain TCP connection. This is useful because the
+	// underlying TCP-level error is consumed in the flashlight layer, and we
+	// need that to be accessible on the client side in the logic for deciding
+	// whether or not to display the port mapping message.
 	addr := h.ip + ":443"
 	conn, err := net.DialTimeout("tcp", addr, dialTimeout)
 	if err != nil {
