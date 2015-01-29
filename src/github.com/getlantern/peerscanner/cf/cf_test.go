@@ -3,6 +3,7 @@ package cf
 import (
 	"net/http"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/getlantern/fdcount"
@@ -41,6 +42,10 @@ func TestRegister(t *testing.T) {
 		DisableKeepAlives: true,
 	}
 	rec, err := u.Register("cf-test-entry", "127.0.0.1")
+	if err != nil && strings.Contains(err.Error(), "The record already exists.") {
+		// Duplicates are okay
+		err = nil
+	}
 	if assert.NoError(t, err, "Should be able to register") {
 		err := u.DestroyRecord(rec)
 		assert.NoError(t, err, "Should be able to destroy record")
