@@ -407,7 +407,7 @@
       </div>
     </div>
     <button id="continueFromFriends" class="btn btn-primary"
-      ng-click="interaction(INTERACTION.continue)">{{ model.setupComplete && 'CLOSE' || 'CONTINUE' | translate }}</button>
+      ng-click="interaction(INTERACTION.continue)">{{ (model.setupComplete && 'CLOSE' || 'CONTINUE') | translate }}</button>
   </div>
 </div>
 
@@ -659,7 +659,7 @@
           </div>
         </div>
         <dt ng-if="model.localLanterns.length > 0">{{ 'LOCAL_LANTERNS' | translate }}</dt>
-        <dd id="local-lanterns-list">
+        <dd ng-if="model.localLanterns.length > 0" id="local-lanterns-list">
         <a ng-repeat="n in model.localLanterns" ng-click="openExternal(n)" class="local-lantern-link">
             {{n}}<sup><i class="icon-external-link"></i></sup>
         </a>
