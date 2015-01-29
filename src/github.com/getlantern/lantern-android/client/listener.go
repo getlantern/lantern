@@ -8,8 +8,8 @@ import (
 var (
 	// ErrCouldNotCreateListener is returned when newListener fails.
 	ErrCouldNotCreateListener = errors.New(`Could not create new listener.`)
-	// ErrClosed is returned when the server is closed.
-	ErrClosed = errors.New(`Server was manually closed.`)
+	// errListenerClosed is returned when the server is closed.
+	errListenerClosed = errors.New(`Server was manually closed.`)
 )
 
 // Listener is a wrapper around net.TCPListener that attempts to provide a
@@ -47,7 +47,7 @@ func (li *listener) Accept() (net.Conn, error) {
 	for {
 		select {
 		case <-li.closed:
-			return nil, ErrClosed
+			return nil, errListenerClosed
 		default:
 			return li.TCPListener.Accept()
 		}

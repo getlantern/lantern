@@ -24,13 +24,13 @@ type config struct {
 }
 
 var (
-	// ErrFailedConfigRequest is returned when the server replies with a non-200
+	// errFailedConfigRequest is returned when the server replies with a non-200
 	// status code to our request for a configuration file.
-	ErrFailedConfigRequest = errors.New(`Could not get configuration file.`)
+	errFailedConfigRequest = errors.New(`Could not get configuration file.`)
 
-	// ErrInvalidConfiguration is returned in case the configuration file is
+	// errInvalidConfiguration is returned in case the configuration file is
 	// downloaded but has no useful data.
-	ErrInvalidConfiguration = errors.New(`Invalid configuration file.`)
+	errInvalidConfiguration = errors.New(`Invalid configuration file.`)
 )
 
 const (
@@ -51,7 +51,7 @@ func pullConfigFile() ([]byte, error) {
 
 	// Expecting 200 OK
 	if res.StatusCode != http.StatusOK {
-		return nil, ErrFailedConfigRequest
+		return nil, errFailedConfigRequest
 	}
 
 	// Using a gzip reader as we're getting a compressed file.
@@ -98,7 +98,7 @@ func getConfig() (*config, error) {
 		return &cfg, nil
 	}
 
-	return defaultConfig(), ErrInvalidConfiguration
+	return defaultConfig(), errInvalidConfiguration
 }
 
 func (c *config) getTrustedCerts() []string {
