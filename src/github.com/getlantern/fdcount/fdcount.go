@@ -99,16 +99,16 @@ func lsofDelta(start string, end string) string {
 	}
 
 	result := ""
-	if len(a) > 0 {
-		result = fmt.Sprintf("New file descriptors\n-----------------------------\n%v\n",
-			strings.Join(a, "\n"))
-	}
 	if len(r) > 0 {
-		if len(a) > 0 {
+		result = fmt.Sprintf("Removed file descriptors\n-----------------------------\n%v\n",
+			strings.Join(r, "\n"))
+	}
+	if len(a) > 0 {
+		if len(r) > 0 {
 			result = result + "\n"
 		}
-		result = fmt.Sprintf("%sRemoved file descriptors\n-----------------------------\n%v\n",
-			result, strings.Join(r, "\n"))
+		result = fmt.Sprintf("%sNew file descriptors\n-----------------------------\n%v\n",
+			result, strings.Join(a, "\n"))
 	}
 	return result
 }

@@ -44,10 +44,18 @@ func TestTCP(t *testing.T) {
 	err = fdc.AssertDelta(1)
 	assert.NoError(t, err, "Ending TCP count should be 1")
 
+	err = fdc.AssertDelta(0)
+	if assert.Error(t, err, "Asserting wrong count should fail") {
+		assert.Contains(t, err.Error(), "Expected 0, have 1")
+		assert.Contains(t, err.Error(), "New")
+		assert.True(t, len(err.Error()) > 100)
+	}
+
 	l.Close()
 	err = middle.AssertDelta(0)
 	if assert.Error(t, err, "Asserting wrong count should fail") {
 		assert.Contains(t, err.Error(), "Expected 0, have -1")
+		assert.Contains(t, err.Error(), "Removed")
 		assert.True(t, len(err.Error()) > 100)
 	}
 }
