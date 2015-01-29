@@ -9,7 +9,7 @@ const (
 	listenAddr = "127.0.0.1:9298"
 )
 
-var ln *Listener
+var ln *listener
 
 func TestListenerSpawn(t *testing.T) {
 	var err error

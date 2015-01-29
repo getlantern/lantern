@@ -36,7 +36,7 @@ type Client struct {
 	Addr string
 
 	frontedServers []*frontedServer
-	ln             *Listener
+	ln             *listener
 
 	rpCh          chan *httputil.ReverseProxy
 	rpInitialized bool

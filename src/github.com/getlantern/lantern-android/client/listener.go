@@ -14,13 +14,13 @@ var (
 
 // Listener is a wrapper around net.TCPListener that attempts to provide a
 // Stop() function.
-type Listener struct {
+type listener struct {
 	*net.TCPListener
 	closed chan bool
 }
 
 // NewListener creates a wrapper around TCPListener
-func NewListener(addr string) (wrap *Listener, err error) {
+func NewListener(addr string) (wrap *listener, err error) {
 	var li net.Listener
 	var tli *net.TCPListener
 
@@ -34,7 +34,7 @@ func NewListener(addr string) (wrap *Listener, err error) {
 		return nil, ErrCouldNotCreateListener
 	}
 
-	wrap = &Listener{
+	wrap = &listener{
 		TCPListener: tli,
 		closed:      make(chan bool),
 	}
@@ -43,7 +43,7 @@ func NewListener(addr string) (wrap *Listener, err error) {
 }
 
 // Accept returns the next connection to the listener.
-func (li *Listener) Accept() (net.Conn, error) {
+func (li *listener) Accept() (net.Conn, error) {
 	for {
 		select {
 		case <-li.closed:
@@ -56,7 +56,7 @@ func (li *Listener) Accept() (net.Conn, error) {
 
 // Stop makees the listener stop accepting new connections and then kills all
 // active connections.
-func (li *Listener) Stop() error {
+func (li *listener) Stop() error {
 	close(li.closed)
 	li.Close()
 	return nil
