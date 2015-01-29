@@ -24,6 +24,7 @@ try {
 * [Android Studio][3]
 * [Go 1.4][4]
 * [GNUMake][6]
+* [Mercurial][7]: You can try installing it with `brew` or `macports`.
 
 ### Setting up a development environment
 
@@ -63,6 +64,15 @@ make
 The `make` command will create a new `app` subdirectory that will contain an
 Android example project. You may import the contents of the `app` subdirectory
 into Android Studio to see libflashlight working.
+
+If you're on a Mac, be sure to export docker's enviromental variables before
+running `make`:
+
+```
+$(boot2docker shellinit)
+
+make
+```
 
 ## Testing the example project
 
@@ -230,3 +240,4 @@ the app.
 [4]: http://golang.org/
 [5]: https://github.com/getlantern/flashlight-build
 [6]: http://www.gnu.org/software/make/
+[7]: http://mercurial.selenic.com/wiki/Download
