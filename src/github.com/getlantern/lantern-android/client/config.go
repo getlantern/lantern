@@ -20,7 +20,7 @@ type clientCfg struct {
 // Config provides client configuration.
 type Config struct {
 	Client     clientCfg `yaml:"client"`
-	TrustedCAs []*CA     `yaml:"trustedcas"`
+	TrustedCAs []*ca     `yaml:"trustedcas"`
 }
 
 var (
