@@ -45,8 +45,15 @@ func init() {
 	go func() {
 		for {
 			time.Sleep(5 * time.Second)
-			log.Debugf(
-				`
+			DumpConnTrace()
+		}
+	}()
+}
+
+// DumpConnTrace dumps connection tracing information to the debug log.
+func DumpConnTrace() {
+	log.Debugf(
+		`
 ---- Enproxy Connections----
 Open:                      %4d
 Closing:                   %4d
@@ -74,33 +81,31 @@ Writing:                   %4d
 Requesting:                %4d
 Requesting Finishing:      %4d
 `, atomic.LoadInt32(&open),
-				atomic.LoadInt32(&closing),
-				atomic.LoadInt32(&blockedOnClosing),
-				atomic.LoadInt32(&blockedOnRead),
-				atomic.LoadInt32(&reading),
-				atomic.LoadInt32(&readingFinishing),
-				atomic.LoadInt32(&blockedOnWrite),
-				atomic.LoadInt32(&writing),
-				atomic.LoadInt32(&writingSelecting),
-				atomic.LoadInt32(&writingWriting),
-				atomic.LoadInt32(&writePipeOpen),
-				atomic.LoadInt32(&writingRequestPending),
-				atomic.LoadInt32(&writingSubmittingRequest),
-				atomic.LoadInt32(&writingProcessingRequest),
-				atomic.LoadInt32(&writingProcessingRequestPostingRequestFinished),
-				atomic.LoadInt32(&writingProcessingRequestPostingResponse),
-				atomic.LoadInt32(&writingProcessingRequestDialingFirst),
-				atomic.LoadInt32(&writingProcessingRequestRedialing),
-				atomic.LoadInt32(&writingDoingWrite),
-				atomic.LoadInt32(&writingPostingResponse),
-				atomic.LoadInt32(&writingWritingEmpty),
-				atomic.LoadInt32(&writingFinishingBody),
-				atomic.LoadInt32(&writingFinishing),
-				atomic.LoadInt32(&requesting),
-				atomic.LoadInt32(&requestingFinishing),
-			)
-		}
-	}()
+		atomic.LoadInt32(&closing),
+		atomic.LoadInt32(&blockedOnClosing),
+		atomic.LoadInt32(&blockedOnRead),
+		atomic.LoadInt32(&reading),
+		atomic.LoadInt32(&readingFinishing),
+		atomic.LoadInt32(&blockedOnWrite),
+		atomic.LoadInt32(&writing),
+		atomic.LoadInt32(&writingSelecting),
+		atomic.LoadInt32(&writingWriting),
+		atomic.LoadInt32(&writePipeOpen),
+		atomic.LoadInt32(&writingRequestPending),
+		atomic.LoadInt32(&writingSubmittingRequest),
+		atomic.LoadInt32(&writingProcessingRequest),
+		atomic.LoadInt32(&writingProcessingRequestPostingRequestFinished),
+		atomic.LoadInt32(&writingProcessingRequestPostingResponse),
+		atomic.LoadInt32(&writingProcessingRequestDialingFirst),
+		atomic.LoadInt32(&writingProcessingRequestRedialing),
+		atomic.LoadInt32(&writingDoingWrite),
+		atomic.LoadInt32(&writingPostingResponse),
+		atomic.LoadInt32(&writingWritingEmpty),
+		atomic.LoadInt32(&writingFinishingBody),
+		atomic.LoadInt32(&writingFinishing),
+		atomic.LoadInt32(&requesting),
+		atomic.LoadInt32(&requestingFinishing),
+	)
 }
 
 // Increment a metric

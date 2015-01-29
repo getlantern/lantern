@@ -128,7 +128,9 @@ func doTestPlainText(buffered bool, t *testing.T) {
 	defer func() {
 		err := conn.Close()
 		assert.Nil(t, err, "Closing conn should succeed")
-		assert.NoError(t, counter.AssertDelta(2), "All file descriptors except the connection from proxy to destination site should have been closed")
+		if !assert.NoError(t, counter.AssertDelta(2), "All file descriptors except the connection from proxy to destination site should have been closed") {
+			DumpConnTrace()
+		}
 	}()
 
 	doRequests(conn, t)
@@ -159,7 +161,9 @@ func doTestTLS(buffered bool, t *testing.T) {
 	defer func() {
 		err := conn.Close()
 		assert.Nil(t, err, "Closing conn should succeed")
-		assert.NoError(t, counter.AssertDelta(2), "All file descriptors except the connection from proxy to destination site should have been closed")
+		if !assert.NoError(t, counter.AssertDelta(2), "All file descriptors except the connection from proxy to destination site should have been closed") {
+			DumpConnTrace()
+		}
 	}()
 
 	err = tlsConn.Handshake()
