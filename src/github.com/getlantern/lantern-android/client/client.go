@@ -45,13 +45,6 @@ type Client struct {
 	balCh          chan *balancer.Balancer
 }
 
-// AddFrontedServer adds a fronted server to the list.
-func (client *Client) AddFrontedServer(fs *frontedServer) error {
-	client.frontedServers = append(client.frontedServers, fs)
-	// TODO: Find the best way to add this server to the balancer list.
-	return nil
-}
-
 // NewClient creates a proxy client.
 func NewClient(addr string) *Client {
 	client := &Client{Addr: addr}
@@ -63,7 +56,7 @@ func NewClient(addr string) *Client {
 	// Adding fronted servers.
 	for _, fs := range clientConfig.Client.FrontedServers {
 		log.Printf("Adding %s:%d.", fs.Host, fs.Port)
-		client.AddFrontedServer(&fs)
+		client.frontedServers = append(client.frontedServers, &fs)
 	}
 
 	// Starting up balancer.
