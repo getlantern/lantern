@@ -7402,6 +7402,7 @@ body[dir=rtl] #friendlist .entry .btn-group {
 }
 #friendlist .vcard {
   max-width: 460px;
+  margin-left: 15px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -7429,6 +7430,11 @@ body[dir=rtl] #friendlist .vcard {
   -webkit-transition: all 0.3s ease;
   transition: all 0.3s ease;
 }
+
+#friendlist .friendConnectedStatus {
+    margin-left: 15px;
+}
+
 body.getMode #friendlist .coloredByConnectedStatus.transferringNow {
   background-color: #fffced;
 }
