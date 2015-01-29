@@ -14,7 +14,7 @@ var ln *listener
 func TestListenerSpawn(t *testing.T) {
 	var err error
 
-	if ln, err = NewListener(listenAddr); err != nil {
+	if ln, err = newListener(listenAddr); err != nil {
 		t.Fatal(err)
 	}
 
@@ -55,7 +55,7 @@ func TestListenerRejectedConn(t *testing.T) {
 func TestListenerRespawn(t *testing.T) {
 	var err error
 
-	if _, err = NewListener(listenAddr); err != nil {
+	if _, err = newListener(listenAddr); err != nil {
 		t.Fatal(err)
 	}
 }

@@ -13,7 +13,7 @@ func TestConfigDownload(t *testing.T) {
 }
 
 func TestConfigParse(t *testing.T) {
-	var cfg *Config
+	var cfg *config
 	var err error
 
 	if cfg, err = getConfig(); err != nil {

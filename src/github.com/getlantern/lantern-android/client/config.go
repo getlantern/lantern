@@ -17,8 +17,8 @@ type clientCfg struct {
 	MasqueradeSets map[string][]*fronted.Masquerade `yaml:"masqueradesets"`
 }
 
-// Config provides client configuration.
-type Config struct {
+// config provides client configuration.
+type config struct {
 	Client     clientCfg `yaml:"client"`
 	TrustedCAs []*ca     `yaml:"trustedcas"`
 }
@@ -65,8 +65,8 @@ func pullConfigFile() ([]byte, error) {
 }
 
 // defaultConfig returns the embedded configuration.
-func defaultConfig() *Config {
-	cfg := &Config{
+func defaultConfig() *config {
+	cfg := &config{
 		Client: clientCfg{
 			FrontedServers: defaultFrontedServerList,
 			MasqueradeSets: defaultMasqueradeSets,
@@ -77,11 +77,11 @@ func defaultConfig() *Config {
 }
 
 // getConfig attempts to provide a
-func getConfig() (*Config, error) {
+func getConfig() (*config, error) {
 	var err error
 	var buf []byte
 
-	var cfg Config
+	var cfg config
 
 	// Attempt to download configuration file.
 	if buf, err = pullConfigFile(); err != nil {
@@ -101,7 +101,7 @@ func getConfig() (*Config, error) {
 	return defaultConfig(), ErrInvalidConfiguration
 }
 
-func (c *Config) getTrustedCerts() []string {
+func (c *config) getTrustedCerts() []string {
 	certs := make([]string, 0, len(c.TrustedCAs))
 
 	for _, ca := range c.TrustedCAs {
@@ -111,7 +111,7 @@ func (c *Config) getTrustedCerts() []string {
 	return certs
 }
 
-func (c *Config) getTrustedCertPool() (certPool *x509.CertPool, err error) {
+func (c *config) getTrustedCertPool() (certPool *x509.CertPool, err error) {
 	trustedCerts := c.getTrustedCerts()
 
 	if certPool, err = keyman.PoolContainingCerts(trustedCerts...); err != nil {

@@ -18,7 +18,7 @@ const (
 )
 
 // clientConfig holds global configuration settings for all clients.
-var clientConfig *Config
+var clientConfig *config
 
 // init attempts to setup client configuration.
 func init() {
@@ -88,7 +88,7 @@ func (client *Client) ListenAndServe() (err error) {
 		addr = ":http"
 	}
 
-	if client.ln, err = NewListener(addr); err != nil {
+	if client.ln, err = newListener(addr); err != nil {
 		return err
 	}
 
