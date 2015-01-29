@@ -17,9 +17,8 @@ const listenProxyAddr = "127.0.0.1:9997"
 var globalClient *Client
 
 var testURLs = map[string][]byte{
-	"http://www.google.com/humans.txt": []byte("Google is built by a large team of engineers, designers, researchers, robots, and others in many different sites across the globe. It is updated continuously, and built with more tools and technologies than we can shake a stick at. If you'd like to help us out, see google.com/careers.\n"),
-	// TODO: This is not working, we actually need to implement a CONNECT request to proxy HTTPs traffic.
-	// "https://www.google.com/humans.txt": []byte("Google is built by a large team of engineers, designers, researchers, robots, and others in many different sites across the globe. It is updated continuously, and built with more tools and technologies than we can shake a stick at. If you'd like to help us out, see google.com/careers.\n"),
+	"http://www.google.com/humans.txt":  []byte("Google is built by a large team of engineers, designers, researchers, robots, and others in many different sites across the globe. It is updated continuously, and built with more tools and technologies than we can shake a stick at. If you'd like to help us out, see google.com/careers.\n"),
+	"https://www.google.com/humans.txt": []byte("Google is built by a large team of engineers, designers, researchers, robots, and others in many different sites across the globe. It is updated continuously, and built with more tools and technologies than we can shake a stick at. If you'd like to help us out, see google.com/careers.\n"),
 }
 
 // Attempt to create a server in a goroutine and stop it from other place.
@@ -91,36 +90,18 @@ func TestCloseClient(t *testing.T) {
 	}
 }
 
-func testReverseProxy(uri string, expectedContent []byte) (err error) {
+func testReverseProxy(destURL string, expectedContent []byte) (err error) {
 	var req *http.Request
-	var u *url.URL
 
-	if u, err = url.Parse(uri); err != nil {
+	if req, err = http.NewRequest("GET", destURL, nil); err != nil {
 		return err
-	}
-
-	port := 80
-
-	if u.Scheme == "https" {
-		// TODO: implement a CONNECT request.
-	}
-
-	req = &http.Request{
-		Method: "GET",
-		URL: &url.URL{
-			Scheme: u.Scheme,
-			Host:   u.Host,
-			Path:   uri,
-		},
-		ProtoMajor: 1,
-		ProtoMinor: 1,
-		Header: http.Header{
-			"Host": {fmt.Sprintf("%s:%d", u.Host, port)},
-		},
 	}
 
 	client := &http.Client{
 		Transport: &http.Transport{
+			Proxy: func(req *http.Request) (*url.URL, error) {
+				return url.Parse(listenProxyAddr)
+			},
 			Dial: func(n, a string) (net.Conn, error) {
 				return net.Dial("tcp", listenProxyAddr)
 			},
@@ -140,7 +121,7 @@ func testReverseProxy(uri string, expectedContent []byte) (err error) {
 	fmt.Printf(string(buf))
 
 	if bytes.Equal(buf, expectedContent) == false {
-		return fmt.Errorf("The response we've got from %s differs from what we expected.", uri)
+		return fmt.Errorf("The response we've got from %s differs from what we expected.", destURL)
 	}
 
 	return nil
