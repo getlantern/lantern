@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	// ErrCouldNotCreateListener is returned when NewListener fails.
+	// ErrCouldNotCreateListener is returned when newListener fails.
 	ErrCouldNotCreateListener = errors.New(`Could not create new listener.`)
 	// ErrClosed is returned when the server is closed.
 	ErrClosed = errors.New(`Server was manually closed.`)
@@ -19,8 +19,8 @@ type listener struct {
 	closed chan bool
 }
 
-// NewListener creates a wrapper around TCPListener
-func NewListener(addr string) (wrap *listener, err error) {
+// newListener creates a wrapper around TCPListener
+func newListener(addr string) (wrap *listener, err error) {
 	var li net.Listener
 	var tli *net.TCPListener
 
