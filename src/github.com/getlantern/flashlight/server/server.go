@@ -28,15 +28,25 @@ const (
 )
 
 var (
-	log = golog.LoggerFor("flashlight.server")
+	log               = golog.LoggerFor("flashlight.server")
+	frontingProviders = map[string]func(*http.Request) bool{
+		"cloudflare": func(req *http.Request) bool {
+			return len(req.Header["CF-Connecting-IP"]) != 0
+		},
+		"cloudfront": func(req *http.Request) bool {
+			h := req.Header["User-Agent"]
+			return len(h) == 1 && h[0] == "Amazon CloudFront"
+		},
+	}
 )
 
 type Server struct {
 	// Addr: listen address in form of host:port
 	Addr string
 
-	// Host: FQDN that is guaranteed to hit this server
-	Host string
+	// HostFn: Function mapping a http.Request to a FQDN that is guaranteed to
+	// hit this server through the same front as the request.
+	HostFn func(*http.Request) string
 
 	// ReadTimeout: (optional) timeout for read ops
 	ReadTimeout time.Duration
@@ -101,17 +111,17 @@ func (server *Server) Configure(newCfg *ServerConfig) {
 		}
 	}
 
+	if newCfg.FrontFQDNs != nil {
+		server.HostFn = hostFn(newCfg.FrontFQDNs)
+	}
 	server.cfg = newCfg
 }
 
 func (server *Server) ListenAndServe() error {
-	if server.Host != "" {
-		log.Debugf("Running as host %s", server.Host)
-	}
 
 	fs := &fronted.Server{
 		Addr:                       server.Addr,
-		Host:                       server.Host,
+		HostFn:                     server.HostFn,
 		ReadTimeout:                server.ReadTimeout,
 		WriteTimeout:               server.WriteTimeout,
 		CertContext:                server.CertContext,
@@ -269,5 +279,29 @@ func onBytesGiven(destAddr string, req *http.Request, bytes int64) {
 			givenTo.Member("distinctClients", clientIp)
 		}
 
+	}
+}
+
+func hostFn(fqdns map[string]string) func(*http.Request) string {
+	// We prefer to use the fronting provider through which we have been reached,
+	// because we expect that to be unblocked, but if something goes wrong (e.g. in
+	// old give mode peers) we'll use just any configured host.
+	return func(req *http.Request) string {
+		var fqdn string
+		for provider, fn := range frontingProviders {
+			if fn(req) {
+				fqdn = fqdns[provider]
+				break
+			}
+		}
+		if fqdn == "" {
+			// We don't know about this provider... for backwards
+			// compatibility, let's try just any of the supplied FQDNs.
+			log.Debugf("Falling back to just any FQDN")
+			for _, fqdn = range fqdns {
+				break
+			}
+		}
+		return fqdn
 	}
 }
