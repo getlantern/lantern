@@ -242,10 +242,10 @@ Identify the port number your emulator is listening to
 
 ![screen shot 2015-01-30 at 6 40 52 pm](https://cloud.githubusercontent.com/assets/385670/5985952/6afa23e2-a8b0-11e4-942a-384f483d331a.png)
 
-In this case its listening on the 5554 local port.
+In this case its listening on the `5554` local port.
 
 Open a telnet session to the emulator and write the instruction `redir add
-tcp:9192:9192` to map the emulator's 9192 port to our local 9192 port.
+tcp:9192:9192` to map the emulator's `9192` port to our local `9192` port.
 
 ```sh
 telnet 127.0.0.1 5554
@@ -259,7 +259,7 @@ redir add tcp:9192:9192
 ```
 
 Now you'll be able to connect to the emulator's flashlight proxy through your
-local 9192 port:
+local `9192` port:
 
 ```sh
 curl -x 127.0.0.1:9192 https://www.google.com/humans.txt
