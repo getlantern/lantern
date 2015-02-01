@@ -42,7 +42,7 @@ Usage of flashlight:
   -parentpid=0: the parent process's PID, used on Windows for killing flashlight when the parent disappears
   -portmap=0: try to map this port on the firewall to the port on which flashlight is listening, using UPnP or NAT-PMP. If mapping this port fails, flashlight will exit with status code 50
   -role="": either 'client' or 'server' (required)
-  -server="": FQDN of flashlight server when running in server mode (required)
+  -frontfqdns="": YAML string representing a map from the name of each front provider to a FQDN that will reach this particular server via that provider (e.g. '{cloudflare: fl-001.getiantem.org, cloudfront: blablabla.cloudfront.net}')
   -statsaddr="": host:port at which to make detailed stats available using server-sent events (optional)
   -statshub="pure-journey-3547.herokuapp.com": address of statshub server
   -statsperiod=0: time in seconds to wait between reporting stats. If not specified, stats are not reported. If specified, statshub, instanceid and statsaddr must also be specified.

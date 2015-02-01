@@ -27,7 +27,7 @@ var (
 	cpuprofile    = flag.String("cpuprofile", "", "write cpu profile to given file")
 	memprofile    = flag.String("memprofile", "", "write heap profile to given file")
 	portmap       = flag.Int("portmap", 0, "try to map this port on the firewall to the port on which flashlight is listening, using UPnP or NAT-PMP. If mapping this port fails, flashlight will exit with status code 50")
-	frontFQDNs    = flag.String("frontfqdns", "", "YAML string representing a map from each front provider to a FQDN that will reach this particular server via that provider")
+	frontFQDNs    = flag.String("frontfqdns", "", "YAML string representing a map from the name of each front provider to a FQDN that will reach this particular server via that provider (e.g. '{cloudflare: fl-001.getiantem.org, cloudfront: blablabla.cloudfront.net}')")
 	waddelladdr   = flag.String("waddelladdr", "", "if specified, connect to this waddell server and process NAT traversal requests inbound from waddell")
 	waddellcert   = flag.String("waddellcert", "", "if specified, use this cert (PEM-encoded) to authenticate connections to waddell.  Otherwise, a default certificate is used.")
 )
