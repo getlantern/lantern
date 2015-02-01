@@ -295,25 +295,24 @@ func onBytesGiven(destAddr string, req *http.Request, bytes int64) {
 }
 
 func hostFn(fqdns map[string]string) func(*http.Request) string {
-	// We prefer to use the fronting provider through which we have been reached,
-	// because we expect that to be unblocked, but if something goes wrong (e.g. in
-	// old give mode peers) we'll use just any configured host.
+	// We prefer to use the fronting provider through which we have been
+	// reached, because we expect that to be unblocked, but if something goes
+	// wrong (e.g. in old give mode peers) we'll use just any configured host.
 	return func(req *http.Request) string {
-		var fqdn string
 		for provider, fn := range frontingProviders {
 			if fn(req) {
-				fqdn = fqdns[provider]
-				break
+				return fqdns[provider]
 			}
 		}
-		if fqdn == "" {
-			// We don't know about this provider... for backwards
-			// compatibility, let's try just any of the supplied FQDNs.
-			log.Debugf("Falling back to just any FQDN")
-			for _, fqdn = range fqdns {
-				break
-			}
+		// We don't know about this provider... for backwards
+		// compatibility, let's try just any of the supplied FQDNs.
+		log.Debugf("Falling back to just any FQDN")
+		for _, fqdn := range fqdns {
+			return fqdn
 		}
-		return fqdn
+		// should never be reached, because the client is checking for empty
+		// `-frontfqdn`s, but Go doesn't know that and insists we must return
+		// something here.
+		return ""
 	}
 }
