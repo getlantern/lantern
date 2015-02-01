@@ -30,15 +30,27 @@ const (
 var (
 	log               = golog.LoggerFor("flashlight.server")
 	frontingProviders = map[string]func(*http.Request) bool{
+		// WARNING: If you add a provider here, keep in mind that Go's http
+		// library normalizes all header names so the first letter of every
+		// dash-separated "word" is uppercase while all others are lowercase.
+		// Also, try and check more than one header to lean on the safe side.
 		"cloudflare": func(req *http.Request) bool {
-			return len(req.Header["CF-Connecting-IP"]) != 0
+			return hasHeader(req, "Cf-Connecting-Ip") || hasHeader(req, "Cf-Ipcountry") || hasHeader(req, "Cf-Ray") || hasHeader(req, "Cf-Visitor")
 		},
 		"cloudfront": func(req *http.Request) bool {
-			h := req.Header["User-Agent"]
-			return len(h) == 1 && h[0] == "Amazon CloudFront"
+			return hasHeader(req, "X-Amz-Cf-Id") || headerMatches(req, "User-Agent", "Amazon Cloudfront")
 		},
 	}
 )
+
+func headerMatches(req *http.Request, name string, value string) bool {
+	h := req.Header[name]
+	return len(h) == 1 && h[0] == value
+}
+
+func hasHeader(req *http.Request, name string) bool {
+	return req.Header[name] != nil
+}
 
 type Server struct {
 	// Addr: listen address in form of host:port
