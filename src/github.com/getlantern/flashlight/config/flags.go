@@ -107,7 +107,7 @@ func parseFrontFQDNs(frontFQDNs string) (map[string]string, error) {
 		return nil, err
 	}
 	if len(fqdns) == 0 {
-		return nil, fmt.Errorf("No -fronthosts")
+		return nil, fmt.Errorf("-frontfqdn: no entries")
 	}
 	return fqdns, nil
 }
