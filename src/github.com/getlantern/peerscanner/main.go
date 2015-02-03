@@ -158,7 +158,7 @@ func loadHosts() (map[string]*host, error) {
 
 	// Start hosts
 	for _, h := range hosts {
-		h.run()
+		go h.run()
 	}
 
 	return hosts, nil

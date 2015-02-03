@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	maxAssertAttempts = uint(7)
+	maxAssertAttempts = uint(3)
 )
 
 type Counter struct {
@@ -36,6 +36,14 @@ func Matching(s string) (int, *Counter, error) {
 	}
 	c.startingLines, c.startingCount = c.matchingLines(out)
 	return c.startingCount, c, nil
+}
+
+// Asserts that the number of file descriptors equals the given number.
+func (c *Counter) AssertCount(expected int) error {
+	if c.startingCount == expected {
+		return nil
+	}
+	return fmt.Errorf("Unexpected TCP file descriptor count. Expected %d, have %d.", expected, c.startingCount)
 }
 
 // Asserts that the number of file descriptors added/removed since Counter was

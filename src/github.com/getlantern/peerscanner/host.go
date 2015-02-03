@@ -369,6 +369,9 @@ func (h *host) isAbleToProxy() (bool, bool, error) {
 		}
 		lastErr = err
 		if success || connectionRefused {
+			// If we've succeeded, or our connection was flat-out refused, don't
+			// bother trying to proxy again
+
 			if success {
 				// Make sure that the server is reporting the correct host name for sticky
 				// routing.
@@ -376,12 +379,11 @@ func (h *host) isAbleToProxy() (bool, bool, error) {
 				defer h.reportedHostMutex.Unlock()
 				if h.reportedHost != h.fullName() {
 					success = false
-					lastErr := fmt.Errorf("Reported host of %v didn't match expected %v", h.reportedHost, h.fullName())
+					lastErr := fmt.Errorf("%v is reporting an unexpected host %v", h, h.reportedHost)
 					log.Error(lastErr.Error())
 				}
 			}
-			// If we've succeeded, or our connection was flat-out refused, don't
-			// bother trying to proxy again
+
 			return success, connectionRefused, lastErr
 		}
 	}
