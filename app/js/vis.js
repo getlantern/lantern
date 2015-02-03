@@ -296,27 +296,21 @@ angular.module('app.vis', ['ngSanitize'])
         peerItems.append("path").classed("peer-hover-area", true);
         
         // Configure points and hover areas on each update
-        allPeers.select("g.peer path.peer")
-        .style("opacity", 1)
-        .style("fill-opacity", 1);
-        if (!scope.once) {
-            allPeers.select("g.peer path.peer").attr("d", function(peer) {
-                return scope.path({type: 'Point', coordinates: [peer.lon, peer.lat]})
-            });
-            scope.once = true;
-        }
-        allPeers.select("g.peer path.peer").attr("class", function(peer) {
+        allPeers.select("g.peer path.peer").attr("d", function(peer) {
+            return scope.path({type: 'Point', coordinates: [peer.lon, peer.lat]})
+        })
+        .attr("class", function(peer) {
           var result = "peer " + peer.mode + " " + peer.type;
           if (peer.connected) {
             result += " connected";
           }
           return result;
-        }).attr("filter", "url(#defaultBlur)");
+        });
 
         // Configure hover areas for all peers
         allPeers.select("g.peer path.peer-hover-area")
         .attr("d", function(peer) {
-          return scope.path({type: 'Point', coordinates: [peer.lon, peer.lat]}, 2);
+          return scope.path({type: 'Point', coordinates: [peer.lon, peer.lat]}, 6);
         });
         
         // Add arcs for new peers
@@ -451,7 +445,7 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
           lat != '' && lon != '') {
         var d = {type: 'Point', coordinates: [lon, 
                 lat]};
-        self.setAttribute('d', path(d, 2));
+        self.setAttribute('d', path(d));
       }
   };
 
@@ -471,7 +465,7 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
        /* scale peer radius as we zoom in */
       d3.selectAll("g.peer path.peer").attr("d", function(peer) {
           var d = {type: 'Point', coordinates: [peer.lon, peer.lat]};
-          return path(d, 2);
+          return path(d);
       });
 
 
@@ -479,7 +473,7 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
       if (scale > 2) {
           $scope.filterBlur.attr("stdDeviation", Math.min(1.0, 1/scale));
       } else {
-          $scope.filterBlur.attr("stdDeviation", 1);
+          $scope.filterBlur.attr("stdDeviation", 0.8);
       }
       
   }

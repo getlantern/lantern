@@ -7807,6 +7807,7 @@ g.peer:hover path.peer {
 
 path.peer-hover-area {
   opacity: 0;
+  fill-opacity: 0;
 }
 
 #self {
