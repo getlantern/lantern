@@ -44,7 +44,7 @@ angular.module('app.services', [])
     cometd.websocketsEnabled = true;
     cometd.configure({
       url: COMETD_URL,
-      //logLevel: 'debug',
+      logLevel: 'debug',
       backoffIncrement: 100,
       maxBackoff: 500,
       // necessary to work with Faye backend when browser lacks websockets:
@@ -169,6 +169,9 @@ angular.module('app.services', [])
         model = {},
         syncSubscriptionKey;
 
+
+    $rootScope.$apply(handleSync);
+
     // XXX use modelValidatorSrvc to validate update before accepting
     function handleSync(msg) {
       var patch = msg.data;
@@ -178,38 +181,26 @@ angular.module('app.services', [])
         log.debug('ignoring', msg, 'while model has not yet been populated');
         return;
       }
-      try {
-        $rootScope.$apply(function() {
-          var shouldUpdateInstanceStats = false;
-          if (patch[0].path === '') {
-            // XXX jsonpatch can't mutate root object https://github.com/dharmafly/jsonpatch.js/issues/10
-            angular.copy(patch[0].value, model);
-          } else {
-            try {
-              applyPatch(model, patch);
-              for (var i=0; i<patch.length; i++) {
+      var shouldUpdateInstanceStats = false;
+      if (patch[0].path === '') {
+        // XXX jsonpatch can't mutate root object https://github.com/dharmafly/jsonpatch.js/issues/10
+        angular.copy(patch[0].value, model);
+      } else {
+        try {
+            applyPatch(model, patch);
+            for (var i=0; i<patch.length; i++) {
                 if (patch[i].path == "/instanceStats") {
-                  shouldUpdateInstanceStats = true;
-                  break;
+                    shouldUpdateInstanceStats = true;
+                    break;
                 }
-              }
-            } catch (e) {
-              if (!(e instanceof PatchApplyError || e instanceof InvalidPatch)) throw e;
-              log.error('Error applying patch', patch);
-              apiSrvc.exception({exception: e, patch: patch});
             }
-          }
-          flashlightStats.updateModel(model, shouldUpdateInstanceStats);
-        });
-      } catch (e) {
-        // XXX https://github.com/angular/angular.js/issues/2602
-        // XXX https://github.com/angular-ui/bootstrap/issues/407
-        if (/scrollHeight/.test(e.message)) {
-          log.debug('Swallowing "<TTL> $digest() iterations reached" error caused by https://github.com/angular-ui/bootstrap/issues/407');
-        } else {
-          throw e;
+        } catch (e) {
+            if (!(e instanceof PatchApplyError || e instanceof InvalidPatch)) throw e;
+            log.error('Error applying patch', patch);
+            apiSrvc.exception({exception: e, patch: patch});
         }
       }
+      flashlightStats.updateModel(model, shouldUpdateInstanceStats);
     }
 
     syncSubscriptionKey = {chan: MODEL_SYNC_CHANNEL, cb: handleSync};
