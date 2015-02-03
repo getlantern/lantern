@@ -279,7 +279,6 @@ angular.module('app.vis', ['ngSanitize'])
           .attr("id", peerIdentifier)
           .classed("peer", true)
           .attr("tooltip-placement", "bottom")
-          .attr("filter", "url(#defaultBlur)")
           .attr("tooltip-html-unsafe", peerTooltipTemplate)
           .each(function(peer) {
             // Compile the tooltip target dom element to enable the tooltip-html-unsafe directive
@@ -302,7 +301,7 @@ angular.module('app.vis', ['ngSanitize'])
         .style("fill-opacity", 1);
         if (!scope.once) {
             allPeers.select("g.peer path.peer").attr("d", function(peer) {
-                return scope.path({type: 'Point', coordinates: [peer.lon, peer.lat]}, 2)
+                return scope.path({type: 'Point', coordinates: [peer.lon, peer.lat]})
             });
             scope.once = true;
         }
@@ -317,7 +316,7 @@ angular.module('app.vis', ['ngSanitize'])
         // Configure hover areas for all peers
         allPeers.select("g.peer path.peer-hover-area")
         .attr("d", function(peer) {
-          return scope.path({type: 'Point', coordinates: [peer.lon, peer.lat]}, 4);
+          return scope.path({type: 'Point', coordinates: [peer.lon, peer.lat]}, 2);
         });
         
         // Add arcs for new peers
@@ -472,8 +471,7 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
        /* scale peer radius as we zoom in */
       d3.selectAll("g.peer path.peer").attr("d", function(peer) {
           var d = {type: 'Point', coordinates: [peer.lon, peer.lat]};
-          path.pointRadius(2);
-          return path(d);
+          return path(d, 2);
       });
 
 
