@@ -45,7 +45,7 @@ configuration.
 ## Installing for local testing
 
 You need to set some environment variables to connect to CloudFlare.  See
-[envvars.bash](https://github.com/getlantern/too-many-secrets/blob/master/envvars.bash).
+[envvars.bash](https://github.com/getlantern/too-few-secrets/blob/master/envvars.bash).
 
 ## Duplicate Checking
 
