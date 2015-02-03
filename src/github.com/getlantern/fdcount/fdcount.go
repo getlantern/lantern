@@ -5,6 +5,11 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
+)
+
+var (
+	maxAssertAttempts = uint(7)
 )
 
 type Counter struct {
@@ -34,8 +39,24 @@ func Matching(s string) (int, *Counter, error) {
 }
 
 // Asserts that the number of file descriptors added/removed since Counter was
-// created euqlas the given number.
+// created equals the given number.
 func (c *Counter) AssertDelta(expected int) error {
+	var err error
+
+	for try := uint(0); try < maxAssertAttempts; try++ {
+		err = c.doAssertDelta(expected)
+		if err == nil {
+			return nil
+		}
+		// Count didn't match, could be we have some lingering descriptors, wait
+		// and then try again.
+		time.Sleep((50 << try) * time.Millisecond)
+	}
+
+	return err
+}
+
+func (c *Counter) doAssertDelta(expected int) error {
 	out, err := runLsof()
 	if err != nil {
 		return err

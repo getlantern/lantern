@@ -8,6 +8,9 @@ import (
 )
 
 func TestTCP(t *testing.T) {
+	// Lower maxAssertAttempts to keep this test from running too long
+	maxAssertAttempts = 2
+
 	l0, err := net.Listen("tcp", "localhost:0")
 	if err != nil {
 		t.Fatal(err)
