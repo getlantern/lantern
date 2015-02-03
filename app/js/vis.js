@@ -299,6 +299,7 @@ angular.module('app.vis', ['ngSanitize'])
         allPeers.select("g.peer path.peer").attr("d", function(peer) {
             return scope.path({type: 'Point', coordinates: [peer.lon, peer.lat]})
         })
+        .attr("filter", "url(#defaultBlur)")
         .attr("class", function(peer) {
           var result = "peer " + peer.mode + " " + peer.type;
           if (peer.connected) {
@@ -467,7 +468,6 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
           var d = {type: 'Point', coordinates: [peer.lon, peer.lat]};
           return path(d);
       });
-
 
       /* adjust gaussian blur by zoom level */
       if (scale > 2) {
