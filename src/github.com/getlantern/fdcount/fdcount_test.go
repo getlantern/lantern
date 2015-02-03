@@ -3,6 +3,7 @@ package fdcount
 import (
 	"net"
 	"testing"
+	"time"
 
 	"github.com/getlantern/testify/assert"
 )
@@ -61,4 +62,44 @@ func TestTCP(t *testing.T) {
 		assert.Contains(t, err.Error(), "Removed")
 		assert.True(t, len(err.Error()) > 100)
 	}
+}
+
+func TestWaitUntilNoneMatchOK(t *testing.T) {
+	conn, err := net.Dial("tcp", "www.google.com:80")
+	if err != nil {
+		t.Fatalf("Unable to dial google: %v", err)
+	}
+	defer conn.Close()
+
+	wait := 250 * time.Millisecond
+	start := time.Now()
+	go func() {
+		time.Sleep(wait)
+		conn.Close()
+	}()
+
+	err = WaitUntilNoneMatch("TCP", wait*2)
+	elapsed := time.Now().Sub(start)
+	assert.NoError(t, err, "Waiting should have succeeded")
+	assert.True(t, elapsed >= wait, "Should have waited a while")
+}
+
+func TestWaitUntilNoneMatchTimeout(t *testing.T) {
+	conn, err := net.Dial("tcp", "www.google.com:80")
+	if err != nil {
+		t.Fatalf("Unable to dial google: %v", err)
+	}
+	defer conn.Close()
+
+	wait := 250 * time.Millisecond
+	start := time.Now()
+	go func() {
+		time.Sleep(wait)
+		conn.Close()
+	}()
+
+	err = WaitUntilNoneMatch("TCP", wait/2)
+	elapsed := time.Now().Sub(start)
+	assert.Error(t, err, "Waiting should have failed")
+	assert.True(t, elapsed < wait, "Should have waited less than time to close conn")
 }

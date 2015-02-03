@@ -119,27 +119,14 @@ func doTestPlainText(buffered bool, t *testing.T) {
 
 	startServers(t)
 
-	var expectedInitialFds int
-
-	if buffered {
-		// We expect 5 file descriptors up to this point.
-		expectedInitialFds = 5
-	} else {
-		// We expect 3 file descriptors up to this point.
-		expectedInitialFds = 3
+	err = fdcount.WaitUntilNoneMatch("CLOSE_WAIT", 5*time.Second)
+	if err != nil {
+		t.Fatalf("Unable to wait until no more connections are in CLOSE_WAIT: %v", err)
 	}
 
-	for i := 0; ; i++ {
-		_, counter, err = fdcount.Matching("TCP")
-		if err != nil {
-			t.Fatalf("Unable to get fdcount: %v", err)
-		}
-		if counter.AssertCount(expectedInitialFds) == nil {
-			break
-		}
-		if i > 5 {
-			t.Fatalf("Up to this point, there should be exactly %d file descriptors belonging to this process.", expectedInitialFds)
-		}
+	_, counter, err = fdcount.Matching("TCP")
+	if err != nil {
+		t.Fatalf("Unable to get fdcount: %v", err)
 	}
 
 	var reportedHost string

@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	maxAssertAttempts = uint(3)
+	maxAssertAttempts = uint(7)
 )
 
 type Counter struct {
@@ -26,8 +26,8 @@ type Counter struct {
 //
 // see https://groups.google.com/forum/#!topic/golang-nuts/c0AnWXjzNIA
 //
-func Matching(s string) (int, *Counter, error) {
-	c := &Counter{match: s}
+func Matching(match string) (int, *Counter, error) {
+	c := &Counter{match: match}
 
 	// Count initial file descriptors
 	out, err := runLsof()
@@ -38,12 +38,28 @@ func Matching(s string) (int, *Counter, error) {
 	return c.startingCount, c, nil
 }
 
-// Asserts that the number of file descriptors equals the given number.
-func (c *Counter) AssertCount(expected int) error {
-	if c.startingCount == expected {
-		return nil
+// WaitUntilNoneMatch waits until no file descriptors match the given string, or
+// the timeout is hit.
+func WaitUntilNoneMatch(match string, timeout time.Duration) error {
+	start := time.Now()
+	var out []byte
+	var err error
+	var count int
+
+	for time.Now().Sub(start) < timeout {
+		out, err = runLsof()
+		if err != nil {
+			return err
+		}
+		_, count = matchingLines(match, out)
+		if count == 0 {
+			// Success!
+			return nil
+		}
+		time.Sleep(50 * time.Millisecond)
 	}
-	return fmt.Errorf("Unexpected TCP file descriptor count. Expected %d, have %d.", expected, c.startingCount)
+
+	return fmt.Errorf("%d lines still match %v\n\n%v", count, match, string(out))
 }
 
 // Asserts that the number of file descriptors added/removed since Counter was
@@ -79,9 +95,13 @@ func (c *Counter) doAssertDelta(expected int) error {
 }
 
 func (c *Counter) matchingLines(out []byte) (string, int) {
+	return matchingLines(c.match, out)
+}
+
+func matchingLines(match string, out []byte) (string, int) {
 	lines := make([]string, 0)
 	for _, line := range strings.Split(string(out), "\n") {
-		if strings.Contains(line, c.match) {
+		if strings.Contains(line, match) {
 			lines = append(lines, line)
 		}
 	}
