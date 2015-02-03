@@ -114,11 +114,32 @@ func TestHTTPRedirect(t *testing.T) {
 }
 
 func doTestPlainText(buffered bool, t *testing.T) {
+	var counter *fdcount.Counter
+	var err error
+
 	startServers(t)
 
-	_, counter, err := fdcount.Matching("TCP")
-	if err != nil {
-		t.Fatalf("Unable to get fdcount: %v", err)
+	var expectedInitialFds int
+
+	if buffered {
+		// We expect 5 file descriptors up to this point.
+		expectedInitialFds = 5
+	} else {
+		// We expect 3 file descriptors up to this point.
+		expectedInitialFds = 3
+	}
+
+	for i := 0; ; i++ {
+		_, counter, err = fdcount.Matching("TCP")
+		if err != nil {
+			t.Fatalf("Unable to get fdcount: %v", err)
+		}
+		if counter.AssertCount(expectedInitialFds) == nil {
+			break
+		}
+		if i > 5 {
+			t.Fatalf("Up to this point, there should be exactly %d file descriptors belonging to this process.", expectedInitialFds)
+		}
 	}
 
 	conn, err := prepareConn(httpAddr, buffered, false, t)
