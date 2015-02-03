@@ -37,14 +37,15 @@ func New(domain string, username string, apiKey string) *Util {
 func (util *Util) GetAllRecords() ([]cloudflare.Record, error) {
 	resp, err := util.Client.LoadAll(util.domain)
 	if err != nil {
-		return nil, fmt.Errorf("Error retrieving records!", err)
+		return nil, fmt.Errorf("Error retrieving records: %v", err)
 	}
 
 	allRecords := resp.Response.Recs.Records
 	for resp.Response.Recs.HasMore {
-		resp, err = util.Client.LoadAllAtIndex(util.domain, len(allRecords))
+		ix := len(allRecords)
+		resp, err = util.Client.LoadAllAtIndex(util.domain, ix)
 		if err != nil {
-			return nil, fmt.Errorf("Error retrieving records at index!", err)
+			return nil, fmt.Errorf("Error retrieving records at index %d: %v", ix, err)
 		}
 		allRecords = append(allRecords, resp.Response.Recs.Records...)
 	}

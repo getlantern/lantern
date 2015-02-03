@@ -199,7 +199,7 @@ func isPeer(name string) bool {
 	// peer GUID. While it's possible something else could have a subdomain
 	// this long, it's unlikely.
 	// We also accept anything with a name beginning with peer- as a peer
-	return len(name) == 32 || strings.Index(name, "peer-") == 0
+	return len(name) == 32 || strings.HasPrefix(name, "peer-")
 }
 
 func isFallback(name string) bool {

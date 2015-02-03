@@ -122,11 +122,6 @@ func newHost(name string, ip string, record *cloudflare.Record) *host {
 	return h
 }
 
-// run starts the main run loop for this host on a goroutine
-func (h *host) run() {
-	go h.doRun()
-}
-
 // status returns the status of this host as of the next scheduled check
 func (h *host) status() (online bool, connectionRefused bool, timedOut bool) {
 	// Buffer the channel so that if we time out, reportStatus can still report
@@ -162,7 +157,8 @@ func (h *host) unregister() {
  * Implementation
  ******************************************************************************/
 
-func (h *host) doRun() {
+// run is the main run loop for this host
+func (h *host) run() {
 	checkImmediately := true
 	h.lastSuccess = time.Now()
 	h.lastTest = time.Now()
