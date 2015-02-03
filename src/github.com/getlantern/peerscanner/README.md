@@ -46,3 +46,8 @@ configuration.
 
 You need to set some environment variables to connect to CloudFlare.  See
 [envvars.bash](https://github.com/getlantern/too-many-secrets/blob/master/envvars.bash).
+
+## Duplicate Checking
+
+The program in dupecheck can be used to check the current CloudFlare DNS for
+duplicates. `CF_USER=<username> CF_API_KEY=<api key> go run dupecheck.go`.
