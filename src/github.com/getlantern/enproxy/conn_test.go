@@ -121,7 +121,15 @@ func doTestPlainText(buffered bool, t *testing.T) {
 		t.Fatalf("Unable to get fdcount: %v", err)
 	}
 
-	conn, err := prepareConn(httpAddr, buffered, false, t)
+	var reportedHost string
+	var reportedHostMutex sync.Mutex
+	onResponse := func(resp *http.Response) {
+		reportedHostMutex.Lock()
+		reportedHost = resp.Header.Get(X_ENPROXY_PROXY_HOST)
+		reportedHostMutex.Unlock()
+	}
+
+	conn, err := prepareConn(httpAddr, buffered, false, t, onResponse)
 	if err != nil {
 		t.Fatalf("Unable to prepareConn: %s", err)
 	}
@@ -139,6 +147,11 @@ func doTestPlainText(buffered bool, t *testing.T) {
 	assert.Equal(t, 284, bytesSent, "Wrong number of bytes sent")
 	assert.True(t, destsSent[httpAddr], "http address wasn't recorded as sent destination")
 	assert.True(t, destsReceived[httpAddr], "http address wasn't recorded as received destination")
+
+	reportedHostMutex.Lock()
+	rh := reportedHost
+	reportedHostMutex.Unlock()
+	assert.Equal(t, "localhost", rh, "Didn't get correct reported host")
 }
 
 func doTestTLS(buffered bool, t *testing.T) {
@@ -149,7 +162,7 @@ func doTestTLS(buffered bool, t *testing.T) {
 		t.Fatalf("Unable to get fdcount: %v", err)
 	}
 
-	conn, err := prepareConn(httpsAddr, buffered, false, t)
+	conn, err := prepareConn(httpsAddr, buffered, false, t, nil)
 	if err != nil {
 		t.Fatalf("Unable to prepareConn: %s", err)
 	}
@@ -180,14 +193,14 @@ func doTestTLS(buffered bool, t *testing.T) {
 func doTestBad(buffered bool, t *testing.T) {
 	startServers(t)
 
-	conn, err := prepareConn(httpAddr, buffered, true, t)
+	conn, err := prepareConn(httpAddr, buffered, true, t, nil)
 	if err == nil {
 		defer conn.Close()
 		t.Error("Bad conn should have returned error on Connect()")
 	}
 }
 
-func prepareConn(addr string, buffered bool, fail bool, t *testing.T) (conn net.Conn, err error) {
+func prepareConn(addr string, buffered bool, fail bool, t *testing.T, onResponse func(resp *http.Response)) (conn net.Conn, err error) {
 	return Dial(addr,
 		&Config{
 			DialProxy: func(addr string) (net.Conn, error) {
@@ -197,8 +210,9 @@ func prepareConn(addr string, buffered bool, fail bool, t *testing.T) (conn net.
 				}
 				return net.Dial(proto, proxyAddr)
 			},
-			NewRequest:     newRequest,
-			BufferRequests: buffered,
+			NewRequest:      newRequest,
+			BufferRequests:  buffered,
+			OnFirstResponse: onResponse,
 		})
 }
 
@@ -285,6 +299,7 @@ func startProxy(t *testing.T) {
 				destsSent[destAddr] = true
 				statMutex.Unlock()
 			},
+			Host: "localhost",
 		}
 		err := proxy.Serve(l)
 		if err != nil {

@@ -62,6 +62,9 @@ func (c *conn) processRequests(proxyConn *connInfo) {
 			// On our first request, find out what host we're actually
 			// talking to and remember that for future requests.
 			proxyHost = resp.Header.Get(X_ENPROXY_PROXY_HOST)
+			if c.config.OnFirstResponse != nil {
+				c.config.OnFirstResponse(resp)
+			}
 
 			// Also post it to initialResponseCh so that the processReads()
 			// routine knows which proxyHost to use and gets the initial

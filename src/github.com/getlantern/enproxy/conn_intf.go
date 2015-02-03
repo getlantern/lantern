@@ -133,6 +133,10 @@ type Config struct {
 	// NewRequest: function to create a new request to the proxy
 	NewRequest newRequestFunc
 
+	// OnFirstResponse: optional callback that gets called on the first response
+	// from the proxy.
+	OnFirstResponse func(resp *http.Response)
+
 	// FlushTimeout: how long to let writes idle before writing out a
 	// request to the proxy.  Defaults to 15 milliseconds.
 	FlushTimeout time.Duration

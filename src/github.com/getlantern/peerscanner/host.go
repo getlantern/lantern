@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/getlantern/cloudflare"
@@ -62,7 +63,9 @@ type host struct {
 	unregisterCh chan interface{}
 	statusCh     chan chan *status
 
-	proxiedClient *http.Client
+	proxiedClient     *http.Client
+	reportedHost      string
+	reportedHostMutex sync.Mutex
 }
 
 func (h *host) String() string {
@@ -85,27 +88,32 @@ func newHost(name string, ip string, record *cloudflare.Record) *host {
 		resetCh:      make(chan string, 1000),
 		unregisterCh: make(chan interface{}, 1),
 		statusCh:     make(chan chan *status, 1000),
-		proxiedClient: &http.Client{
-			Transport: &http.Transport{
-				Dial: func(network, addr string) (net.Conn, error) {
-					return enproxy.Dial(addr, &enproxy.Config{
-						DialProxy: func(addr string) (net.Conn, error) {
-							return tlsdialer.DialWithDialer(&net.Dialer{
-								Timeout: dialTimeout,
-							}, "tcp", ip+":443", true, &tls.Config{
-								InsecureSkipVerify: true,
-								ClientSessionCache: clientSessionCache,
-							})
-						},
-						NewRequest: func(upstreamHost string, method string, body io.Reader) (req *http.Request, err error) {
-							return http.NewRequest(method, "http://"+ip+"/", body)
-						},
-					})
-				},
-				DisableKeepAlives: true,
+	}
+	h.proxiedClient = &http.Client{
+		Transport: &http.Transport{
+			Dial: func(network, addr string) (net.Conn, error) {
+				return enproxy.Dial(addr, &enproxy.Config{
+					DialProxy: func(addr string) (net.Conn, error) {
+						return tlsdialer.DialWithDialer(&net.Dialer{
+							Timeout: dialTimeout,
+						}, "tcp", ip+":443", true, &tls.Config{
+							InsecureSkipVerify: true,
+							ClientSessionCache: clientSessionCache,
+						})
+					},
+					NewRequest: func(upstreamHost string, method string, body io.Reader) (req *http.Request, err error) {
+						return http.NewRequest(method, "http://"+ip+"/", body)
+					},
+					OnFirstResponse: func(resp *http.Response) {
+						h.reportedHostMutex.Lock()
+						h.reportedHost = resp.Header.Get(enproxy.X_ENPROXY_PROXY_HOST)
+						h.reportedHostMutex.Unlock()
+					},
+				})
 			},
-			Timeout: requestTimeout,
+			DisableKeepAlives: true,
 		},
+		Timeout: requestTimeout,
 	}
 
 	if h.isFallback() {
@@ -361,6 +369,17 @@ func (h *host) isAbleToProxy() (bool, bool, error) {
 		}
 		lastErr = err
 		if success || connectionRefused {
+			if success {
+				// Make sure that the server is reporting the correct host name for sticky
+				// routing.
+				h.reportedHostMutex.Lock()
+				defer h.reportedHostMutex.Unlock()
+				if h.reportedHost != h.fullName() {
+					success = false
+					lastErr := fmt.Errorf("Reported host of %v didn't match expected %v", h.reportedHost, h.fullName())
+					log.Error(lastErr.Error())
+				}
+			}
 			// If we've succeeded, or our connection was flat-out refused, don't
 			// bother trying to proxy again
 			return success, connectionRefused, lastErr
