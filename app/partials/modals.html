@@ -35,7 +35,7 @@
   </div>
 </div>
 
-<div ng-controller="ProxiedSitesCtrl" ng-show="show" modal="show" class="modal">
+<div ng-controller="ProxiedSitesCtrl" ng-show="currentModal == 'proxiedSites'" modal="show" class="modal">
   <div class="modal-header">
     <h3>
       <i class="lsf-icon lsf-web"></i>
@@ -89,6 +89,8 @@
     </div>
   </div>
   <div class="modal-footer">
+      <button type="button" class="btn" ng-click="closeModal()" tabindex="{{ show && 3 || '' }">{{ 'CANCEL' | translate }}</button>
+
     <button type="button" class="btn" ng-disabled="!hasUpdate || updating" ng-click="handleReset()" tabindex="{{ show && 3 || '' }">{{ 'RESET' | translate }}</button>
     <button id="continueFromProxiedSites" 
             type="button" class="btn btn-primary" tabindex="{{ show && 2 || '' }}"
