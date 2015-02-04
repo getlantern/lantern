@@ -9,3 +9,4 @@ flashlight_windows_386.exe
 src/github.com/getlantern/fronted/testcert.pem
 src/github.com/getlantern/fronted/testpk.pem
 flashlight.yaml
+envvars.bash

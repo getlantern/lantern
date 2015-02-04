@@ -1,7 +1,7 @@
 language: go
 
 go:
-  - 1.4
+  - 1.4.1
 
 install:
   - go get -d -t -v ./...

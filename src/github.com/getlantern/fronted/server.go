@@ -12,6 +12,7 @@ import (
 	"github.com/getlantern/enproxy"
 	"github.com/getlantern/idletiming"
 	"github.com/getlantern/keyman"
+	"github.com/getlantern/tlsdefaults"
 )
 
 var (
@@ -20,25 +21,6 @@ var (
 
 	// Points in time, mostly used for generating certificates
 	tenYearsFromToday = time.Now().AddDate(10, 0, 0)
-
-	// Default TLS configuration for servers
-	defaultTlsServerConfig = &tls.Config{
-		// The ECDHE cipher suites are preferred for performance and forward
-		// secrecy.  See https://community.qualys.com/blogs/securitylabs/2013/06/25/ssl-labs-deploying-forward-secrecy.
-		PreferServerCipherSuites: true,
-		CipherSuites: []uint16{
-			tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
-			tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
-			tls.TLS_ECDHE_RSA_WITH_RC4_128_SHA,
-			tls.TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,
-			tls.TLS_RSA_WITH_RC4_128_SHA,
-			tls.TLS_RSA_WITH_3DES_EDE_CBC_SHA,
-			tls.TLS_RSA_WITH_AES_128_CBC_SHA,
-			tls.TLS_RSA_WITH_AES_256_CBC_SHA,
-			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
-		},
-	}
 )
 
 type Server struct {
@@ -123,7 +105,7 @@ func (server *Server) listenTLS() (net.Listener, error) {
 
 	tlsConfig := server.TLSConfig
 	if server.TLSConfig == nil {
-		tlsConfig = defaultTlsServerConfig
+		tlsConfig = tlsdefaults.Server()
 	}
 	cert, err := tls.LoadX509KeyPair(server.CertContext.ServerCertFile, server.CertContext.PKFile)
 	if err != nil {

@@ -21,9 +21,16 @@ type FrontedServerInfo struct {
 	// Port: the port (e.g. 443)
 	Port int
 
+	// PoolSize: size of connection pool to use. 0 disables connection pooling.
+	PoolSize int
+
 	// MasqueradeSet: the name of the masquerade set from ClientConfig that
 	// contains masquerade hosts to use for this server.
 	MasqueradeSet string
+
+	// MaxMasquerades: the maximum number of masquerades to verify. If 0,
+	// the masquerades are uncapped.
+	MaxMasquerades int
 
 	// InsecureSkipVerify: if true, server's certificate is not verified.
 	InsecureSkipVerify bool
@@ -50,9 +57,10 @@ type FrontedServerInfo struct {
 }
 
 func (s *FrontedServerInfo) dialer(masqueradeSets map[string][]*fronted.Masquerade) *balancer.Dialer {
-	fd := fronted.NewDialer(&fronted.Config{
+	fd := fronted.NewDialer(fronted.Config{
 		Host:               s.Host,
 		Port:               s.Port,
+		PoolSize:           s.PoolSize,
 		InsecureSkipVerify: s.InsecureSkipVerify,
 		BufferRequests:     s.BufferRequests,
 		DialTimeoutMillis:  s.DialTimeoutMillis,
@@ -60,6 +68,7 @@ func (s *FrontedServerInfo) dialer(masqueradeSets map[string][]*fronted.Masquera
 		OnDial:             withStats,
 		OnDialStats:        s.onDialStats,
 		Masquerades:        masqueradeSets[s.MasqueradeSet],
+		MaxMasquerades:     s.MaxMasquerades,
 		RootCAs:            globals.TrustedCAs,
 	})
 	masqueradeQualifier := ""

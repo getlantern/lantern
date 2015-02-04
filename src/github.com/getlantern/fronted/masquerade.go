@@ -10,8 +10,7 @@ import (
 )
 
 const (
-	NumWorkers     = 10 // number of worker goroutines for verifying
-	MaxMasquerades = 20 // cap number of verified masquerades at this
+	NumWorkers = 10 // number of worker goroutines for verifying
 )
 
 // Masquerade contains the data for a single masquerade host, including
@@ -31,9 +30,10 @@ type MasqueradeSet []*Masquerade
 // verifiedMasqueradeSet verifies each configured Masquerade by attempting to
 // proxy using it.
 type verifiedMasqueradeSet struct {
-	dialer             *Dialer
+	dialer             *dialer
 	candidatesCh       chan *Masquerade
 	stopCh             chan interface{}
+	verifiedChSize     int
 	verifiedCh         chan *Masquerade
 	verifiedCount      int
 	verifiedCountMutex sync.Mutex
@@ -51,20 +51,22 @@ func (vms *verifiedMasqueradeSet) nextVerified() *Masquerade {
 
 // verified sets up a new verifiedMasqueradeSet that verifies each of the
 // Masquerades in this MasqueradeSet for the given Dialer.
-func (d *Dialer) verifiedMasquerades() *verifiedMasqueradeSet {
+func (d *dialer) verifiedMasquerades() *verifiedMasqueradeSet {
 	// Size verifiedChSize to be able to hold the smaller of MaxMasquerades or
 	// the number of configured masquerades.
 	verifiedChSize := len(d.Masquerades)
-	if MaxMasquerades < verifiedChSize {
-		verifiedChSize = MaxMasquerades
+	if d.MaxMasquerades < verifiedChSize {
+		verifiedChSize = d.MaxMasquerades
 	}
-	vms := &verifiedMasqueradeSet{
-		dialer:       d,
-		candidatesCh: make(chan *Masquerade),
-		stopCh:       make(chan interface{}, 1),
-		verifiedCh:   make(chan *Masquerade, verifiedChSize),
-	}
+	log.Debugf("Verifiying up to %d masquerades", verifiedChSize)
 
+	vms := &verifiedMasqueradeSet{
+		dialer:         d,
+		candidatesCh:   make(chan *Masquerade),
+		stopCh:         make(chan interface{}, 1),
+		verifiedChSize: verifiedChSize,
+		verifiedCh:     make(chan *Masquerade, verifiedChSize),
+	}
 	vms.wg.Add(NumWorkers)
 	// Spawn some worker goroutines to verify masquerades
 	for i := 0; i < NumWorkers; i++ {
@@ -169,7 +171,7 @@ func (vms *verifiedMasqueradeSet) doVerify(masquerade *Masquerade) bool {
 func (vms *verifiedMasqueradeSet) incrementVerifiedCount() bool {
 	vms.verifiedCountMutex.Lock()
 	defer vms.verifiedCountMutex.Unlock()
-	if vms.verifiedCount == MaxMasquerades {
+	if vms.verifiedCount == vms.verifiedChSize {
 		return false
 	}
 	vms.verifiedCount += 1

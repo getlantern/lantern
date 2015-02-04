@@ -15,6 +15,7 @@ import (
 	"github.com/getlantern/connpool"
 	"github.com/getlantern/enproxy"
 	"github.com/getlantern/golog"
+	"github.com/getlantern/proxy"
 	"github.com/getlantern/tlsdialer"
 )
 
@@ -34,6 +35,15 @@ var (
 	idleTimeout = 10 * time.Second
 )
 
+// Dialer is a domain-fronted proxy.Dialer.
+type Dialer interface {
+	proxy.Dialer
+
+	// HttpClientUsing creates a simple domain-fronted HTTP client using the
+	// specified Masquerade.
+	HttpClientUsing(masquerade *Masquerade) *http.Client
+}
+
 // Config captures the configuration of a domain-fronted dialer.
 type Config struct {
 	// Host: the host (e.g. getiantem.org)
@@ -45,6 +55,15 @@ type Config struct {
 	// Masquerades: the Masquerades to use when domain-fronting. These will be
 	// verified when the Dialer starts.
 	Masquerades []*Masquerade
+
+	// MaxMasquerades: the maximum number of masquerades to verify. If 0,
+	// the masquerades are uncapped.
+	MaxMasquerades int
+
+	// PoolSize: if greater than 0, outbound connections will be pooled in an
+	// eagerly loading connection pool. This can reduce latency when using
+	// enproxy.
+	PoolSize int
 
 	// InsecureSkipVerify: if true, server's certificate is not verified.
 	InsecureSkipVerify bool
@@ -84,33 +103,47 @@ type Config struct {
 	OnDialStats func(success bool, domain, addr string, resolutionTime, connectTime, handshakeTime time.Duration)
 }
 
-// Dialer implements the proxy.Dialer interface by dialing domain-fronted
+// dialer implements the proxy.Dialer interface by dialing domain-fronted
 // servers.
-type Dialer struct {
-	*Config
+type dialer struct {
+	Config
 	masquerades     *verifiedMasqueradeSet
-	connPool        *connpool.Pool
+	connPool        connpool.Pool
 	enproxyConfig   *enproxy.Config
 	tlsConfigs      map[string]*tls.Config
 	tlsConfigsMutex sync.Mutex
 }
 
 // NewDialer creates a new Dialer for the given Config.
-func NewDialer(cfg *Config) *Dialer {
-	d := &Dialer{
+// WARNING - depending on configuration, this Dialer may contain a connection
+// pool and/or a set of Masquerades that will leak resources.  Make sure to call
+// Close() to clean these up when the Dialer is no longer in use.
+func NewDialer(cfg Config) Dialer {
+	d := &dialer{
 		Config:     cfg,
 		tlsConfigs: make(map[string]*tls.Config),
 	}
 	if d.Masquerades != nil {
+		if d.MaxMasquerades == 0 {
+			d.MaxMasquerades = len(d.Masquerades)
+		}
 		d.masquerades = d.verifiedMasquerades()
 	}
-	d.connPool = &connpool.Pool{
-		MinSize:      30,
-		ClaimTimeout: idleTimeout,
-		Dial:         d.dialServer,
+	if cfg.PoolSize > 0 {
+		d.connPool = connpool.New(connpool.Config{
+			Size:         cfg.PoolSize,
+			ClaimTimeout: idleTimeout,
+			Dial:         d.dialServer,
+		})
 	}
 	d.enproxyConfig = d.enproxyConfigWith(func(addr string) (net.Conn, error) {
-		conn, err := d.connPool.Get()
+		var conn net.Conn
+		var err error
+		if d.connPool != nil {
+			conn, err = d.connPool.Get()
+		} else {
+			conn, err = d.dialServer()
+		}
 		if d.OnDial != nil {
 			conn, err = d.OnDial(conn, err)
 		}
@@ -120,7 +153,7 @@ func NewDialer(cfg *Config) *Dialer {
 }
 
 // Dial dials upstream using domain-fronting.
-func (d *Dialer) Dial(network, addr string) (net.Conn, error) {
+func (d *dialer) Dial(network, addr string) (net.Conn, error) {
 	if !strings.Contains(network, "tcp") {
 		return nil, fmt.Errorf("Protocol %s is not supported, only tcp is supported", network)
 	}
@@ -130,10 +163,10 @@ func (d *Dialer) Dial(network, addr string) (net.Conn, error) {
 
 // Close closes the dialer, in particular closing the underlying connection
 // pool.
-func (d *Dialer) Close() error {
+func (d *dialer) Close() error {
 	if d.connPool != nil {
-		// We stop the connPool on a goroutine so as not to wait for Stop to finish
-		go d.connPool.Stop()
+		// We close the connPool on a goroutine so as not to wait for Close to finish
+		go d.connPool.Close()
 	}
 	if d.masquerades != nil {
 		go d.masquerades.stop()
@@ -141,9 +174,7 @@ func (d *Dialer) Close() error {
 	return nil
 }
 
-// HttpClientUsing creates a simple domain-fronted HTTP client using the
-// specified Masquerade.
-func (d *Dialer) HttpClientUsing(masquerade *Masquerade) *http.Client {
+func (d *dialer) HttpClientUsing(masquerade *Masquerade) *http.Client {
 	enproxyConfig := d.enproxyConfigWith(func(addr string) (net.Conn, error) {
 		return d.dialServerWith(masquerade)
 	})
@@ -157,7 +188,7 @@ func (d *Dialer) HttpClientUsing(masquerade *Masquerade) *http.Client {
 	}
 }
 
-func (d *Dialer) enproxyConfigWith(dialProxy func(addr string) (net.Conn, error)) *enproxy.Config {
+func (d *dialer) enproxyConfigWith(dialProxy func(addr string) (net.Conn, error)) *enproxy.Config {
 	return &enproxy.Config{
 		DialProxy: dialProxy,
 		NewRequest: func(upstreamHost string, method string, body io.Reader) (req *http.Request, err error) {
@@ -172,7 +203,7 @@ func (d *Dialer) enproxyConfigWith(dialProxy func(addr string) (net.Conn, error)
 	}
 }
 
-func (d *Dialer) dialServer() (net.Conn, error) {
+func (d *dialer) dialServer() (net.Conn, error) {
 	var masquerade *Masquerade
 	if d.masquerades != nil {
 		masquerade = d.masquerades.nextVerified()
@@ -180,7 +211,7 @@ func (d *Dialer) dialServer() (net.Conn, error) {
 	return d.dialServerWith(masquerade)
 }
 
-func (d *Dialer) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
+func (d *dialer) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
 	dialTimeout := time.Duration(d.DialTimeoutMillis) * time.Millisecond
 	if dialTimeout == 0 {
 		dialTimeout = 20 * time.Second
@@ -223,11 +254,11 @@ func (d *Dialer) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
 }
 
 // Get the address to dial for reaching the server
-func (d *Dialer) addressForServer(masquerade *Masquerade) string {
+func (d *dialer) addressForServer(masquerade *Masquerade) string {
 	return fmt.Sprintf("%s:%d", d.serverHost(masquerade), d.Port)
 }
 
-func (d *Dialer) serverHost(masquerade *Masquerade) string {
+func (d *dialer) serverHost(masquerade *Masquerade) string {
 	serverHost := d.Host
 	if masquerade != nil {
 		if masquerade.IpAddress != "" {
@@ -242,7 +273,7 @@ func (d *Dialer) serverHost(masquerade *Masquerade) string {
 // tlsConfig builds a tls.Config for dialing the upstream host. Constructed
 // tls.Configs are cached on a per-masquerade basis to enable client session
 // caching and reduce the amount of PEM certificate parsing.
-func (d *Dialer) tlsConfig(masquerade *Masquerade) *tls.Config {
+func (d *dialer) tlsConfig(masquerade *Masquerade) *tls.Config {
 	d.tlsConfigsMutex.Lock()
 	defer d.tlsConfigsMutex.Unlock()
 

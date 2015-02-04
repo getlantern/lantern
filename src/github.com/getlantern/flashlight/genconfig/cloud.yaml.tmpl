@@ -2,33 +2,20 @@
 # internet.
 client:
   frontedservers:
-  - host: roundrobin.getiantem.org
-    port: 443
-    masqueradeset: "cloudflare"
-    insecureskipverify: false
-    dialtimeoutmillis: 0
-    redialattempts: 2
-    keepalivemillis: 0
-    weight: 1
-    qos: 5
   - host: fallbacks.getiantem.org
     port: 443
+    poolsize: 30
     masqueradeset: "cloudflare"
-    insecureskipverify: false
-    dialtimeoutmillis: 0
-    redialattempts: 2
-    keepalivemillis: 0
-    weight: 4000
+    maxmasquerades: 20
     qos: 10
+    weight: 4000
   - host: peers.getiantem.org
     port: 443
+    poolsize: 30
     masqueradeset: "cloudflare"
-    insecureskipverify: false
-    dialtimeoutmillis: 0
-    redialattempts: 2
-    keepalivemillis: 0
-    weight: 1000
+    maxmasquerades: 20
     qos: 2
+    weight: 1000
   masqueradesets:
     cloudflare:{{range .masquerades}}
     - domain: {{.Domain}}
