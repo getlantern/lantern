@@ -31,6 +31,9 @@ type Client struct {
 	// WriteTimeout: (optional) timeout for write ops
 	WriteTimeout time.Duration
 
+	// MinQOS: (optional) the minimum QOS to require from proxies.
+	MinQOS int
+
 	priorCfg        *ClientConfig
 	priorTrustedCAs *x509.CertPool
 	cfgMutex        sync.RWMutex
@@ -73,6 +76,8 @@ func (client *Client) Configure(cfg *ClientConfig) {
 		log.Debugf("Client configuration initialized")
 	}
 
+	log.Debugf("Requiring minimum QOS of %d", cfg.MinQOS)
+	client.MinQOS = cfg.MinQOS
 	bal := client.initBalancer(cfg)
 	client.initReverseProxy(bal, cfg.DumpHeaders)
 	client.initNatty(cfg)

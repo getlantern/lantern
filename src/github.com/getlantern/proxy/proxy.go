@@ -19,7 +19,7 @@ type Dialer interface {
 	// Dial: function that dials a given destination using the proxy.
 	Dial(network, addr string) (net.Conn, error)
 
-	// Close: closes the proxy and any underlying resources
+	// Close: closes the dialer and any underlying resources
 	Close() error
 }
 

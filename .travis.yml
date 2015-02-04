@@ -1,7 +1,7 @@
 language: go
 
 go:
-  - 1.4
+  - 1.4.1
 
 install:
   - go get golang.org/x/tools/cmd/cover
@@ -9,6 +9,8 @@ install:
   - go get -v github.com/mattn/goveralls
 
 script:
+  # This unencryptes envvars.bash.enc into envvars.bash so that we can run the tests
+  - openssl aes-256-cbc -K $encrypted_263604b5b445_key -iv $encrypted_263604b5b445_iv -in envvars.bash.enc -out envvars.bash -d
   - ./testandcover.bash
 
 after_success:

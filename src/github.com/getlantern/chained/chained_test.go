@@ -12,21 +12,21 @@ import (
 )
 
 func TestBadDialServer(t *testing.T) {
-	dialer := &Dialer{
+	dialer := NewDialer(Config{
 		DialServer: func() (net.Conn, error) {
 			return nil, fmt.Errorf("I refuse to dial")
 		},
-	}
+	})
 	_, err := dialer.Dial("tcp", "www.google.com")
 	assert.Error(t, err, "Dialing with a bad DialServer function should have failed")
 }
 
 func TestBadProtocol(t *testing.T) {
-	dialer := &Dialer{
+	dialer := NewDialer(Config{
 		DialServer: func() (net.Conn, error) {
 			return net.Dial("tcp", "www.google.com")
 		},
-	}
+	})
 	_, err := dialer.Dial("udp", "www.google.com")
 	assert.Error(t, err, "Dialing with a non-tcp protocol should have failed")
 }
@@ -44,11 +44,11 @@ func TestBadServer(t *testing.T) {
 		}
 	}()
 
-	dialer := &Dialer{
+	dialer := NewDialer(Config{
 		DialServer: func() (net.Conn, error) {
 			return net.Dial("tcp", l.Addr().String())
 		},
-	}
+	})
 	_, err = dialer.Dial("tcp", "www.google.com")
 	assert.Error(t, err, "Dialing a server that disconnects too soon should have failed")
 }
@@ -66,11 +66,11 @@ func TestBadConnectStatus(t *testing.T) {
 	}
 	go hs.Serve(l)
 
-	dialer := &Dialer{
+	dialer := NewDialer(Config{
 		DialServer: func() (net.Conn, error) {
 			return net.Dial("tcp", l.Addr().String())
 		},
-	}
+	})
 	_, err = dialer.Dial("tcp", "www.google.com")
 	assert.Error(t, err, "Dialing a server that sends a non-successful HTTP status to our CONNECT request should have failed")
 }
@@ -107,11 +107,11 @@ func TestBadAddressToServer(t *testing.T) {
 func TestSuccess(t *testing.T) {
 	l := startServer(t)
 
-	dialer := &Dialer{
+	dialer := NewDialer(Config{
 		DialServer: func() (net.Conn, error) {
 			return net.Dial(l.Addr().Network(), l.Addr().String())
 		},
-	}
+	})
 
 	proxy.Test(t, dialer)
 }

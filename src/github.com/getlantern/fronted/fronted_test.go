@@ -20,13 +20,13 @@ const (
 )
 
 func TestBadProtocol(t *testing.T) {
-	d := NewDialer(&Config{})
+	d := NewDialer(Config{})
 	_, err := d.Dial("udp", "127.0.0.1:25324")
 	assert.Error(t, err, "Using a non-tcp protocol should have resulted in an error")
 }
 
 func TestBadEnproxyConn(t *testing.T) {
-	d := NewDialer(&Config{
+	d := NewDialer(Config{
 		Host: "localhost",
 		Port: 3253,
 	})
@@ -35,7 +35,7 @@ func TestBadEnproxyConn(t *testing.T) {
 }
 
 func TestReplaceBadOnDial(t *testing.T) {
-	d := NewDialer(&Config{
+	d := NewDialer(Config{
 		Host: "fallbacks.getiantem.org",
 		Port: 443,
 		OnDial: func(conn net.Conn, err error) (net.Conn, error) {
@@ -47,7 +47,7 @@ func TestReplaceBadOnDial(t *testing.T) {
 }
 
 func TestHttpClientWithBadEnproxyConn(t *testing.T) {
-	d := NewDialer(&Config{
+	d := NewDialer(Config{
 		Host: "localhost",
 		Port: 3253,
 	})
@@ -94,7 +94,7 @@ func TestNonGlobalAddressNoHost(t *testing.T) {
 
 func doTestNonGlobalAddress(t *testing.T, overrideAddr string) {
 	l := startServer(t, false, nil)
-	d := dialerFor(t, l)
+	d := dialerFor(t, l, 0)
 	defer d.Close()
 
 	gotConn := false
@@ -115,7 +115,9 @@ func doTestNonGlobalAddress(t *testing.T, overrideAddr string) {
 		addr = overrideAddr
 	}
 	conn, err := d.Dial("tcp", addr)
-	defer conn.Close()
+	if err != nil {
+		t.Fatalf("Unable to dial %v: %v", addr, err)
+	}
 
 	data := []byte("Some Meaningless Data")
 	conn.Write(data)
@@ -151,7 +153,7 @@ func TestAllowedPorts(t *testing.T) {
 	}
 	// Only allow some port other than the actual port
 	l := startServer(t, true, []int{port + 1})
-	d := dialerFor(t, l)
+	d := dialerFor(t, l, 0)
 	defer d.Close()
 
 	addr := tl.Addr().String()
@@ -167,9 +169,17 @@ func TestAllowedPorts(t *testing.T) {
 	assert.False(t, gotConn, "Sending data to disallowed port should never have resulted in connection")
 }
 
-func TestRoundTrip(t *testing.T) {
+func TestRoundTripPooled(t *testing.T) {
 	l := startServer(t, true, nil)
-	d := dialerFor(t, l)
+	d := dialerFor(t, l, 20)
+	defer d.Close()
+
+	proxy.Test(t, d)
+}
+
+func TestRoundTripUnpooled(t *testing.T) {
+	l := startServer(t, true, nil)
+	d := dialerFor(t, l, 0)
 	defer d.Close()
 
 	proxy.Test(t, d)
@@ -183,7 +193,8 @@ func TestIntegration(t *testing.T) {
 		t.Fatalf("Unable to set up cert pool")
 	}
 
-	masquerades := make([]*Masquerade, MaxMasquerades*2)
+	maxMasquerades := 10
+	masquerades := make([]*Masquerade, maxMasquerades*2)
 	for i := 0; i < len(masquerades); i++ {
 		switch i % 3 {
 		case 0:
@@ -212,11 +223,12 @@ func TestIntegration(t *testing.T) {
 	actualHandshakeTime := time.Duration(0)
 	var statsMutex sync.Mutex
 
-	d := NewDialer(&Config{
-		Host:        "fallbacks.getiantem.org",
-		Port:        443,
-		Masquerades: masquerades,
-		RootCAs:     rootCAs,
+	d := NewDialer(Config{
+		Host:           "fallbacks.getiantem.org",
+		Port:           443,
+		Masquerades:    masquerades,
+		MaxMasquerades: maxMasquerades,
+		RootCAs:        rootCAs,
 		OnDialStats: func(success bool, domain, addr string, resolutionTime, connectTime, handshakeTime time.Duration) {
 			if success {
 				statsMutex.Lock()
@@ -280,7 +292,7 @@ func startServer(t *testing.T, allowNonGlobal bool, allowedPorts []int) net.List
 	return l
 }
 
-func dialerFor(t *testing.T, l net.Listener) *Dialer {
+func dialerFor(t *testing.T, l net.Listener, poolSize int) Dialer {
 	host, portString, err := net.SplitHostPort(l.Addr().String())
 	if err != nil {
 		t.Fatalf("Unable to split host and port: %v", err)
@@ -290,9 +302,10 @@ func dialerFor(t *testing.T, l net.Listener) *Dialer {
 		t.Fatalf("Unable to parse port: %s", err)
 	}
 
-	return NewDialer(&Config{
+	return NewDialer(Config{
 		Host:               host,
 		Port:               port,
+		PoolSize:           poolSize,
 		InsecureSkipVerify: true,
 	})
 }
