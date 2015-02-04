@@ -24,6 +24,7 @@ try {
 * [Android Studio][3]
 * [Go 1.4][4]
 * [GNUMake][6]
+* [Mercurial][7]: You can try installing it with `brew` or `macports`.
 
 ### Setting up a development environment
 
@@ -64,6 +65,15 @@ The `make` command will create a new `app` subdirectory that will contain an
 Android example project. You may import the contents of the `app` subdirectory
 into Android Studio to see libflashlight working.
 
+If you're on a Mac, be sure to export docker's enviromental variables before
+running `make`:
+
+```
+$(boot2docker shellinit)
+
+make
+```
+
 ## Testing the example project
 
 Open [Android Studio][3] and in the welcome screen choose "Import Non-Android
@@ -80,31 +90,7 @@ On the next dialog you must define a destination for the project, hit *Next*.
 
 ![Destination](https://cloud.githubusercontent.com/assets/385670/5712874/ad8265e6-9a7b-11e4-9018-671875dfdb17.png)
 
-After import you may be prompted to restart Android Studio. After restarting
-make sure your `AndroidManifest.xml` looks like this:
-
-```xml
-<?xml version="1.0" encoding="utf-8"?>
-<!--
-Copyright 2014 The Go Authors. All rights reserved.
-Use of this source code is governed by a BSD-style
-license that can be found in the LICENSE file.
--->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="org.getlantern.example" android:versionCode="1" android:versionName="1.0">
-
-  <application android:label="Flashlight">
-    <activity android:name="org.getlantern.example.MainActivity"
-      android:label="Flashlight"
-      android:exported="true">
-      <intent-filter>
-        <action android:name="android.intent.action.MAIN" />
-        <category android:name="android.intent.category.LAUNCHER" />
-      </intent-filter>
-    </activity>
-  </application>
-  <uses-permission android:name="android.permission.INTERNET" />
-</manifest>
-```
+After import you may be prompted to restart Android Studio.
 
 Now add a new *main activity* by right-clicking on the top most directory on
 the *Project* pane and selecting New->Activity->Blank Activity, the default
@@ -202,7 +188,35 @@ The second button's *id* must be set to *stopProxyButton* and the *onClick* to
 *stopProxyButtonOnClick*.
 
 Finally, hit the *Run app* action under the *Run* menu and deploy it to a real
-device or to an ARM-based emulator.
+device or to an ARM-based emulator (armeabi-v7a).
+
+![ARM-based emulator](https://cloud.githubusercontent.com/assets/385670/5985944/2e5016e0-a8b0-11e4-99fe-c9b4d325a5f4.png)
+
+I you're having configuration related problems when attempting to build, make
+sure your `AndroidManifest.xml` looks like this:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Copyright 2014 The Go Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="org.getlantern.example" android:versionCode="1" android:versionName="1.0">
+
+  <application android:label="Flashlight">
+    <activity android:name="org.getlantern.example.MainActivity"
+      android:label="Flashlight"
+      android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity>
+  </application>
+  <uses-permission android:name="android.permission.INTERNET" />
+</manifest>
+```
 
 If everything goes OK, you'll have two buttons and you can start `flashlight`
 by touching the *startProxyButton*.
@@ -212,7 +226,7 @@ by touching the *startProxyButton*.
 As long as the app is open, you'll be able to test the canonical example by
 finding the device's IP and sending it a special request:
 
-```
+```sh
 curl -x 10.10.100.97:9192 http://www.google.com/humans.txt
 # Google is built by a large team of engineers, designers, researchers, robots, and others in many different sites across the globe. It is updated continuously, and built with more tools and technologies than we can shake a stick at. If you'd like to help us out, see google.com/careers.
 ```
@@ -220,9 +234,37 @@ curl -x 10.10.100.97:9192 http://www.google.com/humans.txt
 You may not want everyone proxying through your phone! Tune the
 `RunClientProxy()` function on the `MainActivity.java` accordingly.
 
-Note: The *stopProxyButton* is supposed to stop the flashlight proxy but this
-is currently not supported, so at this time *stopProxyButton* actually kills
-the app.
+If you chose to run flashlight inside an emulator instead of a real device, you
+must connect to it using telnet and set up port redirection to actually test
+the proxy.
+
+Identify the port number your emulator is listening to
+
+![screen shot 2015-01-30 at 6 40 52 pm](https://cloud.githubusercontent.com/assets/385670/5985952/6afa23e2-a8b0-11e4-942a-384f483d331a.png)
+
+In this case its listening on the `5554` local port.
+
+Open a telnet session to the emulator and write the instruction `redir add
+tcp:9192:9192` to map the emulator's `9192` port to our local `9192` port.
+
+```sh
+telnet 127.0.0.1 5554
+# Trying 127.0.0.1...
+# Connected to localhost.
+# Escape character is '^]'.
+# Android Console: type 'help' for a list of commands
+# OK
+redir add tcp:9192:9192
+# OK
+```
+
+Now you'll be able to connect to the emulator's flashlight proxy through your
+local `9192` port:
+
+```sh
+curl -x 127.0.0.1:9192 https://www.google.com/humans.txt
+# Google is built by a large team of engineers, designers, researchers, robots, and others in many different sites across the globe. It is updated continuously, and built with more tools and technologies than we can shake a stick at. If you'd like to help us out, see google.com/careers.
+```
 
 [1]: https://github.com/getlantern/flashlight
 [2]: https://www.docker.com/
@@ -230,3 +272,4 @@ the app.
 [4]: http://golang.org/
 [5]: https://github.com/getlantern/flashlight-build
 [6]: http://www.gnu.org/software/make/
+[7]: http://mercurial.selenic.com/wiki/Download
