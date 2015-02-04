@@ -94,90 +94,6 @@
   </div>
 </div>
 
-<div ng-controller="WelcomeCtrl" ng-show="show" modal="show" class="modal">
-  <div class="modal-body" id="welcome">
-    <div class="logo">
-      <div><img src="img/logo.png" alt="{{ 'LANTERN' | translate }}"></div>
-      <div class="beta">{{ 'BETA' | translate }}</div><!-- XXX remove this when we graduate from beta -->
-    </div>
-    <div class="tagLine">{{ 'TAG_LINE' | translate }}</div>
-    <!-- not connected to internet -->
-    <div class="internetRequired fadeInOut" ng-hide="model.connectivity.internet">
-      {{ 'INTERNET_REQUIRED' | translate }}
-    </div>
-    <!-- connected to internet -->
-    <div ng-show="model.connectivity.internet">
-      <!-- don't yet know our public IP -->
-      <div ng-hide="model.connectivity.ip">
-        <img src="img/spinner_black.gif">
-      </div>
-      <!-- know our public IP -->
-      <div ng-show="model.connectivity.ip">
-        <div ng-show="inCensoringCountry">
-          <button type="button" class="btn btn-large btn-get-inverse enter-get-mode" ng-click="interaction(MODE.get)"
-            focus-on="show">{{ 'GET_ACCESS' | translate }}</button>
-        </div>
-        <div ng-hide="inCensoringCountry">
-          <button type="button" ng-hide="inCensoringCountry" ng-click="interaction(MODE.give)"
-            class="btn btn-large btn-give-inverse enter-give-mode" focus-on="show" tabindex="{{show && 1 || ''}}">
-            <i ng-show="inCensoringCountry" class="icon-warning-sign"></i>
-            {{ 'GIVE_ACCESS' | translate }}
-          </button>
-          <div class="orIfYouNeed">
-            {{ 'OR_IF_YOU_NEED' | translate }}
-            <a href="#" class="get-colored always-underlined enter-get-mode" ng-click="interaction(MODE.get)" tabindex="{{show && 2 || ''}}">{{ 'GET_ACCESS' | translate }}</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div ng-controller="SponsorToContinueCtrl" ng-show="show" modal="show" class="modal">
-  <div class="modal-header">
-    <h3>{{ 'SPONSOR_TO_CONTINUE_TITLE' | translate }}</h3>
-  </div>
-  <div class="modal-body" id="sponsorToContinue">
-    {{ 'SPONSOR_TO_CONTINUE_PROMPT' | translate }}
-    <a ng-click="openExternal(EXTERNAL_URL.cloudServers)" class="more-info">
-      {{ 'MORE_INFO' | translate }}<sup><i class="icon-external-link"></i></sup></a>
-  </div>
-  <div class="modal-footer">
-    <span class="icon-external-link-wrapper">
-      <button class="btn btn-primary" ng-click="openExternal(EXTERNAL_URL.rally)" focus-on="show">
-        {{ 'SPONSOR' | translate }}
-      </button><sup><i class="icon-external-link"></i></sup>
-    </span>
-  </div>
-</div>
-
-<div ng-controller="AuthorizeCtrl" ng-show="show" modal="show" class="modal">
-  <div class="modal-header">
-    <h3>{{ 'AUTHORIZE_TITLE' | translate }}</h3>
-  </div>
-  <div class="modal-body" id="authorize">
-    <div>
-      {{ 'AUTHORIZE_PROMPT' | translate }}
-      <a ng-click="helpExpanded = !helpExpanded" class="more-info">{{ 'MORE_INFO' | translate }}</a>
-    </div>
-    <div class="prompt-extra" ng-show="helpExpanded">
-      <p ng-bind-html="'AUTHORIZE_EXTRA' | translate"></p>
-      <p ng-bind-html="'EMAIL_USE' | translate"></p>
-      <p ng-bind-html="'DIRECT_FROM_GOOGLE' | translate"></p>
-    </div>
-    <p class="small gray indented" style="padding-top:10px;">{{ 'INVITE_EMAIL' | translate }}</p><!-- XXX remove this when we go to open beta -->
-  </div>
-  <div class="modal-footer">
-    <div class="modal-status" ng-show="showSpinner">
-      <img src="img/spinner.gif" class="sz16x16">
-    </div>
-    <a class="btn btn-primary sign-in" href="{{ model.connectivity.gtalkOauthUrl }}"
-       target="{{ model.mock && '_blank' || ''}}" focus-on="show" ng-click="signInClicked()">
-      {{ 'SIGN_IN' | translate }}
-    </a>
-  </div>
-</div>
-
 <div ng-show="model.modal == MODAL.connecting" modal="show" class="modal">
   <div class="modal-header">
     <h3>{{ 'CONNECTING_TITLE' | translate }}</h3>
@@ -200,31 +116,6 @@
   <div class="modal-footer">
     <button type="button" class="btn" focus-on="show" ng-click="interaction(INTERACTION.cancel)">{{ 'CANCEL' | translate }}</button>
     <button type="button" class="btn btn-danger" ng-click="interaction(INTERACTION.reset)">{{ 'RESET' | translate }}</button>
-  </div>
-</div>
-
-<div ng-controller="GiveModeForbiddenCtrl" ng-show="show" modal="show" class="modal">
-  <div class="modal-header">
-    <h3>{{ 'GIVE_MODE_FORBIDDEN_TITLE' | translate }}</h3>
-  </div>
-  <div class="modal-body" id="giveModeForbidden">
-    <div>{{ 'GIVE_MODE_FORBIDDEN_PROMPT' | translate }}</div>
-  </div>
-  <div class="modal-footer">
-    <button type="button" class="btn" ng-hide="model.setupComplete" ng-click="interaction(INTERACTION.cancel)">{{ 'BACK' | translate }}</button>
-    <button type="button" class="btn btn-primary btn-get-mode" focus-on="show" ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE_IN_GET_MODE' | translate }}</button>
-  </div>
-</div>
-
-<div ng-controller="NotInvitedCtrl" ng-show="show" modal="show" class="modal">
-  <div class="modal-header">
-    <h3>{{ 'NOT_INVITED_TITLE' | translate }}</h3>
-  </div>
-  <div class="modal-body" id="notInvited">
-    <div>{{ 'NOT_INVITED_PROMPT' | translate }}</div>
-  </div>
-  <div class="modal-footer">
-    <button type="button" class="btn btn-primary" focus-on="show" ng-click="interaction(INTERACTION.retry)">{{ 'TRY_ANOTHER_USER' | translate }}</button>
   </div>
 </div>
 
@@ -411,34 +302,6 @@
   </div>
 </div>
 
-<div ng-controller="FinishedCtrl" ng-show="show" modal="show" class="modal">
-  <div class="modal-header">
-    <h3>{{ 'FINISHED_TITLE' | translate }}</h3>
-  </div>
-  <div class="modal-body" id="finished">
-    <p>{{ inGiveMode && 'FINISHED_PROMPT_GIVE' || 'FINISHED_PROMPT_GET' | translate }}</p>
-  </div>
-  <div class="modal-footer">
-    <div class="modal-status smallest">
-      <label class="checkbox smallest">
-        <input type="checkbox" ng-model="autoReport"
-               ng-change="changeSetting(SETTING.autoReport, autoReport)">
-          {{ 'AUTOREPORT_PROMPT' | translate }}<a style="margin-{{rtl && 'right' || 'left'}}: 9px" ng-click="openExternal(EXTERNAL_URL.autoReportPrivacy)">{{ 'MORE_INFO' | translate }}<sup><i class="icon-external-link"></i></sup>
-        </a>
-      </label>
-      <div class="smallest indented warning-colored" style="margin-top: 5px; min-height: 15px;" ng-show="!autoReport">
-        <i class="icon-exclamation-sign"></i>
-        {{ 'NO_AUTOREPORT_WARNING' | translate }}
-      </div>
-    </div>
-    <button id="finishSetup"
-            type="button" class="btn btn-primary btn-{{ model.settings.mode }}-mode"
-            focus-on="show"
-            ng-click="finish()">{{ 'FINISH' | translate }}</button>
-  </div>
-</div>
-
-<!-- XXX DRY - settings load failure modal, unexpected state modal -->
 <div ng-show="currentModal == 'contact'" modal="show" class="modal">
   <div class="modal-header">
     <h3>{{ 'CONTACT_TITLE' | translate }}</h3>
@@ -540,34 +403,6 @@
        focus-on="show" tabindex="{{ show && 1 || '' }}">
       {{ 'DOWNLOAD' | translate }}
     </button>
-  </div>
-</div>
-
-<div ng-controller="SponsorCtrl" ng-show="show" modal="show" class="modal">
-  <div class="modal-header">
-    <h3>{{ 'SPONSOR_CLOUD_PROXY' | translate }}</h3>
-  </div>
-  <div class="modal-body" id="sponsor">
-    <p>
-      {{ inGetMode && 'SPONSOR_PROMPT_GET' || 'SPONSOR_PROMPT_GIVE' | translate }}
-      <a ng-click="openExternal(EXTERNAL_URL.cloudServers)" class="more-info">
-        {{ 'MORE_INFO' | translate }}<sup><i class="icon-external-link"></i></sup></a>
-    </p>
-    <p class="actions">
-      <span class="icon-external-link-wrapper">
-        <button class="btn btn-primary" ng-click="openExternal(EXTERNAL_URL.rally)" focus-on="show">
-          {{ 'SPONSOR_CLOUD_PROXY' | translate }}
-        </button><sup><i class="icon-external-link"></i></sup>
-      </span>
-      <small>
-        {{ 'OR' | translate }}
-        <a class="always-underlined" ng-click="openExternal(EXTERNAL_URL.getInvolved)">
-          {{ 'VIEW_WAYS_TO_GET_INVOLVED' | translate }}<sup><i class="icon-external-link"></i></sup></a>
-      </small>
-    </p>
-  </div>
-  <div class="modal-footer">
-    <button class="btn" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | translate }}</button>
   </div>
 </div>
 

@@ -22,27 +22,6 @@ app.controller('SettingsLoadFailureCtrl', ['$scope', 'MODAL', function($scope, M
   });
 }]);
 
-app.controller('WelcomeCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
-    $scope.show = false;
-    $scope.$watch('model.modal', function (modal) {
-        $scope.show = modal === MODAL.welcome;
-    });
-}]);
-
-app.controller('SponsorCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
-  $scope.show = false;
-  $scope.$watch('model.modal', function (modal) {
-    $scope.show = modal === MODAL.sponsor;
-  });
-}]);
-
-app.controller('SponsorToContinueCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
-  $scope.show = false;
-  $scope.$watch('model.modal', function (modal) {
-    $scope.show = modal === MODAL.sponsorToContinue;
-  });
-}]);
-
 app.controller('UpdateAvailableCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function (modal) {
@@ -83,34 +62,6 @@ app.controller('ConfirmResetCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
   });
 }]);
 
-app.controller('GiveModeForbiddenCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
-  $scope.show = false;
-  $scope.$watch('model.modal', function (modal) {
-    $scope.show = modal === MODAL.giveModeForbidden;
-  });
-}]);
-
-app.controller('NotInvitedCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
-  $scope.show = false;
-  $scope.$watch('model.modal', function (modal) {
-    $scope.show = modal === MODAL.notInvited;
-  });
-}]);
-
-app.controller('FinishedCtrl', ['$scope', 'MODAL', 'gaMgr', function ($scope, MODAL, gaMgr) {
-  $scope.autoReport = true;
-  $scope.show = false;
-  $scope.$watch('model.modal', function (modal) {
-    $scope.show = modal === MODAL.finished;
-  });
-  $scope.finish = function () {
-    if ($scope.autoReport) {
-      gaMgr.startTracking();
-    }
-    $scope.interaction(INTERACTION.continue);
-  };
-}]);
-
 app.controller('SettingsCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
   $scope.show = false;
 
@@ -132,31 +83,6 @@ app.controller('SettingsCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
 
   $scope.$watch('model.settings.proxyAllSites', function (proxyAllSites) {
     $scope.proxyAllSites = proxyAllSites;
-  });
-}]);
-
-
-app.controller('AuthorizeCtrl', ['$scope', '$timeout', 'MODAL', 'CONNECTIVITY', function ($scope, $timeout, MODAL, CONNECTIVITY) {
-  $scope.show = false;
-  $scope.$watch('model.modal', function (modal) {
-    $scope.show = modal === MODAL.authorize;
-  });
-
-  var signInClicked = false;
-  $scope.signInClicked = function () {
-    signInClicked = true;
-    $scope.showSpinner = true;
-  }
-
-  $scope.$watch('model.connectivity.gtalk', function (valNew, valOld) {
-    if (valNew === CONNECTIVITY.connected && valOld === CONNECTIVITY.connecting) {
-      signInClicked = false;
-    }
-    if (signInClicked || valNew === CONNECTIVITY.connecting) {
-      $scope.showSpinner = true;
-    } else {
-      $scope.showSpinner = false;
-    }
   });
 }]);
 
