@@ -14,36 +14,11 @@ app.controller('RootCtrl', ['$scope', 'flashlightStats', 'modalService', functio
     };
 }]);
 
-app.controller('SettingsLoadFailureCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
-  $scope.show = false;
-  $scope.$watch('model.modal', function (modal) {
-    $scope.show = modal === MODAL.settingsLoadFailure;
-    $scope.resetContactForm($scope);
-  });
-}]);
-
 app.controller('UpdateAvailableCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function (modal) {
     $scope.show = modal === MODAL.updateAvailable;
   });
-}]);
-
-app.controller('UnexpectedStateCtrl', ['$scope',  'apiSrvc', 'modelSrvc', 'MODAL', 'REQUIRED_API_VER', 'INTERACTION', 
-    function ($scope, apiSrvc, modelSrvc, MODAL, REQUIRED_API_VER, INTERACTION) {
-
-  $scope.modelSrvc = modelSrvc;
-
-  $scope.show = false;
-  $scope.$watch('modelSrvc.sane', function (sane) {
-    if (!sane) {
-      // disconnect immediately from insane backend
-      modelSrvc.model.modal = 'unexpectedState';
-      $scope.show = true;
-      $scope.resetContactForm($scope);
-    }
-  });
-
 }]);
 
 app.controller('ContactCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
