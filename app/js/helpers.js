@@ -9,7 +9,7 @@ if (typeof inspect != 'function') {
 }
 
 if (typeof _ != 'function') {
-  var _ = require('../bower_components/lodash/dist/lodash.js')._;
+  var _ = require('../bower_components/lodash/lodash.min.js')._;
 }
 
 if (typeof jsonpatch != 'object') {

@@ -1,174 +1,9 @@
 'use strict';
 
 angular.module('app.services', [])
-  // more flexible log service
-  // https://groups.google.com/d/msg/angular/vgMF3i3Uq2Y/q1fY_iIvkhUJ
-  .value('logWhiteList', /.*Ctrl|.*Srvc|.*Mgr/)
-  .factory('logFactory', function($log, $window, logWhiteList) {
-    // XXX can take out on upgrade to angular 1.1 which added $log.debug
-    if (!$log.debug) {
-      var console = $window.console || {},
-          logFn = console.debug || console.log || angular.noop;
-      if (logFn.apply) {
-        $log.debug = function () { return logFn.apply(console, arguments); };
-      } else {
-        $log.debug = function (arg1, arg2) { logFn(arg1, arg2); };
-      }
-    }
-    return function(prefix) {
-      var match = prefix ? prefix.match(logWhiteList) : true;
-      function extracted(prop) {
-        if (!match) return angular.noop;
-        return function() {
-          var args = [].slice.call(arguments);
-          if (prefix) args.unshift('[' + prefix + ']');
-          $log[prop].apply($log, args);
-        };
-      }
-      return {
-        log:   extracted('log'),
-        warn:  extracted('warn'),
-        error: extracted('error'),
-        debug: extracted('debug')
-      };
-    };
-  })
-  .service('cometdSrvc', function(COMETD_URL, logFactory, apiSrvc, $rootScope, $window) {
-    var log = logFactory('cometdSrvc');
-    // boilerplate cometd setup
-    // http://cometd.org/documentation/cometd-javascript/subscription
-    var cometd = $.cometd,
-        connected = false,
-        clientId,
-        subscriptions = [];
-    cometd.websocketsEnabled = true;
-    cometd.configure({
-      url: COMETD_URL,
-      //logLevel: 'debug',
-      backoffIncrement: 100,
-      maxBackoff: 500,
-      // necessary to work with Faye backend when browser lacks websockets:
-      // https://groups.google.com/d/msg/faye-users/8cr_4QZ-7cU/sKVLbCFDkEUJ
-      appendMessageTypeToURL: false
-    });
-
-    function disconnect() {
-      cometd.disconnect(true);
-    }
-
-    $($window).unload(disconnect);
-
-    // http://cometd.org/documentation/cometd-javascript/subscription
-    cometd.onListenerException = function(exception, subscriptionHandle, isListener, message) {
-      log.error('Uncaught exception for subscription', subscriptionHandle, ':', exception, 'message:', message);
-      apiSrvc.exception({error: 'uncaughtSubscriptionException', subscriptionHandle: subscriptionHandle, exception: exception, message: message});
-      if (isListener) {
-        cometd.removeListener(subscriptionHandle);
-        log.error('removed listener');
-      } else {
-        cometd.unsubscribe(subscriptionHandle);
-        log.error('unsubscribed');
-      }
-      disconnect();
-    };
-
-    cometd.addListener('/meta/connect', function(msg) {
-      if (cometd.isDisconnected()) {
-        connected = false;
-        log.debug('connection closed');
-        return;
-      }
-      var wasConnected = connected;
-      connected = msg.successful;
-      if (connected) {
-        $rootScope.cometdLastConnectedAt = new Date();
-      }
-      if (!wasConnected && connected) { // reconnected
-        log.debug('connection established');
-        $rootScope.$apply(function () {
-          $rootScope.cometdConnected = true;
-        });
-        // XXX why do docs put this in successful handshake callback?
-        cometd.batch(function(){ refresh(); });
-      } else if (wasConnected && !connected) {
-        log.warn('connection broken');
-        $rootScope.$apply(function () {
-          $rootScope.cometdConnected = false;
-        });
-      }
-    });
-
-    // backend doesn't send disconnects, but just in case
-    cometd.addListener('/meta/disconnect', function(msg) {
-      log.debug('got disconnect');
-      if (msg.successful) {
-        connected = false;
-        log.debug('connection closed');
-        $rootScope.$broadcast('cometdDisconnected');
-        // XXX handle disconnect
-      }
-    });
-
-    function subscribe(key) {
-      if (connected) {
-        key.sub = cometd.subscribe(key.chan, key.cb);
-        log.debug('subscribed', key);
-
-      } else {
-        log.debug('queuing subscription request', key);
-      }
-      subscriptions.push(key);
-      if (angular.isUndefined(key.renewOnReconnect))
-        key.renewOnReconnect = true;
-    }
-
-    function unsubscribe(key) {
-      cometd.unsubscribe(key.sub);
-      log.debug('unsubscribed', key);
-      key.renewOnReconnect = false;
-    }
-
-    function refresh() {
-      log.debug('refreshing subscriptions');
-      var renew = [];
-      angular.forEach(subscriptions, function(key) {
-        if (key.sub)
-          cometd.unsubscribe(key.sub);
-        if (key.renewOnReconnect)
-          renew.push(key);
-      });
-      subscriptions = [];
-      _.each(renew, function(key) {
-        subscribe(key);
-      });
-    }
-
-    cometd.addListener('/meta/handshake', function(handshake) {
-      if (handshake.successful) {
-        log.debug('successful handshake', handshake);
-        clientId = handshake.clientId;
-        //cometd.batch(function(){ refresh(); }); // XXX moved to connect callback
-      }
-      else {
-        log.warn('unsuccessful handshake');
-        clientId = null;
-      }
-    });
-
-
-    cometd.handshake();
-
-    return {
-      subscribe: subscribe,
-      unsubscribe: unsubscribe,
-      disconnect: disconnect
-    };
-  })
-  .service('modelSrvc', function($rootScope, apiSrvc, $window, MODEL_SYNC_CHANNEL, cometdSrvc, logFactory, flashlightStats) {
-    var log = logFactory('modelSrvc'),
-        model = {},
+  .service('modelSrvc', function($rootScope, apiSrvc, $window, MODEL_SYNC_CHANNEL,  flashlightStats) {
+      var model = {},
         syncSubscriptionKey;
-
 
     $rootScope.validatedModel = false;
 
@@ -178,7 +13,7 @@ angular.module('app.services', [])
       // backend can send updates before model has been populated
       // https://github.com/getlantern/lantern/issues/587
       if (patch[0].path !== '' && _.isEmpty(model)) {
-        log.debug('ignoring', msg, 'while model has not yet been populated');
+        //log.debug('ignoring', msg, 'while model has not yet been populated');
         return;
       }
 
@@ -198,7 +33,7 @@ angular.module('app.services', [])
                   }
                 } catch (e) {
                   if (!(e instanceof PatchApplyError || e instanceof InvalidPatch)) throw e;
-                  log.error('Error applying patch', patch);
+                  //log.error('Error applying patch', patch);
                   apiSrvc.exception({exception: e, patch: patch});
                 }
             }
@@ -214,26 +49,24 @@ angular.module('app.services', [])
       }
 
     syncSubscriptionKey = {chan: MODEL_SYNC_CHANNEL, cb: handleSync};
-    cometdSrvc.subscribe(syncSubscriptionKey);
 
     return {
       model: model,
       sane: true
     };
   })
-  .service('gaMgr', function ($window, GOOGLE_ANALYTICS_DISABLE_KEY, GOOGLE_ANALYTICS_WEBPROP_ID, logFactory, modelSrvc) {
-    var log = logFactory('gaMgr'),
-        model = modelSrvc.model,
+  .service('gaMgr', function ($window, GOOGLE_ANALYTICS_DISABLE_KEY, GOOGLE_ANALYTICS_WEBPROP_ID, modelSrvc) {
+      var model = modelSrvc.model,
         ga = $window.ga;
 
     function stopTracking() {
-      log.debug('disabling analytics');
+      //log.debug('disabling analytics');
       //trackPageView('end'); // force the current session to end with this hit
       $window[GOOGLE_ANALYTICS_DISABLE_KEY] = true;
     }
 
     function startTracking() {
-      log.debug('enabling analytics');
+      //log.debug('enabling analytics');
       $window[GOOGLE_ANALYTICS_DISABLE_KEY] = false;
       trackPageView('start');
     }
@@ -257,7 +90,7 @@ angular.module('app.services', [])
       var page = model.modal || '/';
       ga('set', 'page', page);
       ga('send', 'pageview', sessionControl ? {sessionControl: sessionControl} : undefined);
-      log.debug(sessionControl === 'end' ? 'sent analytics session end' : 'tracked pageview', 'page =', page);
+      //log.debug(sessionControl === 'end' ? 'sent analytics session end' : 'tracked pageview', 'page =', page);
     }
 
     return {
@@ -277,7 +110,7 @@ angular.module('app.services', [])
       }
     };
   })
-  .service('flashlightStats', function ($window, $log) {
+  .service('flashlightStats', function ($window) {
     // This service grabs stats from flashlight and adds them to the standard
     // model.
     var flashlightPeers = {};
@@ -295,12 +128,12 @@ angular.module('app.services', [])
       }, false);
   
       source.addEventListener('open', function(e) {
-        $log.debug("flashlight connection opened");
+        //$log.debug("flashlight connection opened");
       }, false);
   
       source.addEventListener('error', function(e) {
         if (e.readyState == EventSource.CLOSED) {
-          $log.debug("flashlight connection closed");
+          //$log.debug("flashlight connection closed");
         }
       }, false);
     }

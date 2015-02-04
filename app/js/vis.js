@@ -420,10 +420,9 @@ angular.module('app.vis', ['ngSanitize'])
     };
   });
 
-app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$timeout', '$filter', 'logFactory', 'modelSrvc', 'apiSrvc', function($scope, $rootScope, $compile, $window, $timeout, $filter, logFactory, modelSrvc, apiSrvc) {
+app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$timeout', '$filter',  'modelSrvc', 'apiSrvc', function($scope, $rootScope, $compile, $window, $timeout, $filter, modelSrvc, apiSrvc) {
 
-  var log = logFactory('VisCtrl'),
-      model = modelSrvc.model,
+  var model = modelSrvc.model,
       isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0,
       width = document.getElementById('vis').offsetWidth,
       height = document.getElementById('vis').offsetHeight,

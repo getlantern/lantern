@@ -439,7 +439,7 @@
 </div>
 
 <!-- XXX DRY - settings load failure modal, unexpected state modal -->
-<div ng-controller="ContactCtrl" ng-show="show" modal="show" class="modal">
+<div ng-show="currentModal == 'contact'" modal="show" class="modal">
   <div class="modal-header">
     <h3>{{ 'CONTACT_TITLE' | translate }}</h3>
   </div>
@@ -464,14 +464,14 @@
   </div>
   <div class="modal-footer">
     <button type="button" class="btn" tabindex="{{ show && 3 || '' }}"
-            ng-click="interactionWithNotify(INTERACTION.cancel, true)">{{ 'CANCEL' | translate }}</button>
+            ng-click="closeModal()">{{ 'CANCEL' | translate }}</button>
     <button type="button" class="btn btn-primary" tabindex="{{ show && 2 || '' }}"
             ng-disabled="contactForm.$invalid"
             ng-click="interactionWithNotify(INTERACTION.continue, this)">{{ 'SEND' | translate }}</button>
   </div>
 </div>
 
-<div ng-controller="AboutCtrl" ng-show="show" modal="show" class="modal">
+<div ng-show="currentModal == 'about'" class="modal">
   <div class="modal-header about">
     <div>{{ 'LANTERN' | translate }} {{ 'VERSION' | translate }} {{ model.version.installed | version:true:true }}</div>
     <div ng-show="model.dev" class="smaller">Development version. lantern-ui v{{ lanternUiVersion }}.</div>
@@ -502,7 +502,7 @@
     </div>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn btn-primary" focus-on="show" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | translate }}</button>
+    <button type="button" class="btn btn-primary" focus-on="show" ng-click="closeModal()">{{ 'CLOSE' | translate }}</button>
   </div>
 </div>
 

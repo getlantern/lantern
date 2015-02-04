@@ -33,16 +33,11 @@
       <a ng-click="interaction(INTERACTION.updateAvailable)">{{ 'UPDATE_AVAILABLE_TITLE' | translate }}</a>
     </span>
     <span>
-      · <a ng-click="interaction(INTERACTION.about)">{{ 'ABOUT' | translate }}</a>
+      · <a ng-click="showModal('about')">{{ 'ABOUT' | translate }}</a>
     </span>
     <span>
-      · <a ng-click="interaction(INTERACTION.contact)">{{ 'CONTACT' | translate }}</a>
+      · <a ng-click="showModal('contact')">{{ 'CONTACT' | translate }}</a>
     </span>
-    <!--
-    <span>
-      · <a ng-click="interaction(INTERACTION.sponsor)">{{ 'SPONSOR' | translate }}</a>
-    </span>
-    -->
   </div>
 
   <div id="global-nav" class="btn-group" dir="ltr">

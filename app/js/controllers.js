@@ -1,7 +1,17 @@
 'use strict';
 
-app.controller('RootCtrl', ['$scope', 'flashlightStats', function($scope, flashlightStats) {
-    flashlightStats.connect();
+app.controller('RootCtrl', ['$scope', 'flashlightStats', 'modalService', function($scope, flashlightStats, modalService) {
+    //flashlightStats.connect();
+    $scope.Data = modalService.getAll();
+    $scope.currentModal = 'none';
+
+    $scope.showModal = function(val) {
+        $scope.currentModal = val;
+    };
+
+    $scope.closeModal = function() {
+        $scope.currentModal = 'none';
+    };
 }]);
 
 app.controller('SettingsLoadFailureCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
@@ -40,9 +50,8 @@ app.controller('UpdateAvailableCtrl', ['$scope', 'MODAL', function($scope, MODAL
   });
 }]);
 
-app.controller('UnexpectedStateCtrl', ['$scope', 'cometdSrvc', 'apiSrvc', 'modelSrvc', 'MODAL', 'REQUIRED_API_VER', 'INTERACTION', 'logFactory',
-    function ($scope, cometdSrvc, apiSrvc, modelSrvc, MODAL, REQUIRED_API_VER, INTERACTION, logFactory) {
-  var log = logFactory('UnexpectedStateCtrl');
+app.controller('UnexpectedStateCtrl', ['$scope',  'apiSrvc', 'modelSrvc', 'MODAL', 'REQUIRED_API_VER', 'INTERACTION', 
+    function ($scope, apiSrvc, modelSrvc, MODAL, REQUIRED_API_VER, INTERACTION) {
 
   $scope.modelSrvc = modelSrvc;
 
@@ -50,27 +59,12 @@ app.controller('UnexpectedStateCtrl', ['$scope', 'cometdSrvc', 'apiSrvc', 'model
   $scope.$watch('modelSrvc.sane', function (sane) {
     if (!sane) {
       // disconnect immediately from insane backend
-      cometdSrvc.disconnect();
       modelSrvc.model.modal = 'unexpectedState';
       $scope.show = true;
       $scope.resetContactForm($scope);
     }
   });
 
-  /*
-  $scope.$watch('model.version.installed.api', function (installed) {
-    if (angular.isUndefined(installed)) return;
-    for (var key in {major: 'major', minor: 'minor'}) {
-      if (installed[key] !== REQUIRED_API_VER[key]) {
-        log.error('Backend api version', installed, 'incompatible with required version', REQUIRED_API_VER);
-        // XXX this might well 404 due to the version mismatch but worth a shot?
-        apiSrvc.exception({error: 'versionMismatch', installed: installed, required: REQUIRED_API_VER});
-        modelSrvc.sane = false;
-        return;
-      }
-    }
-  }, true);
-  */
 }]);
 
 app.controller('ContactCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
@@ -117,7 +111,7 @@ app.controller('FinishedCtrl', ['$scope', 'MODAL', 'gaMgr', function ($scope, MO
   };
 }]);
 
-app.controller('SettingsCtrl', ['$scope', 'MODAL', '$log', function($scope, MODAL, $log) {
+app.controller('SettingsCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
   $scope.show = false;
 
   $scope.$watch('model.modal', function (modal) {
@@ -166,16 +160,8 @@ app.controller('AuthorizeCtrl', ['$scope', '$timeout', 'MODAL', 'CONNECTIVITY', 
   });
 }]);
 
-app.controller('AboutCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
-  $scope.show = false;
-  $scope.$watch('model.modal', function (modal) {
-    $scope.show = modal === MODAL.about;
-  });
-}]);
-
-app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'logFactory', 'SETTING', 'INTERACTION', 'INPUT_PAT', 'MODAL', function($scope, $filter, logFactory, SETTING, INTERACTION, INPUT_PAT, MODAL) {
-  var log = logFactory('ProxiedSitesCtrl'),
-      fltr = $filter('filter'),
+app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'SETTING', 'INTERACTION', 'INPUT_PAT', 'MODAL', function($scope, $filter, SETTING, INTERACTION, INPUT_PAT, MODAL) {
+      var fltr = $filter('filter'),
       DOMAIN = INPUT_PAT.DOMAIN,
       IPV4 = INPUT_PAT.IPV4,
       nproxiedSitesMax = 1000,
@@ -267,19 +253,19 @@ app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'logFactory', 'SETTING'
 
   $scope.handleContinue = function () {
     if ($scope.proxiedSitesForm.$invalid) {
-      log.debug('invalid input, not sending update');
+      //log.debug('invalid input, not sending update');
       return $scope.interaction(INTERACTION.continue);
     }
     if (!$scope.hasUpdate) {
-      log.debug('input matches original, not sending update');
+      //log.debug('input matches original, not sending update');
       return $scope.interaction(INTERACTION.continue);
     }
-    log.debug('sending update');
+    //log.debug('sending update');
     $scope.input = proxiedSitesDirty.join('\n');
     $scope.updating = true;
     $scope.changeSetting(SETTING.proxiedSites, proxiedSitesDirty).then(function () {
       updateComplete();
-      log.debug('update complete, sending continue');
+      //log.debug('update complete, sending continue');
       $scope.interaction(INTERACTION.continue);
     }, function () {
       $scope.updating = false;
@@ -289,9 +275,8 @@ app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'logFactory', 'SETTING'
   };
 }]);
 
-app.controller('LanternFriendsCtrl', ['$scope', '$timeout', 'logFactory', '$filter', 'INPUT_PAT', 'FRIEND_STATUS', 'INTERACTION', 'MODAL', 'SUGGESTION_REASON', function($scope, $timeout, logFactory, $filter, INPUT_PAT, FRIEND_STATUS, INTERACTION, MODAL, SUGGESTION_REASON) {
-  var log = logFactory('LanternFriendsCtrl'),
-      max = Math.max,
+app.controller('LanternFriendsCtrl', ['$scope', '$timeout', '$filter', 'INPUT_PAT', 'FRIEND_STATUS', 'INTERACTION', 'MODAL', 'SUGGESTION_REASON', function($scope, $timeout, $filter, INPUT_PAT, FRIEND_STATUS, INTERACTION, MODAL, SUGGESTION_REASON) {
+      var max = Math.max,
       model = $scope.model,
       EMAIL = INPUT_PAT.EMAIL_INSIDE,
       //i18nFltr = $filter('i18n'),
@@ -317,7 +302,7 @@ app.controller('LanternFriendsCtrl', ['$scope', '$timeout', 'logFactory', '$filt
     if ($scope.pendingFriendUpdate) return;
     email = email || $scope.added.email;
     if (!email) {
-      log.error('missing email');
+      //log.error('missing email');
       return;
     }
     if (!model.remainingFriendingQuota) {
@@ -479,8 +464,7 @@ app.controller('LanternFriendsCtrl', ['$scope', '$timeout', 'logFactory', '$filt
   };
 }]);
 
-app.controller('ScenariosCtrl', ['$scope', '$timeout', 'logFactory', 'MODAL', 'INTERACTION', function ($scope, $timeout, logFactory, MODAL, INTERACTION) {
-  var log = logFactory('ScenariosCtrl');
+app.controller('ScenariosCtrl', ['$scope', '$timeout', 'MODAL', 'INTERACTION', function ($scope, $timeout, MODAL, INTERACTION) {
 
   $scope.$watch('model.mock.scenarios.applied', function(applied) {
     if (applied) {
