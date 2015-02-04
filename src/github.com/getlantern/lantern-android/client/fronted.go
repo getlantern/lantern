@@ -28,7 +28,7 @@ func (s *frontedServer) dialer() *balancer.Dialer {
 		log.Fatalf("Could not get a pool of trusted CAs.")
 	}
 
-	fd := fronted.NewDialer(&fronted.Config{
+	fd := fronted.NewDialer(fronted.Config{
 		Host:               s.Host,
 		Port:               s.Port,
 		Masquerades:        clientConfig.Client.MasqueradeSets[s.MasqueradeSet],

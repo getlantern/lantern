@@ -13,10 +13,10 @@ func (client *Client) getBalancer() *balancer.Balancer {
 }
 
 func (client *Client) initBalancer() *balancer.Balancer {
-	dialers := make([]*balancer.Dialer, 0, len(client.frontedServers))
+	dialers := make([]*balancer.Dialer, 0, len(client.cfg.Client.FrontedServers))
 
-	for _, s := range client.frontedServers {
-		dialer := s.dialer()
+	for _, s := range client.cfg.Client.FrontedServers {
+		dialer := (&s).dialer()
 		dialers = append(dialers, dialer)
 	}
 

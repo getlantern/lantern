@@ -8,13 +8,17 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"strconv"
+	"sync"
+	"time"
 
 	"github.com/getlantern/balancer"
+	"github.com/getlantern/flashlight/util"
 )
 
 const (
-	httpConnectMethod = "CONNECT"
-	xFlashlightQOS    = "X-Flashlight-QOS"
+	cloudConfigPollInterval = time.Second * 60
+	httpConnectMethod       = "CONNECT"
+	httpXFlashlightQOS      = "X-Flashlight-QOS"
 )
 
 // clientConfig holds global configuration settings for all clients.
@@ -23,6 +27,8 @@ var clientConfig *config
 // init attempts to setup client configuration.
 func init() {
 	var err error
+	// Initial attempt to get configuration, without a proxy. If this request
+	// fails we'll use the default configuration.
 	if clientConfig, err = getConfig(); err != nil {
 		// getConfig() guarantees to return a *Config struct, so we can log the
 		// error without stopping the program.
@@ -33,39 +39,59 @@ func init() {
 // Client is a HTTP proxy that accepts connections from local programs and
 // proxies these via remote flashlight servers.
 type Client struct {
-	Addr string
+	addr string
+	cfg  config
 
-	frontedServers []*frontedServer
-	ln             net.Listener
+	ln net.Listener
 
 	rpCh          chan *httputil.ReverseProxy
 	rpInitialized bool
 
 	balInitialized bool
 	balCh          chan *balancer.Balancer
+	cfgMu          sync.RWMutex
+
+	closed chan bool
 }
 
 // NewClient creates a proxy client.
 func NewClient(addr string) *Client {
-	client := &Client{Addr: addr}
+	client := &Client{addr: addr}
 
-	client.frontedServers = make([]*frontedServer, 0, len(clientConfig.Client.FrontedServers))
+	client.cfg = *clientConfig
+	client.reloadConfig()
 
-	log.Printf("Adding %d domain fronted servers.", len(clientConfig.Client.FrontedServers))
+	return client
+}
 
-	// Adding fronted servers.
-	for _, fs := range clientConfig.Client.FrontedServers {
-		log.Printf("Adding %s:%d.", fs.Host, fs.Port)
-		client.frontedServers = append(client.frontedServers, &fs)
-	}
+func (client *Client) reloadConfig() {
+	// We can only run one reset task at a time.
+	client.cfgMu.Lock()
+	defer client.cfgMu.Unlock()
 
 	// Starting up balancer.
 	client.initBalancer()
 
-	// Starting reverse proxy
+	// Starting reverse proxy.
 	client.initReverseProxy()
+}
 
-	return client
+// updateConfig attempts to pull a configuration file from the network using
+// the client proxy itself.
+func (client *Client) updateConfig() error {
+	var err error
+	var buf []byte
+	var cli *http.Client
+
+	if cli, err = util.HTTPClient(cloudConfigCA, client.addr); err != nil {
+		return err
+	}
+
+	if buf, err = pullConfigFile(cli); err != nil {
+		return err
+	}
+
+	return client.cfg.updateFrom(buf)
 }
 
 // ServeHTTP implements the method from interface http.Handler using the latest
@@ -79,10 +105,34 @@ func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// pollConfiguration periodically checks for updates in the cloud configuration
+// file.
+func (client *Client) pollConfiguration() {
+	pollTimer := time.NewTimer(cloudConfigPollInterval)
+	defer pollTimer.Stop()
+
+	for {
+		select {
+		case <-client.closed:
+			return
+		case <-pollTimer.C:
+			// Attempt to update configuration.
+			var err error
+			if err = client.updateConfig(); err == nil {
+				// Configuration changed, lets reload.
+				client.reloadConfig()
+			}
+			// Sleeping 'till next pull.
+			pollTimer.Reset(cloudConfigPollInterval)
+		}
+	}
+
+}
+
 // ListenAndServe spawns the HTTP proxy and makes it listen for incoming
 // connections.
 func (client *Client) ListenAndServe() (err error) {
-	addr := client.Addr
+	addr := client.addr
 
 	if addr == "" {
 		addr = ":http"
@@ -92,18 +142,26 @@ func (client *Client) ListenAndServe() (err error) {
 		return err
 	}
 
+	client.closed = make(chan bool)
+
+	defer func() {
+		close(client.closed)
+	}()
+
 	httpServer := &http.Server{
-		Addr:    client.Addr,
+		Addr:    client.addr,
 		Handler: client,
 	}
 
 	log.Printf("Starting proxy server at %s...", addr)
 
+	go client.pollConfiguration()
+
 	return httpServer.Serve(client.ln)
 }
 
 func targetQOS(req *http.Request) int {
-	requestedQOS := req.Header.Get(xFlashlightQOS)
+	requestedQOS := req.Header.Get(httpXFlashlightQOS)
 	if requestedQOS != "" {
 		rqos, err := strconv.Atoi(requestedQOS)
 		if err == nil {

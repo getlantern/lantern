@@ -4,13 +4,26 @@ import (
 	"compress/gzip"
 	"crypto/x509"
 	"errors"
+	"io"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"reflect"
+	"time"
+
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/yaml"
-	"io"
-	"io/ioutil"
-	"net/http"
 )
+
+const (
+	httpIfNoneMatch = "If-None-Match"
+	httpEtag        = "Etag"
+)
+
+var httpDefaultClient = &http.Client{Timeout: time.Second * 5}
+
+var lastCloudConfigETag string
 
 type clientCfg struct {
 	FrontedServers []frontedServer                  `yaml:"frontedservers"`
@@ -31,22 +44,44 @@ var (
 	// errInvalidConfiguration is returned in case the configuration file is
 	// downloaded but has no useful data.
 	errInvalidConfiguration = errors.New(`Invalid configuration file.`)
+
+	errConfigurationUnchanged = errors.New(`Configuration remain unchanged.`)
 )
 
 const (
+	cloudConfigCA = ``
 	// URL of the configuration file. Remember to use HTTPs.
 	remoteConfigURL = `https://s3.amazonaws.com/lantern_config/cloud.1.6.0.yaml.gz`
 )
 
 // pullConfigFile attempts to retrieve a configuration file over the network,
 // then it decompresses it and returns the file's raw bytes.
-func pullConfigFile() ([]byte, error) {
+func pullConfigFile(cli *http.Client) ([]byte, error) {
 	var err error
+	var req *http.Request
 	var res *http.Response
 
-	// Issuing a post request to download configuration file.
-	if res, err = http.Get(remoteConfigURL); err != nil {
+	if cli == nil {
+		return nil, errors.New("Missing HTTP client.")
+	}
+
+	if req, err = http.NewRequest("GET", remoteConfigURL, nil); err != nil {
 		return nil, err
+	}
+
+	if lastCloudConfigETag != "" {
+		// Don't bother fetching if unchanged.
+		req.Header.Set(httpIfNoneMatch, lastCloudConfigETag)
+	}
+
+	if res, err = cli.Do(req); err != nil {
+		return nil, err
+	}
+
+	// Has changed?
+	if res.StatusCode == http.StatusNotModified {
+		log.Printf("Configuration file has not changed since last pull.\n")
+		return nil, errConfigurationUnchanged
 	}
 
 	// Expecting 200 OK
@@ -54,13 +89,17 @@ func pullConfigFile() ([]byte, error) {
 		return nil, errFailedConfigRequest
 	}
 
+	// Saving ETAG
+	lastCloudConfigETag = res.Header.Get(httpEtag)
+
 	// Using a gzip reader as we're getting a compressed file.
 	var body io.ReadCloser
 	if body, err = gzip.NewReader(res.Body); err != nil {
 		return nil, err
 	}
+	defer body.Close()
 
-	// Returning uncompressed bytes.
+	// Uncompressing bytes.
 	return ioutil.ReadAll(body)
 }
 
@@ -84,21 +123,36 @@ func getConfig() (*config, error) {
 	var cfg config
 
 	// Attempt to download configuration file.
-	if buf, err = pullConfigFile(); err != nil {
+	if buf, err = pullConfigFile(httpDefaultClient); err != nil {
 		return defaultConfig(), err
 	}
 
-	// Attempt to parse configuration file.
-	if err = yaml.Unmarshal(buf, &cfg); err != nil {
+	if err = cfg.updateFrom(buf); err != nil {
 		return defaultConfig(), err
+	}
+
+	return &cfg, nil
+}
+
+func (c *config) updateFrom(buf []byte) error {
+	var err error
+	var newCfg config
+
+	// Attempt to parse configuration file.
+	if err = yaml.Unmarshal(buf, &newCfg); err != nil {
+		return err
 	}
 
 	// Making sure we can actually use this configuration.
-	if len(cfg.Client.FrontedServers) > 0 && len(cfg.Client.MasqueradeSets) > 0 && len(cfg.TrustedCAs) > 0 {
-		return &cfg, nil
+	if len(newCfg.Client.FrontedServers) > 0 && len(newCfg.Client.MasqueradeSets) > 0 && len(newCfg.TrustedCAs) > 0 {
+		if reflect.DeepEqual(newCfg, *c) {
+			return errConfigurationUnchanged
+		}
+		*c = newCfg
+		return nil
 	}
 
-	return defaultConfig(), errInvalidConfiguration
+	return errInvalidConfiguration
 }
 
 func (c *config) getTrustedCerts() []string {
