@@ -11,7 +11,6 @@ var app = angular.module('app', [
   'ngSanitize',
   'ui.utils',
   'ui.showhide',
-  'ui.select2',
   'ui.validate',
   'ui.bootstrap',
   'ui.bootstrap.tpls'
@@ -26,17 +25,6 @@ var app = angular.module('app', [
           $compile(ele.contents())(scope);
         });
       }
-    };
-  })
-  .service('modalService', function () {
-    this.Data = {
-        modal: 'none'
-    };
-    this.getAll = function () {
-        return this.Data;
-    };
-    this.setModal = function (val) {
-        this.Data.modal = val;
     };
   })
   .config(function($tooltipProvider, $httpProvider, $translateProvider, DEFAULT_LANG) {

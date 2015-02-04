@@ -1,8 +1,7 @@
 'use strict';
 
-app.controller('RootCtrl', ['$scope', 'flashlightStats', 'modalService', function($scope, flashlightStats, modalService) {
+app.controller('RootCtrl', ['$scope', 'flashlightStats', function($scope, flashlightStats) {
     //flashlightStats.connect();
-    $scope.Data = modalService.getAll();
     $scope.currentModal = 'none';
 
     $scope.showModal = function(val) {
