@@ -67,12 +67,12 @@
               placeholder="{{ 'SEARCH' | translate }}">
         </div>
         <form name="proxiedSitesForm">
-          <textarea ng-model="input" name="input" placeholder="example.com" required
-            ng-disabled="updating"
+          <textarea ng-model="whitelist" name="input" placeholder="example.com" required
+            split-array 
             ng-hide="!!searchText" ng-readonly="!!searchText" focus-on="show"
             ui-validate="'validate($value)'" id="proxiedSitesInput"
             dir="ltr" tabindex="{{ show && 1 || '' }}"></textarea>
-          <textarea ng-model="inputFiltered" placeholder="{{ 'NO_MATCHING_SITES' | translate }} &quot;{{searchText}}&quot;"
+          <textarea ng-model="data" placeholder="{{ 'NO_MATCHING_SITES' | translate }} &quot;{{searchText}}&quot;"
             ng-show="!!searchText" readonly dir="ltr"></textarea>
         </form>
       </div>

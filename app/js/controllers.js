@@ -1,6 +1,6 @@
 'use strict';
 
-app.controller('RootCtrl', ['$scope', 'flashlightStats', function($scope, flashlightStats) {
+app.controller('RootCtrl', ['$scope', '$http', 'flashlightStats', function($scope, $http, flashlightStats) {
     //flashlightStats.connect();
     $scope.currentModal = 'none';
 
@@ -11,6 +11,14 @@ app.controller('RootCtrl', ['$scope', 'flashlightStats', function($scope, flashl
     $scope.closeModal = function() {
         $scope.currentModal = 'none';
     };
+
+    $http.get('/whitelist').success(function(data, status, headers, config) {
+        $scope.whitelist = data.Whitelist;
+        console.log($scope.whitelist);
+    }).error(function(data, status, headers, config) {
+        console.log("Error retrieving whitelist..");
+    });
+
 }]);
 
 app.controller('UpdateAvailableCtrl', ['$scope', 'MODAL', function($scope, MODAL) {

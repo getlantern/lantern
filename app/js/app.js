@@ -47,6 +47,25 @@ var app = angular.module('app', [
   .value('ui.config', {
     animate: 'ui-hide',
   })
+  .directive('splitArray', function() {
+      return {
+          restrict: 'A',
+          require: 'ngModel',
+          link: function(scope, element, attr, ngModel) {
+
+              function fromUser(text) {
+                  return text.split("\n");
+              }
+
+              function toUser(array) {                        
+                  return array.join("\n");
+              }
+
+              ngModel.$parsers.push(fromUser);
+              ngModel.$formatters.push(toUser);
+          }
+      };
+  })
   .run(function ($filter, $log, $rootScope, $timeout, $window, 
                  $translate, $http, apiSrvc, gaMgr, modelSrvc, ENUMS, EXTERNAL_URL, MODAL, CONTACT_FORM_MAXLEN) {
 
@@ -62,7 +81,6 @@ var app = angular.module('app', [
     $window.model = model;
 
     $rootScope.EXTERNAL_URL = EXTERNAL_URL;
-
 
     $http.get('data/package.json').
       success(function(pkg, status, headers, config) {
