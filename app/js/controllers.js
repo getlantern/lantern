@@ -12,13 +12,6 @@ app.controller('RootCtrl', ['$scope', '$http', 'flashlightStats', function($scop
         $scope.currentModal = 'none';
     };
 
-    $http.get('/whitelist').success(function(data, status, headers, config) {
-        $scope.whitelist = data.Whitelist;
-        console.log($scope.whitelist);
-    }).error(function(data, status, headers, config) {
-        console.log("Error retrieving whitelist..");
-    });
-
 }]);
 
 app.controller('UpdateAvailableCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
@@ -68,7 +61,7 @@ app.controller('SettingsCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
   });
 }]);
 
-app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'SETTING', 'INTERACTION', 'INPUT_PAT', 'MODAL', function($scope, $filter, SETTING, INTERACTION, INPUT_PAT, MODAL) {
+app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'SETTING', 'INTERACTION', 'INPUT_PAT', 'MODAL', 'Whitelist', function($scope, $filter, SETTING, INTERACTION, INPUT_PAT, MODAL, Whitelist) {
       var fltr = $filter('filter'),
       DOMAIN = INPUT_PAT.DOMAIN,
       IPV4 = INPUT_PAT.IPV4,
@@ -76,19 +69,37 @@ app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'SETTING', 'INTERACTION
       proxiedSites = [],
       proxiedSitesDirty = [];
 
-  $scope.show = false;
-  $scope.$watch('model.modal', function (modal) {
-    $scope.show = modal === MODAL.proxiedSites;
+  $scope.whitelist = [];
+
+  Whitelist.get({ list: 'original'}).$promise.then(function(data) {
+      $scope.originalList = data.Original;
+      console.log(data.Original);
+      $scope.whitelist = data.Whitelist;
   });
+
+  $scope.setFormScope = function(scope) {
+      $scope.formScope = scope;
+  };
+
+  $scope.updateWhitelist = function() {
+      console.log($scope.whitelist);
+  };
+
+  $scope.resetWhitelist = function(reset) {
+    $scope.whitelist = $scope.originalList;
+    $scope.input = $scope.whitelist;
+    if (reset) {
+        makeValid();
+    } else {
+        $scope.closeModal();
+    }
+  };
+
+  $scope.show = false;
 
   $scope.$watch('searchText', function (searchText) {
     $scope.inputFiltered = (searchText ? fltr(proxiedSitesDirty, searchText) : proxiedSitesDirty).join('\n');
   });
-
-  function updateComplete() {
-    $scope.hasUpdate = false;
-    $scope.updating = false;
-  }
 
   function makeValid() {
     $scope.errorLabelKey = '';
@@ -98,15 +109,15 @@ app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'SETTING', 'INTERACTION
     }
   }
 
-  $scope.$watch('model.settings.proxiedSites', function(proxiedSites_) {
+  $scope.$watch('whitelist', function(proxiedSites_) {
     if (proxiedSites) {
       proxiedSites = normalizedLines(proxiedSites_);
       $scope.input = proxiedSites.join('\n');
-      updateComplete();
       makeValid();
       proxiedSitesDirty = _.cloneDeep(proxiedSites);
     }
   }, true);
+
   $scope.$watch('model.nproxiedSitesMax', function(nproxiedSitesMax_) {
     nproxiedSitesMax = nproxiedSitesMax_;
     if ($scope.input)
@@ -150,35 +161,18 @@ app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'SETTING', 'INTERACTION
       $scope.errorLabelKey = 'ERROR_MAX_PROXIED_SITES_EXCEEDED';
       $scope.errorCause = '';
     }
-    $scope.hasUpdate = !_.isEqual(proxiedSites, proxiedSitesDirty);
+    $scope.hasUpdate = !_.isEqual(proxiedSites, proxiedSitesDirty); 
     return !$scope.errorLabelKey;
   };
 
-  $scope.handleReset = function () {
-    $scope.input = proxiedSites.join('\n');
-    makeValid();
-  };
-
   $scope.handleContinue = function () {
+    console.log($scope.proxiedSitesForm.$invalid);
+    console.log($scope.hasUpdate);
     if ($scope.proxiedSitesForm.$invalid) {
-      //log.debug('invalid input, not sending update');
       return $scope.interaction(INTERACTION.continue);
     }
-    if (!$scope.hasUpdate) {
-      //log.debug('input matches original, not sending update');
-      return $scope.interaction(INTERACTION.continue);
-    }
-    //log.debug('sending update');
-    $scope.input = proxiedSitesDirty.join('\n');
-    $scope.updating = true;
-    $scope.changeSetting(SETTING.proxiedSites, proxiedSitesDirty).then(function () {
-      updateComplete();
-      //log.debug('update complete, sending continue');
-      $scope.interaction(INTERACTION.continue);
-    }, function () {
-      $scope.updating = false;
-      $scope.errorLabelKey = 'ERROR_SETTING_PROXIED_SITES';
-      $scope.errorCause = '';
-    });
+    $scope.whitelist = proxiedSitesDirty;
+    Whitelist.save({}, $scope.whitelist);
+    $scope.closeModal();
   };
 }]);

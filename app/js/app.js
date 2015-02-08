@@ -9,6 +9,7 @@ var app = angular.module('app', [
   'app.directives',
   'app.vis',
   'ngSanitize',
+  'ngResource',
   'ui.utils',
   'ui.showhide',
   'ui.validate',
@@ -27,7 +28,8 @@ var app = angular.module('app', [
       }
     };
   })
-  .config(function($tooltipProvider, $httpProvider, $translateProvider, DEFAULT_LANG) {
+  .config(function($tooltipProvider, $httpProvider, 
+                   $resourceProvider, $translateProvider, DEFAULT_LANG) {
 
       $translateProvider.preferredLanguage(DEFAULT_LANG);
 
@@ -35,10 +37,9 @@ var app = angular.module('app', [
           prefix: './locale/',
           suffix: '.json'
       });
-    // Add the X-Requested-With header back in when we configure http provider; otherwise, making POST requests doesn't work
-    // version 1.1.* and above of AngularJS dropped this default behavior
-    // see here for related info http://django-angular.readthedocs.org/en/latest/integration.html
-    $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+    $httpProvider.defaults.useXDomain = true;
+    delete $httpProvider.defaults.headers.common["X-Requested-With"];
+    //$httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
     $tooltipProvider.options({
       appendToBody: true
     });
@@ -66,6 +67,9 @@ var app = angular.module('app', [
           }
       };
   })
+  .factory('Whitelist', ['$resource', function($resource) {
+    return $resource('/whitelist', {list: 'original'});
+  }])
   .run(function ($filter, $log, $rootScope, $timeout, $window, 
                  $translate, $http, apiSrvc, gaMgr, modelSrvc, ENUMS, EXTERNAL_URL, MODAL, CONTACT_FORM_MAXLEN) {
 

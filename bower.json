@@ -8,6 +8,7 @@
     "ui-bootstrap": "0.12.0",
     "angular-ui-select2": "0.0.5",
     "angular-ui-utils": "0.1.1",
+    "angular-resource": "1.3.12",
     "cometd-js-jquery": "2.6.0",
     "cssesc": "0.1.0",
     "d3": "3.5.3",
