@@ -73,16 +73,11 @@ app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'SETTING', 'INTERACTION
 
   Whitelist.get({ list: 'original'}).$promise.then(function(data) {
       $scope.originalList = data.Original;
-      console.log(data.Original);
       $scope.whitelist = data.Whitelist;
   });
 
   $scope.setFormScope = function(scope) {
       $scope.formScope = scope;
-  };
-
-  $scope.updateWhitelist = function() {
-      console.log($scope.whitelist);
   };
 
   $scope.resetWhitelist = function(reset) {
@@ -166,8 +161,6 @@ app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'SETTING', 'INTERACTION
   };
 
   $scope.handleContinue = function () {
-    console.log($scope.proxiedSitesForm.$invalid);
-    console.log($scope.hasUpdate);
     if ($scope.proxiedSitesForm.$invalid) {
       return $scope.interaction(INTERACTION.continue);
     }
