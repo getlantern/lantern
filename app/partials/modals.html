@@ -57,7 +57,7 @@
       </div>
     </div>
 
-    <div ng-hide="model.settings.proxyAllSites">
+    <div>
       <p>{{ 'CONFIGURE_PROXIED_SITES' | translate }}</p>
       <div>
         <div id="proxiedSitesLabelAndSearchContainer">
@@ -66,9 +66,10 @@
               ng-class="{empty: !searchText}"
               placeholder="{{ 'SEARCH' | translate }}">
         </div>
-        <form name="proxiedSitesForm">
+        <form name="proxiedSitesForm" ng-init="setFormScope(this)">
           <textarea ng-model="whitelist" name="input" placeholder="example.com" required
             split-array 
+            ng-model-options="{ getterSetter: true }"
             ng-hide="!!searchText" ng-readonly="!!searchText" focus-on="show"
             ui-validate="'validate($value)'" id="proxiedSitesInput"
             dir="ltr" tabindex="{{ show && 1 || '' }}"></textarea>
@@ -89,9 +90,9 @@
     </div>
   </div>
   <div class="modal-footer">
-      <button type="button" class="btn" ng-click="closeModal()" tabindex="{{ show && 3 || '' }">{{ 'CANCEL' | translate }}</button>
+      <button type="button" class="btn" ng-click="resetWhitelist(false)" tabindex="{{ show && 3 || '' }">{{ 'CANCEL' | translate }}</button>
 
-    <button type="button" class="btn" ng-disabled="!hasUpdate || updating" ng-click="handleReset()" tabindex="{{ show && 3 || '' }">{{ 'RESET' | translate }}</button>
+    <button type="button" class="btn" ng-click="resetWhitelist(true)" tabindex="{{ show && 3 || '' }">{{ 'RESET' | translate }}</button>
     <button id="continueFromProxiedSites" 
             type="button" class="btn btn-primary" tabindex="{{ show && 2 || '' }}"
             ng-disabled="updating || proxiedSitesForm.$invalid"
