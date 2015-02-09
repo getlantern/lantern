@@ -122,7 +122,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"github.com/inconshreveable/go-update/download"
+	"github.com/getlantern/go-update/download"
 	"github.com/kr/binarydist"
 	"io"
 	"io/ioutil"

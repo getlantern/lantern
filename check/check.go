@@ -11,7 +11,7 @@ import (
 	"runtime"
 
 	"bitbucket.org/kardianos/osext"
-	"github.com/inconshreveable/go-update"
+	"github.com/getlantern/go-update"
 )
 
 type Initiative string
