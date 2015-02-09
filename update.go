@@ -126,6 +126,7 @@ import (
 	"github.com/kr/binarydist"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 )
@@ -137,6 +138,9 @@ const (
 	PATCHTYPE_BSDIFF PatchType = "bsdiff"
 	PATCHTYPE_NONE             = ""
 )
+
+// HTTPClient is the client to be used for http requests.
+var HTTPClient = &http.Client{}
 
 type Update struct {
 	// empty string means "path of the current executable"
@@ -251,7 +255,16 @@ func (u *Update) VerifySignatureWithPEM(publicKeyPEM []byte) (*Update, error) {
 // FromUrl updates the target with the contents of the given URL.
 func (u *Update) FromUrl(url string) (err error, errRecover error) {
 	target := new(download.MemoryTarget)
-	err = download.New(url, target).Get()
+
+	downloadClient := &download.Download{
+		HttpClient: HTTPClient,
+		Progress:   make(chan int),
+		Method:     "GET",
+		Url:        url,
+		Target:     target,
+	}
+
+	err = downloadClient.Get()
 	if err != nil {
 		return
 	}
