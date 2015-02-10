@@ -12,6 +12,7 @@ import (
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/nattywad"
+	"github.com/getlantern/whitelist"
 	"github.com/getlantern/yaml"
 	"github.com/getlantern/yamlconf"
 
@@ -48,10 +49,12 @@ type Config struct {
 	CpuProfile    string
 	MemProfile    string
 	WaddellCert   string
+	HttpAddr      string
 	Stats         *statreporter.Config
 	Server        *server.ServerConfig
 	Client        *client.ClientConfig
 	TrustedCAs    []*CA
+	Whitelist     []string
 }
 
 // CA represents a certificate authority
@@ -197,6 +200,11 @@ func (cfg *Config) ApplyDefaults() {
 
 	if cfg.TrustedCAs == nil || len(cfg.TrustedCAs) == 0 {
 		cfg.TrustedCAs = defaultTrustedCAs
+	}
+
+	if len(cfg.Whitelist) == 0 {
+		log.Debugf("Loading default whitelist")
+		cfg.Whitelist = whitelist.LoadDefaultList()
 	}
 }
 

@@ -14,6 +14,7 @@ import (
 
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
+	"github.com/getlantern/flashlight/http"
 	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/statreporter"
 	"github.com/getlantern/flashlight/statserver"
@@ -62,6 +63,10 @@ func main() {
 
 	// Configure stats initially
 	configureStats(cfg, true)
+
+	if cfg.Role == "client" {
+		startHTTPServer(cfg)
+	}
 
 	log.Debugf("Running proxy")
 	if cfg.IsDownstream() {
@@ -154,6 +159,17 @@ func runServerProxy(cfg *config.Config) {
 	err := srv.ListenAndServe()
 	if err != nil {
 		log.Fatalf("Unable to run server proxy: %s", err)
+	}
+}
+
+// start and configure HTTP server
+func startHTTPServer(cfg *config.Config) {
+	log.Debugf("HTTP address is %s", cfg.HttpAddr)
+	if cfg.HttpAddr != "" {
+		log.Debug("Starting HTTP server!")
+		go func() {
+			http.Start(cfg.HttpAddr)
+		}()
 	}
 }
 

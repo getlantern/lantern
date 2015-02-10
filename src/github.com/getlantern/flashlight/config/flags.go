@@ -29,6 +29,7 @@ var (
 	advertisedHost = flag.String("server", "", "FQDN of flashlight server when running in server mode (required)")
 	waddelladdr    = flag.String("waddelladdr", "", "if specified, connect to this waddell server and process NAT traversal requests inbound from waddell")
 	waddellcert    = flag.String("waddellcert", "", "if specified, use this cert (PEM-encoded) to authenticate connections to waddell.  Otherwise, a default certificate is used.")
+	httpaddr       = flag.String("httpaddr", "", "start HTTP server back-end")
 )
 
 // applyFlags updates this Config from any command-line flags that were passed
@@ -72,6 +73,10 @@ func (updated *Config) applyFlags() error {
 			updated.Stats.ReportingPeriod = time.Duration(*statsPeriod) * time.Second
 		case "statshub":
 			updated.Stats.StatshubAddr = *statshubAddr
+
+		// HTTP-server
+		case "httpaddr":
+			updated.HttpAddr = *httpaddr
 
 		// Server
 		case "portmap":
