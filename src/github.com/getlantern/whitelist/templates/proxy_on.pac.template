@@ -1,0 +1,24 @@
+var proxyDomains = new Array();
+var i=0;
+
+{{ range $key := .Entries }}
+proxyDomains[i++] = "{{ $key }}";{{ end }}
+
+for(i in proxyDomains) {
+    proxyDomains[i] = proxyDomains[i].split(/\./).join("\\.");
+}
+
+var proxyDomainsRegx = new RegExp("(" + proxyDomains.join("|") + ")$", "i");
+
+function FindProxyForURL(url, host) {
+    if( host == "localhost" ||
+        host == "127.0.0.1") {
+        return "DIRECT";
+    }
+    
+    if (proxyDomainsRegx.exec(host)) {
+        return "PROXY 127.0.0.1:8787; DIRECT";
+    }
+    
+    return "DIRECT";
+}
