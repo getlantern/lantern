@@ -7,6 +7,8 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"os/user"
+	"path"
 	"time"
 
 	"github.com/getlantern/fronted"
@@ -63,7 +65,7 @@ type CA struct {
 // Start starts the configuration system.
 func Start(updateHandler func(updated *Config)) (*Config, error) {
 	m = &yamlconf.Manager{
-		FilePath:         InConfigDir("flashlight.yaml"),
+		FilePath:         InConfigDir("lantern.yaml"),
 		FilePollInterval: 1 * time.Second,
 		ConfigServerAddr: *configaddr,
 		EmptyConfig: func() yamlconf.Config {
@@ -136,19 +138,20 @@ func Update(mutate func(cfg *Config) error) error {
 
 // InConfigDir returns the path to the given filename inside of the configdir.
 func InConfigDir(filename string) string {
-	if *configdir == "" {
-		return filename
-	} else {
-		if _, err := os.Stat(*configdir); err != nil {
-			if os.IsNotExist(err) {
-				// Create config dir
-				if err := os.MkdirAll(*configdir, 0755); err != nil {
-					log.Fatalf("Unable to create configdir at %s: %s", *configdir, err)
-				}
+	cdir := *configdir
+	if cdir == "" {
+		cdir = platformSpecificConfigDir()
+	}
+	log.Debugf("Placing configuration in %v", cdir)
+	if _, err := os.Stat(cdir); err != nil {
+		if os.IsNotExist(err) {
+			// Create config dir
+			if err := os.MkdirAll(cdir, 0755); err != nil {
+				log.Fatalf("Unable to create configdir at %s: %s", cdir, err)
 			}
 		}
-		return fmt.Sprintf("%s%c%s", *configdir, os.PathSeparator, filename)
 	}
+	return fmt.Sprintf("%s%c%s", cdir, os.PathSeparator, filename)
 }
 
 // TrustedCACerts returns a slice of PEM-encoded certs for the trusted CAs
@@ -337,4 +340,13 @@ func (updated *Config) updateFrom(updateBytes []byte) error {
 		updated.Client.FrontedServers = append(updated.Client.FrontedServers, server)
 	}
 	return nil
+}
+
+func inHomeDir(filename string) string {
+	log.Tracef("Determining user's home directory")
+	usr, err := user.Current()
+	if err != nil {
+		panic(fmt.Errorf("Unable to determine user's home directory: %s", err))
+	}
+	return path.Join(usr.HomeDir, filename)
 }
