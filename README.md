@@ -81,6 +81,12 @@ note - Signing windows code requires that the
 installed. On OS X with homebrew, you can do this with
 `brew install osslsigncode`.
 
+### Updating Icons
+
+The icons used for the system tray are stored in
+src/github/getlantern/flashlight/icons. To apply changes to the icons, make your
+updates in the icons folder and then run `./udpateicons.bash`.
+
 ### Continuous Integration with Travis CI
 Continuous builds are run on Travis CI. These builds use the `.travis.yml`
 configuration.  The github.com/getlantern/cf unit tests require an envvars.bash
