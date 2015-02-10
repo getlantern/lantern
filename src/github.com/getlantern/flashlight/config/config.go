@@ -177,6 +177,14 @@ func (cfg *Config) SetVersion(version int) {
 // flashlight, this function should be updated to provide sensible defaults for
 // those settings.
 func (cfg *Config) ApplyDefaults() {
+	if cfg.Role == "" {
+		cfg.Role = "client"
+	}
+
+	if cfg.Addr == "" {
+		cfg.Addr = "localhost:8787"
+	}
+
 	// Default country
 	if cfg.Country == "" {
 		cfg.Country = *country
@@ -222,14 +230,6 @@ func (cfg *Config) applyClientDefaults() {
 			MaxMasquerades: 20,
 			QOS:            10,
 			Weight:         4000,
-		}, &client.FrontedServerInfo{
-			Host:           "peers.getiantem.org",
-			Port:           443,
-			PoolSize:       30,
-			MasqueradeSet:  cloudflare,
-			MaxMasquerades: 20,
-			QOS:            2,
-			Weight:         1000,
 		})
 	}
 
