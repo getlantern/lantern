@@ -51,7 +51,7 @@ func New(id string, key string, httpClient *http.Client) *cloudfront.CloudFront 
 	return cloudfront.New(creds, "", httpClient)
 }
 
-func CreateDistribution(cfr *cloudfront.CloudFront, name string) (*Distribution, error) {
+func CreateDistribution(cfr *cloudfront.CloudFront, name string, comment string) (*Distribution, error) {
 	nameStr := aws.String(name)
 	req := cloudfront.CreateDistributionRequest{
 		DistributionConfig: &cloudfront.DistributionConfig{
@@ -132,7 +132,7 @@ func CreateDistribution(cfr *cloudfront.CloudFront, name string) (*Distribution,
 					Quantity: aws.Integer(0),
 				},
 			},
-			Comment:           aws.String("This is a comment"),
+			Comment:           aws.String(comment),
 			PriceClass:        aws.String(cloudfront.PriceClassPriceClassAll),
 			Enabled:           aws.True(),
 			DefaultRootObject: aws.String(""),
