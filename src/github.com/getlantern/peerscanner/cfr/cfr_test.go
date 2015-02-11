@@ -28,7 +28,7 @@ func TestList(t *testing.T) {
 	assert.NoError(t, counter.AssertDelta(0), "All file descriptors should have been closed")
 }
 
-func TestCreate(t *testing.T) {
+func TestCreateAndRefresh(t *testing.T) {
 	_, counter, err := fdcount.Matching("TCP")
 	if err != nil {
 		t.Fatalf("Unable to get starting fdcount: %v", err)
@@ -43,8 +43,13 @@ func TestCreate(t *testing.T) {
 	assert.Equal(t, "InProgress", dist.Status, "New distribution should have Status: \"InProgress\"")
 	assert.Equal(t, name, dist.InstanceId, "New distribution should have the right InstanceId")
 	assert.True(t, strings.HasSuffix(dist.Domain, ".cloudfront.net"), "Domain should be a .cloudfront.net subdomain, not '"+dist.Domain+"'")
+	err = RefreshStatus(cfr, dist)
+	assert.NoError(t, err, "Should be able to refresh status")
+	// Just check that Status stays a valid one.  Checking that it eventually
+	// gets refreshed to "Deployed" would take a few minutes, and thus is out
+	// of the scope of this unit test.
+	assert.Equal(t, "InProgress", dist.Status, "New distribution should have Status: \"InProgress\" even after refreshing right away")
 	assert.NoError(t, counter.AssertDelta(0), "All file descriptors should have been closed")
-
 }
 
 func httpClientWithDisabledKeepAlives() *http.Client {
