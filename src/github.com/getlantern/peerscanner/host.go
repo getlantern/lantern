@@ -352,7 +352,7 @@ func (h *host) deregisterFromRotations() {
 }
 
 func (h *host) fullName() string {
-	return h.name + ".getiantem.org"
+	return h.name + "." + *cfldomain
 }
 
 func (h *host) isFallback() bool {
