@@ -49,12 +49,10 @@ type Config struct {
 	CpuProfile    string
 	MemProfile    string
 	WaddellCert   string
-	HttpAddr      string
 	Stats         *statreporter.Config
 	Server        *server.ServerConfig
 	Client        *client.ClientConfig
 	TrustedCAs    []*CA
-	Whitelist     []string
 }
 
 // CA represents a certificate authority
@@ -201,11 +199,6 @@ func (cfg *Config) ApplyDefaults() {
 	if cfg.TrustedCAs == nil || len(cfg.TrustedCAs) == 0 {
 		cfg.TrustedCAs = defaultTrustedCAs
 	}
-
-	if len(cfg.Whitelist) == 0 {
-		log.Debugf("Loading default whitelist")
-		cfg.Whitelist = whitelist.LoadDefaultList()
-	}
 }
 
 func (cfg *Config) applyClientDefaults() {
@@ -215,6 +208,11 @@ func (cfg *Config) applyClientDefaults() {
 	}
 	if len(cfg.Client.MasqueradeSets) == 0 {
 		cfg.Client.MasqueradeSets[cloudflare] = cloudflareMasquerades
+	}
+
+	if len(cfg.Client.Whitelist) == 0 {
+		log.Debugf("Loading default whitelist")
+		cfg.Client.Whitelist = whitelist.LoadDefaultList()
 	}
 
 	// Make sure we always have at least one server

@@ -2,11 +2,17 @@ package http
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/whitelist"
-	"github.com/gorilla/mux"
+	"github.com/skratchdot/open-golang/open"
 	"net/http"
+)
+
+const (
+	UIDir  = "src/github.com/getlantern/ui/app"
+	UIAddr = "http://127.0.0.1%s"
 )
 
 var (
@@ -76,22 +82,42 @@ func servePacFile(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, pacFile)
 }
 
-func Start(httpAddr string) {
-	r := mux.NewRouter()
+func ListenAndServe(httpAddr string) {
+	r := http.NewServeMux()
 	r.HandleFunc("/whitelist", WhitelistHandler)
 	r.HandleFunc("/proxy_on.pac", servePacFile)
 
-	assets := assetFS()
-	if assets != nil {
-		r.PathPrefix("/").Handler(http.FileServer(assets)).Methods("GET")
-		openUI()
-	}
-	http.Handle("/", r)
-
-	http.ListenAndServe(httpAddr, nil)
-	/*err := pacon.PacOn("localhost:8000/proxy_on.pac")
+	UIDirExists, err := util.DirExists(UIDir)
 	if err != nil {
-		log.Errorf("Error set proxy: %s\n", err)
-		return
-	}*/
+		log.Debugf("UI Directory does not exist %s", err)
+	}
+
+	if UIDirExists {
+		/* UI directory found--serve assets directly from it */
+		log.Debugf("Serving UI assets from directory %s", UIDir)
+		r.Handle("/", http.FileServer(http.Dir(UIDir)))
+	} else {
+		assetFS()
+	}
+
+	httpServer := &http.Server{
+		Addr:    httpAddr,
+		Handler: r,
+		//ReadTimeout:  ReadTimeout,
+		//WriteTimeout: WriteTimeout,
+	}
+
+	go func() {
+		log.Debugf("Starting UI HTTP server at %s", httpAddr)
+		uiAddr := fmt.Sprintf(UIAddr, httpAddr)
+		err := open.Run(uiAddr)
+		if err != nil {
+			log.Errorf("Could not open UI! %s", err)
+		}
+	}()
+
+	err = httpServer.ListenAndServe()
+	if err != nil {
+		log.Errorf("Could not start HTTP server! %s", err)
+	}
 }

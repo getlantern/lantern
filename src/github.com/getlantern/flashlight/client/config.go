@@ -20,6 +20,9 @@ type ClientConfig struct {
 	ChainedServers map[string]*ChainedServerInfo
 	Peers          map[string]*nattywad.ServerPeer // keyed to peer id (e.g. XMPP JID)
 	MasqueradeSets map[string][]*fronted.Masquerade
+
+	HttpAddr  string   // HTTP server address; how the UI uses to interface with the back-end
+	Whitelist []string // List of proxied site domains that get routed through Lantern rather than accessed directly
 }
 
 // SortServers sorts the Servers array in place, ordered by host

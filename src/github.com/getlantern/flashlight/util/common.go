@@ -1,6 +1,7 @@
 package util
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/user"
@@ -26,7 +27,21 @@ func Check(e error, log logger, msg string) {
 	}
 }
 
-func FileExists(fileName string) bool {
+func FileExists(fileName string) (bool, error) {
 	_, err := os.Stat(fileName)
-	return err == nil
+	return err == nil, err
+}
+
+func DirExists(dirName string) (bool, error) {
+	src, err := os.Stat(dirName)
+	if err != nil {
+		return false, err
+	}
+
+	if !src.IsDir() {
+		err := "UI source exists, but it's not a directorY"
+		return false, errors.New(err)
+	}
+
+	return true, nil
 }
