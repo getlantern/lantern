@@ -7,6 +7,9 @@ import (
 	"github.com/getlantern/whitelist"
 	"github.com/gorilla/mux"
 	"net/http"
+	"time"
+
+	"github.com/getlantern/tarfs"
 )
 
 var (
@@ -81,11 +84,15 @@ func Start(httpAddr string) {
 	r.HandleFunc("/whitelist", WhitelistHandler)
 	r.HandleFunc("/proxy_on.pac", servePacFile)
 
-	assets := assetFS()
-	if assets != nil {
-		r.PathPrefix("/").Handler(http.FileServer(assets)).Methods("GET")
-		openUI()
+	start := time.Now()
+	fs, err := tarfs.New(Data, "")
+	if err != nil {
+		panic(err)
 	}
+	delta := time.Now().Sub(start)
+	log.Debugf("tarfs startup time: %v", delta)
+	r.PathPrefix("/").Handler(http.FileServer(fs)).Methods("GET")
+	openUI()
 	http.Handle("/", r)
 
 	http.ListenAndServe(httpAddr, nil)
