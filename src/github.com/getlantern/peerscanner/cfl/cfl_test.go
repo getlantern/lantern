@@ -1,4 +1,4 @@
-package cf
+package cfl
 
 import (
 	"net/http"
@@ -16,7 +16,7 @@ func TestAll(t *testing.T) {
 		t.Fatalf("Unable to get starting fdcount: %v", err)
 	}
 
-	u := New("getiantem.org", os.Getenv("CF_USER"), os.Getenv("CF_API_KEY"))
+	u := New("getiantem.org", os.Getenv("CFL_USER"), os.Getenv("CFL_API_KEY"))
 	u.Client.Http.Transport = &http.Transport{
 		DisableKeepAlives: true,
 	}
@@ -37,11 +37,11 @@ func TestRegister(t *testing.T) {
 		t.Fatalf("Unable to get starting fdcount: %v", err)
 	}
 
-	u := New("getiantem.org", os.Getenv("CF_USER"), os.Getenv("CF_API_KEY"))
+	u := New("getiantem.org", os.Getenv("CFL_USER"), os.Getenv("CFL_API_KEY"))
 	u.Client.Http.Transport = &http.Transport{
 		DisableKeepAlives: true,
 	}
-	rec, err := u.Register("cf-test-entry", "127.0.0.1")
+	rec, err := u.Register("cfl-test-entry", "127.0.0.1")
 	if err != nil && strings.Contains(err.Error(), "The record already exists.") {
 		// Duplicates are okay
 		err = nil

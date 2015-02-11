@@ -20,7 +20,7 @@ func (g *group) register(h *host) error {
 
 	log.Debugf("Registering to %v: %v", g.subdomain, h)
 
-	rec, err := cfutil.Register(g.subdomain, h.ip)
+	rec, err := cflutil.Register(g.subdomain, h.ip)
 	if err == nil || isDuplicateError(err) {
 		g.existing = rec
 	}
@@ -38,7 +38,7 @@ func (g *group) deregister(h *host) {
 	log.Debugf("Deregistering from %v: %v", g.subdomain, h)
 
 	// Destroy the record in the rotation...
-	err := cfutil.DestroyRecord(g.existing)
+	err := cflutil.DestroyRecord(g.existing)
 	if err != nil {
 		log.Errorf("Unable to deregister host %v from rotation %v: %v", h, g.subdomain, err)
 		return

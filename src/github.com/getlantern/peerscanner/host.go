@@ -297,7 +297,7 @@ func (h *host) registerHost() error {
 
 	log.Debugf("Registering %v", h)
 
-	rec, err := cfutil.Register(h.name, h.ip)
+	rec, err := cflutil.Register(h.name, h.ip)
 	if err == nil || isDuplicateError(err) {
 		h.record = rec
 		err = nil
@@ -336,7 +336,7 @@ func (h *host) deregisterHost() {
 }
 
 func (h *host) doDeregisterHost() {
-	err := cfutil.DestroyRecord(h.record)
+	err := cflutil.DestroyRecord(h.record)
 	if err != nil {
 		log.Errorf("Unable to deregister host %v: %v", h, err)
 		return

@@ -1,5 +1,5 @@
-// package cf provides a utility for interacting with CloudFlare
-package cf
+// package cfl provides a utility for interacting with CloudFlare
+package cfl
 
 import (
 	"crypto/tls"
@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	log = golog.LoggerFor("cf")
+	log = golog.LoggerFor("cfl")
 )
 
 type Util struct {

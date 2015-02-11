@@ -19,7 +19,7 @@ import (
 
 	"github.com/getlantern/cloudflare"
 	"github.com/getlantern/golog"
-	"github.com/getlantern/peerscanner/cf"
+	"github.com/getlantern/peerscanner/cfl"
 	"github.com/getlantern/profiling"
 )
 
@@ -33,13 +33,13 @@ var (
 	log = golog.LoggerFor("peerscanner")
 
 	port       = flag.Int("port", 62443, "Port, defaults to 62443")
-	cfdomain   = flag.String("cfdomain", "getiantem.org", "CloudFlare domain, defaults to getiantem.org")
+	cfldomain  = flag.String("cfldomain", "getiantem.org", "CloudFlare domain, defaults to getiantem.org")
 	cpuprofile = flag.String("cpuprofile", "", "(optional) specify the name of a file to which to write cpu profiling info")
 	memprofile = flag.String("memprofile", "", "(optional) specify the name of a file to which to write memory profiling info")
-	cfuser     = os.Getenv("CF_USER")
-	cfkey      = os.Getenv("CF_API_KEY")
+	cfluser    = os.Getenv("CFL_USER")
+	cflkey     = os.Getenv("CFL_API_KEY")
 
-	cfutil *cf.Util
+	cflutil *cfl.Util
 
 	hostsByName map[string]*host
 	hostsByIp   map[string]*host
@@ -69,17 +69,17 @@ func main() {
 
 func parseFlags() {
 	flag.Parse()
-	if cfuser == "" {
-		log.Fatal("Please specify a CF_USER environment variable")
+	if cfluser == "" {
+		log.Fatal("Please specify a CFL_USER environment variable")
 	}
-	if cfkey == "" {
-		log.Fatal("Please specify a CF_API_KEY environment variable")
+	if cflkey == "" {
+		log.Fatal("Please specify a CFL_API_KEY environment variable")
 	}
 }
 
 func connectToCloudFlare() {
 	log.Debug("Connecting to CloudFlare ...")
-	cfutil = cf.New(*cfdomain, cfuser, cfkey)
+	cflutil = cfl.New(*cfldomain, cfluser, cflkey)
 }
 
 /*******************************************************************************
@@ -91,7 +91,7 @@ func connectToCloudFlare() {
 func loadHosts() (map[string]*host, error) {
 	log.Debug("Loading existing hosts from CloudFlare ...")
 
-	recs, err := cfutil.GetAllRecords()
+	recs, err := cflutil.GetAllRecords()
 	if err != nil {
 		return nil, fmt.Errorf("Unable to load hosts: %v", err)
 	}
@@ -166,7 +166,7 @@ func loadHosts() (map[string]*host, error) {
 
 func removeFromRotation(wg *sync.WaitGroup, k string, r *cloudflare.Record) {
 	log.Debugf("%v in %v is missing host, removing from rotation", r.Value, k)
-	err := cfutil.DestroyRecord(r)
+	err := cflutil.DestroyRecord(r)
 	if err != nil {
 		log.Debugf("Unable to remove %v from %v: %v", r.Value, k, err)
 	}
