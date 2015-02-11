@@ -1,0 +1,1645 @@
+2015/01/28 19:05:27 http: TLS handshake error from 127.0.0.1:55066: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.516s
+2015/01/28 19:05:32 http: TLS handshake error from 127.0.0.1:55099: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.607s
+2015/01/28 19:05:38 http: TLS handshake error from 127.0.0.1:55132: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	5.022s
+2015/01/28 19:05:45 http: TLS handshake error from 127.0.0.1:55166: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	5.410s
+2015/01/28 19:05:52 http: TLS handshake error from 127.0.0.1:55199: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.203s
+2015/01/28 19:05:58 http: TLS handshake error from 127.0.0.1:55232: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.443s
+2015/01/28 19:06:04 http: TLS handshake error from 127.0.0.1:55265: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.081s
+2015/01/28 19:06:10 http: TLS handshake error from 127.0.0.1:55299: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.333s
+2015/01/28 19:06:15 http: TLS handshake error from 127.0.0.1:55332: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.952s
+2015/01/28 19:06:21 http: TLS handshake error from 127.0.0.1:55365: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.194s
+2015/01/28 19:06:27 http: TLS handshake error from 127.0.0.1:55398: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.025s
+2015/01/28 19:06:32 http: TLS handshake error from 127.0.0.1:55431: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.405s
+2015/01/28 19:06:38 http: TLS handshake error from 127.0.0.1:55464: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.813s
+2015/01/28 19:06:44 http: TLS handshake error from 127.0.0.1:55498: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.736s
+2015/01/28 19:06:52 http: TLS handshake error from 127.0.0.1:55531: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	5.392s
+2015/01/28 19:06:58 http: TLS handshake error from 127.0.0.1:55564: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.192s
+2015/01/28 19:07:04 http: TLS handshake error from 127.0.0.1:55597: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.456s
+2015/01/28 19:07:10 http: TLS handshake error from 127.0.0.1:55631: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	5.989s
+2015/01/28 19:07:17 http: TLS handshake error from 127.0.0.1:55664: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.899s
+2015/01/28 19:07:22 http: TLS handshake error from 127.0.0.1:55697: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.344s
+2015/01/28 19:07:29 http: TLS handshake error from 127.0.0.1:55730: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	5.479s
+2015/01/28 19:07:36 http: TLS handshake error from 127.0.0.1:55764: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.987s
+2015/01/28 19:07:41 http: TLS handshake error from 127.0.0.1:55797: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.819s
+2015/01/28 19:07:46 http: TLS handshake error from 127.0.0.1:55830: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.662s
+2015/01/28 19:07:52 http: TLS handshake error from 127.0.0.1:55863: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.310s
+2015/01/28 19:07:58 http: TLS handshake error from 127.0.0.1:55896: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.988s
+2015/01/28 19:08:04 http: TLS handshake error from 127.0.0.1:55929: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.850s
+2015/01/28 19:08:10 http: TLS handshake error from 127.0.0.1:55963: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.210s
+2015/01/28 19:08:16 http: TLS handshake error from 127.0.0.1:55996: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.949s
+2015/01/28 19:08:21 http: TLS handshake error from 127.0.0.1:56029: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.789s
+2015/01/28 19:08:26 http: TLS handshake error from 127.0.0.1:56062: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.715s
+2015/01/28 19:08:32 http: TLS handshake error from 127.0.0.1:56095: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.810s
+2015/01/28 19:08:38 http: TLS handshake error from 127.0.0.1:56128: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.494s
+2015/01/28 19:08:43 http: TLS handshake error from 127.0.0.1:56161: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.611s
+2015/01/28 19:08:49 http: TLS handshake error from 127.0.0.1:56194: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.689s
+2015/01/28 19:08:55 http: TLS handshake error from 127.0.0.1:56228: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.723s
+2015/01/28 19:09:01 http: TLS handshake error from 127.0.0.1:56261: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.570s
+2015/01/28 19:09:07 http: TLS handshake error from 127.0.0.1:56294: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.007s
+2015/01/28 19:09:12 http: TLS handshake error from 127.0.0.1:56327: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.702s
+2015/01/28 19:09:18 http: TLS handshake error from 127.0.0.1:56360: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.212s
+2015/01/28 19:09:24 http: TLS handshake error from 127.0.0.1:56395: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.174s
+2015/01/28 19:09:30 http: TLS handshake error from 127.0.0.1:56429: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.226s
+2015/01/28 19:09:35 http: TLS handshake error from 127.0.0.1:56462: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.933s
+2015/01/28 19:09:41 http: TLS handshake error from 127.0.0.1:56495: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.940s
+2015/01/28 19:09:47 http: TLS handshake error from 127.0.0.1:56528: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.993s
+2015/01/28 19:09:52 http: TLS handshake error from 127.0.0.1:56561: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.475s
+2015/01/28 19:09:57 http: TLS handshake error from 127.0.0.1:56594: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.155s
+2015/01/28 19:10:03 http: TLS handshake error from 127.0.0.1:56627: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.011s
+2015/01/28 19:10:09 http: TLS handshake error from 127.0.0.1:56660: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.990s
+2015/01/28 19:10:14 http: TLS handshake error from 127.0.0.1:56693: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.393s
+2015/01/28 19:10:21 http: TLS handshake error from 127.0.0.1:56727: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.331s
+2015/01/28 19:10:26 http: TLS handshake error from 127.0.0.1:56760: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.682s
+2015/01/28 19:10:32 http: TLS handshake error from 127.0.0.1:56793: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.416s
+2015/01/28 19:10:38 http: TLS handshake error from 127.0.0.1:56826: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.923s
+2015/01/28 19:10:44 http: TLS handshake error from 127.0.0.1:56859: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.215s
+2015/01/28 19:10:49 http: TLS handshake error from 127.0.0.1:56892: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.791s
+2015/01/28 19:10:56 http: TLS handshake error from 127.0.0.1:56926: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.923s
+2015/01/28 19:11:01 http: TLS handshake error from 127.0.0.1:56959: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.132s
+2015/01/28 19:11:07 http: TLS handshake error from 127.0.0.1:56992: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.646s
+2015/01/28 19:11:13 http: TLS handshake error from 127.0.0.1:57025: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.473s
+2015/01/28 19:11:19 http: TLS handshake error from 127.0.0.1:57058: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.644s
+2015/01/28 19:11:25 http: TLS handshake error from 127.0.0.1:57092: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.234s
+2015/01/28 19:11:31 http: TLS handshake error from 127.0.0.1:57125: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	5.397s
+2015/01/28 19:11:38 http: TLS handshake error from 127.0.0.1:57158: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.776s
+2015/01/28 19:11:44 http: TLS handshake error from 127.0.0.1:57191: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.531s
+2015/01/28 19:11:50 http: TLS handshake error from 127.0.0.1:57225: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.846s
+2015/01/28 19:11:56 http: TLS handshake error from 127.0.0.1:57258: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.904s
+2015/01/28 19:12:01 http: TLS handshake error from 127.0.0.1:57291: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.999s
+2015/01/28 19:12:07 http: TLS handshake error from 127.0.0.1:57324: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.356s
+2015/01/28 19:12:13 http: TLS handshake error from 127.0.0.1:57357: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.515s
+2015/01/28 19:12:20 http: TLS handshake error from 127.0.0.1:57391: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.776s
+2015/01/28 19:12:26 http: TLS handshake error from 127.0.0.1:57424: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.834s
+2015/01/28 19:12:32 http: TLS handshake error from 127.0.0.1:57457: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.080s
+2015/01/28 19:12:37 http: TLS handshake error from 127.0.0.1:57490: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.673s
+2015/01/28 19:12:43 http: TLS handshake error from 127.0.0.1:57523: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.176s
+2015/01/28 19:12:49 http: TLS handshake error from 127.0.0.1:57556: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.702s
+2015/01/28 19:12:54 http: TLS handshake error from 127.0.0.1:57589: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.817s
+2015/01/28 19:13:00 http: TLS handshake error from 127.0.0.1:57623: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.312s
+2015/01/28 19:13:05 http: TLS handshake error from 127.0.0.1:57656: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.793s
+2015/01/28 19:13:11 http: TLS handshake error from 127.0.0.1:57689: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.695s
+2015/01/28 19:13:18 http: TLS handshake error from 127.0.0.1:57722: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	5.175s
+2015/01/28 19:13:24 http: TLS handshake error from 127.0.0.1:57755: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.848s
+2015/01/28 19:13:32 http: TLS handshake error from 127.0.0.1:57789: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	5.571s
+2015/01/28 19:13:38 http: TLS handshake error from 127.0.0.1:57822: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.942s
+2015/01/28 19:13:44 http: TLS handshake error from 127.0.0.1:57855: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.903s
+2015/01/28 19:13:50 http: TLS handshake error from 127.0.0.1:57888: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.317s
+2015/01/28 19:13:55 http: TLS handshake error from 127.0.0.1:57922: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.685s
+2015/01/28 19:14:00 http: TLS handshake error from 127.0.0.1:57955: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.284s
+2015/01/28 19:14:06 http: TLS handshake error from 127.0.0.1:57988: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.229s
+2015/01/28 19:14:12 http: TLS handshake error from 127.0.0.1:58021: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.146s
+2015/01/28 19:14:18 http: TLS handshake error from 127.0.0.1:58054: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.483s
+2015/01/28 19:14:24 http: TLS handshake error from 127.0.0.1:58087: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.273s
+2015/01/28 19:14:30 http: TLS handshake error from 127.0.0.1:58121: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.683s
+2015/01/28 19:14:36 http: TLS handshake error from 127.0.0.1:58154: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.176s
+2015/01/28 19:14:41 http: TLS handshake error from 127.0.0.1:58187: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.078s
+2015/01/28 19:14:47 http: TLS handshake error from 127.0.0.1:58220: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.729s
+2015/01/28 19:14:53 http: TLS handshake error from 127.0.0.1:58253: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.493s
+2015/01/28 19:14:58 http: TLS handshake error from 127.0.0.1:58286: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.403s
+2015/01/28 19:15:06 http: TLS handshake error from 127.0.0.1:58320: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	5.722s
+2015/01/28 19:15:12 http: TLS handshake error from 127.0.0.1:58353: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.094s
+2015/01/28 19:15:18 http: TLS handshake error from 127.0.0.1:58386: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.933s
+2015/01/28 19:15:24 http: TLS handshake error from 127.0.0.1:58419: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.090s
+2015/01/28 19:15:29 http: TLS handshake error from 127.0.0.1:58452: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.972s
+2015/01/28 19:15:35 http: TLS handshake error from 127.0.0.1:58486: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.917s
+2015/01/28 19:15:41 http: TLS handshake error from 127.0.0.1:58519: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.948s
+2015/01/28 19:15:46 http: TLS handshake error from 127.0.0.1:58552: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.733s
+2015/01/28 19:15:52 http: TLS handshake error from 127.0.0.1:58585: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.517s
+2015/01/28 19:15:58 http: TLS handshake error from 127.0.0.1:58618: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.694s
+2015/01/28 19:16:03 http: TLS handshake error from 127.0.0.1:58651: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.657s
+2015/01/28 19:16:09 http: TLS handshake error from 127.0.0.1:58684: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.255s
+2015/01/28 19:16:16 http: TLS handshake error from 127.0.0.1:58718: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	5.007s
+2015/01/28 19:16:21 http: TLS handshake error from 127.0.0.1:58751: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.190s
+2015/01/28 19:16:28 http: TLS handshake error from 127.0.0.1:58784: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.866s
+2015/01/28 19:16:33 http: TLS handshake error from 127.0.0.1:58817: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.659s
+2015/01/28 19:16:39 http: TLS handshake error from 127.0.0.1:58850: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.289s
+2015/01/28 19:16:45 http: TLS handshake error from 127.0.0.1:58886: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.310s
+2015/01/28 19:16:50 http: TLS handshake error from 127.0.0.1:58919: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.605s
+2015/01/28 19:16:56 http: TLS handshake error from 127.0.0.1:58952: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.222s
+2015/01/28 19:17:02 http: TLS handshake error from 127.0.0.1:58985: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.202s
+2015/01/28 19:17:08 http: TLS handshake error from 127.0.0.1:59018: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.977s
+2015/01/28 19:17:13 http: TLS handshake error from 127.0.0.1:59051: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.049s
+2015/01/28 19:17:20 http: TLS handshake error from 127.0.0.1:59084: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.705s
+2015/01/28 19:17:26 http: TLS handshake error from 127.0.0.1:59118: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.686s
+2015/01/28 19:17:32 http: TLS handshake error from 127.0.0.1:59152: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.858s
+2015/01/28 19:17:39 http: TLS handshake error from 127.0.0.1:59185: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	5.618s
+2015/01/28 19:17:45 http: TLS handshake error from 127.0.0.1:59219: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.074s
+2015/01/28 19:17:51 http: TLS handshake error from 127.0.0.1:59252: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.967s
+2015/01/28 19:17:56 http: TLS handshake error from 127.0.0.1:59285: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.962s
+2015/01/28 19:18:02 http: TLS handshake error from 127.0.0.1:59318: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.258s
+2015/01/28 19:18:08 http: TLS handshake error from 127.0.0.1:59351: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.018s
+2015/01/28 19:18:15 http: TLS handshake error from 127.0.0.1:59385: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	5.532s
+2015/01/28 19:18:21 http: TLS handshake error from 127.0.0.1:59418: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.069s
+2015/01/28 19:18:27 http: TLS handshake error from 127.0.0.1:59452: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.324s
+2015/01/28 19:18:33 http: TLS handshake error from 127.0.0.1:59485: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	5.701s
+2015/01/28 19:18:40 http: TLS handshake error from 127.0.0.1:59522: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.002s
+2015/01/28 19:18:46 http: TLS handshake error from 127.0.0.1:59555: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.085s
+2015/01/28 19:18:51 http: TLS handshake error from 127.0.0.1:59588: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.982s
+2015/01/28 19:18:57 http: TLS handshake error from 127.0.0.1:59621: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.794s
+2015/01/28 19:19:03 http: TLS handshake error from 127.0.0.1:59654: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.017s
+2015/01/28 19:19:09 http: TLS handshake error from 127.0.0.1:59687: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.688s
+2015/01/28 19:19:14 http: TLS handshake error from 127.0.0.1:59720: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.223s
+2015/01/28 19:19:21 http: TLS handshake error from 127.0.0.1:59754: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.586s
+2015/01/28 19:19:27 http: TLS handshake error from 127.0.0.1:59787: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	5.220s
+2015/01/28 19:19:33 http: TLS handshake error from 127.0.0.1:59820: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.106s
+2015/01/28 19:19:39 http: TLS handshake error from 127.0.0.1:59853: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.077s
+2015/01/28 19:19:45 http: TLS handshake error from 127.0.0.1:59887: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.330s
+2015/01/28 19:19:52 http: TLS handshake error from 127.0.0.1:59920: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.727s
+2015/01/28 19:19:57 http: TLS handshake error from 127.0.0.1:59953: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.320s
+2015/01/28 19:20:03 http: TLS handshake error from 127.0.0.1:59989: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.034s
+2015/01/28 19:20:09 http: TLS handshake error from 127.0.0.1:60025: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.062s
+2015/01/28 19:20:14 http: TLS handshake error from 127.0.0.1:60058: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.388s
+2015/01/28 19:20:21 http: TLS handshake error from 127.0.0.1:60092: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	5.161s
+2015/01/28 19:20:27 http: TLS handshake error from 127.0.0.1:60125: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.802s
+2015/01/28 19:20:33 http: TLS handshake error from 127.0.0.1:60158: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.819s
+2015/01/28 19:20:38 http: TLS handshake error from 127.0.0.1:60191: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.046s
+2015/01/28 19:20:44 http: TLS handshake error from 127.0.0.1:60224: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.733s
+2015/01/28 19:20:51 http: TLS handshake error from 127.0.0.1:60258: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.150s
+2015/01/28 19:20:57 http: TLS handshake error from 127.0.0.1:60291: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	5.139s
+2015/01/28 19:21:03 http: TLS handshake error from 127.0.0.1:60324: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.210s
+2015/01/28 19:21:08 http: TLS handshake error from 127.0.0.1:60357: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.032s
+2015/01/28 19:21:14 http: TLS handshake error from 127.0.0.1:60390: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.264s
+2015/01/28 19:21:20 http: TLS handshake error from 127.0.0.1:60423: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.479s
+2015/01/28 19:21:25 http: TLS handshake error from 127.0.0.1:60456: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.068s
+2015/01/28 19:21:32 http: TLS handshake error from 127.0.0.1:60490: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.474s
+2015/01/28 19:21:37 http: TLS handshake error from 127.0.0.1:60523: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.262s
+2015/01/28 19:21:44 http: TLS handshake error from 127.0.0.1:60556: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.622s
+2015/01/28 19:21:50 http: TLS handshake error from 127.0.0.1:60589: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.373s
+2015/01/28 19:21:56 http: TLS handshake error from 127.0.0.1:60623: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.168s
+2015/01/28 19:22:02 http: TLS handshake error from 127.0.0.1:60656: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.596s
+2015/01/28 19:22:07 http: TLS handshake error from 127.0.0.1:60689: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.103s
+2015/01/28 19:22:13 http: TLS handshake error from 127.0.0.1:60722: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.663s
+2015/01/28 19:22:19 http: TLS handshake error from 127.0.0.1:60755: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.421s
+2015/01/28 19:22:24 http: TLS handshake error from 127.0.0.1:60788: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.025s
+2015/01/28 19:22:30 http: TLS handshake error from 127.0.0.1:60822: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.054s
+2015/01/28 19:22:36 http: TLS handshake error from 127.0.0.1:60855: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.569s
+2015/01/28 19:22:42 http: TLS handshake error from 127.0.0.1:60888: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.901s
+2015/01/28 19:22:48 http: TLS handshake error from 127.0.0.1:60921: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.446s
+2015/01/28 19:22:54 http: TLS handshake error from 127.0.0.1:60954: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.792s
+2015/01/28 19:23:00 http: TLS handshake error from 127.0.0.1:60988: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.211s
+2015/01/28 19:23:07 http: TLS handshake error from 127.0.0.1:61021: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.801s
+2015/01/28 19:23:13 http: TLS handshake error from 127.0.0.1:61054: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.714s
+2015/01/28 19:23:19 http: TLS handshake error from 127.0.0.1:61087: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.972s
+2015/01/28 19:23:24 http: TLS handshake error from 127.0.0.1:61120: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.528s
+2015/01/28 19:23:31 http: TLS handshake error from 127.0.0.1:61154: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.161s
+2015/01/28 19:23:36 http: TLS handshake error from 127.0.0.1:61187: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.506s
+2015/01/28 19:23:42 http: TLS handshake error from 127.0.0.1:61221: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.358s
+2015/01/28 19:23:48 http: TLS handshake error from 127.0.0.1:61254: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.319s
+2015/01/28 19:23:53 http: TLS handshake error from 127.0.0.1:61287: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.312s
+2015/01/28 19:24:00 http: TLS handshake error from 127.0.0.1:61320: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.193s
+2015/01/28 19:24:05 http: TLS handshake error from 127.0.0.1:61353: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.621s
+2015/01/28 19:24:11 http: TLS handshake error from 127.0.0.1:61387: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.188s
+2015/01/28 19:24:17 http: TLS handshake error from 127.0.0.1:61420: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.003s
+2015/01/28 19:24:22 http: TLS handshake error from 127.0.0.1:61453: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.237s
+2015/01/28 19:24:28 http: TLS handshake error from 127.0.0.1:61486: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.486s
+2015/01/28 19:24:34 http: TLS handshake error from 127.0.0.1:61519: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.192s
+2015/01/28 19:24:40 http: TLS handshake error from 127.0.0.1:61552: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.914s
+2015/01/28 19:24:45 http: TLS handshake error from 127.0.0.1:61586: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.895s
+2015/01/28 19:24:51 http: TLS handshake error from 127.0.0.1:61619: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.181s
+2015/01/28 19:24:57 http: TLS handshake error from 127.0.0.1:61652: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.638s
+2015/01/28 19:25:02 http: TLS handshake error from 127.0.0.1:61685: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.823s
+2015/01/28 19:25:09 http: TLS handshake error from 127.0.0.1:61718: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	5.338s
+2015/01/28 19:25:14 http: TLS handshake error from 127.0.0.1:61751: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.981s
+2015/01/28 19:25:20 http: TLS handshake error from 127.0.0.1:61785: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.173s
+2015/01/28 19:25:26 http: TLS handshake error from 127.0.0.1:61818: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.815s
+2015/01/28 19:25:33 http: TLS handshake error from 127.0.0.1:61851: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.815s
+2015/01/28 19:25:40 http: TLS handshake error from 127.0.0.1:61884: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	5.141s
+2015/01/28 19:25:46 http: TLS handshake error from 127.0.0.1:61918: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.774s
+2015/01/28 19:25:51 http: TLS handshake error from 127.0.0.1:61951: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.725s
+2015/01/28 19:25:56 http: TLS handshake error from 127.0.0.1:61984: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.205s
+2015/01/28 19:26:02 http: TLS handshake error from 127.0.0.1:62017: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.840s
+2015/01/28 19:26:08 http: TLS handshake error from 127.0.0.1:62050: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.042s
+2015/01/28 19:26:14 http: TLS handshake error from 127.0.0.1:62083: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.110s
+2015/01/28 19:26:19 http: TLS handshake error from 127.0.0.1:62116: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.812s
+2015/01/28 19:26:24 http: TLS handshake error from 127.0.0.1:62149: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.247s
+2015/01/28 19:26:31 http: TLS handshake error from 127.0.0.1:62183: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.250s
+2015/01/28 19:26:37 http: TLS handshake error from 127.0.0.1:62216: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.120s
+2015/01/28 19:26:42 http: TLS handshake error from 127.0.0.1:62249: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.648s
+2015/01/28 19:26:47 http: TLS handshake error from 127.0.0.1:62282: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.808s
+2015/01/28 19:26:53 http: TLS handshake error from 127.0.0.1:62315: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.170s
+2015/01/28 19:26:59 http: TLS handshake error from 127.0.0.1:62348: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.615s
+2015/01/28 19:27:04 http: TLS handshake error from 127.0.0.1:62381: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.829s
+2015/01/28 19:27:09 http: TLS handshake error from 127.0.0.1:62414: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.889s
+2015/01/28 19:27:16 http: TLS handshake error from 127.0.0.1:62448: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	5.093s
+2015/01/28 19:27:22 http: TLS handshake error from 127.0.0.1:62481: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.564s
+2015/01/28 19:27:27 http: TLS handshake error from 127.0.0.1:62514: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.945s
+2015/01/28 19:27:33 http: TLS handshake error from 127.0.0.1:62547: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.151s
+2015/01/28 19:27:38 http: TLS handshake error from 127.0.0.1:62580: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.934s
+2015/01/28 19:27:44 http: TLS handshake error from 127.0.0.1:62613: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.512s
+2015/01/28 19:27:50 http: TLS handshake error from 127.0.0.1:62646: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.639s
+2015/01/28 19:27:56 http: TLS handshake error from 127.0.0.1:62680: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.118s
+2015/01/28 19:28:01 http: TLS handshake error from 127.0.0.1:62713: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.536s
+2015/01/28 19:28:08 http: TLS handshake error from 127.0.0.1:62746: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.070s
+2015/01/28 19:28:13 http: TLS handshake error from 127.0.0.1:62779: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.266s
+2015/01/28 19:28:19 http: TLS handshake error from 127.0.0.1:62812: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.887s
+2015/01/28 19:28:25 http: TLS handshake error from 127.0.0.1:62845: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.260s
+2015/01/28 19:28:31 http: TLS handshake error from 127.0.0.1:62879: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.730s
+2015/01/28 19:28:37 http: TLS handshake error from 127.0.0.1:62912: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.609s
+2015/01/28 19:28:42 http: TLS handshake error from 127.0.0.1:62945: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.062s
+2015/01/28 19:28:48 http: TLS handshake error from 127.0.0.1:62978: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.693s
+2015/01/28 19:28:53 http: TLS handshake error from 127.0.0.1:63011: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.903s
+2015/01/28 19:28:58 http: TLS handshake error from 127.0.0.1:63044: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.181s
+2015/01/28 19:29:04 http: TLS handshake error from 127.0.0.1:63077: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.178s
+2015/01/28 19:29:10 http: TLS handshake error from 127.0.0.1:63111: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.770s
+2015/01/28 19:29:16 http: TLS handshake error from 127.0.0.1:63144: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.675s
+2015/01/28 19:29:23 http: TLS handshake error from 127.0.0.1:63178: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	5.287s
+2015/01/28 19:29:28 http: TLS handshake error from 127.0.0.1:63211: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.495s
+2015/01/28 19:29:35 http: TLS handshake error from 127.0.0.1:63244: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.962s
+2015/01/28 19:29:41 http: TLS handshake error from 127.0.0.1:63278: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.114s
+2015/01/28 19:29:46 http: TLS handshake error from 127.0.0.1:63311: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.857s
+2015/01/28 19:29:53 http: TLS handshake error from 127.0.0.1:63344: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.726s
+2015/01/28 19:29:58 http: TLS handshake error from 127.0.0.1:63377: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.674s
+2015/01/28 19:30:04 http: TLS handshake error from 127.0.0.1:63410: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.006s
+2015/01/28 19:30:10 http: TLS handshake error from 127.0.0.1:63443: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.711s
+2015/01/28 19:30:16 http: TLS handshake error from 127.0.0.1:63477: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.906s
+2015/01/28 19:30:21 http: TLS handshake error from 127.0.0.1:63510: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.021s
+2015/01/28 19:30:27 http: TLS handshake error from 127.0.0.1:63543: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.692s
+2015/01/28 19:30:32 http: TLS handshake error from 127.0.0.1:63576: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.568s
+2015/01/28 19:30:38 http: TLS handshake error from 127.0.0.1:63609: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.337s
+2015/01/28 19:30:45 http: TLS handshake error from 127.0.0.1:63642: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.858s
+2015/01/28 19:30:50 http: TLS handshake error from 127.0.0.1:63675: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.035s
+2015/01/28 19:30:56 http: TLS handshake error from 127.0.0.1:63709: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.682s
+2015/01/28 19:31:01 http: TLS handshake error from 127.0.0.1:63742: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.842s
+2015/01/28 19:31:08 http: TLS handshake error from 127.0.0.1:63776: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.005s
+2015/01/28 19:31:13 http: TLS handshake error from 127.0.0.1:63809: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.903s
+2015/01/28 19:31:20 http: TLS handshake error from 127.0.0.1:63842: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.584s
+2015/01/28 19:31:26 http: TLS handshake error from 127.0.0.1:63876: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.899s
+2015/01/28 19:31:32 http: TLS handshake error from 127.0.0.1:63909: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.743s
+2015/01/28 19:31:38 http: TLS handshake error from 127.0.0.1:63942: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.599s
+2015/01/28 19:31:44 http: TLS handshake error from 127.0.0.1:63975: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.112s
+2015/01/28 19:31:50 http: TLS handshake error from 127.0.0.1:64009: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	5.438s
+2015/01/28 19:31:56 http: TLS handshake error from 127.0.0.1:64042: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.872s
+2015/01/28 19:32:01 http: TLS handshake error from 127.0.0.1:64075: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.602s
+2015/01/28 19:32:07 http: TLS handshake error from 127.0.0.1:64108: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.485s
+2015/01/28 19:32:14 http: TLS handshake error from 127.0.0.1:64141: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	5.410s
+2015/01/28 19:32:21 http: TLS handshake error from 127.0.0.1:64175: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.526s
+2015/01/28 19:32:26 http: TLS handshake error from 127.0.0.1:64209: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.904s
+2015/01/28 19:32:32 http: TLS handshake error from 127.0.0.1:64242: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.154s
+2015/01/28 19:32:37 http: TLS handshake error from 127.0.0.1:64275: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.893s
+2015/01/28 19:32:43 http: TLS handshake error from 127.0.0.1:64308: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.677s
+2015/01/28 19:32:50 http: TLS handshake error from 127.0.0.1:64341: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	5.478s
+2015/01/28 19:32:56 http: TLS handshake error from 127.0.0.1:64375: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.739s
+2015/01/28 19:33:02 http: TLS handshake error from 127.0.0.1:64408: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.967s
+2015/01/28 19:33:08 http: TLS handshake error from 127.0.0.1:64441: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.608s
+2015/01/28 19:33:14 http: TLS handshake error from 127.0.0.1:64474: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.201s
+2015/01/28 19:33:20 http: TLS handshake error from 127.0.0.1:64507: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.468s
+2015/01/28 19:33:26 http: TLS handshake error from 127.0.0.1:64541: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.720s
+2015/01/28 19:33:32 http: TLS handshake error from 127.0.0.1:64574: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.362s
+2015/01/28 19:33:37 http: TLS handshake error from 127.0.0.1:64607: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.012s
+2015/01/28 19:33:43 http: TLS handshake error from 127.0.0.1:64640: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.473s
+2015/01/28 19:33:49 http: TLS handshake error from 127.0.0.1:64673: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.882s
+2015/01/28 19:33:55 http: TLS handshake error from 127.0.0.1:64706: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.929s
+2015/01/28 19:34:00 http: TLS handshake error from 127.0.0.1:64739: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.832s
+2015/01/28 19:34:06 http: TLS handshake error from 127.0.0.1:64773: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.930s
+2015/01/28 19:34:11 http: TLS handshake error from 127.0.0.1:64806: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.293s
+2015/01/28 19:34:17 http: TLS handshake error from 127.0.0.1:64839: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.316s
+2015/01/28 19:34:24 http: TLS handshake error from 127.0.0.1:64872: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.356s
+2015/01/28 19:34:30 http: TLS handshake error from 127.0.0.1:64905: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.510s
+2015/01/28 19:34:36 http: TLS handshake error from 127.0.0.1:64943: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.170s
+2015/01/28 19:34:41 http: TLS handshake error from 127.0.0.1:64976: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.028s
+2015/01/28 19:34:47 http: TLS handshake error from 127.0.0.1:65009: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.199s
+2015/01/28 19:34:53 http: TLS handshake error from 127.0.0.1:65042: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.137s
+2015/01/28 19:34:59 http: TLS handshake error from 127.0.0.1:65075: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	5.104s
+2015/01/28 19:35:05 http: TLS handshake error from 127.0.0.1:65108: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.854s
+2015/01/28 19:35:11 http: TLS handshake error from 127.0.0.1:65142: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.476s
+2015/01/28 19:35:20 http: TLS handshake error from 127.0.0.1:65181: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.280s
+2015/01/28 19:35:26 http: TLS handshake error from 127.0.0.1:65215: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.159s
+2015/01/28 19:35:31 http: TLS handshake error from 127.0.0.1:65249: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.877s
+2015/01/28 19:35:37 http: TLS handshake error from 127.0.0.1:65282: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.798s
+2015/01/28 19:35:42 http: TLS handshake error from 127.0.0.1:65315: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.311s
+2015/01/28 19:35:48 http: TLS handshake error from 127.0.0.1:65348: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.033s
+2015/01/28 19:35:54 http: TLS handshake error from 127.0.0.1:65384: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.767s
+2015/01/28 19:36:00 http: TLS handshake error from 127.0.0.1:65420: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.968s
+2015/01/28 19:36:06 http: TLS handshake error from 127.0.0.1:65454: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.120s
+2015/01/28 19:36:14 http: TLS handshake error from 127.0.0.1:65487: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	6.275s
+2015/01/28 19:36:20 http: TLS handshake error from 127.0.0.1:65520: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.111s
+2015/01/28 19:36:25 http: TLS handshake error from 127.0.0.1:49172: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.787s
+2015/01/28 19:36:32 http: TLS handshake error from 127.0.0.1:49212: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	5.082s
+2015/01/28 19:36:38 http: TLS handshake error from 127.0.0.1:49245: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.442s
+2015/01/28 19:36:44 http: TLS handshake error from 127.0.0.1:49299: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.331s
+2015/01/28 19:36:50 http: TLS handshake error from 127.0.0.1:49332: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.796s
+2015/01/28 19:36:56 http: TLS handshake error from 127.0.0.1:49365: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.205s
+2015/01/28 19:37:02 http: TLS handshake error from 127.0.0.1:49399: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.228s
+2015/01/28 19:37:08 http: TLS handshake error from 127.0.0.1:49432: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	5.317s
+2015/01/28 19:37:14 http: TLS handshake error from 127.0.0.1:49465: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.981s
+2015/01/28 19:37:24 http: TLS handshake error from 127.0.0.1:49501: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	7.750s
+2015/01/28 19:37:29 http: TLS handshake error from 127.0.0.1:49534: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	3.657s
+2015/01/28 19:37:35 http: TLS handshake error from 127.0.0.1:49567: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.351s
+2015/01/28 19:37:41 http: TLS handshake error from 127.0.0.1:49601: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+PASS
+ok  	github.com/getlantern/enproxy	4.629s
+2015/01/28 19:37:47 http: TLS handshake error from 127.0.0.1:49634: EOF
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+enproxy: Unable to dial proxy: dial fakebad: unknown network fakebad
+exit status 2
+FAIL	github.com/getlantern/enproxy	3.515s
