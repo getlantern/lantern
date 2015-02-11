@@ -10,5 +10,5 @@ src/github.com/getlantern/fronted/testcert.pem
 src/github.com/getlantern/fronted/testpk.pem
 flashlight.yaml
 envvars.bash
-Lantern.app/Contents/MacOS/lantern
-Lantern.app/Contents/_CodeSignature/
+Lantern.app
+lantern.dmg

@@ -2,9 +2,24 @@ flashlight-build [![Travis CI Status](https://travis-ci.org/getlantern/flashligh
 ==========
 
 flashlight-build is a [gost](https://github.com/getlantern/gost) project that
-provides repeatable builds and consolidated pull requests for flashlight.
+provides repeatable builds and consolidated pull requests for flashlight (now
+lantern).
 
-### Building Flashlight
+### Building Lantern for OS X
+
+```bash
+brew install node
+npm install -g appdmg
+./build_osx.bash
+```
+
+
+
+### Old stuff below here, needs to be cleaned up
+
+
+
+
 
 Flashlight requires [Go 1.4.x](http://golang.org/dl/).
 
