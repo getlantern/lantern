@@ -210,9 +210,9 @@ func (cfg *Config) applyClientDefaults() {
 		cfg.Client.MasqueradeSets[cloudflare] = cloudflareMasquerades
 	}
 
-	if len(cfg.Client.Whitelist) == 0 {
+	if cfg.Client.Whitelist == nil {
 		log.Debugf("Loading default whitelist")
-		cfg.Client.Whitelist = whitelist.LoadDefaultList()
+		cfg.Client.Whitelist = whitelist.New()
 	}
 
 	// Make sure we always have at least one server

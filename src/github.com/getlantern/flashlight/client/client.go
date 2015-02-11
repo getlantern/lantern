@@ -42,9 +42,6 @@ type Client struct {
 	rpCh            chan *httputil.ReverseProxy
 	rpInitialized   bool
 	nattywadClient  *nattywad.Client
-
-	// client HTTP server (between UI and back-end) configuration
-	HttpAddr string
 }
 
 // ListenAndServe makes the client listen for HTTP connections

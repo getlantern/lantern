@@ -3,6 +3,7 @@ package http
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/whitelist"
@@ -25,6 +26,11 @@ type JsonResponse struct {
 	Original  []string `json:"Original, omitempty"`
 }
 
+type WhitelistHandler struct {
+	http.HandlerFunc
+	Whitelist *whitelist.Whitelist
+}
+
 func sendJsonResponse(w http.ResponseWriter, response *JsonResponse, indent bool) {
 
 	enc := json.NewEncoder(w)
@@ -43,7 +49,7 @@ func setResponseHeaders(w http.ResponseWriter) {
 
 }
 
-func WhitelistHandler(w http.ResponseWriter, r *http.Request) {
+func (wlh WhitelistHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var response JsonResponse
 
 	setResponseHeaders(w)
@@ -66,9 +72,7 @@ func WhitelistHandler(w http.ResponseWriter, r *http.Request) {
 		response.Whitelist = wl.Copy()
 	case "GET":
 		log.Debug("Retrieving whitelist...")
-		wl := whitelist.New()
-		response.Original = whitelist.LoadDefaultList()
-		response.Whitelist = wl.Copy()
+		response.Whitelist = wlh.Whitelist.Copy()
 	default:
 		log.Debugf("Received %s", response.Error)
 		response.Error = "Invalid whitelist HTTP request"
@@ -82,9 +86,11 @@ func servePacFile(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, pacFile)
 }
 
-func ListenAndServe(httpAddr string) {
+func ListenAndServe(cfg *client.ClientConfig) {
 	r := http.NewServeMux()
-	r.HandleFunc("/whitelist", WhitelistHandler)
+	r.Handle("/whitelist", &WhitelistHandler{
+		Whitelist: cfg.Whitelist,
+	})
 	r.HandleFunc("/proxy_on.pac", servePacFile)
 
 	UIDirExists, err := util.DirExists(UIDir)
@@ -101,15 +107,15 @@ func ListenAndServe(httpAddr string) {
 	}
 
 	httpServer := &http.Server{
-		Addr:    httpAddr,
+		Addr:    cfg.HttpAddr,
 		Handler: r,
 		//ReadTimeout:  ReadTimeout,
 		//WriteTimeout: WriteTimeout,
 	}
 
 	go func() {
-		log.Debugf("Starting UI HTTP server at %s", httpAddr)
-		uiAddr := fmt.Sprintf(UIAddr, httpAddr)
+		log.Debugf("Starting UI HTTP server at %s", cfg.HttpAddr)
+		uiAddr := fmt.Sprintf(UIAddr, cfg.HttpAddr)
 		err := open.Run(uiAddr)
 		if err != nil {
 			log.Errorf("Could not open UI! %s", err)
