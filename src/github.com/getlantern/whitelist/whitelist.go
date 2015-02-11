@@ -16,9 +16,8 @@ import (
 )
 
 const (
-	WhiteListPath = "whitelist/whitelistgob"
-	PacTmpl       = "whitelist/templates/proxy_on.pac.template"
-	PacFilename   = "proxy_on.pac"
+	PacTmpl     = "whitelist/templates/proxy_on.pac.template"
+	PacFilename = "proxy_on.pac"
 )
 
 var (
@@ -29,25 +28,38 @@ var (
 
 /* Thread-safe data structure representing a whitelist */
 type Whitelist struct {
+	Cloud     []string
+	Additions []string
+	Deletions []string
+
 	entries map[string]bool
 	m       sync.RWMutex
 }
 
 func New() *Whitelist {
 	wl := &Whitelist{}
-	wl.entries = map[string]bool{}
+	wl.entries = make(map[string]bool)
+	wl.Additions = []string{}
+	wl.Deletions = []string{}
+	return wl
+}
+
+func (wl *Whitelist) processPacFile() {
 
 	log.Debugf("pac file path is %s", pacFilePath)
 
-	if util.FileExists(pacFilePath) {
-		/* pac file already present */
+	pacFileExists, err := util.FileExists(pacFilePath)
+	if err != nil {
+		log.Debugf("Error opening PAC file %s", err)
+	}
+
+	if pacFileExists {
 		wl.ParsePacFile()
 	} else {
 		/* Load original whitelist if no PAC file was found */
 		wl.addOriginal()
 		wl.genPacFile()
 	}
-	return wl
 }
 
 func NewWithEntries(entries []string) *Whitelist {
@@ -78,6 +90,10 @@ func LoadDefaultList() []string {
 	return entries
 }
 
+func (wl *Whitelist) UpdateEntries(entries []string) {
+	wl.add(entries)
+}
+
 func (wl *Whitelist) addOriginal() []string {
 	entries := LoadDefaultList()
 	wl.add(entries)
@@ -106,10 +122,10 @@ func (wl *Whitelist) Copy() []string {
 	wl.m.RLock()
 	defer wl.m.RUnlock()
 
-	list := make([]string, 0, len(wl.entries))
+	list := make([]string, 0, len(wl.Additions))
 
-	for entry, _ := range wl.entries {
-		list = append(list, entry)
+	for i := range wl.Additions {
+		list = append(list, wl.Additions[i])
 	}
 	sort.Strings(list)
 	return list
