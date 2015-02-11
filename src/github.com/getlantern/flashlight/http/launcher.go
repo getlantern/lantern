@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	UIAddress = "http://127.0.0.1:16785/app"
+	UIAddress = "http://127.0.0.1:16785/"
 )
 
 func openUI() {

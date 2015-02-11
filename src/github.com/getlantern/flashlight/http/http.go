@@ -85,7 +85,7 @@ func Start(httpAddr string) {
 	r.HandleFunc("/proxy_on.pac", servePacFile)
 
 	start := time.Now()
-	fs, err := tarfs.New(Data, "")
+	fs, err := tarfs.New(Data, "../ui/app")
 	if err != nil {
 		panic(err)
 	}
