@@ -16,6 +16,8 @@ client:
     maxmasquerades: 20
     qos: 2
     weight: 1000
+  whitelist:{{range $domain, $bool := .whitelist }}
+    {{$domain}}{{end}}
   masqueradesets:
     cloudflare:{{range .masquerades}}
     - domain: {{.Domain}}

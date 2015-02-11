@@ -27,14 +27,17 @@ var (
 	help          = flag.Bool("help", false, "Get usage help")
 	domainsFile   = flag.String("domains", "", "Path to file containing list of domains to use, with one domain per line (e.g. domains.txt)")
 	blacklistFile = flag.String("blacklist", "", "Path to file containing list of blacklisted domains, which will be excluded from the configuration even if present in the domains file (e.g. blacklist.txt)")
+	whitelistFile = flag.String("whitelist", "", "Path to file containing list of whitelisted domains, which will be proxied by Lantern")
 	minFreq       = flag.Float64("minfreq", 3.0, "Minimum frequency (percentage) for including CA cert in list of trusted certs, defaults to 3.0%")
 )
 
 var (
 	log = golog.LoggerFor("genconfig")
 
-	domains   []string
-	blacklist = make(map[string]bool)
+	domains []string
+
+	blacklist = make(filter)
+	whitelist = make(filter)
 
 	masqueradesTmpl string
 	yamlTmpl        string
@@ -43,6 +46,8 @@ var (
 	masqueradesCh = make(chan *masquerade)
 	wg            sync.WaitGroup
 )
+
+type filter map[string]bool
 
 type masquerade struct {
 	Domain    string
@@ -69,7 +74,8 @@ func main() {
 	runtime.GOMAXPROCS(numcores)
 
 	loadDomains()
-	loadBlacklist()
+	loadFilterList(blacklistFile, "blacklist", blacklist)
+	loadFilterList(whitelistFile, "whitelist", whitelist)
 
 	masqueradesTmpl = loadTemplate("masquerades.go.tmpl")
 	yamlTmpl = loadTemplate("cloud.yaml.tmpl")
@@ -98,18 +104,23 @@ func loadDomains() {
 	domains = strings.Split(string(domainsBytes), "\n")
 }
 
-func loadBlacklist() {
-	if *blacklistFile == "" {
-		log.Error("Please specify a blacklist file")
+func loadFilterList(file *string, filterType string, filterData filter) {
+
+	if *file == "" {
+		log.Errorf("Please specify a %s file", filterType)
 		flag.Usage()
 		os.Exit(3)
 	}
-	blacklistBytes, err := ioutil.ReadFile(*blacklistFile)
+
+	listBytes, err := ioutil.ReadFile(*file)
 	if err != nil {
-		log.Fatalf("Unable to read blacklist file at %s: %s", *blacklistFile, err)
+		log.Fatalf("Unable to read file at %v: %s", *file, err)
 	}
-	for _, domain := range strings.Split(string(blacklistBytes), "\n") {
-		blacklist[domain] = true
+	for _, domain := range strings.Split(string(listBytes), "\n") {
+		/* skip blank lines and comments */
+		if domain != "" && !strings.HasPrefix(domain, "#") {
+			filterData[domain] = true
+		}
 	}
 }
 
@@ -221,6 +232,7 @@ func buildModel(cas map[string]*castat, masquerades []*masquerade) map[string]in
 	return map[string]interface{}{
 		"cas":         casList,
 		"masquerades": masquerades,
+		"whitelist":   whitelist,
 	}
 }
 
