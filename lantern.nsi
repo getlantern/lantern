@@ -2,6 +2,7 @@
 !include MUI.nsh
 !define MUI_ICON windows.ico
 !define MUI_UNICON windows.ico
+!insertmacro MUI_LANGUAGE "English"
 !insertmacro MUI_PAGE_INSTFILES
 
 # define name of installer
