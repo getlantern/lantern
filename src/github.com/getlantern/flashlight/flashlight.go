@@ -114,7 +114,9 @@ func runClientProxy(cfg *config.Config) {
 	// with a corresponding HTTP server at
 	// the following address
 	if cfg.Client.HttpAddr != "" {
-		http.ListenAndServe(cfg.Client)
+		go func() {
+			http.ListenAndServe(cfg.Client, configUpdates)
+		}()
 	}
 
 	// Continually poll for config updates and update client accordingly

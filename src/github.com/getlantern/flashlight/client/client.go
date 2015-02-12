@@ -76,6 +76,15 @@ func (client *Client) Configure(cfg *ClientConfig) {
 		log.Debugf("Client configuration initialized")
 	}
 
+	if client.priorCfg != nil && cfg.Whitelist != nil {
+		if reflect.DeepEqual(client.priorCfg.Whitelist, cfg.Whitelist) {
+			log.Debug("Whitelist hasn't changed. Not propagating updates")
+		} else {
+			log.Debug("Whitelist updated; Propagating updates to our whitelist")
+			cfg.Whitelist.RefreshEntries()
+		}
+	}
+
 	log.Debugf("Requiring minimum QOS of %d", cfg.MinQOS)
 	client.MinQOS = cfg.MinQOS
 	bal := client.initBalancer(cfg)

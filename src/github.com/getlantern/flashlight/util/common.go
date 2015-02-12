@@ -3,8 +3,14 @@ package util
 import (
 	"errors"
 	"fmt"
+	"github.com/getlantern/golog"
+	"io/ioutil"
 	"os"
 	"os/user"
+)
+
+var (
+	log = golog.LoggerFor("util")
 )
 
 type logger func(arg interface{})
@@ -44,4 +50,12 @@ func DirExists(dirName string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func LoadTemplate(name string) string {
+	bytes, err := ioutil.ReadFile(name)
+	if err != nil {
+		log.Errorf("Unable to load template %s: %s", name, err)
+	}
+	return string(bytes)
 }

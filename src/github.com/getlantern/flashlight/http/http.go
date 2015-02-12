@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/getlantern/flashlight/client"
+	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/whitelist"
@@ -28,7 +29,7 @@ type JsonResponse struct {
 
 type WhitelistHandler struct {
 	http.HandlerFunc
-	Whitelist *whitelist.Whitelist
+	cfg *client.ClientConfig
 }
 
 func sendJsonResponse(w http.ResponseWriter, response *JsonResponse, indent bool) {
@@ -47,6 +48,15 @@ func setResponseHeaders(w http.ResponseWriter) {
 	w.Header().Set("Access-Control-Allow-Credentials", "True")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 
+}
+
+func stringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
 }
 
 func (wlh WhitelistHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -68,11 +78,9 @@ func (wlh WhitelistHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		var entries []string
 		err := decoder.Decode(&entries)
 		util.Check(err, log.Error, "Error decoding whitelist entries")
-		wl := whitelist.NewWithEntries(entries)
-		response.Whitelist = wl.Copy()
+		//response.Whitelist = wl.Copy()
 	case "GET":
-		log.Debug("Retrieving whitelist...")
-		response.Whitelist = wlh.Whitelist.Copy()
+		response.Whitelist = wlh.cfg.Whitelist.Copy()
 	default:
 		log.Debugf("Received %s", response.Error)
 		response.Error = "Invalid whitelist HTTP request"
@@ -86,11 +94,21 @@ func servePacFile(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, pacFile)
 }
 
-func ListenAndServe(cfg *client.ClientConfig) {
+func ListenAndServe(cfg *client.ClientConfig, cfgChan chan *config.Config) {
+
+	wlh := &WhitelistHandler{
+		cfg: cfg,
+	}
+
 	r := http.NewServeMux()
-	r.Handle("/whitelist", &WhitelistHandler{
-		Whitelist: cfg.Whitelist,
-	})
+	r.Handle("/whitelist", wlh)
+
+	go func() {
+		for {
+			cfg := <-cfgChan
+			wlh.cfg = cfg.Client
+		}
+	}()
 	r.HandleFunc("/proxy_on.pac", servePacFile)
 
 	UIDirExists, err := util.DirExists(UIDir)
@@ -113,14 +131,12 @@ func ListenAndServe(cfg *client.ClientConfig) {
 		//WriteTimeout: WriteTimeout,
 	}
 
-	go func() {
-		log.Debugf("Starting UI HTTP server at %s", cfg.HttpAddr)
-		uiAddr := fmt.Sprintf(UIAddr, cfg.HttpAddr)
-		err := open.Run(uiAddr)
-		if err != nil {
-			log.Errorf("Could not open UI! %s", err)
-		}
-	}()
+	log.Debugf("Starting UI HTTP server at %s", cfg.HttpAddr)
+	uiAddr := fmt.Sprintf(UIAddr, cfg.HttpAddr)
+	err = open.Run(uiAddr)
+	if err != nil {
+		log.Errorf("Could not open UI! %s", err)
+	}
 
 	err = httpServer.ListenAndServe()
 	if err != nil {

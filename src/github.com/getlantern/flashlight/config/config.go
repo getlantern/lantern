@@ -333,6 +333,7 @@ func (updated *Config) updateFrom(updateBytes []byte) error {
 	if err != nil {
 		return fmt.Errorf("Unable to unmarshal YAML for update: %s", err)
 	}
+
 	// Need to de-duplicate servers, since yaml appends them
 	servers := make(map[string]*client.FrontedServerInfo)
 	for _, server := range updated.Client.FrontedServers {
@@ -341,6 +342,17 @@ func (updated *Config) updateFrom(updateBytes []byte) error {
 	updated.Client.FrontedServers = make([]*client.FrontedServerInfo, 0, len(servers))
 	for _, server := range servers {
 		updated.Client.FrontedServers = append(updated.Client.FrontedServers, server)
+	}
+
+	// Same with global whitelist
+	// Would be nice to combine this with the above at some point!
+	wlDomains := make(map[string]bool)
+	for _, domain := range updated.Client.Whitelist.Cloud {
+		wlDomains[domain] = true
+	}
+	updated.Client.Whitelist.Cloud = make([]string, 0, len(wlDomains))
+	for domain, _ := range wlDomains {
+		updated.Client.Whitelist.Cloud = append(updated.Client.Whitelist.Cloud, domain)
 	}
 	return nil
 }

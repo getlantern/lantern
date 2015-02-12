@@ -19,6 +19,8 @@ client:
   whitelist:
     cloud:{{range $domain, $bool := .whitelist }}
     - {{$domain}}{{end}}
+    additions: []
+    deletions: []
   masqueradesets:
     cloudflare:{{range .masquerades}}
     - domain: {{.Domain}}
