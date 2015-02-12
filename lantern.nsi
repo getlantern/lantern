@@ -17,7 +17,10 @@ RequestExecutionLevel user
     
 # start default section
 Section
- 
+    # Remove anything that may currently be installed
+    RMDir /r "$SMPROGRAMS\Lantern"
+    RMDir /r "$INSTDIR"
+    
     # set the installation directory as the destination for the following actions
     SetOutPath $INSTDIR
 
@@ -33,8 +36,8 @@ SectionEnd
  
 # uninstaller section start
 Section "uninstall"
-    Delete "$SMPROGRAMS\Lantern"
-    Delete "$INSTDIR" 
+    RMDir /r "$SMPROGRAMS\Lantern"
+    RMDir /r "$INSTDIR" 
  
 # uninstaller section end
 SectionEnd
