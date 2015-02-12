@@ -125,7 +125,6 @@ func runClientProxy(cfg *config.Config) {
 			for {
 				// separate channel for synchronizing whitelist updates
 				cfg.Client.Whitelist = <-wlChan
-				log.Debugf("New whitelist is %+v", cfg.Client.Whitelist)
 				client.Configure(cfg.Client)
 			}
 		}()
