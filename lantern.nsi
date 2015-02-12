@@ -12,6 +12,8 @@ Section
  
     # set the installation directory as the destination for the following actions
     SetOutPath $INSTDIR
+
+    File lantern.exe
  
     # create the uninstaller
     WriteUninstaller "$INSTDIR\uninstall.exe"
