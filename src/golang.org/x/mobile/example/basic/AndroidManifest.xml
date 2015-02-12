@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Copyright 2014 The Go Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<manifest
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	package="com.example.basic"
+	android:versionCode="1"
+	android:versionName="1.0">
+
+	<uses-sdk android:minSdkVersion="9" />
+	<application android:label="Basic" android:hasCode="false">
+	<activity android:name="android.app.NativeActivity"
+		android:label="Basic"
+		android:configChanges="orientation|keyboardHidden">
+		<meta-data android:name="android.app.lib_name" android:value="basic" />
+		<intent-filter>
+			<action android:name="android.intent.action.MAIN" />
+			<category android:name="android.intent.category.LAUNCHER" />
+		</intent-filter>
+	</activity>
+	</application>
+</manifest> 

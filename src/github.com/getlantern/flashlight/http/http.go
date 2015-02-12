@@ -11,11 +11,14 @@ import (
 	"github.com/skratchdot/open-golang/open"
 	"net/http"
 	"reflect"
+	"time"
+
+	"github.com/getlantern/tarfs"
 )
 
 const (
-	UiDir = "src/github.com/getlantern/ui/app"
 	UiUrl = "http://%s"
+	UiDir = "src/github.com/getlantern/ui/app"
 )
 
 var (
@@ -125,7 +128,14 @@ func ListenAndServe(cfg *client.ClientConfig, cfgChan chan *config.Config, wlCha
 		log.Debugf("Serving UI assets from directory %s", UiDir)
 		r.Handle("/", http.FileServer(http.Dir(UiDir)))
 	} else {
-		assetFS()
+		start := time.Now()
+		fs, err := tarfs.New(Data, "../ui/app")
+		if err != nil {
+			panic(err)
+		}
+		delta := time.Now().Sub(start)
+		log.Debugf("tarfs startup time: %v", delta)
+		r.Handle("/", http.FileServer(fs))
 	}
 
 	httpServer := &http.Server{
