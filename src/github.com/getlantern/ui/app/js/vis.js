@@ -11,7 +11,7 @@ angular.module('app.vis', ['ngSanitize'])
   .directive('resizable', function ($window) {
     return function (scope, element) {
       function size() {
-        var w = element.width(), h = element.height();
+        var w = element[0].offsetWidth, h = element[0].offsetHeight;
         scope.projection.scale(max(w, h) / TWO_PI);
         scope.projection.translate([w >> 1, round(0.56*h)]);
         scope.$broadcast('mapResized', w, h);
