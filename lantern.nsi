@@ -26,9 +26,10 @@ Section
     # create the uninstaller
     WriteUninstaller "$INSTDIR\uninstall.exe"
  
+    Delete "$SMPROGRAMS\Lantern"
     CreateDirectory "$SMPROGRAMS\Lantern"
-    CreateShortCut "$SMPROGRAMS\Lantern\Lantern.lnk" "$INSTDIR\lantern.exe" "" "$INSTDIR\lantern.ico" 0
-    CreateShortCut "$SMPROGRAMS\Lantern\Uninstall.lnk" "$INSTDIR\uninstall.exe"
+    CreateShortCut "$SMPROGRAMS\Lantern\Lantern.lnk" "$INSTDIR\lantern.exe"
+    CreateShortCut "$SMPROGRAMS\Lantern\Uninstall Lantern.lnk" "$INSTDIR\uninstall.exe"
 SectionEnd
  
 # uninstaller section start
