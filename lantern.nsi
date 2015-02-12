@@ -36,6 +36,8 @@ Section "uninstall"
     Delete "$INSTDIR\uninstall.exe"
  
     # second, remove the link from the start menu
+    Delete "$SMPROGRAMS\Lantern\Lantern.lnk"
+    Delete "$SMPROGRAMS\Lantern\Uninstall.lnk"
     Delete "$SMPROGRAMS\Lantern"
  
 # uninstaller section end
