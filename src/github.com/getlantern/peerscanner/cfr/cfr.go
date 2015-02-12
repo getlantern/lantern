@@ -51,7 +51,7 @@ func New(id string, key string, httpClient *http.Client) *cloudfront.CloudFront 
 	return cloudfront.New(creds, "", httpClient)
 }
 
-func CreateDistribution(cfr *cloudfront.CloudFront, name string, comment string, originDomain string) (*Distribution, error) {
+func CreateDistribution(cfr *cloudfront.CloudFront, name string, originDomain string, comment string) (*Distribution, error) {
 	nameStr := aws.String(name)
 	req := cloudfront.CreateDistributionRequest{
 		DistributionConfig: &cloudfront.DistributionConfig{
@@ -69,7 +69,7 @@ func CreateDistribution(cfr *cloudfront.CloudFront, name string, comment string,
 				Items: []cloudfront.Origin{
 					cloudfront.Origin{
 						ID:         nameStr,
-						DomainName: aws.String(domain),
+						DomainName: aws.String(originDomain),
 						CustomOriginConfig: &cloudfront.CustomOriginConfig{
 							HTTPPort:             aws.Integer(80),
 							HTTPSPort:            aws.Integer(443),

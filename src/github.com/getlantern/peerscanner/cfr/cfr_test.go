@@ -38,7 +38,7 @@ func TestCreateAndRefresh(t *testing.T) {
 	// Fortunately, distributions per se cost us nothing.  A separate service
 	// will be implemented to delete test and otherwise unused distributions.
 	name := uuid.NewV4().String()
-	dist, err := CreateDistribution(cfr, name, "TEST -- DELETE", name+"-grey.flashlightproxy.org")
+	dist, err := CreateDistribution(cfr, name, name+"-grey.flashlightproxy.org", "TEST -- DELETE")
 	assert.NoError(t, err, "Should be able to create distribution")
 	assert.Equal(t, "InProgress", dist.Status, "New distribution should have Status: \"InProgress\"")
 	assert.Equal(t, name, dist.InstanceId, "New distribution should have the right InstanceId")
