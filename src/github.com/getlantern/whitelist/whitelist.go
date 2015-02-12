@@ -1,3 +1,7 @@
+// package whitelist is a module used to manage the list of sites
+// being proxied by Lantern
+// when the list is modified using the Lantern UI, it propagates
+// to the default YAML and PAC file configurations
 package whitelist
 
 import (
@@ -7,6 +11,7 @@ import (
 	"github.com/getlantern/golog"
 	"github.com/robertkrimen/otto"
 	"github.com/robertkrimen/otto/parser"
+
 	"gopkg.in/fatih/set.v0"
 	"os"
 	"regexp"
@@ -133,6 +138,10 @@ func (wl *Whitelist) GetConfig() *Config {
 	return wl.cfg
 }
 
+/* This function calculaties the delta additions and deletions
+ * to the global whitelist; these changes are then propagated
+ * to the PAC file
+ */
 func (wl *Whitelist) UpdateEntries(entries []string) []string {
 	log.Debug("Updating whitelist entries...")
 
@@ -142,12 +151,16 @@ func (wl *Whitelist) UpdateEntries(entries []string) []string {
 		toAdd.Add(entries[i])
 	}
 
+	/* whitelist customizations */
 	toRemove := set.Difference(wl.cloudSet, toAdd)
 	wl.cfg.Deletions = set.StringSlice(toRemove)
-	log.Debugf("Whitelist domains deleted %+v", wl.cfg.Deletions)
 
-	toAddSet := set.Difference(toAdd, wl.cloudSet)
-	log.Debugf("New whitelist domains %+v", toAddSet)
+	/* new entries are any new domains the user wishes
+	* to proxy that weren't found on the global whitelist
+	* already
+	 */
+	newEntries := set.Difference(toAdd, wl.cloudSet)
+	wl.cfg.Additions = set.StringSlice(newEntries)
 	wl.entries = set.StringSlice(toAdd)
 	go wl.updatePacFile()
 
