@@ -47,8 +47,12 @@ var (
 )
 
 func headerMatches(req *http.Request, name string, value string) bool {
-	h := req.Header[name]
-	return len(h) == 1 && h[0] == value
+	for _, entry := range req.Header[name] {
+		if entry == value {
+			return true
+		}
+	}
+	return false
 }
 
 func hasHeader(req *http.Request, name string) bool {
