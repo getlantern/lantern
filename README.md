@@ -17,7 +17,6 @@ npm install -g appdmg
 
 Prerequisites
 
-* http://gnuwin32.sourceforge.net/packages/zip.htm
 * http://sourceforge.net/projects/mingw-w64/
 * http://nsis.sourceforge.net/Download (version 3.x)
 
