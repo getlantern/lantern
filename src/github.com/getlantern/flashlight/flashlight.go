@@ -130,7 +130,6 @@ func runServerProxy(cfg *config.Config) {
 
 	srv := &server.Server{
 		Addr:         cfg.Addr,
-		Host:         cfg.Server.AdvertisedHost,
 		ReadTimeout:  0, // don't timeout
 		WriteTimeout: 0,
 		CertContext: &fronted.CertContext{
