@@ -19,12 +19,13 @@ type logger func(arg interface{})
 
 // determineConfigDir() determines where to load the config by checking the
 // command line and defaulting to ~/.lantern.
-func DetermineConfigDir() string {
+func DetermineConfigDir() (string, error) {
 	usr, err := user.Current()
 	if err != nil {
 		fmt.Errorf("Error location user home directory %v", err)
+		return "", err
 	}
-	return usr.HomeDir + "/.lantern"
+	return usr.HomeDir + "/.lantern", nil
 }
 
 func Check(e error, log logger, msg string) {

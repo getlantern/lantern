@@ -17,14 +17,14 @@ import (
 )
 
 const (
-	PacTmpl     = "src/github.com/getlantern/whitelist/templates/proxy_on.pac.template"
 	PacFilename = "proxy_on.pac"
 )
 
 var (
 	log         = golog.LoggerFor("whitelist")
-	ConfigDir   = util.DetermineConfigDir()
-	pacFilePath = ConfigDir + "/" + PacFilename
+	ConfigDir   string
+	PacFilePath string
+	PacTmpl     = "src/github.com/getlantern/whitelist/templates/proxy_on.pac.template"
 )
 
 type Config struct {
@@ -50,6 +50,16 @@ type PacFile struct {
 	l        sync.RWMutex
 	template *template.Template
 	file     *os.File
+}
+
+func init() {
+	var err error
+	ConfigDir, err = util.DetermineConfigDir()
+	if err != nil {
+		log.Errorf("Could not open user home directory: %s", err)
+		return
+	}
+	PacFilePath = ConfigDir + "/" + PacFilename
 }
 
 func New(cfg *Config) *Whitelist {
@@ -87,7 +97,7 @@ func (wl *Whitelist) RefreshEntries() []string {
 }
 
 func GetPacFile() string {
-	return pacFilePath
+	return PacFilePath
 }
 
 func LoadDefaultList() []string {
@@ -148,7 +158,7 @@ func (wl *Whitelist) updatePacFile() (err error) {
 
 	pacFile := &PacFile{}
 
-	pacFile.file, err = os.Create(pacFilePath)
+	pacFile.file, err = os.Create(PacFilePath)
 	defer pacFile.file.Close()
 	if err != nil {
 		log.Errorf("Could not create PAC file")
@@ -161,7 +171,7 @@ func (wl *Whitelist) updatePacFile() (err error) {
 		return
 	}
 
-	log.Debugf("Updating PAC file; path is %s", pacFilePath)
+	log.Debugf("Updating PAC file; path is %s", PacFilePath)
 	pacFile.l.Lock()
 	defer pacFile.l.Unlock()
 
@@ -175,36 +185,42 @@ func (wl *Whitelist) updatePacFile() (err error) {
 	return err
 }
 
-func (wl *Whitelist) ParsePacFile() {
-	log.Debugf("PAC file found %s; loading entries..", pacFilePath)
-	/* pac file already present */
-	program, err := parser.ParseFile(nil, pacFilePath, nil, 0)
-	if err != nil {
-		log.Errorf("Error parsing pac file +%v", err)
-		/* we default to the original in this scenario */
-		wl.addOriginal()
-	} else {
-		/* otto is a native JavaScript parser;
-		we just quickly parse the proxy domains
-		from the PAC file to
-		cleanly send in a JSON response
-		*/
-		vm := otto.New()
-		_, err := vm.Run(program)
-		if err != nil {
-			log.Errorf("Could not parse PAC file %+v", err)
-			wl.addOriginal()
-		} else {
-			value, _ := vm.Get("proxyDomains")
-			log.Debugf("PAC entries %+v", value.String())
+func (wl *Whitelist) GetEntries() []string {
+	return wl.entries
+}
 
-			/* need to remove escapes
-			* and convert the otto value into a string array
-			 */
-			re := regexp.MustCompile("(\\\\.)")
-			list := re.ReplaceAllString(value.String(), ".")
-			wl.entries = strings.Split(list, ",")
-			log.Debugf("List of proxied sites... %+v", wl.entries)
+func ParsePacFile() *Whitelist {
+	wl := &Whitelist{}
+
+	log.Debugf("PAC file found %s; loading entries..", PacFilePath)
+	/* pac file already present */
+	program, err := parser.ParseFile(nil, PacFilePath, nil, 0)
+	/* otto is a native JavaScript parser;
+	we just quickly parse the proxy domains
+	from the PAC file to
+	cleanly send in a JSON response
+	*/
+	vm := otto.New()
+	_, err = vm.Run(program)
+	if err != nil {
+		log.Errorf("Could not parse PAC file %+v", err)
+		return nil
+	} else {
+		value, _ := vm.Get("proxyDomains")
+		log.Debugf("PAC entries %+v", value.String())
+		if value.String() == "" {
+			/* no pac entries; return empty array */
+			wl.entries = []string{}
+			return wl
 		}
+
+		/* need to remove escapes
+		* and convert the otto value into a string array
+		 */
+		re := regexp.MustCompile("(\\\\.)")
+		list := re.ReplaceAllString(value.String(), ".")
+		wl.entries = strings.Split(list, ",")
+		log.Debugf("List of proxied sites... %+v", wl.entries)
 	}
+	return wl
 }
