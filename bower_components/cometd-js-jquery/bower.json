@@ -1,0 +1,7 @@
+{
+  "name": "cometd-js-jquery",
+  "version": "2.6.0",
+  "ignore": [
+    "README.md"
+  ]
+}

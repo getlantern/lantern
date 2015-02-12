@@ -1,0 +1,23 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Mocha Tests</title>
+  <link rel="stylesheet" href="vendor/mocha.css" />
+</head>
+<body>
+  <h1>Browser Bases Test Runner</h1>
+  <div id="mocha"></div>
+  <script src="vendor/json2.js"></script>
+  <script src="vendor/mocha.js"></script>
+  <script src="vendor/expect.js"></script>
+  <script>
+    mocha.setup('bdd');
+  </script>
+  <script src="../lib/jsonpatch.js"></script>
+  <script src="test.json-patch-test-suite.js"></script>
+  <script src="test.jsonpatch.js"></script>
+  <script>
+    mocha.run();
+  </script>
+</body>
+</html>
