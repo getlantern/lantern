@@ -1,0 +1,42 @@
+{
+    "name": "jsonpatch",
+    "version": "1.0.0-rc1",
+    "description": "An implementation of JSON Patch and JSON Pointer IETF RFCs",
+    "keywords": ["diff", "patch", "json", "jsonpatch", "jsonpointer"],
+    "maintainers": "Thomas Parslow <tom@almostobsolete.net>",
+    "author": {"name": "Thomas Parslow", "email": "tom@almostobsolete.net", "url":"http://almostobsolete.net/"},
+    "url": "http://github.com/dharmafly/jsonpatch.js",
+    "dependencies": {
+    },
+    "devDependencies": {
+        "mocha": "1.8.1",
+        "expect.js": "0.2.0",
+        "jshint": "0.3.0",
+        "uglify-js": "2.3.5"
+    },
+    "scripts": {
+        "test": "mocha test/test.*.js && jshint lib",
+        "minify": "uglifyjs lib/jsonpatch.js -c --comments -o jsonpatch.min.js"
+    },
+    "testling": {
+      "files": [
+          "test/test.*.js"
+      ],
+      "harness": "mocha",
+      "browsers": {
+        "ie": [ 6, 7, 8, 9, 10],
+        "firefox": [ 19],
+        "chrome": [ 25 ],
+        "safari": [ 6.0 ],
+        "opera": [ 12 ],
+        "iphone": [ 6.0 ],
+        "ipad": [ 6.0 ],
+        "android-browser": [ 4.2 ]
+      }
+    },
+    "repository" : {"type": "git", "url": "git://github.com/dharmafly/jsonpatch.js"},
+    "directories" : { "lib" : "./lib/" , "doc" : "./doc/" },
+    "engines": { "node": ">=0.4.0" },
+    "licenses": ["MIT"] ,
+    "main": "lib/jsonpatch.js"
+}
