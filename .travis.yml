@@ -1,0 +1,11 @@
+language: node_js
+node_js:
+  - "0.10"
+
+before_script:
+  - npm install --quiet karma karma-jasmine karma-phantomjs-launcher
+  - ./scripts/web-server.js > /dev/null &
+  - sleep 1 # give server time to start
+
+script:
+#  - ./node_modules/karma/bin/karma start config/karma-e2e.conf.js --reporters=dots
