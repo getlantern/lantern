@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
-	"time"
 
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/getlantern/idletiming"
@@ -17,8 +17,8 @@ import (
 // addr: the host:port of the destination server that we're trying to reach
 //
 // config: configuration for this Conn
-func Dial(addr string, config *Config) (*Conn, error) {
-	c := &Conn{
+func Dial(addr string, config *Config) (net.Conn, error) {
+	c := &conn{
 		id:     uuid.NewRandom().String(),
 		addr:   addr,
 		config: config,
@@ -26,11 +26,7 @@ func Dial(addr string, config *Config) (*Conn, error) {
 
 	c.initDefaults()
 	c.makeChannels()
-	c.markActive()
 	c.initRequestStrategy()
-
-	go c.processWrites()
-	go c.processReads()
 
 	// Dial proxy
 	proxyConn, err := c.dialProxy()
@@ -38,12 +34,20 @@ func Dial(addr string, config *Config) (*Conn, error) {
 		return nil, fmt.Errorf("Unable to dial proxy: %s", err)
 	}
 
+	go c.processWrites()
+	go c.processReads()
 	go c.processRequests(proxyConn)
 
-	return c, nil
+	increment(&open)
+
+	return idletiming.Conn(c, c.config.IdleTimeout, func() {
+		c.Close()
+		// Close the initial proxyConn just in case
+		proxyConn.conn.Close()
+	}), nil
 }
 
-func (c *Conn) initDefaults() {
+func (c *conn) initDefaults() {
 	if c.config.FlushTimeout == 0 {
 		c.config.FlushTimeout = defaultWriteFlushTimeout
 	}
@@ -52,20 +56,28 @@ func (c *Conn) initDefaults() {
 	}
 }
 
-func (c *Conn) makeChannels() {
-	c.initialResponseCh = make(chan hostWithResponse)
-	c.writeRequestsCh = make(chan []byte)
-	c.writeResponsesCh = make(chan rwResponse)
-	c.stopWriteCh = make(chan interface{}, closeChannelDepth)
-	c.readRequestsCh = make(chan []byte)
-	c.readResponsesCh = make(chan rwResponse)
-	c.stopReadCh = make(chan interface{}, closeChannelDepth)
-	c.requestOutCh = make(chan *request)
-	c.requestFinishedCh = make(chan error)
-	c.stopRequestCh = make(chan interface{}, closeChannelDepth)
+func (c *conn) makeChannels() {
+	// All channels are buffered to prevent deadlocks
+	c.initialResponseCh = make(chan hostWithResponse, 1)
+	c.writeRequestsCh = make(chan []byte, 1)
+	c.writeResponsesCh = make(chan rwResponse, 1)
+	c.readRequestsCh = make(chan []byte, 1)
+	c.readResponsesCh = make(chan rwResponse, 1)
+	c.requestOutCh = make(chan *request, 1)
+	c.requestFinishedCh = make(chan error, 1)
+
+	// Buffered to depth 2 because we report async errors to the reading and
+	// writing goroutines.
+	c.asyncErrCh = make(chan error, 2)
+
+	// Buffered so that even if conn.Close() hasn't been called, we can report
+	// finished.
+	c.doneWritingCh = make(chan bool, 1)
+	c.doneReadingCh = make(chan bool, 1)
+	c.doneRequestingCh = make(chan bool, 1)
 }
 
-func (c *Conn) initRequestStrategy() {
+func (c *conn) initRequestStrategy() {
 	if c.config.BufferRequests {
 		c.rs = &bufferingRequestStrategy{
 			c: c,
@@ -77,9 +89,10 @@ func (c *Conn) initRequestStrategy() {
 	}
 }
 
-func (c *Conn) dialProxy() (*connInfo, error) {
+func (c *conn) dialProxy() (*connInfo, error) {
 	conn, err := c.config.DialProxy(c.addr)
 	if err != nil {
+		log.Debugf("Unable to dial proxy: %s", err)
 		return nil, fmt.Errorf("Unable to dial proxy: %s", err)
 	}
 	proxyConn := &connInfo{
@@ -94,7 +107,7 @@ func (c *Conn) dialProxy() (*connInfo, error) {
 	return proxyConn, nil
 }
 
-func (c *Conn) redialProxyIfNecessary(proxyConn *connInfo) (*connInfo, error) {
+func (c *conn) redialProxyIfNecessary(proxyConn *connInfo) (*connInfo, error) {
 	proxyConn.closedMutex.Lock()
 	defer proxyConn.closedMutex.Unlock()
 	if proxyConn.closed || proxyConn.conn.TimesOutIn() < oneSecond {
@@ -105,7 +118,7 @@ func (c *Conn) redialProxyIfNecessary(proxyConn *connInfo) (*connInfo, error) {
 	}
 }
 
-func (c *Conn) doRequest(proxyConn *connInfo, host string, op string, request *request) (resp *http.Response, err error) {
+func (c *conn) doRequest(proxyConn *connInfo, host string, op string, request *request) (resp *http.Response, err error) {
 	var body io.Reader
 	if request != nil {
 		body = request.body
@@ -151,19 +164,6 @@ func (c *Conn) doRequest(proxyConn *connInfo, host string, op string, request *r
 	}
 
 	return
-}
-
-func (c *Conn) markActive() {
-	c.lastActivityMutex.Lock()
-	defer c.lastActivityMutex.Unlock()
-	c.lastActivityTime = time.Now()
-}
-
-func (c *Conn) isIdle() bool {
-	c.lastActivityMutex.RLock()
-	defer c.lastActivityMutex.RUnlock()
-	timeSinceLastActivity := time.Now().Sub(c.lastActivityTime)
-	return timeSinceLastActivity > c.config.IdleTimeout
 }
 
 type closer struct {

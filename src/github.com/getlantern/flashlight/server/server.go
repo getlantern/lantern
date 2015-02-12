@@ -2,8 +2,10 @@ package server
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"reflect"
 	"strconv"
@@ -29,6 +31,7 @@ const (
 
 var (
 	log               = golog.LoggerFor("flashlight.server")
+	registerPeriod    = 5 * time.Minute
 	frontingProviders = map[string]func(*http.Request) bool{
 		// WARNING: If you add a provider here, keep in mind that Go's http
 		// library normalizes all header names so the first letter of every
@@ -73,7 +76,7 @@ type Server struct {
 	waddellClient  *waddell.Client
 	nattywadServer *nattywad.Server
 	cfg            *ServerConfig
-	cfgMutex       sync.Mutex
+	cfgMutex       sync.RWMutex
 }
 
 func (server *Server) Configure(newCfg *ServerConfig) {
@@ -160,7 +163,42 @@ func (server *Server) ListenAndServe() error {
 	if err != nil {
 		return fmt.Errorf("Unable to listen at %s: %s", server.Addr, err)
 	}
+
+	go server.register()
+
 	return fs.Serve(l)
+}
+
+func (server *Server) register() {
+	for {
+		server.cfgMutex.RLock()
+		baseUrl := server.cfg.RegisterAt
+		server.cfgMutex.RUnlock()
+		if baseUrl != "" {
+			if globals.InstanceId == "" {
+				log.Error("Unable to register server because no InstanceId is configured")
+			} else {
+				log.Debugf("Registering server at %v", baseUrl)
+				registerUrl := baseUrl + "/register"
+				vals := url.Values{
+					"name": []string{globals.InstanceId},
+					"port": []string{"443"},
+				}
+				resp, err := http.PostForm(registerUrl, vals)
+				if err != nil {
+					log.Errorf("Unable to register at %v: %v", registerUrl, err)
+					return
+				} else if resp.StatusCode != 200 {
+					bodyString, _ := ioutil.ReadAll(resp.Body)
+					log.Errorf("Unexpected response status registering at %v: %d    %v", registerUrl, resp.StatusCode, string(bodyString))
+				} else {
+					log.Debugf("Successfully registered server at %v", registerUrl)
+				}
+				resp.Body.Close()
+				time.Sleep(registerPeriod)
+			}
+		}
+	}
 }
 
 func (server *Server) startNattywad(waddellAddr string) {

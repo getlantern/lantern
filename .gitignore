@@ -11,3 +11,4 @@ src/github.com/getlantern/fronted/testpk.pem
 flashlight.yaml
 *.swp
 *.swo
+envvars.bash

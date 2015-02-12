@@ -86,6 +86,8 @@ func (updated *Config) applyFlags() error {
 			} else {
 				visitErr = err
 			}
+		case "registerat":
+			updated.Server.RegisterAt = *registerat
 		case "waddelladdr":
 			updated.Server.WaddellAddr = *waddelladdr
 		}

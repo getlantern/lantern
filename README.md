@@ -81,5 +81,12 @@ note - Signing windows code requires that the
 installed. On OS X with homebrew, you can do this with
 `brew install osslsigncode`.
 
+### Continuous Integration with Travis CI
+Continuous builds are run on Travis CI. These builds use the `.travis.yml`
+configuration.  The github.com/getlantern/cf unit tests require an envvars.bash
+to be populated with credentials for cloudflare. The original `envvars.bash` is
+available [here](https://github.com/getlantern/too-many-secrets/blob/master/envvars.bash).
+An encrypted version is checked in as `envvars.bash.enc`, which was encrypted
+per the instructions [here](http://docs.travis-ci.com/user/encrypting-files/).
 
 
