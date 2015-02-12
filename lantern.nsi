@@ -4,6 +4,12 @@ OutFile "lantern-installer.exe"
 # define installation directory
 InstallDir $PROGRAMFILES\Lantern
  
+!define MUI_ICON windows.ico
+!define MUI_UNICON windows.ico
+
+# Included files
+!include MUI.nsh
+
 # For removing Start Menu shortcut in Windows 7
 RequestExecutionLevel user
  
@@ -18,6 +24,7 @@ Section
     # create the uninstaller
     WriteUninstaller "$INSTDIR\uninstall.exe"
  
+    CreateDirectory "$SMPROGRAMS\Lantern"
     CreateShortCut "$SMPROGRAMS\Lantern\Lantern.lnk" "$INSTDIR\lantern.exe"
     CreateShortCut "$SMPROGRAMS\Lantern\Uninstall.lnk" "$INSTDIR\uninstall.exe"
 SectionEnd
