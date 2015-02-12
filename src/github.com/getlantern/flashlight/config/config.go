@@ -135,20 +135,6 @@ func Update(mutate func(cfg *Config) error) error {
 	})
 }
 
-func UpdateOnDisk(updated *Config) {
-	updated.SetVersion(updated.GetVersion() + 1)
-
-	b, err := yaml.Marshal(updated)
-	if err != nil {
-		log.Errorf("Unable to marshal updated to yaml: %s", err)
-	}
-
-	err = ioutil.WriteFile("flashlight.yaml", b, 0644)
-	if err != nil {
-		log.Errorf("Unable to save test config: %s", err)
-	}
-}
-
 // InConfigDir returns the path to the given filename inside of the configdir.
 func InConfigDir(filename string) string {
 	if *configdir == "" {

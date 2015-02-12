@@ -124,8 +124,13 @@ func runClientProxy(cfg *config.Config) {
 		go func() {
 			for {
 				// separate channel for synchronizing whitelist updates
-				cfg.Client.Whitelist = <-wlChan
-				client.Configure(cfg.Client)
+				wl := <-wlChan
+				cfg.Client.Whitelist = wl
+				config.Update(func(updated *config.Config) error {
+					log.Debugf("Saving updated whitelist configuration")
+					updated.Client.Whitelist = cfg.Client.Whitelist
+					return nil
+				})
 			}
 		}()
 	}
