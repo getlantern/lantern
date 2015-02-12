@@ -113,7 +113,7 @@ func ListenAndServe(cfg *client.ClientConfig, cfgChan chan *config.Config, wlCha
 			if !reflect.DeepEqual(wlh.whitelist.GetConfig(), clientCfg.Whitelist) {
 				log.Debugf("Whitelist changed in flashlight.yaml..")
 				wlh.whitelist = whitelist.New(newCfg.Client.Whitelist)
-				wlh.whitelist.UpdateEntries()
+				wlh.whitelist.RefreshEntries()
 			}
 		}
 	}()
