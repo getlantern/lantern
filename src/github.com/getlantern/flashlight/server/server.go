@@ -339,18 +339,21 @@ func hostFn(fqdns map[string]string) func(*http.Request) string {
 	return func(req *http.Request) string {
 		for provider, fn := range frontingProviders {
 			if fn(req) {
-				return fqdns[provider]
+				fqdn, found := fqdns[provider]
+				if found {
+					return fqdn
+				}
 			}
 		}
-		// We don't know about this provider... for backwards
-		// compatibility, let's try just any of the supplied FQDNs.
+		// We don't know about this provider or we don't have a fqdn for it...
+		// The best we can do is provide *some* FQDN through which we hope we
+		// can be reached.
 		log.Debugf("Falling back to just any FQDN")
 		for _, fqdn := range fqdns {
 			return fqdn
 		}
-		// should never be reached, because the client is checking for empty
-		// `-frontfqdn`s, but Go doesn't know that and insists we must return
-		// something here.
+		// We don't know of any fqdns.  This will be treated like a null
+		// hostFn.
 		return ""
 	}
 }

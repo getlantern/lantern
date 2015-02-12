@@ -108,8 +108,5 @@ func parseFrontFQDNs(frontFQDNs string) (map[string]string, error) {
 	if err := yaml.Unmarshal([]byte(frontFQDNs), fqdns); err != nil {
 		return nil, err
 	}
-	if len(fqdns) == 0 {
-		return nil, fmt.Errorf("-frontfqdn: no entries")
-	}
 	return fqdns, nil
 }

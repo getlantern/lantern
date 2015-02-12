@@ -175,10 +175,15 @@ func (p *Proxy) handleWrite(resp http.ResponseWriter, req *http.Request, lc *laz
 		badGateway(resp, fmt.Sprintf("Unable to write to connOut: %s", err))
 		return
 	}
+	host := ""
 	if p.HostFn != nil {
-		resp.Header().Set(X_ENPROXY_PROXY_HOST, p.HostFn(req))
-	} else if p.Host != "" {
-		resp.Header().Set(X_ENPROXY_PROXY_HOST, p.Host)
+		host = p.HostFn(req)
+	}
+	if host == "" {
+		host = p.Host
+	}
+	if host != "" {
+		resp.Header().Set(X_ENPROXY_PROXY_HOST, host)
 	}
 	if first {
 		// On first write, immediately do some reading
