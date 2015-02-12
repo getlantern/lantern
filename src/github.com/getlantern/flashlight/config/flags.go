@@ -2,7 +2,6 @@ package config
 
 import (
 	"flag"
-	"fmt"
 	"time"
 
 	"github.com/getlantern/flashlight/client"
@@ -30,6 +29,7 @@ var (
 	frontFQDNs    = flag.String("frontfqdns", "", "YAML string representing a map from the name of each front provider to a FQDN that will reach this particular server via that provider (e.g. '{cloudflare: fl-001.getiantem.org, cloudfront: blablabla.cloudfront.net}')")
 	waddelladdr   = flag.String("waddelladdr", "", "if specified, connect to this waddell server and process NAT traversal requests inbound from waddell")
 	waddellcert   = flag.String("waddellcert", "", "if specified, use this cert (PEM-encoded) to authenticate connections to waddell.  Otherwise, a default certificate is used.")
+	registerat    = flag.String("registerat", "", "base URL for peer DNS registry at which to register (e.g. https://peerscanner.getiantem.org)")
 )
 
 // applyFlags updates this Config from any command-line flags that were passed
