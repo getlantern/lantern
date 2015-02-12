@@ -18,6 +18,7 @@ import (
 	"github.com/getlantern/golog"
 	"github.com/getlantern/nattywad"
 	"github.com/getlantern/waddell"
+	"github.com/getlantern/yaml"
 
 	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/nattest"
@@ -136,7 +137,7 @@ func (server *Server) Configure(newCfg *ServerConfig) {
 	server.cfg = newCfg
 }
 
-func (server *Server) ListenAndServe() error {
+func (server *Server) ListenAndServe(updateConfig func(func(*ServerConfig) error)) error {
 
 	fs := &fronted.Server{
 		Addr:                       server.Addr,
@@ -168,12 +169,16 @@ func (server *Server) ListenAndServe() error {
 		return fmt.Errorf("Unable to listen at %s: %s", server.Addr, err)
 	}
 
-	go server.register()
+	go server.register(updateConfig)
 
 	return fs.Serve(l)
 }
 
-func (server *Server) register() {
+func (server *Server) register(updateConfig func(func(*ServerConfig) error)) {
+	supportedFronts := make([]string, 0, len(frontingProviders))
+	for name := range frontingProviders {
+		supportedFronts = append(supportedFronts, name)
+	}
 	for {
 		server.cfgMutex.RLock()
 		baseUrl := server.cfg.RegisterAt
@@ -185,18 +190,34 @@ func (server *Server) register() {
 				log.Debugf("Registering server at %v", baseUrl)
 				registerUrl := baseUrl + "/register"
 				vals := url.Values{
-					"name": []string{globals.InstanceId},
-					"port": []string{"443"},
+					"name":   []string{globals.InstanceId},
+					"port":   []string{"443"},
+					"fronts": supportedFronts,
 				}
 				resp, err := http.PostForm(registerUrl, vals)
 				if err != nil {
 					log.Errorf("Unable to register at %v: %v", registerUrl, err)
 					return
 				} else if resp.StatusCode != 200 {
-					bodyString, _ := ioutil.ReadAll(resp.Body)
-					log.Errorf("Unexpected response status registering at %v: %d    %v", registerUrl, resp.StatusCode, string(bodyString))
+					body, _ := ioutil.ReadAll(resp.Body)
+					log.Errorf("Unexpected response status registering at %v: %d    %v", registerUrl, resp.StatusCode, string(body))
 				} else {
 					log.Debugf("Successfully registered server at %v", registerUrl)
+					body, _ := ioutil.ReadAll(resp.Body)
+					for _, line := range strings.Split(string(body), "\n") {
+						if strings.HasPrefix(line, "frontfqdns: ") {
+							yamlStr := line[len("frontfqdns: "):]
+							newFqdns, err := ParseFrontFQDNs(yamlStr)
+							if err == nil {
+								updateConfig(func(cfg *ServerConfig) error {
+									cfg.FrontFQDNs = newFqdns
+									return nil
+								})
+							} else {
+								log.Errorf("Unable to parse frontfqdns from peerscanner '%v': %v", yamlStr, err)
+							}
+						}
+					}
 				}
 				resp.Body.Close()
 				time.Sleep(registerPeriod)
@@ -360,4 +381,12 @@ func hostFn(fqdns map[string]string) func(*http.Request) string {
 		// hostFn.
 		return ""
 	}
+}
+
+func ParseFrontFQDNs(frontFQDNs string) (map[string]string, error) {
+	fqdns := map[string]string{}
+	if err := yaml.Unmarshal([]byte(frontFQDNs), fqdns); err != nil {
+		return nil, err
+	}
+	return fqdns, nil
 }

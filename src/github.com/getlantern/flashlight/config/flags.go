@@ -7,7 +7,6 @@ import (
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/statreporter"
-	"github.com/getlantern/yaml"
 )
 
 var (
@@ -80,7 +79,7 @@ func (updated *Config) applyFlags() error {
 		case "portmap":
 			updated.Server.Portmap = *portmap
 		case "frontfqdns":
-			fqdns, err := parseFrontFQDNs(*frontFQDNs)
+			fqdns, err := server.ParseFrontFQDNs(*frontFQDNs)
 			if err == nil {
 				updated.Server.FrontFQDNs = fqdns
 			} else {
@@ -101,12 +100,4 @@ func (updated *Config) applyFlags() error {
 	updated.Server.Unencrypted = *unencrypted
 
 	return nil
-}
-
-func parseFrontFQDNs(frontFQDNs string) (map[string]string, error) {
-	fqdns := map[string]string{}
-	if err := yaml.Unmarshal([]byte(frontFQDNs), fqdns); err != nil {
-		return nil, err
-	}
-	return fqdns, nil
 }

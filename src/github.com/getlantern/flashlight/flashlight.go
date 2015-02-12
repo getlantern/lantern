@@ -150,7 +150,14 @@ func runServerProxy(cfg *config.Config) {
 		}
 	}()
 
-	err := srv.ListenAndServe()
+	err := srv.ListenAndServe(func(update func(*server.ServerConfig) error) {
+		err := config.Update(func(cfg *config.Config) error {
+			return update(cfg.Server)
+		})
+		if err != nil {
+			log.Errorf("Error while trying to update: %v", err)
+		}
+	})
 	if err != nil {
 		log.Fatalf("Unable to run server proxy: %s", err)
 	}
