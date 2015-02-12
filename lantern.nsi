@@ -1,15 +1,15 @@
+# Use the modern ui
+!include MUI.nsh
+!define MUI_ICON windows.ico
+!define MUI_UNICON windows.ico
+!insertmacro MUI_PAGE_INSTFILES
+
 # define name of installer
 OutFile "lantern-installer.exe"
  
 # define installation directory
 InstallDir $PROGRAMFILES\Lantern
  
-!define MUI_ICON windows.ico
-!define MUI_UNICON windows.ico
-
-# Included files
-!include MUI.nsh
-
 # For removing Start Menu shortcut in Windows 7
 RequestExecutionLevel user
  
@@ -36,8 +36,6 @@ Section "uninstall"
     Delete "$INSTDIR\uninstall.exe"
  
     # second, remove the link from the start menu
-    Delete "$SMPROGRAMS\Lantern\Lantern.lnk"
-    Delete "$SMPROGRAMS\Lantern\Uninstall.lnk"
     Delete "$SMPROGRAMS\Lantern"
  
 # uninstaller section end
