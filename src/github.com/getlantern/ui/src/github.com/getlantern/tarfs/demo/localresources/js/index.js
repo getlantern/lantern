@@ -1,1 +1,0 @@
-alert("Hello there, I'm local");
