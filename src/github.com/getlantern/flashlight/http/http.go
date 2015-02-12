@@ -133,7 +133,9 @@ func ListenAndServe(cfg *client.ClientConfig, cfgChan chan *config.Config) {
 
 	log.Debugf("Starting UI HTTP server at %s", cfg.HttpAddr)
 	uiAddr := fmt.Sprintf(UIAddr, cfg.HttpAddr)
-	err = open.Run(uiAddr)
+	if cfg.OpenUi {
+		err = open.Run(uiAddr)
+	}
 	if err != nil {
 		log.Errorf("Could not open UI! %s", err)
 	}
