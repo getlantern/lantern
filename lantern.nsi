@@ -32,7 +32,7 @@ Section
 SectionEnd
  
 # uninstaller section start
-Section uninstall
+Section "uninstall"
     Delete "$SMPROGRAMS\Lantern"
     Delete "$INSTDIR" 
  
