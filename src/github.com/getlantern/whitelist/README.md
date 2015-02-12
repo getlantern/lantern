@@ -1,0 +1,2 @@
+# whitelist
+Lantern Whitelist Module

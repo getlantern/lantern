@@ -1,0 +1,2 @@
+go fmt
+go test

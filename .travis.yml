@@ -1,15 +1,17 @@
-language: node_js
-node_js:
-  - "0.10"
+language: go
 
-#before_script:
-#  - npm install --quiet karma karma-jasmine
-#  - ./scripts/web-server.js > /dev/null &
-#  - sleep 1 # give server time to start
-#
-#script:
-#  - ./node_modules/karma/bin/karma start config/karma.conf.js --no-auto-watch --single-run --reporters=dots
-#  - ./node_modules/karma/bin/karma start config/karma-e2e.conf.js --reporters=dots
+go:
+  - 1.4.1
 
-notifications:
-  irc: "irc.freenode.net#lantern"
+install:
+  - go get golang.org/x/tools/cmd/cover
+  - go get -v github.com/axw/gocov/gocov
+  - go get -v github.com/mattn/goveralls
+
+script:
+  # This unencryptes envvars.bash.enc into envvars.bash so that we can run the tests
+  - openssl aes-256-cbc -K $encrypted_263604b5b445_key -iv $encrypted_263604b5b445_iv -in envvars.bash.enc -out envvars.bash -d
+  - ./testandcover.bash
+
+after_success:
+  - GOPATH=`pwd`:$GOPATH $HOME/gopath/bin/goveralls -coverprofile=profile.cov -service=travis-ci
