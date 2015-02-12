@@ -27,19 +27,22 @@ var (
 	pacFilePath = ConfigDir + "/" + PacFilename
 )
 
-type Whitelist struct {
+type Config struct {
 	/* Global list of white-listed domains */
 	Cloud []string
-
-	cloudSet *set.Set
 
 	/* User customizations */
 	Additions []string
 	Deletions []string
+}
 
-	entries []string
+type Whitelist struct {
+	cfg *Config
 
-	pacFile *PacFile
+	/* Corresponding global whitelist set */
+	cloudSet *set.Set
+	entries  []string
+	pacFile  *PacFile
 }
 
 type PacFile struct {
@@ -49,31 +52,38 @@ type PacFile struct {
 	file     *os.File
 }
 
-func New() *Whitelist {
-	wl := &Whitelist{}
-	wl.RefreshEntries()
-	return wl
+func New(cfg *Config) *Whitelist {
+	/* initialize our cloud set if we haven't already */
+	cloudSet := set.New()
+	for i := range cfg.Cloud {
+		cloudSet.Add(cfg.Cloud[i])
+	}
+
+	return &Whitelist{
+		cfg:      cfg,
+		cloudSet: cloudSet,
+		entries:  []string{},
+	}
 }
 
-func (wl *Whitelist) RefreshEntries() {
+func (wl *Whitelist) RefreshEntries() []string {
 	entries := set.New()
-	toAdd := append(wl.Additions, wl.Cloud...)
+	toAdd := append(wl.cfg.Additions, wl.cfg.Cloud...)
 	for i := range toAdd {
 		entries.Add(toAdd[i])
 	}
 
 	toRemove := set.New()
-	for i := range wl.Deletions {
-		toRemove.Add(wl.Deletions[i])
+	for i := range wl.cfg.Deletions {
+		toRemove.Add(wl.cfg.Deletions[i])
 	}
-
-	log.Debugf("to add is %+v", toAdd)
-	log.Debugf("to remove is %+v", toRemove)
 
 	wl.entries = set.StringSlice(set.Difference(entries, toRemove))
 	sort.Strings(wl.entries)
 
 	go wl.updatePacFile()
+
+	return wl.entries
 }
 
 func GetPacFile() string {
@@ -101,20 +111,20 @@ func (wl *Whitelist) addOriginal() []string {
 	return wl.entries
 }
 
-func (wl *Whitelist) Copy() []string {
-	wl.RefreshEntries()
-	return wl.entries
+func (wl *Whitelist) Copy() *Config {
+	return &Config{
+		Additions: wl.cfg.Additions,
+		Deletions: wl.cfg.Deletions,
+		Cloud:     wl.cfg.Cloud,
+	}
 }
 
-func (wl *Whitelist) UpdateEntries(entries []string) {
-	log.Debug("Updating whitelist entries...")
+func (wl *Whitelist) GetConfig() *Config {
+	return wl.cfg
+}
 
-	if wl.cloudSet == nil {
-		wl.cloudSet = set.New()
-		for i := range wl.Cloud {
-			wl.cloudSet.Add(wl.Cloud[i])
-		}
-	}
+func (wl *Whitelist) UpdateEntries(entries []string) []string {
+	log.Debug("Updating whitelist entries...")
 
 	toAdd := set.New()
 
@@ -123,41 +133,41 @@ func (wl *Whitelist) UpdateEntries(entries []string) {
 	}
 
 	toRemove := set.Difference(wl.cloudSet, toAdd)
-	wl.Deletions = set.StringSlice(toRemove)
-	log.Debugf("Whitelist domains deleted %+v", wl.Deletions)
+	wl.cfg.Deletions = set.StringSlice(toRemove)
+	log.Debugf("Whitelist domains deleted %+v", wl.cfg.Deletions)
 
 	toAddSet := set.Difference(toAdd, wl.cloudSet)
 	log.Debugf("New whitelist domains %+v", toAddSet)
 	wl.entries = set.StringSlice(toAdd)
 	go wl.updatePacFile()
+
+	return wl.entries
 }
 
 func (wl *Whitelist) updatePacFile() (err error) {
 
-	if wl.pacFile == nil {
-		wl.pacFile = &PacFile{}
+	pacFile := &PacFile{}
 
-		wl.pacFile.file, err = os.Create(pacFilePath)
-		defer wl.pacFile.file.Close()
-		if err != nil {
-			log.Errorf("Could not create PAC file")
-			return
-		}
-		/* parse the PAC file template */
-		wl.pacFile.template, err = template.ParseFiles(PacTmpl)
-		if err != nil {
-			log.Errorf("Could not open PAC file template: %s", err)
-			return
-		}
+	pacFile.file, err = os.Create(pacFilePath)
+	defer pacFile.file.Close()
+	if err != nil {
+		log.Errorf("Could not create PAC file")
+		return
+	}
+	/* parse the PAC file template */
+	pacFile.template, err = template.ParseFiles(PacTmpl)
+	if err != nil {
+		log.Errorf("Could not open PAC file template: %s", err)
+		return
 	}
 
 	log.Debugf("Updating PAC file; path is %s", pacFilePath)
-	wl.pacFile.l.Lock()
-	defer wl.pacFile.l.Unlock()
+	pacFile.l.Lock()
+	defer pacFile.l.Unlock()
 
 	data := make(map[string]interface{}, 0)
 	data["Entries"] = wl.entries
-	err = wl.pacFile.template.Execute(wl.pacFile.file, data)
+	err = pacFile.template.Execute(pacFile.file, data)
 	if err != nil {
 		log.Errorf("Error generating updated PAC file: %s", err)
 	}

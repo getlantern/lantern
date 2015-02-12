@@ -115,16 +115,17 @@ func runClientProxy(cfg *config.Config) {
 	// between the UI and
 	// with a corresponding HTTP server at
 	// the following address
-	if cfg.Client.HttpAddr != "" {
-		wlChan := make(chan *whitelist.Whitelist)
+	if cfg.Client.UiPort != "" {
+		wlChan := make(chan *whitelist.Config)
 		go func() {
 			http.ListenAndServe(cfg.Client, configUpdates, wlChan)
 		}()
 
 		go func() {
 			for {
+				// separate channel for synchronizing whitelist updates
 				cfg.Client.Whitelist = <-wlChan
-				log.Debugf("new whitelist is %+v", cfg.Client.Whitelist)
+				log.Debugf("New whitelist is %+v", cfg.Client.Whitelist)
 				client.Configure(cfg.Client)
 			}
 		}()

@@ -66,7 +66,8 @@ func (client *Client) Configure(cfg *ClientConfig) {
 	log.Debug("Configure() called")
 	if client.priorCfg != nil && client.priorTrustedCAs != nil {
 		if reflect.DeepEqual(client.priorCfg, cfg) &&
-			reflect.DeepEqual(client.priorTrustedCAs, globals.TrustedCAs) {
+			reflect.DeepEqual(client.priorTrustedCAs, globals.TrustedCAs) &&
+			reflect.DeepEqual(client.priorCfg.Whitelist, cfg.Whitelist) {
 			log.Debugf("Client configuration unchanged")
 			return
 		} else {
@@ -81,7 +82,9 @@ func (client *Client) Configure(cfg *ClientConfig) {
 			log.Debug("Whitelist hasn't changed. Not propagating updates")
 		} else {
 			log.Debug("Whitelist updated; Propagating updates to our whitelist")
-			cfg.Whitelist.RefreshEntries()
+			log.Debugf("old whitelist is %+v", client.priorCfg.Whitelist)
+			log.Debugf("new whitelist is %+v", cfg.Whitelist)
+			//cfg.Whitelist.RefreshEntries()
 		}
 	}
 

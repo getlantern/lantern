@@ -29,8 +29,8 @@ var (
 	advertisedHost = flag.String("server", "", "FQDN of flashlight server when running in server mode (required)")
 	waddelladdr    = flag.String("waddelladdr", "", "if specified, connect to this waddell server and process NAT traversal requests inbound from waddell")
 	waddellcert    = flag.String("waddellcert", "", "if specified, use this cert (PEM-encoded) to authenticate connections to waddell.  Otherwise, a default certificate is used.")
-	httpaddr       = flag.String("httpaddr", "", "if specified, indicates that the UI and corresponding HTTP server should be started")
-	openui         = flag.Bool("openui", false, "if specified, opens the UI in the user's default browser")
+	uiport         = flag.String("uiport", "", "if specified, indicates the port the UI HTTP server should be started on")
+	openui         = flag.Bool("openui", false, "if specified, automatically open the UI in the default browser")
 )
 
 // applyFlags updates this Config from any command-line flags that were passed
@@ -76,8 +76,8 @@ func (updated *Config) applyFlags() error {
 			updated.Stats.StatshubAddr = *statshubAddr
 
 		// HTTP-server
-		case "httpaddr":
-			updated.Client.HttpAddr = *httpaddr
+		case "uiport":
+			updated.Client.UiPort = *uiport
 		case "openui":
 			updated.Client.OpenUi = *openui
 

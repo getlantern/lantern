@@ -10,11 +10,12 @@ import (
 	"github.com/getlantern/whitelist"
 	"github.com/skratchdot/open-golang/open"
 	"net/http"
+	"reflect"
 )
 
 const (
 	UIDir  = "src/github.com/getlantern/ui/app"
-	UIAddr = "http://127.0.0.1%s"
+	UIAddr = "http://127.0.0.1:%s"
 )
 
 var (
@@ -29,7 +30,8 @@ type JsonResponse struct {
 
 type WhitelistHandler struct {
 	http.HandlerFunc
-	cfg *client.ClientConfig
+	whitelist *whitelist.Whitelist
+	wlChan    chan *whitelist.Config
 }
 
 func sendJsonResponse(w http.ResponseWriter, response *JsonResponse, indent bool) {
@@ -50,15 +52,6 @@ func setResponseHeaders(w http.ResponseWriter) {
 
 }
 
-func stringInSlice(a string, list []string) bool {
-	for _, b := range list {
-		if b == a {
-			return true
-		}
-	}
-	return false
-}
-
 func (wlh WhitelistHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var response JsonResponse
 
@@ -77,10 +70,13 @@ func (wlh WhitelistHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		var entries []string
 		err := decoder.Decode(&entries)
 		util.Check(err, log.Error, "Error decoding whitelist entries")
-		wlh.cfg.Whitelist.UpdateEntries(entries)
-		//response.Whitelist = wl.Copy()
+		wl := wlh.whitelist.UpdateEntries(entries)
+		copy := wlh.whitelist.Copy()
+		log.Debugf("New whitelist is %+v", copy)
+		wlh.wlChan <- wlh.whitelist.Copy()
+		response.Whitelist = wl
 	case "GET":
-		response.Whitelist = wlh.cfg.Whitelist.Copy()
+		response.Whitelist = wlh.whitelist.RefreshEntries()
 	default:
 		log.Debugf("Received %s", response.Error)
 		response.Error = "Invalid whitelist HTTP request"
@@ -94,19 +90,27 @@ func servePacFile(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, pacFile)
 }
 
-func ListenAndServe(cfg *client.ClientConfig, cfgChan chan *config.Config) {
+func ListenAndServe(cfg *client.ClientConfig, cfgChan chan *config.Config, wlChan chan *whitelist.Config) {
 
 	wlh := &WhitelistHandler{
-		cfg: cfg,
+		whitelist: whitelist.New(cfg.Whitelist),
+		wlChan:    wlChan,
 	}
 
 	r := http.NewServeMux()
 	r.Handle("/whitelist", wlh)
 
+	// poll for config updates to the whitelist
+	// with this immediately see flashlight.yaml
+	// changes in the UI
 	go func() {
 		for {
-			cfg := <-cfgChan
-			wlh.cfg = cfg.Client
+			newCfg := <-cfgChan
+			clientCfg := newCfg.Client
+			if !reflect.DeepEqual(wlh.whitelist.GetConfig(), clientCfg.Whitelist) {
+				log.Debugf("Whitelist changed in flashlight.yaml..")
+				wlh.whitelist = whitelist.New(newCfg.Client.Whitelist)
+			}
 		}
 	}()
 	r.HandleFunc("/proxy_on.pac", servePacFile)
@@ -125,19 +129,20 @@ func ListenAndServe(cfg *client.ClientConfig, cfgChan chan *config.Config) {
 	}
 
 	httpServer := &http.Server{
-		Addr:    cfg.HttpAddr,
+		Addr:    fmt.Sprintf(":%s", cfg.UiPort),
 		Handler: r,
 		//ReadTimeout:  ReadTimeout,
 		//WriteTimeout: WriteTimeout,
 	}
 
-	log.Debugf("Starting UI HTTP server at %s", cfg.HttpAddr)
-	uiAddr := fmt.Sprintf(UIAddr, cfg.HttpAddr)
+	log.Debugf("Starting UI HTTP server at %s", cfg.UiPort)
+	uiAddr := fmt.Sprintf(UIAddr, cfg.UiPort)
+
 	if cfg.OpenUi {
 		err = open.Run(uiAddr)
-	}
-	if err != nil {
-		log.Errorf("Could not open UI! %s", err)
+		if err != nil {
+			log.Errorf("Could not open UI! %s", err)
+		}
 	}
 
 	err = httpServer.ListenAndServe()
