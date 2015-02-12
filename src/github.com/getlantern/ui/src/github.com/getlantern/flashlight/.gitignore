@@ -1,0 +1,9 @@
+flashlight
+flashlight.ex?
+*.tar.gz
+*.pem
+*.swo
+*.swp
+*.pyc
+certs/errors.txt
+flashlight.yaml

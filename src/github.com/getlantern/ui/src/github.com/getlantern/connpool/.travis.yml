@@ -1,0 +1,14 @@
+language: go
+
+go:
+  - 1.4.1
+
+install:
+  - go get -d -t -v ./...
+  - go build -v ./...
+  - go get golang.org/x/tools/cmd/cover
+  - go get -v github.com/axw/gocov/gocov
+  - go get -v github.com/mattn/goveralls
+
+script:
+  - $HOME/gopath/bin/goveralls -v -service travis-ci github.com/getlantern/connpool
