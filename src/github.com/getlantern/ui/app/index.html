@@ -16,7 +16,6 @@
     <link href="bower_components/normalize.css/normalize.css" rel="stylesheet">
 
     <script src="bower_components/jsonpatch/lib/jsonpatch.js"></script>
-    <script src="bower_components/jquery/dist/jquery.min.js"></script>
     <script src="bower_components/angular/angular.js"></script>
     <script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
     <script src="bower_components/angular-resource/angular-resource.min.js"></script>
@@ -50,42 +49,6 @@
 
   <body ng-controller="RootCtrl" ng-cloak lang="{{ lang }}" dir="{{ langDirection }}"
     ng-class="{showVis: model.showVis, getMode: inGetMode, giveMode: inGiveMode}">
-
-    <script type="text/javascript">
-      if ((/trident/i).test(navigator.userAgent)) {
-        document.write(
-          '<div id="ie-warning">' +
-          '  Unsupported browser.' +
-          '  <a href="https://chrome.google.com">Chrome</a> or' +
-          '  <a href="https://www.mozilla.org/firefox/">Firefox</a>' +
-          '  is recommended.' +
-          '</div>'
-        );
-        $(document.body).removeAttr('ng-cloak');
-      }
-      if (typeof InstallTrigger !== 'undefined') {
-        /* custom firefox code to add cancel button to search input */
-        function toggle(v){return v ? 'addClass' : 'removeClass';} 
-        $(document).on('input', '.clearable', function(){
-            $(this)[toggle(this.value)]('x');
-        }).on('mousemove', '.x', function( e ){
-            $(this)[toggle(this.offsetWidth-18 < e.clientX-this.getBoundingClientRect().left)]('onX');   
-        }).on('click', '.onX', function(){
-            $(this).removeClass('x onX').val('');
-        });
-      }
-    </script>
-
-    <!--<div id="waiting" ng-show="!cometdConnected">
-      <div ng-show="!backendIsGone">
-        <div>{{ 'WAITING_FOR_LANTERN' | translate }}</div>
-        <img src="img/spinner.gif">
-      </div>
-      <div ng-show="backendIsGone">
-        <div>{{ 'LANTERN_GONE' | translate }}</div>
-        <button type="button" class="btn btn-primary" onclick="window.close();">{{ 'CLOSE_WINDOW' | translate }}</button>
-      </div>
-      </div>-->
 
     <div id="alerts">
       <div ng-repeat="(id, notification) in model.notifications" ng-hide="notification.background && (model.modal && model.modal != 'none')">
