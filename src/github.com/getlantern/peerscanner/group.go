@@ -6,8 +6,9 @@ import (
 
 // group represents a host's participation in a rotation (e.g. roundrobin)
 type group struct {
-	subdomain string
-	existing  *cloudflare.Record
+	subdomain  string
+	cdnEnabled bool
+	existing   *cloudflare.Record
 }
 
 // register registers a host with this group in CloudFlare if it isn't already
@@ -20,7 +21,7 @@ func (g *group) register(h *host) error {
 
 	log.Debugf("Registering to %v: %v", g.subdomain, h)
 
-	rec, err := cflutil.Register(g.subdomain, h.ip)
+	rec, err := cflutil.Register(g.subdomain, h.ip, g.cdnEnabled)
 	if err == nil || isDuplicateError(err) {
 		g.existing = rec
 	}

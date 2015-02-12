@@ -53,7 +53,7 @@ func (util *Util) GetAllRecords() ([]cloudflare.Record, error) {
 	return allRecords, nil
 }
 
-func (util *Util) Register(name string, ip string) (*cloudflare.Record, error) {
+func (util *Util) Register(name string, ip string, enableCdn bool) (*cloudflare.Record, error) {
 	cr := cloudflare.CreateRecord{Type: "A", Name: name, Content: ip}
 	rec, err := util.Client.CreateRecord(util.domain, &cr)
 
@@ -61,18 +61,20 @@ func (util *Util) Register(name string, ip string) (*cloudflare.Record, error) {
 		return nil, err
 	}
 
-	// Update the record to set the ServiceMode to 1 (orange cloud). For
-	// whatever reason we can't do this on create.
-	// Note for some reason CloudFlare seems to ignore the TTL here.
-	ur := cloudflare.UpdateRecord{Type: "A", Name: name, Content: ip, Ttl: "360", ServiceMode: "1"}
-	err = util.Client.UpdateRecord(util.domain, rec.Id, &ur)
-	if err != nil {
-		log.Tracef("Error updating record %v, destroying", rec)
-		err2 := util.DestroyRecord(rec)
-		if err2 != nil {
-			log.Errorf("Unable to destroy incomplete record %v: %v", rec, err2)
+	if enableCdn {
+		// Update the record to set the ServiceMode to 1 (orange cloud). For
+		// whatever reason we can't do this on create.
+		// Note for some reason CloudFlare seems to ignore the TTL here.
+		ur := cloudflare.UpdateRecord{Type: "A", Name: name, Content: ip, Ttl: "360", ServiceMode: "1"}
+		err = util.Client.UpdateRecord(util.domain, rec.Id, &ur)
+		if err != nil {
+			log.Tracef("Error updating record %v, destroying", rec)
+			err2 := util.DestroyRecord(rec)
+			if err2 != nil {
+				log.Errorf("Unable to destroy incomplete record %v: %v", rec, err2)
+			}
+			return nil, err
 		}
-		return nil, err
 	}
 
 	return rec, nil

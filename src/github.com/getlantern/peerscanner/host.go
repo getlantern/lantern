@@ -124,19 +124,19 @@ func newHost(name string, ip string, record *cloudflare.Record) *host {
 
 	if h.isFallback() {
 		h.cdnGroups = map[string]*group{
-			RoundRobin: &group{subdomain: RoundRobin},
-			Fallbacks:  &group{subdomain: Fallbacks},
+			RoundRobin: &group{subdomain: RoundRobin, cdnEnabled: true},
+			Fallbacks:  &group{subdomain: Fallbacks, cdnEnabled: true},
 		}
 		h.noCdnGroups = map[string]*group{
-			RoundRobinNoCdn: &group{subdomain: RoundRobinNoCdn},
-			FallbacksNoCdn:  &group{subdomain: FallbacksNoCdn},
+			RoundRobinNoCdn: &group{subdomain: RoundRobinNoCdn, cdnEnabled: false},
+			FallbacksNoCdn:  &group{subdomain: FallbacksNoCdn, cdnEnabled: false},
 		}
 	} else {
 		h.cdnGroups = map[string]*group{
-			Peers: &group{subdomain: Peers},
+			Peers: &group{subdomain: Peers, cdnEnabled: true},
 		}
 		h.noCdnGroups = map[string]*group{
-			PeersNoCdn: &group{subdomain: PeersNoCdn},
+			PeersNoCdn: &group{subdomain: PeersNoCdn, cdnEnabled: false},
 		}
 	}
 
@@ -359,7 +359,7 @@ func (h *host) registerCdnHost() error {
 	}
 	log.Debugf("Registering %v", h)
 
-	rec, err := cflutil.Register(h.name, h.ip)
+	rec, err := cflutil.Register(h.name, h.ip, true)
 	if err == nil || isDuplicateError(err) {
 		h.cdnRecord = rec
 		err = nil
@@ -374,7 +374,7 @@ func (h *host) registerNoCdnHost() error {
 	}
 	log.Debugf("Registering no-CDN entry for %v", h)
 
-	rec, err := cflutil.Register(noCdnPrefix+h.name, h.ip)
+	rec, err := cflutil.Register(noCdnPrefix+h.name, h.ip, false)
 	if err == nil || isDuplicateError(err) {
 		h.noCdnRecord = rec
 		err = nil

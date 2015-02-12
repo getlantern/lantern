@@ -41,7 +41,7 @@ func TestRegister(t *testing.T) {
 	u.Client.Http.Transport = &http.Transport{
 		DisableKeepAlives: true,
 	}
-	rec, err := u.Register("cfl-test-entry", "127.0.0.1")
+	rec, err := u.Register("cfl-test-entry", "127.0.0.1", true)
 	if err != nil && strings.Contains(err.Error(), "The record already exists.") {
 		// Duplicates are okay
 		err = nil
