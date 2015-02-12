@@ -1,5 +1,0 @@
-package http
-
-func assetFS() {
-
-}
