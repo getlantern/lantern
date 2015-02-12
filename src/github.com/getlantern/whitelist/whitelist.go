@@ -7,6 +7,7 @@ import (
 	"github.com/getlantern/golog"
 	"github.com/robertkrimen/otto"
 	"github.com/robertkrimen/otto/parser"
+	"gopkg.in/fatih/set.v0"
 	"os"
 	"regexp"
 	"sort"
@@ -16,7 +17,7 @@ import (
 )
 
 const (
-	PacTmpl     = "whitelist/templates/proxy_on.pac.template"
+	PacTmpl     = "src/github.com/getlantern/whitelist/templates/proxy_on.pac.template"
 	PacFilename = "proxy_on.pac"
 )
 
@@ -26,48 +27,53 @@ var (
 	pacFilePath = ConfigDir + "/" + PacFilename
 )
 
-/* Thread-safe data structure representing a whitelist */
 type Whitelist struct {
-	Cloud     []string
+	/* Global list of white-listed domains */
+	Cloud []string
+
+	cloudSet *set.Set
+
+	/* User customizations */
 	Additions []string
 	Deletions []string
 
-	entries map[string]bool
-	m       sync.RWMutex
+	entries []string
+
+	pacFile *PacFile
+}
+
+type PacFile struct {
+	fileName string
+	l        sync.RWMutex
+	template *template.Template
+	file     *os.File
 }
 
 func New() *Whitelist {
 	wl := &Whitelist{}
-	wl.entries = make(map[string]bool)
-	wl.Additions = []string{}
-	wl.Deletions = []string{}
+	wl.RefreshEntries()
 	return wl
 }
 
-func (wl *Whitelist) processPacFile() {
-
-	log.Debugf("pac file path is %s", pacFilePath)
-
-	pacFileExists, err := util.FileExists(pacFilePath)
-	if err != nil {
-		log.Debugf("Error opening PAC file %s", err)
+func (wl *Whitelist) RefreshEntries() {
+	entries := set.New()
+	toAdd := append(wl.Additions, wl.Cloud...)
+	for i := range toAdd {
+		entries.Add(toAdd[i])
 	}
 
-	if pacFileExists {
-		wl.ParsePacFile()
-	} else {
-		/* Load original whitelist if no PAC file was found */
-		wl.addOriginal()
-		wl.genPacFile()
+	toRemove := set.New()
+	for i := range wl.Deletions {
+		toRemove.Add(wl.Deletions[i])
 	}
-}
 
-func NewWithEntries(entries []string) *Whitelist {
-	wl := &Whitelist{}
-	wl.entries = map[string]bool{}
-	wl.add(entries)
-	wl.genPacFile()
-	return wl
+	log.Debugf("to add is %+v", toAdd)
+	log.Debugf("to remove is %+v", toRemove)
+
+	wl.entries = set.StringSlice(set.Difference(entries, toRemove))
+	sort.Strings(wl.entries)
+
+	go wl.updatePacFile()
 }
 
 func GetPacFile() string {
@@ -90,52 +96,73 @@ func LoadDefaultList() []string {
 	return entries
 }
 
-func (wl *Whitelist) UpdateEntries(entries []string) {
-	wl.add(entries)
-}
-
 func (wl *Whitelist) addOriginal() []string {
-	entries := LoadDefaultList()
-	wl.add(entries)
-	return entries
-}
-
-func (wl *Whitelist) add(entries []string) {
-	wl.m.Lock()
-	defer wl.m.Unlock()
-
-	for _, entry := range entries {
-		wl.entries[entry] = true
-	}
-}
-
-func (wl *Whitelist) remove(entries []string) {
-	wl.m.Lock()
-	defer wl.m.Unlock()
-
-	for _, entry := range entries {
-		delete(wl.entries, entry)
-	}
+	wl.entries = LoadDefaultList()
+	return wl.entries
 }
 
 func (wl *Whitelist) Copy() []string {
-	wl.m.RLock()
-	defer wl.m.RUnlock()
-
-	list := make([]string, 0, len(wl.Additions))
-
-	for i := range wl.Additions {
-		list = append(list, wl.Additions[i])
-	}
-	sort.Strings(list)
-	return list
+	wl.RefreshEntries()
+	return wl.entries
 }
 
-func (wl *Whitelist) Contains(site string) bool {
-	wl.m.RLock()
-	defer wl.m.RUnlock()
+func (wl *Whitelist) UpdateEntries(entries []string) {
+	log.Debug("Updating whitelist entries...")
 
-	return wl.entries[site]
+	if wl.cloudSet == nil {
+		wl.cloudSet = set.New()
+		for i := range wl.Cloud {
+			wl.cloudSet.Add(wl.Cloud[i])
+		}
+	}
+
+	toAdd := set.New()
+
+	for i := range entries {
+		toAdd.Add(entries[i])
+	}
+
+	toRemove := set.Difference(wl.cloudSet, toAdd)
+	wl.Deletions = set.StringSlice(toRemove)
+	log.Debugf("Whitelist domains deleted %+v", wl.Deletions)
+
+	toAddSet := set.Difference(toAdd, wl.cloudSet)
+	log.Debugf("New whitelist domains %+v", toAddSet)
+	wl.entries = set.StringSlice(toAdd)
+	go wl.updatePacFile()
+}
+
+func (wl *Whitelist) updatePacFile() (err error) {
+
+	if wl.pacFile == nil {
+		wl.pacFile = &PacFile{}
+
+		wl.pacFile.file, err = os.Create(pacFilePath)
+		defer wl.pacFile.file.Close()
+		if err != nil {
+			log.Errorf("Could not create PAC file")
+			return
+		}
+		/* parse the PAC file template */
+		wl.pacFile.template, err = template.ParseFiles(PacTmpl)
+		if err != nil {
+			log.Errorf("Could not open PAC file template: %s", err)
+			return
+		}
+	}
+
+	log.Debugf("Updating PAC file; path is %s", pacFilePath)
+	wl.pacFile.l.Lock()
+	defer wl.pacFile.l.Unlock()
+
+	data := make(map[string]interface{}, 0)
+	data["Entries"] = wl.entries
+	err = wl.pacFile.template.Execute(wl.pacFile.file, data)
+	if err != nil {
+		log.Errorf("Error generating updated PAC file: %s", err)
+	}
+
+	return err
 }
 
 func (wl *Whitelist) ParsePacFile() {
@@ -166,25 +193,8 @@ func (wl *Whitelist) ParsePacFile() {
 			 */
 			re := regexp.MustCompile("(\\\\.)")
 			list := re.ReplaceAllString(value.String(), ".")
-			wl.add(strings.Split(list, ","))
+			wl.entries = strings.Split(list, ",")
 			log.Debugf("List of proxied sites... %+v", wl.entries)
 		}
 	}
-
-}
-
-/* Generate a new PAC file if one doesn't exist already */
-func (wl *Whitelist) genPacFile() {
-	file, err := os.Create(pacFilePath)
-	util.Check(err, log.Fatal, "Could not create PAC file")
-
-	/* parse the PAC file template */
-	t, err := template.ParseFiles(PacTmpl)
-	util.Check(err, log.Fatal, "Could not parse template file")
-
-	data := make(map[string]interface{}, 0)
-	data["Entries"] = wl.Copy()
-
-	err = t.Execute(file, data)
-	util.Check(err, log.Fatal, "Error generating PAC file")
 }

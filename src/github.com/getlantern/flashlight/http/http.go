@@ -73,11 +73,11 @@ func (wlh WhitelistHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	case "POST":
 		/* update whitelist */
-		log.Debug("Updating whitelist entries...")
 		decoder := json.NewDecoder(r.Body)
 		var entries []string
 		err := decoder.Decode(&entries)
 		util.Check(err, log.Error, "Error decoding whitelist entries")
+		wlh.cfg.Whitelist.UpdateEntries(entries)
 		//response.Whitelist = wl.Copy()
 	case "GET":
 		response.Whitelist = wlh.cfg.Whitelist.Copy()
