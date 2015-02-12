@@ -23,7 +23,7 @@ type ClientConfig struct {
 	MasqueradeSets map[string][]*fronted.Masquerade
 
 	OpenUi    bool              // Flag specifying whether or not the UI should be automatically open in the browser
-	UiPort    string            // HTTP server address; how the UI uses to interface with the back-end
+	UiAddr    string            // UI HTTP server address
 	Whitelist *whitelist.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
 }
 
