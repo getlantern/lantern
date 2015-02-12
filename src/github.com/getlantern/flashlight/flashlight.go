@@ -126,11 +126,15 @@ func runClientProxy(cfg *config.Config) {
 				// separate channel for synchronizing whitelist updates
 				wl := <-wlChan
 				cfg.Client.Whitelist = wl
-				config.Update(func(updated *config.Config) error {
+				err := config.Update(func(updated *config.Config) error {
 					log.Debugf("Saving updated whitelist configuration")
 					updated.Client.Whitelist = cfg.Client.Whitelist
 					return nil
 				})
+
+				if err != nil {
+					log.Errorf("Could not update config: %s", err)
+				}
 			}
 		}()
 	}
