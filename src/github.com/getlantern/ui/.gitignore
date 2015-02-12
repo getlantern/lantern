@@ -1,0 +1,12 @@
+pkg
+bin
+.DS_Store
+*.cov
+flashlight_darwin_amd64
+flashlight_linux_386
+flashlight_linux_amd64
+flashlight_windows_386.exe
+src/github.com/getlantern/fronted/testcert.pem
+src/github.com/getlantern/fronted/testpk.pem
+flashlight.yaml
+envvars.bash
