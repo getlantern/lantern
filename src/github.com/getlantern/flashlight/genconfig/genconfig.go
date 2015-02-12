@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"sort"
 	"strings"
@@ -27,7 +28,7 @@ var (
 	help          = flag.Bool("help", false, "Get usage help")
 	domainsFile   = flag.String("domains", "", "Path to file containing list of domains to use, with one domain per line (e.g. domains.txt)")
 	blacklistFile = flag.String("blacklist", "", "Path to file containing list of blacklisted domains, which will be excluded from the configuration even if present in the domains file (e.g. blacklist.txt)")
-	whitelistFile = flag.String("whitelist", "", "Path to file containing list of whitelisted domains, which will be proxied by Lantern")
+	whitelistDir  = flag.String("whitelist", "", "Path to directory containing whitelists, which will be combined and proxied by Lantern")
 	minFreq       = flag.Float64("minfreq", 3.0, "Minimum frequency (percentage) for including CA cert in list of trusted certs, defaults to 3.0%")
 )
 
@@ -74,8 +75,8 @@ func main() {
 	runtime.GOMAXPROCS(numcores)
 
 	loadDomains()
-	loadFilterList(blacklistFile, "blacklist", blacklist)
-	loadFilterList(whitelistFile, "whitelist", whitelist)
+	loadWhitelists()
+	loadBlacklist()
 
 	masqueradesTmpl = loadTemplate("masquerades.go.tmpl")
 	yamlTmpl = loadTemplate("cloud.yaml.tmpl")
@@ -104,23 +105,50 @@ func loadDomains() {
 	domains = strings.Split(string(domainsBytes), "\n")
 }
 
-func loadFilterList(file *string, filterType string, filterData filter) {
+/* Scans the whitelist directory and stores the domains in the files found */
+func loadWhitelist(path string, info os.FileInfo, err error) error {
+	if info.IsDir() {
+		/* skip root directory */
+		return nil
+	}
+	whitelistBytes, err := ioutil.ReadFile(path)
+	if err != nil {
+		log.Fatalf("Unable to read blacklist file at %s: %s", path, err)
+	}
+	for _, domain := range strings.Split(string(whitelistBytes), "\n") {
+		/* skip empty lines, comments, and Iranian domains */
+		if domain != "" && !strings.HasPrefix(domain, "#") && !strings.HasSuffix(domain, ".ir") {
+			whitelist[domain] = true
+		}
+	}
+	return err
+}
 
-	if *file == "" {
-		log.Errorf("Please specify a %s file", filterType)
+func loadWhitelists() {
+	if *whitelistDir == "" {
+		log.Error("Please specify a whitelist directory")
 		flag.Usage()
 		os.Exit(3)
 	}
 
-	listBytes, err := ioutil.ReadFile(*file)
+	err := filepath.Walk(*whitelistDir, loadWhitelist)
 	if err != nil {
-		log.Fatalf("Unable to read file at %v: %s", *file, err)
+		log.Errorf("Could not open whitelist directory: %s", err)
 	}
-	for _, domain := range strings.Split(string(listBytes), "\n") {
-		/* skip blank lines and comments */
-		if domain != "" && !strings.HasPrefix(domain, "#") {
-			filterData[domain] = true
-		}
+}
+
+func loadBlacklist() {
+	if *blacklistFile == "" {
+		log.Error("Please specify a blacklist file")
+		flag.Usage()
+		os.Exit(3)
+	}
+	blacklistBytes, err := ioutil.ReadFile(*blacklistFile)
+	if err != nil {
+		log.Fatalf("Unable to read blacklist file at %s: %s", *blacklistFile, err)
+	}
+	for _, domain := range strings.Split(string(blacklistBytes), "\n") {
+		blacklist[domain] = true
 	}
 }
 
