@@ -1,3 +1,5 @@
+Name "Lantern"
+
 # Use the modern ui
 !include MUI.nsh
 !define MUI_ICON lantern.ico
