@@ -12,6 +12,9 @@ OutFile "lantern-installer.exe"
 # define installation directory
 InstallDir $PROGRAMFILES\Lantern
  
+# For removing Start Menu shortcut in Windows 7
+RequestExecutionLevel user
+    
 # start default section
 Section
  
@@ -23,9 +26,6 @@ Section
  
     WriteUninstaller "$INSTDIR\uninstall.exe"
  
-    # Apply Start Menu settings to all users
-    SetShellVarContext all
-
     CreateDirectory "$SMPROGRAMS\Lantern"
     CreateShortCut "$SMPROGRAMS\Lantern\Lantern.lnk" "$INSTDIR\lantern.exe" "" "$INSTDIR\lantern.ico" 0
     CreateShortCut "$SMPROGRAMS\Lantern\Uninstall Lantern.lnk" "$INSTDIR\uninstall.exe"
@@ -33,9 +33,6 @@ SectionEnd
  
 # uninstaller section start
 Section uninstall
-    # Apply Start Menu settings to all users
-    SetShellVarContext all
-
     Delete "$SMPROGRAMS\Lantern"
     Delete "$INSTDIR" 
  
