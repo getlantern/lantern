@@ -212,7 +212,7 @@ func (cfg *Config) applyClientDefaults() {
 
 	if cfg.Client.Whitelist == nil {
 		log.Debugf("Loading default whitelist")
-		cfg.Client.Whitelist = whitelist.New()
+		cfg.Client.Whitelist = &whitelist.Whitelist{}
 	}
 
 	// Make sure we always have at least one server

@@ -18,6 +18,7 @@ import (
 	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/statreporter"
 	"github.com/getlantern/flashlight/statserver"
+	"github.com/getlantern/whitelist"
 )
 
 const (
@@ -110,12 +111,22 @@ func runClientProxy(cfg *config.Config) {
 	// Configure client initially
 	client.Configure(cfg.Client)
 
-	// this flag specifies the UI should be open
+	// this flag specifies the port to open the HTTP server
+	// between the UI and
 	// with a corresponding HTTP server at
 	// the following address
 	if cfg.Client.HttpAddr != "" {
+		wlChan := make(chan *whitelist.Whitelist)
 		go func() {
-			http.ListenAndServe(cfg.Client, configUpdates)
+			http.ListenAndServe(cfg.Client, configUpdates, wlChan)
+		}()
+
+		go func() {
+			for {
+				cfg.Client.Whitelist = <-wlChan
+				log.Debugf("new whitelist is %+v", cfg.Client.Whitelist)
+				client.Configure(cfg.Client)
+			}
 		}()
 	}
 
