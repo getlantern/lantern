@@ -32,12 +32,12 @@ Section
 SectionEnd
  
 # uninstaller section start
-Section "uninstall"
+Section uninstall
     # Apply Start Menu settings to all users
     SetShellVarContext all
 
-    Delete "$INSTDIR\uninstall.exe" 
     Delete "$SMPROGRAMS\Lantern"
+    Delete "$INSTDIR" 
  
 # uninstaller section end
 SectionEnd
