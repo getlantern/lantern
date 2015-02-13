@@ -42,7 +42,7 @@ func sendJsonResponse(w http.ResponseWriter, response *JsonResponse, indent bool
 	enc := json.NewEncoder(w)
 	err := enc.Encode(response)
 	if err != nil {
-		log.Fatalf("error sending json response %v", err)
+		log.Errorf("error sending json response %v", err)
 	}
 }
 
