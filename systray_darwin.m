@@ -4,27 +4,26 @@
 @interface MenuItem : NSObject
 {
   @public
-    NSString* menuId;
+    NSNumber* menuId;
     NSString* title;
     NSString* tooltip;
     short disabled;
     short checked;
 }
--(id) initWithId: (const char*)theMenuId
+-(id) initWithId: (int)theMenuId
        withTitle: (const char*)theTitle
      withTooltip: (const char*)theTooltip
     withDisabled: (short)theDisabled
      withChecked: (short)theChecked;
      @end
      @implementation MenuItem
-     -(id) initWithId: (const char*)theMenuId
+     -(id) initWithId: (int)theMenuId
             withTitle: (const char*)theTitle
           withTooltip: (const char*)theTooltip
          withDisabled: (short)theDisabled
           withChecked: (short)theChecked
 {
-  menuId = [[NSString alloc] initWithCString:theMenuId
-                                    encoding:NSUTF8StringEncoding];
+  menuId = [NSNumber numberWithInt:theMenuId];
   title = [[NSString alloc] initWithCString:theTitle
                                    encoding:NSUTF8StringEncoding];
   tooltip = [[NSString alloc] initWithCString:theTooltip
@@ -79,8 +78,8 @@
 
 - (IBAction)menuHandler:(id)sender
 {
-  NSString* menuId = [sender representedObject];
-  systray_menu_item_selected((char*)[menuId cStringUsingEncoding: NSUTF8StringEncoding]);
+  NSNumber* menuId = [sender representedObject];
+  systray_menu_item_selected(menuId.intValue);
 }
 
 - (void) add_or_update_menu_item:(MenuItem*) item
@@ -151,9 +150,8 @@ void setTooltip(char* ctooltip) {
   runInMainThread(@selector(setTooltip:), (id)tooltip);
 }
 
-void add_or_update_menu_item(char* menuId, char* title, char* tooltip, short disabled, short checked) {
+void add_or_update_menu_item(int menuId, char* title, char* tooltip, short disabled, short checked) {
   MenuItem* item = [[MenuItem alloc] initWithId: menuId withTitle: title withTooltip: tooltip withDisabled: disabled withChecked: checked];
-  free(menuId);
   free(title);
   free(tooltip);
   runInMainThread(@selector(add_or_update_menu_item:), (id)item);
