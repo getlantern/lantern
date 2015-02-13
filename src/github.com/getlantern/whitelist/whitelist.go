@@ -33,10 +33,10 @@ var (
 )
 
 type Config struct {
-	/* Global list of white-listed domains */
+	// Global list of white-listed domains
 	Cloud []string
 
-	/* User customizations */
+	// User customizations
 	Additions []string
 	Deletions []string
 }
@@ -44,7 +44,7 @@ type Config struct {
 type Whitelist struct {
 	cfg *Config
 
-	/* Corresponding global whitelist set */
+	// Corresponding global whitelist set
 	cloudSet *set.Set
 	entries  []string
 	pacFile  *PacFile
@@ -57,6 +57,7 @@ type PacFile struct {
 	file     *os.File
 }
 
+// Determine user home directory and PAC file path during initialization
 func init() {
 	var err error
 	ConfigDir, err = util.DetermineConfigDir()
@@ -68,7 +69,7 @@ func init() {
 }
 
 func New(cfg *Config) *Whitelist {
-	/* initialize our cloud set if we haven't already */
+	// initialize our proxied site cloud set
 	cloudSet := set.New()
 	for i := range cfg.Cloud {
 		cloudSet.Add(cfg.Cloud[i])
@@ -105,6 +106,7 @@ func GetPacFile() string {
 	return PacFilePath
 }
 
+// Loads the original.txt whitelist
 func LoadDefaultList() []string {
 	entries := []string{}
 	domains, err := lists_original_txt()
@@ -113,17 +115,12 @@ func LoadDefaultList() []string {
 	scanner := bufio.NewScanner(bytes.NewReader(domains))
 	for scanner.Scan() {
 		s := scanner.Text()
-		/* skip blank lines and comments */
+		// skip blank lines and comments
 		if s != "" && !strings.HasPrefix(s, "#") {
 			entries = append(entries, s)
 		}
 	}
 	return entries
-}
-
-func (wl *Whitelist) addOriginal() []string {
-	wl.entries = LoadDefaultList()
-	return wl.entries
 }
 
 func (wl *Whitelist) Copy() *Config {
@@ -138,27 +135,24 @@ func (wl *Whitelist) GetConfig() *Config {
 	return wl.cfg
 }
 
-/* This function calculaties the delta additions and deletions
- * to the global whitelist; these changes are then propagated
- * to the PAC file
- */
+// This function calculaties the delta additions and deletions
+// to the global whitelist; these changes are then propagated
+// to the PAC file
 func (wl *Whitelist) UpdateEntries(entries []string) []string {
 	log.Debug("Updating whitelist entries...")
 
 	toAdd := set.New()
-
 	for i := range entries {
 		toAdd.Add(entries[i])
 	}
 
-	/* whitelist customizations */
+	// whitelist customizations
 	toRemove := set.Difference(wl.cloudSet, toAdd)
 	wl.cfg.Deletions = set.StringSlice(toRemove)
 
-	/* new entries are any new domains the user wishes
-	* to proxy that weren't found on the global whitelist
-	* already
-	 */
+	// new entries are any new domains the user wishes
+	// to proxy that weren't found on the global whitelist
+	// already
 	newEntries := set.Difference(toAdd, wl.cloudSet)
 	wl.cfg.Additions = set.StringSlice(newEntries)
 	wl.entries = set.StringSlice(toAdd)
@@ -206,13 +200,11 @@ func ParsePacFile() *Whitelist {
 	wl := &Whitelist{}
 
 	log.Debugf("PAC file found %s; loading entries..", PacFilePath)
-	/* pac file already present */
 	program, err := parser.ParseFile(nil, PacFilePath, nil, 0)
-	/* otto is a native JavaScript parser;
-	we just quickly parse the proxy domains
-	from the PAC file to
-	cleanly send in a JSON response
-	*/
+	// otto is a native JavaScript parser;
+	// we just quickly parse the proxy domains
+	// from the PAC file to
+	// cleanly send in a JSON response
 	vm := otto.New()
 	_, err = vm.Run(program)
 	if err != nil {
@@ -222,14 +214,13 @@ func ParsePacFile() *Whitelist {
 		value, _ := vm.Get("proxyDomains")
 		log.Debugf("PAC entries %+v", value.String())
 		if value.String() == "" {
-			/* no pac entries; return empty array */
+			// no pac entries; return empty array
 			wl.entries = []string{}
 			return wl
 		}
 
-		/* need to remove escapes
-		* and convert the otto value into a string array
-		 */
+		// need to remove escapes
+		// and convert the otto value into a string array
 		re := regexp.MustCompile("(\\\\.)")
 		list := re.ReplaceAllString(value.String(), ".")
 		wl.entries = strings.Split(list, ",")
