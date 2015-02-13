@@ -28,8 +28,8 @@ Checked menu item not implemented on Linux yet.
 
 ### Windows
 
-Install [MinGW-W64](http://sourceforge.net/projects/mingw-w64) as it has up to date SDK headers we require.
-
+Use the Visual Studio solution to build systray.dll and then check that in to
+Git. Make sure to target Windows XP.
 
 ## Try
 
