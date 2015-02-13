@@ -13,11 +13,11 @@ static GArray *global_temp_icon_file_names = NULL;
 
 typedef struct {
 	GtkWidget *menu_item;
-	char *menu_id;
+	int menu_id;
 } MenuItemNode;
 
 typedef struct {
-	char* menu_id;
+	int menu_id;
 	char* title;
 	char* tooltip;
 	short disabled;
@@ -62,15 +62,18 @@ gboolean do_set_icon(gpointer data) {
 	return FALSE;
 }
 
+void _systray_menu_item_selected(int *id) {
+	systray_menu_item_selected(*id);
+}
+
 // runs in main thread, should always return FALSE to prevent gtk to execute it again
 gboolean do_add_or_update_menu_item(gpointer data) {
 	MenuItemInfo *mii = (MenuItemInfo*)data;
 	GList* it;
 	for(it = global_menu_items; it != NULL; it = it->next) {
 		MenuItemNode* item = (MenuItemNode*)(it->data);
-		if(strcmp(item->menu_id, mii->menu_id) == 0){
+		if(item->menu_id == mii->menu_id){
 			gtk_menu_item_set_label(GTK_MENU_ITEM(item->menu_item), mii->title);
-			free(mii->menu_id);
 			break;
 		}
 	}
@@ -78,7 +81,9 @@ gboolean do_add_or_update_menu_item(gpointer data) {
 	// menu id doesn't exist, add new item
 	if(it == NULL) {
 		GtkWidget *menu_item = gtk_menu_item_new_with_label(mii->title);
-		g_signal_connect_swapped(G_OBJECT(menu_item), "activate", G_CALLBACK(systray_menu_item_selected), mii->menu_id);
+		int *id = malloc(sizeof(int));
+		*id = mii->menu_id;
+		g_signal_connect_swapped(G_OBJECT(menu_item), "activate", G_CALLBACK(_systray_menu_item_selected), id);
 		gtk_menu_shell_append(GTK_MENU_SHELL(global_tray_menu), menu_item);
 
 		MenuItemNode* new_item = malloc(sizeof(MenuItemNode));
@@ -134,7 +139,7 @@ void setTooltip(char* ctooltip) {
 	free(ctooltip);
 }
 
-void add_or_update_menu_item(char* menu_id, char* title, char* tooltip, short disabled, short checked) {
+void add_or_update_menu_item(int menu_id, char* title, char* tooltip, short disabled, short checked) {
 	MenuItemInfo *mii = malloc(sizeof(MenuItemInfo));
 	mii->menu_id = menu_id;
 	mii->title = title;
