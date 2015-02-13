@@ -62,22 +62,25 @@ func (wlh WhitelistHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "OPTIONS":
-		/* return if it's a preflight OPTIONS request
-		* this is mainly for testing the UI when it's running on
-		* a separate port
-		 */
+		// return if it's a preflight OPTIONS request
+		// this is mainly for testing the UI when it's running on
+		// a separate port
 		return
 	case "POST":
-		/* update whitelist */
+		// update whitelist
 		decoder := json.NewDecoder(r.Body)
 		var entries []string
 		err := decoder.Decode(&entries)
-		util.Check(err, log.Error, "Error decoding whitelist entries")
-		wl := wlh.whitelist.UpdateEntries(entries)
-		copy := wlh.whitelist.Copy()
-		log.Debugf("New whitelist is %+v", copy)
-		wlh.wlChan <- wlh.whitelist.Copy()
-		response.Whitelist = wl
+		if err != nil {
+			log.Error(err)
+			response.Error = fmt.Sprintf("Error decoding whitelist: %s", err.Error())
+		} else {
+			wl := wlh.whitelist.UpdateEntries(entries)
+			copy := wlh.whitelist.Copy()
+			log.Debugf("New whitelist is %+v", copy)
+			wlh.wlChan <- wlh.whitelist.Copy()
+			response.Whitelist = wl
+		}
 	case "GET":
 		response.Whitelist = wlh.whitelist.RefreshEntries()
 	default:
@@ -125,7 +128,7 @@ func ListenAndServe(cfg *client.ClientConfig, cfgChan chan *config.Config, wlCha
 	}
 
 	if UiDirExists {
-		/* UI directory found--serve assets directly from it */
+		// UI directory found--serve assets directly from it
 		log.Debugf("Serving UI assets from directory %s", UiDir)
 		r.Handle("/", http.FileServer(http.Dir(UiDir)))
 	} else {
@@ -142,8 +145,6 @@ func ListenAndServe(cfg *client.ClientConfig, cfgChan chan *config.Config, wlCha
 	httpServer := &http.Server{
 		Addr:    cfg.UiAddr,
 		Handler: r,
-		//ReadTimeout:  ReadTimeout,
-		//WriteTimeout: WriteTimeout,
 	}
 
 	log.Debugf("Starting UI HTTP server at %s", cfg.UiAddr)
