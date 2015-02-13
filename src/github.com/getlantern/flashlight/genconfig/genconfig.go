@@ -105,10 +105,10 @@ func loadDomains() {
 	domains = strings.Split(string(domainsBytes), "\n")
 }
 
-/* Scans the whitelist directory and stores the domains in the files found */
+// Scans the whitelist directory and stores the domains in the files found
 func loadWhitelist(path string, info os.FileInfo, err error) error {
 	if info.IsDir() {
-		/* skip root directory */
+		// skip root directory
 		return nil
 	}
 	whitelistBytes, err := ioutil.ReadFile(path)
@@ -116,7 +116,7 @@ func loadWhitelist(path string, info os.FileInfo, err error) error {
 		log.Fatalf("Unable to read blacklist file at %s: %s", path, err)
 	}
 	for _, domain := range strings.Split(string(whitelistBytes), "\n") {
-		/* skip empty lines, comments, and Iranian domains */
+		// skip empty lines, comments, and Iranian domains
 		if domain != "" && !strings.HasPrefix(domain, "#") && !strings.HasSuffix(domain, ".ir") {
 			whitelist[domain] = true
 		}
