@@ -75,27 +75,28 @@ func New(cfg *Config) *Whitelist {
 		cloudSet.Add(cfg.Cloud[i])
 	}
 
+	entrySet := set.New()
+	toAdd := append(cfg.Additions, cfg.Cloud...)
+	for i := range toAdd {
+		entrySet.Add(toAdd[i])
+	}
+
+	toRemove := set.New()
+	for i := range cfg.Deletions {
+		toRemove.Add(cfg.Deletions[i])
+	}
+
+	entries := set.StringSlice(set.Difference(entrySet, toRemove))
+	sort.Strings(entries)
+
 	return &Whitelist{
 		cfg:      cfg,
 		cloudSet: cloudSet,
-		entries:  []string{},
+		entries:  entries,
 	}
 }
 
 func (wl *Whitelist) RefreshEntries() []string {
-	entries := set.New()
-	toAdd := append(wl.cfg.Additions, wl.cfg.Cloud...)
-	for i := range toAdd {
-		entries.Add(toAdd[i])
-	}
-
-	toRemove := set.New()
-	for i := range wl.cfg.Deletions {
-		toRemove.Add(wl.cfg.Deletions[i])
-	}
-
-	wl.entries = set.StringSlice(set.Difference(entries, toRemove))
-	sort.Strings(wl.entries)
 
 	go wl.updatePacFile()
 
@@ -171,7 +172,7 @@ func (wl *Whitelist) updatePacFile() (err error) {
 		log.Errorf("Could not create PAC file")
 		return
 	}
-	/* parse the PAC file template */
+	// parse the PAC file template
 	pacFile.template, err = template.ParseFiles(PacTmpl)
 	if err != nil {
 		log.Errorf("Could not open PAC file template: %s", err)

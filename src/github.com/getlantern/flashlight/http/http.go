@@ -82,7 +82,7 @@ func (wlh WhitelistHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			response.Whitelist = wl
 		}
 	case "GET":
-		response.Whitelist = wlh.whitelist.RefreshEntries()
+		response.Whitelist = wlh.whitelist.GetEntries()
 	default:
 		log.Debugf("Received %s", response.Error)
 		response.Error = "Invalid whitelist HTTP request"
