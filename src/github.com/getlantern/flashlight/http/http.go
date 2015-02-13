@@ -77,8 +77,8 @@ func (wlh WhitelistHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		} else {
 			wl := wlh.whitelist.UpdateEntries(entries)
 			copy := wlh.whitelist.Copy()
-			log.Debugf("New whitelist is %+v", copy)
-			wlh.wlChan <- wlh.whitelist.Copy()
+			log.Debug("Propagating whitelist changes..")
+			wlh.wlChan <- copy
 			response.Whitelist = wl
 		}
 	case "GET":
