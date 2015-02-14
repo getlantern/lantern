@@ -61,7 +61,7 @@ app.controller('SettingsCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
   });
 }]);
 
-app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'SETTING', 'INTERACTION', 'INPUT_PAT', 'MODAL', 'Whitelist', function($scope, $filter, SETTING, INTERACTION, INPUT_PAT, MODAL, Whitelist) {
+app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'SETTING', 'INTERACTION', 'INPUT_PAT', 'MODAL', 'ProxiedSites', function($scope, $filter, SETTING, INTERACTION, INPUT_PAT, MODAL, ProxiedSites) {
       var fltr = $filter('filter'),
       DOMAIN = INPUT_PAT.DOMAIN,
       IPV4 = INPUT_PAT.IPV4,
@@ -69,21 +69,21 @@ app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'SETTING', 'INTERACTION
       proxiedSites = [],
       proxiedSitesDirty = [];
 
-  $scope.whitelist = [];
+  $scope.proxiedSites = [];
 
-  Whitelist.get({ list: 'original'}).$promise.then(function(data) {
-      $scope.originalList = data.Whitelist;
+  ProxiedSites.get({ list: 'original'}).$promise.then(function(data) {
+      $scope.originalList = data.ProxiedSites;
       $scope.globalList = data.Global;
-      $scope.whitelist = data.Whitelist;
+      $scope.proxiedSites = data.ProxiedSites;
   });
 
   $scope.setFormScope = function(scope) {
       $scope.formScope = scope;
   };
 
-  $scope.resetWhitelist = function(reset) {
-    $scope.whitelist = $scope.globalList;
-    $scope.input = $scope.whitelist;
+  $scope.resetProxiedSites = function(reset) {
+    $scope.proxiedSites = $scope.globalList;
+    $scope.input = $scope.proxiedSites;
     if (reset) {
         makeValid();
     } else {
@@ -95,9 +95,9 @@ app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'SETTING', 'INTERACTION
 
   $scope.$watch('searchText', function (searchText) {
     if (!searchText ) {
-        $scope.whitelist = $scope.originalList;
+        $scope.proxiedSites = $scope.originalList;
     } else {
-        $scope.whitelist = (searchText ? fltr(proxiedSitesDirty, searchText) : proxiedSitesDirty);
+        $scope.proxiedSites = (searchText ? fltr(proxiedSitesDirty, searchText) : proxiedSitesDirty);
     }
   });
 
@@ -109,7 +109,7 @@ app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'SETTING', 'INTERACTION
     }
   }
 
-  $scope.$watch('whitelist', function(proxiedSites_) {
+  $scope.$watch('proxiedSites', function(proxiedSites_) {
     if (proxiedSites) {
       proxiedSites = normalizedLines(proxiedSites_);
       $scope.input = proxiedSites.join('\n');
@@ -169,8 +169,8 @@ app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'SETTING', 'INTERACTION
     if ($scope.proxiedSitesForm.$invalid) {
       return $scope.interaction(INTERACTION.continue);
     }
-    $scope.whitelist = proxiedSitesDirty;
-    Whitelist.save({}, $scope.whitelist);
+    $scope.proxiedSites = proxiedSitesDirty;
+    ProxiedSites.save({}, $scope.proxiedSites);
     $scope.closeModal();
   };
 }]);

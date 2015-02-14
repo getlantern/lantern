@@ -25,11 +25,11 @@ const (
 )
 
 var (
-	help          = flag.Bool("help", false, "Get usage help")
-	domainsFile   = flag.String("domains", "", "Path to file containing list of domains to use, with one domain per line (e.g. domains.txt)")
-	blacklistFile = flag.String("blacklist", "", "Path to file containing list of blacklisted domains, which will be excluded from the configuration even if present in the domains file (e.g. blacklist.txt)")
-	whitelistDir  = flag.String("whitelist", "", "Path to directory containing whitelists, which will be combined and proxied by Lantern")
-	minFreq       = flag.Float64("minfreq", 3.0, "Minimum frequency (percentage) for including CA cert in list of trusted certs, defaults to 3.0%")
+	help            = flag.Bool("help", false, "Get usage help")
+	domainsFile     = flag.String("domains", "", "Path to file containing list of domains to use, with one domain per line (e.g. domains.txt)")
+	blacklistFile   = flag.String("blacklist", "", "Path to file containing list of blacklisted domains, which will be excluded from the configuration even if present in the domains file (e.g. blacklist.txt)")
+	proxiedSitesDir = flag.String("proxiedsites", "", "Path to directory containing proxied site lists, which will be combined and proxied by Lantern")
+	minFreq         = flag.Float64("minfreq", 3.0, "Minimum frequency (percentage) for including CA cert in list of trusted certs, defaults to 3.0%")
 )
 
 var (
@@ -37,8 +37,8 @@ var (
 
 	domains []string
 
-	blacklist = make(filter)
-	whitelist = make(filter)
+	blacklist    = make(filter)
+	proxiedSites = make(filter)
 
 	masqueradesTmpl string
 	yamlTmpl        string
@@ -75,7 +75,7 @@ func main() {
 	runtime.GOMAXPROCS(numcores)
 
 	loadDomains()
-	loadWhitelists()
+	loadProxiedSitesList()
 	loadBlacklist()
 
 	masqueradesTmpl = loadTemplate("masquerades.go.tmpl")
@@ -105,40 +105,40 @@ func loadDomains() {
 	domains = strings.Split(string(domainsBytes), "\n")
 }
 
-// Scans the whitelist directory and stores the sites in the files found
-func loadWhitelist(path string, info os.FileInfo, err error) error {
+// Scans the proxied site directory and stores the sites in the files found
+func loadProxiedSites(path string, info os.FileInfo, err error) error {
 	if info.IsDir() {
 		// skip root directory
 		return nil
 	}
-	whitelistBytes, err := ioutil.ReadFile(path)
+	proxiedSiteBytes, err := ioutil.ReadFile(path)
 	if err != nil {
 		log.Fatalf("Unable to read blacklist file at %s: %s", path, err)
 	}
-	for _, domain := range strings.Split(string(whitelistBytes), "\n") {
+	for _, domain := range strings.Split(string(proxiedSiteBytes), "\n") {
 		// skip empty lines, comments, and *.ir sites
 		// since we're focusing on Iran with this first release, we aren't adding *.ir sites
-		// to the global whitelist
+		// to the global proxied sites
 		// to avoid proxying sites that are already unblocked there.
 		// This is a general problem when you aren't maintaining country-specific whitelists
 		// which will be addressed in the next phase
 		if domain != "" && !strings.HasPrefix(domain, "#") && !strings.HasSuffix(domain, ".ir") {
-			whitelist[domain] = true
+			proxiedSites[domain] = true
 		}
 	}
 	return err
 }
 
-func loadWhitelists() {
-	if *whitelistDir == "" {
-		log.Error("Please specify a whitelist directory")
+func loadProxiedSitesList() {
+	if *proxiedSitesDir == "" {
+		log.Error("Please specify a proxied site directory")
 		flag.Usage()
 		os.Exit(3)
 	}
 
-	err := filepath.Walk(*whitelistDir, loadWhitelist)
+	err := filepath.Walk(*proxiedSitesDir, loadProxiedSites)
 	if err != nil {
-		log.Errorf("Could not open whitelist directory: %s", err)
+		log.Errorf("Could not open proxied site directory: %s", err)
 	}
 }
 
@@ -263,9 +263,9 @@ func buildModel(cas map[string]*castat, masquerades []*masquerade) map[string]in
 	sort.Sort(ByFreq(casList))
 	sort.Sort(ByDomain(masquerades))
 	return map[string]interface{}{
-		"cas":         casList,
-		"masquerades": masquerades,
-		"whitelist":   whitelist,
+		"cas":          casList,
+		"masquerades":  masquerades,
+		"proxiedsites": proxiedSites,
 	}
 }
 

@@ -69,8 +69,8 @@ var app = angular.module('app', [
           }
       };
   })
-  .factory('Whitelist', ['$resource', function($resource) {
-    return $resource('/whitelist', {list: 'original'});
+  .factory('ProxiedSites', ['$resource', function($resource) {
+    return $resource('/proxiedsites', {list: 'original'});
   }])
   .run(function ($filter, $log, $rootScope, $timeout, $window, 
                  $translate, $http, apiSrvc, gaMgr, modelSrvc, ENUMS, EXTERNAL_URL, MODAL, CONTACT_FORM_MAXLEN) {

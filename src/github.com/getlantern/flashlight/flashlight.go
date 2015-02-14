@@ -18,7 +18,7 @@ import (
 	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/statreporter"
 	"github.com/getlantern/flashlight/statserver"
-	"github.com/getlantern/whitelist"
+	"github.com/getlantern/proxiedsites"
 )
 
 const (
@@ -116,9 +116,9 @@ func runClientProxy(cfg *config.Config) {
 	// with a corresponding HTTP server at
 	// the following address
 	if cfg.UIAddr != "" {
-		wlChan := make(chan *whitelist.Config)
+		proxiedSitesChan := make(chan *proxiedsites.Config)
 		go func() {
-			err := http.UiHttpServer(cfg, configUpdates, wlChan)
+			err := http.UIHttpServer(cfg, configUpdates, proxiedSitesChan)
 			if err != nil {
 				log.Fatalf("Unable to start UI http server: %s", err)
 			}
@@ -126,12 +126,12 @@ func runClientProxy(cfg *config.Config) {
 
 		go func() {
 			for {
-				// separate channel for synchronizing whitelist updates
-				wl := <-wlChan
-				cfg.Client.Whitelist = wl
+				// separate channel for synchronizing proxiedsites updates
+				ps := <-proxiedSitesChan
+				cfg.Client.ProxiedSites = ps
 				err := config.Update(func(updated *config.Config) error {
-					log.Debugf("Saving updated whitelist configuration")
-					updated.Client.Whitelist = cfg.Client.Whitelist
+					log.Debugf("Saving updated proxiedsites configuration")
+					updated.Client.ProxiedSites = cfg.Client.ProxiedSites
 					return nil
 				})
 

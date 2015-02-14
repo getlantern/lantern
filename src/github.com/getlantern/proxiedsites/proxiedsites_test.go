@@ -1,4 +1,4 @@
-package whitelist
+package proxiedsites
 
 import (
 	"github.com/getlantern/flashlight/util"

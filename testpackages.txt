@@ -24,4 +24,4 @@ github.com/getlantern/flashlight/nattest
 github.com/getlantern/flashlight/statreporter
 github.com/getlantern/flashlight
 github.com/getlantern/peerscanner/cf
-github.com/getlantern/whitelist
+github.com/getlantern/proxiedsites

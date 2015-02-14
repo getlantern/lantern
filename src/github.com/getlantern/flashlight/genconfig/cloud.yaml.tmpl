@@ -16,8 +16,8 @@ client:
     maxmasquerades: 20
     qos: 2
     weight: 1000
-  whitelist:
-    cloud:{{range $domain, $bool := .whitelist }}
+  proxiedsites:
+    cloud:{{range $domain, $bool := .proxiedsites }}
     - {{$domain}}{{end}}
     additions: []
     deletions: []

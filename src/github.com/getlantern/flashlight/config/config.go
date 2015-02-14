@@ -12,7 +12,7 @@ import (
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/nattywad"
-	"github.com/getlantern/whitelist"
+	"github.com/getlantern/proxiedsites"
 	"github.com/getlantern/yaml"
 	"github.com/getlantern/yamlconf"
 
@@ -213,9 +213,9 @@ func (cfg *Config) applyClientDefaults() {
 		cfg.Client.MasqueradeSets[cloudflare] = cloudflareMasquerades
 	}
 
-	if cfg.Client.Whitelist == nil {
-		log.Debugf("Loading default whitelist")
-		cfg.Client.Whitelist = &whitelist.Config{
+	if cfg.Client.ProxiedSites == nil {
+		log.Debugf("Loading default proxiedsites")
+		cfg.Client.ProxiedSites = &proxiedsites.Config{
 			Additions: []string{},
 			Deletions: []string{},
 			Cloud:     []string{},
@@ -351,15 +351,15 @@ func (updated *Config) updateFrom(updateBytes []byte) error {
 		updated.Client.FrontedServers = append(updated.Client.FrontedServers, server)
 	}
 
-	// Same with global whitelist
+	// Same with global proxiedsites
 	// Would be nice to combine this with the above at some point!
 	wlDomains := make(map[string]bool)
-	for _, domain := range updated.Client.Whitelist.Cloud {
+	for _, domain := range updated.Client.ProxiedSites.Cloud {
 		wlDomains[domain] = true
 	}
-	updated.Client.Whitelist.Cloud = make([]string, 0, len(wlDomains))
+	updated.Client.ProxiedSites.Cloud = make([]string, 0, len(wlDomains))
 	for domain, _ := range wlDomains {
-		updated.Client.Whitelist.Cloud = append(updated.Client.Whitelist.Cloud, domain)
+		updated.Client.ProxiedSites.Cloud = append(updated.Client.ProxiedSites.Cloud, domain)
 	}
 	return nil
 }
