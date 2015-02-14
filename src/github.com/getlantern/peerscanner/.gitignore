@@ -3,6 +3,9 @@
 *.a
 *.so
 
+*.pem
+*.gz
+
 # Folders
 _obj
 _test
