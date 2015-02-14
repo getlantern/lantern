@@ -292,7 +292,7 @@ func (h *host) register() error {
 
 func (h *host) registerHost() error {
 	if h.isProxying {
-		log.Tracef("Host already registered, no need to re-register: %v", h)
+		log.Debugf("Host already registered, no need to re-register: %v", h)
 		return nil
 	}
 
