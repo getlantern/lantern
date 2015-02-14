@@ -207,6 +207,10 @@ func (wl *Whitelist) GetEntries() []string {
 	return wl.entries
 }
 
+func (wl *Whitelist) GetGlobalList() []string {
+	return wl.cfg.Cloud
+}
+
 func ParsePacFile() *Whitelist {
 	wl := &Whitelist{}
 

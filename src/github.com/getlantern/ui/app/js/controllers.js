@@ -73,6 +73,7 @@ app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'SETTING', 'INTERACTION
 
   Whitelist.get({ list: 'original'}).$promise.then(function(data) {
       $scope.originalList = data.Whitelist;
+      $scope.globalList = data.Global;
       $scope.whitelist = data.Whitelist;
   });
 
@@ -81,7 +82,7 @@ app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'SETTING', 'INTERACTION
   };
 
   $scope.resetWhitelist = function(reset) {
-    $scope.whitelist = $scope.originalList;
+    $scope.whitelist = $scope.globalList;
     $scope.input = $scope.whitelist;
     if (reset) {
         makeValid();

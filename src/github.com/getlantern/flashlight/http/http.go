@@ -28,7 +28,7 @@ var (
 type JsonResponse struct {
 	Error     string   `json:"Error, omitempty"`
 	Whitelist []string `json:"Whitelist, omitempty"`
-	Global    []string `json:"Original, omitempty"`
+	Global    []string `json:"Global, omitempty"`
 }
 
 type WhitelistHandler struct {
