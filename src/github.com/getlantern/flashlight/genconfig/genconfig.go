@@ -105,7 +105,7 @@ func loadDomains() {
 	domains = strings.Split(string(domainsBytes), "\n")
 }
 
-// Scans the whitelist directory and stores the domains in the files found
+// Scans the whitelist directory and stores the sites in the files found
 func loadWhitelist(path string, info os.FileInfo, err error) error {
 	if info.IsDir() {
 		// skip root directory
@@ -116,7 +116,12 @@ func loadWhitelist(path string, info os.FileInfo, err error) error {
 		log.Fatalf("Unable to read blacklist file at %s: %s", path, err)
 	}
 	for _, domain := range strings.Split(string(whitelistBytes), "\n") {
-		// skip empty lines, comments, and Iranian domains
+		// skip empty lines, comments, and *.ir sites
+		// since we're focusing on Iran with this first release, we aren't adding *.ir sites
+		// to the global whitelist
+		// to avoid proxying sites that are already unblocked there.
+		// This is a general problem when you aren't maintaining country-specific whitelists
+		// which will be addressed in the next phase
 		if domain != "" && !strings.HasPrefix(domain, "#") && !strings.HasSuffix(domain, ".ir") {
 			whitelist[domain] = true
 		}

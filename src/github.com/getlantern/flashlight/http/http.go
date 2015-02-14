@@ -133,7 +133,7 @@ func UiHttpServer(cfg *client.ClientConfig, cfgChan chan *config.Config, wlChan 
 		r.Handle("/", http.FileServer(http.Dir(UiDir)))
 	} else {
 		start := time.Now()
-		fs, err := tarfs.New(Data, "../ui/app")
+		fs, err := tarfs.New(Resources, "../ui/app")
 		if err != nil {
 			panic(err)
 		}
