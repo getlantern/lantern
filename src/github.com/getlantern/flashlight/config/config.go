@@ -53,6 +53,9 @@ type Config struct {
 	Server        *server.ServerConfig
 	Client        *client.ClientConfig
 	TrustedCAs    []*CA
+	OpenUI        bool   // Flag specifying whether or not the UI should be automatically open in the browser
+	UIAddr        string // UI HTTP server address
+
 }
 
 // CA represents a certificate authority

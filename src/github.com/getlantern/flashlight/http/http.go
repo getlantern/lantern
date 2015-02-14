@@ -3,7 +3,6 @@ package http
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/golog"
@@ -97,10 +96,10 @@ func servePacFile(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, pacFile)
 }
 
-func UiHttpServer(cfg *client.ClientConfig, cfgChan chan *config.Config, wlChan chan *whitelist.Config) error {
+func UiHttpServer(cfg *config.Config, cfgChan chan *config.Config, wlChan chan *whitelist.Config) error {
 
 	wlh := &WhitelistHandler{
-		whitelist: whitelist.New(cfg.Whitelist),
+		whitelist: whitelist.New(cfg.Client.Whitelist),
 		wlChan:    wlChan,
 	}
 

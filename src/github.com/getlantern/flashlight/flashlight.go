@@ -115,10 +115,10 @@ func runClientProxy(cfg *config.Config) {
 	// between the UI and
 	// with a corresponding HTTP server at
 	// the following address
-	if cfg.Client.UIAddr != "" {
+	if cfg.UIAddr != "" {
 		wlChan := make(chan *whitelist.Config)
 		go func() {
-			err := http.UiHttpServer(cfg.Client, configUpdates, wlChan)
+			err := http.UiHttpServer(cfg, configUpdates, wlChan)
 			if err != nil {
 				log.Fatalf("Unable to start UI http server: %s", err)
 			}
