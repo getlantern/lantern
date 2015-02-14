@@ -17,8 +17,8 @@ import (
 )
 
 const (
-	UiUrl = "http://%s"
-	UiDir = "src/github.com/getlantern/ui/app"
+	UIUrl = "http://%s"
+	UIDir = "src/github.com/getlantern/ui/app"
 )
 
 var (
@@ -123,15 +123,15 @@ func UiHttpServer(cfg *client.ClientConfig, cfgChan chan *config.Config, wlChan 
 	}()
 	r.HandleFunc("/proxy_on.pac", servePacFile)
 
-	UiDirExists, err := util.DirExists(UiDir)
+	UIDirExists, err := util.DirExists(UIDir)
 	if err != nil {
 		log.Debugf("UI Directory does not exist %s", err)
 	}
 
-	if UiDirExists {
+	if UIDirExists {
 		// UI directory found--serve assets directly from it
-		log.Debugf("Serving UI assets from directory %s", UiDir)
-		r.Handle("/", http.FileServer(http.Dir(UiDir)))
+		log.Debugf("Serving UI assets from directory %s", UIDir)
+		r.Handle("/", http.FileServer(http.Dir(UIDir)))
 	} else {
 		start := time.Now()
 		fs, err := tarfs.New(Resources, "../ui/app")
@@ -144,14 +144,14 @@ func UiHttpServer(cfg *client.ClientConfig, cfgChan chan *config.Config, wlChan 
 	}
 
 	httpServer := &http.Server{
-		Addr:    cfg.UiAddr,
+		Addr:    cfg.UIAddr,
 		Handler: r,
 	}
 
-	log.Debugf("Starting UI HTTP server at %s", cfg.UiAddr)
-	uiAddr := fmt.Sprintf(UiUrl, cfg.UiAddr)
+	log.Debugf("Starting UI HTTP server at %s", cfg.UIAddr)
+	uiAddr := fmt.Sprintf(UIUrl, cfg.UIAddr)
 
-	if cfg.OpenUi {
+	if cfg.OpenUI {
 		err = open.Run(uiAddr)
 		if err != nil {
 			log.Errorf("Could not open UI! %s", err)
