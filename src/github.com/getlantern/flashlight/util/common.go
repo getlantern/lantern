@@ -23,7 +23,7 @@ func GetUserHomeDir() (string, error) {
 		return "", err
 	}
 	lanternDir := path.Join(homedir, ".lantern")
-	// Create the user home directory if it doesn't exist already
+	// Create the ~/.lantern directory if it doesn't exist already
 	exists, _ := DirExists(lanternDir)
 	if !exists {
 		err = os.Mkdir(lanternDir, 0777)
