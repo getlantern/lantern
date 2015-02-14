@@ -73,7 +73,7 @@ func (wlh WhitelistHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err := decoder.Decode(&entries)
 		if err != nil {
 			log.Error(err)
-			response.Error = fmt.Sprintf("Error decoding whitelist: %s", err.Error())
+			response.Error = fmt.Sprintf("Error decoding whitelist: %q", err)
 		} else {
 			wl := wlh.whitelist.UpdateEntries(entries)
 			copy := wlh.whitelist.Copy()
@@ -96,7 +96,7 @@ func servePacFile(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, pacFile)
 }
 
-func ListenAndServe(cfg *client.ClientConfig, cfgChan chan *config.Config, wlChan chan *whitelist.Config) {
+func UiHttpServer(cfg *client.ClientConfig, cfgChan chan *config.Config, wlChan chan *whitelist.Config) error {
 
 	wlh := &WhitelistHandler{
 		whitelist: whitelist.New(cfg.Whitelist),
@@ -154,11 +154,14 @@ func ListenAndServe(cfg *client.ClientConfig, cfgChan chan *config.Config, wlCha
 		err = open.Run(uiAddr)
 		if err != nil {
 			log.Errorf("Could not open UI! %s", err)
+			return err
 		}
 	}
 
 	err = httpServer.ListenAndServe()
 	if err != nil {
 		log.Errorf("Could not start HTTP server! %s", err)
+		return err
 	}
+	return err
 }
