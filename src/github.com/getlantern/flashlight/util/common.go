@@ -26,7 +26,7 @@ func GetUserHomeDir() (string, error) {
 	// Create the ~/.lantern directory if it doesn't exist already
 	exists, _ := DirExists(lanternDir)
 	if !exists {
-		err = os.Mkdir(lanternDir, 0777)
+		err = os.Mkdir(lanternDir, 0755)
 		if err != nil {
 			log.Errorf("Error creating user home directory: %s", err)
 		}
