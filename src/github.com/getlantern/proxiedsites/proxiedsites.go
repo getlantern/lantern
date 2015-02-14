@@ -1,12 +1,10 @@
-// package whitelist is a module used to manage the list of sites
+// package proxiedsites is a module used to manage the list of sites
 // being proxied by Lantern
 // when the list is modified using the Lantern UI, it propagates
 // to the default YAML and PAC file configurations
-package whitelist
+package proxiedsites
 
 import (
-	"bufio"
-	"bytes"
 	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/golog"
 	"github.com/robertkrimen/otto"
@@ -14,6 +12,7 @@ import (
 
 	"gopkg.in/fatih/set.v0"
 	"os"
+	"path"
 	"regexp"
 	"sort"
 	"strings"
@@ -26,10 +25,10 @@ const (
 )
 
 var (
-	log         = golog.LoggerFor("whitelist")
+	log         = golog.LoggerFor("proxiedsites")
 	ConfigDir   string
 	PacFilePath string
-	PacTmpl     = "src/github.com/getlantern/whitelist/templates/proxy_on.pac.template"
+	PacTmpl     = "src/github.com/getlantern/proxiedsites/templates/proxy_on.pac.template"
 )
 
 type Config struct {
@@ -41,10 +40,10 @@ type Config struct {
 	Deletions []string
 }
 
-type Whitelist struct {
+type ProxiedSites struct {
 	cfg *Config
 
-	// Corresponding global whitelist set
+	// Corresponding global proxiedsites set
 	cloudSet *set.Set
 	entries  []string
 	pacFile  *PacFile
@@ -60,15 +59,15 @@ type PacFile struct {
 // Determine user home directory and PAC file path during initialization
 func init() {
 	var err error
-	ConfigDir, err = util.DetermineConfigDir()
+	ConfigDir, err = util.GetUserHomeDir()
 	if err != nil {
-		log.Errorf("Could not open user home directory: %s", err)
+		log.Fatalf("Could not retrieve user home directory: %s", err)
 		return
 	}
-	PacFilePath = ConfigDir + "/" + PacFilename
+	PacFilePath = path.Join(ConfigDir, PacFilename)
 }
 
-func New(cfg *Config) *Whitelist {
+func New(cfg *Config) *ProxiedSites {
 	// initialize our proxied site cloud set
 	cloudSet := set.New()
 	for i := range cfg.Cloud {
@@ -89,57 +88,49 @@ func New(cfg *Config) *Whitelist {
 	entries := set.StringSlice(set.Difference(entrySet, toRemove))
 	sort.Strings(entries)
 
-	return &Whitelist{
+	ps := &ProxiedSites{
 		cfg:      cfg,
 		cloudSet: cloudSet,
 		entries:  entries,
 	}
+
+	pacFileExists, _ := util.FileExists(PacFilePath)
+	// if the pac file doesn't already exist
+	// we create it now to synchronize it with the YAML config
+	if !pacFileExists {
+		go ps.updatePacFile()
+	}
+
+	return ps
 }
 
-func (wl *Whitelist) RefreshEntries() []string {
+func (ps *ProxiedSites) RefreshEntries() []string {
 
-	go wl.updatePacFile()
+	go ps.updatePacFile()
 
-	return wl.entries
+	return ps.entries
 }
 
 func GetPacFile() string {
 	return PacFilePath
 }
 
-// Loads the original.txt whitelist
-func LoadDefaultList() []string {
-	entries := []string{}
-	domains, err := lists_original_txt()
-	util.Check(err, log.Fatal, "Could not open original whitelist")
-
-	scanner := bufio.NewScanner(bytes.NewReader(domains))
-	for scanner.Scan() {
-		s := scanner.Text()
-		// skip blank lines and comments
-		if s != "" && !strings.HasPrefix(s, "#") {
-			entries = append(entries, s)
-		}
-	}
-	return entries
-}
-
-func (wl *Whitelist) Copy() *Config {
+func (ps *ProxiedSites) Copy() *Config {
 	return &Config{
-		Additions: wl.cfg.Additions,
-		Deletions: wl.cfg.Deletions,
-		Cloud:     wl.cfg.Cloud,
+		Additions: ps.cfg.Additions,
+		Deletions: ps.cfg.Deletions,
+		Cloud:     ps.cfg.Cloud,
 	}
 }
 
-func (wl *Whitelist) GetConfig() *Config {
-	return wl.cfg
+func (ps *ProxiedSites) GetConfig() *Config {
+	return ps.cfg
 }
 
 // This function calculaties the delta additions and deletions
 // to the global whitelist; these changes are then propagated
 // to the PAC file
-func (wl *Whitelist) UpdateEntries(entries []string) []string {
+func (ps *ProxiedSites) UpdateEntries(entries []string) []string {
 	log.Debug("Updating whitelist entries...")
 
 	toAdd := set.New()
@@ -148,21 +139,21 @@ func (wl *Whitelist) UpdateEntries(entries []string) []string {
 	}
 
 	// whitelist customizations
-	toRemove := set.Difference(wl.cloudSet, toAdd)
-	wl.cfg.Deletions = set.StringSlice(toRemove)
+	toRemove := set.Difference(ps.cloudSet, toAdd)
+	ps.cfg.Deletions = set.StringSlice(toRemove)
 
 	// new entries are any new domains the user wishes
 	// to proxy that weren't found on the global whitelist
 	// already
-	newEntries := set.Difference(toAdd, wl.cloudSet)
-	wl.cfg.Additions = set.StringSlice(newEntries)
-	wl.entries = set.StringSlice(toAdd)
-	go wl.updatePacFile()
+	newEntries := set.Difference(toAdd, ps.cloudSet)
+	ps.cfg.Additions = set.StringSlice(newEntries)
+	ps.entries = set.StringSlice(toAdd)
+	go ps.updatePacFile()
 
-	return wl.entries
+	return ps.entries
 }
 
-func (wl *Whitelist) updatePacFile() (err error) {
+func (ps *ProxiedSites) updatePacFile() (err error) {
 
 	pacFile := &PacFile{}
 
@@ -184,7 +175,7 @@ func (wl *Whitelist) updatePacFile() (err error) {
 	defer pacFile.l.Unlock()
 
 	data := make(map[string]interface{}, 0)
-	data["Entries"] = wl.entries
+	data["Entries"] = ps.entries
 	err = pacFile.template.Execute(pacFile.file, data)
 	if err != nil {
 		log.Errorf("Error generating updated PAC file: %s", err)
@@ -193,12 +184,16 @@ func (wl *Whitelist) updatePacFile() (err error) {
 	return err
 }
 
-func (wl *Whitelist) GetEntries() []string {
-	return wl.entries
+func (ps *ProxiedSites) GetEntries() []string {
+	return ps.entries
 }
 
-func ParsePacFile() *Whitelist {
-	wl := &Whitelist{}
+func (ps *ProxiedSites) GetGlobalList() []string {
+	return ps.cfg.Cloud
+}
+
+func ParsePacFile() *ProxiedSites {
+	ps := &ProxiedSites{}
 
 	log.Debugf("PAC file found %s; loading entries..", PacFilePath)
 	program, err := parser.ParseFile(nil, PacFilePath, nil, 0)
@@ -216,16 +211,16 @@ func ParsePacFile() *Whitelist {
 		log.Debugf("PAC entries %+v", value.String())
 		if value.String() == "" {
 			// no pac entries; return empty array
-			wl.entries = []string{}
-			return wl
+			ps.entries = []string{}
+			return ps
 		}
 
 		// need to remove escapes
 		// and convert the otto value into a string array
 		re := regexp.MustCompile("(\\\\.)")
 		list := re.ReplaceAllString(value.String(), ".")
-		wl.entries = strings.Split(list, ",")
-		log.Debugf("List of proxied sites... %+v", wl.entries)
+		ps.entries = strings.Split(list, ",")
+		log.Debugf("List of proxied sites... %+v", ps.entries)
 	}
-	return wl
+	return ps
 }

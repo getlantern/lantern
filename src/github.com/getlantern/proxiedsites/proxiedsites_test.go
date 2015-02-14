@@ -1,4 +1,4 @@
-package whitelist
+package proxiedsites
 
 import (
 	"github.com/getlantern/flashlight/util"
@@ -28,10 +28,6 @@ var mockWhitelists = []struct {
 			Deletions: []string{},
 		}),
 	},
-}
-
-func TestUnmodifiedWhitelist(t *testing.T) {
-
 }
 
 func testConfig(entries []string) *Config {
