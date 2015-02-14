@@ -28,7 +28,7 @@ var (
 type JsonResponse struct {
 	Error     string   `json:"Error, omitempty"`
 	Whitelist []string `json:"Whitelist, omitempty"`
-	Original  []string `json:"Original, omitempty"`
+	Global    []string `json:"Original, omitempty"`
 }
 
 type WhitelistHandler struct {
@@ -83,6 +83,7 @@ func (wlh WhitelistHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	case "GET":
 		response.Whitelist = wlh.whitelist.GetEntries()
+		response.Global = wlh.whitelist.GetGlobalList()
 	default:
 		log.Debugf("Received %s", response.Error)
 		response.Error = "Invalid whitelist HTTP request"
