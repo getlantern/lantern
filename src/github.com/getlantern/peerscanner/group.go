@@ -16,6 +16,7 @@ type group struct {
 func (g *group) register(h *host) error {
 	if g.isProxying {
 		log.Debugf("%v is already registered in %v, no need to re-register:", h, g.subdomain)
+		return nil
 	}
 	log.Debugf("Registering to %v: %v", g.subdomain, h)
 
