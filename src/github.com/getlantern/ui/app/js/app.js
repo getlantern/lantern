@@ -59,7 +59,9 @@ var app = angular.module('app', [
               }
 
               function toUser(array) {                        
-                  return array.join("\n");
+                  if (array && typeof array != 'undefined') {
+                    return array.join("\n");
+                  }
               }
 
               ngModel.$parsers.push(fromUser);

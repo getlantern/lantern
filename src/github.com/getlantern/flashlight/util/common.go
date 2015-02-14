@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/getlantern/golog"
 	"github.com/mitchellh/go-homedir"
-	"io/ioutil"
 	"os"
 	"path"
 )

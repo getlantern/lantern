@@ -73,7 +73,7 @@
             ng-hide="!!searchText" ng-readonly="!!searchText" focus-on="show"
             ui-validate="'validate($value)'" id="proxiedSitesInput"
             dir="ltr" tabindex="{{ show && 1 || '' }}"></textarea>
-          <textarea ng-model="data" placeholder="{{ 'NO_MATCHING_SITES' | translate }} &quot;{{searchText}}&quot;"
+          <textarea ng-model="whitelist" split-array placeholder="{{ 'NO_MATCHING_SITES' | translate }} &quot;{{searchText}}&quot;"
             ng-show="!!searchText" readonly dir="ltr"></textarea>
         </form>
       </div>

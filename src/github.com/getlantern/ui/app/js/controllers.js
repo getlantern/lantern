@@ -72,7 +72,7 @@ app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'SETTING', 'INTERACTION
   $scope.whitelist = [];
 
   Whitelist.get({ list: 'original'}).$promise.then(function(data) {
-      $scope.originalList = data.Original;
+      $scope.originalList = data.Whitelist;
       $scope.whitelist = data.Whitelist;
   });
 
@@ -93,7 +93,11 @@ app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'SETTING', 'INTERACTION
   $scope.show = false;
 
   $scope.$watch('searchText', function (searchText) {
-    $scope.inputFiltered = (searchText ? fltr(proxiedSitesDirty, searchText) : proxiedSitesDirty).join('\n');
+    if (!searchText ) {
+        $scope.whitelist = $scope.originalList;
+    } else {
+        $scope.whitelist = (searchText ? fltr(proxiedSitesDirty, searchText) : proxiedSitesDirty);
+    }
   });
 
   function makeValid() {
