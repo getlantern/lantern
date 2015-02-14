@@ -115,7 +115,7 @@ func runClientProxy(cfg *config.Config) {
 	// between the UI and
 	// with a corresponding HTTP server at
 	// the following address
-	if cfg.Client.UiAddr != "" {
+	if cfg.Client.UIAddr != "" {
 		wlChan := make(chan *whitelist.Config)
 		go func() {
 			err := http.UiHttpServer(cfg.Client, configUpdates, wlChan)
