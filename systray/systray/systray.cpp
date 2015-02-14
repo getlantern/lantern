@@ -151,7 +151,7 @@ BOOL addNotifyIcon() {
 	return Shell_NotifyIcon(NIM_ADD, &nid);
 }
 
-int nativeLoop(void (*systray_ready)(), void (*_systray_menu_item_selected)(int menu_id)) {
+int nativeLoop(void (*systray_ready)(int ignored), void (*_systray_menu_item_selected)(int menu_id)) {
 	systray_menu_item_selected = _systray_menu_item_selected;
 
 	HINSTANCE hInstance = GetModuleHandle(NULL);
@@ -164,7 +164,7 @@ int nativeLoop(void (*systray_ready)(), void (*_systray_menu_item_selected)(int 
 	if (!createMenu() || !addNotifyIcon()) {
 		return EXIT_FAILURE;
 	}
-	systray_ready();
+	systray_ready(0);
 
 	MSG msg;
 	while (GetMessage(&msg, NULL, 0, 0)) {
