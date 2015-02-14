@@ -3,6 +3,7 @@ package golog
 import (
 	"bytes"
 	"io"
+	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -17,8 +18,8 @@ var (
 
 func TestDebug(t *testing.T) {
 	out := bytes.NewBuffer(nil)
+	SetOutputs(ioutil.Discard, out)
 	l := LoggerFor("myprefix")
-	l.(*logger).debugOut = out
 	l.Debug("Hello world")
 	l.Debugf("Hello %d", 5)
 
@@ -27,8 +28,8 @@ func TestDebug(t *testing.T) {
 
 func TestError(t *testing.T) {
 	out := bytes.NewBuffer(nil)
+	SetOutputs(out, ioutil.Discard)
 	l := LoggerFor("myprefix")
-	l.(*logger).errorOut = out
 	l.Error("Hello world")
 	l.Errorf("Hello %d", 5)
 
@@ -44,8 +45,8 @@ func TestTraceEnabled(t *testing.T) {
 	defer os.Setenv("TRACE", originalTrace)
 
 	out := bytes.NewBuffer(nil)
+	SetOutputs(ioutil.Discard, out)
 	l := LoggerFor("myprefix")
-	l.(*logger).debugOut = out
 	l.Trace("Hello world")
 	l.Tracef("Hello %d", 5)
 	tw := l.TraceOut()
@@ -67,8 +68,8 @@ func TestTraceDisabled(t *testing.T) {
 	defer os.Setenv("TRACE", originalTrace)
 
 	out := bytes.NewBuffer(nil)
+	SetOutputs(ioutil.Discard, out)
 	l := LoggerFor("myprefix")
-	l.(*logger).debugOut = out
 	l.Trace("Hello world")
 	l.Tracef("Hello %d", 5)
 	l.TraceOut().Write([]byte("Gravy\n"))
