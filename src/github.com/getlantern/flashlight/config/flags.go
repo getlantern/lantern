@@ -77,7 +77,7 @@ func (updated *Config) applyFlags() error {
 
 		// HTTP-server
 		case "uiaddr":
-			updated.Client.UiAddr = *uiaddr
+			updated.Client.UIAddr = *uiaddr
 
 		// Server
 		case "portmap":
@@ -95,7 +95,7 @@ func (updated *Config) applyFlags() error {
 	updated.CpuProfile = *cpuprofile
 	updated.MemProfile = *memprofile
 	updated.Server.Unencrypted = *unencrypted
-	updated.Client.OpenUi = *openui
+	updated.Client.OpenUI = *openui
 
 	return nil
 }

@@ -22,8 +22,8 @@ type ClientConfig struct {
 	Peers          map[string]*nattywad.ServerPeer // keyed to peer id (e.g. XMPP JID)
 	MasqueradeSets map[string][]*fronted.Masquerade
 
-	OpenUi    bool              // Flag specifying whether or not the UI should be automatically open in the browser
-	UiAddr    string            // UI HTTP server address
+	OpenUI    bool              // Flag specifying whether or not the UI should be automatically open in the browser
+	UIAddr    string            // UI HTTP server address
 	Whitelist *whitelist.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
 }
 
