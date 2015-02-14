@@ -43,8 +43,8 @@ func init() {
 
 func nativeLoop() {
 	_nativeLoop.Call(
-		syscall.NewCallback(systray_ready),
-		syscall.NewCallback(systray_menu_item_selected))
+		syscall.NewCallbackCDecl(systray_ready),
+		syscall.NewCallbackCDecl(systray_menu_item_selected))
 }
 
 func quit() {
@@ -134,7 +134,10 @@ func strPtr(s string) (uintptr, error) {
 	return uintptr(unsafe.Pointer(bp)), nil
 }
 
-func systray_ready() uintptr {
+// systray_ready takes an ignored parameter just so we can compile a callback
+// (for some reason in Go 1.4.x, syscall.NewCallback panics if there's no
+// parameter to the function).
+func systray_ready(ignore uintptr) uintptr {
 	systrayReady()
 	return 0
 }
