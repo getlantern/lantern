@@ -30,10 +30,6 @@ var mockWhitelists = []struct {
 	},
 }
 
-func TestUnmodifiedWhitelist(t *testing.T) {
-
-}
-
 func testConfig(entries []string) *Config {
 	return &Config{
 		Additions: []string{},
