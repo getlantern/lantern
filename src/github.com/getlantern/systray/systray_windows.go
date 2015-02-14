@@ -7,8 +7,6 @@ import (
 	"path"
 	"syscall"
 	"unsafe"
-
-	"github.com/getlantern/tarfs"
 )
 
 var (
@@ -27,17 +25,12 @@ var (
 
 func init() {
 	// Write DLL to file
-	fs, err := tarfs.New(systraydll, "")
-	if err != nil {
-		panic(fmt.Errorf("Unable to open systray.dll: %v", err))
-	}
-
-	b, err := fs.Get("systray.dll")
+	b, err := Asset("systray.dll")
 	if err != nil {
 		panic(fmt.Errorf("Unable to read systray.dll: %v", err))
 	}
 
-	err = os.MkdirAll(dllDir, 755)
+	err = os.MkdirAll(dllDir, 0755)
 	if err != nil {
 		panic(fmt.Errorf("Unable to create directory %v to hold systray.dll: %v", dllDir, err))
 	}
@@ -50,8 +43,8 @@ func init() {
 
 func nativeLoop() {
 	_nativeLoop.Call(
-		syscall.NewCallback(systray_ready),
-		syscall.NewCallback(systray_menu_item_selected))
+		syscall.NewCallbackCDecl(systray_ready),
+		syscall.NewCallbackCDecl(systray_menu_item_selected))
 }
 
 func quit() {
@@ -79,6 +72,7 @@ func SetIcon(iconBytes []byte) {
 		log.Errorf("Unable to write icon to temp file %v: %v", f.Name(), f)
 		return
 	}
+	// Need to close file before we load it to make sure contents is flushed.
 	f.Close()
 	name, err := strPtr(f.Name())
 	if err != nil {
@@ -140,7 +134,10 @@ func strPtr(s string) (uintptr, error) {
 	return uintptr(unsafe.Pointer(bp)), nil
 }
 
-func systray_ready() uintptr {
+// systray_ready takes an ignored parameter just so we can compile a callback
+// (for some reason in Go 1.4.x, syscall.NewCallback panics if there's no
+// parameter to the function).
+func systray_ready(ignore uintptr) uintptr {
 	systrayReady()
 	return 0
 }

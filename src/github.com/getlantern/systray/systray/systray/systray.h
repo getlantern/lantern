@@ -1,7 +1,7 @@
 #pragma once
 
 extern "C" {
-	__declspec(dllexport) int nativeLoop(void (*systray_ready)(), void (*_systray_menu_item_selected)(int menu_id));
+	__declspec(dllexport) int nativeLoop(void (*systray_ready)(int ignored), void (*_systray_menu_item_selected)(int menu_id));
 
 	__declspec(dllexport) void setIcon(const char* iconFile);
 	__declspec(dllexport) void setTooltip(char* tooltip);

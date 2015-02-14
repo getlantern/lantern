@@ -5,6 +5,14 @@
 VERSION="`git describe --abbrev=0 --tags --exact-match || git rev-parse --short HEAD`"
 BUILD_DATE="`date -u +%Y%m%d%.%H%M%S`"
 echo "Building flashlight version $VERSION ($BUILD_DATE)"
+<<<<<<< HEAD
 #gox -ldflags="-w -X main.version $VERSION -X main.buildDate $BUILD_DATE" -osarch="linux/386 linux/amd64 windows/386 darwin/amd64" github.com/getlantern/flashlight
 # Linux currently doesn't support cross compilation because of native dependency in systray
 gox -ldflags="-w -X main.version $VERSION -X main.buildDate $BUILD_DATE" -osarch="windows/386 darwin/amd64" github.com/getlantern/flashlight
+=======
+# gox -ldflags="-w -X main.version $VERSION -X main.buildDate $BUILD_DATE" -osarch="linux/386 linux/amd64 windows/386 darwin/amd64" github.com/getlantern/flashlight
+# Compile for Mac
+gox -ldflags="-w -X main.version $VERSION -X main.buildDate $BUILD_DATE" -osarch="darwin/amd64" -output="lantern_{{.OS}}_{{.Arch}}" github.com/getlantern/flashlight
+# Compile for Windows (use -H=windowsgui ldflag to make this a Windows instead of a console app)
+gox -ldflags="-w -X main.version $VERSION -X main.buildDate $BUILD_DATE -H=windowsgui" -osarch="windows/386" -output="lantern_{{.OS}}_{{.Arch}}" github.com/getlantern/flashlight
+>>>>>>> 946b112680e2ededf5ed8ac8a3b6eeb054333866
