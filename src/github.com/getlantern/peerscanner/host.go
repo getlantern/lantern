@@ -55,6 +55,7 @@ type host struct {
 	name        string
 	ip          string
 	record      *cloudflare.Record
+	isProxying  bool
 	groups      map[string]*group
 	lastSuccess time.Time
 	lastTest    time.Time
@@ -290,25 +291,22 @@ func (h *host) register() error {
 }
 
 func (h *host) registerHost() error {
-	if h.record != nil {
+	if h.isProxying {
 		log.Tracef("Host already registered, no need to re-register: %v", h)
 		return nil
 	}
 
 	log.Debugf("Registering %v", h)
 
-	rec, err := cfutil.Register(h.name, h.ip)
-	if err == nil || isDuplicateError(err) {
-		h.record = rec
-		err = nil
-	}
+	var err error
+	h.record, h.isProxying, err = cfutil.EnsureRegistered(h.name, h.ip, h.record)
 	return err
 }
 
 func (h *host) registerToRotations() error {
 	for _, group := range h.groups {
 		err := group.register(h)
-		if err != nil && !isDuplicateError(err) {
+		if err != nil {
 			return err
 		}
 	}
@@ -417,8 +415,4 @@ func (h *host) doIsAbleToProxy() (bool, bool, error) {
 	}
 
 	return true, false, nil
-}
-
-func isDuplicateError(err error) bool {
-	return strings.Contains(err.Error(), "The record already exists.")
 }
