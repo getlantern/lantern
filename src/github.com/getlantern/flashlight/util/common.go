@@ -3,8 +3,8 @@ package util
 import (
 	"errors"
 	"github.com/getlantern/golog"
-	"github.com/mitchellh/go-homedir"
 	"os"
+	"os/user"
 	"path"
 )
 
@@ -14,15 +14,13 @@ var (
 
 type logger func(arg interface{})
 
-// GetUserHomeDir() determines the user home directory using the go-homedir
-// package which can be used in cross-compliation environments
 func GetUserHomeDir() (string, error) {
-	homedir, err := homedir.Dir()
+	usr, err := user.Current()
 	if err != nil {
 		log.Errorf("Error locating user home directory %s", err)
 		return "", err
 	}
-	lanternDir := path.Join(homedir, ".lantern")
+	lanternDir := path.Join(usr.HomeDir, ".lantern")
 	// Create the ~/.lantern directory if it doesn't exist already
 	exists, _ := DirExists(lanternDir)
 	if !exists {
