@@ -2,11 +2,11 @@ package util
 
 import (
 	"errors"
-	"fmt"
 	"github.com/getlantern/golog"
+	"github.com/mitchellh/go-homedir"
 	"io/ioutil"
 	"os"
-	"os/user"
+	"path"
 )
 
 var (
@@ -15,17 +15,24 @@ var (
 
 type logger func(arg interface{})
 
-// Based on https://github.com/getlantern/lantern-go/blob/master/src/lantern/config/config.go
-
-// determineConfigDir() determines where to load the config by checking the
-// command line and defaulting to ~/.lantern.
-func DetermineConfigDir() (string, error) {
-	usr, err := user.Current()
+// GetUserHomeDir() determines the user home directory using the go-homedir
+// package which can be used in cross-compliation environments
+func GetUserHomeDir() (string, error) {
+	homedir, err := homedir.Dir()
 	if err != nil {
-		fmt.Errorf("Error location user home directory %v", err)
+		log.Errorf("Error locating user home directory %s", err)
 		return "", err
 	}
-	return usr.HomeDir + "/.lantern", nil
+	lanternDir := path.Join(homedir, ".lantern")
+	// Create the user home directory if it doesn't exist already
+	exists, _ := DirExists(lanternDir)
+	if !exists {
+		err = os.Mkdir(lanternDir, 0777)
+		if err != nil {
+			log.Errorf("Error creating user home directory: %s", err)
+		}
+	}
+	return lanternDir, err
 }
 
 func Check(e error, log logger, msg string) {

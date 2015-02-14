@@ -14,6 +14,7 @@ import (
 
 	"gopkg.in/fatih/set.v0"
 	"os"
+	"path"
 	"regexp"
 	"sort"
 	"strings"
@@ -60,12 +61,12 @@ type PacFile struct {
 // Determine user home directory and PAC file path during initialization
 func init() {
 	var err error
-	ConfigDir, err = util.DetermineConfigDir()
+	ConfigDir, err = util.GetUserHomeDir()
 	if err != nil {
-		log.Errorf("Could not open user home directory: %s", err)
+		log.Fatalf("Could not retrieve user home directory: %s", err)
 		return
 	}
-	PacFilePath = ConfigDir + "/" + PacFilename
+	PacFilePath = path.Join(ConfigDir, PacFilename)
 }
 
 func New(cfg *Config) *Whitelist {
@@ -89,11 +90,20 @@ func New(cfg *Config) *Whitelist {
 	entries := set.StringSlice(set.Difference(entrySet, toRemove))
 	sort.Strings(entries)
 
-	return &Whitelist{
+	wl := &Whitelist{
 		cfg:      cfg,
 		cloudSet: cloudSet,
 		entries:  entries,
 	}
+
+	pacFileExists, _ := util.FileExists(PacFilePath)
+	// if the pac file doesn't already exist
+	// we create it now to synchronize it with the YAML config
+	if !pacFileExists {
+		go wl.updatePacFile()
+	}
+
+	return wl
 }
 
 func (wl *Whitelist) RefreshEntries() []string {
