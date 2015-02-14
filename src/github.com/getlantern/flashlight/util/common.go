@@ -52,7 +52,7 @@ func DirExists(dirName string) (bool, error) {
 	}
 
 	if !src.IsDir() {
-		err := "UI source exists, but it's not a directorY"
+		err := "source exists, but it's not a directory"
 		return false, errors.New(err)
 	}
 
