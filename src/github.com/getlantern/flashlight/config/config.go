@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/user"
-	"path"
+	"path/filepath"
 	"time"
 
 	"github.com/getlantern/fronted"
@@ -151,7 +151,7 @@ func InConfigDir(filename string) string {
 			}
 		}
 	}
-	return fmt.Sprintf("%s%c%s", cdir, os.PathSeparator, filename)
+	return filepath.Join(cdir, filename)
 }
 
 // TrustedCACerts returns a slice of PEM-encoded certs for the trusted CAs
@@ -348,5 +348,5 @@ func inHomeDir(filename string) string {
 	if err != nil {
 		panic(fmt.Errorf("Unable to determine user's home directory: %s", err))
 	}
-	return path.Join(usr.HomeDir, filename)
+	return filepath.Join(usr.HomeDir, filename)
 }
