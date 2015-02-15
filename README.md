@@ -17,14 +17,14 @@ which includes the DNS resolution code and some other things.  See
 for more discussion.
 
 To deal with that, you need to use a Go installed using
-[gonative](https://github.com/getlantern/gonative). Ultimately, you can put this
+[gonative](https://github.com/inconshreveable/gonative). Ultimately, you can put this
 go wherever you like. Ox keeps his at ~/go_native.
 
 ```bash
 go get github.com/mitchellh/gox
-go get github.com/getlantern/gonative
+go get github.com/inconshreveable/gonative
 cd ~
-gonative build -version="1.4" -platforms="darwin_amd64 linux_386 linux_amd64 windows_386"
+gonative build -version="1.4.1" -platforms="darwin_amd64 linux_386 linux_amd64 windows_386"
 mv go go_native
 ```
 
