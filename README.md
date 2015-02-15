@@ -5,29 +5,6 @@ flashlight-build is a [gost](https://github.com/getlantern/gost) project that
 provides repeatable builds and consolidated pull requests for flashlight (now
 lantern).
 
-### Building Lantern for OS X
-
-```bash
-brew install node
-npm install -g appdmg
-./build_osx.bash
-```
-
-### Building Lantern for Windows
-
-Prerequisites
-
-* http://sourceforge.net/projects/mingw-w64/
-* http://nsis.sourceforge.net/Download (version 3.x)
-
-
-
-### Old stuff below here, needs to be cleaned up
-
-
-
-
-
 Flashlight requires [Go 1.4.x](http://golang.org/dl/).
 
 It is convenient to build flashlight for multiple platforms using
