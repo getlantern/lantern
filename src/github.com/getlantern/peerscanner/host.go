@@ -281,11 +281,11 @@ func (h *host) doReset(newName string) {
 func (h *host) register() error {
 	err := h.registerHost()
 	if err != nil {
-		return fmt.Errorf("Unable to register host: %v", err)
+		return fmt.Errorf("Unable to register host %v: %v", h, err)
 	}
 	err = h.registerToRotations()
 	if err != nil {
-		return fmt.Errorf("Unable to register rotations: %v", err)
+		return err
 	}
 	return nil
 }
@@ -307,7 +307,7 @@ func (h *host) registerToRotations() error {
 	for _, group := range h.groups {
 		err := group.register(h)
 		if err != nil {
-			return err
+			return fmt.Errorf("Unable to register %v to %v: %v", h, group, err)
 		}
 	}
 	return nil

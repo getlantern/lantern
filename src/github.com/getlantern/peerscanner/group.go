@@ -11,6 +11,10 @@ type group struct {
 	isProxying bool
 }
 
+func (g *group) String() string {
+	return g.subdomain
+}
+
 // register registers a host with this group in CloudFlare if it isn't already
 // registered.
 func (g *group) register(h *host) error {
