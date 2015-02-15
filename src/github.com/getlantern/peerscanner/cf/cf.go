@@ -70,7 +70,7 @@ func (util *Util) EnsureRegistered(name string, ip string, rec *cloudflare.Recor
 		rec, err = util.Client.CreateRecord(util.domain, &cr)
 
 		if err != nil {
-			if !isDuplicateError(err) {
+			if !isDuplicateRecord(err) {
 				return nil, false, err
 			}
 			log.Debugf("%v (%v) already registered, looking up existing record", name, ip)
@@ -114,6 +114,6 @@ func (util *Util) DestroyRecord(r *cloudflare.Record) error {
 	return util.Client.DestroyRecord(util.domain, r.Id)
 }
 
-func isDuplicateError(err error) bool {
+func isDuplicateRecord(err error) bool {
 	return strings.Contains(err.Error(), "The record already exists.")
 }
