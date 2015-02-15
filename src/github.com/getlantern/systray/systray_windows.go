@@ -127,11 +127,11 @@ func addOrUpdateMenuItem(item *MenuItem) {
 }
 
 func strPtr(s string) (uintptr, error) {
-	bp, err := syscall.BytePtrFromString(s)
+	u16, err := syscall.UTF16FromString(s)
 	if err != nil {
 		return 0, err
 	}
-	return uintptr(unsafe.Pointer(bp)), nil
+	return uintptr(unsafe.Pointer(&u16[0])), nil
 }
 
 // systray_ready takes an ignored parameter just so we can compile a callback

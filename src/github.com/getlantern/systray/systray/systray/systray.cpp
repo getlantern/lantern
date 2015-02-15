@@ -29,19 +29,6 @@ void reportWindowsError(const char* action) {
 	printf("Systray error %s: %d %s\n", action, errCode, pErrMsg);
 }
 
-wchar_t* UTF8ToUnicode(const char* str) {
-	wchar_t* result;
-	int textLen = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL ,0);
-	result = (wchar_t *)calloc((textLen+1), sizeof(wchar_t));
-	int converted = MultiByteToWideChar(CP_UTF8, 0, str, -1, (LPWSTR)result, textLen);
-	// Ensure result is alway zero terminated in case either syscall failed
-	if (converted == 0) {
-		reportWindowsError("convert UTF8 to UNICODE");
-		result[0] = L'\0';
-	}
-	return result;
-}
-
 void ShowMenu(HWND hWnd) {
 	POINT p;
 	if (0 == GetCursorPos(&p)) {
@@ -175,8 +162,7 @@ int nativeLoop(void (*systray_ready)(int ignored), void (*_systray_menu_item_sel
 }
 
 
-void setIcon(const char* ciconFile) {
-	wchar_t* iconFile = UTF8ToUnicode(ciconFile); 
+void setIcon(const wchar_t* iconFile) {
 	HICON hIcon = (HICON) LoadImage(NULL, iconFile, IMAGE_ICON, 64, 64, LR_LOADFROMFILE);
 	if (hIcon == NULL) {
 		reportWindowsError("load icon image");
@@ -187,17 +173,13 @@ void setIcon(const char* ciconFile) {
 	}
 }
 
-void setTooltip(char* ctooltip) {
-	wchar_t* tooltip = UTF8ToUnicode(ctooltip);
-	wcsncpy_s(nid.szTip, tooltip, 64);
+void setTooltip(const wchar_t* tooltip) {
+	wcsncpy_s(nid.szTip, tooltip, sizeof(nid.szTip)/sizeof(wchar_t));
 	nid.uFlags = NIF_TIP;
 	Shell_NotifyIcon(NIM_MODIFY, &nid);
-	free(tooltip);
-	free(ctooltip);
 }
 
-void add_or_update_menu_item(int menuId, char* ctitle, char* ctooltip, short disabled, short checked) {
-	wchar_t* title = UTF8ToUnicode(ctitle);
+void add_or_update_menu_item(int menuId, wchar_t* title, wchar_t* tooltip, short disabled, short checked) {
 	int *id = (int *) malloc(sizeof(int));
 	if (id == NULL) {
 		printf("Unable to allocate space for id");
@@ -235,8 +217,6 @@ void add_or_update_menu_item(int menuId, char* ctitle, char* ctooltip, short dis
 	if (i == itemCount) {
 		InsertMenuItem(hTrayMenu, -1, TRUE, &menuItemInfo);
 	}
-
-	free(ctooltip);
 }
 
 void quit() {
