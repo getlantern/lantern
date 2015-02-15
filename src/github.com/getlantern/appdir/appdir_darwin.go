@@ -9,5 +9,5 @@ func general(app string) string {
 }
 
 func logs(app string) string {
-	return inHomeDir(filepath.Join("Library/Application Support/Logs", app))
+	return inHomeDir(filepath.Join("Library/Logs", app))
 }
