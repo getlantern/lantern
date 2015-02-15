@@ -126,6 +126,7 @@ func addOrUpdateMenuItem(item *MenuItem) {
 	)
 }
 
+// strPrt converts a Go string into a wchar_t*
 func strPtr(s string) (uintptr, error) {
 	u16, err := syscall.UTF16FromString(s)
 	if err != nil {
