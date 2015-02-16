@@ -30,6 +30,7 @@ type UIServer struct {
 	ProxiedSites     *proxiedsites.ProxiedSites
 	ProxiedSitesChan chan *proxiedsites.Config
 	Addr             string
+	CfgChan          chan *config.Config
 }
 
 type ProxiedSitesMsg struct {
@@ -65,22 +66,29 @@ func serveHome(r *http.ServeMux) {
 }
 
 func (srv UIServer) writeProxiedSites() {
-	msg := &ProxiedSitesMsg{
-		Global:  srv.ProxiedSites.GetGlobalList(),
-		Entries: srv.ProxiedSites.GetEntries(),
-	}
-	if err := srv.Conn.WriteJSON(msg); err != nil {
-		log.Errorf("Error writing initial proxied sites: %s", err)
+	for {
+		msg := &ProxiedSitesMsg{
+			Global:  srv.ProxiedSites.GetGlobalList(),
+			Entries: srv.ProxiedSites.GetEntries(),
+		}
+		if err := srv.Conn.WriteJSON(msg); err != nil {
+			log.Errorf("Error writing initial proxied sites: %s", err)
+		}
+		cfg := <-srv.CfgChan
+		srv.ProxiedSites = proxiedsites.New(cfg.Client.ProxiedSites)
+		srv.ProxiedSites.RefreshEntries()
 	}
 }
 
 func (srv UIServer) readClientMessage() {
+
+	defer srv.Conn.Close()
 	for {
 		var str interface{}
 		err := srv.Conn.ReadJSON(&str)
 		log.Debug(str)
 		if err != nil {
-			log.Debugf("======> ERror reading msg %s", err)
+			break
 		}
 	}
 }
@@ -102,15 +110,17 @@ func OpenUI(shouldOpen bool, uiAddr string) {
 func (srv UIServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	var err error
-	//var newCfg proxiedsites.Config
-
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", 405)
+		return
+	}
 	srv.Conn, err = upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Error(err)
 		return
 	}
 	// write initial proxied sites list
-	srv.writeProxiedSites()
+	go srv.writeProxiedSites()
 	srv.readClientMessage()
 }
 
@@ -120,19 +130,9 @@ func (srv UIServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (srv UIServer) ConfigureProxySites(cfg *config.Config) {
 	if !reflect.DeepEqual(srv.ProxiedSites.GetConfig(), cfg.Client.ProxiedSites) {
 		log.Debugf("proxiedsites changed in flashlight.yaml..")
-		log.Debugf("1st. %d", len(srv.ProxiedSites.GetConfig().Cloud))
-		log.Debugf("2nd. %d", len(cfg.Client.ProxiedSites.Cloud))
-
-		log.Debugf("1st. %d", len(srv.ProxiedSites.GetConfig().Additions))
-		log.Debugf("2nd. %d", len(cfg.Client.ProxiedSites.Additions))
-
-		log.Debugf("1st. %d", len(srv.ProxiedSites.GetConfig().Deletions))
-		log.Debugf("2nd. %d", len(cfg.Client.ProxiedSites.Deletions))
-
-		//os.Exit(1)
-		/*srv.ProxiedSites = proxiedsites.New(cfg.Client.ProxiedSites)
+		srv.ProxiedSites = proxiedsites.New(cfg.Client.ProxiedSites)
 		srv.writeProxiedSites()
-		srv.ProxiedSites.RefreshEntries()*/
+		srv.ProxiedSites.RefreshEntries()
 	}
 }
 
@@ -149,7 +149,5 @@ func (srv UIServer) StartServer() {
 	}
 
 	log.Debugf("Starting UI HTTP server at %s", srv.Addr)
-	go func() {
-		log.Fatal(httpServer.ListenAndServe())
-	}()
+	go log.Fatal(httpServer.ListenAndServe())
 }

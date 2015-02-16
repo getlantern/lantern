@@ -61,7 +61,7 @@ app.controller('SettingsCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
   });
 }]);
 
-app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'SETTING', 'INTERACTION', 'INPUT_PAT', 'MODAL', 'ProxiedSites', function($scope, $filter, SETTING, INTERACTION, INPUT_PAT, MODAL, ProxiedSites) {
+app.controller('ProxiedSitesCtrl', ['$rootScope', '$scope', '$filter', 'SETTING', 'INTERACTION', 'INPUT_PAT', 'MODAL', 'ProxiedSites', function($rootScope, $scope, $filter, SETTING, INTERACTION, INPUT_PAT, MODAL, ProxiedSites) {
       var fltr = $filter('filter'),
       DOMAIN = INPUT_PAT.DOMAIN,
       IPV4 = INPUT_PAT.IPV4,
@@ -83,11 +83,12 @@ app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'SETTING', 'INTERACTION
   };
 
   $scope.resetProxiedSites = function(reset) {
-    $scope.proxiedSites = $scope.globalList;
-    $scope.input = $scope.proxiedSites;
     if (reset) {
+        $scope.entries = $rootScope.global;
+        $scope.input = $scope.proxiedSites;
         makeValid();
     } else {
+        $rootScope.entries = $rootScope.originalList;
         $scope.closeModal();
     }
   };
@@ -96,9 +97,9 @@ app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'SETTING', 'INTERACTION
 
   $scope.$watch('searchText', function (searchText) {
     if (!searchText ) {
-        $scope.proxiedSites = $scope.originalList;
+        $rootScope.entries = $rootScope.originalList;
     } else {
-        $scope.proxiedSites = (searchText ? fltr(proxiedSitesDirty, searchText) : proxiedSitesDirty);
+        $rootScope.entries = (searchText ? fltr(proxiedSitesDirty, searchText) : proxiedSitesDirty);
     }
   });
 
@@ -173,14 +174,11 @@ app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'SETTING', 'INTERACTION
       return $scope.interaction(INTERACTION.continue);
     }
 
-    $scope.proxiedSites = $scope.arrLowerCase(proxiedSitesDirty);
+    $scope.entries = $scope.arrLowerCase(proxiedSitesDirty);
 
-    var updatedProxiedSites = new ProxiedSites({
-        Additions: $scope.setDiff($scope.proxiedSites, $scope.globalList),
-        Deletions: $scope.setDiff($scope.globalList, $scope.proxiedSites)
-    });
+    ProxiedSites.update();
 
-    updatedProxiedSites.$save();
+    //updatedProxiedSites.$save();
 
     $scope.closeModal();
   };

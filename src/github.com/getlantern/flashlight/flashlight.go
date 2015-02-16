@@ -141,14 +141,10 @@ func runUIServer(cfg *config.Config) {
 				ProxiedSites:     proxiedsites.New(cfg.Client.ProxiedSites),
 				ProxiedSitesChan: proxiedSitesChan,
 				Addr:             cfg.UIAddr,
+				CfgChan:          configUpdates,
 			}
-			go srv.StartServer()
-
-			for {
-				cfg := <-configUpdates
-				srv.ConfigureProxySites(cfg)
-			}
-
+			srv.StartServer()
+			log.Debug("Started server...")
 		}()
 
 		// if the openui flag is specified, the UI is automatically
