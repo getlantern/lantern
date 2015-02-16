@@ -7,8 +7,6 @@ import (
 	"path"
 	"syscall"
 	"unsafe"
-
-	"github.com/getlantern/tarfs"
 )
 
 var (
@@ -27,17 +25,12 @@ var (
 
 func init() {
 	// Write DLL to file
-	fs, err := tarfs.New(systraydll, "")
-	if err != nil {
-		panic(fmt.Errorf("Unable to open systray.dll: %v", err))
-	}
-
-	b, err := fs.Get("systray.dll")
+	b, err := Asset("systray.dll")
 	if err != nil {
 		panic(fmt.Errorf("Unable to read systray.dll: %v", err))
 	}
 
-	err = os.MkdirAll(dllDir, 755)
+	err = os.MkdirAll(dllDir, 0755)
 	if err != nil {
 		panic(fmt.Errorf("Unable to create directory %v to hold systray.dll: %v", dllDir, err))
 	}
@@ -50,8 +43,8 @@ func init() {
 
 func nativeLoop() {
 	_nativeLoop.Call(
-		syscall.NewCallback(systray_ready),
-		syscall.NewCallback(systray_menu_item_selected))
+		syscall.NewCallbackCDecl(systray_ready),
+		syscall.NewCallbackCDecl(systray_menu_item_selected))
 }
 
 func quit() {
@@ -79,13 +72,14 @@ func SetIcon(iconBytes []byte) {
 		log.Errorf("Unable to write icon to temp file %v: %v", f.Name(), f)
 		return
 	}
+	// Need to close file before we load it to make sure contents is flushed.
 	f.Close()
-	name, err := strPtr(f.Name())
+	name, err := strUTF16(f.Name())
 	if err != nil {
 		log.Errorf("Unable to convert name to string pointer: %v", err)
 		return
 	}
-	_setIcon.Call(name)
+	_setIcon.Call(name.Raw())
 }
 
 // SetTitle sets the systray title, only available on Mac.
@@ -96,12 +90,12 @@ func SetTitle(title string) {
 // SetTooltip sets the systray tooltip to display on mouse hover of the tray icon,
 // only available on Mac and Windows.
 func SetTooltip(tooltip string) {
-	t, err := strPtr(tooltip)
+	t, err := strUTF16(tooltip)
 	if err != nil {
 		log.Errorf("Unable to convert tooltip to string pointer: %v", err)
 		return
 	}
-	_setTooltip.Call(t)
+	_setTooltip.Call(t.Raw())
 }
 
 func addOrUpdateMenuItem(item *MenuItem) {
@@ -113,34 +107,41 @@ func addOrUpdateMenuItem(item *MenuItem) {
 	if item.checked {
 		checked = 1
 	}
-	title, err := strPtr(item.title)
+	title, err := strUTF16(item.title)
 	if err != nil {
 		log.Errorf("Unable to convert title to string pointer: %v", err)
 		return
 	}
-	tooltip, err := strPtr(item.tooltip)
+	tooltip, err := strUTF16(item.tooltip)
 	if err != nil {
 		log.Errorf("Unable to convert tooltip to string pointer: %v", err)
 		return
 	}
 	_add_or_update_menu_item.Call(
 		uintptr(item.id),
-		title,
-		tooltip,
+		title.Raw(),
+		tooltip.Raw(),
 		uintptr(disabled),
 		uintptr(checked),
 	)
 }
 
-func strPtr(s string) (uintptr, error) {
-	bp, err := syscall.BytePtrFromString(s)
-	if err != nil {
-		return 0, err
-	}
-	return uintptr(unsafe.Pointer(bp)), nil
+type utf16 []uint16
+
+// Raw returns the underlying *wchar_t of an utf16 so we can pass to DLL
+func (u utf16) Raw() uintptr {
+	return uintptr(unsafe.Pointer(&u[0]))
 }
 
-func systray_ready() uintptr {
+// strUTF16 converts a Go string into a utf16 byte sequence
+func strUTF16(s string) (utf16, error) {
+	return syscall.UTF16FromString(s)
+}
+
+// systray_ready takes an ignored parameter just so we can compile a callback
+// (for some reason in Go 1.4.x, syscall.NewCallback panics if there's no
+// parameter to the function).
+func systray_ready(ignore uintptr) uintptr {
 	systrayReady()
 	return 0
 }
