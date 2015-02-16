@@ -3,7 +3,6 @@ package http
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"reflect"
 	"time"
 
@@ -130,7 +129,7 @@ func (srv UIServer) ConfigureProxySites(cfg *config.Config) {
 		log.Debugf("1st. %d", len(srv.ProxiedSites.GetConfig().Deletions))
 		log.Debugf("2nd. %d", len(cfg.Client.ProxiedSites.Deletions))
 
-		os.Exit(1)
+		//os.Exit(1)
 		/*srv.ProxiedSites = proxiedsites.New(cfg.Client.ProxiedSites)
 		srv.writeProxiedSites()
 		srv.ProxiedSites.RefreshEntries()*/
