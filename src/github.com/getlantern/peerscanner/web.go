@@ -152,6 +152,9 @@ func clientIpFor(req *http.Request, name string) string {
 	if !isFallback(name) && strings.HasPrefix(ip, "128.199") {
 		log.Errorf("Found fallback ip %v for non-fallback host %v", ip, name)
 		return ""
+	} else if isFallback(name) && !strings.HasPrefix(ip, "128.199") {
+		log.Errorf("Found non-fallback ip %v for fallback host %v", ip, name)
+		return ""
 	}
 	return ip
 }
