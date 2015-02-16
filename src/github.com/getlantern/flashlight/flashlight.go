@@ -3,6 +3,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io"
 	"math/rand"
 	"os"
@@ -16,6 +17,7 @@ import (
 	"github.com/getlantern/golog"
 	"github.com/getlantern/profiling"
 	"github.com/getlantern/systray"
+	"github.com/getlantern/wfilter"
 
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
@@ -191,10 +193,17 @@ func configureLogging() *rotator.SizeRotator {
 	file.RotationSize = 1 * 1024 * 1024
 	// Keep up to 20 log files
 	file.MaxRotation = 20
-	errorOut := io.MultiWriter(file, os.Stderr)
-	debugOut := io.MultiWriter(file, os.Stdout)
+	errorOut := timestamped(io.MultiWriter(file, os.Stderr))
+	debugOut := timestamped(io.MultiWriter(file, os.Stdout))
 	golog.SetOutputs(errorOut, debugOut)
 	return file
+}
+
+// timestamped adds a timestamp to the beginning of log lines
+func timestamped(orig io.Writer) io.Writer {
+	return wfilter.Lines(orig, func(w io.Writer, line string) (int, error) {
+		return fmt.Fprintf(w, "%s - %v", time.Now().Format(time.RFC3339), line)
+	})
 }
 
 func configureSystemTray() {
