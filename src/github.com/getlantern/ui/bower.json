@@ -16,7 +16,8 @@
     "jsonpatch": "1.0.0-rc1",
     "lodash": "3.0.0",
     "select2": "3.5.2",
-    "topojson": "~1.6.18"
+    "topojson": "~1.6.18",
+    "angular-websocket": "~1.0.8"
   },
   "devDependencies": {
     "angular-mocks": "1.3.8",

@@ -66,16 +66,17 @@ app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'SETTING', 'INTERACTION
       DOMAIN = INPUT_PAT.DOMAIN,
       IPV4 = INPUT_PAT.IPV4,
       nproxiedSitesMax = 1000,
-      proxiedSites = [],
       proxiedSitesDirty = [];
 
-  $scope.proxiedSites = [];
+  $scope.proxiedSites = ProxiedSites.entries;
 
-  ProxiedSites.get({ list: 'original'}).$promise.then(function(data) {
-      $scope.originalList = data.ProxiedSites;
-      $scope.globalList = data.Global;
-      $scope.proxiedSites = data.ProxiedSites;
-  });
+  $scope.arrLowerCase = function(A) {
+      if (A) {
+        return A.join('|').toLowerCase().split('|');
+      } else {
+        return [];
+      }
+  }
 
   $scope.setFormScope = function(scope) {
       $scope.formScope = scope;
@@ -109,20 +110,14 @@ app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'SETTING', 'INTERACTION
     }
   }
 
-  $scope.$watch('proxiedSites', function(proxiedSites_) {
+  /*$scope.$watch('proxiedSites', function(proxiedSites_) {
     if (proxiedSites) {
       proxiedSites = normalizedLines(proxiedSites_);
       $scope.input = proxiedSites.join('\n');
       makeValid();
       proxiedSitesDirty = _.cloneDeep(proxiedSites);
     }
-  }, true);
-
-  $scope.$watch('model.nproxiedSitesMax', function(nproxiedSitesMax_) {
-    nproxiedSitesMax = nproxiedSitesMax_;
-    if ($scope.input)
-      $scope.validate($scope.input);
-  }, true);
+  }, true);*/
 
   function normalizedLine (domainOrIP) {
     return angular.lowercase(domainOrIP.trim());
@@ -165,12 +160,28 @@ app.controller('ProxiedSitesCtrl', ['$scope', '$filter', 'SETTING', 'INTERACTION
     return !$scope.errorLabelKey;
   };
 
+  $scope.setDiff  = function(A, B) {
+      return A.filter(function (a) {
+          return B.indexOf(a) == -1;
+      });
+  };
+
   $scope.handleContinue = function () {
+    var customizations = {};
+     
     if ($scope.proxiedSitesForm.$invalid) {
       return $scope.interaction(INTERACTION.continue);
     }
-    $scope.proxiedSites = proxiedSitesDirty;
-    ProxiedSites.save({}, $scope.proxiedSites);
+
+    $scope.proxiedSites = $scope.arrLowerCase(proxiedSitesDirty);
+
+    var updatedProxiedSites = new ProxiedSites({
+        Additions: $scope.setDiff($scope.proxiedSites, $scope.globalList),
+        Deletions: $scope.setDiff($scope.globalList, $scope.proxiedSites)
+    });
+
+    updatedProxiedSites.$save();
+
     $scope.closeModal();
   };
 }]);

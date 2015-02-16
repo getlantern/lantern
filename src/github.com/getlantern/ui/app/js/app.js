@@ -2,6 +2,7 @@
 
 var app = angular.module('app', [
   'app.constants',
+  'ngWebSocket',
   'app.helpers',
   'pascalprecht.translate',
   'app.filters',
@@ -59,7 +60,7 @@ var app = angular.module('app', [
               }
 
               function toUser(array) {                        
-                  if (array && typeof array != 'undefined') {
+                  if (array) {
                     return array.join("\n");
                   }
               }
@@ -69,10 +70,37 @@ var app = angular.module('app', [
           }
       };
   })
-  .factory('ProxiedSites', ['$resource', function($resource) {
-    return $resource('/proxiedsites', {list: 'original'});
+  .factory('ProxiedSites', ['$websocket', '$rootScope', function($websocket, $rootScope) {
+      var dataStream = $websocket('ws://' + document.location.host + '/data');
+      var collection = [];
+
+      dataStream.onMessage(function(message) {
+          var msg = JSON.parse(message.data);
+          $rootScope.entries = msg.Entries;
+          collection.push(msg);
+      });
+
+      dataStream.onOpen(function(msg) {
+        console.log("new websocket instance created " + msg);
+      });
+
+      dataStream.onClose(function(msg) {
+          console.log("this websocket instance closed " + msg);
+      });
+
+      dataStream.onError(function(msg) {
+          console.log("error on this websocket instance " + msg);
+      });
+
+      var methods = {
+          collection: collection,
+          get: function() {
+              dataStream.send(JSON.stringify({ action: 'get' }));
+          }
+      };
+      return methods;
   }])
-  .run(function ($filter, $log, $rootScope, $timeout, $window, 
+  .run(function ($filter, $log, $rootScope, $timeout, $window, $websocket,
                  $translate, $http, apiSrvc, gaMgr, modelSrvc, ENUMS, EXTERNAL_URL, MODAL, CONTACT_FORM_MAXLEN) {
 
     var CONNECTIVITY = ENUMS.CONNECTIVITY,
