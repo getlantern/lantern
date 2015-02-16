@@ -14,6 +14,13 @@ static HMENU hTrayMenu;
 
 void (*systray_menu_item_selected)(int menu_id);
 
+wchar_t *copy(wchar_t *s) {
+	size_t l = wcslen(s);
+	wchar_t *c = (wchar_t*) calloc(l+1, sizeof(wchar_t));
+	wcsncpy(c, s, l);
+	return c;
+}
+
 void reportWindowsError(const char* action) {
 	LPTSTR pErrMsg = NULL;
 	DWORD errCode = GetLastError();
@@ -191,7 +198,7 @@ void add_or_update_menu_item(int menuId, wchar_t* title, wchar_t* tooltip, short
 	menuItemInfo.cbSize = sizeof(MENUITEMINFO);
 	menuItemInfo.fMask = MIIM_FTYPE | MIIM_STRING | MIIM_DATA | MIIM_STATE;
 	menuItemInfo.fType = MFT_STRING;
-	menuItemInfo.dwTypeData = title;
+	menuItemInfo.dwTypeData = copy(title);
 	menuItemInfo.cch = wcslen(title) + 1;
 	menuItemInfo.dwItemData = (ULONG_PTR)id;
 	menuItemInfo.fState = 0;

@@ -74,12 +74,13 @@ func SetIcon(iconBytes []byte) {
 	}
 	// Need to close file before we load it to make sure contents is flushed.
 	f.Close()
-	name, err := strPtr(f.Name())
+	u16, name, err := strPtr(f.Name())
 	if err != nil {
 		log.Errorf("Unable to convert name to string pointer: %v", err)
 		return
 	}
 	_setIcon.Call(name)
+	noop(u16)
 }
 
 // SetTitle sets the systray title, only available on Mac.
@@ -90,12 +91,13 @@ func SetTitle(title string) {
 // SetTooltip sets the systray tooltip to display on mouse hover of the tray icon,
 // only available on Mac and Windows.
 func SetTooltip(tooltip string) {
-	t, err := strPtr(tooltip)
+	u16, t, err := strPtr(tooltip)
 	if err != nil {
 		log.Errorf("Unable to convert tooltip to string pointer: %v", err)
 		return
 	}
 	_setTooltip.Call(t)
+	noop(u16)
 }
 
 func addOrUpdateMenuItem(item *MenuItem) {
@@ -107,12 +109,12 @@ func addOrUpdateMenuItem(item *MenuItem) {
 	if item.checked {
 		checked = 1
 	}
-	title, err := strPtr(item.title)
+	u16a, title, err := strPtr(item.title)
 	if err != nil {
 		log.Errorf("Unable to convert title to string pointer: %v", err)
 		return
 	}
-	tooltip, err := strPtr(item.tooltip)
+	u16b, tooltip, err := strPtr(item.tooltip)
 	if err != nil {
 		log.Errorf("Unable to convert tooltip to string pointer: %v", err)
 		return
@@ -124,15 +126,23 @@ func addOrUpdateMenuItem(item *MenuItem) {
 		uintptr(disabled),
 		uintptr(checked),
 	)
+	noop(u16a)
+	noop(u16b)
 }
 
 // strPrt converts a Go string into a wchar_t*
-func strPtr(s string) (uintptr, error) {
+func strPtr(s string) ([]uint16, uintptr, error) {
 	u16, err := syscall.UTF16FromString(s)
 	if err != nil {
-		return 0, err
+		return nil, 0, err
 	}
-	return uintptr(unsafe.Pointer(&u16[0])), nil
+	return u16, uintptr(unsafe.Pointer(&u16[0])), nil
+}
+
+// noop does nothing. We just call it so that we're doing something with the u16
+// variable, which we just hang on to to prevent it being gc'd.
+func noop(u16 []uint16) {
+	// do nothing
 }
 
 // systray_ready takes an ignored parameter just so we can compile a callback
