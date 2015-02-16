@@ -4,3 +4,4 @@ example/example
 *.exe
 Release
 Debug
+*.sdf

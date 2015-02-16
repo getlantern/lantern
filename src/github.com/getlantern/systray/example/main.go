@@ -15,7 +15,7 @@ func main() {
 func onReady() {
 	systray.SetIcon(icon.Data)
 	systray.SetTitle("Awesome App")
-	systray.SetTooltip("Pretty awesome超级棒")
+	systray.SetTooltip("Lantern")
 	mQuit := systray.AddMenuItem("Quit", "Quit the whole app")
 	go func() {
 		<-mQuit.ClickedCh
