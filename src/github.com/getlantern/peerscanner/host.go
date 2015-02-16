@@ -262,16 +262,20 @@ func (h *host) reportStatus(s *status) {
 
 func (h *host) doReset(newName string) {
 	log.Tracef("Host notified us of its presence")
-	h.lastSuccess = time.Now()
-	h.lastTest = time.Time{}
 	if newName != h.name {
 		log.Debugf("Hostname for %v changed to %v", h, newName)
 		if h.record != nil {
 			log.Debugf("Deregistering old hostname %v", h.name)
-			h.doDeregisterHost()
+			err := h.doDeregisterHost()
+			if err != nil {
+				log.Error(err.Error())
+				return
+			}
 		}
 		h.name = newName
 	}
+	h.lastSuccess = time.Now()
+	h.lastTest = time.Time{}
 }
 
 /*******************************************************************************
@@ -330,17 +334,22 @@ func (h *host) deregisterHost() {
 	}
 
 	log.Debugf("Deregistering %v", h)
-	h.doDeregisterHost()
+	err := h.doDeregisterHost()
+	if err != nil {
+		log.Error(err.Error())
+	}
 }
 
-func (h *host) doDeregisterHost() {
+func (h *host) doDeregisterHost() error {
 	err := cfutil.DestroyRecord(h.record)
 	if err != nil {
-		log.Errorf("Unable to deregister host %v: %v", h, err)
-		return
+		return fmt.Errorf("Unable to deregister host %v: %v", h, err)
 	}
 
 	h.record = nil
+	h.isProxying = false
+
+	return nil
 }
 
 func (h *host) deregisterFromRotations() {
