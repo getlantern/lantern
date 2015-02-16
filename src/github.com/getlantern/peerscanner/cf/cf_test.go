@@ -3,8 +3,9 @@ package cf
 import (
 	"net/http"
 	"os"
-	"strings"
 	"testing"
+
+	"github.com/getlantern/cloudflare"
 
 	"github.com/getlantern/fdcount"
 	"github.com/getlantern/testify/assert"
@@ -31,7 +32,7 @@ func TestAll(t *testing.T) {
 	assert.NoError(t, counter.AssertDelta(0), "All file descriptors should have been closed")
 }
 
-func TestRegister(t *testing.T) {
+func TestEnsureRegistered(t *testing.T) {
 	_, counter, err := fdcount.Matching("TCP")
 	if err != nil {
 		t.Fatalf("Unable to get starting fdcount: %v", err)
@@ -41,15 +42,38 @@ func TestRegister(t *testing.T) {
 	u.Client.Http.Transport = &http.Transport{
 		DisableKeepAlives: true,
 	}
-	rec, err := u.Register("cf-test-entry", "127.0.0.1")
-	if err != nil && strings.Contains(err.Error(), "The record already exists.") {
-		// Duplicates are okay
-		err = nil
+
+	// Test with no existing record
+	name, ip := "cf-test-entry", "127.0.0.1"
+	rec, proxying, err := u.EnsureRegistered(name, ip, nil)
+	if assert.NoError(t, err, "Should be able to register with no record") {
+		assert.NotNil(t, rec, "A new record should have been returned")
+		assert.True(t, proxying, "Proxying (orange cloud) should be on")
 	}
-	if assert.NoError(t, err, "Should be able to register") {
+
+	// Test with existing record, but not passing it in
+	rec, proxying, err = u.EnsureRegistered(name, ip, nil)
+	if assert.NoError(t, err, "Should be able to register with unspecified existing record") {
+		assert.NotNil(t, rec, "Existing record should have been returned")
+		assert.True(t, proxying, "Proxying (orange cloud) should be on")
+
+		// Test with existing record, passing it in
+		rec, proxying, err = u.EnsureRegistered(name, ip, rec)
+		if assert.NoError(t, err, "Should be able to register with specified existing record") {
+			assert.NotNil(t, rec, "Existing record should have been returned")
+			assert.True(t, proxying, "Proxying (orange cloud) should be on")
+		}
+	}
+
+	if rec != nil {
 		err := u.DestroyRecord(rec)
 		assert.NoError(t, err, "Should be able to destroy record")
 	}
 
 	assert.NoError(t, counter.AssertDelta(0), "All file descriptors should have been closed")
+}
+
+func doTestEnsureRegistered(t *testing.T, rec *cloudflare.Record) *cloudflare.Record {
+
+	return rec
 }

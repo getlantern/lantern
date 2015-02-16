@@ -140,8 +140,8 @@ func clientIpFor(req *http.Request, name string) string {
 	if clientIp == "" {
 		clientIp = req.Header.Get("X-Forwarded-For")
 	}
-	if clientIp == "" && isFallback(name) {
-		// Use direct IP for fallbacks
+	if isFallback(name) {
+		// Always use direct IP for fallbacks
 		clientIp = strings.Split(req.RemoteAddr, ":")[0]
 	}
 	// clientIp may contain multiple ips, use the first

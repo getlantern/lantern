@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/getlantern/cloudflare"
@@ -53,31 +54,66 @@ func (util *Util) GetAllRecords() ([]cloudflare.Record, error) {
 	return allRecords, nil
 }
 
-func (util *Util) Register(name string, ip string) (*cloudflare.Record, error) {
-	cr := cloudflare.CreateRecord{Type: "A", Name: name, Content: ip}
-	rec, err := util.Client.CreateRecord(util.domain, &cr)
+// Register ensures that a record with the given name and ip is registered and
+// proxying (orange cloud enabled). An existing record can optionally be passed
+// in, in which case the record is assumed to be registered and we enable the
+// orange cloud for the existing record.
+// EnsureRegistered returns:
+//  - the record if registration was successful
+//  - true of it was able to turn on proxying
+//  - any error encountered
+func (util *Util) EnsureRegistered(name string, ip string, rec *cloudflare.Record) (*cloudflare.Record, bool, error) {
+	if rec == nil {
+		// Register record
+		var err error
+		cr := cloudflare.CreateRecord{Type: "A", Name: name, Content: ip}
+		rec, err = util.Client.CreateRecord(util.domain, &cr)
 
-	if err != nil {
-		return nil, err
+		if err != nil {
+			if !isDuplicateRecord(err) {
+				return nil, false, err
+			}
+			log.Debugf("%v (%v) already registered, looking up existing record", name, ip)
+			// Note - this is pretty heavyweight since it fetches all
+			// records, but this condition should rarely be hit anyway
+			all, err := util.GetAllRecords()
+			if err != nil {
+				return nil, false, err
+			}
+			for _, r := range all {
+				if r.Name == name && r.Value == ip {
+					rec = &r
+					break
+				}
+			}
+			if rec == nil {
+				return nil, false, fmt.Errorf("Unable to find existing record for %v (%v)!?", name, ip)
+			}
+		}
 	}
 
 	// Update the record to set the ServiceMode to 1 (orange cloud). For
 	// whatever reason we can't do this on create.
 	// Note for some reason CloudFlare seems to ignore the TTL here.
 	ur := cloudflare.UpdateRecord{Type: "A", Name: name, Content: ip, Ttl: "360", ServiceMode: "1"}
-	err = util.Client.UpdateRecord(util.domain, rec.Id, &ur)
+	err := util.Client.UpdateRecord(util.domain, rec.Id, &ur)
 	if err != nil {
 		log.Tracef("Error updating record %v, destroying", rec)
 		err2 := util.DestroyRecord(rec)
 		if err2 != nil {
 			log.Errorf("Unable to destroy incomplete record %v: %v", rec, err2)
+			return rec, false, err
 		}
-		return nil, err
+		return nil, false, err
 	}
 
-	return rec, nil
+	return rec, true, nil
 }
 
 func (util *Util) DestroyRecord(r *cloudflare.Record) error {
 	return util.Client.DestroyRecord(util.domain, r.Id)
+}
+
+func isDuplicateRecord(err error) bool {
+	return strings.Contains(err.Error(), "The record already exists.")
 }
