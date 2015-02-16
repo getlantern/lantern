@@ -130,7 +130,9 @@ func addOrUpdateMenuItem(item *MenuItem) {
 	noop(u16b)
 }
 
-// strPrt converts a Go string into a wchar_t*
+// strPrt converts a Go string into a wchar_t*. It returns the underlying UTF-16
+// array, which needs to be referenced until after it's been passed to the DLL
+// to avoid it being garbage collected.
 func strPtr(s string) ([]uint16, uintptr, error) {
 	u16, err := syscall.UTF16FromString(s)
 	if err != nil {
