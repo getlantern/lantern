@@ -1,18 +1,19 @@
 package http
 
 import (
-	"encoding/json"
 	"fmt"
+	"net/http"
+	"os"
+	"reflect"
+	"time"
+
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/proxiedsites"
-	"github.com/skratchdot/open-golang/open"
-	"net/http"
-	"reflect"
-	"time"
-
 	"github.com/getlantern/tarfs"
+	"github.com/gorilla/websocket"
+	"github.com/skratchdot/open-golang/open"
 )
 
 const (
@@ -21,72 +22,20 @@ const (
 )
 
 var (
-	log = golog.LoggerFor("http")
+	log      = golog.LoggerFor("http")
+	upgrader = &websocket.Upgrader{ReadBufferSize: 1024, WriteBufferSize: 1024}
 )
 
-type JsonResponse struct {
-	Error        string   `json:"Error, omitempty"`
-	ProxiedSites []string `json:"ProxiedSites, omitempty"`
-	Global       []string `json:"Global, omitempty"`
-}
-
-type ProxiedSitesHandler struct {
+type UIServer struct {
+	Conn             *websocket.Conn
 	ProxiedSites     *proxiedsites.ProxiedSites
 	ProxiedSitesChan chan *proxiedsites.Config
+	Addr             string
 }
 
-func sendJsonResponse(w http.ResponseWriter, response *JsonResponse, indent bool) {
-	enc := json.NewEncoder(w)
-	err := enc.Encode(response)
-	if err != nil {
-		log.Errorf("error sending json response %v", err)
-	}
-}
-
-func setResponseHeaders(w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token")
-	w.Header().Set("Access-Control-Allow-Credentials", "True")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-
-}
-
-func (psh ProxiedSitesHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var response JsonResponse
-
-	setResponseHeaders(w)
-
-	switch r.Method {
-	case "OPTIONS":
-		// return if it's a preflight OPTIONS request
-		// this is mainly for testing the UI when it's running on
-		// a separate port
-		return
-	case "POST":
-		// update proxiedsites
-		decoder := json.NewDecoder(r.Body)
-		var entries []string
-		err := decoder.Decode(&entries)
-		if err != nil {
-			log.Error(err)
-			response.Error = fmt.Sprintf("Error decoding proxiedsites: %q", err)
-		} else {
-			ps := psh.ProxiedSites.UpdateEntries(entries)
-			copy := psh.ProxiedSites.Copy()
-			log.Debug("Propagating proxiedsites changes..")
-			psh.ProxiedSitesChan <- copy
-			response.ProxiedSites = ps
-		}
-	case "GET":
-		response.ProxiedSites = psh.ProxiedSites.GetEntries()
-		response.Global = psh.ProxiedSites.GetGlobalList()
-	default:
-		log.Debugf("Received %s", response.Error)
-		response.Error = "Invalid proxiedsites HTTP request"
-		response.ProxiedSites = nil
-	}
-	sendJsonResponse(w, &response, false)
+type ProxiedSitesMsg struct {
+	Global  []string `json:"Global, omitempty"`
+	Entries []string `json:"Entries, omitempty"`
 }
 
 func servePacFile(w http.ResponseWriter, r *http.Request) {
@@ -94,32 +43,7 @@ func servePacFile(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, pacFile)
 }
 
-func UIHttpServer(cfg *config.Config, cfgChan chan *config.Config, proxiedSitesChan chan *proxiedsites.Config) error {
-
-	psh := &ProxiedSitesHandler{
-		ProxiedSites:     proxiedsites.New(cfg.Client.ProxiedSites),
-		ProxiedSitesChan: proxiedSitesChan,
-	}
-
-	r := http.NewServeMux()
-	r.Handle("/proxiedsites", psh)
-
-	// poll for config updates to the proxiedsites
-	// with this immediately see flashlight.yaml
-	// changes in the UI
-	go func() {
-		for {
-			newCfg := <-cfgChan
-			clientCfg := newCfg.Client
-			if !reflect.DeepEqual(psh.ProxiedSites.GetConfig(), clientCfg.ProxiedSites) {
-				log.Debugf("proxiedsites changed in flashlight.yaml..")
-				psh.ProxiedSites = proxiedsites.New(newCfg.Client.ProxiedSites)
-				psh.ProxiedSites.RefreshEntries()
-			}
-		}
-	}()
-	r.HandleFunc("/proxy_on.pac", servePacFile)
-
+func serveHome(r *http.ServeMux) {
 	UIDirExists, err := util.DirExists(UIDir)
 	if err != nil {
 		log.Debugf("UI Directory does not exist %s", err)
@@ -139,27 +63,94 @@ func UIHttpServer(cfg *config.Config, cfgChan chan *config.Config, proxiedSitesC
 		log.Debugf("tarfs startup time: %v", delta)
 		r.Handle("/", http.FileServer(fs))
 	}
+}
+
+func (srv UIServer) writeProxiedSites() {
+	msg := &ProxiedSitesMsg{
+		Global:  srv.ProxiedSites.GetGlobalList(),
+		Entries: srv.ProxiedSites.GetEntries(),
+	}
+	if err := srv.Conn.WriteJSON(msg); err != nil {
+		log.Errorf("Error writing initial proxied sites: %s", err)
+	}
+}
+
+func (srv UIServer) readClientMessage() {
+	for {
+		var str interface{}
+		err := srv.Conn.ReadJSON(&str)
+		log.Debug(str)
+		if err != nil {
+			log.Debugf("======> ERror reading msg %s", err)
+		}
+	}
+}
+
+// if the openui flag is specified, the UI is automatically
+// opened in the default browser
+func OpenUI(shouldOpen bool, uiAddr string) {
+
+	uiAddr = fmt.Sprintf(UIUrl, uiAddr)
+
+	if shouldOpen {
+		err := open.Run(uiAddr)
+		if err != nil {
+			log.Errorf("Could not open UI! %s", err)
+		}
+	}
+}
+
+func (srv UIServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	//var newCfg proxiedsites.Config
+
+	srv.Conn, err = upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	// write initial proxied sites list
+	srv.writeProxiedSites()
+	srv.readClientMessage()
+}
+
+// poll for config updates to the proxiedsites
+// with this immediately see flashlight.yaml
+// changes in the UI
+func (srv UIServer) ConfigureProxySites(cfg *config.Config) {
+	if !reflect.DeepEqual(srv.ProxiedSites.GetConfig(), cfg.Client.ProxiedSites) {
+		log.Debugf("proxiedsites changed in flashlight.yaml..")
+		log.Debugf("1st. %d", len(srv.ProxiedSites.GetConfig().Cloud))
+		log.Debugf("2nd. %d", len(cfg.Client.ProxiedSites.Cloud))
+
+		log.Debugf("1st. %d", len(srv.ProxiedSites.GetConfig().Additions))
+		log.Debugf("2nd. %d", len(cfg.Client.ProxiedSites.Additions))
+
+		log.Debugf("1st. %d", len(srv.ProxiedSites.GetConfig().Deletions))
+		log.Debugf("2nd. %d", len(cfg.Client.ProxiedSites.Deletions))
+
+		os.Exit(1)
+		/*srv.ProxiedSites = proxiedsites.New(cfg.Client.ProxiedSites)
+		srv.writeProxiedSites()
+		srv.ProxiedSites.RefreshEntries()*/
+	}
+}
+
+func (srv UIServer) StartServer() {
+
+	r := http.NewServeMux()
+	r.Handle("/data", srv)
+	r.HandleFunc("/proxy_on.pac", servePacFile)
+	serveHome(r)
 
 	httpServer := &http.Server{
-		Addr:    cfg.UIAddr,
+		Addr:    srv.Addr,
 		Handler: r,
 	}
 
-	log.Debugf("Starting UI HTTP server at %s", cfg.UIAddr)
-	uiAddr := fmt.Sprintf(UIUrl, cfg.UIAddr)
-
-	if cfg.OpenUI {
-		err = open.Run(uiAddr)
-		if err != nil {
-			log.Errorf("Could not open UI! %s", err)
-			return err
-		}
-	}
-
-	err = httpServer.ListenAndServe()
-	if err != nil {
-		log.Errorf("Could not start HTTP server! %s", err)
-		return err
-	}
-	return err
+	log.Debugf("Starting UI HTTP server at %s", srv.Addr)
+	go func() {
+		log.Fatal(httpServer.ListenAndServe())
+	}()
 }

@@ -115,14 +115,45 @@ func runClientProxy(cfg *config.Config) {
 	// between the UI and
 	// with a corresponding HTTP server at
 	// the following address
+	runUIServer(cfg)
+
+	// Continually poll for config updates and update client accordingly
+	go func() {
+		for {
+			cfg := <-configUpdates
+			configureStats(cfg, false)
+			client.Configure(cfg.Client)
+		}
+	}()
+
+	err := client.ListenAndServe()
+	if err != nil {
+		log.Fatalf("Unable to run client proxy: %s", err)
+	}
+}
+
+func runUIServer(cfg *config.Config) {
 	if cfg.UIAddr != "" {
 		proxiedSitesChan := make(chan *proxiedsites.Config)
 		go func() {
-			err := http.UIHttpServer(cfg, configUpdates, proxiedSitesChan)
-			if err != nil {
-				log.Fatalf("Unable to start UI http server: %s", err)
+
+			srv := &http.UIServer{
+				ProxiedSites:     proxiedsites.New(cfg.Client.ProxiedSites),
+				ProxiedSitesChan: proxiedSitesChan,
+				Addr:             cfg.UIAddr,
 			}
+			go srv.StartServer()
+
+			for {
+				cfg := <-configUpdates
+				srv.ConfigureProxySites(cfg)
+			}
+
 		}()
+
+		// if the openui flag is specified, the UI is automatically
+		// opened in the default browser
+		http.OpenUI(cfg.OpenUI, cfg.UIAddr)
 
 		go func() {
 			for {
@@ -142,19 +173,6 @@ func runClientProxy(cfg *config.Config) {
 		}()
 	}
 
-	// Continually poll for config updates and update client accordingly
-	go func() {
-		for {
-			cfg := <-configUpdates
-			configureStats(cfg, false)
-			client.Configure(cfg.Client)
-		}
-	}()
-
-	err := client.ListenAndServe()
-	if err != nil {
-		log.Fatalf("Unable to run client proxy: %s", err)
-	}
 }
 
 // Runs the server-side proxy

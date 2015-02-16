@@ -33,11 +33,11 @@ var (
 
 type Config struct {
 	// Global list of white-listed domains
-	Cloud []string
+	Cloud []string `json:"Global, omitempty"`
 
 	// User customizations
-	Additions []string
-	Deletions []string
+	Additions []string `json:"Additions, omitempty"`
+	Deletions []string `json:"Deletions, omitempty"`
 }
 
 type ProxiedSites struct {
@@ -94,12 +94,7 @@ func New(cfg *Config) *ProxiedSites {
 		entries:  entries,
 	}
 
-	pacFileExists, _ := util.FileExists(PacFilePath)
-	// if the pac file doesn't already exist
-	// we create it now to synchronize it with the YAML config
-	if !pacFileExists {
-		go ps.updatePacFile()
-	}
+	go ps.updatePacFile()
 
 	return ps
 }
@@ -125,32 +120,6 @@ func (ps *ProxiedSites) Copy() *Config {
 
 func (ps *ProxiedSites) GetConfig() *Config {
 	return ps.cfg
-}
-
-// This function calculaties the delta additions and deletions
-// to the global whitelist; these changes are then propagated
-// to the PAC file
-func (ps *ProxiedSites) UpdateEntries(entries []string) []string {
-	log.Debug("Updating whitelist entries...")
-
-	toAdd := set.New()
-	for i := range entries {
-		toAdd.Add(entries[i])
-	}
-
-	// whitelist customizations
-	toRemove := set.Difference(ps.cloudSet, toAdd)
-	ps.cfg.Deletions = set.StringSlice(toRemove)
-
-	// new entries are any new domains the user wishes
-	// to proxy that weren't found on the global whitelist
-	// already
-	newEntries := set.Difference(toAdd, ps.cloudSet)
-	ps.cfg.Additions = set.StringSlice(newEntries)
-	ps.entries = set.StringSlice(toAdd)
-	go ps.updatePacFile()
-
-	return ps.entries
 }
 
 func (ps *ProxiedSites) updatePacFile() (err error) {
@@ -184,12 +153,12 @@ func (ps *ProxiedSites) updatePacFile() (err error) {
 	return err
 }
 
-func (ps *ProxiedSites) GetEntries() []string {
-	return ps.entries
-}
-
 func (ps *ProxiedSites) GetGlobalList() []string {
 	return ps.cfg.Cloud
+}
+
+func (ps *ProxiedSites) GetEntries() []string {
+	return ps.entries
 }
 
 func ParsePacFile() *ProxiedSites {
