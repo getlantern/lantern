@@ -14,13 +14,6 @@ static HMENU hTrayMenu;
 
 void (*systray_menu_item_selected)(int menu_id);
 
-wchar_t *copy(wchar_t *s) {
-	size_t l = wcslen(s);
-	wchar_t *c = (wchar_t*) calloc(l+1, sizeof(wchar_t));
-	wcsncpy(c, s, l);
-	return c;
-}
-
 void reportWindowsError(const char* action) {
 	LPTSTR pErrMsg = NULL;
 	DWORD errCode = GetLastError();
@@ -55,11 +48,7 @@ int GetMenuItemId(int index) {
 		reportWindowsError("get menu item id");
 		return -1;
 	}
-	int *id = (int*)menuItemInfo.dwItemData;
-	if (id == NULL) {
-		return -1;
-	}
-	return *id;
+	return menuItemInfo.dwItemData;
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
@@ -187,20 +176,13 @@ void setTooltip(const wchar_t* tooltip) {
 }
 
 void add_or_update_menu_item(int menuId, wchar_t* title, wchar_t* tooltip, short disabled, short checked) {
-	int *id = (int *) malloc(sizeof(int));
-	if (id == NULL) {
-		printf("Unable to allocate space for id");
-		return;
-	}
-	*id = menuId;
-
 	MENUITEMINFO menuItemInfo;
 	menuItemInfo.cbSize = sizeof(MENUITEMINFO);
 	menuItemInfo.fMask = MIIM_FTYPE | MIIM_STRING | MIIM_DATA | MIIM_STATE;
 	menuItemInfo.fType = MFT_STRING;
-	menuItemInfo.dwTypeData = copy(title);
+	menuItemInfo.dwTypeData = title;
 	menuItemInfo.cch = wcslen(title) + 1;
-	menuItemInfo.dwItemData = (ULONG_PTR)id;
+	menuItemInfo.dwItemData = (ULONG_PTR)menuId;
 	menuItemInfo.fState = 0;
 	if (disabled == 1) {
 		menuItemInfo.fState |= MFS_DISABLED;
