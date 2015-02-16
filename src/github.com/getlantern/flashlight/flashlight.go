@@ -141,7 +141,7 @@ func runUIServer(cfg *config.Config) {
 				ProxiedSites:     proxiedsites.New(cfg.Client.ProxiedSites),
 				ProxiedSitesChan: proxiedSitesChan,
 				Addr:             cfg.UIAddr,
-				CfgChan:          configUpdates,
+				ConfigUpdates:    configUpdates,
 			}
 			srv.StartServer()
 			log.Debug("Started server...")

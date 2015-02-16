@@ -30,7 +30,7 @@ type UIServer struct {
 	ProxiedSites     *proxiedsites.ProxiedSites
 	ProxiedSitesChan chan *proxiedsites.Config
 	Addr             string
-	CfgChan          chan *config.Config
+	ConfigUpdates    chan *config.Config
 }
 
 type ProxiedSitesMsg struct {
@@ -74,7 +74,8 @@ func (srv UIServer) writeProxiedSites() {
 		if err := srv.Conn.WriteJSON(msg); err != nil {
 			log.Errorf("Error writing initial proxied sites: %s", err)
 		}
-		cfg := <-srv.CfgChan
+		cfg := <-srv.ConfigUpdates
+		log.Debugf("Proxied sites updated in config file; applying changes")
 		srv.ProxiedSites = proxiedsites.New(cfg.Client.ProxiedSites)
 		srv.ProxiedSites.RefreshEntries()
 	}
