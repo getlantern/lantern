@@ -93,19 +93,31 @@ type logger struct {
 }
 
 func (l *logger) Debug(arg interface{}) {
-	fmt.Fprintf(getOutputs().debugOut, l.prefix+"%s\n", arg)
+	_, err := fmt.Fprintf(getOutputs().debugOut, l.prefix+"%s\n", arg)
+	if err != nil {
+		errorOnLogging(err)
+	}
 }
 
 func (l *logger) Debugf(message string, args ...interface{}) {
-	fmt.Fprintf(getOutputs().debugOut, l.prefix+message+"\n", args...)
+	_, err := fmt.Fprintf(getOutputs().debugOut, l.prefix+message+"\n", args...)
+	if err != nil {
+		errorOnLogging(err)
+	}
 }
 
 func (l *logger) Error(arg interface{}) {
-	fmt.Fprintf(getOutputs().errorOut, l.prefix+"%s\n", arg)
+	_, err := fmt.Fprintf(getOutputs().errorOut, l.prefix+"%s\n", arg)
+	if err != nil {
+		errorOnLogging(err)
+	}
 }
 
 func (l *logger) Errorf(message string, args ...interface{}) {
-	fmt.Fprintf(getOutputs().errorOut, l.prefix+message+"\n", args...)
+	_, err := fmt.Fprintf(getOutputs().errorOut, l.prefix+message+"\n", args...)
+	if err != nil {
+		errorOnLogging(err)
+	}
 }
 
 func (l *logger) Fatal(arg interface{}) {
@@ -159,4 +171,8 @@ func (l *logger) newTraceWriter() io.Writer {
 	}()
 
 	return pw
+}
+
+func errorOnLogging(err error) {
+	fmt.Fprintf(os.Stderr, "Unable to log: %v\n", err)
 }

@@ -193,8 +193,8 @@ func configureLogging() *rotator.SizeRotator {
 	file.RotationSize = 1 * 1024 * 1024
 	// Keep up to 20 log files
 	file.MaxRotation = 20
-	errorOut := timestamped(io.MultiWriter(file, os.Stderr))
-	debugOut := timestamped(io.MultiWriter(file, os.Stdout))
+	errorOut := timestamped(io.MultiWriter(os.Stderr, file))
+	debugOut := timestamped(io.MultiWriter(os.Stdout, file))
 	golog.SetOutputs(errorOut, debugOut)
 	return file
 }
