@@ -20,7 +20,6 @@ github.com/getlantern/waddell
 github.com/getlantern/waitforserver
 github.com/getlantern/withtimeout
 github.com/getlantern/yamlconf
-github.com/getlantern/flashlight/nattest
 github.com/getlantern/flashlight/statreporter
 github.com/getlantern/flashlight
 github.com/getlantern/peerscanner/cf
