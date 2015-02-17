@@ -3,6 +3,9 @@ language: go
 go:
   - 1.4.1
 
+before-install:
+  - sudo apt-get install libgtk-3-dev libappindicator3-dev
+  
 install:
   - go get golang.org/x/tools/cmd/cover
   - go get -v github.com/axw/gocov/gocov
