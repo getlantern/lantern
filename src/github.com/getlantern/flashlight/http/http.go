@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"path"
-	"reflect"
 	"runtime"
 	"time"
 
@@ -115,6 +114,7 @@ func (srv UIServer) readClientMessage() {
 		}
 		log.Debugf("Received proxied sites update: %+v", &updates)
 		srv.ProxiedSites.Update(&updates)
+		srv.ProxiedSitesChan <- srv.ProxiedSites.GetConfig()
 	}
 }
 
@@ -154,14 +154,6 @@ func (srv UIServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // poll for config updates to the proxiedsites
 // with this immediately see flashlight.yaml
 // changes in the UI
-func (srv UIServer) ConfigureProxySites(cfg *config.Config) {
-	if !reflect.DeepEqual(srv.ProxiedSites.GetConfig(), cfg.Client.ProxiedSites) {
-		log.Debugf("proxiedsites changed in flashlight.yaml..")
-		srv.ProxiedSites = proxiedsites.New(cfg.Client.ProxiedSites)
-		srv.writeProxiedSites()
-		srv.ProxiedSites.RefreshEntries()
-	}
-}
 
 func (srv UIServer) StartServer() {
 

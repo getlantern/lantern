@@ -117,21 +117,27 @@ func (prev *ProxiedSites) Diff(cur *ProxiedSites) *Config {
 	}
 }
 
+// Update modifies an existing ProxiedSites instance
+// to include new addition and deletion deltas sent from
+// the client
 func (ps *ProxiedSites) Update(cfg *Config) {
-	addSet := set.New()
-	delSet := set.New()
+
 	for i := range cfg.Additions {
-		addSet.Add(cfg.Additions[i])
+		if !ps.cloudSet.Has(cfg.Additions[i]) {
+			// if a new addition doesn't exist in our
+			// cloud list already, add it to our addSet
+			log.Debugf("Adding site %s", cfg.Additions[i])
+			ps.addSet.Add(cfg.Additions[i])
+			ps.cfg.Additions = append(ps.cfg.Additions,
+				cfg.Additions[i])
+		}
 	}
 
 	for i := range cfg.Deletions {
-		delSet.Add(cfg.Deletions[i])
+		ps.delSet.Add(cfg.Deletions[i])
+		ps.cfg.Deletions = append(ps.cfg.Deletions, cfg.Deletions[i])
 	}
 
-	ps.addSet = set.Difference(ps.addSet, addSet)
-	ps.delSet = set.Difference(ps.delSet, delSet)
-	ps.cfg.Additions = set.StringSlice(ps.addSet)
-	ps.cfg.Deletions = set.StringSlice(ps.delSet)
 	ps.entries = set.StringSlice(set.Difference(ps.addSet, ps.delSet))
 	go ps.updatePacFile()
 }
