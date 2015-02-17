@@ -75,13 +75,17 @@ func serveHome(r *http.ServeMux) {
 	}
 }
 
+// when websocket connection is first opened, we write
+// proxied sites (global list + additions) - deletions
+// the gorilla websocket module automatically
+// chunks messages according to WriteBufferSize
 func (srv UIServer) writeGlobalList() {
-	msg := proxiedsites.Config{
+	initMsg := proxiedsites.Config{
 		Additions: srv.ProxiedSites.GetEntries(),
 	}
 	// write the JSON encoding of the proxied sites to the
 	// websocket connection
-	if err := srv.Conn.WriteJSON(msg); err != nil {
+	if err := srv.Conn.WriteJSON(initMsg); err != nil {
 		log.Errorf("Error writing initial proxied sites: %s", err)
 	}
 }

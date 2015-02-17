@@ -71,19 +71,20 @@ func init() {
 }
 
 func New(cfg *Config) *ProxiedSites {
-	// initialize our proxied site cloud set
+	// initialize our proxied site sets
 	cloudSet := set.New()
+	addSet := set.New()
+	delSet := set.New()
+
 	for i := range cfg.Cloud {
 		cloudSet.Add(cfg.Cloud[i])
 	}
 
-	addSet := set.New()
 	toAdd := append(cfg.Additions, cfg.Cloud...)
 	for i := range toAdd {
 		addSet.Add(toAdd[i])
 	}
 
-	delSet := set.New()
 	for i := range cfg.Deletions {
 		delSet.Add(cfg.Deletions[i])
 	}
@@ -93,8 +94,8 @@ func New(cfg *Config) *ProxiedSites {
 
 	ps := &ProxiedSites{
 		cfg:      cfg,
-		cloudSet: cloudSet,
 		entries:  entries,
+		cloudSet: cloudSet,
 		addSet:   addSet,
 		delSet:   delSet,
 	}
@@ -194,10 +195,6 @@ func (ps *ProxiedSites) updatePacFile() (err error) {
 	}
 
 	return err
-}
-
-func (ps *ProxiedSites) GetGlobalList() []string {
-	return ps.cfg.Cloud
 }
 
 func (ps *ProxiedSites) GetEntries() []string {
