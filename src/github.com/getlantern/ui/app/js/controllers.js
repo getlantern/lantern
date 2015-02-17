@@ -175,7 +175,6 @@ app.controller('ProxiedSitesCtrl', ['$rootScope', '$scope', '$filter', 'SETTING'
     }
 
     $scope.entries = $scope.arrLowerCase(proxiedSitesDirty);
-
     $rootScope.updates.Additions = $scope.setDiff($scope.entries, 
                                        $scope.originalList);
     $rootScope.updates.Deletions = $scope.setDiff($scope.originalList, $scope.entries);

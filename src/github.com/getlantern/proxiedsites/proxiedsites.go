@@ -33,7 +33,7 @@ var (
 
 type Config struct {
 	// Global list of white-listed domains
-	Cloud []string `json:"Cloud, omitempty"`
+	Cloud []string
 
 	// User customizations
 	Additions []string `json:"Additions, omitempty"`
@@ -109,8 +109,17 @@ func New(cfg *Config) *ProxiedSites {
 // between a new proxiedsites and a previous proxiedsites instance
 func (prev *ProxiedSites) Diff(cur *ProxiedSites) *Config {
 
-	addSet := set.Difference(prev.addSet, cur.addSet)
-	delSet := set.Difference(prev.delSet, cur.delSet)
+	addSet := set.Difference(cur.addSet, prev.addSet)
+	delSet := set.Difference(cur.delSet, prev.delSet)
+	cloudDiff := set.Difference(cur.cloudSet, prev.cloudSet)
+
+	// add new sites from the global cloud config
+	cloudDiff.Each(func(site interface{}) bool {
+		if !delSet.Has(site) {
+			addSet.Add(site)
+		}
+		return true
+	})
 
 	return &Config{
 		Additions: set.StringSlice(addSet),
@@ -130,6 +139,9 @@ func (ps *ProxiedSites) Update(cfg *Config) {
 			log.Debugf("Adding site %s", cfg.Additions[i])
 			ps.addSet.Add(cfg.Additions[i])
 		}
+		// remove any new sites from our deletions list
+		// if they were previously added there
+		ps.delSet.Remove(cfg.Additions[i])
 	}
 
 	for i := range cfg.Deletions {
@@ -152,14 +164,6 @@ func (ps *ProxiedSites) Update(cfg *Config) {
 
 func GetPacFile() string {
 	return PacFilePath
-}
-
-func (ps *ProxiedSites) Copy() *Config {
-	return &Config{
-		Additions: ps.cfg.Additions,
-		Deletions: ps.cfg.Deletions,
-		Cloud:     ps.cfg.Cloud,
-	}
 }
 
 func (ps *ProxiedSites) GetConfig() *Config {

@@ -96,10 +96,8 @@ func (srv UIServer) writeProxiedSites() {
 		cfg := <-srv.ConfigUpdates
 		log.Debugf("Proxied sites updated in config file; applying changes")
 		newPs := proxiedsites.New(cfg.Client.ProxiedSites)
+
 		diff := srv.ProxiedSites.Diff(newPs)
-
-		log.Debugf("Difference is %+v", diff)
-
 		// write the JSON encoding of the proxied sites to the
 		// websocket connection
 		if err := srv.Conn.WriteJSON(diff); err != nil {
