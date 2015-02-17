@@ -33,7 +33,7 @@ var (
 
 type Config struct {
 	// Global list of white-listed domains
-	Cloud []string `json:"Global, omitempty"`
+	Cloud []string `json:"-"`
 
 	// User customizations
 	Additions []string `json:"Additions, omitempty"`
@@ -45,8 +45,11 @@ type ProxiedSites struct {
 
 	// Corresponding global proxiedsites set
 	cloudSet *set.Set
-	entries  []string
-	pacFile  *PacFile
+	addSet   set.Interface
+	delSet   set.Interface
+
+	entries []string
+	pacFile *PacFile
 }
 
 type PacFile struct {
@@ -74,29 +77,63 @@ func New(cfg *Config) *ProxiedSites {
 		cloudSet.Add(cfg.Cloud[i])
 	}
 
-	entrySet := set.New()
+	addSet := set.New()
 	toAdd := append(cfg.Additions, cfg.Cloud...)
 	for i := range toAdd {
-		entrySet.Add(toAdd[i])
+		addSet.Add(toAdd[i])
 	}
 
-	toRemove := set.New()
+	delSet := set.New()
 	for i := range cfg.Deletions {
-		toRemove.Add(cfg.Deletions[i])
+		delSet.Add(cfg.Deletions[i])
 	}
 
-	entries := set.StringSlice(set.Difference(entrySet, toRemove))
+	entries := set.StringSlice(set.Difference(addSet, delSet))
 	sort.Strings(entries)
 
 	ps := &ProxiedSites{
 		cfg:      cfg,
 		cloudSet: cloudSet,
 		entries:  entries,
+		addSet:   addSet,
+		delSet:   delSet,
 	}
 
 	go ps.updatePacFile()
 
 	return ps
+}
+
+// Composes the add and delete deltas
+// between a new proxiedsites and a previous proxiedsites instance
+func (prev *ProxiedSites) Diff(cur *ProxiedSites) *Config {
+
+	addSet := set.Difference(prev.addSet, cur.addSet)
+	delSet := set.Difference(prev.delSet, cur.delSet)
+
+	return &Config{
+		Additions: set.StringSlice(addSet),
+		Deletions: set.StringSlice(delSet),
+	}
+}
+
+func (ps *ProxiedSites) Update(cfg *Config) {
+	addSet := set.New()
+	delSet := set.New()
+	for i := range cfg.Additions {
+		addSet.Add(cfg.Additions[i])
+	}
+
+	for i := range cfg.Deletions {
+		delSet.Add(cfg.Deletions[i])
+	}
+
+	ps.addSet = set.Difference(ps.addSet, addSet)
+	ps.delSet = set.Difference(ps.delSet, delSet)
+	ps.cfg.Additions = set.StringSlice(ps.addSet)
+	ps.cfg.Deletions = set.StringSlice(ps.delSet)
+	ps.entries = set.StringSlice(set.Difference(ps.addSet, ps.delSet))
+	go ps.updatePacFile()
 }
 
 func (ps *ProxiedSites) RefreshEntries() []string {
