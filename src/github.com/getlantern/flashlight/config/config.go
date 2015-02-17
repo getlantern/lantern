@@ -7,6 +7,8 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"os/user"
+	"path/filepath"
 	"time"
 
 	"github.com/getlantern/fronted"
@@ -63,7 +65,7 @@ type CA struct {
 // Start starts the configuration system.
 func Start(updateHandler func(updated *Config)) (*Config, error) {
 	m = &yamlconf.Manager{
-		FilePath:         InConfigDir("flashlight.yaml"),
+		FilePath:         InConfigDir("lantern.yaml"),
 		FilePollInterval: 1 * time.Second,
 		ConfigServerAddr: *configaddr,
 		EmptyConfig: func() yamlconf.Config {
@@ -136,19 +138,20 @@ func Update(mutate func(cfg *Config) error) error {
 
 // InConfigDir returns the path to the given filename inside of the configdir.
 func InConfigDir(filename string) string {
-	if *configdir == "" {
-		return filename
-	} else {
-		if _, err := os.Stat(*configdir); err != nil {
-			if os.IsNotExist(err) {
-				// Create config dir
-				if err := os.MkdirAll(*configdir, 0755); err != nil {
-					log.Fatalf("Unable to create configdir at %s: %s", *configdir, err)
-				}
+	cdir := *configdir
+	if cdir == "" {
+		cdir = platformSpecificConfigDir()
+	}
+	log.Debugf("Placing configuration in %v", cdir)
+	if _, err := os.Stat(cdir); err != nil {
+		if os.IsNotExist(err) {
+			// Create config dir
+			if err := os.MkdirAll(cdir, 0755); err != nil {
+				log.Fatalf("Unable to create configdir at %s: %s", cdir, err)
 			}
 		}
-		return fmt.Sprintf("%s%c%s", *configdir, os.PathSeparator, filename)
 	}
+	return filepath.Join(cdir, filename)
 }
 
 // TrustedCACerts returns a slice of PEM-encoded certs for the trusted CAs
@@ -177,6 +180,14 @@ func (cfg *Config) SetVersion(version int) {
 // flashlight, this function should be updated to provide sensible defaults for
 // those settings.
 func (cfg *Config) ApplyDefaults() {
+	if cfg.Role == "" {
+		cfg.Role = "client"
+	}
+
+	if cfg.Addr == "" {
+		cfg.Addr = "localhost:8787"
+	}
+
 	// Default country
 	if cfg.Country == "" {
 		cfg.Country = *country
@@ -222,14 +233,6 @@ func (cfg *Config) applyClientDefaults() {
 			MaxMasquerades: 20,
 			QOS:            10,
 			Weight:         4000,
-		}, &client.FrontedServerInfo{
-			Host:           "peers.getiantem.org",
-			Port:           443,
-			PoolSize:       30,
-			MasqueradeSet:  cloudflare,
-			MaxMasquerades: 20,
-			QOS:            2,
-			Weight:         1000,
 		})
 	}
 
@@ -337,4 +340,13 @@ func (updated *Config) updateFrom(updateBytes []byte) error {
 		updated.Client.FrontedServers = append(updated.Client.FrontedServers, server)
 	}
 	return nil
+}
+
+func inHomeDir(filename string) string {
+	log.Tracef("Determining user's home directory")
+	usr, err := user.Current()
+	if err != nil {
+		log.Fatalf("Unable to determine user's home directory: %s", err)
+	}
+	return filepath.Join(usr.HomeDir, filename)
 }

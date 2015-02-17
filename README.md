@@ -2,9 +2,8 @@ flashlight-build [![Travis CI Status](https://travis-ci.org/getlantern/flashligh
 ==========
 
 flashlight-build is a [gost](https://github.com/getlantern/gost) project that
-provides repeatable builds and consolidated pull requests for flashlight.
-
-### Building Flashlight
+provides repeatable builds and consolidated pull requests for flashlight (now
+lantern).
 
 Flashlight requires [Go 1.4.x](http://golang.org/dl/).
 
@@ -22,9 +21,9 @@ go wherever you like. Ox keeps his at ~/go_native.
 
 ```bash
 go get github.com/mitchellh/gox
-go get github.com/getlantern/gonative
+go get github.com/inconshreveable/gonative
 cd ~
-gonative build -version="1.4" -platforms="darwin_amd64 linux_386 linux_amd64 windows_386"
+gonative build -version="1.4.1" -platforms="darwin_amd64 linux_386 linux_amd64 windows_386"
 mv go go_native
 ```
 
@@ -80,6 +79,12 @@ note - Signing windows code requires that the
 [osslsigncode](http://sourceforge.net/projects/osslsigncode/) utility be
 installed. On OS X with homebrew, you can do this with
 `brew install osslsigncode`.
+
+### Updating Icons
+
+The icons used for the system tray are stored in
+src/github/getlantern/flashlight/icons. To apply changes to the icons, make your
+updates in the icons folder and then run `./udpateicons.bash`.
 
 ### Continuous Integration with Travis CI
 Continuous builds are run on Travis CI. These builds use the `.travis.yml`
