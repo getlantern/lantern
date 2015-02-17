@@ -6,7 +6,14 @@ flashlight_darwin_amd64
 flashlight_linux_386
 flashlight_linux_amd64
 flashlight_windows_386.exe
+lantern_darwin_amd64
+lantern_linux_386
+lantern_linux_amd64
+lantern_windows_386.exe
+lantern.exe
 src/github.com/getlantern/fronted/testcert.pem
 src/github.com/getlantern/fronted/testpk.pem
 flashlight.yaml
 envvars.bash
+Lantern.app
+lantern.dmg
