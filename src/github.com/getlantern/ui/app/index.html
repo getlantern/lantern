@@ -52,16 +52,16 @@
   <body ng-controller="RootCtrl" ng-cloak lang="{{ lang }}" dir="{{ langDirection }}"
     ng-class="{showVis: model.showVis, getMode: inGetMode, giveMode: inGiveMode}">
 
-    <div id="alerts">
-      <div ng-repeat="(id, notification) in model.notifications" ng-hide="notification.background && (model.modal && model.modal != 'none')">
-        <alert ui-animate
-               type="notification.type"
-               close="interaction(INTERACTION.close, {notification: id})">
-          <span dynamic="notification.message"></span>
-        </alert>
+    <div id="waiting" ng-show="!wsConnected">
+      <div ng-show="!backendIsGone">
+        <div>{{ 'WAITING_FOR_LANTERN' | translate }}</div>
+        <img src="img/spinner.gif">
+      </div>
+      <div ng-show="backendIsGone">
+        <div>{{ 'LANTERN_GONE' | translate }}</div>
+        <button type="button" class="btn btn-primary" onclick="window.close();">{{ 'CLOSE_WINDOW' | translate }}</button>
       </div>
     </div>
-
     <div ng-include src="'partials/topbar.html'"></div>
     <div ng-include src="'partials/modals.html'"></div>
     <div ng-include src="'partials/vis.html'" id="vis-container"></div>

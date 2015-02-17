@@ -3,7 +3,9 @@ package http
 import (
 	"fmt"
 	"net/http"
+	"path"
 	"reflect"
+	"runtime"
 	"time"
 
 	"github.com/getlantern/flashlight/config"
@@ -16,13 +18,14 @@ import (
 )
 
 const (
-	UIUrl = "http://%s"
-	UIDir = "src/github.com/getlantern/ui/app"
+	UIUrl      = "http://%s"
+	LocalUIDir = "../../../ui/app"
 )
 
 var (
 	log      = golog.LoggerFor("http")
 	upgrader = &websocket.Upgrader{ReadBufferSize: 1024, WriteBufferSize: 1024}
+	UIDir    string
 )
 
 type UIServer struct {
@@ -38,6 +41,18 @@ type ProxiedSitesMsg struct {
 	Entries []string `json:"Entries, omitempty"`
 }
 
+// Assume the default directory containing UI assets is
+// a sibling directory to the current directory
+func init() {
+	_, curDir, _, ok := runtime.Caller(1)
+	if !ok {
+		log.Errorf("Unable to determine current directory")
+		return
+	}
+	UIDir = path.Join(curDir, LocalUIDir)
+}
+
+// returns the Proxy auto-config file
 func servePacFile(w http.ResponseWriter, r *http.Request) {
 	pacFile := proxiedsites.GetPacFile()
 	http.ServeFile(w, r, pacFile)
@@ -71,9 +86,12 @@ func (srv UIServer) writeProxiedSites() {
 			Global:  srv.ProxiedSites.GetGlobalList(),
 			Entries: srv.ProxiedSites.GetEntries(),
 		}
+		// write the JSON encoding of the proxied sites to the
+		// websocket connection
 		if err := srv.Conn.WriteJSON(msg); err != nil {
 			log.Errorf("Error writing initial proxied sites: %s", err)
 		}
+		// wait for YAML config updates to write to the websocket again
 		cfg := <-srv.ConfigUpdates
 		log.Debugf("Proxied sites updated in config file; applying changes")
 		srv.ProxiedSites = proxiedsites.New(cfg.Client.ProxiedSites)
@@ -82,7 +100,6 @@ func (srv UIServer) writeProxiedSites() {
 }
 
 func (srv UIServer) readClientMessage() {
-
 	defer srv.Conn.Close()
 	for {
 		var str interface{}
@@ -108,13 +125,14 @@ func OpenUI(shouldOpen bool, uiAddr string) {
 	}
 }
 
+// handles websocket requests from the client
 func (srv UIServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-
 	var err error
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", 405)
 		return
 	}
+	// Upgrade with a HTTP request returns a websocket connection
 	srv.Conn, err = upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Error(err)

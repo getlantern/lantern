@@ -49,6 +49,7 @@ var app = angular.module('app', [
   .value('ui.config', {
     animate: 'ui-hide',
   })
+  // split array displays separates an array inside a textarea with newlines
   .directive('splitArray', function() {
       return {
           restrict: 'A',
@@ -70,9 +71,12 @@ var app = angular.module('app', [
           }
       };
   })
-  .factory('ProxiedSites', ['$websocket', '$rootScope', function($websocket, $rootScope) {
+  .factory('ProxiedSites', ['$websocket', '$interval', '$window', '$rootScope', function($websocket, $interval, $window, $rootScope) {
       var dataStream = $websocket('ws://' + document.location.host + '/data');
       var collection = [];
+      var WS_RECONNECT_INTERVAL = 5000;
+      var WS_MAX_RETRY_ATTEMPTS = 20;
+      var WS_RETRY_COUNT = 0;
 
       dataStream.onMessage(function(message) {
           var msg = JSON.parse(message.data);
@@ -83,10 +87,21 @@ var app = angular.module('app', [
       });
 
       dataStream.onOpen(function(msg) {
+        $rootScope.wsConnected = true;
+        WS_RETRY_COUNT = 0;
+        $rootScope.backendIsGone = false;
+        $rootScope.wsLastConnectedAt = new Date();
         console.log("new websocket instance created " + msg);
       });
 
       dataStream.onClose(function(msg) {
+          $rootScope.wsConnected = false;
+          $interval(function() {
+              dataStream = $websocket('ws://' + document.location.host + '/data');
+              dataStream.onOpen(function(msg) {
+                $window.location.reload();
+              });
+          }, WS_RECONNECT_INTERVAL, WS_MAX_RETRY_ATTEMPTS);
           console.log("this websocket instance closed " + msg);
       });
 
@@ -194,5 +209,28 @@ var app = angular.module('app', [
         if (reloadAfter) $rootScope.reload();
       });
     };
+
+    $rootScope.backendIsGone = false;
+    $rootScope.$watch("wsConnected", function(wsConnected) {
+      var MILLIS_UNTIL_BACKEND_CONSIDERED_GONE = 10000;
+      if (!wsConnected) {
+        // In 11 seconds, check if we're still not connected
+        $timeout(function() {
+          var lastConnectedAt = $rootScope.wsLastConnectedAt;
+          if (lastConnectedAt) {
+            var timeSinceLastConnected = new Date().getTime() - lastConnectedAt.getTime();
+            $log.debug("Time since last connect", timeSinceLastConnected);
+            if (timeSinceLastConnected > MILLIS_UNTIL_BACKEND_CONSIDERED_GONE) {
+              // If it's been more than 10 seconds since we last connect,
+              // treat the backend as gone
+              console.log("Backend is gone");
+              $rootScope.backendIsGone = true;
+            } else {
+              $rootScope.backendIsGone = false;
+            }
+          }
+        }, MILLIS_UNTIL_BACKEND_CONSIDERED_GONE + 1);
+      }
+    });
 
   });
