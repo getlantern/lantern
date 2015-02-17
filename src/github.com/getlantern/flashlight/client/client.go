@@ -10,7 +10,6 @@ import (
 
 	"github.com/getlantern/balancer"
 	"github.com/getlantern/golog"
-	"github.com/getlantern/nattywad"
 
 	"github.com/getlantern/flashlight/globals"
 )
@@ -41,7 +40,6 @@ type Client struct {
 	balInitialized  bool
 	rpCh            chan *httputil.ReverseProxy
 	rpInitialized   bool
-	nattywadClient  *nattywad.Client
 }
 
 // ListenAndServe makes the client listen for HTTP connections
@@ -80,5 +78,4 @@ func (client *Client) Configure(cfg *ClientConfig) {
 	client.MinQOS = cfg.MinQOS
 	bal := client.initBalancer(cfg)
 	client.initReverseProxy(bal, cfg.DumpHeaders)
-	client.initNatty(cfg)
 }
