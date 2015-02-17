@@ -102,9 +102,8 @@ func (srv UIServer) writeProxiedSites() {
 func (srv UIServer) readClientMessage() {
 	defer srv.Conn.Close()
 	for {
-		var str interface{}
-		err := srv.Conn.ReadJSON(&str)
-		log.Debug(str)
+		var updates proxiedsites.Config
+		err := srv.Conn.ReadJSON(&updates)
 		if err != nil {
 			break
 		}
