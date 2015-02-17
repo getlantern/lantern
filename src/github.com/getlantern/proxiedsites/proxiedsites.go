@@ -33,7 +33,7 @@ var (
 
 type Config struct {
 	// Global list of white-listed domains
-	Cloud []string `json:"-"`
+	Cloud []string `json:"Cloud, omitempty"`
 
 	// User customizations
 	Additions []string `json:"Additions, omitempty"`

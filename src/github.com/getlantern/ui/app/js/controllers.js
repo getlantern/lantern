@@ -65,7 +65,7 @@ app.controller('ProxiedSitesCtrl', ['$rootScope', '$scope', '$filter', 'SETTING'
       var fltr = $filter('filter'),
       DOMAIN = INPUT_PAT.DOMAIN,
       IPV4 = INPUT_PAT.IPV4,
-      nproxiedSitesMax = 1000,
+      nproxiedSitesMax = 10000,
       proxiedSitesDirty = [];
 
   $scope.proxiedSites = ProxiedSites.entries;
