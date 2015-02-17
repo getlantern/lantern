@@ -13,7 +13,6 @@ import (
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
-	"github.com/getlantern/nattywad"
 	"github.com/getlantern/yaml"
 	"github.com/getlantern/yamlconf"
 
@@ -49,7 +48,6 @@ type Config struct {
 	StatsAddr     string
 	CpuProfile    string
 	MemProfile    string
-	WaddellCert   string
 	Stats         *statreporter.Config
 	Server        *server.ServerConfig
 	Client        *client.ClientConfig
@@ -120,9 +118,6 @@ func Start(updateHandler func(updated *Config)) (*Config, error) {
 func updateGlobals(cfg *Config) {
 	globals.InstanceId = cfg.InstanceId
 	globals.Country = cfg.Country
-	if cfg.WaddellCert != "" {
-		globals.WaddellCert = cfg.WaddellCert
-	}
 	err := globals.SetTrustedCAs(cfg.TrustedCACerts())
 	if err != nil {
 		log.Fatalf("Unable to configure trusted CAs: %s", err)
@@ -252,11 +247,6 @@ func (cfg *Config) applyClientDefaults() {
 	// Always make sure we have a map of ChainedServers
 	if cfg.Client.ChainedServers == nil {
 		cfg.Client.ChainedServers = make(map[string]*client.ChainedServerInfo)
-	}
-
-	// Always make sure that we have a map of Peers
-	if cfg.Client.Peers == nil {
-		cfg.Client.Peers = make(map[string]*nattywad.ServerPeer)
 	}
 
 	// Sort servers so that they're always in a predictable order
