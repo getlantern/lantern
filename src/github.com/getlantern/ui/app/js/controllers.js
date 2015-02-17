@@ -168,7 +168,7 @@ app.controller('ProxiedSitesCtrl', ['$rootScope', '$scope', '$filter', 'SETTING'
   };
 
   $scope.handleContinue = function () {
-    var customizations = {};
+    $rootScope.updates = {};
      
     if ($scope.proxiedSitesForm.$invalid) {
       return $scope.interaction(INTERACTION.continue);
@@ -176,9 +176,11 @@ app.controller('ProxiedSitesCtrl', ['$rootScope', '$scope', '$filter', 'SETTING'
 
     $scope.entries = $scope.arrLowerCase(proxiedSitesDirty);
 
-    ProxiedSites.update();
+    $rootScope.updates.Additions = $scope.setDiff($scope.entries, 
+                                       $scope.originalList);
+    $rootScope.updates.Deletions = $scope.setDiff($scope.originalList, $scope.entries);
 
-    //updatedProxiedSites.$save();
+    ProxiedSites.update();
 
     $scope.closeModal();
   };

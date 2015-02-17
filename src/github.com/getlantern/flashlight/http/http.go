@@ -18,13 +18,14 @@ import (
 )
 
 const (
-	UIUrl      = "http://%s"
-	LocalUIDir = "../../../ui/app"
+	UIUrl          = "http://%s"
+	LocalUIDir     = "../../../ui/app"
+	MaxMessageSize = 1024
 )
 
 var (
 	log      = golog.LoggerFor("http")
-	upgrader = &websocket.Upgrader{ReadBufferSize: 1024, WriteBufferSize: 1024}
+	upgrader = &websocket.Upgrader{ReadBufferSize: 1024, WriteBufferSize: MaxMessageSize}
 	UIDir    string
 )
 
@@ -34,11 +35,6 @@ type UIServer struct {
 	ProxiedSitesChan chan *proxiedsites.Config
 	Addr             string
 	ConfigUpdates    chan *config.Config
-}
-
-type ProxiedSitesMsg struct {
-	Global  []string `json:"Global, omitempty"`
-	Entries []string `json:"Entries, omitempty"`
 }
 
 // Assume the default directory containing UI assets is
@@ -80,22 +76,32 @@ func serveHome(r *http.ServeMux) {
 	}
 }
 
+func (srv UIServer) writeGlobalList() {
+	msg := proxiedsites.Config{
+		Additions: srv.ProxiedSites.GetEntries(),
+	}
+	// write the JSON encoding of the proxied sites to the
+	// websocket connection
+	if err := srv.Conn.WriteJSON(msg); err != nil {
+		log.Errorf("Error writing initial proxied sites: %s", err)
+	}
+}
+
 func (srv UIServer) writeProxiedSites() {
 	for {
-		msg := &ProxiedSitesMsg{
-			Global:  srv.ProxiedSites.GetGlobalList(),
-			Entries: srv.ProxiedSites.GetEntries(),
-		}
-		// write the JSON encoding of the proxied sites to the
-		// websocket connection
-		if err := srv.Conn.WriteJSON(msg); err != nil {
-			log.Errorf("Error writing initial proxied sites: %s", err)
-		}
 		// wait for YAML config updates to write to the websocket again
 		cfg := <-srv.ConfigUpdates
 		log.Debugf("Proxied sites updated in config file; applying changes")
-		srv.ProxiedSites = proxiedsites.New(cfg.Client.ProxiedSites)
-		srv.ProxiedSites.RefreshEntries()
+		newPs := proxiedsites.New(cfg.Client.ProxiedSites)
+		diff := srv.ProxiedSites.Diff(newPs)
+
+		log.Debugf("Difference is %+v", diff)
+
+		// write the JSON encoding of the proxied sites to the
+		// websocket connection
+		if err := srv.Conn.WriteJSON(diff); err != nil {
+			log.Errorf("Error writing proxied sites: %s", err)
+		}
 	}
 }
 
@@ -107,6 +113,8 @@ func (srv UIServer) readClientMessage() {
 		if err != nil {
 			break
 		}
+		log.Debugf("Received proxied sites update: %+v", &updates)
+		srv.ProxiedSites.Update(&updates)
 	}
 }
 
@@ -137,6 +145,7 @@ func (srv UIServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Error(err)
 		return
 	}
+	srv.writeGlobalList()
 	// write initial proxied sites list
 	go srv.writeProxiedSites()
 	srv.readClientMessage()

@@ -80,9 +80,8 @@ var app = angular.module('app', [
 
       dataStream.onMessage(function(message) {
           var msg = JSON.parse(message.data);
-          $rootScope.originalList = msg.Entries;
-          $rootScope.entries = msg.Entries;
-          $rootScope.global = msg.Global;
+          $rootScope.originalList = msg.Additions;
+          $rootScope.entries = msg.Additions;
           collection.push(msg);
       });
 
@@ -96,6 +95,7 @@ var app = angular.module('app', [
 
       dataStream.onClose(function(msg) {
           $rootScope.wsConnected = false;
+          // try to reconnect WS_MAX_RETRY_ATTEMPTS times 
           $interval(function() {
               dataStream = $websocket('ws://' + document.location.host + '/data');
               dataStream.onOpen(function(msg) {
@@ -112,7 +112,7 @@ var app = angular.module('app', [
       var methods = {
           collection: collection,
           update: function() {
-              dataStream.send(JSON.stringify($rootScope.entries));
+              dataStream.send(JSON.stringify($rootScope.updates));
           },
           get: function() {
               dataStream.send(JSON.stringify({ action: 'get' }));
