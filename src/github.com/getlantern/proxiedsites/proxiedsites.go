@@ -128,25 +128,25 @@ func (ps *ProxiedSites) Update(cfg *Config) {
 			// cloud list already, add it to our addSet
 			log.Debugf("Adding site %s", cfg.Additions[i])
 			ps.addSet.Add(cfg.Additions[i])
-			ps.cfg.Additions = append(ps.cfg.Additions,
-				cfg.Additions[i])
 		}
 	}
 
 	for i := range cfg.Deletions {
+
+		if ps.addSet.Has(cfg.Deletions[i]) {
+			// if a new deletion was previously on our
+			// additionss list, remove it here
+			ps.addSet.Remove(cfg.Deletions[i])
+		}
+
 		ps.delSet.Add(cfg.Deletions[i])
-		ps.cfg.Deletions = append(ps.cfg.Deletions, cfg.Deletions[i])
 	}
+
+	ps.cfg.Deletions = set.StringSlice(ps.delSet)
+	ps.cfg.Additions = set.StringSlice(ps.addSet)
 
 	ps.entries = set.StringSlice(set.Difference(ps.addSet, ps.delSet))
 	go ps.updatePacFile()
-}
-
-func (ps *ProxiedSites) RefreshEntries() []string {
-
-	go ps.updatePacFile()
-
-	return ps.entries
 }
 
 func GetPacFile() string {
