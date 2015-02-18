@@ -83,7 +83,7 @@ You may sign the executable with codesign or osslsigncode before using
 ## How to test the autoupdate package?
 
 In order to actually test automatic updates, we are going to manually increase
-the version of main.go, compile a new binary and upload it to equinox.
+the version of `main.go`, compile a new binary and upload it to equinox.
 
 You should already have a `main.v1` compiled binary, if not, create it:
 
@@ -106,19 +106,36 @@ go build -o main.v2
 releasetool ... -version 2 -source main.v2
 ```
 
-Do it again for version 3.
+Keep doing it again for versions 3 and 4.
 
-```sh
-grep internalVersion main.go | head -n 1
-#        internalVersion = 3
-go build -o main.v3
-releasetool ... -version 3 -source binary.file
+You can also use this script that will bump the versions, compile and release
+each generated binary:
+
+```
+#/bin/bash
+
+for i in $(seq 1 4); do
+	sed s/"internalVersion =.*"/"internalVersion = $i"/g main.go > main.go.tmp
+	mv main.go.tmp main.go
+	go build -o main.v$i
+	releasetool -config equinox.yaml -arch amd64 -os darwin -version $i -channel stable -source main.v$i
+done
+
+git checkout main.go
 ```
 
 Copy the original `main.v1` to `main`:
 
 ```
 cp main.v1 main
+```
+
+The example application is configured to access a flashlight proxy at
+`127.0.0.1:9999` to download updates from the network, so launch such proxy
+before running the application:
+
+```
+./flashlight -role client -addr 127.0.0.1:9999
 ```
 
 Finally, run the `main` program and wait a bit for it to update.

@@ -96,10 +96,7 @@ func (a *AutoUpdate) check() (res *check.Result, err error) {
 		Channel: a.cfg.updateChannel,
 	}
 
-	up = update.New()
-
-	// TODO: This is not working.
-	// up = update.New().ApplyPatch(update.PATCHTYPE_BSDIFF)
+	up = update.New().ApplyPatch(update.PATCHTYPE_BSDIFF)
 
 	if _, err = up.VerifySignatureWithPEM(a.cfg.publicKey); err != nil {
 		return nil, err
@@ -142,13 +139,16 @@ func (a *AutoUpdate) loop() {
 		if err == nil {
 			if patch.Version() > a.Version() {
 
-				if err = patch.Apply(); err != nil {
+				err = patch.Apply()
+
+				if err == nil {
+					// Updating version.
+					a.UpdatedTo <- patch.Version()
+					a.SetVersion(patch.Version())
+				} else {
 					log.Printf("autoupdate: Patch failed: %q\n", err)
 				}
 
-				// Updating version.
-				a.UpdatedTo <- patch.Version()
-				a.SetVersion(patch.Version())
 			}
 		} else {
 			log.Printf("autoupdate: Could not reach update server: %q\n", err)
