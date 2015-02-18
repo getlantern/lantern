@@ -1,4 +1,5 @@
-// package fronted provides a client and server for domain-fronted proxying.
+// package fronted provides a client and server for domain-fronted proxying
+// using enproxy proxies.
 package fronted
 
 import (
@@ -42,6 +43,16 @@ type Dialer interface {
 	// HttpClientUsing creates a simple domain-fronted HTTP client using the
 	// specified Masquerade.
 	HttpClientUsing(masquerade *Masquerade) *http.Client
+
+	// DirectHttpClient creates an HttpClient that domain-fronts but instead of
+	// using enproxy proxies routes to the destination server directly from the
+	// CDN. This is useful for web properties registered on the CDN itself, for
+	// example geo.getiantem.org.
+	//
+	// Note - the connection is already encrypted by domain-fronting, so this
+	// client should only be used to make HTTP requests. Using it for HTTPS
+	// requests will result in an error.
+	DirectHttpClient() *http.Client
 }
 
 // Config captures the configuration of a domain-fronted dialer.
@@ -183,6 +194,17 @@ func (d *dialer) HttpClientUsing(masquerade *Masquerade) *http.Client {
 		Transport: &http.Transport{
 			Dial: func(network, addr string) (net.Conn, error) {
 				return enproxy.Dial(addr, enproxyConfig)
+			},
+		},
+	}
+}
+
+func (d *dialer) DirectHttpClient() *http.Client {
+	masquerade := d.masquerades.nextVerified()
+	return &http.Client{
+		Transport: &http.Transport{
+			Dial: func(network, addr string) (net.Conn, error) {
+				return d.dialServerWith(masquerade)
 			},
 		},
 	}
