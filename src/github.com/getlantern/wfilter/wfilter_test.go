@@ -26,13 +26,13 @@ func TestLines(t *testing.T) {
 	if assert.NoError(t, err, "Error writing newline after A") {
 		assert.Equal(t, 1, n, "Wrong bytes written for newline after A")
 	}
-	n, err = fmt.Fprintln(w, "B\nC")
+	n, err = fmt.Fprintf(w, "B\nC")
 	if assert.NoError(t, err, "Error writing BC") {
-		assert.Equal(t, 4, n, "Wrong bytes written for BC")
+		assert.Equal(t, 3, n, "Wrong bytes written for BC")
 	}
-	n, err = fmt.Fprintln(w, "D")
+	n, err = fmt.Fprintln(w, "\nD")
 	if assert.NoError(t, err, "Error writing D") {
-		assert.Equal(t, 2, n, "Wrong bytes written for D")
+		assert.Equal(t, 3, n, "Wrong bytes written for D")
 	}
 
 	assert.Equal(t, expected, string(buf.Bytes()))

@@ -4,7 +4,6 @@ package wfilter
 import (
 	"bytes"
 	"io"
-	"log"
 )
 
 type Prepend func(w io.Writer) (int, error)
@@ -36,30 +35,33 @@ func (w *lp) Write(buf []byte) (int, error) {
 
 	for {
 		i := bytes.IndexRune(buf, '\n') + 1
-		if i > 0 {
-			if i < len(buf) {
-				// Newline is in middle of buffer
-				// Write up to newline
-				n, err := w.Writer.Write(buf[:i])
-				totalN += n
-				if err != nil {
-					return totalN, err
-				}
-				// Add prepend
-				_, err = w.prepend(w.Writer)
-				if err != nil {
-					return totalN, err
-				}
-				// Remove processed portion of buffer
-				buf = buf[i:]
-				continue
-			}
-			// Newline is at end of buffer, mark prependNeeded for next write
+		newlineFound := i > 0
+		newlineAtEnd := newlineFound && i == len(buf)
+
+		if !newlineFound {
+			break
+		} else if newlineAtEnd {
+			// Prepend will be needed at beginning of next write
 			w.prependNeeded = true
+			break
+		} else {
+			// Newline is somewhere before end
+			n, err := w.Writer.Write(buf[:i])
+			totalN += n
+			if err != nil {
+				return totalN, err
+			}
+			// Add prepend
+			_, err = w.prepend(w.Writer)
+			if err != nil {
+				return totalN, err
+			}
+			// Remove processed portion of buffer
+			buf = buf[i:]
 		}
-		break
 	}
 
+	// Write what's left of buf
 	n, err := w.Writer.Write(buf)
 	totalN += n
 	return totalN, err
