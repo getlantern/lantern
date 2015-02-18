@@ -13,28 +13,54 @@ type Prepend func(w io.Writer) (int, error)
 // along with the original writer, and it can write whatever it wants. It should
 // return the bytes written and any error encountered.
 func LinePrepender(w io.Writer, prepend Prepend) io.Writer {
-	return &lp{w, prepend}
+	return &lp{w, prepend, true}
 }
 
 type lp struct {
 	io.Writer
-	prepend Prepend
+	prepend       Prepend
+	prependNeeded bool
 }
 
 func (w *lp) Write(buf []byte) (int, error) {
-	totalN := 0
-	for {
+	if w.prependNeeded {
 		_, err := w.prepend(w.Writer)
 		if err != nil {
-			return totalN, err
+			return 0, err
 		}
-		i := bytes.IndexRune(buf, '\n') + 1
-		isLastLine := (i == len(buf))
-		n, err := w.Writer.Write(buf[:i])
-		totalN += n
-		if err != nil || isLastLine {
-			return totalN, err
-		}
-		buf = buf[i:]
+		w.prependNeeded = false
 	}
+
+	// Prepend before every newline in the buffer
+	totalN := 0
+
+	for {
+		i := bytes.IndexRune(buf, '\n') + 1
+		if i > 0 {
+			if i < len(buf) {
+				// Newline is in middle of buffer
+				// Write up to newline
+				n, err := w.Writer.Write(buf[:i])
+				totalN += n
+				if err != nil {
+					return totalN, err
+				}
+				// Add prepend
+				_, err = w.prepend(w.Writer)
+				if err != nil {
+					return totalN, err
+				}
+				// Remove processed portion of buffer
+				buf = buf[i:]
+				continue
+			}
+			// Newline is at end of buffer, mark prependNeeded for next write
+			w.prependNeeded = true
+		}
+		break
+	}
+
+	n, err := w.Writer.Write(buf)
+	totalN += n
+	return totalN, err
 }
