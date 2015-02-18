@@ -228,6 +228,14 @@ func (cfg *Config) applyClientDefaults() {
 			MaxMasquerades: 20,
 			QOS:            10,
 			Weight:         4000,
+		}, &client.FrontedServerInfo{
+			Host:           "peers.getiantem.org",
+			Port:           443,
+			PoolSize:       30,
+			MasqueradeSet:  cloudflare,
+			MaxMasquerades: 20,
+			QOS:            2,
+			Weight:         1000,
 		})
 	}
 
