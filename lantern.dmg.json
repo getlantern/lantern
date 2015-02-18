@@ -1,0 +1,10 @@
+{
+  "title": "Lantern",
+  "icon": "lantern.icns",
+  "background": "dmgbackground.png",
+  "icon-size": 100,
+  "contents": [
+    { "x": 100, "y": 140, "type": "file", "path": "Lantern.app" },
+    { "x": 380, "y": 140, "type": "link", "path": "/Applications" }
+  ]
+}

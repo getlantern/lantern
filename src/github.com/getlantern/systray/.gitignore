@@ -1,0 +1,7 @@
+example/example
+*~
+*.swp
+*.exe
+Release
+Debug
+*.sdf

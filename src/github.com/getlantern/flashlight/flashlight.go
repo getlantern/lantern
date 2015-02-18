@@ -11,6 +11,7 @@ import (
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/profiling"
+	"github.com/getlantern/systray"
 
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
@@ -42,6 +43,11 @@ func init() {
 }
 
 func main() {
+	systray.Run(doMain)
+}
+
+func doMain() {
+	configureSystemTray()
 	displayVersion()
 
 	flag.Parse()
@@ -161,4 +167,18 @@ func useAllCores() {
 	numcores := runtime.NumCPU()
 	log.Debugf("Using all %d cores on machine", numcores)
 	runtime.GOMAXPROCS(numcores)
+}
+
+func configureSystemTray() {
+	icon, err := Asset("icons/16on.ico")
+	if err != nil {
+		log.Fatalf("Unable to load icon for system tray: %v", err)
+	}
+	systray.SetIcon(icon)
+	systray.SetTooltip("Lantern")
+	quit := systray.AddMenuItem("Quit", "Quit Lantern")
+	go func() {
+		<-quit.ClickedCh
+		os.Exit(0)
+	}()
 }
