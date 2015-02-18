@@ -18,9 +18,13 @@ func TestLines(t *testing.T) {
 		return fmt.Fprintf(w, "%d ", j)
 	})
 
-	n, err := fmt.Fprintln(w, "A")
+	n, err := fmt.Fprint(w, "A")
 	if assert.NoError(t, err, "Error writing A") {
-		assert.Equal(t, 2, n, "Wrong bytes written for A")
+		assert.Equal(t, 1, n, "Wrong bytes written for A")
+	}
+	n, err = fmt.Fprintln(w, "")
+	if assert.NoError(t, err, "Error writing newline after A") {
+		assert.Equal(t, 1, n, "Wrong bytes written for newline after A")
 	}
 	n, err = fmt.Fprintln(w, "B\nC")
 	if assert.NoError(t, err, "Error writing BC") {

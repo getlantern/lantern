@@ -4,13 +4,13 @@ package wfilter
 import (
 	"bytes"
 	"io"
+	"log"
 )
 
 type Prepend func(w io.Writer) (int, error)
 
-// lines creates a filtering writer that filters on a line by line basis using
-// the given filterFunc. FilterFunc is given the string for the current line
-// along with the original writer, and it can write whatever it wants. It should
+// LinePrepender creates an io.Writer that prepends to each line by calling the
+// given prepend function. Perepend can write whatever it wants. It should
 // return the bytes written and any error encountered.
 func LinePrepender(w io.Writer, prepend Prepend) io.Writer {
 	return &lp{w, prepend, true}
