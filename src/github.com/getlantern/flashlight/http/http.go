@@ -17,8 +17,11 @@ import (
 )
 
 const (
-	UIUrl          = "http://%s"
-	LocalUIDir     = "../../../ui/app"
+	UIUrl = "http://%s"
+	// Assume UI directory to be a sibling directory
+	// of flashlight parent dir
+	LocalUIDir = "../../../ui/app"
+	// Determines the chunking size of messages used by gorilla
 	MaxMessageSize = 1024
 )
 
@@ -28,11 +31,24 @@ var (
 	UIDir    string
 )
 
+// represents a UI instance
+type Client struct {
+	// UI websocket connection
+	Conn *websocket.Conn
+
+	// Buffered channel of proxied sites
+	msg chan *proxiedsites.Config
+}
+
 type UIServer struct {
-	Conn             *websocket.Conn
-	ProxiedSites     *proxiedsites.ProxiedSites
+	connections map[*Client]bool // pool of UI client instances
+	Addr        string
+	// our current proxied sites instance
+	ProxiedSites *proxiedsites.ProxiedSites
+
+	requests         chan *Client
+	connClose        chan *Client // handles client disconnects
 	ProxiedSitesChan chan *proxiedsites.Config
-	Addr             string
 	ConfigUpdates    chan *config.Config
 }
 
@@ -79,42 +95,48 @@ func serveHome(r *http.ServeMux) {
 // proxied sites (global list + additions) - deletions
 // the gorilla websocket module automatically
 // chunks messages according to WriteBufferSize
-func (srv UIServer) writeGlobalList() {
+func (srv UIServer) writeGlobalList(client *Client) {
 	initMsg := proxiedsites.Config{
 		Additions: srv.ProxiedSites.GetEntries(),
 	}
 	// write the JSON encoding of the proxied sites to the
 	// websocket connection
-	if err := srv.Conn.WriteJSON(initMsg); err != nil {
+	if err := client.Conn.WriteJSON(initMsg); err != nil {
 		log.Errorf("Error writing initial proxied sites: %s", err)
 	}
 }
 
-func (srv UIServer) writeProxiedSites() {
+func (srv UIServer) writeProxiedSites(client *Client) {
+	defer client.Conn.Close()
 	for {
-		// wait for YAML config updates to write to the websocket again
-		cfg := <-srv.ConfigUpdates
-		log.Debugf("Proxied sites updated in config file; applying changes")
-		newPs := proxiedsites.New(cfg.Client.ProxiedSites)
-
-		diff := srv.ProxiedSites.Diff(newPs)
-		// write the JSON encoding of the proxied sites to the
-		// websocket connection
-		if err := srv.Conn.WriteJSON(diff); err != nil {
-			log.Errorf("Error writing proxied sites: %s", err)
+		select {
+		case msg, recv := <-client.msg:
+			if !recv {
+				// write empty message to close connection on error sending
+				client.Conn.WriteMessage(websocket.CloseMessage, []byte{})
+				return
+			}
+			if err := client.Conn.WriteJSON(msg); err != nil {
+				srv.connClose <- client
+				log.Errorf("Error writing proxied sites to UI instance: %s", err)
+				return
+			}
 		}
 	}
 }
 
-func (srv UIServer) readClientMessage() {
-	defer srv.Conn.Close()
+func (srv UIServer) readClientMessage(client *Client) {
+	defer func() {
+		srv.connClose <- client
+		client.Conn.Close()
+	}()
 	for {
 		var updates proxiedsites.Config
-		err := srv.Conn.ReadJSON(&updates)
+		err := client.Conn.ReadJSON(&updates)
 		if err != nil {
 			break
 		}
-		log.Debugf("Received proxied sites update: %+v", &updates)
+		log.Debugf("Received proxied sites update from client: %+v", &updates)
 		srv.ProxiedSites.Update(&updates)
 		srv.ProxiedSitesChan <- srv.ProxiedSites.GetConfig()
 	}
@@ -137,38 +159,83 @@ func OpenUI(shouldOpen bool, uiAddr string) {
 // handles websocket requests from the client
 func (srv UIServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
+
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", 405)
 		return
 	}
 	// Upgrade with a HTTP request returns a websocket connection
-	srv.Conn, err = upgrader.Upgrade(w, r, nil)
+	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Error(err)
 		return
 	}
-	srv.writeGlobalList()
+	client := &Client{Conn: ws, msg: make(chan *proxiedsites.Config)}
+	srv.requests <- client
 	// write initial proxied sites list
-	go srv.writeProxiedSites()
-	srv.readClientMessage()
+	srv.writeGlobalList(client)
+	go srv.writeProxiedSites(client)
+	srv.readClientMessage(client)
+}
+
+func (srv UIServer) processRequests() {
+	for {
+		select {
+		// wait for YAML config updates
+		case cfg := <-srv.ConfigUpdates:
+			log.Debugf("Proxied sites updated in config file; applying changes %+v", cfg.Client.ProxiedSites)
+			newPs := proxiedsites.New(cfg.Client.ProxiedSites)
+			diff := srv.ProxiedSites.Diff(newPs)
+			srv.ProxiedSites = newPs
+			// write proxied sites update to every UI instance
+			for c := range srv.connections {
+				select {
+				// write the JSON encoding of the proxied sites to the
+				// websocket connections
+				case c.msg <- diff:
+				default:
+					close(c.msg)
+					delete(srv.connections, c)
+				}
+			}
+		case c := <-srv.requests:
+			log.Debug("Adding new UI instance..")
+			srv.connections[c] = true
+		case c := <-srv.connClose:
+			log.Debug("Disconnecting UI instance..")
+			if _, ok := srv.connections[c]; ok {
+				delete(srv.connections, c)
+				close(c.msg)
+			}
+		}
+	}
 }
 
 // poll for config updates to the proxiedsites
 // with this immediately see flashlight.yaml
 // changes in the UI
-
 func (srv UIServer) StartServer() {
 
 	r := http.NewServeMux()
+
+	// initial request, connection close and
+	// connection pool for this UI server
+	srv.connClose = make(chan *Client)
+	srv.requests = make(chan *Client)
+	srv.connections = make(map[*Client]bool)
+
+	go srv.processRequests()
+
 	r.Handle("/data", srv)
 	r.HandleFunc("/proxy_on.pac", servePacFile)
 	serveHome(r)
 
+	log.Debugf("Starting UI HTTP server at %s", srv.Addr)
 	httpServer := &http.Server{
 		Addr:    srv.Addr,
 		Handler: r,
 	}
 
-	log.Debugf("Starting UI HTTP server at %s", srv.Addr)
-	go log.Fatal(httpServer.ListenAndServe())
+	// Run the UI websocket server asynchronously
+	go log.Fatal(http.ListenAndServe(srv.Addr))
 }
