@@ -137,17 +137,19 @@ func runUIServer(cfg *config.Config) {
 	if cfg.UIAddr != "" {
 		proxiedSitesChan := make(chan *proxiedsites.Config)
 		go func() {
-			ps := proxiedsites.New(cfg.Client.ProxiedSites)
-			srv := &http.UIServer{
-				ProxiedSites:     ps,
-				ProxiedSitesChan: proxiedSitesChan,
-				Addr:             cfg.UIAddr,
-				ConfigUpdates:    configUpdates,
+			for {
+				cfg := <-configUpdates
+				ps := proxiedsites.New(cfg.Client.ProxiedSites)
+				srv := &http.UIServer{
+					ProxiedSites:     ps,
+					ProxiedSitesChan: proxiedSitesChan,
+					Addr:             cfg.UIAddr,
+					ConfigUpdates:    configUpdates,
+				}
+				srv.StartServer()
+				log.Debug("Started UI server...")
 			}
-			srv.StartServer()
-			log.Debug("Started UI server...")
 		}()
-
 		// if the openui flag is specified, the UI is automatically
 		// opened in the default browser on start
 		http.OpenUI(cfg.OpenUI, cfg.UIAddr)
