@@ -1,7 +1,7 @@
 'use strict';
 
 app.controller('RootCtrl', ['$scope', '$http', 'flashlightStats', function($scope, $http, flashlightStats) {
-    //flashlightStats.connect();
+    flashlightStats.connect();
     $scope.currentModal = 'none';
 
     $scope.showModal = function(val) {

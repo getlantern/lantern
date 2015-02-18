@@ -115,14 +115,17 @@ func (prev *ProxiedSites) Diff(cur *ProxiedSites) *Config {
 
 	// add new sites from the global cloud config
 	cloudDiff.Each(func(site interface{}) bool {
-		if !delSet.Has(site) {
+		if !cur.delSet.Has(site) {
 			addSet.Add(site)
 		}
 		return true
 	})
 
+	additions := set.StringSlice(addSet)
+	sort.Strings(additions)
+
 	return &Config{
-		Additions: set.StringSlice(addSet),
+		Additions: additions,
 		Deletions: set.StringSlice(delSet),
 	}
 }

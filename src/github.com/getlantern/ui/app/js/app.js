@@ -75,13 +75,14 @@ var app = angular.module('app', [
       var dataStream = $websocket('ws://' + document.location.host + '/data');
       var collection = [];
       var WS_RECONNECT_INTERVAL = 5000;
-      var WS_MAX_RETRY_ATTEMPTS = 20;
       var WS_RETRY_COUNT = 0;
+
+      $rootScope.entries = [];
 
       dataStream.onMessage(function(message) {
           var msg = JSON.parse(message.data);
           $rootScope.originalList = msg.Additions;
-          $rootScope.entries = msg.Additions;
+          $rootScope.entries.push(msg.Additions);
           collection.push(msg);
       });
 
@@ -90,23 +91,25 @@ var app = angular.module('app', [
         WS_RETRY_COUNT = 0;
         $rootScope.backendIsGone = false;
         $rootScope.wsLastConnectedAt = new Date();
-        console.log("new websocket instance created " + msg);
+        console.log("New websocket instance created " + msg);
       });
 
       dataStream.onClose(function(msg) {
           $rootScope.wsConnected = false;
-          // try to reconnect WS_MAX_RETRY_ATTEMPTS times 
+          // try to reconnect indefinitely
+          // when the websocket closes
           $interval(function() {
+              console.log("Trying to reconnect to disconnected websocket");
               dataStream = $websocket('ws://' + document.location.host + '/data');
               dataStream.onOpen(function(msg) {
                 $window.location.reload();
               });
-          }, WS_RECONNECT_INTERVAL, WS_MAX_RETRY_ATTEMPTS);
-          console.log("this websocket instance closed " + msg);
+          }, WS_RECONNECT_INTERVAL);
+          console.log("This websocket instance closed " + msg);
       });
 
       dataStream.onError(function(msg) {
-          console.log("error on this websocket instance " + msg);
+          console.log("Error on this websocket instance " + msg);
       });
 
       var methods = {
