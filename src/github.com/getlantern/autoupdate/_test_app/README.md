@@ -15,10 +15,25 @@ Create a new application using the equinox
 Identify the **Account ID**, **Secret Key** and the new application's
 **Application ID**
 
-Download the equinox tool from the dashboard.
+Install the Lantern's releasetool:
 
-We are going to sign our releases, that's why we need a keypair. Create a new
-one using `openssl`:
+```sh
+go install github.com/getlantern/autoupdate/releasetool
+releasetool
+# Usage of releasetool:
+#  -arch="": Build architecture. (amd64|386|arm)
+#  -channel="stable": Release channel.
+#  -config="equinox.yaml": Configuration file.
+#  -os="": Operating system. (linux|windows|darwin)
+#  -source="": Source binary file.
+#  -version=-1: Version number.
+```
+
+We are going to sign our releases, this signature is different from the
+signatures required by OSX and Windows and it's only used to validate the
+integrity of our releases.
+
+If you don't have a keypair already, you can create a new one using `openssl`:
 
 ```sh
 openssl genrsa -out private.pem 2048
@@ -43,59 +58,67 @@ var configMap = map[string]*config{
 }
 ```
 
-Create a `equinox.yaml` file, we're going to store settings for `equinox`.
+Create an `equinox.yaml` file and store some values that `releasetool` is going
+to use:
 
 ```yaml
----
 account_id: id_XXX
 secret_key: key_YYY
 application_id: ap_ZZZ
 channel: stable
-private-key: ./private.pem
+private_key: ./private.pem
 ```
 
-Use the `equinox` tool to update a new version, instead of using floating point
-numbers to describe a release, use integers, it will be easier as the next
-greatest number than `n` is always defined by `n + 1` and we'll have no chance
-of hitting a bug derived from comparison of floating point values.
+Use the `releasetool` CLI to update and publish a new binary release.
 
 ```sh
-equinox release --config equinox.yaml --version=1 main.go
+go build -o main.v1
+releasetool -config equinox.yaml -arch amd64 -os darwin -version 1 -channel stable -source main.v1
 # ...
 ```
 
-Note: I've found my `equinox` tool does not actually cares about the
-`equinox.yaml` file. So I feed these values directly:
+You may sign the executable with codesign or osslsigncode before using
+`releasetool`.
 
-```sh
-equinox release --config equinox.yaml --version=1 main.go
-# EROR[02-08|07:37:36] missing required argument                fn=parseOpts arg=equinox-account
-# CRIT[02-08|07:37:36] failed to parse options                  err="equinox-account argument is required"
-equinox release --equinox-secret key_YYY --equinox-account id_XXX --channel 'stable' --equinox-app ap_ZZZ --private-key ./private.pem --version=1 main.go
-# Success!
+## How to test the autoupdate package?
+
+In order to actually test automatic updates, we are going to manually increase
+the version of main.go, compile a new binary and upload it to equinox.
+
+You should already have a `main.v1` compiled binary, if not, create it:
+
+```
+go build -o main.v1
 ```
 
-In order to actually test auto updates, you need to increase the
-`internalVersion` within `main.go` and use equinox to build and update the
-binary.
+And upload it to equinox:
 
-Increate `internalVersion` to 2 and upload it:
-
-```sh
-equinox release ... --version=2 main.go
+```
+releasetool -config equinox.yaml -arch amd64 -os darwin -version 1 -channel stable -source main.v1
 ```
 
-Then, bump it to `3` and upload it again:
+Increase `internalVersion` constant to 2 and repeat:
 
 ```sh
-equinox release ... --version=3 main.go
+grep internalVersion main.go | head -n 1
+#        internalVersion = 2
+go build -o main.v2
+releasetool ... -version 2 -source main.v2
 ```
 
-Now reset the file and build `main.go`:
+Do it again for version 3.
 
 ```sh
-git checkout main.go
-go build main.go
+grep internalVersion main.go | head -n 1
+#        internalVersion = 3
+go build -o main.v3
+releasetool ... -version 3 -source binary.file
+```
+
+Copy the original `main.v1` to `main`:
+
+```
+cp main.v1 main
 ```
 
 Finally, run the `main` program and wait a bit for it to update.
@@ -114,7 +137,8 @@ Finally, run the `main` program and wait a bit for it to update.
 ```
 
 The next time the program runs, it will display version 3 instead of version 1
-for both software and executable.
+for both software and executable and the checksum of `main` and `main.v3` will
+be the same.
 
 ```sh
 ./main
