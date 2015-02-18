@@ -141,8 +141,11 @@ func (ps *ProxiedSites) Update(cfg *Config) {
 			// additionss list, remove it here
 			ps.addSet.Remove(cfg.Deletions[i])
 		}
-
-		ps.delSet.Add(cfg.Deletions[i])
+		if ps.cloudSet.Has(cfg.Deletions[i]) {
+			// add to the delete list only if it's
+			// already in the global list
+			ps.delSet.Add(cfg.Deletions[i])
+		}
 	}
 
 	ps.cfg.Deletions = set.StringSlice(ps.delSet)
