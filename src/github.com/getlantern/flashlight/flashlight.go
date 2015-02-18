@@ -135,9 +135,10 @@ func runClientProxy(cfg *config.Config) {
 // Runs the UI Server
 func runUIServer(cfg *config.Config) {
 	if cfg.UIAddr != "" {
-		proxiedSitesChan := make(chan *proxiedsites.Config)
+		proxiedSitesChan := make(chan *proxiedsites.ProxiedSites)
 		go func() {
 			for {
+				cfg := <-configUpdates
 				ps := proxiedsites.New(cfg.Client.ProxiedSites)
 				srv := &http.UIServer{
 					ProxiedSites:     ps,
@@ -157,7 +158,7 @@ func runUIServer(cfg *config.Config) {
 			for {
 				// separate channel for synchronizing proxiedsites updates
 				ps := <-proxiedSitesChan
-				cfg.Client.ProxiedSites = ps
+				cfg.Client.ProxiedSites = ps.GetConfig()
 				err := config.Update(func(updated *config.Config) error {
 					log.Debugf("Saving updated proxiedsites configuration")
 					updated.Client.ProxiedSites = cfg.Client.ProxiedSites
