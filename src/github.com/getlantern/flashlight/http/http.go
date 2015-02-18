@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"path"
+	"reflect"
 	"runtime"
 	"time"
 
@@ -138,7 +139,7 @@ func (srv UIServer) readClientMessage(client *Client) {
 		}
 		log.Debugf("Received proxied sites update from client: %+v", &updates)
 		srv.ProxiedSites.Update(&updates)
-		srv.ProxiedSitesChan <- srv.ProxiedSites.GetConfig()
+		srv.ProxiedSitesChan <- srv.ProxiedSites.Cfg
 	}
 }
 
@@ -171,8 +172,7 @@ func (srv UIServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	client := &Client{Conn: ws, msg: make(chan *proxiedsites.Config)}
 	srv.requests <- client
-	// write initial proxied sites list
-	srv.writeGlobalList(client)
+
 	go srv.writeProxiedSites(client)
 	srv.readClientMessage(client)
 }
@@ -182,7 +182,12 @@ func (srv UIServer) processRequests() {
 		select {
 		// wait for YAML config updates
 		case cfg := <-srv.ConfigUpdates:
-			log.Debugf("Proxied sites updated in config file; applying changes %+v", cfg.Client.ProxiedSites)
+
+			if reflect.DeepEqual(cfg.Client.ProxiedSites, srv.ProxiedSites.Cfg) {
+				// ignore conifg update if proxied sites list is unchanged
+				continue
+			}
+			log.Debugf("Proxied sites updated in config file; applying changes..")
 			newPs := proxiedsites.New(cfg.Client.ProxiedSites)
 			diff := srv.ProxiedSites.Diff(newPs)
 			srv.ProxiedSites = newPs
@@ -200,6 +205,8 @@ func (srv UIServer) processRequests() {
 		case c := <-srv.requests:
 			log.Debug("Adding new UI instance..")
 			srv.connections[c] = true
+			// write initial proxied sites list
+			srv.writeGlobalList(c)
 		case c := <-srv.connClose:
 			log.Debug("Disconnecting UI instance..")
 			if _, ok := srv.connections[c]; ok {
