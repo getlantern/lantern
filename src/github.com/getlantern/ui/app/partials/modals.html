@@ -41,7 +41,6 @@
       <i class="lsf-icon lsf-web"></i>
       {{ 'PROXIED_SITES_TITLE' | translate }}
     </h3>
-    {{ proxiedSites.entries }}
   </div>
   <div class="modal-body" id="proxiedSites">
 
@@ -70,12 +69,13 @@
         <form name="proxiedSitesForm" ng-init="setFormScope(this)">
           <textarea name="input" placeholder="example.com" required
             split-array 
+            dynamic
             ng-model="entries"
             ng-model-options="{ getterSetter: true }"
             ng-hide="!!searchText" ng-readonly="!!searchText" focus-on="show"
             ui-validate="'validate($value)'" id="proxiedSitesInput"
             dir="ltr" tabindex="{{ show && 1 || '' }}"></textarea>
-          <textarea ng-model="entries" split-array placeholder="{{ 'NO_MATCHING_SITES' | translate }} &quot;{{searchText}}&quot;"
+          <textarea dynamic ng-model="entries" split-array placeholder="{{ 'NO_MATCHING_SITES' | translate }} &quot;{{searchText}}&quot;"
             ng-show="!!searchText" readonly dir="ltr"></textarea>
         </form>
       </div>
