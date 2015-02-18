@@ -41,20 +41,25 @@ func main() {
 	// Parsing flags
 	flag.Parse()
 
+	if *flagSource == "" {
+		flag.Usage()
+		return
+	}
+
 	// Validating version.
 	if *flagVersion < 0 {
 		log.Fatal("Version must be a positive integer (-version).")
 	}
 
-	// Validating arch.
+	// Validating architectures.
 	switch *flagArch {
-	case "amd64", "386":
+	case "amd64", "386", "arm":
 		// OK.
 	default:
 		log.Fatal("Missing a valid build architecture (-arch).")
 	}
 
-	// Validating OS.
+	// Validating Operating Systems.
 	switch *flagOS {
 	case "linux", "darwin", "windows":
 		// OK.
