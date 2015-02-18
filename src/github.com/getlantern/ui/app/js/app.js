@@ -83,10 +83,13 @@ var app = angular.module('app', [
           if (!$rootScope.entries) {
             // initialize proxied site entries
             $rootScope.entries = msg.Additions;
+            $rootScope.originalList = msg.Additions;
           } else {
-            $rootScope.entries.push(msg.Additions);
+            var entries = $rootScope.entries;
+            entries.push(msg.Additions);
+            $rootScope.entries = entries;
+            $rootScope.originalList.push(msg.Additions);
           }
-          $rootScope.originalList = msg.Additions;
           collection.push(msg);
       });
 

@@ -1,7 +1,7 @@
 'use strict';
 
 app.controller('RootCtrl', ['$scope', '$http', 'flashlightStats', function($scope, $http, flashlightStats) {
-    flashlightStats.connect();
+    // disabling for now flashlightStats.connect();
     $scope.currentModal = 'none';
 
     $scope.showModal = function(val) {
@@ -84,7 +84,7 @@ app.controller('ProxiedSitesCtrl', ['$rootScope', '$scope', '$filter', 'SETTING'
 
   $scope.resetProxiedSites = function(reset) {
     if (reset) {
-        $scope.entries = $rootScope.global;
+        $rootScope.entries = $rootScope.global;
         $scope.input = $scope.proxiedSites;
         makeValid();
     } else {
