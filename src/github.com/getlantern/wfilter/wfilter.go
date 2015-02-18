@@ -6,42 +6,61 @@ import (
 	"io"
 )
 
-const (
-	MaxLineLength = 2 << 15
-)
-
-type FilterFunc func(w io.Writer, line string) (int, error)
+type Prepend func(w io.Writer) (int, error)
 
 // lines creates a filtering writer that filters on a line by line basis using
 // the given filterFunc. FilterFunc is given the string for the current line
 // along with the original writer, and it can write whatever it wants. It should
 // return the bytes written and any error encountered.
-func Lines(w io.Writer, filterFunc FilterFunc) io.Writer {
-	return &lfw{w, filterFunc, nil}
+func LinePrepender(w io.Writer, prepend Prepend) io.Writer {
+	return &lp{w, prepend, true}
 }
 
-type lfw struct {
+type lp struct {
 	io.Writer
-	filterFunc FilterFunc
-	line       []byte
+	prepend       Prepend
+	prependNeeded bool
 }
 
-func (w *lfw) Write(buf []byte) (int, error) {
-	if w.line == nil {
-		w.line = make([]byte, 0, len(buf))
+func (w *lp) Write(buf []byte) (int, error) {
+	if w.prependNeeded {
+		_, err := w.prepend(w.Writer)
+		if err != nil {
+			return 0, err
+		}
+		w.prependNeeded = false
 	}
-	i := bytes.IndexRune(buf, '\n') + 1
-	if i > 0 {
-		w.line = append(w.line, buf[:i]...)
-		n, err := w.filterFunc(w.Writer, string(w.line))
-		w.line = nil
-		return n, err
+
+	// Prepend before every newline in the buffer
+	totalN := 0
+
+	for {
+		i := bytes.IndexRune(buf, '\n') + 1
+		if i > 0 {
+			if i < len(buf) {
+				// Newline is in middle of buffer
+				// Write up to newline
+				n, err := w.Writer.Write(buf[:i])
+				totalN += n
+				if err != nil {
+					return totalN, err
+				}
+				// Add prepend
+				_, err = w.prepend(w.Writer)
+				if err != nil {
+					return totalN, err
+				}
+				// Remove processed portion of buffer
+				buf = buf[i:]
+				continue
+			}
+			// Newline is at end of buffer, mark prependNeeded for next write
+			w.prependNeeded = true
+		}
+		break
 	}
-	if len(w.line)+len(buf) > MaxLineLength {
-		// Don't let lines get too long
-		w.line = nil
-	} else {
-		w.line = append(w.line, buf...)
-	}
-	return len(buf), nil
+
+	n, err := w.Writer.Write(buf)
+	totalN += n
+	return totalN, err
 }

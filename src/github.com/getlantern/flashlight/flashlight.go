@@ -203,8 +203,8 @@ func configureLogging() *rotator.SizeRotator {
 
 // timestamped adds a timestamp to the beginning of log lines
 func timestamped(orig io.Writer) io.Writer {
-	return wfilter.Lines(orig, func(w io.Writer, line string) (int, error) {
-		return fmt.Fprintf(w, "%s - %v", time.Now().In(time.UTC).Format(LogTimestampFormat), line)
+	return wfilter.LinePrepender(orig, func(w io.Writer) (int, error) {
+		return fmt.Fprintf(w, "%s - ", time.Now().In(time.UTC).Format(LogTimestampFormat))
 	})
 }
 

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"strings"
 	"sync/atomic"
 	"testing"
 
@@ -14,37 +13,29 @@ import (
 func TestLines(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 	i := int32(0)
-	w := Lines(buf, func(w io.Writer, line string) (int, error) {
+	w := LinePrepender(buf, func(w io.Writer) (int, error) {
 		j := atomic.AddInt32(&i, 1)
-		if !strings.HasPrefix(line, "C") {
-			return fmt.Fprintf(w, "%d %s", j, line)
-		}
-		return 0, nil
+		return fmt.Fprintf(w, "%d ", j)
 	})
 
-	fmt.Fprintln(w, "A")
-	fmt.Fprintln(w, "B")
-	fmt.Fprintln(w, "C")
-	fmt.Fprintln(w, "D")
+	n, err := fmt.Fprintln(w, "A")
+	if assert.NoError(t, err, "Error writing A") {
+		assert.Equal(t, 2, n, "Wrong bytes written for A")
+	}
+	n, err = fmt.Fprintln(w, "B\nC")
+	if assert.NoError(t, err, "Error writing BC") {
+		assert.Equal(t, 4, n, "Wrong bytes written for BC")
+	}
+	n, err = fmt.Fprintln(w, "D")
+	if assert.NoError(t, err, "Error writing D") {
+		assert.Equal(t, 2, n, "Wrong bytes written for D")
+	}
 
 	assert.Equal(t, expected, string(buf.Bytes()))
 }
 
-func TestLongLine(t *testing.T) {
-	buf := bytes.NewBuffer(nil)
-	w := Lines(buf, func(w io.Writer, line string) (int, error) {
-		return w.Write([]byte(line))
-	})
-
-	for i := 0; i <= MaxLineLength/10; i++ {
-		w.Write([]byte("1234567890"))
-	}
-
-	fmt.Fprintln(w, "An actual line")
-	assert.Equal(t, "An actual line\n", string(buf.Bytes()))
-}
-
 var expected = `1 A
 2 B
+3 C
 4 D
 `
