@@ -237,5 +237,5 @@ func (srv UIServer) StartServer() {
 	}
 
 	// Run the UI websocket server asynchronously
-	go log.Fatal(http.ListenAndServe(srv.Addr))
+	go log.Fatal(httpServer.ListenAndServe())
 }
