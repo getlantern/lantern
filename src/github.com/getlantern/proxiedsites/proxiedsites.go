@@ -33,7 +33,7 @@ var (
 
 type Config struct {
 	// Global list of white-listed domains
-	Cloud []string
+	Cloud []string `json:"-"`
 
 	// User customizations
 	Additions []string `json:"Additions, omitempty"`
@@ -41,7 +41,7 @@ type Config struct {
 }
 
 type ProxiedSites struct {
-	Cfg *Config
+	cfg *Config
 
 	// Corresponding global proxiedsites set
 	cloudSet *set.Set
@@ -93,7 +93,7 @@ func New(cfg *Config) *ProxiedSites {
 	sort.Strings(entries)
 
 	ps := &ProxiedSites{
-		Cfg:      cfg,
+		cfg:      cfg,
 		entries:  entries,
 		cloudSet: cloudSet,
 		addSet:   addSet,
@@ -149,11 +149,15 @@ func (ps *ProxiedSites) Update(cfg *Config) {
 		ps.delSet.Add(cfg.Deletions[i])
 	}
 
-	ps.Cfg.Deletions = set.StringSlice(ps.delSet)
-	ps.Cfg.Additions = set.StringSlice(ps.addSet)
+	ps.cfg.Deletions = set.StringSlice(ps.delSet)
+	ps.cfg.Additions = set.StringSlice(ps.addSet)
 
 	ps.entries = set.StringSlice(set.Difference(ps.addSet, ps.delSet))
 	go ps.updatePacFile()
+}
+
+func (ps *ProxiedSites) GetConfig() *Config {
+	return ps.cfg
 }
 
 func GetPacFile() string {

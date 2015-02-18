@@ -49,7 +49,7 @@ type UIServer struct {
 
 	requests         chan *Client
 	connClose        chan *Client // handles client disconnects
-	ProxiedSitesChan chan *proxiedsites.Config
+	ProxiedSitesChan chan *proxiedsites.ProxiedSites
 	ConfigUpdates    chan *config.Config
 }
 
@@ -137,9 +137,8 @@ func (srv UIServer) readClientMessage(client *Client) {
 		if err != nil {
 			break
 		}
-		log.Debugf("Received proxied sites update from client: %+v", &updates)
 		srv.ProxiedSites.Update(&updates)
-		srv.ProxiedSitesChan <- srv.ProxiedSites.Cfg
+		srv.ProxiedSitesChan <- srv.ProxiedSites
 	}
 }
 
@@ -183,7 +182,7 @@ func (srv UIServer) processRequests() {
 		// wait for YAML config updates
 		case cfg := <-srv.ConfigUpdates:
 
-			if reflect.DeepEqual(cfg.Client.ProxiedSites, srv.ProxiedSites.Cfg) {
+			if reflect.DeepEqual(cfg.Client.ProxiedSites, srv.ProxiedSites.GetConfig()) {
 				// ignore conifg update if proxied sites list is unchanged
 				continue
 			}
