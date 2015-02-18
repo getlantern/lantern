@@ -41,7 +41,7 @@ type Config struct {
 }
 
 type ProxiedSites struct {
-	cfg *Config
+	Cfg *Config
 
 	// Corresponding global proxiedsites set
 	cloudSet *set.Set
@@ -93,7 +93,7 @@ func New(cfg *Config) *ProxiedSites {
 	sort.Strings(entries)
 
 	ps := &ProxiedSites{
-		cfg:      cfg,
+		Cfg:      cfg,
 		entries:  entries,
 		cloudSet: cloudSet,
 		addSet:   addSet,
@@ -109,24 +109,15 @@ func New(cfg *Config) *ProxiedSites {
 // between a new proxiedsites and a previous proxiedsites instance
 func (prev *ProxiedSites) Diff(cur *ProxiedSites) *Config {
 
-	addSet := set.Difference(cur.addSet, prev.addSet)
+	addSet := set.Difference(set.Union(cur.cloudSet, cur.addSet),
+		set.Union(prev.cloudSet, prev.addSet))
 	delSet := set.Difference(cur.delSet, prev.delSet)
-	cloudDiff := set.Difference(cur.cloudSet, prev.cloudSet)
 
-	// add new sites from the global cloud config
-	cloudDiff.Each(func(site interface{}) bool {
-		if !cur.delSet.Has(site) {
-			addSet.Add(site)
-		}
-		return true
-	})
-
-	additions := set.StringSlice(addSet)
+	additions := set.StringSlice(set.Difference(addSet, delSet))
 	sort.Strings(additions)
 
 	return &Config{
 		Additions: additions,
-		Deletions: set.StringSlice(delSet),
 	}
 }
 
@@ -158,8 +149,8 @@ func (ps *ProxiedSites) Update(cfg *Config) {
 		ps.delSet.Add(cfg.Deletions[i])
 	}
 
-	ps.cfg.Deletions = set.StringSlice(ps.delSet)
-	ps.cfg.Additions = set.StringSlice(ps.addSet)
+	ps.Cfg.Deletions = set.StringSlice(ps.delSet)
+	ps.Cfg.Additions = set.StringSlice(ps.addSet)
 
 	ps.entries = set.StringSlice(set.Difference(ps.addSet, ps.delSet))
 	go ps.updatePacFile()
@@ -167,10 +158,6 @@ func (ps *ProxiedSites) Update(cfg *Config) {
 
 func GetPacFile() string {
 	return PacFilePath
-}
-
-func (ps *ProxiedSites) GetConfig() *Config {
-	return ps.cfg
 }
 
 func (ps *ProxiedSites) updatePacFile() (err error) {

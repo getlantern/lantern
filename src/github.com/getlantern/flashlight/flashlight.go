@@ -138,7 +138,6 @@ func runUIServer(cfg *config.Config) {
 		proxiedSitesChan := make(chan *proxiedsites.Config)
 		go func() {
 			for {
-				cfg := <-configUpdates
 				ps := proxiedsites.New(cfg.Client.ProxiedSites)
 				srv := &http.UIServer{
 					ProxiedSites:     ps,
