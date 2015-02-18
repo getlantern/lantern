@@ -127,12 +127,8 @@ func (prev *ProxiedSites) Diff(cur *ProxiedSites) *Config {
 func (ps *ProxiedSites) Update(cfg *Config) {
 
 	for i := range cfg.Additions {
-		if !ps.cloudSet.Has(cfg.Additions[i]) {
-			// if a new addition doesn't exist in our
-			// cloud list already, add it to our addSet
-			log.Debugf("Adding site %s", cfg.Additions[i])
-			ps.addSet.Add(cfg.Additions[i])
-		}
+		log.Debugf("Adding site %s", cfg.Additions[i])
+		ps.addSet.Add(cfg.Additions[i])
 		// remove any new sites from our deletions list
 		// if they were previously added there
 		ps.delSet.Remove(cfg.Additions[i])
@@ -150,9 +146,10 @@ func (ps *ProxiedSites) Update(cfg *Config) {
 	}
 
 	ps.cfg.Deletions = set.StringSlice(ps.delSet)
-	ps.cfg.Additions = set.StringSlice(ps.addSet)
+	ps.cfg.Additions = set.StringSlice(set.Difference(ps.addSet, ps.cloudSet))
 
-	ps.entries = set.StringSlice(set.Difference(ps.addSet, ps.delSet))
+	ps.entries = set.StringSlice(set.Difference(set.Union(ps.cloudSet, ps.addSet),
+		ps.delSet))
 	go ps.updatePacFile()
 }
 
