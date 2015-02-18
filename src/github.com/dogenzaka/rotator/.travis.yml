@@ -1,0 +1,17 @@
+language: go
+
+go:
+  - 1.3
+
+before_install:
+  - sudo pip install codecov
+
+install:
+  - go get code.google.com/p/go.tools/cmd/cover
+  - go get github.com/stretchr/testify/assert
+
+script:
+  - go test -v -coverprofile=coverage.txt -covermode=count
+
+after_success:
+  - codecov

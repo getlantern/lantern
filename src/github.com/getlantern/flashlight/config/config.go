@@ -7,10 +7,10 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
-	"os/user"
 	"path/filepath"
 	"time"
 
+	"github.com/getlantern/appdir"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/yaml"
@@ -135,7 +135,7 @@ func Update(mutate func(cfg *Config) error) error {
 func InConfigDir(filename string) string {
 	cdir := *configdir
 	if cdir == "" {
-		cdir = platformSpecificConfigDir()
+		cdir = appdir.General("Lantern")
 	}
 	log.Debugf("Placing configuration in %v", cdir)
 	if _, err := os.Stat(cdir); err != nil {
@@ -330,13 +330,4 @@ func (updated *Config) updateFrom(updateBytes []byte) error {
 		updated.Client.FrontedServers = append(updated.Client.FrontedServers, server)
 	}
 	return nil
-}
-
-func inHomeDir(filename string) string {
-	log.Tracef("Determining user's home directory")
-	usr, err := user.Current()
-	if err != nil {
-		log.Fatalf("Unable to determine user's home directory: %s", err)
-	}
-	return filepath.Join(usr.HomeDir, filename)
 }
