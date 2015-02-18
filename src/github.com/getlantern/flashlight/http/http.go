@@ -31,7 +31,7 @@ var (
 	UIDir    string
 )
 
-// represents a UI instance
+// represents a UI client
 type Client struct {
 	// UI websocket connection
 	Conn *websocket.Conn
@@ -41,9 +41,9 @@ type Client struct {
 }
 
 type UIServer struct {
-	connections map[*Client]bool // pool of UI client instances
+	connections map[*Client]bool // pool of UI client connections
 	Addr        string
-	// our current proxied sites instance
+	// current set of proxied sites
 	ProxiedSites *proxiedsites.ProxiedSites
 
 	requests         chan *Client
@@ -218,7 +218,7 @@ func (srv UIServer) StartServer() {
 
 	r := http.NewServeMux()
 
-	// initial request, connection close and
+	// initial request, connection close channels and
 	// connection pool for this UI server
 	srv.connClose = make(chan *Client)
 	srv.requests = make(chan *Client)
