@@ -77,12 +77,16 @@ var app = angular.module('app', [
       var WS_RECONNECT_INTERVAL = 5000;
       var WS_RETRY_COUNT = 0;
 
-      $rootScope.entries = [];
-
       dataStream.onMessage(function(message) {
           var msg = JSON.parse(message.data);
+
+          if (!$rootScope.entries) {
+            // initialize proxied site entries
+            $rootScope.entries = msg.Additions;
+          } else {
+            $rootScope.entries.push(msg.Additions);
+          }
           $rootScope.originalList = msg.Additions;
-          $rootScope.entries.push(msg.Additions);
           collection.push(msg);
       });
 
