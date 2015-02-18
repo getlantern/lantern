@@ -147,7 +147,6 @@ func (srv UIServer) readClientMessage(client *Client) {
 func OpenUI(shouldOpen bool, uiAddr string) {
 
 	uiAddr = fmt.Sprintf(UIUrl, uiAddr)
-
 	if shouldOpen {
 		err := open.Run(uiAddr)
 		if err != nil {
@@ -211,9 +210,6 @@ func (srv UIServer) processRequests() {
 	}
 }
 
-// poll for config updates to the proxiedsites
-// with this immediately see flashlight.yaml
-// changes in the UI
 func (srv UIServer) StartServer() {
 
 	r := http.NewServeMux()
