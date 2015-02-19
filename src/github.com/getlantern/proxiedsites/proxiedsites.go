@@ -15,6 +15,7 @@ import (
 	"path"
 	"reflect"
 	"regexp"
+	"runtime"
 	"sort"
 	"strings"
 	"sync"
@@ -28,8 +29,8 @@ const (
 var (
 	log         = golog.LoggerFor("proxiedsites")
 	ConfigDir   string
-	PacFilePath string
-	PacTmpl     = "src/github.com/getlantern/proxiedsites/templates/proxy_on.pac.template"
+	PacFilePath string = "proxy_on.pac"
+	PacTmpl     string = "templates/proxy_on.pac.template"
 )
 
 type Config struct {
@@ -73,7 +74,13 @@ func init() {
 		log.Fatalf("Could not retrieve user home directory: %s", err)
 		return
 	}
-	PacFilePath = path.Join(ConfigDir, PacFilename)
+
+	_, curDir, _, ok := runtime.Caller(1)
+	if !ok {
+		log.Errorf("Unable to determine current directory")
+		return
+	}
+	PacTmpl = path.Join(curDir, "templates/proxy_on.pac.template")
 }
 
 func (prevPs *ProxiedSites) SendUpdates(newPs *ProxiedSites) {
@@ -207,11 +214,12 @@ func (ps *ProxiedSites) updatePacFile() (err error) {
 	pacFile.file, err = os.Create(PacFilePath)
 	defer pacFile.file.Close()
 	if err != nil {
-		log.Errorf("Could not create PAC file")
+		log.Errorf("Could not create PAC file: %s", err)
 		return
 	}
 	// parse the PAC file template
 	pacFile.template, err = template.ParseFiles(PacTmpl)
+	log.Debugf("PAC file template found at %+v", PacTmpl)
 	if err != nil {
 		log.Errorf("Could not open PAC file template: %s", err)
 		return
@@ -240,6 +248,12 @@ func ParsePacFile() *ProxiedSites {
 
 	log.Debugf("PAC file found %s; loading entries..", PacFilePath)
 	program, err := parser.ParseFile(nil, PacFilePath, nil, 0)
+
+	if err != nil {
+		log.Errorf("Could not parse PAC file: %s", err)
+		return nil
+	}
+
 	// otto is a native JavaScript parser;
 	// we just quickly parse the proxy domains
 	// from the PAC file to
