@@ -19,9 +19,12 @@ To deal with that, you need to use a Go installed using
 [gonative](https://github.com/getlantern/gonative). Ultimately, you can put this
 go wherever you like. Ox keeps his at ~/go_native.
 
+Note - we're using a fork of inconshreveable/gonative because of
+[this problem](https://github.com/inconshreveable/gonative/pull/7).
+
 ```bash
-go get github.com/mitchellh/gox
-go get github.com/inconshreveable/gonative
+go get -u github.com/mitchellh/gox
+go get -u github.com/getlantern/gonative
 cd ~
 gonative build -version="1.4.1" -platforms="darwin_amd64 linux_386 linux_amd64 windows_386"
 mv go go_native
