@@ -80,8 +80,6 @@ var app = angular.module('app', [
       dataStream.onMessage(function(message) {
           var msg = JSON.parse(message.data);
 
-          console.log("received message " + msg.Additions);
-
           if (!$rootScope.entries) {
             // initialize proxied site entries
             $rootScope.entries = msg.Additions;
