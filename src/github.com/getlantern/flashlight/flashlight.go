@@ -111,12 +111,19 @@ func runClientProxy(cfg *config.Config) {
 	// Configure client initially
 	client.Configure(cfg.Client)
 
-	configureProxiedSites(cfg)
+	// intitial proxied sites configuration
+	ps := proxiedsites.New(cfg.Client.ProxiedSites)
 
 	// Continually poll for config updates and update client accordingly
 	go func() {
 		for {
 			cfg := <-configUpdates
+
+			newPs := proxiedsites.New(cfg.Client.ProxiedSites)
+			// send previous config updates to
+			ps.SendUpdates(newPs)
+			configureProxiedSites(newPs, cfg)
+
 			configureStats(cfg, false)
 			client.Configure(cfg.Client)
 		}
@@ -130,16 +137,10 @@ func runClientProxy(cfg *config.Config) {
 
 // Configures the list of proxied sites
 // Lantern should tunnel traffic through
-func configureProxiedSites(cfg *config.Config) {
-
-	// initial proxied sites configuration
-	ps := proxiedsites.New(nil)
+func configureProxiedSites(ps *proxiedsites.ProxiedSites, cfg *config.Config) {
 
 	go func() {
 		for {
-			cfg := <-configUpdates
-			log.Debugf("Config updated..")
-			ps.Configure(cfg.Client.ProxiedSites)
 			// this flag specifies the port to open the HTTP server
 			// between the UI and
 			// with a corresponding HTTP server at

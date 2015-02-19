@@ -29,7 +29,7 @@ var (
 	log      = golog.LoggerFor("http")
 	upgrader = &websocket.Upgrader{ReadBufferSize: 1024, WriteBufferSize: MaxMessageSize}
 	UIDir    string
-	instance *UIServer
+	srv      *UIServer
 	mutex    sync.Mutex
 )
 
@@ -214,32 +214,31 @@ func ConfigureUIServer(UIAddr string, openUI bool,
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	if instance != nil {
-		instance.proxiedSites = proxiedSites
+	if srv != nil {
+		srv.proxiedSites = proxiedSites
 		return
 	}
 
 	// initial request, connection close channels and
 	// connection pool for this UI server
-	srv := &UIServer{
+	srv = &UIServer{
 		addr:         UIAddr,
 		proxiedSites: proxiedSites,
 		connClose:    make(chan *Client),
 		requests:     make(chan *Client),
 		connections:  make(map[*Client]bool),
 	}
-	instance = srv
 
-	go instance.processRequests()
+	go srv.processRequests()
 
 	r := http.NewServeMux()
 	r.Handle("/data", srv)
 	r.HandleFunc("/proxy_on.pac", servePacFile)
 	serveHome(r)
 
-	log.Debugf("Starting UI HTTP server at %s", instance.addr)
+	log.Debugf("Starting UI HTTP server at %s", srv.addr)
 	httpServer := &http.Server{
-		Addr:    instance.addr,
+		Addr:    srv.addr,
 		Handler: r,
 	}
 

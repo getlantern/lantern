@@ -76,61 +76,62 @@ func init() {
 	PacFilePath = path.Join(ConfigDir, PacFilename)
 }
 
-func (ps *ProxiedSites) Configure(cfg *Config) {
+func (prevPs *ProxiedSites) SendUpdates(newPs *ProxiedSites) {
 
-	if ps.cfg != nil {
-		if reflect.DeepEqual(cfg,
-			ps.cfg) {
+	if prevPs.cfg != nil {
+		if reflect.DeepEqual(prevPs.cfg,
+			newPs.cfg) {
 			// ignore changes if proxied sites haven't changed
 			return
 		}
 
+		prevPs.cfgMutex.Lock()
+		defer prevPs.cfgMutex.Unlock()
+
 		go func() {
-			newPs := New(cfg)
 			// send delta adds and dels to clients
-			diff := ps.Diff(newPs)
-			ps.CfgUpdates <- diff
+			diff := prevPs.Diff(newPs)
+			prevPs.CfgUpdates <- diff
 		}()
 	}
-	ps.GenCfg(cfg)
-
-	go ps.updatePacFile()
 }
 
 func New(cfg *Config) *ProxiedSites {
-	ps := &ProxiedSites{
-		Updates:    make(chan *Config),
-		CfgUpdates: make(chan *Config),
-	}
-	if cfg != nil {
-		ps.GenCfg(cfg)
-	}
-	return ps
-}
-
-func (ps *ProxiedSites) GenCfg(cfg *Config) {
 
 	// initialize our proxied site sets
-	ps.cloudSet = set.New()
-	ps.addSet = set.New()
-	ps.delSet = set.New()
+	cloudSet := set.New()
+	addSet := set.New()
+	delSet := set.New()
 
 	for i := range cfg.Cloud {
-		ps.cloudSet.Add(cfg.Cloud[i])
+		cloudSet.Add(cfg.Cloud[i])
 	}
 
 	toAdd := append(cfg.Additions, cfg.Cloud...)
 	for i := range toAdd {
-		ps.addSet.Add(toAdd[i])
+		addSet.Add(toAdd[i])
 	}
 
 	for i := range cfg.Deletions {
-		ps.delSet.Add(cfg.Deletions[i])
+		delSet.Add(cfg.Deletions[i])
 	}
 
-	ps.entries = set.StringSlice(set.Difference(ps.addSet, ps.delSet))
-	sort.Strings(ps.entries)
-	ps.cfg = cfg
+	entries := set.StringSlice(set.Difference(addSet, delSet))
+	sort.Strings(entries)
+	cfg = cfg
+
+	ps := &ProxiedSites{
+		addSet:   addSet,
+		delSet:   delSet,
+		cloudSet: cloudSet,
+		cfg:      cfg,
+		entries:  entries,
+
+		Updates:    make(chan *Config),
+		CfgUpdates: make(chan *Config),
+	}
+	go ps.updatePacFile()
+	return ps
 }
 
 // Composes the add and delete deltas
