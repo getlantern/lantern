@@ -185,11 +185,7 @@ var app = angular.module('app', [
     };
 
     $rootScope.openExternal = function(url) {
-      if ($rootScope.mockBackend) {
-        return $window.open(url);
-      } else {
-        return $rootScope.interaction(INTERACTION.url, {url: url});
-      }
+      return $window.open(url);
     };
 
     $rootScope.resetContactForm = function (scope) {
