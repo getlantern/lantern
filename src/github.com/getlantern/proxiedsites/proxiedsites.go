@@ -13,6 +13,7 @@ import (
 	"gopkg.in/fatih/set.v0"
 	"os"
 	"path"
+	"reflect"
 	"regexp"
 	"sort"
 	"strings"
@@ -50,9 +51,10 @@ type ProxiedSites struct {
 	delSet   set.Interface
 
 	entries []string
-	pacFile *PacFile
 
-	Updates    chan *Config
+	// Updates from the UI client
+	Updates chan *Config
+	// YAML config changes
 	CfgUpdates chan *Config
 }
 
@@ -77,7 +79,14 @@ func init() {
 func Configure(cfg *Config) *ProxiedSites {
 	if instance != nil {
 		go func() {
+
 			newPs := New(cfg)
+			// ignore updates if the cloud config hasn't changed
+			if reflect.DeepEqual(newPs.GetConfig().Cloud,
+				instance.GetConfig().Cloud) {
+				log.Debugf("Proxied sites unchanged; ignoring config update..")
+				return
+			}
 
 			// send delta adds and dels to clients
 			diff := instance.Diff(newPs)

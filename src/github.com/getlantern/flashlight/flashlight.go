@@ -133,7 +133,6 @@ func runClientProxy(cfg *config.Config) {
 func configureProxiedSites(cfg *config.Config) {
 	for {
 		cfg := <-configUpdates
-		log.Debugf("config changed to %+v", cfg.Client.ProxiedSites.Additions)
 		ps := proxiedsites.Configure(cfg.Client.ProxiedSites)
 		// this flag specifies the port to open the HTTP server
 		// between the UI and
@@ -146,7 +145,8 @@ func configureProxiedSites(cfg *config.Config) {
 
 		go func() {
 			for {
-				cfg.Client.ProxiedSites = <-ps.Updates
+				newCfg := <-ps.Updates
+				cfg.Client.ProxiedSites = newCfg
 				err := config.Update(func(updated *config.Config) error {
 					log.Debugf("Saving updated proxiedsites configuration")
 					updated.Client.ProxiedSites = cfg.Client.ProxiedSites
