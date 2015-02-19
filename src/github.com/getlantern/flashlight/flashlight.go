@@ -111,11 +111,36 @@ func runClientProxy(cfg *config.Config) {
 	// Configure client initially
 	client.Configure(cfg.Client)
 
-	// this flag specifies the port to open the HTTP server
-	// between the UI and
-	// with a corresponding HTTP server at
-	// the following address
-	runUIServer(cfg)
+	go func() {
+		for {
+			cfg := <-configUpdates
+			log.Debugf("config changed to %+v", cfg.Client.ProxiedSites.Additions)
+			ps := proxiedsites.Configure(cfg.Client.ProxiedSites)
+			// this flag specifies the port to open the HTTP server
+			// between the UI and
+			// with a corresponding HTTP server at
+			// the following address
+			if cfg.UIAddr != "" {
+				// Configure the UI Server
+				go http.ConfigureUIServer(cfg.UIAddr, cfg.OpenUI, ps)
+			}
+
+			go func() {
+				for {
+					cfg.Client.ProxiedSites = <-ps.Updates
+					err := config.Update(func(updated *config.Config) error {
+						log.Debugf("Saving updated proxiedsites configuration")
+						updated.Client.ProxiedSites = cfg.Client.ProxiedSites
+						return nil
+					})
+
+					if err != nil {
+						log.Errorf("Could not update config: %s", err)
+					}
+				}
+			}()
+		}
+	}()
 
 	// Continually poll for config updates and update client accordingly
 	go func() {
@@ -133,44 +158,25 @@ func runClientProxy(cfg *config.Config) {
 }
 
 // Runs the UI Server
-func runUIServer(cfg *config.Config) {
-	if cfg.UIAddr != "" {
-		proxiedSitesChan := make(chan *proxiedsites.ProxiedSites)
-		go func() {
-			for {
-				cfg := <-configUpdates
-				ps := proxiedsites.New(cfg.Client.ProxiedSites)
-				srv := &http.UIServer{
-					ProxiedSites:     ps,
-					ProxiedSitesChan: proxiedSitesChan,
-					Addr:             cfg.UIAddr,
-					ConfigUpdates:    configUpdates,
-				}
-				srv.StartServer()
-				log.Debug("Started UI server...")
-			}
-		}()
-		// if the openui flag is specified, the UI is automatically
-		// opened in the default browser on start
-		http.OpenUI(cfg.OpenUI, cfg.UIAddr)
+func runUIServer(cfg *config.Config, ps *proxiedsites.ProxiedSites) {
+	http.ConfigureUIServer(cfg.UIAddr, cfg.OpenUI, ps)
+	// if the openui flag is specified, the UI is automatically
+	// opened in the default browser on start
+	/*	go func() {
+		for {
+			ps := <-proxiedSitesChan
+			cfg.Client.ProxiedSites = ps.GetConfig()
+			err := config.Update(func(updated *config.Config) error {
+				log.Debugf("Saving updated proxiedsites configuration")
+				updated.Client.ProxiedSites = cfg.Client.ProxiedSites
+				return nil
+			})
 
-		go func() {
-			for {
-				// separate channel for synchronizing proxiedsites updates
-				ps := <-proxiedSitesChan
-				cfg.Client.ProxiedSites = ps.GetConfig()
-				err := config.Update(func(updated *config.Config) error {
-					log.Debugf("Saving updated proxiedsites configuration")
-					updated.Client.ProxiedSites = cfg.Client.ProxiedSites
-					return nil
-				})
-
-				if err != nil {
-					log.Errorf("Could not update config: %s", err)
-				}
+			if err != nil {
+				log.Errorf("Could not update config: %s", err)
 			}
-		}()
-	}
+		}
+	}()*/
 
 }
 

@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"net/http"
 	"path"
-	"reflect"
 	"runtime"
+	"sync"
 	"time"
 
-	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/proxiedsites"
@@ -30,6 +29,8 @@ var (
 	log      = golog.LoggerFor("http")
 	upgrader = &websocket.Upgrader{ReadBufferSize: 1024, WriteBufferSize: MaxMessageSize}
 	UIDir    string
+	instance *UIServer
+	mutex    sync.Mutex
 )
 
 // represents a UI client
@@ -43,14 +44,12 @@ type Client struct {
 
 type UIServer struct {
 	connections map[*Client]bool // pool of UI client connections
-	Addr        string
+	addr        string
 	// current set of proxied sites
-	ProxiedSites *proxiedsites.ProxiedSites
+	proxiedSites *proxiedsites.ProxiedSites
 
-	requests         chan *Client
-	connClose        chan *Client // handles client disconnects
-	ProxiedSitesChan chan *proxiedsites.ProxiedSites
-	ConfigUpdates    chan *config.Config
+	requests  chan *Client
+	connClose chan *Client // handles client disconnects
 }
 
 // Assume the default directory containing UI assets is
@@ -98,7 +97,7 @@ func serveHome(r *http.ServeMux) {
 // chunks messages according to WriteBufferSize
 func (srv UIServer) writeGlobalList(client *Client) {
 	initMsg := proxiedsites.Config{
-		Additions: srv.ProxiedSites.GetEntries(),
+		Additions: srv.proxiedSites.GetEntries(),
 	}
 	// write the JSON encoding of the proxied sites to the
 	// websocket connection
@@ -137,15 +136,14 @@ func (srv UIServer) readClientMessage(client *Client) {
 		if err != nil {
 			break
 		}
-		srv.ProxiedSites.Update(&updates)
-		srv.ProxiedSitesChan <- srv.ProxiedSites
+		srv.proxiedSites.Update(&updates)
+		srv.proxiedSites.Updates <- srv.proxiedSites.GetConfig()
 	}
 }
 
 // if the openui flag is specified, the UI is automatically
 // opened in the default browser
 func OpenUI(shouldOpen bool, uiAddr string) {
-
 	uiAddr = fmt.Sprintf(UIUrl, uiAddr)
 	if shouldOpen {
 		err := open.Run(uiAddr)
@@ -179,35 +177,26 @@ func (srv UIServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (srv UIServer) processRequests() {
 	for {
 		select {
-		// wait for YAML config updates
-		case cfg := <-srv.ConfigUpdates:
-
-			if reflect.DeepEqual(cfg.Client.ProxiedSites, srv.ProxiedSites.GetConfig()) {
-				// ignore conifg update if proxied sites list is unchanged
-				continue
-			}
-			log.Debugf("Proxied sites updated in config file; applying changes..")
-			newPs := proxiedsites.New(cfg.Client.ProxiedSites)
-			diff := srv.ProxiedSites.Diff(newPs)
-			srv.ProxiedSites = newPs
+		case diff := <-srv.proxiedSites.CfgUpdates:
 			// write proxied sites update to every UI instance
 			for c := range srv.connections {
 				select {
-				// write the JSON encoding of the proxied sites to the
-				// websocket connections
+				// write the JSON encoding of the proxied sites changes
+				// to the UI clients
 				case c.msg <- diff:
 				default:
+					// close and remove unresponsive connections
 					close(c.msg)
 					delete(srv.connections, c)
 				}
 			}
 		case c := <-srv.requests:
-			log.Debug("Adding new UI instance..")
+			log.Debug("New UI client connected..")
 			srv.connections[c] = true
 			// write initial proxied sites list
 			srv.writeGlobalList(c)
 		case c := <-srv.connClose:
-			log.Debug("Disconnecting UI instance..")
+			log.Debug("UI client disconnected..")
 			if _, ok := srv.connections[c]; ok {
 				delete(srv.connections, c)
 				close(c.msg)
@@ -216,28 +205,45 @@ func (srv UIServer) processRequests() {
 	}
 }
 
-func (srv UIServer) StartServer() {
+func ConfigureUIServer(UIAddr string, openUI bool,
+	proxiedSites *proxiedsites.ProxiedSites) {
 
-	r := http.NewServeMux()
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	if instance != nil {
+		instance.proxiedSites = proxiedSites
+		return
+	}
 
 	// initial request, connection close channels and
 	// connection pool for this UI server
-	srv.connClose = make(chan *Client)
-	srv.requests = make(chan *Client)
-	srv.connections = make(map[*Client]bool)
+	srv := &UIServer{
+		addr:         UIAddr,
+		proxiedSites: proxiedSites,
+		connClose:    make(chan *Client),
+		requests:     make(chan *Client),
+		connections:  make(map[*Client]bool),
+	}
+	instance = srv
 
-	go srv.processRequests()
+	go instance.processRequests()
 
+	r := http.NewServeMux()
 	r.Handle("/data", srv)
 	r.HandleFunc("/proxy_on.pac", servePacFile)
 	serveHome(r)
 
-	log.Debugf("Starting UI HTTP server at %s", srv.Addr)
+	log.Debugf("Starting UI HTTP server at %s", instance.addr)
 	httpServer := &http.Server{
-		Addr:    srv.Addr,
+		Addr:    instance.addr,
 		Handler: r,
 	}
 
+	// if the openui flag is specified, the UI is automatically
+	// opened in the default browser on start
+	OpenUI(openUI, UIAddr)
+
 	// Run the UI websocket server asynchronously
-	go log.Fatal(httpServer.ListenAndServe())
+	log.Fatal(httpServer.ListenAndServe())
 }

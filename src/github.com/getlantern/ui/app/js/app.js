@@ -80,6 +80,8 @@ var app = angular.module('app', [
       dataStream.onMessage(function(message) {
           var msg = JSON.parse(message.data);
 
+          console.log("received message " + msg.Additions);
+
           if (!$rootScope.entries) {
             // initialize proxied site entries
             $rootScope.entries = msg.Additions;
@@ -88,7 +90,7 @@ var app = angular.module('app', [
             var entries = $rootScope.entries;
             entries.push(msg.Additions);
             $rootScope.entries = entries;
-            $rootScope.originalList.push(msg.Additions);
+            $rootScope.originalList = entries;
           }
           collection.push(msg);
       });

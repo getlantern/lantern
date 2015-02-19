@@ -29,6 +29,7 @@ var (
 	ConfigDir   string
 	PacFilePath string
 	PacTmpl     = "src/github.com/getlantern/proxiedsites/templates/proxy_on.pac.template"
+	instance    *ProxiedSites
 )
 
 type Config struct {
@@ -50,6 +51,9 @@ type ProxiedSites struct {
 
 	entries []string
 	pacFile *PacFile
+
+	Updates    chan *Config
+	CfgUpdates chan *Config
 }
 
 type PacFile struct {
@@ -70,7 +74,30 @@ func init() {
 	PacFilePath = path.Join(ConfigDir, PacFilename)
 }
 
+func Configure(cfg *Config) *ProxiedSites {
+	if instance != nil {
+		go func() {
+			newPs := New(cfg)
+
+			// send delta adds and dels to clients
+			diff := instance.Diff(newPs)
+			instance.CfgUpdates <- diff
+
+			instance = newPs
+			go newPs.updatePacFile()
+		}()
+		return instance
+	}
+	ps := New(cfg)
+
+	instance = ps
+
+	go ps.updatePacFile()
+	return ps
+}
+
 func New(cfg *Config) *ProxiedSites {
+
 	// initialize our proxied site sets
 	cloudSet := set.New()
 	addSet := set.New()
@@ -93,15 +120,14 @@ func New(cfg *Config) *ProxiedSites {
 	sort.Strings(entries)
 
 	ps := &ProxiedSites{
-		cfg:      cfg,
-		entries:  entries,
-		cloudSet: cloudSet,
-		addSet:   addSet,
-		delSet:   delSet,
+		cfg:        cfg,
+		entries:    entries,
+		cloudSet:   cloudSet,
+		addSet:     addSet,
+		Updates:    make(chan *Config),
+		CfgUpdates: make(chan *Config),
+		delSet:     delSet,
 	}
-
-	go ps.updatePacFile()
-
 	return ps
 }
 
@@ -118,6 +144,7 @@ func (prev *ProxiedSites) Diff(cur *ProxiedSites) *Config {
 
 	return &Config{
 		Additions: additions,
+		Deletions: set.StringSlice(delSet),
 	}
 }
 
@@ -162,6 +189,10 @@ func (ps *ProxiedSites) GetConfig() *Config {
 
 func GetPacFile() string {
 	return PacFilePath
+}
+
+func SetPacFile(pacFile string) {
+	PacFilePath = pacFile
 }
 
 func (ps *ProxiedSites) updatePacFile() (err error) {
