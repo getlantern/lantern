@@ -128,7 +128,8 @@ func runClientProxy(cfg *config.Config) {
 	client.Configure(cfg.Client)
 
 	// intitial proxied sites configuration
-	ps := proxiedsites.New(cfg.Client.ProxiedSites)
+	ps := &proxiedsites.ProxiedSites{}
+	ps.Configure(cfg.Client.ProxiedSites)
 
 	// Continually poll for config updates and update client accordingly
 	go func() {

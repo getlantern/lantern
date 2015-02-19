@@ -1,55 +1,87 @@
 package proxiedsites
 
 import (
-	"github.com/getlantern/flashlight/util"
-	"github.com/getlantern/testify/assert"
 	"testing"
-	"time"
+
+	"github.com/getlantern/testify/assert"
 )
 
-var (
-	pacFilePath = PacFilename
-)
-
-var mockProxiedSites = []struct {
-	entry *ProxiedSites
-}{
-	{
-		entry: New(&Config{
-			Cloud:     []string{},
-			Additions: []string{},
-			Deletions: []string{},
-		}),
-	},
-	{
-		entry: New(&Config{
-			Cloud:     []string{"golang.org", "swift.com", "twitter.com"},
-			Additions: []string{},
-			Deletions: []string{},
-		}),
-	},
+func TestPAC(t *testing.T) {
+	ps := &ProxiedSites{}
+	ps.Configure(&Config{
+		Cloud: []string{"A", "B", "C"},
+		Delta: Delta{
+			Additions: []string{"D"},
+			Deletions: []string{"C"},
+		},
+	})
+	assert.Equal(t, expectedPACFile, ps.pacFile)
 }
 
-func testConfig(entries []string) *Config {
-	return &Config{
-		Additions: []string{},
-		Deletions: []string{},
-		Cloud:     entries,
-	}
+func TestEquals(t *testing.T) {
+	a := csFor(&Config{
+		Cloud: []string{"A", "B", "C"},
+		Delta: Delta{
+			Additions: []string{"D"},
+			Deletions: []string{"C"},
+		},
+	})
+	b := csFor(&Config{
+		Cloud: []string{"A", "B"},
+		Delta: Delta{
+			Additions: []string{"D"},
+			Deletions: []string{"C"},
+		},
+	})
+	c := csFor(&Config{
+		Cloud: []string{"A", "B", "C"},
+		Delta: Delta{
+			Additions: []string{"D", "E"},
+			Deletions: []string{"C"},
+		},
+	})
+	d := csFor(&Config{
+		Cloud: []string{"A", "B", "C"},
+		Delta: Delta{
+			Additions: []string{"D"},
+			Deletions: []string{"C", "E"},
+		},
+	})
+
+	assert.True(t, a.equals(a), "a should equal itself")
+	assert.False(t, a.equals(b), "a should not equal b")
+	assert.False(t, a.equals(c), "a should not equal c")
+	assert.False(t, a.equals(d), "a should not equal d")
 }
 
-func TestPacFileUpdated(t *testing.T) {
-	PacFilePath = "proxy_on.pac"
-	PacTmpl = "templates/proxy_on.pac.template"
-
-	for _, mock := range mockProxiedSites {
-		SetPacFile(PacFilePath)
-		mockWl := mock.entry
-		exists, _ := util.FileExists("proxy_on.pac")
-		assert.Equal(t, exists, true, "proxy pac file could not be created")
-		time.Sleep(1000 * time.Millisecond)
-		wl := ParsePacFile()
-		assert.Equal(t, wl.GetEntries(), mockWl.GetEntries(), "Test domains are not equal!")
-
-	}
+func csFor(cfg *Config) *configsets {
+	return cfg.toCS()
 }
+
+const expectedPACFile = `var proxyDomains = new Array();
+var i=0;
+
+
+proxyDomains[i++] = "A";
+proxyDomains[i++] = "B";
+proxyDomains[i++] = "D";
+
+for(i in proxyDomains) {
+    proxyDomains[i] = proxyDomains[i].split(/\./).join("\\.");
+}
+
+var proxyDomainsRegx = new RegExp("(" + proxyDomains.join("|") + ")$", "i");
+
+function FindProxyForURL(url, host) {
+    if( host == "localhost" ||
+        host == "127.0.0.1") {
+        return "DIRECT";
+    }
+
+    if (proxyDomainsRegx.exec(host)) {
+        return "PROXY 127.0.0.1:8787; DIRECT";
+    }
+
+    return "DIRECT";
+}
+`

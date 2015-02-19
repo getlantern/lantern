@@ -1,3 +1,3 @@
 #!/bin/bash
 
-tarfs -pkg http src/github.com/getlantern/ui/app > src/github.com/getlantern/flashlight/http/resources.go
+tarfs -pkg ui src/github.com/getlantern/ui/app > src/github.com/getlantern/flashlight/ui/resources.go
