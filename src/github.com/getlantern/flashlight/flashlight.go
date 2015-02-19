@@ -142,19 +142,19 @@ func runClientProxy(cfg *config.Config) {
 	ps := &proxiedsites.ProxiedSites{}
 	ps.Configure(cfg.Client.ProxiedSites)
 
-	// Continually poll for config updates and update client accordingly
-	go func() {
-		for {
-			cfg := <-configUpdates
+	// // Continually poll for config updates and update client accordingly
+	// go func() {
+	// 	for {
+	// 		cfg := <-configUpdates
 
-			// send previous config updates to
-			ps.Configure(cfg.Client.ProxiedSites)
-			configureProxiedSites(newPs, cfg)
+	// 		// send previous config updates to
+	// 		ps.Configure(cfg.Client.ProxiedSites)
+	// 		configureProxiedSites(newPs, cfg)
 
-			configureStats(cfg, false)
-			client.Configure(cfg.Client)
-		}
-	}()
+	// 		configureStats(cfg, false)
+	// 		client.Configure(cfg.Client)
+	// 	}
+	// }()
 
 	err := client.ListenAndServe()
 	if err != nil {
@@ -162,39 +162,39 @@ func runClientProxy(cfg *config.Config) {
 	}
 }
 
-// Configures the list of proxied sites
-// Lantern should tunnel traffic through
-func configureProxiedSites(ps *proxiedsites.ProxiedSites, cfg *config.Config) {
+// // Configures the list of proxied sites
+// // Lantern should tunnel traffic through
+// func configureProxiedSites(ps *proxiedsites.ProxiedSites, cfg *config.Config) {
 
-	// this flag specifies the port to open the HTTP server
-	// between the UI and
-	// with a corresponding HTTP server at
-	// the following address
-	if cfg.UIAddr != "" {
-		go func() {
-			for {
-				// Configure the UI Server
-				http.ConfigureUIServer(cfg.UIAddr, cfg.OpenUI, ps)
-			}
-		}()
-	}
+// 	// this flag specifies the port to open the HTTP server
+// 	// between the UI and
+// 	// with a corresponding HTTP server at
+// 	// the following address
+// 	if cfg.UIAddr != "" {
+// 		go func() {
+// 			for {
+// 				// Configure the UI Server
+// 				http.ConfigureUIServer(cfg.UIAddr, cfg.OpenUI, ps)
+// 			}
+// 		}()
+// 	}
 
-	go func() {
-		for {
-			newCfg := <-ps.Updates
-			cfg.Client.ProxiedSites = newCfg
-			err := config.Update(func(updated *config.Config) error {
-				log.Debugf("Saving updated proxiedsites configuration")
-				updated.Client.ProxiedSites = cfg.Client.ProxiedSites
-				return nil
-			})
+// 	go func() {
+// 		for {
+// 			newCfg := <-ps.Updates
+// 			cfg.Client.ProxiedSites = newCfg
+// 			err := config.Update(func(updated *config.Config) error {
+// 				log.Debugf("Saving updated proxiedsites configuration")
+// 				updated.Client.ProxiedSites = cfg.Client.ProxiedSites
+// 				return nil
+// 			})
 
-			if err != nil {
-				log.Errorf("Could not update config: %s", err)
-			}
-		}
-	}()
-}
+// 			if err != nil {
+// 				log.Errorf("Could not update config: %s", err)
+// 			}
+// 		}
+// 	}()
+// }
 
 // Runs the server-side proxy
 func runServerProxy(cfg *config.Config) {

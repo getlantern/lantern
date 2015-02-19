@@ -4,15 +4,9 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"path"
 	"path/filepath"
-	"runtime"
-	"sync"
-	"time"
 
-	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/golog"
-	"github.com/getlantern/proxiedsites"
 	"github.com/getlantern/tarfs"
 	"github.com/gorilla/mux"
 	"github.com/skratchdot/open-golang/open"
@@ -23,7 +17,7 @@ const (
 )
 
 var (
-	log = golog.LoggerFor("http")
+	log = golog.LoggerFor("ui")
 
 	l      net.Listener
 	r      *mux.Router
@@ -39,19 +33,22 @@ func Start(addr string) error {
 		return fmt.Errorf("Unable to listen at %v: %v", addr, l)
 	}
 
-	log.Debugf("Creating tarfs filesystem that preferes local resources at %v", filepath.Abs(localResourcesPath))
+	absLocalResourcesPath, err := filepath.Abs(localResourcesPath)
+	if err != nil {
+		absLocalResourcesPath = localResourcesPath
+	}
+	log.Debugf("Creating tarfs filesystem that prefers local resources at %v", absLocalResourcesPath)
 	fs, err = tarfs.New(Resources, localResourcesPath)
 	if err != nil {
 		return fmt.Errorf("Unable to open tarfs filesystem: %v", err)
 	}
 
 	r = mux.NewRouter()
-	r.Handle("/", http.FileServer(fs))
+	// r.Handle("/", )
 
 	server = &http.Server{
-		Handler: r,
+		Handler: http.FileServer(fs),
 	}
-	server.Handle("/")
 	go func() {
 		err := server.Serve(l)
 		if err != nil {

@@ -187,6 +187,10 @@ func (cfg *Config) ApplyDefaults() {
 		cfg.Addr = "localhost:8787"
 	}
 
+	if cfg.UIAddr == "" {
+		cfg.UIAddr = "localhost:16823"
+	}
+
 	// Default country
 	if cfg.Country == "" {
 		cfg.Country = *country
@@ -222,9 +226,11 @@ func (cfg *Config) applyClientDefaults() {
 	if cfg.Client.ProxiedSites == nil {
 		log.Debugf("Adding empty proxiedsites")
 		cfg.Client.ProxiedSites = &proxiedsites.Config{
-			Additions: []string{},
-			Deletions: []string{},
-			Cloud:     []string{},
+			Delta: proxiedsites.Delta{
+				Additions: []string{},
+				Deletions: []string{},
+			},
+			Cloud: []string{},
 		}
 	}
 
