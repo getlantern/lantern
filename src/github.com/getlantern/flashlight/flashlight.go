@@ -139,18 +139,18 @@ func runClientProxy(cfg *config.Config) {
 // Lantern should tunnel traffic through
 func configureProxiedSites(ps *proxiedsites.ProxiedSites, cfg *config.Config) {
 
-	go func() {
-		for {
-			// this flag specifies the port to open the HTTP server
-			// between the UI and
-			// with a corresponding HTTP server at
-			// the following address
-			if cfg.UIAddr != "" {
+	// this flag specifies the port to open the HTTP server
+	// between the UI and
+	// with a corresponding HTTP server at
+	// the following address
+	if cfg.UIAddr != "" {
+		go func() {
+			for {
 				// Configure the UI Server
 				http.ConfigureUIServer(cfg.UIAddr, cfg.OpenUI, ps)
 			}
-		}
-	}()
+		}()
+	}
 
 	go func() {
 		for {
