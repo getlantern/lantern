@@ -28,7 +28,7 @@ var (
 	help            = flag.Bool("help", false, "Get usage help")
 	domainsFile     = flag.String("domains", "", "Path to file containing list of domains to use, with one domain per line (e.g. domains.txt)")
 	blacklistFile   = flag.String("blacklist", "", "Path to file containing list of blacklisted domains, which will be excluded from the configuration even if present in the domains file (e.g. blacklist.txt)")
-	proxiedSitesDir = flag.String("proxiedsites", "", "Path to directory containing proxied site lists, which will be combined and proxied by Lantern")
+	proxiedSitesDir = flag.String("proxiedsites", "proxiedsites", "Path to directory containing proxied site lists, which will be combined and proxied by Lantern")
 	minFreq         = flag.Float64("minfreq", 3.0, "Minimum frequency (percentage) for including CA cert in list of trusted certs, defaults to 3.0%")
 )
 
@@ -39,9 +39,6 @@ var (
 
 	blacklist    = make(filter)
 	proxiedSites = make(filter)
-
-	masqueradesTmpl string
-	yamlTmpl        string
 
 	domainsCh     = make(chan string)
 	masqueradesCh = make(chan *masquerade)
@@ -78,8 +75,9 @@ func main() {
 	loadProxiedSitesList()
 	loadBlacklist()
 
-	masqueradesTmpl = loadTemplate("masquerades.go.tmpl")
-	yamlTmpl = loadTemplate("cloud.yaml.tmpl")
+	masqueradesTmpl := loadTemplate("masquerades.go.tmpl")
+	proxiedSitesTmpl := loadTemplate("proxiedsites.go.tmpl")
+	yamlTmpl := loadTemplate("cloud.yaml.tmpl")
 
 	go feedDomains()
 	cas, masquerades := coalesceMasquerades()
@@ -89,6 +87,11 @@ func main() {
 	_, err := run("gofmt", "-w", "../config/masquerades.go")
 	if err != nil {
 		log.Fatalf("Unable to format masquerades.go: %s", err)
+	}
+	generateTemplate(model, proxiedSitesTmpl, "../config/proxiedsites.go")
+	_, err = run("gofmt", "-w", "../config/proxiedsites.go")
+	if err != nil {
+		log.Fatalf("Unable to format proxiedsites.go: %s", err)
 	}
 }
 

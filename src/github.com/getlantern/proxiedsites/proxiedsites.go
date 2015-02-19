@@ -33,12 +33,12 @@ var (
 )
 
 type Config struct {
-	// Global list of white-listed domains
-	Cloud []string `json:"-"`
-
 	// User customizations
 	Additions []string `json:"Additions, omitempty"`
 	Deletions []string `json:"Deletions, omitempty"`
+
+	// Global list of white-listed domains
+	Cloud []string `json:"-"`
 }
 
 type ProxiedSites struct {

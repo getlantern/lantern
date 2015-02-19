@@ -220,12 +220,17 @@ func (cfg *Config) applyClientDefaults() {
 	}
 
 	if cfg.Client.ProxiedSites == nil {
-		log.Debugf("Loading default proxiedsites")
+		log.Debugf("Adding empty proxiedsites")
 		cfg.Client.ProxiedSites = &proxiedsites.Config{
 			Additions: []string{},
 			Deletions: []string{},
 			Cloud:     []string{},
 		}
+	}
+
+	if cfg.Client.ProxiedSites.Cloud == nil || len(cfg.Client.ProxiedSites.Cloud) == 0 {
+		log.Debugf("Loading default cloud proxiedsites")
+		cfg.Client.ProxiedSites.Cloud = defaultProxiedSites
 	}
 
 	// Make sure we always have at least one server
