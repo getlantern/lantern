@@ -19,8 +19,6 @@ client:
   proxiedsites:
     cloud:{{range $domain, $bool := .proxiedsites }}
     - {{$domain}}{{end}}
-    additions: []
-    deletions: []
   masqueradesets:
     cloudflare:{{range .masquerades}}
     - domain: {{.Domain}}
