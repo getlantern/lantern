@@ -7,11 +7,12 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 
+	"github.com/getlantern/appdir"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
-	"github.com/getlantern/nattywad"
 	"github.com/getlantern/proxiedsites"
 	"github.com/getlantern/yaml"
 	"github.com/getlantern/yamlconf"
@@ -48,7 +49,6 @@ type Config struct {
 	StatsAddr     string
 	CpuProfile    string
 	MemProfile    string
-	WaddellCert   string
 	Stats         *statreporter.Config
 	Server        *server.ServerConfig
 	Client        *client.ClientConfig
@@ -67,7 +67,7 @@ type CA struct {
 // Start starts the configuration system.
 func Start(updateHandler func(updated *Config)) (*Config, error) {
 	m = &yamlconf.Manager{
-		FilePath:         InConfigDir("flashlight.yaml"),
+		FilePath:         InConfigDir("lantern.yaml"),
 		FilePollInterval: 1 * time.Second,
 		ConfigServerAddr: *configaddr,
 		EmptyConfig: func() yamlconf.Config {
@@ -122,9 +122,6 @@ func Start(updateHandler func(updated *Config)) (*Config, error) {
 func updateGlobals(cfg *Config) {
 	globals.InstanceId = cfg.InstanceId
 	globals.Country = cfg.Country
-	if cfg.WaddellCert != "" {
-		globals.WaddellCert = cfg.WaddellCert
-	}
 	err := globals.SetTrustedCAs(cfg.TrustedCACerts())
 	if err != nil {
 		log.Fatalf("Unable to configure trusted CAs: %s", err)
@@ -140,19 +137,20 @@ func Update(mutate func(cfg *Config) error) error {
 
 // InConfigDir returns the path to the given filename inside of the configdir.
 func InConfigDir(filename string) string {
-	if *configdir == "" {
-		return filename
-	} else {
-		if _, err := os.Stat(*configdir); err != nil {
-			if os.IsNotExist(err) {
-				// Create config dir
-				if err := os.MkdirAll(*configdir, 0755); err != nil {
-					log.Fatalf("Unable to create configdir at %s: %s", *configdir, err)
-				}
+	cdir := *configdir
+	if cdir == "" {
+		cdir = appdir.General("Lantern")
+	}
+	log.Debugf("Placing configuration in %v", cdir)
+	if _, err := os.Stat(cdir); err != nil {
+		if os.IsNotExist(err) {
+			// Create config dir
+			if err := os.MkdirAll(cdir, 0755); err != nil {
+				log.Fatalf("Unable to create configdir at %s: %s", cdir, err)
 			}
 		}
-		return fmt.Sprintf("%s%c%s", *configdir, os.PathSeparator, filename)
 	}
+	return filepath.Join(cdir, filename)
 }
 
 // TrustedCACerts returns a slice of PEM-encoded certs for the trusted CAs
@@ -181,6 +179,14 @@ func (cfg *Config) SetVersion(version int) {
 // flashlight, this function should be updated to provide sensible defaults for
 // those settings.
 func (cfg *Config) ApplyDefaults() {
+	if cfg.Role == "" {
+		cfg.Role = "client"
+	}
+
+	if cfg.Addr == "" {
+		cfg.Addr = "localhost:8787"
+	}
+
 	// Default country
 	if cfg.Country == "" {
 		cfg.Country = *country
@@ -262,11 +268,6 @@ func (cfg *Config) applyClientDefaults() {
 	// Always make sure we have a map of ChainedServers
 	if cfg.Client.ChainedServers == nil {
 		cfg.Client.ChainedServers = make(map[string]*client.ChainedServerInfo)
-	}
-
-	// Always make sure that we have a map of Peers
-	if cfg.Client.Peers == nil {
-		cfg.Client.Peers = make(map[string]*nattywad.ServerPeer)
 	}
 
 	// Sort servers so that they're always in a predictable order

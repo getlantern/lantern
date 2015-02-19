@@ -1,7 +1,5 @@
 #!/bin/bash
 
-mkdir resourcestar
-cd resources
-tar -cf ../resourcestar/resources.tar .
-cd ../
-go-bindata -nomemcopy -nocompress -pkg main -prefix resourcestar -o resources.go resourcestar
+go install github.com/getlantern/tarfs/tarfs
+tarfs -pkg main resources > resources.go
+go build && ./demo

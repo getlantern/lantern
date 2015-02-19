@@ -1,93 +1,56 @@
+// This program generates a go file that embeds resources from a given path
+// as a tar archive in a byte array. This can be passed to
+// github.com/getlantern/tarfs.New() to create an in-memory filesystem from the
+// embedded resources.
 package main
 
 import (
-	"archive/tar"
-	"encoding/hex"
 	"flag"
 	"fmt"
-	"io"
 	"os"
-	"path/filepath"
-	"strings"
+
+	"github.com/getlantern/tarfs"
+)
+
+const (
+	ExitWrongUsage      = 1
+	ExitUnexpectedError = 2
 )
 
 var (
-	pkg     = flag.String("pkg", "main", "The package name to use, defaults to 'main'")
-	varname = flag.String("var", "Data", "The variable name to use, defaults to 'Data'")
+	pkg     = flag.String("pkg", "", "The package name to use")
+	varname = flag.String("var", "Resources", "The variable name to use, defaults to 'Resources'")
 )
+
+func die(msg string, args ...interface{}) {
+	fmt.Fprintf(os.Stderr, msg+"\n", args...)
+	os.Exit(ExitUnexpectedError)
+}
 
 func main() {
 	flag.Parse()
+	if *pkg == "" {
+		fmt.Fprintln(os.Stderr, "Please specify a pkg")
+		flag.Usage()
+		os.Exit(ExitWrongUsage)
+	}
 	if len(flag.Args()) == 0 {
-		fmt.Fprintf(os.Stderr, "Please specify a folder to tar\n")
-		os.Exit(1)
+		die("Please specify a folder to embed")
 	}
-	folder := flag.Arg(0)
-	folderPrefix := folder + "/"
-	folderPrefixLen := len(folderPrefix)
 
-	fmt.Fprintf(os.Stdout, "package %v\n\nvar %v = []byte(\"", *pkg, *varname)
-
-	tw := tar.NewWriter(&stringencodingwriter{os.Stdout})
-	defer func() {
-		err := tw.Close()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Unable to close tar writer: %v\n", err)
-			os.Exit(3)
-		}
-
-		// Close the quote
-		fmt.Fprintf(os.Stdout, `")`)
-	}()
-
-	err := filepath.Walk(folder, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return fmt.Errorf("Unable to walk to %v: %v", path, err)
-		}
-		if info.IsDir() {
-			return nil
-		}
-		name := path
-		if strings.HasPrefix(name, folderPrefix) {
-			name = path[folderPrefixLen:]
-		}
-		hdr := &tar.Header{
-			Name: name,
-			Size: info.Size(),
-		}
-		err = tw.WriteHeader(hdr)
-		if err != nil {
-			return fmt.Errorf("Unable to write tar header: %v", err)
-		}
-		file, err := os.Open(path)
-		if err != nil {
-			return fmt.Errorf("Unable to open file %v: %v", path, err)
-		}
-		defer file.Close()
-		_, err = io.Copy(tw, file)
-		if err != nil {
-			return fmt.Errorf("Unable to copy file %v to tar: %v", path, err)
-		}
-		return nil
-	})
+	_, err := fmt.Fprintf(os.Stdout, "package %v\n\nvar %v = []byte(\"", *pkg, *varname)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
-		os.Exit(2)
+		die("Unable to write file header: %v", err)
 	}
-}
 
-type stringencodingwriter struct {
-	io.Writer
-}
-
-func (w *stringencodingwriter) Write(buf []byte) (int, error) {
-	n := 0
-	for _, b := range buf {
-		_, err := fmt.Fprintf(w.Writer, `\x%v`, hex.EncodeToString([]byte{b}))
-		if err != nil {
-			return n, err
-		}
-		n += 1
+	dir := flag.Arg(0)
+	err = tarfs.EncodeToTarString(dir, os.Stdout)
+	if err != nil {
+		die("Unable to encode %v to tar string: %v", dir, err)
 	}
-	return n, nil
+
+	_, err = fmt.Fprintf(os.Stdout, `")`)
+	if err != nil {
+		die("Unable to write file footer: %v", err)
+	}
 }

@@ -3,14 +3,21 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"io"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"runtime"
 	"time"
 
+	"github.com/dogenzaka/rotator"
+	"github.com/getlantern/appdir"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/profiling"
+	"github.com/getlantern/systray"
+	"github.com/getlantern/wfilter"
 
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
@@ -25,6 +32,8 @@ const (
 	// Exit Statuses
 	ConfigError    = 1
 	PortmapFailure = 50
+
+	LogTimestampFormat = "Jan 02 15:04:05.000"
 )
 
 var (
@@ -44,6 +53,13 @@ func init() {
 }
 
 func main() {
+	systray.Run(doMain)
+}
+
+func doMain() {
+	logfile := configureLogging()
+	defer logfile.Close()
+	configureSystemTray()
 	displayVersion()
 
 	flag.Parse()
@@ -206,4 +222,47 @@ func useAllCores() {
 	numcores := runtime.NumCPU()
 	log.Debugf("Using all %d cores on machine", numcores)
 	runtime.GOMAXPROCS(numcores)
+}
+
+func configureLogging() *rotator.SizeRotator {
+	logdir := appdir.Logs("Lantern")
+	log.Debugf("Placing logs in %v", logdir)
+	if _, err := os.Stat(logdir); err != nil {
+		if os.IsNotExist(err) {
+			// Create log dir
+			if err := os.MkdirAll(logdir, 0755); err != nil {
+				log.Fatalf("Unable to create logdir at %s: %s", logdir, err)
+			}
+		}
+	}
+	file := rotator.NewSizeRotator(filepath.Join(logdir, "lantern.log"))
+	// Set log files to 1 MB
+	file.RotationSize = 1 * 1024 * 1024
+	// Keep up to 20 log files
+	file.MaxRotation = 20
+	errorOut := timestamped(io.MultiWriter(os.Stderr, file))
+	debugOut := timestamped(io.MultiWriter(os.Stdout, file))
+	golog.SetOutputs(errorOut, debugOut)
+	return file
+}
+
+// timestamped adds a timestamp to the beginning of log lines
+func timestamped(orig io.Writer) io.Writer {
+	return wfilter.LinePrepender(orig, func(w io.Writer) (int, error) {
+		return fmt.Fprintf(w, "%s - ", time.Now().In(time.UTC).Format(LogTimestampFormat))
+	})
+}
+
+func configureSystemTray() {
+	icon, err := Asset("icons/16on.ico")
+	if err != nil {
+		log.Fatalf("Unable to load icon for system tray: %v", err)
+	}
+	systray.SetIcon(icon)
+	systray.SetTooltip("Lantern")
+	quit := systray.AddMenuItem("Quit", "Quit Lantern")
+	go func() {
+		<-quit.ClickedCh
+		os.Exit(0)
+	}()
 }
