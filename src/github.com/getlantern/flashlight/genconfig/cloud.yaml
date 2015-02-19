@@ -7137,8 +7137,6 @@ client:
     - zxc22.idv.tw
     - zz8080.com
     - zzb.bz
-    additions: []
-    deletions: []
   masqueradesets:
     cloudflare:
     - domain: 10minutemail.com
