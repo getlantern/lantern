@@ -44,10 +44,10 @@ func Start(addr string) error {
 	}
 
 	r = mux.NewRouter()
-	// r.Handle("/", )
+	r.PathPrefix("/").Handler(http.FileServer(fs))
 
 	server = &http.Server{
-		Handler: http.FileServer(fs),
+		Handler: r,
 	}
 	go func() {
 		err := server.Serve(l)
