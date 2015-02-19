@@ -30,7 +30,6 @@ var (
 	ConfigDir   string
 	PacFilePath string
 	PacTmpl     = "src/github.com/getlantern/proxiedsites/templates/proxy_on.pac.template"
-	instance    *ProxiedSites
 )
 
 type Config struct {
@@ -43,7 +42,8 @@ type Config struct {
 }
 
 type ProxiedSites struct {
-	cfg *Config
+	cfg      *Config
+	cfgMutex sync.RWMutex
 
 	// Corresponding global proxiedsites set
 	cloudSet *set.Set
@@ -76,68 +76,61 @@ func init() {
 	PacFilePath = path.Join(ConfigDir, PacFilename)
 }
 
-func Configure(cfg *Config) *ProxiedSites {
-	if instance != nil {
+func (ps *ProxiedSites) Configure(cfg *Config) {
+
+	if ps.cfg != nil {
+		if reflect.DeepEqual(cfg,
+			ps.cfg) {
+			// ignore changes if proxied sites haven't changed
+			return
+		}
+
 		go func() {
-
 			newPs := New(cfg)
-			// ignore updates if the cloud config hasn't changed
-			if reflect.DeepEqual(newPs.GetConfig().Cloud,
-				instance.GetConfig().Cloud) {
-				log.Debugf("Proxied sites unchanged; ignoring config update..")
-				return
-			}
-
 			// send delta adds and dels to clients
-			diff := instance.Diff(newPs)
-			instance.CfgUpdates <- diff
-
-			instance = newPs
-			go newPs.updatePacFile()
+			diff := ps.Diff(newPs)
+			ps.CfgUpdates <- diff
 		}()
-		return instance
 	}
-	ps := New(cfg)
-
-	instance = ps
+	ps.GenCfg(cfg)
 
 	go ps.updatePacFile()
-	return ps
 }
 
 func New(cfg *Config) *ProxiedSites {
+	ps := &ProxiedSites{
+		Updates:    make(chan *Config),
+		CfgUpdates: make(chan *Config),
+	}
+	if cfg != nil {
+		ps.GenCfg(cfg)
+	}
+	return ps
+}
+
+func (ps *ProxiedSites) GenCfg(cfg *Config) {
 
 	// initialize our proxied site sets
-	cloudSet := set.New()
-	addSet := set.New()
-	delSet := set.New()
+	ps.cloudSet = set.New()
+	ps.addSet = set.New()
+	ps.delSet = set.New()
 
 	for i := range cfg.Cloud {
-		cloudSet.Add(cfg.Cloud[i])
+		ps.cloudSet.Add(cfg.Cloud[i])
 	}
 
 	toAdd := append(cfg.Additions, cfg.Cloud...)
 	for i := range toAdd {
-		addSet.Add(toAdd[i])
+		ps.addSet.Add(toAdd[i])
 	}
 
 	for i := range cfg.Deletions {
-		delSet.Add(cfg.Deletions[i])
+		ps.delSet.Add(cfg.Deletions[i])
 	}
 
-	entries := set.StringSlice(set.Difference(addSet, delSet))
-	sort.Strings(entries)
-
-	ps := &ProxiedSites{
-		cfg:        cfg,
-		entries:    entries,
-		cloudSet:   cloudSet,
-		addSet:     addSet,
-		Updates:    make(chan *Config),
-		CfgUpdates: make(chan *Config),
-		delSet:     delSet,
-	}
-	return ps
+	ps.entries = set.StringSlice(set.Difference(ps.addSet, ps.delSet))
+	sort.Strings(ps.entries)
+	ps.cfg = cfg
 }
 
 // Composes the add and delete deltas
@@ -146,9 +139,11 @@ func (prev *ProxiedSites) Diff(cur *ProxiedSites) *Config {
 
 	addSet := set.Difference(set.Union(cur.cloudSet, cur.addSet),
 		set.Union(prev.cloudSet, prev.addSet))
+
 	delSet := set.Difference(cur.delSet, prev.delSet)
 
 	additions := set.StringSlice(set.Difference(addSet, delSet))
+
 	sort.Strings(additions)
 
 	return &Config{

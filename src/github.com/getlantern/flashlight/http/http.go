@@ -125,12 +125,15 @@ func (srv UIServer) writeProxiedSites(client *Client) {
 	}
 }
 
+// Reads a message from a UI client
 func (srv UIServer) readClientMessage(client *Client) {
 	defer func() {
 		srv.connClose <- client
 		client.Conn.Close()
 	}()
 	for {
+		// Receive updated proxied sites configuration from client
+		// Encoding it as JSON and synchronizing it with updates
 		var updates proxiedsites.Config
 		err := client.Conn.ReadJSON(&updates)
 		if err != nil {

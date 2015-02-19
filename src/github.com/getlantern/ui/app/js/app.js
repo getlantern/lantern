@@ -87,8 +87,8 @@ var app = angular.module('app', [
           } else {
             var entries = $rootScope.entries;
             entries.push(msg.Additions);
-            //$rootScope.entries = entries;
-            $rootScope.entries = [];
+
+            $rootScope.entries = entries;
             $rootScope.originalList = entries;
           }
           collection.push(msg);

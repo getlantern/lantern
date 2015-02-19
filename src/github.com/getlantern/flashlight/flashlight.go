@@ -111,7 +111,7 @@ func runClientProxy(cfg *config.Config) {
 	// Configure client initially
 	client.Configure(cfg.Client)
 
-	go configureProxiedSites(cfg)
+	configureProxiedSites(cfg)
 
 	// Continually poll for config updates and update client accordingly
 	go func() {
@@ -131,35 +131,41 @@ func runClientProxy(cfg *config.Config) {
 // Configures the list of proxied sites
 // Lantern should tunnel traffic through
 func configureProxiedSites(cfg *config.Config) {
-	for {
-		cfg := <-configUpdates
-		ps := proxiedsites.Configure(cfg.Client.ProxiedSites)
-		// this flag specifies the port to open the HTTP server
-		// between the UI and
-		// with a corresponding HTTP server at
-		// the following address
-		if cfg.UIAddr != "" {
-			// Configure the UI Server
-			go http.ConfigureUIServer(cfg.UIAddr, cfg.OpenUI, ps)
-		}
 
-		go func() {
-			for {
-				newCfg := <-ps.Updates
-				cfg.Client.ProxiedSites = newCfg
-				err := config.Update(func(updated *config.Config) error {
-					log.Debugf("Saving updated proxiedsites configuration")
-					updated.Client.ProxiedSites = cfg.Client.ProxiedSites
-					return nil
-				})
+	// initial proxied sites configuration
+	ps := proxiedsites.New(nil)
 
-				if err != nil {
-					log.Errorf("Could not update config: %s", err)
-				}
+	go func() {
+		for {
+			cfg := <-configUpdates
+			log.Debugf("Config updated..")
+			ps.Configure(cfg.Client.ProxiedSites)
+			// this flag specifies the port to open the HTTP server
+			// between the UI and
+			// with a corresponding HTTP server at
+			// the following address
+			if cfg.UIAddr != "" {
+				// Configure the UI Server
+				http.ConfigureUIServer(cfg.UIAddr, cfg.OpenUI, ps)
 			}
-		}()
-	}
+		}
+	}()
 
+	go func() {
+		for {
+			newCfg := <-ps.Updates
+			cfg.Client.ProxiedSites = newCfg
+			err := config.Update(func(updated *config.Config) error {
+				log.Debugf("Saving updated proxiedsites configuration")
+				updated.Client.ProxiedSites = cfg.Client.ProxiedSites
+				return nil
+			})
+
+			if err != nil {
+				log.Errorf("Could not update config: %s", err)
+			}
+		}
+	}()
 }
 
 // Runs the server-side proxy

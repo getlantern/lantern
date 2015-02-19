@@ -352,14 +352,15 @@ func (updated *Config) updateFrom(updateBytes []byte) error {
 	}
 
 	// Same with global proxiedsites
-	// Would be nice to combine this with the above at some point!
-	wlDomains := make(map[string]bool)
-	for _, domain := range updated.Client.ProxiedSites.Cloud {
-		wlDomains[domain] = true
-	}
-	updated.Client.ProxiedSites.Cloud = make([]string, 0, len(wlDomains))
-	for domain, _ := range wlDomains {
-		updated.Client.ProxiedSites.Cloud = append(updated.Client.ProxiedSites.Cloud, domain)
+	if len(updated.Client.ProxiedSites.Cloud) > 0 {
+		wlDomains := make(map[string]bool)
+		for _, domain := range updated.Client.ProxiedSites.Cloud {
+			wlDomains[domain] = true
+		}
+		updated.Client.ProxiedSites.Cloud = make([]string, 0, len(wlDomains))
+		for domain, _ := range wlDomains {
+			updated.Client.ProxiedSites.Cloud = append(updated.Client.ProxiedSites.Cloud, domain)
+		}
 	}
 	return nil
 }
