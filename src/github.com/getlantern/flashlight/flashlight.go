@@ -246,11 +246,13 @@ func configureSystemTray() {
 	show := systray.AddMenuItem(i18n.T("TRAY_SHOW_LANTERN"), i18n.T("SHOW"))
 	quit := systray.AddMenuItem(i18n.T("TRAY_QUIT"), i18n.T("QUIT"))
 	go func() {
-		select {
-		case <-show.ClickedCh:
-			ui.Show()
-		case <-quit.ClickedCh:
-			os.Exit(0)
+		for {
+			select {
+			case <-show.ClickedCh:
+				ui.Show()
+			case <-quit.ClickedCh:
+				os.Exit(0)
+			}
 		}
 	}()
 }
