@@ -246,9 +246,14 @@ func configureSystemTray() {
 	}
 	systray.SetIcon(icon)
 	systray.SetTooltip("Lantern")
+	show := systray.AddMenuItem(i18n.T("TRAY_SHOW_LANTERN"), i18n.T("SHOW"))
 	quit := systray.AddMenuItem(i18n.T("TRAY_QUIT"), i18n.T("QUIT"))
 	go func() {
-		<-quit.ClickedCh
-		os.Exit(0)
+		select {
+		case <-show.ClickedCh:
+			ui.Open()
+		case <-quit.ClickedCh:
+			os.Exit(0)
+		}
 	}()
 }
