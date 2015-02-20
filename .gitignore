@@ -17,3 +17,5 @@ flashlight.yaml
 envvars.bash
 Lantern.app
 lantern.dmg
+src/github.com/getlantern/flashlight/ui/resources.go
+src/github.com/getlantern/lantern-ui/dist

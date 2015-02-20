@@ -73,6 +73,17 @@ func TestRoundTrip(t *testing.T) {
 			}
 		}
 	}
+
+	sub := fs.SubDir("sub")
+	b, err = sub.Get("b.txt")
+	if assert.NoError(t, err, "b.txt should have loaded from sub") {
+		assert.Equal(t, string(expectedB), string(b), "B should have matched expected")
+	}
+
+	c, err := sub.Get("c.txt")
+	if assert.NoError(t, err, "c.txt should have loaded from sub") {
+		assert.Equal(t, string(expectedC), string(c), "C should have matched expected")
+	}
 }
 
 // tarStringToBytes converts a string like \x69\x6e\x64\x65\x78\x2e\x68\x74 into

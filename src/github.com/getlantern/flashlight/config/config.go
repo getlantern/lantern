@@ -13,6 +13,7 @@ import (
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
+	"github.com/getlantern/proxiedsites"
 	"github.com/getlantern/yaml"
 	"github.com/getlantern/yamlconf"
 
@@ -51,7 +52,9 @@ type Config struct {
 	Stats         *statreporter.Config
 	Server        *server.ServerConfig
 	Client        *client.ClientConfig
+	ProxiedSites  *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
 	TrustedCAs    []*CA
+	UIAddr        string // UI HTTP server address
 }
 
 // CA represents a certificate authority
@@ -183,6 +186,10 @@ func (cfg *Config) ApplyDefaults() {
 		cfg.Addr = "localhost:8787"
 	}
 
+	if cfg.UIAddr == "" {
+		cfg.UIAddr = "localhost:16823"
+	}
+
 	// Default country
 	if cfg.Country == "" {
 		cfg.Country = *country
@@ -199,6 +206,22 @@ func (cfg *Config) ApplyDefaults() {
 
 	if cfg.Client != nil && cfg.Role == "client" {
 		cfg.applyClientDefaults()
+	}
+
+	if cfg.ProxiedSites == nil {
+		log.Debugf("Adding empty proxiedsites")
+		cfg.ProxiedSites = &proxiedsites.Config{
+			Delta: &proxiedsites.Delta{
+				Additions: []string{},
+				Deletions: []string{},
+			},
+			Cloud: []string{},
+		}
+	}
+
+	if cfg.ProxiedSites.Cloud == nil || len(cfg.ProxiedSites.Cloud) == 0 {
+		log.Debugf("Loading default cloud proxiedsites")
+		cfg.ProxiedSites.Cloud = defaultProxiedSites
 	}
 
 	if cfg.TrustedCAs == nil || len(cfg.TrustedCAs) == 0 {
@@ -335,6 +358,7 @@ func (updated *Config) updateFrom(updateBytes []byte) error {
 	if err != nil {
 		return fmt.Errorf("Unable to unmarshal YAML for update: %s", err)
 	}
+
 	// Need to de-duplicate servers, since yaml appends them
 	servers := make(map[string]*client.FrontedServerInfo)
 	for _, server := range updated.Client.FrontedServers {
@@ -343,6 +367,18 @@ func (updated *Config) updateFrom(updateBytes []byte) error {
 	updated.Client.FrontedServers = make([]*client.FrontedServerInfo, 0, len(servers))
 	for _, server := range servers {
 		updated.Client.FrontedServers = append(updated.Client.FrontedServers, server)
+	}
+
+	// Same with global proxiedsites
+	if len(updated.ProxiedSites.Cloud) > 0 {
+		wlDomains := make(map[string]bool)
+		for _, domain := range updated.ProxiedSites.Cloud {
+			wlDomains[domain] = true
+		}
+		updated.ProxiedSites.Cloud = make([]string, 0, len(wlDomains))
+		for domain, _ := range wlDomains {
+			updated.ProxiedSites.Cloud = append(updated.ProxiedSites.Cloud, domain)
+		}
 	}
 	return nil
 }

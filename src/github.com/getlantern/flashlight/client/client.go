@@ -78,4 +78,7 @@ func (client *Client) Configure(cfg *ClientConfig) {
 	client.MinQOS = cfg.MinQOS
 	bal := client.initBalancer(cfg)
 	client.initReverseProxy(bal, cfg.DumpHeaders)
+	client.priorCfg = cfg
+	client.priorTrustedCAs = &x509.CertPool{}
+	*client.priorTrustedCAs = *globals.TrustedCAs
 }
