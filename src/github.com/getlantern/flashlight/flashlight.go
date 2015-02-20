@@ -248,7 +248,7 @@ func configureSystemTray() {
 	go func() {
 		select {
 		case <-show.ClickedCh:
-			ui.Open()
+			ui.Show()
 		case <-quit.ClickedCh:
 			os.Exit(0)
 		}
