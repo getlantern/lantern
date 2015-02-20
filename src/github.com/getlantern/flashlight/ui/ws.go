@@ -111,6 +111,7 @@ func (c *UIChannel) write() {
 		c.m.Lock()
 		for _, conn := range c.conns {
 			conn.ws.Close()
+			delete(c.conns, conn.id)
 		}
 		c.m.Unlock()
 	}()
@@ -144,7 +145,7 @@ func (c *wsconn) read() {
 		_, b, err := c.ws.ReadMessage()
 		if err != nil {
 			if err != io.EOF {
-				log.Debugf("Error reading from UI: %v", err)
+				log.Errorf("Error reading from UI: %v", err)
 			}
 			return
 		}
