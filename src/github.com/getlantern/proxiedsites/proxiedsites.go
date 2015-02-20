@@ -41,6 +41,7 @@ type Delta struct {
 	Deletions []string `json:"Deletions, omitempty"`
 }
 
+// Merge merges the given delta into the existing one.
 func (d *Delta) Merge(n *Delta) {
 	oadd := toSet(d.Additions)
 	odel := toSet(d.Deletions)
@@ -59,7 +60,7 @@ func (d *Delta) Merge(n *Delta) {
 	d.Deletions = toStrings(fdel)
 }
 
-// Config is the whole configuration for a ProxiedSites.
+// Config is the whole configuration for proxiedsites.
 type Config struct {
 	// User customizations
 	*Delta
