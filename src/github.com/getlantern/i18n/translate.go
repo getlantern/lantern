@@ -14,8 +14,8 @@ import (
 	"github.com/getlantern/jibber_jabber"
 )
 
-// ReadFunc is the func provided to WillReadByFunc
-// which returns the byte sequence given a file name
+// ReadFunc is the func provided to SetMessagesFunc which returns the byte
+// sequence given a file name
 type ReadFunc func(fileName string) ([]byte, error)
 
 var (
@@ -79,13 +79,13 @@ func SetMessagesFunc(f ReadFunc) {
 }
 
 // UseOSLocale detect OS locale for current user and let i18n to use it
-func UseOSLocale() {
+func UseOSLocale() error {
 	userLocale, err := jibber_jabber.DetectIETF()
 	if err != nil || userLocale == "C" {
 		userLocale = defaultLocale
 	}
-	log.Tracef("Use OS locale of current user: %s", userLocale)
-	SetLocale(userLocale)
+	log.Tracef("Using OS locale of current user: %v", userLocale)
+	return SetLocale(userLocale)
 }
 
 // SetLocale sets the current locale to the given value. If the locale is not in
@@ -98,6 +98,7 @@ func SetLocale(locale string) error {
 	locale = strings.Replace(locale, "-", "_", -1)
 	parts := strings.Split(locale, "_")
 	lang := parts[0]
+	log.Debugf("Setting locale %v", locale)
 	newTrMap := make(map[string]string)
 	mergeLocaleToMap(newTrMap, defaultLang)
 	mergeLocaleToMap(newTrMap, defaultLocale)
@@ -106,6 +107,7 @@ func SetLocale(locale string) error {
 	if len(newTrMap) == 0 {
 		return fmt.Errorf("Not found any translations, locale not set")
 	}
+	log.Debugf("Translations: %v", newTrMap)
 	trMutex.Lock()
 	defer trMutex.Unlock()
 	trMap = newTrMap
