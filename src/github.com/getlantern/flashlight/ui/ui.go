@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	localResourcesPath = "../ui/app"
+	localResourcesPath = "../lantern-ui/app"
 )
 
 var (
