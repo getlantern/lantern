@@ -50,7 +50,7 @@ HttpServer.prototype.start = function(port, host) {
   this.port = port;
   this.server.listen(port, host);
   util.puts('Mock Lantern client backend running at http://'+host+':'+port);
-  util.puts('Load Lantern UI at http://'+host+':'+port+'/app/index.html');
+  util.puts('Load Lantern UI at http://'+host+':'+port+'/dist/index.html');
 };
 
 HttpServer.prototype.parseUrl_ = function(urlString) {

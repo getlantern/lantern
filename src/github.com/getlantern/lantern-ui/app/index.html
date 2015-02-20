@@ -10,32 +10,37 @@
     <!-- uncomment this to use firebug lite
     <script src="http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js"></script>
     -->
-
+    <!-- build:css style/app.css -->
     <link href="bower_components/select2/select2.css" rel="stylesheet">
     <link href="_css/app.css" rel="stylesheet">
     <link href="bower_components/normalize.css/normalize.css" rel="stylesheet">
+    <!-- endbuild -->
 
-    <script src="bower_components/jsonpatch/lib/jsonpatch.js"></script>
+    <!-- build:js js/lib.js -->
     <script src="bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="bower_components/jsonpatch/lib/jsonpatch.js"></script>
+    <script src="bower_components/d3/d3.min.js"></script>
+    <script src="bower_components/lodash/lodash.min.js"></script>
+    <script src="bower_components/select2/select2.js"></script>
+    <script src="bower_components/cssesc/cssesc.js"></script>
+
     <script src="bower_components/angular/angular.js"></script>
+    <script src="bower_components/angular-translate/angular-translate.min.js"></script>
+    <script src="bower_components/angular-translate-loader-static-files/angular-translate-loader-static-files.min.js"></script>
     <script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
     <script src="bower_components/angular-resource/angular-resource.min.js"></script>
+    <script src="bower_components/angular-ui-utils/ui-utils.min.js"></script>
+    <script src="bower_components/angular-websocket/angular-websocket.min.js"></script>
+    <script src="lib/angular-ui-bootstrap-tpls.js"></script>
 
     <!-- we host a copy of google's analytics.js locally -->
     <script src="lib/analytics.js"></script>
-    <script src="bower_components/angular-ui-utils/ui-utils.min.js"></script>
-    <script src="lib/angular-ui-bootstrap-tpls.js"></script>
     <!--<script src="bower_components/ui-bootstrap/src/tooltip/tooltip.js"></script>-->
-    <script src="bower_components/lodash/lodash.min.js"></script>
-     <script src="bower_components/select2/select2.js"></script>
-    <script src="bower_components/angular-translate/angular-translate.min.js"></script>
-    <script src="bower_components/angular-translate-loader-static-files/angular-translate-loader-static-files.min.js"></script>
-    <script src="bower_components/d3/d3.min.js"></script>
-    <script src="bower_components/cssesc/cssesc.js"></script>
-     <script src="bower_components/angular-websocket/angular-websocket.js"></script>
     <!-- XXX see "XXX" in js/vis.js before switching to more recent topojson -->
     <script src="lib/topojson.js"></script>
+    <!-- endbuild -->
 
+    <!-- build:js2 js/app.js -->
     <script src="js/app.js"></script>
     <script src="js/constants.js"></script>
     <script src="js/helpers.js"></script>
@@ -44,6 +49,7 @@
     <script src="js/controllers.js"></script>
     <script src="js/directives.js"></script>
     <script src="js/vis.js"></script>
+    <!-- endbuild -->
 
     <link rel="shortcut icon" href="img/favicon.ico">
     <link rel="icon" type="image/png" href="img/favicon.png">
