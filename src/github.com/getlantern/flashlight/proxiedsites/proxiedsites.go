@@ -29,8 +29,9 @@ func Configure(cfg *proxiedsites.Config) {
 		b, err := json.Marshal(delta)
 		if err != nil {
 			log.Errorf("Unable to publish delta to UI: %v", err)
+		} else {
+			uichannel.Out <- b
 		}
-		uichannel.Out <- b
 	}
 	startMutex.Unlock()
 }
