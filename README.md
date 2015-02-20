@@ -55,6 +55,14 @@ The script `tagandbuild.bash` tags and runs crosscompile.bash.
 
 Note - ./crosscompile.bash omits debug symbols to keep the build smaller.
 
+### Building on Linux
+
+Cross-compilation targeting Linux is currently not supported, so Linux releases
+need to be built on Linux.  There are some build prerequisites that you can pick
+up with:
+
+`sudo apt-get install libgtk-3-dev libappindicator3-dev`
+
 ### Packaging for OS X
 Lantern on OS X is packaged as the `Lantern.app` app bundle, distributed inside
 of a drag-and-drop dmg installer. The app bundle and dmg can be created using
