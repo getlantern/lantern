@@ -66,6 +66,7 @@ func Start(addr string) error {
 	return nil
 }
 
-func Open() {
+// Show opens the UI in a browser.
+func Show() {
 	open.Run(uiaddr)
 }

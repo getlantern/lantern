@@ -133,6 +133,7 @@ func runClientProxy(cfg *config.Config) {
 		if err != nil {
 			panic(fmt.Errorf("Unable to start UI: %v", err))
 		}
+		ui.Show()
 	}
 
 	// intitial proxied sites configuration
@@ -148,10 +149,6 @@ func runClientProxy(cfg *config.Config) {
 			client.Configure(cfg.Client)
 		}
 	}()
-
-	if cfg.OpenUI {
-		ui.Open()
-	}
 
 	err := client.ListenAndServe()
 	if err != nil {
