@@ -7,6 +7,10 @@ lantern).
 
 Flashlight requires [Go 1.4.x](http://golang.org/dl/).
 
+You will also need [npm](https://www.npmjs.com/) and gulp.
+
+`npm install -g gulp`
+
 It is convenient to build flashlight for multiple platforms using
 [gox](https://github.com/mitchellh/gox).
 
@@ -57,6 +61,16 @@ The script `tagandbuild.bash` tags and runs crosscompile.bash.
 `./tagandbuild.bash <tag>`
 
 Note - ./crosscompile.bash omits debug symbols to keep the build smaller.
+
+### Building on Linux
+
+Cross-compilation targeting Linux is currently not supported, so Linux releases
+need to be built on Linux.  There are some build prerequisites that you can pick
+up with:
+
+See https://github.com/getlantern/lantern/issues/2235.
+
+`sudo apt-get install libgtk-3-dev libappindicator3-dev`
 
 ### Packaging for OS X
 Lantern on OS X is packaged as the `Lantern.app` app bundle, distributed inside

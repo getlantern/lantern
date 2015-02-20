@@ -16,6 +16,9 @@ client:
     maxmasquerades: 20
     qos: 2
     weight: 1000
+  proxiedsites:
+    cloud:{{range $domain, $bool := .proxiedsites }}
+    - {{$domain}}{{end}}
   masqueradesets:
     cloudflare:{{range .masquerades}}
     - domain: {{.Domain}}

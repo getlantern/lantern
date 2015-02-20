@@ -1,0 +1,13 @@
+{
+  "name": "jsonpatch.js",
+  "version": "1.0.0-rc1",
+  "main": "lib/jsonpatch.js",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "components"
+  ],
+  "devDependencies": {
+    "mocha": "latest"
+  }
+}
