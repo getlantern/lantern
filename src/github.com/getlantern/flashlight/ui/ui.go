@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 	"path"
 	"path/filepath"
 
@@ -12,17 +13,16 @@ import (
 	"github.com/skratchdot/open-golang/open"
 )
 
-const (
-	localResourcesPath = "../ui/app"
-)
+const ()
 
 var (
 	log = golog.LoggerFor("ui")
 
-	l      net.Listener
-	fs     http.FileSystem
-	server *http.Server
-	uiaddr string
+	localResourcesPath = filepath.Join(os.Getenv("GOPATH"), "src/github.com/getlantern/ui/app")
+	l                  net.Listener
+	fs                 http.FileSystem
+	server             *http.Server
+	uiaddr             string
 
 	r = http.NewServeMux()
 )
