@@ -1,0 +1,61 @@
+<style>
+
+    /* ui-reset */
+  .ui-resetwrap {
+    display: inline-block;
+    position: relative;
+  }
+
+  .ui-reset {
+    display: none;
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    right: 0;
+    z-index: 2;
+    height: 100%;
+  }
+
+  .ui-resetwrap:hover .ui-reset {
+    display: block;
+  }
+
+</style>
+<script>
+  function ResetCtrl($scope) {
+    $scope.resetModel = "Hover over";
+  }
+</script>
+<section id="reset" ng-controller="ResetCtrl">
+  <div class="page-header">
+    <h1>Reset</h1>
+  </div>
+  <div class="row">
+    <div class="span6">
+      <h3>What?</h3>
+
+      <p>Adds an icon or link that empties the input element</p>
+
+      <p>Resets to empty: &nbsp; &nbsp;<input ng-model="resetModel" ui-reset></p>
+
+      <p>Resets to "Empty": <input ng-model="resetModel" ui-reset=" 'Empty' "></p>
+
+      <p class="alert alert-info">
+        <i class="icon-info-sign"></i> Remember that you control the CSS. Make the icon always show by changing the CSS to match the
+        <code>:hover</code> state.</p>
+    </div>
+    <div class="span6">
+      <h3>How?</h3>
+
+      <p>You can set an app-wide reset value using <code>ui.config</code></p>
+<pre class="prettyprint">
+&lt;input ng-model=&quot;resetModel&quot; ui-reset&gt;
+&lt;input ng-model=&quot;resetModel&quot; ui-reset=&quot; 'Empty' &quot;&gt;
+
+&lt;script&gt;
+    $scope.resetModel = &#x27;Hover over me&#x27;;
+&lt;/script&gt;
+</pre>
+    </div>
+  </div>
+</section>

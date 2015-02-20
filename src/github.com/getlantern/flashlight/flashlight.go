@@ -21,9 +21,11 @@ import (
 
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
+	"github.com/getlantern/flashlight/proxiedsites"
 	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/statreporter"
 	"github.com/getlantern/flashlight/statserver"
+	"github.com/getlantern/flashlight/ui"
 )
 
 const (
@@ -125,10 +127,24 @@ func runClientProxy(cfg *config.Config) {
 	// Configure client initially
 	client.Configure(cfg.Client)
 
+	// Start UI server
+	if cfg.UIAddr != "" {
+		err := ui.Start(cfg.UIAddr)
+		if err != nil {
+			panic(fmt.Errorf("Unable to start UI: %v", err))
+		}
+		ui.Show()
+	}
+
+	// intitial proxied sites configuration
+	proxiedsites.Configure(cfg.ProxiedSites)
+
 	// Continually poll for config updates and update client accordingly
 	go func() {
 		for {
 			cfg := <-configUpdates
+
+			proxiedsites.Configure(cfg.ProxiedSites)
 			configureStats(cfg, false)
 			client.Configure(cfg.Client)
 		}

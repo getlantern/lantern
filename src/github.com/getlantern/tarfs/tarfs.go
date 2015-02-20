@@ -109,13 +109,16 @@ func (fs *FileSystem) Get(path string) ([]byte, error) {
 			}
 			log.Tracef("Resource %v does not exist on filesystem, using embedded resource instead", path)
 		} else {
+			log.Tracef("Using local resource %v", path)
 			return b, nil
 		}
 	}
 	b, found := fs.files[path]
 	if !found {
-		return nil, fmt.Errorf("%v not found", path)
+		err := fmt.Errorf("%v not found", path)
+		return nil, err
 	}
+	log.Tracef("Using embedded resource %v", path)
 	return b, nil
 }
 

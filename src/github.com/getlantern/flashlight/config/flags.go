@@ -27,6 +27,7 @@ var (
 	memprofile     = flag.String("memprofile", "", "write heap profile to given file")
 	portmap        = flag.Int("portmap", 0, "try to map this port on the firewall to the port on which flashlight is listening, using UPnP or NAT-PMP. If mapping this port fails, flashlight will exit with status code 50")
 	advertisedHost = flag.String("server", "", "FQDN of flashlight server when running in server mode (required)")
+	uiaddr         = flag.String("uiaddr", "", "if specified, indicates host:port the UI HTTP server should be started on")
 )
 
 // applyFlags updates this Config from any command-line flags that were passed
@@ -68,6 +69,10 @@ func (updated *Config) applyFlags() error {
 			updated.Stats.ReportingPeriod = time.Duration(*statsPeriod) * time.Second
 		case "statshub":
 			updated.Stats.StatshubAddr = *statshubAddr
+
+		// HTTP-server
+		case "uiaddr":
+			updated.UIAddr = *uiaddr
 
 		// Server
 		case "portmap":
