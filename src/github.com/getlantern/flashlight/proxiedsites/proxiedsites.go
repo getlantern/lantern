@@ -15,6 +15,10 @@ import (
 
 var (
 	log = golog.LoggerFor("proxiedsites-flashlight")
+)
+
+var (
+	PACURL string
 
 	uichannel  *ui.UIChannel
 	startMutex sync.Mutex
@@ -38,7 +42,7 @@ func Configure(cfg *proxiedsites.Config) {
 
 func start() {
 	// Register the PAC handler
-	url := ui.Handle("/proxy_on.pac", http.HandlerFunc(proxiedsites.ServePAC))
+	PACURL = ui.Handle("/proxy_on.pac", http.HandlerFunc(proxiedsites.ServePAC))
 	log.Debugf("Serving PAC file at %v", url)
 
 	// Establish a channel to the UI for sending and receiving updates
