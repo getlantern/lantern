@@ -43,7 +43,7 @@ func Configure(cfg *proxiedsites.Config) {
 func start() {
 	// Register the PAC handler
 	PACURL = ui.Handle("/proxy_on.pac", http.HandlerFunc(proxiedsites.ServePAC))
-	log.Debugf("Serving PAC file at %v", url)
+	log.Debugf("Serving PAC file at %v", PACURL)
 
 	// Establish a channel to the UI for sending and receiving updates
 	uichannel = ui.NewChannel("/data", func(write func([]byte) error) error {

@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -17,7 +16,6 @@ import (
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/i18n"
-	"github.com/getlantern/pac"
 	"github.com/getlantern/profiling"
 	"github.com/getlantern/systray"
 	"github.com/getlantern/wfilter"
@@ -253,51 +251,9 @@ func configureSystemTray() {
 			case <-show.ClickedCh:
 				ui.Show()
 			case <-quit.ClickedCh:
+				pacOff()
 				os.Exit(0)
 			}
 		}
 	}()
-}
-
-func pacOn() {
-	if proxiedsites.PACURL != "" {
-		iconFile := ""
-		icon, err := Asset("icons/64on.ico")
-		if err != nil {
-			log.Errorf("Unable to get escalation prompt icon: %v", err)
-		} else {
-			f, err := ioutil.TempFile(dir, prefix)
-			if err != nil {
-				log.Errorf("Unable to create temp file for icon: %v", err)
-			} else {
-				defer f.Close()
-				_, err := f.Write(icon)
-				if err != nil {
-					log.Errorf("Unable to write icon to temp file: %v", err)
-				} else {
-					f.Close()
-					iconFile = f.Name()
-				}
-			}
-		}
-		err = pac.EnsureHelperToolPresent("pac-cmd", "Lantern would like to set itself as your system proxy", iconFile)
-		if err != nil {
-			panic(err)
-		}
-		log.Debug("Setting lantern as system proxy")
-		err = pac.On(proxiedsites.PACURL)
-		if err != nil {
-			panic(fmt.Errorf("Unable to set Lantern as system proxy: %v", err))
-		}
-	}
-}
-
-func pacOf() {
-	if proxiedsites.PACURL != "" {
-		log.Debug("Unsetting lantern as system proxy")
-		err := pac.Off()
-		if err != nil {
-			log.Errorf("Unable to unset lantern as system proxy: %v", err)
-		}
-	}
 }

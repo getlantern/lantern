@@ -2,6 +2,7 @@ package client
 
 import (
 	"crypto/x509"
+	"fmt"
 	"net"
 	"net/http"
 	"net/http/httputil"
