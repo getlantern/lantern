@@ -54,9 +54,7 @@ type Config struct {
 	Client        *client.ClientConfig
 	ProxiedSites  *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
 	TrustedCAs    []*CA
-	OpenUI        bool   // Flag specifying whether or not the UI should be automatically open in the browser
 	UIAddr        string // UI HTTP server address
-
 }
 
 // CA represents a certificate authority
