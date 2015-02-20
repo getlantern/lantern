@@ -1,0 +1,17 @@
+{
+  "name": "cometd-js-jquery",
+  "version": "2.6.0",
+  "ignore": [
+    "README.md"
+  ],
+  "homepage": "https://github.com/askarby/cometd-js-jquery",
+  "_release": "2.6.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "2.6.0",
+    "commit": "4e2de17eda3c9c44ccd1abb45e2a94a19ffc40c5"
+  },
+  "_source": "git://github.com/askarby/cometd-js-jquery.git",
+  "_target": "2.6.0",
+  "_originalSource": "cometd-js-jquery"
+}
