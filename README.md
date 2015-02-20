@@ -7,6 +7,10 @@ lantern).
 
 Flashlight requires [Go 1.4.x](http://golang.org/dl/).
 
+You will also need [npm](https://www.npmjs.com/) and gulp.
+
+`npm install -g gulp`
+
 It is convenient to build flashlight for multiple platforms using
 [gox](https://github.com/mitchellh/gox).
 
