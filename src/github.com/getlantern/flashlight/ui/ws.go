@@ -145,7 +145,7 @@ func (c *wsconn) read() {
 		_, b, err := c.ws.ReadMessage()
 		if err != nil {
 			if err != io.EOF {
-				log.Debugf("Error reading from UI: %v", err)
+				log.Errorf("Error reading from UI: %v", err)
 			}
 			return
 		}
