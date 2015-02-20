@@ -4,6 +4,7 @@ go:
   - 1.4.1
 
 install:
+  - sudo apt-get install libgtk-3-dev libappindicator3-dev
   - go get golang.org/x/tools/cmd/cover
   - go get -v github.com/axw/gocov/gocov
   - go get -v github.com/mattn/goveralls

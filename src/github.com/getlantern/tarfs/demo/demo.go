@@ -7,18 +7,21 @@ import (
 	"github.com/getlantern/tarfs"
 )
 
+const (
+	addr = "localhost:8080"
+)
+
 func main() {
 	var fs http.FileSystem
 	var err error
-	fs, err = tarfs.New(Data, "localresources")
+	fs, err = tarfs.New(Resources, "localresources")
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	// if true {
-	// 	fs = http.Dir("resources")
-	// }
 	http.Handle("/", http.FileServer(fs))
-	err = http.ListenAndServe("localhost:8080", nil)
+	log.Printf("About to listen at %v", addr)
+	log.Printf("Try browsing to http://%v", addr)
+	err = http.ListenAndServe(addr, nil)
 	if err != nil {
 		log.Fatal(err.Error())
 	}

@@ -2,9 +2,8 @@ flashlight-build [![Travis CI Status](https://travis-ci.org/getlantern/flashligh
 ==========
 
 flashlight-build is a [gost](https://github.com/getlantern/gost) project that
-provides repeatable builds and consolidated pull requests for flashlight.
-
-### Building Flashlight
+provides repeatable builds and consolidated pull requests for flashlight (now
+lantern).
 
 Flashlight requires [Go 1.4.x](http://golang.org/dl/).
 
@@ -22,9 +21,9 @@ go wherever you like. Ox keeps his at ~/go_native.
 
 ```bash
 go get github.com/mitchellh/gox
-go get github.com/getlantern/gonative
+go get github.com/inconshreveable/gonative
 cd ~
-gonative build -version="1.4" -platforms="darwin_amd64 linux_386 linux_amd64 windows_386"
+gonative build -version="1.4.1" -platforms="darwin_amd64 linux_386 linux_amd64 windows_386"
 mv go go_native
 ```
 
@@ -56,30 +55,54 @@ The script `tagandbuild.bash` tags and runs crosscompile.bash.
 
 Note - ./crosscompile.bash omits debug symbols to keep the build smaller.
 
-Note also that these binaries should  be signed for use in production, at least
-on OSX and Windows. On OSX the command to do this should resemble the following
-(assuming you have an associated code signing certificate):
+### Packaging for OS X
+Lantern on OS X is packaged as the `Lantern.app` app bundle, distributed inside
+of a drag-and-drop dmg installer. The app bundle and dmg can be created using
+`./package_osx.bash`.
 
+This script requires the node module `appdmg`. Assuming you have homebrew
+installed, you can get it with ...
+
+```bash
+brew install node
+npm install -g appdmg
 ```
-codesign -s "Developer ID Application: Brave New Software Project, Inc" -f install/osx/pt/flashlight/flashlight
-```
 
-The script `copyexecutables.bash` takes care of signing the OS X executable and
-copying everything in the Lantern file tree.
-
-`copyexecutables.bash` will also optionally sign the Windows executable if the
-environment variables BNS_CERT and BNS_CERT_PASS are set to point to
-[bns-cert.p12](https://github.com/getlantern/too-many-secrets/blob/master/bns_cert.p12)
-and its [password](https://github.com/getlantern/too-many-secrets/blob/master/build-installers/env-vars.txt#L3).
-
-The code signing [certificate](https://github.com/getlantern/too-many-secrets/blob/master/osx-code-signing-certificate.p12)
+`./package_osx.bash` signs the Lantern.app using the BNS code signing
+certificate in your KeyChain. The [certificate](https://github.com/getlantern/too-many-secrets/blob/master/osx-code-signing-certificate.p12)
 and [password](https://github.com/getlantern/too-many-secrets/blob/master/osx-code-signing-certificate.p12.txt)
 can be obtained from [too-many-secrets](https://github.com/getlantern/too-many-secrets).
 
-note - Signing windows code requires that the
+If signing fails, the script will still build the app bundle and dmg, but the
+app bundle won't be signed. Unsigned app bundles can be used for testing but
+should never be distributed to end users.
+
+The background image for the DMG is `dmgbackground.png` and the icon is in
+`lantern.icns`.
+
+### Packaging on Windows
+Lantern on Windows is currently distributed as an executable (no installer).
+This executable should be signed with `./package_windows.bash` prior to
+distributing it to end users.
+
+Signing windows code requires that the
 [osslsigncode](http://sourceforge.net/projects/osslsigncode/) utility be
 installed. On OS X with homebrew, you can do this with
 `brew install osslsigncode`.
+
+For `./package_windows.bash` to be able to sign the executable, the environment
+varaibles BNS_CERT and BNS_CERT_PASS must be set to point to
+[bns-cert.p12](https://github.com/getlantern/too-many-secrets/blob/master/bns_cert.p12)
+and its [password](https://github.com/getlantern/too-many-secrets/blob/master/build-installers/env-vars.txt#L3).
+You can set the environment variables and run the script on one line, like this:
+
+`BNS_CERT=<cert> BNS_CERT_PASS=<pass> ./package_windows.bash`
+
+### Updating Icons
+
+The icons used for the system tray are stored in
+src/github/getlantern/flashlight/icons. To apply changes to the icons, make your
+updates in the icons folder and then run `./udpateicons.bash`.
 
 ### Continuous Integration with Travis CI
 Continuous builds are run on Travis CI. These builds use the `.travis.yml`

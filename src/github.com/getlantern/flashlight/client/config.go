@@ -5,8 +5,6 @@ import (
 	"time"
 
 	"github.com/getlantern/fronted"
-	"github.com/getlantern/nattywad"
-	"github.com/getlantern/proxiedsites"
 )
 
 var (
@@ -19,10 +17,7 @@ type ClientConfig struct {
 	DumpHeaders    bool // whether or not to dump headers of requests and responses
 	FrontedServers []*FrontedServerInfo
 	ChainedServers map[string]*ChainedServerInfo
-	Peers          map[string]*nattywad.ServerPeer // keyed to peer id (e.g. XMPP JID)
 	MasqueradeSets map[string][]*fronted.Masquerade
-
-	ProxiedSites *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
 }
 
 // SortServers sorts the Servers array in place, ordered by host

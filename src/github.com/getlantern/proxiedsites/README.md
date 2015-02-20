@@ -1,2 +1,3 @@
-# whitelist
-Lantern Whitelist Module
+# proxiedsites
+
+Package for managing lists of proxied sites.
