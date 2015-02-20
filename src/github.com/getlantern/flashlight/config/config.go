@@ -7,13 +7,12 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
-	"os/user"
 	"path/filepath"
 	"time"
 
+	"github.com/getlantern/appdir"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
-	"github.com/getlantern/nattywad"
 	"github.com/getlantern/yaml"
 	"github.com/getlantern/yamlconf"
 
@@ -49,7 +48,6 @@ type Config struct {
 	StatsAddr     string
 	CpuProfile    string
 	MemProfile    string
-	WaddellCert   string
 	Stats         *statreporter.Config
 	Server        *server.ServerConfig
 	Client        *client.ClientConfig
@@ -120,9 +118,6 @@ func Start(updateHandler func(updated *Config)) (*Config, error) {
 func updateGlobals(cfg *Config) {
 	globals.InstanceId = cfg.InstanceId
 	globals.Country = cfg.Country
-	if cfg.WaddellCert != "" {
-		globals.WaddellCert = cfg.WaddellCert
-	}
 	err := globals.SetTrustedCAs(cfg.TrustedCACerts())
 	if err != nil {
 		log.Fatalf("Unable to configure trusted CAs: %s", err)
@@ -140,7 +135,7 @@ func Update(mutate func(cfg *Config) error) error {
 func InConfigDir(filename string) string {
 	cdir := *configdir
 	if cdir == "" {
-		cdir = platformSpecificConfigDir()
+		cdir = appdir.General("Lantern")
 	}
 	log.Debugf("Placing configuration in %v", cdir)
 	if _, err := os.Stat(cdir); err != nil {
@@ -233,6 +228,14 @@ func (cfg *Config) applyClientDefaults() {
 			MaxMasquerades: 20,
 			QOS:            10,
 			Weight:         4000,
+		}, &client.FrontedServerInfo{
+			Host:           "peers.getiantem.org",
+			Port:           443,
+			PoolSize:       30,
+			MasqueradeSet:  cloudflare,
+			MaxMasquerades: 20,
+			QOS:            2,
+			Weight:         1000,
 		})
 	}
 
@@ -254,11 +257,6 @@ func (cfg *Config) applyClientDefaults() {
 		cfg.Client.ChainedServers = make(map[string]*client.ChainedServerInfo)
 	}
 
-	// Always make sure that we have a map of Peers
-	if cfg.Client.Peers == nil {
-		cfg.Client.Peers = make(map[string]*nattywad.ServerPeer)
-	}
-
 	// Sort servers so that they're always in a predictable order
 	cfg.Client.SortServers()
 }
@@ -275,21 +273,28 @@ func (cfg Config) cloudPollSleepTime() time.Duration {
 	return time.Duration((CloudConfigPollInterval.Nanoseconds() / 2) + rand.Int63n(CloudConfigPollInterval.Nanoseconds()))
 }
 
-func (cfg Config) fetchCloudConfig() ([]byte, error) {
+func (cfg Config) fetchCloudConfig() (bytes []byte, err error) {
 	log.Debugf("Fetching cloud config from: %s", cfg.CloudConfig)
-	// Try it unproxied first
-	bytes, err := cfg.doFetchCloudConfig("")
-	if err != nil && cfg.IsDownstream() {
-		// If that failed, try it proxied
-		bytes, err = cfg.doFetchCloudConfig(cfg.Addr)
+
+	if cfg.IsDownstream() {
+		// Clients must always proxy the request
+		if cfg.Addr == "" {
+			err = fmt.Errorf("No proxyAddr")
+		} else {
+			bytes, err = cfg.doFetchCloudConfig(cfg.Addr)
+		}
+	} else {
+		bytes, err = cfg.doFetchCloudConfig("")
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Unable to read yaml from %s: %s", cfg.CloudConfig, err)
+		bytes = nil
+		err = fmt.Errorf("Unable to read yaml from %s: %s", cfg.CloudConfig, err)
 	}
-	return bytes, err
+	return
 }
 
 func (cfg Config) doFetchCloudConfig(proxyAddr string) ([]byte, error) {
+	log.Tracef("doFetchCloudConfig via '%s'", proxyAddr)
 	client, err := util.HTTPClient(cfg.CloudConfigCA, proxyAddr)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to initialize HTTP client: %s", err)
@@ -340,13 +345,4 @@ func (updated *Config) updateFrom(updateBytes []byte) error {
 		updated.Client.FrontedServers = append(updated.Client.FrontedServers, server)
 	}
 	return nil
-}
-
-func inHomeDir(filename string) string {
-	log.Tracef("Determining user's home directory")
-	usr, err := user.Current()
-	if err != nil {
-		log.Fatalf("Unable to determine user's home directory: %s", err)
-	}
-	return filepath.Join(usr.HomeDir, filename)
 }

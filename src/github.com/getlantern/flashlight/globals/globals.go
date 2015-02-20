@@ -4,14 +4,12 @@ package globals
 import (
 	"crypto/x509"
 	"github.com/getlantern/keyman"
-	"github.com/getlantern/nattywad"
 )
 
 var (
-	InstanceId  = ""
-	Country     = "xx"
-	WaddellCert = nattywad.DefaultWaddellCert
-	TrustedCAs  *x509.CertPool
+	InstanceId = ""
+	Country    = "xx"
+	TrustedCAs *x509.CertPool
 )
 
 func SetTrustedCAs(certs []string) error {
