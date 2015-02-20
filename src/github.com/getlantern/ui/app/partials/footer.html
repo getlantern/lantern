@@ -35,25 +35,9 @@
     <span>
       · <a ng-click="showModal('about')">{{ 'ABOUT' | translate }}</a>
     </span>
-    <span>
-      · <a ng-click="showModal('contact')">{{ 'CONTACT' | translate }}</a>
-    </span>
   </div>
 
   <div id="global-nav" class="btn-group" dir="ltr">
-    <button type="button" class="btn btn-large btn-inverse"
-            ng-click="showModal('proxiedSites')"
-            ng-class="{active: model.modal == MODAL.proxiedSites}"
-            tooltip="{{ 'PROXIED_SITES_TITLE' | translate }}">
-      <i class="lsf-icon lsf-web"></i>
-    </button>
-    <button type="button" class="btn btn-large btn-inverse"
-            ng-disabled="!model.setupComplete"
-            ng-click="interaction(INTERACTION.settings)"
-            ng-class="{active: model.modal == MODAL.settings}"
-            tooltip="{{ 'SETTINGS' | translate }}">
-      <i class="lsf-icon lsf-gear"></i>
-    </button>
   </div>
   <div id="npending" ng-show="nfriendSuggestions" class="badge badge-important">{{ nfriendSuggestions | badgeCount }}</div>
 </div>

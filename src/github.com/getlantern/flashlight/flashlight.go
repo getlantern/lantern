@@ -21,11 +21,11 @@ import (
 
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
-	"github.com/getlantern/flashlight/http"
+	"github.com/getlantern/flashlight/proxiedsites"
 	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/statreporter"
 	"github.com/getlantern/flashlight/statserver"
-	"github.com/getlantern/proxiedsites"
+	"github.com/getlantern/flashlight/ui"
 )
 
 const (
@@ -127,19 +127,24 @@ func runClientProxy(cfg *config.Config) {
 	// Configure client initially
 	client.Configure(cfg.Client)
 
+	// Start UI server
+	if cfg.UIAddr != "" {
+		err := ui.Start(cfg.UIAddr)
+		if err != nil {
+			panic(fmt.Errorf("Unable to start UI: %v", err))
+		}
+		ui.Show()
+	}
+
 	// intitial proxied sites configuration
-	ps := proxiedsites.New(cfg.Client.ProxiedSites)
+	proxiedsites.Configure(cfg.ProxiedSites)
 
 	// Continually poll for config updates and update client accordingly
 	go func() {
 		for {
 			cfg := <-configUpdates
 
-			newPs := proxiedsites.New(cfg.Client.ProxiedSites)
-			// send previous config updates to
-			ps.SendUpdates(newPs)
-			configureProxiedSites(newPs, cfg)
-
+			proxiedsites.Configure(cfg.ProxiedSites)
 			configureStats(cfg, false)
 			client.Configure(cfg.Client)
 		}
@@ -149,40 +154,6 @@ func runClientProxy(cfg *config.Config) {
 	if err != nil {
 		log.Fatalf("Unable to run client proxy: %s", err)
 	}
-}
-
-// Configures the list of proxied sites
-// Lantern should tunnel traffic through
-func configureProxiedSites(ps *proxiedsites.ProxiedSites, cfg *config.Config) {
-
-	// this flag specifies the port to open the HTTP server
-	// between the UI and
-	// with a corresponding HTTP server at
-	// the following address
-	if cfg.UIAddr != "" {
-		go func() {
-			for {
-				// Configure the UI Server
-				http.ConfigureUIServer(cfg.UIAddr, cfg.OpenUI, ps)
-			}
-		}()
-	}
-
-	go func() {
-		for {
-			newCfg := <-ps.Updates
-			cfg.Client.ProxiedSites = newCfg
-			err := config.Update(func(updated *config.Config) error {
-				log.Debugf("Saving updated proxiedsites configuration")
-				updated.Client.ProxiedSites = cfg.Client.ProxiedSites
-				return nil
-			})
-
-			if err != nil {
-				log.Errorf("Could not update config: %s", err)
-			}
-		}
-	}()
 }
 
 // Runs the server-side proxy

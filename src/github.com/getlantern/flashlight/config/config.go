@@ -52,10 +52,9 @@ type Config struct {
 	Stats         *statreporter.Config
 	Server        *server.ServerConfig
 	Client        *client.ClientConfig
+	ProxiedSites  *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
 	TrustedCAs    []*CA
-	OpenUI        bool   // Flag specifying whether or not the UI should be automatically open in the browser
 	UIAddr        string // UI HTTP server address
-
 }
 
 // CA represents a certificate authority
@@ -187,6 +186,10 @@ func (cfg *Config) ApplyDefaults() {
 		cfg.Addr = "localhost:8787"
 	}
 
+	if cfg.UIAddr == "" {
+		cfg.UIAddr = "localhost:16823"
+	}
+
 	// Default country
 	if cfg.Country == "" {
 		cfg.Country = *country
@@ -205,6 +208,22 @@ func (cfg *Config) ApplyDefaults() {
 		cfg.applyClientDefaults()
 	}
 
+	if cfg.ProxiedSites == nil {
+		log.Debugf("Adding empty proxiedsites")
+		cfg.ProxiedSites = &proxiedsites.Config{
+			Delta: &proxiedsites.Delta{
+				Additions: []string{},
+				Deletions: []string{},
+			},
+			Cloud: []string{},
+		}
+	}
+
+	if cfg.ProxiedSites.Cloud == nil || len(cfg.ProxiedSites.Cloud) == 0 {
+		log.Debugf("Loading default cloud proxiedsites")
+		cfg.ProxiedSites.Cloud = defaultProxiedSites
+	}
+
 	if cfg.TrustedCAs == nil || len(cfg.TrustedCAs) == 0 {
 		cfg.TrustedCAs = defaultTrustedCAs
 	}
@@ -217,15 +236,6 @@ func (cfg *Config) applyClientDefaults() {
 	}
 	if len(cfg.Client.MasqueradeSets) == 0 {
 		cfg.Client.MasqueradeSets[cloudflare] = cloudflareMasquerades
-	}
-
-	if cfg.Client.ProxiedSites == nil {
-		log.Debugf("Loading default proxiedsites")
-		cfg.Client.ProxiedSites = &proxiedsites.Config{
-			Additions: []string{},
-			Deletions: []string{},
-			Cloud:     []string{},
-		}
 	}
 
 	// Make sure we always have at least one server
@@ -353,14 +363,14 @@ func (updated *Config) updateFrom(updateBytes []byte) error {
 	}
 
 	// Same with global proxiedsites
-	if len(updated.Client.ProxiedSites.Cloud) > 0 {
+	if len(updated.ProxiedSites.Cloud) > 0 {
 		wlDomains := make(map[string]bool)
-		for _, domain := range updated.Client.ProxiedSites.Cloud {
+		for _, domain := range updated.ProxiedSites.Cloud {
 			wlDomains[domain] = true
 		}
-		updated.Client.ProxiedSites.Cloud = make([]string, 0, len(wlDomains))
+		updated.ProxiedSites.Cloud = make([]string, 0, len(wlDomains))
 		for domain, _ := range wlDomains {
-			updated.Client.ProxiedSites.Cloud = append(updated.Client.ProxiedSites.Cloud, domain)
+			updated.ProxiedSites.Cloud = append(updated.ProxiedSites.Cloud, domain)
 		}
 	}
 	return nil

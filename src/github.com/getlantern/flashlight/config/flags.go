@@ -28,7 +28,6 @@ var (
 	portmap        = flag.Int("portmap", 0, "try to map this port on the firewall to the port on which flashlight is listening, using UPnP or NAT-PMP. If mapping this port fails, flashlight will exit with status code 50")
 	advertisedHost = flag.String("server", "", "FQDN of flashlight server when running in server mode (required)")
 	uiaddr         = flag.String("uiaddr", "", "if specified, indicates host:port the UI HTTP server should be started on")
-	openui         = flag.Bool("openui", false, "if specified, automatically open the UI in the default browser")
 )
 
 // applyFlags updates this Config from any command-line flags that were passed
@@ -89,7 +88,6 @@ func (updated *Config) applyFlags() error {
 	updated.CpuProfile = *cpuprofile
 	updated.MemProfile = *memprofile
 	updated.Server.Unencrypted = *unencrypted
-	updated.OpenUI = *openui
 
 	return nil
 }

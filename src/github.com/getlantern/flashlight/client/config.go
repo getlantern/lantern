@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/getlantern/fronted"
-	"github.com/getlantern/proxiedsites"
 )
 
 var (
@@ -19,8 +18,6 @@ type ClientConfig struct {
 	FrontedServers []*FrontedServerInfo
 	ChainedServers map[string]*ChainedServerInfo
 	MasqueradeSets map[string][]*fronted.Masquerade
-
-	ProxiedSites *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
 }
 
 // SortServers sorts the Servers array in place, ordered by host

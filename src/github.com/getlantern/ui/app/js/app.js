@@ -73,25 +73,35 @@ var app = angular.module('app', [
   })
   .factory('ProxiedSites', ['$websocket', '$interval', '$window', '$rootScope', function($websocket, $interval, $window, $rootScope) {
       var dataStream = $websocket('ws://' + document.location.host + '/data');
-      var collection = [];
       var WS_RECONNECT_INTERVAL = 5000;
       var WS_RETRY_COUNT = 0;
 
       dataStream.onMessage(function(message) {
           var msg = JSON.parse(message.data);
+          console.log("Got proxiedsites msg", msg);
 
           if (!$rootScope.entries) {
-            // initialize proxied site entries
+            console.log("Initializing proxied sites entries", msg.Additions);
             $rootScope.entries = msg.Additions;
             $rootScope.originalList = msg.Additions;
           } else {
-            var entries = $rootScope.entries;
-            entries.push(msg.Additions);
+            var entries = $rootScope.entries.slice(0);
+            if (msg.Additions) {
+              entries = _.union(entries, msg.Additions);
+            }
+            if (msg.Deletions) {
+              entries = _.difference(entries, msg.Deletions)
+            }
+            entries = _.compact(entries);
+            entries.sort();
 
-            $rootScope.entries = entries;
-            $rootScope.originalList = entries;
+            console.log("About to set entries", entries);
+            $rootScope.$apply(function() {
+              console.log("Setting entries", entries);
+              $rootScope.entries = entries;
+              $rootScope.originalList = entries;  
+            })
           }
-          collection.push(msg);
       });
 
       dataStream.onOpen(function(msg) {
@@ -121,7 +131,6 @@ var app = angular.module('app', [
       });
 
       var methods = {
-          collection: collection,
           update: function() {
               dataStream.send(JSON.stringify($rootScope.updates));
           },
@@ -185,11 +194,7 @@ var app = angular.module('app', [
     };
 
     $rootScope.openExternal = function(url) {
-      if ($rootScope.mockBackend) {
-        return $window.open(url);
-      } else {
-        return $rootScope.interaction(INTERACTION.url, {url: url});
-      }
+      return $window.open(url);
     };
 
     $rootScope.resetContactForm = function (scope) {
