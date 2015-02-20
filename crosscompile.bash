@@ -1,5 +1,7 @@
 #!/bin/bash
 
+./genassets.bash
+
 # The VERSION is set to the tag for the current commit (if it exists) otherwise
 # just the commit id.
 VERSION="`git describe --abbrev=0 --tags --exact-match || git rev-parse --short HEAD`"
