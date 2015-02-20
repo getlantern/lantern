@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"path"
 	"path/filepath"
 
 	"github.com/getlantern/golog"
 	"github.com/getlantern/tarfs"
-	"github.com/gorilla/mux"
 	"github.com/skratchdot/open-golang/open"
 )
 
@@ -20,11 +20,17 @@ var (
 	log = golog.LoggerFor("ui")
 
 	l      net.Listener
-	r      *mux.Router
 	fs     http.FileSystem
 	server *http.Server
 	uiaddr string
+
+	r = http.NewServeMux()
 )
+
+func Handle(p string, handler http.Handler) string {
+	r.Handle(p, handler)
+	return path.Join(uiaddr, p)
+}
 
 func Start(addr string) error {
 	var err error
@@ -43,8 +49,7 @@ func Start(addr string) error {
 		return fmt.Errorf("Unable to open tarfs filesystem: %v", err)
 	}
 
-	r = mux.NewRouter()
-	r.PathPrefix("/").Handler(http.FileServer(fs))
+	r.Handle("/", http.FileServer(fs))
 
 	server = &http.Server{
 		Handler: r,

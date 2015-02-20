@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/getlantern/fronted"
-	"github.com/getlantern/proxiedsites"
 )
 
 var (
@@ -18,7 +17,6 @@ type ClientConfig struct {
 	DumpHeaders    bool // whether or not to dump headers of requests and responses
 	FrontedServers []*FrontedServerInfo
 	ChainedServers map[string]*ChainedServerInfo
-	ProxiedSites   *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
 	MasqueradeSets map[string][]*fronted.Masquerade
 }
 

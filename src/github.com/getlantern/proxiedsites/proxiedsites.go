@@ -1,7 +1,7 @@
-// package proxiedsites is a module used to manage the list of sites
-// being proxied by Lantern.
-// when the list is modified using the Lantern UI, it propagates
-// to the default YAML and PAC file configurations
+// proxiedsites manages a list of proxied sites, including a default set of
+// sites (cloud) and user-applied customizations to that list. It provides an
+// implementation of the http.Handler interface that serves up a PAC file based
+// on the currently active proxied sites (cloud + additions - deletions).
 package proxiedsites
 
 import (
@@ -21,6 +21,9 @@ var (
 	log = golog.LoggerFor("proxiedsites")
 
 	parsedPacTmpl *template.Template
+	cs            *configsets
+	pacFile       string
+	cfgMutex      sync.RWMutex
 )
 
 func init() {
@@ -38,13 +41,31 @@ type Delta struct {
 	Deletions []string `json:"Deletions, omitempty"`
 }
 
+func (d *Delta) Merge(n *Delta) {
+	oadd := toSet(d.Additions)
+	odel := toSet(d.Deletions)
+	nadd := toSet(n.Additions)
+	ndel := toSet(n.Deletions)
+
+	// First remove new deletions from old adds and vice versa
+	fadd := set.Difference(oadd, ndel)
+	fdel := set.Difference(odel, nadd)
+
+	// Now add new adds and deletions
+	fadd = set.Union(fadd, nadd)
+	fdel = set.Union(fdel, ndel)
+
+	d.Additions = toStrings(fadd)
+	d.Deletions = toStrings(fdel)
+}
+
 // Config is the whole configuration for a ProxiedSites.
 type Config struct {
 	// User customizations
-	Delta
+	*Delta
 
 	// Global list of white-listed sites
-	Cloud []string `json:"-"`
+	Cloud []string
 }
 
 // toCS converts this Config into a configsets
@@ -59,7 +80,7 @@ func (cfg *Config) toCS() *configsets {
 }
 
 // toSet converts a slice of strings into a set
-func toSet(s []string) *set.SetNonTS {
+func toSet(s []string) set.Interface {
 	if s == nil {
 		return set.NewNonTS()
 	}
@@ -70,25 +91,31 @@ func toSet(s []string) *set.SetNonTS {
 	return set.NewNonTS(is...)
 }
 
+// toStrings converts a set into a slice of strings
+func toStrings(s set.Interface) []string {
+	sl := s.List()
+	l := make([]string, len(sl))
+	for i, s := range sl {
+		l[i] = s.(string)
+	}
+	sort.Strings(l)
+	return l
+}
+
 // configsets is a version of a Config that uses sets instead of slices
 type configsets struct {
-	cloud  *set.SetNonTS
-	add    *set.SetNonTS
-	del    *set.SetNonTS
-	active []string
+	cloud      set.Interface
+	add        set.Interface
+	del        set.Interface
+	active     set.Interface
+	activeList []string
 }
 
 // calculateActive calculates the active sites for the given configsets and
 // stores them in the active property.
 func (cs *configsets) calculateActive() {
-	a := set.Difference(set.Union(cs.cloud, cs.add), cs.del)
-	as := a.List()
-	r := make([]string, len(as))
-	for i, s := range as {
-		r[i] = s.(string)
-	}
-	sort.Strings(r)
-	cs.active = r
+	cs.active = set.Difference(set.Union(cs.cloud, cs.add), cs.del)
+	cs.activeList = toStrings(cs.active)
 }
 
 // equals checks whether this configsets is identical to some other configsets
@@ -98,42 +125,57 @@ func (cs *configsets) equals(other *configsets) bool {
 		cs.del.IsEqual(other.del)
 }
 
-// ProxiedSites manages a list of proxied sites, including a default set of
-// sites (cloud) and user-applied customizations to that list. It implements the
-// http.Handler interface in order to serve up a PAC file based on the currently
-// active proxied sites (cloud + additions - deletions).
-type ProxiedSites struct {
-	cs       *configsets
-	pacFile  string
-	cfgMutex sync.RWMutex
-}
-
-// Configure applies the given configuration.
-func (ps *ProxiedSites) Configure(cfg *Config) {
+// Configure applies the given configuration. If there were changes, a Delta is
+// returned that includes the additions and deletions from the active list. If
+// there were no changes, or the changes couldn't be applied, this method
+// returns a nil Delta.
+func Configure(cfg *Config) *Delta {
 	newCS := cfg.toCS()
-	if ps.cs != nil && ps.cs.equals(newCS) {
+	if cs != nil && cs.equals(newCS) {
 		log.Debug("Configuration unchanged")
-		return
+		return nil
 	}
 
-	pacFile, err := generatePACFile(newCS.active)
+	newPacFile, err := generatePACFile(newCS.activeList)
 	if err != nil {
 		log.Errorf("Error generating pac file, leaving configuration unchanged: %v", err)
-		return
+		return nil
 	}
 
-	ps.cs = newCS
-	ps.pacFile = pacFile
+	var delta *Delta
+	if cs == nil {
+		delta = &Delta{
+			Additions: newCS.activeList,
+		}
+	} else {
+		delta = &Delta{
+			Additions: toStrings(set.Difference(newCS.active, cs.active)),
+			Deletions: toStrings(set.Difference(cs.active, newCS.active)),
+		}
+	}
+	cs = newCS
+	pacFile = newPacFile
 	log.Debug("Applied updated configuration")
+	return delta
 }
 
-// ServeHTTP implements the http.Handler interface and serves up the PAC file.
-func (ps *ProxiedSites) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+// ActiveDelta returns the active sites as a Delta of additions.
+func ActiveDelta() *Delta {
+	cfgMutex.RLock()
+	d := &Delta{
+		Additions: cs.activeList,
+	}
+	cfgMutex.RUnlock()
+	return d
+}
+
+// ServePAC serves up the PAC file and can be used as an http.HandlerFunc
+func ServePAC(resp http.ResponseWriter, req *http.Request) {
 	resp.Header().Set("Content-Type", "application/x-ns-proxy-autoconfig")
 	resp.WriteHeader(http.StatusOK)
-	ps.cfgMutex.RLock()
-	resp.Write([]byte(ps.pacFile))
-	ps.cfgMutex.RUnlock()
+	cfgMutex.RLock()
+	resp.Write([]byte(pacFile))
+	cfgMutex.RUnlock()
 }
 
 // generatePACFile generates a PAC File from the given active sites.
@@ -172,40 +214,40 @@ func generatePACFile(activeSites []string) (string, error) {
 // // Update modifies an existing ProxiedSites instance
 // // to include new addition and deletion deltas sent from
 // // the client
-// func (ps *ProxiedSites) Update(cfg *Config) {
+// func Update(cfg *Config) {
 
 // 	for i := range cfg.Additions {
 // 		log.Debugf("Adding site %s", cfg.Additions[i])
-// 		ps.addSet.Add(cfg.Additions[i])
+// 		addSet.Add(cfg.Additions[i])
 // 		// remove any new sites from our deletions list
 // 		// if they were previously added there
-// 		ps.delSet.Remove(cfg.Additions[i])
+// 		delSet.Remove(cfg.Additions[i])
 // 	}
 
 // 	for i := range cfg.Deletions {
 
-// 		if ps.addSet.Has(cfg.Deletions[i]) {
+// 		if addSet.Has(cfg.Deletions[i]) {
 // 			// if a new deletion was previously on our
 // 			// additionss list, remove it here
-// 			ps.addSet.Remove(cfg.Deletions[i])
+// 			addSet.Remove(cfg.Deletions[i])
 // 		}
-// 		if ps.cloudSet.Has(cfg.Deletions[i]) {
+// 		if cloudSet.Has(cfg.Deletions[i]) {
 // 			// add to the delete list only if it's
 // 			// already in the global list
-// 			ps.delSet.Add(cfg.Deletions[i])
+// 			delSet.Add(cfg.Deletions[i])
 // 		}
 // 	}
 
-// 	ps.cfg.Deletions = set.StringSlice(ps.delSet)
-// 	ps.cfg.Additions = set.StringSlice(set.Difference(ps.addSet, ps.cloudSet))
+// 	cfg.Deletions = set.StringSlice(delSet)
+// 	cfg.Additions = set.StringSlice(set.Difference(addSet, cloudSet))
 
-// 	ps.entries = set.StringSlice(set.Difference(set.Union(ps.cloudSet, ps.addSet),
-// 		ps.delSet))
-// 	go ps.updatePacFile()
+// 	entries = set.StringSlice(set.Difference(set.Union(cloudSet, addSet),
+// 		delSet))
+// 	go updatePacFile()
 // }
 
-// func (ps *ProxiedSites) GetConfig() *Config {
-// 	return ps.cfg
+// func GetConfig() *Config {
+// 	return cfg
 // }
 
 // func GetPacFile() string {
@@ -216,7 +258,7 @@ func generatePACFile(activeSites []string) (string, error) {
 // 	PacFilePath = pacFile
 // }
 
-// func (ps *ProxiedSites) updatePacFile() (err error) {
+// func updatePacFile() (err error) {
 
 // 	pacFile := &PacFile{}
 
@@ -238,7 +280,7 @@ func generatePACFile(activeSites []string) (string, error) {
 // 	defer pacFile.l.Unlock()
 
 // 	data := make(map[string]interface{}, 0)
-// 	data["Entries"] = ps.entries
+// 	data["Entries"] = entries
 // 	err = pacFile.template.Execute(pacFile.file, data)
 // 	if err != nil {
 // 		log.Errorf("Error generating updated PAC file: %s", err)
@@ -247,8 +289,8 @@ func generatePACFile(activeSites []string) (string, error) {
 // 	return err
 // }
 
-// func (ps *ProxiedSites) GetEntries() []string {
-// 	return ps.entries
+// func GetEntries() []string {
+// 	return entries
 // }
 
 // func ParsePacFile() *ProxiedSites {
@@ -270,7 +312,7 @@ func generatePACFile(activeSites []string) (string, error) {
 // 		log.Debugf("PAC entries %+v", value.String())
 // 		if value.String() == "" {
 // 			// no pac entries; return empty array
-// 			ps.entries = []string{}
+// 			entries = []string{}
 // 			return ps
 // 		}
 
@@ -278,8 +320,8 @@ func generatePACFile(activeSites []string) (string, error) {
 // 		// and convert the otto value into a string array
 // 		re := regexp.MustCompile("(\\\\.)")
 // 		list := re.ReplaceAllString(value.String(), ".")
-// 		ps.entries = strings.Split(list, ",")
-// 		log.Debugf("List of proxied sites... %+v", ps.entries)
+// 		entries = strings.Split(list, ",")
+// 		log.Debugf("List of proxied sites... %+v", entries)
 // 	}
 // 	return ps
 // }
