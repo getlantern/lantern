@@ -4,28 +4,41 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 
 	"github.com/getlantern/golog"
 	"github.com/getlantern/tarfs"
 	"github.com/skratchdot/open-golang/open"
 )
 
-const ()
+const (
+	LocalUIDir = "../../../ui/app"
+)
 
 var (
 	log = golog.LoggerFor("ui")
 
-	localResourcesPath = filepath.Join(os.Getenv("GOPATH"), "src/github.com/getlantern/ui/app")
 	l                  net.Listener
 	fs                 http.FileSystem
 	server             *http.Server
 	uiaddr             string
+	localResourcesPath string
 
 	r = http.NewServeMux()
 )
+
+// Assume the default directory containing UI assets is
+// a sibling directory to this file's directory.
+func init() {
+	_, curDir, _, ok := runtime.Caller(1)
+	if !ok {
+		log.Errorf("Unable to determine caller directory")
+		return
+	}
+	localResourcesPath = filepath.Join(curDir, LocalUIDir)
+}
 
 func Handle(p string, handler http.Handler) string {
 	r.Handle(p, handler)
