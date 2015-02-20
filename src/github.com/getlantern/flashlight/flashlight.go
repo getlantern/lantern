@@ -15,6 +15,7 @@ import (
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
+	"github.com/getlantern/i18n"
 	"github.com/getlantern/profiling"
 	"github.com/getlantern/systray"
 	"github.com/getlantern/wfilter"
@@ -57,6 +58,7 @@ func main() {
 }
 
 func doMain() {
+	i18nInit()
 	logfile := configureLogging()
 	defer logfile.Close()
 	configureSystemTray()
@@ -86,6 +88,16 @@ func doMain() {
 		runClientProxy(cfg)
 	} else {
 		runServerProxy(cfg)
+	}
+}
+
+func i18nInit() {
+	i18n.SetMessagesFunc(func(filename string) ([]byte, error) {
+		return ui.Translations.Get(filename)
+	})
+	err := i18n.UseOSLocale()
+	if err != nil {
+		panic(err)
 	}
 }
 
@@ -231,9 +243,16 @@ func configureSystemTray() {
 	}
 	systray.SetIcon(icon)
 	systray.SetTooltip("Lantern")
-	quit := systray.AddMenuItem("Quit", "Quit Lantern")
+	show := systray.AddMenuItem(i18n.T("TRAY_SHOW_LANTERN"), i18n.T("SHOW"))
+	quit := systray.AddMenuItem(i18n.T("TRAY_QUIT"), i18n.T("QUIT"))
 	go func() {
-		<-quit.ClickedCh
-		os.Exit(0)
+		for {
+			select {
+			case <-show.ClickedCh:
+				ui.Show()
+			case <-quit.ClickedCh:
+				os.Exit(0)
+			}
+		}
 	}()
 }

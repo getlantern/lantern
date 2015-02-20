@@ -91,6 +91,26 @@ func New(tarData []byte, local string) (*FileSystem, error) {
 	return fs, nil
 }
 
+// SubDir returns a FileSystem corresponding to the given directory in the
+// original FileSystem.
+func (fs *FileSystem) SubDir(dir string) *FileSystem {
+	newLocal := ""
+	if fs.local != "" {
+		newLocal = filepath.Join(fs.local, dir)
+	}
+	newFiles := make(map[string][]byte)
+	for p, b := range fs.files {
+		if filepath.HasPrefix(p, dir) {
+			k := p[len(dir)+1:]
+			newFiles[k] = b
+		}
+	}
+	return &FileSystem{
+		files: newFiles,
+		local: newLocal,
+	}
+}
+
 // Get returns the bytes for the resource at the given path. If this FileSystem
 // was configured with a local directory, and that local directory contains
 // a file at the given path, Get will return the value from the local file.

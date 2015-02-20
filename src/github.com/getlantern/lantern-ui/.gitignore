@@ -12,3 +12,4 @@ build.xml
 .settings
 logs/*
 !.gitkeep
+build

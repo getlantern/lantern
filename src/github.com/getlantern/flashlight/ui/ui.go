@@ -14,30 +14,43 @@ import (
 )
 
 const (
-	LocalUIDir = "../../../ui/app"
+	LocalUIDir = "../../../lantern-ui/app"
 )
 
 var (
 	log = golog.LoggerFor("ui")
 
-	l                  net.Listener
-	fs                 http.FileSystem
-	server             *http.Server
-	uiaddr             string
-	localResourcesPath string
+	l            net.Listener
+	fs           *tarfs.FileSystem
+	Translations *tarfs.FileSystem
+	server       *http.Server
+	uiaddr       string
 
 	r = http.NewServeMux()
 )
 
-// Assume the default directory containing UI assets is
-// a sibling directory to this file's directory.
 func init() {
+	// Assume the default directory containing UI assets is
+	// a sibling directory to this file's directory.
+	localResourcesPath := ""
 	_, curDir, _, ok := runtime.Caller(1)
 	if !ok {
 		log.Errorf("Unable to determine caller directory")
-		return
+	} else {
+		localResourcesPath = filepath.Join(curDir, LocalUIDir)
+		absLocalResourcesPath, err := filepath.Abs(localResourcesPath)
+		if err != nil {
+			absLocalResourcesPath = localResourcesPath
+		}
+		log.Debugf("Creating tarfs filesystem that prefers local resources at %v", absLocalResourcesPath)
 	}
-	localResourcesPath = filepath.Join(curDir, LocalUIDir)
+
+	var err error
+	fs, err = tarfs.New(Resources, localResourcesPath)
+	if err != nil {
+		panic(fmt.Errorf("Unable to open tarfs filesystem: %v", err))
+	}
+	Translations = fs.SubDir("locale")
 }
 
 func Handle(p string, handler http.Handler) string {
@@ -50,16 +63,6 @@ func Start(addr string) error {
 	l, err = net.Listen("tcp", addr)
 	if err != nil {
 		return fmt.Errorf("Unable to listen at %v: %v", addr, l)
-	}
-
-	absLocalResourcesPath, err := filepath.Abs(localResourcesPath)
-	if err != nil {
-		absLocalResourcesPath = localResourcesPath
-	}
-	log.Debugf("Creating tarfs filesystem that prefers local resources at %v", absLocalResourcesPath)
-	fs, err = tarfs.New(Resources, localResourcesPath)
-	if err != nil {
-		return fmt.Errorf("Unable to open tarfs filesystem: %v", err)
 	}
 
 	r.Handle("/", http.FileServer(fs))

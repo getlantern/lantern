@@ -75,6 +75,16 @@ config file (`config/compass.rb`):
     >>> Compass is watching for changes. Press Ctrl-C to Stop.
 
 
+## Build
+
+Lantern UI uses [Gulp](http://gulpjs.com/) to build assets
+
+* `npm install --global gulp`
+* `npm install`
+* `gulp build`
+
+Embed 'dist' folder into production.
+
 ## i18n
 
 Translated strings are fetched from json files in the "app/locale" directory
