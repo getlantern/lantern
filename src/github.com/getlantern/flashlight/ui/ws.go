@@ -111,6 +111,7 @@ func (c *UIChannel) write() {
 		c.m.Lock()
 		for _, conn := range c.conns {
 			conn.ws.Close()
+			delete(c.conns, conn.id)
 		}
 		c.m.Unlock()
 	}()
