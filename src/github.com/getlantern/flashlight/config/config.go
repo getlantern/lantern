@@ -296,21 +296,28 @@ func (cfg Config) cloudPollSleepTime() time.Duration {
 	return time.Duration((CloudConfigPollInterval.Nanoseconds() / 2) + rand.Int63n(CloudConfigPollInterval.Nanoseconds()))
 }
 
-func (cfg Config) fetchCloudConfig() ([]byte, error) {
+func (cfg Config) fetchCloudConfig() (bytes []byte, err error) {
 	log.Debugf("Fetching cloud config from: %s", cfg.CloudConfig)
-	// Try it unproxied first
-	bytes, err := cfg.doFetchCloudConfig("")
-	if err != nil && cfg.IsDownstream() {
-		// If that failed, try it proxied
-		bytes, err = cfg.doFetchCloudConfig(cfg.Addr)
+
+	if cfg.IsDownstream() {
+		// Clients must always proxy the request
+		if cfg.Addr == "" {
+			err = fmt.Errorf("No proxyAddr")
+		} else {
+			bytes, err = cfg.doFetchCloudConfig(cfg.Addr)
+		}
+	} else {
+		bytes, err = cfg.doFetchCloudConfig("")
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Unable to read yaml from %s: %s", cfg.CloudConfig, err)
+		bytes = nil
+		err = fmt.Errorf("Unable to read yaml from %s: %s", cfg.CloudConfig, err)
 	}
-	return bytes, err
+	return
 }
 
 func (cfg Config) doFetchCloudConfig(proxyAddr string) ([]byte, error) {
+	log.Tracef("doFetchCloudConfig via '%s'", proxyAddr)
 	client, err := util.HTTPClient(cfg.CloudConfigCA, proxyAddr)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to initialize HTTP client: %s", err)

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"path"
 	"path/filepath"
+	"runtime"
 
 	"github.com/getlantern/golog"
 	"github.com/getlantern/tarfs"
@@ -13,7 +14,7 @@ import (
 )
 
 const (
-	localResourcesPath = "../lantern-ui/app"
+	LocalUIDir = "../../../lantern-ui/app"
 )
 
 var (
@@ -29,11 +30,22 @@ var (
 )
 
 func init() {
-	absLocalResourcesPath, err := filepath.Abs(localResourcesPath)
-	if err != nil {
-		absLocalResourcesPath = localResourcesPath
+	// Assume the default directory containing UI assets is
+	// a sibling directory to this file's directory.
+	localResourcesPath := ""
+	_, curDir, _, ok := runtime.Caller(1)
+	if !ok {
+		log.Errorf("Unable to determine caller directory")
+	} else {
+		localResourcesPath = filepath.Join(curDir, LocalUIDir)
+		absLocalResourcesPath, err := filepath.Abs(localResourcesPath)
+		if err != nil {
+			absLocalResourcesPath = localResourcesPath
+		}
+		log.Debugf("Creating tarfs filesystem that prefers local resources at %v", absLocalResourcesPath)
 	}
-	log.Debugf("Creating tarfs filesystem that prefers local resources at %v", absLocalResourcesPath)
+
+	var err error
 	fs, err = tarfs.New(Resources, localResourcesPath)
 	if err != nil {
 		panic(fmt.Errorf("Unable to open tarfs filesystem: %v", err))

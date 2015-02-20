@@ -94,11 +94,7 @@ func toSet(s []string) set.Interface {
 
 // toStrings converts a set into a slice of strings
 func toStrings(s set.Interface) []string {
-	sl := s.List()
-	l := make([]string, len(sl))
-	for i, s := range sl {
-		l[i] = s.(string)
-	}
+	l := set.StringSlice(s)
 	sort.Strings(l)
 	return l
 }
