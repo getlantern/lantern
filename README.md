@@ -1,7 +1,7 @@
 flashlight-build [![Travis CI Status](https://travis-ci.org/getlantern/flashlight-build.svg?branch=devel)](https://travis-ci.org/getlantern/flashlight-build)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/flashlight-build/badge.png?branch=devel)](https://coveralls.io/r/getlantern/flashlight-build)
 ==========
 
-flashlight-build is a [gost](https://github.com/getlantern/gost) project that provides repeatable builds and consolidated pull requests for flashlight. This means that **you should always use ```gost get``` instead of ```go get```.**
+flashlight-build is a [gost](https://github.com/getlantern/gost) project that provides repeatable builds and consolidated pull requests for flashlight. **It's very important to read the gost documentation thoroughly in order to build this project.**
 
 ### Building Flashlight
 
@@ -17,9 +17,12 @@ for more discussion.
 
 To deal with that, you need to use a Go installed using
 [gonative](https://github.com/getlantern/gonative). Ultimately, you can put this
-go wherever you like. Ox keeps his at ~/go_native.
+go wherever you like, such as at ~/go_native.
+
+To set this all up, you should run the following:
 
 ```bash
+go get github.com/getlantern/gost
 go get github.com/mitchellh/gox
 go get github.com/getlantern/gonative
 cd ~
