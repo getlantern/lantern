@@ -1,5 +1,3 @@
-<div id="vis-block" ng-hide="!show || model.modal == 'none'"></div>
-
 <!--
   Only show yourself on the map if you've either managed to do a geoip lookup or have a stored geolocation.
 -->
@@ -11,8 +9,8 @@
     <path id="self" ng-show="model.location.resolved" self class="{{ model.settings.mode }}"
           ng-attr-d="{{ path({type: 'Point', coordinates: [model.location.lon, model.location.lat]}, 2) }}"
           lat="{{model.location.lat}}"
-          lon="{{model.location.lon}}"
-          tooltip-html-unsafe="<div class=vis>
+          lon="{{model.location.lon}}"/>
+          <!--tooltip-html-unsafe="<div class=vis>
             <div class='{{model.settings.mode}} {{model.connectivity.type}}'>
               <img class=picture src='{{model.profile.picture || DEFAULT_AVATAR_URL}}'>
               <div class=headers>
@@ -35,7 +33,7 @@
                 </div>
               </div>
             </div>
-          </div>" tooltip-placement="right" />
+        </div>" tooltip-placement="right" />-->
     </g>
     <div class="control-zoom noselect">
         <a id="zoomIn" ng-click="adjustZoom(1.25)" class="leaflet-control-zoom-in" href="#" title="Zoom in">+</a>
