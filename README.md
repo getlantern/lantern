@@ -87,12 +87,13 @@ Lantern on OS X is packaged as the `Lantern.app` app bundle, distributed inside
 of a drag-and-drop dmg installer. The app bundle and dmg can be created using
 `./package_osx.bash`.
 
-This script requires the node module `appdmg`. Assuming you have homebrew
-installed, you can get it with ...
+This script requires that you have [nodejs](http://nodejs.org/) installed.
+
+The script takes a single parameter, which is the version string to display in
+the installer background, for example:
 
 ```bash
-brew install node
-npm install -g appdmg
+./package_osx.bash 2.0.0_beta1
 ```
 
 `./package_osx.bash` signs the Lantern.app using the BNS code signing

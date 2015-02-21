@@ -13,6 +13,9 @@ fi
 # Install svgexport tool (requires nodejs)
 which svgexport || npm install svgexport -g
 
+# Install appdmg tool (requires nodejs)
+which appdmg || npm install -g appdmg
+
 binary="lantern_darwin_amd64"
 dmg="Lantern.dmg"
 
