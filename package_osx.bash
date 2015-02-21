@@ -10,10 +10,10 @@ then
     die "$0: Version required"
 fi
 
-# Install svgexport tool (requires nodejs)
-which svgexport || npm install svgexport -g
+echo "Installing svgexport tool if necessary (requires nodejs)"
+which svgexport || npm install -g svgexport
 
-# Install appdmg tool (requires nodejs)
+echo "Installing appdmg tool if necessary (requires nodejs)"
 which appdmg || npm install -g appdmg
 
 binary="lantern_darwin_amd64"
