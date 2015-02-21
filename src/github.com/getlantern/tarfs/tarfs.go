@@ -10,6 +10,7 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -118,27 +119,28 @@ func (fs *FileSystem) SubDir(dir string) *FileSystem {
 //
 // Note - the implementation of local reads is not optimized and is primarily
 // intended for development-time usage.
-func (fs *FileSystem) Get(path string) ([]byte, error) {
-	path = filepath.Clean(path)
+func (fs *FileSystem) Get(p string) ([]byte, error) {
+	p = path.Clean(p)
+	log.Tracef("Getting %v", p)
 	if fs.local != "" {
-		b, err := ioutil.ReadFile(filepath.Join(fs.local, path))
+		b, err := ioutil.ReadFile(filepath.Join(fs.local, p))
 		if err != nil {
 			if !os.IsNotExist(err) {
-				log.Debugf("Error accessing resource %v on filesystem: %v", path, err)
+				log.Debugf("Error accessing resource %v on filesystem: %v", p, err)
 				return nil, err
 			}
-			log.Tracef("Resource %v does not exist on filesystem, using embedded resource instead", path)
+			log.Tracef("Resource %v does not exist on filesystem, using embedded resource instead", p)
 		} else {
-			log.Tracef("Using local resource %v", path)
+			log.Tracef("Using local resource %v", p)
 			return b, nil
 		}
 	}
-	b, found := fs.files[path]
+	b, found := fs.files[p]
 	if !found {
-		err := fmt.Errorf("%v not found", path)
+		err := fmt.Errorf("%v not found", p)
 		return nil, err
 	}
-	log.Tracef("Using embedded resource %v", path)
+	log.Tracef("Using embedded resource %v", p)
 	return b, nil
 }
 
@@ -204,7 +206,7 @@ type FakeFile struct {
 }
 
 func (f *FakeFile) Name() string {
-	_, name := filepath.Split(f.Path)
+	_, name := path.Split(f.Path)
 	return name
 }
 
