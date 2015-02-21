@@ -25,5 +25,5 @@ echo " " >> $dest
 tarfs -pkg ui src/github.com/getlantern/lantern-ui/dist >> $dest 
 
 echo "Now embedding lantern.ico to windows executable"
-go get github.com/akavel/rsrc
+go install github.com/akavel/rsrc
 rsrc -ico lantern.ico -o src/github.com/getlantern/flashlight/lantern.syso
