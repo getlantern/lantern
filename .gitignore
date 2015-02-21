@@ -19,4 +19,5 @@ Lantern.app
 lantern.dmg
 src/github.com/getlantern/flashlight/ui/resources.go
 src/github.com/getlantern/flashlight/lantern.syso
-dmgbackground_*.png
+dmgbackground.png
+dmgbackground_versioned.svg
