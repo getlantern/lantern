@@ -9,8 +9,8 @@ import (
 	"runtime"
 
 	"github.com/getlantern/golog"
+	"github.com/getlantern/open-golang/open"
 	"github.com/getlantern/tarfs"
-	"github.com/skratchdot/open-golang/open"
 )
 
 const (
