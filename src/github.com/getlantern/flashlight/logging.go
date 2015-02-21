@@ -11,6 +11,7 @@ import (
 	"github.com/dogenzaka/rotator"
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/golog"
+	"github.com/getlantern/jibber_jabber"
 	"github.com/getlantern/wfilter"
 	"github.com/segmentio/go-loggly"
 )
@@ -19,6 +20,7 @@ var (
 	LogTimestampFormat = "Jan 02 15:04:05.000"
 	log                = golog.LoggerFor("flashlight")
 	logglyToken        string
+	versionToLoggly    = fmt.Sprintf("%v (%v)", version, buildDate)
 )
 
 func configureLogging() *rotator.SizeRotator {
@@ -63,15 +65,17 @@ func (w logglyErrorWriter) Write(b []byte) (int, error) {
 }
 
 func writeToLoggly(l *loggly.Client, level string, msg string) (int, error) {
+	lang, _ := jibber_jabber.DetectLanguage()
+	country, _ := jibber_jabber.DetectTerritory()
 	extra := map[string]string{
 		"logLevel":  level,
 		"osName":    runtime.GOOS,
 		"osArch":    runtime.GOARCH,
 		"osVersion": "",
-		"language":  "",
-		"country":   "",
+		"language":  lang,
+		"country":   country,
 		"timeZone":  "",
-		"version":   version,
+		"version":   versionToLoggly,
 	}
 	m := loggly.Message{
 		"extra":   extra,
@@ -96,7 +100,7 @@ func (t *nonStopWriter) Write(p []byte) (n int, err error) {
 }
 
 // NonStopWriter creates a writer that duplicates its writes to all the
-// provided writers, similar to the Unix tee(1) command.
+// provided writers, even if errors encountered while writting.
 func NonStopWriter(writers ...io.Writer) io.Writer {
 	w := make([]io.Writer, len(writers))
 	copy(w, writers)
