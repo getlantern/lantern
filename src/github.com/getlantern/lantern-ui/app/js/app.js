@@ -3,6 +3,7 @@
 var app = angular.module('app', [
   'app.constants',
   'ngWebSocket',
+  'LocalStorageModule',
   'app.helpers',
   'pascalprecht.translate',
   'app.filters',

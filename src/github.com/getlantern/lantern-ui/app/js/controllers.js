@@ -62,9 +62,16 @@ app.controller('SettingsCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
 }]);
 
 app.controller('WelcomeCtrl', ['$rootScope', '$scope',
-               function($rootScope, $scope) {
+               'localStorageService',
+               function($rootScope, $scope, localStorageService) {
 
     $scope.alreadyWelcomed = false;
+
+    if (!localStorageService.get('lanternWelcomeKey')) {
+        localStorageService.set('lanternWelcomeKey', true);
+    } else {
+        $scope.alreadyWelcomed = true;
+    }
 
     $scope.handleContinue  = function() {
         $scope.alreadyWelcomed = true;
