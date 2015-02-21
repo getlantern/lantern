@@ -115,18 +115,6 @@ func displayVersion() {
 func configureStats(cfg *config.Config, failOnError bool) {
 	var err error
 
-	// Configuring statserver
-	err = statserver.Configure(&statserver.Config{
-		ProxyAddr:     cfg.Addr,
-		CloudConfigCA: cfg.CloudConfigCA,
-	})
-	if err != nil {
-		log.Error(err)
-		if failOnError {
-			os.Exit(ConfigError)
-		}
-	}
-
 	// Configuring statreporter
 	err = statreporter.Configure(cfg.Stats)
 	if err != nil {
