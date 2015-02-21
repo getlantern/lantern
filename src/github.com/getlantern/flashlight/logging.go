@@ -21,7 +21,16 @@ var (
 	log                = golog.LoggerFor("flashlight")
 	logglyToken        string
 	versionToLoggly    = fmt.Sprintf("%v (%v)", version, buildDate)
+	lang               string
+	country            string
+	tz                 string
 )
+
+func init() {
+	lang, _ = jibber_jabber.DetectLanguage()
+	country, _ = jibber_jabber.DetectTerritory()
+	tz = time.Local.String()
+}
 
 func configureLogging() *rotator.SizeRotator {
 	logdir := appdir.Logs("Lantern")
@@ -65,8 +74,6 @@ func (w logglyErrorWriter) Write(b []byte) (int, error) {
 }
 
 func writeToLoggly(l *loggly.Client, level string, msg string) (int, error) {
-	lang, _ := jibber_jabber.DetectLanguage()
-	country, _ := jibber_jabber.DetectTerritory()
 	extra := map[string]string{
 		"logLevel":  level,
 		"osName":    runtime.GOOS,
@@ -74,7 +81,7 @@ func writeToLoggly(l *loggly.Client, level string, msg string) (int, error) {
 		"osVersion": "",
 		"language":  lang,
 		"country":   country,
-		"timeZone":  "",
+		"timeZone":  tz,
 		"version":   versionToLoggly,
 	}
 	m := loggly.Message{
