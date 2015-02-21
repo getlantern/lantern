@@ -3535,5 +3535,5 @@ AAAAIP4BAAAAAADxDwAAAAAAWf6fAAMASMdws/FQX4oAAAAASUVORK5CYII=" transform="matrix(
 			260.712,293.913 260.712,311.339 		"/>
 	</g>
 </g>
-<text transform="matrix(1 0 0 1 432.001 158.4502)" opacity="0.5" fill="#FFFFFF" enable-background="new    " font-family="'ProximaNova-Light'" font-size="16.4054">__VERSION__</text>
+<text transform="matrix(1 0 0 1 525 158.4502)" opacity="0.5" fill="#FFFFFF" enable-background="new    " font-family="'ProximaNova-Light'" font-size="16.4054" text-anchor="end">__VERSION__</text>
 </svg>
