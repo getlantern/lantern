@@ -17,8 +17,8 @@ import (
 
 var (
 	LogTimestampFormat = "Jan 02 15:04:05.000"
-	logglyToken        = "469973d5-6eaf-445a-be71-cf27141316a1"
 	log                = golog.LoggerFor("flashlight")
+	logglyToken        string
 )
 
 func configureLogging() *rotator.SizeRotator {
