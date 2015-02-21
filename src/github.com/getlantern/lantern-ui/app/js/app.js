@@ -29,7 +29,7 @@ var app = angular.module('app', [
       }
     };
   })
-  .config(function($tooltipProvider, $httpProvider, 
+  .config(function($tooltipProvider, $httpProvider,
                    $resourceProvider, $translateProvider, DEFAULT_LANG) {
 
       $translateProvider.preferredLanguage(DEFAULT_LANG);
@@ -60,7 +60,7 @@ var app = angular.module('app', [
                   return text.split("\n");
               }
 
-              function toUser(array) {                        
+              function toUser(array) {
                   if (array) {
                     return array.join("\n");
                   }
@@ -71,40 +71,28 @@ var app = angular.module('app', [
           }
       };
   })
-  .factory('ProxiedSites', ['$websocket', '$interval', '$window', '$rootScope', function($websocket, $interval, $window, $rootScope) {
-      var dataStream = $websocket('ws://' + document.location.host + '/data');
+  .factory('DataStream', [
+    '$websocket',
+    '$rootScope',
+    '$interval',
+    'Messages',
+    function($websocket, $rootScope, $interval, Messages) {
+
       var WS_RECONNECT_INTERVAL = 5000;
-      var WS_RETRY_COUNT = 0;
+      var WS_RETRY_COUNT        = 0;
 
-      dataStream.onMessage(function(message) {
-          var msg = JSON.parse(message.data);
-          console.log("Got proxiedsites msg", msg);
+      var ds = $websocket('ws://' + document.location.host + '/data');
 
-          if (!$rootScope.entries) {
-            console.log("Initializing proxied sites entries", msg.Additions);
-            $rootScope.entries = msg.Additions;
-            $rootScope.originalList = msg.Additions;
-          } else {
-            var entries = $rootScope.entries.slice(0);
-            if (msg.Additions) {
-              entries = _.union(entries, msg.Additions);
-            }
-            if (msg.Deletions) {
-              entries = _.difference(entries, msg.Deletions)
-            }
-            entries = _.compact(entries);
-            entries.sort();
-
-            console.log("About to set entries", entries);
-            $rootScope.$apply(function() {
-              console.log("Setting entries", entries);
-              $rootScope.entries = entries;
-              $rootScope.originalList = entries;  
-            })
-          }
+      ds.onMessage(function(raw) {
+        var envelope = JSON.parse(raw.data);
+        if (typeof Messages[envelope.Type] != 'undefined') {
+          Messages[envelope.Type].call(this, envelope.Message);
+        } else {
+          console.log('Got unknown message type: ' + envelope.Type);
+        };
       });
 
-      dataStream.onOpen(function(msg) {
+      ds.onOpen(function(msg) {
         $rootScope.wsConnected = true;
         WS_RETRY_COUNT = 0;
         $rootScope.backendIsGone = false;
@@ -112,32 +100,49 @@ var app = angular.module('app', [
         console.log("New websocket instance created " + msg);
       });
 
-      dataStream.onClose(function(msg) {
-          $rootScope.wsConnected = false;
-          // try to reconnect indefinitely
-          // when the websocket closes
-          $interval(function() {
-              console.log("Trying to reconnect to disconnected websocket");
-              dataStream = $websocket('ws://' + document.location.host + '/data');
-              dataStream.onOpen(function(msg) {
-                $window.location.reload();
-              });
-          }, WS_RECONNECT_INTERVAL);
-          console.log("This websocket instance closed " + msg);
+      ds.onClose(function(msg) {
+        $rootScope.wsConnected = false;
+        // try to reconnect indefinitely
+        // when the websocket closes
+        $interval(function() {
+          console.log("Trying to reconnect to disconnected websocket");
+          ds = $websocket('ws://' + document.location.host + '/data');
+          ds.onOpen(function(msg) {
+            $window.location.reload();
+          });
+        }, WS_RECONNECT_INTERVAL);
+        console.log("This websocket instance closed " + msg);
       });
 
-      dataStream.onError(function(msg) {
+      ds.onError(function(msg) {
           console.log("Error on this websocket instance " + msg);
       });
 
       var methods = {
-          update: function() {
-              dataStream.send(JSON.stringify($rootScope.updates));
-          },
-          get: function() {
-              dataStream.send(JSON.stringify({ action: 'get' }));
-          }
+        'send': function(messageType, data) {
+          console.log('request to send.');
+          ds.send(JSON.stringify({'Type': messageType, 'Message': data}))
+        }
       };
+
+      return methods;
+    }
+  ])
+  .factory('ProxiedSites', ['$window', '$rootScope', 'DataStream', function($window, $rootScope, DataStream) {
+
+      var methods = {
+        update: function() {
+          console.log('UPDATE');
+          // dataStream.send(JSON.stringify($rootScope.updates));
+          DataStream.send('ProxiedSites', $rootScope.updates)
+        },
+        get: function() {
+          console.log('GET');
+          // dataStream.send(JSON.stringify({ action: 'get' }));
+          DataStream.send('ProxiedSites', {'action': 'get'});
+        }
+      };
+
       return methods;
   }])
   .run(function ($filter, $log, $rootScope, $timeout, $window, $websocket,

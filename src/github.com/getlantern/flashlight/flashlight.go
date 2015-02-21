@@ -22,6 +22,7 @@ import (
 
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
+	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/proxiedsites"
 	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/statreporter"
@@ -112,7 +113,22 @@ func displayVersion() {
 }
 
 func configureStats(cfg *config.Config, failOnError bool) {
-	err := statreporter.Configure(cfg.Stats)
+	var err error
+
+	// Configuring statserver
+	err = statserver.Configure(&statserver.Config{
+		ProxyAddr:     cfg.Addr,
+		CloudConfigCA: cfg.CloudConfigCA,
+	})
+	if err != nil {
+		log.Error(err)
+		if failOnError {
+			os.Exit(ConfigError)
+		}
+	}
+
+	// Configuring statreporter
+	err = statreporter.Configure(cfg.Stats)
 	if err != nil {
 		log.Error(err)
 		if failOnError {
@@ -148,8 +164,11 @@ func runClientProxy(cfg *config.Config) {
 		ui.Show()
 	}
 
-	// intitial proxied sites configuration
+	// initial proxied sites configuration
 	proxiedsites.Configure(cfg.ProxiedSites)
+
+	// launching geolookup service when in client mode.
+	go geolookup.StartService()
 
 	// Continually poll for config updates and update client accordingly
 	go func() {

@@ -236,7 +236,7 @@ func TestIntegration(t *testing.T) {
 	assert.NotEqual(t, time.Duration(0), actualHandshakeTime, "Should have received a handshakeTime")
 }
 
-func TestDirect(t *testing.T) {
+func TestIntegrationDirect(t *testing.T) {
 	d := integrationDialer(t, nil)
 	defer d.Close()
 
