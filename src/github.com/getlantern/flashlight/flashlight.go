@@ -3,13 +3,13 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"math/rand"
 	"os"
 	"runtime"
 	"time"
 
 	"github.com/getlantern/fronted"
-	"github.com/getlantern/golog"
 	"github.com/getlantern/i18n"
 	"github.com/getlantern/profiling"
 	"github.com/getlantern/systray"

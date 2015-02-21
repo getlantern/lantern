@@ -39,7 +39,7 @@ func configureLogging() *rotator.SizeRotator {
 	file.MaxRotation = 20
 
 	remoteWriter := logglyErrorWriter{loggly.New(logglyToken)}
-	errorOut := timestamped(NonStopWriter(os.Stderr, file, remoteWriter))
+	errorOut := NonStopWriter(timestamped(NonStopWriter(os.Stderr, file)), remoteWriter)
 	debugOut := timestamped(NonStopWriter(os.Stdout, file))
 	golog.SetOutputs(errorOut, debugOut)
 	return file
