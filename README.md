@@ -7,6 +7,10 @@ lantern).
 
 Flashlight requires [Go 1.4.x](http://golang.org/dl/).
 
+You will also need [npm](https://www.npmjs.com/) and gulp.
+
+`npm install -g gulp`
+
 It is convenient to build flashlight for multiple platforms using
 [gox](https://github.com/mitchellh/gox).
 
@@ -19,9 +23,12 @@ To deal with that, you need to use a Go installed using
 [gonative](https://github.com/getlantern/gonative). Ultimately, you can put this
 go wherever you like. Ox keeps his at ~/go_native.
 
+Note - we're using a fork of inconshreveable/gonative because of
+[this problem](https://github.com/inconshreveable/gonative/pull/7).
+
 ```bash
-go get github.com/mitchellh/gox
-go get github.com/inconshreveable/gonative
+go get -u github.com/mitchellh/gox
+go get -u github.com/getlantern/gonative
 cd ~
 gonative build -version="1.4.1" -platforms="darwin_amd64 linux_386 linux_amd64 windows_386"
 mv go go_native
@@ -60,6 +67,8 @@ Note - ./crosscompile.bash omits debug symbols to keep the build smaller.
 Cross-compilation targeting Linux is currently not supported, so Linux releases
 need to be built on Linux.  There are some build prerequisites that you can pick
 up with:
+
+See https://github.com/getlantern/lantern/issues/2235.
 
 `sudo apt-get install libgtk-3-dev libappindicator3-dev`
 

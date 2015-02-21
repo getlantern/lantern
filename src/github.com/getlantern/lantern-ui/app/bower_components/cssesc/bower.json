@@ -1,0 +1,17 @@
+{
+	"name": "cssesc",
+	"version": "0.1.0",
+	"main": "cssesc.js",
+	"ignore": [
+		"bin",
+		"coverage",
+		"man",
+		"src",
+		"tests",
+		".*",
+		"component.json",
+		"Gruntfile.js",
+		"node_modules",
+		"package.json"
+	]
+}

@@ -9,14 +9,18 @@ import (
 	"time"
 
 	"github.com/getlantern/fronted"
+	"github.com/getlantern/golog"
+	"github.com/getlantern/i18n"
 	"github.com/getlantern/profiling"
 	"github.com/getlantern/systray"
 
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
+	"github.com/getlantern/flashlight/proxiedsites"
 	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/statreporter"
 	"github.com/getlantern/flashlight/statserver"
+	"github.com/getlantern/flashlight/ui"
 )
 
 const (
@@ -45,6 +49,7 @@ func main() {
 }
 
 func doMain() {
+	i18nInit()
 	logfile := configureLogging()
 	defer logfile.Close()
 	configureSystemTray()
@@ -74,6 +79,16 @@ func doMain() {
 		runClientProxy(cfg)
 	} else {
 		runServerProxy(cfg)
+	}
+}
+
+func i18nInit() {
+	i18n.SetMessagesFunc(func(filename string) ([]byte, error) {
+		return ui.Translations.Get(filename)
+	})
+	err := i18n.UseOSLocale()
+	if err != nil {
+		panic(err)
 	}
 }
 
@@ -115,10 +130,24 @@ func runClientProxy(cfg *config.Config) {
 	// Configure client initially
 	client.Configure(cfg.Client)
 
+	// Start UI server
+	if cfg.UIAddr != "" {
+		err := ui.Start(cfg.UIAddr)
+		if err != nil {
+			panic(fmt.Errorf("Unable to start UI: %v", err))
+		}
+		ui.Show()
+	}
+
+	// intitial proxied sites configuration
+	proxiedsites.Configure(cfg.ProxiedSites)
+
 	// Continually poll for config updates and update client accordingly
 	go func() {
 		for {
 			cfg := <-configUpdates
+
+			proxiedsites.Configure(cfg.ProxiedSites)
 			configureStats(cfg, false)
 			client.Configure(cfg.Client)
 		}
@@ -176,9 +205,16 @@ func configureSystemTray() {
 	}
 	systray.SetIcon(icon)
 	systray.SetTooltip("Lantern")
-	quit := systray.AddMenuItem("Quit", "Quit Lantern")
+	show := systray.AddMenuItem(i18n.T("TRAY_SHOW_LANTERN"), i18n.T("SHOW"))
+	quit := systray.AddMenuItem(i18n.T("TRAY_QUIT"), i18n.T("QUIT"))
 	go func() {
-		<-quit.ClickedCh
-		os.Exit(0)
+		for {
+			select {
+			case <-show.ClickedCh:
+				ui.Show()
+			case <-quit.ClickedCh:
+				os.Exit(0)
+			}
+		}
 	}()
 }

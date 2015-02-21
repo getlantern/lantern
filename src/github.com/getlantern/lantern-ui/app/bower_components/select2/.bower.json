@@ -1,0 +1,24 @@
+{
+  "name": "select2",
+  "version": "3.5.2",
+  "main": [
+    "select2.js",
+    "select2.css",
+    "select2.png",
+    "select2x2.png",
+    "select2-spinner.gif"
+  ],
+  "dependencies": {
+    "jquery": ">= 1.7.1"
+  },
+  "homepage": "https://github.com/ivaynberg/select2",
+  "_release": "3.5.2",
+  "_resolution": {
+    "type": "version",
+    "tag": "3.5.2",
+    "commit": "0a7ed096f05155bf2a901cf289602cb3aef2f651"
+  },
+  "_source": "git://github.com/ivaynberg/select2.git",
+  "_target": "3.5.2",
+  "_originalSource": "select2"
+}

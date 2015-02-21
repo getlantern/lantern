@@ -1,0 +1,8 @@
+[main]
+host = https://www.transifex.com
+
+[lantern.ui]
+file_filter = app/locale/<lang>.json
+source_file = app/locale/en_US.json
+source_lang = en
+type = KEYVALUEJSON
