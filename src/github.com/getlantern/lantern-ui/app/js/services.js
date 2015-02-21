@@ -6,9 +6,9 @@ angular.module('app.services', [])
   .service('Messages', function($rootScope) {
 
     var fnList = {
-			'GeoLookup': function(data) {
-				console.log('Got GeoLookup information: ', data);
-			},
+      'GeoLookup': function(data) {
+        console.log('Got GeoLookup information: ', data);
+      },
       'ProxiedSites': function(data) {
         if (!$rootScope.entries) {
           console.log("Initializing proxied sites entries", data.Additions);
