@@ -7637,6 +7637,11 @@ iframe.twitter-share-button {
 
 #welcomescreen h3 {
     font-size: 33px;
+    padding: 20px 0px 0px 0px;
+}
+
+#welcomescreen div.modal-header {
+    border-bottom: none;
 }
 
 #welcomescreen h3, p {
@@ -7650,6 +7655,7 @@ iframe.twitter-share-button {
 #welcomescreen .now_access {
     padding: 25px 30px 25px 30px;
     font-size: 20px;
+    line-height: 25px;
     font-family: "Helvetica";
     color: rgb( 0, 0, 0 );
     font-weight: bold;
