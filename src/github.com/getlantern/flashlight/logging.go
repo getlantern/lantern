@@ -19,11 +19,14 @@ import (
 var (
 	LogTimestampFormat = "Jan 02 15:04:05.000"
 	log                = golog.LoggerFor("flashlight")
-	logglyToken        string
 	versionToLoggly    = fmt.Sprintf("%v (%v)", version, buildDate)
 	lang               string
 	country            string
 	tz                 string
+
+	// logglyToken is populated at build time by crosscompile.bash. During
+	// development time, logglyToken will be empty and we won't log to Loggly.
+	logglyToken string
 )
 
 func init() {
@@ -49,10 +52,17 @@ func configureLogging() *rotator.SizeRotator {
 	// Keep up to 20 log files
 	file.MaxRotation = 20
 
-	remoteWriter := logglyErrorWriter{loggly.New(logglyToken)}
 	// Loggly has its own timestamp so don't bother adding it in message,
 	// moreover, golog always write each line in whole, so we need not to care about line breaks.
-	errorOut := NonStopWriter(timestamped(NonStopWriter(os.Stderr, file)), remoteWriter)
+	errorOut := timestamped(NonStopWriter(os.Stderr, file))
+
+	if logglyToken == "" {
+		log.Debugf("No logglyToken, not sending error logs to Loggly")
+	} else {
+		log.Debugf("Sending error logs to Loggly")
+		remoteWriter := logglyErrorWriter{loggly.New(logglyToken)}
+		errorOut = NonStopWriter(errorOut, remoteWriter)
+	}
 	debugOut := timestamped(NonStopWriter(os.Stdout, file))
 	golog.SetOutputs(errorOut, debugOut)
 	return file
