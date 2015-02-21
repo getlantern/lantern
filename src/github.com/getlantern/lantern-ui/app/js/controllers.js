@@ -1,6 +1,7 @@
 'use strict';
 
-app.controller('RootCtrl', ['$scope', '$http', 'flashlightStats', function($scope, $http, flashlightStats) {
+app.controller('RootCtrl', ['$scope', '$http', 'localStorageService', 'flashlightStats', 
+               function($scope, $http, localStorageService, flashlightStats) {
     // disabling for now flashlightStats.connect();
     $scope.currentModal = 'none';
 
@@ -11,6 +12,12 @@ app.controller('RootCtrl', ['$scope', '$http', 'flashlightStats', function($scop
     $scope.closeModal = function() {
         $scope.currentModal = 'none';
     };
+
+    if (!localStorageService.get('lanternWelcomeKey')) {
+        $scope.showModal('welcome');
+        localStorageService.set('lanternWelcomeKey', true);
+    }
+
 
 }]);
 
@@ -59,24 +66,6 @@ app.controller('SettingsCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
   $scope.$watch('model.settings.proxyAllSites', function (proxyAllSites) {
     $scope.proxyAllSites = proxyAllSites;
   });
-}]);
-
-app.controller('WelcomeCtrl', ['$rootScope', '$scope',
-               'localStorageService',
-               function($rootScope, $scope, localStorageService) {
-
-    $scope.alreadyWelcomed = false;
-
-    if (!localStorageService.get('lanternWelcomeKey')) {
-        localStorageService.set('lanternWelcomeKey', true);
-    } else {
-        $scope.alreadyWelcomed = true;
-    }
-
-    $scope.handleContinue  = function() {
-        $scope.alreadyWelcomed = true;
-    };
-
 }]);
 
 app.controller('ProxiedSitesCtrl', ['$rootScope', '$scope', '$filter', 'SETTING', 'INTERACTION', 'INPUT_PAT', 'MODAL', 'ProxiedSites', function($rootScope, $scope, $filter, SETTING, INTERACTION, INPUT_PAT, MODAL, ProxiedSites) {
