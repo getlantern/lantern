@@ -7627,6 +7627,34 @@ body[dir=rtl] #latestDetails dd {
   font-size: 11.9px;
   width: 100%;
 }
+#welcomescreen {
+    background: white;
+}
+
+iframe.twitter-share-button {
+    margin-left: 145px;
+}
+
+#welcomescreen h3 {
+    font-size: 33px;
+}
+
+#welcomescreen h3, p {
+    text-align: center;
+}
+
+#welcomescreen a:first-child {
+    padding-right: 25px;
+}
+
+#welcomescreen .now_access {
+    padding: 25px 30px 25px 30px;
+    font-size: 20px;
+    font-family: "Helvetica";
+    color: rgb( 0, 0, 0 );
+    font-weight: bold;
+    text-align: center;
+}
 
 #contact textarea.report {
   height: 175px;

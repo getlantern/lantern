@@ -61,6 +61,17 @@ app.controller('SettingsCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
   });
 }]);
 
+app.controller('WelcomeCtrl', ['$rootScope', '$scope',
+               function($rootScope, $scope) {
+
+    $scope.alreadyWelcomed = false;
+
+    $scope.handleContinue  = function() {
+        $scope.alreadyWelcomed = true;
+    };
+
+}]);
+
 app.controller('ProxiedSitesCtrl', ['$rootScope', '$scope', '$filter', 'SETTING', 'INTERACTION', 'INPUT_PAT', 'MODAL', 'ProxiedSites', function($rootScope, $scope, $filter, SETTING, INTERACTION, INPUT_PAT, MODAL, ProxiedSites) {
       var fltr = $filter('filter'),
       DOMAIN = INPUT_PAT.DOMAIN,
