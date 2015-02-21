@@ -69,7 +69,7 @@
   <body ng-controller="RootCtrl" ng-cloak lang="{{ lang }}" dir="{{ langDirection }}"
     ng-class="{showVis: model.showVis, getMode: inGetMode, giveMode: inGiveMode}">
     <div id="fb-root"></div>
-    <div id="welcomescreen" ng-show="wsConnected && currentModal == 'welcome'" ng-controller="WelcomeCtrl" modal="show" class="modal" ng-cloak>
+    <div id="welcomescreen" ng-show="wsConnected && currentModal == 'welcome'" modal="show" class="modal" ng-cloak>
         <div class="modal-header">
             <h3>
                 {{ 'WELCOME_TO_LANTERN' | translate }}
