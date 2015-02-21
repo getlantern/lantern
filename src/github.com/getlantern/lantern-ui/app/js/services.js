@@ -3,11 +3,19 @@
 angular.module('app.services', [])
   // Messages service will return a map of callbacks that handle websocket
   // messages sent from the flashlight process.
-  .service('Messages', function($rootScope) {
+  .service('Messages', function($rootScope, modelSrvc) {
+
+    var model = modelSrvc.model;
 
     var fnList = {
       'GeoLookup': function(data) {
         console.log('Got GeoLookup information: ', data);
+        if (data && data.Location) {
+            model.location = {};
+            model.location.lon = data.Location.Longitude;
+            model.location.lat = data.Location.Latitude;
+            model.location.resolved = true;
+        }
       },
       'ProxiedSites': function(data) {
         if (!$rootScope.entries) {

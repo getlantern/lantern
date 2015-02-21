@@ -155,6 +155,11 @@ var app = angular.module('app', [
         prettyUserFltr = $filter('prettyUser'),
         reportedStateFltr = $filter('reportedState');
 
+    // configure settings
+    // set default client to get-mode
+    model.settings = {};
+    model.settings.mode = 'get';
+
     // for easier inspection in the JavaScript console
     $window.rootScope = $rootScope;
     $window.model = model;
