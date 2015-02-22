@@ -39,7 +39,16 @@ Section
     File lantern.exe
     File lantern.ico
  
+    # Store installation folder
+    WriteRegStr HKCU "Software\Lantern" "" $INSTDIR
+
     WriteUninstaller "$INSTDIR\uninstall.exe"
+
+    # Support uninstalling via Add/Remove programs
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern" \
+                     "DisplayName" "Lantern"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern" \
+                     "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
  
     CreateDirectory "$SMPROGRAMS\Lantern"
     CreateShortCut "$SMPROGRAMS\Lantern\Lantern.lnk" "$INSTDIR\lantern.exe" "" "$INSTDIR\lantern.ico" 0
