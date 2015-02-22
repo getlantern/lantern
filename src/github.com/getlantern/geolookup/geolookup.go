@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -16,7 +17,10 @@ var defaultHttpClient = &http.Client{
 	Timeout: geoLookupTimeout,
 }
 
-var httpClient = defaultHttpClient
+var (
+	httpClient   = defaultHttpClient
+	httpClientMu sync.Mutex
+)
 
 // The City structure corresponds to the data in the GeoIP2/GeoLite2 City
 // databases.
@@ -98,8 +102,10 @@ type Country struct {
 
 // SetHTTPClient defines the client to use for executing HTTP requests.
 func SetHTTPClient(client *http.Client) {
+	httpClientMu.Lock()
 	httpClient = client
 	httpClient.Timeout = geoLookupTimeout
+	httpClientMu.Unlock()
 }
 
 // UsesDefaultHTTPClient returns false when the package is using a different
