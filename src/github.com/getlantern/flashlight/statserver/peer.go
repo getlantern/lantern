@@ -1,7 +1,6 @@
 package statserver
 
 import (
-	"fmt"
 	"sync/atomic"
 	"time"
 
@@ -60,11 +59,8 @@ func (peer *Peer) run() error {
 
 func (peer *Peer) geolocate() error {
 
-	if geolookup.UsesDefaultHTTPClient() {
-		return fmt.Errorf("Geolocation service could not be consulted over a proxy yet.")
-	}
-
-	geodata, err := geolookup.LookupCity(peer.IP)
+	// TODO: make this a service too
+	geodata, err := geolookup.LookupCity(peer.IP, nil)
 	if err != nil {
 		return err
 	}

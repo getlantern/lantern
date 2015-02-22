@@ -141,7 +141,7 @@ func runClientProxy(cfg *config.Config) {
 	}
 
 	// Configure client initially
-	client.Configure(cfg.Client)
+	hqfd := client.Configure(cfg.Client)
 
 	// Start UI server
 	if cfg.UIAddr != "" {
@@ -156,7 +156,7 @@ func runClientProxy(cfg *config.Config) {
 	proxiedsites.Configure(cfg.ProxiedSites)
 
 	// launching geolookup service when in client mode.
-	go geolookup.StartService()
+	go geolookup.StartService(hqfd.DirectHttpClient())
 
 	// Continually poll for config updates and update client accordingly
 	go func() {

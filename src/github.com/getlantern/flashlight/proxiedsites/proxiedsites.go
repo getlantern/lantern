@@ -17,11 +17,6 @@ const (
 	messageType = `ProxiedSites`
 )
 
-// deltaMessage is the struct of the message we're expecting from the client.
-type deltaMessage struct {
-	Delta proxiedsites.Delta `json:"Message"`
-}
-
 var (
 	log = golog.LoggerFor("proxiedsites-flashlight")
 
@@ -58,26 +53,16 @@ func Configure(cfg *proxiedsites.Config) {
 }
 
 func start() (err error) {
-
-	// Registering a websocket service.
-	helloFn := func(write func([]byte) error) error {
-
-		// Hello message.
-		message := ui.Envelope{
-			Type:    messageType,
-			Message: proxiedsites.ActiveDelta(),
-		}
-
-		b, err := json.Marshal(message)
-
-		if err != nil {
-			return fmt.Errorf("Unable to marshal active delta to json: %v", err)
-		}
-
-		return write(b)
+	newMessage := func() interface{} {
+		return &proxiedsites.Delta{}
 	}
 
-	if service, err = ui.Register(messageType, helloFn); err != nil {
+	// Registering a websocket service.
+	helloFn := func(write func(interface{}) error) error {
+		return write(proxiedsites.ActiveDelta())
+	}
+
+	if service, err = ui.Register(messageType, newMessage, helloFn); err != nil {
 		return fmt.Errorf("Unable to register channel: %q", err)
 	}
 
@@ -92,18 +77,10 @@ func start() (err error) {
 }
 
 func read() {
-	for b := range service.In {
-		var message deltaMessage
-
-		err := json.Unmarshal(b, &message)
-		if err != nil {
-			log.Errorf("Unable to parse JSON update from browser: %v", err)
-			continue
-		}
-
+	for msg := range service.In {
 		config.Update(func(updated *config.Config) error {
 			log.Debugf("Applying update from UI")
-			updated.ProxiedSites.Delta.Merge(&message.Delta)
+			updated.ProxiedSites.Delta.Merge(msg.(*proxiedsites.Delta))
 			return nil
 		})
 	}
