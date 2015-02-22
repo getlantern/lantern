@@ -3,8 +3,8 @@ package geolookup
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"sync"
-	"time"
 
 	"github.com/getlantern/flashlight/ui"
 	"github.com/getlantern/geolookup"
@@ -14,7 +14,7 @@ import (
 const (
 	messageType = `GeoLookup`
 
-	sleepTime = time.Second * 10
+	maxRetries = 10
 )
 
 var (
@@ -25,46 +25,39 @@ var (
 	lookupData  *geolookup.City
 )
 
-func getUserGeolocationData() *geolookup.City {
+func getUserGeolocationData(client *http.Client) (*geolookup.City, error) {
 	lookupMutex.Lock()
 	defer lookupMutex.Unlock()
 
-	var err error
-
 	if lookupData != nil {
 		// We already looked up IP's information.
-		return lookupData
+		return lookupData, nil
 	}
 
-	for {
-		if !geolookup.UsesDefaultHTTPClient() {
-			// Will look up only if we're using a proxy.
-			lookupData, err = geolookup.LookupCity("")
-			if err == nil {
-				// We got what we wanted, no need to query for it again, let's exit.
-				return lookupData
-			}
+	var err error
+	for i := 0; i < maxRetries; i++ {
+		// Will look up only if we're using a proxy.
+		lookupData, err = geolookup.LookupCity("", client)
+		if err == nil {
+			// We got what we wanted, no need to query for it again, let's exit.
+			return lookupData, nil
 		}
-		// Sleep if the proxy is not ready yet of any error happened.
-		time.Sleep(sleepTime)
 	}
 
-	// We should not be able to reach this point.
-	panic("unreachable position")
+	return nil, fmt.Errorf("Unable to look up geolocation information in %d tries: %v", maxRetries, err)
 }
 
-// StartService initializes the geolocation websocket service.
-func StartService() error {
-	return start()
-}
-
-func start() (err error) {
-
+// StartService initializes the geolocation websocket service using the given
+// http.Client to do the lookups
+func StartService(client *http.Client) (err error) {
 	helloFn := func(write func([]byte) error) error {
 		var b []byte
 		var err error
 
-		city := getUserGeolocationData()
+		city, err := getUserGeolocationData(client)
+		if err != nil {
+			return err
+		}
 
 		message := ui.Envelope{
 			Type:    messageType,
