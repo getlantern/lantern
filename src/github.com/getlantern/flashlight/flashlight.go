@@ -151,7 +151,11 @@ func runClientProxy(cfg *config.Config) {
 	}
 
 	proxiedsites.Configure(cfg.ProxiedSites)
-	geolookup.Configure(hqfd.DirectHttpClient())
+	if hqfd == nil {
+		log.Errorf("No fronted dialer available, not enabling geolocation")
+	} else {
+		geolookup.Configure(hqfd.DirectHttpClient())
+	}
 
 	// Continually poll for config updates and update client accordingly
 	go func() {
@@ -161,7 +165,9 @@ func runClientProxy(cfg *config.Config) {
 			proxiedsites.Configure(cfg.ProxiedSites)
 			configureStats(cfg, false)
 			hqfd = client.Configure(cfg.Client)
-			geolookup.Configure(hqfd.DirectHttpClient())
+			if hqfd != nil {
+				geolookup.Configure(hqfd.DirectHttpClient())
+			}
 		}
 	}()
 
