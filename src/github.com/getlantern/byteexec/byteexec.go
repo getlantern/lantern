@@ -21,7 +21,6 @@ package byteexec
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"os/user"
@@ -29,6 +28,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/getlantern/filepersist"
 	"github.com/getlantern/golog"
 )
 
@@ -77,104 +77,17 @@ func New(data []byte, filename string) (*Exec, error) {
 	filename = renameExecutable(filename)
 	log.Tracef("Placing executable in %s", filename)
 
-	log.Trace("Attempting to open file for creating, but only if it doesn't already exist")
-	file, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_EXCL, fileMode)
+	err = filepersist.Save(filename, data, fileMode)
 	if err != nil {
-		if !os.IsExist(err) {
-			return nil, fmt.Errorf("Unexpected error opening %s: %s", filename, err)
-		}
-
-		log.Tracef("%s already exists, check to make sure contents is the same", filename)
-		if dataMatches(filename, data) {
-			log.Tracef("Data in %s matches expected, using existing", filename)
-			return newExecFromExisting(filename)
-		}
-
-		log.Tracef("Data in %s doesn't match expected, truncating file", filename)
-		file, err = openAndTruncate(filename, true)
-		if err != nil {
-			return nil, fmt.Errorf("Unable to truncate %s: %s", filename, err)
-		}
+		return nil, err
 	}
-
-	log.Tracef("Created new file at %s, saving executable", filename)
-	_, err = file.Write(data)
-	if err != nil {
-		os.Remove(filename)
-		return nil, fmt.Errorf("Unable to write to file at %s: %s", filename, err)
-	}
-	file.Sync()
-	file.Close()
-
 	log.Trace("File saved, returning new Exec")
 	return newExec(filename)
-}
-
-func openAndTruncate(filename string, removeIfNecessary bool) (*os.File, error) {
-	file, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, fileMode)
-	if err != nil && os.IsPermission(err) && removeIfNecessary {
-		log.Tracef("Permission denied truncating file %v, try to remove", filename)
-		err = os.Remove(filename)
-		if err != nil {
-			return nil, fmt.Errorf("Unable to remove file %v: %v", filename, err)
-		}
-		return openAndTruncate(filename, false)
-	}
-
-	return file, err
 }
 
 // Command creates an exec.Cmd using the supplied args.
 func (be *Exec) Command(args ...string) *exec.Cmd {
 	return exec.Command(be.Filename, args...)
-}
-
-// dataMatches compares the file at filename byte for byte with the given data
-func dataMatches(filename string, data []byte) bool {
-	file, err := os.OpenFile(filename, os.O_RDONLY, 0)
-	if err != nil {
-		log.Tracef("Unable to open existing file at %s for reading: %s", filename, err)
-		return false
-	}
-	fileInfo, err := file.Stat()
-	if err != nil {
-		log.Tracef("Unable to stat file %s", filename)
-		return false
-	}
-	if fileInfo.Size() != int64(len(data)) {
-		return false
-	}
-	b := make([]byte, 65536)
-	i := 0
-	for {
-		n, err := file.Read(b)
-		if err != nil && err != io.EOF {
-			log.Tracef("Error reading %s for comparison: %s", filename, err)
-			return false
-		}
-		for j := 0; j < n; j++ {
-			if b[j] != data[i] {
-				return false
-			}
-			i = i + 1
-		}
-		if err == io.EOF {
-			break
-		}
-	}
-	return true
-}
-
-func newExecFromExisting(filename string) (*Exec, error) {
-	fi, err := os.Stat(filename)
-	if err != nil || fi.Mode() != fileMode {
-		log.Tracef("Chmodding %s", filename)
-		err = os.Chmod(filename, fileMode)
-		if err != nil {
-			log.Debugf("Warning - unable to chmod file %s: %s", filename, err)
-		}
-	}
-	return newExec(filename)
 }
 
 func newExec(filename string) (*Exec, error) {
