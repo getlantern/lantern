@@ -156,7 +156,7 @@ func runClientProxy(cfg *config.Config) {
 	proxiedsites.Configure(cfg.ProxiedSites)
 
 	// launching geolookup service when in client mode.
-	go geolookup.StartService(hqfd.DirectHttpClient())
+	geolookup.StartService(hqfd.DirectHttpClient())
 
 	// Continually poll for config updates and update client accordingly
 	go func() {
