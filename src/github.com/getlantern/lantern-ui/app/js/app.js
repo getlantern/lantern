@@ -75,8 +75,9 @@ var app = angular.module('app', [
     '$websocket',
     '$rootScope',
     '$interval',
+    '$window',
     'Messages',
-    function($websocket, $rootScope, $interval, Messages) {
+    function($websocket, $rootScope, $interval, $window, Messages) {
 
       var WS_RECONNECT_INTERVAL = 5000;
       var WS_RETRY_COUNT        = 0;
@@ -86,6 +87,7 @@ var app = angular.module('app', [
       ds.onMessage(function(raw) {
         var envelope = JSON.parse(raw.data);
         if (typeof Messages[envelope.Type] != 'undefined') {
+          console.log("Got message", envelope.Type, envelope.Message)
           Messages[envelope.Type].call(this, envelope.Message);
         } else {
           console.log('Got unknown message type: ' + envelope.Type);

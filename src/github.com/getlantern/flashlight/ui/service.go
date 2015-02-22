@@ -22,18 +22,17 @@ var (
 	mu               sync.RWMutex
 	defaultUIChannel *UIChannel
 
-	out      = make(chan []byte, 10)
 	services = make(map[string]*Service)
 )
 
-func (s *Service) watch() {
+func (s *Service) write() {
 	// Watch for new messages and send them to the combined output.
 	for msg := range s.out {
 		b, err := newEnvelope(s.Type, msg)
 		if err != nil {
 			log.Error(err.Error())
 		}
-		out <- b
+		defaultUIChannel.Out <- b
 	}
 }
 
@@ -68,7 +67,7 @@ func Register(t string, newMessage func() interface{}, helloFn helloFnType) (*Se
 				return err
 			}
 			log.Tracef("Sending initial message to existent clients: %q", b)
-			defaultUIChannel.out <- b
+			defaultUIChannel.Out <- b
 			return nil
 		})
 	}
@@ -77,7 +76,7 @@ func Register(t string, newMessage func() interface{}, helloFn helloFnType) (*Se
 	services[t] = s
 	mu.Unlock()
 
-	go s.watch()
+	go s.write()
 	return s, nil
 }
 
@@ -103,6 +102,8 @@ func start() {
 		mu.RUnlock()
 		return nil
 	})
+
+	go read()
 
 	log.Debugf("Accepting websocket connections at: %s", defaultUIChannel.URL)
 }

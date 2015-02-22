@@ -1,9 +1,13 @@
 package geolookup
 
 import (
-	"fmt"
+	"math"
+	"math/rand"
 	"net/http"
+	"reflect"
 	"sync"
+	"sync/atomic"
+	"time"
 
 	"github.com/getlantern/flashlight/ui"
 	"github.com/getlantern/geolookup"
@@ -13,58 +17,92 @@ import (
 const (
 	messageType = `GeoLookup`
 
-	maxRetries = 10
+	basePublishInterval     = 30 * time.Second
+	publishIntervalVariance = basePublishInterval - 10*time.Second
 )
 
 var (
 	log = golog.LoggerFor("geolookup-flashlight")
 
-	service     *ui.Service
-	lookupMutex sync.Mutex
-	lookupData  *geolookup.City
+	service           *ui.Service
+	client            atomic.Value
+	lastKnownLocation atomic.Value
+	cfgMutex          sync.Mutex
 )
 
-func getUserGeolocationData(client *http.Client) (*geolookup.City, error) {
-	lookupMutex.Lock()
-	defer lookupMutex.Unlock()
+// Configure configures geolookup to use the given http.Client to perform
+// lookups. geolookup runs in a continuous loop, periodically updating its
+// location and publishing updates to any connected clients. We do this
+// continually in order to detect when the computer's location has changed.
+func Configure(newClient *http.Client) {
+	cfgMutex.Lock()
+	defer cfgMutex.Unlock()
 
-	if lookupData != nil {
-		// We already looked up IP's information.
-		return lookupData, nil
+	client.Store(newClient)
+
+	if service == nil {
+		err := registerService()
+		if err != nil {
+			log.Errorf("Unable to register service: %v", err)
+			return
+		}
+		go write()
+		go read()
+		log.Debug("Running")
+	}
+}
+
+func registerService() error {
+	helloFn := func(write func(interface{}) error) error {
+		location := lastKnownLocation.Load()
+		if location == nil {
+			log.Trace("No lastKnownLocation, not sending anything to client")
+			return nil
+		}
+		log.Trace("Sending last known location to new client")
+		return write(location)
 	}
 
 	var err error
-	for i := 0; i < maxRetries; i++ {
-		// Will look up only if we're using a proxy.
-		lookupData, err = geolookup.LookupIPWithClient("", client)
-		if err == nil {
-			// We got what we wanted, no need to query for it again, let's exit.
-			return lookupData, nil
-		}
-	}
-
-	return nil, fmt.Errorf("Unable to look up geolocation information in %d tries: %v", maxRetries, err)
+	service, err = ui.Register(messageType, nil, helloFn)
+	return err
 }
 
-// StartService initializes the geolocation websocket service using the given
-// http.Client to do the lookups
-func StartService(client *http.Client) (err error) {
-	helloFn := func(write func(interface{}) error) error {
-		city, err := getUserGeolocationData(client)
-		if err != nil {
-			return err
+func write() {
+	retryWaitTime := 100 * time.Millisecond
+	consecutiveFailures := 0
+
+	for {
+		// Wait a random amount of time (to avoid looking too suspicious)
+		// Note - rand was seeded with the startup time in flashlight.go
+		n := rand.Intn(int(publishIntervalVariance))
+		wait := basePublishInterval - publishIntervalVariance/2 + time.Duration(n)
+
+		oldLocation := lastKnownLocation.Load()
+		location, err := geolookup.LookupIPWithClient("", client.Load().(*http.Client))
+		if err == nil {
+			oldLocation := lastKnownLocation.Load()
+			if !reflect.DeepEqual(location, oldLocation) {
+				log.Debugf("Location changed")
+				lastKnownLocation.Store(location)
+			}
+			// Always publish location, even if unchanged
+			service.Out <- location
+		} else {
+			log.Errorf("Unable to get current location: %v", err)
+			// When retrying after a failure, wait a different amount of time
+			retryWait := time.Duration(math.Pow(float64(retryWaitTime), float64(consecutiveFailures)))
+			if retryWait < wait {
+				wait = retryWait
+			}
+			// If available, publish last known location
+			if oldLocation != nil {
+				service.Out <- location
+			}
 		}
 
-		return write(city)
+		time.Sleep(wait)
 	}
-
-	if service, err = ui.Register(messageType, nil, helloFn); err != nil {
-		return fmt.Errorf("Unable to register channel: %q", err)
-	}
-
-	go read()
-
-	return nil
 }
 
 func read() {
