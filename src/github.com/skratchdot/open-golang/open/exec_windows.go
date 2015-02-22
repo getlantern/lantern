@@ -3,8 +3,15 @@
 package open
 
 import (
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
+)
+
+var (
+	cmd      = "url.dll,FileProtocolHandler"
+	runDll32 = filepath.Join(os.Getenv("SYSTEMROOT"), "System32", "rundll32.exe")
 )
 
 func cleaninput(input string) string {
@@ -13,7 +20,7 @@ func cleaninput(input string) string {
 }
 
 func open(input string) *exec.Cmd {
-	return exec.Command("cmd", "/C", "start", "", cleaninput(input))
+	return exec.Command(runDll32, cmd, cleaninput(input))
 }
 
 func openWith(input string, appName string) *exec.Cmd {
