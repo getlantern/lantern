@@ -5,7 +5,6 @@ import (
 
 	"github.com/getlantern/balancer"
 	"github.com/getlantern/fronted"
-	"github.com/getlantern/geolookup"
 )
 
 func (client *Client) getBalancer() *balancer.Balancer {
@@ -14,7 +13,7 @@ func (client *Client) getBalancer() *balancer.Balancer {
 	return bal
 }
 
-func (client *Client) initBalancer(cfg *ClientConfig) *balancer.Balancer {
+func (client *Client) initBalancer(cfg *ClientConfig) (*balancer.Balancer, fronted.Dialer) {
 	dialers := make([]*balancer.Dialer, 0, len(cfg.FrontedServers)+len(cfg.ChainedServers))
 
 	log.Debugf("Adding %d domain fronted servers", len(cfg.FrontedServers))
@@ -26,14 +25,6 @@ func (client *Client) initBalancer(cfg *ClientConfig) *balancer.Balancer {
 		if dialer.QOS > highestQOS {
 			highestQOSFrontedDialer = fd
 		}
-	}
-
-	if highestQOSFrontedDialer != nil {
-		// This function will configure the HTTP client the geo package is going to
-		// use.
-		geolookup.SetHTTPClient(highestQOSFrontedDialer.DirectHttpClient())
-	} else {
-		log.Error("No fronted dialers found, unable to look up public ip")
 	}
 
 	log.Debugf("Adding %d chained servers", len(cfg.ChainedServers))
@@ -65,5 +56,5 @@ func (client *Client) initBalancer(cfg *ClientConfig) *balancer.Balancer {
 	client.balCh <- bal
 	client.balInitialized = true
 
-	return bal
+	return bal, highestQOSFrontedDialer
 }

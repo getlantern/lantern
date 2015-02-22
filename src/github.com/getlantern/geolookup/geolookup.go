@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"sync"
 	"time"
+
+	"github.com/getlantern/golog"
 )
 
 const (
@@ -13,13 +14,10 @@ const (
 	geoLookupTimeout = 20 * time.Second
 )
 
-var defaultHttpClient = &http.Client{
-	Timeout: geoLookupTimeout,
-}
-
 var (
-	httpClient   = defaultHttpClient
-	httpClientMu sync.Mutex
+	log = golog.LoggerFor("geolookup")
+
+	defaultHttpClient = &http.Client{}
 )
 
 // The City structure corresponds to the data in the GeoIP2/GeoLite2 City
@@ -100,23 +98,16 @@ type Country struct {
 	} `maxminddb:"traits"`
 }
 
-// SetHTTPClient defines the client to use for executing HTTP requests.
-func SetHTTPClient(client *http.Client) {
-	httpClientMu.Lock()
-	httpClient = client
-	httpClient.Timeout = geoLookupTimeout
-	httpClientMu.Unlock()
-}
-
-// UsesDefaultHTTPClient returns false when the package is using a different
-// client that the default one.
-func UsesDefaultHTTPClient() bool {
-	return httpClient == defaultHttpClient
-}
-
 // LookupCity looks up the given IP using a geolocation service and returns a
-// City struct.
-func LookupCity(ipAddr string) (*City, error) {
+// City struct. If an httpClient was provided, it uses that, otherwise it uses
+// a default http.Client.
+func LookupCity(ipAddr string, httpClient *http.Client) (*City, error) {
+	if httpClient == nil {
+		log.Trace("Using default http.Client")
+		httpClient = defaultHttpClient
+	}
+	httpClient.Timeout = geoLookupTimeout
+
 	var err error
 	var req *http.Request
 	var resp *http.Response
