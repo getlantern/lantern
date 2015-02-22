@@ -6,7 +6,7 @@ CCFLAGS = -Wall -c
 ifeq ($(OS),Windows_NT)
 	os = windows
 	CCFLAGS += -D WIN32 -D IA32
-	LDFLAGS += -l rasapi32 -l wininet
+	LDFLAGS += -l rasapi32 -l wininet -Wl,--subsystem,windows
 	BIN = binaries/windows/pac
 else
 	UNAME_S := $(shell uname -s)

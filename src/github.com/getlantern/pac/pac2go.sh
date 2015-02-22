@@ -16,6 +16,7 @@ fi
 
 BINPATH=../pac-cmd/binaries
 
+mv $BINPATH/windows/pac.exe $BINPATH/windows/pac
 osslsigncode sign -pkcs12 "$BNS_CERT" -pass "$BNS_CERT_PASS" -in $BINPATH/windows/pac -out $BINPATH/windows/pac || die "Could not sign windows"
 codesign -s "Developer ID Application: Brave New Software Project, Inc" -f $BINPATH/darwin/pac || die "Could not sign macintosh"
 
@@ -23,3 +24,4 @@ go-bindata -nomemcopy -nocompress -pkg pac -prefix $BINPATH/darwin -o pac_bytes_
 go-bindata -nomemcopy -nocompress -pkg pac -prefix $BINPATH/linux_386 -o pac_bytes_linux_386.go $BINPATH/linux_386
 go-bindata -nomemcopy -nocompress -pkg pac -prefix $BINPATH/linux_amd64 -o pac_bytes_linux_amd64.go $BINPATH/linux_amd64
 go-bindata -nomemcopy -nocompress -pkg pac -prefix $BINPATH/windows -o pac_bytes_windows.go $BINPATH/windows    
+mv $BINPATH/windows/pac $BINPATH/windows/pac.exe
