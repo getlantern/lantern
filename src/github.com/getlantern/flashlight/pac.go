@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"path/filepath"
 
+	"github.com/getlantern/filepersist"
 	"github.com/getlantern/pac"
 
 	"github.com/getlantern/flashlight/proxiedsites"
@@ -11,23 +12,18 @@ import (
 
 func pacOn() {
 	if proxiedsites.PACURL != "" {
-		iconFile := ""
-		icon, err := Asset("icons/64on.ico")
+		// We have to use a short filepath here because Cocoa won't display the
+		// icon if the path is too long.
+		iconFile := filepath.Join("/tmp", "escalatelantern.ico")
+		icon, err := Asset("icons/32on.ico")
 		if err != nil {
-			log.Errorf("Unable to get escalation prompt icon: %v", err)
+			log.Errorf("Unable to load escalation prompt icon: %v", err)
 		} else {
-			f, err := ioutil.TempFile("", "")
+			err := filepersist.Save(iconFile, icon, 0644)
 			if err != nil {
-				log.Errorf("Unable to create temp file for icon: %v", err)
+				log.Errorf("Unable to persist icon to disk: %v", err)
 			} else {
-				defer f.Close()
-				_, err := f.Write(icon)
-				if err != nil {
-					log.Errorf("Unable to write icon to temp file: %v", err)
-				} else {
-					f.Close()
-					iconFile = f.Name()
-				}
+				log.Debugf("Saved icon file to: %v", iconFile)
 			}
 		}
 		err = pac.EnsureHelperToolPresent("pac-cmd", "Lantern would like to set itself as your system proxy", iconFile)
