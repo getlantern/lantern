@@ -6,16 +6,6 @@ import (
 	"sync"
 )
 
-type envelopeType struct {
-	Type string
-}
-
-// envelope is a struct that wraps messages and associates them with a type.
-type envelope struct {
-	envelopeType
-	Message interface{}
-}
-
 type helloFnType func(func(interface{}) error) error
 
 type Service struct {
@@ -121,7 +111,7 @@ func read() {
 	// Reading from the combined input.
 	for b := range defaultUIChannel.In {
 		// Determining message type.
-		var envType envelopeType
+		var envType EnvelopeType
 		err := json.Unmarshal(b, &envType)
 
 		if err != nil {
@@ -135,7 +125,7 @@ func read() {
 			return
 		}
 
-		env := &envelope{}
+		env := &Envelope{}
 		err = json.Unmarshal(b, env)
 		if err != nil {
 			log.Errorf("Unable to unmarshal message of type %v: %v", envType.Type, err)
@@ -147,8 +137,8 @@ func read() {
 }
 
 func newEnvelope(t string, msg interface{}) ([]byte, error) {
-	b, err := json.Marshal(&envelope{
-		envelopeType: envelopeType{t},
+	b, err := json.Marshal(&Envelope{
+		EnvelopeType: EnvelopeType{t},
 		Message:      msg,
 	})
 	if err != nil {

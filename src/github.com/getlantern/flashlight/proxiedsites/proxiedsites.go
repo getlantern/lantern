@@ -37,8 +37,8 @@ func Configure(cfg *proxiedsites.Config) {
 	} else if delta != nil {
 		// Sending delta.
 		message := ui.Envelope{
-			Type:    messageType,
-			Message: delta,
+			EnvelopeType: ui.EnvelopeType{messageType},
+			Message:      delta,
 		}
 		b, err := json.Marshal(message)
 
