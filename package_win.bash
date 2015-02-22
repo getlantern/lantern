@@ -28,7 +28,7 @@ which osslsigncode || echo "Installing osslsigncode" && brew install osslsigncod
 osslsigncode sign -pkcs12 "$BNS_CERT" -pass "$BNS_CERT_PASS" -in $binary -out $out || die "Could not sign windows executable"
 
 which makensis || echo "Installing makensis" && brew install makensis || die "Could not install makensis"
-makensis lantern.nsi
+makensis lantern.nsi || die "Unable to build installer"
 osslsigncode sign -pkcs12 "$BNS_CERT" -pass "$BNS_CERT_PASS" -in $installer_unsigned -out $installer || die "Could not sign windows installer"
 
 echo "Windows executable available at $out"
