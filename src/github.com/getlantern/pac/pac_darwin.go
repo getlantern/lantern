@@ -20,6 +20,6 @@ func ensureElevatedOnDarwin(be *byteexec.Exec, prompt string, iconFullPath strin
 		log.Tracef("%v is already owned by root:wheel and has setuid bit on", be.Filename)
 		return
 	}
-	cmd := elevate.PromptWithIcon(prompt, iconFullPath, be.Filename, "setuid")
+	cmd := elevate.WithPrompt(prompt).WithIcon(iconFullPath).Command(be.Filename, "setuid")
 	return run(cmd)
 }

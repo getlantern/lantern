@@ -6,32 +6,48 @@ import (
 	"os/exec"
 )
 
+type CommandBuilder struct {
+	prompt string
+	icon   string
+}
+
+func WithPrompt(prompt string) *CommandBuilder {
+	return &CommandBuilder{
+		prompt: prompt,
+	}
+}
+
+func WithIcon(icon string) *CommandBuilder {
+	return &CommandBuilder{
+		icon: icon,
+	}
+}
+
+func (b *CommandBuilder) WithPrompt(prompt string) *CommandBuilder {
+	return &CommandBuilder{
+		prompt: prompt,
+		icon:   b.icon,
+	}
+}
+
+func (b *CommandBuilder) WithIcon(icon string) *CommandBuilder {
+	return &CommandBuilder{
+		prompt: b.prompt,
+		icon:   icon,
+	}
+}
+
+func (b *CommandBuilder) Command(name string, args ...string) *exec.Cmd {
+	cmd, err := buildCommand(b.prompt, b.icon, name, args...)
+	if err != nil {
+		panic(err)
+	}
+	return cmd
+}
+
 // Command is like exec.Command, except that it runs the given command with
 // elevated privileges.
 func Command(name string, args ...string) *exec.Cmd {
-	cmd, err := buildCommand("", "", name, args...)
-	if err != nil {
-		panic(err)
-	}
-	return cmd
-}
-
-// Prompt is like Command, except the elevation prompt contains the custom
-// prompt string.
-func Prompt(prompt string, name string, args ...string) *exec.Cmd {
-	cmd, err := buildCommand(prompt, "", name, args...)
-	if err != nil {
-		panic(err)
-	}
-	return cmd
-}
-
-// PromptWithIcon is like Prompt, except that hte elevation prompt also
-// includes an icon loaded from the given path.
-func PromptWithIcon(prompt string, icon string, name string, args ...string) *exec.Cmd {
-	cmd, err := buildCommand(prompt, icon, name, args...)
-	if err != nil {
-		panic(err)
-	}
-	return cmd
+	b := &CommandBuilder{}
+	return b.Command(name, args...)
 }
