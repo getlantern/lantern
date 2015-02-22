@@ -107,7 +107,7 @@ func SetLocale(locale string) error {
 	if len(newTrMap) == 0 {
 		return fmt.Errorf("Not found any translations, locale not set")
 	}
-	log.Debugf("Translations: %v", newTrMap)
+	log.Tracef("Translations: %v", newTrMap)
 	trMutex.Lock()
 	defer trMutex.Unlock()
 	trMap = newTrMap
