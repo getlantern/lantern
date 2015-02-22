@@ -22,4 +22,6 @@ codesign -s "Developer ID Application: Brave New Software Project, Inc" -f $BINP
 go-bindata -nomemcopy -nocompress -pkg pac -prefix $BINPATH/darwin -o pac_bytes_darwin.go $BINPATH/darwin
 go-bindata -nomemcopy -nocompress -pkg pac -prefix $BINPATH/linux_386 -o pac_bytes_linux_386.go $BINPATH/linux_386
 go-bindata -nomemcopy -nocompress -pkg pac -prefix $BINPATH/linux_amd64 -o pac_bytes_linux_amd64.go $BINPATH/linux_amd64
+mv $BINPATH/windows/pac.exe $BINPATH/windows/pac
 go-bindata -nomemcopy -nocompress -pkg pac -prefix $BINPATH/windows -o pac_bytes_windows.go $BINPATH/windows    
+mv $BINPATH/windows/pac $BINPATH/windows/pac.exe
