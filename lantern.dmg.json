@@ -1,6 +1,6 @@
 {
   "title": "Lantern",
-  "icon": "lantern.icns",
+  "icon": "Lantern.app_template/Contents/Resources/app.icns",
   "background": "dmgbackground.png",
   "icon-size": 100,
   "contents": [
