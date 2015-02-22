@@ -72,6 +72,16 @@ See https://github.com/getlantern/lantern/issues/2235.
 
 `sudo apt-get install libgtk-3-dev libappindicator3-dev`
 
+### Building at Development Time
+
+At development time, you might use `go install github.com/getlantern/flashlight`
+or `go build github.com/getlantern/flashlight`. If you do this after using
+`crosscompile.bash` you might get an error like this:
+
+> ld: warning: ignoring file /var/folders/j_/9dywssj524gf3100s4q9l48w0000gp/T//go-link-LUd0tc/000000.o, file was built for unsupported file format ( 0x4C 0x01 0x01 0x00 0x00 0x00 0x00 0x00 0x2C 0xFD 0x01 0x00 0x01 0x00 0x00 0x00 ) which is not the architecture being linked (x86_64): /var/folders/j_/9dywssj524gf3100s4q9l48w0000gp/T//go-link-LUd0tc/000000.o
+
+You can avoid this by using `CGO_ENABLED=1 go install`.
+
 ### Packaging for OS X
 Lantern on OS X is packaged as the `Lantern.app` app bundle, distributed inside
 of a drag-and-drop dmg installer. The app bundle and dmg can be created using
@@ -97,7 +107,7 @@ should never be distributed to end users.
 The background image for the DMG is `dmgbackground.png` and the icon is in
 `lantern.icns`.
 
-### Packaging on Windows
+### Packaging for Windows
 Lantern on Windows is currently distributed as an executable (no installer).
 This executable should be signed with `./package_windows.bash` prior to
 distributing it to end users.
