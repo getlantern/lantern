@@ -107,7 +107,7 @@ app bundle won't be signed. Unsigned app bundles can be used for testing but
 should never be distributed to end users.
 
 The background image for the DMG is `dmgbackground.png` and the icon is in
-`lantern.icns`.
+`Lantern.app_template/Contents/Resources/app.icns`.
 
 ### Packaging for Windows
 Lantern on Windows is currently distributed as an executable (no installer).
