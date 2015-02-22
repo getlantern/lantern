@@ -87,7 +87,6 @@ var app = angular.module('app', [
       ds.onMessage(function(raw) {
         var envelope = JSON.parse(raw.data);
         if (typeof Messages[envelope.Type] != 'undefined') {
-          console.log("Got message", envelope.Type, envelope.Message)
           Messages[envelope.Type].call(this, envelope.Message);
         } else {
           console.log('Got unknown message type: ' + envelope.Type);
