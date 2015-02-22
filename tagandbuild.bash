@@ -12,4 +12,6 @@ fi
 
 git tag -a "$1" -f --annotate -m"Tagged $1"
 git push --tags -f
-./crosscompile.bash
+source ./crosscompile.bash
+./package_osx.bash $VERSION_STRING
+./package_win.bash

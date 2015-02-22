@@ -7,6 +7,7 @@ function die() {
 
 binary="lantern_windows_386.exe"
 out="lantern.exe"
+archive="lantern.zip"
 
 if [ ! -f $binary ]
 then
@@ -22,6 +23,7 @@ then
 fi
 
 osslsigncode sign -pkcs12 "$BNS_CERT" -pass "$BNS_CERT_PASS" -in $binary -out $out || die "Could not sign windows executable"
-
+zip -9 $archive $out
 echo "Windows executable available at $out"
+echo "Compressed executable archiveavailable at $archive"
 

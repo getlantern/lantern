@@ -60,6 +60,9 @@ The script `tagandbuild.bash` tags and runs crosscompile.bash.
 
 Note - ./crosscompile.bash omits debug symbols to keep the build smaller.
 
+Note - tagandbuild.bash requires the BNS_CERT and BNS_CERT_PASS environment
+variables to sign the windows executable. See Packaging for Windows below.
+
 ### Building on Linux
 
 Cross-compilation targeting Linux is currently not supported, so Linux releases
