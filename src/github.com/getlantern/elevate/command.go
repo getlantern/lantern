@@ -26,7 +26,7 @@ func Prompt(prompt string, name string, args ...string) *exec.Cmd {
 	return cmd
 }
 
-// PromptWithIcon is like Prompt, except that hte elevation prompt also
+// PromptWithIcon is like Prompt, except that the elevation prompt also
 // includes an icon loaded from the given path.
 func PromptWithIcon(prompt string, icon string, name string, args ...string) *exec.Cmd {
 	cmd, err := buildCommand(prompt, icon, name, args...)
