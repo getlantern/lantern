@@ -16,7 +16,7 @@ type Service struct {
 }
 
 var (
-	mu               sync.Mutex
+	mu               sync.RWMutex
 	defaultUIChannel *UIChannel
 
 	out      = make(chan []byte, 10)
@@ -72,12 +72,14 @@ func start() {
 	// Establish a channel to the UI for sending and receiving updates
 	defaultUIChannel = NewChannel("/data", func(write func([]byte) error) error {
 		// Sending hello messages.
+		mu.RLock()
 		for _, s := range services {
 			// Delegating task...
 			if err := s.helloFn(write); err != nil {
 				log.Errorf("Error writing to socket: %q", err)
 			}
 		}
+		mu.RUnlock()
 		return nil
 	})
 
