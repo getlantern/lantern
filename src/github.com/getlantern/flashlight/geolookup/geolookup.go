@@ -1,7 +1,6 @@
 package geolookup
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"sync"
@@ -50,28 +49,16 @@ func getUserGeolocationData(client *http.Client) (*geolookup.City, error) {
 // StartService initializes the geolocation websocket service using the given
 // http.Client to do the lookups
 func StartService(client *http.Client) (err error) {
-	helloFn := func(write func([]byte) error) error {
-		var b []byte
-		var err error
-
+	helloFn := func(write func(interface{}) error) error {
 		city, err := getUserGeolocationData(client)
 		if err != nil {
 			return err
 		}
 
-		message := ui.Envelope{
-			Type:    messageType,
-			Message: city,
-		}
-
-		if b, err = json.Marshal(message); err != nil {
-			return fmt.Errorf("Unable to marshal geolocation information: %q", err)
-		}
-
-		return write(b)
+		return write(city)
 	}
 
-	if service, err = ui.Register(messageType, helloFn); err != nil {
+	if service, err = ui.Register(messageType, nil, helloFn); err != nil {
 		return fmt.Errorf("Unable to register channel: %q", err)
 	}
 

@@ -2,6 +2,7 @@ package ui
 
 import (
 	"encoding/json"
+	"fmt"
 	"sync"
 )
 
@@ -9,11 +10,22 @@ type envelopeType struct {
 	Type string
 }
 
+// envelope is a struct that wraps messages and associates them with a type.
+type envelope struct {
+	envelopeType
+	Message interface{}
+}
+
+type helloFnType func(func(interface{}) error) error
+
 type Service struct {
-	Name    string
-	In      chan []byte
-	Out     chan []byte
-	helloFn func(func([]byte) error) error
+	Type       string
+	In         <-chan interface{}
+	Out        chan<- interface{}
+	in         chan interface{}
+	out        chan interface{}
+	newMessage func() interface{}
+	helloFn    helloFnType
 }
 
 var (
@@ -25,39 +37,44 @@ var (
 )
 
 func (s *Service) watch() {
-	// Watch for new messages and sent them to the combined output.
-	for b := range s.Out {
+	// Watch for new messages and send them to the combined output.
+	for msg := range s.out {
+		b, err := newEnvelope(s.Type, msg)
+		if err != nil {
+			log.Error(err.Error())
+		}
 		out <- b
 	}
 }
 
-func Register(name string, helloFn func(func([]byte) error) error) (*Service, error) {
+func Register(t string, newMessage func() interface{}, helloFn helloFnType) (*Service, error) {
 	mu.Lock()
+
+	if services[t] != nil {
+		// Using panic because this would be a developer error rather that
+		// something that could happen naturally.
+		panic("Service was already registered.")
+	}
 
 	if defaultUIChannel == nil {
 		// Don't start until a service is registered.
 		start()
 	}
 
-	if services[name] != nil {
-		// Using panic because this would be a developer error rather that
-		// something that could happen naturally.
-		panic("Service was already registered.")
+	s := &Service{
+		Type:       t,
+		in:         make(chan interface{}, 100),
+		out:        make(chan interface{}, 100),
+		newMessage: newMessage,
+		helloFn:    helloFn,
 	}
+	s.In, s.Out = s.in, s.out
 
-	services[name] = &Service{
-		Name: name,
-		In:   make(chan []byte, 10),
-		// We should probably use a buffered channel.
-		Out:     make(chan []byte),
-		helloFn: helloFn,
-	}
-
-	go services[name].watch()
-
+	services[t] = s
 	mu.Unlock()
 
-	return services[name], nil
+	go s.watch()
+	return s, nil
 }
 
 func start() {
@@ -65,8 +82,16 @@ func start() {
 	defaultUIChannel = NewChannel("/data", func(write func([]byte) error) error {
 		// Sending hello messages.
 		for _, s := range services {
+			writer := func(msg interface{}) error {
+				b, err := newEnvelope(s.Type, msg)
+				if err != nil {
+					return err
+				}
+				return write(b)
+			}
+
 			// Delegating task...
-			if err := s.helloFn(write); err != nil {
+			if err := s.helloFn(writer); err != nil {
 				log.Errorf("Error writing to socket: %q", err)
 			}
 		}
@@ -80,8 +105,8 @@ func read() {
 	// Reading from the combined input.
 	for b := range defaultUIChannel.In {
 		// Determining message type.
-		var env envelopeType
-		err := json.Unmarshal(b, &env)
+		var envType envelopeType
+		err := json.Unmarshal(b, &envType)
 
 		if err != nil {
 			log.Errorf("Unable to parse JSON update from browser: %q", err)
@@ -89,14 +114,29 @@ func read() {
 		}
 
 		// Delegating response to the service that registered with the given type.
-		if services[env.Type] != nil {
-			// Pass this message and continue reading another one.
-			go func() {
-				services[env.Type].In <- b
-			}()
-		} else {
-			log.Errorf("Message type %s belongs to an unkown service.", env.Type)
+		if services[envType.Type] == nil {
+			log.Errorf("Message type %v belongs to an unkown service.", envType.Type)
+			return
 		}
 
+		env := &envelope{}
+		err = json.Unmarshal(b, env)
+		if err != nil {
+			log.Errorf("Unable to unmarshal message of type %v: %v", envType.Type, err)
+			return
+		}
+		// Pass this message and continue reading another one.
+		services[env.Type].in <- env.Message
 	}
+}
+
+func newEnvelope(t string, msg interface{}) ([]byte, error) {
+	b, err := json.Marshal(&envelope{
+		envelopeType: envelopeType{t},
+		Message:      msg,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("Unable to marshal message of type %v: %v", t, msg)
+	}
+	return b, nil
 }
