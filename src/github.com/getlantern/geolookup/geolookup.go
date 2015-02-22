@@ -98,10 +98,10 @@ type Country struct {
 	} `maxminddb:"traits"`
 }
 
-// LookupCity looks up the given IP using a geolocation service and returns a
+// LookupIPWithClient looks up the given IP using a geolocation service and returns a
 // City struct. If an httpClient was provided, it uses that, otherwise it uses
 // a default http.Client.
-func LookupCity(ipAddr string, httpClient *http.Client) (*City, error) {
+func LookupIPWithClient(ipAddr string, httpClient *http.Client) (*City, error) {
 	if httpClient == nil {
 		log.Trace("Using default http.Client")
 		httpClient = defaultHttpClient

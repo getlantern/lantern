@@ -10,7 +10,7 @@ import (
 )
 
 func TestCityLookup(t *testing.T) {
-	city, err := LookupCity("198.199.72.101", nil)
+	city, err := LookupIPWithClient("198.199.72.101", nil)
 	if assert.NoError(t, err) {
 		assert.Equal(t, "New York", city.City.Names["en"])
 	}
@@ -26,6 +26,6 @@ func TestNonDefaultClient(t *testing.T) {
 		},
 	}
 
-	_, err := LookupCity("", client)
+	_, err := LookupIPWithClient("", client)
 	assert.Error(t, err, "Using bad client should have resulted in error")
 }

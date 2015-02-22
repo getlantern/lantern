@@ -60,7 +60,7 @@ func (peer *Peer) run() error {
 func (peer *Peer) geolocate() error {
 
 	// TODO: make this a service too
-	geodata, err := geolookup.LookupCity(peer.IP, nil)
+	geodata, err := geolookup.LookupIPWithClient(peer.IP, nil)
 	if err != nil {
 		return err
 	}

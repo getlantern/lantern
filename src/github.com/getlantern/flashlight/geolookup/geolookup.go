@@ -36,7 +36,7 @@ func getUserGeolocationData(client *http.Client) (*geolookup.City, error) {
 	var err error
 	for i := 0; i < maxRetries; i++ {
 		// Will look up only if we're using a proxy.
-		lookupData, err = geolookup.LookupCity("", client)
+		lookupData, err = geolookup.LookupIPWithClient("", client)
 		if err == nil {
 			// We got what we wanted, no need to query for it again, let's exit.
 			return lookupData, nil
