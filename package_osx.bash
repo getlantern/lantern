@@ -5,6 +5,17 @@ function die() {
   exit 1
 }
 
+if [ $# -lt "1" ]
+then
+    die "$0: Version required"
+fi
+
+echo "Installing svgexport tool if necessary (requires nodejs)"
+which svgexport || npm install -g svgexport
+
+echo "Installing appdmg tool if necessary (requires nodejs)"
+which appdmg || npm install -g appdmg
+
 binary="lantern_darwin_amd64"
 dmg="Lantern.dmg"
 
@@ -27,4 +38,9 @@ if [ -e $dmg ]
 then
 	rm -Rf lantern.dmg || die "Could not remove existing lantern.dmg"
 fi
+
+echo "Generating background image"
+sed "s/__VERSION__/$1/g" dmgbackground.svg > dmgbackground_versioned.svg
+svgexport dmgbackground_versioned.svg dmgbackground.png 600:400
+
 appdmg lantern.dmg.json $dmg || "Could not package Lantern.app into dmg"

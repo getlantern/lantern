@@ -7,6 +7,10 @@ APP="$LANTERN_UI/app"
 DIST="$LANTERN_UI/dist"
 
 if [ ! -d $DIST ] || [ $APP -nt $DIST ]; then
+    # Install gulp (requires nodejs)
+    echo "Installing gulp tool if necessary (requires nodejs)"
+    which gulp || npm install -g gulp
+    
     echo "Updating dist folder"
     cd $LANTERN_UI
     npm install
@@ -25,5 +29,5 @@ echo " " >> $dest
 tarfs -pkg ui src/github.com/getlantern/lantern-ui/dist >> $dest 
 
 echo "Now embedding lantern.ico to windows executable"
-go get github.com/akavel/rsrc
+go install github.com/akavel/rsrc
 rsrc -ico lantern.ico -o src/github.com/getlantern/flashlight/lantern.syso

@@ -7,9 +7,7 @@ lantern).
 
 Flashlight requires [Go 1.4.x](http://golang.org/dl/).
 
-You will also need [npm](https://www.npmjs.com/) and gulp.
-
-`npm install -g gulp`
+You will also need [npm](https://www.npmjs.com/).
 
 It is convenient to build flashlight for multiple platforms using
 [gox](https://github.com/mitchellh/gox).
@@ -62,6 +60,9 @@ The script `tagandbuild.bash` tags and runs crosscompile.bash.
 
 Note - ./crosscompile.bash omits debug symbols to keep the build smaller.
 
+Note - tagandbuild.bash requires the BNS_CERT and BNS_CERT_PASS environment
+variables to sign the windows executable. See Packaging for Windows below.
+
 ### Building on Linux
 
 Cross-compilation targeting Linux is currently not supported, so Linux releases
@@ -87,12 +88,13 @@ Lantern on OS X is packaged as the `Lantern.app` app bundle, distributed inside
 of a drag-and-drop dmg installer. The app bundle and dmg can be created using
 `./package_osx.bash`.
 
-This script requires the node module `appdmg`. Assuming you have homebrew
-installed, you can get it with ...
+This script requires that you have [nodejs](http://nodejs.org/) installed.
+
+The script takes a single parameter, which is the version string to display in
+the installer background, for example:
 
 ```bash
-brew install node
-npm install -g appdmg
+./package_osx.bash 2.0.0_beta1
 ```
 
 `./package_osx.bash` signs the Lantern.app using the BNS code signing
