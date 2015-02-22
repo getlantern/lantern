@@ -7637,6 +7637,8 @@ iframe.twitter-share-button {
 
 #welcomescreen h3 {
     font-size: 33px;
+    font-family: Roboto;
+    font-weight: bold;
     padding: 20px 0px 0px 0px;
 }
 
@@ -7646,6 +7648,11 @@ iframe.twitter-share-button {
 
 #welcomescreen h3, p {
     text-align: center;
+    font-family: Roboto;
+}
+
+#welcomescreen p {
+    font-weight: lighter;
 }
 
 #welcomescreen a:first-child {
@@ -7656,7 +7663,6 @@ iframe.twitter-share-button {
     padding: 25px 30px 25px 30px;
     font-size: 20px;
     line-height: 25px;
-    font-family: "Helvetica";
     color: rgb( 0, 0, 0 );
     font-weight: bold;
     text-align: center;
