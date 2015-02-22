@@ -69,7 +69,7 @@ func pac() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindata_file_info{name: "pac", size: 7804, mode: os.FileMode(509), modTime: time.Unix(1424362203, 0)}
+	info := bindata_file_info{name: "pac", size: 7804, mode: os.FileMode(493), modTime: time.Unix(1424639345, 0)}
 	a := &asset{bytes: bytes, info:  info}
 	return a, nil
 }
