@@ -33,7 +33,7 @@ func (client *Client) initBalancer(cfg *ClientConfig) *balancer.Balancer {
 		// use.
 		geolookup.SetHTTPClient(highestQOSFrontedDialer.DirectHttpClient())
 	} else {
-		log.Debugf("No fronted dialers found, unable to look up public ip")
+		log.Error("No fronted dialers found, unable to look up public ip")
 	}
 
 	log.Debugf("Adding %d chained servers", len(cfg.ChainedServers))

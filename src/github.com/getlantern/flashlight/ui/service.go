@@ -10,7 +10,6 @@ type envelopeType struct {
 }
 
 type Service struct {
-	Name    string
 	In      chan []byte
 	Out     chan []byte
 	helloFn func(func([]byte) error) error
@@ -46,8 +45,7 @@ func Register(name string, helloFn func(func([]byte) error) error) (*Service, er
 	}
 
 	services[name] = &Service{
-		Name: name,
-		In:   make(chan []byte, 10),
+		In: make(chan []byte, 10),
 		// We should probably use a buffered channel.
 		Out:     make(chan []byte),
 		helloFn: helloFn,
