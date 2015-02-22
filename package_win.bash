@@ -7,7 +7,9 @@ function die() {
 
 binary="lantern_windows_386.exe"
 out="lantern.exe"
-archive="lantern.zip"
+# Below is defined in lantern.nsi
+installer_unsigned="lantern-installer-unsigned.exe"
+installer="lantern-installer.exe"
 
 if [ ! -f $binary ]
 then
@@ -22,8 +24,13 @@ then
     fi
 fi
 
+which osslsigncode || echo "Installing osslsigncode" && brew install osslsigncode || die "Could not install osslsigncode"
 osslsigncode sign -pkcs12 "$BNS_CERT" -pass "$BNS_CERT_PASS" -in $binary -out $out || die "Could not sign windows executable"
-zip -9 $archive $out
+
+which makensis || echo "Installing makensis" && brew install makensis || die "Could not install makensis"
+makensis lantern.nsi
+osslsigncode sign -pkcs12 "$BNS_CERT" -pass "$BNS_CERT_PASS" -in $installer_unsigned -out $installer || die "Could not sign windows installer"
+
 echo "Windows executable available at $out"
-echo "Compressed executable archiveavailable at $archive"
+echo "Compressed executable archiveavailable at $installer"
 

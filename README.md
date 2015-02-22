@@ -110,22 +110,22 @@ The background image for the DMG is `dmgbackground.png` and the icon is in
 `Lantern.app_template/Contents/Resources/app.icns`.
 
 ### Packaging for Windows
-Lantern on Windows is currently distributed as an executable (no installer).
-This executable should be signed with `./package_windows.bash` prior to
-distributing it to end users.
+Lantern on Windows is distributed as an installer built with
+[nsis](http://nsis.sourceforge.net/). The installer is built and signed with
+./package_win.bash.
 
 Signing windows code requires that the
 [osslsigncode](http://sourceforge.net/projects/osslsigncode/) utility be
 installed. On OS X with homebrew, you can do this with
 `brew install osslsigncode`.
 
-For `./package_windows.bash` to be able to sign the executable, the environment
+For `./package_win.bash` to be able to sign the executable, the environment
 varaibles BNS_CERT and BNS_CERT_PASS must be set to point to
 [bns-cert.p12](https://github.com/getlantern/too-many-secrets/blob/master/bns_cert.p12)
 and its [password](https://github.com/getlantern/too-many-secrets/blob/master/build-installers/env-vars.txt#L3).
 You can set the environment variables and run the script on one line, like this:
 
-`BNS_CERT=<cert> BNS_CERT_PASS=<pass> ./package_windows.bash`
+`BNS_CERT=<cert> BNS_CERT_PASS=<pass> ./package_win.bash`
 
 ### Updating Icons
 
