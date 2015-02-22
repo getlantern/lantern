@@ -44,6 +44,16 @@ func Register(name string, helloFn func(func([]byte) error) error) (*Service, er
 		panic("Service was already registered.")
 	}
 
+	// Sending existent clients the hello message of the new service.
+	if helloFn != nil {
+		helloFn(func(b []byte) error {
+			log.Tracef("Sending initial message to existent clients: %q", b)
+			defaultUIChannel.out <- b
+			return nil
+		})
+	}
+
+	// Adding new service to service map.
 	services[name] = &Service{
 		In: make(chan []byte, 10),
 		// We should probably use a buffered channel.
