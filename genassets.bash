@@ -7,9 +7,12 @@ APP="$LANTERN_UI/app"
 DIST="$LANTERN_UI/dist"
 
 if [ ! -d $DIST ] || [ $APP -nt $DIST ]; then
-    # Install gulp (requires nodejs)
-    echo "Installing gulp tool if necessary (requires nodejs)"
-    which gulp || npm install -g gulp
+    which gulp > /dev/null
+    if [ $? -ne 0 ]
+    then
+        echo "Installing gulp tool (requires nodejs)"
+        npm install -g gulp
+    fi
     
     echo "Updating dist folder"
     cd $LANTERN_UI
