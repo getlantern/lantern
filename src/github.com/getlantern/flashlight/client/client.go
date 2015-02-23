@@ -2,6 +2,8 @@ package client
 
 import (
 	"crypto/x509"
+	"fmt"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"reflect"
@@ -44,17 +46,25 @@ type Client struct {
 	hqfd            fronted.Dialer
 }
 
-// ListenAndServe makes the client listen for HTTP connections
-func (client *Client) ListenAndServe() error {
+// ListenAndServe makes the client listen for HTTP connections.
+// onListening is a callback that gets invoked as soon as the server is
+// accepting TCP connections.
+func (client *Client) ListenAndServe(onListening func()) error {
+	l, err := net.Listen("tcp", client.Addr)
+	if err != nil {
+		return fmt.Errorf("Client unable to listen at %v: %v", client.Addr, err)
+	}
+
+	onListening()
+
 	httpServer := &http.Server{
-		Addr:         client.Addr,
 		ReadTimeout:  client.ReadTimeout,
 		WriteTimeout: client.WriteTimeout,
 		Handler:      client,
 	}
 
 	log.Debugf("About to start client (http) proxy at %s", client.Addr)
-	return httpServer.ListenAndServe()
+	return httpServer.Serve(l)
 }
 
 // Configure updates the client's configuration.  Configure can be called

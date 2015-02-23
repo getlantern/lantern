@@ -20,8 +20,8 @@ const (
 var (
 	log = golog.LoggerFor("flashlight.proxiedsites")
 
-	service *ui.Service
-
+	service    *ui.Service
+	PACURL     string
 	startMutex sync.Mutex
 )
 
@@ -67,8 +67,8 @@ func start() (err error) {
 	}
 
 	// Register the PAC handler
-	url := ui.Handle("/proxy_on.pac", http.HandlerFunc(proxiedsites.ServePAC))
-	log.Debugf("Serving PAC file at %v", url)
+	PACURL = ui.Handle("/proxy_on.pac", http.HandlerFunc(proxiedsites.ServePAC))
+	log.Debugf("Serving PAC file at %v", PACURL)
 
 	// Initializing reader.
 	go read()
