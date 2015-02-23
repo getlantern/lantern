@@ -10,11 +10,19 @@ then
     die "$0: Version required"
 fi
 
-echo "Installing svgexport tool if necessary (requires nodejs)"
-which svgexport || npm install -g svgexport
+which svgexport > /dev/null
+if [ $? -ne 0 ]
+then
+    echo "Installing svgexport tool (requires nodejs)"
+    npm install -g svgexport
+fi
 
-echo "Installing appdmg tool if necessary (requires nodejs)"
-which appdmg || npm install -g appdmg
+which appdmg > /dev/null
+if [ $? -ne 0 ]
+then
+    echo "Installing appdmg tool (requires nodejs)"
+    npm install -g appdmg
+fi
 
 binary="lantern_darwin_amd64"
 dmg="Lantern.dmg"
