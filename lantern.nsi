@@ -40,7 +40,7 @@ RequestExecutionLevel admin
 Section
     # Stop existing Lantern if necessary
     ${nsProcess::KillProcess} "lantern.exe" $R0
-    # Sleep for 1 second to give file lock a chance to clear
+    # Sleep for 1 second to process a chance to die and file to become writable
     Sleep 1000
 
     # Remove anything that may currently be installed
