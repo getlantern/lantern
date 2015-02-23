@@ -9,6 +9,7 @@ if [ $# -lt "1" ]
 then
     die "$0: Version required"
 fi
+version=$1
 
 which svgexport > /dev/null
 if [ $? -ne 0 ]
@@ -48,7 +49,7 @@ then
 fi
 
 echo "Generating background image"
-sed "s/__VERSION__/$1/g" dmgbackground.svg > dmgbackground_versioned.svg
+sed "s/__VERSION__/$version/g" dmgbackground.svg > dmgbackground_versioned.svg
 svgexport dmgbackground_versioned.svg dmgbackground.png 600:400
 
 appdmg lantern.dmg.json $dmg || "Could not package Lantern.app into dmg"

@@ -5,6 +5,12 @@ function die() {
   exit 1
 }
 
+if [ $# -lt "1" ]
+then
+    die "$0: Version required"
+fi
+version=$1
+
 binary="lantern_windows_386.exe"
 out="lantern.exe"
 # Below is defined in lantern.nsi
@@ -38,7 +44,7 @@ then
     echo "Installing makensis"
     brew install makensis || die "Could not install makensis"
 fi
-makensis lantern.nsi || die "Unable to build installer"
+makensis -DVERSION=$version lantern.nsi || die "Unable to build installer"
 osslsigncode sign -pkcs12 "$BNS_CERT" -pass "$BNS_CERT_PASS" -in $installer_unsigned -out $installer || die "Could not sign windows installer"
 
 echo "Windows executable available at $out"

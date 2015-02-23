@@ -61,6 +61,19 @@ Section
     # Support uninstalling via Add/Remove programs
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern" \
                      "DisplayName" "Lantern"
+
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern" \
+                     "DisplayIcon" "$INSTDIR\lantern.ico"                     
+    
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern" \
+                     "Publisher" "Brave New Software Project, Inc."
+    
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern" \
+                     "URLInfoAbout" "http://www.getlantern.org"
+    
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern" \
+                     "DisplayVersion" "${VERSION}"
+    
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern" \
                      "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
  

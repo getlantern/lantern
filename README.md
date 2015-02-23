@@ -119,13 +119,16 @@ Signing windows code requires that the
 installed. On OS X with homebrew, you can do this with
 `brew install osslsigncode`.
 
+The script takes a single parameter, which is the version string to display in
+the Add/Remove programs control panel.
+
 For `./package_win.bash` to be able to sign the executable, the environment
 varaibles BNS_CERT and BNS_CERT_PASS must be set to point to
 [bns-cert.p12](https://github.com/getlantern/too-many-secrets/blob/master/bns_cert.p12)
 and its [password](https://github.com/getlantern/too-many-secrets/blob/master/build-installers/env-vars.txt#L3).
 You can set the environment variables and run the script on one line, like this:
 
-`BNS_CERT=<cert> BNS_CERT_PASS=<pass> ./package_win.bash`
+`BNS_CERT=<cert> BNS_CERT_PASS=<pass> ./package_win.bash 2.0.0_beta1`
 
 ### Updating Icons
 
