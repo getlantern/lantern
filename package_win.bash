@@ -24,10 +24,20 @@ then
     fi
 fi
 
-which osslsigncode || echo "Installing osslsigncode" && brew install osslsigncode || die "Could not install osslsigncode"
+which osslsigncode > /dev/null
+if [ $? -ne 0 ]
+then
+    echo "Installing osslsigncode"
+    brew install osslsigncode || die "Could not install osslsigncode"
+fi
 osslsigncode sign -pkcs12 "$BNS_CERT" -pass "$BNS_CERT_PASS" -in $binary -out $out || die "Could not sign windows executable"
 
-which makensis || echo "Installing makensis" && brew install makensis || die "Could not install makensis"
+which makensis > /dev/null
+if [ $? -ne 0 ]
+then
+    echo "Installing makensis"
+    brew install makensis || die "Could not install makensis"
+fi
 makensis lantern.nsi || die "Unable to build installer"
 osslsigncode sign -pkcs12 "$BNS_CERT" -pass "$BNS_CERT_PASS" -in $installer_unsigned -out $installer || die "Could not sign windows installer"
 
