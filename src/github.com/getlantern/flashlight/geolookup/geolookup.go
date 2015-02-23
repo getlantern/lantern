@@ -22,7 +22,7 @@ const (
 )
 
 var (
-	log = golog.LoggerFor("geolookup-flashlight")
+	log = golog.LoggerFor("flashlight.geolookup")
 
 	service           *ui.Service
 	client            atomic.Value
@@ -75,7 +75,7 @@ func write() {
 	for {
 		// Wait a random amount of time (to avoid looking too suspicious)
 		// Note - rand was seeded with the startup time in flashlight.go
-		n := rand.Intn(int(publishIntervalVariance))
+		n := rand.Int63n(int64(publishIntervalVariance))
 		wait := basePublishInterval - publishIntervalVariance/2 + time.Duration(n)
 
 		oldLocation := lastKnownLocation.Load()

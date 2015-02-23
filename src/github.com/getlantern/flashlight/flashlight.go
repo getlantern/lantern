@@ -115,12 +115,6 @@ func configureStats(cfg *config.Config, failOnError bool) {
 			os.Exit(ConfigError)
 		}
 	}
-
-	if cfg.StatsAddr != "" {
-		statserver.Start(cfg.StatsAddr)
-	} else {
-		statserver.Stop()
-	}
 }
 
 // Runs the client-side proxy
@@ -143,9 +137,11 @@ func runClientProxy(cfg *config.Config) {
 
 	proxiedsites.Configure(cfg.ProxiedSites)
 	if hqfd == nil {
-		log.Errorf("No fronted dialer available, not enabling geolocation")
+		log.Errorf("No fronted dialer available, not enabling geolocation or stats")
 	} else {
-		geolookup.Configure(hqfd.DirectHttpClient())
+		hqfdc := hqfd.DirectHttpClient()
+		geolookup.Configure(hqfdc)
+		statserver.Configure(hqfdc)
 	}
 
 	// Continually poll for config updates and update client accordingly
@@ -157,7 +153,9 @@ func runClientProxy(cfg *config.Config) {
 			configureStats(cfg, false)
 			hqfd = client.Configure(cfg.Client)
 			if hqfd != nil {
-				geolookup.Configure(hqfd.DirectHttpClient())
+				hqfdc := hqfd.DirectHttpClient()
+				geolookup.Configure(hqfdc)
+				statserver.Configure(hqfdc)
 			}
 		}
 	}()

@@ -1,9 +1,8 @@
 'use strict';
 
 app.controller('RootCtrl', ['$scope', '$compile', '$window', '$http', 
-               'localStorageService', 'flashlightStats', 
-               function($scope, $compile, $window, $http, localStorageService, flashlightStats) {
-    // disabling for now flashlightStats.connect();
+               'localStorageService', 
+               function($scope, $compile, $window, $http, localStorageService) {
     $scope.currentModal = 'none';
 
     $scope.loadScript = function(src) {

@@ -18,14 +18,10 @@ const (
 )
 
 var (
-	log = golog.LoggerFor("proxiedsites-flashlight")
-)
+	log = golog.LoggerFor("flashlight.proxiedsites")
 
-var (
-	PACURL string
-
-	service *ui.Service
-
+	service    *ui.Service
+	PACURL     string
 	startMutex sync.Mutex
 )
 

@@ -46,7 +46,6 @@ type Config struct {
 	Role          string
 	InstanceId    string
 	Country       string
-	StatsAddr     string
 	CpuProfile    string
 	MemProfile    string
 	Stats         *statreporter.Config

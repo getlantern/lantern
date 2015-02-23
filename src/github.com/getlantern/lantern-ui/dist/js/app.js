@@ -3,6 +3,7 @@
 var app = angular.module('app', [
   'app.constants',
   'ngWebSocket',
+  'LocalStorageModule',
   'app.helpers',
   'pascalprecht.translate',
   'app.filters',
@@ -29,7 +30,7 @@ var app = angular.module('app', [
       }
     };
   })
-  .config(function($tooltipProvider, $httpProvider, 
+  .config(function($tooltipProvider, $httpProvider,
                    $resourceProvider, $translateProvider, DEFAULT_LANG) {
 
       $translateProvider.preferredLanguage(DEFAULT_LANG);
@@ -60,7 +61,7 @@ var app = angular.module('app', [
                   return text.split("\n");
               }
 
-              function toUser(array) {                        
+              function toUser(array) {
                   if (array) {
                     return array.join("\n");
                   }
@@ -71,40 +72,29 @@ var app = angular.module('app', [
           }
       };
   })
-  .factory('ProxiedSites', ['$websocket', '$interval', '$window', '$rootScope', function($websocket, $interval, $window, $rootScope) {
-      var dataStream = $websocket('ws://' + document.location.host + '/data');
+  .factory('DataStream', [
+    '$websocket',
+    '$rootScope',
+    '$interval',
+    '$window',
+    'Messages',
+    function($websocket, $rootScope, $interval, $window, Messages) {
+
       var WS_RECONNECT_INTERVAL = 5000;
-      var WS_RETRY_COUNT = 0;
+      var WS_RETRY_COUNT        = 0;
 
-      dataStream.onMessage(function(message) {
-          var msg = JSON.parse(message.data);
-          console.log("Got proxiedsites msg", msg);
+      var ds = $websocket('ws://' + document.location.host + '/data');
 
-          if (!$rootScope.entries) {
-            console.log("Initializing proxied sites entries", msg.Additions);
-            $rootScope.entries = msg.Additions;
-            $rootScope.originalList = msg.Additions;
-          } else {
-            var entries = $rootScope.entries.slice(0);
-            if (msg.Additions) {
-              entries = _.union(entries, msg.Additions);
-            }
-            if (msg.Deletions) {
-              entries = _.difference(entries, msg.Deletions)
-            }
-            entries = _.compact(entries);
-            entries.sort();
-
-            console.log("About to set entries", entries);
-            $rootScope.$apply(function() {
-              console.log("Setting entries", entries);
-              $rootScope.entries = entries;
-              $rootScope.originalList = entries;  
-            })
-          }
+      ds.onMessage(function(raw) {
+        var envelope = JSON.parse(raw.data);
+        if (typeof Messages[envelope.Type] != 'undefined') {
+          Messages[envelope.Type].call(this, envelope.Message);
+        } else {
+          console.log('Got unknown message type: ' + envelope.Type);
+        };
       });
 
-      dataStream.onOpen(function(msg) {
+      ds.onOpen(function(msg) {
         $rootScope.wsConnected = true;
         WS_RETRY_COUNT = 0;
         $rootScope.backendIsGone = false;
@@ -112,32 +102,49 @@ var app = angular.module('app', [
         console.log("New websocket instance created " + msg);
       });
 
-      dataStream.onClose(function(msg) {
-          $rootScope.wsConnected = false;
-          // try to reconnect indefinitely
-          // when the websocket closes
-          $interval(function() {
-              console.log("Trying to reconnect to disconnected websocket");
-              dataStream = $websocket('ws://' + document.location.host + '/data');
-              dataStream.onOpen(function(msg) {
-                $window.location.reload();
-              });
-          }, WS_RECONNECT_INTERVAL);
-          console.log("This websocket instance closed " + msg);
+      ds.onClose(function(msg) {
+        $rootScope.wsConnected = false;
+        // try to reconnect indefinitely
+        // when the websocket closes
+        $interval(function() {
+          console.log("Trying to reconnect to disconnected websocket");
+          ds = $websocket('ws://' + document.location.host + '/data');
+          ds.onOpen(function(msg) {
+            $window.location.reload();
+          });
+        }, WS_RECONNECT_INTERVAL);
+        console.log("This websocket instance closed " + msg);
       });
 
-      dataStream.onError(function(msg) {
+      ds.onError(function(msg) {
           console.log("Error on this websocket instance " + msg);
       });
 
       var methods = {
-          update: function() {
-              dataStream.send(JSON.stringify($rootScope.updates));
-          },
-          get: function() {
-              dataStream.send(JSON.stringify({ action: 'get' }));
-          }
+        'send': function(messageType, data) {
+          console.log('request to send.');
+          ds.send(JSON.stringify({'Type': messageType, 'Message': data}))
+        }
       };
+
+      return methods;
+    }
+  ])
+  .factory('ProxiedSites', ['$window', '$rootScope', 'DataStream', function($window, $rootScope, DataStream) {
+
+      var methods = {
+        update: function() {
+          console.log('UPDATE');
+          // dataStream.send(JSON.stringify($rootScope.updates));
+          DataStream.send('ProxiedSites', $rootScope.updates)
+        },
+        get: function() {
+          console.log('GET');
+          // dataStream.send(JSON.stringify({ action: 'get' }));
+          DataStream.send('ProxiedSites', {'action': 'get'});
+        }
+      };
+
       return methods;
   }])
   .run(function ($filter, $log, $rootScope, $timeout, $window, $websocket,
@@ -149,6 +156,11 @@ var app = angular.module('app', [
         model = modelSrvc.model,
         prettyUserFltr = $filter('prettyUser'),
         reportedStateFltr = $filter('reportedState');
+
+    // configure settings
+    // set default client to get-mode
+    model.settings = {};
+    model.settings.mode = 'get';
 
     // for easier inspection in the JavaScript console
     $window.rootScope = $rootScope;
@@ -656,6 +668,50 @@ angular.module('app.filters', [])
 'use strict';
 
 angular.module('app.services', [])
+  // Messages service will return a map of callbacks that handle websocket
+  // messages sent from the flashlight process.
+  .service('Messages', function($rootScope, modelSrvc) {
+
+    var model = modelSrvc.model;
+
+    var fnList = {
+      'GeoLookup': function(data) {
+        console.log('Got GeoLookup information: ', data);
+        if (data && data.Location) {
+            model.location = {};
+            model.location.lon = data.Location.Longitude;
+            model.location.lat = data.Location.Latitude;
+            model.location.resolved = true;
+        }
+      },
+      'ProxiedSites': function(data) {
+        if (!$rootScope.entries) {
+          console.log("Initializing proxied sites entries", data.Additions);
+          $rootScope.entries = data.Additions;
+          $rootScope.originalList = data.Additions;
+        } else {
+          var entries = $rootScope.entries.slice(0);
+          if (data.Additions) {
+            entries = _.union(entries, data.Additions);
+          }
+          if (data.Deletions) {
+            entries = _.difference(entries, data.Deletions)
+          }
+          entries = _.compact(entries);
+          entries.sort();
+
+          console.log("About to set entries", entries);
+          $rootScope.$apply(function() {
+            console.log("Setting entries", entries);
+            $rootScope.entries = entries;
+            $rootScope.originalList = entries;
+          })
+        }
+      }
+    };
+
+    return fnList;
+  })
   .service('modelSrvc', function($rootScope, apiSrvc, $window, MODEL_SYNC_CHANNEL,  flashlightStats) {
       var model = {},
         syncSubscriptionKey;
@@ -695,11 +751,11 @@ angular.module('app.services', [])
             flashlightStats.updateModel(model, shouldUpdateInstanceStats);
         }
 
-        if (!$rootScope.validatedModel) { 
-            $rootScope.$apply(updateModel()); 
-            $rootScope.validatedModel = true 
-        } else { 
-            updateModel(); 
+        if (!$rootScope.validatedModel) {
+            $rootScope.$apply(updateModel());
+            $rootScope.validatedModel = true
+        } else {
+            updateModel();
         }
       }
 
@@ -781,41 +837,41 @@ angular.module('app.services', [])
           flashlightPeers[peer.peerid] = peer;
         }
       }, false);
-  
+
       source.addEventListener('open', function(e) {
         //$log.debug("flashlight connection opened");
       }, false);
-  
+
       source.addEventListener('error', function(e) {
         if (e.readyState == EventSource.CLOSED) {
           //$log.debug("flashlight connection closed");
         }
       }, false);
     }
-    
+
     // updateModel updates a model that doesn't include flashlight peers with
     // information about the flashlight peers, including updating aggregated
     // figure slike total bps.
     function updateModel(model, shouldUpdateInstanceStats) {
       for (var peerid in flashlightPeers) {
         var peer = flashlightPeers[peerid];
-        
+
         // Consider peer connected if it's been less than x seconds since
         // lastConnected
         var lastConnected = Date.parse(peer.lastConnected);
         var delta = new Date().getTime() - Date.parse(peer.lastConnected);
         peer.connected = delta < 30000;
-        
+
         // Add peer to model
         model.peers.push(peer);
-        
+
         if (shouldUpdateInstanceStats) {
           // Update total bytes up/dn
           model.instanceStats.allBytes.rate += peer.bpsUpDn;
         }
       }
     }
-    
+
     return {
       connect: connect,
       updateModel: updateModel,
@@ -824,11 +880,36 @@ angular.module('app.services', [])
 
 'use strict';
 
-app.controller('RootCtrl', ['$scope', '$http', 'flashlightStats', function($scope, $http, flashlightStats) {
+app.controller('RootCtrl', ['$scope', '$compile', '$window', '$http', 
+               'localStorageService', 'flashlightStats', 
+               function($scope, $compile, $window, $http, localStorageService, flashlightStats) {
     // disabling for now flashlightStats.connect();
     $scope.currentModal = 'none';
 
+    $scope.loadScript = function(src) {
+        (function() { 
+            var script  = document.createElement("script")
+            script.type = "text/javascript";
+            script.src  = src;
+            script.async = true;
+            var x = document.getElementsByTagName('script')[0];
+            x.parentNode.insertBefore(script, x);
+        })();
+    };
+    $scope.loadShareScripts = function() {
+        if (!$window.twttr) {
+            // inject twitter share widget script
+            $scope.loadScript('//platform.twitter.com/widgets.js');
+            // load FB share script
+            $scope.loadScript('//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.0');
+        }
+    };
+
     $scope.showModal = function(val) {
+        if (val == 'welcome') {
+            $scope.loadShareScripts();
+        }
+
         $scope.currentModal = val;
     };
 
@@ -836,6 +917,11 @@ app.controller('RootCtrl', ['$scope', '$http', 'flashlightStats', function($scop
         $scope.currentModal = 'none';
     };
 
+    if (!localStorageService.get('lanternWelcomeKey')) {
+        $scope.showModal('welcome');
+        localStorageService.set('lanternWelcomeKey', true);
+    }
+  
 }]);
 
 app.controller('UpdateAvailableCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
@@ -981,7 +1067,7 @@ app.controller('ProxiedSitesCtrl', ['$rootScope', '$scope', '$filter', 'SETTING'
       $scope.errorLabelKey = 'ERROR_MAX_PROXIED_SITES_EXCEEDED';
       $scope.errorCause = '';
     }
-    $scope.hasUpdate = !_.isEqual(proxiedSites, proxiedSitesDirty); 
+    $scope.hasUpdate = !_.isEqual(proxiedSites, proxiedSitesDirty);
     return !$scope.errorLabelKey;
   };
 
@@ -993,13 +1079,13 @@ app.controller('ProxiedSitesCtrl', ['$rootScope', '$scope', '$filter', 'SETTING'
 
   $scope.handleContinue = function () {
     $rootScope.updates = {};
-     
+
     if ($scope.proxiedSitesForm.$invalid) {
       return $scope.interaction(INTERACTION.continue);
     }
 
     $scope.entries = $scope.arrLowerCase(proxiedSitesDirty);
-    $rootScope.updates.Additions = $scope.setDiff($scope.entries, 
+    $rootScope.updates.Additions = $scope.setDiff($scope.entries,
                                        $scope.originalList);
     $rootScope.updates.Deletions = $scope.setDiff($scope.originalList, $scope.entries);
 
