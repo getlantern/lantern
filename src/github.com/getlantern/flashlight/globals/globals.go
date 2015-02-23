@@ -3,14 +3,34 @@ package globals
 
 import (
 	"crypto/x509"
+	"sync/atomic"
+
+	"github.com/getlantern/geolookup"
 	"github.com/getlantern/keyman"
 )
 
 var (
 	InstanceId = ""
-	Country    = "xx"
 	TrustedCAs *x509.CertPool
+
+	location atomic.Value
 )
+
+func SetLocation(loc *geolookup.City) {
+	location.Store(loc)
+}
+
+func GetLocation() *geolookup.City {
+	return location.Load().(*geolookup.City)
+}
+
+func GetCountry() string {
+	loc := GetLocation()
+	if loc == nil {
+		return ""
+	}
+	return loc.Country.IsoCode
+}
 
 func SetTrustedCAs(certs []string) error {
 	newTrustedCAs, err := keyman.PoolContainingCerts(certs...)

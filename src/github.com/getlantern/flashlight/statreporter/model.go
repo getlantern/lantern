@@ -43,7 +43,7 @@ func Dim(key string, value string) *DimGroup {
 }
 
 func CountryDim() *DimGroup {
-	return Country(globals.Country)
+	return Country(globals.GetCountry())
 }
 
 func Country(country string) *DimGroup {
@@ -61,7 +61,7 @@ func (dg *DimGroup) And(key string, value string) *DimGroup {
 }
 
 func (dg *DimGroup) WithCountry() *DimGroup {
-	return dg.And(countryDim, globals.Country)
+	return dg.And(countryDim, globals.GetCountry())
 }
 
 // String returns a string representation of this DimGroup with keys in

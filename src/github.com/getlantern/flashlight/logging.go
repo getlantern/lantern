@@ -14,6 +14,8 @@ import (
 	"github.com/getlantern/jibber_jabber"
 	"github.com/getlantern/wfilter"
 	"github.com/segmentio/go-loggly"
+
+	"github.com/getlantern/flashlight/globals"
 )
 
 var (
@@ -21,7 +23,6 @@ var (
 	log                = golog.LoggerFor("flashlight")
 	versionToLoggly    = fmt.Sprintf("%v (%v)", version, buildDate)
 	lang               string
-	country            string
 	tz                 string
 
 	// logglyToken is populated at build time by crosscompile.bash. During
@@ -31,7 +32,6 @@ var (
 
 func init() {
 	lang, _ = jibber_jabber.DetectLanguage()
-	country, _ = jibber_jabber.DetectTerritory()
 	tz = time.Local.String()
 }
 
@@ -90,10 +90,11 @@ func writeToLoggly(l *loggly.Client, level string, msg string) (int, error) {
 		"osArch":    runtime.GOARCH,
 		"osVersion": "",
 		"language":  lang,
-		"country":   country,
+		"country":   globals.GetCountry(),
 		"timeZone":  tz,
 		"version":   versionToLoggly,
 	}
+
 	m := loggly.Message{
 		"extra":   extra,
 		"message": msg,
