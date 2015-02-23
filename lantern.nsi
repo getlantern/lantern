@@ -77,6 +77,9 @@ SectionEnd
  
 # uninstaller section start
 Section "uninstall"
+    # Stop Lantern if necessary
+    ${nsProcess::KillProcess} "lantern.exe" $R0
+
     RMDir /r "$SMPROGRAMS\Lantern"
     RMDir /r "$INSTDIR" 
  
