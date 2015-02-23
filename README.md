@@ -7,9 +7,7 @@ lantern).
 
 Flashlight requires [Go 1.4.x](http://golang.org/dl/).
 
-You will also need [npm](https://www.npmjs.com/) and gulp.
-
-`npm install -g gulp`
+You will also need [npm](https://www.npmjs.com/).
 
 It is convenient to build flashlight for multiple platforms using
 [gox](https://github.com/mitchellh/gox).
@@ -62,6 +60,9 @@ The script `tagandbuild.bash` tags and runs crosscompile.bash.
 
 Note - ./crosscompile.bash omits debug symbols to keep the build smaller.
 
+Note - tagandbuild.bash requires the BNS_CERT and BNS_CERT_PASS environment
+variables to sign the windows executable. See Packaging for Windows below.
+
 ### Building on Linux
 
 Cross-compilation targeting Linux is currently not supported, so Linux releases
@@ -72,17 +73,28 @@ See https://github.com/getlantern/lantern/issues/2235.
 
 `sudo apt-get install libgtk-3-dev libappindicator3-dev`
 
+### Building at Development Time
+
+At development time, you might use `go install github.com/getlantern/flashlight`
+or `go build github.com/getlantern/flashlight`. If you do this after using
+`crosscompile.bash` you might get an error like this:
+
+> ld: warning: ignoring file /var/folders/j_/9dywssj524gf3100s4q9l48w0000gp/T//go-link-LUd0tc/000000.o, file was built for unsupported file format ( 0x4C 0x01 0x01 0x00 0x00 0x00 0x00 0x00 0x2C 0xFD 0x01 0x00 0x01 0x00 0x00 0x00 ) which is not the architecture being linked (x86_64): /var/folders/j_/9dywssj524gf3100s4q9l48w0000gp/T//go-link-LUd0tc/000000.o
+
+You can avoid this by using `CGO_ENABLED=1 go install`.
+
 ### Packaging for OS X
 Lantern on OS X is packaged as the `Lantern.app` app bundle, distributed inside
 of a drag-and-drop dmg installer. The app bundle and dmg can be created using
 `./package_osx.bash`.
 
-This script requires the node module `appdmg`. Assuming you have homebrew
-installed, you can get it with ...
+This script requires that you have [nodejs](http://nodejs.org/) installed.
+
+The script takes a single parameter, which is the version string to display in
+the installer background, for example:
 
 ```bash
-brew install node
-npm install -g appdmg
+./package_osx.bash 2.0.0_beta1
 ```
 
 `./package_osx.bash` signs the Lantern.app using the BNS code signing
@@ -95,9 +107,9 @@ app bundle won't be signed. Unsigned app bundles can be used for testing but
 should never be distributed to end users.
 
 The background image for the DMG is `dmgbackground.png` and the icon is in
-`lantern.icns`.
+`Lantern.app_template/Contents/Resources/app.icns`.
 
-### Packaging on Windows
+### Packaging for Windows
 Lantern on Windows is currently distributed as an executable (no installer).
 This executable should be signed with `./package_windows.bash` prior to
 distributing it to end users.

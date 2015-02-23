@@ -1,10 +1,8 @@
-<div id="vis-block" ng-hide="!show || model.modal == 'none'"></div>
-
 <!--
   Only show yourself on the map if you've either managed to do a geoip lookup or have a stored geolocation.
 -->
-<div id="vis" ng-controller="VisCtrl">
-    <svg id="map" resizable>
+<div id="vis" ng-controller="VisCtrl" resizable>
+    <svg id="map">
     <g id="zoomGroup" transform="matrix(1 0 0 1 0 0)">
     <g id="countries" countries />
     <g id="peers" peers></g>
