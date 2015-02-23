@@ -21,7 +21,11 @@ func SetLocation(loc *geolookup.City) {
 }
 
 func GetLocation() *geolookup.City {
-	return location.Load().(*geolookup.City)
+	l := location.Load()
+	if l == nil {
+		return nil
+	}
+	return l.(*geolookup.City)
 }
 
 func GetCountry() string {
