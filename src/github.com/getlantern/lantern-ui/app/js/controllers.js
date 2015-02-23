@@ -1,11 +1,35 @@
 'use strict';
 
-app.controller('RootCtrl', ['$scope', '$http', 'localStorageService', 'flashlightStats', 
-               function($scope, $http, localStorageService, flashlightStats) {
+app.controller('RootCtrl', ['$scope', '$compile', '$window', '$http', 
+               'localStorageService', 'flashlightStats', 
+               function($scope, $compile, $window, $http, localStorageService, flashlightStats) {
     // disabling for now flashlightStats.connect();
     $scope.currentModal = 'none';
 
+    $scope.loadScript = function(src) {
+        (function() { 
+            var script  = document.createElement("script")
+            script.type = "text/javascript";
+            script.src  = src;
+            script.async = true;
+            var x = document.getElementsByTagName('script')[0];
+            x.parentNode.insertBefore(script, x);
+        })();
+    };
+    $scope.loadShareScripts = function() {
+        if (!$window.twttr) {
+            // inject twitter share widget script
+            $scope.loadScript('//platform.twitter.com/widgets.js');
+            // load FB share script
+            $scope.loadScript('//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.0');
+        }
+    };
+
     $scope.showModal = function(val) {
+        if (val == 'welcome') {
+            $scope.loadShareScripts();
+        }
+
         $scope.currentModal = val;
     };
 
@@ -17,8 +41,7 @@ app.controller('RootCtrl', ['$scope', '$http', 'localStorageService', 'flashligh
         $scope.showModal('welcome');
         localStorageService.set('lanternWelcomeKey', true);
     }
-
-
+  
 }]);
 
 app.controller('UpdateAvailableCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
