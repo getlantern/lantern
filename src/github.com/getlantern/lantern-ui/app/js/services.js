@@ -1,6 +1,50 @@
 'use strict';
 
 angular.module('app.services', [])
+  // Messages service will return a map of callbacks that handle websocket
+  // messages sent from the flashlight process.
+  .service('Messages', function($rootScope, modelSrvc) {
+
+    var model = modelSrvc.model;
+
+    var fnList = {
+      'GeoLookup': function(data) {
+        console.log('Got GeoLookup information: ', data);
+        if (data && data.Location) {
+            model.location = {};
+            model.location.lon = data.Location.Longitude;
+            model.location.lat = data.Location.Latitude;
+            model.location.resolved = true;
+        }
+      },
+      'ProxiedSites': function(data) {
+        if (!$rootScope.entries) {
+          console.log("Initializing proxied sites entries", data.Additions);
+          $rootScope.entries = data.Additions;
+          $rootScope.originalList = data.Additions;
+        } else {
+          var entries = $rootScope.entries.slice(0);
+          if (data.Additions) {
+            entries = _.union(entries, data.Additions);
+          }
+          if (data.Deletions) {
+            entries = _.difference(entries, data.Deletions)
+          }
+          entries = _.compact(entries);
+          entries.sort();
+
+          console.log("About to set entries", entries);
+          $rootScope.$apply(function() {
+            console.log("Setting entries", entries);
+            $rootScope.entries = entries;
+            $rootScope.originalList = entries;
+          })
+        }
+      }
+    };
+
+    return fnList;
+  })
   .service('modelSrvc', function($rootScope, apiSrvc, $window, MODEL_SYNC_CHANNEL,  flashlightStats) {
       var model = {},
         syncSubscriptionKey;
@@ -40,11 +84,11 @@ angular.module('app.services', [])
             flashlightStats.updateModel(model, shouldUpdateInstanceStats);
         }
 
-        if (!$rootScope.validatedModel) { 
-            $rootScope.$apply(updateModel()); 
-            $rootScope.validatedModel = true 
-        } else { 
-            updateModel(); 
+        if (!$rootScope.validatedModel) {
+            $rootScope.$apply(updateModel());
+            $rootScope.validatedModel = true
+        } else {
+            updateModel();
         }
       }
 
@@ -126,41 +170,41 @@ angular.module('app.services', [])
           flashlightPeers[peer.peerid] = peer;
         }
       }, false);
-  
+
       source.addEventListener('open', function(e) {
         //$log.debug("flashlight connection opened");
       }, false);
-  
+
       source.addEventListener('error', function(e) {
         if (e.readyState == EventSource.CLOSED) {
           //$log.debug("flashlight connection closed");
         }
       }, false);
     }
-    
+
     // updateModel updates a model that doesn't include flashlight peers with
     // information about the flashlight peers, including updating aggregated
     // figure slike total bps.
     function updateModel(model, shouldUpdateInstanceStats) {
       for (var peerid in flashlightPeers) {
         var peer = flashlightPeers[peerid];
-        
+
         // Consider peer connected if it's been less than x seconds since
         // lastConnected
         var lastConnected = Date.parse(peer.lastConnected);
         var delta = new Date().getTime() - Date.parse(peer.lastConnected);
         peer.connected = delta < 30000;
-        
+
         // Add peer to model
         model.peers.push(peer);
-        
+
         if (shouldUpdateInstanceStats) {
           // Update total bytes up/dn
           model.instanceStats.allBytes.rate += peer.bpsUpDn;
         }
       }
     }
-    
+
     return {
       connect: connect,
       updateModel: updateModel,

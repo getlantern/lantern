@@ -157,7 +157,7 @@ app.controller('ProxiedSitesCtrl', ['$rootScope', '$scope', '$filter', 'SETTING'
       $scope.errorLabelKey = 'ERROR_MAX_PROXIED_SITES_EXCEEDED';
       $scope.errorCause = '';
     }
-    $scope.hasUpdate = !_.isEqual(proxiedSites, proxiedSitesDirty); 
+    $scope.hasUpdate = !_.isEqual(proxiedSites, proxiedSitesDirty);
     return !$scope.errorLabelKey;
   };
 
@@ -169,13 +169,13 @@ app.controller('ProxiedSitesCtrl', ['$rootScope', '$scope', '$filter', 'SETTING'
 
   $scope.handleContinue = function () {
     $rootScope.updates = {};
-     
+
     if ($scope.proxiedSitesForm.$invalid) {
       return $scope.interaction(INTERACTION.continue);
     }
 
     $scope.entries = $scope.arrLowerCase(proxiedSitesDirty);
-    $rootScope.updates.Additions = $scope.setDiff($scope.entries, 
+    $rootScope.updates.Additions = $scope.setDiff($scope.entries,
                                        $scope.originalList);
     $rootScope.updates.Deletions = $scope.setDiff($scope.originalList, $scope.entries);
 

@@ -16,6 +16,7 @@ import (
 
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
+	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/proxiedsites"
 	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/statreporter"
@@ -103,7 +104,10 @@ func displayVersion() {
 }
 
 func configureStats(cfg *config.Config, failOnError bool) {
-	err := statreporter.Configure(cfg.Stats)
+	var err error
+
+	// Configuring statreporter
+	err = statreporter.Configure(cfg.Stats)
 	if err != nil {
 		log.Error(err)
 		if failOnError {
@@ -127,10 +131,8 @@ func runClientProxy(cfg *config.Config) {
 		WriteTimeout: 0,
 	}
 
-	// Configure client initially
-	client.Configure(cfg.Client)
+	hqfd := client.Configure(cfg.Client)
 
-	// Start UI server
 	if cfg.UIAddr != "" {
 		err := ui.Start(cfg.UIAddr)
 		if err != nil {
@@ -139,8 +141,12 @@ func runClientProxy(cfg *config.Config) {
 		ui.Show()
 	}
 
-	// intitial proxied sites configuration
 	proxiedsites.Configure(cfg.ProxiedSites)
+	if hqfd == nil {
+		log.Errorf("No fronted dialer available, not enabling geolocation")
+	} else {
+		geolookup.Configure(hqfd.DirectHttpClient())
+	}
 
 	// Continually poll for config updates and update client accordingly
 	go func() {
@@ -149,7 +155,10 @@ func runClientProxy(cfg *config.Config) {
 
 			proxiedsites.Configure(cfg.ProxiedSites)
 			configureStats(cfg, false)
-			client.Configure(cfg.Client)
+			hqfd = client.Configure(cfg.Client)
+			if hqfd != nil {
+				geolookup.Configure(hqfd.DirectHttpClient())
+			}
 		}
 	}()
 

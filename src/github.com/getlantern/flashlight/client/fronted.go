@@ -56,7 +56,7 @@ type FrontedServerInfo struct {
 	QOS int
 }
 
-func (s *FrontedServerInfo) dialer(masqueradeSets map[string][]*fronted.Masquerade) *balancer.Dialer {
+func (s *FrontedServerInfo) dialer(masqueradeSets map[string][]*fronted.Masquerade) (fronted.Dialer, *balancer.Dialer) {
 	fd := fronted.NewDialer(fronted.Config{
 		Host:               s.Host,
 		Port:               s.Port,
@@ -75,7 +75,7 @@ func (s *FrontedServerInfo) dialer(masqueradeSets map[string][]*fronted.Masquera
 	if s.MasqueradeSet != "" {
 		masqueradeQualifier = fmt.Sprintf(" using masquerade set %s", s.MasqueradeSet)
 	}
-	return &balancer.Dialer{
+	return fd, &balancer.Dialer{
 		Label:  fmt.Sprintf("fronted proxy at %s:%d%s", s.Host, s.Port, masqueradeQualifier),
 		Weight: s.Weight,
 		QOS:    s.QOS,
