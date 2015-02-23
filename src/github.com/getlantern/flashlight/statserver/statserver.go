@@ -81,16 +81,26 @@ func registerService() error {
 }
 
 func OnBytesReceived(ip string, bytes int64) {
+	peersMutex.Lock()
+	defer peersMutex.Unlock()
+	if peers == nil {
+		// Statserver not running
+		return
+	}
 	getOrCreatePeer(ip).onBytesReceived(bytes)
 }
 
 func OnBytesSent(ip string, bytes int64) {
+	peersMutex.Lock()
+	defer peersMutex.Unlock()
+	if peers == nil {
+		// Statserver not running
+		return
+	}
 	getOrCreatePeer(ip).onBytesSent(bytes)
 }
 
 func getOrCreatePeer(ip string) *Peer {
-	peersMutex.Lock()
-	defer peersMutex.Unlock()
 	peer, found := peers[ip]
 	if found {
 		return peer
