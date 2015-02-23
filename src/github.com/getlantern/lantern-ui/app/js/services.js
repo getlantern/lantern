@@ -91,7 +91,7 @@ angular.module('app.services', [])
       },
       'Stats': function(data) {
         if (data.type != "peer") {
-          // Ignore anything that's not peers
+          return;
         }
 
         if (!model.location) {
