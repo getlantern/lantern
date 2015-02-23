@@ -11,7 +11,7 @@ if [ ! -d $DIST ] || [ $APP -nt $DIST ]; then
     if [ $? -ne 0 ]
     then
         echo "Installing gulp tool (requires nodejs)"
-        npm install -g gulp
+        npm install -g gulp || die "Could not install gulp"
     fi
     
     echo "Updating dist folder"

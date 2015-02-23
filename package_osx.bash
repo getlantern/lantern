@@ -14,14 +14,14 @@ which svgexport > /dev/null
 if [ $? -ne 0 ]
 then
     echo "Installing svgexport tool (requires nodejs)"
-    npm install -g svgexport
+    npm install -g svgexport || die "Could not install svgexport"
 fi
 
 which appdmg > /dev/null
 if [ $? -ne 0 ]
 then
     echo "Installing appdmg tool (requires nodejs)"
-    npm install -g appdmg
+    npm install -g appdmg || die "Could not install appdmg"
 fi
 
 binary="lantern_darwin_amd64"
