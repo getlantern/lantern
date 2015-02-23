@@ -3,6 +3,11 @@ Name "Lantern"
 # Installs Lantern and launchs it
 # See http://nsis.sourceforge.net/Run_an_application_shortcut_after_an_install
 
+AutoCloseWindow true
+
+!addplugindir nsProcess/Plugin
+!include "nsProcess/Include/nsProcess.nsh"
+
 # Use the modern ui
 !include MUI.nsh
 !define MUI_ICON lantern.ico
@@ -33,6 +38,12 @@ RequestExecutionLevel user
     
 # start default section
 Section
+    # Stop existing Lantern if necessary
+    ${nsProcess::KillProcess} "lantern.exe" $R0
+    DetailPrint "Result of killing lantern.exe: [$R0]"
+    DetailPrint "Sleeping for 1 second to give file lock a chance to clear"
+    Sleep 1000
+
     # Remove anything that may currently be installed
     RMDir /r "$SMPROGRAMS\Lantern"
     RMDir /r "$INSTDIR"
@@ -60,6 +71,8 @@ Section
 
     # Launch Lantern
     ExecShell "" "$SMPROGRAMS\Lantern\Lantern.lnk"
+
+    ${nsProcess::Unload}
 SectionEnd
  
 # uninstaller section start
@@ -71,7 +84,15 @@ Section "uninstall"
 SectionEnd
 
 Function .onInit
+  Call SelectLanguage
+FunctionEnd
+ 
+Function un.onInit
+  Call un.SelectLanguage
+FunctionEnd
 
+!macro SelectLanguage UN
+Function ${UN}SelectLanguage
     ;Language selection dialog
 
     Push ""
@@ -81,8 +102,6 @@ Function .onInit
     Push Czech
     Push ${LANG_DUTCH}
     Push Dutch
-    Push ${LANG_FARSI}
-    Push Farsi
     Push ${LANG_FRENCH}
     Push French
     Push ${LANG_GERMAN}
@@ -109,3 +128,6 @@ Function .onInit
     StrCmp $LANGUAGE "cancel" 0 +2
         Abort
 FunctionEnd
+!macroend
+!insertmacro SelectLanguage ""
+!insertmacro SelectLanguage "un."

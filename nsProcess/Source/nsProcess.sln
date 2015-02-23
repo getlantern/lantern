@@ -1,0 +1,23 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nsProcess", "nsProcess.vcproj", "{BD73F235-28DE-40F5-B047-14222BC77FDC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release ANSI|Win32 = Release ANSI|Win32
+		Release UNICODE|Win32 = Release UNICODE|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BD73F235-28DE-40F5-B047-14222BC77FDC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{BD73F235-28DE-40F5-B047-14222BC77FDC}.Debug|Win32.Build.0 = Debug|Win32
+		{BD73F235-28DE-40F5-B047-14222BC77FDC}.Release ANSI|Win32.ActiveCfg = Release ANSI|Win32
+		{BD73F235-28DE-40F5-B047-14222BC77FDC}.Release ANSI|Win32.Build.0 = Release ANSI|Win32
+		{BD73F235-28DE-40F5-B047-14222BC77FDC}.Release UNICODE|Win32.ActiveCfg = Release UNICODE|Win32
+		{BD73F235-28DE-40F5-B047-14222BC77FDC}.Release UNICODE|Win32.Build.0 = Release UNICODE|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
