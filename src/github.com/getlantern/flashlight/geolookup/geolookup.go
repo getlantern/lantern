@@ -81,6 +81,7 @@ func write() {
 		oldLocation := lastKnownLocation.Load()
 		location, err := geolookup.LookupIPWithClient("", client.Load().(*http.Client))
 		if err == nil {
+			consecutiveFailures = 0
 			oldLocation := lastKnownLocation.Load()
 			if !reflect.DeepEqual(location, oldLocation) {
 				log.Debugf("Location changed")
@@ -91,10 +92,12 @@ func write() {
 		} else {
 			log.Errorf("Unable to get current location: %v", err)
 			// When retrying after a failure, wait a different amount of time
-			retryWait := time.Duration(math.Pow(float64(retryWaitTime), float64(consecutiveFailures)))
+			retryWait := time.Duration(math.Pow(2, float64(consecutiveFailures)) * float64(retryWaitTime))
 			if retryWait < wait {
 				wait = retryWait
 			}
+			log.Debugf("Waiting %v before retrying", wait)
+			consecutiveFailures += 1
 			// If available, publish last known location
 			if oldLocation != nil {
 				service.Out <- location
