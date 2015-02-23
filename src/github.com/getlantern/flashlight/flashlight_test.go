@@ -120,7 +120,7 @@ func TestCloudFlare(t *testing.T) {
 		},
 	})
 	go func() {
-		err := clt.ListenAndServe()
+		err := clt.ListenAndServe(func() {})
 		if err != nil {
 			t.Fatalf("Unable to run client: %s", err)
 		}

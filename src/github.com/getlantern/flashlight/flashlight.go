@@ -153,7 +153,7 @@ func runClientProxy(cfg *config.Config) {
 		}
 	}()
 
-	err := client.ListenAndServe()
+	err := client.ListenAndServe(pacOn)
 	if err != nil {
 		log.Fatalf("Unable to run client proxy: %s", err)
 	}
@@ -213,6 +213,7 @@ func configureSystemTray() {
 			case <-show.ClickedCh:
 				ui.Show()
 			case <-quit.ClickedCh:
+				pacOff()
 				os.Exit(0)
 			}
 		}
