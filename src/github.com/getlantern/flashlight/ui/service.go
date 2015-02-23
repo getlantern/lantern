@@ -30,7 +30,8 @@ func (s *Service) write() {
 	for msg := range s.out {
 		b, err := newEnvelope(s.Type, msg)
 		if err != nil {
-			log.Error(err.Error())
+			log.Error(err)
+			continue
 		}
 		defaultUIChannel.Out <- b
 	}
