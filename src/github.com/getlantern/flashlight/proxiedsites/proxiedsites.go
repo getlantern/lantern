@@ -18,7 +18,7 @@ const (
 )
 
 var (
-	log = golog.LoggerFor("proxiedsites-flashlight")
+	log = golog.LoggerFor("flashlight.proxiedsites")
 
 	service *ui.Service
 

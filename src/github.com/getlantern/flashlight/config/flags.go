@@ -17,11 +17,10 @@ var (
 	addr           = flag.String("addr", "", "ip:port on which to listen for requests. When running as a client proxy, we'll listen with http, when running as a server proxy we'll listen with https (required)")
 	unencrypted    = flag.Bool("unencrypted", false, "set to true to run server in unencrypted mode (no TLS)")
 	role           = flag.String("role", "", "either 'client' or 'server' (required)")
-	statsPeriod    = flag.Int("statsperiod", 0, "time in seconds to wait between reporting stats. If not specified, stats are not reported. If specified, statshub, instanceid and statsaddr must also be specified.")
+	statsPeriod    = flag.Int("statsperiod", 0, "time in seconds to wait between reporting stats. If not specified, stats are not reported. If specified, statshub, instanceid and statshubAddr must also be specified.")
 	statshubAddr   = flag.String("statshub", "pure-journey-3547.herokuapp.com", "address of statshub server")
 	instanceid     = flag.String("instanceid", "", "instanceId under which to report stats to statshub. If not specified, no stats are reported.")
 	registerat     = flag.String("registerat", "", "base URL for peer DNS registry at which to register (e.g. https://peerscanner.getiantem.org)")
-	statsaddr      = flag.String("statsaddr", "", "host:port at which to make detailed stats available using server-sent events (optional)")
 	country        = flag.String("country", "xx", "2 digit country code under which to report stats. Defaults to xx.")
 	cpuprofile     = flag.String("cpuprofile", "", "write cpu profile to given file")
 	memprofile     = flag.String("memprofile", "", "write heap profile to given file")
@@ -57,8 +56,6 @@ func (updated *Config) applyFlags() error {
 			updated.Addr = *addr
 		case "role":
 			updated.Role = *role
-		case "statsaddr":
-			updated.StatsAddr = *statsaddr
 		case "instanceid":
 			updated.InstanceId = *instanceid
 		case "country":

@@ -22,7 +22,7 @@ const (
 )
 
 var (
-	log = golog.LoggerFor("geolookup-flashlight")
+	log = golog.LoggerFor("flashlight.geolookup")
 
 	service           *ui.Service
 	client            atomic.Value

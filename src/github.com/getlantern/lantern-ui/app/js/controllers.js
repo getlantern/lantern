@@ -1,6 +1,6 @@
 'use strict';
 
-app.controller('RootCtrl', ['$scope', '$http', 'flashlightStats', function($scope, $http, flashlightStats) {
+app.controller('RootCtrl', ['$scope', '$http', function($scope, $http) {
     // disabling for now flashlightStats.connect();
     $scope.currentModal = 'none';
 

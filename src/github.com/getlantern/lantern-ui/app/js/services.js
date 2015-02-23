@@ -6,7 +6,55 @@ angular.module('app.services', [])
   .service('Messages', function($rootScope, modelSrvc) {
 
     var model = modelSrvc.model;
+    model.instanceStats = {
+      allBytes: {
+        rate: 0,
+      },
+    };
+    model.peers = [];
+    var flashlightPeers = {};
+    var queuedFlashlightPeers = {};
 
+    var connectedExpiration = 15000;
+    function setConnected(peer) {
+      // Consider peer connected if it's been fewer than x seconds since
+      // lastConnected
+      var lastConnected = Date.parse(peer.lastConnected);
+      var delta = new Date().getTime() - Date.parse(peer.lastConnected);
+      peer.connected = delta < connectedExpiration;
+    }
+
+    // Update last connected for all peers every 10 seconds
+    setInterval(function() {
+      $rootScope.$apply(function() {
+        _.forEach(model.peers, setConnected);
+      });
+    }, connectedExpiration);
+
+    function applyPeer(peer) {
+      // Always set mode to get
+      peer.mode = 'get';
+
+      setConnected(peer);
+      
+      // Update bpsUpDn
+      var peerid = peer.peerid;
+      var oldPeer = flashlightPeers[peerid];
+
+      var bpsUpDnDelta = peer.bpsUpDn;
+      if (oldPeer) {
+        // Adjust bpsUpDnDelta by old value
+        bpsUpDnDelta -= oldPeer.bpsUpDn;
+        // Copy over old peer so that Angular can detect the change
+        angular.copy(peer, oldPeer);
+      } else {
+        // Add peer to model
+        flashlightPeers[peerid] = peer;
+        model.peers.push(peer);
+      }
+      model.instanceStats.allBytes.rate += bpsUpDnDelta;
+    }
+    
     var fnList = {
       'GeoLookup': function(data) {
         console.log('Got GeoLookup information: ', data);
@@ -40,12 +88,33 @@ angular.module('app.services', [])
             $rootScope.originalList = entries;
           })
         }
-      }
+      },
+      'Stats': function(data) {
+        if (data.type != "peer") {
+          // Ignore anything that's not peers
+        }
+
+        if (!model.location) {
+          console.log("No location for self yet, queuing peer")
+          queuedFlashlightPeers[data.data.peerid] = data.data;
+          return;
+        }
+
+        $rootScope.$apply(function() {
+          if (queuedFlashlightPeers) {
+            console.log("Applying queued flashlight peers")
+            _.forEach(queuedFlashlightPeers, applyPeer);
+            queuedFlashlightPeers = null;
+          }
+
+          applyPeer(data.data);
+        });
+      },
     };
 
     return fnList;
   })
-  .service('modelSrvc', function($rootScope, apiSrvc, $window, MODEL_SYNC_CHANNEL,  flashlightStats) {
+  .service('modelSrvc', function($rootScope, apiSrvc, $window, MODEL_SYNC_CHANNEL) {
       var model = {},
         syncSubscriptionKey;
 
@@ -81,7 +150,6 @@ angular.module('app.services', [])
                   apiSrvc.exception({exception: e, patch: patch});
                 }
             }
-            flashlightStats.updateModel(model, shouldUpdateInstanceStats);
         }
 
         if (!$rootScope.validatedModel) {
@@ -152,61 +220,5 @@ angular.module('app.services', [])
         var url = API_URL_PREFIX+'/interaction/'+interactionid;
         return $http.post(url, data);
       }
-    };
-  })
-  .service('flashlightStats', function ($window) {
-    // This service grabs stats from flashlight and adds them to the standard
-    // model.
-    var flashlightPeers = {};
-
-    // connect() starts listening for peer updates
-    function connect() {
-      var source = new EventSource('http://127.0.0.1:15670/');
-      source.addEventListener('message', function(e) {
-        var data = JSON.parse(e.data);
-        if (data.type == "peer") {
-          var peer = data.data;
-          peer.mode = 'get';
-          flashlightPeers[peer.peerid] = peer;
-        }
-      }, false);
-
-      source.addEventListener('open', function(e) {
-        //$log.debug("flashlight connection opened");
-      }, false);
-
-      source.addEventListener('error', function(e) {
-        if (e.readyState == EventSource.CLOSED) {
-          //$log.debug("flashlight connection closed");
-        }
-      }, false);
-    }
-
-    // updateModel updates a model that doesn't include flashlight peers with
-    // information about the flashlight peers, including updating aggregated
-    // figure slike total bps.
-    function updateModel(model, shouldUpdateInstanceStats) {
-      for (var peerid in flashlightPeers) {
-        var peer = flashlightPeers[peerid];
-
-        // Consider peer connected if it's been less than x seconds since
-        // lastConnected
-        var lastConnected = Date.parse(peer.lastConnected);
-        var delta = new Date().getTime() - Date.parse(peer.lastConnected);
-        peer.connected = delta < 30000;
-
-        // Add peer to model
-        model.peers.push(peer);
-
-        if (shouldUpdateInstanceStats) {
-          // Update total bytes up/dn
-          model.instanceStats.allBytes.rate += peer.bpsUpDn;
-        }
-      }
-    }
-
-    return {
-      connect: connect,
-      updateModel: updateModel,
     };
   });

@@ -18,7 +18,7 @@ const (
 )
 
 var (
-	log = golog.LoggerFor("ui")
+	log = golog.LoggerFor("flashlight.ui")
 
 	l            net.Listener
 	fs           *tarfs.FileSystem
