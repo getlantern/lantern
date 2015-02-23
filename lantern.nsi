@@ -33,7 +33,7 @@ OutFile "lantern-installer-unsigned.exe"
 # define installation directory
 InstallDir $PROGRAMFILES\Lantern
  
-# For removing Start Menu shortcut in Windows 7
+# Request admin privileges to allow installation to Program Files
 RequestExecutionLevel admin
     
 # start default section
@@ -72,15 +72,18 @@ Section
     ShellExecAsUser::ShellExecAsUser "" "$INSTDIR\lantern.exe"
 
     ${nsProcess::Unload}
+
 SectionEnd
+# end default section
  
-# uninstaller section start
+# start uninstaller section
 Section "uninstall"
     # Stop Lantern if necessary
     ${nsProcess::KillProcess} "lantern.exe" $R0
 
     RMDir /r "$SMPROGRAMS\Lantern"
     RMDir /r "$INSTDIR" 
- 
-# uninstaller section end
+
+    ${nsProcess::Unload}
 SectionEnd
+# end uninstaller section
