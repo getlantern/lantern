@@ -35,6 +35,9 @@ var (
 	// logglyToken is populated at build time by crosscompile.bash. During
 	// development time, logglyToken will be empty and we won't log to Loggly.
 	logglyToken string
+
+	// A wrapper of the loggly client for the current session.
+	logglyClient *logglyErrorWriter
 )
 
 func init() {
@@ -78,9 +81,10 @@ func Setup(version string, buildDate string) *rotator.SizeRotator {
 		log.Debugf("No logglyToken, not sending error logs to Loggly")
 	} else {
 		log.Debugf("Sending error logs to Loggly")
-		remoteWriter := logglyErrorWriter{loggly.New(logglyToken)}
-		errorOut = NonStopWriter(errorOut, remoteWriter)
+		logglyClient = &logglyErrorWriter{loggly.New(logglyToken)}
+		errorOut = NonStopWriter(errorOut, logglyClient)
 	}
+
 	debugOut := timestamped(NonStopWriter(os.Stdout, file))
 	golog.SetOutputs(errorOut, debugOut)
 	return file
@@ -89,6 +93,10 @@ func Setup(version string, buildDate string) *rotator.SizeRotator {
 func Configure(cfg *config.Config) (err error) {
 	cfgMutex.Lock()
 	defer cfgMutex.Unlock()
+
+	if logglyClient == nil {
+		return fmt.Errorf("No loggly client to configure.")
+	}
 
 	if cfg.Addr == "" {
 		return fmt.Errorf("No proxy address provided.")
@@ -103,7 +111,7 @@ func Configure(cfg *config.Config) (err error) {
 		return fmt.Errorf("Could not create proxy HTTP client %q.", err)
 	}
 
-	loggly.SetHTTPClient(cli)
+	logglyClient.l.SetHTTPClient(cli)
 
 	return nil
 }

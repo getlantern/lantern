@@ -22,11 +22,6 @@ var debug = Debug("loggly")
 
 var nl = []byte{'\n'}
 
-var (
-	defaultHTTPClient *http.Client
-	httpClientMu      sync.RWMutex
-)
-
 type Level int
 
 const (
@@ -42,6 +37,7 @@ const (
 
 // Loggly client.
 type Client struct {
+
 	// Optionally output logs to the given writer.
 	Writer io.Writer
 
@@ -60,19 +56,15 @@ type Client struct {
 	// Token string.
 	Token string
 
+	// Underlying HTTP client, if empty a new HTTP client will be created.
+	httpClient *http.Client
+
 	// Default properties.
 	Defaults Message
 	buffer   [][]byte
 	tags     []string
 	sync.Mutex
-}
-
-// SetHTTPClient sets the HTTP client the loggly client is going to use to
-// connect to the loggly API.
-func SetHTTPClient(newClient *http.Client) {
-	httpClientMu.Lock()
-	defaultHTTPClient = newClient
-	httpClientMu.Unlock()
+	httpClientMu sync.RWMutex
 }
 
 // New returns a new loggly client with the given `token`.
@@ -232,16 +224,25 @@ func (c *Client) Emergency(t string, props ...Message) error {
 	return c.Send(msg)
 }
 
+// SetHTTPClient sets the HTTP client the loggly client is going to use to
+// connect to the loggly API.
+func (c *Client) SetHTTPClient(newClient *http.Client) {
+	c.httpClientMu.Lock()
+	c.httpClient = newClient
+	c.httpClientMu.Unlock()
+}
+
 // Flush the buffered messages.
 func (c *Client) Flush() error {
-	httpClientMu.RLock()
-	defer httpClientMu.RUnlock()
+	c.httpClientMu.RLock()
+	defer c.httpClientMu.RUnlock()
 
-	if defaultHTTPClient == nil {
-		// This error is actually not catched and when it happens start() will
-		// simply try again after c.FlushInterval.
-		debug("no http client.")
-		return fmt.Errorf("No HTTP client provided.")
+	// Using or creating HTTP client.
+	var httpClient *http.Client
+	if c.httpClient == nil {
+		httpClient = &http.Client{}
+	} else {
+		httpClient = c.httpClient
 	}
 
 	c.Lock()
@@ -274,7 +275,7 @@ func (c *Client) Flush() error {
 		req.Header.Add("X-Loggly-Tag", tags)
 	}
 
-	res, err := defaultHTTPClient.Do(req)
+	res, err := httpClient.Do(req)
 	if err != nil {
 		debug("error: %v", err)
 		return err
