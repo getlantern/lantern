@@ -62,6 +62,8 @@ func main() {
 func doMain() {
 	i18nInit()
 
+	// Passing version and build date to the logging package. They'll be reported
+	// to loggly.
 	logfile := logging.Setup(version, buildDate)
 	defer logfile.Close()
 
@@ -141,6 +143,8 @@ func runClientProxy(cfg *config.Config) {
 		ui.Show()
 	}
 
+	// Using a goroutine because we'll be using waitforserver and at this time
+	// the proxy is not yet ready.
 	go logging.Configure(cfg)
 	proxiedsites.Configure(cfg.ProxiedSites)
 
