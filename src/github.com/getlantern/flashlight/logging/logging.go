@@ -3,19 +3,24 @@ package logging
 import (
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
+	"sync"
 	"time"
 
 	"github.com/dogenzaka/rotator"
+
 	"github.com/getlantern/appdir"
+	"github.com/getlantern/flashlight/config"
+	"github.com/getlantern/flashlight/globals"
+	"github.com/getlantern/flashlight/util"
+	"github.com/getlantern/go-loggly"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/jibber_jabber"
+	"github.com/getlantern/waitforserver"
 	"github.com/getlantern/wfilter"
-	"github.com/segmentio/go-loggly"
-
-	"github.com/getlantern/flashlight/globals"
 )
 
 var (
@@ -25,6 +30,8 @@ var (
 	lang               string
 	tz                 string
 	versionToLoggly    string
+	cfgMutex           sync.RWMutex
+	httpClient         *http.Client
 
 	// logglyToken is populated at build time by crosscompile.bash. During
 	// development time, logglyToken will be empty and we won't log to Loggly.
@@ -36,11 +43,18 @@ func init() {
 	tz = time.Local.String()
 }
 
-func SetVersion(version string, buildDate string) {
-	versionToLoggly = fmt.Sprintf("%v (%v)", version, buildDate)
-}
+func Setup(version string, buildDate string) *rotator.SizeRotator {
 
-func Configure() *rotator.SizeRotator {
+	if version == "" {
+		panic("You can't use an empty version.")
+	}
+
+	if buildDate == "" {
+		panic("You can't use an empty build date.")
+	}
+
+	versionToLoggly = fmt.Sprintf("%v (%v)", version, buildDate)
+
 	logdir := appdir.Logs("Lantern")
 	log.Debugf("Placing logs in %v", logdir)
 	if _, err := os.Stat(logdir); err != nil {
@@ -71,6 +85,25 @@ func Configure() *rotator.SizeRotator {
 	debugOut := timestamped(NonStopWriter(os.Stdout, file))
 	golog.SetOutputs(errorOut, debugOut)
 	return file
+}
+
+func Configure(cfg *config.Config) (err error) {
+	if cfg.Addr == "" {
+		return fmt.Errorf("No proxy address provided.")
+	}
+
+	if err = waitforserver.WaitForServer("tcp", cfg.Addr, 10*time.Second); err != nil {
+		return fmt.Errorf("Proxy never came online at %s: %q", cfg.Addr, err)
+	}
+
+	var cli *http.Client
+	if cli, err = util.HTTPClient(cfg.CloudConfigCA, cfg.Addr); err != nil {
+		return fmt.Errorf("Could not create proxy HTTP client %q.", err)
+	}
+
+	loggly.SetHTTPClient(cli)
+
+	return nil
 }
 
 // timestamped adds a timestamp to the beginning of log lines

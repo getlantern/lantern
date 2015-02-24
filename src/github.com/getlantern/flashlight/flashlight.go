@@ -45,6 +45,13 @@ var (
 )
 
 func init() {
+	if version == "" {
+		version = "development"
+	}
+	if buildDate == "" {
+		buildDate = "now"
+	}
+
 	rand.Seed(time.Now().UnixNano())
 }
 
@@ -55,10 +62,9 @@ func main() {
 func doMain() {
 	i18nInit()
 
-	logging.SetVersion(version, buildDate)
-
-	logfile := logging.Configure()
+	logfile := logging.Setup(version, buildDate)
 	defer logfile.Close()
+
 	configureSystemTray()
 	displayVersion()
 
@@ -100,12 +106,6 @@ func i18nInit() {
 }
 
 func displayVersion() {
-	if version == "" {
-		version = "development"
-	}
-	if buildDate == "" {
-		buildDate = "now"
-	}
 	log.Debugf("---- flashlight version %s (%s) ----", version, buildDate)
 }
 
@@ -141,7 +141,9 @@ func runClientProxy(cfg *config.Config) {
 		ui.Show()
 	}
 
+	go logging.Configure(cfg)
 	proxiedsites.Configure(cfg.ProxiedSites)
+
 	if hqfd == nil {
 		log.Errorf("No fronted dialer available, not enabling geolocation or stats")
 	} else {
@@ -162,6 +164,7 @@ func runClientProxy(cfg *config.Config) {
 				hqfdc := hqfd.DirectHttpClient()
 				geolookup.Configure(hqfdc)
 				statserver.Configure(hqfdc)
+				logging.Configure(cfg)
 			}
 		}
 	}()
