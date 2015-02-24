@@ -93,9 +93,14 @@ SectionEnd
 Section "uninstall"
     # Stop Lantern if necessary
     ${nsProcess::KillProcess} "lantern.exe" $R0
+    # Sleep for 1 second to process a chance to die and file to become writable
+    Sleep 1000
 
     RMDir /r "$SMPROGRAMS\Lantern"
     RMDir /r "$INSTDIR" 
+
+    # Remove uninstaller from Add/Remove programs
+    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern"
 
     ${nsProcess::Unload}
 SectionEnd
