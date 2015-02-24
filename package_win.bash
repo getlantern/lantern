@@ -22,12 +22,14 @@ then
     die "Please compile lantern using ./crosscompile.bash or ./tagandbuild.bash before running package_win.bash"
 fi
 
-if [ ! -z "$BNS_CERT" ]
+if [ -z "$BNS_CERT" ]
 then
-    if [ -z "$BNS_CERT_PASS" ]
-    then
-        die "$0: Please set BNS_CERT_PASS to the password for the $BNS_CERT signing key"
-    fi
+    die "$0: Please set BNS_CERT to the bns signing certificate for windows"
+fi
+
+if [ -z "$BNS_CERT_PASS" ]
+then
+    die "$0: Please set BNS_CERT_PASS to the password for the $BNS_CERT signing key"
 fi
 
 which osslsigncode > /dev/null
