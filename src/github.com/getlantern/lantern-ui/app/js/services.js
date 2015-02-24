@@ -65,6 +65,16 @@ angular.module('app.services', [])
             model.location.resolved = true;
         }
       },
+      'Settings': function(data) {
+        console.log('Got Lantern default settings: ', data);
+        if (data && data.Version) {
+            // configure settings
+            // set default client to get-mode
+            model.settings = {};
+            model.settings.mode = 'get';
+            model.settings.version = data.Version + "(" + data.BuildDate + ")";
+        }
+      },
       'ProxiedSites': function(data) {
         if (!$rootScope.entries) {
           console.log("Initializing proxied sites entries", data.Additions);

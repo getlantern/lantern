@@ -8040,6 +8040,10 @@ body.giveMode #npending {
   color: red;
 }
 
+#appInfo span.version {
+    color: #eeeeee;
+}
+
 @-webkit-keyframes defaultPulse {
   from {
     opacity: 1;
