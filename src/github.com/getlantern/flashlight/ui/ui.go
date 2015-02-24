@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"path"
 	"path/filepath"
 	"runtime"
 
@@ -55,7 +54,7 @@ func init() {
 
 func Handle(p string, handler http.Handler) string {
 	r.Handle(p, handler)
-	return path.Join(uiaddr, p)
+	return uiaddr + p
 }
 
 func Start(addr string) error {
