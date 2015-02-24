@@ -27,11 +27,7 @@
 
   <div id="appInfo">
     <a ng-click="showModal('welcome')">{{ 'LANTERN' | translate }}</a>
-    {{ model.version.installed | version:true }}
-    <span ng-show="model.version.updateAvailable" class="update-available">
-      · <i class="icon-exclamation-sign"></i>
-      <a ng-click="interaction(INTERACTION.updateAvailable)">{{ 'UPDATE_AVAILABLE_TITLE' | translate }}</a>
-    </span>
+    <span class="version">{{ model.settings.version }}</span>
     <span>
       · <a ng-click="showModal('about')">{{ 'ABOUT' | translate }}</a>
     </span>

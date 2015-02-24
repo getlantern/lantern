@@ -22,6 +22,6 @@ fi
 
 git tag -a "$1" -f --annotate -m"Tagged $1"
 git push --tags -f
-source ./crosscompile.bash
+UPDATE_DIST=true source ./crosscompile.bash
 ./package_osx.bash $VERSION_STRING
 ./package_win.bash $VERSION_STRING

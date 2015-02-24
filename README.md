@@ -47,6 +47,9 @@ with the `./crosscompile.bash` script. This script also sets the version of
 flashlight to the most recent commit id in git, or if the most recent commit is
 tagged, the tag of that commit id.
 
+If the environemnt variable `UPDATE_DIST=true` is set, `./crosscompile.bash`
+also updates the resources in the dist folder.
+
 An annotated tag can be added like this:
 
 ```bash
