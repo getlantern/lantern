@@ -30,7 +30,7 @@ var (
 	lang               string
 	tz                 string
 	versionToLoggly    string
-	cfgMutex           sync.RWMutex
+	cfgMutex           sync.Mutex
 
 	// logglyToken is populated at build time by crosscompile.bash. During
 	// development time, logglyToken will be empty and we won't log to Loggly.
