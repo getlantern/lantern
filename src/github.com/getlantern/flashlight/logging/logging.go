@@ -31,7 +31,6 @@ var (
 	tz                 string
 	versionToLoggly    string
 	cfgMutex           sync.RWMutex
-	httpClient         *http.Client
 
 	// logglyToken is populated at build time by crosscompile.bash. During
 	// development time, logglyToken will be empty and we won't log to Loggly.
@@ -88,6 +87,9 @@ func Setup(version string, buildDate string) *rotator.SizeRotator {
 }
 
 func Configure(cfg *config.Config) (err error) {
+	cfgMutex.Lock()
+	defer cfgMutex.Unlock()
+
 	if cfg.Addr == "" {
 		return fmt.Errorf("No proxy address provided.")
 	}
