@@ -19,6 +19,7 @@ import (
 	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/proxiedsites"
 	"github.com/getlantern/flashlight/server"
+	"github.com/getlantern/flashlight/settings"
 	"github.com/getlantern/flashlight/statreporter"
 	"github.com/getlantern/flashlight/statserver"
 	"github.com/getlantern/flashlight/ui"
@@ -134,6 +135,8 @@ func runClientProxy(cfg *config.Config) {
 		}
 		ui.Show()
 	}
+
+	settings.Configure(version, buildDate)
 
 	proxiedsites.Configure(cfg.ProxiedSites)
 	if hqfd == nil {
