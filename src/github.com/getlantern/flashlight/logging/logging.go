@@ -1,4 +1,4 @@
-package main
+package logging
 
 import (
 	"fmt"
@@ -19,11 +19,12 @@ import (
 )
 
 var (
+	log = golog.LoggerFor("flashlight")
+
 	LogTimestampFormat = "Jan 02 15:04:05.000"
-	log                = golog.LoggerFor("flashlight")
-	versionToLoggly    = fmt.Sprintf("%v (%v)", version, buildDate)
 	lang               string
 	tz                 string
+	versionToLoggly    string
 
 	// logglyToken is populated at build time by crosscompile.bash. During
 	// development time, logglyToken will be empty and we won't log to Loggly.
@@ -35,7 +36,11 @@ func init() {
 	tz = time.Local.String()
 }
 
-func configureLogging() *rotator.SizeRotator {
+func SetVersion(version string, buildDate string) {
+	versionToLoggly = fmt.Sprintf("%v (%v)", version, buildDate)
+}
+
+func Configure() *rotator.SizeRotator {
 	logdir := appdir.Logs("Lantern")
 	log.Debugf("Placing logs in %v", logdir)
 	if _, err := os.Stat(logdir); err != nil {

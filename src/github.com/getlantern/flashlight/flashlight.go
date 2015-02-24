@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/getlantern/fronted"
+	"github.com/getlantern/golog"
 	"github.com/getlantern/i18n"
 	"github.com/getlantern/profiling"
 	"github.com/getlantern/systray"
@@ -17,6 +18,7 @@ import (
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/geolookup"
+	"github.com/getlantern/flashlight/logging"
 	"github.com/getlantern/flashlight/proxiedsites"
 	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/statreporter"
@@ -33,6 +35,7 @@ const (
 var (
 	version   string
 	buildDate string
+	log       = golog.LoggerFor("flashlight")
 
 	// Command-line Flags
 	help      = flag.Bool("help", false, "Get usage help")
@@ -51,7 +54,10 @@ func main() {
 
 func doMain() {
 	i18nInit()
-	logfile := configureLogging()
+
+	logging.SetVersion(version, buildDate)
+
+	logfile := logging.Configure()
 	defer logfile.Close()
 	configureSystemTray()
 	displayVersion()
