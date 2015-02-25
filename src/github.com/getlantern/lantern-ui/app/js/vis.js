@@ -99,8 +99,8 @@ angular.module('app.vis', ['ngSanitize'])
             if (d.alpha2) {
               //var $content = ttTmpl(d.alpha2);
 
-              el.attr('class', d.alpha2 + " COUNTRY_KNOWN")
-                .attr('tooltip-placement', 'mouse');
+              el.attr('class', d.alpha2 + " COUNTRY_KNOWN");
+                // .attr('tooltip-placement', 'mouse')
                 //.attr('tooltip-html-unsafe', $content);
                 // $compile(this)(scope);
             } else {
