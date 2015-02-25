@@ -200,13 +200,13 @@ func (d *dialer) HttpClientUsing(masquerade *Masquerade) *http.Client {
 }
 
 func (d *dialer) DirectHttpClient() *http.Client {
-	var masquerade *Masquerade
-	if d.masquerades != nil {
-		masquerade = d.masquerades.nextVerified()
-	}
 	return &http.Client{
 		Transport: &http.Transport{
 			Dial: func(network, addr string) (net.Conn, error) {
+				var masquerade *Masquerade
+				if d.masquerades != nil {
+					masquerade = d.masquerades.nextVerified()
+				}
 				return d.dialServerWith(masquerade)
 			},
 		},
