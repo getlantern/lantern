@@ -97,12 +97,12 @@ angular.module('app.vis', ['ngSanitize'])
             el.attr('d', scope.path).attr('stroke-opacity', 0);
             el.attr('class', 'COUNTRY_KNOWN');
             if (d.alpha2) {
-              var $content = ttTmpl(d.alpha2);
+              //var $content = ttTmpl(d.alpha2);
 
               el.attr('class', d.alpha2 + " COUNTRY_KNOWN")
-                .attr('tooltip-placement', 'mouse')
-                .attr('tooltip-html-unsafe', $content);
-                $compile(this)(scope);
+                .attr('tooltip-placement', 'mouse');
+                //.attr('tooltip-html-unsafe', $content);
+                // $compile(this)(scope);
             } else {
               el.attr('class', 'COUNTRY_UNKNOWN');
             }
