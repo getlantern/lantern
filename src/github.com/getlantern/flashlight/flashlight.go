@@ -138,9 +138,7 @@ func runClientProxy(cfg *config.Config) {
 		ui.Show()
 	}
 
-	// Using a goroutine because we'll be using waitforserver and at this time
-	// the proxy is not yet ready.
-	go logging.Configure(cfg, version, buildDate)
+	logging.Configure(cfg, version, buildDate)
 	proxiedsites.Configure(cfg.ProxiedSites)
 
 	if hqfd == nil {

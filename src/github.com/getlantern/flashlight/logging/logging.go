@@ -73,9 +73,6 @@ func Configure(cfg *config.Config, version string, buildDate string) {
 		return
 	}
 
-	cfgMutex.Lock()
-	defer cfgMutex.Unlock()
-
 	if version == "" {
 		log.Error("No version configured, Loggly won't include version information")
 		return
@@ -86,42 +83,20 @@ func Configure(cfg *config.Config, version string, buildDate string) {
 		return
 	}
 
-	if cfg.Addr != lastAddr {
-		lastAddr = cfg.Addr
-
-		if cfg.Addr == "" {
-			log.Error("No known proxy, won't report to Loggly")
-			removeLoggly()
-			return
-		}
-
-		err := waitforserver.WaitForServer("tcp", cfg.Addr, 10*time.Second)
-		if err != nil {
-			log.Errorf("Proxy never came online at %v, not logging to Loggly", cfg.Addr)
-			removeLoggly()
-			return
-		}
-
-		var client *http.Client
-		client, err = util.HTTPClient(cfg.CloudConfigCA, cfg.Addr)
-		if err != nil {
-			log.Errorf("Could not create proxied HTTP client, not logging to Loggly: %v", err)
-			removeLoggly()
-			return
-		}
-
-		log.Debugf("Sending error logs to Loggly via proxy at %v", cfg.Addr)
-
-		lang, _ := jibber_jabber.DetectLanguage()
-		logglyWriter := &logglyErrorWriter{
-			lang:            lang,
-			tz:              time.Local.String(),
-			versionToLoggly: fmt.Sprintf("%v (%v)", version, buildDate),
-			client:          loggly.New(logglyToken),
-		}
-		logglyWriter.client.SetHTTPClient(client)
-		addLoggly(logglyWriter)
+	cfgMutex.Lock()
+	if cfg.Addr == lastAddr {
+		cfgMutex.Unlock()
+		log.Debug("Logging configuration unchanged")
+		return
 	}
+
+	// Using a goroutine because we'll be using waitforserver and at this time
+	// the proxy is not yet ready.
+	go func() {
+		lastAddr = cfg.Addr
+		enableLoggly(cfg, version, buildDate)
+		cfgMutex.Unlock()
+	}()
 }
 
 func Close() error {
@@ -133,6 +108,41 @@ func timestamped(orig io.Writer) io.Writer {
 	return wfilter.LinePrepender(orig, func(w io.Writer) (int, error) {
 		return fmt.Fprintf(w, "%s - ", time.Now().In(time.UTC).Format(logTimestampFormat))
 	})
+}
+
+func enableLoggly(cfg *config.Config, version string, buildDate string) {
+	if cfg.Addr == "" {
+		log.Error("No known proxy, won't report to Loggly")
+		removeLoggly()
+		return
+	}
+
+	err := waitforserver.WaitForServer("tcp", cfg.Addr, 10*time.Second)
+	if err != nil {
+		log.Errorf("Proxy never came online at %v, not logging to Loggly", cfg.Addr)
+		removeLoggly()
+		return
+	}
+
+	var client *http.Client
+	client, err = util.HTTPClient(cfg.CloudConfigCA, cfg.Addr)
+	if err != nil {
+		log.Errorf("Could not create proxied HTTP client, not logging to Loggly: %v", err)
+		removeLoggly()
+		return
+	}
+
+	log.Debugf("Sending error logs to Loggly via proxy at %v", cfg.Addr)
+
+	lang, _ := jibber_jabber.DetectLanguage()
+	logglyWriter := &logglyErrorWriter{
+		lang:            lang,
+		tz:              time.Now().Format("MST"),
+		versionToLoggly: fmt.Sprintf("%v (%v)", version, buildDate),
+		client:          loggly.New(logglyToken),
+	}
+	logglyWriter.client.SetHTTPClient(client)
+	addLoggly(logglyWriter)
 }
 
 func addLoggly(logglyWriter io.Writer) {
