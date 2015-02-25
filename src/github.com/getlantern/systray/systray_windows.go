@@ -4,15 +4,17 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 	"syscall"
 	"unsafe"
+
+	"github.com/getlantern/filepersist"
 )
 
 var (
 	iconFiles = make([]*os.File, 0)
-	dllDir    = path.Join(os.Getenv("APPDATA"), "systray")
-	dllFile   = path.Join(dllDir, "systray.dll")
+	dllDir    = filepath.Join(os.Getenv("APPDATA"), "systray")
+	dllFile   = filepath.Join(dllDir, "systray.dll")
 
 	mod                      = syscall.NewLazyDLL(dllFile)
 	_nativeLoop              = mod.NewProc("nativeLoop")
@@ -35,7 +37,7 @@ func init() {
 		panic(fmt.Errorf("Unable to create directory %v to hold systray.dll: %v", dllDir, err))
 	}
 
-	err = ioutil.WriteFile(dllFile, b, 0644)
+	err = filepersist.Save(dllFile, b, 0644)
 	if err != nil {
 		panic(fmt.Errorf("Unable to save systray.dll to %v: %v", dllFile, err))
 	}

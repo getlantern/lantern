@@ -96,6 +96,12 @@ int togglePac(bool turnOn, const char* pacUrl)
   options.pOptions[1].dwOption = INTERNET_PER_CONN_AUTOCONFIG_URL;
   if (turnOn) {
     options.pOptions[0].Value.dwValue = PROXY_TYPE_AUTO_PROXY_URL;
+    wchar_t url[150];
+    if (swprintf(url, 150, L"%hs", pacUrl) == -1) {
+      printf("Unable to convert pacUrl to wchar_t %s\n", strerror(errno));
+      ret = PAC_URL_CONVERSION_ERROR;
+      goto cleanup;
+    }
     options.pOptions[1].Value.pszValue = (char*)pacUrl;
   }
   else {
