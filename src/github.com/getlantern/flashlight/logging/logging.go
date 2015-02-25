@@ -23,40 +23,27 @@ import (
 	"github.com/getlantern/wfilter"
 )
 
+const (
+	logTimestampFormat = "Jan 02 15:04:05.000"
+)
+
 var (
 	log = golog.LoggerFor("flashlight")
 
-	LogTimestampFormat = "Jan 02 15:04:05.000"
-	lang               string
-	tz                 string
-	versionToLoggly    string
-	cfgMutex           sync.Mutex
+	logFile  *rotator.SizeRotator
+	cfgMutex sync.Mutex
 
 	// logglyToken is populated at build time by crosscompile.bash. During
 	// development time, logglyToken will be empty and we won't log to Loggly.
 	logglyToken string
 
-	// A wrapper of the loggly client for the current session.
-	logglyClient *logglyErrorWriter
+	errorOut io.Writer
+	debugOut io.Writer
+
+	lastAddr string
 )
 
 func init() {
-	lang, _ = jibber_jabber.DetectLanguage()
-	tz = time.Local.String()
-}
-
-func Setup(version string, buildDate string) *rotator.SizeRotator {
-
-	if version == "" {
-		panic("You can't use an empty version.")
-	}
-
-	if buildDate == "" {
-		panic("You can't use an empty build date.")
-	}
-
-	versionToLoggly = fmt.Sprintf("%v (%v)", version, buildDate)
-
 	logdir := appdir.Logs("Lantern")
 	log.Debugf("Placing logs in %v", logdir)
 	if _, err := os.Stat(logdir); err != nil {
@@ -67,108 +54,132 @@ func Setup(version string, buildDate string) *rotator.SizeRotator {
 			}
 		}
 	}
-	file := rotator.NewSizeRotator(filepath.Join(logdir, "lantern.log"))
+	logFile = rotator.NewSizeRotator(filepath.Join(logdir, "lantern.log"))
 	// Set log files to 1 MB
-	file.RotationSize = 1 * 1024 * 1024
+	logFile.RotationSize = 1 * 1024 * 1024
 	// Keep up to 20 log files
-	file.MaxRotation = 20
+	logFile.MaxRotation = 20
 
 	// Loggly has its own timestamp so don't bother adding it in message,
 	// moreover, golog always write each line in whole, so we need not to care about line breaks.
-	errorOut := timestamped(NonStopWriter(os.Stderr, file))
-
-	if logglyToken == "" {
-		log.Debugf("No logglyToken, not sending error logs to Loggly")
-	} else {
-		log.Debugf("Sending error logs to Loggly")
-		logglyClient = &logglyErrorWriter{loggly.New(logglyToken)}
-		errorOut = NonStopWriter(errorOut, logglyClient)
-	}
-
-	debugOut := timestamped(NonStopWriter(os.Stdout, file))
+	errorOut = timestamped(io.MultiWriter(os.Stderr, logFile))
+	debugOut = timestamped(io.MultiWriter(os.Stdout, logFile))
 	golog.SetOutputs(errorOut, debugOut)
-	return file
 }
 
-func Configure(cfg *config.Config) (err error) {
+func Configure(cfg *config.Config, version string, buildDate string) {
+	if logglyToken == "" {
+		log.Debugf("No logglyToken, not sending error logs to Loggly")
+		return
+	}
+
+	if version == "" {
+		log.Error("No version configured, Loggly won't include version information")
+		return
+	}
+
+	if buildDate == "" {
+		log.Error("No build date configured, Loggly won't include build date information")
+		return
+	}
+
 	cfgMutex.Lock()
-	defer cfgMutex.Unlock()
-
-	if logglyClient == nil {
-		return fmt.Errorf("No loggly client to configure.")
+	if cfg.Addr == lastAddr {
+		cfgMutex.Unlock()
+		log.Debug("Logging configuration unchanged")
+		return
 	}
 
-	if cfg.Addr == "" {
-		return fmt.Errorf("No proxy address provided.")
-	}
+	// Using a goroutine because we'll be using waitforserver and at this time
+	// the proxy is not yet ready.
+	go func() {
+		lastAddr = cfg.Addr
+		enableLoggly(cfg, version, buildDate)
+		cfgMutex.Unlock()
+	}()
+}
 
-	if err = waitforserver.WaitForServer("tcp", cfg.Addr, 10*time.Second); err != nil {
-		return fmt.Errorf("Proxy never came online at %s: %q", cfg.Addr, err)
-	}
-
-	var cli *http.Client
-	if cli, err = util.HTTPClient(cfg.CloudConfigCA, cfg.Addr); err != nil {
-		return fmt.Errorf("Could not create proxy HTTP client %q.", err)
-	}
-
-	logglyClient.l.SetHTTPClient(cli)
-
-	return nil
+func Close() error {
+	return logFile.Close()
 }
 
 // timestamped adds a timestamp to the beginning of log lines
 func timestamped(orig io.Writer) io.Writer {
 	return wfilter.LinePrepender(orig, func(w io.Writer) (int, error) {
-		return fmt.Fprintf(w, "%s - ", time.Now().In(time.UTC).Format(LogTimestampFormat))
+		return fmt.Fprintf(w, "%s - ", time.Now().In(time.UTC).Format(logTimestampFormat))
 	})
 }
 
+func enableLoggly(cfg *config.Config, version string, buildDate string) {
+	if cfg.Addr == "" {
+		log.Error("No known proxy, won't report to Loggly")
+		removeLoggly()
+		return
+	}
+
+	err := waitforserver.WaitForServer("tcp", cfg.Addr, 10*time.Second)
+	if err != nil {
+		log.Errorf("Proxy never came online at %v, not logging to Loggly", cfg.Addr)
+		removeLoggly()
+		return
+	}
+
+	var client *http.Client
+	client, err = util.HTTPClient(cfg.CloudConfigCA, cfg.Addr)
+	if err != nil {
+		log.Errorf("Could not create proxied HTTP client, not logging to Loggly: %v", err)
+		removeLoggly()
+		return
+	}
+
+	log.Debugf("Sending error logs to Loggly via proxy at %v", cfg.Addr)
+
+	lang, _ := jibber_jabber.DetectLanguage()
+	logglyWriter := &logglyErrorWriter{
+		lang:            lang,
+		tz:              time.Now().Format("MST"),
+		versionToLoggly: fmt.Sprintf("%v (%v)", version, buildDate),
+		client:          loggly.New(logglyToken),
+	}
+	logglyWriter.client.SetHTTPClient(client)
+	addLoggly(logglyWriter)
+}
+
+func addLoggly(logglyWriter io.Writer) {
+	golog.SetOutputs(io.MultiWriter(errorOut, logglyWriter), debugOut)
+}
+
+func removeLoggly() {
+	golog.SetOutputs(errorOut, debugOut)
+}
+
 type logglyErrorWriter struct {
-	l *loggly.Client
+	lang            string
+	tz              string
+	versionToLoggly string
+	client          *loggly.Client
 }
 
 func (w logglyErrorWriter) Write(b []byte) (int, error) {
-	return writeToLoggly(w.l, "ERROR", string(b))
-}
-
-func writeToLoggly(l *loggly.Client, level string, msg string) (int, error) {
 	extra := map[string]string{
-		"logLevel":  level,
+		"logLevel":  "ERROR",
 		"osName":    runtime.GOOS,
 		"osArch":    runtime.GOARCH,
 		"osVersion": "",
-		"language":  lang,
+		"language":  w.lang,
 		"country":   globals.GetCountry(),
-		"timeZone":  tz,
-		"version":   versionToLoggly,
+		"timeZone":  w.tz,
+		"version":   w.versionToLoggly,
 	}
 
 	m := loggly.Message{
 		"extra":   extra,
-		"message": msg,
+		"message": string(b),
 	}
-	err := l.Send(m)
+
+	err := w.client.Send(m)
 	if err != nil {
 		return 0, err
 	}
-	return len(msg), nil
-}
-
-type nonStopWriter struct {
-	writers []io.Writer
-}
-
-func (t *nonStopWriter) Write(p []byte) (n int, err error) {
-	for _, w := range t.writers {
-		n, _ = w.Write(p)
-	}
-	return len(p), nil
-}
-
-// NonStopWriter creates a writer that duplicates its writes to all the
-// provided writers, even if errors encountered while writting.
-func NonStopWriter(writers ...io.Writer) io.Writer {
-	w := make([]io.Writer, len(writers))
-	copy(w, writers)
-	return &nonStopWriter{w}
+	return len(b), nil
 }

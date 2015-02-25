@@ -61,13 +61,8 @@ func main() {
 }
 
 func doMain() {
+	defer logging.Close()
 	i18nInit()
-
-	// Passing version and build date to the logging package. They'll be reported
-	// to loggly.
-	logfile := logging.Setup(version, buildDate)
-	defer logfile.Close()
-
 	configureSystemTray()
 	displayVersion()
 
@@ -144,9 +139,7 @@ func runClientProxy(cfg *config.Config) {
 		ui.Show()
 	}
 
-	// Using a goroutine because we'll be using waitforserver and at this time
-	// the proxy is not yet ready.
-	go logging.Configure(cfg)
+	logging.Configure(cfg, version, buildDate)
 	settings.Configure(version, buildDate)
 	proxiedsites.Configure(cfg.ProxiedSites)
 
@@ -170,7 +163,7 @@ func runClientProxy(cfg *config.Config) {
 				hqfdc := hqfd.DirectHttpClient()
 				geolookup.Configure(hqfdc)
 				statserver.Configure(hqfdc)
-				logging.Configure(cfg)
+				logging.Configure(cfg, version, buildDate)
 			}
 		}
 	}()
