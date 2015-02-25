@@ -12,6 +12,7 @@ import (
 
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/fronted"
+	"github.com/getlantern/geolookup"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/proxiedsites"
 	"github.com/getlantern/yaml"
@@ -119,7 +120,9 @@ func Start(updateHandler func(updated *Config)) (*Config, error) {
 
 func updateGlobals(cfg *Config) {
 	globals.InstanceId = cfg.InstanceId
-	globals.Country = cfg.Country
+	loc := &geolookup.City{}
+	loc.Country.IsoCode = cfg.Country
+	globals.SetLocation(loc)
 	err := globals.SetTrustedCAs(cfg.TrustedCACerts())
 	if err != nil {
 		log.Fatalf("Unable to configure trusted CAs: %s", err)

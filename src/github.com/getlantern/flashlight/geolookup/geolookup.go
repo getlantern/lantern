@@ -9,9 +9,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/getlantern/flashlight/ui"
 	"github.com/getlantern/geolookup"
 	"github.com/getlantern/golog"
+
+	"github.com/getlantern/flashlight/globals"
+	"github.com/getlantern/flashlight/ui"
 )
 
 const (
@@ -25,10 +27,9 @@ const (
 var (
 	log = golog.LoggerFor("flashlight.geolookup")
 
-	service           *ui.Service
-	client            atomic.Value
-	lastKnownLocation atomic.Value
-	cfgMutex          sync.Mutex
+	service  *ui.Service
+	client   atomic.Value
+	cfgMutex sync.Mutex
 )
 
 // Configure configures geolookup to use the given http.Client to perform
@@ -55,7 +56,7 @@ func Configure(newClient *http.Client) {
 
 func registerService() error {
 	helloFn := func(write func(interface{}) error) error {
-		location := lastKnownLocation.Load()
+		location := globals.GetLocation()
 		if location == nil {
 			log.Trace("No lastKnownLocation, not sending anything to client")
 			return nil
@@ -78,14 +79,13 @@ func write() {
 		n := rand.Intn(publishSecondsVariance)
 		wait := time.Duration(basePublishSeconds-publishSecondsVariance/2+n) * time.Second
 
-		oldLocation := lastKnownLocation.Load()
+		oldLocation := globals.GetLocation()
 		location, err := geolookup.LookupIPWithClient("", client.Load().(*http.Client))
 		if err == nil {
 			consecutiveFailures = 0
-			oldLocation := lastKnownLocation.Load()
 			if !reflect.DeepEqual(location, oldLocation) {
 				log.Debugf("Location changed")
-				lastKnownLocation.Store(location)
+				globals.SetLocation(location)
 			}
 			// Always publish location, even if unchanged
 			service.Out <- location

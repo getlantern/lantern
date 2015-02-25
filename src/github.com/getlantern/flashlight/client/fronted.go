@@ -133,7 +133,7 @@ func (s *FrontedServerInfo) recordTiming(step string, duration time.Duration) {
 	} else {
 		step = fmt.Sprintf("%sTo%s", step, s.Host)
 	}
-	dims := statreporter.Dim("country", globals.Country)
+	dims := statreporter.Dim("country", globals.GetCountry())
 	dims.Gauge(step).Add(1)
 	for i := 4; i >= 0; i-- {
 		seconds := int(math.Pow(float64(2), float64(i)))

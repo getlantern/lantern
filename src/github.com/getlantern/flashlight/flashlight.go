@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/getlantern/fronted"
+	"github.com/getlantern/golog"
 	"github.com/getlantern/i18n"
 	"github.com/getlantern/profiling"
 	"github.com/getlantern/systray"
@@ -17,6 +18,7 @@ import (
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/geolookup"
+	"github.com/getlantern/flashlight/logging"
 	"github.com/getlantern/flashlight/proxiedsites"
 	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/settings"
@@ -34,6 +36,7 @@ const (
 var (
 	version   string
 	buildDate string
+	log       = golog.LoggerFor("flashlight")
 
 	// Command-line Flags
 	help      = flag.Bool("help", false, "Get usage help")
@@ -43,6 +46,13 @@ var (
 )
 
 func init() {
+	if version == "" {
+		version = "development"
+	}
+	if buildDate == "" {
+		buildDate = "now"
+	}
+
 	rand.Seed(time.Now().UnixNano())
 }
 
@@ -51,9 +61,8 @@ func main() {
 }
 
 func doMain() {
+	defer logging.Close()
 	i18nInit()
-	logfile := configureLogging()
-	defer logfile.Close()
 	configureSystemTray()
 	displayVersion()
 
@@ -95,12 +104,6 @@ func i18nInit() {
 }
 
 func displayVersion() {
-	if version == "" {
-		version = "development"
-	}
-	if buildDate == "" {
-		buildDate = "now"
-	}
 	log.Debugf("---- flashlight version %s (%s) ----", version, buildDate)
 }
 
@@ -136,9 +139,10 @@ func runClientProxy(cfg *config.Config) {
 		ui.Show()
 	}
 
+	logging.Configure(cfg, version, buildDate)
 	settings.Configure(version, buildDate)
-
 	proxiedsites.Configure(cfg.ProxiedSites)
+
 	if hqfd == nil {
 		log.Errorf("No fronted dialer available, not enabling geolocation or stats")
 	} else {
@@ -159,6 +163,7 @@ func runClientProxy(cfg *config.Config) {
 				hqfdc := hqfd.DirectHttpClient()
 				geolookup.Configure(hqfdc)
 				statserver.Configure(hqfdc)
+				logging.Configure(cfg, version, buildDate)
 			}
 		}
 	}()
