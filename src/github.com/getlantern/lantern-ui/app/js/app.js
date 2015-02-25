@@ -157,28 +157,11 @@ var app = angular.module('app', [
         prettyUserFltr = $filter('prettyUser'),
         reportedStateFltr = $filter('reportedState');
 
-    // configure settings
-    // set default client to get-mode
-    model.settings = {};
-    model.settings.mode = 'get';
-
     // for easier inspection in the JavaScript console
     $window.rootScope = $rootScope;
     $window.model = model;
 
     $rootScope.EXTERNAL_URL = EXTERNAL_URL;
-
-    $http.get('data/package.json').
-      success(function(pkg, status, headers, config) {
-      var version = pkg.version,
-        components = version.split('.'),
-        major = components[0],
-        minor = components[1],
-        patch = (components[2] || '').split('-')[0];
-        $rootScope.lanternUiVersion = [major, minor, patch].join('.');
-    }).error(function(data, status, headers, config) {
-       console.log("Error retrieving UI version!");
-    });
 
     $rootScope.model = model;
     $rootScope.DEFAULT_AVATAR_URL = 'img/default-avatar.png';

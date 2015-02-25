@@ -47,6 +47,9 @@ with the `./crosscompile.bash` script. This script also sets the version of
 flashlight to the most recent commit id in git, or if the most recent commit is
 tagged, the tag of that commit id.
 
+If the environemnt variable `UPDATE_DIST=true` is set, `./crosscompile.bash`
+also updates the resources in the dist folder.
+
 An annotated tag can be added like this:
 
 ```bash
@@ -110,22 +113,25 @@ The background image for the DMG is `dmgbackground.png` and the icon is in
 `lantern.icns`.
 
 ### Packaging for Windows
-Lantern on Windows is currently distributed as an executable (no installer).
-This executable should be signed with `./package_windows.bash` prior to
-distributing it to end users.
+Lantern on Windows is distributed as an installer built with
+[nsis](http://nsis.sourceforge.net/). The installer is built and signed with
+./package_win.bash.
 
 Signing windows code requires that the
 [osslsigncode](http://sourceforge.net/projects/osslsigncode/) utility be
 installed. On OS X with homebrew, you can do this with
 `brew install osslsigncode`.
 
-For `./package_windows.bash` to be able to sign the executable, the environment
+The script takes a single parameter, which is the version string to display in
+the Add/Remove programs control panel.
+
+For `./package_win.bash` to be able to sign the executable, the environment
 varaibles BNS_CERT and BNS_CERT_PASS must be set to point to
 [bns-cert.p12](https://github.com/getlantern/too-many-secrets/blob/master/bns_cert.p12)
 and its [password](https://github.com/getlantern/too-many-secrets/blob/master/build-installers/env-vars.txt#L3).
 You can set the environment variables and run the script on one line, like this:
 
-`BNS_CERT=<cert> BNS_CERT_PASS=<pass> ./package_windows.bash`
+`BNS_CERT=<cert> BNS_CERT_PASS=<pass> ./package_win.bash 2.0.0_beta1`
 
 ### Updating Icons
 
