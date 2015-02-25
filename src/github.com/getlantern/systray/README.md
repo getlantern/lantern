@@ -29,9 +29,10 @@ Checked menu item not implemented on Linux yet.
 ### Windows
 
 Use the Visual Studio solution to build systray.dll. Make sure to target Windows
-XP and build for Release (not Debug). Check the resulting dll into git at Git at
-dll/systray.dll and run ./embeddll.bash to generate the systraydll_windows.go
-file.
+XP and build for Release (not Debug). Put the resulting dll in
+`dll/systray_unsigned.dll` and then run `./signdll.bash` to sign it. Check the
+resulting dll into git at Git at dll/systray.dll and run ./embeddll.bash to
+generate the systraydll_windows.go file.
 
 The solution is configured to build with platform toolset v90 and dynamic
 linking to save on size and support Windows XP.  To get platform toolset v90,

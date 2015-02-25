@@ -19,8 +19,9 @@ import (
 const (
 	messageType = `GeoLookup`
 
-	basePublishInterval     = 30 * time.Second
-	publishIntervalVariance = basePublishInterval - 10*time.Second
+	basePublishSeconds     = 30
+	publishSecondsVariance = basePublishSeconds - 10
+	retryWaitMillis        = 100
 )
 
 var (
@@ -70,14 +71,13 @@ func registerService() error {
 }
 
 func write() {
-	retryWaitTime := 100 * time.Millisecond
 	consecutiveFailures := 0
 
 	for {
 		// Wait a random amount of time (to avoid looking too suspicious)
 		// Note - rand was seeded with the startup time in flashlight.go
-		n := rand.Int63n(int64(publishIntervalVariance))
-		wait := basePublishInterval - publishIntervalVariance/2 + time.Duration(n)
+		n := rand.Intn(publishSecondsVariance)
+		wait := time.Duration(basePublishSeconds-publishSecondsVariance/2+n) * time.Second
 
 		oldLocation := globals.GetLocation()
 		location, err := geolookup.LookupIPWithClient("", client.Load().(*http.Client))
@@ -92,7 +92,7 @@ func write() {
 		} else {
 			log.Errorf("Unable to get current location: %v", err)
 			// When retrying after a failure, wait a different amount of time
-			retryWait := time.Duration(math.Pow(2, float64(consecutiveFailures)) * float64(retryWaitTime))
+			retryWait := time.Duration(math.Pow(2, float64(consecutiveFailures))*float64(retryWaitMillis)) * time.Millisecond
 			if retryWait < wait {
 				wait = retryWait
 			}

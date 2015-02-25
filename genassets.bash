@@ -6,7 +6,7 @@ LANTERN_UI="src/github.com/getlantern/lantern-ui"
 APP="$LANTERN_UI/app"
 DIST="$LANTERN_UI/dist"
 
-if [ ! -d $DIST ] || [ $APP -nt $DIST ]; then
+if [ "$UPDATE_DIST" ]; then
     which gulp > /dev/null
     if [ $? -ne 0 ]
     then
@@ -21,7 +21,7 @@ if [ ! -d $DIST ] || [ $APP -nt $DIST ]; then
     gulp build
     cd -
 else
-    echo "Dist folder is up to date"
+    echo "Not updating dist folder"
 fi
 
 echo "Generating resources.go"
@@ -29,7 +29,7 @@ go install github.com/getlantern/tarfs/tarfs
 dest="src/github.com/getlantern/flashlight/ui/resources.go"
 echo "// +build prod" > $dest
 echo " " >> $dest
-tarfs -pkg ui src/github.com/getlantern/lantern-ui/dist >> $dest 
+tarfs -pkg ui $DIST >> $dest 
 
 echo "Now embedding lantern.ico to windows executable"
 go install github.com/akavel/rsrc

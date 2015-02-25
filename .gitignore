@@ -11,6 +11,8 @@ lantern_linux_386
 lantern_linux_amd64
 lantern_windows_386.exe
 lantern.exe
+lantern-installer-unsigned.exe
+lantern-installer.exe
 src/github.com/getlantern/fronted/testcert.pem
 src/github.com/getlantern/fronted/testpk.pem
 flashlight.yaml
