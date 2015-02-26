@@ -2,7 +2,7 @@
 # internet.
 client:
   frontedservers:
-  - host: fallbacks.getiantem.org
+  - host: nl.fallbacks.getiantem.org
     port: 443
     poolsize: 30
     masqueradeset: "cloudflare"
@@ -15,7 +15,7 @@ client:
     masqueradeset: "cloudflare"
     maxmasquerades: 20
     qos: 2
-    weight: 1000
+    weight: 80
   proxiedsites:
     cloud:{{range $domain, $bool := .proxiedsites }}
     - {{$domain}}{{end}}
