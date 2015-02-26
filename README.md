@@ -141,9 +141,8 @@ requirements:
 
 https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version
 
-As of this writing, this will build a 64bit package if run in a 64bit system.
-Presumably, a 32bit package will be built if run in a 32bit system, but this is
-as of yet untested.
+This will build a 64bit package if run on a 64bit system and will build a 32bit
+package if run on a 32bit system.
 
 ### Updating Icons
 
