@@ -13,6 +13,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"regexp"
 	"runtime"
 	"strings"
 	"sync"
@@ -44,6 +45,8 @@ var (
 	hostsByName map[string]*host
 	hostsByIp   map[string]*host
 	hostsMutex  sync.Mutex
+
+	fallbackNamePattern = regexp.MustCompile(`^fl-([a-z]{2})-.+$`)
 )
 
 func main() {
@@ -97,15 +100,16 @@ func loadHosts() (map[string]*host, error) {
 	}
 
 	// Keep track of different groups of hosts
-	groups := map[string]map[string]*cloudflare.Record{
-		RoundRobin: make(map[string]*cloudflare.Record),
-		Fallbacks:  make(map[string]*cloudflare.Record),
-		Peers:      make(map[string]*cloudflare.Record),
-	}
+	groups := make(map[string]map[string]*cloudflare.Record, 0)
 
 	addToGroup := func(name string, r cloudflare.Record) {
 		log.Tracef("Adding to %v: %v", name, r.Value)
-		groups[name][r.Value] = &r
+		g := groups[name]
+		if g == nil {
+			g = make(map[string]*cloudflare.Record, 1)
+			groups[name] = g
+		}
+		g[r.Value] = &r
 	}
 
 	// Build map of existing hosts
@@ -130,6 +134,8 @@ func loadHosts() (map[string]*host, error) {
 			addToGroup(Fallbacks, r)
 		} else if r.Name == Peers {
 			addToGroup(Peers, r)
+		} else if strings.HasSuffix(r.Name, ".fallbacks") {
+			addToGroup(r.Name, r)
 		} else {
 			log.Tracef("Unrecognized record: %v", r.FullName)
 		}
@@ -204,4 +210,14 @@ func isPeer(name string) bool {
 
 func isFallback(name string) bool {
 	return strings.HasPrefix(name, "fl-")
+}
+
+// fallbackCountry returns the country code of a fallback if it follows the
+// usual naming convention.
+func fallbackCountry(name string) string {
+	sub := fallbackNamePattern.FindSubmatch([]byte(name))
+	if len(sub) == 2 {
+		return string(sub[1]) + ".fallbacks"
+	}
+	return ""
 }
