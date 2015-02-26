@@ -122,7 +122,7 @@ gboolean do_quit(gpointer data) {
 		}
 	}
 	// app indicator doesn't provide a way to remove it, hide it as a workaround
-	global_appindicator.set_status(appindicator.STATUS_PASSIVE);
+	app_indicator_set_status(global_app_indicator, APP_INDICATOR_STATUS_PASSIVE);
 	return FALSE;
 }
 
