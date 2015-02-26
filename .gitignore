@@ -23,3 +23,5 @@ src/github.com/getlantern/flashlight/ui/resources.go
 src/github.com/getlantern/flashlight/lantern.syso
 dmgbackground.png
 dmgbackground_versioned.svg
+*.swp
+*.swo
