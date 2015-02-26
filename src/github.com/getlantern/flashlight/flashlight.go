@@ -229,6 +229,7 @@ func configureSystemTray() {
 				ui.Show()
 			case <-quit.ClickedCh:
 				pacOff()
+				systray.Quit()
 				os.Exit(0)
 			}
 		}
