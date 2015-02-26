@@ -62,7 +62,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			}
 			break;
 		case WM_DESTROY:
-			Shell_NotifyIcon(NIM_DELETE, &nid);
 			PostQuitMessage(0);
 			break;
 		case WM_SYSTRAY_MESSAGE:
@@ -209,5 +208,5 @@ void add_or_update_menu_item(int menuId, wchar_t* title, wchar_t* tooltip, short
 }
 
 void quit() {
-	PostMessage(hWnd, WM_DESTROY, 0, 0);
+	Shell_NotifyIcon(NIM_DELETE, &nid);
 }
