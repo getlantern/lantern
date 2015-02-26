@@ -133,6 +133,18 @@ You can set the environment variables and run the script on one line, like this:
 
 `BNS_CERT=<cert> BNS_CERT_PASS=<pass> ./package_win.bash 2.0.0_beta1`
 
+### Packaging for Ubuntu
+Lantern on Ubuntu is distributed as a .deb package.  After you have built
+a Lantern executable with `./linuxcompile.bash`, you can package it with
+`./package_ubuntu.bash <version>`.  The version string must match the Debian
+requirements:
+
+https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version
+
+As of this writing, this will build a 64bit package if run in a 64bit system.
+Presumably, a 32bit package will be built if run in a 32bit system, but this is
+as of yet untested.
+
 ### Updating Icons
 
 The icons used for the system tray are stored in
