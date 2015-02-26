@@ -121,6 +121,11 @@ func newHost(name string, ip string, record *cloudflare.Record) *host {
 			RoundRobin: &group{subdomain: RoundRobin},
 			Fallbacks:  &group{subdomain: Fallbacks},
 		}
+		country := fallbackCountry(name)
+		if country != "" {
+			// Add host to country-specific rotation
+			h.groups[country] = &group{subdomain: country}
+		}
 	} else {
 		h.groups = map[string]*group{
 			Peers: &group{subdomain: Peers},
