@@ -25,7 +25,7 @@ func setUpPacTool() bool {
 			log.Debugf("Saved icon file to: %v", iconFile)
 		}
 	}
-	err = pac.EnsureHelperToolPresent("pac-cmd", "Lantern would like to set itself as your system proxy", iconFile)
+	err = pac.EnsureHelperToolPresent("pac-cmd", "Lantern would like to be your system proxy", iconFile)
 	if err != nil {
 		log.Errorf("Unable to set up pac setting tool: %v", err)
 		return false
