@@ -43,14 +43,14 @@ var (
 	lastAddr string
 )
 
-func init() {
+func Init() error {
 	logdir := appdir.Logs("Lantern")
 	log.Debugf("Placing logs in %v", logdir)
 	if _, err := os.Stat(logdir); err != nil {
 		if os.IsNotExist(err) {
 			// Create log dir
 			if err := os.MkdirAll(logdir, 0755); err != nil {
-				log.Fatalf("Unable to create logdir at %s: %s", logdir, err)
+				return fmt.Errorf("Unable to create logdir at %s: %s", logdir, err)
 			}
 		}
 	}
@@ -65,6 +65,8 @@ func init() {
 	errorOut = timestamped(io.MultiWriter(os.Stderr, logFile))
 	debugOut = timestamped(io.MultiWriter(os.Stdout, logFile))
 	golog.SetOutputs(errorOut, debugOut)
+
+	return nil
 }
 
 func Configure(cfg *config.Config, version string, buildDate string) {
@@ -100,6 +102,7 @@ func Configure(cfg *config.Config, version string, buildDate string) {
 }
 
 func Close() error {
+	golog.ResetOutputs()
 	return logFile.Close()
 }
 

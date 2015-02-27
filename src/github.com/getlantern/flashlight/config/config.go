@@ -63,10 +63,14 @@ type CA struct {
 	Cert       string // PEM-encoded
 }
 
-// Start starts the configuration system.
-func Start(updateHandler func(updated *Config)) (*Config, error) {
+// Init initializes the configuration system.
+func Init() (*Config, error) {
+	configPath, err := InConfigDir("lantern.yaml")
+	if err != nil {
+		return nil, err
+	}
 	m = &yamlconf.Manager{
-		FilePath:         InConfigDir("lantern.yaml"),
+		FilePath:         configPath,
 		FilePollInterval: 1 * time.Second,
 		ConfigServerAddr: *configaddr,
 		EmptyConfig: func() yamlconf.Config {
@@ -104,29 +108,37 @@ func Start(updateHandler func(updated *Config)) (*Config, error) {
 	var cfg *Config
 	if err == nil {
 		cfg = initial.(*Config)
-		updateGlobals(cfg)
-		go func() {
-			// Read updates
-			for {
-				next := m.Next()
-				nextCfg := next.(*Config)
-				updateGlobals(nextCfg)
-				updateHandler(nextCfg)
-			}
-		}()
+		err = updateGlobals(cfg)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return cfg, err
 }
 
-func updateGlobals(cfg *Config) {
+// Run runs the configuration system.
+func Run(updateHandler func(updated *Config)) error {
+	for {
+		next := m.Next()
+		nextCfg := next.(*Config)
+		err := updateGlobals(nextCfg)
+		if err != nil {
+			return err
+		}
+		updateHandler(nextCfg)
+	}
+}
+
+func updateGlobals(cfg *Config) error {
 	globals.InstanceId = cfg.InstanceId
 	loc := &geolookup.City{}
 	loc.Country.IsoCode = cfg.Country
 	globals.SetLocation(loc)
 	err := globals.SetTrustedCAs(cfg.TrustedCACerts())
 	if err != nil {
-		log.Fatalf("Unable to configure trusted CAs: %s", err)
+		return fmt.Errorf("Unable to configure trusted CAs: %s", err)
 	}
+	return nil
 }
 
 // Update updates the configuration using the given mutator function.
@@ -137,7 +149,7 @@ func Update(mutate func(cfg *Config) error) error {
 }
 
 // InConfigDir returns the path to the given filename inside of the configdir.
-func InConfigDir(filename string) string {
+func InConfigDir(filename string) (string, error) {
 	cdir := *configdir
 	if cdir == "" {
 		cdir = appdir.General("Lantern")
@@ -147,11 +159,11 @@ func InConfigDir(filename string) string {
 		if os.IsNotExist(err) {
 			// Create config dir
 			if err := os.MkdirAll(cdir, 0755); err != nil {
-				log.Fatalf("Unable to create configdir at %s: %s", cdir, err)
+				return "", fmt.Errorf("Unable to create configdir at %s: %s", cdir, err)
 			}
 		}
 	}
-	return filepath.Join(cdir, filename)
+	return filepath.Join(cdir, filename), nil
 }
 
 // TrustedCACerts returns a slice of PEM-encoded certs for the trusted CAs
