@@ -123,6 +123,9 @@ func configureStats(cfg *config.Config, failOnError bool) {
 
 // Runs the client-side proxy
 func runClientProxy(cfg *config.Config) {
+	if !setUpPacTool() {
+		exit()
+	}
 	client := &client.Client{
 		Addr:         cfg.Addr,
 		ReadTimeout:  0, // don't timeout
@@ -229,9 +232,13 @@ func configureSystemTray() {
 				ui.Show()
 			case <-quit.ClickedCh:
 				pacOff()
-				systray.Quit()
-				os.Exit(0)
+				exit()
 			}
 		}
 	}()
+}
+
+func exit() {
+	systray.Quit()
+	os.Exit(0)
 }
