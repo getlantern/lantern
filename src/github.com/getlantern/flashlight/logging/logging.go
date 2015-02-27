@@ -62,8 +62,8 @@ func init() {
 
 	// Loggly has its own timestamp so don't bother adding it in message,
 	// moreover, golog always write each line in whole, so we need not to care about line breaks.
-	errorOut = timestamped(io.MultiWriter(os.Stderr, logFile))
-	debugOut = timestamped(io.MultiWriter(os.Stdout, logFile))
+	errorOut = timestamped(NonStopWriter(os.Stderr, logFile))
+	debugOut = timestamped(NonStopWriter(os.Stdout, logFile))
 	golog.SetOutputs(errorOut, debugOut)
 }
 
@@ -146,7 +146,7 @@ func enableLoggly(cfg *config.Config, version string, buildDate string) {
 }
 
 func addLoggly(logglyWriter io.Writer) {
-	golog.SetOutputs(io.MultiWriter(errorOut, logglyWriter), debugOut)
+	golog.SetOutputs(NonStopWriter(errorOut, logglyWriter), debugOut)
 }
 
 func removeLoggly() {
@@ -182,4 +182,23 @@ func (w logglyErrorWriter) Write(b []byte) (int, error) {
 		return 0, err
 	}
 	return len(b), nil
+}
+
+type nonStopWriter struct {
+	writers []io.Writer
+}
+
+func (t *nonStopWriter) Write(p []byte) (n int, err error) {
+	for _, w := range t.writers {
+		n, _ = w.Write(p)
+	}
+	return len(p), nil
+}
+
+// NonStopWriter creates a writer that duplicates its writes to all the
+// provided writers, even if errors encountered while writting.
+func NonStopWriter(writers ...io.Writer) io.Writer {
+	w := make([]io.Writer, len(writers))
+	copy(w, writers)
+	return &nonStopWriter{w}
 }
