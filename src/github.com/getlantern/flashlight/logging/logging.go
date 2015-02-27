@@ -188,17 +188,41 @@ type nonStopWriter struct {
 	writers []io.Writer
 }
 
-func (t *nonStopWriter) Write(p []byte) (n int, err error) {
-	for _, w := range t.writers {
-		n, _ = w.Write(p)
-	}
-	return len(p), nil
-}
-
 // NonStopWriter creates a writer that duplicates its writes to all the
 // provided writers, even if errors encountered while writting.
 func NonStopWriter(writers ...io.Writer) io.Writer {
 	w := make([]io.Writer, len(writers))
 	copy(w, writers)
 	return &nonStopWriter{w}
+}
+
+// Write implements the method from io.Writer. It returns the smallest number
+// of bytes written to any of the writers and the first error encountered in
+// writing to any of the writers.
+func (t *nonStopWriter) Write(p []byte) (int, error) {
+	var fn int
+	var ferr error
+	first := true
+	for _, w := range t.writers {
+		n, err := w.Write(p)
+		if first {
+			fn, ferr = n, err
+			first = false
+		} else {
+			// Use the smallest written n
+			if n < fn {
+				fn = n
+			}
+			// Use the first error encountered
+			if ferr == nil && err != nil {
+				ferr = err
+			}
+		}
+	}
+
+	if ferr == nil && fn < len(p) {
+		ferr = io.ErrShortWrite
+	}
+
+	return fn, ferr
 }
