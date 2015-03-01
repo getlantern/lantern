@@ -265,10 +265,15 @@ func buildModel(cas map[string]*castat, masquerades []*masquerade) map[string]in
 	}
 	sort.Sort(ByFreq(casList))
 	sort.Sort(ByDomain(masquerades))
+	ps := make([]string, 0, len(proxiedSites))
+	for site, _ := range proxiedSites {
+		ps = append(ps, site)
+	}
+	sort.Strings(ps)
 	return map[string]interface{}{
 		"cas":          casList,
 		"masquerades":  masquerades,
-		"proxiedsites": proxiedSites,
+		"proxiedsites": ps,
 	}
 }
 
