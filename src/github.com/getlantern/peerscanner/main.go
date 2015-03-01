@@ -99,11 +99,13 @@ func loadHosts() (map[string]*host, error) {
 		return nil, fmt.Errorf("Unable to load hosts: %v", err)
 	}
 
+	log.Debugf("Loaded %d existing hosts", len(recs))
+
 	// Keep track of different groups of hosts
 	groups := make(map[string]map[string]*cloudflare.Record, 0)
 
 	addToGroup := func(name string, r cloudflare.Record) {
-		log.Tracef("Adding to %v: %v", name, r.Value)
+		log.Debugf("Adding to %v: %v", name, r.Value)
 		g := groups[name]
 		if g == nil {
 			g = make(map[string]*cloudflare.Record, 1)
@@ -123,10 +125,10 @@ func loadHosts() (map[string]*host, error) {
 	// Look through all records to find peers, fallbacks and groups
 	for _, r := range recs {
 		if isFallback(r.Name) {
-			log.Tracef("Adding fallback: %v", r.Name)
+			log.Debugf("Adding fallback: %v", r.Name)
 			addHost(r)
 		} else if isPeer(r.Name) {
-			log.Tracef("Adding peer: %v", r.Name)
+			log.Debugf("Adding peer: %v", r.Name)
 			addHost(r)
 		} else if r.Name == RoundRobin {
 			addToGroup(RoundRobin, r)

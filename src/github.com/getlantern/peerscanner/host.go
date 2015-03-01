@@ -221,7 +221,7 @@ func (h *host) run() {
 				h.lastSuccess = time.Now()
 				err := h.register()
 				if err != nil {
-					log.Error(err)
+					log.Errorf("Error registering %v: %v", h, err)
 				}
 			} else {
 				log.Tracef("Test for %v failed with error: %v", h, err)
@@ -370,7 +370,7 @@ func (h *host) isAbleToProxy() (bool, bool, error) {
 	for i := 0; i < proxyAttempts; i++ {
 		success, connectionRefused, err := h.doIsAbleToProxy()
 		if err != nil {
-			log.Debugf("Error testing %v: %v", h, err.Error())
+			log.Tracef("Error testing %v: %v", h, err.Error())
 		}
 		lastErr = err
 		if success || connectionRefused {

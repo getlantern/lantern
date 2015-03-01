@@ -67,7 +67,7 @@ func (util *Util) Register(name string, ip string) (*cloudflare.Record, error) {
 	ur := cloudflare.UpdateRecord{Type: "A", Name: name, Content: ip, Ttl: "360", ServiceMode: "1"}
 	err = util.Client.UpdateRecord(util.domain, rec.Id, &ur)
 	if err != nil {
-		log.Tracef("Error updating record %v, destroying", rec)
+		log.Debugf("Error updating record %v, destroying", rec)
 		err2 := util.DestroyRecord(rec)
 		if err2 != nil {
 			log.Errorf("Unable to destroy incomplete record %v: %v", rec, err2)
