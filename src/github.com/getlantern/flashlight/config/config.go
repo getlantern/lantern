@@ -83,20 +83,21 @@ func Init() (*Config, error) {
 			return cfg.applyFlags()
 		},
 		CustomPoll: func(currentCfg yamlconf.Config) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
+			// By default, do nothing
+			mutate = func(ycfg yamlconf.Config) error {
+				// do nothing
+				return nil
+			}
 			cfg := currentCfg.(*Config)
 			waitTime = cfg.cloudPollSleepTime()
 			if cfg.CloudConfig == "" {
 				// Config doesn't have a CloudConfig, just ignore
-				mutate = func(ycfg yamlconf.Config) error {
-					// do nothing
-					return nil
-				}
 				return
 			}
 
 			var bytes []byte
 			bytes, err = cfg.fetchCloudConfig()
-			if err == nil {
+			if err == nil && bytes != nil {
 				mutate = func(ycfg yamlconf.Config) error {
 					log.Debugf("Merging cloud configuration")
 					cfg := ycfg.(*Config)
