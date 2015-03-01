@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"time"
 
 	"github.com/getlantern/appdir"
@@ -15,6 +16,7 @@ import (
 	"github.com/getlantern/geolookup"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/proxiedsites"
+	"github.com/getlantern/waitforserver"
 	"github.com/getlantern/yaml"
 	"github.com/getlantern/yamlconf"
 
@@ -204,6 +206,10 @@ func (cfg *Config) ApplyDefaults() {
 		cfg.UIAddr = "localhost:16823"
 	}
 
+	if cfg.CloudConfig == "" {
+		cfg.CloudConfig = "https://s3.amazonaws.com/lantern_config/cloud.valencia.yaml.gz"
+	}
+
 	// Default country
 	if cfg.Country == "" {
 		cfg.Country = *country
@@ -332,10 +338,20 @@ func (cfg Config) fetchCloudConfig() (bytes []byte, err error) {
 
 func (cfg Config) doFetchCloudConfig(proxyAddr string) ([]byte, error) {
 	log.Tracef("doFetchCloudConfig via '%s'", proxyAddr)
+
+	if proxyAddr != "" {
+		// Wait for proxy to become available
+		err := waitforserver.WaitForServer("tcp", proxyAddr, 30*time.Second)
+		if err != nil {
+			return nil, fmt.Errorf("Proxy never came up at %v: %v", proxyAddr, err)
+		}
+	}
+
 	client, err := util.HTTPClient(cfg.CloudConfigCA, proxyAddr)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to initialize HTTP client: %s", err)
 	}
+
 	log.Debugf("Checking for cloud configuration at: %s", cfg.CloudConfig)
 	req, err := http.NewRequest("GET", cfg.CloudConfig, nil)
 	if err != nil {
@@ -350,12 +366,14 @@ func (cfg Config) doFetchCloudConfig(proxyAddr string) ([]byte, error) {
 		return nil, fmt.Errorf("Unable to fetch cloud config at %s: %s", cfg.CloudConfig, err)
 	}
 	defer resp.Body.Close()
+
 	if resp.StatusCode == 304 {
 		log.Debugf("Config unchanged in cloud")
 		return nil, nil
 	} else if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("Unexpected response status: %d", resp.StatusCode)
 	}
+
 	lastCloudConfigETag = resp.Header.Get(etag)
 	gzReader, err := gzip.NewReader(resp.Body)
 	if err != nil {
@@ -393,6 +411,7 @@ func (updated *Config) updateFrom(updateBytes []byte) error {
 		for domain, _ := range wlDomains {
 			updated.ProxiedSites.Cloud = append(updated.ProxiedSites.Cloud, domain)
 		}
+		sort.Strings(updated.ProxiedSites.Cloud)
 	}
 	return nil
 }

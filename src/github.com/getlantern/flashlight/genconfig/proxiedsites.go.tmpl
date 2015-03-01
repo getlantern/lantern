@@ -1,5 +1,5 @@
 package config
 
-var defaultProxiedSites = []string{ {{range $domain, $bool := .proxiedsites }}
+var defaultProxiedSites = []string{ {{range $domain := .proxiedsites }}
 	"{{$domain}}", {{end}}
 }
