@@ -27,12 +27,6 @@ import (
 	"github.com/getlantern/flashlight/ui"
 )
 
-const (
-	// Exit Statuses
-	ConfigError    = 1
-	PortmapFailure = 50
-)
-
 var (
 	version   string
 	buildDate string
@@ -43,6 +37,7 @@ var (
 	parentPID = flag.Int("parentpid", 0, "the parent process's PID, used on Windows for killing flashlight when the parent disappears")
 
 	configUpdates = make(chan *config.Config)
+	exitCh        = make(chan error, 1)
 )
 
 func init() {
@@ -57,33 +52,63 @@ func init() {
 }
 
 func main() {
-	systray.Run(doMain)
+	systray.Run(_main)
 }
 
-func doMain() {
+func _main() {
+	err := doMain()
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Debug("Lantern stopped")
+	os.Exit(0)
+}
+
+func doMain() error {
+	err := logging.Init()
+	if err != nil {
+		return err
+	}
+
+	// Schedule cleanup actions
 	defer logging.Close()
+	defer pacOff()
+	defer systray.Quit()
+
 	i18nInit()
-	configureSystemTray()
+	err = configureSystemTray()
+	if err != nil {
+		return err
+	}
 	displayVersion()
 
 	flag.Parse()
 	configUpdates = make(chan *config.Config)
-	cfg, err := config.Start(func(updated *config.Config) {
-		configUpdates <- updated
-	})
+	cfg, err := config.Init()
 	if err != nil {
-		log.Fatalf("Unable to start configuration: %s", err)
+		return fmt.Errorf("Unable to initialize configuration: %v", err)
 	}
+	go func() {
+		err := config.Run(func(updated *config.Config) {
+			configUpdates <- updated
+		})
+		if err != nil {
+			exit(err)
+		}
+	}()
 	if *help || cfg.Addr == "" || (cfg.Role != "server" && cfg.Role != "client") {
 		flag.Usage()
-		os.Exit(ConfigError)
+		return fmt.Errorf("Wrong arguments")
 	}
 
 	finishProfiling := profiling.Start(cfg.CpuProfile, cfg.MemProfile)
 	defer finishProfiling()
 
 	// Configure stats initially
-	configureStats(cfg, true)
+	err = statreporter.Configure(cfg.Stats)
+	if err != nil {
+		return err
+	}
 
 	log.Debugf("Running proxy")
 	if cfg.IsDownstream() {
@@ -91,6 +116,8 @@ func doMain() {
 	} else {
 		runServerProxy(cfg)
 	}
+
+	return waitForExit()
 }
 
 func i18nInit() {
@@ -99,7 +126,7 @@ func i18nInit() {
 	})
 	err := i18n.UseOSLocale()
 	if err != nil {
-		panic(err)
+		exit(err)
 	}
 }
 
@@ -107,22 +134,12 @@ func displayVersion() {
 	log.Debugf("---- flashlight version %s (%s) ----", version, buildDate)
 }
 
-func configureStats(cfg *config.Config, failOnError bool) {
-	var err error
-
-	// Configuring statreporter
-	err = statreporter.Configure(cfg.Stats)
-	if err != nil {
-		log.Error(err)
-		if failOnError {
-			flag.Usage()
-			os.Exit(ConfigError)
-		}
-	}
-}
-
 // Runs the client-side proxy
 func runClientProxy(cfg *config.Config) {
+	err := setUpPacTool()
+	if err != nil {
+		exit(err)
+	}
 	client := &client.Client{
 		Addr:         cfg.Addr,
 		ReadTimeout:  0, // don't timeout
@@ -134,7 +151,8 @@ func runClientProxy(cfg *config.Config) {
 	if cfg.UIAddr != "" {
 		err := ui.Start(cfg.UIAddr)
 		if err != nil {
-			panic(fmt.Errorf("Unable to start UI: %v", err))
+			exit(fmt.Errorf("Unable to start UI: %v", err))
+			return
 		}
 		ui.Show()
 	}
@@ -157,7 +175,8 @@ func runClientProxy(cfg *config.Config) {
 			cfg := <-configUpdates
 
 			proxiedsites.Configure(cfg.ProxiedSites)
-			configureStats(cfg, false)
+			// Note - we deliberately ignore the error from statreporter.Configure here
+			statreporter.Configure(cfg.Stats)
 			hqfd = client.Configure(cfg.Client)
 			if hqfd != nil {
 				hqfdc := hqfd.DirectHttpClient()
@@ -168,15 +187,24 @@ func runClientProxy(cfg *config.Config) {
 		}
 	}()
 
-	err := client.ListenAndServe(pacOn)
-	if err != nil {
-		log.Fatalf("Unable to run client proxy: %s", err)
-	}
+	go func() {
+		exit(client.ListenAndServe(pacOn))
+	}()
+	log.Debug("Ran goroutine")
 }
 
 // Runs the server-side proxy
 func runServerProxy(cfg *config.Config) {
 	useAllCores()
+
+	pkFile, err := config.InConfigDir("proxypk.pem")
+	if err != nil {
+		log.Fatal(err)
+	}
+	certFile, err := config.InConfigDir("servercert.pem")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	srv := &server.Server{
 		Addr:         cfg.Addr,
@@ -184,8 +212,8 @@ func runServerProxy(cfg *config.Config) {
 		ReadTimeout:  0, // don't timeout
 		WriteTimeout: 0,
 		CertContext: &fronted.CertContext{
-			PKFile:         config.InConfigDir("proxypk.pem"),
-			ServerCertFile: config.InConfigDir("servercert.pem"),
+			PKFile:         pkFile,
+			ServerCertFile: certFile,
 		},
 		AllowedPorts: []int{80, 443, 8080, 8443, 5222},
 	}
@@ -196,12 +224,12 @@ func runServerProxy(cfg *config.Config) {
 	go func() {
 		for {
 			cfg := <-configUpdates
-			configureStats(cfg, false)
+			statreporter.Configure(cfg.Stats)
 			srv.Configure(cfg.Server)
 		}
 	}()
 
-	err := srv.ListenAndServe()
+	err = srv.ListenAndServe()
 	if err != nil {
 		log.Fatalf("Unable to run server proxy: %s", err)
 	}
@@ -213,10 +241,10 @@ func useAllCores() {
 	runtime.GOMAXPROCS(numcores)
 }
 
-func configureSystemTray() {
+func configureSystemTray() error {
 	icon, err := Asset("icons/16on.ico")
 	if err != nil {
-		log.Fatalf("Unable to load icon for system tray: %v", err)
+		return fmt.Errorf("Unable to load icon for system tray: %v", err)
 	}
 	systray.SetIcon(icon)
 	systray.SetTooltip("Lantern")
@@ -228,10 +256,22 @@ func configureSystemTray() {
 			case <-show.ClickedCh:
 				ui.Show()
 			case <-quit.ClickedCh:
-				pacOff()
-				systray.Quit()
-				os.Exit(0)
+				exit(nil)
+				return
 			}
 		}
 	}()
+
+	return nil
+}
+
+// exit tells the application to exit, optionally supplying an error that caused
+// the exit.
+func exit(err error) {
+	exitCh <- err
+}
+
+// WaitForExit waits for a request to exit the application.
+func waitForExit() error {
+	return <-exitCh
 }

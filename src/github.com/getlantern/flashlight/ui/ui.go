@@ -47,6 +47,8 @@ func init() {
 	var err error
 	fs, err = tarfs.New(Resources, localResourcesPath)
 	if err != nil {
+		// Panicking here because this shouldn't happen at runtime unless the
+		// resources were incorrectly embedded.
 		panic(fmt.Errorf("Unable to open tarfs filesystem: %v", err))
 	}
 	Translations = fs.SubDir("locale")

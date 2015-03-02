@@ -6,24 +6,26 @@ import (
 
 // group represents a host's participation in a rotation (e.g. roundrobin)
 type group struct {
-	subdomain string
-	existing  *cloudflare.Record
+	subdomain  string
+	existing   *cloudflare.Record
+	isProxying bool
+}
+
+func (g *group) String() string {
+	return g.subdomain
 }
 
 // register registers a host with this group in CloudFlare if it isn't already
 // registered.
 func (g *group) register(h *host) error {
-	if g.existing != nil {
-		log.Tracef("%v is already registered in %v, no need to re-register:", h, g.subdomain)
+	if g.isProxying {
+		log.Debugf("%v is already registered in %v, no need to re-register:", h, g.subdomain)
 		return nil
 	}
-
 	log.Debugf("Registering to %v: %v", g.subdomain, h)
 
-	rec, err := cfutil.Register(g.subdomain, h.ip)
-	if err == nil || isDuplicateError(err) {
-		g.existing = rec
-	}
+	var err error
+	g.existing, g.isProxying, err = cfutil.EnsureRegistered(g.subdomain, h.ip, g.existing)
 	return err
 }
 
@@ -45,4 +47,5 @@ func (g *group) deregister(h *host) {
 	}
 
 	g.existing = nil
+	g.isProxying = false
 }

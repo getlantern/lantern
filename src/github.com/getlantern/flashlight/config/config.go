@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"time"
 
 	"github.com/getlantern/appdir"
@@ -15,6 +16,7 @@ import (
 	"github.com/getlantern/geolookup"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/proxiedsites"
+	"github.com/getlantern/waitforserver"
 	"github.com/getlantern/yaml"
 	"github.com/getlantern/yamlconf"
 
@@ -63,10 +65,14 @@ type CA struct {
 	Cert       string // PEM-encoded
 }
 
-// Start starts the configuration system.
-func Start(updateHandler func(updated *Config)) (*Config, error) {
+// Init initializes the configuration system.
+func Init() (*Config, error) {
+	configPath, err := InConfigDir("lantern.yaml")
+	if err != nil {
+		return nil, err
+	}
 	m = &yamlconf.Manager{
-		FilePath:         InConfigDir("lantern.yaml"),
+		FilePath:         configPath,
 		FilePollInterval: 1 * time.Second,
 		ConfigServerAddr: *configaddr,
 		EmptyConfig: func() yamlconf.Config {
@@ -77,20 +83,21 @@ func Start(updateHandler func(updated *Config)) (*Config, error) {
 			return cfg.applyFlags()
 		},
 		CustomPoll: func(currentCfg yamlconf.Config) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
+			// By default, do nothing
+			mutate = func(ycfg yamlconf.Config) error {
+				// do nothing
+				return nil
+			}
 			cfg := currentCfg.(*Config)
 			waitTime = cfg.cloudPollSleepTime()
 			if cfg.CloudConfig == "" {
 				// Config doesn't have a CloudConfig, just ignore
-				mutate = func(ycfg yamlconf.Config) error {
-					// do nothing
-					return nil
-				}
 				return
 			}
 
 			var bytes []byte
 			bytes, err = cfg.fetchCloudConfig()
-			if err == nil {
+			if err == nil && bytes != nil {
 				mutate = func(ycfg yamlconf.Config) error {
 					log.Debugf("Merging cloud configuration")
 					cfg := ycfg.(*Config)
@@ -104,29 +111,37 @@ func Start(updateHandler func(updated *Config)) (*Config, error) {
 	var cfg *Config
 	if err == nil {
 		cfg = initial.(*Config)
-		updateGlobals(cfg)
-		go func() {
-			// Read updates
-			for {
-				next := m.Next()
-				nextCfg := next.(*Config)
-				updateGlobals(nextCfg)
-				updateHandler(nextCfg)
-			}
-		}()
+		err = updateGlobals(cfg)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return cfg, err
 }
 
-func updateGlobals(cfg *Config) {
+// Run runs the configuration system.
+func Run(updateHandler func(updated *Config)) error {
+	for {
+		next := m.Next()
+		nextCfg := next.(*Config)
+		err := updateGlobals(nextCfg)
+		if err != nil {
+			return err
+		}
+		updateHandler(nextCfg)
+	}
+}
+
+func updateGlobals(cfg *Config) error {
 	globals.InstanceId = cfg.InstanceId
 	loc := &geolookup.City{}
 	loc.Country.IsoCode = cfg.Country
 	globals.SetLocation(loc)
 	err := globals.SetTrustedCAs(cfg.TrustedCACerts())
 	if err != nil {
-		log.Fatalf("Unable to configure trusted CAs: %s", err)
+		return fmt.Errorf("Unable to configure trusted CAs: %s", err)
 	}
+	return nil
 }
 
 // Update updates the configuration using the given mutator function.
@@ -137,7 +152,7 @@ func Update(mutate func(cfg *Config) error) error {
 }
 
 // InConfigDir returns the path to the given filename inside of the configdir.
-func InConfigDir(filename string) string {
+func InConfigDir(filename string) (string, error) {
 	cdir := *configdir
 	if cdir == "" {
 		cdir = appdir.General("Lantern")
@@ -147,11 +162,11 @@ func InConfigDir(filename string) string {
 		if os.IsNotExist(err) {
 			// Create config dir
 			if err := os.MkdirAll(cdir, 0755); err != nil {
-				log.Fatalf("Unable to create configdir at %s: %s", cdir, err)
+				return "", fmt.Errorf("Unable to create configdir at %s: %s", cdir, err)
 			}
 		}
 	}
-	return filepath.Join(cdir, filename)
+	return filepath.Join(cdir, filename), nil
 }
 
 // TrustedCACerts returns a slice of PEM-encoded certs for the trusted CAs
@@ -190,6 +205,10 @@ func (cfg *Config) ApplyDefaults() {
 
 	if cfg.UIAddr == "" {
 		cfg.UIAddr = "localhost:16823"
+	}
+
+	if cfg.CloudConfig == "" {
+		cfg.CloudConfig = "https://s3.amazonaws.com/lantern_config/cloud.valencia.yaml.gz"
 	}
 
 	// Default country
@@ -320,10 +339,20 @@ func (cfg Config) fetchCloudConfig() (bytes []byte, err error) {
 
 func (cfg Config) doFetchCloudConfig(proxyAddr string) ([]byte, error) {
 	log.Tracef("doFetchCloudConfig via '%s'", proxyAddr)
+
+	if proxyAddr != "" {
+		// Wait for proxy to become available
+		err := waitforserver.WaitForServer("tcp", proxyAddr, 30*time.Second)
+		if err != nil {
+			return nil, fmt.Errorf("Proxy never came up at %v: %v", proxyAddr, err)
+		}
+	}
+
 	client, err := util.HTTPClient(cfg.CloudConfigCA, proxyAddr)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to initialize HTTP client: %s", err)
 	}
+
 	log.Debugf("Checking for cloud configuration at: %s", cfg.CloudConfig)
 	req, err := http.NewRequest("GET", cfg.CloudConfig, nil)
 	if err != nil {
@@ -338,12 +367,14 @@ func (cfg Config) doFetchCloudConfig(proxyAddr string) ([]byte, error) {
 		return nil, fmt.Errorf("Unable to fetch cloud config at %s: %s", cfg.CloudConfig, err)
 	}
 	defer resp.Body.Close()
+
 	if resp.StatusCode == 304 {
 		log.Debugf("Config unchanged in cloud")
 		return nil, nil
 	} else if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("Unexpected response status: %d", resp.StatusCode)
 	}
+
 	lastCloudConfigETag = resp.Header.Get(etag)
 	gzReader, err := gzip.NewReader(resp.Body)
 	if err != nil {
@@ -381,6 +412,7 @@ func (updated *Config) updateFrom(updateBytes []byte) error {
 		for domain, _ := range wlDomains {
 			updated.ProxiedSites.Cloud = append(updated.ProxiedSites.Cloud, domain)
 		}
+		sort.Strings(updated.ProxiedSites.Cloud)
 	}
 	return nil
 }

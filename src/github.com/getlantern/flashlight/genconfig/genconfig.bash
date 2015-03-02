@@ -1,3 +1,2 @@
 #!/usr/bin/env bash
-go build
-./genconfig -blacklist="blacklist.txt" -domains="domains.txt" -proxiedsites="proxiedsites"
+go run genconfig.go -blacklist="blacklist.txt" -domains="domains.txt" -proxiedsites="proxiedsites"

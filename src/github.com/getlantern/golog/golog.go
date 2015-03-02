@@ -19,7 +19,7 @@ var (
 )
 
 func init() {
-	SetOutputs(os.Stderr, os.Stdout)
+	ResetOutputs()
 }
 
 func SetOutputs(errorOut io.Writer, debugOut io.Writer) {
@@ -27,6 +27,10 @@ func SetOutputs(errorOut io.Writer, debugOut io.Writer) {
 		errorOut: errorOut,
 		debugOut: debugOut,
 	})
+}
+
+func ResetOutputs() {
+	SetOutputs(os.Stderr, os.Stdout)
 }
 
 func getOutputs() *outputs {
