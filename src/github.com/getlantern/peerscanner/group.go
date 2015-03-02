@@ -39,13 +39,13 @@ func (g *group) deregister(h *host) {
 
 	log.Debugf("Deregistering from %v: %v", g.subdomain, h)
 
+	g.existing = nil
+	g.isProxying = false
+
 	// Destroy the record in the rotation...
 	err := cfutil.DestroyRecord(g.existing)
 	if err != nil {
 		log.Errorf("Unable to deregister host %v from rotation %v: %v", h, g.subdomain, err)
 		return
 	}
-
-	g.existing = nil
-	g.isProxying = false
 }
