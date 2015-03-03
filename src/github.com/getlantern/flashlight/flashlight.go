@@ -137,7 +137,7 @@ func runServerProxy(cfg *config.Config) {
 			PKFile:         config.InConfigDir("proxypk.pem"),
 			ServerCertFile: config.InConfigDir("servercert.pem"),
 		},
-		AllowedPorts: []int{80, 443, 8080, 8443, 5222},
+		AllowedPorts: []int{80, 443, 8080, 8443, 5222, 5223, 5228},
 	}
 
 	srv.Configure(cfg.Server)
