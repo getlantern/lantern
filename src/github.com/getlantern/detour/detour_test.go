@@ -1,6 +1,7 @@
 package detour
 
 import (
+	"io/ioutil"
 	"math/rand"
 	"net"
 	"net/http"
@@ -9,7 +10,6 @@ import (
 	"time"
 
 	"github.com/getlantern/testify/assert"
-	w "github.com/getlantern/waitforserver"
 )
 
 var (
@@ -24,24 +24,39 @@ func proxy(url string) (resp *http.Response, err error) {
 	return http.Get(proxiedURL)
 }
 
-func detour(network, addr string) (net.Conn, error) {
+func dDialer(network, addr string) (net.Conn, error) {
 	return net.Dial("tcp", ":12307")
 }
 
 func TestDetour(t *testing.T) {
 	startMockServers(t)
 	defer stopMockServers()
+	SetTimeout(50 * time.Millisecond)
 
-	err := w.WaitForServer("tcp", ":12306", 2*time.Second)
-	assert.NoError(t, err, "server not started")
-	err = w.WaitForServer("tcp", ":12307", 2*time.Second)
-	assert.NoError(t, err, "server not started")
-	_, err = http.Get(closeURL)
-	if assert.Error(t, err, "should error") {
+	resp, err := http.Get(closeURL)
+	if assert.Error(t, err, "normal access should error") {
 		assert.Equal(t, err.(*url.Error).Err.Error(), "EOF", "should be EOF")
 	}
-	SetDetourDialer(detour)
-	client := &http.Client{Transport: &http.Transport{Dial: Dial}}
-	_, err = client.Get(closeURL)
-	assert.NoError(t, err, "should detour")
+
+	SetDetourDialer(dDialer)
+	client := &http.Client{Transport: &http.Transport{Dial: Dial}, Timeout: 250 * time.Millisecond}
+
+	resp, err = client.Get(echoURL)
+	if assert.NoError(t, err, "should not error get /echo") {
+		assertContent(t, resp, directMsg, "should not detour if url can be accessed")
+	}
+	resp, err = client.Get(timeOutURL)
+	if assert.NoError(t, err, "should not error get /timeout") {
+		assertContent(t, resp, detourMsg, "should detour if time out")
+	}
+	resp, err = client.Get(closeURL)
+	if assert.NoError(t, err, "should not error get /close") {
+		assertContent(t, resp, detourMsg, "should detour if connection closed with no data")
+	}
+}
+
+func assertContent(t *testing.T, resp *http.Response, msg string, reason string) {
+	b, err := ioutil.ReadAll(resp.Body)
+	assert.NoError(t, err, reason)
+	assert.Equal(t, msg, string(b), reason)
 }
