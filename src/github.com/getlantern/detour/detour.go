@@ -57,7 +57,7 @@ func Dial(network, addr string) (net.Conn, error) {
 	}
 	dc := &detourConn{state: stateInitial, detourDeadline: dl}
 	dc.conn.Store(c)
-	log.Trace("Dialed a new detourConn")
+	log.Trace("Dialed a new connection")
 	return dc, err
 }
 

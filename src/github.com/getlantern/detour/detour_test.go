@@ -12,10 +12,6 @@ import (
 	"github.com/getlantern/testify/assert"
 )
 
-var (
-	msg = []byte("Hello world")
-)
-
 func init() {
 	rand.Seed(time.Now().UnixNano())
 }
@@ -25,7 +21,8 @@ func proxy(url string) (resp *http.Response, err error) {
 }
 
 func dDialer(network, addr string) (net.Conn, error) {
-	return net.Dial("tcp", ":12307")
+	u, _ := url.Parse(proxiedURL)
+	return net.Dial("tcp", u.Host)
 }
 
 func TestDetour(t *testing.T) {
@@ -41,17 +38,17 @@ func TestDetour(t *testing.T) {
 	SetDetourDialer(dDialer)
 	client := &http.Client{Transport: &http.Transport{Dial: Dial}, Timeout: 250 * time.Millisecond}
 
-	resp, err = client.Get(echoURL)
-	if assert.NoError(t, err, "should not error get /echo") {
-		assertContent(t, resp, directMsg, "should not detour if url can be accessed")
+	resp, err = client.Get(closeURL)
+	if assert.NoError(t, err, "should not error get /close") {
+		assertContent(t, resp, detourMsg, "should detour if connection closed with no data")
 	}
 	resp, err = client.Get(timeOutURL)
 	if assert.NoError(t, err, "should not error get /timeout") {
 		assertContent(t, resp, detourMsg, "should detour if time out")
 	}
-	resp, err = client.Get(closeURL)
-	if assert.NoError(t, err, "should not error get /close") {
-		assertContent(t, resp, detourMsg, "should detour if connection closed with no data")
+	resp, err = client.Get(echoURL)
+	if assert.NoError(t, err, "should not error get /echo") {
+		assertContent(t, resp, directMsg, "should not detour if url can be accessed")
 	}
 }
 
