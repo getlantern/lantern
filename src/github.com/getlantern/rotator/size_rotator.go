@@ -1,7 +1,7 @@
 package rotator
 
 import (
-	"errors"
+	"fmt"
 	"os"
 	"strconv"
 	"sync"
@@ -40,24 +40,25 @@ func (r *SizeRotator) Write(bytes []byte) (n int, err error) {
 
 	// Do rotate when size exceeded
 	if r.totalSize+int64(len(bytes)) > r.RotationSize {
-		// Get available file name to be rotated
-		for i := 1; i <= r.MaxRotation; i++ {
-			renamedPath := r.path + "." + strconv.Itoa(i)
-			stat, _ := os.Lstat(renamedPath)
-			if stat == nil {
-				err := os.Rename(r.path, renamedPath)
-				if err != nil {
-					return 0, err
-				}
-				if r.file != nil {
-					// reset file reference
-					r.file.Close()
-					r.file = nil
-				}
-				break
+		r.file.Close()
+		r.file = nil
+		// Remove oldest file (in case it exists)
+		dpath := r.path + "." + strconv.Itoa(r.MaxRotation)
+		err := os.Remove(dpath)
+		if err != nil && !os.IsNotExist(err) {
+			return 0, fmt.Errorf("Unable to delete oldest file: %v", err)
+		}
+
+		// Rename existing files
+		for i := r.MaxRotation - 1; i >= 0; i-- {
+			opath := r.path
+			if i != 0 {
+				opath = opath + "." + strconv.Itoa(i)
 			}
-			if i == r.MaxRotation {
-				return 0, errors.New("rotation count has been exceeded")
+			npath := r.path + "." + strconv.Itoa(i+1)
+			err := os.Rename(opath, npath)
+			if err != nil && !os.IsNotExist(err) {
+				return 0, fmt.Errorf("Unable to rename old file %v to %v: %v", opath, npath, err)
 			}
 		}
 	}

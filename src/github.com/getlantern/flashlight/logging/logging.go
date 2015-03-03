@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dogenzaka/rotator"
+	"github.com/getlantern/rotator"
 
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/flashlight/config"
