@@ -40,8 +40,10 @@ func (r *SizeRotator) Write(bytes []byte) (n int, err error) {
 
 	// Do rotate when size exceeded
 	if r.totalSize+int64(len(bytes)) > r.RotationSize {
-		r.file.Close()
-		r.file = nil
+		if r.file != nil {
+			r.file.Close()
+			r.file = nil
+		}
 		// Remove oldest file (in case it exists)
 		dpath := r.path + "." + strconv.Itoa(r.MaxRotation)
 		err := os.Remove(dpath)
