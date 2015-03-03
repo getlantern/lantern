@@ -178,7 +178,7 @@ func ServePAC(resp http.ResponseWriter, req *http.Request) {
 // generatePACFile generates a PAC File from the given active sites.
 func generatePACFile(activeSites []string) (string, error) {
 	data := make(map[string]interface{}, 0)
-	data["Entries"] = activeSites
+	//data["Entries"] = activeSites
 	buf := bytes.NewBuffer(nil)
 	err := parsedPacTmpl.Execute(buf, data)
 	if err != nil {

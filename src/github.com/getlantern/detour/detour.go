@@ -28,65 +28,64 @@ var (
 type Dialer func(network, addr string) (net.Conn, error)
 
 type detourConn struct {
-	muConn sync.Mutex
-	conn   atomic.Value
+	muConn sync.RWMutex
+	conn   net.Conn
 	state  uint32
+
+	dialDetour Dialer
 
 	muBuf          sync.Mutex
 	buf            bytes.Buffer
-	network, addr  string
+	addr           string
 	detourDeadline time.Time
 	readDeadline   time.Time
 	writeDeadline  time.Time
 }
 
-var detourDialer Dialer
-
 func SetTimeout(t time.Duration) {
 	timeoutToDetour = t
 }
 
-func SetDetourDialer(d Dialer) {
-	detourDialer = d
-}
-func Dial(network, addr string) (net.Conn, error) {
-	dl := time.Now().Add(timeoutToDetour)
-	c, err := net.Dial(network, addr)
-	if err != nil {
-		return c, err
+func DetourDialer(dialer Dialer) Dialer {
+	return func(network, addr string) (net.Conn, error) {
+		dl := time.Now().Add(timeoutToDetour)
+		c, err := net.Dial(network, addr)
+		if err != nil {
+			return c, err
+		}
+		dc := &detourConn{state: stateInitial, detourDeadline: dl, dialDetour: dialer, addr: addr}
+		dc.conn = c
+		log.Tracef("Dialed a new connection to %v", addr)
+		return dc, err
 	}
-	dc := &detourConn{state: stateInitial, detourDeadline: dl}
-	dc.conn.Store(c)
-	log.Trace("Dialed a new connection")
-	return dc, err
 }
 
 // Read() implements the function from net.Conn
 func (dc *detourConn) Read(b []byte) (n int, err error) {
-	conn := dc.conn.Load().(net.Conn)
+	conn := dc.getConn()
 	if dc.state != stateInitial {
-		log.Tracef("Already settled as %d, read directly", dc.state)
+		log.Tracef("%v already settled as %d, read directly", dc.addr, dc.state)
 		return conn.Read(b)
 	}
 	// state will always be settled after first read, safe to clear buffer at end of it
 	defer dc.resetBuffer()
 	if !dc.readDeadline.IsZero() && dc.readDeadline.Before(dc.detourDeadline.Add(timeDelta)) {
-		log.Trace("No time left to try detour, read directly")
+		log.Tracef("No time left to try detour, read from %v directly", dc.addr)
 		if !atomic.CompareAndSwapUint32(&dc.state, stateInitial, stateDirect) {
 			panic("should not occur")
 		}
 		return conn.Read(b)
 	}
 
-	log.Trace("Read directly first")
+	log.Tracef("Read from %v directly first", dc.addr)
 	conn.SetReadDeadline(dc.detourDeadline)
 	if n, err = conn.Read(b); err != nil {
 		ne, ok := err.(net.Error)
 		if ok && ne.Timeout() {
-			log.Trace("Timeout read directly, try detour")
+			log.Tracef("Timeout read directly from %v, try detour", dc.addr)
 			return dc.detour(b)
 		} else if err == io.EOF && n == 0 {
-			log.Trace("EOF received with no data, try detour")
+			log.Tracef("EOF received with no data from %v, try detour", dc.addr)
 			return dc.detour(b)
 		} else {
 			err = fmt.Errorf("Error while read directly: %s", err)
@@ -106,17 +105,18 @@ func (dc *detourConn) Write(b []byte) (n int, err error) {
 			return n, fmt.Errorf("Unable to write local buffer: %s", err)
 		}
 	}
-	return dc.conn.Load().(net.Conn).Write(b)
+	return dc.getConn().Write(b)
 }
 
 // Close() implements the function from net.Conn
 func (dc *detourConn) Close() error {
-	return dc.conn.Load().(net.Conn).Close()
+	log.Tracef("Closing connection to %v", dc.addr)
+	return dc.getConn().Close()
 }
 
 // LocalAddr() is not implemented
 func (dc *detourConn) LocalAddr() net.Addr {
-	return dc.conn.Load().(net.Conn).LocalAddr()
+	return dc.getConn().LocalAddr()
 }
 
 // RemoteAddr() is not implemented
@@ -154,7 +154,7 @@ func (dc *detourConn) resetBuffer() {
 }
 
 func (dc *detourConn) detour(b []byte) (n int, err error) {
-	conn := dc.conn.Load().(net.Conn)
+	conn := dc.getConn()
 	if !atomic.CompareAndSwapUint32(&dc.state, stateInitial, stateDetour) {
 		panic("should not occur")
 	}
@@ -168,7 +168,8 @@ func (dc *detourConn) detour(b []byte) (n int, err error) {
 		log.Error(err)
 		return
 	}
-	n, err = dc.conn.Load().(net.Conn).Read(b)
+	// should getConn() again as it has changed
+	n, err = dc.getConn().Read(b)
 	return
 }
 
@@ -177,19 +178,30 @@ func (dc *detourConn) resend() (int, error) {
 	b := dc.buf.Bytes()
 	dc.muBuf.Unlock()
 	log.Tracef("Resend %d buffered bytes", len(b))
-	return dc.conn.Load().(net.Conn).Write(b)
+	return dc.getConn().Write(b)
 }
 
 func (dc *detourConn) setupDetour() error {
-	c, err := detourDialer(dc.network, dc.addr)
+	c, err := dc.dialDetour("tcp", dc.addr)
 	if err != nil {
 		return err
 	}
-	log.Trace("Dial detour succeeded")
-	dc.muConn.Lock()
-	oldConn := dc.conn.Load().(net.Conn)
-	dc.conn.Store(c)
-	dc.muConn.Unlock()
-	oldConn.Close()
+	log.Tracef("Dialed a new detour connection to %v", dc.addr)
+	dc.setConn(c)
 	return nil
+}
+
+func (dc *detourConn) getConn() (c net.Conn) {
+	dc.muConn.RLock()
+	defer dc.muConn.RUnlock()
+	return dc.conn
+}
+
+func (dc *detourConn) setConn(c net.Conn) {
+	dc.muConn.Lock()
+	oldConn := dc.conn
+	dc.conn = c
+	dc.muConn.Unlock()
+	log.Tracef("Replaced connection to %v from direct to detour and closing old one", dc.addr)
+	oldConn.Close()
 }
