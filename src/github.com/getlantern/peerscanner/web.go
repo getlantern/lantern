@@ -149,12 +149,29 @@ func clientIpFor(req *http.Request, name string) string {
 	ip := strings.TrimSpace(ips[0])
 	// TODO: need a more robust way to determine when a non-fallback host looks
 	// like a fallback.
-	if !isFallback(name) && strings.HasPrefix(ip, "128.199") {
+	hasFallbackIp := isFallbackIp(ip)
+	if !isFallback(name) && hasFallbackIp {
 		log.Errorf("Found fallback ip %v for non-fallback host %v", ip, name)
 		return ""
-	} else if isFallback(name) && !strings.HasPrefix(ip, "128.199") {
+	} else if isFallback(name) && !hasFallbackIp {
 		log.Errorf("Found non-fallback ip %v for fallback host %v", ip, name)
 		return ""
 	}
 	return ip
+}
+
+func isFallbackIp(ip string) bool {
+	for _, prefix := range fallbackIPPrefixes {
+		if strings.HasPrefix(ip, prefix) {
+			return true
+		}
+	}
+
+	return false
+}
+
+var fallbackIPPrefixes = []string{
+	"128.199",
+	"178.62",
+	"188.166",
 }
