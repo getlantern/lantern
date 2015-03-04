@@ -14,4 +14,4 @@ echo "Building flashlight version $VERSION ($BUILD_DATE)"
 # Compile for Mac
 CGO_ENABLED=1 gox -tags="prod" -ldflags="$LDFLAGS" -osarch="darwin/amd64" -output="lantern_{{.OS}}_{{.Arch}}" github.com/getlantern/flashlight
 # Compile for Windows (use -H=windowsgui ldflag to make this a Windows instead of a console app)
-CGO_ENABLED=1 gox -tags="prod" -ldflags="$LDFLAGS -H=windowsgui" -osarch="windows/386" -output="lantern_{{.OS}}_{{.Arch}}" github.com/getlantern/flashlight
+CGO_ENABLED=1 gox -tags="prod" -ldflags="$LDFLAGS" -osarch="windows/386" -output="lantern_{{.OS}}_{{.Arch}}" github.com/getlantern/flashlight
