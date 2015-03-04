@@ -15,7 +15,7 @@ client:
     masqueradeset: "cloudflare"
     maxmasquerades: 20
     qos: 2
-    weight: 80
+    weight: 0
   masqueradesets:
     cloudflare:
     - domain: 10minutemail.com
