@@ -61,13 +61,21 @@ func register(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	h := getOrCreateHost(name, ip)
-	online, connectionRefused, timedOut := h.status()
-	if timedOut {
-		log.Debugf("%v timed out waiting for status, returning 500 error", h)
-		resp.WriteHeader(500)
-		fmt.Fprintf(resp, "Timed out waiting for status")
-		return
+	online := true
+	connectionRefused := false
+	timedOut := false
+
+	if isPeer(name) {
+		log.Debugf("Not adding peer %v because we're not using peers at the moment", name)
+	} else {
+		h := getOrCreateHost(name, ip)
+		online, connectionRefused, timedOut = h.status()
+		if timedOut {
+			log.Debugf("%v timed out waiting for status, returning 500 error", h)
+			resp.WriteHeader(500)
+			fmt.Fprintf(resp, "Timed out waiting for status")
+			return
+		}
 	}
 
 	if online {
