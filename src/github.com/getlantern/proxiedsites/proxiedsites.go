@@ -205,10 +205,6 @@ function FindProxyForURL(url, host) {
         return "DIRECT";
     }
 
-    if (proxyDomainsRegx.exec(host)) {
-        return "PROXY 127.0.0.1:8787; DIRECT";
-    }
-
-    return "DIRECT";
+    return "PROXY 127.0.0.1:8787; DIRECT";
 }
 `
