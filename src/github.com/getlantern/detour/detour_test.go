@@ -35,7 +35,7 @@ func TestDetour(t *testing.T) {
 		assert.Equal(t, err.(*url.Error).Err.Error(), "EOF", "should be EOF")
 	}
 
-	client := &http.Client{Transport: &http.Transport{Dial: DetourDialer(dDialer)}, Timeout: 250 * time.Millisecond}
+	client := &http.Client{Transport: &http.Transport{Dial: Dialer(dDialer)}, Timeout: 250 * time.Millisecond}
 
 	resp, err = client.Get(closeURL)
 	if assert.NoError(t, err, "should not error get /close") {

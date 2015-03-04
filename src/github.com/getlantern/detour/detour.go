@@ -28,26 +28,34 @@ var statesDesc = []string{
 	"WHITELISTED",
 }
 
-const timeDelta = 50 * time.Millisecond
-
 var (
-	log             = golog.LoggerFor("detour")
-	timeoutToDetour = 5 * time.Second
-	muWhitelist     sync.RWMutex
-	whitelist       = make(map[string]bool)
+	log = golog.LoggerFor("detour")
+	// if dial or read exceeded this timeout, we consider switch to detour
+	timeoutToDetour = 1 * time.Second
+
+	muWhitelist sync.RWMutex
+	whitelist   = make(map[string]bool)
 )
 
-type Dialer func(network, addr string) (net.Conn, error)
+type dialFunc func(network, addr string) (net.Conn, error)
 
 type detourConn struct {
 	muConn sync.RWMutex
-	conn   net.Conn
-	state  uint32
+	// the actual connection, will change so protect it
+	// can't user atomic.Value as the concrete type may vary
+	conn net.Conn
 
-	dialDetour Dialer
+	// states, writting to it must be atomic
+	state uint32
 
-	muBuf         sync.Mutex
-	buf           bytes.Buffer
+	// the function to dial detour if the site to connect seems blocked
+	dialDetour dialFunc
+
+	muBuf sync.Mutex
+	// keep track of bytes sent through normal connection
+	// so we can resend them when detour
+	buf bytes.Buffer
+
 	network, addr string
 	readDeadline  time.Time
 	writeDeadline time.Time
@@ -57,17 +65,17 @@ func SetTimeout(t time.Duration) {
 	timeoutToDetour = t
 }
 
-func DetourDialer(dialer Dialer) Dialer {
+func Dialer(dialer dialFunc) dialFunc {
 	return func(network, addr string) (conn net.Conn, err error) {
 		dc := &detourConn{dialDetour: dialer, network: network, addr: addr}
 		if in, _ := inWhitelist(addr); !in {
 			dc.state = stateInitial
-			dc.conn, err = net.Dial(network, addr)
+			dc.conn, err = net.DialTimeout(network, addr, timeoutToDetour)
 			if err == nil {
 				log.Tracef("Dialed a new %s connection to %s", dc.stateDesc(), addr)
 				return dc, nil
 			}
-			log.Debugf("Dial %s to %s failed, try detour", dc.stateDesc(), addr)
+			log.Debugf("Dial %s to %s failed, try detour: %s", dc.stateDesc(), addr, err)
 		}
 		dc.state = stateDetour
 		dc.conn, err = dc.dialDetour(network, addr)
@@ -102,7 +110,7 @@ func (dc *detourConn) Read(b []byte) (n int, err error) {
 	// state will always be settled after first read, safe to clear buffer at end of it
 	defer dc.resetBuffer()
 	dl := time.Now().Add(timeoutToDetour)
-	if !dc.readDeadline.IsZero() && dc.readDeadline.Before(dl.Add(timeDelta)) {
+	if !dc.readDeadline.IsZero() && dc.readDeadline.Before(dl) {
 		atomic.CompareAndSwapUint32(&dc.state, stateInitial, stateDirect)
 		n, err = conn.Read(b)
 		log.Tracef("No time left to detour, read %d bytes from %s directly, err=%s", n, dc.addr, err)
@@ -174,11 +182,13 @@ func (dc *detourConn) SetDeadline(t time.Time) error {
 
 func (dc *detourConn) SetReadDeadline(t time.Time) error {
 	dc.readDeadline = t
+	dc.conn.SetReadDeadline(t)
 	return nil
 }
 
 func (dc *detourConn) SetWriteDeadline(t time.Time) error {
 	dc.writeDeadline = t
+	dc.conn.SetWriteDeadline(t)
 	return nil
 }
 
@@ -248,6 +258,8 @@ func (dc *detourConn) setConn(c net.Conn) {
 	oldConn := dc.conn
 	dc.conn = c
 	dc.muConn.Unlock()
+	dc.conn.SetReadDeadline(dc.readDeadline)
+	dc.conn.SetWriteDeadline(dc.writeDeadline)
 	log.Tracef("Replaced connection to %s from direct to detour and closing old one", dc.addr)
 	oldConn.Close()
 }

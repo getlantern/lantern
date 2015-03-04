@@ -45,9 +45,10 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 	addr := hostIncludingPort(req, 443)
 
 	// Establish outbound connection
-	connOut, err := detour.DetourDialer(func(network, addr string) (net.Conn, error) {
+	d := func(network, addr string) (net.Conn, error) {
 		return client.getBalancer().DialQOS("tcp", addr, client.targetQOS(req))
-	})("tcp", addr)
+	}
+	connOut, err := detour.Dialer(d)("tcp", addr)
 	if err != nil {
 		respondBadGateway(clientConn, fmt.Sprintf("Unable to handle CONNECT request: %s", err))
 		return
