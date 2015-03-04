@@ -350,10 +350,10 @@ func (h *host) deregisterHost() {
 }
 
 func (h *host) doDeregisterHost() error {
+	err := cfutil.DestroyRecord(h.record)
 	h.record = nil
 	h.isProxying = false
 
-	err := cfutil.DestroyRecord(h.record)
 	if err != nil {
 		return fmt.Errorf("Unable to deregister host %v: %v", h, err)
 	}
