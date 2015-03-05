@@ -107,28 +107,16 @@ func (dc *detourConn) Read(b []byte) (n int, err error) {
 				log.Tracef("Detoured route is still not reliable for %s, not whitelist it", dc.addr)
 				removeFromWl(dc.addr)
 			}
-			/*if dc.inState(stateDetour) {
-				log.Debugf("Add %s to white list temporarily", dc.addr)
-				addToWhitelist(dc.addr, false)
-			}*/
 			return
 		}
 		log.Tracef("Read %d bytes from %s %s", n, dc.addr, dc.stateDesc())
 		return n, err
 	}
-	/*if in, _ := inWhitelist(dc.addr); in {
-		log.Tracef("%s in white list, detour", dc.addr)
-		return dc.detour(b)
-	}*/
 	// state will always be settled after first read, safe to clear buffer at end of it
 	defer dc.resetBuffer()
 	now := time.Now()
 	dl := now.Add(timeoutToDetour)
 	if !dc.readDeadline.IsZero() && dc.readDeadline.Sub(now) < 2*timeoutToDetour {
-		/*dc.setState(stateDirect)
-		n, err = conn.Read(b)
-		log.Tracef("No time left to detour, read %d bytes from %s directly, err=%s", n, dc.addr, err)
-		return*/
 		// if no enough room, reduce timeout to be half before read dead line
 		dl = now.Add(dc.readDeadline.Sub(now) / 2)
 	}
@@ -144,8 +132,6 @@ func (dc *detourConn) Read(b []byte) (n int, err error) {
 		return n, ne
 	}
 	log.Tracef("Read %d bytes from %s %s", n, dc.addr, dc.stateDesc())
-	/*dc.setState(stateDirect)
-	log.Tracef("Read %d bytes from %s directly, set state to %s", n, dc.addr, dc.stateDesc())*/
 	return n, err
 }
 
@@ -158,11 +144,9 @@ func (dc *detourConn) Write(b []byte) (n int, err error) {
 	}
 	if n, err = dc.getConn().Write(b); err != nil {
 		log.Debugf("Write %d bytes to %s %s failed: %s", len(b), dc.addr, dc.stateDesc(), err)
-		/*if !dc.inState(stateDetour) {
-			log.Debugf("Add %s to white list temporarily", dc.addr)
-			addToWhitelist(dc.addr, false)
-		}*/
+		return
 	}
+	log.Debugf("Writed %d bytes to %s %s", len(b), dc.addr, dc.stateDesc())
 	return
 }
 
