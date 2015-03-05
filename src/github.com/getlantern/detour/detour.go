@@ -114,24 +114,27 @@ func (dc *detourConn) Read(b []byte) (n int, err error) {
 	}
 	// state will always be settled after first read, safe to clear buffer at end of it
 	defer dc.resetBuffer()
-	now := time.Now()
-	dl := now.Add(timeoutToDetour)
-	if !dc.readDeadline.IsZero() && dc.readDeadline.Sub(now) < 2*timeoutToDetour {
-		// if no enough room, reduce timeout to be half before read dead line
-		dl = now.Add(dc.readDeadline.Sub(now) / 2)
+	start := time.Now()
+	dl := start.Add(timeoutToDetour)
+	if !dc.readDeadline.IsZero() && dc.readDeadline.Sub(start) < 2*timeoutToDetour {
+		log.Tracef("no time left to test %s, read %s", dc.addr, stateDirect)
+		dc.setState(stateDirect)
+		return conn.Read(b)
 	}
 	conn.SetReadDeadline(dl)
 
 	n, err = conn.Read(b)
 	conn.SetReadDeadline(dc.readDeadline)
 	if err != nil && err != io.EOF {
-		ne := fmt.Errorf("Error while read from %s %s: %s", dc.addr, dc.stateDesc(), err)
+		ne := fmt.Errorf("Error while read from %s %s, takes %s: %s", dc.addr, dc.stateDesc(), time.Now().Sub(start), err)
+		log.Debug(ne)
 		if blocked(err) {
 			dc.detour(b)
 		}
 		return n, ne
 	}
-	log.Tracef("Read %d bytes from %s %s", n, dc.addr, dc.stateDesc())
+	log.Tracef("Read %d bytes from %s %s, set state to DIRECT", n, dc.addr, dc.stateDesc())
+	dc.setState(stateDirect)
 	return n, err
 }
 
@@ -143,10 +146,10 @@ func (dc *detourConn) Write(b []byte) (n int, err error) {
 		}
 	}
 	if n, err = dc.getConn().Write(b); err != nil {
-		log.Debugf("Write %d bytes to %s %s failed: %s", len(b), dc.addr, dc.stateDesc(), err)
+		log.Debugf("Error while write %d bytes to %s %s: %s", len(b), dc.addr, dc.stateDesc(), err)
 		return
 	}
-	log.Debugf("Writed %d bytes to %s %s", len(b), dc.addr, dc.stateDesc())
+	log.Debugf("Wrote %d bytes to %s %s", len(b), dc.addr, dc.stateDesc())
 	return
 }
 
