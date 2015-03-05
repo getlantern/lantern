@@ -149,10 +149,10 @@ func (dc *detourConn) Read(b []byte) (n int, err error) {
 	if err != nil && err != io.EOF {
 		ne := fmt.Errorf("Error while read from %s %s, takes %s: %s", dc.addr, dc.stateDesc(), time.Now().Sub(start), err)
 		log.Debug(ne)
-		if blocked(err) {
-			dc.detour(b)
+		if !blocked(err) {
+			return n, ne
 		}
-		return n, ne
+		return dc.detour(b)
 	}
 	log.Tracef("Read %d bytes from %s %s, set state to DIRECT", n, dc.addr, dc.stateDesc())
 	dc.setState(stateDirect)
@@ -170,7 +170,7 @@ func (dc *detourConn) Write(b []byte) (n int, err error) {
 		log.Debugf("Error while write %d bytes to %s %s: %s", len(b), dc.addr, dc.stateDesc(), err)
 		return
 	}
-	log.Debugf("Wrote %d bytes to %s %s", len(b), dc.addr, dc.stateDesc())
+	log.Tracef("Wrote %d bytes to %s %s", len(b), dc.addr, dc.stateDesc())
 	return
 }
 
