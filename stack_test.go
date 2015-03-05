@@ -6,6 +6,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/go-stack/stack"
@@ -256,6 +257,17 @@ func BenchmarkTrace10AndVFmt(b *testing.B) {
 func BenchmarkRuntimeCaller(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		runtime.Caller(0)
+	}
+}
+
+func BenchmarkRuntimeCallerAndFmt(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_, file, line, _ := runtime.Caller(0)
+		const sep = "/"
+		if i := strings.LastIndex(file, sep); i != -1 {
+			file = file[i+len(sep):]
+		}
+		fmt.Fprint(ioutil.Discard, file, ":", line)
 	}
 }
 
