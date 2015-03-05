@@ -13,13 +13,18 @@ import (
 	"github.com/getlantern/golog"
 )
 
+type wlEntry struct {
+	permanent bool
+	addTime   time.Time
+}
+
 var (
 	log = golog.LoggerFor("detour")
 	// if dial or read exceeded this timeout, we consider switch to detour
 	timeoutToDetour = 1 * time.Second
 
 	muWhitelist sync.RWMutex
-	whitelist   = make(map[string]bool)
+	whitelist   = make(map[string]wlEntry)
 )
 
 type dialFunc func(network, addr string) (net.Conn, error)
@@ -69,6 +74,24 @@ func SetTimeout(t time.Duration) {
 	timeoutToDetour = t
 }
 
+func InitWhiteList(wl map[string]time.Time) {
+	muWhitelist.Lock()
+	defer muWhitelist.Unlock()
+	for k, v := range wl {
+		whitelist[k] = wlEntry{true, v}
+	}
+	return
+}
+
+func DumpWhiteList() (wl map[string]time.Time) {
+	muWhitelist.Lock()
+	defer muWhitelist.Unlock()
+	for k, v := range whitelist {
+		wl[k] = v.addTime
+	}
+	return
+}
+
 func Dialer(dialer dialFunc) dialFunc {
 	return func(network, addr string) (conn net.Conn, err error) {
 		dc := &detourConn{dialDetour: dialer, network: network, addr: addr}
@@ -99,8 +122,6 @@ func (dc *detourConn) Read(b []byte) (n int, err error) {
 		if n, err = conn.Read(b); err != nil && err != io.EOF {
 			log.Tracef("Read from %s %s failed: %s", dc.addr, dc.stateDesc(), err)
 			if dc.inState(stateDirect) && blocked(err) {
-				// direct route is not reliable even the first read succeeded
-				// try again through detour in next dial
 				log.Tracef("Seems %s still blocked, add to whitelist so will try detour next time", dc.addr)
 				addToWl(dc.addr, false)
 			} else if wlTemporarily(dc.addr) {
@@ -156,7 +177,7 @@ func (dc *detourConn) Write(b []byte) (n int, err error) {
 // Close() implements the function from net.Conn
 func (dc *detourConn) Close() error {
 	log.Tracef("Closing %s connection to %s", dc.stateDesc(), dc.addr)
-	if wlTemporarily(dc.addr) {
+	if dc.inState(stateInitial) && wlTemporarily(dc.addr) {
 		log.Tracef("no error found till closing, add %s to permanent whitelist", dc.addr)
 		addToWl(dc.addr, true)
 	}
@@ -294,13 +315,14 @@ func whitelisted(addr string) bool {
 func wlTemporarily(addr string) bool {
 	muWhitelist.RLock()
 	defer muWhitelist.RUnlock()
-	return whitelist[addr]
+	p, ok := whitelist[addr]
+	return ok && p.permanent == false
 }
 
 func addToWl(addr string, permanent bool) {
 	muWhitelist.Lock()
 	defer muWhitelist.Unlock()
-	whitelist[addr] = permanent
+	whitelist[addr] = wlEntry{permanent, time.Now()}
 }
 
 func removeFromWl(addr string) {
