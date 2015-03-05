@@ -109,7 +109,7 @@ func trimBelow() stack.CallStack {
 func TestTrimRuntime(t *testing.T) {
 	trace := stack.Trace().TrimRuntime()
 	if got, want := len(trace), 1; got != want {
-		t.Errorf("got len(trace) == %v, want %v, trace: %#v", got, want, trace)
+		t.Errorf("got len(trace) == %v, want %v, goroot: %q, trace: %#v", got, want, runtime.GOROOT(), trace)
 	}
 }
 
