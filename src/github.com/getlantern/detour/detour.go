@@ -3,6 +3,7 @@ package detour
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"net"
 	"sync"
 	"sync/atomic"
@@ -11,22 +12,6 @@ import (
 
 	"github.com/getlantern/golog"
 )
-
-const (
-	stateInitial = iota
-	stateDirect
-	stateDetour
-	stateWhitelistCandidate
-	stateWhitelist
-)
-
-var statesDesc = []string{
-	"INITIALLY",
-	"DIRECTLY",
-	"DETOURED",
-	"WHITELIST CANDIDATE",
-	"WHITELISTED",
-}
 
 var (
 	log = golog.LoggerFor("detour")
@@ -45,7 +30,7 @@ type detourConn struct {
 	// can't user atomic.Value as the concrete type may vary
 	conn net.Conn
 
-	// states, writting to it must be atomic
+	// don't access directly, use inState() and setState() instead
 	state uint32
 
 	// the function to dial detour if the site to connect seems blocked
@@ -61,6 +46,25 @@ type detourConn struct {
 	writeDeadline time.Time
 }
 
+const (
+	stateInitial = iota
+	stateDirect
+	stateDetour
+	stateWhitelistCandidate
+	stateWhitelist
+)
+
+var statesDesc = []string{
+	"INITIALLY",
+	"DIRECTLY",
+	"DETOURED",
+	"WHITELIST CANDIDATE",
+	"WHITELISTED",
+}
+
+// SetTimeout sets the timeout so if dial or read exceeds this timeout, we consider switch to detour
+// The value depends on OS and browser and defaults to 1s
+// For Windows XP, find TcpMaxConnectRetransmissions in http://support2.microsoft.com/default.aspx?scid=kb;en-us;314053
 func SetTimeout(t time.Duration) {
 	timeoutToDetour = t
 }
@@ -68,22 +72,22 @@ func SetTimeout(t time.Duration) {
 func Dialer(dialer dialFunc) dialFunc {
 	return func(network, addr string) (conn net.Conn, err error) {
 		dc := &detourConn{dialDetour: dialer, network: network, addr: addr}
-		if in, _ := inWhitelist(addr); !in {
-			dc.state = stateInitial
+		if !whitelisted(addr) {
+			dc.setState(stateInitial)
 			dc.conn, err = net.DialTimeout(network, addr, timeoutToDetour)
 			if err == nil {
-				log.Tracef("Dialed a new %s connection to %s", dc.stateDesc(), addr)
+				log.Tracef("Dial %s to %s succeeded", dc.stateDesc(), addr)
 				return dc, nil
 			}
 			log.Debugf("Dial %s to %s failed, try detour: %s", dc.stateDesc(), addr, err)
 		}
-		dc.state = stateDetour
+		dc.setState(stateDetour)
 		dc.conn, err = dc.dialDetour(network, addr)
 		if err != nil {
 			log.Errorf("Dial %s to %s failed", dc.stateDesc(), addr)
 			return nil, err
 		}
-		log.Tracef("Dialed a new %s connection to %s", dc.stateDesc(), addr)
+		log.Tracef("Dial %s to %s succeeded", dc.stateDesc(), addr)
 		return dc, err
 	}
 }
@@ -91,87 +95,93 @@ func Dialer(dialer dialFunc) dialFunc {
 // Read() implements the function from net.Conn
 func (dc *detourConn) Read(b []byte) (n int, err error) {
 	conn := dc.getConn()
-	if dc.state != stateInitial {
-		if n, err = conn.Read(b); err != nil {
-			log.Debugf("Read from %s %s failed: %s", dc.addr, dc.stateDesc(), err)
-			if dc.state != stateDetour {
+	if !dc.inState(stateInitial) {
+		if n, err = conn.Read(b); err != nil && err != io.EOF {
+			log.Tracef("Read from %s %s failed: %s", dc.addr, dc.stateDesc(), err)
+			if dc.inState(stateDirect) && blocked(err) {
+				// direct route is not reliable even the first read succeeded
+				// try again through detour in next dial
+				log.Tracef("Seems %s still blocked, add to whitelist so will try detour next time", dc.addr)
+				addToWl(dc.addr, false)
+			} else if wlTemporarily(dc.addr) {
+				log.Tracef("Detoured route is still not reliable for %s, not whitelist it", dc.addr)
+				removeFromWl(dc.addr)
+			}
+			/*if dc.inState(stateDetour) {
 				log.Debugf("Add %s to white list temporarily", dc.addr)
 				addToWhitelist(dc.addr, false)
-			}
+			}*/
 			return
 		}
 		log.Tracef("Read %d bytes from %s %s", n, dc.addr, dc.stateDesc())
-		return
+		return n, err
 	}
-	if in, _ := inWhitelist(dc.addr); in {
+	/*if in, _ := inWhitelist(dc.addr); in {
 		log.Tracef("%s in white list, detour", dc.addr)
 		return dc.detour(b)
-	}
+	}*/
 	// state will always be settled after first read, safe to clear buffer at end of it
 	defer dc.resetBuffer()
-	dl := time.Now().Add(timeoutToDetour)
-	if !dc.readDeadline.IsZero() && dc.readDeadline.Before(dl) {
-		atomic.CompareAndSwapUint32(&dc.state, stateInitial, stateDirect)
+	now := time.Now()
+	dl := now.Add(timeoutToDetour)
+	if !dc.readDeadline.IsZero() && dc.readDeadline.Sub(now) < 2*timeoutToDetour {
+		/*dc.setState(stateDirect)
 		n, err = conn.Read(b)
 		log.Tracef("No time left to detour, read %d bytes from %s directly, err=%s", n, dc.addr, err)
-		return
+		return*/
+		// if no enough room, reduce timeout to be half before read dead line
+		dl = now.Add(dc.readDeadline.Sub(now) / 2)
 	}
-
-	log.Tracef("Read from %s directly first", dc.addr)
 	conn.SetReadDeadline(dl)
-	if n, err = conn.Read(b); err != nil {
-		ne, ok := err.(net.Error)
-		if ok && ne.Timeout() {
-			log.Tracef("Timeout read directly from %s, try detour", dc.addr)
-			return dc.detour(b)
-		} else if oe, ok := err.(*net.OpError); ok && oe.Err == syscall.ECONNRESET {
-			log.Tracef("RST received from %s, try detour", dc.addr)
-			return dc.detour(b)
-			/*} else if err == io.EOF && n == 0 {
-			log.Tracef("EOF received with no data from %s, try detour", dc.addr)
-			return dc.detour(b)*/
-		} else {
-			err = fmt.Errorf("Error while read from %s directly: %s", dc.addr, err)
-			log.Error(err)
-			return
+
+	n, err = conn.Read(b)
+	conn.SetReadDeadline(dc.readDeadline)
+	if err != nil && err != io.EOF {
+		ne := fmt.Errorf("Error while read from %s %s: %s", dc.addr, dc.stateDesc(), err)
+		if blocked(err) {
+			dc.detour(b)
 		}
+		return n, ne
 	}
-	atomic.CompareAndSwapUint32(&dc.state, stateInitial, stateDirect)
-	log.Tracef("Read %d bytes from %s directly, set state to %s", n, dc.addr, dc.stateDesc())
-	return n, nil
+	log.Tracef("Read %d bytes from %s %s", n, dc.addr, dc.stateDesc())
+	/*dc.setState(stateDirect)
+	log.Tracef("Read %d bytes from %s directly, set state to %s", n, dc.addr, dc.stateDesc())*/
+	return n, err
 }
 
 // Write() implements the function from net.Conn
 func (dc *detourConn) Write(b []byte) (n int, err error) {
-	if dc.state == stateInitial {
+	if dc.inState(stateInitial) {
 		if n, err = dc.writeToBuffer(b); err != nil {
 			return n, fmt.Errorf("Unable to write to local buffer: %s", err)
 		}
 	}
 	if n, err = dc.getConn().Write(b); err != nil {
 		log.Debugf("Write %d bytes to %s %s failed: %s", len(b), dc.addr, dc.stateDesc(), err)
-		if dc.state != stateDetour {
+		/*if !dc.inState(stateDetour) {
 			log.Debugf("Add %s to white list temporarily", dc.addr)
 			addToWhitelist(dc.addr, false)
-		}
+		}*/
 	}
 	return
 }
 
 // Close() implements the function from net.Conn
 func (dc *detourConn) Close() error {
-	log.Tracef("Closing connection to %s", dc.addr)
+	log.Tracef("Closing %s connection to %s", dc.stateDesc(), dc.addr)
+	if wlTemporarily(dc.addr) {
+		log.Tracef("no error found till closing, add %s to permanent whitelist", dc.addr)
+		addToWl(dc.addr, true)
+	}
 	return dc.getConn().Close()
 }
 
-// LocalAddr() is not implemented
 func (dc *detourConn) LocalAddr() net.Addr {
 	return dc.getConn().LocalAddr()
 }
 
-// RemoteAddr() is not implemented
 func (dc *detourConn) RemoteAddr() net.Addr {
-	panic("RemoteAddr() not implemented")
+	return dc.getConn().RemoteAddr()
 }
 
 func (dc *detourConn) SetDeadline(t time.Time) error {
@@ -206,8 +216,6 @@ func (dc *detourConn) resetBuffer() {
 }
 
 func (dc *detourConn) detour(b []byte) (n int, err error) {
-	conn := dc.getConn()
-	conn.SetReadDeadline(dc.readDeadline)
 	if err = dc.setupDetour(); err != nil {
 		log.Errorf("Error to setup detour: %s", err)
 		return
@@ -219,11 +227,11 @@ func (dc *detourConn) detour(b []byte) (n int, err error) {
 	}
 	// should getConn() again as it has changed
 	if n, err = dc.getConn().Read(b); err != nil {
-		log.Debugf("Read from %s through detour failed: %s", dc.addr, err)
+		log.Debugf("Read from %s %s still failed: %s", dc.addr, dc.stateDesc(), err)
 		return
 	}
-	atomic.CompareAndSwapUint32(&dc.state, stateInitial, stateDetour)
-	addToWhitelist(dc.addr, true)
+	dc.setState(stateDetour)
+	addToWl(dc.addr, false)
 	log.Tracef("Read %d bytes from %s through detour, set state to %s", n, dc.addr, dc.stateDesc())
 	return
 }
@@ -232,9 +240,12 @@ func (dc *detourConn) resend() (int, error) {
 	dc.muBuf.Lock()
 	b := dc.buf.Bytes()
 	dc.muBuf.Unlock()
-	n, err := dc.getConn().Write(b)
-	log.Tracef("Resend %d buffered bytes to %s, %d sent", len(b), dc.addr, n)
-	return n, err
+	if len(b) > 0 {
+		n, err := dc.getConn().Write(b)
+		log.Tracef("Resend %d buffered bytes to %s, %d sent", len(b), dc.addr, n)
+		return n, err
+	}
+	return 0, nil
 }
 
 func (dc *detourConn) setupDetour() error {
@@ -265,23 +276,47 @@ func (dc *detourConn) setConn(c net.Conn) {
 }
 
 func (dc *detourConn) stateDesc() string {
-	return statesDesc[dc.state]
+	return statesDesc[atomic.LoadUint32(&dc.state)]
 }
 
-func inWhitelist(addr string) (in bool, permanent bool) {
+func (dc *detourConn) inState(s uint32) bool {
+	return atomic.LoadUint32(&dc.state) == s
+}
+
+func (dc *detourConn) setState(s uint32) {
+	atomic.StoreUint32(&dc.state, s)
+}
+
+func blocked(err error) bool {
+	if ne, ok := err.(net.Error); ok && ne.Timeout() {
+		return true
+	}
+	if oe, ok := err.(*net.OpError); ok && (oe.Err == syscall.EPIPE || oe.Err == syscall.ECONNRESET) {
+		return true
+	}
+	return false
+}
+
+func whitelisted(addr string) bool {
 	muWhitelist.RLock()
 	defer muWhitelist.RUnlock()
-	permanent, in = whitelist[addr]
-	return
+	_, in := whitelist[addr]
+	return in
 }
 
-func addToWhitelist(addr string, permanent bool) {
+func wlTemporarily(addr string) bool {
+	muWhitelist.RLock()
+	defer muWhitelist.RUnlock()
+	return whitelist[addr]
+}
+
+func addToWl(addr string, permanent bool) {
 	muWhitelist.Lock()
 	defer muWhitelist.Unlock()
 	whitelist[addr] = permanent
 }
 
-func removeFromWhitelist(addr string) {
+func removeFromWl(addr string) {
 	muWhitelist.Lock()
 	defer muWhitelist.Unlock()
 	delete(whitelist, addr)
