@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net"
 	"net/http"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -39,6 +40,8 @@ var (
 	// sites with consistent fast response times, around the world, otherwise
 	// tests may time out.
 	testSites = []string{"www.google.com", "www.youtube.com", "www.facebook.com"}
+
+	fallbackNamePattern = regexp.MustCompile(`^fl-([a-z]{2})-.+$`)
 )
 
 type status struct {
@@ -121,6 +124,7 @@ func newHost(name string, ip string, record *cloudflare.Record) *host {
 		h.groups = map[string]*group{
 			RoundRobin: &group{subdomain: RoundRobin},
 			Fallbacks:  &group{subdomain: Fallbacks},
+			Peers:      &group{subdomain: Peers},
 		}
 		country := fallbackCountry(name)
 		if country != "" {
@@ -346,10 +350,10 @@ func (h *host) deregisterHost() {
 }
 
 func (h *host) doDeregisterHost() error {
+	err := cfutil.DestroyRecord(h.record)
 	h.record = nil
 	h.isProxying = false
 
-	err := cfutil.DestroyRecord(h.record)
 	if err != nil {
 		return fmt.Errorf("Unable to deregister host %v: %v", h, err)
 	}
@@ -429,4 +433,14 @@ func (h *host) doIsAbleToProxy() (bool, bool, error) {
 	}
 
 	return true, false, nil
+}
+
+// fallbackCountry returns the country code of a fallback if it follows the
+// usual naming convention.
+func fallbackCountry(name string) string {
+	sub := fallbackNamePattern.FindSubmatch([]byte(name))
+	if len(sub) == 2 {
+		return string(sub[1]) + ".fallbacks"
+	}
+	return ""
 }
