@@ -1,4 +1,4 @@
-[![GoDoc](https://godoc.org/gopkg.in/stack.v1?status.svg)](https://godoc.org/gopkg.in/stack.v1) [![Build Status](https://travis-ci.org/go-stack/stack.svg?branch=master)](https://travis-ci.org/go-stack/stack)
+[![GoDoc](https://godoc.org/gopkg.in/stack.v1?status.svg)](https://godoc.org/gopkg.in/stack.v1)
 
 # stack
 
