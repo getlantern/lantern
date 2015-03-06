@@ -177,7 +177,7 @@ func (dc *detourConn) Write(b []byte) (n int, err error) {
 // Close() implements the function from net.Conn
 func (dc *detourConn) Close() error {
 	log.Tracef("Closing %s connection to %s", dc.stateDesc(), dc.addr)
-	if dc.inState(stateInitial) && wlTemporarily(dc.addr) {
+	if dc.inState(stateDetour) && wlTemporarily(dc.addr) {
 		log.Tracef("no error found till closing, add %s to permanent whitelist", dc.addr)
 		addToWl(dc.addr, true)
 	}
