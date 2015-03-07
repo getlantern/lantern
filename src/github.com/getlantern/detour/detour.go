@@ -13,18 +13,10 @@ import (
 	"github.com/getlantern/golog"
 )
 
-type wlEntry struct {
-	permanent bool
-	addTime   time.Time
-}
-
 var (
 	log = golog.LoggerFor("detour")
 	// if dial or read exceeded this timeout, we consider switch to detour
 	timeoutToDetour = 1 * time.Second
-
-	muWhitelist sync.RWMutex
-	whitelist   = make(map[string]wlEntry)
 )
 
 type dialFunc func(network, addr string) (net.Conn, error)
@@ -74,24 +66,6 @@ func SetTimeout(t time.Duration) {
 	timeoutToDetour = t
 }
 
-func InitWhiteList(wl map[string]time.Time) {
-	muWhitelist.Lock()
-	defer muWhitelist.Unlock()
-	for k, v := range wl {
-		whitelist[k] = wlEntry{true, v}
-	}
-	return
-}
-
-func DumpWhiteList() (wl map[string]time.Time) {
-	muWhitelist.Lock()
-	defer muWhitelist.Unlock()
-	for k, v := range whitelist {
-		wl[k] = v.addTime
-	}
-	return
-}
-
 func Dialer(dialer dialFunc) dialFunc {
 	return func(network, addr string) (conn net.Conn, err error) {
 		dc := &detourConn{dialDetour: dialer, network: network, addr: addr}
@@ -119,12 +93,16 @@ func Dialer(dialer dialFunc) dialFunc {
 func (dc *detourConn) Read(b []byte) (n int, err error) {
 	conn := dc.getConn()
 	if !dc.inState(stateInitial) {
-		if n, err = conn.Read(b); err != nil && err != io.EOF {
+		if n, err = conn.Read(b); err != nil {
+			if err == io.EOF {
+				log.Tracef("Read %d bytes from %s %s, EOF", n, dc.addr, dc.stateDesc())
+				return
+			}
 			log.Tracef("Read from %s %s failed: %s", dc.addr, dc.stateDesc(), err)
 			if dc.inState(stateDirect) && blocked(err) {
 				log.Tracef("Seems %s still blocked, add to whitelist so will try detour next time", dc.addr)
 				addToWl(dc.addr, false)
-			} else if wlTemporarily(dc.addr) {
+			} else if dc.inState(stateDetour) && wlTemporarily(dc.addr) {
 				log.Tracef("Detoured route is still not reliable for %s, not whitelist it", dc.addr)
 				removeFromWl(dc.addr)
 			}
@@ -153,6 +131,10 @@ func (dc *detourConn) Read(b []byte) (n int, err error) {
 			return n, ne
 		}
 		return dc.detour(b)
+	}
+	if err == io.EOF {
+		log.Tracef("Read %d bytes from %s %s, EOF", n, dc.addr, dc.stateDesc())
+		return
 	}
 	log.Tracef("Read %d bytes from %s %s, set state to DIRECT", n, dc.addr, dc.stateDesc())
 	dc.setState(stateDirect)
@@ -249,8 +231,8 @@ func (dc *detourConn) resend() (int, error) {
 	b := dc.buf.Bytes()
 	dc.muBuf.Unlock()
 	if len(b) > 0 {
+		log.Tracef("Resending %d buffered bytes to %s", len(b), dc.addr)
 		n, err := dc.getConn().Write(b)
-		log.Tracef("Resend %d buffered bytes to %s, %d sent", len(b), dc.addr, n)
 		return n, err
 	}
 	return 0, nil
@@ -303,30 +285,4 @@ func blocked(err error) bool {
 		return true
 	}
 	return false
-}
-
-func whitelisted(addr string) bool {
-	muWhitelist.RLock()
-	defer muWhitelist.RUnlock()
-	_, in := whitelist[addr]
-	return in
-}
-
-func wlTemporarily(addr string) bool {
-	muWhitelist.RLock()
-	defer muWhitelist.RUnlock()
-	p, ok := whitelist[addr]
-	return ok && p.permanent == false
-}
-
-func addToWl(addr string, permanent bool) {
-	muWhitelist.Lock()
-	defer muWhitelist.Unlock()
-	whitelist[addr] = wlEntry{permanent, time.Now()}
-}
-
-func removeFromWl(addr string) {
-	muWhitelist.Lock()
-	defer muWhitelist.Unlock()
-	delete(whitelist, addr)
 }

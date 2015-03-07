@@ -26,28 +26,27 @@ func TestDetour(t *testing.T) {
 	defer stopMockServers()
 	SetTimeout(50 * time.Millisecond)
 
-	resp, err := http.Get(closeURL)
-	if assert.Error(t, err, "normal access should error") {
-		assert.Equal(t, err.(*url.Error).Err.Error(), "EOF", "should be EOF")
-	}
+	client := &http.Client{Timeout: 250 * time.Millisecond}
+	resp, err := client.Get(timeoutURL)
+	assert.Error(t, err, "direct access to a timeout url should error")
 
-	client := &http.Client{Transport: &http.Transport{Dial: Dialer(dDialer)}, Timeout: 250 * time.Millisecond}
-
-	resp, err = client.Get(closeURL)
-	if assert.NoError(t, err, "should not error get /close") {
-		assertContent(t, resp, detourMsg, "should detour if connection closed with no data")
-	}
-	resp, err = client.Get(timeOutURL)
+	client = &http.Client{Transport: &http.Transport{Dial: Dialer(dDialer)}, Timeout: 250 * time.Millisecond}
+	resp, err = client.Get(timeoutURL)
 	if assert.NoError(t, err, "should not error get /timeout") {
 		assertContent(t, resp, detourMsg, "should detour if time out")
 	}
-	resp, err = client.Get(timeOut2ndTimeURL)
+	resp, err = client.Get(timeout2ndTimeURL)
 	if assert.NoError(t, err, "should not error get /timeout") {
-		assertContent(t, resp, detourMsg, "should detour if time out")
+		assertContent(t, resp, directMsg, "should not detour first time")
+	}
+	resp, err = client.Get(timeout2ndTimeURL)
+	if assert.Error(t, err, "should error get /timeout second time") {
+		_, in := whitelist[timeout2ndTimeURL]
+		assert.Equal(t, true, in, "should be add to whitelist")
 	}
 	resp, err = client.Get("http://nonexist.com")
 	if assert.NoError(t, err, "should not error get an nonexist site") {
-		assertContent(t, resp, detourMsg, "should not detour if url can be accessed")
+		assertContent(t, resp, detourMsg, "should detour when accessing nonexist url")
 	}
 	resp, err = client.Get(echoURL)
 	if assert.NoError(t, err, "should not error get /echo") {
