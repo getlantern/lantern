@@ -16,10 +16,6 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-func proxy(url string) (resp *http.Response, err error) {
-	return http.Get(proxiedURL)
-}
-
 func dDialer(network, addr string) (net.Conn, error) {
 	u, _ := url.Parse(proxiedURL)
 	return net.Dial("tcp", u.Host)
@@ -44,6 +40,14 @@ func TestDetour(t *testing.T) {
 	resp, err = client.Get(timeOutURL)
 	if assert.NoError(t, err, "should not error get /timeout") {
 		assertContent(t, resp, detourMsg, "should detour if time out")
+	}
+	resp, err = client.Get(timeOut2ndTimeURL)
+	if assert.NoError(t, err, "should not error get /timeout") {
+		assertContent(t, resp, detourMsg, "should detour if time out")
+	}
+	resp, err = client.Get("http://nonexist.com")
+	if assert.NoError(t, err, "should not error get an nonexist site") {
+		assertContent(t, resp, detourMsg, "should not detour if url can be accessed")
 	}
 	resp, err = client.Get(echoURL)
 	if assert.NoError(t, err, "should not error get /echo") {
