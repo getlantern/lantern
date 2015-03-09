@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strconv"
+	"strings"
 	"sync/atomic"
 )
 
@@ -81,8 +82,14 @@ func LoggerFor(prefix string) Logger {
 	}
 	trace := os.Getenv("TRACE")
 	l.traceOn, _ = strconv.ParseBool(trace)
-	if trace == prefix {
-		l.traceOn = true
+	if !l.traceOn {
+		prefixes := strings.Split(trace, ",")
+		for _, p := range prefixes {
+			if prefix == strings.Trim(p, " ") {
+				l.traceOn = true
+				break
+			}
+		}
 	}
 	if l.traceOn {
 		l.traceOut = l.newTraceWriter()
@@ -115,14 +122,14 @@ func (l *logger) Debugf(message string, args ...interface{}) {
 }
 
 func (l *logger) Error(arg interface{}) {
-	_, err := fmt.Fprintf(getOutputs().errorOut, "[ERROR]"+l.prefix+"%s\n", arg)
+	_, err := fmt.Fprintf(getOutputs().errorOut, l.prefix+"%s\n", arg)
 	if err != nil {
 		errorOnLogging(err)
 	}
 }
 
 func (l *logger) Errorf(message string, args ...interface{}) {
-	_, err := fmt.Fprintf(getOutputs().errorOut, "[ERROR]"+l.prefix+message+"\n", args...)
+	_, err := fmt.Fprintf(getOutputs().errorOut, l.prefix+message+"\n", args...)
 	if err != nil {
 		errorOnLogging(err)
 	}

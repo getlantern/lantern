@@ -20,8 +20,10 @@ const (
 // getReverseProxy().
 func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	if req.Method == CONNECT {
+		log.Tracef("Intercepting CONNECT %s", req.URL)
 		client.intercept(resp, req)
 	} else {
+		log.Tracef("Reverse proxying %s %v", req.Method, req.URL)
 		client.getReverseProxy().ServeHTTP(resp, req)
 	}
 }
