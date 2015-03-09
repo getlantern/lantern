@@ -35,9 +35,12 @@ var (
 	// Command-line Flags
 	help      = flag.Bool("help", false, "Get usage help")
 	parentPID = flag.Int("parentpid", 0, "the parent process's PID, used on Windows for killing flashlight when the parent disappears")
+	headless  = flag.Bool("headless", false, "if true, lantern will run with no ui")
 
 	configUpdates = make(chan *config.Config)
 	exitCh        = make(chan error, 1)
+
+	showui = true
 )
 
 func init() {
@@ -52,7 +55,15 @@ func init() {
 }
 
 func main() {
-	systray.Run(_main)
+	flag.Parse()
+	showui = !*headless
+
+	if showui {
+		systray.Run(_main)
+	} else {
+		log.Debug("Running headless")
+		_main()
+	}
 }
 
 func _main() {
@@ -76,13 +87,14 @@ func doMain() error {
 	defer systray.Quit()
 
 	i18nInit()
-	err = configureSystemTray()
-	if err != nil {
-		return err
+	if showui {
+		err = configureSystemTray()
+		if err != nil {
+			return err
+		}
 	}
 	displayVersion()
 
-	flag.Parse()
 	configUpdates = make(chan *config.Config)
 	cfg, err := config.Init()
 	if err != nil {
@@ -154,7 +166,9 @@ func runClientProxy(cfg *config.Config) {
 			exit(fmt.Errorf("Unable to start UI: %v", err))
 			return
 		}
-		ui.Show()
+		if showui {
+			ui.Show()
+		}
 	}
 
 	logging.Configure(cfg, version, buildDate)
