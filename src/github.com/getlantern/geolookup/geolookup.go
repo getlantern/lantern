@@ -3,6 +3,7 @@ package geolookup
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -121,8 +122,16 @@ func LookupIPWithClient(ipAddr string, httpClient *http.Client) (*City, error) {
 	if resp, err = httpClient.Do(req); err != nil {
 		return nil, fmt.Errorf("Could not get response from server: %q", err)
 	}
-
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body := "body unreadable"
+		b, err := ioutil.ReadAll(resp.Body)
+		if err == nil {
+			body = string(b)
+		}
+		return nil, fmt.Errorf("Unexpected response status %d: %v", resp.StatusCode, body)
+	}
 
 	decoder := json.NewDecoder(resp.Body)
 

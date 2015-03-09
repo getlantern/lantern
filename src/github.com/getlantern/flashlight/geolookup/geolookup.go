@@ -1,6 +1,7 @@
 package geolookup
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 	"net/http"
@@ -90,11 +91,14 @@ func write() {
 			// Always publish location, even if unchanged
 			service.Out <- location
 		} else {
-			log.Errorf("Unable to get current location: %v", err)
+			msg := fmt.Sprintf("Unable to get current location: %v", err)
 			// When retrying after a failure, wait a different amount of time
 			retryWait := time.Duration(math.Pow(2, float64(consecutiveFailures))*float64(retryWaitMillis)) * time.Millisecond
 			if retryWait < wait {
+				log.Debug(msg)
 				wait = retryWait
+			} else {
+				log.Error(msg)
 			}
 			log.Debugf("Waiting %v before retrying", wait)
 			consecutiveFailures += 1
