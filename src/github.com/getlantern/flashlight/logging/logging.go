@@ -7,10 +7,9 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
-
-	"github.com/getlantern/rotator"
 
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/flashlight/config"
@@ -19,6 +18,7 @@ import (
 	"github.com/getlantern/go-loggly"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/jibber_jabber"
+	"github.com/getlantern/rotator"
 	"github.com/getlantern/waitforserver"
 	"github.com/getlantern/wfilter"
 )
@@ -174,10 +174,22 @@ func (w logglyErrorWriter) Write(b []byte) (int, error) {
 		"timeZone":  w.tz,
 		"version":   w.versionToLoggly,
 	}
-
+	fullMessage := string(b)
+	message := fullMessage
+	// Loggly can't index fields with more than 100 characters
+	if len(fullMessage) > 100 {
+		message = fullMessage[0:100]
+	}
+	pos := strings.IndexRune(message, ':')
+	if pos == -1 {
+		pos = 0
+	}
+	prefix := message[0:pos]
 	m := loggly.Message{
-		"extra":   extra,
-		"message": string(b),
+		"extra":        extra,
+		"locationInfo": prefix,
+		"message":      message,
+		"fullMessage":  fullMessage,
 	}
 
 	err := w.client.Send(m)
