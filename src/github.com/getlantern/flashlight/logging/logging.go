@@ -176,7 +176,7 @@ func (w logglyErrorWriter) Write(b []byte) (int, error) {
 	}
 	fullMessage := string(b)
 	message := fullMessage
-	// Loggly can't index fields with more than 100 characters
+	// Loggly doesn't group fields with more than 100 characters
 	if len(fullMessage) > 100 {
 		message = fullMessage[0:100]
 	}
