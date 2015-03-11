@@ -189,7 +189,7 @@ func (w logglyErrorWriter) Write(b []byte) (int, error) {
 	default:
 		message = parts[pl-2] + ":" + parts[pl-1]
 	}
-	message = strings.Trim(message, " \n")
+	message = strings.TrimSpace(message)
 
 	pos := strings.IndexRune(fullMessage, ':')
 	if pos == -1 {
