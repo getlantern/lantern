@@ -77,12 +77,12 @@ var (
 //   5. If a response is received with a special header indicating a true EOF
 //      from the destination server, return EOF to the reader
 //
-type Conn struct {
-	// Addr: the host:port of the destination server that we're trying to reach
-	Addr string
+type conn struct {
+	// addr: the host:port of the destination server that we're trying to reach
+	addr string
 
-	// Config: configuration of this Conn
-	Config *Config
+	// config: configuration of this Conn
+	config *Config
 
 	// initialResponseCh: Self-reported FQDN of the proxy serving this connection
 	// plus initial response from proxy.
@@ -101,30 +101,25 @@ type Conn struct {
 	/* Write processing */
 	writeRequestsCh  chan []byte     // requests to write
 	writeResponsesCh chan rwResponse // responses for writes
-	stopWriteCh      chan interface{}
-	doneWriting      bool
-	writeMutex       sync.RWMutex // synchronizes access to doneWriting flag
+	doneWritingCh    chan bool
 	rs               requestStrategy
+
+	/* Request processing (for writes) */
+	requestOutCh      chan *request // channel for next outgoing request body
+	requestFinishedCh chan error
+	doneRequestingCh  chan bool
 
 	/* Read processing */
 	readRequestsCh  chan []byte     // requests to read
 	readResponsesCh chan rwResponse // responses for reads
-	stopReadCh      chan interface{}
-	doneReading     bool
-	readMutex       sync.RWMutex // synchronizes access to doneReading flag
+	doneReadingCh   chan bool
 
-	/* Request processing */
-	requestOutCh      chan *request // channel for next outgoing request body
-	requestFinishedCh chan error
-	stopRequestCh     chan interface{}
-	doneRequesting    bool
-	requestMutex      sync.RWMutex // synchronizes access to doneRequesting flag
-
-	/* Fields for tracking activity/closed status */
-	lastActivityTime  time.Time    // time of last read or write
-	lastActivityMutex sync.RWMutex // mutex controlling access to lastActivityTime
-	closed            bool         // whether or not this Conn is closed
-	closedMutex       sync.RWMutex // mutex controlling access to closed flag
+	/* Fields for tracking error and closed status */
+	asyncErr      error        // error that occurred during asynchronous processing
+	asyncErrMutex sync.RWMutex // mutex guarding asyncErr
+	asyncErrCh    chan error   // channel used to interrupted any waiting reads/writes with an async error
+	closing       bool         // whether or not this Conn is closing
+	closingMutex  sync.RWMutex // mutex controlling access to the closing flag
 
 	/* Track current response */
 	resp *http.Response // the current response being used to read data
@@ -137,6 +132,10 @@ type Config struct {
 
 	// NewRequest: function to create a new request to the proxy
 	NewRequest newRequestFunc
+
+	// OnFirstResponse: optional callback that gets called on the first response
+	// from the proxy.
+	OnFirstResponse func(resp *http.Response)
 
 	// FlushTimeout: how long to let writes idle before writing out a
 	// request to the proxy.  Defaults to 15 milliseconds.
@@ -182,17 +181,27 @@ type hostWithResponse struct {
 	proxyHost string
 	proxyConn *connInfo
 	resp      *http.Response
-	err       error
 }
 
 // Write() implements the function from net.Conn
-func (c *Conn) Write(b []byte) (n int, err error) {
+func (c *conn) Write(b []byte) (n int, err error) {
+	err = c.getAsyncErr()
+	if err != nil {
+		return
+	}
+
 	if c.submitWrite(b) {
-		res, ok := <-c.writeResponsesCh
-		if !ok {
-			return 0, io.EOF
-		} else {
-			return res.n, res.err
+		defer decrement(&blockedOnWrite)
+
+		select {
+		case res, ok := <-c.writeResponsesCh:
+			if !ok {
+				return 0, io.EOF
+			} else {
+				return res.n, res.err
+			}
+		case err := <-c.asyncErrCh:
+			return 0, err
 		}
 	} else {
 		return 0, io.EOF
@@ -200,60 +209,105 @@ func (c *Conn) Write(b []byte) (n int, err error) {
 }
 
 // Read() implements the function from net.Conn
-func (c *Conn) Read(b []byte) (n int, err error) {
+func (c *conn) Read(b []byte) (n int, err error) {
+	err = c.getAsyncErr()
+	if err != nil {
+		return
+	}
+
 	if c.submitRead(b) {
-		res, ok := <-c.readResponsesCh
-		if !ok {
-			return 0, io.EOF
-		} else {
-			return res.n, res.err
+		defer decrement(&blockedOnRead)
+
+		select {
+		case res, ok := <-c.readResponsesCh:
+			if !ok {
+				return 0, io.EOF
+			} else {
+				return res.n, res.err
+			}
+		case err := <-c.asyncErrCh:
+			return 0, err
 		}
 	} else {
 		return 0, io.EOF
 	}
 }
 
+func (c *conn) fail(err error) {
+	log.Debugf("Failing on %v", err)
+
+	c.asyncErrMutex.Lock()
+	if c.asyncErr != nil {
+		c.asyncErr = err
+	}
+	c.asyncErrMutex.Unlock()
+
+	// Let any waiting readers or writers know about the error
+	for i := 0; i < 2; i++ {
+		select {
+		case c.asyncErrCh <- err:
+			// submitted okay
+		default:
+			// channel full, continue
+		}
+	}
+
+	go c.Close()
+}
+
+func (c *conn) getAsyncErr() error {
+	c.asyncErrMutex.RLock()
+	err := c.asyncErr
+	c.asyncErrMutex.RUnlock()
+	return err
+}
+
 // Close() implements the function from net.Conn
-func (c *Conn) Close() error {
-	c.closedMutex.Lock()
-	defer c.closedMutex.Unlock()
-	if !c.closed {
-		c.stopReadCh <- nil
-		c.stopWriteCh <- nil
-		c.stopRequestCh <- nil
-		c.closed = true
+func (c *conn) Close() error {
+	increment(&closing)
+	defer decrement(&closing)
+
+	c.closingMutex.Lock()
+	wasClosing := c.closing
+	c.closing = true
+	c.closingMutex.Unlock()
+	if !wasClosing {
+		increment(&blockedOnClosing)
+		close(c.writeRequestsCh)
+		close(c.readRequestsCh)
+		<-c.doneReadingCh
+		<-c.doneWritingCh
+		<-c.doneRequestingCh
+		decrement(&blockedOnClosing)
+		decrement(&open)
 	}
 	return nil
 }
 
-// isClosed checks whether or not this connection is closed
-func (c *Conn) isClosed() bool {
-	c.closedMutex.RLock()
-	defer c.closedMutex.RUnlock()
-	return c.closed
-}
-
 // LocalAddr() is not implemented
-func (c *Conn) LocalAddr() net.Addr {
+func (c *conn) LocalAddr() net.Addr {
 	panic("LocalAddr() not implemented")
 }
 
 // RemoteAddr() is not implemented
-func (c *Conn) RemoteAddr() net.Addr {
+func (c *conn) RemoteAddr() net.Addr {
 	panic("RemoteAddr() not implemented")
 }
 
 // SetDeadline() is currently unimplemented.
-func (c *Conn) SetDeadline(t time.Time) error {
-	panic("SetDeadline not implemented")
+func (c *conn) SetDeadline(t time.Time) error {
+	log.Tracef("SetDeadline not implemented")
+	return nil
 }
 
 // SetReadDeadline() is currently unimplemented.
-func (c *Conn) SetReadDeadline(t time.Time) error {
-	panic("SetReadDeadline not implemented")
+func (c *conn) SetReadDeadline(t time.Time) error {
+	log.Tracef("SetReadDeadline not implemented")
+	return nil
 }
 
 // SetWriteDeadline() is currently unimplemented.
-func (c *Conn) SetWriteDeadline(t time.Time) error {
-	panic("SetWriteDeadline not implemented")
+func (c *conn) SetWriteDeadline(t time.Time) error {
+	log.Tracef("SetWriteDeadline not implemented")
+	return nil
 }

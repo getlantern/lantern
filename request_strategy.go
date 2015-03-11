@@ -3,7 +3,6 @@ package enproxy
 import (
 	"bytes"
 	"io"
-	"sync"
 )
 
 // request is an outgoing request to the upstream proxy
@@ -23,7 +22,7 @@ type requestStrategy interface {
 // bufferingRequestStrategy is an implementation of requestStrategy that buffers
 // requests upstream.
 type bufferingRequestStrategy struct {
-	c                   *Conn
+	c                   *conn
 	currentBody         []byte
 	currentBytesWritten int
 }
@@ -31,10 +30,8 @@ type bufferingRequestStrategy struct {
 // streamingRequestStrategy is an implementation of requestStrategy that streams
 // requests upstream.
 type streamingRequestStrategy struct {
-	c               *Conn
-	writer          *io.PipeWriter
-	requestErr      error
-	requestErrMutex sync.Mutex
+	c      *conn
+	writer *io.PipeWriter
 }
 
 // Writes the given buffer to the upstream proxy encapsulated in an HTTP
@@ -51,7 +48,6 @@ func (brs *bufferingRequestStrategy) write(b []byte) (int, error) {
 		if bytesToCopy == 0 {
 			break
 		} else {
-			brs.c.markActive()
 			if brs.currentBody == nil {
 				brs.initBody()
 			}
@@ -92,41 +88,35 @@ func (brs *bufferingRequestStrategy) write(b []byte) (int, error) {
 // Writes the given buffer to the upstream proxy encapsulated in an HTTP
 // request.
 func (srs *streamingRequestStrategy) write(b []byte) (int, error) {
-	srs.requestErrMutex.Lock()
-	defer srs.requestErrMutex.Unlock()
-
-	if srs.requestErr != nil {
-		return 0, srs.requestErr
-	}
-
 	if srs.writer == nil {
 		// Lazily initialize our next request to the proxy
 		// Construct a pipe for piping data to proxy
 		reader, writer := io.Pipe()
+		increment(&writePipeOpen)
 		srs.writer = writer
 		request := &request{
 			body:   reader,
 			length: 0, // forces chunked encoding
 		}
+		increment(&writingSubmittingRequest)
 		if !srs.c.submitRequest(request) {
+			decrement(&writingSubmittingRequest)
 			return 0, io.EOF
 		}
+		decrement(&writingSubmittingRequest)
 		go func() {
-			// Drain requestFinishedCh
+			// Drain the requestFinishedCh
 			err := <-srs.c.requestFinishedCh
-			if err != nil {
-				srs.requestErrMutex.Lock()
-				defer srs.requestErrMutex.Unlock()
-				srs.requestErr = err
+			writer.Close()
+			if err != nil && err != io.EOF {
+				srs.c.fail(err)
 			}
 		}()
 	}
 
-	n, err := srs.writer.Write(b)
-	if n > 0 {
-		srs.c.markActive()
-	}
-	return n, err
+	increment(&writingDoingWrite)
+	defer decrement(&writingDoingWrite)
+	return srs.writer.Write(b)
 }
 
 func (brs *bufferingRequestStrategy) initBody() {
@@ -169,6 +159,7 @@ func (srs *streamingRequestStrategy) finishBody() error {
 
 	srs.writer.Close()
 	srs.writer = nil
+	decrement(&writePipeOpen)
 
 	return nil
 }

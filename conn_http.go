@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
 // Intercept intercepts a CONNECT request, hijacks the underlying client
@@ -22,17 +21,19 @@ func (c *Config) Intercept(resp http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		resp.WriteHeader(502)
 		fmt.Fprintf(resp, "Unable to hijack connection: %s", err)
+		return
 	}
 	defer clientConn.Close()
 
 	addr := hostIncludingPort(req, 443)
 
 	// Establish outbound connection
-	connOut := &Conn{
-		Addr:   addr,
-		Config: c,
+	connOut, err := Dial(addr, c)
+	if err != nil {
+		resp.WriteHeader(502)
+		fmt.Fprintf(resp, "Unable to open enproxy connection: %s", err)
+		return
 	}
-	connOut.Connect()
 	defer connOut.Close()
 
 	// Pipe data
@@ -41,7 +42,7 @@ func (c *Config) Intercept(resp http.ResponseWriter, req *http.Request) {
 
 // pipeData pipes data between the client and proxy connections.  It's also
 // responsible for responding to the initial CONNECT request with a 200 OK.
-func pipeData(clientConn net.Conn, connOut *Conn, req *http.Request) {
+func pipeData(clientConn net.Conn, connOut net.Conn, req *http.Request) {
 	// Start piping to proxy
 	go io.Copy(connOut, clientConn)
 
@@ -69,8 +70,8 @@ func respondOK(writer io.Writer, req *http.Request) error {
 // hostIncludingPort extracts the host:port from a request.  It fills in a
 // a default port if none was found in the request.
 func hostIncludingPort(req *http.Request, defaultPort int) string {
-	parts := strings.Split(req.Host, ":")
-	if len(parts) == 1 {
+	_, port, err := net.SplitHostPort(req.Host)
+	if port == "" || err != nil {
 		return req.Host + ":" + strconv.Itoa(defaultPort)
 	} else {
 		return req.Host

@@ -46,7 +46,10 @@ func (l *lazyConn) get() (conn net.Conn, err error) {
 
 		// Wrap the connection in an idle timing one
 		l.connOut = idletiming.Conn(conn, l.p.IdleTimeout, func() {
+			l.p.connMapMutex.Lock()
+			defer l.p.connMapMutex.Unlock()
 			delete(l.p.connMap, l.id)
+			conn.Close()
 		})
 	}
 
