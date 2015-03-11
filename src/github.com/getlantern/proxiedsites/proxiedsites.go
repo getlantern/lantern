@@ -1,214 +1,226 @@
-// proxiedsites manages a list of proxied sites, including a default set of
-// sites (cloud) and user-applied customizations to that list. It provides an
-// implementation of the http.Handler interface that serves up a PAC file based
-// on the currently active proxied sites (cloud + additions - deletions).
+// package proxiedsites is a module used to manage the list of sites
+// being proxied by Lantern
+// when the list is modified using the Lantern UI, it propagates
+// to the default YAML and PAC file configurations
 package proxiedsites
 
 import (
-	"bytes"
-	"fmt"
-	"net/http"
-	"sort"
-	"sync"
-	"text/template"
-
+	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/golog"
+	"github.com/robertkrimen/otto"
+	"github.com/robertkrimen/otto/parser"
 
 	"gopkg.in/fatih/set.v0"
+	"os"
+	"path"
+	"regexp"
+	"sort"
+	"strings"
+	"sync"
+	"text/template"
+)
+
+const (
+	PacFilename = "proxy_on.pac"
 )
 
 var (
-	log = golog.LoggerFor("proxiedsites")
-
-	parsedPacTmpl *template.Template
-	cs            *configsets
-	pacFile       string
-	cfgMutex      sync.RWMutex
+	log         = golog.LoggerFor("proxiedsites")
+	ConfigDir   string
+	PacFilePath string
+	PacTmpl     = "src/github.com/getlantern/proxiedsites/templates/proxy_on.pac.template"
 )
 
-func init() {
-	// Parse PACFile template on startup
-	var err error
-	parsedPacTmpl, err = template.New("pacfile").Parse(pactmpl)
-	if err != nil {
-		panic(fmt.Errorf("Could not parse PAC file template: %v", err))
-	}
-}
-
-// Delta represents modifications to the proxied sites list.
-type Delta struct {
-	Additions []string `json:"Additions, omitempty"`
-	Deletions []string `json:"Deletions, omitempty"`
-}
-
-// Merge merges the given delta into the existing one.
-func (d *Delta) Merge(n *Delta) {
-	oadd := toSet(d.Additions)
-	odel := toSet(d.Deletions)
-	nadd := toSet(n.Additions)
-	ndel := toSet(n.Deletions)
-
-	// First remove new deletions from old adds and vice versa
-	fadd := set.Difference(oadd, ndel)
-	fdel := set.Difference(odel, nadd)
-
-	// Now add new adds and deletions
-	fadd = set.Union(fadd, nadd)
-	fdel = set.Union(fdel, ndel)
-
-	d.Additions = toStrings(fadd)
-	d.Deletions = toStrings(fdel)
-}
-
-// Config is the whole configuration for proxiedsites.
 type Config struct {
-	// User customizations
-	*Delta
-
-	// Global list of white-listed sites
+	// Global list of white-listed domains
 	Cloud []string
+
+	// User customizations
+	Additions []string
+	Deletions []string
 }
 
-// toCS converts this Config into a configsets
-func (cfg *Config) toCS() *configsets {
-	cs := &configsets{
-		cloud: toSet(cfg.Cloud),
-		add:   toSet(cfg.Delta.Additions),
-		del:   toSet(cfg.Delta.Deletions),
-	}
-	cs.calculateActive()
-	return cs
+type ProxiedSites struct {
+	cfg *Config
+
+	// Corresponding global proxiedsites set
+	cloudSet *set.Set
+	entries  []string
+	pacFile  *PacFile
 }
 
-// toSet converts a slice of strings into a set
-func toSet(s []string) set.Interface {
-	if s == nil {
-		return set.NewNonTS()
-	}
-	is := make([]interface{}, len(s))
-	for i, s := range s {
-		is[i] = s
-	}
-	return set.NewNonTS(is...)
+type PacFile struct {
+	fileName string
+	l        sync.RWMutex
+	template *template.Template
+	file     *os.File
 }
 
-// toStrings converts a set into a slice of strings
-func toStrings(s set.Interface) []string {
-	l := set.StringSlice(s)
-	sort.Strings(l)
-	return l
-}
-
-// configsets is a version of a Config that uses sets instead of slices
-type configsets struct {
-	cloud      set.Interface
-	add        set.Interface
-	del        set.Interface
-	active     set.Interface
-	activeList []string
-}
-
-// calculateActive calculates the active sites for the given configsets and
-// stores them in the active property.
-func (cs *configsets) calculateActive() {
-	cs.active = set.Difference(set.Union(cs.cloud, cs.add), cs.del)
-	cs.activeList = toStrings(cs.active)
-}
-
-// equals checks whether this configsets is identical to some other configsets
-func (cs *configsets) equals(other *configsets) bool {
-	return cs.cloud.IsEqual(other.cloud) &&
-		cs.add.IsEqual(other.add) &&
-		cs.del.IsEqual(other.del)
-}
-
-// Configure applies the given configuration. If there were changes, a Delta is
-// returned that includes the additions and deletions from the active list. If
-// there were no changes, or the changes couldn't be applied, this method
-// returns a nil Delta.
-func Configure(cfg *Config) *Delta {
-	newCS := cfg.toCS()
-	if cs != nil && cs.equals(newCS) {
-		log.Debug("Configuration unchanged")
-		return nil
-	}
-
-	newPacFile, err := generatePACFile(newCS.activeList)
+// Determine user home directory and PAC file path during initialization
+func init() {
+	var err error
+	ConfigDir, err = util.GetUserHomeDir()
 	if err != nil {
-		log.Errorf("Error generating pac file, leaving configuration unchanged: %v", err)
-		return nil
+		log.Fatalf("Could not retrieve user home directory: %s", err)
+		return
 	}
-
-	var delta *Delta
-	if cs == nil {
-		delta = &Delta{
-			Additions: newCS.activeList,
-		}
-	} else {
-		delta = &Delta{
-			Additions: toStrings(set.Difference(newCS.active, cs.active)),
-			Deletions: toStrings(set.Difference(cs.active, newCS.active)),
-		}
-	}
-	cs = newCS
-	pacFile = newPacFile
-	log.Debug("Applied updated configuration")
-	return delta
+	PacFilePath = path.Join(ConfigDir, PacFilename)
 }
 
-// ActiveDelta returns the active sites as a Delta of additions.
-func ActiveDelta() *Delta {
-	cfgMutex.RLock()
-	d := &Delta{
-		Additions: cs.activeList,
+func New(cfg *Config) *ProxiedSites {
+	// initialize our proxied site cloud set
+	cloudSet := set.New()
+	for i := range cfg.Cloud {
+		cloudSet.Add(cfg.Cloud[i])
 	}
-	cfgMutex.RUnlock()
-	return d
+
+	entrySet := set.New()
+	toAdd := append(cfg.Additions, cfg.Cloud...)
+	for i := range toAdd {
+		entrySet.Add(toAdd[i])
+	}
+
+	toRemove := set.New()
+	for i := range cfg.Deletions {
+		toRemove.Add(cfg.Deletions[i])
+	}
+
+	entries := set.StringSlice(set.Difference(entrySet, toRemove))
+	sort.Strings(entries)
+
+	ps := &ProxiedSites{
+		cfg:      cfg,
+		cloudSet: cloudSet,
+		entries:  entries,
+	}
+
+	pacFileExists, _ := util.FileExists(PacFilePath)
+	// if the pac file doesn't already exist
+	// we create it now to synchronize it with the YAML config
+	if !pacFileExists {
+		go ps.updatePacFile()
+	}
+
+	return ps
 }
 
-// ServePAC serves up the PAC file and can be used as an http.HandlerFunc
-func ServePAC(resp http.ResponseWriter, req *http.Request) {
-	resp.Header().Set("Content-Type", "application/x-ns-proxy-autoconfig")
-	resp.WriteHeader(http.StatusOK)
-	cfgMutex.RLock()
-	resp.Write([]byte(pacFile))
-	cfgMutex.RUnlock()
+func (ps *ProxiedSites) RefreshEntries() []string {
+
+	go ps.updatePacFile()
+
+	return ps.entries
 }
 
-// generatePACFile generates a PAC File from the given active sites.
-func generatePACFile(activeSites []string) (string, error) {
+func GetPacFile() string {
+	return PacFilePath
+}
+
+func (ps *ProxiedSites) Copy() *Config {
+	return &Config{
+		Additions: ps.cfg.Additions,
+		Deletions: ps.cfg.Deletions,
+		Cloud:     ps.cfg.Cloud,
+	}
+}
+
+func (ps *ProxiedSites) GetConfig() *Config {
+	return ps.cfg
+}
+
+// This function calculaties the delta additions and deletions
+// to the global whitelist; these changes are then propagated
+// to the PAC file
+func (ps *ProxiedSites) UpdateEntries(entries []string) []string {
+	log.Debug("Updating whitelist entries...")
+
+	toAdd := set.New()
+	for i := range entries {
+		toAdd.Add(entries[i])
+	}
+
+	// whitelist customizations
+	toRemove := set.Difference(ps.cloudSet, toAdd)
+	ps.cfg.Deletions = set.StringSlice(toRemove)
+
+	// new entries are any new domains the user wishes
+	// to proxy that weren't found on the global whitelist
+	// already
+	newEntries := set.Difference(toAdd, ps.cloudSet)
+	ps.cfg.Additions = set.StringSlice(newEntries)
+	ps.entries = set.StringSlice(toAdd)
+	go ps.updatePacFile()
+
+	return ps.entries
+}
+
+func (ps *ProxiedSites) updatePacFile() (err error) {
+
+	pacFile := &PacFile{}
+
+	pacFile.file, err = os.Create(PacFilePath)
+	defer pacFile.file.Close()
+	if err != nil {
+		log.Errorf("Could not create PAC file")
+		return
+	}
+	// parse the PAC file template
+	pacFile.template, err = template.ParseFiles(PacTmpl)
+	if err != nil {
+		log.Errorf("Could not open PAC file template: %s", err)
+		return
+	}
+
+	log.Debugf("Updating PAC file; path is %s", PacFilePath)
+	pacFile.l.Lock()
+	defer pacFile.l.Unlock()
+
 	data := make(map[string]interface{}, 0)
-	data["Entries"] = activeSites
-	buf := bytes.NewBuffer(nil)
-	err := parsedPacTmpl.Execute(buf, data)
+	data["Entries"] = ps.entries
+	err = pacFile.template.Execute(pacFile.file, data)
 	if err != nil {
-		return "", fmt.Errorf("Error generating updated PAC file: %s", err)
+		log.Errorf("Error generating updated PAC file: %s", err)
 	}
-	return string(buf.Bytes()), nil
+
+	return err
 }
 
-const pactmpl = `var proxyDomains = new Array();
-var i=0;
-
-{{ range $key := .Entries }}
-proxyDomains[i++] = "{{ $key }}";{{ end }}
-
-for(i in proxyDomains) {
-    proxyDomains[i] = proxyDomains[i].split(/\./).join("\\.");
+func (ps *ProxiedSites) GetEntries() []string {
+	return ps.entries
 }
 
-var proxyDomainsRegx = new RegExp("(" + proxyDomains.join("|") + ")$", "i");
-
-function FindProxyForURL(url, host) {
-    if( host == "localhost" ||
-        host == "127.0.0.1") {
-        return "DIRECT";
-    }
-
-    if (proxyDomainsRegx.exec(host)) {
-        return "PROXY 127.0.0.1:8787; DIRECT";
-    }
-
-    return "DIRECT";
+func (ps *ProxiedSites) GetGlobalList() []string {
+	return ps.cfg.Cloud
 }
-`
+
+func ParsePacFile() *ProxiedSites {
+	ps := &ProxiedSites{}
+
+	log.Debugf("PAC file found %s; loading entries..", PacFilePath)
+	program, err := parser.ParseFile(nil, PacFilePath, nil, 0)
+	// otto is a native JavaScript parser;
+	// we just quickly parse the proxy domains
+	// from the PAC file to
+	// cleanly send in a JSON response
+	vm := otto.New()
+	_, err = vm.Run(program)
+	if err != nil {
+		log.Errorf("Could not parse PAC file %+v", err)
+		return nil
+	} else {
+		value, _ := vm.Get("proxyDomains")
+		log.Debugf("PAC entries %+v", value.String())
+		if value.String() == "" {
+			// no pac entries; return empty array
+			ps.entries = []string{}
+			return ps
+		}
+
+		// need to remove escapes
+		// and convert the otto value into a string array
+		re := regexp.MustCompile("(\\\\.)")
+		list := re.ReplaceAllString(value.String(), ".")
+		ps.entries = strings.Split(list, ",")
+		log.Debugf("List of proxied sites... %+v", ps.entries)
+	}
+	return ps
+}
