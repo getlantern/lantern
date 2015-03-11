@@ -28,7 +28,7 @@ const (
 )
 
 var (
-	log = golog.LoggerFor("flashlight")
+	log = golog.LoggerFor("flashlight.logging")
 
 	logFile  *rotator.SizeRotator
 	cfgMutex sync.Mutex
