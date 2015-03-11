@@ -19,7 +19,7 @@ var (
 )
 
 func init() {
-	SetOutputs(os.Stderr, os.Stdout)
+	ResetOutputs()
 }
 
 func SetOutputs(errorOut io.Writer, debugOut io.Writer) {
@@ -27,6 +27,10 @@ func SetOutputs(errorOut io.Writer, debugOut io.Writer) {
 		errorOut: errorOut,
 		debugOut: debugOut,
 	})
+}
+
+func ResetOutputs() {
+	SetOutputs(os.Stderr, os.Stdout)
 }
 
 func getOutputs() *outputs {
@@ -93,19 +97,31 @@ type logger struct {
 }
 
 func (l *logger) Debug(arg interface{}) {
-	fmt.Fprintf(getOutputs().debugOut, l.prefix+"%s\n", arg)
+	_, err := fmt.Fprintf(getOutputs().debugOut, l.prefix+"%s\n", arg)
+	if err != nil {
+		errorOnLogging(err)
+	}
 }
 
 func (l *logger) Debugf(message string, args ...interface{}) {
-	fmt.Fprintf(getOutputs().debugOut, l.prefix+message+"\n", args...)
+	_, err := fmt.Fprintf(getOutputs().debugOut, l.prefix+message+"\n", args...)
+	if err != nil {
+		errorOnLogging(err)
+	}
 }
 
 func (l *logger) Error(arg interface{}) {
-	fmt.Fprintf(getOutputs().errorOut, l.prefix+"%s\n", arg)
+	_, err := fmt.Fprintf(getOutputs().errorOut, l.prefix+"%s\n", arg)
+	if err != nil {
+		errorOnLogging(err)
+	}
 }
 
 func (l *logger) Errorf(message string, args ...interface{}) {
-	fmt.Fprintf(getOutputs().errorOut, l.prefix+message+"\n", args...)
+	_, err := fmt.Fprintf(getOutputs().errorOut, l.prefix+message+"\n", args...)
+	if err != nil {
+		errorOnLogging(err)
+	}
 }
 
 func (l *logger) Fatal(arg interface{}) {
@@ -141,14 +157,26 @@ func (l *logger) IsTraceEnabled() bool {
 func (l *logger) newTraceWriter() io.Writer {
 	pr, pw := io.Pipe()
 	br := bufio.NewReader(pr)
+
 	go func() {
+		defer pr.Close()
+		defer pw.Close()
+
 		for {
 			line, err := br.ReadString('\n')
 			if err == nil {
 				// Log the line (minus the trailing newline)
 				l.Trace(line[:len(line)-1])
+			} else {
+				l.Tracef("TraceWriter closed due to unexpected error: %v", err)
+				return
 			}
 		}
 	}()
+
 	return pw
+}
+
+func errorOnLogging(err error) {
+	fmt.Fprintf(os.Stderr, "Unable to log: %v\n", err)
 }
