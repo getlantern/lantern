@@ -175,16 +175,25 @@ func (w logglyErrorWriter) Write(b []byte) (int, error) {
 		"version":   w.versionToLoggly,
 	}
 	fullMessage := string(b)
-	message := fullMessage
-	// Loggly doesn't group fields with more than 100 characters
-	if len(fullMessage) > 100 {
-		message = fullMessage[0:100]
+
+	// extract last 2 (at most) chunks of fullMessage to message, without prefix,
+	// so we can group logs with same reason in Loggly
+	parts := strings.Split(fullMessage, ":")
+	var message string
+	pl := len(parts)
+	if pl <= 2 {
+		message = parts[1]
+	} else {
+		message = parts[pl-2] + ":" + parts[pl-1]
 	}
-	pos := strings.IndexRune(message, ':')
+	message = strings.Trim(message, " \n")
+
+	pos := strings.IndexRune(fullMessage, ':')
 	if pos == -1 {
 		pos = 0
 	}
-	prefix := message[0:pos]
+	prefix := fullMessage[0:pos]
+
 	m := loggly.Message{
 		"extra":        extra,
 		"locationInfo": prefix,
