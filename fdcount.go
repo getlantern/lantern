@@ -1,16 +1,21 @@
 package fdcount
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
+	"time"
+)
+
+var (
+	maxAssertAttempts = uint(7)
 )
 
 type Counter struct {
 	match         string
+	startingLines string
 	startingCount int
-	startingOut   []byte
 }
 
 // Returns a count of the file descriptors matching the given string (not a
@@ -21,36 +26,86 @@ type Counter struct {
 //
 // see https://groups.google.com/forum/#!topic/golang-nuts/c0AnWXjzNIA
 //
-func Matching(s string) (int, *Counter, error) {
-	c := &Counter{match: s}
+func Matching(match string) (int, *Counter, error) {
+	c := &Counter{match: match}
 
 	// Count initial file descriptors
 	out, err := runLsof()
 	if err != nil {
 		return 0, nil, err
 	}
-	c.startingOut = out
-	c.startingCount = c.countMatches(out)
+	c.startingLines, c.startingCount = c.matchingLines(out)
 	return c.startingCount, c, nil
 }
 
+// WaitUntilNoneMatch waits until no file descriptors match the given string, or
+// the timeout is hit.
+func WaitUntilNoneMatch(match string, timeout time.Duration) error {
+	start := time.Now()
+	var out []byte
+	var err error
+	var count int
+
+	for time.Now().Sub(start) < timeout {
+		out, err = runLsof()
+		if err != nil {
+			return err
+		}
+		_, count = matchingLines(match, out)
+		if count == 0 {
+			// Success!
+			return nil
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+
+	return fmt.Errorf("%d lines still match %v\n\n%v", count, match, string(out))
+}
+
 // Asserts that the number of file descriptors added/removed since Counter was
-// created euqlas the given number.
+// created equals the given number.
 func (c *Counter) AssertDelta(expected int) error {
+	var err error
+
+	for try := uint(0); try < maxAssertAttempts; try++ {
+		err = c.doAssertDelta(expected)
+		if err == nil {
+			return nil
+		}
+		// Count didn't match, could be we have some lingering descriptors, wait
+		// and then try again.
+		time.Sleep((50 << try) * time.Millisecond)
+	}
+
+	return err
+}
+
+func (c *Counter) doAssertDelta(expected int) error {
 	out, err := runLsof()
 	if err != nil {
 		return err
 	}
-	actual := c.countMatches(out) - c.startingCount
+	endingLines, endingCount := c.matchingLines(out)
+	actual := endingCount - c.startingCount
 	if actual != expected {
-		return fmt.Errorf("Unexpected TCP file descriptor count. Expected %d, have %d.\n\nInitial lsof output\n-----------------------------\n%s\n\nCurrent lsof output\n-----------------------------\n%s\n",
-			expected, actual, string(c.startingOut), string(out))
+		return fmt.Errorf("Unexpected TCP file descriptor count. Expected %d, have %d.\n\n%s",
+			expected, actual, lsofDelta(c.startingLines, endingLines))
 	}
 	return nil
 }
 
-func (c *Counter) countMatches(out []byte) int {
-	return bytes.Count(out, []byte(c.match))
+func (c *Counter) matchingLines(out []byte) (string, int) {
+	return matchingLines(c.match, out)
+}
+
+func matchingLines(match string, out []byte) (string, int) {
+	lines := make([]string, 0)
+	for _, line := range strings.Split(string(out), "\n") {
+		if strings.Contains(line, match) {
+			lines = append(lines, line)
+		}
+	}
+	return strings.Join(lines, "\n"), len(lines)
 }
 
 func runLsof() ([]byte, error) {
@@ -59,4 +114,50 @@ func runLsof() ([]byte, error) {
 		err = fmt.Errorf("Unable to run lsof: %v", err)
 	}
 	return out, err
+}
+
+func lsofDelta(start string, end string) string {
+	startLines := strings.Split(start, "\n")
+	endLines := strings.Split(end, "\n")
+
+	added := make(map[string]interface{})
+	removed := make(map[string]interface{})
+
+	for _, line := range startLines {
+		removed[line] = nil
+	}
+
+	for _, line := range endLines {
+		added[line] = nil
+		delete(removed, line)
+	}
+
+	for _, line := range startLines {
+		delete(added, line)
+	}
+
+	a := make([]string, 0, len(added))
+	r := make([]string, 0, len(removed))
+
+	for line := range added {
+		a = append(a, line)
+	}
+
+	for line := range removed {
+		r = append(r, line)
+	}
+
+	result := ""
+	if len(r) > 0 {
+		result = fmt.Sprintf("Removed file descriptors\n-----------------------------\n%v\n",
+			strings.Join(r, "\n"))
+	}
+	if len(a) > 0 {
+		if len(r) > 0 {
+			result = result + "\n"
+		}
+		result = fmt.Sprintf("%sNew file descriptors\n-----------------------------\n%v\n",
+			result, strings.Join(a, "\n"))
+	}
+	return result
 }
