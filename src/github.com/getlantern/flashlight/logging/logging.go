@@ -181,9 +181,12 @@ func (w logglyErrorWriter) Write(b []byte) (int, error) {
 	parts := strings.Split(fullMessage, ":")
 	var message string
 	pl := len(parts)
-	if pl <= 2 {
+	switch pl {
+	case 1:
+		message = ""
+	case 2:
 		message = parts[1]
-	} else {
+	default:
 		message = parts[pl-2] + ":" + parts[pl-1]
 	}
 	message = strings.Trim(message, " \n")
