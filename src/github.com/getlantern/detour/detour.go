@@ -112,9 +112,12 @@ func Dialer(dialer dialFunc) dialFunc {
 			detector := blockDetector.Load().(*Detector)
 			dc.setState(stateInitial)
 			dc.conn, err = net.DialTimeout(network, addr, TimeoutToDetour)
-			if err == nil && !detector.CheckConn(dc.conn) {
-				log.Tracef("Dial %s to %s succeeded", dc.stateDesc(), addr)
-				return dc, nil
+			if err == nil {
+				if !detector.CheckConn(dc.conn) {
+					log.Tracef("Dial %s to %s succeeded", dc.stateDesc(), addr)
+					return dc, nil
+				}
+				log.Debugf("Dial %s to %s, dns hijacked, try detour", dc.stateDesc(), addr, err)
 			} else if detector.CheckError(err) {
 				log.Debugf("Dial %s to %s failed, try detour: %s", dc.stateDesc(), addr, err)
 			} else {
