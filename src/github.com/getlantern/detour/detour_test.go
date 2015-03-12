@@ -70,15 +70,15 @@ func TestIran(t *testing.T) {
 	client := &http.Client{Transport: &http.Transport{Dial: Dialer(dDialer)}, Timeout: 250 * time.Millisecond}
 	mock.Raw(iranResp)
 	resp, err := client.Get(url)
-	if assert.NoError(t, err, "should not error if blocked in Iran") {
-		assertContent(t, resp, detourMsg, "should detour if blocked in Iran")
+	if assert.NoError(t, err, "should not error if content hijacked in Iran") {
+		assertContent(t, resp, detourMsg, "should detour if content hijacked in Iran")
 	}
 
 	// this test can verifies dns hijack detection if runs inside Iran,
 	// the url will time out and detour if runs outside Iran
 	resp, err = client.Get("http://" + iranRedirectIP)
-	if assert.NoError(t, err, "should not error if blocked in Iran") {
-		assertContent(t, resp, detourMsg, "should detour if blocked in Iran")
+	if assert.NoError(t, err, "should not error if dns hijacked in Iran") {
+		assertContent(t, resp, detourMsg, "should detour if dns hijacked in Iran")
 	}
 }
 
