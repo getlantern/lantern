@@ -15,7 +15,7 @@ type Detector struct {
 
 var detectors = make(map[string]*Detector)
 
-var iranRedirectIP = "10.10.34.34"
+var iranRedirectAddr = "10.10.34.34:80"
 
 func init() {
 	http403 := []byte("HTTP/1.1 403 Forbidden")
@@ -24,7 +24,7 @@ func init() {
 		CheckConn: func(c net.Conn) bool {
 			fmt.Println(c.RemoteAddr().String())
 			if ra := c.RemoteAddr(); ra != nil {
-				return ra.String() == iranRedirectIP
+				return ra.String() == iranRedirectAddr
 			}
 			return false
 		},

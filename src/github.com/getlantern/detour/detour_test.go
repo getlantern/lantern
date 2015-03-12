@@ -76,7 +76,7 @@ func TestIran(t *testing.T) {
 
 	// this test can verifies dns hijack detection if runs inside Iran,
 	// the url will time out and detour if runs outside Iran
-	resp, err = client.Get("http://" + iranRedirectIP)
+	resp, err = client.Get("http://" + iranRedirectAddr)
 	if assert.NoError(t, err, "should not error if dns hijacked in Iran") {
 		assertContent(t, resp, detourMsg, "should detour if dns hijacked in Iran")
 	}
