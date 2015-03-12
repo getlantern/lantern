@@ -125,13 +125,16 @@ func Dialer(dialer dialFunc) dialFunc {
 				return dc, err
 			}
 		}
-		dc.setState(stateDetour)
 		dc.conn, err = dc.dialDetour(network, addr)
 		if err != nil {
 			log.Errorf("Dial %s to %s failed", dc.stateDesc(), addr)
 			return nil, err
 		}
-		log.Tracef("Dial %s to %s succeeded", dc.stateDesc(), addr)
+		dc.setState(stateDetour)
+		if !whitelisted(addr) {
+			log.Tracef("Dial %s to %s succeeded, add to temporary list", dc.stateDesc(), addr)
+			addToWl(dc.addr, false)
+		}
 		return dc, err
 	}
 }
