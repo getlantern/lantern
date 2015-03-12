@@ -117,7 +117,7 @@ func Dialer(dialer dialFunc) dialFunc {
 					log.Tracef("Dial %s to %s succeeded", dc.stateDesc(), addr)
 					return dc, nil
 				}
-				log.Debugf("Dial %s to %s, dns hijacked, try detour", dc.stateDesc(), addr, err)
+				log.Debugf("Dial %s to %s, dns hijacked, try detour", dc.stateDesc(), addr)
 			} else if detector.CheckError(err) {
 				log.Debugf("Dial %s to %s failed, try detour: %s", dc.stateDesc(), addr, err)
 			} else {

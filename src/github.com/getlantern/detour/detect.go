@@ -2,7 +2,6 @@ package detour
 
 import (
 	"bytes"
-	"fmt"
 	"net"
 	"syscall"
 )
@@ -22,7 +21,6 @@ func init() {
 	iranIFrame := []byte(`<iframe src="http://10.10.34.34`)
 	detectors["IR"] = &Detector{
 		CheckConn: func(c net.Conn) bool {
-			fmt.Println(c.RemoteAddr().String())
 			if ra := c.RemoteAddr(); ra != nil {
 				return ra.String() == iranRedirectAddr
 			}
