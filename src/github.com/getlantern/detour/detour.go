@@ -1,3 +1,35 @@
+/*
+Package detour provides a net.Conn interface to dial another dialer
+if direct connection is considered blocked
+It maintains three states in a connection: initial, direct and detoured
+along with a temporary whitelist across connections.
+it also add a blocked site to whitelist
+
+The action taken and state transistion in each phase is as follows:
++-------------------------+-----------+-------------+-------------+-------------+-------------+
+|                         | no error  |   timeout*  | conn reset/ | content     | other error |
+|                         |           |             | dns hijack  | hijack      |             |
++-------------------------+-----------+-------------+-------------+-------------+-------------+
+| dial (intial)           | noop      | detour      | detour      | n/a         | noop        |
+| first read (intial)     | direct    | detour(buf) | detour(buf) | detour(buf) | noop        |
+|                         |           | add to tl   | add to tl   | add to tl   |             |
+| follow-up read (direct) | direct    | add to tl   | add to tl   | add to tl   | noop        |
+| follow-up read (detour) | noop      | rm from tl  | rm from tl  | rm from tl  | rm from tl  |
+| close (direct)          | noop      | n/a         | n/a         | n/a         | n/a         |
+| close (detour)          | add to wl | n/a         | n/a         | n/a         | n/a         |
++-------------------------+-----------+-------------+-------------+-------------+-------------+
+| next dial/read(in tl)***| noop      | rm from tl  | rm from tl  | rm from tl  | rm from tl  |
+| next close(in tl)       | add to wl | n/a         | n/a         | n/a         | n/a         |
++-------------------------+-----------+-------------+-------------+-------------+-------------+
+(buf) = resend buffer
+tl = temporary whitelist
+wl = permanent whitelist
+* Operation will time out in TimeoutToDetour in initial state,
+and at system default or caller supplied deadline for other states;
+but in detoured state, it is considered as timeout if an operation takes longer than TimeoutToDetour.
+** DNS hijack is only checked at dial time.
+*** Connection is always detoured if the site is in tl or wl.
+*/
 package detour
 
 import (
@@ -7,17 +39,27 @@ import (
 	"net"
 	"sync"
 	"sync/atomic"
-	"syscall"
 	"time"
 
 	"github.com/getlantern/golog"
 )
 
+// if dial or read exceeded this timeout, we consider switch to detour
+// The value depends on OS and browser and defaults to 3s
+// For Windows XP, find TcpMaxConnectRetransmissions in
+// http://support2.microsoft.com/default.aspx?scid=kb;en-us;314053
+var TimeoutToDetour = 3 * time.Second
+
 var (
 	log = golog.LoggerFor("detour")
-	// if dial or read exceeded this timeout, we consider switch to detour
-	timeoutToDetour = 1 * time.Second
+
+	// instance of Detector
+	blockDetector atomic.Value
 )
+
+func init() {
+	blockDetector.Store(detectorByCountry(""))
+}
 
 type dialFunc func(network, addr string) (net.Conn, error)
 
@@ -34,7 +76,7 @@ type detourConn struct {
 	dialDetour dialFunc
 
 	muBuf sync.Mutex
-	// keep track of bytes sent through normal connection
+	// keep track of bytes sent through direct connection
 	// so we can resend them when detour
 	buf bytes.Buffer
 
@@ -59,24 +101,26 @@ var statesDesc = []string{
 	"WHITELISTED",
 }
 
-// SetTimeout sets the timeout so if dial or read exceeds this timeout, we consider switch to detour
-// The value depends on OS and browser and defaults to 1s
-// For Windows XP, find TcpMaxConnectRetransmissions in http://support2.microsoft.com/default.aspx?scid=kb;en-us;314053
-func SetTimeout(t time.Duration) {
-	timeoutToDetour = t
+func SetCountry(country string) {
+	blockDetector.Store(detectorByCountry(country))
 }
 
 func Dialer(dialer dialFunc) dialFunc {
 	return func(network, addr string) (conn net.Conn, err error) {
 		dc := &detourConn{dialDetour: dialer, network: network, addr: addr}
 		if !whitelisted(addr) {
+			detector := blockDetector.Load().(*Detector)
 			dc.setState(stateInitial)
-			dc.conn, err = net.DialTimeout(network, addr, timeoutToDetour)
-			if err == nil {
+			dc.conn, err = net.DialTimeout(network, addr, TimeoutToDetour)
+			if err == nil && !detector.CheckConn(dc.conn) {
 				log.Tracef("Dial %s to %s succeeded", dc.stateDesc(), addr)
 				return dc, nil
+			} else if detector.CheckError(err) {
+				log.Debugf("Dial %s to %s failed, try detour: %s", dc.stateDesc(), addr, err)
+			} else {
+				log.Errorf("Dial %s to %s failed: %s", dc.stateDesc(), addr, err)
+				return dc, err
 			}
-			log.Debugf("Dial %s to %s failed, try detour: %s", dc.stateDesc(), addr, err)
 		}
 		dc.setState(stateDetour)
 		dc.conn, err = dc.dialDetour(network, addr)
@@ -92,6 +136,7 @@ func Dialer(dialer dialFunc) dialFunc {
 // Read() implements the function from net.Conn
 func (dc *detourConn) Read(b []byte) (n int, err error) {
 	conn := dc.getConn()
+	detector := blockDetector.Load().(*Detector)
 	if !dc.inState(stateInitial) {
 		if n, err = conn.Read(b); err != nil {
 			if err == io.EOF {
@@ -99,7 +144,7 @@ func (dc *detourConn) Read(b []byte) (n int, err error) {
 				return
 			}
 			log.Tracef("Read from %s %s failed: %s", dc.addr, dc.stateDesc(), err)
-			if dc.inState(stateDirect) && blocked(err) {
+			if dc.inState(stateDirect) && detector.CheckError(err) {
 				log.Tracef("Seems %s still blocked, add to whitelist so will try detour next time", dc.addr)
 				addToWl(dc.addr, false)
 			} else if dc.inState(stateDetour) && wlTemporarily(dc.addr) {
@@ -108,33 +153,41 @@ func (dc *detourConn) Read(b []byte) (n int, err error) {
 			}
 			return
 		}
+		if dc.inState(stateDirect) && detector.CheckResp(b) {
+			log.Tracef("Seems %s still hijacked, add to whitelist so will try detour next time", dc.addr)
+			addToWl(dc.addr, false)
+		}
 		log.Tracef("Read %d bytes from %s %s", n, dc.addr, dc.stateDesc())
 		return n, err
 	}
 	// state will always be settled after first read, safe to clear buffer at end of it
 	defer dc.resetBuffer()
 	start := time.Now()
-	dl := start.Add(timeoutToDetour)
-	if !dc.readDeadline.IsZero() && dc.readDeadline.Sub(start) < 2*timeoutToDetour {
+	dl := start.Add(TimeoutToDetour)
+	if !dc.readDeadline.IsZero() && dc.readDeadline.Sub(start) < 2*TimeoutToDetour {
 		log.Tracef("no time left to test %s, read %s", dc.addr, stateDirect)
 		dc.setState(stateDirect)
 		return conn.Read(b)
 	}
-	conn.SetReadDeadline(dl)
 
+	conn.SetReadDeadline(dl)
 	n, err = conn.Read(b)
 	conn.SetReadDeadline(dc.readDeadline)
 	if err != nil && err != io.EOF {
 		ne := fmt.Errorf("Error while read from %s %s, takes %s: %s", dc.addr, dc.stateDesc(), time.Now().Sub(start), err)
 		log.Debug(ne)
-		if !blocked(err) {
-			return n, ne
+		if detector.CheckError(err) {
+			return dc.detour(b)
 		}
-		return dc.detour(b)
+		return n, ne
 	}
 	if err == io.EOF {
 		log.Tracef("Read %d bytes from %s %s, EOF", n, dc.addr, dc.stateDesc())
 		return
+	}
+	if detector.CheckResp(b) {
+		log.Tracef("Read %d bytes from %s %s, content is hijacked, detour", n, dc.addr, dc.stateDesc())
+		return dc.detour(b)
 	}
 	log.Tracef("Read %d bytes from %s %s, set state to DIRECT", n, dc.addr, dc.stateDesc())
 	dc.setState(stateDirect)
@@ -275,14 +328,4 @@ func (dc *detourConn) inState(s uint32) bool {
 
 func (dc *detourConn) setState(s uint32) {
 	atomic.StoreUint32(&dc.state, s)
-}
-
-func blocked(err error) bool {
-	if ne, ok := err.(net.Error); ok && ne.Timeout() {
-		return true
-	}
-	if oe, ok := err.(*net.OpError); ok && (oe.Err == syscall.EPIPE || oe.Err == syscall.ECONNRESET) {
-		return true
-	}
-	return false
 }

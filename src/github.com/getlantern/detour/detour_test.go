@@ -21,36 +21,64 @@ func dDialer(network, addr string) (net.Conn, error) {
 	return net.Dial("tcp", u.Host)
 }
 
-func TestDetour(t *testing.T) {
-	startMockServers(t)
+func TestBlockedImmediately(t *testing.T) {
+	TimeoutToDetour = 50 * time.Millisecond
+	url, mock := startMockServers(t)
 	defer stopMockServers()
-	SetTimeout(50 * time.Millisecond)
 
+	mock.Timeout(1 * time.Second)
 	client := &http.Client{Timeout: 250 * time.Millisecond}
-	resp, err := client.Get(timeoutURL)
-	assert.Error(t, err, "direct access to a timeout url should error")
+	resp, err := client.Get(url)
+	assert.Error(t, err, "direct access to a timeout url should fail")
 
 	client = &http.Client{Transport: &http.Transport{Dial: Dialer(dDialer)}, Timeout: 250 * time.Millisecond}
-	resp, err = client.Get(timeoutURL)
-	if assert.NoError(t, err, "should not error get /timeout") {
-		assertContent(t, resp, detourMsg, "should detour if time out")
+	resp, err = client.Get("http://255.0.0.1") // it's reserved for future use so will always time out
+	if assert.NoError(t, err, "should have no error if dialing times out") {
+		assertContent(t, resp, detourMsg, "should detour if dialing times out")
 	}
-	resp, err = client.Get(timeout2ndTimeURL)
-	if assert.NoError(t, err, "should not error get /timeout") {
-		assertContent(t, resp, directMsg, "should not detour first time")
+
+	resp, err = client.Get(url)
+	if assert.NoError(t, err, "should have no error if reading times out") {
+		assertContent(t, resp, detourMsg, "should detour if reading times out")
 	}
-	resp, err = client.Get(timeout2ndTimeURL)
-	if assert.Error(t, err, "should error get /timeout second time") {
-		_, in := whitelist[timeout2ndTimeURL]
-		assert.Equal(t, true, in, "should be add to whitelist")
+}
+
+func TestBlockedAfterwards(t *testing.T) {
+	TimeoutToDetour = 50 * time.Millisecond
+	url, mock := startMockServers(t)
+	defer stopMockServers()
+
+	client := &http.Client{Transport: &http.Transport{Dial: Dialer(dDialer)}, Timeout: 250 * time.Millisecond}
+	mock.Msg(directMsg)
+	resp, err := client.Get(url)
+	if assert.NoError(t, err, "should have no error for normal response") {
+		assertContent(t, resp, directMsg, "should access directly for normal response")
 	}
-	resp, err = client.Get("http://nonexist.com")
-	if assert.NoError(t, err, "should not error get an nonexist site") {
-		assertContent(t, resp, detourMsg, "should detour when accessing nonexist url")
+	mock.Timeout(1 * time.Second)
+	_, err = client.Get(url)
+	assert.Error(t, err, "should have no error if reading times out")
+	resp, err = client.Get(url)
+	if assert.NoError(t, err, "should have no error if reading times out") {
+		assertContent(t, resp, detourMsg, "should detour if reading times out")
 	}
-	resp, err = client.Get(echoURL)
-	if assert.NoError(t, err, "should not error get /echo") {
-		assertContent(t, resp, directMsg, "should not detour if url can be accessed")
+}
+
+func TestIran(t *testing.T) {
+	SetCountry("IR")
+	url, mock := startMockServers(t)
+	defer stopMockServers()
+	client := &http.Client{Transport: &http.Transport{Dial: Dialer(dDialer)}, Timeout: 250 * time.Millisecond}
+	mock.Raw(iranResp)
+	resp, err := client.Get(url)
+	if assert.NoError(t, err, "should not error if blocked in Iran") {
+		assertContent(t, resp, detourMsg, "should detour if blocked in Iran")
+	}
+
+	// this test can verifies dns hijack detection if runs inside Iran,
+	// the url will time out and detour if runs outside Iran
+	resp, err = client.Get("http://" + iranRedirectIP)
+	if assert.NoError(t, err, "should not error if blocked in Iran") {
+		assertContent(t, resp, detourMsg, "should detour if blocked in Iran")
 	}
 }
 
