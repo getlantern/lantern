@@ -131,8 +131,9 @@ func Dialer(dialer dialFunc) dialFunc {
 			return nil, err
 		}
 		dc.setState(stateDetour)
+		log.Tracef("Dial %s to %s succeeded", dc.stateDesc(), addr)
 		if !whitelisted(addr) {
-			log.Tracef("Dial %s to %s succeeded, add to temporary list", dc.stateDesc(), addr)
+			log.Tracef("Add %s to whitelist", dc.stateDesc(), addr)
 			addToWl(dc.addr, false)
 		}
 		return dc, err
