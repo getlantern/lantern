@@ -1,0 +1,1174 @@
+{
+  "metadata":{
+    "apiVersion":"2012-10-25",
+    "endpointPrefix":"directconnect",
+    "jsonVersion":"1.1",
+    "serviceFullName":"AWS Direct Connect",
+    "signatureVersion":"v4",
+    "targetPrefix":"OvertureService",
+    "protocol":"json"
+  },
+  "documentation":"<p>AWS Direct Connect makes it easy to establish a dedicated network connection from your premises to Amazon Web Services (AWS). Using AWS Direct Connect, you can establish private connectivity between AWS and your data center, office, or colocation environment, which in many cases can reduce your network costs, increase bandwidth throughput, and provide a more consistent network experience than Internet-based connections.</p> <p>The AWS Direct Connect API Reference provides descriptions, syntax, and usage examples for each of the actions and data types for AWS Direct Connect. Use the following links to get started using the <i>AWS Direct Connect API Reference</i>:</p> <ul> <li> <a href=\"http://docs.aws.amazon.com/directconnect/latest/APIReference/API_Operations.html\">Actions</a>: An alphabetical list of all AWS Direct Connect actions.</li> <li> <a href=\"http://docs.aws.amazon.com/directconnect/latest/APIReference/API_Types.html\">Data Types</a>: An alphabetical list of all AWS Direct Connect data types.</li> <li> <a href=\"http://docs.aws.amazon.com/directconnect/latest/APIReference/CommonParameters.html\">Common Query Parameters</a>: Parameters that all Query actions can use.</li> <li> <a href=\"http://docs.aws.amazon.com/directconnect/latest/APIReference/CommonErrors.html\">Common Errors</a>: Client and server errors that all actions can return.</li> </ul>",
+  "operations":{
+    "AllocateConnectionOnInterconnect":{
+      "name":"AllocateConnectionOnInterconnect",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{
+        "shape":"AllocateConnectionOnInterconnectRequest",
+        "documentation":"<p>Container for the parameters to the AllocateConnectionOnInterconnect operation.</p>"
+      },
+      "output":{
+        "shape":"Connection",
+        "documentation":"<p>A connection represents the physical network connection between the AWS Direct Connect location and the customer.</p>"
+      },
+      "errors":[
+        {
+          "shape":"DirectConnectServerException",
+          "exception":true,
+          "documentation":"<p>A server-side error occurred during the API call. The error message will contain additional details about the cause.</p>"
+        },
+        {
+          "shape":"DirectConnectClientException",
+          "exception":true,
+          "documentation":"<p>The API was called with invalid parameters. The error message will contain additional details about the cause.</p>"
+        }
+      ],
+      "documentation":"<p>Creates a hosted connection on an interconnect.</p> <p>Allocates a VLAN number and a specified amount of bandwidth for use by a hosted connection on the given interconnect.</p>"
+    },
+    "AllocatePrivateVirtualInterface":{
+      "name":"AllocatePrivateVirtualInterface",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{
+        "shape":"AllocatePrivateVirtualInterfaceRequest",
+        "documentation":"<p>Container for the parameters to the AllocatePrivateVirtualInterface operation.</p>"
+      },
+      "output":{
+        "shape":"VirtualInterface",
+        "documentation":"<p>A virtual interface (VLAN) transmits the traffic between the AWS Direct Connect location and the customer.</p>"
+      },
+      "errors":[
+        {
+          "shape":"DirectConnectServerException",
+          "exception":true,
+          "documentation":"<p>A server-side error occurred during the API call. The error message will contain additional details about the cause.</p>"
+        },
+        {
+          "shape":"DirectConnectClientException",
+          "exception":true,
+          "documentation":"<p>The API was called with invalid parameters. The error message will contain additional details about the cause.</p>"
+        }
+      ],
+      "documentation":"<p>Provisions a private virtual interface to be owned by a different customer.</p> <p>The owner of a connection calls this function to provision a private virtual interface which will be owned by another AWS customer.</p> <p>Virtual interfaces created using this function must be confirmed by the virtual interface owner by calling ConfirmPrivateVirtualInterface. Until this step has been completed, the virtual interface will be in 'Confirming' state, and will not be available for handling traffic.</p>"
+    },
+    "AllocatePublicVirtualInterface":{
+      "name":"AllocatePublicVirtualInterface",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{
+        "shape":"AllocatePublicVirtualInterfaceRequest",
+        "documentation":"<p>Container for the parameters to the AllocatePublicVirtualInterface operation.</p>"
+      },
+      "output":{
+        "shape":"VirtualInterface",
+        "documentation":"<p>A virtual interface (VLAN) transmits the traffic between the AWS Direct Connect location and the customer.</p>"
+      },
+      "errors":[
+        {
+          "shape":"DirectConnectServerException",
+          "exception":true,
+          "documentation":"<p>A server-side error occurred during the API call. The error message will contain additional details about the cause.</p>"
+        },
+        {
+          "shape":"DirectConnectClientException",
+          "exception":true,
+          "documentation":"<p>The API was called with invalid parameters. The error message will contain additional details about the cause.</p>"
+        }
+      ],
+      "documentation":"<p>Provisions a public virtual interface to be owned by a different customer.</p> <p>The owner of a connection calls this function to provision a public virtual interface which will be owned by another AWS customer.</p> <p>Virtual interfaces created using this function must be confirmed by the virtual interface owner by calling ConfirmPublicVirtualInterface. Until this step has been completed, the virtual interface will be in 'Confirming' state, and will not be available for handling traffic.</p>"
+    },
+    "ConfirmConnection":{
+      "name":"ConfirmConnection",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{
+        "shape":"ConfirmConnectionRequest",
+        "documentation":"<p>Container for the parameters to the ConfirmConnection operation.</p>"
+      },
+      "output":{
+        "shape":"ConfirmConnectionResponse",
+        "documentation":"<p>The response received when ConfirmConnection is called.</p>"
+      },
+      "errors":[
+        {
+          "shape":"DirectConnectServerException",
+          "exception":true,
+          "documentation":"<p>A server-side error occurred during the API call. The error message will contain additional details about the cause.</p>"
+        },
+        {
+          "shape":"DirectConnectClientException",
+          "exception":true,
+          "documentation":"<p>The API was called with invalid parameters. The error message will contain additional details about the cause.</p>"
+        }
+      ],
+      "documentation":"<p>Confirm the creation of a hosted connection on an interconnect.</p> <p>Upon creation, the hosted connection is initially in the 'Ordering' state, and will remain in this state until the owner calls ConfirmConnection to confirm creation of the hosted connection.</p>"
+    },
+    "ConfirmPrivateVirtualInterface":{
+      "name":"ConfirmPrivateVirtualInterface",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{
+        "shape":"ConfirmPrivateVirtualInterfaceRequest",
+        "documentation":"<p>Container for the parameters to the ConfirmPrivateVirtualInterface operation.</p>"
+      },
+      "output":{
+        "shape":"ConfirmPrivateVirtualInterfaceResponse",
+        "documentation":"<p>The response received when ConfirmPrivateVirtualInterface is called.</p>"
+      },
+      "errors":[
+        {
+          "shape":"DirectConnectServerException",
+          "exception":true,
+          "documentation":"<p>A server-side error occurred during the API call. The error message will contain additional details about the cause.</p>"
+        },
+        {
+          "shape":"DirectConnectClientException",
+          "exception":true,
+          "documentation":"<p>The API was called with invalid parameters. The error message will contain additional details about the cause.</p>"
+        }
+      ],
+      "documentation":"<p>Accept ownership of a private virtual interface created by another customer.</p> <p>After the virtual interface owner calls this function, the virtual interface will be created and attached to the given virtual private gateway, and will be available for handling traffic.</p>"
+    },
+    "ConfirmPublicVirtualInterface":{
+      "name":"ConfirmPublicVirtualInterface",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{
+        "shape":"ConfirmPublicVirtualInterfaceRequest",
+        "documentation":"<p>Container for the parameters to the ConfirmPublicVirtualInterface operation.</p>"
+      },
+      "output":{
+        "shape":"ConfirmPublicVirtualInterfaceResponse",
+        "documentation":"<p>The response received when ConfirmPublicVirtualInterface is called.</p>"
+      },
+      "errors":[
+        {
+          "shape":"DirectConnectServerException",
+          "exception":true,
+          "documentation":"<p>A server-side error occurred during the API call. The error message will contain additional details about the cause.</p>"
+        },
+        {
+          "shape":"DirectConnectClientException",
+          "exception":true,
+          "documentation":"<p>The API was called with invalid parameters. The error message will contain additional details about the cause.</p>"
+        }
+      ],
+      "documentation":"<p>Accept ownership of a public virtual interface created by another customer.</p> <p>After the virtual interface owner calls this function, the specified virtual interface will be created and made available for handling traffic.</p>"
+    },
+    "CreateConnection":{
+      "name":"CreateConnection",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{
+        "shape":"CreateConnectionRequest",
+        "documentation":"<p>Container for the parameters to the CreateConnection operation.</p>"
+      },
+      "output":{
+        "shape":"Connection",
+        "documentation":"<p>A connection represents the physical network connection between the AWS Direct Connect location and the customer.</p>"
+      },
+      "errors":[
+        {
+          "shape":"DirectConnectServerException",
+          "exception":true,
+          "documentation":"<p>A server-side error occurred during the API call. The error message will contain additional details about the cause.</p>"
+        },
+        {
+          "shape":"DirectConnectClientException",
+          "exception":true,
+          "documentation":"<p>The API was called with invalid parameters. The error message will contain additional details about the cause.</p>"
+        }
+      ],
+      "documentation":"<p>Creates a new connection between the customer network and a specific AWS Direct Connect location.</p> <p>A connection links your internal network to an AWS Direct Connect location over a standard 1 gigabit or 10 gigabit Ethernet fiber-optic cable. One end of the cable is connected to your router, the other to an AWS Direct Connect router. An AWS Direct Connect location provides access to Amazon Web Services in the region it is associated with. You can establish connections with AWS Direct Connect locations in multiple regions, but a connection in one region does not provide connectivity to other regions.</p>"
+    },
+    "CreateInterconnect":{
+      "name":"CreateInterconnect",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{
+        "shape":"CreateInterconnectRequest",
+        "documentation":"<p>Container for the parameters to the CreateInterconnect operation.</p>"
+      },
+      "output":{
+        "shape":"Interconnect",
+        "documentation":"<p>An interconnect is a connection that can host other connections.</p> <p>Like a standard AWS Direct Connect connection, an interconnect represents the physical connection between an AWS Direct Connect partner's network and a specific Direct Connect location. An AWS Direct Connect partner who owns an interconnect can provision hosted connections on the interconnect for their end customers, thereby providing the end customers with connectivity to AWS services.</p> <p>The resources of the interconnect, including bandwidth and VLAN numbers, are shared by all of the hosted connections on the interconnect, and the owner of the interconnect determines how these resources are assigned.</p>"
+      },
+      "errors":[
+        {
+          "shape":"DirectConnectServerException",
+          "exception":true,
+          "documentation":"<p>A server-side error occurred during the API call. The error message will contain additional details about the cause.</p>"
+        },
+        {
+          "shape":"DirectConnectClientException",
+          "exception":true,
+          "documentation":"<p>The API was called with invalid parameters. The error message will contain additional details about the cause.</p>"
+        }
+      ],
+      "documentation":"<p>Creates a new interconnect between a AWS Direct Connect partner's network and a specific AWS Direct Connect location.</p> <p>An interconnect is a connection which is capable of hosting other connections. The AWS Direct Connect partner can use an interconnect to provide sub-1Gbps AWS Direct Connect service to tier 2 customers who do not have their own connections. Like a standard connection, an interconnect links the AWS Direct Connect partner's network to an AWS Direct Connect location over a standard 1 Gbps or 10 Gbps Ethernet fiber-optic cable. One end is connected to the partner's router, the other to an AWS Direct Connect router.</p> <p>For each end customer, the AWS Direct Connect partner provisions a connection on their interconnect by calling AllocateConnectionOnInterconnect. The end customer can then connect to AWS resources by creating a virtual interface on their connection, using the VLAN assigned to them by the AWS Direct Connect partner.</p>"
+    },
+    "CreatePrivateVirtualInterface":{
+      "name":"CreatePrivateVirtualInterface",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{
+        "shape":"CreatePrivateVirtualInterfaceRequest",
+        "documentation":"<p>Container for the parameters to the CreatePrivateVirtualInterface operation.</p>"
+      },
+      "output":{
+        "shape":"VirtualInterface",
+        "documentation":"<p>A virtual interface (VLAN) transmits the traffic between the AWS Direct Connect location and the customer.</p>"
+      },
+      "errors":[
+        {
+          "shape":"DirectConnectServerException",
+          "exception":true,
+          "documentation":"<p>A server-side error occurred during the API call. The error message will contain additional details about the cause.</p>"
+        },
+        {
+          "shape":"DirectConnectClientException",
+          "exception":true,
+          "documentation":"<p>The API was called with invalid parameters. The error message will contain additional details about the cause.</p>"
+        }
+      ],
+      "documentation":"<p>Creates a new private virtual interface. A virtual interface is the VLAN that transports AWS Direct Connect traffic. A private virtual interface supports sending traffic to a single virtual private cloud (VPC).</p>"
+    },
+    "CreatePublicVirtualInterface":{
+      "name":"CreatePublicVirtualInterface",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{
+        "shape":"CreatePublicVirtualInterfaceRequest",
+        "documentation":"<p>Container for the parameters to the CreatePublicVirtualInterface operation.</p>"
+      },
+      "output":{
+        "shape":"VirtualInterface",
+        "documentation":"<p>A virtual interface (VLAN) transmits the traffic between the AWS Direct Connect location and the customer.</p>"
+      },
+      "errors":[
+        {
+          "shape":"DirectConnectServerException",
+          "exception":true,
+          "documentation":"<p>A server-side error occurred during the API call. The error message will contain additional details about the cause.</p>"
+        },
+        {
+          "shape":"DirectConnectClientException",
+          "exception":true,
+          "documentation":"<p>The API was called with invalid parameters. The error message will contain additional details about the cause.</p>"
+        }
+      ],
+      "documentation":"<p>Creates a new public virtual interface. A virtual interface is the VLAN that transports AWS Direct Connect traffic. A public virtual interface supports sending traffic to public services of AWS such as Amazon Simple Storage Service (Amazon S3).</p>"
+    },
+    "DeleteConnection":{
+      "name":"DeleteConnection",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{
+        "shape":"DeleteConnectionRequest",
+        "documentation":"<p>Container for the parameters to the DeleteConnection operation.</p>"
+      },
+      "output":{
+        "shape":"Connection",
+        "documentation":"<p>A connection represents the physical network connection between the AWS Direct Connect location and the customer.</p>"
+      },
+      "errors":[
+        {
+          "shape":"DirectConnectServerException",
+          "exception":true,
+          "documentation":"<p>A server-side error occurred during the API call. The error message will contain additional details about the cause.</p>"
+        },
+        {
+          "shape":"DirectConnectClientException",
+          "exception":true,
+          "documentation":"<p>The API was called with invalid parameters. The error message will contain additional details about the cause.</p>"
+        }
+      ],
+      "documentation":"<p>Deletes the connection.</p> <p>Deleting a connection only stops the AWS Direct Connect port hour and data transfer charges. You need to cancel separately with the providers any services or charges for cross-connects or network circuits that connect you to the AWS Direct Connect location.</p>"
+    },
+    "DeleteInterconnect":{
+      "name":"DeleteInterconnect",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{
+        "shape":"DeleteInterconnectRequest",
+        "documentation":"<p>Container for the parameters to the DeleteInterconnect operation.</p>"
+      },
+      "output":{
+        "shape":"DeleteInterconnectResponse",
+        "documentation":"<p>The response received when DeleteInterconnect is called.</p>"
+      },
+      "errors":[
+        {
+          "shape":"DirectConnectServerException",
+          "exception":true,
+          "documentation":"<p>A server-side error occurred during the API call. The error message will contain additional details about the cause.</p>"
+        },
+        {
+          "shape":"DirectConnectClientException",
+          "exception":true,
+          "documentation":"<p>The API was called with invalid parameters. The error message will contain additional details about the cause.</p>"
+        }
+      ],
+      "documentation":"<p>Deletes the specified interconnect.</p>"
+    },
+    "DeleteVirtualInterface":{
+      "name":"DeleteVirtualInterface",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{
+        "shape":"DeleteVirtualInterfaceRequest",
+        "documentation":"<p>Container for the parameters to the DeleteVirtualInterface operation.</p>"
+      },
+      "output":{
+        "shape":"DeleteVirtualInterfaceResponse",
+        "documentation":"<p>The response received when DeleteVirtualInterface is called.</p>"
+      },
+      "errors":[
+        {
+          "shape":"DirectConnectServerException",
+          "exception":true,
+          "documentation":"<p>A server-side error occurred during the API call. The error message will contain additional details about the cause.</p>"
+        },
+        {
+          "shape":"DirectConnectClientException",
+          "exception":true,
+          "documentation":"<p>The API was called with invalid parameters. The error message will contain additional details about the cause.</p>"
+        }
+      ],
+      "documentation":"<p>Deletes a virtual interface.</p>"
+    },
+    "DescribeConnections":{
+      "name":"DescribeConnections",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{
+        "shape":"DescribeConnectionsRequest",
+        "documentation":"<p>Container for the parameters to the DescribeConnections operation.</p>"
+      },
+      "output":{
+        "shape":"Connections",
+        "documentation":"<p>A structure containing a list of connections.</p>"
+      },
+      "errors":[
+        {
+          "shape":"DirectConnectServerException",
+          "exception":true,
+          "documentation":"<p>A server-side error occurred during the API call. The error message will contain additional details about the cause.</p>"
+        },
+        {
+          "shape":"DirectConnectClientException",
+          "exception":true,
+          "documentation":"<p>The API was called with invalid parameters. The error message will contain additional details about the cause.</p>"
+        }
+      ],
+      "documentation":"<p>Displays all connections in this region.</p> <p>If a connection ID is provided, the call returns only that particular connection.</p>"
+    },
+    "DescribeConnectionsOnInterconnect":{
+      "name":"DescribeConnectionsOnInterconnect",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{
+        "shape":"DescribeConnectionsOnInterconnectRequest",
+        "documentation":"<p>Container for the parameters to the DescribeConnectionsOnInterconnect operation.</p>"
+      },
+      "output":{
+        "shape":"Connections",
+        "documentation":"<p>A structure containing a list of connections.</p>"
+      },
+      "errors":[
+        {
+          "shape":"DirectConnectServerException",
+          "exception":true,
+          "documentation":"<p>A server-side error occurred during the API call. The error message will contain additional details about the cause.</p>"
+        },
+        {
+          "shape":"DirectConnectClientException",
+          "exception":true,
+          "documentation":"<p>The API was called with invalid parameters. The error message will contain additional details about the cause.</p>"
+        }
+      ],
+      "documentation":"<p>Return a list of connections that have been provisioned on the given interconnect.</p>"
+    },
+    "DescribeInterconnects":{
+      "name":"DescribeInterconnects",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{
+        "shape":"DescribeInterconnectsRequest",
+        "documentation":"<p>Container for the parameters to the DescribeInterconnects operation.</p>"
+      },
+      "output":{
+        "shape":"Interconnects",
+        "documentation":"<p>A structure containing a list of interconnects.</p>"
+      },
+      "errors":[
+        {
+          "shape":"DirectConnectServerException",
+          "exception":true,
+          "documentation":"<p>A server-side error occurred during the API call. The error message will contain additional details about the cause.</p>"
+        },
+        {
+          "shape":"DirectConnectClientException",
+          "exception":true,
+          "documentation":"<p>The API was called with invalid parameters. The error message will contain additional details about the cause.</p>"
+        }
+      ],
+      "documentation":"<p>Returns a list of interconnects owned by the AWS account.</p> <p>If an interconnect ID is provided, it will only return this particular interconnect.</p>"
+    },
+    "DescribeLocations":{
+      "name":"DescribeLocations",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "output":{"shape":"Locations"},
+      "errors":[
+        {
+          "shape":"DirectConnectServerException",
+          "exception":true,
+          "documentation":"<p>A server-side error occurred during the API call. The error message will contain additional details about the cause.</p>"
+        },
+        {
+          "shape":"DirectConnectClientException",
+          "exception":true,
+          "documentation":"<p>The API was called with invalid parameters. The error message will contain additional details about the cause.</p>"
+        }
+      ],
+      "documentation":"<p>Returns the list of AWS Direct Connect locations in the current AWS region. These are the locations that may be selected when calling CreateConnection or CreateInterconnect.</p>"
+    },
+    "DescribeVirtualGateways":{
+      "name":"DescribeVirtualGateways",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "output":{
+        "shape":"VirtualGateways",
+        "documentation":"<p>A structure containing a list of virtual private gateways.</p>"
+      },
+      "errors":[
+        {
+          "shape":"DirectConnectServerException",
+          "exception":true,
+          "documentation":"<p>A server-side error occurred during the API call. The error message will contain additional details about the cause.</p>"
+        },
+        {
+          "shape":"DirectConnectClientException",
+          "exception":true,
+          "documentation":"<p>The API was called with invalid parameters. The error message will contain additional details about the cause.</p>"
+        }
+      ],
+      "documentation":"<p>Returns a list of virtual private gateways owned by the AWS account.</p> <p>You can create one or more AWS Direct Connect private virtual interfaces linking to a virtual private gateway. A virtual private gateway can be managed via Amazon Virtual Private Cloud (VPC) console or the <a href=\"http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-CreateVpnGateway.html\">EC2 CreateVpnGateway</a> action.</p>"
+    },
+    "DescribeVirtualInterfaces":{
+      "name":"DescribeVirtualInterfaces",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{
+        "shape":"DescribeVirtualInterfacesRequest",
+        "documentation":"<p>Container for the parameters to the DescribeVirtualInterfaces operation.</p>"
+      },
+      "output":{
+        "shape":"VirtualInterfaces",
+        "documentation":"<p>A structure containing a list of virtual interfaces.</p>"
+      },
+      "errors":[
+        {
+          "shape":"DirectConnectServerException",
+          "exception":true,
+          "documentation":"<p>A server-side error occurred during the API call. The error message will contain additional details about the cause.</p>"
+        },
+        {
+          "shape":"DirectConnectClientException",
+          "exception":true,
+          "documentation":"<p>The API was called with invalid parameters. The error message will contain additional details about the cause.</p>"
+        }
+      ],
+      "documentation":"<p>Displays all virtual interfaces for an AWS account. Virtual interfaces deleted fewer than 15 minutes before DescribeVirtualInterfaces is called are also returned. If a connection ID is included then only virtual interfaces associated with this connection will be returned. If a virtual interface ID is included then only a single virtual interface will be returned.</p> <p>A virtual interface (VLAN) transmits the traffic between the AWS Direct Connect location and the customer.</p> <p>If a connection ID is provided, only virtual interfaces provisioned on the specified connection will be returned. If a virtual interface ID is provided, only this particular virtual interface will be returned.</p>"
+    }
+  },
+  "shapes":{
+    "ASN":{
+      "type":"integer",
+      "documentation":"<p>Autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p> <p>Example: 65000</p>"
+    },
+    "AllocateConnectionOnInterconnectRequest":{
+      "type":"structure",
+      "required":[
+        "bandwidth",
+        "connectionName",
+        "ownerAccount",
+        "interconnectId",
+        "vlan"
+      ],
+      "members":{
+        "bandwidth":{
+          "shape":"Bandwidth",
+          "documentation":"<p>Bandwidth of the connection.</p> <p>Example: \"<i>500Mbps</i>\"</p> <p>Default: None</p>"
+        },
+        "connectionName":{
+          "shape":"ConnectionName",
+          "documentation":"<p>Name of the provisioned connection.</p> <p>Example: \"<i>500M Connection to AWS</i>\"</p> <p>Default: None</p>"
+        },
+        "ownerAccount":{
+          "shape":"OwnerAccount",
+          "documentation":"<p>Numeric account Id of the customer for whom the connection will be provisioned.</p> <p>Example: 123443215678</p> <p>Default: None</p>"
+        },
+        "interconnectId":{
+          "shape":"InterconnectId",
+          "documentation":"<p>ID of the interconnect on which the connection will be provisioned.</p> <p>Example: dxcon-456abc78</p> <p>Default: None</p>"
+        },
+        "vlan":{
+          "shape":"VLAN",
+          "documentation":"<p>The dedicated VLAN provisioned to the connection.</p> <p>Example: 101</p> <p>Default: None</p>"
+        }
+      },
+      "documentation":"<p>Container for the parameters to the AllocateConnectionOnInterconnect operation.</p>"
+    },
+    "AllocatePrivateVirtualInterfaceRequest":{
+      "type":"structure",
+      "required":[
+        "connectionId",
+        "ownerAccount",
+        "newPrivateVirtualInterfaceAllocation"
+      ],
+      "members":{
+        "connectionId":{
+          "shape":"ConnectionId",
+          "documentation":"<p>The connection ID on which the private virtual interface is provisioned.</p> <p>Default: None</p>"
+        },
+        "ownerAccount":{
+          "shape":"OwnerAccount",
+          "documentation":"<p>The AWS account that will own the new private virtual interface.</p> <p>Default: None</p>"
+        },
+        "newPrivateVirtualInterfaceAllocation":{
+          "shape":"NewPrivateVirtualInterfaceAllocation",
+          "documentation":"<p>Detailed information for the private virtual interface to be provisioned.</p> <p>Default: None</p>"
+        }
+      },
+      "documentation":"<p>Container for the parameters to the AllocatePrivateVirtualInterface operation.</p>"
+    },
+    "AllocatePublicVirtualInterfaceRequest":{
+      "type":"structure",
+      "required":[
+        "connectionId",
+        "ownerAccount",
+        "newPublicVirtualInterfaceAllocation"
+      ],
+      "members":{
+        "connectionId":{
+          "shape":"ConnectionId",
+          "documentation":"<p>The connection ID on which the public virtual interface is provisioned.</p> <p>Default: None</p>"
+        },
+        "ownerAccount":{
+          "shape":"OwnerAccount",
+          "documentation":"<p>The AWS account that will own the new public virtual interface.</p> <p>Default: None</p>"
+        },
+        "newPublicVirtualInterfaceAllocation":{
+          "shape":"NewPublicVirtualInterfaceAllocation",
+          "documentation":"<p>Detailed information for the public virtual interface to be provisioned.</p> <p>Default: None</p>"
+        }
+      },
+      "documentation":"<p>Container for the parameters to the AllocatePublicVirtualInterface operation.</p>"
+    },
+    "AmazonAddress":{
+      "type":"string",
+      "documentation":"<p>IP address assigned to the Amazon interface.</p> <p>Example: 192.168.1.1/30</p>"
+    },
+    "BGPAuthKey":{
+      "type":"string",
+      "documentation":"<p>Authentication key for BGP configuration.</p> <p>Example: asdf34example</p>"
+    },
+    "Bandwidth":{
+      "type":"string",
+      "documentation":"<p>Bandwidth of the connection.</p> <p>Example: 1Gbps</p> <p>Default: None</p>"
+    },
+    "CIDR":{"type":"string"},
+    "ConfirmConnectionRequest":{
+      "type":"structure",
+      "required":["connectionId"],
+      "members":{
+        "connectionId":{"shape":"ConnectionId"}
+      },
+      "documentation":"<p>Container for the parameters to the ConfirmConnection operation.</p>"
+    },
+    "ConfirmConnectionResponse":{
+      "type":"structure",
+      "members":{
+        "connectionState":{"shape":"ConnectionState"}
+      },
+      "documentation":"<p>The response received when ConfirmConnection is called.</p>"
+    },
+    "ConfirmPrivateVirtualInterfaceRequest":{
+      "type":"structure",
+      "required":[
+        "virtualInterfaceId",
+        "virtualGatewayId"
+      ],
+      "members":{
+        "virtualInterfaceId":{"shape":"VirtualInterfaceId"},
+        "virtualGatewayId":{
+          "shape":"VirtualGatewayId",
+          "documentation":"<p>ID of the virtual private gateway that will be attached to the virtual interface.</p> <p> A virtual private gateway can be managed via the Amazon Virtual Private Cloud (VPC) console or the <a href=\"http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-CreateVpnGateway.html\">EC2 CreateVpnGateway</a> action.</p> <p>Default: None</p>"
+        }
+      },
+      "documentation":"<p>Container for the parameters to the ConfirmPrivateVirtualInterface operation.</p>"
+    },
+    "ConfirmPrivateVirtualInterfaceResponse":{
+      "type":"structure",
+      "members":{
+        "virtualInterfaceState":{"shape":"VirtualInterfaceState"}
+      },
+      "documentation":"<p>The response received when ConfirmPrivateVirtualInterface is called.</p>"
+    },
+    "ConfirmPublicVirtualInterfaceRequest":{
+      "type":"structure",
+      "required":["virtualInterfaceId"],
+      "members":{
+        "virtualInterfaceId":{"shape":"VirtualInterfaceId"}
+      },
+      "documentation":"<p>Container for the parameters to the ConfirmPublicVirtualInterface operation.</p>"
+    },
+    "ConfirmPublicVirtualInterfaceResponse":{
+      "type":"structure",
+      "members":{
+        "virtualInterfaceState":{"shape":"VirtualInterfaceState"}
+      },
+      "documentation":"<p>The response received when ConfirmPublicVirtualInterface is called.</p>"
+    },
+    "Connection":{
+      "type":"structure",
+      "members":{
+        "ownerAccount":{"shape":"OwnerAccount"},
+        "connectionId":{"shape":"ConnectionId"},
+        "connectionName":{"shape":"ConnectionName"},
+        "connectionState":{"shape":"ConnectionState"},
+        "region":{"shape":"Region"},
+        "location":{"shape":"LocationCode"},
+        "bandwidth":{
+          "shape":"Bandwidth",
+          "documentation":"<p>Bandwidth of the connection.</p> <p>Example: 1Gbps (for regular connections), or 500Mbps (for hosted connections)</p> <p>Default: None</p>"
+        },
+        "vlan":{"shape":"VLAN"},
+        "partnerName":{"shape":"PartnerName"}
+      },
+      "documentation":"<p>A connection represents the physical network connection between the AWS Direct Connect location and the customer.</p>"
+    },
+    "ConnectionId":{
+      "type":"string",
+      "documentation":"<p>ID of the connection.</p> <p>Example: dxcon-fg5678gh</p> <p>Default: None</p>"
+    },
+    "ConnectionList":{
+      "type":"list",
+      "member":{"shape":"Connection"},
+      "documentation":"<p>A list of connections.</p>"
+    },
+    "ConnectionName":{
+      "type":"string",
+      "documentation":"<p>The name of the connection.</p> <p>Example: \"<i>My Connection to AWS</i>\"</p> <p>Default: None</p>"
+    },
+    "ConnectionState":{
+      "type":"string",
+      "enum":[
+        "ordering",
+        "requested",
+        "pending",
+        "available",
+        "down",
+        "deleting",
+        "deleted",
+        "rejected"
+      ],
+      "documentation":"State of the connection. <ul> <li> <b>Ordering</b>: The initial state of a hosted connection provisioned on an interconnect. The connection stays in the ordering state until the owner of the hosted connection confirms or declines the connection order.</li> <li> <b>Requested</b>: The initial state of a standard connection. The connection stays in the requested state until the Letter of Authorization (LOA) is sent to the customer.</li> <li> <b>Pending</b>: The connection has been approved, and is being initialized.</li> <li> <b>Available</b>: The network link is up, and the connection is ready for use.</li> <li> <b>Down</b>: The network link is down.</li> <li> <b>Deleted</b>: The connection has been deleted.</li> <li> <b>Rejected</b>: A hosted connection in the 'Ordering' state will enter the 'Rejected' state if it is deleted by the end customer.</li> </ul>"
+    },
+    "Connections":{
+      "type":"structure",
+      "members":{
+        "connections":{
+          "shape":"ConnectionList",
+          "documentation":"<p>A list of connections.</p>"
+        }
+      },
+      "documentation":"<p>A structure containing a list of connections.</p>"
+    },
+    "CreateConnectionRequest":{
+      "type":"structure",
+      "required":[
+        "location",
+        "bandwidth",
+        "connectionName"
+      ],
+      "members":{
+        "location":{"shape":"LocationCode"},
+        "bandwidth":{"shape":"Bandwidth"},
+        "connectionName":{"shape":"ConnectionName"}
+      },
+      "documentation":"<p>Container for the parameters to the CreateConnection operation.</p>"
+    },
+    "CreateInterconnectRequest":{
+      "type":"structure",
+      "required":[
+        "interconnectName",
+        "bandwidth",
+        "location"
+      ],
+      "members":{
+        "interconnectName":{
+          "shape":"InterconnectName",
+          "documentation":"<p>The name of the interconnect.</p> <p>Example: \"<i>1G Interconnect to AWS</i>\"</p> <p>Default: None</p>"
+        },
+        "bandwidth":{
+          "shape":"Bandwidth",
+          "documentation":"<p>The port bandwidth</p> <p>Example: 1Gbps</p> <p>Default: None</p> <p>Available values: 1Gbps,10Gbps</p>"
+        },
+        "location":{
+          "shape":"LocationCode",
+          "documentation":"<p>Where the interconnect is located</p> <p>Example: EqSV5</p> <p>Default: None</p>"
+        }
+      },
+      "documentation":"<p>Container for the parameters to the CreateInterconnect operation.</p>"
+    },
+    "CreatePrivateVirtualInterfaceRequest":{
+      "type":"structure",
+      "required":[
+        "connectionId",
+        "newPrivateVirtualInterface"
+      ],
+      "members":{
+        "connectionId":{"shape":"ConnectionId"},
+        "newPrivateVirtualInterface":{
+          "shape":"NewPrivateVirtualInterface",
+          "documentation":"<p>Detailed information for the private virtual interface to be created.</p> <p>Default: None</p>"
+        }
+      },
+      "documentation":"<p>Container for the parameters to the CreatePrivateVirtualInterface operation.</p>"
+    },
+    "CreatePublicVirtualInterfaceRequest":{
+      "type":"structure",
+      "required":[
+        "connectionId",
+        "newPublicVirtualInterface"
+      ],
+      "members":{
+        "connectionId":{"shape":"ConnectionId"},
+        "newPublicVirtualInterface":{
+          "shape":"NewPublicVirtualInterface",
+          "documentation":"<p>Detailed information for the public virtual interface to be created.</p> <p>Default: None</p>"
+        }
+      },
+      "documentation":"<p>Container for the parameters to the CreatePublicVirtualInterface operation.</p>"
+    },
+    "CustomerAddress":{
+      "type":"string",
+      "documentation":"<p>IP address assigned to the customer interface.</p> <p>Example: 192.168.1.2/30</p>"
+    },
+    "DeleteConnectionRequest":{
+      "type":"structure",
+      "required":["connectionId"],
+      "members":{
+        "connectionId":{"shape":"ConnectionId"}
+      },
+      "documentation":"<p>Container for the parameters to the DeleteConnection operation.</p>"
+    },
+    "DeleteInterconnectRequest":{
+      "type":"structure",
+      "required":["interconnectId"],
+      "members":{
+        "interconnectId":{"shape":"InterconnectId"}
+      },
+      "documentation":"<p>Container for the parameters to the DeleteInterconnect operation.</p>"
+    },
+    "DeleteInterconnectResponse":{
+      "type":"structure",
+      "members":{
+        "interconnectState":{"shape":"InterconnectState"}
+      },
+      "documentation":"<p>The response received when DeleteInterconnect is called.</p>"
+    },
+    "DeleteVirtualInterfaceRequest":{
+      "type":"structure",
+      "required":["virtualInterfaceId"],
+      "members":{
+        "virtualInterfaceId":{"shape":"VirtualInterfaceId"}
+      },
+      "documentation":"<p>Container for the parameters to the DeleteVirtualInterface operation.</p>"
+    },
+    "DeleteVirtualInterfaceResponse":{
+      "type":"structure",
+      "members":{
+        "virtualInterfaceState":{"shape":"VirtualInterfaceState"}
+      },
+      "documentation":"<p>The response received when DeleteVirtualInterface is called.</p>"
+    },
+    "DescribeConnectionsOnInterconnectRequest":{
+      "type":"structure",
+      "required":["interconnectId"],
+      "members":{
+        "interconnectId":{
+          "shape":"InterconnectId",
+          "documentation":"<p>ID of the interconnect on which a list of connection is provisioned.</p> <p>Example: dxcon-abc123</p> <p>Default: None</p>"
+        }
+      },
+      "documentation":"<p>Container for the parameters to the DescribeConnectionsOnInterconnect operation.</p>"
+    },
+    "DescribeConnectionsRequest":{
+      "type":"structure",
+      "members":{
+        "connectionId":{"shape":"ConnectionId"}
+      },
+      "documentation":"<p>Container for the parameters to the DescribeConnections operation.</p>"
+    },
+    "DescribeInterconnectsRequest":{
+      "type":"structure",
+      "members":{
+        "interconnectId":{"shape":"InterconnectId"}
+      },
+      "documentation":"<p>Container for the parameters to the DescribeInterconnects operation.</p>"
+    },
+    "DescribeVirtualInterfacesRequest":{
+      "type":"structure",
+      "members":{
+        "connectionId":{"shape":"ConnectionId"},
+        "virtualInterfaceId":{"shape":"VirtualInterfaceId"}
+      },
+      "documentation":"<p>Container for the parameters to the DescribeVirtualInterfaces operation.</p>"
+    },
+    "DirectConnectClientException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessage"}
+      },
+      "exception":true,
+      "documentation":"<p>The API was called with invalid parameters. The error message will contain additional details about the cause.</p>"
+    },
+    "DirectConnectServerException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessage"}
+      },
+      "exception":true,
+      "documentation":"<p>A server-side error occurred during the API call. The error message will contain additional details about the cause.</p>"
+    },
+    "ErrorMessage":{"type":"string"},
+    "Interconnect":{
+      "type":"structure",
+      "members":{
+        "interconnectId":{"shape":"InterconnectId"},
+        "interconnectName":{"shape":"InterconnectName"},
+        "interconnectState":{"shape":"InterconnectState"},
+        "region":{"shape":"Region"},
+        "location":{"shape":"LocationCode"},
+        "bandwidth":{"shape":"Bandwidth"}
+      },
+      "documentation":"<p>An interconnect is a connection that can host other connections.</p> <p>Like a standard AWS Direct Connect connection, an interconnect represents the physical connection between an AWS Direct Connect partner's network and a specific Direct Connect location. An AWS Direct Connect partner who owns an interconnect can provision hosted connections on the interconnect for their end customers, thereby providing the end customers with connectivity to AWS services.</p> <p>The resources of the interconnect, including bandwidth and VLAN numbers, are shared by all of the hosted connections on the interconnect, and the owner of the interconnect determines how these resources are assigned.</p>"
+    },
+    "InterconnectId":{
+      "type":"string",
+      "documentation":"<p>The ID of the interconnect.</p> <p>Example: dxcon-abc123</p>"
+    },
+    "InterconnectList":{
+      "type":"list",
+      "member":{"shape":"Interconnect"},
+      "documentation":"<p>A list of interconnects.</p>"
+    },
+    "InterconnectName":{
+      "type":"string",
+      "documentation":"<p>The name of the interconnect.</p> <p>Example: \"<i>1G Interconnect to AWS</i>\"</p>"
+    },
+    "InterconnectState":{
+      "type":"string",
+      "enum":[
+        "requested",
+        "pending",
+        "available",
+        "down",
+        "deleting",
+        "deleted"
+      ],
+      "documentation":"State of the interconnect. <ul> <li> <b>Requested</b>: The initial state of an interconnect. The interconnect stays in the requested state until the Letter of Authorization (LOA) is sent to the customer.</li> <li> <b>Pending</b>: The interconnect has been approved, and is being initialized.</li> <li> <b>Available</b>: The network link is up, and the interconnect is ready for use.</li> <li> <b>Down</b>: The network link is down.</li> <li> <b>Deleted</b>: The interconnect has been deleted.</li> </ul>"
+    },
+    "Interconnects":{
+      "type":"structure",
+      "members":{
+        "interconnects":{
+          "shape":"InterconnectList",
+          "documentation":"<p>A list of interconnects.</p>"
+        }
+      },
+      "documentation":"<p>A structure containing a list of interconnects.</p>"
+    },
+    "Location":{
+      "type":"structure",
+      "members":{
+        "locationCode":{
+          "shape":"LocationCode",
+          "documentation":"<p>The code used to indicate the AWS Direct Connect location.</p>"
+        },
+        "locationName":{
+          "shape":"LocationName",
+          "documentation":"<p>The name of the AWS Direct Connect location. The name includes the colocation partner name and the physical site of the lit building.</p>"
+        }
+      },
+      "documentation":"<p>An AWS Direct Connect location where connections and interconnects can be requested.</p>"
+    },
+    "LocationCode":{
+      "type":"string",
+      "documentation":"<p>Where the connection is located.</p> <p>Example: EqSV5</p> <p>Default: None</p>"
+    },
+    "LocationList":{
+      "type":"list",
+      "member":{"shape":"Location"}
+    },
+    "LocationName":{"type":"string"},
+    "Locations":{
+      "type":"structure",
+      "members":{
+        "locations":{"shape":"LocationList"}
+      }
+    },
+    "NewPrivateVirtualInterface":{
+      "type":"structure",
+      "required":[
+        "virtualInterfaceName",
+        "vlan",
+        "asn",
+        "virtualGatewayId"
+      ],
+      "members":{
+        "virtualInterfaceName":{"shape":"VirtualInterfaceName"},
+        "vlan":{"shape":"VLAN"},
+        "asn":{"shape":"ASN"},
+        "authKey":{"shape":"BGPAuthKey"},
+        "amazonAddress":{"shape":"AmazonAddress"},
+        "customerAddress":{"shape":"CustomerAddress"},
+        "virtualGatewayId":{"shape":"VirtualGatewayId"}
+      },
+      "documentation":"<p>A structure containing information about a new private virtual interface.</p>"
+    },
+    "NewPrivateVirtualInterfaceAllocation":{
+      "type":"structure",
+      "required":[
+        "virtualInterfaceName",
+        "vlan",
+        "asn"
+      ],
+      "members":{
+        "virtualInterfaceName":{"shape":"VirtualInterfaceName"},
+        "vlan":{"shape":"VLAN"},
+        "asn":{"shape":"ASN"},
+        "authKey":{"shape":"BGPAuthKey"},
+        "amazonAddress":{"shape":"AmazonAddress"},
+        "customerAddress":{"shape":"CustomerAddress"}
+      },
+      "documentation":"<p>A structure containing information about a private virtual interface that will be provisioned on a connection.</p>"
+    },
+    "NewPublicVirtualInterface":{
+      "type":"structure",
+      "required":[
+        "virtualInterfaceName",
+        "vlan",
+        "asn",
+        "amazonAddress",
+        "customerAddress",
+        "routeFilterPrefixes"
+      ],
+      "members":{
+        "virtualInterfaceName":{"shape":"VirtualInterfaceName"},
+        "vlan":{"shape":"VLAN"},
+        "asn":{"shape":"ASN"},
+        "authKey":{"shape":"BGPAuthKey"},
+        "amazonAddress":{"shape":"AmazonAddress"},
+        "customerAddress":{"shape":"CustomerAddress"},
+        "routeFilterPrefixes":{"shape":"RouteFilterPrefixList"}
+      },
+      "documentation":"<p>A structure containing information about a new public virtual interface.</p>"
+    },
+    "NewPublicVirtualInterfaceAllocation":{
+      "type":"structure",
+      "required":[
+        "virtualInterfaceName",
+        "vlan",
+        "asn",
+        "amazonAddress",
+        "customerAddress",
+        "routeFilterPrefixes"
+      ],
+      "members":{
+        "virtualInterfaceName":{"shape":"VirtualInterfaceName"},
+        "vlan":{"shape":"VLAN"},
+        "asn":{"shape":"ASN"},
+        "authKey":{"shape":"BGPAuthKey"},
+        "amazonAddress":{"shape":"AmazonAddress"},
+        "customerAddress":{"shape":"CustomerAddress"},
+        "routeFilterPrefixes":{"shape":"RouteFilterPrefixList"}
+      },
+      "documentation":"<p>A structure containing information about a public virtual interface that will be provisioned on a connection.</p>"
+    },
+    "OwnerAccount":{"type":"string"},
+    "PartnerName":{"type":"string"},
+    "Region":{
+      "type":"string",
+      "documentation":"<p>The AWS region where the connection is located.</p> <p>Example: us-east-1</p> <p>Default: None</p>"
+    },
+    "RouteFilterPrefix":{
+      "type":"structure",
+      "members":{
+        "cidr":{
+          "shape":"CIDR",
+          "documentation":"<p>CIDR notation for the advertised route. Multiple routes are separated by commas.</p> <p>Example: 10.10.10.0/24,10.10.11.0/24</p>"
+        }
+      },
+      "documentation":"<p>A route filter prefix that the customer can advertise through Border Gateway Protocol (BGP) over a public virtual interface.</p>"
+    },
+    "RouteFilterPrefixList":{
+      "type":"list",
+      "member":{"shape":"RouteFilterPrefix"},
+      "documentation":"<p>A list of routes to be advertised to the AWS network in this region (public virtual interface) or your VPC (private virtual interface).</p>"
+    },
+    "RouterConfig":{"type":"string"},
+    "VLAN":{
+      "type":"integer",
+      "documentation":"<p>The VLAN ID.</p> <p>Example: 101</p>"
+    },
+    "VirtualGateway":{
+      "type":"structure",
+      "members":{
+        "virtualGatewayId":{"shape":"VirtualGatewayId"},
+        "virtualGatewayState":{"shape":"VirtualGatewayState"}
+      },
+      "documentation":"<p>You can create one or more AWS Direct Connect private virtual interfaces linking to your virtual private gateway.</p> <p>Virtual private gateways can be managed using the Amazon Virtual Private Cloud (Amazon VPC) console or the <a href=\"http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-CreateVpnGateway.html\">Amazon EC2 CreateVpnGateway action</a>.</p>"
+    },
+    "VirtualGatewayId":{
+      "type":"string",
+      "documentation":"<p>The ID of the virtual private gateway to a VPC. This only applies to private virtual interfaces.</p> <p>Example: vgw-123er56</p>"
+    },
+    "VirtualGatewayList":{
+      "type":"list",
+      "member":{"shape":"VirtualGateway"},
+      "documentation":"<p>A list of virtual private gateways.</p>"
+    },
+    "VirtualGatewayState":{
+      "type":"string",
+      "documentation":"State of the virtual private gateway. <ul> <li> <b>Pending</b>: This is the initial state after calling <i>CreateVpnGateway</i>.</li> <li> <b>Available</b>: Ready for use by a private virtual interface.</li> <li> <b>Deleting</b>: This is the initial state after calling <i>DeleteVpnGateway</i>.</li> <li> <b>Deleted</b>: In this state, a private virtual interface is unable to send traffic over this gateway.</li> </ul>"
+    },
+    "VirtualGateways":{
+      "type":"structure",
+      "members":{
+        "virtualGateways":{
+          "shape":"VirtualGatewayList",
+          "documentation":"<p>A list of virtual private gateways.</p>"
+        }
+      },
+      "documentation":"<p>A structure containing a list of virtual private gateways.</p>"
+    },
+    "VirtualInterface":{
+      "type":"structure",
+      "members":{
+        "ownerAccount":{"shape":"OwnerAccount"},
+        "virtualInterfaceId":{"shape":"VirtualInterfaceId"},
+        "location":{"shape":"LocationCode"},
+        "connectionId":{"shape":"ConnectionId"},
+        "virtualInterfaceType":{"shape":"VirtualInterfaceType"},
+        "virtualInterfaceName":{"shape":"VirtualInterfaceName"},
+        "vlan":{"shape":"VLAN"},
+        "asn":{"shape":"ASN"},
+        "authKey":{"shape":"BGPAuthKey"},
+        "amazonAddress":{"shape":"AmazonAddress"},
+        "customerAddress":{"shape":"CustomerAddress"},
+        "virtualInterfaceState":{"shape":"VirtualInterfaceState"},
+        "customerRouterConfig":{
+          "shape":"RouterConfig",
+          "documentation":"<p>Information for generating the customer router configuration.</p>"
+        },
+        "virtualGatewayId":{"shape":"VirtualGatewayId"},
+        "routeFilterPrefixes":{"shape":"RouteFilterPrefixList"}
+      },
+      "documentation":"<p>A virtual interface (VLAN) transmits the traffic between the AWS Direct Connect location and the customer.</p>"
+    },
+    "VirtualInterfaceId":{
+      "type":"string",
+      "documentation":"<p>ID of the virtual interface.</p> <p>Example: dxvif-123dfg56</p> <p>Default: None</p>"
+    },
+    "VirtualInterfaceList":{
+      "type":"list",
+      "member":{"shape":"VirtualInterface"},
+      "documentation":"<p>A list of virtual interfaces.</p>"
+    },
+    "VirtualInterfaceName":{
+      "type":"string",
+      "documentation":"<p>The name of the virtual interface assigned by the customer.</p> <p>Example: \"My VPC\"</p>"
+    },
+    "VirtualInterfaceState":{
+      "type":"string",
+      "enum":[
+        "confirming",
+        "verifying",
+        "pending",
+        "available",
+        "deleting",
+        "deleted",
+        "rejected"
+      ],
+      "documentation":"State of the virtual interface. <ul> <li> <b>Confirming</b>: The creation of the virtual interface is pending confirmation from the virtual interface owner. If the owner of the virtual interface is different from the owner of the connection on which it is provisioned, then the virtual interface will remain in this state until it is confirmed by the virtual interface owner.</li> <li> <b>Verifying</b>: This state only applies to public virtual interfaces. Each public virtual interface needs validation before the virtual interface can be created.</li> <li> <b>Pending</b>: A virtual interface is in this state from the time that it is created until the virtual interface is ready to forward traffic.</li> <li> <b>Available</b>: A virtual interface that is able to forward traffic.</li> <li> <b>Deleting</b>: A virtual interface is in this state immediately after calling <i>DeleteVirtualInterface</i> until it can no longer forward traffic.</li> <li> <b>Deleted</b>: A virtual interface that cannot forward traffic.</li> <li> <b>Rejected</b>: The virtual interface owner has declined creation of the virtual interface. If a virtual interface in the 'Confirming' state is deleted by the virtual interface owner, the virtual interface will enter the 'Rejected' state.</li> </ul>"
+    },
+    "VirtualInterfaceType":{
+      "type":"string",
+      "documentation":"<p>The type of virtual interface.</p> <p>Example: private (Amazon VPC) or public (Amazon S3, Amazon DynamoDB, and so on.)</p>"
+    },
+    "VirtualInterfaces":{
+      "type":"structure",
+      "members":{
+        "virtualInterfaces":{
+          "shape":"VirtualInterfaceList",
+          "documentation":"<p>A list of virtual interfaces.</p>"
+        }
+      },
+      "documentation":"<p>A structure containing a list of virtual interfaces.</p>"
+    }
+  }
+}
