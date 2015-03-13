@@ -83,7 +83,7 @@ func register(resp http.ResponseWriter, req *http.Request) {
 		if (supportedFronts & cloudfrontBit) == cloudfrontBit {
 			h.initCloudfront()
 		}
-		fstr := "frontfqdns: {cloudflare: " + name
+		fstr := "frontfqdns: {cloudflare: " + name + "." + *cfldomain
 		if h.cfrDist != nil {
 			fstr += ", cloudfront: " + h.cfrDist.Domain
 		}

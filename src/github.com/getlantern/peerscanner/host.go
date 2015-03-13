@@ -186,11 +186,10 @@ func (h *host) doInitCfrDist() {
 		cfr.RefreshStatus(cfrutil, h.cfrDist)
 	}
 	if h.cfrDist == nil {
-		subdomain := strings.Split(h.name, ".")[0]
 		dist, err := cfr.CreateDistribution(
 			cfrutil,
-			subdomain,
 			h.name,
+			h.name+"."+*dspdomain,
 			"created by peerscanner",
 		)
 		if err == nil {
