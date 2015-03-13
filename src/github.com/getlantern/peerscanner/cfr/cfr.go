@@ -36,7 +36,7 @@ type Distribution struct {
 }
 
 func New(id string, key string, httpClient *http.Client) *cloudfront.CloudFront {
-	creds := aws.Creds("AKIAJ6DYIXLTDBSXJF5A", "QMxqKE+nntVyyKFX31uomT4bTkFsCUKZY98EkIli", "")
+	creds := aws.Creds(id, key, "")
 	// Set a longish timeout on the HTTP client just in case
 	if httpClient == nil {
 		httpClient = &http.Client{
