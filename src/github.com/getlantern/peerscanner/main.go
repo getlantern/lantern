@@ -43,6 +43,7 @@ import (
 
 	"github.com/getlantern/aws-sdk-go/gen/cloudfront"
 	"github.com/getlantern/cloudflare"
+	"github.com/getlantern/go-dnsimple/dnsimple"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/peerscanner/cfl"
 	"github.com/getlantern/peerscanner/cfr"
@@ -169,10 +170,8 @@ func loadHosts() (map[string]*host, error) {
 	}
 	log.Debugf("Loaded %d existing distributions", len(dists))
 
-	// Keep track of different groups of hosts
-	// XXX: cflGroups vs dspGroups
+	// Collect round-robin entries in Cloudflare
 	cflGroups := make(map[string]map[string]*cloudflare.Record, 0)
-
 	addToCflGroup := func(name string, r cloudflare.Record) {
 		log.Debugf("Adding to %v: %v", name, r.Value)
 		g := cflGroups[name]
@@ -183,20 +182,39 @@ func loadHosts() (map[string]*host, error) {
 		g[r.Value] = &r
 	}
 
-	// Build map of existing hosts
-	hosts := make(map[string]*host)
+	// Collect round-robin entries in Cloudflare
+	dspGroups := make(map[string]map[string]*dnsimple.Record, 0)
+	addToDspGroup := func(name string, r dnsimple.Record) {
+		log.Debugf("Adding to %v: %v", name, r.Content)
+		g := dspGroups[name]
+		if g == nil {
+			g = make(map[string]*dnsimple.Record, 1)
+			dspGroups[name] = g
+		}
+		g[r.Content] = &r
+	}
 
-	addHost := func(r cloudflare.Record) {
-		h := newHost(r.Name, r.Value, &r)
-		hosts[h.ip] = h
+	// Build map of existing hosts
+	preHosts := make(map[string]*host)
+	addHost := func(name string, ip string, cflRec *cloudflare.Record, dspRec *dnsimple.Record) {
+		h := preHosts[ip]
+		if h == nil {
+			h = &host{name: name, ip: ip}
+			preHosts[ip] = h
+		}
+		if cflRec != nil {
+			h.cflRecord = cflRec
+		}
+		if dspRec != nil {
+			h.dspRecord = dspRec
+		}
 	}
 
 	// Look through Cloudflare records to find peers, fallbacks and groups
-	// XXX: same for DNSSimple records.
 	for _, r := range cflRecs {
 		if isFallback(r.Name) {
 			log.Debugf("Adding fallback: %v", r.Name)
-			addHost(r)
+			addHost(r.Name, r.Value, &r, nil)
 		} else if isPeer(r.Name) {
 			log.Debugf("Not adding peer: %v", r.Name)
 		} else if r.Name == RoundRobin {
@@ -208,19 +226,41 @@ func loadHosts() (map[string]*host, error) {
 		} else if strings.HasSuffix(r.Name, ".fallbacks") {
 			addToCflGroup(r.Name, r)
 		} else {
-			log.Tracef("Unrecognized record: %v", r.FullName)
+			log.Tracef("Unrecognized Cloudflare record: %v", r.FullName)
 		}
 	}
 
-	// XXX; Change it so hosts are keyed by non-qualified hostname
+	// Look through DNSimple records to find peers, fallbacks and groups
+	for _, r := range dspRecs {
+		if isFallback(r.Name) {
+			log.Debugf("Adding fallback: %v", r.Name)
+			addHost(r.Name, r.Content, nil, &r)
+		} else if isPeer(r.Name) {
+			log.Debugf("Not adding peer: %v", r.Name)
+		} else if r.Name == RoundRobin {
+			addToDspGroup(RoundRobin, r)
+		} else if r.Name == Fallbacks {
+			addToDspGroup(Fallbacks, r)
+		} else if r.Name == Peers {
+			addToDspGroup(Peers, r)
+		} else if strings.HasSuffix(r.Name, ".fallbacks") {
+			addToDspGroup(r.Name, r)
+		} else {
+			log.Tracef("Unrecognized DNSimple record: %v", r.Name)
+		}
+	}
+
+	hosts := make(map[string]*host)
+	for ip, h := range preHosts {
+		hosts[ip] = newHost(h.name, h.ip, h.cflRecord, h.dspRecord)
+	}
+
 	for _, d := range dists {
 		h, found := hosts[d.InstanceId]
 		if found {
 			h.cfrDist = d
 		}
 	}
-
-	// XXX: Assign DNSSimple records
 
 	// Update hosts with Cloudflare group info
 	// XXX: same for DNSSimple
@@ -270,7 +310,7 @@ func getOrCreateHost(name string, ip string) *host {
 
 	h := hosts[ip]
 	if h == nil {
-		h := newHost(name, ip, nil)
+		h := newHost(name, ip, nil, nil)
 		hosts[ip] = h
 		go h.run()
 		return h

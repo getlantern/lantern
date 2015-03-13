@@ -14,6 +14,7 @@ import (
 
 	"github.com/getlantern/cloudflare"
 	"github.com/getlantern/enproxy"
+	"github.com/getlantern/go-dnsimple/dnsimple"
 	"github.com/getlantern/peerscanner/cfr"
 	"github.com/getlantern/tlsdialer"
 	"github.com/getlantern/withtimeout"
@@ -56,13 +57,12 @@ type status struct {
 // If the host hasn't heard from the real-world host in over 10 minutes, it
 // pauses its processing and only resumes once it hears from the client again.
 type host struct {
-	name string
-	ip   string
-	//XXX -> cflRecord, dspRecord
-	record     *cloudflare.Record
-	cfrDist    *cfr.Distribution
-	isProxying bool
-	//XXX -> cflGroups vs dspGroups
+	name        string
+	ip          string
+	cflRecord   *cloudflare.Record
+	dspRecord   *dnsimple.Record
+	cfrDist     *cfr.Distribution
+	isProxying  bool
 	cflGroups   map[string]*cflGroup
 	lastSuccess time.Time
 	lastTest    time.Time
@@ -85,15 +85,16 @@ func (h *host) String() string {
  * API for interacting with host
  ******************************************************************************/
 
-// newHost creates a new host for the given name, ip and optional DNS record.
-func newHost(name string, ip string, record *cloudflare.Record) *host {
+// newHost creates a new host for the given name, ip and optional DNS records.
+func newHost(name string, ip string, cflRecord *cloudflare.Record, dspRecord *dnsimple.Record) *host {
 	// Cache TLS sessions
 	clientSessionCache := tls.NewLRUClientSessionCache(1000)
 
 	h := &host{
 		name:         name,
 		ip:           ip,
-		record:       record,
+		cflRecord:    cflRecord,
+		dspRecord:    dspRecord,
 		resetCh:      make(chan string, 1000),
 		unregisterCh: make(chan interface{}, 1),
 		statusCh:     make(chan chan *status, 1000),
@@ -304,14 +305,23 @@ func (h *host) doReset(newName string) {
 	log.Tracef("Host notified us of its presence")
 	if newName != h.name {
 		log.Debugf("Hostname for %v changed to %v", h, newName)
-		// XXX: check all records
-		if h.record != nil {
-			log.Debugf("Deregistering old hostname %v", h.name)
-			err := h.doDeregisterHost()
-			if err != nil {
-				log.Error(err.Error())
-				return
+		var cflErr, dspErr error
+		if h.cflRecord != nil {
+			log.Debugf("Deregistering old Cloudflare hostname %v", h.name)
+			cflErr = h.doDeregisterCflHost()
+			if cflErr != nil {
+				log.Error(cflErr.Error())
 			}
+		}
+		if h.dspRecord != nil {
+			log.Debugf("Deregistering old DNSimple hostname %v", h.name)
+			dspErr = h.doDeregisterDspHost()
+			if dspErr != nil {
+				log.Error(dspErr.Error())
+			}
+		}
+		if cflErr != nil || dspErr != nil {
+			return
 		}
 		h.name = newName
 	}
@@ -339,7 +349,7 @@ func (h *host) register() error {
 func (h *host) registerCfl() error {
 	err := h.registerCflHost()
 	if err != nil {
-		return fmt.Errorf("Unable to register CFL host %v: %v", h, err)
+		return fmt.Errorf("Unable to register Cloudflare host %v: %v", h, err)
 	}
 	err = h.registerToCflRotations()
 	if err != nil {
@@ -349,18 +359,36 @@ func (h *host) registerCfl() error {
 }
 
 func (h *host) registerDsp() error {
-	// TODO
+	err := h.registerDspHost()
+	if err != nil {
+		return fmt.Errorf("Unable to register DNSimple host %v: %v", h, err)
+	}
+	err = h.registerToDspRotations()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func (h *host) registerCflHost() error {
 	if h.isProxying {
-		log.Debugf("Host already registered, no need to re-register: %v", h)
+		log.Debugf("Cloudflare record already registered, no need to re-register: %v", h)
 		return nil
 	}
-	log.Debugf("Registering %v", h)
+	log.Debugf("Registering Cloudflare record %v", h)
 	var err error
-	h.record, h.isProxying, err = cflutil.EnsureRegistered(h.name, h.ip, h.record)
+	h.cflRecord, h.isProxying, err = cflutil.EnsureRegistered(h.name, h.ip, h.cflRecord)
+	return err
+}
+
+func (h *host) registerDspHost() error {
+	if h.dspRecord != nil {
+		log.Debugf("DNSimple record already registered, no need to re-register: %v", h)
+		return nil
+	}
+	log.Debugf("Registering DNSimple %v", h)
+	var err error
+	h.dspRecord, err = dsputil.Register(h.name, h.ip)
 	return err
 }
 
@@ -371,6 +399,11 @@ func (h *host) registerToCflRotations() error {
 			return err
 		}
 	}
+	return nil
+}
+
+func (h *host) registerToDspRotations() error {
+	//XXX
 	return nil
 }
 
@@ -460,14 +493,21 @@ func fallbackCountry(name string) string {
 	return ""
 }
 
-func (h *host) doDeregisterHost() error {
-	err := cflutil.DestroyRecord(h.record)
-	h.record = nil
+func (h *host) doDeregisterCflHost() error {
+	err := cflutil.DestroyRecord(h.cflRecord)
+	h.cflRecord = nil
 	h.isProxying = false
-
 	if err != nil {
-		return fmt.Errorf("Unable to deregister host %v: %v", h, err)
+		return fmt.Errorf("Unable to deregister Cloudflare record %v: %v", h, err)
 	}
+	return nil
+}
 
+func (h *host) doDeregisterDspHost() error {
+	err := dsputil.DestroyRecord(h.dspRecord)
+	h.dspRecord = nil
+	if err != nil {
+		return fmt.Errorf("Unable to deregister DNSimple record %v: %v", h, err)
+	}
 	return nil
 }
