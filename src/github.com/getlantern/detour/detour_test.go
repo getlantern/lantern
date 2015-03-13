@@ -2,7 +2,6 @@ package detour
 
 import (
 	"io/ioutil"
-	"math/rand"
 	"net"
 	"net/http"
 	"net/url"
@@ -12,70 +11,120 @@ import (
 	"github.com/getlantern/testify/assert"
 )
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
+var (
+	directMsg string = "hello direct"
+	detourMsg string = "hello detour"
+	iranResp  string = `HTTP/1.1 403 Forbidden
+Connection:close
 
-func dDialer(network, addr string) (net.Conn, error) {
-	u, _ := url.Parse(proxiedURL)
-	return net.Dial("tcp", u.Host)
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1256"><title>M1-6
+</title></head><body><iframe src="http://10.10.34.34?type=Invalid Site&policy=MainPolicy " style="width: 100%; height: 100%" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" vspace="0" hspace="0"></iframe></body></html>Connection closed by foreign host.`
+)
+
+func proxyTo(proxiedURL string) func(network, addr string) (net.Conn, error) {
+	return func(network, addr string) (net.Conn, error) {
+		u, _ := url.Parse(proxiedURL)
+		return net.Dial("tcp", u.Host)
+	}
 }
 
 func TestBlockedImmediately(t *testing.T) {
-	TimeoutToDetour = 50 * time.Millisecond
-	url, mock := startMockServers(t)
 	defer stopMockServers()
+	proxiedURL, _ := newMockServer(detourMsg)
+	TimeoutToDetour = 50 * time.Millisecond
+	mockURL, mock := newMockServer(directMsg)
 
-	mock.Timeout(1 * time.Second)
-	client := &http.Client{Timeout: 250 * time.Millisecond}
-	resp, err := client.Get(url)
+	client := &http.Client{Timeout: 50 * time.Millisecond}
+	mock.Timeout(200*time.Millisecond, directMsg)
+	resp, err := client.Get(mockURL)
 	assert.Error(t, err, "direct access to a timeout url should fail")
 
-	client = &http.Client{Transport: &http.Transport{Dial: Dialer(dDialer)}, Timeout: 250 * time.Millisecond}
+	client = &http.Client{
+		Transport: &http.Transport{
+			Dial: Dialer(proxyTo(proxiedURL))},
+		Timeout: 100 * time.Millisecond,
+	}
 	resp, err = client.Get("http://255.0.0.1") // it's reserved for future use so will always time out
 	if assert.NoError(t, err, "should have no error if dialing times out") {
+		assert.True(t, wlTemporarily("255.0.0.1:80"), "should be added to whitelist if dialing times out")
 		assertContent(t, resp, detourMsg, "should detour if dialing times out")
 	}
 
-	resp, err = client.Get(url)
+	resp, err = client.Get(mockURL)
 	if assert.NoError(t, err, "should have no error if reading times out") {
+		u, _ := url.Parse(mockURL)
+		assert.True(t, wlTemporarily(u.Host), "should be added to whitelist if reading times out")
 		assertContent(t, resp, detourMsg, "should detour if reading times out")
 	}
 }
 
 func TestBlockedAfterwards(t *testing.T) {
-	TimeoutToDetour = 50 * time.Millisecond
-	url, mock := startMockServers(t)
 	defer stopMockServers()
+	proxiedURL, _ := newMockServer(detourMsg)
+	TimeoutToDetour = 50 * time.Millisecond
+	mockURL, mock := newMockServer(directMsg)
+	client := &http.Client{
+		Transport: &http.Transport{
+			Dial: Dialer(proxyTo(proxiedURL))},
+		Timeout: 100 * time.Millisecond,
+	}
 
-	client := &http.Client{Transport: &http.Transport{Dial: Dialer(dDialer)}, Timeout: 250 * time.Millisecond}
 	mock.Msg(directMsg)
-	resp, err := client.Get(url)
+	resp, err := client.Get(mockURL)
 	if assert.NoError(t, err, "should have no error for normal response") {
 		assertContent(t, resp, directMsg, "should access directly for normal response")
 	}
-	mock.Timeout(1 * time.Second)
-	_, err = client.Get(url)
-	assert.Error(t, err, "should have no error if reading times out")
-	resp, err = client.Get(url)
-	if assert.NoError(t, err, "should have no error if reading times out") {
+	mock.Timeout(200*time.Millisecond, directMsg)
+	_, err = client.Get(mockURL)
+	assert.Error(t, err, "should have error if reading times out for a previously worked url")
+	resp, err = client.Get(mockURL)
+	if assert.NoError(t, err, "but should have no error for the second time") {
+		u, _ := url.Parse(mockURL)
+		assert.True(t, wlTemporarily(u.Host), "should be added to whitelist if reading times out")
 		assertContent(t, resp, detourMsg, "should detour if reading times out")
 	}
 }
 
-func TestIran(t *testing.T) {
-	SetCountry("IR")
-	url, mock := startMockServers(t)
+func TestRemoveFromWhitelist(t *testing.T) {
 	defer stopMockServers()
-	client := &http.Client{Transport: &http.Transport{Dial: Dialer(dDialer)}, Timeout: 250 * time.Millisecond}
+	proxiedURL, proxy := newMockServer(detourMsg)
+	proxy.Timeout(200*time.Millisecond, detourMsg)
+	TimeoutToDetour = 50 * time.Millisecond
+	mockURL, _ := newMockServer(directMsg)
+	client := &http.Client{
+		Transport: &http.Transport{
+			Dial: Dialer(proxyTo(proxiedURL))},
+		Timeout: 100 * time.Millisecond,
+	}
+
+	u, _ := url.Parse(mockURL)
+	addToWl(u.Host, false)
+	_, err := client.Get(mockURL)
+	if assert.Error(t, err, "should have error if reading times out through detour") {
+		assert.False(t, whitelisted(u.Host), "should be removed from whitelist if reading times out through detour")
+	}
+
+}
+
+func TestIranRules(t *testing.T) {
+	defer stopMockServers()
+	proxiedURL, _ := newMockServer(detourMsg)
+	TimeoutToDetour = 50 * time.Millisecond
+	SetCountry("IR")
+	u, mock := newMockServer(directMsg)
+	client := &http.Client{
+		Transport: &http.Transport{
+			Dial: Dialer(proxyTo(proxiedURL))},
+		Timeout: 250 * time.Millisecond,
+	}
 	mock.Raw(iranResp)
-	resp, err := client.Get(url)
+	resp, err := client.Get(u)
 	if assert.NoError(t, err, "should not error if content hijacked in Iran") {
 		assertContent(t, resp, detourMsg, "should detour if content hijacked in Iran")
 	}
 
 	// this test can verifies dns hijack detection if runs inside Iran,
-	// the url will time out and detour if runs outside Iran
+	// but only will time out and detour if runs outside Iran
 	resp, err = client.Get("http://" + iranRedirectAddr)
 	if assert.NoError(t, err, "should not error if dns hijacked in Iran") {
 		assertContent(t, resp, detourMsg, "should detour if dns hijacked in Iran")

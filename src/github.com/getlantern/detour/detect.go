@@ -7,9 +7,9 @@ import (
 )
 
 type Detector struct {
-	CheckConn  func(net.Conn) bool
-	CheckResp  func([]byte) bool
-	CheckError func(error) bool
+	CheckConn    func(net.Conn) bool
+	CheckError   func(error) bool
+	CheckContent func([]byte) bool
 }
 
 var detectors = make(map[string]*Detector)
@@ -26,7 +26,7 @@ func init() {
 			}
 			return false
 		},
-		CheckResp: func(b []byte) bool {
+		CheckContent: func(b []byte) bool {
 			return bytes.HasPrefix(b, http403) && bytes.Contains(b, iranIFrame)
 		},
 		CheckError: func(err error) bool {
@@ -37,7 +37,6 @@ func init() {
 
 var defaultDetector = Detector{
 	func(net.Conn) bool { return false },
-	func([]byte) bool { return false },
 	func(err error) bool {
 		if ne, ok := err.(net.Error); ok && ne.Timeout() {
 			return true
@@ -47,6 +46,7 @@ var defaultDetector = Detector{
 		}
 		return false
 	},
+	func([]byte) bool { return false },
 }
 
 func detectorByCountry(country string) *Detector {
@@ -54,8 +54,10 @@ func detectorByCountry(country string) *Detector {
 	if d == nil {
 		return &defaultDetector
 	}
-	return &Detector{d.CheckConn, d.CheckResp, func(err error) bool {
-		return defaultDetector.CheckError(err) || d.CheckError(err)
-	},
+	return &Detector{d.CheckConn,
+		func(err error) bool {
+			return defaultDetector.CheckError(err) || d.CheckError(err)
+		},
+		d.CheckContent,
 	}
 }
