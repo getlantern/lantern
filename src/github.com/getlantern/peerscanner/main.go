@@ -77,9 +77,8 @@ var (
 	dspkey  = os.Getenv("DSP_KEY")
 	dsputil *dsp.Util
 
-	hostsByName map[string]*host
-	hostsByIp   map[string]*host
-	hostsMutex  sync.Mutex
+	hosts      map[string]*host
+	hostsMutex sync.Mutex
 )
 
 func main() {
@@ -97,7 +96,7 @@ func main() {
 	connectToDnsimple()
 
 	var err error
-	hostsByIp, err = loadHosts()
+	hosts, err = loadHosts()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -269,10 +268,10 @@ func getOrCreateHost(name string, ip string) *host {
 	hostsMutex.Lock()
 	defer hostsMutex.Unlock()
 
-	h := hostsByIp[ip]
+	h := hosts[ip]
 	if h == nil {
 		h := newHost(name, ip, nil)
-		hostsByIp[ip] = h
+		hosts[ip] = h
 		go h.run()
 		return h
 	}
@@ -283,7 +282,7 @@ func getOrCreateHost(name string, ip string) *host {
 func getHostByIp(ip string) *host {
 	hostsMutex.Lock()
 	defer hostsMutex.Unlock()
-	return hostsByIp[ip]
+	return hosts[ip]
 }
 
 func isPeer(name string) bool {
