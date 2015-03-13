@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net"
 	"net/http"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -40,6 +41,8 @@ var (
 	// sites with consistent fast response times, around the world, otherwise
 	// tests may time out.
 	testSites = []string{"www.google.com", "www.youtube.com", "www.facebook.com"}
+
+	fallbackNamePattern = regexp.MustCompile(`^fl-([a-z]{2})-.+$`)
 )
 
 type status struct {
@@ -53,13 +56,14 @@ type status struct {
 // If the host hasn't heard from the real-world host in over 10 minutes, it
 // pauses its processing and only resumes once it hears from the client again.
 type host struct {
-	name        string
-	ip          string
-	cdnRecord   *cloudflare.Record
-	noCdnRecord *cloudflare.Record
-	cfrDist     *cfr.Distribution
-	cdnGroups   map[string]*group
-	noCdnGroups map[string]*group
+	name string
+	ip   string
+	//XXX -> cflRecord, dspRecord
+	record     *cloudflare.Record
+	cfrDist    *cfr.Distribution
+	isProxying bool
+	//XXX -> cflGroups vs dspGroups
+	groups      map[string]*group
 	lastSuccess time.Time
 	lastTest    time.Time
 
@@ -123,20 +127,21 @@ func newHost(name string, ip string, record *cloudflare.Record) *host {
 	}
 
 	if h.isFallback() {
-		h.cdnGroups = map[string]*group{
-			RoundRobin: &group{subdomain: RoundRobin, cdnEnabled: true},
-			Fallbacks:  &group{subdomain: Fallbacks, cdnEnabled: true},
+		//XXX: cflGroups + dspGroups
+		h.groups = map[string]*group{
+			RoundRobin: &group{subdomain: RoundRobin},
+			Fallbacks:  &group{subdomain: Fallbacks},
+			Peers:      &group{subdomain: Peers},
 		}
-		h.noCdnGroups = map[string]*group{
-			RoundRobinNoCdn: &group{subdomain: RoundRobinNoCdn, cdnEnabled: false},
-			FallbacksNoCdn:  &group{subdomain: FallbacksNoCdn, cdnEnabled: false},
+		country := fallbackCountry(name)
+		if country != "" {
+			// Add host to country-specific rotation
+			h.groups[country] = &group{subdomain: country}
 		}
 	} else {
-		h.cdnGroups = map[string]*group{
+		//XXX: cflGroups + dspGroups
+		h.groups = map[string]*group{
 			Peers: &group{subdomain: Peers, cdnEnabled: true},
-		}
-		h.noCdnGroups = map[string]*group{
-			PeersNoCdn: &group{subdomain: PeersNoCdn, cdnEnabled: false},
 		}
 	}
 
@@ -255,7 +260,7 @@ func (h *host) run() {
 				h.lastSuccess = time.Now()
 				err := h.register()
 				if err != nil {
-					log.Error(err)
+					log.Errorf("Error registering %v: %v", h, err)
 				}
 			} else {
 				log.Tracef("Test for %v failed with error: %v", h, err)
@@ -268,10 +273,10 @@ func (h *host) run() {
 	}
 }
 
-// pause deregisters this host completely and then waits for the next reset
+// pause deregisters this host from rotations and then waits for the next reset
 // before continuing
 func (h *host) pause() {
-	h.deregister()
+	h.deregisterFromRotations()
 	log.Debugf("%v paused", h)
 	for {
 		select {
@@ -300,17 +305,21 @@ func (h *host) reportStatus(s *status) {
 
 func (h *host) doReset(newName string) {
 	log.Tracef("Host notified us of its presence")
-	h.lastSuccess = time.Now()
-	h.lastTest = time.Time{}
 	if newName != h.name {
 		log.Debugf("Hostname for %v changed to %v", h, newName)
-		if h.cdnRecord != nil {
+		// XXX: check all records
+		if h.record != nil {
 			log.Debugf("Deregistering old hostname %v", h.name)
-			h.doDeregisterCdnHost()
-			h.doDeregisterNoCdnHost()
+			err := h.doDeregisterHost()
+			if err != nil {
+				log.Error(err.Error())
+				return
+			}
 		}
 		h.name = newName
 	}
+	h.lastSuccess = time.Now()
+	h.lastTest = time.Time{}
 }
 
 /*******************************************************************************
@@ -318,151 +327,59 @@ func (h *host) doReset(newName string) {
  ******************************************************************************/
 
 func (h *host) register() error {
-	err := h.registerCdn()
+	errCfl := h.registerCfl()
+	errDsp := h.registerDsp()
+	if errCfl != nil && errDsp == nil {
+		return fmt.Errorf("Error registering Cloudflare: %v", errCfl)
+	} else if errCfl == nil && errDsp != nil {
+		return fmt.Errorf("Error registering DNSSimple: %v", errDsp)
+	} else if errCfl != nil && errDsp != nil {
+		return fmt.Errorf("Error registering (CFL: %v) (DNSSimple: %v)", errCfl, errDsp)
+	}
+	return nil
+}
+
+func (h *host) registerCfl() error {
+	err := h.registerCflHost()
+	if err != nil {
+		return fmt.Errorf("Unable to register CFL host %v: %v", h, err)
+	}
+	err = h.registerToCflRotations()
 	if err != nil {
 		return err
 	}
-	if h.cfrDist != nil && h.cfrDist.Status == "Deployed" {
-		return h.registerNoCdn()
-	}
 	return nil
 }
 
-func (h *host) registerCdn() error {
-	err := h.registerCdnHost()
-	if err != nil {
-		return fmt.Errorf("Unable to register host: %v", err)
-	}
-	err = h.registerToCdnRotations()
-	if err != nil {
-		return fmt.Errorf("Unable to register rotations: %v", err)
-	}
+func (h *host) registerDsp() error {
+	// TODO
 	return nil
 }
 
-func (h *host) registerNoCdn() error {
-	err := h.registerNoCdnHost()
-	if err != nil {
-		return fmt.Errorf("Unable to register no-CDN entry for host: %v", err)
-	}
-	err = h.registerToNoCdnRotations()
-	if err != nil {
-		return fmt.Errorf("Unable to register no-CDN rotations: %v", err)
-	}
-	return nil
-}
-
-func (h *host) registerCdnHost() error {
-	if h.cdnRecord != nil {
-		log.Tracef("Host already registered, no need to re-register: %v", h)
+func (h *host) registerCflHost() error {
+	if h.isProxying {
+		log.Debugf("Host already registered, no need to re-register: %v", h)
 		return nil
 	}
 	log.Debugf("Registering %v", h)
-
-	rec, err := cflutil.Register(h.name, h.ip, true)
-	if err == nil || isDuplicateError(err) {
-		h.cdnRecord = rec
-		err = nil
-	}
+	var err error
+	h.record, h.isProxying, err = cflutil.EnsureRegistered(h.name, h.ip, h.record)
 	return err
 }
 
-func (h *host) registerNoCdnHost() error {
-	if h.noCdnRecord != nil {
-		log.Tracef("No-CDN host already registered, no need to re-register: %v", h)
-		return nil
-	}
-	log.Debugf("Registering no-CDN entry for %v", h)
-
-	rec, err := cflutil.Register(noCdnPrefix+h.name, h.ip, false)
-	if err == nil || isDuplicateError(err) {
-		h.noCdnRecord = rec
-		err = nil
-	}
-	return err
-}
-
-func (h *host) registerToCdnRotations() error {
-	for _, group := range h.cdnGroups {
+func (h *host) registerToCflRotations() error {
+	for _, group := range h.groups {
 		err := group.register(h)
-		if err != nil && !isDuplicateError(err) {
+		if err != nil {
 			return err
 		}
 	}
 	return nil
-}
-
-func (h *host) registerToNoCdnRotations() error {
-	for _, group := range h.noCdnGroups {
-		err := group.register(h)
-		if err != nil && !isDuplicateError(err) {
-			return err
-		}
-	}
-	return nil
-}
-
-func (h *host) deregister() {
-	h.deregisterCdnHost()
-	h.deregisterNoCdnHost()
-	h.deregisterFromRotations()
-}
-
-func (h *host) deregisterCdnHost() {
-	if h.cdnRecord == nil {
-		log.Debugf("Host not registered, no need to deregister: %v", h)
-		return
-	}
-
-	if h.isFallback() {
-		log.Debugf("Currently not deregistering fallbacks like %v", h)
-		return
-	}
-
-	log.Debugf("Deregistering %v", h)
-	h.doDeregisterCdnHost()
-}
-
-func (h *host) deregisterNoCdnHost() {
-	if h.noCdnRecord == nil {
-		log.Debugf("Host no-CDN entry not registered, no need to deregister: %v", h)
-		return
-	}
-
-	if h.isFallback() {
-		log.Debugf("Currently not deregistering fallbacks like %v", h)
-		return
-	}
-
-	log.Debugf("Deregistering no-CDN entry for %v", h)
-	h.doDeregisterNoCdnHost()
-}
-
-func (h *host) doDeregisterCdnHost() {
-	err := cflutil.DestroyRecord(h.cdnRecord)
-	if err != nil {
-		log.Errorf("Unable to deregister host %v: %v", h, err)
-		return
-	}
-
-	h.cdnRecord = nil
-}
-
-func (h *host) doDeregisterNoCdnHost() {
-	err := cflutil.DestroyRecord(h.noCdnRecord)
-	if err != nil {
-		log.Errorf("Unable to deregister host %v: %v", h, err)
-		return
-	}
-
-	h.noCdnRecord = nil
 }
 
 func (h *host) deregisterFromRotations() {
-	for _, group := range h.cdnGroups {
-		group.deregister(h)
-	}
-	for _, group := range h.noCdnGroups {
+	//XXX: cflGroups + dspGroups
+	for _, group := range h.groups {
 		group.deregister(h)
 	}
 }
@@ -472,7 +389,7 @@ func (h *host) fullName() string {
 }
 
 func (h *host) isFallback() bool {
-	return isCdnFallback(h.name)
+	return isFallback(h.name)
 }
 
 func (h *host) isAbleToProxy() (bool, bool, error) {
@@ -481,7 +398,7 @@ func (h *host) isAbleToProxy() (bool, bool, error) {
 	for i := 0; i < proxyAttempts; i++ {
 		success, connectionRefused, err := h.doIsAbleToProxy()
 		if err != nil {
-			log.Debugf("Error testing %v: %v", h, err.Error())
+			log.Tracef("Error testing %v: %v", h, err.Error())
 		}
 		lastErr = err
 		if success || connectionRefused {
@@ -511,6 +428,7 @@ func (h *host) doIsAbleToProxy() (bool, bool, error) {
 	// underlying TCP-level error is consumed in the flashlight layer, and we
 	// need that to be accessible on the client side in the logic for deciding
 	// whether or not to display the port mapping message.
+	//XXX: allow port 80 too
 	addr := h.ip + ":443"
 	conn, err := net.DialTimeout("tcp", addr, dialTimeout)
 	if err != nil {
@@ -535,6 +453,12 @@ func (h *host) doIsAbleToProxy() (bool, bool, error) {
 	return true, false, nil
 }
 
-func isDuplicateError(err error) bool {
-	return strings.Contains(err.Error(), "The record already exists.")
+// fallbackCountry returns the country code of a fallback if it follows the
+// usual naming convention.
+func fallbackCountry(name string) string {
+	sub := fallbackNamePattern.FindSubmatch([]byte(name))
+	if len(sub) == 2 {
+		return string(sub[1]) + ".fallbacks"
+	}
+	return ""
 }

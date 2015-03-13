@@ -1,0 +1,71 @@
+<style>
+  .ui-show {
+    color: blue;
+    transition: all 0.5s ease;
+  }
+
+  .ui-hide {
+    opacity: 0;
+    transition: all 0.5s ease;
+  }
+</style>
+<section id="showhide">
+  <div class="page-header">
+    <h1>Show, Hide and Toggle Alternatives</h1>
+  </div>
+  <div class="row">
+    <div class="span6">
+      <h3>What?</h3>
+
+      <p>Instead of doing <code>ng-show</code> and <code>ng-hide</code> which simply sets
+        <code>display:block/none</code> a <code>ui-show</code> and
+        <code>ui-hide</code> class will be added which can give you tighter control over how things appear or disappear.
+      </p>
+
+      <div class="well">
+        <p><a ng-click="showHideAn=!showHideAn">Toggle State: {{!!showHideAn}}</a></p>
+
+        <p class="animate">
+          <span ui-show="showHideAn">Show</span>
+          <span ui-hide="showHideAn">Hide</span>
+          <span ui-toggle="showHideAn">Toggle</span>
+        </p>
+      </div>
+    </div>
+    <div class="span6">
+      <h3>Why?</h3>
+
+      <p>CSS3 transitions of course! Applying a class means you can specify exactly how these two states behave. In addition, the show/hide variants do not enforce css rules when they are false (unless you use toggle), so the default CSS can still apply.</p>
+      <blockquote>But can't you just do <code>ng-class="{ ui-show : someExpression }"</code>?</blockquote>
+      <p>... shutup.</p>
+
+      <p>In all seriousness, this is just a convenience wrapper for using
+        <code>ng-class</code>. This way you can simply swap out instances of <strong>ng</strong> for
+        <strong>ui</strong> to immediately get your customized approach.</p>
+    </div>
+  </div>
+
+  <h3>How?</h3>
+<pre class="prettyprint">
+&lt;p&gt;&lt;a ng-click=&quot;showHide=!showHide&quot;&gt;Toggle State: {{!!showHide}}&lt;/a&gt;&lt;/p&gt;
+&lt;div ui-show=&quot;showHide&quot;&gt;Show&lt;/div&gt;
+&lt;div ui-hide=&quot;showHide&quot;&gt;Hide&lt;/div&gt;
+&lt;div ui-toggle=&quot;showHide&quot;&gt;Toggle&lt;/div&gt;
+
+&lt;style&gt;
+.ui-show {
+  color: blue;
+  transition: all 0.5s ease; /* You should probably browser-prefix this */
+}
+.ui-hide {
+  opacity: 0;
+  transition: all 0.5s ease; /* You should probably browser-prefix this */
+}
+&lt;/style&gt;
+</pre>
+  <p>Using <code>ui-show</code> or <code>ui-hide</code> will add a class of the same name when the expression is true.
+  </p>
+
+  <p>Use <code>ui-toggle</code> if you want to leverage both classes, as
+    <code>ui-show</code> will be added when true and <code>ui-hide</code> when false.</p>
+</section>

@@ -66,13 +66,21 @@ func register(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	h := getOrCreateHost(name, ip)
-	online, connectionRefused, timedOut := h.status()
-	if timedOut {
-		log.Debugf("%v timed out waiting for status, returning 500 error", h)
-		resp.WriteHeader(500)
-		fmt.Fprintf(resp, "Timed out waiting for status")
-		return
+	online := true
+	connectionRefused := false
+	timedOut := false
+
+	if isPeer(name) {
+		log.Debugf("Not adding peer %v because we're not using peers at the moment", name)
+	} else {
+		h := getOrCreateHost(name, ip)
+		online, connectionRefused, timedOut = h.status()
+		if timedOut {
+			log.Debugf("%v timed out waiting for status, returning 500 error", h)
+			resp.WriteHeader(500)
+			fmt.Fprintf(resp, "Timed out waiting for status")
+			return
+		}
 	}
 
 	if online {
@@ -175,5 +183,32 @@ func clientIpFor(req *http.Request, name string) string {
 	}
 	// clientIp may contain multiple ips, use the first
 	ips := strings.Split(clientIp, ",")
-	return strings.TrimSpace(ips[0])
+	ip := strings.TrimSpace(ips[0])
+	// TODO: need a more robust way to determine when a non-fallback host looks
+	// like a fallback.
+	hasFallbackIp := isFallbackIp(ip)
+	if !isFallback(name) && hasFallbackIp {
+		log.Errorf("Found fallback ip %v for non-fallback host %v", ip, name)
+		return ""
+	} else if isFallback(name) && !hasFallbackIp {
+		log.Errorf("Found non-fallback ip %v for fallback host %v", ip, name)
+		return ""
+	}
+	return ip
+}
+
+func isFallbackIp(ip string) bool {
+	for _, prefix := range fallbackIPPrefixes {
+		if strings.HasPrefix(ip, prefix) {
+			return true
+		}
+	}
+
+	return false
+}
+
+var fallbackIPPrefixes = []string{
+	"128.199",
+	"178.62",
+	"188.166",
 }

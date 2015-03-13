@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/getlantern/fronted"
-	"github.com/getlantern/nattywad"
 )
 
 var (
@@ -18,7 +17,6 @@ type ClientConfig struct {
 	DumpHeaders    bool // whether or not to dump headers of requests and responses
 	FrontedServers []*FrontedServerInfo
 	ChainedServers map[string]*ChainedServerInfo
-	Peers          map[string]*nattywad.ServerPeer // keyed to peer id (e.g. XMPP JID)
 	MasqueradeSets map[string][]*fronted.Masquerade
 }
 

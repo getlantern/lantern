@@ -26,13 +26,9 @@ import (
 )
 
 const (
-	RoundRobin      = "roundrobin"
-	Peers           = "peers"
-	Fallbacks       = "fallbacks"
-	noCdnPrefix     = "grey-"
-	RoundRobinNoCdn = noCdnPrefix + RoundRobin
-	PeersNoCdn      = noCdnPrefix + Peers
-	FallbacksNoCdn  = noCdnPrefix + Fallbacks
+	RoundRobin = "roundrobin"
+	Peers      = "peers"
+	Fallbacks  = "fallbacks"
 )
 
 var (
@@ -51,6 +47,8 @@ var (
 	cfrkey = os.Getenv("CFR_KEY")
 
 	cfrutil *cloudfront.CloudFront
+
+	//XXX DNSSimple credentials and *Util
 
 	hostsByName map[string]*host
 	hostsByIp   map[string]*host
@@ -112,6 +110,9 @@ func loadHosts() (map[string]*host, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to load hosts: %v", err)
 	}
+	log.Debugf("Loaded %d existing hosts", len(recs))
+
+	// XXX: get all DNSSimple records
 
 	dists, err := cfr.ListDistributions(cfrutil)
 	if err != nil {
@@ -119,27 +120,17 @@ func loadHosts() (map[string]*host, error) {
 	}
 
 	// Keep track of different groups of hosts
-	cdnGroups := map[string]map[string]*cloudflare.Record{
-		RoundRobin: make(map[string]*cloudflare.Record),
-		Fallbacks:  make(map[string]*cloudflare.Record),
-		Peers:      make(map[string]*cloudflare.Record),
-	}
-	noCdnGroups := map[string]map[string]*cloudflare.Record{
-		RoundRobinNoCdn: make(map[string]*cloudflare.Record),
-		FallbacksNoCdn:  make(map[string]*cloudflare.Record),
-		PeersNoCdn:      make(map[string]*cloudflare.Record),
-	}
+	// XXX: cflGroups vs dspGroups
+	groups := make(map[string]map[string]*cloudflare.Record, 0)
 
 	addToGroup := func(name string, r cloudflare.Record) {
-		_, cdn := cdnGroups[name]
-		log.Tracef("Adding to %v: %v (cdn: %v)", name, r.Value, cdn)
-		var groupMap map[string]map[string]*cloudflare.Record
-		if cdn {
-			groupMap = cdnGroups
-		} else {
-			groupMap = noCdnGroups
+		log.Debugf("Adding to %v: %v", name, r.Value)
+		g := groups[name]
+		if g == nil {
+			g = make(map[string]*cloudflare.Record, 1)
+			groups[name] = g
 		}
-		groupMap[name][r.Value] = &r
+		g[r.Value] = &r
 	}
 
 	// Build map of existing hosts
@@ -151,39 +142,35 @@ func loadHosts() (map[string]*host, error) {
 	}
 
 	// Look through all records to find peers, fallbacks and groups
+	// XXX: same for DNSSimple records.
 	for _, r := range recs {
-		if isCdnFallback(r.Name) {
-			log.Tracef("Adding fallback: %v", r.Name)
+		if isFallback(r.Name) {
+			log.Debugf("Adding fallback: %v", r.Name)
 			addHost(r)
-		} else if isCdnPeer(r.Name) {
-			log.Tracef("Adding peer: %v", r.Name)
-			addHost(r)
+		} else if isPeer(r.Name) {
+			log.Debugf("Not adding peer: %v", r.Name)
 		} else if r.Name == RoundRobin {
 			addToGroup(RoundRobin, r)
 		} else if r.Name == Fallbacks {
 			addToGroup(Fallbacks, r)
 		} else if r.Name == Peers {
 			addToGroup(Peers, r)
-		} else if r.Name == RoundRobinNoCdn {
-			addToGroup(RoundRobinNoCdn, r)
-		} else if r.Name == FallbacksNoCdn {
-			addToGroup(FallbacksNoCdn, r)
-		} else if r.Name == PeersNoCdn {
-			addToGroup(PeersNoCdn, r)
+		} else if strings.HasSuffix(r.Name, ".fallbacks") {
+			addToGroup(r.Name, r)
 		} else {
 			log.Tracef("Unrecognized record: %v", r.FullName)
 		}
 	}
 
-	// Assign all cloudfront distributions
+	// XXX; Change it so hosts are keyed by non-qualified hostname
 	for _, d := range dists {
-		h, found := hosts[d.InstanceId+"."+*cfldomain]
+		h, found := hosts[d.InstanceId]
 		if found {
 			h.cfrDist = d
 		}
 	}
 
-	// Assign no-CDN records, removing the ones that don't have a host with
+	// XXX: Assign DNSSimple records, removing the ones that don't have a host with
 	// a Deployed distribution.
 	var wg sync.WaitGroup
 	for _, r := range recs {
@@ -276,7 +263,7 @@ func getHostByIp(ip string) *host {
 	return hostsByIp[ip]
 }
 
-func isCdnPeer(name string) bool {
+func isPeer(name string) bool {
 	// We just check the length of the subdomain here, which is the unique
 	// peer GUID. While it's possible something else could have a subdomain
 	// this long, it's unlikely.
@@ -284,14 +271,6 @@ func isCdnPeer(name string) bool {
 	return len(name) == 32 || strings.HasPrefix(name, "peer-")
 }
 
-func isCdnFallback(name string) bool {
+func isFallback(name string) bool {
 	return strings.HasPrefix(name, "fl-")
-}
-
-func isNoCdnPeer(name string) bool {
-	return strings.HasPrefix(name, noCdnPrefix) && isCdnPeer(name[len(noCdnPrefix):])
-}
-
-func isNoCdnFallback(name string) bool {
-	return strings.HasPrefix(name, noCdnPrefix) && isCdnFallback(name[len(noCdnPrefix):])
 }
