@@ -126,14 +126,14 @@ func (cs *configsets) equals(other *configsets) bool {
 // returned that includes the additions and deletions from the active list. If
 // there were no changes, or the changes couldn't be applied, this method
 // returns a nil Delta.
-func Configure(cfg *Config) *Delta {
+func Configure(cfg *Config, proxyAddr string) *Delta {
 	newCS := cfg.toCS()
 	if cs != nil && cs.equals(newCS) {
 		log.Debug("Configuration unchanged")
 		return nil
 	}
 
-	newPacFile, err := generatePACFile(newCS.activeList)
+	newPacFile, err := generatePACFile(newCS.activeList, proxyAddr)
 	if err != nil {
 		log.Errorf("Error generating pac file, leaving configuration unchanged: %v", err)
 		return nil
@@ -176,9 +176,10 @@ func ServePAC(resp http.ResponseWriter, req *http.Request) {
 }
 
 // generatePACFile generates a PAC File from the given active sites.
-func generatePACFile(activeSites []string) (string, error) {
+func generatePACFile(activeSites []string, proxyAddr string) (string, error) {
 	data := make(map[string]interface{}, 0)
-	//data["Entries"] = activeSites
+	data["Entries"] = activeSites
+	data["proxyAddr"] = proxyAddr
 	buf := bytes.NewBuffer(nil)
 	err := parsedPacTmpl.Execute(buf, data)
 	if err != nil {
@@ -205,6 +206,10 @@ function FindProxyForURL(url, host) {
         return "DIRECT";
     }
 
-    return "PROXY 127.0.0.1:8787; DIRECT";
+    if (proxyDomainsRegx.exec(host)) {
+        return "PROXY {{ .proxyAddr }}; DIRECT";
+    }
+
+    return "DIRECT";
 }
 `

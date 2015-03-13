@@ -13,7 +13,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"regexp"
 	"runtime"
 	"strings"
 	"sync"
@@ -45,8 +44,6 @@ var (
 	hostsByName map[string]*host
 	hostsByIp   map[string]*host
 	hostsMutex  sync.Mutex
-
-	fallbackNamePattern = regexp.MustCompile(`^fl-([a-z]{2})-.+$`)
 )
 
 func main() {
@@ -128,8 +125,7 @@ func loadHosts() (map[string]*host, error) {
 			log.Debugf("Adding fallback: %v", r.Name)
 			addHost(r)
 		} else if isPeer(r.Name) {
-			log.Debugf("Adding peer: %v", r.Name)
-			addHost(r)
+			log.Debugf("Not adding peer: %v", r.Name)
 		} else if r.Name == RoundRobin {
 			addToGroup(RoundRobin, r)
 		} else if r.Name == Fallbacks {
@@ -212,14 +208,4 @@ func isPeer(name string) bool {
 
 func isFallback(name string) bool {
 	return strings.HasPrefix(name, "fl-")
-}
-
-// fallbackCountry returns the country code of a fallback if it follows the
-// usual naming convention.
-func fallbackCountry(name string) string {
-	sub := fallbackNamePattern.FindSubmatch([]byte(name))
-	if len(sub) == 2 {
-		return string(sub[1]) + ".fallbacks"
-	}
-	return ""
 }
