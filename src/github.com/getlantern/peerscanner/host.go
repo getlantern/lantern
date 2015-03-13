@@ -93,7 +93,7 @@ func newHost(name string, ip string, record *cloudflare.Record) *host {
 	h := &host{
 		name:         name,
 		ip:           ip,
-		cdnRecord:    record,
+		record:       record,
 		resetCh:      make(chan string, 1000),
 		unregisterCh: make(chan interface{}, 1),
 		statusCh:     make(chan chan *status, 1000),
@@ -139,10 +139,7 @@ func newHost(name string, ip string, record *cloudflare.Record) *host {
 			h.groups[country] = &group{subdomain: country}
 		}
 	} else {
-		//XXX: cflGroups + dspGroups
-		h.groups = map[string]*group{
-			Peers: &group{subdomain: Peers, cdnEnabled: true},
-		}
+		log.Errorf("Somehow adding peer host? %v (%v)", name, ip)
 	}
 
 	return h
@@ -192,7 +189,7 @@ func (h *host) doInitCfrDist() {
 		dist, err := cfr.CreateDistribution(
 			cfrutil,
 			subdomain,
-			noCdnPrefix+h.name,
+			h.name,
 			"created by peerscanner",
 		)
 		if err == nil {
@@ -461,4 +458,16 @@ func fallbackCountry(name string) string {
 		return string(sub[1]) + ".fallbacks"
 	}
 	return ""
+}
+
+func (h *host) doDeregisterHost() error {
+	err := cflutil.DestroyRecord(h.record)
+	h.record = nil
+	h.isProxying = false
+
+	if err != nil {
+		return fmt.Errorf("Unable to deregister host %v: %v", h, err)
+	}
+
+	return nil
 }

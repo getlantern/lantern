@@ -170,25 +170,13 @@ func loadHosts() (map[string]*host, error) {
 		}
 	}
 
-	// XXX: Assign DNSSimple records, removing the ones that don't have a host with
-	// a Deployed distribution.
-	var wg sync.WaitGroup
-	for _, r := range recs {
-		if isNoCdnFallback(r.Name) || isNoCdnPeer(r.Name) {
-			h, found := hosts[r.Value]
-			if found && h.cfrDist != nil && h.cfrDist.Status == "Deployed" {
-				h.noCdnRecord = &r
-			} else {
-				wg.Add(1)
-				go removeRecord(&wg, r.Name, &r)
-			}
-		}
-	}
+	// XXX: Assign DNSSimple records
 
-	// Update hosts with CDN group info
+	// Update hosts with Cloudflare group info
+	// XXX: same for DNSSimple
 	for _, h := range hosts {
-		for _, hg := range h.cdnGroups {
-			g, found := cdnGroups[hg.subdomain]
+		for _, hg := range h.groups {
+			g, found := groups[hg.subdomain]
 			if found {
 				hg.existing = g[h.ip]
 				delete(g, h.ip)
@@ -196,27 +184,11 @@ func loadHosts() (map[string]*host, error) {
 		}
 	}
 
-	// Update hosts with no-CDN group info
-	for _, h := range hosts {
-		if h.noCdnRecord != nil {
-			for _, hg := range h.noCdnGroups {
-				g, found := noCdnGroups[hg.subdomain]
-				if found {
-					hg.existing = g[h.ip]
-					delete(g, h.ip)
-				}
-			}
-		}
-	}
+	var wg sync.WaitGroup
 
 	// Remove items from rotation that don't have a corresponding host
-	for k, g := range cdnGroups {
-		for _, r := range g {
-			wg.Add(1)
-			go removeRecord(&wg, k, r)
-		}
-	}
-	for k, g := range noCdnGroups {
+	// XXX: same for DNSSimple, plus check that we have a Deployed distribution
+	for k, g := range groups {
 		for _, r := range g {
 			wg.Add(1)
 			go removeRecord(&wg, k, r)

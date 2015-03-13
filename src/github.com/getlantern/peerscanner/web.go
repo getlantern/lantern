@@ -65,24 +65,18 @@ func register(resp http.ResponseWriter, req *http.Request) {
 		fmt.Fprintln(resp, err.Error())
 		return
 	}
-
+	if isPeer(name) {
+		log.Debugf("Not adding peer %v because we're not using peers at the moment", name)
+		resp.WriteHeader(200)
+		fmt.Fprintln(resp, "Peers disabled at the moment")
+		return
+	}
 	online := true
 	connectionRefused := false
 	timedOut := false
 
-	if isPeer(name) {
-		log.Debugf("Not adding peer %v because we're not using peers at the moment", name)
-	} else {
-		h := getOrCreateHost(name, ip)
-		online, connectionRefused, timedOut = h.status()
-		if timedOut {
-			log.Debugf("%v timed out waiting for status, returning 500 error", h)
-			resp.WriteHeader(500)
-			fmt.Fprintf(resp, "Timed out waiting for status")
-			return
-		}
-	}
-
+	h := getOrCreateHost(name, ip)
+	online, connectionRefused, timedOut = h.status()
 	if online {
 		resp.WriteHeader(200)
 		fmt.Fprintln(resp, "Connectivity to proxy confirmed")
@@ -96,6 +90,12 @@ func register(resp http.ResponseWriter, req *http.Request) {
 		fstr += "}"
 		fmt.Fprintln(resp, fstr)
 
+		return
+	}
+	if timedOut {
+		log.Debugf("%v timed out waiting for status, returning 500 error", h)
+		resp.WriteHeader(500)
+		fmt.Fprintf(resp, "Timed out waiting for status")
 		return
 	}
 
@@ -177,7 +177,7 @@ func clientIpFor(req *http.Request, name string) string {
 	if clientIp == "" {
 		clientIp = req.Header.Get("X-Forwarded-For")
 	}
-	if clientIp == "" && isCdnFallback(name) {
+	if clientIp == "" && isFallback(name) {
 		// Use direct IP for fallbacks
 		clientIp = strings.Split(req.RemoteAddr, ":")[0]
 	}
