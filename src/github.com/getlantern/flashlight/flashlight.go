@@ -153,6 +153,7 @@ func parseFlags() {
 
 // Runs the client-side proxy
 func runClientProxy(cfg *config.Config) {
+	setProxyAddr(cfg.Addr)
 	err := setUpPacTool()
 	if err != nil {
 		exit(err)
@@ -176,7 +177,7 @@ func runClientProxy(cfg *config.Config) {
 
 	logging.Configure(cfg, version, buildDate)
 	settings.Configure(version, buildDate)
-	proxiedsites.Configure(cfg.ProxiedSites, cfg.Addr)
+	proxiedsites.Configure(cfg.ProxiedSites)
 
 	if hqfd == nil {
 		log.Errorf("No fronted dialer available, not enabling geolocation or stats")
@@ -191,7 +192,7 @@ func runClientProxy(cfg *config.Config) {
 		for {
 			cfg := <-configUpdates
 
-			proxiedsites.Configure(cfg.ProxiedSites, cfg.Addr)
+			proxiedsites.Configure(cfg.ProxiedSites)
 			// Note - we deliberately ignore the error from statreporter.Configure here
 			statreporter.Configure(cfg.Stats)
 			hqfd = client.Configure(cfg.Client)

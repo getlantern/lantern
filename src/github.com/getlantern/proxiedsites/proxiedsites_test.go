@@ -6,10 +6,6 @@ import (
 	"github.com/getlantern/testify/assert"
 )
 
-const (
-	proxyAddr = "127.0.0.1:8789"
-)
-
 func TestConfigureAndPAC(t *testing.T) {
 	expectedDeltaA := &Delta{
 		Additions: []string{"A", "B", "D"},
@@ -25,9 +21,8 @@ func TestConfigureAndPAC(t *testing.T) {
 			Additions: []string{"D"},
 			Deletions: []string{"C"},
 		},
-	}, proxyAddr)
+	})
 	assert.Equal(t, expectedDeltaA, delta)
-	assert.Equal(t, expectedPACFile, pacFile)
 
 	delta = Configure(&Config{
 		Cloud: []string{"A", "B", "C"},
@@ -35,7 +30,7 @@ func TestConfigureAndPAC(t *testing.T) {
 			Additions: []string{"E"},
 			Deletions: []string{"B", "C"},
 		},
-	}, proxyAddr)
+	})
 	assert.Equal(t, expectedDeltaB, delta)
 }
 

@@ -15,7 +15,7 @@ var (
 	whitelist   = make(map[string]wlEntry)
 )
 
-func InitWhiteList(wl map[string]time.Time) {
+func InitWhitelist(wl map[string]time.Time) {
 	muWhitelist.Lock()
 	defer muWhitelist.Unlock()
 	for k, v := range wl {
@@ -24,7 +24,8 @@ func InitWhiteList(wl map[string]time.Time) {
 	return
 }
 
-func DumpWhiteList() (wl map[string]time.Time) {
+func DumpWhitelist() (wl map[string]time.Time) {
+	wl = make(map[string]time.Time)
 	muWhitelist.Lock()
 	defer muWhitelist.Unlock()
 	for k, v := range whitelist {

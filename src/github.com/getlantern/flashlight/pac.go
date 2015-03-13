@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"path/filepath"
 	"runtime"
 	"sync/atomic"
@@ -9,11 +10,13 @@ import (
 	"github.com/getlantern/filepersist"
 	"github.com/getlantern/pac"
 
-	"github.com/getlantern/flashlight/proxiedsites"
+	"github.com/getlantern/flashlight/ui"
 )
 
 var (
 	isPacOn = int32(0)
+	pacURL  string
+	pacFile []byte
 )
 
 func setUpPacTool() error {
@@ -41,16 +44,33 @@ func setUpPacTool() error {
 	return nil
 }
 
+func setProxyAddr(addr string) {
+	formatter := `function FindProxyForURL(url, host) {
+  if (host == "localhost" || host == "127.0.0.1") {
+       return "DIRECT";
+  }
+  return "PROXY %s; DIRECT";
+}
+`
+	pacFile = []byte(fmt.Sprintf(formatter, addr))
+}
+
 func pacOn() {
-	if proxiedsites.PACURL != "" {
-		log.Debug("Setting lantern as system proxy")
-		err := pac.On(proxiedsites.PACURL)
-		if err != nil {
-			log.Errorf("Unable to set lantern as system proxy: %v", err)
-			return
-		}
-		atomic.StoreInt32(&isPacOn, 1)
+	log.Debug("Setting lantern as system proxy")
+	handler := func(resp http.ResponseWriter, req *http.Request) {
+		resp.Header().Set("Content-Type", "application/x-ns-proxy-autoconfig")
+		resp.WriteHeader(http.StatusOK)
+		resp.Write(pacFile)
 	}
+
+	pacURL = ui.Handle("/proxy_on.pac", http.HandlerFunc(handler))
+	log.Debugf("Serving PAC file at %v", pacURL)
+	err := pac.On(pacURL)
+	if err != nil {
+		log.Errorf("Unable to set lantern as system proxy: %v", err)
+		return
+	}
+	atomic.StoreInt32(&isPacOn, 1)
 }
 
 func pacOff() {

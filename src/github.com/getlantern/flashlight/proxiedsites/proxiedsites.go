@@ -3,9 +3,10 @@ package proxiedsites
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"sync"
+	"time"
 
+	"github.com/getlantern/detour"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/proxiedsites"
 
@@ -25,10 +26,13 @@ var (
 	startMutex sync.Mutex
 )
 
-func Configure(cfg *proxiedsites.Config, proxyAddr string) {
-	delta := proxiedsites.Configure(cfg, proxyAddr)
+func Configure(cfg *proxiedsites.Config) {
+	delta := proxiedsites.Configure(cfg)
 	startMutex.Lock()
 
+	if delta != nil {
+		updateDetour(delta)
+	}
 	if service == nil {
 		// Initializing service.
 		if err := start(); err != nil {
@@ -52,6 +56,21 @@ func Configure(cfg *proxiedsites.Config, proxyAddr string) {
 	startMutex.Unlock()
 }
 
+func updateDetour(delta *proxiedsites.Delta) {
+	curWl := detour.DumpWhitelist()
+	// for simplicity, detour matches whitelist using host:port string
+	// so we add ports to each proxiedsites
+	for _, v := range delta.Deletions {
+		delete(curWl, v+":80")
+		delete(curWl, v+":443")
+	}
+	for _, v := range delta.Additions {
+		curWl[v+":80"] = time.Now()
+		curWl[v+":443"] = time.Now()
+	}
+	detour.InitWhitelist(curWl)
+}
+
 func start() (err error) {
 	newMessage := func() interface{} {
 		return &proxiedsites.Delta{}
@@ -65,10 +84,6 @@ func start() (err error) {
 	if service, err = ui.Register(messageType, newMessage, helloFn); err != nil {
 		return fmt.Errorf("Unable to register channel: %q", err)
 	}
-
-	// Register the PAC handler
-	PACURL = ui.Handle("/proxy_on.pac", http.HandlerFunc(proxiedsites.ServePAC))
-	log.Debugf("Serving PAC file at %v", PACURL)
 
 	// Initializing reader.
 	go read()
