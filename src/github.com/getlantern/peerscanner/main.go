@@ -1,12 +1,36 @@
-// peerscanner is program that maintains proxy hosts in CloudFlare's DNS based
-// on whether or not the peers are currently online. Online status is determined
-// based on whether or not we can successfully proxy requests to popular sites
-// like www.google.com in a reasonable amount of time via each host.
+// peerscanner is a program that maintains entries in CDN and DNS services
+// based on whether or not the corresponding Lantern servers are currently
+// online. Online status is determined based on whether or not we can
+// successfully proxy requests to popular sites like www.google.com in a
+// reasonable amount of time via each host.
 //
-// Peers are registered and unregistered via a web-baesd API (see file web.go).
+// Peers are registered and unregistered via a web-based API (see file web.go).
 //
 // Each host is modeled as an actor with its own goroutine that constantly
-// tests connectivity via the host.
+// tests connectivity via the host (see file host.go).
+//
+// For each host, various CDN and DNS entries are managed:
+//   - Cloudflare round-robin DNS+CDN entries.  Each server has an A entry with
+//     the name "roundrobin.getiantem.org"[1] and its IP, with CDN functionality
+//     activated ("orange cloud").
+//   - A Cloudflare DNS+CDN entry ("orange cloud"), specific to each server.
+//     This is used for sticky routing when domain fronting via Cloudflare.
+//   - A DNSimple round-robin DNS entry ("roundrobin.flashlightproxy.org" [1]).
+//     This has no CDN functionality itself.
+//   - A DNSimple DNS entry specific to each server.
+//   - A Cloudfront distribution that points to the previous one.
+//
+// Whenever peerscanner learns of a new server, it adds an entry of each kind
+// above.  Whenever peerscanner finds a server is offline, it deletes the round
+// robin entries, but not the server specific ones, nor the Cloudfront
+// distribution.
+//
+// [1] Peerscanner used to manage, and may manage again in the future, servers
+//     running on users' computers (give mode peers).  For this reason,
+//     a "fallbacks.(getiantem|flashlightproxy).org" round-robin is currently
+//     being maintained too.  Also, the ".(getiantem|flashlightproxy).org" parts
+//     are configurable via the -cfldomain and -dspdomain command line
+//     arguments.
 package main
 
 import (
