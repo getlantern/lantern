@@ -1,4 +1,4 @@
-package dnss
+package dsp
 
 import (
 	"crypto/tls"
@@ -22,7 +22,7 @@ type Util struct {
 func New(domain string, email string, apiToken string) *Util {
 	client := dnsimple.NewClient(apiToken, email)
 	// Set a longish timeout on the HTTP client just in case
-	client.Http = &http.Client{
+	client.HttpClient = &http.Client{
 		Timeout: 5 * time.Minute,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
@@ -44,7 +44,7 @@ func (util *Util) GetAllRecords() ([]dnsimple.Record, error) {
 func (util *Util) Register(name string, ip string) (*dnsimple.Record, error) {
 	rec := dnsimple.Record{Name: name, Content: ip, Type: "A"}
 	ret, _, err := util.Client.Domains.CreateRecord(util.domain, rec)
-	return ret, err
+	return &ret, err
 }
 
 func (util *Util) DestroyRecord(r *dnsimple.Record) error {
