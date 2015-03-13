@@ -46,6 +46,7 @@ import (
 	"github.com/getlantern/golog"
 	"github.com/getlantern/peerscanner/cfl"
 	"github.com/getlantern/peerscanner/cfr"
+	"github.com/getlantern/peerscanner/dsp"
 	"github.com/getlantern/profiling"
 )
 
@@ -60,19 +61,21 @@ var (
 
 	port       = flag.Int("port", 62443, "Port, defaults to 62443")
 	cfldomain  = flag.String("cfldomain", "getiantem.org", "CloudFlare domain, defaults to getiantem.org")
+	dspdomain  = flag.String("dspdomain", "flashlightproxy.org", "DNSimple domain, defaults to flashlightproxy.org")
 	cpuprofile = flag.String("cpuprofile", "", "(optional) specify the name of a file to which to write cpu profiling info")
 	memprofile = flag.String("memprofile", "", "(optional) specify the name of a file to which to write memory profiling info")
-	cfluser    = os.Getenv("CFL_ID")
-	cflkey     = os.Getenv("CFL_KEY")
 
+	cflid   = os.Getenv("CFL_ID")
+	cflkey  = os.Getenv("CFL_KEY")
 	cflutil *cfl.Util
 
-	cfrid  = os.Getenv("CFR_ID")
-	cfrkey = os.Getenv("CFR_KEY")
-
+	cfrid   = os.Getenv("CFR_ID")
+	cfrkey  = os.Getenv("CFR_KEY")
 	cfrutil *cloudfront.CloudFront
 
-	//XXX DNSSimple credentials and *Util
+	dspid   = os.Getenv("DSP_ID")
+	dspkey  = os.Getenv("DSP_KEY")
+	dsputil *dsp.Util
 
 	hostsByName map[string]*host
 	hostsByIp   map[string]*host
@@ -91,6 +94,7 @@ func main() {
 
 	connectToCloudFlare()
 	connectToCloudFront()
+	connectToDnsimple()
 
 	var err error
 	hostsByIp, err = loadHosts()
@@ -103,17 +107,29 @@ func main() {
 
 func parseFlags() {
 	flag.Parse()
-	if cfluser == "" {
-		log.Fatal("Please specify a CFL_USER environment variable")
+	if cflid == "" {
+		log.Fatal("Please specify a CFL_ID environment variable")
 	}
 	if cflkey == "" {
-		log.Fatal("Please specify a CFL_API_KEY environment variable")
+		log.Fatal("Please specify a CFL_KEY environment variable")
+	}
+	if cfrid == "" {
+		log.Fatal("Please specify a CFR_ID environment variable")
+	}
+	if cfrkey == "" {
+		log.Fatal("Please specify a CFR_KEY environment variable")
+	}
+	if dspid == "" {
+		log.Fatal("Please specify a DSP_ID environment variable")
+	}
+	if dspkey == "" {
+		log.Fatal("Please specify a DSP_KEY environment variable")
 	}
 }
 
 func connectToCloudFlare() {
 	log.Debug("Connecting to CloudFlare ...")
-	cflutil = cfl.New(*cfldomain, cfluser, cflkey)
+	cflutil = cfl.New(*cfldomain, cflid, cflkey)
 }
 
 func connectToCloudFront() {
@@ -121,27 +137,38 @@ func connectToCloudFront() {
 	cfrutil = cfr.New(cfrid, cfrkey, nil)
 }
 
+func connectToDnsimple() {
+	log.Debug("Connecting to DNSimple ...")
+	dsputil = dsp.New(*dspdomain, dspid, dspkey)
+}
+
 /*******************************************************************************
  * Functions for managing map of hosts
  ******************************************************************************/
 
-// loadHosts loads the initial list of hosts based on what's in CloudFlare's
-// DNS at startup.
+// loadHosts loads the initial list of hosts based on the existing entries in
+// the CDN and DNS services we manage
 func loadHosts() (map[string]*host, error) {
-	log.Debug("Loading existing hosts from CloudFlare ...")
 
-	recs, err := cflutil.GetAllRecords()
+	log.Debug("Loading existing CloudFlare records ...")
+	cflRecs, err := cflutil.GetAllRecords()
 	if err != nil {
-		return nil, fmt.Errorf("Unable to load hosts: %v", err)
+		return nil, fmt.Errorf("Unable to load Cloudflare records: %v", err)
 	}
-	log.Debugf("Loaded %d existing hosts", len(recs))
+	log.Debugf("Loaded %d existing Cloudflare records", len(cflRecs))
 
-	// XXX: get all DNSSimple records
+	log.Debug("Loading existing DNSimple records ...")
+	dspRecs, err := dsputil.GetAllRecords()
+	if err != nil {
+		return nil, fmt.Errorf("Unable to load DNSimple records: %v", err)
+	}
+	log.Debugf("Loaded %d existing DNSimple records", len(dspRecs))
 
 	dists, err := cfr.ListDistributions(cfrutil)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to load cloudfront distributions: %v", err)
 	}
+	log.Debugf("Loaded %d existing distributions", len(dists))
 
 	// Keep track of different groups of hosts
 	// XXX: cflGroups vs dspGroups
@@ -167,7 +194,7 @@ func loadHosts() (map[string]*host, error) {
 
 	// Look through all records to find peers, fallbacks and groups
 	// XXX: same for DNSSimple records.
-	for _, r := range recs {
+	for _, r := range cflRecs {
 		if isFallback(r.Name) {
 			log.Debugf("Adding fallback: %v", r.Name)
 			addHost(r)
