@@ -172,14 +172,14 @@ func loadHosts() (map[string]*host, error) {
 
 	// Keep track of different groups of hosts
 	// XXX: cflGroups vs dspGroups
-	groups := make(map[string]map[string]*cloudflare.Record, 0)
+	cflGroups := make(map[string]map[string]*cloudflare.Record, 0)
 
-	addToGroup := func(name string, r cloudflare.Record) {
+	addToCflGroup := func(name string, r cloudflare.Record) {
 		log.Debugf("Adding to %v: %v", name, r.Value)
-		g := groups[name]
+		g := cflGroups[name]
 		if g == nil {
 			g = make(map[string]*cloudflare.Record, 1)
-			groups[name] = g
+			cflGroups[name] = g
 		}
 		g[r.Value] = &r
 	}
@@ -192,7 +192,7 @@ func loadHosts() (map[string]*host, error) {
 		hosts[h.ip] = h
 	}
 
-	// Look through all records to find peers, fallbacks and groups
+	// Look through Cloudflare records to find peers, fallbacks and groups
 	// XXX: same for DNSSimple records.
 	for _, r := range cflRecs {
 		if isFallback(r.Name) {
@@ -201,13 +201,13 @@ func loadHosts() (map[string]*host, error) {
 		} else if isPeer(r.Name) {
 			log.Debugf("Not adding peer: %v", r.Name)
 		} else if r.Name == RoundRobin {
-			addToGroup(RoundRobin, r)
+			addToCflGroup(RoundRobin, r)
 		} else if r.Name == Fallbacks {
-			addToGroup(Fallbacks, r)
+			addToCflGroup(Fallbacks, r)
 		} else if r.Name == Peers {
-			addToGroup(Peers, r)
+			addToCflGroup(Peers, r)
 		} else if strings.HasSuffix(r.Name, ".fallbacks") {
-			addToGroup(r.Name, r)
+			addToCflGroup(r.Name, r)
 		} else {
 			log.Tracef("Unrecognized record: %v", r.FullName)
 		}
@@ -226,8 +226,8 @@ func loadHosts() (map[string]*host, error) {
 	// Update hosts with Cloudflare group info
 	// XXX: same for DNSSimple
 	for _, h := range hosts {
-		for _, hg := range h.groups {
-			g, found := groups[hg.subdomain]
+		for _, hg := range h.cflGroups {
+			g, found := cflGroups[hg.subdomain]
 			if found {
 				hg.existing = g[h.ip]
 				delete(g, h.ip)
@@ -239,7 +239,7 @@ func loadHosts() (map[string]*host, error) {
 
 	// Remove items from rotation that don't have a corresponding host
 	// XXX: same for DNSSimple, plus check that we have a Deployed distribution
-	for k, g := range groups {
+	for k, g := range cflGroups {
 		for _, r := range g {
 			wg.Add(1)
 			go removeRecord(&wg, k, r)

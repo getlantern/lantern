@@ -4,20 +4,20 @@ import (
 	"github.com/getlantern/cloudflare"
 )
 
-// group represents a host's participation in a rotation (e.g. roundrobin)
-type group struct {
+// cflGroup represents a host's participation in a rotation (e.g. roundrobin)
+type cflGroup struct {
 	subdomain  string
 	existing   *cloudflare.Record
 	isProxying bool
 }
 
-func (g *group) String() string {
+func (g *cflGroup) String() string {
 	return g.subdomain
 }
 
-// register registers a host with this group in CloudFlare if it isn't already
-// registered.
-func (g *group) register(h *host) error {
+// register registers a host with this cflGroup in CloudFlare if it isn't
+// already registered.
+func (g *cflGroup) register(h *host) error {
 	if g.isProxying {
 		log.Debugf("%v is already registered in %v, no need to re-register:", h, g.subdomain)
 		return nil
@@ -29,9 +29,9 @@ func (g *group) register(h *host) error {
 	return err
 }
 
-// deregister deregisters the host from this group in CloudFlare if it is
+// deregister deregisters the host from this cflGroup in CloudFlare if it is
 // currently registered.
-func (g *group) deregister(h *host) {
+func (g *cflGroup) deregister(h *host) {
 	if g.existing == nil {
 		log.Tracef("%v is not registered in %v, no need to deregister", h, g.subdomain)
 		return

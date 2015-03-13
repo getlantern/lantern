@@ -63,7 +63,7 @@ type host struct {
 	cfrDist    *cfr.Distribution
 	isProxying bool
 	//XXX -> cflGroups vs dspGroups
-	groups      map[string]*group
+	cflGroups   map[string]*cflGroup
 	lastSuccess time.Time
 	lastTest    time.Time
 
@@ -128,15 +128,15 @@ func newHost(name string, ip string, record *cloudflare.Record) *host {
 
 	if h.isFallback() {
 		//XXX: cflGroups + dspGroups
-		h.groups = map[string]*group{
-			RoundRobin: &group{subdomain: RoundRobin},
-			Fallbacks:  &group{subdomain: Fallbacks},
-			Peers:      &group{subdomain: Peers},
+		h.cflGroups = map[string]*cflGroup{
+			RoundRobin: &cflGroup{subdomain: RoundRobin},
+			Fallbacks:  &cflGroup{subdomain: Fallbacks},
+			Peers:      &cflGroup{subdomain: Peers},
 		}
 		country := fallbackCountry(name)
 		if country != "" {
 			// Add host to country-specific rotation
-			h.groups[country] = &group{subdomain: country}
+			h.cflGroups[country] = &cflGroup{subdomain: country}
 		}
 	} else {
 		log.Errorf("Somehow adding peer host? %v (%v)", name, ip)
@@ -365,7 +365,7 @@ func (h *host) registerCflHost() error {
 }
 
 func (h *host) registerToCflRotations() error {
-	for _, group := range h.groups {
+	for _, group := range h.cflGroups {
 		err := group.register(h)
 		if err != nil {
 			return err
@@ -376,7 +376,7 @@ func (h *host) registerToCflRotations() error {
 
 func (h *host) deregisterFromRotations() {
 	//XXX: cflGroups + dspGroups
-	for _, group := range h.groups {
+	for _, group := range h.cflGroups {
 		group.deregister(h)
 	}
 }
