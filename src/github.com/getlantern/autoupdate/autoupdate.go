@@ -6,15 +6,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
+	"strings"
 	"time"
 
 	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/go-update"
 	"github.com/getlantern/go-update/check"
 )
-
-const noVersion = -1
 
 // Making sure AutoUpdate and Patch satisfy AutoUpdater and Patcher.
 var (
@@ -45,10 +43,10 @@ func SetProxy(proxyAddr string) {
 // configure automatic updates.
 type AutoUpdate struct {
 	cfg config
-	v   int
+	v   string
 	// When a patch has been applied, the patch's version will be sent to
 	// UpdatedTo.
-	UpdatedTo chan int
+	UpdatedTo chan string
 }
 
 // New creates an AutoUpdate struct based in the configuration defined in
@@ -60,27 +58,28 @@ func New(appName string) *AutoUpdate {
 		panic(fmt.Sprintf(`autoupdate: You must define a new config["%s"] entry to configure updates for this application. See config.go.`, appName))
 	}
 	a := &AutoUpdate{
-		UpdatedTo: make(chan int),
+		UpdatedTo: make(chan string),
 		cfg:       *configMap[appName],
-		v:         noVersion,
 	}
 	return a
 }
 
 // SetVersion sets the version of the process' executable file.
-func (a *AutoUpdate) SetVersion(i int) {
-	if i < 0 {
-		// Panicking because we need a valid version in order to tell when a new
-		// version has been applied.
-		panic(`autoupdate: Negative internal version values are not supported. `)
+func (a *AutoUpdate) SetVersion(v string) {
+	if !strings.HasPrefix(v, "v") {
+		// Panicking because versions must begin with "v".
+		panic(`autoupdate: Versions must begin with a "v".`)
 	}
-	a.v = i
+	if !isVersionTag(v) {
+		panic(`autoupdate: Versions must be in the form vX.Y.Z.`)
+	}
+	a.v = v
 }
 
 // Version returns the internal version value passed to SetVersion(). If
 // SetVersion() has not been called yet, a negative value will be returned
 // instead.
-func (a *AutoUpdate) Version() int {
+func (a *AutoUpdate) Version() string {
 	return a.v
 }
 
@@ -89,11 +88,7 @@ func (a *AutoUpdate) check() (res *check.Result, err error) {
 	var up *update.Update
 
 	param := check.Params{
-		AppVersion: strconv.Itoa(a.Version()),
-		AppId:      a.cfg.appID,
-		// Should we pick an update channel from ENV? It could be useful to test
-		// development updates.
-		Channel: a.cfg.updateChannel,
+		AppVersion: a.Version(),
 	}
 
 	up = update.New().ApplyPatch(update.PATCHTYPE_BSDIFF)
@@ -123,13 +118,10 @@ func (a *AutoUpdate) Query() (Patcher, error) {
 
 	if res == nil {
 		// No new version is available.
-		return &Patch{v: noVersion}, nil
+		return &Patch{}, nil
 	}
 
-	// Setting patch's version.
-	patchToVersion, _ := strconv.Atoi(res.Version)
-
-	return &Patch{res: res, v: patchToVersion}, nil
+	return &Patch{res: res, v: res.Version}, nil
 }
 
 func (a *AutoUpdate) loop() {
@@ -137,7 +129,8 @@ func (a *AutoUpdate) loop() {
 		patch, err := a.Query()
 
 		if err == nil {
-			if patch.Version() > a.Version() {
+			if VersionCompare(a.Version(), patch.Version()) == Higher {
+				log.Printf("autoupdate: Attempting to update to %s.", patch.Version())
 
 				err = patch.Apply()
 
@@ -149,6 +142,8 @@ func (a *AutoUpdate) loop() {
 					log.Printf("autoupdate: Patch failed: %q\n", err)
 				}
 
+			} else {
+				log.Printf("autoupdate: Already up to date.")
 			}
 		} else {
 			log.Printf("autoupdate: Could not reach update server: %q\n", err)
@@ -160,7 +155,7 @@ func (a *AutoUpdate) loop() {
 
 // Watch spawns a goroutine that will apply updates whenever they're available.
 func (a *AutoUpdate) Watch() {
-	if a.v < 0 {
+	if a.v == "" {
 		// Panicking because Watch is useless without the ability to compare
 		// versions.
 		panic(`autoupdate: You must set the executable version in order to watch for updates!`)

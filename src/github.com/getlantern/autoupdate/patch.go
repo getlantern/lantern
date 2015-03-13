@@ -10,7 +10,7 @@ import (
 // to its source executable file.
 type Patch struct {
 	res *check.Result
-	v   int
+	v   string
 }
 
 // Apply attempts to update the process' executable file.
@@ -35,6 +35,6 @@ func (p *Patch) Apply() error {
 }
 
 // Version returns the internal release number of the update.
-func (p *Patch) Version() int {
+func (p *Patch) Version() string {
 	return p.v
 }

@@ -10,9 +10,7 @@ import (
 )
 
 const (
-	// This internal version must be bumped everytime a new release is uploaded
-	// to equinox and must match the contents of the --version value.
-	internalVersion = 1
+	internalVersion = "v0.0.9"
 	sleepTime       = time.Second * 1
 )
 
@@ -22,7 +20,7 @@ var au *autoupdate.AutoUpdate
 
 func init() {
 	// Setting the proxy we're going to use for auto-updates.
-	autoupdate.SetProxy("127.0.0.1:9999")
+	// autoupdate.SetProxy("127.0.0.1:9999")
 
 	// Update settings (such as equinox's tokens and the public key used to
 	// verify signatures) are defined per app in config.go. We're doing that
@@ -40,12 +38,12 @@ func main() {
 	go func() {
 		select {
 		case newVersion := <-au.UpdatedTo:
-			fmt.Printf("Executable file has been updated to version %d.\n", newVersion)
+			fmt.Printf("Executable file has been updated to version %s.\n", newVersion)
 		}
 	}()
 
 	for {
-		fmt.Printf("Running program version: %d, binary file version: %d\n", internalVersion, au.Version())
+		fmt.Printf("Running program version: %s, binary file version: %s\n", internalVersion, au.Version())
 		time.Sleep(sleepTime)
 	}
 }

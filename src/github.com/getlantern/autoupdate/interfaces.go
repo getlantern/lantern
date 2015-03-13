@@ -4,10 +4,10 @@ package autoupdate
 // programs to update themselves.
 type AutoUpdater interface {
 	// SetVersion sets the internal release number of the source executable file.
-	SetVersion(int)
+	SetVersion(string)
 
 	// Version returns the internal release number of the source executable file.
-	Version() int
+	Version() string
 
 	// Query sends the current software checksum to an update server. If the
 	// update server decides this program is outdated, it will send information
@@ -29,5 +29,5 @@ type Patcher interface {
 	Apply() error
 
 	// Version returns the internal release number of the update.
-	Version() int
+	Version() string
 }
