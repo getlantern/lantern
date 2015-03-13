@@ -135,11 +135,12 @@ func (a *AutoUpdate) loop() {
 				err = patch.Apply()
 
 				if err == nil {
+					log.Printf("autoupdate: Patching succeeded!")
 					// Updating version.
 					a.UpdatedTo <- patch.Version()
 					a.SetVersion(patch.Version())
 				} else {
-					log.Printf("autoupdate: Patch failed: %q\n", err)
+					log.Printf("autoupdate: Patching failed: %q\n", err)
 				}
 
 			} else {
