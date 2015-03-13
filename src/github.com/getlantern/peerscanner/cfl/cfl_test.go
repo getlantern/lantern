@@ -16,11 +16,7 @@ func TestAll(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to get starting fdcount: %v", err)
 	}
-
-	u := New("getiantem.org", os.Getenv("CFL_USER"), os.Getenv("CFL_API_KEY"))
-	u.Client.Http.Transport = &http.Transport{
-		DisableKeepAlives: true,
-	}
+	u := getUtil()
 	recs, err := u.GetAllRecords()
 	if assert.NoError(t, err, "Should be able to get all records") {
 		for _, r := range recs {
@@ -37,12 +33,7 @@ func TestEnsureRegistered(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to get starting fdcount: %v", err)
 	}
-
-	u := New("getiantem.org", os.Getenv("CFL_USER"), os.Getenv("CFL_API_KEY"))
-	u.Client.Http.Transport = &http.Transport{
-		DisableKeepAlives: true,
-	}
-
+	u := getUtil()
 	// Test with no existing record
 	name, ip := "cfl-test-entry", "127.0.0.1"
 	rec, proxying, err := u.EnsureRegistered(name, ip, nil)
@@ -76,4 +67,12 @@ func TestEnsureRegistered(t *testing.T) {
 func doTestEnsureRegistered(t *testing.T, rec *cloudflare.Record) *cloudflare.Record {
 
 	return rec
+}
+
+func getUtil() *Util {
+	u := New("getiantem.org", os.Getenv("CFL_ID"), os.Getenv("CFL_KEY"))
+	u.Client.Http.Transport = &http.Transport{
+		DisableKeepAlives: true,
+	}
+	return u
 }

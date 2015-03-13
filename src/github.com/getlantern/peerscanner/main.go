@@ -38,8 +38,8 @@ var (
 	cfldomain  = flag.String("cfldomain", "getiantem.org", "CloudFlare domain, defaults to getiantem.org")
 	cpuprofile = flag.String("cpuprofile", "", "(optional) specify the name of a file to which to write cpu profiling info")
 	memprofile = flag.String("memprofile", "", "(optional) specify the name of a file to which to write memory profiling info")
-	cfluser    = os.Getenv("CFL_USER")
-	cflkey     = os.Getenv("CFL_API_KEY")
+	cfluser    = os.Getenv("CFL_ID")
+	cflkey     = os.Getenv("CFL_KEY")
 
 	cflutil *cfl.Util
 
