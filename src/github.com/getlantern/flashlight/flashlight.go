@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"os"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/getlantern/fronted"
@@ -95,6 +96,7 @@ func doMain() error {
 	}
 	displayVersion()
 
+	parseFlags()
 	configUpdates = make(chan *config.Config)
 	cfg, err := config.Init()
 	if err != nil {
@@ -122,7 +124,7 @@ func doMain() error {
 		return err
 	}
 
-	log.Debugf("Running proxy")
+	log.Debug("Running proxy")
 	if cfg.IsDownstream() {
 		runClientProxy(cfg)
 	} else {
@@ -144,6 +146,22 @@ func i18nInit() {
 
 func displayVersion() {
 	log.Debugf("---- flashlight version %s (%s) ----", version, buildDate)
+}
+
+func parseFlags() {
+	args := os.Args[1:]
+	// On OS X, the first time that the program is run after download it is
+	// quarantined.  OS X will ask the user whether or not it's okay to run the
+	// program.  If the user says that it's okay, OS X will run the program but
+	// pass an extra flag like -psn_0_1122578.  flag.Parse() fails if it sees
+	// any flags that haven't been declared, so we remove the extra flag.
+	if len(os.Args) == 2 && strings.HasPrefix(os.Args[1], "-psn") {
+		log.Debugf("Ignoring extra flag %v", os.Args[1])
+		args = []string{}
+	}
+	// Note - we can ignore the returned error because CommandLine.Parse() will
+	// exit if it fails.
+	flag.CommandLine.Parse(args)
 }
 
 // Runs the client-side proxy
@@ -173,7 +191,7 @@ func runClientProxy(cfg *config.Config) {
 
 	logging.Configure(cfg, version, buildDate)
 	settings.Configure(version, buildDate)
-	proxiedsites.Configure(cfg.ProxiedSites)
+	proxiedsites.Configure(cfg.ProxiedSites, cfg.Addr)
 
 	if hqfd == nil {
 		log.Errorf("No fronted dialer available, not enabling geolocation or stats")
@@ -188,7 +206,7 @@ func runClientProxy(cfg *config.Config) {
 		for {
 			cfg := <-configUpdates
 
-			proxiedsites.Configure(cfg.ProxiedSites)
+			proxiedsites.Configure(cfg.ProxiedSites, cfg.Addr)
 			// Note - we deliberately ignore the error from statreporter.Configure here
 			statreporter.Configure(cfg.Stats)
 			hqfd = client.Configure(cfg.Client)

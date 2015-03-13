@@ -25,8 +25,8 @@ var (
 	startMutex sync.Mutex
 )
 
-func Configure(cfg *proxiedsites.Config) {
-	delta := proxiedsites.Configure(cfg)
+func Configure(cfg *proxiedsites.Config, proxyAddr string) {
+	delta := proxiedsites.Configure(cfg, proxyAddr)
 	startMutex.Lock()
 
 	if service == nil {

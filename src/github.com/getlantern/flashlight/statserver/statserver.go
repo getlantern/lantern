@@ -1,15 +1,10 @@
 package statserver
 
 import (
-	"crypto/tls"
-	"fmt"
 	"net/http"
-	"net/url"
 	"sync"
-	"time"
 
 	"github.com/getlantern/golog"
-	"github.com/getlantern/waitforserver"
 
 	"github.com/getlantern/flashlight/ui"
 )
@@ -37,27 +32,6 @@ func Configure(newClient *http.Client) {
 		go read()
 		log.Debug("Started")
 	}
-}
-
-func configureGeoClient(proxyAddr string) error {
-	proxyUrl, err := url.Parse("http://" + proxyAddr)
-	if err != nil {
-		return err
-	}
-	err = waitforserver.WaitForServer("tcp", proxyAddr, 10*time.Second)
-	if err != nil {
-		return fmt.Errorf("Proxy never came online at %v: %v", proxyAddr, err)
-	}
-	geoClient = &http.Client{
-		Transport: &http.Transport{
-			Proxy: http.ProxyURL(proxyUrl),
-			TLSClientConfig: &tls.Config{
-				ClientSessionCache: tls.NewLRUClientSessionCache(10),
-			},
-		},
-	}
-	log.Debugf("Using proxy at: %v", proxyUrl)
-	return nil
 }
 
 func registerService() error {

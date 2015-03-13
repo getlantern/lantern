@@ -7,10 +7,9 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
-
-	"github.com/getlantern/rotator"
 
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/flashlight/config"
@@ -19,6 +18,7 @@ import (
 	"github.com/getlantern/go-loggly"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/jibber_jabber"
+	"github.com/getlantern/rotator"
 	"github.com/getlantern/waitforserver"
 	"github.com/getlantern/wfilter"
 )
@@ -28,7 +28,7 @@ const (
 )
 
 var (
-	log = golog.LoggerFor("flashlight")
+	log = golog.LoggerFor("flashlight.logging")
 
 	logFile  *rotator.SizeRotator
 	cfgMutex sync.Mutex
@@ -144,6 +144,7 @@ func enableLoggly(cfg *config.Config, version string, buildDate string) {
 		versionToLoggly: fmt.Sprintf("%v (%v)", version, buildDate),
 		client:          loggly.New(logglyToken),
 	}
+	logglyWriter.client.Defaults["hostname"] = "hidden"
 	logglyWriter.client.SetHTTPClient(client)
 	addLoggly(logglyWriter)
 }
@@ -174,10 +175,34 @@ func (w logglyErrorWriter) Write(b []byte) (int, error) {
 		"timeZone":  w.tz,
 		"version":   w.versionToLoggly,
 	}
+	fullMessage := string(b)
+
+	// extract last 2 (at most) chunks of fullMessage to message, without prefix,
+	// so we can group logs with same reason in Loggly
+	parts := strings.Split(fullMessage, ":")
+	var message string
+	pl := len(parts)
+	switch pl {
+	case 1:
+		message = ""
+	case 2:
+		message = parts[1]
+	default:
+		message = parts[pl-2] + ":" + parts[pl-1]
+	}
+	message = strings.TrimSpace(message)
+
+	pos := strings.IndexRune(fullMessage, ':')
+	if pos == -1 {
+		pos = 0
+	}
+	prefix := fullMessage[0:pos]
 
 	m := loggly.Message{
-		"extra":   extra,
-		"message": string(b),
+		"extra":        extra,
+		"locationInfo": prefix,
+		"message":      message,
+		"fullMessage":  fullMessage,
 	}
 
 	err := w.client.Send(m)
