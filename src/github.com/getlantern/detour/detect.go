@@ -19,6 +19,8 @@ var iranRedirectAddr = "10.10.34.34:80"
 func init() {
 	http403 := []byte("HTTP/1.1 403 Forbidden")
 	iranIFrame := []byte(`<iframe src="http://10.10.34.34`)
+	// see tests and https://github.com/getlantern/lantern/issues/2099#issuecomment-78015418
+	// for the facts behind detection rules for Iran
 	detectors["IR"] = &Detector{
 		CheckConn: func(c net.Conn) bool {
 			if ra := c.RemoteAddr(); ra != nil {
