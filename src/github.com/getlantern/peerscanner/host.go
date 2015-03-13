@@ -324,14 +324,14 @@ func (h *host) doReset(newName string) {
  ******************************************************************************/
 
 func (h *host) register() error {
-	errCfl := h.registerCfl()
-	errDsp := h.registerDsp()
-	if errCfl != nil && errDsp == nil {
-		return fmt.Errorf("Error registering Cloudflare: %v", errCfl)
-	} else if errCfl == nil && errDsp != nil {
-		return fmt.Errorf("Error registering DNSSimple: %v", errDsp)
-	} else if errCfl != nil && errDsp != nil {
-		return fmt.Errorf("Error registering (CFL: %v) (DNSSimple: %v)", errCfl, errDsp)
+	cflErr := h.registerCfl()
+	dspErr := h.registerDsp()
+	if cflErr != nil && dspErr == nil {
+		return fmt.Errorf("Error registering Cloudflare: %v", cflErr)
+	} else if cflErr == nil && dspErr != nil {
+		return fmt.Errorf("Error registering DNSSimple: %v", dspErr)
+	} else if cflErr != nil && dspErr != nil {
+		return fmt.Errorf("Error registering (CFL: %v) (DNSSimple: %v)", cflErr, dspErr)
 	}
 	return nil
 }
