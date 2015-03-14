@@ -245,7 +245,7 @@ func runServerProxy(cfg *config.Config) {
 		}
 	}()
 
-	err := srv.ListenAndServe(func(update func(*server.ServerConfig) error) {
+	err = srv.ListenAndServe(func(update func(*server.ServerConfig) error) {
 		err := config.Update(func(cfg *config.Config) error {
 			return update(cfg.Server)
 		})
