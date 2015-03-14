@@ -1,44 +1,11 @@
 # _test_app
 
-This is an example application that prints the version of the running program
-and the executable file's version in a loop. The purpose of this example is to
-demonstrate how to use `github.com/getlantern/autoupdate` and the `equinox`
-backend.
+This is an example application that prints both the version of the running
+program and the version of the executable file's. The purpose of this example
+is to demonstrate how to use `github.com/getlantern/autoupdate` and the
+`github.com/getlantern/autoupdate-server` packages.
 
-## Instructions
-
-[Sign up](https://equinox.io/user/signup) for [equinox.io][1].
-
-Create a new application using the equinox
-[dashboard](https://equinox.io/dashboard).
-
-Identify the **Account ID**, **Secret Key** and the new application's
-**Application ID**
-
-Install the Lantern's releasetool:
-
-```sh
-go install github.com/getlantern/autoupdate/releasetool
-releasetool
-# Usage of releasetool:
-#  -arch="": Build architecture. (amd64|386|arm)
-#  -channel="stable": Release channel.
-#  -config="equinox.yaml": Configuration file.
-#  -os="": Operating system. (linux|windows|darwin)
-#  -source="": Source binary file.
-#  -version=-1: Version number.
-```
-
-We are going to sign our releases, this signature is different from the
-signatures required by OSX and Windows and it's only used to validate the
-integrity of our releases.
-
-If you don't have a keypair already, you can create a new one using `openssl`:
-
-```sh
-openssl genrsa -out private.pem 2048
-openssl rsa -in private.pem -out public.pem -pubout
-```
+## Instructions for integrating autoupdate with an application
 
 Add a new entry for the application inside `config.go` that resembles the
 following map:
@@ -50,120 +17,75 @@ var configMap = map[string]*config{
   // ...
   // "_test_app" will be used as the internal name of the application.
 	"_test_app": &config{
-		appID:         `ap_ZZZ`,
-		updateChannel: `stable`,
 		publicKey:     []byte("-----BEGIN PUBLIC KEY-----\nABCDEF\n-----END PUBLIC KEY-----\n"),
 	},
   // ...
 }
 ```
 
-Create an `equinox.yaml` file and store some values that `releasetool` is going
-to use:
-
-```yaml
-account_id: id_XXX
-secret_key: key_YYY
-application_id: ap_ZZZ
-channel: stable
-private_key: ./private.pem
-```
-
-Use the `releasetool` CLI to update and publish a new binary release.
-
-```sh
-go build -o main.v1
-releasetool -config equinox.yaml -arch amd64 -os darwin -version 1 -channel stable -source main.v1
-# ...
-```
-
-You may sign the executable with codesign or osslsigncode before using
-`releasetool`.
-
 ## How to test the autoupdate package?
 
-In order to actually test automatic updates, we are going to manually increase
-the version of `main.go`, compile a new binary and upload it to equinox.
-
-You should already have a `main.v1` compiled binary, if not, create it:
-
-```
-go build -o main.v1
-```
-
-And upload it to equinox:
-
-```
-releasetool -config equinox.yaml -arch amd64 -os darwin -version 1 -channel stable -source main.v1
-```
-
-Increase `internalVersion` constant to 2 and repeat:
+Use the `generate.sh` script to build binaries for different operating systems
+and architectures.
 
 ```sh
-grep internalVersion main.go | head -n 1
-#        internalVersion = 2
-go build -o main.v2
-releasetool ... -version 2 -source main.v2
+./generate.sh
 ```
 
-Keep doing it again for versions 3 and 4.
+This script will create binaries for Windows, Linux and OSX that match with
+versions v0.1, v0.2, v0.3 and v0.4.
 
-You can also use this script that will bump the versions, compile and release
-each generated binary:
+Create an entry in the github releases page for each one of the generated
+versions, see https://github.com/getlantern/autoupdate-server/releases.
 
-```
-#/bin/bash
-
-for i in $(seq 1 4); do
-	sed s/"internalVersion =.*"/"internalVersion = $i"/g main.go > main.go.tmp
-	mv main.go.tmp main.go
-	go build -o main.v$i
-	releasetool -config equinox.yaml -arch amd64 -os darwin -version $i -channel stable -source main.v$i
-done
-
-git checkout main.go
-```
-
-Copy the original `main.v1` to `main`:
+Note that the generated binaries follow this pattern:
 
 ```
-cp main.v1 main
+autoupdate-binary-{windows|linux|darwin}-{amd64|386|arm}
 ```
 
-The example application is configured to access a flashlight proxy at
-`127.0.0.1:9999` to download updates from the network, so launch such proxy
-before running the application:
+The pattern above is required for the autoupdate-server to know which file
+corresponds to which version, operating system and architecture.
+
+The extension is optional and is ignored by the autoupdate-server.
+
+Other files in the release that do not match the file pattern will also be
+ignored.
+
+Copy the v0.1 release of the os/architecture combination you're currently
+working into a file named `main`:
 
 ```
-./flashlight -role client -addr 127.0.0.1:9999
+$ cp autoupdate-binary-darwin-amd64.v1 main
 ```
 
-Finally, run the `main` program and wait a bit for it to update.
+Run the `main` file you've just created, it will eventually update itself to
+the latest released version:
 
-```sh
-./main
-# Running program version: 1, binary file version: 1
-# Running program version: 1, binary file version: 1
-# ...
-# Running program version: 1, binary file version: 1
-# Executable file has been updated to version 3.
-# Running program version: 1, binary file version: 3
-# Running program version: 1, binary file version: 3
-# ...
-^C
+```
+$ ./main
+Running program version: v0.1.0, binary file version: v0.1.0
+2015/03/13 16:47:16 autoupdate: Attempting to update to v0.4.
+Running program version: v0.1.0, binary file version: v0.1.0
+Running program version: v0.1.0, binary file version: v0.1.0
+Running program version: v0.1.0, binary file version: v0.1.0
+2015/03/13 16:47:20 autoupdate: Patching succeeded!
+Executable file has been updated to version v0.4.
+Running program version: v0.1.0, binary file version: v0.4
+Running program version: v0.1.0, binary file version: v0.4
 ```
 
-The next time the program runs, it will display version 3 instead of version 1
-for both software and executable and the checksum of `main` and `main.v3` will
-be the same.
+If you try to run the program again, it will be already up to date.
 
-```sh
-./main
-# Running program version: 3, binary file version: 3
-# Running program version: 3, binary file version: 3
-# Running program version: 3, binary file version: 3
-# ...
-^C
+```
+$ ./main
+Running program version: v0.4.0, binary file version: v0.4.0
+2015/03/13 16:47:28 autoupdate: Already up to date.
+Running program version: v0.4.0, binary file version: v0.4.0
+Running program version: v0.4.0, binary file version: v0.4.0
 ```
 
-[1]: https://equinox.io/
+## About signatures
+
+You may sign the executable with `codesign` or `osslsigncode` before uploading
+the binary to github.

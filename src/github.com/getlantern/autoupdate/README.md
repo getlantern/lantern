@@ -2,8 +2,8 @@
 
 The `autoupdate` package provides [Lantern][1] with the ability to request,
 download and apply software updates over the network with minimal interaction.
-At this time, `autoupdate` relies on the [go-update][2] package and the
-[equinox update server][3].
+At this time, `autoupdate` relies on the [go-update][2] and the
+[autoupdate-server][3] packages.
 
 ## General flow
 
@@ -45,4 +45,4 @@ with the patched one.
 
 [1]: https://getlantern.org/
 [2]: https://github.com/inconshreveable/go-update
-[3]: https://equinox.io/
+[3]: https://github.com/getlantern/autoupdate-server
