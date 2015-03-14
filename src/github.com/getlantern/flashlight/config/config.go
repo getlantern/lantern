@@ -264,15 +264,22 @@ func (cfg *Config) applyClientDefaults() {
 		cfg.Client.FrontedServers = make([]*client.FrontedServerInfo, 0)
 	}
 	if len(cfg.Client.FrontedServers) == 0 && len(cfg.Client.ChainedServers) == 0 {
-		cfg.Client.FrontedServers = append(cfg.Client.FrontedServers, &client.FrontedServerInfo{
-			Host:           "nl.fallbacks.getiantem.org",
-			Port:           443,
-			PoolSize:       30,
-			MasqueradeSet:  cloudflare,
-			MaxMasquerades: 20,
-			QOS:            10,
-			Weight:         4000,
-		})
+		cfg.Client.FrontedServers = []*client.FrontedServerInfo{
+			&client.FrontedServerInfo{
+				Host:           "nl.fallbacks.getiantem.org",
+				Port:           443,
+				PoolSize:       30,
+				MasqueradeSet:  cloudflare,
+				MaxMasquerades: 20,
+				QOS:            10,
+				Weight:         4000,
+			},
+		}
+
+		cfg.Client.ChainedServers = make(map[string]*client.ChainedServerInfo, len(fallbacks))
+		for key, fb := range fallbacks {
+			cfg.Client.ChainedServers[key] = fb
+		}
 	}
 
 	// Make sure all servers have a QOS and Weight configured
