@@ -253,7 +253,7 @@ func loadHosts() (map[string]*host, error) {
 	hostsByName := make(map[string]*host)
 	hostsByIp := make(map[string]*host)
 	for _, pre := range preHosts {
-		h := newHost(pre.name, pre.ip, pre.cflRecord, pre.dspRecord)
+		h := newHost(pre.name, pre.ip, "", pre.cflRecord, pre.dspRecord)
 		hostsByName[h.name] = h
 		hostsByIp[h.ip] = h
 	}
@@ -331,13 +331,13 @@ func removeDspRecord(wg *sync.WaitGroup, k string, r *dnsimple.Record) {
 	wg.Done()
 }
 
-func getOrCreateHost(name string, ip string) *host {
+func getOrCreateHost(name string, ip string, port string) *host {
 	hostsMutex.Lock()
 	defer hostsMutex.Unlock()
 
 	h := hosts[ip]
 	if h == nil {
-		h := newHost(name, ip, nil, nil)
+		h := newHost(name, ip, port, nil, nil)
 		hosts[ip] = h
 		go h.run()
 		return h
