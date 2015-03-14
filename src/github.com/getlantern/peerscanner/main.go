@@ -250,21 +250,23 @@ func loadHosts() (map[string]*host, error) {
 		}
 	}
 
-	hosts := make(map[string]*host)
-	for ip, h := range preHosts {
-		hosts[ip] = newHost(h.name, h.ip, h.cflRecord, h.dspRecord)
+	hostsByName := make(map[string]*host)
+	hostsByIp := make(map[string]*host)
+	for _, pre := range preHosts {
+		h := newHost(pre.name, pre.ip, pre.cflRecord, pre.dspRecord)
+		hostsByName[h.name] = h
+		hostsByIp[h.ip] = h
 	}
 
 	for _, d := range dists {
-		h, found := hosts[d.InstanceId]
+		h, found := hostsByName[d.InstanceId]
 		if found {
 			h.cfrDist = d
 		}
 	}
 
 	// Update hosts with Cloudflare group info
-	// XXX: same for DNSSimple
-	for _, h := range hosts {
+	for _, h := range hostsByIp {
 		for _, hg := range h.cflGroups {
 			g, found := cflGroups[hg.subdomain]
 			if found {
@@ -272,16 +274,32 @@ func loadHosts() (map[string]*host, error) {
 				delete(g, h.ip)
 			}
 		}
+		// Don't accept round robins unless we have a working Cloudfront
+		// distribution
+		if h.cfrDistReady() {
+			for _, hg := range h.dspGroups {
+				g, found := dspGroups[hg.subdomain]
+				if found {
+					hg.existing = g[h.ip]
+					delete(g, h.ip)
+				}
+			}
+		}
 	}
 
 	var wg sync.WaitGroup
 
 	// Remove items from rotation that don't have a corresponding host
-	// XXX: same for DNSSimple, plus check that we have a Deployed distribution
 	for k, g := range cflGroups {
 		for _, r := range g {
 			wg.Add(1)
-			go removeRecord(&wg, k, r)
+			go removeCflRecord(&wg, k, r)
+		}
+	}
+	for k, g := range dspGroups {
+		for _, r := range g {
+			wg.Add(1)
+			go removeDspRecord(&wg, k, r)
 		}
 	}
 
@@ -295,11 +313,20 @@ func loadHosts() (map[string]*host, error) {
 	return hosts, nil
 }
 
-func removeRecord(wg *sync.WaitGroup, k string, r *cloudflare.Record) {
-	log.Debugf("%v in %v is missing host, removing", r.Value, k)
+func removeCflRecord(wg *sync.WaitGroup, k string, r *cloudflare.Record) {
+	log.Debugf("%v in %v is missing Cloudflare record, removing", r.Value, k)
 	err := cflutil.DestroyRecord(r)
 	if err != nil {
-		log.Debugf("Unable to remove %v from %v: %v", r.Value, k, err)
+		log.Debugf("Unable to remove %v from Cloudflare's %v: %v", r.Value, k, err)
+	}
+	wg.Done()
+}
+
+func removeDspRecord(wg *sync.WaitGroup, k string, r *dnsimple.Record) {
+	log.Debugf("%v in %v is missing DNSimple record, removing", r.Content, k)
+	err := dsputil.DestroyRecord(r)
+	if err != nil {
+		log.Debugf("Unable to remove %v from DNSimple's %v: %v", r.Content, k, err)
 	}
 	wg.Done()
 }
