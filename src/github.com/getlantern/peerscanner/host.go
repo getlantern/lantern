@@ -409,7 +409,7 @@ func (h *host) registerToCflRotations() error {
 }
 
 func (h *host) registerToDspRotations() error {
-	if h.cfrDist == nil || h.cfrDist.Status != "Deployed" {
+	if !h.cfrDistReady() {
 		log.Debugf("Cloudfront distribution for %v not ready yet; not registering to rotations.", h.name)
 		return nil
 	}
@@ -527,4 +527,8 @@ func (h *host) doDeregisterDspHost() error {
 		return fmt.Errorf("Unable to deregister DNSimple record %v: %v", h, err)
 	}
 	return nil
+}
+
+func (h *host) cfrDistReady() bool {
+	return h.cfrDist != nil && h.cfrDist.Status == "Deployed"
 }
