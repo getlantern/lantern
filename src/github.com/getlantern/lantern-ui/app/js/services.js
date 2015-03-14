@@ -32,8 +32,8 @@ angular.module('app.services', [])
     }, connectedExpiration);
 
     function applyPeer(peer) {
-      // Always set mode to get
-      peer.mode = 'get';
+      // Always set mode to give
+      peer.mode = 'give';
 
       setConnected(peer);
       
