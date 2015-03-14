@@ -162,6 +162,12 @@ func (server *Server) register(updateConfig func(func(*ServerConfig) error)) {
 	for {
 		server.cfgMutex.RLock()
 		baseUrl := server.cfg.RegisterAt
+		var port string
+		if server.cfg.Unencrypted {
+			port = "80"
+		} else {
+			port = "443"
+		}
 		server.cfgMutex.RUnlock()
 		if baseUrl != "" {
 			if globals.InstanceId == "" {
@@ -171,7 +177,7 @@ func (server *Server) register(updateConfig func(func(*ServerConfig) error)) {
 				registerUrl := baseUrl + "/register"
 				vals := url.Values{
 					"name":   []string{globals.InstanceId},
-					"port":   []string{"443"},
+					"port":   []string{port},
 					"fronts": supportedFronts,
 				}
 				resp, err := http.PostForm(registerUrl, vals)
