@@ -16,6 +16,14 @@ client:
     maxmasquerades: 20
     qos: 2
     weight: 0
+  chainedservers: {{range .fallbacks}}
+    fallback-{{.ip}}:
+      addr: {{.ip}}:443
+      cert: "{{.cert}}"
+      authtoken: "{{.auth_token}}"
+      pipelined: true
+      weight: 1000000
+      qos: 10{{end}}
   masqueradesets:
     cloudflare:{{range .masquerades}}
     - domain: {{.Domain}}

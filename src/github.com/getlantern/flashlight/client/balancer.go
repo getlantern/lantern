@@ -29,7 +29,7 @@ func (client *Client) initBalancer(cfg *ClientConfig) (*balancer.Balancer, front
 
 	log.Debugf("Adding %d chained servers", len(cfg.ChainedServers))
 	for _, s := range cfg.ChainedServers {
-		dialer, err := s.dialer()
+		dialer, err := s.Dialer()
 		if err == nil {
 			dialers = append(dialers, dialer)
 		} else {
