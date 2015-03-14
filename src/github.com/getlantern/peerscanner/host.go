@@ -448,10 +448,6 @@ func (h *host) deregisterFromRotations() {
 	}
 }
 
-func (h *host) fullName() string {
-	return h.name + "." + *cfldomain
-}
-
 func (h *host) isFallback() bool {
 	return isFallback(h.name)
 }
@@ -474,7 +470,7 @@ func (h *host) isAbleToProxy() (bool, bool, error) {
 				// routing.
 				h.reportedHostMutex.Lock()
 				defer h.reportedHostMutex.Unlock()
-				if h.reportedHost != h.fullName() {
+				if !h.reportedHostOk() {
 					success = false
 					lastErr := fmt.Errorf("%v is reporting an unexpected host %v", h, h.reportedHost)
 					log.Error(lastErr.Error())
@@ -566,4 +562,9 @@ func (h *host) doDeregisterDspHost() error {
 
 func (h *host) cfrDistReady() bool {
 	return h.cfrDist != nil && h.cfrDist.Status == "Deployed"
+}
+
+func (h *host) reportedHostOk() bool {
+	// Match the FQDN at Cloudflare or Cloudfront
+	return (h.reportedHost == h.name+"."+*cfldomain) || (h.cfrDistReady() && h.reportedHost == h.cfrDist.Domain)
 }
