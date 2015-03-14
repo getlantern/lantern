@@ -6,6 +6,7 @@ import (
 	"syscall"
 )
 
+// Detector is just a set of rules to check if a site is potentially blocked or not
 type Detector struct {
 	CheckConn    func(net.Conn) bool
 	CheckError   func(error) bool

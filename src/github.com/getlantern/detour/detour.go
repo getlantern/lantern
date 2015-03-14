@@ -99,7 +99,8 @@ var statesDesc = []string{
 	"detoured",
 }
 
-// SetCountry sets the ISO 3166-1 alpha-2 country code to load country specific detection rules
+// SetCountry sets the ISO 3166-1 alpha-2 country code
+// to load country specific detection rules
 func SetCountry(country string) {
 	blockDetector.Store(detectorByCountry(country))
 }
@@ -168,6 +169,8 @@ func (dc *Conn) Read(b []byte) (n int, err error) {
 		}
 		return
 	}
+	// Hijacked content is usualy encapsulated in one IP packet,
+	// so just check it in one read rather than consecutive reads.
 	if detector.CheckContent(b) {
 		log.Tracef("Read %d bytes from %s %s, content is hijacked, detour", n, dc.addr, dc.stateDesc())
 		return dc.detour(b)
@@ -177,6 +180,7 @@ func (dc *Conn) Read(b []byte) (n int, err error) {
 	return
 }
 
+// followUpRead is called by Read() if a connection's state already settled
 func (dc *Conn) followUpRead(b []byte) (n int, err error) {
 	detector := blockDetector.Load().(*Detector)
 	if n, err = dc.countedRead(b); err != nil {
@@ -195,6 +199,8 @@ func (dc *Conn) followUpRead(b []byte) (n int, err error) {
 		}
 		return
 	}
+	// Hijacked content is usualy encapsulated in one IP packet,
+	// so just check it in one read rather than consecutive reads.
 	if dc.inState(stateDirect) && detector.CheckContent(b) {
 		log.Tracef("%s still content hijacked, add to whitelist so will try detour next time", dc.addr)
 		addToWl(dc.addr, false)
@@ -204,6 +210,7 @@ func (dc *Conn) followUpRead(b []byte) (n int, err error) {
 	return
 }
 
+// detour sets up a detoured connection and try read again from it
 func (dc *Conn) detour(b []byte) (n int, err error) {
 	if err = dc.setupDetour(); err != nil {
 		log.Errorf("Error while setup detour: %s", err)
