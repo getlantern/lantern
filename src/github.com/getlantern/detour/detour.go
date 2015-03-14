@@ -23,9 +23,9 @@ The action taken and state transistion in each phase is as follows:
 (buf) = resend buffer
 tl = temporary whitelist
 wl = permanent whitelist
+
 * Operation will time out in TimeoutToDetour in initial state,
-and at system default or caller supplied deadline for other states;
-but in detoured state, it is considered as timeout if an operation takes longer than TimeoutToDetour.
+but at system default or caller supplied deadline for other states;
 ** DNS hijack is only checked at dial time.
 *** Connection is always detoured if the site is in tl or wl.
 */
@@ -165,14 +165,22 @@ func (dc *Conn) Read(b []byte) (n int, err error) {
 	if err != nil {
 		log.Debugf("Error while read from %s %s: %s", dc.addr, dc.stateDesc(), err)
 		if detector.CheckError(err) {
-			return dc.detour(b)
+			// to avoid double submitting, we only resend Idempotent requests
+			// but return error directly to application for other requests.
+			if dc.isIdempotentRequest() {
+				log.Debugf("Detour HTTP GET request to %s", dc.addr)
+				return dc.detour(b)
+			} else {
+				log.Debugf("Not HTTP GET request, add to whitelist")
+				addToWl(dc.addr, false)
+			}
 		}
 		return
 	}
 	// Hijacked content is usualy encapsulated in one IP packet,
 	// so just check it in one read rather than consecutive reads.
 	if detector.CheckContent(b) {
-		log.Tracef("Read %d bytes from %s %s, content is hijacked, detour", n, dc.addr, dc.stateDesc())
+		log.Tracef("Read %d bytes from %s %s, response is hijacked, detour", n, dc.addr, dc.stateDesc())
 		return dc.detour(b)
 	}
 	log.Tracef("Read %d bytes from %s %s, set state to direct", n, dc.addr, dc.stateDesc())
@@ -191,8 +199,12 @@ func (dc *Conn) followUpRead(b []byte) (n int, err error) {
 		log.Tracef("Read from %s %s failed: %s", dc.addr, dc.stateDesc(), err)
 		switch {
 		case dc.inState(stateDirect) && detector.CheckError(err):
-			log.Tracef("%s still blocked, add to whitelist so will try detour next time", dc.addr)
-			addToWl(dc.addr, false)
+			// to prevent a slow or unstable site from been treated as blocked,
+			// we only check first 4K bytes, which roughly equals to the payload of 3 full packets on Ethernet
+			if atomic.LoadInt64(&dc.readBytes) <= 4096 {
+				log.Tracef("Seems %s still blocked, add to whitelist so will try detour next time", dc.addr)
+				addToWl(dc.addr, false)
+			}
 		case dc.inState(stateDetour) && wlTemporarily(dc.addr):
 			log.Tracef("Detoured route is not reliable for %s, not whitelist it", dc.addr)
 			removeFromWl(dc.addr)
@@ -322,6 +334,28 @@ func (dc *Conn) resetLocalBuffer() {
 	dc.muLocalBuffer.Lock()
 	dc.localBuffer.Reset()
 	dc.muLocalBuffer.Unlock()
+}
+
+var nonIdempotentMethods = [][]byte{
+	[]byte("POST "),
+	[]byte("PATCH "),
+}
+
+// ref section 9.1.2 of https://www.ietf.org/rfc/rfc2616.txt.
+// checks against non-idemponent methods actually,
+// as we consider the https handshake phase to be idemponent.
+func (dc *Conn) isIdempotentRequest() bool {
+	dc.muLocalBuffer.Lock()
+	defer dc.muLocalBuffer.Unlock()
+	b := dc.localBuffer.Bytes()
+	if len(b) > 4 {
+		for _, m := range nonIdempotentMethods {
+			if bytes.HasPrefix(b, m) {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 func (dc *Conn) countedRead(b []byte) (n int, err error) {

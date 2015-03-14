@@ -39,22 +39,25 @@ func TestBlockedImmediately(t *testing.T) {
 	resp, err := client.Get(mockURL)
 	assert.Error(t, err, "direct access to a timeout url should fail")
 
-	client = &http.Client{
-		Transport: &http.Transport{
-			Dial: Dialer(proxyTo(proxiedURL))},
-		Timeout: 100 * time.Millisecond,
-	}
+	client = newClient(proxiedURL, 100*time.Millisecond)
 	resp, err = client.Get("http://255.0.0.1") // it's reserved for future use so will always time out
 	if assert.NoError(t, err, "should have no error if dialing times out") {
 		assert.True(t, wlTemporarily("255.0.0.1:80"), "should be added to whitelist if dialing times out")
 		assertContent(t, resp, detourMsg, "should detour if dialing times out")
 	}
 
+	u, _ := url.Parse(mockURL)
 	resp, err = client.Get(mockURL)
 	if assert.NoError(t, err, "should have no error if reading times out") {
-		u, _ := url.Parse(mockURL)
 		assert.True(t, wlTemporarily(u.Host), "should be added to whitelist if reading times out")
 		assertContent(t, resp, detourMsg, "should detour if reading times out")
+	}
+
+	client = newClient(proxiedURL, 100*time.Millisecond)
+	removeFromWl(u.Host)
+	resp, err = client.PostForm(mockURL, url.Values{"key": []string{"value"}})
+	if assert.Error(t, err, "Non-idempotent method should not be detoured in same connection") {
+		assert.True(t, wlTemporarily(u.Host), "but should be added to whitelist so will detour next time")
 	}
 }
 
@@ -63,11 +66,7 @@ func TestBlockedAfterwards(t *testing.T) {
 	proxiedURL, _ := newMockServer(detourMsg)
 	TimeoutToDetour = 50 * time.Millisecond
 	mockURL, mock := newMockServer(directMsg)
-	client := &http.Client{
-		Transport: &http.Transport{
-			Dial: Dialer(proxyTo(proxiedURL))},
-		Timeout: 100 * time.Millisecond,
-	}
+	client := newClient(proxiedURL, 100*time.Millisecond)
 
 	mock.Msg(directMsg)
 	resp, err := client.Get(mockURL)
@@ -91,11 +90,7 @@ func TestRemoveFromWhitelist(t *testing.T) {
 	proxy.Timeout(200*time.Millisecond, detourMsg)
 	TimeoutToDetour = 50 * time.Millisecond
 	mockURL, _ := newMockServer(directMsg)
-	client := &http.Client{
-		Transport: &http.Transport{
-			Dial: Dialer(proxyTo(proxiedURL))},
-		Timeout: 100 * time.Millisecond,
-	}
+	client := newClient(proxiedURL, 100*time.Millisecond)
 
 	u, _ := url.Parse(mockURL)
 	addToWl(u.Host, false)
@@ -112,11 +107,8 @@ func TestIranRules(t *testing.T) {
 	TimeoutToDetour = 50 * time.Millisecond
 	SetCountry("IR")
 	u, mock := newMockServer(directMsg)
-	client := &http.Client{
-		Transport: &http.Transport{
-			Dial: Dialer(proxyTo(proxiedURL))},
-		Timeout: 250 * time.Millisecond,
-	}
+	client := newClient(proxiedURL, 100*time.Millisecond)
+
 	mock.Raw(iranResp)
 	resp, err := client.Get(u)
 	if assert.NoError(t, err, "should not error if content hijacked in Iran") {
@@ -131,6 +123,13 @@ func TestIranRules(t *testing.T) {
 	}
 }
 
+func newClient(proxyURL string, timeout time.Duration) *http.Client {
+	return &http.Client{
+		Transport: &http.Transport{
+			Dial: Dialer(proxyTo(proxyURL))},
+		Timeout: timeout,
+	}
+}
 func assertContent(t *testing.T, resp *http.Response, msg string, reason string) {
 	b, err := ioutil.ReadAll(resp.Body)
 	assert.NoError(t, err, reason)
