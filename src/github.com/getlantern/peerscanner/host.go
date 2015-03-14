@@ -64,6 +64,7 @@ type host struct {
 	cfrDist     *cfr.Distribution
 	isProxying  bool
 	cflGroups   map[string]*cflGroup
+	dspGroups   map[string]*dspGroup
 	lastSuccess time.Time
 	lastTest    time.Time
 
@@ -128,16 +129,22 @@ func newHost(name string, ip string, cflRecord *cloudflare.Record, dspRecord *dn
 	}
 
 	if h.isFallback() {
-		//XXX: cflGroups + dspGroups
+
 		h.cflGroups = map[string]*cflGroup{
 			RoundRobin: &cflGroup{subdomain: RoundRobin},
 			Fallbacks:  &cflGroup{subdomain: Fallbacks},
 			Peers:      &cflGroup{subdomain: Peers},
 		}
+		h.dspGroups = map[string]*dspGroup{
+			RoundRobin: &dspGroup{subdomain: RoundRobin},
+			Fallbacks:  &dspGroup{subdomain: Fallbacks},
+			Peers:      &dspGroup{subdomain: Peers},
+		}
 		country := fallbackCountry(name)
 		if country != "" {
 			// Add host to country-specific rotation
 			h.cflGroups[country] = &cflGroup{subdomain: country}
+			h.dspGroups[country] = &dspGroup{subdomain: country}
 		}
 	} else {
 		log.Errorf("Somehow adding peer host? %v (%v)", name, ip)
@@ -195,7 +202,7 @@ func (h *host) doInitCfrDist() {
 		if err == nil {
 			h.cfrDist = dist
 		} else {
-			log.Debugf("Error trying to initialize cloudfront distribution for %v: %v", h, err)
+			log.Debugf("Error trying to initialize cloudfront distribution for %v: %v", h.name, err)
 		}
 	}
 }
@@ -402,13 +409,24 @@ func (h *host) registerToCflRotations() error {
 }
 
 func (h *host) registerToDspRotations() error {
-	//XXX
+	if h.cfrDist == nil || h.cfrDist.Status != "Deployed" {
+		log.Debugf("Cloudfront distribution for %v not ready yet; not registering to rotations.", h.name)
+		return nil
+	}
+	for _, group := range h.dspGroups {
+		err := group.register(h)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
 func (h *host) deregisterFromRotations() {
-	//XXX: cflGroups + dspGroups
 	for _, group := range h.cflGroups {
+		group.deregister(h)
+	}
+	for _, group := range h.dspGroups {
 		group.deregister(h)
 	}
 }

@@ -19,7 +19,7 @@ func (g *cflGroup) String() string {
 // already registered.
 func (g *cflGroup) register(h *host) error {
 	if g.isProxying {
-		log.Debugf("%v is already registered in %v, no need to re-register:", h, g.subdomain)
+		log.Debugf("%v is already registered in Cloudflare's %v, no need to re-register:", h, g.subdomain)
 		return nil
 	}
 	log.Debugf("Registering to %v: %v", g.subdomain, h)
@@ -33,7 +33,7 @@ func (g *cflGroup) register(h *host) error {
 // currently registered.
 func (g *cflGroup) deregister(h *host) {
 	if g.existing == nil {
-		log.Tracef("%v is not registered in %v, no need to deregister", h, g.subdomain)
+		log.Tracef("%v is not registered in Cloudflare's %v, no need to deregister", h, g.subdomain)
 		return
 	}
 
@@ -45,7 +45,7 @@ func (g *cflGroup) deregister(h *host) {
 	g.isProxying = false
 
 	if err != nil {
-		log.Errorf("Unable to deregister host %v from rotation %v: %v", h, g.subdomain, err)
+		log.Errorf("Unable to deregister host %v from Cloudflare's rotation %v: %v", h, g.subdomain, err)
 		return
 	}
 }
