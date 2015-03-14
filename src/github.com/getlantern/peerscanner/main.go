@@ -306,11 +306,11 @@ func loadHosts() (map[string]*host, error) {
 	wg.Wait()
 
 	// Start hosts
-	for _, h := range hosts {
+	for _, h := range hostsByIp {
 		go h.run()
 	}
 
-	return hosts, nil
+	return hostsByIp, nil
 }
 
 func removeCflRecord(wg *sync.WaitGroup, k string, r *cloudflare.Record) {

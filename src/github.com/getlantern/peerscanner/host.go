@@ -497,6 +497,8 @@ func (h *host) doIsAbleToProxy() (bool, bool, error) {
 			h.port = "443"
 		}
 		return success, connectionRefused, err
+	} else if h.proxiedClient == nil {
+		h.resetProxiedClient(h.port)
 	}
 	return h.reallyDoIsAbleToProxy(h.port)
 }
