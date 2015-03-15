@@ -26,8 +26,9 @@ type Proxy struct {
 	// TCP dialer is used.
 	Dial dialFunc
 
-	// Host: FQDN of this particular proxy.  Either this or HostFn is required
-	// if this server was originally reached by DNS round robin.
+	// Host: (Deprecated; use HostFn instead) FQDN of this particular proxy.
+	// Either this or HostFn is required if this server was originally reached
+	// by DNS round robin.
 	Host string
 
 	// HostFn: given a http.Request, return the FQDN of this particular proxy,
@@ -179,10 +180,12 @@ func (p *Proxy) handleWrite(resp http.ResponseWriter, req *http.Request, lc *laz
 	if p.HostFn != nil {
 		host = p.HostFn(req)
 	}
+	// Falling back on deprecated mechanism for backwards compatibility
 	if host == "" {
 		host = p.Host
 	}
 	if host != "" {
+		// Enable sticky routing (see the comment on HostFn above).
 		resp.Header().Set(X_ENPROXY_PROXY_HOST, host)
 	}
 	if first {
