@@ -182,7 +182,7 @@ func loadHosts() (map[string]*host, error) {
 		g[r.Value] = &r
 	}
 
-	// Collect round-robin entries in Cloudflare
+	// Collect round-robin entries in DNSimple
 	dspGroups := make(map[string]map[string]*dnsimple.Record, 0)
 	addToDspGroup := func(name string, r dnsimple.Record) {
 		log.Debugf("Adding to %v: %v", name, r.Content)
