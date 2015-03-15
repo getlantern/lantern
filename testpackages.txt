@@ -26,5 +26,7 @@ github.com/getlantern/yamlconf
 github.com/getlantern/flashlight/logging
 github.com/getlantern/flashlight/statreporter
 github.com/getlantern/flashlight
-github.com/getlantern/peerscanner/cf
+github.com/getlantern/peerscanner/cfl
+github.com/getlantern/peerscanner/cfr
+github.com/getlantern/peerscanner/dsp
 github.com/getlantern/proxiedsites

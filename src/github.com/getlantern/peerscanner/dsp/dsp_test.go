@@ -48,7 +48,7 @@ func TestRegister(t *testing.T) {
 }
 
 func getUtil() *Util {
-	u := New("flashlightproxy.org", os.Getenv("DSP_EMAIL"), os.Getenv("DSP_API_TOKEN"))
+	u := New("flashlightproxy.org", os.Getenv("DSP_ID"), os.Getenv("DSP_KEY"))
 	u.Client.HttpClient.Transport = &http.Transport{
 		DisableKeepAlives: true,
 	}
