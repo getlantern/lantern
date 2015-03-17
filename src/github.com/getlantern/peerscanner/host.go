@@ -140,8 +140,8 @@ func (h *host) resetProxiedClient(port string) {
 
 	var dial func(addr string) (net.Conn, error)
 	if port == "80" {
-		dialer := net.Dialer{Timeout: dialTimeout}
 		dial = func(addr string) (net.Conn, error) {
+			dialer := net.Dialer{Timeout: dialTimeout}
 			return dialer.Dial("tcp", h.ip+":80")
 		}
 	} else if port == "443" {
