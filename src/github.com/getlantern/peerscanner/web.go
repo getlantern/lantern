@@ -19,6 +19,11 @@ const (
 	CertFile = "cert.pem"
 )
 
+const (
+	cloudflareBit = 1 << iota
+	cloudfrontBit = 1 << iota
+)
+
 func startHttp() {
 	http.HandleFunc("/register", register)
 	http.HandleFunc("/unregister", unregister)
@@ -51,36 +56,46 @@ func startHttp() {
 // register is the entry point for peers registering themselves with the service.
 // If peers are successfully vetted, they'll be added to the DNS round robin.
 func register(resp http.ResponseWriter, req *http.Request) {
-	name, ip, port, err := getHostInfo(req)
-	if err == nil && port != 443 {
-		err = fmt.Errorf("Port %d not supported, only port 443 is supported", port)
+	name, ip, port, supportedFronts, err := getHostInfo(req)
+	if err == nil && !(port == "80" || port == "443") {
+		err = fmt.Errorf("Port %d not supported, only ports 80 and 443 are supported", port)
 	}
 	if err != nil {
 		resp.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintln(resp, err.Error())
 		return
 	}
-
+	if isPeer(name) {
+		log.Debugf("Not adding peer %v because we're not using peers at the moment", name)
+		resp.WriteHeader(200)
+		fmt.Fprintln(resp, "Peers disabled at the moment")
+		return
+	}
 	online := true
 	connectionRefused := false
 	timedOut := false
 
-	if isPeer(name) {
-		log.Debugf("Not adding peer %v because we're not using peers at the moment", name)
-	} else {
-		h := getOrCreateHost(name, ip)
-		online, connectionRefused, timedOut = h.status()
-		if timedOut {
-			log.Debugf("%v timed out waiting for status, returning 500 error", h)
-			resp.WriteHeader(500)
-			fmt.Fprintf(resp, "Timed out waiting for status")
-			return
-		}
-	}
-
+	h := getOrCreateHost(name, ip, port)
+	online, connectionRefused, timedOut = h.status()
 	if online {
 		resp.WriteHeader(200)
 		fmt.Fprintln(resp, "Connectivity to proxy confirmed")
+		if (supportedFronts & cloudfrontBit) == cloudfrontBit {
+			h.initCloudfront()
+		}
+		fstr := "frontfqdns: {cloudflare: " + name + "." + *cfldomain
+		if h.cfrDist != nil {
+			fstr += ", cloudfront: " + h.cfrDist.Domain
+		}
+		fstr += "}"
+		fmt.Fprintln(resp, fstr)
+
+		return
+	}
+	if timedOut {
+		log.Debugf("%v timed out waiting for status, returning 500 error", h)
+		resp.WriteHeader(500)
+		fmt.Fprintf(resp, "Timed out waiting for status")
 		return
 	}
 
@@ -102,7 +117,7 @@ func register(resp http.ResponseWriter, req *http.Request) {
 // unregister is the HTTP endpoint for removing peers from DNS. Peers are
 // unregistered based on their ip (not their name).
 func unregister(resp http.ResponseWriter, req *http.Request) {
-	_, ip, _, err := getHostInfo(req)
+	_, ip, _, _, err := getHostInfo(req)
 	if err != nil {
 		resp.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintln(resp, err.Error())
@@ -119,8 +134,13 @@ func unregister(resp http.ResponseWriter, req *http.Request) {
 	fmt.Fprintln(resp, msg)
 }
 
-func getHostInfo(req *http.Request) (name string, ip string, port int, err error) {
-	name = req.FormValue("name")
+func getHostInfo(req *http.Request) (name string, ip string, port string, supportedFronts int, err error) {
+	err = req.ParseForm()
+	if err != nil {
+		err = fmt.Errorf("Couldn't parse form: %v", err)
+		return
+	}
+	name = getSingleFormValue(req, "name")
 	if name == "" {
 		err = fmt.Errorf("Please specify a name")
 		return
@@ -130,15 +150,30 @@ func getHostInfo(req *http.Request) (name string, ip string, port int, err error
 		err = fmt.Errorf("Unable to determine IP address")
 		return
 	}
-	portString := req.FormValue("port")
-
-	if portString != "" {
-		port, err = strconv.Atoi(portString)
+	port = getSingleFormValue(req, "port")
+	if port != "" {
+		_, err = strconv.Atoi(port)
 		if err != nil {
-			err = fmt.Errorf("Received invalid port for %v - %v: %v", name, ip, portString)
+			err = fmt.Errorf("Received invalid port for %v - %v: %v", name, ip, port)
+			return
 		}
 	}
-
+	fronts := req.Form["fronts"]
+	if len(fronts) == 0 {
+		// backwards compatibility
+		fronts = []string{"cloudflare"}
+	}
+	for _, front := range fronts {
+		switch front {
+		case "cloudflare":
+			supportedFronts |= cloudflareBit
+		case "cloudfront":
+			supportedFronts |= cloudfrontBit
+		default:
+			// Ignore these for forward compatibility.
+			log.Debugf("Unrecognized front: %v", front)
+		}
+	}
 	return
 }
 
@@ -182,4 +217,16 @@ var fallbackIPPrefixes = []string{
 	"128.199",
 	"178.62",
 	"188.166",
+}
+
+func getSingleFormValue(req *http.Request, name string) string {
+	ls := req.Form[name]
+	if len(ls) == 0 {
+		return ""
+	}
+	if len(ls) > 1 {
+		// But we still allow it for robustness.
+		log.Errorf("More than one '%v' provided in form: %v", name, ls)
+	}
+	return ls[0]
 }
