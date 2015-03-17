@@ -126,6 +126,16 @@ func newHost(name string, ip string, port string, cflRecord *cloudflare.Record, 
 	return h
 }
 
+// resetProxiedClient reconfigures the host so attempts to proxy through it,
+// for the sake of checking whether it's up and serving, will use the given
+// port.  Valid port values are "443", in which case we'll access the proxy
+// through HTTPS, or "80", for an unencrypted connection.
+//
+// This is necessary because when peerscanner starts up and gets the list of
+// hosts from the various DNS/CDN services, it has no way to know what port
+// these servers are listening at.  So we want to try both until one works, or
+// until the server first registers with peerscanner, advertising which port
+// it uses.
 func (h *host) resetProxiedClient(port string) {
 
 	var dial func(addr string) (net.Conn, error)
