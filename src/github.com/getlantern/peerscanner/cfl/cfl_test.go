@@ -70,7 +70,12 @@ func doTestEnsureRegistered(t *testing.T, rec *cloudflare.Record) *cloudflare.Re
 }
 
 func getUtil() *Util {
-	u := New("getiantem.org", os.Getenv("CFL_ID"), os.Getenv("CFL_KEY"))
+	cflid := os.Getenv("CFL_ID")
+	cflkey := os.Getenv("CFL_KEY")
+	if cflid == "" || cflkey == "" {
+		log.Fatalf("You need to set CFL_ID and CFL_KEY environment variables (e.g. `source <too-few-secrets>/envvars.bash`)")
+	}
+	u := New("getiantem.org", cflid, cflkey)
 	u.Client.Http.Transport = &http.Transport{
 		DisableKeepAlives: true,
 	}

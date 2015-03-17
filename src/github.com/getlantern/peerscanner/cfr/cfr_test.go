@@ -8,6 +8,7 @@ import (
 
 	"github.com/satori/go.uuid"
 
+	"github.com/getlantern/aws-sdk-go/gen/cloudfront"
 	"github.com/getlantern/fdcount"
 	"github.com/getlantern/testify/assert"
 )
@@ -17,7 +18,7 @@ func TestList(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to get starting fdcount: %v", err)
 	}
-	cfr := New(os.Getenv("CFR_ID"), os.Getenv("CFR_KEY"), httpClientWithDisabledKeepAlives())
+	cfr := getCfr()
 	dists, err := ListDistributions(cfr)
 	if assert.NoError(t, err, "Should be able to get all distributions") {
 		for _, d := range dists {
@@ -33,7 +34,7 @@ func TestCreateAndRefresh(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to get starting fdcount: %v", err)
 	}
-	cfr := New(os.Getenv("CFR_ID"), os.Getenv("CFR_KEY"), httpClientWithDisabledKeepAlives())
+	cfr := getCfr()
 	// Deleting cloudfront distributions is actually quite an involved process.
 	// Fortunately, distributions per se cost us nothing.  A separate service
 	// will be implemented to delete test and otherwise unused distributions.
@@ -52,10 +53,16 @@ func TestCreateAndRefresh(t *testing.T) {
 	assert.NoError(t, counter.AssertDelta(0), "All file descriptors should have been closed")
 }
 
-func httpClientWithDisabledKeepAlives() *http.Client {
-	return &http.Client{
+func getCfr() *cloudfront.CloudFront {
+	cfrid := os.Getenv("CFR_ID")
+	cfrkey := os.Getenv("CFR_KEY")
+	if cfrid == "" || cfrkey == "" {
+		log.Fatalf("You need to set CFR_ID and CFR_KEY environment variables (e.g. `source <too-few-secrets>/envvars.bash`)")
+	}
+	client := &http.Client{
 		Transport: &http.Transport{
 			DisableKeepAlives: true,
 		},
 	}
+	return New(cfrid, cfrkey, client)
 }

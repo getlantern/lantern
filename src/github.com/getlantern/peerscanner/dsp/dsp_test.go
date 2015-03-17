@@ -48,7 +48,12 @@ func TestRegister(t *testing.T) {
 }
 
 func getUtil() *Util {
-	u := New("flashlightproxy.org", os.Getenv("DSP_ID"), os.Getenv("DSP_KEY"))
+	dspid := os.Getenv("DSP_ID")
+	dspkey := os.Getenv("DSP_KEY")
+	if dspid == "" || dspkey == "" {
+		log.Fatalf("You need to set DSP_ID and DSP_KEY environment variables (e.g. `source <too-few-secrets>/envvars.bash`)")
+	}
+	u := New("flashlightproxy.org", dspid, dspkey)
 	u.Client.HttpClient.Transport = &http.Transport{
 		DisableKeepAlives: true,
 	}
