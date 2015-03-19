@@ -49,6 +49,10 @@ import (
 // http://support2.microsoft.com/default.aspx?scid=kb;en-us;314053
 var TimeoutToDetour = 3 * time.Second
 
+// if DirectAddrCh is set, when a direct connection is closed without any error,
+// the connection's remote address (in host:port format) will be send to it
+var DirectAddrCh chan string
+
 var (
 	log = golog.LoggerFor("detour")
 
@@ -285,9 +289,18 @@ func (dc *Conn) Write(b []byte) (n int, err error) {
 // Close() implements the function from net.Conn
 func (dc *Conn) Close() error {
 	log.Tracef("Closing %s connection to %s", dc.stateDesc(), dc.addr)
-	if atomic.LoadInt64(&dc.readBytes) > 0 && dc.inState(stateDetour) && wlTemporarily(dc.addr) {
-		log.Tracef("no error found till closing, add %s to permanent whitelist", dc.addr)
-		addToWl(dc.addr, true)
+	if atomic.LoadInt64(&dc.readBytes) > 0 {
+		if dc.inState(stateDetour) && wlTemporarily(dc.addr) {
+			log.Tracef("no error found till closing, add %s to permanent whitelist", dc.addr)
+			addToWl(dc.addr, true)
+		} else if dc.inState(stateDirect) && !wlTemporarily(dc.addr) {
+			log.Tracef("no error found till closing, notify caller that %s can be dialed directly", dc.addr)
+			// just fire it, but not blocking if the chan is nil or no reader
+			select {
+			case DirectAddrCh <- dc.addr:
+			default:
+			}
+		}
 	}
 	return dc.getConn().Close()
 }

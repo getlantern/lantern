@@ -101,6 +101,22 @@ func TestRemoveFromWhitelist(t *testing.T) {
 
 }
 
+func TestClosing(t *testing.T) {
+	defer stopMockServers()
+	proxiedURL, proxy := newMockServer(detourMsg)
+	proxy.Timeout(200*time.Millisecond, detourMsg)
+	TimeoutToDetour = 50 * time.Millisecond
+	mockURL, mock := newMockServer(directMsg)
+	mock.Msg(directMsg)
+	DirectAddrCh = make(chan string)
+	{
+		newClient(proxiedURL, 100*time.Millisecond).Get(mockURL)
+	}
+	u, _ := url.Parse(mockURL)
+	addr := <-DirectAddrCh
+	assert.Equal(t, u.Host, addr, "should get notified when a direct connetion has no error while closing")
+}
+
 func TestIranRules(t *testing.T) {
 	defer stopMockServers()
 	proxiedURL, _ := newMockServer(detourMsg)
