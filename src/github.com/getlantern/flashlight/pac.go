@@ -81,6 +81,7 @@ func genPACFile() {
 	muPACFile.Unlock()
 }
 
+// watchDirectAddrs adds any site that has accessed directly without error to PAC file
 func watchDirectAddrs() {
 	detour.DirectAddrCh = make(chan string)
 	go func() {
@@ -96,6 +97,7 @@ func watchDirectAddrs() {
 			directHosts[host] = true
 			genPACFile()
 			// reapply so browser will fetch the PAC URL again
+			doPACOff()
 			doPACOn()
 		}
 	}()
@@ -117,21 +119,24 @@ func pacOn() {
 	atomic.StoreInt32(&isPacOn, 1)
 }
 
+func pacOff() {
+	if atomic.CompareAndSwapInt32(&isPacOn, 1, 0) {
+		log.Debug("Unsetting lantern as system proxy")
+		doPACOff()
+		log.Debug("Unset lantern as system proxy")
+	}
+}
+
 func doPACOn() {
 	err := pac.On(pacURL)
 	if err != nil {
 		log.Errorf("Unable to set lantern as system proxy: %v", err)
-		return
 	}
 }
 
-func pacOff() {
-	if atomic.CompareAndSwapInt32(&isPacOn, 1, 0) {
-		log.Debug("Unsetting lantern as system proxy")
-		err := pac.Off()
-		if err != nil {
-			log.Errorf("Unable to unset lantern as system proxy: %v", err)
-		}
-		log.Debug("Unset lantern as system proxy")
+func doPACOff() {
+	err := pac.Off()
+	if err != nil {
+		log.Errorf("Unable to unset lantern as system proxy: %v", err)
 	}
 }
