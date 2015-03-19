@@ -205,6 +205,8 @@ func runClientProxy(cfg *config.Config) {
 		}
 	}()
 
+	watchDirectAddrs()
+
 	go func() {
 		exit(client.ListenAndServe(pacOn))
 	}()

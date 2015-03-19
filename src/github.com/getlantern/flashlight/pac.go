@@ -2,11 +2,15 @@ package main
 
 import (
 	"fmt"
+	"net"
 	"net/http"
 	"path/filepath"
 	"runtime"
+	"strings"
+	"sync"
 	"sync/atomic"
 
+	"github.com/getlantern/detour"
 	"github.com/getlantern/filepersist"
 	"github.com/getlantern/pac"
 
@@ -14,9 +18,12 @@ import (
 )
 
 var (
-	isPacOn = int32(0)
-	pacURL  string
-	pacFile []byte
+	isPacOn     = int32(0)
+	proxyAddr   string
+	pacURL      string
+	muPACFile   sync.RWMutex
+	pacFile     []byte
+	directHosts = make(map[string]bool)
 )
 
 func setUpPacTool() error {
@@ -45,14 +52,53 @@ func setUpPacTool() error {
 }
 
 func setProxyAddr(addr string) {
-	formatter := `function FindProxyForURL(url, host) {
-  if (host == "localhost" || host == "127.0.0.1") {
-       return "DIRECT";
-  }
-  return "PROXY %s; DIRECT";
+	proxyAddr = addr
 }
-`
-	pacFile = []byte(fmt.Sprintf(formatter, addr))
+
+func genPACFile() {
+	var hosts []string
+	for k, v := range directHosts {
+		if v {
+			hosts = append(hosts, k)
+		}
+	}
+	hostsString := "['" + strings.Join(hosts, "', '") + "']"
+	formatter :=
+		`var bypassDomains = %s;
+		function FindProxyForURL(url, host) {
+			if (host == "localhost" || host == "127.0.0.1") {
+				return "DIRECT";
+			}
+			for (var d in bypassDomains) {
+				if (host == bypassDomains[d]) {
+					return "DIRECT";
+				}
+			}
+			return "PROXY %s; DIRECT";
+		}`
+	muPACFile.Lock()
+	pacFile = []byte(fmt.Sprintf(formatter, hostsString, proxyAddr))
+	muPACFile.Unlock()
+}
+
+func watchDirectAddrs() {
+	detour.DirectAddrCh = make(chan string)
+	go func() {
+		for {
+			addr := <-detour.DirectAddrCh
+			if atomic.LoadInt32(&isPacOn) == 0 {
+				return
+			}
+			host, _, err := net.SplitHostPort(addr)
+			if err != nil {
+				panic("feed watchDirectAddrs with malformated host:port pair")
+			}
+			directHosts[host] = true
+			genPACFile()
+			// reapply so browser will fetch the PAC URL again
+			doPACOn()
+		}
+	}()
 }
 
 func pacOn() {
@@ -60,21 +106,27 @@ func pacOn() {
 	handler := func(resp http.ResponseWriter, req *http.Request) {
 		resp.Header().Set("Content-Type", "application/x-ns-proxy-autoconfig")
 		resp.WriteHeader(http.StatusOK)
+		muPACFile.RLock()
 		resp.Write(pacFile)
+		muPACFile.RUnlock()
 	}
-
+	genPACFile()
 	pacURL = ui.Handle("/proxy_on.pac", http.HandlerFunc(handler))
 	log.Debugf("Serving PAC file at %v", pacURL)
+	doPACOn()
+	atomic.StoreInt32(&isPacOn, 1)
+}
+
+func doPACOn() {
 	err := pac.On(pacURL)
 	if err != nil {
 		log.Errorf("Unable to set lantern as system proxy: %v", err)
 		return
 	}
-	atomic.StoreInt32(&isPacOn, 1)
 }
 
 func pacOff() {
-	if atomic.LoadInt32(&isPacOn) == 1 {
+	if atomic.CompareAndSwapInt32(&isPacOn, 1, 0) {
 		log.Debug("Unsetting lantern as system proxy")
 		err := pac.Off()
 		if err != nil {
