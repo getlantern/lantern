@@ -56,7 +56,7 @@ func init() {
 }
 
 func main() {
-	flag.Parse()
+	parseFlags()
 	showui = !*headless
 
 	if showui {
