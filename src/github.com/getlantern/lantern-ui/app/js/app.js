@@ -167,8 +167,6 @@ var app = angular.module('app', [
     $rootScope.DEFAULT_AVATAR_URL = 'img/default-avatar.png';
     $rootScope.CONTACT_FORM_MAXLEN = CONTACT_FORM_MAXLEN;
 
-    gaMgr.startTracking();
-
     angular.forEach(ENUMS, function(val, key) {
       $rootScope[key] = val;
     });
