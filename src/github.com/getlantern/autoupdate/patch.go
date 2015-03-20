@@ -1,8 +1,6 @@
 package autoupdate
 
 import (
-	"log"
-
 	"github.com/getlantern/go-update/check"
 )
 
@@ -27,7 +25,7 @@ func (p *Patch) Apply() error {
 	if errRecover != nil {
 		// This should never happen, if this ever happens it means bad news such as
 		// a missing executable file.
-		log.Printf("Failed to recover from patching attempt: %q\n", errRecover)
+		log.Errorf("Failed to recover from patching attempt: %q\n", errRecover)
 		return errRecover
 	}
 

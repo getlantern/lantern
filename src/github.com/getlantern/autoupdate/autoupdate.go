@@ -3,8 +3,6 @@
 package autoupdate
 
 import (
-	"fmt"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -12,7 +10,10 @@ import (
 	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/go-update"
 	"github.com/getlantern/go-update/check"
+	"github.com/getlantern/golog"
 )
+
+var log = golog.LoggerFor("autoupdate")
 
 // Making sure AutoUpdate and Patch satisfy AutoUpdater and Patcher.
 var (
@@ -25,6 +26,11 @@ var (
 	sleepTime = time.Hour * 4
 )
 
+type Config struct {
+	URL       string
+	PublicKey []byte
+}
+
 // SetProxy sets the proxy to use.
 func SetProxy(proxyAddr string) {
 	var err error
@@ -32,7 +38,7 @@ func SetProxy(proxyAddr string) {
 	if proxyAddr != "" {
 		// Create a HTTP proxy and pass it to the update package.
 		if update.HTTPClient, err = util.HTTPClient("", proxyAddr); err != nil {
-			log.Printf("Could not use proxy: %q\n", err)
+			log.Errorf("Could not use proxy: %q\n", err)
 		}
 	} else {
 		update.HTTPClient = &http.Client{}
@@ -42,24 +48,18 @@ func SetProxy(proxyAddr string) {
 // AutoUpdate satisfies AutoUpdater and can be used for other programs to
 // configure automatic updates.
 type AutoUpdate struct {
-	cfg config
-	v   string
+	*Config
+	v string
 	// When a patch has been applied, the patch's version will be sent to
 	// UpdatedTo.
 	UpdatedTo chan string
 }
 
-// New creates an AutoUpdate struct based in the configuration defined in
-// config.go.
-func New(appName string) *AutoUpdate {
-	if configMap[appName] == nil {
-		// Panicking because we can't continue with autoupdates without proper
-		// configuration.
-		panic(fmt.Sprintf(`autoupdate: You must define a new config["%s"] entry to configure updates for this application. See config.go.`, appName))
-	}
+// New creates an AutoUpdate struct based on the given *Config.
+func New(cfg *Config) *AutoUpdate {
 	a := &AutoUpdate{
 		UpdatedTo: make(chan string),
-		cfg:       *configMap[appName],
+		Config:    cfg,
 	}
 	return a
 }
@@ -93,11 +93,11 @@ func (a *AutoUpdate) check() (res *check.Result, err error) {
 
 	up = update.New().ApplyPatch(update.PATCHTYPE_BSDIFF)
 
-	if _, err = up.VerifySignatureWithPEM(a.cfg.publicKey); err != nil {
+	if _, err = up.VerifySignatureWithPEM(a.PublicKey); err != nil {
 		return nil, err
 	}
 
-	if res, err = param.CheckForUpdate(updateURI, up); err != nil {
+	if res, err = param.CheckForUpdate(a.URL, up); err != nil {
 		if err == check.NoUpdateAvailable {
 			return nil, nil
 		}
@@ -125,29 +125,31 @@ func (a *AutoUpdate) Query() (Patcher, error) {
 }
 
 func (a *AutoUpdate) loop() {
+	log.Debug("Starting to watch for updates")
 	for {
 		patch, err := a.Query()
 
 		if err == nil {
+			log.Debugf("Old: %v  New: %v", a.Version(), patch.Version())
 			if VersionCompare(a.Version(), patch.Version()) == Higher {
-				log.Printf("autoupdate: Attempting to update to %s.", patch.Version())
+				log.Debugf("autoupdate: Attempting to update to %s.", patch.Version())
 
 				err = patch.Apply()
 
 				if err == nil {
-					log.Printf("autoupdate: Patching succeeded!")
+					log.Debugf("autoupdate: Patching succeeded!")
 					// Updating version.
 					a.UpdatedTo <- patch.Version()
 					a.SetVersion(patch.Version())
 				} else {
-					log.Printf("autoupdate: Patching failed: %q\n", err)
+					log.Errorf("autoupdate: Patching failed: %q\n", err)
 				}
 
 			} else {
-				log.Printf("autoupdate: Already up to date.")
+				log.Debug("autoupdate: Already up to date.")
 			}
 		} else {
-			log.Printf("autoupdate: Could not reach update server: %q\n", err)
+			log.Debugf("autoupdate: Could not reach update server: %q\n", err)
 		}
 
 		time.Sleep(sleepTime)
