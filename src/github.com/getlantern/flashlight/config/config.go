@@ -52,7 +52,7 @@ type Config struct {
 	CpuProfile    string
 	MemProfile    string
 	UIAddr        string // UI HTTP server address
-	AutoReport    bool   // Report anonymous usage to GA
+	AutoReport    *bool  // Report anonymous usage to GA
 	Stats         *statreporter.Config
 	Server        *server.ServerConfig
 	Client        *client.ClientConfig
@@ -281,6 +281,11 @@ func (cfg *Config) applyClientDefaults() {
 		for key, fb := range fallbacks {
 			cfg.Client.ChainedServers[key] = fb
 		}
+	}
+
+	if cfg.AutoReport == nil {
+		cfg.AutoReport = new(bool)
+		*cfg.AutoReport = true
 	}
 
 	// Make sure all servers have a QOS and Weight configured

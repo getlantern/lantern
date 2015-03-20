@@ -36,7 +36,7 @@ func Configure(cfg *config.Config, version, buildDate string) {
 	baseSettings = &Settings{
 		Version:    version,
 		BuildDate:  buildDate,
-		AutoReport: cfg.AutoReport,
+		AutoReport: *cfg.AutoReport,
 	}
 
 	if service == nil {
@@ -69,11 +69,8 @@ func read() {
 	for msg := range service.In {
 		settings := (msg).(map[string]interface{})
 		config.Update(func(updated *config.Config) error {
-			if autoReport, exists := settings["autoReport"]; exists {
-				baseSettings.AutoReport = autoReport.(bool)
-				updated.AutoReport = autoReport.(bool)
-
-			}
+			baseSettings.AutoReport = settings["autoReport"].(bool)
+			*updated.AutoReport = settings["autoReport"].(bool)
 			return nil
 		})
 	}
