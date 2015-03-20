@@ -119,12 +119,12 @@ func Dialer(d dialFunc) dialFunc {
 			// always try direct connection first
 			dc.conn, err = net.DialTimeout(network, addr, TimeoutToDetour)
 			if err == nil {
-				if !detector.CheckConn(dc.conn) {
+				if !detector.DNSPoisoned(dc.conn) {
 					log.Tracef("Dial %s to %s succeeded", dc.stateDesc(), addr)
 					return dc, nil
 				}
 				log.Debugf("Dial %s to %s, dns hijacked, try detour", dc.stateDesc(), addr)
-			} else if detector.CheckError(err) {
+			} else if detector.TamperingSuspected(err) {
 				log.Debugf("Dial %s to %s failed, try detour: %s", dc.stateDesc(), addr, err)
 			} else {
 				log.Debugf("Dial %s to %s failed: %s", dc.stateDesc(), addr, err)
@@ -168,7 +168,7 @@ func (dc *Conn) Read(b []byte) (n int, err error) {
 	detector := blockDetector.Load().(*Detector)
 	if err != nil {
 		log.Debugf("Error while read from %s %s: %s", dc.addr, dc.stateDesc(), err)
-		if detector.CheckError(err) {
+		if detector.TamperingSuspected(err) {
 			// to avoid double submitting, we only resend Idempotent requests
 			// but return error directly to application for other requests.
 			if dc.isIdempotentRequest() {
@@ -183,7 +183,7 @@ func (dc *Conn) Read(b []byte) (n int, err error) {
 	}
 	// Hijacked content is usualy encapsulated in one IP packet,
 	// so just check it in one read rather than consecutive reads.
-	if detector.CheckContent(b) {
+	if detector.FakeResponse(b) {
 		log.Tracef("Read %d bytes from %s %s, response is hijacked, detour", n, dc.addr, dc.stateDesc())
 		return dc.detour(b)
 	}
@@ -202,7 +202,7 @@ func (dc *Conn) followUpRead(b []byte) (n int, err error) {
 		}
 		log.Tracef("Read from %s %s failed: %s", dc.addr, dc.stateDesc(), err)
 		switch {
-		case dc.inState(stateDirect) && detector.CheckError(err):
+		case dc.inState(stateDirect) && detector.TamperingSuspected(err):
 			// to prevent a slow or unstable site from been treated as blocked,
 			// we only check first 4K bytes, which roughly equals to the payload of 3 full packets on Ethernet
 			if atomic.LoadInt64(&dc.readBytes) <= 4096 {
@@ -217,7 +217,7 @@ func (dc *Conn) followUpRead(b []byte) (n int, err error) {
 	}
 	// Hijacked content is usualy encapsulated in one IP packet,
 	// so just check it in one read rather than consecutive reads.
-	if dc.inState(stateDirect) && detector.CheckContent(b) {
+	if dc.inState(stateDirect) && detector.FakeResponse(b) {
 		log.Tracef("%s still content hijacked, add to whitelist so will try detour next time", dc.addr)
 		addToWl(dc.addr, false)
 		return
