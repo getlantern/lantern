@@ -87,18 +87,21 @@ func watchDirectAddrs() {
 	go func() {
 		for {
 			addr := <-detour.DirectAddrCh
+			// prevents Lantern from accidently leave pac on after exits
 			if atomic.LoadInt32(&isPacOn) == 0 {
 				return
 			}
 			host, _, err := net.SplitHostPort(addr)
 			if err != nil {
-				panic("feed watchDirectAddrs with malformated host:port pair")
+				panic("watchDirectAddrs() got malformated host:port pair")
 			}
-			directHosts[host] = true
-			genPACFile()
-			// reapply so browser will fetch the PAC URL again
-			doPACOff()
-			doPACOn()
+			if !directHosts[host] {
+				directHosts[host] = true
+				genPACFile()
+				// reapply so browser will fetch the PAC URL again
+				doPACOff()
+				doPACOn()
+			}
 		}
 	}()
 }
