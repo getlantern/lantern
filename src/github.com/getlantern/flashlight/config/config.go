@@ -208,7 +208,7 @@ func (cfg *Config) ApplyDefaults() {
 	}
 
 	if cfg.CloudConfig == "" {
-		cfg.CloudConfig = "https://s3.amazonaws.com/lantern_config/cloud.valencia.yaml.gz"
+		cfg.CloudConfig = "https://s3.amazonaws.com/lantern_config/cloud.2.0.0-beta3.yaml.gz"
 	}
 
 	// Default country
