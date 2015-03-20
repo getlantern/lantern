@@ -81,24 +81,10 @@ func SendRequest(httpClient *http.Client, payload *Payload) (status bool, err er
 		httpClient = defaultHttpClient
 	}
 
-	var req *http.Request
-	var resp *http.Response
-
 	url := composeUrl(payload)
 
-	if req, err = http.NewRequest("GET", url, nil); err != nil {
+	if _, err = http.NewRequest("GET", url, nil); err != nil {
 		log.Errorf("Could not send request to Google Analytics: %q", err)
-		return false, err
-	}
-
-	if resp, err = httpClient.Do(req); err != nil {
-		log.Errorf("Could not get response from Google Analytics: %q", err)
-		return false, err
-	}
-
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		log.Errorf("Got invalid response from Google Analytics server: %q", err)
 		return false, err
 	}
 
