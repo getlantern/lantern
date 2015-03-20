@@ -96,7 +96,7 @@ app.controller('SettingsCtrl', ['$scope', 'MODAL', 'DataStream', 'gaMgr', functi
       DataStream.send('Settings', obj);
 
       if (autoreport) {
-        gaMgr.startTracking();
+            gaMgr.trackPageView('start');
       }
   });
 

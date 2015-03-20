@@ -186,14 +186,6 @@ angular.module('app.services', [])
       var model = modelSrvc.model,
         ga = $window.ga;
 
-    function startTracking() {
-      //log.debug('enabling analytics');
-      $window[GOOGLE_ANALYTICS_DISABLE_KEY] = false;
-      trackPageView('start');
-    }
-
-    // but get a tracker set up and ready for use if analytics become enabled
-    // https://developers.google.com/analytics/devguides/collection/analyticsjs/field-reference
     ga('create', GOOGLE_ANALYTICS_WEBPROP_ID, {cookieDomain: 'none'});
     ga('set', {
       anonymizeIp: true,
@@ -230,7 +222,6 @@ angular.module('app.services', [])
     }
 
     return {
-      startTracking: startTracking,
       trackPageView: trackPageView
     };
   })
