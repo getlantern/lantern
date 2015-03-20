@@ -32,15 +32,28 @@ app.controller('RootCtrl', ['$scope', '$compile', '$window', '$http',
         $scope.currentModal = val;
     };
 
+    $scope.lanternWelcomeKey = localStorageService.get('lanternWelcomeKey');
+
     $scope.closeModal = function() {
-        $scope.currentModal = 'none';
+
+        // if it's our first time opening the UI,
+        // show the settings modal first immediately followed by
+        // the welcome screen
+        if ($scope.currentModal == 'settings' && !$scope.lanternWelcomeKey) {
+            if (!$scope.lanternWelcomeKey) {
+                $scope.showModal('welcome');
+                localStorageService.set('lanternWelcomeKey', true);
+            }
+        } else {
+            $scope.currentModal = 'none';
+        }
     };
 
-    if (!localStorageService.get('lanternWelcomeKey')) {
-        $scope.showModal('welcome');
-        localStorageService.set('lanternWelcomeKey', true);
-    }
-  
+    if (!$scope.lanternWelcomeKey) {
+        $scope.showModal('settings');
+    };
+
+
 }]);
 
 app.controller('UpdateAvailableCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
