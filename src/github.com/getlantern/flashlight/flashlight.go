@@ -190,7 +190,7 @@ func runClientProxy(cfg *config.Config) {
 	}
 
 	logging.Configure(cfg, version, buildDate)
-	settings.Configure(version, buildDate)
+	settings.Configure(cfg, version, buildDate)
 	proxiedsites.Configure(cfg.ProxiedSites, cfg.Addr)
 
 	if hqfd == nil {
