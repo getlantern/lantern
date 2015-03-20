@@ -1,6 +1,8 @@
 package analytics
 
 import (
+	"net/http"
+
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/getlantern/analytics"
@@ -13,14 +15,14 @@ const (
 )
 
 var (
-	log = golog.LoggerFor("flashlight.analytics")
-
-	service *ui.Service
+	log        = golog.LoggerFor("flashlight.analytics")
+	service    *ui.Service
+	httpClient *http.Client
 )
 
-func Start() (err error) {
+func Configure(autoReport *bool, newClient *http.Client) (err error) {
 
-	if service != nil {
+	if !*autoReport || service != nil {
 		return
 	}
 

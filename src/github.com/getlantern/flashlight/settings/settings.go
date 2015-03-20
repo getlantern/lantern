@@ -4,7 +4,6 @@ package settings
 import (
 	"sync"
 
-	"github.com/getlantern/flashlight/analytics"
 	"github.com/getlantern/flashlight/config"
 
 	"github.com/getlantern/flashlight/ui"
@@ -54,11 +53,6 @@ func start(baseSettings *Settings) error {
 	helloFn := func(write func(interface{}) error) error {
 		log.Debugf("Sending Lantern settings to new client")
 		return write(baseSettings)
-	}
-
-	// start GA service
-	if baseSettings.AutoReport {
-		analytics.Start()
 	}
 
 	service, err = ui.Register(messageType, nil, helloFn)

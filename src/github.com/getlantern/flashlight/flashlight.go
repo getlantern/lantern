@@ -16,6 +16,7 @@ import (
 	"github.com/getlantern/profiling"
 	"github.com/getlantern/systray"
 
+	"github.com/getlantern/flashlight/analytics"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/geolookup"
@@ -199,6 +200,7 @@ func runClientProxy(cfg *config.Config) {
 		hqfdc := hqfd.DirectHttpClient()
 		geolookup.Configure(hqfdc)
 		statserver.Configure(hqfdc)
+		analytics.Configure(cfg.AutoReport, hqfdc)
 	}
 
 	// Continually poll for config updates and update client accordingly
