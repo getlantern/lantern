@@ -195,11 +195,12 @@ func runClientProxy(cfg *config.Config) {
 	proxiedsites.Configure(cfg.ProxiedSites, cfg.Addr)
 
 	if hqfd == nil {
-		log.Errorf("No fronted dialer available, not enabling geolocation or stats")
+		log.Errorf("No fronted dialer available, not enabling geolocation, stats or analytics")
 	} else {
 		hqfdc := hqfd.DirectHttpClient()
 		geolookup.Configure(hqfdc)
 		statserver.Configure(hqfdc)
+		// start GA service
 		analytics.Configure(cfg.AutoReport, hqfdc)
 	}
 
