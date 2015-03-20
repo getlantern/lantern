@@ -2,20 +2,24 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/getlantern/autoupdate-server/server"
-	"log"
 	"net/http"
 	"time"
+
+	"github.com/getlantern/autoupdate-server/server"
+	"github.com/getlantern/golog"
 )
 
-var releaseManager *server.ReleaseManager
+var (
+	log            = golog.LoggerFor("autoupdate-server")
+	releaseManager *server.ReleaseManager
+)
 
 type updateHandler struct {
 }
 
 // updateAssets checks for new assets released on the github releases page.
 func updateAssets() error {
-	log.Printf("Updating assets...")
+	log.Debug("Updating assets...")
 	if err := releaseManager.UpdateAssetsMap(); err != nil {
 		return err
 	}
@@ -28,14 +32,14 @@ func backgroundUpdate() {
 		time.Sleep(githubRefreshTime)
 		// Updating assets...
 		if err := updateAssets(); err != nil {
-			log.Printf("updateAssets: %s", err)
+			log.Debugf("updateAssets: %s", err)
 		}
 	}
 }
 
 func init() {
 	// Creating release manager.
-	log.Printf("Starting release manager.")
+	log.Debug("Starting release manager.")
 	releaseManager = server.NewReleaseManager(githubNamespace, githubRepo)
 	// Getting assets...
 	if err := updateAssets(); err != nil {
@@ -67,7 +71,7 @@ func (u *updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if res, err = releaseManager.CheckForUpdate(&params); err != nil {
-			log.Printf("releaseManager.CheckForUpdate failed with error: %q", err)
+			log.Debugf("CheckForUpdate failed with error: %q", err)
 			if err == server.ErrNoUpdateAvailable {
 				u.closeWithStatus(w, http.StatusNoContent)
 			}
@@ -107,10 +111,10 @@ func main() {
 		Handler: mux,
 	}
 
-	log.Printf("Starting up HTTP server at %s.", listenAddr)
+	log.Debugf("Starting up HTTP server at %s.", listenAddr)
 
 	if err := srv.ListenAndServe(); err != nil {
-		log.Fatal("ListenAndServe: ", err)
+		log.Fatalf("ListenAndServe: ", err)
 	}
 
 }

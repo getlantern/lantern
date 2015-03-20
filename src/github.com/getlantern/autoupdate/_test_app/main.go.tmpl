@@ -3,6 +3,8 @@
 package main
 
 import (
+	"os"
+	"os/exec"
 	"time"
 
 	"github.com/getlantern/autoupdate"
@@ -27,11 +29,24 @@ func main() {
 		if err != nil {
 			log.Fatalf("Error getting update: %v", err)
 		}
-		// TODO: update was applied, restart ourselves
+		log.Debugf("Got update, restarting")
+		restart()
 	}()
 
 	for {
 		log.Debugf("Running program version: %v", internalVersion)
 		time.Sleep(sleepTime)
 	}
+}
+
+func restart() {
+	cmd := exec.Command(os.Args[0], os.Args[1:]...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+	err := cmd.Start()
+	if err != nil {
+		log.Fatalf("Unable to restart: %v", err)
+	}
+	os.Exit(0)
 }
