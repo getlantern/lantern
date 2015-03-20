@@ -3,50 +3,35 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/getlantern/autoupdate"
+	"github.com/getlantern/golog"
 )
 
 const (
-	internalVersion = "v0.0.9"
+	internalVersion = "0.0.9"
 	sleepTime       = time.Second * 1
 )
 
-// We need to make it global in order to access its Version() method within
-// main(), but that's not really required for the autoupdater to work.
-var au *autoupdate.AutoUpdate
-
-func init() {
-	// Setting the proxy we're going to use for auto-updates.
-	// autoupdate.SetProxy("127.0.0.1:9999")
-
-	// Update settings (such as equinox's tokens and the public key used to
-	// verify signatures) are defined per app in config.go. We're doing that
-	// instead of passing a Config struct to keep the autoupdate API independent
-	// from go-update.
-	au = autoupdate.New(&autoupdate.Config{
-		URL:       "http://127.0.0.1:9197/update",
-		PublicKey: []byte("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzSoibtACnqcp2uTGjCMJ\ntTOLDIMQ4oGPhGHT4Q/epum+H3hcbBNs9jRnMRWgX4z++xxuNJnhmoJw0eUXB7B4\nvj5DYpPajq6gPY8JuraF4ngfP5oxKj2BqpEUR9bx+3SjOSInrirM0JZO+aAW38BQ\nNJB+sS7JvbPjcwdjwKc5IKzc9kxxJNoZoFE9GMnYzaOrAlpCuAKWH8SCXYtCTxsX\nfKexdDxsI5Vzm5lQHJLMeqhLTQTUm9oQofwNAOGOkn6dD4ObMlmFTOsf1G03/Dl9\nsVgjaWaZ9bGjvJ9B85UxNeWwduy+uMrqFytxG6bbq0PbDEVu6ZQCPyiyCA7l945J\nOQIDAQAB\n-----END PUBLIC KEY-----\n"),
-	})
-	// Set internal version.
-	au.SetVersion(internalVersion)
-	// Watch for updates.
-	au.Watch()
-}
+var log = golog.LoggerFor("_test_app")
 
 func main() {
 
 	go func() {
-		select {
-		case newVersion := <-au.UpdatedTo:
-			fmt.Printf("Executable file has been updated to version %s.\n", newVersion)
+		err := autoupdate.ApplyNext(&autoupdate.Config{
+			CurrentVersion: internalVersion,
+			URL:            "http://127.0.0.1:9197/update",
+			PublicKey:      []byte("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzSoibtACnqcp2uTGjCMJ\ntTOLDIMQ4oGPhGHT4Q/epum+H3hcbBNs9jRnMRWgX4z++xxuNJnhmoJw0eUXB7B4\nvj5DYpPajq6gPY8JuraF4ngfP5oxKj2BqpEUR9bx+3SjOSInrirM0JZO+aAW38BQ\nNJB+sS7JvbPjcwdjwKc5IKzc9kxxJNoZoFE9GMnYzaOrAlpCuAKWH8SCXYtCTxsX\nfKexdDxsI5Vzm5lQHJLMeqhLTQTUm9oQofwNAOGOkn6dD4ObMlmFTOsf1G03/Dl9\nsVgjaWaZ9bGjvJ9B85UxNeWwduy+uMrqFytxG6bbq0PbDEVu6ZQCPyiyCA7l945J\nOQIDAQAB\n-----END PUBLIC KEY-----\n"),
+		})
+		if err != nil {
+			log.Fatalf("Error getting update: %v", err)
 		}
+		// TODO: update was applied, restart ourselves
 	}()
 
 	for {
-		fmt.Printf("Running program version: %s, binary file version: %s\n", internalVersion, au.Version())
+		log.Debugf("Running program version: %v", internalVersion)
 		time.Sleep(sleepTime)
 	}
 }
