@@ -16,9 +16,10 @@ const (
 )
 
 var (
-	log      = golog.LoggerFor("flashlight.settings")
-	service  *ui.Service
-	cfgMutex sync.Mutex
+	log          = golog.LoggerFor("flashlight.settings")
+	service      *ui.Service
+	cfgMutex     sync.Mutex
+	baseSettings *Settings
 )
 
 type Settings struct {
@@ -32,7 +33,7 @@ func Configure(cfg *config.Config, version, buildDate string) {
 	defer cfgMutex.Unlock()
 
 	// base settings are always written
-	baseSettings := &Settings{
+	baseSettings = &Settings{
 		Version:    version,
 		BuildDate:  buildDate,
 		AutoReport: cfg.AutoReport,
@@ -68,7 +69,11 @@ func read() {
 	for msg := range service.In {
 		settings := (msg).(map[string]interface{})
 		config.Update(func(updated *config.Config) error {
-			updated.AutoReport = settings["autoReport"].(bool)
+			if autoReport, exists := settings["autoReport"]; exists {
+				baseSettings.AutoReport = autoReport.(bool)
+				updated.AutoReport = autoReport.(bool)
+
+			}
 			return nil
 		})
 	}
