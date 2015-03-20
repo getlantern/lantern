@@ -96,8 +96,10 @@ func start() {
 			}
 
 			// Delegating task...
-			if err := s.helloFn(writer); err != nil {
-				log.Errorf("Error writing to socket: %q", err)
+			if s.helloFn != nil {
+				if err := s.helloFn(writer); err != nil {
+					log.Errorf("Error writing to socket: %q", err)
+				}
 			}
 		}
 		mu.RUnlock()
