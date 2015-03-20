@@ -1,0 +1,55 @@
+{
+  "name": "semver",
+  "version": "4.3.1",
+  "description": "The semantic version parser used by npm.",
+  "main": "semver.js",
+  "browser": "semver.browser.js",
+  "min": "semver.min.js",
+  "scripts": {
+    "test": "tap test/*.js",
+    "prepublish": "make"
+  },
+  "devDependencies": {
+    "tap": "0.x >=0.0.4",
+    "uglify-js": "~2.3.6"
+  },
+  "license": "BSD",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/npm/node-semver.git"
+  },
+  "bin": {
+    "semver": "./bin/semver"
+  },
+  "gitHead": "fa9be2b231666f7485e832f84d2fe99afc033e22",
+  "bugs": {
+    "url": "https://github.com/npm/node-semver/issues"
+  },
+  "homepage": "https://github.com/npm/node-semver",
+  "_id": "semver@4.3.1",
+  "_shasum": "beb0129575b95f76110b29af08d370fd9eeb34bf",
+  "_from": "semver@>=4.1.0 <5.0.0",
+  "_npmVersion": "2.6.0",
+  "_nodeVersion": "1.1.0",
+  "_npmUser": {
+    "name": "isaacs",
+    "email": "i@izs.me"
+  },
+  "maintainers": [
+    {
+      "name": "isaacs",
+      "email": "i@izs.me"
+    },
+    {
+      "name": "othiym23",
+      "email": "ogd@aoaioxxysz.net"
+    }
+  ],
+  "dist": {
+    "shasum": "beb0129575b95f76110b29af08d370fd9eeb34bf",
+    "tarball": "http://registry.npmjs.org/semver/-/semver-4.3.1.tgz"
+  },
+  "directories": {},
+  "_resolved": "https://registry.npmjs.org/semver/-/semver-4.3.1.tgz",
+  "readme": "ERROR: No README data found!"
+}

@@ -1,0 +1,564 @@
+diff --git a/color.js b/color.js
+index fe806db..069a0b2 100644
+--- a/color.js
++++ b/color.js
+@@ -2,153 +2,237 @@
+ var convert = require("color-convert"),
+     string = require("color-string");
+ 
+-module.exports = function(cssString) {
+-   return new Color(cssString);
++
++module.exports = function(val) {
++   return new Color(val);
+ };
+ 
+-var Color = function(cssString) {
+-   this.values = {
+-      rgb: [0, 0, 0],
+-      hsl: [0, 0, 0],
+-      hsv: [0, 0, 0],
+-      cmyk: [0, 0, 0, 0],
+-      alpha: 1
+-   } 
++var Color = function(val) {
++   this.value = convert();
++   this.a = 1;
+    
+-   // parse Color() argument
+-   if (typeof cssString == "string") {
+-      var vals = string.getRgba(cssString);
+-      if (vals) {  
+-         this.setValues("rgb", vals);
++   if (typeof val == "string") {
++      var value = string.getRgb(val);
++      if (value) {
++         this.rgb(value);
+       }
+-      else if(vals = string.getHsla(cssString)) {
+-         this.setValues("hsl", vals);
++      else if (value = string.getHsl(val)) {
++         this.hsl(value);
+       }
++      this.alpha(string.getAlpha(val));
+    }
+-   else if (typeof cssString == "object") {
+-      var vals = cssString;
+-      if(vals["r"] !== undefined || vals["red"] !== undefined) {
+-         this.setValues("rgb", vals)
++   else if (typeof val == "object") {
++      if (val.r !== undefined) {
++         this.rgb([val.r, val.g, val.b]);
++      }
++      else if (val.red !== undefined) {
++         this.rgb([val.red, val.green, val.blue]);
++      }
++      else if (val.l !== undefined) {
++         this.hsl([val.h, val.s, val.l]);
++      }
++      else if (val.lightness !== undefined) {
++         this.hsl([val.hue, val.saturation, val.lightness]);
++      }
++      else if (val.v !== undefined) {
++         this.hsv([val.h, val.s, val.v]);
+       }
+-      else if(vals["l"] !== undefined || vals["lightness"] !== undefined) {
+-         this.setValues("hsl", vals)
++      else if (val.value !== undefined) {
++         this.hsv([val.hue, val.saturation, val.value]);
+       }
+-      else if(vals["v"] !== undefined || vals["value"] !== undefined) {
+-         this.setValues("hsv", vals)
++      else if (val.c !== undefined) {
++         this.cmyk([val.c, val.m, val.y, val.k]);
+       }
+-      else if(vals["c"] !== undefined || vals["cyan"] !== undefined) {
+-         this.setValues("cmyk", vals)
++      else if (val.cyan !== undefined) {
++         this.cmyk([val.cyan, val.magenta, val.yellow, val.black]);
++      }
++      
++      if (val.a !== undefined) {
++         this.alpha(val.a);
++      }
++      else if (val.alpha !== undefined) {
++         this.alpha(val.alpha);
+       }
+    }
+ }
+ 
+ Color.prototype = {
+-   rgb: function (vals) {
+-      return this.setSpace("rgb", arguments);
++   getValue : function(space) {
++      return this.value[space]();
++   },
++
++   getHash : function(space) {
++      var val = this.getValue(space),
++          ret = {};
++      for (var i = 0; i < space.length; i++) {
++         ret[space[i]] = val[i];
++      }
++      if (this.a != 1) {
++         ret["a"] = this.a;
++      }
++      // {r: 255, g: 255, b: 255, a: 0.4}
++      return ret;
++   },
++
++   routeValue : function(space, val) {
++      if (val[0] === undefined) {
++         // color.rgb()
++         return this.getHash(space);
++      }
++      
++      if (typeof val[0] == "number") {
++         // color.rgb(10, 10, 10)
++         val = Array.prototype.slice.call(val);
++      }
++      else {
++         val = val[0];
++      }
++      this.setValue(space, val);
++
++      return this;
+    },
+-   hsl: function(vals) {
+-      return this.setSpace("hsl", arguments);
++   
++   setValue : function(space, val) {
++     var maxes = {
++        "rgb": [255, 255, 255],
++        "hsl": [360, 100, 100],
++        "hsv": [360, 100, 100],
++        "cmyk": [100, 100, 100, 100],
++     };
++
++     if (val.length > space.length) {
++        this.alpha(val[space.length]);
++     }
++     
++     // cap value
++     var max = maxes[space];
++     for (var i = 0; i < space.length; i++) {
++        val[i] = Math.max(0, Math.min(max[i], val[i]));
++     }
++
++     this.value[space](val);
+    },
+-   hsv: function(vals) {
+-      return this.setSpace("hsv", arguments);
++   
++   routeChannel : function(space, index, chan) {
++      var val = this.getValue(space);
++      if (chan === undefined) {
++        // color.red()
++        return val[index];
++      }
++      // color.red(100)
++      val[index] = chan;
++
++      // set value for this space
++      this.setValue(space, val);
++      return this;
++   },
++   
++   rgb: function (val) {
++      return this.routeValue("rgb", arguments);
+    },
+-   cmyk: function(vals) {
+-      return this.setSpace("cmyk", arguments);
++   hsl: function(val) {
++      return this.routeValue("hsl", arguments);
++   },
++   hsv: function(val) {
++      return this.routeValue("hsv", arguments);
++   },
++   cmyk: function(val) {
++      return this.routeValue("cmyk", arguments);
+    },
+    
+    rgbArray: function() {
+-      return this.values.rgb;
++      return this.getValue("rgb");
+    },
+    hslArray: function() {
+-      return this.values.hsl;
++      return this.getValue("hsl");
+    },
+    hsvArray: function() {
+-      return this.values.hsv;
++      return this.getValue("hsv");
+    },
+    cmykArray: function() {
+-      return this.values.cmyk;
++      return this.getValue("cmyk");
+    },
+    rgbaArray: function() {
+-      var rgb = this.values.rgb;
+-      rgb.push(this.values.alpha);
++      var rgb = this.rgbArray();
++      rgb.push(this.a);
+       return rgb;
+    },
+    hslaArray: function() {
+-      var hsl = this.values.hsl;
+-      hsl.push(this.values.alpha);
++      var hsl = this.hslArray();
++      hsl.push(this.a);
+       return hsl;
+    },
+          
+    alpha: function(val) {
+       if (val === undefined) {
+-         return this.values.alpha;
++         return this.a;
+       }
+-      this.setValues("alpha", val);
++      this.a = Math.max(0, Math.min(1, val));
+       return this;
+    },
+ 
+    red: function(val) {
+-      return this.setChannel("rgb", 0, val);
++      return this.routeChannel("rgb", 0, val);
+    },
+    green: function(val) {
+-      return this.setChannel("rgb", 1, val);
++      return this.routeChannel("rgb", 1, val);
+    },      
+    blue: function(val) {
+-      return this.setChannel("rgb", 2, val);
++      return this.routeChannel("rgb", 2, val);
+    },
+    hue: function(val) {
+-      return this.setChannel("hsl", 0, val);
++      return this.routeChannel("hsl", 0, val);
+    },
+    saturation: function(val) {
+-      return this.setChannel("hsl", 1, val);
++      return this.routeChannel("hsl", 1, val);
+    },
+    lightness: function(val) {
+-      return this.setChannel("hsl", 2, val);
++      return this.routeChannel("hsl", 2, val);
+    },
+    saturationv: function(val) {
+-      return this.setChannel("hsv", 1, val);
++      return this.routeChannel("hsv", 1, val);
+    },
+    value: function(val) {
+-      return this.setChannel("hsv", 2, val);
++      return this.routeChannel("hsv", 2, val);
+    },
+    cyan: function(val) {
+-      return this.setChannel("cmyk", 0, val);
++      return this.routeChannel("cmyk", 0, val);
+    },
+    magenta: function(val) {
+-      return this.setChannel("cmyk", 1, val);
++      return this.routeChannel("cmyk", 1, val);
+    },
+    yellow: function(val) {
+-      return this.setChannel("cmyk", 2, val);
++      return this.routeChannel("cmyk", 2, val);
+    },
+    black: function(val) {
+-      return this.setChannel("cmyk", 3, val);
++      return this.routeChannel("cmyk", 3, val);
+    },
+ 
+    hexString: function() {
+-      return string.hexString(this.values.rgb);
++      return string.hexString(this.rgbArray());
+    },
+    rgbString: function() {
+-      return string.rgbString(this.values.rgb, this.values.alpha);
++      return string.rgbString(this.rgbArray(), this.a);
+    },
+    rgbaString: function() {
+-      return string.rgbaString(this.values.rgb, this.values.alpha);
++      return string.rgbaString(this.rgbArray(), this.a);
+    },
+    percentString: function() {
+-      return string.percentString(this.values.rgb, this.values.alpha);
++      return string.percentString(this.rgbArray(), this.a);
+    },
+    hslString: function() {
+-      return string.hslString(this.values.hsl, this.values.alpha); 
++      return string.hslString(this.hslArray(), this.a); 
+    },
+    hslaString: function() {
+-      return string.hslaString(this.values.hsl, this.values.alpha);
++      return string.hslaString(this.hslArray(), this.a);
+    },
+    keyword: function() {
+-      return string.keyword(this.values.rgb, this.values.alpha);
++      return string.keyword(this.rgbArray(), this.a);
+    },
+    
+    luminosity: function() {
+       // http://www.w3.org/TR/WCAG20/#relativeluminancedef
+-      var rgb = this.values.rgb;
++      var rgb = this.rgbArray();
+       for (var i = 0; i < rgb.length; i++) {
+          var chan = rgb[i] / 255;
+          rgb[i] = (chan <= 0.03928) ? chan / 12.92
+@@ -163,13 +247,13 @@ Color.prototype = {
+       var lum2 = color2.luminosity();
+       if (lum1 > lum2) {
+          return (lum1 + 0.05) / (lum2 + 0.05)
+-      };
++      }
+       return (lum2 + 0.05) / (lum1 + 0.05);
+    },
+    
+    dark: function() {
+       // YIQ equation from http://24ways.org/2010/calculating-color-contrast
+-      var rgb = this.values.rgb,
++      var rgb = this.rgbArray(),
+           yiq = (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000;
+    	return yiq < 128;
+    },
+@@ -179,62 +263,67 @@ Color.prototype = {
+    },
+     
+    negate: function() {
+-      var rgb = []
++      var rgb = [];
+       for (var i = 0; i < 3; i++) {
+-         rgb[i] = 255 - this.values.rgb[i];
++         rgb[i] = 255 - this.rgbArray()[i];
+       }
+-      this.setValues("rgb", rgb);
++      this.rgb(rgb);
+       return this;
+    },
+ 
+    lighten: function(ratio) {
+-      this.values.hsl[2] += this.values.hsl[2] * ratio;
+-      this.setValues("hsl", this.values.hsl);
++      var hsl = this.hslArray();
++      hsl[2] += hsl[2] * ratio;
++      this.hsl(hsl);
+       return this;
+    },
+ 
+    darken: function(ratio) {
+-      this.values.hsl[2] -= this.values.hsl[2] * ratio;
+-      this.setValues("hsl", this.values.hsl);
+-      return this;         
++      var hsl = this.hslArray();
++      hsl[2] -= hsl[2] * ratio;
++      this.hsl(hsl);
++      return this;  
+    },
+    
+    saturate: function(ratio) {
+-      this.values.hsl[1] += this.values.hsl[1] * ratio;
+-      this.setValues("hsl", this.values.hsl);
+-      return this;
++      var hsl = this.hslArray();
++      hsl[1] += hsl[1] * ratio;
++      this.hsl(hsl);
++      return this;  
+    },
+ 
+    desaturate: function(ratio) {
+-      this.values.hsl[1] -= this.values.hsl[1] * ratio;
+-      this.setValues("hsl", this.values.hsl);
+-      return this;         
++      var hsl = this.hslArray();
++      hsl[1] -= hsl[1] * ratio;
++      this.hsl(hsl);
++      return this;  
+    },    
+ 
+    greyscale: function() {
+-      var rgb = this.values.rgb;
+       // http://en.wikipedia.org/wiki/Grayscale#Converting_color_to_grayscale
++      var rgb = this.rgbArray();
+       var val = rgb[0] * 0.3 + rgb[1] * 0.59 + rgb[2] * 0.11;
+-      this.setValues("rgb", [val, val, val]);
++      this.rgb([val, val, val]);
+       return this;
+    },
+ 
+    clearer: function(ratio) {
+-      this.setValues("alpha", this.values.alpha - (this.values.alpha * ratio));
++      this.alpha(this.a - (this.a * ratio));
+       return this;
+    },
+ 
+    opaquer: function(ratio) {
+-      this.setValues("alpha", this.values.alpha + (this.values.alpha * ratio));
++      this.alpha(this.a + (this.a * ratio))
+       return this;
+    },
+ 
+    rotate: function(degrees) {
+-      var hue = this.values.hsl[0];
++      var hsl = this.hslArray(),
++          hue = hsl[0];
+       hue = (hue + degrees) % 360;
+       hue = hue < 0 ? 360 + hue : hue;
+-      this.values.hsl[0] = hue;
+-      this.setValues("hsl", this.values.hsl);
++      hsl[0] = hue;
++      this.hsl(hsl);
+       return this;
+    },
+    
+@@ -255,10 +344,10 @@ Color.prototype = {
+       for (var i = 0; i < rgb.length; i++) {
+          rgb[i] = rgb[i] * weight1 + rgb2[i] * weight2;
+       }
+-      this.setValues("rgb", rgb);
++      this.rgb(rgb);
+       
+       var alpha = this.alpha() * weight + color2.alpha() * (1 - weight);
+-      this.setValues("alpha", alpha);
++      this.alpha(alpha);
+       
+       return this;
+    },
+@@ -266,101 +355,4 @@ Color.prototype = {
+    toJSON: function() {
+      return this.rgb();
+    }
+-}
+-
+-
+-Color.prototype.getValues = function(space) {
+-   var vals = {};
+-   for (var i = 0; i < space.length; i++) {
+-      vals[space[i]] = this.values[space][i];
+-   }
+-   if (this.values.alpha != 1) {
+-      vals["a"] = this.values.alpha;
+-   }
+-   // {r: 255, g: 255, b: 255, a: 0.4}
+-   return vals;
+-}
+-    
+-Color.prototype.setValues = function(space, vals) {
+-   var spaces = {
+-      "rgb": ["red", "green", "blue"],
+-      "hsl": ["hue", "saturation", "lightness"],
+-      "hsv": ["hue", "saturation", "value"],
+-      "cmyk": ["cyan", "magenta", "yellow", "black"]
+-   };
+-   
+-   var maxes = {
+-      "rgb": [255, 255, 255],
+-      "hsl": [360, 100, 100],
+-      "hsv": [360, 100, 100],
+-      "cmyk": [100, 100, 100, 100],
+-   };
+-   
+-   var alpha = 1;
+-   if (space == "alpha") {
+-      alpha = vals;
+-   }
+-   else if (vals.length) {
+-      // [10, 10, 10]
+-      this.values[space] = vals.slice(0, space.length);
+-      alpha = vals[space.length];
+-   }
+-   else if (vals[space[0]] !== undefined) {
+-      // {r: 10, g: 10, b: 10}
+-      for (var i = 0; i < space.length; i++) {
+-        this.values[space][i] = vals[space[i]];
+-      }
+-      alpha = vals.a;
+-   }
+-   else if (vals[spaces[space][0]] !== undefined) {
+-      // {red: 10, green: 10, blue: 10}
+-      var chans = spaces[space];
+-      for (var i = 0; i < space.length; i++) {
+-        this.values[space][i] = vals[chans[i]];
+-      }
+-      alpha = vals.alpha;
+-   }
+-   this.values.alpha = Math.max(0, Math.min(1, alpha || this.values.alpha));
+-   if (space == "alpha") {
+-      return;
+-   }
+-
+-   // convert to all the other color spaces
+-   for (var sname in spaces) {
+-      if (sname != space) {
+-         this.values[sname] = convert[space][sname](this.values[space])
+-      }
+-      
+-      // cap values
+-      for (var i = 0; i < sname.length; i++) {
+-         var capped = Math.max(0, Math.min(maxes[sname][i], this.values[sname][i]));
+-         this.values[sname][i] = Math.round(capped);
+-      }
+-   }
+-   return true;
+-}
+-
+-Color.prototype.setSpace = function(space, args) {
+-   var vals = args[0];
+-   if (vals === undefined) {
+-      // color.rgb()
+-      return this.getValues(space);
+-   }
+-   // color.rgb(10, 10, 10)
+-   if (typeof vals == "number") {
+-      vals = Array.prototype.slice.call(args);        
+-   }
+-   this.setValues(space, vals);
+-   return this;
+-}
+-
+-Color.prototype.setChannel = function(space, index, val) {
+-   if (val === undefined) {
+-      // color.red()
+-      return this.values[space][index];
+-   }
+-   // color.red(100)
+-   this.values[space][index] = val;
+-   this.setValues(space, this.values[space]);
+-   return this;     
+-}
++}
+\ No newline at end of file
+diff --git a/test/basic.js b/test/basic.js
+index c4245e2..50512d7 100644
+--- a/test/basic.js
++++ b/test/basic.js
+@@ -15,7 +15,9 @@ assert.deepEqual(Color({r: 10, g: 30, b: 25}).rgb(), {r: 10, g: 30, b: 25});
+ assert.deepEqual(Color({h: 10, s: 30, l: 25}).hsl(), {h: 10, s: 30, l: 25});
+ assert.deepEqual(Color({h: 10, s: 30, v: 25}).hsv(), {h: 10, s: 30, v: 25});
+ assert.deepEqual(Color({c: 10, m: 30, y: 25, k: 10}).cmyk(), {c: 10, m: 30, y: 25, k: 10});
+-
++assert.deepEqual(Color({r: 10, g: 30, b: 25}).rgb(), {r: 10, g: 30, b: 25});
++assert.deepEqual(Color({r: 10, g: 30, b: 25, a: 0.4}).rgb(), {r: 10, g: 30, b: 25, a: 0.4});
++assert.deepEqual(Color({red: 10, green: 30, blue: 25, alpha: 0.4}).rgb(), {r: 10, g: 30, b: 25, a: 0.4});
+ assert.deepEqual(Color({red: 10, green: 30, blue: 25}).rgb(), {r: 10, g: 30, b: 25});
+ assert.deepEqual(Color({hue: 10, saturation: 30, lightness: 25}).hsl(), {h: 10, s: 30, l: 25});
+ assert.deepEqual(Color({hue: 10, saturation: 30, value: 25}).hsv(), {h: 10, s: 30, v: 25});
+@@ -26,11 +28,6 @@ assert.deepEqual(Color().rgb(10, 30, 25).rgb(), {r: 10, g: 30, b: 25});
+ assert.deepEqual(Color().rgb(10, 30, 25, 0.4).rgb(), {r: 10, g: 30, b: 25, a: 0.4});
+ assert.deepEqual(Color().rgb([10, 30, 25]).rgb(), {r: 10, g: 30, b: 25});
+ assert.deepEqual(Color().rgb([10, 30, 25, 0.4]).rgb(), {r: 10, g: 30, b: 25, a: 0.4});
+-assert.deepEqual(Color().rgb({r: 10, g: 30, b: 25}).rgb(), {r: 10, g: 30, b: 25});
+-assert.deepEqual(Color().rgb({r: 10, g: 30, b: 25, a: 0.4}).rgb(), {r: 10, g: 30, b: 25, a: 0.4});
+-assert.deepEqual(Color().rgb({red: 10, green: 30, blue: 25}).rgb(), {r: 10, g: 30, b: 25});
+-assert.deepEqual(Color().rgb({red: 10, green: 30, blue: 25, alpha: 0.4}).rgb(), {r: 10, g: 30, b: 25, a: 0.4});
+-
+ assert.deepEqual(Color().hsl([360, 10, 10]).hsl(), {h: 360, s: 10, l: 10});
+ assert.deepEqual(Color().hsv([360, 10, 10]).hsv(), {h: 360, s: 10, v: 10});
+ assert.deepEqual(Color().cmyk([10, 10, 10, 10]).cmyk(), {c: 10, m: 10, y: 10, k: 10});
+@@ -73,6 +70,7 @@ assert.equal(Color().rgb(10, 10, 10, -200).alpha(), 0);
+ assert.equal(Color().alpha(-12).alpha(), 0);
+ assert.equal(Color().alpha(3).alpha(), 1);
+ 
++
+ // Translate with channel setters
+ assert.deepEqual(Color({r: 0, g: 0, b: 0}).lightness(50).hsl(), {h: 0, s: 0, l: 50});
+ assert.deepEqual(Color({r: 0, g: 0, b: 0}).red(50).green(50).hsv(), {h: 60, s: 100, v: 20});

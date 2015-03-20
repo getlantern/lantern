@@ -1,0 +1,19 @@
+{
+  "name": "color",
+  "main": "color.js",
+  "version": "0.5.0",
+  "ignore": [
+  ],
+  "authors": [
+    "Heather Arthur <fayearthur@gmail.com>"
+  ],
+  "description": "Color conversion and manipulation with CSS string support",
+  "moduleType": [
+    "globals"
+  ],
+  "keywords": [
+    "color",
+    "colour",
+    "css"
+  ]
+}

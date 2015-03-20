@@ -1,0 +1,48 @@
+{
+  "author": {
+    "name": "Nick Fisher"
+  },
+  "name": "deepmerge",
+  "description": "A library for deep (recursive) merging of Javascript objects",
+  "version": "0.2.7",
+  "homepage": "https://github.com/nrf110/deepmerge",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/nrf110/deepmerge.git"
+  },
+  "main": "index",
+  "engines": {
+    "node": ">=0.4.0"
+  },
+  "scripts": {
+    "test": "tap test/*.js"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "tap": "~0.2.4"
+  },
+  "_id": "deepmerge@0.2.7",
+  "dist": {
+    "shasum": "3a5ab8d37311c4d1aefb22209693afe0a91a0563",
+    "tarball": "http://registry.npmjs.org/deepmerge/-/deepmerge-0.2.7.tgz"
+  },
+  "_from": "deepmerge@>=0.2.7 <0.3.0-0",
+  "_npmVersion": "1.2.18",
+  "_npmUser": {
+    "name": "nfisher",
+    "email": "nfisher@trafficland.com"
+  },
+  "maintainers": [
+    {
+      "name": "nfisher",
+      "email": "nfisher@trafficland.com"
+    }
+  ],
+  "directories": {},
+  "_shasum": "3a5ab8d37311c4d1aefb22209693afe0a91a0563",
+  "_resolved": "https://registry.npmjs.org/deepmerge/-/deepmerge-0.2.7.tgz",
+  "bugs": {
+    "url": "https://github.com/nrf110/deepmerge/issues"
+  },
+  "readme": "ERROR: No README data found!"
+}

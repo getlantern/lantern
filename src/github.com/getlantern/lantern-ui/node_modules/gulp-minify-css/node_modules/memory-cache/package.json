@@ -1,0 +1,41 @@
+{
+  "name": "memory-cache",
+  "description": "A simple in-memory cache. put() get() and delete()",
+  "author": {
+    "name": "Paul Tarjan",
+    "email": "npm@paulisageek.com"
+  },
+  "url": "https://github.com/ptarjan/node-cache",
+  "keywords": [
+    "cache",
+    "ram",
+    "simple",
+    "storage"
+  ],
+  "main": "./index.js",
+  "version": "0.0.5",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/ptarjan/node-cache.git"
+  },
+  "_id": "memory-cache@0.0.5",
+  "dist": {
+    "shasum": "dbf99a56d7362c43eccaf39f0ba6f97f31a06786",
+    "tarball": "http://registry.npmjs.org/memory-cache/-/memory-cache-0.0.5.tgz"
+  },
+  "_from": "memory-cache@0.0.5",
+  "_npmVersion": "1.2.2",
+  "_npmUser": {
+    "name": "ptarjan",
+    "email": "npm@paulisageek.com"
+  },
+  "maintainers": [
+    {
+      "name": "ptarjan",
+      "email": "npm@paulisageek.com"
+    }
+  ],
+  "directories": {},
+  "_shasum": "dbf99a56d7362c43eccaf39f0ba6f97f31a06786",
+  "_resolved": "https://registry.npmjs.org/memory-cache/-/memory-cache-0.0.5.tgz"
+}
