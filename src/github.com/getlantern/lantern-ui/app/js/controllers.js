@@ -100,10 +100,6 @@ app.controller('SettingsCtrl', ['$scope', 'MODAL', 'DataStream', 'gaMgr', functi
       }
   });
 
-  $scope.$watch('model.settings.runAtSystemStart', function (runAtSystemStart) {
-    $scope.runAtSystemStart = runAtSystemStart;
-  });
-
   $scope.$watch('model.settings.systemProxy', function (systemProxy) {
     $scope.systemProxy = systemProxy;
   });
