@@ -20,10 +20,23 @@ var (
 	httpClient *http.Client
 )
 
-func Configure(autoReport *bool, newClient *http.Client) (err error) {
+func Configure(autoReport *bool, newClient *http.Client) {
+	httpClient = newClient
 
-	if !*autoReport || service != nil {
-		return
+	if autoReport != nil && *autoReport {
+		err := Start()
+		if err != nil {
+			log.Errorf("Error starting analytics service: %q", err)
+		}
+	}
+}
+
+func Start() error {
+
+	var err error
+
+	if service != nil {
+		return nil
 	}
 
 	newMessage := func() interface{} {
@@ -38,7 +51,8 @@ func Configure(autoReport *bool, newClient *http.Client) (err error) {
 	// process analytics messages
 	go read()
 
-	return nil
+	return err
+
 }
 
 func read() {
@@ -49,6 +63,6 @@ func read() {
 		if err := mapstructure.Decode(msg, &payload); err != nil {
 			log.Errorf("Could not decode payload: %q", err)
 		}
-		analytics.SendRequest(nil, &payload)
+		analytics.SendRequest(httpClient, &payload)
 	}
 }

@@ -2,8 +2,10 @@
 package settings
 
 import (
+	"net/http"
 	"sync"
 
+	"github.com/getlantern/flashlight/analytics"
 	"github.com/getlantern/flashlight/config"
 
 	"github.com/getlantern/flashlight/ui"
@@ -19,6 +21,7 @@ var (
 	service      *ui.Service
 	cfgMutex     sync.Mutex
 	baseSettings *Settings
+	httpClient   *http.Client
 )
 
 type Settings struct {
@@ -63,8 +66,14 @@ func read() {
 	for msg := range service.In {
 		settings := (msg).(map[string]interface{})
 		config.Update(func(updated *config.Config) error {
-			baseSettings.AutoReport = settings["autoReport"].(bool)
-			*updated.AutoReport = settings["autoReport"].(bool)
+
+			autoReport := settings["autoReport"].(bool)
+			if autoReport {
+				analytics.Start()
+			}
+
+			baseSettings.AutoReport = autoReport
+			*updated.AutoReport = autoReport
 			return nil
 		})
 	}
