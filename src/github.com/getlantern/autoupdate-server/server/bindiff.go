@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"os/exec"
 )
@@ -23,7 +22,7 @@ const (
 func init() {
 	err := os.MkdirAll(patchesDirectory, os.ModeDir|0700)
 	if err != nil {
-		log.Fatal("Could not create directory for storing patches: %q", err)
+		log.Fatalf("Could not create directory for storing patches: %q", err)
 	}
 }
 
@@ -41,12 +40,12 @@ func fileHash(s string) string {
 	h := sha256.New()
 
 	if fp, err = os.Open(s); err != nil {
-		log.Fatal("Failed to open file %s: %q", s, err)
+		log.Fatalf("Failed to open file %s: %q", s, err)
 	}
 	defer fp.Close()
 
 	if _, err = io.Copy(h, fp); err != nil {
-		log.Fatal("Failed to read file %s: %q", s, err)
+		log.Fatalf("Failed to read file %s: %q", s, err)
 	}
 
 	return fmt.Sprintf("%x", h.Sum(nil))

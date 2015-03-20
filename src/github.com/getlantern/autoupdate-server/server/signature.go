@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"github.com/getlantern/go-update"
 	"io/ioutil"
-	"log"
 	"os"
 )
 

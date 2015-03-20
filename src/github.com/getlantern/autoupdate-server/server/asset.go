@@ -4,7 +4,6 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 )
@@ -16,7 +15,7 @@ const (
 func init() {
 	err := os.MkdirAll(assetsDirectory, os.ModeDir|0700)
 	if err != nil {
-		log.Fatal("Could not create directory for storing assets: %q", err)
+		log.Fatalf("Could not create directory for storing assets: %q", err)
 	}
 }
 
