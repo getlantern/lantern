@@ -88,7 +88,7 @@ func TestDownloadOldestVersionAndUpgradeIt(t *testing.T) {
 				if oldestAsset == nil {
 					oldestAsset = asset
 				} else {
-					if VersionCompare(oldestAsset.v, asset.v) == Lower {
+					if asset.v.LT(oldestAsset.v) {
 						oldestAsset = asset
 					}
 				}
@@ -195,7 +195,7 @@ func TestDownloadOldestVersionAndUpgradeIt(t *testing.T) {
 		for arch := range oldestVersionMap[os] {
 			asset := oldestVersionMap[os][arch]
 			params := Params{
-				AppVersion: asset.v,
+				AppVersion: asset.v.String(),
 				OS:         asset.OS,
 				Arch:       asset.Arch,
 				Checksum:   asset.Checksum,
