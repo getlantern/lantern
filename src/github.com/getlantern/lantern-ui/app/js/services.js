@@ -74,6 +74,11 @@ angular.module('app.services', [])
             model.settings.mode = 'get';
             model.settings.version = data.Version + " (" + data.BuildDate + ")";
         }
+
+        if (data.AutoReport) {
+            model.settings.autoReport = true;
+        }
+
       },
       'ProxiedSites': function(data) {
         if (!$rootScope.entries) {
