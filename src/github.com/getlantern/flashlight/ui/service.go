@@ -125,7 +125,7 @@ func read() {
 
 		// Delegating response to the service that registered with the given type.
 		if services[envType.Type] == nil {
-			log.Errorf("Message type %v belongs to an unkown service.", envType.Type)
+			log.Errorf("Message type %v belongs to an unknown service.", envType.Type)
 			return
 		}
 

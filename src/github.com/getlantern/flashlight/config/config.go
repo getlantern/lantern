@@ -51,12 +51,13 @@ type Config struct {
 	Country       string
 	CpuProfile    string
 	MemProfile    string
+	UIAddr        string // UI HTTP server address
+	AutoReport    bool   // Report anonymous usage to GA
 	Stats         *statreporter.Config
 	Server        *server.ServerConfig
 	Client        *client.ClientConfig
 	ProxiedSites  *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
 	TrustedCAs    []*CA
-	UIAddr        string // UI HTTP server address
 }
 
 // CA represents a certificate authority

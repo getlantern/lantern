@@ -66,19 +66,29 @@ app.controller('ConfirmResetCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
   });
 }]);
 
-app.controller('SettingsCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
+app.controller('SettingsCtrl', ['$scope', 'MODAL', 'DataStream', 'gaMgr', function($scope, MODAL, DataStream, gaMgr) {
   $scope.show = false;
 
   $scope.$watch('model.modal', function (modal) {
     $scope.show = modal === MODAL.settings;
   });
 
-  $scope.$watch('model.settings.runAtSystemStart', function (runAtSystemStart) {
-    $scope.runAtSystemStart = runAtSystemStart;
+  $scope.$watch('model.settings.autoReport', function(autoreport) {
+      if (!autoreport) {
+        autoreport = false;
+      }
+      var obj = {
+        autoReport: autoreport
+      };
+      DataStream.send('Settings', obj);
+
+      if (autoreport) {
+        gaMgr.startTracking();
+      }
   });
 
-  $scope.$watch('model.settings.autoReport', function (autoReport) {
-    $scope.autoReport = autoReport;
+  $scope.$watch('model.settings.runAtSystemStart', function (runAtSystemStart) {
+    $scope.runAtSystemStart = runAtSystemStart;
   });
 
   $scope.$watch('model.settings.systemProxy', function (systemProxy) {
