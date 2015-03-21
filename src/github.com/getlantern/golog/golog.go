@@ -11,7 +11,37 @@ import (
 	"io/ioutil"
 	"os"
 	"strconv"
+	"strings"
+	"sync/atomic"
 )
+
+var (
+	outs atomic.Value
+)
+
+func init() {
+	ResetOutputs()
+}
+
+func SetOutputs(errorOut io.Writer, debugOut io.Writer) {
+	outs.Store(&outputs{
+		errorOut: errorOut,
+		debugOut: debugOut,
+	})
+}
+
+func ResetOutputs() {
+	SetOutputs(os.Stderr, os.Stdout)
+}
+
+func getOutputs() *outputs {
+	return outs.Load().(*outputs)
+}
+
+type outputs struct {
+	errorOut io.Writer
+	debugOut io.Writer
+}
 
 type Logger interface {
 	// Debug logs to stdout
@@ -48,16 +78,25 @@ type Logger interface {
 
 func LoggerFor(prefix string) Logger {
 	l := &logger{
-		prefix:   prefix + ": ",
-		debugOut: os.Stdout,
-		errorOut: os.Stderr,
+		prefix: prefix + ": ",
 	}
-	l.traceOn, _ = strconv.ParseBool(os.Getenv("TRACE"))
+	trace := os.Getenv("TRACE")
+	l.traceOn, _ = strconv.ParseBool(trace)
+	if !l.traceOn {
+		prefixes := strings.Split(trace, ",")
+		for _, p := range prefixes {
+			if prefix == strings.Trim(p, " ") {
+				l.traceOn = true
+				break
+			}
+		}
+	}
 	if l.traceOn {
 		l.traceOut = l.newTraceWriter()
 	} else {
 		l.traceOut = ioutil.Discard
 	}
+
 	return l
 }
 
@@ -65,24 +104,35 @@ type logger struct {
 	prefix   string
 	traceOn  bool
 	traceOut io.Writer
-	debugOut io.Writer
-	errorOut io.Writer
+	outs     atomic.Value
 }
 
 func (l *logger) Debug(arg interface{}) {
-	fmt.Fprintf(l.debugOut, l.prefix+"%s\n", arg)
+	_, err := fmt.Fprintf(getOutputs().debugOut, l.prefix+"%s\n", arg)
+	if err != nil {
+		errorOnLogging(err)
+	}
 }
 
 func (l *logger) Debugf(message string, args ...interface{}) {
-	fmt.Fprintf(l.debugOut, l.prefix+message+"\n", args...)
+	_, err := fmt.Fprintf(getOutputs().debugOut, l.prefix+message+"\n", args...)
+	if err != nil {
+		errorOnLogging(err)
+	}
 }
 
 func (l *logger) Error(arg interface{}) {
-	fmt.Fprintf(l.errorOut, l.prefix+"%s\n", arg)
+	_, err := fmt.Fprintf(getOutputs().errorOut, l.prefix+"%s\n", arg)
+	if err != nil {
+		errorOnLogging(err)
+	}
 }
 
 func (l *logger) Errorf(message string, args ...interface{}) {
-	fmt.Fprintf(l.errorOut, l.prefix+message+"\n", args...)
+	_, err := fmt.Fprintf(getOutputs().errorOut, l.prefix+message+"\n", args...)
+	if err != nil {
+		errorOnLogging(err)
+	}
 }
 
 func (l *logger) Fatal(arg interface{}) {
@@ -136,4 +186,8 @@ func (l *logger) newTraceWriter() io.Writer {
 	}()
 
 	return pw
+}
+
+func errorOnLogging(err error) {
+	fmt.Fprintf(os.Stderr, "Unable to log: %v\n", err)
 }

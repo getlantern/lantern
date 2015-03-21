@@ -2,6 +2,8 @@ package client
 
 import (
 	"crypto/x509"
+	"fmt"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"reflect"
@@ -9,8 +11,8 @@ import (
 	"time"
 
 	"github.com/getlantern/balancer"
+	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
-	"github.com/getlantern/nattywad"
 
 	"github.com/getlantern/flashlight/globals"
 )
@@ -41,25 +43,35 @@ type Client struct {
 	balInitialized  bool
 	rpCh            chan *httputil.ReverseProxy
 	rpInitialized   bool
-	nattywadClient  *nattywad.Client
+	hqfd            fronted.Dialer
 }
 
-// ListenAndServe makes the client listen for HTTP connections
-func (client *Client) ListenAndServe() error {
+// ListenAndServe makes the client listen for HTTP connections.
+// onListening is a callback that gets invoked as soon as the server is
+// accepting TCP connections.
+func (client *Client) ListenAndServe(onListening func()) error {
+	l, err := net.Listen("tcp", client.Addr)
+	if err != nil {
+		return fmt.Errorf("Client unable to listen at %v: %v", client.Addr, err)
+	}
+
+	onListening()
+
 	httpServer := &http.Server{
-		Addr:         client.Addr,
 		ReadTimeout:  client.ReadTimeout,
 		WriteTimeout: client.WriteTimeout,
 		Handler:      client,
 	}
 
 	log.Debugf("About to start client (http) proxy at %s", client.Addr)
-	return httpServer.ListenAndServe()
+	return httpServer.Serve(l)
 }
 
 // Configure updates the client's configuration.  Configure can be called
 // before or after ListenAndServe, and can be called multiple times.
-func (client *Client) Configure(cfg *ClientConfig) {
+// It returns the highest QOS fronted.Dialer available, or nil if none
+// available.
+func (client *Client) Configure(cfg *ClientConfig) fronted.Dialer {
 	client.cfgMutex.Lock()
 	defer client.cfgMutex.Unlock()
 
@@ -68,7 +80,7 @@ func (client *Client) Configure(cfg *ClientConfig) {
 		if reflect.DeepEqual(client.priorCfg, cfg) &&
 			reflect.DeepEqual(client.priorTrustedCAs, globals.TrustedCAs) {
 			log.Debugf("Client configuration unchanged")
-			return
+			return client.hqfd
 		} else {
 			log.Debugf("Client configuration changed")
 		}
@@ -78,7 +90,12 @@ func (client *Client) Configure(cfg *ClientConfig) {
 
 	log.Debugf("Requiring minimum QOS of %d", cfg.MinQOS)
 	client.MinQOS = cfg.MinQOS
-	bal := client.initBalancer(cfg)
+	var bal *balancer.Balancer
+	bal, client.hqfd = client.initBalancer(cfg)
 	client.initReverseProxy(bal, cfg.DumpHeaders)
-	client.initNatty(cfg)
+	client.priorCfg = cfg
+	client.priorTrustedCAs = &x509.CertPool{}
+	*client.priorTrustedCAs = *globals.TrustedCAs
+
+	return client.hqfd
 }

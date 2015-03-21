@@ -1,7 +1,10 @@
 package client
 
 import (
+	"math"
+
 	"github.com/getlantern/balancer"
+	"github.com/getlantern/fronted"
 )
 
 func (client *Client) getBalancer() *balancer.Balancer {
@@ -10,18 +13,23 @@ func (client *Client) getBalancer() *balancer.Balancer {
 	return bal
 }
 
-func (client *Client) initBalancer(cfg *ClientConfig) *balancer.Balancer {
+func (client *Client) initBalancer(cfg *ClientConfig) (*balancer.Balancer, fronted.Dialer) {
 	dialers := make([]*balancer.Dialer, 0, len(cfg.FrontedServers)+len(cfg.ChainedServers))
 
 	log.Debugf("Adding %d domain fronted servers", len(cfg.FrontedServers))
+	var highestQOSFrontedDialer fronted.Dialer
+	highestQOS := math.MinInt32
 	for _, s := range cfg.FrontedServers {
-		dialer := s.dialer(cfg.MasqueradeSets)
+		fd, dialer := s.dialer(cfg.MasqueradeSets)
 		dialers = append(dialers, dialer)
+		if dialer.QOS > highestQOS {
+			highestQOSFrontedDialer = fd
+		}
 	}
 
 	log.Debugf("Adding %d chained servers", len(cfg.ChainedServers))
 	for _, s := range cfg.ChainedServers {
-		dialer, err := s.dialer()
+		dialer, err := s.Dialer()
 		if err == nil {
 			dialers = append(dialers, dialer)
 		} else {
@@ -48,5 +56,5 @@ func (client *Client) initBalancer(cfg *ClientConfig) *balancer.Balancer {
 	client.balCh <- bal
 	client.balInitialized = true
 
-	return bal
+	return bal, highestQOSFrontedDialer
 }

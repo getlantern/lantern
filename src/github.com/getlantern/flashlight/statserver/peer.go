@@ -1,19 +1,17 @@
 package statserver
 
 import (
-	"encoding/json"
-	"fmt"
-	"net/http"
+	"math"
 	"sync/atomic"
 	"time"
-)
 
-const (
-	GEOSERVE_URL_TEMPLATE = "http://go-geoserve.herokuapp.com/lookup/%s"
+	"github.com/getlantern/geolookup"
 )
 
 var (
-	publishInterval = 10 * time.Second
+	publishInterval   = 10 * time.Second
+	retryWaitTime     = 100 * time.Millisecond
+	maxGeolocateTries = 10
 )
 
 // Peer represents information about a peer
@@ -35,88 +33,10 @@ type Peer struct {
 	reportedFinal   bool
 }
 
-// The City structure corresponds to the data in the GeoIP2/GeoLite2 City
-// databases.
-type City struct {
-	City struct {
-		GeoNameID uint              `maxminddb:"geoname_id"`
-		Names     map[string]string `maxminddb:"names"`
-	} `maxminddb:"city"`
-	Continent struct {
-		Code      string            `maxminddb:"code"`
-		GeoNameID uint              `maxminddb:"geoname_id"`
-		Names     map[string]string `maxminddb:"names"`
-	} `maxminddb:"continent"`
-	Country struct {
-		GeoNameID uint              `maxminddb:"geoname_id"`
-		IsoCode   string            `maxminddb:"iso_code"`
-		Names     map[string]string `maxminddb:"names"`
-	} `maxminddb:"country"`
-	Location struct {
-		Latitude  float64 `maxminddb:"latitude"`
-		Longitude float64 `maxminddb:"longitude"`
-		MetroCode uint    `maxminddb:"metro_code"`
-		TimeZone  string  `maxminddb:"time_zone"`
-	} `maxminddb:"location"`
-	Postal struct {
-		Code string `maxminddb:"code"`
-	} `maxminddb:"postal"`
-	RegisteredCountry struct {
-		GeoNameID uint              `maxminddb:"geoname_id"`
-		IsoCode   string            `maxminddb:"iso_code"`
-		Names     map[string]string `maxminddb:"names"`
-	} `maxminddb:"registered_country"`
-	RepresentedCountry struct {
-		GeoNameID uint              `maxminddb:"geoname_id"`
-		IsoCode   string            `maxminddb:"iso_code"`
-		Names     map[string]string `maxminddb:"names"`
-		Type      string            `maxminddb:"type"`
-	} `maxminddb:"represented_country"`
-	Subdivisions []struct {
-		GeoNameID uint              `maxminddb:"geoname_id"`
-		IsoCode   string            `maxminddb:"iso_code"`
-		Names     map[string]string `maxminddb:"names"`
-	} `maxminddb:"subdivisions"`
-	Traits struct {
-		IsAnonymousProxy    bool `maxminddb:"is_anonymous_proxy"`
-		IsSatelliteProvider bool `maxminddb:"is_satellite_provider"`
-	} `maxminddb:"traits"`
-}
-
-// The Country structure corresponds to the data in the GeoIP2/GeoLite2
-// Country databases.
-type Country struct {
-	Continent struct {
-		Code      string            `maxminddb:"code"`
-		GeoNameID uint              `maxminddb:"geoname_id"`
-		Names     map[string]string `maxminddb:"names"`
-	} `maxminddb:"continent"`
-	Country struct {
-		GeoNameID uint              `maxminddb:"geoname_id"`
-		IsoCode   string            `maxminddb:"iso_code"`
-		Names     map[string]string `maxminddb:"names"`
-	} `maxminddb:"country"`
-	RegisteredCountry struct {
-		GeoNameID uint              `maxminddb:"geoname_id"`
-		IsoCode   string            `maxminddb:"iso_code"`
-		Names     map[string]string `maxminddb:"names"`
-	} `maxminddb:"registered_country"`
-	RepresentedCountry struct {
-		GeoNameID uint              `maxminddb:"geoname_id"`
-		IsoCode   string            `maxminddb:"iso_code"`
-		Names     map[string]string `maxminddb:"names"`
-		Type      string            `maxminddb:"type"`
-	} `maxminddb:"represented_country"`
-	Traits struct {
-		IsAnonymousProxy    bool `maxminddb:"is_anonymous_proxy"`
-		IsSatelliteProvider bool `maxminddb:"is_satellite_provider"`
-	} `maxminddb:"traits"`
-}
-
 // publish is a function to which a peer can publish itself
 type publish func(peer *Peer)
 
-func newPeer(ip string, pub publish) (*Peer, error) {
+func newPeer(ip string, pub publish) *Peer {
 	peer := &Peer{
 		IP:              ip,
 		pub:             pub,
@@ -124,51 +44,30 @@ func newPeer(ip string, pub publish) (*Peer, error) {
 		atLastReporting: &Peer{},
 	}
 	*peer.atLastReporting = *peer
-	err := peer.run()
-	if err != nil {
-		return nil, err
-	}
-	return peer, nil
+	go peer.run()
+	return peer
 }
 
-func (peer *Peer) run() error {
+func (peer *Peer) run() {
 	err := peer.geolocate()
 	if err != nil {
-		return err
+		log.Errorf("Unable to geolocate peer after %d attempts, stopping reporting: %v", maxGeolocateTries, err)
+		return
 	}
-	go peer.publishPeriodically()
-	return nil
-}
 
-func (peer *Peer) geolocate() error {
-	resp, err := http.Get(fmt.Sprintf(GEOSERVE_URL_TEMPLATE, peer.IP))
-	if err != nil {
-		return err
-	}
-	decoder := json.NewDecoder(resp.Body)
-	geodata := &City{}
-	err = decoder.Decode(geodata)
-	if err != nil {
-		return err
-	}
-	peer.Country = geodata.Country.IsoCode
-	peer.Latitude = geodata.Location.Latitude
-	peer.Longitude = geodata.Location.Longitude
-	return nil
-}
-
-func (peer *Peer) publishPeriodically() {
 	for {
-		time.Sleep(publishInterval)
 		newActivity := peer.LastConnected != peer.atLastReporting.LastConnected
 		if newActivity {
 			// We have new activity, meaning that we will eventually need to
 			// report a final update
 			peer.reportedFinal = false
 		}
+
 		// Only report if there's been activity or we need to make our final report
 		shouldReport := newActivity || !peer.reportedFinal
 		if shouldReport {
+			log.Tracef("%v reporting", peer.IP)
+
 			// Calculate stats
 			now := time.Now()
 			peer.lastReported = now
@@ -185,11 +84,47 @@ func (peer *Peer) publishPeriodically() {
 			peer.pub(peer.atLastReporting)
 
 			if shouldReport && !newActivity {
-				// We just reported our final update
+				log.Tracef("%v just reported its final update", peer.IP)
 				peer.reportedFinal = true
 			}
 		}
+
+		time.Sleep(publishInterval)
 	}
+}
+
+func (peer *Peer) geolocate() error {
+	var err error
+
+	for i := 0; i < maxGeolocateTries; i++ {
+		if i > 0 {
+			retryWait := time.Duration(math.Pow(2, float64(i)) * float64(retryWaitTime))
+			log.Debugf("Waiting %v before retrying geolocate", retryWait)
+			time.Sleep(retryWait)
+		}
+
+		err = peer.doGeolocate()
+		if err == nil {
+			break
+		}
+
+		log.Errorf("Unable to geolocate peer: %v", err)
+	}
+
+	return err
+}
+
+func (peer *Peer) doGeolocate() error {
+	geodata, err := geolookup.LookupIPWithClient(peer.IP, geoClient)
+	if err != nil {
+		return err
+	}
+
+	peer.Country = geodata.Country.IsoCode
+	peer.Latitude = geodata.Location.Latitude
+	peer.Longitude = geodata.Location.Longitude
+
+	return nil
 }
 
 func (peer *Peer) onBytesReceived(bytes int64) {

@@ -7,11 +7,16 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"path/filepath"
+	"sort"
 	"time"
 
+	"github.com/getlantern/appdir"
 	"github.com/getlantern/fronted"
+	"github.com/getlantern/geolookup"
 	"github.com/getlantern/golog"
-	"github.com/getlantern/nattywad"
+	"github.com/getlantern/proxiedsites"
+	"github.com/getlantern/waitforserver"
 	"github.com/getlantern/yaml"
 	"github.com/getlantern/yamlconf"
 
@@ -44,14 +49,14 @@ type Config struct {
 	Role          string
 	InstanceId    string
 	Country       string
-	StatsAddr     string
 	CpuProfile    string
 	MemProfile    string
-	WaddellCert   string
 	Stats         *statreporter.Config
 	Server        *server.ServerConfig
 	Client        *client.ClientConfig
+	ProxiedSites  *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
 	TrustedCAs    []*CA
+	UIAddr        string // UI HTTP server address
 }
 
 // CA represents a certificate authority
@@ -60,10 +65,14 @@ type CA struct {
 	Cert       string // PEM-encoded
 }
 
-// Start starts the configuration system.
-func Start(updateHandler func(updated *Config)) (*Config, error) {
+// Init initializes the configuration system.
+func Init() (*Config, error) {
+	configPath, err := InConfigDir("lantern.yaml")
+	if err != nil {
+		return nil, err
+	}
 	m = &yamlconf.Manager{
-		FilePath:         InConfigDir("flashlight.yaml"),
+		FilePath:         configPath,
 		FilePollInterval: 1 * time.Second,
 		ConfigServerAddr: *configaddr,
 		EmptyConfig: func() yamlconf.Config {
@@ -74,20 +83,21 @@ func Start(updateHandler func(updated *Config)) (*Config, error) {
 			return cfg.applyFlags()
 		},
 		CustomPoll: func(currentCfg yamlconf.Config) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
+			// By default, do nothing
+			mutate = func(ycfg yamlconf.Config) error {
+				// do nothing
+				return nil
+			}
 			cfg := currentCfg.(*Config)
 			waitTime = cfg.cloudPollSleepTime()
 			if cfg.CloudConfig == "" {
 				// Config doesn't have a CloudConfig, just ignore
-				mutate = func(ycfg yamlconf.Config) error {
-					// do nothing
-					return nil
-				}
 				return
 			}
 
 			var bytes []byte
 			bytes, err = cfg.fetchCloudConfig()
-			if err == nil {
+			if err == nil && bytes != nil {
 				mutate = func(ycfg yamlconf.Config) error {
 					log.Debugf("Merging cloud configuration")
 					cfg := ycfg.(*Config)
@@ -101,30 +111,37 @@ func Start(updateHandler func(updated *Config)) (*Config, error) {
 	var cfg *Config
 	if err == nil {
 		cfg = initial.(*Config)
-		updateGlobals(cfg)
-		go func() {
-			// Read updates
-			for {
-				next := m.Next()
-				nextCfg := next.(*Config)
-				updateGlobals(nextCfg)
-				updateHandler(nextCfg)
-			}
-		}()
+		err = updateGlobals(cfg)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return cfg, err
 }
 
-func updateGlobals(cfg *Config) {
-	globals.InstanceId = cfg.InstanceId
-	globals.Country = cfg.Country
-	if cfg.WaddellCert != "" {
-		globals.WaddellCert = cfg.WaddellCert
+// Run runs the configuration system.
+func Run(updateHandler func(updated *Config)) error {
+	for {
+		next := m.Next()
+		nextCfg := next.(*Config)
+		err := updateGlobals(nextCfg)
+		if err != nil {
+			return err
+		}
+		updateHandler(nextCfg)
 	}
+}
+
+func updateGlobals(cfg *Config) error {
+	globals.InstanceId = cfg.InstanceId
+	loc := &geolookup.City{}
+	loc.Country.IsoCode = cfg.Country
+	globals.SetLocation(loc)
 	err := globals.SetTrustedCAs(cfg.TrustedCACerts())
 	if err != nil {
-		log.Fatalf("Unable to configure trusted CAs: %s", err)
+		return fmt.Errorf("Unable to configure trusted CAs: %s", err)
 	}
+	return nil
 }
 
 // Update updates the configuration using the given mutator function.
@@ -135,20 +152,21 @@ func Update(mutate func(cfg *Config) error) error {
 }
 
 // InConfigDir returns the path to the given filename inside of the configdir.
-func InConfigDir(filename string) string {
-	if *configdir == "" {
-		return filename
-	} else {
-		if _, err := os.Stat(*configdir); err != nil {
-			if os.IsNotExist(err) {
-				// Create config dir
-				if err := os.MkdirAll(*configdir, 0755); err != nil {
-					log.Fatalf("Unable to create configdir at %s: %s", *configdir, err)
-				}
+func InConfigDir(filename string) (string, error) {
+	cdir := *configdir
+	if cdir == "" {
+		cdir = appdir.General("Lantern")
+	}
+	log.Debugf("Placing configuration in %v", cdir)
+	if _, err := os.Stat(cdir); err != nil {
+		if os.IsNotExist(err) {
+			// Create config dir
+			if err := os.MkdirAll(cdir, 0755); err != nil {
+				return "", fmt.Errorf("Unable to create configdir at %s: %s", cdir, err)
 			}
 		}
-		return fmt.Sprintf("%s%c%s", *configdir, os.PathSeparator, filename)
 	}
+	return filepath.Join(cdir, filename), nil
 }
 
 // TrustedCACerts returns a slice of PEM-encoded certs for the trusted CAs
@@ -177,6 +195,22 @@ func (cfg *Config) SetVersion(version int) {
 // flashlight, this function should be updated to provide sensible defaults for
 // those settings.
 func (cfg *Config) ApplyDefaults() {
+	if cfg.Role == "" {
+		cfg.Role = "client"
+	}
+
+	if cfg.Addr == "" {
+		cfg.Addr = "localhost:8787"
+	}
+
+	if cfg.UIAddr == "" {
+		cfg.UIAddr = "localhost:16823"
+	}
+
+	if cfg.CloudConfig == "" {
+		cfg.CloudConfig = "https://s3.amazonaws.com/lantern_config/cloud.2.0.0-beta3.yaml.gz"
+	}
+
 	// Default country
 	if cfg.Country == "" {
 		cfg.Country = *country
@@ -193,6 +227,22 @@ func (cfg *Config) ApplyDefaults() {
 
 	if cfg.Client != nil && cfg.Role == "client" {
 		cfg.applyClientDefaults()
+	}
+
+	if cfg.ProxiedSites == nil {
+		log.Debugf("Adding empty proxiedsites")
+		cfg.ProxiedSites = &proxiedsites.Config{
+			Delta: &proxiedsites.Delta{
+				Additions: []string{},
+				Deletions: []string{},
+			},
+			Cloud: []string{},
+		}
+	}
+
+	if cfg.ProxiedSites.Cloud == nil || len(cfg.ProxiedSites.Cloud) == 0 {
+		log.Debugf("Loading default cloud proxiedsites")
+		cfg.ProxiedSites.Cloud = defaultProxiedSites
 	}
 
 	if cfg.TrustedCAs == nil || len(cfg.TrustedCAs) == 0 {
@@ -214,23 +264,22 @@ func (cfg *Config) applyClientDefaults() {
 		cfg.Client.FrontedServers = make([]*client.FrontedServerInfo, 0)
 	}
 	if len(cfg.Client.FrontedServers) == 0 && len(cfg.Client.ChainedServers) == 0 {
-		cfg.Client.FrontedServers = append(cfg.Client.FrontedServers, &client.FrontedServerInfo{
-			Host:           "fallbacks.getiantem.org",
-			Port:           443,
-			PoolSize:       30,
-			MasqueradeSet:  cloudflare,
-			MaxMasquerades: 20,
-			QOS:            10,
-			Weight:         4000,
-		}, &client.FrontedServerInfo{
-			Host:           "peers.getiantem.org",
-			Port:           443,
-			PoolSize:       30,
-			MasqueradeSet:  cloudflare,
-			MaxMasquerades: 20,
-			QOS:            2,
-			Weight:         1000,
-		})
+		cfg.Client.FrontedServers = []*client.FrontedServerInfo{
+			&client.FrontedServerInfo{
+				Host:           "nl.fallbacks.getiantem.org",
+				Port:           443,
+				PoolSize:       30,
+				MasqueradeSet:  cloudflare,
+				MaxMasquerades: 20,
+				QOS:            10,
+				Weight:         4000,
+			},
+		}
+
+		cfg.Client.ChainedServers = make(map[string]*client.ChainedServerInfo, len(fallbacks))
+		for key, fb := range fallbacks {
+			cfg.Client.ChainedServers[key] = fb
+		}
 	}
 
 	// Make sure all servers have a QOS and Weight configured
@@ -251,11 +300,6 @@ func (cfg *Config) applyClientDefaults() {
 		cfg.Client.ChainedServers = make(map[string]*client.ChainedServerInfo)
 	}
 
-	// Always make sure that we have a map of Peers
-	if cfg.Client.Peers == nil {
-		cfg.Client.Peers = make(map[string]*nattywad.ServerPeer)
-	}
-
 	// Sort servers so that they're always in a predictable order
 	cfg.Client.SortServers()
 }
@@ -272,25 +316,42 @@ func (cfg Config) cloudPollSleepTime() time.Duration {
 	return time.Duration((CloudConfigPollInterval.Nanoseconds() / 2) + rand.Int63n(CloudConfigPollInterval.Nanoseconds()))
 }
 
-func (cfg Config) fetchCloudConfig() ([]byte, error) {
+func (cfg Config) fetchCloudConfig() (bytes []byte, err error) {
 	log.Debugf("Fetching cloud config from: %s", cfg.CloudConfig)
-	// Try it unproxied first
-	bytes, err := cfg.doFetchCloudConfig("")
-	if err != nil && cfg.IsDownstream() {
-		// If that failed, try it proxied
-		bytes, err = cfg.doFetchCloudConfig(cfg.Addr)
+
+	if cfg.IsDownstream() {
+		// Clients must always proxy the request
+		if cfg.Addr == "" {
+			err = fmt.Errorf("No proxyAddr")
+		} else {
+			bytes, err = cfg.doFetchCloudConfig(cfg.Addr)
+		}
+	} else {
+		bytes, err = cfg.doFetchCloudConfig("")
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Unable to read yaml from %s: %s", cfg.CloudConfig, err)
+		bytes = nil
+		err = fmt.Errorf("Unable to read yaml from %s: %s", cfg.CloudConfig, err)
 	}
-	return bytes, err
+	return
 }
 
 func (cfg Config) doFetchCloudConfig(proxyAddr string) ([]byte, error) {
+	log.Tracef("doFetchCloudConfig via '%s'", proxyAddr)
+
+	if proxyAddr != "" {
+		// Wait for proxy to become available
+		err := waitforserver.WaitForServer("tcp", proxyAddr, 30*time.Second)
+		if err != nil {
+			return nil, fmt.Errorf("Proxy never came up at %v: %v", proxyAddr, err)
+		}
+	}
+
 	client, err := util.HTTPClient(cfg.CloudConfigCA, proxyAddr)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to initialize HTTP client: %s", err)
 	}
+
 	log.Debugf("Checking for cloud configuration at: %s", cfg.CloudConfig)
 	req, err := http.NewRequest("GET", cfg.CloudConfig, nil)
 	if err != nil {
@@ -305,12 +366,14 @@ func (cfg Config) doFetchCloudConfig(proxyAddr string) ([]byte, error) {
 		return nil, fmt.Errorf("Unable to fetch cloud config at %s: %s", cfg.CloudConfig, err)
 	}
 	defer resp.Body.Close()
+
 	if resp.StatusCode == 304 {
 		log.Debugf("Config unchanged in cloud")
 		return nil, nil
 	} else if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("Unexpected response status: %d", resp.StatusCode)
 	}
+
 	lastCloudConfigETag = resp.Header.Get(etag)
 	gzReader, err := gzip.NewReader(resp.Body)
 	if err != nil {
@@ -327,6 +390,7 @@ func (updated *Config) updateFrom(updateBytes []byte) error {
 	if err != nil {
 		return fmt.Errorf("Unable to unmarshal YAML for update: %s", err)
 	}
+
 	// Need to de-duplicate servers, since yaml appends them
 	servers := make(map[string]*client.FrontedServerInfo)
 	for _, server := range updated.Client.FrontedServers {
@@ -335,6 +399,19 @@ func (updated *Config) updateFrom(updateBytes []byte) error {
 	updated.Client.FrontedServers = make([]*client.FrontedServerInfo, 0, len(servers))
 	for _, server := range servers {
 		updated.Client.FrontedServers = append(updated.Client.FrontedServers, server)
+	}
+
+	// Same with global proxiedsites
+	if len(updated.ProxiedSites.Cloud) > 0 {
+		wlDomains := make(map[string]bool)
+		for _, domain := range updated.ProxiedSites.Cloud {
+			wlDomains[domain] = true
+		}
+		updated.ProxiedSites.Cloud = make([]string, 0, len(wlDomains))
+		for domain, _ := range wlDomains {
+			updated.ProxiedSites.Cloud = append(updated.ProxiedSites.Cloud, domain)
+		}
+		sort.Strings(updated.ProxiedSites.Cloud)
 	}
 	return nil
 }
