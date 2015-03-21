@@ -166,6 +166,11 @@ func TestSortValues(t *testing.T) {
 			[]reflect.Value{b, a, c},
 			[]reflect.Value{a, b, c},
 		},
+		// Array
+		{
+			[]reflect.Value{v([3]int{3, 2, 1}), v([3]int{1, 3, 2}), v([3]int{1, 2, 3})},
+			[]reflect.Value{v([3]int{1, 2, 3}), v([3]int{1, 3, 2}), v([3]int{3, 2, 1})},
+		},
 		// Uintptrs.
 		{
 			[]reflect.Value{v(uintptr(2)), v(uintptr(1)), v(uintptr(3))},

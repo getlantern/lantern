@@ -1,0 +1,49 @@
+<!--
+  Only show yourself on the map if you've either managed to do a geoip lookup or have a stored geolocation.
+-->
+<div id="vis" ng-controller="VisCtrl" resizable>
+    <svg id="map">
+    <g id="zoomGroup" transform="matrix(1 0 0 1 0 0)">
+    <g id="countries" countries />
+    <g id="peers" peers></g>
+    <path id="self" ng-show="model.location.resolved" self class="{{ model.settings.mode }}"
+          ng-attr-d="{{ path({type: 'Point', coordinates: [model.location.lon, model.location.lat]}, 2) }}"
+          lat="{{model.location.lat}}"
+          lon="{{model.location.lon}}"/>
+          <!--tooltip-html-unsafe="<div class=vis>
+            <div class='{{model.settings.mode}} {{model.connectivity.type}}'>
+              <img class=picture src='{{model.profile.picture || DEFAULT_AVATAR_URL}}'>
+              <div class=headers>
+                <div class=header>{{model.profile.name}}</div>
+                <div class=email>{{model.profile.email}}</div>
+                <div class='peerid ip'>{{model.connectivity.peerid}}{{model.connectivity.formattedIp}}</div>
+                <div class=type>{{model.connectivity.type && model.settings.mode && (((model.connectivity.type|upper)+(model.settings.mode|upper))|translate) || ''}}</div>
+              </div>
+              <div class=stats>
+                <div class=bps{{model.instanceStats.allBytes.rate}}>
+                  {{model.instanceStats.allBytes.rate | prettyBps}}
+                </div>
+                <div class=bytes{{model.instanceStats.allBytes.total}}>
+                  {{model.instanceStats.bytesGiven.total | prettyBytes}} {{'GIVEN' | translate}},
+                  {{model.instanceStats.bytesGotten.total | prettyBytes}} {{'GOTTEN' | translate}}
+                </div>
+                <div class=lastConnected>
+                  {{model.connectivity.lastConnected && ('LAST_CONNECTED' | translate) || '' }}
+                  <time>{{model.connectivity.lastConnected && (model.connectivity.lastConnected | date:'short') || ''}}</time>
+                </div>
+              </div>
+            </div>
+        </div>" tooltip-placement="right" />-->
+    </g>
+    <div class="control-zoom noselect">
+        <a id="zoomIn" ng-click="adjustZoom(1.25)" class="leaflet-control-zoom-in" href="#" title="Zoom in">+</a>
+        <a id="zoomCenter" ng-click="centerZoom()" class="zoomFilter center leaflet-control-zoom-center zoomedOut" href="#" title="Zoom center"></a>
+        <a id="zoomOut" ng-click="adjustZoom(0.8)" class="leaflet-control-zoom-out" href="#" title="Zoom out">-</a>
+    </div>
+    </svg>
+    <style>
+        #self, .peer {
+            filter: url(#defaultBlur) !important;
+        }
+    </style>
+</div>

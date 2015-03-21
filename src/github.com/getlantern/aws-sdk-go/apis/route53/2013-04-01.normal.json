@@ -1,0 +1,3073 @@
+{
+  "metadata":{
+    "apiVersion":"2013-04-01",
+    "endpointPrefix":"route53",
+    "globalEndpoint":"route53.amazonaws.com",
+    "serviceAbbreviation":"Route 53",
+    "serviceFullName":"Amazon Route 53",
+    "signatureVersion":"v3https",
+    "protocol":"rest-xml"
+  },
+  "operations":{
+    "AssociateVPCWithHostedZone":{
+      "name":"AssociateVPCWithHostedZone",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2013-04-01/hostedzone/{Id}/associatevpc"
+      },
+      "input":{
+        "shape":"AssociateVPCWithHostedZoneRequest",
+        "documentation":"<p>A complex type that contains information about the request to associate a VPC with an hosted zone.</p>",
+        "xmlNamespace":{"uri":"https://route53.amazonaws.com/doc/2013-04-01/"},
+        "locationName":"AssociateVPCWithHostedZoneRequest"
+      },
+      "output":{
+        "shape":"AssociateVPCWithHostedZoneResponse",
+        "documentation":"<p>A complex type containing the response information for the request.</p>"
+      },
+      "errors":[
+        {
+          "shape":"NoSuchHostedZone",
+          "error":{"httpStatusCode":404},
+          "exception":true
+        },
+        {
+          "shape":"InvalidVPCId",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>The hosted zone you are trying to create for your VPC_ID does not belong to you. Route 53 returns this error when the VPC specified by <code>VPCId</code> does not belong to you.</p>"
+        },
+        {
+          "shape":"InvalidInput",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>Some value specified in the request is invalid or the XML document is malformed.</p>"
+        },
+        {
+          "shape":"PublicZoneVPCAssociation",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>The hosted zone you are trying to associate VPC with doesn't have any VPC association. Route 53 currently doesn't support associate a VPC with a public hosted zone.</p>"
+        },
+        {
+          "shape":"ConflictingDomainExists",
+          "exception":true
+        }
+      ],
+      "documentation":"<p> This action associates a VPC with an hosted zone. </p> <p> To associate a VPC with an hosted zone, send a <code>POST</code> request to the <code>2013-04-01/hostedzone/<i>hosted zone ID</i>/associatevpc</code> resource. The request body must include an XML document with a <code>AssociateVPCWithHostedZoneRequest</code> element. The response returns the <code>AssociateVPCWithHostedZoneResponse</code> element that contains <code>ChangeInfo</code> for you to track the progress of the <code>AssociateVPCWithHostedZoneRequest</code> you made. See <code>GetChange</code> operation for how to track the progress of your change.</p>"
+    },
+    "ChangeResourceRecordSets":{
+      "name":"ChangeResourceRecordSets",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2013-04-01/hostedzone/{Id}/rrset/"
+      },
+      "input":{
+        "shape":"ChangeResourceRecordSetsRequest",
+        "documentation":"<p>A complex type that contains a change batch.</p>",
+        "xmlNamespace":{"uri":"https://route53.amazonaws.com/doc/2013-04-01/"},
+        "locationName":"ChangeResourceRecordSetsRequest"
+      },
+      "output":{
+        "shape":"ChangeResourceRecordSetsResponse",
+        "documentation":"<p>A complex type containing the response for the request.</p>"
+      },
+      "errors":[
+        {
+          "shape":"NoSuchHostedZone",
+          "error":{"httpStatusCode":404},
+          "exception":true
+        },
+        {
+          "shape":"NoSuchHealthCheck",
+          "error":{"httpStatusCode":404},
+          "exception":true,
+          "documentation":"<p>The health check you are trying to get or delete does not exist.</p>"
+        },
+        {
+          "shape":"InvalidChangeBatch",
+          "exception":true,
+          "documentation":"<p>This error contains a list of one or more error messages. Each error message indicates one error in the change batch. For more information, see <a href=\"http://docs.aws.amazon.com/Route53/latest/APIReference/API_ChangeResourceRecordSets.html#example_Errors\">Example InvalidChangeBatch Errors</a>. </p>"
+        },
+        {
+          "shape":"InvalidInput",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>Some value specified in the request is invalid or the XML document is malformed.</p>"
+        },
+        {
+          "shape":"PriorRequestNotComplete",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>The request was rejected because Route 53 was still processing a prior request.</p>"
+        }
+      ],
+      "documentation":"<p>Use this action to create or change your authoritative DNS information. To use this action, send a <code>POST</code> request to the <code>2013-04-01/hostedzone/<i>hosted Zone ID</i>/rrset</code> resource. The request body must include an XML document with a <code>ChangeResourceRecordSetsRequest</code> element.</p> <p>Changes are a list of change items and are considered transactional. For more information on transactional changes, also known as change batches, see <a href=\"http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/RRSchanges.html#RRSchanges_API\">Creating, Changing, and Deleting Resource Record Sets Using the Route 53 API</a> in the <i>Amazon Route 53 Developer Guide</i>.</p> <important>Due to the nature of transactional changes, you cannot delete the same resource record set more than once in a single change batch. If you attempt to delete the same change batch more than once, Route 53 returns an <code>InvalidChangeBatch</code> error.</important> <p>In response to a <code>ChangeResourceRecordSets</code> request, your DNS data is changed on all Route 53 DNS servers. Initially, the status of a change is <code>PENDING</code>. This means the change has not yet propagated to all the authoritative Route 53 DNS servers. When the change is propagated to all hosts, the change returns a status of <code>INSYNC</code>.</p> <p>Note the following limitations on a <code>ChangeResourceRecordSets</code> request:</p> <p>- A request cannot contain more than 100 Change elements.</p> <p>- A request cannot contain more than 1000 ResourceRecord elements.</p> <p>The sum of the number of characters (including spaces) in all <code>Value</code> elements in a request cannot exceed 32,000 characters.</p>"
+    },
+    "ChangeTagsForResource":{
+      "name":"ChangeTagsForResource",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2013-04-01/tags/{ResourceType}/{ResourceId}"
+      },
+      "input":{
+        "shape":"ChangeTagsForResourceRequest",
+        "documentation":"<p>A complex type containing information about a request to add, change, or delete the tags that are associated with a resource.</p>",
+        "xmlNamespace":{"uri":"https://route53.amazonaws.com/doc/2013-04-01/"},
+        "locationName":"ChangeTagsForResourceRequest"
+      },
+      "output":{
+        "shape":"ChangeTagsForResourceResponse",
+        "documentation":"<p>Empty response for the request.</p>"
+      },
+      "errors":[
+        {
+          "shape":"InvalidInput",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>Some value specified in the request is invalid or the XML document is malformed.</p>"
+        },
+        {
+          "shape":"NoSuchHealthCheck",
+          "error":{"httpStatusCode":404},
+          "exception":true,
+          "documentation":"<p>The health check you are trying to get or delete does not exist.</p>"
+        },
+        {
+          "shape":"NoSuchHostedZone",
+          "error":{"httpStatusCode":404},
+          "exception":true
+        },
+        {
+          "shape":"PriorRequestNotComplete",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>The request was rejected because Route 53 was still processing a prior request.</p>"
+        },
+        {
+          "shape":"ThrottlingException",
+          "error":{"httpStatusCode":400},
+          "exception":true
+        }
+      ]
+    },
+    "CreateHealthCheck":{
+      "name":"CreateHealthCheck",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2013-04-01/healthcheck",
+        "responseCode":201
+      },
+      "input":{
+        "shape":"CreateHealthCheckRequest",
+        "documentation":"<p>&gt;A complex type that contains information about the request to create a health check.</p>",
+        "xmlNamespace":{"uri":"https://route53.amazonaws.com/doc/2013-04-01/"},
+        "locationName":"CreateHealthCheckRequest"
+      },
+      "output":{
+        "shape":"CreateHealthCheckResponse",
+        "documentation":"<p>A complex type containing the response information for the new health check.</p>"
+      },
+      "errors":[
+        {
+          "shape":"TooManyHealthChecks",
+          "exception":true
+        },
+        {
+          "shape":"HealthCheckAlreadyExists",
+          "error":{"httpStatusCode":409},
+          "exception":true,
+          "documentation":"<p>The health check you are trying to create already exists. Route 53 returns this error when a health check has already been created with the specified <code>CallerReference</code>.</p>"
+        },
+        {
+          "shape":"InvalidInput",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>Some value specified in the request is invalid or the XML document is malformed.</p>"
+        }
+      ],
+      "documentation":"<p> This action creates a new health check.</p> <p> To create a new health check, send a <code>POST</code> request to the <code>2013-04-01/healthcheck</code> resource. The request body must include an XML document with a <code>CreateHealthCheckRequest</code> element. The response returns the <code>CreateHealthCheckResponse</code> element that contains metadata about the health check.</p>"
+    },
+    "CreateHostedZone":{
+      "name":"CreateHostedZone",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2013-04-01/hostedzone",
+        "responseCode":201
+      },
+      "input":{
+        "shape":"CreateHostedZoneRequest",
+        "documentation":"<p>A complex type that contains information about the request to create a hosted zone.</p>",
+        "xmlNamespace":{"uri":"https://route53.amazonaws.com/doc/2013-04-01/"},
+        "locationName":"CreateHostedZoneRequest"
+      },
+      "output":{
+        "shape":"CreateHostedZoneResponse",
+        "documentation":"<p>A complex type containing the response information for the new hosted zone.</p>"
+      },
+      "errors":[
+        {
+          "shape":"InvalidDomainName",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>This error indicates that the specified domain name is not valid.</p>"
+        },
+        {
+          "shape":"HostedZoneAlreadyExists",
+          "error":{"httpStatusCode":409},
+          "exception":true,
+          "documentation":"<p>The hosted zone you are trying to create already exists. Route 53 returns this error when a hosted zone has already been created with the specified <code>CallerReference</code>.</p>"
+        },
+        {
+          "shape":"TooManyHostedZones",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>This error indicates that you've reached the maximum number of hosted zones that can be created for the current AWS account. You can request an increase to the limit on the <a href=\"http://aws.amazon.com/route53-request/\">Contact Us</a> page.</p>"
+        },
+        {
+          "shape":"InvalidVPCId",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>The hosted zone you are trying to create for your VPC_ID does not belong to you. Route 53 returns this error when the VPC specified by <code>VPCId</code> does not belong to you.</p>"
+        },
+        {
+          "shape":"InvalidInput",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>Some value specified in the request is invalid or the XML document is malformed.</p>"
+        },
+        {
+          "shape":"DelegationSetNotAvailable",
+          "exception":true,
+          "documentation":"<p>Route 53 allows some duplicate domain names, but there is a maximum number of duplicate names. This error indicates that you have reached that maximum. If you want to create another hosted zone with the same name and Route 53 generates this error, you can request an increase to the limit on the <a href=\"http://aws.amazon.com/route53-request/\">Contact Us</a> page.</p>"
+        },
+        {
+          "shape":"ConflictingDomainExists",
+          "exception":true
+        },
+        {
+          "shape":"NoSuchDelegationSet",
+          "exception":true,
+          "documentation":"<p>The specified delegation set does not exist.</p>"
+        },
+        {
+          "shape":"DelegationSetNotReusable",
+          "exception":true,
+          "documentation":"<p>The specified delegation set has not been marked as reusable.</p>"
+        }
+      ],
+      "documentation":"<p> This action creates a new hosted zone.</p> <p>To create a new hosted zone, send a <code>POST</code> request to the <code>2013-04-01/hostedzone</code> resource. The request body must include an XML document with a <code>CreateHostedZoneRequest</code> element. The response returns the <code>CreateHostedZoneResponse</code> element that contains metadata about the hosted zone.</p> <p>Route 53 automatically creates a default SOA record and four NS records for the zone. The NS records in the hosted zone are the name servers you give your registrar to delegate your domain to. For more information about SOA and NS records, see <a href=\"http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/SOA-NSrecords.html\">NS and SOA Records that Route 53 Creates for a Hosted Zone</a> in the <i>Amazon Route 53 Developer Guide</i>.</p> <p>When you create a zone, its initial status is <code>PENDING</code>. This means that it is not yet available on all DNS servers. The status of the zone changes to <code>INSYNC</code> when the NS and SOA records are available on all Route 53 DNS servers. </p> <p>When trying to create a hosted zone using a reusable delegation set, you could specify an optional DelegationSetId, and Route53 would assign those 4 NS records for the zone, instead of alloting a new one.</p>"
+    },
+    "CreateReusableDelegationSet":{
+      "name":"CreateReusableDelegationSet",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2013-04-01/delegationset",
+        "responseCode":201
+      },
+      "input":{
+        "shape":"CreateReusableDelegationSetRequest",
+        "xmlNamespace":{"uri":"https://route53.amazonaws.com/doc/2013-04-01/"},
+        "locationName":"CreateReusableDelegationSetRequest"
+      },
+      "output":{"shape":"CreateReusableDelegationSetResponse"},
+      "errors":[
+        {
+          "shape":"DelegationSetAlreadyCreated",
+          "exception":true,
+          "documentation":"<p>A delegation set with the same owner and caller reference combination has already been created.</p>"
+        },
+        {
+          "shape":"LimitsExceeded",
+          "exception":true,
+          "documentation":"<p>The limits specified for a resource have been exceeded.</p>"
+        },
+        {
+          "shape":"HostedZoneNotFound",
+          "exception":true,
+          "documentation":"<p>The specified HostedZone cannot be found.</p>"
+        },
+        {
+          "shape":"InvalidArgument",
+          "exception":true,
+          "documentation":"<p>At least one of the specified arguments is invalid.</p>"
+        },
+        {
+          "shape":"InvalidInput",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>Some value specified in the request is invalid or the XML document is malformed.</p>"
+        },
+        {
+          "shape":"DelegationSetNotAvailable",
+          "exception":true,
+          "documentation":"<p>Route 53 allows some duplicate domain names, but there is a maximum number of duplicate names. This error indicates that you have reached that maximum. If you want to create another hosted zone with the same name and Route 53 generates this error, you can request an increase to the limit on the <a href=\"http://aws.amazon.com/route53-request/\">Contact Us</a> page.</p>"
+        },
+        {
+          "shape":"DelegationSetAlreadyReusable",
+          "exception":true,
+          "documentation":"<p>The specified delegation set has already been marked as reusable.</p>"
+        }
+      ],
+      "documentation":"<p> This action creates a reusable delegationSet.</p> <p> To create a new reusable delegationSet, send a <code>POST</code> request to the <code>2013-04-01/delegationset</code> resource. The request body must include an XML document with a <code>CreateReusableDelegationSetRequest</code> element. The response returns the <code>CreateReusableDelegationSetResponse</code> element that contains metadata about the delegationSet. </p> <p> If the optional parameter HostedZoneId is specified, it marks the delegationSet associated with that particular hosted zone as reusable. </p>"
+    },
+    "DeleteHealthCheck":{
+      "name":"DeleteHealthCheck",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/2013-04-01/healthcheck/{HealthCheckId}"
+      },
+      "input":{
+        "shape":"DeleteHealthCheckRequest",
+        "documentation":"<p>A complex type containing the request information for delete health check.</p>"
+      },
+      "output":{
+        "shape":"DeleteHealthCheckResponse",
+        "documentation":"<p>Empty response for the request.</p>"
+      },
+      "errors":[
+        {
+          "shape":"NoSuchHealthCheck",
+          "error":{"httpStatusCode":404},
+          "exception":true,
+          "documentation":"<p>The health check you are trying to get or delete does not exist.</p>"
+        },
+        {
+          "shape":"HealthCheckInUse",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>There are resource records associated with this health check. Before you can delete the health check, you must disassociate it from the resource record sets.</p>"
+        },
+        {
+          "shape":"InvalidInput",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>Some value specified in the request is invalid or the XML document is malformed.</p>"
+        }
+      ],
+      "documentation":"<p>This action deletes a health check. To delete a health check, send a <code>DELETE</code> request to the <code>2013-04-01/healthcheck/<i>health check ID</i></code> resource.</p> <important> You can delete a health check only if there are no resource record sets associated with this health check. If resource record sets are associated with this health check, you must disassociate them before you can delete your health check. If you try to delete a health check that is associated with resource record sets, Route 53 will deny your request with a <code>HealthCheckInUse</code> error. For information about disassociating the records from your health check, see <a>ChangeResourceRecordSets</a>.</important>"
+    },
+    "DeleteHostedZone":{
+      "name":"DeleteHostedZone",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/2013-04-01/hostedzone/{Id}"
+      },
+      "input":{
+        "shape":"DeleteHostedZoneRequest",
+        "documentation":"<p>A complex type that contains information about the hosted zone that you want to delete.</p>"
+      },
+      "output":{
+        "shape":"DeleteHostedZoneResponse",
+        "documentation":"<p>A complex type containing the response information for the request.</p>"
+      },
+      "errors":[
+        {
+          "shape":"NoSuchHostedZone",
+          "error":{"httpStatusCode":404},
+          "exception":true
+        },
+        {
+          "shape":"HostedZoneNotEmpty",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>The hosted zone contains resource record sets in addition to the default NS and SOA resource record sets. Before you can delete the hosted zone, you must delete the additional resource record sets.</p>"
+        },
+        {
+          "shape":"PriorRequestNotComplete",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>The request was rejected because Route 53 was still processing a prior request.</p>"
+        },
+        {
+          "shape":"InvalidInput",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>Some value specified in the request is invalid or the XML document is malformed.</p>"
+        }
+      ],
+      "documentation":"<p>This action deletes a hosted zone. To delete a hosted zone, send a <code>DELETE</code> request to the <code>2013-04-01/hostedzone/<i>hosted zone ID</i></code> resource.</p> <p>For more information about deleting a hosted zone, see <a href=\"http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/DeleteHostedZone.html\">Deleting a Hosted Zone</a> in the <i>Amazon Route 53 Developer Guide</i>.</p> <important> You can delete a hosted zone only if there are no resource record sets other than the default SOA record and NS resource record sets. If your hosted zone contains other resource record sets, you must delete them before you can delete your hosted zone. If you try to delete a hosted zone that contains other resource record sets, Route 53 will deny your request with a <code>HostedZoneNotEmpty</code> error. For information about deleting records from your hosted zone, see <a>ChangeResourceRecordSets</a>.</important>"
+    },
+    "DeleteReusableDelegationSet":{
+      "name":"DeleteReusableDelegationSet",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/2013-04-01/delegationset/{Id}"
+      },
+      "input":{
+        "shape":"DeleteReusableDelegationSetRequest",
+        "documentation":"<p>A complex type containing the information for the delete request.</p>"
+      },
+      "output":{
+        "shape":"DeleteReusableDelegationSetResponse",
+        "documentation":"<p>Empty response for the request.</p>"
+      },
+      "errors":[
+        {
+          "shape":"NoSuchDelegationSet",
+          "exception":true,
+          "documentation":"<p>The specified delegation set does not exist.</p>"
+        },
+        {
+          "shape":"DelegationSetInUse",
+          "exception":true,
+          "documentation":"<p>The specified delegation contains associated hosted zones which must be deleted before the reusable delegation set can be deleted.</p>"
+        },
+        {
+          "shape":"DelegationSetNotReusable",
+          "exception":true,
+          "documentation":"<p>The specified delegation set has not been marked as reusable.</p>"
+        },
+        {
+          "shape":"InvalidInput",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>Some value specified in the request is invalid or the XML document is malformed.</p>"
+        }
+      ],
+      "documentation":"<p>This action deletes a reusable delegation set. To delete a reusable delegation set, send a <code>DELETE</code> request to the <code>2013-04-01/delegationset/<i>delegation set ID</i></code> resource.</p> <important> You can delete a reusable delegation set only if there are no associated hosted zones. If your reusable delegation set contains associated hosted zones, you must delete them before you can delete your reusable delegation set. If you try to delete a reusable delegation set that contains associated hosted zones, Route 53 will deny your request with a <code>DelegationSetInUse</code> error.</important>"
+    },
+    "DisassociateVPCFromHostedZone":{
+      "name":"DisassociateVPCFromHostedZone",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2013-04-01/hostedzone/{Id}/disassociatevpc"
+      },
+      "input":{
+        "shape":"DisassociateVPCFromHostedZoneRequest",
+        "documentation":"<p>A complex type that contains information about the request to disassociate a VPC from an hosted zone.</p>",
+        "xmlNamespace":{"uri":"https://route53.amazonaws.com/doc/2013-04-01/"},
+        "locationName":"DisassociateVPCFromHostedZoneRequest"
+      },
+      "output":{
+        "shape":"DisassociateVPCFromHostedZoneResponse",
+        "documentation":"<p>A complex type containing the response information for the request.</p>"
+      },
+      "errors":[
+        {
+          "shape":"NoSuchHostedZone",
+          "error":{"httpStatusCode":404},
+          "exception":true
+        },
+        {
+          "shape":"InvalidVPCId",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>The hosted zone you are trying to create for your VPC_ID does not belong to you. Route 53 returns this error when the VPC specified by <code>VPCId</code> does not belong to you.</p>"
+        },
+        {
+          "shape":"VPCAssociationNotFound",
+          "error":{"httpStatusCode":404},
+          "exception":true,
+          "documentation":"<p>The VPC you specified is not currently associated with the hosted zone.</p>"
+        },
+        {
+          "shape":"LastVPCAssociation",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>The VPC you are trying to disassociate from the hosted zone is the last the VPC that is associated with the hosted zone. Route 53 currently doesn't support disassociate the last VPC from the hosted zone.</p>"
+        },
+        {
+          "shape":"InvalidInput",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>Some value specified in the request is invalid or the XML document is malformed.</p>"
+        }
+      ],
+      "documentation":"<p> This action disassociates a VPC from an hosted zone. </p> <p> To disassociate a VPC to a hosted zone, send a <code>POST</code> request to the <code>2013-04-01/hostedzone/<i>hosted zone ID</i>/disassociatevpc</code> resource. The request body must include an XML document with a <code>DisassociateVPCFromHostedZoneRequest</code> element. The response returns the <code>DisassociateVPCFromHostedZoneResponse</code> element that contains <code>ChangeInfo</code> for you to track the progress of the <code>DisassociateVPCFromHostedZoneRequest</code> you made. See <code>GetChange</code> operation for how to track the progress of your change.</p>"
+    },
+    "GetChange":{
+      "name":"GetChange",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2013-04-01/change/{Id}"
+      },
+      "input":{
+        "shape":"GetChangeRequest",
+        "documentation":"<p>The input for a GetChange request.</p>"
+      },
+      "output":{
+        "shape":"GetChangeResponse",
+        "documentation":"<p>A complex type that contains the <code>ChangeInfo</code> element.</p>"
+      },
+      "errors":[
+        {
+          "shape":"NoSuchChange",
+          "error":{"httpStatusCode":404},
+          "exception":true
+        },
+        {
+          "shape":"InvalidInput",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>Some value specified in the request is invalid or the XML document is malformed.</p>"
+        }
+      ],
+      "documentation":"<p> This action returns the current status of a change batch request. The status is one of the following values:</p> <p>- <code>PENDING</code> indicates that the changes in this request have not replicated to all Route 53 DNS servers. This is the initial status of all change batch requests.</p> <p>- <code>INSYNC</code> indicates that the changes have replicated to all Amazon Route 53 DNS servers. </p>"
+    },
+    "GetCheckerIpRanges":{
+      "name":"GetCheckerIpRanges",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2013-04-01/checkeripranges"
+      },
+      "input":{
+        "shape":"GetCheckerIpRangesRequest",
+        "documentation":"<p>Empty request.</p>"
+      },
+      "output":{
+        "shape":"GetCheckerIpRangesResponse",
+        "documentation":"<p>A complex type that contains the <code>CheckerIpRanges</code> element.</p>"
+      },
+      "documentation":"<p> To retrieve a list of the IP ranges used by Amazon Route 53 health checkers to check the health of your resources, send a <code>GET</code> request to the <code>2013-04-01/checkeripranges</code> resource. You can use these IP addresses to configure router and firewall rules to allow health checkers to check the health of your resources.</p>"
+    },
+    "GetGeoLocation":{
+      "name":"GetGeoLocation",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2013-04-01/geolocation"
+      },
+      "input":{
+        "shape":"GetGeoLocationRequest",
+        "documentation":"<p>A complex type that contains information about the request to get a geo location.</p>"
+      },
+      "output":{
+        "shape":"GetGeoLocationResponse",
+        "documentation":"<p>A complex type containing information about the specified geo location.</p>"
+      },
+      "errors":[
+        {
+          "shape":"NoSuchGeoLocation",
+          "error":{"httpStatusCode":404},
+          "exception":true,
+          "documentation":"<p>The geo location you are trying to get does not exist.</p>"
+        },
+        {
+          "shape":"InvalidInput",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>Some value specified in the request is invalid or the XML document is malformed.</p>"
+        }
+      ],
+      "documentation":"<p> To retrieve a single geo location, send a <code>GET</code> request to the <code>2013-04-01/geolocation</code> resource with one of these options: continentcode | countrycode | countrycode and subdivisioncode.</p>"
+    },
+    "GetHealthCheck":{
+      "name":"GetHealthCheck",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2013-04-01/healthcheck/{HealthCheckId}"
+      },
+      "input":{
+        "shape":"GetHealthCheckRequest",
+        "documentation":"<p>A complex type that contains information about the request to get a health check.</p>"
+      },
+      "output":{
+        "shape":"GetHealthCheckResponse",
+        "documentation":"<p>A complex type containing information about the specified health check.</p>"
+      },
+      "errors":[
+        {
+          "shape":"NoSuchHealthCheck",
+          "error":{"httpStatusCode":404},
+          "exception":true,
+          "documentation":"<p>The health check you are trying to get or delete does not exist.</p>"
+        },
+        {
+          "shape":"InvalidInput",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>Some value specified in the request is invalid or the XML document is malformed.</p>"
+        },
+        {
+          "shape":"IncompatibleVersion",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>The resource you are trying to access is unsupported on this Route 53 endpoint. Please consider using a newer endpoint or a tool that does so.</p>"
+        }
+      ],
+      "documentation":"<p> To retrieve the health check, send a <code>GET</code> request to the <code>2013-04-01/healthcheck/<i>health check ID</i></code> resource. </p>"
+    },
+    "GetHealthCheckCount":{
+      "name":"GetHealthCheckCount",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2013-04-01/healthcheckcount"
+      },
+      "input":{
+        "shape":"GetHealthCheckCountRequest",
+        "documentation":"<p> To retrieve a count of all your health checks, send a <code>GET</code> request to the <code>2013-04-01/healthcheckcount</code> resource.</p>"
+      },
+      "output":{
+        "shape":"GetHealthCheckCountResponse",
+        "documentation":"<p> A complex type that contains the count of health checks associated with the current AWS account.</p>"
+      },
+      "documentation":"<p> To retrieve a count of all your health checks, send a <code>GET</code> request to the <code>2013-04-01/healthcheckcount</code> resource.</p>"
+    },
+    "GetHealthCheckLastFailureReason":{
+      "name":"GetHealthCheckLastFailureReason",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2013-04-01/healthcheck/{HealthCheckId}/lastfailurereason"
+      },
+      "input":{
+        "shape":"GetHealthCheckLastFailureReasonRequest",
+        "documentation":"<p>A complex type that contains information about the request to get the most recent failure reason for a health check.</p>"
+      },
+      "output":{
+        "shape":"GetHealthCheckLastFailureReasonResponse",
+        "documentation":"<p>A complex type that contains information about the most recent failure for the specified health check.</p>"
+      },
+      "errors":[
+        {
+          "shape":"NoSuchHealthCheck",
+          "error":{"httpStatusCode":404},
+          "exception":true,
+          "documentation":"<p>The health check you are trying to get or delete does not exist.</p>"
+        }
+      ],
+      "documentation":"<p>If you want to learn why a health check is currently failing or why it failed most recently (if at all), you can get the failure reason for the most recent failure. Send a <code>GET</code> request to the <code>2013-04-01/healthcheck/<i>health check ID</i>/lastfailurereason</code> resource.</p>"
+    },
+    "GetHealthCheckStatus":{
+      "name":"GetHealthCheckStatus",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2013-04-01/healthcheck/{HealthCheckId}/status"
+      },
+      "input":{
+        "shape":"GetHealthCheckStatusRequest",
+        "documentation":"<p>A complex type that contains information about the request to get health check status for a health check.</p>"
+      },
+      "output":{
+        "shape":"GetHealthCheckStatusResponse",
+        "documentation":"<p>A complex type that contains information about the status of the specified health check.</p>"
+      },
+      "errors":[
+        {
+          "shape":"NoSuchHealthCheck",
+          "error":{"httpStatusCode":404},
+          "exception":true,
+          "documentation":"<p>The health check you are trying to get or delete does not exist.</p>"
+        }
+      ],
+      "documentation":"<p> To retrieve the health check status, send a <code>GET</code> request to the <code>2013-04-01/healthcheck/<i>health check ID</i>/status</code> resource. You can use this call to get a health check's current status. </p>"
+    },
+    "GetHostedZone":{
+      "name":"GetHostedZone",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2013-04-01/hostedzone/{Id}"
+      },
+      "input":{
+        "shape":"GetHostedZoneRequest",
+        "documentation":"<p> The input for a GetHostedZone request.</p>"
+      },
+      "output":{
+        "shape":"GetHostedZoneResponse",
+        "documentation":"<p>A complex type containing information about the specified hosted zone.</p>"
+      },
+      "errors":[
+        {
+          "shape":"NoSuchHostedZone",
+          "error":{"httpStatusCode":404},
+          "exception":true
+        },
+        {
+          "shape":"InvalidInput",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>Some value specified in the request is invalid or the XML document is malformed.</p>"
+        }
+      ],
+      "documentation":"<p> To retrieve the delegation set for a hosted zone, send a <code>GET</code> request to the <code>2013-04-01/hostedzone/<i>hosted zone ID</i></code> resource. The delegation set is the four Route 53 name servers that were assigned to the hosted zone when you created it.</p>"
+    },
+    "GetReusableDelegationSet":{
+      "name":"GetReusableDelegationSet",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2013-04-01/delegationset/{Id}"
+      },
+      "input":{
+        "shape":"GetReusableDelegationSetRequest",
+        "documentation":"<p> The input for a GetReusableDelegationSet request.</p>"
+      },
+      "output":{
+        "shape":"GetReusableDelegationSetResponse",
+        "documentation":"<p>A complex type containing information about the specified reusable delegation set.</p>"
+      },
+      "errors":[
+        {
+          "shape":"NoSuchDelegationSet",
+          "exception":true,
+          "documentation":"<p>The specified delegation set does not exist.</p>"
+        },
+        {
+          "shape":"DelegationSetNotReusable",
+          "exception":true,
+          "documentation":"<p>The specified delegation set has not been marked as reusable.</p>"
+        },
+        {
+          "shape":"InvalidInput",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>Some value specified in the request is invalid or the XML document is malformed.</p>"
+        }
+      ],
+      "documentation":"<p> To retrieve the reusable delegation set, send a <code>GET</code> request to the <code>2013-04-01/delegationset/<i>delegation set ID</i></code> resource.</p>"
+    },
+    "ListGeoLocations":{
+      "name":"ListGeoLocations",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2013-04-01/geolocations"
+      },
+      "input":{
+        "shape":"ListGeoLocationsRequest",
+        "documentation":"<p> The input for a ListGeoLocations request.</p>"
+      },
+      "output":{
+        "shape":"ListGeoLocationsResponse",
+        "documentation":"<p>A complex type that contains information about the geo locations that are returned by the request and information about the response.</p>"
+      },
+      "errors":[
+        {
+          "shape":"InvalidInput",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>Some value specified in the request is invalid or the XML document is malformed.</p>"
+        }
+      ],
+      "documentation":"<p> To retrieve a list of supported geo locations, send a <code>GET</code> request to the <code>2013-04-01/geolocations</code> resource. The response to this request includes a <code>GeoLocationDetailsList</code> element with zero, one, or multiple <code>GeoLocationDetails</code> child elements. The list is sorted by country code, and then subdivision code, followed by continents at the end of the list. </p> <p> By default, the list of geo locations is displayed on a single page. You can control the length of the page that is displayed by using the <code>MaxItems</code> parameter. If the list is truncated, <code>IsTruncated</code> will be set to <i>true</i> and a combination of <code>NextContinentCode, NextCountryCode, NextSubdivisionCode</code> will be populated. You can pass these as parameters to <code>StartContinentCode, StartCountryCode, StartSubdivisionCode</code> to control the geo location that the list begins with. </p>"
+    },
+    "ListHealthChecks":{
+      "name":"ListHealthChecks",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2013-04-01/healthcheck"
+      },
+      "input":{
+        "shape":"ListHealthChecksRequest",
+        "documentation":"<p> To retrieve a list of your health checks, send a <code>GET</code> request to the <code>2013-04-01/healthcheck</code> resource. The response to this request includes a <code>HealthChecks</code> element with zero or more <code>HealthCheck</code> child elements. By default, the list of health checks is displayed on a single page. You can control the length of the page that is displayed by using the <code>MaxItems</code> parameter. You can use the <code>Marker</code> parameter to control the health check that the list begins with.</p> <note> Route 53 returns a maximum of 100 items. If you set <code>MaxItems</code> to a value greater than 100, Route 53 returns only the first 100.</note>"
+      },
+      "output":{
+        "shape":"ListHealthChecksResponse",
+        "documentation":"<p> A complex type that contains the response for the request.</p>"
+      },
+      "errors":[
+        {
+          "shape":"InvalidInput",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>Some value specified in the request is invalid or the XML document is malformed.</p>"
+        },
+        {
+          "shape":"IncompatibleVersion",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>The resource you are trying to access is unsupported on this Route 53 endpoint. Please consider using a newer endpoint or a tool that does so.</p>"
+        }
+      ],
+      "documentation":"<p> To retrieve a list of your health checks, send a <code>GET</code> request to the <code>2013-04-01/healthcheck</code> resource. The response to this request includes a <code>HealthChecks</code> element with zero, one, or multiple <code>HealthCheck</code> child elements. By default, the list of health checks is displayed on a single page. You can control the length of the page that is displayed by using the <code>MaxItems</code> parameter. You can use the <code>Marker</code> parameter to control the health check that the list begins with. </p> <note> Amazon Route 53 returns a maximum of 100 items. If you set MaxItems to a value greater than 100, Amazon Route 53 returns only the first 100.</note>"
+    },
+    "ListHostedZones":{
+      "name":"ListHostedZones",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2013-04-01/hostedzone"
+      },
+      "input":{
+        "shape":"ListHostedZonesRequest",
+        "documentation":"<p> To retrieve a list of your hosted zones, send a <code>GET</code> request to the <code>2013-04-01/hostedzone</code> resource. The response to this request includes a <code>HostedZones</code> element with zero or more <code>HostedZone</code> child elements. By default, the list of hosted zones is displayed on a single page. You can control the length of the page that is displayed by using the <code>MaxItems</code> parameter. You can use the <code>Marker</code> parameter to control the hosted zone that the list begins with. For more information about listing hosted zones, see <a href=\"http://docs.amazonwebservices.com/Route53/latest/DeveloperGuide/ListInfoOnHostedZone.html\">Listing the Hosted Zones for an AWS Account</a> in the <i>Amazon Route 53 Developer Guide</i>.</p> <note> Route 53 returns a maximum of 100 items. If you set <code>MaxItems</code> to a value greater than 100, Route 53 returns only the first 100.</note>"
+      },
+      "output":{
+        "shape":"ListHostedZonesResponse",
+        "documentation":"<p> A complex type that contains the response for the request.</p>"
+      },
+      "errors":[
+        {
+          "shape":"InvalidInput",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>Some value specified in the request is invalid or the XML document is malformed.</p>"
+        },
+        {
+          "shape":"NoSuchDelegationSet",
+          "exception":true,
+          "documentation":"<p>The specified delegation set does not exist.</p>"
+        },
+        {
+          "shape":"DelegationSetNotReusable",
+          "exception":true,
+          "documentation":"<p>The specified delegation set has not been marked as reusable.</p>"
+        }
+      ],
+      "documentation":"<p> To retrieve a list of your hosted zones, send a <code>GET</code> request to the <code>2013-04-01/hostedzone</code> resource. The response to this request includes a <code>HostedZones</code> element with zero, one, or multiple <code>HostedZone</code> child elements. By default, the list of hosted zones is displayed on a single page. You can control the length of the page that is displayed by using the <code>MaxItems</code> parameter. You can use the <code>Marker</code> parameter to control the hosted zone that the list begins with. </p> <note> Amazon Route 53 returns a maximum of 100 items. If you set MaxItems to a value greater than 100, Amazon Route 53 returns only the first 100.</note>"
+    },
+    "ListResourceRecordSets":{
+      "name":"ListResourceRecordSets",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2013-04-01/hostedzone/{Id}/rrset"
+      },
+      "input":{
+        "shape":"ListResourceRecordSetsRequest",
+        "documentation":"<p> The input for a ListResourceRecordSets request.</p>"
+      },
+      "output":{
+        "shape":"ListResourceRecordSetsResponse",
+        "documentation":"<p>A complex type that contains information about the resource record sets that are returned by the request and information about the response.</p>"
+      },
+      "errors":[
+        {
+          "shape":"NoSuchHostedZone",
+          "error":{"httpStatusCode":404},
+          "exception":true
+        },
+        {
+          "shape":"InvalidInput",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>Some value specified in the request is invalid or the XML document is malformed.</p>"
+        }
+      ],
+      "documentation":"<p>Imagine all the resource record sets in a zone listed out in front of you. Imagine them sorted lexicographically first by DNS name (with the labels reversed, like \"com.amazon.www\" for example), and secondarily, lexicographically by record type. This operation retrieves at most MaxItems resource record sets from this list, in order, starting at a position specified by the Name and Type arguments:</p> <ul> <li>If both Name and Type are omitted, this means start the results at the first RRSET in the HostedZone.</li> <li>If Name is specified but Type is omitted, this means start the results at the first RRSET in the list whose name is greater than or equal to Name. </li> <li>If both Name and Type are specified, this means start the results at the first RRSET in the list whose name is greater than or equal to Name and whose type is greater than or equal to Type.</li> <li>It is an error to specify the Type but not the Name.</li> </ul> <p>Use ListResourceRecordSets to retrieve a single known record set by specifying the record set's name and type, and setting MaxItems = 1</p> <p>To retrieve all the records in a HostedZone, first pause any processes making calls to ChangeResourceRecordSets. Initially call ListResourceRecordSets without a Name and Type to get the first page of record sets. For subsequent calls, set Name and Type to the NextName and NextType values returned by the previous response. </p> <p>In the presence of concurrent ChangeResourceRecordSets calls, there is no consistency of results across calls to ListResourceRecordSets. The only way to get a consistent multi-page snapshot of all RRSETs in a zone is to stop making changes while pagination is in progress.</p> <p>However, the results from ListResourceRecordSets are consistent within a page. If MakeChange calls are taking place concurrently, the result of each one will either be completely visible in your results or not at all. You will not see partial changes, or changes that do not ultimately succeed. (This follows from the fact that MakeChange is atomic) </p> <p>The results from ListResourceRecordSets are strongly consistent with ChangeResourceRecordSets. To be precise, if a single process makes a call to ChangeResourceRecordSets and receives a successful response, the effects of that change will be visible in a subsequent call to ListResourceRecordSets by that process.</p>"
+    },
+    "ListReusableDelegationSets":{
+      "name":"ListReusableDelegationSets",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2013-04-01/delegationset"
+      },
+      "input":{
+        "shape":"ListReusableDelegationSetsRequest",
+        "documentation":"<p> To retrieve a list of your reusable delegation sets, send a <code>GET</code> request to the <code>2013-04-01/delegationset</code> resource. The response to this request includes a <code>DelegationSets</code> element with zero or more <code>DelegationSet</code> child elements. By default, the list of reusable delegation sets is displayed on a single page. You can control the length of the page that is displayed by using the <code>MaxItems</code> parameter. You can use the <code>Marker</code> parameter to control the delegation set that the list begins with.</p> <note> Route 53 returns a maximum of 100 items. If you set <code>MaxItems</code> to a value greater than 100, Route 53 returns only the first 100.</note>"
+      },
+      "output":{
+        "shape":"ListReusableDelegationSetsResponse",
+        "documentation":"<p> A complex type that contains the response for the request.</p>"
+      },
+      "errors":[
+        {
+          "shape":"InvalidInput",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>Some value specified in the request is invalid or the XML document is malformed.</p>"
+        }
+      ],
+      "documentation":"<p> To retrieve a list of your reusable delegation sets, send a <code>GET</code> request to the <code>2013-04-01/delegationset</code> resource. The response to this request includes a <code>DelegationSets</code> element with zero, one, or multiple <code>DelegationSet</code> child elements. By default, the list of delegation sets is displayed on a single page. You can control the length of the page that is displayed by using the <code>MaxItems</code> parameter. You can use the <code>Marker</code> parameter to control the delegation set that the list begins with. </p> <note> Amazon Route 53 returns a maximum of 100 items. If you set MaxItems to a value greater than 100, Amazon Route 53 returns only the first 100.</note>"
+    },
+    "ListTagsForResource":{
+      "name":"ListTagsForResource",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2013-04-01/tags/{ResourceType}/{ResourceId}"
+      },
+      "input":{
+        "shape":"ListTagsForResourceRequest",
+        "documentation":"<p>A complex type containing information about a request for a list of the tags that are associated with an individual resource.</p>"
+      },
+      "output":{
+        "shape":"ListTagsForResourceResponse",
+        "documentation":"<p>A complex type containing tags for the specified resource.</p>"
+      },
+      "errors":[
+        {
+          "shape":"InvalidInput",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>Some value specified in the request is invalid or the XML document is malformed.</p>"
+        },
+        {
+          "shape":"NoSuchHealthCheck",
+          "error":{"httpStatusCode":404},
+          "exception":true,
+          "documentation":"<p>The health check you are trying to get or delete does not exist.</p>"
+        },
+        {
+          "shape":"NoSuchHostedZone",
+          "error":{"httpStatusCode":404},
+          "exception":true
+        },
+        {
+          "shape":"PriorRequestNotComplete",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>The request was rejected because Route 53 was still processing a prior request.</p>"
+        },
+        {
+          "shape":"ThrottlingException",
+          "error":{"httpStatusCode":400},
+          "exception":true
+        }
+      ]
+    },
+    "ListTagsForResources":{
+      "name":"ListTagsForResources",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2013-04-01/tags/{ResourceType}"
+      },
+      "input":{
+        "shape":"ListTagsForResourcesRequest",
+        "documentation":"<p>A complex type containing information about a request for a list of the tags that are associated with up to 10 specified resources.</p>",
+        "xmlNamespace":{"uri":"https://route53.amazonaws.com/doc/2013-04-01/"},
+        "locationName":"ListTagsForResourcesRequest"
+      },
+      "output":{
+        "shape":"ListTagsForResourcesResponse",
+        "documentation":"<p>A complex type containing tags for the specified resources.</p>"
+      },
+      "errors":[
+        {
+          "shape":"InvalidInput",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>Some value specified in the request is invalid or the XML document is malformed.</p>"
+        },
+        {
+          "shape":"NoSuchHealthCheck",
+          "error":{"httpStatusCode":404},
+          "exception":true,
+          "documentation":"<p>The health check you are trying to get or delete does not exist.</p>"
+        },
+        {
+          "shape":"NoSuchHostedZone",
+          "error":{"httpStatusCode":404},
+          "exception":true
+        },
+        {
+          "shape":"PriorRequestNotComplete",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>The request was rejected because Route 53 was still processing a prior request.</p>"
+        },
+        {
+          "shape":"ThrottlingException",
+          "error":{"httpStatusCode":400},
+          "exception":true
+        }
+      ]
+    },
+    "UpdateHealthCheck":{
+      "name":"UpdateHealthCheck",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2013-04-01/healthcheck/{HealthCheckId}"
+      },
+      "input":{
+        "shape":"UpdateHealthCheckRequest",
+        "documentation":"<p>&gt;A complex type that contains information about the request to update a health check.</p>",
+        "xmlNamespace":{"uri":"https://route53.amazonaws.com/doc/2013-04-01/"},
+        "locationName":"UpdateHealthCheckRequest"
+      },
+      "output":{"shape":"UpdateHealthCheckResponse"},
+      "errors":[
+        {
+          "shape":"NoSuchHealthCheck",
+          "error":{"httpStatusCode":404},
+          "exception":true,
+          "documentation":"<p>The health check you are trying to get or delete does not exist.</p>"
+        },
+        {
+          "shape":"InvalidInput",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>Some value specified in the request is invalid or the XML document is malformed.</p>"
+        },
+        {
+          "shape":"HealthCheckVersionMismatch",
+          "error":{"httpStatusCode":409},
+          "exception":true
+        }
+      ],
+      "documentation":"<p> This action updates an existing health check.</p> <p> To update a health check, send a <code>POST</code> request to the <code>2013-04-01/healthcheck/<i>health check ID</i></code> resource. The request body must include an XML document with an <code>UpdateHealthCheckRequest</code> element. The response returns an <code>UpdateHealthCheckResponse</code> element, which contains metadata about the health check.</p>"
+    },
+    "UpdateHostedZoneComment":{
+      "name":"UpdateHostedZoneComment",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2013-04-01/hostedzone/{Id}"
+      },
+      "input":{
+        "shape":"UpdateHostedZoneCommentRequest",
+        "documentation":"<p>A complex type that contains information about the request to update a hosted zone comment.</p>",
+        "xmlNamespace":{"uri":"https://route53.amazonaws.com/doc/2013-04-01/"},
+        "locationName":"UpdateHostedZoneCommentRequest"
+      },
+      "output":{
+        "shape":"UpdateHostedZoneCommentResponse",
+        "documentation":"<p>A complex type containing information about the specified hosted zone after the update.</p>"
+      },
+      "errors":[
+        {
+          "shape":"NoSuchHostedZone",
+          "error":{"httpStatusCode":404},
+          "exception":true
+        },
+        {
+          "shape":"InvalidInput",
+          "error":{"httpStatusCode":400},
+          "exception":true,
+          "documentation":"<p>Some value specified in the request is invalid or the XML document is malformed.</p>"
+        }
+      ],
+      "documentation":"<p> To update the hosted zone comment, send a <code>POST</code> request to the <code>2013-04-01/hostedzone/<i>hosted zone ID</i></code> resource. The request body must include an XML document with a <code>UpdateHostedZoneCommentRequest</code> element. The response to this request includes the modified <code>HostedZone</code> element.</p> <note> The comment can have a maximum length of 256 characters.</note>"
+    }
+  },
+  "shapes":{
+    "AliasHealthEnabled":{"type":"boolean"},
+    "AliasTarget":{
+      "type":"structure",
+      "required":[
+        "HostedZoneId",
+        "DNSName",
+        "EvaluateTargetHealth"
+      ],
+      "members":{
+        "HostedZoneId":{
+          "shape":"ResourceId",
+          "documentation":"<p><i>Alias resource record sets only:</i> The value of the hosted zone ID for the AWS resource.</p> <p>For more information and an example, see <a href=\"http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/CreatingAliasRRSets.html\">Creating Alias Resource Record Sets</a> in the <i>Amazon Route 53 Developer Guide</i></p>."
+        },
+        "DNSName":{
+          "shape":"DNSName",
+          "documentation":"<p><i>Alias resource record sets only:</i> The external DNS name associated with the AWS Resource.</p> <p>For more information and an example, see <a href=\"http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/CreatingAliasRRSets.html\">Creating Alias Resource Record Sets</a> in the <i>Amazon Route 53 Developer Guide</i></p>."
+        },
+        "EvaluateTargetHealth":{
+          "shape":"AliasHealthEnabled",
+          "documentation":"<p><i>Alias resource record sets only:</i> A boolean value that indicates whether this Resource Record Set should respect the health status of any health checks associated with the ALIAS target record which it is linked to.</p> <p>For more information and an example, see <a href=\"http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/CreatingAliasRRSets.html\">Creating Alias Resource Record Sets</a> in the <i>Amazon Route 53 Developer Guide</i></p>."
+        }
+      },
+      "documentation":"<p><i>Alias resource record sets only:</i> Information about the domain to which you are redirecting traffic.</p> <p>For more information and an example, see <a href=\"http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/CreatingAliasRRSets.html\">Creating Alias Resource Record Sets</a> in the <i>Amazon Route 53 Developer Guide</i></p>."
+    },
+    "AssociateVPCComment":{"type":"string"},
+    "AssociateVPCWithHostedZoneRequest":{
+      "type":"structure",
+      "required":[
+        "HostedZoneId",
+        "VPC"
+      ],
+      "members":{
+        "HostedZoneId":{
+          "shape":"ResourceId",
+          "location":"uri",
+          "locationName":"Id",
+          "documentation":"<p> The ID of the hosted zone you want to associate your VPC with.</p> <p>Note that you cannot associate a VPC with a hosted zone that doesn't have an existing VPC association.</p>"
+        },
+        "VPC":{
+          "shape":"VPC",
+          "documentation":"<p>The VPC that you want your hosted zone to be associated with. </p>"
+        },
+        "Comment":{
+          "shape":"AssociateVPCComment",
+          "documentation":"<p><i>Optional:</i> Any comments you want to include about a <code>AssociateVPCWithHostedZoneRequest</code>.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contains information about the request to associate a VPC with an hosted zone.</p>"
+    },
+    "AssociateVPCWithHostedZoneResponse":{
+      "type":"structure",
+      "required":["ChangeInfo"],
+      "members":{
+        "ChangeInfo":{
+          "shape":"ChangeInfo",
+          "documentation":"<p>A complex type that contains the ID, the status, and the date and time of your <code>AssociateVPCWithHostedZoneRequest</code>.</p>"
+        }
+      },
+      "documentation":"<p>A complex type containing the response information for the request.</p>"
+    },
+    "Change":{
+      "type":"structure",
+      "required":[
+        "Action",
+        "ResourceRecordSet"
+      ],
+      "members":{
+        "Action":{
+          "shape":"ChangeAction",
+          "documentation":"<p>The action to perform.</p> <p>Valid values: <code>CREATE</code> | <code>DELETE</code> | <code>UPSERT</code></p>"
+        },
+        "ResourceRecordSet":{
+          "shape":"ResourceRecordSet",
+          "documentation":"<p>Information about the resource record set to create or delete.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contains the information for each change in a change batch request.</p>"
+    },
+    "ChangeAction":{
+      "type":"string",
+      "enum":[
+        "CREATE",
+        "DELETE",
+        "UPSERT"
+      ]
+    },
+    "ChangeBatch":{
+      "type":"structure",
+      "required":["Changes"],
+      "members":{
+        "Comment":{
+          "shape":"ResourceDescription",
+          "documentation":"<p><i>Optional:</i> Any comments you want to include about a change batch request.</p>"
+        },
+        "Changes":{
+          "shape":"Changes",
+          "documentation":"<p>A complex type that contains one <code>Change</code> element for each resource record set that you want to create or delete.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contains an optional comment and the changes that you want to make with a change batch request.</p>"
+    },
+    "ChangeInfo":{
+      "type":"structure",
+      "required":[
+        "Id",
+        "Status",
+        "SubmittedAt"
+      ],
+      "members":{
+        "Id":{
+          "shape":"ResourceId",
+          "documentation":"<p>The ID of the request. Use this ID to track when the change has completed across all Amazon Route 53 DNS servers.</p>"
+        },
+        "Status":{
+          "shape":"ChangeStatus",
+          "documentation":"<p>The current state of the request. <code>PENDING</code> indicates that this request has not yet been applied to all Amazon Route 53 DNS servers.</p> <p>Valid Values: <code>PENDING</code> | <code>INSYNC</code></p>"
+        },
+        "SubmittedAt":{
+          "shape":"TimeStamp",
+          "documentation":"<p>The date and time the change was submitted, in the format <code>YYYY-MM-DDThh:mm:ssZ</code>, as specified in the ISO 8601 standard (for example, 2009-11-19T19:37:58Z). The <code>Z</code> after the time indicates that the time is listed in Coordinated Universal Time (UTC), which is synonymous with Greenwich Mean Time in this context.</p>"
+        },
+        "Comment":{
+          "shape":"ResourceDescription",
+          "documentation":"<p>A complex type that describes change information about changes made to your hosted zone.</p> <p>This element contains an ID that you use when performing a <a>GetChange</a> action to get detailed information about the change.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that describes change information about changes made to your hosted zone.</p> <p>This element contains an ID that you use when performing a <a>GetChange</a> action to get detailed information about the change.</p>"
+    },
+    "ChangeResourceRecordSetsRequest":{
+      "type":"structure",
+      "required":[
+        "HostedZoneId",
+        "ChangeBatch"
+      ],
+      "members":{
+        "HostedZoneId":{
+          "shape":"ResourceId",
+          "location":"uri",
+          "locationName":"Id",
+          "documentation":"<p> The ID of the hosted zone that contains the resource record sets that you want to change.</p>"
+        },
+        "ChangeBatch":{
+          "shape":"ChangeBatch",
+          "documentation":"<p>A complex type that contains an optional comment and the <code>Changes</code> element.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contains a change batch.</p>"
+    },
+    "ChangeResourceRecordSetsResponse":{
+      "type":"structure",
+      "required":["ChangeInfo"],
+      "members":{
+        "ChangeInfo":{
+          "shape":"ChangeInfo",
+          "documentation":"<p>A complex type that contains information about changes made to your hosted zone.</p> <p>This element contains an ID that you use when performing a <a>GetChange</a> action to get detailed information about the change.</p>"
+        }
+      },
+      "documentation":"<p>A complex type containing the response for the request.</p>"
+    },
+    "ChangeStatus":{
+      "type":"string",
+      "enum":[
+        "PENDING",
+        "INSYNC"
+      ]
+    },
+    "ChangeTagsForResourceRequest":{
+      "type":"structure",
+      "required":[
+        "ResourceType",
+        "ResourceId"
+      ],
+      "members":{
+        "ResourceType":{
+          "shape":"TagResourceType",
+          "location":"uri",
+          "locationName":"ResourceType",
+          "documentation":"<p>The type of the resource.</p> <p>- The resource type for health checks is <code>healthcheck</code>.</p> <p>- The resource type for hosted zones is <code>hostedzone</code>.</p>"
+        },
+        "ResourceId":{
+          "shape":"TagResourceId",
+          "location":"uri",
+          "locationName":"ResourceId",
+          "documentation":"<p>The ID of the resource for which you want to add, change, or delete tags.</p>"
+        },
+        "AddTags":{
+          "shape":"TagList",
+          "documentation":"<p>A complex type that contains a list of <code>Tag</code> elements. Each <code>Tag</code> element identifies a tag that you want to add or update for the specified resource.</p>"
+        },
+        "RemoveTagKeys":{
+          "shape":"TagKeyList",
+          "documentation":"<p>A list of <code>Tag</code> keys that you want to remove from the specified resource.</p>"
+        }
+      },
+      "documentation":"<p>A complex type containing information about a request to add, change, or delete the tags that are associated with a resource.</p>"
+    },
+    "ChangeTagsForResourceResponse":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>Empty response for the request.</p>"
+    },
+    "Changes":{
+      "type":"list",
+      "member":{
+        "shape":"Change",
+        "locationName":"Change"
+      },
+      "min":1
+    },
+    "CheckerIpRanges":{
+      "type":"list",
+      "member":{"shape":"IPAddressCidr"}
+    },
+    "ConflictingDomainExists":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessage"}
+      },
+      "exception":true
+    },
+    "CreateHealthCheckRequest":{
+      "type":"structure",
+      "required":[
+        "CallerReference",
+        "HealthCheckConfig"
+      ],
+      "members":{
+        "CallerReference":{
+          "shape":"HealthCheckNonce",
+          "documentation":"<p>A unique string that identifies the request and that allows failed <code>CreateHealthCheck</code> requests to be retried without the risk of executing the operation twice. You must use a unique <code>CallerReference</code> string every time you create a health check. <code>CallerReference</code> can be any unique string; you might choose to use a string that identifies your project.</p> <p>Valid characters are any Unicode code points that are legal in an XML 1.0 document. The UTF-8 encoding of the value must be less than 128 bytes.</p>"
+        },
+        "HealthCheckConfig":{
+          "shape":"HealthCheckConfig",
+          "documentation":"<p>A complex type that contains health check configuration.</p>"
+        }
+      },
+      "documentation":"<p>&gt;A complex type that contains information about the request to create a health check.</p>"
+    },
+    "CreateHealthCheckResponse":{
+      "type":"structure",
+      "required":[
+        "HealthCheck",
+        "Location"
+      ],
+      "members":{
+        "HealthCheck":{
+          "shape":"HealthCheck",
+          "documentation":"<p>A complex type that contains identifying information about the health check.</p>"
+        },
+        "Location":{
+          "shape":"ResourceURI",
+          "location":"header",
+          "locationName":"Location",
+          "documentation":"<p>The unique URL representing the new health check.</p>"
+        }
+      },
+      "documentation":"<p>A complex type containing the response information for the new health check.</p>"
+    },
+    "CreateHostedZoneRequest":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "CallerReference"
+      ],
+      "members":{
+        "Name":{
+          "shape":"DNSName",
+          "documentation":"<p>The name of the domain. This must be a fully-specified domain, for example, www.example.com. The trailing dot is optional; Route 53 assumes that the domain name is fully qualified. This means that Route 53 treats www.example.com (without a trailing dot) and www.example.com. (with a trailing dot) as identical.</p> <p>This is the name you have registered with your DNS registrar. You should ask your registrar to change the authoritative name servers for your domain to the set of <code>NameServers</code> elements returned in <code>DelegationSet</code>.</p>"
+        },
+        "VPC":{
+          "shape":"VPC",
+          "documentation":"<p>The VPC that you want your hosted zone to be associated with. By providing this parameter, your newly created hosted cannot be resolved anywhere other than the given VPC.</p>"
+        },
+        "CallerReference":{
+          "shape":"Nonce",
+          "documentation":"<p>A unique string that identifies the request and that allows failed <code>CreateHostedZone</code> requests to be retried without the risk of executing the operation twice. You must use a unique <code>CallerReference</code> string every time you create a hosted zone. <code>CallerReference</code> can be any unique string; you might choose to use a string that identifies your project, such as <code>DNSMigration_01</code>.</p> <p>Valid characters are any Unicode code points that are legal in an XML 1.0 document. The UTF-8 encoding of the value must be less than 128 bytes.</p>"
+        },
+        "HostedZoneConfig":{
+          "shape":"HostedZoneConfig",
+          "documentation":"<p>A complex type that contains an optional comment about your hosted zone.</p>"
+        },
+        "DelegationSetId":{
+          "shape":"ResourceId",
+          "documentation":"<p>The delegation set id of the reusable delgation set whose NS records you want to assign to the new hosted zone.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contains information about the request to create a hosted zone.</p>"
+    },
+    "CreateHostedZoneResponse":{
+      "type":"structure",
+      "required":[
+        "HostedZone",
+        "ChangeInfo",
+        "DelegationSet",
+        "Location"
+      ],
+      "members":{
+        "HostedZone":{
+          "shape":"HostedZone",
+          "documentation":"<p>A complex type that contains identifying information about the hosted zone.</p>"
+        },
+        "ChangeInfo":{
+          "shape":"ChangeInfo",
+          "documentation":"<p>A complex type that contains information about the request to create a hosted zone. This includes an ID that you use when you call the <a>GetChange</a> action to get the current status of the change request.</p>"
+        },
+        "DelegationSet":{
+          "shape":"DelegationSet",
+          "documentation":"<p>A complex type that contains name server information.</p>"
+        },
+        "VPC":{"shape":"VPC"},
+        "Location":{
+          "shape":"ResourceURI",
+          "location":"header",
+          "locationName":"Location",
+          "documentation":"<p>The unique URL representing the new hosted zone.</p>"
+        }
+      },
+      "documentation":"<p>A complex type containing the response information for the new hosted zone.</p>"
+    },
+    "CreateReusableDelegationSetRequest":{
+      "type":"structure",
+      "required":["CallerReference"],
+      "members":{
+        "CallerReference":{
+          "shape":"Nonce",
+          "documentation":"<p>A unique string that identifies the request and that allows failed <code>CreateReusableDelegationSet</code> requests to be retried without the risk of executing the operation twice. You must use a unique <code>CallerReference</code> string every time you create a reusable delegation set. <code>CallerReference</code> can be any unique string; you might choose to use a string that identifies your project, such as <code>DNSMigration_01</code>.</p> <p>Valid characters are any Unicode code points that are legal in an XML 1.0 document. The UTF-8 encoding of the value must be less than 128 bytes.</p>"
+        },
+        "HostedZoneId":{
+          "shape":"ResourceId",
+          "documentation":"<p>The ID of the hosted zone whose delegation set you want to mark as reusable. It is an optional parameter.</p>"
+        }
+      }
+    },
+    "CreateReusableDelegationSetResponse":{
+      "type":"structure",
+      "required":[
+        "DelegationSet",
+        "Location"
+      ],
+      "members":{
+        "DelegationSet":{
+          "shape":"DelegationSet",
+          "documentation":"<p>A complex type that contains name server information.</p>"
+        },
+        "Location":{
+          "shape":"ResourceURI",
+          "location":"header",
+          "locationName":"Location",
+          "documentation":"<p>The unique URL representing the new reusbale delegation set.</p>"
+        }
+      }
+    },
+    "DNSName":{
+      "type":"string",
+      "max":1024
+    },
+    "DelegationSet":{
+      "type":"structure",
+      "required":["NameServers"],
+      "members":{
+        "Id":{"shape":"ResourceId"},
+        "CallerReference":{"shape":"Nonce"},
+        "NameServers":{
+          "shape":"DelegationSetNameServers",
+          "documentation":"<p>A complex type that contains the authoritative name servers for the hosted zone. Use the method provided by your domain registrar to add an NS record to your domain for each <code>NameServer</code> that is assigned to your hosted zone.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contains name server information.</p>"
+    },
+    "DelegationSetAlreadyCreated":{
+      "type":"structure",
+      "members":{
+        "message":{
+          "shape":"ErrorMessage",
+          "documentation":"<p>Descriptive message for the error response.</p>"
+        }
+      },
+      "exception":true,
+      "documentation":"<p>A delegation set with the same owner and caller reference combination has already been created.</p>"
+    },
+    "DelegationSetAlreadyReusable":{
+      "type":"structure",
+      "members":{
+        "message":{
+          "shape":"ErrorMessage",
+          "documentation":"<p>Descriptive message for the error response.</p>"
+        }
+      },
+      "exception":true,
+      "documentation":"<p>The specified delegation set has already been marked as reusable.</p>"
+    },
+    "DelegationSetInUse":{
+      "type":"structure",
+      "members":{
+        "message":{
+          "shape":"ErrorMessage",
+          "documentation":"<p>Descriptive message for the error response.</p>"
+        }
+      },
+      "exception":true,
+      "documentation":"<p>The specified delegation contains associated hosted zones which must be deleted before the reusable delegation set can be deleted.</p>"
+    },
+    "DelegationSetNameServers":{
+      "type":"list",
+      "member":{
+        "shape":"DNSName",
+        "locationName":"NameServer"
+      },
+      "min":1
+    },
+    "DelegationSetNotAvailable":{
+      "type":"structure",
+      "members":{
+        "message":{
+          "shape":"ErrorMessage",
+          "documentation":"<p>Descriptive message for the error response.</p>"
+        }
+      },
+      "exception":true,
+      "documentation":"<p>Route 53 allows some duplicate domain names, but there is a maximum number of duplicate names. This error indicates that you have reached that maximum. If you want to create another hosted zone with the same name and Route 53 generates this error, you can request an increase to the limit on the <a href=\"http://aws.amazon.com/route53-request/\">Contact Us</a> page.</p>"
+    },
+    "DelegationSetNotReusable":{
+      "type":"structure",
+      "members":{
+        "message":{
+          "shape":"ErrorMessage",
+          "documentation":"<p>Descriptive message for the error response.</p>"
+        }
+      },
+      "exception":true,
+      "documentation":"<p>The specified delegation set has not been marked as reusable.</p>"
+    },
+    "DelegationSets":{
+      "type":"list",
+      "member":{
+        "shape":"DelegationSet",
+        "locationName":"DelegationSet"
+      }
+    },
+    "DeleteHealthCheckRequest":{
+      "type":"structure",
+      "required":["HealthCheckId"],
+      "members":{
+        "HealthCheckId":{
+          "shape":"HealthCheckId",
+          "location":"uri",
+          "locationName":"HealthCheckId",
+          "documentation":"<p>The ID of the health check to delete.</p>"
+        }
+      },
+      "documentation":"<p>A complex type containing the request information for delete health check.</p>"
+    },
+    "DeleteHealthCheckResponse":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>Empty response for the request.</p>"
+    },
+    "DeleteHostedZoneRequest":{
+      "type":"structure",
+      "required":["Id"],
+      "members":{
+        "Id":{
+          "shape":"ResourceId",
+          "location":"uri",
+          "locationName":"Id",
+          "documentation":"<p> The ID of the hosted zone you want to delete.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contains information about the hosted zone that you want to delete.</p>"
+    },
+    "DeleteHostedZoneResponse":{
+      "type":"structure",
+      "required":["ChangeInfo"],
+      "members":{
+        "ChangeInfo":{
+          "shape":"ChangeInfo",
+          "documentation":"<p>A complex type that contains the ID, the status, and the date and time of your delete request.</p>"
+        }
+      },
+      "documentation":"<p>A complex type containing the response information for the request.</p>"
+    },
+    "DeleteReusableDelegationSetRequest":{
+      "type":"structure",
+      "required":["Id"],
+      "members":{
+        "Id":{
+          "shape":"ResourceId",
+          "location":"uri",
+          "locationName":"Id",
+          "documentation":"<p> The ID of the reusable delegation set you want to delete.</p>"
+        }
+      },
+      "documentation":"<p>A complex type containing the information for the delete request.</p>"
+    },
+    "DeleteReusableDelegationSetResponse":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>Empty response for the request.</p>"
+    },
+    "DisassociateVPCComment":{"type":"string"},
+    "DisassociateVPCFromHostedZoneRequest":{
+      "type":"structure",
+      "required":[
+        "HostedZoneId",
+        "VPC"
+      ],
+      "members":{
+        "HostedZoneId":{
+          "shape":"ResourceId",
+          "location":"uri",
+          "locationName":"Id",
+          "documentation":"<p> The ID of the hosted zone you want to disassociate your VPC from.</p> <p>Note that you cannot disassociate the last VPC from a hosted zone.</p>"
+        },
+        "VPC":{
+          "shape":"VPC",
+          "documentation":"<p>The VPC that you want your hosted zone to be disassociated from. </p>"
+        },
+        "Comment":{
+          "shape":"DisassociateVPCComment",
+          "documentation":"<p><i>Optional:</i> Any comments you want to include about a <code>DisassociateVPCFromHostedZoneRequest</code>.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contains information about the request to disassociate a VPC from an hosted zone.</p>"
+    },
+    "DisassociateVPCFromHostedZoneResponse":{
+      "type":"structure",
+      "required":["ChangeInfo"],
+      "members":{
+        "ChangeInfo":{
+          "shape":"ChangeInfo",
+          "documentation":"<p>A complex type that contains the ID, the status, and the date and time of your <code>DisassociateVPCFromHostedZoneRequest</code>.</p>"
+        }
+      },
+      "documentation":"<p>A complex type containing the response information for the request.</p>"
+    },
+    "ErrorMessage":{"type":"string"},
+    "ErrorMessages":{
+      "type":"list",
+      "member":{
+        "shape":"ErrorMessage",
+        "locationName":"Message"
+      }
+    },
+    "FailureThreshold":{
+      "type":"integer",
+      "min":1,
+      "max":10
+    },
+    "FullyQualifiedDomainName":{
+      "type":"string",
+      "max":255
+    },
+    "GeoLocation":{
+      "type":"structure",
+      "members":{
+        "ContinentCode":{
+          "shape":"GeoLocationContinentCode",
+          "documentation":"<p>The code for a continent geo location. Note: only continent locations have a continent code.</p> <p>Valid values: <code>AF</code> | <code>AN</code> | <code>AS</code> | <code>EU</code> | <code>OC</code> | <code>NA</code> | <code>SA</code></p> <p>Constraint: Specifying <code>ContinentCode</code> with either <code>CountryCode</code> or <code>SubdivisionCode</code> returns an <a>InvalidInput</a> error.</p>"
+        },
+        "CountryCode":{
+          "shape":"GeoLocationCountryCode",
+          "documentation":"<p>The code for a country geo location. The default location uses '*' for the country code and will match all locations that are not matched by a geo location.</p> <p>The default geo location uses a <code>*</code> for the country code. All other country codes follow the ISO 3166 two-character code.</p>"
+        },
+        "SubdivisionCode":{
+          "shape":"GeoLocationSubdivisionCode",
+          "documentation":"<p>The code for a country's subdivision (e.g., a province of Canada). A subdivision code is only valid with the appropriate country code.</p> <p>Constraint: Specifying <code>SubdivisionCode</code> without <code>CountryCode</code> returns an <a>InvalidInput</a> error.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contains information about a geo location.</p>"
+    },
+    "GeoLocationContinentCode":{
+      "type":"string",
+      "min":2,
+      "max":2
+    },
+    "GeoLocationContinentName":{
+      "type":"string",
+      "min":1,
+      "max":32
+    },
+    "GeoLocationCountryCode":{
+      "type":"string",
+      "min":1,
+      "max":2
+    },
+    "GeoLocationCountryName":{
+      "type":"string",
+      "min":1,
+      "max":64
+    },
+    "GeoLocationDetails":{
+      "type":"structure",
+      "members":{
+        "ContinentCode":{
+          "shape":"GeoLocationContinentCode",
+          "documentation":"<p>The code for a continent geo location. Note: only continent locations have a continent code.</p>"
+        },
+        "ContinentName":{
+          "shape":"GeoLocationContinentName",
+          "documentation":"<p>The name of the continent. This element is only present if <code>ContinentCode</code> is also present.</p>"
+        },
+        "CountryCode":{
+          "shape":"GeoLocationCountryCode",
+          "documentation":"<p>The code for a country geo location. The default location uses '*' for the country code and will match all locations that are not matched by a geo location.</p> <p>The default geo location uses a <code>*</code> for the country code. All other country codes follow the ISO 3166 two-character code.</p>"
+        },
+        "CountryName":{
+          "shape":"GeoLocationCountryName",
+          "documentation":"<p>The name of the country. This element is only present if <code>CountryCode</code> is also present.</p>"
+        },
+        "SubdivisionCode":{
+          "shape":"GeoLocationSubdivisionCode",
+          "documentation":"<p>The code for a country's subdivision (e.g., a province of Canada). A subdivision code is only valid with the appropriate country code.</p>"
+        },
+        "SubdivisionName":{
+          "shape":"GeoLocationSubdivisionName",
+          "documentation":"<p>The name of the subdivision. This element is only present if <code>SubdivisionCode</code> is also present.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contains information about a <code>GeoLocation</code>.</p>"
+    },
+    "GeoLocationDetailsList":{
+      "type":"list",
+      "member":{
+        "shape":"GeoLocationDetails",
+        "locationName":"GeoLocationDetails"
+      }
+    },
+    "GeoLocationSubdivisionCode":{
+      "type":"string",
+      "min":1,
+      "max":3
+    },
+    "GeoLocationSubdivisionName":{
+      "type":"string",
+      "min":1,
+      "max":64
+    },
+    "GetChangeRequest":{
+      "type":"structure",
+      "required":["Id"],
+      "members":{
+        "Id":{
+          "shape":"ResourceId",
+          "location":"uri",
+          "locationName":"Id",
+          "documentation":"<p> The ID of the change batch request. The value that you specify here is the value that <code>ChangeResourceRecordSets</code> returned in the Id element when you submitted the request.</p>"
+        }
+      },
+      "documentation":"<p>The input for a GetChange request.</p>"
+    },
+    "GetChangeResponse":{
+      "type":"structure",
+      "required":["ChangeInfo"],
+      "members":{
+        "ChangeInfo":{
+          "shape":"ChangeInfo",
+          "documentation":"<p>A complex type that contains information about the specified change batch, including the change batch ID, the status of the change, and the date and time of the request.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contains the <code>ChangeInfo</code> element.</p>"
+    },
+    "GetCheckerIpRangesRequest":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>Empty request.</p>"
+    },
+    "GetCheckerIpRangesResponse":{
+      "type":"structure",
+      "required":["CheckerIpRanges"],
+      "members":{
+        "CheckerIpRanges":{
+          "shape":"CheckerIpRanges",
+          "documentation":"<p>A complex type that contains sorted list of IP ranges in CIDR format for Amazon Route 53 health checkers.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contains the <code>CheckerIpRanges</code> element.</p>"
+    },
+    "GetGeoLocationRequest":{
+      "type":"structure",
+      "members":{
+        "ContinentCode":{
+          "shape":"GeoLocationContinentCode",
+          "location":"querystring",
+          "locationName":"continentcode",
+          "documentation":"<p>The code for a continent geo location. Note: only continent locations have a continent code.</p> <p>Valid values: <code>AF</code> | <code>AN</code> | <code>AS</code> | <code>EU</code> | <code>OC</code> | <code>NA</code> | <code>SA</code></p> <p>Constraint: Specifying <code>ContinentCode</code> with either <code>CountryCode</code> or <code>SubdivisionCode</code> returns an <a>InvalidInput</a> error.</p>"
+        },
+        "CountryCode":{
+          "shape":"GeoLocationCountryCode",
+          "location":"querystring",
+          "locationName":"countrycode",
+          "documentation":"<p>The code for a country geo location. The default location uses '*' for the country code and will match all locations that are not matched by a geo location.</p> <p>The default geo location uses a <code>*</code> for the country code. All other country codes follow the ISO 3166 two-character code.</p>"
+        },
+        "SubdivisionCode":{
+          "shape":"GeoLocationSubdivisionCode",
+          "location":"querystring",
+          "locationName":"subdivisioncode",
+          "documentation":"<p>The code for a country's subdivision (e.g., a province of Canada). A subdivision code is only valid with the appropriate country code.</p> <p>Constraint: Specifying <code>SubdivisionCode</code> without <code>CountryCode</code> returns an <a>InvalidInput</a> error.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contains information about the request to get a geo location.</p>"
+    },
+    "GetGeoLocationResponse":{
+      "type":"structure",
+      "required":["GeoLocationDetails"],
+      "members":{
+        "GeoLocationDetails":{
+          "shape":"GeoLocationDetails",
+          "documentation":"<p>A complex type that contains the information about the specified geo location.</p>"
+        }
+      },
+      "documentation":"<p>A complex type containing information about the specified geo location.</p>"
+    },
+    "GetHealthCheckCountRequest":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p> To retrieve a count of all your health checks, send a <code>GET</code> request to the <code>2013-04-01/healthcheckcount</code> resource.</p>"
+    },
+    "GetHealthCheckCountResponse":{
+      "type":"structure",
+      "required":["HealthCheckCount"],
+      "members":{
+        "HealthCheckCount":{
+          "shape":"HealthCheckCount",
+          "documentation":"<p> The number of health checks associated with the current AWS account.</p>"
+        }
+      },
+      "documentation":"<p> A complex type that contains the count of health checks associated with the current AWS account.</p>"
+    },
+    "GetHealthCheckLastFailureReasonRequest":{
+      "type":"structure",
+      "required":["HealthCheckId"],
+      "members":{
+        "HealthCheckId":{
+          "shape":"HealthCheckId",
+          "location":"uri",
+          "locationName":"HealthCheckId",
+          "documentation":"<p>The ID of the health check for which you want to retrieve the reason for the most recent failure.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contains information about the request to get the most recent failure reason for a health check.</p>"
+    },
+    "GetHealthCheckLastFailureReasonResponse":{
+      "type":"structure",
+      "required":["HealthCheckObservations"],
+      "members":{
+        "HealthCheckObservations":{
+          "shape":"HealthCheckObservations",
+          "documentation":"<p>A list that contains one <code>HealthCheckObservation</code> element for each Route 53 health checker.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contains information about the most recent failure for the specified health check.</p>"
+    },
+    "GetHealthCheckRequest":{
+      "type":"structure",
+      "required":["HealthCheckId"],
+      "members":{
+        "HealthCheckId":{
+          "shape":"HealthCheckId",
+          "location":"uri",
+          "locationName":"HealthCheckId",
+          "documentation":"<p>The ID of the health check to retrieve.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contains information about the request to get a health check.</p>"
+    },
+    "GetHealthCheckResponse":{
+      "type":"structure",
+      "required":["HealthCheck"],
+      "members":{
+        "HealthCheck":{
+          "shape":"HealthCheck",
+          "documentation":"<p>A complex type that contains the information about the specified health check.</p>"
+        }
+      },
+      "documentation":"<p>A complex type containing information about the specified health check.</p>"
+    },
+    "GetHealthCheckStatusRequest":{
+      "type":"structure",
+      "required":["HealthCheckId"],
+      "members":{
+        "HealthCheckId":{
+          "shape":"HealthCheckId",
+          "location":"uri",
+          "locationName":"HealthCheckId",
+          "documentation":"<p>The ID of the health check for which you want to retrieve the most recent status.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contains information about the request to get health check status for a health check.</p>"
+    },
+    "GetHealthCheckStatusResponse":{
+      "type":"structure",
+      "required":["HealthCheckObservations"],
+      "members":{
+        "HealthCheckObservations":{
+          "shape":"HealthCheckObservations",
+          "documentation":"<p>A list that contains one <code>HealthCheckObservation</code> element for each Route 53 health checker.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contains information about the status of the specified health check.</p>"
+    },
+    "GetHostedZoneRequest":{
+      "type":"structure",
+      "required":["Id"],
+      "members":{
+        "Id":{
+          "shape":"ResourceId",
+          "location":"uri",
+          "locationName":"Id",
+          "documentation":"<p>The ID of the hosted zone for which you want to get a list of the name servers in the delegation set.</p>"
+        }
+      },
+      "documentation":"<p> The input for a GetHostedZone request.</p>"
+    },
+    "GetHostedZoneResponse":{
+      "type":"structure",
+      "required":["HostedZone"],
+      "members":{
+        "HostedZone":{
+          "shape":"HostedZone",
+          "documentation":"<p>A complex type that contains the information about the specified hosted zone.</p>"
+        },
+        "DelegationSet":{
+          "shape":"DelegationSet",
+          "documentation":"<p>A complex type that contains information about the name servers for the specified hosted zone.</p>"
+        },
+        "VPCs":{
+          "shape":"VPCs",
+          "documentation":"<p>A complex type that contains information about VPCs associated with the specified hosted zone.</p>"
+        }
+      },
+      "documentation":"<p>A complex type containing information about the specified hosted zone.</p>"
+    },
+    "GetReusableDelegationSetRequest":{
+      "type":"structure",
+      "required":["Id"],
+      "members":{
+        "Id":{
+          "shape":"ResourceId",
+          "location":"uri",
+          "locationName":"Id",
+          "documentation":"<p>The ID of the reusable delegation set for which you want to get a list of the name server.</p>"
+        }
+      },
+      "documentation":"<p> The input for a GetReusableDelegationSet request.</p>"
+    },
+    "GetReusableDelegationSetResponse":{
+      "type":"structure",
+      "required":["DelegationSet"],
+      "members":{
+        "DelegationSet":{
+          "shape":"DelegationSet",
+          "documentation":"<p>A complex type that contains the information about the nameservers for the specified delegation set ID.</p>"
+        }
+      },
+      "documentation":"<p>A complex type containing information about the specified reusable delegation set.</p>"
+    },
+    "HealthCheck":{
+      "type":"structure",
+      "required":[
+        "Id",
+        "CallerReference",
+        "HealthCheckConfig",
+        "HealthCheckVersion"
+      ],
+      "members":{
+        "Id":{
+          "shape":"HealthCheckId",
+          "documentation":"<p>The ID of the specified health check.</p>"
+        },
+        "CallerReference":{
+          "shape":"HealthCheckNonce",
+          "documentation":"<p>A unique string that identifies the request to create the health check.</p>"
+        },
+        "HealthCheckConfig":{
+          "shape":"HealthCheckConfig",
+          "documentation":"<p>A complex type that contains the health check configuration.</p>"
+        },
+        "HealthCheckVersion":{
+          "shape":"HealthCheckVersion",
+          "documentation":"<p>The version of the health check. You can optionally pass this value in a call to <code>UpdateHealthCheck</code> to prevent overwriting another change to the health check.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contains identifying information about the health check.</p>"
+    },
+    "HealthCheckAlreadyExists":{
+      "type":"structure",
+      "members":{
+        "message":{
+          "shape":"ErrorMessage",
+          "documentation":"<p>Descriptive message for the error response.</p>"
+        }
+      },
+      "error":{"httpStatusCode":409},
+      "exception":true,
+      "documentation":"<p>The health check you are trying to create already exists. Route 53 returns this error when a health check has already been created with the specified <code>CallerReference</code>.</p>"
+    },
+    "HealthCheckConfig":{
+      "type":"structure",
+      "required":["Type"],
+      "members":{
+        "IPAddress":{
+          "shape":"IPAddress",
+          "documentation":"<p>IP Address of the instance being checked. </p>"
+        },
+        "Port":{
+          "shape":"Port",
+          "documentation":"<p>Port on which connection will be opened to the instance to health check. For HTTP and HTTP_STR_MATCH this defaults to 80 if the port is not specified. For HTTPS and HTTPS_STR_MATCH this defaults to 443 if the port is not specified.</p>"
+        },
+        "Type":{
+          "shape":"HealthCheckType",
+          "documentation":"<p>The type of health check to be performed. Currently supported types are TCP, HTTP, HTTPS, HTTP_STR_MATCH, and HTTPS_STR_MATCH.</p>"
+        },
+        "ResourcePath":{
+          "shape":"ResourcePath",
+          "documentation":"<p>Path to ping on the instance to check the health. Required for HTTP, HTTPS, HTTP_STR_MATCH, and HTTPS_STR_MATCH health checks, HTTP request is issued to the instance on the given port and path.</p>"
+        },
+        "FullyQualifiedDomainName":{
+          "shape":"FullyQualifiedDomainName",
+          "documentation":"<p>Fully qualified domain name of the instance to be health checked.</p>"
+        },
+        "SearchString":{
+          "shape":"SearchString",
+          "documentation":"<p>A string to search for in the body of a health check response. Required for HTTP_STR_MATCH and HTTPS_STR_MATCH health checks.</p>"
+        },
+        "RequestInterval":{
+          "shape":"RequestInterval",
+          "documentation":"<p>The number of seconds between the time that Route 53 gets a response from your endpoint and the time that it sends the next health-check request.</p> <p>Each Route 53 health checker makes requests at this interval. Valid values are 10 and 30. The default value is 30.</p>"
+        },
+        "FailureThreshold":{
+          "shape":"FailureThreshold",
+          "documentation":"<p>The number of consecutive health checks that an endpoint must pass or fail for Route 53 to change the current status of the endpoint from unhealthy to healthy or vice versa.</p> <p>Valid values are integers between 1 and 10. For more information, see \"How Amazon Route 53 Determines Whether an Endpoint Is Healthy\" in the Amazon Route 53 Developer Guide.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contains the health check configuration.</p>"
+    },
+    "HealthCheckCount":{"type":"long"},
+    "HealthCheckId":{
+      "type":"string",
+      "max":64
+    },
+    "HealthCheckInUse":{
+      "type":"structure",
+      "members":{
+        "message":{
+          "shape":"ErrorMessage",
+          "documentation":"<p>Descriptive message for the error response.</p>"
+        }
+      },
+      "error":{"httpStatusCode":400},
+      "exception":true,
+      "documentation":"<p>There are resource records associated with this health check. Before you can delete the health check, you must disassociate it from the resource record sets.</p>"
+    },
+    "HealthCheckNonce":{
+      "type":"string",
+      "min":1,
+      "max":64
+    },
+    "HealthCheckObservation":{
+      "type":"structure",
+      "members":{
+        "IPAddress":{
+          "shape":"IPAddress",
+          "documentation":"<p>The IP address of the Route 53 health checker that performed the health check.</p>"
+        },
+        "StatusReport":{
+          "shape":"StatusReport",
+          "documentation":"<p>A complex type that contains information about the health check status for the current observation.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contains the IP address of a Route 53 health checker and the reason for the health check status.</p>"
+    },
+    "HealthCheckObservations":{
+      "type":"list",
+      "member":{
+        "shape":"HealthCheckObservation",
+        "locationName":"HealthCheckObservation"
+      }
+    },
+    "HealthCheckType":{
+      "type":"string",
+      "enum":[
+        "HTTP",
+        "HTTPS",
+        "HTTP_STR_MATCH",
+        "HTTPS_STR_MATCH",
+        "TCP"
+      ]
+    },
+    "HealthCheckVersion":{
+      "type":"long",
+      "min":1
+    },
+    "HealthCheckVersionMismatch":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessage"}
+      },
+      "error":{"httpStatusCode":409},
+      "exception":true
+    },
+    "HealthChecks":{
+      "type":"list",
+      "member":{
+        "shape":"HealthCheck",
+        "locationName":"HealthCheck"
+      }
+    },
+    "HostedZone":{
+      "type":"structure",
+      "required":[
+        "Id",
+        "Name",
+        "CallerReference"
+      ],
+      "members":{
+        "Id":{
+          "shape":"ResourceId",
+          "documentation":"<p>The ID of the specified hosted zone.</p>"
+        },
+        "Name":{
+          "shape":"DNSName",
+          "documentation":"<p>The name of the domain. This must be a fully-specified domain, for example, www.example.com. The trailing dot is optional; Route 53 assumes that the domain name is fully qualified. This means that Route 53 treats www.example.com (without a trailing dot) and www.example.com. (with a trailing dot) as identical.</p> <p>This is the name you have registered with your DNS registrar. You should ask your registrar to change the authoritative name servers for your domain to the set of <code>NameServers</code> elements returned in <code>DelegationSet</code>.</p>"
+        },
+        "CallerReference":{
+          "shape":"Nonce",
+          "documentation":"<p>A unique string that identifies the request to create the hosted zone.</p>"
+        },
+        "Config":{
+          "shape":"HostedZoneConfig",
+          "documentation":"<p>A complex type that contains the <code>Comment</code> element.</p>"
+        },
+        "ResourceRecordSetCount":{
+          "shape":"HostedZoneRRSetCount",
+          "documentation":"<p>Total number of resource record sets in the hosted zone.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contain information about the specified hosted zone.</p>"
+    },
+    "HostedZoneAlreadyExists":{
+      "type":"structure",
+      "members":{
+        "message":{
+          "shape":"ErrorMessage",
+          "documentation":"<p>Descriptive message for the error response.</p>"
+        }
+      },
+      "error":{"httpStatusCode":409},
+      "exception":true,
+      "documentation":"<p>The hosted zone you are trying to create already exists. Route 53 returns this error when a hosted zone has already been created with the specified <code>CallerReference</code>.</p>"
+    },
+    "HostedZoneConfig":{
+      "type":"structure",
+      "members":{
+        "Comment":{
+          "shape":"ResourceDescription",
+          "documentation":"<p>An optional comment about your hosted zone. If you don't want to specify a comment, you can omit the <code>HostedZoneConfig</code> and <code>Comment</code> elements from the XML document.</p>"
+        },
+        "PrivateZone":{
+          "shape":"IsPrivateZone",
+          "documentation":"<p>A value that indicates whether this is a private hosted zone. The value is returned in the response; do not specify it in the request.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contains an optional comment about your hosted zone. If you don't want to specify a comment, you can omit the <code>HostedZoneConfig</code> and <code>Comment</code> elements from the XML document.</p>"
+    },
+    "HostedZoneNotEmpty":{
+      "type":"structure",
+      "members":{
+        "message":{
+          "shape":"ErrorMessage",
+          "documentation":"<p>Descriptive message for the error response.</p>"
+        }
+      },
+      "error":{"httpStatusCode":400},
+      "exception":true,
+      "documentation":"<p>The hosted zone contains resource record sets in addition to the default NS and SOA resource record sets. Before you can delete the hosted zone, you must delete the additional resource record sets.</p>"
+    },
+    "HostedZoneNotFound":{
+      "type":"structure",
+      "members":{
+        "message":{
+          "shape":"ErrorMessage",
+          "documentation":"<p>Descriptive message for the error response.</p>"
+        }
+      },
+      "exception":true,
+      "documentation":"<p>The specified HostedZone cannot be found.</p>"
+    },
+    "HostedZoneRRSetCount":{"type":"long"},
+    "HostedZones":{
+      "type":"list",
+      "member":{
+        "shape":"HostedZone",
+        "locationName":"HostedZone"
+      }
+    },
+    "IPAddress":{
+      "type":"string",
+      "max":15,
+      "pattern":"^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
+    },
+    "IPAddressCidr":{"type":"string"},
+    "IncompatibleVersion":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessage"}
+      },
+      "error":{"httpStatusCode":400},
+      "exception":true,
+      "documentation":"<p>The resource you are trying to access is unsupported on this Route 53 endpoint. Please consider using a newer endpoint or a tool that does so.</p>"
+    },
+    "InvalidArgument":{
+      "type":"structure",
+      "members":{
+        "message":{
+          "shape":"ErrorMessage",
+          "documentation":"<p>Descriptive message for the error response.</p>"
+        }
+      },
+      "exception":true,
+      "documentation":"<p>At least one of the specified arguments is invalid.</p>"
+    },
+    "InvalidChangeBatch":{
+      "type":"structure",
+      "members":{
+        "messages":{
+          "shape":"ErrorMessages",
+          "documentation":"<p>Descriptive message for the error response.</p>"
+        }
+      },
+      "exception":true,
+      "documentation":"<p>This error contains a list of one or more error messages. Each error message indicates one error in the change batch. For more information, see <a href=\"http://docs.aws.amazon.com/Route53/latest/APIReference/API_ChangeResourceRecordSets.html#example_Errors\">Example InvalidChangeBatch Errors</a>. </p>"
+    },
+    "InvalidDomainName":{
+      "type":"structure",
+      "members":{
+        "message":{
+          "shape":"ErrorMessage",
+          "documentation":"<p>Descriptive message for the error response.</p>"
+        }
+      },
+      "error":{"httpStatusCode":400},
+      "exception":true,
+      "documentation":"<p>This error indicates that the specified domain name is not valid.</p>"
+    },
+    "InvalidInput":{
+      "type":"structure",
+      "members":{
+        "message":{
+          "shape":"ErrorMessage",
+          "documentation":"<p>Descriptive message for the error response.</p>"
+        }
+      },
+      "error":{"httpStatusCode":400},
+      "exception":true,
+      "documentation":"<p>Some value specified in the request is invalid or the XML document is malformed.</p>"
+    },
+    "InvalidVPCId":{
+      "type":"structure",
+      "members":{
+        "message":{
+          "shape":"ErrorMessage",
+          "documentation":"<p>Descriptive message for the error response.</p>"
+        }
+      },
+      "error":{"httpStatusCode":400},
+      "exception":true,
+      "documentation":"<p>The hosted zone you are trying to create for your VPC_ID does not belong to you. Route 53 returns this error when the VPC specified by <code>VPCId</code> does not belong to you.</p>"
+    },
+    "IsPrivateZone":{"type":"boolean"},
+    "LastVPCAssociation":{
+      "type":"structure",
+      "members":{
+        "message":{
+          "shape":"ErrorMessage",
+          "documentation":"<p>Descriptive message for the error response.</p>"
+        }
+      },
+      "error":{"httpStatusCode":400},
+      "exception":true,
+      "documentation":"<p>The VPC you are trying to disassociate from the hosted zone is the last the VPC that is associated with the hosted zone. Route 53 currently doesn't support disassociate the last VPC from the hosted zone.</p>"
+    },
+    "LimitsExceeded":{
+      "type":"structure",
+      "members":{
+        "message":{
+          "shape":"ErrorMessage",
+          "documentation":"<p>Descriptive message for the error response.</p>"
+        }
+      },
+      "exception":true,
+      "documentation":"<p>The limits specified for a resource have been exceeded.</p>"
+    },
+    "ListGeoLocationsRequest":{
+      "type":"structure",
+      "members":{
+        "StartContinentCode":{
+          "shape":"GeoLocationContinentCode",
+          "location":"querystring",
+          "locationName":"startcontinentcode",
+          "documentation":"<p>The first continent code in the lexicographic ordering of geo locations that you want the <code>ListGeoLocations</code> request to list. For non-continent geo locations, this should be null.</p> <p>Valid values: <code>AF</code> | <code>AN</code> | <code>AS</code> | <code>EU</code> | <code>OC</code> | <code>NA</code> | <code>SA</code></p> <p>Constraint: Specifying <code>ContinentCode</code> with either <code>CountryCode</code> or <code>SubdivisionCode</code> returns an <a>InvalidInput</a> error.</p>"
+        },
+        "StartCountryCode":{
+          "shape":"GeoLocationCountryCode",
+          "location":"querystring",
+          "locationName":"startcountrycode",
+          "documentation":"<p>The first country code in the lexicographic ordering of geo locations that you want the <code>ListGeoLocations</code> request to list.</p> <p>The default geo location uses a <code>*</code> for the country code. All other country codes follow the ISO 3166 two-character code.</p>"
+        },
+        "StartSubdivisionCode":{
+          "shape":"GeoLocationSubdivisionCode",
+          "location":"querystring",
+          "locationName":"startsubdivisioncode",
+          "documentation":"<p>The first subdivision code in the lexicographic ordering of geo locations that you want the <code>ListGeoLocations</code> request to list.</p> <p>Constraint: Specifying <code>SubdivisionCode</code> without <code>CountryCode</code> returns an <a>InvalidInput</a> error.</p>"
+        },
+        "MaxItems":{
+          "shape":"PageMaxItems",
+          "location":"querystring",
+          "locationName":"maxitems",
+          "documentation":"<p>The maximum number of geo locations you want in the response body.</p>"
+        }
+      },
+      "documentation":"<p> The input for a ListGeoLocations request.</p>"
+    },
+    "ListGeoLocationsResponse":{
+      "type":"structure",
+      "required":[
+        "GeoLocationDetailsList",
+        "IsTruncated",
+        "MaxItems"
+      ],
+      "members":{
+        "GeoLocationDetailsList":{
+          "shape":"GeoLocationDetailsList",
+          "documentation":"<p>A complex type that contains information about the geo locations that are returned by the request.</p>"
+        },
+        "IsTruncated":{
+          "shape":"PageTruncated",
+          "documentation":"<p> A flag that indicates whether there are more geo locations to be listed. If your results were truncated, you can make a follow-up request for the next page of results by using the values included in the <a>ListGeoLocationsResponse$NextContinentCode</a>, <a>ListGeoLocationsResponse$NextCountryCode</a> and <a>ListGeoLocationsResponse$NextSubdivisionCode</a> elements.</p> <p>Valid Values: <code>true</code> | <code>false</code></p>"
+        },
+        "NextContinentCode":{
+          "shape":"GeoLocationContinentCode",
+          "documentation":"<p>If the results were truncated, the continent code of the next geo location in the list. This element is present only if <a>ListGeoLocationsResponse$IsTruncated</a> is true and the next geo location to list is a continent location. </p>"
+        },
+        "NextCountryCode":{
+          "shape":"GeoLocationCountryCode",
+          "documentation":"<p>If the results were truncated, the country code of the next geo location in the list. This element is present only if <a>ListGeoLocationsResponse$IsTruncated</a> is true and the next geo location to list is not a continent location. </p>"
+        },
+        "NextSubdivisionCode":{
+          "shape":"GeoLocationSubdivisionCode",
+          "documentation":"<p>If the results were truncated, the subdivision code of the next geo location in the list. This element is present only if <a>ListGeoLocationsResponse$IsTruncated</a> is true and the next geo location has a subdivision. </p>"
+        },
+        "MaxItems":{
+          "shape":"PageMaxItems",
+          "documentation":"<p>The maximum number of records you requested. The maximum value of <code>MaxItems</code> is 100.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contains information about the geo locations that are returned by the request and information about the response.</p>"
+    },
+    "ListHealthChecksRequest":{
+      "type":"structure",
+      "members":{
+        "Marker":{
+          "shape":"PageMarker",
+          "location":"querystring",
+          "locationName":"marker",
+          "documentation":"<p>If the request returned more than one page of results, submit another request and specify the value of <code>NextMarker</code> from the last response in the <code>marker</code> parameter to get the next page of results.</p>"
+        },
+        "MaxItems":{
+          "shape":"PageMaxItems",
+          "location":"querystring",
+          "locationName":"maxitems",
+          "documentation":"<p>Specify the maximum number of health checks to return per page of results.</p>"
+        }
+      },
+      "documentation":"<p> To retrieve a list of your health checks, send a <code>GET</code> request to the <code>2013-04-01/healthcheck</code> resource. The response to this request includes a <code>HealthChecks</code> element with zero or more <code>HealthCheck</code> child elements. By default, the list of health checks is displayed on a single page. You can control the length of the page that is displayed by using the <code>MaxItems</code> parameter. You can use the <code>Marker</code> parameter to control the health check that the list begins with.</p> <note> Route 53 returns a maximum of 100 items. If you set <code>MaxItems</code> to a value greater than 100, Route 53 returns only the first 100.</note>"
+    },
+    "ListHealthChecksResponse":{
+      "type":"structure",
+      "required":[
+        "HealthChecks",
+        "Marker",
+        "IsTruncated",
+        "MaxItems"
+      ],
+      "members":{
+        "HealthChecks":{
+          "shape":"HealthChecks",
+          "documentation":"<p>A complex type that contains information about the health checks associated with the current AWS account.</p>"
+        },
+        "Marker":{
+          "shape":"PageMarker",
+          "documentation":"<p>If the request returned more than one page of results, submit another request and specify the value of <code>NextMarker</code> from the last response in the <code>marker</code> parameter to get the next page of results.</p>"
+        },
+        "IsTruncated":{
+          "shape":"PageTruncated",
+          "documentation":"<p> A flag indicating whether there are more health checks to be listed. If your results were truncated, you can make a follow-up request for the next page of results by using the <code>Marker</code> element.</p> <p>Valid Values: <code>true</code> | <code>false</code></p>"
+        },
+        "NextMarker":{
+          "shape":"PageMarker",
+          "documentation":"<p> Indicates where to continue listing health checks. If <a>ListHealthChecksResponse$IsTruncated</a> is <code>true</code>, make another request to <code>ListHealthChecks</code> and include the value of the <code>NextMarker</code> element in the <code>Marker</code> element to get the next page of results.</p>"
+        },
+        "MaxItems":{
+          "shape":"PageMaxItems",
+          "documentation":"<p>The maximum number of health checks to be included in the response body. If the number of health checks associated with this AWS account exceeds <code>MaxItems</code>, the value of <a>ListHealthChecksResponse$IsTruncated</a> in the response is <code>true</code>. Call <code>ListHealthChecks</code> again and specify the value of <a>ListHealthChecksResponse$NextMarker</a> in the <a>ListHostedZonesRequest$Marker</a> element to get the next page of results.</p>"
+        }
+      },
+      "documentation":"<p> A complex type that contains the response for the request.</p>"
+    },
+    "ListHostedZonesRequest":{
+      "type":"structure",
+      "members":{
+        "Marker":{
+          "shape":"PageMarker",
+          "location":"querystring",
+          "locationName":"marker",
+          "documentation":"<p>If the request returned more than one page of results, submit another request and specify the value of <code>NextMarker</code> from the last response in the <code>marker</code> parameter to get the next page of results.</p>"
+        },
+        "MaxItems":{
+          "shape":"PageMaxItems",
+          "location":"querystring",
+          "locationName":"maxitems",
+          "documentation":"<p>Specify the maximum number of hosted zones to return per page of results.</p>"
+        },
+        "DelegationSetId":{
+          "shape":"ResourceId",
+          "location":"querystring",
+          "locationName":"delegationsetid"
+        }
+      },
+      "documentation":"<p> To retrieve a list of your hosted zones, send a <code>GET</code> request to the <code>2013-04-01/hostedzone</code> resource. The response to this request includes a <code>HostedZones</code> element with zero or more <code>HostedZone</code> child elements. By default, the list of hosted zones is displayed on a single page. You can control the length of the page that is displayed by using the <code>MaxItems</code> parameter. You can use the <code>Marker</code> parameter to control the hosted zone that the list begins with. For more information about listing hosted zones, see <a href=\"http://docs.amazonwebservices.com/Route53/latest/DeveloperGuide/ListInfoOnHostedZone.html\">Listing the Hosted Zones for an AWS Account</a> in the <i>Amazon Route 53 Developer Guide</i>.</p> <note> Route 53 returns a maximum of 100 items. If you set <code>MaxItems</code> to a value greater than 100, Route 53 returns only the first 100.</note>"
+    },
+    "ListHostedZonesResponse":{
+      "type":"structure",
+      "required":[
+        "HostedZones",
+        "Marker",
+        "IsTruncated",
+        "MaxItems"
+      ],
+      "members":{
+        "HostedZones":{
+          "shape":"HostedZones",
+          "documentation":"<p>A complex type that contains information about the hosted zones associated with the current AWS account.</p>"
+        },
+        "Marker":{
+          "shape":"PageMarker",
+          "documentation":"<p>If the request returned more than one page of results, submit another request and specify the value of <code>NextMarker</code> from the last response in the <code>marker</code> parameter to get the next page of results.</p>"
+        },
+        "IsTruncated":{
+          "shape":"PageTruncated",
+          "documentation":"<p> A flag indicating whether there are more hosted zones to be listed. If your results were truncated, you can make a follow-up request for the next page of results by using the <code>Marker</code> element.</p> <p>Valid Values: <code>true</code> | <code>false</code></p>"
+        },
+        "NextMarker":{
+          "shape":"PageMarker",
+          "documentation":"<p> Indicates where to continue listing hosted zones. If <a>ListHostedZonesResponse$IsTruncated</a> is <code>true</code>, make another request to <code>ListHostedZones</code> and include the value of the <code>NextMarker</code> element in the <code>Marker</code> element to get the next page of results.</p>"
+        },
+        "MaxItems":{
+          "shape":"PageMaxItems",
+          "documentation":"<p>The maximum number of hosted zones to be included in the response body. If the number of hosted zones associated with this AWS account exceeds <code>MaxItems</code>, the value of <a>ListHostedZonesResponse$IsTruncated</a> in the response is <code>true</code>. Call <code>ListHostedZones</code> again and specify the value of <a>ListHostedZonesResponse$NextMarker</a> in the <a>ListHostedZonesRequest$Marker</a> element to get the next page of results.</p>"
+        }
+      },
+      "documentation":"<p> A complex type that contains the response for the request.</p>"
+    },
+    "ListResourceRecordSetsRequest":{
+      "type":"structure",
+      "required":["HostedZoneId"],
+      "members":{
+        "HostedZoneId":{
+          "shape":"ResourceId",
+          "location":"uri",
+          "locationName":"Id",
+          "documentation":"<p> The ID of the hosted zone that contains the resource record sets that you want to get.</p>"
+        },
+        "StartRecordName":{
+          "shape":"DNSName",
+          "location":"querystring",
+          "locationName":"name",
+          "documentation":"<p>The first name in the lexicographic ordering of domain names that you want the <code>ListResourceRecordSets</code> request to list.</p>"
+        },
+        "StartRecordType":{
+          "shape":"RRType",
+          "location":"querystring",
+          "locationName":"type",
+          "documentation":"<p>The DNS type at which to begin the listing of resource record sets. </p> <p>Valid values: <code>A</code> | <code>AAAA</code> | <code>CNAME</code> | <code>MX</code> | <code>NS</code> | <code>PTR</code> | <code>SOA</code> | <code>SPF</code> | <code>SRV</code> | <code>TXT</code></p> <p>Values for Weighted Resource Record Sets: <code>A</code> | <code>AAAA</code> | <code>CNAME</code> | <code>TXT</code></p> <p> Values for Regional Resource Record Sets: <code>A</code> | <code>AAAA</code> | <code>CNAME</code> | <code>TXT</code></p> <p>Values for Alias Resource Record Sets: <code>A</code> | <code>AAAA</code></p> <p>Constraint: Specifying <code>type</code> without specifying <code>name</code> returns an <a>InvalidInput</a> error.</p>"
+        },
+        "StartRecordIdentifier":{
+          "shape":"ResourceRecordSetIdentifier",
+          "location":"querystring",
+          "locationName":"identifier",
+          "documentation":"<p><i>Weighted resource record sets only:</i> If results were truncated for a given DNS name and type, specify the value of <code>ListResourceRecordSetsResponse$NextRecordIdentifier</code> from the previous response to get the next resource record set that has the current DNS name and type.</p>"
+        },
+        "MaxItems":{
+          "shape":"PageMaxItems",
+          "location":"querystring",
+          "locationName":"maxitems",
+          "documentation":"<p>The maximum number of records you want in the response body.</p>"
+        }
+      },
+      "documentation":"<p> The input for a ListResourceRecordSets request.</p>"
+    },
+    "ListResourceRecordSetsResponse":{
+      "type":"structure",
+      "required":[
+        "ResourceRecordSets",
+        "IsTruncated",
+        "MaxItems"
+      ],
+      "members":{
+        "ResourceRecordSets":{
+          "shape":"ResourceRecordSets",
+          "documentation":"<p>A complex type that contains information about the resource record sets that are returned by the request.</p>"
+        },
+        "IsTruncated":{
+          "shape":"PageTruncated",
+          "documentation":"<p> A flag that indicates whether there are more resource record sets to be listed. If your results were truncated, you can make a follow-up request for the next page of results by using the <a>ListResourceRecordSetsResponse$NextRecordName</a> element.</p> <p>Valid Values: <code>true</code> | <code>false</code></p>"
+        },
+        "NextRecordName":{
+          "shape":"DNSName",
+          "documentation":"<p>If the results were truncated, the name of the next record in the list. This element is present only if <a>ListResourceRecordSetsResponse$IsTruncated</a> is true. </p>"
+        },
+        "NextRecordType":{
+          "shape":"RRType",
+          "documentation":"<p>If the results were truncated, the type of the next record in the list. This element is present only if <a>ListResourceRecordSetsResponse$IsTruncated</a> is true. </p>"
+        },
+        "NextRecordIdentifier":{
+          "shape":"ResourceRecordSetIdentifier",
+          "documentation":"<p><i>Weighted resource record sets only:</i> If results were truncated for a given DNS name and type, the value of <code>SetIdentifier</code> for the next resource record set that has the current DNS name and type.</p>"
+        },
+        "MaxItems":{
+          "shape":"PageMaxItems",
+          "documentation":"<p>The maximum number of records you requested. The maximum value of <code>MaxItems</code> is 100.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contains information about the resource record sets that are returned by the request and information about the response.</p>"
+    },
+    "ListReusableDelegationSetsRequest":{
+      "type":"structure",
+      "members":{
+        "Marker":{
+          "shape":"PageMarker",
+          "location":"querystring",
+          "locationName":"marker",
+          "documentation":"<p>If the request returned more than one page of results, submit another request and specify the value of <code>NextMarker</code> from the last response in the <code>marker</code> parameter to get the next page of results.</p>"
+        },
+        "MaxItems":{
+          "shape":"PageMaxItems",
+          "location":"querystring",
+          "locationName":"maxitems",
+          "documentation":"<p>Specify the maximum number of reusable delegation sets to return per page of results.</p>"
+        }
+      },
+      "documentation":"<p> To retrieve a list of your reusable delegation sets, send a <code>GET</code> request to the <code>2013-04-01/delegationset</code> resource. The response to this request includes a <code>DelegationSets</code> element with zero or more <code>DelegationSet</code> child elements. By default, the list of reusable delegation sets is displayed on a single page. You can control the length of the page that is displayed by using the <code>MaxItems</code> parameter. You can use the <code>Marker</code> parameter to control the delegation set that the list begins with.</p> <note> Route 53 returns a maximum of 100 items. If you set <code>MaxItems</code> to a value greater than 100, Route 53 returns only the first 100.</note>"
+    },
+    "ListReusableDelegationSetsResponse":{
+      "type":"structure",
+      "required":[
+        "DelegationSets",
+        "Marker",
+        "IsTruncated",
+        "MaxItems"
+      ],
+      "members":{
+        "DelegationSets":{
+          "shape":"DelegationSets",
+          "documentation":"<p>A complex type that contains information about the reusable delegation sets associated with the current AWS account.</p>"
+        },
+        "Marker":{
+          "shape":"PageMarker",
+          "documentation":"<p>If the request returned more than one page of results, submit another request and specify the value of <code>NextMarker</code> from the last response in the <code>marker</code> parameter to get the next page of results.</p>"
+        },
+        "IsTruncated":{
+          "shape":"PageTruncated",
+          "documentation":"<p> A flag indicating whether there are more reusable delegation sets to be listed. If your results were truncated, you can make a follow-up request for the next page of results by using the <code>Marker</code> element.</p> <p>Valid Values: <code>true</code> | <code>false</code></p>"
+        },
+        "NextMarker":{
+          "shape":"PageMarker",
+          "documentation":"<p> Indicates where to continue listing reusable delegation sets. If <a>ListReusableDelegationSetsResponse$IsTruncated</a> is <code>true</code>, make another request to <code>ListReusableDelegationSets</code> and include the value of the <code>NextMarker</code> element in the <code>Marker</code> element to get the next page of results.</p>"
+        },
+        "MaxItems":{
+          "shape":"PageMaxItems",
+          "documentation":"<p>The maximum number of reusable delegation sets to be included in the response body. If the number of reusable delegation sets associated with this AWS account exceeds <code>MaxItems</code>, the value of <a>ListReusablDelegationSetsResponse$IsTruncated</a> in the response is <code>true</code>. Call <code>ListReusableDelegationSets</code> again and specify the value of <a>ListReusableDelegationSetsResponse$NextMarker</a> in the <a>ListReusableDelegationSetsRequest$Marker</a> element to get the next page of results.</p>"
+        }
+      },
+      "documentation":"<p> A complex type that contains the response for the request.</p>"
+    },
+    "ListTagsForResourceRequest":{
+      "type":"structure",
+      "required":[
+        "ResourceType",
+        "ResourceId"
+      ],
+      "members":{
+        "ResourceType":{
+          "shape":"TagResourceType",
+          "location":"uri",
+          "locationName":"ResourceType",
+          "documentation":"<p>The type of the resource.</p> <p>- The resource type for health checks is <code>healthcheck</code>.</p> <p>- The resource type for hosted zones is <code>hostedzone</code>.</p>"
+        },
+        "ResourceId":{
+          "shape":"TagResourceId",
+          "location":"uri",
+          "locationName":"ResourceId",
+          "documentation":"<p>The ID of the resource for which you want to retrieve tags.</p>"
+        }
+      },
+      "documentation":"<p>A complex type containing information about a request for a list of the tags that are associated with an individual resource.</p>"
+    },
+    "ListTagsForResourceResponse":{
+      "type":"structure",
+      "required":["ResourceTagSet"],
+      "members":{
+        "ResourceTagSet":{
+          "shape":"ResourceTagSet",
+          "documentation":"<p>A <code>ResourceTagSet</code> containing tags associated with the specified resource.</p>"
+        }
+      },
+      "documentation":"<p>A complex type containing tags for the specified resource.</p>"
+    },
+    "ListTagsForResourcesRequest":{
+      "type":"structure",
+      "required":[
+        "ResourceType",
+        "ResourceIds"
+      ],
+      "members":{
+        "ResourceType":{
+          "shape":"TagResourceType",
+          "location":"uri",
+          "locationName":"ResourceType",
+          "documentation":"<p>The type of the resources.</p> <p>- The resource type for health checks is <code>healthcheck</code>.</p> <p>- The resource type for hosted zones is <code>hostedzone</code>.</p>"
+        },
+        "ResourceIds":{
+          "shape":"TagResourceIdList",
+          "documentation":"<p>A complex type that contains the ResourceId element for each resource for which you want to get a list of tags.</p>"
+        }
+      },
+      "documentation":"<p>A complex type containing information about a request for a list of the tags that are associated with up to 10 specified resources.</p>"
+    },
+    "ListTagsForResourcesResponse":{
+      "type":"structure",
+      "required":["ResourceTagSets"],
+      "members":{
+        "ResourceTagSets":{
+          "shape":"ResourceTagSetList",
+          "documentation":"<p>A list of <code>ResourceTagSet</code>s containing tags associated with the specified resources.</p>"
+        }
+      },
+      "documentation":"<p>A complex type containing tags for the specified resources.</p>"
+    },
+    "NoSuchChange":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessage"}
+      },
+      "error":{"httpStatusCode":404},
+      "exception":true
+    },
+    "NoSuchDelegationSet":{
+      "type":"structure",
+      "members":{
+        "message":{
+          "shape":"ErrorMessage",
+          "documentation":"<p>Descriptive message for the error response.</p>"
+        }
+      },
+      "exception":true,
+      "documentation":"<p>The specified delegation set does not exist.</p>"
+    },
+    "NoSuchGeoLocation":{
+      "type":"structure",
+      "members":{
+        "message":{
+          "shape":"ErrorMessage",
+          "documentation":"<p>Descriptive message for the error response.</p>"
+        }
+      },
+      "error":{"httpStatusCode":404},
+      "exception":true,
+      "documentation":"<p>The geo location you are trying to get does not exist.</p>"
+    },
+    "NoSuchHealthCheck":{
+      "type":"structure",
+      "members":{
+        "message":{
+          "shape":"ErrorMessage",
+          "documentation":"<p>Descriptive message for the error response.</p>"
+        }
+      },
+      "error":{"httpStatusCode":404},
+      "exception":true,
+      "documentation":"<p>The health check you are trying to get or delete does not exist.</p>"
+    },
+    "NoSuchHostedZone":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessage"}
+      },
+      "error":{"httpStatusCode":404},
+      "exception":true
+    },
+    "Nonce":{
+      "type":"string",
+      "min":1,
+      "max":128
+    },
+    "PageMarker":{
+      "type":"string",
+      "max":64
+    },
+    "PageMaxItems":{"type":"string"},
+    "PageTruncated":{"type":"boolean"},
+    "Port":{
+      "type":"integer",
+      "min":1,
+      "max":65535
+    },
+    "PriorRequestNotComplete":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessage"}
+      },
+      "error":{"httpStatusCode":400},
+      "exception":true,
+      "documentation":"<p>The request was rejected because Route 53 was still processing a prior request.</p>"
+    },
+    "PublicZoneVPCAssociation":{
+      "type":"structure",
+      "members":{
+        "message":{
+          "shape":"ErrorMessage",
+          "documentation":"<p>Descriptive message for the error response.</p>"
+        }
+      },
+      "error":{"httpStatusCode":400},
+      "exception":true,
+      "documentation":"<p>The hosted zone you are trying to associate VPC with doesn't have any VPC association. Route 53 currently doesn't support associate a VPC with a public hosted zone.</p>"
+    },
+    "RData":{
+      "type":"string",
+      "max":4000
+    },
+    "RRType":{
+      "type":"string",
+      "enum":[
+        "SOA",
+        "A",
+        "TXT",
+        "NS",
+        "CNAME",
+        "MX",
+        "PTR",
+        "SRV",
+        "SPF",
+        "AAAA"
+      ]
+    },
+    "RequestInterval":{
+      "type":"integer",
+      "min":10,
+      "max":30
+    },
+    "ResourceDescription":{
+      "type":"string",
+      "max":256
+    },
+    "ResourceId":{
+      "type":"string",
+      "max":32
+    },
+    "ResourcePath":{
+      "type":"string",
+      "max":255
+    },
+    "ResourceRecord":{
+      "type":"structure",
+      "required":["Value"],
+      "members":{
+        "Value":{
+          "shape":"RData",
+          "documentation":"<p>The value of the <code>Value</code> element for the current resource record set.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contains the value of the <code>Value</code> element for the current resource record set.</p>"
+    },
+    "ResourceRecordSet":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "Type"
+      ],
+      "members":{
+        "Name":{
+          "shape":"DNSName",
+          "documentation":"<p>The domain name of the current resource record set.</p>"
+        },
+        "Type":{
+          "shape":"RRType",
+          "documentation":"<p>The type of the current resource record set.</p>"
+        },
+        "SetIdentifier":{
+          "shape":"ResourceRecordSetIdentifier",
+          "documentation":"<p><i>Weighted, Latency, Geo, and Failover resource record sets only:</i> An identifier that differentiates among multiple resource record sets that have the same combination of DNS name and type.</p>"
+        },
+        "Weight":{
+          "shape":"ResourceRecordSetWeight",
+          "documentation":"<p><i>Weighted resource record sets only:</i> Among resource record sets that have the same combination of DNS name and type, a value that determines what portion of traffic for the current resource record set is routed to the associated location.</p>"
+        },
+        "Region":{
+          "shape":"ResourceRecordSetRegion",
+          "documentation":"<p><i>Latency-based resource record sets only:</i> Among resource record sets that have the same combination of DNS name and type, a value that specifies the AWS region for the current resource record set.</p>"
+        },
+        "GeoLocation":{
+          "shape":"GeoLocation",
+          "documentation":"<p><i>Geo location resource record sets only:</i> Among resource record sets that have the same combination of DNS name and type, a value that specifies the geo location for the current resource record set.</p>"
+        },
+        "Failover":{
+          "shape":"ResourceRecordSetFailover",
+          "documentation":"<p><i>Failover resource record sets only:</i> Among resource record sets that have the same combination of DNS name and type, a value that indicates whether the current resource record set is a primary or secondary resource record set. A failover set may contain at most one resource record set marked as primary and one resource record set marked as secondary. A resource record set marked as primary will be returned if any of the following are true: (1) an associated health check is passing, (2) if the resource record set is an alias with the evaluate target health and at least one target resource record set is healthy, (3) both the primary and secondary resource record set are failing health checks or (4) there is no secondary resource record set. A secondary resource record set will be returned if: (1) the primary is failing a health check and either the secondary is passing a health check or has no associated health check, or (2) there is no primary resource record set. </p> <p>Valid values: <code>PRIMARY</code> | <code>SECONDARY</code></p>"
+        },
+        "TTL":{
+          "shape":"TTL",
+          "documentation":"<p>The cache time to live for the current resource record set.</p>"
+        },
+        "ResourceRecords":{
+          "shape":"ResourceRecords",
+          "documentation":"<p>A complex type that contains the resource records for the current resource record set.</p>"
+        },
+        "AliasTarget":{
+          "shape":"AliasTarget",
+          "documentation":"<p><i>Alias resource record sets only:</i> Information about the AWS resource to which you are redirecting traffic.</p>"
+        },
+        "HealthCheckId":{
+          "shape":"HealthCheckId",
+          "documentation":"<p><i>Health Check resource record sets only, not required for alias resource record sets:</i> An identifier that is used to identify health check associated with the resource record set.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contains information about the current resource record set.</p>"
+    },
+    "ResourceRecordSetFailover":{
+      "type":"string",
+      "enum":[
+        "PRIMARY",
+        "SECONDARY"
+      ]
+    },
+    "ResourceRecordSetIdentifier":{
+      "type":"string",
+      "min":1,
+      "max":128
+    },
+    "ResourceRecordSetRegion":{
+      "type":"string",
+      "enum":[
+        "us-east-1",
+        "us-west-1",
+        "us-west-2",
+        "eu-west-1",
+        "eu-central-1",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-northeast-1",
+        "sa-east-1",
+        "cn-north-1"
+      ],
+      "min":1,
+      "max":64
+    },
+    "ResourceRecordSetWeight":{
+      "type":"long",
+      "min":0,
+      "max":255
+    },
+    "ResourceRecordSets":{
+      "type":"list",
+      "member":{
+        "shape":"ResourceRecordSet",
+        "locationName":"ResourceRecordSet"
+      }
+    },
+    "ResourceRecords":{
+      "type":"list",
+      "member":{
+        "shape":"ResourceRecord",
+        "locationName":"ResourceRecord"
+      },
+      "min":1
+    },
+    "ResourceTagSet":{
+      "type":"structure",
+      "members":{
+        "ResourceType":{
+          "shape":"TagResourceType",
+          "documentation":"<p>The type of the resource.</p> <p>- The resource type for health checks is <code>healthcheck</code>.</p> <p>- The resource type for hosted zones is <code>hostedzone</code>.</p>"
+        },
+        "ResourceId":{
+          "shape":"TagResourceId",
+          "documentation":"<p>The ID for the specified resource.</p>"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags associated with the specified resource.</p>"
+        }
+      },
+      "documentation":"<p>A complex type containing a resource and its associated tags.</p>"
+    },
+    "ResourceTagSetList":{
+      "type":"list",
+      "member":{
+        "shape":"ResourceTagSet",
+        "locationName":"ResourceTagSet"
+      }
+    },
+    "ResourceURI":{
+      "type":"string",
+      "max":1024
+    },
+    "SearchString":{
+      "type":"string",
+      "max":255
+    },
+    "Status":{"type":"string"},
+    "StatusReport":{
+      "type":"structure",
+      "members":{
+        "Status":{
+          "shape":"Status",
+          "documentation":"<p>The observed health check status.</p>"
+        },
+        "CheckedTime":{
+          "shape":"TimeStamp",
+          "documentation":"<p>The date and time the health check status was observed, in the format <code>YYYY-MM-DDThh:mm:ssZ</code>, as specified in the ISO 8601 standard (for example, 2009-11-19T19:37:58Z). The <code>Z</code> after the time indicates that the time is listed in Coordinated Universal Time (UTC), which is synonymous with Greenwich Mean Time in this context.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contains information about the health check status for the current observation.</p>"
+    },
+    "TTL":{
+      "type":"long",
+      "min":0,
+      "max":2147483647
+    },
+    "Tag":{
+      "type":"structure",
+      "members":{
+        "Key":{
+          "shape":"TagKey",
+          "documentation":"<p>The key for a <code>Tag</code>.</p>"
+        },
+        "Value":{
+          "shape":"TagValue",
+          "documentation":"<p>The value for a <code>Tag</code>.</p>"
+        }
+      },
+      "documentation":"<p>A single tag containing a key and value.</p>"
+    },
+    "TagKey":{
+      "type":"string",
+      "max":128
+    },
+    "TagKeyList":{
+      "type":"list",
+      "member":{
+        "shape":"TagKey",
+        "locationName":"Key"
+      },
+      "min":1,
+      "max":10
+    },
+    "TagList":{
+      "type":"list",
+      "member":{
+        "shape":"Tag",
+        "locationName":"Tag"
+      },
+      "min":1,
+      "max":10
+    },
+    "TagResourceId":{
+      "type":"string",
+      "max":64
+    },
+    "TagResourceIdList":{
+      "type":"list",
+      "member":{
+        "shape":"TagResourceId",
+        "locationName":"ResourceId"
+      },
+      "min":1,
+      "max":10
+    },
+    "TagResourceType":{
+      "type":"string",
+      "enum":[
+        "healthcheck",
+        "hostedzone"
+      ]
+    },
+    "TagValue":{
+      "type":"string",
+      "max":256
+    },
+    "ThrottlingException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessage"}
+      },
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
+    "TimeStamp":{"type":"timestamp"},
+    "TooManyHealthChecks":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessage"}
+      },
+      "exception":true
+    },
+    "TooManyHostedZones":{
+      "type":"structure",
+      "members":{
+        "message":{
+          "shape":"ErrorMessage",
+          "documentation":"<p>Descriptive message for the error response.</p>"
+        }
+      },
+      "error":{"httpStatusCode":400},
+      "exception":true,
+      "documentation":"<p>This error indicates that you've reached the maximum number of hosted zones that can be created for the current AWS account. You can request an increase to the limit on the <a href=\"http://aws.amazon.com/route53-request/\">Contact Us</a> page.</p>"
+    },
+    "UpdateHealthCheckRequest":{
+      "type":"structure",
+      "required":["HealthCheckId"],
+      "members":{
+        "HealthCheckId":{
+          "shape":"HealthCheckId",
+          "location":"uri",
+          "locationName":"HealthCheckId",
+          "documentation":"<p>The ID of the health check to update.</p>"
+        },
+        "HealthCheckVersion":{
+          "shape":"HealthCheckVersion",
+          "documentation":"<p>Optional. When you specify a health check version, Route 53 compares this value with the current value in the health check, which prevents you from updating the health check when the versions don't match. Using <code>HealthCheckVersion</code> lets you prevent overwriting another change to the health check.</p>"
+        },
+        "IPAddress":{
+          "shape":"IPAddress",
+          "documentation":"<p>The IP address of the resource that you want to check.</p> <p>Specify this value only if you want to change it.</p>"
+        },
+        "Port":{
+          "shape":"Port",
+          "documentation":"<p>The port on which you want Route 53 to open a connection to perform health checks.</p> <p>Specify this value only if you want to change it.</p>"
+        },
+        "ResourcePath":{
+          "shape":"ResourcePath",
+          "documentation":"<p>The path that you want Amazon Route 53 to request when performing health checks. The path can be any value for which your endpoint will return an HTTP status code of 2xx or 3xx when the endpoint is healthy, for example the file /docs/route53-health-check.html. </p> <p>Specify this value only if you want to change it.</p>"
+        },
+        "FullyQualifiedDomainName":{
+          "shape":"FullyQualifiedDomainName",
+          "documentation":"<p>Fully qualified domain name of the instance to be health checked.</p> <p>Specify this value only if you want to change it.</p>"
+        },
+        "SearchString":{
+          "shape":"SearchString",
+          "documentation":"<p>If the value of <code>Type</code> is <code>HTTP_STR_MATCH</code> or <code>HTTP_STR_MATCH</code>, the string that you want Route 53 to search for in the response body from the specified resource. If the string appears in the response body, Route 53 considers the resource healthy. </p> <p>Specify this value only if you want to change it.</p>"
+        },
+        "FailureThreshold":{
+          "shape":"FailureThreshold",
+          "documentation":"<p>The number of consecutive health checks that an endpoint must pass or fail for Route 53 to change the current status of the endpoint from unhealthy to healthy or vice versa.</p> <p>Valid values are integers between 1 and 10. For more information, see \"How Amazon Route 53 Determines Whether an Endpoint Is Healthy\" in the Amazon Route 53 Developer Guide.</p> <p>Specify this value only if you want to change it.</p>"
+        }
+      },
+      "documentation":"<p>&gt;A complex type that contains information about the request to update a health check.</p>"
+    },
+    "UpdateHealthCheckResponse":{
+      "type":"structure",
+      "required":["HealthCheck"],
+      "members":{
+        "HealthCheck":{"shape":"HealthCheck"}
+      }
+    },
+    "UpdateHostedZoneCommentRequest":{
+      "type":"structure",
+      "required":["Id"],
+      "members":{
+        "Id":{
+          "shape":"ResourceId",
+          "location":"uri",
+          "locationName":"Id",
+          "documentation":"<p>The ID of the hosted zone you want to update.</p>"
+        },
+        "Comment":{
+          "shape":"ResourceDescription",
+          "documentation":"<p>A comment about your hosted zone.</p>"
+        }
+      },
+      "documentation":"<p>A complex type that contains information about the request to update a hosted zone comment.</p>"
+    },
+    "UpdateHostedZoneCommentResponse":{
+      "type":"structure",
+      "required":["HostedZone"],
+      "members":{
+        "HostedZone":{"shape":"HostedZone"}
+      },
+      "documentation":"<p>A complex type containing information about the specified hosted zone after the update.</p>"
+    },
+    "VPC":{
+      "type":"structure",
+      "members":{
+        "VPCRegion":{"shape":"VPCRegion"},
+        "VPCId":{"shape":"VPCId"}
+      }
+    },
+    "VPCAssociationNotFound":{
+      "type":"structure",
+      "members":{
+        "message":{
+          "shape":"ErrorMessage",
+          "documentation":"<p>Descriptive message for the error response.</p>"
+        }
+      },
+      "error":{"httpStatusCode":404},
+      "exception":true,
+      "documentation":"<p>The VPC you specified is not currently associated with the hosted zone.</p>"
+    },
+    "VPCId":{
+      "type":"string",
+      "max":1024,
+      "documentation":"<p>A VPC ID</p>"
+    },
+    "VPCRegion":{
+      "type":"string",
+      "enum":[
+        "us-east-1",
+        "us-west-1",
+        "us-west-2",
+        "eu-west-1",
+        "eu-central-1",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-northeast-1",
+        "sa-east-1",
+        "cn-north-1"
+      ],
+      "min":1,
+      "max":64
+    },
+    "VPCs":{
+      "type":"list",
+      "member":{
+        "shape":"VPC",
+        "locationName":"VPC"
+      },
+      "min":1,
+      "documentation":"<p>A list of VPCs</p>"
+    }
+  }
+}

@@ -1,0 +1,39 @@
+<div id="footer" class="noselect">
+  <div id="offline" ng-show="model.connectivity.internet == false">
+    {{ 'CONNECTION_OFFLINE' | translate }}
+  </div>
+  <div ng-show="model.connectivity.internet != false">
+    <div id="still-connecting" ng-show="inGetMode && model.connectivity.nproxies == -1">
+      {{ 'CONNECTING' | translate }}<br>
+    </div>
+    <div id="noproxies" ng-show="inGetMode && model.connectivity.nproxies == 0">
+      {{ 'NO_PROXIES' | translate }}<br>
+    </div>
+    <div id="stats" ng-show="!inGetMode || model.connectivity.nproxies > 0">
+      <div ng-show="statsLoaded">
+          {{ model.globalStats.gauges.userOnline == 1 ? "NUSERS_ONLINE_1" : "NUSERS_ONLINE_OTHER" | translate:'{value: model.globalStats.gauges.userOnline}'  }} ·
+          {{ "NUSERS_EVER_OTHER" | translate: '{value: model.glboalStats.gauges.userOnlineEver + model.globalStats.counters.userOnlineEverOld}' }} ·
+        {{ model.globalStats.counters.bytesGotten | prettyBytes }} {{ 'TRANSFERRED_GLOBALLY' | translate }}
+      </div>
+      <div ng-hide="statsLoaded">
+        <!-- just show an empty line instead of "Loading stats..." -->
+        &nbsp;
+        <!--
+        {{ 'LOADING_STATS' | translate }}
+        -->
+      </div>
+    </div>
+  </div>
+
+  <div id="appInfo">
+    <a ng-click="showModal('welcome')">{{ 'LANTERN' | translate }}</a>
+    <span class="version">{{ model.settings.version }}</span>
+    <span>
+      · <a ng-click="showModal('about')">{{ 'ABOUT' | translate }}</a>
+    </span>
+  </div>
+
+  <div id="global-nav" class="btn-group" dir="ltr">
+  </div>
+  <div id="npending" ng-show="nfriendSuggestions" class="badge badge-important">{{ nfriendSuggestions | badgeCount }}</div>
+</div>

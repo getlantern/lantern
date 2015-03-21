@@ -58,7 +58,7 @@ func (d *dialer) verifiedMasquerades() *verifiedMasqueradeSet {
 	if d.MaxMasquerades < verifiedChSize {
 		verifiedChSize = d.MaxMasquerades
 	}
-	log.Debugf("Verifiying up to %d masquerades", verifiedChSize)
+	log.Debugf("Verifying up to %d masquerades", verifiedChSize)
 
 	vms := &verifiedMasqueradeSet{
 		dialer:         d,

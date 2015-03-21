@@ -1,83 +1,87 @@
 package statserver
 
 import (
-	"encoding/json"
-	"net"
 	"net/http"
 	"sync"
 
-	"github.com/getlantern/eventsource"
 	"github.com/getlantern/golog"
+
+	"github.com/getlantern/flashlight/ui"
 )
 
 var (
 	log = golog.LoggerFor("flashlight.statserver")
 
-	instance      *server
-	instanceMutex sync.Mutex
+	service    *ui.Service
+	cfgMutex   sync.RWMutex
+	geoClient  *http.Client
+	peers      map[string]*Peer
+	peersMutex sync.RWMutex
 )
 
-func Start(addr string) {
-	instanceMutex.Lock()
-	defer instanceMutex.Unlock()
-	if instance != nil {
-		if instance.addr == addr {
-			log.Debugf("Already started at %v, ignoring additional Start() call", instance.addr)
+func Configure(newClient *http.Client) {
+	cfgMutex.Lock()
+	defer cfgMutex.Unlock()
+	geoClient = newClient
+	if service == nil {
+		err := registerService()
+		if err != nil {
+			log.Errorf("Unable to start statserver: %v", err)
 			return
 		}
-		defer instance.stop()
+		go read()
+		log.Debug("Started")
 	}
-	i := &server{
-		addr: addr,
-	}
-	instance = i
-	go i.listenAndServe()
 }
 
-func Stop() {
-	instanceMutex.Lock()
-	defer instanceMutex.Unlock()
-	if instance != nil {
-		instance.stop()
-		instance = nil
+func registerService() error {
+	peers = make(map[string]*Peer)
+	helloFn := func(write func(interface{}) error) error {
+		log.Tracef("Writing all peers to new client")
+		peersMutex.RLock()
+		defer peersMutex.RUnlock()
+		for _, peer := range peers {
+			err := write(peerUpdate(peer))
+			if err != nil {
+				return err
+			}
+		}
+		return nil
 	}
+
+	var err error
+	service, err = ui.Register("Stats", nil, helloFn)
+	return err
 }
 
 func OnBytesReceived(ip string, bytes int64) {
-	instanceMutex.Lock()
-	defer instanceMutex.Unlock()
-	if instance != nil {
-		instance.onBytesReceived(ip, bytes)
+	peersMutex.Lock()
+	defer peersMutex.Unlock()
+	if peers == nil {
+		// Statserver not running
+		return
 	}
+	getOrCreatePeer(ip).onBytesReceived(bytes)
 }
 
 func OnBytesSent(ip string, bytes int64) {
-	instanceMutex.Lock()
-	defer instanceMutex.Unlock()
-	if instance != nil {
-		instance.onBytesSent(ip, bytes)
+	peersMutex.Lock()
+	defer peersMutex.Unlock()
+	if peers == nil {
+		// Statserver not running
+		return
 	}
+	getOrCreatePeer(ip).onBytesSent(bytes)
 }
 
-// server provides an SSE server that publishes stat updates for peers.
-// See (http://www.html5rocks.com/en/tutorials/eventsource/basics/) for more
-// about Server-Sent Events.
-type server struct {
-	addr         string
-	l            net.Listener
-	clients      map[int]*client
-	clientsMutex sync.RWMutex
-	clientIdSeq  int
-	peers        map[string]*Peer
-	peersMutex   sync.Mutex
-}
-
-// client represents a client connected to the Server
-type client struct {
-	id      int
-	conn    *eventsource.Conn
-	server  *server
-	updates chan []byte
+func getOrCreatePeer(ip string) *Peer {
+	peer, found := peers[ip]
+	if found {
+		return peer
+	}
+	peer = newPeer(ip, onPeerUpdate)
+	peers[ip] = peer
+	return peer
 }
 
 type update struct {
@@ -85,110 +89,19 @@ type update struct {
 	Data interface{} `json:"data"`
 }
 
-func (s *server) listenAndServe() {
-	log.Debugf("Starting at %v", s.addr)
-	var err error
-	s.l, err = net.Listen("tcp", s.addr)
-	if err != nil {
-		log.Errorf("Unable to listen at %v: %v", s.addr, err)
-		return
-	}
-	s.clients = make(map[int]*client)
-	s.peers = make(map[string]*Peer)
-	httpServer := &http.Server{
-		Addr:    s.addr,
-		Handler: eventsource.Handler(s.onNewClient),
-	}
-	httpServer.Serve(s.l)
+func onPeerUpdate(peer *Peer) {
+	service.Out <- peerUpdate(peer)
 }
 
-func (s *server) stop() error {
-	log.Debugf("Stopping at %v", s.addr)
-	return s.l.Close()
-}
-
-func (s *server) addClient(conn *eventsource.Conn) *client {
-	s.clientsMutex.Lock()
-	defer s.clientsMutex.Unlock()
-	id := s.clientIdSeq
-	s.clientIdSeq = s.clientIdSeq + 1
-	client := &client{
-		id:      id,
-		conn:    conn,
-		server:  s,
-		updates: make(chan []byte, 1000),
-	}
-	s.clients[id] = client
-	return client
-}
-
-func (s *server) removeClient(id int) {
-	s.clientsMutex.Lock()
-	defer s.clientsMutex.Unlock()
-	delete(s.clients, id)
-}
-
-func (s *server) onNewClient(conn *eventsource.Conn) {
-	client := s.addClient(conn)
-	for {
-		select {
-		case update := <-client.updates:
-			client.conn.Write(update)
-		case <-client.conn.CloseNotify():
-			client.server.removeClient(client.id)
-		}
-	}
-}
-
-func (s *server) onBytesReceived(ip string, bytes int64) {
-	peer, err := s.getOrCreatePeer(ip)
-	if err != nil {
-		log.Errorf("Unable to getOrCreatePeer: %v", err)
-		return
-	}
-	peer.onBytesReceived(bytes)
-}
-
-func (s *server) onBytesSent(ip string, bytes int64) {
-	peer, err := s.getOrCreatePeer(ip)
-	if err != nil {
-		log.Errorf("Unable to getOrCreatePeer: %v", err)
-		return
-	}
-	peer.onBytesSent(bytes)
-}
-
-func (s *server) getOrCreatePeer(ip string) (*Peer, error) {
-	s.peersMutex.Lock()
-	defer s.peersMutex.Unlock()
-	peer, found := s.peers[ip]
-	if found {
-		return peer, nil
-	}
-	peer, err := newPeer(ip, s.onPeerUpdate)
-	if err != nil {
-		return nil, err
-	}
-	s.peers[ip] = peer
-	return peer, nil
-}
-
-func (s *server) onPeerUpdate(peer *Peer) {
-	update, err := json.Marshal(&update{
+func peerUpdate(peer *Peer) *update {
+	return &update{
 		Type: "peer",
 		Data: peer,
-	})
-	if err != nil {
-		log.Errorf("Unable to marshal peer update: %v", err)
-		return
 	}
-	s.pushUpdate(update)
 }
 
-func (s *server) pushUpdate(update []byte) {
-	s.clientsMutex.Lock()
-	defer s.clientsMutex.Unlock()
-	for _, client := range s.clients {
-		client.updates <- update
+func read() {
+	for _ = range service.In {
+		// Discard message, just in case any message is sent to this service.
 	}
 }

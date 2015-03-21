@@ -1,12 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"net"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"sort"
 	"strings"
@@ -17,6 +19,8 @@ import (
 	"github.com/getlantern/golog"
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/tlsdialer"
+
+	"github.com/getlantern/flashlight/client"
 )
 
 const (
@@ -24,25 +28,31 @@ const (
 )
 
 var (
-	help          = flag.Bool("help", false, "Get usage help")
-	domainsFile   = flag.String("domains", "", "Path to file containing list of domains to use, with one domain per line (e.g. domains.txt)")
-	blacklistFile = flag.String("blacklist", "", "Path to file containing list of blacklisted domains, which will be excluded from the configuration even if present in the domains file (e.g. blacklist.txt)")
-	minFreq       = flag.Float64("minfreq", 3.0, "Minimum frequency (percentage) for including CA cert in list of trusted certs, defaults to 3.0%")
+	help            = flag.Bool("help", false, "Get usage help")
+	domainsFile     = flag.String("domains", "", "Path to file containing list of domains to use, with one domain per line (e.g. domains.txt)")
+	blacklistFile   = flag.String("blacklist", "", "Path to file containing list of blacklisted domains, which will be excluded from the configuration even if present in the domains file (e.g. blacklist.txt)")
+	proxiedSitesDir = flag.String("proxiedsites", "proxiedsites", "Path to directory containing proxied site lists, which will be combined and proxied by Lantern")
+	minFreq         = flag.Float64("minfreq", 3.0, "Minimum frequency (percentage) for including CA cert in list of trusted certs, defaults to 3.0%")
+
+	// Note - you can get the content for the fallbacksFile from https://lanternctrl1-2.appspot.com/listfallbacks
+	fallbacksFile = flag.String("fallbacks", "fallbacks.json", "File containing json array of fallback information")
 )
 
 var (
 	log = golog.LoggerFor("genconfig")
 
-	domains   []string
-	blacklist = make(map[string]bool)
+	domains []string
 
-	masqueradesTmpl string
-	yamlTmpl        string
+	blacklist    = make(filter)
+	proxiedSites = make(filter)
+	fallbacks    []map[string]interface{}
 
 	domainsCh     = make(chan string)
 	masqueradesCh = make(chan *masquerade)
 	wg            sync.WaitGroup
 )
+
+type filter map[string]bool
 
 type masquerade struct {
 	Domain    string
@@ -69,10 +79,14 @@ func main() {
 	runtime.GOMAXPROCS(numcores)
 
 	loadDomains()
+	loadProxiedSitesList()
 	loadBlacklist()
+	loadFallbacks()
 
-	masqueradesTmpl = loadTemplate("masquerades.go.tmpl")
-	yamlTmpl = loadTemplate("cloud.yaml.tmpl")
+	masqueradesTmpl := loadTemplate("masquerades.go.tmpl")
+	proxiedSitesTmpl := loadTemplate("proxiedsites.go.tmpl")
+	fallbacksTmpl := loadTemplate("fallbacks.go.tmpl")
+	yamlTmpl := loadTemplate("cloud.yaml.tmpl")
 
 	go feedDomains()
 	cas, masquerades := coalesceMasquerades()
@@ -82,6 +96,16 @@ func main() {
 	_, err := run("gofmt", "-w", "../config/masquerades.go")
 	if err != nil {
 		log.Fatalf("Unable to format masquerades.go: %s", err)
+	}
+	generateTemplate(model, proxiedSitesTmpl, "../config/proxiedsites.go")
+	_, err = run("gofmt", "-w", "../config/proxiedsites.go")
+	if err != nil {
+		log.Fatalf("Unable to format proxiedsites.go: %s", err)
+	}
+	generateTemplate(model, fallbacksTmpl, "../config/fallbacks.go")
+	_, err = run("gofmt", "-w", "../config/fallbacks.go")
+	if err != nil {
+		log.Fatalf("Unable to format fallbacks.go: %s", err)
 	}
 }
 
@@ -98,6 +122,43 @@ func loadDomains() {
 	domains = strings.Split(string(domainsBytes), "\n")
 }
 
+// Scans the proxied site directory and stores the sites in the files found
+func loadProxiedSites(path string, info os.FileInfo, err error) error {
+	if info.IsDir() {
+		// skip root directory
+		return nil
+	}
+	proxiedSiteBytes, err := ioutil.ReadFile(path)
+	if err != nil {
+		log.Fatalf("Unable to read blacklist file at %s: %s", path, err)
+	}
+	for _, domain := range strings.Split(string(proxiedSiteBytes), "\n") {
+		// skip empty lines, comments, and *.ir sites
+		// since we're focusing on Iran with this first release, we aren't adding *.ir sites
+		// to the global proxied sites
+		// to avoid proxying sites that are already unblocked there.
+		// This is a general problem when you aren't maintaining country-specific whitelists
+		// which will be addressed in the next phase
+		if domain != "" && !strings.HasPrefix(domain, "#") && !strings.HasSuffix(domain, ".ir") {
+			proxiedSites[domain] = true
+		}
+	}
+	return err
+}
+
+func loadProxiedSitesList() {
+	if *proxiedSitesDir == "" {
+		log.Error("Please specify a proxied site directory")
+		flag.Usage()
+		os.Exit(3)
+	}
+
+	err := filepath.Walk(*proxiedSitesDir, loadProxiedSites)
+	if err != nil {
+		log.Errorf("Could not open proxied site directory: %s", err)
+	}
+}
+
 func loadBlacklist() {
 	if *blacklistFile == "" {
 		log.Error("Please specify a blacklist file")
@@ -110,6 +171,22 @@ func loadBlacklist() {
 	}
 	for _, domain := range strings.Split(string(blacklistBytes), "\n") {
 		blacklist[domain] = true
+	}
+}
+
+func loadFallbacks() {
+	if *fallbacksFile == "" {
+		log.Error("Please specify a fallbacks file")
+		flag.Usage()
+		os.Exit(2)
+	}
+	fallbacksBytes, err := ioutil.ReadFile(*fallbacksFile)
+	if err != nil {
+		log.Fatalf("Unable to read fallbacks file at %s: %s", *fallbacksFile, err)
+	}
+	err = json.Unmarshal(fallbacksBytes, &fallbacks)
+	if err != nil {
+		log.Fatalf("Unable to unmarshal json from %v: %v", *fallbacksFile, err)
 	}
 }
 
@@ -218,9 +295,50 @@ func buildModel(cas map[string]*castat, masquerades []*masquerade) map[string]in
 	}
 	sort.Sort(ByFreq(casList))
 	sort.Sort(ByDomain(masquerades))
+	ps := make([]string, 0, len(proxiedSites))
+	for site, _ := range proxiedSites {
+		ps = append(ps, site)
+	}
+	sort.Strings(ps)
+	fbs := make([]map[string]interface{}, 0, len(fallbacks))
+	for _, fb := range fallbacks {
+		ip := fb["ip"].(string)
+		if fb["pt"] != nil {
+			log.Debugf("Skipping fallback %v because it has pluggable transport enabled", ip)
+			continue
+		}
+
+		cert := fb["cert"].(string)
+		// Replace newlines in cert with newline literals
+		fb["cert"] = strings.Replace(cert, "\n", "\\n", -1)
+
+		// Test connectivity
+		info := &client.ChainedServerInfo{
+			Addr:      ip + ":443",
+			Cert:      cert,
+			AuthToken: fb["auth_token"].(string),
+			Pipelined: true,
+		}
+		dialer, err := info.Dialer()
+		if err != nil {
+			log.Debugf("Skipping fallback %v because of error building dialer: %v", ip, err)
+			continue
+		}
+		conn, err := dialer.Dial("tcp", "http://www.google.com")
+		if err != nil {
+			log.Debugf("Skipping fallback %v because dialing Google failed: %v", ip, err)
+			continue
+		}
+		conn.Close()
+
+		// Use this fallback
+		fbs = append(fbs, fb)
+	}
 	return map[string]interface{}{
-		"cas":         casList,
-		"masquerades": masquerades,
+		"cas":          casList,
+		"masquerades":  masquerades,
+		"proxiedsites": ps,
+		"fallbacks":    fbs,
 	}
 }
 

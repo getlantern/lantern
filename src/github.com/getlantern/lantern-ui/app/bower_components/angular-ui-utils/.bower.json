@@ -1,0 +1,18 @@
+{
+  "name": "angular-ui-utils",
+  "version": "0.1.1",
+  "main": "./ui-utils.js",
+  "dependencies": {
+    "angular": ">= 1.0.2"
+  },
+  "homepage": "https://github.com/angular-ui/ui-utils",
+  "_release": "0.1.1",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.1.1",
+    "commit": "e25586548ff0a61df63bd4eb8fdc0715b1a87e72"
+  },
+  "_source": "git://github.com/angular-ui/ui-utils.git",
+  "_target": "0.1.1",
+  "_originalSource": "angular-ui-utils"
+}

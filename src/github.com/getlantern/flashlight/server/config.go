@@ -14,8 +14,9 @@ type ServerConfig struct {
 	// NAT-PMP internet gateway device
 	Portmap int
 
-	// AdvertisedHost: FQDN that is guaranteed to hit this server
-	AdvertisedHost string
+	// FrontFQDNs: map each fronting provider to the FQDN with which this
+	// server is registered in it
+	FrontFQDNs map[string]string
 
 	// WaddellAddr: Address at which to connect to waddell for signaling
 	WaddellAddr string

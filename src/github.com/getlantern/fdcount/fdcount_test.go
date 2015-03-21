@@ -91,7 +91,7 @@ func TestWaitUntilNoneMatchTimeout(t *testing.T) {
 	}
 	defer conn.Close()
 
-	wait := 250 * time.Millisecond
+	wait := 500 * time.Millisecond
 	start := time.Now()
 	go func() {
 		time.Sleep(wait)

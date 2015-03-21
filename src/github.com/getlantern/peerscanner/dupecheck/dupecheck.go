@@ -18,7 +18,7 @@ func main() {
 		"roundrobin": make(map[string][]cloudflare.Record),
 	}
 
-	u := cf.New("getiantem.org", os.Getenv("CF_USER"), os.Getenv("CF_API_KEY"))
+	u := cf.New("getiantem.org", os.Getenv("CFL_USER"), os.Getenv("CFL_API_KEY"))
 	u.Client.Http.Transport = &http.Transport{
 		DisableKeepAlives: true,
 	}

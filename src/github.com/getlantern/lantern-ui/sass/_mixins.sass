@@ -1,0 +1,172 @@
+=hidden
+  display: none
+  visibility: hidden
+
+=centered
+  text-align: center
+
+// font weights
+// normal == 400
+// bold == 700
+
+=thin
+  font-family: 'Helvetica Light', 'Segoe UI Light', Arial
+
+=light
+  font-family: 'Helvetica', 'Segoe UI', Arial
+
+=bold
+  font-weight: bold
+
+=bolder
+  font-family: 'Helvetica Bold', 'Segoe UI Semibold', Arial
+
+=boldest
+  font-family: 'Helvetica Bold', 'Segoe UI Bold', Arial
+
+=base-size
+  font-size: $baseFontSize
+
+=bigger
+  font-size: $baseFontSize * 1.05
+
+=small
+  font-size: $baseFontSize * .95
+
+=smaller
+  font-size: $baseFontSize * .85
+
+=smallest
+  font-size: $baseFontSize * .75
+
+=error-colored
+  color: $errorText !important
+
+=warning-colored
+  color: $warningText !important
+
+=info-colored
+  color: $infoText !important
+
+=success-colored
+  color: $successText !important
+
+=give-colored
+  color: $giveModeColor
+
+=give-colored-alt
+  color: $giveModeColorAccent
+
+=get-colored-alt
+  color: $getModeColorAccent
+
+=get-colored
+  color: $getModeColor
+
+=yellow-colored
+  color: $yellowLight
+
+=white
+  color: $white
+
+=gray
+  color: $grayLight
+
+=grayDark
+  color: $gray
+
+=monofont
+  font-family: $monoFontFamily
+
+=size($width: false, $height: $width)
+  @if $width
+    width: $width
+  @if $height
+    height: $height
+
+=position($top: false, $right: false, $bottom: false, $left: false)
+  position: absolute
+  @if $top
+    top: $top
+  @if $right
+    right: $right
+  @if $bottom
+    bottom: $bottom
+  @if $left
+    left: $left
+
+=absolute-center($width, $height)
+  +position(50%, false, false, 50%)
+  margin-left: -1 * $width / 2
+  margin-top: -1 * $height / 2
+  width: $width
+  height: $height
+
+=never-underlined
+  text-decoration: none
+  &:active, &:visited, &:hover
+    text-decoration: none
+
+=always-underlined
+  text-decoration: underline
+
+=indented($amount: 20px)
+  body[dir=ltr] &
+    margin-left: $amount
+  body[dir=rtl] &
+    margin-right: $amount
+
+=aboveModal($delta: 1)
+  z-index: $zindexModal + $delta
+
+=inputInvalid
+  border-color: darken(#ee5f5b, 10%) !important
+  +ctb-box-shadow(0 0 6px lighten(#ee5f5b, 20%) !important)
+
+=ellipsisPast($maxwidth, $inline: false)
+  max-width: $maxwidth
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+  @if $inline
+    display: inline-block
+
+=dashed-underline
+  border-bottom-width: 1px
+  border-bottom-style: dashed
+
+=opaqueOnMouseover($opacityMouseout: .5)
+  opacity: $opacityMouseout
+  +single-transition(opacity, 0.5s, ease)
+  &:hover
+    opacity: 1
+
+// http://stackoverflow.com/questions/7855590/how-can-i-prevent-scroll-bars-from-being-hidden-for-trackpad-users-in-webkit/7855592#7855592
+=neverHideScrollbars
+  &::-webkit-scrollbar
+    -webkit-appearance: none
+    width: 11px
+    height: 11px
+  &::-webkit-scrollbar-thumb
+    border-radius: 8px
+    border: 2px solid white // should match background, can't be transparent
+    background-color: rgba(0, 0, 0, .5)
+
+@-webkit-keyframes defaultPulse
+  from
+    opacity: 1
+  40%
+    opacity: 1
+  50%
+    opacity: .25
+  60%
+    opacity: 1
+  to
+    opacity: 1
+
+=pulsing($name: defaultPulse, $duration: 3s)
+  -webkit-animation-name: $name
+  -webkit-animation-duration: $duration
+  -webkit-animation-iteration-count: infinite
+  -webkit-animation-timing-function: linear
+
