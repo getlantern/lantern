@@ -19,17 +19,24 @@ const (
 var au *autoupdate.AutoUpdate
 
 func init() {
-	// Setting the proxy we're going to use for auto-updates.
-	// autoupdate.SetProxy("127.0.0.1:9999")
+	// Setting up a new autoupdate client.
+	au = autoupdate.New(&autoupdate.Config{
+		SignerPublicKey: []byte(
+			"-----BEGIN PUBLIC KEY-----\n" +
+				"MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzSoibtACnqcp2uTGjCMJ\n" +
+				"tTOLDIMQ4oGPhGHT4Q/epum+H3hcbBNs9jRnMRWgX4z++xxuNJnhmoJw0eUXB7B4\n" +
+				"vj5DYpPajq6gPY8JuraF4ngfP5oxKj2BqpEUR9bx+3SjOSInrirM0JZO+aAW38BQ\n" +
+				"NJB+sS7JvbPjcwdjwKc5IKzc9kxxJNoZoFE9GMnYzaOrAlpCuAKWH8SCXYtCTxsX\n" +
+				"fKexdDxsI5Vzm5lQHJLMeqhLTQTUm9oQofwNAOGOkn6dD4ObMlmFTOsf1G03/Dl9\n" +
+				"sVgjaWaZ9bGjvJ9B85UxNeWwduy+uMrqFytxG6bbq0PbDEVu6ZQCPyiyCA7l945J\n" +
+				"OQIDAQAB\n" +
+				"-----END PUBLIC KEY-----\n",
+		),
+		CurrentVersion: internalVersion,
+		HTTPClient:     nil, // Set this to something else to use a proxy.
+	})
 
-	// Update settings (such as equinox's tokens and the public key used to
-	// verify signatures) are defined per app in config.go. We're doing that
-	// instead of passing a Config struct to keep the autoupdate API independent
-	// from go-update.
-	au = autoupdate.New("_test_app")
-	// Set internal version.
-	au.SetVersion(internalVersion)
-	// Watch for updates.
+	// Watch for updates, this spawns a goroutine by its own.
 	au.Watch()
 }
 

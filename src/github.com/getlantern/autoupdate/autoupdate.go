@@ -3,13 +3,11 @@
 package autoupdate
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
 	"time"
 
-	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/go-update"
 	"github.com/getlantern/go-update/check"
 )
@@ -25,25 +23,10 @@ var (
 	sleepTime = time.Hour * 4
 )
 
-// SetProxy sets the proxy to use.
-func SetProxy(proxyAddr string) {
-	var err error
-
-	if proxyAddr != "" {
-		// Create a HTTP proxy and pass it to the update package.
-		if update.HTTPClient, err = util.HTTPClient("", proxyAddr); err != nil {
-			log.Printf("Could not use proxy: %q\n", err)
-		}
-	} else {
-		update.HTTPClient = &http.Client{}
-	}
-}
-
 // AutoUpdate satisfies AutoUpdater and can be used for other programs to
 // configure automatic updates.
 type AutoUpdate struct {
-	cfg config
-	v   string
+	cfg *Config
 	// When a patch has been applied, the patch's version will be sent to
 	// UpdatedTo.
 	UpdatedTo chan string
@@ -51,16 +34,26 @@ type AutoUpdate struct {
 
 // New creates an AutoUpdate struct based in the configuration defined in
 // config.go.
-func New(appName string) *AutoUpdate {
-	if configMap[appName] == nil {
-		// Panicking because we can't continue with autoupdates without proper
-		// configuration.
-		panic(fmt.Sprintf(`autoupdate: You must define a new config["%s"] entry to configure updates for this application. See config.go.`, appName))
+func New(cfg *Config) *AutoUpdate {
+	if cfg == nil {
+		panic(`autoupdate: Configuration must not be nil.`)
 	}
+
 	a := &AutoUpdate{
 		UpdatedTo: make(chan string),
-		cfg:       *configMap[appName],
+		cfg:       cfg,
 	}
+
+	// Validating and setting version.
+	a.SetVersion(cfg.CurrentVersion)
+
+	// Setting update's HTTP client.
+	if a.cfg.HTTPClient == nil {
+		update.HTTPClient = &http.Client{}
+	} else {
+		update.HTTPClient = a.cfg.HTTPClient
+	}
+
 	return a
 }
 
@@ -73,14 +66,14 @@ func (a *AutoUpdate) SetVersion(v string) {
 	if !isVersionTag(v) {
 		panic(`autoupdate: Versions must be in the form vX.Y.Z.`)
 	}
-	a.v = v
+	a.cfg.CurrentVersion = v
 }
 
 // Version returns the internal version value passed to SetVersion(). If
 // SetVersion() has not been called yet, a negative value will be returned
 // instead.
 func (a *AutoUpdate) Version() string {
-	return a.v
+	return a.cfg.CurrentVersion
 }
 
 // check uses go-update to look for updates.
@@ -93,7 +86,7 @@ func (a *AutoUpdate) check() (res *check.Result, err error) {
 
 	up = update.New().ApplyPatch(update.PATCHTYPE_BSDIFF)
 
-	if _, err = up.VerifySignatureWithPEM(a.cfg.publicKey); err != nil {
+	if _, err = up.VerifySignatureWithPEM(a.cfg.SignerPublicKey); err != nil {
 		return nil, err
 	}
 
@@ -156,7 +149,7 @@ func (a *AutoUpdate) loop() {
 
 // Watch spawns a goroutine that will apply updates whenever they're available.
 func (a *AutoUpdate) Watch() {
-	if a.v == "" {
+	if a.cfg.CurrentVersion == "" {
 		// Panicking because Watch is useless without the ability to compare
 		// versions.
 		panic(`autoupdate: You must set the executable version in order to watch for updates!`)
