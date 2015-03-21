@@ -117,7 +117,6 @@ func (g *ReleaseManager) GetReleases() ([]Release, error) {
 				Name: *asset.Name,
 				URL:  *asset.BrowserDownloadURL,
 			})
-			// fmt.Printf("asset: %v -- %v -- %v\n", asset.Label, asset.State, asset.ContentType)
 		}
 		releases = append(releases, rel)
 	}

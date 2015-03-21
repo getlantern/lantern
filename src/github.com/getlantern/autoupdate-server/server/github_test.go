@@ -12,14 +12,14 @@ func TestSplitUpdateAsset(t *testing.T) {
 	var err error
 	var info *AssetInfo
 
-	if info, err = getAssetInfo("autoupdate-binary-darwin-x86.dmg"); err != nil {
+	if info, err = getAssetInfo("autoupdate-binary-darwin-386.dmg"); err != nil {
 		t.Fatal(fmt.Errorf("Failed to get asset info: %q", err))
 	}
 	if info.OS != OS.Darwin || info.Arch != Arch.X86 {
 		t.Fatal("Failed to identify update asset.")
 	}
 
-	if info, err = getAssetInfo("autoupdate-binary-darwin-x64.v1"); err != nil {
+	if info, err = getAssetInfo("autoupdate-binary-darwin-amd64.v1"); err != nil {
 		t.Fatal(fmt.Errorf("Failed to get asset info: %q", err))
 	}
 	if info.OS != OS.Darwin || info.Arch != Arch.X64 {
@@ -33,14 +33,14 @@ func TestSplitUpdateAsset(t *testing.T) {
 		t.Fatal("Failed to identify update asset.")
 	}
 
-	if info, err = getAssetInfo("autoupdate-binary-windows-x86"); err != nil {
+	if info, err = getAssetInfo("autoupdate-binary-windows-386"); err != nil {
 		t.Fatal(fmt.Errorf("Failed to get asset info: %q", err))
 	}
 	if info.OS != OS.Windows || info.Arch != Arch.X86 {
 		t.Fatal("Failed to identify update asset.")
 	}
 
-	if _, err = getAssetInfo("autoupdate-binary-osx-x86"); err == nil {
+	if _, err = getAssetInfo("autoupdate-binary-osx-386"); err == nil {
 		t.Fatalf("Should have ignored the release, \"osx\" is not a valid OS value.")
 	}
 }
@@ -65,8 +65,14 @@ func TestUpdateAssetsMap(t *testing.T) {
 	if testClient.updateAssetsMap == nil {
 		t.Fatal("Assets map should not be nil at this point.")
 	}
+	if len(testClient.updateAssetsMap) == 0 {
+		t.Fatal("Assets map is empty.")
+	}
 	if testClient.latestAssetsMap == nil {
 		t.Fatal("Assets map should not be nil at this point.")
+	}
+	if len(testClient.latestAssetsMap) == 0 {
+		t.Fatal("Assets map is empty.")
 	}
 }
 

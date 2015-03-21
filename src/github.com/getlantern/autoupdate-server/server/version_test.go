@@ -67,13 +67,13 @@ func TestIsVersionTag(t *testing.T) {
 }
 
 func TestIsUpdateAsset(t *testing.T) {
-	if isUpdateAsset("autoupdate-binary-windows-x86") == false {
+	if isUpdateAsset("autoupdate-binary-windows-386") == false {
 		t.Fatal("Expecting true.")
 	}
-	if isUpdateAsset("autoupdate-binary-darwin-x86.dmg") == false {
+	if isUpdateAsset("autoupdate-binary-darwin-386.dmg") == false {
 		t.Fatal("Expecting true.")
 	}
-	if isUpdateAsset("autoupdate-binary-linux-x86.v1") == false {
+	if isUpdateAsset("autoupdate-binary-linux-386.v1") == false {
 		t.Fatal("Expecting true.")
 	}
 	if isUpdateAsset("Lantern.app") == true {
