@@ -39,18 +39,16 @@ app.controller('RootCtrl', ['$scope', '$compile', '$window', '$http',
         // if it's our first time opening the UI,
         // show the settings modal first immediately followed by
         // the welcome screen
-        if ($scope.currentModal == 'settings' && !$scope.lanternWelcomeKey) {
-            if (!$scope.lanternWelcomeKey) {
-                $scope.showModal('welcome');
-                localStorageService.set('lanternWelcomeKey', true);
-            }
+        if ($scope.currentModal == 'welcome' && !$scope.lanternWelcomeKey) {
+            $scope.lanternWelcomeKey = true;
+            localStorageService.set('lanternWelcomeKey', true);
         } else {
             $scope.currentModal = 'none';
         }
     };
 
     if (!$scope.lanternWelcomeKey) {
-        $scope.showModal('settings');
+        $scope.showModal('welcome');
     };
 
 
