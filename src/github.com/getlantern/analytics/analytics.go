@@ -76,6 +76,8 @@ func composeUrl(payload *Payload) string {
 
 // Makes a tracking request to Google Analytics
 func SendRequest(httpClient *http.Client, payload *Payload) (status bool, err error) {
+	var resp *http.Response
+
 	if httpClient == nil {
 		log.Trace("Using default http.Client")
 		httpClient = defaultHttpClient
@@ -83,10 +85,11 @@ func SendRequest(httpClient *http.Client, payload *Payload) (status bool, err er
 
 	url := composeUrl(payload)
 
-	if _, err = http.Get(url); err != nil {
+	if resp, err = http.Get(url); err != nil {
 		log.Errorf("Could not send request to Google Analytics: %q", err)
 		return false, err
 	}
+	defer resp.Body.Close()
 
 	return true, nil
 }
