@@ -53,6 +53,7 @@ func Configure(cfg *config.Config, version, buildDate string) {
 
 func start(baseSettings *Settings) error {
 	var err error
+
 	helloFn := func(write func(interface{}) error) error {
 		log.Debugf("Sending Lantern settings to new client")
 		return write(baseSettings)
@@ -65,16 +66,17 @@ func start(baseSettings *Settings) error {
 func read() {
 	for msg := range service.In {
 		settings := (msg).(map[string]interface{})
-		config.Update(func(updated *config.Config) error {
 
+		cfgMutex.Lock()
+		config.Update(func(updated *config.Config) error {
 			autoReport := settings["autoReport"].(bool)
 			if autoReport {
 				analytics.Start()
 			}
-
 			baseSettings.AutoReport = autoReport
 			*updated.AutoReport = autoReport
 			return nil
 		})
+		cfgMutex.Unlock()
 	}
 }

@@ -197,6 +197,7 @@ angular.module('app.services', [])
 
     function trackPageView(sessionControl) {
       var trackers = ga.getAll();
+      console.log(trackers);
       for (var i =0; i < trackers.length; i++) {
           var tracker = trackers[i];
           if (tracker.b && tracker.b.data && tracker.b.data.w) {
