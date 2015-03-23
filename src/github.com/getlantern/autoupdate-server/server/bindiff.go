@@ -75,6 +75,7 @@ func bspatch(oldfile string, newfile string, patchfile string) (err error) {
 }
 
 func bsdiff(oldfile string, newfile string) (patchfile string, err error) {
+
 	if !fileExists(oldfile) {
 		return "", fmt.Errorf("File %s does not exist.", oldfile)
 	}
@@ -86,7 +87,7 @@ func bsdiff(oldfile string, newfile string) (patchfile string, err error) {
 	oldfileHash := fileHash(oldfile)
 	newfileHash := fileHash(newfile)
 
-	patchfile = patchesDirectory + fmt.Sprintf("%x", sha256.Sum256([]byte(oldfileHash+newfileHash))) + ".patch"
+	patchfile = patchesDirectory + fmt.Sprintf("%x", sha256.Sum256([]byte(oldfileHash+"|"+newfileHash)))
 
 	if fileExists(patchfile) {
 		// Patch already exists, no need to compute it again.

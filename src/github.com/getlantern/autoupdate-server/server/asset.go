@@ -1,11 +1,12 @@
 package server
 
 import (
-	"crypto/sha1"
+	"crypto/sha256"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"path"
 )
 
 const (
@@ -20,9 +21,15 @@ func init() {
 }
 
 // downloadAsset grabs the contents of the body of the given URL and stores
-// then into $ASSETS_DIRECTORY/SHA1($URL).
+// then into $ASSETS_DIRECTORY/$BASENAME.SHA256_SUM($URL)
 func downloadAsset(uri string) (localfile string, err error) {
-	localfile = assetsDirectory + fmt.Sprintf("%x", sha1.Sum([]byte(uri)))
+	basename := path.Base(uri)
+
+	if len(basename) > 60 {
+		basename = basename[:60]
+	}
+
+	localfile = assetsDirectory + fmt.Sprintf("%s.%x", basename, sha256.Sum256([]byte(uri)))
 
 	if !fileExists(localfile) {
 		var res *http.Response
@@ -50,8 +57,4 @@ func downloadAsset(uri string) (localfile string, err error) {
 	}
 
 	return localfile, nil
-}
-
-func assetURL(localfile string) (url string) {
-	return localfile
 }

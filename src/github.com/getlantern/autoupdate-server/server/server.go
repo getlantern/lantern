@@ -121,7 +121,7 @@ func (g *ReleaseManager) CheckForUpdate(p *Params) (res *Result, err error) {
 
 		r := &Result{
 			Initiative: INITIATIVE_AUTO,
-			URL:        assetURL(update.URL),
+			URL:        update.URL,
 			PatchType:  PATCHTYPE_NONE,
 			Version:    update.v.String(),
 			Checksum:   update.Checksum,
@@ -148,8 +148,8 @@ func (g *ReleaseManager) CheckForUpdate(p *Params) (res *Result, err error) {
 	// Generate result.
 	r := &Result{
 		Initiative: INITIATIVE_AUTO,
-		URL:        assetURL(update.URL),
-		PatchURL:   assetURL(patch.File),
+		URL:        update.URL,
+		PatchURL:   patch.File,
 		PatchType:  PATCHTYPE_BSDIFF,
 		Version:    update.v.String(),
 		Checksum:   update.Checksum,
