@@ -20,8 +20,8 @@ var (
 )
 
 type Config struct {
-	// CurrentVersion: the current version of the program, must be of the form
-	// vX.Y.Z
+	// CurrentVersion: the current version of the program, must be in the form
+	// X.Y.Z
 	CurrentVersion string
 
 	version semver.Version
