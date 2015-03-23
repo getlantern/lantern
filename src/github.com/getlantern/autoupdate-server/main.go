@@ -2,11 +2,22 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/getlantern/autoupdate-server/server"
 	"github.com/getlantern/golog"
+)
+
+var (
+	flagPrivateKey         = flag.String("k", "", "Path to private key.")
+	flagLocalAddr          = flag.String("l", ":6868", "Local bind address.")
+	flagPublicAddr         = flag.String("p", "http://127.0.0.1:6868/", "Public address.")
+	flagGithubOrganization = flag.String("o", "getlantern", "Github organization.")
+	flagGithubProject      = flag.String("n", "lantern", "Github project name.")
+	flagHelp               = flag.Bool("h", false, "Shows help.")
 )
 
 var (
@@ -35,19 +46,6 @@ func backgroundUpdate() {
 			log.Debugf("updateAssets: %s", err)
 		}
 	}
-}
-
-func init() {
-	// Creating release manager.
-	log.Debug("Starting release manager.")
-	releaseManager = server.NewReleaseManager(githubNamespace, githubRepo)
-	// Getting assets...
-	if err := updateAssets(); err != nil {
-		// In this case we will not be able to continue.
-		log.Fatal(err)
-	}
-	// Setting a goroutine for pulling updates periodically
-	go backgroundUpdate()
 }
 
 func (u *updateHandler) closeWithStatus(w http.ResponseWriter, status int) {
@@ -80,7 +78,7 @@ func (u *updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if res.PatchURL != "" {
-			res.PatchURL = publicAddr + res.PatchURL
+			res.PatchURL = *flagPublicAddr + res.PatchURL
 		}
 
 		var content []byte
@@ -101,17 +99,39 @@ func (u *updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 
+	// Parsing flags
+	flag.Parse()
+
+	if *flagHelp || *flagPrivateKey == "" {
+		flag.Usage()
+		os.Exit(0)
+	}
+
+	server.SetPrivateKey(*flagPrivateKey)
+
+	// Creating release manager.
+	log.Debug("Starting release manager.")
+	releaseManager = server.NewReleaseManager(*flagGithubOrganization, *flagGithubProject)
+	// Getting assets...
+	if err := updateAssets(); err != nil {
+		// In this case we will not be able to continue.
+		log.Fatal(err)
+	}
+
+	// Setting a goroutine for pulling updates periodically
+	go backgroundUpdate()
+
 	mux := http.NewServeMux()
 
 	mux.Handle("/update", new(updateHandler))
-	mux.Handle("/patches/", http.StripPrefix("/patches/", http.FileServer(http.Dir(patchesDirectory))))
+	mux.Handle("/patches/", http.StripPrefix("/patches/", http.FileServer(http.Dir(localPatchesDirectory))))
 
 	srv := http.Server{
-		Addr:    listenAddr,
+		Addr:    *flagLocalAddr,
 		Handler: mux,
 	}
 
-	log.Debugf("Starting up HTTP server at %s.", listenAddr)
+	log.Debugf("Starting up HTTP server at %s.", *flagLocalAddr)
 
 	if err := srv.ListenAndServe(); err != nil {
 		log.Fatalf("ListenAndServe: ", err)
