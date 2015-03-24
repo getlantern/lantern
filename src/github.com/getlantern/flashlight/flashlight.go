@@ -16,6 +16,7 @@ import (
 	"github.com/getlantern/profiling"
 	"github.com/getlantern/systray"
 
+	"github.com/getlantern/flashlight/autoupdate"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/geolookup"
@@ -51,6 +52,10 @@ func init() {
 	if buildDate == "" {
 		buildDate = "now"
 	}
+
+	// Passing public key and version to the autoupdate service.
+	autoupdate.PublicKey = packagePublicKey
+	autoupdate.Version = packageVersion
 
 	rand.Seed(time.Now().UnixNano())
 }
@@ -200,6 +205,7 @@ func runClientProxy(cfg *config.Config) {
 		hqfdc := hqfd.DirectHttpClient()
 		geolookup.Configure(hqfdc)
 		statserver.Configure(hqfdc)
+		autoupdate.Configure(hqfdc)
 	}
 
 	// Continually poll for config updates and update client accordingly
@@ -216,6 +222,7 @@ func runClientProxy(cfg *config.Config) {
 				geolookup.Configure(hqfdc)
 				statserver.Configure(hqfdc)
 				logging.Configure(cfg, version, buildDate)
+				autoupdate.Configure(hqfdc)
 			}
 		}
 	}()
