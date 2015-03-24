@@ -277,8 +277,8 @@ func (server *Server) checkForDisallowedCountry(req *http.Request) error {
 	}
 
 	city, err := geolookup.LookupCity(clientIp)
-	if err == nil {
-		log.Debugf("Unable to perform geolookup for ip %v", err)
+	if err != nil {
+		log.Debugf("Unable to perform geolookup for ip %v: %v", clientIp, err)
 		return nil
 	}
 	country := strings.ToUpper(city.Country.IsoCode)
