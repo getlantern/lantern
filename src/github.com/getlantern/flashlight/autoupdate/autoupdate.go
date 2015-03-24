@@ -77,6 +77,7 @@ func enableAutoupdate(cfg *config.Config) {
 }
 
 func watchForUpdate() {
+	log.Errorf("Software version: %s", Version)
 	watching = true
 	for watching {
 		applyNext()
