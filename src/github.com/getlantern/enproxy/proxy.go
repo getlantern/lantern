@@ -61,7 +61,7 @@ type Proxy struct {
 	connMap map[string]*lazyConn
 
 	// connMapMutex: synchronizes access to connMap
-	connMapMutex sync.Mutex
+	connMapMutex sync.RWMutex
 }
 
 // statCallback is a function for receiving stat information.
@@ -141,14 +141,11 @@ func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if p.Allow != nil {
-		err := p.Allow(req, addr)
-		if err != nil {
-			forbidden(resp, fmt.Sprintf("Not allowed: %v", err))
-		}
+	lc, isNew, err := p.getLazyConn(id, addr, req)
+	if err != nil {
+		forbidden(resp, err.Error())
+		return
 	}
-
-	lc, isNew := p.getLazyConn(id, addr)
 	connOut, err := lc.get()
 	if err != nil {
 		badGateway(resp, fmt.Sprintf("Unable to get connOut: %s", err))
@@ -301,13 +298,22 @@ func (p *Proxy) handleRead(resp http.ResponseWriter, req *http.Request, lc *lazy
 
 // getLazyConn gets the lazyConn corresponding to the given id and addr, or
 // creates a new one and saves it to connMap.
-func (p *Proxy) getLazyConn(id string, addr string) (l *lazyConn, isNew bool) {
-	p.connMapMutex.Lock()
-	defer p.connMapMutex.Unlock()
+func (p *Proxy) getLazyConn(id string, addr string, req *http.Request) (l *lazyConn, isNew bool, err error) {
+	p.connMapMutex.RLock()
 	l = p.connMap[id]
+	p.connMapMutex.RUnlock()
 	if l == nil {
+		if p.Allow != nil {
+			log.Trace("Checking if connection is allowed")
+			err := p.Allow(req, addr)
+			if err != nil {
+				return nil, false, fmt.Errorf("Not allowed: %v", err)
+			}
+		}
 		l = p.newLazyConn(id, addr)
+		p.connMapMutex.Lock()
 		p.connMap[id] = l
+		p.connMapMutex.Unlock()
 		isNew = true
 	}
 	return
