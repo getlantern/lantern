@@ -19,6 +19,7 @@ import (
 	"github.com/getlantern/golog"
 	"github.com/getlantern/nattywad"
 	"github.com/getlantern/waddell"
+	"github.com/hashicorp/golang-lru"
 
 	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/nattest"
@@ -58,6 +59,8 @@ type Server struct {
 	nattywadServer *nattywad.Server
 	cfg            *ServerConfig
 	cfgMutex       sync.RWMutex
+
+	geoCache *lru.Cache // Cache countries from geo lookup
 }
 
 func (server *Server) Configure(newCfg *ServerConfig) {
@@ -122,6 +125,10 @@ func (server *Server) ListenAndServe() error {
 		WriteTimeout:               server.WriteTimeout,
 		CertContext:                server.CertContext,
 		AllowNonGlobalDestinations: server.AllowNonGlobalDestinations,
+	}
+
+	if server.AllowedCountries != nil {
+		server.geoCache, _ = lru.New(1000000)
 	}
 
 	if server.AllowedPorts != nil || server.AllowedCountries != nil {
@@ -276,12 +283,22 @@ func (server *Server) checkForDisallowedCountry(req *http.Request) error {
 		return nil
 	}
 
-	city, err := geolookup.LookupCity(clientIp)
-	if err != nil {
-		log.Debugf("Unable to perform geolookup for ip %v: %v", clientIp, err)
-		return nil
+	country := ""
+	cachedCountry, found := server.geoCache.Get(clientIp)
+	if found {
+		log.Tracef("Country for %v found in cache", clientIp)
+		country = cachedCountry.(string)
+	} else {
+		log.Tracef("Country for %v not cached, perform geolookup", clientIp)
+		city, err := geolookup.LookupCity(clientIp)
+		if err != nil {
+			log.Debugf("Unable to perform geolookup for ip %v: %v", clientIp, err)
+			return nil
+		}
+		country = strings.ToUpper(city.Country.IsoCode)
+		server.geoCache.Add(clientIp, country)
 	}
-	country := strings.ToUpper(city.Country.IsoCode)
+
 	countryAllowed := false
 	for _, allowed := range server.AllowedCountries {
 		if country == strings.ToUpper(allowed) {
