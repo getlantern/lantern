@@ -195,6 +195,7 @@ func runClientProxy(cfg *config.Config) {
 		}
 	}
 
+	autoupdate.Configure(cfg)
 	logging.Configure(cfg, version, buildDate)
 	settings.Configure(version, buildDate)
 	proxiedsites.Configure(cfg.ProxiedSites)
@@ -205,7 +206,6 @@ func runClientProxy(cfg *config.Config) {
 		hqfdc := hqfd.DirectHttpClient()
 		geolookup.Configure(hqfdc)
 		statserver.Configure(hqfdc)
-		autoupdate.Configure(hqfdc)
 	}
 
 	// Continually poll for config updates and update client accordingly
@@ -222,7 +222,7 @@ func runClientProxy(cfg *config.Config) {
 				geolookup.Configure(hqfdc)
 				statserver.Configure(hqfdc)
 				logging.Configure(cfg, version, buildDate)
-				autoupdate.Configure(hqfdc)
+				autoupdate.Configure(cfg)
 			}
 		}
 	}()

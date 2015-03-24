@@ -6,11 +6,14 @@ import (
 	"time"
 
 	"github.com/getlantern/autoupdate"
+	"github.com/getlantern/flashlight/config"
+	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/golog"
+	"github.com/getlantern/waitforserver"
 )
 
 const (
-	serviceURL = "https://update.lantern.org/update"
+	serviceURL = "https://update.getlantern.org/update"
 )
 
 var (
@@ -28,17 +31,45 @@ var (
 	watching   = false
 
 	applyNextAttemptTime = time.Hour * 2
+	lastAddr             string
 )
 
-func Configure(newClient *http.Client) {
-	cfgMutex.Lock()
-	defer cfgMutex.Unlock()
+func Configure(cfg *config.Config) {
 
-	if newClient == nil {
+	cfgMutex.Lock()
+	if cfg.Addr == lastAddr {
+		cfgMutex.Unlock()
+		log.Debug("Autoupdate configuration unchanged")
 		return
 	}
 
-	httpClient = newClient
+	go func() {
+		lastAddr = cfg.Addr
+		enableAutoupdate(cfg)
+		cfgMutex.Unlock()
+	}()
+
+}
+
+func enableAutoupdate(cfg *config.Config) {
+	var err error
+
+	if cfg.Addr == "" {
+		log.Error("No known proxy, disabling auto updates.")
+		return
+	}
+
+	err = waitforserver.WaitForServer("tcp", cfg.Addr, 10*time.Second)
+	if err != nil {
+		log.Errorf("Proxy never came online at %v, disabling auto updates.", cfg.Addr)
+		return
+	}
+
+	httpClient, err = util.HTTPClient(cfg.CloudConfigCA, cfg.Addr)
+	if err != nil {
+		log.Errorf("Could not create proxied HTTP client, disabling auto-updates: %v", err)
+		return
+	}
 
 	if !watching {
 		watchForUpdate()
@@ -67,9 +98,9 @@ func applyNext() {
 			HTTPClient:     httpClient,
 		})
 		if err != nil {
-			log.Debugf("autoupdate: Error getting update: %v", err)
+			log.Debugf("Error getting update: %v", err)
 			return
 		}
-		log.Debugf("autoupdate: Got update.")
+		log.Debugf("Got update.")
 	}
 }

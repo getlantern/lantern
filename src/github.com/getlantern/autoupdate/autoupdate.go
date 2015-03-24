@@ -77,7 +77,7 @@ func (cfg *Config) loop() error {
 			if res == nil {
 				log.Debug("No update available")
 			} else if cfg.isNewerVersion(res.Version) {
-				log.Debugf("autoupdate: Attempting to update to %s.", res.Version)
+				log.Debugf("Attempting to update to %s.", res.Version)
 				err, errRecover := res.Update()
 				if errRecover != nil {
 					// This should never happen, if this ever happens it means bad news such as
@@ -85,12 +85,12 @@ func (cfg *Config) loop() error {
 					return fmt.Errorf("Failed to recover from failed update attempt: %v\n", errRecover)
 				}
 				if err == nil {
-					log.Debugf("autoupdate: Patching succeeded!")
+					log.Debugf("Patching succeeded!")
 					return nil
 				}
-				log.Errorf("autoupdate: Patching failed: %q\n", err)
+				log.Errorf("Patching failed: %q\n", err)
 			} else {
-				log.Debug("autoupdate: Already up to date.")
+				log.Debug("Already up to date.")
 			}
 		}
 
