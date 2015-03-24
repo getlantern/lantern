@@ -11,8 +11,6 @@ import (
 )
 
 const (
-	BAD_GATEWAY = 502
-
 	DEFAULT_BYTES_BEFORE_FLUSH = 1024768
 	DEFAULT_READ_BUFFER_SIZE   = 65536
 )
@@ -53,6 +51,11 @@ type Proxy struct {
 	// OnBytesSent is an optional callback for learning about bytes sent to a
 	// client
 	OnBytesSent statCallback
+
+	// Allow: Optional function that checks whether the given request to the
+	// given destAddr is allowed.  If it is not allowed, this function should
+	// return an error.
+	Allow func(req *http.Request, destAddr string) error
 
 	// connMap: map of outbound connections by their id
 	connMap map[string]*lazyConn
@@ -136,6 +139,13 @@ func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	if addr == "" {
 		badGateway(resp, fmt.Sprintf("No address found in header %s", X_ENPROXY_DEST_ADDR))
 		return
+	}
+
+	if p.Allow != nil {
+		err := p.Allow(req, addr)
+		if err != nil {
+			forbidden(resp, fmt.Sprintf("Not allowed: %v", err))
+		}
 	}
 
 	lc, isNew := p.getLazyConn(id, addr)
@@ -320,5 +330,10 @@ func clientIpFor(req *http.Request) string {
 
 func badGateway(resp http.ResponseWriter, msg string) {
 	log.Errorf("Responding Bad Gateway: %s", msg)
-	resp.WriteHeader(BAD_GATEWAY)
+	resp.WriteHeader(http.StatusBadGateway)
+}
+
+func forbidden(resp http.ResponseWriter, msg string) {
+	log.Errorf("Responding Forbidden: %s", msg)
+	resp.WriteHeader(http.StatusForbidden)
 }

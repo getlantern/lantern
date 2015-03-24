@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/getlantern/fronted"
+	"github.com/getlantern/geolookup"
 	"github.com/getlantern/go-igdman/igdman"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/nattywad"
@@ -51,6 +52,7 @@ type Server struct {
 	CertContext                *fronted.CertContext // context for certificate management
 	AllowNonGlobalDestinations bool                 // if true, requests to LAN, Loopback, etc. will be allowed
 	AllowedPorts               []int                // if specified, only connections to these ports will be allowed
+	AllowedCountries           []string             // if specified, only connections from clients in the given countries will be allowed (2 digit country codes)
 
 	waddellClient  *waddell.Client
 	nattywadServer *nattywad.Server
@@ -120,7 +122,26 @@ func (server *Server) ListenAndServe() error {
 		WriteTimeout:               server.WriteTimeout,
 		CertContext:                server.CertContext,
 		AllowNonGlobalDestinations: server.AllowNonGlobalDestinations,
-		AllowedPorts:               server.AllowedPorts,
+	}
+
+	if server.AllowedPorts != nil || server.AllowedCountries != nil {
+		fs.Allow = func(req *http.Request, destAddr string) error {
+			if server.AllowedPorts != nil {
+				err := server.checkForDisallowedPort(destAddr)
+				if err != nil {
+					return err
+				}
+			}
+
+			if server.AllowedCountries != nil {
+				err := server.checkForDisallowedCountry(req)
+				if err != nil {
+					return err
+				}
+			}
+
+			return nil
+		}
 	}
 
 	if server.cfg.Unencrypted {
@@ -222,6 +243,59 @@ func (server *Server) stopNattywad() {
 	server.waddellClient = nil
 }
 
+func (server *Server) checkForDisallowedPort(addr string) error {
+	_, portString, err := net.SplitHostPort(addr)
+	if err != nil {
+		return fmt.Errorf("Unable to split host and port for %v: %v", addr, err)
+	}
+
+	port, err := strconv.Atoi(portString)
+	if err != nil {
+		return fmt.Errorf("Unable to convert port %v to integer: %v", portString, err)
+	}
+
+	portAllowed := false
+	for _, allowed := range server.AllowedPorts {
+		if port == allowed {
+			portAllowed = true
+			break
+		}
+	}
+
+	if !portAllowed {
+		return fmt.Errorf("Not accepting connections to port %v", port)
+	}
+
+	return nil
+}
+
+func (server *Server) checkForDisallowedCountry(req *http.Request) error {
+	clientIp := getClientIp(req)
+	if clientIp == "" {
+		log.Debug("Unable to determine client ip for geolookup")
+		return nil
+	}
+
+	city, err := geolookup.LookupCity(clientIp)
+	if err == nil {
+		log.Debugf("Unable to perform geolookup for ip %v", err)
+		return nil
+	}
+	country := strings.ToUpper(city.Country.IsoCode)
+	countryAllowed := false
+	for _, allowed := range server.AllowedCountries {
+		if country == strings.ToUpper(allowed) {
+			countryAllowed = true
+			break
+		}
+	}
+	if !countryAllowed {
+		return fmt.Errorf("Not accepting connections from %v", country)
+	}
+
+	return nil
+}
+
 func mapPort(addr string, port int) error {
 	internalIP, internalPortString, err := net.SplitHostPort(addr)
 	if err != nil {
@@ -301,13 +375,19 @@ func onBytesGiven(destAddr string, req *http.Request, bytes int64) {
 		givenTo.Increment("bytesGivenToByFlashlight").Add(bytes)
 		givenTo.Member("distinctDestHosts", host)
 
-		clientIp := req.Header.Get("X-Forwarded-For")
+		clientIp := getClientIp(req)
 		if clientIp != "" {
-			// clientIp may contain multiple ips, use the first
-			ips := strings.Split(clientIp, ",")
-			clientIp := strings.TrimSpace(ips[0])
 			givenTo.Member("distinctClients", clientIp)
 		}
-
 	}
+}
+
+func getClientIp(req *http.Request) string {
+	clientIp := req.Header.Get("X-Forwarded-For")
+	if clientIp != "" {
+		// clientIp may contain multiple ips, use the first
+		ips := strings.Split(clientIp, ",")
+		clientIp = strings.TrimSpace(ips[0])
+	}
+	return clientIp
 }
