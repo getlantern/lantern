@@ -290,7 +290,7 @@ func (server *Server) checkForDisallowedCountry(req *http.Request) error {
 		}
 	}
 	if !countryAllowed {
-		return fmt.Errorf("Not accepting connections from %v", country)
+		return fmt.Errorf("Not accepting connections from country %v", country)
 	}
 
 	return nil
