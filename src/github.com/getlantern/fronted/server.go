@@ -139,7 +139,9 @@ func (server *Server) Serve(l net.Listener) error {
 		OnBytesSent:     server.OnBytesSent,
 	}
 
-	if !server.AllowNonGlobalDestinations {
+	if server.AllowNonGlobalDestinations {
+		proxy.Allow = server.Allow
+	} else {
 		proxy.Allow = func(req *http.Request, destAddr string) error {
 			err := server.checkForNonGlobalDestination(destAddr)
 			if err != nil {
