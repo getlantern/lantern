@@ -25,6 +25,10 @@ func init() {
 	privateKeyFile = os.Getenv(privateKeyEnv)
 }
 
+func SetPrivateKey(s string) {
+	privateKeyFile = s
+}
+
 func checksumForFile(file string) (checksumHex string, err error) {
 	var checksum []byte
 	if checksum, err = update.ChecksumForFile(file); err != nil {

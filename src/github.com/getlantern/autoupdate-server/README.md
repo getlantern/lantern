@@ -25,7 +25,7 @@ configuration.
 ## How to run the autoupdate server
 
 ```
-PRIVATE_KEY=private.pem ./autoupdate-server
+./autoupdate-server -k private.pem
 ```
 
 ## Just testing?
@@ -62,10 +62,11 @@ BL0RSJZb4JgqCtRleQRcQg94+b4gvEllScprTHSQnIbrUVof79FoVQ==
 -----END RSA PRIVATE KEY-----
 ```
 
-Save it to `private.pem` and run the server:
+Save it to `private.pem` and run the server pointing to the autoupdate-server
+repo that belongs to the getlantern organization:
 
 ```sh
-PRIVATE_KEY=private.pem go run *.go
+go run *.go -k private.pem -o getlantern -n autoupdate-server
 # 2015/03/13 18:22:41 Starting release manager.
 # 2015/03/13 18:22:41 Updating assets...
 ```

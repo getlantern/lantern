@@ -36,18 +36,20 @@ Usage of flashlight:
   -configdir="": directory in which to store configuration, including flashlight.yaml (defaults to current directory)
   -country="xx": 2 digit country code under which to report stats. Defaults to xx.
   -cpuprofile="": write cpu profile to given file
+  -headless=false: if true, lantern will run with no ui
   -help=false: Get usage help
+  -httptest.serve="": if non-empty, httptest.NewServer serves on this address and blocks
   -instanceid="": instanceId under which to report stats to statshub. If not specified, no stats are reported.
   -memprofile="": write heap profile to given file
   -parentpid=0: the parent process's PID, used on Windows for killing flashlight when the parent disappears
   -portmap=0: try to map this port on the firewall to the port on which flashlight is listening, using UPnP or NAT-PMP. If mapping this port fails, flashlight will exit with status code 50
+  -registerat="": base URL for peer DNS registry at which to register (e.g. https://peerscanner.getiantem.org)
   -role="": either 'client' or 'server' (required)
-  -server="": FQDN of flashlight server when running in server mode (required)
-  -statsaddr="": host:port at which to make detailed stats available using server-sent events (optional)
+  -frontfqdns="": YAML string representing a map from the name of each front provider to a FQDN that will reach this particular server via that provider (e.g. '{cloudflare: fl-001.getiantem.org, cloudfront: blablabla.cloudfront.net}')
   -statshub="pure-journey-3547.herokuapp.com": address of statshub server
-  -statsperiod=0: time in seconds to wait between reporting stats. If not specified, stats are not reported. If specified, statshub, instanceid and statsaddr must also be specified.
-  -waddelladdr="": if specified, connect to this waddell server and process NAT traversal requests inbound from waddell
-  -waddellcert="": if specified, use this cert (PEM-encoded) to authenticate connections to waddell.  Otherwise, a default certificate is used.
+  -statsperiod=0: time in seconds to wait between reporting stats. If not specified, stats are not reported. If specified, statshub, instanceid and statshubAddr must also be specified.
+  -uiaddr="": if specified, indicates host:port the UI HTTP server should be started on
+  -unencrypted=false: set to true to run server in unencrypted mode (no TLS)
 ```
 
 Example Client:

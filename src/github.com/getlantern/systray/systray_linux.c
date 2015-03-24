@@ -121,7 +121,8 @@ gboolean do_quit(gpointer data) {
 			printf("failed to remove temp icon file %s: %s\n", temp_file_name, strerror(errno));
 		}
 	}
-	gtk_main_quit();
+	// app indicator doesn't provide a way to remove it, hide it as a workaround
+	app_indicator_set_status(global_app_indicator, APP_INDICATOR_STATUS_PASSIVE);
 	return FALSE;
 }
 

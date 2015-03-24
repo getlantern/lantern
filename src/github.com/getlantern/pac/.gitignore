@@ -1,0 +1,5 @@
+example/example*
+example/pac*
+*~
+*.swp
+*/*.exe

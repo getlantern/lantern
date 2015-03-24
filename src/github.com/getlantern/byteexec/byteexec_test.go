@@ -1,9 +1,9 @@
 package byteexec
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
-	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -42,9 +42,9 @@ func TestExec(t *testing.T) {
 	assert.Equal(t, originalInfo.ModTime(), updatedInfo.ModTime(), "File modification time should be unchanged after creating new ByteExec")
 
 	// Now mess with the file permissions and make sure that we can still run
-	err = os.Chmod(be.filename, 0655)
+	err = os.Chmod(be.Filename, 0655)
 	if err != nil {
-		t.Fatalf("Unable to chmod test executable %s: %s", be.filename, err)
+		t.Fatalf("Unable to chmod test executable %s: %s", be.Filename, err)
 	}
 	be = createByteExec(t, data)
 	updatedInfo = testByteExec(t, be)
@@ -52,7 +52,7 @@ func TestExec(t *testing.T) {
 
 	// Now mess with the file contents and make sure it gets overwritten on next
 	// ByteExec
-	ioutil.WriteFile(be.filename, []byte("Junk"), 0755)
+	ioutil.WriteFile(be.Filename, []byte("Junk"), 0755)
 	be = createByteExec(t, data)
 	updatedInfo = testByteExec(t, be)
 	assert.NotEqual(t, originalInfo.ModTime(), updatedInfo.ModTime(), "File modification time should be changed after creating new ByteExec on bad data")
@@ -77,9 +77,9 @@ func testByteExec(t *testing.T, be *Exec) os.FileInfo {
 	}
 	assert.Equal(t, "Hello world\n", string(out), "Should receive expected output from helloworld program")
 
-	fileInfo, err := os.Stat(be.filename)
+	fileInfo, err := os.Stat(be.Filename)
 	if err != nil {
-		t.Fatalf("Unable to re-stat file %s: %s", be.filename, err)
+		t.Fatalf("Unable to re-stat file %s: %s", be.Filename, err)
 	}
 	return fileInfo
 }
