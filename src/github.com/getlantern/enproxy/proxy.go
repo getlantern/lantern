@@ -26,9 +26,16 @@ type Proxy struct {
 	// TCP dialer is used.
 	Dial dialFunc
 
-	// Host: FQDN that is guaranteed to hit this particular proxy.  Required
-	// if this server was originally reached by e.g. DNS round robin.
+	// Host: (Deprecated; use HostFn instead) FQDN of this particular proxy.
+	// Either this or HostFn is required if this server was originally reached
+	// by DNS round robin.
 	Host string
+
+	// HostFn: given a http.Request, return the FQDN of this particular proxy,
+	// hopefully through the same front.  This is used to support multiple
+	// domain fronts.  Either this or Host is required if this server was
+	// originally reached by DNS round robin.
+	HostFn func(*http.Request) string
 
 	// FlushTimeout: how long to let reads idle before writing out a
 	// response to the client.  Defaults to 35 milliseconds.
@@ -169,11 +176,17 @@ func (p *Proxy) handleWrite(resp http.ResponseWriter, req *http.Request, lc *laz
 		badGateway(resp, fmt.Sprintf("Unable to write to connOut: %s", err))
 		return
 	}
-	if p.Host != "" {
-		// Always feed this so clients will be guaranteed to reach
-		// this particular proxy even if they originally reached us
-		// through (e.g.) DNS round robin.
-		resp.Header().Set(X_ENPROXY_PROXY_HOST, p.Host)
+	host := ""
+	if p.HostFn != nil {
+		host = p.HostFn(req)
+	}
+	// Falling back on deprecated mechanism for backwards compatibility
+	if host == "" {
+		host = p.Host
+	}
+	if host != "" {
+		// Enable sticky routing (see the comment on HostFn above).
+		resp.Header().Set(X_ENPROXY_PROXY_HOST, host)
 	}
 	if first {
 		// On first write, immediately do some reading

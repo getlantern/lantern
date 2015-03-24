@@ -35,7 +35,7 @@ type ChainedServerInfo struct {
 	QOS int
 }
 
-func (s *ChainedServerInfo) dialer() (*balancer.Dialer, error) {
+func (s *ChainedServerInfo) Dialer() (*balancer.Dialer, error) {
 	log.Debug("Building dialer")
 
 	netd := &net.Dialer{

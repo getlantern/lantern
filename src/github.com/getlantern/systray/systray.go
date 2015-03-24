@@ -56,7 +56,7 @@ func Run(onReady func()) {
 	nativeLoop()
 }
 
-// Quit the systray and whole app
+// Quit the systray
 func Quit() {
 	quit()
 }

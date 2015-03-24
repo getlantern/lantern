@@ -44,6 +44,10 @@ type Server struct {
 	// Host: FQDN that is guaranteed to hit this server
 	Host string
 
+	// HostFn: Function mapping a http.Request to the FQDN of this particular
+	// server, hopefully using the same front as the original request
+	HostFn func(*http.Request) string
+
 	// AllowNonGlobalDestinations: if false, requests to LAN, Loopback, etc.
 	// will be disallowed.
 	AllowNonGlobalDestinations bool
@@ -135,6 +139,7 @@ func (server *Server) Serve(l net.Listener) error {
 	proxy := &enproxy.Proxy{
 		Dial:            server.dialDestination,
 		Host:            server.Host,
+		HostFn:          server.HostFn,
 		OnBytesReceived: server.OnBytesReceived,
 		OnBytesSent:     server.OnBytesSent,
 	}

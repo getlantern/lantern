@@ -2,7 +2,7 @@ package tarfs
 
 import (
 	"archive/tar"
-	"encoding/hex"
+	"bufio"
 	"fmt"
 	"io"
 	"os"
@@ -15,7 +15,8 @@ import (
 // contains a tar archive of the directory, for example
 // \x69\x6e\x64\x65\x78\x2e\x68\x74 ...
 func EncodeToTarString(dir string, w io.Writer) error {
-	tw := tar.NewWriter(&stringencodingwriter{w})
+	bw := bufio.NewWriter(w)
+	tw := tar.NewWriter(&stringencodingwriter{bw})
 	defer tw.Close()
 
 	dirPrefix := dir + "/"
@@ -60,6 +61,10 @@ func EncodeToTarString(dir string, w io.Writer) error {
 	if err != nil {
 		return fmt.Errorf("Unable to close tar writer: %v", err)
 	}
+	err = bw.Flush()
+	if err != nil {
+		return fmt.Errorf("Unable to flush buffered writer: %v", err)
+	}
 
 	return nil
 }
@@ -72,8 +77,12 @@ type stringencodingwriter struct {
 
 func (w *stringencodingwriter) Write(buf []byte) (int, error) {
 	n := 0
+	out := []byte(`\x  `)
 	for _, b := range buf {
-		_, err := fmt.Fprintf(w.Writer, `\x%v`, hex.EncodeToString([]byte{b}))
+		// Below hex encoding adapted from encoding/hex
+		out[2] = hextable[b>>4]
+		out[3] = hextable[b&0x0f]
+		_, err := w.Writer.Write(out)
 		if err != nil {
 			return n, err
 		}
@@ -81,3 +90,5 @@ func (w *stringencodingwriter) Write(buf []byte) (int, error) {
 	}
 	return n, nil
 }
+
+const hextable = "0123456789abcdef"

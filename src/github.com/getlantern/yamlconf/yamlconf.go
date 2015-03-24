@@ -211,7 +211,7 @@ func (m *Manager) processUpdates() {
 		select {
 		case delta := <-m.deltasCh:
 			log.Trace("Apply delta")
-			updated, err := m.copy(m.cfg)
+			updated, err := m.copy(m.getCfg())
 			err = delta.mutate(updated)
 			if err != nil {
 				delta.errCh <- err

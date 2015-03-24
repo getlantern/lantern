@@ -21,7 +21,7 @@ const (
 )
 
 var (
-	log = golog.LoggerFor("statreporter")
+	log = golog.LoggerFor("flashlight.statreporter")
 
 	cfgMutex        sync.RWMutex
 	currentReporter *reporter

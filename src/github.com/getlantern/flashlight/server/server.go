@@ -13,13 +13,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/getlantern/fronted"
-	"github.com/getlantern/go-igdman/igdman"
-	"github.com/getlantern/golog"
-
 	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/statreporter"
 	"github.com/getlantern/flashlight/statserver"
+	"github.com/getlantern/fronted"
+	"github.com/getlantern/go-igdman/igdman"
+	"github.com/getlantern/golog"
+	"github.com/getlantern/yaml"
 )
 
 const (
@@ -27,17 +27,42 @@ const (
 )
 
 var (
-	log = golog.LoggerFor("flashlight.server")
-
-	registerPeriod = 5 * time.Minute
+	log               = golog.LoggerFor("flashlight.server")
+	registerPeriod    = 5 * time.Minute
+	frontingProviders = map[string]func(*http.Request) bool{
+		// WARNING: If you add a provider here, keep in mind that Go's http
+		// library normalizes all header names so the first letter of every
+		// dash-separated "word" is uppercase while all others are lowercase.
+		// Also, try and check more than one header to lean on the safe side.
+		"cloudflare": func(req *http.Request) bool {
+			return hasHeader(req, "Cf-Connecting-Ip") || hasHeader(req, "Cf-Ipcountry") || hasHeader(req, "Cf-Ray") || hasHeader(req, "Cf-Visitor")
+		},
+		"cloudfront": func(req *http.Request) bool {
+			return hasHeader(req, "X-Amz-Cf-Id") || headerMatches(req, "User-Agent", "Amazon Cloudfront")
+		},
+	}
 )
+
+func headerMatches(req *http.Request, name string, value string) bool {
+	for _, entry := range req.Header[name] {
+		if entry == value {
+			return true
+		}
+	}
+	return false
+}
+
+func hasHeader(req *http.Request, name string) bool {
+	return req.Header[name] != nil
+}
 
 type Server struct {
 	// Addr: listen address in form of host:port
 	Addr string
 
-	// Host: FQDN that is guaranteed to hit this server
-	Host string
+	// HostFn: Function mapping a http.Request to a FQDN that is guaranteed to
+	// hit this server through the same front as the request.
+	HostFn func(*http.Request) string
 
 	// ReadTimeout: (optional) timeout for read ops
 	ReadTimeout time.Duration
@@ -86,18 +111,17 @@ func (server *Server) Configure(newCfg *ServerConfig) {
 			log.Debugf("Mapped new external port %d", newCfg.Portmap)
 		}
 	}
-
+	if newCfg.FrontFQDNs != nil {
+		server.HostFn = hostFn(newCfg.FrontFQDNs)
+	}
 	server.cfg = newCfg
 }
 
-func (server *Server) ListenAndServe() error {
-	if server.Host != "" {
-		log.Debugf("Running as host %s", server.Host)
-	}
+func (server *Server) ListenAndServe(updateConfig func(func(*ServerConfig) error)) error {
 
 	fs := &fronted.Server{
 		Addr:                       server.Addr,
-		Host:                       server.Host,
+		HostFn:                     server.HostFn,
 		ReadTimeout:                server.ReadTimeout,
 		WriteTimeout:               server.WriteTimeout,
 		CertContext:                server.CertContext,
@@ -125,15 +149,25 @@ func (server *Server) ListenAndServe() error {
 		return fmt.Errorf("Unable to listen at %s: %s", server.Addr, err)
 	}
 
-	go server.register()
+	go server.register(updateConfig)
 
 	return fs.Serve(l)
 }
 
-func (server *Server) register() {
+func (server *Server) register(updateConfig func(func(*ServerConfig) error)) {
+	supportedFronts := make([]string, 0, len(frontingProviders))
+	for name := range frontingProviders {
+		supportedFronts = append(supportedFronts, name)
+	}
 	for {
 		server.cfgMutex.RLock()
 		baseUrl := server.cfg.RegisterAt
+		var port string
+		if server.cfg.Unencrypted {
+			port = "80"
+		} else {
+			port = "443"
+		}
 		server.cfgMutex.RUnlock()
 		if baseUrl != "" {
 			if globals.InstanceId == "" {
@@ -142,20 +176,37 @@ func (server *Server) register() {
 				log.Debugf("Registering server at %v", baseUrl)
 				registerUrl := baseUrl + "/register"
 				vals := url.Values{
-					"name": []string{globals.InstanceId},
-					"port": []string{"443"},
+					"name":   []string{globals.InstanceId},
+					"port":   []string{port},
+					"fronts": supportedFronts,
 				}
 				resp, err := http.PostForm(registerUrl, vals)
 				if err != nil {
 					log.Errorf("Unable to register at %v: %v", registerUrl, err)
-					return
 				} else if resp.StatusCode != 200 {
-					bodyString, _ := ioutil.ReadAll(resp.Body)
-					log.Errorf("Unexpected response status registering at %v: %d    %v", registerUrl, resp.StatusCode, string(bodyString))
+					body, _ := ioutil.ReadAll(resp.Body)
+					log.Errorf("Unexpected response status registering at %v: %d    %v", registerUrl, resp.StatusCode, string(body))
 				} else {
 					log.Debugf("Successfully registered server at %v", registerUrl)
+					body, _ := ioutil.ReadAll(resp.Body)
+					for _, line := range strings.Split(string(body), "\n") {
+						if strings.HasPrefix(line, "frontfqdns: ") {
+							yamlStr := line[len("frontfqdns: "):]
+							newFqdns, err := ParseFrontFQDNs(yamlStr)
+							if err == nil {
+								updateConfig(func(cfg *ServerConfig) error {
+									cfg.FrontFQDNs = newFqdns
+									return nil
+								})
+							} else {
+								log.Errorf("Unable to parse frontfqdns from peerscanner '%v': %v", yamlStr, err)
+							}
+						}
+					}
 				}
-				resp.Body.Close()
+				if err == nil {
+					resp.Body.Close()
+				}
 				time.Sleep(registerPeriod)
 			}
 		}
@@ -250,4 +301,38 @@ func onBytesGiven(destAddr string, req *http.Request, bytes int64) {
 		}
 
 	}
+}
+
+func hostFn(fqdns map[string]string) func(*http.Request) string {
+	// We prefer to use the fronting provider through which we have been
+	// reached, because we expect that to be unblocked, but if something goes
+	// wrong (e.g. in old give mode peers) we'll use just any configured host.
+	return func(req *http.Request) string {
+		for provider, fn := range frontingProviders {
+			if fn(req) {
+				fqdn, found := fqdns[provider]
+				if found {
+					return fqdn
+				}
+			}
+		}
+		// We don't know about this provider or we don't have a fqdn for it...
+		// The best we can do is provide *some* FQDN through which we hope we
+		// can be reached.
+		log.Debugf("Falling back to just any FQDN")
+		for _, fqdn := range fqdns {
+			return fqdn
+		}
+		// We don't know of any fqdns.  This will be treated like a null
+		// hostFn.
+		return ""
+	}
+}
+
+func ParseFrontFQDNs(frontFQDNs string) (map[string]string, error) {
+	fqdns := map[string]string{}
+	if err := yaml.Unmarshal([]byte(frontFQDNs), fqdns); err != nil {
+		return nil, err
+	}
+	return fqdns, nil
 }

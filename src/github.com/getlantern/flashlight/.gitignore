@@ -7,3 +7,4 @@ flashlight.ex?
 *.pyc
 certs/errors.txt
 flashlight.yaml
+genconfig/genconfig
