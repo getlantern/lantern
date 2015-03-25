@@ -1,6 +1,10 @@
 flashlight [![Travis CI Status](https://travis-ci.org/getlantern/flashlight.svg?branch=master)](https://travis-ci.org/getlantern/flashlight)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/flashlight/badge.png)](https://coveralls.io/r/getlantern/flashlight)&nbsp;[![GoDoc](https://godoc.org/github.com/getlantern/flashlight?status.png)](http://godoc.org/github.com/getlantern/flashlight)
 ==========
 
+**WARNING**: The flashlight server will refuse to serve domain fronted traffic
+through most non-censored countries.  See 
+https://github.com/getlantern/flashlight-build/pull/141 for more details.
+
 Lightweight host-spoofing web proxy written in go.
 
 flashlight runs in one of two modes:
