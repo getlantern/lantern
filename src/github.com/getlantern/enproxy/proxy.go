@@ -11,8 +11,6 @@ import (
 )
 
 const (
-	BAD_GATEWAY = 502
-
 	DEFAULT_BYTES_BEFORE_FLUSH = 1024768
 	DEFAULT_READ_BUFFER_SIZE   = 65536
 )
@@ -61,11 +59,16 @@ type Proxy struct {
 	// client
 	OnBytesSent statCallback
 
+	// Allow: Optional function that checks whether the given request to the
+	// given destAddr is allowed.  If it is not allowed, this function should
+	// return an error.
+	Allow func(req *http.Request, destAddr string) error
+
 	// connMap: map of outbound connections by their id
 	connMap map[string]*lazyConn
 
 	// connMapMutex: synchronizes access to connMap
-	connMapMutex sync.Mutex
+	connMapMutex sync.RWMutex
 }
 
 // statCallback is a function for receiving stat information.
@@ -145,7 +148,11 @@ func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	lc, isNew := p.getLazyConn(id, addr)
+	lc, isNew, err := p.getLazyConn(id, addr, req)
+	if err != nil {
+		forbidden(resp, err.Error())
+		return
+	}
 	connOut, err := lc.get()
 	if err != nil {
 		badGateway(resp, fmt.Sprintf("Unable to get connOut: %s", err))
@@ -304,13 +311,22 @@ func (p *Proxy) handleRead(resp http.ResponseWriter, req *http.Request, lc *lazy
 
 // getLazyConn gets the lazyConn corresponding to the given id and addr, or
 // creates a new one and saves it to connMap.
-func (p *Proxy) getLazyConn(id string, addr string) (l *lazyConn, isNew bool) {
-	p.connMapMutex.Lock()
-	defer p.connMapMutex.Unlock()
+func (p *Proxy) getLazyConn(id string, addr string, req *http.Request) (l *lazyConn, isNew bool, err error) {
+	p.connMapMutex.RLock()
 	l = p.connMap[id]
+	p.connMapMutex.RUnlock()
 	if l == nil {
+		if p.Allow != nil {
+			log.Trace("Checking if connection is allowed")
+			err := p.Allow(req, addr)
+			if err != nil {
+				return nil, false, fmt.Errorf("Not allowed: %v", err)
+			}
+		}
 		l = p.newLazyConn(id, addr)
+		p.connMapMutex.Lock()
 		p.connMap[id] = l
+		p.connMapMutex.Unlock()
 		isNew = true
 	}
 	return
@@ -333,5 +349,10 @@ func clientIpFor(req *http.Request) string {
 
 func badGateway(resp http.ResponseWriter, msg string) {
 	log.Errorf("Responding Bad Gateway: %s", msg)
-	resp.WriteHeader(BAD_GATEWAY)
+	resp.WriteHeader(http.StatusBadGateway)
+}
+
+func forbidden(resp http.ResponseWriter, msg string) {
+	log.Errorf("Responding Forbidden: %s", msg)
+	resp.WriteHeader(http.StatusForbidden)
 }
