@@ -201,7 +201,7 @@ func runClientProxy(cfg *config.Config) {
 		geolookup.Configure(hqfdc)
 		statserver.Configure(hqfdc)
 		// start GA service
-		analytics.Configure(cfg.AutoReport, hqfdc)
+		analytics.Configure(cfg, false, hqfdc)
 	}
 
 	// Continually poll for config updates and update client accordingly
@@ -254,6 +254,7 @@ func runServerProxy(cfg *config.Config) {
 	}
 
 	srv.Configure(cfg.Server)
+	analytics.Configure(nil, true, nil)
 
 	// Continually poll for config updates and update server accordingly
 	go func() {

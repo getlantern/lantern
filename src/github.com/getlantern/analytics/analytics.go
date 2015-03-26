@@ -9,8 +9,9 @@ import (
 )
 
 const (
-	ApiEndpoint     = `https://www.google-analytics.com/collect?%s`
-	ProtocolVersion = "1"
+	ApiEndpoint          = `https://www.google-analytics.com/collect?%s`
+	ProtocolVersion      = "1"
+	DefaultClientVersion = "1"
 )
 
 var (
@@ -27,18 +28,16 @@ const (
 )
 
 type PageView struct {
-	HitType  HitType `param:"t"`
-	Hostname string  `param:"dh"`
-	Pagename string  `param:"dp"`
-	Title    string  `param:"dt"`
+	Hostname string `param:"dh"`
+	Pagename string `param:"dp"`
+	Title    string `param:"dt"`
 }
 
 type Event struct {
-	HitType  HitType `param:"t"`
-	Category string  `param:"ec"`
-	Action   string  `param:"ea"`
-	Label    string  `param:"el,omitempty"`
-	Value    string  `param:"ev,omitempty"`
+	Category string `param:"ec"`
+	Action   string `param:"ea"`
+	Label    string `param:"el,omitempty"`
+	Value    string `param:"ev,omitempty"`
 }
 
 type Payload struct {
@@ -55,6 +54,12 @@ type Payload struct {
 	ScreenColors string `json:"screenColors,omitempty"`
 
 	ScreenResolution string `json:"screenResolution,omitempty"`
+
+	Hostname string `json:"hostname,omitempty"`
+
+	HitType HitType `json:"hitType,omitempty"`
+
+	Event *Event
 }
 
 // attaach list of parameters to request
@@ -64,12 +69,33 @@ func composeUrl(payload *Payload) string {
 	// Add default payload
 	vals.Add("v", ProtocolVersion)
 	vals.Add("_v", payload.ClientVersion)
-	vals.Add("tid", payload.TrackingId)
-	vals.Add("cid", payload.ClientId)
-	vals.Add("sr", payload.ScreenResolution)
-	vals.Add("ul", payload.Language)
+	if payload.TrackingId != "" {
+		vals.Add("tid", payload.TrackingId)
+	}
+	if payload.ClientId != "" {
+		vals.Add("cid", payload.ClientId)
+	}
+	if payload.ScreenResolution != "" {
+		vals.Add("sr", payload.ScreenResolution)
+	}
+	if payload.Language != "" {
+		vals.Add("ul", payload.Language)
+	}
 
-	vals.Add("t", string(PageViewType))
+	vals.Add("dh", payload.Hostname)
+
+	vals.Add("t", string(payload.HitType))
+
+	if payload.HitType == EventType && payload.Event != nil {
+		vals.Add("ec", payload.Event.Category)
+		vals.Add("ea", payload.Event.Action)
+		if payload.Event.Label != "" {
+			vals.Add("el", payload.Event.Label)
+		}
+		if payload.Event.Value != "" {
+			vals.Add("ev", payload.Event.Value)
+		}
+	}
 
 	return fmt.Sprintf(ApiEndpoint, vals.Encode())
 }
@@ -84,6 +110,7 @@ func SendRequest(httpClient *http.Client, payload *Payload) (status bool, err er
 	}
 
 	url := composeUrl(payload)
+	log.Debugf("New Google Analytics request: %s", url)
 
 	if resp, err = http.Get(url); err != nil {
 		log.Errorf("Could not send request to Google Analytics: %q", err)
@@ -92,4 +119,14 @@ func SendRequest(httpClient *http.Client, payload *Payload) (status bool, err er
 	defer resp.Body.Close()
 
 	return true, nil
+}
+
+// This event is fired whenever the client opens a new UI session
+func UIEvent(httpClient *http.Client, payload *Payload) (status bool, err error) {
+	return SendRequest(httpClient, payload)
+}
+
+// Fired whenever a new Lanern session is initiated
+func SessionEvent(httpClient *http.Client, payload *Payload) (status bool, err error) {
+	return SendRequest(httpClient, payload)
 }

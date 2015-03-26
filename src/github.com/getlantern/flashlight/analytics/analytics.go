@@ -2,7 +2,9 @@ package analytics
 
 import (
 	"net/http"
+	"sync"
 
+	"github.com/getlantern/flashlight/config"
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/getlantern/analytics"
@@ -18,20 +20,45 @@ var (
 	log        = golog.LoggerFor("flashlight.analytics")
 	service    *ui.Service
 	httpClient *http.Client
+	hostName   *string
+	cfgMutex   sync.Mutex
 )
 
-func Configure(autoReport *bool, newClient *http.Client) {
+func Configure(cfg *config.Config, serverSession bool, newClient *http.Client) {
+
+	cfgMutex.Lock()
+	defer cfgMutex.Unlock()
+
 	httpClient = newClient
 
-	if autoReport != nil && *autoReport {
-		err := Start()
+	sessionPayload := &analytics.Payload{
+		ClientId:      cfg.InstanceId,
+		ClientVersion: string(cfg.Version),
+		HitType:       analytics.EventType,
+		Event: &analytics.Event{
+			Category: "Session",
+			Action:   "Start",
+		},
+	}
+
+	if serverSession {
+		sessionPayload.Hostname = cfg.Server.AdvertisedHost
+	} else {
+		sessionPayload.Hostname = "localhost"
+	}
+
+	analytics.SessionEvent(httpClient, sessionPayload)
+
+	if !serverSession && cfg.AutoReport != nil && *cfg.AutoReport {
+		err := startService()
 		if err != nil {
 			log.Errorf("Error starting analytics service: %q", err)
 		}
 	}
 }
 
-func Start() error {
+// Used with clients to track user interaction with the UI
+func startService() error {
 
 	var err error
 
@@ -58,11 +85,18 @@ func Start() error {
 func read() {
 
 	for msg := range service.In {
-		log.Debugf("New analytics message: %q", msg)
+		log.Debugf("New UI analytics message: %q", msg)
 		var payload analytics.Payload
 		if err := mapstructure.Decode(msg, &payload); err != nil {
 			log.Errorf("Could not decode payload: %q", err)
+		} else {
+			// set to localhost on clients
+			payload.Hostname = "localhost"
+			payload.HitType = analytics.PageViewType
+			// for now, the only analytics messages we are
+			// currently receiving from the UI are initial page
+			// views which indicate new UI sessions
+			analytics.UIEvent(httpClient, &payload)
 		}
-		analytics.SendRequest(httpClient, &payload)
 	}
 }
