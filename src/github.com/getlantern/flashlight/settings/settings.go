@@ -20,7 +20,6 @@ var (
 	log          = golog.LoggerFor("flashlight.settings")
 	service      *ui.Service
 	cfgMutex     sync.Mutex
-	startMutex   sync.Mutex
 	baseSettings *Settings
 	httpClient   *http.Client
 )
@@ -33,8 +32,8 @@ type Settings struct {
 
 func Configure(cfg *config.Config, version, buildDate string) {
 
-	startMutex.Lock()
-	defer startMutex.Unlock()
+	cfgMutex.Lock()
+
 	// base settings are always written
 	baseSettings = &Settings{
 		Version:    version,
@@ -50,6 +49,7 @@ func Configure(cfg *config.Config, version, buildDate string) {
 		}
 		go read()
 	}
+	cfgMutex.Unlock()
 }
 
 func start(baseSettings *Settings) error {
@@ -67,8 +67,6 @@ func start(baseSettings *Settings) error {
 func read() {
 	for msg := range service.In {
 		settings := (msg).(map[string]interface{})
-
-		cfgMutex.Lock()
 		config.Update(func(updated *config.Config) error {
 			autoReport := settings["autoReport"].(bool)
 			if autoReport {
@@ -80,6 +78,5 @@ func read() {
 			*updated.AutoReport = autoReport
 			return nil
 		})
-		cfgMutex.Unlock()
 	}
 }
