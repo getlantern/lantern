@@ -71,7 +71,9 @@ func read() {
 		config.Update(func(updated *config.Config) error {
 			autoReport := settings["autoReport"].(bool)
 			if autoReport {
-				analytics.Start()
+				analytics.StartService()
+			} else {
+				analytics.StopService()
 			}
 			baseSettings.AutoReport = autoReport
 			*updated.AutoReport = autoReport

@@ -22,6 +22,7 @@ var (
 	httpClient *http.Client
 	hostName   *string
 	cfgMutex   sync.Mutex
+	stopCh     chan bool
 )
 
 func Configure(cfg *config.Config, serverSession bool, newClient *http.Client) {
@@ -50,7 +51,7 @@ func Configure(cfg *config.Config, serverSession bool, newClient *http.Client) {
 	analytics.SessionEvent(httpClient, sessionPayload)
 
 	if !serverSession && cfg.AutoReport != nil && *cfg.AutoReport {
-		err := startService()
+		err := StartService()
 		if err != nil {
 			log.Errorf("Error starting analytics service: %q", err)
 		}
@@ -58,7 +59,7 @@ func Configure(cfg *config.Config, serverSession bool, newClient *http.Client) {
 }
 
 // Used with clients to track user interaction with the UI
-func startService() error {
+func StartService() error {
 
 	var err error
 
@@ -75,28 +76,43 @@ func startService() error {
 		return err
 	}
 
+	stopCh = make(chan bool)
+
 	// process analytics messages
 	go read()
 
 	return err
+}
 
+func StopService() {
+	if service != nil && stopCh != nil {
+		ui.Unregister(messageType)
+		stopCh <- true
+		service = nil
+		log.Debug("Successfully stopped analytics service")
+	}
 }
 
 func read() {
 
-	for msg := range service.In {
-		log.Debugf("New UI analytics message: %q", msg)
-		var payload analytics.Payload
-		if err := mapstructure.Decode(msg, &payload); err != nil {
-			log.Errorf("Could not decode payload: %q", err)
-		} else {
-			// set to localhost on clients
-			payload.Hostname = "localhost"
-			payload.HitType = analytics.PageViewType
-			// for now, the only analytics messages we are
-			// currently receiving from the UI are initial page
-			// views which indicate new UI sessions
-			analytics.UIEvent(httpClient, &payload)
+	for {
+		select {
+		case <-stopCh:
+			return
+		case msg := <-service.In:
+			log.Debugf("New UI analytics message: %q", msg)
+			var payload analytics.Payload
+			if err := mapstructure.Decode(msg, &payload); err != nil {
+				log.Errorf("Could not decode payload: %q", err)
+			} else {
+				// set to localhost on clients
+				payload.Hostname = "localhost"
+				payload.HitType = analytics.PageViewType
+				// for now, the only analytics messages we are
+				// currently receiving from the UI are initial page
+				// views which indicate new UI sessions
+				analytics.UIEvent(httpClient, &payload)
+			}
 		}
 	}
 }

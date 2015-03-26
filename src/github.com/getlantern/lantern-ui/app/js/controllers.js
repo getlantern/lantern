@@ -92,10 +92,6 @@ app.controller('SettingsCtrl', ['$scope', 'MODAL', 'DataStream', 'gaMgr', functi
         autoReport: autoreport
       };
       DataStream.send('Settings', obj);
-
-      if (autoreport) {
-            gaMgr.trackPageView('start');
-      }
   });
 
   $scope.$watch('model.settings.systemProxy', function (systemProxy) {

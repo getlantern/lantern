@@ -77,6 +77,7 @@ angular.module('app.services', [])
 
         if (data.AutoReport) {
             model.settings.autoReport = true;
+            $rootScope.trackPageView();
         }
 
       },
@@ -182,9 +183,8 @@ angular.module('app.services', [])
       sane: true
     };
   })
-  .service('gaMgr', function ($window, DataStream, GOOGLE_ANALYTICS_DISABLE_KEY, GOOGLE_ANALYTICS_WEBPROP_ID, modelSrvc) {
-      var model = modelSrvc.model,
-        ga = $window.ga;
+  .service('gaMgr', function ($window, DataStream, GOOGLE_ANALYTICS_DISABLE_KEY, GOOGLE_ANALYTICS_WEBPROP_ID) {
+    var ga = $window.ga;
 
     ga('create', GOOGLE_ANALYTICS_WEBPROP_ID, {cookieDomain: 'none'});
     ga('set', {
@@ -197,7 +197,6 @@ angular.module('app.services', [])
 
     function trackPageView(sessionControl) {
       var trackers = ga.getAll();
-      console.log(trackers);
       for (var i =0; i < trackers.length; i++) {
           var tracker = trackers[i];
           if (tracker.b && tracker.b.data && tracker.b.data.w) {

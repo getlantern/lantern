@@ -81,6 +81,12 @@ func Register(t string, newMessage func() interface{}, helloFn helloFnType) (*Se
 	return s, nil
 }
 
+func Unregister(t string) {
+	if services[t] != nil {
+		delete(services, t)
+	}
+}
+
 func start() {
 	// Establish a channel to the UI for sending and receiving updates
 	defaultUIChannel = NewChannel("/data", func(write func([]byte) error) error {
