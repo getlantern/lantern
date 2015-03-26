@@ -28,8 +28,6 @@ var (
 func Configure(cfg *config.Config, serverSession bool, newClient *http.Client) {
 
 	cfgMutex.Lock()
-	defer cfgMutex.Unlock()
-
 	httpClient = newClient
 
 	sessionPayload := &analytics.Payload{
@@ -47,6 +45,7 @@ func Configure(cfg *config.Config, serverSession bool, newClient *http.Client) {
 	} else {
 		sessionPayload.Hostname = "localhost"
 	}
+	cfgMutex.Unlock()
 
 	analytics.SessionEvent(httpClient, sessionPayload)
 
