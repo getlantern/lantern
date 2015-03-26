@@ -14,6 +14,7 @@ type Service struct {
 	Out        chan<- interface{}
 	in         chan interface{}
 	out        chan interface{}
+	stopCh     chan bool
 	newMessage func() interface{}
 	helloFn    helloFnType
 }
@@ -27,13 +28,18 @@ var (
 
 func (s *Service) write() {
 	// Watch for new messages and send them to the combined output.
-	for msg := range s.out {
-		b, err := newEnvelope(s.Type, msg)
-		if err != nil {
-			log.Error(err)
-			continue
+	for {
+		select {
+		case <-s.stopCh:
+			return
+		case msg := <-s.out:
+			b, err := newEnvelope(s.Type, msg)
+			if err != nil {
+				log.Error(err)
+				continue
+			}
+			defaultUIChannel.Out <- b
 		}
-		defaultUIChannel.Out <- b
 	}
 }
 
@@ -55,6 +61,7 @@ func Register(t string, newMessage func() interface{}, helloFn helloFnType) (*Se
 		Type:       t,
 		in:         make(chan interface{}, 100),
 		out:        make(chan interface{}, 100),
+		stopCh:     make(chan bool),
 		newMessage: newMessage,
 		helloFn:    helloFn,
 	}
@@ -83,6 +90,7 @@ func Register(t string, newMessage func() interface{}, helloFn helloFnType) (*Se
 
 func Unregister(t string) {
 	if services[t] != nil {
+		services[t].stopCh <- true
 		delete(services, t)
 	}
 }
