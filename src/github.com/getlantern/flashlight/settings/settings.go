@@ -28,11 +28,13 @@ type Settings struct {
 	Version    string
 	BuildDate  string
 	AutoReport bool
+	mutex      sync.Mutex
 }
 
 func Configure(cfg *config.Config, version, buildDate string) {
 
 	cfgMutex.Lock()
+	defer cfgMutex.Unlock()
 
 	// base settings are always written
 	baseSettings = &Settings{
@@ -45,11 +47,8 @@ func Configure(cfg *config.Config, version, buildDate string) {
 		err := start(baseSettings)
 		if err != nil {
 			log.Errorf("Unable to register settings service: %q", err)
-			return
 		}
-		go read()
 	}
-	cfgMutex.Unlock()
 }
 
 func start(baseSettings *Settings) error {
@@ -61,12 +60,14 @@ func start(baseSettings *Settings) error {
 	}
 
 	service, err = ui.Register(messageType, nil, helloFn)
+	go read()
 	return err
 }
 
 func read() {
 	for msg := range service.In {
 		settings := (msg).(map[string]interface{})
+		baseSettings.mutex.Lock()
 		config.Update(func(updated *config.Config) error {
 			autoReport := settings["autoReport"].(bool)
 			if autoReport {
@@ -78,5 +79,6 @@ func read() {
 			*updated.AutoReport = autoReport
 			return nil
 		})
+		baseSettings.mutex.Unlock()
 	}
 }
