@@ -2,7 +2,7 @@
 
 function die() {
   echo $*
-  exit 1
+  [[ "${BASH_SOURCE[0]}" == "${0}" ]] && exit 1
 }
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
