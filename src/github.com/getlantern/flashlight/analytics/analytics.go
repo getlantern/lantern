@@ -2,7 +2,6 @@ package analytics
 
 import (
 	"net/http"
-	"sync"
 
 	"github.com/getlantern/flashlight/config"
 	"github.com/mitchellh/mapstructure"
@@ -21,13 +20,11 @@ var (
 	service    *ui.Service
 	httpClient *http.Client
 	hostName   *string
-	cfgMutex   sync.Mutex
 	stopCh     chan bool
 )
 
 func Configure(cfg *config.Config, serverSession bool, newClient *http.Client) {
 
-	cfgMutex.Lock()
 	httpClient = newClient
 
 	sessionPayload := &analytics.Payload{
@@ -45,7 +42,6 @@ func Configure(cfg *config.Config, serverSession bool, newClient *http.Client) {
 	} else {
 		sessionPayload.Hostname = "localhost"
 	}
-	cfgMutex.Unlock()
 
 	analytics.SessionEvent(httpClient, sessionPayload)
 

@@ -28,6 +28,7 @@ type Settings struct {
 	Version    string
 	BuildDate  string
 	AutoReport bool
+	mutex      sync.RWMutex
 }
 
 func Configure(cfg *config.Config, version, buildDate string) {
@@ -36,10 +37,11 @@ func Configure(cfg *config.Config, version, buildDate string) {
 	defer cfgMutex.Unlock()
 
 	// base settings are always written
+	autoReport := *cfg.AutoReport
 	baseSettings = &Settings{
 		Version:    version,
 		BuildDate:  buildDate,
-		AutoReport: *cfg.AutoReport,
+		AutoReport: autoReport,
 	}
 
 	if service == nil {
@@ -55,7 +57,10 @@ func start(baseSettings *Settings) error {
 
 	helloFn := func(write func(interface{}) error) error {
 		log.Debugf("Sending Lantern settings to new client")
-		return write(baseSettings)
+		baseSettings.mutex.RLock()
+		settings := baseSettings
+		baseSettings.mutex.RUnlock()
+		return write(settings)
 	}
 
 	service, err = ui.Register(messageType, nil, helloFn)
