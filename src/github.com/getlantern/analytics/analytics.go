@@ -59,6 +59,8 @@ type Payload struct {
 
 	HitType HitType `json:"hitType,omitempty"`
 
+	CustomVars map[string]string
+
 	Event *Event
 }
 
@@ -94,6 +96,12 @@ func composeUrl(payload *Payload) string {
 		}
 		if payload.Event.Value != "" {
 			vals.Add("ev", payload.Event.Value)
+		}
+	}
+
+	for dim, customVar := range payload.CustomVars {
+		if customVar != "" {
+			vals.Add(dim, customVar)
 		}
 	}
 

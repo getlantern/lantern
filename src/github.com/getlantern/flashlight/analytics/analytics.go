@@ -2,6 +2,7 @@ package analytics
 
 import (
 	"net/http"
+	"runtime"
 
 	"github.com/getlantern/flashlight/config"
 	"github.com/mitchellh/mapstructure"
@@ -38,6 +39,9 @@ func Configure(cfg *config.Config, serverSession bool, newClient *http.Client) {
 		Event: &analytics.Event{
 			Category: "Session",
 			Action:   "Start",
+		},
+		CustomVars: map[string]string{
+			"cd1": runtime.GOOS,
 		},
 	}
 
