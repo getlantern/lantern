@@ -39,9 +39,7 @@ func Configure(cfg *config.Config, serverSession bool, newClient *http.Client) {
 		Event: &analytics.Event{
 			Category: "Session",
 			Action:   "Start",
-		},
-		CustomVars: map[string]string{
-			"cd1": runtime.GOOS,
+			Label:    runtime.GOOS,
 		},
 	}
 

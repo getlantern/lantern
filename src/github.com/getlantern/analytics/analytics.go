@@ -13,6 +13,7 @@ const (
 	ProtocolVersion      = "1"
 	DefaultClientVersion = "1"
 	TrackingId           = "UA-21815217-2"
+	DefaultClientId      = "555"
 )
 
 var (
@@ -71,7 +72,9 @@ func composeUrl(payload *Payload) string {
 
 	// Add default payload
 	vals.Add("v", ProtocolVersion)
-	vals.Add("_v", payload.ClientVersion)
+	if payload.ClientVersion != "" {
+		vals.Add("_v", payload.ClientVersion)
+	}
 	if payload.TrackingId != "" {
 		vals.Add("tid", payload.TrackingId)
 	}
@@ -139,5 +142,6 @@ func UIEvent(httpClient *http.Client, payload *Payload) (status bool, err error)
 func SessionEvent(httpClient *http.Client, payload *Payload) (status bool, err error) {
 	// add tracking Id since this won't be present already
 	payload.TrackingId = TrackingId
+	payload.ClientId = DefaultClientId
 	return SendRequest(httpClient, payload)
 }
