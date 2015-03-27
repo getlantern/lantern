@@ -12,6 +12,7 @@ const (
 	ApiEndpoint          = `https://www.google-analytics.com/collect?%s`
 	ProtocolVersion      = "1"
 	DefaultClientVersion = "1"
+	TrackingId           = "UA-21815217-2"
 )
 
 var (
@@ -136,5 +137,7 @@ func UIEvent(httpClient *http.Client, payload *Payload) (status bool, err error)
 
 // Fired whenever a new Lanern session is initiated
 func SessionEvent(httpClient *http.Client, payload *Payload) (status bool, err error) {
+	// add tracking Id since this won't be present already
+	payload.TrackingId = TrackingId
 	return SendRequest(httpClient, payload)
 }
