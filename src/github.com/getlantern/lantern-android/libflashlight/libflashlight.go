@@ -5,9 +5,9 @@ package main
 import (
 	_ "github.com/getlantern/lantern-android/libflashlight/bindings/go_bindings"
 	"golang.org/x/mobile/app"
-	_ "golang.org/x/mobile/bind/java"
+	"golang.org/x/mobile/bind/java"
 )
 
 func main() {
-	app.Run(app.Callbacks{})
+	app.Run(app.Callbacks{Start: java.Init})
 }
