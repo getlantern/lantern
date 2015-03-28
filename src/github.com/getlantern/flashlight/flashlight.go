@@ -249,7 +249,11 @@ func runServerProxy(cfg *config.Config) {
 			PKFile:         pkFile,
 			ServerCertFile: certFile,
 		},
-		AllowedPorts: []int{80, 443, 8080, 8443, 5222},
+		AllowedPorts: []int{80, 443, 8080, 8443, 5222, 5223, 5228},
+
+		// We allow all censored countries plus us, es and mx because we do work
+		// and testing from those countries.
+		AllowedCountries: []string{"US", "ES", "MX", "CN", "VN", "IN", "IQ", "IR", "CU", "SY", "SA", "BH", "ET", "ER", "UZ", "TM", "PK", "TR", "VE"},
 	}
 
 	srv.Configure(cfg.Server)
