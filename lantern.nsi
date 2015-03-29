@@ -1,9 +1,9 @@
 Name "Lantern"
 
-# Installs Lantern and launchs it
+# Installs Lantern and launches it
 # See http://nsis.sourceforge.net/Run_an_application_shortcut_after_an_install
 
-AutoCloseWindow true
+# AutoCloseWindow true
 
 !addplugindir nsis_plugins
 !include "nsis_includes/nsProcess.nsh"
@@ -31,10 +31,10 @@ AutoCloseWindow true
 OutFile "lantern-installer-unsigned.exe"
  
 # define installation directory
-InstallDir $PROGRAMFILES\Lantern
+InstallDir $APPDATA\Lantern
  
-# Request admin privileges to allow installation to Program Files
-RequestExecutionLevel admin
+# Request user permissions so that auto-updates will work with no prompt
+RequestExecutionLevel user
     
 # start default section
 Section
@@ -49,6 +49,7 @@ Section
     
     # set the installation directory as the destination for the following actions
     SetOutPath $INSTDIR
+    SetOverwrite on
 
     File lantern.exe
     File lantern.ico
