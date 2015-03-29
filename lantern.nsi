@@ -3,7 +3,7 @@ Name "Lantern"
 # Installs Lantern and launches it
 # See http://nsis.sourceforge.net/Run_an_application_shortcut_after_an_install
 
-# AutoCloseWindow true
+AutoCloseWindow true
 
 !addplugindir nsis_plugins
 !include "nsis_includes/nsProcess.nsh"
