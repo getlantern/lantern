@@ -21,8 +21,8 @@ which s3cmd || die "You'll need the s3cmd tool to run this. See https://github.c
 ./tagandbuild.bash $TAG || die "Could not tag and build"
 
 baseName="lantern-installer-beta"
-cp lantern_installer.exe $baseName.exe
-cp Lantern.dmg $baseName.dmg
+cp lantern-installer.exe $baseName.exe || die "Could not copy windows executable?"
+cp Lantern.dmg $baseName.dmg || die "Could not copy OSX dmg?"
 test -f $baseName.dmg || mv Lantern.dmg $baseName.dmg || die "Could not rename dmg?"
 
 bucket="lantern"
