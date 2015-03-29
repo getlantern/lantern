@@ -84,15 +84,12 @@ app.controller('SettingsCtrl', ['$scope', 'MODAL', 'DataStream', 'gaMgr', functi
     $scope.show = modal === MODAL.settings;
   });
 
-  $scope.$watch('model.settings.autoReport', function(autoreport) {
-      if (!autoreport) {
-        autoreport = false;
-      }
+  $scope.changeReporting = function(autoreport) {
       var obj = {
-        autoReport: autoreport
+          autoReport: autoreport
       };
       DataStream.send('Settings', obj);
-  });
+  };
 
   $scope.$watch('model.settings.systemProxy', function (systemProxy) {
     $scope.systemProxy = systemProxy;

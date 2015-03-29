@@ -26,10 +26,6 @@ var (
 
 func Configure(cfg *config.Config, serverSession bool, newClient *http.Client) {
 
-	if service != nil {
-		return
-	}
-
 	httpClient = newClient
 
 	sessionPayload := &analytics.Payload{
