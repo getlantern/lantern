@@ -81,9 +81,9 @@ On the client, you should see something like this for every request:
 Handling request for: http://www.google.com/humans.txt
 ```
 
-### Masquerade Host Management
+### Configuration Management
 
-Masquerade host configuration is managed using utilities in the [`genconfig/`](genconfig/) subfolder.
+The configuration that will be fed to clients is managed using utilities in the [`genconfig/`](genconfig/) subfolder.
 
 #### Setup
 
@@ -115,3 +115,20 @@ To alter the list of domains or blacklist:
 2. `go run genconfig.go -domains domains.txt -blacklist blacklist.txt`.
 3. Commit the changed [`masquerades.go`](config/masquerades.go) and [`cloud.yaml`](genconfig/cloud.yaml) to git if you want.
 4. Upload cloud.yaml to s3 using [`udpateyaml.bash`](genconfig/updateyaml.bash) if you want.
+
+#### Managing proxied sites
+
+Lists of proxied sites are expected to live as text files in a directory, one
+domain per line.  You provide this directory to `genconfig` with the `-proxiedsites` argument.
+
+#### Managing chained proxies
+
+The IPs, access tokens, and other details that clients need in order to
+connect to the chained (that is, non-fronted) proxies we run are contained in
+a JSON file that normally lives in `genconfig/fallbacks.json` and is fed to `genconfig` with the optional `-fallbacks` argument.
+
+You only to concern yourself with this when the list of chained proxies
+changes (e.g., when we launch or kill some server).  To learn how to reenerate
+the `fallbacks.json` file in that case, see [the relevant
+section](https://github.com/getlantern/lantern_aws#regenerating-flashlightgenconfigfallbackjson)
+of the README of the lantern_aws project.
