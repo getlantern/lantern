@@ -217,11 +217,11 @@
     <dl class="dl-horizontal">
       <dt>{{ 'APP' | translate }}</dt>
       <dd id="app-settings">
-        <label class="checkbox">
+        <!--<label class="checkbox">
           <input type="checkbox" ng-model="runAtSystemStart" focus-on="show"
                  ng-click="changeSetting(SETTING.runAtSystemStart, runAtSystemStart)">
           {{ 'AUTO_START' | translate }}
-        </label>
+      </label>-->
 
         <div>
           <label class="checkbox">
@@ -241,11 +241,11 @@
     </dl>
   </div>
   <div class="modal-footer">
-    <button type="button" ng-click="interaction(INTERACTION.reset)" tabindex="-1"
+    <!--<button type="button" ng-click="interaction(INTERACTION.reset)" tabindex="-1"
             class="btn btn-mini pull-left">
       <i class="icon-warning-sign warning-colored"></i>
       {{ 'RESET_ELLIPSIS' | translate }}
-    </button>
+  </button>-->
     <button type="button" id="settings-close" class="btn btn-primary" ng-click="closeModal()">{{ 'CLOSE' | translate }}</button>
   </div>
 </div>
