@@ -193,7 +193,7 @@ func runClientProxy(cfg *config.Config) {
 
 	logging.Configure(cfg, version, buildDate)
 	settings.Configure(cfg, version, buildDate)
-	proxiedsites.Configure(cfg.ProxiedSites, cfg.Addr)
+	proxiedsites.Configure(cfg.ProxiedSites)
 
 	if hqfd == nil {
 		log.Errorf("No fronted dialer available, not enabling geolocation, stats or analytics")

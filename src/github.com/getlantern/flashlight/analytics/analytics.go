@@ -40,7 +40,7 @@ func Configure(cfg *config.Config, serverSession bool, newClient *http.Client) {
 	}
 
 	if serverSession {
-		sessionPayload.Hostname = cfg.Server.AdvertisedHost
+		sessionPayload.Hostname = cfg.Server.RegisterAt
 	} else {
 		sessionPayload.Hostname = "localhost"
 	}
