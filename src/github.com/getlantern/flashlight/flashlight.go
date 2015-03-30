@@ -16,7 +16,6 @@ import (
 	"github.com/getlantern/profiling"
 	"github.com/getlantern/systray"
 
-	"github.com/getlantern/flashlight/analytics"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/geolookup"
@@ -57,7 +56,7 @@ func init() {
 }
 
 func main() {
-	flag.Parse()
+	parseFlags()
 	showui = !*headless
 
 	if showui {
@@ -167,6 +166,7 @@ func parseFlags() {
 
 // Runs the client-side proxy
 func runClientProxy(cfg *config.Config) {
+	setProxyAddr(cfg.Addr)
 	err := setUpPacTool()
 	if err != nil {
 		exit(err)
@@ -191,17 +191,15 @@ func runClientProxy(cfg *config.Config) {
 	}
 
 	logging.Configure(cfg, version, buildDate)
-	settings.Configure(cfg, version, buildDate)
-	proxiedsites.Configure(cfg.ProxiedSites, cfg.Addr)
+	settings.Configure(version, buildDate)
+	proxiedsites.Configure(cfg.ProxiedSites)
 
 	if hqfd == nil {
-		log.Errorf("No fronted dialer available, not enabling geolocation, stats or analytics")
+		log.Errorf("No fronted dialer available, not enabling geolocation or stats")
 	} else {
 		hqfdc := hqfd.DirectHttpClient()
 		geolookup.Configure(hqfdc)
 		statserver.Configure(hqfdc)
-		// start GA service
-		analytics.Configure(cfg, false, hqfdc)
 	}
 
 	// Continually poll for config updates and update client accordingly
@@ -209,7 +207,7 @@ func runClientProxy(cfg *config.Config) {
 		for {
 			cfg := <-configUpdates
 
-			proxiedsites.Configure(cfg.ProxiedSites, cfg.Addr)
+			proxiedsites.Configure(cfg.ProxiedSites)
 			// Note - we deliberately ignore the error from statreporter.Configure here
 			statreporter.Configure(cfg.Stats)
 			hqfd = client.Configure(cfg.Client)
@@ -221,6 +219,8 @@ func runClientProxy(cfg *config.Config) {
 			}
 		}
 	}()
+
+	watchDirectAddrs()
 
 	go func() {
 		exit(client.ListenAndServe(pacOn))
@@ -243,18 +243,20 @@ func runServerProxy(cfg *config.Config) {
 
 	srv := &server.Server{
 		Addr:         cfg.Addr,
-		Host:         cfg.Server.AdvertisedHost,
 		ReadTimeout:  0, // don't timeout
 		WriteTimeout: 0,
 		CertContext: &fronted.CertContext{
 			PKFile:         pkFile,
 			ServerCertFile: certFile,
 		},
-		AllowedPorts: []int{80, 443, 8080, 8443, 5222},
+		AllowedPorts: []int{80, 443, 8080, 8443, 5222, 5223, 5228},
+
+		// We allow all censored countries plus us, es and mx because we do work
+		// and testing from those countries.
+		AllowedCountries: []string{"US", "ES", "MX", "CN", "VN", "IN", "IQ", "IR", "CU", "SY", "SA", "BH", "ET", "ER", "UZ", "TM", "PK", "TR", "VE"},
 	}
 
 	srv.Configure(cfg.Server)
-	analytics.Configure(nil, true, nil)
 
 	// Continually poll for config updates and update server accordingly
 	go func() {
@@ -265,7 +267,14 @@ func runServerProxy(cfg *config.Config) {
 		}
 	}()
 
-	err = srv.ListenAndServe()
+	err = srv.ListenAndServe(func(update func(*server.ServerConfig) error) {
+		err := config.Update(func(cfg *config.Config) error {
+			return update(cfg.Server)
+		})
+		if err != nil {
+			log.Errorf("Error while trying to update: %v", err)
+		}
+	})
 	if err != nil {
 		log.Fatalf("Unable to run server proxy: %s", err)
 	}

@@ -74,14 +74,6 @@ angular.module('app.services', [])
             model.settings.mode = 'get';
             model.settings.version = data.Version + " (" + data.BuildDate + ")";
         }
-
-        if (data.AutoReport) {
-            model.settings.autoReport = true;
-            if ($rootScope.lanternWelcomeKey) {
-                $rootScope.trackPageView();
-            }
-        }
-
       },
       'ProxiedSites': function(data) {
         if (!$rootScope.entries) {
@@ -185,9 +177,28 @@ angular.module('app.services', [])
       sane: true
     };
   })
-  .service('gaMgr', function ($window, DataStream, GOOGLE_ANALYTICS_DISABLE_KEY, GOOGLE_ANALYTICS_WEBPROP_ID) {
-    var ga = $window.ga;
+  .service('gaMgr', function ($window, GOOGLE_ANALYTICS_DISABLE_KEY, GOOGLE_ANALYTICS_WEBPROP_ID, modelSrvc) {
+      var model = modelSrvc.model,
+        ga = $window.ga;
 
+    function stopTracking() {
+      //log.debug('disabling analytics');
+      //trackPageView('end'); // force the current session to end with this hit
+      $window[GOOGLE_ANALYTICS_DISABLE_KEY] = true;
+    }
+
+    function startTracking() {
+      //log.debug('enabling analytics');
+      $window[GOOGLE_ANALYTICS_DISABLE_KEY] = false;
+      trackPageView('start');
+    }
+
+    // start out with google analytics disabled
+    // https://developers.google.com/analytics/devguides/collection/analyticsjs/advanced#optout
+    stopTracking();
+
+    // but get a tracker set up and ready for use if analytics become enabled
+    // https://developers.google.com/analytics/devguides/collection/analyticsjs/field-reference
     ga('create', GOOGLE_ANALYTICS_WEBPROP_ID, {cookieDomain: 'none'});
     ga('set', {
       anonymizeIp: true,
@@ -198,32 +209,15 @@ angular.module('app.services', [])
     });
 
     function trackPageView(sessionControl) {
-      var trackers = ga.getAll();
-      for (var i =0; i < trackers.length; i++) {
-          var tracker = trackers[i];
-          if (tracker.b && tracker.b.data && tracker.b.data.w) {
-              var fields = tracker.b.data.w;
-              var gaObj = {
-                  clientId: '',
-                  clientVersion: '',
-                  language: '',
-                  screenColors: '',
-                  screenResolution: '',
-                  trackingId: '',
-                  viewPortSize: ''
-              };
-              for (var name in fields) {
-                var key = name.split(':')[1];
-                if (gaObj.hasOwnProperty(key)) {
-                    gaObj[key] = fields[name];
-                }
-              }
-              DataStream.send('Analytics', gaObj);
-          }
-      }
+      var page = model.modal || '/';
+      ga('set', 'page', page);
+      ga('send', 'pageview', sessionControl ? {sessionControl: sessionControl} : undefined);
+      //log.debug(sessionControl === 'end' ? 'sent analytics session end' : 'tracked pageview', 'page =', page);
     }
 
     return {
+      stopTracking: stopTracking,
+      startTracking: startTracking,
       trackPageView: trackPageView
     };
   })

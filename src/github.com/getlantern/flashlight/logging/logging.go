@@ -179,24 +179,28 @@ func (w logglyErrorWriter) Write(b []byte) (int, error) {
 
 	// extract last 2 (at most) chunks of fullMessage to message, without prefix,
 	// so we can group logs with same reason in Loggly
-	parts := strings.Split(fullMessage, ":")
-	var message string
-	pl := len(parts)
-	switch pl {
-	case 1:
-		message = ""
-	case 2:
-		message = parts[1]
-	default:
-		message = parts[pl-2] + ":" + parts[pl-1]
+	lastColonPos := -1
+	colonsSeen := 0
+	for p := len(fullMessage) - 2; p >= 0; p-- {
+		if fullMessage[p] == ':' {
+			lastChar := fullMessage[p+1]
+			// to prevent colon in "http://" and "x.x.x.x:80" be treated as seperator
+			if !(lastChar == '/' || lastChar >= '0' && lastChar <= '9') {
+				lastColonPos = p
+				colonsSeen++
+				if colonsSeen == 2 {
+					break
+				}
+			}
+		}
 	}
-	message = strings.TrimSpace(message)
+	message := strings.TrimSpace(fullMessage[lastColonPos+1:])
 
-	pos := strings.IndexRune(fullMessage, ':')
-	if pos == -1 {
-		pos = 0
+	firstColonPos := strings.IndexRune(fullMessage, ':')
+	if firstColonPos == -1 {
+		firstColonPos = 0
 	}
-	prefix := fullMessage[0:pos]
+	prefix := fullMessage[0:firstColonPos]
 
 	m := loggly.Message{
 		"extra":        extra,
