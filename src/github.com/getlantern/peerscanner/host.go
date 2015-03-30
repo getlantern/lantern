@@ -14,8 +14,6 @@ import (
 
 	"github.com/getlantern/cloudflare"
 	"github.com/getlantern/enproxy"
-	"github.com/getlantern/go-dnsimple/dnsimple"
-	"github.com/getlantern/peerscanner/cfr"
 	"github.com/getlantern/tlsdialer"
 	"github.com/getlantern/withtimeout"
 )
@@ -59,20 +57,15 @@ type status struct {
 type host struct {
 	name        string
 	ip          string
-	port        string
-	cflRecord   *cloudflare.Record
-	dspRecord   *dnsimple.Record
-	cfrDist     *cfr.Distribution
+	record      *cloudflare.Record
 	isProxying  bool
-	cflGroups   map[string]*cflGroup
-	dspGroups   map[string]*dspGroup
+	groups      map[string]*group
 	lastSuccess time.Time
 	lastTest    time.Time
 
 	resetCh      chan string
 	unregisterCh chan interface{}
 	statusCh     chan chan *status
-	initCfrCh    chan interface{}
 
 	proxiedClient     *http.Client
 	reportedHost      string
@@ -87,85 +80,33 @@ func (h *host) String() string {
  * API for interacting with host
  ******************************************************************************/
 
-// newHost creates a new host for the given name, ip and optional DNS records.
-func newHost(name string, ip string, port string, cflRecord *cloudflare.Record, dspRecord *dnsimple.Record) *host {
+// newHost creates a new host for the given name, ip and optional DNS record.
+func newHost(name string, ip string, record *cloudflare.Record) *host {
+	// Cache TLS sessions
+	clientSessionCache := tls.NewLRUClientSessionCache(1000)
+
 	h := &host{
 		name:         name,
 		ip:           ip,
-		port:         port,
-		cflRecord:    cflRecord,
-		dspRecord:    dspRecord,
+		record:       record,
 		resetCh:      make(chan string, 1000),
 		unregisterCh: make(chan interface{}, 1),
 		statusCh:     make(chan chan *status, 1000),
-		initCfrCh:    make(chan interface{}, 1),
 	}
-
-	if h.isFallback() {
-
-		h.cflGroups = map[string]*cflGroup{
-			RoundRobin: &cflGroup{subdomain: RoundRobin},
-			Fallbacks:  &cflGroup{subdomain: Fallbacks},
-			Peers:      &cflGroup{subdomain: Peers},
-		}
-		h.dspGroups = map[string]*dspGroup{
-			RoundRobin: &dspGroup{subdomain: RoundRobin},
-			Fallbacks:  &dspGroup{subdomain: Fallbacks},
-			Peers:      &dspGroup{subdomain: Peers},
-		}
-		country := fallbackCountry(name)
-		if country != "" {
-			// Add host to country-specific rotation
-			h.cflGroups[country] = &cflGroup{subdomain: country}
-			h.dspGroups[country] = &dspGroup{subdomain: country}
-		}
-	} else {
-		log.Errorf("Somehow adding peer host? %v (%v)", name, ip)
-	}
-
-	return h
-}
-
-// resetProxiedClient reconfigures the host so attempts to proxy through it,
-// for the sake of checking whether it's up and serving, will use the given
-// port.  Valid port values are "443", in which case we'll access the proxy
-// through HTTPS, or "80", for an unencrypted connection.
-//
-// This is necessary because when peerscanner starts up and gets the list of
-// hosts from the various DNS/CDN services, it has no way to know what port
-// these servers are listening at.  So we want to try both until one works, or
-// until the server first registers with peerscanner, advertising which port
-// it uses.
-func (h *host) resetProxiedClient(port string) {
-
-	var dial func(addr string) (net.Conn, error)
-	if port == "80" {
-		dial = func(addr string) (net.Conn, error) {
-			dialer := net.Dialer{Timeout: dialTimeout}
-			return dialer.Dial("tcp", h.ip+":80")
-		}
-	} else if port == "443" {
-		dial = func(addr string) (net.Conn, error) {
-			return tlsdialer.DialWithDialer(&net.Dialer{
-				Timeout: dialTimeout,
-			}, "tcp", h.ip+":443", true, &tls.Config{
-				InsecureSkipVerify: true,
-				// Cache TLS sessions
-				ClientSessionCache: tls.NewLRUClientSessionCache(1000),
-			})
-		}
-	} else {
-		log.Errorf("Unsupported port: %v", port)
-		return
-	}
-
 	h.proxiedClient = &http.Client{
 		Transport: &http.Transport{
 			Dial: func(network, addr string) (net.Conn, error) {
 				return enproxy.Dial(addr, &enproxy.Config{
-					DialProxy: dial,
+					DialProxy: func(addr string) (net.Conn, error) {
+						return tlsdialer.DialWithDialer(&net.Dialer{
+							Timeout: dialTimeout,
+						}, "tcp", ip+":443", true, &tls.Config{
+							InsecureSkipVerify: true,
+							ClientSessionCache: clientSessionCache,
+						})
+					},
 					NewRequest: func(upstreamHost string, method string, body io.Reader) (req *http.Request, err error) {
-						return http.NewRequest(method, "http://"+h.ip+"/", body)
+						return http.NewRequest(method, "http://"+ip+"/", body)
 					},
 					OnFirstResponse: func(resp *http.Response) {
 						h.reportedHostMutex.Lock()
@@ -178,6 +119,25 @@ func (h *host) resetProxiedClient(port string) {
 		},
 		Timeout: requestTimeout,
 	}
+
+	if h.isFallback() {
+		h.groups = map[string]*group{
+			RoundRobin: &group{subdomain: RoundRobin},
+			Fallbacks:  &group{subdomain: Fallbacks},
+			Peers:      &group{subdomain: Peers},
+		}
+		country := fallbackCountry(name)
+		if country != "" {
+			// Add host to country-specific rotation
+			h.groups[country] = &group{subdomain: country}
+		}
+	} else {
+		h.groups = map[string]*group{
+			Peers: &group{subdomain: Peers},
+		}
+	}
+
+	return h
 }
 
 // status returns the status of this host as of the next scheduled check
@@ -211,29 +171,6 @@ func (h *host) unregister() {
 	}
 }
 
-func (h *host) initCloudfront() {
-	h.initCfrCh <- nil
-}
-
-func (h *host) doInitCfrDist() {
-	if h.cfrDist != nil && h.cfrDist.Status == "InProgress" {
-		cfr.RefreshStatus(cfrutil, h.cfrDist)
-	}
-	if h.cfrDist == nil {
-		dist, err := cfr.CreateDistribution(
-			cfrutil,
-			h.name,
-			h.name+"."+*dspdomain,
-			"created by peerscanner",
-		)
-		if err == nil {
-			h.cfrDist = dist
-		} else {
-			log.Debugf("Error trying to initialize cloudfront distribution for %v: %v", h.name, err)
-		}
-	}
-}
-
 /*******************************************************************************
  * Implementation
  ******************************************************************************/
@@ -264,8 +201,6 @@ func (h *host) run() {
 			log.Debugf("Unregistering %v and pausing", h)
 			h.pause()
 			checkImmediately = true
-		case <-h.initCfrCh:
-			h.doInitCfrDist()
 		case <-pauseTimer.C:
 			log.Debugf("%v had no successful checks or resets in %v, pausing", h, pauseAfter)
 			h.pause()
@@ -304,10 +239,10 @@ func (h *host) run() {
 	}
 }
 
-// pause deregisters this host from rotations and then waits for the next reset
+// pause deregisters this host completely and then waits for the next reset
 // before continuing
 func (h *host) pause() {
-	h.deregisterFromRotations()
+	h.deregister()
 	log.Debugf("%v paused", h)
 	for {
 		select {
@@ -338,23 +273,13 @@ func (h *host) doReset(newName string) {
 	log.Tracef("Host notified us of its presence")
 	if newName != h.name {
 		log.Debugf("Hostname for %v changed to %v", h, newName)
-		var cflErr, dspErr error
-		if h.cflRecord != nil {
-			log.Debugf("Deregistering old Cloudflare hostname %v", h.name)
-			cflErr = h.doDeregisterCflHost()
-			if cflErr != nil {
-				log.Error(cflErr.Error())
+		if h.record != nil {
+			log.Debugf("Deregistering old hostname %v", h.name)
+			err := h.doDeregisterHost()
+			if err != nil {
+				log.Error(err.Error())
+				return
 			}
-		}
-		if h.dspRecord != nil {
-			log.Debugf("Deregistering old DNSimple hostname %v", h.name)
-			dspErr = h.doDeregisterDspHost()
-			if dspErr != nil {
-				log.Error(dspErr.Error())
-			}
-		}
-		if cflErr != nil || dspErr != nil {
-			return
 		}
 		h.name = newName
 	}
@@ -367,95 +292,83 @@ func (h *host) doReset(newName string) {
  ******************************************************************************/
 
 func (h *host) register() error {
-	cflErr := h.registerCfl()
-	dspErr := h.registerDsp()
-	if cflErr != nil && dspErr == nil {
-		return fmt.Errorf("Error registering Cloudflare: %v", cflErr)
-	} else if cflErr == nil && dspErr != nil {
-		return fmt.Errorf("Error registering DNSSimple: %v", dspErr)
-	} else if cflErr != nil && dspErr != nil {
-		return fmt.Errorf("Error registering (CFL: %v) (DNSSimple: %v)", cflErr, dspErr)
-	}
-	return nil
-}
-
-func (h *host) registerCfl() error {
-	err := h.registerCflHost()
+	err := h.registerHost()
 	if err != nil {
-		return fmt.Errorf("Unable to register Cloudflare host %v: %v", h, err)
+		return fmt.Errorf("Unable to register host %v: %v", h, err)
 	}
-	err = h.registerToCflRotations()
+	err = h.registerToRotations()
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (h *host) registerDsp() error {
-	err := h.registerDspHost()
-	if err != nil {
-		return fmt.Errorf("Unable to register DNSimple host %v: %v", h, err)
-	}
-	err = h.registerToDspRotations()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (h *host) registerCflHost() error {
+func (h *host) registerHost() error {
 	if h.isProxying {
-		log.Debugf("Cloudflare record already registered, no need to re-register: %v", h)
+		log.Debugf("Host already registered, no need to re-register: %v", h)
 		return nil
 	}
-	log.Debugf("Registering Cloudflare record %v", h)
+
+	log.Debugf("Registering %v", h)
+
 	var err error
-	h.cflRecord, h.isProxying, err = cflutil.EnsureRegistered(h.name, h.ip, h.cflRecord)
+	h.record, h.isProxying, err = cfutil.EnsureRegistered(h.name, h.ip, h.record)
 	return err
 }
 
-func (h *host) registerDspHost() error {
-	if h.dspRecord != nil {
-		log.Debugf("DNSimple record already registered, no need to re-register: %v", h)
-		return nil
-	}
-	log.Debugf("Registering DNSimple %v", h)
-	var err error
-	h.dspRecord, err = dsputil.Register(h.name, h.ip)
-	return err
-}
-
-func (h *host) registerToCflRotations() error {
-	for _, group := range h.cflGroups {
+func (h *host) registerToRotations() error {
+	for _, group := range h.groups {
 		err := group.register(h)
 		if err != nil {
-			return err
+			return fmt.Errorf("Unable to register %v to %v: %v", h, group, err)
 		}
 	}
 	return nil
 }
 
-func (h *host) registerToDspRotations() error {
-	if !h.cfrDistReady() {
-		log.Debugf("Cloudfront distribution for %v not ready yet; not registering to rotations.", h.name)
-		return nil
+func (h *host) deregister() {
+	h.deregisterHost()
+	h.deregisterFromRotations()
+}
+
+func (h *host) deregisterHost() {
+	if h.record == nil {
+		log.Debugf("Host not registered, no need to deregister: %v", h)
+		return
 	}
-	for _, group := range h.dspGroups {
-		err := group.register(h)
-		if err != nil {
-			return err
-		}
+
+	if h.isFallback() {
+		log.Debugf("Currently not deregistering fallbacks like %v", h)
+		return
 	}
+
+	log.Debugf("Deregistering %v", h)
+	err := h.doDeregisterHost()
+	if err != nil {
+		log.Error(err.Error())
+	}
+}
+
+func (h *host) doDeregisterHost() error {
+	err := cfutil.DestroyRecord(h.record)
+	h.record = nil
+	h.isProxying = false
+
+	if err != nil {
+		return fmt.Errorf("Unable to deregister host %v: %v", h, err)
+	}
+
 	return nil
 }
 
 func (h *host) deregisterFromRotations() {
-	for _, group := range h.cflGroups {
+	for _, group := range h.groups {
 		group.deregister(h)
 	}
-	for _, group := range h.dspGroups {
-		group.deregister(h)
-	}
+}
+
+func (h *host) fullName() string {
+	return h.name + ".getiantem.org"
 }
 
 func (h *host) isFallback() bool {
@@ -480,7 +393,7 @@ func (h *host) isAbleToProxy() (bool, bool, error) {
 				// routing.
 				h.reportedHostMutex.Lock()
 				defer h.reportedHostMutex.Unlock()
-				if !h.reportedHostOk() {
+				if h.reportedHost != h.fullName() {
 					success = false
 					lastErr := fmt.Errorf("%v is reporting an unexpected host %v", h, h.reportedHost)
 					log.Error(lastErr.Error())
@@ -494,32 +407,11 @@ func (h *host) isAbleToProxy() (bool, bool, error) {
 }
 
 func (h *host) doIsAbleToProxy() (bool, bool, error) {
-	if h.port == "" {
-		h.resetProxiedClient("80")
-		success, connectionRefused, err := h.reallyDoIsAbleToProxy("80")
-		if success {
-			h.port = "80"
-			return success, connectionRefused, err
-		}
-		h.resetProxiedClient("443")
-		success, connectionRefused, err = h.reallyDoIsAbleToProxy("443")
-		if success {
-			h.port = "443"
-		}
-		return success, connectionRefused, err
-	} else if h.proxiedClient == nil {
-		h.resetProxiedClient(h.port)
-	}
-	return h.reallyDoIsAbleToProxy(h.port)
-}
-
-func (h *host) reallyDoIsAbleToProxy(port string) (bool, bool, error) {
 	// First just try a plain TCP connection. This is useful because the
 	// underlying TCP-level error is consumed in the flashlight layer, and we
 	// need that to be accessible on the client side in the logic for deciding
 	// whether or not to display the port mapping message.
-	//XXX: allow port 80 too
-	addr := h.ip + ":" + port
+	addr := h.ip + ":443"
 	conn, err := net.DialTimeout("tcp", addr, dialTimeout)
 	if err != nil {
 		err2 := fmt.Errorf("Unable to connect to %v: %v", addr, err)
@@ -551,32 +443,4 @@ func fallbackCountry(name string) string {
 		return string(sub[1]) + ".fallbacks"
 	}
 	return ""
-}
-
-func (h *host) doDeregisterCflHost() error {
-	err := cflutil.DestroyRecord(h.cflRecord)
-	h.cflRecord = nil
-	h.isProxying = false
-	if err != nil {
-		return fmt.Errorf("Unable to deregister Cloudflare record %v: %v", h, err)
-	}
-	return nil
-}
-
-func (h *host) doDeregisterDspHost() error {
-	err := dsputil.DestroyRecord(h.dspRecord)
-	h.dspRecord = nil
-	if err != nil {
-		return fmt.Errorf("Unable to deregister DNSimple record %v: %v", h, err)
-	}
-	return nil
-}
-
-func (h *host) cfrDistReady() bool {
-	return h.cfrDist != nil && h.cfrDist.Status == "Deployed"
-}
-
-func (h *host) reportedHostOk() bool {
-	// Match the FQDN at Cloudflare or Cloudfront
-	return (h.reportedHost == h.name+"."+*cfldomain) || (h.cfrDistReady() && h.reportedHost == h.cfrDist.Domain)
 }

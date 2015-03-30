@@ -48,19 +48,6 @@ func TestLoggly(t *testing.T) {
 	}
 
 	buf.Reset()
-	log.Error("deep reason: an url https://a.com in message: reason")
-	if assert.NoError(t, json.Unmarshal(buf.Bytes(), &result), "Unmarshal error") {
-		assert.Equal(t, "an url https://a.com in message: reason", result["message"], "should not truncate url")
-	}
-
-	buf.Reset()
-	log.Error("deep reason: an url 127.0.0.1:8787 in message: reason")
-	if assert.NoError(t, json.Unmarshal(buf.Bytes(), &result), "Unmarshal error") {
-		assert.Equal(t, "test", result["locationInfo"])
-		assert.Equal(t, "an url 127.0.0.1:8787 in message: reason", result["message"], "should not truncate url")
-	}
-
-	buf.Reset()
 	longMsg := "message with: really l" + strings.Repeat("o", 100) + "ng reason"
 	log.Error(longMsg)
 	if assert.NoError(t, json.Unmarshal(buf.Bytes(), &result), "Unmarshal error") {

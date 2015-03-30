@@ -5,8 +5,12 @@
 package proxiedsites
 
 import (
+	"bytes"
+	"fmt"
+	"net/http"
 	"sort"
 	"sync"
+	"text/template"
 
 	"github.com/getlantern/golog"
 
@@ -16,9 +20,20 @@ import (
 var (
 	log = golog.LoggerFor("proxiedsites")
 
-	cs       *configsets
-	cfgMutex sync.RWMutex
+	parsedPacTmpl *template.Template
+	cs            *configsets
+	pacFile       string
+	cfgMutex      sync.RWMutex
 )
+
+func init() {
+	// Parse PACFile template on startup
+	var err error
+	parsedPacTmpl, err = template.New("pacfile").Parse(pactmpl)
+	if err != nil {
+		panic(fmt.Errorf("Could not parse PAC file template: %v", err))
+	}
+}
 
 // Delta represents modifications to the proxied sites list.
 type Delta struct {
@@ -111,10 +126,16 @@ func (cs *configsets) equals(other *configsets) bool {
 // returned that includes the additions and deletions from the active list. If
 // there were no changes, or the changes couldn't be applied, this method
 // returns a nil Delta.
-func Configure(cfg *Config) *Delta {
+func Configure(cfg *Config, proxyAddr string) *Delta {
 	newCS := cfg.toCS()
 	if cs != nil && cs.equals(newCS) {
 		log.Debug("Configuration unchanged")
+		return nil
+	}
+
+	newPacFile, err := generatePACFile(newCS.activeList, proxyAddr)
+	if err != nil {
+		log.Errorf("Error generating pac file, leaving configuration unchanged: %v", err)
 		return nil
 	}
 
@@ -130,6 +151,7 @@ func Configure(cfg *Config) *Delta {
 		}
 	}
 	cs = newCS
+	pacFile = newPacFile
 	log.Debug("Applied updated configuration")
 	return delta
 }
@@ -143,3 +165,51 @@ func ActiveDelta() *Delta {
 	cfgMutex.RUnlock()
 	return d
 }
+
+// ServePAC serves up the PAC file and can be used as an http.HandlerFunc
+func ServePAC(resp http.ResponseWriter, req *http.Request) {
+	resp.Header().Set("Content-Type", "application/x-ns-proxy-autoconfig")
+	resp.WriteHeader(http.StatusOK)
+	cfgMutex.RLock()
+	resp.Write([]byte(pacFile))
+	cfgMutex.RUnlock()
+}
+
+// generatePACFile generates a PAC File from the given active sites.
+func generatePACFile(activeSites []string, proxyAddr string) (string, error) {
+	data := make(map[string]interface{}, 0)
+	data["Entries"] = activeSites
+	data["proxyAddr"] = proxyAddr
+	buf := bytes.NewBuffer(nil)
+	err := parsedPacTmpl.Execute(buf, data)
+	if err != nil {
+		return "", fmt.Errorf("Error generating updated PAC file: %s", err)
+	}
+	return string(buf.Bytes()), nil
+}
+
+const pactmpl = `var proxyDomains = new Array();
+var i=0;
+
+{{ range $key := .Entries }}
+proxyDomains[i++] = "{{ $key }}";{{ end }}
+
+for(i in proxyDomains) {
+    proxyDomains[i] = proxyDomains[i].split(/\./).join("\\.");
+}
+
+var proxyDomainsRegx = new RegExp("(" + proxyDomains.join("|") + ")$", "i");
+
+function FindProxyForURL(url, host) {
+    if( host == "localhost" ||
+        host == "127.0.0.1") {
+        return "DIRECT";
+    }
+
+    if (proxyDomainsRegx.exec(host)) {
+        return "PROXY {{ .proxyAddr }}; DIRECT";
+    }
+
+    return "DIRECT";
+}
+`

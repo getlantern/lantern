@@ -14,6 +14,7 @@ type Service struct {
 	Out        chan<- interface{}
 	in         chan interface{}
 	out        chan interface{}
+	stopCh     chan bool
 	newMessage func() interface{}
 	helloFn    helloFnType
 }
@@ -27,13 +28,18 @@ var (
 
 func (s *Service) write() {
 	// Watch for new messages and send them to the combined output.
-	for msg := range s.out {
-		b, err := newEnvelope(s.Type, msg)
-		if err != nil {
-			log.Error(err)
-			continue
+	for {
+		select {
+		case <-s.stopCh:
+			return
+		case msg := <-s.out:
+			b, err := newEnvelope(s.Type, msg)
+			if err != nil {
+				log.Error(err)
+				continue
+			}
+			defaultUIChannel.Out <- b
 		}
-		defaultUIChannel.Out <- b
 	}
 }
 
@@ -55,6 +61,7 @@ func Register(t string, newMessage func() interface{}, helloFn helloFnType) (*Se
 		Type:       t,
 		in:         make(chan interface{}, 100),
 		out:        make(chan interface{}, 100),
+		stopCh:     make(chan bool),
 		newMessage: newMessage,
 		helloFn:    helloFn,
 	}
@@ -81,6 +88,13 @@ func Register(t string, newMessage func() interface{}, helloFn helloFnType) (*Se
 	return s, nil
 }
 
+func Unregister(t string) {
+	if services[t] != nil {
+		services[t].stopCh <- true
+		delete(services, t)
+	}
+}
+
 func start() {
 	// Establish a channel to the UI for sending and receiving updates
 	defaultUIChannel = NewChannel("/data", func(write func([]byte) error) error {
@@ -96,8 +110,10 @@ func start() {
 			}
 
 			// Delegating task...
-			if err := s.helloFn(writer); err != nil {
-				log.Errorf("Error writing to socket: %q", err)
+			if s.helloFn != nil {
+				if err := s.helloFn(writer); err != nil {
+					log.Errorf("Error writing to socket: %q", err)
+				}
 			}
 		}
 		mu.RUnlock()
@@ -123,7 +139,7 @@ func read() {
 
 		// Delegating response to the service that registered with the given type.
 		if services[envType.Type] == nil {
-			log.Errorf("Message type %v belongs to an unkown service.", envType.Type)
+			log.Errorf("Message type %v belongs to an unknown service.", envType.Type)
 			return
 		}
 

@@ -6,8 +6,6 @@ import (
 	"net"
 	"net/http"
 	"strconv"
-
-	"github.com/getlantern/detour"
 )
 
 const (
@@ -20,10 +18,8 @@ const (
 // getReverseProxy().
 func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	if req.Method == CONNECT {
-		log.Tracef("Intercepting CONNECT %s", req.URL)
 		client.intercept(resp, req)
 	} else {
-		log.Tracef("Reverse proxying %s %v", req.Method, req.URL)
 		client.getReverseProxy().ServeHTTP(resp, req)
 	}
 }
@@ -47,10 +43,7 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 	addr := hostIncludingPort(req, 443)
 
 	// Establish outbound connection
-	d := func(network, addr string) (net.Conn, error) {
-		return client.getBalancer().DialQOS("tcp", addr, client.targetQOS(req))
-	}
-	connOut, err := detour.Dialer(d)("tcp", addr)
+	connOut, err := client.getBalancer().DialQOS("tcp", addr, client.targetQOS(req))
 	if err != nil {
 		respondBadGateway(clientConn, fmt.Sprintf("Unable to handle CONNECT request: %s", err))
 		return

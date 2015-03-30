@@ -1,10 +1,6 @@
 flashlight [![Travis CI Status](https://travis-ci.org/getlantern/flashlight.svg?branch=master)](https://travis-ci.org/getlantern/flashlight)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/flashlight/badge.png)](https://coveralls.io/r/getlantern/flashlight)&nbsp;[![GoDoc](https://godoc.org/github.com/getlantern/flashlight?status.png)](http://godoc.org/github.com/getlantern/flashlight)
 ==========
 
-**WARNING**: The flashlight server will refuse to serve domain fronted traffic
-through most non-censored countries.  See 
-https://github.com/getlantern/flashlight-build/pull/141 for more details.
-
 Lightweight host-spoofing web proxy written in go.
 
 flashlight runs in one of two modes:
@@ -49,7 +45,7 @@ Usage of flashlight:
   -portmap=0: try to map this port on the firewall to the port on which flashlight is listening, using UPnP or NAT-PMP. If mapping this port fails, flashlight will exit with status code 50
   -registerat="": base URL for peer DNS registry at which to register (e.g. https://peerscanner.getiantem.org)
   -role="": either 'client' or 'server' (required)
-  -frontfqdns="": YAML string representing a map from the name of each front provider to a FQDN that will reach this particular server via that provider (e.g. '{cloudflare: fl-001.getiantem.org, cloudfront: blablabla.cloudfront.net}')
+  -server="": FQDN of flashlight server when running in server mode (required)
   -statshub="pure-journey-3547.herokuapp.com": address of statshub server
   -statsperiod=0: time in seconds to wait between reporting stats. If not specified, stats are not reported. If specified, statshub, instanceid and statshubAddr must also be specified.
   -uiaddr="": if specified, indicates host:port the UI HTTP server should be started on
@@ -81,9 +77,9 @@ On the client, you should see something like this for every request:
 Handling request for: http://www.google.com/humans.txt
 ```
 
-### Configuration Management
+### Masquerade Host Management
 
-The configuration that will be fed to clients is managed using utilities in the [`genconfig/`](genconfig/) subfolder.
+Masquerade host configuration is managed using utilities in the [`genconfig/`](genconfig/) subfolder.
 
 #### Setup
 
@@ -115,20 +111,3 @@ To alter the list of domains or blacklist:
 2. `go run genconfig.go -domains domains.txt -blacklist blacklist.txt`.
 3. Commit the changed [`masquerades.go`](config/masquerades.go) and [`cloud.yaml`](genconfig/cloud.yaml) to git if you want.
 4. Upload cloud.yaml to s3 using [`udpateyaml.bash`](genconfig/updateyaml.bash) if you want.
-
-#### Managing proxied sites
-
-Lists of proxied sites are expected to live as text files in a directory, one
-domain per line.  You provide this directory to `genconfig` with the `-proxiedsites` argument.
-
-#### Managing chained proxies
-
-The IPs, access tokens, and other details that clients need in order to
-connect to the chained (that is, non-fronted) proxies we run are contained in
-a JSON file that normally lives in `genconfig/fallbacks.json` and is fed to `genconfig` with the optional `-fallbacks` argument.
-
-You only to concern yourself with this when the list of chained proxies
-changes (e.g., when we launch or kill some server).  To learn how to reenerate
-the `fallbacks.json` file in that case, see [the relevant
-section](https://github.com/getlantern/lantern_aws#regenerating-flashlightgenconfigfallbackjson)
-of the README of the lantern_aws project.
