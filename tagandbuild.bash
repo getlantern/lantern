@@ -20,9 +20,8 @@ then
     die "$0: Please set BNS_CERT_PASS to the password for the $BNS_CERT signing key"
 fi
 
-git tag -a "$1" -f --annotate -m"Tagged $1" || die "Could not tag"
-git push --tags -f || die "Could not push tags?"
-
-UPDATE_DIST=true source ./crosscompile.bash || die "Could not crosscompile?"
-./package_osx.bash $VERSION_STRING || die "Could not package OSX"
-./package_win.bash $VERSION_STRING || die "Could not package windows"
+git tag -a "$1" -f --annotate -m"Tagged $1"
+git push --tags -f
+UPDATE_DIST=true source ./crosscompile.bash
+./package_osx.bash $VERSION_STRING
+./package_win.bash $VERSION_STRING

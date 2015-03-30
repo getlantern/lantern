@@ -128,7 +128,7 @@ func doTestNonGlobalAddress(t *testing.T, overrideAddr string) {
 	assert.False(t, gotConn, "Sending data to local address should never have resulted in connection")
 }
 
-func TestAllowed(t *testing.T) {
+func TestAllowedPorts(t *testing.T) {
 	gotConn := false
 	var gotConnMutex sync.Mutex
 	tl, err := net.Listen("tcp", "localhost:0")
@@ -294,33 +294,11 @@ func startServer(t *testing.T, allowNonGlobal bool, allowedPorts []int) net.List
 	server := &Server{
 		Addr: "localhost:0",
 		AllowNonGlobalDestinations: allowNonGlobal,
+		AllowedPorts:               allowedPorts,
 		CertContext: &CertContext{
 			PKFile:         "testpk.pem",
 			ServerCertFile: "testcert.pem",
 		},
-	}
-	if allowedPorts != nil {
-		server.Allow = func(req *http.Request, destAddr string) error {
-			_, portString, err := net.SplitHostPort(destAddr)
-			if err != nil {
-				t.Fatalf("Unable to split host and port: %v", err)
-			}
-			port, err := strconv.Atoi(portString)
-			if err != nil {
-				t.Fatalf("Unable to parse port: %s", err)
-			}
-			portAllowed := false
-			for _, allowed := range allowedPorts {
-				if allowed == port {
-					portAllowed = true
-					break
-				}
-			}
-			if !portAllowed {
-				return fmt.Errorf("Port %v not allowed", portAllowed)
-			}
-			return nil
-		}
 	}
 	l, err := server.Listen()
 	if err != nil {

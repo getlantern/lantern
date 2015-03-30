@@ -44,13 +44,13 @@ func New(tarData []byte, local string) (*FileSystem, error) {
 		_, err := os.Stat(local)
 		if err != nil {
 			if os.IsNotExist(err) {
-				log.Tracef("Local dir %v does not exist, not using\n", local)
+				log.Debugf("Local dir %v does not exist, not using\n", local)
 			} else {
 				log.Errorf("Unable to stat local dir %v, not using: %v\n", local, err)
 			}
 			local = ""
 		} else {
-			log.Debugf("Using local filesystem at %v", local)
+			log.Tracef("Using local filesystem at %v", local)
 		}
 	}
 

@@ -2,8 +2,6 @@ pkg
 bin
 .DS_Store
 *.cov
-*.swp
-*.swo
 flashlight_darwin_amd64
 flashlight_linux_386
 flashlight_linux_amd64
@@ -25,6 +23,8 @@ src/github.com/getlantern/flashlight/ui/resources.go
 src/github.com/getlantern/flashlight/lantern.syso
 dmgbackground.png
 dmgbackground_versioned.svg
+*.swp
+*.swo
 src/github.com/getlantern/systray/sysdtray.sdf
 src/github.com/getlantern/systray/Debug
 src/github.com/getlantern/systray/Release
