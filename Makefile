@@ -120,7 +120,7 @@ windows: windows-386
 
 docker-windows: docker-genassets docker-windows-386
 
-darwin: genassets darwin-amd64
+darwin: docker-genassets darwin-amd64
 
 system-checks:
 	@if [[ -z "$(DOCKER)" ]]; then echo 'Missing "docker" command.'; exit 1; fi && \
@@ -165,14 +165,14 @@ package-windows: require-version windows-386
 
 package-darwin: darwin
 	@echo echo "Generating distribution package for darwin/amd64..." && \
-	if [[ "$(uname -s)" == "Darwin" ]]; then \
-		if [[ -z "$$NODE" ]]; then echo 'Missing "node" command.'; exit 1; fi && \
-		if [[ -z "$$NPM" ]]; then echo 'Missing "npm" command.'; exit 1; fi && \
+	if [[ "$$(uname -s)" == "Darwin" ]]; then \
+		if [[ -z "$(NODE)" ]]; then echo 'Missing "node" command.'; exit 1; fi && \
+		if [[ -z "$(NPM)" ]]; then echo 'Missing "npm" command.'; exit 1; fi && \
 		INSTALLER_RESOURCES="installer-resources/darwin" && \
 		APPDMG=$$(which appdmg) && \
 		SVGEXPORT=$$(which svgexport) && \
-		if [[ -z "$$APPDMG" ]]; then brew install -g appdmg; fi && \
-		if [[ -z "$$SVGEXPORT" ]]; then brew install -g svgexport; fi && \
+		if [[ -z "$$APPDMG" ]]; then npm install -g appdmg; fi && \
+		if [[ -z "$$SVGEXPORT" ]]; then npm install -g svgexport; fi && \
 		rm -rf Lantern.app && \
 		cp -r $$INSTALLER_RESOURCES/Lantern.app_template Lantern.app && \
 		codesign -s "Developer ID Application: $$PACKAGE_VENDOR" Lantern.app && \
@@ -189,7 +189,7 @@ package-darwin: darwin
 
 darwin-amd64:
 	@echo "Building darwin/amd64..." && \
-	if [[ "$(uname -s)" == "Darwin" ]]; then \
+	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		source setenv.bash && \
 		CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -o lantern_darwin_amd64 -tags="prod" -ldflags="$(LDFLAGS)" github.com/getlantern/flashlight && \
 		echo "-> lantern_darwin_amd64"; \
@@ -207,6 +207,7 @@ remove-tmp-tasks:
 	rm -f .tmp-task-*
 
 clean:
+	rm -f lantern_linux
 	rm -f lantern_darwin_*
 	rm -f lantern_linux_*
 	rm -f lantern_windows_*
