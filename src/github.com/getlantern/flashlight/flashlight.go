@@ -16,6 +16,7 @@ import (
 	"github.com/getlantern/profiling"
 	"github.com/getlantern/systray"
 
+	"github.com/getlantern/flashlight/analytics"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/geolookup"
@@ -191,15 +192,17 @@ func runClientProxy(cfg *config.Config) {
 	}
 
 	logging.Configure(cfg, version, buildDate)
-	settings.Configure(version, buildDate)
+	settings.Configure(cfg, version, buildDate)
 	proxiedsites.Configure(cfg.ProxiedSites)
 
 	if hqfd == nil {
-		log.Errorf("No fronted dialer available, not enabling geolocation or stats")
+		log.Errorf("No fronted dialer available, not enabling geolocation, stats or analytics")
 	} else {
 		hqfdc := hqfd.DirectHttpClient()
 		geolookup.Configure(hqfdc)
 		statserver.Configure(hqfdc)
+		// start GA service
+		analytics.Configure(cfg, false, hqfdc)
 	}
 
 	// Continually poll for config updates and update client accordingly
@@ -257,6 +260,7 @@ func runServerProxy(cfg *config.Config) {
 	}
 
 	srv.Configure(cfg.Server)
+	analytics.Configure(nil, true, nil)
 
 	// Continually poll for config updates and update server accordingly
 	go func() {
