@@ -175,11 +175,12 @@ package-darwin: darwin
 		if [[ -z "$$SVGEXPORT" ]]; then npm install -g svgexport; fi && \
 		rm -rf Lantern.app && \
 		cp -r $$INSTALLER_RESOURCES/Lantern.app_template Lantern.app && \
+		cp -r lantern_darwin_amd64 Lantern.app/Contents/MacOS/lantern && \
 		codesign -s "Developer ID Application: $$PACKAGE_VENDOR" Lantern.app && \
 		rm -rf Lantern.dmg && \
 		sed "s/__VERSION__/$$VERSION/g" $$INSTALLER_RESOURCES/dmgbackground.svg > dmgbackground_versioned.svg && \
 		$$SVGEXPORT dmgbackground_versioned.svg dmgbackground.png 600:400 && \
-		$$APPDMG lantern.dmg.json Lantern.dmg && \
+		$$APPDMG $$INSTALLER_RESOURCES/lantern.dmg.json Lantern.dmg && \
 		mv Lantern.dmg Lantern.dmg.zlib && \
 		hdiutil convert -format UDBZ -o Lantern.dmg Lantern.dmg.zlib && \
 		rm Lantern.dmg.zlib; \
@@ -213,5 +214,8 @@ clean:
 	rm -f lantern_windows_*
 	rm -f *.deb
 	rm -f *.exe
+	rm -f *.app
+	rm -f *.dmg
+	rm -f dmgbackground.png
 
 .PHONY: clean all
