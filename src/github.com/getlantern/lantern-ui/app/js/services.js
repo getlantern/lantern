@@ -77,7 +77,9 @@ angular.module('app.services', [])
 
         if (data.AutoReport) {
             model.settings.autoReport = true;
-            $rootScope.trackPageView();
+            if ($rootScope.lanternWelcomeKey) {
+                $rootScope.trackPageView();
+            }
         }
 
       },

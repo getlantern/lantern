@@ -1,8 +1,8 @@
 'use strict';
 
-app.controller('RootCtrl', ['$scope', '$compile', '$window', '$http', 
+app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$http', 
                'localStorageService', 
-               function($scope, $compile, $window, $http, localStorageService) {
+               function($rootScope, $scope, $compile, $window, $http, localStorageService) {
     $scope.currentModal = 'none';
 
     $scope.loadScript = function(src) {
@@ -32,22 +32,22 @@ app.controller('RootCtrl', ['$scope', '$compile', '$window', '$http',
         $scope.currentModal = val;
     };
 
-    $scope.lanternWelcomeKey = localStorageService.get('lanternWelcomeKey');
+    $rootScope.lanternWelcomeKey = localStorageService.get('lanternWelcomeKey');
 
     $scope.closeModal = function() {
 
         // if it's our first time opening the UI,
         // show the settings modal first immediately followed by
         // the welcome screen
-        if ($scope.currentModal == 'welcome' && !$scope.lanternWelcomeKey) {
-            $scope.lanternWelcomeKey = true;
+        if ($scope.currentModal == 'welcome' && !$rootScope.lanternWelcomeKey) {
+            $rootScope.lanternWelcomeKey = true;
             localStorageService.set('lanternWelcomeKey', true);
         } else {
             $scope.currentModal = 'none';
         }
     };
 
-    if (!$scope.lanternWelcomeKey) {
+    if (!$rootScope.lanternWelcomeKey) {
         $scope.showModal('welcome');
     };
 
