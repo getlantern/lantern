@@ -67,6 +67,7 @@ docker-genassets:
 	fi && \
 	\
 	echo "Generating resources.go." && \
+	rm -f bin/tarfs bin/rsrc && \
 	go install github.com/getlantern/tarfs/tarfs && \
 	echo "// +build prod" > $$DEST && \
 	echo " " >> $$DEST && \
@@ -147,24 +148,24 @@ windows-386:
 	echo "-> lantern_windows_386.exe"
 
 package-linux-386:
-	@echo echo "Generating distribution package for linux/386..." && \
+	@echo "Generating distribution package for linux/386..." && \
 	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" make docker-package-linux-386'
 
 package-linux-amd64:
-	@echo echo "Generating distribution package for linux/amd64..." && \
+	@echo "Generating distribution package for linux/amd64..." && \
 	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" make docker-package-linux-amd64'
 
 package-linux: require-version package-linux-386 package-linux-amd64
 
 package-windows: require-version windows-386
-	@echo echo "Generating distribution package for windows/386..." && \
+	@echo "Generating distribution package for windows/386..." && \
 	if [[ -z "$$SECRETS_DIR" ]]; then echo "SECRETS_DIR environment value is required."; exit 1; fi && \
 	if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
 	docker run -v $$PWD:/flashlight-build -v $$SECRETS_DIR:/secrets -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && BNS_CERT="/secrets/bns_cert.p12" BNS_CERT_PASS="'$$BNS_CERT_PASS'" VERSION="'$$VERSION'" make docker-package-windows' && \
 	echo "-> lantern-installer.exe"
 
 package-darwin: darwin
-	@echo echo "Generating distribution package for darwin/amd64..." && \
+	@echo "Generating distribution package for darwin/amd64..." && \
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		if [[ -z "$(NODE)" ]]; then echo 'Missing "node" command.'; exit 1; fi && \
 		if [[ -z "$(NPM)" ]]; then echo 'Missing "npm" command.'; exit 1; fi && \
@@ -202,7 +203,7 @@ binaries: docker genassets linux-386 linux-amd64 windows-386 darwin-amd64
 
 packages: binaries package-windows package-linux package-darwin
 
-all: binaries packages
+all: packages
 
 remove-tmp-tasks:
 	rm -f .tmp-task-*
@@ -214,7 +215,7 @@ clean:
 	rm -f lantern_windows_*
 	rm -f *.deb
 	rm -f *.exe
-	rm -f *.app
+	rm -rf *.app
 	rm -f *.dmg
 	rm -f dmgbackground.png
 
