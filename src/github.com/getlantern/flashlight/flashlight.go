@@ -57,7 +57,7 @@ func init() {
 }
 
 func main() {
-	flag.Parse()
+	parseFlags()
 	showui = !*headless
 
 	if showui {
@@ -167,6 +167,7 @@ func parseFlags() {
 
 // Runs the client-side proxy
 func runClientProxy(cfg *config.Config) {
+	setProxyAddr(cfg.Addr)
 	err := setUpPacTool()
 	if err != nil {
 		exit(err)
@@ -209,7 +210,7 @@ func runClientProxy(cfg *config.Config) {
 		for {
 			cfg := <-configUpdates
 
-			proxiedsites.Configure(cfg.ProxiedSites, cfg.Addr)
+			proxiedsites.Configure(cfg.ProxiedSites)
 			// Note - we deliberately ignore the error from statreporter.Configure here
 			statreporter.Configure(cfg.Stats)
 			hqfd = client.Configure(cfg.Client)
@@ -221,6 +222,8 @@ func runClientProxy(cfg *config.Config) {
 			}
 		}
 	}()
+
+	watchDirectAddrs()
 
 	go func() {
 		exit(client.ListenAndServe(pacOn))
@@ -243,14 +246,17 @@ func runServerProxy(cfg *config.Config) {
 
 	srv := &server.Server{
 		Addr:         cfg.Addr,
-		Host:         cfg.Server.AdvertisedHost,
 		ReadTimeout:  0, // don't timeout
 		WriteTimeout: 0,
 		CertContext: &fronted.CertContext{
 			PKFile:         pkFile,
 			ServerCertFile: certFile,
 		},
-		AllowedPorts: []int{80, 443, 8080, 8443, 5222},
+		AllowedPorts: []int{80, 443, 8080, 8443, 5222, 5223, 5228},
+
+		// We allow all censored countries plus us, es and mx because we do work
+		// and testing from those countries.
+		AllowedCountries: []string{"US", "ES", "MX", "CN", "VN", "IN", "IQ", "IR", "CU", "SY", "SA", "BH", "ET", "ER", "UZ", "TM", "PK", "TR", "VE"},
 	}
 
 	srv.Configure(cfg.Server)
@@ -265,7 +271,14 @@ func runServerProxy(cfg *config.Config) {
 		}
 	}()
 
-	err = srv.ListenAndServe()
+	err = srv.ListenAndServe(func(update func(*server.ServerConfig) error) {
+		err := config.Update(func(cfg *config.Config) error {
+			return update(cfg.Server)
+		})
+		if err != nil {
+			log.Errorf("Error while trying to update: %v", err)
+		}
+	})
 	if err != nil {
 		log.Fatalf("Unable to run server proxy: %s", err)
 	}

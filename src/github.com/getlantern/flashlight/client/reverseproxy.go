@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/getlantern/balancer"
+	"github.com/getlantern/detour"
 	"github.com/getlantern/flashlight/proxy"
 )
 
@@ -37,7 +38,7 @@ func (client *Client) initReverseProxy(bal *balancer.Balancer, dumpHeaders bool)
 				// challenge is that ReverseProxy reuses connections for
 				// different requests, so we might have to configure different
 				// ReverseProxies for different QOS's or something like that.
-				Dial: bal.Dial,
+				Dial: detour.Dialer(bal.Dial),
 			}),
 		// Set a FlushInterval to prevent overly aggressive buffering of
 		// responses, which helps keep memory usage down

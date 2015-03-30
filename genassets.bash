@@ -1,4 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+function die() {
+  echo $*
+  exit 1
+}
 
 echo "Generating UI resources for embedding"
 
@@ -16,21 +21,21 @@ if [ "$UPDATE_DIST" ]; then
     
     echo "Updating dist folder"
     cd $LANTERN_UI
-    npm install
+    npm install || die "Could not npm install"
     rm -Rf dist
-    gulp build
+    gulp build || die "Could not run gulp!"
     cd -
 else
     echo "Not updating dist folder"
 fi
 
 echo "Generating resources.go"
-go install github.com/getlantern/tarfs/tarfs
+go install github.com/getlantern/tarfs/tarfs || die "Could not install tarfs"
 dest="src/github.com/getlantern/flashlight/ui/resources.go"
 echo "// +build prod" > $dest
 echo " " >> $dest
-tarfs -pkg ui $DIST >> $dest 
+tarfs -pkg ui $DIST >> $dest || die "Could not execute tarfs" 
 
 echo "Now embedding lantern.ico to windows executable"
-go install github.com/akavel/rsrc
-rsrc -ico lantern.ico -o src/github.com/getlantern/flashlight/lantern.syso
+go install github.com/akavel/rsrc || die "Could not install rsrc"
+rsrc -ico lantern.ico -o src/github.com/getlantern/flashlight/lantern.syso || die "Could not execute rsrc"

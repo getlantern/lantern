@@ -1,0 +1,1038 @@
+{
+  "metadata":{
+    "apiVersion":"2014-11-12",
+    "endpointPrefix":"config",
+    "jsonVersion":"1.1",
+    "serviceAbbreviation":"Config Service",
+    "serviceFullName":"AWS Config",
+    "signatureVersion":"v4",
+    "signingName":"config",
+    "targetPrefix":"StarlingDoveService",
+    "protocol":"json"
+  },
+  "documentation":"<fullname>AWS Config</fullname> <p>AWS Config provides a way to keep track of the configurations of all the AWS resources associated with your AWS account. You can use AWS Config to get the current and historical configurations of each AWS resource and also to get information about the relationship between the resources. An AWS resource can be an Amazon Compute Cloud (Amazon EC2) instance, an Elastic Block Store (EBS) volume, an Elastic network Interface (ENI), or a security group. For a complete list of resources currently supported by AWS Config, see <a href=\"http://docs.aws.amazon.com/config/latest/developerguide/config-concepts.html\">Supported AWS Resources</a>.</p> <p>You can access and manage AWS Config through the AWS Management Console, the AWS Command Line Interface (AWS CLI), the AWS Config API, or the AWS SDKs for AWS Config</p> <p>This reference guide contains documentation for the AWS Config API and the AWS CLI commands that you can use to manage AWS Config.</p> <p>The AWS Config API uses the Signature Version 4 protocol for signing requests. For more information about how to sign a request with this protocol, see <a href=\"http://docs.aws.amazon.com/general/latest/gr/signature-version-4.html\">Signature Version 4 Signing Process</a>.</p> <p>For detailed information about AWS Config features and their associated actions or commands, as well as how to work with AWS Management Console, see <a href=\"http://docs.aws.amazon.com/config/latest/developerguide/WhatIsConfig.html\">What Is AWS Config?</a> in the <i>AWS Config Developer Guide</i>.</p>",
+  "operations":{
+    "DeleteDeliveryChannel":{
+      "name":"DeleteDeliveryChannel",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{
+        "shape":"DeleteDeliveryChannelRequest",
+        "documentation":"<p> The input for the <a>DeleteDeliveryChannel</a> action. The action accepts the following data in JSON format. </p>"
+      },
+      "errors":[
+        {
+          "shape":"NoSuchDeliveryChannelException",
+          "exception":true,
+          "documentation":"<p>You have specified a delivery channel that does not exist.</p>"
+        },
+        {
+          "shape":"LastDeliveryChannelDeleteFailedException",
+          "exception":true,
+          "documentation":"<p>You cannot delete the delivery channel you specified because the configuration recorder is running.</p>"
+        }
+      ],
+      "documentation":"<p>Deletes the specified delivery channel.</p> <p>The delivery channel cannot be deleted if it is the only delivery channel and the configuration recorder is still running. To delete the delivery channel, stop the running configuration recorder using the <a>StopConfigurationRecorder</a> action.</p>"
+    },
+    "DeliverConfigSnapshot":{
+      "name":"DeliverConfigSnapshot",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{
+        "shape":"DeliverConfigSnapshotRequest",
+        "documentation":"<p> The input for the <a>DeliverConfigSnapshot</a> action. </p>"
+      },
+      "output":{
+        "shape":"DeliverConfigSnapshotResponse",
+        "documentation":"<p> The output for the <a>DeliverConfigSnapshot</a> action in JSON format. </p>"
+      },
+      "errors":[
+        {
+          "shape":"NoSuchDeliveryChannelException",
+          "exception":true,
+          "documentation":"<p>You have specified a delivery channel that does not exist.</p>"
+        },
+        {
+          "shape":"NoAvailableConfigurationRecorderException",
+          "exception":true,
+          "documentation":"<p>There are no configuration recorders available to provide the role needed to describe your resources.</p>"
+        },
+        {
+          "shape":"NoRunningConfigurationRecorderException",
+          "exception":true,
+          "documentation":"<p>There is no configuration recorder running.</p>"
+        }
+      ],
+      "documentation":"<p>Schedules delivery of a configuration snapshot to the Amazon S3 bucket in the specified delivery channel. After the delivery has started, AWS Config sends following notifications using an Amazon SNS topic that you have specified.</p> <ul> <li>Notification of starting the delivery.</li> <li>Notification of delivery completed, if the delivery was successfully completed.</li> <li>Notification of delivery failure, if the delivery failed to complete.</li> </ul>"
+    },
+    "DescribeConfigurationRecorderStatus":{
+      "name":"DescribeConfigurationRecorderStatus",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{
+        "shape":"DescribeConfigurationRecorderStatusRequest",
+        "documentation":"<p>The input for the <a>DescribeConfigurationRecorderStatus</a> action.</p>"
+      },
+      "output":{
+        "shape":"DescribeConfigurationRecorderStatusResponse",
+        "documentation":"<p>The output for the <a>DescribeConfigurationRecorderStatus</a> action in JSON format.</p>"
+      },
+      "errors":[
+        {
+          "shape":"NoSuchConfigurationRecorderException",
+          "exception":true,
+          "documentation":"<p>You have specified a configuration recorder that does not exist.</p>"
+        }
+      ],
+      "documentation":"<p>Returns the current status of the specified configuration recorder. If a configuration recorder is not specified, this action returns the status of all configuration recorder associated with the account.</p>"
+    },
+    "DescribeConfigurationRecorders":{
+      "name":"DescribeConfigurationRecorders",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{
+        "shape":"DescribeConfigurationRecordersRequest",
+        "documentation":"<p>The input for the <a>DescribeConfigurationRecorders</a> action.</p>"
+      },
+      "output":{
+        "shape":"DescribeConfigurationRecordersResponse",
+        "documentation":"<p>The output for the <a>DescribeConfigurationRecorders</a> action.</p>"
+      },
+      "errors":[
+        {
+          "shape":"NoSuchConfigurationRecorderException",
+          "exception":true,
+          "documentation":"<p>You have specified a configuration recorder that does not exist.</p>"
+        }
+      ],
+      "documentation":"<p>Returns the name of one or more specified configuration recorders. If the recorder name is not specified, this action returns the names of all the configuration recorders associated with the account. </p>"
+    },
+    "DescribeDeliveryChannelStatus":{
+      "name":"DescribeDeliveryChannelStatus",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{
+        "shape":"DescribeDeliveryChannelStatusRequest",
+        "documentation":"<p>The input for the <a>DeliveryChannelStatus</a> action.</p>"
+      },
+      "output":{
+        "shape":"DescribeDeliveryChannelStatusResponse",
+        "documentation":"<p>The output for the <a>DescribeDeliveryChannelStatus</a> action.</p>"
+      },
+      "errors":[
+        {
+          "shape":"NoSuchDeliveryChannelException",
+          "exception":true,
+          "documentation":"<p>You have specified a delivery channel that does not exist.</p>"
+        }
+      ],
+      "documentation":"<p>Returns the current status of the specified delivery channel. If a delivery channel is not specified, this action returns the current status of all delivery channels associated with the account. </p>"
+    },
+    "DescribeDeliveryChannels":{
+      "name":"DescribeDeliveryChannels",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{
+        "shape":"DescribeDeliveryChannelsRequest",
+        "documentation":"<p>The input for the <a>DescribeDeliveryChannels</a> action.</p>"
+      },
+      "output":{
+        "shape":"DescribeDeliveryChannelsResponse",
+        "documentation":"<p>The output for the <a>DescribeDeliveryChannels</a> action.</p>"
+      },
+      "errors":[
+        {
+          "shape":"NoSuchDeliveryChannelException",
+          "exception":true,
+          "documentation":"<p>You have specified a delivery channel that does not exist.</p>"
+        }
+      ],
+      "documentation":"<p>Returns details about the specified delivery channel. If a delivery channel is not specified, this action returns the details of all delivery channels associated with the account. </p>"
+    },
+    "GetResourceConfigHistory":{
+      "name":"GetResourceConfigHistory",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{
+        "shape":"GetResourceConfigHistoryRequest",
+        "documentation":"<p>The input for the <a>GetResourceConfigHistory</a> action.</p>"
+      },
+      "output":{
+        "shape":"GetResourceConfigHistoryResponse",
+        "documentation":"<p>The output for the <a>GetResourceConfigHistory</a> action.</p>"
+      },
+      "errors":[
+        {
+          "shape":"ValidationException",
+          "exception":true,
+          "documentation":"<p>The requested action is not valid.</p>"
+        },
+        {
+          "shape":"InvalidTimeRangeException",
+          "exception":true,
+          "documentation":"<p>The specified time range is not valid. The earlier time is not chronologically before the later time.</p>"
+        },
+        {
+          "shape":"InvalidLimitException",
+          "exception":true,
+          "documentation":"<p>You have reached the limit on the pagination.</p>"
+        },
+        {
+          "shape":"InvalidNextTokenException",
+          "exception":true,
+          "documentation":"<p>The specified nextToken for pagination is not valid.</p>"
+        },
+        {
+          "shape":"NoAvailableConfigurationRecorderException",
+          "exception":true,
+          "documentation":"<p>There are no configuration recorders available to provide the role needed to describe your resources.</p>"
+        },
+        {
+          "shape":"ResourceNotDiscoveredException",
+          "exception":true,
+          "documentation":"<p>You have specified a resource that is either unknown or has not been discovered.</p>"
+        }
+      ],
+      "documentation":"<p>Returns a list of configuration items for the specified resource. The list contains details about each state of the resource during the specified time interval. You can specify a <code>limit</code> on the number of results returned on the page. If a limit is specified, a <code>nextToken</code> is returned as part of the result that you can use to continue this request. </p>"
+    },
+    "PutConfigurationRecorder":{
+      "name":"PutConfigurationRecorder",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{
+        "shape":"PutConfigurationRecorderRequest",
+        "documentation":"<p>The input for the <a>PutConfigurationRecorder</a> action.</p>"
+      },
+      "errors":[
+        {
+          "shape":"MaxNumberOfConfigurationRecordersExceededException",
+          "exception":true,
+          "documentation":"<p>You have reached the limit on the number of recorders you can create.</p>"
+        },
+        {
+          "shape":"InvalidConfigurationRecorderNameException",
+          "exception":true,
+          "documentation":"<p>You have provided a configuration recorder name that is not valid.</p>"
+        },
+        {
+          "shape":"InvalidRoleException",
+          "exception":true,
+          "documentation":"<p>You have provided a null or empty role ARN.</p>"
+        }
+      ],
+      "documentation":"<p>Creates a new configuration recorder to record the resource configurations. </p> <p>You can use this action to change the role (<code>roleARN</code>) of an existing recorder. To change the role, call the action on the existing configuration recorder and specify a role.</p>"
+    },
+    "PutDeliveryChannel":{
+      "name":"PutDeliveryChannel",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{
+        "shape":"PutDeliveryChannelRequest",
+        "documentation":"<p>The input for the <a>PutDeliveryChannel</a> action.</p>"
+      },
+      "errors":[
+        {
+          "shape":"MaxNumberOfDeliveryChannelsExceededException",
+          "exception":true,
+          "documentation":"<p>You have reached the limit on the number of delivery channels you can create.</p>"
+        },
+        {
+          "shape":"NoAvailableConfigurationRecorderException",
+          "exception":true,
+          "documentation":"<p>There are no configuration recorders available to provide the role needed to describe your resources.</p>"
+        },
+        {
+          "shape":"InvalidDeliveryChannelNameException",
+          "exception":true,
+          "documentation":"<p>The specified delivery channel name is not valid.</p>"
+        },
+        {
+          "shape":"NoSuchBucketException",
+          "exception":true,
+          "documentation":"<p>The specified Amazon S3 bucket does not exist.</p>"
+        },
+        {
+          "shape":"InvalidS3KeyPrefixException",
+          "exception":true,
+          "documentation":"<p>The specified Amazon S3 key prefix is not valid.</p>"
+        },
+        {
+          "shape":"InvalidSNSTopicARNException",
+          "exception":true,
+          "documentation":"<p>The specified Amazon SNS topic does not exist.</p>"
+        },
+        {
+          "shape":"InsufficientDeliveryPolicyException",
+          "exception":true,
+          "documentation":"<p>Your Amazon S3 bucket policy does not permit AWS Config to write to it.</p>"
+        }
+      ],
+      "documentation":"<p>Creates a new delivery channel object to deliver the configuration information to an Amazon S3 bucket, and to an Amazon SNS topic. </p> <p>You can use this action to change the Amazon S3 bucket or an Amazon SNS topic of the existing delivery channel. To change the Amazon S3 bucket or an Amazon SNS topic, call this action and specify the changed values for the S3 bucket and the SNS topic. If you specify a different value for either the S3 bucket or the SNS topic, this action will keep the existing value for the parameter that is not changed. </p>"
+    },
+    "StartConfigurationRecorder":{
+      "name":"StartConfigurationRecorder",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{
+        "shape":"StartConfigurationRecorderRequest",
+        "documentation":"<p>The input for the <a>StartConfigurationRecorder</a> action.</p>"
+      },
+      "errors":[
+        {
+          "shape":"NoSuchConfigurationRecorderException",
+          "exception":true,
+          "documentation":"<p>You have specified a configuration recorder that does not exist.</p>"
+        },
+        {
+          "shape":"NoAvailableDeliveryChannelException",
+          "exception":true,
+          "documentation":"<p>There is no delivery channel available to record configurations.</p>"
+        }
+      ],
+      "documentation":"<p>Starts recording configurations of all the resources associated with the account.</p> <p>You must have created at least one delivery channel to successfully start the configuration recorder.</p>"
+    },
+    "StopConfigurationRecorder":{
+      "name":"StopConfigurationRecorder",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{
+        "shape":"StopConfigurationRecorderRequest",
+        "documentation":"<p><p>The input for the <a>StopConfigurationRecorder</a> action.</p></p>"
+      },
+      "errors":[
+        {
+          "shape":"NoSuchConfigurationRecorderException",
+          "exception":true,
+          "documentation":"<p>You have specified a configuration recorder that does not exist.</p>"
+        }
+      ],
+      "documentation":"<p>Stops recording configurations of all the resources associated with the account.</p>"
+    }
+  },
+  "shapes":{
+    "ARN":{"type":"string"},
+    "AccountId":{"type":"string"},
+    "AvailabilityZone":{"type":"string"},
+    "Boolean":{"type":"boolean"},
+    "ChannelName":{
+      "type":"string",
+      "min":1,
+      "max":256
+    },
+    "ChronologicalOrder":{
+      "type":"string",
+      "enum":[
+        "Reverse",
+        "Forward"
+      ]
+    },
+    "ConfigExportDeliveryInfo":{
+      "type":"structure",
+      "members":{
+        "lastStatus":{
+          "shape":"DeliveryStatus",
+          "documentation":"<p>Status of the last attempted delivery.</p>"
+        },
+        "lastErrorCode":{
+          "shape":"String",
+          "documentation":"<p>The error code from the last attempted delivery.</p>"
+        },
+        "lastErrorMessage":{
+          "shape":"String",
+          "documentation":"<p>The error message from the last attempted delivery.</p>"
+        },
+        "lastAttemptTime":{
+          "shape":"Date",
+          "documentation":"<p>The time of the last attempted delivery.</p>"
+        },
+        "lastSuccessfulTime":{
+          "shape":"Date",
+          "documentation":"<p>The time of the last successful delivery.</p>"
+        }
+      },
+      "documentation":"<p>A list that contains the status of the delivery of either the snapshot or the configuration history to the specified Amazon S3 bucket.</p>"
+    },
+    "ConfigStreamDeliveryInfo":{
+      "type":"structure",
+      "members":{
+        "lastStatus":{
+          "shape":"DeliveryStatus",
+          "documentation":"<p>Status of the last attempted delivery.</p>"
+        },
+        "lastErrorCode":{
+          "shape":"String",
+          "documentation":"<p>The error code from the last attempted delivery.</p>"
+        },
+        "lastErrorMessage":{
+          "shape":"String",
+          "documentation":"<p>The error message from the last attempted delivery.</p>"
+        },
+        "lastStatusChangeTime":{
+          "shape":"Date",
+          "documentation":"<p>The time from the last status change.</p>"
+        }
+      },
+      "documentation":"<p>A list that contains the status of the delivery of the configuration stream notification to the Amazon SNS topic. </p>"
+    },
+    "Configuration":{"type":"string"},
+    "ConfigurationItem":{
+      "type":"structure",
+      "members":{
+        "version":{
+          "shape":"Version",
+          "documentation":"<p>The version number of the resource configuration.</p>"
+        },
+        "accountId":{
+          "shape":"AccountId",
+          "documentation":"<p>The 12 digit AWS account ID associated with the resource.</p>"
+        },
+        "configurationItemCaptureTime":{
+          "shape":"ConfigurationItemCaptureTime",
+          "documentation":"<p>The time when the configuration recording was initiated.</p>"
+        },
+        "configurationItemStatus":{
+          "shape":"ConfigurationItemStatus",
+          "documentation":"<p>The configuration item status.</p>"
+        },
+        "configurationStateId":{
+          "shape":"ConfigurationStateId",
+          "documentation":"<p>An identifier that indicates the ordering of the configuration items of a resource.</p>"
+        },
+        "configurationItemMD5Hash":{
+          "shape":"ConfigurationItemMD5Hash",
+          "documentation":"<p>Unique MD5 hash that represents the configuration item's state.</p> <p>You can use MD5 hash to compare the states of two or more configuration items that are associated with the same resource.</p>"
+        },
+        "arn":{
+          "shape":"ARN",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the resource.</p>"
+        },
+        "resourceType":{
+          "shape":"ResourceType",
+          "documentation":"<p>The type of AWS resource.</p>"
+        },
+        "resourceId":{
+          "shape":"ResourceId",
+          "documentation":"<p>The ID of the resource (for example., <code>sg-xxxxxx</code>).</p>"
+        },
+        "availabilityZone":{
+          "shape":"AvailabilityZone",
+          "documentation":"<p>The Availability Zone associated with the resource.</p>"
+        },
+        "resourceCreationTime":{
+          "shape":"ResourceCreationTime",
+          "documentation":"<p>The time stamp when the resource was created. </p>"
+        },
+        "tags":{
+          "shape":"Tags",
+          "documentation":"<p>A mapping of key value tags associated with the resource.</p>"
+        },
+        "relatedEvents":{
+          "shape":"RelatedEventList",
+          "documentation":"<p>A list of CloudTrail event IDs.</p> <p>A populated field indicates that the current configuration was initiated by the events recorded in the CloudTrail log. For more information about CloudTrail, see <a href=\"http://docs.aws.amazon.com/awscloudtrail/latest/userguide/what_is_cloud_trail_top_level.html\">What is AWS CloudTrail?</a>.</p> <p>An empty field indicates that the current configuration was not initiated by any event.</p>"
+        },
+        "relationships":{
+          "shape":"RelationshipList",
+          "documentation":"<p>A list of related AWS resources.</p>"
+        },
+        "configuration":{
+          "shape":"Configuration",
+          "documentation":"<p>The description of the resource configuration.</p>"
+        }
+      },
+      "documentation":"<p>A list that contains detailed configurations of a specified resource.</p>"
+    },
+    "ConfigurationItemCaptureTime":{"type":"timestamp"},
+    "ConfigurationItemList":{
+      "type":"list",
+      "member":{"shape":"ConfigurationItem"}
+    },
+    "ConfigurationItemMD5Hash":{"type":"string"},
+    "ConfigurationItemStatus":{
+      "type":"string",
+      "enum":[
+        "Ok",
+        "Failed",
+        "Discovered",
+        "Deleted"
+      ]
+    },
+    "ConfigurationRecorder":{
+      "type":"structure",
+      "members":{
+        "name":{
+          "shape":"RecorderName",
+          "documentation":"<p>The name of the recorder. By default, AWS Config automatically assigns the name \"default\" when creating the configuration recorder. You cannot change the assigned name.</p>"
+        },
+        "roleARN":{
+          "shape":"String",
+          "documentation":"<p>Amazon Resource Name (ARN) of the IAM role used to describe the AWS resources associated with the account.</p>"
+        }
+      },
+      "documentation":"<p>An object that represents the recording of configuration changes of an AWS resource.</p>"
+    },
+    "ConfigurationRecorderList":{
+      "type":"list",
+      "member":{"shape":"ConfigurationRecorder"}
+    },
+    "ConfigurationRecorderNameList":{
+      "type":"list",
+      "member":{"shape":"RecorderName"}
+    },
+    "ConfigurationRecorderStatus":{
+      "type":"structure",
+      "members":{
+        "name":{
+          "shape":"String",
+          "documentation":"<p>The name of the configuration recorder.</p>"
+        },
+        "lastStartTime":{
+          "shape":"Date",
+          "documentation":"<p>The time the recorder was last started.</p>"
+        },
+        "lastStopTime":{
+          "shape":"Date",
+          "documentation":"<p>The time the recorder was last stopped.</p>"
+        },
+        "recording":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether the recorder is currently recording or not.</p>"
+        },
+        "lastStatus":{
+          "shape":"RecorderStatus",
+          "documentation":"<p>The last (previous) status of the recorder.</p>"
+        },
+        "lastErrorCode":{
+          "shape":"String",
+          "documentation":"<p>The error code indicating that the recording failed.</p>"
+        },
+        "lastErrorMessage":{
+          "shape":"String",
+          "documentation":"<p>The message indicating that the recording failed due to an error.</p>"
+        },
+        "lastStatusChangeTime":{
+          "shape":"Date",
+          "documentation":"<p>The time when the status was last changed.</p>"
+        }
+      },
+      "documentation":"<p>The current status of the configuration recorder.</p>"
+    },
+    "ConfigurationRecorderStatusList":{
+      "type":"list",
+      "member":{"shape":"ConfigurationRecorderStatus"}
+    },
+    "ConfigurationStateId":{"type":"string"},
+    "Date":{"type":"timestamp"},
+    "DeleteDeliveryChannelRequest":{
+      "type":"structure",
+      "required":["DeliveryChannelName"],
+      "members":{
+        "DeliveryChannelName":{
+          "shape":"ChannelName",
+          "documentation":"<p>The name of the delivery channel to delete.</p>"
+        }
+      },
+      "documentation":"<p> The input for the <a>DeleteDeliveryChannel</a> action. The action accepts the following data in JSON format. </p>"
+    },
+    "DeliverConfigSnapshotRequest":{
+      "type":"structure",
+      "required":["deliveryChannelName"],
+      "members":{
+        "deliveryChannelName":{
+          "shape":"ChannelName",
+          "documentation":"<p>The name of the delivery channel through which the snapshot is delivered.</p>"
+        }
+      },
+      "documentation":"<p> The input for the <a>DeliverConfigSnapshot</a> action. </p>"
+    },
+    "DeliverConfigSnapshotResponse":{
+      "type":"structure",
+      "members":{
+        "configSnapshotId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the snapshot that is being created.</p>"
+        }
+      },
+      "documentation":"<p> The output for the <a>DeliverConfigSnapshot</a> action in JSON format. </p>"
+    },
+    "DeliveryChannel":{
+      "type":"structure",
+      "members":{
+        "name":{
+          "shape":"ChannelName",
+          "documentation":"<p>The name of the delivery channel. By default, AWS Config automatically assigns the name \"default\" when creating the delivery channel. You cannot change the assigned name. </p>"
+        },
+        "s3BucketName":{
+          "shape":"String",
+          "documentation":"<p>The name of the Amazon S3 bucket used to store configuration history for the delivery channel.</p>"
+        },
+        "s3KeyPrefix":{
+          "shape":"String",
+          "documentation":"<p>The prefix for the specified Amazon S3 bucket.</p>"
+        },
+        "snsTopicARN":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role used for accessing the Amazon S3 bucket and the Amazon SNS topic.</p>"
+        }
+      },
+      "documentation":"<p>A logical container used for storing the configuration changes of an AWS resource.</p>"
+    },
+    "DeliveryChannelList":{
+      "type":"list",
+      "member":{"shape":"DeliveryChannel"}
+    },
+    "DeliveryChannelNameList":{
+      "type":"list",
+      "member":{"shape":"ChannelName"}
+    },
+    "DeliveryChannelStatus":{
+      "type":"structure",
+      "members":{
+        "name":{
+          "shape":"String",
+          "documentation":"<p>The name of the delivery channel.</p>"
+        },
+        "configSnapshotDeliveryInfo":{
+          "shape":"ConfigExportDeliveryInfo",
+          "documentation":"<p>A list containing the status of the delivery of the snapshot to the specified Amazon S3 bucket.</p>"
+        },
+        "configHistoryDeliveryInfo":{
+          "shape":"ConfigExportDeliveryInfo",
+          "documentation":"<p>A list that contains the status of the delivery of the configuration history to the specified Amazon S3 bucket.</p>"
+        },
+        "configStreamDeliveryInfo":{
+          "shape":"ConfigStreamDeliveryInfo",
+          "documentation":"<p>A list containing the status of the delivery of the configuration stream notification to the specified Amazon SNS topic.</p>"
+        }
+      },
+      "documentation":"<p>The status of a specified delivery channel.</p> <p>Valid values: <code>Success</code> | <code>Failure</code></p>"
+    },
+    "DeliveryChannelStatusList":{
+      "type":"list",
+      "member":{"shape":"DeliveryChannelStatus"}
+    },
+    "DeliveryStatus":{
+      "type":"string",
+      "enum":[
+        "Success",
+        "Failure"
+      ]
+    },
+    "DescribeConfigurationRecorderStatusRequest":{
+      "type":"structure",
+      "members":{
+        "ConfigurationRecorderNames":{
+          "shape":"ConfigurationRecorderNameList",
+          "documentation":"<p>The name(s) of the configuration recorder. If the name is not specified, the action returns the current status of all the configuration recorders associated with the account. </p>"
+        }
+      },
+      "documentation":"<p>The input for the <a>DescribeConfigurationRecorderStatus</a> action.</p>"
+    },
+    "DescribeConfigurationRecorderStatusResponse":{
+      "type":"structure",
+      "members":{
+        "ConfigurationRecordersStatus":{
+          "shape":"ConfigurationRecorderStatusList",
+          "documentation":"<p> A list that contains status of the specified recorders. </p>"
+        }
+      },
+      "documentation":"<p>The output for the <a>DescribeConfigurationRecorderStatus</a> action in JSON format.</p>"
+    },
+    "DescribeConfigurationRecordersRequest":{
+      "type":"structure",
+      "members":{
+        "ConfigurationRecorderNames":{
+          "shape":"ConfigurationRecorderNameList",
+          "documentation":"<p>A list of configuration recorder names.</p>"
+        }
+      },
+      "documentation":"<p>The input for the <a>DescribeConfigurationRecorders</a> action.</p>"
+    },
+    "DescribeConfigurationRecordersResponse":{
+      "type":"structure",
+      "members":{
+        "ConfigurationRecorders":{
+          "shape":"ConfigurationRecorderList",
+          "documentation":"<p>A list that contains the descriptions of the specified configuration recorders.</p>"
+        }
+      },
+      "documentation":"<p>The output for the <a>DescribeConfigurationRecorders</a> action.</p>"
+    },
+    "DescribeDeliveryChannelStatusRequest":{
+      "type":"structure",
+      "members":{
+        "DeliveryChannelNames":{
+          "shape":"DeliveryChannelNameList",
+          "documentation":"<p>A list of delivery channel names.</p>"
+        }
+      },
+      "documentation":"<p>The input for the <a>DeliveryChannelStatus</a> action.</p>"
+    },
+    "DescribeDeliveryChannelStatusResponse":{
+      "type":"structure",
+      "members":{
+        "DeliveryChannelsStatus":{
+          "shape":"DeliveryChannelStatusList",
+          "documentation":"<p>A list that contains the status of a specified delivery channel.</p>"
+        }
+      },
+      "documentation":"<p>The output for the <a>DescribeDeliveryChannelStatus</a> action.</p>"
+    },
+    "DescribeDeliveryChannelsRequest":{
+      "type":"structure",
+      "members":{
+        "DeliveryChannelNames":{
+          "shape":"DeliveryChannelNameList",
+          "documentation":"<p>A list of delivery channel names.</p>"
+        }
+      },
+      "documentation":"<p>The input for the <a>DescribeDeliveryChannels</a> action.</p>"
+    },
+    "DescribeDeliveryChannelsResponse":{
+      "type":"structure",
+      "members":{
+        "DeliveryChannels":{
+          "shape":"DeliveryChannelList",
+          "documentation":"<p>A list that contains the descriptions of the specified delivery channel.</p>"
+        }
+      },
+      "documentation":"<p>The output for the <a>DescribeDeliveryChannels</a> action.</p>"
+    },
+    "EarlierTime":{"type":"timestamp"},
+    "GetResourceConfigHistoryRequest":{
+      "type":"structure",
+      "required":[
+        "resourceType",
+        "resourceId"
+      ],
+      "members":{
+        "resourceType":{
+          "shape":"ResourceType",
+          "documentation":"<p>The resource type.</p>"
+        },
+        "resourceId":{
+          "shape":"ResourceId",
+          "documentation":"<p>The ID of the resource (for example., <code>sg-xxxxxx</code>).</p>"
+        },
+        "laterTime":{
+          "shape":"LaterTime",
+          "documentation":"<p>The time stamp that indicates a later time. If not specified, current time is taken.</p>"
+        },
+        "earlierTime":{
+          "shape":"EarlierTime",
+          "documentation":"<p>The time stamp that indicates an earlier time. If not specified, the action returns paginated results that contain configuration items that start from when the first configuration item was recorded.</p>"
+        },
+        "chronologicalOrder":{
+          "shape":"ChronologicalOrder",
+          "documentation":"<p>The chronological order for configuration items listed. By default the results are listed in reverse chronological order.</p>"
+        },
+        "limit":{
+          "shape":"Limit",
+          "documentation":"<p>The maximum number of configuration items returned in each page. The default is 10. You cannot specify a limit greater than 100.</p>"
+        },
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>An optional parameter used for pagination of the results. </p>"
+        }
+      },
+      "documentation":"<p>The input for the <a>GetResourceConfigHistory</a> action.</p>"
+    },
+    "GetResourceConfigHistoryResponse":{
+      "type":"structure",
+      "members":{
+        "configurationItems":{
+          "shape":"ConfigurationItemList",
+          "documentation":"<p>A list that contains the configuration history of one or more resources.</p>"
+        },
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>A token used for pagination of results. </p>"
+        }
+      },
+      "documentation":"<p>The output for the <a>GetResourceConfigHistory</a> action.</p>"
+    },
+    "InsufficientDeliveryPolicyException":{
+      "type":"structure",
+      "members":{
+      },
+      "exception":true,
+      "documentation":"<p>Your Amazon S3 bucket policy does not permit AWS Config to write to it.</p>"
+    },
+    "InvalidConfigurationRecorderNameException":{
+      "type":"structure",
+      "members":{
+      },
+      "exception":true,
+      "documentation":"<p>You have provided a configuration recorder name that is not valid.</p>"
+    },
+    "InvalidDeliveryChannelNameException":{
+      "type":"structure",
+      "members":{
+      },
+      "exception":true,
+      "documentation":"<p>The specified delivery channel name is not valid.</p>"
+    },
+    "InvalidLimitException":{
+      "type":"structure",
+      "members":{
+      },
+      "exception":true,
+      "documentation":"<p>You have reached the limit on the pagination.</p>"
+    },
+    "InvalidNextTokenException":{
+      "type":"structure",
+      "members":{
+      },
+      "exception":true,
+      "documentation":"<p>The specified nextToken for pagination is not valid.</p>"
+    },
+    "InvalidRoleException":{
+      "type":"structure",
+      "members":{
+      },
+      "exception":true,
+      "documentation":"<p>You have provided a null or empty role ARN.</p>"
+    },
+    "InvalidS3KeyPrefixException":{
+      "type":"structure",
+      "members":{
+      },
+      "exception":true,
+      "documentation":"<p>The specified Amazon S3 key prefix is not valid.</p>"
+    },
+    "InvalidSNSTopicARNException":{
+      "type":"structure",
+      "members":{
+      },
+      "exception":true,
+      "documentation":"<p>The specified Amazon SNS topic does not exist.</p>"
+    },
+    "InvalidTimeRangeException":{
+      "type":"structure",
+      "members":{
+      },
+      "exception":true,
+      "documentation":"<p>The specified time range is not valid. The earlier time is not chronologically before the later time.</p>"
+    },
+    "LastDeliveryChannelDeleteFailedException":{
+      "type":"structure",
+      "members":{
+      },
+      "exception":true,
+      "documentation":"<p>You cannot delete the delivery channel you specified because the configuration recorder is running.</p>"
+    },
+    "LaterTime":{"type":"timestamp"},
+    "Limit":{
+      "type":"integer",
+      "min":0,
+      "max":100
+    },
+    "MaxNumberOfConfigurationRecordersExceededException":{
+      "type":"structure",
+      "members":{
+      },
+      "exception":true,
+      "documentation":"<p>You have reached the limit on the number of recorders you can create.</p>"
+    },
+    "MaxNumberOfDeliveryChannelsExceededException":{
+      "type":"structure",
+      "members":{
+      },
+      "exception":true,
+      "documentation":"<p>You have reached the limit on the number of delivery channels you can create.</p>"
+    },
+    "Name":{"type":"string"},
+    "NextToken":{"type":"string"},
+    "NoAvailableConfigurationRecorderException":{
+      "type":"structure",
+      "members":{
+      },
+      "exception":true,
+      "documentation":"<p>There are no configuration recorders available to provide the role needed to describe your resources.</p>"
+    },
+    "NoAvailableDeliveryChannelException":{
+      "type":"structure",
+      "members":{
+      },
+      "exception":true,
+      "documentation":"<p>There is no delivery channel available to record configurations.</p>"
+    },
+    "NoRunningConfigurationRecorderException":{
+      "type":"structure",
+      "members":{
+      },
+      "exception":true,
+      "documentation":"<p>There is no configuration recorder running.</p>"
+    },
+    "NoSuchBucketException":{
+      "type":"structure",
+      "members":{
+      },
+      "exception":true,
+      "documentation":"<p>The specified Amazon S3 bucket does not exist.</p>"
+    },
+    "NoSuchConfigurationRecorderException":{
+      "type":"structure",
+      "members":{
+      },
+      "exception":true,
+      "documentation":"<p>You have specified a configuration recorder that does not exist.</p>"
+    },
+    "NoSuchDeliveryChannelException":{
+      "type":"structure",
+      "members":{
+      },
+      "exception":true,
+      "documentation":"<p>You have specified a delivery channel that does not exist.</p>"
+    },
+    "PutConfigurationRecorderRequest":{
+      "type":"structure",
+      "required":["ConfigurationRecorder"],
+      "members":{
+        "ConfigurationRecorder":{
+          "shape":"ConfigurationRecorder",
+          "documentation":"<p>The configuration recorder object that records each configuration change made to the resources.</p>"
+        }
+      },
+      "documentation":"<p>The input for the <a>PutConfigurationRecorder</a> action.</p>"
+    },
+    "PutDeliveryChannelRequest":{
+      "type":"structure",
+      "required":["DeliveryChannel"],
+      "members":{
+        "DeliveryChannel":{
+          "shape":"DeliveryChannel",
+          "documentation":"<p>The configuration delivery channel object that delivers the configuration information to an Amazon S3 bucket, and to an Amazon SNS topic.</p>"
+        }
+      },
+      "documentation":"<p>The input for the <a>PutDeliveryChannel</a> action.</p>"
+    },
+    "RecorderName":{
+      "type":"string",
+      "min":1,
+      "max":256
+    },
+    "RecorderStatus":{
+      "type":"string",
+      "enum":[
+        "Pending",
+        "Success",
+        "Failure"
+      ]
+    },
+    "RelatedEvent":{"type":"string"},
+    "RelatedEventList":{
+      "type":"list",
+      "member":{"shape":"RelatedEvent"}
+    },
+    "Relationship":{
+      "type":"structure",
+      "members":{
+        "resourceType":{
+          "shape":"ResourceType",
+          "documentation":"<p>The resource type of the related resource.</p>"
+        },
+        "resourceId":{
+          "shape":"ResourceId",
+          "documentation":"<p>The resource ID of the related resource (for example, <code>sg-xxxxxx</code>.</p>"
+        },
+        "relationshipName":{
+          "shape":"RelationshipName",
+          "documentation":"<p>The name of the related resource.</p>"
+        }
+      },
+      "documentation":"<p>The relationship of the related resource to the main resource.</p>"
+    },
+    "RelationshipList":{
+      "type":"list",
+      "member":{"shape":"Relationship"}
+    },
+    "RelationshipName":{"type":"string"},
+    "ResourceCreationTime":{"type":"timestamp"},
+    "ResourceId":{"type":"string"},
+    "ResourceNotDiscoveredException":{
+      "type":"structure",
+      "members":{
+      },
+      "exception":true,
+      "documentation":"<p>You have specified a resource that is either unknown or has not been discovered.</p>"
+    },
+    "ResourceType":{
+      "type":"string",
+      "enum":[
+        "AWS::EC2::CustomerGateway",
+        "AWS::EC2::EIP",
+        "AWS::EC2::Instance",
+        "AWS::EC2::InternetGateway",
+        "AWS::EC2::NetworkAcl",
+        "AWS::EC2::NetworkInterface",
+        "AWS::EC2::RouteTable",
+        "AWS::EC2::SecurityGroup",
+        "AWS::EC2::Subnet",
+        "AWS::CloudTrail::Trail",
+        "AWS::EC2::Volume",
+        "AWS::EC2::VPC",
+        "AWS::EC2::VPNConnection",
+        "AWS::EC2::VPNGateway"
+      ]
+    },
+    "StartConfigurationRecorderRequest":{
+      "type":"structure",
+      "required":["ConfigurationRecorderName"],
+      "members":{
+        "ConfigurationRecorderName":{
+          "shape":"RecorderName",
+          "documentation":"<p>The name of the recorder object that records each configuration change made to the resources.</p>"
+        }
+      },
+      "documentation":"<p>The input for the <a>StartConfigurationRecorder</a> action.</p>"
+    },
+    "StopConfigurationRecorderRequest":{
+      "type":"structure",
+      "required":["ConfigurationRecorderName"],
+      "members":{
+        "ConfigurationRecorderName":{
+          "shape":"RecorderName",
+          "documentation":"<p>The name of the recorder object that records each configuration change made to the resources.</p>"
+        }
+      },
+      "documentation":"<p><p>The input for the <a>StopConfigurationRecorder</a> action.</p></p>"
+    },
+    "String":{"type":"string"},
+    "Tags":{
+      "type":"map",
+      "key":{"shape":"Name"},
+      "value":{"shape":"Value"}
+    },
+    "ValidationException":{
+      "type":"structure",
+      "members":{
+      },
+      "exception":true,
+      "documentation":"<p>The requested action is not valid.</p>"
+    },
+    "Value":{"type":"string"},
+    "Version":{"type":"string"}
+  }
+}

@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strconv"
+	"strings"
 	"sync/atomic"
 )
 
@@ -79,7 +80,17 @@ func LoggerFor(prefix string) Logger {
 	l := &logger{
 		prefix: prefix + ": ",
 	}
-	l.traceOn, _ = strconv.ParseBool(os.Getenv("TRACE"))
+	trace := os.Getenv("TRACE")
+	l.traceOn, _ = strconv.ParseBool(trace)
+	if !l.traceOn {
+		prefixes := strings.Split(trace, ",")
+		for _, p := range prefixes {
+			if prefix == strings.Trim(p, " ") {
+				l.traceOn = true
+				break
+			}
+		}
+	}
 	if l.traceOn {
 		l.traceOut = l.newTraceWriter()
 	} else {
