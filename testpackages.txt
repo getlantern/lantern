@@ -1,11 +1,11 @@
 github.com/getlantern/appdir
-github.com/getlantern/analytics
 github.com/getlantern/balancer
 github.com/getlantern/buuid
 github.com/getlantern/bytecounting
 github.com/getlantern/byteexec
 github.com/getlantern/chained
 github.com/getlantern/connpool
+github.com/getlantern/detour
 github.com/getlantern/deepcopy
 github.com/getlantern/enproxy
 github.com/getlantern/fdcount
@@ -27,5 +27,7 @@ github.com/getlantern/yamlconf
 github.com/getlantern/flashlight/logging
 github.com/getlantern/flashlight/statreporter
 github.com/getlantern/flashlight
-github.com/getlantern/peerscanner/cf
+github.com/getlantern/peerscanner/cfl
+github.com/getlantern/peerscanner/cfr
+github.com/getlantern/peerscanner/dsp
 github.com/getlantern/proxiedsites

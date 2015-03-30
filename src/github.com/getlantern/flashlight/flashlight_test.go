@@ -17,6 +17,7 @@ import (
 	"github.com/getlantern/fronted"
 
 	"github.com/getlantern/flashlight/client"
+	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/server"
 )
@@ -87,7 +88,14 @@ func TestCloudFlare(t *testing.T) {
 	}
 	srv.Configure(&server.ServerConfig{})
 	go func() {
-		err := srv.ListenAndServe()
+		err := srv.ListenAndServe(func(update func(*server.ServerConfig) error) {
+			err := config.Update(func(cfg *config.Config) error {
+				return update(cfg.Server)
+			})
+			if err != nil {
+				log.Errorf("Error while trying to update: %v", err)
+			}
+		})
 		if err != nil {
 			t.Fatalf("Unable to run server: %s", err)
 		}

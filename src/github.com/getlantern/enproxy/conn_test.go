@@ -36,12 +36,20 @@ var (
 	statMutex     sync.Mutex
 )
 
-func TestPlainTextStreaming(t *testing.T) {
-	doTestPlainText(false, t)
+func TestPlainTextStreamingNoHostFn(t *testing.T) {
+	doTestPlainText(false, false, t)
 }
 
-func TestPlainTextBuffered(t *testing.T) {
-	doTestPlainText(true, t)
+func TestPlainTextBufferedNoHostFn(t *testing.T) {
+	doTestPlainText(true, false, t)
+}
+
+func TestPlainTextStreamingHostFn(t *testing.T) {
+	doTestPlainText(false, true, t)
+}
+
+func TestPlainTextBufferedHostFn(t *testing.T) {
+	doTestPlainText(true, true, t)
 }
 
 func TestTLSStreaming(t *testing.T) {
@@ -84,7 +92,7 @@ func TestIdle(t *testing.T) {
 // This test stimulates a connection leak as seen in
 // https://github.com/getlantern/lantern/issues/2174.
 func TestHTTPRedirect(t *testing.T) {
-	startProxy(t)
+	startProxy(t, false)
 
 	client := &http.Client{
 		Transport: &http.Transport{
@@ -113,11 +121,11 @@ func TestHTTPRedirect(t *testing.T) {
 	assert.NoError(t, counter.AssertDelta(2), "All file descriptors except the connection from proxy to destination site should have been closed")
 }
 
-func doTestPlainText(buffered bool, t *testing.T) {
+func doTestPlainText(buffered bool, useHostFn bool, t *testing.T) {
 	var counter *fdcount.Counter
 	var err error
 
-	startServers(t)
+	startServers(t, useHostFn)
 
 	err = fdcount.WaitUntilNoneMatch("CLOSE_WAIT", 5*time.Second)
 	if err != nil {
@@ -151,7 +159,7 @@ func doTestPlainText(buffered bool, t *testing.T) {
 
 	doRequests(conn, t)
 
-	assert.Equal(t, 166, bytesReceived, "Wrong number of bytes received")
+	assert.Equal(t, 208, bytesReceived, "Wrong number of bytes received")
 	assert.Equal(t, 284, bytesSent, "Wrong number of bytes sent")
 	assert.True(t, destsSent[httpAddr], "http address wasn't recorded as sent destination")
 	assert.True(t, destsReceived[httpAddr], "http address wasn't recorded as received destination")
@@ -163,7 +171,7 @@ func doTestPlainText(buffered bool, t *testing.T) {
 }
 
 func doTestTLS(buffered bool, t *testing.T) {
-	startServers(t)
+	startServers(t, false)
 
 	_, counter, err := fdcount.Matching("TCP")
 	if err != nil {
@@ -199,7 +207,7 @@ func doTestTLS(buffered bool, t *testing.T) {
 }
 
 func doTestBad(buffered bool, t *testing.T) {
-	startServers(t)
+	startServers(t, false)
 
 	conn, err := prepareConn(httpAddr, buffered, true, t, nil)
 	if err == nil {
@@ -240,6 +248,7 @@ func doRequests(conn net.Conn, t *testing.T) {
 
 func makeRequest(conn net.Conn, t *testing.T) *http.Request {
 	req, err := http.NewRequest("GET", "http://www.google.com/humans.txt", nil)
+	req.Header.Add("Testcdn", "Of course!")
 	if err != nil {
 		t.Fatalf("Unable to create request: %s", err)
 	}
@@ -270,13 +279,13 @@ func readResponse(conn net.Conn, req *http.Request, t *testing.T) {
 	assert.Contains(t, text, TEXT, "Wrong text returned from server")
 }
 
-func startServers(t *testing.T) {
+func startServers(t *testing.T, useHostFn bool) {
 	startHttpServer(t)
 	startHttpsServer(t)
-	startProxy(t)
+	startProxy(t, useHostFn)
 }
 
-func startProxy(t *testing.T) {
+func startProxy(t *testing.T, useHostFn bool) {
 	if proxyAddr != "" {
 		statMutex.Lock()
 		bytesReceived = 0
@@ -293,6 +302,20 @@ func startProxy(t *testing.T) {
 	}
 	proxyAddr = l.Addr().String()
 
+	var host string
+	var hostFn func(*http.Request) string
+
+	if useHostFn {
+		hostFn = func(req *http.Request) string {
+			if _, found := req.Header["Testcdn"]; found {
+				return "localhost"
+			} else {
+				return ""
+			}
+		}
+	} else {
+		host = "localhost"
+	}
 	go func() {
 		proxy := &Proxy{
 			OnBytesReceived: func(clientIp string, destAddr string, req *http.Request, bytes int64) {
@@ -307,7 +330,8 @@ func startProxy(t *testing.T) {
 				destsSent[destAddr] = true
 				statMutex.Unlock()
 			},
-			Host: "localhost",
+			Host:   host,
+			HostFn: hostFn,
 		}
 		err := proxy.Serve(l)
 		if err != nil {

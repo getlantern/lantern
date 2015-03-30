@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/getlantern/enproxy"
@@ -44,13 +43,18 @@ type Server struct {
 	// Host: FQDN that is guaranteed to hit this server
 	Host string
 
+	// HostFn: Function mapping a http.Request to the FQDN of this particular
+	// server, hopefully using the same front as the original request
+	HostFn func(*http.Request) string
+
 	// AllowNonGlobalDestinations: if false, requests to LAN, Loopback, etc.
 	// will be disallowed.
 	AllowNonGlobalDestinations bool
 
-	// AllowedPorts: if specified, only connections to ports listed in this
-	// slice will be allowed.
-	AllowedPorts []int
+	// Allow: Optional function that checks whether the given request to the
+	// given destAddr is allowed.  If it is not allowed, this function should
+	// return an error.
+	Allow func(req *http.Request, destAddr string) error
 
 	// OnBytesSent: optional callback for learning about bytes sent by this
 	// server to upstream destinations.
@@ -135,8 +139,26 @@ func (server *Server) Serve(l net.Listener) error {
 	proxy := &enproxy.Proxy{
 		Dial:            server.dialDestination,
 		Host:            server.Host,
+		HostFn:          server.HostFn,
 		OnBytesReceived: server.OnBytesReceived,
 		OnBytesSent:     server.OnBytesSent,
+	}
+
+	if server.AllowNonGlobalDestinations {
+		proxy.Allow = server.Allow
+	} else {
+		proxy.Allow = func(req *http.Request, destAddr string) error {
+			err := server.checkForNonGlobalDestination(destAddr)
+			if err != nil {
+				return err
+			}
+
+			if server.Allow != nil {
+				return server.Allow(req, destAddr)
+			}
+
+			return nil
+		}
 	}
 
 	proxy.Start()
@@ -155,22 +177,6 @@ func (server *Server) Serve(l net.Listener) error {
 // dialDestination dials the destination server and wraps the resulting net.Conn
 // in a countingConn if an InstanceId was configured.
 func (server *Server) dialDestination(addr string) (net.Conn, error) {
-	if !server.AllowNonGlobalDestinations {
-		err := server.checkForNonGlobalDestination(addr)
-		if err != nil {
-			log.Error(err.Error())
-			return nil, err
-		}
-	}
-
-	if server.AllowedPorts != nil {
-		err := server.checkForDisallowedPort(addr)
-		if err != nil {
-			log.Error(err.Error())
-			return nil, err
-		}
-	}
-
 	return net.DialTimeout("tcp", addr, dialTimeout)
 }
 
@@ -187,32 +193,6 @@ func (server *Server) checkForNonGlobalDestination(addr string) error {
 
 	if !ipAddr.IP.IsGlobalUnicast() {
 		return fmt.Errorf("Not accepting connections to non-global address: %s", addr)
-	}
-
-	return nil
-}
-
-func (server *Server) checkForDisallowedPort(addr string) error {
-	_, portString, err := net.SplitHostPort(addr)
-	if err != nil {
-		return fmt.Errorf("Unable to split host and port for %v: %v", addr, err)
-	}
-
-	port, err := strconv.Atoi(portString)
-	if err != nil {
-		return fmt.Errorf("Unable to convert port %v to integer: %v", portString, err)
-	}
-
-	portAllowed := false
-	for _, allowed := range server.AllowedPorts {
-		if port == allowed {
-			portAllowed = true
-			break
-		}
-	}
-
-	if !portAllowed {
-		return fmt.Errorf("Not accepting connections to port %v", port)
 	}
 
 	return nil

@@ -34,12 +34,6 @@
   </div>
 
   <div id="global-nav" class="btn-group" dir="ltr">
-    <button type="button" class="btn btn-large btn-inverse"
-            ng-click="showModal('settings')"
-            ng-class="{active: model.modal == MODAL.settings}"
-            tooltip="{{ 'SETTINGS' | translate }}">
-      <i class="lsf-icon lsf-gear"></i>
-    </button>
   </div>
   <div id="npending" ng-show="nfriendSuggestions" class="badge badge-important">{{ nfriendSuggestions | badgeCount }}</div>
 </div>

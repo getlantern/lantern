@@ -51,13 +51,12 @@ type Config struct {
 	Country       string
 	CpuProfile    string
 	MemProfile    string
-	UIAddr        string // UI HTTP server address
-	AutoReport    *bool  // Report anonymous usage to GA
 	Stats         *statreporter.Config
 	Server        *server.ServerConfig
 	Client        *client.ClientConfig
 	ProxiedSites  *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
 	TrustedCAs    []*CA
+	UIAddr        string // UI HTTP server address
 }
 
 // CA represents a certificate authority
@@ -209,7 +208,7 @@ func (cfg *Config) ApplyDefaults() {
 	}
 
 	if cfg.CloudConfig == "" {
-		cfg.CloudConfig = "https://s3.amazonaws.com/lantern_config/cloud.valencia.yaml.gz"
+		cfg.CloudConfig = "https://s3.amazonaws.com/lantern_config/cloud.2.0.0-beta3.yaml.gz"
 	}
 
 	// Default country
@@ -281,11 +280,6 @@ func (cfg *Config) applyClientDefaults() {
 		for key, fb := range fallbacks {
 			cfg.Client.ChainedServers[key] = fb
 		}
-	}
-
-	if cfg.AutoReport == nil {
-		cfg.AutoReport = new(bool)
-		*cfg.AutoReport = true
 	}
 
 	// Make sure all servers have a QOS and Weight configured
