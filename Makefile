@@ -45,6 +45,8 @@ define fpm-debian-build =
 	fpm -a $$PKG_ARCH -s dir -t deb -n lantern -v $$VERSION -m "$(PACKAGE_MAINTAINER)" --description "$(LANTERN_DESCRIPTION)\n$(LANTERN_EXTENDED_DESCRIPTION)" --category net --license "Apache-2.0" --vendor "$(PACKAGE_VENDOR)" --url $(PACKAGE_URL) --deb-compression xz -f -C $$WORKDIR usr;
 endef
 
+all: clean packages
+
 # This is to be called within the docker image.
 docker-genassets:
 	@source setenv.bash && \
@@ -56,23 +58,18 @@ docker-genassets:
 	DEST="src/github.com/getlantern/flashlight/ui/resources.go" && \
 	\
 	if [ "$$UPDATE_DIST" ]; then \
-			echo "Updating dist folder" && \
 			cd $$LANTERN_UI && \
 			npm install && \
 			rm -Rf dist && \
 			gulp build && \
 			cd -; \
-	else \
-			echo "Not updating dist folder."; \
 	fi && \
 	\
-	echo "Generating resources.go." && \
 	rm -f bin/tarfs bin/rsrc && \
 	go install github.com/getlantern/tarfs/tarfs && \
 	echo "// +build prod" > $$DEST && \
 	echo " " >> $$DEST && \
 	tarfs -pkg ui $$DIST >> $$DEST && \
-	echo "Now embedding lantern.ico to windows executable" && \
 	go install github.com/akavel/rsrc && \
 	rsrc -ico installer-resources/windows/lantern.ico -o src/github.com/getlantern/flashlight/lantern.syso;
 
@@ -105,7 +102,7 @@ docker-package-debian-amd64: require-version docker-linux-amd64
 	@$(call fpm-debian-build,"amd64")
 	@echo "-> lantern_$(VERSION)_amd64.deb"
 
-docker-package-windows: require-version docker-windows
+docker-package-windows: require-version docker-windows-386
 	@if [[ -z "$$BNS_CERT" ]]; then echo "BNS_CERT environment value is required."; exit 1; fi && \
 	if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
 	INSTALLER_RESOURCES="installer-resources/windows" && \
@@ -115,13 +112,9 @@ docker-package-windows: require-version docker-windows
 
 docker: system-checks
 
-docker-linux: docker-genassets docker-linux-386 docker-linux-amd64
-
 windows: windows-386
 
-docker-windows: docker-genassets docker-windows-386
-
-darwin: docker-genassets darwin-amd64
+darwin: genassets darwin-amd64
 
 system-checks:
 	@if [[ -z "$(DOCKER)" ]]; then echo 'Missing "docker" command.'; exit 1; fi && \
@@ -181,9 +174,9 @@ package-darwin: darwin
 		rm -rf Lantern.dmg && \
 		sed "s/__VERSION__/$$VERSION/g" $$INSTALLER_RESOURCES/dmgbackground.svg > dmgbackground_versioned.svg && \
 		$$SVGEXPORT dmgbackground_versioned.svg dmgbackground.png 600:400 && \
-		$$APPDMG $$INSTALLER_RESOURCES/lantern.dmg.json Lantern.dmg && \
+		$$APPDMG --quiet $$INSTALLER_RESOURCES/lantern.dmg.json Lantern.dmg && \
 		mv Lantern.dmg Lantern.dmg.zlib && \
-		hdiutil convert -format UDBZ -o Lantern.dmg Lantern.dmg.zlib && \
+		hdiutil convert -quiet -format UDBZ -o Lantern.dmg Lantern.dmg.zlib && \
 		rm Lantern.dmg.zlib; \
 	else \
 		echo "-> Skipped: Can not generate a package on a non-OSX host."; \
@@ -203,20 +196,10 @@ binaries: docker genassets linux-386 linux-amd64 windows-386 darwin-amd64
 
 packages: binaries package-windows package-linux package-darwin
 
-all: packages
-
-remove-tmp-tasks:
-	rm -f .tmp-task-*
-
 clean:
-	rm -f lantern_linux
-	rm -f lantern_darwin_*
-	rm -f lantern_linux_*
-	rm -f lantern_windows_*
-	rm -f *.deb
-	rm -f *.exe
-	rm -rf *.app
-	rm -f *.dmg
-	rm -f dmgbackground.png
-
-.PHONY: clean all
+	@rm -f lantern_linux*
+	@rm -f lantern_darwin*
+	@rm -f lantern_windows*
+	@rm -f *.deb
+	@rm -rf *.app
+	@rm -f *.dmg
