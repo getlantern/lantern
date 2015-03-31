@@ -52,8 +52,6 @@ all: binaries
 # This is to be called within the docker image.
 docker-genassets:
 	@source setenv.bash && \
-	echo "Generating UI resources for embedding..." && \
-	\
 	LANTERN_UI="src/github.com/getlantern/lantern-ui" && \
 	APP="$$LANTERN_UI/app" && \
 	DIST="$$LANTERN_UI/dist" && \
@@ -123,7 +121,9 @@ docker: system-checks
 	cp Dockerfile $$DOCKER_CONTEXT && \
 	docker build -t $(DOCKER_IMAGE_TAG) $$DOCKER_CONTEXT
 
-windows: windows-386
+linux: genassets linux-386 linux-amd64
+
+windows: genassets windows-386
 
 darwin: genassets darwin-amd64
 
@@ -155,12 +155,12 @@ windows-386:
 	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && make docker-windows-386' && \
 	echo "-> lantern_windows_386.exe"
 
-package-linux-386:
+package-linux-386: require-version linux-386
 	@echo "Generating distribution package for linux/386..." && \
 	$(DOCKER_SETUP) && \
 	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" make docker-package-linux-386'
 
-package-linux-amd64:
+package-linux-amd64: require-version linux-amd64
 	@echo "Generating distribution package for linux/amd64..." && \
 	$(DOCKER_SETUP) && \
 	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" make docker-package-linux-amd64'
@@ -175,7 +175,7 @@ package-windows: require-version windows-386
 	docker run -v $$PWD:/flashlight-build -v $$SECRETS_DIR:/secrets -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && BNS_CERT="/secrets/bns_cert.p12" BNS_CERT_PASS="'$$BNS_CERT_PASS'" VERSION="'$$VERSION'" make docker-package-windows' && \
 	echo "-> lantern-installer.exe"
 
-package-darwin: darwin
+package-darwin: require-version darwin
 	@echo "Generating distribution package for darwin/amd64..." && \
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		if [[ -z "$(NODE)" ]]; then echo 'Missing "node" command.'; exit 1; fi && \
@@ -210,7 +210,7 @@ darwin-amd64:
 		echo "-> Skipped: Can not compile Lantern for OSX on a non-OSX host."; \
 	fi;
 
-binaries: docker genassets linux-386 linux-amd64 windows-386 darwin-amd64
+binaries: docker genassets linux windows darwin
 
 packages: require-version require-secrets clean binaries package-windows package-linux package-darwin
 
