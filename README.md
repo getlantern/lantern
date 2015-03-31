@@ -24,7 +24,7 @@ tools for certain features.
 In order to build the docker image open a terminal, `cd` into the
 `flashlight-build` project and execute `make docker`:
 
-```
+```sh
 cd $FLASHLIGHT_BUILD
 make docker
 ```
@@ -37,13 +37,13 @@ This will take a while, be patient, you only need to do this once.
 
 If you want to build for Linux on all supported architectures, use:
 
-```
+```sh
 make linux
 ```
 
 You can also build for Linux 386:
 
-```
+```sh
 make linux-386
 file lantern_linux_386
 # lantern_linux_386: ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), dynamically linked (uses shared libs), not stripped
@@ -51,7 +51,7 @@ file lantern_linux_386
 
 Or only for amd64:
 
-```
+```sh
 make linux-amd64
 file lantern_linux_amd64
 # lantern_linux_amd64: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked (uses shared libs), not stripped
@@ -62,7 +62,7 @@ file lantern_linux_amd64
 Lantern supports the 386 architecture on Windows. In order to build Lantern on
 Windows use:
 
-```
+```sh
 make windows
 file lantern_windows_386.exe
 # lantern_windows_386.exe: PE32 executable for MS Windows (GUI) Intel 80386 32-bit
@@ -73,7 +73,7 @@ file lantern_windows_386.exe
 Lantern supports the amd64 architecture on OSX. In order to build Lantern on
 OSX you'll need an OSX host. Run the following command:
 
-```
+```sh
 make darwin
 file lantern_darwin_amd64
 # lantern_darwin_amd64: Mach-O 64-bit executable x86_64
@@ -84,7 +84,7 @@ file lantern_darwin_amd64
 If you want to build all supported binaries of Lantern you may use this
 shortcut:
 
-```
+```sh
 make binaries
 ```
 
@@ -97,7 +97,7 @@ Packaging requires some special environemnt variables.
 Lantern on OS X is packaged as the `Lantern.app` app bundle, distributed inside
 of a drag-and-drop dmg installer. The app bundle and dmg can be created using:
 
-```
+```sh
 VERSION=2.0.0-beta2 make package-darwin
 file Lantern.dmg
 # Lantern.dmg: bzip2 compressed data, block size = 100k
@@ -132,8 +132,9 @@ and the
 of the BNS certificate.  You can set the environment variables and run the
 script on one line, like this:
 
-```
-SECRETS_DIR=$PATH_TO_TOO_MANY_SECRETS BNS_CERT_PASS='***' VERSION=2.0.0-beta1 make package-windows
+```sh
+SECRETS_DIR=$PATH_TO_TOO_MANY_SECRETS BNS_CERT_PASS='***' \
+VERSION=2.0.0-beta1 make package-windows
 ```
 
 ### Packaging for Ubuntu
@@ -141,7 +142,7 @@ SECRETS_DIR=$PATH_TO_TOO_MANY_SECRETS BNS_CERT_PASS='***' VERSION=2.0.0-beta1 ma
 Lantern on Ubuntu is distributed as a `.deb` package. You can generate a Debian
 package with:
 
-```
+```sh
 VERSION=2.0.0-beta2 make package-linux
 ```
 
@@ -153,7 +154,7 @@ This will build both 386 and amd64 packages.
 
 ### Generating all packages
 
-```
+```sh
 SECRETS_DIR=$PATH_TO_TOO_MANY_SECRETS BNS_CERT_PASS='***' VERSION=2.0.0-beta1 make packages
 ```
 
@@ -161,7 +162,7 @@ SECRETS_DIR=$PATH_TO_TOO_MANY_SECRETS BNS_CERT_PASS='***' VERSION=2.0.0-beta1 ma
 
 ### Generating assets
 
-```
+```sh
 make genassets
 ```
 
@@ -170,7 +171,7 @@ updates the resources in the dist folder.
 
 An annotated tag can be added like this:
 
-```bash
+```sh
 git tag -a v1.0.0 -m"Tagged 1.0.0"
 git push --tags
 ```
