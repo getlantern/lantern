@@ -1,4 +1,5 @@
 pkg
+.flashlight-builder-context/
 bin
 .DS_Store
 *.cov

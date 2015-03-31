@@ -5,6 +5,8 @@ GO := $(shell which go 2> /dev/null);
 NODE := $(shell which node 2> /dev/null);
 NPM := $(shell which npm 2> /dev/null);
 
+DOCKER_SETUP := $(shell if [[ "$$(uname -s)" == "Darwin" ]]; then boot2docker shellinit 2>/dev/null; else echo 'true'; fi;)
+
 BUILD_DATE := $(shell date -u +%Y%m%d.%H%M%S);
 GIT_REVISION := $(shell git describe --abbrev=0 --tags --exact-match 2> /dev/null || git rev-parse --short HEAD);
 LOGGLY_TOKEN := 469973d5-6eaf-445a-be71-cf27141316a1;
@@ -45,7 +47,7 @@ define fpm-debian-build =
 	fpm -a $$PKG_ARCH -s dir -t deb -n lantern -v $$VERSION -m "$(PACKAGE_MAINTAINER)" --description "$(LANTERN_DESCRIPTION)\n$(LANTERN_EXTENDED_DESCRIPTION)" --category net --license "Apache-2.0" --vendor "$(PACKAGE_VENDOR)" --url $(PACKAGE_URL) --deb-compression xz -f -C $$WORKDIR usr;
 endef
 
-all: clean packages
+all: binaries
 
 # This is to be called within the docker image.
 docker-genassets:
@@ -88,6 +90,10 @@ docker-windows-386:
 require-version:
 	@if [[ "$$VERSION" == "" ]]; then echo "VERSION environment value is required."; exit 1; fi
 
+require-secrets:
+	@if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
+	if [[ -z "$$SECRETS_DIR" ]]; then echo "SECRETS_DIR environment value is required."; exit 1; fi
+
 docker-package-linux-386: docker-linux-386 docker-package-debian-386
 
 docker-package-linux-amd64: docker-linux-amd64 docker-package-debian-amd64
@@ -111,6 +117,11 @@ docker-package-windows: require-version docker-windows-386
 	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer.exe";
 
 docker: system-checks
+	@$(DOCKER_SETUP) && \
+	DOCKER_CONTEXT=.$(DOCKER_IMAGE_TAG)-context && \
+	mkdir -p $$DOCKER_CONTEXT && \
+	cp Dockerfile $$DOCKER_CONTEXT && \
+	docker build -t $(DOCKER_IMAGE_TAG) $$DOCKER_CONTEXT
 
 windows: windows-386
 
@@ -122,30 +133,36 @@ system-checks:
 
 genassets:
 	@echo "Generating assets..." && \
+	$(DOCKER_SETUP) && \
 	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && make docker-genassets' && \
 	echo "OK"
 
 linux-amd64:
 	@echo "Building linux/amd64..." && \
+	$(DOCKER_SETUP) && \
 	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && make docker-linux-amd64' && \
 	echo "-> lantern_linux_amd64"
 
 linux-386:
 	@echo "Building linux/386..." && \
+	$(DOCKER_SETUP) && \
 	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && make docker-linux-386' && \
 	echo "-> lantern_linux_386"
 
 windows-386:
 	@echo "Building windows/386..." && \
+	$(DOCKER_SETUP) && \
 	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && make docker-windows-386' && \
 	echo "-> lantern_windows_386.exe"
 
 package-linux-386:
 	@echo "Generating distribution package for linux/386..." && \
+	$(DOCKER_SETUP) && \
 	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" make docker-package-linux-386'
 
 package-linux-amd64:
 	@echo "Generating distribution package for linux/amd64..." && \
+	$(DOCKER_SETUP) && \
 	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" make docker-package-linux-amd64'
 
 package-linux: require-version package-linux-386 package-linux-amd64
@@ -154,6 +171,7 @@ package-windows: require-version windows-386
 	@echo "Generating distribution package for windows/386..." && \
 	if [[ -z "$$SECRETS_DIR" ]]; then echo "SECRETS_DIR environment value is required."; exit 1; fi && \
 	if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
+	$(DOCKER_SETUP) && \
 	docker run -v $$PWD:/flashlight-build -v $$SECRETS_DIR:/secrets -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && BNS_CERT="/secrets/bns_cert.p12" BNS_CERT_PASS="'$$BNS_CERT_PASS'" VERSION="'$$VERSION'" make docker-package-windows' && \
 	echo "-> lantern-installer.exe"
 
@@ -194,7 +212,7 @@ darwin-amd64:
 
 binaries: docker genassets linux-386 linux-amd64 windows-386 darwin-amd64
 
-packages: binaries package-windows package-linux package-darwin
+packages: require-version require-secrets clean binaries package-windows package-linux package-darwin
 
 clean:
 	@rm -f lantern_linux*
