@@ -155,7 +155,8 @@ This will build both 386 and amd64 packages.
 ### Generating all packages
 
 ```sh
-SECRETS_DIR=$PATH_TO_TOO_MANY_SECRETS BNS_CERT_PASS='***' VERSION=2.0.0-beta1 make packages
+SECRETS_DIR=$PATH_TO_TOO_MANY_SECRETS BNS_CERT_PASS='***' \
+VERSION=2.0.0-beta1 make packages
 ```
 
 ## Other tasks
