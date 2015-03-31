@@ -1,15 +1,15 @@
 SHELL := /bin/bash
 
 DOCKER := $(shell which docker 2> /dev/null);
-GO := $(shell which go 2> /dev/null);
-NODE := $(shell which node 2> /dev/null);
-NPM := $(shell which npm 2> /dev/null);
+GO := $(shell which go 2> /dev/null)
+NODE := $(shell which node 2> /dev/null)
+NPM := $(shell which npm 2> /dev/null)
 
-DOCKER_SETUP := $(shell if [[ "$$(uname -s)" == "Darwin" ]]; then boot2docker shellinit 2>/dev/null; else echo 'true'; fi;)
+BOOT2DOCKER := $(shell which boot2docker 2> /dev/null)
 
-BUILD_DATE := $(shell date -u +%Y%m%d.%H%M%S);
-GIT_REVISION := $(shell git describe --abbrev=0 --tags --exact-match 2> /dev/null || git rev-parse --short HEAD);
-LOGGLY_TOKEN := 469973d5-6eaf-445a-be71-cf27141316a1;
+BUILD_DATE := $(shell date -u +%Y%m%d.%H%M%S)
+GIT_REVISION := $(shell git describe --abbrev=0 --tags --exact-match 2> /dev/null || git rev-parse --short HEAD)
+LOGGLY_TOKEN := 469973d5-6eaf-445a-be71-cf27141316a1
 LDFLAGS := -w -X main.version $(GIT_REVISION) -X main.buildDate $(BUILD_DATE) -X github.com/getlantern/flashlight/logging.logglyToken \"$(LOGGLY_TOKEN)\"
 LANTERN_DESCRIPTION := Censorship circumvention tool
 LANTERN_EXTENDED_DESCRIPTION := Lantern allows you to access sites blocked by internet censorship.\nWhen you run it, Lantern reroutes traffic to selected domains through servers located where such domains aren\'t censored.
@@ -18,7 +18,23 @@ PACKAGE_VENDOR := Brave New Software Project, Inc
 PACKAGE_MAINTAINER := Lantern Team <team@getlantern.org>
 PACKAGE_URL := https://www.getlantern.org
 
-DOCKER_IMAGE_TAG=flashlight-builder
+DOCKER_IMAGE_TAG := flashlight-builder
+
+.PHONY: packages clean docker
+
+define docker-up
+	if [[ "$$(uname -s)" == "Darwin" ]]; then \
+		if [[ -z "$(BOOT2DOCKER)" ]]; then \
+			echo 'Missing "boot2docker" command' && exit 1; \
+		fi && \
+		if [[ "$$($(BOOT2DOCKER) status)" != "running" ]]; then \
+			$(BOOT2DOCKER) up; \
+		fi && \
+		if [[ -z "$$DOCKER_HOST" ]]; then \
+			$$($(BOOT2DOCKER) shellinit 2>/dev/null); \
+		fi \
+	fi
+endef
 
 define fpm-debian-build =
 	PKG_ARCH=$1 && \
@@ -115,11 +131,11 @@ docker-package-windows: require-version docker-windows-386
 	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer.exe";
 
 docker: system-checks
-	@$(DOCKER_SETUP) && \
+	@$(call docker-up) && \
 	DOCKER_CONTEXT=.$(DOCKER_IMAGE_TAG)-context && \
 	mkdir -p $$DOCKER_CONTEXT && \
 	cp Dockerfile $$DOCKER_CONTEXT && \
-	docker build -t $(DOCKER_IMAGE_TAG) $$DOCKER_CONTEXT
+	docker build -t $(DOCKER_IMAGE_TAG) $$DOCKER_CONTEXT;
 
 linux: genassets linux-386 linux-amd64
 
@@ -133,36 +149,36 @@ system-checks:
 
 genassets:
 	@echo "Generating assets..." && \
-	$(DOCKER_SETUP) && \
+	$(call docker-up) && \
 	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && make docker-genassets' && \
 	echo "OK"
 
 linux-amd64:
 	@echo "Building linux/amd64..." && \
-	$(DOCKER_SETUP) && \
+	$(call docker-up) && \
 	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && make docker-linux-amd64' && \
 	echo "-> lantern_linux_amd64"
 
 linux-386:
 	@echo "Building linux/386..." && \
-	$(DOCKER_SETUP) && \
+	$(call docker-up) && \
 	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && make docker-linux-386' && \
 	echo "-> lantern_linux_386"
 
 windows-386:
 	@echo "Building windows/386..." && \
-	$(DOCKER_SETUP) && \
+	$(call docker-up) && \
 	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && make docker-windows-386' && \
 	echo "-> lantern_windows_386.exe"
 
 package-linux-386: require-version linux-386
 	@echo "Generating distribution package for linux/386..." && \
-	$(DOCKER_SETUP) && \
+	$(call docker-up) && \
 	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" make docker-package-linux-386'
 
 package-linux-amd64: require-version linux-amd64
 	@echo "Generating distribution package for linux/amd64..." && \
-	$(DOCKER_SETUP) && \
+	$(call docker-up) && \
 	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" make docker-package-linux-amd64'
 
 package-linux: require-version package-linux-386 package-linux-amd64
@@ -171,7 +187,7 @@ package-windows: require-version windows-386
 	@echo "Generating distribution package for windows/386..." && \
 	if [[ -z "$$SECRETS_DIR" ]]; then echo "SECRETS_DIR environment value is required."; exit 1; fi && \
 	if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
-	$(DOCKER_SETUP) && \
+	$(call docker-up) && \
 	docker run -v $$PWD:/flashlight-build -v $$SECRETS_DIR:/secrets -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && BNS_CERT="/secrets/bns_cert.p12" BNS_CERT_PASS="'$$BNS_CERT_PASS'" VERSION="'$$VERSION'" make docker-package-windows' && \
 	echo "-> lantern-installer.exe"
 
@@ -204,7 +220,7 @@ darwin-amd64:
 	@echo "Building darwin/amd64..." && \
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		source setenv.bash && \
-		CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -o lantern_darwin_amd64 -tags="prod" -ldflags="$(LDFLAGS)" github.com/getlantern/flashlight && \
+		CGO_ENABLED=1 GOOS=darwin xGOARCH=amd64 go build -o lantern_darwin_amd64 -tags="prod" -ldflags="$(LDFLAGS)" github.com/getlantern/flashlight && \
 		echo "-> lantern_darwin_amd64"; \
 	else \
 		echo "-> Skipped: Can not compile Lantern for OSX on a non-OSX host."; \
