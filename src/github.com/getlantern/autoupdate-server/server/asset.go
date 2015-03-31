@@ -25,6 +25,10 @@ func init() {
 func downloadAsset(uri string) (localfile string, err error) {
 	basename := path.Base(uri)
 
+	// We'll be appending 65 chars to create a local file name for the asset,
+	// this 60-char limit prevents creating a file name longer than 255 chars. We
+	// could allow a few more characters until 255 but 60 sounds like a sane
+	// limit.
 	if len(basename) > 60 {
 		basename = basename[:60]
 	}
