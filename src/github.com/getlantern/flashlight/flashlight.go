@@ -47,15 +47,23 @@ var (
 )
 
 func init() {
+
+	if packageVersion != defaultPackageVersion {
+		// packageVersion has precedence over GIT revision. This will happen when
+		// packing a version intended for release.
+		version = packageVersion
+	}
+
 	if version == "" {
 		version = "development"
 	}
+
 	if buildDate == "" {
 		buildDate = "now"
 	}
 
 	// Passing public key and version to the autoupdate service.
-	autoupdate.PublicKey = packagePublicKey
+	autoupdate.PublicKey = []byte(packagePublicKey)
 	autoupdate.Version = packageVersion
 
 	rand.Seed(time.Now().UnixNano())
@@ -151,7 +159,7 @@ func i18nInit() {
 }
 
 func displayVersion() {
-	log.Debugf("---- flashlight version %s (%s) ----", version, buildDate)
+	log.Debugf("---- flashlight version: %s, release: %s, build date: %s ----", version, packageVersion, buildDate)
 }
 
 func parseFlags() {

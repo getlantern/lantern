@@ -1,8 +1,10 @@
 pkg
+.flashlight-builder-context/
 bin
 .DS_Store
 *.cov
 *.swp
+*.deb
 *.swo
 flashlight_darwin_amd64
 flashlight_linux_386
