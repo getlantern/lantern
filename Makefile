@@ -22,6 +22,13 @@ DOCKER_IMAGE_TAG := flashlight-builder
 
 .PHONY: packages clean docker
 
+define build-tags
+	BUILD_TAGS="" && \
+	if [[ ! -z "$$VERSION" ]]; then \
+		BUILD_TAGS="prod"; \
+	fi
+endef
+
 define docker-up
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		if [[ -z "$(BOOT2DOCKER)" ]]; then \
@@ -91,18 +98,22 @@ docker-genassets:
 
 docker-linux-amd64:
 	@source setenv.bash && \
-	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o lantern_linux_amd64 -tags="prod" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
+	$(call build-tags) && \
+	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o lantern_linux_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
 
 docker-linux-386:
 	@source setenv.bash && \
-	CGO_ENABLED=1 GOOS=linux GOARCH=386 go build -o lantern_linux_386 -tags="prod" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
+	$(call build-tags) && \
+	CGO_ENABLED=1 GOOS=linux GOARCH=386 go build -o lantern_linux_386 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
 
 docker-windows-386:
 	@source setenv.bash && \
-	CGO_ENABLED=1 GOOS=windows GOARCH=386 go build -o lantern_windows_386.exe -tags="prod" -ldflags="$(LDFLAGS) -H=windowsgui" github.com/getlantern/flashlight;
+	$(call build-tags) && \
+	CGO_ENABLED=1 GOOS=windows GOARCH=386 go build -o lantern_windows_386.exe -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -H=windowsgui" github.com/getlantern/flashlight;
 
 require-version:
-	@if [[ "$$VERSION" == "" ]]; then echo "VERSION environment value is required."; exit 1; fi
+	@if [[ -z "$$VERSION" ]]; then echo "VERSION environment value is required."; exit 1; fi && \
+	sed s/'packageVersion.*'/'packageVersion = "'$$VERSION'"'/ src/github.com/getlantern/flashlight/autoupdate.go | sed s/'!prod'/'prod'/ > src/github.com/getlantern/flashlight/autoupdate-prod.go
 
 require-secrets:
 	@if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
@@ -220,7 +231,8 @@ darwin-amd64:
 	@echo "Building darwin/amd64..." && \
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		source setenv.bash && \
-		CGO_ENABLED=1 GOOS=darwin xGOARCH=amd64 go build -o lantern_darwin_amd64 -tags="prod" -ldflags="$(LDFLAGS)" github.com/getlantern/flashlight && \
+		$(call build-tags) && \
+		CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -o lantern_darwin_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS)" github.com/getlantern/flashlight && \
 		echo "-> lantern_darwin_amd64"; \
 	else \
 		echo "-> Skipped: Can not compile Lantern for OSX on a non-OSX host."; \
