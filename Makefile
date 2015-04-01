@@ -26,6 +26,8 @@ define build-tags
 	BUILD_TAGS="" && \
 	if [[ ! -z "$$VERSION" ]]; then \
 		BUILD_TAGS="prod"; \
+	else \
+		echo "** VERSION was not set, using git revision instead ($(GIT_REVISION)). This is OK while in development."; \
 	fi
 endef
 
@@ -167,19 +169,19 @@ genassets:
 linux-amd64:
 	@echo "Building linux/amd64..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && make docker-linux-amd64' && \
+	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" make docker-linux-amd64' && \
 	echo "-> lantern_linux_amd64"
 
 linux-386:
 	@echo "Building linux/386..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && make docker-linux-386' && \
+	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" make docker-linux-386' && \
 	echo "-> lantern_linux_386"
 
 windows-386:
 	@echo "Building windows/386..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && make docker-windows-386' && \
+	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" make docker-windows-386' && \
 	echo "-> lantern_windows_386.exe"
 
 package-linux-386: require-version linux-386
