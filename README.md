@@ -116,8 +116,7 @@ app bundle won't be signed. Unsigned app bundles can be used for testing but
 should never be distributed to end users.
 
 The background image for the DMG is
-`installer-resources/darwin/dmgbackground.svg` and the icon is in
-`lantern.icns`.
+`installer-resources/darwin/dmgbackground.svg`.
 
 ### Packaging for Windows
 
