@@ -74,6 +74,10 @@ func (client *Client) reloadConfig() {
 
 	// Starting reverse proxy.
 	client.initReverseProxy()
+
+	// track session with analytics
+	client.initAnalytics()
+
 }
 
 // updateConfig attempts to pull a configuration file from the network using
