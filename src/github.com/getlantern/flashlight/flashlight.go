@@ -17,6 +17,7 @@ import (
 	"github.com/getlantern/systray"
 
 	"github.com/getlantern/flashlight/analytics"
+	"github.com/getlantern/flashlight/autoupdate"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/geolookup"
@@ -52,6 +53,10 @@ func init() {
 	if buildDate == "" {
 		buildDate = "now"
 	}
+
+	// Passing public key and version to the autoupdate service.
+	autoupdate.PublicKey = packagePublicKey
+	autoupdate.Version = packageVersion
 
 	rand.Seed(time.Now().UnixNano())
 }
@@ -191,6 +196,7 @@ func runClientProxy(cfg *config.Config) {
 		}
 	}
 
+	autoupdate.Configure(cfg)
 	logging.Configure(cfg, version, buildDate)
 	settings.Configure(cfg, version, buildDate)
 	proxiedsites.Configure(cfg.ProxiedSites)
@@ -219,6 +225,7 @@ func runClientProxy(cfg *config.Config) {
 				geolookup.Configure(hqfdc)
 				statserver.Configure(hqfdc)
 				logging.Configure(cfg, version, buildDate)
+				autoupdate.Configure(cfg)
 			}
 		}
 	}()
