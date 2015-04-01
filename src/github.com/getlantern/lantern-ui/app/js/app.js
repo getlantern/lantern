@@ -180,6 +180,10 @@ var app = angular.module('app', [
         $translate.use(lang);
     };
 
+    $rootScope.trackPageView = function() {
+        gaMgr.trackPageView('start');
+    };
+
     $rootScope.changeLang = function(lang) {
       return $rootScope.interaction(INTERACTION.changeLang, {lang: lang});
     };

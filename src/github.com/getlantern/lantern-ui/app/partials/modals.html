@@ -206,7 +206,7 @@
   </div>
 </div>
 
-<div ng-controller="SettingsCtrl" ng-show="show" class="modal">
+<div ng-controller="SettingsCtrl" ng-show="wsConnected && currentModal == 'settings'" class="modal">
   <div class="modal-header">
     <h3>
       <i class="lsf-icon lsf-gear"></i>
@@ -217,16 +217,15 @@
     <dl class="dl-horizontal">
       <dt>{{ 'APP' | translate }}</dt>
       <dd id="app-settings">
-        <label class="checkbox">
+        <!--<label class="checkbox">
           <input type="checkbox" ng-model="runAtSystemStart" focus-on="show"
                  ng-click="changeSetting(SETTING.runAtSystemStart, runAtSystemStart)">
           {{ 'AUTO_START' | translate }}
-        </label>
+      </label>-->
 
         <div>
           <label class="checkbox">
-            <input type="checkbox" ng-model="autoReport"
-                   ng-click="changeSetting(SETTING.autoReport, autoReport)">
+            <input type="checkbox" ng-model="model.settings.autoReport" ng-change="changeReporting(model.settings.autoReport)">
             {{ 'AUTOREPORT_PROMPT' | translate }}
             <a ng-click="openExternal(EXTERNAL_URL.autoReportPrivacy)" class="more-info">
               {{ 'MORE_INFO' | translate }}<sup><i class="icon-external-link"></i></sup>
@@ -239,75 +238,14 @@
           {{ 'NO_AUTOREPORT_WARNING' | translate }}
         </div>
       </dd>
-
-      <dt ng-hide="inCensoringCountry">{{ 'MODE' | translate }}</dt>
-      <dd ng-hide="inCensoringCountry">
-        <div class="btn-group">
-          <button type="button" class="btn btn-mini btn-give"
-                  ng-class="{active: inGiveMode}"
-                  ng-disabled="inGiveMode"
-                  ng-click="interaction(MODE.give)">
-                  <i ng-show="inCensoringCountry" class="icon-warning-sign"></i>
-                  {{ 'GIVE_ACCESS' | translate }}
-          </button>
-          <button type="button" class="btn btn-mini btn-get"
-                  ng-class="{active: inGetMode}"
-                  ng-disabled="inGetMode"
-                  ng-click="interaction(MODE.get)">
-                  {{ 'GET_ACCESS' | translate }}
-          </button>
-        </div>
-      </dd>
-
-      <dt ng-show="!inGiveMode">{{ 'PROXY' | translate }}</dt>
-      <dd ng-show="!inGiveMode" id="proxy-settings">
-        <button type="button" class="btn btn-mini"
-                ng-click="interaction(INTERACTION.proxiedSites)">
-          <i ui-if="model.settings.proxyAllSites" class="icon-warning-sign warning-colored"></i>
-          {{ 'MANAGE_PROXIED_SITES' | translate }}
-        </button>
-        <br>
-        <div class="details" ng-init="isExpanded = model.settings.proxyAllSites || model.settings.systemProxy == false">
-          <div class="summary" ng-class="{expanded: isExpanded}" ng-click="isExpanded=!isExpanded">{{ 'ADVANCED' | translate }}</div>
-          <div class="collapsible advanced" ng-show="isExpanded">
-            <div>
-              <label class="checkbox inline proxyAllSitesLabel">
-                <input type="checkbox" ng-model="proxyAllSites"
-                       ng-click="changeSetting(SETTING.proxyAllSites, proxyAllSites)">
-                  {{'PROXY_ALL_TRAFFIC' | translate }}
-              </label>
-            </div>
-            <div>
-              <label class="checkbox inline">
-                <input type="checkbox" ng-model="systemProxy"
-                       ng-click="changeSetting(SETTING.systemProxy, systemProxy)">
-                {{ 'SET_AS_SYSTEM_PROXY' | translate }}
-              </label>
-              <div id="manualProxyInfo">
-                <i class="icon-info-sign"></i>
-                {{ 'PAC_FILE_LOC' | translate }}
-                <div class="pacUrl">
-                  {{ model.connectivity.pacUrl }}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <dt ng-if="model.localLanterns.length > 0">{{ 'LOCAL_LANTERNS' | translate }}</dt>
-        <dd ng-if="model.localLanterns.length > 0" id="local-lanterns-list">
-        <a ng-repeat="n in model.localLanterns" ng-click="openExternal(n)" class="local-lantern-link">
-            {{n}}<sup><i class="icon-external-link"></i></sup>
-        </a>
-        </dd>
-      </dd>
     </dl>
   </div>
   <div class="modal-footer">
-    <button type="button" ng-click="interaction(INTERACTION.reset)" tabindex="-1"
+    <!--<button type="button" ng-click="interaction(INTERACTION.reset)" tabindex="-1"
             class="btn btn-mini pull-left">
       <i class="icon-warning-sign warning-colored"></i>
       {{ 'RESET_ELLIPSIS' | translate }}
-    </button>
-    <button type="button" id="settings-close" class="btn btn-primary" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | translate }}</button>
+  </button>-->
+    <button type="button" id="settings-close" class="btn btn-primary" ng-click="closeModal()">{{ 'CLOSE' | translate }}</button>
   </div>
 </div>

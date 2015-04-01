@@ -1,4 +1,5 @@
 github.com/getlantern/appdir
+github.com/getlantern/analytics
 github.com/getlantern/balancer
 github.com/getlantern/buuid
 github.com/getlantern/bytecounting

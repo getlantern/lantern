@@ -1,8 +1,8 @@
 'use strict';
 
-app.controller('RootCtrl', ['$scope', '$compile', '$window', '$http', 
+app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$http', 
                'localStorageService', 
-               function($scope, $compile, $window, $http, localStorageService) {
+               function($rootScope, $scope, $compile, $window, $http, localStorageService) {
     $scope.currentModal = 'none';
 
     $scope.loadScript = function(src) {
@@ -32,15 +32,26 @@ app.controller('RootCtrl', ['$scope', '$compile', '$window', '$http',
         $scope.currentModal = val;
     };
 
+    $rootScope.lanternWelcomeKey = localStorageService.get('lanternWelcomeKey');
+
     $scope.closeModal = function() {
-        $scope.currentModal = 'none';
+
+        // if it's our first time opening the UI,
+        // show the settings modal first immediately followed by
+        // the welcome screen
+        if ($scope.currentModal == 'welcome' && !$rootScope.lanternWelcomeKey) {
+            $rootScope.lanternWelcomeKey = true;
+            localStorageService.set('lanternWelcomeKey', true);
+        } else {
+            $scope.currentModal = 'none';
+        }
     };
 
-    if (!localStorageService.get('lanternWelcomeKey')) {
+    if (!$rootScope.lanternWelcomeKey) {
         $scope.showModal('welcome');
-        localStorageService.set('lanternWelcomeKey', true);
-    }
-  
+    };
+
+
 }]);
 
 app.controller('UpdateAvailableCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
@@ -66,20 +77,19 @@ app.controller('ConfirmResetCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
   });
 }]);
 
-app.controller('SettingsCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
+app.controller('SettingsCtrl', ['$scope', 'MODAL', 'DataStream', 'gaMgr', function($scope, MODAL, DataStream, gaMgr) {
   $scope.show = false;
 
   $scope.$watch('model.modal', function (modal) {
     $scope.show = modal === MODAL.settings;
   });
 
-  $scope.$watch('model.settings.runAtSystemStart', function (runAtSystemStart) {
-    $scope.runAtSystemStart = runAtSystemStart;
-  });
-
-  $scope.$watch('model.settings.autoReport', function (autoReport) {
-    $scope.autoReport = autoReport;
-  });
+  $scope.changeReporting = function(autoreport) {
+      var obj = {
+          autoReport: autoreport
+      };
+      DataStream.send('Settings', obj);
+  };
 
   $scope.$watch('model.settings.systemProxy', function (systemProxy) {
     $scope.systemProxy = systemProxy;
