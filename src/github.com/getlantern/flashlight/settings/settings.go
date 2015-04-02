@@ -29,6 +29,7 @@ type Settings struct {
 	Version    string
 	BuildDate  string
 	AutoReport bool
+	AutoLaunch bool
 }
 
 func Configure(cfg *config.Config, version, buildDate string) {
@@ -41,6 +42,7 @@ func Configure(cfg *config.Config, version, buildDate string) {
 		Version:    version,
 		BuildDate:  buildDate,
 		AutoReport: *cfg.AutoReport,
+		AutoLaunch: *cfg.AutoLaunch,
 	}
 
 	if service == nil {
@@ -73,15 +75,21 @@ func read() {
 	for msg := range service.In {
 		settings := (msg).(map[string]interface{})
 		config.Update(func(updated *config.Config) error {
-			autoReport := settings["autoReport"].(bool)
-			// turn on/off analaytics reporting
-			if autoReport {
-				analytics.StartService()
-			} else {
-				analytics.StopService()
+
+			if autoReport, ok := settings["autoReport"].(bool); ok {
+				// turn on/off analaytics reporting
+				if autoReport {
+					analytics.StartService()
+				} else {
+					analytics.StopService()
+				}
+				baseSettings.AutoReport = autoReport
+				*updated.AutoReport = autoReport
+			} else if autoLaunch, ok := settings["autoLaunch"].(bool); ok {
+				log.Debugf("Auto startup is %v", autoLaunch)
+				baseSettings.AutoLaunch = autoLaunch
+				*updated.AutoLaunch = autoLaunch
 			}
-			baseSettings.AutoReport = autoReport
-			*updated.AutoReport = autoReport
 			return nil
 		})
 	}
