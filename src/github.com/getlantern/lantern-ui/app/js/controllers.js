@@ -86,10 +86,17 @@ app.controller('SettingsCtrl', ['$scope', 'MODAL', 'DataStream', 'gaMgr', functi
 
   $scope.changeReporting = function(autoreport) {
       var obj = {
-          autoReport: autoreport
+        autoReport: autoreport
       };
       DataStream.send('Settings', obj);
   };
+
+  $scope.changeAutoLaunch = function(autoLaunch) {
+      var obj = {
+        autoLaunch: autoLaunch
+      };
+      DataStream.send('Settings', obj);
+  }
 
   $scope.$watch('model.settings.systemProxy', function (systemProxy) {
     $scope.systemProxy = systemProxy;
