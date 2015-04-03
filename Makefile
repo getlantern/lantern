@@ -29,6 +29,9 @@ define build-tags
 		sed s/'packageVersion.*'/'packageVersion = "'$$VERSION'"'/ src/github.com/getlantern/flashlight/autoupdate.go | sed s/'!prod'/'prod'/ > src/github.com/getlantern/flashlight/autoupdate-prod.go; \
 	else \
 		echo "** VERSION was not set, using git revision instead ($(GIT_REVISION)). This is OK while in development."; \
+	fi && \
+	if [[ -z "$$HEADLESS" ]]; then \
+		BUILD_TAGS="$$BUILD_TAGS headless"; \
 	fi
 endef
 
