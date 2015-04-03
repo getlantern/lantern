@@ -154,7 +154,7 @@ func i18nInit() {
 	})
 	err := i18n.UseOSLocale()
 	if err != nil {
-		exit(err)
+		log.Debugf("i18n.UseOSLocale: %q", err)
 	}
 }
 
