@@ -25,7 +25,8 @@ DOCKER_IMAGE_TAG := flashlight-builder
 define build-tags
 	BUILD_TAGS="" && \
 	if [[ ! -z "$$VERSION" ]]; then \
-		BUILD_TAGS="prod"; \
+		BUILD_TAGS="prod" && \
+		sed s/'packageVersion.*'/'packageVersion = "'$$VERSION'"'/ src/github.com/getlantern/flashlight/autoupdate.go | sed s/'!prod'/'prod'/ > src/github.com/getlantern/flashlight/autoupdate-prod.go; \
 	else \
 		echo "** VERSION was not set, using git revision instead ($(GIT_REVISION)). This is OK while in development."; \
 	fi
@@ -114,8 +115,7 @@ docker-windows-386:
 	CGO_ENABLED=1 GOOS=windows GOARCH=386 go build -o lantern_windows_386.exe -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -H=windowsgui" github.com/getlantern/flashlight;
 
 require-version:
-	@if [[ -z "$$VERSION" ]]; then echo "VERSION environment value is required."; exit 1; fi && \
-	sed s/'packageVersion.*'/'packageVersion = "'$$VERSION'"'/ src/github.com/getlantern/flashlight/autoupdate.go | sed s/'!prod'/'prod'/ > src/github.com/getlantern/flashlight/autoupdate-prod.go
+	@if [[ -z "$$VERSION" ]]; then echo "VERSION environment value is required."; exit 1; fi
 
 require-secrets:
 	@if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
@@ -169,20 +169,35 @@ genassets:
 linux-amd64:
 	@echo "Building linux/amd64..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" make docker-linux-amd64' && \
-	echo "-> lantern_linux_amd64"
+	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" U_UID="'$$UID'" U_GID="'$$GID'" make docker-linux-amd64' && \
+	cat lantern_linux_amd64 | bzip2 > update_linux_amd64.bz2 && \
+	ls -l lantern_linux_amd64 update_linux_amd64.bz2
 
 linux-386:
 	@echo "Building linux/386..." && \
 	$(call docker-up) && \
 	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" make docker-linux-386' && \
-	echo "-> lantern_linux_386"
+	cat lantern_linux_386 | bzip2 > update_linux_386.bz2 && \
+	ls -l lantern_linux_386 update_linux_386.bz2
 
 windows-386:
 	@echo "Building windows/386..." && \
 	$(call docker-up) && \
 	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" make docker-windows-386' && \
-	echo "-> lantern_windows_386.exe"
+	cat lantern_windows_386.exe | bzip2 > update_windows_386.bz2 && \
+	ls -l lantern_windows_386.exe update_windows_386.bz2
+
+darwin-amd64:
+	@echo "Building darwin/amd64..." && \
+	if [[ "$$(uname -s)" == "Darwin" ]]; then \
+		source setenv.bash && \
+		$(call build-tags) && \
+		CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -o lantern_darwin_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS)" github.com/getlantern/flashlight && \
+		cat lantern_darwin_amd64 | bzip2 > update_darwin_amd64.bz2 && \
+		ls -l lantern_darwin_amd64 update_darwin_amd64.bz2
+	else \
+		echo "-> Skipped: Can not compile Lantern for OSX on a non-OSX host."; \
+	fi;
 
 package-linux-386: require-version linux-386
 	@echo "Generating distribution package for linux/386..." && \
@@ -227,17 +242,6 @@ package-darwin: require-version darwin
 		rm Lantern.dmg.zlib; \
 	else \
 		echo "-> Skipped: Can not generate a package on a non-OSX host."; \
-	fi;
-
-darwin-amd64:
-	@echo "Building darwin/amd64..." && \
-	if [[ "$$(uname -s)" == "Darwin" ]]; then \
-		source setenv.bash && \
-		$(call build-tags) && \
-		CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -o lantern_darwin_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS)" github.com/getlantern/flashlight && \
-		echo "-> lantern_darwin_amd64"; \
-	else \
-		echo "-> Skipped: Can not compile Lantern for OSX on a non-OSX host."; \
 	fi;
 
 binaries: docker genassets linux windows darwin
