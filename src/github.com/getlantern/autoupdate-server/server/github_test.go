@@ -12,41 +12,41 @@ func TestSplitUpdateAsset(t *testing.T) {
 	var err error
 	var info *AssetInfo
 
-	if info, err = getAssetInfo("autoupdate-binary-darwin-386.dmg"); err != nil {
+	if info, err = getAssetInfo("update_darwin_386.dmg"); err != nil {
 		t.Fatal(fmt.Errorf("Failed to get asset info: %q", err))
 	}
 	if info.OS != OS.Darwin || info.Arch != Arch.X86 {
 		t.Fatal("Failed to identify update asset.")
 	}
 
-	if info, err = getAssetInfo("autoupdate-binary-darwin-amd64.v1"); err != nil {
+	if info, err = getAssetInfo("update_darwin_amd64.v1"); err != nil {
 		t.Fatal(fmt.Errorf("Failed to get asset info: %q", err))
 	}
 	if info.OS != OS.Darwin || info.Arch != Arch.X64 {
 		t.Fatal("Failed to identify update asset.")
 	}
 
-	if info, err = getAssetInfo("autoupdate-binary-linux-arm"); err != nil {
+	if info, err = getAssetInfo("update_linux_arm"); err != nil {
 		t.Fatal(fmt.Errorf("Failed to get asset info: %q", err))
 	}
 	if info.OS != OS.Linux || info.Arch != Arch.ARM {
 		t.Fatal("Failed to identify update asset.")
 	}
 
-	if info, err = getAssetInfo("autoupdate-binary-windows-386"); err != nil {
+	if info, err = getAssetInfo("update_windows_386"); err != nil {
 		t.Fatal(fmt.Errorf("Failed to get asset info: %q", err))
 	}
 	if info.OS != OS.Windows || info.Arch != Arch.X86 {
 		t.Fatal("Failed to identify update asset.")
 	}
 
-	if _, err = getAssetInfo("autoupdate-binary-osx-386"); err == nil {
+	if _, err = getAssetInfo("update_osx_386"); err == nil {
 		t.Fatalf("Should have ignored the release, \"osx\" is not a valid OS value.")
 	}
 }
 
 func TestNewClient(t *testing.T) {
-	testClient = NewReleaseManager("getlantern", "autoupdate-server")
+	testClient = NewReleaseManager("getlantern", "autoupdate")
 	if testClient == nil {
 		t.Fatal("Failed to create new client.")
 	}

@@ -6,6 +6,7 @@ bin
 *.swp
 *.deb
 *.swo
+update_*.bz2
 flashlight_darwin_amd64
 flashlight_linux_386
 flashlight_linux_amd64

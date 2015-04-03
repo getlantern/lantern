@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	updateAssetRe = regexp.MustCompile(`^autoupdate-binary-(darwin|windows|linux)-(arm|386|amd64)\.?.*$`)
+	updateAssetRe = regexp.MustCompile(`^update_(darwin|windows|linux)_(arm|386|amd64)\.?.*$`)
 
 	emptyVersion semver.Version
 )
