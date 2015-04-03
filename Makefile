@@ -30,7 +30,7 @@ define build-tags
 	else \
 		echo "** VERSION was not set, using git revision instead ($(GIT_REVISION)). This is OK while in development."; \
 	fi && \
-	if [[ -z "$$HEADLESS" ]]; then \
+	if [[ ! -z "$$HEADLESS" ]]; then \
 		BUILD_TAGS="$$BUILD_TAGS headless"; \
 	fi
 endef
