@@ -49,9 +49,7 @@ func downloadAsset(uri string) (localfile string, err error) {
 			return "", fmt.Errorf("Expecting 200 OK, got: %s", res.Status)
 		}
 
-		if res.Body != nil {
-			defer res.Body.Close()
-		}
+		defer res.Body.Close()
 
 		var fp *os.File
 
