@@ -81,9 +81,8 @@ func (client *Client) Configure(cfg *ClientConfig) fronted.Dialer {
 			reflect.DeepEqual(client.priorTrustedCAs, globals.TrustedCAs) {
 			log.Debugf("Client configuration unchanged")
 			return client.hqfd
-		} else {
-			log.Debugf("Client configuration changed")
 		}
+		log.Debugf("Client configuration changed")
 	} else {
 		log.Debugf("Client configuration initialized")
 	}

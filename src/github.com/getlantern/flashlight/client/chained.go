@@ -12,6 +12,7 @@ import (
 	"github.com/getlantern/tlsdialer"
 )
 
+// ChainedServerInfo provides identity information for a chained server.
 type ChainedServerInfo struct {
 	// Addr: the host:port of the upstream proxy server
 	Addr string
@@ -35,6 +36,7 @@ type ChainedServerInfo struct {
 	QOS int
 }
 
+// Dialer creates a *balancer.Dialer backed by a chained server.
 func (s *ChainedServerInfo) Dialer() (*balancer.Dialer, error) {
 	log.Debug("Building dialer")
 

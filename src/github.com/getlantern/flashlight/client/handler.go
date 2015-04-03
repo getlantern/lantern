@@ -11,15 +11,15 @@ import (
 )
 
 const (
-	CONNECT        = "CONNECT" // HTTP CONNECT method
-	XFlashlightQOS = "X-Flashlight-QOS"
+	httpConnectMethod  = "CONNECT" // HTTP CONNECT method
+	httpXFlashlightQOS = "X-Flashlight-QOS"
 )
 
 // ServeHTTP implements the method from interface http.Handler using the latest
 // handler available from getHandler() and latest ReverseProxy available from
 // getReverseProxy().
 func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	if req.Method == CONNECT {
+	if req.Method == httpConnectMethod {
 		log.Tracef("Intercepting CONNECT %s", req.URL)
 		client.intercept(resp, req)
 	} else {
@@ -32,7 +32,7 @@ func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 // connetion and starts piping the data over a new net.Conn obtained from the
 // given dial function.
 func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
-	if req.Method != "CONNECT" {
+	if req.Method != httpConnectMethod {
 		panic("Intercept used for non-CONNECT request!")
 	}
 
@@ -64,7 +64,7 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 // targetQOS determines the target quality of service given the X-Flashlight-QOS
 // header if available, else returns MinQOS.
 func (client *Client) targetQOS(req *http.Request) int {
-	requestedQOS := req.Header.Get(XFlashlightQOS)
+	requestedQOS := req.Header.Get(httpXFlashlightQOS)
 	if requestedQOS != "" {
 		rqos, err := strconv.Atoi(requestedQOS)
 		if err == nil {
@@ -122,7 +122,6 @@ func hostIncludingPort(req *http.Request, defaultPort int) string {
 	_, port, err := net.SplitHostPort(req.Host)
 	if port == "" || err != nil {
 		return req.Host + ":" + strconv.Itoa(defaultPort)
-	} else {
-		return req.Host
 	}
+	return req.Host
 }
