@@ -44,12 +44,23 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 	}
 	defer clientConn.Close()
 
-	addr := hostIncludingPort(req, 443)
+	host, port, err := net.SplitHostPort(req.Host)
+
+	if err != nil {
+		log.Tracef("net.SplitHostPort: %q", err)
+	}
+
+	if port == "" {
+		port = "443"
+	}
+
+	addr := host + ":" + port
 
 	// Establish outbound connection
 	d := func(network, addr string) (net.Conn, error) {
 		return client.getBalancer().DialQOS("tcp", addr, client.targetQOS(req))
 	}
+
 	connOut, err := detour.Dialer(d)("tcp", addr)
 	if err != nil {
 		respondBadGateway(clientConn, fmt.Sprintf("Unable to handle CONNECT request: %s", err))
@@ -114,14 +125,4 @@ func respondBadGateway(w io.Writer, msg string) error {
 		_, err = w.Write([]byte(msg))
 	}
 	return err
-}
-
-// hostIncludingPort extracts the host:port from a request.  It fills in a
-// a default port if none was found in the request.
-func hostIncludingPort(req *http.Request, defaultPort int) string {
-	_, port, err := net.SplitHostPort(req.Host)
-	if port == "" || err != nil {
-		return req.Host + ":" + strconv.Itoa(defaultPort)
-	}
-	return req.Host
 }
