@@ -7,6 +7,7 @@ import (
 
 	"github.com/getlantern/flashlight/analytics"
 	"github.com/getlantern/flashlight/config"
+	"github.com/getlantern/launcher"
 
 	"github.com/getlantern/flashlight/ui"
 	"github.com/getlantern/golog"
@@ -87,6 +88,7 @@ func read() {
 				*updated.AutoReport = autoReport
 			} else if autoLaunch, ok := settings["autoLaunch"].(bool); ok {
 				log.Debugf("Auto startup is %v", autoLaunch)
+				launcher.CreateLaunchFile(autoLaunch)
 				baseSettings.AutoLaunch = autoLaunch
 				*updated.AutoLaunch = autoLaunch
 			}
