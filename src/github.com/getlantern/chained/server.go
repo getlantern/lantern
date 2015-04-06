@@ -69,7 +69,7 @@ func (s *Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		wg.Done()
 	}()
 	go func() {
-		go io.Copy(connIn, connOut)
+		io.Copy(connIn, connOut)
 		wg.Done()
 	}()
 	wg.Wait()
