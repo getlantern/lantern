@@ -24,8 +24,7 @@ const (
 		<string>org.lantern</string>
 		<key>ProgramArguments</key>
 		<array>
-			<string>/Applications/Lantern.app/Contents/MacOS/lantern</string>
-			<string>--launchd</string>
+		<string>/Applications/Lantern.app/Contents/MacOS/lantern</string>
 		</array>
 		<key>RunAtLoad</key>
         <{{.RunAtLoad}}/>

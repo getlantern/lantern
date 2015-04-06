@@ -82,6 +82,9 @@ angular.module('app.services', [])
             }
         }
 
+        if (data.AutoLaunch) {
+            model.settings.autoLaunch = true;
+        }
       },
       'ProxiedSites': function(data) {
         if (!$rootScope.entries) {
