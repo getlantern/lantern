@@ -1,4 +1,4 @@
-// package chained provides a chained proxy that can proxy any tcp traffic over
+// Package chained provides a chained proxy that can proxy any tcp traffic over
 // any underlying transport through a remote proxy. The downstream (client) side
 // of the chained setup is just a dial function. The upstream (server) side is
 // just an http.Handler. The client tells the server where to connect using an
@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	CONNECT = "CONNECT"
+	httpConnectMethod = "CONNECT"
 )
 
 var (

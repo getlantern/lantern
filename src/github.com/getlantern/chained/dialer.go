@@ -29,6 +29,7 @@ type dialer struct {
 	Config
 }
 
+// NewDialer creates a dialer{} based on the given Config.
 func NewDialer(cfg Config) proxy.Dialer {
 	return &dialer{Config: cfg}
 }
@@ -72,7 +73,7 @@ func (d *dialer) sendCONNECT(network, addr string, conn net.Conn) error {
 }
 
 func buildCONNECTRequest(addr string, onRequest func(req *http.Request)) (*http.Request, error) {
-	req, err := http.NewRequest(CONNECT, addr, nil)
+	req, err := http.NewRequest(httpConnectMethod, addr, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +89,7 @@ func checkCONNECTResponse(r *bufio.Reader, req *http.Request) error {
 	if err != nil {
 		return fmt.Errorf("Error reading CONNECT response: %s", err)
 	}
-	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+	if resp.StatusCode < http.StatusOK || resp.StatusCode > 299 {
 		return fmt.Errorf("Bad status code on CONNECT response: %d", resp.StatusCode)
 	}
 	return nil
