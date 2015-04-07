@@ -11,7 +11,6 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/getlantern/fronted"
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/yaml"
 
@@ -27,16 +26,9 @@ var httpDefaultClient = &http.Client{Timeout: time.Second * 5}
 
 var lastCloudConfigETag string
 
-type clientCfg struct {
-	FrontedServers []frontedServer                      `yaml:"frontedservers"`
-	ChainedServers map[string]*client.ChainedServerInfo `yaml:"chainedservers"`
-	MasqueradeSets map[string][]*fronted.Masquerade     `yaml:"masqueradesets"`
-}
-
-// config provides client configuration.
 type config struct {
-	Client     clientCfg `yaml:"client"`
-	TrustedCAs []*ca     `yaml:"trustedcas"`
+	Client     *client.ClientConfig `yaml:"client"`
+	TrustedCAs []*ca                `yaml:"trustedcas"`
 }
 
 var (
@@ -108,8 +100,9 @@ func pullConfigFile(cli *http.Client) ([]byte, error) {
 
 // defaultConfig returns the embedded configuration.
 func defaultConfig() *config {
+
 	cfg := &config{
-		Client: clientCfg{
+		Client: &client.ClientConfig{
 			FrontedServers: defaultFrontedServerList,
 			MasqueradeSets: defaultMasqueradeSets,
 		},
