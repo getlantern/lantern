@@ -1,5 +1,6 @@
 # cloud.yaml contains the default configuration that's made available on the
 # internet.
+cloudconfig: https://s3.amazonaws.com/lantern_config/cloud.2.0.0-nl.yaml.gz
 client:
   frontedservers:
   - host: nl.fallbacks.getiantem.org
