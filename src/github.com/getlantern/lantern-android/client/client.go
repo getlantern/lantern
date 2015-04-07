@@ -1,10 +1,7 @@
 package client
 
 import (
-	"io"
 	"log"
-	"net"
-	"net/http"
 	"strings"
 	"time"
 
