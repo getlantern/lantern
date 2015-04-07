@@ -9,13 +9,6 @@ client:
     maxmasquerades: 20
     qos: 10
     weight: 4000
-  - host: peers.getiantem.org
-    port: 443
-    poolsize: 30
-    masqueradeset: "cloudflare"
-    maxmasquerades: 20
-    qos: 2
-    weight: 0
   chainedservers: {{range .fallbacks}}
     fallback-{{.ip}}:
       addr: {{.ip}}:443
