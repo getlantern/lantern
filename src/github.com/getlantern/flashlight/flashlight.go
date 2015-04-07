@@ -275,7 +275,7 @@ func runServerProxy(cfg *config.Config) {
 	}
 
 	srv.Configure(cfg.Server)
-	analytics.Configure(nil, true, nil)
+	analytics.Configure(cfg, true, nil)
 
 	// Continually poll for config updates and update server accordingly
 	go func() {

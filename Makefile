@@ -12,7 +12,7 @@ GIT_REVISION := $(shell git describe --abbrev=0 --tags --exact-match 2> /dev/nul
 LOGGLY_TOKEN := 469973d5-6eaf-445a-be71-cf27141316a1
 LDFLAGS := -w -X main.version $(GIT_REVISION) -X main.buildDate $(BUILD_DATE) -X github.com/getlantern/flashlight/logging.logglyToken \"$(LOGGLY_TOKEN)\"
 LANTERN_DESCRIPTION := Censorship circumvention tool
-LANTERN_EXTENDED_DESCRIPTION := Lantern allows you to access sites blocked by internet censorship.\nWhen you run it, Lantern reroutes traffic to selected domains through servers located where such domains aren\'t censored.
+LANTERN_EXTENDED_DESCRIPTION := Lantern allows you to access sites blocked by internet censorship.\nWhen you run it, Lantern reroutes traffic to selected domains through servers located where such domains aren't censored.
 
 PACKAGE_VENDOR := Brave New Software Project, Inc
 PACKAGE_MAINTAINER := Lantern Team <team@getlantern.org>
