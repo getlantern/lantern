@@ -58,30 +58,3 @@ func NewClient(addr string) {
 		}
 	}()
 }
-
-// pipeData pipes data between the client and proxy connections.  It's also
-// responsible for responding to the initial CONNECT request with a 200 OK.
-func pipeData(clientConn net.Conn, connOut net.Conn, req *http.Request) {
-	// Start piping to proxy
-	go io.Copy(connOut, clientConn)
-
-	// Respond OK
-	err := respondOK(clientConn, req)
-	if err != nil {
-		log.Printf("Unable to respond OK: %s", err)
-		return
-	}
-
-	// Then start coyping from out to client
-	io.Copy(clientConn, connOut)
-}
-
-func respondOK(writer io.Writer, req *http.Request) error {
-	defer req.Body.Close()
-	resp := &http.Response{
-		StatusCode: http.StatusOK,
-		ProtoMajor: 1,
-		ProtoMinor: 1,
-	}
-	return resp.Write(writer)
-}
