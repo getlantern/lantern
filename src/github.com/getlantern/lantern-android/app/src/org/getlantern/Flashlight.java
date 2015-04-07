@@ -20,17 +20,6 @@ public abstract class Flashlight {
         }
     }
     
-    public static void StopClientProxy() throws Exception {
-        go.Seq _in = new go.Seq();
-        go.Seq _out = new go.Seq();
-        Seq.send(DESCRIPTOR, CALL_StopClientProxy, _in, _out);
-        String _err = _out.readUTF16();
-        if (_err != null) {
-            throw new Exception(_err);
-        }
-    }
-    
     private static final int CALL_RunClientProxy = 1;
-    private static final int CALL_StopClientProxy = 2;
     private static final String DESCRIPTOR = "flashlight";
 }
