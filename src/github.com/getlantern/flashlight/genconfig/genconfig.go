@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -343,7 +344,7 @@ func buildModel(cas map[string]*castat, masquerades []*masquerade) map[string]in
 }
 
 func generateTemplate(model map[string]interface{}, tmplString string, filename string) {
-	tmpl, err := template.New(filename).Parse(tmplString)
+	tmpl, err := template.New(filename).Funcs(funcMap).Parse(tmplString)
 	if err != nil {
 		log.Errorf("Unable to parse template: %s", err)
 		return
@@ -368,6 +369,20 @@ func run(prg string, args ...string) (string, error) {
 		return "", fmt.Errorf("%s says %s", prg, string(out))
 	}
 	return string(out), nil
+}
+
+func base64Encode(sites []string) string {
+	raw, err := json.Marshal(sites)
+	if err != nil {
+		log.Errorf("Unable to marshal proxied sites: %s", err)
+	}
+	b64 := base64.StdEncoding.EncodeToString(raw)
+	return b64
+}
+
+// the functions to be called from template
+var funcMap = template.FuncMap{
+	"encode": base64Encode,
 }
 
 type ByDomain []*masquerade
