@@ -20,9 +20,11 @@ const (
 // getReverseProxy().
 func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	if req.Method == httpConnectMethod {
+		// CONNECT requests are often used for HTTPs requests.
 		log.Tracef("Intercepting CONNECT %s", req.URL)
 		client.intercept(resp, req)
 	} else {
+		// Direct proxying can only be used for plain HTTP connections.
 		log.Tracef("Reverse proxying %s %v", req.Method, req.URL)
 		client.getReverseProxy().ServeHTTP(resp, req)
 	}

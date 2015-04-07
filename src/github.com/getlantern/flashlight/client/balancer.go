@@ -35,7 +35,6 @@ func (client *Client) initBalancer(cfg *ClientConfig) (*balancer.Balancer, front
 		} else {
 			log.Debugf("Unable to configure chained server for %s: %s", s.Addr)
 		}
-
 	}
 
 	bal := balancer.New(dialers...)

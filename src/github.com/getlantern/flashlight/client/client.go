@@ -39,11 +39,16 @@ type Client struct {
 	priorCfg        *ClientConfig
 	priorTrustedCAs *x509.CertPool
 	cfgMutex        sync.RWMutex
-	balCh           chan *balancer.Balancer
-	balInitialized  bool
-	rpCh            chan *httputil.ReverseProxy
-	rpInitialized   bool
-	hqfd            fronted.Dialer
+
+	// Balanced CONNECT dialers.
+	balCh          chan *balancer.Balancer
+	balInitialized bool
+
+	// Reverse HTTP proxies.
+	rpCh          chan *httputil.ReverseProxy
+	rpInitialized bool
+
+	hqfd fronted.Dialer
 }
 
 // ListenAndServe makes the client listen for HTTP connections.
