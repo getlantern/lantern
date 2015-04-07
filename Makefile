@@ -194,7 +194,7 @@ darwin-amd64:
 		$(call build-tags) && \
 		CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -o lantern_darwin_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS)" github.com/getlantern/flashlight && \
 		cat lantern_darwin_amd64 | bzip2 > update_darwin_amd64.bz2 && \
-		ls -l lantern_darwin_amd64 update_darwin_amd64.bz2 \
+		ls -l lantern_darwin_amd64 update_darwin_amd64.bz2; \
 	else \
 		echo "-> Skipped: Can not compile Lantern for OSX on a non-OSX host."; \
 	fi;
