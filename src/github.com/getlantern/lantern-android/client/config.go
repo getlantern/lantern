@@ -106,7 +106,6 @@ func defaultConfig() *config {
 			FrontedServers: defaultFrontedServerList,
 			MasqueradeSets: defaultMasqueradeSets,
 		},
-		TrustedCAs: defaultTrustedCAs,
 	}
 	return cfg
 }
