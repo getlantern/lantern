@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/getlantern/flashlight/client"
@@ -43,7 +44,7 @@ func NewClient(addr string) {
 	client.Configure(clientConfig.Client)
 	log.Printf("Finished configuring client...")
 
-	/*go func() {
+	go func() {
 		var err error
 		onListening := func() {
 			log.Printf("Now listening for connections...")
@@ -55,7 +56,7 @@ func NewClient(addr string) {
 				panic(err.Error())
 			}
 		}
-	}()*/
+	}()
 }
 
 // pipeData pipes data between the client and proxy connections.  It's also
