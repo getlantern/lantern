@@ -14,6 +14,8 @@ import (
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/yaml"
+
+	"github.com/getlantern/flashlight/client"
 )
 
 const (
@@ -26,8 +28,9 @@ var httpDefaultClient = &http.Client{Timeout: time.Second * 5}
 var lastCloudConfigETag string
 
 type clientCfg struct {
-	FrontedServers []frontedServer                  `yaml:"frontedservers"`
-	MasqueradeSets map[string][]*fronted.Masquerade `yaml:"masqueradesets"`
+	FrontedServers []frontedServer                      `yaml:"frontedservers"`
+	ChainedServers map[string]*client.ChainedServerInfo `yaml:"chainedservers"`
+	MasqueradeSets map[string][]*fronted.Masquerade     `yaml:"masqueradesets"`
 }
 
 // config provides client configuration.
@@ -51,7 +54,7 @@ var (
 const (
 	cloudConfigCA = ``
 	// URL of the configuration file. Remember to use HTTPs.
-	remoteConfigURL = `https://s3.amazonaws.com/lantern_config/cloud.1.6.0.yaml.gz`
+	remoteConfigURL = `https://s3.amazonaws.com/lantern_config/cloud.2.0.0-beta3.yaml.gz`
 )
 
 // pullConfigFile attempts to retrieve a configuration file over the network,
