@@ -32,7 +32,9 @@ define build-tags
 	fi && \
 	if [[ ! -z "$$HEADLESS" ]]; then \
 		BUILD_TAGS="$$BUILD_TAGS headless"; \
-	fi
+	fi && \
+	BUILD_TAGS=$$(echo $$BUILD_TAGS | xargs) && \
+	echo "Build tags: $$BUILD_TAGS"
 endef
 
 define docker-up
@@ -172,21 +174,21 @@ genassets:
 linux-amd64:
 	@echo "Building linux/amd64..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" U_UID="'$$UID'" U_GID="'$$GID'" make docker-linux-amd64' && \
+	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" make docker-linux-amd64' && \
 	cat lantern_linux_amd64 | bzip2 > update_linux_amd64.bz2 && \
 	ls -l lantern_linux_amd64 update_linux_amd64.bz2
 
 linux-386:
 	@echo "Building linux/386..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" make docker-linux-386' && \
+	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS$'" make docker-linux-386' && \
 	cat lantern_linux_386 | bzip2 > update_linux_386.bz2 && \
 	ls -l lantern_linux_386 update_linux_386.bz2
 
 windows-386:
 	@echo "Building windows/386..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" make docker-windows-386' && \
+	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" make docker-windows-386' && \
 	cat lantern_windows_386.exe | bzip2 > update_windows_386.bz2 && \
 	ls -l lantern_windows_386.exe update_windows_386.bz2
 
