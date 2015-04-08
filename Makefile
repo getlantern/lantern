@@ -324,6 +324,7 @@ clean:
 	@rm -f lantern_linux* && \
 	rm -f lantern_darwin* && \
 	rm -f lantern_windows* && \
+	rm -f lantern-installer* && \
 	rm -f update_* && \
 	rm -f *.deb && \
 	rm -rf *.app && \
