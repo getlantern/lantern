@@ -1,9 +1,14 @@
 SHELL := /bin/bash
 
-DOCKER := $(shell which docker 2> /dev/null);
+DOCKER := $(shell which docker 2> /dev/null)
 GO := $(shell which go 2> /dev/null)
 NODE := $(shell which node 2> /dev/null)
 NPM := $(shell which npm 2> /dev/null)
+S3CMD := $(shell which s3cmd 2> /dev/null)
+RUBY := $(shell which ruby 2> /dev/null)
+
+APPDMG := $(shell which appdmg 2> /dev/null)
+SVGEXPORT := $(shell which svgexport 2> /dev/null)
 
 BOOT2DOCKER := $(shell which boot2docker 2> /dev/null)
 
@@ -17,6 +22,14 @@ LANTERN_EXTENDED_DESCRIPTION := Lantern allows you to access sites blocked by in
 PACKAGE_VENDOR := Brave New Software Project, Inc
 PACKAGE_MAINTAINER := Lantern Team <team@getlantern.org>
 PACKAGE_URL := https://www.getlantern.org
+
+GH_USER := getlantern
+#GH_USER := xiam
+
+GH_RELEASE_REPOSITORY := flashlight-build
+
+S3_BUCKET := lantern
+#S3_BUCKET := xiam-lantern-test-1
 
 DOCKER_IMAGE_TAG := flashlight-builder
 
@@ -122,6 +135,12 @@ docker-windows-386:
 require-version:
 	@if [[ -z "$$VERSION" ]]; then echo "VERSION environment value is required."; exit 1; fi
 
+require-tag:
+	@if [[ -z "$$TAG" ]]; then echo "TAG environment value is required."; exit 1; fi
+
+require-gh-token:
+	@if [[ -z "$$GH_TOKEN" ]]; then echo "GH_TOKEN environment value is required."; exit 1; fi
+
 require-secrets:
 	@if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
 	if [[ -z "$$SECRETS_DIR" ]]; then echo "SECRETS_DIR environment value is required."; exit 1; fi
@@ -164,6 +183,26 @@ darwin: genassets darwin-amd64
 system-checks:
 	@if [[ -z "$(DOCKER)" ]]; then echo 'Missing "docker" command.'; exit 1; fi && \
 	if [[ -z "$(GO)" ]]; then echo 'Missing "go" command.'; exit 1; fi
+
+require-s3cmd:
+	@if [[ -z "$(S3CMD)" ]]; then echo 'Missing "s3cmd" command.. See https://github.com/s3tools/s3cmd/blob/master/INSTALL'; exit 1; fi
+
+require-node:
+	@if [[ -z "$(NODE)" ]]; then echo 'Missing "node" command.'; exit 1; fi
+
+require-npm: require-node
+	@if [[ -z "$(NPM)" ]]; then echo 'Missing "npm" command.'; exit 1; fi
+
+require-appdmg:
+	@if [[ -z "$(APPDMG)" ]]; then echo 'Missing "appdmg" command. Try sudo npm install -g appdmg.'; exit 1; fi
+
+require-svgexport:
+	@if [[ -z "$(SVGEXPORT)" ]]; then echo 'Missing "svgexport" command. Try sudo npm install -g svgexport.'; exit 1; fi
+
+require-ruby:
+	@if [[ -z "$(RUBY)" ]]; then echo 'Missing "ruby" command.'; exit 1; fi && \
+	(gem which octokit >/dev/null) || (echo 'Missing gem "octokit". Try sudo gem install octokit.' && exit 1) && \
+	(gem which mime-types >/dev/null) || (echo 'Missing gem "mime-types". Try sudo gem install mime-types.' && exit 1)
 
 genassets:
 	@echo "Generating assets..." && \
@@ -224,24 +263,19 @@ package-windows: require-version windows-386
 	docker run -v $$PWD:/flashlight-build -v $$SECRETS_DIR:/secrets -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && BNS_CERT="/secrets/bns_cert.p12" BNS_CERT_PASS="'$$BNS_CERT_PASS'" VERSION="'$$VERSION'" make docker-package-windows' && \
 	echo "-> lantern-installer.exe"
 
-package-darwin: require-version darwin
+package-darwin: require-version require-npm require-appdmg require-svgexport darwin
 	@echo "Generating distribution package for darwin/amd64..." && \
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
-		if [[ -z "$(NODE)" ]]; then echo 'Missing "node" command.'; exit 1; fi && \
-		if [[ -z "$(NPM)" ]]; then echo 'Missing "npm" command.'; exit 1; fi && \
 		INSTALLER_RESOURCES="installer-resources/darwin" && \
-		APPDMG=$$(which appdmg) && \
-		SVGEXPORT=$$(which svgexport) && \
-		if [[ -z "$$APPDMG" ]]; then npm install -g appdmg; fi && \
-		if [[ -z "$$SVGEXPORT" ]]; then npm install -g svgexport; fi && \
 		rm -rf Lantern.app && \
 		cp -r $$INSTALLER_RESOURCES/Lantern.app_template Lantern.app && \
+		mkdir Lantern.app/Contents/MacOS && \
 		cp -r lantern_darwin_amd64 Lantern.app/Contents/MacOS/lantern && \
 		codesign -s "Developer ID Application: $$PACKAGE_VENDOR" Lantern.app && \
 		rm -rf Lantern.dmg && \
-		sed "s/__VERSION__/$$VERSION/g" $$INSTALLER_RESOURCES/dmgbackground.svg > dmgbackground_versioned.svg && \
-		$$SVGEXPORT dmgbackground_versioned.svg dmgbackground.png 600:400 && \
-		$$APPDMG --quiet $$INSTALLER_RESOURCES/lantern.dmg.json Lantern.dmg && \
+		sed "s/__VERSION__/$$VERSION/g" $$INSTALLER_RESOURCES/dmgbackground.svg > $$INSTALLER_RESOURCES/dmgbackground_versioned.svg && \
+		$(SVGEXPORT) $$INSTALLER_RESOURCES/dmgbackground_versioned.svg $$INSTALLER_RESOURCES/dmgbackground.png 600:400 && \
+		$(APPDMG) --quiet $$INSTALLER_RESOURCES/lantern.dmg.json Lantern.dmg && \
 		mv Lantern.dmg Lantern.dmg.zlib && \
 		hdiutil convert -quiet -format UDBZ -o Lantern.dmg Lantern.dmg.zlib && \
 		rm Lantern.dmg.zlib; \
@@ -253,10 +287,59 @@ binaries: docker genassets linux windows darwin
 
 packages: require-version require-secrets clean binaries package-windows package-linux package-darwin
 
+release-qa: require-tag require-gh-token require-s3cmd require-ruby
+	@BASE_NAME="lantern-installer-qa" && \
+	rm -f $$BASE_NAME* && \
+	$(RUBY) ./installer-resources/tools/createrelease.rb "$(GH_USER)" "$(GH_RELEASE_REPOSITORY)" $$TAG && \
+	git tag -a "$$TAG" -f --annotate -m"Tagged $$VERSION" && \
+	git push --tags -f && \
+	cp lantern-installer.exe $$BASE_NAME.exe && \
+	cp Lantern.dmg $$BASE_NAME.dmg && \
+	cp lantern_*386.deb $$BASE_NAME-32-bit.deb && \
+	cp lantern_*amd64.deb $$BASE_NAME-64-bit.deb && \
+	for NAME in $$(ls -1 $$BASE_NAME.exe $$BASE_NAME.dmg $$BASE_NAME-32-bit.deb $$BASE_NAME-64-bit.deb); do \
+		shasum $$NAME | cut -d " " -f 1 > $$NAME.sha1 && \
+		echo "Uploading SHA-1 `cat $$NAME.sha1`" && \
+		$(S3CMD) -q put -P $$NAME.sha1 s3://$(S3_BUCKET) && \
+		echo "Uploading $$NAME to S3" && \
+		$(S3CMD) -q put -P $$NAME s3://$(S3_BUCKET) && \
+		SUFFIX=$$(echo "$$NAME" | sed s/$$BASE_NAME//g) && \
+		VERSIONED=lantern-installer-$$TAG$$SUFFIX && \
+		echo "Copying $$VERSIONED" && \
+		$(S3CMD) -q cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$VERSIONED; \
+	done && \
+	echo "Uploading Windows binary for auto-updates" && \
+	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$TAG update_windows_386.bz2 && \
+	echo "Uploading OSX binary for auto-updates" && \
+	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$TAG update_darwin_amd64.bz2 && \
+	echo "Uploading Linux binaries for auto-updates" && \
+	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$TAG update_linux_amd64.bz2 && \
+	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$TAG update_linux_386.bz2
+
+release-beta:
+	@BASE_NAME="lantern-installer-qa" && \
+	BETA_BASE_NAME="lantern-installer-beta" && \
+	for NAME in $$(ls -1 $$BASE_NAME.exe $$BASE_NAME.dmg $$BASE_NAME-32-bit.deb $$BASE_NAME-64-bit.deb); do \
+		BETA=$$(echo $$NAME | sed s/"$$BASE_NAME"/$$BETA_BASE_NAME/) && \
+		echo "Copying alpha $$NAME to beta $$BETA..." && \
+		s3cmd cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$BETA; \
+	done
+
+update-icons:
+	@(which go-bindata >/dev/null) || (echo 'Missing command "go-bindata". Sett https://github.com/jteeuwen/go-bindata.' && exit 1) && \
+	go-bindata -nomemcopy -nocompress -pkg main -o src/github.com/getlantern/flashlight/icons.go -prefix src/github.com/getlantern/flashlight/ src/github.com/getlantern/flashlight/icons
+
+create-tag: require-tag
+	@git tag -a "$$TAG" -f --annotate -m"Tagged $$TAG" && \
+	git push --tags -f
+
 clean:
-	@rm -f lantern_linux*
-	@rm -f lantern_darwin*
-	@rm -f lantern_windows*
-	@rm -f *.deb
-	@rm -rf *.app
-	@rm -f *.dmg
+	@rm -f lantern_linux* && \
+	rm -f lantern_darwin* && \
+	rm -f lantern_windows* && \
+	rm -f lantern-installer* && \
+	rm -f update_* && \
+	rm -f *.deb && \
+	rm -f *.png && \
+	rm -rf *.app && \
+	rm -f *.dmg
