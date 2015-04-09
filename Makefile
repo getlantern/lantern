@@ -111,7 +111,7 @@ docker-genassets:
 	\
 	rm -f bin/tarfs bin/rsrc && \
 	go install github.com/getlantern/tarfs/tarfs && \
-	echo "// +build prod" > $$DEST && \
+	echo "// +build !stub" > $$DEST && \
 	echo " " >> $$DEST && \
 	tarfs -pkg ui $$DIST >> $$DEST && \
 	go install github.com/akavel/rsrc && \
@@ -131,6 +131,9 @@ docker-windows-386:
 	@source setenv.bash && \
 	$(call build-tags) && \
 	CGO_ENABLED=1 GOOS=windows GOARCH=386 go build -o lantern_windows_386.exe -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -H=windowsgui" github.com/getlantern/flashlight;
+
+require-assets:
+	@if [ ! -f ./src/github.com/getlantern/flashlight/ui/resources.go ]; then make genassets; fi
 
 require-version:
 	@if [[ -z "$$VERSION" ]]; then echo "VERSION environment value is required."; exit 1; fi
@@ -210,28 +213,28 @@ genassets:
 	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && make docker-genassets' && \
 	echo "OK"
 
-linux-amd64:
+linux-amd64: require-assets
 	@echo "Building linux/amd64..." && \
 	$(call docker-up) && \
 	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" make docker-linux-amd64' && \
 	cat lantern_linux_amd64 | bzip2 > update_linux_amd64.bz2 && \
 	ls -l lantern_linux_amd64 update_linux_amd64.bz2
 
-linux-386:
+linux-386: require-assets
 	@echo "Building linux/386..." && \
 	$(call docker-up) && \
 	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" make docker-linux-386' && \
 	cat lantern_linux_386 | bzip2 > update_linux_386.bz2 && \
 	ls -l lantern_linux_386 update_linux_386.bz2
 
-windows-386:
+windows-386: require-assets
 	@echo "Building windows/386..." && \
 	$(call docker-up) && \
 	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" make docker-windows-386' && \
 	cat lantern_windows_386.exe | bzip2 > update_windows_386.bz2 && \
 	ls -l lantern_windows_386.exe update_windows_386.bz2
 
-darwin-amd64:
+darwin-amd64: require-assets
 	@echo "Building darwin/amd64..." && \
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		source setenv.bash && \
@@ -342,4 +345,5 @@ clean:
 	rm -f *.deb && \
 	rm -f *.png && \
 	rm -rf *.app && \
+	rm -f ./src/github.com/getlantern/flashlight/ui/resources.go && \
 	rm -f *.dmg
