@@ -12,7 +12,7 @@ var (
 
 func CreateLaunchFile(autoLaunch bool) {
 
-	service, err := daemon.New("name", "description")
+	service, err := daemon.New("name", "lantern")
 	if err != nil {
 		log.Errorf("Could not create new daemon: %q", err)
 		return
