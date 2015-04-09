@@ -12,7 +12,7 @@ GIT_REVISION := $(shell git describe --abbrev=0 --tags --exact-match 2> /dev/nul
 LOGGLY_TOKEN := 469973d5-6eaf-445a-be71-cf27141316a1
 LDFLAGS := -w -X main.version $(GIT_REVISION) -X main.buildDate $(BUILD_DATE) -X github.com/getlantern/flashlight/logging.logglyToken \"$(LOGGLY_TOKEN)\"
 LANTERN_DESCRIPTION := Censorship circumvention tool
-LANTERN_EXTENDED_DESCRIPTION := Lantern allows you to access sites blocked by internet censorship.\nWhen you run it, Lantern reroutes traffic to selected domains through servers located where such domains aren\'t censored.
+LANTERN_EXTENDED_DESCRIPTION := Lantern allows you to access sites blocked by internet censorship.\nWhen you run it, Lantern reroutes traffic to selected domains through servers located where such domains aren't censored.
 
 PACKAGE_VENDOR := Brave New Software Project, Inc
 PACKAGE_MAINTAINER := Lantern Team <team@getlantern.org>
@@ -29,7 +29,12 @@ define build-tags
 		sed s/'packageVersion.*'/'packageVersion = "'$$VERSION'"'/ src/github.com/getlantern/flashlight/autoupdate.go | sed s/'!prod'/'prod'/ > src/github.com/getlantern/flashlight/autoupdate-prod.go; \
 	else \
 		echo "** VERSION was not set, using git revision instead ($(GIT_REVISION)). This is OK while in development."; \
-	fi
+	fi && \
+	if [[ ! -z "$$HEADLESS" ]]; then \
+		BUILD_TAGS="$$BUILD_TAGS headless"; \
+	fi && \
+	BUILD_TAGS=$$(echo $$BUILD_TAGS | xargs) && \
+	echo "Build tags: $$BUILD_TAGS"
 endef
 
 define docker-up
@@ -169,21 +174,21 @@ genassets:
 linux-amd64:
 	@echo "Building linux/amd64..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" U_UID="'$$UID'" U_GID="'$$GID'" make docker-linux-amd64' && \
+	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" make docker-linux-amd64' && \
 	cat lantern_linux_amd64 | bzip2 > update_linux_amd64.bz2 && \
 	ls -l lantern_linux_amd64 update_linux_amd64.bz2
 
 linux-386:
 	@echo "Building linux/386..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" make docker-linux-386' && \
+	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" make docker-linux-386' && \
 	cat lantern_linux_386 | bzip2 > update_linux_386.bz2 && \
 	ls -l lantern_linux_386 update_linux_386.bz2
 
 windows-386:
 	@echo "Building windows/386..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" make docker-windows-386' && \
+	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" make docker-windows-386' && \
 	cat lantern_windows_386.exe | bzip2 > update_windows_386.bz2 && \
 	ls -l lantern_windows_386.exe update_windows_386.bz2
 
@@ -194,7 +199,7 @@ darwin-amd64:
 		$(call build-tags) && \
 		CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -o lantern_darwin_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS)" github.com/getlantern/flashlight && \
 		cat lantern_darwin_amd64 | bzip2 > update_darwin_amd64.bz2 && \
-		ls -l lantern_darwin_amd64 update_darwin_amd64.bz2
+		ls -l lantern_darwin_amd64 update_darwin_amd64.bz2; \
 	else \
 		echo "-> Skipped: Can not compile Lantern for OSX on a non-OSX host."; \
 	fi;
