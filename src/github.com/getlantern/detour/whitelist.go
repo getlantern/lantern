@@ -14,16 +14,18 @@ var (
 	whitelist   = make(map[string]wlEntry)
 )
 
-// InitWhitelist adds a list of domains to whitelist,
-// all subdomains of the listed domains are also
-// considered to be in the whitelist.
-func InitWhitelist(wl []string) {
+// AddToWl adds a domain to whitelist, all subdomains of this domain
+// are also considered to be in the whitelist.
+func AddToWl(addr string, permanent bool) {
 	muWhitelist.Lock()
 	defer muWhitelist.Unlock()
-	for _, v := range wl {
-		whitelist[v] = wlEntry{true}
-	}
-	return
+	whitelist[addr] = wlEntry{permanent}
+}
+
+func RemoveFromWl(addr string) {
+	muWhitelist.Lock()
+	defer muWhitelist.Unlock()
+	delete(whitelist, addr)
 }
 
 func DumpWhitelist() (wl []string) {
@@ -56,18 +58,6 @@ func wlTemporarily(addr string) bool {
 	// temporary domains are always full ones, just check map
 	p, ok := whitelist[addr]
 	return ok && p.permanent == false
-}
-
-func addToWl(addr string, permanent bool) {
-	muWhitelist.Lock()
-	defer muWhitelist.Unlock()
-	whitelist[addr] = wlEntry{permanent}
-}
-
-func removeFromWl(addr string) {
-	muWhitelist.Lock()
-	defer muWhitelist.Unlock()
-	delete(whitelist, addr)
 }
 
 func getParentDomain(addr string) string {

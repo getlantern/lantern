@@ -64,14 +64,13 @@ func updateDetour(delta *proxiedsites.Delta) {
 	// for simplicity, detour matches whitelist using host:port string
 	// so we add ports to each proxiedsites
 	for _, v := range delta.Deletions {
-		delete(curWl, v+":80")
-		delete(curWl, v+":443")
+		detour.RemoveFromWl(v + ":80")
+		detour.RemoveFromWl(v + ":443")
 	}
 	for _, v := range delta.Additions {
-		curWl[v+":80"] = time.Now()
-		curWl[v+":443"] = time.Now()
+		detour.AddToWl(v + ":80")
+		detour.AddToWl(v + ":443")
 	}
-	detour.InitWhitelist(curWl)
 }
 
 func start() (err error) {
