@@ -94,7 +94,7 @@ endef
 all: binaries
 
 # This is to be called within the docker image.
-docker-genassets:
+docker-genassets: require-npm
 	@source setenv.bash && \
 	LANTERN_UI="src/github.com/getlantern/lantern-ui" && \
 	APP="$$LANTERN_UI/app" && \
@@ -263,7 +263,7 @@ package-windows: require-version windows-386
 	docker run -v $$PWD:/flashlight-build -v $$SECRETS_DIR:/secrets -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && BNS_CERT="/secrets/bns_cert.p12" BNS_CERT_PASS="'$$BNS_CERT_PASS'" VERSION="'$$VERSION'" make docker-package-windows' && \
 	echo "-> lantern-installer.exe"
 
-package-darwin: require-version require-npm require-appdmg require-svgexport darwin
+package-darwin: require-version require-appdmg require-svgexport darwin
 	@echo "Generating distribution package for darwin/amd64..." && \
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		INSTALLER_RESOURCES="installer-resources/darwin" && \
@@ -322,7 +322,7 @@ release-beta:
 	for NAME in $$(ls -1 $$BASE_NAME.exe $$BASE_NAME.dmg $$BASE_NAME-32-bit.deb $$BASE_NAME-64-bit.deb); do \
 		BETA=$$(echo $$NAME | sed s/"$$BASE_NAME"/$$BETA_BASE_NAME/) && \
 		echo "Copying alpha $$NAME to beta $$BETA..." && \
-		s3cmd cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$BETA; \
+		$(S3CMD) cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$BETA; \
 	done
 
 update-icons:
