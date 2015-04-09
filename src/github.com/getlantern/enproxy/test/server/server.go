@@ -8,6 +8,9 @@ import (
 )
 
 func main() {
+	if len(os.Args) < 2 {
+		log.Fatal("Usage: server <proxy addr to listen>")
+	}
 	proxy := &enproxy.Proxy{}
 	err := proxy.ListenAndServe(os.Args[1])
 	if err != nil {
