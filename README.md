@@ -87,6 +87,12 @@ If you want to build all supported binaries of Lantern use the `binaries` task:
 make binaries
 ```
 
+### Building headless version
+
+If `HEADLESS` environment variable is set, the generated binaries will be
+headless, that is, it doesn't depend on the systray support libraries, and
+will not show systray or UI.
+
 ## Packaging
 
 Packaging requires some special environemnt variables.
