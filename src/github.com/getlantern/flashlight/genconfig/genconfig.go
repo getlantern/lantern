@@ -374,7 +374,7 @@ func run(prg string, args ...string) (string, error) {
 func base64Encode(sites []string) string {
 	raw, err := json.Marshal(sites)
 	if err != nil {
-		log.Errorf("Unable to marshal proxied sites: %s", err)
+		panic(fmt.Errorf("Unable to marshal proxied sites: %s", err))
 	}
 	b64 := base64.StdEncoding.EncodeToString(raw)
 	return b64
