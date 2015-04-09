@@ -268,8 +268,8 @@ package-darwin: require-version require-npm require-appdmg require-svgexport dar
 		cp -r lantern_darwin_amd64 Lantern.app/Contents/MacOS/lantern && \
 		codesign -s "Developer ID Application: $$PACKAGE_VENDOR" Lantern.app && \
 		rm -rf Lantern.dmg && \
-		sed "s/__VERSION__/$$VERSION/g" $$INSTALLER_RESOURCES/dmgbackground.svg > dmgbackground_versioned.svg && \
-		$(SVGEXPORT) dmgbackground_versioned.svg dmgbackground.png 600:400 && \
+		sed "s/__VERSION__/$$VERSION/g" $$INSTALLER_RESOURCES/dmgbackground.svg > $$INSTALLER_RESOURCES/dmgbackground_versioned.svg && \
+		$(SVGEXPORT) $$INSTALLER_RESOURCES/dmgbackground_versioned.svg $$INSTALLER_RESOURCES/dmgbackground.png 600:400 && \
 		$(APPDMG) --quiet $$INSTALLER_RESOURCES/lantern.dmg.json Lantern.dmg && \
 		mv Lantern.dmg Lantern.dmg.zlib && \
 		hdiutil convert -quiet -format UDBZ -o Lantern.dmg Lantern.dmg.zlib && \
@@ -320,6 +320,14 @@ release-beta:
 		s3cmd cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$BETA; \
 	done
 
+update-icons:
+	@(which go-bindata >/dev/null) || (echo 'Missing command "go-bindata". Sett https://github.com/jteeuwen/go-bindata.' && exit 1) && \
+	go-bindata -nomemcopy -nocompress -pkg main -o src/github.com/getlantern/flashlight/icons.go -prefix src/github.com/getlantern/flashlight/ src/github.com/getlantern/flashlight/icons
+
+create-tag: require-tag
+	@git tag -a "$$TAG" -f --annotate -m"Tagged $$TAG" && \
+	git push --tags -f
+
 clean:
 	@rm -f lantern_linux* && \
 	rm -f lantern_darwin* && \
@@ -327,5 +335,6 @@ clean:
 	rm -f lantern-installer* && \
 	rm -f update_* && \
 	rm -f *.deb && \
+	rm -f *.png && \
 	rm -rf *.app && \
 	rm -f *.dmg

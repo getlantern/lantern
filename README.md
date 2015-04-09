@@ -176,20 +176,24 @@ git tag -a v1.0.0 -m"Tagged 1.0.0"
 git push --tags
 ```
 
-The script `tagandbuild.bash` tags and runs crosscompile.bash.
+Use `make create-tag` as a shortcut for creating and uploading tags:
 
-`./tagandbuild.bash <tag>`
+```
+TAG='2.0.0-beta5' make create-tag
+```
 
-Note - ./crosscompile.bash omits debug symbols to keep the build smaller.
+If you want to both create a package and upload a tag run the `create-tag` task
+right after the `packages` task.
 
-Note - tagandbuild.bash requires the BNS_CERT and BNS_CERT_PASS environment
-variables to sign the windows executable. See Packaging for Windows below.
+```
+[...env variables...] make packages create-tag
+```
 
 ### Updating Icons
 
 The icons used for the system tray are stored in
-src/github/getlantern/flashlight/icons. To apply changes to the icons, make
-your updates in the icons folder and then run `./updateicons.bash`.
+`src/github/getlantern/flashlight/icons`. To apply changes to the icons, make
+your updates in the icons folder and then run `make update-icons`.
 
 ### Continuous Integration with Travis CI
 
