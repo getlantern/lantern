@@ -158,6 +158,42 @@ SECRETS_DIR=$PATH_TO_TOO_MANY_SECRETS BNS_CERT_PASS='***' \
 VERSION=2.0.0-beta1 make packages
 ```
 
+## Creating releases
+
+### Releasing for QA
+
+In order to release for QA, first obtain an [application token][1] from Github
+(`GH_TOKEN`) and then make sure that [s3cmd](https://github.com/s3tools/s3cmd)
+is correctly configured:
+
+```
+s3cmd --config
+```
+
+Then, create all distribution packages:
+
+```
+[...env variables...] make packages
+```
+
+Finally, use `release-qa` to upload the packages that were just generated to
+both AWS S3 and the Github release page:
+
+```
+TAG='2.0.0-beta5' GH_TOKEN=$GITHUB_TOKEN make release-qa
+```
+
+### Releasing Beta
+
+In order to release a Beta you must have created a package for QA first. Then
+use the `release-beta` task:
+
+```
+make release-beta
+```
+
+`release-beta` will promote the QA files that are currently in S3 to beta.
+
 ## Other tasks
 
 ### Generating assets
@@ -204,3 +240,5 @@ available
 [here](https://github.com/getlantern/too-many-secrets/blob/master/envvars.bash).
 An encrypted version is checked in as `envvars.bash.enc`, which was encrypted
 per the instructions [here](http://docs.travis-ci.com/user/encrypting-files/).
+
+[1]: https://help.github.com/articles/creating-an-access-token-for-command-line-use/
