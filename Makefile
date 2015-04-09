@@ -23,13 +23,13 @@ PACKAGE_VENDOR := Brave New Software Project, Inc
 PACKAGE_MAINTAINER := Lantern Team <team@getlantern.org>
 PACKAGE_URL := https://www.getlantern.org
 
-#GH_USER := getlantern
-GH_USER := xiam
+GH_USER := getlantern
+#GH_USER := xiam
 
 GH_RELEASE_REPOSITORY := flashlight-build
 
-#S3_BUCKET := lantern
-S3_BUCKET := xiam-lantern-test-1
+S3_BUCKET := lantern
+#S3_BUCKET := xiam-lantern-test-1
 
 DOCKER_IMAGE_TAG := flashlight-builder
 
