@@ -17,7 +17,11 @@ var (
 func CreateLaunchFile(autoLaunch bool) {
 	var err error
 	if autoLaunch {
-		lanternPath := filepath.Join(os.Getenv("SYSTEMROOT"), "Lantern", "lantern.exe")
+		lanternPath, err := filepath.Abs(filepath.Dir(os.Args[0]))
+		if err != nil {
+			log.Errorf("Could not get Lantern executable path: %q", err)
+			return
+		}
 		err = gowin.WriteStringReg("HKCU", "Lantern", "value", lanternPath)
 		if err != nil {
 			log.Errorf("Error inserting Lantern auto-start registry key: %q", err)
