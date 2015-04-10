@@ -274,7 +274,7 @@ package-darwin: require-version require-appdmg require-svgexport darwin
 		cp -r $$INSTALLER_RESOURCES/Lantern.app_template Lantern.app && \
 		mkdir Lantern.app/Contents/MacOS && \
 		cp -r lantern_darwin_amd64 Lantern.app/Contents/MacOS/lantern && \
-		codesign -s "Developer ID Application: $$PACKAGE_VENDOR" Lantern.app && \
+		codesign -s "Developer ID Application: $(PACKAGE_VENDOR)" Lantern.app && \
 		rm -rf Lantern.dmg && \
 		sed "s/__VERSION__/$$VERSION/g" $$INSTALLER_RESOURCES/dmgbackground.svg > $$INSTALLER_RESOURCES/dmgbackground_versioned.svg && \
 		$(SVGEXPORT) $$INSTALLER_RESOURCES/dmgbackground_versioned.svg $$INSTALLER_RESOURCES/dmgbackground.png 600:400 && \
