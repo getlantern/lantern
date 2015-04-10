@@ -241,7 +241,7 @@ darwin-amd64:
 		ls -l lantern_darwin_amd64 update_darwin_amd64.bz2; \
 	else \
 		echo "-> Skipped: Can not compile Lantern for OSX on a non-OSX host."; \
-	fi;
+	fi
 
 package-linux-386: require-version linux-386
 	@echo "Generating distribution package for linux/386..." && \
