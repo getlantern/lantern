@@ -9,6 +9,7 @@ import (
 func TestCheckSubdomain(t *testing.T) {
 	AddToWl("facebook.com:80", true)
 	assert.True(t, whitelisted("www.facebook.com:80"), "should match subdomain")
+	assert.True(t, whitelisted("sub2.facebook.com:80"), "should match all subdomains")
 }
 
 func TestDumpWhiteList(t *testing.T) {
