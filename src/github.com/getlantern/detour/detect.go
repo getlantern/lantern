@@ -3,6 +3,7 @@ package detour
 import (
 	"bytes"
 	"net"
+	"runtime"
 	"syscall"
 )
 
@@ -44,8 +45,15 @@ var defaultDetector = Detector{
 		if ne, ok := err.(net.Error); ok && ne.Timeout() {
 			return true
 		}
-		if oe, ok := err.(*net.OpError); ok && (oe.Err == syscall.EPIPE || oe.Err == syscall.ECONNRESET) {
-			return true
+		if oe, ok := err.(*net.OpError); ok {
+			if oe.Err == syscall.EPIPE || oe.Err == syscall.ECONNRESET {
+				return true
+			}
+			// TCP RST triggers ECONNREFUSED instead of ECONNRESET on Android
+			// https://github.com/getlantern/lantern/issues/2375
+			if runtime.GOOS == "android" && oe.Err == syscall.ECONNREFUSED {
+				return true
+			}
 		}
 		return false
 	},
