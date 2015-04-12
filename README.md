@@ -81,12 +81,17 @@ file lantern_darwin_amd64
 
 ### Building all binaries
 
-If you want to build all supported binaries of Lantern you may use this
-shortcut:
+If you want to build all supported binaries of Lantern use the `binaries` task:
 
 ```sh
 make binaries
 ```
+
+### Building headless version
+
+If `HEADLESS` environment variable is set, the generated binaries will be
+headless, that is, it doesn't depend on the systray support libraries, and
+will not show systray or UI.
 
 ## Packaging
 
@@ -109,7 +114,8 @@ certificate in your KeyChain. The
 and
 [password](https://github.com/getlantern/too-many-secrets/blob/master/osx-code-signing-certificate.p12.txt)
 can be obtained from
-[too-many-secrets](https://github.com/getlantern/too-many-secrets).
+[too-many-secrets](https://github.com/getlantern/too-many-secrets) and must be
+installed to the system's key chain beforehand.
 
 If signing fails, the script will still build the app bundle and dmg, but the
 app bundle won't be signed. Unsigned app bundles can be used for testing but
@@ -153,10 +159,49 @@ This will build both 386 and amd64 packages.
 
 ### Generating all packages
 
+Use the `make packages` task combining all the arguments that `package-linux`,
+`package-windows` and `package-darwin` require.
+
 ```sh
 SECRETS_DIR=$PATH_TO_TOO_MANY_SECRETS BNS_CERT_PASS='***' \
 VERSION=2.0.0-beta1 make packages
 ```
+
+## Creating releases
+
+### Releasing for QA
+
+In order to release for QA, first obtain an [application token][1] from Github
+(`GH_TOKEN`) and then make sure that [s3cmd](https://github.com/s3tools/s3cmd)
+is correctly configured:
+
+```
+s3cmd --config
+```
+
+Then, create all distribution packages:
+
+```
+[...env variables...] make packages
+```
+
+Finally, use `release-qa` to upload the packages that were just generated to
+both AWS S3 and the Github release page:
+
+```
+TAG='2.0.0-beta5' GH_TOKEN=$GITHUB_TOKEN make release-qa
+```
+
+### Releasing Beta
+
+If you want to release a Beta you must have created a package for QA first,
+then use the `release-beta` task:
+
+```
+make release-beta
+```
+
+`release-beta` will promote the QA files that are currently in S3 to beta.
 
 ## Other tasks
 
@@ -166,7 +211,7 @@ VERSION=2.0.0-beta1 make packages
 make genassets
 ```
 
-If the environemnt variable `UPDATE_DIST=true` is set, `make genassets` also
+If the environment variable `UPDATE_DIST=true` is set, `make genassets` also
 updates the resources in the dist folder.
 
 An annotated tag can be added like this:
@@ -176,20 +221,24 @@ git tag -a v1.0.0 -m"Tagged 1.0.0"
 git push --tags
 ```
 
-The script `tagandbuild.bash` tags and runs crosscompile.bash.
+Use `make create-tag` as a shortcut for creating and uploading tags:
 
-`./tagandbuild.bash <tag>`
+```
+TAG='2.0.0-beta5' make create-tag
+```
 
-Note - ./crosscompile.bash omits debug symbols to keep the build smaller.
+If you want to both create a package and upload a tag run the `create-tag` task
+right after the `packages` task.
 
-Note - tagandbuild.bash requires the BNS_CERT and BNS_CERT_PASS environment
-variables to sign the windows executable. See Packaging for Windows below.
+```
+[...env variables...] make packages create-tag
+```
 
 ### Updating Icons
 
 The icons used for the system tray are stored in
-src/github/getlantern/flashlight/icons. To apply changes to the icons, make
-your updates in the icons folder and then run `./updateicons.bash`.
+`src/github/getlantern/flashlight/icons`. To apply changes to the icons, make
+your updates in the icons folder and then run `make update-icons`.
 
 ### Continuous Integration with Travis CI
 
@@ -200,3 +249,5 @@ available
 [here](https://github.com/getlantern/too-many-secrets/blob/master/envvars.bash).
 An encrypted version is checked in as `envvars.bash.enc`, which was encrypted
 per the instructions [here](http://docs.travis-ci.com/user/encrypting-files/).
+
+[1]: https://help.github.com/articles/creating-an-access-token-for-command-line-use/

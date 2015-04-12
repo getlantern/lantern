@@ -12,6 +12,9 @@ import (
 )
 
 func main() {
+	if len(os.Args) < 2 {
+		log.Fatal("Usage: client <proxy addr to listen> <proxy server addr>")
+	}
 	enproxyConfig := &enproxy.Config{
 		DialProxy: func(addr string) (net.Conn, error) {
 			return net.Dial("tcp", os.Args[2])
@@ -54,7 +57,7 @@ type ClientHandler struct {
 
 func (c *ClientHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	if req.Method == "CONNECT" {
-		c.Config.Intercept(resp, req)
+		c.Intercept(resp, req)
 	} else {
 		c.ReverseProxy.ServeHTTP(resp, req)
 	}

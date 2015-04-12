@@ -17,11 +17,14 @@ func (c *conn) processReads() {
 
 	defer func() {
 		increment(&readingFinishing)
-		if resp != nil {
-			resp.Body.Close()
-		}
+		// be sure to close connection before close response body,
+		// or it will continuously receives data until hit EOF,
+		// which is a waste of bandwidth.
 		if proxyConn != nil {
 			proxyConn.conn.Close()
+		}
+		if resp != nil {
+			resp.Body.Close()
 		}
 		c.doneReadingCh <- true
 		decrement(&readingFinishing)

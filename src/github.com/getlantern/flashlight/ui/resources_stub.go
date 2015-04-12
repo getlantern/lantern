@@ -1,4 +1,4 @@
-// +build !prod
+// +build stub
 
 package ui
 
