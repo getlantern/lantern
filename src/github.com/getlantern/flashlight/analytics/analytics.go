@@ -39,6 +39,18 @@ func Configure(cfg *config.Config, serverSession bool, newClient *http.Client) {
 		},
 	}
 
+	if cfg == nil {
+		analytics.SessionEvent(httpClient, sessionPayload)
+		return
+	}
+
+	if cfg.InstanceId != "" {
+		sessionPayload.ClientId = cfg.InstanceId
+	}
+	if cfg.Version != 0 {
+		sessionPayload.ClientVersion = string(cfg.Version)
+	}
+
 	if serverSession {
 		sessionPayload.Hostname = cfg.Server.RegisterAt
 	} else {

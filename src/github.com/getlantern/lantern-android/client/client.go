@@ -3,15 +3,10 @@ package client
 import (
 	"log"
 	"strings"
-	"time"
 
+	"github.com/getlantern/flashlight/analytics"
 	"github.com/getlantern/flashlight/client"
-)
-
-const (
-	cloudConfigPollInterval = time.Second * 60
-	httpConnectMethod       = "CONNECT"
-	httpXFlashlightQOS      = "X-Flashlight-QOS"
+	"github.com/getlantern/flashlight/globals"
 )
 
 // clientConfig holds global configuration settings for all clients.
@@ -38,8 +33,17 @@ func NewClient(addr string) {
 		WriteTimeout: 0,
 	}
 
-	client.Configure(clientConfig.Client)
-	log.Printf("Finished configuring client...")
+	err := globals.SetTrustedCAs(clientConfig.getTrustedCerts())
+	if err != nil {
+		log.Fatalf("Unable to configure trusted CAs: %s", err)
+	}
+
+	hqfd := client.Configure(clientConfig.Client)
+
+	hqfdc := hqfd.DirectHttpClient()
+
+	// store GA session event
+	analytics.Configure(nil, false, hqfdc)
 
 	go func() {
 		var err error
