@@ -20,8 +20,8 @@ const (
 // clientConfig holds global configuration settings for all clients.
 var clientConfig *config
 
-// MClient is an extension of flashlight client with a few custom declarations for mobile
-type MClient struct {
+// MobileClient is an extension of flashlight client with a few custom declarations for mobile
+type MobileClient struct {
 	client.Client
 	hqfd   fronted.Dialer
 	closed chan bool
@@ -40,7 +40,7 @@ func init() {
 }
 
 // NewClient creates a proxy client.
-func NewClient(addr string) *MClient {
+func NewClient(addr string) *MobileClient {
 
 	client := client.Client{
 		Addr:         addr,
@@ -60,14 +60,14 @@ func NewClient(addr string) *MClient {
 	// store GA session event
 	analytics.Configure(nil, false, hqfdc)
 
-	return &MClient{
+	return &MobileClient{
 		Client: client,
 		hqfd:   hqfd,
 		closed: make(chan bool),
 	}
 }
 
-func (client *MClient) ServeHTTP() {
+func (client *MobileClient) ServeHTTP() {
 
 	defer func() {
 		close(client.closed)
@@ -89,7 +89,7 @@ func (client *MClient) ServeHTTP() {
 
 // updateConfig attempts to pull a configuration file from the network using
 // the client proxy itself.
-func (client *MClient) updateConfig() error {
+func (client *MobileClient) updateConfig() error {
 	var err error
 	var buf []byte
 	var cli *http.Client
@@ -107,7 +107,7 @@ func (client *MClient) updateConfig() error {
 
 // pollConfiguration periodically checks for updates in the cloud configuration
 // file.
-func (client *MClient) pollConfiguration() {
+func (client *MobileClient) pollConfiguration() {
 	pollTimer := time.NewTimer(cloudConfigPollInterval)
 	defer pollTimer.Stop()
 
@@ -130,7 +130,7 @@ func (client *MClient) pollConfiguration() {
 
 // Stop is currently not implemented but should make the listener stop
 // accepting new connections and then kill all active connections.
-func (client *MClient) Stop() error {
+func (client *MobileClient) Stop() error {
 	log.Printf("Stopping proxy server...")
 	return client.hqfd.Close()
 }
