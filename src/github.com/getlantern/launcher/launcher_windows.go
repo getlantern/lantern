@@ -2,12 +2,14 @@
 package launcher
 
 import (
-	"os"
-	"path/filepath"
-
+	"github.com/kardianos/osext"
 	"github.com/luisiturrios/gowin"
 
 	"github.com/getlantern/golog"
+)
+
+const (
+	RunDir = `Software\Microsoft\Windows\CurrentVersion\Run`
 )
 
 var (
@@ -16,18 +18,19 @@ var (
 
 func CreateLaunchFile(autoLaunch bool) {
 	var err error
+
 	if autoLaunch {
-		lanternPath, err := filepath.Abs(filepath.Dir(os.Args[0]))
+		lanternPath, err := osext.Executable()
 		if err != nil {
-			log.Errorf("Could not get Lantern executable path: %q", err)
+			log.Errorf("Could not get Lantern directory path: %q", err)
 			return
 		}
-		err = gowin.WriteStringReg("HKCU", "Lantern", "value", lanternPath)
+		err = gowin.WriteStringReg("HKCU", RunDir, "value", lanternPath)
 		if err != nil {
 			log.Errorf("Error inserting Lantern auto-start registry key: %q", err)
 		}
 	} else {
-		err = gowin.DeleteKey("HKCU", "", "Lantern")
+		err = gowin.DeleteKey("HKCU", RunDir, "value")
 		if err != nil {
 			log.Errorf("Error removing Lantern auto-start registry key: %q", err)
 		}

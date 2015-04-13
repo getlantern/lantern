@@ -291,7 +291,7 @@ func (cfg *Config) applyClientDefaults() {
 
 	if cfg.AutoLaunch == nil {
 		cfg.AutoLaunch = new(bool)
-		*cfg.AutoLaunch = true
+		*cfg.AutoLaunch = false
 	}
 
 	// Make sure all servers have a QOS and Weight configured

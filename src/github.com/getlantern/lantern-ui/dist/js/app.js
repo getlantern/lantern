@@ -180,6 +180,10 @@ var app = angular.module('app', [
         $translate.use(lang);
     };
 
+    $rootScope.trackPageView = function() {
+        gaMgr.trackPageView('start');
+    };
+
     $rootScope.changeLang = function(lang) {
       return $rootScope.interaction(INTERACTION.changeLang, {lang: lang});
     };
@@ -724,6 +728,17 @@ angular.module('app.services', [])
             model.settings.mode = 'get';
             model.settings.version = data.Version + " (" + data.BuildDate + ")";
         }
+
+        if (data.AutoReport) {
+            model.settings.autoReport = true;
+            if ($rootScope.lanternWelcomeKey) {
+                $rootScope.trackPageView();
+            }
+        }
+
+        if (data.AutoLaunch) {
+            model.settings.autoLaunch = true;
+        }
       },
       'ProxiedSites': function(data) {
         if (!$rootScope.entries) {
@@ -827,28 +842,9 @@ angular.module('app.services', [])
       sane: true
     };
   })
-  .service('gaMgr', function ($window, GOOGLE_ANALYTICS_DISABLE_KEY, GOOGLE_ANALYTICS_WEBPROP_ID, modelSrvc) {
-      var model = modelSrvc.model,
-        ga = $window.ga;
+  .service('gaMgr', function ($window, DataStream, GOOGLE_ANALYTICS_DISABLE_KEY, GOOGLE_ANALYTICS_WEBPROP_ID) {
+    var ga = $window.ga;
 
-    function stopTracking() {
-      //log.debug('disabling analytics');
-      //trackPageView('end'); // force the current session to end with this hit
-      $window[GOOGLE_ANALYTICS_DISABLE_KEY] = true;
-    }
-
-    function startTracking() {
-      //log.debug('enabling analytics');
-      $window[GOOGLE_ANALYTICS_DISABLE_KEY] = false;
-      trackPageView('start');
-    }
-
-    // start out with google analytics disabled
-    // https://developers.google.com/analytics/devguides/collection/analyticsjs/advanced#optout
-    stopTracking();
-
-    // but get a tracker set up and ready for use if analytics become enabled
-    // https://developers.google.com/analytics/devguides/collection/analyticsjs/field-reference
     ga('create', GOOGLE_ANALYTICS_WEBPROP_ID, {cookieDomain: 'none'});
     ga('set', {
       anonymizeIp: true,
@@ -859,15 +855,32 @@ angular.module('app.services', [])
     });
 
     function trackPageView(sessionControl) {
-      var page = model.modal || '/';
-      ga('set', 'page', page);
-      ga('send', 'pageview', sessionControl ? {sessionControl: sessionControl} : undefined);
-      //log.debug(sessionControl === 'end' ? 'sent analytics session end' : 'tracked pageview', 'page =', page);
+      var trackers = ga.getAll();
+      for (var i =0; i < trackers.length; i++) {
+          var tracker = trackers[i];
+          if (tracker.b && tracker.b.data && tracker.b.data.w) {
+              var fields = tracker.b.data.w;
+              var gaObj = {
+                  clientId: '',
+                  clientVersion: '',
+                  language: '',
+                  screenColors: '',
+                  screenResolution: '',
+                  trackingId: '',
+                  viewPortSize: ''
+              };
+              for (var name in fields) {
+                var key = name.split(':')[1];
+                if (gaObj.hasOwnProperty(key)) {
+                    gaObj[key] = fields[name];
+                }
+              }
+              DataStream.send('Analytics', gaObj);
+          }
+      }
     }
 
     return {
-      stopTracking: stopTracking,
-      startTracking: startTracking,
       trackPageView: trackPageView
     };
   })
@@ -885,9 +898,9 @@ angular.module('app.services', [])
 
 'use strict';
 
-app.controller('RootCtrl', ['$scope', '$compile', '$window', '$http', 
+app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$http', 
                'localStorageService', 
-               function($scope, $compile, $window, $http, localStorageService) {
+               function($rootScope, $scope, $compile, $window, $http, localStorageService) {
     $scope.currentModal = 'none';
 
     $scope.loadScript = function(src) {
@@ -917,15 +930,26 @@ app.controller('RootCtrl', ['$scope', '$compile', '$window', '$http',
         $scope.currentModal = val;
     };
 
+    $rootScope.lanternWelcomeKey = localStorageService.get('lanternWelcomeKey');
+
     $scope.closeModal = function() {
-        $scope.currentModal = 'none';
+
+        // if it's our first time opening the UI,
+        // show the settings modal first immediately followed by
+        // the welcome screen
+        if ($scope.currentModal == 'welcome' && !$rootScope.lanternWelcomeKey) {
+            $rootScope.lanternWelcomeKey = true;
+            localStorageService.set('lanternWelcomeKey', true);
+        } else {
+            $scope.currentModal = 'none';
+        }
     };
 
-    if (!localStorageService.get('lanternWelcomeKey')) {
+    if (!$rootScope.lanternWelcomeKey) {
         $scope.showModal('welcome');
-        localStorageService.set('lanternWelcomeKey', true);
-    }
-  
+    };
+
+
 }]);
 
 app.controller('UpdateAvailableCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
@@ -951,20 +975,26 @@ app.controller('ConfirmResetCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
   });
 }]);
 
-app.controller('SettingsCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
+app.controller('SettingsCtrl', ['$scope', 'MODAL', 'DataStream', 'gaMgr', function($scope, MODAL, DataStream, gaMgr) {
   $scope.show = false;
 
   $scope.$watch('model.modal', function (modal) {
     $scope.show = modal === MODAL.settings;
   });
 
-  $scope.$watch('model.settings.runAtSystemStart', function (runAtSystemStart) {
-    $scope.runAtSystemStart = runAtSystemStart;
-  });
+  $scope.changeReporting = function(autoreport) {
+      var obj = {
+        autoReport: autoreport
+      };
+      DataStream.send('Settings', obj);
+  };
 
-  $scope.$watch('model.settings.autoReport', function (autoReport) {
-    $scope.autoReport = autoReport;
-  });
+  $scope.changeAutoLaunch = function(autoLaunch) {
+      var obj = {
+        autoLaunch: autoLaunch
+      };
+      DataStream.send('Settings', obj);
+  }
 
   $scope.$watch('model.settings.systemProxy', function (systemProxy) {
     $scope.systemProxy = systemProxy;
