@@ -7,7 +7,7 @@ import (
 	"github.com/getlantern/lantern-android/client"
 )
 
-var defaultClient *client.MClient
+var defaultClient *client.MobileClient
 
 // StopClientProxy stops the proxy.
 func StopClientProxy() error {
