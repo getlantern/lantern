@@ -32,3 +32,4 @@ github.com/getlantern/peerscanner/cfl
 github.com/getlantern/peerscanner/cfr
 github.com/getlantern/peerscanner/dsp
 github.com/getlantern/proxiedsites
+github.com/getlantern/lantern-android/client
