@@ -10,7 +10,8 @@ import (
 // RunClientProxy creates a new client at the given address.
 func RunClientProxy(listenAddr string) error {
 
-	client.NewClient(listenAddr)
+	c := client.NewClient(listenAddr)
+	c.ServeHTTP()
 
 	return nil
 }
