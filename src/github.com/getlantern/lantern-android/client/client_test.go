@@ -33,7 +33,7 @@ func TestListenAndServeStop(t *testing.T) {
 	time.Sleep(time.Millisecond * 100)
 
 	// Attempt to stop server.
-	if err := c.Stop(); err != nil {
+	if err := c.Client.Stop(); err != nil {
 		t.Fatal("You should be able to close listening client.")
 	}
 
@@ -44,16 +44,7 @@ func TestListenAndServeAgain(t *testing.T) {
 	// same address.
 
 	globalClient = NewClient(listenProxyAddr)
-	go func() {
-		globalClient = NewClient(listenProxyAddr)
-
-		onListening := func() {}
-
-		if err := globalClient.ListenAndServe(onListening); err != nil {
-			t.Fatal(err)
-		}
-
-	}()
+	globalClient.ServeHTTP()
 
 	// Allow it some seconds to start.
 	time.Sleep(time.Millisecond * 100)

@@ -131,6 +131,9 @@ func (client *MobileClient) pollConfiguration() {
 // Stop is currently not implemented but should make the listener stop
 // accepting new connections and then kill all active connections.
 func (client *MobileClient) Stop() error {
-	log.Printf("Stopping proxy server...")
-	return client.hqfd.Close()
+	if err := client.Client.Stop(); err != nil {
+		log.Fatalf("Unable to stop proxy client: %q", err)
+		return err
+	}
+	return nil
 }

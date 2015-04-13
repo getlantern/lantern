@@ -10,21 +10,21 @@ import (
 )
 
 func proxy_RunClientProxy(out, in *seq.Buffer) {
-	param_listenAddr := in.ReadUTF16()
+	param_listenAddr := in.ReadString()
 	err := flashlight.RunClientProxy(param_listenAddr)
 	if err == nil {
-		out.WriteUTF16("")
+		out.WriteString("")
 	} else {
-		out.WriteUTF16(err.Error())
+		out.WriteString(err.Error())
 	}
 }
 
 func proxy_StopClientProxy(out, in *seq.Buffer) {
 	err := flashlight.StopClientProxy()
 	if err == nil {
-		out.WriteUTF16("")
+		out.WriteString("")
 	} else {
-		out.WriteUTF16(err.Error())
+		out.WriteString(err.Error())
 	}
 }
 
