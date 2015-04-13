@@ -36,6 +36,7 @@ public class Seq {
 	public native float readFloat32();
 	public native double readFloat64();
 	public native String readUTF16();
+	public String readString() { return readUTF16(); }
 	public native byte[] readByteArray();
 
 	public native void writeInt8(byte v);
@@ -47,6 +48,7 @@ public class Seq {
 	public native void writeFloat32(float v);
 	public native void writeFloat64(double v);
 	public native void writeUTF16(String v);
+	public void writeString(String v) { writeUTF16(v); }
 	public native void writeByteArray(byte[] v);
 
 	public void writeRef(Ref ref) {
