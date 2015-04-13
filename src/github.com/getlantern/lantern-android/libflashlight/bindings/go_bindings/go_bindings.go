@@ -19,6 +19,16 @@ func proxy_RunClientProxy(out, in *seq.Buffer) {
 	}
 }
 
+func proxy_StopClientProxy(out, in *seq.Buffer) {
+	err := flashlight.StopClientProxy()
+	if err == nil {
+		out.WriteUTF16("")
+	} else {
+		out.WriteUTF16(err.Error())
+	}
+}
+
 func init() {
 	seq.Register("flashlight", 1, proxy_RunClientProxy)
+	seq.Register("flashlight", 2, proxy_StopClientProxy)
 }
