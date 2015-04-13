@@ -20,7 +20,7 @@ const (
 // clientConfig holds global configuration settings for all clients.
 var clientConfig *config
 
-// MClient is a forward declaration of flashlight client extended here with a few customizations for mobile
+// MClient is an extension of flashlight client with a few custom declarations for mobile
 type MClient struct {
 	client.Client
 	hqfd   fronted.Dialer
