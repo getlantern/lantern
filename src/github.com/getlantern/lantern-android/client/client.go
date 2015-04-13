@@ -23,7 +23,6 @@ var clientConfig *config
 // MobileClient is an extension of flashlight client with a few custom declarations for mobile
 type MobileClient struct {
 	client.Client
-	hqfd   fronted.Dialer
 	closed chan bool
 }
 
@@ -62,7 +61,6 @@ func NewClient(addr string) *MobileClient {
 
 	return &MobileClient{
 		Client: client,
-		hqfd:   hqfd,
 		closed: make(chan bool),
 	}
 }
