@@ -10,7 +10,6 @@ import (
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/util"
-	"github.com/getlantern/fronted"
 )
 
 const (
