@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"time"
 
@@ -155,18 +156,39 @@ func Update(mutate func(cfg *Config) error) error {
 // InConfigDir returns the path to the given filename inside of the configdir.
 func InConfigDir(filename string) (string, error) {
 	cdir := *configdir
+
 	if cdir == "" {
-		cdir = appdir.General("Lantern")
+		if runtime.GOOS == "linux" {
+			// It is more common on Linux to expect application related directories
+			// in all lowercase. The lantern wrapper also expects a lowercased
+			// directory.
+			cdir = appdir.General("lantern")
+
+			// Backwards compatibility fix.
+			oldDir := appdir.General("Lantern")
+
+			if _, err := os.Stat(oldDir); err == nil {
+				// If the old configuration path exists, try to rename it. We don't
+				// need to catch the error, if something fails then we'll start a new
+				// config directory.
+				os.Rename(oldDir, cdir)
+			}
+		} else {
+			// In OSX and Windows, they prefer to see the first letter in uppercase.
+			cdir = appdir.General("Lantern")
+		}
 	}
+
 	log.Debugf("Placing configuration in %v", cdir)
 	if _, err := os.Stat(cdir); err != nil {
 		if os.IsNotExist(err) {
 			// Create config dir
-			if err := os.MkdirAll(cdir, 0755); err != nil {
+			if err := os.MkdirAll(cdir, 0750); err != nil {
 				return "", fmt.Errorf("Unable to create configdir at %s: %s", cdir, err)
 			}
 		}
 	}
+
 	return filepath.Join(cdir, filename), nil
 }
 
