@@ -12,7 +12,7 @@ import (
 
 const (
 	// OS X plist file
-	LaunchdPlistFile = `Library/LaunchAgents/org.lantern.plist`
+	LaunchdPlistFile = `Library/LaunchAgents/org.getlantern.plist`
 
 	LaunchdPlist = `<?xml version="1.0" encoding="UTF-8"?>
 	<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN"
@@ -20,7 +20,7 @@ const (
 	<plist version="1.0">
 	<dict>
 		<key>Label</key>
-		<string>org.lantern</string>
+		<string>org.getlantern</string>
 		<key>ProgramArguments</key>
 		<array>
 		<string>/Applications/Lantern.app/Contents/MacOS/lantern</string>
@@ -54,6 +54,6 @@ func CreateLaunchFile(autoLaunch bool) {
 	}
 
 	if err = ioutil.WriteFile(fname, content.Bytes(), 0755); err != nil {
-		log.Fatalf("Error writing to launchd plist file: %q", err)
+		log.Errorf("Error writing to launchd plist file: %q", err)
 	}
 }
