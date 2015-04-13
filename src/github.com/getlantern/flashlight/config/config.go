@@ -163,16 +163,6 @@ func InConfigDir(filename string) (string, error) {
 			// in all lowercase. The lantern wrapper also expects a lowercased
 			// directory.
 			cdir = appdir.General("lantern")
-
-			// Backwards compatibility fix.
-			oldDir := appdir.General("Lantern")
-
-			if _, err := os.Stat(oldDir); err == nil {
-				// If the old configuration path exists, try to rename it. We don't
-				// need to catch the error, if something fails then we'll start a new
-				// config directory.
-				os.Rename(oldDir, cdir)
-			}
 		} else {
 			// In OSX and Windows, they prefer to see the first letter in uppercase.
 			cdir = appdir.General("Lantern")
