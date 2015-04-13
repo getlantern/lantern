@@ -54,7 +54,7 @@ func TestBlockedImmediately(t *testing.T) {
 	}
 
 	client = newClient(proxiedURL, 100*time.Millisecond)
-	removeFromWl(u.Host)
+	RemoveFromWl(u.Host)
 	resp, err = client.PostForm(mockURL, url.Values{"key": []string{"value"}})
 	if assert.Error(t, err, "Non-idempotent method should not be detoured in same connection") {
 		assert.True(t, wlTemporarily(u.Host), "but should be added to whitelist so will detour next time")
@@ -93,7 +93,7 @@ func TestRemoveFromWhitelist(t *testing.T) {
 	client := newClient(proxiedURL, 100*time.Millisecond)
 
 	u, _ := url.Parse(mockURL)
-	addToWl(u.Host, false)
+	AddToWl(u.Host, false)
 	_, err := client.Get(mockURL)
 	if assert.Error(t, err, "should have error if reading times out through detour") {
 		assert.False(t, whitelisted(u.Host), "should be removed from whitelist if reading times out through detour")

@@ -1,4 +1,4 @@
-package enproxy
+package main
 
 import (
 	"fmt"
@@ -6,12 +6,14 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+
+	"github.com/getlantern/enproxy"
 )
 
 // Intercept intercepts a CONNECT request, hijacks the underlying client
 // connetion and starts piping the data over a new enproxy.Conn configured using
 // this Config.
-func (c *Config) Intercept(resp http.ResponseWriter, req *http.Request) {
+func (c *ClientHandler) Intercept(resp http.ResponseWriter, req *http.Request) {
 	if req.Method != "CONNECT" {
 		panic("Intercept used for non-CONNECT request!")
 	}
@@ -28,7 +30,7 @@ func (c *Config) Intercept(resp http.ResponseWriter, req *http.Request) {
 	addr := hostIncludingPort(req, 443)
 
 	// Establish outbound connection
-	connOut, err := Dial(addr, c)
+	connOut, err := enproxy.Dial(addr, c.Config)
 	if err != nil {
 		resp.WriteHeader(502)
 		fmt.Fprintf(resp, "Unable to open enproxy connection: %s", err)
@@ -49,7 +51,7 @@ func pipeData(clientConn net.Conn, connOut net.Conn, req *http.Request) {
 	// Respond OK
 	err := respondOK(clientConn, req)
 	if err != nil {
-		log.Errorf("Unable to respond OK: %s", err)
+		fmt.Printf("Unable to respond OK: %s", err)
 		return
 	}
 

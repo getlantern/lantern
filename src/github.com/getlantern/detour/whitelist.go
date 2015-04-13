@@ -1,13 +1,12 @@
 package detour
 
 import (
+	"strings"
 	"sync"
-	"time"
 )
 
 type wlEntry struct {
 	permanent bool
-	addTime   time.Time
 }
 
 var (
@@ -15,47 +14,56 @@ var (
 	whitelist   = make(map[string]wlEntry)
 )
 
-func InitWhitelist(wl map[string]time.Time) {
+// AddToWl adds a domain to whitelist, all subdomains of this domain
+// are also considered to be in the whitelist.
+func AddToWl(addr string, permanent bool) {
 	muWhitelist.Lock()
 	defer muWhitelist.Unlock()
-	for k, v := range wl {
-		whitelist[k] = wlEntry{true, v}
-	}
-	return
+	whitelist[addr] = wlEntry{permanent}
 }
 
-func DumpWhitelist() (wl map[string]time.Time) {
-	wl = make(map[string]time.Time)
+func RemoveFromWl(addr string) {
+	muWhitelist.Lock()
+	defer muWhitelist.Unlock()
+	delete(whitelist, addr)
+}
+
+func DumpWhitelist() (wl []string) {
+	wl = make([]string, 1)
 	muWhitelist.Lock()
 	defer muWhitelist.Unlock()
 	for k, v := range whitelist {
-		wl[k] = v.addTime
+		if v.permanent {
+			wl = append(wl, k)
+		}
 	}
 	return
 }
 
-func whitelisted(addr string) bool {
+func whitelisted(addr string) (in bool) {
 	muWhitelist.RLock()
 	defer muWhitelist.RUnlock()
-	_, in := whitelist[addr]
-	return in
+	for ; addr != ""; addr = getParentDomain(addr) {
+		_, in = whitelist[addr]
+		if in {
+			return
+		}
+	}
+	return
 }
 
 func wlTemporarily(addr string) bool {
 	muWhitelist.RLock()
 	defer muWhitelist.RUnlock()
+	// temporary domains are always full ones, just check map
 	p, ok := whitelist[addr]
 	return ok && p.permanent == false
 }
 
-func addToWl(addr string, permanent bool) {
-	muWhitelist.Lock()
-	defer muWhitelist.Unlock()
-	whitelist[addr] = wlEntry{permanent, time.Now()}
-}
-
-func removeFromWl(addr string) {
-	muWhitelist.Lock()
-	defer muWhitelist.Unlock()
-	delete(whitelist, addr)
+func getParentDomain(addr string) string {
+	parts := strings.SplitN(addr, ".", 2)
+	if len(parts) < 2 {
+		return ""
+	}
+	return parts[1]
 }
