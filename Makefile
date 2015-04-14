@@ -336,6 +336,17 @@ create-tag: require-tag
 	@git tag -a "$$TAG" -f --annotate -m"Tagged $$TAG" && \
 	git push --tags -f
 
+test-and-cover:
+	echo "mode: count" > profile.cov && \
+	source setenv.bash && \
+	if [ -f envvars.bash ]; then \
+		source envvars.bash; \
+	fi && \
+	for pkg in $$(cat testpackages.txt); do \
+		go test -v -covermode=count -coverprofile=profile_tmp.cov $$pkg && \
+		tail -n +2 profile_tmp.cov >> profile.cov; \
+	done
+
 clean:
 	@rm -f lantern_linux* && \
 	rm -f lantern_darwin* && \
