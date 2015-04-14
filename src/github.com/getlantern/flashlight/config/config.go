@@ -400,26 +400,25 @@ func (cfg Config) doFetchCloudConfig(proxyAddr string) ([]byte, error) {
 	return ioutil.ReadAll(gzReader)
 }
 
-// updateFrom creates a new Config by merging the given yaml into this Config.
-// Any servers in the updated yaml replace ones in the original Config and any
-// masquerade sets in the updated yaml replace ones in the original Config.
+// updateFrom creates a new Config by 'merging' the given yaml into this Config.
+// The masquerade sets and the collections of servers in the update yaml
+// completely replace the ones in the original Config.
 func (updated *Config) updateFrom(updateBytes []byte) error {
+	// XXX: does this need a mutex, along with everyone that uses the config?
+	oldFrontedServers := updated.Client.FrontedServers
+	oldChainedServers := updated.Client.ChainedServers
+	oldMasqueradeSets := updated.Client.MasqueradeSets
+	updated.Client.FrontedServers = []*client.FrontedServerInfo{}
+	updated.Client.ChainedServers = map[string]*client.ChainedServerInfo{}
+	updated.Client.MasqueradeSets = map[string][]*fronted.Masquerade{}
 	err := yaml.Unmarshal(updateBytes, updated)
 	if err != nil {
+		updated.Client.FrontedServers = oldFrontedServers
+		updated.Client.ChainedServers = oldChainedServers
+		updated.Client.MasqueradeSets = oldMasqueradeSets
 		return fmt.Errorf("Unable to unmarshal YAML for update: %s", err)
 	}
-
-	// Need to de-duplicate servers, since yaml appends them
-	servers := make(map[string]*client.FrontedServerInfo)
-	for _, server := range updated.Client.FrontedServers {
-		servers[server.Host] = server
-	}
-	updated.Client.FrontedServers = make([]*client.FrontedServerInfo, 0, len(servers))
-	for _, server := range servers {
-		updated.Client.FrontedServers = append(updated.Client.FrontedServers, server)
-	}
-
-	// Same with global proxiedsites
+	// Deduplicate global proxiedsites
 	if len(updated.ProxiedSites.Cloud) > 0 {
 		wlDomains := make(map[string]bool)
 		for _, domain := range updated.ProxiedSites.Cloud {
