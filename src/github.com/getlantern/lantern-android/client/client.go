@@ -3,10 +3,11 @@ package client
 import (
 	"log"
 	"net/http"
+	"runtime"
 	"strings"
 	"time"
 
-	"github.com/getlantern/flashlight/analytics"
+	"github.com/getlantern/analytics"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/util"
@@ -56,7 +57,15 @@ func NewClient(addr string) *MobileClient {
 	hqfdc := hqfd.DirectHttpClient()
 
 	// store GA session event
-	analytics.Configure(nil, false, hqfdc)
+	sessionPayload := &analytics.Payload{
+		HitType: analytics.EventType,
+		Event: &analytics.Event{
+			Category: "Session",
+			Action:   "Start",
+			Label:    runtime.GOOS,
+		},
+	}
+	analytics.SessionEvent(hqfdc, sessionPayload)
 
 	return &MobileClient{
 		Client: client,
