@@ -31,6 +31,9 @@ import (
 const (
 	CloudConfigPollInterval = 1 * time.Minute
 
+	// In seconds
+	waitForLocationTimeout = 20
+
 	cloudflare         = "cloudflare"
 	etag               = "ETag"
 	ifNoneMatch        = "If-None-Match"
@@ -359,18 +362,26 @@ func (cfg Config) fetchCloudConfigForAddr(proxyAddr string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to initialize HTTP client: %s", err)
 	}
-	country := strings.ToLower(globals.GetCountry())
-	if country != "" {
-		ret, err := cfg.fetchCloudConfigForCountry(client, country)
-		// We could check specifically for a 404, but S3 actually returns a 403 when
-		// a resource is not available.  I thought we'd better lean on the side of
-		// robustness by avoiding hardcoding an S3-ism here, than to try and save an
-		// extra request every now and then.
-		if err == nil {
-			return ret, err
-		} else {
-			log.Debugf("Couldn't fetch cloud config for country '%s'; trying the default one", country)
+	// Try and wait to get geolocated, up to a point.  Waiting indefinitely
+	// might prevent us from ever getting geolocated if our current
+	// configuration is preventing domain fronting from working.
+	for i := 0; i < waitForLocationTimeout; i++ {
+		country := strings.ToLower(globals.GetCountry())
+		if country != "" && country != "xx" {
+			ret, err := cfg.fetchCloudConfigForCountry(client, country)
+			// We could check specifically for a 404, but S3 actually returns a 403 when
+			// a resource is not available.  I thought we'd better lean on the side of
+			// robustness by avoiding hardcoding an S3-ism here, than to try and save an
+			// extra request every now and then.
+			if err == nil {
+				return ret, err
+			} else {
+				log.Debugf("Couldn't fetch cloud config for country '%s'; trying the default one", country)
+			}
+			break
 		}
+		log.Debugf("Waiting for location...")
+		time.Sleep(1 * time.Second)
 	}
 	return cfg.fetchCloudConfigForCountry(client, "default")
 }
