@@ -83,6 +83,7 @@ func read() {
 	for msg := range service.In {
 		settings := (msg).(map[string]interface{})
 		config.Update(func(updated *config.Config) error {
+
 			if autoReport, ok := settings["autoReport"].(bool); ok {
 				// turn on/off analaytics reporting
 				if autoReport {
