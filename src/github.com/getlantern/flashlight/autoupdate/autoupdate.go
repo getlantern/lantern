@@ -3,6 +3,7 @@ package autoupdate
 import (
 	"net/http"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/getlantern/autoupdate"
@@ -28,17 +29,16 @@ var (
 	updateMutex sync.Mutex
 
 	httpClient *http.Client
-	watching   = false
+	watching   int32 = 0
 
 	applyNextAttemptTime = time.Hour * 2
 	lastAddr             string
 )
 
 func Configure(cfg *config.Config) {
-
 	cfgMutex.Lock()
-	defer cfgMutex.Unlock()
 	if cfg.Addr == lastAddr {
+		cfgMutex.Unlock()
 		log.Debug("Autoupdate configuration unchanged")
 		return
 	}
@@ -46,6 +46,7 @@ func Configure(cfg *config.Config) {
 	go func() {
 		lastAddr = cfg.Addr
 		enableAutoupdate(cfg)
+		cfgMutex.Unlock()
 	}()
 
 }
@@ -58,7 +59,8 @@ func enableAutoupdate(cfg *config.Config) {
 		return
 	}
 
-	err = waitforserver.WaitForServer("tcp", cfg.Addr, 10*time.Second)
+	err = waitforserver.WaitForServer("tcp", cfg.Addr, 5*time.Second)
+
 	if err != nil {
 		log.Errorf("Proxy never came online at %v, disabling auto updates.", cfg.Addr)
 		return
@@ -70,19 +72,22 @@ func enableAutoupdate(cfg *config.Config) {
 		return
 	}
 
-	if !watching {
-		watchForUpdate()
-	}
+	go watchForUpdate()
 }
 
 func watchForUpdate() {
-	log.Errorf("Software version: %s", Version)
-	watching = true
-	for watching {
-		applyNext()
-		// At this point we either updated the binary or failed to recover from a
-		// update error, let's wait a bit before looking for a another update.
-		time.Sleep(applyNextAttemptTime)
+	if atomic.LoadInt32(&watching) < 1 {
+
+		atomic.AddInt32(&watching, 1)
+
+		log.Errorf("Software version: %s", Version)
+
+		for {
+			applyNext()
+			// At this point we either updated the binary or failed to recover from a
+			// update error, let's wait a bit before looking for a another update.
+			time.Sleep(applyNextAttemptTime)
+		}
 	}
 }
 
