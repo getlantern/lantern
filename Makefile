@@ -337,7 +337,7 @@ create-tag: require-tag
 	git push --tags -f
 
 test-and-cover:
-	echo "mode: count" > profile.cov && \
+	@echo "mode: count" > profile.cov && \
 	source setenv.bash && \
 	if [ -f envvars.bash ]; then \
 		source envvars.bash; \
