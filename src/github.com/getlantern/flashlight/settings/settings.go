@@ -54,9 +54,12 @@ func Configure(cfg *config.Config, version, buildDate string) {
 		}
 		go read()
 	} else {
+		if *cfg.AutoLaunch != baseSettings.AutoLaunch {
+			// autolaunch setting modified on disk
+			launcher.CreateLaunchFile(*cfg.AutoLaunch)
+		}
 		baseSettings.AutoReport = *cfg.AutoReport
 		baseSettings.AutoLaunch = *cfg.AutoLaunch
-		launcher.CreateLaunchFile(*cfg.AutoLaunch)
 	}
 }
 
