@@ -38,21 +38,25 @@ func Configure(cfg *config.Config, version, buildDate string) {
 	cfgMutex.Lock()
 	defer cfgMutex.Unlock()
 
-	// base settings are always written
-	baseSettings = &Settings{
-		Version:    version,
-		BuildDate:  buildDate,
-		AutoReport: *cfg.AutoReport,
-		AutoLaunch: *cfg.AutoLaunch,
-	}
-
 	if service == nil {
+		// base settings are always written
+		baseSettings = &Settings{
+			Version:    version,
+			BuildDate:  buildDate,
+			AutoReport: *cfg.AutoReport,
+			AutoLaunch: *cfg.AutoLaunch,
+		}
+
 		err := start(baseSettings)
 		if err != nil {
 			log.Errorf("Unable to register settings service: %q", err)
 			return
 		}
 		go read()
+	} else {
+		baseSettings.AutoReport = *cfg.AutoReport
+		baseSettings.AutoLaunch = *cfg.AutoLaunch
+		launcher.CreateLaunchFile(*cfg.AutoLaunch)
 	}
 }
 
@@ -86,7 +90,6 @@ func read() {
 				baseSettings.AutoReport = autoReport
 				*updated.AutoReport = autoReport
 			} else if autoLaunch, ok := settings["autoLaunch"].(bool); ok {
-				log.Debugf("Auto startup is %v", autoLaunch)
 				launcher.CreateLaunchFile(autoLaunch)
 				baseSettings.AutoLaunch = autoLaunch
 				*updated.AutoLaunch = autoLaunch
