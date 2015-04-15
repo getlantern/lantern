@@ -211,6 +211,7 @@ genassets:
 	@echo "Generating assets..." && \
 	$(call docker-up) && \
 	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && make docker-genassets' && \
+	git update-index --assume-unchanged src/github.com/getlantern/flashlight/ui/resources.go && \
 	echo "OK"
 
 linux-amd64: require-assets
@@ -345,5 +346,5 @@ clean:
 	rm -f *.deb && \
 	rm -f *.png && \
 	rm -rf *.app && \
-	rm -f ./src/github.com/getlantern/flashlight/ui/resources.go && \
+	git checkout ./src/github.com/getlantern/flashlight/ui/resources.go && \
 	rm -f *.dmg
