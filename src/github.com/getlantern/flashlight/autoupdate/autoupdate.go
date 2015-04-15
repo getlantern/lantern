@@ -37,8 +37,8 @@ var (
 func Configure(cfg *config.Config) {
 
 	cfgMutex.Lock()
-	defer cfgMutex.Unlock()
 	if cfg.Addr == lastAddr {
+		cfgMutex.Unlock()
 		log.Debug("Autoupdate configuration unchanged")
 		return
 	}
@@ -46,6 +46,7 @@ func Configure(cfg *config.Config) {
 	go func() {
 		lastAddr = cfg.Addr
 		enableAutoupdate(cfg)
+		cfgMutex.Unlock()
 	}()
 
 }

@@ -8,13 +8,16 @@ import (
 	"github.com/getlantern/golog"
 )
 
+const (
+	RunDir = `Software\Microsoft\Windows\CurrentVersion\Run`
+)
+
 var (
 	log = golog.LoggerFor("launcher")
 )
 
 func CreateLaunchFile(autoLaunch bool) {
 	var err error
-	RunDir := `Software\Microsoft\Windows\CurrentVersion\Run`
 
 	if autoLaunch {
 		lanternPath, err := osext.Executable()
