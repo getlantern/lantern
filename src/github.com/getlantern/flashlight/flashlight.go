@@ -231,6 +231,7 @@ func runClientProxy(cfg *config.Config) {
 				hqfdc := hqfd.DirectHttpClient()
 				geolookup.Configure(hqfdc)
 				statserver.Configure(hqfdc)
+				settings.Configure(cfg, version, buildDate)
 				logging.Configure(cfg, version, buildDate)
 				autoupdate.Configure(cfg)
 			}
