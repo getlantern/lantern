@@ -115,7 +115,7 @@ docker-genassets: require-npm
 	echo " " >> $$DEST && \
 	tarfs -pkg ui $$DIST >> $$DEST && \
 	go install github.com/akavel/rsrc && \
-	rsrc -ico installer-resources/windows/lantern.ico -o src/github.com/getlantern/flashlight/lantern.syso;
+	rsrc -ico installer-resources/windows/lantern.ico -o src/github.com/getlantern/flashlight/lantern_windows_386.syso;
 
 docker-linux-amd64:
 	@source setenv.bash && \
@@ -211,6 +211,7 @@ genassets:
 	@echo "Generating assets..." && \
 	$(call docker-up) && \
 	docker run -v $$PWD:/flashlight-build -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /flashlight-build && make docker-genassets' && \
+	git update-index --assume-unchanged src/github.com/getlantern/flashlight/ui/resources.go && \
 	echo "OK"
 
 linux-amd64: require-assets
@@ -356,5 +357,6 @@ clean:
 	rm -f *.deb && \
 	rm -f *.png && \
 	rm -rf *.app && \
-	rm -f ./src/github.com/getlantern/flashlight/ui/resources.go && \
+	git checkout ./src/github.com/getlantern/flashlight/ui/resources.go && \
+	rm -f src/github.com/getlantern/flashlight/*.syso && \
 	rm -f *.dmg
