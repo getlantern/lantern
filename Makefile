@@ -345,5 +345,5 @@ clean:
 	rm -f *.deb && \
 	rm -f *.png && \
 	rm -rf *.app && \
-	rm -f ./src/github.com/getlantern/flashlight/ui/resources.go && \
+	git checkout ./src/github.com/getlantern/flashlight/ui/resources.go && \
 	rm -f *.dmg
