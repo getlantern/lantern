@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	RunDir = `Software\Microsoft\Windows\CurrentVersion\Run`
+	runDir = `Software\Microsoft\Windows\CurrentVersion\Run`
 )
 
 var (
@@ -25,12 +25,12 @@ func CreateLaunchFile(autoLaunch bool) {
 			log.Errorf("Could not get Lantern directory path: %q", err)
 			return
 		}
-		err = gowin.WriteStringReg("HKCU", RunDir, "value", lanternPath)
+		err = gowin.WriteStringReg("HKCU", runDir, "value", lanternPath)
 		if err != nil {
 			log.Errorf("Error inserting Lantern auto-start registry key: %q", err)
 		}
 	} else {
-		err = gowin.DeleteKey("HKCU", RunDir, "value")
+		err = gowin.DeleteKey("HKCU", runDir, "value")
 		if err != nil {
 			log.Errorf("Error removing Lantern auto-start registry key: %q", err)
 		}
