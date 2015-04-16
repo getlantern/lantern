@@ -1,6 +1,7 @@
 package client
 
 import (
+	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/fronted"
 )
 
@@ -13,8 +14,8 @@ const (
 )
 
 // defaultFrontedServerList holds the list of fronted servers.
-var defaultFrontedServerList = []frontedServer{
-	frontedServer{
+var defaultFrontedServerList = []*client.FrontedServerInfo{
+	&client.FrontedServerInfo{
 		Host:          "roundrobin.getiantem.org",
 		Port:          443,
 		MasqueradeSet: cloudflare,
