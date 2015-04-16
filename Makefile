@@ -361,7 +361,7 @@ test-and-cover:
 		tail -n +2 profile_tmp.cov >> profile.cov; \
 	done
 
-android: docker-golang-android
+android-lib: docker-golang-android
 	@source setenv.bash && \
 	cd $(LANTERN_ANDROID_DIR) && \
 	mkdir -p app && \
