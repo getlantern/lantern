@@ -103,7 +103,17 @@ func defaultConfig() *config {
 
 	cfg := &config{
 		Client: &client.ClientConfig{
-			FrontedServers: defaultFrontedServerList,
+			FrontedServers: []*client.FrontedServerInfo{
+				&client.FrontedServerInfo{
+					Host:           "nl.fallbacks.getiantem.org",
+					Port:           443,
+					PoolSize:       30,
+					MasqueradeSet:  cloudflare,
+					MaxMasquerades: 20,
+					QOS:            10,
+					Weight:         4000,
+				},
+			},
 			MasqueradeSets: defaultMasqueradeSets,
 		},
 	}
