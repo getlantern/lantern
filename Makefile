@@ -19,6 +19,8 @@ LDFLAGS := -w -X main.version $(GIT_REVISION) -X main.buildDate $(BUILD_DATE) -X
 LANTERN_DESCRIPTION := Censorship circumvention tool
 LANTERN_EXTENDED_DESCRIPTION := Lantern allows you to access sites blocked by internet censorship.\nWhen you run it, Lantern reroutes traffic to selected domains through servers located where such domains aren't censored.
 
+LANTERN_ANDROID_DIR := src/github.com/getlantern/lantern-android
+
 PACKAGE_VENDOR := Brave New Software Project, Inc
 PACKAGE_MAINTAINER := Lantern Team <team@getlantern.org>
 PACKAGE_URL := https://www.getlantern.org
@@ -177,6 +179,14 @@ docker: system-checks
 	cp Dockerfile $$DOCKER_CONTEXT && \
 	docker build -t $(DOCKER_IMAGE_TAG) $$DOCKER_CONTEXT;
 
+docker-golang-android: require-mercurial
+	@$(call docker-up) && \
+	if [ -z "$$(docker images | grep golang/mobile)" ]; then \
+		docker pull golang/mobile && \
+		$(GO) get -d golang.org/x/mobile/example/... && \
+		$(GO) get golang.org/x/mobile/cmd/gobind; \
+	fi
+
 linux: genassets linux-386 linux-amd64
 
 windows: genassets windows-386
@@ -189,6 +199,9 @@ system-checks:
 
 require-s3cmd:
 	@if [[ -z "$(S3CMD)" ]]; then echo 'Missing "s3cmd" command.. See https://github.com/s3tools/s3cmd/blob/master/INSTALL'; exit 1; fi
+
+require-mercurial:
+	@if [[ -z "$$(which hg 2> /dev/null)" ]]; then echo 'Missing "hg" command.'; exit 1; fi
 
 require-node:
 	@if [[ -z "$(NODE)" ]]; then echo 'Missing "node" command.'; exit 1; fi
@@ -348,6 +361,17 @@ test-and-cover:
 		tail -n +2 profile_tmp.cov >> profile.cov; \
 	done
 
+android-lib: docker-golang-android
+	@source setenv.bash && \
+	cd $(LANTERN_ANDROID_DIR) && \
+	mkdir -p app && \
+	cd libflashlight && \
+		mkdir -p bindings/go_bindings && \
+		gobind -lang=go github.com/getlantern/lantern-android/libflashlight/bindings > bindings/go_bindings/go_bindings.go && \
+		gobind -lang=java github.com/getlantern/lantern-android/libflashlight/bindings > bindings/Flashlight.java || exit 1;
+	@$(DOCKER) run -v $$PWD/src:/src golang/mobile /bin/bash -c \ "cd /src/github.com/getlantern/lantern-android/libflashlight && ./make.bash" && \
+	ls -l src/github.com/getlantern/lantern-android/app/libs/armeabi-v7a/libgojni.so
+
 clean:
 	@rm -f lantern_linux* && \
 	rm -f lantern_darwin* && \
@@ -359,4 +383,11 @@ clean:
 	rm -rf *.app && \
 	git checkout ./src/github.com/getlantern/flashlight/ui/resources.go && \
 	rm -f src/github.com/getlantern/flashlight/*.syso && \
-	rm -f *.dmg
+	rm -f *.dmg && \
+	rm -rf $(LANTERN_ANDROID_DIR)/libflashlight/bin && \
+	rm -rf $(LANTERN_ANDROID_DIR)/libflashlight/bindings/go_bindings && \
+	rm -rf $(LANTERN_ANDROID_DIR)/libflashlight/gen && \
+	rm -rf $(LANTERN_ANDROID_DIR)/libflashlight/libs && \
+	rm -rf $(LANTERN_ANDROID_DIR)/libflashlight/res && \
+	rm -rf $(LANTERN_ANDROID_DIR)/libflashlight/src && \
+	rm -rf $(LANTERN_ANDROID_DIR)/app

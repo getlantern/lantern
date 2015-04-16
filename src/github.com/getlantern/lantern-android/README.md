@@ -38,41 +38,23 @@ cd $GOPATH/src/github.com/getlantern
 git clone https://github.com/getlantern/flashlight-build.git
 ```
 
-After cloning the repository use the `setenv.bash` script to export development
-enviromental variables to the current terminal session.
-
-```
-cd flashlight-build
-source setenv.bash
-```
-
 ## Building the Android library
 
-`flashlight-build` will provide you with a copy of `lantern-android`, change
-directory into `lantern-android` and execute `make` to start compiling our
-shared library:
+After cloning the repository use `make android` to build the Android library,
+this library is going to be built at
+`src/github.com/getlantern/lantern-android/app/libs/armeabi-v7a/libgojni.so`:
 
 ```
-cd $GOPATH/src/github.com/getlantern/lantern-android
-
-make
-# ...
-# BUILD SUCCESSFUL
-# Total time: 7 seconds
+make android-lib
+...
+BUILD SUCCESSFUL
+Total time: 4 seconds
 ```
 
-The `make` command will create a new `app` subdirectory that will contain an
-Android example project. You may import the contents of the `app` subdirectory
-into Android Studio to see libflashlight working.
-
-If you're on a Mac, be sure to export docker's enviromental variables before
-running `make`:
-
-```
-$(boot2docker shellinit)
-
-make
-```
+The `make` command will create a new
+`src/github.com/getlantern/lantern-android/app` subdirectory that will contain
+an Android example project. You may import the contents of the `app`
+subdirectory into Android Studio to see libflashlight working.
 
 ## Testing the example project
 
