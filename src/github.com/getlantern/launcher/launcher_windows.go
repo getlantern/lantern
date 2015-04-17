@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	runDir = `Software\Microsoft\Windows\CurrentVersion\Run`
+	currentVersionDir = `Software\Microsoft\Windows\CurrentVersion`
+	runDir            = `Software\Microsoft\Windows\CurrentVersion\Run`
 )
 
 var (
@@ -30,7 +31,7 @@ func CreateLaunchFile(autoLaunch bool) {
 			log.Errorf("Error inserting Lantern auto-start registry key: %q", err)
 		}
 	} else {
-		err = gowin.DeleteKey("HKCU", runDir, "value")
+		err = gowin.DeleteKey("HKCU", currentVersionDir, "Run")
 		if err != nil {
 			log.Errorf("Error removing Lantern auto-start registry key: %q", err)
 		}
