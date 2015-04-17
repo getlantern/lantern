@@ -205,6 +205,16 @@ make release-beta
 
 ## Other tasks
 
+### Creating libgojni.so
+
+The `libgojni.so` is the Lantern library for Android. This is a work in
+progress but if you're feeling adventurous you can build it by using the
+`android` target:
+
+```
+make android-lib
+```
+
 ### Generating assets
 
 ```sh
