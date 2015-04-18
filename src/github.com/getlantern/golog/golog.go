@@ -121,7 +121,7 @@ func (l *logger) linePrefix() string {
 	runtime.Callers(3, l.pc)
 	funcForPc := runtime.FuncForPC(l.pc[0])
 	file, line := funcForPc.FileLine(l.pc[0])
-	return fmt.Sprintf("%s%s:%d ", l.prefix, filepath.Base(file), line-1)
+	return fmt.Sprintf("%s%s:%d ", l.prefix, filepath.Base(file), line)
 }
 
 func (l *logger) Debug(arg interface{}) {
