@@ -10,6 +10,8 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -77,9 +79,12 @@ type Logger interface {
 }
 
 func LoggerFor(prefix string) Logger {
+
 	l := &logger{
 		prefix: prefix + ": ",
+		pc:     make([]uintptr, 10),
 	}
+
 	trace := os.Getenv("TRACE")
 	l.traceOn, _ = strconv.ParseBool(trace)
 	if !l.traceOn {
@@ -101,35 +106,47 @@ func LoggerFor(prefix string) Logger {
 }
 
 type logger struct {
-	prefix   string
-	traceOn  bool
-	traceOut io.Writer
-	outs     atomic.Value
+	prefix    string
+	traceOn   bool
+	traceOut  io.Writer
+	outs      atomic.Value
+	pc        []uintptr
+	funcForPc *runtime.Func
+}
+
+// attaches the file and line number corresponding to
+// the log message
+func (l *logger) linePrefix() string {
+	// skip 3 frames to get the correct pc
+	runtime.Callers(3, l.pc)
+	funcForPc := runtime.FuncForPC(l.pc[0])
+	file, line := funcForPc.FileLine(l.pc[0])
+	return fmt.Sprintf("%s%s:%d ", l.prefix, filepath.Base(file), line-1)
 }
 
 func (l *logger) Debug(arg interface{}) {
-	_, err := fmt.Fprintf(getOutputs().debugOut, l.prefix+"%s\n", arg)
+	_, err := fmt.Fprintf(getOutputs().debugOut, l.linePrefix()+"%s\n", arg)
 	if err != nil {
 		errorOnLogging(err)
 	}
 }
 
 func (l *logger) Debugf(message string, args ...interface{}) {
-	_, err := fmt.Fprintf(getOutputs().debugOut, l.prefix+message+"\n", args...)
+	_, err := fmt.Fprintf(getOutputs().debugOut, l.linePrefix()+message+"\n", args...)
 	if err != nil {
 		errorOnLogging(err)
 	}
 }
 
 func (l *logger) Error(arg interface{}) {
-	_, err := fmt.Fprintf(getOutputs().errorOut, l.prefix+"%s\n", arg)
+	_, err := fmt.Fprintf(getOutputs().errorOut, l.linePrefix()+"%s\n", arg)
 	if err != nil {
 		errorOnLogging(err)
 	}
 }
 
 func (l *logger) Errorf(message string, args ...interface{}) {
-	_, err := fmt.Fprintf(getOutputs().errorOut, l.prefix+message+"\n", args...)
+	_, err := fmt.Fprintf(getOutputs().errorOut, l.linePrefix()+message+"\n", args...)
 	if err != nil {
 		errorOnLogging(err)
 	}
