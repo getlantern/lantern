@@ -54,6 +54,7 @@ type Config struct {
 	MemProfile    string
 	UIAddr        string // UI HTTP server address
 	AutoReport    *bool  // Report anonymous usage to GA
+	AutoLaunch    *bool  // Automatically launch Lantern on system startup
 	Stats         *statreporter.Config
 	Server        *server.ServerConfig
 	Client        *client.ClientConfig
@@ -298,6 +299,11 @@ func (cfg *Config) applyClientDefaults() {
 	if cfg.AutoReport == nil {
 		cfg.AutoReport = new(bool)
 		*cfg.AutoReport = true
+	}
+
+	if cfg.AutoLaunch == nil {
+		cfg.AutoLaunch = new(bool)
+		*cfg.AutoLaunch = false
 	}
 
 	// Make sure all servers have a QOS and Weight configured

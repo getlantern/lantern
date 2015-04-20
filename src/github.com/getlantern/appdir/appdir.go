@@ -19,7 +19,7 @@ func Logs(app string) string {
 	return logs(app)
 }
 
-func inHomeDir(filename string) string {
+func InHomeDir(filename string) string {
 	usr, err := user.Current()
 	if err != nil {
 		panic(fmt.Errorf("Unable to determine user's home directory: %s", err))

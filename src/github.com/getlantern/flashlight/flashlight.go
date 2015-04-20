@@ -110,7 +110,7 @@ func doMain() error {
 	displayVersion()
 
 	parseFlags()
-	configUpdates = make(chan *config.Config)
+
 	cfg, err := config.Init()
 	if err != nil {
 		return fmt.Errorf("Unable to initialize configuration: %v", err)
@@ -222,7 +222,6 @@ func runClientProxy(cfg *config.Config) {
 	go func() {
 		for {
 			cfg := <-configUpdates
-
 			proxiedsites.Configure(cfg.ProxiedSites)
 			// Note - we deliberately ignore the error from statreporter.Configure here
 			statreporter.Configure(cfg.Stats)
@@ -231,6 +230,7 @@ func runClientProxy(cfg *config.Config) {
 				hqfdc := hqfd.DirectHttpClient()
 				geolookup.Configure(hqfdc)
 				statserver.Configure(hqfdc)
+				settings.Configure(cfg, version, buildDate)
 				logging.Configure(cfg, version, buildDate)
 				autoupdate.Configure(cfg)
 			}
