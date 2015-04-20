@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"regexp"
 	"testing"
 	"time"
 
@@ -12,8 +13,10 @@ import (
 )
 
 var (
-	expectedLog      = "myprefix: Hello world\nmyprefix: Hello 5\n"
-	expectedTraceLog = expectedLog + "myprefix: Gravy\nmyprefix: TraceWriter closed due to unexpected error: EOF\n"
+	expectedLog            = "myprefix: golog_test.go:([0-9]+) Hello world\nmyprefix: golog_test.go:([0-9]+) Hello 5\n"
+	expectedLogRegexp      = regexp.MustCompile(expectedLog)
+	expectedTraceLog       = "myprefix: golog.go:([0-9]+) Hello world\nmyprefix: golog.go:([0-9]+) Hello 5\n"
+	expectedTraceLogRegexp = regexp.MustCompile(expectedTraceLog + "myprefix: golog.go:([0-9]+) Gravy\nmyprefix: golog.go:([0-9]+) TraceWriter closed due to unexpected error: EOF\n")
 )
 
 func TestDebug(t *testing.T) {
@@ -22,8 +25,7 @@ func TestDebug(t *testing.T) {
 	l := LoggerFor("myprefix")
 	l.Debug("Hello world")
 	l.Debugf("Hello %d", 5)
-
-	assert.Equal(t, expectedLog, string(out.Bytes()), "Logged information didn't match expected")
+	assert.Regexp(t, expectedLogRegexp, string(out.Bytes()))
 }
 
 func TestError(t *testing.T) {
@@ -33,7 +35,7 @@ func TestError(t *testing.T) {
 	l.Error("Hello world")
 	l.Errorf("Hello %d", 5)
 
-	assert.Equal(t, expectedLog, string(out.Bytes()), "Logged information didn't match expected")
+	assert.Regexp(t, expectedLogRegexp, string(out.Bytes()))
 }
 
 func TestTraceEnabled(t *testing.T) {
@@ -55,8 +57,7 @@ func TestTraceEnabled(t *testing.T) {
 
 	// Give trace writer a moment to catch up
 	time.Sleep(50 * time.Millisecond)
-
-	assert.Equal(t, expectedTraceLog, string(out.Bytes()), "Logged information didn't match expected")
+	assert.Regexp(t, expectedTraceLogRegexp, string(out.Bytes()))
 }
 
 func TestTraceDisabled(t *testing.T) {
