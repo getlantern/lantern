@@ -54,6 +54,9 @@ type FrontedServerInfo struct {
 	// QOS: relative quality of service offered. Should be >= 0, with higher
 	// values indicating higher QOS.
 	QOS int
+
+	// Trusted: Determines if a host can be trusted with plain HTTP traffic.
+	Trusted bool
 }
 
 // dialer
