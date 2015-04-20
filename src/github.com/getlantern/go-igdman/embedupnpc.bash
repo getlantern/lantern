@@ -20,6 +20,7 @@ function die() {
 codesign -s "Developer ID Application: Brave New Software Project, Inc" -f binaries/osx/upnpc || die "Could not sign macintosh"
 
 go-bindata -nomemcopy -nocompress -pkg igdman -prefix binaries/osx -o igdman/upnpc_darwin.go binaries/osx
+go-bindata -nomemcopy -pkg igdman -prefix binaries/windows -o igdman/upnpc_windows.go binaries/windows
 # go-bindata -nomemcopy -nocompress -pkg bin -prefix binaries/linux_386 -o natty/bin/linux_386.go binaries/linux_386
 # go-bindata -nomemcopy -nocompress -pkg bin -prefix binaries/linux_amd64 -o natty/bin/linux_amd64.go binaries/linux_amd64
 # go-bindata -nomemcopy -nocompress -pkg bin -prefix binaries/windows -o natty/bin/windows.go binaries/windows

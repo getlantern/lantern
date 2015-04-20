@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"time"
 
@@ -155,18 +156,29 @@ func Update(mutate func(cfg *Config) error) error {
 // InConfigDir returns the path to the given filename inside of the configdir.
 func InConfigDir(filename string) (string, error) {
 	cdir := *configdir
+
 	if cdir == "" {
-		cdir = appdir.General("Lantern")
+		if runtime.GOOS == "linux" {
+			// It is more common on Linux to expect application related directories
+			// in all lowercase. The lantern wrapper also expects a lowercased
+			// directory.
+			cdir = appdir.General("lantern")
+		} else {
+			// In OSX and Windows, they prefer to see the first letter in uppercase.
+			cdir = appdir.General("Lantern")
+		}
 	}
+
 	log.Debugf("Placing configuration in %v", cdir)
 	if _, err := os.Stat(cdir); err != nil {
 		if os.IsNotExist(err) {
 			// Create config dir
-			if err := os.MkdirAll(cdir, 0755); err != nil {
+			if err := os.MkdirAll(cdir, 0750); err != nil {
 				return "", fmt.Errorf("Unable to create configdir at %s: %s", cdir, err)
 			}
 		}
 	}
+
 	return filepath.Join(cdir, filename), nil
 }
 
@@ -209,7 +221,7 @@ func (cfg *Config) ApplyDefaults() {
 	}
 
 	if cfg.CloudConfig == "" {
-		cfg.CloudConfig = "https://s3.amazonaws.com/lantern_config/cloud.2.0.0-beta3.yaml.gz"
+		cfg.CloudConfig = "https://s3.amazonaws.com/lantern_config/cloud.2.0.0-nl.yaml.gz"
 	}
 
 	// Default country
@@ -388,26 +400,25 @@ func (cfg Config) doFetchCloudConfig(proxyAddr string) ([]byte, error) {
 	return ioutil.ReadAll(gzReader)
 }
 
-// updateFrom creates a new Config by merging the given yaml into this Config.
-// Any servers in the updated yaml replace ones in the original Config and any
-// masquerade sets in the updated yaml replace ones in the original Config.
+// updateFrom creates a new Config by 'merging' the given yaml into this Config.
+// The masquerade sets and the collections of servers in the update yaml
+// completely replace the ones in the original Config.
 func (updated *Config) updateFrom(updateBytes []byte) error {
+	// XXX: does this need a mutex, along with everyone that uses the config?
+	oldFrontedServers := updated.Client.FrontedServers
+	oldChainedServers := updated.Client.ChainedServers
+	oldMasqueradeSets := updated.Client.MasqueradeSets
+	updated.Client.FrontedServers = []*client.FrontedServerInfo{}
+	updated.Client.ChainedServers = map[string]*client.ChainedServerInfo{}
+	updated.Client.MasqueradeSets = map[string][]*fronted.Masquerade{}
 	err := yaml.Unmarshal(updateBytes, updated)
 	if err != nil {
+		updated.Client.FrontedServers = oldFrontedServers
+		updated.Client.ChainedServers = oldChainedServers
+		updated.Client.MasqueradeSets = oldMasqueradeSets
 		return fmt.Errorf("Unable to unmarshal YAML for update: %s", err)
 	}
-
-	// Need to de-duplicate servers, since yaml appends them
-	servers := make(map[string]*client.FrontedServerInfo)
-	for _, server := range updated.Client.FrontedServers {
-		servers[server.Host] = server
-	}
-	updated.Client.FrontedServers = make([]*client.FrontedServerInfo, 0, len(servers))
-	for _, server := range servers {
-		updated.Client.FrontedServers = append(updated.Client.FrontedServers, server)
-	}
-
-	// Same with global proxiedsites
+	// Deduplicate global proxiedsites
 	if len(updated.ProxiedSites.Cloud) > 0 {
 		wlDomains := make(map[string]bool)
 		for _, domain := range updated.ProxiedSites.Cloud {

@@ -14,7 +14,7 @@ import (
 
 const listenProxyAddr = "127.0.0.1:9997"
 
-var globalClient *Client
+var globalClient *MobileClient
 
 var testURLs = map[string][]byte{
 	"http://www.google.com/humans.txt":  []byte("Google is built by a large team of engineers, designers, researchers, robots, and others in many different sites across the globe. It is updated continuously, and built with more tools and technologies than we can shake a stick at. If you'd like to help us out, see google.com/careers.\n"),
@@ -27,20 +27,13 @@ func TestListenAndServeStop(t *testing.T) {
 	// Creating a client.
 	c := NewClient(listenProxyAddr)
 
-	if c == nil {
-		t.Fatal("You should be able to create a client.")
-	}
-
-	// Make the client listen on a goroutine.
-	go func() {
-		c.ListenAndServe()
-	}()
+	c.ServeHTTP()
 
 	// Allow it some seconds to start.
 	time.Sleep(time.Millisecond * 100)
 
 	// Attempt to stop server.
-	if err := c.Stop(); err != nil {
+	if err := c.Client.Stop(); err != nil {
 		t.Fatal("You should be able to close listening client.")
 	}
 
@@ -50,14 +43,8 @@ func TestListenAndServeAgain(t *testing.T) {
 	// Since we've closed out server, we should be able to launch another at the
 	// same address.
 
-	go func() {
-		globalClient = NewClient(listenProxyAddr)
-
-		if err := globalClient.ListenAndServe(); err != nil {
-			t.Fatal(err)
-		}
-
-	}()
+	globalClient = NewClient(listenProxyAddr)
+	globalClient.ServeHTTP()
 
 	// Allow it some seconds to start.
 	time.Sleep(time.Millisecond * 100)

@@ -29,14 +29,24 @@ func Configure(cfg *config.Config, serverSession bool, newClient *http.Client) {
 	httpClient = newClient
 
 	sessionPayload := &analytics.Payload{
-		ClientId:      cfg.InstanceId,
-		ClientVersion: string(cfg.Version),
-		HitType:       analytics.EventType,
+		HitType: analytics.EventType,
 		Event: &analytics.Event{
 			Category: "Session",
 			Action:   "Start",
 			Label:    runtime.GOOS,
 		},
+	}
+
+	if cfg == nil {
+		analytics.SessionEvent(httpClient, sessionPayload)
+		return
+	}
+
+	if cfg.InstanceId != "" {
+		sessionPayload.ClientId = cfg.InstanceId
+	}
+	if cfg.Version != 0 {
+		sessionPayload.ClientVersion = string(cfg.Version)
 	}
 
 	if serverSession {

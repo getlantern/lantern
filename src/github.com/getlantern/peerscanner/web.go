@@ -214,6 +214,12 @@ func isFallbackIp(ip string) bool {
 }
 
 var fallbackIPPrefixes = []string{
+	"43.224.",
+	"45.63.",
+	"104.156.",
+	"104.238.",
+	"107.191.",
+	"108.61.",
 	"128.199",
 	"178.62",
 	"188.166",

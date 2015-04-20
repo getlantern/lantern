@@ -49,6 +49,7 @@ type Client struct {
 	rpInitialized bool
 
 	hqfd fronted.Dialer
+	l    net.Listener
 }
 
 // ListenAndServe makes the client listen for HTTP connections.
@@ -59,6 +60,7 @@ func (client *Client) ListenAndServe(onListening func()) error {
 	if err != nil {
 		return fmt.Errorf("Client unable to listen at %v: %v", client.Addr, err)
 	}
+	client.l = l
 
 	onListening()
 
@@ -102,4 +104,11 @@ func (client *Client) Configure(cfg *ClientConfig) fronted.Dialer {
 	*client.priorTrustedCAs = *globals.TrustedCAs
 
 	return client.hqfd
+}
+
+// Stop is called when the client is no longer needed. It closes the
+// client listener and underlying dialer connection pool
+func (client *Client) Stop() error {
+	client.hqfd.Close()
+	return client.l.Close()
 }

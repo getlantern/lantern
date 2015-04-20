@@ -5,10 +5,9 @@ package flashlight
 
 import (
 	"github.com/getlantern/lantern-android/client"
-	"strings"
 )
 
-var defaultClient *client.Client
+var defaultClient *client.MobileClient
 
 // StopClientProxy stops the proxy.
 func StopClientProxy() error {
@@ -20,15 +19,6 @@ func StopClientProxy() error {
 func RunClientProxy(listenAddr string) error {
 
 	defaultClient = client.NewClient(listenAddr)
-
-	go func() {
-		var err error
-		if err = defaultClient.ListenAndServe(); err != nil {
-			// Error is not exported: https://golang.org/src/net/net.go#L284
-			if !strings.Contains(err.Error(), "use of closed network connection") {
-				panic(err.Error())
-			}
-		}
-	}()
+	defaultClient.ServeHTTP()
 	return nil
 }

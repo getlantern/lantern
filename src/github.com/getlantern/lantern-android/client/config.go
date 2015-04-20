@@ -11,9 +11,10 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/getlantern/fronted"
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/yaml"
+
+	"github.com/getlantern/flashlight/client"
 )
 
 const (
@@ -25,15 +26,9 @@ var httpDefaultClient = &http.Client{Timeout: time.Second * 5}
 
 var lastCloudConfigETag string
 
-type clientCfg struct {
-	FrontedServers []frontedServer                  `yaml:"frontedservers"`
-	MasqueradeSets map[string][]*fronted.Masquerade `yaml:"masqueradesets"`
-}
-
-// config provides client configuration.
 type config struct {
-	Client     clientCfg `yaml:"client"`
-	TrustedCAs []*ca     `yaml:"trustedcas"`
+	Client     *client.ClientConfig `yaml:"client"`
+	TrustedCAs []*ca                `yaml:"trustedcas"`
 }
 
 var (
@@ -51,7 +46,7 @@ var (
 const (
 	cloudConfigCA = ``
 	// URL of the configuration file. Remember to use HTTPs.
-	remoteConfigURL = `https://s3.amazonaws.com/lantern_config/cloud.1.6.0.yaml.gz`
+	remoteConfigURL = `https://s3.amazonaws.com/lantern_config/cloud.2.0.0-nl.yaml.gz`
 )
 
 // pullConfigFile attempts to retrieve a configuration file over the network,
@@ -105,12 +100,22 @@ func pullConfigFile(cli *http.Client) ([]byte, error) {
 
 // defaultConfig returns the embedded configuration.
 func defaultConfig() *config {
+
 	cfg := &config{
-		Client: clientCfg{
-			FrontedServers: defaultFrontedServerList,
+		Client: &client.ClientConfig{
+			FrontedServers: []*client.FrontedServerInfo{
+				&client.FrontedServerInfo{
+					Host:           "nl.fallbacks.getiantem.org",
+					Port:           443,
+					PoolSize:       30,
+					MasqueradeSet:  cloudflare,
+					MaxMasquerades: 20,
+					QOS:            10,
+					Weight:         4000,
+				},
+			},
 			MasqueradeSets: defaultMasqueradeSets,
 		},
-		TrustedCAs: defaultTrustedCAs,
 	}
 	return cfg
 }

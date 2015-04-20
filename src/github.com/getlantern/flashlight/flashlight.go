@@ -14,7 +14,6 @@ import (
 	"github.com/getlantern/golog"
 	"github.com/getlantern/i18n"
 	"github.com/getlantern/profiling"
-	"github.com/getlantern/systray"
 
 	"github.com/getlantern/flashlight/analytics"
 	"github.com/getlantern/flashlight/autoupdate"
@@ -74,7 +73,7 @@ func main() {
 	showui = !*headless
 
 	if showui {
-		systray.Run(_main)
+		runOnSystrayReady(_main)
 	} else {
 		log.Debug("Running headless")
 		_main()
@@ -99,7 +98,7 @@ func doMain() error {
 	// Schedule cleanup actions
 	defer logging.Close()
 	defer pacOff()
-	defer systray.Quit()
+	defer quitSystray()
 
 	i18nInit()
 	if showui {
@@ -271,11 +270,11 @@ func runServerProxy(cfg *config.Config) {
 
 		// We allow all censored countries plus us, es and mx because we do work
 		// and testing from those countries.
-		AllowedCountries: []string{"US", "ES", "MX", "CN", "VN", "IN", "IQ", "IR", "CU", "SY", "SA", "BH", "ET", "ER", "UZ", "TM", "PK", "TR", "VE"},
+		AllowedCountries: []string{"US", "ES", "MX", "GB", "CN", "VN", "IN", "IQ", "IR", "CU", "SY", "SA", "BH", "ET", "ER", "UZ", "TM", "PK", "TR", "VE"},
 	}
 
 	srv.Configure(cfg.Server)
-	analytics.Configure(nil, true, nil)
+	analytics.Configure(cfg, true, nil)
 
 	// Continually poll for config updates and update server accordingly
 	go func() {
@@ -303,30 +302,6 @@ func useAllCores() {
 	numcores := runtime.NumCPU()
 	log.Debugf("Using all %d cores on machine", numcores)
 	runtime.GOMAXPROCS(numcores)
-}
-
-func configureSystemTray() error {
-	icon, err := Asset("icons/16on.ico")
-	if err != nil {
-		return fmt.Errorf("Unable to load icon for system tray: %v", err)
-	}
-	systray.SetIcon(icon)
-	systray.SetTooltip("Lantern")
-	show := systray.AddMenuItem(i18n.T("TRAY_SHOW_LANTERN"), i18n.T("SHOW"))
-	quit := systray.AddMenuItem(i18n.T("TRAY_QUIT"), i18n.T("QUIT"))
-	go func() {
-		for {
-			select {
-			case <-show.ClickedCh:
-				ui.Show()
-			case <-quit.ClickedCh:
-				exit(nil)
-				return
-			}
-		}
-	}()
-
-	return nil
 }
 
 // exit tells the application to exit, optionally supplying an error that caused
