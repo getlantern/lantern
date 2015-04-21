@@ -87,10 +87,17 @@ func (s *ChainedServerInfo) Dialer() (*balancer.Dialer, error) {
 	}
 	d := chained.NewDialer(ccfg)
 
+	// Is this a trusted proxy that we could use for HTTP traffic?
+	var trusted string
+	if s.Trusted {
+		trusted = "(trusted) "
+	}
+
 	return &balancer.Dialer{
-		Label:  fmt.Sprintf("chained proxy at %s", s.Addr),
-		Weight: s.Weight,
-		QOS:    s.QOS,
+		Label:   fmt.Sprintf("%schained proxy at %s", trusted, s.Addr),
+		Weight:  s.Weight,
+		QOS:     s.QOS,
+		Trusted: s.Trusted,
 		Dial: func(network, addr string) (net.Conn, error) {
 			return withStats(d.Dial(network, addr))
 		},

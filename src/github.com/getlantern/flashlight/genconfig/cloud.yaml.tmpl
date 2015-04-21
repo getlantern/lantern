@@ -9,7 +9,7 @@ client:
     maxmasquerades: 20
     qos: 10
     weight: 4000
-    trusted: false
+    trusted: true
   chainedservers: {{range .fallbacks}}
     fallback-{{.ip}}:
       addr: {{.ip}}:443

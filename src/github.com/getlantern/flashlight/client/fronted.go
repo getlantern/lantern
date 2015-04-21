@@ -55,7 +55,8 @@ type FrontedServerInfo struct {
 	// values indicating higher QOS.
 	QOS int
 
-	// Trusted: Determines if a host can be trusted with plain HTTP traffic.
+	// Trusted: Determines if a host can be trusted with unencrypted HTTP
+	// traffic.
 	Trusted bool
 }
 
@@ -83,12 +84,19 @@ func (s *FrontedServerInfo) dialer(masqueradeSets map[string][]*fronted.Masquera
 		masqueradeQualifier = fmt.Sprintf(" using masquerade set %s", s.MasqueradeSet)
 	}
 
+	// Is this a trusted proxy that we could use for HTTP traffic?
+	var trusted string
+	if s.Trusted {
+		trusted = "(trusted) "
+	}
+
 	// Creating a balancer dialer to be used to dial to arbitrary addresses.
 	bal := &balancer.Dialer{
-		Label:  fmt.Sprintf("fronted proxy at %s:%d%s", s.Host, s.Port, masqueradeQualifier),
-		Weight: s.Weight,
-		QOS:    s.QOS,
-		Dial:   fd.Dial,
+		Label:   fmt.Sprintf("%sfronted proxy at %s:%d%s", trusted, s.Host, s.Port, masqueradeQualifier),
+		Weight:  s.Weight,
+		QOS:     s.QOS,
+		Dial:    fd.Dial,
+		Trusted: s.Trusted,
 		OnClose: func() {
 			if err := fd.Close(); err != nil {
 				log.Debugf("Unable to close fronted dialer: %q", err)

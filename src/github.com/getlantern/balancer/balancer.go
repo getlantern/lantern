@@ -22,21 +22,40 @@ var (
 // Balancer balances connections established by one or more Dialers.
 type Balancer struct {
 	dialers []*dialer
+	trusted []*dialer
 }
 
 // New creates a new Balancer using the supplied Dialers.
 func New(dialers ...*Dialer) *Balancer {
 	dhs := make([]*dialer, 0, len(dialers))
+
 	for _, d := range dialers {
 		dl := &dialer{Dialer: d}
 		dl.start()
 		dhs = append(dhs, dl)
 	}
+
 	// Sort dialers by QOS (ascending) for later selection
 	sort.Sort(byQOSAscending(dhs))
+
 	return &Balancer{
 		dialers: dhs,
 	}
+}
+
+// trustedDialers returns the subset of b.dialers that are considered as
+// trusted.
+func (b *Balancer) trustedDialers() []*dialer {
+	if b.trusted == nil {
+		b.trusted = make([]*dialer, 0, len(b.dialers))
+		// Lazy initialization of trusted dialers.
+		for _, d := range b.dialers {
+			if d.Trusted {
+				b.trusted = append(b.trusted, d)
+			}
+		}
+	}
+	return b.trusted
 }
 
 // DialQOS dials network, addr using one of the currently active configured
@@ -49,7 +68,25 @@ func New(dialers ...*Dialer) *Balancer {
 // remaining Dialers until it either manages to connect, or runs out of dialers
 // in which case it returns an error.
 func (b *Balancer) DialQOS(network, addr string, targetQOS int) (net.Conn, error) {
-	dialers := b.dialers
+	var dialers []*dialer
+
+	// Checking destination port.
+	_, port, _ := net.SplitHostPort(addr)
+
+	// Are we attempting to connect to port 80 (plain HTTP)?
+	if port == "" || port == "80" {
+		// Then try to use only a trusted dialer.
+		dialers = b.trustedDialers()
+		// Unless we don't have any...
+		if len(dialers) == 0 {
+			dialers = b.dialers
+		}
+	} else {
+		// Use any dialer, encrypted traffic can hop travel safely through
+		// untrusted nodes.
+		dialers = b.dialers
+	}
+
 	for {
 		if len(dialers) == 0 {
 			return nil, fmt.Errorf("No dialers left to try")
@@ -70,6 +107,7 @@ func (b *Balancer) DialQOS(network, addr string, targetQOS int) (net.Conn, error
 		}
 		return conn, nil
 	}
+
 }
 
 // Dial is like DialQOS with a targetQOS of 0.

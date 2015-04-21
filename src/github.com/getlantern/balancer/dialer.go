@@ -40,6 +40,9 @@ type Dialer struct {
 	// Checks are scheduled at exponentially increasing intervals that are
 	// capped at 1 minute.
 	Check func() bool
+
+	// Determines wheter a dialer can be trusted with unencrypted traffic.
+	Trusted bool
 }
 
 var (
