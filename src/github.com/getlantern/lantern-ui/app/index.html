@@ -71,11 +71,11 @@
             {{'CONFIGURE_SYSTEM' | translate }}
             </p>
             <dd id="app-settings" style="padding:45px;">
-            <!--<label class="checkbox">
-                <input type="checkbox" ng-model="runAtSystemStart" focus-on="show"
-                ng-click="changeSetting(SETTING.runAtSystemStart, runAtSystemStart)">
+            <label class="checkbox">
+                <input type="checkbox" ng-model="model.settings.autoLaunch" focus-on="show"
+                ng-click="changeAutoLaunch(model.settings.autoLaunch)">
                 {{ 'AUTO_START' | translate }}
-            </label>-->
+            </label>
 
             <div>
                 <label class="checkbox">

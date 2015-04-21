@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/getlantern/appdir"
@@ -31,15 +32,19 @@ import (
 const (
 	CloudConfigPollInterval = 1 * time.Minute
 
-	cloudflare  = "cloudflare"
-	etag        = "ETag"
-	ifNoneMatch = "If-None-Match"
+	// In seconds
+	waitForLocationTimeout = 20
+
+	cloudflare         = "cloudflare"
+	etag               = "ETag"
+	ifNoneMatch        = "If-None-Match"
+	countryPlaceholder = "${COUNTRY}"
 )
 
 var (
 	log                 = golog.LoggerFor("flashlight.config")
 	m                   *yamlconf.Manager
-	lastCloudConfigETag = ""
+	lastCloudConfigETag = map[string]string{}
 )
 
 type Config struct {
@@ -54,6 +59,7 @@ type Config struct {
 	MemProfile    string
 	UIAddr        string // UI HTTP server address
 	AutoReport    *bool  // Report anonymous usage to GA
+	AutoLaunch    *bool  // Automatically launch Lantern on system startup
 	Stats         *statreporter.Config
 	Server        *server.ServerConfig
 	Client        *client.ClientConfig
@@ -221,7 +227,7 @@ func (cfg *Config) ApplyDefaults() {
 	}
 
 	if cfg.CloudConfig == "" {
-		cfg.CloudConfig = "https://s3.amazonaws.com/lantern_config/cloud.2.0.0-nl.yaml.gz"
+		cfg.CloudConfig = fmt.Sprintf("https://s3.amazonaws.com/lantern_config/cloud.%v.yaml.gz", countryPlaceholder)
 	}
 
 	// Default country
@@ -301,6 +307,11 @@ func (cfg *Config) applyClientDefaults() {
 		*cfg.AutoReport = true
 	}
 
+	if cfg.AutoLaunch == nil {
+		cfg.AutoLaunch = new(bool)
+		*cfg.AutoLaunch = false
+	}
+
 	// Make sure all servers have a QOS and Weight configured
 	for _, server := range cfg.Client.FrontedServers {
 		if server.QOS == 0 {
@@ -336,27 +347,27 @@ func (cfg Config) cloudPollSleepTime() time.Duration {
 }
 
 func (cfg Config) fetchCloudConfig() (bytes []byte, err error) {
-	log.Debugf("Fetching cloud config from: %s", cfg.CloudConfig)
+	log.Debugf("Fetching cloud config...")
 
 	if cfg.IsDownstream() {
 		// Clients must always proxy the request
 		if cfg.Addr == "" {
 			err = fmt.Errorf("No proxyAddr")
 		} else {
-			bytes, err = cfg.doFetchCloudConfig(cfg.Addr)
+			bytes, err = cfg.fetchCloudConfigForAddr(cfg.Addr)
 		}
 	} else {
-		bytes, err = cfg.doFetchCloudConfig("")
+		bytes, err = cfg.fetchCloudConfigForAddr("")
 	}
 	if err != nil {
 		bytes = nil
-		err = fmt.Errorf("Unable to read yaml from %s: %s", cfg.CloudConfig, err)
+		err = fmt.Errorf("Unable to read yaml from cloud config: %s", err)
 	}
 	return
 }
 
-func (cfg Config) doFetchCloudConfig(proxyAddr string) ([]byte, error) {
-	log.Tracef("doFetchCloudConfig via '%s'", proxyAddr)
+func (cfg Config) fetchCloudConfigForAddr(proxyAddr string) ([]byte, error) {
+	log.Tracef("fetchCloudConfigForAddr '%s'", proxyAddr)
 
 	if proxyAddr != "" {
 		// Wait for proxy to become available
@@ -370,19 +381,44 @@ func (cfg Config) doFetchCloudConfig(proxyAddr string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to initialize HTTP client: %s", err)
 	}
-
-	log.Debugf("Checking for cloud configuration at: %s", cfg.CloudConfig)
-	req, err := http.NewRequest("GET", cfg.CloudConfig, nil)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to construct request for cloud config at %s: %s", cfg.CloudConfig, err)
+	// Try and wait to get geolocated, up to a point.  Waiting indefinitely
+	// might prevent us from ever getting geolocated if our current
+	// configuration is preventing domain fronting from working.
+	for i := 0; i < waitForLocationTimeout; i++ {
+		country := strings.ToLower(globals.GetCountry())
+		if country != "" && country != "xx" {
+			ret, err := cfg.fetchCloudConfigForCountry(client, country)
+			// We could check specifically for a 404, but S3 actually returns a 403 when
+			// a resource is not available.  I thought we'd better lean on the side of
+			// robustness by avoiding hardcoding an S3-ism here, than to try and save an
+			// extra request every now and then.
+			if err == nil {
+				return ret, err
+			} else {
+				log.Debugf("Couldn't fetch cloud config for country '%s'; trying the default one", country)
+			}
+			break
+		}
+		log.Debugf("Waiting for location...")
+		time.Sleep(1 * time.Second)
 	}
-	if lastCloudConfigETag != "" {
+	return cfg.fetchCloudConfigForCountry(client, "default")
+}
+
+func (cfg Config) fetchCloudConfigForCountry(client *http.Client, country string) ([]byte, error) {
+	url := strings.Replace(cfg.CloudConfig, countryPlaceholder, country, 1)
+	log.Debugf("Checking for cloud configuration at: %s", url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to construct request for cloud config at %s: %s", url, err)
+	}
+	if lastCloudConfigETag[url] != "" {
 		// Don't bother fetching if unchanged
-		req.Header.Set(ifNoneMatch, lastCloudConfigETag)
+		req.Header.Set(ifNoneMatch, lastCloudConfigETag[url])
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to fetch cloud config at %s: %s", cfg.CloudConfig, err)
+		return nil, fmt.Errorf("Unable to fetch cloud config at %s: %s", url, err)
 	}
 	defer resp.Body.Close()
 
@@ -393,7 +429,7 @@ func (cfg Config) doFetchCloudConfig(proxyAddr string) ([]byte, error) {
 		return nil, fmt.Errorf("Unexpected response status: %d", resp.StatusCode)
 	}
 
-	lastCloudConfigETag = resp.Header.Get(etag)
+	lastCloudConfigETag[url] = resp.Header.Get(etag)
 	gzReader, err := gzip.NewReader(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to open gzip reader: %s", err)

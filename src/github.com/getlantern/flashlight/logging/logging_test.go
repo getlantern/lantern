@@ -3,6 +3,7 @@ package logging
 import (
 	"bytes"
 	"encoding/json"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -23,21 +24,21 @@ func TestLoggly(t *testing.T) {
 	log.Error("")
 	if assert.NoError(t, json.Unmarshal(buf.Bytes(), &result), "Unmarshal error") {
 		assert.Equal(t, "test", result["locationInfo"])
-		assert.Equal(t, "", result["message"], "empty message should be logged as is")
+		assert.Regexp(t, regexp.MustCompile("logging_test.go:([0-9]+)"), result["message"])
 	}
 
 	buf.Reset()
 	log.Error("short message")
 	if assert.NoError(t, json.Unmarshal(buf.Bytes(), &result), "Unmarshal error") {
 		assert.Equal(t, "test", result["locationInfo"])
-		assert.Equal(t, "short message", result["message"], "short message should be logged as is")
+		assert.Regexp(t, regexp.MustCompile("logging_test.go:([0-9]+) short message"), result["message"])
 	}
 
 	buf.Reset()
 	log.Error("message with: reason")
 	if assert.NoError(t, json.Unmarshal(buf.Bytes(), &result), "Unmarshal error") {
 		assert.Equal(t, "test", result["locationInfo"])
-		assert.Equal(t, "message with: reason", result["message"], "message should be last 2 chunks")
+		assert.Regexp(t, "logging_test.go:([0-9]+) message with: reason", result["message"])
 	}
 
 	buf.Reset()
@@ -65,6 +66,6 @@ func TestLoggly(t *testing.T) {
 	log.Error(longMsg)
 	if assert.NoError(t, json.Unmarshal(buf.Bytes(), &result), "Unmarshal error") {
 		assert.Equal(t, "test", result["locationInfo"])
-		assert.Equal(t, longMsg, result["message"], "should not truncate long messages as it's unlikely to happen")
+		assert.Regexp(t, regexp.MustCompile("logging_test.go:([0-9]+) "+longMsg), result["message"])
 	}
 }
