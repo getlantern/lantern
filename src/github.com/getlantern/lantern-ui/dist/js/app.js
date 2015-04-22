@@ -184,6 +184,16 @@ var app = angular.module('app', [
         gaMgr.trackPageView('start');
     };
 
+    $rootScope.valByLang = function(name) {
+        // use language-specific forums URL
+        if (name && $rootScope.lang && 
+            name.hasOwnProperty($rootScope.lang)) {
+            return name[$rootScope.lang];
+        }
+        // default to English language forum
+        return name['en_US'];
+    };
+
     $rootScope.changeLang = function(lang) {
       return $rootScope.interaction(INTERACTION.changeLang, {lang: lang});
     };
