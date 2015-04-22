@@ -140,8 +140,10 @@ func UIEvent(httpClient *http.Client, payload *Payload) (status bool, err error)
 
 // Fired whenever a new Lanern session is initiated
 func SessionEvent(httpClient *http.Client, payload *Payload) (status bool, err error) {
-	// add tracking Id since this won't be present already
-	payload.TrackingId = TrackingId
+	// add tracking id if it isn't present already
+	if payload.TrackingId == "" {
+		payload.TrackingId = TrackingId
+	}
 	payload.ClientId = DefaultClientId
 	return SendRequest(httpClient, payload)
 }
