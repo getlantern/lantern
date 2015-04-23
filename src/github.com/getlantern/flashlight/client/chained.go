@@ -12,6 +12,7 @@ import (
 	"github.com/getlantern/tlsdialer"
 )
 
+// ChainedServerInfo provides identity information for a chained server.
 type ChainedServerInfo struct {
 	// Addr: the host:port of the upstream proxy server
 	Addr string
@@ -33,8 +34,12 @@ type ChainedServerInfo struct {
 	// QOS: relative quality of service offered. Should be >= 0, with higher
 	// values indicating higher QOS.
 	QOS int
+
+	// Trusted: Determines if a host can be trusted with plain HTTP traffic.
+	Trusted bool
 }
 
+// Dialer creates a *balancer.Dialer backed by a chained server.
 func (s *ChainedServerInfo) Dialer() (*balancer.Dialer, error) {
 	log.Debug("Building dialer")
 
@@ -82,10 +87,17 @@ func (s *ChainedServerInfo) Dialer() (*balancer.Dialer, error) {
 	}
 	d := chained.NewDialer(ccfg)
 
+	// Is this a trusted proxy that we could use for HTTP traffic?
+	var trusted string
+	if s.Trusted {
+		trusted = "(trusted) "
+	}
+
 	return &balancer.Dialer{
-		Label:  fmt.Sprintf("chained proxy at %s", s.Addr),
-		Weight: s.Weight,
-		QOS:    s.QOS,
+		Label:   fmt.Sprintf("%schained proxy at %s", trusted, s.Addr),
+		Weight:  s.Weight,
+		QOS:     s.QOS,
+		Trusted: s.Trusted,
 		Dial: func(network, addr string) (net.Conn, error) {
 			return withStats(d.Dial(network, addr))
 		},

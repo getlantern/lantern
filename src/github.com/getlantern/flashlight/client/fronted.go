@@ -54,8 +54,14 @@ type FrontedServerInfo struct {
 	// QOS: relative quality of service offered. Should be >= 0, with higher
 	// values indicating higher QOS.
 	QOS int
+
+	// Trusted: Determines if a host can be trusted with unencrypted HTTP
+	// traffic.
+	Trusted bool
 }
 
+// dialer creates a dialer for domain fronting and and balanced dialer that can
+// be used to dial to arbitrary addresses.
 func (s *FrontedServerInfo) dialer(masqueradeSets map[string][]*fronted.Masquerade) (fronted.Dialer, *balancer.Dialer) {
 	fd := fronted.NewDialer(fronted.Config{
 		Host:               s.Host,
@@ -71,22 +77,31 @@ func (s *FrontedServerInfo) dialer(masqueradeSets map[string][]*fronted.Masquera
 		MaxMasquerades:     s.MaxMasquerades,
 		RootCAs:            globals.TrustedCAs,
 	})
-	masqueradeQualifier := ""
+
+	var masqueradeQualifier string
 	if s.MasqueradeSet != "" {
 		masqueradeQualifier = fmt.Sprintf(" using masquerade set %s", s.MasqueradeSet)
 	}
-	return fd, &balancer.Dialer{
-		Label:  fmt.Sprintf("fronted proxy at %s:%d%s", s.Host, s.Port, masqueradeQualifier),
-		Weight: s.Weight,
-		QOS:    s.QOS,
-		Dial:   fd.Dial,
+
+	var trusted string
+	if s.Trusted {
+		trusted = "(trusted) "
+	}
+
+	bal := &balancer.Dialer{
+		Label:   fmt.Sprintf("%sfronted proxy at %s:%d%s", trusted, s.Host, s.Port, masqueradeQualifier),
+		Weight:  s.Weight,
+		QOS:     s.QOS,
+		Dial:    fd.Dial,
+		Trusted: s.Trusted,
 		OnClose: func() {
-			err := fd.Close()
-			if err != nil {
-				log.Debugf("Unable to close fronted dialer: %s", err)
+			if err := fd.Close(); err != nil {
+				log.Debugf("Unable to close fronted dialer: %q", err)
 			}
 		},
 	}
+
+	return fd, bal
 }
 
 func (s *FrontedServerInfo) onDialStats(success bool, domain, addr string, resolutionTime, connectTime, handshakeTime time.Duration) {

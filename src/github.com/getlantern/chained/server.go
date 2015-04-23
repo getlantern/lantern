@@ -37,8 +37,8 @@ func (s *Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		panic("Response doesn't allow flushing!")
 	}
 
-	if req.Method != CONNECT {
-		resp.WriteHeader(405)
+	if req.Method != httpConnectMethod {
+		resp.WriteHeader(http.StatusMethodNotAllowed)
 		fmt.Fprintf(resp, "Method %s not allowed", req.Method)
 		return
 	}
@@ -46,12 +46,12 @@ func (s *Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	address := req.Host
 	connOut, err := s.Dial("tcp", address)
 	if err != nil {
-		resp.WriteHeader(502)
+		resp.WriteHeader(http.StatusBadGateway)
 		fmt.Fprintf(resp, "Unable to dial %s : %s", address, err)
 		return
 	}
 	defer connOut.Close()
-	resp.WriteHeader(200)
+	resp.WriteHeader(http.StatusOK)
 	fmt.Fprint(resp, "CONNECT OK")
 	fl.Flush()
 
@@ -69,7 +69,7 @@ func (s *Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		wg.Done()
 	}()
 	go func() {
-		go io.Copy(connIn, connOut)
+		io.Copy(connIn, connOut)
 		wg.Done()
 	}()
 	wg.Wait()

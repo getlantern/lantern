@@ -22,21 +22,39 @@ var (
 // Balancer balances connections established by one or more Dialers.
 type Balancer struct {
 	dialers []*dialer
+	trusted []*dialer
 }
 
 // New creates a new Balancer using the supplied Dialers.
 func New(dialers ...*Dialer) *Balancer {
-	dhs := make([]*dialer, 0, len(dialers))
+	trustedDialersCount := 0
+
+	bal := new(Balancer)
+
+	bal.dialers = make([]*dialer, 0, len(dialers))
+
 	for _, d := range dialers {
 		dl := &dialer{Dialer: d}
 		dl.start()
-		dhs = append(dhs, dl)
+		bal.dialers = append(bal.dialers, dl)
+
+		if dl.Trusted {
+			trustedDialersCount++
+		}
 	}
+
 	// Sort dialers by QOS (ascending) for later selection
-	sort.Sort(byQOSAscending(dhs))
-	return &Balancer{
-		dialers: dhs,
+	sort.Sort(byQOSAscending(bal.dialers))
+
+	bal.trusted = make([]*dialer, 0, trustedDialersCount)
+
+	for _, d := range bal.dialers {
+		if d.Trusted {
+			bal.trusted = append(bal.trusted, d)
+		}
 	}
+
+	return bal
 }
 
 // DialQOS dials network, addr using one of the currently active configured
@@ -49,7 +67,16 @@ func New(dialers ...*Dialer) *Balancer {
 // remaining Dialers until it either manages to connect, or runs out of dialers
 // in which case it returns an error.
 func (b *Balancer) DialQOS(network, addr string, targetQOS int) (net.Conn, error) {
-	dialers := b.dialers
+	var dialers []*dialer
+
+	_, port, _ := net.SplitHostPort(addr)
+
+	if port == "" || port == "80" || port == "8080" {
+		dialers = b.trusted
+	} else {
+		dialers = b.dialers
+	}
+
 	for {
 		if len(dialers) == 0 {
 			return nil, fmt.Errorf("No dialers left to try")
@@ -70,6 +97,7 @@ func (b *Balancer) DialQOS(network, addr string, targetQOS int) (net.Conn, error
 		}
 		return conn, nil
 	}
+
 }
 
 // Dial is like DialQOS with a targetQOS of 0.

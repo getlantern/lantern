@@ -10,12 +10,18 @@ import (
 	"github.com/getlantern/flashlight/proxy"
 )
 
+// getReverseProxy waits for a message from client.rpCh to arrive and then it
+// writes it back to client.rpCh before returning it as a value. This way we
+// always have a balancer at client.rpCh and, if we don't have one, it would
+// block until one arrives.
 func (client *Client) getReverseProxy() *httputil.ReverseProxy {
 	rp := <-client.rpCh
 	client.rpCh <- rp
 	return rp
 }
 
+// initReverseProxy creates a reverse proxy that attempts to exit with any of
+// the dialers provided by the balancer.
 func (client *Client) initReverseProxy(bal *balancer.Balancer, dumpHeaders bool) {
 	rp := &httputil.ReverseProxy{
 		Director: func(req *http.Request) {
@@ -52,8 +58,15 @@ func (client *Client) initReverseProxy(bal *balancer.Balancer, dumpHeaders bool)
 		log.Trace("Creating reverse proxy channel")
 		client.rpCh = make(chan *httputil.ReverseProxy, 1)
 	}
+
 	log.Trace("Publishing reverse proxy")
+
 	client.rpCh <- rp
+
+	// We don't need to protect client.rpInitialized from race conditions because
+	// it's only accessed here in initReverseProxy, which always gets called
+	// under Configure, which never gets called concurrently with itself.
+	client.rpInitialized = true
 }
 
 // withDumpHeaders creates a RoundTripper that uses the supplied RoundTripper
