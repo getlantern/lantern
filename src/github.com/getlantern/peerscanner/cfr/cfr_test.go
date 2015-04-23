@@ -13,6 +13,10 @@ import (
 	"github.com/getlantern/testify/assert"
 )
 
+// DRY: getlantern/cfrjanitor/cfrjanitor.go uses this string to identify test
+// distributions for cleaning up
+const COMMENT = "TEST -- DELETE"
+
 func TestList(t *testing.T) {
 	_, counter, err := fdcount.Matching("TCP")
 	if err != nil {
@@ -39,11 +43,13 @@ func TestCreateAndRefresh(t *testing.T) {
 	// Fortunately, distributions per se cost us nothing.  A separate service
 	// will be implemented to delete test and otherwise unused distributions.
 	name := uuid.NewV4().String()
-	dist, err := CreateDistribution(cfr, name, name+"-grey.flashlightproxy.org", "TEST -- DELETE")
+	dist, err := CreateDistribution(cfr, name, name+"-grey.flashlightproxy.org", COMMENT)
 	assert.NoError(t, err, "Should be able to create distribution")
 	assert.Equal(t, "InProgress", dist.Status, "New distribution should have Status: \"InProgress\"")
+	assert.Equal(t, dist.Comment, COMMENT, "New distribution should have the comment we've set for it")
 	assert.Equal(t, name, dist.InstanceId, "New distribution should have the right InstanceId")
 	assert.True(t, strings.HasSuffix(dist.Domain, ".cloudfront.net"), "Domain should be a .cloudfront.net subdomain, not '"+dist.Domain+"'")
+	dist.Status = "modified to check it really gets overwritten"
 	err = RefreshStatus(cfr, dist)
 	assert.NoError(t, err, "Should be able to refresh status")
 	// Just check that Status stays a valid one.  Checking that it eventually

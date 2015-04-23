@@ -1,11 +1,10 @@
-# flashlight-build [![Travis CI Status](https://travis-ci.org/getlantern/flashlight-build.svg?branch=devel)](https://travis-ci.org/getlantern/flashlight-build)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/flashlight-build/badge.png?branch=devel)](https://coveralls.io/r/getlantern/flashlight-build)
+# lantern [![Travis CI Status](https://travis-ci.org/getlantern/lantern.svg?branch=devel)](https://travis-ci.org/getlantern/lantern)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/lantern/badge.png?branch=devel)](https://coveralls.io/r/getlantern/lantern)
 
-flashlight-build is a [gost](https://github.com/getlantern/gost) project that
-provides repeatable builds and consolidated pull requests for flashlight (now
-lantern). **It's very important to read the gost documentation thoroughly in
+lantern is a [gost](https://github.com/getlantern/gost) project that
+provides repeatable builds and consolidated pull requests for lantern. **It's very important to read the gost documentation thoroughly in
 order to build this project.**
 
-## Building Flashlight
+## Building Lantern
 
 ### Requisites
 
@@ -22,10 +21,10 @@ tools for certain features.
 ### Building the docker image
 
 In order to build the docker image open a terminal, `cd` into the
-`flashlight-build` project and execute `make docker`:
+`lantern` project and execute `make docker`:
 
 ```sh
-cd $FLASHLIGHT_BUILD
+cd lantern
 make docker
 ```
 
@@ -247,7 +246,7 @@ right after the `packages` task.
 ### Updating Icons
 
 The icons used for the system tray are stored in
-`src/github/getlantern/flashlight/icons`. To apply changes to the icons, make
+`src/github/getlantern/lantern/icons`. To apply changes to the icons, make
 your updates in the icons folder and then run `make update-icons`.
 
 ### Continuous Integration with Travis CI
