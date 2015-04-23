@@ -59,6 +59,8 @@ func work(c *cloudfront.CloudFront, workCh <-chan *cfr.Distribution, wg *sync.Wa
 		} else if dist.Status == "InProgress" {
 			continue
 		} else if dist.Enabled {
+			// Distributions must be disabled before they can be deleted:
+			// http://docs.aws.amazon.com/AmazonCloudFront/latest/APIReference/DeleteDistribution.html
 			if err := cfr.DisableDistribution(c, dist); err != nil {
 				log.Errorf("Error disabling distribution: %v", err)
 			} else {

@@ -204,6 +204,8 @@ func RefreshStatus(cfr *cloudfront.CloudFront, dist *Distribution) error {
 }
 
 func DisableDistribution(cfr *cloudfront.CloudFront, dist *Distribution) error {
+	// See:
+	// http://docs.aws.amazon.com/AmazonCloudFront/latest/APIReference/DeleteDistribution.html
 	getreq := &cloudfront.GetDistributionConfigRequest{ID: dist.distributionId}
 	getresp, err := cfr.GetDistributionConfig(getreq)
 	if err != nil {
@@ -228,6 +230,8 @@ func DisableDistribution(cfr *cloudfront.CloudFront, dist *Distribution) error {
 }
 
 func DeleteDistribution(cfr *cloudfront.CloudFront, dist *Distribution) error {
+	// See:
+	// http://docs.aws.amazon.com/AmazonCloudFront/latest/APIReference/DeleteDistribution.html
 	getreq := &cloudfront.GetDistributionConfigRequest{ID: dist.distributionId}
 	getresp, err := cfr.GetDistributionConfig(getreq)
 	if err != nil {
