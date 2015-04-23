@@ -63,6 +63,9 @@ func (client *Client) initReverseProxy(bal *balancer.Balancer, dumpHeaders bool)
 
 	client.rpCh <- rp
 
+	// We don't need to protect client.rpInitialized from race conditions because
+	// it's only accessed here in initReverseProxy, which always gets called
+	// under Configure, which never gets called concurrently with itself.
 	client.rpInitialized = true
 }
 

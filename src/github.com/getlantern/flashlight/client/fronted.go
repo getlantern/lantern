@@ -60,7 +60,7 @@ type FrontedServerInfo struct {
 	Trusted bool
 }
 
-// dialer creates a dialer for domain fronting and and balanced dialer that cna
+// dialer creates a dialer for domain fronting and and balanced dialer that can
 // be used to dial to arbitrary addresses.
 func (s *FrontedServerInfo) dialer(masqueradeSets map[string][]*fronted.Masquerade) (fronted.Dialer, *balancer.Dialer) {
 	fd := fronted.NewDialer(fronted.Config{

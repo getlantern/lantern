@@ -73,6 +73,9 @@ func (client *Client) initBalancer(cfg *ClientConfig) (*balancer.Balancer, front
 
 	client.balCh <- bal
 
+	// We don't need to protect client.balInitialized from race conditions
+	// because it's only accessed here in initBalancer, which always gets called
+	// under Configure, which never gets called concurrently with itself.
 	client.balInitialized = true
 
 	return bal, highestQOSFrontedDialer

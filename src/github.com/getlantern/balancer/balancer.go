@@ -27,13 +27,11 @@ type Balancer struct {
 
 // New creates a new Balancer using the supplied Dialers.
 func New(dialers ...*Dialer) *Balancer {
+	trustedDialersCount := 0
+
 	bal := new(Balancer)
 
-	// Sort dialers by QOS (ascending) for later selection
-	sort.Sort(byQOSAscending(dialers))
-
 	bal.dialers = make([]*dialer, 0, len(dialers))
-	bal.trusted = make([]*dialer, 0, len(dialers))
 
 	for _, d := range dialers {
 		dl := &dialer{Dialer: d}
@@ -41,7 +39,18 @@ func New(dialers ...*Dialer) *Balancer {
 		bal.dialers = append(bal.dialers, dl)
 
 		if dl.Trusted {
-			bal.trusted = append(bal.trusted, dl)
+			trustedDialersCount++
+		}
+	}
+
+	// Sort dialers by QOS (ascending) for later selection
+	sort.Sort(byQOSAscending(bal.dialers))
+
+	bal.trusted = make([]*dialer, 0, trustedDialersCount)
+
+	for _, d := range bal.dialers {
+		if d.Trusted {
+			bal.trusted = append(bal.trusted, d)
 		}
 	}
 
@@ -182,9 +191,9 @@ func without(dialers []*dialer, i int) []*dialer {
 	}
 }
 
-// byQOSAscending implements sort.Interface for []*Dialer based on the QOS
+// byQOSAscending implements sort.Interface for []*dialer based on the QOS
 // (ascending)
-type byQOSAscending []*Dialer
+type byQOSAscending []*dialer
 
 func (a byQOSAscending) Len() int           { return len(a) }
 func (a byQOSAscending) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
