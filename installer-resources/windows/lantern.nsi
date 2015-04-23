@@ -44,8 +44,9 @@ Section
     # Sleep for 1 second to process a chance to die and file to become writable
     Sleep 1000
 
+    ${nsProcess::Unload}
     IfErrors 0 +2
-        MessageBox MB_OK "Error stopping previous Lantern version. Please stop it from the system tray and install again."
+        Abort "Error stopping previous Lantern version. Please stop it from the system tray and install again."
 
     DetailPrint "Killing process returned $R0"
 
