@@ -18,7 +18,7 @@ client:
       pipelined: true
       weight: 1000000
       qos: 10{{end}}
-      trusted: false
+      trusted: true
   masqueradesets:
     cloudflare:{{range .masquerades}}
     - domain: {{.Domain}}

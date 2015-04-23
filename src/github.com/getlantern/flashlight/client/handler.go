@@ -20,7 +20,7 @@ const (
 // getReverseProxy().
 func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	if req.Method == httpConnectMethod {
-		// CONNECT requests are often used for HTTPs requests.
+		// CONNECT requests are often used for HTTPS requests.
 		log.Tracef("Intercepting CONNECT %s", req.URL)
 		client.intercept(resp, req)
 	} else {
@@ -34,14 +34,14 @@ func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 // connetion and starts piping the data over a new net.Conn obtained from the
 // given dial function.
 func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
-	var err error
 
-	// intercept can only by used for CONNECT requests.
 	if req.Method != httpConnectMethod {
 		panic("Intercept used for non-CONNECT request!")
 	}
 
-	// Hijacking underlying connection.
+	var err error
+
+	// Hijack underlying connection.
 	var clientConn net.Conn
 	if clientConn, _, err = resp.(http.Hijacker).Hijack(); err != nil {
 		respondBadGateway(resp, fmt.Sprintf("Unable to hijack connection: %s", err))
@@ -49,27 +49,13 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 	}
 	defer clientConn.Close()
 
-	// Getting destination host and port.
-	var host, port string
+	addr := hostIncludingPort(req, 443)
 
-	if host, port, err = net.SplitHostPort(req.Host); err != nil {
-		log.Tracef("net.SplitHostPort: %q", err)
-	}
-
-	// If no port is given, assuming it's 443 for HTTPs.
-	if port == "" {
-		port = "443"
-	}
-
-	// Creating a network address.
-	addr := host + ":" + port
-
-	// Establishing outbound connection with the given address.
+	// Establish outbound connection.
 	d := func(network, addr string) (net.Conn, error) {
 		return client.getBalancer().DialQOS("tcp", addr, client.targetQOS(req))
 	}
 
-	// The actual dialer must pass through detour.
 	var connOut net.Conn
 	if connOut, err = detour.Dialer(d)("tcp", addr); err != nil {
 		respondBadGateway(clientConn, fmt.Sprintf("Unable to handle CONNECT request: %s", err))
@@ -78,7 +64,7 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 
 	defer connOut.Close()
 
-	// Piping data between the client and the proxy.
+	// Pipe data between the client and the proxy.
 	pipeData(clientConn, connOut, req)
 }
 
@@ -125,16 +111,27 @@ func respondOK(writer io.Writer, req *http.Request) error {
 	return resp.Write(writer)
 }
 
-func respondBadGateway(w io.Writer, msg string) (err error) {
+func respondBadGateway(w io.Writer, msg string) error {
 	log.Debugf("Responding BadGateway: %v", msg)
 	resp := &http.Response{
 		StatusCode: http.StatusBadGateway,
 		ProtoMajor: 1,
 		ProtoMinor: 1,
 	}
-	err = resp.Write(w)
+	err := resp.Write(w)
 	if err == nil {
 		_, err = w.Write([]byte(msg))
 	}
 	return err
+}
+
+// hostIncludingPort extracts the host:port from a request.  It fills in a
+// a default port if none was found in the request.
+func hostIncludingPort(req *http.Request, defaultPort int) string {
+	_, port, err := net.SplitHostPort(req.Host)
+	if port == "" || err != nil {
+		return req.Host + ":" + strconv.Itoa(defaultPort)
+	} else {
+		return req.Host
+	}
 }

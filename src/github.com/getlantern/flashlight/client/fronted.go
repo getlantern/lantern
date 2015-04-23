@@ -60,9 +60,9 @@ type FrontedServerInfo struct {
 	Trusted bool
 }
 
-// dialer
+// dialer creates a dialer for domain fronting and and balanced dialer that cna
+// be used to dial to arbitrary addresses.
 func (s *FrontedServerInfo) dialer(masqueradeSets map[string][]*fronted.Masquerade) (fronted.Dialer, *balancer.Dialer) {
-	// Creating a dialer for domain fronting.
 	fd := fronted.NewDialer(fronted.Config{
 		Host:               s.Host,
 		Port:               s.Port,
@@ -78,19 +78,16 @@ func (s *FrontedServerInfo) dialer(masqueradeSets map[string][]*fronted.Masquera
 		RootCAs:            globals.TrustedCAs,
 	})
 
-	// Are we using a masquerade set?
 	var masqueradeQualifier string
 	if s.MasqueradeSet != "" {
 		masqueradeQualifier = fmt.Sprintf(" using masquerade set %s", s.MasqueradeSet)
 	}
 
-	// Is this a trusted proxy that we could use for HTTP traffic?
 	var trusted string
 	if s.Trusted {
 		trusted = "(trusted) "
 	}
 
-	// Creating a balancer dialer to be used to dial to arbitrary addresses.
 	bal := &balancer.Dialer{
 		Label:   fmt.Sprintf("%sfronted proxy at %s:%d%s", trusted, s.Host, s.Port, masqueradeQualifier),
 		Weight:  s.Weight,

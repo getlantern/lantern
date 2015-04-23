@@ -182,37 +182,35 @@ func parseFlags() {
 func runClientProxy(cfg *config.Config) {
 	var err error
 
-	// Setting Lantern as system proxy by creating and using a PAC file.
+	// Set Lantern as system proxy by creating and using a PAC file.
 	setProxyAddr(cfg.Addr)
 
 	if err = setUpPacTool(); err != nil {
 		exit(err)
 	}
 
-	// Creating the client-side proxy.
+	// Create the client-side proxy.
 	client := &client.Client{
 		Addr:         cfg.Addr,
 		ReadTimeout:  0, // don't timeout
 		WriteTimeout: 0,
 	}
 
-	// Updating client configuration and getting the highest QOS dialer
-	// available.
+	// Update client configuration and get the highest QOS dialer available.
 	hqfd := client.Configure(cfg.Client)
 
-	// Starting user interface.
+	// Start user interface.
 	if cfg.UIAddr != "" {
 		if err = ui.Start(cfg.UIAddr); err != nil {
 			exit(fmt.Errorf("Unable to start UI: %v", err))
 			return
 		}
 		if showui {
-			// Launching a browser window with Lantern.
+			// Launch a browser window with Lantern.
 			ui.Show()
 		}
 	}
 
-	// Updating various modules that depend on some configuration values.
 	autoupdate.Configure(cfg)
 	logging.Configure(cfg, version, buildDate)
 	settings.Configure(cfg, version, buildDate)
@@ -221,34 +219,29 @@ func runClientProxy(cfg *config.Config) {
 	if hqfd == nil {
 		log.Errorf("No fronted dialer available, not enabling geolocation, stats or analytics")
 	} else {
-		//
 		// An *http.Client that uses the highest QOS dialer.
 		hqfdClient := hqfd.DirectHttpClient()
-		// Passing this client to some critical modules.
+
 		geolookup.Configure(hqfdClient)
 		statserver.Configure(hqfdClient)
-		// Starting Google Analytics service.
 		analytics.Configure(cfg, false, hqfdClient)
 	}
 
 	// Continually poll for config updates and update client accordingly
 	go func() {
 		for {
-			// Waiting for a configuration update to arrive.
 			cfg := <-configUpdates
 
-			// Updating various modules that depend on some configuration values.
 			proxiedsites.Configure(cfg.ProxiedSites)
-			statreporter.Configure(cfg.Stats) // Note - we deliberately ignore the error from statreporter.Configure here
+			// Note - we deliberately ignore the error from statreporter.Configure here
+			statreporter.Configure(cfg.Stats)
 
-			// Updating client's configuration and getting the highest QOS dialer at
-			// the time.
 			hqfd = client.Configure(cfg.Client)
 
 			if hqfd != nil {
-				// Creating and passing the *http.Client that uses the highest QOS
-				// dialer to critical modules that require continual comunication with
-				// external services.
+				// Create and pass the *http.Client that uses the highest QOS dialer to
+				// critical modules that require continual comunication with external
+				// services.
 				hqfdClient := hqfd.DirectHttpClient()
 
 				geolookup.Configure(hqfdClient)
@@ -265,7 +258,6 @@ func runClientProxy(cfg *config.Config) {
 	watchDirectAddrs()
 
 	go func() {
-		// Actually opening the client-side server for incoming connections.
 		exit(client.ListenAndServe(pacOn))
 	}()
 }

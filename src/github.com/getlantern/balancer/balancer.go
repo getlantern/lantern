@@ -27,35 +27,25 @@ type Balancer struct {
 
 // New creates a new Balancer using the supplied Dialers.
 func New(dialers ...*Dialer) *Balancer {
-	dhs := make([]*dialer, 0, len(dialers))
+	bal := new(Balancer)
+
+	// Sort dialers by QOS (ascending) for later selection
+	sort.Sort(byQOSAscending(dialers))
+
+	bal.dialers = make([]*dialer, 0, len(dialers))
+	bal.trusted = make([]*dialer, 0, len(dialers))
 
 	for _, d := range dialers {
 		dl := &dialer{Dialer: d}
 		dl.start()
-		dhs = append(dhs, dl)
-	}
+		bal.dialers = append(bal.dialers, dl)
 
-	// Sort dialers by QOS (ascending) for later selection
-	sort.Sort(byQOSAscending(dhs))
-
-	return &Balancer{
-		dialers: dhs,
-	}
-}
-
-// trustedDialers returns the subset of b.dialers that are considered as
-// trusted.
-func (b *Balancer) trustedDialers() []*dialer {
-	if b.trusted == nil {
-		b.trusted = make([]*dialer, 0, len(b.dialers))
-		// Lazy initialization of trusted dialers.
-		for _, d := range b.dialers {
-			if d.Trusted {
-				b.trusted = append(b.trusted, d)
-			}
+		if dl.Trusted {
+			bal.trusted = append(bal.trusted, dl)
 		}
 	}
-	return b.trusted
+
+	return bal
 }
 
 // DialQOS dials network, addr using one of the currently active configured
@@ -70,20 +60,11 @@ func (b *Balancer) trustedDialers() []*dialer {
 func (b *Balancer) DialQOS(network, addr string, targetQOS int) (net.Conn, error) {
 	var dialers []*dialer
 
-	// Checking destination port.
 	_, port, _ := net.SplitHostPort(addr)
 
-	// Are we attempting to connect to port 80 (plain HTTP)?
-	if port == "" || port == "80" {
-		// Then try to use only a trusted dialer.
-		dialers = b.trustedDialers()
-		// Unless we don't have any...
-		if len(dialers) == 0 {
-			dialers = b.dialers
-		}
+	if port == "" || port == "80" || port == "8080" {
+		dialers = b.trusted
 	} else {
-		// Use any dialer, encrypted traffic can hop travel safely through
-		// untrusted nodes.
 		dialers = b.dialers
 	}
 
@@ -201,9 +182,9 @@ func without(dialers []*dialer, i int) []*dialer {
 	}
 }
 
-// byQOSAscending implements sort.Interface for []*dialer based on the QOS
+// byQOSAscending implements sort.Interface for []*Dialer based on the QOS
 // (ascending)
-type byQOSAscending []*dialer
+type byQOSAscending []*Dialer
 
 func (a byQOSAscending) Len() int           { return len(a) }
 func (a byQOSAscending) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
