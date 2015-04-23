@@ -260,19 +260,19 @@ darwin-amd64: require-assets
 		echo "-> Skipped: Can not compile Lantern for OSX on a non-OSX host."; \
 	fi
 
-package-linux-386: require-version linux-386
+package-linux-386: require-version genassets linux-386
 	@echo "Generating distribution package for linux/386..." && \
 	$(call docker-up) && \
 	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" make docker-package-linux-386'
 
-package-linux-amd64: require-version linux-amd64
+package-linux-amd64: require-version genassets linux-amd64
 	@echo "Generating distribution package for linux/amd64..." && \
 	$(call docker-up) && \
 	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" make docker-package-linux-amd64'
 
 package-linux: require-version package-linux-386 package-linux-amd64
 
-package-windows: require-version windows-386
+package-windows: require-version windows
 	@echo "Generating distribution package for windows/386..." && \
 	if [[ -z "$$SECRETS_DIR" ]]; then echo "SECRETS_DIR environment value is required."; exit 1; fi && \
 	if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \

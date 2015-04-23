@@ -12,7 +12,7 @@ ENV GOROOT /go
 ENV GOPATH /
 
 ENV PATH $PATH:$GOROOT/bin
-ENV WORKDIR /flashlight-build
+ENV WORKDIR /lantern
 
 # Go binary for bootstrapping.
 ENV GO_PACKAGE_URL https://storage.googleapis.com/golang/go1.4.2.linux-amd64.tar.gz
