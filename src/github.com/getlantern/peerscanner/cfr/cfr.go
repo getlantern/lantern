@@ -31,6 +31,8 @@ type Distribution struct {
 	Domain string
 	// Lantern instance ID of the server that this distribution points to.
 	InstanceId string
+	// Free-form description of the purpose of this distribution.
+	Comment string
 	// ID used to refer to this distribution in the CloudFront API.
 	distributionId aws.StringValue
 }
@@ -151,6 +153,7 @@ func CreateDistribution(cfr *cloudfront.CloudFront, name string, originDomain st
 		Status:         "InProgress",
 		Domain:         *result.Distribution.DomainName,
 		InstanceId:     name,
+		Comment:        comment,
 		distributionId: result.Distribution.ID,
 	}, nil
 }
@@ -171,6 +174,7 @@ func ListDistributions(cfr *cloudfront.CloudFront) ([]*Distribution, error) {
 				Status:         *cfrDist.Status,
 				Domain:         *cfrDist.DomainName,
 				InstanceId:     *cfrDist.DefaultCacheBehavior.TargetOriginID,
+				Comment:        *cfrDist.Comment,
 				distributionId: cfrDist.ID,
 			}
 			ret = append(ret, &dist)
