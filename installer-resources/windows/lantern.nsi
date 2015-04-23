@@ -60,22 +60,22 @@ Section
     WriteUninstaller "$INSTDIR\uninstall.exe"
 
     # Support uninstalling via Add/Remove programs
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern" \
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern" \
                      "DisplayName" "Lantern"
 
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern" \
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern" \
                      "DisplayIcon" "$INSTDIR\lantern.ico"                     
     
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern" \
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern" \
                      "Publisher" "Brave New Software Project, Inc."
     
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern" \
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern" \
                      "URLInfoAbout" "http://www.getlantern.org"
     
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern" \
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern" \
                      "DisplayVersion" "${VERSION}"
     
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern" \
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern" \
                      "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
  
     CreateDirectory "$SMPROGRAMS\Lantern"
@@ -101,7 +101,7 @@ Section "uninstall"
     RMDir /r "$INSTDIR" 
 
     # Remove uninstaller from Add/Remove programs
-    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern"
+    DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern"
 
     ${nsProcess::Unload}
 SectionEnd
