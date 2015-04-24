@@ -220,28 +220,28 @@ require-ruby:
 	(gem which octokit >/dev/null) || (echo 'Missing gem "octokit". Try sudo gem install octokit.' && exit 1) && \
 	(gem which mime-types >/dev/null) || (echo 'Missing gem "mime-types". Try sudo gem install mime-types.' && exit 1)
 
-genassets:
+genassets: docker
 	@echo "Generating assets..." && \
 	$(call docker-up) && \
 	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && make docker-genassets' && \
 	git update-index --assume-unchanged src/github.com/getlantern/flashlight/ui/resources.go && \
 	echo "OK"
 
-linux-amd64: require-assets
+linux-amd64: require-assets docker
 	@echo "Building linux/amd64..." && \
 	$(call docker-up) && \
 	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" make docker-linux-amd64' && \
 	cat lantern_linux_amd64 | bzip2 > update_linux_amd64.bz2 && \
 	ls -l lantern_linux_amd64 update_linux_amd64.bz2
 
-linux-386: require-assets
+linux-386: require-assets docker
 	@echo "Building linux/386..." && \
 	$(call docker-up) && \
 	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" make docker-linux-386' && \
 	cat lantern_linux_386 | bzip2 > update_linux_386.bz2 && \
 	ls -l lantern_linux_386 update_linux_386.bz2
 
-windows-386: require-assets
+windows-386: require-assets docker
 	@echo "Building windows/386..." && \
 	$(call docker-up) && \
 	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" make docker-windows-386' && \
