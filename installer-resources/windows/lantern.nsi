@@ -3,7 +3,7 @@ Name "Lantern"
 # Installs Lantern and launches it
 # See http://nsis.sourceforge.net/Run_an_application_shortcut_after_an_install
 
-AutoCloseWindow true
+#AutoCloseWindow true
 
 !addplugindir nsis_plugins
 !include "nsis_includes/nsProcess.nsh"
@@ -38,10 +38,17 @@ RequestExecutionLevel user
     
 # start default section
 Section
+    ClearErrors
     # Stop existing Lantern if necessary
     ${nsProcess::KillProcess} "lantern.exe" $R0
     # Sleep for 1 second to process a chance to die and file to become writable
     Sleep 1000
+
+    ${nsProcess::Unload}
+    IfErrors 0 +2
+        Abort "Error stopping previous Lantern version. Please stop it from the system tray and install again."
+
+    DetailPrint "Killing process returned $R0"
 
     # Remove anything that may currently be installed
     RMDir /r "$SMPROGRAMS\Lantern"
