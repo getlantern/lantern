@@ -46,12 +46,12 @@ func main() {
 		workCh <- nil
 	}
 	wg.Wait()
+	log.Debug("cfrjanitor done.")
 }
 
 func work(c *cloudfront.CloudFront, workCh <-chan *cfr.Distribution, wg *sync.WaitGroup) {
 	for dist := range workCh {
 		if dist == nil {
-			log.Debug("Worker done.")
 			wg.Done()
 			return
 		} else if dist.Comment != COMMENT {
