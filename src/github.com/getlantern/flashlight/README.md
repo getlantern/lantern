@@ -1,6 +1,10 @@
 flashlight [![Travis CI Status](https://travis-ci.org/getlantern/flashlight.svg?branch=master)](https://travis-ci.org/getlantern/flashlight)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/flashlight/badge.png)](https://coveralls.io/r/getlantern/flashlight)&nbsp;[![GoDoc](https://godoc.org/github.com/getlantern/flashlight?status.png)](http://godoc.org/github.com/getlantern/flashlight)
 ==========
 
+**WARNING**: The flashlight server will refuse to serve domain fronted traffic
+through most non-censored countries.  See 
+https://github.com/getlantern/flashlight-build/pull/141 for more details.
+
 Lightweight host-spoofing web proxy written in go.
 
 flashlight runs in one of two modes:
@@ -32,11 +36,12 @@ Usage of flashlight:
   -addr="": ip:port on which to listen for requests. When running as a client proxy, we'll listen with http, when running as a server proxy we'll listen with https (required)
   -cloudconfig="": optional http(s) URL to a cloud-based source for configuration updates
   -cloudconfigca="": optional PEM encoded certificate used to verify TLS connections to fetch cloudconfig
+  -configaddr="": if specified, run an http-based configuration server at this address
   -configdir="": directory in which to store configuration, including flashlight.yaml (defaults to current directory)
   -country="xx": 2 digit country code under which to report stats. Defaults to xx.
   -cpuprofile="": write cpu profile to given file
   -help=false: Get usage help
-  -instanceid="": instanceId under which to report stats to statshub
+  -instanceid="": instanceId under which to report stats to statshub. If not specified, no stats are reported.
   -memprofile="": write heap profile to given file
   -parentpid=0: the parent process's PID, used on Windows for killing flashlight when the parent disappears
   -portmap=0: try to map this port on the firewall to the port on which flashlight is listening, using UPnP or NAT-PMP. If mapping this port fails, flashlight will exit with status code 50
@@ -45,6 +50,8 @@ Usage of flashlight:
   -statsaddr="": host:port at which to make detailed stats available using server-sent events (optional)
   -statshub="pure-journey-3547.herokuapp.com": address of statshub server
   -statsperiod=0: time in seconds to wait between reporting stats. If not specified, stats are not reported. If specified, statshub, instanceid and statsaddr must also be specified.
+  -waddelladdr="": if specified, connect to this waddell server and process NAT traversal requests inbound from waddell
+  -waddellcert="": if specified, use this cert (PEM-encoded) to authenticate connections to waddell.  Otherwise, a default certificate is used.
 ```
 
 Example Client:

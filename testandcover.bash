@@ -17,6 +17,9 @@ echo "mode: count" > profile.cov
 # Initialize error tracking
 ERROR=""
 
+# Load environment variables with things like authentication info
+source ./envvars.bash
+
 # Test each package and append coverage profile info to profile.cov
 for pkg in `cat testpackages.txt`
 do

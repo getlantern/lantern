@@ -1,12 +1,11 @@
-flashlight-build [![Travis CI Status](https://travis-ci.org/getlantern/flashlight-build.svg?branch=master)](https://travis-ci.org/getlantern/flashlight-build)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/flashlight-build/badge.png?branch=master)](https://coveralls.io/r/getlantern/flashlight-build)
+flashlight-build [![Travis CI Status](https://travis-ci.org/getlantern/flashlight-build.svg?branch=devel)](https://travis-ci.org/getlantern/flashlight-build)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/flashlight-build/badge.png?branch=devel)](https://coveralls.io/r/getlantern/flashlight-build)
 ==========
 
-flashlight-build is a [gost](https://github.com/getlantern/gost) project that
-provides repeatable builds and consolidated pull requests for flashlight.
+flashlight-build is a [gost](https://github.com/getlantern/gost) project that provides repeatable builds and consolidated pull requests for flashlight. **It's very important to read the gost documentation thoroughly in order to build this project.**
 
 ### Building Flashlight
 
-Flashlight requires [Go 1.3.x](http://golang.org/dl/).
+Flashlight requires [Go 1.4.x](http://golang.org/dl/).
 
 It is convenient to build flashlight for multiple platforms using
 [gox](https://github.com/mitchellh/gox).
@@ -18,13 +17,16 @@ for more discussion.
 
 To deal with that, you need to use a Go installed using
 [gonative](https://github.com/getlantern/gonative). Ultimately, you can put this
-go wherever you like. Ox keeps his at ~/go_native.
+go wherever you like, such as at ~/go_native.
+
+To set this all up, you should run the following:
 
 ```bash
+go get github.com/getlantern/gost
 go get github.com/mitchellh/gox
 go get github.com/getlantern/gonative
 cd ~
-gonative -version="1.3.3" -platforms="darwin_amd64 linux_386 linux_amd64 windows_386"
+gonative build -version="1.4" -platforms="darwin_amd64 linux_386 linux_amd64 windows_386"
 mv go go_native
 ```
 
@@ -81,5 +83,12 @@ note - Signing windows code requires that the
 installed. On OS X with homebrew, you can do this with
 `brew install osslsigncode`.
 
+### Continuous Integration with Travis CI
+Continuous builds are run on Travis CI. These builds use the `.travis.yml`
+configuration.  The github.com/getlantern/cf unit tests require an envvars.bash
+to be populated with credentials for cloudflare. The original `envvars.bash` is
+available [here](https://github.com/getlantern/too-many-secrets/blob/master/envvars.bash).
+An encrypted version is checked in as `envvars.bash.enc`, which was encrypted
+per the instructions [here](http://docs.travis-ci.com/user/encrypting-files/).
 
 

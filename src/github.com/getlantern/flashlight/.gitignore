@@ -6,3 +6,4 @@ flashlight.ex?
 *.swp
 *.pyc
 certs/errors.txt
+flashlight.yaml

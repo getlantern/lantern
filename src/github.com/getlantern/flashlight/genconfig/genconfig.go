@@ -2,19 +2,21 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"net"
 	"os"
+	"os/exec"
+	"runtime"
 	"sort"
 	"strings"
 	"sync"
 	"text/template"
 	"time"
 
-	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/keyman"
-	"gopkg.in/getlantern/tlsdialer.v2"
+	"github.com/getlantern/tlsdialer"
 )
 
 const (
@@ -25,6 +27,7 @@ var (
 	help          = flag.Bool("help", false, "Get usage help")
 	domainsFile   = flag.String("domains", "", "Path to file containing list of domains to use, with one domain per line (e.g. domains.txt)")
 	blacklistFile = flag.String("blacklist", "", "Path to file containing list of blacklisted domains, which will be excluded from the configuration even if present in the domains file (e.g. blacklist.txt)")
+	minFreq       = flag.Float64("minfreq", 3.0, "Minimum frequency (percentage) for including CA cert in list of trusted certs, defaults to 3.0%")
 )
 
 var (
@@ -37,12 +40,21 @@ var (
 	yamlTmpl        string
 
 	domainsCh     = make(chan string)
-	masqueradesCh = make(chan *client.Masquerade)
-	masquerades   = make([]*client.Masquerade, 0)
+	masqueradesCh = make(chan *masquerade)
 	wg            sync.WaitGroup
-
-	model map[string]interface{}
 )
+
+type masquerade struct {
+	Domain    string
+	IpAddress string
+	RootCA    *castat
+}
+
+type castat struct {
+	CommonName string
+	Cert       string
+	freq       float64
+}
 
 func main() {
 	flag.Parse()
@@ -52,6 +64,10 @@ func main() {
 		os.Exit(1)
 	}
 
+	numcores := runtime.NumCPU()
+	log.Debugf("Using all %d cores on machine", numcores)
+	runtime.GOMAXPROCS(numcores)
+
 	loadDomains()
 	loadBlacklist()
 
@@ -59,10 +75,14 @@ func main() {
 	yamlTmpl = loadTemplate("cloud.yaml.tmpl")
 
 	go feedDomains()
-	coalesceMasquerades()
-	buildModel()
-	generateTemplate(masqueradesTmpl, "../config/masquerades.go")
-	generateTemplate(yamlTmpl, "cloud.yaml")
+	cas, masquerades := coalesceMasquerades()
+	model := buildModel(cas, masquerades)
+	generateTemplate(model, yamlTmpl, "cloud.yaml")
+	generateTemplate(model, masqueradesTmpl, "../config/masquerades.go")
+	_, err := run("gofmt", "-w", "../config/masquerades.go")
+	if err != nil {
+		log.Fatalf("Unable to format masquerades.go: %s", err)
+	}
 }
 
 func loadDomains() {
@@ -116,7 +136,7 @@ func feedDomains() {
 }
 
 // grabCerts grabs certificates for the domains received on domainsCh and sends
-// *client.Masquerades to masqueradesCh.
+// *masquerades to masqueradesCh.
 func grabCerts() {
 	defer wg.Done()
 
@@ -142,28 +162,69 @@ func grabCerts() {
 			log.Errorf("Unablet to load keyman certificate: %s", err)
 			continue
 		}
-		masqueradesCh <- &client.Masquerade{
+		ca := &castat{
+			CommonName: rootCA.Subject.CommonName,
+			Cert:       strings.Replace(string(rootCert.PEMEncoded()), "\n", "\\n", -1),
+		}
+		masqueradesCh <- &masquerade{
 			Domain:    domain,
 			IpAddress: cwt.ResolvedAddr.IP.String(),
-			RootCA:    strings.Replace(string(rootCert.PEMEncoded()), "\n", "\\n", -1),
+			RootCA:    ca,
 		}
 	}
 }
 
-func coalesceMasquerades() {
+func coalesceMasquerades() (map[string]*castat, []*masquerade) {
+	count := 0
+	allCAs := make(map[string]*castat)
+	allMasquerades := make([]*masquerade, 0)
 	for masquerade := range masqueradesCh {
-		masquerades = append(masquerades, masquerade)
+		count = count + 1
+		ca := allCAs[masquerade.RootCA.Cert]
+		if ca == nil {
+			ca = masquerade.RootCA
+		}
+		ca.freq = ca.freq + 1
+		allCAs[ca.Cert] = ca
+		allMasquerades = append(allMasquerades, masquerade)
 	}
+
+	// Trust only those cas whose relative frequency exceeds *minFreq
+	trustedCAs := make(map[string]*castat)
+	for _, ca := range allCAs {
+		// Make frequency relative
+		ca.freq = float64(ca.freq*100) / float64(count)
+		if ca.freq > *minFreq {
+			trustedCAs[ca.Cert] = ca
+		}
+	}
+
+	// Pick only the masquerades associated with the trusted certs
+	trustedMasquerades := make([]*masquerade, 0)
+	for _, masquerade := range allMasquerades {
+		_, caFound := trustedCAs[masquerade.RootCA.Cert]
+		if caFound {
+			trustedMasquerades = append(trustedMasquerades, masquerade)
+		}
+	}
+
+	return trustedCAs, trustedMasquerades
 }
 
-func buildModel() {
+func buildModel(cas map[string]*castat, masquerades []*masquerade) map[string]interface{} {
+	casList := make([]*castat, 0, len(cas))
+	for _, ca := range cas {
+		casList = append(casList, ca)
+	}
+	sort.Sort(ByFreq(casList))
 	sort.Sort(ByDomain(masquerades))
-	model = map[string]interface{}{
+	return map[string]interface{}{
+		"cas":         casList,
 		"masquerades": masquerades,
 	}
 }
 
-func generateTemplate(tmplString string, filename string) {
+func generateTemplate(model map[string]interface{}, tmplString string, filename string) {
 	tmpl, err := template.New(filename).Parse(tmplString)
 	if err != nil {
 		log.Errorf("Unable to parse template: %s", err)
@@ -181,8 +242,24 @@ func generateTemplate(tmplString string, filename string) {
 	}
 }
 
-type ByDomain []*client.Masquerade
+func run(prg string, args ...string) (string, error) {
+	cmd := exec.Command(prg, args...)
+	log.Debugf("Running %s %s", prg, strings.Join(args, " "))
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("%s says %s", prg, string(out))
+	}
+	return string(out), nil
+}
+
+type ByDomain []*masquerade
 
 func (a ByDomain) Len() int           { return len(a) }
 func (a ByDomain) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByDomain) Less(i, j int) bool { return a[i].Domain < a[j].Domain }
+
+type ByFreq []*castat
+
+func (a ByFreq) Len() int           { return len(a) }
+func (a ByFreq) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByFreq) Less(i, j int) bool { return a[i].freq > a[j].freq }

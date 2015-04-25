@@ -1,79 +1,79 @@
 package connpool
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"net"
-	"os"
-	"os/exec"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/getlantern/fdcount"
 	"github.com/getlantern/testify/assert"
 	"github.com/getlantern/waitforserver"
 )
 
 var (
-	msg = []byte("HELLO")
+	msg          = []byte("HELLO")
+	fillTime     = 100 * time.Millisecond
+	claimTimeout = 1 * time.Second
 )
 
 func TestIt(t *testing.T) {
 	poolSize := 20
-	claimTimeout := 1 * time.Second
-	fillTime := 100 * time.Millisecond
 
 	addr, err := startTestServer()
 	if err != nil {
 		t.Fatalf("Unable to start test server: %s", err)
 	}
-	p := &Pool{
-		MinSize:      poolSize,
-		ClaimTimeout: claimTimeout,
-		Dial: func() (net.Conn, error) {
-			return net.DialTimeout("tcp", addr, 15*time.Millisecond)
-		},
+
+	_, fdc, err := fdcount.Matching("TCP")
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	fdCountStart := countTCPFiles()
+	randomlyClose := int32(0)
 
-	p.Start()
-	// Run another Start() concurrently just to make sure it doesn't muck things up
-	go p.Start()
+	p := New(Config{
+		Size:         poolSize,
+		ClaimTimeout: claimTimeout,
+		Dial: func() (net.Conn, error) {
+			conn, err := net.DialTimeout("tcp", addr, 15*time.Millisecond)
+			if atomic.LoadInt32(&randomlyClose) == 1 {
+				// Close about half of the connections immediately to test
+				/// closed checking
+				if err == nil && rand.Float32() > 0.5 {
+					conn.Close()
+				}
+			}
+			return conn, err
+		},
+	})
 
 	time.Sleep(fillTime)
 
-	openConns := countTCPFiles() - fdCountStart
-	assert.Equal(t, poolSize, openConns, "Pool should initially open the right number of conns")
+	assert.NoError(t, fdc.AssertDelta(0), "Pool should initially contain no conns")
 
 	// Use more than the pooled connections
 	connectAndRead(t, p, poolSize*2)
 
 	time.Sleep(fillTime)
-	openConns = countTCPFiles() - fdCountStart
-	assert.Equal(t, poolSize, openConns, "Pool should fill itself back up to the right number of conns")
+	assert.NoError(t, fdc.AssertDelta(poolSize), "Pool should fill itself back up to the right number of conns")
 
 	// Wait for connections to time out
 	time.Sleep(claimTimeout * 2)
+
+	assert.NoError(t, fdc.AssertDelta(0), "After connections time out, but before dialing again, pool should be empty")
 
 	// Test our connections again
 	connectAndRead(t, p, poolSize*2)
 
 	time.Sleep(fillTime)
-	openConns = countTCPFiles() - fdCountStart
-	assert.Equal(t, poolSize, openConns, "After pooled conns time out, pool should fill itself back up to the right number of conns")
+	assert.NoError(t, fdc.AssertDelta(poolSize), "After pooled conns time out, pool should fill itself back up to the right number of conns")
 
-	// Make a dial function that randomly returns closed connections
-	p.Dial = func() (net.Conn, error) {
-		conn, err := net.DialTimeout("tcp", addr, 15*time.Millisecond)
-		// Close about half of the connections immediately to test closed checking
-		if err == nil && rand.Float32() > 0.5 {
-			conn.Close()
-		}
-		return conn, err
-	}
+	atomic.StoreInt32(&randomlyClose, 1)
 
 	// Make sure we can still get connections and use them
 	connectAndRead(t, p, poolSize)
@@ -81,12 +81,11 @@ func TestIt(t *testing.T) {
 	// Wait for pool to fill again
 	time.Sleep(fillTime)
 
-	p.Stop()
-	// Run another Stop() concurrently just to make sure it doesn't muck things up
-	go p.Stop()
+	p.Close()
+	// Run another Close() concurrently just to make sure it doesn't muck things up
+	go p.Close()
 
-	openConns = countTCPFiles() - fdCountStart
-	assert.Equal(t, 0, openConns, "After stopping pool, there should be no more open conns")
+	assert.NoError(t, fdc.AssertDelta(0), "After stopping pool, there should be no more open conns")
 }
 
 func TestDialFailure(t *testing.T) {
@@ -97,50 +96,91 @@ func TestDialFailure(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to start test server: %s", err)
 	}
-	p := &Pool{
-		MinSize:              10,
-		RedialDelayIncrement: 10 * time.Millisecond,
-		MaxRedialDelay:       100 * time.Millisecond,
+
+	_, fdc, err := fdcount.Matching("TCP")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	poolSize := 10
+
+	p := New(Config{
+		Size: poolSize,
 		Dial: func() (net.Conn, error) {
 			atomic.AddInt32(&dialAttempts, 1)
 			if fail == int32(1) {
-				return nil, fmt.Errorf("I'm failing!")
+				return nil, fmt.Errorf("I'm failing intentionally!")
 			}
 			return net.DialTimeout("tcp", addr, 15*time.Millisecond)
 		},
-	}
+	})
 
-	p.Start()
-	defer p.Stop()
+	// Try to get connection, make sure it fails
+	conn, err := p.Get()
+	if !assert.Error(t, err, "Dialing should have failed") {
+		conn.Close()
+	}
 
 	// Wait for fill to run for a while with a failing connection
 	time.Sleep(1 * time.Second)
-	assert.True(t, dialAttempts < 500, fmt.Sprintf("Should have had a small number of dial attempts, but had %d", dialAttempts))
+	assert.Equal(t, 1, atomic.LoadInt32(&dialAttempts), fmt.Sprintf("There should have been only 1 dial attempt"))
+	assert.NoError(t, fdc.AssertDelta(0), "There should be no additional file descriptors open")
 
 	// Now make connection succeed and verify that it works
 	atomic.StoreInt32(&fail, 0)
 	time.Sleep(100 * time.Millisecond)
 	connectAndRead(t, p, 1)
 
+	time.Sleep(fillTime)
+	log.Debug("Testing")
+	assert.NoError(t, fdc.AssertDelta(10), "Pool should have filled")
+
 	// Now make the connection fail again so that when we stop, we're stopping
 	// while failing (tests a different code path for stopping)
 	atomic.StoreInt32(&fail, 1)
 	time.Sleep(100 * time.Millisecond)
+
+	p.Close()
+
+	assert.NoError(t, fdc.AssertDelta(0), "All connections should be closed")
 }
 
-func connectAndRead(t *testing.T, p *Pool, loops int) {
-	for i := 0; i < loops; i++ {
-		c, err := p.Get()
-		if err != nil {
-			t.Fatalf("Error getting connection: %s", err)
-		}
-		read, err := ioutil.ReadAll(c)
-		if err != nil {
-			t.Fatalf("Error reading from connection: %s", err)
-		}
-		assert.Equal(t, msg, read, "Should have received %s from server", string(msg))
-		c.Close()
+func TestPropertyChange(t *testing.T) {
+	claimTimeout := 5 * time.Second
+
+	cfg := &Config{
+		ClaimTimeout: claimTimeout,
 	}
+	p := New(*cfg)
+	defer p.Close()
+
+	cfg.ClaimTimeout = 7 * time.Second
+	assert.Equal(t, claimTimeout, p.(*pool).Config.ClaimTimeout, "Property changed on config shouldn't be reflected in pool")
+}
+
+func connectAndRead(t *testing.T, p Pool, loops int) {
+	var wg sync.WaitGroup
+
+	for i := 0; i < loops; i++ {
+		wg.Add(1)
+
+		func(wg *sync.WaitGroup) {
+			c, err := p.Get()
+			if err != nil {
+				t.Fatalf("Error getting connection: %s", err)
+			}
+			read, err := ioutil.ReadAll(c)
+			if err != nil {
+				t.Fatalf("Error reading from connection: %s", err)
+			}
+			assert.Equal(t, msg, read, "Should have received %s from server", string(msg))
+			c.Close()
+
+			wg.Done()
+		}(&wg)
+	}
+
+	wg.Wait()
 }
 
 func startTestServer() (string, error) {
@@ -166,13 +206,4 @@ func startTestServer() (string, error) {
 		}
 	}()
 	return l.Addr().String(), nil
-}
-
-// see https://groups.google.com/forum/#!topic/golang-nuts/c0AnWXjzNIA
-func countTCPFiles() int {
-	out, err := exec.Command("lsof", "-p", fmt.Sprintf("%v", os.Getpid())).Output()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return bytes.Count(out, []byte("TCP")) - 1
 }

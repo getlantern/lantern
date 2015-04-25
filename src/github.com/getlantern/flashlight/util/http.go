@@ -3,9 +3,9 @@ package util
 import (
 	"crypto/tls"
 	"fmt"
+	"net"
 	"net/http"
 	"net/url"
-	"strings"
 
 	"github.com/getlantern/keyman"
 )
@@ -26,7 +26,11 @@ func HTTPClient(rootCA string, proxyAddr string) (*http.Client, error) {
 	}
 	if proxyAddr != "" {
 		tr.Proxy = func(req *http.Request) (*url.URL, error) {
-			noHostSpecified := len(strings.Split(proxyAddr, ":")[0]) == 0
+			host, _, err := net.SplitHostPort(proxyAddr)
+			if err != nil {
+				return nil, fmt.Errorf("Unable to split host and port for %v: %v", proxyAddr, err)
+			}
+			noHostSpecified := host == ""
 			if noHostSpecified {
 				// For addresses of the form ":8080", prepend the loopback IP
 				proxyAddr = "127.0.0.1" + proxyAddr
