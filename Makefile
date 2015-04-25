@@ -317,13 +317,13 @@ release-qa: require-tag require-gh-token require-s3cmd require-ruby
 	for NAME in $$(ls -1 $$BASE_NAME.exe $$BASE_NAME.dmg $$BASE_NAME-32-bit.deb $$BASE_NAME-64-bit.deb); do \
 		shasum $$NAME | cut -d " " -f 1 > $$NAME.sha1 && \
 		echo "Uploading SHA-1 `cat $$NAME.sha1`" && \
-		$(S3CMD) -q put -P $$NAME.sha1 s3://$(S3_BUCKET) && \
+		$(S3CMD) put -P $$NAME.sha1 s3://$(S3_BUCKET) && \
 		echo "Uploading $$NAME to S3" && \
-		$(S3CMD) -q put -P $$NAME s3://$(S3_BUCKET) && \
+		$(S3CMD) put -P $$NAME s3://$(S3_BUCKET) && \
 		SUFFIX=$$(echo "$$NAME" | sed s/$$BASE_NAME//g) && \
 		VERSIONED=lantern-installer-$$TAG$$SUFFIX && \
 		echo "Copying $$VERSIONED" && \
-		$(S3CMD) -q cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$VERSIONED; \
+		$(S3CMD) cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$VERSIONED; \
 	done && \
 	echo "Uploading Windows binary for auto-updates" && \
 	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$TAG update_windows_386.bz2 && \
