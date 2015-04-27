@@ -17,8 +17,8 @@ client:
       authtoken: "{{.auth_token}}"
       pipelined: true
       weight: 1000000
-      qos: 10{{end}}
-      trusted: true
+      qos: 10
+      trusted: true{{end}}
   masqueradesets:
     cloudflare:{{range .masquerades}}
     - domain: {{.Domain}}
