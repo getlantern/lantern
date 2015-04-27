@@ -49,6 +49,7 @@ func (client *Client) initReverseProxy(bal *balancer.Balancer, dumpHeaders bool)
 		// Set a FlushInterval to prevent overly aggressive buffering of
 		// responses, which helps keep memory usage down
 		FlushInterval: 250 * time.Millisecond,
+		ErrorLog:      log.AsStdLogger(),
 	}
 
 	if client.rpInitialized {

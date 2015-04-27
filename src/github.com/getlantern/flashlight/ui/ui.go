@@ -69,7 +69,8 @@ func Start(addr string) error {
 	r.Handle("/", http.FileServer(fs))
 
 	server = &http.Server{
-		Handler: r,
+		Handler:  r,
+		ErrorLog: log.AsStdLogger(),
 	}
 	go func() {
 		err := server.Serve(l)

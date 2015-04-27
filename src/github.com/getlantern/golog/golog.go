@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -76,6 +77,9 @@ type Logger interface {
 	// IsTraceEnabled() indicates whether or not tracing is enabled for this
 	// logger.
 	IsTraceEnabled() bool
+
+	// AsStdLogger returns an standard logger
+	AsStdLogger() *log.Logger
 }
 
 func LoggerFor(prefix string) Logger {
@@ -116,61 +120,62 @@ type logger struct {
 
 // attaches the file and line number corresponding to
 // the log message
-func (l *logger) linePrefix() string {
-	// skip 3 frames to get the correct pc
-	runtime.Callers(3, l.pc)
+func (l *logger) linePrefix(skipFrames int) string {
+	runtime.Callers(skipFrames, l.pc)
 	funcForPc := runtime.FuncForPC(l.pc[0])
 	file, line := funcForPc.FileLine(l.pc[0])
 	return fmt.Sprintf("%s%s:%d ", l.prefix, filepath.Base(file), line)
 }
 
-func (l *logger) Debug(arg interface{}) {
-	_, err := fmt.Fprintf(getOutputs().debugOut, l.linePrefix()+"%s\n", arg)
+func (l *logger) print(out io.Writer, skipFrames int, arg interface{}) {
+	_, err := fmt.Fprintf(out, l.linePrefix(skipFrames)+"%s\n", arg)
 	if err != nil {
 		errorOnLogging(err)
 	}
+}
+
+func (l *logger) printf(out io.Writer, skipFrames int, message string, args ...interface{}) {
+	_, err := fmt.Fprintf(out, l.linePrefix(skipFrames)+message+"\n", args...)
+	if err != nil {
+		errorOnLogging(err)
+	}
+}
+
+func (l *logger) Debug(arg interface{}) {
+	l.print(getOutputs().debugOut, 4, arg)
 }
 
 func (l *logger) Debugf(message string, args ...interface{}) {
-	_, err := fmt.Fprintf(getOutputs().debugOut, l.linePrefix()+message+"\n", args...)
-	if err != nil {
-		errorOnLogging(err)
-	}
+	l.printf(getOutputs().debugOut, 4, message, args...)
 }
 
 func (l *logger) Error(arg interface{}) {
-	_, err := fmt.Fprintf(getOutputs().errorOut, l.linePrefix()+"%s\n", arg)
-	if err != nil {
-		errorOnLogging(err)
-	}
+	l.print(getOutputs().errorOut, 4, arg)
 }
 
 func (l *logger) Errorf(message string, args ...interface{}) {
-	_, err := fmt.Fprintf(getOutputs().errorOut, l.linePrefix()+message+"\n", args...)
-	if err != nil {
-		errorOnLogging(err)
-	}
+	l.printf(getOutputs().errorOut, 4, message, args...)
 }
 
 func (l *logger) Fatal(arg interface{}) {
-	l.Error(arg)
+	l.print(getOutputs().errorOut, 4, arg)
 	os.Exit(1)
 }
 
 func (l *logger) Fatalf(message string, args ...interface{}) {
-	l.Errorf(message, args...)
+	l.printf(getOutputs().errorOut, 4, message, args...)
 	os.Exit(1)
 }
 
 func (l *logger) Trace(arg interface{}) {
 	if l.traceOn {
-		l.Debug(arg)
+		l.print(getOutputs().debugOut, 4, arg)
 	}
 }
 
 func (l *logger) Tracef(fmt string, args ...interface{}) {
 	if l.traceOn {
-		l.Debugf(fmt, args...)
+		l.printf(getOutputs().debugOut, 4, fmt, args...)
 	}
 }
 
@@ -186,6 +191,9 @@ func (l *logger) newTraceWriter() io.Writer {
 	pr, pw := io.Pipe()
 	br := bufio.NewReader(pr)
 
+	if !l.traceOn {
+		return pw
+	}
 	go func() {
 		defer pr.Close()
 		defer pw.Close()
@@ -194,15 +202,34 @@ func (l *logger) newTraceWriter() io.Writer {
 			line, err := br.ReadString('\n')
 			if err == nil {
 				// Log the line (minus the trailing newline)
-				l.Trace(line[:len(line)-1])
+				l.print(getOutputs().debugOut, 6, line[:len(line)-1])
 			} else {
-				l.Tracef("TraceWriter closed due to unexpected error: %v", err)
+				l.printf(getOutputs().debugOut, 6, "TraceWriter closed due to unexpected error: %v", err)
 				return
 			}
 		}
 	}()
 
 	return pw
+}
+
+type errorWriter struct {
+	l *logger
+}
+
+// Write implements method of io.Writer, due to different call depth,
+// it will not log correct file and line prefix
+func (w *errorWriter) Write(p []byte) (n int, err error) {
+	s := string(p)
+	if s[len(s)-1] == '\n' {
+		s = s[:len(s)-1]
+	}
+	w.l.print(getOutputs().errorOut, 6, s)
+	return len(p), nil
+}
+
+func (l *logger) AsStdLogger() *log.Logger {
+	return log.New(&errorWriter{l}, "", 0)
 }
 
 func errorOnLogging(err error) {
