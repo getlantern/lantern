@@ -103,8 +103,8 @@ func NewReleaseManager(owner string, repo string) *ReleaseManager {
 	return ghc
 }
 
-// GetReleases queries github for all product releases.
-func (g *ReleaseManager) GetReleases() ([]Release, error) {
+// getReleases queries github for all product releases.
+func (g *ReleaseManager) getReleases() ([]Release, error) {
 	var releases []Release
 
 	for page := 1; true; page++ {
@@ -159,7 +159,7 @@ func (g *ReleaseManager) UpdateAssetsMap() (err error) {
 	var rs []Release
 
 	log.Debugf("Getting releases...")
-	if rs, err = g.GetReleases(); err != nil {
+	if rs, err = g.getReleases(); err != nil {
 		return err
 	}
 

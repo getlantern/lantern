@@ -131,7 +131,7 @@ func TestDownloadOldestVersionAndUpgradeIt(t *testing.T) {
 			}
 
 			// Generate a binary diff of the two assets.
-			if p, err = GeneratePatch(asset.URL, newAsset.URL); err != nil {
+			if p, err = generatePatch(asset.URL, newAsset.URL); err != nil {
 				t.Fatal(fmt.Errorf("Unable to generate patch: %q", err))
 			}
 
