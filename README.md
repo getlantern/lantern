@@ -188,12 +188,12 @@ Finally, use `release-qa` to upload the packages that were just generated to
 both AWS S3 and the Github release page:
 
 ```
-TAG='2.0.0-beta5' GH_TOKEN=$GITHUB_TOKEN make release-qa
+TAG=2.0.0-beta5 make release-qa
 ```
 
 ### Releasing Beta
 
-If you want to release a Beta you must have created a package for QA first,
+If you want to release a beta you must have created a package for QA first,
 then use the `release-beta` task:
 
 ```
@@ -201,6 +201,15 @@ make release-beta
 ```
 
 `release-beta` will promote the QA files that are currently in S3 to beta.
+
+### Releasing for production
+
+After you're satisfied with a beta version, it will be time to promote beta
+packages to production and to publish the packages for auto-updates:
+
+```
+TAG=2.0.0-beta5 GH_TOKEN=$GITHUB_TOKEN make release
+```
 
 ## Other tasks
 
