@@ -12,5 +12,6 @@ var fallbacks = map[string]*client.ChainedServerInfo{ {{range .fallbacks}}
     Pipelined: true,
     Weight:    1000000,
     QOS:       10,
+    trusted:   true,
   }, {{end}}
 }
