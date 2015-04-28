@@ -70,6 +70,7 @@ func (client *Client) ListenAndServe(onListeningFn func()) error {
 		ReadTimeout:  client.ReadTimeout,
 		WriteTimeout: client.WriteTimeout,
 		Handler:      client,
+		ErrorLog:     log.AsStdLogger(),
 	}
 
 	log.Debugf("About to start client (HTTP) proxy at %s", client.Addr)
