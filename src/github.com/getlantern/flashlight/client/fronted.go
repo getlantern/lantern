@@ -8,6 +8,7 @@ import (
 	"github.com/getlantern/balancer"
 	"github.com/getlantern/fronted"
 
+	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/statreporter"
 )
@@ -148,7 +149,7 @@ func (s *FrontedServerInfo) recordTiming(step string, duration time.Duration) {
 	} else {
 		step = fmt.Sprintf("%sTo%s", step, s.Host)
 	}
-	dims := statreporter.Dim("country", globals.GetCountry())
+	dims := statreporter.Dim("country", geolookup.GetCountry())
 	dims.Gauge(step).Add(1)
 	for i := 4; i >= 0; i-- {
 		seconds := int(math.Pow(float64(2), float64(i)))

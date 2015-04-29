@@ -113,6 +113,7 @@ type Manager struct {
 
 	cfg       Config
 	cfgMutex  sync.RWMutex
+	pollMutex sync.Mutex
 	fileInfo  os.FileInfo
 	deltasCh  chan *delta
 	nextCfgCh chan Config
@@ -241,17 +242,25 @@ func (m *Manager) processUpdates() {
 
 func (m *Manager) processCustomPolling() {
 	for {
-		mutate, waitTime, err := m.CustomPoll(m.getCfg())
-		if err != nil {
-			log.Errorf("Custom polling failed: %s", err)
-		} else {
-			err = m.Update(mutate)
-			if err != nil {
-				log.Errorf("Unable to apply update from custom polling: %s", err)
-			}
-		}
+		_, waitTime, _ := m.OnDemandPoll()
 		time.Sleep(waitTime)
 	}
+}
+
+func (m *Manager) OnDemandPoll() (func(cfg Config) error, time.Duration, error) {
+	m.pollMutex.Lock()
+	defer m.pollMutex.Unlock()
+
+	mutate, waitTime, err := m.CustomPoll(m.getCfg())
+	if err != nil {
+		log.Errorf("Custom polling failed: %s", err)
+	} else {
+		err = m.Update(mutate)
+		if err != nil {
+			log.Errorf("Unable to apply update from custom polling: %s", err)
+		}
+	}
+	return mutate, waitTime, err
 }
 
 func (m *Manager) setCfg(cfg Config) {

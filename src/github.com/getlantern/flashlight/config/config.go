@@ -15,7 +15,6 @@ import (
 
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/fronted"
-	"github.com/getlantern/geolookup"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/proxiedsites"
 	"github.com/getlantern/waitforserver"
@@ -23,7 +22,9 @@ import (
 	"github.com/getlantern/yamlconf"
 
 	"github.com/getlantern/flashlight/client"
+	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/globals"
+	"github.com/getlantern/flashlight/pubsub"
 	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/statreporter"
 	"github.com/getlantern/flashlight/util"
@@ -31,14 +32,10 @@ import (
 
 const (
 	CloudConfigPollInterval = 1 * time.Minute
-
-	// In seconds
-	waitForLocationTimeout = 20
-
-	cloudflare         = "cloudflare"
-	etag               = "ETag"
-	ifNoneMatch        = "If-None-Match"
-	countryPlaceholder = "${COUNTRY}"
+	cloudflare              = "cloudflare"
+	etag                    = "ETag"
+	ifNoneMatch             = "If-None-Match"
+	countryPlaceholder      = "${COUNTRY}"
 )
 
 var (
@@ -118,6 +115,10 @@ func Init() (*Config, error) {
 	initial, err := m.Start()
 	var cfg *Config
 	if err == nil {
+		pubsub.Sub("loc", func(args ...interface{}) {
+			log.Debug("Got location event")
+			m.OnDemandPoll()
+		})
 		cfg = initial.(*Config)
 		err = updateGlobals(cfg)
 		if err != nil {
@@ -142,9 +143,6 @@ func Run(updateHandler func(updated *Config)) error {
 
 func updateGlobals(cfg *Config) error {
 	globals.InstanceId = cfg.InstanceId
-	loc := &geolookup.City{}
-	loc.Country.IsoCode = cfg.Country
-	globals.SetLocation(loc)
 	err := globals.SetTrustedCAs(cfg.TrustedCACerts())
 	if err != nil {
 		return fmt.Errorf("Unable to configure trusted CAs: %s", err)
@@ -380,26 +378,18 @@ func (cfg Config) fetchCloudConfigForAddr(proxyAddr string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to initialize HTTP client: %s", err)
 	}
-	// Try and wait to get geolocated, up to a point.  Waiting indefinitely
-	// might prevent us from ever getting geolocated if our current
-	// configuration is preventing domain fronting from working.
-	for i := 0; i < waitForLocationTimeout; i++ {
-		country := strings.ToLower(globals.GetCountry())
-		if country != "" && country != "xx" {
-			ret, err := cfg.fetchCloudConfigForCountry(client, country)
-			// We could check specifically for a 404, but S3 actually returns a 403 when
-			// a resource is not available.  I thought we'd better lean on the side of
-			// robustness by avoiding hardcoding an S3-ism here, than to try and save an
-			// extra request every now and then.
-			if err == nil {
-				return ret, err
-			} else {
-				log.Debugf("Couldn't fetch cloud config for country '%s'; trying the default one", country)
-			}
-			break
+	country := strings.ToLower(geolookup.GetCountry())
+	if country != "" && country != "xx" {
+		ret, err := cfg.fetchCloudConfigForCountry(client, country)
+		// We could check specifically for a 404, but S3 actually returns a 403 when
+		// a resource is not available.  I thought we'd better lean on the side of
+		// robustness by avoiding hardcoding an S3-ism here, than to try and save an
+		// extra request every now and then.
+		if err == nil {
+			return ret, err
+		} else {
+			log.Debugf("Couldn't fetch cloud config for country '%s'; trying the default one", country)
 		}
-		log.Debugf("Waiting for location...")
-		time.Sleep(1 * time.Second)
 	}
 	return cfg.fetchCloudConfigForCountry(client, "default")
 }
