@@ -13,7 +13,7 @@ var (
 )
 
 func Pub(topic interface{}, args ...interface{}) {
-	bus.Publish(reflect.TypeOf(topic).String(), args)
+	bus.Publish(reflect.TypeOf(topic).String(), topic)
 }
 
 func Sub(topic interface{}, fn interface{}) error {
