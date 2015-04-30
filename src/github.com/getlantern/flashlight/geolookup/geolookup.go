@@ -104,10 +104,10 @@ func write() {
 			if !reflect.DeepEqual(newLocation, oldLocation) {
 				log.Debugf("Location changed")
 				location.Store(newLocation)
-				pubsub.Pub("loc")
+				pubsub.Pub(newLocation)
 			}
 			// Always publish location, even if unchanged
-			service.Out <- location
+			service.Out <- newLocation
 		} else {
 			msg := fmt.Sprintf("Unable to get current location: %v", err)
 			// When retrying after a failure, wait a different amount of time
@@ -122,7 +122,7 @@ func write() {
 			consecutiveFailures += 1
 			// If available, publish last known location
 			if oldLocation != nil {
-				service.Out <- location
+				service.Out <- newLocation
 			}
 		}
 

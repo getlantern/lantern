@@ -3,6 +3,8 @@
 package pubsub
 
 import (
+	"reflect"
+
 	"github.com/asaskevich/EventBus"
 )
 
@@ -10,10 +12,10 @@ var (
 	bus = EventBus.New()
 )
 
-func Pub(topic string, args ...interface{}) {
-	bus.Publish(topic, args)
+func Pub(topic interface{}, args ...interface{}) {
+	bus.Publish(reflect.TypeOf(topic).String(), args)
 }
 
-func Sub(topic string, fn interface{}) error {
-	return bus.SubscribeAsync(topic, fn, true)
+func Sub(topic interface{}, fn interface{}) error {
+	return bus.SubscribeAsync(reflect.TypeOf(topic).String(), fn, true)
 }

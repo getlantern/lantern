@@ -28,6 +28,7 @@ import (
 	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/statreporter"
 	"github.com/getlantern/flashlight/util"
+	geo "github.com/getlantern/geolookup"
 )
 
 const (
@@ -115,7 +116,7 @@ func Init() (*Config, error) {
 	initial, err := m.Init()
 	var cfg *Config
 	if err == nil {
-		pubsub.Sub("loc", func(args ...interface{}) {
+		pubsub.Sub(&geo.City{}, func(args ...interface{}) {
 			log.Debug("Got location event")
 			m.StartPolling()
 		})
