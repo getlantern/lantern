@@ -122,7 +122,7 @@ func write() {
 			consecutiveFailures += 1
 			// If available, publish last known location
 			if oldLocation != nil {
-				service.Out <- newLocation
+				service.Out <- oldLocation
 			}
 		}
 
