@@ -116,10 +116,14 @@ func Init() (*Config, error) {
 	initial, err := m.Init()
 	var cfg *Config
 	if err == nil {
-		pubsub.Sub(&geo.City{}, func(city *geo.City) {
+		er := pubsub.Sub(&geo.City{}, func(city *geo.City) {
 			log.Debugf("Got location: %v", city.Country.IsoCode)
 			m.StartPolling()
 		})
+		if er != nil {
+			log.Errorf("Error subscribing to location: %v", er)
+			return nil, er
+		}
 		cfg = initial.(*Config)
 		err = updateGlobals(cfg)
 		if err != nil {
