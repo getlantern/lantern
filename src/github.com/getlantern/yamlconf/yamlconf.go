@@ -245,7 +245,7 @@ func (m *Manager) processUpdates() {
 
 func (m *Manager) processCustomPolling() {
 	for {
-		_, waitTime, _ := m.OnDemandPoll()
+		_, waitTime, _ := m.poll()
 		time.Sleep(waitTime)
 	}
 }
