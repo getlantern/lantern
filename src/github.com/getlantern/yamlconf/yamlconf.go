@@ -143,7 +143,7 @@ func (m *Manager) Update(mutate func(cfg Config) error) error {
 // Start starts the Manager, returning the initial Config (i.e. what was on
 // disk). If no config exists on disk, an empty config with ApplyDefaults() will
 // be created and saved.
-func (m *Manager) Start() (Config, error) {
+func (m *Manager) Init() (Config, error) {
 	if m.EmptyConfig == nil {
 		return nil, fmt.Errorf("EmptyConfig must be specified")
 	}
@@ -191,10 +191,6 @@ func (m *Manager) Start() (Config, error) {
 
 	go m.processUpdates()
 
-	if m.CustomPoll != nil {
-		go m.processCustomPolling()
-	}
-
 	if m.ConfigServerAddr != "" {
 		err = m.startConfigServer()
 		if err != nil {
@@ -203,6 +199,13 @@ func (m *Manager) Start() (Config, error) {
 	}
 
 	return m.getCfg(), nil
+}
+
+// StartPolling starts polling if there is a custom polling function defined.
+func (m *Manager) StartPolling() {
+	if m.CustomPoll != nil {
+		go m.processCustomPolling()
+	}
 }
 
 func (m *Manager) processUpdates() {
@@ -247,7 +250,7 @@ func (m *Manager) processCustomPolling() {
 	}
 }
 
-func (m *Manager) OnDemandPoll() (func(cfg Config) error, time.Duration, error) {
+func (m *Manager) poll() (func(cfg Config) error, time.Duration, error) {
 	m.pollMutex.Lock()
 	defer m.pollMutex.Unlock()
 

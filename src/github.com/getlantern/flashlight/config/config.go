@@ -112,12 +112,12 @@ func Init() (*Config, error) {
 			return
 		},
 	}
-	initial, err := m.Start()
+	initial, err := m.Init()
 	var cfg *Config
 	if err == nil {
 		pubsub.Sub("loc", func(args ...interface{}) {
 			log.Debug("Got location event")
-			m.OnDemandPoll()
+			m.StartPolling()
 		})
 		cfg = initial.(*Config)
 		err = updateGlobals(cfg)
