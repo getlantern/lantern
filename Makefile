@@ -26,6 +26,8 @@ PACKAGE_VENDOR := Brave New Software Project, Inc
 PACKAGE_MAINTAINER := Lantern Team <team@getlantern.org>
 PACKAGE_URL := https://www.getlantern.org
 
+LANTERN_BINARIES_PATH ?= ../lantern-binaries
+
 GH_USER := getlantern
 #GH_USER := xiam
 
@@ -151,6 +153,12 @@ require-secrets:
 	@if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
 	if [[ -z "$$SECRETS_DIR" ]]; then echo "SECRETS_DIR environment value is required."; exit 1; fi
 
+require-lantern-binaries:
+	@if [[ ! -d "$(LANTERN_BINARIES_PATH)" ]]; then \
+		echo "Missing lantern binaries repository (https://github.com/getlantern/lantern-binaries). Set it with LANTERN_BINARIES_PATH=\"/path/to/repository\" make ..." && \
+		exit 1; \
+	fi
+
 docker-package-linux-386: docker-linux-386 docker-package-debian-386
 
 docker-package-linux-amd64: docker-linux-amd64 docker-package-debian-amd64
@@ -199,7 +207,7 @@ system-checks:
 	if [[ -z "$(GO)" ]]; then echo 'Missing "go" command.'; exit 1; fi
 
 require-s3cmd:
-	@if [[ -z "$(S3CMD)" ]]; then echo 'Missing "s3cmd" command. See https://github.com/s3tools/s3cmd/blob/master/INSTALL'; exit 1; fi
+	@if [[ -z "$(S3CMD)" ]]; then echo 'Missing "s3cmd" command. Use "brew install s3cmd" or see https://github.com/s3tools/s3cmd/blob/master/INSTALL'; exit 1; fi
 
 require-wget:
 	@if [[ -z "$(WGET)" ]]; then echo 'Missing "wget" command.'; exit 1; fi
@@ -329,7 +337,9 @@ release-qa: require-tag require-s3cmd
 	for NAME in $$(ls -1 update_darwin_amd64.bz2 update_linux_386.bz2 update_linux_amd64.bz2 update_windows_386.bz2); do \
 		echo "Copying update binary $$NAME..." && \
 		$(S3CMD) put -P $$NAME s3://$(S3_BUCKET); \
-	done
+	done && \
+	git tag -a "$$TAG" -f --annotate -m"Tagged $$VERSION" && \
+	git push --tags -f
 
 release-beta: require-s3cmd
 	@BASE_NAME="lantern-installer-qa" && \
@@ -340,8 +350,12 @@ release-beta: require-s3cmd
 		$(S3CMD) cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$BETA; \
 	done
 
-release: require-tag require-s3cmd require-gh-token require-wget require-ruby
-	@BASE_NAME="lantern-installer-beta" && \
+release: require-tag require-s3cmd require-gh-token require-wget require-ruby require-lantern-binaries
+	@TAG_COMMIT=$$(git rev-list --abbrev-commit -1 $$TAG) && \
+	if [[ -z "$$TAG_COMMIT" ]]; then \
+		echo "Could not find given tag $$TAG."; \
+	fi && \
+	BASE_NAME="lantern-installer-beta" && \
 	PROD_BASE_NAME="lantern-installer" && \
 	for URL in $$($(S3CMD) ls s3://$(S3_BUCKET)/ | grep $$BASE_NAME | awk '{print $$4}'); do \
 		NAME=$$(basename $$URL) && \
@@ -350,19 +364,32 @@ release: require-tag require-s3cmd require-gh-token require-wget require-ruby
 	done && \
 	for URL in $$($(S3CMD) ls s3://$(S3_BUCKET)/ | grep update_ | awk '{print $$4}'); do \
 		NAME=$$(basename $$URL) && \
-		URL=https://$(S3_BUCKET).s3.amazonaws.com/$$NAME && \
-		$(WGET) -O $$NAME $$URL; \
+		$(S3CMD) get --force s3://$(S3_BUCKET)/$$NAME $$NAME; \
 	done && \
 	$(RUBY) ./installer-resources/tools/createrelease.rb "$(GH_USER)" "$(GH_RELEASE_REPOSITORY)" $$TAG && \
-	git tag -a "$$TAG" -f --annotate -m"Tagged $$VERSION" && \
-	git push --tags -f && \
 	echo "Uploading Windows binary for auto-updates" && \
 	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$TAG update_windows_386.bz2 && \
 	echo "Uploading OSX binary for auto-updates" && \
 	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$TAG update_darwin_amd64.bz2 && \
 	echo "Uploading Linux binaries for auto-updates" && \
 	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$TAG update_linux_amd64.bz2 && \
-	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$TAG update_linux_386.bz2
+	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$TAG update_linux_386.bz2 && \
+	echo "Copying binaries to $(LANTERN_BINARIES_PATH)..." && \
+	$(S3CMD) get --force s3://$(S3_BUCKET)/lantern-installer-32-bit.deb $(LANTERN_BINARIES_PATH)/lantern-installer-32.deb && \
+	$(S3CMD) get --force s3://$(S3_BUCKET)/lantern-installer-32-bit.deb.sha1 $(LANTERN_BINARIES_PATH)/lantern-installer-32.deb.sha1 && \
+	$(S3CMD) get --force s3://$(S3_BUCKET)/lantern-installer-64-bit.deb $(LANTERN_BINARIES_PATH)/lantern-installer-64.deb && \
+	$(S3CMD) get --force s3://$(S3_BUCKET)/lantern-installer-64-bit.deb.sha1 $(LANTERN_BINARIES_PATH)/lantern-installer-64.deb.sha1 && \
+	$(S3CMD) get --force s3://$(S3_BUCKET)/lantern-installer.dmg $(LANTERN_BINARIES_PATH)/lantern-installer.dmg && \
+	$(S3CMD) get --force s3://$(S3_BUCKET)/lantern-installer.dmg.sha1 $(LANTERN_BINARIES_PATH)/lantern-installer.dmg.sha1 && \
+	$(S3CMD) get --force s3://$(S3_BUCKET)/lantern-installer.exe $(LANTERN_BINARIES_PATH)/lantern-installer.exe && \
+	$(S3CMD) get --force s3://$(S3_BUCKET)/lantern-installer.exe.sha1 $(LANTERN_BINARIES_PATH)/lantern-installer.exe.sha1 && \
+	cp $(LANTERN_BINARIES_PATH)/lantern-installer-32.deb.sha1 $(LANTERN_BINARIES_PATH)/lantern-$$TAG-$$TAG_COMMIT-32-bit.deb.sha1 && \
+	cp $(LANTERN_BINARIES_PATH)/lantern-installer-64.deb.sha1 $(LANTERN_BINARIES_PATH)/lantern-$$TAG-$$TAG_COMMIT-64-bit.deb.sha1 && \
+	cp $(LANTERN_BINARIES_PATH)/lantern-installer.dmg.sha1 $(LANTERN_BINARIES_PATH)/lantern-$$TAG-$$TAG_COMMIT.dmg.sha1 && \
+	cp $(LANTERN_BINARIES_PATH)/lantern-installer.exe.sha1 $(LANTERN_BINARIES_PATH)/lantern-$$TAG-$$TAG_COMMIT.exe.sha1
+	@cd $(LANTERN_BINARIES_PATH) && \
+	git add lantern-$$TAG-$$TAG_COMMIT* && \
+	(git commit -am "Latest binaries for Lantern $$TAG ($$TAG_COMMIT)." && git push origin master) || true
 
 update-icons:
 	@(which go-bindata >/dev/null) || (echo 'Missing command "go-bindata". Sett https://github.com/jteeuwen/go-bindata.' && exit 1) && \

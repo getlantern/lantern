@@ -211,6 +211,10 @@ packages to production and to publish the packages for auto-updates:
 TAG=2.0.0-beta5 GH_TOKEN=$GITHUB_TOKEN make release
 ```
 
+`make release` expects a `lantern-binaries` directory at `../lantern-binaries`.
+You can provide a different directory by passing the `LANTERN_BINARIES_PATH`
+env variable.
+
 ## Other tasks
 
 ### Creating libgojni.so
