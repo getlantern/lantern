@@ -16,9 +16,8 @@ func StopClientProxy() error {
 }
 
 // RunClientProxy creates a new client at the given address.
-func RunClientProxy(listenAddr string) error {
-
-	defaultClient = client.NewClient(listenAddr)
+func RunClientProxy(listenAddr, appName string) error {
+	defaultClient = client.NewClient(listenAddr, appName)
 	defaultClient.ServeHTTP()
 	return nil
 }

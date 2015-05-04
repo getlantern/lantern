@@ -18,7 +18,12 @@ const (
 )
 
 // clientConfig holds global configuration settings for all clients.
-var clientConfig *config
+var (
+	clientConfig  *config
+	trackingCodes = map[string]string{
+		"FireTweet": "UA-21408036-4",
+	}
+)
 
 // MobileClient is an extension of flashlight client with a few custom declarations for mobile
 type MobileClient struct {
@@ -39,7 +44,7 @@ func init() {
 }
 
 // NewClient creates a proxy client.
-func NewClient(addr string) *MobileClient {
+func NewClient(addr, appName string) *MobileClient {
 
 	client := client.Client{
 		Addr:         addr,
@@ -65,6 +70,15 @@ func NewClient(addr string) *MobileClient {
 			Label:    runtime.GOOS,
 		},
 	}
+
+	// attach our app-specific analytics tracking code
+	// to session info
+	if appName != "" {
+		if trackingId, ok := trackingCodes[appName]; ok {
+			sessionPayload.TrackingId = trackingId
+		}
+	}
+
 	analytics.SessionEvent(hqfdc, sessionPayload)
 
 	return &MobileClient{
