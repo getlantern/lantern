@@ -295,6 +295,26 @@ func (d *dialer) serverHost(masquerade *Masquerade) string {
 	return serverHost
 }
 
+// tlsInfo is a temporary function that could help catching a bug. See this
+// related PR: https://github.com/getlantern/lantern/issues/2398
+func (d *dialer) tlsInfo(masquerade *Masquerade) string {
+	var data []string
+
+	serverName := d.Host
+
+	if masquerade != nil {
+		serverName = masquerade.Domain
+	}
+
+	data = append(data, fmt.Sprintf("Insecure Skip Verify: %v", d.InsecureSkipVerify))
+	data = append(data, fmt.Sprintf("Host: %v", d.Host))
+	data = append(data, fmt.Sprintf("Masquerade Domain: %v", masquerade.Domain))
+	data = append(data, fmt.Sprintf("Server Name: %v", serverName))
+	data = append(data, fmt.Sprintf("x509 cert pool: %#v", d.RootCAs))
+
+	return strings.Join(data, ", ")
+}
+
 // tlsConfig builds a tls.Config for dialing the upstream host. Constructed
 // tls.Configs are cached on a per-masquerade basis to enable client session
 // caching and reduce the amount of PEM certificate parsing.

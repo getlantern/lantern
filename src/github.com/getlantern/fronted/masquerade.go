@@ -135,12 +135,16 @@ func (vms *verifiedMasqueradeSet) doVerify(masquerade *Masquerade) bool {
 		errCh <- fmt.Errorf("Timed out verifying %s", masquerade.Domain)
 	}()
 	go func() {
+		var err error
 		start := time.Now()
 		httpClient := vms.dialer.HttpClientUsing(masquerade)
-		req, _ := http.NewRequest("HEAD", "http://www.google.com/humans.txt", nil)
+		req, err := http.NewRequest("HEAD", "http://www.google.com/humans.txt", nil)
+		if err != nil {
+			errCh <- fmt.Errorf("http.NewRequest Error: %s", err)
+		}
 		resp, err := httpClient.Do(req)
 		if err != nil {
-			errCh <- fmt.Errorf("HTTP ERROR FOR MASQUERADE %v: %v", masquerade.Domain, err)
+			errCh <- fmt.Errorf("HTTP ERROR FOR MASQUERADE %v: %v, tlsInfo: %s", masquerade.Domain, err, masquerade.Domain)
 			return
 		} else {
 			body, err := ioutil.ReadAll(resp.Body)
