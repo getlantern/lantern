@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 )
@@ -143,7 +144,16 @@ func (vms *verifiedMasqueradeSet) doVerify(masquerade *Masquerade) bool {
 		}
 		resp, err := httpClient.Do(req)
 		if err != nil {
-			errCh <- fmt.Errorf("HTTP ERROR FOR MASQUERADE %v: %v, tlsInfo: %s", masquerade.Domain, err, vms.dialer.tlsInfo(masquerade))
+			errmsg := fmt.Sprintf("HTTP error for masquerade %v: %v", masquerade.Domain, err)
+
+			if strings.Contains(err.Error(), "unknown authority") {
+				// We can't compare err to x509.UnknownAuthorityError directly, but we
+				// can try to see if it contains a known string. This is a temporary
+				// fix, see https://github.com/getlantern/lantern/issues/2398
+				errmsg = fmt.Sprintf("%s, tlsInfo: %s", errmsg, vms.dialer.tlsInfo(masquerade))
+			}
+
+			errCh <- fmt.Errorf(errmsg)
 			return
 		} else {
 			body, err := ioutil.ReadAll(resp.Body)
@@ -152,7 +162,7 @@ func (vms *verifiedMasqueradeSet) doVerify(masquerade *Masquerade) bool {
 				errCh <- fmt.Errorf("HTTP Body Error: %s", body)
 			} else {
 				delta := time.Now().Sub(start)
-				log.Tracef("SUCCESSFUL CHECK FOR: %s IN %s, %s", masquerade.Domain, delta, body)
+				log.Tracef("Sucessful check for: %s in %s, %s", masquerade.Domain, delta, body)
 				errCh <- nil
 			}
 		}
