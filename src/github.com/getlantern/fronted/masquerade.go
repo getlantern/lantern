@@ -143,7 +143,7 @@ func (vms *verifiedMasqueradeSet) doVerify(masquerade *Masquerade) bool {
 		}
 		resp, err := httpClient.Do(req)
 		if err != nil {
-			errCh <- fmt.Errorf("HTTP ERROR FOR MASQUERADE %v: %v, tlsInfo: %s", masquerade.Domain, err, masquerade.Domain)
+			errCh <- fmt.Errorf("HTTP ERROR FOR MASQUERADE %v: %v, tlsInfo: %s", masquerade.Domain, err, vms.dialer.tlsInfo(masquerade))
 			return
 		} else {
 			body, err := ioutil.ReadAll(resp.Body)
