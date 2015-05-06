@@ -52,7 +52,7 @@ func (peer *Peer) run() {
 	err := peer.geolocate()
 
 	if err != nil {
-		log.Errorf("Unable to geolocate peer after %d attempts, stopping reporting. Last error was: %v", maxGeolocateTries, err)
+		log.Errorf("Unable to geolocate peer after %d attempts, stopping reporting. Last error was: %s", maxGeolocateTries, err)
 		return
 	}
 
@@ -102,7 +102,7 @@ func (peer *Peer) geolocate() error {
 		if i > 0 {
 			// Maximum sleep time: 2^(maxGeolocateTries - 1) * retryWaitTime
 			retryWait := time.Duration(math.Pow(2, float64(i)) * float64(retryWaitTime))
-			log.Errorf("Failed geolocation attempt %d/%d,  waiting %v before retrying: %v", i, maxGeolocateTries-1, retryWait, err)
+			log.Errorf("Failed geolocation attempt %d/%d,  waiting %v before retrying: %s", i, maxGeolocateTries-1, retryWait, err)
 			time.Sleep(retryWait)
 		}
 

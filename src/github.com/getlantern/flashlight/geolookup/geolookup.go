@@ -46,7 +46,7 @@ func Configure(newClient *http.Client) {
 	if service == nil {
 		err := registerService()
 		if err != nil {
-			log.Errorf("Unable to register service: %v", err)
+			log.Errorf("Unable to register service: %s", err)
 			return
 		}
 		go write()
@@ -91,7 +91,7 @@ func write() {
 			// Always publish location, even if unchanged
 			service.Out <- location
 		} else {
-			msg := fmt.Sprintf("Unable to get current location: %v", err)
+			msg := fmt.Sprintf("Unable to get current location: %s", err)
 			// When retrying after a failure, wait a different amount of time
 			retryWait := time.Duration(math.Pow(2, float64(consecutiveFailures))*float64(retryWaitMillis)) * time.Millisecond
 			if retryWait < wait {
