@@ -12,8 +12,11 @@ var (
 	bus = EventBus.New()
 )
 
+// The constant topics to publish and subscribe to. All topics should
+// be defined here directly.
 const (
 	Location = iota
+	// Someothertopic = iota
 )
 
 // Pub publishes the given interface to any listeners for that interface.
