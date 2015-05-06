@@ -1,11 +1,11 @@
 package fronted
 
 import (
+	"crypto/x509"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
-	"strings"
 	"sync"
 	"time"
 )
@@ -145,11 +145,8 @@ func (vms *verifiedMasqueradeSet) doVerify(masquerade *Masquerade) bool {
 		resp, err := httpClient.Do(req)
 		if err != nil {
 			errmsg := fmt.Sprintf("HTTP error for masquerade %v: %v", masquerade.Domain, err)
-
-			if strings.Contains(err.Error(), "unknown authority") {
-				// We can't compare err to x509.UnknownAuthorityError directly, but we
-				// can try to see if it contains a known string. This is a temporary
-				// fix, see https://github.com/getlantern/lantern/issues/2398
+			if _, ok := err.(x509.UnknownAuthorityError); ok {
+				// This is a temporary fix, see https://github.com/getlantern/lantern/issues/2398
 				errmsg = fmt.Sprintf("%s, tlsInfo: %s", errmsg, vms.dialer.tlsInfo(masquerade))
 			}
 
