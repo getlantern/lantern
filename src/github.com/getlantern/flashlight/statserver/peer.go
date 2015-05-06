@@ -10,7 +10,7 @@ import (
 
 var (
 	publishInterval   = 10 * time.Second
-	retryWaitTime     = 100 * time.Millisecond
+	retryWaitTime     = 500 * time.Millisecond
 	maxGeolocateTries = 10
 )
 
@@ -50,8 +50,9 @@ func newPeer(ip string, pub publish) *Peer {
 
 func (peer *Peer) run() {
 	err := peer.geolocate()
+
 	if err != nil {
-		log.Errorf("Unable to geolocate peer after %d attempts, stopping reporting: %v", maxGeolocateTries, err)
+		log.Errorf("Unable to geolocate peer after %d attempts, stopping reporting. Last error was: %q", maxGeolocateTries, err)
 		return
 	}
 
@@ -97,18 +98,20 @@ func (peer *Peer) geolocate() error {
 	var err error
 
 	for i := 0; i < maxGeolocateTries; i++ {
+
 		if i > 0 {
+			// Maximum sleep time: 2^(maxGeolocateTries - 1) * retryWaitTime
 			retryWait := time.Duration(math.Pow(2, float64(i)) * float64(retryWaitTime))
-			log.Debugf("Waiting %v before retrying geolocate", retryWait)
+			log.Errorf("Failed geolocation attempt %d/%d: %q. Waiting %v before retrying.", i, maxGeolocateTries-1, err, retryWait)
 			time.Sleep(retryWait)
 		}
 
 		err = peer.doGeolocate()
+
 		if err == nil {
-			break
+			return nil
 		}
 
-		log.Errorf("Unable to geolocate peer: %v", err)
 	}
 
 	return err
@@ -116,6 +119,7 @@ func (peer *Peer) geolocate() error {
 
 func (peer *Peer) doGeolocate() error {
 	geodata, err := geolookup.LookupIPWithClient(peer.IP, geoClient)
+
 	if err != nil {
 		return err
 	}
