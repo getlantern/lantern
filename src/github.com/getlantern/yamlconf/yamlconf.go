@@ -111,6 +111,7 @@ type Manager struct {
 	// example for fetching config updates from a remote server.
 	CustomPoll func(currentCfg Config) (mutate func(cfg Config) error, waitTime time.Duration, err error)
 
+	once      sync.Once
 	cfg       Config
 	cfgMutex  sync.RWMutex
 	pollMutex sync.Mutex
@@ -204,7 +205,7 @@ func (m *Manager) Init() (Config, error) {
 // StartPolling starts polling if there is a custom polling function defined.
 func (m *Manager) StartPolling() {
 	if m.CustomPoll != nil {
-		go m.processCustomPolling()
+		go m.once.Do(func() { m.processCustomPolling() })
 	}
 }
 
@@ -245,15 +246,12 @@ func (m *Manager) processUpdates() {
 
 func (m *Manager) processCustomPolling() {
 	for {
-		_, waitTime, _ := m.poll()
+		waitTime := m.poll()
 		time.Sleep(waitTime)
 	}
 }
 
-func (m *Manager) poll() (func(cfg Config) error, time.Duration, error) {
-	m.pollMutex.Lock()
-	defer m.pollMutex.Unlock()
-
+func (m *Manager) poll() time.Duration {
 	mutate, waitTime, err := m.CustomPoll(m.getCfg())
 	if err != nil {
 		log.Errorf("Custom polling failed: %s", err)
@@ -263,7 +261,7 @@ func (m *Manager) poll() (func(cfg Config) error, time.Duration, error) {
 			log.Errorf("Unable to apply update from custom polling: %s", err)
 		}
 	}
-	return mutate, waitTime, err
+	return waitTime
 }
 
 func (m *Manager) setCfg(cfg Config) {
