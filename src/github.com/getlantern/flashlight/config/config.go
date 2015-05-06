@@ -52,7 +52,6 @@ type Config struct {
 	Addr          string
 	Role          string
 	InstanceId    string
-	Country       string
 	CpuProfile    string
 	MemProfile    string
 	UIAddr        string // UI HTTP server address
@@ -231,11 +230,6 @@ func (cfg *Config) ApplyDefaults() {
 
 	if cfg.CloudConfig == "" {
 		cfg.CloudConfig = fmt.Sprintf("https://s3.amazonaws.com/lantern_config/cloud.%v.yaml.gz", countryPlaceholder)
-	}
-
-	// Default country
-	if cfg.Country == "" {
-		cfg.Country = *country
 	}
 
 	// Make sure we always have a stats config

@@ -60,9 +60,6 @@ func (updated *Config) applyFlags() error {
 			updated.Role = *role
 		case "instanceid":
 			updated.InstanceId = *instanceid
-		case "country":
-			updated.Country = *country
-
 			// Stats
 		case "statsperiod":
 			updated.Stats.ReportingPeriod = time.Duration(*statsPeriod) * time.Second
