@@ -104,7 +104,7 @@ func write() {
 			if !reflect.DeepEqual(newLocation, oldLocation) {
 				log.Debugf("Location changed")
 				location.Store(newLocation)
-				pubsub.Pub(newLocation)
+				pubsub.Pub(pubsub.Location, newLocation)
 			}
 			// Always publish location, even if unchanged
 			service.Out <- newLocation

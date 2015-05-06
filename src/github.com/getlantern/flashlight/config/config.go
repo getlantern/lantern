@@ -115,7 +115,7 @@ func Init() (*Config, error) {
 	initial, err := m.Init()
 	var cfg *Config
 	if err == nil {
-		er := pubsub.Sub(&geo.City{}, func(city *geo.City) {
+		er := pubsub.Sub(pubsub.Location, func(city *geo.City) {
 			log.Debugf("Got location: %v", city.Country.IsoCode)
 			m.StartPolling()
 		})

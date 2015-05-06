@@ -3,7 +3,7 @@
 package pubsub
 
 import (
-	"reflect"
+	"strconv"
 
 	"github.com/asaskevich/EventBus"
 )
@@ -12,13 +12,17 @@ var (
 	bus = EventBus.New()
 )
 
+const (
+	Location = iota
+)
+
 // Pub publishes the given interface to any listeners for that interface.
-func Pub(topic interface{}) {
-	bus.Publish(reflect.TypeOf(topic).String(), topic)
+func Pub(topic int, data interface{}) {
+	bus.Publish(strconv.Itoa(topic), data)
 }
 
 // Sub subscribes to specific interfaces with the specified callback
 // function.
-func Sub(topic interface{}, fn interface{}) error {
-	return bus.SubscribeAsync(reflect.TypeOf(topic).String(), fn, true)
+func Sub(topic int, fn interface{}) error {
+	return bus.SubscribeAsync(strconv.Itoa(topic), fn, true)
 }
