@@ -415,6 +415,12 @@ func (cfg Config) fetchCloudConfigForCountry(client *http.Client, country string
 		// Don't bother fetching if unchanged
 		req.Header.Set(ifNoneMatch, lastCloudConfigETag[url])
 	}
+
+	// make sure to close the connection after reading the Body
+	// this prevents the occasional EOFs errors we're seeing with
+	// successive requests
+	req.Close = true
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to fetch cloud config at %s: %s", url, err)
