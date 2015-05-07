@@ -6880,6 +6880,15 @@ body[dir=rtl] .radio input[type="radio"], body[dir=rtl] .checkbox input[type="ch
   margin-left: 0;
 }
 
+body .chromeframe {
+  height: 50%;
+  margin: 0;
+  position: relative;
+  top: 50%;
+  text-align: center;
+  background-color: white;
+}
+
 @-webkit-keyframes defaultPulse {
   from {
     opacity: 1;
@@ -7494,47 +7503,7 @@ body[dir=rtl] #latestDetails dd {
   font-size: 11.9px;
   width: 100%;
 }
-#welcomescreen {
-    background: white;
-}
 
-iframe.twitter-share-button {
-    margin-left: 145px;
-}
-
-#welcomescreen h3 {
-    font-size: 33px;
-    font-family: Roboto;
-    font-weight: bold;
-    padding: 20px 0px 0px 0px;
-}
-
-#welcomescreen div.modal-header {
-    border-bottom: none;
-}
-
-#welcomescreen h3, p {
-    text-align: center;
-    font-family: Roboto;
-}
-
-#welcomescreen p {
-    font-weight: lighter;
-}
-
-#welcomescreen a:first-child {
-    padding-right: 25px;
-}
-
-#welcomescreen .configure_system,
-#welcomescreen .now_access {
-    padding: 25px 30px 25px 30px;
-    font-size: 20px;
-    line-height: 25px;
-    color: rgb( 0, 0, 0 );
-    font-weight: bold;
-    text-align: center;
-}
 #contact textarea.report {
   height: 175px;
   margin-top: 24px;
