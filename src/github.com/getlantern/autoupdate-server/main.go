@@ -72,6 +72,7 @@ func (u *updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			log.Debugf("CheckForUpdate failed with error: %q", err)
 			if err == server.ErrNoUpdateAvailable {
 				u.closeWithStatus(w, http.StatusNoContent)
+				return
 			}
 			u.closeWithStatus(w, http.StatusExpectationFailed)
 			return

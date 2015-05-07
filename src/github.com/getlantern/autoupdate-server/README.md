@@ -12,6 +12,18 @@ the client can use to patch itself.
 
 ## Requisites
 
+Make sure you have the [bsdiff](http://www.daemonology.net/bsdiff/) program
+installed:
+
+```
+apt-get instal -y bsdiff
+yum install -y bsdiff
+brew install bsdiff
+```
+
+The `bsdiff` program is used to calculate a binary diff of two files and
+generate a patch.
+
 In order to sign binary files you'll need a keypair:
 
 ```sh
