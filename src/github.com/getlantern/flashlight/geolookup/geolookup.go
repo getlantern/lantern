@@ -13,7 +13,7 @@ import (
 	"github.com/getlantern/geolookup"
 	"github.com/getlantern/golog"
 
-	"github.com/getlantern/flashlight/globals"
+	"github.com/getlantern/flashlight/pubsub"
 	"github.com/getlantern/flashlight/ui"
 )
 
@@ -31,7 +31,24 @@ var (
 	service  *ui.Service
 	client   atomic.Value
 	cfgMutex sync.Mutex
+	location atomic.Value
 )
+
+func GetLocation() *geolookup.City {
+	l := location.Load()
+	if l == nil {
+		return nil
+	}
+	return l.(*geolookup.City)
+}
+
+func GetCountry() string {
+	loc := GetLocation()
+	if loc == nil {
+		return ""
+	}
+	return loc.Country.IsoCode
+}
 
 // Configure configures geolookup to use the given http.Client to perform
 // lookups. geolookup runs in a continuous loop, periodically updating its
@@ -57,7 +74,7 @@ func Configure(newClient *http.Client) {
 
 func registerService() error {
 	helloFn := func(write func(interface{}) error) error {
-		location := globals.GetLocation()
+		location := GetLocation()
 		if location == nil {
 			log.Trace("No lastKnownLocation, not sending anything to client")
 			return nil
@@ -80,16 +97,17 @@ func write() {
 		n := rand.Intn(publishSecondsVariance)
 		wait := time.Duration(basePublishSeconds-publishSecondsVariance/2+n) * time.Second
 
-		oldLocation := globals.GetLocation()
-		location, err := geolookup.LookupIPWithClient("", client.Load().(*http.Client))
+		oldLocation := GetLocation()
+		newLocation, err := geolookup.LookupIPWithClient("", client.Load().(*http.Client))
 		if err == nil {
 			consecutiveFailures = 0
-			if !reflect.DeepEqual(location, oldLocation) {
+			if !reflect.DeepEqual(newLocation, oldLocation) {
 				log.Debugf("Location changed")
-				globals.SetLocation(location)
+				location.Store(newLocation)
+				pubsub.Pub(pubsub.Location, newLocation)
 			}
 			// Always publish location, even if unchanged
-			service.Out <- location
+			service.Out <- newLocation
 		} else {
 			msg := fmt.Sprintf("Unable to get current location: %s", err)
 			// When retrying after a failure, wait a different amount of time
@@ -104,7 +122,7 @@ func write() {
 			consecutiveFailures += 1
 			// If available, publish last known location
 			if oldLocation != nil {
-				service.Out <- location
+				service.Out <- oldLocation
 			}
 		}
 

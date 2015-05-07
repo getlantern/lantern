@@ -25,8 +25,9 @@ type Config interface {
 }
 
 // Manager exposes a facility for managing configuration a YAML configuration
-// file. After creating a Manager, one must call the Start() method to start the
-// necessary background processing.
+// file. After creating a Manager, one must call the Init() method to start the
+// necessary background processing.  If you set a CustomPoll function, you need
+// to call StartPolling() also.
 //
 // As the configuration is updated, the updated version of the config is made
 // available via the Next() method. Configs are always copied, never updated in
@@ -111,8 +112,10 @@ type Manager struct {
 	// example for fetching config updates from a remote server.
 	CustomPoll func(currentCfg Config) (mutate func(cfg Config) error, waitTime time.Duration, err error)
 
+	once      sync.Once
 	cfg       Config
 	cfgMutex  sync.RWMutex
+	pollMutex sync.Mutex
 	fileInfo  os.FileInfo
 	deltasCh  chan *delta
 	nextCfgCh chan Config
@@ -139,10 +142,10 @@ func (m *Manager) Update(mutate func(cfg Config) error) error {
 	return <-errCh
 }
 
-// Start starts the Manager, returning the initial Config (i.e. what was on
+// Init starts the Manager, returning the initial Config (i.e. what was on
 // disk). If no config exists on disk, an empty config with ApplyDefaults() will
 // be created and saved.
-func (m *Manager) Start() (Config, error) {
+func (m *Manager) Init() (Config, error) {
 	if m.EmptyConfig == nil {
 		return nil, fmt.Errorf("EmptyConfig must be specified")
 	}
@@ -190,10 +193,6 @@ func (m *Manager) Start() (Config, error) {
 
 	go m.processUpdates()
 
-	if m.CustomPoll != nil {
-		go m.processCustomPolling()
-	}
-
 	if m.ConfigServerAddr != "" {
 		err = m.startConfigServer()
 		if err != nil {
@@ -202,6 +201,13 @@ func (m *Manager) Start() (Config, error) {
 	}
 
 	return m.getCfg(), nil
+}
+
+// StartPolling starts polling if there is a custom polling function defined.
+func (m *Manager) StartPolling() {
+	if m.CustomPoll != nil {
+		go m.once.Do(func() { m.processCustomPolling() })
+	}
 }
 
 func (m *Manager) processUpdates() {
@@ -241,17 +247,22 @@ func (m *Manager) processUpdates() {
 
 func (m *Manager) processCustomPolling() {
 	for {
-		mutate, waitTime, err := m.CustomPoll(m.getCfg())
-		if err != nil {
-			log.Errorf("Custom polling failed: %s", err)
-		} else {
-			err = m.Update(mutate)
-			if err != nil {
-				log.Errorf("Unable to apply update from custom polling: %s", err)
-			}
-		}
+		waitTime := m.poll()
 		time.Sleep(waitTime)
 	}
+}
+
+func (m *Manager) poll() time.Duration {
+	mutate, waitTime, err := m.CustomPoll(m.getCfg())
+	if err != nil {
+		log.Errorf("Custom polling failed: %s", err)
+	} else {
+		err = m.Update(mutate)
+		if err != nil {
+			log.Errorf("Unable to apply update from custom polling: %s", err)
+		}
+	}
+	return waitTime
 }
 
 func (m *Manager) setCfg(cfg Config) {

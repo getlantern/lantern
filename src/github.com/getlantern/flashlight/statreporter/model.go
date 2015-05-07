@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/getlantern/flashlight/globals"
+	"github.com/getlantern/flashlight/geolookup"
 )
 
 const (
@@ -43,7 +43,7 @@ func Dim(key string, value string) *DimGroup {
 }
 
 func CountryDim() *DimGroup {
-	return Country(globals.GetCountry())
+	return Country(geolookup.GetCountry())
 }
 
 func Country(country string) *DimGroup {
@@ -61,7 +61,7 @@ func (dg *DimGroup) And(key string, value string) *DimGroup {
 }
 
 func (dg *DimGroup) WithCountry() *DimGroup {
-	return dg.And(countryDim, globals.GetCountry())
+	return dg.And(countryDim, geolookup.GetCountry())
 }
 
 // String returns a string representation of this DimGroup with keys in

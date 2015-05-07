@@ -13,7 +13,7 @@ import (
 
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/flashlight/config"
-	"github.com/getlantern/flashlight/globals"
+	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/go-loggly"
 	"github.com/getlantern/golog"
@@ -171,7 +171,7 @@ func (w logglyErrorWriter) Write(b []byte) (int, error) {
 		"osArch":    runtime.GOARCH,
 		"osVersion": "",
 		"language":  w.lang,
-		"country":   globals.GetCountry(),
+		"country":   geolookup.GetCountry(),
 		"timeZone":  w.tz,
 		"version":   w.versionToLoggly,
 	}
