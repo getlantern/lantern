@@ -17,6 +17,7 @@ github.com/getlantern/idletiming
 github.com/getlantern/keyman
 github.com/getlantern/pathreflect
 github.com/getlantern/proxy
+github.com/getlantern/pubsub
 github.com/getlantern/tarfs
 github.com/getlantern/tlsdefaults
 github.com/getlantern/tlsdialer
