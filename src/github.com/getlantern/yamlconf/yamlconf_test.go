@@ -69,6 +69,7 @@ func TestFileAndUpdate(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to Init manager: %s", err)
 	}
+	m.StartPolling()
 
 	assertSavedConfigEquals(t, file, &TestCfg{
 		Version: 1,
@@ -192,6 +193,7 @@ func TestCustomPoll(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to init manager: %s", err)
 	}
+	m.StartPolling()
 
 	updated := m.Next()
 
@@ -224,6 +226,7 @@ func TestConfigServer(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to init manager: %s", err)
 	}
+	m.StartPolling()
 
 	newNested := &Nested{
 		S: "900",
