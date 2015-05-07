@@ -65,9 +65,9 @@ func TestFileAndUpdate(t *testing.T) {
 		FilePollInterval: pollInterval,
 	}
 
-	first, err := m.Start()
+	first, err := m.Init()
 	if err != nil {
-		t.Fatalf("Unable to start manager: %s", err)
+		t.Fatalf("Unable to Init manager: %s", err)
 	}
 
 	assertSavedConfigEquals(t, file, &TestCfg{
@@ -187,9 +187,10 @@ func TestCustomPoll(t *testing.T) {
 		},
 	}
 
-	_, err = m.Start()
+	_, err = m.Init()
+	m.StartPolling()
 	if err != nil {
-		t.Fatalf("Unable to start manager: %s", err)
+		t.Fatalf("Unable to init manager: %s", err)
 	}
 
 	updated := m.Next()
@@ -219,9 +220,9 @@ func TestConfigServer(t *testing.T) {
 		ConfigServerAddr: ConfigSrvAddr,
 	}
 
-	_, err = m.Start()
+	_, err = m.Init()
 	if err != nil {
-		t.Fatalf("Unable to start manager: %s", err)
+		t.Fatalf("Unable to init manager: %s", err)
 	}
 
 	newNested := &Nested{

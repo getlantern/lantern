@@ -25,8 +25,9 @@ type Config interface {
 }
 
 // Manager exposes a facility for managing configuration a YAML configuration
-// file. After creating a Manager, one must call the Start() method to start the
-// necessary background processing.
+// file. After creating a Manager, one must call the Init() method to start the
+// necessary background processing.  If you set a CustomPoll function, you need
+// to call StartPolling() also.
 //
 // As the configuration is updated, the updated version of the config is made
 // available via the Next() method. Configs are always copied, never updated in
@@ -141,7 +142,7 @@ func (m *Manager) Update(mutate func(cfg Config) error) error {
 	return <-errCh
 }
 
-// Start starts the Manager, returning the initial Config (i.e. what was on
+// Init starts the Manager, returning the initial Config (i.e. what was on
 // disk). If no config exists on disk, an empty config with ApplyDefaults() will
 // be created and saved.
 func (m *Manager) Init() (Config, error) {
