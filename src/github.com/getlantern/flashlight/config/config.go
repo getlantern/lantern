@@ -15,7 +15,6 @@ import (
 
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/fronted"
-	"github.com/getlantern/geolookup"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/proxiedsites"
 	"github.com/getlantern/waitforserver"
@@ -23,22 +22,21 @@ import (
 	"github.com/getlantern/yamlconf"
 
 	"github.com/getlantern/flashlight/client"
+	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/globals"
+	"github.com/getlantern/flashlight/pubsub"
 	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/statreporter"
 	"github.com/getlantern/flashlight/util"
+	geo "github.com/getlantern/geolookup"
 )
 
 const (
 	CloudConfigPollInterval = 1 * time.Minute
-
-	// In seconds
-	waitForLocationTimeout = 20
-
-	cloudflare         = "cloudflare"
-	etag               = "ETag"
-	ifNoneMatch        = "If-None-Match"
-	countryPlaceholder = "${COUNTRY}"
+	cloudflare              = "cloudflare"
+	etag                    = "ETag"
+	ifNoneMatch             = "If-None-Match"
+	countryPlaceholder      = "${COUNTRY}"
 )
 
 var (
@@ -54,7 +52,6 @@ type Config struct {
 	Addr          string
 	Role          string
 	InstanceId    string
-	Country       string
 	CpuProfile    string
 	MemProfile    string
 	UIAddr        string // UI HTTP server address
@@ -115,9 +112,17 @@ func Init() (*Config, error) {
 			return
 		},
 	}
-	initial, err := m.Start()
+	initial, err := m.Init()
 	var cfg *Config
 	if err == nil {
+		er := pubsub.Sub(pubsub.Location, func(city *geo.City) {
+			log.Debugf("Got location: %v", city.Country.IsoCode)
+			m.StartPolling()
+		})
+		if er != nil {
+			log.Errorf("Error subscribing to location: %v", er)
+			return nil, er
+		}
 		cfg = initial.(*Config)
 		err = updateGlobals(cfg)
 		if err != nil {
@@ -142,9 +147,6 @@ func Run(updateHandler func(updated *Config)) error {
 
 func updateGlobals(cfg *Config) error {
 	globals.InstanceId = cfg.InstanceId
-	loc := &geolookup.City{}
-	loc.Country.IsoCode = cfg.Country
-	globals.SetLocation(loc)
 	err := globals.SetTrustedCAs(cfg.TrustedCACerts())
 	if err != nil {
 		return fmt.Errorf("Unable to configure trusted CAs: %s", err)
@@ -228,11 +230,6 @@ func (cfg *Config) ApplyDefaults() {
 
 	if cfg.CloudConfig == "" {
 		cfg.CloudConfig = fmt.Sprintf("https://s3.amazonaws.com/lantern_config/cloud.%v.yaml.gz", countryPlaceholder)
-	}
-
-	// Default country
-	if cfg.Country == "" {
-		cfg.Country = *country
 	}
 
 	// Make sure we always have a stats config
@@ -380,26 +377,18 @@ func (cfg Config) fetchCloudConfigForAddr(proxyAddr string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to initialize HTTP client: %s", err)
 	}
-	// Try and wait to get geolocated, up to a point.  Waiting indefinitely
-	// might prevent us from ever getting geolocated if our current
-	// configuration is preventing domain fronting from working.
-	for i := 0; i < waitForLocationTimeout; i++ {
-		country := strings.ToLower(globals.GetCountry())
-		if country != "" && country != "xx" {
-			ret, err := cfg.fetchCloudConfigForCountry(client, country)
-			// We could check specifically for a 404, but S3 actually returns a 403 when
-			// a resource is not available.  I thought we'd better lean on the side of
-			// robustness by avoiding hardcoding an S3-ism here, than to try and save an
-			// extra request every now and then.
-			if err == nil {
-				return ret, err
-			} else {
-				log.Debugf("Couldn't fetch cloud config for country '%s'; trying the default one", country)
-			}
-			break
+	country := strings.ToLower(geolookup.GetCountry())
+	if country != "" && country != "xx" {
+		ret, err := cfg.fetchCloudConfigForCountry(client, country)
+		// We could check specifically for a 404, but S3 actually returns a 403 when
+		// a resource is not available.  I thought we'd better lean on the side of
+		// robustness by avoiding hardcoding an S3-ism here, than to try and save an
+		// extra request every now and then.
+		if err == nil {
+			return ret, err
+		} else {
+			log.Debugf("Couldn't fetch cloud config for country '%s'; trying the default one", country)
 		}
-		log.Debugf("Waiting for location...")
-		time.Sleep(1 * time.Second)
 	}
 	return cfg.fetchCloudConfigForCountry(client, "default")
 }
@@ -415,6 +404,12 @@ func (cfg Config) fetchCloudConfigForCountry(client *http.Client, country string
 		// Don't bother fetching if unchanged
 		req.Header.Set(ifNoneMatch, lastCloudConfigETag[url])
 	}
+
+	// make sure to close the connection after reading the Body
+	// this prevents the occasional EOFs errors we're seeing with
+	// successive requests
+	req.Close = true
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to fetch cloud config at %s: %s", url, err)
