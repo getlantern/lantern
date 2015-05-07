@@ -7,7 +7,7 @@ install:
 - go get -v github.com/axw/gocov/gocov
 - go get -v github.com/mattn/goveralls
 script:
-- openssl aes-256-cbc -K $encrypted_9c9444fdc7c6_key -iv $encrypted_9c9444fdc7c6_iv
+- openssl aes-256-cbc -K $encrypted_f217260732a9_key -iv $encrypted_f217260732a9_iv
   -in envvars.bash.enc -out envvars.bash -d
 - make test-and-cover
 after_success:
