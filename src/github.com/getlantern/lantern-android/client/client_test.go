@@ -25,7 +25,7 @@ var testURLs = map[string][]byte{
 func TestListenAndServeStop(t *testing.T) {
 
 	// Creating a client.
-	c := NewClient(listenProxyAddr)
+	c := NewClient(listenProxyAddr, "FireTweetTest")
 
 	c.ServeHTTP()
 
@@ -43,7 +43,7 @@ func TestListenAndServeAgain(t *testing.T) {
 	// Since we've closed out server, we should be able to launch another at the
 	// same address.
 
-	globalClient = NewClient(listenProxyAddr)
+	globalClient = NewClient(listenProxyAddr, "FireTweetTest")
 	globalClient.ServeHTTP()
 
 	// Allow it some seconds to start.
