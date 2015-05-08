@@ -113,8 +113,12 @@ To alter the list of domains or blacklist:
 
 1. Edit [`domains.txt`](genconfig/domains.txt) and/or [`blacklist.txt`](genconfig/blacklist.txt)
 2. `go run genconfig.go -domains domains.txt -blacklist blacklist.txt`.
-3. Commit the changed [`masquerades.go`](config/masquerades.go) and [`cloud.yaml`](genconfig/cloud.yaml) to git if you want.
-4. Upload cloud.yaml to s3 using [`udpateyaml.bash`](genconfig/updateyaml.bash) if you want.
+3. Commit the changed [`masquerades.go`](config/masquerades.go) and `cloud.*.yaml` to git if you want.
+4. Upload the cloud.*.yaml files to s3 using [`uploadyaml.bash`](genconfig/uploadyaml.bash) if you want.  E.g.
+
+```bash
+./uploadyaml.bash default cn
+```
 
 #### Managing proxied sites
 
@@ -123,12 +127,30 @@ domain per line.  You provide this directory to `genconfig` with the `-proxiedsi
 
 #### Managing chained proxies
 
-The IPs, access tokens, and other details that clients need in order to
-connect to the chained (that is, non-fronted) proxies we run are contained in
-a JSON file that normally lives in `genconfig/fallbacks.json` and is fed to `genconfig` with the optional `-fallbacks` argument.
+The IPs, access tokens, and other details that clients need in order to connect
+to the chained (that is, non-fronted) proxies we run are contained in a set of
+JSON files that normally lives in `genconfig/xx.fallbacks.json`, where `xx` is
+the country code of the datacenter.
 
-You only to concern yourself with this when the list of chained proxies
-changes (e.g., when we launch or kill some server).  To learn how to reenerate
-the `fallbacks.json` file in that case, see [the relevant
-section](https://github.com/getlantern/lantern_aws#regenerating-flashlightgenconfigfallbackjson)
-of the README of the lantern_aws project.
+These are fed to `genconfig` with the optional `-fallbacks` argument.  If
+provided, it looks like `{default: nl, cn: jp}`.  It needs to be a YAML string
+mapping user country codes to datacenter country codes, except that an entry
+with a `default` key is needed.  The value of this entry refers to the
+datacenter which will be assigned to users in a country with no explicit entry.
+
+You only to concern yourself with this when the list of chained proxies changes
+(e.g., when we launch or kill some server).  To regenerate these files, run
+[`regenerate-fallbacks-json.bash`](genconfig/regenerate-fallbacks-json.bash).
+For this, you need to meet the following requirements (if you have added or
+removed servers, both are likely already the case for you):
+
+- have your public SSH key registered in the cloudmaster.  If you don't have it,
+  add the name of your unix username
+  [here](https://github.com/getlantern/lantern_aws/blob/master/salt/lantern_administrators/init.sls)
+  and upload your public SSH key as yourusername.pub_key
+  [here](https://github.com/getlantern/lantern_aws/tree/master/salt/lantern_administrators).
+
+- have an environment variable called `production_cloudmaster_IP`.  If you don't
+  know the IP, the quickest way to find it might be to look up
+  "production-cloudmaster" in the Digital Ocean droplets list.
+

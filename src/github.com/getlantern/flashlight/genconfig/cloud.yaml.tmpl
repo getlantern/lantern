@@ -2,7 +2,7 @@
 # internet.
 client:
   frontedservers:
-  - host: nl.fallbacks.getiantem.org
+  - host: {{.datacenterLocale}}.fallbacks.getiantem.org
     port: 443
     poolsize: 30
     masqueradeset: "cloudflare"
@@ -10,7 +10,7 @@ client:
     qos: 10
     weight: 4000
     trusted: true
-  chainedservers: {{range .fallbacks}}
+  chainedservers: {{range .localeFallbacks}}
     fallback-{{.ip}}:
       addr: {{.ip}}:443
       cert: "{{.cert}}"

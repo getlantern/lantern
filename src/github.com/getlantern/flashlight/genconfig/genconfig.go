@@ -20,6 +20,7 @@ import (
 	"github.com/getlantern/golog"
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/tlsdialer"
+	"github.com/getlantern/yaml"
 
 	"github.com/getlantern/flashlight/client"
 )
@@ -35,8 +36,8 @@ var (
 	proxiedSitesDir = flag.String("proxiedsites", "proxiedsites", "Path to directory containing proxied site lists, which will be combined and proxied by Lantern")
 	minFreq         = flag.Float64("minfreq", 3.0, "Minimum frequency (percentage) for including CA cert in list of trusted certs, defaults to 3.0%")
 
-	// Note - you can get the content for the fallbacksFile from https://lanternctrl1-2.appspot.com/listfallbacks
-	fallbacksFile = flag.String("fallbacks", "fallbacks.json", "File containing json array of fallback information")
+	// These files are in the repo; regenerate them with generate-fallbacks-json.bash if you launch or kill servers.
+	fallbackLocales = parseFallbackLocales(*flag.String("fallbacks", "{default: nl, cn: jp}", "YAML string of the form {<user-country>: <datcenter-country>, ...}, where a 'default' user-country must be provided (see README)"))
 )
 
 var (
@@ -46,7 +47,7 @@ var (
 
 	blacklist    = make(filter)
 	proxiedSites = make(filter)
-	fallbacks    []map[string]interface{}
+	fallbacks    = make(map[string][]map[string]interface{})
 
 	domainsCh     = make(chan string)
 	masqueradesCh = make(chan *masquerade)
@@ -92,7 +93,12 @@ func main() {
 	go feedDomains()
 	cas, masquerades := coalesceMasquerades()
 	model := buildModel(cas, masquerades)
-	generateTemplate(model, yamlTmpl, "cloud.yaml")
+	fbs := model["fallbacks"].(map[string][]map[string]interface{})
+	for userLocale, m := range fbs {
+		model["datacenterLocale"] = fallbackLocales[userLocale]
+		model["localeFallbacks"] = m
+		generateTemplate(model, yamlTmpl, fmt.Sprintf("cloud.%s.yaml", userLocale))
+	}
 	generateTemplate(model, masqueradesTmpl, "../config/masquerades.go")
 	_, err := run("gofmt", "-w", "../config/masquerades.go")
 	if err != nil {
@@ -103,6 +109,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("Unable to format proxiedsites.go: %s", err)
 	}
+	// Note we only use the locale-specific model entries for generating the
+	// `cloud.*.yaml`s.  All clients come with the 'default' config baked
+	// into fallbacks.go.
 	generateTemplate(model, fallbacksTmpl, "../config/fallbacks.go")
 	_, err = run("gofmt", "-w", "../config/fallbacks.go")
 	if err != nil {
@@ -176,18 +185,17 @@ func loadBlacklist() {
 }
 
 func loadFallbacks() {
-	if *fallbacksFile == "" {
-		log.Error("Please specify a fallbacks file")
-		flag.Usage()
-		os.Exit(2)
-	}
-	fallbacksBytes, err := ioutil.ReadFile(*fallbacksFile)
-	if err != nil {
-		log.Fatalf("Unable to read fallbacks file at %s: %s", *fallbacksFile, err)
-	}
-	err = json.Unmarshal(fallbacksBytes, &fallbacks)
-	if err != nil {
-		log.Fatalf("Unable to unmarshal json from %v: %v", *fallbacksFile, err)
+	for userCountry, datacenterCountry := range fallbackLocales {
+		path := datacenterCountry + ".fallbacks.json"
+		bytes, err := ioutil.ReadFile(path)
+		if err != nil {
+			log.Fatalf("Unable to read fallbacks file at %s: %s", path, err)
+		}
+		lfs := make([]map[string]interface{}, 0)
+		if err = json.Unmarshal(bytes, &lfs); err != nil {
+			log.Fatalf("Unable to unmarshal json from %v: %v", path, err)
+		}
+		fallbacks[userCountry] = lfs
 	}
 }
 
@@ -301,45 +309,49 @@ func buildModel(cas map[string]*castat, masquerades []*masquerade) map[string]in
 		ps = append(ps, site)
 	}
 	sort.Strings(ps)
-	fbs := make([]map[string]interface{}, 0, len(fallbacks))
-	for _, fb := range fallbacks {
-		ip := fb["ip"].(string)
-		if fb["pt"] != nil {
-			log.Debugf("Skipping fallback %v because it has pluggable transport enabled", ip)
-			continue
-		}
+	fallbacksModel := make(map[string][]map[string]interface{})
+	for locale, fallbackDicts := range fallbacks {
+		fbs := make([]map[string]interface{}, 0, len(fallbackDicts))
+		for _, fb := range fallbackDicts {
+			ip := fb["ip"].(string)
+			if fb["pt"] != nil {
+				log.Debugf("Skipping fallback %v because it has pluggable transport enabled", ip)
+				continue
+			}
 
-		cert := fb["cert"].(string)
-		// Replace newlines in cert with newline literals
-		fb["cert"] = strings.Replace(cert, "\n", "\\n", -1)
+			cert := fb["cert"].(string)
+			// Replace newlines in cert with newline literals
+			fb["cert"] = strings.Replace(cert, "\n", "\\n", -1)
 
-		// Test connectivity
-		info := &client.ChainedServerInfo{
-			Addr:      ip + ":443",
-			Cert:      cert,
-			AuthToken: fb["auth_token"].(string),
-			Pipelined: true,
-		}
-		dialer, err := info.Dialer()
-		if err != nil {
-			log.Debugf("Skipping fallback %v because of error building dialer: %v", ip, err)
-			continue
-		}
-		conn, err := dialer.Dial("tcp", "http://www.google.com")
-		if err != nil {
-			log.Debugf("Skipping fallback %v because dialing Google failed: %v", ip, err)
-			continue
-		}
-		conn.Close()
+			// Test connectivity
+			info := &client.ChainedServerInfo{
+				Addr:      ip + ":443",
+				Cert:      cert,
+				AuthToken: fb["auth_token"].(string),
+				Pipelined: true,
+			}
+			dialer, err := info.Dialer()
+			if err != nil {
+				log.Debugf("Skipping fallback %v because of error building dialer: %v", ip, err)
+				continue
+			}
+			conn, err := dialer.Dial("tcp", "http://www.google.com")
+			if err != nil {
+				log.Debugf("Skipping fallback %v because dialing Google failed: %v", ip, err)
+				continue
+			}
+			conn.Close()
 
-		// Use this fallback
-		fbs = append(fbs, fb)
+			// Use this fallback
+			fbs = append(fbs, fb)
+		}
+		fallbacksModel[locale] = fbs
 	}
 	return map[string]interface{}{
 		"cas":          casList,
 		"masquerades":  masquerades,
 		"proxiedsites": ps,
-		"fallbacks":    fbs,
+		"fallbacks":    fallbacksModel,
 	}
 }
 
@@ -396,3 +408,17 @@ type ByFreq []*castat
 func (a ByFreq) Len() int           { return len(a) }
 func (a ByFreq) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByFreq) Less(i, j int) bool { return a[i].freq > a[j].freq }
+
+func parseFallbackLocales(yamlStr string) map[string]string {
+	if yamlStr == "" {
+		log.Fatalf("You need to provide a non-empty -fallbacks")
+	}
+	ret := map[string]string{}
+	if err := yaml.Unmarshal([]byte(yamlStr), ret); err != nil {
+		log.Fatalf("Unable to parse -fallbacks")
+	}
+	if _, ok := ret["default"]; !ok {
+		log.Fatalf("-fallbacks dict must include a \"default\" entry")
+	}
+	return ret
+}
