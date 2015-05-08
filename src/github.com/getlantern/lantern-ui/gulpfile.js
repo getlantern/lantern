@@ -12,7 +12,7 @@
     return gulp.src('app/index.html')
     .pipe(usemin({
       css: [minifyCss(), 'concat'],
-      html: [minifyHtml({empty: true})],
+      html: [minifyHtml({empty: true, conditionals: true})],
       js: [uglify(), rev()]
     }))
     .pipe(gulp.dest('dist/'));
