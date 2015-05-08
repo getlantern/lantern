@@ -128,7 +128,7 @@ func enableLoggly(cfg *config.Config, version string, buildDate string) {
 	}
 
 	var client *http.Client
-	client, err = util.HTTPClient(cfg.CloudConfigCA, cfg.Addr)
+	client, err = util.PersistentHTTPClient(cfg.CloudConfigCA, cfg.Addr)
 	if err != nil {
 		log.Errorf("Could not create proxied HTTP client, not logging to Loggly: %v", err)
 		removeLoggly()

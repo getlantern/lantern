@@ -6,15 +6,53 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"time"
 
+	"github.com/getlantern/golog"
 	"github.com/getlantern/keyman"
 )
+
+var (
+	log = golog.LoggerFor("flashlight.util")
+)
+
+// PersistentHTTPClient creates an http.Client that persists across requests.
+// If rootCA is specified, the client will validate the server's certificate
+// on TLS connections against that RootCA. If proxyAddr is specified, the client
+// will proxy through the given http proxy.
+func PersistentHTTPClient(rootCA string, proxyAddr string) (*http.Client, error) {
+	return httpClient(rootCA, proxyAddr, true)
+}
 
 // HTTPClient creates an http.Client. If rootCA is specified, the client will
 // validate the server's certificate on TLS connections against that RootCA. If
 // proxyAddr is specified, the client will proxy through the given http proxy.
 func HTTPClient(rootCA string, proxyAddr string) (*http.Client, error) {
-	tr := &http.Transport{}
+	return httpClient(rootCA, proxyAddr, false)
+}
+
+// httpClient creates an http.Client. If rootCA is specified, the client will
+// validate the server's certificate on TLS connections against that RootCA. If
+// proxyAddr is specified, the client will proxy through the given http proxy.
+func httpClient(rootCA string, proxyAddr string, persistent bool) (*http.Client, error) {
+	log.Debugf("Creating new HTTPClient with proxy: %v", proxyAddr)
+	tr := &http.Transport{
+		Dial: (&net.Dialer{
+			Timeout:   60 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).Dial,
+		TLSHandshakeTimeout: 10 * time.Second,
+
+		// This method is typically used for creating a one-off HTTP client
+		// that we don't want to keep around for future calls, making
+		// persistent connections a potential source of file descriptor
+		// leaks. Note the name of this variable is misleading -- it would
+		// be clearer to call it DisablePersistentConnections -- i.e. it has
+		// nothing to do with TCP keep alives along the lines of the KeepAlive
+		// variable in net.Dialer.
+		DisableKeepAlives: persistent,
+	}
+
 	if rootCA != "" {
 		caCert, err := keyman.LoadCertificateFromPEMBytes([]byte(rootCA))
 		if err != nil {
