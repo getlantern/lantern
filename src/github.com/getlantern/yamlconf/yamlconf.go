@@ -115,7 +115,6 @@ type Manager struct {
 	once      sync.Once
 	cfg       Config
 	cfgMutex  sync.RWMutex
-	pollMutex sync.Mutex
 	fileInfo  os.FileInfo
 	deltasCh  chan *delta
 	nextCfgCh chan Config
