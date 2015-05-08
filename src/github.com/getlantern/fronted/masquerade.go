@@ -1,6 +1,7 @@
 package fronted
 
 import (
+	"crypto/x509"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -137,10 +138,19 @@ func (vms *verifiedMasqueradeSet) doVerify(masquerade *Masquerade) bool {
 	go func() {
 		start := time.Now()
 		httpClient := vms.dialer.HttpClientUsing(masquerade)
-		req, _ := http.NewRequest("HEAD", "http://www.google.com/humans.txt", nil)
+		req, err := http.NewRequest("HEAD", "http://www.google.com/humans.txt", nil)
+		if err != nil {
+			errCh <- fmt.Errorf("http.NewRequest Error: %s", err)
+		}
 		resp, err := httpClient.Do(req)
 		if err != nil {
-			errCh <- fmt.Errorf("HTTP ERROR FOR MASQUERADE %v: %v", masquerade.Domain, err)
+			errmsg := fmt.Sprintf("HTTP error for masquerade %v: %v", masquerade.Domain, err)
+			if _, ok := err.(x509.UnknownAuthorityError); ok {
+				// This is a temporary fix, see https://github.com/getlantern/lantern/issues/2398
+				errmsg = fmt.Sprintf("%s, tlsInfo: %s", errmsg, vms.dialer.tlsInfo(masquerade))
+			}
+
+			errCh <- fmt.Errorf(errmsg)
 			return
 		} else {
 			body, err := ioutil.ReadAll(resp.Body)
@@ -149,7 +159,7 @@ func (vms *verifiedMasqueradeSet) doVerify(masquerade *Masquerade) bool {
 				errCh <- fmt.Errorf("HTTP Body Error: %s", body)
 			} else {
 				delta := time.Now().Sub(start)
-				log.Tracef("SUCCESSFUL CHECK FOR: %s IN %s, %s", masquerade.Domain, delta, body)
+				log.Tracef("Sucessful check for: %s in %s, %s", masquerade.Domain, delta, body)
 				errCh <- nil
 			}
 		}
