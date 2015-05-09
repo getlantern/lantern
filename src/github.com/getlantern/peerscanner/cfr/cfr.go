@@ -4,6 +4,7 @@ package cfr
 import (
 	"crypto/tls"
 	"encoding/xml"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -33,6 +34,9 @@ type Distribution struct {
 	InstanceId string
 	// Free-form description of the purpose of this distribution.
 	Comment string
+	// Whether this distribution is enabled (currently only used for
+	// deleting distributions)
+	Enabled bool
 	// ID used to refer to this distribution in the CloudFront API.
 	distributionId aws.StringValue
 }
@@ -154,6 +158,7 @@ func CreateDistribution(cfr *cloudfront.CloudFront, name string, originDomain st
 		Domain:         *result.Distribution.DomainName,
 		InstanceId:     name,
 		Comment:        comment,
+		Enabled:        true,
 		distributionId: result.Distribution.ID,
 	}, nil
 }
@@ -175,6 +180,7 @@ func ListDistributions(cfr *cloudfront.CloudFront) ([]*Distribution, error) {
 				Domain:         *cfrDist.DomainName,
 				InstanceId:     *cfrDist.DefaultCacheBehavior.TargetOriginID,
 				Comment:        *cfrDist.Comment,
+				Enabled:        *cfrDist.Enabled,
 				distributionId: cfrDist.ID,
 			}
 			ret = append(ret, &dist)
@@ -188,11 +194,52 @@ func ListDistributions(cfr *cloudfront.CloudFront) ([]*Distribution, error) {
 }
 
 func RefreshStatus(cfr *cloudfront.CloudFront, dist *Distribution) error {
-	req := cloudfront.GetDistributionRequest{ID: dist.distributionId}
-	resp, err := cfr.GetDistribution(&req)
+	req := &cloudfront.GetDistributionRequest{ID: dist.distributionId}
+	resp, err := cfr.GetDistribution(req)
 	if err != nil {
 		return err
 	}
 	dist.Status = *resp.Distribution.Status
 	return nil
+}
+
+func DisableDistribution(cfr *cloudfront.CloudFront, dist *Distribution) error {
+	// See:
+	// http://docs.aws.amazon.com/AmazonCloudFront/latest/APIReference/DeleteDistribution.html
+	getreq := &cloudfront.GetDistributionConfigRequest{ID: dist.distributionId}
+	getresp, err := cfr.GetDistributionConfig(getreq)
+	if err != nil {
+		return err
+	}
+	getresp.DistributionConfig.Enabled = aws.False()
+	setreq := &cloudfront.UpdateDistributionRequest{
+		ID:                 dist.distributionId,
+		IfMatch:            getresp.ETag,
+		DistributionConfig: getresp.DistributionConfig,
+	}
+	setresp, err := cfr.UpdateDistribution(setreq)
+	if err != nil {
+		return err
+	}
+	if *setresp.Distribution.DistributionConfig.Enabled != false {
+		return fmt.Errorf("Attempt to disable distribution had no effect")
+	}
+	dist.Enabled = false
+	dist.Status = "InProgress"
+	return nil
+}
+
+func DeleteDistribution(cfr *cloudfront.CloudFront, dist *Distribution) error {
+	// See:
+	// http://docs.aws.amazon.com/AmazonCloudFront/latest/APIReference/DeleteDistribution.html
+	getreq := &cloudfront.GetDistributionConfigRequest{ID: dist.distributionId}
+	getresp, err := cfr.GetDistributionConfig(getreq)
+	if err != nil {
+		return err
+	}
+	delreq := &cloudfront.DeleteDistributionRequest{
+		ID:      dist.distributionId,
+		IfMatch: getresp.ETag,
+	}
+	return cfr.DeleteDistribution(delreq)
 }
