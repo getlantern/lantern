@@ -36,19 +36,25 @@ InstallDir $APPDATA\Lantern
 # Request user permissions so that auto-updates will work with no prompt
 RequestExecutionLevel user
 
-# Uninstall previous versions before install new one
+# Uninstall previous versions before installing the new one
 Function .onInit
+    DetailPrint "Uninstalling previous version"
+    ReadRegStr $R0 HKCU \
+    "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern" \
+    "UninstallString"
+    StrCmp $R0 "" noprevious
 
-  ReadRegStr $R0 HKCU \
-  "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern" \
-  "UninstallString"
-  StrCmp $R0 "" done
+	DetailPrint "Uninstalling $R0"
+    ClearErrors
+    ExecWait '$R0 /S _?=$INSTDIR' ;Do not copy the uninstaller to a temp file
 
-  ClearErrors
-  ExecWait '$R0 _?=$INSTDIR' ;Do not copy the uninstaller to a temp file
-
+    IfErrors erroruninstalling done
+noprevious:
+	DetailPrint "No previous version to uninstall"
+erroruninstalling:
+	DetailPrint "Error uninstalling previous at $R0"
 done:
-
+	DetailPrint "Successfully uninstalled $R0"
 FunctionEnd
 
 # start default section
