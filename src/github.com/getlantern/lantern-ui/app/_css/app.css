@@ -6939,12 +6939,13 @@ body[dir=rtl] .modal-footer button, body[dir=rtl] .modal-footer a.btn {
   width: 485px;
 }
 #welcomescreen .logos {
-  width: 436px;
+  width: 440px;
   height: 256px;
   margin: 0 auto;
   overflow: hidden;
 }
 #welcomescreen .logos .social-logo {
+  padding: 0 1px;
   display: inline-table;
 }
 #welcomescreen .logos .social-logo .share-button {
