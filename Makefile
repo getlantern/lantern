@@ -235,7 +235,7 @@ require-ruby:
 genassets: docker
 	@echo "Generating assets..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && make docker-genassets' && \
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c "cd /lantern && UPDATE_DIST=$$UPDATE_DIST make docker-genassets" && \
 	git update-index --assume-unchanged src/github.com/getlantern/flashlight/ui/resources.go && \
 	echo "OK"
 
