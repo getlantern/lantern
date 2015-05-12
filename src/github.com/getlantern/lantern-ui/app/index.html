@@ -71,47 +71,51 @@
             </h3>
         </div>
         <div class="modal-body">
-            <div ng-controller="SettingsCtrl" ng-if="!lanternWelcomeKey">
+          <div ng-controller="SettingsCtrl" ng-if="!lanternWelcomeKey">
             <p class="configure_system">
             {{'CONFIGURE_SYSTEM' | translate }}
             </p>
-            <dd id="app-settings" style="padding:45px;">
-            <label class="checkbox">
-                <input type="checkbox" ng-model="model.settings.autoLaunch" focus-on="show"
-                ng-click="changeAutoLaunch(model.settings.autoLaunch)">
-                {{ 'AUTO_START' | translate }}
-            </label>
+            <div id="app-settings">
+              <label class="checkbox">
+                  <input type="checkbox" ng-model="model.settings.autoLaunch" focus-on="show"
+                  ng-click="changeAutoLaunch(model.settings.autoLaunch)">
+                  {{ 'AUTO_START' | translate }}
+              </label>
 
-            <div>
-                <label class="checkbox">
-                    <input type="checkbox" ng-change="changeReporting(model.settings.autoReport)" ng-model="model.settings.autoReport">
-                    {{ 'AUTOREPORT_PROMPT' | translate }}
-                    <a ng-click="openExternal(EXTERNAL_URL.autoReportPrivacy)" class="more-info">
-                        {{ 'MORE_INFO' | translate }}<sup><i class="icon-external-link"></i></sup>
-                    </a>
-                </label>
-            </div>
+              <div>
+                  <label class="checkbox">
+                      <input type="checkbox" ng-change="changeReporting(model.settings.autoReport)" ng-model="model.settings.autoReport">
+                      {{ 'AUTOREPORT_PROMPT' | translate }}
+                      <a ng-click="openExternal(EXTERNAL_URL.autoReportPrivacy)" class="more-info">
+                          {{ 'MORE_INFO' | translate }}<sup><i class="icon-external-link"></i></sup>
+                      </a>
+                  </label>
+              </div>
 
-        <div id="autoreport-warning" ng-show="!model.settings.autoReport">
-          <i class="icon-exclamation-sign"></i>
-          {{ 'NO_AUTOREPORT_WARNING' | translate }}
-        </div>
-      </dd>
+              <div id="autoreport-warning" ng-show="!model.settings.autoReport">
+                <i class="icon-exclamation-sign"></i>
+                {{ 'NO_AUTOREPORT_WARNING' | translate }}
+              </div>
             </div>
-            <div ng-if="lanternWelcomeKey">
-            <p class="now_access">
-            {{ 'NOW_ACCESS' | translate }}
-            </p>
-            <p class="logos">
-            <a href="https://facebook.com" target="_blank"><img src="../img/fb.png"></a>
-            <a href="https://twitter.com" target="_blank"><img src="../img/twitter.png"></a>
-            </p>
+          </div>
+          <div ng-if="lanternWelcomeKey">
+            <p> {{ 'NOW_ACCESS' | translate }} </p>
+            <div class="logos">
+              <div class="social-logo">
+                <a href="https://facebook.com" target="_blank"><img src="../img/fb.png"></a>
+                <div class="share-button">
+                  <div class="fb-share-button" data-href="https://getlantern.org" data-layout="button_count"></div>
+                </div>
+              </div>
+              <div class="social-logo">
+                <a href="https://twitter.com" target="_blank"><img src="../img/twitter.png"></a>
+                <div class="share-button">
+                  <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://getlantern.org" 
+                    data-text="I'm using Lantern -- an app for defeating Internet censorship" data-via="getlantern"></a>
+                </div>
+              </div>
             </div>
-            <div ng-show="lanternWelcomeKey" ng-cloak class="share_section">
-            <div class="fb-share-button" style="padding-left:35px; top:-7px;" data-href="https://getlantern.org" data-layout="button_count"></div>
-            <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://getlantern.org" 
-                data-text="I'm using Lantern -- an app for defeating Internet censorship" data-via="getlantern">Tweet</a>
-            </div>
+          </div>
         </div>
         <div class="modal-footer">
             <button id="continueFromWelcome" 
