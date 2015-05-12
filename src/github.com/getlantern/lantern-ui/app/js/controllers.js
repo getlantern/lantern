@@ -20,7 +20,7 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$htt
             // inject twitter share widget script
             $scope.loadScript('//platform.twitter.com/widgets.js');
             // load FB share script
-            $scope.loadScript('//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.0');
+            $scope.loadScript('//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.3');
         }
     };
 
