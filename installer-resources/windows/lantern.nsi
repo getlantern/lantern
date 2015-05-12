@@ -44,8 +44,6 @@ Section
     IfErrors 0 +2
         Abort "Error stopping previous Lantern version. Please stop it from the system tray and install again."
 
-    DetailPrint "Killing process returned $R0"
-
     # set the installation directory as the destination for the following actions
     SetOutPath $INSTDIR
     SetOverwrite on
@@ -96,17 +94,20 @@ Function UninstallPrevious
 						"UninstallString"
     StrCmp $R0 "" noprevious
 
-	DetailPrint "Uninstalling $R0"
+    DetailPrint "Uninstalling $R0"
     ClearErrors
     ExecWait '$R0 /S _?=$INSTDIR' ;Do not copy the uninstaller to a temp file
 
     IfErrors erroruninstalling done
 noprevious:
 	DetailPrint "No previous version to uninstall"
+        Goto end
 erroruninstalling:
 	DetailPrint "Error uninstalling previous at $R0"
+        Goto end
 done:
 	DetailPrint "Successfully uninstalled $R0"
+end:
 FunctionEnd
 
 # start uninstaller section
