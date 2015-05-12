@@ -6950,6 +6950,7 @@ body[dir=rtl] .modal-footer button, body[dir=rtl] .modal-footer a.btn {
 }
 #welcomescreen .logos .social-logo .share-button {
   display: block;
+  width: 85px;
   height: 30px;
   margin: 0 auto;
   padding-top: 10px;
