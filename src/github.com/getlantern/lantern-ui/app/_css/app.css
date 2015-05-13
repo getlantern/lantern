@@ -6935,6 +6935,28 @@ body[dir=rtl] .modal-footer button, body[dir=rtl] .modal-footer a.btn {
   top: 10%;
 }
 
+#welcomescreen {
+  width: 485px;
+}
+#welcomescreen .logos {
+  width: 440px;
+  height: 256px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+#welcomescreen .logos .social-logo {
+  padding: 0 1px;
+  display: inline-table;
+}
+#welcomescreen .logos .social-logo .share-button {
+  display: block;
+  width: 85px;
+  height: 30px;
+  margin: 0 auto;
+  padding-top: 10px;
+  text-align: center;
+}
+
 #ie-warning {
   z-index: 1052;
   position: absolute;

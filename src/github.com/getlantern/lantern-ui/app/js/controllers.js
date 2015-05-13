@@ -18,9 +18,9 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$htt
     $scope.loadShareScripts = function() {
         if (!$window.twttr) {
             // inject twitter share widget script
-            $scope.loadScript('//platform.twitter.com/widgets.js');
-            // load FB share script
-            $scope.loadScript('//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.0');
+          $scope.loadScript('//platform.twitter.com/widgets.js');
+          // load FB share script
+          $scope.loadScript('//connect.facebook.net/en_US/sdk.js#appId=1562164690714282&xfbml=1&version=v2.3');
         }
     };
 

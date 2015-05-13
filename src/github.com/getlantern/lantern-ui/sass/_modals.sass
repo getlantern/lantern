@@ -17,6 +17,26 @@ body[dir=rtl] .modal-footer
   +single-transition(opacity, 0.3s, ease)
   top: 10% // same as .modal.fade.in
 
+#welcomescreen
+  width: 485px
+  .logos
+    width: 440px
+    height: 256px
+    margin: 0 auto
+    overflow: hidden
+    .social-logo
+      padding: 0 1px
+      display: inline-table
+      .share-button
+        display: block
+        width: 85px
+        height: 30px
+        margin: 0 auto
+        padding-top: 10px
+        text-align: center
+
+// unused below
+
 #ie-warning
   +aboveModal(2)
   +position(0, 0, false, 0)
