@@ -4,7 +4,7 @@ import (
     "github.com/getlantern/flashlight/client"
 )
 
-var fallbacks = map[string]*client.ChainedServerInfo{ {{range .fallbacks}}
+var fallbacks = map[string]*client.ChainedServerInfo{ {{range .fallbacks.default}}
   "fallback-{{.ip}}": &client.ChainedServerInfo{
     Addr:      "{{.ip}}:443",
     Cert:      "{{.cert}}",
