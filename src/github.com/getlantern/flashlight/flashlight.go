@@ -222,6 +222,7 @@ func runClientProxy(cfg *config.Config) {
 		// An *http.Client that uses the highest QOS dialer.
 		hqfdClient := hqfd.DirectHttpClient()
 
+		cfg.SetDirectFronter(hqfdClient)
 		geolookup.Configure(hqfdClient)
 		statserver.Configure(hqfdClient)
 		analytics.Configure(cfg, false, hqfdClient)
@@ -244,6 +245,7 @@ func runClientProxy(cfg *config.Config) {
 				// services.
 				hqfdClient := hqfd.DirectHttpClient()
 
+				cfg.SetDirectFronter(hqfdClient)
 				geolookup.Configure(hqfdClient)
 				statserver.Configure(hqfdClient)
 				settings.Configure(cfg, version, buildDate)
