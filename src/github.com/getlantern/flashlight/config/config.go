@@ -11,13 +11,13 @@ import (
 	"runtime"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/proxiedsites"
-	"github.com/getlantern/waitforserver"
 	"github.com/getlantern/yaml"
 	"github.com/getlantern/yamlconf"
 
@@ -27,7 +27,6 @@ import (
 	"github.com/getlantern/flashlight/pubsub"
 	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/statreporter"
-	"github.com/getlantern/flashlight/util"
 	geo "github.com/getlantern/geolookup"
 )
 
@@ -62,6 +61,9 @@ type Config struct {
 	Client        *client.ClientConfig
 	ProxiedSites  *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
 	TrustedCAs    []*CA
+
+	httpMutex        sync.RWMutex
+	directHttpClient *http.Client
 }
 
 // CA represents a certificate authority
@@ -115,6 +117,8 @@ func Init() (*Config, error) {
 	initial, err := m.Init()
 	var cfg *Config
 	if err == nil {
+		// Wait to start polling for config updates until we get our location so we
+		// can lookup our location-specific config.
 		er := pubsub.Sub(pubsub.Location, func(city *geo.City) {
 			log.Debugf("Got location: %v", city.Country.IsoCode)
 			m.StartPolling()
@@ -188,6 +192,14 @@ func InConfigDir(filename string) (string, error) {
 	}
 
 	return filepath.Join(cdir, filename), nil
+}
+
+// Sets the http client to use for direct domain fronting.
+// TODO: This is ugly. Refactor to make it less so.
+func (cfg *Config) SetDirectFronter(directHttpClient *http.Client) {
+	cfg.httpMutex.Lock()
+	defer cfg.httpMutex.Unlock()
+	cfg.directHttpClient = directHttpClient
 }
 
 // TrustedCACerts returns a slice of PEM-encoded certs for the trusted CAs
@@ -345,41 +357,9 @@ func (cfg Config) cloudPollSleepTime() time.Duration {
 func (cfg Config) fetchCloudConfig() (bytes []byte, err error) {
 	log.Debugf("Fetching cloud config...")
 
-	if cfg.IsDownstream() {
-		// Clients must always proxy the request
-		if cfg.Addr == "" {
-			err = fmt.Errorf("No proxyAddr")
-		} else {
-			bytes, err = cfg.fetchCloudConfigForAddr(cfg.Addr)
-		}
-	} else {
-		bytes, err = cfg.fetchCloudConfigForAddr("")
-	}
-	if err != nil {
-		bytes = nil
-		err = fmt.Errorf("Unable to read yaml from cloud config: %s", err)
-	}
-	return
-}
-
-func (cfg Config) fetchCloudConfigForAddr(proxyAddr string) ([]byte, error) {
-	log.Tracef("fetchCloudConfigForAddr '%s'", proxyAddr)
-
-	if proxyAddr != "" {
-		// Wait for proxy to become available
-		err := waitforserver.WaitForServer("tcp", proxyAddr, 30*time.Second)
-		if err != nil {
-			return nil, fmt.Errorf("Proxy never came up at %v: %v", proxyAddr, err)
-		}
-	}
-
-	client, err := util.HTTPClient(cfg.CloudConfigCA, proxyAddr)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to initialize HTTP client: %s", err)
-	}
 	country := strings.ToLower(geolookup.GetCountry())
 	if country != "" && country != "xx" {
-		ret, err := cfg.fetchCloudConfigForCountry(client, country)
+		ret, err := cfg.fetchCloudConfigForCountry(country)
 		// We could check specifically for a 404, but S3 actually returns a 403 when
 		// a resource is not available.  I thought we'd better lean on the side of
 		// robustness by avoiding hardcoding an S3-ism here, than to try and save an
@@ -390,12 +370,13 @@ func (cfg Config) fetchCloudConfigForAddr(proxyAddr string) ([]byte, error) {
 			log.Debugf("Couldn't fetch cloud config for country '%s'; trying the default one", country)
 		}
 	}
-	return cfg.fetchCloudConfigForCountry(client, "default")
+	return cfg.fetchCloudConfigForCountry("default")
 }
 
-func (cfg Config) fetchCloudConfigForCountry(client *http.Client, country string) ([]byte, error) {
+func (cfg Config) fetchCloudConfigForCountry(country string) ([]byte, error) {
 	url := strings.Replace(cfg.CloudConfig, countryPlaceholder, country, 1)
 	log.Debugf("Checking for cloud configuration at: %s", url)
+
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to construct request for cloud config at %s: %s", url, err)
@@ -410,7 +391,7 @@ func (cfg Config) fetchCloudConfigForCountry(client *http.Client, country string
 	// successive requests
 	req.Close = true
 
-	resp, err := client.Do(req)
+	resp, err := cfg.directHttpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to fetch cloud config at %s: %s", url, err)
 	}

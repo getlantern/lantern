@@ -205,11 +205,7 @@ func (d *dialer) DirectHttpClient() *http.Client {
 	return &http.Client{
 		Transport: &http.Transport{
 			Dial: func(network, addr string) (net.Conn, error) {
-				var masquerade *Masquerade
-				if d.masquerades != nil {
-					masquerade = d.masquerades.nextVerified()
-				}
-				return d.dialServerWith(masquerade)
+				return d.dialServer()
 			},
 		},
 	}
@@ -241,7 +237,7 @@ func (d *dialer) dialServer() (net.Conn, error) {
 func (d *dialer) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
 	dialTimeout := time.Duration(d.DialTimeoutMillis) * time.Millisecond
 	if dialTimeout == 0 {
-		dialTimeout = 20 * time.Second
+		dialTimeout = 60 * time.Second
 	}
 
 	// Note - we need to suppress the sending of the ServerName in the client
