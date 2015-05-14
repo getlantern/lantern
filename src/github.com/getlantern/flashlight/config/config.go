@@ -229,7 +229,7 @@ func (cfg *Config) ApplyDefaults() {
 	}
 
 	if cfg.CloudConfig == "" {
-		cfg.CloudConfig = fmt.Sprintf("https://s3.amazonaws.com/lantern_config/cloud.%v.yaml.gz", countryPlaceholder)
+		cfg.CloudConfig = fmt.Sprintf("https://config.getiantem.org/cloud.%v.yaml.gz", countryPlaceholder)
 	}
 
 	// Make sure we always have a stats config
