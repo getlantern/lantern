@@ -28,20 +28,18 @@ func (c *ClientConfig) SortServers() {
 
 // HighestQOSFrontedDialer returns the fronted.Dialer with the highest QOS.
 func (c *ClientConfig) HighestQOSFrontedDialer() fronted.Dialer {
-	var highestQOSFrontedDialer fronted.Dialer
+	var hqfsi *FrontedServerInfo
 	highestQOS := math.MinInt32
 	for _, s := range c.FrontedServers {
-		// Get a dialer for domain fronting (fd) and a dialer to dial to arbitrary
-		// addreses (dialer).
-		fd, dialer := s.dialer(c.MasqueradeSets)
-		if dialer.QOS > highestQOS {
+		if s.QOS > highestQOS {
 			// If this dialer as a higher QOS than our current highestQOS, set it as
 			// the highestQOSFrontedDialer.
-			highestQOSFrontedDialer = fd
-			highestQOS = dialer.QOS
+			hqfsi = s
+			highestQOS = s.QOS
 		}
 	}
-	return highestQOSFrontedDialer
+	fd, _ := hqfsi.dialer(c.MasqueradeSets)
+	return fd
 }
 
 // ByHost implements sort.Interface for []*ServerInfo based on the host
