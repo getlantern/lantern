@@ -208,6 +208,9 @@ type DirectDomainTransport struct {
 }
 
 func (ddf *DirectDomainTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+	// The connection is already encrypted by domain fronting.  We need to rewrite URLs starting
+	// with "https://" to "http://", lest we get an error for doubling up on TLS.
+
 	// The RoundTrip interface requires that we not modify the memory in the request, so we just
 	// create a new one. Note this currently doesn't support request bodies.
 	normalized := strings.Replace(req.URL.String(), "https", "http", 1)
