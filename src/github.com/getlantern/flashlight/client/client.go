@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/getlantern/balancer"
-	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
 
 	"github.com/getlantern/flashlight/globals"
@@ -48,8 +47,7 @@ type Client struct {
 	rpCh          chan *httputil.ReverseProxy
 	rpInitialized bool
 
-	hqfd fronted.Dialer
-	l    net.Listener
+	l net.Listener
 }
 
 // ListenAndServe makes the client listen for HTTP connections.  onListeningFn
@@ -112,6 +110,5 @@ func (client *Client) Configure(cfg *ClientConfig) {
 // Stop is called when the client is no longer needed. It closes the
 // client listener and underlying dialer connection pool
 func (client *Client) Stop() error {
-	client.hqfd.Close()
 	return client.l.Close()
 }
