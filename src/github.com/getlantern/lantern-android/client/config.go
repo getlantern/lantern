@@ -10,7 +10,6 @@ import (
 	"log"
 	"net/http"
 	"reflect"
-	"time"
 
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/yaml"
