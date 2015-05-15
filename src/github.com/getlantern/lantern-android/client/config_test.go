@@ -11,6 +11,10 @@ func TestConfigDownload(t *testing.T) {
 	lastCloudConfigETag = ""
 
 	client := directHttpClientFromConfig(defaultConfig())
+	if client == nil {
+		t.Fatal("Expected non-nil direct-fronted client")
+	}
+
 	// Pulling first time.
 	if _, err = pullConfigFile(client); err != nil {
 		t.Fatal(err)
