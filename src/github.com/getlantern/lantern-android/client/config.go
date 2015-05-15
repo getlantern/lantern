@@ -127,11 +127,10 @@ func getConfig() (*config, error) {
 
 	defaultCfg := defaultConfig()
 
-	hqfd := defaultCfg.Client.HighestQOSFrontedDialer()
-	if hqfd == nil {
+	hqfdc := directHttpClientFromConfig(defaultCfg)
+	if hqfdc == nil {
 		return defaultCfg, fmt.Errorf("Couldn't create initial fronted dialer")
 	}
-	hqfdc := hqfd.DirectHttpClient()
 
 	var cfg config
 
@@ -145,6 +144,14 @@ func getConfig() (*config, error) {
 	}
 
 	return &cfg, nil
+}
+
+func directHttpClientFromConfig(cfg *config) *http.Client {
+	hqfd := cfg.Client.HighestQOSFrontedDialer()
+	if hqfd == nil {
+		return nil
+	}
+	return hqfd.DirectHttpClient()
 }
 
 func (c *config) updateFrom(buf []byte) error {

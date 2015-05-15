@@ -59,9 +59,7 @@ func NewClient(addr, appName string) *MobileClient {
 
 	client.Configure(clientConfig.Client)
 
-	hqfd := clientConfig.Client.HighestQOSFrontedDialer()
-
-	hqfdc := hqfd.DirectHttpClient()
+	hqfdc := directHttpClientFromConfig(clientConfig)
 
 	// store GA session event
 	sessionPayload := &analytics.Payload{
