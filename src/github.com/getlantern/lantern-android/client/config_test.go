@@ -10,8 +10,7 @@ func TestConfigDownload(t *testing.T) {
 	// Resetting Etag.
 	lastCloudConfigETag = ""
 
-	cfg, _ := getConfig()
-	client := directHttpClientFromConfig(cfg)
+	client := directHttpClientFromConfig(defaultConfig())
 	// Pulling first time.
 	if _, err = pullConfigFile(client); err != nil {
 		t.Fatal(err)
