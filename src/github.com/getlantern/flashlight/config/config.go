@@ -25,6 +25,7 @@ import (
 	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/statreporter"
+	"github.com/getlantern/flashlight/util"
 )
 
 const (
@@ -217,7 +218,7 @@ func (cfg *Config) ApplyDefaults() {
 	}
 
 	if cfg.CloudConfig == "" {
-		cfg.CloudConfig = fmt.Sprintf("https://config.getiantem.org/cloud.%v.yaml.gz", countryPlaceholder)
+		cfg.CloudConfig = fmt.Sprintf("config.getiantem.org/cloud.%v.yaml.gz", countryPlaceholder)
 	}
 
 	// Make sure we always have a stats config
@@ -335,31 +336,35 @@ func (cfg Config) fetchCloudConfig() (bytes []byte, err error) {
 
 	if cfg.IsDownstream() {
 		// Clients must always proxy the request
-		if cfg.Addr == "" {
-			err = fmt.Errorf("No proxyAddr")
-		} else {
-			bytes, err = cfg.fetchCloudConfigForAddr(cfg.Addr)
-		}
+		dialer := cfg.Client.HighestQOSFrontedDialer()
+		// We use direct domain fronting for accessing new configs.
+		client := dialer.DirectHttpClient()
+		// Direct HTTP clients are already using TLS to the domain front, so dialing
+		// a https address would give us an error.
+		bytes, err = cfg.fetchCloudConfigForClient(client, "http")
 	} else {
-		bytes, err = cfg.fetchCloudConfigForAddr("")
+		var client *http.Client
+		// In the server side, we use a direct (non-proxied) client.
+		if client, err = util.HTTPClient(cfg.CloudConfigCA, ""); err == nil {
+			// We need to ask for HTTPS explicitly for these.
+			bytes, err = cfg.fetchCloudConfigForClient(client, "https")
+		} else {
+			err = fmt.Errorf("Unable to initialize HTTP client: %s", err)
+		}
 	}
 	if err != nil {
 		bytes = nil
-		err = fmt.Errorf("Unable to read yaml from cloud config: %s", err)
+		err = fmt.Errorf("Unable to fetch cloud config: %s", err)
 	}
 	return
 }
 
-func (cfg Config) fetchCloudConfigForAddr(proxyAddr string) ([]byte, error) {
-	log.Tracef("fetchCloudConfigForAddr '%s'", proxyAddr)
+func (cfg Config) fetchCloudConfigForClient(client *http.Client, proto string) ([]byte, error) {
+	log.Tracef("fetchCloudConfigForClient(%v, '%s')", client, proto)
 
-	dialer := cfg.Client.HighestQOSFrontedDialer()
-
-	// We use direct domain fronting for accessing new configs.
-	client := dialer.DirectHttpClient()
 	country := strings.ToLower(geolookup.GetCountry())
 	if country != "" && country != "xx" {
-		ret, err := cfg.fetchCloudConfigForCountry(client, country)
+		ret, err := cfg.fetchCloudConfigForCountry(client, proto, country)
 		// We could check specifically for a 404, but S3 actually returns a 403 when
 		// a resource is not available.  I thought we'd better lean on the side of
 		// robustness by avoiding hardcoding an S3-ism here, than to try and save an
@@ -370,11 +375,17 @@ func (cfg Config) fetchCloudConfigForAddr(proxyAddr string) ([]byte, error) {
 			log.Debugf("Couldn't fetch cloud config for country '%s'; trying the default one", country)
 		}
 	}
-	return cfg.fetchCloudConfigForCountry(client, "default")
+	return cfg.fetchCloudConfigForCountry(client, proto, "default")
 }
 
-func (cfg Config) fetchCloudConfigForCountry(client *http.Client, country string) ([]byte, error) {
-	url := strings.Replace(cfg.CloudConfig, countryPlaceholder, country, 1)
+func (cfg Config) fetchCloudConfigForCountry(client *http.Client, proto string, country string) ([]byte, error) {
+	tmpl := cfg.CloudConfig
+	if strings.Contains(tmpl, "://") {
+		// Backwards compatibility: cfg.CloudConfig used to include the protocol.
+		// That's in the lantern.yaml of users and even in some uploaded cloud configs.
+		tmpl = strings.Split(tmpl, "://")[1]
+	}
+	url := proto + "://" + strings.Replace(tmpl, countryPlaceholder, country, 1)
 	log.Debugf("Checking for cloud configuration at: %s", url)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
