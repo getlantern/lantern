@@ -213,7 +213,7 @@ func (ddf *DirectDomainTransport) RoundTrip(req *http.Request) (resp *http.Respo
 
 	// The RoundTrip interface requires that we not modify the memory in the request, so we just
 	// create a new one. Note this currently doesn't support request bodies.
-	normalized := strings.Replace(req.URL.String(), "https", "http", 1)
+	normalized := replacePrefix(req.URL.String(), "https://", "http://")
 	norm, err := http.NewRequest(req.Method, normalized, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to construct request for url '%s' with error '%v'", normalized, err)
@@ -374,4 +374,12 @@ func (d *dialer) tlsConfig(masquerade *Masquerade) *tls.Config {
 	}
 
 	return tlsConfig
+}
+
+func replacePrefix(s string, old string, new string) string {
+	if strings.HasPrefix(s, old) {
+		return new + strings.TrimPrefix(s, old)
+	} else {
+		return s
+	}
 }
