@@ -150,7 +150,7 @@ func directHttpClientFromConfig(cfg *config) *http.Client {
 	if hqfd == nil {
 		return nil
 	}
-	return hqfd.DirectHttpClient()
+	return hqfd.NewDirectDomainFronter()
 }
 
 func (c *config) updateFrom(buf []byte) error {
