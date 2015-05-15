@@ -46,15 +46,11 @@ type Dialer interface {
 	// specified Masquerade.
 	HttpClientUsing(masquerade *Masquerade) *http.Client
 
-	// DirectHttpClient creates an HttpClient that domain-fronts but instead of
+	// NewDirectDomainFronter creates an HttpClient that domain-fronts but instead of
 	// using enproxy proxies routes to the destination server directly from the
 	// CDN. This is useful for web properties registered on the CDN itself, for
 	// example geo.getiantem.org.
-	//
-	// Note - the connection is already encrypted by domain-fronting, so this
-	// client should only be used to make HTTP requests. Using it for HTTPS
-	// requests will result in an error.
-	DirectHttpClient() *http.Client
+	NewDirectDomainFronter() *http.Client
 }
 
 // Config captures the configuration of a domain-fronted dialer.
@@ -201,11 +197,36 @@ func (d *dialer) HttpClientUsing(masquerade *Masquerade) *http.Client {
 	}
 }
 
-func (d *dialer) DirectHttpClient() *http.Client {
+/*
+type DirectDomainFronter struct {
+	client *http.Client
+}
+*/
+
+type DirectDomainTransport struct {
+	orig *http.Transport
+}
+
+func (ddf *DirectDomainTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+	// The RoundTrip interface requires that we not modify the memory in the request, so we just
+	// create a new one. Note this currently doesn't support request bodies.
+	normalized := strings.Replace(req.URL.String(), "https", "http", 1)
+	norm, err := http.NewRequest(req.Method, normalized, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to construct request for url '%s' with error '%v'", normalized, err)
+	}
+	return ddf.orig.RoundTrip(norm)
+}
+
+// Creates a new http.Client that does direct domain fronting.
+func (d *dialer) NewDirectDomainFronter() *http.Client {
 	return &http.Client{
-		Transport: &http.Transport{
-			Dial: func(network, addr string) (net.Conn, error) {
-				return d.dialServer()
+		Transport: &DirectDomainTransport{
+			orig: &http.Transport{
+				Dial: func(network, addr string) (net.Conn, error) {
+					log.Debugf("Dialing server with direct domain fronter")
+					return d.dialServer()
+				},
 			},
 		},
 	}
@@ -237,7 +258,7 @@ func (d *dialer) dialServer() (net.Conn, error) {
 func (d *dialer) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
 	dialTimeout := time.Duration(d.DialTimeoutMillis) * time.Millisecond
 	if dialTimeout == 0 {
-		dialTimeout = 20 * time.Second
+		dialTimeout = 30 * time.Second
 	}
 
 	// Note - we need to suppress the sending of the ServerName in the client

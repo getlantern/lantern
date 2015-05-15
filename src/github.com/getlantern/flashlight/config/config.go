@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"sort"
-	"strings"
 	"time"
 
 	"github.com/getlantern/appdir"
@@ -21,7 +20,6 @@ import (
 	"github.com/getlantern/yamlconf"
 
 	"github.com/getlantern/flashlight/client"
-	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/statreporter"
@@ -33,7 +31,6 @@ const (
 	cloudflare              = "cloudflare"
 	etag                    = "ETag"
 	ifNoneMatch             = "If-None-Match"
-	countryPlaceholder      = "${COUNTRY}"
 )
 
 var (
@@ -218,7 +215,7 @@ func (cfg *Config) ApplyDefaults() {
 	}
 
 	if cfg.CloudConfig == "" {
-		cfg.CloudConfig = fmt.Sprintf("config.getiantem.org/cloud.%v.yaml.gz", countryPlaceholder)
+		cfg.CloudConfig = fmt.Sprintf("https://config.getiantem.org/cloud.yaml.gz")
 	}
 
 	// Make sure we always have a stats config
@@ -338,16 +335,14 @@ func (cfg Config) fetchCloudConfig() (bytes []byte, err error) {
 		// Clients must always proxy the request
 		dialer := cfg.Client.HighestQOSFrontedDialer()
 		// We use direct domain fronting for accessing new configs.
-		client := dialer.DirectHttpClient()
-		// Direct HTTP clients are already using TLS to the domain front, so dialing
-		// a https address would give us an error.
-		bytes, err = cfg.fetchCloudConfigForClient(client, "http")
+		client := dialer.NewDirectDomainFronter()
+		bytes, err = cfg.fetchCloudConfigForClient(client)
 	} else {
 		var client *http.Client
 		// In the server side, we use a direct (non-proxied) client.
 		if client, err = util.HTTPClient(cfg.CloudConfigCA, ""); err == nil {
 			// We need to ask for HTTPS explicitly for these.
-			bytes, err = cfg.fetchCloudConfigForClient(client, "https")
+			bytes, err = cfg.fetchCloudConfigForClient(client)
 		} else {
 			err = fmt.Errorf("Unable to initialize HTTP client: %s", err)
 		}
@@ -359,33 +354,9 @@ func (cfg Config) fetchCloudConfig() (bytes []byte, err error) {
 	return
 }
 
-func (cfg Config) fetchCloudConfigForClient(client *http.Client, proto string) ([]byte, error) {
-	log.Tracef("fetchCloudConfigForClient(%v, '%s')", client, proto)
-
-	country := strings.ToLower(geolookup.GetCountry())
-	if country != "" && country != "xx" {
-		ret, err := cfg.fetchCloudConfigForCountry(client, proto, country)
-		// We could check specifically for a 404, but S3 actually returns a 403 when
-		// a resource is not available.  I thought we'd better lean on the side of
-		// robustness by avoiding hardcoding an S3-ism here, than to try and save an
-		// extra request every now and then.
-		if err == nil {
-			return ret, err
-		} else {
-			log.Debugf("Couldn't fetch cloud config for country '%s'; trying the default one", country)
-		}
-	}
-	return cfg.fetchCloudConfigForCountry(client, proto, "default")
-}
-
-func (cfg Config) fetchCloudConfigForCountry(client *http.Client, proto string, country string) ([]byte, error) {
-	tmpl := cfg.CloudConfig
-	if strings.Contains(tmpl, "://") {
-		// Backwards compatibility: cfg.CloudConfig used to include the protocol.
-		// That's in the lantern.yaml of users and even in some uploaded cloud configs.
-		tmpl = strings.Split(tmpl, "://")[1]
-	}
-	url := proto + "://" + strings.Replace(tmpl, countryPlaceholder, country, 1)
+func (cfg Config) fetchCloudConfigForClient(client *http.Client) ([]byte, error) {
+	log.Tracef("fetchCloudConfigForClient(%v)", client)
+	url := cfg.CloudConfig
 	log.Debugf("Checking for cloud configuration at: %s", url)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -419,7 +390,11 @@ func (cfg Config) fetchCloudConfigForCountry(client *http.Client, proto string, 
 	if err != nil {
 		return nil, fmt.Errorf("Unable to open gzip reader: %s", err)
 	}
-	return ioutil.ReadAll(gzReader)
+
+	downloaded, readErr := ioutil.ReadAll(gzReader)
+
+	log.Debugf("Fetched config: %v", string(downloaded))
+	return downloaded, readErr
 }
 
 // updateFrom creates a new Config by 'merging' the given yaml into this Config.
