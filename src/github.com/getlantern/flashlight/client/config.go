@@ -1,6 +1,7 @@
 package client
 
 import (
+	"math"
 	"sort"
 	"time"
 
@@ -23,6 +24,24 @@ type ClientConfig struct {
 // SortServers sorts the Servers array in place, ordered by host
 func (c *ClientConfig) SortServers() {
 	sort.Sort(ByHost(c.FrontedServers))
+}
+
+// HighestQOSFrontedDialer returns the fronted.Dialer with the highest QOS.
+func (c *ClientConfig) HighestQOSFrontedDialer() fronted.Dialer {
+	var highestQOSFrontedDialer fronted.Dialer
+	highestQOS := math.MinInt32
+	for _, s := range c.FrontedServers {
+		// Get a dialer for domain fronting (fd) and a dialer to dial to arbitrary
+		// addreses (dialer).
+		fd, dialer := s.dialer(c.MasqueradeSets)
+		if dialer.QOS > highestQOS {
+			// If this dialer as a higher QOS than our current highestQOS, set it as
+			// the highestQOSFrontedDialer.
+			highestQOSFrontedDialer = fd
+			highestQOS = dialer.QOS
+		}
+	}
+	return highestQOSFrontedDialer
 }
 
 // ByHost implements sort.Interface for []*ServerInfo based on the host

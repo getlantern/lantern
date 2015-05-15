@@ -26,8 +26,8 @@ type Config interface {
 
 // Manager exposes a facility for managing configuration a YAML configuration
 // file. After creating a Manager, one must call the Init() method to start the
-// necessary background processing.  If you set a CustomPoll function, you need
-// to call StartPolling() also.
+// necessary background processing.  If you set a CustomPoll function, Init will
+// also start calling that periodically.
 //
 // As the configuration is updated, the updated version of the config is made
 // available via the Next() method. Configs are always copied, never updated in
@@ -199,11 +199,12 @@ func (m *Manager) Init() (Config, error) {
 		}
 	}
 
+	m.startPolling()
 	return m.getCfg(), nil
 }
 
-// StartPolling starts polling if there is a custom polling function defined.
-func (m *Manager) StartPolling() {
+// startPolling starts polling if there is a custom polling function defined.
+func (m *Manager) startPolling() {
 	if m.CustomPoll != nil {
 		go m.once.Do(func() { m.processCustomPolling() })
 	}

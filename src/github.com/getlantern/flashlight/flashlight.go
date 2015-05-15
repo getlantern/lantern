@@ -196,8 +196,7 @@ func runClientProxy(cfg *config.Config) {
 		WriteTimeout: 0,
 	}
 
-	// Update client configuration and get the highest QOS dialer available.
-	hqfd := client.Configure(cfg.Client)
+	client.Configure(cfg.Client)
 
 	// Start user interface.
 	if cfg.UIAddr != "" {
@@ -216,6 +215,7 @@ func runClientProxy(cfg *config.Config) {
 	settings.Configure(cfg, version, buildDate)
 	proxiedsites.Configure(cfg.ProxiedSites)
 
+	hqfd := cfg.Client.HighestQOSFrontedDialer()
 	if hqfd == nil {
 		log.Errorf("No fronted dialer available, not enabling geolocation, stats or analytics")
 	} else {
@@ -236,7 +236,9 @@ func runClientProxy(cfg *config.Config) {
 			// Note - we deliberately ignore the error from statreporter.Configure here
 			statreporter.Configure(cfg.Stats)
 
-			hqfd = client.Configure(cfg.Client)
+			client.Configure(cfg.Client)
+
+			hqfd = cfg.Client.HighestQOSFrontedDialer()
 
 			if hqfd != nil {
 				// Create and pass the *http.Client that uses the highest QOS dialer to

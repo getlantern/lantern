@@ -79,9 +79,8 @@ func (client *Client) ListenAndServe(onListeningFn func()) error {
 }
 
 // Configure updates the client's configuration.  Configure can be called
-// before or after ListenAndServe, and can be called multiple times.  It
-// returns the highest QOS fronted.Dialer available, or nil if none available.
-func (client *Client) Configure(cfg *ClientConfig) fronted.Dialer {
+// before or after ListenAndServe, and can be called multiple times.
+func (client *Client) Configure(cfg *ClientConfig) {
 	client.cfgMutex.Lock()
 	defer client.cfgMutex.Unlock()
 
@@ -90,7 +89,7 @@ func (client *Client) Configure(cfg *ClientConfig) fronted.Dialer {
 	if client.priorCfg != nil && client.priorTrustedCAs != nil {
 		if reflect.DeepEqual(client.priorCfg, cfg) && reflect.DeepEqual(client.priorTrustedCAs, globals.TrustedCAs) {
 			log.Debugf("Client configuration unchanged")
-			return client.hqfd
+			return
 		}
 		log.Debugf("Client configuration changed")
 	} else {
@@ -101,15 +100,13 @@ func (client *Client) Configure(cfg *ClientConfig) fronted.Dialer {
 	client.MinQOS = cfg.MinQOS
 
 	var bal *balancer.Balancer
-	bal, client.hqfd = client.initBalancer(cfg)
+	bal = client.initBalancer(cfg)
 
 	client.initReverseProxy(bal, cfg.DumpHeaders)
 
 	client.priorCfg = cfg
 	client.priorTrustedCAs = &x509.CertPool{}
 	*client.priorTrustedCAs = *globals.TrustedCAs
-
-	return client.hqfd
 }
 
 // Stop is called when the client is no longer needed. It closes the

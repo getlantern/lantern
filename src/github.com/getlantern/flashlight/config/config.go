@@ -17,18 +17,14 @@ import (
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/proxiedsites"
-	"github.com/getlantern/waitforserver"
 	"github.com/getlantern/yaml"
 	"github.com/getlantern/yamlconf"
 
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/globals"
-	"github.com/getlantern/flashlight/pubsub"
 	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/statreporter"
-	"github.com/getlantern/flashlight/util"
-	geo "github.com/getlantern/geolookup"
 )
 
 const (
@@ -115,14 +111,6 @@ func Init() (*Config, error) {
 	initial, err := m.Init()
 	var cfg *Config
 	if err == nil {
-		er := pubsub.Sub(pubsub.Location, func(city *geo.City) {
-			log.Debugf("Got location: %v", city.Country.IsoCode)
-			m.StartPolling()
-		})
-		if er != nil {
-			log.Errorf("Error subscribing to location: %v", er)
-			return nil, er
-		}
 		cfg = initial.(*Config)
 		err = updateGlobals(cfg)
 		if err != nil {
@@ -365,18 +353,10 @@ func (cfg Config) fetchCloudConfig() (bytes []byte, err error) {
 func (cfg Config) fetchCloudConfigForAddr(proxyAddr string) ([]byte, error) {
 	log.Tracef("fetchCloudConfigForAddr '%s'", proxyAddr)
 
-	if proxyAddr != "" {
-		// Wait for proxy to become available
-		err := waitforserver.WaitForServer("tcp", proxyAddr, 30*time.Second)
-		if err != nil {
-			return nil, fmt.Errorf("Proxy never came up at %v: %v", proxyAddr, err)
-		}
-	}
+	dialer := cfg.Client.HighestQOSFrontedDialer()
 
-	client, err := util.HTTPClient(cfg.CloudConfigCA, proxyAddr)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to initialize HTTP client: %s", err)
-	}
+	// We use direct domain fronting for accessing new configs.
+	client := dialer.DirectHttpClient()
 	country := strings.ToLower(geolookup.GetCountry())
 	if country != "" && country != "xx" {
 		ret, err := cfg.fetchCloudConfigForCountry(client, country)
