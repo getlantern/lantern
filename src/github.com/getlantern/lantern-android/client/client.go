@@ -57,7 +57,9 @@ func NewClient(addr, appName string) *MobileClient {
 		log.Fatalf("Unable to configure trusted CAs: %s", err)
 	}
 
-	hqfd := client.Configure(clientConfig.Client)
+	client.Configure(clientConfig.Client)
+
+	hqfd := clientConfig.Client.HighestQOSFrontedDialer()
 
 	hqfdc := hqfd.DirectHttpClient()
 
