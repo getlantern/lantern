@@ -43,9 +43,8 @@ var (
 
 const (
 	cloudConfigCA = ``
-	// URL of the configuration file.  It is plain HTTP because we're using direct
-	// domain fronting to fetch it.
-	remoteConfigURL = `http://config.getiantem.org/cloud.default.yaml.gz`
+	// URL of the configuration file.
+	remoteConfigURL = `https://config.getiantem.org/cloud.yaml.gz`
 )
 
 // pullConfigFile attempts to retrieve a configuration file over the network,
