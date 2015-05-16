@@ -93,22 +93,45 @@ func _main() {
 	os.Exit(0)
 }
 
-type clientWithCloseThunk struct {
-	client *http.Client
-	close  func()
-}
+// The following are mostly meant to
+//   (i)   keep track of directly fronted Dialers, closing them when they
+//         get superseded by a config update.
+//   (ii)  avoid creating more Dialers than needed (one per config update).
+//   (iii) make these dialers available to the config custom poll, without
+//         introducing globals.
+//   (iv)  present a uniform interface in the server side, currently for
+//         the benefit of the config custom poll.
+//
+// Thus, most of the functionality is meant for the client side, and we
+// use mostly placeholders in the server side.  Because of this and for
+// agility of exposition, the comments below refer to the client side.
 
-type clientMaker struct {
-	make  func() clientWithCloseThunk
+type clientWithCloseThunk struct {
+	// A particular reference to the directly fronted http.Client (aka fronter).
+	client *http.Client
+	// Placeholder for any cleanup required when this reference is no longer
+	// needed.  We keep track of currently used references with a WaitGroup,
+	// and we use this function to signal we're Done() with this one.
 	close func()
 }
 
+type clientMaker struct {
+	// Generates structures like the one above.  A closure over a fronted.Dialer.
+	make func() clientWithCloseThunk
+	// Placeholder for any cleanup required when this clientMaker is no longer
+	// current because we have got a new one (by a config update).
+	close func()
+}
+
+// To synchronize access to the current clientMaker.  Used as a promise that
+// can be updated.
 type makerChan chan clientMaker
 
 func newMakerChan() makerChan {
 	return make(chan clientMaker, 1)
 }
 
+// Returns the old one, if any.
 func (ch makerChan) updateMaker(c clientMaker) (ret clientMaker) {
 	select {
 	case ret = <-ch:
@@ -124,6 +147,19 @@ func (ch makerChan) getMaker() clientMaker {
 	return ret
 }
 
+// Creates a "context" function that takes care of all the bookkeeping involved
+// in making sure Dialers are kept only for as long as needed and closed as soon as
+// nobody is using them-- but no sooner.
+//
+// The function returned by this call is meant to be used like this:
+//
+// withClient(func(c *http.Client) {
+//    ... use `c` here ...
+// })
+//
+// No explicit cleanup is required in the body where `c` is used, but `c` should
+// never be used after the body has returned.  So don't assign `c` to variables
+// or data structures outside the body, don't use it inside a goroutine, etc.
 func (ch makerChan) makeWithClient() func(func(*http.Client)) {
 	return func(f func(*http.Client)) {
 		cc := ch.getMaker().make()
