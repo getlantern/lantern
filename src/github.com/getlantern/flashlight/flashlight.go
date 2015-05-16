@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"reflect"
 	"runtime"
 	"strings"
 	"sync"
@@ -267,8 +268,11 @@ func runClientProxy(cfg *config.Config, mch makerChan) {
 
 	// Continually poll for config updates and update client accordingly
 	go func() {
+		var cfg *config.Config
+		var oldCfg *config.Config
 		for {
-			cfg := <-configUpdates
+			oldCfg = cfg
+			cfg = <-configUpdates
 
 			proxiedsites.Configure(cfg.ProxiedSites)
 			// Note - we deliberately ignore the error from statreporter.Configure here
@@ -276,8 +280,12 @@ func runClientProxy(cfg *config.Config, mch makerChan) {
 
 			client.Configure(cfg.Client)
 
-			updateClientDirectFronter(cfg, mch)
-
+			// These are the only things in the config that affect the direct fronter.
+			// XXX: wrt fronted servers, we only really care if the one with highest QOS
+			// is still the same one.
+			if oldCfg == nil || !(reflect.DeepEqual(oldCfg.Client.FrontedServers, cfg.Client.FrontedServers) && reflect.DeepEqual(oldCfg.Client.MasqueradeSets, cfg.Client.MasqueradeSets)) {
+				updateClientDirectFronter(cfg, mch)
+			}
 			settings.Configure(cfg, version, buildDate)
 			logging.Configure(cfg, version, buildDate)
 			autoupdate.Configure(cfg)
