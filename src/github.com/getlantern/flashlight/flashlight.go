@@ -302,6 +302,7 @@ func runClientProxy(cfg *config.Config, mch makerChan) {
 }
 
 func updateClientDirectFronter(cfg *config.Config, mch makerChan) {
+	log.Debug("Updating client direct fronter")
 	hqfd := cfg.Client.HighestQOSFrontedDialer()
 	if hqfd == nil {
 		log.Errorf("No fronted dialer available, not enabling geolocation, stats or analytics")
@@ -310,7 +311,7 @@ func updateClientDirectFronter(cfg *config.Config, mch makerChan) {
 	// An *http.Client that uses the highest QOS dialer.
 	hqfdClient := hqfd.NewDirectDomainFronter()
 	wg := sync.WaitGroup{}
-	mch.updateMaker(
+	old := mch.updateMaker(
 		clientMaker{
 			make: func() clientWithCloseThunk {
 				wg.Add(1)
@@ -323,6 +324,10 @@ func updateClientDirectFronter(cfg *config.Config, mch makerChan) {
 				wg.Wait()
 				hqfd.Close()
 			}})
+	if old.close != nil {
+		log.Debug("Closing old dialer")
+		go old.close()
+	}
 }
 
 // Runs the server-side proxy
