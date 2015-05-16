@@ -25,9 +25,11 @@ var (
 )
 
 func Configure(cfg *config.Config, serverSession bool, wc func(func(*http.Client))) {
-
-	withClient = wc
-
+	if wc == nil {
+		withClient = func(f func(*http.Client)) { f(nil) }
+	} else {
+		withClient = wc
+	}
 	sessionPayload := &analytics.Payload{
 		HitType: analytics.EventType,
 		Event: &analytics.Event{
