@@ -232,7 +232,7 @@ func TestAll(t *testing.T) {
 	// Test failure
 	b = New(dialer4, dialer4)
 	_, err = b.Dial("tcp", addr)
-	assert.NoError(t, err, "Dialing should have failed")
+	assert.NoError(t, err, "Dialing should have succeeded as we have 2nd try")
 	assert.Equal(t, 2, atomic.LoadInt32(&d4attempts), "Wrong number of dial attempts on failed dialer")
 
 	// Test success after successful retest using default check
