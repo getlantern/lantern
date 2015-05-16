@@ -52,12 +52,15 @@ var (
 
 type dialer struct {
 	*Dialer
-	active int32
-	errCh  chan time.Time
+	active  int32
+	closeCh chan interface{}
+	errCh   chan time.Time
 }
 
 func (d *dialer) start() {
 	d.active = 1
+	// to avoid blocking sender, make it buffered
+	d.closeCh = make(chan interface{}, 1)
 	d.errCh = make(chan time.Time, 1)
 	if d.Check == nil {
 		d.Check = d.defaultCheck
@@ -80,14 +83,13 @@ func (d *dialer) start() {
 				log.Tracef("Mark dialer %s as active", d.Label)
 			}
 			select {
-			case t, ok := <-d.errCh:
-				if !ok {
-					log.Tracef("Dialer %s stopped", d.Label)
-					if d.OnClose != nil {
-						d.OnClose()
-					}
-					return
+			case <-d.closeCh:
+				log.Tracef("Dialer %s stopped", d.Label)
+				if d.OnClose != nil {
+					d.OnClose()
 				}
+				return
+			case t := <-d.errCh:
 				lastFailed = t
 			case <-timer.C:
 				ok := d.Check()
@@ -116,7 +118,7 @@ func (d *dialer) onError(err error) {
 }
 
 func (d *dialer) stop() {
-	close(d.errCh)
+	d.closeCh <- nil
 }
 
 func (d *dialer) defaultCheck() bool {
