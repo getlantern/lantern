@@ -272,43 +272,19 @@ var (
 )
 
 type failingConn struct {
-	conn         net.Conn
+	net.Conn
 	bytesRead    int
 	bytesWritten int
 }
 
 func (c *failingConn) Read(b []byte) (n int, err error) {
-	n, err = c.conn.Read(b[:c.bytesRead])
+	n, err = c.Conn.Read(b[:c.bytesRead])
 	err = failed
 	return
 }
 
 func (c *failingConn) Write(b []byte) (n int, err error) {
-	n, err = c.conn.Write(b[:c.bytesWritten])
+	n, err = c.Conn.Write(b[:c.bytesWritten])
 	err = failed
 	return
-}
-
-func (c *failingConn) LocalAddr() net.Addr {
-	return c.conn.LocalAddr()
-}
-
-func (c *failingConn) RemoteAddr() net.Addr {
-	return c.conn.RemoteAddr()
-}
-
-func (c *failingConn) SetDeadline(t time.Time) error {
-	return c.conn.SetDeadline(t)
-}
-
-func (c *failingConn) SetReadDeadline(t time.Time) error {
-	return c.conn.SetReadDeadline(t)
-}
-
-func (c *failingConn) SetWriteDeadline(t time.Time) error {
-	return c.conn.SetWriteDeadline(t)
-}
-
-func (c *failingConn) Close() error {
-	return c.conn.Close()
 }
