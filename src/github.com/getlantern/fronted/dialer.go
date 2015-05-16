@@ -221,6 +221,14 @@ func (ddf *DirectDomainTransport) RoundTrip(req *http.Request) (resp *http.Respo
 	return ddf.orig.RoundTrip(norm)
 }
 
+func (ddf *DirectDomainTransport) CancelRequest(req *http.Request) {
+	ddf.orig.CancelRequest(req)
+}
+
+func (ddf *DirectDomainTransport) CloseIdleConnections() {
+	ddf.orig.CloseIdleConnections()
+}
+
 // Creates a new http.Client that does direct domain fronting.
 func (d *dialer) NewDirectDomainFronter() *http.Client {
 	return &http.Client{
