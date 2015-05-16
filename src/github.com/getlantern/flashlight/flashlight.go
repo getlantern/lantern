@@ -5,9 +5,11 @@ import (
 	"flag"
 	"fmt"
 	"math/rand"
+	"net/http"
 	"os"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/getlantern/fronted"
@@ -27,6 +29,7 @@ import (
 	"github.com/getlantern/flashlight/statreporter"
 	"github.com/getlantern/flashlight/statserver"
 	"github.com/getlantern/flashlight/ui"
+	"github.com/getlantern/flashlight/util"
 )
 
 var (
@@ -89,6 +92,45 @@ func _main() {
 	os.Exit(0)
 }
 
+type clientWithCloseThunk struct {
+	client *http.Client
+	close  func()
+}
+
+type clientMaker struct {
+	make  func() clientWithCloseThunk
+	close func()
+}
+
+type makerChan chan clientMaker
+
+func newMakerChan() makerChan {
+	return make(chan clientMaker, 1)
+}
+
+func (ch makerChan) updateMaker(c clientMaker) (ret clientMaker) {
+	select {
+	case ret = <-ch:
+	default:
+	}
+	ch <- c
+	return ret
+}
+
+func (ch makerChan) getMaker() clientMaker {
+	ret := <-ch
+	ch <- ret
+	return ret
+}
+
+func (ch makerChan) makeWithClient() func(func(*http.Client)) {
+	return func(f func(*http.Client)) {
+		cc := ch.getMaker().make()
+		defer cc.close()
+		f(cc.client)
+	}
+}
+
 func doMain() error {
 	err := logging.Init()
 	if err != nil {
@@ -111,7 +153,9 @@ func doMain() error {
 
 	parseFlags()
 
-	cfg, err := config.Init()
+	mch := newMakerChan()
+
+	cfg, err := config.Init(mch.makeWithClient())
 	if err != nil {
 		return fmt.Errorf("Unable to initialize configuration: %v", err)
 	}
@@ -140,9 +184,9 @@ func doMain() error {
 	log.Debug("Running proxy")
 	if cfg.IsDownstream() {
 		// This will open a proxy on the address and port given by -addr
-		runClientProxy(cfg)
+		runClientProxy(cfg, mch)
 	} else {
-		runServerProxy(cfg)
+		runServerProxy(cfg, mch)
 	}
 
 	return waitForExit()
@@ -179,7 +223,7 @@ func parseFlags() {
 }
 
 // runClientProxy runs the client-side (get mode) proxy.
-func runClientProxy(cfg *config.Config) {
+func runClientProxy(cfg *config.Config, mch makerChan) {
 	var err error
 
 	// Set Lantern as system proxy by creating and using a PAC file.
@@ -215,17 +259,11 @@ func runClientProxy(cfg *config.Config) {
 	settings.Configure(cfg, version, buildDate)
 	proxiedsites.Configure(cfg.ProxiedSites)
 
-	hqfd := cfg.Client.HighestQOSFrontedDialer()
-	if hqfd == nil {
-		log.Errorf("No fronted dialer available, not enabling geolocation, stats or analytics")
-	} else {
-		// An *http.Client that uses the highest QOS dialer.
-		hqfdClient := hqfd.NewDirectDomainFronter()
-
-		geolookup.Configure(hqfdClient)
-		statserver.Configure(hqfdClient)
-		analytics.Configure(cfg, false, hqfdClient)
-	}
+	updateClientDirectFronter(cfg, mch)
+	wdc := mch.makeWithClient()
+	geolookup.Configure(wdc)
+	statserver.Configure(wdc)
+	analytics.Configure(cfg, false, wdc)
 
 	// Continually poll for config updates and update client accordingly
 	go func() {
@@ -238,20 +276,11 @@ func runClientProxy(cfg *config.Config) {
 
 			client.Configure(cfg.Client)
 
-			hqfd = cfg.Client.HighestQOSFrontedDialer()
+			updateClientDirectFronter(cfg, mch)
 
-			if hqfd != nil {
-				// Create and pass the *http.Client that uses the highest QOS dialer to
-				// critical modules that require continual comunication with external
-				// services.
-				hqfdClient := hqfd.NewDirectDomainFronter()
-
-				geolookup.Configure(hqfdClient)
-				statserver.Configure(hqfdClient)
-				settings.Configure(cfg, version, buildDate)
-				logging.Configure(cfg, version, buildDate)
-				autoupdate.Configure(cfg)
-			}
+			settings.Configure(cfg, version, buildDate)
+			logging.Configure(cfg, version, buildDate)
+			autoupdate.Configure(cfg)
 		}
 	}()
 
@@ -264,10 +293,35 @@ func runClientProxy(cfg *config.Config) {
 	}()
 }
 
+func updateClientDirectFronter(cfg *config.Config, mch makerChan) {
+	hqfd := cfg.Client.HighestQOSFrontedDialer()
+	if hqfd == nil {
+		log.Errorf("No fronted dialer available, not enabling geolocation, stats or analytics")
+		return
+	}
+	// An *http.Client that uses the highest QOS dialer.
+	hqfdClient := hqfd.NewDirectDomainFronter()
+	wg := sync.WaitGroup{}
+	mch.updateMaker(
+		clientMaker{
+			make: func() clientWithCloseThunk {
+				wg.Add(1)
+				return clientWithCloseThunk{
+					client: hqfdClient,
+					close:  wg.Done,
+				}
+			},
+			close: func() {
+				wg.Wait()
+				hqfd.Close()
+			}})
+}
+
 // Runs the server-side proxy
-func runServerProxy(cfg *config.Config) {
+func runServerProxy(cfg *config.Config, mch makerChan) {
 	useAllCores()
 
+	updateServerConfigClient(cfg, mch)
 	pkFile, err := config.InConfigDir("proxypk.pem")
 	if err != nil {
 		log.Fatal(err)
@@ -296,13 +350,17 @@ func runServerProxy(cfg *config.Config) {
 	analytics.Configure(cfg, true, nil)
 
 	// Continually poll for config updates and update server accordingly
-	go func() {
+	go func(oldca string) {
 		for {
 			cfg := <-configUpdates
+			if cfg.CloudConfigCA != oldca {
+				updateServerConfigClient(cfg, mch)
+				oldca = cfg.CloudConfigCA
+			}
 			statreporter.Configure(cfg.Stats)
 			srv.Configure(cfg.Server)
 		}
-	}()
+	}(cfg.CloudConfigCA)
 
 	err = srv.ListenAndServe(func(update func(*server.ServerConfig) error) {
 		err := config.Update(func(cfg *config.Config) error {
@@ -315,6 +373,24 @@ func runServerProxy(cfg *config.Config) {
 	if err != nil {
 		log.Fatalf("Unable to run server proxy: %s", err)
 	}
+}
+
+func updateServerConfigClient(cfg *config.Config, mch makerChan) {
+	client, err := util.HTTPClient(cfg.CloudConfigCA, "")
+	if err != nil {
+		log.Errorf("Couldn't create http.Client for fetching the config")
+		return
+	}
+	doNothing := func() {}
+	ret := clientWithCloseThunk{
+		client: client,
+		close:  doNothing,
+	}
+	mch.updateMaker(
+		clientMaker{
+			make:  func() clientWithCloseThunk { return ret },
+			close: doNothing,
+		})
 }
 
 func useAllCores() {

@@ -19,14 +19,14 @@ const (
 var (
 	log        = golog.LoggerFor("flashlight.analytics")
 	service    *ui.Service
-	httpClient *http.Client
+	withClient func(func(*http.Client))
 	hostName   *string
 	stopCh     chan bool
 )
 
-func Configure(cfg *config.Config, serverSession bool, newClient *http.Client) {
+func Configure(cfg *config.Config, serverSession bool, wc func(func(*http.Client))) {
 
-	httpClient = newClient
+	withClient = wc
 
 	sessionPayload := &analytics.Payload{
 		HitType: analytics.EventType,
@@ -38,7 +38,7 @@ func Configure(cfg *config.Config, serverSession bool, newClient *http.Client) {
 	}
 
 	if cfg == nil {
-		analytics.SessionEvent(httpClient, sessionPayload)
+		sessionEvent(sessionPayload)
 		return
 	}
 
@@ -55,7 +55,7 @@ func Configure(cfg *config.Config, serverSession bool, newClient *http.Client) {
 		sessionPayload.Hostname = "localhost"
 	}
 
-	analytics.SessionEvent(httpClient, sessionPayload)
+	sessionEvent(sessionPayload)
 
 	if !serverSession && cfg.AutoReport != nil && *cfg.AutoReport {
 		err := StartService()
@@ -118,8 +118,20 @@ func read() {
 				// for now, the only analytics messages we are
 				// currently receiving from the UI are initial page
 				// views which indicate new UI sessions
-				analytics.UIEvent(httpClient, &payload)
+				uiEvent(&payload)
 			}
 		}
 	}
+}
+
+func sessionEvent(payload *analytics.Payload) {
+	withClient(func(c *http.Client) {
+		analytics.SessionEvent(c, payload)
+	})
+}
+
+func uiEvent(payload *analytics.Payload) {
+	withClient(func(c *http.Client) {
+		analytics.UIEvent(c, payload)
+	})
 }

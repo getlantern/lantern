@@ -23,7 +23,6 @@ import (
 	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/statreporter"
-	"github.com/getlantern/flashlight/util"
 )
 
 const (
@@ -65,7 +64,7 @@ type CA struct {
 }
 
 // Init initializes the configuration system.
-func Init() (*Config, error) {
+func Init(withClient func(func(*http.Client))) (*Config, error) {
 	configPath, err := InConfigDir("lantern.yaml")
 	if err != nil {
 		return nil, err
@@ -95,7 +94,7 @@ func Init() (*Config, error) {
 			}
 
 			var bytes []byte
-			bytes, err = cfg.fetchCloudConfig()
+			bytes, err = cfg.fetchCloudConfig(withClient)
 			if err == nil && bytes != nil {
 				mutate = func(ycfg yamlconf.Config) error {
 					log.Debugf("Merging cloud configuration")
@@ -328,25 +327,11 @@ func (cfg Config) cloudPollSleepTime() time.Duration {
 	return time.Duration((CloudConfigPollInterval.Nanoseconds() / 2) + rand.Int63n(CloudConfigPollInterval.Nanoseconds()))
 }
 
-func (cfg Config) fetchCloudConfig() (bytes []byte, err error) {
+func (cfg Config) fetchCloudConfig(withClient func(func(*http.Client))) (bytes []byte, err error) {
 	log.Debugf("Fetching cloud config...")
-
-	if cfg.IsDownstream() {
-		// Clients must always proxy the request
-		dialer := cfg.Client.HighestQOSFrontedDialer()
-		// We use direct domain fronting for accessing new configs.
-		client := dialer.NewDirectDomainFronter()
-		bytes, err = cfg.fetchCloudConfigForClient(client)
-	} else {
-		var client *http.Client
-		// In the server side, we use a direct (non-proxied) client.
-		if client, err = util.HTTPClient(cfg.CloudConfigCA, ""); err == nil {
-			// We need to ask for HTTPS explicitly for these.
-			bytes, err = cfg.fetchCloudConfigForClient(client)
-		} else {
-			err = fmt.Errorf("Unable to initialize HTTP client: %s", err)
-		}
-	}
+	withClient(func(c *http.Client) {
+		bytes, err = cfg.fetchCloudConfigForClient(c)
+	})
 	if err != nil {
 		bytes = nil
 		err = fmt.Errorf("Unable to fetch cloud config: %s", err)
