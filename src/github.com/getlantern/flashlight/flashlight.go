@@ -219,7 +219,7 @@ func runClientProxy(cfg *config.Config, mch withclient.MakerChan) {
 	settings.Configure(cfg, version, buildDate)
 	proxiedsites.Configure(cfg.ProxiedSites)
 
-	withclient.UpdateClientDirectFronter(cfg, mch)
+	mch.UpdateClientDirectFronter(&cfg.Client)
 	wdc := mch.MakeWithClient()
 	geolookup.Configure(wdc)
 	statserver.Configure(wdc)
@@ -243,7 +243,7 @@ func runClientProxy(cfg *config.Config, mch withclient.MakerChan) {
 			// XXX: wrt fronted servers, we only really care if the one with highest QOS
 			// is still the same one.
 			if oldCfg == nil || !(reflect.DeepEqual(oldCfg.Client.FrontedServers, cfg.Client.FrontedServers) && reflect.DeepEqual(oldCfg.Client.MasqueradeSets, cfg.Client.MasqueradeSets)) {
-				withclient.UpdateClientDirectFronter(cfg, mch)
+				mch.UpdateClientDirectFronter(&cfg.Client)
 			}
 			settings.Configure(cfg, version, buildDate)
 			logging.Configure(cfg, version, buildDate)
@@ -264,7 +264,7 @@ func runClientProxy(cfg *config.Config, mch withclient.MakerChan) {
 func runServerProxy(cfg *config.Config, mch withclient.MakerChan) {
 	useAllCores()
 
-	withclient.UpdateServerConfigClient(cfg, mch)
+	mch.UpdateServerConfigClient(cfg)
 	pkFile, err := config.InConfigDir("proxypk.pem")
 	if err != nil {
 		log.Fatal(err)
@@ -297,7 +297,7 @@ func runServerProxy(cfg *config.Config, mch withclient.MakerChan) {
 		for {
 			cfg := <-configUpdates
 			if cfg.CloudConfigCA != oldca {
-				withclient.UpdateServerConfigClient(cfg, mch)
+				mch.UpdateServerConfigClient(cfg)
 				oldca = cfg.CloudConfigCA
 			}
 			statreporter.Configure(cfg.Stats)

@@ -6,6 +6,7 @@ import (
 
 	"github.com/getlantern/golog"
 
+	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/util"
 )
@@ -89,9 +90,9 @@ func (ch MakerChan) MakeWithClient() func(func(*http.Client)) {
 	}
 }
 
-func UpdateClientDirectFronter(cfg *config.Config, mch MakerChan) {
+func (ch MakerChan) UpdateClientDirectFronter(cfg *client.ClientConfig) {
 	log.Debug("Updating client direct fronter")
-	hqfd := cfg.Client.HighestQOSFrontedDialer()
+	hqfd := cfg.HighestQOSFrontedDialer()
 	if hqfd == nil {
 		log.Errorf("No fronted dialer available, not enabling geolocation, stats or analytics")
 		return
@@ -99,7 +100,7 @@ func UpdateClientDirectFronter(cfg *config.Config, mch MakerChan) {
 	// An *http.Client that uses the highest QOS dialer.
 	hqfdClient := hqfd.NewDirectDomainFronter()
 	wg := sync.WaitGroup{}
-	old := mch.updateMaker(
+	old := ch.updateMaker(
 		clientMaker{
 			make: func() clientWithCloseThunk {
 				wg.Add(1)
@@ -118,7 +119,7 @@ func UpdateClientDirectFronter(cfg *config.Config, mch MakerChan) {
 	}
 }
 
-func UpdateServerConfigClient(cfg *config.Config, mch MakerChan) {
+func (ch MakerChan) UpdateServerConfigClient(cfg *config.Config) {
 	client, err := util.HTTPClient(cfg.CloudConfigCA, "")
 	if err != nil {
 		log.Errorf("Couldn't create http.Client for fetching the config")
@@ -129,7 +130,7 @@ func UpdateServerConfigClient(cfg *config.Config, mch MakerChan) {
 		client: client,
 		close:  doNothing,
 	}
-	mch.updateMaker(
+	ch.updateMaker(
 		clientMaker{
 			make:  func() clientWithCloseThunk { return ret },
 			close: doNothing,
