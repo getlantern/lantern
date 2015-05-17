@@ -4,7 +4,6 @@ import (
 	"compress/gzip"
 	"crypto/x509"
 	"errors"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -98,7 +97,6 @@ func pullConfigFile(cli *http.Client) ([]byte, error) {
 
 // defaultConfig returns the embedded configuration.
 func defaultConfig() *config {
-
 	cfg := &config{
 		Client: &client.ClientConfig{
 			FrontedServers: []*client.FrontedServerInfo{
@@ -117,40 +115,6 @@ func defaultConfig() *config {
 		TrustedCAs: defaultTrustedCAs,
 	}
 	return cfg
-}
-
-// getConfig attempts to provide a
-func getConfig() (*config, error) {
-	var err error
-	var buf []byte
-
-	defaultCfg := defaultConfig()
-
-	hqfdc := directHttpClientFromConfig(defaultCfg)
-	if hqfdc == nil {
-		return defaultCfg, fmt.Errorf("Couldn't create initial fronted dialer")
-	}
-
-	var cfg config
-
-	// Attempt to download configuration file.
-	if buf, err = pullConfigFile(hqfdc); err != nil {
-		return defaultCfg, err
-	}
-
-	if err = cfg.updateFrom(buf); err != nil {
-		return defaultCfg, err
-	}
-
-	return &cfg, nil
-}
-
-func directHttpClientFromConfig(cfg *config) *http.Client {
-	hqfd := cfg.Client.HighestQOSFrontedDialer()
-	if hqfd == nil {
-		return nil
-	}
-	return hqfd.NewDirectDomainFronter()
 }
 
 func (c *config) updateFrom(buf []byte) error {

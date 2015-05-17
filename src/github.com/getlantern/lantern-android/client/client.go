@@ -10,7 +10,7 @@ import (
 	"github.com/getlantern/analytics"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/globals"
-	"github.com/getlantern/flashlight/util"
+	"github.com/getlantern/flashlight/withclient"
 )
 
 const (
@@ -29,18 +29,12 @@ var (
 type MobileClient struct {
 	client.Client
 	closed chan bool
+	mch    withclient.MakerChan
 }
 
-// init attempts to setup client configuration.
+// init bootstraps client configuration
 func init() {
-	var err error
-	// Initial attempt to get configuration, without a proxy. If this request
-	// fails we'll use the default configuration.
-	if clientConfig, err = getConfig(); err != nil {
-		// getConfig() guarantees to return a *Config struct, so we can log the
-		// error without stopping the program.
-		log.Printf("Error updating configuration over the network: %q.", err)
-	}
+	clientConfig = defaultConfig()
 }
 
 // NewClient creates a proxy client.
@@ -58,8 +52,8 @@ func NewClient(addr, appName string) *MobileClient {
 	}
 
 	client.Configure(clientConfig.Client)
-
-	hqfdc := directHttpClientFromConfig(clientConfig)
+	mch := withclient.NewMakerChan()
+	mch.UpdateClientDirectFronter(clientConfig.Client)
 
 	// store GA session event
 	sessionPayload := &analytics.Payload{
@@ -79,11 +73,14 @@ func NewClient(addr, appName string) *MobileClient {
 		}
 	}
 
-	analytics.SessionEvent(hqfdc, sessionPayload)
+	mch.MakeWithClient()(func(c *http.Client) {
+		analytics.SessionEvent(c, sessionPayload)
+	})
 
 	return &MobileClient{
 		Client: client,
 		closed: make(chan bool),
+		mch:    mch,
 	}
 }
 
@@ -112,16 +109,12 @@ func (client *MobileClient) ServeHTTP() {
 func (client *MobileClient) updateConfig() error {
 	var err error
 	var buf []byte
-	var cli *http.Client
-
-	if cli, err = util.HTTPClient(cloudConfigCA, client.Addr); err != nil {
+	client.mch.MakeWithClient()(func(c *http.Client) {
+		buf, err = pullConfigFile(c)
+	})
+	if err != nil {
 		return err
 	}
-
-	if buf, err = pullConfigFile(cli); err != nil {
-		return err
-	}
-
 	return clientConfig.updateFrom(buf)
 }
 
@@ -141,6 +134,7 @@ func (client *MobileClient) pollConfiguration() {
 			if err = client.updateConfig(); err == nil {
 				// Configuration changed, lets reload.
 				client.Configure(clientConfig.Client)
+				client.mch.UpdateClientDirectFronter(clientConfig.Client)
 			}
 			// Sleeping 'till next pull.
 			pollTimer.Reset(cloudConfigPollInterval)
