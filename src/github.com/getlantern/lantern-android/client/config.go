@@ -114,6 +114,7 @@ func defaultConfig() *config {
 			},
 			MasqueradeSets: defaultMasqueradeSets,
 		},
+		TrustedCAs: defaultTrustedCAs,
 	}
 	return cfg
 }
