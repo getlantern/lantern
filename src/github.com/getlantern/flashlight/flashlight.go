@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"reflect"
 	"runtime"
 	"strings"
 	"time"
@@ -27,6 +28,7 @@ import (
 	"github.com/getlantern/flashlight/statreporter"
 	"github.com/getlantern/flashlight/statserver"
 	"github.com/getlantern/flashlight/ui"
+	"github.com/getlantern/flashlight/withclient"
 )
 
 var (
@@ -111,7 +113,9 @@ func doMain() error {
 
 	parseFlags()
 
-	cfg, err := config.Init()
+	mch := withclient.NewMakerChan()
+
+	cfg, err := config.Init(mch.MakeWithClient())
 	if err != nil {
 		return fmt.Errorf("Unable to initialize configuration: %v", err)
 	}
@@ -140,9 +144,9 @@ func doMain() error {
 	log.Debug("Running proxy")
 	if cfg.IsDownstream() {
 		// This will open a proxy on the address and port given by -addr
-		runClientProxy(cfg)
+		runClientProxy(cfg, mch)
 	} else {
-		runServerProxy(cfg)
+		runServerProxy(cfg, mch)
 	}
 
 	return waitForExit()
@@ -179,7 +183,7 @@ func parseFlags() {
 }
 
 // runClientProxy runs the client-side (get mode) proxy.
-func runClientProxy(cfg *config.Config) {
+func runClientProxy(cfg *config.Config, mch withclient.MakerChan) {
 	var err error
 
 	// Set Lantern as system proxy by creating and using a PAC file.
@@ -215,22 +219,19 @@ func runClientProxy(cfg *config.Config) {
 	settings.Configure(cfg, version, buildDate)
 	proxiedsites.Configure(cfg.ProxiedSites)
 
-	hqfd := cfg.Client.HighestQOSFrontedDialer()
-	if hqfd == nil {
-		log.Errorf("No fronted dialer available, not enabling geolocation, stats or analytics")
-	} else {
-		// An *http.Client that uses the highest QOS dialer.
-		hqfdClient := hqfd.NewDirectDomainFronter()
-
-		geolookup.Configure(hqfdClient)
-		statserver.Configure(hqfdClient)
-		analytics.Configure(cfg, false, hqfdClient)
-	}
+	mch.UpdateClientDirectFronter(cfg.Client)
+	wdc := mch.MakeWithClient()
+	geolookup.Configure(wdc)
+	statserver.Configure(wdc)
+	analytics.Configure(cfg, false, wdc)
 
 	// Continually poll for config updates and update client accordingly
 	go func() {
+		var cfg *config.Config
+		var oldCfg *config.Config
 		for {
-			cfg := <-configUpdates
+			oldCfg = cfg
+			cfg = <-configUpdates
 
 			proxiedsites.Configure(cfg.ProxiedSites)
 			// Note - we deliberately ignore the error from statreporter.Configure here
@@ -238,20 +239,15 @@ func runClientProxy(cfg *config.Config) {
 
 			client.Configure(cfg.Client)
 
-			hqfd = cfg.Client.HighestQOSFrontedDialer()
-
-			if hqfd != nil {
-				// Create and pass the *http.Client that uses the highest QOS dialer to
-				// critical modules that require continual comunication with external
-				// services.
-				hqfdClient := hqfd.NewDirectDomainFronter()
-
-				geolookup.Configure(hqfdClient)
-				statserver.Configure(hqfdClient)
-				settings.Configure(cfg, version, buildDate)
-				logging.Configure(cfg, version, buildDate)
-				autoupdate.Configure(cfg)
+			// These are the only things in the config that affect the direct fronter.
+			// XXX: wrt fronted servers, we only really care if the one with highest QOS
+			// is still the same one.
+			if oldCfg == nil || !(reflect.DeepEqual(oldCfg.Client.FrontedServers, cfg.Client.FrontedServers) && reflect.DeepEqual(oldCfg.Client.MasqueradeSets, cfg.Client.MasqueradeSets)) {
+				mch.UpdateClientDirectFronter(cfg.Client)
 			}
+			settings.Configure(cfg, version, buildDate)
+			logging.Configure(cfg, version, buildDate)
+			autoupdate.Configure(cfg)
 		}
 	}()
 
@@ -265,9 +261,10 @@ func runClientProxy(cfg *config.Config) {
 }
 
 // Runs the server-side proxy
-func runServerProxy(cfg *config.Config) {
+func runServerProxy(cfg *config.Config, mch withclient.MakerChan) {
 	useAllCores()
 
+	mch.UpdateServerConfigClient(cfg)
 	pkFile, err := config.InConfigDir("proxypk.pem")
 	if err != nil {
 		log.Fatal(err)
@@ -296,13 +293,17 @@ func runServerProxy(cfg *config.Config) {
 	analytics.Configure(cfg, true, nil)
 
 	// Continually poll for config updates and update server accordingly
-	go func() {
+	go func(oldca string) {
 		for {
 			cfg := <-configUpdates
+			if cfg.CloudConfigCA != oldca {
+				mch.UpdateServerConfigClient(cfg)
+				oldca = cfg.CloudConfigCA
+			}
 			statreporter.Configure(cfg.Stats)
 			srv.Configure(cfg.Server)
 		}
-	}()
+	}(cfg.CloudConfigCA)
 
 	err = srv.ListenAndServe(func(update func(*server.ServerConfig) error) {
 		err := config.Update(func(cfg *config.Config) error {

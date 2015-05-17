@@ -1,45 +1,42 @@
 package client
 
 import (
+	"net/http"
 	"testing"
+
+	"github.com/getlantern/flashlight/globals"
+	"github.com/getlantern/flashlight/withclient"
 )
 
 func TestConfigDownload(t *testing.T) {
-	var err error
 
 	// Resetting Etag.
 	lastCloudConfigETag = ""
 
-	client := directHttpClientFromConfig(defaultConfig())
-	if client == nil {
-		t.Fatal("Expected non-nil direct-fronted client")
-	}
-
-	// Pulling first time.
-	if _, err = pullConfigFile(client); err != nil {
+	cfg := defaultConfig()
+	if err := globals.SetTrustedCAs(cfg.getTrustedCerts()); err != nil {
 		t.Fatal(err)
 	}
+	mch := withclient.NewMakerChan()
+	mch.UpdateClientDirectFronter(cfg.Client)
+	mch.MakeWithClient()(func(c *http.Client) {
 
-	// Pulling a second time should trigger an error.
-	if _, err = pullConfigFile(client); err != nil {
-		if err != errConfigurationUnchanged {
+		var err error
+		var buf []byte
+
+		// Pulling first time.
+		if buf, err = pullConfigFile(c); err != nil {
 			t.Fatal(err)
 		}
-	}
-}
-
-func TestConfigParse(t *testing.T) {
-	var cfg *config
-	var err error
-
-	// Resetting Etag.
-	lastCloudConfigETag = ""
-
-	if cfg, err = getConfig(); err != nil {
-		t.Fatal(err)
-	}
-
-	if cfg == nil {
-		t.Fatal("Expecting non-nil config file.")
-	}
+		// Test that we actually got a valid config.
+		if err = cfg.updateFrom(buf); err != nil {
+			t.Fatal(err)
+		}
+		// Pulling a second time should trigger an error.
+		if _, err = pullConfigFile(c); err != nil {
+			if err != errConfigurationUnchanged {
+				t.Fatal(err)
+			}
+		}
+	})
 }
