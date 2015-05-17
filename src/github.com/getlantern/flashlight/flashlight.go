@@ -98,7 +98,6 @@ func doMain() error {
 
 	// Schedule cleanup actions
 	defer logging.Close()
-	defer pacOff()
 	defer quitSystray()
 
 	i18nInit()
@@ -216,6 +215,7 @@ func runClientProxy(cfg *config.Config) {
 	logging.Configure(cfg, version, buildDate)
 	settings.Configure(cfg, version, buildDate)
 	proxiedsites.Configure(cfg.ProxiedSites)
+	ServeProxyAllPacFile(cfg.Client.ProxyAll)
 
 	// We need to do this in a go routine because it waits for the server
 	// we start later on the main thread.
@@ -248,6 +248,9 @@ func runClientProxy(cfg *config.Config) {
 			// Note - we deliberately ignore the error from statreporter.Configure here
 			statreporter.Configure(cfg.Stats)
 
+			log.Debugf("Proxy all traffic or not: %v", cfg.Client.ProxyAll)
+			ServeProxyAllPacFile(cfg.Client.ProxyAll)
+
 			hqfd = client.Configure(cfg.Client)
 
 			if hqfd != nil {
@@ -273,6 +276,7 @@ func runClientProxy(cfg *config.Config) {
 	watchDirectAddrs()
 
 	go func() {
+		defer pacOff()
 		exit(client.ListenAndServe(pacOn))
 	}()
 }
