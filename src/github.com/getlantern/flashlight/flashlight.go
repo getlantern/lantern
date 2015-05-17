@@ -219,7 +219,7 @@ func runClientProxy(cfg *config.Config, mch withclient.MakerChan) {
 	settings.Configure(cfg, version, buildDate)
 	proxiedsites.Configure(cfg.ProxiedSites)
 
-	mch.UpdateClientDirectFronter(&cfg.Client)
+	mch.UpdateClientDirectFronter(cfg.Client)
 	wdc := mch.MakeWithClient()
 	geolookup.Configure(wdc)
 	statserver.Configure(wdc)
@@ -243,7 +243,7 @@ func runClientProxy(cfg *config.Config, mch withclient.MakerChan) {
 			// XXX: wrt fronted servers, we only really care if the one with highest QOS
 			// is still the same one.
 			if oldCfg == nil || !(reflect.DeepEqual(oldCfg.Client.FrontedServers, cfg.Client.FrontedServers) && reflect.DeepEqual(oldCfg.Client.MasqueradeSets, cfg.Client.MasqueradeSets)) {
-				mch.UpdateClientDirectFronter(&cfg.Client)
+				mch.UpdateClientDirectFronter(cfg.Client)
 			}
 			settings.Configure(cfg, version, buildDate)
 			logging.Configure(cfg, version, buildDate)
