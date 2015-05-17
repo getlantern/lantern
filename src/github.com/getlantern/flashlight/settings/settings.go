@@ -31,6 +31,7 @@ type Settings struct {
 	BuildDate  string
 	AutoReport bool
 	AutoLaunch bool
+	ProxyAll   bool
 }
 
 func Configure(cfg *config.Config, version, buildDate string) {
@@ -45,6 +46,7 @@ func Configure(cfg *config.Config, version, buildDate string) {
 			BuildDate:  buildDate,
 			AutoReport: *cfg.AutoReport,
 			AutoLaunch: *cfg.AutoLaunch,
+			ProxyAll:   cfg.Client.ProxyAll,
 		}
 
 		err := start(baseSettings)
@@ -60,6 +62,7 @@ func Configure(cfg *config.Config, version, buildDate string) {
 		}
 		baseSettings.AutoReport = *cfg.AutoReport
 		baseSettings.AutoLaunch = *cfg.AutoLaunch
+		baseSettings.ProxyAll = cfg.Client.ProxyAll
 	}
 }
 
@@ -95,6 +98,9 @@ func read() {
 				}
 				baseSettings.AutoReport = autoReport
 				*updated.AutoReport = autoReport
+			} else if proxyAll, ok := settings["proxyAll"].(bool); ok {
+				baseSettings.ProxyAll = proxyAll
+				updated.Client.ProxyAll = proxyAll
 			} else if autoLaunch, ok := settings["autoLaunch"].(bool); ok {
 				launcher.CreateLaunchFile(autoLaunch)
 				baseSettings.AutoLaunch = autoLaunch

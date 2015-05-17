@@ -98,6 +98,13 @@ app.controller('SettingsCtrl', ['$scope', 'MODAL', 'DataStream', 'gaMgr', functi
       DataStream.send('Settings', obj);
   }
 
+  $scope.changeProxyAll = function(proxyAll) {
+      var obj = {
+        proxyAll: proxyAll
+      };
+      DataStream.send('Settings', obj);
+  }
+
   $scope.$watch('model.settings.systemProxy', function (systemProxy) {
     $scope.systemProxy = systemProxy;
   });
