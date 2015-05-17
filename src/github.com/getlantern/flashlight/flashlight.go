@@ -196,9 +196,6 @@ func runClientProxy(cfg *config.Config) {
 		WriteTimeout: 0,
 	}
 
-	// Update client configuration and get the highest QOS dialer available.
-	hqfd := client.Configure(cfg.Client)
-
 	// Start user interface.
 	if cfg.UIAddr != "" {
 		if err = ui.Start(cfg.UIAddr); err != nil {
@@ -211,11 +208,34 @@ func runClientProxy(cfg *config.Config) {
 		}
 	}
 
+	applyClientConfig(client, cfg)
+	// Continually poll for config updates and update client accordingly
+	go func() {
+		for {
+			cfg := <-configUpdates
+			applyClientConfig(client, cfg)
+		}
+	}()
+
+	// watchDirectAddrs will spawn a goroutine that will add any site that is
+	// directly accesible to the PAC file.
+	watchDirectAddrs()
+
+	go func() {
+		defer pacOff()
+		exit(client.ListenAndServe(pacOn))
+	}()
+}
+
+func applyClientConfig(client *client.Client, cfg *config.Config) {
 	autoupdate.Configure(cfg)
 	logging.Configure(cfg, version, buildDate)
 	settings.Configure(cfg, version, buildDate)
 	proxiedsites.Configure(cfg.ProxiedSites)
+	log.Debugf("Proxy all traffic or not: %v", cfg.Client.ProxyAll)
 	ServeProxyAllPacFile(cfg.Client.ProxyAll)
+	// Note - we deliberately ignore the error from statreporter.Configure here
+	statreporter.Configure(cfg.Stats)
 
 	// We need to do this in a go routine because it waits for the server
 	// we start later on the main thread.
@@ -228,57 +248,17 @@ func runClientProxy(cfg *config.Config) {
 		}
 	}()
 
+	// Update client configuration and get the highest QOS dialer available.
+	hqfd := client.Configure(cfg.Client)
 	if hqfd == nil {
 		log.Errorf("No fronted dialer available, not enabling geolocation, stats or analytics")
 	} else {
 		// An *http.Client that uses the highest QOS dialer.
 		hqfdClient := hqfd.NewDirectDomainFronter()
-
 		config.Configure(hqfdClient)
 		geolookup.Configure(hqfdClient)
 		statserver.Configure(hqfdClient)
 	}
-
-	// Continually poll for config updates and update client accordingly
-	go func() {
-		for {
-			cfg := <-configUpdates
-
-			proxiedsites.Configure(cfg.ProxiedSites)
-			// Note - we deliberately ignore the error from statreporter.Configure here
-			statreporter.Configure(cfg.Stats)
-
-			log.Debugf("Proxy all traffic or not: %v", cfg.Client.ProxyAll)
-			ServeProxyAllPacFile(cfg.Client.ProxyAll)
-
-			hqfd = client.Configure(cfg.Client)
-
-			if hqfd != nil {
-				// Create and pass the *http.Client that uses the highest QOS dialer to
-				// critical modules that require continual comunication with external
-				// services.
-				hqfdClient := hqfd.NewDirectDomainFronter()
-
-				config.Configure(hqfdClient)
-				geolookup.Configure(hqfdClient)
-				statserver.Configure(hqfdClient)
-				settings.Configure(cfg, version, buildDate)
-				logging.Configure(cfg, version, buildDate)
-				autoupdate.Configure(cfg)
-				// Note we don't call Configure on analytics here, as that would
-				// result in an extra analytics call and double counting.
-			}
-		}
-	}()
-
-	// watchDirectAddrs will spawn a goroutine that will add any site that is
-	// directly accesible to the PAC file.
-	watchDirectAddrs()
-
-	go func() {
-		defer pacOff()
-		exit(client.ListenAndServe(pacOn))
-	}()
 }
 
 // Runs the server-side proxy
