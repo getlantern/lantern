@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"runtime"
+	"time"
 
 	"github.com/getlantern/golog"
 	"github.com/getlantern/tarfs"
+	"github.com/getlantern/waitforserver"
 	"github.com/skratchdot/open-golang/open"
 )
 
@@ -84,7 +87,14 @@ func Start(addr string) error {
 	return nil
 }
 
-// Show opens the UI in a browser.
+// Show opens the UI in a browser. It will wait for the UI addr come up for at most 3 seconds
 func Show() {
-	open.Run(uiaddr)
+	go func() {
+		addr, _ := url.Parse(uiaddr)
+		if err := waitforserver.WaitForServer("tcp", addr.Host, 3*time.Second); err != nil {
+			log.Error(err)
+			return
+		}
+		open.Run(uiaddr)
+	}()
 }
