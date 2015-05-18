@@ -50,10 +50,6 @@ type Dialer interface {
 	// of using enproxy proxies routes to the destination server directly from the
 	// CDN. This is useful for web properties registered on the CDN itself, for
 	// example geo.getiantem.org.
-	//
-	// Note - the connection is already encrypted by domain-fronting, so this
-	// client should only be used to make HTTP requests. Using it for HTTPS
-	// requests will result in an error.
 	NewDirectDomainFronter() *http.Client
 }
 
@@ -201,11 +197,49 @@ func (d *dialer) HttpClientUsing(masquerade *Masquerade) *http.Client {
 	}
 }
 
+type DirectDomainTransport struct {
+	orig *http.Transport
+}
+
+func (ddf *DirectDomainTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+	// The connection is already encrypted by domain fronting.  We need to rewrite URLs starting
+	// with "https://" to "http://", lest we get an error for doubling up on TLS.
+
+	// The RoundTrip interface requires that we not modify the memory in the request, so we just
+	// create a new one. Note this currently doesn't support request bodies.
+	normalized := replacePrefix(req.URL.String(), "https://", "http://")
+	norm, err := http.NewRequest(req.Method, normalized, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to construct request for url '%s' with error '%v'", normalized, err)
+	}
+	return ddf.orig.RoundTrip(norm)
+}
+
+func replacePrefix(s string, old string, new string) string {
+	if strings.HasPrefix(s, old) {
+		return new + strings.TrimPrefix(s, old)
+	} else {
+		return s
+	}
+}
+
+func (ddf *DirectDomainTransport) CancelRequest(req *http.Request) {
+	ddf.orig.CancelRequest(req)
+}
+
+func (ddf *DirectDomainTransport) CloseIdleConnections() {
+	ddf.orig.CloseIdleConnections()
+}
+
+// Creates a new http.Client that does direct domain fronting.
 func (d *dialer) NewDirectDomainFronter() *http.Client {
 	return &http.Client{
-		Transport: &http.Transport{
-			Dial: func(network, addr string) (net.Conn, error) {
-				return d.dialServer()
+		Transport: &DirectDomainTransport{
+			orig: &http.Transport{
+				Dial: func(network, addr string) (net.Conn, error) {
+					log.Debugf("Dialing server with direct domain fronter")
+					return d.dialServer()
+				},
 			},
 		},
 	}
