@@ -50,7 +50,7 @@ func httpClient(rootCA string, proxyAddr string, persistent bool) (*http.Client,
 		// be clearer to call it DisablePersistentConnections -- i.e. it has
 		// nothing to do with TCP keep alives along the lines of the KeepAlive
 		// variable in net.Dialer.
-		DisableKeepAlives: persistent,
+		DisableKeepAlives: !persistent,
 	}
 
 	if rootCA != "" {
