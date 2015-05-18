@@ -91,7 +91,7 @@ func (b *Balancer) DialQOS(network, addr string, targetQOS int) (net.Conn, error
 		}
 		conn, err := d.Dial(network, addr)
 		if err != nil {
-			log.Tracef("Unable to dial: %s", err)
+			log.Debugf("Unable to dial %s://%s: %s", network, addr, err)
 			d.onError(err)
 			continue
 		}
@@ -120,12 +120,12 @@ func randomDialer(dialers []*dialer, targetQOS int) (chosen *dialer, others []*d
 	filtered, highestQOS := dialersMeetingQOS(dialers, targetQOS)
 
 	if len(filtered) == 0 {
-		log.Trace("No dialers meet targetQOS, using those with highest QOS")
+		log.Tracef("No dialers meet targetQOS %d, using those with highestQOS %d", targetQOS, highestQOS)
 		filtered, _ = dialersMeetingQOS(dialers, highestQOS)
 	}
 
 	if len(filtered) == 0 {
-		log.Trace("Still no dialers!")
+		log.Debugf("No dialers meet targetQOS %d or highestQOS %d!", targetQOS, highestQOS)
 		return nil, nil
 	}
 
@@ -140,7 +140,7 @@ func randomDialer(dialers []*dialer, targetQOS int) (chosen *dialer, others []*d
 	for _, d := range filtered {
 		aw += d.Weight
 		if aw > t {
-			log.Trace("Reached random target value, using this dialer")
+			log.Tracef("Randomly selected dialer %s with weight %d, QOS %d", d.Label, d.Weight, d.QOS)
 			return d, withoutDialer(dialers, d)
 		}
 	}
@@ -160,7 +160,6 @@ func dialersMeetingQOS(dialers []*dialer, targetQOS int) ([]*dialer, int) {
 
 		highestQOS = d.QOS // don't need to compare since dialers are already sorted by QOS (ascending)
 		if d.QOS >= targetQOS {
-			log.Tracef("Including dialer with QOS %d meeting targetQOS %d", d.QOS, targetQOS)
 			filtered = append(filtered, d)
 		}
 	}

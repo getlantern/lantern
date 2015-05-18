@@ -97,6 +97,7 @@ func TestAll(t *testing.T) {
 		},
 	}
 	dialer2 := &Dialer{
+		Label:  "Dialer 2",
 		Weight: 10000000,
 		QOS:    1,
 		Dial: func(network, addr string) (net.Conn, error) {
@@ -106,6 +107,7 @@ func TestAll(t *testing.T) {
 	}
 	checkAttempts := int32(0)
 	dialer3 := &Dialer{
+		Label:  "Dialer 3",
 		Weight: 1,
 		QOS:    15,
 		Dial: func(network, addr string) (net.Conn, error) {
@@ -127,6 +129,7 @@ func TestAll(t *testing.T) {
 
 	d4attempts := int32(0)
 	dialer4 := &Dialer{
+		Label:  "Dialer 4",
 		Weight: 1,
 		QOS:    15,
 		Dial: func(network, addr string) (net.Conn, error) {
@@ -227,11 +230,9 @@ func TestAll(t *testing.T) {
 	}
 
 	// Test failure
-	b = New(dialer4)
+	b = New(dialer4, dialer4)
 	_, err = b.Dial("tcp", addr)
-	assert.Error(t, err, "Dialing should have failed")
-
-	time.Sleep(1 * time.Second)
+	assert.NoError(t, err, "Dialing should have succeeded as we have 2nd try")
 	assert.Equal(t, 2, atomic.LoadInt32(&d4attempts), "Wrong number of dial attempts on failed dialer")
 
 	// Test success after successful retest using default check
@@ -272,43 +273,19 @@ var (
 )
 
 type failingConn struct {
-	conn         net.Conn
+	net.Conn
 	bytesRead    int
 	bytesWritten int
 }
 
 func (c *failingConn) Read(b []byte) (n int, err error) {
-	n, err = c.conn.Read(b[:c.bytesRead])
+	n, err = c.Conn.Read(b[:c.bytesRead])
 	err = failed
 	return
 }
 
 func (c *failingConn) Write(b []byte) (n int, err error) {
-	n, err = c.conn.Write(b[:c.bytesWritten])
+	n, err = c.Conn.Write(b[:c.bytesWritten])
 	err = failed
 	return
-}
-
-func (c *failingConn) LocalAddr() net.Addr {
-	return c.conn.LocalAddr()
-}
-
-func (c *failingConn) RemoteAddr() net.Addr {
-	return c.conn.RemoteAddr()
-}
-
-func (c *failingConn) SetDeadline(t time.Time) error {
-	return c.conn.SetDeadline(t)
-}
-
-func (c *failingConn) SetReadDeadline(t time.Time) error {
-	return c.conn.SetReadDeadline(t)
-}
-
-func (c *failingConn) SetWriteDeadline(t time.Time) error {
-	return c.conn.SetWriteDeadline(t)
-}
-
-func (c *failingConn) Close() error {
-	return c.conn.Close()
 }

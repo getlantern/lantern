@@ -52,12 +52,15 @@ var (
 
 type dialer struct {
 	*Dialer
-	active int32
-	errCh  chan time.Time
+	active  int32
+	closeCh chan interface{}
+	errCh   chan time.Time
 }
 
 func (d *dialer) start() {
 	d.active = 1
+	// to avoid blocking sender, make it buffered
+	d.closeCh = make(chan interface{}, 1)
 	d.errCh = make(chan time.Time, 1)
 	if d.Check == nil {
 		d.Check = d.defaultCheck
@@ -72,22 +75,21 @@ func (d *dialer) start() {
 		for {
 			if lastFailed.After(lastCheckSucceeded) {
 				atomic.StoreInt32(&d.active, 0)
-				log.Trace("Inactive, scheduling check")
+				log.Tracef("Mark dialer %s as inactive, scheduling check", d.Label)
 				timeout := time.Duration(consecCheckFailures*consecCheckFailures) * 100 * time.Millisecond
 				timer.Reset(timeout)
 			} else {
 				atomic.StoreInt32(&d.active, 1)
-				log.Trace("Active")
+				log.Tracef("Mark dialer %s as active", d.Label)
 			}
 			select {
-			case t, ok := <-d.errCh:
-				if !ok {
-					log.Trace("dialer stopped")
-					if d.OnClose != nil {
-						d.OnClose()
-					}
-					return
+			case <-d.closeCh:
+				log.Tracef("Dialer %s stopped", d.Label)
+				if d.OnClose != nil {
+					d.OnClose()
 				}
+				return
+			case t := <-d.errCh:
 				lastFailed = t
 			case <-timer.C:
 				ok := d.Check()
@@ -116,7 +118,7 @@ func (d *dialer) onError(err error) {
 }
 
 func (d *dialer) stop() {
-	close(d.errCh)
+	d.closeCh <- nil
 }
 
 func (d *dialer) defaultCheck() bool {
@@ -128,10 +130,11 @@ func (d *dialer) defaultCheck() bool {
 	ok, timedOut, _ := withtimeout.Do(10*time.Second, func() (interface{}, error) {
 		resp, err := client.Get("http://www.google.com/humans.txt")
 		if err != nil {
-			log.Debugf("Error on testing humans.txt: %s", err)
+			log.Debugf("Error testing dialer %s to humans.txt: %s", d.Label, err)
 			return false, nil
 		}
 		resp.Body.Close()
+		log.Tracef("Tested dialer %s to humans.txt, status code %d", d.Label, resp.StatusCode)
 		return resp.StatusCode == 200, nil
 	})
 	return !timedOut && ok.(bool)
