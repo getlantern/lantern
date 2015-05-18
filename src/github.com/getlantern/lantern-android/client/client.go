@@ -127,6 +127,10 @@ func (client *MobileClient) pollConfiguration() {
 			var err error
 			if err = client.updateConfig(); err == nil {
 				// Configuration changed, lets reload.
+				err := globals.SetTrustedCAs(clientConfig.getTrustedCerts())
+				if err != nil {
+					log.Printf("Unable to configure trusted CAs: %s", err)
+				}
 				hqfc := client.Configure(clientConfig.Client)
 				client.fronter = hqfc.NewDirectDomainFronter()
 			}
