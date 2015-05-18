@@ -70,7 +70,7 @@ func TestStartClientAndTestReverseProxy(t *testing.T) {
 	// Let's run a proxy instance.
 	go func() {
 		var err error
-		if err = RunClientProxy(listenProxyAddr); err != nil {
+		if err = RunClientProxy(listenProxyAddr, "TestApp"); err != nil {
 			t.Fatalf("RunClientProxy: %q", err)
 		}
 	}()
@@ -90,7 +90,7 @@ func TestStartClientAndTestReverseProxy(t *testing.T) {
 
 	// Attempt to run again on the same port should not fail since we stopped the
 	// server.
-	if err = RunClientProxy(listenProxyAddr); err != nil {
+	if err = RunClientProxy(listenProxyAddr, "TestApp"); err != nil {
 		t.Fatalf("RunClientProxy: %q", err)
 	}
 
