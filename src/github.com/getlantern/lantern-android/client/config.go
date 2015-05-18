@@ -9,7 +9,6 @@ import (
 	"log"
 	"net/http"
 	"reflect"
-	"time"
 
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/yaml"
@@ -21,8 +20,6 @@ const (
 	httpIfNoneMatch = "If-None-Match"
 	httpEtag        = "Etag"
 )
-
-var httpDefaultClient = &http.Client{Timeout: time.Second * 5}
 
 var lastCloudConfigETag string
 
@@ -118,25 +115,6 @@ func defaultConfig() *config {
 		},
 	}
 	return cfg
-}
-
-// getConfig attempts to provide a
-func getConfig() (*config, error) {
-	var err error
-	var buf []byte
-
-	var cfg config
-
-	// Attempt to download configuration file.
-	if buf, err = pullConfigFile(httpDefaultClient); err != nil {
-		return defaultConfig(), err
-	}
-
-	if err = cfg.updateFrom(buf); err != nil {
-		return defaultConfig(), err
-	}
-
-	return &cfg, nil
 }
 
 func (c *config) updateFrom(buf []byte) error {

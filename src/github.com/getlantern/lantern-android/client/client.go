@@ -33,14 +33,7 @@ type MobileClient struct {
 
 // init attempts to setup client configuration.
 func init() {
-	var err error
-	// Initial attempt to get configuration, without a proxy. If this request
-	// fails we'll use the default configuration.
-	if clientConfig, err = getConfig(); err != nil {
-		// getConfig() guarantees to return a *Config struct, so we can log the
-		// error without stopping the program.
-		log.Printf("Error updating configuration over the network: %q.", err)
-	}
+	clientConfig = defaultConfig()
 }
 
 // NewClient creates a proxy client.
