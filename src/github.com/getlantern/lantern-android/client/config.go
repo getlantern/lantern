@@ -43,7 +43,7 @@ var (
 const (
 	cloudConfigCA = ``
 	// URL of the configuration file. Remember to use HTTPs.
-	remoteConfigURL = `https://s3.amazonaws.com/lantern_config/cloud.2.0.0-nl.yaml.gz`
+	remoteConfigURL = `https://config.getiantem.org/cloud.yaml.gz`
 )
 
 // pullConfigFile attempts to retrieve a configuration file over the network,
