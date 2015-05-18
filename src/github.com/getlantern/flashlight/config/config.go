@@ -10,25 +10,20 @@ import (
 	"path/filepath"
 	"runtime"
 	"sort"
-	"strings"
 	"time"
 
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/proxiedsites"
-	"github.com/getlantern/waitforserver"
 	"github.com/getlantern/yaml"
 	"github.com/getlantern/yamlconf"
 
 	"github.com/getlantern/flashlight/client"
-	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/globals"
-	"github.com/getlantern/flashlight/pubsub"
 	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/statreporter"
 	"github.com/getlantern/flashlight/util"
-	geo "github.com/getlantern/geolookup"
 )
 
 const (
@@ -36,7 +31,6 @@ const (
 	cloudflare              = "cloudflare"
 	etag                    = "ETag"
 	ifNoneMatch             = "If-None-Match"
-	countryPlaceholder      = "${COUNTRY}"
 )
 
 var (
@@ -115,14 +109,6 @@ func Init() (*Config, error) {
 	initial, err := m.Init()
 	var cfg *Config
 	if err == nil {
-		er := pubsub.Sub(pubsub.Location, func(city *geo.City) {
-			log.Debugf("Got location: %v", city.Country.IsoCode)
-			m.StartPolling()
-		})
-		if er != nil {
-			log.Errorf("Error subscribing to location: %v", er)
-			return nil, er
-		}
 		cfg = initial.(*Config)
 		err = updateGlobals(cfg)
 		if err != nil {
@@ -229,7 +215,7 @@ func (cfg *Config) ApplyDefaults() {
 	}
 
 	if cfg.CloudConfig == "" {
-		cfg.CloudConfig = fmt.Sprintf("https://config.getiantem.org/cloud.%v.yaml.gz", countryPlaceholder)
+		cfg.CloudConfig = fmt.Sprintf("https://config.getiantem.org/cloud.yaml.gz")
 	}
 
 	// Make sure we always have a stats config
@@ -347,54 +333,30 @@ func (cfg Config) fetchCloudConfig() (bytes []byte, err error) {
 
 	if cfg.IsDownstream() {
 		// Clients must always proxy the request
-		if cfg.Addr == "" {
-			err = fmt.Errorf("No proxyAddr")
-		} else {
-			bytes, err = cfg.fetchCloudConfigForAddr(cfg.Addr)
-		}
+		dialer := cfg.Client.HighestQOSFrontedDialer()
+		// We use direct domain fronting for accessing new configs.
+		client := dialer.NewDirectDomainFronter()
+		bytes, err = cfg.fetchCloudConfigForClient(client)
 	} else {
-		bytes, err = cfg.fetchCloudConfigForAddr("")
+		var client *http.Client
+		// In the server side, we use a direct (non-proxied) client.
+		if client, err = util.HTTPClient(cfg.CloudConfigCA, ""); err == nil {
+			// We need to ask for HTTPS explicitly for these.
+			bytes, err = cfg.fetchCloudConfigForClient(client)
+		} else {
+			err = fmt.Errorf("Unable to initialize HTTP client: %s", err)
+		}
 	}
 	if err != nil {
 		bytes = nil
-		err = fmt.Errorf("Unable to read yaml from cloud config: %s", err)
+		err = fmt.Errorf("Unable to fetch cloud config: %s", err)
 	}
 	return
 }
 
-func (cfg Config) fetchCloudConfigForAddr(proxyAddr string) ([]byte, error) {
-	log.Tracef("fetchCloudConfigForAddr '%s'", proxyAddr)
-
-	if proxyAddr != "" {
-		// Wait for proxy to become available
-		err := waitforserver.WaitForServer("tcp", proxyAddr, 30*time.Second)
-		if err != nil {
-			return nil, fmt.Errorf("Proxy never came up at %v: %v", proxyAddr, err)
-		}
-	}
-
-	client, err := util.HTTPClient(cfg.CloudConfigCA, proxyAddr)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to initialize HTTP client: %s", err)
-	}
-	country := strings.ToLower(geolookup.GetCountry())
-	if country != "" && country != "xx" {
-		ret, err := cfg.fetchCloudConfigForCountry(client, country)
-		// We could check specifically for a 404, but S3 actually returns a 403 when
-		// a resource is not available.  I thought we'd better lean on the side of
-		// robustness by avoiding hardcoding an S3-ism here, than to try and save an
-		// extra request every now and then.
-		if err == nil {
-			return ret, err
-		} else {
-			log.Debugf("Couldn't fetch cloud config for country '%s'; trying the default one", country)
-		}
-	}
-	return cfg.fetchCloudConfigForCountry(client, "default")
-}
-
-func (cfg Config) fetchCloudConfigForCountry(client *http.Client, country string) ([]byte, error) {
-	url := strings.Replace(cfg.CloudConfig, countryPlaceholder, country, 1)
+func (cfg Config) fetchCloudConfigForClient(client *http.Client) ([]byte, error) {
+	log.Tracef("fetchCloudConfigForClient(%v)", client)
+	url := cfg.CloudConfig
 	log.Debugf("Checking for cloud configuration at: %s", url)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -428,7 +390,11 @@ func (cfg Config) fetchCloudConfigForCountry(client *http.Client, country string
 	if err != nil {
 		return nil, fmt.Errorf("Unable to open gzip reader: %s", err)
 	}
-	return ioutil.ReadAll(gzReader)
+
+	downloaded, readErr := ioutil.ReadAll(gzReader)
+
+	log.Debugf("Fetched config: %v", string(downloaded))
+	return downloaded, readErr
 }
 
 // updateFrom creates a new Config by 'merging' the given yaml into this Config.

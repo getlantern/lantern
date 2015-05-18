@@ -57,9 +57,9 @@ func NewClient(addr, appName string) *MobileClient {
 		log.Fatalf("Unable to configure trusted CAs: %s", err)
 	}
 
-	hqfd := client.Configure(clientConfig.Client)
+	client.Configure(clientConfig.Client)
 
-	hqfdc := hqfd.DirectHttpClient()
+	hqfdc := directHttpClientFromConfig(clientConfig)
 
 	// store GA session event
 	sessionPayload := &analytics.Payload{

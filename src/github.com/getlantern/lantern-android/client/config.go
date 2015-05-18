@@ -4,12 +4,12 @@ import (
 	"compress/gzip"
 	"crypto/x509"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"reflect"
-	"time"
 
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/yaml"
@@ -21,8 +21,6 @@ const (
 	httpIfNoneMatch = "If-None-Match"
 	httpEtag        = "Etag"
 )
-
-var httpDefaultClient = &http.Client{Timeout: time.Second * 5}
 
 var lastCloudConfigETag string
 
@@ -45,8 +43,9 @@ var (
 
 const (
 	cloudConfigCA = ``
-	// URL of the configuration file. Remember to use HTTPs.
-	remoteConfigURL = `https://s3.amazonaws.com/lantern_config/cloud.2.0.0-nl.yaml.gz`
+	// URL of the configuration file.  It is plain HTTP because we're using direct
+	// domain fronting to fetch it.
+	remoteConfigURL = `http://config.getiantem.org/cloud.default.yaml.gz`
 )
 
 // pullConfigFile attempts to retrieve a configuration file over the network,
@@ -125,18 +124,33 @@ func getConfig() (*config, error) {
 	var err error
 	var buf []byte
 
+	defaultCfg := defaultConfig()
+
+	hqfdc := directHttpClientFromConfig(defaultCfg)
+	if hqfdc == nil {
+		return defaultCfg, fmt.Errorf("Couldn't create initial fronted dialer")
+	}
+
 	var cfg config
 
 	// Attempt to download configuration file.
-	if buf, err = pullConfigFile(httpDefaultClient); err != nil {
-		return defaultConfig(), err
+	if buf, err = pullConfigFile(hqfdc); err != nil {
+		return defaultCfg, err
 	}
 
 	if err = cfg.updateFrom(buf); err != nil {
-		return defaultConfig(), err
+		return defaultCfg, err
 	}
 
 	return &cfg, nil
+}
+
+func directHttpClientFromConfig(cfg *config) *http.Client {
+	hqfd := cfg.Client.HighestQOSFrontedDialer()
+	if hqfd == nil {
+		return nil
+	}
+	return hqfd.NewDirectDomainFronter()
 }
 
 func (c *config) updateFrom(buf []byte) error {

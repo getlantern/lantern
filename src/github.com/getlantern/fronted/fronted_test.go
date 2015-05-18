@@ -240,7 +240,7 @@ func TestIntegrationDirect(t *testing.T) {
 	d := integrationDialer(t, nil)
 	defer d.Close()
 
-	client := d.DirectHttpClient()
+	client := d.NewDirectDomainFronter()
 	resp, err := client.Get("http://geo.getiantem.org/lookup")
 	if assert.NoError(t, err, "Should be able to call geo.getiantem.org") {
 		defer resp.Body.Close()

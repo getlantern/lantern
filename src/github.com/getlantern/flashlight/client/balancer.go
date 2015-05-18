@@ -1,11 +1,6 @@
 package client
 
-import (
-	"math"
-
-	"github.com/getlantern/balancer"
-	"github.com/getlantern/fronted"
-)
+import "github.com/getlantern/balancer"
 
 // getBalancer waits for a message from client.balCh to arrive and then it
 // writes it back to client.balCh before returning it as a value. This way we
@@ -18,10 +13,8 @@ func (client *Client) getBalancer() *balancer.Balancer {
 }
 
 // initBalancer takes hosts from cfg.FrontedServers and cfg.ChainedServers and
-// it uses them to create a balancer. It also looks for the highest QOS dialer
-// available among the fronted servers.
-func (client *Client) initBalancer(cfg *ClientConfig) (*balancer.Balancer, fronted.Dialer) {
-	var highestQOSFrontedDialer fronted.Dialer
+// it uses them to create a balancer.
+func (client *Client) initBalancer(cfg *ClientConfig) *balancer.Balancer {
 
 	// The dialers slice must be large enough to handle all fronted and chained
 	// servers.
@@ -29,18 +22,9 @@ func (client *Client) initBalancer(cfg *ClientConfig) (*balancer.Balancer, front
 
 	// Add fronted servers.
 	log.Debugf("Adding %d domain fronted servers", len(cfg.FrontedServers))
-	highestQOS := math.MinInt32
 	for _, s := range cfg.FrontedServers {
-		// Get a dialer for domain fronting (fd) and a dialer to dial to arbitrary
-		// addreses (dialer).
-		fd, dialer := s.dialer(cfg.MasqueradeSets)
+		_, dialer := s.dialer(cfg.MasqueradeSets)
 		dialers = append(dialers, dialer)
-		if dialer.QOS > highestQOS {
-			// If this dialer as a higher QOS than our current highestQOS, set it as
-			// the highestQOSFrontedDialer.
-			highestQOSFrontedDialer = fd
-			highestQOS = dialer.QOS
-		}
 	}
 
 	// Add chained (CONNECT proxy) servers.
@@ -78,5 +62,5 @@ func (client *Client) initBalancer(cfg *ClientConfig) (*balancer.Balancer, front
 	// under Configure, which never gets called concurrently with itself.
 	client.balInitialized = true
 
-	return bal, highestQOSFrontedDialer
+	return bal
 }
