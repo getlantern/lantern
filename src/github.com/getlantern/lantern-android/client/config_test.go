@@ -1,17 +1,27 @@
 package client
 
 import (
+	"net/http"
 	"testing"
+	"time"
 )
 
 func TestConfigDownload(t *testing.T) {
+	httpDefaultClient := &http.Client{Timeout: time.Second * 5}
+	var buf []byte
 	var err error
 
 	// Resetting Etag.
 	lastCloudConfigETag = ""
 
 	// Pulling first time.
-	if _, err = pullConfigFile(httpDefaultClient); err != nil {
+	if buf, err = pullConfigFile(httpDefaultClient); err != nil {
+		t.Fatal(err)
+	}
+
+	// Check that we got a valid config.
+	cfg := &config{}
+	if err = cfg.updateFrom(buf); err != nil {
 		t.Fatal(err)
 	}
 
@@ -20,21 +30,5 @@ func TestConfigDownload(t *testing.T) {
 		if err != errConfigurationUnchanged {
 			t.Fatal(err)
 		}
-	}
-}
-
-func TestConfigParse(t *testing.T) {
-	var cfg *config
-	var err error
-
-	// Resetting Etag.
-	lastCloudConfigETag = ""
-
-	if cfg, err = getConfig(); err != nil {
-		t.Fatal(err)
-	}
-
-	if cfg == nil {
-		t.Fatal("Expecting non-nil config file.")
 	}
 }

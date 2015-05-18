@@ -27,6 +27,7 @@ import (
 	"github.com/getlantern/flashlight/statreporter"
 	"github.com/getlantern/flashlight/statserver"
 	"github.com/getlantern/flashlight/ui"
+	"github.com/getlantern/flashlight/util"
 )
 
 var (
@@ -220,8 +221,9 @@ func runClientProxy(cfg *config.Config) {
 		log.Errorf("No fronted dialer available, not enabling geolocation, stats or analytics")
 	} else {
 		// An *http.Client that uses the highest QOS dialer.
-		hqfdClient := hqfd.DirectHttpClient()
+		hqfdClient := hqfd.NewDirectDomainFronter()
 
+		config.Configure(hqfdClient)
 		geolookup.Configure(hqfdClient)
 		statserver.Configure(hqfdClient)
 		analytics.Configure(cfg, false, hqfdClient)
@@ -242,8 +244,9 @@ func runClientProxy(cfg *config.Config) {
 				// Create and pass the *http.Client that uses the highest QOS dialer to
 				// critical modules that require continual comunication with external
 				// services.
-				hqfdClient := hqfd.DirectHttpClient()
+				hqfdClient := hqfd.NewDirectDomainFronter()
 
+				config.Configure(hqfdClient)
 				geolookup.Configure(hqfdClient)
 				statserver.Configure(hqfdClient)
 				settings.Configure(cfg, version, buildDate)
@@ -275,6 +278,8 @@ func runServerProxy(cfg *config.Config) {
 		log.Fatal(err)
 	}
 
+	updateServerSideConfigClient(cfg)
+
 	srv := &server.Server{
 		Addr:         cfg.Addr,
 		ReadTimeout:  0, // don't timeout
@@ -297,6 +302,7 @@ func runServerProxy(cfg *config.Config) {
 	go func() {
 		for {
 			cfg := <-configUpdates
+			updateServerSideConfigClient(cfg)
 			statreporter.Configure(cfg.Stats)
 			srv.Configure(cfg.Server)
 		}
@@ -313,6 +319,15 @@ func runServerProxy(cfg *config.Config) {
 	if err != nil {
 		log.Fatalf("Unable to run server proxy: %s", err)
 	}
+}
+
+func updateServerSideConfigClient(cfg *config.Config) {
+	client, err := util.HTTPClient(cfg.CloudConfigCA, "")
+	if err != nil {
+		log.Errorf("Couldn't create http.Client for fetching the config")
+		return
+	}
+	config.Configure(client)
 }
 
 func useAllCores() {

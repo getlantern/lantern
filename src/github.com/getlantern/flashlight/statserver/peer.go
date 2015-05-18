@@ -2,6 +2,7 @@ package statserver
 
 import (
 	"math"
+	"net/http"
 	"sync/atomic"
 	"time"
 
@@ -118,7 +119,7 @@ func (peer *Peer) geolocate() error {
 }
 
 func (peer *Peer) doGeolocate() error {
-	geodata, err := geolookup.LookupIPWithClient(peer.IP, geoClient)
+	geodata, err := geolookup.LookupIPWithClient(peer.IP, geoClient.Load().(*http.Client))
 
 	if err != nil {
 		return err

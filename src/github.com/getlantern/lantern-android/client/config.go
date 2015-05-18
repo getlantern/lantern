@@ -9,7 +9,6 @@ import (
 	"log"
 	"net/http"
 	"reflect"
-	"time"
 
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/yaml"
@@ -21,8 +20,6 @@ const (
 	httpIfNoneMatch = "If-None-Match"
 	httpEtag        = "Etag"
 )
-
-var httpDefaultClient = &http.Client{Timeout: time.Second * 5}
 
 var lastCloudConfigETag string
 
@@ -46,7 +43,7 @@ var (
 const (
 	cloudConfigCA = ``
 	// URL of the configuration file. Remember to use HTTPs.
-	remoteConfigURL = `https://s3.amazonaws.com/lantern_config/cloud.2.0.0-nl.yaml.gz`
+	remoteConfigURL = `https://config.getiantem.org/cloud.yaml.gz`
 )
 
 // pullConfigFile attempts to retrieve a configuration file over the network,
@@ -116,27 +113,9 @@ func defaultConfig() *config {
 			},
 			MasqueradeSets: defaultMasqueradeSets,
 		},
+		TrustedCAs: defaultTrustedCAs,
 	}
 	return cfg
-}
-
-// getConfig attempts to provide a
-func getConfig() (*config, error) {
-	var err error
-	var buf []byte
-
-	var cfg config
-
-	// Attempt to download configuration file.
-	if buf, err = pullConfigFile(httpDefaultClient); err != nil {
-		return defaultConfig(), err
-	}
-
-	if err = cfg.updateFrom(buf); err != nil {
-		return defaultConfig(), err
-	}
-
-	return &cfg, nil
 }
 
 func (c *config) updateFrom(buf []byte) error {

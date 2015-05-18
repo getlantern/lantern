@@ -3,6 +3,7 @@ package statserver
 import (
 	"net/http"
 	"sync"
+	"sync/atomic"
 
 	"github.com/getlantern/golog"
 
@@ -14,7 +15,7 @@ var (
 
 	service    *ui.Service
 	cfgMutex   sync.RWMutex
-	geoClient  *http.Client
+	geoClient  atomic.Value
 	peers      map[string]*Peer
 	peersMutex sync.RWMutex
 )
@@ -22,7 +23,7 @@ var (
 func Configure(newClient *http.Client) {
 	cfgMutex.Lock()
 	defer cfgMutex.Unlock()
-	geoClient = newClient
+	geoClient.Store(newClient)
 	if service == nil {
 		err := registerService()
 		if err != nil {
