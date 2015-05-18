@@ -46,15 +46,15 @@ type Dialer interface {
 	// specified Masquerade.
 	HttpClientUsing(masquerade *Masquerade) *http.Client
 
-	// DirectHttpClient creates an HttpClient that domain-fronts but instead of
-	// using enproxy proxies routes to the destination server directly from the
+	// NewDirectDomainFronter creates an HttpClient that domain-fronts but instead
+	// of using enproxy proxies routes to the destination server directly from the
 	// CDN. This is useful for web properties registered on the CDN itself, for
 	// example geo.getiantem.org.
 	//
 	// Note - the connection is already encrypted by domain-fronting, so this
 	// client should only be used to make HTTP requests. Using it for HTTPS
 	// requests will result in an error.
-	DirectHttpClient() *http.Client
+	NewDirectDomainFronter() *http.Client
 }
 
 // Config captures the configuration of a domain-fronted dialer.
@@ -201,7 +201,7 @@ func (d *dialer) HttpClientUsing(masquerade *Masquerade) *http.Client {
 	}
 }
 
-func (d *dialer) DirectHttpClient() *http.Client {
+func (d *dialer) NewDirectDomainFronter() *http.Client {
 	return &http.Client{
 		Transport: &http.Transport{
 			Dial: func(network, addr string) (net.Conn, error) {

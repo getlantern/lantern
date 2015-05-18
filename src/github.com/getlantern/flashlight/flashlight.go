@@ -220,7 +220,7 @@ func runClientProxy(cfg *config.Config) {
 		log.Errorf("No fronted dialer available, not enabling geolocation, stats or analytics")
 	} else {
 		// An *http.Client that uses the highest QOS dialer.
-		hqfdClient := hqfd.DirectHttpClient()
+		hqfdClient := hqfd.NewDirectDomainFronter()
 
 		geolookup.Configure(hqfdClient)
 		statserver.Configure(hqfdClient)
@@ -242,7 +242,7 @@ func runClientProxy(cfg *config.Config) {
 				// Create and pass the *http.Client that uses the highest QOS dialer to
 				// critical modules that require continual comunication with external
 				// services.
-				hqfdClient := hqfd.DirectHttpClient()
+				hqfdClient := hqfd.NewDirectDomainFronter()
 
 				geolookup.Configure(hqfdClient)
 				statserver.Configure(hqfdClient)

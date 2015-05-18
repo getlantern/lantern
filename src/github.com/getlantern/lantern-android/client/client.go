@@ -59,7 +59,7 @@ func NewClient(addr, appName string) *MobileClient {
 
 	hqfd := client.Configure(clientConfig.Client)
 
-	hqfdc := hqfd.DirectHttpClient()
+	hqfdc := hqfd.NewDirectDomainFronter()
 
 	// store GA session event
 	sessionPayload := &analytics.Payload{
