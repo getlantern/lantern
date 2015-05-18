@@ -10,7 +10,6 @@ import (
 	"github.com/getlantern/analytics"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/globals"
-	"github.com/getlantern/flashlight/util"
 )
 
 const (
@@ -28,7 +27,8 @@ var (
 // MobileClient is an extension of flashlight client with a few custom declarations for mobile
 type MobileClient struct {
 	client.Client
-	closed chan bool
+	closed  chan bool
+	fronter *http.Client
 }
 
 // init attempts to setup client configuration.
@@ -75,8 +75,9 @@ func NewClient(addr, appName string) *MobileClient {
 	analytics.SessionEvent(hqfdc, sessionPayload)
 
 	return &MobileClient{
-		Client: client,
-		closed: make(chan bool),
+		Client:  client,
+		closed:  make(chan bool),
+		fronter: hqfdc,
 	}
 }
 
@@ -103,18 +104,11 @@ func (client *MobileClient) ServeHTTP() {
 // updateConfig attempts to pull a configuration file from the network using
 // the client proxy itself.
 func (client *MobileClient) updateConfig() error {
-	var err error
 	var buf []byte
-	var cli *http.Client
-
-	if cli, err = util.HTTPClient(cloudConfigCA, client.Addr); err != nil {
+	var err error
+	if buf, err = pullConfigFile(client.fronter); err != nil {
 		return err
 	}
-
-	if buf, err = pullConfigFile(cli); err != nil {
-		return err
-	}
-
 	return clientConfig.updateFrom(buf)
 }
 
@@ -133,7 +127,8 @@ func (client *MobileClient) pollConfiguration() {
 			var err error
 			if err = client.updateConfig(); err == nil {
 				// Configuration changed, lets reload.
-				client.Configure(clientConfig.Client)
+				hqfc := client.Configure(clientConfig.Client)
+				client.fronter = hqfc.NewDirectDomainFronter()
 			}
 			// Sleeping 'till next pull.
 			pollTimer.Reset(cloudConfigPollInterval)
