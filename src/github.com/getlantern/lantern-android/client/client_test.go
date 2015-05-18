@@ -57,12 +57,12 @@ func TestListenAndServeProxy(t *testing.T) {
 	for uri, expectedContent := range testURLs {
 		wg.Add(1)
 
-		go func(wg *sync.WaitGroup) {
+		go func(wg *sync.WaitGroup, uri string, expectedContent []byte) {
 			if err := testReverseProxy(uri, expectedContent); err != nil {
 				t.Fatal(err)
 			}
 			wg.Done()
-		}(&wg)
+		}(&wg, uri, expectedContent)
 
 	}
 
