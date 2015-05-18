@@ -10,6 +10,7 @@ import (
 	"github.com/getlantern/analytics"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/globals"
+	"github.com/getlantern/flashlight/util"
 )
 
 const (
@@ -52,8 +53,6 @@ func NewClient(addr, appName string) *MobileClient {
 
 	hqfd := client.Configure(clientConfig.Client)
 
-	hqfdc := hqfd.NewDirectDomainFronter()
-
 	// store GA session event
 	sessionPayload := &analytics.Payload{
 		HitType: analytics.EventType,
@@ -72,12 +71,17 @@ func NewClient(addr, appName string) *MobileClient {
 		}
 	}
 
-	analytics.SessionEvent(hqfdc, sessionPayload)
+	httpClient, er := util.HTTPClient(cfg.CloudConfigCA, cfg.Addr)
+	if er != nil {
+		log.Errorf("Could not create HTTP client %v", er)
+	} else {
+		analytics.SessionEvent(httpClient, sessionPayload)
+	}
 
 	return &MobileClient{
 		Client:  client,
 		closed:  make(chan bool),
-		fronter: hqfdc,
+		fronter: hqfd.NewDirectDomainFronter(),
 	}
 }
 
