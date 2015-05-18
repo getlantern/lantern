@@ -205,11 +205,7 @@ func (d *dialer) NewDirectDomainFronter() *http.Client {
 	return &http.Client{
 		Transport: &http.Transport{
 			Dial: func(network, addr string) (net.Conn, error) {
-				var masquerade *Masquerade
-				if d.masquerades != nil {
-					masquerade = d.masquerades.nextVerified()
-				}
-				return d.dialServerWith(masquerade)
+				return d.dialServer()
 			},
 		},
 	}
