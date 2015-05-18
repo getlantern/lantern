@@ -87,7 +87,7 @@ type Config struct {
 	BufferRequests bool
 
 	// DialTimeoutMillis: how long to wait on dialing server before timing out
-	// (defaults to 20 seconds)
+	// (defaults to 30 seconds)
 	DialTimeoutMillis int
 
 	// RedialAttempts: number of times to try redialing. The total number of
@@ -271,7 +271,7 @@ func (d *dialer) dialServer() (net.Conn, error) {
 func (d *dialer) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
 	dialTimeout := time.Duration(d.DialTimeoutMillis) * time.Millisecond
 	if dialTimeout == 0 {
-		dialTimeout = 20 * time.Second
+		dialTimeout = 30 * time.Second
 	}
 
 	// Note - we need to suppress the sending of the ServerName in the client
