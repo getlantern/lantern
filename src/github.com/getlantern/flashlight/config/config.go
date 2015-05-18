@@ -10,25 +10,20 @@ import (
 	"path/filepath"
 	"runtime"
 	"sort"
-	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/proxiedsites"
-	"github.com/getlantern/waitforserver"
 	"github.com/getlantern/yaml"
 	"github.com/getlantern/yamlconf"
 
 	"github.com/getlantern/flashlight/client"
-	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/globals"
-	"github.com/getlantern/flashlight/pubsub"
 	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/statreporter"
-	"github.com/getlantern/flashlight/util"
-	geo "github.com/getlantern/geolookup"
 )
 
 const (
@@ -36,13 +31,13 @@ const (
 	cloudflare              = "cloudflare"
 	etag                    = "ETag"
 	ifNoneMatch             = "If-None-Match"
-	countryPlaceholder      = "${COUNTRY}"
 )
 
 var (
 	log                 = golog.LoggerFor("flashlight.config")
 	m                   *yamlconf.Manager
 	lastCloudConfigETag = map[string]string{}
+	httpClient          atomic.Value
 )
 
 type Config struct {
@@ -62,6 +57,12 @@ type Config struct {
 	Client        *client.ClientConfig
 	ProxiedSites  *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
 	TrustedCAs    []*CA
+}
+
+func Configure(c *http.Client) {
+	httpClient.Store(c)
+	// No-op if already started.
+	m.StartPolling()
 }
 
 // CA represents a certificate authority
@@ -115,14 +116,6 @@ func Init() (*Config, error) {
 	initial, err := m.Init()
 	var cfg *Config
 	if err == nil {
-		er := pubsub.Sub(pubsub.Location, func(city *geo.City) {
-			log.Debugf("Got location: %v", city.Country.IsoCode)
-			m.StartPolling()
-		})
-		if er != nil {
-			log.Errorf("Error subscribing to location: %v", er)
-			return nil, er
-		}
 		cfg = initial.(*Config)
 		err = updateGlobals(cfg)
 		if err != nil {
@@ -229,7 +222,7 @@ func (cfg *Config) ApplyDefaults() {
 	}
 
 	if cfg.CloudConfig == "" {
-		cfg.CloudConfig = fmt.Sprintf("https://config.getiantem.org/cloud.%v.yaml.gz", countryPlaceholder)
+		cfg.CloudConfig = "https://config.getiantem.org/cloud.yaml.gz"
 	}
 
 	// Make sure we always have a stats config
@@ -342,59 +335,8 @@ func (cfg Config) cloudPollSleepTime() time.Duration {
 	return time.Duration((CloudConfigPollInterval.Nanoseconds() / 2) + rand.Int63n(CloudConfigPollInterval.Nanoseconds()))
 }
 
-func (cfg Config) fetchCloudConfig() (bytes []byte, err error) {
-	log.Debugf("Fetching cloud config...")
-
-	if cfg.IsDownstream() {
-		// Clients must always proxy the request
-		if cfg.Addr == "" {
-			err = fmt.Errorf("No proxyAddr")
-		} else {
-			bytes, err = cfg.fetchCloudConfigForAddr(cfg.Addr)
-		}
-	} else {
-		bytes, err = cfg.fetchCloudConfigForAddr("")
-	}
-	if err != nil {
-		bytes = nil
-		err = fmt.Errorf("Unable to read yaml from cloud config: %s", err)
-	}
-	return
-}
-
-func (cfg Config) fetchCloudConfigForAddr(proxyAddr string) ([]byte, error) {
-	log.Tracef("fetchCloudConfigForAddr '%s'", proxyAddr)
-
-	if proxyAddr != "" {
-		// Wait for proxy to become available
-		err := waitforserver.WaitForServer("tcp", proxyAddr, 30*time.Second)
-		if err != nil {
-			return nil, fmt.Errorf("Proxy never came up at %v: %v", proxyAddr, err)
-		}
-	}
-
-	client, err := util.HTTPClient(cfg.CloudConfigCA, proxyAddr)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to initialize HTTP client: %s", err)
-	}
-	country := strings.ToLower(geolookup.GetCountry())
-	if country != "" && country != "xx" {
-		ret, err := cfg.fetchCloudConfigForCountry(client, country)
-		// We could check specifically for a 404, but S3 actually returns a 403 when
-		// a resource is not available.  I thought we'd better lean on the side of
-		// robustness by avoiding hardcoding an S3-ism here, than to try and save an
-		// extra request every now and then.
-		if err == nil {
-			return ret, err
-		} else {
-			log.Debugf("Couldn't fetch cloud config for country '%s'; trying the default one", country)
-		}
-	}
-	return cfg.fetchCloudConfigForCountry(client, "default")
-}
-
-func (cfg Config) fetchCloudConfigForCountry(client *http.Client, country string) ([]byte, error) {
-	url := strings.Replace(cfg.CloudConfig, countryPlaceholder, country, 1)
+func (cfg Config) fetchCloudConfig() ([]byte, error) {
+	url := cfg.CloudConfig
 	log.Debugf("Checking for cloud configuration at: %s", url)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -410,7 +352,7 @@ func (cfg Config) fetchCloudConfigForCountry(client *http.Client, country string
 	// successive requests
 	req.Close = true
 
-	resp, err := client.Do(req)
+	resp, err := httpClient.Load().(*http.Client).Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to fetch cloud config at %s: %s", url, err)
 	}
