@@ -64,15 +64,16 @@ func NewClient(addr, appName string) *MobileClient {
 
 func (client *MobileClient) ServeHTTP() {
 
-	defer func() {
-		close(client.closed)
-	}()
-
 	go func() {
 		onListening := func() {
 			log.Printf("Now listening for connections...")
 			go client.recordAnalytics()
 		}
+
+		defer func() {
+			close(client.closed)
+		}()
+
 		if err := client.ListenAndServe(onListening); err != nil {
 			// Error is not exported: https://golang.org/src/net/net.go#L284
 			if !strings.Contains(err.Error(), "use of closed network connection") {
@@ -120,6 +121,7 @@ func (client *MobileClient) updateConfig() error {
 	var buf []byte
 	var err error
 	if buf, err = pullConfigFile(client.fronter); err != nil {
+		log.Fatalf("Could not update config: '%v'", err)
 		return err
 	}
 	return clientConfig.updateFrom(buf)
@@ -128,12 +130,15 @@ func (client *MobileClient) updateConfig() error {
 // pollConfiguration periodically checks for updates in the cloud configuration
 // file.
 func (client *MobileClient) pollConfiguration() {
-	pollTimer := time.NewTimer(cloudConfigPollInterval)
+
+	// initially poll the config immediately
+	pollTimer := time.NewTimer(1)
 	defer pollTimer.Stop()
 
 	for {
 		select {
 		case <-client.closed:
+			log.Print("Closing poll configuration channel")
 			return
 		case <-pollTimer.C:
 			// Attempt to update configuration.
@@ -148,6 +153,7 @@ func (client *MobileClient) pollConfiguration() {
 				client.fronter = hqfc.NewDirectDomainFronter()
 			}
 			// Sleeping 'till next pull.
+			// update timer to poll every 60 seconds
 			pollTimer.Reset(cloudConfigPollInterval)
 		}
 	}
