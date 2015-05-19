@@ -10,6 +10,7 @@ import (
 
 	"github.com/getlantern/golog"
 	"github.com/getlantern/keyman"
+	"github.com/getlantern/waitforserver"
 )
 
 var (
@@ -35,6 +36,18 @@ func HTTPClient(rootCA string, proxyAddr string) (*http.Client, error) {
 // validate the server's certificate on TLS connections against that RootCA. If
 // proxyAddr is specified, the client will proxy through the given http proxy.
 func httpClient(rootCA string, proxyAddr string, persistent bool) (*http.Client, error) {
+
+	log.Debugf("Waiting for proxy server...")
+
+	// Waiting for proxy server to came online.
+	err := waitforserver.WaitForServer("tcp", proxyAddr, 60*time.Second)
+	if err != nil {
+		// Instead of finishing here we just log the error and continue, the client
+		// we are going to create will surely fail when used and return errors,
+		// those errors should be handled by the code that depends on such client.
+		log.Errorf("Proxy never came online at %v: %q", proxyAddr, err)
+	}
+
 	log.Debugf("Creating new HTTPClient with proxy: %v", proxyAddr)
 	tr := &http.Transport{
 		Dial: (&net.Dialer{
