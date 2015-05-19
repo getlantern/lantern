@@ -93,6 +93,7 @@ func (client *MobileClient) recordAnalytics() {
 			Action:   "Start",
 			Label:    runtime.GOOS,
 		},
+		UserAgent: "FireTweet",
 	}
 
 	if client.appName != "" {
