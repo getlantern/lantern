@@ -3,7 +3,6 @@ package analytics
 import (
 	"net/http"
 	"runtime"
-	"time"
 
 	"github.com/getlantern/flashlight/config"
 	"github.com/mitchellh/mapstructure"
@@ -11,7 +10,6 @@ import (
 	"github.com/getlantern/analytics"
 	"github.com/getlantern/flashlight/ui"
 	"github.com/getlantern/golog"
-	"github.com/getlantern/waitforserver"
 )
 
 const (
@@ -59,13 +57,7 @@ func SessionEvent(httpClient *http.Client, proxyAddr string, version string, tra
 		}
 	}
 
-	go func() {
-		if err := waitforserver.WaitForServer("tcp", proxyAddr, 3*time.Second); err != nil {
-			log.Error(err)
-			return
-		}
-		analytics.SessionEvent(httpClient, sessionPayload)
-	}()
+	analytics.SessionEvent(httpClient, sessionPayload)
 }
 
 // Used with clients to track user interaction with the UI
