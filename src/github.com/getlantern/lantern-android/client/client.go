@@ -120,6 +120,7 @@ func (client *MobileClient) updateConfig() error {
 	var buf []byte
 	var err error
 	if buf, err = pullConfigFile(client.fronter); err != nil {
+		log.Fatalf("Could not update config: '%v'", err)
 		return err
 	}
 	return clientConfig.updateFrom(buf)
