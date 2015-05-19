@@ -63,6 +63,8 @@ type Payload struct {
 
 	CustomVars map[string]string
 
+	LanternVersion string
+
 	Event *Event
 }
 
@@ -123,6 +125,12 @@ func SendRequest(httpClient *http.Client, payload *Payload) (status bool, err er
 
 	r, err := http.NewRequest("POST", ApiEndpoint, args)
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	version := DefaultClientVersion
+	if payload.LanternVersion != "" {
+		version = payload.LanternVersion
+	}
+	r.Header.Add("User-Agent", "lantern (version: "+version+")")
+
 	if err != nil {
 		log.Errorf("Error constructing GA request: %s", err)
 		return false, err

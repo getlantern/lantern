@@ -50,6 +50,7 @@ func SessionEvent(httpClient *http.Client, proxyAddr string, version string, tra
 			Action:   "Start",
 			Label:    runtime.GOOS,
 		},
+		LanternVersion: version,
 	}
 
 	if version != "" {
