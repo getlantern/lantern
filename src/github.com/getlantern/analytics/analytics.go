@@ -119,7 +119,7 @@ func SendRequest(httpClient *http.Client, payload *Payload) (status bool, err er
 		httpClient = defaultHttpClient
 	}
 
-	args := encodeArgs(payload)
+	args := collectArgs(payload)
 
 	r, err := http.NewRequest("POST", ApiEndpoint, args)
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")

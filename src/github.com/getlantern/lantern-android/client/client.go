@@ -3,13 +3,15 @@ package client
 import (
 	"log"
 	"net/http"
+	"runtime"
 	"strings"
 	"time"
 
-	"github.com/getlantern/flashlight/analytics"
+	"github.com/getlantern/analytics"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/util"
+	"github.com/getlantern/waitforserver"
 )
 
 const (
@@ -70,7 +72,7 @@ func (client *MobileClient) ServeHTTP() {
 	go func() {
 		onListening := func() {
 			log.Printf("Now listening for connections...")
-			go client.recordAnalytics()
+			client.recordAnalytics()
 		}
 		if err := client.ListenAndServe(onListening); err != nil {
 			// Error is not exported: https://golang.org/src/net/net.go#L284
@@ -84,11 +86,20 @@ func (client *MobileClient) ServeHTTP() {
 
 func (client *MobileClient) recordAnalytics() {
 
-	trackingId := ""
+	sessionPayload := &analytics.Payload{
+		HitType:    analytics.EventType,
+		Hostname:   "localhost",
+		TrackingId: trackingCodes["FireTweet"],
+		Event: &analytics.Event{
+			Category: "Session",
+			Action:   "Start",
+			Label:    runtime.GOOS,
+		},
+	}
 
 	if client.appName != "" {
 		if appTrackingId, ok := trackingCodes[client.appName]; ok {
-			trackingId = appTrackingId
+			sessionPayload.TrackingId = appTrackingId
 		}
 	}
 
@@ -96,13 +107,18 @@ func (client *MobileClient) recordAnalytics() {
 	// is a little unorthodox by Lantern standards because it doesn't
 	// pin the certificate of the cloud.yaml root CA, instead relying
 	// on the go defaults.
-	httpClient, er := util.HTTPClient("", client.Client.Addr)
-	if er != nil {
-		log.Fatalf("Could not create HTTP client %v", er)
+	httpClient, err := util.HTTPClient("", client.Client.Addr)
+	if err != nil {
+		log.Fatalf("Could not create HTTP client %v", err)
 	} else {
-		analytics.SessionEvent(httpClient, client.Client.Addr, "", trackingId)
+		go func() {
+			if err := waitforserver.WaitForServer("tcp", client.Client.Addr, 3*time.Second); err != nil {
+				log.Print(err)
+				return
+			}
+			analytics.SessionEvent(httpClient, sessionPayload)
+		}()
 	}
-
 }
 
 // updateConfig attempts to pull a configuration file from the network using
