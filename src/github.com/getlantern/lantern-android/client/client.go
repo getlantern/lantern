@@ -10,6 +10,7 @@ import (
 	"github.com/getlantern/analytics"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/globals"
+	"github.com/getlantern/flashlight/util"
 )
 
 const (
@@ -29,6 +30,7 @@ type MobileClient struct {
 	client.Client
 	closed  chan bool
 	fronter *http.Client
+	appName string
 }
 
 // init attempts to setup client configuration.
@@ -52,32 +54,11 @@ func NewClient(addr, appName string) *MobileClient {
 
 	hqfd := client.Configure(clientConfig.Client)
 
-	hqfdc := hqfd.NewDirectDomainFronter()
-
-	// store GA session event
-	sessionPayload := &analytics.Payload{
-		HitType: analytics.EventType,
-		Event: &analytics.Event{
-			Category: "Session",
-			Action:   "Start",
-			Label:    runtime.GOOS,
-		},
-	}
-
-	// attach our app-specific analytics tracking code
-	// to session info
-	if appName != "" {
-		if trackingId, ok := trackingCodes[appName]; ok {
-			sessionPayload.TrackingId = trackingId
-		}
-	}
-
-	analytics.SessionEvent(hqfdc, sessionPayload)
-
 	return &MobileClient{
 		Client:  client,
 		closed:  make(chan bool),
-		fronter: hqfdc,
+		fronter: hqfd.NewDirectDomainFronter(),
+		appName: appName,
 	}
 }
 
@@ -90,6 +71,7 @@ func (client *MobileClient) ServeHTTP() {
 	go func() {
 		onListening := func() {
 			log.Printf("Now listening for connections...")
+			go client.recordAnalytics()
 		}
 		if err := client.ListenAndServe(onListening); err != nil {
 			// Error is not exported: https://golang.org/src/net/net.go#L284
@@ -99,6 +81,37 @@ func (client *MobileClient) ServeHTTP() {
 		}
 	}()
 	go client.pollConfiguration()
+}
+
+func (client *MobileClient) recordAnalytics() {
+
+	sessionPayload := &analytics.Payload{
+		HitType:  analytics.EventType,
+		Hostname: "localhost",
+		Event: &analytics.Event{
+			Category: "Session",
+			Action:   "Start",
+			Label:    runtime.GOOS,
+		},
+		UserAgent: "FireTweet",
+	}
+
+	if client.appName != "" {
+		if appTrackingId, ok := trackingCodes[client.appName]; ok {
+			sessionPayload.TrackingId = appTrackingId
+		}
+	}
+
+	// Report analytics, proxying through the local client. Note this
+	// is a little unorthodox by Lantern standards because it doesn't
+	// pin the certificate of the cloud.yaml root CA, instead relying
+	// on the go defaults.
+	httpClient, err := util.HTTPClient("", client.Client.Addr)
+	if err != nil {
+		log.Fatalf("Could not create HTTP client %v", err)
+	} else {
+		analytics.SessionEvent(httpClient, sessionPayload)
+	}
 }
 
 // updateConfig attempts to pull a configuration file from the network using

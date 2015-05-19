@@ -217,6 +217,13 @@ func runClientProxy(cfg *config.Config) {
 	settings.Configure(cfg, version, buildDate)
 	proxiedsites.Configure(cfg.ProxiedSites)
 
+	httpClient, er := util.HTTPClient("", cfg.Addr)
+	if er != nil {
+		log.Errorf("Could not create HTTP client %v", er)
+	} else {
+		analytics.Configure(httpClient, cfg, cfg.Addr, version)
+	}
+
 	if hqfd == nil {
 		log.Errorf("No fronted dialer available, not enabling geolocation, stats or analytics")
 	} else {
@@ -226,7 +233,6 @@ func runClientProxy(cfg *config.Config) {
 		config.Configure(hqfdClient)
 		geolookup.Configure(hqfdClient)
 		statserver.Configure(hqfdClient)
-		analytics.Configure(cfg, false, hqfdClient)
 	}
 
 	// Continually poll for config updates and update client accordingly
@@ -252,6 +258,8 @@ func runClientProxy(cfg *config.Config) {
 				settings.Configure(cfg, version, buildDate)
 				logging.Configure(cfg, version, buildDate)
 				autoupdate.Configure(cfg)
+				// Note we don't call Configure on analytics here, as that would
+				// result in an extra analytics call and double counting.
 			}
 		}
 	}()
@@ -296,7 +304,6 @@ func runServerProxy(cfg *config.Config) {
 	}
 
 	srv.Configure(cfg.Server)
-	analytics.Configure(cfg, true, nil)
 
 	// Continually poll for config updates and update server accordingly
 	go func() {
