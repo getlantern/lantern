@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	ApiEndpoint          = `https://www.google-analytics.com/collect`
+	ApiEndpoint          = `https://ssl.google-analytics.com/collect`
 	ProtocolVersion      = "1"
 	DefaultClientVersion = "1"
 	TrackingId           = "UA-21815217-2"

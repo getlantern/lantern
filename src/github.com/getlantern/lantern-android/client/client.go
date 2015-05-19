@@ -11,7 +11,6 @@ import (
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/util"
-	"github.com/getlantern/waitforserver"
 )
 
 const (
@@ -110,10 +109,6 @@ func (client *MobileClient) recordAnalytics() {
 	if err != nil {
 		log.Fatalf("Could not create HTTP client %v", err)
 	} else {
-		if err := waitforserver.WaitForServer("tcp", client.Client.Addr, 3*time.Second); err != nil {
-			log.Print(err)
-			return
-		}
 		analytics.SessionEvent(httpClient, sessionPayload)
 	}
 }
