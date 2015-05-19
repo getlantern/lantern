@@ -72,7 +72,7 @@ func (client *MobileClient) ServeHTTP() {
 	go func() {
 		onListening := func() {
 			log.Printf("Now listening for connections...")
-			client.recordAnalytics()
+			go client.recordAnalytics()
 		}
 		if err := client.ListenAndServe(onListening); err != nil {
 			// Error is not exported: https://golang.org/src/net/net.go#L284
@@ -87,9 +87,8 @@ func (client *MobileClient) ServeHTTP() {
 func (client *MobileClient) recordAnalytics() {
 
 	sessionPayload := &analytics.Payload{
-		HitType:    analytics.EventType,
-		Hostname:   "localhost",
-		TrackingId: trackingCodes["FireTweet"],
+		HitType:  analytics.EventType,
+		Hostname: "localhost",
 		Event: &analytics.Event{
 			Category: "Session",
 			Action:   "Start",
@@ -111,13 +110,11 @@ func (client *MobileClient) recordAnalytics() {
 	if err != nil {
 		log.Fatalf("Could not create HTTP client %v", err)
 	} else {
-		go func() {
-			if err := waitforserver.WaitForServer("tcp", client.Client.Addr, 3*time.Second); err != nil {
-				log.Print(err)
-				return
-			}
-			analytics.SessionEvent(httpClient, sessionPayload)
-		}()
+		if err := waitforserver.WaitForServer("tcp", client.Client.Addr, 3*time.Second); err != nil {
+			log.Print(err)
+			return
+		}
+		analytics.SessionEvent(httpClient, sessionPayload)
 	}
 }
 
