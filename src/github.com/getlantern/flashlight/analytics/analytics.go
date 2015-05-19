@@ -3,6 +3,7 @@ package analytics
 import (
 	"net/http"
 	"runtime"
+	"time"
 
 	"github.com/getlantern/flashlight/config"
 	"github.com/mitchellh/mapstructure"
@@ -10,6 +11,7 @@ import (
 	"github.com/getlantern/analytics"
 	"github.com/getlantern/flashlight/ui"
 	"github.com/getlantern/golog"
+	"github.com/getlantern/waitforserver"
 )
 
 const (
@@ -24,45 +26,46 @@ var (
 	stopCh     chan bool
 )
 
-func Configure(cfg *config.Config, serverSession bool, newClient *http.Client) {
+func Configure(newClient *http.Client, cfg *config.Config, proxyAddr string, version string) {
 
 	httpClient = newClient
 
-	sessionPayload := &analytics.Payload{
-		HitType: analytics.EventType,
-		Event: &analytics.Event{
-			Category: "Session",
-			Action:   "Start",
-			Label:    runtime.GOOS,
-		},
-	}
+	SessionEvent(httpClient, cfg.Addr, version, "")
 
-	if cfg == nil {
-		analytics.SessionEvent(httpClient, sessionPayload)
-		return
-	}
-
-	if cfg.InstanceId != "" {
-		sessionPayload.ClientId = cfg.InstanceId
-	}
-	if cfg.Version != 0 {
-		sessionPayload.ClientVersion = string(cfg.Version)
-	}
-
-	if serverSession {
-		sessionPayload.Hostname = cfg.Server.RegisterAt
-	} else {
-		sessionPayload.Hostname = "localhost"
-	}
-
-	analytics.SessionEvent(httpClient, sessionPayload)
-
-	if !serverSession && cfg.AutoReport != nil && *cfg.AutoReport {
+	if cfg.AutoReport != nil && *cfg.AutoReport {
 		err := StartService()
 		if err != nil {
 			log.Errorf("Error starting analytics service: %q", err)
 		}
 	}
+}
+
+func SessionEvent(httpClient *http.Client, proxyAddr string, version string, trackingId string) {
+	sessionPayload := &analytics.Payload{
+		HitType:    analytics.EventType,
+		TrackingId: trackingId,
+		Hostname:   "localhost",
+		Event: &analytics.Event{
+			Category: "Session",
+			Action:   "Start",
+			Label:    runtime.GOOS,
+		},
+		UserAgent: "Lantern (version: " + version + ")",
+	}
+
+	if version != "" {
+		sessionPayload.CustomVars = map[string]string{
+			"cd1": version,
+		}
+	}
+
+	go func() {
+		if err := waitforserver.WaitForServer("tcp", proxyAddr, 3*time.Second); err != nil {
+			log.Error(err)
+			return
+		}
+		analytics.SessionEvent(httpClient, sessionPayload)
+	}()
 }
 
 // Used with clients to track user interaction with the UI

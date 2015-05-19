@@ -85,21 +85,20 @@ func (client *MobileClient) ServeHTTP() {
 
 func (client *MobileClient) recordAnalytics() {
 
-	// store GA session event
 	sessionPayload := &analytics.Payload{
-		HitType: analytics.EventType,
+		HitType:  analytics.EventType,
+		Hostname: "localhost",
 		Event: &analytics.Event{
 			Category: "Session",
 			Action:   "Start",
 			Label:    runtime.GOOS,
 		},
+		UserAgent: "FireTweet",
 	}
 
-	// attach our app-specific analytics tracking code
-	// to session info
 	if client.appName != "" {
-		if trackingId, ok := trackingCodes[client.appName]; ok {
-			sessionPayload.TrackingId = trackingId
+		if appTrackingId, ok := trackingCodes[client.appName]; ok {
+			sessionPayload.TrackingId = appTrackingId
 		}
 	}
 
@@ -107,13 +106,12 @@ func (client *MobileClient) recordAnalytics() {
 	// is a little unorthodox by Lantern standards because it doesn't
 	// pin the certificate of the cloud.yaml root CA, instead relying
 	// on the go defaults.
-	httpClient, er := util.HTTPClient("", client.Client.Addr)
-	if er != nil {
-		log.Fatalf("Could not create HTTP client %v", er)
+	httpClient, err := util.HTTPClient("", client.Client.Addr)
+	if err != nil {
+		log.Fatalf("Could not create HTTP client %v", err)
 	} else {
 		analytics.SessionEvent(httpClient, sessionPayload)
 	}
-
 }
 
 // updateConfig attempts to pull a configuration file from the network using

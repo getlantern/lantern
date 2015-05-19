@@ -221,7 +221,7 @@ func runClientProxy(cfg *config.Config) {
 	if er != nil {
 		log.Errorf("Could not create HTTP client %v", er)
 	} else {
-		analytics.Configure(cfg, false, httpClient)
+		analytics.Configure(httpClient, cfg, cfg.Addr, version)
 	}
 
 	if hqfd == nil {
@@ -304,7 +304,6 @@ func runServerProxy(cfg *config.Config) {
 	}
 
 	srv.Configure(cfg.Server)
-	analytics.Configure(cfg, true, nil)
 
 	// Continually poll for config updates and update server accordingly
 	go func() {
