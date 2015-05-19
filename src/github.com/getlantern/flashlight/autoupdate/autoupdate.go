@@ -10,7 +10,6 @@ import (
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/golog"
-	"github.com/getlantern/waitforserver"
 )
 
 const (
@@ -56,13 +55,6 @@ func enableAutoupdate(cfg *config.Config) {
 
 	if cfg.Addr == "" {
 		log.Error("No known proxy, disabling auto updates.")
-		return
-	}
-
-	err = waitforserver.WaitForServer("tcp", cfg.Addr, 5*time.Second)
-
-	if err != nil {
-		log.Errorf("Proxy never came online at %v, disabling auto updates.", cfg.Addr)
 		return
 	}
 
