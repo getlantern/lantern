@@ -1,7 +1,7 @@
 package analytics
 
 import (
-	"fmt"
+	"bytes"
 	"net/http"
 	"net/url"
 
@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	ApiEndpoint          = `https://www.google-analytics.com/collect?%s`
+	ApiEndpoint          = `https://www.google-analytics.com/collect`
 	ProtocolVersion      = "1"
 	DefaultClientVersion = "1"
 	TrackingId           = "UA-21815217-2"
@@ -66,8 +66,8 @@ type Payload struct {
 	Event *Event
 }
 
-// attaach list of parameters to request
-func composeUrl(payload *Payload) string {
+// assemble list of parameters to send to GA
+func collectArgs(payload *Payload) *bytes.Buffer {
 	vals := make(url.Values, 0)
 
 	// Add default payload
@@ -109,25 +109,31 @@ func composeUrl(payload *Payload) string {
 		}
 	}
 
-	return fmt.Sprintf(ApiEndpoint, vals.Encode())
+	return bytes.NewBufferString(vals.Encode())
 }
 
 // Makes a tracking request to Google Analytics
 func SendRequest(httpClient *http.Client, payload *Payload) (status bool, err error) {
-	var resp *http.Response
-
 	if httpClient == nil {
 		log.Trace("Using default http.Client")
 		httpClient = defaultHttpClient
 	}
 
-	url := composeUrl(payload)
-	log.Debugf("New Google Analytics request: %s", url)
+	args := encodeArgs(payload)
 
-	if resp, err = http.Get(url); err != nil {
-		log.Errorf("Could not send request to Google Analytics: %q", err)
+	r, err := http.NewRequest("POST", ApiEndpoint, args)
+	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	if err != nil {
+		log.Errorf("Error constructing GA request: %s", err)
 		return false, err
 	}
+
+	resp, err := httpClient.Do(r)
+	if err != nil {
+		log.Errorf("Could not send HTTP request to GA: %s", err)
+		return false, err
+	}
+	log.Debugf("Successfully sent request to GA: %s", resp.Status)
 	defer resp.Body.Close()
 
 	return true, nil

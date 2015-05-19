@@ -3,11 +3,10 @@ package client
 import (
 	"log"
 	"net/http"
-	"runtime"
 	"strings"
 	"time"
 
-	"github.com/getlantern/analytics"
+	"github.com/getlantern/flashlight/analytics"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/util"
@@ -85,21 +84,11 @@ func (client *MobileClient) ServeHTTP() {
 
 func (client *MobileClient) recordAnalytics() {
 
-	// store GA session event
-	sessionPayload := &analytics.Payload{
-		HitType: analytics.EventType,
-		Event: &analytics.Event{
-			Category: "Session",
-			Action:   "Start",
-			Label:    runtime.GOOS,
-		},
-	}
+	trackingId := ""
 
-	// attach our app-specific analytics tracking code
-	// to session info
 	if client.appName != "" {
-		if trackingId, ok := trackingCodes[client.appName]; ok {
-			sessionPayload.TrackingId = trackingId
+		if appTrackingId, ok := trackingCodes[client.appName]; ok {
+			trackingId = appTrackingId
 		}
 	}
 
@@ -111,7 +100,7 @@ func (client *MobileClient) recordAnalytics() {
 	if er != nil {
 		log.Fatalf("Could not create HTTP client %v", er)
 	} else {
-		analytics.SessionEvent(httpClient, sessionPayload)
+		analytics.SessionEvent(httpClient, client.Client.Addr, "", trackingId)
 	}
 
 }
