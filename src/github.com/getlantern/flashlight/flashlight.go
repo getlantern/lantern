@@ -217,7 +217,7 @@ func runClientProxy(cfg *config.Config) {
 	settings.Configure(cfg, version, buildDate)
 	proxiedsites.Configure(cfg.ProxiedSites)
 
-	httpClient, er := util.HTTPClient(cfg.CloudConfigCA, cfg.Addr)
+	httpClient, er := util.HTTPClient("", cfg.Addr)
 	if er != nil {
 		log.Errorf("Could not create HTTP client %v", er)
 	} else {
