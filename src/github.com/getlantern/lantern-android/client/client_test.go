@@ -105,7 +105,7 @@ func testReverseProxy(destURL string, expectedContent []byte) (err error) {
 
 	buf, err = ioutil.ReadAll(res.Body)
 
-	fmt.Printf(string(buf))
+	fmt.Printf("Read: %v", string(buf))
 
 	if bytes.Equal(buf, expectedContent) == false {
 		return fmt.Errorf("The response we've got from %s differs from what we expected.", destURL)

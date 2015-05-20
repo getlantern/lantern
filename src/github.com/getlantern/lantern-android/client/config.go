@@ -6,7 +6,6 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"reflect"
 
@@ -72,7 +71,7 @@ func pullConfigFile(cli *http.Client) ([]byte, error) {
 
 	// Has changed?
 	if res.StatusCode == http.StatusNotModified {
-		log.Printf("Configuration file has not changed since last pull.\n")
+		log.Debugf("Configuration file has not changed since last pull.\n")
 		return nil, errConfigurationUnchanged
 	}
 

@@ -1,7 +1,6 @@
 package client
 
 import (
-	"log"
 	"net/http"
 	"runtime"
 	"strings"
@@ -11,6 +10,7 @@ import (
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/util"
+	"github.com/getlantern/golog"
 )
 
 const (
@@ -19,6 +19,7 @@ const (
 
 // clientConfig holds global configuration settings for all clients.
 var (
+	log           = golog.LoggerFor("lantern-android.client")
 	clientConfig  *config
 	trackingCodes = map[string]string{
 		"FireTweet": "UA-21408036-4",
@@ -49,7 +50,7 @@ func NewClient(addr, appName string) *MobileClient {
 
 	err := globals.SetTrustedCAs(clientConfig.getTrustedCerts())
 	if err != nil {
-		log.Fatalf("Unable to configure trusted CAs: %s", err)
+		log.Errorf("Unable to configure trusted CAs: %s", err)
 	}
 
 	hqfd := client.Configure(clientConfig.Client)
@@ -66,7 +67,7 @@ func (client *MobileClient) ServeHTTP() {
 
 	go func() {
 		onListening := func() {
-			log.Printf("Now listening for connections...")
+			log.Debugf("Now listening for connections...")
 			go client.recordAnalytics()
 		}
 
@@ -109,7 +110,7 @@ func (client *MobileClient) recordAnalytics() {
 	// on the go defaults.
 	httpClient, err := util.HTTPClient("", client.Client.Addr)
 	if err != nil {
-		log.Fatalf("Could not create HTTP client %v", err)
+		log.Errorf("Could not create HTTP client %v", err)
 	} else {
 		analytics.SessionEvent(httpClient, sessionPayload)
 	}
@@ -121,7 +122,7 @@ func (client *MobileClient) updateConfig() error {
 	var buf []byte
 	var err error
 	if buf, err = pullConfigFile(client.fronter); err != nil {
-		log.Fatalf("Could not update config: '%v'", err)
+		log.Errorf("Could not update config: '%v'", err)
 		return err
 	}
 	return clientConfig.updateFrom(buf)
@@ -147,7 +148,7 @@ func (client *MobileClient) pollConfiguration() {
 				// Configuration changed, lets reload.
 				err := globals.SetTrustedCAs(clientConfig.getTrustedCerts())
 				if err != nil {
-					log.Printf("Unable to configure trusted CAs: %s", err)
+					log.Debugf("Unable to configure trusted CAs: %s", err)
 				}
 				hqfc := client.Configure(clientConfig.Client)
 				client.fronter = hqfc.NewDirectDomainFronter()
@@ -163,7 +164,7 @@ func (client *MobileClient) pollConfiguration() {
 // accepting new connections and then kill all active connections.
 func (client *MobileClient) Stop() error {
 	if err := client.Client.Stop(); err != nil {
-		log.Fatalf("Unable to stop proxy client: %q", err)
+		log.Errorf("Unable to stop proxy client: %q", err)
 		return err
 	}
 	return nil
