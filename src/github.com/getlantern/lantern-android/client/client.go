@@ -139,7 +139,7 @@ func (client *MobileClient) pollConfiguration() {
 	for {
 		select {
 		case <-client.closed:
-			log.Print("Closing poll configuration channel")
+			log.Debug("Closing poll configuration channel")
 			return
 		case <-pollTimer.C:
 			// Attempt to update configuration.
