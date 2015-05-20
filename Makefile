@@ -348,6 +348,7 @@ release-beta: require-s3cmd
 		NAME=$$(basename $$URL) && \
 		BETA=$$(echo $$NAME | sed s/"$$BASE_NAME"/$$BETA_BASE_NAME/) && \
 		$(S3CMD) cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$BETA; \
+		$(S3CMD) setacl s3://$(S3_BUCKET)/$$BETA --acl-public; \
 	done
 
 release: require-tag require-s3cmd require-gh-token require-wget require-ruby require-lantern-binaries
