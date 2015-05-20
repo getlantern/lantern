@@ -6,10 +6,10 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"reflect"
 
+	"github.com/getlantern/golog"
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/yaml"
 
