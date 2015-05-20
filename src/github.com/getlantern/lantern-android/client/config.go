@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"reflect"
 
-	"github.com/getlantern/golog"
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/yaml"
 
@@ -72,7 +71,7 @@ func pullConfigFile(cli *http.Client) ([]byte, error) {
 
 	// Has changed?
 	if res.StatusCode == http.StatusNotModified {
-		log.Printf("Configuration file has not changed since last pull.\n")
+		log.Debugf("Configuration file has not changed since last pull.\n")
 		return nil, errConfigurationUnchanged
 	}
 

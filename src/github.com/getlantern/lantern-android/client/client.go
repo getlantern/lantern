@@ -19,6 +19,7 @@ const (
 
 // clientConfig holds global configuration settings for all clients.
 var (
+	log           = golog.LoggerFor("lantern-android.client")
 	clientConfig  *config
 	trackingCodes = map[string]string{
 		"FireTweet": "UA-21408036-4",
@@ -70,7 +71,7 @@ func (client *MobileClient) ServeHTTP() {
 
 	go func() {
 		onListening := func() {
-			log.Printf("Now listening for connections...")
+			log.Debugf("Now listening for connections...")
 			go client.recordAnalytics()
 		}
 		if err := client.ListenAndServe(onListening); err != nil {
@@ -143,7 +144,7 @@ func (client *MobileClient) pollConfiguration() {
 				// Configuration changed, lets reload.
 				err := globals.SetTrustedCAs(clientConfig.getTrustedCerts())
 				if err != nil {
-					log.Printf("Unable to configure trusted CAs: %s", err)
+					log.Debugf("Unable to configure trusted CAs: %s", err)
 				}
 				hqfc := client.Configure(clientConfig.Client)
 				client.fronter = hqfc.NewDirectDomainFronter()
