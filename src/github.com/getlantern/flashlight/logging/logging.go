@@ -3,7 +3,6 @@ package logging
 import (
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -19,7 +18,6 @@ import (
 	"github.com/getlantern/golog"
 	"github.com/getlantern/jibber_jabber"
 	"github.com/getlantern/rotator"
-	"github.com/getlantern/waitforserver"
 	"github.com/getlantern/wfilter"
 )
 
@@ -120,15 +118,7 @@ func enableLoggly(cfg *config.Config, version string, buildDate string) {
 		return
 	}
 
-	err := waitforserver.WaitForServer("tcp", cfg.Addr, 10*time.Second)
-	if err != nil {
-		log.Errorf("Proxy never came online at %v, not logging to Loggly", cfg.Addr)
-		removeLoggly()
-		return
-	}
-
-	var client *http.Client
-	client, err = util.PersistentHTTPClient(cfg.CloudConfigCA, cfg.Addr)
+	client, err := util.PersistentHTTPClient(cfg.CloudConfigCA, cfg.Addr)
 	if err != nil {
 		log.Errorf("Could not create proxied HTTP client, not logging to Loggly: %v", err)
 		removeLoggly()
