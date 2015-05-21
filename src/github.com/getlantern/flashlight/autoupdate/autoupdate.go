@@ -72,7 +72,7 @@ func watchForUpdate() {
 
 		atomic.AddInt32(&watching, 1)
 
-		log.Errorf("Software version: %s", Version)
+		log.Debugf("Software version: %s", Version)
 
 		for {
 			applyNext()
