@@ -252,7 +252,7 @@ func (f *AssetFile) Readdir(count int) ([]os.FileInfo, error) {
 }
 
 func (f *AssetFile) Stat() (os.FileInfo, error) {
-	return f, nil
+	return &f.FakeFile, nil
 }
 
 // AssetDirectory implements http.File interface for a directory. It is always
@@ -273,8 +273,4 @@ func newAssetDirectory(name string) *AssetDirectory {
 
 func (f *AssetDirectory) Readdir(count int) ([]os.FileInfo, error) {
 	return emptyFileInfos, nil
-}
-
-func (f *AssetDirectory) Stat() (os.FileInfo, error) {
-	return f, nil
 }
