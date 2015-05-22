@@ -5,6 +5,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"runtime"
 	"strconv"
 
 	"github.com/getlantern/detour"
@@ -57,7 +58,13 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	var connOut net.Conn
-	if connOut, err = detour.Dialer(d)("tcp", addr); err != nil {
+	if runtime.GOOS == "android" {
+		connOut, err = d("tcp", addr)
+	} else {
+		connOut, err = detour.Dialer(d)("tcp", addr)
+	}
+
+	if err != nil {
 		respondBadGateway(clientConn, fmt.Sprintf("Unable to handle CONNECT request: %s", err))
 		return
 	}

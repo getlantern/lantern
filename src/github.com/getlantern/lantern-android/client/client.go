@@ -88,20 +88,15 @@ func (client *MobileClient) ServeHTTP() {
 func (client *MobileClient) recordAnalytics() {
 
 	sessionPayload := &analytics.Payload{
-		HitType:  analytics.EventType,
-		Hostname: "localhost",
+		HitType:    analytics.EventType,
+		Hostname:   "localhost",
+		TrackingId: trackingCodes["FireTweet"],
 		Event: &analytics.Event{
 			Category: "Session",
 			Action:   "Start",
 			Label:    runtime.GOOS,
 		},
 		UserAgent: "FireTweet",
-	}
-
-	if client.appName != "" {
-		if appTrackingId, ok := trackingCodes[client.appName]; ok {
-			sessionPayload.TrackingId = appTrackingId
-		}
 	}
 
 	// Report analytics, proxying through the local client. Note this
@@ -133,7 +128,7 @@ func (client *MobileClient) updateConfig() error {
 func (client *MobileClient) pollConfiguration() {
 
 	// initially poll the config immediately
-	pollTimer := time.NewTimer(1)
+	pollTimer := time.NewTimer(time.Second)
 	defer pollTimer.Stop()
 
 	for {
