@@ -27,10 +27,9 @@ var (
 // MobileClient is an extension of flashlight client with a few custom declarations for mobile
 type MobileClient struct {
 	client.Client
-	closed          chan bool
-	fronter         *http.Client
-	appName         string
-	recordedSession bool
+	closed  chan bool
+	fronter *http.Client
+	appName string
 }
 
 // init attempts to setup client configuration.
@@ -55,11 +54,10 @@ func NewClient(addr, appName string) *MobileClient {
 	hqfd := client.Configure(clientConfig.Client)
 
 	mClient := &MobileClient{
-		Client:          client,
-		closed:          make(chan bool),
-		fronter:         hqfd.NewDirectDomainFronter(),
-		recordedSession: false,
-		appName:         appName,
+		Client:  client,
+		closed:  make(chan bool),
+		fronter: hqfd.NewDirectDomainFronter(),
+		appName: appName,
 	}
 	mClient.updateConfig()
 	return mClient
