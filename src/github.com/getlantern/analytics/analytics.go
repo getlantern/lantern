@@ -4,7 +4,10 @@ import (
 	"bytes"
 	"net/http"
 	"net/url"
+	"runtime"
+	"strconv"
 
+	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/golog"
 )
 
@@ -17,9 +20,8 @@ const (
 )
 
 var (
-	log = golog.LoggerFor("analytics")
-
-	defaultHttpClient = &http.Client{}
+	log        = golog.LoggerFor("analytics")
+	httpClient = &http.Client{}
 )
 
 type HitType string
@@ -68,8 +70,21 @@ type Payload struct {
 	Event *Event
 }
 
+func Configure(trackingId string, version string, proxyAddr string) {
+	var err error
+	go func() {
+		httpClient, err = util.HTTPClient("", proxyAddr)
+
+		// Store new session info whenever client proxy is ready
+		SessionEvent(version, trackingId)
+		if err != nil {
+			log.Errorf("Could not create HTTP client")
+		}
+	}()
+}
+
 // assemble list of parameters to send to GA
-func collectArgs(payload *Payload) *bytes.Buffer {
+func collectArgs(payload *Payload) string {
 	vals := make(url.Values, 0)
 
 	// Add default payload
@@ -111,23 +126,21 @@ func collectArgs(payload *Payload) *bytes.Buffer {
 		}
 	}
 
-	return bytes.NewBufferString(vals.Encode())
+	return vals.Encode()
 }
 
 // Makes a tracking request to Google Analytics
-func SendRequest(httpClient *http.Client, payload *Payload) (status bool, err error) {
+func SendRequest(payload *Payload) (status bool, err error) {
 	if httpClient == nil {
-		log.Trace("Using default http.Client")
-		httpClient = defaultHttpClient
+		log.Error("No default http client; could not send HTTP request to GA")
+		return false, nil
 	}
 
 	args := collectArgs(payload)
 
-	r, err := http.NewRequest("POST", ApiEndpoint, args)
+	r, err := http.NewRequest("POST", ApiEndpoint, bytes.NewBufferString(args))
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	if payload.UserAgent != "" {
-		r.Header.Add("User-Agent", payload.UserAgent)
-	}
+	r.Header.Add("Content-Length", strconv.Itoa(len(args)))
 
 	if err != nil {
 		log.Errorf("Error constructing GA request: %s", err)
@@ -145,17 +158,25 @@ func SendRequest(httpClient *http.Client, payload *Payload) (status bool, err er
 	return true, nil
 }
 
-// This event is fired whenever the client opens a new UI session
-func UIEvent(httpClient *http.Client, payload *Payload) (status bool, err error) {
-	return SendRequest(httpClient, payload)
-}
-
 // Fired whenever a new Lanern session is initiated
-func SessionEvent(httpClient *http.Client, payload *Payload) (status bool, err error) {
-	// add tracking id if it isn't present already
-	if payload.TrackingId == "" {
-		payload.TrackingId = TrackingId
+func SessionEvent(trackingId string, version string) (status bool, err error) {
+
+	sessionPayload := &Payload{
+		HitType:    EventType,
+		TrackingId: trackingId,
+		Hostname:   "localhost",
+		ClientId:   DefaultClientId,
+		Event: &Event{
+			Category: "Session",
+			Action:   "Start",
+			Label:    runtime.GOOS,
+		},
 	}
-	payload.ClientId = DefaultClientId
-	return SendRequest(httpClient, payload)
+
+	if version != "" {
+		sessionPayload.CustomVars = map[string]string{
+			"cd1": version,
+		}
+	}
+	return SendRequest(sessionPayload)
 }
