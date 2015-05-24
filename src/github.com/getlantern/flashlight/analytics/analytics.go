@@ -2,7 +2,6 @@ package analytics
 
 import (
 	"net/http"
-	"runtime"
 
 	"github.com/getlantern/flashlight/config"
 	"github.com/mitchellh/mapstructure"
@@ -14,6 +13,7 @@ import (
 
 const (
 	messageType = `Analytics`
+	TrackingId  = "UA-21815217-2"
 )
 
 var (
@@ -24,11 +24,9 @@ var (
 	stopCh     chan bool
 )
 
-func Configure(newClient *http.Client, cfg *config.Config, proxyAddr string, version string) {
+func Configure(cfg *config.Config, version string) {
 
-	httpClient = newClient
-
-	SessionEvent(httpClient, cfg.Addr, version, "")
+	analytics.Configure(TrackingId, version, cfg.Addr)
 
 	if cfg.AutoReport != nil && *cfg.AutoReport {
 		err := StartService()
@@ -36,28 +34,6 @@ func Configure(newClient *http.Client, cfg *config.Config, proxyAddr string, ver
 			log.Errorf("Error starting analytics service: %q", err)
 		}
 	}
-}
-
-func SessionEvent(httpClient *http.Client, proxyAddr string, version string, trackingId string) {
-	sessionPayload := &analytics.Payload{
-		HitType:    analytics.EventType,
-		TrackingId: trackingId,
-		Hostname:   "localhost",
-		Event: &analytics.Event{
-			Category: "Session",
-			Action:   "Start",
-			Label:    runtime.GOOS,
-		},
-		UserAgent: "Lantern (version: " + version + ")",
-	}
-
-	if version != "" {
-		sessionPayload.CustomVars = map[string]string{
-			"cd1": version,
-		}
-	}
-
-	analytics.SessionEvent(httpClient, sessionPayload)
 }
 
 // Used with clients to track user interaction with the UI
@@ -113,7 +89,7 @@ func read() {
 				// for now, the only analytics messages we are
 				// currently receiving from the UI are initial page
 				// views which indicate new UI sessions
-				analytics.UIEvent(httpClient, &payload)
+				analytics.SendRequest(&payload)
 			}
 		}
 	}
