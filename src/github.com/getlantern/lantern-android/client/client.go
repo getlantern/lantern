@@ -59,7 +59,7 @@ func NewClient(addr, appName string) *MobileClient {
 		fronter: hqfd.NewDirectDomainFronter(),
 		appName: appName,
 	}
-	mClient.updateConfig()
+	go mClient.updateConfig()
 	return mClient
 }
 
@@ -68,7 +68,7 @@ func (client *MobileClient) ServeHTTP() {
 	go func() {
 		onListening := func() {
 			log.Debugf("Now listening for connections...")
-			analytics.Configure(trackingCodes["FireTweet"], "", client.Addr)
+			analytics.Configure(trackingCodes["FireTweet"], "", client.Client.Addr)
 		}
 
 		defer func() {
@@ -111,7 +111,6 @@ func (client *MobileClient) updateConfig() error {
 // file.
 func (client *MobileClient) pollConfiguration() {
 
-	// initially poll the config immediately
 	pollTimer := time.NewTimer(cloudConfigPollInterval)
 	defer pollTimer.Stop()
 
