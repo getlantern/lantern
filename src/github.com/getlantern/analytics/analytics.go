@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	ApiEndpoint     = `https://ssl.google-analytics.com/collect`
-	ProtocolVersion = "1"
-	DefaultClientId = "555"
+	ApiEndpoint       = `https://ssl.google-analytics.com/collect`
+	ProtocolVersion   = "1"
+	DefaultInstanceId = "1260961011.1389432370"
 )
 
 var (
@@ -43,7 +43,7 @@ type Event struct {
 }
 
 type Payload struct {
-	ClientId string `json:"clientId"`
+	InstanceId string `json:"clientId"`
 
 	ClientVersion string `json:"clientVersion,omitempty"`
 
@@ -94,8 +94,8 @@ func collectArgs(payload *Payload) string {
 	if payload.TrackingId != "" {
 		vals.Add("tid", payload.TrackingId)
 	}
-	if payload.ClientId != "" {
-		vals.Add("cid", payload.ClientId)
+	if payload.InstanceId != "" {
+		vals.Add("cid", payload.InstanceId)
 	}
 	if payload.ScreenResolution != "" {
 		vals.Add("sr", payload.ScreenResolution)
@@ -164,11 +164,12 @@ func sessionEvent(trackingId string, version string) (status bool, err error) {
 		HitType:    EventType,
 		TrackingId: trackingId,
 		Hostname:   "localhost",
-		ClientId:   DefaultClientId,
+		InstanceId: DefaultInstanceId,
 		Event: &Event{
 			Category: "Session",
 			Action:   "Start",
 			Label:    runtime.GOOS,
+			Value:    version,
 		},
 	}
 
