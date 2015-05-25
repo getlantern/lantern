@@ -192,7 +192,6 @@ docker: system-checks
 
 docker-golang-android: require-mercurial
 	@$(call docker-up) && \
-	source setenv.bash && \
 	if [ -z "$$(docker images | grep golang/mobile)" ]; then \
 		$(GO) get -d golang.org/x/mobile/example/... && \
 		$(GO) get golang.org/x/mobile/cmd/gobind && \

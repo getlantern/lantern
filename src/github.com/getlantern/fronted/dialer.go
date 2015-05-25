@@ -198,7 +198,7 @@ func (d *dialer) HttpClientUsing(masquerade *Masquerade) *http.Client {
 }
 
 type DirectDomainTransport struct {
-	http.Transport
+	orig *http.Transport
 }
 
 func (ddf *DirectDomainTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
@@ -212,7 +212,7 @@ func (ddf *DirectDomainTransport) RoundTrip(req *http.Request) (resp *http.Respo
 	if err != nil {
 		return nil, fmt.Errorf("Unable to construct request for url '%s' with error '%v'", normalized, err)
 	}
-	return ddf.Transport.RoundTrip(norm)
+	return ddf.orig.RoundTrip(norm)
 }
 
 func replacePrefix(s string, old string, new string) string {
@@ -223,12 +223,19 @@ func replacePrefix(s string, old string, new string) string {
 	}
 }
 
+func (ddf *DirectDomainTransport) CancelRequest(req *http.Request) {
+	ddf.orig.CancelRequest(req)
+}
+
+func (ddf *DirectDomainTransport) CloseIdleConnections() {
+	ddf.orig.CloseIdleConnections()
+}
+
 // Creates a new http.Client that does direct domain fronting.
 func (d *dialer) NewDirectDomainFronter() *http.Client {
-	log.Debugf("Creating new direct domain fronter.")
 	return &http.Client{
 		Transport: &DirectDomainTransport{
-			Transport: http.Transport{
+			orig: &http.Transport{
 				Dial: func(network, addr string) (net.Conn, error) {
 					log.Debugf("Dialing server with direct domain fronter")
 					return d.dialServer()
