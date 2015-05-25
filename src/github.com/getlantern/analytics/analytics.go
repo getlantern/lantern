@@ -12,11 +12,9 @@ import (
 )
 
 const (
-	ApiEndpoint          = `https://ssl.google-analytics.com/collect`
-	ProtocolVersion      = "1"
-	DefaultClientVersion = "1"
-	TrackingId           = "UA-21815217-2"
-	DefaultClientId      = "555"
+	ApiEndpoint     = `https://ssl.google-analytics.com/collect`
+	ProtocolVersion = "1"
+	DefaultClientId = "555"
 )
 
 var (
@@ -74,12 +72,13 @@ func Configure(trackingId string, version string, proxyAddr string) {
 	var err error
 	go func() {
 		httpClient, err = util.HTTPClient("", proxyAddr)
+		if err != nil {
+			log.Errorf("Could not create HTTP client via %s: %s", proxyAddr, err)
+			return
+		}
 
 		// Store new session info whenever client proxy is ready
-		SessionEvent(version, trackingId)
-		if err != nil {
-			log.Errorf("Could not create HTTP client")
-		}
+		sessionEvent(version, trackingId)
 	}()
 }
 
@@ -132,7 +131,7 @@ func collectArgs(payload *Payload) string {
 // Makes a tracking request to Google Analytics
 func SendRequest(payload *Payload) (status bool, err error) {
 	if httpClient == nil {
-		log.Error("No default http client; could not send HTTP request to GA")
+		log.Error("No HTTP client; could not send HTTP request to GA")
 		return false, nil
 	}
 
@@ -159,7 +158,7 @@ func SendRequest(payload *Payload) (status bool, err error) {
 }
 
 // Fired whenever a new Lanern session is initiated
-func SessionEvent(trackingId string, version string) (status bool, err error) {
+func sessionEvent(trackingId string, version string) (status bool, err error) {
 
 	sessionPayload := &Payload{
 		HitType:    EventType,
