@@ -208,6 +208,17 @@ func runClientProxy(cfg *config.Config) {
 		}
 	}
 
+	// We need to do this in a go routine because it waits for the server
+	// we start later on the main thread.
+	go func() {
+		httpClient, er := util.HTTPClient("", cfg.Addr)
+		if er != nil {
+			log.Errorf("Could not create HTTP client %v", er)
+		} else {
+			analytics.Configure(httpClient, cfg, cfg.Addr, version)
+		}
+	}()
+
 	applyClientConfig(client, cfg)
 	// Continually poll for config updates and update client accordingly
 	go func() {
@@ -237,17 +248,6 @@ func applyClientConfig(client *client.Client, cfg *config.Config) {
 	// Note - we deliberately ignore the error from statreporter.Configure here
 	statreporter.Configure(cfg.Stats)
 
-	// We need to do this in a go routine because it waits for the server
-	// we start later on the main thread.
-	go func() {
-		httpClient, er := util.HTTPClient("", cfg.Addr)
-		if er != nil {
-			log.Errorf("Could not create HTTP client %v", er)
-		} else {
-			analytics.Configure(httpClient, cfg, cfg.Addr, version)
-		}
-	}()
-
 	// Update client configuration and get the highest QOS dialer available.
 	hqfd := client.Configure(cfg.Client)
 	if hqfd == nil {
@@ -258,6 +258,8 @@ func applyClientConfig(client *client.Client, cfg *config.Config) {
 		config.Configure(hqfdClient)
 		geolookup.Configure(hqfdClient)
 		statserver.Configure(hqfdClient)
+		// Note we don't call Configure on analytics here, as that would
+		// result in an extra analytics call and double counting.
 	}
 }
 
