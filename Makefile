@@ -28,8 +28,6 @@ PACKAGE_URL := https://www.getlantern.org
 
 LANTERN_BINARIES_PATH ?= ../lantern-binaries
 
-GO_MOBILE_REVISION=717c2c
-
 GH_USER := getlantern
 #GH_USER := xiam
 
@@ -193,11 +191,9 @@ docker: system-checks
 docker-golang-android: require-mercurial
 	@$(call docker-up) && \
 	if [ -z "$$(docker images | grep golang/mobile)" ]; then \
+		docker pull golang/mobile && \
 		$(GO) get -d golang.org/x/mobile/example/... && \
-		$(GO) get golang.org/x/mobile/cmd/gobind && \
-		cd src/golang.org/x/mobile && \
-		git checkout $(GO_MOBILE_REVISION) && \
-		docker build -t golang/mobile .; \
+		$(GO) get golang.org/x/mobile/cmd/gobind; \
 	fi
 
 linux: genassets linux-386 linux-amd64
