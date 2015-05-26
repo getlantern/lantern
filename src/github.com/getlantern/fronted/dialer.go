@@ -230,7 +230,7 @@ func (d *dialer) NewDirectDomainFronter() *http.Client {
 		Transport: &DirectDomainTransport{
 			Transport: http.Transport{
 				Dial: func(network, addr string) (net.Conn, error) {
-					log.Debugf("Dialing server with direct domain fronter")
+					log.Debugf("Dialing %s with direct domain fronter", addr)
 					return d.dialServer()
 				},
 			},

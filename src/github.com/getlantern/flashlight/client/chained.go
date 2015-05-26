@@ -41,11 +41,7 @@ type ChainedServerInfo struct {
 
 // Dialer creates a *balancer.Dialer backed by a chained server.
 func (s *ChainedServerInfo) Dialer() (*balancer.Dialer, error) {
-	log.Debug("Building dialer")
-
-	netd := &net.Dialer{
-		Timeout: chainedDialTimeout,
-	}
+	netd := &net.Dialer{Timeout: chainedDialTimeout}
 
 	var dial func() (net.Conn, error)
 	if s.Cert == "" {
