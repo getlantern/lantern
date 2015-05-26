@@ -86,9 +86,7 @@ func (b *Balancer) DialQOS(network, addr string, targetQOS int) (net.Conn, error
 		if d == nil {
 			return nil, fmt.Errorf("No dialers left")
 		}
-		if d.Label != "" {
-			log.Debugf("Dialing %s://%s with %s", network, addr, d.Label)
-		}
+		log.Debugf("Dialing %s://%s with %s", network, addr, d.Label)
 		conn, err := d.Dial(network, addr)
 		if err != nil {
 			log.Debugf("Unable to dial %s://%s: %s", network, addr, err)
