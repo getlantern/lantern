@@ -28,7 +28,7 @@ PACKAGE_URL := https://www.getlantern.org
 
 LANTERN_BINARIES_PATH ?= ../lantern-binaries
 
-GO_MOBILE_REVISION=717c2c
+GO_MOBILE_REVISION=754ad3cfda342ad8c5d07a5ef9334f8a62b6aefa
 
 GH_USER := getlantern
 #GH_USER := xiam
