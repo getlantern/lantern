@@ -31,7 +31,7 @@ func Dial(addr string, config *Config) (net.Conn, error) {
 	// Dial proxy
 	proxyConn, err := c.dialProxy()
 	if err != nil {
-		return nil, fmt.Errorf("Unable to dial proxy: %s", err)
+		return nil, fmt.Errorf("Unable to dial proxy to %s: %s", addr, err)
 	}
 
 	go c.processWrites()
@@ -41,6 +41,7 @@ func Dial(addr string, config *Config) (net.Conn, error) {
 	increment(&open)
 
 	return idletiming.Conn(c, c.config.IdleTimeout, func() {
+		log.Debugf("Proxy connection to %s via %s idle for %v, closing", addr, proxyConn.conn.RemoteAddr(), c.config.IdleTimeout)
 		c.Close()
 		// Close the initial proxyConn just in case
 		proxyConn.conn.Close()
@@ -92,8 +93,9 @@ func (c *conn) initRequestStrategy() {
 func (c *conn) dialProxy() (*connInfo, error) {
 	conn, err := c.config.DialProxy(c.addr)
 	if err != nil {
-		log.Debugf("Unable to dial proxy: %s", err)
-		return nil, fmt.Errorf("Unable to dial proxy: %s", err)
+		msg := fmt.Errorf("Unable to dial proxy to %s: %s", c.addr, err)
+		log.Debug(msg)
+		return nil, msg
 	}
 	proxyConn := &connInfo{
 		bufReader: bufio.NewReader(conn),
@@ -125,7 +127,7 @@ func (c *conn) doRequest(proxyConn *connInfo, host string, op string, request *r
 	}
 	req, err := c.config.NewRequest(host, "POST", body)
 	if err != nil {
-		err = fmt.Errorf("Unable to construct request to proxy: %s", err)
+		err = fmt.Errorf("Unable to construct request to %s via proxy %s: %s", c.addr, host, err)
 		return
 	}
 	req.Header.Set(X_ENPROXY_OP, op)
@@ -145,7 +147,7 @@ func (c *conn) doRequest(proxyConn *connInfo, host string, op string, request *r
 
 	err = req.Write(proxyConn.conn)
 	if err != nil {
-		err = fmt.Errorf("Error sending request to proxy: %s", err)
+		err = fmt.Errorf("Error sending request to %s via proxy %s: %s", c.addr, host, err)
 		return
 	}
 
