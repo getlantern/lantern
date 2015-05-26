@@ -40,6 +40,7 @@ Usage of flashlight:
   -configdir="": directory in which to store configuration, including flashlight.yaml (defaults to current directory)
   -country="xx": 2 digit country code under which to report stats. Defaults to xx.
   -cpuprofile="": write cpu profile to given file
+  -frontfqdns="": YAML string representing a map from the name of each front provider to a FQDN that will reach this particular server via that provider (e.g. '{cloudflare: fl-001.getiantem.org, cloudfront: blablabla.cloudfront.net}')
   -headless=false: if true, lantern will run with no ui
   -help=false: Get usage help
   -httptest.serve="": if non-empty, httptest.NewServer serves on this address and blocks
@@ -47,11 +48,27 @@ Usage of flashlight:
   -memprofile="": write heap profile to given file
   -parentpid=0: the parent process's PID, used on Windows for killing flashlight when the parent disappears
   -portmap=0: try to map this port on the firewall to the port on which flashlight is listening, using UPnP or NAT-PMP. If mapping this port fails, flashlight will exit with status code 50
+  -proxyall=false: set to true to proxy all traffic through Lantern network
   -registerat="": base URL for peer DNS registry at which to register (e.g. https://peerscanner.getiantem.org)
   -role="": either 'client' or 'server' (required)
-  -frontfqdns="": YAML string representing a map from the name of each front provider to a FQDN that will reach this particular server via that provider (e.g. '{cloudflare: fl-001.getiantem.org, cloudfront: blablabla.cloudfront.net}')
   -statshub="pure-journey-3547.herokuapp.com": address of statshub server
   -statsperiod=0: time in seconds to wait between reporting stats. If not specified, stats are not reported. If specified, statshub, instanceid and statshubAddr must also be specified.
+  -test.bench="": regular expression to select benchmarks to run
+  -test.benchmem=false: print memory allocations for benchmarks
+  -test.benchtime=1s: approximate run time for each benchmark
+  -test.blockprofile="": write a goroutine blocking profile to the named file after execution
+  -test.blockprofilerate=1: if >= 0, calls runtime.SetBlockProfileRate()
+  -test.coverprofile="": write a coverage profile to the named file after execution
+  -test.cpu="": comma-separated list of number of CPUs to use for each test
+  -test.cpuprofile="": write a cpu profile to the named file during execution
+  -test.memprofile="": write a memory profile to the named file after execution
+  -test.memprofilerate=0: if >=0, sets runtime.MemProfileRate
+  -test.outputdir="": directory in which to write profiles
+  -test.parallel=1: maximum test parallelism
+  -test.run="": regular expression to select tests and examples to run
+  -test.short=false: run smaller test suite to save time
+  -test.timeout=0: if positive, sets an aggregate time limit for all tests
+  -test.v=false: verbose: print additional output
   -uiaddr="": if specified, indicates host:port the UI HTTP server should be started on
   -unencrypted=false: set to true to run server in unencrypted mode (no TLS)
 ```
