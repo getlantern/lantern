@@ -121,7 +121,7 @@ func (c *UIChannel) write() {
 		for _, conn := range c.conns {
 			err := conn.ws.WriteMessage(websocket.TextMessage, msg)
 			if err != nil {
-				log.Debugf("Error writing to UI: %v", err)
+				log.Debugf("Error writing to UI %v for: %v", err, c.URL)
 				delete(c.conns, conn.id)
 			}
 		}
@@ -130,6 +130,7 @@ func (c *UIChannel) write() {
 }
 
 func (c *UIChannel) Close() {
+	log.Tracef("Closing channel")
 	close(c.out)
 }
 
@@ -143,12 +144,14 @@ type wsconn struct {
 func (c *wsconn) read() {
 	for {
 		_, b, err := c.ws.ReadMessage()
+		log.Tracef("Read message: %q", b)
 		if err != nil {
 			if err != io.EOF {
 				log.Debugf("Error reading from UI: %v", err)
 			}
 			return
 		}
+		log.Tracef("Sending to channel...")
 		c.c.in <- b
 	}
 }
