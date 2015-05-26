@@ -31,8 +31,10 @@ func (s *Service) write() {
 	for {
 		select {
 		case <-s.stopCh:
+			log.Trace("Received message on stop channel")
 			return
 		case msg := <-s.out:
+			log.Tracef("Creating new envelope for %v", s.Type)
 			b, err := newEnvelope(s.Type, msg)
 			if err != nil {
 				log.Error(err)
@@ -44,6 +46,8 @@ func (s *Service) write() {
 }
 
 func Register(t string, newMessage func() interface{}, helloFn helloFnType) (*Service, error) {
+
+	log.Tracef("Registering UI service %s", t)
 	mu.Lock()
 
 	if services[t] != nil {
@@ -74,7 +78,7 @@ func Register(t string, newMessage func() interface{}, helloFn helloFnType) (*Se
 			if err != nil {
 				return err
 			}
-			log.Tracef("Sending initial message to existent clients: %q", b)
+			log.Tracef("Sending initial message to existent clients")
 			defaultUIChannel.Out <- b
 			return nil
 		})
@@ -84,11 +88,13 @@ func Register(t string, newMessage func() interface{}, helloFn helloFnType) (*Se
 	services[t] = s
 	mu.Unlock()
 
+	log.Tracef("Registered UI service %s", t)
 	go s.write()
 	return s, nil
 }
 
 func Unregister(t string) {
+	log.Tracef("Unregistering service: %v", t)
 	if services[t] != nil {
 		services[t].stopCh <- true
 		delete(services, t)
@@ -128,6 +134,7 @@ func start() {
 func read() {
 	// Reading from the combined input.
 	for b := range defaultUIChannel.In {
+		log.Tracef("Got incoming message from UI for %v", defaultUIChannel.URL)
 		// Determining message type.
 		var envType EnvelopeType
 		err := json.Unmarshal(b, &envType)
@@ -140,15 +147,16 @@ func read() {
 		// Delegating response to the service that registered with the given type.
 		if services[envType.Type] == nil {
 			log.Errorf("Message type %v belongs to an unknown service.", envType.Type)
-			return
+			continue
 		}
 
 		env := &Envelope{}
 		err = json.Unmarshal(b, env)
 		if err != nil {
 			log.Errorf("Unable to unmarshal message of type %v: %v", envType.Type, err)
-			return
+			continue
 		}
+		log.Tracef("Forwarding message: %v", env)
 		// Pass this message and continue reading another one.
 		services[env.Type].in <- env.Message
 	}
