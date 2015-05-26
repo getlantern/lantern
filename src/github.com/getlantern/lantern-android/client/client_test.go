@@ -27,10 +27,13 @@ func TestListenAndServeStop(t *testing.T) {
 	// Creating a client.
 	c := NewClient(listenProxyAddr, "FireTweetTest")
 
+	// Allow it some seconds to start.
+	time.Sleep(time.Second * 3)
+
 	c.ServeHTTP()
 
 	// Allow it some seconds to start.
-	time.Sleep(time.Millisecond * 100)
+	time.Sleep(time.Second)
 
 	// Attempt to stop server.
 	if err := c.Client.Stop(); err != nil {

@@ -216,17 +216,7 @@ func runClientProxy(cfg *config.Config) {
 	logging.Configure(cfg, version, buildDate)
 	settings.Configure(cfg, version, buildDate)
 	proxiedsites.Configure(cfg.ProxiedSites)
-
-	// We need to do this in a go routine because it waits for the server
-	// we start later on the main thread.
-	go func() {
-		httpClient, er := util.HTTPClient("", cfg.Addr)
-		if er != nil {
-			log.Errorf("Could not create HTTP client %v", er)
-		} else {
-			analytics.Configure(httpClient, cfg, cfg.Addr, version)
-		}
-	}()
+	analytics.Configure(cfg, version)
 
 	if hqfd == nil {
 		log.Errorf("No fronted dialer available, not enabling geolocation, stats or analytics")

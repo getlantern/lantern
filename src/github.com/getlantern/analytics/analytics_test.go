@@ -18,8 +18,7 @@ func samplePayload() *Payload {
 func TestAnalyticsRequest(t *testing.T) {
 
 	p := samplePayload()
-
-	status, err := SendRequest(nil, p)
+	status, err := SendRequest(p)
 	assert.Nil(t, err)
 	assert.Equal(t, true, status)
 
