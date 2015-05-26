@@ -80,7 +80,9 @@ func start(baseSettings *Settings) error {
 }
 
 func read() {
+	log.Tracef("Reading settings messages!!")
 	for msg := range service.In {
+		log.Tracef("Read settings message!! %q", msg)
 		settings := (msg).(map[string]interface{})
 		config.Update(func(updated *config.Config) error {
 
