@@ -192,10 +192,13 @@ docker: system-checks
 
 docker-golang-android: require-mercurial
 	@$(call docker-up) && \
+	source setenv.bash && \
 	if [ -z "$$(docker images | grep golang/mobile)" ]; then \
-		docker pull golang/mobile && \
 		$(GO) get -d golang.org/x/mobile/example/... && \
-		$(GO) get golang.org/x/mobile/cmd/gobind; \
+		$(GO) get golang.org/x/mobile/cmd/gobind && \
+		cd src/golang.org/x/mobile && \
+		git checkout $(GO_MOBILE_REVISION) && \
+		docker build -t golang/mobile .; \
 	fi
 
 linux: genassets linux-386 linux-amd64
