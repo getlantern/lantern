@@ -211,17 +211,6 @@ func runClientProxy(cfg *config.Config) {
 		}
 	}
 
-	// We need to do this in a go routine because it waits for the server
-	// we start later on the main thread.
-	go func() {
-		httpClient, er := util.HTTPClient("", cfg.Addr)
-		if er != nil {
-			log.Errorf("Could not create HTTP client %v", er)
-		} else {
-			analytics.Configure(httpClient, cfg, cfg.Addr, version)
-		}
-	}()
-
 	applyClientConfig(client, cfg)
 	// Continually poll for config updates and update client accordingly
 	go func() {
@@ -251,6 +240,7 @@ func applyClientConfig(client *client.Client, cfg *config.Config) {
 	logging.Configure(cfg, version, buildDate)
 	settings.Configure(cfg, version, buildDate)
 	proxiedsites.Configure(cfg.ProxiedSites)
+	analytics.Configure(cfg, version)
 	log.Debugf("Proxy all traffic or not: %v", cfg.Client.ProxyAll)
 	ServeProxyAllPacFile(cfg.Client.ProxyAll)
 	// Note - we deliberately ignore the error from statreporter.Configure here
