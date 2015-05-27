@@ -18,7 +18,7 @@ const (
 // clientConfig holds global configuration settings for all clients.
 var (
 	log           = golog.LoggerFor("lantern-android.client")
-	clientConfig  *config
+	clientConfig  = defaultConfig()
 	trackingCodes = map[string]string{
 		"FireTweet": "UA-21408036-4",
 	}
@@ -30,11 +30,6 @@ type MobileClient struct {
 	closed  chan bool
 	fronter *http.Client
 	appName string
-}
-
-// init attempts to setup client configuration.
-func init() {
-	clientConfig = defaultConfig()
 }
 
 // NewClient creates a proxy client.
