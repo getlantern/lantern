@@ -2,14 +2,12 @@ package client
 
 import (
 	"net/http"
-	"runtime"
 	"strings"
 	"time"
 
 	"github.com/getlantern/analytics"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/globals"
-	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/golog"
 )
 
@@ -20,7 +18,7 @@ const (
 // clientConfig holds global configuration settings for all clients.
 var (
 	log           = golog.LoggerFor("lantern-android.client")
-	clientConfig  *config
+	clientConfig  = defaultConfig()
 	trackingCodes = map[string]string{
 		"FireTweet": "UA-21408036-4",
 	}
@@ -32,11 +30,6 @@ type MobileClient struct {
 	closed  chan bool
 	fronter *http.Client
 	appName string
-}
-
-// init attempts to setup client configuration.
-func init() {
-	clientConfig = defaultConfig()
 }
 
 // NewClient creates a proxy client.
@@ -55,12 +48,14 @@ func NewClient(addr, appName string) *MobileClient {
 
 	hqfd := client.Configure(clientConfig.Client)
 
-	return &MobileClient{
+	mClient := &MobileClient{
 		Client:  client,
 		closed:  make(chan bool),
 		fronter: hqfd.NewDirectDomainFronter(),
 		appName: appName,
 	}
+	go mClient.updateConfig()
+	return mClient
 }
 
 func (client *MobileClient) ServeHTTP() {
@@ -68,7 +63,7 @@ func (client *MobileClient) ServeHTTP() {
 	go func() {
 		onListening := func() {
 			log.Debugf("Now listening for connections...")
-			go client.recordAnalytics()
+			analytics.Configure(trackingCodes["FireTweet"], "", client.Client.Addr)
 		}
 
 		defer func() {
@@ -85,50 +80,33 @@ func (client *MobileClient) ServeHTTP() {
 	go client.pollConfiguration()
 }
 
-func (client *MobileClient) recordAnalytics() {
-
-	sessionPayload := &analytics.Payload{
-		HitType:    analytics.EventType,
-		Hostname:   "localhost",
-		TrackingId: trackingCodes["FireTweet"],
-		Event: &analytics.Event{
-			Category: "Session",
-			Action:   "Start",
-			Label:    runtime.GOOS,
-		},
-		UserAgent: "FireTweet",
-	}
-
-	// Report analytics, proxying through the local client. Note this
-	// is a little unorthodox by Lantern standards because it doesn't
-	// pin the certificate of the cloud.yaml root CA, instead relying
-	// on the go defaults.
-	httpClient, err := util.HTTPClient("", client.Client.Addr)
-	if err != nil {
-		log.Errorf("Could not create HTTP client %v", err)
-	} else {
-		analytics.SessionEvent(httpClient, sessionPayload)
-	}
-}
-
 // updateConfig attempts to pull a configuration file from the network using
 // the client proxy itself.
 func (client *MobileClient) updateConfig() error {
 	var buf []byte
 	var err error
+
 	if buf, err = pullConfigFile(client.fronter); err != nil {
 		log.Errorf("Could not update config: '%v'", err)
 		return err
 	}
-	return clientConfig.updateFrom(buf)
+	if err = clientConfig.updateFrom(buf); err == nil {
+		// Configuration changed, lets reload.
+		err := globals.SetTrustedCAs(clientConfig.getTrustedCerts())
+		if err != nil {
+			log.Errorf("Unable to configure trusted CAs: %s", err)
+		}
+		hqfc := client.Configure(clientConfig.Client)
+		client.fronter = hqfc.NewDirectDomainFronter()
+	}
+	return err
 }
 
 // pollConfiguration periodically checks for updates in the cloud configuration
 // file.
 func (client *MobileClient) pollConfiguration() {
 
-	// initially poll the config immediately
-	pollTimer := time.NewTimer(time.Second)
+	pollTimer := time.NewTimer(cloudConfigPollInterval)
 	defer pollTimer.Stop()
 
 	for {
@@ -138,16 +116,8 @@ func (client *MobileClient) pollConfiguration() {
 			return
 		case <-pollTimer.C:
 			// Attempt to update configuration.
-			var err error
-			if err = client.updateConfig(); err == nil {
-				// Configuration changed, lets reload.
-				err := globals.SetTrustedCAs(clientConfig.getTrustedCerts())
-				if err != nil {
-					log.Debugf("Unable to configure trusted CAs: %s", err)
-				}
-				hqfc := client.Configure(clientConfig.Client)
-				client.fronter = hqfc.NewDirectDomainFronter()
-			}
+			client.updateConfig()
+
 			// Sleeping 'till next pull.
 			// update timer to poll every 60 seconds
 			pollTimer.Reset(cloudConfigPollInterval)

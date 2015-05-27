@@ -35,6 +35,7 @@ func testReverseProxy() error {
 	}
 
 	client := &http.Client{
+		Timeout: time.Second * 5,
 		Transport: &http.Transport{
 			Dial: func(n, a string) (net.Conn, error) {
 				//return net.Dial("tcp", "127.0.0.1:9898")
@@ -76,7 +77,7 @@ func TestStartClientAndTestReverseProxy(t *testing.T) {
 	}()
 
 	// Waiting a bit so the server could start.
-	time.Sleep(time.Millisecond * 500)
+	time.Sleep(time.Second * 5)
 
 	// Attempt to proxy something.
 	if err = testReverseProxy(); err != nil {
