@@ -19,7 +19,7 @@ const (
 
 var (
 	log        = golog.LoggerFor("analytics")
-	httpClient = &http.Client{}
+	httpClient *http.Client
 )
 
 type HitType string
@@ -76,7 +76,6 @@ func Configure(trackingId string, version string, proxyAddr string) {
 			log.Errorf("Could not create HTTP client via %s: %s", proxyAddr, err)
 			return
 		}
-
 		// Store new session info whenever client proxy is ready
 		sessionEvent(version, trackingId)
 	}()

@@ -1,6 +1,7 @@
 package analytics
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/getlantern/testify/assert"
@@ -16,6 +17,8 @@ func samplePayload() *Payload {
 }
 
 func TestAnalyticsRequest(t *testing.T) {
+
+	httpClient = &http.Client{}
 
 	p := samplePayload()
 
