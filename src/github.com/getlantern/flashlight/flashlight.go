@@ -39,11 +39,14 @@ var (
 	help      = flag.Bool("help", false, "Get usage help")
 	parentPID = flag.Int("parentpid", 0, "the parent process's PID, used on Windows for killing flashlight when the parent disappears")
 	headless  = flag.Bool("headless", false, "if true, lantern will run with no ui")
+	showui    = true
 
 	configUpdates = make(chan *config.Config)
 	exitCh        = make(chan error, 1)
 
-	showui = true
+	// use buffered channel to avoid blocking the caller of 'addExitFunc'
+	// the number 10 is arbitrary
+	chExitFuncs = make(chan func(), 10)
 )
 
 func init() {
@@ -233,9 +236,14 @@ func runClientProxy(cfg *config.Config) {
 	watchDirectAddrs()
 
 	go func() {
-		defer pacOff()
-		exit(client.ListenAndServe(pacOn))
+		addExitFunc(pacOff)
+		client.ListenAndServe(pacOn)
 	}()
+}
+
+// addExitFunc adds a function to be called before the application exits.
+func addExitFunc(exitFunc func()) {
+	chExitFuncs <- exitFunc
 }
 
 func applyClientConfig(client *client.Client, cfg *config.Config) {
@@ -336,7 +344,17 @@ func useAllCores() {
 // exit tells the application to exit, optionally supplying an error that caused
 // the exit.
 func exit(err error) {
-	exitCh <- err
+	defer func() { exitCh <- err }()
+	for {
+		select {
+		case f := <-chExitFuncs:
+			log.Debugf("Calling exit func")
+			f()
+		default:
+			log.Debugf("No exit func remaining, exit now")
+			return
+		}
+	}
 }
 
 // WaitForExit waits for a request to exit the application.
