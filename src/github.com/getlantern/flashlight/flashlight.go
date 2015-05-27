@@ -39,11 +39,14 @@ var (
 	help      = flag.Bool("help", false, "Get usage help")
 	parentPID = flag.Int("parentpid", 0, "the parent process's PID, used on Windows for killing flashlight when the parent disappears")
 	headless  = flag.Bool("headless", false, "if true, lantern will run with no ui")
+	showui    = true
 
 	configUpdates = make(chan *config.Config)
 	exitCh        = make(chan error, 1)
 
-	showui = true
+	// use buffered channel to avoid blocking the caller of 'addExitFunc'
+	// the number 10 is arbitrary
+	chExitFuncs = make(chan func(), 10)
 )
 
 func init() {
@@ -98,7 +101,6 @@ func doMain() error {
 
 	// Schedule cleanup actions
 	defer logging.Close()
-	defer pacOff()
 	defer quitSystray()
 
 	i18nInit()
@@ -197,9 +199,6 @@ func runClientProxy(cfg *config.Config) {
 		WriteTimeout: 0,
 	}
 
-	// Update client configuration and get the highest QOS dialer available.
-	hqfd := client.Configure(cfg.Client)
-
 	// Start user interface.
 	if cfg.UIAddr != "" {
 		if err = ui.Start(cfg.UIAddr); err != nil {
@@ -212,11 +211,6 @@ func runClientProxy(cfg *config.Config) {
 		}
 	}
 
-	autoupdate.Configure(cfg)
-	logging.Configure(cfg, version, buildDate)
-	settings.Configure(cfg, version, buildDate)
-	proxiedsites.Configure(cfg.ProxiedSites)
-
 	// We need to do this in a go routine because it waits for the server
 	// we start later on the main thread.
 	go func() {
@@ -228,43 +222,12 @@ func runClientProxy(cfg *config.Config) {
 		}
 	}()
 
-	if hqfd == nil {
-		log.Errorf("No fronted dialer available, not enabling geolocation, stats or analytics")
-	} else {
-		// An *http.Client that uses the highest QOS dialer.
-		hqfdClient := hqfd.NewDirectDomainFronter()
-
-		config.Configure(hqfdClient)
-		geolookup.Configure(hqfdClient)
-		statserver.Configure(hqfdClient)
-	}
-
+	applyClientConfig(client, cfg)
 	// Continually poll for config updates and update client accordingly
 	go func() {
 		for {
 			cfg := <-configUpdates
-
-			proxiedsites.Configure(cfg.ProxiedSites)
-			// Note - we deliberately ignore the error from statreporter.Configure here
-			statreporter.Configure(cfg.Stats)
-
-			hqfd = client.Configure(cfg.Client)
-
-			if hqfd != nil {
-				// Create and pass the *http.Client that uses the highest QOS dialer to
-				// critical modules that require continual comunication with external
-				// services.
-				hqfdClient := hqfd.NewDirectDomainFronter()
-
-				config.Configure(hqfdClient)
-				geolookup.Configure(hqfdClient)
-				statserver.Configure(hqfdClient)
-				settings.Configure(cfg, version, buildDate)
-				logging.Configure(cfg, version, buildDate)
-				autoupdate.Configure(cfg)
-				// Note we don't call Configure on analytics here, as that would
-				// result in an extra analytics call and double counting.
-			}
+			applyClientConfig(client, cfg)
 		}
 	}()
 
@@ -273,8 +236,39 @@ func runClientProxy(cfg *config.Config) {
 	watchDirectAddrs()
 
 	go func() {
-		exit(client.ListenAndServe(pacOn))
+		addExitFunc(pacOff)
+		client.ListenAndServe(pacOn)
 	}()
+}
+
+// addExitFunc adds a function to be called before the application exits.
+func addExitFunc(exitFunc func()) {
+	chExitFuncs <- exitFunc
+}
+
+func applyClientConfig(client *client.Client, cfg *config.Config) {
+	autoupdate.Configure(cfg)
+	logging.Configure(cfg, version, buildDate)
+	settings.Configure(cfg, version, buildDate)
+	proxiedsites.Configure(cfg.ProxiedSites)
+	log.Debugf("Proxy all traffic or not: %v", cfg.Client.ProxyAll)
+	ServeProxyAllPacFile(cfg.Client.ProxyAll)
+	// Note - we deliberately ignore the error from statreporter.Configure here
+	statreporter.Configure(cfg.Stats)
+
+	// Update client configuration and get the highest QOS dialer available.
+	hqfd := client.Configure(cfg.Client)
+	if hqfd == nil {
+		log.Errorf("No fronted dialer available, not enabling geolocation, stats or analytics")
+	} else {
+		// An *http.Client that uses the highest QOS dialer.
+		hqfdClient := hqfd.NewDirectDomainFronter()
+		config.Configure(hqfdClient)
+		geolookup.Configure(hqfdClient)
+		statserver.Configure(hqfdClient)
+		// Note we don't call Configure on analytics here, as that would
+		// result in an extra analytics call and double counting.
+	}
 }
 
 // Runs the server-side proxy
@@ -350,7 +344,17 @@ func useAllCores() {
 // exit tells the application to exit, optionally supplying an error that caused
 // the exit.
 func exit(err error) {
-	exitCh <- err
+	defer func() { exitCh <- err }()
+	for {
+		select {
+		case f := <-chExitFuncs:
+			log.Debugf("Calling exit func")
+			f()
+		default:
+			log.Debugf("No exit func remaining, exit now")
+			return
+		}
+	}
 }
 
 // WaitForExit waits for a request to exit the application.

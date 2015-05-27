@@ -51,14 +51,13 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 	defer clientConn.Close()
 
 	addr := hostIncludingPort(req, 443)
-
 	// Establish outbound connection.
 	d := func(network, addr string) (net.Conn, error) {
 		return client.getBalancer().DialQOS("tcp", addr, client.targetQOS(req))
 	}
 
 	var connOut net.Conn
-	if runtime.GOOS == "android" {
+	if runtime.GOOS == "android" || client.ProxyAll {
 		connOut, err = d("tcp", addr)
 	} else {
 		connOut, err = detour.Dialer(d)("tcp", addr)

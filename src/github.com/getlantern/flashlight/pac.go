@@ -24,7 +24,17 @@ var (
 	muPACFile   sync.RWMutex
 	pacFile     []byte
 	directHosts = make(map[string]bool)
+	proxyAll    = int32(0)
 )
+
+func ServeProxyAllPacFile(b bool) {
+	if b {
+		atomic.StoreInt32(&proxyAll, 1)
+	} else {
+		atomic.StoreInt32(&proxyAll, 0)
+	}
+	genPACFile()
+}
 
 func setUpPacTool() error {
 	var iconFile string
@@ -56,13 +66,17 @@ func setProxyAddr(addr string) {
 }
 
 func genPACFile() {
-	var hosts []string
-	for k, v := range directHosts {
-		if v {
-			hosts = append(hosts, k)
+	hostsString := "[]"
+	// only bypass sites if proxy all option is unset
+	if atomic.LoadInt32(&proxyAll) == 0 {
+		var hosts []string
+		for k, v := range directHosts {
+			if v {
+				hosts = append(hosts, k)
+			}
 		}
+		hostsString = "['" + strings.Join(hosts, "', '") + "']"
 	}
-	hostsString := "['" + strings.Join(hosts, "', '") + "']"
 	formatter :=
 		`var bypassDomains = %s;
 		function FindProxyForURL(url, host) {

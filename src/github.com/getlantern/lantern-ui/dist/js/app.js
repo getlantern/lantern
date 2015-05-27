@@ -749,6 +749,10 @@ angular.module('app.services', [])
         if (data.AutoLaunch) {
             model.settings.autoLaunch = true;
         }
+
+        if (data.ProxyAll) {
+            model.settings.proxyAll = true;
+        }
       },
       'ProxiedSites': function(data) {
         if (!$rootScope.entries) {
@@ -1002,6 +1006,13 @@ app.controller('SettingsCtrl', ['$scope', 'MODAL', 'DataStream', 'gaMgr', functi
   $scope.changeAutoLaunch = function(autoLaunch) {
       var obj = {
         autoLaunch: autoLaunch
+      };
+      DataStream.send('Settings', obj);
+  }
+
+  $scope.changeProxyAll = function(proxyAll) {
+      var obj = {
+        proxyAll: proxyAll
       };
       DataStream.send('Settings', obj);
   }

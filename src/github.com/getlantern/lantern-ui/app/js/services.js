@@ -85,6 +85,10 @@ angular.module('app.services', [])
         if (data.AutoLaunch) {
             model.settings.autoLaunch = true;
         }
+
+        if (data.ProxyAll) {
+            model.settings.proxyAll = true;
+        }
       },
       'ProxiedSites': function(data) {
         if (!$rootScope.entries) {

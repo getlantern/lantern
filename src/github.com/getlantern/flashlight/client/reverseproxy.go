@@ -42,7 +42,7 @@ func (client *Client) initReverseProxy(bal *balancer.Balancer, dumpHeaders bool)
 	// challenge is that ReverseProxy reuses connections for
 	// different requests, so we might have to configure different
 	// ReverseProxies for different QOS's or something like that.
-	if runtime.GOOS == "android" {
+	if runtime.GOOS == "android" || client.ProxyAll {
 		transport.Dial = bal.Dial
 	} else {
 		transport.Dial = detour.Dialer(bal.Dial)
