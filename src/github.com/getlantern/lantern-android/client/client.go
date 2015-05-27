@@ -94,7 +94,7 @@ func (client *MobileClient) updateConfig() error {
 		// Configuration changed, lets reload.
 		err := globals.SetTrustedCAs(clientConfig.getTrustedCerts())
 		if err != nil {
-			log.Debugf("Unable to configure trusted CAs: %s", err)
+			log.Errorf("Unable to configure trusted CAs: %s", err)
 		}
 		hqfc := client.Configure(clientConfig.Client)
 		client.fronter = hqfc.NewDirectDomainFronter()
