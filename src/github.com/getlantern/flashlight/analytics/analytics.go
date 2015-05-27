@@ -26,9 +26,9 @@ var (
 
 func Configure(cfg *config.Config, version string) {
 
-	analytics.Configure(TrackingId, version, cfg.Addr)
-
 	if cfg.AutoReport != nil && *cfg.AutoReport {
+		analytics.Configure(TrackingId, version, cfg.Addr)
+
 		err := StartService()
 		if err != nil {
 			log.Errorf("Error starting analytics service: %q", err)
