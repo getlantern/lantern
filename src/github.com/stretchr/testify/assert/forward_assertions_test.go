@@ -50,6 +50,14 @@ func TestEqualWrapper(t *testing.T) {
 	}
 }
 
+func TestEqualValuesWrapper(t *testing.T) {
+	assert := New(new(testing.T))
+
+	if !assert.EqualValues(uint32(10), int32(10)) {
+		t.Error("EqualValues should return true")
+	}
+}
+
 func TestNotNilWrapper(t *testing.T) {
 	assert := New(new(testing.T))
 
@@ -251,27 +259,12 @@ func TestNotPanicsWrapper(t *testing.T) {
 
 }
 
-func TestEqualWrapper_Funcs(t *testing.T) {
-
-	assert := New(t)
-
-	type f func() int
-	var f1 f = func() int { return 1 }
-	var f2 f = func() int { return 2 }
-
-	var f1_copy f = f1
-
-	assert.Equal(f1_copy, f1, "Funcs are the same and should be considered equal")
-	assert.NotEqual(f1, f2, "f1 and f2 are different")
-
-}
-
 func TestNoErrorWrapper(t *testing.T) {
 	assert := New(t)
 	mockAssert := New(new(testing.T))
 
 	// start with a nil error
-	var err error = nil
+	var err error
 
 	assert.True(mockAssert.NoError(err), "NoError should return True for nil arg")
 
@@ -287,7 +280,7 @@ func TestErrorWrapper(t *testing.T) {
 	mockAssert := New(new(testing.T))
 
 	// start with a nil error
-	var err error = nil
+	var err error
 
 	assert.False(mockAssert.Error(err), "Error should return False for nil arg")
 
