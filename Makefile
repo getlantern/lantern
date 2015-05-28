@@ -28,7 +28,7 @@ PACKAGE_URL := https://www.getlantern.org
 
 LANTERN_BINARIES_PATH ?= ../lantern-binaries
 
-GO_MOBILE_REVISION=754ad3cfda342ad8c5d07a5ef9334f8a62b6aefa
+GO_MOBILE_REVISION=47553f4d4275316f2610b3204f8f9ecaf3ce63a7
 
 GH_USER := getlantern
 #GH_USER := xiam
@@ -39,6 +39,8 @@ S3_BUCKET := lantern
 #S3_BUCKET := xiam-lantern-test-1
 
 DOCKER_IMAGE_TAG := lantern-builder
+
+FIRETWEET_DIR ?= ../firetweet
 
 .PHONY: packages clean docker
 
@@ -197,7 +199,9 @@ docker-golang-android: require-mercurial
 		$(GO) get -d golang.org/x/mobile/example/... && \
 		$(GO) get golang.org/x/mobile/cmd/gobind && \
 		cd src/golang.org/x/mobile && \
+		git reset --hard && \
 		git checkout $(GO_MOBILE_REVISION) && \
+		curl https://gist.githubusercontent.com/xiam/56d8fe575176f459613d/raw/8873ed3af55a7d449a1c9c2112de118da968dbc3/gistfile1.txt | git apply - && \
 		docker build -t golang/mobile .; \
 	fi
 
@@ -425,7 +429,12 @@ android-lib: docker-golang-android
 		gobind -lang=go github.com/getlantern/lantern-android/libflashlight/bindings > bindings/go_bindings/go_bindings.go && \
 		gobind -lang=java github.com/getlantern/lantern-android/libflashlight/bindings > bindings/Flashlight.java || exit 1;
 	@$(DOCKER) run -v $$PWD/src:/src golang/mobile /bin/bash -c \ "cd /src/github.com/getlantern/lantern-android/libflashlight && ./make.bash" && \
-	ls -l src/github.com/getlantern/lantern-android/app/libs/armeabi-v7a/libgojni.so
+	ls -l src/github.com/getlantern/lantern-android/app/libs/armeabi-v7a/libgojni.so && \
+	if [ -d "$(FIRETWEET_DIR)" ]; then \
+		cp -v src/github.com/getlantern/lantern-android/app/libs/armeabi-v7a/libgojni.so $(FIRETWEET_DIR)/firetweet/src/main/jniLibs/armeabi-v7a && \
+		cp -v src/github.com/getlantern/lantern-android/app/src/go/*.java $(FIRETWEET_DIR)/firetweet/src/main/java/go && \
+		cp -v src/github.com/getlantern/lantern-android/app/src/org/getlantern/Flashlight.java $(FIRETWEET_DIR)/firetweet/src/main/java/go/flashlight/Flashlight.java; \
+	fi
 
 clean:
 	@rm -f lantern_linux* && \
