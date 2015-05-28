@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Copyright 2014 The Go Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<project name="Hello" default="help">
+	<property name="target" value="android-19" />
+	<property environment="env" />
+	<condition property="sdk.dir" value="${env.ANDROID_HOME}">
+		<isset property="env.ANDROID_HOME" />
+	</condition>
+	<fail message="missing ANDROID_HOME env variable" unless="sdk.dir" />
+	<import file="${sdk.dir}/tools/ant/build.xml" />
+</project>

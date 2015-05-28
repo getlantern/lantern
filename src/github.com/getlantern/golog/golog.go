@@ -127,55 +127,55 @@ func (l *logger) linePrefix(skipFrames int) string {
 	return fmt.Sprintf("%s%s:%d ", l.prefix, filepath.Base(file), line)
 }
 
-func (l *logger) print(out io.Writer, skipFrames int, arg interface{}) {
-	_, err := fmt.Fprintf(out, l.linePrefix(skipFrames)+"%s\n", arg)
+func (l *logger) print(out io.Writer, skipFrames int, severity string, arg interface{}) {
+	_, err := fmt.Fprintf(out, severity+" "+l.linePrefix(skipFrames)+"%s\n", arg)
 	if err != nil {
 		errorOnLogging(err)
 	}
 }
 
-func (l *logger) printf(out io.Writer, skipFrames int, message string, args ...interface{}) {
-	_, err := fmt.Fprintf(out, l.linePrefix(skipFrames)+message+"\n", args...)
+func (l *logger) printf(out io.Writer, skipFrames int, severity string, message string, args ...interface{}) {
+	_, err := fmt.Fprintf(out, severity+" "+l.linePrefix(skipFrames)+message+"\n", args...)
 	if err != nil {
 		errorOnLogging(err)
 	}
 }
 
 func (l *logger) Debug(arg interface{}) {
-	l.print(getOutputs().debugOut, 4, arg)
+	l.print(getOutputs().debugOut, 4, "DEBUG", arg)
 }
 
 func (l *logger) Debugf(message string, args ...interface{}) {
-	l.printf(getOutputs().debugOut, 4, message, args...)
+	l.printf(getOutputs().debugOut, 4, "DEBUG", message, args...)
 }
 
 func (l *logger) Error(arg interface{}) {
-	l.print(getOutputs().errorOut, 4, arg)
+	l.print(getOutputs().errorOut, 4, "ERROR", arg)
 }
 
 func (l *logger) Errorf(message string, args ...interface{}) {
-	l.printf(getOutputs().errorOut, 4, message, args...)
+	l.printf(getOutputs().errorOut, 4, "ERROR", message, args...)
 }
 
 func (l *logger) Fatal(arg interface{}) {
-	l.print(getOutputs().errorOut, 4, arg)
+	l.print(getOutputs().errorOut, 4, "FATAL", arg)
 	os.Exit(1)
 }
 
 func (l *logger) Fatalf(message string, args ...interface{}) {
-	l.printf(getOutputs().errorOut, 4, message, args...)
+	l.printf(getOutputs().errorOut, 4, "FATAL", message, args...)
 	os.Exit(1)
 }
 
 func (l *logger) Trace(arg interface{}) {
 	if l.traceOn {
-		l.print(getOutputs().debugOut, 4, arg)
+		l.print(getOutputs().debugOut, 4, "TRACE", arg)
 	}
 }
 
 func (l *logger) Tracef(fmt string, args ...interface{}) {
 	if l.traceOn {
-		l.printf(getOutputs().debugOut, 4, fmt, args...)
+		l.printf(getOutputs().debugOut, 4, "TRACE", fmt, args...)
 	}
 }
 
@@ -202,9 +202,9 @@ func (l *logger) newTraceWriter() io.Writer {
 			line, err := br.ReadString('\n')
 			if err == nil {
 				// Log the line (minus the trailing newline)
-				l.print(getOutputs().debugOut, 6, line[:len(line)-1])
+				l.print(getOutputs().debugOut, 6, "TRACE", line[:len(line)-1])
 			} else {
-				l.printf(getOutputs().debugOut, 6, "TraceWriter closed due to unexpected error: %v", err)
+				l.printf(getOutputs().debugOut, 6, "TRACE", "TraceWriter closed due to unexpected error: %v", err)
 				return
 			}
 		}
@@ -224,7 +224,7 @@ func (w *errorWriter) Write(p []byte) (n int, err error) {
 	if s[len(s)-1] == '\n' {
 		s = s[:len(s)-1]
 	}
-	w.l.print(getOutputs().errorOut, 6, s)
+	w.l.print(getOutputs().errorOut, 6, "ERROR", s)
 	return len(p), nil
 }
 

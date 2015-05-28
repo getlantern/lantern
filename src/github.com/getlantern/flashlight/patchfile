@@ -1,0 +1,76 @@
+diff --git run.bash run.bash
+index 0bb20a1..65e6990 100755
+--- run.bash
++++ run.bash
+@@ -2,5 +2,5 @@
+ 
+ source setenv.bash
+ pushd src/github.com/getlantern/flashlight
+-go build && ./flashlight "$@"
++go clean && go build && ./flashlight "$@"
+ popd
+diff --git src/github.com/getlantern/flashlight/client/reverseproxy.go src/github.com/getlantern/flashlight/client/reverseproxy.go
+index dee3b82..517139f 100644
+--- src/github.com/getlantern/flashlight/client/reverseproxy.go
++++ src/github.com/getlantern/flashlight/client/reverseproxy.go
+@@ -1,7 +1,6 @@
+ package client
+ 
+ import (
+-	"net"
+ 	"net/http"
+ 	"net/http/httputil"
+ 	"runtime"
+diff --git src/github.com/getlantern/flashlight/flashlight.go src/github.com/getlantern/flashlight/flashlight.go
+index 0d8b1a0..8a2dd8e 100644
+--- src/github.com/getlantern/flashlight/flashlight.go
++++ src/github.com/getlantern/flashlight/flashlight.go
+@@ -8,6 +8,7 @@ import (
+ 	"os"
+ 	"runtime"
+ 	"strings"
++	"sync"
+ 	"time"
+ 
+ 	"github.com/getlantern/fronted"
+@@ -43,7 +44,8 @@ var (
+ 	configUpdates = make(chan *config.Config)
+ 	exitCh        = make(chan error, 1)
+ 
+-	showui = true
++	showui    = true
++	exitFuncs = make([]func(), 0)
+ )
+ 
+ func init() {
+@@ -233,11 +235,18 @@ func runClientProxy(cfg *config.Config) {
+ 	watchDirectAddrs()
+ 
+ 	go func() {
+-		defer pacOff()
++		addExitFunc(func() {
++			pacOff()
++		})
+ 		exit(client.ListenAndServe(pacOn))
+ 	}()
+ }
+ 
++// addExitFunc adds a function to be called before the application exits.
++func addExitFunc(exitFunc func()) {
++	exitFuncs = append(exitFuncs, exitFunc)
++}
++
+ func applyClientConfig(client *client.Client, cfg *config.Config) {
+ 	autoupdate.Configure(cfg)
+ 	logging.Configure(cfg, version, buildDate)
+@@ -336,6 +345,10 @@ func useAllCores() {
+ // exit tells the application to exit, optionally supplying an error that caused
+ // the exit.
+ func exit(err error) {
++	for _, ex := range exitFuncs {
++		log.Debugf("Calling exit func")
++		ex()
++	}
+ 	exitCh <- err
+ }
+ 

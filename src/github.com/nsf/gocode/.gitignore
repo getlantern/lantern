@@ -1,0 +1,11 @@
+*.8
+*.a
+*.out
+gocode
+goremote
+gocodetest
+*.swp
+listidents
+showcursor
+showsmap
+rename

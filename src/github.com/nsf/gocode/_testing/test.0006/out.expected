@@ -1,0 +1,9 @@
+Found 8 candidates:
+  func SetA()
+  func SetB()
+  func SetC()
+  func SetD()
+  var a int
+  var b int
+  var c int
+  var d int

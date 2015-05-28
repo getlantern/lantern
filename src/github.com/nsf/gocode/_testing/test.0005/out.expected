@@ -1,0 +1,6 @@
+Found 5 candidates:
+  func A() localos.Error
+  func B() superos.Error
+  package localos 
+  type Tester struct
+  var test superos.Error
