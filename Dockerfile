@@ -34,7 +34,11 @@ RUN (curl -sSL $GO_PACKAGE_URL | tar -xvz -C /tmp) && \
 RUN mkdir -p $GOROOT && \
   git clone https://go.googlesource.com/go $GOROOT && \
   cd $GOROOT && \
-  git checkout -b go1.4 origin/release-branch.go1.4
+  git checkout release-branch.go1.4
+
+# Patch for skipping a failing test in new docker versions. See https://github.com/getlantern/lantern/issues/2578
+RUN yum install -y patch && yum clean all
+RUN curl https://gist.githubusercontent.com/xiam/f50f6dd6085f9a07ccfd/raw/5e0f472221f9c1556fe34788ff01724b63980337/docker_golang | patch -p0
 
 # Bootstrapping Go.
 RUN cd $GOROOT/src && CGO_ENABLED=1 ./all.bash
