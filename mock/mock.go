@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 )
 
 // TestingT is an interface wrapper around *testing.T
@@ -37,6 +38,15 @@ type Call struct {
 	// The number of times to return the return arguments when setting
 	// expectations. 0 means to always return the value.
 	Repeatability int
+
+	// Holds a channel that will be used to block the Return until it either
+	// recieves a message or is closed. nil means it returns immediately.
+	WaitFor <-chan time.Time
+
+	// Holds a handler used to manipulate arguments content that are passed by
+	// reference. It's useful when mocking methods such as unmarshalers or
+	// decoders.
+	Run func(Arguments)
 }
 
 // Mock is the workhorse used to track activity on another object.
@@ -87,6 +97,13 @@ func (m *Mock) TestData() objx.Map {
 func (m *Mock) On(methodName string, arguments ...interface{}) *Mock {
 	m.onMethodName = methodName
 	m.onMethodArguments = arguments
+
+	for _, arg := range arguments {
+		if v := reflect.ValueOf(arg); v.Kind() == reflect.Func {
+			panic(fmt.Sprintf("cannot use Func in expectations. Use mock.AnythingOfType(\"%T\")", arg))
+		}
+	}
+
 	return m
 }
 
@@ -95,7 +112,7 @@ func (m *Mock) On(methodName string, arguments ...interface{}) *Mock {
 //
 //     Mock.On("MyMethod", arg1, arg2).Return(returnArg1, returnArg2)
 func (m *Mock) Return(returnArguments ...interface{}) *Mock {
-	m.ExpectedCalls = append(m.ExpectedCalls, Call{m.onMethodName, m.onMethodArguments, returnArguments, 0})
+	m.ExpectedCalls = append(m.ExpectedCalls, Call{m.onMethodName, m.onMethodArguments, returnArguments, 0, nil, nil})
 	return m
 }
 
@@ -119,6 +136,35 @@ func (m *Mock) Twice() {
 //    Mock.On("MyMethod", arg1, arg2).Return(returnArg1, returnArg2).Times(5)
 func (m *Mock) Times(i int) {
 	m.ExpectedCalls[len(m.ExpectedCalls)-1].Repeatability = i
+}
+
+// WaitUntil sets the channel that will block the mock's return until its closed
+// or a message is received.
+//
+//    Mock.On("MyMethod", arg1, arg2).WaitUntil(time.After(time.Second))
+func (m *Mock) WaitUntil(w <-chan time.Time) *Mock {
+	m.ExpectedCalls[len(m.ExpectedCalls)-1].WaitFor = w
+	return m
+}
+
+// After sets how long to block until the call returns
+//
+//    Mock.On("MyMethod", arg1, arg2).After(time.Second)
+func (m *Mock) After(d time.Duration) *Mock {
+	return m.WaitUntil(time.After(d))
+}
+
+// Run sets a handler to be called before returning. It can be used when
+// mocking a method such as unmarshalers that takes a pointer to a struct and
+// sets properties in such struct
+//
+//    Mock.On("Unmarshal", AnythingOfType("*map[string]interface{}").Return().Run(function(args Arguments) {
+//    	arg := args.Get(0).(*map[string]interface{})
+//    	arg["foo"] = "bar"
+//    })
+func (m *Mock) Run(fn func(Arguments)) *Mock {
+	m.ExpectedCalls[len(m.ExpectedCalls)-1].Run = fn
+	return m
 }
 
 /*
@@ -180,6 +226,7 @@ func callString(method string, arguments Arguments, includeArgumentValues bool) 
 // Called tells the mock object that a method has been called, and gets an array
 // of arguments to return.  Panics if the call is unexpected (i.e. not preceeded by
 // appropriate .On .Return() calls)
+// If Call.WaitFor is set, blocks until the channel is closed or receives a message.
 func (m *Mock) Called(arguments ...interface{}) Arguments {
 	defer m.mutex.Unlock()
 	m.mutex.Lock()
@@ -220,7 +267,16 @@ func (m *Mock) Called(arguments ...interface{}) Arguments {
 	}
 
 	// add the call
-	m.Calls = append(m.Calls, Call{functionName, arguments, make([]interface{}, 0), 0})
+	m.Calls = append(m.Calls, Call{functionName, arguments, make([]interface{}, 0), 0, nil, nil})
+
+	// block if specified
+	if call.WaitFor != nil {
+		<-call.WaitFor
+	}
+
+	if call.Run != nil {
+		call.Run(arguments)
+	}
 
 	return call.ReturnArguments
 
@@ -286,7 +342,7 @@ func (m *Mock) AssertNumberOfCalls(t TestingT, methodName string, expectedCalls 
 // AssertCalled asserts that the method was called.
 func (m *Mock) AssertCalled(t TestingT, methodName string, arguments ...interface{}) bool {
 	if !assert.True(t, m.methodWasCalled(methodName, arguments), fmt.Sprintf("The \"%s\" method should have been called with %d argument(s), but was not.", methodName, len(arguments))) {
-		t.Logf("%s", m.ExpectedCalls)
+		t.Logf("%v", m.ExpectedCalls)
 		return false
 	}
 	return true
@@ -295,7 +351,7 @@ func (m *Mock) AssertCalled(t TestingT, methodName string, arguments ...interfac
 // AssertNotCalled asserts that the method was not called.
 func (m *Mock) AssertNotCalled(t TestingT, methodName string, arguments ...interface{}) bool {
 	if !assert.False(t, m.methodWasCalled(methodName, arguments), fmt.Sprintf("The \"%s\" method was called with %d argument(s), but should NOT have been.", methodName, len(arguments))) {
-		t.Logf("%s", m.ExpectedCalls)
+		t.Logf("%v", m.ExpectedCalls)
 		return false
 	}
 	return true
