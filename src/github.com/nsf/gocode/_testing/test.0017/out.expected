@@ -1,0 +1,4 @@
+Found 3 candidates:
+  func a(a, b, c int) int
+  func b(a, b, c string) string
+  func main()

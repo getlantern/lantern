@@ -1,0 +1,42 @@
+The libhello app demonstrates calling Go code from a primarily Java app.
+
+Starting in Java lets you program against Android's extensive UI
+libraries in their native language and call into Go for library code
+(business logic, code shared with a Go server, portable code).
+
+The Java entry point to the program is the file
+src/com/example/hello/MainActivity.java, where the statement
+
+	Hi.Hello("world");
+
+is a call into Go code.
+
+The Go code is in a package called hi, the file is hi/hi.go, and it
+contains the function Hello:
+
+	func Hello(name string) {
+		fmt.Printf("Hello, %s!\n", name)
+	}
+
+Java language bindings are generated for this package using the gobind
+tool. There is a user guide for gobind at 
+
+	http://golang.org/x/mobile/cmd/gobind
+
+The generated source has been included in the distribution. If you
+modify the exported interface of package hi, you have to run gobind
+manually before calling all.bash.
+
+Along with the gobind generated source, the app includes a main.go file
+to define the app entry point.
+
+make.bash builds the app, all.bash deploys it.
+
+The first step in building the app is to build the native shared
+library out of the Go code, and place it in
+libs/armeabi-v7a/libgojni.so.
+
+The second step is building the app with the standard Android build
+system by calling ant debug (also done in make.bash). Two extra Java
+files are included in the build by make.bash to support the language
+bindings. This produces an apk ready for running on a device.

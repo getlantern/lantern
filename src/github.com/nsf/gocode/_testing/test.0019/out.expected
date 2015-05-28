@@ -1,0 +1,15 @@
+Found 14 candidates:
+  const BestCompression 
+  const BestSpeed 
+  const DefaultCompression 
+  const NoCompression 
+  func NewReader(r io.Reader) (io.ReadCloser, error)
+  func NewReaderDict(r io.Reader, dict []byte) (io.ReadCloser, error)
+  func NewWriter(w io.Writer) *zlib.Writer
+  func NewWriterLevel(w io.Writer, level int) (*zlib.Writer, error)
+  func NewWriterLevelDict(w io.Writer, level int, dict []byte) (*zlib.Writer, error)
+  type Resetter interface
+  type Writer struct
+  var ErrChecksum error
+  var ErrDictionary error
+  var ErrHeader error

@@ -1,0 +1,11 @@
+#!/bin/sh
+9 sed '
+	s/BPLONG/bplong/g
+	s/->/./g
+	/bplong/ s/([ab])\+([0-9]+)/\1[\2:]/
+	/bplong/ s/, (.*)\)/, uint32(\1))/
+	s/\.id/.ID/
+	s/\.m(in|ax)/.M\1/
+	s/\.x/.X/
+	s/\.y/.Y/
+'

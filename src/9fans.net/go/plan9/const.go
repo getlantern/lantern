@@ -1,0 +1,54 @@
+package plan9
+
+const (
+	VERSION9P = "9P2000"
+	MAXWELEM  = 16
+
+	OREAD     = 0
+	OWRITE    = 1
+	ORDWR     = 2
+	OEXEC     = 3
+	OTRUNC    = 16
+	OCEXEC    = 32
+	ORCLOSE   = 64
+	ODIRECT   = 128
+	ONONBLOCK = 256
+	OEXCL     = 0x1000
+	OLOCK     = 0x2000
+	OAPPEND   = 0x4000
+
+	AEXIST = 0
+	AEXEC  = 1
+	AWRITE = 2
+	AREAD  = 4
+
+	QTDIR     = 0x80
+	QTAPPEND  = 0x40
+	QTEXCL    = 0x20
+	QTMOUNT   = 0x10
+	QTAUTH    = 0x08
+	QTTMP     = 0x04
+	QTSYMLINK = 0x02
+	QTFILE    = 0x00
+
+	DMDIR       = 0x80000000
+	DMAPPEND    = 0x40000000
+	DMEXCL      = 0x20000000
+	DMMOUNT     = 0x10000000
+	DMAUTH      = 0x08000000
+	DMTMP       = 0x04000000
+	DMSYMLINK   = 0x02000000
+	DMDEVICE    = 0x00800000
+	DMNAMEDPIPE = 0x00200000
+	DMSOCKET    = 0x00100000
+	DMSETUID    = 0x00080000
+	DMSETGID    = 0x00040000
+	DMREAD      = 0x4
+	DMWRITE     = 0x2
+	DMEXEC      = 0x1
+
+	NOTAG   = 0xffff
+	NOFID   = 0xffffffff
+	NOUID   = 0xffffffff
+	IOHDRSZ = 24
+)

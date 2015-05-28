@@ -1,0 +1,6 @@
+Found 5 candidates:
+  func main()
+  package os 
+  var key string
+  var test map[string]os.Error
+  var value os.Error

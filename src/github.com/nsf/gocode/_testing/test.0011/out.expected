@@ -1,0 +1,60 @@
+Found 59 candidates:
+  func Addr() reflect.Value
+  func Bool() bool
+  func Bytes() []byte
+  func Call(in []reflect.Value) []reflect.Value
+  func CallSlice(in []reflect.Value) []reflect.Value
+  func CanAddr() bool
+  func CanInterface() bool
+  func CanSet() bool
+  func Cap() int
+  func Close()
+  func Complex() complex128
+  func Convert(t reflect.Type) reflect.Value
+  func Elem() reflect.Value
+  func Field(i int) reflect.Value
+  func FieldByIndex(index []int) reflect.Value
+  func FieldByName(name string) reflect.Value
+  func FieldByNameFunc(match func(string) bool) reflect.Value
+  func Float() float64
+  func Index(i int) reflect.Value
+  func Int() int64
+  func Interface() (i interface{})
+  func InterfaceData() [2]uintptr
+  func IsNil() bool
+  func IsValid() bool
+  func Kind() reflect.Kind
+  func Len() int
+  func MapIndex(key reflect.Value) reflect.Value
+  func MapKeys() []reflect.Value
+  func Method(i int) reflect.Value
+  func MethodByName(name string) reflect.Value
+  func NumField() int
+  func NumMethod() int
+  func OverflowComplex(x complex128) bool
+  func OverflowFloat(x float64) bool
+  func OverflowInt(x int64) bool
+  func OverflowUint(x uint64) bool
+  func Pointer() uintptr
+  func Recv() (x reflect.Value, ok bool)
+  func Send(x reflect.Value)
+  func Set(x reflect.Value)
+  func SetBool(x bool)
+  func SetBytes(x []byte)
+  func SetCap(n int)
+  func SetComplex(x complex128)
+  func SetFloat(x float64)
+  func SetInt(x int64)
+  func SetLen(n int)
+  func SetMapIndex(key reflect.Value, val reflect.Value)
+  func SetPointer(x unsafe.Pointer)
+  func SetString(x string)
+  func SetUint(x uint64)
+  func Slice(i int, j int) reflect.Value
+  func Slice3(i int, j int, k int) reflect.Value
+  func String() string
+  func TryRecv() (x reflect.Value, ok bool)
+  func TrySend(x reflect.Value) bool
+  func Type() reflect.Type
+  func Uint() uint64
+  func UnsafeAddr() uintptr

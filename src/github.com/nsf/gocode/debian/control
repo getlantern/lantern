@@ -1,0 +1,21 @@
+Source: gocode
+Section: devel
+Priority: extra
+Maintainer: Juan L. Negron <juan@ubuntu.com>
+Build-Depends: debhelper (>= 7.0.50~), golang
+Standards-Version: 3.9.1
+Homepage: https://github.com/nsf/gocode
+#Vcs-Git: git://git.debian.org/collab-maint/gocode.git
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/gocode.git;a=summary
+
+Package: gocode
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, golang
+Description: An autocompletion daemon for the Go programming language
+ Gocode is a helper tool which is intended to be integraded with your source
+ code editor, like vim and emacs. It provides several advanced capabilities,
+ which currently includes:
+ - Context-sensitive autocompletion
+ It is called daemon, because it uses client/server architecture for caching
+ purposes. In particular, it makes autocompletions very fast. Typical
+ autocompletion time with warm cache is 30ms, which is barely noticeable.

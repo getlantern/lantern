@@ -1,0 +1,48 @@
+test.0001 - basic package import (fmt)
+test.0002 - range statement over map variable
+test.0003 - type switch statement valid type case
+test.0004 - type switch statement default type case
+test.0005 - multifile package test, type inference
+test.0006 - multifile package test, methods
+test.0007 - class selector on packages (var)
+test.0008 - variable with anonymous type + type embedding
+test.0009 - same as test.0008, but more deeply
+test.0010 - type assertion (to *ast.ValueSpec)
+test.0011 - *reflect.StructValue, unexported type embedding
+test.0012 - type advancing, file with no import statements
+test.0013 - binary operators
+test.0014 - address of and pointer dereferences
+test.0015 - unary operators
+test.0016 - for and if else statements
+test.0017 - simple functions before and after cursor
+test.0018 - complex type inference case
+test.0019 - map[string]something.# case
+test.0020 - embedded types, method overloading (sort of)
+test.0021 - SelectorExpr case, uses package local scope
+test.0022 - range loop, but iteratable is returned by a function
+test.0023 - simple check for unicode awareness
+test.0024 - variable and the type with the same name
+test.0025 - built-in package "unsafe"
+test.0026 - more anonymous structs
+test.0027 - function specific variables scope issues (recv, args, results)
+test.0028 - the reason why I need to implement binary ops
+test.0029 - import to the current package scope (import . "whatever")
+test.0030 - typedef struct type and try to use its fields
+test.0031 - simple test for select clause
+test.0032 - import all packages (tests package parser)
+test.0033 - varargs type as a slice type in different contexts
+test.0034 - interface with methods imported from another package
+test.0035 - built-in "error" interface
+test.0036 - embedded struct in a package as an ordinary field
+test.0037 - slice expressions
+test.0038 - if init declaration inside else stmt
+test.0039 - addition to test 38, make sure decl doesn't leak
+test.0040 - anonymous return values shouldn't introduce new vars
+test.0041 - nested struct initialization expressions (outer)
+test.0042 - nested struct initialization expressions (inner)
+test.0043 - sequential struct initialization expressions
+test.0044 - struct initialization expression only suggests var names (no functions)
+test.0045 - if statement
+test.0046 - ":=" statement
+test.0047 - completion on struct with undefined embedded type
+test.0048 - completion with cursor in the middle of existing token
