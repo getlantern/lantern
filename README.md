@@ -227,6 +227,13 @@ progress but if you're feeling adventurous you can build it by using the
 make android-lib
 ```
 
+If you pass the `FIRETWEET_DIR` env variable to `make android-lib`, the
+generated bindings and library will be copied into it:
+
+```
+FIRETWEET_DIR=/path/to/firetweet make android-lib
+```
+
 ### Generating assets
 
 ```sh
