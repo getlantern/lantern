@@ -23,28 +23,28 @@ func TestLoggly(t *testing.T) {
 
 	log.Error("")
 	if assert.NoError(t, json.Unmarshal(buf.Bytes(), &result), "Unmarshal error") {
-		assert.Equal(t, "test", result["locationInfo"])
+		assert.Equal(t, "ERROR test", result["locationInfo"])
 		assert.Regexp(t, regexp.MustCompile("logging_test.go:([0-9]+)"), result["message"])
 	}
 
 	buf.Reset()
 	log.Error("short message")
 	if assert.NoError(t, json.Unmarshal(buf.Bytes(), &result), "Unmarshal error") {
-		assert.Equal(t, "test", result["locationInfo"])
+		assert.Equal(t, "ERROR test", result["locationInfo"])
 		assert.Regexp(t, regexp.MustCompile("logging_test.go:([0-9]+) short message"), result["message"])
 	}
 
 	buf.Reset()
 	log.Error("message with: reason")
 	if assert.NoError(t, json.Unmarshal(buf.Bytes(), &result), "Unmarshal error") {
-		assert.Equal(t, "test", result["locationInfo"])
+		assert.Equal(t, "ERROR test", result["locationInfo"])
 		assert.Regexp(t, "logging_test.go:([0-9]+) message with: reason", result["message"])
 	}
 
 	buf.Reset()
 	log.Error("deep reason: message with: reason")
 	if assert.NoError(t, json.Unmarshal(buf.Bytes(), &result), "Unmarshal error") {
-		assert.Equal(t, "test", result["locationInfo"])
+		assert.Equal(t, "ERROR test", result["locationInfo"])
 		assert.Equal(t, "message with: reason", result["message"], "message should be last 2 chunks")
 	}
 
@@ -57,7 +57,7 @@ func TestLoggly(t *testing.T) {
 	buf.Reset()
 	log.Error("deep reason: an url 127.0.0.1:8787 in message: reason")
 	if assert.NoError(t, json.Unmarshal(buf.Bytes(), &result), "Unmarshal error") {
-		assert.Equal(t, "test", result["locationInfo"])
+		assert.Equal(t, "ERROR test", result["locationInfo"])
 		assert.Equal(t, "an url 127.0.0.1:8787 in message: reason", result["message"], "should not truncate url")
 	}
 
@@ -65,7 +65,7 @@ func TestLoggly(t *testing.T) {
 	longMsg := "message with: really l" + strings.Repeat("o", 100) + "ng reason"
 	log.Error(longMsg)
 	if assert.NoError(t, json.Unmarshal(buf.Bytes(), &result), "Unmarshal error") {
-		assert.Equal(t, "test", result["locationInfo"])
+		assert.Equal(t, "ERROR test", result["locationInfo"])
 		assert.Regexp(t, regexp.MustCompile("logging_test.go:([0-9]+) "+longMsg), result["message"])
 	}
 }

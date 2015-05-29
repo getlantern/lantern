@@ -6,18 +6,26 @@ import (
 	"io/ioutil"
 	"os"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
-	"github.com/getlantern/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 var (
-	expectedLog       = "myprefix: golog_test.go:([0-9]+) Hello world\nmyprefix: golog_test.go:([0-9]+) Hello 5\n"
-	expectedLogRegexp = regexp.MustCompile(expectedLog)
-	expectedTraceLog  = "myprefix: golog_test.go:([0-9]+) Hello world\nmyprefix: golog_test.go:([0-9]+) Hello 5\nmyprefix: golog_test.go:([0-9]+) Gravy\nmyprefix: golog_test.go:([0-9]+) TraceWriter closed due to unexpected error: EOF\n"
-	expectedStdLog    = "myprefix: golog_test.go:([0-9]+) Hello world\nmyprefix: golog_test.go:([0-9]+) Hello 5\n"
+	expectedLog      = "myprefix: golog_test.go:([0-9]+) Hello world\nmyprefix: golog_test.go:([0-9]+) Hello 5\n"
+	expectedTraceLog = "myprefix: golog_test.go:([0-9]+) Hello world\nmyprefix: golog_test.go:([0-9]+) Hello 5\nmyprefix: golog_test.go:([0-9]+) Gravy\nmyprefix: golog_test.go:([0-9]+) TraceWriter closed due to unexpected error: EOF\n"
+	expectedStdLog   = "myprefix: golog_test.go:([0-9]+) Hello world\nmyprefix: golog_test.go:([0-9]+) Hello 5\n"
 )
+
+func expected(severity string, log string) *regexp.Regexp {
+	return regexp.MustCompile(severitize(severity, log))
+}
+
+func severitize(severity string, log string) string {
+	return strings.Replace(log, "myprefix", severity+" myprefix", 4)
+}
 
 func TestDebug(t *testing.T) {
 	out := bytes.NewBuffer(nil)
@@ -25,7 +33,7 @@ func TestDebug(t *testing.T) {
 	l := LoggerFor("myprefix")
 	l.Debug("Hello world")
 	l.Debugf("Hello %d", 5)
-	assert.Regexp(t, expectedLogRegexp, string(out.Bytes()))
+	assert.Regexp(t, expected("DEBUG", expectedLog), string(out.Bytes()))
 }
 
 func TestError(t *testing.T) {
@@ -35,7 +43,7 @@ func TestError(t *testing.T) {
 	l.Error("Hello world")
 	l.Errorf("Hello %d", 5)
 
-	assert.Regexp(t, expectedLogRegexp, string(out.Bytes()))
+	assert.Regexp(t, expected("ERROR", expectedLog), string(out.Bytes()))
 }
 
 func TestTraceEnabled(t *testing.T) {
@@ -57,7 +65,7 @@ func TestTraceEnabled(t *testing.T) {
 
 	// Give trace writer a moment to catch up
 	time.Sleep(50 * time.Millisecond)
-	assert.Regexp(t, expectedTraceLog, string(out.Bytes()))
+	assert.Regexp(t, severitize("TRACE", expectedTraceLog), string(out.Bytes()))
 }
 
 func TestTraceDisabled(t *testing.T) {
@@ -88,5 +96,5 @@ func TestAsStdLogger(t *testing.T) {
 	stdlog := l.AsStdLogger()
 	stdlog.Print("Hello world")
 	stdlog.Printf("Hello %d", 5)
-	assert.Regexp(t, expectedStdLog, string(out.Bytes()))
+	assert.Regexp(t, severitize("ERROR", expectedStdLog), string(out.Bytes()))
 }

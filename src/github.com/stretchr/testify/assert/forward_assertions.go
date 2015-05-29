@@ -2,10 +2,13 @@ package assert
 
 import "time"
 
+// Assertions provides assertion methods around the
+// TestingT interface.
 type Assertions struct {
 	t TestingT
 }
 
+// New makes a new Assertions object for the specified TestingT.
 func New(t TestingT) *Assertions {
 	return &Assertions{
 		t: t,
@@ -36,6 +39,16 @@ func (a *Assertions) IsType(expectedType interface{}, object interface{}, msgAnd
 // Returns whether the assertion was successful (true) or not (false).
 func (a *Assertions) Equal(expected, actual interface{}, msgAndArgs ...interface{}) bool {
 	return Equal(a.t, expected, actual, msgAndArgs...)
+}
+
+// EqualValues asserts that two objects are equal or convertable to the same types
+// and equal.
+//
+//    assert.EqualValues(uint32(123), int32(123), "123 and 123 should be equal")
+//
+// Returns whether the assertion was successful (true) or not (false).
+func (a *Assertions) EqualValues(expected, actual interface{}, msgAndArgs ...interface{}) bool {
+	return EqualValues(a.t, expected, actual, msgAndArgs...)
 }
 
 // Exactly asserts that two objects are equal is value and type.
@@ -75,7 +88,7 @@ func (a *Assertions) Empty(object interface{}, msgAndArgs ...interface{}) bool {
 	return Empty(a.t, object, msgAndArgs...)
 }
 
-// Empty asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0 or a
+// NotEmpty asserts that the specified object is NOT empty.  I.e. not nil, "", false, 0 or a
 // slice with len == 0.
 //
 // if assert.NotEmpty(obj) {
@@ -142,7 +155,7 @@ func (a *Assertions) NotContains(s, contains interface{}, msgAndArgs ...interfac
 	return NotContains(a.t, s, contains, msgAndArgs...)
 }
 
-// Uses a Comparison to assert a complex condition.
+// Condition uses a Comparison to assert a complex condition.
 func (a *Assertions) Condition(comp Comparison, msgAndArgs ...interface{}) bool {
 	return Condition(a.t, comp, msgAndArgs...)
 }
