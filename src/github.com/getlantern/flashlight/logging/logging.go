@@ -135,6 +135,7 @@ func enableLoggly(cfg *config.Config, version string, buildDate string) {
 		client:          loggly.New(logglyToken),
 	}
 	logglyWriter.client.Defaults["hostname"] = "hidden"
+	logglyWriter.client.Defaults["instanceid"] = cfg.InstanceId
 	logglyWriter.client.SetHTTPClient(client)
 	addLoggly(logglyWriter)
 }
