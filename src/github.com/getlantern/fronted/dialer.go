@@ -16,7 +16,6 @@ import (
 
 	"encoding/asn1"
 	"github.com/getlantern/connpool"
-	"github.com/getlantern/deepcopy"
 	"github.com/getlantern/enproxy"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/proxy"
@@ -198,6 +197,9 @@ func (d *dialer) HttpClientUsing(masquerade *Masquerade) *http.Client {
 	}
 }
 
+// DirectDomainTransport is a wrapper struct enabling us to modify the protocol of outgoing
+// requests to make them all HTTP instead of potentially HTTPS, which breaks our particular
+// implemenation of direct domain fronting.
 type DirectDomainTransport struct {
 	http.Transport
 }
@@ -207,24 +209,11 @@ func (ddf *DirectDomainTransport) RoundTrip(req *http.Request) (resp *http.Respo
 	// with "https://" to "http://", lest we get an error for doubling up on TLS.
 
 	// The RoundTrip interface requires that we not modify the memory in the request, so we just
-	// create a new one. Note this currently doesn't support request bodies.
-	normalized := replacePrefix(req.URL.String(), "https://", "http://")
-	norm, err := http.NewRequest(req.Method, normalized, nil)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to construct request for url '%s' with error '%v'", normalized, err)
-	}
-	if err = deepcopy.Copy(&norm.Header, req.Header); err != nil {
-		return nil, fmt.Errorf("Unable to copy request headers: %v", err)
-	}
+	// create a copy.
+	norm := new(http.Request)
+	*norm = *req // includes shallow copies of maps, but okay
+	norm.URL.Scheme = "http"
 	return ddf.Transport.RoundTrip(norm)
-}
-
-func replacePrefix(s string, old string, new string) string {
-	if strings.HasPrefix(s, old) {
-		return new + strings.TrimPrefix(s, old)
-	} else {
-		return s
-	}
 }
 
 // Creates a new http.Client that does direct domain fronting.
