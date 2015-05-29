@@ -2,6 +2,7 @@ package config
 
 import (
 	"compress/gzip"
+	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -12,6 +13,8 @@ import (
 	"sort"
 	"sync/atomic"
 	"time"
+
+	"code.google.com/p/go-uuid/uuid"
 
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/fronted"
@@ -223,6 +226,10 @@ func (cfg *Config) ApplyDefaults() {
 
 	if cfg.CloudConfig == "" {
 		cfg.CloudConfig = "https://config.getiantem.org/cloud.yaml.gz"
+	}
+
+	if cfg.InstanceId == "" {
+		cfg.InstanceId = hex.EncodeToString(uuid.NodeID())
 	}
 
 	// Make sure we always have a stats config
