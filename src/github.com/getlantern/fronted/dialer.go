@@ -16,6 +16,7 @@ import (
 
 	"encoding/asn1"
 	"github.com/getlantern/connpool"
+	"github.com/getlantern/deepcopy"
 	"github.com/getlantern/enproxy"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/proxy"
@@ -211,6 +212,9 @@ func (ddf *DirectDomainTransport) RoundTrip(req *http.Request) (resp *http.Respo
 	norm, err := http.NewRequest(req.Method, normalized, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to construct request for url '%s' with error '%v'", normalized, err)
+	}
+	if err = deepcopy.Copy(&norm.Header, req.Header); err != nil {
+		return nil, fmt.Errorf("Unable to copy request headers: %v", err)
 	}
 	return ddf.Transport.RoundTrip(norm)
 }

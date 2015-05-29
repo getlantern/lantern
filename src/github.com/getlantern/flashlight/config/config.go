@@ -29,8 +29,8 @@ import (
 const (
 	CloudConfigPollInterval = 1 * time.Minute
 	cloudflare              = "cloudflare"
-	etag                    = "ETag"
-	ifNoneMatch             = "If-None-Match"
+	etag                    = "X-Lantern-Etag"
+	ifNoneMatch             = "X-Lantern-If-None-Match"
 )
 
 var (
