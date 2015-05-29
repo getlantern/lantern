@@ -135,7 +135,7 @@ func Dialer(d dialFunc) dialFunc {
 		dc.setState(stateDetour)
 		dc.conn, err = dc.dialDetour(network, addr)
 		if err != nil {
-			log.Errorf("Dial %s to %s failed: %s", dc.stateDesc(), addr, err)
+			log.Errorf("Dial %s failed: %s", dc.stateDesc(), err)
 			return nil, err
 		}
 		log.Tracef("Dial %s to %s succeeded", dc.stateDesc(), addr)
