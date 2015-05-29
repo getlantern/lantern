@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"runtime"
 	"strconv"
+	"sync"
 
 	"github.com/getlantern/detour"
 )
@@ -92,6 +93,9 @@ func (client *Client) targetQOS(req *http.Request) int {
 // pipeData pipes data between the client and proxy connections.  It's also
 // responsible for responding to the initial CONNECT request with a 200 OK.
 func pipeData(clientConn net.Conn, connOut net.Conn, req *http.Request) {
+
+	var wg sync.WaitGroup
+	wg.Add(1)
 	// Start piping from client to proxy
 	go func() {
 		io.Copy(connOut, clientConn)
@@ -99,11 +103,14 @@ func pipeData(clientConn net.Conn, connOut net.Conn, req *http.Request) {
 		// A bit arbitrary, but it's rather rare now to use half closing
 		// as a way to notify server. Most application closes both connections
 		// after completed send / receive so that won't cause problem.
+		wg.Wait()
 		clientConn.Close()
 	}()
 
 	// Respond OK
-	if err := respondOK(clientConn, req); err != nil {
+	err := respondOK(clientConn, req)
+	wg.Done()
+	if err != nil {
 		log.Errorf("Unable to respond OK: %s", err)
 		return
 	}
