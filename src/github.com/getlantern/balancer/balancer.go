@@ -71,6 +71,12 @@ func (b *Balancer) DialQOS(network, addr string, targetQOS int) (net.Conn, error
 
 	_, port, _ := net.SplitHostPort(addr)
 
+	if len(b.trusted) == 0 {
+		log.Error("No trusted dialers!")
+	}
+
+	// We try to identify HTTP traffic (as opposed to HTTPS) by port and only
+	// send HTTP traffic to dialers marked as trusted.
 	if port == "" || port == "80" || port == "8080" {
 		dialers = b.trusted
 	} else {
