@@ -10,6 +10,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -212,6 +213,8 @@ func (ddf *DirectDomainTransport) RoundTrip(req *http.Request) (resp *http.Respo
 	// create a copy.
 	norm := new(http.Request)
 	*norm = *req // includes shallow copies of maps, but okay
+	norm.URL = new(url.URL)
+	*norm.URL = *req.URL
 	norm.URL.Scheme = "http"
 	return ddf.Transport.RoundTrip(norm)
 }
