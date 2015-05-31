@@ -158,7 +158,7 @@ To add a bunch of servers to the queue of a datacenter, so they'll get pulled by
 
 - Generate a cloud.yaml from this fallbacks.json, as explained above.
 
-- In the `genconfig` directory, run `./cfg2redis.py cloud.yaml <dc>`.  Add the `--dc` option if you want to upload the datacenter configuration too (e.g., if this is a new datacenter).
+- In the `genconfig` directory, run `./cfg2redis.py cloud.yaml <dc>`, where `<dc>` is the datacenter where the servers are located.  Current values are 'doams3' for the Digital Ocean Amsterdam 3 datacenter, and 'vltok1' for the Vulture Tokyo datacenter.  Add the `--dc` option if you want to upload the datacenter configuration too (e.g., if this is a new datacenter), but of course make sure the cloud.yaml contains the right configuration for that datacenter (e.g. the right fronted round robin(s)).
 
 The cfg2redis has some prerequisites.  Just try it and it will tell you how to fulfill any missing ones.
 
