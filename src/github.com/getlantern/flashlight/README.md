@@ -149,3 +149,21 @@ changes (e.g., when we launch or kill some server).  To learn how to reenerate
 the `fallbacks.json` file in that case, see [the relevant
 section](https://github.com/getlantern/lantern_aws#regenerating-flashlightgenconfigfallbackjson)
 of the README of the lantern_aws project.
+
+##### Uploading to redis
+
+To add a bunch of servers to the queue of a datacenter, so they'll get pulled by the config server as necessary,
+
+- Compile a fallbacks.json that only includes the given servers.  The quickest way to do this would be to generate the fallbacks.json with a prefix that only includes these servers.
+
+- Generate a cloud.yaml from this fallbacks.json, as explained above.
+
+- In the `genconfig` directory, run `./cfg2redis.py cloud.yaml <dc>`.  Add the `--dc` option if you want to upload the datacenter configuration too (e.g., if this is a new datacenter).
+
+The cfg2redis has some prerequisites.  Just try it and it will tell you how to fulfill any missing ones.
+
+If you *only* want to update the datacenter configuration you may say
+
+    echo "[]" > fallbacks.json
+    ./genconfig.bash
+    ./cfg2redis.py --dc cloud.yaml doams3
