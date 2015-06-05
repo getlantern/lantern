@@ -12,6 +12,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.225.108": &client.ChainedServerInfo{
 		Addr:      "178.62.225.108:443",
@@ -20,6 +21,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-128.199.44.49": &client.ChainedServerInfo{
 		Addr:      "128.199.44.49:443",
@@ -28,6 +30,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.4.28": &client.ChainedServerInfo{
 		Addr:      "188.166.4.28:443",
@@ -36,6 +39,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.206.50": &client.ChainedServerInfo{
 		Addr:      "178.62.206.50:443",
@@ -44,6 +48,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.25.167": &client.ChainedServerInfo{
 		Addr:      "188.166.25.167:443",
@@ -52,6 +57,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.247.181": &client.ChainedServerInfo{
 		Addr:      "178.62.247.181:443",
@@ -60,6 +66,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-128.199.40.92": &client.ChainedServerInfo{
 		Addr:      "128.199.40.92:443",
@@ -68,6 +75,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-128.199.38.245": &client.ChainedServerInfo{
 		Addr:      "128.199.38.245:443",
@@ -76,6 +84,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.2.144": &client.ChainedServerInfo{
 		Addr:      "188.166.2.144:443",
@@ -84,6 +93,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-128.199.38.233": &client.ChainedServerInfo{
 		Addr:      "128.199.38.233:443",
@@ -92,6 +102,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.194.153": &client.ChainedServerInfo{
 		Addr:      "178.62.194.153:443",
@@ -100,6 +111,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-128.199.56.245": &client.ChainedServerInfo{
 		Addr:      "128.199.56.245:443",
@@ -108,6 +120,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.201.12": &client.ChainedServerInfo{
 		Addr:      "178.62.201.12:443",
@@ -116,6 +129,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.243.211": &client.ChainedServerInfo{
 		Addr:      "178.62.243.211:443",
@@ -124,6 +138,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.6.11": &client.ChainedServerInfo{
 		Addr:      "188.166.6.11:443",
@@ -132,6 +147,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-128.199.48.56": &client.ChainedServerInfo{
 		Addr:      "128.199.48.56:443",
@@ -140,6 +156,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.42.231": &client.ChainedServerInfo{
 		Addr:      "188.166.42.231:443",
@@ -148,6 +165,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.223.98": &client.ChainedServerInfo{
 		Addr:      "178.62.223.98:443",
@@ -156,6 +174,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.31.196": &client.ChainedServerInfo{
 		Addr:      "188.166.31.196:443",
@@ -164,6 +183,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.22.93": &client.ChainedServerInfo{
 		Addr:      "188.166.22.93:443",
@@ -172,6 +192,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.35.97": &client.ChainedServerInfo{
 		Addr:      "188.166.35.97:443",
@@ -180,6 +201,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-128.199.54.181": &client.ChainedServerInfo{
 		Addr:      "128.199.54.181:443",
@@ -188,6 +210,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-128.199.41.202": &client.ChainedServerInfo{
 		Addr:      "128.199.41.202:443",
@@ -196,6 +219,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.11.211": &client.ChainedServerInfo{
 		Addr:      "188.166.11.211:443",
@@ -204,6 +228,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.244.225": &client.ChainedServerInfo{
 		Addr:      "178.62.244.225:443",
@@ -212,6 +237,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.51.160": &client.ChainedServerInfo{
 		Addr:      "188.166.51.160:443",
@@ -220,6 +246,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.18.201": &client.ChainedServerInfo{
 		Addr:      "188.166.18.201:443",
@@ -228,6 +255,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.209.13": &client.ChainedServerInfo{
 		Addr:      "178.62.209.13:443",
@@ -236,6 +264,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.203.96": &client.ChainedServerInfo{
 		Addr:      "178.62.203.96:443",
@@ -244,6 +273,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.209.215": &client.ChainedServerInfo{
 		Addr:      "178.62.209.215:443",
@@ -252,6 +282,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.225.6": &client.ChainedServerInfo{
 		Addr:      "178.62.225.6:443",
@@ -260,6 +291,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-128.199.61.178": &client.ChainedServerInfo{
 		Addr:      "128.199.61.178:443",
@@ -268,6 +300,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.25.185": &client.ChainedServerInfo{
 		Addr:      "188.166.25.185:443",
@@ -276,6 +309,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.211.95": &client.ChainedServerInfo{
 		Addr:      "178.62.211.95:443",
@@ -284,6 +318,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.15.68": &client.ChainedServerInfo{
 		Addr:      "188.166.15.68:443",
@@ -292,6 +327,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.226.28": &client.ChainedServerInfo{
 		Addr:      "178.62.226.28:443",
@@ -300,6 +336,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.213.97": &client.ChainedServerInfo{
 		Addr:      "178.62.213.97:443",
@@ -308,6 +345,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.231.213": &client.ChainedServerInfo{
 		Addr:      "178.62.231.213:443",
@@ -316,6 +354,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.227.165": &client.ChainedServerInfo{
 		Addr:      "178.62.227.165:443",
@@ -324,6 +363,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.56.50": &client.ChainedServerInfo{
 		Addr:      "188.166.56.50:443",
@@ -332,6 +372,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.245.144": &client.ChainedServerInfo{
 		Addr:      "178.62.245.144:443",
@@ -340,6 +381,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.205.156": &client.ChainedServerInfo{
 		Addr:      "178.62.205.156:443",
@@ -348,6 +390,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.54.156": &client.ChainedServerInfo{
 		Addr:      "188.166.54.156:443",
@@ -356,6 +399,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.17.27": &client.ChainedServerInfo{
 		Addr:      "188.166.17.27:443",
@@ -364,6 +408,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.52.34": &client.ChainedServerInfo{
 		Addr:      "188.166.52.34:443",
@@ -372,6 +417,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.237.157": &client.ChainedServerInfo{
 		Addr:      "178.62.237.157:443",
@@ -380,6 +426,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.27.244": &client.ChainedServerInfo{
 		Addr:      "188.166.27.244:443",
@@ -388,6 +435,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.196.88": &client.ChainedServerInfo{
 		Addr:      "178.62.196.88:443",
@@ -396,14 +444,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
-	},
-	"fallback-178.62.245.62": &client.ChainedServerInfo{
-		Addr:      "178.62.245.62:443",
-		Cert:      "-----BEGIN CERTIFICATE-----\nMIIDhDCCAmygAwIBAgIEG9eEOjANBgkqhkiG9w0BAQsFADBqMQswCQYDVQQGEwJVUzEVMBMGA1UE\nCBMMUGVubnN5bHZhbmlhMRAwDgYDVQQHEwdEcm9wcGVkMRwwGgYDVQQKExNaYXBwYSBNdWNrcyBT\naGF2aW5nMRQwEgYDVQQDEwtHb2RkYXVnaHRlcjAeFw0xNTAyMjYxNDQ1NDFaFw0xNzAyMjUxNDQ1\nNDFaMGoxCzAJBgNVBAYTAlVTMRUwEwYDVQQIEwxQZW5uc3lsdmFuaWExEDAOBgNVBAcTB0Ryb3Bw\nZWQxHDAaBgNVBAoTE1phcHBhIE11Y2tzIFNoYXZpbmcxFDASBgNVBAMTC0dvZGRhdWdodGVyMIIB\nIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAs9UPPDzLqdcTg+SrW5MVmU4PGLmod1Ek6+lT\n6GaiUzYouf2BZdtmfdSAEzzVTvSt1lNmgRnr19bltbwv9ew6UBTBDlrwo/+Ij7RpVCvx9qRQ3RQ9\nrFxX9ri+mjMi/J1U9+dwQ8HWE7gETK8Qyq6VS/jyFXBuCiINbKbrOzuQaA+AXHJgiI3HxRHe2HrH\n10awGsVmrBGXuBRxLuGZdGDK7RPVaobMCgeU5o4F8oHGr9c1HBqaNYIvdm+F5Yp/E0x5pepDrTsn\n8x3pGSBmlhDY5RRC7CA6q/RBFQJdhraHX9M2bYAtXH1ymhhIkxvO5jePtz3E2ZDkWY7nScJXbadZ\nSQIDAQABozIwMDAPBgNVHREECDAGhwSyPvU+MB0GA1UdDgQWBBTPNYwRiawzNTDDelMzI/suP+UL\n+TANBgkqhkiG9w0BAQsFAAOCAQEAOvQaKooMfUqUW0GuvDX70LSxPFIwLe4AM1pbDfoQ+7Orbfvj\npyYKGypWubFMrzw7QQprfpn7fl5z+bNa9UWV9hTYLBNRpkjaGqNson6o2UUdSKY7CBgCqtMP1LZb\nYJbS0cr5xt2RbXhIuZm/h6N1pGdZcoRwL/Zscg45aCItAnrdUK4BI3OFHTJs5/LTOXyuSPXClQmR\ngUrt+7SRiHAzdHAGqqBd4g7rwYJJIWFIH/fz+8CEABYDbRCliH+CyFG1RUPbOumNCMcCLViDPecP\ngFwsWXEKOmH2geF1nda2D184K0egb3rYLQEuPn/ripmvF7UIZ1KCpR21Lr6b9fCVOQ==\n-----END CERTIFICATE-----\n",
-		AuthToken: "6aaiyGn3jAenQPHfOx4SbpGlU7lS9NqHYEHA0jbMOJpgbAE5tstIs0CdMbyIrw7W",
-		Pipelined: true,
-		Weight:    1000000,
-		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.18.54": &client.ChainedServerInfo{
 		Addr:      "188.166.18.54:443",
@@ -412,6 +453,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.234.129": &client.ChainedServerInfo{
 		Addr:      "178.62.234.129:443",
@@ -420,6 +462,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.215.72": &client.ChainedServerInfo{
 		Addr:      "178.62.215.72:443",
@@ -428,6 +471,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.19.6": &client.ChainedServerInfo{
 		Addr:      "188.166.19.6:443",
@@ -436,6 +480,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.4.202": &client.ChainedServerInfo{
 		Addr:      "188.166.4.202:443",
@@ -444,6 +489,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.21.122": &client.ChainedServerInfo{
 		Addr:      "188.166.21.122:443",
@@ -452,6 +498,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.218.162": &client.ChainedServerInfo{
 		Addr:      "178.62.218.162:443",
@@ -460,6 +507,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-128.199.55.167": &client.ChainedServerInfo{
 		Addr:      "128.199.55.167:443",
@@ -468,6 +516,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.245.182": &client.ChainedServerInfo{
 		Addr:      "178.62.245.182:443",
@@ -476,6 +525,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.195.239": &client.ChainedServerInfo{
 		Addr:      "178.62.195.239:443",
@@ -484,6 +534,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.60.45": &client.ChainedServerInfo{
 		Addr:      "188.166.60.45:443",
@@ -492,6 +543,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.212.244": &client.ChainedServerInfo{
 		Addr:      "178.62.212.244:443",
@@ -500,6 +552,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.247.211": &client.ChainedServerInfo{
 		Addr:      "178.62.247.211:443",
@@ -508,6 +561,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.25.97": &client.ChainedServerInfo{
 		Addr:      "188.166.25.97:443",
@@ -516,6 +570,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.197.103": &client.ChainedServerInfo{
 		Addr:      "178.62.197.103:443",
@@ -524,6 +579,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.224.81": &client.ChainedServerInfo{
 		Addr:      "178.62.224.81:443",
@@ -532,6 +588,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.21.152": &client.ChainedServerInfo{
 		Addr:      "188.166.21.152:443",
@@ -540,6 +597,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.21.215": &client.ChainedServerInfo{
 		Addr:      "188.166.21.215:443",
@@ -548,6 +606,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.8.124": &client.ChainedServerInfo{
 		Addr:      "188.166.8.124:443",
@@ -556,6 +615,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.249.247": &client.ChainedServerInfo{
 		Addr:      "178.62.249.247:443",
@@ -564,6 +624,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.41.178": &client.ChainedServerInfo{
 		Addr:      "188.166.41.178:443",
@@ -572,6 +633,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.33.78": &client.ChainedServerInfo{
 		Addr:      "188.166.33.78:443",
@@ -580,6 +642,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.41.19": &client.ChainedServerInfo{
 		Addr:      "188.166.41.19:443",
@@ -588,6 +651,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.230.115": &client.ChainedServerInfo{
 		Addr:      "178.62.230.115:443",
@@ -596,6 +660,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.211.112": &client.ChainedServerInfo{
 		Addr:      "178.62.211.112:443",
@@ -604,6 +669,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.198.123": &client.ChainedServerInfo{
 		Addr:      "178.62.198.123:443",
@@ -612,6 +678,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-128.199.49.252": &client.ChainedServerInfo{
 		Addr:      "128.199.49.252:443",
@@ -620,6 +687,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.206.159": &client.ChainedServerInfo{
 		Addr:      "178.62.206.159:443",
@@ -628,6 +696,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.253.155": &client.ChainedServerInfo{
 		Addr:      "178.62.253.155:443",
@@ -636,6 +705,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.198.216": &client.ChainedServerInfo{
 		Addr:      "178.62.198.216:443",
@@ -644,6 +714,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.241.13": &client.ChainedServerInfo{
 		Addr:      "178.62.241.13:443",
@@ -652,6 +723,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.28.27": &client.ChainedServerInfo{
 		Addr:      "188.166.28.27:443",
@@ -660,6 +732,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-128.199.44.168": &client.ChainedServerInfo{
 		Addr:      "128.199.44.168:443",
@@ -668,6 +741,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.17.144": &client.ChainedServerInfo{
 		Addr:      "188.166.17.144:443",
@@ -676,6 +750,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.27.152": &client.ChainedServerInfo{
 		Addr:      "188.166.27.152:443",
@@ -684,6 +759,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.53.147": &client.ChainedServerInfo{
 		Addr:      "188.166.53.147:443",
@@ -692,6 +768,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.46.179": &client.ChainedServerInfo{
 		Addr:      "188.166.46.179:443",
@@ -700,6 +777,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.217.121": &client.ChainedServerInfo{
 		Addr:      "178.62.217.121:443",
@@ -708,6 +786,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.15.135": &client.ChainedServerInfo{
 		Addr:      "188.166.15.135:443",
@@ -716,6 +795,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.6.74": &client.ChainedServerInfo{
 		Addr:      "188.166.6.74:443",
@@ -724,6 +804,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.39.122": &client.ChainedServerInfo{
 		Addr:      "188.166.39.122:443",
@@ -732,6 +813,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.8.12": &client.ChainedServerInfo{
 		Addr:      "188.166.8.12:443",
@@ -740,6 +822,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.58.16": &client.ChainedServerInfo{
 		Addr:      "188.166.58.16:443",
@@ -748,6 +831,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.212.150": &client.ChainedServerInfo{
 		Addr:      "178.62.212.150:443",
@@ -756,6 +840,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.45.82": &client.ChainedServerInfo{
 		Addr:      "188.166.45.82:443",
@@ -764,6 +849,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.230.37": &client.ChainedServerInfo{
 		Addr:      "178.62.230.37:443",
@@ -772,6 +858,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.54.89": &client.ChainedServerInfo{
 		Addr:      "188.166.54.89:443",
@@ -780,6 +867,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-128.199.63.206": &client.ChainedServerInfo{
 		Addr:      "128.199.63.206:443",
@@ -788,6 +876,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-188.166.32.225": &client.ChainedServerInfo{
 		Addr:      "188.166.32.225:443",
@@ -796,6 +885,7 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 	"fallback-178.62.232.39": &client.ChainedServerInfo{
 		Addr:      "178.62.232.39:443",
@@ -804,5 +894,6 @@ var fallbacks = map[string]*client.ChainedServerInfo{
 		Pipelined: true,
 		Weight:    1000000,
 		QOS:       10,
+		Trusted:   true,
 	},
 }
