@@ -40,7 +40,7 @@ def reset():
         sys.exit(0)
     r().flushall()
 
-def feed(src, dc, globalcfg=False, dccfg=False, setdefaultdc=False):
+def feed(src, dc, globalcfg=False, dccfg=False, setdefaultdc=False, srv=False):
     p = r().pipeline(transaction=True)
     cfg = yaml.load(file(src))
     servers = cfg['client']['chainedservers']
@@ -55,9 +55,10 @@ def feed(src, dc, globalcfg=False, dccfg=False, setdefaultdc=False):
         globalcfg = yaml.dump(cfg)
         p.set("globalcfg", globalcfg)
         p.set("globalcfgsha", hashlib.sha1(globalcfg).hexdigest())
-    p.rpush(dc + ":srvq",
-            *("%s|\n    %s" % (v['addr'].split(':')[0], yaml.dump({k: v}))
-              for k,v in servers.iteritems()))
+    if srv:
+        p.rpush(dc + ":srvq",
+                *("%s|\n    %s" % (v['addr'].split(':')[0], yaml.dump({k: v}))
+                  for k,v in servers.iteritems()))
     p.execute()
 
 def usage():
@@ -66,11 +67,12 @@ def usage():
     print "    --global : Upload global config."
     print "    --dc : Upload dc config."
     print "    --defaultdc : Set dc as default."
+    print "    --srv : Upload chained server config."
     sys.exit(1)
 
 if __name__ == '__main__':
     opts = sys.argv[1:]
-    glb = dc = defaultdc = False
+    glb = dc = defaultdc = srv = False
     try:
         opts.remove("--global")
         glb = True
@@ -87,7 +89,15 @@ if __name__ == '__main__':
     except ValueError:
         pass
     try:
+        opts.remove("--srv")
+        srv = True
+    except ValueError:
+        pass
+    try:
         src, dc = opts
     except ValueError:
         usage()
-    feed(src, dc, glb, dc, defaultdc)
+    if not (glb or dc or defaultdc or srv):
+        print "You must set one of the flags!"
+        usage()
+    feed(src, dc, glb, dc, defaultdc, srv)
