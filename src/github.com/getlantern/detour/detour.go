@@ -124,6 +124,7 @@ func Dialer(d dialFunc) dialFunc {
 					return dc, nil
 				}
 				log.Debugf("Dial %s to %s, dns hijacked, try detour", dc.stateDesc(), addr)
+				dc.conn.Close()
 			} else if detector.TamperingSuspected(err) {
 				log.Debugf("Dial %s to %s failed, try detour: %s", dc.stateDesc(), addr, err)
 			} else {

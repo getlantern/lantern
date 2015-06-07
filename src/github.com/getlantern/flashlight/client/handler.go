@@ -105,6 +105,7 @@ func pipeData(clientConn net.Conn, connOut net.Conn, req *http.Request) {
 		// after completed send / receive so that won't cause problem.
 		wg.Wait()
 		clientConn.Close()
+		connOut.Close()
 	}()
 
 	// Respond OK
