@@ -381,21 +381,24 @@ func (cfg Config) fetchCloudConfig() ([]byte, error) {
 }
 
 // updateFrom creates a new Config by 'merging' the given yaml into this Config.
-// The masquerade sets and the collections of servers in the update yaml
-// completely replace the ones in the original Config.
+// The masquerade sets, the collections of servers, and the trusted CAs in the
+// update yaml  completely replace the ones in the original Config.
 func (updated *Config) updateFrom(updateBytes []byte) error {
 	// XXX: does this need a mutex, along with everyone that uses the config?
 	oldFrontedServers := updated.Client.FrontedServers
 	oldChainedServers := updated.Client.ChainedServers
 	oldMasqueradeSets := updated.Client.MasqueradeSets
+	oldTrustedCAs := updated.TrustedCAs
 	updated.Client.FrontedServers = []*client.FrontedServerInfo{}
 	updated.Client.ChainedServers = map[string]*client.ChainedServerInfo{}
 	updated.Client.MasqueradeSets = map[string][]*fronted.Masquerade{}
+	updated.TrustedCAs = []*CA{}
 	err := yaml.Unmarshal(updateBytes, updated)
 	if err != nil {
 		updated.Client.FrontedServers = oldFrontedServers
 		updated.Client.ChainedServers = oldChainedServers
 		updated.Client.MasqueradeSets = oldMasqueradeSets
+		updated.TrustedCAs = oldTrustedCAs
 		return fmt.Errorf("Unable to unmarshal YAML for update: %s", err)
 	}
 	// Deduplicate global proxiedsites
