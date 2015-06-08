@@ -12,7 +12,7 @@ import (
 
 const (
 	geoServeEndpoint = `http://geo.getiantem.org/lookup/%s`
-	geoLookupTimeout = 60 * time.Second
+	geoLookupTimeout = 600 * time.Second
 )
 
 var (
