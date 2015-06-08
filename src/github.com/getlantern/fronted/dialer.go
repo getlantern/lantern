@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"encoding/asn1"
+
 	"github.com/getlantern/connpool"
 	"github.com/getlantern/enproxy"
 	"github.com/getlantern/golog"
@@ -229,6 +230,8 @@ func (d *dialer) NewDirectDomainFronter() *http.Client {
 					log.Debugf("Dialing %s with direct domain fronter", addr)
 					return d.dialServer()
 				},
+				TLSHandshakeTimeout: 40 * time.Second,
+				DisableKeepAlives:   true,
 			},
 		},
 	}
