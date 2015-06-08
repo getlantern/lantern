@@ -10,8 +10,8 @@ import (
 )
 
 var (
-	publishInterval   = 10 * time.Second
-	retryWaitTime     = 500 * time.Millisecond
+	reportingInterval = 300 * time.Second
+	retryWaitTime     = 10 * time.Second
 	maxGeolocateTries = 10
 )
 
@@ -91,7 +91,7 @@ func (peer *Peer) run() {
 			}
 		}
 
-		time.Sleep(publishInterval)
+		time.Sleep(reportingInterval)
 	}
 }
 
