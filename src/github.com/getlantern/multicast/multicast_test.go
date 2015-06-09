@@ -12,8 +12,6 @@ import (
 )
 
 func TestMulticast(t *testing.T) {
-	t.SkipNow()
-
         mc1 := JoinMulticast()
         if mc1 == nil {
                 t.Fatal()
@@ -120,9 +118,9 @@ func TestMulticastAnnouncing(t *testing.T) {
                 log.Println("<-- Received", n, "bytes:", string(b[:n]))
 		host, _ := os.Hostname()
 		addrs, _ := net.LookupIP(host)
-		if string(addressesToMsg (addrs)) != string(b[:n]) {
+		if string(helloMessage(addrs)) != string(b[:n]) {
 			// Print bytes, not string, to see if any padding occurred
-			fmt.Printf("%x\n",string(addressesToMsg(addrs)))
+			fmt.Printf("%x\n",string(helloMessage(addrs)))
 			fmt.Printf("%x\n",string(b[:n]))
 			t.Fatal("Multicast Hello message is incorrectly formatted")
 		}

@@ -59,17 +59,26 @@ func (mc *Multicast) sendHellos () {
 	for range c {
 		host, _ := os.Hostname()
 		addrs, _ := net.LookupIP(host)
-		mc.write( addressesToMsg(addrs) )
+		mc.write( helloMessage(addrs) )
 	}
 }
 
-func addressesToMsg(addrs []net.IP) []byte {
-	msg := "IPv4: "
+func helloMessage(addrs []net.IP) []byte {
+	return []byte("Hello:" + addressesToString(addrs))
+}
+
+func byeMessage(addrs []net.IP) []byte {
+	return []byte("Bye:" + addressesToString(addrs))
+}
+
+func addressesToString(addrs []net.IP) string {
+	var msg string
 	for _, addr := range addrs {
 		if ipv4 := addr.To4(); ipv4 != nil {
+			msg += " "
 			msg += ipv4.String()
 			msg += " |"
 		}
 	}
-	return []byte(msg)
+	return msg
 }
