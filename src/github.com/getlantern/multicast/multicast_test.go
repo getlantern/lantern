@@ -70,7 +70,7 @@ func receiverNode(t *testing.T, wg *sync.WaitGroup, id int) {
 	}
 
         b := make([]byte, 1000)
-        n, e := mc.read(b)
+        n, _, e := mc.read(b)
         if e != nil {
                 t.Fatal(e)
         }
@@ -88,7 +88,7 @@ func receiverNode(t *testing.T, wg *sync.WaitGroup, id int) {
 	}
 }
 
-func TestMulticastAnnouncing(t *testing.T) {
+func TestMulticastMessages(t *testing.T) {
 	mc1 := JoinMulticast()
         if mc1 == nil {
                 t.Fatal()
@@ -106,22 +106,21 @@ func TestMulticastAnnouncing(t *testing.T) {
 
         mc2 := JoinMulticast()
         if mc2 == nil {
-                t.Fatal()
+                t.Fail()
         }
 
-        b := make([]byte, 1000)
-        n, e := mc2.read(b)
+        b := make([]byte, maxUDPMsg)
+        n, _, e := mc2.read(b)
         if e != nil {
                 t.Fatal(e)
         }
         if n > 0 {
-                log.Println("<-- Received", n, "bytes:", string(b[:n]))
 		host, _ := os.Hostname()
 		addrs, _ := net.LookupIP(host)
 		if string(helloMessage(addrs)) != string(b[:n]) {
 			// Print bytes, not string, to see if any padding occurred
-			fmt.Printf("%x\n",string(helloMessage(addrs)))
-			fmt.Printf("%x\n",string(b[:n]))
+			fmt.Printf("Expected: %x\n",string(helloMessage(addrs)))
+			fmt.Printf("Received: %x\n",string(b[:n]))
 			t.Fatal("Multicast Hello message is incorrectly formatted")
 		}
         } else {
@@ -132,4 +131,35 @@ func TestMulticastAnnouncing(t *testing.T) {
         if e != nil {
                 t.Fatal(e)
         }
+}
+
+
+func TestMulticastAnnouncing(t *testing.T) {
+	mc1 := JoinMulticast()
+        if mc1 == nil {
+                t.Fatal()
+        }
+
+	// Enable Multicast looping for testing
+	f, err := mc1.Conn.File()
+	err = syscall.SetsockoptInt(int(f.Fd()), syscall.IPPROTO_IP, syscall.IP_MULTICAST_LOOP, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mc1.Period = 1
+	go mc1.sendHellos()
+
+        mc2 := JoinMulticast()
+        if mc2 == nil {
+                t.Fatal()
+        }
+
+	mc2.StartMulticast()
+
+	time.Sleep(time.Millisecond * 1100) // Just enough to let the multicast run
+
+	if len(mc2.peers) != 1 {
+		t.Fail()
+	}
 }
