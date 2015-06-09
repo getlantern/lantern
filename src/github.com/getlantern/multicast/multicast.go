@@ -27,9 +27,12 @@ const (
 )
 
 type Multicast struct {
-        Conn        *net.UDPConn
-        Addr        *net.UDPAddr
-	Period      int // multicast period (in secs, 10 by default)
+        Conn                 *net.UDPConn
+        Addr                 *net.UDPAddr
+	Period               int // multicast period (in secs, 10 by default)
+	AddPeerCallback     func(string) // Callback called when a peer is added
+	RemovePeerCallback  func(string) // Callback called when a peer is removed
+
 
 	quit        chan bool
 	helloTicker *time.Ticker
@@ -53,7 +56,6 @@ func JoinMulticast() *Multicast {
 		Addr: udpAddr,
 		Period: defaultPeriod,
 		quit: make(chan bool, 1),
-		helloTicker: nil,
 		peers: make(map[string]time.Time),
 	}
 }
@@ -128,13 +130,19 @@ func (mc *Multicast) listenPeers() error {
 						astr := a.String()
 						if udpAddrStr == astr &&
 							!isMyIP(strings.TrimSuffix(astr, ":" + multicastPort)) {
-							// Use failedTime (the future), so failure detection can be performed directly 
+							// Use failedTime (the future), so failure detection can be performed directly
 							mc.peers[udpAddrStr] = time.Now().Add(time.Second * time.Duration(failedTime))
+							if mc.AddPeerCallback != nil {
+								mc.AddPeerCallback(udpAddrStr)
+							}
 						}
 					}
 				} else if isBye(msg) {
 					// Remove peer
 					delete(mc.peers, udpAddrStr)
+					if mc.RemovePeerCallback != nil {
+						mc.RemovePeerCallback(udpAddrStr)
+					}
 				} else {
 					log.Fatal("Unrecognized message sent to Lantern multicast SSM address")
 				}
