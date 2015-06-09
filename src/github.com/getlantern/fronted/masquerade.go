@@ -1,7 +1,7 @@
 package fronted
 
 import (
-	"crypto/x509"
+	//"crypto/x509"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -145,10 +145,11 @@ func (vms *verifiedMasqueradeSet) doVerify(masquerade *Masquerade) bool {
 		resp, err := httpClient.Do(req)
 		if err != nil {
 			errmsg := fmt.Sprintf("HTTP error for masquerade %v: %v", masquerade.Domain, err)
-			if _, ok := err.(x509.UnknownAuthorityError); ok {
-				// This is a temporary fix, see https://github.com/getlantern/lantern/issues/2398
-				errmsg = fmt.Sprintf("%s, tlsInfo: %s", errmsg, vms.dialer.tlsInfo(masquerade))
-			}
+			// I'm commenting this out because we haven't captured any extended log.
+			// See https://github.com/getlantern/lantern/issues/2398
+			//if _, ok := err.(x509.UnknownAuthorityError); ok {
+			errmsg = fmt.Sprintf("%s, tlsInfo: %s", errmsg, vms.dialer.tlsInfo(masquerade))
+			//}
 
 			errCh <- fmt.Errorf(errmsg)
 			return
