@@ -1,6 +1,8 @@
 // Use SSM multicast to discover other processes on the same local network
 // See RFC-3569 for SSM description
 // See RFC-5771 for IANA IPv4 Multicast address assignments
+// This implementation supports multicast failure detection, also disseminated
+// via simple multicast.
 
 package multicast
 
@@ -20,7 +22,7 @@ const (
 	multicastAddress = multicastIP + ":" + multicastPort
 	maxUDPMsg = 1 << 12
 	defaultPeriod = 10
-	failedTime = 60 // Seconds until a peer is considered failed
+	defaultFailedTime = 60 // Seconds until a peer is considered failed
 
 	helloMsgPrefix = "Lantern Hello"
 	byeMsgPrefix = "Lantern Bye"
@@ -30,6 +32,7 @@ type Multicast struct {
         Conn                 *net.UDPConn
         Addr                 *net.UDPAddr
 	Period               int // multicast period (in secs, 10 by default)
+	FailedTime           int // timeout for peers' hello messages, 0 means no timeout
 	AddPeerCallback      func(string) // Callback called when a peer is added
 	RemovePeerCallback   func(string) // Callback called when a peer is removed
 
@@ -54,6 +57,7 @@ func JoinMulticast() *Multicast {
 		Conn: c,
 		Addr: udpAddr,
 		Period: defaultPeriod,
+		FailedTime: defaultFailedTime,
 		quit: make(chan bool, 1),
 		peers: make(map[string]time.Time),
 	}
@@ -128,16 +132,18 @@ func (mc *Multicast) listenPeers() error {
 					for _, a := range extractMessageAddresses(msg) {
 						astr := a.String()
 						if udpAddrStr == astr && !isMyIP(strings.TrimSuffix(astr, ":" + multicastPort)) {
-							if !mc.peers[udpAddrStr] && mc.AddPeerCallback != nil {
+							_, ok := mc.peers[udpAddrStr]
+							if !ok && mc.AddPeerCallback != nil {
 								mc.AddPeerCallback(udpAddrStr)
 							}
 							// A time in the future when that, if no hello message from the peer is
 							// received, it will be considered failed. Update every time.
-							mc.peers[udpAddrStr] = time.Now().Add(time.Second * time.Duration(failedTime))
+							mc.peers[udpAddrStr] = time.Now().Add(time.Second * time.Duration(mc.FailedTime))
 						}
 					}
 				} else if isBye(msg) {
-					if  mc.peers[udpAddrStr] {
+					_, ok := mc.peers[udpAddrStr]
+					if !ok {
 						// Remove peer
 						if mc.RemovePeerCallback != nil {
 							mc.RemovePeerCallback(udpAddrStr)
@@ -149,11 +155,11 @@ func (mc *Multicast) listenPeers() error {
 				}
 			}
 
-			// We are checking here also that no peer is to old.
-			// If we don't hear from peers soon enough, we consider
-			// them failed.
+			// We are checking here also that no peer is too old. If we don't
+			// hear from peers soon enough, we consider them failed.
 			for p, pt := range mc.peers {
-				if time.Now().After(pt) {
+				// FailedTime zero means no timeout
+				if time.Now().After(pt) && mc.FailedTime != 0 {
 					delete(mc.peers, p)
 				}
 			}
