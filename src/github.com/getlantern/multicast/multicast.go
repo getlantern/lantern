@@ -19,6 +19,7 @@ const (
 	multicastPort = "9864"
 	multicastAddress = multicastIP + ":" + multicastPort
 	maxUDPMsg = 1 << 12
+	defaultPeriod = 10
 
 	helloMsgPrefix = "Lantern Hello"
 	byeMsgPrefix = "Lantern Bye"
@@ -29,11 +30,12 @@ type Multicast struct {
         Addr        *net.UDPAddr
 	Period      int // multicast period (in secs, 10 by default)
 
-	active      bool
+	quit        chan bool
 	helloTicker *time.Ticker
-	peers       map [string]bool
+	peers       map [string]time.Time
 }
 
+// Join the Lantern multicast group
 func JoinMulticast() *Multicast {
         udpAddr, e := net.ResolveUDPAddr("udp4", multicastAddress)
         if e != nil {
@@ -48,23 +50,25 @@ func JoinMulticast() *Multicast {
         return &Multicast{
 		Conn: c,
 		Addr: udpAddr,
-		Period: 10,
-		active: false,
+		Period: defaultPeriod,
+		quit: make(chan bool, 1),
 		helloTicker: nil,
-		peers: make(map[string]bool),
+		peers: make(map[string]time.Time),
 	}
 }
 
+// Initiate multicasting
 func (mc *Multicast) StartMulticast() {
 	// Periodically announce ourselves to the network
 	go mc.sendHellos()
 
 	// Listen multicasts by others
 	go mc.listenPeers()
-
-	mc.active = true
 }
 
+// Stop multicasting and leave the group. This should be called by the users of
+// this library when the program exits or the discovery service is disabled by
+// the end user
 func (mc *Multicast) LeaveMulticast() error {
 	// Stop sending hello
 	if mc.helloTicker != nil {
@@ -76,7 +80,7 @@ func (mc *Multicast) LeaveMulticast() error {
 	mc.write( byeMessage(addrs) )
 
 	// Leave the listening goroutine as soon as it timeouts
-	mc.active = false
+	mc.quit <- true
 
 	return nil
 }
@@ -99,38 +103,44 @@ func (mc *Multicast) sendHellos () {
 }
 
 func (mc *Multicast) listenPeers() error {
-	b := make([]byte, maxUDPMsg)
-	// Set a deadline to avoid blocking a read for ever
-	for mc.active {
-		mc.Conn.SetReadDeadline(time.Now().Add(time.Duration(mc.Period) * time.Second))
-		n, udpAddr, e := mc.read(b)
-		udpAddrStr := udpAddr.String()
-		if e != nil {
-			log.Println(e)
-			mc.active = false
-		}
+	defer log.Println("LEAVE CLEANLY")
 
-		msg := b[:n]
-		if n > 0 {
-			if isHello(msg) {
-				// Add peer only if its reported IP is the same as the
-				// origin IP of the UDP package
-				for _, a := range extractMessageAddresses(msg) {
-					astr := a.String()
-					if udpAddrStr == astr &&
-						!isMyIP(strings.TrimSuffix(astr, ":" + multicastPort)) {
-						mc.peers[udpAddrStr] = true
+	b := make([]byte, maxUDPMsg)
+	// Set a deadline to avoid blocking on a read forever
+	for {
+		select {
+		case <- mc.quit:
+			return mc.Conn.Close()
+		default:
+			mc.Conn.SetReadDeadline(time.Now().Add(time.Duration(mc.Period) * time.Second))
+			n, udpAddr, e := mc.read(b)
+			udpAddrStr := udpAddr.String()
+			if e != nil {
+				log.Println(e)
+				break
+			}
+
+			msg := b[:n]
+			if n > 0 {
+				if isHello(msg) {
+					// Add peer only if its reported IP is the same as the
+					// origin IP of the UDP package
+					for _, a := range extractMessageAddresses(msg) {
+						astr := a.String()
+						if udpAddrStr == astr &&
+							!isMyIP(strings.TrimSuffix(astr, ":" + multicastPort)) {
+							mc.peers[udpAddrStr] = time.Now()
+						}
 					}
+				} else if isBye(msg) {
+					// Remove peer
+					delete(mc.peers, udpAddrStr)
+				} else {
+					log.Fatal("Unrecognized message sent to Lantern multicast SSM address")
 				}
-			} else if isBye(msg) {
-				// Remove peer
-				delete(mc.peers, udpAddrStr)
-			} else {
-				log.Fatal("Unrecognized message sent to Lantern multicast SSM address")
 			}
 		}
 	}
-	return mc.Conn.Close()
 }
 
 func helloMessage(addrs []net.IP) []byte {
