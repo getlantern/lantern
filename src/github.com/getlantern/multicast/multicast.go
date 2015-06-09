@@ -30,13 +30,12 @@ type Multicast struct {
         Conn                 *net.UDPConn
         Addr                 *net.UDPAddr
 	Period               int // multicast period (in secs, 10 by default)
-	AddPeerCallback     func(string) // Callback called when a peer is added
-	RemovePeerCallback  func(string) // Callback called when a peer is removed
+	AddPeerCallback      func(string) // Callback called when a peer is added
+	RemovePeerCallback   func(string) // Callback called when a peer is removed
 
-
-	quit        chan bool
-	helloTicker *time.Ticker
-	peers       map [string]time.Time
+	quit                 chan bool
+	helloTicker          *time.Ticker
+	peers                map [string]time.Time
 }
 
 // Join the Lantern multicast group
@@ -124,24 +123,26 @@ func (mc *Multicast) listenPeers() error {
 			msg := b[:n]
 			if n > 0 {
 				if isHello(msg) {
-					// Add peer only if its reported IP is the same as the
+					// Add/Update peer only if its reported IP is the same as the
 					// origin IP of the UDP package
 					for _, a := range extractMessageAddresses(msg) {
 						astr := a.String()
-						if udpAddrStr == astr &&
-							!isMyIP(strings.TrimSuffix(astr, ":" + multicastPort)) {
-							// Use failedTime (the future), so failure detection can be performed directly
-							mc.peers[udpAddrStr] = time.Now().Add(time.Second * time.Duration(failedTime))
-							if mc.AddPeerCallback != nil {
+						if udpAddrStr == astr && !isMyIP(strings.TrimSuffix(astr, ":" + multicastPort)) {
+							if !mc.peers[udpAddrStr] && mc.AddPeerCallback != nil {
 								mc.AddPeerCallback(udpAddrStr)
 							}
+							// A time in the future when that, if no hello message from the peer is
+							// received, it will be considered failed. Update every time.
+							mc.peers[udpAddrStr] = time.Now().Add(time.Second * time.Duration(failedTime))
 						}
 					}
 				} else if isBye(msg) {
-					// Remove peer
-					delete(mc.peers, udpAddrStr)
-					if mc.RemovePeerCallback != nil {
-						mc.RemovePeerCallback(udpAddrStr)
+					if  mc.peers[udpAddrStr] {
+						// Remove peer
+						if mc.RemovePeerCallback != nil {
+							mc.RemovePeerCallback(udpAddrStr)
+						}
+						delete(mc.peers, udpAddrStr)
 					}
 				} else {
 					log.Fatal("Unrecognized message sent to Lantern multicast SSM address")
