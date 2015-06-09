@@ -105,23 +105,6 @@ func TestMulticastAnnouncing(t *testing.T) {
 
 	mc1.Period = 1
 	mc1.StartMulticast()
-	/*
-	go func(mc *Multicast) {
-		// Give some time to the other goroutines to build up
-		time.Sleep(time.Millisecond * 200)
-
-                n, e := mc.write(([]byte)(msg))
-                if e != nil {
-                        t.Fatal(e)
-                }
-		log.Printf("--> Sent %d bytes: %s\n", n, msg)
-                e = mc.LeaveMulticast()
-
-                if e != nil {
-                        t.Fatal(e)
-                }
-        }(mc1)
-*/
 
         mc2 := JoinMulticast()
         if mc2 == nil {
@@ -138,7 +121,7 @@ func TestMulticastAnnouncing(t *testing.T) {
 		host, _ := os.Hostname()
 		addrs, _ := net.LookupIP(host)
 		if string(addressesToMsg (addrs)) != string(b[:n]) {
-			// Print bytes, not string, to see if any padding occurred 
+			// Print bytes, not string, to see if any padding occurred
 			fmt.Printf("%x\n",string(addressesToMsg(addrs)))
 			fmt.Printf("%x\n",string(b[:n]))
 			t.Fatal("Multicast Hello message is incorrectly formatted")
