@@ -116,7 +116,9 @@ func (mc *Multicast) listenPeers() error {
 				// Add peer only if its reported IP is the same as the
 				// origin IP of the UDP package
 				for _, a := range extractMessageAddresses(msg) {
-					if udpAddrStr == a.String() {
+					astr := a.String()
+					if udpAddrStr == astr &&
+						!isMyIP(strings.TrimSuffix(astr, ":" + multicastPort)) {
 						mc.peers[udpAddrStr] = true
 					}
 				}
@@ -171,4 +173,15 @@ func extractMessageAddresses(msg []byte) []*net.UDPAddr {
 		addrs[i] = addr
 	}
 	return addrs
+}
+
+func isMyIP(addr string) bool {
+	host, _ := os.Hostname()
+	addrs, _ := net.LookupIP(host)
+	for _, a := range addrs {
+		if addr == a.String() {
+			return true
+		}
+	}
+	return false
 }

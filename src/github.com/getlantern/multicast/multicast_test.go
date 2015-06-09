@@ -11,11 +11,13 @@ import (
 	"time"
 )
 
+const verbose = false
+
 func TestMulticast(t *testing.T) {
         mc1 := JoinMulticast()
         if mc1 == nil {
                 t.Fatal()
-        } else {
+        } else if verbose {
 		log.Println("Joined and listening to multicast IP", mc1.Addr.IP, "on port", mc1.Addr.Port)
 	}
 
@@ -41,12 +43,16 @@ func TestMulticast(t *testing.T) {
                 if e != nil {
                         t.Fatal(e)
                 }
-		log.Printf("--> Sent %d bytes: %s\n", n, msg)
+
+		if verbose {
+			log.Printf("--> Sent %d bytes: %s\n", n, msg)
+		}
+
                 e = mc.LeaveMulticast()
 
                 if e != nil {
                         t.Fatal(e)
-                } else {
+                } else if verbose {
 			log.Println("Leaving multicast IP", mc.Addr.IP, "on port", mc.Addr.Port)
 		}
         }(mc1)
@@ -65,7 +71,7 @@ func receiverNode(t *testing.T, wg *sync.WaitGroup, id int) {
         mc := JoinMulticast()
         if mc == nil {
                 t.Fatal()
-        } else {
+        } else if verbose {
 		log.Println("Joined and listening to multicast IP", mc.Addr.IP, "on port", mc.Addr.Port)
 	}
 
@@ -74,16 +80,18 @@ func receiverNode(t *testing.T, wg *sync.WaitGroup, id int) {
         if e != nil {
                 t.Fatal(e)
         }
-        if n > 0 {
-                log.Println("Node", id , "<-- Received", n, "bytes:", string(b))
-        } else {
-                log.Println("Received 0 bytes")
+
+        if n <= 0 {
+		t.Fatal("No data received in multicast messages")
         }
+	if verbose {
+		log.Println("Node", id , "<-- Received", n, "bytes:", string(b))
+	}
 
         e = mc.LeaveMulticast()
         if e != nil {
                 t.Fatal(e)
-        } else {
+        } else if verbose {
 		log.Println("Node", id, "leaving multicast IP", mc.Addr.IP, "on port", mc.Addr.Port)
 	}
 }
@@ -159,7 +167,8 @@ func TestMulticastAnnouncing(t *testing.T) {
 
 	time.Sleep(time.Millisecond * 1100) // Just enough to let the multicast run
 
-	if len(mc2.peers) != 1 {
+	// Should be zero because we don't add ourselves to the peers map
+	if len(mc2.peers) != 0 {
 		t.Fail()
 	}
 }
