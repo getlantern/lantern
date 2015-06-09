@@ -20,6 +20,7 @@ const (
 	multicastAddress = multicastIP + ":" + multicastPort
 	maxUDPMsg = 1 << 12
 	defaultPeriod = 10
+	failedTime = 60 // Seconds until a peer is considered failed
 
 	helloMsgPrefix = "Lantern Hello"
 	byeMsgPrefix = "Lantern Bye"
@@ -103,8 +104,6 @@ func (mc *Multicast) sendHellos () {
 }
 
 func (mc *Multicast) listenPeers() error {
-	defer log.Println("LEAVE CLEANLY")
-
 	b := make([]byte, maxUDPMsg)
 	// Set a deadline to avoid blocking on a read forever
 	for {
@@ -129,7 +128,8 @@ func (mc *Multicast) listenPeers() error {
 						astr := a.String()
 						if udpAddrStr == astr &&
 							!isMyIP(strings.TrimSuffix(astr, ":" + multicastPort)) {
-							mc.peers[udpAddrStr] = time.Now()
+							// Use failedTime (the future), so failure detection can be performed directly 
+							mc.peers[udpAddrStr] = time.Now().Add(time.Second * time.Duration(failedTime))
 						}
 					}
 				} else if isBye(msg) {
@@ -137,6 +137,15 @@ func (mc *Multicast) listenPeers() error {
 					delete(mc.peers, udpAddrStr)
 				} else {
 					log.Fatal("Unrecognized message sent to Lantern multicast SSM address")
+				}
+			}
+
+			// We are checking here also that no peer is to old.
+			// If we don't hear from peers soon enough, we consider
+			// them failed.
+			for p, pt := range mc.peers {
+				if time.Now().After(pt) {
+					delete(mc.peers, p)
 				}
 			}
 		}
