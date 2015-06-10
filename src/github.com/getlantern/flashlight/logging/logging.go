@@ -7,11 +7,9 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/getlantern/appdir"
-	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/go-loggly"
@@ -28,8 +26,7 @@ const (
 var (
 	log = golog.LoggerFor("flashlight.logging")
 
-	logFile  *rotator.SizeRotator
-	cfgMutex sync.Mutex
+	logFile *rotator.SizeRotator
 
 	// logglyToken is populated at build time by crosscompile.bash. During
 	// development time, logglyToken will be empty and we won't log to Loggly.
@@ -67,7 +64,8 @@ func Init() error {
 	return nil
 }
 
-func Configure(cfg *config.Config, version string, buildDate string) {
+func Configure(addr string, cloudConfigCA string, instanceId string,
+	version string, buildDate string) {
 	if logglyToken == "" {
 		log.Debugf("No logglyToken, not sending error logs to Loggly")
 		return
@@ -83,9 +81,7 @@ func Configure(cfg *config.Config, version string, buildDate string) {
 		return
 	}
 
-	cfgMutex.Lock()
-	if cfg.Addr == lastAddr {
-		cfgMutex.Unlock()
+	if addr == lastAddr {
 		log.Debug("Logging configuration unchanged")
 		return
 	}
@@ -93,9 +89,8 @@ func Configure(cfg *config.Config, version string, buildDate string) {
 	// Using a goroutine because we'll be using waitforserver and at this time
 	// the proxy is not yet ready.
 	go func() {
-		lastAddr = cfg.Addr
-		enableLoggly(cfg, version, buildDate)
-		cfgMutex.Unlock()
+		lastAddr = addr
+		enableLoggly(addr, cloudConfigCA, instanceId, version, buildDate)
 	}()
 }
 
@@ -111,21 +106,22 @@ func timestamped(orig io.Writer) io.Writer {
 	})
 }
 
-func enableLoggly(cfg *config.Config, version string, buildDate string) {
-	if cfg.Addr == "" {
+func enableLoggly(addr string, cloudConfigCA string, instanceId string,
+	version string, buildDate string) {
+	if addr == "" {
 		log.Error("No known proxy, won't report to Loggly")
 		removeLoggly()
 		return
 	}
 
-	client, err := util.PersistentHTTPClient(cfg.CloudConfigCA, cfg.Addr)
+	client, err := util.PersistentHTTPClient(cloudConfigCA, addr)
 	if err != nil {
 		log.Errorf("Could not create proxied HTTP client, not logging to Loggly: %v", err)
 		removeLoggly()
 		return
 	}
 
-	log.Debugf("Sending error logs to Loggly via proxy at %v", cfg.Addr)
+	log.Debugf("Sending error logs to Loggly via proxy at %v", addr)
 
 	lang, _ := jibber_jabber.DetectLanguage()
 	logglyWriter := &logglyErrorWriter{
@@ -135,7 +131,7 @@ func enableLoggly(cfg *config.Config, version string, buildDate string) {
 		client:          loggly.New(logglyToken),
 	}
 	logglyWriter.client.Defaults["hostname"] = "hidden"
-	logglyWriter.client.Defaults["instanceid"] = cfg.InstanceId
+	logglyWriter.client.Defaults["instanceid"] = instanceId
 	logglyWriter.client.SetHTTPClient(client)
 	addLoggly(logglyWriter)
 }
