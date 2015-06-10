@@ -120,7 +120,7 @@ func (mc *Multicast) listenPeers() error {
 			n, udpAddr, e := mc.read(b)
 			udpAddrStr := udpAddr.String()
 			if e != nil {
-				log.Println(e)
+				// Just start over if any error happened when reading
 				break
 			}
 
