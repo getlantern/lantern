@@ -3,8 +3,6 @@ package multicast
 import (
 	"fmt"
 	"log"
-	"net"
-	"os"
 	"syscall"
 	"sync"
 	"testing"
@@ -123,11 +121,10 @@ func TestMulticastMessages(t *testing.T) {
                 t.Fatal(e)
         }
         if n > 0 {
-		host, _ := os.Hostname()
-		addrs, _ := net.LookupIP(host)
-		if string(helloMessage(addrs)) != string(b[:n]) {
+		msg, _ := MakeHelloMessage().Serialize()
+		if string(msg) != string(b[:n]) {
 			// Print bytes, not string, to see if any padding occurred
-			fmt.Printf("Expected: %x\n",string(helloMessage(addrs)))
+			fmt.Printf("Expected: %x\n",string(msg))
 			fmt.Printf("Received: %x\n",string(b[:n]))
 			t.Fatal("Multicast Hello message is incorrectly formatted")
 		}

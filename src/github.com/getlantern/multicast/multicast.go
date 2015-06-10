@@ -10,7 +10,6 @@ import (
 	"log"
 	"net"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -20,12 +19,9 @@ const (
 	multicastIP = "232.77.77.77"
 	multicastPort = "9864"
 	multicastAddress = multicastIP + ":" + multicastPort
-	maxUDPMsg = 1 << 12
+	maxUDPMsg = 1 << 10
 	defaultPeriod = 10
 	defaultFailedTime = 60 // Seconds until a peer is considered failed
-
-	helloMsgPrefix = "Lantern Hello"
-	byeMsgPrefix = "Lantern Bye"
 )
 
 type Multicast struct {
@@ -80,10 +76,11 @@ func (mc *Multicast) LeaveMulticast() error {
 	if mc.helloTicker != nil {
 		mc.helloTicker.Stop()
 	}
-	// Send bye
-	host, _ := os.Hostname()
-	addrs, _ := net.LookupIP(host)
-	mc.write( byeMessage(addrs) )
+	msg, e := MakeByeMessage().Serialize()
+	if e != nil {
+		log.Fatal(e)
+	}
+	mc.write(msg)
 
 	// Leave the listening goroutine as soon as it timeouts
 	mc.quit <- true
@@ -101,10 +98,13 @@ func (mc *Multicast) read(b []byte) (int, *net.UDPAddr, error) {
 
 func (mc *Multicast) sendHellos () {
 	mc.helloTicker = time.NewTicker(time.Duration(mc.Period) * time.Second)
+	msg, e := MakeHelloMessage().Serialize()
+	if e != nil {
+		log.Fatal(e)
+		return
+	}
 	for range mc.helloTicker.C {
-		host, _ := os.Hostname()
-		addrs, _ := net.LookupIP(host)
-		mc.write( helloMessage(addrs) )
+		mc.write(msg)
 	}
 }
 
@@ -123,15 +123,27 @@ func (mc *Multicast) listenPeers() error {
 				// Just start over if any error happened when reading
 				break
 			}
-
 			msg := b[:n]
+			mcMsg, e := Deserialize(msg)
+			if e != nil {
+				break
+			}
 			if n > 0 {
-				if isHello(msg) {
+				switch mcMsg.mType {
+				case TypeHello:
+					// Test whether I'm the origin of this multicast. If so, break
+					host, _ := os.Hostname()
+					addrs, _ := net.LookupIP(host)
+					for _, a := range addrs {
+						if mcMsg.hasOriginIP(a.String()) {
+							break
+						}
+					}
 					// Add/Update peer only if its reported IP is the same as the
 					// origin IP of the UDP package
-					for _, a := range extractMessageAddresses(msg) {
+					for _, a := range mcMsg.ips {
 						astr := a.String()
-						if udpAddrStr == astr && !isMyIP(strings.TrimSuffix(astr, ":" + multicastPort)) {
+						if udpAddrStr == astr {
 							_, ok := mc.peers[udpAddrStr]
 							if !ok && mc.AddPeerCallback != nil {
 								mc.AddPeerCallback(udpAddrStr)
@@ -141,7 +153,7 @@ func (mc *Multicast) listenPeers() error {
 							mc.peers[udpAddrStr] = time.Now().Add(time.Second * time.Duration(mc.FailedTime))
 						}
 					}
-				} else if isBye(msg) {
+				case TypeBye:
 					_, ok := mc.peers[udpAddrStr]
 					if !ok {
 						// Remove peer
@@ -150,11 +162,10 @@ func (mc *Multicast) listenPeers() error {
 						}
 						delete(mc.peers, udpAddrStr)
 					}
-				} else {
+				default:
 					log.Fatal("Unrecognized message sent to Lantern multicast SSM address")
 				}
 			}
-
 			// We are checking here also that no peer is too old. If we don't
 			// hear from peers soon enough, we consider them failed.
 			for p, pt := range mc.peers {
@@ -165,57 +176,4 @@ func (mc *Multicast) listenPeers() error {
 			}
 		}
 	}
-}
-
-func helloMessage(addrs []net.IP) []byte {
-	return []byte(helloMsgPrefix + IPsToString(addrs))
-}
-
-func byeMessage(addrs []net.IP) []byte {
-	return []byte(byeMsgPrefix + IPsToString(addrs))
-}
-
-func IPsToString(addrs []net.IP) string {
-	var msg string
-	for _, addr := range addrs {
-		if ipv4 := addr.To4(); ipv4 != nil {
-			msg += "|" + ipv4.String() + ":" + multicastPort
-		}
-	}
-	return msg
-}
-
-func isHello(msg []byte) bool {
-	return strings.HasPrefix(string(msg), helloMsgPrefix)
-}
-
-func isBye(msg []byte) bool {
-	return strings.HasPrefix(string(msg), byeMsgPrefix)
-}
-
-func extractMessageAddresses(msg []byte) []*net.UDPAddr {
-	strMsg := string(msg)
-	strMsg = strings.TrimPrefix(strMsg, helloMsgPrefix)
-	strs := strings.Split(strMsg[1:], "|")
-	addrs := make([]*net.UDPAddr, len(strs))
-
-	for i, str := range strs {
-		addr, e := net.ResolveUDPAddr("udp4",str)
-		if e != nil {
-			continue
-		}
-		addrs[i] = addr
-	}
-	return addrs
-}
-
-func isMyIP(addr string) bool {
-	host, _ := os.Hostname()
-	addrs, _ := net.LookupIP(host)
-	for _, a := range addrs {
-		if addr == a.String() {
-			return true
-		}
-	}
-	return false
 }
