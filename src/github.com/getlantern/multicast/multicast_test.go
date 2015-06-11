@@ -115,7 +115,7 @@ func TestMulticastMessages(t *testing.T) {
                 t.Fail()
         }
 
-        b := make([]byte, maxUDPMsg)
+        b := make([]byte, messageMaxSize)
         n, _, e := mc2.read(b)
         if e != nil {
                 t.Fatal(e)

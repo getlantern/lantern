@@ -19,7 +19,6 @@ const (
 	multicastIP = "232.77.77.77"
 	multicastPort = "9864"
 	multicastAddress = multicastIP + ":" + multicastPort
-	maxUDPMsg = 1 << 10
 	defaultPeriod = 10
 	defaultFailedTime = 60 // Seconds until a peer is considered failed
 )
@@ -96,7 +95,7 @@ func (mc *Multicast) read(b []byte) (int, *net.UDPAddr, error) {
         return mc.Conn.ReadFromUDP(b)
 }
 
-func (mc *Multicast) sendHellos () {
+func (mc *Multicast) sendHellos() {
 	mc.helloTicker = time.NewTicker(time.Duration(mc.Period) * time.Second)
 	msg, e := MakeHelloMessage().Serialize()
 	if e != nil {
@@ -109,7 +108,7 @@ func (mc *Multicast) sendHellos () {
 }
 
 func (mc *Multicast) listenPeers() error {
-	b := make([]byte, maxUDPMsg)
+	b := make([]byte, messageMaxSize)
 	// Set a deadline to avoid blocking on a read forever
 	for {
 		select {
@@ -128,43 +127,39 @@ func (mc *Multicast) listenPeers() error {
 			if e != nil {
 				break
 			}
-			if n > 0 {
-				switch mcMsg.mType {
-				case TypeHello:
-					// Test whether I'm the origin of this multicast. If so, break
-					host, _ := os.Hostname()
-					addrs, _ := net.LookupIP(host)
-					for _, a := range addrs {
-						if mcMsg.hasOriginIP(a.String()) {
-							break
-						}
+			switch mcMsg.mType {
+			case TypeHello:
+				// Test whether I'm the origin of this multicast.
+				host, _ := os.Hostname()
+				ips, _ := net.LookupIP(host)
+				otherPeer := true
+				for _, ip := range ips {
+					if udpAddr.IP.String() == ip.String() {
+						otherPeer = false
+						break
 					}
-					// Add/Update peer only if its reported IP is the same as the
-					// origin IP of the UDP package
-					for _, a := range mcMsg.ips {
-						astr := a.String()
-						if udpAddrStr == astr {
-							_, ok := mc.peers[udpAddrStr]
-							if !ok && mc.AddPeerCallback != nil {
-								mc.AddPeerCallback(udpAddrStr)
-							}
-							// A time in the future when that, if no hello message from the peer is
-							// received, it will be considered failed. Update every time.
-							mc.peers[udpAddrStr] = time.Now().Add(time.Second * time.Duration(mc.FailedTime))
-						}
-					}
-				case TypeBye:
-					_, ok := mc.peers[udpAddrStr]
-					if !ok {
-						// Remove peer
-						if mc.RemovePeerCallback != nil {
-							mc.RemovePeerCallback(udpAddrStr)
-						}
-						delete(mc.peers, udpAddrStr)
-					}
-				default:
-					log.Fatal("Unrecognized message sent to Lantern multicast SSM address")
 				}
+				if otherPeer {
+					// Add/Update peer
+					_, ok := mc.peers[udpAddrStr]
+					if !ok && mc.AddPeerCallback != nil {
+						mc.AddPeerCallback(udpAddrStr)
+					}
+					// A time in the future when that, if no hello message from the peer is
+					// received, it will be considered failed. Update every time.
+					mc.peers[udpAddrStr] = time.Now().Add(time.Second * time.Duration(mc.FailedTime))
+				}
+			case TypeBye:
+				_, ok := mc.peers[udpAddrStr]
+				if ok {
+					// Remove peer
+					if mc.RemovePeerCallback != nil {
+						mc.RemovePeerCallback(udpAddrStr)
+					}
+					delete(mc.peers, udpAddrStr)
+				}
+			default:
+				log.Fatal("Unrecognized message sent to Lantern multicast SSM address")
 			}
 			// We are checking here also that no peer is too old. If we don't
 			// hear from peers soon enough, we consider them failed.
