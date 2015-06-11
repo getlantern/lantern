@@ -9,7 +9,6 @@ package multicast
 import (
 	"log"
 	"net"
-	"os"
 	"time"
 )
 
@@ -24,8 +23,8 @@ const (
 )
 
 type Multicast struct {
-        Conn                 *net.UDPConn
-        Addr                 *net.UDPAddr
+	Conn                 *net.UDPConn
+	Addr                 *net.UDPAddr
 	Period               int // multicast period (in secs, 10 by default)
 	FailedTime           int // timeout for peers' hello messages, 0 means no timeout
 	AddPeerCallback      func(string) // Callback called when a peer is added
@@ -129,12 +128,10 @@ func (mc *Multicast) listenPeers() error {
 			}
 			switch mcMsg.mType {
 			case TypeHello:
-				// Test whether I'm the origin of this multicast.
-				host, _ := os.Hostname()
-				ips, _ := net.LookupIP(host)
+				// Test whether I'm the origin of this multicast
 				otherPeer := true
-				for _, ip := range ips {
-					if udpAddr.IP.String() == ip.String() {
+				for _, ip := range getMyIPs() {
+					if ip.Equal(udpAddr.IP) {
 						otherPeer = false
 						break
 					}
@@ -171,4 +168,18 @@ func (mc *Multicast) listenPeers() error {
 			}
 		}
 	}
+}
+
+func getMyIPs() (ips []net.IP) {
+	addrs, e := net.InterfaceAddrs()
+	if e != nil {
+		log.Fatal (e)
+		return
+	}
+	for _, a := range addrs {
+		if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			ips = append(ips, ipnet.IP)
+		}
+	}
+	return
 }
