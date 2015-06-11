@@ -48,13 +48,10 @@ func main() {
 	}
 
 	numcores := runtime.NumCPU()
-
+	runtime.GOMAXPROCS(numcores)
 	log.Debugf("Using all %d cores on machine", numcores)
 
-	runtime.GOMAXPROCS(numcores)
-
 	fallbacks := loadFallbacks(*fallbacksFile)
-
 	for err := range *testAllFallbacks(fallbacks) {
 		if err != nil {
 			log.Error(err)
@@ -65,7 +62,7 @@ func main() {
 // Load the fallback servers list file. Failure to do so will result in
 // exiting the program.
 func loadFallbacks(filename string) (fallbacks []FallbackServer) {
-	if *fallbacksFile == "" {
+	if filename == "" {
 		log.Error("Please specify a fallbacks file")
 		flag.Usage()
 		os.Exit(2)
@@ -73,12 +70,12 @@ func loadFallbacks(filename string) (fallbacks []FallbackServer) {
 
 	fileBytes, err := ioutil.ReadFile(filename)
 	if err != nil {
-		log.Fatalf("Unable to read fallbacks file at %s: %s", *fallbacksFile, err)
+		log.Fatalf("Unable to read fallbacks file at %s: %s", filename, err)
 	}
 
 	err = json.Unmarshal(fileBytes, &fallbacks)
 	if err != nil {
-		log.Fatalf("Unable to unmarshal json from %v: %v", *fallbacksFile, err)
+		log.Fatalf("Unable to unmarshal json from %v: %v", filename, err)
 	}
 
 	// Replace newlines in cert with newline literals
