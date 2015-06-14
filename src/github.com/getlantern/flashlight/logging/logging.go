@@ -137,7 +137,11 @@ func enableLoggly(addr string, cloudConfigCA string, instanceId string,
 }
 
 func addLoggly(logglyWriter io.Writer) {
-	golog.SetOutputs(NonStopWriter(errorOut, logglyWriter), debugOut)
+	if runtime.GOOS == "android" {
+		golog.SetOutputs(logglyWriter, os.Stdout)
+	} else {
+		golog.SetOutputs(NonStopWriter(errorOut, logglyWriter), debugOut)
+	}
 }
 
 func removeLoggly() {
