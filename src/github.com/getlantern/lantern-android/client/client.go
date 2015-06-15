@@ -8,6 +8,7 @@ import (
 	"github.com/getlantern/analytics"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/globals"
+	"github.com/getlantern/flashlight/logging"
 	"github.com/getlantern/golog"
 )
 
@@ -17,6 +18,8 @@ const (
 
 // clientConfig holds global configuration settings for all clients.
 var (
+	version       string
+	buildDate     string
 	log           = golog.LoggerFor("lantern-android.client")
 	clientConfig  = defaultConfig()
 	trackingCodes = map[string]string{
@@ -54,8 +57,19 @@ func NewClient(addr, appName string) *MobileClient {
 		fronter: hqfd.NewDirectDomainFronter(),
 		appName: appName,
 	}
-	go mClient.updateConfig()
+	mClient.updateConfig()
 	return mClient
+}
+
+func init() {
+
+	if version == "" {
+		version = "development"
+	}
+
+	if buildDate == "" {
+		buildDate = "now"
+	}
 }
 
 func (client *MobileClient) ServeHTTP() {
@@ -64,6 +78,7 @@ func (client *MobileClient) ServeHTTP() {
 		onListening := func() {
 			log.Debugf("Now listening for connections...")
 			analytics.Configure(trackingCodes["FireTweet"], "", client.Client.Addr)
+			logging.Configure(client.Client.Addr, cloudConfigCA, InstanceId, version, buildDate)
 		}
 
 		defer func() {

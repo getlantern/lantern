@@ -8,6 +8,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/getlantern/fronted"
@@ -33,7 +34,10 @@ import (
 var (
 	version   string
 	buildDate string
-	log       = golog.LoggerFor("flashlight")
+
+	cfgMutex sync.Mutex
+
+	log = golog.LoggerFor("flashlight")
 
 	// Command-line Flags
 	help      = flag.Bool("help", false, "Get usage help")
@@ -236,8 +240,12 @@ func addExitFunc(exitFunc func()) {
 }
 
 func applyClientConfig(client *client.Client, cfg *config.Config) {
+	cfgMutex.Lock()
+	defer cfgMutex.Unlock()
+
 	autoupdate.Configure(cfg)
-	logging.Configure(cfg, version, buildDate)
+	logging.Configure(cfg.Addr, cfg.CloudConfigCA, cfg.InstanceId,
+		version, buildDate)
 	settings.Configure(cfg, version, buildDate)
 	proxiedsites.Configure(cfg.ProxiedSites)
 	analytics.Configure(cfg, version)
