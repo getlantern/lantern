@@ -54,7 +54,7 @@ func main() {
 	fallbacks := loadFallbacks(*fallbacksFile)
 	for err := range *testAllFallbacks(fallbacks) {
 		if err != nil {
-			log.Error(err)
+			fmt.Printf("[failed fallback check] %v\n", err)
 		}
 	}
 }
