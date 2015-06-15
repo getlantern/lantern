@@ -1,6 +1,6 @@
-// Use SSM multicast to discover other processes on the same local network
-// See RFC-3569 for SSM description
+// Use multicast to discover other processes on the same local network
 // See RFC-5771 for IANA IPv4 Multicast address assignments
+// See RFC-2365 for Administratively Scoped IP Multicast
 // This implementation supports multicast failure detection, also disseminated
 // via simple multicast.
 
@@ -13,9 +13,8 @@ import (
 )
 
 const (
-	// Addresses for SSM multicasting are in the space 232/8
-	// See https://www.iana.org/assignments/multicast-addresses/multicast-addresses.xhtml#multicast-addresses-10
-	multicastIP = "232.77.77.77"
+	// Addresses for Administratively Scoped IP Multicast are in the space 239/8
+	multicastIP = "239.77.77.77"
 	multicastPort = "9864"
 	multicastAddress = multicastIP + ":" + multicastPort
 	defaultPeriod = 10
