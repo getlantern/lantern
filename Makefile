@@ -428,7 +428,8 @@ android-lib: docker-golang-android
 		mkdir -p bindings/go_bindings && \
 		gobind -lang=go github.com/getlantern/lantern-android/libflashlight/bindings > bindings/go_bindings/go_bindings.go && \
 		gobind -lang=java github.com/getlantern/lantern-android/libflashlight/bindings > bindings/Flashlight.java || exit 1;
-	@$(DOCKER) run -v $$PWD/src:/src golang/mobile /bin/bash -c \ "cd /src/github.com/getlantern/lantern-android/libflashlight && ./make.bash $(GIT_REVISION) $(BUILD_DATE)" && \
+	@$(call docker-up) && \
+	$(DOCKER) run -v $$PWD/src:/src golang/mobile /bin/bash -c \ "cd /src/github.com/getlantern/lantern-android/libflashlight && ./make.bash $(GIT_REVISION) $(BUILD_DATE)" && \
 	ls -l src/github.com/getlantern/lantern-android/app/libs/armeabi-v7a/libgojni.so && \
 	if [ -d "$(FIRETWEET_DIR)" ]; then \
 		cp -v src/github.com/getlantern/lantern-android/app/libs/armeabi-v7a/libgojni.so $(FIRETWEET_DIR)/firetweet/src/main/jniLibs/armeabi-v7a && \
