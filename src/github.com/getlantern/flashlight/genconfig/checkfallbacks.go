@@ -8,14 +8,14 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/getlantern/flashlight/client"
+	"github.com/getlantern/golog"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"runtime"
 	"strings"
 	"sync"
-	"github.com/getlantern/golog"
-	"github.com/getlantern/flashlight/client"
 )
 
 var (
@@ -31,12 +31,12 @@ var (
 )
 
 type FallbackServer struct {
-	Protocol     string
-	IP           string
-	Port         string
-	Pt           bool
-	Cert         string
-	Auth_token   string
+	Protocol   string
+	IP         string
+	Port       string
+	Pt         bool
+	Cert       string
+	Auth_token string
 }
 
 func main() {
@@ -115,7 +115,7 @@ func testAllFallbacks(fallbacks []FallbackServer) (errors *chan error) {
 					*errors <- fb.testFallbackServer(i)
 				}
 				workersWg.Done()
-			}(i+1)
+			}(i + 1)
 		}
 		workersWg.Wait()
 
