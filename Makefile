@@ -358,7 +358,7 @@ release-beta: require-s3cmd
 		BETA=$$(echo $$NAME | sed s/"$$BASE_NAME"/$$BETA_BASE_NAME/) && \
 		$(S3CMD) cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$BETA; \
 		$(S3CMD) setacl s3://$(S3_BUCKET)/$$BETA --acl-public; \
-        $(S3CMD) get --force s3://$(S3_BUCKET)/$$NAME $(LANTERN_BINARIES_PATH)/$$BETA; \
+		$(S3CMD) get --force s3://$(S3_BUCKET)/$$NAME $(LANTERN_BINARIES_PATH)/$$BETA; \
 	done && \
 	cd $(LANTERN_BINARIES_PATH) && \
 	git add $$BETA_BASE_NAME* && \
