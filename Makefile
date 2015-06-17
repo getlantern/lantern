@@ -358,7 +358,11 @@ release-beta: require-s3cmd
 		BETA=$$(echo $$NAME | sed s/"$$BASE_NAME"/$$BETA_BASE_NAME/) && \
 		$(S3CMD) cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$BETA; \
 		$(S3CMD) setacl s3://$(S3_BUCKET)/$$BETA --acl-public; \
-	done
+        $(S3CMD) get --force s3://$(S3_BUCKET)/$$NAME $(LANTERN_BINARIES_PATH)/$$BETA; \
+	done && \
+	cd $(LANTERN_BINARIES_PATH) && \
+	git add $$BETA_BASE_NAME* && \
+	(git commit -am "Latest beta binaries for Lantern released from QA." && git push origin master) || true
 
 release: require-tag require-s3cmd require-gh-token require-wget require-ruby require-lantern-binaries
 	@TAG_COMMIT=$$(git rev-list --abbrev-commit -1 $$TAG) && \
