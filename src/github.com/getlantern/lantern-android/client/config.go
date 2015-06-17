@@ -23,9 +23,10 @@ const (
 var lastCloudConfigETag string
 
 type config struct {
-	Client     *client.ClientConfig `yaml:"client"`
-	TrustedCAs []*ca                `yaml:"trustedcas"`
-	InstanceId string               `yaml:"instanceid"`
+	Client           *client.ClientConfig `yaml:"client"`
+	TrustedCAs       []*ca                `yaml:"trustedcas"`
+	InstanceId       string               `yaml:"instanceid"`
+	FireTweetVersion string               `yaml:"firetweetversion"`
 }
 
 var (
