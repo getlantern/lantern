@@ -9,7 +9,7 @@ import (
 
 	"github.com/getlantern/go-loggly"
 	"github.com/getlantern/golog"
-	"github.com/getlantern/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLoggly(t *testing.T) {
@@ -62,10 +62,13 @@ func TestLoggly(t *testing.T) {
 	}
 
 	buf.Reset()
-	longMsg := "message with: really l" + strings.Repeat("o", 100) + "ng reason"
+	longPrefix := "message with: really l"
+	longMsg := longPrefix + strings.Repeat("o", 100) + "ng reason"
 	log.Error(longMsg)
 	if assert.NoError(t, json.Unmarshal(buf.Bytes(), &result), "Unmarshal error") {
 		assert.Equal(t, "ERROR test", result["locationInfo"])
-		assert.Regexp(t, regexp.MustCompile("logging_test.go:([0-9]+) "+longMsg), result["message"])
+
+		assert.Regexp(t, regexp.MustCompile("logging_test.go:([0-9]+) "+longPrefix+"(o+)"), result["message"])
+		assert.Equal(t, 100, len(result["message"].(string)))
 	}
 }
