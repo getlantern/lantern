@@ -87,9 +87,10 @@ func main() {
 func _main() {
 	err := doMain()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 	}
 	log.Debug("Lantern stopped")
+	logging.Close()
 	os.Exit(0)
 }
 
@@ -99,8 +100,6 @@ func doMain() error {
 		return err
 	}
 
-	// Schedule cleanup actions
-	defer logging.Close()
 	defer quitSystray()
 
 	i18nInit()
