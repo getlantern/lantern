@@ -46,6 +46,13 @@ func TestBlockedImmediately(t *testing.T) {
 		assertContent(t, resp, detourMsg, "should detour if dialing times out")
 	}
 
+	client = newClient(proxiedURL, 100*time.Millisecond)
+	resp, err = client.Get("http://127.0.0.1:4325") // hopefully this port didn't open, so connection will be refused
+	if assert.NoError(t, err, "should have no error if connection is refused") {
+		assert.True(t, wlTemporarily("127.0.0.1:4325"), "should be added to whitelist if connection is refused")
+		assertContent(t, resp, detourMsg, "should detour if connection is refused")
+	}
+
 	u, _ := url.Parse(mockURL)
 	resp, err = client.Get(mockURL)
 	if assert.NoError(t, err, "should have no error if reading times out") {
