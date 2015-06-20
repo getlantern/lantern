@@ -5,8 +5,6 @@ import (
 	"net"
 	"os"
 	"testing"
-
-	"github.com/getlantern/framed"
 )
 
 var (
@@ -104,15 +102,15 @@ func doTestMapping(t *testing.T, igd IGD) {
 				t.Fatalf("Unable to accept connection: %s", err)
 			}
 			defer conn.Close()
-			fr := framed.NewReader(conn)
-			fw := framed.NewWriter(conn)
+			//fr := framed.NewReader(conn)
+			//fw := framed.NewWriter(conn)
 			frame := make([]byte, 1000)
 			for {
-				n, err := fr.Read(frame)
+				n, err := conn.Read(frame)
 				if err != nil {
 					return
 				}
-				_, err = fw.Write(frame[:n])
+				_, err = conn.Write(frame[:n])
 				if err != nil {
 					return
 				}
@@ -137,15 +135,15 @@ func doTestMapping(t *testing.T, igd IGD) {
 		t.Fatalf("Unable to connect to echo server")
 	}
 	defer conn.Close()
-	fr := framed.NewReader(conn)
-	fw := framed.NewWriter(conn)
+	//fr := framed.NewReader(conn)
+	//fw := framed.NewWriter(conn)
 	testString := "Hello strange port mapped world"
-	_, err = fw.Write([]byte(testString))
+	_, err = conn.Write([]byte(testString))
 	if err != nil {
 		t.Fatalf("Unable to write to echo server")
 	}
 	frame := make([]byte, 1000)
-	n, err := fr.Read(frame)
+	n, err := conn.Read(frame)
 	if err != nil {
 		t.Fatalf("Unable to read from echo server")
 	}
