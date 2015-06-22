@@ -243,6 +243,12 @@
           {{ 'NO_AUTOREPORT_WARNING' | translate }}
         </div>
 
+        <dt ng-if="model.localLanterns.length > 0">{{ 'LOCAL_LANTERNS' | translate }}</dt>
+        <dd ng-if="model.localLanterns.length > 0" id="local-lanterns-list">
+        <a ng-repeat="n in model.localLanterns" ng-click="openExternal(n)" class="local-lantern-link">
+            {{n}}<sup><i class="icon-external-link"></i></sup>
+        </a>
+        </dd>
       </dd>
     </dl>
   </div>

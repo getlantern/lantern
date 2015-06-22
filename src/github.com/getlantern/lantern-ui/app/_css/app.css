@@ -6441,6 +6441,10 @@ i[class*=icon] {
   margin-left: 2px;
 }
 
+#local-lanterns-list {
+    width: 500px !important;
+}
+
 .capitalize {
   text-transform: capitalize;
 }
