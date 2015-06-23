@@ -10,7 +10,6 @@ github.com/getlantern/detour
 github.com/getlantern/deepcopy
 github.com/getlantern/enproxy
 github.com/getlantern/fdcount
-github.com/getlantern/framed
 github.com/getlantern/fronted
 github.com/getlantern/golog
 github.com/getlantern/idletiming
@@ -22,7 +21,6 @@ github.com/getlantern/flashlight/pubsub
 github.com/getlantern/tarfs
 github.com/getlantern/tlsdefaults
 github.com/getlantern/tlsdialer
-github.com/getlantern/waddell
 github.com/getlantern/waitforserver
 github.com/getlantern/wfilter
 github.com/getlantern/withtimeout
