@@ -187,6 +187,11 @@ func (w logglyErrorWriter) Write(b []byte) (int, error) {
 	}
 	message := strings.TrimSpace(fullMessage[lastColonPos+1:])
 
+	// Loggly doesn't group fields with more than 100 characters
+	if len(message) > 100 {
+		message = message[0:100]
+	}
+
 	firstColonPos := strings.IndexRune(fullMessage, ':')
 	if firstColonPos == -1 {
 		firstColonPos = 0

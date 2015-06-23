@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"runtime"
 	"sort"
 	"sync/atomic"
 	"time"
@@ -162,15 +161,7 @@ func InConfigDir(filename string) (string, error) {
 	cdir := *configdir
 
 	if cdir == "" {
-		if runtime.GOOS == "linux" {
-			// It is more common on Linux to expect application related directories
-			// in all lowercase. The lantern wrapper also expects a lowercased
-			// directory.
-			cdir = appdir.General("lantern")
-		} else {
-			// In OSX and Windows, they prefer to see the first letter in uppercase.
-			cdir = appdir.General("Lantern")
-		}
+		cdir = appdir.General("Lantern")
 	}
 
 	log.Debugf("Placing configuration in %v", cdir)

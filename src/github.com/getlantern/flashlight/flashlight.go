@@ -94,9 +94,10 @@ func main() {
 func _main() {
 	err := doMain()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 	}
 	log.Debug("Lantern stopped")
+	logging.Close()
 	os.Exit(0)
 }
 
