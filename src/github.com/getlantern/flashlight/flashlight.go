@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"os/signal"
 	"runtime"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/getlantern/fronted"
@@ -105,8 +107,9 @@ func doMain() error {
 	}
 
 	// Schedule cleanup actions
-	defer logging.Close()
-	defer quitSystray()
+	handleSignals()
+	addExitFunc(func() { logging.Close() })
+	addExitFunc(quitSystray)
 
 	i18nInit()
 	if showui {
@@ -226,7 +229,7 @@ func runClientProxy(cfg *config.Config) {
 	}()
 
 	// Continually search for local Lantern instances and update the UI
-	go func(){
+	go func() {
 		addExitFunc(localdiscovery.Stop)
 		localdiscovery.Start()
 	}()
@@ -360,6 +363,20 @@ func exit(err error) {
 			return
 		}
 	}
+}
+
+// Handle system signals for clean exit
+func handleSignals() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT)
+	go func() {
+		<-c
+		exit(nil)
+	}()
 }
 
 // WaitForExit waits for a request to exit the application.
