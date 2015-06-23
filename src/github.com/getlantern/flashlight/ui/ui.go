@@ -63,20 +63,16 @@ func Handle(p string, handler http.Handler) string {
 	return uiaddr + p
 }
 
-func Start(addr string, allowRemote bool) error {
+func Start(tcpAddr *net.TCPAddr, allowRemote bool) error {
 	var err error
 	// If we want to allow remote connections, we have to bind all interfaces
 	if allowRemote {
-		tcpAddr, err := net.ResolveTCPAddr("tcp4", addr)
-		if err != nil {
-			panic(err) // Dev error
-		}
 		if l, err = net.Listen("tcp", ":" + strconv.Itoa(tcpAddr.Port)); err != nil {
 			return fmt.Errorf("Unable to listen on all interfaces on port: %d", tcpAddr.Port)
 		}
 	} else {
-		if l, err = net.Listen("tcp", addr); err != nil {
-			return fmt.Errorf("Unable to listen at %v: %v", addr, l)
+		if l, err = net.Listen("tcp", tcpAddr.String()); err != nil {
+			return fmt.Errorf("Unable to listen at %v: %v", tcpAddr.String(), l)
 		}
 	}
 

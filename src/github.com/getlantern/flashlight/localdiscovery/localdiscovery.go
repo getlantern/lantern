@@ -10,22 +10,23 @@ import (
 )
 
 const (
-	messageType = `LocalDiscovery`
+	messageType  = `LocalDiscovery`
+	updatePeriod = 10
 )
 
 var (
 	log           = golog.LoggerFor("flashlight.localdiscovery")
 	service       *ui.Service
 	mc            *multicast.Multicast
-	lastPeers     []string
+	lastPeers     []multicast.PeerInfo
 	peersMutex    sync.Mutex
 )
 
-func Start() {
+func Start(portToAdvertise string) {
 	if service == nil {
 		helloFn := func(write func(interface{}) error) error {
 			log.Debugf("Sending local Lanterns list to the Lantern UI")
-			return write(lastPeers)
+			return write(buildPeersList())
 		}
 		var err error
 		service, err = ui.Register(messageType, nil, helloFn)
@@ -38,33 +39,44 @@ func Start() {
 
 	mc = multicast.JoinMulticast()
 
-	mc.AddPeerCallback = func(peer string, allPeers []string) {
+	mc.Payload = portToAdvertise
+	mc.AddPeerCallback = func(peer string, peersInfo []multicast.PeerInfo) {
 		peersMutex.Lock()
-		lastPeers = allPeers
+		lastPeers = peersInfo
 		peersMutex.Unlock()
 
-		service.Out <- allPeers
+		service.Out <- peersInfo
 	}
-	mc.RemovePeerCallback = func(peer string, allPeers []string) {
+	mc.RemovePeerCallback = func(peer string, peersInfo []multicast.PeerInfo) {
 		peersMutex.Lock()
-		lastPeers = allPeers
+		lastPeers = peersInfo
 		peersMutex.Unlock()
 
-		service.Out <- allPeers
+		service.Out <- peersInfo
 	}
 
 	mc.StartMulticast()
 
 	go func() {
-		c := time.Tick(10 * time.Second)
+		c := time.Tick(updatePeriod * time.Second)
 		for range c {
-			peersMutex.Lock()
-			service.Out <- lastPeers
-			peersMutex.Unlock()
+			service.Out <- buildPeersList()
 		}
 	}()
 }
 
 func Stop() {
 	mc.LeaveMulticast()
+}
+
+func buildPeersList() []string {
+	peersList := make([]string, len(lastPeers))
+
+	peersMutex.Lock()
+	for i, peer := range lastPeers {
+		peersList[i] = "http://" + peer.IP.String() + ":" + peer.Payload
+	}
+	peersMutex.Unlock()
+
+	return peersList
 }

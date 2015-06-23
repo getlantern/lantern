@@ -5,9 +5,11 @@ import (
 	"flag"
 	"fmt"
 	"math/rand"
+	"net"
 	"os"
 	"os/signal"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -209,15 +211,20 @@ func runClientProxy(cfg *config.Config) {
 	}
 
 	// Start user interface.
-	if cfg.UIAddr != "" {
-		if err = ui.Start(cfg.UIAddr, !showui); err != nil {
-			exit(fmt.Errorf("Unable to start UI: %v", err))
-			return
-		}
-		if showui {
-			// Launch a browser window with Lantern.
-			ui.Show()
-		}
+	if cfg.UIAddr == "" {
+		exit(fmt.Errorf("Please provide a valid local or remote UI address"))
+	}
+	tcpAddr, err := net.ResolveTCPAddr("tcp4", cfg.UIAddr)
+	if err != nil {
+		exit(fmt.Errorf("Unable to resolve UI address: %v", err))
+	}
+	if err = ui.Start(tcpAddr, !showui); err != nil {
+		exit(fmt.Errorf("Unable to start UI: %v", err))
+		return
+	}
+	if showui {
+		// Launch a browser window with Lantern.
+		ui.Show()
 	}
 
 	applyClientConfig(client, cfg)
@@ -232,7 +239,7 @@ func runClientProxy(cfg *config.Config) {
 	// Continually search for local Lantern instances and update the UI
 	go func() {
 		addExitFunc(localdiscovery.Stop)
-		localdiscovery.Start()
+		localdiscovery.Start(strconv.Itoa(tcpAddr.Port))
 	}()
 
 	// watchDirectAddrs will spawn a goroutine that will add any site that is
