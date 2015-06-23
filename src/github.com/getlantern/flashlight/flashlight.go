@@ -21,6 +21,7 @@ import (
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/geolookup"
+	"github.com/getlantern/flashlight/localdiscovery"
 	"github.com/getlantern/flashlight/logging"
 	"github.com/getlantern/flashlight/proxiedsites"
 	"github.com/getlantern/flashlight/server"
@@ -222,6 +223,12 @@ func runClientProxy(cfg *config.Config) {
 			cfg := <-configUpdates
 			applyClientConfig(client, cfg)
 		}
+	}()
+
+	// Continually search for local Lantern instances and update the UI
+	go func(){
+		addExitFunc(localdiscovery.Stop)
+		localdiscovery.Start()
 	}()
 
 	// watchDirectAddrs will spawn a goroutine that will add any site that is
