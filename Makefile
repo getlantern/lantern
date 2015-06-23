@@ -441,7 +441,7 @@ android-lib: docker-golang-android genconfig
 
 genconfig:
 	@echo "Running genconfig..." && \
-  source setenv.bash && \
+	source setenv.bash && \
 	(cd src/github.com/getlantern/flashlight/genconfig && ./genconfig.bash)
 
 clean:
