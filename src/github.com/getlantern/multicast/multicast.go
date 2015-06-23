@@ -26,12 +26,19 @@ type Multicast struct {
 	Addr               *net.UDPAddr
 	Period             int                    // multicast period (in secs, 10 by default)
 	FailedTime         int                    // timeout for peers' hello messages, 0 means no timeout
-	AddPeerCallback    func(string, []string) // Callback called when a peer is added (added, all)
-	RemovePeerCallback func(string, []string) // Callback called when a peer is removed (removed, all)
+	AddPeerCallback    func(string, []PeerInfo) // Callback called when a peer is added (added, all)
+	RemovePeerCallback func(string, []PeerInfo) // Callback called when a peer is removed (removed, all)
+	Payload            string                 // Will be appended to the messages
 
 	quit        chan bool
 	helloTicker *time.Ticker
-	peers       map[string]time.Time
+	peers       map[string]PeerInfo
+}
+
+type PeerInfo struct {
+	IP      net.IP
+	Time    time.Time
+	Payload string
 }
 
 // Join the Lantern multicast group
@@ -52,7 +59,7 @@ func JoinMulticast() *Multicast {
 		Period:     defaultPeriod,
 		FailedTime: defaultFailedTime,
 		quit:       make(chan bool, 1),
-		peers:      make(map[string]time.Time),
+		peers:      make(map[string]PeerInfo),
 	}
 }
 
@@ -73,7 +80,7 @@ func (mc *Multicast) LeaveMulticast() error {
 	if mc.helloTicker != nil {
 		mc.helloTicker.Stop()
 	}
-	msg, e := MakeByeMessage().Serialize()
+	msg, e := MakeByeMessage(mc.Payload).Serialize()
 	if e != nil {
 		log.Fatal(e)
 	}
@@ -85,14 +92,14 @@ func (mc *Multicast) LeaveMulticast() error {
 	return nil
 }
 
-func (mc *Multicast) peersList() []string {
-	ps := make([]string, len(mc.peers))
+func (mc *Multicast) peersInfo() []PeerInfo {
+	plist := make([]PeerInfo, len(mc.peers))
 	i := 0
-	for k := range mc.peers {
-		ps[i] = k
+	for _, v := range mc.peers {
+		plist[i] = v
 		i++
 	}
-	return ps
+	return plist
 }
 
 func (mc *Multicast) write(b []byte) (int, error) {
@@ -105,7 +112,7 @@ func (mc *Multicast) read(b []byte) (int, *net.UDPAddr, error) {
 
 func (mc *Multicast) sendHellos() {
 	mc.helloTicker = time.NewTicker(time.Duration(mc.Period) * time.Second)
-	msg, e := MakeHelloMessage().Serialize()
+	msg, e := MakeHelloMessage(mc.Payload).Serialize()
 	if e != nil {
 		log.Fatal(e)
 		return
@@ -125,13 +132,13 @@ func (mc *Multicast) listenPeers() error {
 		default:
 			// We are checking first that no peer has failed. If we don't
 			// hear from peers soon enough, we consider them failed.
-			for p, pt := range mc.peers {
+			for p, pinfo := range mc.peers {
 				// FailedTime zero means no timeout
-				if time.Now().After(pt) && mc.FailedTime != 0 {
+				if time.Now().After(pinfo.Time) && mc.FailedTime != 0 {
 					delete(mc.peers, p)
 
 					if mc.RemovePeerCallback != nil {
-						mc.RemovePeerCallback(p, mc.peersList())
+						mc.RemovePeerCallback(p, mc.peersInfo())
 					}
 				}
 			}
@@ -165,10 +172,14 @@ func (mc *Multicast) listenPeers() error {
 
 					// A time in the future when that, if no hello message from the peer is
 					// received, it will be considered failed. Update every time.
-					mc.peers[udpAddrStr] = time.Now().Add(time.Second * time.Duration(mc.FailedTime))
+					mc.peers[udpAddrStr] = PeerInfo{
+						IP: udpAddr.IP,
+						Time: time.Now().Add(time.Second * time.Duration(mc.FailedTime)),
+						Payload: mcMsg.payload,
+					}
 
 					if !ok && mc.AddPeerCallback != nil {
-						mc.AddPeerCallback(udpAddrStr, mc.peersList())
+						mc.AddPeerCallback(udpAddrStr, mc.peersInfo())
 					}
 				}
 			case TypeBye:
@@ -178,11 +189,11 @@ func (mc *Multicast) listenPeers() error {
 					delete(mc.peers, udpAddrStr)
 
 					if mc.RemovePeerCallback != nil {
-						mc.RemovePeerCallback(udpAddrStr, mc.peersList())
+						mc.RemovePeerCallback(udpAddrStr, mc.peersInfo())
 					}
 				}
 			default:
-				log.Fatal("Unrecognized message sent to Lantern multicast SSM address")
+				log.Fatal("Unrecognized message sent to Lantern multicast address")
 			}
 		}
 	}

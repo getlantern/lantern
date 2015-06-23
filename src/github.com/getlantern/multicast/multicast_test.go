@@ -3,6 +3,7 @@ package multicast
 import (
 	"fmt"
 	"log"
+	"strings"
 	"syscall"
 	"sync"
 	"testing"
@@ -121,8 +122,8 @@ func TestMulticastMessages(t *testing.T) {
                 t.Fatal(e)
         }
         if n > 0 {
-		msg, _ := MakeHelloMessage().Serialize()
-		if string(msg) != string(b[:n]) {
+		msg, _ := MakeHelloMessage("").Serialize()
+		if !strings.HasPrefix(string(b[:n]), string(msg)) {
 			// Print bytes, not string, to see if any padding occurred
 			fmt.Printf("Expected: %x\n",string(msg))
 			fmt.Printf("Received: %x\n",string(b[:n]))

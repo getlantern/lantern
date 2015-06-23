@@ -10,7 +10,7 @@ import (
 const (
 	helloMsgPrefix = "Lantern Hello"
 	byeMsgPrefix = "Lantern Bye"
-	messageMaxSize = 16
+	messageMaxSize = 39 // Max size of IPv6 address
 )
 
 type messageType int
@@ -21,27 +21,30 @@ const (
 )
 
 type MulticastMessage struct {
-	mType        messageType
+	mType   messageType
+	payload string
 }
 
-func MakeHelloMessage() *MulticastMessage {
+func MakeHelloMessage(payload string) *MulticastMessage {
 	return &MulticastMessage{
 		mType: TypeHello,
+		payload: payload,
 	}
 }
 
-func MakeByeMessage() *MulticastMessage {
+func MakeByeMessage(payload string) *MulticastMessage {
 	return &MulticastMessage{
 		mType: TypeBye,
+		payload: payload,
 	}
 }
 
 func (msg *MulticastMessage) Serialize() (b []byte, e error) {
 	switch msg.mType {
 	case TypeHello:
-		return []byte(helloMsgPrefix), nil
+		return []byte(helloMsgPrefix + msg.payload), nil
 	case TypeBye:
-		return []byte(byeMsgPrefix), nil
+		return []byte(byeMsgPrefix + msg.payload), nil
 	default:
 		return nil, errors.New("Multicast message: internal error (wrong message type)")
 	}
@@ -52,12 +55,16 @@ func Deserialize(b []byte) (msg *MulticastMessage, e error) {
 	strMsg := string(b)
 	if strings.HasPrefix(strMsg, helloMsgPrefix) {
 		msgType = TypeHello
+		strMsg = strings.TrimPrefix(strMsg, helloMsgPrefix)
 	} else if strings.HasPrefix(strMsg, byeMsgPrefix) {
 		msgType = TypeBye
+		strMsg = strings.TrimPrefix(strMsg, byeMsgPrefix)
 	} else {
 		return nil, errors.New("Error deserializing multicast message")
 	}
+
 	return &MulticastMessage{
 		mType: msgType,
+		payload: strMsg,
 	}, nil
 }
