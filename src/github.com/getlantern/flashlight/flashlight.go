@@ -210,7 +210,7 @@ func runClientProxy(cfg *config.Config) {
 
 	// Start user interface.
 	if cfg.UIAddr != "" {
-		if err = ui.Start(cfg.UIAddr); err != nil {
+		if err = ui.Start(cfg.UIAddr, !showui); err != nil {
 			exit(fmt.Errorf("Unable to start UI: %v", err))
 			return
 		}
