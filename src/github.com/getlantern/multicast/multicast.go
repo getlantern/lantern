@@ -14,45 +14,45 @@ import (
 
 const (
 	// Addresses for Administratively Scoped IP Multicast are in the space 239/8
-	multicastIP = "239.77.77.77"
-	multicastPort = "9864"
-	multicastAddress = multicastIP + ":" + multicastPort
-	defaultPeriod = 10
-	defaultFailedTime = 60 // Seconds until a peer is considered failed
+	multicastIP       = "232.77.77.77"
+	multicastPort     = "9864"
+	multicastAddress  = multicastIP + ":" + multicastPort
+	defaultPeriod     = 9
+	defaultFailedTime = 30 // Seconds until a peer is considered failed
 )
 
 type Multicast struct {
-	Conn                 *net.UDPConn
-	Addr                 *net.UDPAddr
-	Period               int // multicast period (in secs, 10 by default)
-	FailedTime           int // timeout for peers' hello messages, 0 means no timeout
-	AddPeerCallback      func(string) // Callback called when a peer is added
-	RemovePeerCallback   func(string) // Callback called when a peer is removed
+	Conn               *net.UDPConn
+	Addr               *net.UDPAddr
+	Period             int                    // multicast period (in secs, 10 by default)
+	FailedTime         int                    // timeout for peers' hello messages, 0 means no timeout
+	AddPeerCallback    func(string, []string) // Callback called when a peer is added (added, all)
+	RemovePeerCallback func(string, []string) // Callback called when a peer is removed (removed, all)
 
-	quit                 chan bool
-	helloTicker          *time.Ticker
-	peers                map [string]time.Time
+	quit        chan bool
+	helloTicker *time.Ticker
+	peers       map[string]time.Time
 }
 
 // Join the Lantern multicast group
 func JoinMulticast() *Multicast {
-        udpAddr, e := net.ResolveUDPAddr("udp4", multicastAddress)
-        if e != nil {
+	udpAddr, e := net.ResolveUDPAddr("udp4", multicastAddress)
+	if e != nil {
 		log.Fatal(e)
-                return nil
-        }
+		return nil
+	}
 
-        c, e := net.ListenMulticastUDP("udp4", nil, udpAddr)
-        if e != nil {
-                return nil
-        }
-        return &Multicast{
-		Conn: c,
-		Addr: udpAddr,
-		Period: defaultPeriod,
+	c, e := net.ListenMulticastUDP("udp4", nil, udpAddr)
+	if e != nil {
+		return nil
+	}
+	return &Multicast{
+		Conn:       c,
+		Addr:       udpAddr,
+		Period:     defaultPeriod,
 		FailedTime: defaultFailedTime,
-		quit: make(chan bool, 1),
-		peers: make(map[string]time.Time),
+		quit:       make(chan bool, 1),
+		peers:      make(map[string]time.Time),
 	}
 }
 
@@ -85,12 +85,22 @@ func (mc *Multicast) LeaveMulticast() error {
 	return nil
 }
 
+func (mc *Multicast) peersList() []string {
+	ps := make([]string, len(mc.peers))
+	i := 0
+	for k := range mc.peers {
+		ps[i] = k
+		i++
+	}
+	return ps
+}
+
 func (mc *Multicast) write(b []byte) (int, error) {
-        return mc.Conn.WriteTo(b, mc.Addr)
+	return mc.Conn.WriteTo(b, mc.Addr)
 }
 
 func (mc *Multicast) read(b []byte) (int, *net.UDPAddr, error) {
-        return mc.Conn.ReadFromUDP(b)
+	return mc.Conn.ReadFromUDP(b)
 }
 
 func (mc *Multicast) sendHellos() {
@@ -110,9 +120,23 @@ func (mc *Multicast) listenPeers() error {
 	// Set a deadline to avoid blocking on a read forever
 	for {
 		select {
-		case <- mc.quit:
+		case <-mc.quit:
 			return mc.Conn.Close()
 		default:
+			// We are checking first that no peer has failed. If we don't
+			// hear from peers soon enough, we consider them failed.
+			for p, pt := range mc.peers {
+				// FailedTime zero means no timeout
+				if time.Now().After(pt) && mc.FailedTime != 0 {
+					delete(mc.peers, p)
+
+					if mc.RemovePeerCallback != nil {
+						mc.RemovePeerCallback(p, mc.peersList())
+					}
+				}
+			}
+
+			// Restart reading with the same period as multicast is done
 			mc.Conn.SetReadDeadline(time.Now().Add(time.Duration(mc.Period) * time.Second))
 			n, udpAddr, e := mc.read(b)
 			udpAddrStr := udpAddr.String()
@@ -135,35 +159,30 @@ func (mc *Multicast) listenPeers() error {
 						break
 					}
 				}
+				// Add/Update peer
 				if otherPeer {
-					// Add/Update peer
 					_, ok := mc.peers[udpAddrStr]
-					if !ok && mc.AddPeerCallback != nil {
-						mc.AddPeerCallback(udpAddrStr)
-					}
+
 					// A time in the future when that, if no hello message from the peer is
 					// received, it will be considered failed. Update every time.
 					mc.peers[udpAddrStr] = time.Now().Add(time.Second * time.Duration(mc.FailedTime))
+
+					if !ok && mc.AddPeerCallback != nil {
+						mc.AddPeerCallback(udpAddrStr, mc.peersList())
+					}
 				}
 			case TypeBye:
 				_, ok := mc.peers[udpAddrStr]
+				// Remove peer
 				if ok {
-					// Remove peer
-					if mc.RemovePeerCallback != nil {
-						mc.RemovePeerCallback(udpAddrStr)
-					}
 					delete(mc.peers, udpAddrStr)
+
+					if mc.RemovePeerCallback != nil {
+						mc.RemovePeerCallback(udpAddrStr, mc.peersList())
+					}
 				}
 			default:
 				log.Fatal("Unrecognized message sent to Lantern multicast SSM address")
-			}
-			// We are checking here also that no peer is too old. If we don't
-			// hear from peers soon enough, we consider them failed.
-			for p, pt := range mc.peers {
-				// FailedTime zero means no timeout
-				if time.Now().After(pt) && mc.FailedTime != 0 {
-					delete(mc.peers, p)
-				}
 			}
 		}
 	}
@@ -172,7 +191,7 @@ func (mc *Multicast) listenPeers() error {
 func getMyIPs() (ips []net.IP) {
 	addrs, e := net.InterfaceAddrs()
 	if e != nil {
-		log.Fatal (e)
+		log.Fatal(e)
 		return
 	}
 	for _, a := range addrs {
