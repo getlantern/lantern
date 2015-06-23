@@ -47,6 +47,8 @@ def feed(src, dc, globalcfg=False, dccfg=False, setdefaultdc=False, srv=False):
     if dccfg:
         dccfg = "\n    " + yaml.dump(cfg['client']['frontedservers'])
         p.hset("cfgbydc", dc, dccfg)
+        if not r().exists(dc + ':slices'):
+            p.zadd(dc + ':slices', '<empty>', 1 << 32)
     if setdefaultdc:
         p.set("defaultdc", dc)
     if globalcfg:
