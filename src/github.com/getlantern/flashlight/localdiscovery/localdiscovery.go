@@ -16,7 +16,6 @@ const (
 var (
 	log           = golog.LoggerFor("flashlight.localdiscovery")
 	service       *ui.Service
-	localLanterns []string
 	mc            *multicast.Multicast
 	lastPeers     []string
 	peersMutex    sync.Mutex
@@ -26,7 +25,7 @@ func Start() {
 	if service == nil {
 		helloFn := func(write func(interface{}) error) error {
 			log.Debugf("Sending local Lanterns list to the Lantern UI")
-			return write(localLanterns)
+			return write(lastPeers)
 		}
 		var err error
 		service, err = ui.Register(messageType, nil, helloFn)
