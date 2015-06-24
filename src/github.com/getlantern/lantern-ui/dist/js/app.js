@@ -700,7 +700,7 @@ angular.module('app.services', [])
       peer.mode = 'give';
 
       setConnected(peer);
-      
+
       // Update bpsUpDn
       var peerid = peer.peerid;
       var oldPeer = flashlightPeers[peerid];
@@ -718,7 +718,7 @@ angular.module('app.services', [])
       }
       model.instanceStats.allBytes.rate += bpsUpDnDelta;
     }
-    
+
     var fnList = {
       'GeoLookup': function(data) {
         console.log('Got GeoLookup information: ', data);
@@ -753,6 +753,9 @@ angular.module('app.services', [])
         if (data.ProxyAll) {
             model.settings.proxyAll = true;
         }
+      },
+      'LocalDiscovery': function(data) {
+        model.localLanterns = data;
       },
       'ProxiedSites': function(data) {
         if (!$rootScope.entries) {
