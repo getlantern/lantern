@@ -24,13 +24,10 @@ var (
 
 func Start(portToAdvertise string) {
 	if service == nil {
-		helloFn := func(write func(interface{}) error) error {
-			log.Debugf("Sending local Lanterns list to the Lantern UI")
-			return write(buildPeersList())
-		}
 		var err error
-		service, err = ui.Register(messageType, nil, helloFn)
-
+		service, err = ui.Register(messageType, nil, func(write func(interface{}) error) error {
+			return write(buildPeersList())
+		})
 		if err != nil {
 			log.Errorf("Unable to register Local Discovery service: %q", err)
 			return
@@ -45,14 +42,14 @@ func Start(portToAdvertise string) {
 		lastPeers = peersInfo
 		peersMutex.Unlock()
 
-		service.Out <- peersInfo
+		service.Out <- buildPeersList()
 	}
 	mc.RemovePeerCallback = func(peer string, peersInfo []multicast.PeerInfo) {
 		peersMutex.Lock()
 		lastPeers = peersInfo
 		peersMutex.Unlock()
 
-		service.Out <- peersInfo
+		service.Out <- buildPeersList()
 	}
 
 	mc.StartMulticast()
