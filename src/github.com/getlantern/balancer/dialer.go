@@ -77,6 +77,9 @@ func (d *dialer) start() {
 				atomic.StoreInt32(&d.active, 0)
 				log.Tracef("Mark dialer %s as inactive, scheduling check", d.Label)
 				timeout := time.Duration(consecCheckFailures*consecCheckFailures) * 100 * time.Millisecond
+				if timeout > maxCheckTimeout {
+					timeout = maxCheckTimeout
+				}
 				timer.Reset(timeout)
 			} else {
 				atomic.StoreInt32(&d.active, 1)
@@ -96,6 +99,7 @@ func (d *dialer) start() {
 				if ok {
 					lastCheckSucceeded = time.Now()
 					timer.Reset(longDuration)
+					consecCheckFailures = 0
 				} else {
 					consecCheckFailures += 1
 				}
