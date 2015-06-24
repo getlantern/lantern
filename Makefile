@@ -30,13 +30,11 @@ LANTERN_BINARIES_PATH ?= ../lantern-binaries
 
 GO_MOBILE_REVISION=47553f4d4275316f2610b3204f8f9ecaf3ce63a7
 
-GH_USER := getlantern
-#GH_USER := xiam
+GH_USER ?= getlantern
 
-GH_RELEASE_REPOSITORY := lantern
+GH_RELEASE_REPOSITORY ?= lantern
 
-S3_BUCKET := lantern
-#S3_BUCKET := xiam-lantern-test-1
+S3_BUCKET ?= lantern
 
 DOCKER_IMAGE_TAG := lantern-builder
 
@@ -323,7 +321,7 @@ package-darwin: require-version require-appdmg require-svgexport darwin
 
 binaries: docker genassets linux windows darwin
 
-packages: require-version require-secrets clean binaries package-windows package-linux package-darwin
+packages: require-version require-secrets clean genconfig binaries package-windows package-linux package-darwin
 
 release-qa: require-tag require-s3cmd
 	@BASE_NAME="lantern-installer-qa" && \
@@ -424,7 +422,7 @@ test-and-cover:
 		tail -n +2 profile_tmp.cov >> profile.cov; \
 	done
 
-android-lib: docker-golang-android
+android-lib: docker-golang-android genconfig
 	@source setenv.bash && \
 	cd $(LANTERN_ANDROID_DIR) && \
 	mkdir -p app && \
@@ -440,6 +438,11 @@ android-lib: docker-golang-android
 		cp -v src/github.com/getlantern/lantern-android/app/src/go/*.java $(FIRETWEET_DIR)/firetweet/src/main/java/go && \
 		cp -v src/github.com/getlantern/lantern-android/app/src/org/getlantern/Flashlight.java $(FIRETWEET_DIR)/firetweet/src/main/java/go/flashlight/Flashlight.java; \
 	fi
+
+genconfig:
+	@echo "Running genconfig..." && \
+	source setenv.bash && \
+	(cd src/github.com/getlantern/flashlight/genconfig && ./genconfig.bash)
 
 clean:
 	@rm -f lantern_linux* && \
