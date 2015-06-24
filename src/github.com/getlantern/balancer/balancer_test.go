@@ -201,7 +201,7 @@ func TestAll(t *testing.T) {
 
 	// Test failure
 	b = New(dialer3)
-	maxCheckTimeout = 100 * time.Millisecond
+	maxCheckTimeout = 300 * time.Millisecond
 	// Dial a bunch of times on multiple goroutines to hit different failure branches
 	var wg sync.WaitGroup
 	wg.Add(2)
