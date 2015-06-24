@@ -139,7 +139,7 @@ docker-linux-amd64:
 docker-linux-arm:
 	@source setenv.bash && \
 	$(call build-tags) && \
-	CC=arm-linux-gnueabi-gcc CXX=arm-linux-gnueabi-g++ CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 go build -o lantern_linux_arm -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
+	CGO_ENABLED=1 CC=arm-linux-gnueabi-gcc CXX=arm-linux-gnueabi-g++ CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 go build -o lantern_linux_arm -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
 
 docker-windows-386:
 	@source setenv.bash && \
@@ -262,7 +262,7 @@ genassets: docker
 linux-386: require-assets docker
 	@echo "Building linux/386..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADESSESS="'$$HEADLESS'" make docker-linux-386' && \
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" make docker-linux-386' && \
 	cat lantern_linux_386 | bzip2 > update_linux_386.bz2 && \
 	ls -l lantern_linux_386 update_linux_386.bz2
 
