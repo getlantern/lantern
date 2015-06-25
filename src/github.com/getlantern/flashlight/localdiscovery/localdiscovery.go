@@ -1,12 +1,13 @@
-// service for discovering Lantern instances in the local network
+// Service for discovering Lantern instances in the local network
 package localdiscovery
 
 import (
+	"sync"
+	"time"
+
 	"github.com/getlantern/flashlight/ui"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/multicast"
-	"sync"
-	"time"
 )
 
 const (
@@ -22,21 +23,24 @@ var (
 	peersMutex    sync.Mutex
 )
 
-func Start(portToAdvertise string) {
-	if service == nil {
-		var err error
-		service, err = ui.Register(messageType, nil, func(write func(interface{}) error) error {
-			return write(buildPeersList())
-		})
-		if err != nil {
-			log.Errorf("Unable to register Local Discovery service: %q", err)
-			return
-		}
+func Start(advertise bool, portToAdvertise string) {
+	if service != nil {
+		// Dev error: this service shouldn't be started unless stopped
+		panic("The " + messageType + " service is already registered")
+		return
+	}
+
+	var err error
+	service, err = ui.Register(messageType, nil, func(write func(interface{}) error) error {
+		return write(buildPeersList())
+	})
+	if err != nil {
+		log.Errorf("Unable to register Local Discovery service: %q", err)
+		return
 	}
 
 	mc = multicast.JoinMulticast()
 
-	mc.Payload = portToAdvertise
 	mc.AddPeerCallback = func(peer string, peersInfo []multicast.PeerInfo) {
 		peersMutex.Lock()
 		lastPeers = peersInfo
@@ -52,7 +56,12 @@ func Start(portToAdvertise string) {
 		service.Out <- buildPeersList()
 	}
 
-	mc.StartMulticast()
+	if advertise {
+		mc.Payload = portToAdvertise
+		mc.StartMulticast()
+	}
+
+	mc.ListenPeers()
 
 	go func() {
 		c := time.Tick(updatePeriod * time.Second)
@@ -63,6 +72,8 @@ func Start(portToAdvertise string) {
 }
 
 func Stop() {
+	ui.Unregister(messageType)
+	service = nil
 	mc.LeaveMulticast()
 }
 

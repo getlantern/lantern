@@ -7,7 +7,6 @@ import (
 	"net/url"
 	"path/filepath"
 	"runtime"
-	"strconv"
 	"time"
 
 	"github.com/getlantern/golog"
@@ -63,17 +62,14 @@ func Handle(p string, handler http.Handler) string {
 	return uiaddr + p
 }
 
-func Start(tcpAddr *net.TCPAddr, allowRemote bool) error {
-	var err error
-	// If we want to allow remote connections, we have to bind all interfaces
+func Start(tcpAddr *net.TCPAddr, allowRemote bool) (err error) {
+	addr := tcpAddr
 	if allowRemote {
-		if l, err = net.Listen("tcp", ":" + strconv.Itoa(tcpAddr.Port)); err != nil {
-			return fmt.Errorf("Unable to listen on all interfaces on port: %d", tcpAddr.Port)
-		}
-	} else {
-		if l, err = net.Listen("tcp", tcpAddr.String()); err != nil {
-			return fmt.Errorf("Unable to listen at %v: %v", tcpAddr.String(), l)
-		}
+		// If we want to allow remote connections, we have to bind all interfaces
+		addr = &net.TCPAddr{Port: tcpAddr.Port}
+	}
+	if l, err = net.ListenTCP("tcp4", addr); err != nil {
+		return fmt.Errorf("Unable to listen at %v: %v", addr, l)
 	}
 
 	r.Handle("/", http.FileServer(fs))

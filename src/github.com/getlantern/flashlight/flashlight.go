@@ -239,7 +239,7 @@ func runClientProxy(cfg *config.Config) {
 	// Continually search for local Lantern instances and update the UI
 	go func() {
 		addExitFunc(localdiscovery.Stop)
-		localdiscovery.Start(strconv.Itoa(tcpAddr.Port))
+		localdiscovery.Start(!showui, strconv.Itoa(tcpAddr.Port))
 	}()
 
 	// watchDirectAddrs will spawn a goroutine that will add any site that is
