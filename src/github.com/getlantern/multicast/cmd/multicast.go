@@ -3,11 +3,11 @@
 package main
 
 import (
+	"github.com/getlantern/multicast"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
-	"github.com/getlantern/multicast"
 )
 
 func main() {
@@ -22,18 +22,19 @@ func main() {
 	}
 
 	mc.Period = 1
-	mc.AddPeerCallback = func(peer string) {
+	mc.AddPeerCallback = func(peer string, peers []multicast.PeerInfo) {
 		log.Println("Added new peer:", peer)
 	}
-	mc.RemovePeerCallback = func(peer string) {
+	mc.RemovePeerCallback = func(peer string, peers []multicast.PeerInfo) {
 		log.Println("Removed peer:", peer)
 	}
 	mc.StartMulticast()
+	mc.ListenPeers()
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
-	go func(){
-		<- c
+	go func() {
+		<-c
 		log.Println("Leaving multicast group...")
 		mc.LeaveMulticast()
 		log.Println("Quitting multicast discovery...")
@@ -41,5 +42,5 @@ func main() {
 	}()
 
 	// Sleep forever in main goroutine
-	select{}
+	select {}
 }
