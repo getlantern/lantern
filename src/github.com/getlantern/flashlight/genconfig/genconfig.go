@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -26,6 +27,7 @@ import (
 
 const (
 	numberOfWorkers = 50
+	ftVersionFile   = `https://raw.githubusercontent.com/firetweet/downloads/master/version.txt`
 )
 
 var (
@@ -47,6 +49,7 @@ var (
 	blacklist    = make(filter)
 	proxiedSites = make(filter)
 	fallbacks    []map[string]interface{}
+	ftVersion    string
 
 	domainsCh     = make(chan string)
 	masqueradesCh = make(chan *masquerade)
@@ -83,6 +86,7 @@ func main() {
 	loadProxiedSitesList()
 	loadBlacklist()
 	loadFallbacks()
+	loadFtVersion()
 
 	masqueradesTmpl := loadTemplate("masquerades.go.tmpl")
 	proxiedSitesTmpl := loadTemplate("proxiedsites.go.tmpl")
@@ -158,6 +162,20 @@ func loadProxiedSitesList() {
 	if err != nil {
 		log.Errorf("Could not open proxied site directory: %s", err)
 	}
+}
+
+func loadFtVersion() {
+	res, err := http.Get(ftVersionFile)
+	if err != nil {
+		log.Fatalf("Error fetching FireTweet version file: %s", err)
+	}
+
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Fatalf("Could not read FT version file: %s", err)
+	}
+	ftVersion = strings.TrimSpace(string(body))
 }
 
 func loadBlacklist() {
@@ -340,6 +358,7 @@ func buildModel(cas map[string]*castat, masquerades []*masquerade) map[string]in
 		"masquerades":  masquerades,
 		"proxiedsites": ps,
 		"fallbacks":    fbs,
+		"ftVersion":    ftVersion,
 	}
 }
 

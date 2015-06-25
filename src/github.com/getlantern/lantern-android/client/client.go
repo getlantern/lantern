@@ -111,10 +111,15 @@ func (client *MobileClient) updateConfig() error {
 		if err != nil {
 			log.Errorf("Unable to configure trusted CAs: %s", err)
 		}
+
 		hqfc := client.Configure(clientConfig.Client)
 		client.fronter = hqfc.NewDirectDomainFronter()
 	}
 	return err
+}
+
+func (client *MobileClient) GetFireTweetVersion() string {
+	return clientConfig.FireTweetVersion
 }
 
 // pollConfiguration periodically checks for updates in the cloud configuration
