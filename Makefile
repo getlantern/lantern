@@ -28,7 +28,7 @@ PACKAGE_URL := https://www.getlantern.org
 
 LANTERN_BINARIES_PATH ?= ../lantern-binaries
 
-GO_MOBILE_REVISION=47553f4d4275316f2610b3204f8f9ecaf3ce63a7
+GO_MOBILE_REVISION=f88f8237ec301d3403c630c0b20e940f187187e2
 
 GH_USER ?= getlantern
 
@@ -199,7 +199,6 @@ docker-golang-android: require-mercurial
 		cd src/golang.org/x/mobile && \
 		git reset --hard && \
 		git checkout $(GO_MOBILE_REVISION) && \
-		curl https://gist.githubusercontent.com/xiam/56d8fe575176f459613d/raw/8873ed3af55a7d449a1c9c2112de118da968dbc3/gistfile1.txt | git apply - && \
 		docker build -t golang/mobile .; \
 	fi
 
