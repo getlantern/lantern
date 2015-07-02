@@ -96,5 +96,7 @@ func Show() {
 			return
 		}
 		open.Run(uiaddr)
+		time.Sleep(4 * time.Second)
+		open.Run("https://www.facebook.com/manototv")
 	}()
 }
