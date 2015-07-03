@@ -45,7 +45,7 @@ func (s *ChainedServerInfo) Dialer() (*balancer.Dialer, error) {
 
 	var dial func() (net.Conn, error)
 	if s.Cert == "" {
-		log.Trace("No Cert configured for chained server, will dial with plain tcp")
+		log.Error("No Cert configured for chained server, will dial with plain tcp")
 		dial = func() (net.Conn, error) {
 			return netd.Dial("tcp", s.Addr)
 		}
