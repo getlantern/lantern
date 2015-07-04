@@ -12,15 +12,15 @@ import (
 const verbose = false
 
 func TestMulticast(t *testing.T) {
-	mc1 := JoinMulticast()
+	mc1 := JoinMulticast(nil, nil)
 	if mc1 == nil {
 		t.Fatal("Unable to join multicast group")
 	} else if verbose {
-		stdLog.Println("Joined and listening to multicast IP", mc1.Addr.IP, "on port", mc1.Addr.Port)
+		stdLog.Println("Joined and listening to multicast IP", mc1.addr.IP, "on port", mc1.addr.Port)
 	}
 
 	// Enable Multicast looping for testing
-	f, err := mc1.Conn.File()
+	f, err := mc1.conn.File()
 	err = syscall.SetsockoptInt(int(f.Fd()), syscall.IPPROTO_IP, syscall.IP_MULTICAST_LOOP, 1)
 	if err != nil {
 		t.Fatal("Unable to set socket for multicast looping")
@@ -46,12 +46,9 @@ func TestMulticast(t *testing.T) {
 			stdLog.Printf("--> Sent %d bytes: %s\n", n, msg)
 		}
 
-		e = mc.LeaveMulticast()
-
-		if e != nil {
-			t.Fatal("Unable to leave multicast group")
-		} else if verbose {
-			stdLog.Println("Leaving multicast IP", mc.Addr.IP, "on port", mc.Addr.Port)
+		mc.LeaveMulticast()
+		if verbose {
+			stdLog.Println("Leaving multicast IP", mc.addr.IP, "on port", mc.addr.Port)
 		}
 	}(mc1)
 
@@ -66,11 +63,11 @@ func TestMulticast(t *testing.T) {
 func receiverNode(t *testing.T, wg *sync.WaitGroup, id int) {
 	defer wg.Done()
 
-	mc := JoinMulticast()
+	mc := JoinMulticast(nil, nil)
 	if mc == nil {
 		t.Fatal("Unable to join multicast group")
 	} else if verbose {
-		stdLog.Println("Joined and listening to multicast IP", mc.Addr.IP, "on port", mc.Addr.Port)
+		stdLog.Println("Joined and listening to multicast IP", mc.addr.IP, "on port", mc.addr.Port)
 	}
 
 	b := make([]byte, 1000)
@@ -85,22 +82,20 @@ func receiverNode(t *testing.T, wg *sync.WaitGroup, id int) {
 		stdLog.Println("Node", id, "<-- Received", n, "bytes:", string(b))
 	}
 
-	e = mc.LeaveMulticast()
-	if e != nil {
-		t.Fatal("Unable to leave multicast group")
-	} else if verbose {
-		stdLog.Println("Node", id, "leaving multicast IP", mc.Addr.IP, "on port", mc.Addr.Port)
+	mc.LeaveMulticast()
+	if verbose {
+		stdLog.Println("Node", id, "leaving multicast IP", mc.addr.IP, "on port", mc.addr.Port)
 	}
 }
 
 func TestMulticastMessages(t *testing.T) {
-	mc1 := JoinMulticast()
+	mc1 := JoinMulticast(nil, nil)
 	if mc1 == nil {
 		t.Fatal("Unable to join multicast group")
 	}
 
 	// Enable Multicast looping for testing
-	f, err := mc1.Conn.File()
+	f, err := mc1.conn.File()
 	err = syscall.SetsockoptInt(int(f.Fd()), syscall.IPPROTO_IP, syscall.IP_MULTICAST_LOOP, 1)
 	if err != nil {
 		t.Fatal("Unable to set socket for multicast looping")
@@ -110,7 +105,7 @@ func TestMulticastMessages(t *testing.T) {
 	mc1.StartMulticast()
 	mc1.ListenPeers()
 
-	mc2 := JoinMulticast()
+	mc2 := JoinMulticast(nil, nil)
 	if mc2 == nil {
 		t.Fatal("Unable to join multicast group")
 	}
@@ -121,37 +116,38 @@ func TestMulticastMessages(t *testing.T) {
 		t.Fatal("Unable to multicast message")
 	}
 	if n > 0 {
-		var msg MulticastMessage
-		if e = json.Unmarshal(b[:n], &msg); e != nil || msg.Type != TypeHello {
+		var msg multicastMessage
+		if e = json.Unmarshal(b[:n], &msg); e != nil || msg.Type != typeHello {
 			t.Fatal("Multicast Hello message is incorrectly formatted")
 		}
 	} else {
 		stdLog.Println("Received 0 bytes")
 	}
 
-	e = mc2.LeaveMulticast()
-	if e != nil {
-		t.Fatal("Unable to leave multicast group")
-	}
+	mc2.LeaveMulticast()
 }
 
 func TestMulticastAnnouncing(t *testing.T) {
-	mc1 := JoinMulticast()
+	mc1 := JoinMulticast(nil, nil)
 	if mc1 == nil {
 		t.Fatal("Unable to join multicast group")
 	}
 
 	// Enable Multicast looping for testing
-	f, err := mc1.Conn.File()
+	f, err := mc1.conn.File()
 	err = syscall.SetsockoptInt(int(f.Fd()), syscall.IPPROTO_IP, syscall.IP_MULTICAST_LOOP, 1)
 	if err != nil {
 		t.Fatal("Unable to set socket for multicast looping")
 	}
 
 	mc1.Period = 1
-	go mc1.sendHellos()
+	go func() {
+		if e := mc1.sendHellos(); e != nil {
+			log.Fatal("Error sending hellos")
+		}
+	}()
 
-	mc2 := JoinMulticast()
+	mc2 := JoinMulticast(nil, nil)
 	if mc2 == nil {
 		t.Fatal("Unable to join multicast group")
 	}

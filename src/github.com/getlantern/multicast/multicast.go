@@ -26,28 +26,35 @@ var (
 	log = golog.LoggerFor("multicast")
 )
 
-type Multicast struct {
-	Conn               *net.UDPConn
-	Addr               *net.UDPAddr
-	Period             int                      // multicast period (in secs, 10 by default)
-	FailedTime         int                      // timeout for peers' hello messages, 0 means no timeout
-	AddPeerCallback    func(string, []PeerInfo) // Callback called when a peer is added (added, all)
-	RemovePeerCallback func(string, []PeerInfo) // Callback called when a peer is removed (removed, all)
-	Payload            string                   // Will be appended to the messages
+type eventCallback func(string, []PeerInfo)
 
-	quit        chan bool
-	helloTicker *time.Ticker
-	peers       map[string]PeerInfo
+// Multicast servent main structure
+type Multicast struct {
+	Period  int    // multicast period (in secs, 10 by default)
+	Payload string // Will be appended to the messages
+
+	conn               *net.UDPConn
+	addr               *net.UDPAddr
+	failedTime         int           // timeout for peers' hello messages, 0 means no timeout
+	addPeerCallback    eventCallback // Callback called when a peer is added (added, all)
+	removePeerCallback eventCallback // Callback called when a peer is removed (removed, all)
+	quit               chan bool
+	helloTicker        *time.Ticker
+	peers              map[string]PeerInfo
 }
 
+// PeerInfo holds the information about a detected peer
 type PeerInfo struct {
 	IP      net.IP
 	Time    time.Time
 	Payload string
 }
 
-// Join the Lantern multicast group
-func JoinMulticast() *Multicast {
+// JoinMulticast joins the Lantern multicast group. Two callbacks must be provided:
+// the first will be called when a new peer is added to the list and the second will
+// be called when removed. A nil callback will be considered an empty function and just
+// do nothing.
+func JoinMulticast(addPeerCallback eventCallback, removePeerCallback eventCallback) *Multicast {
 	udpAddr, e := net.ResolveUDPAddr("udp4", multicastAddress)
 	if e != nil {
 		log.Error(e)
@@ -59,46 +66,75 @@ func JoinMulticast() *Multicast {
 		log.Error(e)
 		return nil
 	}
+
+	// Make sure that we have sane callbacks in place, avoiding regular nil checks
+	defaultCb := func(string, []PeerInfo) {}
+
+	var aCb eventCallback
+	if addPeerCallback != nil {
+		aCb = addPeerCallback
+	} else {
+		aCb = defaultCb
+	}
+
+	var rCb eventCallback
+	if removePeerCallback != nil {
+		rCb = removePeerCallback
+	} else {
+		rCb = defaultCb
+	}
+
 	return &Multicast{
-		Conn:       c,
-		Addr:       udpAddr,
-		Period:     defaultPeriod,
-		FailedTime: defaultFailedTime,
-		quit:       make(chan bool, 1),
-		peers:      make(map[string]PeerInfo),
+		Period:             defaultPeriod,
+		conn:               c,
+		addr:               udpAddr,
+		failedTime:         defaultFailedTime,
+		addPeerCallback:    aCb,
+		removePeerCallback: rCb,
+		quit:               make(chan bool, 1),
+		peers:              make(map[string]PeerInfo),
 	}
 }
 
-// Initiate advertising ourselves through multicasting
+// StartMulticast initiates advertising ourselves through multicasting
 func (mc *Multicast) StartMulticast() {
 	// Periodically announce ourselves to the network
-	go mc.sendHellos()
+	go func() {
+		if err := mc.sendHellos(); err != nil {
+			log.Error(err)
+		}
+	}()
 }
 
-// Initiate listening peers in multicast group
+// ListenPeers listens peers in previously joined multicast group
 func (mc *Multicast) ListenPeers() {
 	// Listen multicasts by others
-	go mc.listenPeers()
+	go func() {
+		if err := mc.listenPeers(); err != nil {
+			log.Error(err)
+		}
+	}()
 }
 
-// Stop multicasting and leave the group. This should be called by the users of
-// this library when the program exits or the discovery service is disabled by
+// LeaveMulticast stops multicasting and leaves the group. This should be called by the
+// users of this library when the program exits or the discovery service is disabled by
 // the end user
-func (mc *Multicast) LeaveMulticast() error {
+func (mc *Multicast) LeaveMulticast() {
 	// Stop sending hello
 	if mc.helloTicker != nil {
 		mc.helloTicker.Stop()
 	}
-	msg, e := MakeByeMessage(mc.Payload).Serialize()
+	msg, e := makeByeMessage(mc.Payload).serialize()
 	if e != nil {
 		log.Error(e)
 	}
-	mc.write(msg)
+
+	if _, e = mc.write(msg); e != nil {
+		log.Error(e)
+	}
 
 	// Leave the listening goroutine as soon as it timeouts
 	mc.quit <- true
-
-	return nil
 }
 
 func (mc *Multicast) peersInfo() []PeerInfo {
@@ -112,48 +148,53 @@ func (mc *Multicast) peersInfo() []PeerInfo {
 }
 
 func (mc *Multicast) write(b []byte) (int, error) {
-	return mc.Conn.WriteTo(b, mc.Addr)
+	return mc.conn.WriteTo(b, mc.addr)
 }
 
 func (mc *Multicast) read(b []byte) (int, *net.UDPAddr, error) {
-	return mc.Conn.ReadFromUDP(b)
+	return mc.conn.ReadFromUDP(b)
 }
 
-func (mc *Multicast) sendHellos() {
+// sendHellos returns an error if failing to set up the message, otherwise it handles its own
+// errors (i.e. it will keep sending hellos after a failure).
+func (mc *Multicast) sendHellos() error {
 	mc.helloTicker = time.NewTicker(time.Duration(mc.Period) * time.Second)
-	msg, e := MakeHelloMessage(mc.Payload).Serialize()
+	msg, e := makeHelloMessage(mc.Payload).serialize()
 	if e != nil {
-		log.Error(e)
-		return
+		return e
 	}
 	for range mc.helloTicker.C {
-		mc.write(msg)
+		if _, e = mc.write(msg); e != nil {
+			log.Error(e)
+		}
 	}
+	return nil
 }
 
+// listenPeers returns an error if failing to quit listening, otherwise and just as
+// sendHellos it handles its own internal errors and keeps working.
 func (mc *Multicast) listenPeers() error {
 	b := make([]byte, messageMaxSize)
 	for {
-	Select:
 		select {
 		case <-mc.quit:
-			return mc.Conn.Close()
+			return mc.conn.Close()
 		default:
 			// We are checking first that no peer has failed. If we don't
 			// hear from peers soon enough, we consider them failed.
 			for p, pinfo := range mc.peers {
 				// FailedTime zero means no timeout
-				if time.Now().After(pinfo.Time) && mc.FailedTime != 0 {
+				if time.Now().After(pinfo.Time) && mc.failedTime != 0 {
 					delete(mc.peers, p)
-
-					if mc.RemovePeerCallback != nil {
-						mc.RemovePeerCallback(p, mc.peersInfo())
-					}
+					mc.removePeerCallback(p, mc.peersInfo())
 				}
 			}
 
 			// Set a deadline to avoid blocking on a read forever
-			mc.Conn.SetReadDeadline(time.Now().Add(time.Duration(mc.Period) * time.Second))
+			e := mc.conn.SetReadDeadline(time.Now().Add(time.Duration(mc.Period) * time.Second))
+			if e != nil {
+				log.Error(e)
+			}
 			n, udpAddr, e := mc.read(b)
 			if e != nil {
 				// Just start over if any error happened when reading
@@ -162,19 +203,18 @@ func (mc *Multicast) listenPeers() error {
 			udpAddrStr := udpAddr.String()
 
 			msg := b[:n]
-			mcMsg, e := Deserialize(msg)
+			mcMsg, e := deserialize(msg)
 			if e != nil {
 				log.Error(e)
 				break
 			}
 			switch mcMsg.Type {
-			case TypeHello:
+			case typeHello:
 				// Test whether I'm the origin of this multicast
-				for _, ip := range getMyIPs() {
-					if ip.Equal(udpAddr.IP) {
-						break Select
-					}
+				if isFromMe(udpAddr.IP) {
+					break
 				}
+
 				// Add/Update peer
 				_, ok := mc.peers[udpAddrStr]
 
@@ -182,22 +222,19 @@ func (mc *Multicast) listenPeers() error {
 				// received, it will be considered failed. Update every time.
 				mc.peers[udpAddrStr] = PeerInfo{
 					IP:      udpAddr.IP,
-					Time:    time.Now().Add(time.Second * time.Duration(mc.FailedTime)),
+					Time:    time.Now().Add(time.Second * time.Duration(mc.failedTime)),
 					Payload: mcMsg.Payload,
 				}
 
-				if !ok && mc.AddPeerCallback != nil {
-					mc.AddPeerCallback(udpAddrStr, mc.peersInfo())
+				if !ok {
+					mc.addPeerCallback(udpAddrStr, mc.peersInfo())
 				}
-			case TypeBye:
+			case typeBye:
 				_, ok := mc.peers[udpAddrStr]
 				// Remove peer
 				if ok {
 					delete(mc.peers, udpAddrStr)
-
-					if mc.RemovePeerCallback != nil {
-						mc.RemovePeerCallback(udpAddrStr, mc.peersInfo())
-					}
+					mc.removePeerCallback(udpAddrStr, mc.peersInfo())
 				}
 			default:
 				log.Error("Unrecognized message sent to Lantern multicast address")
@@ -206,16 +243,17 @@ func (mc *Multicast) listenPeers() error {
 	}
 }
 
-func getMyIPs() (ips []net.IP) {
+func isFromMe(ip net.IP) bool {
 	addrs, e := net.InterfaceAddrs()
 	if e != nil {
 		log.Error(e)
-		return
 	}
 	for _, a := range addrs {
 		if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			ips = append(ips, ipnet.IP)
+			if ip.Equal(ipnet.IP) {
+				return true
+			}
 		}
 	}
-	return
+	return false
 }

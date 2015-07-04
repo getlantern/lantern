@@ -13,36 +13,35 @@ const (
 type messageType int
 
 const (
-	TypeHello = 1 + iota
-	TypeBye
+	typeHello = 1 + iota
+	typeBye
 )
 
-type MulticastMessage struct {
+type multicastMessage struct {
 	Type    messageType
 	Payload string
 }
 
-func MakeHelloMessage(payload string) *MulticastMessage {
-	return &MulticastMessage{
-		Type:    TypeHello,
+func makeHelloMessage(payload string) *multicastMessage {
+	return &multicastMessage{
+		Type:    typeHello,
 		Payload: payload,
 	}
 }
 
-func MakeByeMessage(payload string) *MulticastMessage {
-	return &MulticastMessage{
-		Type:    TypeBye,
+func makeByeMessage(payload string) *multicastMessage {
+	return &multicastMessage{
+		Type:    typeBye,
 		Payload: payload,
 	}
 }
 
-func (msg *MulticastMessage) Serialize() (b []byte, e error) {
-	b, e = json.Marshal(msg)
-	return
+func (msg *multicastMessage) serialize() (b []byte, e error) {
+	return json.Marshal(msg)
 }
 
-func Deserialize(b []byte) (msg *MulticastMessage, e error) {
-	msg = new(MulticastMessage)
+func deserialize(b []byte) (msg *multicastMessage, e error) {
+	msg = new(multicastMessage)
 	e = json.Unmarshal(b, msg)
 	return
 }

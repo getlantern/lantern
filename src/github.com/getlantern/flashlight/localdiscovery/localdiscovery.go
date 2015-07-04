@@ -1,9 +1,9 @@
-// Service for discovering Lantern instances in the local network
+// Package localdiscovery provides a service for discovering Lantern instances
+// in the local network
 package localdiscovery
 
 import (
 	"sync"
-	"time"
 
 	"github.com/getlantern/flashlight/ui"
 	"github.com/getlantern/golog"
@@ -23,6 +23,7 @@ var (
 	peersMutex    sync.Mutex
 )
 
+// Start begins the local Lantern discovery process
 func Start(advertise bool, portToAdvertise string) {
 	if service != nil {
 		// Dev error: this service shouldn't be started unless stopped
@@ -32,6 +33,8 @@ func Start(advertise bool, portToAdvertise string) {
 
 	var err error
 	service, err = ui.Register(messageType, nil, func(write func(interface{}) error) error {
+		// When connecting the UI we push the current peer list. For this reason, we need
+		// to hold this list beyond the add/remove events.
 		return write(buildPeersList())
 	})
 	if err != nil {
@@ -39,22 +42,14 @@ func Start(advertise bool, portToAdvertise string) {
 		return
 	}
 
-	mc = multicast.JoinMulticast()
-
-	mc.AddPeerCallback = func(peer string, peersInfo []multicast.PeerInfo) {
+	addOrRemoveCb := func(peer string, peersInfo []multicast.PeerInfo) {
 		peersMutex.Lock()
 		lastPeers = peersInfo
 		peersMutex.Unlock()
 
 		service.Out <- buildPeersList()
 	}
-	mc.RemovePeerCallback = func(peer string, peersInfo []multicast.PeerInfo) {
-		peersMutex.Lock()
-		lastPeers = peersInfo
-		peersMutex.Unlock()
-
-		service.Out <- buildPeersList()
-	}
+	mc = multicast.JoinMulticast(addOrRemoveCb, addOrRemoveCb)
 
 	if advertise {
 		mc.Payload = portToAdvertise
@@ -62,15 +57,9 @@ func Start(advertise bool, portToAdvertise string) {
 	}
 
 	mc.ListenPeers()
-
-	go func() {
-		c := time.Tick(updatePeriod * time.Second)
-		for range c {
-			service.Out <- buildPeersList()
-		}
-	}()
 }
 
+// Stop quits the local Lantern discovery process
 func Stop() {
 	ui.Unregister(messageType)
 	service = nil
