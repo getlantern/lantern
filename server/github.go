@@ -2,9 +2,18 @@ package server
 
 import (
 	"fmt"
-	"github.com/google/go-github/github"
+	"regexp"
 	"sort"
 	"sync"
+
+	"github.com/blang/semver"
+	"github.com/google/go-github/github"
+)
+
+var (
+	updateAssetRe = regexp.MustCompile(`^update_(darwin|windows|linux)_(arm|386|amd64)\.?.*$`)
+
+	emptyVersion semver.Version
 )
 
 // Arch holds architecture names.
@@ -33,7 +42,7 @@ var OS = struct {
 type Release struct {
 	id      int
 	URL     string
-	Version string
+	Version semver.Version
 	Assets  []Asset
 }
 
@@ -42,7 +51,7 @@ type releasesByID []Release
 // Asset struct represents a file included as part of a Release.
 type Asset struct {
 	id        int
-	v         string
+	v         semver.Version
 	Name      string
 	URL       string
 	LocalFile string
@@ -94,32 +103,48 @@ func NewReleaseManager(owner string, repo string) *ReleaseManager {
 	return ghc
 }
 
-// GetReleases queries github for all product releases.
-func (g *ReleaseManager) GetReleases() ([]Release, error) {
-	rels, _, err := g.client.Repositories.ListReleases(g.owner, g.repo, nil)
+// getReleases queries github for all product releases.
+func (g *ReleaseManager) getReleases() ([]Release, error) {
+	var releases []Release
 
-	if err != nil {
-		return nil, err
-	}
+	for page := 1; true; page++ {
+		opt := &github.ListOptions{Page: page}
 
-	releases := make([]Release, 0, len(rels))
+		rels, _, err := g.client.Repositories.ListReleases(g.owner, g.repo, opt)
 
-	for i := range rels {
-		rel := Release{
-			id:      *rels[i].ID,
-			URL:     *rels[i].ZipballURL,
-			Version: *rels[i].TagName,
+		if err != nil {
+			return nil, err
 		}
-		rel.Assets = make([]Asset, 0, len(rels[i].Assets))
-		for _, asset := range rels[i].Assets {
-			rel.Assets = append(rel.Assets, Asset{
-				id:   *asset.ID,
-				Name: *asset.Name,
-				URL:  *asset.BrowserDownloadURL,
-			})
-			// fmt.Printf("asset: %v -- %v -- %v\n", asset.Label, asset.State, asset.ContentType)
+
+		if len(rels) == 0 {
+			break
 		}
-		releases = append(releases, rel)
+
+		releases = make([]Release, 0, len(rels))
+
+		for i := range rels {
+			version := *rels[i].TagName
+			v, err := semver.Parse(version)
+			if err != nil {
+				log.Debugf("Release %q is not semantically versioned (%q). Skipping.", version, err)
+				continue
+			}
+			rel := Release{
+				id:      *rels[i].ID,
+				URL:     *rels[i].ZipballURL,
+				Version: v,
+			}
+			rel.Assets = make([]Asset, 0, len(rels[i].Assets))
+			for _, asset := range rels[i].Assets {
+				rel.Assets = append(rel.Assets, Asset{
+					id:   *asset.ID,
+					Name: *asset.Name,
+					URL:  *asset.BrowserDownloadURL,
+				})
+			}
+			log.Debugf("Release %q has %d assets...", version, len(rel.Assets))
+			releases = append(releases, rel)
+		}
 	}
 
 	sort.Sort(sort.Reverse(releasesByID(releases)))
@@ -133,26 +158,30 @@ func (g *ReleaseManager) UpdateAssetsMap() (err error) {
 
 	var rs []Release
 
-	if rs, err = g.GetReleases(); err != nil {
+	log.Debugf("Getting releases...")
+	if rs, err = g.getReleases(); err != nil {
 		return err
 	}
 
+	log.Debugf("Getting assets...")
 	for i := range rs {
-		// Does this tag represent a release?
-		if isVersionTag(rs[i].Version) {
-			for j := range rs[i].Assets {
-				// Does this asset represent a binary update?
-				if isUpdateAsset(rs[i].Assets[j].Name) {
-					asset := rs[i].Assets[j]
-					asset.v = rs[i].Version
-					info, err := getAssetInfo(asset.Name)
-					if err != nil {
-						return fmt.Errorf("Could not get asset info: %q", err)
-					}
-					if err = g.pushAsset(info.OS, info.Arch, &asset); err != nil {
-						return fmt.Errorf("Could not push asset: %q", err)
-					}
+		log.Debugf("Getting assets for release %q...", rs[i].Version)
+		for j := range rs[i].Assets {
+			log.Debugf("Found %q.", rs[i].Assets[j].Name)
+			// Does this asset represent a binary update?
+			if isUpdateAsset(rs[i].Assets[j].Name) {
+				log.Debugf("%q is an auto-update asset.", rs[i].Assets[j].Name)
+				asset := rs[i].Assets[j]
+				asset.v = rs[i].Version
+				info, err := getAssetInfo(asset.Name)
+				if err != nil {
+					return fmt.Errorf("Could not get asset info: %q", err)
 				}
+				if err = g.pushAsset(info.OS, info.Arch, &asset); err != nil {
+					return fmt.Errorf("Could not push asset: %q", err)
+				}
+			} else {
+				log.Debugf("%q is not an auto-update asset. Skipping.", rs[i].Assets[j].Name)
 			}
 		}
 	}
@@ -213,7 +242,7 @@ func (g *ReleaseManager) pushAsset(os string, arch string, asset *Asset) (err er
 	asset.OS = os
 	asset.Arch = arch
 
-	if version == "" {
+	if version.EQ(emptyVersion) {
 		return fmt.Errorf("Missing asset version.")
 	}
 
@@ -237,7 +266,7 @@ func (g *ReleaseManager) pushAsset(os string, arch string, asset *Asset) (err er
 	if g.updateAssetsMap[os][arch] == nil {
 		g.updateAssetsMap[os][arch] = make(map[string]*Asset)
 	}
-	g.updateAssetsMap[os][arch][version] = asset
+	g.updateAssetsMap[os][arch][version.String()] = asset
 
 	// Setting latest version.
 	if g.latestAssetsMap[os] == nil {
@@ -247,7 +276,7 @@ func (g *ReleaseManager) pushAsset(os string, arch string, asset *Asset) (err er
 		g.latestAssetsMap[os][arch] = asset
 	} else {
 		// Compare against already set version
-		if VersionCompare(g.latestAssetsMap[os][arch].v, asset.v) == Higher {
+		if asset.v.GT(g.latestAssetsMap[os][arch].v) {
 			g.latestAssetsMap[os][arch] = asset
 		}
 	}
@@ -271,4 +300,8 @@ func getAssetInfo(s string) (*AssetInfo, error) {
 		return info, nil
 	}
 	return nil, fmt.Errorf("Could not find asset info.")
+}
+
+func isUpdateAsset(s string) bool {
+	return updateAssetRe.MatchString(s)
 }

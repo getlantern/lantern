@@ -2,20 +2,35 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/getlantern/autoupdate-server/server"
-	"log"
+	"flag"
 	"net/http"
+	"os"
 	"time"
+
+	"github.com/getlantern/autoupdate-server/server"
+	"github.com/getlantern/golog"
 )
 
-var releaseManager *server.ReleaseManager
+var (
+	flagPrivateKey         = flag.String("k", "", "Path to private key.")
+	flagLocalAddr          = flag.String("l", ":6868", "Local bind address.")
+	flagPublicAddr         = flag.String("p", "http://127.0.0.1:6868/", "Public address.")
+	flagGithubOrganization = flag.String("o", "getlantern", "Github organization.")
+	flagGithubProject      = flag.String("n", "lantern", "Github project name.")
+	flagHelp               = flag.Bool("h", false, "Shows help.")
+)
+
+var (
+	log            = golog.LoggerFor("autoupdate-server")
+	releaseManager *server.ReleaseManager
+)
 
 type updateHandler struct {
 }
 
 // updateAssets checks for new assets released on the github releases page.
 func updateAssets() error {
-	log.Printf("Updating assets...")
+	log.Debug("Updating assets...")
 	if err := releaseManager.UpdateAssetsMap(); err != nil {
 		return err
 	}
@@ -28,22 +43,9 @@ func backgroundUpdate() {
 		time.Sleep(githubRefreshTime)
 		// Updating assets...
 		if err := updateAssets(); err != nil {
-			log.Printf("updateAssets: %s", err)
+			log.Debugf("updateAssets: %s", err)
 		}
 	}
-}
-
-func init() {
-	// Creating release manager.
-	log.Printf("Starting release manager.")
-	releaseManager = server.NewReleaseManager(githubNamespace, githubRepo)
-	// Getting assets...
-	if err := updateAssets(); err != nil {
-		// In this case we will not be able to continue.
-		log.Fatal(err)
-	}
-	// Setting a goroutine for pulling updates periodically
-	go backgroundUpdate()
 }
 
 func (u *updateHandler) closeWithStatus(w http.ResponseWriter, status int) {
@@ -67,16 +69,17 @@ func (u *updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if res, err = releaseManager.CheckForUpdate(&params); err != nil {
-			log.Printf("releaseManager.CheckForUpdate failed with error: %q", err)
+			log.Debugf("CheckForUpdate failed with error: %q", err)
 			if err == server.ErrNoUpdateAvailable {
 				u.closeWithStatus(w, http.StatusNoContent)
+				return
 			}
 			u.closeWithStatus(w, http.StatusExpectationFailed)
 			return
 		}
 
 		if res.PatchURL != "" {
-			res.PatchURL = publicAddr + res.PatchURL
+			res.PatchURL = *flagPublicAddr + res.PatchURL
 		}
 
 		var content []byte
@@ -97,20 +100,42 @@ func (u *updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 
+	// Parsing flags
+	flag.Parse()
+
+	if *flagHelp || *flagPrivateKey == "" {
+		flag.Usage()
+		os.Exit(0)
+	}
+
+	server.SetPrivateKey(*flagPrivateKey)
+
+	// Creating release manager.
+	log.Debug("Starting release manager.")
+	releaseManager = server.NewReleaseManager(*flagGithubOrganization, *flagGithubProject)
+	// Getting assets...
+	if err := updateAssets(); err != nil {
+		// In this case we will not be able to continue.
+		log.Fatal(err)
+	}
+
+	// Setting a goroutine for pulling updates periodically
+	go backgroundUpdate()
+
 	mux := http.NewServeMux()
 
 	mux.Handle("/update", new(updateHandler))
-	mux.Handle("/patches/", http.StripPrefix("/patches/", http.FileServer(http.Dir(patchesDirectory))))
+	mux.Handle("/patches/", http.StripPrefix("/patches/", http.FileServer(http.Dir(localPatchesDirectory))))
 
 	srv := http.Server{
-		Addr:    listenAddr,
+		Addr:    *flagLocalAddr,
 		Handler: mux,
 	}
 
-	log.Printf("Starting up HTTP server at %s.", listenAddr)
+	log.Debugf("Starting up HTTP server at %s.", *flagLocalAddr)
 
 	if err := srv.ListenAndServe(); err != nil {
-		log.Fatal("ListenAndServe: ", err)
+		log.Fatalf("ListenAndServe: ", err)
 	}
 
 }

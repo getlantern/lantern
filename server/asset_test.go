@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	testAssetURL = `https://github.com/getlantern/autoupdate-server/releases/download/v0.4/autoupdate-binary-darwin-x86.v4`
+	testAssetURL = `https://github.com/getlantern/autoupdate/releases/download/2.0.0-beta3/update_darwin_amd64`
 )
 
 func TestDownloadAsset(t *testing.T) {

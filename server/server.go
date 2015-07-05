@@ -2,7 +2,12 @@ package server
 
 import (
 	"fmt"
+
+	"github.com/blang/semver"
+	"github.com/getlantern/golog"
 )
+
+var log = golog.LoggerFor("autoupdate-server")
 
 // Initiative type.
 type Initiative string
@@ -86,8 +91,9 @@ func (g *ReleaseManager) CheckForUpdate(p *Params) (res *Result, err error) {
 		}
 	}
 
-	if !isVersionTag(p.AppVersion) {
-		return nil, fmt.Errorf("Expecting a version tag of the form vX.Y.Z.")
+	appVersion, err := semver.Parse(p.AppVersion)
+	if err != nil {
+		return nil, fmt.Errorf("Bad version string: %v", err)
 	}
 
 	if p.Checksum == "" {
@@ -115,9 +121,9 @@ func (g *ReleaseManager) CheckForUpdate(p *Params) (res *Result, err error) {
 
 		r := &Result{
 			Initiative: INITIATIVE_AUTO,
-			URL:        assetURL(update.URL),
+			URL:        update.URL,
 			PatchType:  PATCHTYPE_NONE,
-			Version:    update.v,
+			Version:    update.v.String(),
 			Checksum:   update.Checksum,
 			Signature:  update.Signature,
 		}
@@ -126,7 +132,7 @@ func (g *ReleaseManager) CheckForUpdate(p *Params) (res *Result, err error) {
 	}
 
 	// No update available.
-	if VersionCompare(p.AppVersion, update.v) != Higher {
+	if update.v.LTE(appVersion) {
 		return nil, ErrNoUpdateAvailable
 	}
 
@@ -134,17 +140,18 @@ func (g *ReleaseManager) CheckForUpdate(p *Params) (res *Result, err error) {
 
 	// Generate a binary diff of the two assets.
 	var patch *Patch
-	if patch, err = GeneratePatch(current.URL, update.URL); err != nil {
+	log.Debugf("Generating patch")
+	if patch, err = generatePatch(current.URL, update.URL); err != nil {
 		return nil, fmt.Errorf("Unable to generate patch: %q", err)
 	}
 
 	// Generate result.
 	r := &Result{
 		Initiative: INITIATIVE_AUTO,
-		URL:        assetURL(update.URL),
-		PatchURL:   assetURL(patch.File),
+		URL:        update.URL,
+		PatchURL:   patch.File,
 		PatchType:  PATCHTYPE_BSDIFF,
-		Version:    update.v,
+		Version:    update.v.String(),
 		Checksum:   update.Checksum,
 		Signature:  update.Signature,
 	}

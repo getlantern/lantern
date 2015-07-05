@@ -8,10 +8,11 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
-	"github.com/getlantern/go-update"
 	"io/ioutil"
 	"log"
 	"os"
+
+	"github.com/getlantern/go-update"
 )
 
 const (
@@ -24,6 +25,10 @@ var (
 
 func init() {
 	privateKeyFile = os.Getenv(privateKeyEnv)
+}
+
+func SetPrivateKey(s string) {
+	privateKeyFile = s
 }
 
 func checksumForFile(file string) (checksumHex string, err error) {
