@@ -6,9 +6,9 @@ import (
 )
 
 func TestSort(t *testing.T) {
-	v100, _ := New("1.0.0")
-	v010, _ := New("0.1.0")
-	v001, _ := New("0.0.1")
+	v100, _ := Parse("1.0.0")
+	v010, _ := Parse("0.1.0")
+	v001, _ := Parse("0.0.1")
 	versions := []Version{v010, v100, v001}
 	Sort(versions)
 
@@ -19,9 +19,9 @@ func TestSort(t *testing.T) {
 }
 
 func BenchmarkSort(b *testing.B) {
-	v100, _ := New("1.0.0")
-	v010, _ := New("0.1.0")
-	v001, _ := New("0.0.1")
+	v100, _ := Parse("1.0.0")
+	v010, _ := Parse("0.1.0")
+	v001, _ := Parse("0.0.1")
 	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {

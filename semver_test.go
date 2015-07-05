@@ -272,6 +272,21 @@ func TestNewHelper(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unexpected error %q", err)
 	}
+
+	// New returns pointer
+	if v == nil {
+		t.Fatal("Version is nil")
+	}
+	if v.Compare(Version{1, 2, 3, nil, nil}) != 0 {
+		t.Fatal("Unexpected comparison problem")
+	}
+}
+
+func TestMakeHelper(t *testing.T) {
+	v, err := Make("1.2.3")
+	if err != nil {
+		t.Fatalf("Unexpected error %q", err)
+	}
 	if v.Compare(Version{1, 2, 3, nil, nil}) != 0 {
 		t.Fatal("Unexpected comparison problem")
 	}
@@ -282,7 +297,7 @@ func BenchmarkParseSimple(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		New(VERSION)
+		Parse(VERSION)
 	}
 }
 
@@ -291,7 +306,7 @@ func BenchmarkParseComplex(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		New(VERSION)
+		Parse(VERSION)
 	}
 }
 
@@ -300,13 +315,13 @@ func BenchmarkParseAverage(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		New(formatTests[n%l].result)
+		Parse(formatTests[n%l].result)
 	}
 }
 
 func BenchmarkStringSimple(b *testing.B) {
 	const VERSION = "0.0.1"
-	v, _ := New(VERSION)
+	v, _ := Parse(VERSION)
 	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
@@ -316,7 +331,7 @@ func BenchmarkStringSimple(b *testing.B) {
 
 func BenchmarkStringLarger(b *testing.B) {
 	const VERSION = "11.15.2012"
-	v, _ := New(VERSION)
+	v, _ := Parse(VERSION)
 	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
@@ -326,7 +341,7 @@ func BenchmarkStringLarger(b *testing.B) {
 
 func BenchmarkStringComplex(b *testing.B) {
 	const VERSION = "0.0.1-alpha.preview+123.456"
-	v, _ := New(VERSION)
+	v, _ := Parse(VERSION)
 	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
@@ -345,7 +360,7 @@ func BenchmarkStringAverage(b *testing.B) {
 
 func BenchmarkValidateSimple(b *testing.B) {
 	const VERSION = "0.0.1"
-	v, _ := New(VERSION)
+	v, _ := Parse(VERSION)
 	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
@@ -355,7 +370,7 @@ func BenchmarkValidateSimple(b *testing.B) {
 
 func BenchmarkValidateComplex(b *testing.B) {
 	const VERSION = "0.0.1-alpha.preview+123.456"
-	v, _ := New(VERSION)
+	v, _ := Parse(VERSION)
 	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
@@ -374,7 +389,7 @@ func BenchmarkValidateAverage(b *testing.B) {
 
 func BenchmarkCompareSimple(b *testing.B) {
 	const VERSION = "0.0.1"
-	v, _ := New(VERSION)
+	v, _ := Parse(VERSION)
 	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
@@ -384,7 +399,7 @@ func BenchmarkCompareSimple(b *testing.B) {
 
 func BenchmarkCompareComplex(b *testing.B) {
 	const VERSION = "0.0.1-alpha.preview+123.456"
-	v, _ := New(VERSION)
+	v, _ := Parse(VERSION)
 	b.ReportAllocs()
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
