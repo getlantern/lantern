@@ -91,7 +91,7 @@ func (g *ReleaseManager) CheckForUpdate(p *Params) (res *Result, err error) {
 		}
 	}
 
-	appVersion, err := semver.New(p.AppVersion)
+	appVersion, err := semver.Parse(p.AppVersion)
 	if err != nil {
 		return nil, fmt.Errorf("Bad version string: %v", err)
 	}
