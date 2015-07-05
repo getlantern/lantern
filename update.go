@@ -113,7 +113,7 @@ while outputting a progress meter and supports resuming partial downloads.
 package update
 
 import (
-	"bitbucket.org/kardianos/osext"
+	"github.com/kardianos/osext"
 	"bytes"
 	"crypto"
 	"crypto/rsa"

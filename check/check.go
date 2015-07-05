@@ -9,8 +9,8 @@ import (
 	"io/ioutil"
 	"runtime"
 
-	"bitbucket.org/kardianos/osext"
 	"github.com/getlantern/go-update"
+	"github.com/kardianos/osext"
 )
 
 type Initiative string
