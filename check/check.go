@@ -183,13 +183,12 @@ func (r *Result) Update() (err error, errRecover error) {
 				// we can't try updating from a URL with the full contents
 				// in these cases, so fail
 				return
-			} else {
-				r.up.PatchType = update.PATCHTYPE_NONE
 			}
 		}
 	}
 
 	// try updating from a URL with the full contents
+	r.up.PatchType = update.PATCHTYPE_NONE
 	return r.up.FromUrl(r.Url)
 }
 
