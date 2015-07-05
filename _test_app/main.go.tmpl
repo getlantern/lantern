@@ -1,0 +1,53 @@
+// Package main prints the version of the currently running program and the
+// version of its executable file.
+package main
+
+import (
+	"os"
+	"os/exec"
+	"time"
+
+	"github.com/getlantern/autoupdate"
+	"github.com/getlantern/golog"
+)
+
+const (
+	internalVersion = "0.0.9"
+	sleepTime       = time.Second * 1
+)
+
+var log = golog.LoggerFor("_test_app")
+
+func main() {
+
+	go func() {
+		err := autoupdate.ApplyNext(&autoupdate.Config{
+			CurrentVersion: internalVersion,
+			URL:            "http://127.0.0.1:6868/update",
+			PublicKey:      []byte("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzSoibtACnqcp2uTGjCMJ\ntTOLDIMQ4oGPhGHT4Q/epum+H3hcbBNs9jRnMRWgX4z++xxuNJnhmoJw0eUXB7B4\nvj5DYpPajq6gPY8JuraF4ngfP5oxKj2BqpEUR9bx+3SjOSInrirM0JZO+aAW38BQ\nNJB+sS7JvbPjcwdjwKc5IKzc9kxxJNoZoFE9GMnYzaOrAlpCuAKWH8SCXYtCTxsX\nfKexdDxsI5Vzm5lQHJLMeqhLTQTUm9oQofwNAOGOkn6dD4ObMlmFTOsf1G03/Dl9\nsVgjaWaZ9bGjvJ9B85UxNeWwduy+uMrqFytxG6bbq0PbDEVu6ZQCPyiyCA7l945J\nOQIDAQAB\n-----END PUBLIC KEY-----\n"),
+		})
+		if err != nil {
+			log.Debugf("Error getting update: %v", err)
+			return
+		}
+		log.Debugf("Got update, restarting")
+		restart()
+	}()
+
+	for {
+		log.Debugf("Running program version: %v", internalVersion)
+		time.Sleep(sleepTime)
+	}
+}
+
+func restart() {
+	cmd := exec.Command(os.Args[0], os.Args[1:]...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+	err := cmd.Start()
+	if err != nil {
+		log.Fatalf("Unable to restart: %v", err)
+	}
+	os.Exit(0)
+}
