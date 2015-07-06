@@ -7,12 +7,13 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"github.com/kr/binarydist"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
 	"testing"
+
+	"github.com/kr/binarydist"
 )
 
 var (
