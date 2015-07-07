@@ -39,6 +39,7 @@ S3_BUCKET ?= lantern
 DOCKER_IMAGE_TAG := lantern-builder
 
 FIRETWEET_DIR ?= ../firetweet
+FLASHLIGHT_MOBILE_TESTER_DIR ?= ../flashlight-android-tester
 
 .PHONY: packages clean docker
 
@@ -421,6 +422,23 @@ test-and-cover:
 		tail -n +2 profile_tmp.cov >> profile.cov; \
 	done
 
+android-lib-dev: docker-golang-android
+	@source setenv.bash && \
+	cd $(LANTERN_ANDROID_DIR) && \
+	mkdir -p app && \
+	cd libflashlight && \
+		mkdir -p bindings/go_bindings && \
+		gobind -lang=go github.com/getlantern/lantern-android/libflashlight/bindings > bindings/go_bindings/go_bindings.go && \
+		gobind -lang=java github.com/getlantern/lantern-android/libflashlight/bindings > bindings/Flashlight.java || exit 1;
+	@$(call docker-up) && \
+	$(DOCKER) run -v $$PWD/src:/src golang/mobile /bin/bash -c \ "cd /src/github.com/getlantern/lantern-android/libflashlight && ./make.bash $(GIT_REVISION) $(BUILD_DATE)" && \
+	ls -l src/github.com/getlantern/lantern-android/app/libs/armeabi-v7a/libgojni.so && \
+	if [ -d "$(FLASHLIGHT_MOBILE_TESTER_DIR)" ]; then \
+		cp -v src/github.com/getlantern/lantern-android/app/libs/armeabi-v7a/libgojni.so $(FLASHLIGHT_MOBILE_TESTER_DIR)/app/src/main/jniLibs/armeabi-v7a/libgojni.so && \
+		cp -v src/github.com/getlantern/lantern-android/app/src/go/*.java $(FLASHLIGHT_MOBILE_TESTER_DIR)/app/src/main/java/go && \
+		cp -v src/github.com/getlantern/lantern-android/app/src/org/getlantern/Flashlight.java $(FLASHLIGHT_MOBILE_TESTER_DIR)/app/src/main/java/go/flashlight/Flashlight.java; \
+	fi
+
 android-lib: docker-golang-android genconfig
 	@source setenv.bash && \
 	cd $(LANTERN_ANDROID_DIR) && \
@@ -433,7 +451,7 @@ android-lib: docker-golang-android genconfig
 	$(DOCKER) run -v $$PWD/src:/src golang/mobile /bin/bash -c \ "cd /src/github.com/getlantern/lantern-android/libflashlight && ./make.bash $(GIT_REVISION) $(BUILD_DATE)" && \
 	ls -l src/github.com/getlantern/lantern-android/app/libs/armeabi-v7a/libgojni.so && \
 	if [ -d "$(FIRETWEET_DIR)" ]; then \
-		cp -v src/github.com/getlantern/lantern-android/app/libs/armeabi-v7a/libgojni.so $(FIRETWEET_DIR)/firetweet/src/main/jniLibs/armeabi-v7a && \
+		cp -v src/github.com/getlantern/lantern-android/app/libs/armeabi-v7a/libgojni.so $(FIRETWEET_DIR)/firetweet/src/main/jniLibs/armeabi-v7a/libgojni.so && \
 		cp -v src/github.com/getlantern/lantern-android/app/src/go/*.java $(FIRETWEET_DIR)/firetweet/src/main/java/go && \
 		cp -v src/github.com/getlantern/lantern-android/app/src/org/getlantern/Flashlight.java $(FIRETWEET_DIR)/firetweet/src/main/java/go/flashlight/Flashlight.java; \
 	fi
