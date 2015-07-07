@@ -7601,6 +7601,7 @@ body[dir=rtl] #latestDetails dd {
 
 #vis-container, #vis {
   height: 100%;
+  background-color: #fff;
 }
 
 #map {
@@ -7755,25 +7756,22 @@ body[dir=rtl] .tooltip .vis {
   bottom: 0;
   left: 0;
   z-index: 1051;
+  line-height: 12px;
   text-align: center;
   font-size: 13.3px;
-  text-shadow: #000 1px 1px 1px;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
-  opacity: 0.5;
   -moz-transition: opacity 0.5s ease;
   -o-transition: opacity 0.5s ease;
   -webkit-transition: opacity 0.5s ease;
   transition: opacity 0.5s ease;
-  background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.75));
-  line-height: 21px;
+  background-color: rgba(229, 234, 234, 1.0);
   padding: 12px 0;
-  outline: 1px solid rgba(0, 0, 0, 0.5);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  color: #999;
+  color: #666667;
   z-index: auto;
 }
+
 #footer:hover {
   opacity: 1;
 }
@@ -7798,16 +7796,20 @@ body[dir=rtl] .tooltip .vis {
   bottom: 15px;
   z-index: 1;
   white-space: nowrap;
+  border: none;
+  background: none;
 }
 #global-nav button {
-  width: 49px;
-  padding: 10px;
+  border: none;
+  background: none;
+  margin-bottom: 5px;
 }
 #global-nav button i.lsf-icon {
   color: #999;
   line-height: 17px;
-  font-size: 22px;
+  font-size: 27px;
   vertical-align: middle;
+  position: absolute;
 }
 #global-nav button.active, #global-nav button.active:hover {
   z-index: 1051 !important;
@@ -7841,12 +7843,14 @@ body.giveMode #npending {
 }
 
 #appInfo {
-  font-size: 11.9px;
+  font-size: 17px;
+  font-family: LBL;
   z-index: 1051;
-  color: #fff;
+  color: #666667;
+  margin-bottom: 5px;
 }
 #appInfo a {
-  color: #fff;
+  color: #666667;
 }
 #appInfo .update-available * {
   color: #f00;
