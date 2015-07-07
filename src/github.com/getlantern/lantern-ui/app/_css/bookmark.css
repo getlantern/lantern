@@ -121,10 +121,13 @@ div.end-censorship{
 	font-size: 100px;
 	line-height: 200px;
     font-family: LBL;
+    font-size: 12px;
 	text-align: center;
 	text-decoration: none;
 
 	text-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15),
+        inset 0 0 0 2px rgba(255, 255, 255, 0.4);
 
 	color: #fff;
 
@@ -135,24 +138,17 @@ div.end-censorship{
 
 .tile:hover,
 .tile:active {
-	box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15),
-		inset 0 0 0 2px rgba(255, 255, 255, 0.4);
-}
-
-.tile:active {
-	box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15),
-		inset 0 0 0 2px rgba(255, 255, 255, 0.6);
+    box-shadow: 0 0 3px #515151;
 }
 
 .tile.animate {
 	z-index: 1000;
-	color: rgba(0,0,0,0);
 	text-shadow: none;
 	box-shadow: none;
 }
 
 .url {
-	font-size: 18px;
+	font-size: 16px;
 	line-height: 15px;
     margin-top: 15px;
 
