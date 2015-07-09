@@ -17,7 +17,6 @@ import (
 
 const (
 	LocalUIDir = "../../../lantern-ui/app"
-	URL_CONST  = "URL_TOKEN"
 )
 
 var (
@@ -29,7 +28,7 @@ var (
 	server       *http.Server
 	uiaddr       string
 
-	externalUrl = URL_CONST
+	externalUrl = "NO_URL" // this string is going to be changed by Makefile
 	r           = http.NewServeMux()
 )
 
@@ -98,7 +97,7 @@ func Show() {
 			return
 		}
 		open.Run(uiaddr)
-		if externalUrl != URL_CONST {
+		if externalUrl != "NO"+"_URL" {
 			time.Sleep(4 * time.Second)
 			open.Run(externalUrl)
 		}

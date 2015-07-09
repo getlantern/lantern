@@ -319,12 +319,12 @@ package-darwin: require-version require-appdmg require-svgexport darwin
 	fi;
 
 manoto:
-	@echo "Replacing URL_TOKEN with manoto"
-	perl -pi -e "s/URL_TOKEN/https:\/\/www.facebook.com\/manototv/" src/github.com/getlantern/flashlight/ui/ui.go
+	@echo "Replacing NO_URL with manoto"
+	perl -pi -e "s/NO_URL/https:\/\/www.facebook.com\/manototv/" src/github.com/getlantern/flashlight/ui/ui.go
 
 unmanoto: 
-	@echo "Replacing manoto url with URL_TOKEN"
-	perl -pi -e "s/https:\/\/www.facebook.com\/manototv/URL_TOKEN/" src/github.com/getlantern/flashlight/ui/ui.go
+	@echo "Replacing manoto url with NO_URL"
+	perl -pi -e "s/https:\/\/www.facebook.com\/manototv/NO_URL/" src/github.com/getlantern/flashlight/ui/ui.go
 
 manoto-binaries: manoto binaries unmanoto
 
