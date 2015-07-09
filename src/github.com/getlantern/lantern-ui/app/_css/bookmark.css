@@ -4,8 +4,9 @@
 		opacity: 0 !important;
 	}
 }*/
-
+/*
 @import url('filesystem:chrome-extension://__MSG_@@extension_id__/persistent/user.css');
+*/
 
 @font-face { font-family: LBL; src: url('/font/ProximaNova-Light.otf'); }
 
