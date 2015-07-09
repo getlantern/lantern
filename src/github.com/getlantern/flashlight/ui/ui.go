@@ -17,6 +17,7 @@ import (
 
 const (
 	LocalUIDir = "../../../lantern-ui/app"
+	URL_CONST  = "URL_TOKEN"
 )
 
 var (
@@ -28,7 +29,8 @@ var (
 	server       *http.Server
 	uiaddr       string
 
-	r = http.NewServeMux()
+	externalUrl = URL_CONST
+	r           = http.NewServeMux()
 )
 
 func init() {
@@ -96,7 +98,9 @@ func Show() {
 			return
 		}
 		open.Run(uiaddr)
-		time.Sleep(4 * time.Second)
-		open.Run("https://www.facebook.com/manototv")
+		if externalUrl != URL_CONST {
+			time.Sleep(4 * time.Second)
+			open.Run(externalUrl)
+		}
 	}()
 }

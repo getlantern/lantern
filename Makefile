@@ -318,6 +318,16 @@ package-darwin: require-version require-appdmg require-svgexport darwin
 		echo "-> Skipped: Can not generate a package on a non-OSX host."; \
 	fi;
 
+manoto:
+	@echo "Replacing URL_TOKEN with manoto"
+	perl -pi -e "s/URL_TOKEN/https:\/\/www.facebook.com\/manototv/" src/github.com/getlantern/flashlight/ui/ui.go
+
+unmanoto: 
+	@echo "Replacing manoto url with URL_TOKEN"
+	perl -pi -e "s/https:\/\/www.facebook.com\/manototv/URL_TOKEN/" src/github.com/getlantern/flashlight/ui/ui.go
+
+manoto-binaries: manoto binaries unmanoto
+
 binaries: docker genassets linux windows darwin
 
 packages: require-version require-secrets clean genconfig binaries package-windows package-linux package-darwin
