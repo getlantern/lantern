@@ -332,6 +332,8 @@ binaries: docker genassets linux windows darwin
 
 packages: require-version require-secrets clean genconfig binaries package-windows package-linux package-darwin
 
+manoto-packages: require-version require-secrets clean genconfig manoto-binaries package-windows package-linux package-darwin
+
 release-qa: require-tag require-s3cmd
 	@BASE_NAME="lantern-installer-qa" && \
 	rm -f $$BASE_NAME* && \
