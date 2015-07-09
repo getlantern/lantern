@@ -12,9 +12,9 @@ import (
 	"time"
 )
 
-const listenProxyAddr = "127.0.0.1:9997"
+const clientListenProxyAddr = "127.0.0.1:9997"
 
-var globalClient *MobileClient
+var globalClient *mobileClient
 
 var testURLs = map[string][]byte{
 	"http://www.google.com/humans.txt":  []byte("Google is built by a large team of engineers, designers, researchers, robots, and others in many different sites across the globe. It is updated continuously, and built with more tools and technologies than we can shake a stick at. If you'd like to help us out, see google.com/careers.\n"),
@@ -25,12 +25,12 @@ var testURLs = map[string][]byte{
 func TestListenAndServeStop(t *testing.T) {
 
 	// Creating a client.
-	c := NewClient(listenProxyAddr, "FireTweetTest")
+	c := newClient(clientListenProxyAddr, "FireTweetTest")
 
 	// Allow it some seconds to start.
 	time.Sleep(time.Second * 3)
 
-	c.ServeHTTP()
+	c.serveHTTP()
 
 	// Allow it some seconds to start.
 	time.Sleep(time.Second)
@@ -46,8 +46,8 @@ func TestListenAndServeAgain(t *testing.T) {
 	// Since we've closed out server, we should be able to launch another at the
 	// same address.
 
-	globalClient = NewClient(listenProxyAddr, "FireTweetTest")
-	globalClient.ServeHTTP()
+	globalClient = newClient(clientListenProxyAddr, "FireTweetTest")
+	globalClient.serveHTTP()
 
 	// Allow it some seconds to start.
 	time.Sleep(time.Millisecond * 100)
@@ -61,7 +61,7 @@ func TestListenAndServeProxy(t *testing.T) {
 		wg.Add(1)
 
 		go func(wg *sync.WaitGroup, uri string, expectedContent []byte) {
-			if err := testReverseProxy(uri, expectedContent); err != nil {
+			if err := testClientReverseProxy(uri, expectedContent); err != nil {
 				t.Fatal(err)
 			}
 			wg.Done()
@@ -75,12 +75,12 @@ func TestListenAndServeProxy(t *testing.T) {
 func TestCloseClient(t *testing.T) {
 
 	// Closing the client that is still opened.
-	if err := globalClient.Stop(); err != nil {
+	if err := globalClient.stop(); err != nil {
 		t.Fatal("You should be able to close listening client.")
 	}
 }
 
-func testReverseProxy(destURL string, expectedContent []byte) (err error) {
+func testClientReverseProxy(destURL string, expectedContent []byte) (err error) {
 	var req *http.Request
 
 	if req, err = http.NewRequest("GET", destURL, nil); err != nil {
@@ -90,10 +90,10 @@ func testReverseProxy(destURL string, expectedContent []byte) (err error) {
 	client := &http.Client{
 		Transport: &http.Transport{
 			Proxy: func(req *http.Request) (*url.URL, error) {
-				return url.Parse(listenProxyAddr)
+				return url.Parse(clientListenProxyAddr)
 			},
 			Dial: func(n, a string) (net.Conn, error) {
-				return net.Dial("tcp", listenProxyAddr)
+				return net.Dial("tcp", clientListenProxyAddr)
 			},
 		},
 	}
