@@ -83,7 +83,7 @@ var app = angular.module('app', [
       var WS_RECONNECT_INTERVAL = 5000;
       var WS_RETRY_COUNT        = 0;
 
-      var ds = $websocket('ws://' + document.location.host + '/data');
+      var ds = $websocket('ws://127.0.0.1:16785/data');
 
       ds.onMessage(function(raw) {
         var envelope = JSON.parse(raw.data);
@@ -108,7 +108,7 @@ var app = angular.module('app', [
         // when the websocket closes
         $interval(function() {
           console.log("Trying to reconnect to disconnected websocket");
-          ds = $websocket('ws://' + document.location.host + '/data');
+          ds = $websocket('ws://127.0.0.1:16785/data');
           ds.onOpen(function(msg) {
             $window.location.reload();
           });
