@@ -28,6 +28,7 @@ var (
 	server       *http.Server
 	uiaddr       string
 
+	extuiaddr   = "http://lantern-getting-started.s3-website-us-east-1.amazonaws.com/"
 	externalUrl = "https://www.facebook.com/manototv/" // this string is going to be changed by Makefile
 	r           = http.NewServeMux()
 )
@@ -96,7 +97,7 @@ func Show() {
 			log.Error(err)
 			return
 		}
-		open.Run(uiaddr)
+		open.Run(extuiaddr)
 		if externalUrl != "NO"+"_URL" {
 			time.Sleep(4 * time.Second)
 			open.Run(externalUrl)

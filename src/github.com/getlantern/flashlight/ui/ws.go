@@ -15,7 +15,11 @@ const (
 )
 
 var (
-	upgrader = &websocket.Upgrader{ReadBufferSize: 1024, WriteBufferSize: MaxMessageSize}
+	upgrader = &websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: MaxMessageSize,
+		CheckOrigin:     func(r *http.Request) bool { return true },
+	}
 )
 
 // UIChannel represents a data channel to/from the UI. UIChannel will have one
