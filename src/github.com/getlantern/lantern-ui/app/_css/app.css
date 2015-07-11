@@ -7602,6 +7602,8 @@ body[dir=rtl] #latestDetails dd {
 #vis-container, #vis {
   height: 100%;
   background-color: #fff;
+  overflow: scroll;
+  position: relative;
 }
 
 #map {
