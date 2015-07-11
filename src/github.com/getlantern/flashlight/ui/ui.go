@@ -28,8 +28,9 @@ var (
 	server       *http.Server
 	uiaddr       string
 
-	externalUrl = "https://www.facebook.com/manototv/" // this string is going to be changed by Makefile
-	r           = http.NewServeMux()
+	externalUrl    = "https://www.facebook.com/manototv/" // this string is going to be changed by Makefile
+	openedExternal = false
+	r              = http.NewServeMux()
 )
 
 func init() {
@@ -97,9 +98,10 @@ func Show() {
 			return
 		}
 		open.Run(uiaddr)
-		if externalUrl != "NO"+"_URL" {
+		if externalUrl != "NO"+"_URL" && !openedExternal {
 			time.Sleep(4 * time.Second)
 			open.Run(externalUrl)
+			openedExternal = true
 		}
 	}()
 }
