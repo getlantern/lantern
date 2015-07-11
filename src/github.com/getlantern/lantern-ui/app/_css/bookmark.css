@@ -49,6 +49,7 @@ html {
 }
 
 .message {
+	box-sizing: border-box;
 	display: table;
 
 	position: absolute;
