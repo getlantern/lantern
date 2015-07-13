@@ -7,27 +7,25 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"syscall"
 )
 
 func main() {
 	log.Println("Multicast discovery utility running...")
 
-	mc := multicast.JoinMulticast()
-
-	f, err := mc.Conn.File()
-	err = syscall.SetsockoptInt(int(f.Fd()), syscall.IPPROTO_IP, syscall.IP_MULTICAST_LOOP, 1)
-	if err != nil {
-		log.Fatal("Error setting up socket for multicast loop")
-	}
-
-	mc.Period = 1
-	mc.AddPeerCallback = func(peer string, peers []multicast.PeerInfo) {
+	mc := multicast.JoinMulticast(func(peer string, peers []multicast.PeerInfo) {
 		log.Println("Added new peer:", peer)
-	}
-	mc.RemovePeerCallback = func(peer string, peers []multicast.PeerInfo) {
-		log.Println("Removed peer:", peer)
-	}
+	},
+		func(peer string, peers []multicast.PeerInfo) {
+			log.Println("Removed peer:", peer)
+		})
+	/*
+		f, err := mc.conn.File()
+		err = syscall.SetsockoptInt(int(f.Fd()), syscall.IPPROTO_IP, syscall.IP_MULTICAST_LOOP, 1)
+		if err != nil {
+			log.Fatal("Error setting up socket for multicast loop")
+		}
+	*/
+	mc.Period = 1
 	mc.StartMulticast()
 	mc.ListenPeers()
 
