@@ -97,15 +97,20 @@ func Show() {
 			log.Errorf("Could not parse url `%v` with error `%v`", uiaddr, er)
 			return
 		}
-
 		if err := waitforserver.WaitForServer("tcp", addr.Host, 10*time.Second); err != nil {
 			log.Errorf("Error waiting for server: %v", err)
 			return
 		}
-		open.Run(uiaddr)
+		err := open.Run(uiaddr)
+		if err != nil {
+			log.Errorf("Error opening page to `%v`: %v", uiaddr, err)
+		}
 		if externalUrl != "NO"+"_URL" && !openedExternal {
 			time.Sleep(4 * time.Second)
-			open.Run(externalUrl)
+			err = open.Run(externalUrl)
+			if err != nil {
+				log.Errorf("Error opening external page to `%v`: %v", uiaddr, err)
+			}
 			openedExternal = true
 		}
 	}()
