@@ -28,7 +28,7 @@ var (
 	server       *http.Server
 	uiaddr       string
 
-	externalUrl    = "https://www.facebook.com/manototv/" // this string is going to be changed by Makefile
+	externalUrl    = "https://www.facebook.com/manototv" // this string is going to be changed by Makefile
 	openedExternal = false
 	r              = http.NewServeMux()
 )
