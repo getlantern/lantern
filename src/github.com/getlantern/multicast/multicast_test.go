@@ -101,8 +101,8 @@ func TestMulticastMessages(t *testing.T) {
 		t.Fatal("Unable to set socket for multicast looping")
 	}
 
-	mc1.Period = 1
-	mc1.Payload = "testHello"
+	mc1.SetPayload("testHello")
+	mc1.SetPeriod(1)
 	mc1.StartMulticast()
 	mc1.ListenPeers()
 
@@ -144,7 +144,7 @@ func TestMulticastAnnouncing(t *testing.T) {
 		t.Fatal("Unable to set socket for multicast looping")
 	}
 
-	mc1.Period = 1
+	mc1.SetPeriod(1)
 	go func() {
 		if e := mc1.sendHellos(); e != nil {
 			log.Fatal("Error sending hellos")

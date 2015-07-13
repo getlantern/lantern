@@ -30,9 +30,8 @@ type eventCallback func(string, []PeerInfo)
 
 // Multicast servent main structure
 type Multicast struct {
-	Period  int    // multicast period (in secs, 10 by default)
-	Payload string // Will be appended to the messages
-
+	period  int    // multicast period (in secs, 10 by default)
+	payload string // Will be appended to the messages
 	conn               *net.UDPConn
 	addr               *net.UDPAddr
 	failedTime         int           // timeout for peers' hello messages, 0 means no timeout
@@ -85,15 +84,31 @@ func JoinMulticast(addPeerCallback eventCallback, removePeerCallback eventCallba
 	}
 
 	return &Multicast{
-		Period:             defaultPeriod,
+		period:             defaultPeriod,
 		conn:               c,
 		addr:               udpAddr,
 		failedTime:         defaultFailedTime,
 		addPeerCallback:    aCb,
 		removePeerCallback: rCb,
+		helloTicker:        time.NewTicker(time.Duration(defaultPeriod) * time.Second),
 		quit:               make(chan bool, 1),
 		peers:              make(map[string]PeerInfo),
 	}
+}
+
+// SetPeriod will define a different interval for the periodic multicasts. Currently setting the
+// period once StartMulticast has been called is not supported, so this function must be called
+// always before StartMulticast()
+func (mc *Multicast) SetPeriod(period int) {
+	mc.period = period
+	mc.helloTicker = time.NewTicker(time.Duration(period) * time.Second)
+}
+
+// SetPayload will define a payload to carry with multicast messages. Currently setting the
+// payload once StartMulticast has been called is not supported, so this function must be called
+// always before StartMulticast()
+func (mc *Multicast) SetPayload(payload string) {
+	mc.payload = payload
 }
 
 // StartMulticast initiates advertising ourselves through multicasting
@@ -120,11 +135,10 @@ func (mc *Multicast) ListenPeers() {
 // users of this library when the program exits or the discovery service is disabled by
 // the end user
 func (mc *Multicast) LeaveMulticast() {
-	// Stop sending hello
-	if mc.helloTicker != nil {
-		mc.helloTicker.Stop()
-	}
-	msg, e := makeByeMessage(mc.Payload).serialize()
+	// Stop sending 'hello'
+	mc.helloTicker.Stop()
+
+	msg, e := makeByeMessage(mc.payload).serialize()
 	if e != nil {
 		log.Error(e)
 	}
@@ -158,8 +172,7 @@ func (mc *Multicast) read(b []byte) (int, *net.UDPAddr, error) {
 // sendHellos returns an error if failing to set up the message, otherwise it handles its own
 // errors (i.e. it will keep sending hellos after a failure).
 func (mc *Multicast) sendHellos() error {
-	mc.helloTicker = time.NewTicker(time.Duration(mc.Period) * time.Second)
-	msg, e := makeHelloMessage(mc.Payload).serialize()
+	msg, e := makeHelloMessage(mc.payload).serialize()
 	if e != nil {
 		return e
 	}
@@ -191,7 +204,7 @@ func (mc *Multicast) listenPeers() error {
 			}
 
 			// Set a deadline to avoid blocking on a read forever
-			e := mc.conn.SetReadDeadline(time.Now().Add(time.Duration(mc.Period) * time.Second))
+			e := mc.conn.SetReadDeadline(time.Now().Add(time.Duration(mc.period) * time.Second))
 			if e != nil {
 				log.Error(e)
 			}

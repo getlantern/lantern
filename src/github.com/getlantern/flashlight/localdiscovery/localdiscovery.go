@@ -12,7 +12,6 @@ import (
 
 const (
 	messageType  = `LocalDiscovery`
-	updatePeriod = 10
 )
 
 var (
@@ -52,7 +51,7 @@ func Start(advertise bool, portToAdvertise string) {
 	mc = multicast.JoinMulticast(addOrRemoveCb, addOrRemoveCb)
 
 	if advertise {
-		mc.Payload = portToAdvertise
+		mc.SetPayload(portToAdvertise)
 		mc.StartMulticast()
 	}
 

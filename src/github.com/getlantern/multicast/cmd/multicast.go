@@ -25,7 +25,7 @@ func main() {
 			log.Fatal("Error setting up socket for multicast loop")
 		}
 	*/
-	mc.Period = 1
+	mc.SetPeriod(1)
 	mc.StartMulticast()
 	mc.ListenPeers()
 
