@@ -102,6 +102,7 @@ func TestMulticastMessages(t *testing.T) {
 	}
 
 	mc1.Period = 1
+	mc1.Payload = "testHello"
 	mc1.StartMulticast()
 	mc1.ListenPeers()
 
@@ -117,13 +118,16 @@ func TestMulticastMessages(t *testing.T) {
 	}
 	if n > 0 {
 		var msg multicastMessage
-		if e = json.Unmarshal(b[:n], &msg); e != nil || msg.Type != typeHello {
+		if e = json.Unmarshal(b[:n], &msg); e != nil || msg.Type != typeHello || msg.Payload != "testHello" {
+			stdLog.Println(string(b[:n]))
+			stdLog.Println(msg)
 			t.Fatal("Multicast Hello message is incorrectly formatted")
 		}
 	} else {
 		stdLog.Println("Received 0 bytes")
 	}
 
+	mc1.LeaveMulticast()
 	mc2.LeaveMulticast()
 }
 
@@ -147,7 +151,17 @@ func TestMulticastAnnouncing(t *testing.T) {
 		}
 	}()
 
-	mc2 := JoinMulticast(nil, nil)
+	mc2 := JoinMulticast(
+		func(string, []PeerInfo) {
+			if verbose {
+				stdLog.Println("Adding Peer")
+			}
+		},
+		func(string, []PeerInfo) {
+			if verbose {
+				stdLog.Println("Removing Peer")
+			}
+		})
 	if mc2 == nil {
 		t.Fatal("Unable to join multicast group")
 	}
@@ -159,6 +173,8 @@ func TestMulticastAnnouncing(t *testing.T) {
 
 	// Should be zero because we don't add ourselves to the peers map
 	if len(mc2.peers) != 0 {
+		stdLog.Println("Peers in MC1", mc1.peers)
+		stdLog.Println("Peers in MC2", mc2.peers)
 		t.Fatal("Wrong count of peers")
 	}
 }

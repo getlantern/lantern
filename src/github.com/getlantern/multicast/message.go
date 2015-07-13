@@ -13,7 +13,8 @@ const (
 type messageType int
 
 const (
-	typeHello = 1 + iota
+	_ = iota
+	typeHello
 	typeBye
 )
 

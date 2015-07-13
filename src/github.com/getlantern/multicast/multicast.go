@@ -249,7 +249,7 @@ func isFromMe(ip net.IP) bool {
 		log.Error(e)
 	}
 	for _, a := range addrs {
-		if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+		if ipnet, ok := a.(*net.IPNet); ok {
 			if ip.Equal(ipnet.IP) {
 				return true
 			}
