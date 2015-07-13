@@ -17,18 +17,14 @@ BUILD_DATE := $(shell date -u +%Y%m%d.%H%M%S)
 GIT_REVISION := $(shell git describe --abbrev=0 --tags --exact-match 2> /dev/null || git rev-parse --short HEAD)
 LOGGLY_TOKEN := 469973d5-6eaf-445a-be71-cf27141316a1
 LDFLAGS := -w -X main.version $(GIT_REVISION) -X main.buildDate $(BUILD_DATE) -X github.com/getlantern/flashlight/logging.logglyToken \"$(LOGGLY_TOKEN)\"
-LANTERN_DESCRIPTION := Censorship circumvention tool
-LANTERN_EXTENDED_DESCRIPTION := Lantern allows you to access sites blocked by internet censorship.\nWhen you run it, Lantern reroutes traffic to selected domains through servers located where such domains aren't censored.
+LANTERN_DESCRIPTION := "Censorship circumvention tool"
+LANTERN_EXTENDED_DESCRIPTION := "Lantern allows you to access sites blocked by internet censorship.\nWhen you run it, Lantern reroutes traffic to selected domains through servers located where such domains aren't censored."
 
-LANTERN_ANDROID_DIR := src/github.com/getlantern/lantern-android
-
-PACKAGE_VENDOR := Brave New Software Project, Inc
-PACKAGE_MAINTAINER := Lantern Team <team@getlantern.org>
+PACKAGE_VENDOR := "Brave New Software Project, Inc"
+PACKAGE_MAINTAINER := "Lantern Team <team@getlantern.org>"
 PACKAGE_URL := https://www.getlantern.org
 
 LANTERN_BINARIES_PATH ?= ../lantern-binaries
-
-GO_MOBILE_REVISION=80eb606a0fd03369fd13fff3bbaa5af94b16f7b1
 
 GH_USER ?= getlantern
 
@@ -38,8 +34,16 @@ S3_BUCKET ?= lantern
 
 DOCKER_IMAGE_TAG := lantern-builder
 
+LANTERN_MOBILE_DIR := src/github.com/getlantern/lantern-mobile
+LANTERN_MOBILE_LIBRARY := libflashlight.aar
+DOCKER_MOBILE_IMAGE_TAG := lantern-mobile-builder
+GO_MOBILE_REVISION := 7fb893ba435d7300e1f5559e972f1cc5dd729e61
+LOGGLY_TOKEN_MOBILE := d730c074-1f0a-415d-8d71-1ebf1d8bd736
+
+FLASHLIGHT_ANDROID_TESTER_DIR ?= ../flashlight-android-tester
+
 FIRETWEET_DIR ?= ../firetweet
-FLASHLIGHT_MOBILE_TESTER_DIR ?= ../flashlight-android-tester
+
 
 .PHONY: packages clean docker
 
@@ -191,17 +195,12 @@ docker: system-checks
 	cp Dockerfile $$DOCKER_CONTEXT && \
 	docker build -t $(DOCKER_IMAGE_TAG) $$DOCKER_CONTEXT;
 
-docker-golang-android: require-mercurial
+docker-mobile:
 	@$(call docker-up) && \
-	source setenv.bash && \
-	if [[ -z "$$(docker images | grep golang/mobile)" ]]; then \
-		$(GO) get -d golang.org/x/mobile/... && \
-		$(GO) get golang.org/x/mobile/cmd/gobind && \
-		cd src/golang.org/x/mobile && \
-		git reset --hard && \
-		git checkout $(GO_MOBILE_REVISION) && \
-		docker build -t golang/mobile .; \
-	fi
+	DOCKER_CONTEXT=.$(DOCKER_MOBILE_IMAGE_TAG)-context && \
+	mkdir -p $$DOCKER_CONTEXT && \
+	cp $(LANTERN_MOBILE_DIR)/Dockerfile $$DOCKER_CONTEXT && \
+	docker build -t $(DOCKER_MOBILE_IMAGE_TAG) $$DOCKER_CONTEXT;
 
 linux: genassets linux-386 linux-amd64
 
@@ -422,26 +421,18 @@ test-and-cover:
 		tail -n +2 profile_tmp.cov >> profile.cov; \
 	done
 
-android-lib-dev: docker-golang-android
+android-lib-dev: docker-mobile
 	@source setenv.bash && \
-	cd $(LANTERN_ANDROID_DIR) && \
-	mkdir -p app && \
-	cd libflashlight && \
-		mkdir -p bindings/go_bindings && \
-		gobind -lang=go github.com/getlantern/lantern-android/libflashlight/bindings > bindings/go_bindings/go_bindings.go && \
-		gobind -lang=java github.com/getlantern/lantern-android/libflashlight/bindings > bindings/Flashlight.java || exit 1;
+	cd $(LANTERN_MOBILE_DIR)
 	@$(call docker-up) && \
-	$(DOCKER) run -v $$PWD/src:/src golang/mobile /bin/bash -c \ "cd /src/github.com/getlantern/lantern-android/libflashlight && ./make.bash $(GIT_REVISION) $(BUILD_DATE)" && \
-	ls -l src/github.com/getlantern/lantern-android/app/libs/armeabi-v7a/libgojni.so && \
-	if [ -d "$(FLASHLIGHT_MOBILE_TESTER_DIR)" ]; then \
-		cp -v src/github.com/getlantern/lantern-android/app/libs/armeabi-v7a/libgojni.so $(FLASHLIGHT_MOBILE_TESTER_DIR)/app/src/main/jniLibs/armeabi-v7a/libgojni.so && \
-		cp -v src/github.com/getlantern/lantern-android/app/src/go/*.java $(FLASHLIGHT_MOBILE_TESTER_DIR)/app/src/main/java/go && \
-		cp -v src/github.com/getlantern/lantern-android/app/src/org/getlantern/Flashlight.java $(FLASHLIGHT_MOBILE_TESTER_DIR)/app/src/main/java/go/flashlight/Flashlight.java; \
+	$(DOCKER) run -v $$PWD/src:/src $(DOCKER_MOBILE_IMAGE_TAG) /bin/bash -c \ "cd /src/github.com/getlantern/lantern-mobile && gomobile bind -target=android -o=$(LANTERN_MOBILE_LIBRARY) ." && \
+	if [ -d "$(FLASHLIGHT_ANDROID_TESTER_DIR)" ]; then \
+		cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) $(FLASHLIGHT_ANDROID_TESTER_DIR)/app/libs/$(LANTERN_MOBILE_LIBRARY); \
 	fi
 
-android-lib: docker-golang-android genconfig
+android-lib: docker-mobile genconfig
 	@source setenv.bash && \
-	cd $(LANTERN_ANDROID_DIR) && \
+	cd $(LANTERN_MOBILE_DIR) && \
 	mkdir -p app && \
 	cd libflashlight && \
 		mkdir -p bindings/go_bindings && \
@@ -473,10 +464,10 @@ clean:
 	git checkout ./src/github.com/getlantern/flashlight/ui/resources.go && \
 	rm -f src/github.com/getlantern/flashlight/*.syso && \
 	rm -f *.dmg && \
-	rm -rf $(LANTERN_ANDROID_DIR)/libflashlight/bin && \
-	rm -rf $(LANTERN_ANDROID_DIR)/libflashlight/bindings/go_bindings && \
-	rm -rf $(LANTERN_ANDROID_DIR)/libflashlight/gen && \
-	rm -rf $(LANTERN_ANDROID_DIR)/libflashlight/libs && \
-	rm -rf $(LANTERN_ANDROID_DIR)/libflashlight/res && \
-	rm -rf $(LANTERN_ANDROID_DIR)/libflashlight/src && \
-	rm -rf $(LANTERN_ANDROID_DIR)/app
+	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/bin && \
+	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/bindings/go_bindings && \
+	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/gen && \
+	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/libs && \
+	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/res && \
+	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/src && \
+	rm -rf $(LANTERN_MOBILE_DIR)/app

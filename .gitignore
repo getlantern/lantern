@@ -1,5 +1,6 @@
 pkg
 .flashlight-builder-context/
+.lantern-mobile-builder-context/
 .lantern-builder-context/
 bin
 .DS_Store
