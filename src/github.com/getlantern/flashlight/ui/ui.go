@@ -87,11 +87,11 @@ func Start(addr string) error {
 	return nil
 }
 
-// Show opens the UI in a browser. It will wait for the UI addr come up for at most 3 seconds
-// Note we know the UI server is *listening* at this point as long as Start is
-// correctly called prior to this method. It may not be reading yet, but
-// since we're the only ones reading from those incoming sockets the fact
-// that reading starts asynchronously is not a problem.
+// Show opens the UI in a browser. Note we know the UI server is
+// *listening* at this point as long as Start is correctly called prior
+// to this method. It may not be reading yet, but since we're the only
+// ones reading from those incoming sockets the fact that reading starts
+// asynchronously is not a problem.
 func Show() {
 	go func() {
 		err := open.Run(uiaddr)
