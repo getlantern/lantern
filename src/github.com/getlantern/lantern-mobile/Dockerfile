@@ -2,7 +2,7 @@
 #
 # > make docker
 
-FROM fedora:21
+FROM fedora:22
 MAINTAINER "Ulysses Aalto" <uaalto@getlantern.org>
 
 ENV GO_VERSION go1.4.2
@@ -14,13 +14,13 @@ ENV PATH $PATH:$GOROOT/bin
 ENV WORKDIR /lantern
 
 # Updating system.
-RUN yum -y update && yum clean all
+RUN dnf -y update && dnf clean all
 
 # Requisites for building Go.
-RUN yum install -y git tar gzip curl hostname pcre-devel && yum clean all
+RUN dnf install -y git tar patch gzip curl hostname pcre-devel && dnf clean all
 
 # Compilers and tools for CGO.
-RUN yum install -y gcc gcc-c++ libgcc.i686 gcc-c++.i686 glibc-static pkg-config && yum clean all
+RUN dnf install -y gcc gcc-c++ libgcc.i686 gcc-c++.i686 glibc-static pkgconfig && dnf clean all
 
 # Install Go.
 #   1) 1.4 for bootstrap.
@@ -46,7 +46,7 @@ RUN echo $GO_VERSION > $GOROOT/VERSION
 RUN cd $GOROOT/src && ./all.bash
 
 # Install Android SDK
-RUN yum install -y java-1.8.0-openjdk-devel.x86_64
+RUN dnf install -y java-1.8.0-openjdk-devel.x86_64
 RUN curl -L http://dl.google.com/android/android-sdk_r23.0.2-linux.tgz | tar xz -C /usr/local
 ENV ANDROID_HOME /usr/local/android-sdk-linux
 RUN echo y | $ANDROID_HOME/tools/android update sdk --no-ui --all --filter build-tools-19.1.0 && \
