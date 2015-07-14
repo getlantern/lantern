@@ -4,14 +4,12 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"net/url"
 	"path/filepath"
 	"runtime"
 	"time"
 
 	"github.com/getlantern/golog"
 	"github.com/getlantern/tarfs"
-	"github.com/getlantern/waitforserver"
 	"github.com/skratchdot/open-golang/open"
 )
 
@@ -28,7 +26,7 @@ var (
 	server       *http.Server
 	uiaddr       string
 
-	externalUrl    = "https://www.facebook.com/manototv/" // this string is going to be changed by Makefile
+	externalUrl    = "https://www.facebook.com/manototv" // this string is going to be changed by Makefile
 	openedExternal = false
 	r              = http.NewServeMux()
 )
@@ -89,18 +87,23 @@ func Start(addr string) error {
 	return nil
 }
 
-// Show opens the UI in a browser. It will wait for the UI addr come up for at most 3 seconds
+// Show opens the UI in a browser. Note we know the UI server is
+// *listening* at this point as long as Start is correctly called prior
+// to this method. It may not be reading yet, but since we're the only
+// ones reading from those incoming sockets the fact that reading starts
+// asynchronously is not a problem.
 func Show() {
 	go func() {
-		addr, _ := url.Parse(uiaddr)
-		if err := waitforserver.WaitForServer("tcp", addr.Host, 3*time.Second); err != nil {
-			log.Error(err)
-			return
+		err := open.Run(uiaddr)
+		if err != nil {
+			log.Errorf("Error opening page to `%v`: %v", uiaddr, err)
 		}
-		open.Run(uiaddr)
 		if externalUrl != "NO"+"_URL" && !openedExternal {
 			time.Sleep(4 * time.Second)
-			open.Run(externalUrl)
+			err = open.Run(externalUrl)
+			if err != nil {
+				log.Errorf("Error opening external page to `%v`: %v", uiaddr, err)
+			}
 			openedExternal = true
 		}
 	}()

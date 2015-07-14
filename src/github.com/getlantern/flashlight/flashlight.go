@@ -208,10 +208,6 @@ func runClientProxy(cfg *config.Config) {
 			exit(fmt.Errorf("Unable to start UI: %v", err))
 			return
 		}
-		if showui {
-			// Launch a browser window with Lantern.
-			ui.Show()
-		}
 	}
 
 	applyClientConfig(client, cfg)
@@ -229,7 +225,19 @@ func runClientProxy(cfg *config.Config) {
 
 	go func() {
 		addExitFunc(pacOff)
-		client.ListenAndServe(pacOn)
+		err := client.ListenAndServe(func() {
+			pacOn()
+			if showui {
+				// Launch a browser window with Lantern but only after the pac
+				// URL and the proxy server are all up and running to avoid
+				// race conditions where we change the proxy setup while the
+				// UI server and proxy server are still coming up.
+				ui.Show()
+			}
+		})
+		if err != nil {
+			log.Errorf("Error calling listen and serve: %v", err)
+		}
 	}()
 }
 
