@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"net/url"
 	"path/filepath"
 	"runtime"
 	"time"
@@ -90,18 +89,13 @@ func Start(addr string) error {
 }
 
 // Show opens the UI in a browser. It will wait for the UI addr come up for at most 3 seconds
+// Note we know the UI server is *listening* at this point as long as Start is
+// correctly called prior to this method. It may not be reading yet, but
+// since we're the only ones reading from those incoming sockets the fact
+// that reading starts asynchronously is not a problem.
 func Show() {
 	go func() {
-		addr, err := url.Parse(uiaddr)
-		if err != nil {
-			log.Errorf("Could not parse url `%v` with error `%v`", uiaddr, err)
-			return
-		}
-		if err := waitforserver.WaitForServer("tcp", addr.Host, 10*time.Second); err != nil {
-			log.Errorf("Error waiting for server: %v", err)
-			return
-		}
-		err = open.Run(uiaddr)
+		err := open.Run(uiaddr)
 		if err != nil {
 			log.Errorf("Error opening page to `%v`: %v", uiaddr, err)
 		}
