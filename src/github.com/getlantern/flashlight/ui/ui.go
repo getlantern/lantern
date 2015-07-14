@@ -92,16 +92,16 @@ func Start(addr string) error {
 // Show opens the UI in a browser. It will wait for the UI addr come up for at most 3 seconds
 func Show() {
 	go func() {
-		addr, er := url.Parse(uiaddr)
-		if er != nil {
-			log.Errorf("Could not parse url `%v` with error `%v`", uiaddr, er)
+		addr, err := url.Parse(uiaddr)
+		if err != nil {
+			log.Errorf("Could not parse url `%v` with error `%v`", uiaddr, err)
 			return
 		}
 		if err := waitforserver.WaitForServer("tcp", addr.Host, 10*time.Second); err != nil {
 			log.Errorf("Error waiting for server: %v", err)
 			return
 		}
-		err := open.Run(uiaddr)
+		err = open.Run(uiaddr)
 		if err != nil {
 			log.Errorf("Error opening page to `%v`: %v", uiaddr, err)
 		}
