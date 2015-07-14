@@ -225,7 +225,7 @@ func runClientProxy(cfg *config.Config) {
 
 	go func() {
 		addExitFunc(pacOff)
-		client.ListenAndServe(func() {
+		err := client.ListenAndServe(func() {
 			pacOn()
 			if showui {
 				// Launch a browser window with Lantern but only after the pac
@@ -235,6 +235,9 @@ func runClientProxy(cfg *config.Config) {
 				ui.Show()
 			}
 		})
+		if err != nil {
+			log.Errorf("Error calling listen and serve: %v", err)
+		}
 	}()
 }
 
