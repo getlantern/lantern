@@ -10,7 +10,6 @@ import (
 
 	"github.com/getlantern/golog"
 	"github.com/getlantern/tarfs"
-	"github.com/getlantern/waitforserver"
 	"github.com/skratchdot/open-golang/open"
 )
 
