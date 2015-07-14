@@ -208,12 +208,6 @@ func runClientProxy(cfg *config.Config) {
 			exit(fmt.Errorf("Unable to start UI: %v", err))
 			return
 		}
-		/*
-			if showui {
-				// Launch a browser window with Lantern.
-				ui.Show()
-			}
-		*/
 	}
 
 	applyClientConfig(client, cfg)
