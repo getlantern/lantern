@@ -117,7 +117,7 @@ func doMain() error {
 
 	parseFlags()
 
-	cfg, err := config.Init(packageVersion)
+	cfg, err := config.Init(version)
 	if err != nil {
 		return fmt.Errorf("Unable to initialize configuration: %v", err)
 	}
