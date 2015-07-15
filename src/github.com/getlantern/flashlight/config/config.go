@@ -280,6 +280,7 @@ func (cfg *Config) applyClientDefaults() {
 				MaxMasquerades: 20,
 				QOS:            10,
 				Weight:         4000,
+				Trusted:        true,
 			},
 		}
 
