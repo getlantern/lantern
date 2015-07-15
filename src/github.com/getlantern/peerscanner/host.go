@@ -265,7 +265,8 @@ func (h *host) run() {
 			h.pause()
 			checkImmediately = true
 		case <-h.initCfrCh:
-			h.doInitCfrDist()
+			// (CloudFront/DNSimple support temporarily disabled)
+			// h.doInitCfrDist()
 		case <-pauseTimer.C:
 			log.Debugf("%v had no successful checks or resets in %v, pausing", h, pauseAfter)
 			h.pause()
@@ -392,6 +393,7 @@ func (h *host) registerCfl() error {
 }
 
 func (h *host) registerDsp() error {
+	/* (CloudFront/DNSimple support temporarily disabled)
 	err := h.registerDspHost()
 	if err != nil {
 		return fmt.Errorf("Unable to register DNSimple host %v: %v", h, err)
@@ -401,6 +403,7 @@ func (h *host) registerDsp() error {
 		return err
 	}
 	return nil
+	*/
 }
 
 func (h *host) registerCflHost() error {
@@ -453,9 +456,11 @@ func (h *host) deregisterFromRotations() {
 	for _, group := range h.cflGroups {
 		group.deregister(h)
 	}
+	/* (CloudFront/DNSimple support temporarily disabled)
 	for _, group := range h.dspGroups {
 		group.deregister(h)
 	}
+	*/
 }
 
 func (h *host) isFallback() bool {
