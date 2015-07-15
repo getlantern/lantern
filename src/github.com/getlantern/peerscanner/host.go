@@ -402,8 +402,8 @@ func (h *host) registerDsp() error {
 	if err != nil {
 		return err
 	}
-	return nil
 	*/
+	return nil
 }
 
 func (h *host) registerCflHost() error {
