@@ -7807,6 +7807,8 @@ body[dir=rtl] .tooltip .vis {
   z-index: -1;
   background: none;
   margin-bottom: 5px;
+  -webkit-box-shadow: none;
+  box-shadow: none;
 }
 #global-nav button i.lsf-icon {
   color: #999;
