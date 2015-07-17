@@ -36,7 +36,7 @@ angular.module('app.services', [])
       peer.mode = 'give';
 
       setConnected(peer);
-      
+
       // Update bpsUpDn
       var peerid = peer.peerid;
       var oldPeer = flashlightPeers[peerid];
@@ -54,7 +54,7 @@ angular.module('app.services', [])
       }
       model.instanceStats.allBytes.rate += bpsUpDnDelta;
     }
-    
+
     var fnList = {
       'GeoLookup': function(data) {
         console.log('Got GeoLookup information: ', data);
@@ -72,7 +72,7 @@ angular.module('app.services', [])
             // set default client to get-mode
             model.settings = {};
             model.settings.mode = 'get';
-            model.settings.version = data.Version + " (" + data.BuildDate + ")";
+            model.settings.version = data.Version + " (" + data.RevisionDate + ")";
         }
 
         if (data.AutoReport) {
