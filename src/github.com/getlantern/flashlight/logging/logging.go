@@ -67,7 +67,7 @@ func Init() error {
 }
 
 func Configure(addr string, cloudConfigCA string, instanceId string,
-	version string, buildDate string) {
+	version string, revisionDate string) {
 	if logglyToken == "" {
 		log.Debugf("No logglyToken, not sending error logs to Loggly")
 		return
@@ -78,7 +78,7 @@ func Configure(addr string, cloudConfigCA string, instanceId string,
 		return
 	}
 
-	if buildDate == "" {
+	if revisionDate == "" {
 		log.Error("No build date configured, Loggly won't include build date information")
 		return
 	}
@@ -92,7 +92,7 @@ func Configure(addr string, cloudConfigCA string, instanceId string,
 	// the proxy is not yet ready.
 	go func() {
 		lastAddr = addr
-		enableLoggly(addr, cloudConfigCA, instanceId, version, buildDate)
+		enableLoggly(addr, cloudConfigCA, instanceId, version, revisionDate)
 	}()
 }
 
@@ -113,7 +113,7 @@ func timestamped(orig io.Writer) io.Writer {
 }
 
 func enableLoggly(addr string, cloudConfigCA string, instanceId string,
-	version string, buildDate string) {
+	version string, revisionDate string) {
 	if addr == "" {
 		log.Error("No known proxy, won't report to Loggly")
 		removeLoggly()
@@ -133,7 +133,7 @@ func enableLoggly(addr string, cloudConfigCA string, instanceId string,
 	logglyWriter := &logglyErrorWriter{
 		lang:            lang,
 		tz:              time.Now().Format("MST"),
-		versionToLoggly: fmt.Sprintf("%v (%v)", version, buildDate),
+		versionToLoggly: fmt.Sprintf("%v (%v)", version, revisionDate),
 		client:          loggly.New(logglyToken),
 	}
 	logglyWriter.client.Defaults["hostname"] = "hidden"

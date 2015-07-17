@@ -32,8 +32,9 @@ import (
 )
 
 var (
-	version   string
-	buildDate string
+	version      string
+	revisionDate string // The revision date and time that is associated with the version string.
+	buildDate    string // The actual date and time the binary was built.
 
 	cfgMutex sync.Mutex
 
@@ -65,8 +66,8 @@ func init() {
 		version = "development"
 	}
 
-	if buildDate == "" {
-		buildDate = "now"
+	if revisionDate == "" {
+		revisionDate = "now"
 	}
 
 	// Passing public key and version to the autoupdate service.
@@ -165,7 +166,7 @@ func i18nInit() {
 }
 
 func displayVersion() {
-	log.Debugf("---- flashlight version: %s, release: %s, build date: %s ----", version, packageVersion, buildDate)
+	log.Debugf("---- flashlight version: %s, release: %s, build revision date: %s ----", version, packageVersion, revisionDate)
 }
 
 func parseFlags() {
@@ -252,8 +253,8 @@ func applyClientConfig(client *client.Client, cfg *config.Config) {
 
 	autoupdate.Configure(cfg)
 	logging.Configure(cfg.Addr, cfg.CloudConfigCA, cfg.InstanceId,
-		version, buildDate)
-	settings.Configure(cfg, version, buildDate)
+		version, revisionDate)
+	settings.Configure(cfg, version, revisionDate, buildDate)
 	proxiedsites.Configure(cfg.ProxiedSites)
 	analytics.Configure(cfg, version)
 	log.Debugf("Proxy all traffic or not: %v", cfg.Client.ProxyAll)
