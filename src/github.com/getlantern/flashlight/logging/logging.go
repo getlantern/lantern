@@ -105,9 +105,9 @@ func Close() error {
 func timestamped(orig io.Writer) io.Writer {
 	return wfilter.LinePrepender(orig, func(w io.Writer) (int, error) {
 		ts := time.Now()
-		runningSecs := math.Trunc(ts.Sub(processStart).Seconds())
+		runningSecs := ts.Sub(processStart).Seconds()
 		secs := int(math.Mod(runningSecs, 60))
-		mins := int(math.Trunc(runningSecs / 60))
+		mins := int(runningSecs / 60)
 		return fmt.Fprintf(w, "%s - %dm%ds ", ts.In(time.UTC).Format(logTimestampFormat), mins, secs)
 	})
 }
