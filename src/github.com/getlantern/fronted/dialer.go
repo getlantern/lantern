@@ -5,7 +5,6 @@ package fronted
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"crypto/x509/pkix"
 	"fmt"
 	"io"
 	"net"
@@ -14,8 +13,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"encoding/asn1"
 
 	"github.com/getlantern/connpool"
 	"github.com/getlantern/enproxy"
@@ -317,40 +314,6 @@ func (d *dialer) serverHost(masquerade *Masquerade) string {
 		}
 	}
 	return serverHost
-}
-
-// tlsInfo is a temporary function that could help catching a bug. See this
-// related PR: https://github.com/getlantern/lantern/issues/2398
-func (d *dialer) tlsInfo(masquerade *Masquerade) string {
-	var data []string
-
-	serverName := d.Host
-
-	if masquerade != nil {
-		serverName = masquerade.Domain
-	}
-
-	var certpool []string
-	subjects := d.RootCAs.Subjects()
-
-	var dest pkix.RDNSequence
-
-	for i, _ := range subjects {
-		_, err := asn1.Unmarshal(subjects[i], &dest)
-		if err != nil {
-			certpool = append(certpool, fmt.Sprintf("Error[%d]: %q", i, err.Error()))
-		} else {
-			certpool = append(certpool, fmt.Sprintf("RDNSequence[%d]: %q", i, dest))
-		}
-	}
-
-	data = append(data, fmt.Sprintf("Insecure Skip Verify: %v", d.InsecureSkipVerify))
-	data = append(data, fmt.Sprintf("Host: %v", d.Host))
-	data = append(data, fmt.Sprintf("Masquerade Domain: %v", masquerade.Domain))
-	data = append(data, fmt.Sprintf("Server Name: %v", serverName))
-	data = append(data, fmt.Sprintf("x509 cert pool subjects: %#s", strings.Join(certpool, " | ")))
-
-	return strings.Join(data, ", ")
 }
 
 // tlsConfig builds a tls.Config for dialing the upstream host. Constructed
