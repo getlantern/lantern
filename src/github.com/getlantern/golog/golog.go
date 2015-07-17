@@ -16,10 +16,12 @@ import (
 	"strconv"
 	"strings"
 	"sync/atomic"
+	"time"
 )
 
 var (
-	outs atomic.Value
+	outs     atomic.Value
+	logStart time.Time
 )
 
 func init() {
@@ -35,6 +37,7 @@ func SetOutputs(errorOut io.Writer, debugOut io.Writer) {
 
 func ResetOutputs() {
 	SetOutputs(os.Stderr, os.Stdout)
+	logStart = time.Now()
 }
 
 func getOutputs() *outputs {
@@ -118,13 +121,38 @@ type logger struct {
 	funcForPc *runtime.Func
 }
 
+// Variation of time.Round that works with durations
+// truncate the running time to lower resolution
+// to conserve characters in the log messages
+func Round(d, r time.Duration) time.Duration {
+	if r <= 0 {
+		return d
+	}
+	neg := d < 0
+	if neg {
+		d = -d
+	}
+	if m := d % r; m+m < r {
+		d = d - m
+	} else {
+		d = d + r - m
+	}
+	if neg {
+		return -d
+	}
+	return d
+}
+
 // attaches the file and line number corresponding to
 // the log message
 func (l *logger) linePrefix(skipFrames int) string {
 	runtime.Callers(skipFrames, l.pc)
 	funcForPc := runtime.FuncForPC(l.pc[0])
 	file, line := funcForPc.FileLine(l.pc[0])
-	return fmt.Sprintf("%s%s:%d ", l.prefix, filepath.Base(file), line)
+
+	runningTime := Round(time.Since(logStart), time.Millisecond)
+
+	return fmt.Sprintf("%s%s:%d %s ", l.prefix, filepath.Base(file), line, runningTime)
 }
 
 func (l *logger) print(out io.Writer, skipFrames int, severity string, arg interface{}) {
