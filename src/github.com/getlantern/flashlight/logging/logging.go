@@ -3,6 +3,7 @@ package logging
 import (
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -24,7 +25,8 @@ const (
 )
 
 var (
-	log = golog.LoggerFor("flashlight.logging")
+	log          = golog.LoggerFor("flashlight.logging")
+	processStart = time.Now()
 
 	logFile *rotator.SizeRotator
 
@@ -102,7 +104,11 @@ func Close() error {
 // timestamped adds a timestamp to the beginning of log lines
 func timestamped(orig io.Writer) io.Writer {
 	return wfilter.LinePrepender(orig, func(w io.Writer) (int, error) {
-		return fmt.Fprintf(w, "%s - ", time.Now().In(time.UTC).Format(logTimestampFormat))
+		ts := time.Now()
+		runningSecs := math.Trunc(ts.Sub(processStart).Seconds())
+		secs := int(math.Mod(runningSecs, 60))
+		mins := int(math.Trunc(runningSecs / 60))
+		return fmt.Fprintf(w, "%s - %dm%ds ", ts.In(time.UTC).Format(logTimestampFormat), mins, secs)
 	})
 }
 
