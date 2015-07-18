@@ -33,8 +33,8 @@ RUN (curl -sSL https://golang.org/dl/go1.4.linux-amd64.tar.gz | tar -vxz -C /tmp
 # GOVERSION string is the output of 'git log -n 1 --format="format: devel +%h %cd" HEAD'
 # like in go tool dist.
 # Revision picked on Jul 13, 2015.
-ENV GO_REV 242ec168c1394038cee17935f92e28fc24baac8e
-ENV GO_VERSION devel +242ec16 Mon Jul 13 17:51:09 2015 +0000
+ENV GO_REV ebb67836f9dfec6016a1fb7922872cb0c1c0d4bc
+ENV GO_VERSION devel +ebb6783 Fri Jul 17 17:58:16 2015 +0000
 
 ENV GOROOT /go
 ENV GOPATH /
@@ -43,7 +43,7 @@ ENV PATH $PATH:$GOROOT/bin
 RUN mkdir -p $GOROOT && \
     curl -sSL "https://go.googlesource.com/go/+archive/$GO_REV.tar.gz" | tar -vxz -C $GOROOT
 RUN echo $GO_VERSION > $GOROOT/VERSION
-RUN cd $GOROOT/src && ./all.bash
+RUN cd $GOROOT/src && ./make.bash
 
 # Install Android SDK
 RUN dnf install -y java-1.8.0-openjdk-devel.x86_64
@@ -55,6 +55,7 @@ RUN echo y | $ANDROID_HOME/tools/android update sdk --no-ui --all --filter build
 
 # Install and initialize gomobile
 RUN go get golang.org/x/mobile/cmd/gomobile
+
 RUN gomobile init
 
 RUN mkdir -p $WORKDIR

@@ -37,7 +37,6 @@ DOCKER_IMAGE_TAG := lantern-builder
 LANTERN_MOBILE_DIR := src/github.com/getlantern/lantern-mobile
 LANTERN_MOBILE_LIBRARY := libflashlight.aar
 DOCKER_MOBILE_IMAGE_TAG := lantern-mobile-builder
-GO_MOBILE_REVISION := 7fb893ba435d7300e1f5559e972f1cc5dd729e61
 LOGGLY_TOKEN_MOBILE := d730c074-1f0a-415d-8d71-1ebf1d8bd736
 
 FLASHLIGHT_ANDROID_TESTER_DIR ?= ../flashlight-android-tester
@@ -425,7 +424,7 @@ android-lib-dev: docker-mobile
 	@source setenv.bash && \
 	cd $(LANTERN_MOBILE_DIR)
 	@$(call docker-up) && \
-	$(DOCKER) run -v $$PWD/src:/src $(DOCKER_MOBILE_IMAGE_TAG) /bin/bash -c \ "cd /src/github.com/getlantern/lantern-mobile && gomobile bind -target=android -o=$(LANTERN_MOBILE_LIBRARY) ." && \
+	$(DOCKER) run -v $$PWD/src:/src $(DOCKER_MOBILE_IMAGE_TAG) /bin/bash -c \ "cd /src/github.com/getlantern/lantern-mobile && gomobile bind -target=android -o=$(LANTERN_MOBILE_LIBRARY) -ldflags="$(LDFLAGS)" ." && \
 	if [ -d "$(FLASHLIGHT_ANDROID_TESTER_DIR)" ]; then \
 		cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) $(FLASHLIGHT_ANDROID_TESTER_DIR)/app/libs/$(LANTERN_MOBILE_LIBRARY); \
 	fi
