@@ -7838,7 +7838,7 @@ body.giveMode #npending {
 #share {
     position: absolute;
     left: 15px;
-    bottom: 15px;
+    bottom: 10px;
 }
 
 #share span {
