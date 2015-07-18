@@ -13,8 +13,9 @@ SVGEXPORT := $(shell which svgexport 2> /dev/null)
 
 BOOT2DOCKER := $(shell which boot2docker 2> /dev/null)
 
-GIT_REVISION := $(shell git describe --abbrev=0 --tags --exact-match 2> /dev/null || git rev-parse --short HEAD)
-GIT_REVISION_DATE := $(shell git show -s --format=%ci $(GIT_REVISION))
+GIT_REVISION_SHORTCODE := $(shell git rev-parse --short HEAD)
+GIT_REVISION := $(shell git describe --abbrev=0 --tags --exact-match 2> /dev/null || $(GIT_REVISION_SHORTCODE))
+GIT_REVISION_DATE := $(shell git show -s --format=%ci $(GIT_REVISION_SHORTCODE))
 
 REVISION_DATE := $(shell date -u -j -f "%F %T %z" "$(GIT_REVISION_DATE)" +"%Y%m%d.%H%M%S" || date -u -d "$(GIT_REVISION_DATE)" +"%Y%m%d.%H%M%S")
 BUILD_DATE := $(shell date -u +%Y%m%d.%H%M%S)
