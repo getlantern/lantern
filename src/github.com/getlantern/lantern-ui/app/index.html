@@ -72,7 +72,7 @@
         </div>       
         <div ng-show="backendIsGone">        
         <div>{{ 'LANTERN_GONE' | translate }}</div>        
-        <button type="button" class="btn btn-primary" ng-click="$window.close();">{{ 'CLOSE_WINDOW' | translate }}</button>      
+        <button type="button" class="btn btn-primary" onclick="window.close();">{{ 'CLOSE_WINDOW' | translate }}</button>      
     </div>       
     </div>
     <div ng-include src="'partials/modals.html'"></div>
