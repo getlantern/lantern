@@ -93,31 +93,38 @@ func (client *Client) targetQOS(req *http.Request) int {
 // pipeData pipes data between the client and proxy connections.  It's also
 // responsible for responding to the initial CONNECT request with a 200 OK.
 func pipeData(clientConn net.Conn, connOut net.Conn, req *http.Request) {
-
-	var wg sync.WaitGroup
-	wg.Add(1)
-	// Start piping from client to proxy
-	go func() {
-		io.Copy(connOut, clientConn)
-		// Force closing if EOF at the request half or error encountered.
-		// A bit arbitrary, but it's rather rare now to use half closing
-		// as a way to notify server. Most application closes both connections
-		// after completed send / receive so that won't cause problem.
-		wg.Wait()
-		clientConn.Close()
-		connOut.Close()
-	}()
-
 	// Respond OK
 	err := respondOK(clientConn, req)
-	wg.Done()
 	if err != nil {
 		log.Errorf("Unable to respond OK: %s", err)
 		return
 	}
 
+	// Make sure of closing connections only once
+	var closeOnce sync.Once
+
+	// Force closing if EOF at the request half or error encountered.
+	// A bit arbitrary, but it's rather rare now to use half closing
+	// as a way to notify server. Most application closes both connections
+	// after completed send / receive so that won't cause problem.
+	closeConns := func() {
+		if err := clientConn.Close(); err != nil {
+			log.Debugf("Error closing the out connection", err)
+		}
+		if err := connOut.Close(); err != nil {
+			log.Debugf("Error closing the client connection", err)
+		}
+	}
+
+	// Start piping from client to proxy
+	go func() {
+		io.Copy(connOut, clientConn)
+		closeOnce.Do(closeConns)
+	}()
+
 	// Then start coyping from proxy to client
 	io.Copy(clientConn, connOut)
+	closeOnce.Do(closeConns)
 }
 
 func respondOK(writer io.Writer, req *http.Request) error {
