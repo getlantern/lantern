@@ -31,3 +31,34 @@ func TestCaller(t *testing.T) {
 		t.Errorf("got line == %v, want line == %v", got, want)
 	}
 }
+
+type fholder struct {
+	f func() CallStack
+}
+
+func (fh *fholder) labyrinth() CallStack {
+	for {
+		return fh.f()
+	}
+}
+
+func TestTrace(t *testing.T) {
+	t.Parallel()
+
+	fh := fholder{
+		f: func() CallStack {
+			cs := Trace()
+			return cs
+		},
+	}
+
+	cs := fh.labyrinth()
+
+	lines := []int{50, 41, 55}
+
+	for i, line := range lines {
+		if got, want := cs[i].line(), line; got != want {
+			t.Errorf("got line[%d] == %v, want line[%d] == %v", i, got, i, want)
+		}
+	}
+}
