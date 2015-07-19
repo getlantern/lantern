@@ -121,7 +121,7 @@ func (client *Client) Configure(cfg *ClientConfig) fronted.Dialer {
 // client listener and underlying dialer connection pool
 func (client *Client) Stop() error {
 	if err := client.hqfd.Close(); err != nil {
-		log.Debugf("Error closing client connection", err)
+		log.Debugf("Error closing client connection: %s", err)
 	}
 	return client.l.Close()
 }

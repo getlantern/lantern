@@ -67,7 +67,7 @@ func (s *ChainedServerInfo) Dialer() (*balancer.Dialer, error) {
 			}
 			if !conn.ConnectionState().PeerCertificates[0].Equal(x509cert) {
 				if err := conn.Close(); err != nil {
-					log.Debugf("Error closing chained server connection", err)
+					log.Debugf("Error closing chained server connection: %s", err)
 				}
 				return nil, fmt.Errorf("Server's certificate didn't match expected!")
 			}

@@ -51,7 +51,7 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 	}
 	defer func() {
 		if err := clientConn.Close(); err != nil {
-			log.Debugf("Error closing the client connection", err)
+			log.Debugf("Error closing the client connection: %s", err)
 		}
 	}()
 
@@ -75,7 +75,7 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 
 	defer func() {
 		if err := connOut.Close(); err != nil {
-			log.Debugf("Error closing the out connection", err)
+			log.Debugf("Error closing the out connection: %s", err)
 		}
 	}()
 
@@ -117,24 +117,24 @@ func pipeData(clientConn net.Conn, connOut net.Conn, req *http.Request) {
 	// after completed send / receive so that won't cause problem.
 	closeConns := func() {
 		if err := clientConn.Close(); err != nil {
-			log.Debugf("Error closing the out connection", err)
+			log.Debugf("Error closing the out connection: %s", err)
 		}
 		if err := connOut.Close(); err != nil {
-			log.Debugf("Error closing the client connection", err)
+			log.Debugf("Error closing the client connection: %s", err)
 		}
 	}
 
 	// Start piping from client to proxy
 	go func() {
 		if _, err := io.Copy(connOut, clientConn); err != nil {
-			log.Debugf("Error piping data from client to proxy", err)
+			log.Debugf("Error piping data from client to proxy: %s", err)
 		}
 		closeOnce.Do(closeConns)
 	}()
 
 	// Then start coyping from proxy to client
 	if _, err := io.Copy(clientConn, connOut); err != nil {
-		log.Debugf("Error piping data from proxy to client", err)
+		log.Debugf("Error piping data from proxy to client: %s", err)
 	}
 	closeOnce.Do(closeConns)
 }
@@ -142,7 +142,7 @@ func pipeData(clientConn net.Conn, connOut net.Conn, req *http.Request) {
 func respondOK(writer io.Writer, req *http.Request) error {
 	defer func() {
 		if err := req.Body.Close(); err != nil {
-			log.Debugf("Error closing body of OK response", err)
+			log.Debugf("Error closing body of OK response: %s", err)
 		}
 	}()
 
@@ -165,7 +165,7 @@ func respondBadGateway(w io.Writer, msg string) {
 	err := resp.Write(w)
 	if err == nil {
 		if _, err = w.Write([]byte(msg)); err != nil {
-			log.Debugf("Error writing error to io.Writer", err)
+			log.Debugf("Error writing error to io.Writer: %s", err)
 		}
 	}
 }
