@@ -24,15 +24,15 @@ var defaultTrustedCAs = []*CA{
 var cloudflareMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "10minutemail.com",
-		IpAddress: "162.159.251.16",
+		IpAddress: "162.159.250.16",
 	},
 	&fronted.Masquerade{
 		Domain:    "1news.az",
-		IpAddress: "162.159.240.120",
+		IpAddress: "162.159.241.120",
 	},
 	&fronted.Masquerade{
 		Domain:    "2ch.hk",
-		IpAddress: "162.159.255.5",
+		IpAddress: "162.159.252.6",
 	},
 	&fronted.Masquerade{
 		Domain:    "3sk.tv",
@@ -40,35 +40,35 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "a2hosting.com",
-		IpAddress: "198.41.185.200",
+		IpAddress: "198.41.191.199",
 	},
 	&fronted.Masquerade{
 		Domain:    "abs-cbnnews.com",
-		IpAddress: "104.16.26.177",
+		IpAddress: "104.16.28.177",
 	},
 	&fronted.Masquerade{
 		Domain:    "addmefast.com",
-		IpAddress: "198.41.185.158",
+		IpAddress: "198.41.190.157",
 	},
 	&fronted.Masquerade{
 		Domain:    "adf.ly",
-		IpAddress: "104.20.1.4",
+		IpAddress: "104.20.0.4",
 	},
 	&fronted.Masquerade{
 		Domain:    "adfoc.us",
-		IpAddress: "198.41.207.207",
+		IpAddress: "198.41.206.207",
 	},
 	&fronted.Masquerade{
 		Domain:    "adlure.net",
-		IpAddress: "141.101.123.94",
+		IpAddress: "190.93.240.94",
 	},
 	&fronted.Masquerade{
 		Domain:    "ads.id",
-		IpAddress: "162.159.250.152",
+		IpAddress: "162.159.251.152",
 	},
 	&fronted.Masquerade{
 		Domain:    "affiliatetechnology.com",
-		IpAddress: "198.41.184.52",
+		IpAddress: "198.41.190.51",
 	},
 	&fronted.Masquerade{
 		Domain:    "agentlk.com",
@@ -76,39 +76,39 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "aglasem.com",
-		IpAddress: "108.162.205.135",
+		IpAddress: "108.162.206.135",
 	},
 	&fronted.Masquerade{
 		Domain:    "aitnews.com",
-		IpAddress: "108.162.204.184",
+		IpAddress: "108.162.203.184",
 	},
 	&fronted.Masquerade{
 		Domain:    "al-akhbar.com",
-		IpAddress: "162.159.243.97",
+		IpAddress: "162.159.244.97",
 	},
 	&fronted.Masquerade{
 		Domain:    "alexaboostup.com",
-		IpAddress: "198.41.249.254",
+		IpAddress: "198.41.207.254",
 	},
 	&fronted.Masquerade{
 		Domain:    "allbusiness.com",
-		IpAddress: "162.159.247.140",
+		IpAddress: "162.159.246.140",
 	},
 	&fronted.Masquerade{
 		Domain:    "almasryalyoum.com",
-		IpAddress: "190.93.242.102",
+		IpAddress: "190.93.243.102",
 	},
 	&fronted.Masquerade{
 		Domain:    "alrakoba.net",
-		IpAddress: "198.41.186.73",
+		IpAddress: "198.41.185.73",
 	},
 	&fronted.Masquerade{
 		Domain:    "alsumaria.tv",
-		IpAddress: "190.93.242.50",
+		IpAddress: "141.101.112.51",
 	},
 	&fronted.Masquerade{
 		Domain:    "alwatanvoice.com",
-		IpAddress: "162.159.253.143",
+		IpAddress: "162.159.255.142",
 	},
 	&fronted.Masquerade{
 		Domain:    "alziadiq8.com",
@@ -116,31 +116,31 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "amazinglytimedphotos.com",
-		IpAddress: "198.41.191.179",
+		IpAddress: "198.41.185.180",
 	},
 	&fronted.Masquerade{
 		Domain:    "amino.dk",
-		IpAddress: "198.41.189.121",
+		IpAddress: "198.41.191.121",
 	},
 	&fronted.Masquerade{
 		Domain:    "anakbnet.com",
-		IpAddress: "162.159.251.168",
+		IpAddress: "162.159.250.168",
 	},
 	&fronted.Masquerade{
 		Domain:    "anazahra.com",
-		IpAddress: "162.159.254.6",
+		IpAddress: "162.159.254.7",
 	},
 	&fronted.Masquerade{
 		Domain:    "aporrea.org",
-		IpAddress: "108.162.201.29",
+		IpAddress: "108.162.202.29",
 	},
 	&fronted.Masquerade{
 		Domain:    "appstorm.net",
-		IpAddress: "162.159.251.50",
+		IpAddress: "162.159.250.50",
 	},
 	&fronted.Masquerade{
 		Domain:    "aqarcity.com",
-		IpAddress: "198.41.207.196",
+		IpAddress: "198.41.206.196",
 	},
 	&fronted.Masquerade{
 		Domain:    "aqarmap.com",
@@ -148,11 +148,11 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "arabnews.com",
-		IpAddress: "108.162.203.20",
+		IpAddress: "108.162.204.20",
 	},
 	&fronted.Masquerade{
 		Domain:    "arabseed.com",
-		IpAddress: "198.41.188.132",
+		IpAddress: "198.41.186.132",
 	},
 	&fronted.Masquerade{
 		Domain:    "arageek.com",
@@ -160,15 +160,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "armorgames.com",
-		IpAddress: "104.20.5.17",
+		IpAddress: "104.20.4.17",
 	},
 	&fronted.Masquerade{
 		Domain:    "arynews.tv",
-		IpAddress: "104.20.3.227",
+		IpAddress: "104.20.2.227",
 	},
 	&fronted.Masquerade{
 		Domain:    "asianbookie.com",
-		IpAddress: "162.159.250.144",
+		IpAddress: "162.159.251.144",
 	},
 	&fronted.Masquerade{
 		Domain:    "asianwiki.com",
@@ -176,7 +176,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "authorstream.com",
-		IpAddress: "190.93.246.194",
+		IpAddress: "190.93.247.194",
 	},
 	&fronted.Masquerade{
 		Domain:    "avaz.ba",
@@ -184,19 +184,19 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "avpixlat.info",
-		IpAddress: "190.93.242.137",
+		IpAddress: "190.93.243.137",
 	},
 	&fronted.Masquerade{
 		Domain:    "awebic.com",
-		IpAddress: "162.159.247.172",
+		IpAddress: "162.159.246.172",
 	},
 	&fronted.Masquerade{
 		Domain:    "axsam.az",
-		IpAddress: "162.159.243.133",
+		IpAddress: "162.159.244.133",
 	},
 	&fronted.Masquerade{
 		Domain:    "azvision.az",
-		IpAddress: "162.159.242.148",
+		IpAddress: "162.159.243.148",
 	},
 	&fronted.Masquerade{
 		Domain:    "b1.org",
@@ -208,15 +208,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "baykoreans.net",
-		IpAddress: "141.101.113.11",
+		IpAddress: "190.93.241.11",
 	},
 	&fronted.Masquerade{
 		Domain:    "bezuzyteczna.pl",
-		IpAddress: "198.41.176.171",
+		IpAddress: "198.41.179.171",
 	},
 	&fronted.Masquerade{
 		Domain:    "bikroy.com",
-		IpAddress: "104.16.26.214",
+		IpAddress: "104.16.22.214",
 	},
 	&fronted.Masquerade{
 		Domain:    "bitcoinzebra.com",
@@ -228,11 +228,11 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "bittrex.com",
-		IpAddress: "162.159.245.225",
+		IpAddress: "162.159.246.225",
 	},
 	&fronted.Masquerade{
 		Domain:    "bizimyol.info",
-		IpAddress: "141.101.112.19",
+		IpAddress: "190.93.241.19",
 	},
 	&fronted.Masquerade{
 		Domain:    "blabbermouth.net",
@@ -240,15 +240,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "bleepingcomputer.com",
-		IpAddress: "190.93.243.116",
+		IpAddress: "141.101.112.117",
 	},
 	&fronted.Masquerade{
 		Domain:    "brainstorm9.com.br",
-		IpAddress: "162.159.250.96",
+		IpAddress: "162.159.251.96",
 	},
 	&fronted.Masquerade{
 		Domain:    "btc-e.com",
-		IpAddress: "141.101.121.194",
+		IpAddress: "141.101.121.193",
 	},
 	&fronted.Masquerade{
 		Domain:    "bubblews.com",
@@ -264,15 +264,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "businessinsider.com.au",
-		IpAddress: "141.101.115.134",
+		IpAddress: "190.93.247.134",
 	},
 	&fronted.Masquerade{
 		Domain:    "buzzsumo.com",
-		IpAddress: "108.162.201.208",
+		IpAddress: "108.162.202.208",
 	},
 	&fronted.Masquerade{
 		Domain:    "cairokora.com",
-		IpAddress: "104.16.1.117",
+		IpAddress: "104.16.0.117",
 	},
 	&fronted.Masquerade{
 		Domain:    "canva.com",
@@ -280,23 +280,23 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "careers360.com",
-		IpAddress: "162.159.242.132",
+		IpAddress: "162.159.243.132",
 	},
 	&fronted.Masquerade{
 		Domain:    "catracalivre.com.br",
-		IpAddress: "198.41.247.125",
+		IpAddress: "198.41.247.124",
 	},
 	&fronted.Masquerade{
 		Domain:    "censor.net.ua",
-		IpAddress: "198.41.191.113",
+		IpAddress: "198.41.188.113",
 	},
 	&fronted.Masquerade{
 		Domain:    "chinabuye.com",
-		IpAddress: "198.41.186.203",
+		IpAddress: "198.41.191.202",
 	},
 	&fronted.Masquerade{
 		Domain:    "cihan.com.tr",
-		IpAddress: "104.16.3.7",
+		IpAddress: "104.16.2.7",
 	},
 	&fronted.Masquerade{
 		Domain:    "cleanfiles.net",
@@ -304,7 +304,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "clixsense.com",
-		IpAddress: "198.41.188.40",
+		IpAddress: "198.41.189.40",
 	},
 	&fronted.Masquerade{
 		Domain:    "cloudify.cc",
@@ -316,15 +316,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "col3negoriginal.lk",
-		IpAddress: "190.93.243.9",
+		IpAddress: "190.93.242.9",
 	},
 	&fronted.Masquerade{
 		Domain:    "collective-evolution.com",
-		IpAddress: "198.41.189.248",
+		IpAddress: "198.41.190.248",
 	},
 	&fronted.Masquerade{
 		Domain:    "com-2014.org",
-		IpAddress: "162.159.240.96",
+		IpAddress: "162.159.241.96",
 	},
 	&fronted.Masquerade{
 		Domain:    "conservativetribune.com",
@@ -340,11 +340,11 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "copacet.com",
-		IpAddress: "108.162.202.100",
+		IpAddress: "108.162.201.100",
 	},
 	&fronted.Masquerade{
 		Domain:    "cpagrip.com",
-		IpAddress: "198.41.185.139",
+		IpAddress: "198.41.188.139",
 	},
 	&fronted.Masquerade{
 		Domain:    "cssmenumaker.com",
@@ -360,19 +360,19 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "curse.com",
-		IpAddress: "141.101.115.102",
+		IpAddress: "190.93.244.102",
 	},
 	&fronted.Masquerade{
 		Domain:    "cursecdn.com",
-		IpAddress: "198.41.208.103",
+		IpAddress: "198.41.208.102",
 	},
 	&fronted.Masquerade{
 		Domain:    "datatables.net",
-		IpAddress: "162.159.245.98",
+		IpAddress: "162.159.244.98",
 	},
 	&fronted.Masquerade{
 		Domain:    "dealcatcher.com",
-		IpAddress: "162.159.248.16",
+		IpAddress: "162.159.249.16",
 	},
 	&fronted.Masquerade{
 		Domain:    "delivery-club.ru",
@@ -384,7 +384,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "deperu.com",
-		IpAddress: "162.159.240.213",
+		IpAddress: "198.41.249.212",
 	},
 	&fronted.Masquerade{
 		Domain:    "designboom.com",
@@ -392,11 +392,11 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "deutsche-wirtschafts-nachrichten.de",
-		IpAddress: "198.41.189.52",
+		IpAddress: "198.41.185.52",
 	},
 	&fronted.Masquerade{
 		Domain:    "diablofans.com",
-		IpAddress: "198.41.209.101",
+		IpAddress: "198.41.208.103",
 	},
 	&fronted.Masquerade{
 		Domain:    "digital-photography-school.com",
@@ -404,11 +404,11 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "dnevnik.hr",
-		IpAddress: "190.93.242.21",
+		IpAddress: "190.93.241.21",
 	},
 	&fronted.Masquerade{
 		Domain:    "dostor.org",
-		IpAddress: "104.20.13.195",
+		IpAddress: "104.20.9.195",
 	},
 	&fronted.Masquerade{
 		Domain:    "download-genius.com",
@@ -416,15 +416,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "dpstream.net",
-		IpAddress: "198.41.190.151",
+		IpAddress: "198.41.184.152",
 	},
 	&fronted.Masquerade{
 		Domain:    "drp.su",
-		IpAddress: "162.159.244.17",
+		IpAddress: "162.159.243.17",
 	},
 	&fronted.Masquerade{
 		Domain:    "dumpaday.com",
-		IpAddress: "162.159.242.119",
+		IpAddress: "162.159.241.119",
 	},
 	&fronted.Masquerade{
 		Domain:    "e-cigarette-forum.com",
@@ -432,19 +432,19 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "e-monsite.com",
-		IpAddress: "141.101.120.122",
+		IpAddress: "141.101.120.123",
 	},
 	&fronted.Masquerade{
 		Domain:    "e-radio.gr",
-		IpAddress: "198.41.182.19",
+		IpAddress: "198.41.181.19",
 	},
 	&fronted.Masquerade{
 		Domain:    "eclypsia.com",
-		IpAddress: "190.93.242.97",
+		IpAddress: "141.101.112.98",
 	},
 	&fronted.Masquerade{
 		Domain:    "ecuavisa.com",
-		IpAddress: "198.41.205.210",
+		IpAddress: "198.41.204.210",
 	},
 	&fronted.Masquerade{
 		Domain:    "edublogs.org",
@@ -452,23 +452,23 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "egaliteetreconciliation.fr",
-		IpAddress: "190.93.243.80",
+		IpAddress: "190.93.240.80",
 	},
 	&fronted.Masquerade{
 		Domain:    "egyup.com",
-		IpAddress: "162.159.246.174",
+		IpAddress: "162.159.247.174",
 	},
 	&fronted.Masquerade{
 		Domain:    "eharmony.com",
-		IpAddress: "199.83.133.3",
+		IpAddress: "199.83.131.3",
 	},
 	&fronted.Masquerade{
 		Domain:    "einthusan.com",
-		IpAddress: "198.41.185.98",
+		IpAddress: "198.41.191.97",
 	},
 	&fronted.Masquerade{
 		Domain:    "elhacker.net",
-		IpAddress: "108.162.205.73",
+		IpAddress: "108.162.206.73",
 	},
 	&fronted.Masquerade{
 		Domain:    "elwatannews.com",
@@ -476,11 +476,11 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "en.bitcoin.it",
-		IpAddress: "162.159.246.241",
+		IpAddress: "162.159.245.241",
 	},
 	&fronted.Masquerade{
 		Domain:    "eslamoda.com",
-		IpAddress: "162.159.252.119",
+		IpAddress: "162.159.253.119",
 	},
 	&fronted.Masquerade{
 		Domain:    "esteghlali.com",
@@ -488,7 +488,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "etorrent.co.kr",
-		IpAddress: "198.41.191.119",
+		IpAddress: "198.41.184.120",
 	},
 	&fronted.Masquerade{
 		Domain:    "etvnet.com",
@@ -500,7 +500,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "euw.leagueoflegends.com",
-		IpAddress: "104.16.31.33",
+		IpAddress: "104.16.27.33",
 	},
 	&fronted.Masquerade{
 		Domain:    "evozi.com",
@@ -524,19 +524,19 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "fasttech.com",
-		IpAddress: "141.101.113.98",
+		IpAddress: "190.93.242.97",
 	},
 	&fronted.Masquerade{
 		Domain:    "feedly.com",
-		IpAddress: "162.159.252.5",
+		IpAddress: "162.159.253.4",
 	},
 	&fronted.Masquerade{
 		Domain:    "filesfetcher.com",
-		IpAddress: "198.41.191.167",
+		IpAddress: "198.41.184.168",
 	},
 	&fronted.Masquerade{
 		Domain:    "filmesonlinegratis.net",
-		IpAddress: "141.101.112.29",
+		IpAddress: "141.101.123.29",
 	},
 	&fronted.Masquerade{
 		Domain:    "fiverr.com",
@@ -548,7 +548,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "follow.net",
-		IpAddress: "162.159.245.253",
+		IpAddress: "162.159.246.253",
 	},
 	&fronted.Masquerade{
 		Domain:    "food52.com",
@@ -560,7 +560,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "forexpeacearmy.com",
-		IpAddress: "190.93.241.28",
+		IpAddress: "141.101.123.28",
 	},
 	&fronted.Masquerade{
 		Domain:    "forgifs.com",
@@ -568,19 +568,19 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "freebitco.in",
-		IpAddress: "162.159.244.200",
+		IpAddress: "162.159.245.200",
 	},
 	&fronted.Masquerade{
 		Domain:    "freedoge.co.in",
-		IpAddress: "141.101.127.23",
+		IpAddress: "108.162.200.24",
 	},
 	&fronted.Masquerade{
 		Domain:    "freemalaysiatoday.com",
-		IpAddress: "108.162.206.159",
+		IpAddress: "108.162.205.159",
 	},
 	&fronted.Masquerade{
 		Domain:    "freenode.net",
-		IpAddress: "162.159.250.27",
+		IpAddress: "162.159.249.27",
 	},
 	&fronted.Masquerade{
 		Domain:    "frontpage.fok.nl",
@@ -592,15 +592,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "fun698.com",
-		IpAddress: "198.41.206.118",
+		IpAddress: "198.41.207.118",
 	},
 	&fronted.Masquerade{
 		Domain:    "funnymama.com",
-		IpAddress: "162.159.240.65",
+		IpAddress: "198.41.249.64",
 	},
 	&fronted.Masquerade{
 		Domain:    "futhead.com",
-		IpAddress: "190.93.247.99",
+		IpAddress: "141.101.115.99",
 	},
 	&fronted.Masquerade{
 		Domain:    "gahe.com",
@@ -612,7 +612,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "gamepedia.com",
-		IpAddress: "141.101.115.101",
+		IpAddress: "190.93.247.100",
 	},
 	&fronted.Masquerade{
 		Domain:    "gameskwala.com",
@@ -624,15 +624,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "gcflearnfree.org",
-		IpAddress: "141.101.113.72",
+		IpAddress: "141.101.112.72",
 	},
 	&fronted.Masquerade{
 		Domain:    "geo.tv",
-		IpAddress: "190.93.244.11",
+		IpAddress: "141.101.115.11",
 	},
 	&fronted.Masquerade{
 		Domain:    "getsecuredfiles.com",
-		IpAddress: "162.159.245.76",
+		IpAddress: "162.159.244.76",
 	},
 	&fronted.Masquerade{
 		Domain:    "getsoftfree.com",
@@ -640,15 +640,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "gfycat.com",
-		IpAddress: "198.41.209.27",
+		IpAddress: "198.41.209.26",
 	},
 	&fronted.Masquerade{
 		Domain:    "ghost.org",
-		IpAddress: "141.101.115.19",
+		IpAddress: "190.93.247.19",
 	},
 	&fronted.Masquerade{
 		Domain:    "gigacircle.com",
-		IpAddress: "104.16.30.35",
+		IpAddress: "104.16.31.35",
 	},
 	&fronted.Masquerade{
 		Domain:    "gilt.com",
@@ -660,15 +660,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "glamora.ma",
-		IpAddress: "162.159.250.147",
+		IpAddress: "162.159.249.147",
 	},
 	&fronted.Masquerade{
 		Domain:    "glassdoor.com",
-		IpAddress: "190.93.244.224",
+		IpAddress: "190.93.245.224",
 	},
 	&fronted.Masquerade{
 		Domain:    "globalresearch.ca",
-		IpAddress: "162.159.247.162",
+		IpAddress: "162.159.246.162",
 	},
 	&fronted.Masquerade{
 		Domain:    "gooddrama.net",
@@ -676,7 +676,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "goodmenproject.com",
-		IpAddress: "162.159.249.216",
+		IpAddress: "162.159.248.216",
 	},
 	&fronted.Masquerade{
 		Domain:    "goodsearch.com",
@@ -688,7 +688,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "goud.ma",
-		IpAddress: "141.101.126.33",
+		IpAddress: "141.101.125.33",
 	},
 	&fronted.Masquerade{
 		Domain:    "graphpaperpress.com",
@@ -696,11 +696,11 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "gtspirit.com",
-		IpAddress: "162.159.244.151",
+		IpAddress: "162.159.243.151",
 	},
 	&fronted.Masquerade{
 		Domain:    "gurufocus.com",
-		IpAddress: "162.159.250.182",
+		IpAddress: "162.159.251.182",
 	},
 	&fronted.Masquerade{
 		Domain:    "haber1903.com",
@@ -712,11 +712,11 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "hardmob.com.br",
-		IpAddress: "190.93.242.96",
+		IpAddress: "190.93.241.96",
 	},
 	&fronted.Masquerade{
 		Domain:    "hearthpwn.com",
-		IpAddress: "190.93.247.113",
+		IpAddress: "190.93.244.113",
 	},
 	&fronted.Masquerade{
 		Domain:    "hesport.com",
@@ -724,7 +724,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "hibapress.com",
-		IpAddress: "162.159.245.178",
+		IpAddress: "162.159.244.178",
 	},
 	&fronted.Masquerade{
 		Domain:    "highcharts.com",
@@ -740,15 +740,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "hobbyking.com",
-		IpAddress: "141.101.112.125",
+		IpAddress: "141.101.123.125",
 	},
 	&fronted.Masquerade{
 		Domain:    "home.ijreview.com",
-		IpAddress: "104.16.2.43",
+		IpAddress: "104.16.4.43",
 	},
 	&fronted.Masquerade{
 		Domain:    "i-fit.com.tw",
-		IpAddress: "108.162.201.108",
+		IpAddress: "108.162.202.108",
 	},
 	&fronted.Masquerade{
 		Domain:    "ibuildapp.com",
@@ -756,11 +756,11 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "ifilez.org",
-		IpAddress: "141.101.113.94",
+		IpAddress: "141.101.112.94",
 	},
 	&fronted.Masquerade{
 		Domain:    "ikman.lk",
-		IpAddress: "104.16.21.214",
+		IpAddress: "104.16.17.214",
 	},
 	&fronted.Masquerade{
 		Domain:    "imgchili.net",
@@ -768,15 +768,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "imgflip.com",
-		IpAddress: "190.93.247.142",
+		IpAddress: "141.101.115.143",
 	},
 	&fronted.Masquerade{
 		Domain:    "imgspice.com",
-		IpAddress: "198.41.249.212",
+		IpAddress: "162.159.240.213",
 	},
 	&fronted.Masquerade{
 		Domain:    "index.hr",
-		IpAddress: "198.41.182.4",
+		IpAddress: "198.41.177.5",
 	},
 	&fronted.Masquerade{
 		Domain:    "inflexwetrust.com",
@@ -784,11 +784,11 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "inforesist.org",
-		IpAddress: "108.162.205.29",
+		IpAddress: "108.162.206.29",
 	},
 	&fronted.Masquerade{
 		Domain:    "informe21.com",
-		IpAddress: "162.159.244.121",
+		IpAddress: "162.159.243.121",
 	},
 	&fronted.Masquerade{
 		Domain:    "intercambiosvirtuales.org",
@@ -796,23 +796,23 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "ipiccy.com",
-		IpAddress: "141.101.123.33",
+		IpAddress: "190.93.240.33",
 	},
 	&fronted.Masquerade{
 		Domain:    "iplocation.net",
-		IpAddress: "198.41.206.161",
+		IpAddress: "198.41.207.161",
 	},
 	&fronted.Masquerade{
 		Domain:    "iptorrents.com",
-		IpAddress: "141.101.112.132",
+		IpAddress: "190.93.243.131",
 	},
 	&fronted.Masquerade{
 		Domain:    "isohunt.to",
-		IpAddress: "198.41.190.233",
+		IpAddress: "198.41.189.233",
 	},
 	&fronted.Masquerade{
 		Domain:    "israelvideonetwork.com",
-		IpAddress: "198.41.186.73",
+		IpAddress: "198.41.190.72",
 	},
 	&fronted.Masquerade{
 		Domain:    "italia-film.org",
@@ -824,7 +824,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "ixl.com",
-		IpAddress: "190.93.246.136",
+		IpAddress: "190.93.244.137",
 	},
 	&fronted.Masquerade{
 		Domain:    "j.gs",
@@ -832,19 +832,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "jamiiforums.com",
-		IpAddress: "198.41.206.207",
+		IpAddress: "198.41.207.207",
 	},
 	&fronted.Masquerade{
 		Domain:    "jeuneafrique.com",
-		IpAddress: "162.159.249.152",
+		IpAddress: "162.159.248.152",
 	},
 	&fronted.Masquerade{
 		Domain:    "jquery.com",
 		IpAddress: "104.16.14.15",
-	},
-	&fronted.Masquerade{
-		Domain:    "jquerymobile.com",
-		IpAddress: "104.16.11.13",
 	},
 	&fronted.Masquerade{
 		Domain:    "jqueryui.com",
@@ -852,7 +848,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "juksy.com",
-		IpAddress: "162.159.240.29",
+		IpAddress: "198.41.249.28",
 	},
 	&fronted.Masquerade{
 		Domain:    "jumia.com.ng",
@@ -876,19 +872,19 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "kickerdaily.com",
-		IpAddress: "162.159.242.39",
+		IpAddress: "162.159.241.39",
 	},
 	&fronted.Masquerade{
 		Domain:    "kidsactivitiesblog.com",
-		IpAddress: "162.159.246.80",
+		IpAddress: "162.159.247.80",
 	},
 	&fronted.Masquerade{
 		Domain:    "klix.ba",
-		IpAddress: "190.93.241.87",
+		IpAddress: "190.93.242.87",
 	},
 	&fronted.Masquerade{
 		Domain:    "korben.info",
-		IpAddress: "162.159.250.186",
+		IpAddress: "162.159.251.186",
 	},
 	&fronted.Masquerade{
 		Domain:    "ladygames.com",
@@ -896,23 +892,23 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "laiguana.tv",
-		IpAddress: "198.41.204.234",
+		IpAddress: "198.41.205.234",
 	},
 	&fronted.Masquerade{
 		Domain:    "lankacnews.com",
-		IpAddress: "198.41.204.246",
+		IpAddress: "198.41.205.246",
 	},
 	&fronted.Masquerade{
 		Domain:    "lapatilla.com",
-		IpAddress: "141.101.113.240",
+		IpAddress: "141.101.123.240",
 	},
 	&fronted.Masquerade{
 		Domain:    "lasvegassun.com",
-		IpAddress: "141.101.112.129",
+		IpAddress: "141.101.123.129",
 	},
 	&fronted.Masquerade{
 		Domain:    "lbcgroup.tv",
-		IpAddress: "190.93.243.50",
+		IpAddress: "190.93.241.50",
 	},
 	&fronted.Masquerade{
 		Domain:    "legacyclix.com",
@@ -920,15 +916,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "legiaodosherois.com.br",
-		IpAddress: "198.41.204.241",
+		IpAddress: "198.41.205.241",
 	},
 	&fronted.Masquerade{
 		Domain:    "libertyland.tv",
-		IpAddress: "104.20.2.179",
+		IpAddress: "104.20.1.179",
 	},
 	&fronted.Masquerade{
 		Domain:    "lifebuzz.com",
-		IpAddress: "104.16.22.166",
+		IpAddress: "104.16.23.166",
 	},
 	&fronted.Masquerade{
 		Domain:    "lifehacker.com.au",
@@ -936,15 +932,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "likemag.com",
-		IpAddress: "198.41.249.215",
+		IpAddress: "162.159.251.215",
 	},
 	&fronted.Masquerade{
 		Domain:    "likes.com",
-		IpAddress: "190.93.245.34",
+		IpAddress: "190.93.247.34",
 	},
 	&fronted.Masquerade{
 		Domain:    "listenpersian.net",
-		IpAddress: "162.159.251.9",
+		IpAddress: "198.41.249.9",
 	},
 	&fronted.Masquerade{
 		Domain:    "livefootballol.com",
@@ -952,7 +948,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "localbitcoins.com",
-		IpAddress: "104.20.30.3",
+		IpAddress: "104.20.31.3",
 	},
 	&fronted.Masquerade{
 		Domain:    "lowendbox.com",
@@ -960,15 +956,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "lowendtalk.com",
-		IpAddress: "104.20.17.210",
+		IpAddress: "104.20.16.210",
 	},
 	&fronted.Masquerade{
 		Domain:    "maannews.net",
-		IpAddress: "198.41.181.195",
+		IpAddress: "198.41.179.195",
 	},
 	&fronted.Masquerade{
 		Domain:    "macacovelho.com.br",
-		IpAddress: "198.41.190.108",
+		IpAddress: "198.41.188.108",
 	},
 	&fronted.Masquerade{
 		Domain:    "macworld.co.uk",
@@ -976,7 +972,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "madmimi.com",
-		IpAddress: "141.101.123.192",
+		IpAddress: "141.101.113.192",
 	},
 	&fronted.Masquerade{
 		Domain:    "makeagif.com",
@@ -992,11 +988,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "mamamia.com.au",
-		IpAddress: "141.101.123.39",
-	},
-	&fronted.Masquerade{
-		Domain:    "manicomio-share.com",
-		IpAddress: "198.41.206.93",
+		IpAddress: "190.93.252.13",
 	},
 	&fronted.Masquerade{
 		Domain:    "manygames.com",
@@ -1004,7 +996,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "maplestage.com",
-		IpAddress: "162.159.254.194",
+		IpAddress: "162.159.253.194",
 	},
 	&fronted.Masquerade{
 		Domain:    "marketinggenesis.com",
@@ -1016,11 +1008,11 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "matchesfashion.com",
-		IpAddress: "198.41.185.14",
+		IpAddress: "198.41.187.14",
 	},
 	&fronted.Masquerade{
 		Domain:    "mazika2day.com",
-		IpAddress: "162.159.248.148",
+		IpAddress: "162.159.249.148",
 	},
 	&fronted.Masquerade{
 		Domain:    "media-fire.org",
@@ -1044,15 +1036,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "minecraftservers.org",
-		IpAddress: "141.101.112.15",
+		IpAddress: "141.101.113.15",
 	},
 	&fronted.Masquerade{
 		Domain:    "mixedmartialarts.com",
-		IpAddress: "141.101.112.57",
+		IpAddress: "141.101.113.57",
 	},
 	&fronted.Masquerade{
 		Domain:    "mixergy.com",
-		IpAddress: "162.159.251.147",
+		IpAddress: "198.41.249.147",
 	},
 	&fronted.Masquerade{
 		Domain:    "mmo-champion.com",
@@ -1060,7 +1052,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "mo.gov",
-		IpAddress: "104.16.24.39",
+		IpAddress: "104.16.21.39",
 	},
 	&fronted.Masquerade{
 		Domain:    "mobafire.com",
@@ -1068,7 +1060,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "modern.az",
-		IpAddress: "108.162.205.159",
+		IpAddress: "108.162.206.159",
 	},
 	&fronted.Masquerade{
 		Domain:    "moneyplatform.biz",
@@ -1084,19 +1076,19 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "mylikes.com",
-		IpAddress: "190.93.245.37",
+		IpAddress: "141.101.114.38",
 	},
 	&fronted.Masquerade{
 		Domain:    "naijaloaded.com.ng",
-		IpAddress: "141.101.126.140",
+		IpAddress: "141.101.125.140",
 	},
 	&fronted.Masquerade{
 		Domain:    "nairaland.com",
-		IpAddress: "198.41.186.68",
+		IpAddress: "198.41.190.67",
 	},
 	&fronted.Masquerade{
 		Domain:    "naosalvo.com.br",
-		IpAddress: "162.159.247.196",
+		IpAddress: "162.159.246.196",
 	},
 	&fronted.Masquerade{
 		Domain:    "nationalreview.com",
@@ -1104,7 +1096,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "naturalcuresnotmedicine.com",
-		IpAddress: "141.101.124.16",
+		IpAddress: "108.162.207.16",
 	},
 	&fronted.Masquerade{
 		Domain:    "nerdfitness.com",
@@ -1112,7 +1104,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "network-tools.com",
-		IpAddress: "141.101.112.110",
+		IpAddress: "141.101.123.110",
 	},
 	&fronted.Masquerade{
 		Domain:    "network54.com",
@@ -1124,7 +1116,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "nextinpact.com",
-		IpAddress: "162.159.249.65",
+		IpAddress: "162.159.250.65",
 	},
 	&fronted.Masquerade{
 		Domain:    "nextmedia.com",
@@ -1132,15 +1124,11 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "noticiaaldia.com",
-		IpAddress: "198.41.178.92",
+		IpAddress: "198.41.177.92",
 	},
 	&fronted.Masquerade{
 		Domain:    "noticierodigital.com",
-		IpAddress: "141.101.112.96",
-	},
-	&fronted.Masquerade{
-		Domain:    "ojooo.com",
-		IpAddress: "198.41.189.230",
+		IpAddress: "190.93.242.95",
 	},
 	&fronted.Masquerade{
 		Domain:    "onegreenplanet.org",
@@ -1152,11 +1140,11 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "onhax.net",
-		IpAddress: "162.159.243.193",
+		IpAddress: "162.159.244.193",
 	},
 	&fronted.Masquerade{
 		Domain:    "onlineclock.net",
-		IpAddress: "190.93.241.58",
+		IpAddress: "190.93.243.58",
 	},
 	&fronted.Masquerade{
 		Domain:    "onlinesoccermanager.com",
@@ -1164,7 +1152,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "opencart.com",
-		IpAddress: "104.20.15.19",
+		IpAddress: "104.20.14.19",
 	},
 	&fronted.Masquerade{
 		Domain:    "opposingviews.com",
@@ -1172,19 +1160,19 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "oscaro.com",
-		IpAddress: "104.16.12.97",
+		IpAddress: "104.16.13.97",
 	},
 	&fronted.Masquerade{
 		Domain:    "osdir.com",
-		IpAddress: "162.159.253.186",
+		IpAddress: "162.159.255.185",
 	},
 	&fronted.Masquerade{
 		Domain:    "palemoon.org",
-		IpAddress: "104.20.5.79",
+		IpAddress: "104.20.4.79",
 	},
 	&fronted.Masquerade{
 		Domain:    "pangu.io",
-		IpAddress: "108.162.202.127",
+		IpAddress: "108.162.201.127",
 	},
 	&fronted.Masquerade{
 		Domain:    "parimatch.com",
@@ -1192,7 +1180,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "partis.si",
-		IpAddress: "108.162.201.127",
+		IpAddress: "108.162.202.127",
 	},
 	&fronted.Masquerade{
 		Domain:    "pastebin.com",
@@ -1200,11 +1188,11 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "pcadvisor.co.uk",
-		IpAddress: "104.16.27.51",
+		IpAddress: "104.16.26.51",
 	},
 	&fronted.Masquerade{
 		Domain:    "pelis24.com",
-		IpAddress: "141.101.113.105",
+		IpAddress: "190.93.243.104",
 	},
 	&fronted.Masquerade{
 		Domain:    "photoyoum7.com",
@@ -1212,7 +1200,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "pijamasurf.com",
-		IpAddress: "162.159.242.249",
+		IpAddress: "162.159.241.249",
 	},
 	&fronted.Masquerade{
 		Domain:    "piktochart.com",
@@ -1220,7 +1208,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "pixroute.com",
-		IpAddress: "162.159.242.52",
+		IpAddress: "162.159.243.52",
 	},
 	&fronted.Masquerade{
 		Domain:    "planetminecraft.com",
@@ -1228,19 +1216,19 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "playit.pk",
-		IpAddress: "162.159.241.198",
+		IpAddress: "162.159.240.198",
 	},
 	&fronted.Masquerade{
 		Domain:    "plp.cl",
-		IpAddress: "198.41.201.28",
+		IpAddress: "198.41.200.28",
 	},
 	&fronted.Masquerade{
 		Domain:    "podomatic.com",
-		IpAddress: "104.20.20.4",
+		IpAddress: "104.20.21.4",
 	},
 	&fronted.Masquerade{
 		Domain:    "popcash.net",
-		IpAddress: "198.41.207.216",
+		IpAddress: "198.41.206.216",
 	},
 	&fronted.Masquerade{
 		Domain:    "popnhop.com",
@@ -1248,15 +1236,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "post852.com",
-		IpAddress: "104.20.16.192",
+		IpAddress: "104.20.19.192",
 	},
 	&fronted.Masquerade{
 		Domain:    "postcron.com",
-		IpAddress: "198.41.249.63",
+		IpAddress: "162.159.251.63",
 	},
 	&fronted.Masquerade{
 		Domain:    "postto.me",
-		IpAddress: "141.101.120.157",
+		IpAddress: "141.101.120.156",
 	},
 	&fronted.Masquerade{
 		Domain:    "premium.wpmudev.org",
@@ -1264,7 +1252,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "premiumbeat.com",
-		IpAddress: "104.20.2.94",
+		IpAddress: "104.20.3.94",
 	},
 	&fronted.Masquerade{
 		Domain:    "premiumwp.com",
@@ -1276,15 +1264,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "prntscr.com",
-		IpAddress: "198.41.189.131",
+		IpAddress: "198.41.191.131",
 	},
 	&fronted.Masquerade{
 		Domain:    "proboards.com",
-		IpAddress: "190.93.245.205",
+		IpAddress: "190.93.244.205",
 	},
 	&fronted.Masquerade{
 		Domain:    "proprofs.com",
-		IpAddress: "198.41.207.245",
+		IpAddress: "198.41.206.245",
 	},
 	&fronted.Masquerade{
 		Domain:    "prosperent.com",
@@ -1292,7 +1280,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "proteusthemes.com",
-		IpAddress: "162.159.247.215",
+		IpAddress: "162.159.248.215",
 	},
 	&fronted.Masquerade{
 		Domain:    "puu.sh",
@@ -1300,15 +1288,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "q.gs",
-		IpAddress: "162.159.246.88",
+		IpAddress: "162.159.247.88",
 	},
 	&fronted.Masquerade{
 		Domain:    "qol.az",
-		IpAddress: "162.159.244.133",
+		IpAddress: "162.159.243.133",
 	},
 	&fronted.Masquerade{
 		Domain:    "r10.net",
-		IpAddress: "104.20.27.135",
+		IpAddress: "104.20.24.135",
 	},
 	&fronted.Masquerade{
 		Domain:    "rapgenius.com",
@@ -1316,7 +1304,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "rapradar.com",
-		IpAddress: "190.93.241.15",
+		IpAddress: "190.93.242.15",
 	},
 	&fronted.Masquerade{
 		Domain:    "re-direcciona.me",
@@ -1328,19 +1316,19 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "reshareworthy.com",
-		IpAddress: "141.101.127.122",
+		IpAddress: "108.162.200.123",
 	},
 	&fronted.Masquerade{
 		Domain:    "rollingout.com",
-		IpAddress: "198.41.186.117",
+		IpAddress: "198.41.188.117",
 	},
 	&fronted.Masquerade{
 		Domain:    "rsw-systems.com",
-		IpAddress: "104.20.20.116",
+		IpAddress: "104.20.19.116",
 	},
 	&fronted.Masquerade{
 		Domain:    "rudaw.net",
-		IpAddress: "190.93.242.83",
+		IpAddress: "190.93.243.83",
 	},
 	&fronted.Masquerade{
 		Domain:    "runnable.com",
@@ -1348,15 +1336,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "sa.ae",
-		IpAddress: "198.41.249.110",
+		IpAddress: "162.159.240.111",
 	},
 	&fronted.Masquerade{
 		Domain:    "sabq.org",
-		IpAddress: "104.16.19.216",
+		IpAddress: "104.16.23.216",
 	},
 	&fronted.Masquerade{
 		Domain:    "sanakirja.org",
-		IpAddress: "190.93.243.90",
+		IpAddress: "190.93.242.90",
 	},
 	&fronted.Masquerade{
 		Domain:    "say7.info",
@@ -1372,11 +1360,11 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "searchengines.guru",
-		IpAddress: "190.93.241.113",
+		IpAddress: "190.93.240.113",
 	},
 	&fronted.Masquerade{
 		Domain:    "searchengines.ru",
-		IpAddress: "190.93.242.113",
+		IpAddress: "190.93.240.113",
 	},
 	&fronted.Masquerade{
 		Domain:    "seemorgh.com",
@@ -1384,27 +1372,27 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "sendgrid.com",
-		IpAddress: "104.20.20.26",
+		IpAddress: "104.20.21.26",
 	},
 	&fronted.Masquerade{
 		Domain:    "sergey-mavrodi-mmm.net",
-		IpAddress: "108.162.201.60",
+		IpAddress: "108.162.202.60",
 	},
 	&fronted.Masquerade{
 		Domain:    "sergey-mavrodi-mmm.org",
-		IpAddress: "198.41.207.149",
+		IpAddress: "198.41.206.149",
 	},
 	&fronted.Masquerade{
 		Domain:    "sergey-mavrodi.com",
-		IpAddress: "104.20.9.247",
+		IpAddress: "104.20.8.247",
 	},
 	&fronted.Masquerade{
 		Domain:    "sergeymavrodi.com",
-		IpAddress: "104.20.13.247",
+		IpAddress: "104.20.10.247",
 	},
 	&fronted.Masquerade{
 		Domain:    "shahiya.com",
-		IpAddress: "162.159.241.128",
+		IpAddress: "162.159.240.128",
 	},
 	&fronted.Masquerade{
 		Domain:    "shapeways.com",
@@ -1412,7 +1400,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "sheknows.com",
-		IpAddress: "162.159.243.215",
+		IpAddress: "162.159.244.215",
 	},
 	&fronted.Masquerade{
 		Domain:    "shippuden.tv",
@@ -1428,7 +1416,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "siliconrus.com",
-		IpAddress: "198.41.191.66",
+		IpAddress: "198.41.189.66",
 	},
 	&fronted.Masquerade{
 		Domain:    "sinchew.com.my",
@@ -1448,15 +1436,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "smartpassiveincome.com",
-		IpAddress: "162.159.243.132",
+		IpAddress: "162.159.242.132",
 	},
 	&fronted.Masquerade{
 		Domain:    "smittenkitchen.com",
-		IpAddress: "141.101.112.139",
+		IpAddress: "141.101.113.139",
 	},
 	&fronted.Masquerade{
 		Domain:    "smosh.com",
-		IpAddress: "162.159.254.34",
+		IpAddress: "162.159.255.34",
 	},
 	&fronted.Masquerade{
 		Domain:    "smotrisport.tv",
@@ -1464,15 +1452,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "snapengage.com",
-		IpAddress: "190.93.242.132",
+		IpAddress: "190.93.241.132",
 	},
 	&fronted.Masquerade{
 		Domain:    "snapwidget.com",
-		IpAddress: "162.159.246.49",
+		IpAddress: "162.159.245.49",
 	},
 	&fronted.Masquerade{
 		Domain:    "snip.ly",
-		IpAddress: "108.162.201.204",
+		IpAddress: "108.162.202.204",
 	},
 	&fronted.Masquerade{
 		Domain:    "snipplr.com",
@@ -1480,23 +1468,23 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "softarchive.net",
-		IpAddress: "108.162.201.222",
+		IpAddress: "108.162.202.222",
 	},
 	&fronted.Masquerade{
 		Domain:    "somuch.com",
-		IpAddress: "108.162.200.229",
+		IpAddress: "141.101.127.228",
 	},
 	&fronted.Masquerade{
 		Domain:    "songspk.name",
-		IpAddress: "108.162.202.183",
+		IpAddress: "108.162.201.183",
 	},
 	&fronted.Masquerade{
 		Domain:    "soompi.com",
-		IpAddress: "104.20.18.19",
+		IpAddress: "104.20.19.19",
 	},
 	&fronted.Masquerade{
 		Domain:    "sooperarticles.com",
-		IpAddress: "108.162.205.236",
+		IpAddress: "108.162.206.236",
 	},
 	&fronted.Masquerade{
 		Domain:    "sott.net",
@@ -1504,39 +1492,39 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "spi0n.com",
-		IpAddress: "198.41.179.58",
+		IpAddress: "198.41.181.58",
 	},
 	&fronted.Masquerade{
 		Domain:    "sportbox.az",
-		IpAddress: "162.159.251.210",
+		IpAddress: "162.159.250.210",
 	},
 	&fronted.Masquerade{
 		Domain:    "sprotyv.info",
-		IpAddress: "141.101.125.17",
+		IpAddress: "141.101.126.17",
 	},
 	&fronted.Masquerade{
 		Domain:    "stadt-bremerhaven.de",
-		IpAddress: "198.41.187.16",
+		IpAddress: "198.41.191.15",
 	},
 	&fronted.Masquerade{
 		Domain:    "stagram.com",
-		IpAddress: "141.101.112.46",
+		IpAddress: "190.93.240.45",
 	},
 	&fronted.Masquerade{
 		Domain:    "stansberryresearch.com",
-		IpAddress: "104.20.27.17",
+		IpAddress: "104.20.26.17",
 	},
 	&fronted.Masquerade{
 		Domain:    "statcounter.com",
-		IpAddress: "104.20.3.47",
+		IpAddress: "104.20.2.47",
 	},
 	&fronted.Masquerade{
 		Domain:    "steamdb.info",
-		IpAddress: "162.159.254.176",
+		IpAddress: "162.159.252.177",
 	},
 	&fronted.Masquerade{
 		Domain:    "subscene.com",
-		IpAddress: "162.159.250.9",
+		IpAddress: "162.159.249.9",
 	},
 	&fronted.Masquerade{
 		Domain:    "sudaneseonline.com",
@@ -1544,7 +1532,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "super.ae",
-		IpAddress: "162.159.254.7",
+		IpAddress: "162.159.255.6",
 	},
 	&fronted.Masquerade{
 		Domain:    "suzukikenichi.com",
@@ -1556,11 +1544,11 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "tahrirnews.com",
-		IpAddress: "198.41.186.206",
+		IpAddress: "198.41.187.206",
 	},
 	&fronted.Masquerade{
 		Domain:    "tarafdari.com",
-		IpAddress: "198.41.185.175",
+		IpAddress: "198.41.191.174",
 	},
 	&fronted.Masquerade{
 		Domain:    "tech-recipes.com",
@@ -1572,11 +1560,11 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "temptalia.com",
-		IpAddress: "141.101.127.112",
+		IpAddress: "108.162.200.113",
 	},
 	&fronted.Masquerade{
 		Domain:    "tert.am",
-		IpAddress: "198.41.249.140",
+		IpAddress: "162.159.240.141",
 	},
 	&fronted.Masquerade{
 		Domain:    "tgju.org",
@@ -1600,15 +1588,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "thefreethoughtproject.com",
-		IpAddress: "198.41.249.156",
+		IpAddress: "162.159.240.157",
 	},
 	&fronted.Masquerade{
 		Domain:    "theiconic.com.au",
-		IpAddress: "198.41.184.186",
+		IpAddress: "198.41.191.185",
 	},
 	&fronted.Masquerade{
 		Domain:    "theladbible.com",
-		IpAddress: "198.41.214.6",
+		IpAddress: "198.41.214.4",
 	},
 	&fronted.Masquerade{
 		Domain:    "themattwalshblog.com",
@@ -1616,7 +1604,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "theme-fusion.com",
-		IpAddress: "162.159.251.158",
+		IpAddress: "162.159.250.158",
 	},
 	&fronted.Masquerade{
 		Domain:    "themindunleashed.org",
@@ -1628,7 +1616,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "thenews.com.pk",
-		IpAddress: "104.16.29.122",
+		IpAddress: "104.16.31.122",
 	},
 	&fronted.Masquerade{
 		Domain:    "thenewstribe.com",
@@ -1636,23 +1624,23 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "thepioneerwoman.com",
-		IpAddress: "198.41.184.138",
+		IpAddress: "198.41.191.137",
 	},
 	&fronted.Masquerade{
 		Domain:    "thepointsguy.com",
-		IpAddress: "104.20.1.216",
+		IpAddress: "104.20.30.215",
 	},
 	&fronted.Masquerade{
 		Domain:    "therakyatpost.com",
-		IpAddress: "198.41.185.177",
+		IpAddress: "198.41.187.177",
 	},
 	&fronted.Masquerade{
 		Domain:    "thesportbible.com",
-		IpAddress: "190.93.247.96",
+		IpAddress: "190.93.244.97",
 	},
 	&fronted.Masquerade{
 		Domain:    "thevideo.me",
-		IpAddress: "162.159.243.240",
+		IpAddress: "162.159.242.240",
 	},
 	&fronted.Masquerade{
 		Domain:    "thisiswhyimbroke.com",
@@ -1660,11 +1648,11 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "tickld.com",
-		IpAddress: "104.16.27.6",
+		IpAddress: "104.16.26.6",
 	},
 	&fronted.Masquerade{
 		Domain:    "todayifoundout.com",
-		IpAddress: "141.101.126.98",
+		IpAddress: "141.101.125.98",
 	},
 	&fronted.Masquerade{
 		Domain:    "torrentfreak.com",
@@ -1680,11 +1668,11 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "tribalfootball.com",
-		IpAddress: "141.101.113.4",
+		IpAddress: "190.93.241.4",
 	},
 	&fronted.Masquerade{
 		Domain:    "tripleclicks.com",
-		IpAddress: "199.83.132.211",
+		IpAddress: "199.83.134.211",
 	},
 	&fronted.Masquerade{
 		Domain:    "tructiepbongda.com",
@@ -1692,11 +1680,11 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "trueactivist.com",
-		IpAddress: "162.159.252.134",
+		IpAddress: "162.159.254.134",
 	},
 	&fronted.Masquerade{
 		Domain:    "tutsplus.com",
-		IpAddress: "141.101.112.16",
+		IpAddress: "190.93.241.15",
 	},
 	&fronted.Masquerade{
 		Domain:    "twentytwowords.com",
@@ -1704,7 +1692,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "udemy.com",
-		IpAddress: "190.93.241.22",
+		IpAddress: "141.101.112.23",
 	},
 	&fronted.Masquerade{
 		Domain:    "ummat.net",
@@ -1716,7 +1704,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "unwire.hk",
-		IpAddress: "198.41.189.172",
+		IpAddress: "198.41.188.172",
 	},
 	&fronted.Masquerade{
 		Domain:    "uploadboy.com",
@@ -1724,7 +1712,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "uppit.com",
-		IpAddress: "162.159.241.136",
+		IpAddress: "162.159.240.136",
 	},
 	&fronted.Masquerade{
 		Domain:    "uptimerobot.com",
@@ -1732,7 +1720,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "uptobox.com",
-		IpAddress: "198.41.187.178",
+		IpAddress: "198.41.188.178",
 	},
 	&fronted.Masquerade{
 		Domain:    "urbanfonts.com",
@@ -1744,11 +1732,11 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "vertele.com",
-		IpAddress: "162.159.244.94",
+		IpAddress: "162.159.245.94",
 	},
 	&fronted.Masquerade{
 		Domain:    "vetogate.com",
-		IpAddress: "190.93.240.58",
+		IpAddress: "190.93.242.58",
 	},
 	&fronted.Masquerade{
 		Domain:    "vidbull.com",
@@ -1756,27 +1744,27 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "videomega.tv",
-		IpAddress: "162.159.253.155",
+		IpAddress: "162.159.254.155",
 	},
 	&fronted.Masquerade{
 		Domain:    "videostripe.com",
-		IpAddress: "198.41.185.157",
+		IpAddress: "198.41.186.157",
 	},
 	&fronted.Masquerade{
 		Domain:    "videoyoum7.com",
-		IpAddress: "104.16.23.116",
+		IpAddress: "104.16.25.116",
 	},
 	&fronted.Masquerade{
 		Domain:    "vitorrent.org",
-		IpAddress: "162.159.244.211",
+		IpAddress: "162.159.243.211",
 	},
 	&fronted.Masquerade{
 		Domain:    "vladtv.com",
-		IpAddress: "162.159.254.30",
+		IpAddress: "162.159.253.31",
 	},
 	&fronted.Masquerade{
 		Domain:    "vodlocker.com",
-		IpAddress: "162.159.247.224",
+		IpAddress: "162.159.246.224",
 	},
 	&fronted.Masquerade{
 		Domain:    "vodly.to",
@@ -1784,15 +1772,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "voetbalzone.nl",
-		IpAddress: "198.41.191.199",
+		IpAddress: "198.41.190.199",
 	},
 	&fronted.Masquerade{
 		Domain:    "vr-zone.com",
-		IpAddress: "198.41.249.175",
+		IpAddress: "162.159.251.175",
 	},
 	&fronted.Masquerade{
 		Domain:    "watch32.com",
-		IpAddress: "162.159.247.45",
+		IpAddress: "162.159.248.45",
 	},
 	&fronted.Masquerade{
 		Domain:    "watchseries-online.ch",
@@ -1800,7 +1788,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "watchserieshd.eu",
-		IpAddress: "108.162.207.33",
+		IpAddress: "141.101.124.33",
 	},
 	&fronted.Masquerade{
 		Domain:    "webcamtoy.com",
@@ -1812,7 +1800,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "weknowmemes.com",
-		IpAddress: "162.159.243.155",
+		IpAddress: "162.159.244.155",
 	},
 	&fronted.Masquerade{
 		Domain:    "what-character-are-you.com",
@@ -1820,11 +1808,11 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "what.cd",
-		IpAddress: "198.41.190.106",
+		IpAddress: "198.41.184.107",
 	},
 	&fronted.Masquerade{
 		Domain:    "whatculture.com",
-		IpAddress: "198.41.249.80",
+		IpAddress: "162.159.240.81",
 	},
 	&fronted.Masquerade{
 		Domain:    "wholehk.com",
@@ -1832,7 +1820,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "wikiwiki.jp",
-		IpAddress: "190.93.243.68",
+		IpAddress: "190.93.242.68",
 	},
 	&fronted.Masquerade{
 		Domain:    "wiziq.com",
@@ -1840,23 +1828,23 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "wmpoweruser.com",
-		IpAddress: "162.159.246.134",
+		IpAddress: "162.159.247.134",
 	},
 	&fronted.Masquerade{
 		Domain:    "woorank.com",
-		IpAddress: "54.208.13.120",
+		IpAddress: "54.165.180.233",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.10khits.com",
-		IpAddress: "162.159.243.92",
+		IpAddress: "162.159.242.92",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.4chan.org",
-		IpAddress: "190.93.244.6",
+		IpAddress: "141.101.114.6",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.aciprensa.com",
-		IpAddress: "198.41.191.166",
+		IpAddress: "198.41.189.166",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.addtoany.com",
@@ -1868,7 +1856,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.animenewsnetwork.com",
-		IpAddress: "198.41.178.81",
+		IpAddress: "198.41.176.81",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.autostraddle.com",
@@ -1880,7 +1868,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.binary.com",
-		IpAddress: "190.93.241.81",
+		IpAddress: "141.101.123.81",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.brasil247.com",
@@ -1892,23 +1880,23 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cairodar.com",
-		IpAddress: "104.16.28.116",
+		IpAddress: "104.16.29.116",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.campingworld.com",
-		IpAddress: "190.93.243.209",
+		IpAddress: "141.101.112.210",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.caracoltv.com",
-		IpAddress: "141.101.123.64",
+		IpAddress: "190.93.241.64",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cbinsights.com",
-		IpAddress: "162.159.248.250",
+		IpAddress: "162.159.249.250",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cbox.ws",
-		IpAddress: "162.159.243.249",
+		IpAddress: "162.159.244.249",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.change.org",
@@ -1916,11 +1904,11 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.clubedohardware.com.br",
-		IpAddress: "162.159.241.169",
+		IpAddress: "162.159.242.169",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.connectify.me",
-		IpAddress: "190.93.243.62",
+		IpAddress: "190.93.242.62",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cozi.com",
@@ -1928,7 +1916,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cpalead.com",
-		IpAddress: "198.41.186.57",
+		IpAddress: "198.41.189.57",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cryptocoinsnews.com",
@@ -1944,23 +1932,23 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.davidicke.com",
-		IpAddress: "198.41.189.87",
+		IpAddress: "198.41.186.87",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.dawn.com",
-		IpAddress: "162.159.242.171",
+		IpAddress: "162.159.241.171",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.daz3d.com",
-		IpAddress: "190.93.241.173",
+		IpAddress: "190.93.242.173",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.diggita.it",
-		IpAddress: "162.159.244.162",
+		IpAddress: "162.159.245.162",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.digitalpoint.com",
-		IpAddress: "162.159.243.121",
+		IpAddress: "162.159.244.121",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.doomovieonline.com",
@@ -1972,19 +1960,19 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.emailmeform.com",
-		IpAddress: "104.16.15.9",
+		IpAddress: "104.16.14.9",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.erepublik.com",
-		IpAddress: "198.41.188.76",
+		IpAddress: "198.41.184.77",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ezilon.com",
-		IpAddress: "190.93.243.65",
+		IpAddress: "190.93.241.65",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.fatosdesconhecidos.com.br",
-		IpAddress: "108.162.201.228",
+		IpAddress: "108.162.202.228",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.foodpanda.in",
@@ -2016,11 +2004,11 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.grandbux.net",
-		IpAddress: "108.162.200.162",
+		IpAddress: "141.101.127.161",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.gulli.com",
-		IpAddress: "198.41.187.13",
+		IpAddress: "198.41.186.13",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.hespress.com",
@@ -2028,19 +2016,19 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.huaweidevice.co.in",
-		IpAddress: "198.41.205.132",
+		IpAddress: "198.41.204.132",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.iab.net",
-		IpAddress: "141.101.112.75",
+		IpAddress: "141.101.123.75",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.india-forums.com",
-		IpAddress: "108.162.200.45",
+		IpAddress: "141.101.127.44",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.infusionsoft.com",
-		IpAddress: "198.41.247.139",
+		IpAddress: "198.41.247.138",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.jobscore.com",
@@ -2048,15 +2036,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.joe.ie",
-		IpAddress: "108.162.201.217",
+		IpAddress: "108.162.202.217",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.jonloomer.com",
-		IpAddress: "141.101.125.76",
+		IpAddress: "141.101.126.76",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.joomshaper.com",
-		IpAddress: "104.20.11.199",
+		IpAddress: "104.20.13.199",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.jotform.com",
@@ -2068,15 +2056,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.knownhost.com",
-		IpAddress: "162.159.242.146",
+		IpAddress: "162.159.243.146",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.lebanese-forces.com",
-		IpAddress: "141.101.121.68",
+		IpAddress: "141.101.121.64",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.levelup.com",
-		IpAddress: "162.159.252.191",
+		IpAddress: "162.159.253.191",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.life.com.tw",
@@ -2100,19 +2088,19 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.malaysiakini.com",
-		IpAddress: "108.162.202.192",
+		IpAddress: "108.162.201.192",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.manatelugumovies.net",
-		IpAddress: "162.159.245.168",
+		IpAddress: "162.159.244.168",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.maxmind.com",
-		IpAddress: "141.101.115.190",
+		IpAddress: "141.101.114.190",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.mindtools.com",
-		IpAddress: "162.159.252.124",
+		IpAddress: "162.159.254.124",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.mistreci.com",
@@ -2120,15 +2108,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.mkyong.com",
-		IpAddress: "108.162.204.6",
+		IpAddress: "108.162.206.6",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.mobofree.com",
-		IpAddress: "162.159.253.219",
+		IpAddress: "162.159.255.219",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.modernghana.com",
-		IpAddress: "162.159.254.104",
+		IpAddress: "162.159.255.104",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.mp3xd.com",
@@ -2136,7 +2124,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.myitworks.com",
-		IpAddress: "162.159.249.96",
+		IpAddress: "162.159.248.96",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.myvidster.com",
@@ -2160,7 +2148,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.okcupid.com",
-		IpAddress: "198.41.208.132",
+		IpAddress: "198.41.209.132",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.pccomponentes.com",
@@ -2176,11 +2164,11 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.portalnet.cl",
-		IpAddress: "162.159.246.34",
+		IpAddress: "162.159.247.34",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.powned.tv",
-		IpAddress: "162.159.245.144",
+		IpAddress: "162.159.244.144",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.preciolandia.com",
@@ -2188,7 +2176,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.primewire.ag",
-		IpAddress: "104.20.5.77",
+		IpAddress: "104.20.4.77",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.problogger.net",
@@ -2196,19 +2184,19 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.producthunt.com",
-		IpAddress: "198.41.207.194",
+		IpAddress: "198.41.206.194",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.pushbullet.com",
-		IpAddress: "162.159.242.182",
+		IpAddress: "162.159.243.182",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.quadratin.com.mx",
-		IpAddress: "162.159.254.44",
+		IpAddress: "162.159.255.44",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.racing-games.com",
-		IpAddress: "162.159.253.249",
+		IpAddress: "162.159.255.249",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ratemds.com",
@@ -2216,7 +2204,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.renuevodeplenitud.com",
-		IpAddress: "198.41.249.78",
+		IpAddress: "162.159.240.79",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.rome2rio.com",
@@ -2224,15 +2212,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.sfimg.com",
-		IpAddress: "199.83.129.186",
+		IpAddress: "192.230.66.186",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.shortlist.com",
-		IpAddress: "141.101.123.31",
+		IpAddress: "190.93.242.31",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.sm3na.com",
-		IpAddress: "198.41.180.172",
+		IpAddress: "198.41.179.172",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.smartinsights.com",
@@ -2240,7 +2228,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.songspk.name",
-		IpAddress: "108.162.201.183",
+		IpAddress: "108.162.202.183",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ssense.com",
@@ -2248,11 +2236,11 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.stoiximan.gr",
-		IpAddress: "141.101.123.131",
+		IpAddress: "190.93.242.131",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.sundayworld.com",
-		IpAddress: "198.41.186.49",
+		IpAddress: "198.41.187.49",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.surveygizmo.com",
@@ -2268,11 +2256,11 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.techdirt.com",
-		IpAddress: "162.159.244.199",
+		IpAddress: "209.41.68.26",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.teefury.com",
-		IpAddress: "190.93.243.11",
+		IpAddress: "141.101.123.12",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.thegrommet.com",
@@ -2280,15 +2268,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.theladbible.com",
-		IpAddress: "198.41.215.5",
+		IpAddress: "198.41.214.5",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.thenewslens.com",
-		IpAddress: "108.162.203.219",
+		IpAddress: "108.162.204.219",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.thingiverse.com",
-		IpAddress: "162.159.245.200",
+		IpAddress: "162.159.244.200",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.thisiscolossal.com",
@@ -2296,11 +2284,11 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.traidnt.net",
-		IpAddress: "141.101.112.65",
+		IpAddress: "190.93.243.64",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.tunisia-sat.com",
-		IpAddress: "162.159.243.166",
+		IpAddress: "162.159.242.166",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.tvrage.com",
@@ -2312,7 +2300,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.vavel.com",
-		IpAddress: "190.93.242.103",
+		IpAddress: "190.93.240.103",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.wayn.com",
@@ -2320,15 +2308,15 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.webmastersitesi.com",
-		IpAddress: "141.101.120.108",
+		IpAddress: "141.101.120.109",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.whatismyip.com",
-		IpAddress: "141.101.120.15",
+		IpAddress: "141.101.120.14",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.whmcs.com",
-		IpAddress: "104.20.20.8",
+		IpAddress: "104.20.21.8",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.wimdu.com",
@@ -2344,7 +2332,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.zaman.com.tr",
-		IpAddress: "190.93.244.170",
+		IpAddress: "141.101.114.170",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.zopim.com",
@@ -2352,7 +2340,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.zumba.com",
-		IpAddress: "190.93.245.77",
+		IpAddress: "141.101.114.78",
 	},
 	&fronted.Masquerade{
 		Domain:    "x-kom.pl",
@@ -2360,23 +2348,19 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "xat.com",
-		IpAddress: "141.101.123.82",
+		IpAddress: "141.101.112.82",
 	},
 	&fronted.Masquerade{
 		Domain:    "yeniakit.com.tr",
-		IpAddress: "162.159.253.64",
+		IpAddress: "162.159.254.64",
 	},
 	&fronted.Masquerade{
 		Domain:    "yifysubtitles.com",
 		IpAddress: "108.162.200.80",
 	},
 	&fronted.Masquerade{
-		Domain:    "youm7.com",
-		IpAddress: "104.16.17.116",
-	},
-	&fronted.Masquerade{
 		Domain:    "yourvideofile.org",
-		IpAddress: "162.159.240.129",
+		IpAddress: "198.41.249.128",
 	},
 	&fronted.Masquerade{
 		Domain:    "z6.com",
@@ -2396,7 +2380,7 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "zerozero.pt",
-		IpAddress: "198.41.190.107",
+		IpAddress: "198.41.191.107",
 	},
 	&fronted.Masquerade{
 		Domain:    "zurb.com",
@@ -2404,6 +2388,6 @@ var cloudflareMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "zwaar.net",
-		IpAddress: "162.159.242.22",
+		IpAddress: "162.159.243.22",
 	},
 }
