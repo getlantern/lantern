@@ -49,7 +49,11 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 		respondBadGateway(resp, fmt.Sprintf("Unable to hijack connection: %s", err))
 		return
 	}
-	defer clientConn.Close()
+	defer func() {
+		if err := clientConn.Close(); err != nil {
+			log.Debugf("Error closing the client connection", err)
+		}
+	}()
 
 	addr := hostIncludingPort(req, 443)
 	// Establish outbound connection.
@@ -69,7 +73,11 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	defer connOut.Close()
+	defer func() {
+		if err := connOut.Close(); err != nil {
+			log.Debugf("Error closing the out connection", err)
+		}
+	}()
 
 	// Pipe data between the client and the proxy.
 	pipeData(clientConn, connOut, req)
@@ -118,17 +126,25 @@ func pipeData(clientConn net.Conn, connOut net.Conn, req *http.Request) {
 
 	// Start piping from client to proxy
 	go func() {
-		io.Copy(connOut, clientConn)
+		if _, err := io.Copy(connOut, clientConn); err != nil {
+			log.Debugf("Error piping data from client to proxy", err)
+		}
 		closeOnce.Do(closeConns)
 	}()
 
 	// Then start coyping from proxy to client
-	io.Copy(clientConn, connOut)
+	if _, err := io.Copy(clientConn, connOut); err != nil {
+		log.Debugf("Error piping data from proxy to client", err)
+	}
 	closeOnce.Do(closeConns)
 }
 
 func respondOK(writer io.Writer, req *http.Request) error {
-	defer req.Body.Close()
+	defer func() {
+		if err := req.Body.Close(); err != nil {
+			log.Debugf("Error closing body of OK response", err)
+		}
+	}()
 
 	resp := &http.Response{
 		StatusCode: http.StatusOK,
@@ -139,7 +155,7 @@ func respondOK(writer io.Writer, req *http.Request) error {
 	return resp.Write(writer)
 }
 
-func respondBadGateway(w io.Writer, msg string) error {
+func respondBadGateway(w io.Writer, msg string) {
 	log.Debugf("Responding BadGateway: %v", msg)
 	resp := &http.Response{
 		StatusCode: http.StatusBadGateway,
@@ -148,9 +164,10 @@ func respondBadGateway(w io.Writer, msg string) error {
 	}
 	err := resp.Write(w)
 	if err == nil {
-		_, err = w.Write([]byte(msg))
+		if _, err = w.Write([]byte(msg)); err != nil {
+			log.Debugf("Error writing error to io.Writer", err)
+		}
 	}
-	return err
 }
 
 // hostIncludingPort extracts the host:port from a request.  It fills in a

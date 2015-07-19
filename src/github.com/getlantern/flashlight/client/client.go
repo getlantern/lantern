@@ -120,6 +120,8 @@ func (client *Client) Configure(cfg *ClientConfig) fronted.Dialer {
 // Stop is called when the client is no longer needed. It closes the
 // client listener and underlying dialer connection pool
 func (client *Client) Stop() error {
-	client.hqfd.Close()
+	if err := client.hqfd.Close(); err != nil {
+		log.Debugf("Error closing client connection", err)
+	}
 	return client.l.Close()
 }
