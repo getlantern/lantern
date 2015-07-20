@@ -38,3 +38,39 @@ if err != nil {
   log.Fatalf("Unable to listen and serve: %s", err)
 }
 ```
+
+## Debugging
+
+enproxy allows tracing various global metrics about connections, which can be
+useful when debugging issues like file descriptor leaks. To enable this tracing,
+just set the environment variable `TRACE_CONN_STATE=true`. This will cause the
+program to output information like the below every 5 seconds:
+
+```
+---- Enproxy Connections----
+Open:                        34
+Closing:                      0
+Blocked on Closing:           0
+Blocked on Read:             33
+Reading:                     33
+Reading Finishing:            0
+Blocked on Write:             0
+Writing:                     33
+  Selecting:                 33
+  Writing:                    0
+    Write Pipe Open:          0
+    Request Pending:          0
+      Submitting Req.:        0
+      Processing Req.:        1
+        Posting Req. Fin:     0
+        Posting Resp:         0       
+        Dialing First:        0
+        Redialing:            0
+    Doing Write:              0
+  Posting Response:           0
+  Writing Empty:              0
+  Finishing Body:             0
+  Finishing:                  0
+Requesting:                  33
+Requesting Finishing:         0
+```

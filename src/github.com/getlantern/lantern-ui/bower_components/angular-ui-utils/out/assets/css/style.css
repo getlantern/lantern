@@ -1,0 +1,157 @@
+/* =Global rules
+-----------------------------------------------------------------------------*/
+[ng-cloak], .ng-cloak {
+    display: none
+}
+
+body {
+    background: #fff;
+    color: #444;
+}
+
+/* =Header
+-----------------------------------------------------------------------------*/
+
+.hero-unit {
+    position: relative;
+    padding: 40px 0;
+    color: #fff;
+    text-align: center;
+    text-shadow: 0 1px 3px rgba(0,0,0,.4), 0 0 30px rgba(0,0,0,.075);
+    background: #020031;
+    background: -moz-linear-gradient(45deg, #020031 0%, #6d3353 100%);
+    background: -webkit-gradient(linear, left bottom, right top, color-stop(0%,#020031), color-stop(100%,#6d3353));
+    background: -webkit-linear-gradient(45deg, #020031 0%,#6d3353 100%);
+    background: -o-linear-gradient(45deg, #020031 0%,#6d3353 100%);
+    background: -ms-linear-gradient(45deg, #020031 0%,#6d3353 100%);
+    background: linear-gradient(45deg, #020031 0%,#6d3353 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#020031', endColorstr='#6d3353',GradientType=1 );
+    -webkit-box-shadow: inset 0 3px 7px rgba(0,0,0,.2), inset 0 -3px 7px rgba(0,0,0,.2);
+    -moz-box-shadow: inset 0 3px 7px rgba(0,0,0,.2), inset 0 -3px 7px rgba(0,0,0,.2);
+    box-shadow: inset 0 3px 7px rgba(0,0,0,.2), inset 0 -3px 7px rgba(0,0,0,.2);
+    border-radius: 0;
+    -moz-border-radius: 0;
+    -webkit-border-radius: 0;
+    -o-border-radius: 0;
+}
+.hero-unit .btn, .pagination-centered .btn {
+    float: none;
+    font-weight: normal;
+}
+.hero-unit p {
+    margin: 1em 0;
+}
+.bs-docs-social {
+    margin-top: 1em;
+    padding: 15px 0;
+    text-align: center;
+    background-color: rgba(245,245,245,0.3);
+    border-top: 1px solid rgba(255,255,255,0.3);
+    border-bottom: 1px solid rgba(221,221,221,0.3);
+}
+.bs-docs-social-buttons {
+    margin-left: 0;
+    margin-bottom: 0;
+    padding-left: 0;
+    list-style: none;
+}
+.bs-docs-social-buttons li {
+    display: inline-block;
+    padding: 5px 8px;
+    line-height: 1;
+}
+
+.icon-github {
+    background: no-repeat url('../img/github-16px.png');
+    width: 16px;
+    height: 16px;
+}
+
+
+/* =Main content
+-----------------------------------------------------------------------------*/
+
+.page-header{
+    padding-top: 3em;
+}
+
+.content h1:first-child {
+    margin-top: 0;
+}
+
+hr {
+    margin: 5em 0;
+}
+
+.bs-docs-section-header {
+    padding-top: 60px;
+    color: #4661B9;
+    border-bottom: 5px solid #4661B9;
+}
+
+/* =Add on
+-----------------------------------------------------------------------------*/
+.ace_editor_wrapper {
+    position: relative;
+    height: 200px
+}
+
+.ace_editor {
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+}
+
+.CodeMirror {
+    height: 200px !important;
+}
+
+/* = Responsive  variations
+-----------------------------------------------------------------------------*/
+
+/* Hide code snippets on mobile devices */
+@media screen and (max-width: 480px) {
+    .bs-docs-example {
+        border-radius: 4px;
+    }
+
+    .prettyprint {
+        display: none;
+    }
+}
+
+/* Tablets and up */
+@media screen and (min-width: 768px) {
+
+    .bs-docs-section-header h1 {
+        font-size: 80px;
+        font-size: 8rem;
+        line-height: 1;
+    }
+
+    .side {
+        padding-top: 60px;
+    }
+
+    .bs-docs-sidenav.affix {
+        top: 40px;
+        position: fixed;
+    }
+}
+
+/* Tablets/desktops and up */
+@media screen and (min-width: 992px) {
+
+    .bs-docs-sidenav.affix {
+        width : 220px;
+    }
+}
+
+/* Large desktops and up */
+@media screen and (min-width: 1200px) {
+
+    .bs-docs-sidenav.affix {
+        width : 267px;
+    }
+}

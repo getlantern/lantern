@@ -1,0 +1,2510 @@
+{
+  "metadata":{
+    "apiVersion":"2014-11-01",
+    "endpointPrefix":"kms",
+    "jsonVersion":"1.1",
+    "serviceAbbreviation":"KMS",
+    "serviceFullName":"AWS Key Management Service",
+    "signatureVersion":"v4",
+    "targetPrefix":"TrentService",
+    "protocol":"json"
+  },
+  "documentation":"<fullname>AWS Key Management Service</fullname> <p> AWS Key Management Service (KMS) is an encryption and key management web service. This guide describes the KMS actions that you can call programmatically. For general information about KMS, see (need an address here). For the KMS developer guide, see (need address here). </p> <note> AWS provides SDKs that consist of libraries and sample code for various programming languages and platforms (Java, Ruby, .Net, iOS, Android, etc.). The SDKs provide a convenient way to create programmatic access to KMS and AWS. For example, the SDKs take care of tasks such as signing requests (see below), managing errors, and retrying requests automatically. For more information about the AWS SDKs, including how to download and install them, see <a href=\"http://aws.amazon.com/tools/\">Tools for Amazon Web Services</a>. </note> <p> We recommend that you use the AWS SDKs to make programmatic API calls to KMS. However, you can also use the KMS Query API to make to make direct calls to the KMS web service. </p> <p><b>Signing Requests</b></p> <p> Requests must be signed by using an access key ID and a secret access key. We strongly recommend that you do not use your AWS account access key ID and secret key for everyday work with KMS. Instead, use the access key ID and secret access key for an IAM user, or you can use the AWS Security Token Service to generate temporary security credentials that you can use to sign requests. </p> <p> All KMS operations require <a href=\"http://docs.aws.amazon.com/general/latest/gr/signature-version-4.html\">Signature Version 4</a>. </p> <p><b>Recording API Requests</b></p> <p> KMS supports AWS CloudTrail, a service that records AWS API calls and related events for your AWS account and delivers them to an Amazon S3 bucket that you specify. By using the information collected by CloudTrail, you can determine what requests were made to KMS, who made the request, when it was made, and so on. To learn more about CloudTrail, including how to turn it on and find your log files, see the <a href=\"http://docs.aws.amazon.com/awscloudtrail/latest/userguide/whatiscloudtrail.html\">AWS CloudTrail User Guide</a> </p> <p><b>Additional Resources</b></p> <p>For more information about credentials and request signing, see the following:</p> <ul> <li> <a href=\"http://docs.aws.amazon.com/general/latest/gr/aws-security-credentials.html\">AWS Security Credentials</a>. This topic provides general information about the types of credentials used for accessing AWS. </li> <li> <a href=\"http://docs.aws.amazon.com/STS/latest/UsingSTS/\">AWS Security Token Service</a>. This guide describes how to create and use temporary security credentials. </li> <li> <a href=\"http://docs.aws.amazon.com/general/latest/gr/signing_aws_api_requests.html\">Signing AWS API Requests</a>. This set of topics walks you through the process of signing a request using an access key ID and a secret access key. </li> </ul>",
+  "operations":{
+    "CreateAlias":{
+      "name":"CreateAlias",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateAliasRequest"},
+      "errors":[
+        {
+          "shape":"DependencyTimeoutException",
+          "error":{
+            "code":"DependencyTimeout",
+            "httpStatusCode":503
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The system timed out while trying to fulfill the request.</p>"
+        },
+        {
+          "shape":"AlreadyExistsException",
+          "error":{
+            "code":"AlreadyExists",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because it attempted to create a resource that already exists.</p>"
+        },
+        {
+          "shape":"NotFoundException",
+          "error":{
+            "code":"NotFound",
+            "httpStatusCode":404,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the specified entity or resource could not be found. </p>"
+        },
+        {
+          "shape":"InvalidAliasNameException",
+          "error":{
+            "code":"InvalidAliasName",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the specified alias name is not valid.</p>"
+        },
+        {
+          "shape":"KMSInternalException",
+          "error":{
+            "code":"KMSInternal",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "documentation":"<b>The request was rejected because an internal exception occurred. This error can be retried.</b>"
+        },
+        {
+          "shape":"LimitExceededException",
+          "error":{
+            "code":"LimitExceeded",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because a quota was exceeded.</p>"
+        }
+      ],
+      "documentation":"<p> Creates a display name for a customer master key. An alias can be used to identify a key and should be unique. The console enforces a one-to-one mapping between the alias and a key. An alias name can contain only alphanumeric characters, forward slashes (/), underscores (_), and dashes (-). An alias must start with the word \"alias\" followed by a forward slash (alias/). An alias that begins with \"aws\" after the forward slash (alias/aws...) is reserved by Amazon Web Services (AWS). </p>"
+    },
+    "CreateGrant":{
+      "name":"CreateGrant",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateGrantRequest"},
+      "output":{"shape":"CreateGrantResponse"},
+      "errors":[
+        {
+          "shape":"NotFoundException",
+          "error":{
+            "code":"NotFound",
+            "httpStatusCode":404,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the specified entity or resource could not be found. </p>"
+        },
+        {
+          "shape":"DisabledException",
+          "error":{
+            "code":"Disabled",
+            "httpStatusCode":409,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>A request was rejected because the specified key was marked as disabled.</p>"
+        },
+        {
+          "shape":"DependencyTimeoutException",
+          "error":{
+            "code":"DependencyTimeout",
+            "httpStatusCode":503
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The system timed out while trying to fulfill the request.</p>"
+        },
+        {
+          "shape":"InvalidArnException",
+          "error":{
+            "code":"InvalidArn",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because a specified ARN was not valid.</p>"
+        },
+        {
+          "shape":"KMSInternalException",
+          "error":{
+            "code":"KMSInternal",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "documentation":"<b>The request was rejected because an internal exception occurred. This error can be retried.</b>"
+        },
+        {
+          "shape":"InvalidGrantTokenException",
+          "error":{
+            "code":"InvalidGrantToken",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>A grant token provided as part of the request is invalid.</p>"
+        },
+        {
+          "shape":"LimitExceededException",
+          "error":{
+            "code":"LimitExceeded",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because a quota was exceeded.</p>"
+        }
+      ],
+      "documentation":"<p>Adds a grant to a key to specify who can access the key and under what conditions. Grants are alternate permission mechanisms to key policies. If absent, access to the key is evaluated based on IAM policies attached to the user. By default, grants do not expire. Grants can be listed, retired, or revoked as indicated by the following APIs. Typically, when you are finished using a grant, you retire it. When you want to end a grant immediately, revoke it. For more information about grants, see <a href=\"http://docs.aws.amazon.com/kms/latest/developerguide/grants.html\">Grants</a>. <ol> <li><a>ListGrants</a></li> <li><a>RetireGrant</a></li> <li><a>RevokeGrant</a></li> </ol> </p>"
+    },
+    "CreateKey":{
+      "name":"CreateKey",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateKeyRequest"},
+      "output":{"shape":"CreateKeyResponse"},
+      "errors":[
+        {
+          "shape":"MalformedPolicyDocumentException",
+          "error":{
+            "code":"MalformedPolicyDocument",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the specified policy is not syntactically or semantically correct. </p>"
+        },
+        {
+          "shape":"DependencyTimeoutException",
+          "error":{
+            "code":"DependencyTimeout",
+            "httpStatusCode":503
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The system timed out while trying to fulfill the request.</p>"
+        },
+        {
+          "shape":"InvalidArnException",
+          "error":{
+            "code":"InvalidArn",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because a specified ARN was not valid.</p>"
+        },
+        {
+          "shape":"UnsupportedOperationException",
+          "error":{
+            "code":"UnsupportedOperation",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because a specified parameter is not supported.</p>"
+        },
+        {
+          "shape":"KMSInternalException",
+          "error":{
+            "code":"KMSInternal",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "documentation":"<b>The request was rejected because an internal exception occurred. This error can be retried.</b>"
+        },
+        {
+          "shape":"LimitExceededException",
+          "error":{
+            "code":"LimitExceeded",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because a quota was exceeded.</p>"
+        }
+      ],
+      "documentation":"<p>Creates a customer master key. Customer master keys can be used to encrypt small amounts of data (less than 4K) directly, but they are most commonly used to encrypt or envelope data keys that are then used to encrypt customer data. For more information about data keys, see <a>GenerateDataKey</a> and <a>GenerateDataKeyWithoutPlaintext</a>.</p>"
+    },
+    "Decrypt":{
+      "name":"Decrypt",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DecryptRequest"},
+      "output":{"shape":"DecryptResponse"},
+      "errors":[
+        {
+          "shape":"NotFoundException",
+          "error":{
+            "code":"NotFound",
+            "httpStatusCode":404,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the specified entity or resource could not be found. </p>"
+        },
+        {
+          "shape":"DisabledException",
+          "error":{
+            "code":"Disabled",
+            "httpStatusCode":409,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>A request was rejected because the specified key was marked as disabled.</p>"
+        },
+        {
+          "shape":"InvalidCiphertextException",
+          "error":{
+            "code":"InvalidCiphertext",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the specified ciphertext has been corrupted or is otherwise invalid.</p>"
+        },
+        {
+          "shape":"KeyUnavailableException",
+          "error":{
+            "code":"KeyUnavailable",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The request was rejected because the key was disabled, not found, or otherwise not available.</p>"
+        },
+        {
+          "shape":"DependencyTimeoutException",
+          "error":{
+            "code":"DependencyTimeout",
+            "httpStatusCode":503
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The system timed out while trying to fulfill the request.</p>"
+        },
+        {
+          "shape":"InvalidGrantTokenException",
+          "error":{
+            "code":"InvalidGrantToken",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>A grant token provided as part of the request is invalid.</p>"
+        },
+        {
+          "shape":"KMSInternalException",
+          "error":{
+            "code":"KMSInternal",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "documentation":"<b>The request was rejected because an internal exception occurred. This error can be retried.</b>"
+        }
+      ],
+      "documentation":"<p>Decrypts ciphertext. Ciphertext is plaintext that has been previously encrypted by using the <a>Encrypt</a> function.</p>"
+    },
+    "DeleteAlias":{
+      "name":"DeleteAlias",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteAliasRequest"},
+      "errors":[
+        {
+          "shape":"DependencyTimeoutException",
+          "error":{
+            "code":"DependencyTimeout",
+            "httpStatusCode":503
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The system timed out while trying to fulfill the request.</p>"
+        },
+        {
+          "shape":"NotFoundException",
+          "error":{
+            "code":"NotFound",
+            "httpStatusCode":404,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the specified entity or resource could not be found. </p>"
+        },
+        {
+          "shape":"KMSInternalException",
+          "error":{
+            "code":"KMSInternal",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "documentation":"<b>The request was rejected because an internal exception occurred. This error can be retried.</b>"
+        }
+      ],
+      "documentation":"<p>Deletes the specified alias.</p>"
+    },
+    "DescribeKey":{
+      "name":"DescribeKey",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeKeyRequest"},
+      "output":{"shape":"DescribeKeyResponse"},
+      "errors":[
+        {
+          "shape":"NotFoundException",
+          "error":{
+            "code":"NotFound",
+            "httpStatusCode":404,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the specified entity or resource could not be found. </p>"
+        },
+        {
+          "shape":"InvalidArnException",
+          "error":{
+            "code":"InvalidArn",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because a specified ARN was not valid.</p>"
+        },
+        {
+          "shape":"DependencyTimeoutException",
+          "error":{
+            "code":"DependencyTimeout",
+            "httpStatusCode":503
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The system timed out while trying to fulfill the request.</p>"
+        },
+        {
+          "shape":"KMSInternalException",
+          "error":{
+            "code":"KMSInternal",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "documentation":"<b>The request was rejected because an internal exception occurred. This error can be retried.</b>"
+        }
+      ],
+      "documentation":"<p>Provides detailed information about the specified customer master key.</p>"
+    },
+    "DisableKey":{
+      "name":"DisableKey",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DisableKeyRequest"},
+      "errors":[
+        {
+          "shape":"NotFoundException",
+          "error":{
+            "code":"NotFound",
+            "httpStatusCode":404,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the specified entity or resource could not be found. </p>"
+        },
+        {
+          "shape":"InvalidArnException",
+          "error":{
+            "code":"InvalidArn",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because a specified ARN was not valid.</p>"
+        },
+        {
+          "shape":"DependencyTimeoutException",
+          "error":{
+            "code":"DependencyTimeout",
+            "httpStatusCode":503
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The system timed out while trying to fulfill the request.</p>"
+        },
+        {
+          "shape":"KMSInternalException",
+          "error":{
+            "code":"KMSInternal",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "documentation":"<b>The request was rejected because an internal exception occurred. This error can be retried.</b>"
+        }
+      ],
+      "documentation":"<p>Marks a key as disabled, thereby preventing its use.</p>"
+    },
+    "DisableKeyRotation":{
+      "name":"DisableKeyRotation",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DisableKeyRotationRequest"},
+      "errors":[
+        {
+          "shape":"NotFoundException",
+          "error":{
+            "code":"NotFound",
+            "httpStatusCode":404,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the specified entity or resource could not be found. </p>"
+        },
+        {
+          "shape":"InvalidArnException",
+          "error":{
+            "code":"InvalidArn",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because a specified ARN was not valid.</p>"
+        },
+        {
+          "shape":"DependencyTimeoutException",
+          "error":{
+            "code":"DependencyTimeout",
+            "httpStatusCode":503
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The system timed out while trying to fulfill the request.</p>"
+        },
+        {
+          "shape":"KMSInternalException",
+          "error":{
+            "code":"KMSInternal",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "documentation":"<b>The request was rejected because an internal exception occurred. This error can be retried.</b>"
+        }
+      ],
+      "documentation":"Disables rotation of the specified key."
+    },
+    "EnableKey":{
+      "name":"EnableKey",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"EnableKeyRequest"},
+      "errors":[
+        {
+          "shape":"NotFoundException",
+          "error":{
+            "code":"NotFound",
+            "httpStatusCode":404,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the specified entity or resource could not be found. </p>"
+        },
+        {
+          "shape":"InvalidArnException",
+          "error":{
+            "code":"InvalidArn",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because a specified ARN was not valid.</p>"
+        },
+        {
+          "shape":"DependencyTimeoutException",
+          "error":{
+            "code":"DependencyTimeout",
+            "httpStatusCode":503
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The system timed out while trying to fulfill the request.</p>"
+        },
+        {
+          "shape":"KMSInternalException",
+          "error":{
+            "code":"KMSInternal",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "documentation":"<b>The request was rejected because an internal exception occurred. This error can be retried.</b>"
+        },
+        {
+          "shape":"LimitExceededException",
+          "error":{
+            "code":"LimitExceeded",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because a quota was exceeded.</p>"
+        }
+      ],
+      "documentation":"Marks a key as enabled, thereby permitting its use. You can have up to 25 enabled keys at one time."
+    },
+    "EnableKeyRotation":{
+      "name":"EnableKeyRotation",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"EnableKeyRotationRequest"},
+      "errors":[
+        {
+          "shape":"NotFoundException",
+          "error":{
+            "code":"NotFound",
+            "httpStatusCode":404,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the specified entity or resource could not be found. </p>"
+        },
+        {
+          "shape":"InvalidArnException",
+          "error":{
+            "code":"InvalidArn",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because a specified ARN was not valid.</p>"
+        },
+        {
+          "shape":"DependencyTimeoutException",
+          "error":{
+            "code":"DependencyTimeout",
+            "httpStatusCode":503
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The system timed out while trying to fulfill the request.</p>"
+        },
+        {
+          "shape":"KMSInternalException",
+          "error":{
+            "code":"KMSInternal",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "documentation":"<b>The request was rejected because an internal exception occurred. This error can be retried.</b>"
+        }
+      ],
+      "documentation":"Enables rotation of the specified customer master key."
+    },
+    "Encrypt":{
+      "name":"Encrypt",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"EncryptRequest"},
+      "output":{"shape":"EncryptResponse"},
+      "errors":[
+        {
+          "shape":"NotFoundException",
+          "error":{
+            "code":"NotFound",
+            "httpStatusCode":404,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the specified entity or resource could not be found. </p>"
+        },
+        {
+          "shape":"DisabledException",
+          "error":{
+            "code":"Disabled",
+            "httpStatusCode":409,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>A request was rejected because the specified key was marked as disabled.</p>"
+        },
+        {
+          "shape":"KeyUnavailableException",
+          "error":{
+            "code":"KeyUnavailable",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The request was rejected because the key was disabled, not found, or otherwise not available.</p>"
+        },
+        {
+          "shape":"DependencyTimeoutException",
+          "error":{
+            "code":"DependencyTimeout",
+            "httpStatusCode":503
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The system timed out while trying to fulfill the request.</p>"
+        },
+        {
+          "shape":"InvalidKeyUsageException",
+          "error":{
+            "code":"InvalidKeyUsage",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the specified KeySpec parameter is not valid. The currently supported value is ENCRYPT/DECRYPT. </p>"
+        },
+        {
+          "shape":"InvalidGrantTokenException",
+          "error":{
+            "code":"InvalidGrantToken",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>A grant token provided as part of the request is invalid.</p>"
+        },
+        {
+          "shape":"KMSInternalException",
+          "error":{
+            "code":"KMSInternal",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "documentation":"<b>The request was rejected because an internal exception occurred. This error can be retried.</b>"
+        }
+      ],
+      "documentation":"<p>Encrypts plaintext into ciphertext by using a customer master key.</p>"
+    },
+    "GenerateDataKey":{
+      "name":"GenerateDataKey",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GenerateDataKeyRequest"},
+      "output":{"shape":"GenerateDataKeyResponse"},
+      "errors":[
+        {
+          "shape":"NotFoundException",
+          "error":{
+            "code":"NotFound",
+            "httpStatusCode":404,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the specified entity or resource could not be found. </p>"
+        },
+        {
+          "shape":"DisabledException",
+          "error":{
+            "code":"Disabled",
+            "httpStatusCode":409,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>A request was rejected because the specified key was marked as disabled.</p>"
+        },
+        {
+          "shape":"KeyUnavailableException",
+          "error":{
+            "code":"KeyUnavailable",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The request was rejected because the key was disabled, not found, or otherwise not available.</p>"
+        },
+        {
+          "shape":"DependencyTimeoutException",
+          "error":{
+            "code":"DependencyTimeout",
+            "httpStatusCode":503
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The system timed out while trying to fulfill the request.</p>"
+        },
+        {
+          "shape":"InvalidKeyUsageException",
+          "error":{
+            "code":"InvalidKeyUsage",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the specified KeySpec parameter is not valid. The currently supported value is ENCRYPT/DECRYPT. </p>"
+        },
+        {
+          "shape":"InvalidGrantTokenException",
+          "error":{
+            "code":"InvalidGrantToken",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>A grant token provided as part of the request is invalid.</p>"
+        },
+        {
+          "shape":"KMSInternalException",
+          "error":{
+            "code":"KMSInternal",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "documentation":"<b>The request was rejected because an internal exception occurred. This error can be retried.</b>"
+        }
+      ],
+      "documentation":"<p>Generates a secure data key. Data keys are used to encrypt and decrypt data. They are wrapped by customer master keys. </p>"
+    },
+    "GenerateDataKeyWithoutPlaintext":{
+      "name":"GenerateDataKeyWithoutPlaintext",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GenerateDataKeyWithoutPlaintextRequest"},
+      "output":{"shape":"GenerateDataKeyWithoutPlaintextResponse"},
+      "errors":[
+        {
+          "shape":"NotFoundException",
+          "error":{
+            "code":"NotFound",
+            "httpStatusCode":404,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the specified entity or resource could not be found. </p>"
+        },
+        {
+          "shape":"DisabledException",
+          "error":{
+            "code":"Disabled",
+            "httpStatusCode":409,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>A request was rejected because the specified key was marked as disabled.</p>"
+        },
+        {
+          "shape":"KeyUnavailableException",
+          "error":{
+            "code":"KeyUnavailable",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The request was rejected because the key was disabled, not found, or otherwise not available.</p>"
+        },
+        {
+          "shape":"DependencyTimeoutException",
+          "error":{
+            "code":"DependencyTimeout",
+            "httpStatusCode":503
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The system timed out while trying to fulfill the request.</p>"
+        },
+        {
+          "shape":"InvalidKeyUsageException",
+          "error":{
+            "code":"InvalidKeyUsage",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the specified KeySpec parameter is not valid. The currently supported value is ENCRYPT/DECRYPT. </p>"
+        },
+        {
+          "shape":"InvalidGrantTokenException",
+          "error":{
+            "code":"InvalidGrantToken",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>A grant token provided as part of the request is invalid.</p>"
+        },
+        {
+          "shape":"KMSInternalException",
+          "error":{
+            "code":"KMSInternal",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "documentation":"<b>The request was rejected because an internal exception occurred. This error can be retried.</b>"
+        }
+      ],
+      "documentation":"<p>Returns a key wrapped by a customer master key without the plaintext copy of that key. To retrieve the plaintext, see <a>GenerateDataKey</a>. </p>"
+    },
+    "GenerateRandom":{
+      "name":"GenerateRandom",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GenerateRandomRequest"},
+      "output":{"shape":"GenerateRandomResponse"},
+      "errors":[
+        {
+          "shape":"DependencyTimeoutException",
+          "error":{
+            "code":"DependencyTimeout",
+            "httpStatusCode":503
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The system timed out while trying to fulfill the request.</p>"
+        },
+        {
+          "shape":"KMSInternalException",
+          "error":{
+            "code":"KMSInternal",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "documentation":"<b>The request was rejected because an internal exception occurred. This error can be retried.</b>"
+        }
+      ],
+      "documentation":"<p>Generates an unpredictable byte string. </p>"
+    },
+    "GetKeyPolicy":{
+      "name":"GetKeyPolicy",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetKeyPolicyRequest"},
+      "output":{"shape":"GetKeyPolicyResponse"},
+      "errors":[
+        {
+          "shape":"NotFoundException",
+          "error":{
+            "code":"NotFound",
+            "httpStatusCode":404,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the specified entity or resource could not be found. </p>"
+        },
+        {
+          "shape":"InvalidArnException",
+          "error":{
+            "code":"InvalidArn",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because a specified ARN was not valid.</p>"
+        },
+        {
+          "shape":"DependencyTimeoutException",
+          "error":{
+            "code":"DependencyTimeout",
+            "httpStatusCode":503
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The system timed out while trying to fulfill the request.</p>"
+        },
+        {
+          "shape":"KMSInternalException",
+          "error":{
+            "code":"KMSInternal",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "documentation":"<b>The request was rejected because an internal exception occurred. This error can be retried.</b>"
+        }
+      ],
+      "documentation":"<p>Retrieves a policy attached to the specified key.</p>"
+    },
+    "GetKeyRotationStatus":{
+      "name":"GetKeyRotationStatus",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetKeyRotationStatusRequest"},
+      "output":{"shape":"GetKeyRotationStatusResponse"},
+      "errors":[
+        {
+          "shape":"NotFoundException",
+          "error":{
+            "code":"NotFound",
+            "httpStatusCode":404,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the specified entity or resource could not be found. </p>"
+        },
+        {
+          "shape":"InvalidArnException",
+          "error":{
+            "code":"InvalidArn",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because a specified ARN was not valid.</p>"
+        },
+        {
+          "shape":"DependencyTimeoutException",
+          "error":{
+            "code":"DependencyTimeout",
+            "httpStatusCode":503
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The system timed out while trying to fulfill the request.</p>"
+        },
+        {
+          "shape":"KMSInternalException",
+          "error":{
+            "code":"KMSInternal",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "documentation":"<b>The request was rejected because an internal exception occurred. This error can be retried.</b>"
+        }
+      ],
+      "documentation":"Retrieves a Boolean value that indicates whether key rotation is enabled for the specified key."
+    },
+    "ListAliases":{
+      "name":"ListAliases",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListAliasesRequest"},
+      "output":{"shape":"ListAliasesResponse"},
+      "errors":[
+        {
+          "shape":"DependencyTimeoutException",
+          "error":{
+            "code":"DependencyTimeout",
+            "httpStatusCode":503
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The system timed out while trying to fulfill the request.</p>"
+        },
+        {
+          "shape":"KMSInternalException",
+          "error":{
+            "code":"KMSInternal",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "documentation":"<b>The request was rejected because an internal exception occurred. This error can be retried.</b>"
+        }
+      ],
+      "documentation":"<p>Lists all of the key aliases in the account.</p>"
+    },
+    "ListGrants":{
+      "name":"ListGrants",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListGrantsRequest"},
+      "output":{"shape":"ListGrantsResponse"},
+      "errors":[
+        {
+          "shape":"DependencyTimeoutException",
+          "error":{
+            "code":"DependencyTimeout",
+            "httpStatusCode":503
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The system timed out while trying to fulfill the request.</p>"
+        },
+        {
+          "shape":"InvalidMarkerException",
+          "error":{
+            "code":"InvalidMarker",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the marker that specifies where pagination should next begin is not valid. </p>"
+        },
+        {
+          "shape":"KMSInternalException",
+          "error":{
+            "code":"KMSInternal",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "documentation":"<b>The request was rejected because an internal exception occurred. This error can be retried.</b>"
+        }
+      ],
+      "documentation":"<p>List the grants for a specified key.</p>"
+    },
+    "ListKeyPolicies":{
+      "name":"ListKeyPolicies",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListKeyPoliciesRequest"},
+      "output":{"shape":"ListKeyPoliciesResponse"},
+      "errors":[
+        {
+          "shape":"NotFoundException",
+          "error":{
+            "code":"NotFound",
+            "httpStatusCode":404,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the specified entity or resource could not be found. </p>"
+        },
+        {
+          "shape":"InvalidArnException",
+          "error":{
+            "code":"InvalidArn",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because a specified ARN was not valid.</p>"
+        },
+        {
+          "shape":"DependencyTimeoutException",
+          "error":{
+            "code":"DependencyTimeout",
+            "httpStatusCode":503
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The system timed out while trying to fulfill the request.</p>"
+        },
+        {
+          "shape":"KMSInternalException",
+          "error":{
+            "code":"KMSInternal",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "documentation":"<b>The request was rejected because an internal exception occurred. This error can be retried.</b>"
+        }
+      ],
+      "documentation":"<p>Retrieves a list of policies attached to a key.</p>"
+    },
+    "ListKeys":{
+      "name":"ListKeys",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListKeysRequest"},
+      "output":{"shape":"ListKeysResponse"},
+      "errors":[
+        {
+          "shape":"DependencyTimeoutException",
+          "error":{
+            "code":"DependencyTimeout",
+            "httpStatusCode":503
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The system timed out while trying to fulfill the request.</p>"
+        },
+        {
+          "shape":"KMSInternalException",
+          "error":{
+            "code":"KMSInternal",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "documentation":"<b>The request was rejected because an internal exception occurred. This error can be retried.</b>"
+        }
+      ],
+      "documentation":"<p>Lists the customer master keys.</p>"
+    },
+    "PutKeyPolicy":{
+      "name":"PutKeyPolicy",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"PutKeyPolicyRequest"},
+      "errors":[
+        {
+          "shape":"NotFoundException",
+          "error":{
+            "code":"NotFound",
+            "httpStatusCode":404,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the specified entity or resource could not be found. </p>"
+        },
+        {
+          "shape":"InvalidArnException",
+          "error":{
+            "code":"InvalidArn",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because a specified ARN was not valid.</p>"
+        },
+        {
+          "shape":"MalformedPolicyDocumentException",
+          "error":{
+            "code":"MalformedPolicyDocument",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the specified policy is not syntactically or semantically correct. </p>"
+        },
+        {
+          "shape":"DependencyTimeoutException",
+          "error":{
+            "code":"DependencyTimeout",
+            "httpStatusCode":503
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The system timed out while trying to fulfill the request.</p>"
+        },
+        {
+          "shape":"InvalidArnException",
+          "error":{
+            "code":"InvalidArn",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because a specified ARN was not valid.</p>"
+        },
+        {
+          "shape":"UnsupportedOperationException",
+          "error":{
+            "code":"UnsupportedOperation",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because a specified parameter is not supported.</p>"
+        },
+        {
+          "shape":"KMSInternalException",
+          "error":{
+            "code":"KMSInternal",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "documentation":"<b>The request was rejected because an internal exception occurred. This error can be retried.</b>"
+        },
+        {
+          "shape":"LimitExceededException",
+          "error":{
+            "code":"LimitExceeded",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because a quota was exceeded.</p>"
+        }
+      ],
+      "documentation":"<p>Attaches a policy to the specified key.</p>"
+    },
+    "ReEncrypt":{
+      "name":"ReEncrypt",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ReEncryptRequest"},
+      "output":{"shape":"ReEncryptResponse"},
+      "errors":[
+        {
+          "shape":"NotFoundException",
+          "error":{
+            "code":"NotFound",
+            "httpStatusCode":404,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the specified entity or resource could not be found. </p>"
+        },
+        {
+          "shape":"DisabledException",
+          "error":{
+            "code":"Disabled",
+            "httpStatusCode":409,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>A request was rejected because the specified key was marked as disabled.</p>"
+        },
+        {
+          "shape":"InvalidCiphertextException",
+          "error":{
+            "code":"InvalidCiphertext",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the specified ciphertext has been corrupted or is otherwise invalid.</p>"
+        },
+        {
+          "shape":"KeyUnavailableException",
+          "error":{
+            "code":"KeyUnavailable",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The request was rejected because the key was disabled, not found, or otherwise not available.</p>"
+        },
+        {
+          "shape":"DependencyTimeoutException",
+          "error":{
+            "code":"DependencyTimeout",
+            "httpStatusCode":503
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The system timed out while trying to fulfill the request.</p>"
+        },
+        {
+          "shape":"InvalidKeyUsageException",
+          "error":{
+            "code":"InvalidKeyUsage",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the specified KeySpec parameter is not valid. The currently supported value is ENCRYPT/DECRYPT. </p>"
+        },
+        {
+          "shape":"InvalidGrantTokenException",
+          "error":{
+            "code":"InvalidGrantToken",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>A grant token provided as part of the request is invalid.</p>"
+        },
+        {
+          "shape":"KMSInternalException",
+          "error":{
+            "code":"KMSInternal",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "documentation":"<b>The request was rejected because an internal exception occurred. This error can be retried.</b>"
+        }
+      ],
+      "documentation":"<p>Encrypts data on the server side with a new customer master key without exposing the plaintext of the data on the client side. The data is first decrypted and then encrypted. This operation can also be used to change the encryption context of a ciphertext. </p>"
+    },
+    "RetireGrant":{
+      "name":"RetireGrant",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"RetireGrantRequest"},
+      "errors":[
+        {
+          "shape":"InvalidGrantTokenException",
+          "error":{
+            "code":"InvalidGrantToken",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>A grant token provided as part of the request is invalid.</p>"
+        },
+        {
+          "shape":"DependencyTimeoutException",
+          "error":{
+            "code":"DependencyTimeout",
+            "httpStatusCode":503
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The system timed out while trying to fulfill the request.</p>"
+        },
+        {
+          "shape":"KMSInternalException",
+          "error":{
+            "code":"KMSInternal",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "documentation":"<b>The request was rejected because an internal exception occurred. This error can be retried.</b>"
+        }
+      ],
+      "documentation":"Retires a grant. You can retire a grant when you're done using it to clean up. You should revoke a grant when you intend to actively deny operations that depend on it."
+    },
+    "RevokeGrant":{
+      "name":"RevokeGrant",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"RevokeGrantRequest"},
+      "errors":[
+        {
+          "shape":"NotFoundException",
+          "error":{
+            "code":"NotFound",
+            "httpStatusCode":404,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the specified entity or resource could not be found. </p>"
+        },
+        {
+          "shape":"DependencyTimeoutException",
+          "error":{
+            "code":"DependencyTimeout",
+            "httpStatusCode":503
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The system timed out while trying to fulfill the request.</p>"
+        },
+        {
+          "shape":"KMSInternalException",
+          "error":{
+            "code":"KMSInternal",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "documentation":"<b>The request was rejected because an internal exception occurred. This error can be retried.</b>"
+        }
+      ],
+      "documentation":"Revokes a grant. You can revoke a grant to actively deny operations that depend on it."
+    },
+    "UpdateKeyDescription":{
+      "name":"UpdateKeyDescription",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateKeyDescriptionRequest"},
+      "errors":[
+        {
+          "shape":"NotFoundException",
+          "error":{
+            "code":"NotFound",
+            "httpStatusCode":404,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because the specified entity or resource could not be found. </p>"
+        },
+        {
+          "shape":"InvalidArnException",
+          "error":{
+            "code":"InvalidArn",
+            "httpStatusCode":400,
+            "senderFault":true
+          },
+          "exception":true,
+          "documentation":"<p>The request was rejected because a specified ARN was not valid.</p>"
+        },
+        {
+          "shape":"DependencyTimeoutException",
+          "error":{
+            "code":"DependencyTimeout",
+            "httpStatusCode":503
+          },
+          "exception":true,
+          "fault":true,
+          "documentation":"<p>The system timed out while trying to fulfill the request.</p>"
+        },
+        {
+          "shape":"KMSInternalException",
+          "error":{
+            "code":"KMSInternal",
+            "httpStatusCode":500
+          },
+          "exception":true,
+          "documentation":"<b>The request was rejected because an internal exception occurred. This error can be retried.</b>"
+        }
+      ]
+    }
+  },
+  "shapes":{
+    "AWSAccountIdType":{"type":"string"},
+    "AliasList":{
+      "type":"list",
+      "member":{"shape":"AliasListEntry"}
+    },
+    "AliasListEntry":{
+      "type":"structure",
+      "members":{
+        "AliasName":{
+          "shape":"AliasNameType",
+          "documentation":"<p>String that contains the alias.</p>"
+        },
+        "AliasArn":{
+          "shape":"ArnType",
+          "documentation":"<p>String that contains the key ARN.</p>"
+        },
+        "TargetKeyId":{
+          "shape":"KeyIdType",
+          "documentation":"<p>String that contains the key identifier pointed to by the alias.</p>"
+        }
+      },
+      "documentation":"Contains information about an alias."
+    },
+    "AliasNameType":{
+      "type":"string",
+      "min":1,
+      "max":256,
+      "pattern":"^[a-zA-Z0-9:/_-]+$"
+    },
+    "AlreadyExistsException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessageType"}
+      },
+      "error":{
+        "code":"AlreadyExists",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true,
+      "documentation":"<p>The request was rejected because it attempted to create a resource that already exists.</p>"
+    },
+    "ArnType":{
+      "type":"string",
+      "min":20,
+      "max":2048
+    },
+    "BooleanType":{"type":"boolean"},
+    "CiphertextType":{
+      "type":"blob",
+      "min":1,
+      "max":6144
+    },
+    "CreateAliasRequest":{
+      "type":"structure",
+      "required":[
+        "AliasName",
+        "TargetKeyId"
+      ],
+      "members":{
+        "AliasName":{
+          "shape":"AliasNameType",
+          "documentation":"<p>String that contains the display name. Aliases that begin with AWS are reserved.</p>"
+        },
+        "TargetKeyId":{
+          "shape":"KeyIdType",
+          "documentation":"<p>An identifier of the key for which you are creating the alias. This value cannot be another alias.</p>"
+        }
+      }
+    },
+    "CreateGrantRequest":{
+      "type":"structure",
+      "required":[
+        "KeyId",
+        "GranteePrincipal"
+      ],
+      "members":{
+        "KeyId":{
+          "shape":"KeyIdType",
+          "documentation":"<p>A unique key identifier for a customer master key. This value can be a globally unique identifier, an ARN, or an alias. </p>"
+        },
+        "GranteePrincipal":{
+          "shape":"PrincipalIdType",
+          "documentation":"<p>Principal given permission by the grant to use the key identified by the <code>keyId</code> parameter.</p>"
+        },
+        "RetiringPrincipal":{
+          "shape":"PrincipalIdType",
+          "documentation":"<p>Principal given permission to retire the grant. For more information, see <a>RetireGrant</a>.</p>"
+        },
+        "Operations":{
+          "shape":"GrantOperationList",
+          "documentation":"<p>List of operations permitted by the grant. This can be any combination of one or more of the following values: <ol> <li>Decrypt</li> <li>Encrypt</li> <li>GenerateDataKey</li> <li>GenerateDataKeyWithoutPlaintext</li> <li>ReEncryptFrom</li> <li>ReEncryptTo</li> <li>CreateGrant</li> </ol> </p>"
+        },
+        "Constraints":{
+          "shape":"GrantConstraints",
+          "documentation":"<p>Specifies the conditions under which the actions specified by the <code>Operations</code> parameter are allowed. </p>"
+        },
+        "GrantTokens":{
+          "shape":"GrantTokenList",
+          "documentation":"<p>List of grant tokens.</p>"
+        }
+      }
+    },
+    "CreateGrantResponse":{
+      "type":"structure",
+      "members":{
+        "GrantToken":{
+          "shape":"GrantTokenType",
+          "documentation":"<p>The grant token. A grant token is a string that identifies a grant and which can be used to make a grant take effect immediately. A token contains all of the information necessary to create a grant.</p>"
+        },
+        "GrantId":{
+          "shape":"GrantIdType",
+          "documentation":"<p>Unique grant identifier. You can use the <i>GrantId</i> value to revoke a grant.</p>"
+        }
+      }
+    },
+    "CreateKeyRequest":{
+      "type":"structure",
+      "members":{
+        "Policy":{
+          "shape":"PolicyType",
+          "documentation":"<p>Policy to be attached to the key. This is required and delegates back to the account. The key is the root of trust. </p>"
+        },
+        "Description":{
+          "shape":"DescriptionType",
+          "documentation":"<p>Description of the key. We recommend that you choose a description that helps your customer decide whether the key is appropriate for a task. </p>"
+        },
+        "KeyUsage":{
+          "shape":"KeyUsageType",
+          "documentation":"<p>Specifies the intended use of the key. Currently this defaults to ENCRYPT/DECRYPT, and only symmetric encryption and decryption are supported. </p>"
+        }
+      }
+    },
+    "CreateKeyResponse":{
+      "type":"structure",
+      "members":{
+        "KeyMetadata":{
+          "shape":"KeyMetadata",
+          "documentation":"<p>Metadata associated with the key.</p>"
+        }
+      }
+    },
+    "DataKeySpec":{
+      "type":"string",
+      "enum":[
+        "AES_256",
+        "AES_128"
+      ]
+    },
+    "DateType":{"type":"timestamp"},
+    "DecryptRequest":{
+      "type":"structure",
+      "required":["CiphertextBlob"],
+      "members":{
+        "CiphertextBlob":{
+          "shape":"CiphertextType",
+          "documentation":"<p>Ciphertext including metadata.</p>"
+        },
+        "EncryptionContext":{
+          "shape":"EncryptionContextType",
+          "documentation":"<p>The encryption context. If this was specified in the <a>Encrypt</a> function, it must be specified here or the decryption operation will fail. For more information, see <a href=\"http://docs.aws.amazon.com/kms/latest/developerguide/encrypt-context.html\">Encryption Context</a>. </p>"
+        },
+        "GrantTokens":{
+          "shape":"GrantTokenList",
+          "documentation":"<p>A list of grant tokens that represent grants which can be used to provide long term permissions to perform decryption.</p>"
+        }
+      }
+    },
+    "DecryptResponse":{
+      "type":"structure",
+      "members":{
+        "KeyId":{
+          "shape":"KeyIdType",
+          "documentation":"<p>Unique identifier created by the system for the key. This value is always returned as long as no errors are encountered during the operation.</p>"
+        },
+        "Plaintext":{
+          "shape":"PlaintextType",
+          "documentation":"<p>Decrypted plaintext data. This value may not be returned if the customer master key is not available or if you didn't have permission to use it.</p>"
+        }
+      }
+    },
+    "DeleteAliasRequest":{
+      "type":"structure",
+      "required":["AliasName"],
+      "members":{
+        "AliasName":{
+          "shape":"AliasNameType",
+          "documentation":"<p>The alias to be deleted.</p>"
+        }
+      }
+    },
+    "DependencyTimeoutException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessageType"}
+      },
+      "error":{
+        "code":"DependencyTimeout",
+        "httpStatusCode":503
+      },
+      "exception":true,
+      "fault":true,
+      "documentation":"<p>The system timed out while trying to fulfill the request.</p>"
+    },
+    "DescribeKeyRequest":{
+      "type":"structure",
+      "required":["KeyId"],
+      "members":{
+        "KeyId":{
+          "shape":"KeyIdType",
+          "documentation":"<p>Unique identifier of the customer master key to be described. This can be an ARN, an alias, or a globally unique identifier. </p>"
+        }
+      }
+    },
+    "DescribeKeyResponse":{
+      "type":"structure",
+      "members":{
+        "KeyMetadata":{
+          "shape":"KeyMetadata",
+          "documentation":"<p>Metadata associated with the key.</p>"
+        }
+      }
+    },
+    "DescriptionType":{
+      "type":"string",
+      "min":0,
+      "max":8192
+    },
+    "DisableKeyRequest":{
+      "type":"structure",
+      "required":["KeyId"],
+      "members":{
+        "KeyId":{
+          "shape":"KeyIdType",
+          "documentation":"<p>Unique identifier of the customer master key to be disabled. This can be an ARN, an alias, or a globally unique identifier. </p>"
+        }
+      }
+    },
+    "DisableKeyRotationRequest":{
+      "type":"structure",
+      "required":["KeyId"],
+      "members":{
+        "KeyId":{
+          "shape":"KeyIdType",
+          "documentation":"<p>Unique identifier of the customer master key for which rotation is to be disabled. This can be an ARN, an alias, or a globally unique identifier. </p>"
+        }
+      }
+    },
+    "DisabledException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessageType"}
+      },
+      "error":{
+        "code":"Disabled",
+        "httpStatusCode":409,
+        "senderFault":true
+      },
+      "exception":true,
+      "documentation":"<p>A request was rejected because the specified key was marked as disabled.</p>"
+    },
+    "EnableKeyRequest":{
+      "type":"structure",
+      "required":["KeyId"],
+      "members":{
+        "KeyId":{
+          "shape":"KeyIdType",
+          "documentation":"<p>Unique identifier of the customer master key to be enabled. This can be an ARN, an alias, or a globally unique identifier. </p>"
+        }
+      }
+    },
+    "EnableKeyRotationRequest":{
+      "type":"structure",
+      "required":["KeyId"],
+      "members":{
+        "KeyId":{
+          "shape":"KeyIdType",
+          "documentation":"<p>Unique identifier of the customer master key for which rotation is to be enabled. This can be an ARN, an alias, or a globally unique identifier. </p>"
+        }
+      }
+    },
+    "EncryptRequest":{
+      "type":"structure",
+      "required":[
+        "KeyId",
+        "Plaintext"
+      ],
+      "members":{
+        "KeyId":{
+          "shape":"KeyIdType",
+          "documentation":"<p>Unique identifier of the customer master. This can be an ARN, an alias, or the Key ID. </p>"
+        },
+        "Plaintext":{
+          "shape":"PlaintextType",
+          "documentation":"<p>Data to be encrypted.</p>"
+        },
+        "EncryptionContext":{
+          "shape":"EncryptionContextType",
+          "documentation":"<p>Name:value pair that specifies the encryption context to be used for authenticated encryption. For more information, see <a href=\"http://docs.aws.amazon.com/kms/latest/developerguide/crypto_authen.html\">Authenticated Encryption</a>. </p>"
+        },
+        "GrantTokens":{
+          "shape":"GrantTokenList",
+          "documentation":"<p>A list of grant tokens that represent grants which can be used to provide long term permissions to perform encryption.</p>"
+        }
+      }
+    },
+    "EncryptResponse":{
+      "type":"structure",
+      "members":{
+        "CiphertextBlob":{
+          "shape":"CiphertextType",
+          "documentation":"<p>The encrypted plaintext.</p>"
+        },
+        "KeyId":{
+          "shape":"KeyIdType",
+          "documentation":"<p>The ID of the key used during encryption.</p>"
+        }
+      }
+    },
+    "EncryptionContextKey":{"type":"string"},
+    "EncryptionContextType":{
+      "type":"map",
+      "key":{"shape":"EncryptionContextKey"},
+      "value":{"shape":"EncryptionContextValue"}
+    },
+    "EncryptionContextValue":{"type":"string"},
+    "ErrorMessageType":{"type":"string"},
+    "GenerateDataKeyRequest":{
+      "type":"structure",
+      "required":["KeyId"],
+      "members":{
+        "KeyId":{
+          "shape":"KeyIdType",
+          "documentation":"<p>Unique identifier of the key. This can be an ARN, an alias, or a globally unique identifier.</p>"
+        },
+        "EncryptionContext":{
+          "shape":"EncryptionContextType",
+          "documentation":"<p>Name/value pair that contains additional data to be authenticated during the encryption and decryption processes that use the key. This value is logged by AWS CloudTrail to provide context around the data encrypted by the key. </p>"
+        },
+        "NumberOfBytes":{
+          "shape":"NumberOfBytesType",
+          "documentation":"<p>Integer that contains the number of bytes to generate. Common values are 128, 256, 512, 1024 and so on. 1024 is the current limit. </p>"
+        },
+        "KeySpec":{
+          "shape":"DataKeySpec",
+          "documentation":"<p>Value that identifies the encryption algorithm and key size to generate a data key for. Currently this can be AES_128 or AES_256. </p>"
+        },
+        "GrantTokens":{
+          "shape":"GrantTokenList",
+          "documentation":"<p>A list of grant tokens that represent grants which can be used to provide long term permissions to generate a key.</p>"
+        }
+      }
+    },
+    "GenerateDataKeyResponse":{
+      "type":"structure",
+      "members":{
+        "CiphertextBlob":{
+          "shape":"CiphertextType",
+          "documentation":"<p>Ciphertext that contains the wrapped key. You must store the blob and encryption context so that the ciphertext can be decrypted. You must provide both the ciphertext blob and the encryption context. </p>"
+        },
+        "Plaintext":{
+          "shape":"PlaintextType",
+          "documentation":"<p>Plaintext that contains the unwrapped key. Use this for encryption and decryption and then remove it from memory as soon as possible. </p>"
+        },
+        "KeyId":{
+          "shape":"KeyIdType",
+          "documentation":"<p>System generated unique identifier for the key.</p>"
+        }
+      }
+    },
+    "GenerateDataKeyWithoutPlaintextRequest":{
+      "type":"structure",
+      "required":["KeyId"],
+      "members":{
+        "KeyId":{
+          "shape":"KeyIdType",
+          "documentation":"<p>Unique identifier of the key. This can be an ARN, an alias, or a globally unique identifier.</p>"
+        },
+        "EncryptionContext":{
+          "shape":"EncryptionContextType",
+          "documentation":"<p>Name:value pair that contains additional data to be authenticated during the encryption and decryption processes. </p>"
+        },
+        "KeySpec":{
+          "shape":"DataKeySpec",
+          "documentation":"<p>Value that identifies the encryption algorithm and key size. Currently this can be AES_128 or AES_256. </p>"
+        },
+        "NumberOfBytes":{
+          "shape":"NumberOfBytesType",
+          "documentation":"<p>Integer that contains the number of bytes to generate. Common values are 128, 256, 512, 1024 and so on. </p>"
+        },
+        "GrantTokens":{
+          "shape":"GrantTokenList",
+          "documentation":"<p>A list of grant tokens that represent grants which can be used to provide long term permissions to generate a key.</p>"
+        }
+      }
+    },
+    "GenerateDataKeyWithoutPlaintextResponse":{
+      "type":"structure",
+      "members":{
+        "CiphertextBlob":{
+          "shape":"CiphertextType",
+          "documentation":"<p>Ciphertext that contains the wrapped key. You must store the blob and encryption context so that the key can be used in a future operation. </p>"
+        },
+        "KeyId":{
+          "shape":"KeyIdType",
+          "documentation":"<p>System generated unique identifier for the key.</p>"
+        }
+      }
+    },
+    "GenerateRandomRequest":{
+      "type":"structure",
+      "members":{
+        "NumberOfBytes":{
+          "shape":"NumberOfBytesType",
+          "documentation":"<p>Integer that contains the number of bytes to generate. Common values are 128, 256, 512, 1024 and so on. The current limit is 1024 bytes. </p>"
+        }
+      }
+    },
+    "GenerateRandomResponse":{
+      "type":"structure",
+      "members":{
+        "Plaintext":{
+          "shape":"PlaintextType",
+          "documentation":"<p>Plaintext that contains the unpredictable byte string.</p>"
+        }
+      }
+    },
+    "GetKeyPolicyRequest":{
+      "type":"structure",
+      "required":[
+        "KeyId",
+        "PolicyName"
+      ],
+      "members":{
+        "KeyId":{
+          "shape":"KeyIdType",
+          "documentation":"<p>Unique identifier of the key. This can be an ARN, an alias, or a globally unique identifier.</p>"
+        },
+        "PolicyName":{
+          "shape":"PolicyNameType",
+          "documentation":"<p>String that contains the name of the policy. Currently, this must be \"default\". Policy names can be discovered by calling <a>ListKeyPolicies</a>. </p>"
+        }
+      }
+    },
+    "GetKeyPolicyResponse":{
+      "type":"structure",
+      "members":{
+        "Policy":{
+          "shape":"PolicyType",
+          "documentation":"<p>A policy document in JSON format.</p>"
+        }
+      }
+    },
+    "GetKeyRotationStatusRequest":{
+      "type":"structure",
+      "required":["KeyId"],
+      "members":{
+        "KeyId":{
+          "shape":"KeyIdType",
+          "documentation":"<p>Unique identifier of the key. This can be an ARN, an alias, or a globally unique identifier.</p>"
+        }
+      }
+    },
+    "GetKeyRotationStatusResponse":{
+      "type":"structure",
+      "members":{
+        "KeyRotationEnabled":{
+          "shape":"BooleanType",
+          "documentation":"A Boolean value that specifies whether key rotation is enabled."
+        }
+      }
+    },
+    "GrantConstraints":{
+      "type":"structure",
+      "members":{
+        "EncryptionContextSubset":{
+          "shape":"EncryptionContextType",
+          "documentation":"The constraint equals the full encryption context."
+        },
+        "EncryptionContextEquals":{
+          "shape":"EncryptionContextType",
+          "documentation":"The constraint contains additional key/value pairs that serve to further limit the grant."
+        }
+      },
+      "documentation":"Contains constraints on the grant."
+    },
+    "GrantIdType":{
+      "type":"string",
+      "min":1,
+      "max":128
+    },
+    "GrantList":{
+      "type":"list",
+      "member":{"shape":"GrantListEntry"}
+    },
+    "GrantListEntry":{
+      "type":"structure",
+      "members":{
+        "GrantId":{
+          "shape":"GrantIdType",
+          "documentation":"<p>Unique grant identifier.</p>"
+        },
+        "GranteePrincipal":{
+          "shape":"PrincipalIdType",
+          "documentation":"<p>The principal that receives the grant permission.</p>"
+        },
+        "RetiringPrincipal":{
+          "shape":"PrincipalIdType",
+          "documentation":"<p>The principal that can retire the account.</p>"
+        },
+        "IssuingAccount":{
+          "shape":"PrincipalIdType",
+          "documentation":"<p>The account under which the grant was issued.</p>"
+        },
+        "Operations":{
+          "shape":"GrantOperationList",
+          "documentation":"<p>List of operations permitted by the grant. This can be any combination of one or more of the following values: <ol> <li>Decrypt</li> <li>Encrypt</li> <li>GenerateDataKey</li> <li>GenerateDataKeyWithoutPlaintext</li> <li>ReEncryptFrom</li> <li>ReEncryptTo</li> <li>CreateGrant</li> </ol></p>"
+        },
+        "Constraints":{
+          "shape":"GrantConstraints",
+          "documentation":"<p>Specifies the conditions under which the actions specified by the <code>Operations</code> parameter are allowed. </p>"
+        }
+      },
+      "documentation":"<p>Contains information about each entry in the grant list.</p>"
+    },
+    "GrantOperation":{
+      "type":"string",
+      "enum":[
+        "Decrypt",
+        "Encrypt",
+        "GenerateDataKey",
+        "GenerateDataKeyWithoutPlaintext",
+        "ReEncryptFrom",
+        "ReEncryptTo",
+        "CreateGrant",
+        "RetireGrant"
+      ]
+    },
+    "GrantOperationList":{
+      "type":"list",
+      "member":{"shape":"GrantOperation"}
+    },
+    "GrantTokenList":{
+      "type":"list",
+      "member":{"shape":"GrantTokenType"},
+      "min":0,
+      "max":10
+    },
+    "GrantTokenType":{
+      "type":"string",
+      "min":1,
+      "max":8192
+    },
+    "InvalidAliasNameException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessageType"}
+      },
+      "error":{
+        "code":"InvalidAliasName",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true,
+      "documentation":"<p>The request was rejected because the specified alias name is not valid.</p>"
+    },
+    "InvalidArnException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessageType"}
+      },
+      "error":{
+        "code":"InvalidArn",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true,
+      "documentation":"<p>The request was rejected because a specified ARN was not valid.</p>"
+    },
+    "InvalidCiphertextException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessageType"}
+      },
+      "error":{
+        "code":"InvalidCiphertext",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true,
+      "documentation":"<p>The request was rejected because the specified ciphertext has been corrupted or is otherwise invalid.</p>"
+    },
+    "InvalidGrantTokenException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessageType"}
+      },
+      "error":{
+        "code":"InvalidGrantToken",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true,
+      "documentation":"<p>A grant token provided as part of the request is invalid.</p>"
+    },
+    "InvalidKeyUsageException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessageType"}
+      },
+      "error":{
+        "code":"InvalidKeyUsage",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true,
+      "documentation":"<p>The request was rejected because the specified KeySpec parameter is not valid. The currently supported value is ENCRYPT/DECRYPT. </p>"
+    },
+    "InvalidMarkerException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessageType"}
+      },
+      "error":{
+        "code":"InvalidMarker",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true,
+      "documentation":"<p>The request was rejected because the marker that specifies where pagination should next begin is not valid. </p>"
+    },
+    "KMSInternalException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessageType"}
+      },
+      "error":{
+        "code":"KMSInternal",
+        "httpStatusCode":500
+      },
+      "exception":true,
+      "documentation":"<b>The request was rejected because an internal exception occurred. This error can be retried.</b>"
+    },
+    "KeyIdType":{
+      "type":"string",
+      "min":1,
+      "max":256
+    },
+    "KeyList":{
+      "type":"list",
+      "member":{"shape":"KeyListEntry"}
+    },
+    "KeyListEntry":{
+      "type":"structure",
+      "members":{
+        "KeyId":{
+          "shape":"KeyIdType",
+          "documentation":"<p>Unique identifier of the key.</p>"
+        },
+        "KeyArn":{
+          "shape":"ArnType",
+          "documentation":"<p>ARN of the key.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about each entry in the key list.</p>"
+    },
+    "KeyMetadata":{
+      "type":"structure",
+      "required":["KeyId"],
+      "members":{
+        "AWSAccountId":{
+          "shape":"AWSAccountIdType",
+          "documentation":"<p>Account ID number.</p>"
+        },
+        "KeyId":{
+          "shape":"KeyIdType",
+          "documentation":"<p>Unique identifier for the key.</p>"
+        },
+        "Arn":{
+          "shape":"ArnType",
+          "documentation":"<p>Key ARN (Amazon Resource Name).</p>"
+        },
+        "CreationDate":{
+          "shape":"DateType",
+          "documentation":"<p>Date the key was created.</p>"
+        },
+        "Enabled":{
+          "shape":"BooleanType",
+          "documentation":"<p>Value that specifies whether the key is enabled.</p>"
+        },
+        "Description":{
+          "shape":"DescriptionType",
+          "documentation":"<p>The description of the key.</p>"
+        },
+        "KeyUsage":{
+          "shape":"KeyUsageType",
+          "documentation":"<p>A value that specifies what operation(s) the key can perform.</p>"
+        }
+      },
+      "documentation":"Contains metadata associated with a specific key."
+    },
+    "KeyUnavailableException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessageType"}
+      },
+      "error":{
+        "code":"KeyUnavailable",
+        "httpStatusCode":500
+      },
+      "exception":true,
+      "fault":true,
+      "documentation":"<p>The request was rejected because the key was disabled, not found, or otherwise not available.</p>"
+    },
+    "KeyUsageType":{
+      "type":"string",
+      "enum":["ENCRYPT_DECRYPT"]
+    },
+    "LimitExceededException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessageType"}
+      },
+      "error":{
+        "code":"LimitExceeded",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true,
+      "documentation":"<p>The request was rejected because a quota was exceeded.</p>"
+    },
+    "LimitType":{
+      "type":"integer",
+      "min":1,
+      "max":1000
+    },
+    "ListAliasesRequest":{
+      "type":"structure",
+      "members":{
+        "Limit":{
+          "shape":"LimitType",
+          "documentation":"<p>Specify this parameter when paginating results to indicate the maximum number of aliases you want in each response. If there are additional aliases beyond the maximum you specify, the <code>Truncated</code> response element will be set to <code>true.</code> </p>"
+        },
+        "Marker":{
+          "shape":"MarkerType",
+          "documentation":"<p>Use this parameter when paginating results, and only in a subsequent request after you've received a response where the results are truncated. Set it to the value of the <code>NextMarker</code> element in the response you just received. </p>"
+        }
+      }
+    },
+    "ListAliasesResponse":{
+      "type":"structure",
+      "members":{
+        "Aliases":{
+          "shape":"AliasList",
+          "documentation":"<p>A list of key aliases in the user's account.</p>"
+        },
+        "NextMarker":{
+          "shape":"MarkerType",
+          "documentation":"<p>If <code>Truncated</code> is true, this value is present and contains the value to use for the <code>Marker</code> request parameter in a subsequent pagination request. </p>"
+        },
+        "Truncated":{
+          "shape":"BooleanType",
+          "documentation":"<p>A flag that indicates whether there are more items in the list. If your results were truncated, you can make a subsequent pagination request using the <code>Marker</code> request parameter to retrieve more aliases in the list. </p>"
+        }
+      }
+    },
+    "ListGrantsRequest":{
+      "type":"structure",
+      "required":["KeyId"],
+      "members":{
+        "KeyId":{
+          "shape":"KeyIdType",
+          "documentation":"<p>Unique identifier of the key. This can be an ARN, an alias, or a globally unique identifier.</p>"
+        },
+        "Limit":{
+          "shape":"LimitType",
+          "documentation":"<p>Specify this parameter only when paginating results to indicate the maximum number of grants you want listed in the response. If there are additional grants beyond the maximum you specify, the <code>Truncated</code> response element will be set to <code>true.</code> </p>"
+        },
+        "Marker":{
+          "shape":"MarkerType",
+          "documentation":"<p>Use this parameter only when paginating results, and only in a subsequent request after you've received a response where the results are truncated. Set it to the value of the <code>NextMarker</code> in the response you just received. </p>"
+        }
+      }
+    },
+    "ListGrantsResponse":{
+      "type":"structure",
+      "members":{
+        "Grants":{
+          "shape":"GrantList",
+          "documentation":"<p>A list of grants.</p>"
+        },
+        "NextMarker":{
+          "shape":"MarkerType",
+          "documentation":"<p>If <code>Truncated</code> is true, this value is present and contains the value to use for the <code>Marker</code> request parameter in a subsequent pagination request. </p>"
+        },
+        "Truncated":{
+          "shape":"BooleanType",
+          "documentation":"<p>A flag that indicates whether there are more items in the list. If your results were truncated, you can make a subsequent pagination request using the <code>Marker</code> request parameter to retrieve more grants in the list. </p>"
+        }
+      }
+    },
+    "ListKeyPoliciesRequest":{
+      "type":"structure",
+      "required":["KeyId"],
+      "members":{
+        "KeyId":{
+          "shape":"KeyIdType",
+          "documentation":"<p>Unique identifier of the key. This can be an ARN, an alias, or a globally unique identifier.</p>"
+        },
+        "Limit":{
+          "shape":"LimitType",
+          "documentation":"<p>Specify this parameter only when paginating results to indicate the maximum number of policies you want listed in the response. If there are additional policies beyond the maximum you specify, the <code>Truncated</code> response element will be set to <code>true.</code> </p>"
+        },
+        "Marker":{
+          "shape":"MarkerType",
+          "documentation":"<p>Use this parameter only when paginating results, and only in a subsequent request after you've received a response where the results are truncated. Set it to the value of the <code>NextMarker</code> in the response you just received. </p>"
+        }
+      }
+    },
+    "ListKeyPoliciesResponse":{
+      "type":"structure",
+      "members":{
+        "PolicyNames":{
+          "shape":"PolicyNameList",
+          "documentation":"<p>A list of policy names. Currently, there is only one policy and it is named \"Default\".</p>"
+        },
+        "NextMarker":{
+          "shape":"MarkerType",
+          "documentation":"<p>If <code>Truncated</code> is true, this value is present and contains the value to use for the <code>Marker</code> request parameter in a subsequent pagination request. </p>"
+        },
+        "Truncated":{
+          "shape":"BooleanType",
+          "documentation":"<p>A flag that indicates whether there are more items in the list. If your results were truncated, you can make a subsequent pagination request using the <code>Marker</code> request parameter to retrieve more policies in the list. </p>"
+        }
+      }
+    },
+    "ListKeysRequest":{
+      "type":"structure",
+      "members":{
+        "Limit":{
+          "shape":"LimitType",
+          "documentation":"<p>Specify this parameter only when paginating results to indicate the maximum number of keys you want listed in the response. If there are additional keys beyond the maximum you specify, the <code>Truncated</code> response element will be set to <code>true.</code> </p>"
+        },
+        "Marker":{
+          "shape":"MarkerType",
+          "documentation":"<p>Use this parameter only when paginating results, and only in a subsequent request after you've received a response where the results are truncated. Set it to the value of the <code>NextMarker</code> in the response you just received. </p>"
+        }
+      }
+    },
+    "ListKeysResponse":{
+      "type":"structure",
+      "members":{
+        "Keys":{
+          "shape":"KeyList",
+          "documentation":"<p>A list of keys.</p>"
+        },
+        "NextMarker":{
+          "shape":"MarkerType",
+          "documentation":"<p>If <code>Truncated</code> is true, this value is present and contains the value to use for the <code>Marker</code> request parameter in a subsequent pagination request. </p>"
+        },
+        "Truncated":{
+          "shape":"BooleanType",
+          "documentation":"<p>A flag that indicates whether there are more items in the list. If your results were truncated, you can make a subsequent pagination request using the <code>Marker</code> request parameter to retrieve more keys in the list. </p>"
+        }
+      }
+    },
+    "MalformedPolicyDocumentException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessageType"}
+      },
+      "error":{
+        "code":"MalformedPolicyDocument",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true,
+      "documentation":"<p>The request was rejected because the specified policy is not syntactically or semantically correct. </p>"
+    },
+    "MarkerType":{
+      "type":"string",
+      "min":1,
+      "max":320,
+      "pattern":"[\\u0020-\\u00FF]*"
+    },
+    "NotFoundException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessageType"}
+      },
+      "error":{
+        "code":"NotFound",
+        "httpStatusCode":404,
+        "senderFault":true
+      },
+      "exception":true,
+      "documentation":"<p>The request was rejected because the specified entity or resource could not be found. </p>"
+    },
+    "NumberOfBytesType":{
+      "type":"integer",
+      "min":1,
+      "max":1024
+    },
+    "PlaintextType":{
+      "type":"blob",
+      "min":1,
+      "max":4096,
+      "sensitive":true
+    },
+    "PolicyNameList":{
+      "type":"list",
+      "member":{"shape":"PolicyNameType"}
+    },
+    "PolicyNameType":{
+      "type":"string",
+      "min":1,
+      "max":128,
+      "pattern":"[\\w]+"
+    },
+    "PolicyType":{
+      "type":"string",
+      "min":1,
+      "max":131072,
+      "pattern":"[\\u0009\\u000A\\u000D\\u0020-\\u00FF]+"
+    },
+    "PrincipalIdType":{
+      "type":"string",
+      "min":1,
+      "max":256
+    },
+    "PutKeyPolicyRequest":{
+      "type":"structure",
+      "required":[
+        "KeyId",
+        "PolicyName",
+        "Policy"
+      ],
+      "members":{
+        "KeyId":{
+          "shape":"KeyIdType",
+          "documentation":"<p>Unique identifier of the key. This can be an ARN, an alias, or a globally unique identifier.</p>"
+        },
+        "PolicyName":{
+          "shape":"PolicyNameType",
+          "documentation":"<p>Name of the policy to be attached. Currently, the only supported name is \"default\".</p>"
+        },
+        "Policy":{
+          "shape":"PolicyType",
+          "documentation":"<p>The policy, in JSON format, to be attached to the key.</p>"
+        }
+      }
+    },
+    "ReEncryptRequest":{
+      "type":"structure",
+      "required":[
+        "CiphertextBlob",
+        "DestinationKeyId"
+      ],
+      "members":{
+        "CiphertextBlob":{
+          "shape":"CiphertextType",
+          "documentation":"<p>Ciphertext of the data to re-encrypt.</p>"
+        },
+        "SourceEncryptionContext":{
+          "shape":"EncryptionContextType",
+          "documentation":"<p>Encryption context used to encrypt and decrypt the data specified in the <code>CiphertextBlob</code> parameter. </p>"
+        },
+        "DestinationKeyId":{
+          "shape":"KeyIdType",
+          "documentation":"<p>Key identifier of the key used to re-encrypt the data.</p>"
+        },
+        "DestinationEncryptionContext":{
+          "shape":"EncryptionContextType",
+          "documentation":"<p>Encryption context to be used when the data is re-encrypted.</p>"
+        },
+        "GrantTokens":{
+          "shape":"GrantTokenList",
+          "documentation":"<p> Grant tokens that identify the grants that have permissions for the encryption and decryption process.</p>"
+        }
+      }
+    },
+    "ReEncryptResponse":{
+      "type":"structure",
+      "members":{
+        "CiphertextBlob":{
+          "shape":"CiphertextType",
+          "documentation":"<p>The re-encrypted data.</p>"
+        },
+        "SourceKeyId":{
+          "shape":"KeyIdType",
+          "documentation":"<p>Unique identifier of the key used to originally encrypt the data.</p>"
+        },
+        "KeyId":{
+          "shape":"KeyIdType",
+          "documentation":"<p>Unique identifier of the key used to re-encrypt the data.</p>"
+        }
+      }
+    },
+    "RetireGrantRequest":{
+      "type":"structure",
+      "required":["GrantToken"],
+      "members":{
+        "GrantToken":{
+          "shape":"GrantTokenType",
+          "documentation":"<p>Token that identifies the grant to be retired.</p>"
+        }
+      }
+    },
+    "RevokeGrantRequest":{
+      "type":"structure",
+      "required":[
+        "KeyId",
+        "GrantId"
+      ],
+      "members":{
+        "KeyId":{
+          "shape":"KeyIdType",
+          "documentation":"<p>Unique identifier of the key associated with the grant.</p>"
+        },
+        "GrantId":{
+          "shape":"GrantIdType",
+          "documentation":"<p>Identifier of the grant to be revoked.</p>"
+        }
+      }
+    },
+    "UnsupportedOperationException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessageType"}
+      },
+      "error":{
+        "code":"UnsupportedOperation",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true,
+      "documentation":"<p>The request was rejected because a specified parameter is not supported.</p>"
+    },
+    "UpdateKeyDescriptionRequest":{
+      "type":"structure",
+      "required":[
+        "KeyId",
+        "Description"
+      ],
+      "members":{
+        "KeyId":{"shape":"KeyIdType"},
+        "Description":{"shape":"DescriptionType"}
+      }
+    }
+  }
+}

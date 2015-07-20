@@ -1,0 +1,332 @@
+@import mixins
+
+html, body
+  height: 100%
+
+body
+  background: image-url('bg.png')
+  overflow: hidden
+
+small, .small
+  +small
+
+.smaller
+  +smaller
+
+.smallest
+  +smallest
+
+.bigger
+  +bigger
+
+.sz16x16
+  height: 16px
+  width: 16px
+
+i.icon-external-link
+  body[dir=ltr] &
+    margin-left: 2px
+  body[dir=rtl] &
+    margin-right: 2px
+
+i[class*=icon]
+  +single-transition(all, 0.5s, ease)
+
+a, button, .icon-external-link-wrapper
+  cursor: pointer
+  i[class*=icon]
+    color: $textColor
+  i.icon-external-link
+    opacity: 0
+    width: 0
+  &:hover
+    i[class*=icon]
+      color: $linkColor
+    i.icon-external-link
+      opacity: 1
+      color: $linkColorHover
+      width: 8px
+
+a
+  +single-transition(color, 0.5s, ease)
+
+i[class*=icon]
+  font-style: normal
+
+.more-info
+  +smaller
+  margin-left: 2px
+
+.capitalize
+  text-transform: capitalize
+
+details
+  *:not(summary)
+    +smaller
+  > *:not(summary)
+    margin-left: 20px
+
+summary
+  cursor: pointer
+  &:focus
+    outline: none
+
+details[open] summary
+  margin-bottom: 5px
+
+.summary
+  cursor: pointer
+  &:before
+    content: '▸ '
+  &.expanded:before
+    content: '▾ '
+  &.expanded
+    margin-bottom: 5px
+
+label.checkbox.inline, label.radio.inline
+  white-space: nowrap
+  margin-right: 5px
+
+.hidden
+  +hidden
+
+.indented
+  +indented
+
+.centered
+  +centered
+
+.white
+  +white
+
+.gray
+  +gray
+
+.grayDark
+  +grayDark
+
+.thin
+  +thin
+
+.light
+  +light
+
+.bold
+  +bold
+
+.bolder
+  +bolder
+
+.boldest
+  +boldest
+
+.tooltip
+  +aboveModal
+
+.tooltip-inner
+  font-size: $baseFontSize * .9
+  max-width: none // override bootstrap's value of 200px
+
+body[dir=rtl] .btn-group:not([dir=ltr]) > .btn // override bootstrap which messes up border-radius for rtl
+  &:first-child
+    border-top-left-radius: 0
+    border-bottom-left-radius: 0
+    border-top-right-radius: 4px
+    border-bottom-right-radius: 4px
+  &:last-child
+    border-top-right-radius: 0
+    border-bottom-right-radius: 0
+    border-top-left-radius: 4px
+    border-bottom-left-radius: 4px
+
+.btn-give
+  color: $giveModeColorAccent
+
+.btn-get
+  color: $getModeColorAccent
+
+.btn-give-inverse
+  color: #fff
+  +ctb-buttonBackground($giveModeColor, $giveModeColorAccent)
+
+.btn-get-inverse
+  color: #fff
+  +ctb-buttonBackground($getModeColor, $getModeColorAccent)
+
+.btn-dev
+  +ctb-buttonBackground($devModeColor, $devModeColorAccent)
+  color: #b3aa1e
+
+a.never-underlined
+  +never-underlined
+
+a.toggle
+  +never-underlined
+
+i[class^=icon-]
+  +never-underlined
+
+a.always-underlined
+  +always-underlined
+
+a.disabled,
+a.disabled:hover
+  color: $grayLight
+  background-color: #fff
+  cursor: default
+
+.error-colored, .text-error
+  +error-colored
+
+.warning-colored, .text-warning
+  +warning-colored
+
+.info-colored, .text-info
+  +info-colored
+
+.give-colored
+  +give-colored
+
+.get-colored
+  +get-colored
+
+.give-colored-alt
+  +give-colored-alt
+
+.get-colored-alt
+  +get-colored-alt
+
+a.get-colored:hover
+  color: $getModeColorAccent
+
+.yellow-colored
+  +yellow-colored
+
+// http://angular-ui.github.com/#directives-showhide
+.ui-hide, .ui-show
+  +single-transition(all, 0.5s, ease)
+
+.ui-hide.noHeightWhenHidden
+  margin: 0 !important
+  height: 0 !important
+  line-height: 0 !important
+  //overflow: hidden !important
+  //+transition(none)
+
+.ui-hide
+  opacity: 0 !important
+
+.transparent
+  opacity: 0
+
+a[rel=tooltip]:not(.btn)
+  +unstyled-link
+  &:focus, &:active, &:hover
+    text-decoration: none
+  &:hover
+    cursor: pointer
+    color: $black
+
+input, textarea
+  &:disabled, &[readonly]
+    cursor: default
+
+// see compass_twitter_bootstrap's _forms.sass
+input, textarea
+  &.ng-pristine
+    &:focus, &:focus:invalid
+      +ctb-box-shadow(0 0 8px rgba(82,168,236,.6) !important)
+      border: 1px solid rgba(82, 168, 236, 0.8) !important
+  &.ng-invalid:focus
+    +inputInvalid
+
+textarea
+  +box-sizing(border-box)
+  &.report, &.diagnosticInfo
+    +smaller
+    +monofont
+    width: 100%
+  &.report
+    height: 125px
+  &.diagnosticInfo
+    margin-left: 0
+    height: 75px
+
+.badge
+  +inline-block
+  font-weight: bold
+  font-size: 12px
+  background:         radial-gradient( 1px -11px, circle, #fff 8%, $infoText 26px )
+  background:    -moz-radial-gradient( 1px -11px, circle, #fff 8%, $infoText 26px )
+  background:     -ms-radial-gradient( 1px -11px, circle, #fff 8%, $infoText 26px )
+  background:      -o-radial-gradient( 1px -11px, circle, #fff 8%, $infoText 26px )
+  background: -webkit-radial-gradient( 1px -11px, circle, #fff 8%, $infoText 26px )
+  background-color: red
+  border: 2px solid #fff
+  border-radius: 12px
+  box-shadow: 1px 1px 1px black
+  color: #fff
+  height: 16px
+  min-width: 12px
+  padding: 2px 3px 0 3px
+  text-align: center
+
+#alerts
+  +position(0, 0, false, 0)
+  +aboveModal
+
+.alert
+  margin-bottom: 0
+  +opaqueOnMouseover(.95)
+  .titled
+    +dashed-underline
+  &.alert-warning .titled
+    border-bottom-color: $warningText
+  &.alert-info .titled
+    border-bottom-color: $infoText
+  &.alert-success .titled
+    border-bottom-color: $successText
+  &.alert-error .titled
+    border-bottom-color: $errorText
+
+// .alert-important -> .alert-error alias
+.alert-important
+  background-color: $errorBackground
+  border-color: $errorBorder
+  color: $errorText
+  .titled
+    border-bottom-color: $errorText
+
+.select2-results
+  max-height: 80px
+
+.select2-result-label
+  white-space: nowrap
+
+.select2-search input
+  background: url('../bower_components/select2/select2.png') no-repeat 100% -22px // otherwise the webkit-gradient looks weird
+
+body[dir=rtl] .select2-search input:focus
+  padding-right: 22px // otherwise the cursor is right on top of the magnifying glass icon
+
+body[dir=rtl] .dl-horizontal
+  dt
+    float: right
+    clear: right
+    text-align: left
+  dd
+    margin-right: 180px
+
+body[dir=rtl]
+  .radio input[type="radio"], .checkbox input[type="checkbox"]
+    float: right
+    margin-right: -20px
+    margin-left: 0
+
+body .chromeframe
+  height: 50%
+  margin: 0
+  position: relative
+  top: 50%
+  text-align: center
+  background-color: white

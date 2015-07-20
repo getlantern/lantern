@@ -1,0 +1,27 @@
+{
+  "name": "cssesc",
+  "version": "0.1.0",
+  "main": "cssesc.js",
+  "ignore": [
+    "bin",
+    "coverage",
+    "man",
+    "src",
+    "tests",
+    ".*",
+    "component.json",
+    "Gruntfile.js",
+    "node_modules",
+    "package.json"
+  ],
+  "homepage": "https://github.com/mathiasbynens/cssesc",
+  "_release": "0.1.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.1.0",
+    "commit": "ba7c1c82d4a35f0a43224c94b187e01c312a0d64"
+  },
+  "_source": "git://github.com/mathiasbynens/cssesc.git",
+  "_target": "0.1.0",
+  "_originalSource": "cssesc"
+}

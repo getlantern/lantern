@@ -11,8 +11,6 @@ import (
 )
 
 const (
-	BAD_GATEWAY = 502
-
 	DEFAULT_BYTES_BEFORE_FLUSH = 1024768
 	DEFAULT_READ_BUFFER_SIZE   = 65536
 )
@@ -26,9 +24,16 @@ type Proxy struct {
 	// TCP dialer is used.
 	Dial dialFunc
 
-	// Host: FQDN that is guaranteed to hit this particular proxy.  Required
-	// if this server was originally reached by e.g. DNS round robin.
+	// Host: (Deprecated; use HostFn instead) FQDN of this particular proxy.
+	// Either this or HostFn is required if this server was originally reached
+	// by DNS round robin.
 	Host string
+
+	// HostFn: given a http.Request, return the FQDN of this particular proxy,
+	// hopefully through the same front.  This is used to support multiple
+	// domain fronts.  Either this or Host is required if this server was
+	// originally reached by DNS round robin.
+	HostFn func(*http.Request) string
 
 	// FlushTimeout: how long to let reads idle before writing out a
 	// response to the client.  Defaults to 35 milliseconds.
@@ -54,14 +59,30 @@ type Proxy struct {
 	// client
 	OnBytesSent statCallback
 
+	// Allow: Optional function that checks whether the given request to the
+	// given destAddr is allowed.  If it is not allowed, this function should
+	// return an error.
+	Allow func(req *http.Request, destAddr string) error
+
 	// connMap: map of outbound connections by their id
 	connMap map[string]*lazyConn
 
 	// connMapMutex: synchronizes access to connMap
-	connMapMutex sync.Mutex
+	connMapMutex sync.RWMutex
 }
 
-type statCallback func(clientIp string, bytes int64)
+// statCallback is a function for receiving stat information.
+//
+// clientIp: ip address of client
+// destAddr: the destination address to which we're proxying
+// req: the http.Request that's being served
+// countryCode: the country-code of the client (only available when using CloudFlare)
+// bytes: the number of bytes sent/received
+type statCallback func(
+	clientIp string,
+	destAddr string,
+	req *http.Request,
+	bytes int64)
 
 // Start() starts this proxy
 func (p *Proxy) Start() {
@@ -88,14 +109,23 @@ func (p *Proxy) Start() {
 // ListenAndServe: convenience function for quickly starting up a dedicated HTTP
 // server using this Proxy as its handler
 func (p *Proxy) ListenAndServe(addr string) error {
+	l, err := net.Listen("tcp", addr)
+	if err != nil {
+		return fmt.Errorf("Unable to listen at %v: %v", addr, err)
+	}
+	return p.Serve(l)
+}
+
+// Serve: convenience function for quickly starting up a dedicated HTTP server
+// using this Proxy as its handler
+func (p *Proxy) Serve(l net.Listener) error {
 	p.Start()
 	httpServer := &http.Server{
-		Addr:         addr,
 		Handler:      p,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
-	return httpServer.ListenAndServe()
+	return httpServer.Serve(l)
 }
 
 // ServeHTTP: implements the http.Handler interface
@@ -118,7 +148,11 @@ func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	lc, isNew := p.getLazyConn(id, addr)
+	lc, isNew, err := p.getLazyConn(id, addr, req)
+	if err != nil {
+		forbidden(resp, err.Error())
+		return
+	}
 	connOut, err := lc.get()
 	if err != nil {
 		badGateway(resp, fmt.Sprintf("Unable to get connOut: %s", err))
@@ -140,17 +174,26 @@ func (p *Proxy) handleWrite(resp http.ResponseWriter, req *http.Request, lc *laz
 	// Pipe request
 	n, err := io.Copy(connOut, req.Body)
 	if p.OnBytesReceived != nil && n > 0 {
-		p.OnBytesReceived(clientIpFor(req), n)
+		clientIp := clientIpFor(req)
+		if clientIp != "" {
+			p.OnBytesReceived(clientIp, lc.addr, req, n)
+		}
 	}
 	if err != nil && err != io.EOF {
 		badGateway(resp, fmt.Sprintf("Unable to write to connOut: %s", err))
 		return
 	}
-	if p.Host != "" {
-		// Always feed this so clients will be guaranteed to reach
-		// this particular proxy even if they originally reached us
-		// through (e.g.) DNS round robin.
-		resp.Header().Set(X_ENPROXY_PROXY_HOST, p.Host)
+	host := ""
+	if p.HostFn != nil {
+		host = p.HostFn(req)
+	}
+	// Falling back on deprecated mechanism for backwards compatibility
+	if host == "" {
+		host = p.Host
+	}
+	if host != "" {
+		// Enable sticky routing (see the comment on HostFn above).
+		resp.Header().Set(X_ENPROXY_PROXY_HOST, host)
 	}
 	if first {
 		// On first write, immediately do some reading
@@ -202,8 +245,8 @@ func (p *Proxy) handleRead(resp http.ResponseWriter, req *http.Request, lc *lazy
 
 		// Write if necessary
 		if n > 0 {
-			if p.OnBytesSent != nil && n > 0 {
-				p.OnBytesSent(clientIp, int64(n))
+			if clientIp != "" && p.OnBytesSent != nil && n > 0 {
+				p.OnBytesSent(clientIp, lc.addr, req, int64(n))
 			}
 
 			haveRead = true
@@ -268,13 +311,22 @@ func (p *Proxy) handleRead(resp http.ResponseWriter, req *http.Request, lc *lazy
 
 // getLazyConn gets the lazyConn corresponding to the given id and addr, or
 // creates a new one and saves it to connMap.
-func (p *Proxy) getLazyConn(id string, addr string) (l *lazyConn, isNew bool) {
-	p.connMapMutex.Lock()
-	defer p.connMapMutex.Unlock()
+func (p *Proxy) getLazyConn(id string, addr string, req *http.Request) (l *lazyConn, isNew bool, err error) {
+	p.connMapMutex.RLock()
 	l = p.connMap[id]
+	p.connMapMutex.RUnlock()
 	if l == nil {
+		if p.Allow != nil {
+			log.Trace("Checking if connection is allowed")
+			err := p.Allow(req, addr)
+			if err != nil {
+				return nil, false, fmt.Errorf("Not allowed: %v", err)
+			}
+		}
 		l = p.newLazyConn(id, addr)
+		p.connMapMutex.Lock()
 		p.connMap[id] = l
+		p.connMapMutex.Unlock()
 		isNew = true
 	}
 	return
@@ -283,7 +335,12 @@ func (p *Proxy) getLazyConn(id string, addr string) (l *lazyConn, isNew bool) {
 func clientIpFor(req *http.Request) string {
 	clientIp := req.Header.Get("X-Forwarded-For")
 	if clientIp == "" {
-		clientIp = strings.Split(req.RemoteAddr, ":")[0]
+		clientIp, _, err := net.SplitHostPort(req.RemoteAddr)
+		if err != nil {
+			log.Debugf("Unable to split RemoteAddr %v: %v", err)
+			return ""
+		}
+		return clientIp
 	}
 	// clientIp may contain multiple ips, use the first
 	ips := strings.Split(clientIp, ",")
@@ -292,5 +349,10 @@ func clientIpFor(req *http.Request) string {
 
 func badGateway(resp http.ResponseWriter, msg string) {
 	log.Errorf("Responding Bad Gateway: %s", msg)
-	resp.WriteHeader(BAD_GATEWAY)
+	resp.WriteHeader(http.StatusBadGateway)
+}
+
+func forbidden(resp http.ResponseWriter, msg string) {
+	log.Errorf("Responding Forbidden: %s", msg)
+	resp.WriteHeader(http.StatusForbidden)
 }

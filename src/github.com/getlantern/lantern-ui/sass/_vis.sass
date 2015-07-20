@@ -1,0 +1,117 @@
+$unknownModeColor: #eee
+$cloudPeerColor: #008000
+
+#projectionButtons
+  +position(false, false, 75px, 25px)
+
+#vis-block
+  +position(0, 0, 0, 0)
+
+#vis-container, #vis
+  height: 100%
+
+#map
+  width: 100%
+  height: 100%
+  display: block
+
+$waterColor: rgba(6, 21, 50, .1)
+#globe
+  fill: $waterColor
+
+#countries path
+  +single-transition(all, 0.5s, ease)
+  stroke: #364d58
+  stroke-width: 1px
+  fill: #000
+  fill-opacity: .2
+  &.censors
+    fill-opacity: .3
+  &.updating
+    fill-opacity: .1 !important
+    stroke-opacity: 1 !important
+  &:hover
+    stroke-opacity: 1 !important
+//&.AQ // antarctica
+    display: none
+
+path.peer
+  +single-transition(all, 0.5s, ease)
+
+g.peer
+  path.peer
+    opacity: .4
+  &:hover
+    path.peer
+      opacity: 1
+
+path.peer-hover-area
+  opacity: 0
+
+path.peer.connected
+  opacity: 1 !important
+
+#self
+  fill: #fff
+
+path.peer.get, #self.get
+  fill: $getModeColor
+
+path.peer.give, #self.give
+  fill: $giveModeColorMap
+
+path.peer.unknown
+  fill: $unknownModeColor
+
+path.peer.cloud, path.peer.laeproxy
+  fill: $cloudPeerColor !important
+
+path.connection
+  fill: none
+  stroke-width: 1px
+  stroke: #fff
+  +single-transition(stroke-opacity, 0.5s, ease)
+
+g.transferring .connection
+  opacity: 1
+
+.tooltip .vis
+  text-align: left // override bootstrap's value of center
+  body[dir=rtl] &
+    text-align: right
+  .picture
+    height: 64px
+    width: 64px
+    margin: 5px 10px 0 0
+  .picture, .headers
+    float: left
+  .header
+    +bold
+    font-size: $baseFontSize * 1.05
+  .get .header, .get .type
+    +get-colored
+  .give .header, .give .type
+    color: $giveModeColorMap
+  .unknown .header, .unknown .type
+    color: $unknownModeColor
+  .cloud .header, .laeproxy .header, .cloud .type, .laeproxy .type
+    color: $cloudPeerColor !important
+  .type
+    +smaller
+  .peerid, .id
+    +smaller
+    color: #ddd
+  .stats
+    +smaller
+    clear: both
+  .bps0, .bytes0
+    +gray
+  .lastConnected
+    +smaller
+    +gray
+  .nusers
+    color: #eee
+    &.gray
+      +gray
+  .give-colored
+    color: $giveModeColorMap

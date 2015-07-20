@@ -1,0 +1,15 @@
+language: node_js
+node_js:
+  - "0.10"
+
+#before_script:
+#  - npm install --quiet karma karma-jasmine
+#  - ./scripts/web-server.js > /dev/null &
+#  - sleep 1 # give server time to start
+#
+#script:
+#  - ./node_modules/karma/bin/karma start config/karma.conf.js --no-auto-watch --single-run --reporters=dots
+#  - ./node_modules/karma/bin/karma start config/karma-e2e.conf.js --reporters=dots
+
+notifications:
+  irc: "irc.freenode.net#lantern"

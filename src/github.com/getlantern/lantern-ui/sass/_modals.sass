@@ -1,0 +1,503 @@
+@import mixins
+
+// override bootstrap's modal background color of white
+.modal
+  background-color: transparent
+.modal-header, .modal-body:not(#welcome)
+  background-color: #fff
+.modal-header
+  +border-top-radius(6px)
+
+body[dir=rtl] .modal-footer
+  button, a.btn
+    float: left
+
+// override slide effect
+.modal.fade
+  +single-transition(opacity, 0.3s, ease)
+  top: 10% // same as .modal.fade.in
+
+#welcomescreen
+  width: 485px
+  .logos
+    width: 440px
+    height: 256px
+    margin: 0 auto
+    overflow: hidden
+    .social-logo
+      padding: 0 1px
+      display: inline-table
+      .share-button
+        display: block
+        width: 85px
+        height: 30px
+        margin: 0 auto
+        padding-top: 10px
+        text-align: center
+
+// unused below
+
+#ie-warning
+  +aboveModal(2)
+  +position(0, 0, false, 0)
+  +error-colored
+  +centered
+  +bold
+  background: #fff
+  border: 1px dotted #f00
+  padding: 3px
+
+#waiting
+  +position(0, 0, 0, 0)
+  +aboveModal
+  padding-top: 100px
+  line-height: 50px
+  text-align: center
+  background-color: #fff
+  opacity: 0.9
+
+.modal-header h3
+  font-size: $baseFontSize * 1.25
+  line-height: $baseLineHeight * 1.5
+
+.modal form
+  margin-bottom: 0
+
+.modal-status
+  width: 365px
+  margin-top: 4px
+  float: left
+  text-align: left
+  body[dir=rtl] &
+    float: right
+    text-align: right
+    margin-right: 15px
+
+.control-extra
+  +indented(30px)
+  +small
+  +gray
+
+.notify
+  margin: 15px 30px 0 30px
+  *
+    +small
+
+#welcome
+  +centered
+  +thin
+  background-color: rgba(0, 0, 0, .3)
+  color: #fff
+  font-size: $baseFontSize * 1.25
+  .beta
+    +smaller
+    +bold
+    +position(false, 40px)
+    margin-top: -95px
+    text-transform: uppercase
+  .tagLine
+    margin: -40px 0 50px
+  .internetRequired
+    +pulsing
+    +yellow-colored
+    +light
+    font-size: $baseFontSize
+    padding-top: 12px
+  button
+    +text-shadow(#000 1px 1px 2px)
+    width: 165px
+    margin: 0 10px 10px
+  .orIfYouNeed
+    +smaller
+    margin: 10px 0
+
+#passwordCreate .control-group
+  +centered
+
+#authorize
+  .prompt-extra
+    +smaller
+    margin: 10px 30px 15px
+
+#proxiedSites
+  .warning
+    border: 1px dotted $warningText
+    border-radius: 8px
+    padding: 10px
+    text-align: center
+    font-size: $baseFontSize * 1.1
+    margin: $baseFontSize 0
+    background: #eee
+    i
+      +warning-colored
+  textarea
+    width: 100%
+    height: 150px
+    +ctb-font-family-monospace
+    font-size: $baseFontSize - 1
+  .error
+    +centered
+    +error-colored
+    margin: 10px 0
+    height: $baseFontSize * 1.5
+  .errorCause
+    +inline-block
+    padding: 2px 4px
+    margin: 0
+    +ellipsisPast(200px)
+
+#proxiedSitesLabelAndSearchContainer
+  margin-top: $baseFontSize * 2
+
+// override bootstrap
+#proxiedSitesSearch
+  +ctb-box-sizing(border-box)
+  +single-transition(opacity, 0.3s, ease)
+  float: right
+  body[dir=rtl] &
+    float: left
+  width: 230px
+  height: 1.5 * $baseLineHeight
+  margin: -3px 0 10px
+  +border-radius(18px)
+  &::-webkit-search-decoration
+    -webkit-appearance: searchfield-decoration
+  &::-webkit-search-cancel-button
+    -webkit-appearance: searchfield-cancel-button
+  &:focus, &:hover
+    opacity: 1 !important
+  &.empty
+    opacity: .5
+
+.proxiedSitesTip
+  float: left
+  body[dir=rtl] &
+    float: right
+
+$suggested-bg-color: #f4f9fd
+
+// override bootstrap
+#friendsListSearch
+  +ctb-box-sizing(border-box)
+  +single-transition(all, 0.5s, ease)
+  float: right
+  body[dir=rtl] &
+    float: left
+  //width: 230px
+  width: 30px
+  height: 1.5 * $baseLineHeight
+  margin: 0 0 7px
+  border-color: #fff
+  +border-radius(18px)
+  &::-webkit-search-decoration
+    -webkit-appearance: searchfield-decoration
+  &::-webkit-search-cancel-button
+    -webkit-appearance: searchfield-cancel-button
+  &:focus, &:hover, &.nonempty
+    width: 500px !important
+    border-color: #ccc !important
+
+#lanternFriends
+  min-height: 115px
+  max-height: 445px // override bootstrap
+  .addFriendsControls
+    padding: 0 15px 15px
+  .hasSearchText .select2-container
+    display: none
+
+#friendCounts
+  +small
+  white-space: nowrap
+  position: absolute
+  margin-top: 10px
+  body[dir=ltr] &
+    left: 52px
+  body[dir=rtl] &
+    right: 42px
+
+#currentFriendsHeading
+  +small
+  color: $grayLight
+  display: inline-block
+  body[dir=ltr] &
+    margin-right: 10px
+  body[dir=rtl] &
+    margin-left: 10px
+
+#suggestedFriendsHeading
+  +small
+  +info-colored
+  display: inline-block
+
+#toggleSuggestions
+  color: darken($suggested-bg-color, 20%)
+  font-size: 8pt
+  text-decoration: underline
+
+//.below-friendSuggestionList
+  +single-transition(opacity, 0.3s, ease)
+  +smaller
+  opacity: 0
+  text-align: left
+  margin: 15px 0
+  padding: 0 13px
+  .dismiss-all
+    float: right
+    width: 110px
+  .addFriendsControls:hover &
+    opacity: 1
+
+//.below-friendSuggestionList-text
+  max-width: 360px
+  float: left
+
+//#friendSuggestionList
+  text-align: left
+  & > li
+    padding: 8px 10px
+    border: 1px solid #eee
+    &:hover
+      background-color: #ffffd7
+
+
+//#currentFriends, #friendSuggestionList
+#friendlist
+  +no-bullets
+  max-height: 195px
+  background-color: whitesmoke
+  overflow-y: scroll
+  border-radius: 8px
+  border: 2px solid #ccc
+  margin: 0
+  clear: both
+  padding: 0
+  margin-bottom: 10px
+  .entry
+    position: relative
+    padding: 5px
+    border: 1px solid #fff
+    color: $grayLight
+    .reject
+      position: absolute
+      display: inline-block
+      width: 10px
+      opacity: 0
+      color: $grayLight
+      text-decoration: none
+      padding: 0
+    &.suggested
+      color: #000
+      background-color: $suggested-bg-color
+      border-top-color: $suggested-bg-color
+      border-bottom-color: lighten($suggested-bg-color, 10%)
+      &:hover
+        background-color: darken($suggested-bg-color, 2%) !important
+        border-top-color: darken($suggested-bg-color, 10%)
+        border-bottom-color: darken($suggested-bg-color, 10%)
+    &:hover
+      background-color: #ffffd7 !important
+      border-left: 1px solid #ffffd7
+      border-right: 1px solid #ffffd7
+      border-top: 1px solid #ddd
+      border-bottom: 1px solid #ddd
+      color: #000
+      .reject
+        opacity: 1
+        &:hover
+          color: #000
+      //.btn-group
+        opacity: 1
+    .btn-group
+      +single-transition(opacity, 0.3s, ease)
+      //opacity: 0
+      display: inline-block
+      float: right
+      body[dir=rtl] &
+        float: left
+      & > .btn
+        width: 55px
+  .vcard
+    +ellipsisPast(460px)
+    display: inline-block
+    body[dir=ltr] &
+      margin-left: 13px
+    body[dir=rtl] &
+      margin-right: 13px
+  .email
+    &:before
+      content: '<'
+    &:after
+      content: '>'
+  .suggested .vcard
+    +ellipsisPast(340px)
+  .coloredByConnectedStatus
+    +single-transition(all, 0.3s, ease)
+    body.getMode &.transferringNow
+      background-color: #fffced
+      .friendConnectedStatus
+        +get-colored-alt
+    body.getMode &.connected
+      background-color: #fffced
+      .friendConnectedStatus
+        +get-colored-alt
+    body.giveMode &.transferringNow
+      background-color: #e5ffe0
+      .friendConnectedStatus
+        +give-colored
+    body.giveMode &.connected
+      background-color: #e5ffe0
+      .friendConnectedStatus
+        +give-colored-alt
+    &.lastConnected
+      .friendConnectedStatus
+        +grayDark
+    &.notYetConnected
+      background-color: #f5f5f5
+      .friendConnectedStatus
+        +gray
+  .friendConnectedStatus, .reason
+    +smaller
+    +thin
+    +ellipsisPast(340px)
+    margin-top: 2px
+    body[dir=ltr] &
+      margin-left: 14px
+    body[dir=rtl] &
+      margin-right: 14px
+  .reason
+    +gray
+
+.no-friends-matching
+  padding: 10px 22px
+  background-color: #f5f5f5
+
+//.contactList-horizontal
+  +neverHideScrollbars
+  margin: 5px 0 10px
+  overflow: auto
+  white-space: nowrap
+  width: 100%
+  li
+    +inline-block
+    text-align: left
+    white-space: normal
+    width: 200px
+    margin-right: 5px
+    line-height: 1.4
+    &:last-child
+      margin-right: 0
+  img.photo
+    width: 50px
+    height: 50px
+    margin-right: 10px
+    float: left
+  .fn, .email
+    +ellipsisPast(140px)
+  .fn
+    +bold
+    +small
+  .btn-mini
+    padding: 0 3px
+    line-height: 1.4
+    +smaller
+
+#finished
+  min-height: 50px
+
+#settings
+  $dt_width: 130px
+  dt
+    width: $dt_width
+  dd
+    margin-bottom: $baseFontSize * 1.75
+    body[dir=ltr] &
+      margin-left: $dt_width + 30px
+    width: 300px
+    label
+      +small
+  details, .details
+    margin-top: 9px
+  .summary
+    +small
+  .collapsible
+    +indented
+    & *
+      +smaller
+  .proxyAllSitesLabel
+    margin-top: -9px
+  body[dir=rtl] & .advanced label
+    padding-right: 20px
+  .pacUrl
+    body[dir=ltr] &
+      margin-left: 12px
+    body[dir=rtl] &
+      margin-right: 12px
+
+#settings-close
+  float: right !important
+
+#autoreport-warning
+  +indented
+  +warning-colored
+  +smaller
+  margin-top: 3px
+
+#manualProxyInfo
+  +grayDark
+  +indented
+
+#updateAvailable
+  h4
+    margin: 5px 0 10px
+
+#latestDetails
+  summary
+    +indented
+    +bold
+  dt
+    text-transform: capitalize
+  dd
+    +ellipsisPast(285px)
+    body[dir=rtl] &
+      width: 285px
+
+#latestDetails:not([open])
+  margin-bottom: 10px
+
+#changes
+  +small
+  max-height: 200px
+  overflow: auto
+  margin-left: 0
+
+.modal-header.about
+  +small
+  +centered
+  margin: 0
+  border-bottom: none
+
+#about
+  +small
+  > div:not(:first-child)
+    margin-top: 10px
+  .contributing-prompt
+    +centered
+    +bold
+    +base-size
+    padding: 3px 0
+    border-top: 1px solid #ddd
+    border-bottom: 1px solid #ddd
+    margin: 5px 25px 20px
+  textarea
+    +light
+    +smaller
+    width: 100%
+
+#contact textarea
+  &.report
+    height: 175px
+    margin-top: 24px
+
+#sponsor
+  .actions
+    margin: 30px 0 15px 45px

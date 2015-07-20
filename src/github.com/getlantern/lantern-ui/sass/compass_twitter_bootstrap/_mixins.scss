@@ -1,0 +1,656 @@
+//
+// Mixins
+// --------------------------------------------------
+
+
+// UTILITY MIXINS
+// --------------------------------------------------
+
+// Clearfix
+// --------
+// For clearing floats like a boss h5bp.com/q
+@mixin ctb-clearfix {
+  *zoom: 1;
+  &:before,
+  &:after {
+    display: table;
+    content: "";
+    // Fixes Opera/contenteditable bug:
+    // http://nicolasgallagher.com/micro-clearfix-hack/#comment-36952
+    line-height: 0;
+  }
+  &:after {
+    clear: both;
+  }
+}
+
+// Webkit-style focus
+// ------------------
+@mixin ctb-tab-focus() {
+  // Default
+  outline: thin dotted #333;
+  // Webkit
+  outline: 5px auto -webkit-focus-ring-color;
+  outline-offset: -2px;
+}
+
+// Center-align a block level element
+// ----------------------------------
+@mixin ctb-center-block() {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+// IE7 inline-block
+// ----------------
+@mixin ctb-ie7-inline-block() {
+  *display: inline; // IE7 inline-block hack
+  *zoom: 1;
+}
+
+// IE7 likes to collapse whitespace on either side of the inline-block elements.
+// Ems because we're attempting to match the width of a space character. Left
+// version is for form buttons, which typically come after other elements, and
+// right version is for icons, which come before. Applying both is ok, but it will
+// mean that space between those elements will be .6em (~2 space characters) in IE7,
+// instead of the 1 space in other browsers.
+@mixin ctb-ie7-restore-left-whitespace() {
+  *margin-left: .3em;
+
+  &:first-child {
+    *margin-left: 0;
+  }
+}
+
+@mixin ctb-ie7-restore-right-whitespace() {
+  *margin-right: .3em;
+}
+
+// Sizing shortcuts
+// -------------------------
+@mixin ctb-size($height, $width) {
+  width: $width;
+  height: $height;
+}
+@mixin ctb-square($size) {
+  @include ctb-size($size, $size);
+}
+
+// Placeholder text
+// -------------------------
+@mixin ctb-placeholder($color: $placeholderText) {
+  &:-moz-placeholder {
+    color: $color;
+  }
+  &:-ms-input-placeholder {
+    color: $color;
+  }
+  &::-webkit-input-placeholder {
+    color: $color;
+  }
+}
+
+// Text overflow
+// -------------------------
+// Requires inline-block or block for proper styling
+@mixin ctb-text-overflow() {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// CSS image replacement
+// -------------------------
+// Source: https://github.com/h5bp/html5-boilerplate/commit/aa0396eae757
+@mixin ctb-hide-text {
+  font: 0/0 a;
+  color: transparent;
+  text-shadow: none;
+  background-color: transparent;
+  border: 0;
+}
+
+// FONTS
+// --------------------------------------------------
+
+@mixin ctb-font-family-serif() {
+  font-family: $serifFontFamily;
+}
+@mixin ctb-font-family-sans-serif() {
+  font-family: $sansFontFamily;
+}
+@mixin ctb-font-family-monospace() {
+  font-family: $monoFontFamily;
+}
+@mixin ctb-font-shorthand($size: $baseFontSize, $weight: normal, $lineHeight: $baseLineHeight) {
+  font-size: $size;
+  font-weight: $weight;
+  line-height: $lineHeight;
+}
+@mixin ctb-font-serif($size: $baseFontSize, $weight: normal, $lineHeight: $baseLineHeight) {
+  @include ctb-font-family-serif();
+  @include ctb-font-shorthand($size, $weight, $lineHeight);
+}
+@mixin ctb-font-sans-serif($size: $baseFontSize, $weight: normal, $lineHeight: $baseLineHeight) {
+  @include ctb-font-family-sans-serif();
+  @include ctb-font-shorthand($size, $weight, $lineHeight);
+}
+@mixin ctb-font-monospace($size: $baseFontSize, $weight: normal, $lineHeight: $baseLineHeight) {
+  @include ctb-font-family-monospace();
+  @include ctb-font-shorthand($size, $weight, $lineHeight);
+}
+
+
+// FORMS
+// --------------------------------------------------
+
+// Block level inputs
+@mixin ctb-input-block-level {
+  display: block;
+  width: 100%;
+  min-height: 30px;                // Make inputs at least the height of their button counterpart
+  @include ctb-box-sizing(border-box); // Makes inputs behave like true block-level elements
+}
+
+
+
+// Mixin for form field states
+@mixin ctb-formFieldState($textColor: #555, $borderColor: #ccc, $backgroundColor: #f5f5f5) {
+  // Set the text color
+  > label,
+  .help-block,
+  .help-inline {
+    color: $textColor;
+  }
+  // Style inputs accordingly
+  .checkbox,
+  .radio,
+  input,
+  select,
+  textarea {
+    color: $textColor;
+    border-color: $borderColor;
+    @include ctb-box-shadow(inset 0 1px 1px rgba(0,0,0,.075)); // Redeclare so transitions work
+    &:focus {
+      border-color: darken($borderColor, 10%);
+      // Write out in full since the lighten() function isn't easily escaped
+      -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 6px lighten($borderColor, 20%);
+         -moz-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 6px lighten($borderColor, 20%);
+              box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 6px lighten($borderColor, 20%);
+    }
+  }
+  // Give a small background color for input-prepend/-append
+  .input-prepend .add-on,
+  .input-append .add-on {
+    color: $textColor;
+    background-color: $backgroundColor;
+    border-color: $textColor;
+  }
+}
+
+
+
+// CSS3 PROPERTIES
+// --------------------------------------------------
+
+// Border Radius
+@mixin ctb-border-radius($radius) {
+  -webkit-border-radius: $radius;
+     -moz-border-radius: $radius;
+          border-radius: $radius;
+}
+
+// Single Corner Border Radius
+@mixin ctb-border-top-left-radius($radius) {
+  -webkit-border-top-left-radius: $radius;
+      -moz-border-radius-topleft: $radius;
+          border-top-left-radius: $radius;
+}
+@mixin ctb-border-top-right-radius($radius) {
+  -webkit-border-top-right-radius: $radius;
+      -moz-border-radius-topright: $radius;
+          border-top-right-radius: $radius;
+}
+@mixin ctb-border-bottom-right-radius($radius) {
+  -webkit-border-bottom-right-radius: $radius;
+      -moz-border-radius-bottomright: $radius;
+          border-bottom-right-radius: $radius;
+}
+@mixin ctb-border-bottom-left-radius($radius) {
+  -webkit-border-bottom-left-radius: $radius;
+      -moz-border-radius-bottomleft: $radius;
+          border-bottom-left-radius: $radius;
+}
+
+// Single Side Border Radius
+@mixin ctb-border-top-radius($radius) {
+  @include ctb-border-top-right-radius($radius);
+  @include ctb-border-top-left-radius($radius);
+}
+@mixin ctb-border-right-radius($radius) {
+  @include ctb-border-top-right-radius($radius);
+  @include ctb-border-bottom-right-radius($radius);
+}
+@mixin ctb-border-bottom-radius($radius) {
+  @include ctb-border-bottom-right-radius($radius);
+  @include ctb-border-bottom-left-radius($radius);
+}
+@mixin ctb-border-left-radius($radius) {
+  @include ctb-border-top-left-radius($radius);
+  @include ctb-border-bottom-left-radius($radius);
+}
+
+// Drop shadows
+@mixin ctb-box-shadow($shadow) {
+  -webkit-box-shadow: $shadow;
+     -moz-box-shadow: $shadow;
+          box-shadow: $shadow;
+}
+
+// Transitions
+@mixin ctb-transition($transition) {
+  -webkit-transition: $transition;
+     -moz-transition: $transition;
+       -o-transition: $transition;
+          transition: $transition;
+}
+
+// Transformations
+@mixin ctb-rotate($degrees) {
+  -webkit-transform: rotate($degrees);
+     -moz-transform: rotate($degrees);
+      -ms-transform: rotate($degrees);
+       -o-transform: rotate($degrees);
+          transform: rotate($degrees);
+}
+@mixin ctb-scale($ratio) {
+  -webkit-transform: scale($ratio);
+     -moz-transform: scale($ratio);
+      -ms-transform: scale($ratio);
+       -o-transform: scale($ratio);
+          transform: scale($ratio);
+}
+@mixin ctb-translate($x, $y) {
+  -webkit-transform: translate($x, $y);
+     -moz-transform: translate($x, $y);
+      -ms-transform: translate($x, $y);
+       -o-transform: translate($x, $y);
+          transform: translate($x, $y);
+}
+
+@mixin ctb-skew($x, $y) {
+  -webkit-transform: skew($x, $y);
+     -moz-transform: skew($x, $y);
+      -ms-transform: skew($x, $y);
+       -o-transform: skew($x, $y);
+          transform: skew($x, $y);
+}
+
+@mixin ctb-translate3d($x, $y, $z) {
+  -webkit-transform: translate3d($x, $y, $z);
+     -moz-transform: translate3d($x, $y, $z);
+       -o-transform: translate3d($x, $y, $z);
+          transform: translate3d($x, $y, $z);
+}
+
+// Backface visibility
+// Prevent browsers from flickering when using CSS 3D transforms.
+// Default value is `visible`, but can be changed to `hidden
+// See git pull https://github.com/dannykeane/bootstrap.git backface-visibility for examples
+@mixin ctb-backface-visibility($visibility){
+  -webkit-backface-visibility: $visibility;
+     -moz-backface-visibility: $visibility;
+          backface-visibility: $visibility;
+}
+
+// Background clipping
+// Heads up: FF 3.6 and under need "padding" instead of "padding-box"
+@mixin ctb-background-clip($clip) {
+  -webkit-background-clip: $clip;
+     -moz-background-clip: $clip;
+          background-clip: $clip;
+}
+
+// Background sizing
+@mixin ctb-background-size($size) {
+  -webkit-background-size: $size;
+     -moz-background-size: $size;
+       -o-background-size: $size;
+          background-size: $size;
+}
+
+
+// Box sizing
+@mixin ctb-box-sizing($boxmodel) {
+  -webkit-box-sizing: $boxmodel;
+     -moz-box-sizing: $boxmodel;
+          box-sizing: $boxmodel;
+}
+
+// User select
+// For selecting text on the page
+@mixin ctb-user-select($select) {
+  -webkit-user-select: $select;
+     -moz-user-select: $select;
+      -ms-user-select: $select;
+       -o-user-select: $select;
+          user-select: $select;
+}
+
+// Resize anything
+@mixin ctb-resizable($direction) {
+  resize: $direction; // Options: horizontal, vertical, both
+  overflow: auto; // Safari fix
+}
+
+// CSS3 Content Columns
+@mixin ctb-content-columns($columnCount, $columnGap: $gridGutterWidth) {
+  -webkit-column-count: $columnCount;
+     -moz-column-count: $columnCount;
+          column-count: $columnCount;
+  -webkit-column-gap: $columnGap;
+     -moz-column-gap: $columnGap;
+          column-gap: $columnGap;
+}
+
+// Optional hyphenation
+@mixin ctb-hyphens($mode: auto) {
+  word-wrap: break-word;
+  -webkit-hyphens: $mode;
+     -moz-hyphens: $mode;
+      -ms-hyphens: $mode;
+       -o-hyphens: $mode;
+          hyphens: $mode;
+}
+
+// Opacity
+@mixin ctb-opacity($opacity) {
+  opacity: $opacity / 100;
+  filter: alpha(opacity=($opacity));
+}
+
+
+
+// BACKGROUNDS
+// --------------------------------------------------
+
+// Add an alphatransparency value to any background or border color (via Elyse Holladay)
+@mixin ctb-translucent-background($color: $white, $alpha: 1) {
+  background-color: hsla(hue($color), saturation($color), lightness($color), $alpha);
+}
+
+@mixin ctb-translucent-border($color: $white, $alpha: 1) {
+  border-color: hsla(hue($color), saturation($color), lightness($color), $alpha);
+  @include ctb-background-clip(padding-box);
+}
+
+// Gradient Bar Colors for buttons and alerts
+@mixin ctb-gradientBar($primaryColor, $secondaryColor, $textColor: #fff, $textShadow: 0 -1px 0 rgba(0,0,0,.25)) {
+  color: $textColor;
+  text-shadow: $textShadow;
+  @include ctb-gradient-vertical($primaryColor, $secondaryColor);
+  border-color: $secondaryColor $secondaryColor darken($secondaryColor, 15%);
+  border-color: rgba(0,0,0,.1) rgba(0,0,0,.1) fade-in(rgba(0,0,0,.1), 0.15);
+}
+
+// Gradients
+@mixin ctb-gradient-horizontal($startColor: #555, $endColor: #333) {
+  background-color: $endColor;
+  background-image: -moz-linear-gradient(left, $startColor, $endColor); // FF 3.6+
+  background-image: -webkit-gradient(linear, 0 0, 100% 0, from($startColor), to($endColor)); // Safari 4+, Chrome 2+
+  background-image: -webkit-linear-gradient(left, $startColor, $endColor); // Safari 5.1+, Chrome 10+
+  background-image: -o-linear-gradient(left, $startColor, $endColor); // Opera 11.10
+  background-image: linear-gradient(to right, $startColor, $endColor); // Standard, IE10
+  background-repeat: repeat-x;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#{darken($startColor, 1%)}', endColorstr='#{darken($endColor, 1%)}', GradientType=1); // IE9 and down
+}
+@mixin ctb-gradient-vertical($startColor: #555, $endColor: #333) {
+  background-color: mix($startColor, $endColor, 62.5%);
+  background-image: -moz-linear-gradient(top, $startColor, $endColor); // FF 3.6+
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from($startColor), to($endColor)); // Safari 4+, Chrome 2+
+  background-image: -webkit-linear-gradient(top, $startColor, $endColor); // Safari 5.1+, Chrome 10+
+  background-image: -o-linear-gradient(top, $startColor, $endColor); // Opera 11.10
+  background-image: linear-gradient(to bottom, $startColor, $endColor); // Standard, IE10
+  background-repeat: repeat-x;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#{darken($startColor, 1%)}', endColorstr='#{darken($endColor, 1%)}', GradientType=0); // IE9 and down
+}
+@mixin ctb-gradient-directional($startColor: #555, $endColor: #333, $deg: 45deg) {
+  background-color: $endColor;
+  background-repeat: repeat-x;
+  background-image: -moz-linear-gradient($deg, $startColor, $endColor); // FF 3.6+
+  background-image: -webkit-linear-gradient($deg, $startColor, $endColor); // Safari 5.1+, Chrome 10+
+  background-image: -o-linear-gradient($deg, $startColor, $endColor); // Opera 11.10
+  background-image: linear-gradient($deg, $startColor, $endColor); // Standard, IE10
+}
+@mixin ctb-gradient-vertical-three-colors($startColor: #00b3ee, $midColor: #7a43b6, $colorStop: 50%, $endColor: #c3325f) {
+  background-color: mix($midColor, $endColor, 80%);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from($startColor), color-stop($colorStop, $midColor), to($endColor));
+  background-image: -webkit-linear-gradient($startColor, $midColor $colorStop, $endColor);
+  background-image: -moz-linear-gradient(top, $startColor, $midColor $colorStop*100%, $endColor);
+  background-image: -o-linear-gradient($startColor, $midColor $colorStop, $endColor);
+  background-image: linear-gradient($startColor, $midColor $colorStop, $endColor);
+  background-repeat: no-repeat;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#{darken($startColor, 1%)}', endColorstr='#{darken($endColor, 1%)}', GradientType=0); // IE9 and down, gets no color-stop at all for proper fallback
+}
+@mixin ctb-gradient-radial($innerColor: #555, $outerColor: #333)  {
+  background-color: $outerColor;
+  background-image: -webkit-gradient(radial, center center, 0, center center, 460, from($innerColor), to($outerColor));
+  background-image: -webkit-radial-gradient(circle, $innerColor, $outerColor);
+  background-image: -moz-radial-gradient(circle, $innerColor, $outerColor);
+  background-image: -o-radial-gradient(circle, $innerColor, $outerColor);
+  background-repeat: no-repeat;
+}
+@mixin ctb-gradient-striped($color, $angle: 45deg) {
+  background-color: $color;
+  background-image: -webkit-gradient(linear, 0 100%, 100% 0, color-stop(.25, rgba(255,255,255,.15)), color-stop(.25, transparent), color-stop(.5, transparent), color-stop(.5, rgba(255,255,255,.15)), color-stop(.75, rgba(255,255,255,.15)), color-stop(.75, transparent), to(transparent));
+  background-image: -webkit-linear-gradient($angle, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent);
+  background-image: -moz-linear-gradient($angle, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent);
+  background-image: -o-linear-gradient($angle, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent);
+  background-image: linear-gradient($angle, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent);
+}
+
+// Reset filters for IE
+@mixin ctb-gradient-reset-filter() {
+  filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
+}
+
+
+
+// COMPONENT MIXINS
+// --------------------------------------------------
+
+// Horizontal dividers
+// -------------------------
+// Dividers (basically an hr) within dropdowns and nav lists
+@mixin ctb-nav-divider($top: #e5e5e5, $bottom: $white) {
+  // IE7 needs a set width since we gave a height. Restricting just
+  // to IE7 to keep the 1px left/right space in other browsers.
+  // It is unclear where IE is getting the extra space that we need
+  // to negative-margin away, but so it goes.
+  *width: 100%;
+  height: 1px;
+  margin: (($baseLineHeight / 2) - 1) 1px; // 8px 1px
+  *margin: -5px 0 5px;
+  overflow: hidden;
+  background-color: $top;
+  border-bottom: 1px solid $bottom;
+}
+
+// Button backgrounds
+// ------------------
+@mixin ctb-buttonBackground($startColor, $endColor, $textColor: #fff, $textShadow: 0 -1px 0 rgba(0,0,0,.25)) {
+  // gradientBar will set the background to a pleasing blend of these, to support IE<=9
+  @include ctb-gradientBar($startColor, $endColor, $textColor, $textShadow);
+  *background-color: $endColor; /* Darken IE7 buttons by default so they stand out more given they won't have borders */
+  @include ctb-gradient-reset-filter();
+
+  // in these cases the gradient won't cover the background, so we override
+  &:hover, &:active, &.active, &.disabled, &[disabled] {
+    color: $textColor;
+    background-color: $endColor;
+    *background-color: darken($endColor, 5%);
+  }
+
+  // IE 7 + 8 can't handle box-shadow to show active, so we darken a bit ourselves
+  &:active,
+  &.active {
+    background-color: darken($endColor, 10%) \9;
+  }
+}
+
+// Navbar vertical align
+// -------------------------
+// Vertically center elements in the navbar.
+// Example: an element has a height of 30px, so write out `.navbarVerticalAlign(30px);` to calculate the appropriate top margin.
+@mixin ctb-navbarVerticalAlign($elementHeight) {
+  margin-top: ($navbarHeight - $elementHeight) / 2;
+}
+
+
+
+
+// Grid System
+// -----------
+
+// Centered container element
+@mixin ctb-container-fixed() {
+  margin-right: auto;
+  margin-left: auto;
+  @include ctb-clearfix();
+}
+
+// Table columns
+@mixin ctb-tableColumns($columnSpan: 1) {
+  float: none; // undo default grid column styles
+  width: (($gridColumnWidth) * $columnSpan) + ($gridGutterWidth * ($columnSpan - 1)) - 16; // 16 is total padding on left and right of table cells
+  margin-left: 0; // undo default grid column styles
+}
+
+// Make a Grid
+// Use .makeRow and .makeColumn to assign semantic layouts grid system behavior
+@mixin ctb-makeRow() {
+  margin-left: $gridGutterWidth * -1;
+  @include ctb-clearfix();
+}
+@mixin ctb-makeColumn($columns: 1, $offset: 0) {
+  float: left;
+  margin-left: ($gridColumnWidth * $offset) + ($gridGutterWidth * ($offset - 1)) + ($gridGutterWidth * 2);
+  width: ($gridColumnWidth * $columns) + ($gridGutterWidth * ($columns - 1));
+}
+
+// The Grid
+@mixin ctb-core-offset($columns, $columnWidth: $gridColumnWidth, $gutterWidth: $gridGutterWidth) {
+  margin-left: ($columnWidth * $columns) + ($gutterWidth * ($columns + 1));
+}
+
+@mixin ctb-core-span($columns, $columnWidth: $gridColumnWidth, $gutterWidth: $gridGutterWidth) {
+  width: ($columnWidth * $columns) + ($gutterWidth * ($columns - 1));
+}
+
+@mixin ctb-grid-core($columnWidth: $gridColumnWidth, $gutterWidth: $gridGutterWidth) {
+  .row {
+    margin-left: $gutterWidth * -1;
+    @include ctb-clearfix();
+  }
+
+  [class*="span"] {
+    float: left;
+    margin-left: $gutterWidth;
+  }
+
+  // Set the container width, and override it for fixed navbars in media queries
+  .container,
+  .navbar-static-top .container,
+  .navbar-fixed-top .container,
+  .navbar-fixed-bottom .container {
+    @include ctb-core-span($gridColumns, $columnWidth, $gutterWidth);
+  }
+
+  // generate .spanX and .offsetX
+  $i: $gridColumns;
+  @while $i > 0 {
+    .span#{$i} { @include ctb-core-span($i, $columnWidth, $gutterWidth); }
+    $i: $i - 1;
+  }
+
+  $i: $gridColumns;
+  @while $i > 0 {
+    .offset#{$i} { @include ctb-core-offset($i, $columnWidth, $gutterWidth); }
+    $i: $i - 1;
+  }
+}
+
+@mixin ctb-fluid-offset($columns, $columnWidth: $fluidGridColumnWidth, $gutterWidth: $fluidGridGutterWidth) {
+  margin-left: ($columnWidth * $columns) + ($gutterWidth * ($columns - 1)) + ($gutterWidth * 2);
+  *margin-left: ($columnWidth * $columns) + ($gutterWidth * ($columns - 1)) - (.5 / $gridRowWidth * 100px * 1%) + ($gutterWidth * 2) - (.5 / $gridRowWidth * 100px * 1%);
+}
+
+@mixin ctb-fluid-offset-first-child($columns, $columnWidth: $fluidGridColumnWidth, $gutterWidth: $fluidGridGutterWidth) {
+  margin-left: ($columnWidth * $columns) + ($gutterWidth * ($columns - 1)) + $gutterWidth;
+  *margin-left: ($columnWidth * $columns) + ($gutterWidth * ($columns - 1)) - (.5 / $gridRowWidth * 100px * 1%) + $gutterWidth - (.5 / $gridRowWidth * 100px * 1%);
+}
+
+@mixin ctb-fluid-span($columns, $columnWidth: $fluidGridColumnWidth, $gutterWidth: $fluidGridGutterWidth) {
+  width: ($columnWidth * $columns) + ($gutterWidth * ($columns - 1));
+  *width: ($columnWidth * $columns) + ($gutterWidth * ($columns - 1)) - (.5 / $gridRowWidth * 100px * 1%);
+}
+
+@mixin ctb-grid-fluid($columnWidth: $fluidGridColumnWidth, $gutterWidth: $fluidGridGutterWidth) {
+  .row-fluid {
+    width: 100%;
+    @include ctb-clearfix();
+    [class*="span"] {
+      @include ctb-input-block-level();
+      float: left;
+      margin-left: $gutterWidth;
+      *margin-left: $gutterWidth - (.5 / $gridRowWidth * 100px * 1%);
+    }
+    [class*="span"]:first-child {
+      margin-left: 0;
+    }
+
+    // generate .spanX and .offsetX
+    $i: $gridColumns;
+    @while $i > 0 {
+      .span#{$i} {
+        @include ctb-fluid-span($i, $columnWidth, $gutterWidth);
+      }
+      .offset#{$i} {
+        @include ctb-fluid-offset($i, $columnWidth, $gutterWidth);
+      }
+      .offset#{$i}:first-child {
+        @include ctb-fluid-offset-first-child($i, $columnWidth, $gutterWidth);
+      }
+      $i: $i - 1;
+    }
+  }
+}
+
+@mixin ctb-input-span($columns, $columnWidth: $gridColumnWidth, $gutterWidth: $gridGutterWidth) {
+  width: (($columnWidth) * $columns) + ($gutterWidth * ($columns - 1)) - 14;
+}
+
+@mixin ctb-grid-input($columnWidth: $gridColumnWidth, $gutterWidth: $gridGutterWidth) {
+  input,
+  textarea,
+  .uneditable-input {
+    margin-left: 0; // override margin-left from core grid system
+  }
+
+  // Space grid-sized controls properly if multiple per line
+  .controls-row [class*="span"] + [class*="span"] {
+    margin-left: $gutterWidth;
+  }
+
+  // generate .spanX
+  $i: $gridColumns;
+  @while $i > 0 {
+    input.span#{$i},
+    textarea.span#{$i},
+    .uneditable-input.span#{$i} {
+      @include ctb-input-span($i, $columnWidth, $gutterWidth);
+    }
+    $i: $i - 1;
+  }
+}

@@ -1,0 +1,13 @@
+syntax:glob
+*.[568ao]
+[568a].out
+*~
+*.orig
+_obj
+_test
+test
+*.exe
+_testmain.go
+*.pyc
+
+syntax:regexp

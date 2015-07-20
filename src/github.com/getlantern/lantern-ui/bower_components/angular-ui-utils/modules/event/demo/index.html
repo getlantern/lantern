@@ -1,0 +1,39 @@
+<script>
+  function EventCtrl($scope) {
+    $scope.blurCallback = function () {
+      alert('Goodbye');
+    };
+  }
+</script>
+<section id="event" ng-controller="EventCtrl">
+  <div class="page-header">
+    <h1>Event Binder</h1>
+  </div>
+  <div class="row">
+    <div class="span6">
+      <h3>What?</h3>
+
+      <p>Bind a callback to any event not natively supported by Angular.</p>
+
+      <p class="well"><input value="Focus and then Blur this input" ui-event="{ blur : 'blurCallback()' } "></p>
+
+      <h3>Why?</h3>
+
+      <p>For Blurs, Focus, Double-Clicks or any other event you may choose that isn't built-in.</p>
+    </div>
+    <div class="span6">
+      <h3>How?</h3>
+
+      <p>You can alternatively pass multiple events as an object:</p>
+<pre class="prettyprint">
+&lt;input ui-event=&quot;{ blur : 'blurCallback()' }&quot;&gt;
+
+&lt;script&gt;
+$scope.blurCallback = function() {
+alert(&#x27;Goodbye&#x27;);
+};
+&lt;/script&gt;
+</pre>
+    </div>
+  </div>
+</section>

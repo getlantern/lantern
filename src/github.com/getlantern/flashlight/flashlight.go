@@ -2,253 +2,278 @@
 package main
 
 import (
-	"compress/gzip"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
-	"net"
-	"net/http"
 	"os"
-	"os/signal"
-	"path/filepath"
 	"runtime"
-	"runtime/pprof"
-	"strconv"
 	"strings"
+	"sync"
 	"time"
 
+	"github.com/getlantern/fronted"
+	"github.com/getlantern/golog"
+	"github.com/getlantern/i18n"
+	"github.com/getlantern/profiling"
+
+	"github.com/getlantern/flashlight/analytics"
+	"github.com/getlantern/flashlight/autoupdate"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
-	"github.com/getlantern/flashlight/log"
+	"github.com/getlantern/flashlight/geolookup"
+	"github.com/getlantern/flashlight/logging"
+	"github.com/getlantern/flashlight/proxiedsites"
 	"github.com/getlantern/flashlight/server"
+	"github.com/getlantern/flashlight/settings"
 	"github.com/getlantern/flashlight/statreporter"
 	"github.com/getlantern/flashlight/statserver"
+	"github.com/getlantern/flashlight/ui"
 	"github.com/getlantern/flashlight/util"
-	"github.com/getlantern/go-igdman/igdman"
-)
-
-const (
-	// Exit Statuses
-	ConfigError    = 1
-	Interrupted    = 2
-	PortmapFailure = 50
-)
-
-const (
-	ETAG          = "ETag"
-	IF_NONE_MATCH = "If-None-Match"
 )
 
 var (
-	version   string
-	buildDate string
+	version      string
+	revisionDate string // The revision date and time that is associated with the version string.
+	buildDate    string // The actual date and time the binary was built.
 
-	CLOUD_CONFIG_POLL_INTERVAL = 1 * time.Minute
+	cfgMutex sync.Mutex
+
+	log = golog.LoggerFor("flashlight")
 
 	// Command-line Flags
 	help      = flag.Bool("help", false, "Get usage help")
 	parentPID = flag.Int("parentpid", 0, "the parent process's PID, used on Windows for killing flashlight when the parent disappears")
+	headless  = flag.Bool("headless", false, "if true, lantern will run with no ui")
+	showui    = true
 
 	configUpdates = make(chan *config.Config)
+	exitCh        = make(chan error, 1)
 
-	lastCloudConfigETag = ""
+	// use buffered channel to avoid blocking the caller of 'addExitFunc'
+	// the number 10 is arbitrary
+	chExitFuncs = make(chan func(), 10)
 )
 
 func init() {
+
+	if packageVersion != defaultPackageVersion {
+		// packageVersion has precedence over GIT revision. This will happen when
+		// packing a version intended for release.
+		version = packageVersion
+	}
+
+	if version == "" {
+		version = "development"
+	}
+
+	if revisionDate == "" {
+		revisionDate = "now"
+	}
+
+	// Passing public key and version to the autoupdate service.
+	autoupdate.PublicKey = []byte(packagePublicKey)
+	autoupdate.Version = packageVersion
+
 	rand.Seed(time.Now().UnixNano())
 }
 
 func main() {
+	parseFlags()
+	showui = !*headless
+
+	if showui {
+		runOnSystrayReady(_main)
+	} else {
+		log.Debug("Running headless")
+		_main()
+	}
+}
+
+func _main() {
+	err := doMain()
+	if err != nil {
+		log.Error(err)
+	}
+	log.Debug("Lantern stopped")
+	logging.Close()
+	os.Exit(0)
+}
+
+func doMain() error {
+	err := logging.Init()
+	if err != nil {
+		return err
+	}
+
+	defer quitSystray()
+
+	i18nInit()
+	if showui {
+		err = configureSystemTray()
+		if err != nil {
+			return err
+		}
+	}
 	displayVersion()
 
-	cfg := configure()
+	parseFlags()
 
-	if cfg.CpuProfile != "" {
-		startCPUProfiling(cfg.CpuProfile)
-		defer stopCPUProfiling(cfg.CpuProfile)
+	cfg, err := config.Init(packageVersion)
+	if err != nil {
+		return fmt.Errorf("Unable to initialize configuration: %v", err)
+	}
+	go func() {
+		err := config.Run(func(updated *config.Config) {
+			configUpdates <- updated
+		})
+		if err != nil {
+			exit(err)
+		}
+	}()
+	if *help || cfg.Addr == "" || (cfg.Role != "server" && cfg.Role != "client") {
+		flag.Usage()
+		return fmt.Errorf("Wrong arguments")
 	}
 
-	if cfg.MemProfile != "" {
-		defer saveMemProfile(cfg.MemProfile)
+	finishProfiling := profiling.Start(cfg.CpuProfile, cfg.MemProfile)
+	defer finishProfiling()
+
+	// Configure stats initially
+	err = statreporter.Configure(cfg.Stats)
+	if err != nil {
+		return err
 	}
 
-	saveProfilingOnSigINT(cfg)
-
-	configureStats(cfg)
-
-	log.Debugf("Running proxy")
+	log.Debug("Running proxy")
 	if cfg.IsDownstream() {
+		// This will open a proxy on the address and port given by -addr
 		runClientProxy(cfg)
 	} else {
 		runServerProxy(cfg)
 	}
+
+	return waitForExit()
+}
+
+func i18nInit() {
+	i18n.SetMessagesFunc(func(filename string) ([]byte, error) {
+		return ui.Translations.Get(filename)
+	})
+	err := i18n.UseOSLocale()
+	if err != nil {
+		log.Debugf("i18n.UseOSLocale: %q", err)
+	}
 }
 
 func displayVersion() {
-	if version == "" {
-		version = "development"
-	}
-	if buildDate == "" {
-		buildDate = "now"
-	}
-	log.Debugf("---- flashlight version %s (%s) ----", version, buildDate)
+	log.Debugf("---- flashlight version: %s, release: %s, build revision date: %s ----", version, packageVersion, revisionDate)
 }
 
-// configure parses the command-line flags and binds the configuration YAML.
-// If there's a problem with the provided flags, it prints usage to stdout and
-// exits with status 1.
-func configure() *config.Config {
-	flag.Parse()
-	var err error
-	cfg, err := config.LoadFromDisk()
-	if err != nil {
-		log.Debugf("Error loading config, using default: %s", err)
+func parseFlags() {
+	args := os.Args[1:]
+	// On OS X, the first time that the program is run after download it is
+	// quarantined.  OS X will ask the user whether or not it's okay to run the
+	// program.  If the user says that it's okay, OS X will run the program but
+	// pass an extra flag like -psn_0_1122578.  flag.Parse() fails if it sees
+	// any flags that haven't been declared, so we remove the extra flag.
+	if len(os.Args) == 2 && strings.HasPrefix(os.Args[1], "-psn") {
+		log.Debugf("Ignoring extra flag %v", os.Args[1])
+		args = []string{}
 	}
-	cfg = cfg.ApplyFlags()
-	if *help || cfg.Addr == "" || (cfg.Role != "server" && cfg.Role != "client") {
-		flag.Usage()
-		os.Exit(ConfigError)
-	}
-
-	err = cfg.SaveToDisk()
-	if err != nil {
-		log.Fatalf("Unable to save config: %s", err)
-	}
-
-	go fetchConfigUpdates(cfg)
-
-	return cfg
+	// Note - we can ignore the returned error because CommandLine.Parse() will
+	// exit if it fails.
+	flag.CommandLine.Parse(args)
 }
 
-func fetchConfigUpdates(cfg *config.Config) {
-	nextCloud := nextCloudPoll()
-	for {
-		cloudDelta := nextCloud.Sub(time.Now())
-		var err error
-		var updated *config.Config
-		select {
-		case <-time.After(1 * time.Second):
-			if cfg.HasChangedOnDisk() {
-				updated, err = config.LoadFromDisk()
-			}
-		case <-time.After(cloudDelta):
-			if cfg.CloudConfig != "" {
-				updated, err = fetchCloudConfig(cfg)
-				if updated == nil && err == nil {
-					log.Debugf("Configuration unchanged in cloud at: %s", cfg.CloudConfig)
-				}
-			}
-			nextCloud = nextCloudPoll()
-		}
-		if err != nil {
-			log.Errorf("Error fetching config updates: %s", err)
-		} else if updated != nil {
-			cfg = updated
-			configUpdates <- updated
-		}
-	}
-}
-
-func nextCloudPoll() time.Time {
-	sleepTime := (CLOUD_CONFIG_POLL_INTERVAL.Nanoseconds() / 2) + rand.Int63n(CLOUD_CONFIG_POLL_INTERVAL.Nanoseconds())
-	return time.Now().Add(time.Duration(sleepTime))
-}
-
-func fetchCloudConfig(cfg *config.Config) (*config.Config, error) {
-	log.Debugf("Fetching cloud config from: %s", cfg.CloudConfig)
-	// Try it unproxied first
-	bytes, err := doFetchCloudConfig(cfg, "")
-	if err != nil && cfg.IsDownstream() {
-		// If that failed, try it proxied
-		bytes, err = doFetchCloudConfig(cfg, cfg.Addr)
-	}
-	if err != nil {
-		return nil, fmt.Errorf("Unable to read yaml from %s: %s", cfg.CloudConfig, err)
-	}
-	if bytes == nil {
-		return nil, nil
-	}
-	log.Debugf("Merging cloud configuration")
-	return cfg.UpdatedFrom(bytes)
-}
-
-func doFetchCloudConfig(cfg *config.Config, proxyAddr string) ([]byte, error) {
-	client, err := util.HTTPClient(cfg.CloudConfigCA, proxyAddr)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to initialize HTTP client: %s", err)
-	}
-	log.Debugf("Checking for cloud configuration at: %s", cfg.CloudConfig)
-	req, err := http.NewRequest("GET", cfg.CloudConfig, nil)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to construct request for cloud config at %s: %s", cfg.CloudConfig, err)
-	}
-	if lastCloudConfigETag != "" {
-		// Don't bother fetching if unchanged
-		req.Header.Set(IF_NONE_MATCH, lastCloudConfigETag)
-	}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to fetch cloud config at %s: %s", cfg.CloudConfig, err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode == 304 {
-		return nil, nil
-	} else if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Unexpected response status: %d", resp.StatusCode)
-	}
-	lastCloudConfigETag = resp.Header.Get(ETAG)
-	gzReader, err := gzip.NewReader(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to open gzip reader: %s", err)
-	}
-	return ioutil.ReadAll(gzReader)
-}
-
-func configureStats(cfg *config.Config) {
-	if cfg.StatsPeriod > 0 {
-		if cfg.StatshubAddr == "" {
-			log.Error("Must specify StatshubAddr if reporting stats")
-			flag.Usage()
-			os.Exit(ConfigError)
-		}
-		if cfg.InstanceId == "" {
-			log.Error("Must specify InstanceId if reporting stats")
-			flag.Usage()
-			os.Exit(ConfigError)
-		}
-		if cfg.Country == "" {
-			log.Error("Must specify Country if reporting stats")
-			flag.Usage()
-			os.Exit(ConfigError)
-		}
-		log.Debugf("Reporting stats to %s every %s under instance id '%s' in country %s", cfg.StatshubAddr, cfg.StatsPeriod, cfg.InstanceId, cfg.Country)
-		go statreporter.Start(cfg.StatsPeriod, cfg.StatshubAddr, cfg.InstanceId, cfg.Country)
-	} else {
-		log.Debug("Not reporting stats (no statsperiod specified)")
-	}
-}
-
-// Runs the client-side proxy
+// runClientProxy runs the client-side (get mode) proxy.
 func runClientProxy(cfg *config.Config) {
+	var err error
+
+	// Set Lantern as system proxy by creating and using a PAC file.
+	setProxyAddr(cfg.Addr)
+
+	if err = setUpPacTool(); err != nil {
+		exit(err)
+	}
+
+	// Create the client-side proxy.
 	client := &client.Client{
 		Addr:         cfg.Addr,
 		ReadTimeout:  0, // don't timeout
 		WriteTimeout: 0,
 	}
-	// Configure client initially
-	client.Configure(cfg.Client, nil)
+
+	// Start user interface.
+	if cfg.UIAddr != "" {
+		if err = ui.Start(cfg.UIAddr); err != nil {
+			exit(fmt.Errorf("Unable to start UI: %v", err))
+			return
+		}
+	}
+
+	applyClientConfig(client, cfg)
 	// Continually poll for config updates and update client accordingly
 	go func() {
 		for {
 			cfg := <-configUpdates
-			client.Configure(cfg.Client, nil)
+			applyClientConfig(client, cfg)
 		}
 	}()
 
-	err := client.ListenAndServe()
-	if err != nil {
-		log.Fatalf("Unable to run client proxy: %s", err)
+	// watchDirectAddrs will spawn a goroutine that will add any site that is
+	// directly accesible to the PAC file.
+	watchDirectAddrs()
+
+	go func() {
+		addExitFunc(pacOff)
+		err := client.ListenAndServe(func() {
+			pacOn()
+			if showui {
+				// Launch a browser window with Lantern but only after the pac
+				// URL and the proxy server are all up and running to avoid
+				// race conditions where we change the proxy setup while the
+				// UI server and proxy server are still coming up.
+				ui.Show()
+			}
+		})
+		if err != nil {
+			log.Errorf("Error calling listen and serve: %v", err)
+		}
+	}()
+}
+
+// addExitFunc adds a function to be called before the application exits.
+func addExitFunc(exitFunc func()) {
+	chExitFuncs <- exitFunc
+}
+
+func applyClientConfig(client *client.Client, cfg *config.Config) {
+	cfgMutex.Lock()
+	defer cfgMutex.Unlock()
+
+	autoupdate.Configure(cfg)
+	logging.Configure(cfg.Addr, cfg.CloudConfigCA, cfg.InstanceId,
+		version, revisionDate)
+	settings.Configure(cfg, version, revisionDate, buildDate)
+	proxiedsites.Configure(cfg.ProxiedSites)
+	analytics.Configure(cfg, version)
+	log.Debugf("Proxy all traffic or not: %v", cfg.Client.ProxyAll)
+	ServeProxyAllPacFile(cfg.Client.ProxyAll)
+	// Note - we deliberately ignore the error from statreporter.Configure here
+	statreporter.Configure(cfg.Stats)
+
+	// Update client configuration and get the highest QOS dialer available.
+	hqfd := client.Configure(cfg.Client)
+	if hqfd == nil {
+		log.Errorf("No fronted dialer available, not enabling geolocation, stats or analytics")
+	} else {
+		// An *http.Client that uses the highest QOS dialer.
+		hqfdClient := hqfd.NewDirectDomainFronter()
+		config.Configure(hqfdClient)
+		geolookup.Configure(hqfdClient)
+		statserver.Configure(hqfdClient)
+		// Note we don't call Configure on analytics here, as that would
+		// result in an extra analytics call and double counting.
 	}
 }
 
@@ -256,79 +281,64 @@ func runClientProxy(cfg *config.Config) {
 func runServerProxy(cfg *config.Config) {
 	useAllCores()
 
-	if cfg.Portmap > 0 {
-		log.Debugf("Attempting to map external port %d", cfg.Portmap)
-		err := mapPort(cfg)
-		if err != nil {
-			log.Errorf("Unable to map external port: %s", err)
-			os.Exit(PortmapFailure)
-		}
-		log.Debugf("Mapped external port %d", cfg.Portmap)
+	pkFile, err := config.InConfigDir("proxypk.pem")
+	if err != nil {
+		log.Fatal(err)
 	}
+	certFile, err := config.InConfigDir("servercert.pem")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	updateServerSideConfigClient(cfg)
 
 	srv := &server.Server{
 		Addr:         cfg.Addr,
 		ReadTimeout:  0, // don't timeout
 		WriteTimeout: 0,
-		Host:         cfg.AdvertisedHost,
-		CertContext: &server.CertContext{
-			PKFile:         config.InConfigDir("proxypk.pem"),
-			ServerCertFile: config.InConfigDir("servercert.pem"),
+		CertContext: &fronted.CertContext{
+			PKFile:         pkFile,
+			ServerCertFile: certFile,
 		},
+		AllowedPorts: []int{80, 443, 8080, 8443, 5222, 5223, 5228},
+
+		// We allow all censored countries plus us, es, mx, and gb because we do work
+		// and testing from those countries.
+		AllowedCountries: []string{"US", "ES", "MX", "GB", "CN", "VN", "IN", "IQ", "IR", "CU", "SY", "SA", "BH", "ET", "ER", "UZ", "TM", "PK", "TR", "VE"},
 	}
-	if cfg.StatsAddr != "" {
-		// Serve stats
-		srv.StatServer = &statserver.Server{
-			Addr: cfg.StatsAddr,
+
+	srv.Configure(cfg.Server)
+
+	// Continually poll for config updates and update server accordingly
+	go func() {
+		for {
+			cfg := <-configUpdates
+			updateServerSideConfigClient(cfg)
+			statreporter.Configure(cfg.Stats)
+			srv.Configure(cfg.Server)
 		}
-	}
-	err := srv.ListenAndServe()
+	}()
+
+	err = srv.ListenAndServe(func(update func(*server.ServerConfig) error) {
+		err := config.Update(func(cfg *config.Config) error {
+			return update(cfg.Server)
+		})
+		if err != nil {
+			log.Errorf("Error while trying to update: %v", err)
+		}
+	})
 	if err != nil {
 		log.Fatalf("Unable to run server proxy: %s", err)
 	}
 }
 
-func mapPort(cfg *config.Config) error {
-	parts := strings.Split(cfg.Addr, ":")
-
-	internalPort, err := strconv.Atoi(parts[1])
+func updateServerSideConfigClient(cfg *config.Config) {
+	client, err := util.HTTPClient(cfg.CloudConfigCA, "")
 	if err != nil {
-		return fmt.Errorf("Unable to parse local port: ")
+		log.Errorf("Couldn't create http.Client for fetching the config")
+		return
 	}
-
-	internalIP := parts[0]
-	if internalIP == "" {
-		internalIP, err = determineInternalIP()
-		if err != nil {
-			return fmt.Errorf("Unable to determine internal IP: %s", err)
-		}
-	}
-
-	igd, err := igdman.NewIGD()
-	if err != nil {
-		return fmt.Errorf("Unable to get IGD: %s", err)
-	}
-
-	igd.RemovePortMapping(igdman.TCP, cfg.Portmap)
-	err = igd.AddPortMapping(igdman.TCP, internalIP, internalPort, cfg.Portmap, 0)
-	if err != nil {
-		return fmt.Errorf("Unable to map port with igdman %d: %s", cfg.Portmap, err)
-	}
-
-	return nil
-}
-
-// determineInternalIP determines the internal IP to use for mapping ports. It
-// does this by dialing a website on the public Internet and then finding out
-// the LocalAddr for the corresponding connection. This gives us an interface
-// that we know has Internet access, which makes it suitable for port mapping.
-func determineInternalIP() (string, error) {
-	conn, err := net.DialTimeout("tcp", "s3.amazonaws.com:443", 20*time.Second)
-	if err != nil {
-		return "", fmt.Errorf("Unable to determine local IP: %s", err)
-	}
-	defer conn.Close()
-	return strings.Split(conn.LocalAddr().String(), ":")[0], nil
+	config.Configure(client)
 }
 
 func useAllCores() {
@@ -337,57 +347,23 @@ func useAllCores() {
 	runtime.GOMAXPROCS(numcores)
 }
 
-func startCPUProfiling(filename string) {
-	filename = withTimestamp(filename)
-	f, err := os.Create(filename)
-	if err != nil {
-		log.Fatal(err)
-	}
-	pprof.StartCPUProfile(f)
-	log.Debugf("Process will save cpu profile to %s after terminating", filename)
-}
-
-func stopCPUProfiling(filename string) {
-	log.Debugf("Saving CPU profile to: %s", filename)
-	pprof.StopCPUProfile()
-}
-
-func saveMemProfile(filename string) {
-	filename = withTimestamp(filename)
-	f, err := os.Create(filename)
-	if err != nil {
-		log.Errorf("Unable to create file to save memprofile: %s", err)
-		return
-	}
-	log.Debugf("Saving heap profile to: %s", filename)
-	pprof.WriteHeapProfile(f)
-	f.Close()
-}
-
-func saveProfilingOnSigINT(cfg *config.Config) {
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-	go func() {
-		<-c
-		if cfg.CpuProfile != "" {
-			stopCPUProfiling(cfg.CpuProfile)
+// exit tells the application to exit, optionally supplying an error that caused
+// the exit.
+func exit(err error) {
+	defer func() { exitCh <- err }()
+	for {
+		select {
+		case f := <-chExitFuncs:
+			log.Debugf("Calling exit func")
+			f()
+		default:
+			log.Debugf("No exit func remaining, exit now")
+			return
 		}
-		if cfg.MemProfile != "" {
-			saveMemProfile(cfg.MemProfile)
-		}
-		os.Exit(Interrupted)
-	}()
+	}
 }
 
-func withTimestamp(filename string) string {
-	file := filename
-	ext := filepath.Ext(file)
-	if ext != "" {
-		file = file[:len(file)-len(ext)]
-	}
-	file = fmt.Sprintf("%s_%s", file, time.Now().Format("20060102_150405.000000000"))
-	if ext != "" {
-		file = file + ext
-	}
-	return file
+// WaitForExit waits for a request to exit the application.
+func waitForExit() error {
+	return <-exitCh
 }

@@ -1,0 +1,23 @@
+{
+  "name": "jsonpatch.js",
+  "version": "1.0.0-rc1",
+  "main": "lib/jsonpatch.js",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "components"
+  ],
+  "devDependencies": {
+    "mocha": "latest"
+  },
+  "homepage": "https://github.com/dharmafly/jsonpatch.js",
+  "_release": "1.0.0-rc1",
+  "_resolution": {
+    "type": "version",
+    "tag": "v1.0.0-rc1",
+    "commit": "7bca9d808b7c758ca981e6754c4089784bf9454f"
+  },
+  "_source": "git://github.com/dharmafly/jsonpatch.js.git",
+  "_target": "1.0.0-rc1",
+  "_originalSource": "jsonpatch"
+}

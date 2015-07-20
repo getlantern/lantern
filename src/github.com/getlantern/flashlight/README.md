@@ -1,6 +1,10 @@
 flashlight [![Travis CI Status](https://travis-ci.org/getlantern/flashlight.svg?branch=master)](https://travis-ci.org/getlantern/flashlight)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/flashlight/badge.png)](https://coveralls.io/r/getlantern/flashlight)&nbsp;[![GoDoc](https://godoc.org/github.com/getlantern/flashlight?status.png)](http://godoc.org/github.com/getlantern/flashlight)
 ==========
 
+**WARNING**: The flashlight server will refuse to serve domain fronted traffic
+through most non-censored countries.  See 
+https://github.com/getlantern/flashlight-build/pull/141 for more details.
+
 Lightweight host-spoofing web proxy written in go.
 
 flashlight runs in one of two modes:
@@ -32,19 +36,41 @@ Usage of flashlight:
   -addr="": ip:port on which to listen for requests. When running as a client proxy, we'll listen with http, when running as a server proxy we'll listen with https (required)
   -cloudconfig="": optional http(s) URL to a cloud-based source for configuration updates
   -cloudconfigca="": optional PEM encoded certificate used to verify TLS connections to fetch cloudconfig
+  -configaddr="": if specified, run an http-based configuration server at this address
   -configdir="": directory in which to store configuration, including flashlight.yaml (defaults to current directory)
   -country="xx": 2 digit country code under which to report stats. Defaults to xx.
   -cpuprofile="": write cpu profile to given file
+  -frontfqdns="": YAML string representing a map from the name of each front provider to a FQDN that will reach this particular server via that provider (e.g. '{cloudflare: fl-001.getiantem.org, cloudfront: blablabla.cloudfront.net}')
+  -headless=false: if true, lantern will run with no ui
   -help=false: Get usage help
-  -instanceid="": instanceId under which to report stats to statshub
+  -httptest.serve="": if non-empty, httptest.NewServer serves on this address and blocks
+  -instanceid="": instanceId under which to report stats to statshub. If not specified, no stats are reported.
   -memprofile="": write heap profile to given file
   -parentpid=0: the parent process's PID, used on Windows for killing flashlight when the parent disappears
   -portmap=0: try to map this port on the firewall to the port on which flashlight is listening, using UPnP or NAT-PMP. If mapping this port fails, flashlight will exit with status code 50
+  -proxyall=false: set to true to proxy all traffic through Lantern network
+  -registerat="": base URL for peer DNS registry at which to register (e.g. https://peerscanner.getiantem.org)
   -role="": either 'client' or 'server' (required)
-  -server="": FQDN of flashlight server when running in server mode (required)
-  -statsaddr="": host:port at which to make detailed stats available using server-sent events (optional)
   -statshub="pure-journey-3547.herokuapp.com": address of statshub server
-  -statsperiod=0: time in seconds to wait between reporting stats. If not specified, stats are not reported. If specified, statshub, instanceid and statsaddr must also be specified.
+  -statsperiod=0: time in seconds to wait between reporting stats. If not specified, stats are not reported. If specified, statshub, instanceid and statshubAddr must also be specified.
+  -test.bench="": regular expression to select benchmarks to run
+  -test.benchmem=false: print memory allocations for benchmarks
+  -test.benchtime=1s: approximate run time for each benchmark
+  -test.blockprofile="": write a goroutine blocking profile to the named file after execution
+  -test.blockprofilerate=1: if >= 0, calls runtime.SetBlockProfileRate()
+  -test.coverprofile="": write a coverage profile to the named file after execution
+  -test.cpu="": comma-separated list of number of CPUs to use for each test
+  -test.cpuprofile="": write a cpu profile to the named file during execution
+  -test.memprofile="": write a memory profile to the named file after execution
+  -test.memprofilerate=0: if >=0, sets runtime.MemProfileRate
+  -test.outputdir="": directory in which to write profiles
+  -test.parallel=1: maximum test parallelism
+  -test.run="": regular expression to select tests and examples to run
+  -test.short=false: run smaller test suite to save time
+  -test.timeout=0: if positive, sets an aggregate time limit for all tests
+  -test.v=false: verbose: print additional output
+  -uiaddr="": if specified, indicates host:port the UI HTTP server should be started on
+  -unencrypted=false: set to true to run server in unencrypted mode (no TLS)
 ```
 
 Example Client:
@@ -72,9 +98,9 @@ On the client, you should see something like this for every request:
 Handling request for: http://www.google.com/humans.txt
 ```
 
-### Masquerade Host Management
+### Configuration Management
 
-Masquerade host configuration is managed using utilities in the [`genconfig/`](genconfig/) subfolder.
+The configuration that will be fed to clients is managed using utilities in the [`genconfig/`](genconfig/) subfolder.
 
 #### Setup
 
@@ -106,3 +132,38 @@ To alter the list of domains or blacklist:
 2. `go run genconfig.go -domains domains.txt -blacklist blacklist.txt`.
 3. Commit the changed [`masquerades.go`](config/masquerades.go) and [`cloud.yaml`](genconfig/cloud.yaml) to git if you want.
 4. Upload cloud.yaml to s3 using [`udpateyaml.bash`](genconfig/updateyaml.bash) if you want.
+
+#### Managing proxied sites
+
+Lists of proxied sites are expected to live as text files in a directory, one
+domain per line.  You provide this directory to `genconfig` with the `-proxiedsites` argument.
+
+#### Managing chained proxies
+
+The IPs, access tokens, and other details that clients need in order to
+connect to the chained (that is, non-fronted) proxies we run are contained in
+a JSON file that normally lives in `genconfig/fallbacks.json` and is fed to `genconfig` with the optional `-fallbacks` argument.
+
+You only to concern yourself with this when the list of chained proxies
+changes (e.g., when we launch or kill some server).  To learn how to reenerate
+the `fallbacks.json` file in that case, see [the relevant
+section](https://github.com/getlantern/lantern_aws#regenerating-flashlightgenconfigfallbackjson)
+of the README of the lantern_aws project.
+
+##### Uploading to redis
+
+To add a bunch of servers to the queue of a datacenter, so they'll get pulled by the config server as necessary,
+
+- Compile a fallbacks.json that only includes the given servers.  The quickest way to do this would be to generate the fallbacks.json with a prefix that only includes these servers.
+
+- Generate a cloud.yaml from this fallbacks.json, as explained above.
+
+- In the `genconfig` directory, run `./cfg2redis.py cloud.yaml <dc>`, where `<dc>` is the datacenter where the servers are located.  Current values are 'doams3' for the Digital Ocean Amsterdam 3 datacenter, and 'vltok1' for the Vulture Tokyo datacenter.  Add the `--dc` option if you want to upload the datacenter configuration too (e.g., if this is a new datacenter), but of course make sure the cloud.yaml contains the right configuration for that datacenter (e.g. the right fronted round robin(s)).
+
+The cfg2redis has some prerequisites.  Just try it and it will tell you how to fulfill any missing ones.
+
+If you *only* want to update the datacenter configuration you may say
+
+    echo "[]" > fallbacks.json
+    ./genconfig.bash
+    ./cfg2redis.py --dc cloud.yaml doams3

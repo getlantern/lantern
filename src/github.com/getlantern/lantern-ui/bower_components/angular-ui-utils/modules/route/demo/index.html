@@ -1,0 +1,97 @@
+<section id="routing">
+  <div class="page-header">
+    <h1>Route Checking</h1>
+  </div>
+
+  <div class="row">
+    <div class="span6">
+      <h3>What?</h3>
+
+      <p>Route Matching Magic. It matches your routes ... magically!</p>
+
+      <div class="well">
+        <p class="alert alert-info">Clicking
+          <strong>"Make Active"</strong> will reload the page. Pay attention to the routes.</p>
+        <ul>
+          <li ui-route="#/routing">uiRoute Info
+            <strong ui-if="$uiRoute">IS</strong>
+            <strong ui-if="!$uiRoute">is NOT</strong> active.
+          </li>
+          <li ng-repeat="route in routes" ui-route="#/route-{{ route }}">
+            Route {{ route }}
+            <strong ui-if="$uiRoute">IS</strong>
+            <strong ui-if="!$uiRoute">is NOT</strong> active.
+            <a ui-if="!$uiRoute" ng-click="reload($event, route)" href="#route-{{ route }}">Make Active</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="span6">
+      <h3>Why?</h3>
+
+      <p>It would be nice if your app knew what the address path was and acted accordingly, right? Right.</p>
+    </div>
+
+    <div class="span6">
+      <h3>Options</h3>
+      <ul>
+        <li>Out of the box this directive ships with a boolean to determine if the route matches or not:
+          <code>$uiRoute</code>.
+          <ul>
+            <li>Example Usage: <code>&lt;a ui-route="/page" ng-class="{active: $uiRoute}"&gt;link&lt;/a&gt;</code></li>
+          </ul>
+        </li>
+        <li>Using <code>ui-route</code> as an attribute with value supports the following:
+          <ul style="margin-top: 5px;">
+            <li>Static: <code>&lt;a ui-route="/page"&gt;</code></li>
+            <li>Regular Expression: <code>&lt;a ui-route="/page/[0-9]*"&gt;</code></li>
+            <li>Template Vars: <code>&lt;a ui-route="/page/{{ sample }}"&gt;</code></li>
+            <li>Template Vars && RegEx: <code>&lt;a ui-route="/page/{{ sample }}/[0-9]*"&gt;</code></li>
+          </ul>
+        </li>
+        <li>Using <code>ui-route</code> with <code>ng-href</code> attribute:
+          <ul style="margin-top: 5px;">
+            <li>Static: <code>&lt;a ui-route ng-href="/page"&gt;</code></li>
+            <li>Template Vars: <code>&lt;a ui-route ng-href="/page/{{ sample }}"&gt;</code></li>
+          </ul>
+        </li>
+        <li>Using <code>ui-route</code> with <code>href</code> attribute:
+          <ul style="margin-top: 5px;">
+            <li>Static Only: <code>&lt;a ui-route href="/page"&gt;</code></li>
+          </ul>
+        </li>
+        <li>You can also pass a model to <code>ui-route</code>. This model could then be used the same as
+          <code>$uiRoute</code>.
+          <ul style="margin-top: 5px;">
+            <li><code>&lt;li ui-route="/page/{{ sample }}" ng-model="current"&gt;</code></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="row">
+    <div class="row span12">
+      <h3>How?</h3>
+<pre class="prettyprint">
+&lt;ul&gt;
+&lt;li ui-route=&quot;#/route-1&quot;&gt;Route 1
+&lt;strong ui-if=&quot;$uiRoute&quot;&gt;IS&lt;/strong&gt;
+&lt;strong ui-if=&quot;!$uiRoute&quot;&gt;is NOT&lt;/strong&gt; active.
+&lt;/li&gt;
+&lt;li ui-route=&quot;#/route-2&quot;&gt;Route 2
+&lt;strong ui-if=&quot;$uiRoute&quot;&gt;IS&lt;/strong&gt;
+&lt;strong ui-if=&quot;!$uiRoute&quot;&gt;is NOT&lt;/strong&gt; active.
+&lt;/li&gt;
+&lt;li ui-route=&quot;#/route-3&quot;&gt;Route 3
+&lt;strong ui-if=&quot;$uiRoute&quot;&gt;IS&lt;/strong&gt;
+&lt;strong ui-if=&quot;!$uiRoute&quot;&gt;is NOT&lt;/strong&gt; active.
+&lt;/li&gt;
+&lt;/ul&gt;
+</pre>
+    </div>
+
+  </div>
+</section>

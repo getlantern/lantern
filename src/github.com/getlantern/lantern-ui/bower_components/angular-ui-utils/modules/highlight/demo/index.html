@@ -1,0 +1,33 @@
+<style>
+  .ui-match {
+    background: yellow;
+  }
+</style>
+
+<section id="highlight">
+  <div class="page-header">
+    <h1>Highlight</h1>
+  </div>
+  <h3>What?</h3>
+
+  <p>Easily highlight some text in a block</p>
+
+  <div class="well">
+    <p><label><input type="checkbox" ng-model="caseSensitive"> Case Sensitive?</label></p>
+
+    <p><input placeholder="Enter some text to highlight" ng-model="highlightText"></p>
+
+    <p ng-bind-html-unsafe="'Hello there, how are you today? I\'m fine thank you.' | highlight:highlightText:caseSensitive"></p>
+  </div>
+
+  <h3>How?</h3>
+<pre class="prettyprint">
+&lt;label&gt;&lt;input type=&quot;checkbox&quot; ng-model=&quot;caseSensitive&quot;&gt; Case Sensitive?&lt;/label&gt;
+&lt;input placeholder=&quot;Enter some text to highlight&quot; value=&quot;you&quot; ng-model=&quot;highlightText&quot;&gt;
+&lt;p ng-bind-html-unsafe=&quot;&#x27;Hello there, how are you today? I\'m fine thank you.&#x27; | highlight:highlightText:caseSensitive&quot;&gt;&lt;/p&gt;
+
+&lt;style&gt;
+.ui-match { background: yellow; }
+&lt;/style&gt;
+</pre>
+</section>

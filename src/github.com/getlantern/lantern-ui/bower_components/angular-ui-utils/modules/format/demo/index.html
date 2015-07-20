@@ -1,0 +1,69 @@
+<script>
+  function FormatCtrl($scope) {
+    $scope.sentence = 'Hello :name, how is the :subject? Are you on the $0, $1 or $2?';
+    $scope.mode = 'string';
+    $scope.tokens = {
+      'string': 'Single',
+      'array': ['first', 'second', 'third'],
+      'object': {
+        'name': 'Bob',
+        'subject': 'wife'
+      }
+    };
+  }
+</script>
+<section id="format" ng-controller="FormatCtrl">
+  <div class="page-header">
+    <h1>Format</h1>
+  </div>
+  <div class="row">
+    <div class="span6">
+      <h3>What?</h3>
+
+      <p>Replace tokens in a string in a variety of ways</p>
+
+      <div class="well">
+        <label><input ng-model="sentence" class="span5" type="text"></label>
+        <label>
+          <input type="radio" ng-model="mode" value="string">
+          Token (string):
+          <input ng-model="tokens.string" class="span3" type="text" placeholder="$0">
+        </label>
+        <label>
+          <input type="radio" ng-model="mode" value="array">
+          Token (array):
+          <input ng-model="tokens.array[0]" class="span1" type="text" placeholder="$0">
+          <input ng-model="tokens.array[1]" class="span1" type="text" placeholder="$1">
+          <input ng-model="tokens.array[2]" class="span1" type="text" placeholder="$2">
+        </label>
+        <label>
+          <input type="radio" ng-model="mode" value="object">
+          Token (object):
+          <input ng-model="tokens.object.name" class="span2" type="text" placeholder=":name">
+          <input ng-model="tokens.object.subject" class="span2" type="text" placeholder=":subject">
+        </label>
+
+        <p>{{ sentence | format : tokens[mode] }}</p>
+        <pre>Tokens: {{ tokens[mode] | json }}</pre>
+      </div>
+    </div>
+    <div class="span6">
+      <h3>Why?</h3>
+
+      <p>Most commonly, this filter is helpful for internationalization. However anywhere you need to do string replacement the format filter will come in handy.</p>
+
+      <h3>How?</h3>
+<pre class="prettyprint">
+{{ "Hello $0, how are you?" | format : &#39;Bob&#39; }}
+-- or --
+$scope.tokens = [&#39;first&#39;,&#39;second&#39;,'third&#39;];
+...
+{{ "Are you on the $0, $1 or $2?" | format : tokens }}
+-- or --
+$scope.tokens = { name:&#39;Bob&#39;, subject:&#39;wife&#39; };
+...
+{{ "Hey :name, how's the :subject?" | format : tokens }}
+</pre>
+    </div>
+  </div>
+</section>

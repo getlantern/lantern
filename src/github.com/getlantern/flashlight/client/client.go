@@ -1,23 +1,24 @@
 package client
 
 import (
-	"math/rand"
+	"crypto/x509"
+	"fmt"
+	"net"
 	"net/http"
+	"net/http/httputil"
 	"reflect"
-	"strconv"
 	"sync"
 	"time"
 
-	"github.com/getlantern/enproxy"
-	"github.com/getlantern/flashlight/log"
+	"github.com/getlantern/balancer"
+	"github.com/getlantern/fronted"
+	"github.com/getlantern/golog"
+
+	"github.com/getlantern/flashlight/globals"
 )
 
-const (
-	CONNECT = "CONNECT" // HTTP CONNECT method
-
-	REVERSE_PROXY_FLUSH_INTERVAL = 250 * time.Millisecond
-
-	X_FLASHLIGHT_QOS = "X-Flashlight-QOS"
+var (
+	log = golog.LoggerFor("flashlight.client")
 )
 
 // Client is an HTTP proxy that accepts connections from local programs and
@@ -32,170 +33,93 @@ type Client struct {
 	// WriteTimeout: (optional) timeout for write ops
 	WriteTimeout time.Duration
 
-	cfg                *ClientConfig
-	cfgMutex           sync.RWMutex
-	servers            []*server
-	totalServerWeights int
-	verifiedSets       map[string]*verifiedMasqueradeSet
+	// ProxyAll: (optional)  poxy all sites regardless of being blocked or not
+	ProxyAll bool
+
+	// MinQOS: (optional) the minimum QOS to require from proxies.
+	MinQOS int
+
+	priorCfg        *ClientConfig
+	priorTrustedCAs *x509.CertPool
+	cfgMutex        sync.RWMutex
+
+	// Balanced CONNECT dialers.
+	balCh          chan *balancer.Balancer
+	balInitialized bool
+
+	// Reverse HTTP proxies.
+	rpCh          chan *httputil.ReverseProxy
+	rpInitialized bool
+
+	hqfd fronted.Dialer
+	l    net.Listener
 }
 
-// ListenAndServe makes the client listen for HTTP connections
-func (client *Client) ListenAndServe() error {
+// ListenAndServe makes the client listen for HTTP connections.  onListeningFn
+// is a callback that gets invoked as soon as the server is accepting TCP
+// connections.
+func (client *Client) ListenAndServe(onListeningFn func()) error {
+	var err error
+	var l net.Listener
+
+	if l, err = net.Listen("tcp", client.Addr); err != nil {
+		return fmt.Errorf("Client proxy was unable to listen at %s: %q", client.Addr, err)
+	}
+
+	client.l = l
+	onListeningFn()
+
 	httpServer := &http.Server{
-		Addr:         client.Addr,
 		ReadTimeout:  client.ReadTimeout,
 		WriteTimeout: client.WriteTimeout,
 		Handler:      client,
+		ErrorLog:     log.AsStdLogger(),
 	}
 
-	log.Debugf("About to start client (http) proxy at %s", client.Addr)
-	return httpServer.ListenAndServe()
+	log.Debugf("About to start client (HTTP) proxy at %s", client.Addr)
+
+	return httpServer.Serve(l)
 }
 
 // Configure updates the client's configuration.  Configure can be called
-// before or after ListenAndServe, and can be called multiple times.  The
-// optional enproxyConfigs parameter allows explicitly specifying enproxy
-// configurations for the servers in ClientConfig in lieu of building them based
-// on the ServerInfo in ClientConfig (mostly useful for testing).
-func (client *Client) Configure(cfg *ClientConfig, enproxyConfigs []*enproxy.Config) {
+// before or after ListenAndServe, and can be called multiple times.  It
+// returns the highest QOS fronted.Dialer available, or nil if none available.
+func (client *Client) Configure(cfg *ClientConfig) fronted.Dialer {
 	client.cfgMutex.Lock()
 	defer client.cfgMutex.Unlock()
 
 	log.Debug("Configure() called")
-	if client.cfg != nil {
-		if reflect.DeepEqual(client.cfg, cfg) {
+
+	if client.priorCfg != nil && client.priorTrustedCAs != nil {
+		if reflect.DeepEqual(client.priorCfg, cfg) && reflect.DeepEqual(client.priorTrustedCAs, globals.TrustedCAs) {
 			log.Debugf("Client configuration unchanged")
-			return
-		} else {
-			log.Debugf("Client configuration changed")
+			return client.hqfd
 		}
+		log.Debugf("Client configuration changed")
 	} else {
 		log.Debugf("Client configuration initialized")
 	}
 
-	client.cfg = cfg
+	log.Debugf("Requiring minimum QOS of %d", cfg.MinQOS)
+	client.MinQOS = cfg.MinQOS
+	log.Debugf("Proxy all traffic or not: %v", cfg.ProxyAll)
+	client.ProxyAll = cfg.ProxyAll
 
-	if client.verifiedSets != nil {
-		// Stop old verifications
-		for _, verifiedSet := range client.verifiedSets {
-			go verifiedSet.stop()
-		}
-	}
+	var bal *balancer.Balancer
+	bal, client.hqfd = client.initBalancer(cfg)
 
-	// Set up new verified masquerade sets
-	client.verifiedSets = make(map[string]*verifiedMasqueradeSet)
+	client.initReverseProxy(bal, cfg.DumpHeaders)
 
-	for key, masqueradeSet := range cfg.MasqueradeSets {
-		testServer := cfg.highestQosServer(key)
-		if testServer != nil {
-			client.verifiedSets[key] = newVerifiedMasqueradeSet(testServer, masqueradeSet)
-		}
-	}
+	client.priorCfg = cfg
+	client.priorTrustedCAs = &x509.CertPool{}
+	*client.priorTrustedCAs = *globals.TrustedCAs
 
-	// Close existing servers
-	if client.servers != nil {
-		for _, server := range client.servers {
-			server.close()
-		}
-	}
-
-	// Configure servers
-	client.servers = make([]*server, len(cfg.Servers))
-	i := 0
-	for _, serverInfo := range cfg.Servers {
-		var enproxyConfig *enproxy.Config
-		if enproxyConfigs != nil {
-			enproxyConfig = enproxyConfigs[i]
-		}
-		client.servers[i] = serverInfo.buildServer(
-			cfg.DumpHeaders,
-			client.verifiedSets[serverInfo.MasqueradeSet],
-			enproxyConfig)
-		i = i + 1
-	}
-
-	// Calculate total server weights
-	client.totalServerWeights = 0
-	for _, server := range client.servers {
-		client.totalServerWeights = client.totalServerWeights + server.info.Weight
-	}
+	return client.hqfd
 }
 
-// highestQos finds the server with the highest reported quality of service for
-// the named masqueradeSet.
-func (cfg *ClientConfig) highestQosServer(masqueradeSet string) *ServerInfo {
-	highest := 0
-	var info *ServerInfo
-	for _, serverInfo := range cfg.Servers {
-		if serverInfo.MasqueradeSet == masqueradeSet && serverInfo.QOS > highest {
-			highest = serverInfo.QOS
-			info = serverInfo
-		}
-	}
-	return info
-}
-
-// ServeHTTP implements the method from interface http.Handler
-func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	server := client.randomServer(req)
-	log.Debugf("Using server %s to handle request for %s", server.info.Host, req.RequestURI)
-	if req.Method == CONNECT {
-		server.enproxyConfig.Intercept(resp, req)
-	} else {
-		server.reverseProxy.ServeHTTP(resp, req)
-	}
-}
-
-// randomServer picks a random server from the list of servers, with higher
-// weight servers more likely to be picked.  If the request includes our
-// custom QOS header, only servers whose QOS meets or exceeds the requested
-// value are considered for inclusion.  However, if no servers meet the QOS
-// requirement, the last server in the list will be used by default.
-func (client *Client) randomServer(req *http.Request) *server {
-	targetQOS := client.targetQOS(req)
-
-	servers, totalServerWeights := client.getServers()
-
-	// Pick a random server using a target value between 0 and the total server weights
-	t := rand.Intn(totalServerWeights)
-	aw := 0
-	for i, server := range servers {
-		if i == len(servers)-1 {
-			// Last server, use it irrespective of target QOS
-			return server
-		}
-		aw = aw + server.info.Weight
-		if server.info.QOS < targetQOS {
-			// QOS too low, exclude server from rotation
-			t = t + server.info.Weight
-			continue
-		}
-		if aw > t {
-			// We've reached our random target value, use this server
-			return server
-		}
-	}
-
-	// We should never reach this
-	panic("No server found!")
-}
-
-// targetQOS determines the target quality of service given the X-Flashlight-QOS
-// header if available, else returns 0.
-func (client *Client) targetQOS(req *http.Request) int {
-	requestedQOS := req.Header.Get(X_FLASHLIGHT_QOS)
-	if requestedQOS != "" {
-		rqos, err := strconv.Atoi(requestedQOS)
-		if err == nil {
-			return rqos
-		}
-	}
-
-	return 0
-}
-
-func (client *Client) getServers() ([]*server, int) {
-	client.cfgMutex.RLock()
-	defer client.cfgMutex.RUnlock()
-	return client.servers, client.totalServerWeights
+// Stop is called when the client is no longer needed. It closes the
+// client listener and underlying dialer connection pool
+func (client *Client) Stop() error {
+	client.hqfd.Close()
+	return client.l.Close()
 }

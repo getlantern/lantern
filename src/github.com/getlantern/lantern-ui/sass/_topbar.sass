@@ -1,0 +1,24 @@
+#topbar
+  +opaqueOnMouseover(.75)
+  +position(0, 0, false, 0)
+  background: image-url('bg-topbar.png') repeat-x
+  padding: 10px
+  color: #fff
+  +single-text-shadow(0, 1px, 1px, 0, #000)
+  div
+    +inline-block
+
+#bpsUpDn
+  +small
+  float: right
+  & > div
+    margin-left: 5px
+    +single-transition(all, 0.25s, ease)
+    opacity: .9
+  &.get > div
+    color: $getModeColor
+  &.give > div
+    color: $giveModeColorMap
+  & > div.inactive
+    color: #eee
+    opacity: .5

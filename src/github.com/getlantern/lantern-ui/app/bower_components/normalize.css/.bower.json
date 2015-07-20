@@ -1,0 +1,24 @@
+{
+  "name": "normalize-css",
+  "version": "3.0.2",
+  "main": "normalize.css",
+  "author": "Nicolas Gallagher",
+  "ignore": [
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "component.json",
+    "package.json",
+    "test.html"
+  ],
+  "homepage": "https://github.com/necolas/normalize.css",
+  "_release": "3.0.2",
+  "_resolution": {
+    "type": "version",
+    "tag": "3.0.2",
+    "commit": "2334aed3efee9f4dd2297c4e6f4c0021b3279c7a"
+  },
+  "_source": "git://github.com/necolas/normalize.css.git",
+  "_target": "~3.0.2",
+  "_originalSource": "normalize.css",
+  "_direct": true
+}

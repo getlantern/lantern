@@ -1,0 +1,9 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: Lantern
+Upstream-Contact: Lantern Team <team@getlantern.org>
+Source: https://github.com/getlantern/flashlight-build
+Disclaimer: This package is not part of Debian or Ubuntu.
+
+Files: *
+Copyright: 2010-2015 Brave New Software Project, Inc.
+License: /usr/share/common-licenses/Apache-2.0

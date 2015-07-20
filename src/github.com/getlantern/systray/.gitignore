@@ -1,0 +1,8 @@
+example/example
+*~
+*.swp
+*.exe
+Release
+Debug
+*.sdf
+dll/systray_unsigned.dll
