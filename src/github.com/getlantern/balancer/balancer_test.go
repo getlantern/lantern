@@ -5,6 +5,7 @@ import (
 	"io"
 	"math/rand"
 	"net"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -105,27 +106,8 @@ func TestAll(t *testing.T) {
 			return net.Dial(network, addr)
 		},
 	}
-	checkAttempts := int32(0)
-	dialer3 := &Dialer{
-		Label:  "Dialer 3",
-		Weight: 1,
-		QOS:    15,
-		Dial: func(network, addr string) (net.Conn, error) {
-			atomic.StoreInt32(&dialedBy, 3)
-			if atomic.LoadInt32(&checkAttempts) < 6 {
-				// Fail for a while
-				return nil, fmt.Errorf("Failing intentionally")
-			} else {
-				// Eventually succeed
-				return net.Dial(network, addr)
-			}
-		},
-		Check: func() bool {
-			time.Sleep(100 * time.Millisecond)
-			n := atomic.AddInt32(&checkAttempts, 1)
-			return n > 5
-		},
-	}
+	d3Attempts := int32(0)
+	dialer3 := newFailingDialer(3, &dialedBy, &d3Attempts)
 
 	d4attempts := int32(0)
 	dialer4 := &Dialer{
@@ -199,10 +181,17 @@ func TestAll(t *testing.T) {
 		doTestConn(t, conn)
 	}
 
-	// Test failure
-	b = New(dialer3)
+	d5Attempts := int32(0)
+	dialer5 := newFailingDialer(5, &dialedBy, &d5Attempts)
+
+	// Test that a dialer that initially fails will successfully get rechecked and ultimately succeed.
+	b = New(dialer5)
+
+	// Lower the maximum time between rechecks so the test can run in a reasonable amount of time.
 	maxCheckTimeout = 100 * time.Millisecond
-	// Dial a bunch of times on multiple goroutines to hit different failure branches
+
+	// Dial a bunch of times on multiple goroutines to hit different failure branches. In the case
+	// of the failing dialer, this ensures that we "use up" all the failures.
 	var wg sync.WaitGroup
 	wg.Add(2)
 	for j := 0; j < 2; j++ {
@@ -217,14 +206,15 @@ func TestAll(t *testing.T) {
 		}()
 	}
 
-	time.Sleep(1 * time.Second)
-	assert.Equal(t, 6, atomic.LoadInt32(&checkAttempts), "Wrong number of check attempts on failed dialer")
 	wg.Wait()
+	time.Sleep(1 * time.Second)
+
+	assert.Equal(t, 6, atomic.LoadInt32(&d5Attempts), "Wrong number of check attempts on failed dialer")
 
 	// Test success after successful recheck using custom check
 	conn, err = b.DialQOS("tcp", addr, 20)
-	assert.NoError(t, err, "Dialing should have succeeded")
-	assert.Equal(t, 3, atomic.LoadInt32(&dialedBy), "Wrong dialedBy")
+	assert.NoError(t, err, "Dialing should have succeeded on initially failing dialer")
+	assert.Equal(t, 5, atomic.LoadInt32(&dialedBy), "Wrong dialedBy")
 	if err == nil {
 		doTestConn(t, conn)
 	}
@@ -243,6 +233,34 @@ func TestAll(t *testing.T) {
 		doTestConn(t, conn)
 	}
 
+}
+
+// newFailingDialer creates a dialer that will initially fail and then succeed. The caller
+// passes in the variables that store the dialer that did the dialing and that store
+// the number of checks performed, respectively.
+func newFailingDialer(num int32, dialedBy *int32, attempts *int32) *Dialer {
+	d := &Dialer{
+		Label:  "Dialer " + strconv.Itoa(int(num)),
+		Weight: 1,
+		QOS:    15,
+		Dial: func(network, addr string) (net.Conn, error) {
+			atomic.StoreInt32(dialedBy, num)
+			if atomic.LoadInt32(attempts) < 6 {
+				// Fail for a while
+				return nil, fmt.Errorf("Failing intentionally")
+			} else {
+				// Eventually succeed
+				return net.Dial(network, addr)
+			}
+		},
+		Check: func() bool {
+			log.Debugf("Performing check on dialer %v", num)
+			time.Sleep(20 * time.Millisecond)
+			n := atomic.AddInt32(attempts, 1)
+			return n > 5
+		},
+	}
+	return d
 }
 
 func doTestConn(t *testing.T, conn net.Conn) {

@@ -19,7 +19,7 @@ const (
 // clientConfig holds global configuration settings for all clients.
 var (
 	version       string
-	buildDate     string
+	revisionDate  string
 	log           = golog.LoggerFor("lantern-android.client")
 	clientConfig  = defaultConfig()
 	trackingCodes = map[string]string{
@@ -67,8 +67,8 @@ func init() {
 		version = "development"
 	}
 
-	if buildDate == "" {
-		buildDate = "now"
+	if revisionDate == "" {
+		revisionDate = "now"
 	}
 }
 
@@ -78,7 +78,7 @@ func (client *MobileClient) ServeHTTP() {
 		onListening := func() {
 			log.Debugf("Now listening for connections...")
 			analytics.Configure(trackingCodes["FireTweet"], "", client.Client.Addr)
-			logging.Configure(client.Client.Addr, cloudConfigCA, InstanceId, version, buildDate)
+			logging.Configure(client.Client.Addr, cloudConfigCA, InstanceId, version, revisionDate)
 		}
 
 		defer func() {
@@ -111,10 +111,15 @@ func (client *MobileClient) updateConfig() error {
 		if err != nil {
 			log.Errorf("Unable to configure trusted CAs: %s", err)
 		}
+
 		hqfc := client.Configure(clientConfig.Client)
 		client.fronter = hqfc.NewDirectDomainFronter()
 	}
 	return err
+}
+
+func (client *MobileClient) GetFireTweetVersion() string {
+	return clientConfig.FireTweetVersion
 }
 
 // pollConfiguration periodically checks for updates in the cloud configuration

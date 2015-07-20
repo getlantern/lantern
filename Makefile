@@ -13,10 +13,15 @@ SVGEXPORT := $(shell which svgexport 2> /dev/null)
 
 BOOT2DOCKER := $(shell which boot2docker 2> /dev/null)
 
-BUILD_DATE := $(shell date -u +%Y%m%d.%H%M%S)
+GIT_REVISION_SHORTCODE := $(shell git rev-parse --short HEAD)
 GIT_REVISION := $(shell git describe --abbrev=0 --tags --exact-match 2> /dev/null || git rev-parse --short HEAD)
+GIT_REVISION_DATE := $(shell git show -s --format=%ci $(GIT_REVISION_SHORTCODE))
+
+REVISION_DATE := $(shell date -u -j -f "%F %T %z" "$(GIT_REVISION_DATE)" +"%Y%m%d.%H%M%S" || date -u -d "$(GIT_REVISION_DATE)" +"%Y%m%d.%H%M%S")
+BUILD_DATE := $(shell date -u +%Y%m%d.%H%M%S)
+
 LOGGLY_TOKEN := 469973d5-6eaf-445a-be71-cf27141316a1
-LDFLAGS := -w -X main.version $(GIT_REVISION) -X main.buildDate $(BUILD_DATE) -X github.com/getlantern/flashlight/logging.logglyToken \"$(LOGGLY_TOKEN)\"
+LDFLAGS := -w -X main.version $(GIT_REVISION) -X main.revisionDate $(REVISION_DATE) -X main.buildDate $(BUILD_DATE) -X github.com/getlantern/flashlight/logging.logglyToken \"$(LOGGLY_TOKEN)\"
 LANTERN_DESCRIPTION := "Censorship circumvention tool"
 LANTERN_EXTENDED_DESCRIPTION := "Lantern allows you to access sites blocked by internet censorship.\nWhen you run it, Lantern reroutes traffic to selected domains through servers located where such domains aren't censored."
 
@@ -28,7 +33,7 @@ PACKAGE_URL := "https://www.getlantern.org"
 
 LANTERN_BINARIES_PATH ?= ../lantern-binaries
 
-GO_MOBILE_REVISION=47553f4d4275316f2610b3204f8f9ecaf3ce63a7
+GO_MOBILE_REVISION=f88f8237ec301d3403c630c0b20e940f187187e2
 
 GH_USER ?= getlantern
 
@@ -210,7 +215,6 @@ docker-golang-android: require-mercurial
 		cd src/golang.org/x/mobile && \
 		git reset --hard && \
 		git checkout $(GO_MOBILE_REVISION) && \
-		curl https://gist.githubusercontent.com/xiam/56d8fe575176f459613d/raw/8873ed3af55a7d449a1c9c2112de118da968dbc3/gistfile1.txt | git apply - && \
 		docker build -t golang/mobile .; \
 	fi
 
@@ -342,9 +346,21 @@ package-darwin: require-version require-appdmg require-svgexport darwin
 		echo "-> Skipped: Can not generate a package on a non-OSX host."; \
 	fi;
 
+manoto:
+	@echo "Replacing NO_URL with manoto"
+	perl -pi -e "s/NO_URL/https:\/\/www.facebook.com\/manototv/" src/github.com/getlantern/flashlight/ui/ui.go
+
+unmanoto:
+	@echo "Replacing manoto url with NO_URL"
+	perl -pi -e "s/https:\/\/www.facebook.com\/manototv/NO_URL/" src/github.com/getlantern/flashlight/ui/ui.go
+
+manoto-binaries: manoto binaries unmanoto
+
 binaries: docker genassets linux windows darwin
 
 packages: require-version require-secrets clean genconfig binaries package-windows package-linux package-darwin
+
+manoto-packages: require-version require-secrets clean genconfig manoto-binaries package-windows package-linux package-darwin
 
 release-qa: require-tag require-s3cmd
 	@BASE_NAME="lantern-installer-qa" && \
@@ -454,7 +470,7 @@ android-lib: docker-golang-android genconfig
 		gobind -lang=go github.com/getlantern/lantern-android/libflashlight/bindings > bindings/go_bindings/go_bindings.go && \
 		gobind -lang=java github.com/getlantern/lantern-android/libflashlight/bindings > bindings/Flashlight.java || exit 1;
 	@$(call docker-up) && \
-	$(DOCKER) run -v $$PWD/src:/src golang/mobile /bin/bash -c \ "cd /src/github.com/getlantern/lantern-android/libflashlight && ./make.bash $(GIT_REVISION) $(BUILD_DATE)" && \
+	$(DOCKER) run -v $$PWD/src:/src golang/mobile /bin/bash -c \ "cd /src/github.com/getlantern/lantern-android/libflashlight && ./make.bash $(GIT_REVISION) $(REVISION_DATE) $(BUILD_DATE)" && \
 	ls -l src/github.com/getlantern/lantern-android/app/libs/armeabi-v7a/libgojni.so && \
 	if [ -d "$(FIRETWEET_DIR)" ]; then \
 		cp -v src/github.com/getlantern/lantern-android/app/libs/armeabi-v7a/libgojni.so $(FIRETWEET_DIR)/firetweet/src/main/jniLibs/armeabi-v7a && \

@@ -3,7 +3,6 @@ package detour
 import (
 	"bytes"
 	"net"
-	"runtime"
 	"syscall"
 )
 
@@ -51,7 +50,10 @@ var defaultDetector = Detector{
 			}
 			// TCP RST triggers ECONNREFUSED instead of ECONNRESET on Android
 			// https://github.com/getlantern/lantern/issues/2375
-			if runtime.GOOS == "android" && oe.Err == syscall.ECONNREFUSED {
+			// It's also beneficial to treat all ECONNREFUSED as being blocked
+			// to facilitate testing.
+			// https://github.com/getlantern/lantern/issues/2638#issuecomment-111769428
+			if oe.Err == syscall.ECONNREFUSED {
 				return true
 			}
 		}

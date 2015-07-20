@@ -77,6 +77,9 @@ func (d *dialer) start() {
 				atomic.StoreInt32(&d.active, 0)
 				log.Tracef("Mark dialer %s as inactive, scheduling check", d.Label)
 				timeout := time.Duration(consecCheckFailures*consecCheckFailures) * 100 * time.Millisecond
+				if timeout > maxCheckTimeout {
+					timeout = maxCheckTimeout
+				}
 				timer.Reset(timeout)
 			} else {
 				atomic.StoreInt32(&d.active, 1)
@@ -96,6 +99,7 @@ func (d *dialer) start() {
 				if ok {
 					lastCheckSucceeded = time.Now()
 					timer.Reset(longDuration)
+					consecCheckFailures = 0
 				} else {
 					consecCheckFailures += 1
 				}
@@ -127,7 +131,7 @@ func (d *dialer) defaultCheck() bool {
 			Dial: d.Dial,
 		},
 	}
-	ok, timedOut, _ := withtimeout.Do(10*time.Second, func() (interface{}, error) {
+	ok, timedOut, _ := withtimeout.Do(60*time.Second, func() (interface{}, error) {
 		resp, err := client.Get("http://www.google.com/humans.txt")
 		if err != nil {
 			log.Debugf("Error testing dialer %s to humans.txt: %s", d.Label, err)
@@ -137,5 +141,8 @@ func (d *dialer) defaultCheck() bool {
 		log.Tracef("Tested dialer %s to humans.txt, status code %d", d.Label, resp.StatusCode)
 		return resp.StatusCode == 200, nil
 	})
+	if timedOut {
+		log.Errorf("Timed out checking dialer at: %v", d.Label)
+	}
 	return !timedOut && ok.(bool)
 }

@@ -32,8 +32,8 @@ func main() {
 		}
 	}
 
-	// New == Parse
-	v001, err := semver.New("0.0.1")
+	// Make == Parse (Value), New for Pointer
+	v001, err := semver.Make("0.0.1")
 
 	fmt.Println("\nUse Version.Compare for comparisons (-1, 0, 1):")
 	fmt.Printf("%q is greater than %q: Compare == %d\n", v001, v, v001.Compare(v))

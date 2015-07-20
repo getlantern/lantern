@@ -3,6 +3,7 @@ package logging
 import (
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -24,7 +25,8 @@ const (
 )
 
 var (
-	log = golog.LoggerFor("flashlight.logging")
+	log          = golog.LoggerFor("flashlight.logging")
+	processStart = time.Now()
 
 	logFile *rotator.SizeRotator
 
@@ -65,7 +67,7 @@ func Init() error {
 }
 
 func Configure(addr string, cloudConfigCA string, instanceId string,
-	version string, buildDate string) {
+	version string, revisionDate string) {
 	if logglyToken == "" {
 		log.Debugf("No logglyToken, not sending error logs to Loggly")
 		return
@@ -76,7 +78,7 @@ func Configure(addr string, cloudConfigCA string, instanceId string,
 		return
 	}
 
-	if buildDate == "" {
+	if revisionDate == "" {
 		log.Error("No build date configured, Loggly won't include build date information")
 		return
 	}
@@ -90,7 +92,7 @@ func Configure(addr string, cloudConfigCA string, instanceId string,
 	// the proxy is not yet ready.
 	go func() {
 		lastAddr = addr
-		enableLoggly(addr, cloudConfigCA, instanceId, version, buildDate)
+		enableLoggly(addr, cloudConfigCA, instanceId, version, revisionDate)
 	}()
 }
 
@@ -102,12 +104,16 @@ func Close() error {
 // timestamped adds a timestamp to the beginning of log lines
 func timestamped(orig io.Writer) io.Writer {
 	return wfilter.LinePrepender(orig, func(w io.Writer) (int, error) {
-		return fmt.Fprintf(w, "%s - ", time.Now().In(time.UTC).Format(logTimestampFormat))
+		ts := time.Now()
+		runningSecs := ts.Sub(processStart).Seconds()
+		secs := int(math.Mod(runningSecs, 60))
+		mins := int(runningSecs / 60)
+		return fmt.Fprintf(w, "%s - %dm%ds ", ts.In(time.UTC).Format(logTimestampFormat), mins, secs)
 	})
 }
 
 func enableLoggly(addr string, cloudConfigCA string, instanceId string,
-	version string, buildDate string) {
+	version string, revisionDate string) {
 	if addr == "" {
 		log.Error("No known proxy, won't report to Loggly")
 		removeLoggly()
@@ -127,7 +133,7 @@ func enableLoggly(addr string, cloudConfigCA string, instanceId string,
 	logglyWriter := &logglyErrorWriter{
 		lang:            lang,
 		tz:              time.Now().Format("MST"),
-		versionToLoggly: fmt.Sprintf("%v (%v)", version, buildDate),
+		versionToLoggly: fmt.Sprintf("%v (%v)", version, revisionDate),
 		client:          loggly.New(logglyToken),
 	}
 	logglyWriter.client.Defaults["hostname"] = "hidden"

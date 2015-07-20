@@ -37,8 +37,9 @@ import (
 )
 
 var (
-	version   string
-	buildDate string
+	version      string
+	revisionDate string // The revision date and time that is associated with the version string.
+	buildDate    string // The actual date and time the binary was built.
 
 	cfgMutex sync.Mutex
 
@@ -70,8 +71,8 @@ func init() {
 		version = "development"
 	}
 
-	if buildDate == "" {
-		buildDate = "now"
+	if revisionDate == "" {
+		revisionDate = "now"
 	}
 
 	// Passing public key and version to the autoupdate service.
@@ -125,7 +126,7 @@ func doMain() error {
 
 	parseFlags()
 
-	cfg, err := config.Init()
+	cfg, err := config.Init(packageVersion)
 	if err != nil {
 		return fmt.Errorf("Unable to initialize configuration: %v", err)
 	}
@@ -173,7 +174,7 @@ func i18nInit() {
 }
 
 func displayVersion() {
-	log.Debugf("---- flashlight version: %s, release: %s, build date: %s ----", version, packageVersion, buildDate)
+	log.Debugf("---- flashlight version: %s, release: %s, build revision date: %s ----", version, packageVersion, revisionDate)
 }
 
 func parseFlags() {
@@ -222,10 +223,6 @@ func runClientProxy(cfg *config.Config) {
 		exit(fmt.Errorf("Unable to start UI: %v", err))
 		return
 	}
-	if showui {
-		// Launch a browser window with Lantern.
-		ui.Show()
-	}
 
 	applyClientConfig(client, cfg)
 	// Continually poll for config updates and update client accordingly
@@ -248,7 +245,19 @@ func runClientProxy(cfg *config.Config) {
 
 	go func() {
 		addExitFunc(pacOff)
-		client.ListenAndServe(pacOn)
+		err := client.ListenAndServe(func() {
+			pacOn()
+			if showui {
+				// Launch a browser window with Lantern but only after the pac
+				// URL and the proxy server are all up and running to avoid
+				// race conditions where we change the proxy setup while the
+				// UI server and proxy server are still coming up.
+				ui.Show()
+			}
+		})
+		if err != nil {
+			log.Errorf("Error calling listen and serve: %v", err)
+		}
 	}()
 }
 
@@ -263,8 +272,8 @@ func applyClientConfig(client *client.Client, cfg *config.Config) {
 
 	autoupdate.Configure(cfg)
 	logging.Configure(cfg.Addr, cfg.CloudConfigCA, cfg.InstanceId,
-		version, buildDate)
-	settings.Configure(cfg, version, buildDate)
+		version, revisionDate)
+	settings.Configure(cfg, version, revisionDate, buildDate)
 	proxiedsites.Configure(cfg.ProxiedSites)
 	analytics.Configure(cfg, version)
 	log.Debugf("Proxy all traffic or not: %v", cfg.Client.ProxyAll)

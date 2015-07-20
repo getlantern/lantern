@@ -72,7 +72,7 @@ angular.module('app.services', [])
             // set default client to get-mode
             model.settings = {};
             model.settings.mode = 'get';
-            model.settings.version = data.Version + " (" + data.BuildDate + ")";
+            model.settings.version = data.Version + " (" + data.RevisionDate + ")";
         }
 
         if (data.AutoReport) {

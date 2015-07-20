@@ -11,11 +11,11 @@ type scanTest struct {
 }
 
 var scanTests = []scanTest{
-	scanTest{"1.2.3", false, "1.2.3"},
-	scanTest{[]byte("1.2.3"), false, "1.2.3"},
-	scanTest{7, true, ""},
-	scanTest{7e4, true, ""},
-	scanTest{true, true, ""},
+	{"1.2.3", false, "1.2.3"},
+	{[]byte("1.2.3"), false, "1.2.3"},
+	{7, true, ""},
+	{7e4, true, ""},
+	{true, true, ""},
 }
 
 func TestScanString(t *testing.T) {

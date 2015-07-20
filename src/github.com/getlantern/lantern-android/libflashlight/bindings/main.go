@@ -15,6 +15,10 @@ func StopClientProxy() error {
 	return nil
 }
 
+func GetFireTweetVersion() string {
+	return defaultClient.GetFireTweetVersion()
+}
+
 // RunClientProxy creates a new client at the given address.
 func RunClientProxy(listenAddr, appName string) error {
 	defaultClient = client.NewClient(listenAddr, appName)
