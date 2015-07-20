@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"runtime"
 	"strconv"
-	"sync"
 
 	"github.com/getlantern/detour"
 )
@@ -108,35 +107,22 @@ func pipeData(clientConn net.Conn, connOut net.Conn, req *http.Request) {
 		return
 	}
 
-	// Make sure of closing connections only once
-	var closeOnce sync.Once
-
-	// Force closing if EOF at the request half or error encountered.
-	// A bit arbitrary, but it's rather rare now to use half closing
-	// as a way to notify server. Most application closes both connections
-	// after completed send / receive so that won't cause problem.
-	closeConns := func() {
-		if err := clientConn.Close(); err != nil {
-			log.Debugf("Error closing the out connection: %s", err)
-		}
-		if err := connOut.Close(); err != nil {
-			log.Debugf("Error closing the client connection: %s", err)
-		}
-	}
+	// Wait for both directions to be done
+	done := make(chan bool)
 
 	// Start piping from client to proxy
 	go func() {
 		if _, err := io.Copy(connOut, clientConn); err != nil {
 			log.Debugf("Error piping data from client to proxy: %s", err)
 		}
-		closeOnce.Do(closeConns)
+		done <- true
 	}()
 
 	// Then start coyping from proxy to client
 	if _, err := io.Copy(clientConn, connOut); err != nil {
 		log.Debugf("Error piping data from proxy to client: %s", err)
 	}
-	closeOnce.Do(closeConns)
+	<-done
 }
 
 func respondOK(writer io.Writer, req *http.Request) error {
