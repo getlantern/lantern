@@ -388,7 +388,8 @@ release: require-tag require-s3cmd require-gh-token require-wget require-ruby re
 	for URL in $$($(S3CMD) ls s3://$(S3_BUCKET)/ | grep $$BASE_NAME | awk '{print $$4}'); do \
 		NAME=$$(basename $$URL) && \
 		PROD=$$(echo $$NAME | sed s/"$$BASE_NAME"/$$PROD_BASE_NAME/) && \
-		$(S3CMD) cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$PROD; \
+		$(S3CMD) cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$PROD && \
+		$(S3CMD) setacl s3://$(S3_BUCKET)/$$PROD --acl-public; \
 	done && \
 	for URL in $$($(S3CMD) ls s3://$(S3_BUCKET)/ | grep update_ | awk '{print $$4}'); do \
 		NAME=$$(basename $$URL) && \
