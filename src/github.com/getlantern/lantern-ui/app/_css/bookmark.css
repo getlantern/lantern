@@ -114,7 +114,7 @@ div.end-censorship{
 	width: 175px;
 	height: 105px;
     margin-top: 5px;
-    padding-bottom: 10px;
+    padding-bottom: 13px;
 	font-size: 100px;
 	line-height: 200px;
     font-family: LBL;
@@ -124,6 +124,10 @@ div.end-censorship{
     color: rgb(82,82,82);
 	-webkit-user-select: none;
 	-webkit-transition: -webkit-transform .3s ease-out, background .3s ease-in;
+}
+
+.tile.top {
+    margin-top: 10px;
 }
 
 .tile:hover,
