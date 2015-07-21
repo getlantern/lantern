@@ -33,8 +33,7 @@ html {
 
 #sites {
 	position: relative;
-	top: 300px;
-	margin-bottom: 70px;
+	top: 280px;
 	text-align: left;
 	opacity: 0.0;
 	-webkit-transition: opacity 0.1s linear;
@@ -53,7 +52,7 @@ html {
 	display: table;
 
 	position: absolute;
-	top: 120px;
+	top: 110px;
 	left: 0;
 
 	width: 100%;
@@ -109,28 +108,25 @@ div.end-censorship{
 
 .tile {
 	display: inline-block;
-
 	-webkit-user-drag: none;
-
 	position: relative;
-
 	width: 175px;
-	height: 110px;
-	padding: 10px;
-	margin: 4px;
-
+	height: 105px;
+    margin-top: 5px;
+    padding-bottom: 13px;
 	font-size: 100px;
 	line-height: 200px;
     font-family: LBL;
     font-size: 12px;
 	text-align: center;
 	text-decoration: none;
-
     color: rgb(82,82,82);
-
 	-webkit-user-select: none;
-
 	-webkit-transition: -webkit-transform .3s ease-out, background .3s ease-in;
+}
+
+.tile.top {
+    margin-top: 10px;
 }
 
 .tile:hover,
@@ -145,29 +141,21 @@ div.end-censorship{
 }
 
 .url {
-	font-size: 16px;
-	line-height: 15px;
-    margin-top: 15px;
-
+	font-size: 14px;
+	line-height: 20px;
 	display: inline-block;
-
 	position: absolute;
-
 	width: 100%;
 	height: 32px;
-	padding: 0 10px;
+	padding: 0 5px;
 	box-sizing: border-box;
-
 	overflow: hidden;
 	text-overflow: ellipsis;
 	word-wrap: break-word;
 	white-space: nowrap;
-
 	text-align: center;
-
 	left: 0;
 	top: 100px;
-
 	opacity: 1.0;
     font-family: LBL;
 }
