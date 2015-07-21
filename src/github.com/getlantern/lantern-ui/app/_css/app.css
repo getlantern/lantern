@@ -7602,7 +7602,7 @@ body[dir=rtl] #latestDetails dd {
 #vis-container, #vis {
   height: 100%;
   background-color: #fff;
-  overflow: hidden;
+  overflow: scroll;
   position: relative;
 }
 

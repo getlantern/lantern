@@ -34,7 +34,6 @@ html {
 #sites {
 	position: relative;
 	top: 280px;
-	margin-bottom: 70px;
 	text-align: left;
 	opacity: 0.0;
 	-webkit-transition: opacity 0.1s linear;
