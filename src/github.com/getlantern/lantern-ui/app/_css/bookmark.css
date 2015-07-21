@@ -68,6 +68,10 @@ html {
 	text-align: center;
 }
 
+#logo {
+  width: 150px;
+}
+
 .message p {
 	display: table-cell;
 
