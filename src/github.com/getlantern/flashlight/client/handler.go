@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"runtime"
 	"strconv"
+	"sync"
 
 	"github.com/getlantern/detour"
 )
@@ -40,14 +41,34 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 		panic("Intercept used for non-CONNECT request!")
 	}
 
-	// Hijack underlying connection.
-	clientConn, _, err := resp.(http.Hijacker).Hijack()
-	defer func() {
-		if err := clientConn.Close(); err != nil {
-			log.Debugf("Error closing the client connection: %s", err)
+	var err error
+	var clientConn net.Conn
+	var connOut net.Conn
+
+	// Make sure of closing connections only once
+	var closeOnce sync.Once
+
+	// Force closing if EOF at the request half or error encountered.
+	// A bit arbitrary, but it's rather rare now to use half closing
+	// as a way to notify server. Most application closes both connections
+	// after completed send / receive so that won't cause problem.
+	closeConns := func() {
+		if clientConn != nil {
+			if err := clientConn.Close(); err != nil {
+				log.Debugf("Error closing the out connection: %s", err)
+			}
 		}
-	}()
-	if err != nil {
+		if connOut != nil {
+			if err := connOut.Close(); err != nil {
+				log.Debugf("Error closing the client connection: %s", err)
+			}
+		}
+	}
+
+	defer closeOnce.Do(closeConns)
+
+	// Hijack underlying connection.
+	if clientConn, _, err = resp.(http.Hijacker).Hijack(); err != nil {
 		respondBadGateway(resp, fmt.Sprintf("Unable to hijack connection: %s", err))
 		return
 	}
@@ -58,17 +79,11 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 		return client.getBalancer().DialQOS("tcp", addr, client.targetQOS(req))
 	}
 
-	var connOut net.Conn
 	if runtime.GOOS == "android" || client.ProxyAll {
 		connOut, err = d("tcp", addr)
 	} else {
 		connOut, err = detour.Dialer(d)("tcp", addr)
 	}
-	defer func() {
-		if err := connOut.Close(); err != nil {
-			log.Debugf("Error closing the out connection: %s", err)
-		}
-	}()
 	if err != nil {
 		respondBadGateway(clientConn, fmt.Sprintf("Unable to handle CONNECT request: %s", err))
 		return
@@ -81,10 +96,8 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Pipe data between the client and the proxy. Will block until signaled within the function.
-	signal := pipeData(clientConn, connOut)
-	// Then, when this happens, this will unblock and deferred calls will take place.
-	<-signal
+	// Pipe data between the client and the proxy.
+	pipeData(clientConn, connOut, func() { closeOnce.Do(closeConns) })
 }
 
 // targetQOS determines the target quality of service given the X-Flashlight-QOS
@@ -104,30 +117,19 @@ func (client *Client) targetQOS(req *http.Request) int {
 
 // pipeData pipes data between the client and proxy connections.  It's also
 // responsible for responding to the initial CONNECT request with a 200 OK.
-func pipeData(clientConn net.Conn, connOut net.Conn) (signal chan bool) {
-	signal = make(chan bool)
-
+func pipeData(clientConn net.Conn, connOut net.Conn, closeFunc func()) {
 	// Start piping from client to proxy
 	go func() {
 		if _, err := io.Copy(connOut, clientConn); err != nil {
 			log.Tracef("Error piping data from client to proxy: %s", err)
 		}
-		// Force closing if EOF at the request half or error encountered.
-		// A bit arbitrary, but it's rather rare now to use half closing
-		// as a way to notify server. Most application closes both connections
-		// after completed send / receive so that won't cause problem.
-		signal <- true
+		closeFunc()
 	}()
 
-	// Then start coyping from proxy to client. This can be closed preemptively by
-	// the other half.
-	go func() {
-		if _, err := io.Copy(clientConn, connOut); err != nil {
-			log.Tracef("Error piping data from proxy to client: %s", err)
-		}
-	}()
-
-	return
+	// Then start coyping from proxy to client.
+	if _, err := io.Copy(clientConn, connOut); err != nil {
+		log.Tracef("Error piping data from proxy to client: %s", err)
+	}
 }
 
 func respondOK(writer io.Writer, req *http.Request) error {
