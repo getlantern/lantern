@@ -155,9 +155,6 @@ require-assets:
 require-version:
 	@if [[ -z "$$VERSION" ]]; then echo "VERSION environment value is required."; exit 1; fi
 
-require-tag:
-	@if [[ -z "$$TAG" ]]; then echo "TAG environment value is required."; exit 1; fi
-
 require-gh-token:
 	@if [[ -z "$$GH_TOKEN" ]]; then echo "GH_TOKEN environment value is required."; exit 1; fi
 
@@ -362,7 +359,7 @@ packages: require-version require-secrets clean genconfig binaries package-windo
 
 manoto-packages: require-version require-secrets clean genconfig manoto-binaries package-windows package-linux package-darwin
 
-release-qa: require-tag require-s3cmd
+release-qa: require-version require-s3cmd
 	@BASE_NAME="lantern-installer-qa" && \
 	rm -f $$BASE_NAME* && \
 	cp lantern-installer.exe $$BASE_NAME.exe && \
@@ -376,7 +373,7 @@ release-qa: require-tag require-s3cmd
 		echo "Uploading $$NAME to S3" && \
 		$(S3CMD) put -P $$NAME s3://$(S3_BUCKET) && \
 		SUFFIX=$$(echo "$$NAME" | sed s/$$BASE_NAME//g) && \
-		VERSIONED=lantern-installer-$$TAG$$SUFFIX && \
+		VERSIONED=lantern-installer-$$VERSION$$SUFFIX && \
 		echo "Copying $$VERSIONED" && \
 		$(S3CMD) cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$VERSIONED; \
 	done && \
@@ -384,7 +381,7 @@ release-qa: require-tag require-s3cmd
 		echo "Copying update binary $$NAME..." && \
 		$(S3CMD) put -P $$NAME s3://$(S3_BUCKET); \
 	done && \
-	git tag -a "$$TAG" -f --annotate -m"Tagged $$VERSION" && \
+	git tag -a "$$VERSION" -f --annotate -m"Tagged $$VERSION" && \
 	git push --tags -f
 
 release-beta: require-s3cmd
@@ -401,10 +398,10 @@ release-beta: require-s3cmd
 	git add $$BETA_BASE_NAME* && \
 	(git commit -am "Latest beta binaries for Lantern released from QA." && git push origin master) || true
 
-release: require-tag require-s3cmd require-gh-token require-wget require-ruby require-lantern-binaries
-	@TAG_COMMIT=$$(git rev-list --abbrev-commit -1 $$TAG) && \
+release: require-version require-s3cmd require-gh-token require-wget require-ruby require-lantern-binaries
+	@TAG_COMMIT=$$(git rev-list --abbrev-commit -1 $$VERSION) && \
 	if [[ -z "$$TAG_COMMIT" ]]; then \
-		echo "Could not find given tag $$TAG."; \
+		echo "Could not find given tag $$VERSION."; \
 	fi && \
 	BASE_NAME="lantern-installer-beta" && \
 	PROD_BASE_NAME="lantern-installer" && \
@@ -418,14 +415,14 @@ release: require-tag require-s3cmd require-gh-token require-wget require-ruby re
 		NAME=$$(basename $$URL) && \
 		$(S3CMD) get --force s3://$(S3_BUCKET)/$$NAME $$NAME; \
 	done && \
-	$(RUBY) ./installer-resources/tools/createrelease.rb "$(GH_USER)" "$(GH_RELEASE_REPOSITORY)" $$TAG && \
+	$(RUBY) ./installer-resources/tools/createrelease.rb "$(GH_USER)" "$(GH_RELEASE_REPOSITORY)" $$VERSION && \
 	echo "Uploading Windows binary for auto-updates" && \
-	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$TAG update_windows_386.bz2 && \
+	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$VERSION update_windows_386.bz2 && \
 	echo "Uploading OSX binary for auto-updates" && \
-	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$TAG update_darwin_amd64.bz2 && \
+	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$VERSION update_darwin_amd64.bz2 && \
 	echo "Uploading Linux binaries for auto-updates" && \
-	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$TAG update_linux_amd64.bz2 && \
-	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$TAG update_linux_386.bz2 && \
+	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$VERSION update_linux_amd64.bz2 && \
+	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$VERSION update_linux_386.bz2 && \
 	echo "Copying binaries to $(LANTERN_BINARIES_PATH)..." && \
 	$(S3CMD) get --force s3://$(S3_BUCKET)/lantern-installer-32-bit.deb $(LANTERN_BINARIES_PATH)/lantern-installer-32.deb && \
 	$(S3CMD) get --force s3://$(S3_BUCKET)/lantern-installer-32-bit.deb.sha1 $(LANTERN_BINARIES_PATH)/lantern-installer-32.deb.sha1 && \
@@ -435,20 +432,20 @@ release: require-tag require-s3cmd require-gh-token require-wget require-ruby re
 	$(S3CMD) get --force s3://$(S3_BUCKET)/lantern-installer.dmg.sha1 $(LANTERN_BINARIES_PATH)/lantern-installer.dmg.sha1 && \
 	$(S3CMD) get --force s3://$(S3_BUCKET)/lantern-installer.exe $(LANTERN_BINARIES_PATH)/lantern-installer.exe && \
 	$(S3CMD) get --force s3://$(S3_BUCKET)/lantern-installer.exe.sha1 $(LANTERN_BINARIES_PATH)/lantern-installer.exe.sha1 && \
-	cp $(LANTERN_BINARIES_PATH)/lantern-installer-32.deb.sha1 $(LANTERN_BINARIES_PATH)/lantern-$$TAG-$$TAG_COMMIT-32-bit.deb.sha1 && \
-	cp $(LANTERN_BINARIES_PATH)/lantern-installer-64.deb.sha1 $(LANTERN_BINARIES_PATH)/lantern-$$TAG-$$TAG_COMMIT-64-bit.deb.sha1 && \
-	cp $(LANTERN_BINARIES_PATH)/lantern-installer.dmg.sha1 $(LANTERN_BINARIES_PATH)/lantern-$$TAG-$$TAG_COMMIT.dmg.sha1 && \
-	cp $(LANTERN_BINARIES_PATH)/lantern-installer.exe.sha1 $(LANTERN_BINARIES_PATH)/lantern-$$TAG-$$TAG_COMMIT.exe.sha1
+	cp $(LANTERN_BINARIES_PATH)/lantern-installer-32.deb.sha1 $(LANTERN_BINARIES_PATH)/lantern-$$VERSION-$$TAG_COMMIT-32-bit.deb.sha1 && \
+	cp $(LANTERN_BINARIES_PATH)/lantern-installer-64.deb.sha1 $(LANTERN_BINARIES_PATH)/lantern-$$VERSION-$$TAG_COMMIT-64-bit.deb.sha1 && \
+	cp $(LANTERN_BINARIES_PATH)/lantern-installer.dmg.sha1 $(LANTERN_BINARIES_PATH)/lantern-$$VERSION-$$TAG_COMMIT.dmg.sha1 && \
+	cp $(LANTERN_BINARIES_PATH)/lantern-installer.exe.sha1 $(LANTERN_BINARIES_PATH)/lantern-$$VERSION-$$TAG_COMMIT.exe.sha1
 	@cd $(LANTERN_BINARIES_PATH) && \
-	git add lantern-$$TAG-$$TAG_COMMIT* && \
-	(git commit -am "Latest binaries for Lantern $$TAG ($$TAG_COMMIT)." && git push origin master) || true
+	git add lantern-$$VERSION-$$TAG_COMMIT* && \
+	(git commit -am "Latest binaries for Lantern $$VERSION ($$TAG_COMMIT)." && git push origin master) || true
 
 update-icons:
 	@(which go-bindata >/dev/null) || (echo 'Missing command "go-bindata". Sett https://github.com/jteeuwen/go-bindata.' && exit 1) && \
 	go-bindata -nomemcopy -nocompress -pkg main -o src/github.com/getlantern/flashlight/icons.go -prefix src/github.com/getlantern/flashlight/ src/github.com/getlantern/flashlight/icons
 
-create-tag: require-tag
-	@git tag -a "$$TAG" -f --annotate -m"Tagged $$TAG" && \
+create-tag: require-version
+	@git tag -a "$$VERSION" -f --annotate -m"Tagged $$VERSION" && \
 	git push --tags -f
 
 test-and-cover:

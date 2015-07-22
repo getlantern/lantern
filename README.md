@@ -197,7 +197,7 @@ Finally, use `release-qa` to upload the packages that were just generated to
 both AWS S3 and the Github release page:
 
 ```
-TAG=2.0.0-beta5 make release-qa
+VERSION=2.0.0-beta5 make release-qa
 ```
 
 ### Releasing Beta
@@ -217,7 +217,7 @@ After you're satisfied with a beta version, it will be time to promote beta
 packages to production and to publish the packages for auto-updates:
 
 ```
-TAG=2.0.0-beta5 GH_TOKEN=$GITHUB_TOKEN make release
+VERSION=2.0.0-beta5 GH_TOKEN=$GITHUB_TOKEN make release
 ```
 
 `make release` expects a `lantern-binaries` directory at `../lantern-binaries`.
@@ -262,7 +262,7 @@ git push --tags
 Use `make create-tag` as a shortcut for creating and uploading tags:
 
 ```
-TAG='2.0.0-beta5' make create-tag
+VERSION='2.0.0-beta5' make create-tag
 ```
 
 If you want to both create a package and upload a tag run the `create-tag` task
