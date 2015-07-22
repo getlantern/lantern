@@ -47,12 +47,18 @@ RUN cd $GOROOT/src && CGO_ENABLED=1 ./all.bash
 RUN yum install -y glibc-devel glibc-static && yum clean all
 RUN yum install -y glibc-devel.i686 glib2-static.i686 glibc-2.20-8.fc21.i686 libgcc.i686 && yum clean all
 
+# Requisites for ARM
+# ARM EABI toolchain must be grabbed from an contributor repository, such as:
+# https://copr.fedoraproject.org/coprs/lantw44/arm-linux-gnueabi-toolchain/
+RUN yum install -y yum-utils && yum-config-manager --add-repo=https://copr.fedoraproject.org/coprs/lantw44/arm-linux-gnueabi-toolchain/repo/fedora-21/lantw44-arm-linux-gnueabi-toolchain-fedora-21.repo && yum install -y arm-linux-gnueabi-gcc arm-linux-gnueabi-binutils arm-linux-gnueabi-glibc && yum clean all
+
 # Requisites for windows.
 RUN yum install -y mingw32-gcc.x86_64 && yum clean all
 
 # Boostrapping Go for different platforms.
 RUN cd $GOROOT/src && CGO_ENABLED=1 GOOS=linux GOARCH=amd64 ./make.bash --no-clean
 RUN cd $GOROOT/src && CGO_ENABLED=1 GOOS=linux GOARCH=386 ./make.bash --no-clean
+RUN cd $GOROOT/src && CXX_FOR_TARGET=arm-linux-gnueabi-g++ CC_FOR_TARGET=arm-linux-gnueabi-gcc CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 ./make.bash --no-clean
 RUN cd $GOROOT/src && CXX_FOR_TARGET=i686-w64-mingw32-g++ CC_FOR_TARGET=i686-w64-mingw32-gcc CGO_ENABLED=1 GOOS=windows GOARCH=386 ./make.bash --no-clean
 
 RUN cd $GOROOT/src && GOARCH=386 ./make.bash --no-clean

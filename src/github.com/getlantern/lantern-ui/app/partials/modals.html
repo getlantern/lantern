@@ -68,7 +68,7 @@
         </div>
         <form name="proxiedSitesForm" ng-init="setFormScope(this)">
           <textarea name="input" placeholder="example.com" required
-            split-array 
+            split-array
             dynamic
             ng-model="entries"
             ng-model-options="{ getterSetter: true }"
@@ -95,7 +95,7 @@
       <button type="button" class="btn" ng-click="resetProxiedSites(false)" tabindex="{{ show && 3 || '' }">{{ 'CANCEL' | translate }}</button>
 
       <!--<button type="button" class="btn" ng-click="resetProxiedSites(true)" tabindex="{{ show && 3 || '' }">{{ 'RESET' | translate }}</button>-->
-    <button id="continueFromProxiedSites" 
+    <button id="continueFromProxiedSites"
             type="button" class="btn btn-primary" tabindex="{{ show && 2 || '' }}"
             ng-disabled="updating || proxiedSitesForm.$invalid"
             ng-click="handleContinue()">{{ updating && 'UPDATING' || (hasUpdate && 'UPDATE') || (model.setupComplete && 'CLOSE' || 'CONTINUE') | translate }}</button>
@@ -179,7 +179,7 @@
       <summary><span class="capitalize">{{ 'VERSION' | upper | translate }}</span> {{ model.version.latest | version:true }}</summary>
       <dl class="dl-horizontal">
         <dt>{{ 'RELEASED' | translate }}</dt>
-        <!-- XXX include correct locale script from http://code.angularjs.org/1.0.8/i18n/ 
+        <!-- XXX include correct locale script from http://code.angularjs.org/1.0.8/i18n/
                  to properly localize this date string -->
         <dd><time>{{ model.version.latest.releaseDate | date:'longDate' }}</time>&nbsp;</dd>
         <dt ng-show="model.version.latest.infoUrl">{{ 'MORE_INFO' | translate }}</dt>
@@ -188,7 +188,7 @@
     </details>
     <p class="smaller indented">{{ 'UPDATE_AVAILABLE_PROMPT_RUNNING' | translate }}
       {{ 'VERSION' | translate }} {{ model.version.installed | version:true }},
-      <!-- XXX include correct locale script from http://code.angularjs.org/1.0.8/i18n/ 
+      <!-- XXX include correct locale script from http://code.angularjs.org/1.0.8/i18n/
                to properly localize this date string -->
       {{ 'RELEASED' | translate }} <time>{{ model.version.installed.releaseDate | date:'longDate' }}.</time></p><!-- XXX i18n -->
     <br>
@@ -243,6 +243,12 @@
           {{ 'NO_AUTOREPORT_WARNING' | translate }}
         </div>
 
+        <dt ng-if="model.localLanterns.length > 0">{{ 'LOCAL_LANTERNS' | translate }}</dt>
+        <dd ng-if="model.localLanterns.length > 0" id="local-lanterns-list">
+        <a ng-repeat="n in model.localLanterns" ng-click="openExternal(n)" class="local-lantern-link">
+            {{n}}<sup><i class="icon-external-link"></i></sup>
+        </a>
+        </dd>
       </dd>
     </dl>
   </div>
