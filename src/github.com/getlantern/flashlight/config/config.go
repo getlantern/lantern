@@ -74,8 +74,8 @@ type CA struct {
 }
 
 // Init initializes the configuration system.
-func Init() (*Config, error) {
-	configPath, err := InConfigDir("lantern.yaml")
+func Init(version string) (*Config, error) {
+	configPath, err := InConfigDir("lantern-" + version + ".yaml")
 	if err != nil {
 		return nil, err
 	}
@@ -280,6 +280,7 @@ func (cfg *Config) applyClientDefaults() {
 				MaxMasquerades: 20,
 				QOS:            10,
 				Weight:         4000,
+				Trusted:        true,
 			},
 		}
 

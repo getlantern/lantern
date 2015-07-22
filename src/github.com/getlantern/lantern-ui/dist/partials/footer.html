@@ -25,8 +25,14 @@
     </div>
   </div>
 
+  <div id="share">
+      <div id="twitter"><a class="fa fa-twitter share-base share-twitter" onclick="window.open('https://twitter.com/intent/tweet?text=I\'m using Lantern -- an app for defeating Internet censorship https://getlantern.org via @getlantern')"><img src="/img/twitter_icon.png"></a></div>
+      <div id="fb"><a class="fa fa-facebook share-base share-facebook" onclick="window.open('https://www.facebook.com/dialog/share?app_id=1562164690714282&display=popup&href=https://getlantern.org&redirect_uri=https://getlantern.org')"><img src="/img/fb_icon.png"></a></div>
+      <span>{{ 'SHARE' | translate }}</span>
+  </div>
+
   <div id="appInfo">
-    <a ng-click="showModal('welcome')">{{ 'LANTERN' | translate }}</a>
+      <span>{{ 'LANTERN' | translate }}</span>
     <span class="version">{{ model.settings.version }}</span>
     <span>
       · <a ng-click="showModal('about')">{{ 'ABOUT' | translate }}</a>

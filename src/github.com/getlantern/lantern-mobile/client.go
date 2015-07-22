@@ -19,36 +19,25 @@ const (
 // clientConfig holds global configuration settings for all clients.
 var (
 	version       string
-	buildDate     string
+	revisionDate  string
 	log           = golog.LoggerFor("lantern-android.client")
 	clientConfig  = defaultConfig()
 	trackingCodes = map[string]string{
 		"FireTweet": "UA-21408036-4",
 	}
-
-	defaultClient *mobileClient
 )
 
-// mobileClient is an extension of flashlight client with a few custom declarations for mobile
-type mobileClient struct {
+// MobileClient is an extension of flashlight client with a few custom declarations for mobile
+type MobileClient struct {
 	client.Client
 	closed  chan bool
 	fronter *http.Client
 	appName string
 }
 
-func init() {
-	if version == "" {
-		version = "development"
-	}
+// NewClient creates a proxy client.
+func NewClient(addr, appName string) *MobileClient {
 
-	if buildDate == "" {
-		buildDate = "now"
-	}
-}
-
-// newClient creates a proxy client.
-func newClient(addr, appName string) *mobileClient {
 	client := client.Client{
 		Addr:         addr,
 		ReadTimeout:  0, // don't timeout
@@ -62,7 +51,7 @@ func newClient(addr, appName string) *mobileClient {
 
 	hqfd := client.Configure(clientConfig.Client)
 
-	mClient := &mobileClient{
+	mClient := &MobileClient{
 		Client:  client,
 		closed:  make(chan bool),
 		fronter: hqfd.NewDirectDomainFronter(),
@@ -72,13 +61,24 @@ func newClient(addr, appName string) *mobileClient {
 	return mClient
 }
 
-// serveHTTP will run the proxy
-func (client *mobileClient) serveHTTP() {
+func init() {
+
+	if version == "" {
+		version = "development"
+	}
+
+	if revisionDate == "" {
+		revisionDate = "now"
+	}
+}
+
+func (client *MobileClient) ServeHTTP() {
+
 	go func() {
 		onListening := func() {
 			log.Debugf("Now listening for connections...")
 			analytics.Configure(trackingCodes["FireTweet"], "", client.Client.Addr)
-			logging.Configure(client.Client.Addr, cloudConfigCA, instanceId, version, buildDate)
+			logging.Configure(client.Client.Addr, cloudConfigCA, InstanceId, version, revisionDate)
 		}
 
 		defer func() {
@@ -97,7 +97,7 @@ func (client *mobileClient) serveHTTP() {
 
 // updateConfig attempts to pull a configuration file from the network using
 // the client proxy itself.
-func (client *mobileClient) updateConfig() error {
+func (client *MobileClient) updateConfig() error {
 	var buf []byte
 	var err error
 
@@ -118,14 +118,13 @@ func (client *mobileClient) updateConfig() error {
 	return err
 }
 
-// getFireTweetVersion returns the current version of the build
-func (client *mobileClient) getFireTweetVersion() string {
+func (client *MobileClient) GetFireTweetVersion() string {
 	return clientConfig.FireTweetVersion
 }
 
 // pollConfiguration periodically checks for updates in the cloud configuration
 // file.
-func (client *mobileClient) pollConfiguration() {
+func (client *MobileClient) pollConfiguration() {
 
 	pollTimer := time.NewTimer(cloudConfigPollInterval)
 	defer pollTimer.Stop()
@@ -148,7 +147,7 @@ func (client *mobileClient) pollConfiguration() {
 
 // Stop is currently not implemented but should make the listener stop
 // accepting new connections and then kill all active connections.
-func (client *mobileClient) stop() error {
+func (client *MobileClient) Stop() error {
 	if err := client.Client.Stop(); err != nil {
 		log.Errorf("Unable to stop proxy client: %q", err)
 		return err

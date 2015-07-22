@@ -50,7 +50,7 @@ type Config struct {
 func ApplyNext(cfg *Config) error {
 	// Parse the semantic version
 	var err error
-	cfg.version, err = semver.New(cfg.CurrentVersion)
+	cfg.version, err = semver.Parse(cfg.CurrentVersion)
 	if err != nil {
 		return fmt.Errorf("Bad version string: %v", err)
 	}
@@ -99,7 +99,7 @@ func (cfg *Config) loop() error {
 }
 
 func (cfg *Config) isNewerVersion(newer string) bool {
-	nv, err := semver.New(newer)
+	nv, err := semver.Parse(newer)
 	if err != nil {
 		log.Errorf("Bad version string on update: %v", err)
 		return false

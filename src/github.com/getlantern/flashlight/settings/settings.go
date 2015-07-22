@@ -27,14 +27,15 @@ var (
 )
 
 type Settings struct {
-	Version    string
-	BuildDate  string
-	AutoReport bool
-	AutoLaunch bool
-	ProxyAll   bool
+	Version      string
+	BuildDate    string
+	RevisionDate string
+	AutoReport   bool
+	AutoLaunch   bool
+	ProxyAll     bool
 }
 
-func Configure(cfg *config.Config, version, buildDate string) {
+func Configure(cfg *config.Config, version, revisionDate string, buildDate string) {
 
 	cfgMutex.Lock()
 	defer cfgMutex.Unlock()
@@ -42,11 +43,12 @@ func Configure(cfg *config.Config, version, buildDate string) {
 	if service == nil {
 		// base settings are always written
 		baseSettings = &Settings{
-			Version:    version,
-			BuildDate:  buildDate,
-			AutoReport: *cfg.AutoReport,
-			AutoLaunch: *cfg.AutoLaunch,
-			ProxyAll:   cfg.Client.ProxyAll,
+			Version:      version,
+			BuildDate:    buildDate,
+			RevisionDate: revisionDate,
+			AutoReport:   *cfg.AutoReport,
+			AutoLaunch:   *cfg.AutoLaunch,
+			ProxyAll:     cfg.Client.ProxyAll,
 		}
 
 		err := start(baseSettings)

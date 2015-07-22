@@ -5,10 +5,14 @@ import (
 	"flag"
 	"fmt"
 	"math/rand"
+	"net"
 	"os"
+	"os/signal"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/getlantern/fronted"
@@ -21,6 +25,7 @@ import (
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/geolookup"
+	"github.com/getlantern/flashlight/localdiscovery"
 	"github.com/getlantern/flashlight/logging"
 	"github.com/getlantern/flashlight/proxiedsites"
 	"github.com/getlantern/flashlight/server"
@@ -32,8 +37,9 @@ import (
 )
 
 var (
-	version   string
-	buildDate string
+	version      string
+	revisionDate string // The revision date and time that is associated with the version string.
+	buildDate    string // The actual date and time the binary was built.
 
 	cfgMutex sync.Mutex
 
@@ -65,8 +71,8 @@ func init() {
 		version = "development"
 	}
 
-	if buildDate == "" {
-		buildDate = "now"
+	if revisionDate == "" {
+		revisionDate = "now"
 	}
 
 	// Passing public key and version to the autoupdate service.
@@ -104,7 +110,10 @@ func doMain() error {
 		return err
 	}
 
-	defer quitSystray()
+	// Schedule cleanup actions
+	handleSignals()
+	addExitFunc(func() { logging.Close() })
+	addExitFunc(quitSystray)
 
 	i18nInit()
 	if showui {
@@ -117,7 +126,7 @@ func doMain() error {
 
 	parseFlags()
 
-	cfg, err := config.Init()
+	cfg, err := config.Init(packageVersion)
 	if err != nil {
 		return fmt.Errorf("Unable to initialize configuration: %v", err)
 	}
@@ -165,7 +174,7 @@ func i18nInit() {
 }
 
 func displayVersion() {
-	log.Debugf("---- flashlight version: %s, release: %s, build date: %s ----", version, packageVersion, buildDate)
+	log.Debugf("---- flashlight version: %s, release: %s, build revision date: %s ----", version, packageVersion, revisionDate)
 }
 
 func parseFlags() {
@@ -203,15 +212,16 @@ func runClientProxy(cfg *config.Config) {
 	}
 
 	// Start user interface.
-	if cfg.UIAddr != "" {
-		if err = ui.Start(cfg.UIAddr); err != nil {
-			exit(fmt.Errorf("Unable to start UI: %v", err))
-			return
-		}
-		if showui {
-			// Launch a browser window with Lantern.
-			ui.Show()
-		}
+	if cfg.UIAddr == "" {
+		exit(fmt.Errorf("Please provide a valid local or remote UI address"))
+	}
+	tcpAddr, err := net.ResolveTCPAddr("tcp4", cfg.UIAddr)
+	if err != nil {
+		exit(fmt.Errorf("Unable to resolve UI address: %v", err))
+	}
+	if err = ui.Start(tcpAddr, !showui); err != nil {
+		exit(fmt.Errorf("Unable to start UI: %v", err))
+		return
 	}
 
 	applyClientConfig(client, cfg)
@@ -223,13 +233,31 @@ func runClientProxy(cfg *config.Config) {
 		}
 	}()
 
+	// Continually search for local Lantern instances and update the UI
+	go func() {
+		addExitFunc(localdiscovery.Stop)
+		localdiscovery.Start(!showui, strconv.Itoa(tcpAddr.Port))
+	}()
+
 	// watchDirectAddrs will spawn a goroutine that will add any site that is
 	// directly accesible to the PAC file.
 	watchDirectAddrs()
 
 	go func() {
 		addExitFunc(pacOff)
-		client.ListenAndServe(pacOn)
+		err := client.ListenAndServe(func() {
+			pacOn()
+			if showui {
+				// Launch a browser window with Lantern but only after the pac
+				// URL and the proxy server are all up and running to avoid
+				// race conditions where we change the proxy setup while the
+				// UI server and proxy server are still coming up.
+				ui.Show()
+			}
+		})
+		if err != nil {
+			log.Errorf("Error calling listen and serve: %v", err)
+		}
 	}()
 }
 
@@ -244,8 +272,8 @@ func applyClientConfig(client *client.Client, cfg *config.Config) {
 
 	autoupdate.Configure(cfg)
 	logging.Configure(cfg.Addr, cfg.CloudConfigCA, cfg.InstanceId,
-		version, buildDate)
-	settings.Configure(cfg, version, buildDate)
+		version, revisionDate)
+	settings.Configure(cfg, version, revisionDate, buildDate)
 	proxiedsites.Configure(cfg.ProxiedSites)
 	analytics.Configure(cfg, version)
 	log.Debugf("Proxy all traffic or not: %v", cfg.Client.ProxyAll)
@@ -352,6 +380,20 @@ func exit(err error) {
 			return
 		}
 	}
+}
+
+// Handle system signals for clean exit
+func handleSignals() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT)
+	go func() {
+		<-c
+		exit(nil)
+	}()
 }
 
 // WaitForExit waits for a request to exit the application.

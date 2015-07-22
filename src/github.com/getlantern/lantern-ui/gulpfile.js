@@ -25,7 +25,7 @@
     .pipe(gulp.dest('dist/font'));
     gulp.src('app/locale/*')
     .pipe(gulp.dest('dist/locale'));
-    gulp.src('app/img/*')
+    gulp.src('app/img/**/*')
     .pipe(gulp.dest('dist/img'));
     gulp.src('app/partials/*')
     .pipe(gulp.dest('dist/partials'));
@@ -38,7 +38,7 @@
   gulp.task('build', ['clean', 'usemin', 'copy'], function() {
     // place code for your default task here
   });
-  gulp.task('default', function() {
+  gulp.task('default', ['build'], function() {
     // place code for your default task here
   });
 }());

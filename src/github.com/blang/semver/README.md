@@ -12,8 +12,8 @@ Note: Always vendor your dependencies or fix on a specific version tag.
 
 ```go
 import github.com/blang/semver
-v1, err := semver.New("1.0.0-beta")
-v2, err := semver.New("2.0.0-beta")
+v1, err := semver.Make("1.0.0-beta")
+v2, err := semver.Make("2.0.0-beta")
 v1.Compare(v2)
 ```
 
@@ -53,7 +53,7 @@ Have a look at full examples in [examples/main.go](examples/main.go)
 ```go
 import github.com/blang/semver
 
-v, err := semver.New("0.0.1-alpha.preview+123.github")
+v, err := semver.Make("0.0.1-alpha.preview+123.github")
 fmt.Printf("Major: %d\n", v.Major)
 fmt.Printf("Minor: %d\n", v.Minor)
 fmt.Printf("Patch: %d\n", v.Patch)
@@ -76,7 +76,7 @@ if len(v.Build) > 0 {
     }
 }
 
-v001, err := semver.New("0.0.1")
+v001, err := semver.Make("0.0.1")
 // Compare using helpers: v.GT(v2), v.LT, v.GTE, v.LTE
 v001.GT(v) == true
 v.LT(v001) == true

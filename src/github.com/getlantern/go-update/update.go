@@ -121,14 +121,15 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"github.com/getlantern/go-update/download"
-	"github.com/kardianos/osext"
-	"github.com/kr/binarydist"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"github.com/getlantern/go-update/download"
+	"github.com/kardianos/osext"
+	"github.com/kr/binarydist"
 )
 
 // The type of a binary patch, if any. Only bsdiff is supported

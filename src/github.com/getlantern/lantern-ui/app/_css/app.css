@@ -7601,6 +7601,9 @@ body[dir=rtl] #latestDetails dd {
 
 #vis-container, #vis {
   height: 100%;
+  background-color: #fff;
+  overflow: scroll;
+  position: relative;
 }
 
 #map {
@@ -7754,26 +7757,23 @@ body[dir=rtl] .tooltip .vis {
   right: 0;
   bottom: 0;
   left: 0;
+  height: 50px;
   z-index: 1051;
+  line-height: 12px;
   text-align: center;
   font-size: 13.3px;
-  text-shadow: #000 1px 1px 1px;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
-  opacity: 0.5;
   -moz-transition: opacity 0.5s ease;
   -o-transition: opacity 0.5s ease;
   -webkit-transition: opacity 0.5s ease;
   transition: opacity 0.5s ease;
-  background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.75));
-  line-height: 21px;
-  padding: 12px 0;
-  outline: 1px solid rgba(0, 0, 0, 0.5);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  color: #999;
+  background-color: #242525;
+  color: #666667;
   z-index: auto;
 }
+
 #footer:hover {
   opacity: 1;
 }
@@ -7798,29 +7798,24 @@ body[dir=rtl] .tooltip .vis {
   bottom: 15px;
   z-index: 1;
   white-space: nowrap;
+  border: none;
+  background: none;
 }
 #global-nav button {
-  width: 49px;
-  padding: 10px;
+  border: none;  
+  outline: 0;
+  z-index: -1;
+  background: none;
+  margin-bottom: 8px;
+  -webkit-box-shadow: none;
+  box-shadow: none;
 }
 #global-nav button i.lsf-icon {
-  color: #999;
+  color: #fff;
   line-height: 17px;
-  font-size: 22px;
+  font-size: 27px;
   vertical-align: middle;
-}
-#global-nav button.active, #global-nav button.active:hover {
-  z-index: 1051 !important;
-  background-color: #fff;
-}
-#global-nav button.active i.lsf-icon, #global-nav button.active:hover i.lsf-icon {
-  color: #000;
-}
-#global-nav button.ng-disabled {
-  color: #333;
-}
-#global-nav .lsf-icon:before {
-  font-size: 130%;
+  position: absolute;
 }
 
 #npending {
@@ -7840,10 +7835,34 @@ body.giveMode #npending {
   bottom: 7.5px;
 }
 
+#share {
+    position: absolute;
+    left: 15px;
+    bottom: 10px;
+}
+
+#share span {
+    font: normal .875rem/1.4rem 'prxnv_r', sans-serif;
+    color: #fff;
+    float: left;
+    margin-top: 5px;
+    padding-left: 5px;
+}
+
+#share div {
+    float: left;
+    cursor: pointer;
+}
+
+#share div img {
+  width: 30px;
+}
+
 #appInfo {
-  font-size: 11.9px;
+  font: normal .875rem/1.4rem 'prxnv_r', sans-serif;
   z-index: 1051;
   color: #fff;
+  margin-bottom: 5px;
 }
 #appInfo a {
   color: #fff;
