@@ -7854,6 +7854,10 @@ body.giveMode #npending {
     cursor: pointer;
 }
 
+#share div img {
+  width: 30px;
+}
+
 #appInfo {
   font: normal .875rem/1.4rem 'prxnv_r', sans-serif;
   z-index: 1051;

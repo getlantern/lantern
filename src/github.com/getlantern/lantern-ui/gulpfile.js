@@ -38,7 +38,7 @@
   gulp.task('build', ['clean', 'usemin', 'copy'], function() {
     // place code for your default task here
   });
-  gulp.task('default', function() {
+  gulp.task('default', ['build'], function() {
     // place code for your default task here
   });
 }());

@@ -771,6 +771,9 @@ angular.module('app.services', [])
             model.settings.proxyAll = true;
         }
       },
+      'LocalDiscovery': function(data) {
+        model.localLanterns = data;
+      },
       'ProxiedSites': function(data) {
         if (!$rootScope.entries) {
           console.log("Initializing proxied sites entries", data.Additions);

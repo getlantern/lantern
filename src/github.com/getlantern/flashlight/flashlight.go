@@ -5,10 +5,14 @@ import (
 	"flag"
 	"fmt"
 	"math/rand"
+	"net"
 	"os"
+	"os/signal"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/getlantern/fronted"
@@ -21,6 +25,7 @@ import (
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/geolookup"
+	"github.com/getlantern/flashlight/localdiscovery"
 	"github.com/getlantern/flashlight/logging"
 	"github.com/getlantern/flashlight/proxiedsites"
 	"github.com/getlantern/flashlight/server"
@@ -105,7 +110,10 @@ func doMain() error {
 		return err
 	}
 
-	defer quitSystray()
+	// Schedule cleanup actions
+	handleSignals()
+	addExitFunc(func() { logging.Close() })
+	addExitFunc(quitSystray)
 
 	i18nInit()
 	if showui {
@@ -204,11 +212,16 @@ func runClientProxy(cfg *config.Config) {
 	}
 
 	// Start user interface.
-	if cfg.UIAddr != "" {
-		if err = ui.Start(cfg.UIAddr); err != nil {
-			exit(fmt.Errorf("Unable to start UI: %v", err))
-			return
-		}
+	if cfg.UIAddr == "" {
+		exit(fmt.Errorf("Please provide a valid local or remote UI address"))
+	}
+	tcpAddr, err := net.ResolveTCPAddr("tcp4", cfg.UIAddr)
+	if err != nil {
+		exit(fmt.Errorf("Unable to resolve UI address: %v", err))
+	}
+	if err = ui.Start(tcpAddr, !showui); err != nil {
+		exit(fmt.Errorf("Unable to start UI: %v", err))
+		return
 	}
 
 	applyClientConfig(client, cfg)
@@ -218,6 +231,12 @@ func runClientProxy(cfg *config.Config) {
 			cfg := <-configUpdates
 			applyClientConfig(client, cfg)
 		}
+	}()
+
+	// Continually search for local Lantern instances and update the UI
+	go func() {
+		addExitFunc(localdiscovery.Stop)
+		localdiscovery.Start(!showui, strconv.Itoa(tcpAddr.Port))
 	}()
 
 	// watchDirectAddrs will spawn a goroutine that will add any site that is
@@ -361,6 +380,20 @@ func exit(err error) {
 			return
 		}
 	}
+}
+
+// Handle system signals for clean exit
+func handleSignals() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT)
+	go func() {
+		<-c
+		exit(nil)
+	}()
 }
 
 // WaitForExit waits for a request to exit the application.
