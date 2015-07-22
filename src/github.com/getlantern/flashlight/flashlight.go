@@ -78,6 +78,14 @@ func init() {
 }
 
 func main() {
+	// Catch-all handler
+	defer func() {
+		if err := recover(); err != nil {
+			log.Debugf("PANIC: %v", err)
+			exit(nil)
+		}
+	}()
+
 	parseFlags()
 	showui = !*headless
 
