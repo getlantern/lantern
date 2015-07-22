@@ -473,19 +473,11 @@ android-lib-dev: docker-mobile
 
 android-lib: docker-mobile genconfig
 	@source setenv.bash && \
-	cd $(LANTERN_MOBILE_DIR) && \
-	mkdir -p app && \
-	cd libflashlight && \
-		mkdir -p bindings/go_bindings && \
-		gobind -lang=go github.com/getlantern/lantern-android/libflashlight/bindings > bindings/go_bindings/go_bindings.go && \
-		gobind -lang=java github.com/getlantern/lantern-android/libflashlight/bindings > bindings/Flashlight.java || exit 1;
+	cd $(LANTERN_MOBILE_DIR)
 	@$(call docker-up) && \
-	$(DOCKER) run -v $$PWD/src:/src golang/mobile /bin/bash -c \ "cd /src/github.com/getlantern/lantern-android/libflashlight && ./make.bash $(GIT_REVISION) $(REVISION_DATE) $(BUILD_DATE)" && \
-	ls -l src/github.com/getlantern/lantern-android/app/libs/armeabi-v7a/libgojni.so && \
+	$(DOCKER) run -v $$PWD/src:/src $(DOCKER_MOBILE_IMAGE_TAG) /bin/bash -c \ "cd /src/github.com/getlantern/lantern-mobile && gomobile bind -target=android -o=$(LANTERN_MOBILE_LIBRARY) -ldflags="$(LDFLAGS)" ." && \
 	if [ -d "$(FIRETWEET_DIR)" ]; then \
-		cp -v src/github.com/getlantern/lantern-android/app/libs/armeabi-v7a/libgojni.so $(FIRETWEET_DIR)/firetweet/src/main/jniLibs/armeabi-v7a/libgojni.so && \
-		cp -v src/github.com/getlantern/lantern-android/app/src/go/*.java $(FIRETWEET_DIR)/firetweet/src/main/java/go && \
-		cp -v src/github.com/getlantern/lantern-android/app/src/org/getlantern/Flashlight.java $(FIRETWEET_DIR)/firetweet/src/main/java/go/flashlight/Flashlight.java; \
+		cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) $(FIRETWEET_DIR)/firetweet/src/main/libs/$(LANTERN_MOBILE_LIBRARY); \
 	fi
 
 genconfig:
