@@ -214,9 +214,15 @@ func doTestTimeout(t *testing.T, timeout time.Duration) {
 	_, err := DialWithDialer(&net.Dialer{
 		Timeout: timeout,
 	}, "tcp", ADDR, false, nil)
+
 	assert.Error(t, err, "There should have been a problem dialing", timeout)
+
 	if err != nil {
-		assert.True(t, err.(net.Error).Timeout(), "Dial error should be timeout", timeout)
+		if neterr, isNetError := err.(net.Error); isNetError {
+			assert.True(t, neterr.Timeout(), "Dial error should be timeout", timeout)
+		} else {
+			t.Fatal(err)
+		}
 	}
 }
 
@@ -230,9 +236,15 @@ func TestDeadlineBeforeTimeout(t *testing.T) {
 		Timeout:  500 * time.Second,
 		Deadline: time.Now().Add(5 * time.Microsecond),
 	}, "tcp", ADDR, false, nil)
+
 	assert.Error(t, err, "There should have been a problem dialing")
+
 	if err != nil {
-		assert.True(t, err.(net.Error).Timeout(), "Dial error should be timeout")
+		if neterr, isNetError := err.(net.Error); isNetError {
+			assert.True(t, neterr.Timeout(), "Dial error should be timeout")
+		} else {
+			t.Fatal(err)
+		}
 	}
 
 	closeAndCountFDs(t, conn, err, fdc)

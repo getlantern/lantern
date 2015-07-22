@@ -56,6 +56,15 @@ file lantern_linux_amd64
 # lantern_linux_amd64: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked (uses shared libs), not stripped
 ```
 
+Or ARM:
+
+```sh
+make linux-arm
+file lantern_linux_arm
+# lantern_linux_arm: ELF 32-bit LSB executable, ARM, version 1 (SYSV), dynamically linked (uses shared libs), not stripped
+```
+
+
 ### Building for Windows
 
 Lantern supports the 386 architecture on Windows. In order to build Lantern on
