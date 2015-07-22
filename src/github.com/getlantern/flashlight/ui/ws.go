@@ -67,7 +67,9 @@ func NewChannel(p string, onConnect ConnectFunc) *UIChannel {
 			})
 			if err != nil {
 				log.Errorf("Error processing onConnect, disconnecting websocket: %v", err)
-				ws.Close()
+				if err := ws.Close(); err != nil {
+					log.Debugf("Error closing WebSockets connection: %s", err)
+				}
 				c.m.Unlock()
 				return
 			}
@@ -110,7 +112,9 @@ func (c *UIChannel) write() {
 		log.Tracef("Closing all websockets to %v", c.URL)
 		c.m.Lock()
 		for _, conn := range c.conns {
-			conn.ws.Close()
+			if err := conn.ws.Close(); err != nil {
+				log.Debugf("Error closing WebSockets connection", err)
+			}
 			delete(c.conns, conn.id)
 		}
 		c.m.Unlock()

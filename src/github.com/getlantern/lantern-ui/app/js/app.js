@@ -85,6 +85,14 @@ var app = angular.module('app', [
 
       var ds = $websocket('ws://' + document.location.host + '/data');
 
+      // Register if the user navigated away, so we don't try to connect to the UI.
+      // Also, force closing the websocket
+      var userDidLeave = false;
+      $window.onbeforeunload = function() {
+        ds.close();
+        userDidLeave = true;
+      };
+
       ds.onMessage(function(raw) {
         var envelope = JSON.parse(raw.data);
         if (typeof Messages[envelope.Type] != 'undefined') {
@@ -104,6 +112,16 @@ var app = angular.module('app', [
 
       ds.onClose(function(msg) {
         $rootScope.wsConnected = false;
+
+        console.log("This websocket instance closed " + msg);
+
+        // If the user left, then don't try to reconnect. Causes a known bug lantern-#2721
+        // where some browsers will reconnect when navigating away, returning to Lantern
+        // home page
+        if (userDidLeave) {
+          return;
+        }
+
         // try to reconnect indefinitely
         // when the websocket closes
         $interval(function() {
@@ -113,7 +131,6 @@ var app = angular.module('app', [
             $window.location.reload();
           });
         }, WS_RECONNECT_INTERVAL);
-        console.log("This websocket instance closed " + msg);
       });
 
       ds.onError(function(msg) {
