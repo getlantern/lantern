@@ -14,6 +14,7 @@ github.com/getlantern/fronted
 github.com/getlantern/golog
 github.com/getlantern/idletiming
 github.com/getlantern/keyman
+github.com/getlantern/multicast
 github.com/getlantern/pathreflect
 github.com/getlantern/proxy
 github.com/getlantern/flashlight/pubsub

@@ -26,7 +26,7 @@ var (
 	server       *http.Server
 	uiaddr       string
 
-	externalUrl    = "https://www.facebook.com/manototv" // this string is going to be changed by Makefile
+	externalUrl    = "NO_URL" // this string is going to be changed by Makefile
 	openedExternal = false
 	r              = http.NewServeMux()
 )
@@ -62,10 +62,13 @@ func Handle(p string, handler http.Handler) string {
 	return uiaddr + p
 }
 
-func Start(addr string) error {
-	var err error
-	l, err = net.Listen("tcp", addr)
-	if err != nil {
+func Start(tcpAddr *net.TCPAddr, allowRemote bool) (err error) {
+	addr := tcpAddr
+	if allowRemote {
+		// If we want to allow remote connections, we have to bind all interfaces
+		addr = &net.TCPAddr{Port: tcpAddr.Port}
+	}
+	if l, err = net.ListenTCP("tcp4", addr); err != nil {
 		return fmt.Errorf("Unable to listen at %v: %v", addr, l)
 	}
 
