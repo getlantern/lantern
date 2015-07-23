@@ -54,7 +54,7 @@ RUN echo y | $ANDROID_HOME/tools/android update sdk --no-ui --all --filter build
 	echo y | $ANDROID_HOME/tools/android update sdk --no-ui --all --filter android-19
 
 # Install and initialize gomobile
-RUN go get -u golang.org/x/mobile/cmd/gomobile
+RUN go get golang.org/x/mobile/cmd/gomobile
 RUN gomobile init
 
 RUN mkdir -p $WORKDIR
