@@ -122,6 +122,8 @@ Section "uninstall"
     RMDir /r "$SMPROGRAMS\Lantern"
     RMDir /r "$INSTDIR"
 
+    Delete "$DESKTOP\Lantern.lnk"
+
     # Remove uninstaller from Add/Remove programs
     DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern"
 
