@@ -3,7 +3,7 @@ Name "Lantern"
 # Installs Lantern and launches it
 # See http://nsis.sourceforge.net/Run_an_application_shortcut_after_an_install
 
-#AutoCloseWindow true
+AutoCloseWindow true
 
 !addplugindir nsis_plugins
 !include "nsis_includes/nsProcess.nsh"
@@ -78,6 +78,8 @@ Section
     CreateDirectory "$SMPROGRAMS\Lantern"
     CreateShortCut "$SMPROGRAMS\Lantern\Lantern.lnk" "$INSTDIR\lantern.exe" "" "$INSTDIR\lantern.ico" 0
     CreateShortCut "$SMPROGRAMS\Lantern\Uninstall Lantern.lnk" "$INSTDIR\uninstall.exe"
+
+    CreateShortCut "$DESKTOP\Lantern.lnk" "$INSTDIR\lantern.exe" "" "$INSTDIR\lantern.ico" 0
 
     # Launch Lantern
     ShellExecAsUser::ShellExecAsUser "" "$INSTDIR\lantern.exe"
