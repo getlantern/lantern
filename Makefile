@@ -476,7 +476,7 @@ android-lib: docker-mobile
 	else \
 		echo ""; \
 		echo "Either no FIRETWEET_MAIN_DIR variable was passed or the given value is not a";\
-		echo "directory. You'll have to copy the .arr file manually:"; \
+		echo "directory. You'll have to copy the $(LANTERN_MOBILE_LIBRARY) file manually:"; \
 		echo ""; \
 		echo "cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) \$$FIRETWEET_MAIN_DIR"; \
 	fi
