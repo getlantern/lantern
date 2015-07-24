@@ -33,7 +33,7 @@ RUN (curl -sSL https://golang.org/dl/go1.4.linux-amd64.tar.gz | tar -vxz -C /tmp
 # GOVERSION string is the output of 'git log -n 1 --format="format: devel +%h %cd" HEAD'
 # like in go tool dist.
 # Revision picked on Jul 13, 2015.
-ENV GO_REV 1c890076699a6c63eaf1c19985dbe891ce7314a7
+ENV GO_REV d23973d23ca19f5c2992467c01e02df1780b576c
 ENV GO_VERSION devel +ebb6783 Fri Jul 17 17:58:16 2015 +0000
 
 ENV GOROOT /go
