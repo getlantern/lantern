@@ -24,6 +24,7 @@ const (
 		<key>ProgramArguments</key>
 		<array>
 		<string>/Applications/Lantern.app/Contents/MacOS/lantern</string>
+		<string>-startup</string>
 		</array>
 		<key>RunAtLoad</key>
         <{{.RunAtLoad}}/>
