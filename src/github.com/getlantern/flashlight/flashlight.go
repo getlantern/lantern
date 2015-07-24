@@ -34,6 +34,8 @@ import (
 	"github.com/getlantern/flashlight/statserver"
 	"github.com/getlantern/flashlight/ui"
 	"github.com/getlantern/flashlight/util"
+
+	"github.com/mitchellh/panicwrap"
 )
 
 var (
@@ -83,13 +85,22 @@ func init() {
 }
 
 func main() {
-	// Catch-all handler
-	defer func() {
-		if err := recover(); err != nil {
-			log.Debugf("PANIC: %v", err)
+	// panicwrap works by re-executing the running program (retaining arguments,
+	// environmental variables, etc.) and monitoring the stderr of the program.
+	exitStatus, err := panicwrap.BasicWrap(
+		func(output string) {
+			log.Debug(output)
 			exit(nil)
-		}
-	}()
+		})
+	if err != nil {
+		// Something went wrong setting up the panic wrapper. This wont' be
+		// captured by panicwrap
+		log.Fatalf("Error setting up panic wrapper: %v", err)
+	}
+	// If exitStatus >= 0, then we're the parent process.
+	if exitStatus >= 0 {
+		os.Exit(exitStatus)
+	}
 
 	parseFlags()
 	showui = !*headless
