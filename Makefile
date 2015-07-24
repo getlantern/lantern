@@ -45,9 +45,7 @@ LANTERN_MOBILE_LIBRARY := libflashlight.aar
 DOCKER_MOBILE_IMAGE_TAG := lantern-mobile-builder
 LOGGLY_TOKEN_MOBILE := d730c074-1f0a-415d-8d71-1ebf1d8bd736
 
-FLASHLIGHT_ANDROID_TESTER_DIR ?= ../flashlight-android-tester
-
-FIRETWEET_DIR ?= ../firetweet
+FIRETWEET_MAIN_DIR ?= ../firetweet/firetweet/src/main/
 
 
 .PHONY: packages clean docker
@@ -463,28 +461,23 @@ test-and-cover:
 		tail -n +2 profile_tmp.cov >> profile.cov; \
 	done
 
-android-lib-dev: docker-mobile
-	@source setenv.bash && \
-	cd $(LANTERN_MOBILE_DIR)
-	@$(call docker-up) && \
-	$(DOCKER) run -v $$PWD/src:/src $(DOCKER_MOBILE_IMAGE_TAG) /bin/bash -c \ "cd /src/github.com/getlantern/lantern-mobile && gomobile bind -target=android -o=$(LANTERN_MOBILE_LIBRARY) -ldflags="$(LDFLAGS)" ." && \
-	if [ -d "$(FLASHLIGHT_ANDROID_TESTER_DIR)" ]; then \
-		cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) $(FLASHLIGHT_ANDROID_TESTER_DIR)/app/libs/$(LANTERN_MOBILE_LIBRARY); \
-	fi
-
-android-lib: docker-mobile genconfig
-	@source setenv.bash && \
-	cd $(LANTERN_MOBILE_DIR)
-	@$(call docker-up) && \
-	$(DOCKER) run -v $$PWD/src:/src $(DOCKER_MOBILE_IMAGE_TAG) /bin/bash -c \ "cd /src/github.com/getlantern/lantern-mobile && gomobile bind -target=android -o=$(LANTERN_MOBILE_LIBRARY) -ldflags="$(LDFLAGS)" ." && \
-	if [ -d "$(FIRETWEET_DIR)" ]; then \
-		cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) $(FIRETWEET_DIR)/firetweet/src/main/libs/$(LANTERN_MOBILE_LIBRARY); \
-	fi
-
 genconfig:
 	@echo "Running genconfig..." && \
 	source setenv.bash && \
 	(cd src/github.com/getlantern/flashlight/genconfig && ./genconfig.bash)
+
+android-lib: docker-mobile
+	@source setenv.bash && \
+	cd $(LANTERN_MOBILE_DIR)
+	@$(call docker-up) && \
+	$(DOCKER) run -v $$PWD/src:/src $(DOCKER_MOBILE_IMAGE_TAG) /bin/bash -c \ "cd /src/github.com/getlantern/lantern-mobile && gomobile bind -target=android -o=$(LANTERN_MOBILE_LIBRARY) -ldflags="$(LDFLAGS)" ." && \
+	if [ -d "$(FIRETWEET_MAIN_DIR)" ]; then \
+		cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) $(FIRETWEET_MAIN_DIR)/libs/$(LANTERN_MOBILE_LIBRARY); \
+	else \
+		echo "FIRETWEET_MAIN_DIR environment variable: directory does not exist"; \
+	fi
+
+android-lib-dist: genconfig android-lib
 
 clean:
 	@rm -f lantern_linux* && \
