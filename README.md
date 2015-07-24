@@ -226,22 +226,36 @@ env variable.
 
 ## Other tasks
 
-### Creating libgojni.so
+### Creating the Android embeddable library
 
-The `libgojni.so` is the Lantern library for Android. This is a work in
-progress but if you're feeling adventurous you can build it by using the
-`android` target:
+In order to build the Android ARM library that can be embedded in applications,
+Lantern is using `gomobile`. This simplifies the process notably.
+
+Currently, as Go 1.5 is not stable, a specific git revision is used within an
+isolated Docker image.
+
+To build a development library (takes shorter time):
 
 ```
 make android-lib
 ```
 
-If you pass the `FIRETWEET_DIR` env variable to `make android-lib`, the
+To build the final version for Firetweet
+
+```
+make android-lib-dist
+```
+
+If you pass the `FIRETWEET_MAIN_DIR` env variable to `make android-lib`, the
 generated bindings and library will be copied into it:
 
 ```
-FIRETWEET_DIR=/path/to/firetweet make android-lib
+FIRETWEET_MAIN_DIR=/path/to/firetweet/src/main make android-lib
 ```
+
+You can also override this environment variable if you want to use the
+[Flashlight Android Tester](https://github.com/getlantern/flashlight-android-tester) app.
+
 
 ### Generating assets
 

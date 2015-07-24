@@ -1,5 +1,6 @@
 pkg
 .flashlight-builder-context/
+.lantern-mobile-builder-context/
 .lantern-builder-context/
 bin
 .DS_Store
@@ -37,4 +38,4 @@ src/github.com/getlantern/systray/Debug
 src/github.com/getlantern/systray/Release
 src/github.com/getlantern/systray/systray/Debug
 src/github.com/getlantern/systray/systray/Release
-src/github.com/getlantern/lantern-android/libflashlight/bindings/Flashlight.java
+src/github.com/getlantern/lantern-mobile/libflashlight.aar

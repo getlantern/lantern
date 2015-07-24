@@ -45,7 +45,7 @@ const (
 	cloudConfigCA = ``
 	// URL of the configuration file. Remember to use HTTPs.
 	remoteConfigURL = `https://config.getiantem.org/cloud.yaml.gz`
-	InstanceId      = ``
+	instanceId      = ``
 )
 
 // pullConfigFile attempts to retrieve a configuration file over the network,

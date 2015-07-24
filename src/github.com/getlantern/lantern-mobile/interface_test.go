@@ -1,4 +1,4 @@
-package flashlight
+package client
 
 import (
 	"errors"
