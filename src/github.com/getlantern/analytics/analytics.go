@@ -14,7 +14,7 @@ import (
 const (
 	ApiEndpoint       = `https://ssl.google-analytics.com/collect`
 	ProtocolVersion   = "1"
-	DefaultInstanceId = "1260961011.1389432370"
+	DefaultInstanceId = "555"
 )
 
 var (
@@ -77,7 +77,7 @@ func Configure(trackingId string, version string, proxyAddr string) {
 			return
 		}
 		// Store new session info whenever client proxy is ready
-		sessionEvent(version, trackingId)
+		sessionEvent(trackingId, version)
 	}()
 }
 
@@ -102,8 +102,6 @@ func collectArgs(payload *Payload) string {
 	if payload.Language != "" {
 		vals.Add("ul", payload.Language)
 	}
-
-	vals.Add("dh", payload.Hostname)
 
 	vals.Add("t", string(payload.HitType))
 
@@ -162,13 +160,11 @@ func sessionEvent(trackingId string, version string) (status bool, err error) {
 	sessionPayload := &Payload{
 		HitType:    EventType,
 		TrackingId: trackingId,
-		Hostname:   "localhost",
 		InstanceId: DefaultInstanceId,
 		Event: &Event{
 			Category: "Session",
 			Action:   "Start",
 			Label:    runtime.GOOS,
-			Value:    version,
 		},
 	}
 
