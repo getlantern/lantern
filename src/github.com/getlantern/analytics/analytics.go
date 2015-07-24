@@ -43,7 +43,7 @@ type Event struct {
 }
 
 type Payload struct {
-	InstanceId string `json:"clientId"`
+	ClientId string `json:"clientId"`
 
 	ClientVersion string `json:"clientVersion,omitempty"`
 
@@ -93,15 +93,18 @@ func collectArgs(payload *Payload) string {
 	if payload.TrackingId != "" {
 		vals.Add("tid", payload.TrackingId)
 	}
-	if payload.InstanceId != "" {
-		vals.Add("cid", payload.InstanceId)
+	if payload.ClientId != "" {
+		vals.Add("cid", payload.ClientId)
 	}
+
 	if payload.ScreenResolution != "" {
 		vals.Add("sr", payload.ScreenResolution)
 	}
 	if payload.Language != "" {
 		vals.Add("ul", payload.Language)
 	}
+
+	vals.Add("dh", payload.Hostname)
 
 	vals.Add("t", string(payload.HitType))
 
@@ -135,13 +138,14 @@ func SendRequest(payload *Payload) (status bool, err error) {
 	args := collectArgs(payload)
 
 	r, err := http.NewRequest("POST", ApiEndpoint, bytes.NewBufferString(args))
-	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	r.Header.Add("Content-Length", strconv.Itoa(len(args)))
 
 	if err != nil {
 		log.Errorf("Error constructing GA request: %s", err)
 		return false, err
 	}
+
+	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	r.Header.Add("Content-Length", strconv.Itoa(len(args)))
 
 	resp, err := httpClient.Do(r)
 	if err != nil {
@@ -160,7 +164,8 @@ func sessionEvent(trackingId string, version string) (status bool, err error) {
 	sessionPayload := &Payload{
 		HitType:    EventType,
 		TrackingId: trackingId,
-		InstanceId: DefaultInstanceId,
+		Hostname:   "localhost",
+		ClientId:   DefaultInstanceId,
 		Event: &Event{
 			Category: "Session",
 			Action:   "Start",
