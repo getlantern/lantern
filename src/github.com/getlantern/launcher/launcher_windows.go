@@ -25,12 +25,14 @@ func CreateLaunchFile(autoLaunch bool) {
 			log.Errorf("Could not get Lantern directory path: %q", err)
 			return
 		}
-		err = gowin.WriteStringReg("HKCU", runDir, "Lantern", lanternPath+" -startup")
+		err = gowin.WriteStringReg("HKCU", runDir, "Lantern", "\""+lanternPath+"\""+" -startup")
 		if err != nil {
 			log.Errorf("Error inserting Lantern auto-start registry key: %q", err)
 		}
 	} else {
-		err = gowin.DeleteKey("HKCU", runDir, "Lantern")
+		// We just set the value to the empty string because the windows registry
+		// library we're using doesn't support RegDeleteValue
+		err = gowin.WriteStringReg("HKCU", runDir, "Lantern", "")
 		if err != nil {
 			log.Errorf("Error removing Lantern auto-start registry key: %q", err)
 		}
