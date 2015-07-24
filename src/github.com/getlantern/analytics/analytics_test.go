@@ -10,7 +10,7 @@ import (
 func samplePayload() *Payload {
 	payload := &Payload{
 		TrackingId: "UA-21815217-2",
-		InstanceId: "test-client-555",
+		ClientId:   "test-client-555",
 	}
 
 	return payload
