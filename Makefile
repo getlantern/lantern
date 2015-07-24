@@ -474,7 +474,11 @@ android-lib: docker-mobile
 	if [ -d "$(FIRETWEET_MAIN_DIR)" ]; then \
 		cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) $(FIRETWEET_MAIN_DIR)/libs/$(LANTERN_MOBILE_LIBRARY); \
 	else \
-		echo "FIRETWEET_MAIN_DIR environment variable: directory does not exist"; \
+		echo ""; \
+		echo "Either no FIRETWEET_MAIN_DIR variable was passed or the given value is not a";\
+		echo "directory. You'll have to copy the .arr file manually:"; \
+		echo ""; \
+		echo "cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) \$$FIRETWEET_MAIN_DIR"; \
 	fi
 
 android-lib-dist: genconfig android-lib
