@@ -85,12 +85,12 @@ func (b *Balancer) DialQOS(network, addr string, targetQOS int) (net.Conn, error
 
 	for i := 0; ; i++ {
 		if len(dialers) == 0 {
-			return nil, fmt.Errorf("No dialers left to try")
+			return nil, fmt.Errorf("No dialers left to try on pass %v", i)
 		}
 		var d *dialer
 		d, dialers = randomDialer(dialers, targetQOS)
 		if d == nil {
-			return nil, fmt.Errorf("No dialers left")
+			return nil, fmt.Errorf("No dialers left on pass %v", i)
 		}
 		log.Debugf("Dialing %s://%s with %s", network, addr, d.Label)
 		conn, err := d.Dial(network, addr)
