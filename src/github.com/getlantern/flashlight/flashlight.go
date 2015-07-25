@@ -46,10 +46,11 @@ var (
 	log = golog.LoggerFor("flashlight")
 
 	// Command-line Flags
-	help      = flag.Bool("help", false, "Get usage help")
-	parentPID = flag.Int("parentpid", 0, "the parent process's PID, used on Windows for killing flashlight when the parent disappears")
-	headless  = flag.Bool("headless", false, "if true, lantern will run with no ui")
-	showui    = true
+	help     = flag.Bool("help", false, "Get usage help")
+	headless = flag.Bool("headless", false, "if true, lantern will run with no ui")
+	startup  = flag.Bool("startup", false, "if true, Lantern was automatically run on system startup")
+
+	showui = true
 
 	configUpdates = make(chan *config.Config)
 	exitCh        = make(chan error, 1)
@@ -247,12 +248,14 @@ func runClientProxy(cfg *config.Config) {
 		addExitFunc(pacOff)
 		err := client.ListenAndServe(func() {
 			pacOn()
-			if showui {
+			if showui && !*startup {
 				// Launch a browser window with Lantern but only after the pac
 				// URL and the proxy server are all up and running to avoid
 				// race conditions where we change the proxy setup while the
 				// UI server and proxy server are still coming up.
 				ui.Show()
+			} else {
+				log.Debugf("Not opening browser. Startup is: %v", *startup)
 			}
 		})
 		if err != nil {
