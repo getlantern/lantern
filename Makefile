@@ -354,7 +354,7 @@ manoto-binaries: manoto binaries unmanoto
 
 binaries: docker genassets linux windows darwin
 
-packages: require-version require-secrets clean genconfig binaries package-windows package-linux package-darwin
+packages: require-version require-secrets clean binaries package-windows package-linux package-darwin
 
 manoto-packages: require-version require-secrets clean genconfig manoto-binaries package-windows package-linux package-darwin
 
