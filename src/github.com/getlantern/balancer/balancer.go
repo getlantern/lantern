@@ -83,7 +83,7 @@ func (b *Balancer) DialQOS(network, addr string, targetQOS int) (net.Conn, error
 		dialers = b.dialers
 	}
 
-	for {
+	for i := 0; ; i++ {
 		if len(dialers) == 0 {
 			return nil, fmt.Errorf("No dialers left to try")
 		}
@@ -95,13 +95,13 @@ func (b *Balancer) DialQOS(network, addr string, targetQOS int) (net.Conn, error
 		log.Debugf("Dialing %s://%s with %s", network, addr, d.Label)
 		conn, err := d.Dial(network, addr)
 		if err != nil {
-			log.Debugf("Unable to dial %s://%s: %s", network, addr, err)
+			log.Errorf("Unable to dial %s://%s: %v on pass %v...continuing", network, addr, err, i)
 			d.onError(err)
 			continue
 		}
+		log.Debugf("Successfully dialed to %v://%v on pass %v", network, addr, i)
 		return conn, nil
 	}
-
 }
 
 // Dial is like DialQOS with a targetQOS of 0.
