@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
-	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -25,7 +24,6 @@ import (
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/geolookup"
-	"github.com/getlantern/flashlight/localdiscovery"
 	"github.com/getlantern/flashlight/logging"
 	"github.com/getlantern/flashlight/proxiedsites"
 	"github.com/getlantern/flashlight/server"
@@ -234,11 +232,15 @@ func runClientProxy(cfg *config.Config) {
 		}
 	}()
 
-	// Continually search for local Lantern instances and update the UI
-	go func() {
-		addExitFunc(localdiscovery.Stop)
-		localdiscovery.Start(!showui, strconv.Itoa(tcpAddr.Port))
-	}()
+	/*
+		Temporarily disabling localdiscover. See:
+		https://github.com/getlantern/lantern/issues/2813
+		// Continually search for local Lantern instances and update the UI
+		go func() {
+			addExitFunc(localdiscovery.Stop)
+			localdiscovery.Start(!showui, strconv.Itoa(tcpAddr.Port))
+		}()
+	*/
 
 	// watchDirectAddrs will spawn a goroutine that will add any site that is
 	// directly accesible to the PAC file.
