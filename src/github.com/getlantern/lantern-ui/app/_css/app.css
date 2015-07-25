@@ -6367,8 +6367,7 @@ html, body {
 }
 
 body {
-  background: url('../img/bg.png');
-  overflow: hidden;
+  overflow: scroll;
 }
 
 small, .small {
@@ -7602,7 +7601,6 @@ body[dir=rtl] #latestDetails dd {
 #vis-container, #vis {
   height: 100%;
   background-color: #fff;
-  overflow: scroll;
   position: relative;
 }
 
@@ -7753,7 +7751,7 @@ body[dir=rtl] .tooltip .vis {
 
 #footer {
   width: 100%;
-  position: absolute;
+  position: fixed;
   right: 0;
   bottom: 0;
   left: 0;
