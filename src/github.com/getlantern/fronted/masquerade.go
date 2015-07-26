@@ -154,7 +154,7 @@ func (vms *verifiedMasqueradeSet) doVerify(masquerade *Masquerade) bool {
 				errCh <- fmt.Errorf("HTTP Body Error: %s", body)
 			} else {
 				delta := time.Now().Sub(start)
-				log.Tracef("Sucessful check for: %s in %s, %s", masquerade.Domain, delta, body)
+				log.Debugf("Sucessful check for: %s in %s, %s", masquerade.Domain, delta, body)
 				errCh <- nil
 			}
 		}
