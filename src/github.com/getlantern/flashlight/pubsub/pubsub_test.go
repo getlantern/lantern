@@ -23,8 +23,10 @@ func TestPublish(t *testing.T) {
 		msgs <- s
 	})
 	if err != nil {
-		t.Errorf("Error subscribing to location %v: %v", Location, err)
+		t.Fatalf("Unable to subscribe: %v", err)
 	}
+
+	Pub(Location, "test")
 
 	msg := <-msgs
 	if msg != "test" {
