@@ -227,7 +227,9 @@ func (p *Proxy) handleRead(resp http.ResponseWriter, req *http.Request, lc *lazy
 	lastReadTime := time.Now()
 	for {
 		readDeadline := time.Now().Add(p.FlushTimeout)
-		connOut.SetReadDeadline(readDeadline)
+		if err := connOut.SetReadDeadline(readDeadline); err != nil {
+			log.Debugf("Unable to set read deadline: %v", err)
+		}
 
 		// Read
 		n, readErr := connOut.Read(b)
@@ -255,7 +257,9 @@ func (p *Proxy) handleRead(resp http.ResponseWriter, req *http.Request, lc *lazy
 			_, writeErr := resp.Write(b[:n])
 			if writeErr != nil {
 				log.Errorf("Error writing to response: %s", writeErr)
-				connOut.Close()
+				if err := connOut.Close(); err != nil {
+					log.Debugf("Unable to close out connection: %v", err)
+				}
 				return
 			}
 		}
