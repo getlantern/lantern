@@ -234,7 +234,9 @@ func NonStopWriter(writers ...io.Writer) io.Writer {
 // It never fails and always return the length of bytes passed in
 func (t *nonStopWriter) Write(p []byte) (int, error) {
 	for _, w := range t.writers {
-		w.Write(p)
+		if _, err := w.Write(p); err != nil {
+			log.Debugf("Error in log Writer: %v", err)
+		}
 	}
 	return len(p), nil
 }
