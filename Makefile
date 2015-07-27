@@ -312,7 +312,7 @@ package-linux-arm: require-version genassets linux-arm
 	$(call docker-up) && \
 	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" make docker-package-linux-arm'
 
-package-linux: require-version package-linux-386 package-linux-amd64 package-linux-arm
+package-linux: require-version package-linux-386 package-linux-amd64 
 
 package-windows: require-version windows
 	@echo "Generating distribution package for windows/386..." && \
