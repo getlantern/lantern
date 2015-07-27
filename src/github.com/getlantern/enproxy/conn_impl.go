@@ -167,6 +167,7 @@ func (c *conn) doRequest(proxyConn *connInfo, host string, op string, request *r
 		if er == nil {
 			err = fmt.Errorf("Bad response status for read from fronting provider: %s", string(full))
 		} else {
+			log.Errorf("Could not dump response: %v", er)
 			err = fmt.Errorf("Bad response status for read from fronting provider: %s", resp.Status)
 		}
 		resp.Body.Close()
