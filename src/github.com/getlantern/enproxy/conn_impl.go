@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/http/httputil"
 
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/getlantern/idletiming"
@@ -160,9 +161,19 @@ func (c *conn) doRequest(proxyConn *connInfo, host string, op string, request *r
 	// Check response status
 	responseOK := resp.StatusCode >= 200 && resp.StatusCode < 300
 	if !responseOK {
-		err = fmt.Errorf("Bad response status for read: %s", resp.Status)
+		// This means we're getting something other than an OK response from the fronting provider
+		// itself, which is odd. Try to log the entire response for easier debugging.
+		full, er := httputil.DumpResponse(resp, true)
+		if er == nil {
+			err = fmt.Errorf("Bad response status for read from fronting provider: %s", string(full))
+		} else {
+			log.Errorf("Could not dump response: %v", er)
+			err = fmt.Errorf("Bad response status for read from fronting provider: %s", resp.Status)
+		}
 		resp.Body.Close()
 		resp = nil
+	} else {
+		log.Debugf("Got OK from fronting provider")
 	}
 
 	return
