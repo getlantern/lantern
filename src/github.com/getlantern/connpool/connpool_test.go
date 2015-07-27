@@ -45,7 +45,9 @@ func TestIt(t *testing.T) {
 				// Close about half of the connections immediately to test
 				/// closed checking
 				if err == nil && rand.Float32() > 0.5 {
-					conn.Close()
+					if err := conn.Close(); err != nil {
+						t.Fatalf("Unable to close connection: %v", err)
+					}
 				}
 			}
 			return conn, err
@@ -118,7 +120,9 @@ func TestDialFailure(t *testing.T) {
 	// Try to get connection, make sure it fails
 	conn, err := p.Get()
 	if !assert.Error(t, err, "Dialing should have failed") {
-		conn.Close()
+		if err := conn.Close(); err != nil {
+			t.Fatalf("Unable to close connection: %v", err)
+		}
 	}
 
 	// Wait for fill to run for a while with a failing connection
@@ -174,7 +178,9 @@ func connectAndRead(t *testing.T, p Pool, loops int) {
 				t.Fatalf("Error reading from connection: %s", err)
 			}
 			assert.Equal(t, msg, read, "Should have received %s from server", string(msg))
-			c.Close()
+			if err := c.Close(); err != nil {
+				t.Fatalf("Unable to close connection: %v", err)
+			}
 
 			wg.Done()
 		}(&wg)
@@ -198,11 +204,12 @@ func startTestServer() (string, error) {
 			if err != nil {
 				log.Fatalf("Error listening: %s", err)
 			}
-			_, err = c.Write(msg)
-			if err != nil {
+			if _, err = c.Write(msg); err != nil {
 				log.Fatalf("Unable to write message: %s", err)
 			}
-			c.Close()
+			if err := c.Close(); err != nil {
+				log.Fatalf("Unable to close connection: %v", err)
+			}
 		}
 	}()
 	return l.Addr().String(), nil
