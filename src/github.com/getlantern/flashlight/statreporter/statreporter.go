@@ -241,7 +241,12 @@ func posterForDimGroupStats(cfg *Config) reportPoster {
 		if err != nil {
 			return fmt.Errorf("Unable to post stats to statshub: %s", err)
 		}
-		defer resp.Body.Close()
+		defer func() {
+			if err := resp.Body.Close(); err != nil {
+				// Log instead of returning, so we can keep the other, more probable, errors
+				log.Debugf("Unable to close response body: %s", err)
+			}
+		}()
 
 		jsonString := string(jsonBytes)
 		if resp.StatusCode != 200 {
