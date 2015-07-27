@@ -19,10 +19,12 @@ func TestSub(t *testing.T) {
 
 func TestPublish(t *testing.T) {
 	msgs := make(chan string)
-	Sub(Location, func(s string) {
+	err := Sub(Location, func(s string) {
 		msgs <- s
 	})
-	Pub(Location, "test")
+	if err != nil {
+		t.Errorf("Error subscribing to location %v: %v", Location, err)
+	}
 
 	msg := <-msgs
 	if msg != "test" {
