@@ -7,6 +7,8 @@ import (
 	"fmt"
 
 	"code.google.com/p/go-uuid/uuid"
+
+	"github.com/getlantern/golog"
 )
 
 const (
@@ -16,6 +18,8 @@ const (
 var (
 	endianness = binary.LittleEndian
 	zero       = ID{}
+
+	log = golog.LoggerFor("buuid")
 )
 
 // ID is a type 4 UUID.
@@ -58,7 +62,9 @@ func (id ID) Write(b []byte) error {
 // ToBytes returns a 16-byte representation of this ID
 func (id ID) ToBytes() []byte {
 	b := make([]byte, EncodedLength)
-	id.Write(b)
+	if err := id.Write(b); err != nil {
+		log.Debugf("Unable to write as 16-bytes representation: %v", err)
+	}
 	return b
 }
 
@@ -70,6 +76,8 @@ func FromString(s string) (ID, error) {
 // String() returns the string-encoded version like in uuid.UUID.
 func (id ID) String() string {
 	b := uuid.UUID(make([]byte, EncodedLength))
-	id.Write([]byte(b))
+	if err := id.Write([]byte(b)); err != nil {
+		log.Debugf("Unable to write as string: %v", err)
+	}
 	return b.String()
 }
