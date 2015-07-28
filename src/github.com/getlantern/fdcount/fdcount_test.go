@@ -1,6 +1,7 @@
 package fdcount
 
 import (
+	"fmt"
 	"net"
 	"testing"
 	"time"
@@ -40,7 +41,7 @@ func TestTCP(t *testing.T) {
 	}
 	defer func() {
 		if err := l.Close(); err != nil {
-			t.Fatalf("Unable to close file: %v", err)
+			fmt.Println("Unable to close listener: %v", err)
 		}
 	}()
 	_, middle, err := Matching("TCP")
@@ -107,7 +108,7 @@ func TestWaitUntilNoneMatchTimeout(t *testing.T) {
 	}
 	defer func() {
 		if err := conn.Close(); err != nil {
-			t.Fatalf("Unable to close connection: %v", err)
+			fmt.Println("Unable to close connection: %v", err)
 		}
 	}()
 
