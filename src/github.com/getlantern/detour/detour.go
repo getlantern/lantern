@@ -2,7 +2,7 @@
 Package detour provides a net.Conn interface which detects blockage
 of a site automatically and try to access it through alternative dialer.
 
-Basically, if a site is not whitelisted, it has follow steps:
+Basically, if a site is not whitelisted, following steps will be taken:
 1. Dial in parallel
 2. Return to caller if any connection is established
 3. Read/write to all connections
@@ -91,16 +91,21 @@ func Dialer(df dialFunc) dialFunc {
 		// buffered channel, as we may send twice to it but only receive once
 		chAnyConn := make(chan conn, 1)
 		ch := make(chan conn)
-		go func() {
-			if !whitelisted(addr) {
+		loopCount := 2
+		if whitelisted(addr) {
+			loopCount = 1
+			DialDetour(network, addr, df, ch)
+		} else {
+			go func() {
 				DialDirect(network, addr, ch)
 				time.Sleep(DelayBeforeDetour)
-			}
-			DialDetour(network, addr, df, ch)
-		}()
+				DialDetour(network, addr, df, ch)
+			}()
+		}
 		go func() {
 			t := time.NewTimer(TimeoutToConnect)
-			for i := 0; i < 2; i++ {
+			defer t.Stop()
+			for i := 0; i < loopCount; i++ {
 				select {
 				case conn := <-ch:
 					if dc.anyDataReceived() {
@@ -122,7 +127,7 @@ func Dialer(df dialFunc) dialFunc {
 		if anyConn := <-chAnyConn; anyConn != nil {
 			return dc, nil
 		}
-		return nil, fmt.Errorf("Timeout dialing both direct and detour connection to %s", addr)
+		return nil, fmt.Errorf("Timeout dialing any connection to %s", addr)
 	}
 }
 
@@ -158,28 +163,33 @@ func (dc *Conn) Read(b []byte) (n int, err error) {
 		conn.FirstRead(b, dc.chRead)
 	})
 	for i := 0; i < count; i++ {
-		result := <-dc.chRead
-		n, err = result.n, result.err
-		if err != nil && err != io.EOF {
-			log.Tracef("Read from %s through %s failed, set as invalid: %s", dc.addr, typeOf(result.conn), err)
-			result.conn.SetInvalid()
-			// skip failed connection
-			continue
-		}
-		log.Tracef("Read %d bytes from %s connection to %s", n, typeOf(result.conn), dc.addr)
-		dc.incReadBytes(n)
-		dc.runOnValidConn(func(c conn) {
-			if c != result.conn {
-				log.Tracef("Set %s connection to %s as invalid", typeOf(c), dc.addr)
-				c.SetInvalid()
-				// direct connection failed
-				if c.ConnType() == connTypeDirect {
-					log.Tracef("Add %s to whitelist", dc.addr)
-					AddToWl(dc.addr, false)
-				}
+		select {
+		/*case conn := <-dc.conns:
+		conn.FirstRead(b, dc.chRead)
+		i++*/
+		case result := <-dc.chRead:
+			n, err = result.n, result.err
+			if err != nil && err != io.EOF {
+				log.Tracef("Read from %s through %s failed, set as invalid: %s", dc.addr, typeOf(result.conn), err)
+				result.conn.SetInvalid()
+				// skip failed connection
+				continue
 			}
-		})
-		return
+			log.Tracef("Read %d bytes from %s connection to %s", n, typeOf(result.conn), dc.addr)
+			dc.incReadBytes(n)
+			dc.runOnValidConn(func(c conn) {
+				if c != result.conn {
+					log.Tracef("Set %s connection to %s as invalid", typeOf(c), dc.addr)
+					c.SetInvalid()
+					// direct connection failed
+					if c.ConnType() == connTypeDirect {
+						log.Tracef("Add %s to whitelist", dc.addr)
+						AddToWl(dc.addr, false)
+					}
+				}
+			})
+			return
+		}
 	}
 	return
 }
@@ -209,13 +219,20 @@ func (dc *Conn) Write(b []byte) (n int, err error) {
 		})
 	}
 	for i := 0; i < count; i++ {
-		result := <-dc.chWrite
-		if n, err = result.n, result.err; err != nil {
-			log.Tracef("Error writing %s connection to %s, %d attempt: %s", typeOf(result.conn), dc.addr, i+1, err)
-			continue
+		select {
+		/*case conn := <-dc.conns:
+		if !isNonIdempotentRequest(b) {
+			conn.Write(b, dc.chRead)
+			i++
+		}*/
+		case result := <-dc.chWrite:
+			if n, err = result.n, result.err; err != nil {
+				log.Tracef("Error writing %s connection to %s, %d attempt: %s", typeOf(result.conn), dc.addr, i+1, err)
+				continue
+			}
+			log.Tracef("Wrote %d bytes to %s connection to %s", n, typeOf(result.conn), dc.addr)
+			return
 		}
-		log.Tracef("Wrote %d bytes to %s connection to %s", n, typeOf(result.conn), dc.addr)
-		return
 	}
 	return
 }
