@@ -13,6 +13,7 @@ package detour
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"net"
 	"sync"
 	"sync/atomic"
@@ -161,8 +162,8 @@ func (dc *Conn) Read(b []byte) (n int, err error) {
 	for i := 0; i < count; i++ {
 		result := <-dc.chRead
 		n, err = result.n, result.err
-		if err != nil {
-			log.Tracef("Read from %s through %s failed, set as invalid", dc.addr, typeOf(result.conn))
+		if err != nil && err != io.EOF {
+			log.Tracef("Read from %s through %s failed, set as invalid: %s", dc.addr, typeOf(result.conn), err)
 			result.conn.SetInvalid()
 			// skip failed connection
 			continue

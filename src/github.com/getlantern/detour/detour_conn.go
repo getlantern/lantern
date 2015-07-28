@@ -16,6 +16,9 @@ type detourConn struct {
 
 	// 1 == true, 0 == false, atomic
 	markClose uint32
+
+	// 1 == true, 0 == false, atomic
+	errorEncountered uint32
 }
 
 func DialDetour(network string, addr string, dialer dialFunc, ch chan conn) {
@@ -40,7 +43,6 @@ func (dc *detourConn) Valid() bool {
 }
 
 func (dc *detourConn) SetInvalid() {
-	log.Tracef("Set detour conn to %s as invalid", dc.addr)
 	atomic.StoreUint32(&dc.valid, 0)
 	atomic.StoreUint32(&dc.markClose, 1)
 }
@@ -63,8 +65,7 @@ func (dc *detourConn) doRead(b []byte, ch chan ioResult) {
 		defer func() { ch <- ioResult{n, err, dc} }()
 		if err != nil {
 			if err != io.EOF {
-				// TODO: EOF should not occur here
-				//dc.errorEncountered = true
+				atomic.AddUint32(&dc.errorEncountered, 1)
 			}
 			return
 		}
@@ -85,8 +86,8 @@ func (dc *detourConn) Write(b []byte, ch chan ioResult) {
 
 func (dc *detourConn) Close() {
 	atomic.StoreUint32(&dc.markClose, 1)
-	/*if atomic.LoadUint64(&dc.readBytes) > 0 && !dc.errorEncountered {
+	if atomic.LoadUint64(&dc.readBytes) > 0 && atomic.LoadUint32(&dc.errorEncountered) == 0 {
 		log.Tracef("no error found till closing, add %s to whitelist", dc.addr)
 		AddToWl(dc.addr, false)
-	}*/
+	}
 }

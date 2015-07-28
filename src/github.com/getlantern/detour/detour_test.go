@@ -21,34 +21,19 @@ Connection:close
 </title></head><body><iframe src="http://10.10.34.34?type=Invalid Site&policy=MainPolicy " style="width: 100%; height: 100%" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" vspace="0" hspace="0"></iframe></body></html>Connection closed by foreign host.`
 )
 
-func TestTCPTimeout(t *testing.T) {
+func init() {
+	TimeoutToConnect = 150 * time.Millisecond
+	DelayBeforeDetour = 50 * time.Millisecond
+}
+
+func TestTampering(t *testing.T) {
 	defer stopMockServers()
 	proxiedURL, _ := newMockServer(detourMsg)
-	TimeoutToConnect = 100 * time.Millisecond
 
 	client := newClient(proxiedURL, 100*time.Millisecond)
 	resp, err := client.Get("http://255.0.0.1") // it's reserved for future use so will always time out
 	if assert.NoError(t, err, "should have no error when dial a timeout host") {
-		time.Sleep(100 * time.Millisecond)
-		assert.True(t, wlTemporarily("255.0.0.1:80"), "should be added to whitelist if dialing times out")
-		assertContent(t, resp, detourMsg, "should detour if dialing times out")
-	}
-}
-
-func TestReadTimeout(t *testing.T) {
-	defer stopMockServers()
-	proxiedURL, _ := newMockServer(detourMsg)
-	TimeoutToConnect = 100 * time.Millisecond
-
-	mockURL, mock := newMockServer("")
-	mock.Timeout(200*time.Millisecond, directMsg)
-	client := &http.Client{Timeout: 50 * time.Millisecond}
-	resp, err := client.Get(mockURL)
-	assert.Error(t, err, "direct access to a timeout url should fail")
-
-	client = newClient(proxiedURL, 100*time.Millisecond)
-	resp, err = client.Get("http://255.0.0.1") // it's reserved for future use so will always time out
-	if assert.NoError(t, err, "should have no error if dialing times out") {
+		time.Sleep(50 * time.Millisecond)
 		assert.True(t, wlTemporarily("255.0.0.1:80"), "should be added to whitelist if dialing times out")
 		assertContent(t, resp, detourMsg, "should detour if dialing times out")
 	}
@@ -56,14 +41,27 @@ func TestReadTimeout(t *testing.T) {
 	client = newClient(proxiedURL, 100*time.Millisecond)
 	resp, err = client.Get("http://127.0.0.1:4325") // hopefully this port didn't open, so connection will be refused
 	if assert.NoError(t, err, "should have no error if connection is refused") {
+		time.Sleep(50 * time.Millisecond)
 		assert.True(t, wlTemporarily("127.0.0.1:4325"), "should be added to whitelist if connection is refused")
 		assertContent(t, resp, detourMsg, "should detour if connection is refused")
 	}
+}
+
+func TestReadTimeout(t *testing.T) {
+	defer stopMockServers()
+	proxiedURL, _ := newMockServer(detourMsg)
+	mockURL, mock := newMockServer("")
+	mock.Timeout(200*time.Millisecond, directMsg)
+
+	client := &http.Client{Timeout: 50 * time.Millisecond}
+	resp, err := client.Get(mockURL)
+	assert.Error(t, err, "direct access to a timeout url should fail")
 
 	u, _ := url.Parse(mockURL)
 	client = newClient(proxiedURL, 100*time.Millisecond)
 	resp, err = client.Get(mockURL)
 	if assert.NoError(t, err, "should have no error if reading times out") {
+		time.Sleep(50 * time.Millisecond)
 		assert.True(t, wlTemporarily(u.Host), "should be added to whitelist if reading times out")
 		assertContent(t, resp, detourMsg, "should detour if reading times out")
 	}

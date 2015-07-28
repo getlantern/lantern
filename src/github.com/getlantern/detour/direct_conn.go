@@ -48,8 +48,7 @@ func DialDirect(network string, addr string, ch chan conn) {
 			ch <- &directConn{Conn: conn, addr: addr, valid: 1, readBytes: 0}
 			return
 		} else if detector.TamperingSuspected(err) {
-			log.Debugf("Dial directly to %s failed, add to whitelist: %s", addr, err)
-			AddToWl(addr, false)
+			log.Debugf("Dial directly to %s, tampering suspected: %s", addr, err)
 			return
 		}
 		log.Debugf("Dial directly to %s failed: %s", addr, err)
@@ -65,7 +64,6 @@ func (dc *directConn) Valid() bool {
 }
 
 func (dc *directConn) SetInvalid() {
-	log.Tracef("Set direct conn to %s as invalid", dc.addr)
 	atomic.StoreUint32(&dc.valid, 0)
 	atomic.StoreUint32(&dc.markClose, 1)
 	AddToWl(dc.addr, false)
@@ -84,7 +82,6 @@ func checkFirstRead(b []byte, n int, err error, addr string) bool {
 	detector := blockDetector.Load().(*Detector)
 	if err == nil {
 		if !detector.FakeResponse(b) {
-			log.Tracef("Read %d bytes from %s directly (first)", n, addr)
 			return true
 		}
 		log.Tracef("Read %d bytes from %s directly, response is hijacked", n, addr)
@@ -141,6 +138,7 @@ func (dc *directConn) doRead(b []byte, checker readChecker, ch chan ioResult) {
 			err = nil
 		}*/
 		if !checker(b, n, err, dc.addr) {
+			log.Tracef("Set direct conn to %s as invalid", dc.addr)
 			dc.SetInvalid()
 		}
 	}()
