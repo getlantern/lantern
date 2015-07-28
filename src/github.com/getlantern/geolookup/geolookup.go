@@ -122,7 +122,11 @@ func LookupIPWithClient(ipAddr string, httpClient *http.Client) (*City, error) {
 	if resp, err = httpClient.Do(req); err != nil {
 		return nil, fmt.Errorf("Could not get response from server: %q", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Debugf("Unable to close reponse body: %v", err)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		body := "body unreadable"
