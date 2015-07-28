@@ -352,11 +352,17 @@ func clientIpFor(req *http.Request) string {
 }
 
 func badGateway(resp http.ResponseWriter, msg string) {
-	log.Errorf("Responding Bad Gateway: %s", msg)
-	resp.WriteHeader(http.StatusBadGateway)
+	respond(http.StatusBadGateway, resp, fmt.Sprintf("Enproxy server responding Bad Gateway: %s", msg))
 }
 
 func forbidden(resp http.ResponseWriter, msg string) {
-	log.Errorf("Responding Forbidden: %s", msg)
-	resp.WriteHeader(http.StatusForbidden)
+	respond(http.StatusForbidden, resp, fmt.Sprintf("Enproxy server responding Forbidden: %s", msg))
+}
+
+func respond(status int, resp http.ResponseWriter, msg string) {
+	log.Errorf(msg)
+	resp.WriteHeader(status)
+	if _, err := resp.Write([]byte(msg)); err != nil {
+		log.Debugf("Unable to write response: %v", err)
+	}
 }

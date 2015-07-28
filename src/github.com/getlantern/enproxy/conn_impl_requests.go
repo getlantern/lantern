@@ -49,7 +49,7 @@ func (c *conn) processRequests(proxyConn *connInfo) {
 		increment(&writingProcessingRequest)
 		resp, err = c.doRequest(proxyConn, proxyHost, OP_WRITE, request)
 		decrement(&writingProcessingRequest)
-		log.Tracef("Issued write request with result: %v", err)
+		log.Debugf("Issued write request with result: %v", err)
 		increment(&writingProcessingRequestPostingRequestFinished)
 		c.requestFinishedCh <- err
 		decrement(&writingProcessingRequestPostingRequestFinished)

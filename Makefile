@@ -23,12 +23,12 @@ BUILD_DATE := $(shell date -u +%Y%m%d.%H%M%S)
 LOGGLY_TOKEN := 469973d5-6eaf-445a-be71-cf27141316a1
 
 LDFLAGS := -w -X main.version $(GIT_REVISION) -X main.revisionDate $(REVISION_DATE) -X main.buildDate $(BUILD_DATE) -X github.com/getlantern/flashlight/logging.logglyToken \"$(LOGGLY_TOKEN)\"
-LANTERN_DESCRIPTION := "Censorship circumvention tool"
-LANTERN_EXTENDED_DESCRIPTION := "Lantern allows you to access sites blocked by internet censorship.\nWhen you run it, Lantern reroutes traffic to selected domains through servers located where such domains aren't censored."
+LANTERN_DESCRIPTION := Censorship circumvention tool
+LANTERN_EXTENDED_DESCRIPTION := Lantern allows you to access sites blocked by internet censorship.\nWhen you run it, Lantern reroutes traffic to selected domains through servers located where such domains aren't censored.
 
-PACKAGE_VENDOR := "Brave New Software Project, Inc"
-PACKAGE_MAINTAINER := "Lantern Team <team@getlantern.org>"
-PACKAGE_URL := "https://www.getlantern.org"
+PACKAGE_VENDOR := Brave New Software Project, Inc
+PACKAGE_MAINTAINER := Lantern Team <team@getlantern.org>
+PACKAGE_URL := https://www.getlantern.org
 
 LANTERN_BINARIES_PATH ?= ../lantern-binaries
 
@@ -80,7 +80,7 @@ define docker-up
 endef
 
 define fpm-debian-build =
-	PKG_ARCH=$1 && \
+ 	PKG_ARCH=$1 && \
 	WORKDIR=$$(mktemp -dt "$$(basename $$0).XXXXXXXXXX") && \
 	INSTALLER_RESOURCES=./installer-resources/linux && \
 	\
@@ -312,7 +312,7 @@ package-linux-arm: require-version genassets linux-arm
 	$(call docker-up) && \
 	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" make docker-package-linux-arm'
 
-package-linux: require-version package-linux-386 package-linux-amd64 package-linux-arm
+package-linux: require-version package-linux-386 package-linux-amd64 
 
 package-windows: require-version windows
 	@echo "Generating distribution package for windows/386..." && \

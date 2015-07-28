@@ -208,11 +208,11 @@ func (cfg *Config) ApplyDefaults() {
 	}
 
 	if cfg.Addr == "" {
-		cfg.Addr = "localhost:8787"
+		cfg.Addr = "127.0.0.1:8787"
 	}
 
 	if cfg.UIAddr == "" {
-		cfg.UIAddr = "localhost:16823"
+		cfg.UIAddr = "127.0.0.1:16823"
 	}
 
 	if cfg.CloudConfig == "" {
