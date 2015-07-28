@@ -14,8 +14,8 @@ type detourConn struct {
 	// keep track of the total bytes read in this connection
 	readBytes uint64
 
-	markClose bool
-	//errorEncountered bool
+	// 1 == true, 0 == false, atomic
+	markClose uint32
 }
 
 func DialDetour(network string, addr string, dialer dialFunc, ch chan conn) {
@@ -42,7 +42,7 @@ func (dc *detourConn) Valid() bool {
 func (dc *detourConn) SetInvalid() {
 	log.Tracef("Set detour conn to %s as invalid", dc.addr)
 	atomic.StoreUint32(&dc.valid, 0)
-	dc.markClose = true
+	atomic.StoreUint32(&dc.markClose, 1)
 }
 
 func (dc *detourConn) FirstRead(b []byte, ch chan ioResult) {
@@ -56,7 +56,7 @@ func (dc *detourConn) FollowupRead(b []byte, ch chan ioResult) {
 func (dc *detourConn) doRead(b []byte, ch chan ioResult) {
 	go func() {
 		n, err := dc.Conn.Read(b)
-		if dc.markClose {
+		if atomic.LoadUint32(&dc.markClose) == 1 {
 			dc.Conn.Close()
 		}
 		atomic.AddUint64(&dc.readBytes, uint64(n))
@@ -65,11 +65,9 @@ func (dc *detourConn) doRead(b []byte, ch chan ioResult) {
 			if err != io.EOF {
 				// TODO: EOF should not occur here
 				//dc.errorEncountered = true
-				log.Tracef("Error while read from %s detoured: %s", dc.addr, err)
 			}
 			return
 		}
-		log.Tracef("Read %d bytes from %s detoured", n, dc.addr)
 	}()
 	return
 }
@@ -77,21 +75,16 @@ func (dc *detourConn) doRead(b []byte, ch chan ioResult) {
 func (dc *detourConn) Write(b []byte, ch chan ioResult) {
 	go func() {
 		n, err := dc.Conn.Write(b)
-		if dc.markClose {
+		if atomic.LoadUint32(&dc.markClose) == 1 {
 			dc.Conn.Close()
 		}
 		defer func() { ch <- ioResult{n, err, dc} }()
-		if err != nil {
-			log.Tracef("Error while write to %s detoured: %s", dc.addr, err)
-		} else {
-			log.Tracef("Wrote %d bytes to %s detoured", n, dc.addr)
-		}
 	}()
 	return
 }
 
 func (dc *detourConn) Close() {
-	dc.markClose = true
+	atomic.StoreUint32(&dc.markClose, 1)
 	/*if atomic.LoadUint64(&dc.readBytes) > 0 && !dc.errorEncountered {
 		log.Tracef("no error found till closing, add %s to whitelist", dc.addr)
 		AddToWl(dc.addr, false)

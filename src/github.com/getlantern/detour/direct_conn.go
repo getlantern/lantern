@@ -12,10 +12,11 @@ type directConn struct {
 	addr string
 	// 1 == true, 0 == false, atomic
 	valid uint32
-	// keep track of the total bytes read in this connection, atomic
+	// keep track of the total bytes read by this connection, atomic
 	readBytes uint64
 
-	markClose bool
+	// 1 == true, 0 == false, atomic
+	markClose uint32
 }
 
 var (
@@ -53,7 +54,6 @@ func DialDirect(network string, addr string, ch chan conn) {
 		}
 		log.Debugf("Dial directly to %s failed: %s", addr, err)
 	}()
-	return
 }
 
 func (dc *directConn) ConnType() connType {
@@ -67,7 +67,7 @@ func (dc *directConn) Valid() bool {
 func (dc *directConn) SetInvalid() {
 	log.Tracef("Set direct conn to %s as invalid", dc.addr)
 	atomic.StoreUint32(&dc.valid, 0)
-	dc.markClose = true
+	atomic.StoreUint32(&dc.markClose, 1)
 	AddToWl(dc.addr, false)
 }
 
@@ -129,7 +129,7 @@ func checkFollowupRead(b []byte, n int, err error, addr string) bool {
 func (dc *directConn) doRead(b []byte, checker readChecker, ch chan ioResult) {
 	go func() {
 		n, err := dc.Conn.Read(b)
-		if dc.markClose {
+		if atomic.LoadUint32(&dc.markClose) == 1 {
 			dc.Conn.Close()
 		}
 		atomic.AddUint64(&dc.readBytes, uint64(n))
@@ -150,21 +150,16 @@ func (dc *directConn) doRead(b []byte, checker readChecker, ch chan ioResult) {
 func (dc *directConn) Write(b []byte, ch chan ioResult) {
 	go func() {
 		n, err := dc.Conn.Write(b)
-		if dc.markClose {
+		if atomic.LoadUint32(&dc.markClose) == 1 {
 			dc.Conn.Close()
 		}
 		defer func() { ch <- ioResult{n, err, dc} }()
-		if err != nil {
-			log.Tracef("Error while write to %s directly: %s", dc.addr, err)
-		} else {
-			log.Tracef("Wrote %d bytes to %s directly", n, dc.addr)
-		}
 	}()
 	return
 }
 
 func (dc *directConn) Close() {
-	dc.markClose = true
+	atomic.StoreUint32(&dc.markClose, 1)
 	if atomic.LoadUint64(&dc.readBytes) > 0 && !wlTemporarily(dc.addr) {
 		log.Tracef("no error found till closing, notify caller that %s can be dialed directly", dc.addr)
 		// just fire it, but not blocking if the chan is nil or no reader
