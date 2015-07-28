@@ -3,6 +3,7 @@
 package jibber_jabber_test
 
 import (
+	"fmt"
 	. "github.com/pivotal-cf-experimental/jibber_jabber"
 	"os"
 
@@ -12,27 +13,37 @@ import (
 
 var _ = Describe("Unix", func() {
 	AfterEach(func() {
-		os.Setenv("LC_ALL", "")
-		os.Setenv("LANG", "en_US.UTF-8")
+		if err := os.Setenv("LC_ALL", ""); err != nil {
+			fmt.Errorf("Unable to set environment variable: %v", err)
+		}
+		if err := os.Setenv("LANG", "en_US.UTF-8"); err != nil {
+			fmt.Errorf("Unable to set environment variable: %v", err)
+		}
 	})
 
 	Describe("#DetectIETF", func() {
 		Context("Returns IETF encoded locale", func() {
 			It("should return the locale set to LC_ALL", func() {
-				os.Setenv("LC_ALL", "fr_FR.UTF-8")
+				if err := os.Setenv("LC_ALL", "fr_FR.UTF-8"); err != nil {
+					fmt.Errorf("Unable to set environment variable: %v", err)
+				}
 				result, _ := DetectIETF()
 				Ω(result).Should(Equal("fr-FR"))
 			})
 
 			It("should return the locale set to LANG if LC_ALL isn't set", func() {
-				os.Setenv("LANG", "fr_FR.UTF-8")
+				if err := os.Setenv("LANG", "fr_FR.UTF-8"); err != nil {
+					fmt.Errorf("Unable to set environment variable: %v", err)
+				}
 
 				result, _ := DetectIETF()
 				Ω(result).Should(Equal("fr-FR"))
 			})
 
 			It("should return an error if it cannot detect a locale", func() {
-				os.Setenv("LANG", "")
+				if err := os.Setenv("LANG", ""); err != nil {
+					fmt.Errorf("Unable to set environment variable: %v", err)
+				}
 
 				_, err := DetectIETF()
 				Ω(err.Error()).Should(Equal(COULD_NOT_DETECT_PACKAGE_ERROR_MESSAGE))
@@ -41,7 +52,9 @@ var _ = Describe("Unix", func() {
 
 		Context("when the locale is simply 'fr'", func() {
 			BeforeEach(func() {
-				os.Setenv("LANG", "fr")
+				if err := os.Setenv("LANG", "fr"); err != nil {
+					fmt.Errorf("Unable to set environment variable: %v", err)
+				}
 			})
 
 			It("should return the locale without a territory", func() {
@@ -55,20 +68,26 @@ var _ = Describe("Unix", func() {
 	Describe("#DetectLanguage", func() {
 		Context("Returns encoded language", func() {
 			It("should return the language set to LC_ALL", func() {
-				os.Setenv("LC_ALL", "fr_FR.UTF-8")
+				if err := os.Setenv("LC_ALL", "fr_FR.UTF-8"); err != nil {
+					fmt.Errorf("Unable to set environment variable: %v", err)
+				}
 				result, _ := DetectLanguage()
 				Ω(result).Should(Equal("fr"))
 			})
 
 			It("should return the language set to LANG if LC_ALL isn't set", func() {
-				os.Setenv("LANG", "fr_FR.UTF-8")
+				if err := os.Setenv("LANG", "fr_FR.UTF-8"); err != nil {
+					fmt.Errorf("Unable to set environment variable: %v", err)
+				}
 
 				result, _ := DetectLanguage()
 				Ω(result).Should(Equal("fr"))
 			})
 
 			It("should return an error if it cannot detect a language", func() {
-				os.Setenv("LANG", "")
+				if err := os.Setenv("LANG", ""); err != nil {
+					fmt.Errorf("Unable to set environment variable: %v", err)
+				}
 
 				_, err := DetectLanguage()
 				Ω(err.Error()).Should(Equal(COULD_NOT_DETECT_PACKAGE_ERROR_MESSAGE))
@@ -79,20 +98,26 @@ var _ = Describe("Unix", func() {
 	Describe("#DetectTerritory", func() {
 		Context("Returns encoded territory", func() {
 			It("should return the territory set to LC_ALL", func() {
-				os.Setenv("LC_ALL", "fr_FR.UTF-8")
+				if err := os.Setenv("LC_ALL", "fr_FR.UTF-8"); err != nil {
+					fmt.Errorf("Unable to set environment variable: %v", err)
+				}
 				result, _ := DetectTerritory()
 				Ω(result).Should(Equal("FR"))
 			})
 
 			It("should return the territory set to LANG if LC_ALL isn't set", func() {
-				os.Setenv("LANG", "fr_FR.UTF-8")
+				if err := os.Setenv("LANG", "fr_FR.UTF-8"); err != nil {
+					fmt.Errorf("Unable to set environment variable: %v", err)
+				}
 
 				result, _ := DetectTerritory()
 				Ω(result).Should(Equal("FR"))
 			})
 
 			It("should return an error if it cannot detect a territory", func() {
-				os.Setenv("LANG", "")
+				if err := os.Setenv("LANG", ""); err != nil {
+					fmt.Errorf("Unable to set environment variable: %v", err)
+				}
 
 				_, err := DetectTerritory()
 				Ω(err.Error()).Should(Equal(COULD_NOT_DETECT_PACKAGE_ERROR_MESSAGE))
