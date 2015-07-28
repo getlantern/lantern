@@ -217,7 +217,9 @@ func (h *host) initCloudfront() {
 
 func (h *host) doInitCfrDist() {
 	if h.cfrDist != nil && h.cfrDist.Status == "InProgress" {
-		cfr.RefreshStatus(cfrutil, h.cfrDist)
+		if err := cfr.RefreshStatus(cfrutil, h.cfrDist); err != nil {
+			log.Debugf("Unable to refresh status: %v", err)
+		}
 	}
 	if h.cfrDist == nil {
 		dist, err := cfr.CreateDistribution(
@@ -525,7 +527,9 @@ func (h *host) reallyDoIsAbleToProxy(port string) (bool, bool, error) {
 		err2 := fmt.Errorf("Unable to connect to %v: %v", addr, err)
 		return false, strings.Contains(err.Error(), "connection refused"), err2
 	}
-	conn.Close()
+	if err := conn.Close(); err != nil {
+		log.Debugf("Unable to close connection: %v", err)
+	}
 
 	// Now actually try to proxy an http request
 	site := testSites[rand.Intn(len(testSites))]
@@ -533,7 +537,11 @@ func (h *host) reallyDoIsAbleToProxy(port string) (bool, bool, error) {
 	if err != nil {
 		return false, false, fmt.Errorf("Unable to make proxied HEAD request to %v: %v", site, err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Debugf("Unable to close response body: %v", err)
+		}
+	}()
 
 	if resp.StatusCode != 200 && resp.StatusCode != 301 {
 		err2 := fmt.Errorf("Proxying to %v via %v returned unexpected status %d,", site, h.ip, resp.StatusCode)
