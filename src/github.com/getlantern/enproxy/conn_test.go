@@ -116,7 +116,7 @@ func TestHTTPRedirect(t *testing.T) {
 	resp, err := client.Head("http://www.facebook.com")
 	if assert.NoError(t, err, "Head request to facebook should have succeeded") {
 		if err := resp.Body.Close(); err != nil {
-			log.Debugf("Unable to close response body", err)
+			log.Debugf("Unable to close response body: %v", err)
 		}
 	}
 
