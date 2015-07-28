@@ -15,7 +15,6 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -36,9 +35,8 @@ var (
 type dialFunc func(network, addr string) (net.Conn, error)
 
 type Conn struct {
-	muConn sync.RWMutex
-	// the underlie connections, access to it should be protected by muConn.
-	conns []conn
+	// the underlie connections, uses buffered channel as ring queue.
+	conns chan conn
 
 	// the chan to receive result of any read operation
 	chRead chan ioResult
@@ -89,7 +87,7 @@ func typeOf(c conn) string {
 // Dialer returns a function with same signature of net.Dialer.Dial().
 func Dialer(df dialFunc) dialFunc {
 	return func(network, addr string) (net.Conn, error) {
-		dc := &Conn{network: network, addr: addr, conns: []conn{}, chRead: make(chan ioResult), chWrite: make(chan ioResult)}
+		dc := &Conn{network: network, addr: addr, conns: make(chan conn, 2), chRead: make(chan ioResult), chWrite: make(chan ioResult)}
 		// buffered channel, as we may send twice to it but only receive once
 		chAnyConn := make(chan conn, 1)
 		ch := make(chan conn)
@@ -110,9 +108,7 @@ func Dialer(df dialFunc) dialFunc {
 						conn.Close()
 						return
 					}
-					dc.muConn.Lock()
-					dc.conns = append(dc.conns, conn)
-					dc.muConn.Unlock()
+					dc.conns <- conn
 					chAnyConn <- conn
 				case <-t.C:
 					if i == 0 {
@@ -131,13 +127,15 @@ func Dialer(df dialFunc) dialFunc {
 }
 
 func (dc *Conn) runOnValidConn(f func(conn)) (count int) {
-	dc.muConn.RLock()
-	defer dc.muConn.RUnlock()
-	for _, conn := range dc.conns {
-		if conn.Valid() {
-			f(conn)
-			count++
+	for i := 0; i < len(dc.conns); i++ {
+		conn := <-dc.conns
+		if !conn.Valid() {
+			conn.Close()
+			continue
 		}
+		f(conn)
+		dc.conns <- conn
+		count++
 	}
 	return
 }
@@ -223,20 +221,22 @@ func (dc *Conn) Write(b []byte) (n int, err error) {
 }
 
 func (dc *Conn) writeNonIdeomponent(b []byte) (count int) {
-	dc.muConn.RLock()
-	defer dc.muConn.RUnlock()
 	log.Tracef("For non ideomponent operation to %s, try write directly first", dc.addr)
-	for _, conn := range dc.conns {
+	for i := 0; i < len(dc.conns); i++ {
+		conn := <-dc.conns
 		if conn.Valid() && conn.ConnType() == connTypeDirect {
 			conn.Write(b, dc.chWrite)
+			dc.conns <- conn
 			count++
 			return
 		}
 	}
 	log.Tracef("No valid direct connection to %s, write to other (detour)", dc.addr)
-	for _, conn := range dc.conns {
+	for i := 0; i < len(dc.conns); i++ {
+		conn := <-dc.conns
 		if conn.Valid() {
 			conn.Write(b, dc.chWrite)
+			dc.conns <- conn
 			count++
 			return
 		}
