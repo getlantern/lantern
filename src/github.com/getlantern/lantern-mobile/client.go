@@ -68,7 +68,9 @@ func newClient(addr, appName string) *mobileClient {
 		fronter: hqfd.NewDirectDomainFronter(),
 		appName: appName,
 	}
-	mClient.updateConfig()
+	if err := mClient.updateConfig(); err != nil {
+		log.Debugf("Unable to update config: %v", err)
+	}
 	return mClient
 }
 
@@ -137,7 +139,9 @@ func (client *mobileClient) pollConfiguration() {
 			return
 		case <-pollTimer.C:
 			// Attempt to update configuration.
-			client.updateConfig()
+			if err := client.updateConfig(); err != nil {
+				log.Debugf("Unable to update config: %v", err)
+			}
 
 			// Sleeping 'till next pull.
 			// update timer to poll every 60 seconds
