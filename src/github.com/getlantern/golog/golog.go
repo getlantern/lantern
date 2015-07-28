@@ -195,8 +195,16 @@ func (l *logger) newTraceWriter() io.Writer {
 		return pw
 	}
 	go func() {
-		defer pr.Close()
-		defer pw.Close()
+		defer func() {
+			if err := pr.Close(); err != nil {
+				errorOnLogging(err)
+			}
+		}()
+		defer func() {
+			if err := pw.Close(); err != nil {
+				errorOnLogging(err)
+			}
+		}()
 
 		for {
 			line, err := br.ReadString('\n')
