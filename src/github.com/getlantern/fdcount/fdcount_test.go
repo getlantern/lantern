@@ -82,7 +82,7 @@ func TestWaitUntilNoneMatchOK(t *testing.T) {
 	}
 	defer func() {
 		if err := conn.Close(); err != nil {
-			t.Fatalf("Unable to close connection: %v", err)
+			fmt.Println("Unable to close connection: %v", err)
 		}
 	}()
 
