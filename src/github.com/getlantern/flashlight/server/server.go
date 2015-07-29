@@ -139,22 +139,22 @@ func (server *Server) ListenAndServe(updateConfig func(func(*ServerConfig) error
 	}
 
 	if server.AllowedPorts != nil || server.AllowedCountries != nil {
-		fs.Allow = func(req *http.Request, destAddr string) error {
+		fs.Allow = func(req *http.Request, destAddr string) (int, error) {
 			if server.AllowedPorts != nil {
 				err := server.checkForDisallowedPort(destAddr)
 				if err != nil {
-					return err
+					return http.StatusForbidden, fmt.Errorf("Port not allowed in %v", destAddr)
 				}
 			}
 
 			if server.AllowedCountries != nil {
 				err := server.checkForDisallowedCountry(req)
 				if err != nil {
-					return err
+					return http.StatusForbidden, fmt.Errorf("Origin country not allowed")
 				}
 			}
 
-			return nil
+			return http.StatusOK, nil
 		}
 	}
 
