@@ -16,7 +16,6 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"runtime/debug"
 	"sync/atomic"
 	"time"
 
@@ -42,6 +41,8 @@ type dialFunc func(network, addr string) (net.Conn, error)
 type Conn struct {
 	// the underlie connections, uses buffered channel as ring queue.
 	conns chan conn
+	// the channel to notify read/write than a new connection is available
+	chDetourConn chan conn
 
 	// the chan to receive result of any read operation
 	chRead chan ioResult
@@ -54,6 +55,8 @@ type Conn struct {
 	readBytes uint64
 
 	network, addr string
+
+	writeBuffer *bytes.Buffer
 }
 
 // The data structure to pass result of io operation back from underlie connection
@@ -89,34 +92,50 @@ func typeOf(c conn) string {
 // Dialer returns a function with same signature of net.Dialer.Dial().
 func Dialer(detourDialer dialFunc) dialFunc {
 	return func(network, addr string) (net.Conn, error) {
-		dc := &Conn{network: network, addr: addr, conns: make(chan conn, 2), chRead: make(chan ioResult), chWrite: make(chan ioResult), chClose: make(chan interface{}, 2)}
+		var b []byte
+		dc := &Conn{
+			network:      network,
+			addr:         addr,
+			writeBuffer:  bytes.NewBuffer(b),
+			conns:        make(chan conn, 2),
+			chDetourConn: make(chan conn, 1),
+			chRead:       make(chan ioResult),
+			chWrite:      make(chan ioResult),
+			chClose:      make(chan interface{}, 2),
+		}
 		// use buffered channel, as we may send twice to it but only receive once
 		chAnyConn := make(chan bool, 1)
 		ch := make(chan conn)
-		loopCount := 2
+		var loopCount uint32 = 1
 		if whitelisted(addr) {
-			loopCount = 1
 			DialDetour(network, addr, detourDialer, ch)
 		} else {
 			go func() {
 				DialDirect(network, addr, ch)
 				time.Sleep(DelayBeforeDetour)
-				DialDetour(network, addr, detourDialer, ch)
+				if dc.anyDataReceived() {
+					atomic.AddUint32(&loopCount, 1)
+					DialDetour(network, addr, detourDialer, ch)
+				}
 			}()
 		}
 		go func() {
 			t := time.NewTimer(TimeoutToConnect)
 			defer t.Stop()
-			for i := 0; i < loopCount; i++ {
+			for i := 0; uint32(i) < atomic.LoadUint32(&loopCount); i++ {
 				select {
 				case c := <-ch:
-					if dc.anyDataReceived() {
-						log.Debugf("%s connection to %s established too late, close it", typeOf(c), dc.addr)
-						c.Close()
-						return
+					if i == 0 {
+						dc.conns <- c
+						chAnyConn <- true
+					} else {
+						if c.ConnType() == connTypeDirect || dc.anyDataReceived() {
+							log.Debugf("%s connection to %s established too late, close it", typeOf(c), dc.addr)
+							c.Close()
+							return
+						}
+						dc.chDetourConn <- c
 					}
-					dc.conns <- c
-					chAnyConn <- true
 				case <-t.C:
 					// still no connection made
 					chAnyConn <- false
@@ -146,16 +165,22 @@ func (dc *Conn) Read(b []byte) (n int, err error) {
 	if dc.anyDataReceived() {
 		return dc.followupRead(b)
 	}
-	for {
+	conn := <-dc.conns
+	conn.FirstRead(b, dc.chRead)
+	dc.conns <- conn
+	for count := 1; count > 0; count-- {
 		select {
-		case conn := <-dc.conns:
-			conn.FirstRead(b, dc.chRead)
+		case newConn := <-dc.chDetourConn:
+			newConn.FirstRead(b, dc.chRead)
+			count++
+			dc.chDetourConn <- newConn
 		case result := <-dc.chRead:
+			log.Tracef("Read back from %s connection", typeOf(result.conn))
 			n, err = result.n, result.err
 			if err != nil && err != io.EOF {
 				log.Tracef("Read from %s connection to %s failed: %s", typeOf(result.conn), dc.addr, err)
 				// skip failed connection
-				if len(dc.conns) > 0 {
+				if count > 1 {
 					continue
 				}
 				// no more connections, return directly to avoid dead lock
@@ -163,17 +188,6 @@ func (dc *Conn) Read(b []byte) (n int, err error) {
 			}
 			log.Tracef("Read %d bytes from %s connection to %s", n, typeOf(result.conn), dc.addr)
 			dc.incReadBytes(n)
-			for i := 0; i < len(dc.conns); i++ {
-				c := <-dc.conns
-				log.Tracef("Close %s connection to %s", typeOf(c), dc.addr)
-				c.Close()
-				// direct connection failed
-				if c.ConnType() == connTypeDirect {
-					log.Tracef("Add %s to whitelist", dc.addr)
-					AddToWl(dc.addr, false)
-				}
-			}
-			dc.conns <- result.conn
 			return n, err
 		}
 	}
@@ -196,49 +210,34 @@ func (dc *Conn) Write(b []byte) (n int, err error) {
 	if dc.anyDataReceived() {
 		return dc.followUpWrite(b)
 	}
-	for {
+	dc.writeBuffer.Write(b)
+	conn := <-dc.conns
+	conn.Write(b, dc.chWrite)
+	dc.conns <- conn
+	for count := 1; count > 0; count-- {
 		select {
-		case conn := <-dc.conns:
+		case c := <-dc.chDetourConn:
 			if isNonIdempotentRequest(b) {
-				dc.conns <- conn
-				dc.writeNonIdeomponent(b)
-			} else {
-				conn.Write(b, dc.chRead)
-				dc.conns <- conn
+				c.Close()
+				return
 			}
+			count++
+			c.Write(dc.writeBuffer.Bytes(), dc.chWrite)
+			// add new connection to connections
+			dc.conns <- c
+			dc.chDetourConn <- c
 		case result := <-dc.chWrite:
 			if n, err = result.n, result.err; err != nil {
 				log.Tracef("Error writing %s connection to %s: %s", typeOf(result.conn), dc.addr, err)
-				if len(dc.conns) == 0 {
-					return
-				}
 				result.conn.Close()
-				continue
+				if count > 0 {
+					continue
+				}
+				return
 			}
 			log.Tracef("Wrote %d bytes to %s connection to %s", n, typeOf(result.conn), dc.addr)
 			return
 		}
-	}
-	return
-}
-
-func (dc *Conn) writeNonIdeomponent(b []byte) {
-	log.Tracef("For non ideomponent operation to %s, try write directly first", dc.addr)
-	for len(dc.conns) > 0 {
-		conn := <-dc.conns
-		if conn.ConnType() == connTypeDirect {
-			conn.Write(b, dc.chWrite)
-			dc.conns <- conn
-			return
-		}
-		dc.conns <- conn
-	}
-	log.Tracef("No valid direct connection to %s, write to other (detour)", dc.addr)
-	for len(dc.conns) > 0 {
-		conn := <-dc.conns
-		conn.Write(b, dc.chWrite)
-		dc.conns <- conn
-		return
 	}
 	return
 }
@@ -255,7 +254,6 @@ func (dc *Conn) followUpWrite(b []byte) (n int, err error) {
 // Close() implements the function from net.Conn
 func (dc *Conn) Close() error {
 	log.Tracef("Closing connection to %s", dc.addr)
-	debug.PrintStack()
 	dc.chClose <- nil
 	dc.chClose <- nil
 	for len(dc.conns) > 0 {
