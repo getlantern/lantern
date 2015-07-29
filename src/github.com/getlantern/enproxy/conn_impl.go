@@ -48,7 +48,7 @@ func Dial(addr string, config *Config) (net.Conn, error) {
 		}
 		// Close the initial proxyConn just in case
 		if err := proxyConn.conn.Close(); err != nil {
-			log.Debugf("Unable to close proxy connection", err)
+			log.Debugf("Unable to close proxy connection: %v", err)
 		}
 	}), nil
 }
