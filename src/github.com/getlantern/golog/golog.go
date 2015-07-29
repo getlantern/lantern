@@ -252,11 +252,11 @@ func (l *logger) doPrintStack() {
 		if funcForPc == nil {
 			break
 		}
-		file, line := funcForPc.FileLine(pc)
 		name := funcForPc.Name()
 		if strings.HasPrefix(name, "runtime.") {
 			break
 		}
+		file, line := funcForPc.FileLine(pc)
 		fmt.Fprintf(buf, "\t%s\t%s: %d\n", name, file, line)
 	}
 	buf.WriteTo(os.Stderr)
