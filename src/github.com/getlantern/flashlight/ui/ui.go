@@ -69,9 +69,20 @@ func Start(tcpAddr *net.TCPAddr, allowRemote bool) (err error) {
 		addr = &net.TCPAddr{Port: tcpAddr.Port}
 	}
 	if l, err = net.ListenTCP("tcp4", addr); err != nil {
-		return fmt.Errorf("Unable to listen at %v: %v", addr, l)
+		return fmt.Errorf("Unable to listen at %v: %v. Error is: %v", addr, l, err)
 	}
 
+	// This allows a second Lantern running on the system to trigger the existing
+	// Lantern to show the UI, or at least try to
+	handler := func(resp http.ResponseWriter, req *http.Request) {
+		// If we're allowing remote, we're in practice not showing the UI on this
+		// typically headless system, so don't allow triggering of the UI.
+		if !allowRemote {
+			Show()
+		}
+		resp.WriteHeader(http.StatusOK)
+	}
+	r.Handle("/startup", http.HandlerFunc(handler))
 	r.Handle("/", http.FileServer(fs))
 
 	server = &http.Server{
