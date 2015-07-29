@@ -113,7 +113,7 @@ func read() {
 			return nil
 		})
 		if err != nil {
-			log.Debugf("Unable to update settings: %v", err)
+			log.Errorf("Unable to update settings: %v", err)
 		}
 	}
 }

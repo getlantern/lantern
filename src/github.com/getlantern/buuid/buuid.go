@@ -63,7 +63,7 @@ func (id ID) Write(b []byte) error {
 func (id ID) ToBytes() []byte {
 	b := make([]byte, EncodedLength)
 	if err := id.Write(b); err != nil {
-		log.Debugf("Unable to write as 16-bytes representation: %v", err)
+		log.Errorf("Unable to write as 16-bytes representation: %v", err)
 	}
 	return b
 }
@@ -77,7 +77,7 @@ func FromString(s string) (ID, error) {
 func (id ID) String() string {
 	b := uuid.UUID(make([]byte, EncodedLength))
 	if err := id.Write([]byte(b)); err != nil {
-		log.Debugf("Unable to write as string: %v", err)
+		log.Errorf("Unable to write as string: %v", err)
 	}
 	return b.String()
 }

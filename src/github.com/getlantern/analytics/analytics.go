@@ -78,7 +78,7 @@ func Configure(trackingId string, version string, proxyAddr string) {
 		}
 		// Store new session info whenever client proxy is ready
 		if status, err := sessionEvent(trackingId, version); err != nil {
-			log.Debugf("Unable to store new session info: %v", err)
+			log.Errorf("Unable to store new session info: %v", err)
 		} else {
 			log.Tracef("Storing new session info: %v", status)
 		}

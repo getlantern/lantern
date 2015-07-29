@@ -69,7 +69,7 @@ func newClient(addr, appName string) *mobileClient {
 		appName: appName,
 	}
 	if err := mClient.updateConfig(); err != nil {
-		log.Debugf("Unable to update config: %v", err)
+		log.Errorf("Unable to update config: %v", err)
 	}
 	return mClient
 }
@@ -140,7 +140,7 @@ func (client *mobileClient) pollConfiguration() {
 		case <-pollTimer.C:
 			// Attempt to update configuration.
 			if err := client.updateConfig(); err != nil {
-				log.Debugf("Unable to update config: %v", err)
+				log.Errorf("Unable to update config: %v", err)
 			}
 
 			// Sleeping 'till next pull.
