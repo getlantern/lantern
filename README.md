@@ -37,6 +37,11 @@ Install by copying it into the local `.git/hooks/` directory, with the `pre-push
 file name if you want to run it before pushing. Alternatively, you can name it
 `pre-commit` to run it before each commit..
 
+**Important notice**
+
+If you *must* commit without running the hooks, you can run git with the
+`--no-verify` flag.
+
 
 ### Building the docker image
 
