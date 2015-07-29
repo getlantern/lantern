@@ -17,6 +17,27 @@ for Windows and Linux, in order to compile Lantern for OSX you'll need an OSX
 host, this is a limitation caused by Lantern depending on C code and OSX build
 tools for certain features.
 
+
+### Contributing changes
+
+Go code in Lantern must pass several tests:
+
+* [errcheck](https://github.com/kisielk/errcheck)
+* [golint](https://github.com/golang/lint)
+* Go vet
+* Go test -race
+
+You can find a generic [git-hook](https://github.com/getlantern/lantern/blob/valencia/git-hook)
+file, which can be used as a pre-push (or pre-commit) hook to automatically
+ensure these tests are passed before committing any code. Only Go packages in
+`src/github.com/getlantern` will be tested, and only those that have changes in
+them.
+
+Install by copying it into the local `.git/hooks/` directory, with the `pre-push`
+file name if you want to run it before pushing. Alternatively, you can name it
+`pre-commit` to run it before each commit..
+
+
 ### Building the docker image
 
 In order to build the docker image open a terminal, `cd` into the
