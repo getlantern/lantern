@@ -253,9 +253,9 @@ func runClientProxy(cfg *config.Config) {
 	watchDirectAddrs()
 
 	go func() {
-		addExitFunc(pacOff)
 		err := client.ListenAndServe(func() {
 			pacOn()
+			addExitFunc(pacOff)
 			if showui && !*startup {
 				// Launch a browser window with Lantern but only after the pac
 				// URL and the proxy server are all up and running to avoid
@@ -267,7 +267,7 @@ func runClientProxy(cfg *config.Config) {
 			}
 		})
 		if err != nil {
-			log.Errorf("Error calling listen and serve: %v", err)
+			exit(fmt.Errorf("Error calling listen and serve: %v", err))
 		}
 	}()
 }
