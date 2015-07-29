@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"runtime"
@@ -218,8 +219,13 @@ func runClientProxy(cfg *config.Config) {
 	if err != nil {
 		exit(fmt.Errorf("Unable to resolve UI address: %v", err))
 	}
-	if err := ui.Start(tcpAddr, !showui); err != nil {
-		exit(fmt.Errorf("Unable to start UI: %v", err))
+
+	if err = ui.Start(tcpAddr, !showui); err != nil {
+		// This very likely means Lantern is already running on our port. Tell
+		// it to open a browser. This is useful, for example, when the user
+		// clicks the Lantern desktop shortcut when Lantern is already running.
+		showExistingUi(cfg.UIAddr)
+		exit(fmt.Errorf("Unable to start UI: %s", err))
 		return
 	}
 
@@ -247,9 +253,9 @@ func runClientProxy(cfg *config.Config) {
 	watchDirectAddrs()
 
 	go func() {
-		addExitFunc(pacOff)
 		err := client.ListenAndServe(func() {
 			pacOn()
+			addExitFunc(pacOff)
 			if showui && !*startup {
 				// Launch a browser window with Lantern but only after the pac
 				// URL and the proxy server are all up and running to avoid
@@ -261,9 +267,25 @@ func runClientProxy(cfg *config.Config) {
 			}
 		})
 		if err != nil {
-			log.Errorf("Error calling listen and serve: %v", err)
+			exit(fmt.Errorf("Error calling listen and serve: %v", err))
 		}
 	}()
+}
+
+// showExistingUi triggers an existing Lantern running on the same system to
+// open a browser to the Lantern start page.
+func showExistingUi(tcpAddr string) {
+	url := "http://" + tcpAddr + "/startup"
+	log.Debugf("Hitting local URL: %v", url)
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Debugf("Could not hit local lantern")
+		if err = resp.Body.Close(); err != nil {
+			log.Debugf("Error closing body! %s", err)
+		}
+	} else {
+		log.Debugf("Got response from local Lantern: %v", resp.Status)
+	}
 }
 
 // addExitFunc adds a function to be called before the application exits.
