@@ -155,7 +155,7 @@ func pacOff() {
 }
 
 func doPACOn() {
-	err := pac.On(pacURL)
+	err := pac.Off()
 	if err != nil {
 		log.Errorf("Unable to set lantern as system proxy: %v", err)
 	}
