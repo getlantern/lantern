@@ -67,20 +67,23 @@ func Init() error {
 }
 
 func Configure(addr string, cloudConfigCA string, instanceId string,
-	version string, revisionDate string) {
+	version string, revisionDate string) (done chan bool) {
 	if logglyToken == "" {
-		log.Debugf("No logglyToken, not sending error logs to Loggly")
-		return
+		//log.Debugf("No logglyToken, not sending error logs to Loggly")
+		logglyToken = "testLogglyToken"
+		//return
 	}
 
 	if version == "" {
-		log.Error("No version configured, not sending error logs to Loggly")
-		return
+		//log.Error("No version configured, not sending error logs to Loggly")
+		version = "testVersion"
+		//return
 	}
 
 	if revisionDate == "" {
-		log.Error("No build date configured, not sending error logs to Loggly")
-		return
+		//log.Error("No build date configured, not sending error logs to Loggly")
+		revisionDate = "testRevisionDate"
+		//return
 	}
 
 	if addr == lastAddr {
@@ -90,10 +93,14 @@ func Configure(addr string, cloudConfigCA string, instanceId string,
 
 	// Using a goroutine because we'll be using waitforserver and at this time
 	// the proxy is not yet ready.
+	done = make(chan bool, 1)
 	go func() {
 		lastAddr = addr
 		enableLoggly(addr, cloudConfigCA, instanceId, version, revisionDate)
+		// Won't block, but will allow blocking on receiver
+		done <- true
 	}()
+	return
 }
 
 func Close() error {
