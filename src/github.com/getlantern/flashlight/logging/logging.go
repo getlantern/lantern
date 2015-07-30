@@ -74,12 +74,12 @@ func Configure(addr string, cloudConfigCA string, instanceId string,
 	}
 
 	if version == "" {
-		log.Error("No version configured, Loggly won't include version information")
+		log.Error("No version configured, not sending error logs to Loggly")
 		return
 	}
 
 	if revisionDate == "" {
-		log.Error("No build date configured, Loggly won't include build date information")
+		log.Error("No build date configured, not sending error logs to Loggly")
 		return
 	}
 
