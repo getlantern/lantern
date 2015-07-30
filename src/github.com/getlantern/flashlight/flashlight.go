@@ -45,9 +45,10 @@ var (
 	log = golog.LoggerFor("flashlight")
 
 	// Command-line Flags
-	help     = flag.Bool("help", false, "Get usage help")
-	headless = flag.Bool("headless", false, "if true, lantern will run with no ui")
-	startup  = flag.Bool("startup", false, "if true, Lantern was automatically run on system startup")
+	help               = flag.Bool("help", false, "Get usage help")
+	headless           = flag.Bool("headless", false, "if true, lantern will run with no ui")
+	startup            = flag.Bool("startup", false, "if true, Lantern was automatically run on system startup")
+	clearProxySettings = flag.Bool("clear-proxy-settings", false, "if true, Lantern removes proxy settings from the system.")
 
 	showui = true
 
@@ -84,6 +85,18 @@ func init() {
 
 func main() {
 	parseFlags()
+
+	if *clearProxySettings {
+		// This is a workaround that attempts to fix a Windows-only problem where
+		// Lantern was unable to clean the system's proxy settings before logging
+		// off.
+		//
+		// See: https://github.com/getlantern/lantern/issues/2776
+		setUpPacTool()
+		doPACOff()
+		return
+	}
+
 	showui = !*headless
 
 	if showui {
