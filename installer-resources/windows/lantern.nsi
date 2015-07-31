@@ -83,6 +83,10 @@ Section
     # This is a bad registry entry created by old Lantern versions.
     DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Run\value"
 
+    # Add a registry key to set -clear-proxy-settings. See https://github.com/getlantern/lantern/issues/2776
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Run" \
+                     "Lantern" "$\"$INSTDIR\lantern.exe$\" -clear-proxy-settings"
+
     # Launch Lantern
     ShellExecAsUser::ShellExecAsUser "" "$INSTDIR\lantern.exe"
 
