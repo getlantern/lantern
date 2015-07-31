@@ -50,11 +50,14 @@ func (s *Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(resp, "Unable to dial %s : %s", address, err)
 		return
 	}
-	defer func() {
-		if err := connOut.Close(); err != nil {
-			log.Debugf("Unable to close connection: %v", err)
+
+	closeConnection := func(conn net.Conn) {
+		if err := conn.Close(); err != nil {
+			log.Errorf("Unable to close connection: %v", err)
 		}
-	}()
+	}
+
+	defer closeConnection(connOut)
 	resp.WriteHeader(http.StatusOK)
 	fmt.Fprint(resp, "CONNECT OK")
 	fl.Flush()
@@ -64,23 +67,19 @@ func (s *Server) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		log.Errorf("Unable to hijack connection: %s", err)
 		return
 	}
-	defer func() {
-		if err := connIn.Close(); err != nil {
-			log.Debugf("Unable to close In connection", err)
-		}
-	}()
+	defer closeConnection(connIn)
 
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go func() {
 		if _, err := io.Copy(connOut, connIn); err != nil {
-			log.Debugf("Unable to pipe in->out: %v", err)
+			log.Errorf("Unable to pipe in->out: %v", err)
 		}
 		wg.Done()
 	}()
 	go func() {
 		if _, err := io.Copy(connIn, connOut); err != nil {
-			log.Debugf("Unable to pipe out->in: %v", err)
+			log.Errorf("Unable to pipe out->in: %v", err)
 		}
 		wg.Done()
 	}()
