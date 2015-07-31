@@ -56,9 +56,8 @@ func init() {
 			}
 			go func() {
 				tlsConn := conn.(*tls.Conn)
-				if err := tlsConn.Handshake(); err != nil {
-					log.Fatalf("Unable to proceed with handshake: %v", err)
-				}
+				// Discard this error, since we will use it for testing
+				_ = tlsConn.Handshake()
 				serverName := tlsConn.ConnectionState().ServerName
 				if err := conn.Close(); err != nil {
 					log.Fatalf("Unable to close connection: %v", err)
