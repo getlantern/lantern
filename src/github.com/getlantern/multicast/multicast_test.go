@@ -112,19 +112,30 @@ func TestMulticastMessages(t *testing.T) {
 	}
 
 	b := make([]byte, messageMaxSize)
-	n, _, e := mc2.read(b)
-	if e != nil {
-		t.Fatal("Unable to multicast message")
-	}
-	if n > 0 {
-		var msg multicastMessage
-		if e = json.Unmarshal(b[:n], &msg); e != nil || msg.Type != typeHello || msg.Payload != "testHello" {
-			stdLog.Println(string(b[:n]))
-			stdLog.Println(msg)
-			t.Fatal("Multicast Hello message is incorrectly formatted")
+	var msg multicastMessage
+Out:
+	for {
+		if n, _, err := mc2.read(b); err != nil {
+			t.Fatal("Error reading multicast message")
+		} else {
+			if err := json.Unmarshal(b[:n], &msg); err != nil {
+				t.Fatal("Error unmarshalling multicast message")
+			} else {
+				switch msg.Type {
+				case typeHello:
+					if msg.Payload != "testHello" {
+						stdLog.Println(string(b[:n]))
+						stdLog.Println(msg)
+						t.Fatal("Multicast Hello message is incorrectly formatted")
+					}
+					break Out
+				case typeBye:
+					continue
+				default:
+					t.Fatal("Unknown multicast message type")
+				}
+			}
 		}
-	} else {
-		stdLog.Println("Received 0 bytes")
 	}
 
 	mc1.LeaveMulticast()
