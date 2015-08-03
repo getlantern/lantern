@@ -29,6 +29,7 @@ LANTERN_EXTENDED_DESCRIPTION := Lantern allows you to access sites blocked by in
 PACKAGE_VENDOR := Brave New Software Project, Inc
 PACKAGE_MAINTAINER := Lantern Team <team@getlantern.org>
 PACKAGE_URL := https://www.getlantern.org
+PACKAGED_YAML := .packaged-lantern.yaml
 
 LANTERN_BINARIES_PATH ?= ../lantern-binaries
 
@@ -94,6 +95,7 @@ define fpm-debian-build =
 	cp $$INSTALLER_RESOURCES/deb-copyright $$WORKDIR/usr/share/doc/lantern/copyright && \
 	cp $$INSTALLER_RESOURCES/lantern.desktop $$WORKDIR/usr/share/applications && \
 	cp $$INSTALLER_RESOURCES/icon128x128on.png $$WORKDIR/usr/share/icons/hicolor/128x128/apps/lantern.png && \
+	echo $$MANOTO > $$INSTALLER_RESOURCES/$$PACKAGED_YAML && \
 	\
 	cp lantern_linux_$$PKG_ARCH $$WORKDIR/usr/lib/lantern/lantern-binary && \
 	cp $$INSTALLER_RESOURCES/lantern.sh $$WORKDIR/usr/lib/lantern && \
@@ -196,6 +198,7 @@ docker-package-windows: require-version docker-windows-386
 	if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
 	INSTALLER_RESOURCES="installer-resources/windows" && \
 	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -in "lantern_windows_386.exe" -out "$$INSTALLER_RESOURCES/lantern.exe" && \
+	echo $$MANOTO > $$INSTALLER_RESOURCES/$$PACKAGED_YAML && \
 	makensis -V1 -DVERSION=$$VERSION installer-resources/windows/lantern.nsi && \
 	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer.exe";
 
@@ -300,12 +303,12 @@ darwin-amd64: require-assets
 package-linux-386: require-version genassets linux-386
 	@echo "Generating distribution package for linux/386..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" make docker-package-linux-386'
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" MANOTO="'$$MANOTO'" make docker-package-linux-386'
 
 package-linux-amd64: require-version genassets linux-amd64
 	@echo "Generating distribution package for linux/amd64..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" make docker-package-linux-amd64'
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" MANOTO="'$$MANOTO'" make docker-package-linux-amd64'
 
 package-linux-arm: require-version genassets linux-arm
 	@echo "Generating distribution package for linux/arm..." && \
@@ -319,7 +322,7 @@ package-windows: require-version windows
 	if [[ -z "$$SECRETS_DIR" ]]; then echo "SECRETS_DIR environment value is required."; exit 1; fi && \
 	if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -v $$SECRETS_DIR:/secrets -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && BNS_CERT="/secrets/bns_cert.p12" BNS_CERT_PASS="'$$BNS_CERT_PASS'" VERSION="'$$VERSION'" make docker-package-windows' && \
+	docker run -v $$PWD:/lantern -v $$SECRETS_DIR:/secrets -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && BNS_CERT="/secrets/bns_cert.p12" BNS_CERT_PASS="'$$BNS_CERT_PASS'" MANOTO="'$$MANOTO'" VERSION="'$$VERSION'" make docker-package-windows' && \
 	echo "-> lantern-installer.exe"
 
 package-darwin: require-version require-appdmg require-svgexport darwin
@@ -330,6 +333,7 @@ package-darwin: require-version require-appdmg require-svgexport darwin
 		cp -r $$INSTALLER_RESOURCES/Lantern.app_template Lantern.app && \
 		mkdir Lantern.app/Contents/MacOS && \
 		cp -r lantern_darwin_amd64 Lantern.app/Contents/MacOS/lantern && \
+		echo $$MANOTO > Lantern.app/Contents/Resources/$$PACKAGED_YAML && \
 		codesign -s "Developer ID Application: Brave New Software Project, Inc" Lantern.app && \
 		rm -rf Lantern.dmg && \
 		sed "s/__VERSION__/$$VERSION/g" $$INSTALLER_RESOURCES/dmgbackground.svg > $$INSTALLER_RESOURCES/dmgbackground_versioned.svg && \
@@ -342,21 +346,19 @@ package-darwin: require-version require-appdmg require-svgexport darwin
 		echo "-> Skipped: Can not generate a package on a non-OSX host."; \
 	fi;
 
-manoto:
-	@echo "Replacing NO_URL with manoto"
-	perl -pi -e "s/NO_URL/https:\/\/www.facebook.com\/manototv/" src/github.com/getlantern/flashlight/ui/ui.go
-
-unmanoto:
-	@echo "Replacing manoto url with NO_URL"
-	perl -pi -e "s/https:\/\/www.facebook.com\/manototv/NO_URL/" src/github.com/getlantern/flashlight/ui/ui.go
-
-manoto-binaries: manoto binaries unmanoto
-
 binaries: docker genassets linux windows darwin
 
 packages: require-version require-secrets clean binaries package-windows package-linux package-darwin
 
-manoto-packages: require-version require-secrets clean genconfig manoto-binaries package-windows package-linux package-darwin
+manoto-packages: manoto packages 
+
+package-windows-manoto: manoto package-windows
+package-darwin-manoto: manoto package-darwin
+package-linux-manoto: manoto package-darwin
+
+manoto: 
+	$(eval MANOTO := startupurl: https:///www.facebook.com/manototv)
+
 
 release-qa: require-version require-s3cmd
 	@BASE_NAME="lantern-installer-qa" && \
