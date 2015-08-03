@@ -20,7 +20,12 @@ import (
 var (
 	log  = golog.LoggerFor("flashlight.packaged")
 	name = ".packaged-lantern.yaml"
-	url  = ""
+
+	// In almost all cases this will be blank, but as a one-time workaround for
+	// https://github.com/getlantern/lantern/issues/2857 it is hard-coded
+	// to the manoto facebook page at https://www.facebook.com/manototv for a
+	// single binary (lantern-2.0.0-beta9+manoto)
+	url = ""
 
 	// This is the local copy of our embedded configuration file. This is necessary
 	// to ensure we remember the embedded configuration across auto-updated
