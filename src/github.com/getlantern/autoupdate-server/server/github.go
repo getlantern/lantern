@@ -233,6 +233,31 @@ func (g *ReleaseManager) lookupAssetWithChecksum(os string, arch string, checksu
 	return nil, fmt.Errorf("Could not find a matching checksum in assets list.")
 }
 
+func (g *ReleaseManager) lookupAssetWithVersion(os string, arch string, version string) (asset *Asset, err error) {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+
+	if g.updateAssetsMap == nil {
+		return nil, fmt.Errorf("No updates available.")
+	}
+
+	if g.updateAssetsMap[os] == nil {
+		return nil, fmt.Errorf("No such OS.")
+	}
+
+	if g.updateAssetsMap[os][arch] == nil {
+		return nil, fmt.Errorf("No such Arch.")
+	}
+
+	for _, a := range g.updateAssetsMap[os][arch] {
+		if a.v.String() == version {
+			return a, nil
+		}
+	}
+
+	return nil, fmt.Errorf("Could not find a matching version in assets list.")
+}
+
 func (g *ReleaseManager) pushAsset(os string, arch string, asset *Asset) (err error) {
 	g.mu.Lock()
 	defer g.mu.Unlock()

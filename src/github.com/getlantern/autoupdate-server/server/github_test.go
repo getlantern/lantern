@@ -2,11 +2,27 @@ package server
 
 import (
 	"fmt"
+	"github.com/blang/semver"
+	"os"
 	"path"
 	"testing"
 )
 
 var testClient *ReleaseManager
+
+var (
+	ghAccountOwner      = "getlantern"
+	ghAccountRepository = "lantern"
+)
+
+func init() {
+	if v := os.Getenv("GH_ACCOUNT_OWNER"); v != "" {
+		ghAccountOwner = v
+	}
+	if v := os.Getenv("GH_ACCOUNT_REPOSITORY"); v != "" {
+		ghAccountRepository = v
+	}
+}
 
 func TestSplitUpdateAsset(t *testing.T) {
 	var err error
@@ -46,14 +62,14 @@ func TestSplitUpdateAsset(t *testing.T) {
 }
 
 func TestNewClient(t *testing.T) {
-	testClient = NewReleaseManager("getlantern", "autoupdate")
+	testClient = NewReleaseManager(ghAccountOwner, ghAccountRepository)
 	if testClient == nil {
 		t.Fatal("Failed to create new client.")
 	}
 }
 
 func TestListReleases(t *testing.T) {
-	if _, err := testClient.GetReleases(); err != nil {
+	if _, err := testClient.getReleases(); err != nil {
 		t.Fatal(fmt.Errorf("Failed to pull releases: %q", err))
 	}
 }
@@ -123,6 +139,8 @@ func TestDownloadOldestVersionAndUpgradeIt(t *testing.T) {
 		for arch := range oldestVersionMap[os] {
 			asset := oldestVersionMap[os][arch]
 			newAsset := testClient.latestAssetsMap[os][arch]
+
+			t.Logf("Upgrading %v to %v (%s/%s)", asset.v, newAsset.v, os, arch)
 
 			if asset == newAsset {
 				t.Logf("Skipping version %s %s %s", os, arch, asset.v)
@@ -209,7 +227,7 @@ func TestDownloadOldestVersionAndUpgradeIt(t *testing.T) {
 
 			// fmt.Printf("params: %s", params)
 
-			_, err := testClient.CheckForUpdate(&params)
+			r, err := testClient.CheckForUpdate(&params)
 			if err != nil {
 				if err == ErrNoUpdateAvailable {
 					// That's OK, let's make sure.
@@ -222,7 +240,109 @@ func TestDownloadOldestVersionAndUpgradeIt(t *testing.T) {
 				}
 			}
 
-			// fmt.Printf("r: %v, err: %v\n", r, err)
+			if r.PatchType != PATCHTYPE_BSDIFF {
+				t.Fatal("Expecting no patch.")
+			}
+
+			if r.Version != testClient.latestAssetsMap[os][arch].v.String() {
+				t.Fatal("Expecting %v, got %v.", testClient.latestAssetsMap[os][arch].v, r.Version)
+			}
+		}
+	}
+
+	// Let's walk again using an odd checksum.
+	for os := range oldestVersionMap {
+		for arch := range oldestVersionMap[os] {
+			asset := oldestVersionMap[os][arch]
+			params := Params{
+				AppVersion: asset.v.String(),
+				OS:         asset.OS,
+				Arch:       asset.Arch,
+				Checksum:   "?",
+			}
+
+			r, err := testClient.CheckForUpdate(&params)
+			if err != nil {
+				if err == ErrNoUpdateAvailable {
+					// That's OK, let's make sure.
+					newAsset := testClient.latestAssetsMap[os][arch]
+					if asset != newAsset {
+						t.Fatal("CheckForUpdate said no update was available!")
+					}
+				} else {
+					t.Fatal("CheckForUpdate: ", err)
+				}
+			}
+
+			if r.PatchType != PATCHTYPE_NONE {
+				t.Fatal("Expecting no patch.")
+			}
+
+			if r.Version != testClient.latestAssetsMap[os][arch].v.String() {
+				t.Fatal("Expecting %v, got %v.", testClient.latestAssetsMap[os][arch].v, r.Version)
+			}
+		}
+	}
+}
+
+func TestDownloadManotoBetaAndUpgradeIt(t *testing.T) {
+
+	if len(testClient.updateAssetsMap) == 0 {
+		t.Fatal("Assets map is empty.")
+	}
+
+	oldestVersionMap := make(map[string]map[string]*Asset)
+
+	// Using the updateAssetsMap to look for the oldest version of each release.
+	for os := range testClient.updateAssetsMap {
+		for arch := range testClient.updateAssetsMap[os] {
+			var oldestAsset *Asset
+
+			for i := range testClient.updateAssetsMap[os][arch] {
+				asset := testClient.updateAssetsMap[os][arch][i]
+				if asset.v.String() == semver.MustParse(manotoBeta8).String() {
+					oldestAsset = asset
+				}
+			}
+			if oldestAsset != nil {
+				if oldestVersionMap[os] == nil {
+					oldestVersionMap[os] = make(map[string]*Asset)
+				}
+				oldestVersionMap[os][arch] = oldestAsset
+			}
+		}
+	}
+
+	// Let's download each one of the oldest versions.
+	if len(oldestVersionMap) == 0 {
+		t.Fatal("No older software versions to test with.")
+	}
+
+	// Let's walk over the array again but using CheckForUpdate instead.
+	for os := range oldestVersionMap {
+		for arch := range oldestVersionMap[os] {
+			asset := oldestVersionMap[os][arch]
+			params := Params{
+				AppVersion: asset.v.String(),
+				OS:         asset.OS,
+				Arch:       asset.Arch,
+				Checksum:   asset.Checksum,
+			}
+
+			if params.AppVersion != manotoBeta8 {
+				t.Fatal("Expecting Manoto beta8.")
+			}
+
+			r, err := testClient.CheckForUpdate(&params)
+			if err != nil {
+				t.Fatal("CheckForUpdate: ", err)
+			}
+
+			t.Logf("Upgrading %v to %v (%s/%s)", asset.v, r.Version, os, arch)
+
+			if r.Version != manotoBeta9 {
+				t.Fatal("Expecting Manoto beta9.")
+			}
 		}
 	}
 

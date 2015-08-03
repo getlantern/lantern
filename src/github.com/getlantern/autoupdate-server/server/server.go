@@ -108,16 +108,31 @@ func (g *ReleaseManager) CheckForUpdate(p *Params) (res *Result, err error) {
 		return nil, fmt.Errorf("Arch is required")
 	}
 
-	// Looking if there is a newer version for the os/arch.
 	var update *Asset
-	if update, err = g.getProductUpdate(p.OS, p.Arch); err != nil {
-		return nil, fmt.Errorf("Could not lookup for updates: %s", err)
+
+	// This is a hack that allows Lantern 2.0.0beta8+manoto clients to upgrade to
+	// Lantern 2.0.0 using an interim 2.0.0-beta9+manoto version.
+	//
+	// See https://github.com/getlantern/lantern/issues/2868
+	if appVersion.String() == manotoBeta8 {
+		// Always return 2.0.0-beta9+manoto
+		if update, err = g.lookupAssetWithVersion(p.OS, p.Arch, manotoBeta9); err != nil {
+			return nil, fmt.Errorf("No upgrade for %s/%s", p.OS, p.Arch)
+		}
+	}
+
+	// Looking if there is a newer version for the os/arch.
+	if update == nil {
+		if update, err = g.getProductUpdate(p.OS, p.Arch); err != nil {
+			return nil, fmt.Errorf("Could not lookup for updates: %s", err)
+		}
 	}
 
 	// Looking for the asset thay matches the current app checksum.
 	var current *Asset
 	if current, err = g.lookupAssetWithChecksum(p.OS, p.Arch, p.Checksum); err != nil {
-		// No such asset with the given checksum, nothing to compare.
+		// No such asset with the given checksum, nothing to compare. Making the
+		// client download the whole binary.
 
 		r := &Result{
 			Initiative: INITIATIVE_AUTO,
