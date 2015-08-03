@@ -72,13 +72,20 @@ func readSettingsFromFile(yamlPath string) (string, *PackagedSettings, error) {
 		}
 		return path, nil, err
 	}
+	fi, ferr := os.Stat(yamlPath)
+	if ferr != nil {
+		log.Debugf("Error looking for file %v", ferr)
+		return "", &PackagedSettings{}, ferr
+	}
+
 	log.Debugf("Opening file at: %v", yamlPath)
 	file, err := os.Open(yamlPath)
 	if err != nil {
 		log.Debugf("Error opening file %v", err)
 		return "", &PackagedSettings{}, err
 	}
-	data := make([]byte, 2000)
+
+	data := make([]byte, fi.Size())
 	count, err := file.Read(data)
 	if err != nil {
 		log.Errorf("Error reading file %v", err)
