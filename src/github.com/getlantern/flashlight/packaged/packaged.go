@@ -76,11 +76,6 @@ func readSettingsFromFile(yamlPath string) (string, *PackagedSettings, error) {
 	file, err := os.Open(yamlPath)
 	if err != nil {
 		log.Debugf("Error opening file %v", err)
-		// This typically means the file doesn't exist. If that's
-		// the case, and we're hard coded here to open a URL, we need
-		// to write the yaml file so future auto-updated versions will
-		// also have the URL we're trying to open.
-		//writeUrlToFile()
 		return "", &PackagedSettings{}, err
 	}
 	data := make([]byte, 2000)
