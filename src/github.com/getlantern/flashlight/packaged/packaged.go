@@ -12,10 +12,9 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"gopkg.in/yaml.v2"
-
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/golog"
+	"github.com/getlantern/yaml"
 )
 
 var (
