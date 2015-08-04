@@ -39,3 +39,5 @@ src/github.com/getlantern/systray/Release
 src/github.com/getlantern/systray/systray/Debug
 src/github.com/getlantern/systray/systray/Release
 src/github.com/getlantern/lantern-mobile/libflashlight.aar
+installer-resources/windows/.packaged-lantern.yaml
+installer-resources/linux/.packaged-lantern.yaml
