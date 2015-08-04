@@ -51,8 +51,16 @@ FIRETWEET_MAIN_DIR ?= ../firetweet/firetweet/src/main/
 
 .PHONY: packages clean docker
 
+define package-settings
+	PACKAGED_SETTINGS="" && \
+	if [[ ! -z "$$MANOTO" ]]; then \
+		PACKAGED_SETTINGS="startupurl: https://www.facebook.com/manototv"; \
+	fi && \
+	PACKAGED_SETTINGS=$$(echo $$PACKAGED_SETTINGS | xargs) && echo "Packaged settings: $$PACKAGED_SETTINGS"
+endef
+
 define build-tags
-	BUILD_TAGS="" && \
+	PACKAGED_SETTINGS="" BUILD_TAGS="" && \
 	if [[ ! -z "$$VERSION" ]]; then \
 		BUILD_TAGS="prod" && \
 		sed s/'packageVersion.*'/'packageVersion = "'$$VERSION'"'/ src/github.com/getlantern/flashlight/autoupdate.go | sed s/'!prod'/'prod'/ > src/github.com/getlantern/flashlight/autoupdate-prod.go; \
@@ -62,8 +70,7 @@ define build-tags
 	if [[ ! -z "$$HEADLESS" ]]; then \
 		BUILD_TAGS="$$BUILD_TAGS headless"; \
 	fi && \
-	BUILD_TAGS=$$(echo $$BUILD_TAGS | xargs) && \
-	echo "Build tags: $$BUILD_TAGS"
+	BUILD_TAGS=$$(echo $$BUILD_TAGS | xargs) && echo "Build tags: $$BUILD_TAGS"
 endef
 
 define docker-up
@@ -81,7 +88,8 @@ define docker-up
 endef
 
 define fpm-debian-build =
-    echo "Running fpm-debian-build"
+	echo "Running fpm-debian-build" && \
+	$(call package-settings) && \
  	PKG_ARCH=$1 && \
 	WORKDIR=$$(mktemp -dt "$$(basename $$0).XXXXXXXXXX") && \
 	INSTALLER_RESOURCES=./installer-resources/linux && \
@@ -96,7 +104,7 @@ define fpm-debian-build =
 	cp $$INSTALLER_RESOURCES/deb-copyright $$WORKDIR/usr/share/doc/lantern/copyright && \
 	cp $$INSTALLER_RESOURCES/lantern.desktop $$WORKDIR/usr/share/applications && \
 	cp $$INSTALLER_RESOURCES/icon128x128on.png $$WORKDIR/usr/share/icons/hicolor/128x128/apps/lantern.png && \
-	echo $(MANOTO) > $$WORKDIR/usr/lib/lantern/$(PACKAGED_YAML) && \
+	echo $$PACKAGED_SETTINGS > $$WORKDIR/usr/lib/lantern/$(PACKAGED_YAML) && \
 	\
 	cp lantern_linux_$$PKG_ARCH $$WORKDIR/usr/lib/lantern/lantern-binary && \
 	cp $$INSTALLER_RESOURCES/lantern.sh $$WORKDIR/usr/lib/lantern && \
@@ -197,9 +205,10 @@ docker-package-debian-arm: require-version docker-linux-arm
 docker-package-windows: require-version docker-windows-386
 	@if [[ -z "$$BNS_CERT" ]]; then echo "BNS_CERT environment value is required."; exit 1; fi && \
 	if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
+	$(call package-settings) && \
 	INSTALLER_RESOURCES="installer-resources/windows" && \
 	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -in "lantern_windows_386.exe" -out "$$INSTALLER_RESOURCES/lantern.exe" && \
-	echo $(MANOTO) > $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
+	echo $$PACKAGED_SETTINGS > $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
 	makensis -V1 -DVERSION=$$VERSION installer-resources/windows/lantern.nsi && \
 	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer.exe";
 
@@ -264,28 +273,28 @@ genassets: docker
 linux-386: require-assets docker
 	@echo "Building linux/386..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" make docker-linux-386' && \
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" MANOTO="'$$MANOTO'" make docker-linux-386' && \
 	cat lantern_linux_386 | bzip2 > update_linux_386.bz2 && \
 	ls -l lantern_linux_386 update_linux_386.bz2
 
 linux-amd64: require-assets docker
 	@echo "Building linux/amd64..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" make docker-linux-amd64' && \
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" MANOTO="'$$MANOTO'" make docker-linux-amd64' && \
 	cat lantern_linux_amd64 | bzip2 > update_linux_amd64.bz2 && \
 	ls -l lantern_linux_amd64 update_linux_amd64.bz2
 
 linux-arm: require-assets docker
 	@echo "Building linux/arm..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="1" make docker-linux-arm' && \
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="1" MANOTO="'$$MANOTO'" make docker-linux-arm' && \
 	cat lantern_linux_arm | bzip2 > update_linux_arm.bz2 && \
 	ls -l lantern_linux_arm update_linux_arm.bz2
 
 windows-386: require-assets docker
 	@echo "Building windows/386..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" make docker-windows-386' && \
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" MANOTO="'$$MANOTO'" make docker-windows-386' && \
 	cat lantern_windows_386.exe | bzip2 > update_windows_386.bz2 && \
 	ls -l lantern_windows_386.exe update_windows_386.bz2
 
@@ -304,37 +313,38 @@ darwin-amd64: require-assets
 package-linux-386: require-version genassets linux-386
 	@echo "Generating distribution package for linux/386..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" MANOTO="$(MANOTO)" make docker-package-linux-386'
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" MANOTO="'$$MANOTO'" make docker-package-linux-386'
 
 package-linux-amd64: require-version genassets linux-amd64
 	@echo "Generating distribution package for linux/amd64..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" MANOTO="$(MANOTO)" make docker-package-linux-amd64'
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" MANOTO="'$$MANOTO'" make docker-package-linux-amd64'
 
 package-linux-arm: require-version genassets linux-arm
 	@echo "Generating distribution package for linux/arm..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="1" make docker-package-linux-arm'
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" MANOTO="'$$MANOTO'" HEADLESS="1" make docker-package-linux-arm'
 
-package-linux: require-version package-linux-386 package-linux-amd64 
+package-linux: require-version package-linux-386 package-linux-amd64
 
 package-windows: require-version windows
 	@echo "Generating distribution package for windows/386..." && \
 	if [[ -z "$$SECRETS_DIR" ]]; then echo "SECRETS_DIR environment value is required."; exit 1; fi && \
 	if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -v $$SECRETS_DIR:/secrets -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && BNS_CERT="/secrets/bns_cert.p12" BNS_CERT_PASS="'$$BNS_CERT_PASS'" MANOTO="'$$MANOTO'" VERSION="'$$VERSION'" MANOTO="$(MANOTO)" make docker-package-windows' && \
+	docker run -v $$PWD:/lantern -v $$SECRETS_DIR:/secrets -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && BNS_CERT="/secrets/bns_cert.p12" BNS_CERT_PASS="'$$BNS_CERT_PASS'" VERSION="'$$VERSION'" MANOTO="'$$MANOTO'" make docker-package-windows' && \
 	echo "-> lantern-installer.exe"
 
 package-darwin: require-version require-appdmg require-svgexport darwin
 	@echo "Generating distribution package for darwin/amd64..." && \
+	$(call package-settings) && \
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		INSTALLER_RESOURCES="installer-resources/darwin" && \
 		rm -rf Lantern.app && \
 		cp -r $$INSTALLER_RESOURCES/Lantern.app_template Lantern.app && \
 		mkdir Lantern.app/Contents/MacOS && \
 		cp -r lantern_darwin_amd64 Lantern.app/Contents/MacOS/lantern && \
-		echo $(MANOTO) > Lantern.app/Contents/Resources/$(PACKAGED_YAML) && \
+		echo $$PACKAGED_SETTINGS > Lantern.app/Contents/Resources/$(PACKAGED_YAML) && \
 		codesign -s "Developer ID Application: Brave New Software Project, Inc" Lantern.app && \
 		rm -rf Lantern.dmg && \
 		sed "s/__VERSION__/$$VERSION/g" $$INSTALLER_RESOURCES/dmgbackground.svg > $$INSTALLER_RESOURCES/dmgbackground_versioned.svg && \
@@ -350,16 +360,6 @@ package-darwin: require-version require-appdmg require-svgexport darwin
 binaries: docker genassets linux windows darwin
 
 packages: require-version require-secrets clean binaries package-windows package-linux package-darwin
-
-manoto-packages: manoto packages 
-
-package-windows-manoto: manoto package-windows
-package-darwin-manoto: manoto package-darwin
-package-linux-manoto: manoto package-linux
-
-manoto: 
-	$(eval MANOTO := startupurl: https://www.facebook.com/manototv)
-
 
 release-qa: require-version require-s3cmd
 	@BASE_NAME="lantern-installer-qa" && \
