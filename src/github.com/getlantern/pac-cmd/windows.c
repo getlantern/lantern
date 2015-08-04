@@ -107,7 +107,10 @@ int togglePac(bool turnOn, const char* pacUrl)
       reportWindowsError("Querying options");
       goto cleanup;
     }
-    if(options.pOptions[1].Value.pszValue != NULL && strcmp(pacUrl, options.pOptions[1].Value.pszValue) != 0) {
+    // we turn pac off only if the option is set and pac url equals what provided
+    if ((options.pOptions[0].Value.dwValue & PROXY_TYPE_AUTO_PROXY_URL) != PROXY_TYPE_AUTO_PROXY_URL
+      || options.pOptions[1].Value.pszValue == NULL
+      || strcmp(pacUrl, options.pOptions[1].Value.pszValue) != 0) {
       goto cleanup;
     }
     // fall through
