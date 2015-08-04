@@ -287,6 +287,14 @@ func TestDownloadOldestVersionAndUpgradeIt(t *testing.T) {
 
 func TestDownloadManotoBetaAndUpgradeIt(t *testing.T) {
 
+	if r := semver.MustParse("2.0.0+manoto").Compare(semver.MustParse("2.0.0+stable")); r != 0 {
+		t.Fatalf("Expecting 2.0.0+manoto to be equal to 2.0.0+stable, got: %d", r)
+	}
+
+	if r := semver.MustParse("2.0.0+manoto").Compare(semver.MustParse("2.0.1")); r != -1 {
+		t.Fatalf("Expecting 2.0.0+manoto to be lower than 2.0.1, got: %d", r)
+	}
+
 	if len(testClient.updateAssetsMap) == 0 {
 		t.Fatal("Assets map is empty.")
 	}
@@ -301,9 +309,13 @@ func TestDownloadManotoBetaAndUpgradeIt(t *testing.T) {
 			for i := range testClient.updateAssetsMap[os][arch] {
 				asset := testClient.updateAssetsMap[os][arch][i]
 				if asset.v.String() == semver.MustParse(manotoBeta8).String() {
+					if !buildStringContainsManoto(asset.v) {
+						t.Fatal(`Build string must contain the word "manoto"`)
+					}
 					oldestAsset = asset
 				}
 			}
+
 			if oldestAsset != nil {
 				if oldestVersionMap[os] == nil {
 					oldestVersionMap[os] = make(map[string]*Asset)
@@ -340,8 +352,8 @@ func TestDownloadManotoBetaAndUpgradeIt(t *testing.T) {
 
 			t.Logf("Upgrading %v to %v (%s/%s)", asset.v, r.Version, os, arch)
 
-			if r.Version != manotoBeta9 {
-				t.Fatal("Expecting Manoto beta9.")
+			if r.Version != manotoBeta8Upgrade {
+				t.Fatal("Expecting %s.", manotoBeta8Upgrade)
 			}
 		}
 	}
