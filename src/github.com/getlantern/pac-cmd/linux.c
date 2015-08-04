@@ -29,8 +29,9 @@ int togglePac(bool turnOn, const char* pacUrl)
   else {
     if (strlen(pacUrl) != 0) {
       // clear pac setting only if it's equal to pacUrl
+      char* old_mode = g_settings_get_string(setting, "mode");
       char* old_pac_url = g_settings_get_string(setting, "autoconfig-url");
-      if (old_pac_url == NULL || strcmp(old_pac_url, pacUrl) != 0 ) {
+      if (strcmp(old_mode, "auto") != 0 || old_pac_url == NULL || strcmp(old_pac_url, pacUrl) != 0 ) {
 	      fprintf(stderr, "current pac url setting is not %s, skipping\n", pacUrl);
 	      goto cleanup;
       }
