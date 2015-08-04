@@ -7,10 +7,12 @@
 package packaged
 
 import (
+	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/golog"
@@ -72,28 +74,24 @@ func readSettingsFromFile(yamlPath string) (string, *PackagedSettings, error) {
 		}
 		return path, nil, err
 	}
-	fi, ferr := os.Stat(yamlPath)
-	if ferr != nil {
-		log.Debugf("Error looking for file %v", ferr)
-		return "", &PackagedSettings{}, ferr
-	}
 
 	log.Debugf("Opening file at: %v", yamlPath)
-	file, err := os.Open(yamlPath)
-	if err != nil {
-		log.Debugf("Error opening file %v", err)
-		return "", &PackagedSettings{}, err
-	}
-
-	data := make([]byte, fi.Size())
-	count, err := file.Read(data)
+	data, err := ioutil.ReadFile(yamlPath)
 	if err != nil {
 		log.Errorf("Error reading file %v", err)
 		return "", &PackagedSettings{}, err
 	}
-	log.Debugf("read %d bytes: %q\n", count, data[:count])
+
+	trimmed := strings.TrimSpace(string(data))
+
+	log.Debugf("Read bytes: %v", trimmed)
+
+	if trimmed == "" {
+		log.Debugf("Ignoring empty string")
+		return "", &PackagedSettings{}, errors.New("Empty string")
+	}
 	var s PackagedSettings
-	err = yaml.Unmarshal(data[:count], &s)
+	err = yaml.Unmarshal([]byte(trimmed), &s)
 
 	if err != nil {
 		log.Errorf("Could not read yaml: %v", err)
