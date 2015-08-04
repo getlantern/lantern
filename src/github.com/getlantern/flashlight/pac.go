@@ -162,7 +162,7 @@ func doPACOn() {
 }
 
 func doPACOff() {
-	err := pac.Off()
+	err := pac.Off(pacURL)
 	if err != nil {
 		log.Errorf("Unable to unset lantern as system proxy: %v", err)
 	}
