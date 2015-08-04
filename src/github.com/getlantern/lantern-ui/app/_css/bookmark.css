@@ -39,6 +39,13 @@ html {
 	-webkit-transition: opacity 0.1s linear;
 }
 
+.backend-gone {
+    font-family: LBL;
+    font-size: 24px;
+    color: rgb(82,82,82);
+    margin-top: 60px;
+}
+
 .bookmark {
     font-family: LBL;
     font-weight: lighter;
