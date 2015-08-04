@@ -87,6 +87,7 @@ int togglePac(bool turnOn, const char* pacUrl)
   options.pszConnection = FindActiveConnection();
 
   options.dwOptionCount = 2;
+  options.dwOptionError = 0;
   options.pOptions = (INTERNET_PER_CONN_OPTION*)calloc(2, sizeof(INTERNET_PER_CONN_OPTION));
   if(!options.pOptions) {
     return NO_MEMORY;
@@ -96,15 +97,21 @@ int togglePac(bool turnOn, const char* pacUrl)
   options.pOptions[1].dwOption = INTERNET_PER_CONN_AUTOCONFIG_URL;
   if (turnOn) {
     options.pOptions[0].Value.dwValue = PROXY_TYPE_AUTO_PROXY_URL;
-    wchar_t url[150];
-    if (swprintf(url, 150, L"%hs", pacUrl) == -1) {
-      printf("Unable to convert pacUrl to wchar_t %s\n", strerror(errno));
-      ret = PAC_URL_CONVERSION_ERROR;
-      goto cleanup;
-    }
     options.pOptions[1].Value.pszValue = (char*)pacUrl;
   }
   else {
+    if (strlen(pacUrl) == 0) {
+      goto turnOff;
+    } 
+    if(!InternetQueryOption(NULL, INTERNET_OPTION_PER_CONNECTION_OPTION, &options, &dwBufferSize)) {
+      reportWindowsError("Querying options");
+      goto cleanup;
+    }
+    if(options.pOptions[1].Value.pszValue != NULL && strcmp(pacUrl, options.pOptions[1].Value.pszValue) != 0) {
+      goto cleanup;
+    }
+    // fall through
+turnOff:
     options.pOptions[0].Value.dwValue = PROXY_TYPE_DIRECT;
     options.pOptions[1].Value.pszValue = "";
   }
