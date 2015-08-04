@@ -297,12 +297,16 @@ func (g *ReleaseManager) pushAsset(os string, arch string, asset *Asset) (err er
 	if g.latestAssetsMap[os] == nil {
 		g.latestAssetsMap[os] = make(map[string]*Asset)
 	}
-	if g.latestAssetsMap[os][arch] == nil {
-		g.latestAssetsMap[os][arch] = asset
-	} else {
-		// Compare against already set version. Manoto versions can't be on top.
-		if asset.v.GT(g.latestAssetsMap[os][arch].v) && !buildStringContainsManoto(asset.v) {
+
+	// Only considering non-manoto versions for the latestAssetsMap
+	if !buildStringContainsManoto(asset.v) {
+		if g.latestAssetsMap[os][arch] == nil {
 			g.latestAssetsMap[os][arch] = asset
+		} else {
+			// Compare against already set version.
+			if asset.v.GT(g.latestAssetsMap[os][arch].v) {
+				g.latestAssetsMap[os][arch] = asset
+			}
 		}
 	}
 
