@@ -50,6 +50,7 @@ Section
 
     File lantern.exe
     File lantern.ico
+    File .packaged-lantern.yaml
 
     # Store installation folder
     WriteRegStr HKCU "Software\Lantern" "" $INSTDIR
