@@ -77,6 +77,7 @@ type CA struct {
 func Init(version string) (*Config, error) {
 	configPath, err := InConfigDir("lantern-" + version + ".yaml")
 	if err != nil {
+		log.Errorf("Could not get config path? %v", err)
 		return nil, err
 	}
 	m = &yamlconf.Manager{
