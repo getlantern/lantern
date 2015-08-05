@@ -300,7 +300,7 @@ func startServer(t *testing.T, allowNonGlobal bool, allowedPorts []int) net.List
 		},
 	}
 	if allowedPorts != nil {
-		server.Allow = func(req *http.Request, destAddr string) error {
+		server.Allow = func(req *http.Request, destAddr string) (int, error) {
 			_, portString, err := net.SplitHostPort(destAddr)
 			if err != nil {
 				t.Fatalf("Unable to split host and port: %v", err)
@@ -317,9 +317,9 @@ func startServer(t *testing.T, allowNonGlobal bool, allowedPorts []int) net.List
 				}
 			}
 			if !portAllowed {
-				return fmt.Errorf("Port %v not allowed", portAllowed)
+				return http.StatusForbidden, fmt.Errorf("Port %v not allowed", portAllowed)
 			}
-			return nil
+			return http.StatusOK, nil
 		}
 	}
 	l, err := server.Listen()

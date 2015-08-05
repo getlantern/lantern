@@ -61,8 +61,8 @@ type Proxy struct {
 
 	// Allow: Optional function that checks whether the given request to the
 	// given destAddr is allowed.  If it is not allowed, this function should
-	// return an error.
-	Allow func(req *http.Request, destAddr string) error
+	// return the HTTP error code and an error.
+	Allow func(req *http.Request, destAddr string) (int, error)
 
 	// connMap: map of outbound connections by their id
 	connMap map[string]*lazyConn
@@ -138,24 +138,24 @@ func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 	id := req.Header.Get(X_ENPROXY_ID)
 	if id == "" {
-		badGateway(resp, fmt.Sprintf("No id found in header %s", X_ENPROXY_ID))
+		respond(http.StatusBadRequest, resp, fmt.Sprintf("No id found in header %s", X_ENPROXY_ID))
 		return
 	}
 
 	addr := req.Header.Get(X_ENPROXY_DEST_ADDR)
 	if addr == "" {
-		badGateway(resp, fmt.Sprintf("No address found in header %s", X_ENPROXY_DEST_ADDR))
+		respond(http.StatusBadRequest, resp, fmt.Sprintf("No address found in header %s", X_ENPROXY_DEST_ADDR))
 		return
 	}
 
-	lc, isNew, err := p.getLazyConn(id, addr, req)
+	lc, isNew, err := p.getLazyConn(id, addr, req, resp)
 	if err != nil {
-		forbidden(resp, err.Error())
+		// Close the connection?
 		return
 	}
 	connOut, err := lc.get()
 	if err != nil {
-		badGateway(resp, fmt.Sprintf("Unable to get connOut: %s", err))
+		respond(http.StatusInternalServerError, resp, fmt.Sprintf("Unable to get outoing connection to destination server: %v", err))
 		return
 	}
 
@@ -165,7 +165,7 @@ func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	} else if op == OP_READ {
 		p.handleRead(resp, req, lc, connOut, true)
 	} else {
-		badGateway(resp, fmt.Sprintf("Op %s not supported", op))
+		respond(http.StatusInternalServerError, resp, fmt.Sprintf("Operation not supported: %v", op))
 	}
 }
 
@@ -180,7 +180,7 @@ func (p *Proxy) handleWrite(resp http.ResponseWriter, req *http.Request, lc *laz
 		}
 	}
 	if err != nil && err != io.EOF {
-		badGateway(resp, fmt.Sprintf("Unable to write to connOut: %s", err))
+		respond(http.StatusInternalServerError, resp, fmt.Sprintf("Unable to write to connOut: %s", err))
 		return
 	}
 	host := ""
@@ -311,25 +311,31 @@ func (p *Proxy) handleRead(resp http.ResponseWriter, req *http.Request, lc *lazy
 
 // getLazyConn gets the lazyConn corresponding to the given id and addr, or
 // creates a new one and saves it to connMap.
-func (p *Proxy) getLazyConn(id string, addr string, req *http.Request) (l *lazyConn, isNew bool, err error) {
+func (p *Proxy) getLazyConn(id string, addr string, req *http.Request, resp http.ResponseWriter) (l *lazyConn, isNew bool, err error) {
 	p.connMapMutex.RLock()
 	l = p.connMap[id]
 	p.connMapMutex.RUnlock()
-	if l == nil {
-		if p.Allow != nil {
-			log.Trace("Checking if connection is allowed")
-			err := p.Allow(req, addr)
-			if err != nil {
-				return nil, false, fmt.Errorf("Not allowed: %v", err)
-			}
-		}
-		l = p.newLazyConn(id, addr)
-		p.connMapMutex.Lock()
-		p.connMap[id] = l
-		p.connMapMutex.Unlock()
-		isNew = true
+	if l != nil {
+		return l, false, nil
 	}
-	return
+	return p.newOutgoingConn(id, addr, req, resp)
+}
+
+// newOutgoingConn creates a new outoing connection and stores it in the connection cache.
+func (p *Proxy) newOutgoingConn(id string, addr string, req *http.Request, resp http.ResponseWriter) (l *lazyConn, isNew bool, err error) {
+	if p.Allow != nil {
+		log.Trace("Checking if connection is allowed")
+		code, err := p.Allow(req, addr)
+		if err != nil {
+			respond(code, resp, err.Error())
+			return nil, false, fmt.Errorf("Not allowed: %v", err)
+		}
+	}
+	l = p.newLazyConn(id, addr)
+	p.connMapMutex.Lock()
+	p.connMap[id] = l
+	p.connMapMutex.Unlock()
+	return l, true, nil
 }
 
 func clientIpFor(req *http.Request) string {
@@ -345,14 +351,6 @@ func clientIpFor(req *http.Request) string {
 	// clientIp may contain multiple ips, use the first
 	ips := strings.Split(clientIp, ",")
 	return strings.TrimSpace(ips[0])
-}
-
-func badGateway(resp http.ResponseWriter, msg string) {
-	respond(http.StatusBadGateway, resp, fmt.Sprintf("Enproxy server responding Bad Gateway: %s", msg))
-}
-
-func forbidden(resp http.ResponseWriter, msg string) {
-	respond(http.StatusForbidden, resp, fmt.Sprintf("Enproxy server responding Forbidden: %s", msg))
 }
 
 func respond(status int, resp http.ResponseWriter, msg string) {
