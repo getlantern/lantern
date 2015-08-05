@@ -236,9 +236,9 @@ func (server *Server) register(updateConfig func(func(*ServerConfig) error)) {
 				if err == nil {
 					resp.Body.Close()
 				}
-				time.Sleep(registerPeriod)
 			}
 		}
+		time.Sleep(registerPeriod)
 	}
 }
 
