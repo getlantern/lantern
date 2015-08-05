@@ -104,7 +104,7 @@ func (g *ReleaseManager) CheckForUpdate(p *Params) (res *Result, err error) {
 	}
 
 	// If this binary has a known checksum, the p.AppVersion will be changed to
-	// 2.0.0beta8+manoto regarding of the value that was sent.
+	// 2.0.0beta8+manoto regardless of the value that was sent.
 	if hasManotoChecksum(p.Checksum) {
 		p.AppVersion = manotoBeta8
 	}
