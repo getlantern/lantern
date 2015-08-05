@@ -157,9 +157,9 @@ func doMain() error {
 	log.Debug("Running proxy")
 	if cfg.IsDownstream() {
 		// This will open a proxy on the address and port given by -addr
-		runClientProxy(cfg)
+		go runClientProxy(cfg)
 	} else {
-		runServerProxy(cfg)
+		go runServerProxy(cfg)
 	}
 
 	return waitForExit()
@@ -261,24 +261,22 @@ func runClientProxy(cfg *config.Config) {
 	// directly accesible to the PAC file.
 	watchDirectAddrs()
 
-	go func() {
-		err := client.ListenAndServe(func() {
-			pacOn()
-			addExitFunc(pacOff)
-			if showui && !*startup {
-				// Launch a browser window with Lantern but only after the pac
-				// URL and the proxy server are all up and running to avoid
-				// race conditions where we change the proxy setup while the
-				// UI server and proxy server are still coming up.
-				ui.Show()
-			} else {
-				log.Debugf("Not opening browser. Startup is: %v", *startup)
-			}
-		})
-		if err != nil {
-			exit(fmt.Errorf("Error calling listen and serve: %v", err))
+	err = client.ListenAndServe(func() {
+		pacOn()
+		addExitFunc(pacOff)
+		if showui && !*startup {
+			// Launch a browser window with Lantern but only after the pac
+			// URL and the proxy server are all up and running to avoid
+			// race conditions where we change the proxy setup while the
+			// UI server and proxy server are still coming up.
+			ui.Show()
+		} else {
+			log.Debugf("Not opening browser. Startup is: %v", *startup)
 		}
-	}()
+	})
+	if err != nil {
+		exit(fmt.Errorf("Error calling listen and serve: %v", err))
+	}
 }
 
 // showExistingUi triggers an existing Lantern running on the same system to
