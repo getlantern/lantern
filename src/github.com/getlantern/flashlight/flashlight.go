@@ -212,7 +212,7 @@ func runClientProxy(cfg *config.Config) {
 		// off.
 		//
 		// See: https://github.com/getlantern/lantern/issues/2776
-		doPACOff("http://" + cfg.UIAddr + "/proxy_on.pac")
+		doPACOff(fmt.Sprintf("http://%s/proxy_on.pac", cfg.UIAddr))
 		exit(nil)
 	}
 
@@ -224,9 +224,6 @@ func runClientProxy(cfg *config.Config) {
 	}
 
 	// Start user interface.
-	if cfg.UIAddr == "" {
-		exit(fmt.Errorf("Please provide a valid local or remote UI address"))
-	}
 	tcpAddr, err := net.ResolveTCPAddr("tcp4", cfg.UIAddr)
 	if err != nil {
 		exit(fmt.Errorf("Unable to resolve UI address: %v", err))

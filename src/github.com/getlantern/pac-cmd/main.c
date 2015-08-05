@@ -5,7 +5,7 @@
 
 void usage(const char* binName)
 {
-  printf("Usage: %s [on  <pac url> | off [old pac url]]", binName);
+  printf("Usage: %s [on  <pac url> | off [old pac url]]\n", binName);
   exit(INVALID_FORMAT);
 }
 
