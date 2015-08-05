@@ -86,17 +86,6 @@ func init() {
 func main() {
 	parseFlags()
 
-	if *clearProxySettings {
-		// This is a workaround that attempts to fix a Windows-only problem where
-		// Lantern was unable to clean the system's proxy settings before logging
-		// off.
-		//
-		// See: https://github.com/getlantern/lantern/issues/2776
-		setUpPacTool()
-		doPACOff()
-		return
-	}
-
 	showui = !*headless
 
 	if showui {
@@ -217,6 +206,16 @@ func runClientProxy(cfg *config.Config) {
 		exit(err)
 	}
 
+	if *clearProxySettings {
+		// This is a workaround that attempts to fix a Windows-only problem where
+		// Lantern was unable to clean the system's proxy settings before logging
+		// off.
+		//
+		// See: https://github.com/getlantern/lantern/issues/2776
+		doPACOff("http://" + cfg.UIAddr + "/proxy_on.pac")
+		exit(nil)
+	}
+
 	// Create the client-side proxy.
 	client := &client.Client{
 		Addr:         cfg.Addr,
@@ -252,13 +251,13 @@ func runClientProxy(cfg *config.Config) {
 	}()
 
 	/*
-		Temporarily disabling localdiscover. See:
-		https://github.com/getlantern/lantern/issues/2813
-		// Continually search for local Lantern instances and update the UI
-		go func() {
+		      Temporarily disabling localdiscover. See:
+		      https://github.com/getlantern/lantern/issues/2813
+		      // Continually search for local Lantern instances and update the UI
+		      go func() {
 			addExitFunc(localdiscovery.Stop)
 			localdiscovery.Start(!showui, strconv.Itoa(tcpAddr.Port))
-		}()
+		      }()
 	*/
 
 	// watchDirectAddrs will spawn a goroutine that will add any site that is

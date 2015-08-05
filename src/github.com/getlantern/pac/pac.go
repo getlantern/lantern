@@ -51,13 +51,13 @@ func On(pacUrl string) (err error) {
 }
 
 /* Off sets proxy mode back to direct/none */
-func Off() (err error) {
+func Off(pacUrl string) (err error) {
 	mu.Lock()
 	defer mu.Unlock()
 	if be == nil {
 		return fmt.Errorf("call EnsureHelperToolPresent() first")
 	}
-	cmd := be.Command("off")
+	cmd := be.Command("off", pacUrl)
 	return run(cmd)
 }
 

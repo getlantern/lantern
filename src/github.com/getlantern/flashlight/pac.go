@@ -123,8 +123,8 @@ func watchDirectAddrs() {
 				directHosts[host] = true
 				genPACFile()
 				// reapply so browser will fetch the PAC URL again
-				doPACOff()
-				doPACOn()
+				doPACOff(pacURL)
+				doPACOn(pacURL)
 			}
 		}
 	}()
@@ -142,27 +142,27 @@ func pacOn() {
 	genPACFile()
 	pacURL = ui.Handle("/proxy_on.pac", http.HandlerFunc(handler))
 	log.Debugf("Serving PAC file at %v", pacURL)
-	doPACOn()
+	doPACOn(pacURL)
 	atomic.StoreInt32(&isPacOn, 1)
 }
 
 func pacOff() {
 	if atomic.CompareAndSwapInt32(&isPacOn, 1, 0) {
 		log.Debug("Unsetting lantern as system proxy")
-		doPACOff()
+		doPACOff(pacURL)
 		log.Debug("Unset lantern as system proxy")
 	}
 }
 
-func doPACOn() {
+func doPACOn(pacURL string) {
 	err := pac.On(pacURL)
 	if err != nil {
 		log.Errorf("Unable to set lantern as system proxy: %v", err)
 	}
 }
 
-func doPACOff() {
-	err := pac.Off()
+func doPACOff(pacURL string) {
+	err := pac.Off(pacURL)
 	if err != nil {
 		log.Errorf("Unable to unset lantern as system proxy: %v", err)
 	}
