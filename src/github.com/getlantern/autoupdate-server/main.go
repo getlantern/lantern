@@ -78,6 +78,8 @@ func (u *updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		log.Debugf("Got query from client %q, resolved to upgrade to %q using %q strategy.", params.AppVersion, res.Version, res.PatchType)
+
 		if res.PatchURL != "" {
 			res.PatchURL = *flagPublicAddr + res.PatchURL
 		}
