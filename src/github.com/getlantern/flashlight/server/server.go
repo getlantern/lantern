@@ -76,7 +76,7 @@ type Server struct {
 	CertContext                *fronted.CertContext // context for certificate management
 	AllowNonGlobalDestinations bool                 // if true, requests to LAN, Loopback, etc. will be allowed
 	AllowedPorts               []int                // if specified, only connections to these ports will be allowed
-	AllowedCountries           []string             // if specified, only connections from clients in the given countries will be allowed (2 digit country codes)
+	BannedCountries            []string             // if specified, connections from clients in the given countries will be banned (2 digit country codes)
 
 	cfg      *ServerConfig
 	cfgMutex sync.RWMutex
@@ -134,11 +134,11 @@ func (server *Server) ListenAndServe(updateConfig func(func(*ServerConfig) error
 		AllowNonGlobalDestinations: server.AllowNonGlobalDestinations,
 	}
 
-	if server.AllowedCountries != nil {
+	if server.BannedCountries != nil {
 		server.geoCache, _ = lru.New(1000000)
 	}
 
-	if server.AllowedPorts != nil || server.AllowedCountries != nil {
+	if server.AllowedPorts != nil || server.BannedCountries != nil {
 		fs.Allow = func(req *http.Request, destAddr string) (int, error) {
 			if server.AllowedPorts != nil {
 				err := server.checkForDisallowedPort(destAddr)
@@ -147,10 +147,10 @@ func (server *Server) ListenAndServe(updateConfig func(func(*ServerConfig) error
 				}
 			}
 
-			if server.AllowedCountries != nil {
-				err := server.checkForDisallowedCountry(req)
+			if server.BannedCountries != nil {
+				err := server.checkForBannedCountry(req)
 				if err != nil {
-					return http.StatusForbidden, fmt.Errorf("Origin country not allowed")
+					return http.StatusForbidden, fmt.Errorf("Origin country not allowed: %v", err)
 				}
 			}
 
@@ -268,7 +268,7 @@ func (server *Server) checkForDisallowedPort(addr string) error {
 	return nil
 }
 
-func (server *Server) checkForDisallowedCountry(req *http.Request) error {
+func (server *Server) checkForBannedCountry(req *http.Request) error {
 	clientIp := getClientIp(req)
 	if clientIp == "" {
 		log.Debug("Unable to determine client ip for geolookup")
@@ -291,14 +291,14 @@ func (server *Server) checkForDisallowedCountry(req *http.Request) error {
 		server.geoCache.Add(clientIp, country)
 	}
 
-	countryAllowed := false
-	for _, allowed := range server.AllowedCountries {
-		if country == strings.ToUpper(allowed) {
-			countryAllowed = true
+	countryBanned := false
+	for _, banned := range server.BannedCountries {
+		if country == strings.ToUpper(banned) {
+			countryBanned = true
 			break
 		}
 	}
-	if !countryAllowed {
+	if countryBanned {
 		return fmt.Errorf("Not accepting connections from country %v", country)
 	}
 
