@@ -130,16 +130,17 @@ var app = angular.module('app', [
           ds.onOpen(function(msg) {
             $window.location.reload();
           });
-          if (ds.readyState == 0) {
-            ds.close(true);
-          }
+          setTimeout(function() {
+            if (ds.readyState != 1) {
+              ds.close(true);
+            }
+          }, 100)
         }, WS_RECONNECT_INTERVAL);
       });
 
       ds.onError(function(msg) {
         console.log("Error on this websocket instance " + msg);
-        //ds.close(true);
-        //ds.flush();
+        ds.close(true);
       });
 
       var methods = {
