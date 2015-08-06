@@ -84,12 +84,6 @@ var app = angular.module('app', [
       var WS_RETRY_COUNT        = 0;
 
       var ds = $websocket('ws://' + document.location.host + '/data');
-      setTimeout(function() {
-        if (ds.readyState != 1) {
-          ds.close(true);
-          $window.location.reload();
-        }
-      }, 500)
 
       // Register if the user navigated away, so we don't try to connect to the UI.
       // Also, force closing the websocket
@@ -134,14 +128,18 @@ var app = angular.module('app', [
           console.log("Trying to reconnect to disconnected websocket");
           ds = $websocket('ws://' + document.location.host + '/data');
           ds.onOpen(function(msg) {
+            ds.close(true);
             $window.location.reload();
+          });
+          ds.onError(function(msg) {
+            ds.close(true);
           });
           setTimeout(function() {
             if (ds.readyState != 1) {
               ds.close(true);
             }
           }, 100)
-        }, WS_RECONNECT_INTERVAL);
+        }, WS_RECONNECT_INTERVAL + (Math.random() * 1000));
       });
 
       ds.onError(function(msg) {

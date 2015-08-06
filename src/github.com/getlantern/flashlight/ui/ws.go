@@ -12,11 +12,11 @@ import (
 
 const (
 	// Determines the chunking size of messages used by gorilla
-	MaxMessageSize = 1024
+	MaxMessageSize = 1 << 18
 )
 
 var (
-	upgrader = &websocket.Upgrader{ReadBufferSize: 1024, WriteBufferSize: MaxMessageSize}
+	upgrader = &websocket.Upgrader{ReadBufferSize: 1 << 18, WriteBufferSize: MaxMessageSize}
 )
 
 // UIChannel represents a data channel to/from the UI. UIChannel will have one
