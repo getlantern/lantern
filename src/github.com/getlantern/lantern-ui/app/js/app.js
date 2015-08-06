@@ -90,6 +90,7 @@ var app = angular.module('app', [
       var userDidLeave = false;
       $window.onbeforeunload = function() {
         ds.close(true);
+        ds.socket.close();
         userDidLeave = true;
       };
 
@@ -126,25 +127,29 @@ var app = angular.module('app', [
         // when the websocket closes
         $interval(function() {
           console.log("Trying to reconnect to disconnected websocket");
-          ds = $websocket('ws://' + document.location.host + '/data');
-          ds.onOpen(function(msg) {
-            ds.close(true);
+          ds2 = $websocket('ws://' + document.location.host + '/data');
+          ds2.onOpen(function(msg) {
+            ds2.close(true);
+            ds2.socket.close();
             $window.location.reload();
           });
-          ds.onError(function(msg) {
-            ds.close(true);
+          ds2.onError(function(msg) {
+            ds2.close(true);
+            ds2.socket.close();
           });
           setTimeout(function() {
             if (ds.readyState != 1) {
-              ds.close(true);
+              ds2.close(true);
+              ds2.socket.close();
             }
-          }, 100)
-        }, WS_RECONNECT_INTERVAL + (Math.random() * 1000));
+          }, WS_RECONNECT_INTERVAL - 1000)
+        }, WS_RECONNECT_INTERVAL + (Math.random() * WS_RECONNECT_INTERVAL));
       });
 
       ds.onError(function(msg) {
         console.log("Error on this websocket instance " + msg);
         ds.close(true);
+        ds.socket.close();
       });
 
       var methods = {
