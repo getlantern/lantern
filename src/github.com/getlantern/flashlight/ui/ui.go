@@ -62,6 +62,10 @@ func Handle(p string, handler http.Handler) string {
 	return uiaddr + p
 }
 
+func Stop() {
+	defaultUIChannel.Close()
+}
+
 func Start(tcpAddr *net.TCPAddr, allowRemote bool) (err error) {
 	addr := tcpAddr
 	if allowRemote {

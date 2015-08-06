@@ -89,7 +89,7 @@ var app = angular.module('app', [
       // Also, force closing the websocket
       var userDidLeave = false;
       $window.onbeforeunload = function() {
-        ds.close();
+        ds.close(true);
         userDidLeave = true;
       };
 
@@ -130,11 +130,16 @@ var app = angular.module('app', [
           ds.onOpen(function(msg) {
             $window.location.reload();
           });
+          if (ds.readyState == 0) {
+            ds.close(true);
+          }
         }, WS_RECONNECT_INTERVAL);
       });
 
       ds.onError(function(msg) {
-          console.log("Error on this websocket instance " + msg);
+        console.log("Error on this websocket instance " + msg);
+        //ds.close(true);
+        //ds.flush();
       });
 
       var methods = {

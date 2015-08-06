@@ -237,6 +237,7 @@ func runClientProxy(cfg *config.Config) {
 		exit(fmt.Errorf("Unable to start UI: %s", err))
 		return
 	}
+	addExitFunc(ui.Stop)
 
 	applyClientConfig(client, cfg)
 	// Continually poll for config updates and update client accordingly

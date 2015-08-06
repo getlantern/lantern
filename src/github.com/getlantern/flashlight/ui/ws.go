@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"path"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -112,9 +113,7 @@ func (c *UIChannel) write() {
 		log.Tracef("Closing all websockets to %v", c.URL)
 		c.m.Lock()
 		for _, conn := range c.conns {
-			if err := conn.ws.Close(); err != nil {
-				log.Debugf("Error closing WebSockets connection", err)
-			}
+			conn.close()
 			delete(c.conns, conn.id)
 		}
 		c.m.Unlock()
@@ -126,6 +125,7 @@ func (c *UIChannel) write() {
 			err := conn.ws.WriteMessage(websocket.TextMessage, msg)
 			if err != nil {
 				log.Debugf("Error writing to UI %v for: %v", err, c.URL)
+				conn.close()
 				delete(c.conns, conn.id)
 			}
 		}
@@ -135,6 +135,13 @@ func (c *UIChannel) write() {
 
 func (c *UIChannel) Close() {
 	log.Tracef("Closing channel")
+
+	c.m.Lock()
+	for _, conn := range c.conns {
+		conn.close()
+	}
+	c.m.Unlock()
+
 	close(c.out)
 }
 
@@ -145,6 +152,13 @@ type wsconn struct {
 	ws *websocket.Conn
 }
 
+func (c *wsconn) close() {
+	c.ws.WriteControl(websocket.CloseMessage,
+		websocket.FormatCloseMessage(websocket.CloseInvalidFramePayloadData, ""),
+		time.Time{})
+	_ = c.ws.Close()
+}
+
 func (c *wsconn) read() {
 	for {
 		_, b, err := c.ws.ReadMessage()
@@ -153,9 +167,7 @@ func (c *wsconn) read() {
 			if err != io.EOF {
 				log.Debugf("Error reading from UI: %v", err)
 			}
-			if err := c.ws.Close(); err != nil {
-				log.Debugf("Error closing WebSockets connection", err)
-			}
+			c.close()
 			return
 		}
 		log.Tracef("Sending to channel...")
