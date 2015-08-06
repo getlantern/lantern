@@ -84,6 +84,12 @@ var app = angular.module('app', [
       var WS_RETRY_COUNT        = 0;
 
       var ds = $websocket('ws://' + document.location.host + '/data');
+      setTimeout(function() {
+        if (ds.readyState != 1) {
+          ds.close(true);
+          $window.location.reload();
+        }
+      }, 500)
 
       // Register if the user navigated away, so we don't try to connect to the UI.
       // Also, force closing the websocket
