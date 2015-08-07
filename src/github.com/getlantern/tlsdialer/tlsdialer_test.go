@@ -202,7 +202,11 @@ func TestVariableTimeouts(t *testing.T) {
 	}
 
 	for i := 0; i < 500; i++ {
-		doTestTimeout(t, time.Duration(rand.Intn(5000)+1)*time.Microsecond)
+		// The 5000 microseconds limit is arbitrary. In some systems this may be too high,
+		// leading to a successful connection and thus a failed test. On the other hand,
+		// we need to make this limit relatively high, to allow timeouts to happen at different
+		// places
+		doTestTimeout(t, time.Duration(rand.Intn(4000)+1)*time.Microsecond)
 	}
 
 	// Wait to give the sockets time to close
