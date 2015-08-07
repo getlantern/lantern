@@ -5,7 +5,7 @@
 
 void usage(const char* binName)
 {
-  printf("Usage: %s [on  <pac url> | off]", binName);
+  printf("Usage: %s [on  <pac url> | off [old pac url]]\n", binName);
   exit(INVALID_FORMAT);
 }
 
@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
     }
     return togglePac(true, argv[2]);
   } else if (strcmp(argv[1], "off") == 0) {
-    return togglePac(false, "");
+    return togglePac(false, argc < 3 ? "" : argv[2]);
   } else {
     usage(argv[0]);
   }

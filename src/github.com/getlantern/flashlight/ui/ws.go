@@ -153,6 +153,9 @@ func (c *wsconn) read() {
 			if err != io.EOF {
 				log.Debugf("Error reading from UI: %v", err)
 			}
+			if err := c.ws.Close(); err != nil {
+				log.Debugf("Error closing WebSockets connection", err)
+			}
 			return
 		}
 		log.Tracef("Sending to channel...")

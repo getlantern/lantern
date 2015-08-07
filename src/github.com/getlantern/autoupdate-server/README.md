@@ -1,13 +1,14 @@
 # autoupdate-server
 
 The autoupdate-server package provides a server that allows Lantern clients to
-compare their running software version against releases posted in github, if a
-new version is available, the autoupdate-server will provide a binary diff that
-the client can use to patch itself.
+compare their running software version against releases posted at
+[Github](https://www.github.com), if a new version is available, the
+autoupdate-server will provide a binary diff that the client can use to patch
+itself.
 
 ## Features
 
-* Uses github releases.
+* Uses Github releases.
 * Generates binary diffs.
 
 ## Requisites

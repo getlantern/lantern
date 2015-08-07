@@ -50,6 +50,7 @@ Section
 
     File lantern.exe
     File lantern.ico
+    File .packaged-lantern.yaml
 
     # Store installation folder
     WriteRegStr HKCU "Software\Lantern" "" $INSTDIR
@@ -78,8 +79,14 @@ Section
     CreateDirectory "$SMPROGRAMS\Lantern"
     CreateShortCut "$SMPROGRAMS\Lantern\Lantern.lnk" "$INSTDIR\lantern.exe" "" "$INSTDIR\lantern.ico" 0
     CreateShortCut "$SMPROGRAMS\Lantern\Uninstall Lantern.lnk" "$INSTDIR\uninstall.exe"
-
     CreateShortCut "$DESKTOP\Lantern.lnk" "$INSTDIR\lantern.exe" "" "$INSTDIR\lantern.ico" 0
+
+    # This is a bad registry entry created by old Lantern versions.
+    DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Run\value"
+
+    # Add a registry key to set -clear-proxy-settings. See https://github.com/getlantern/lantern/issues/2776
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Run" \
+                     "Lantern" "$\"$INSTDIR\lantern.exe$\" -clear-proxy-settings"
 
     # Launch Lantern
     ShellExecAsUser::ShellExecAsUser "" "$INSTDIR\lantern.exe"
@@ -126,6 +133,9 @@ Section "uninstall"
 
     # Remove uninstaller from Add/Remove programs
     DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern"
+
+    # Don't run Lantern on startup.
+    DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Run\Lantern"
 
     ${nsProcess::Unload}
 SectionEnd

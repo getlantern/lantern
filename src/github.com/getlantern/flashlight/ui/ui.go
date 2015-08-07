@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/getlantern/flashlight/packaged"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/tarfs"
 	"github.com/skratchdot/open-golang/open"
@@ -26,7 +27,6 @@ var (
 	server       *http.Server
 	uiaddr       string
 
-	externalUrl    = "NO_URL" // this string is going to be changed by Makefile
 	openedExternal = false
 	r              = http.NewServeMux()
 )
@@ -112,13 +112,31 @@ func Show() {
 		if err != nil {
 			log.Errorf("Error opening page to `%v`: %v", uiaddr, err)
 		}
-		if externalUrl != "NO"+"_URL" && !openedExternal {
-			time.Sleep(4 * time.Second)
-			err = open.Run(externalUrl)
-			if err != nil {
-				log.Errorf("Error opening external page to `%v`: %v", uiaddr, err)
-			}
-			openedExternal = true
-		}
+		openExternalUrl()
 	}()
+}
+
+// openExternalUrl opens an external URL of one of our partners automatically
+// at startup if configured to do so. It should only open the first time in
+// a given session that Lantern is opened.
+func openExternalUrl() {
+	if openedExternal {
+		log.Debugf("Not opening external URL again")
+		return
+	}
+	defer func() {
+		openedExternal = true
+	}()
+
+	path, s, err := packaged.ReadSettings()
+	if err != nil {
+		log.Errorf("Could not read yaml from %v: %v", path, err)
+		return
+	}
+
+	time.Sleep(4 * time.Second)
+	err = open.Run(s.StartupUrl)
+	if err != nil {
+		log.Errorf("Error opening external page to `%v`: %v", uiaddr, err)
+	}
 }

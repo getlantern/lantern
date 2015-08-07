@@ -2,6 +2,7 @@
 package launcher
 
 import (
+	"fmt"
 	"github.com/kardianos/osext"
 	"github.com/luisiturrios/gowin"
 
@@ -17,24 +18,24 @@ var (
 )
 
 func CreateLaunchFile(autoLaunch bool) {
-	var err error
+	var startupCommand string
+
+	lanternPath, err := osext.Executable()
+	if err != nil {
+		log.Errorf("Could not get Lantern directory path: %q", err)
+		return
+	}
 
 	if autoLaunch {
-		lanternPath, err := osext.Executable()
-		if err != nil {
-			log.Errorf("Could not get Lantern directory path: %q", err)
-			return
-		}
-		err = gowin.WriteStringReg("HKCU", runDir, "Lantern", "\""+lanternPath+"\""+" -startup")
-		if err != nil {
-			log.Errorf("Error inserting Lantern auto-start registry key: %q", err)
-		}
+		// Start Lantern normally.
+		startupCommand = fmt.Sprintf(`"%s" -startup`, lanternPath)
 	} else {
-		// We just set the value to the empty string because the windows registry
-		// library we're using doesn't support RegDeleteValue
-		err = gowin.WriteStringReg("HKCU", runDir, "Lantern", "")
-		if err != nil {
-			log.Errorf("Error removing Lantern auto-start registry key: %q", err)
-		}
+		// Just clear stored proxy settings and quit.
+		startupCommand = fmt.Sprintf(`"%s" -clear-proxy-settings`, lanternPath)
+	}
+
+	err = gowin.WriteStringReg("HKCU", runDir, "Lantern", startupCommand)
+	if err != nil {
+		log.Errorf("Error setting Lantern auto-start registry key: %q", err)
 	}
 }

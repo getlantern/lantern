@@ -45,9 +45,10 @@ var (
 	log = golog.LoggerFor("flashlight")
 
 	// Command-line Flags
-	help     = flag.Bool("help", false, "Get usage help")
-	headless = flag.Bool("headless", false, "if true, lantern will run with no ui")
-	startup  = flag.Bool("startup", false, "if true, Lantern was automatically run on system startup")
+	help               = flag.Bool("help", false, "Get usage help")
+	headless           = flag.Bool("headless", false, "if true, lantern will run with no ui")
+	startup            = flag.Bool("startup", false, "if true, Lantern was automatically run on system startup")
+	clearProxySettings = flag.Bool("clear-proxy-settings", false, "if true, Lantern removes proxy settings from the system.")
 
 	showui = true
 
@@ -84,6 +85,7 @@ func init() {
 
 func main() {
 	parseFlags()
+
 	showui = !*headless
 
 	if showui {
@@ -158,9 +160,9 @@ func doMain() error {
 	log.Debug("Running proxy")
 	if cfg.IsDownstream() {
 		// This will open a proxy on the address and port given by -addr
-		runClientProxy(cfg)
+		go runClientProxy(cfg)
 	} else {
-		runServerProxy(cfg)
+		go runServerProxy(cfg)
 	}
 
 	return waitForExit()
@@ -204,6 +206,16 @@ func runClientProxy(cfg *config.Config) {
 		exit(err)
 	}
 
+	if *clearProxySettings {
+		// This is a workaround that attempts to fix a Windows-only problem where
+		// Lantern was unable to clean the system's proxy settings before logging
+		// off.
+		//
+		// See: https://github.com/getlantern/lantern/issues/2776
+		doPACOff(fmt.Sprintf("http://%s/proxy_on.pac", cfg.UIAddr))
+		exit(nil)
+	}
+
 	// Create the client-side proxy.
 	client := &client.Client{
 		Addr:         cfg.Addr,
@@ -212,9 +224,6 @@ func runClientProxy(cfg *config.Config) {
 	}
 
 	// Start user interface.
-	if cfg.UIAddr == "" {
-		exit(fmt.Errorf("Please provide a valid local or remote UI address"))
-	}
 	tcpAddr, err := net.ResolveTCPAddr("tcp4", cfg.UIAddr)
 	if err != nil {
 		exit(fmt.Errorf("Unable to resolve UI address: %v", err))
@@ -239,37 +248,35 @@ func runClientProxy(cfg *config.Config) {
 	}()
 
 	/*
-		Temporarily disabling localdiscover. See:
-		https://github.com/getlantern/lantern/issues/2813
-		// Continually search for local Lantern instances and update the UI
-		go func() {
+		      Temporarily disabling localdiscover. See:
+		      https://github.com/getlantern/lantern/issues/2813
+		      // Continually search for local Lantern instances and update the UI
+		      go func() {
 			addExitFunc(localdiscovery.Stop)
 			localdiscovery.Start(!showui, strconv.Itoa(tcpAddr.Port))
-		}()
+		      }()
 	*/
 
 	// watchDirectAddrs will spawn a goroutine that will add any site that is
 	// directly accesible to the PAC file.
 	watchDirectAddrs()
 
-	go func() {
-		err := client.ListenAndServe(func() {
-			pacOn()
-			addExitFunc(pacOff)
-			if showui && !*startup {
-				// Launch a browser window with Lantern but only after the pac
-				// URL and the proxy server are all up and running to avoid
-				// race conditions where we change the proxy setup while the
-				// UI server and proxy server are still coming up.
-				ui.Show()
-			} else {
-				log.Debugf("Not opening browser. Startup is: %v", *startup)
-			}
-		})
-		if err != nil {
-			exit(fmt.Errorf("Error calling listen and serve: %v", err))
+	err = client.ListenAndServe(func() {
+		pacOn()
+		addExitFunc(pacOff)
+		if showui && !*startup {
+			// Launch a browser window with Lantern but only after the pac
+			// URL and the proxy server are all up and running to avoid
+			// race conditions where we change the proxy setup while the
+			// UI server and proxy server are still coming up.
+			ui.Show()
+		} else {
+			log.Debugf("Not opening browser. Startup is: %v", *startup)
 		}
-	}()
+	})
+	if err != nil {
+		exit(fmt.Errorf("Error calling listen and serve: %v", err))
+	}
 }
 
 // showExistingUi triggers an existing Lantern running on the same system to

@@ -114,6 +114,7 @@ package update
 
 import (
 	"bytes"
+	"compress/bzip2"
 	"crypto"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -329,8 +330,8 @@ func (u *Update) FromStream(updateWith io.Reader) (err error, errRecover error) 
 			return
 		}
 	case PATCHTYPE_NONE:
-		// no patch to apply, go on through
-		newBytes, err = ioutil.ReadAll(updateWith)
+		// no patch to apply, go on through (with bzip2 decoding).
+		newBytes, err = ioutil.ReadAll(bzip2.NewReader(updateWith))
 		if err != nil {
 			return
 		}
