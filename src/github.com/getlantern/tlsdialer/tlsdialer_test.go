@@ -202,6 +202,10 @@ func TestVariableTimeouts(t *testing.T) {
 	}
 
 	for i := 0; i < 500; i++ {
+		// The 5000 microseconds limit is arbitrary. In some systems this may be too high,
+		// leading to a successful connection and thus a failed test. On the other hand,
+		// we need to make this limit relatively high, to allow timeouts to happen at different
+		// places
 		doTestTimeout(t, time.Duration(rand.Intn(5000)+1)*time.Microsecond)
 	}
 
@@ -213,7 +217,9 @@ func TestVariableTimeouts(t *testing.T) {
 func doTestTimeout(t *testing.T, timeout time.Duration) {
 	_, err := DialWithDialer(&net.Dialer{
 		Timeout: timeout,
-	}, "tcp", ADDR, false, nil)
+	}, "tcp", ADDR, false, &tls.Config{
+		RootCAs: cert.PoolContainingCert(),
+	})
 
 	assert.Error(t, err, "There should have been a problem dialing", timeout)
 
