@@ -206,7 +206,7 @@ func TestVariableTimeouts(t *testing.T) {
 		// leading to a successful connection and thus a failed test. On the other hand,
 		// we need to make this limit relatively high, to allow timeouts to happen at different
 		// places
-		doTestTimeout(t, time.Duration(rand.Intn(4000)+1)*time.Microsecond)
+		doTestTimeout(t, time.Duration(rand.Intn(5000)+1)*time.Microsecond)
 	}
 
 	// Wait to give the sockets time to close
