@@ -213,7 +213,9 @@ func TestVariableTimeouts(t *testing.T) {
 func doTestTimeout(t *testing.T, timeout time.Duration) {
 	_, err := DialWithDialer(&net.Dialer{
 		Timeout: timeout,
-	}, "tcp", ADDR, false, nil)
+	}, "tcp", ADDR, false, &tls.Config{
+		RootCAs: cert.PoolContainingCert(),
+	})
 
 	assert.Error(t, err, "There should have been a problem dialing", timeout)
 
