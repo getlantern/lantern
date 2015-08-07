@@ -267,7 +267,9 @@ func (l *logger) doPrintStack() {
 		file, line := funcForPc.FileLine(pc)
 		fmt.Fprintf(buf, "\t%s\t%s: %d\n", name, file, line)
 	}
-	buf.WriteTo(os.Stderr)
+	if _, err := buf.WriteTo(os.Stderr); err != nil {
+		errorOnLogging(err)
+	}
 }
 
 func errorOnLogging(err error) {
