@@ -107,7 +107,6 @@ func genPACFile() {
 
 // watchDirectAddrs adds any site that has accessed directly without error to PAC file
 func watchDirectAddrs() {
-	detour.DirectAddrCh = make(chan string)
 	go func() {
 		for {
 			addr := <-detour.DirectAddrCh
