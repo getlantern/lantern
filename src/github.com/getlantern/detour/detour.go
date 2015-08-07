@@ -41,7 +41,7 @@ type dialFunc func(network, addr string) (net.Conn, error)
 type Conn struct {
 	// the underlie connections, uses buffered channel as ring queue.
 	conns chan conn
-	// the channel to notify read/write than a new connection is available
+	// the channel to notify read/write that a new connection is available
 	chDetourConn chan conn
 
 	// the chan to receive result of any read operation
@@ -92,11 +92,10 @@ func typeOf(c conn) string {
 // Dialer returns a function with same signature of net.Dialer.Dial().
 func Dialer(detourDialer dialFunc) dialFunc {
 	return func(network, addr string) (net.Conn, error) {
-		var b []byte
 		dc := &Conn{
 			network:      network,
 			addr:         addr,
-			writeBuffer:  bytes.NewBuffer(b),
+			writeBuffer:  new(bytes.Buffer),
 			conns:        make(chan conn, 2),
 			chDetourConn: make(chan conn, 1),
 			chRead:       make(chan ioResult),
@@ -113,7 +112,7 @@ func Dialer(detourDialer dialFunc) dialFunc {
 			go func() {
 				DialDirect(network, addr, ch)
 				time.Sleep(DelayBeforeDetour)
-				if dc.anyDataReceived() {
+				if !dc.anyDataReceived() {
 					atomic.AddUint32(&loopCount, 1)
 					DialDetour(network, addr, detourDialer, ch)
 				}

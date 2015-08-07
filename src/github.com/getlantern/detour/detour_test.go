@@ -51,7 +51,7 @@ func TestReadTimeout(t *testing.T) {
 	defer stopMockServers()
 	proxiedURL, _ := newMockServer(detourMsg)
 	mockURL, mock := newMockServer("")
-	mock.Timeout(200*time.Millisecond, directMsg)
+	mock.Timeout(900*time.Millisecond, directMsg)
 
 	client := &http.Client{Timeout: 50 * time.Millisecond}
 	resp, err := client.Get(mockURL)
