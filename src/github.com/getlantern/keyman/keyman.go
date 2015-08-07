@@ -86,7 +86,9 @@ func (key *PrivateKey) WriteToFile(filename string) (err error) {
 	if err := pem.Encode(keyOut, key.pemBlock()); err != nil {
 		return fmt.Errorf("Unable to PEM encode private key: %s", err)
 	}
-	keyOut.Close()
+	if err := keyOut.Close(); err != nil {
+		log.Debugf("Unable to close file: %v", err)
+	}
 	return
 }
 
@@ -234,7 +236,11 @@ func (cert *Certificate) WriteToFile(filename string) (err error) {
 	if err != nil {
 		return fmt.Errorf("Failed to open %s for writing: %s", filename, err)
 	}
-	defer certOut.Close()
+	defer func() {
+		if err := certOut.Close(); err != nil {
+			log.Debugf("Unable to close file: %v", err)
+		}
+	}()
 	return pem.Encode(certOut, cert.pemBlock())
 }
 
@@ -258,7 +264,11 @@ func (cert *Certificate) WriteToDERFile(filename string) (err error) {
 	if err != nil {
 		return fmt.Errorf("Failed to open %s for writing: %s", filename, err)
 	}
-	defer certOut.Close()
+	defer func() {
+		if err := certOut.Close(); err != nil {
+			log.Debugf("Unable to close file: %v", err)
+		}
+	}()
 	_, err = certOut.Write(cert.derBytes)
 	return err
 }

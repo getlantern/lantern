@@ -40,9 +40,9 @@ func (d *dialer) Dial(network, addr string) (net.Conn, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to dial server: %s", err)
 	}
-	err = d.sendCONNECT(network, addr, conn)
-	if err != nil {
-		conn.Close()
+	if err := d.sendCONNECT(network, addr, conn); err != nil {
+		// We discard this error, since we are only interested in sendCONNECT
+		_ = conn.Close()
 		return nil, err
 	}
 	return conn, nil

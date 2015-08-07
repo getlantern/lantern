@@ -49,12 +49,16 @@ func (c *conn) processWrites() {
 				// but that's a fairly big structural change on client and
 				// server.
 				increment(&writingWritingEmpty)
-				c.rs.write(emptyBytes)
+				if _, err := c.rs.write(emptyBytes); err != nil {
+					log.Debugf("Unable to write to connection: %v", err)
+				}
 				decrement(&writingWritingEmpty)
 			}
 
 			increment(&writingFinishingBody)
-			c.rs.finishBody()
+			if err := c.rs.finishBody(); err != nil {
+				log.Debugf("Unable to write connection finishing body: %v", err)
+			}
 			decrement(&writingFinishingBody)
 
 			firstRequest = false
@@ -94,7 +98,9 @@ func (c *conn) submitWrite(b []byte) bool {
 func (c *conn) finishWriting() {
 	increment(&writingFinishing)
 	if c.rs != nil {
-		c.rs.finishBody()
+		if err := c.rs.finishBody(); err != nil {
+			log.Debugf("Unable to write connection finishing body: %v", err)
+		}
 	}
 	close(c.requestOutCh)
 	c.doneWritingCh <- true

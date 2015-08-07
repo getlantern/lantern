@@ -187,7 +187,9 @@ func DialForTimings(dialer *net.Dialer, network, addr string, sendServerName boo
 
 	if err != nil {
 		log.Trace("Handshake or verification error, closing underlying connection")
-		rawConn.Close()
+		if err := rawConn.Close(); err != nil {
+			log.Debugf("Unable to close connection: %v", err)
+		}
 		return result, err
 	}
 

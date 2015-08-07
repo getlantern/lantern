@@ -36,7 +36,9 @@ func (m *Manager) reloadFromDisk() (bool, error) {
 
 	if m.cfg != nil && m.cfg.GetVersion() != cfg.GetVersion() {
 		log.Trace("Version mismatch on disk, overwriting what's on disk with current version")
-		m.writeToDisk(m.cfg)
+		if err := m.writeToDisk(m.cfg); err != nil {
+			log.Errorf("Unable to write to disk: %v", err)
+		}
 		return false, fmt.Errorf("Version of config on disk did not match expected. Expected %d, found %d", m.cfg.GetVersion(), cfg.GetVersion())
 	}
 

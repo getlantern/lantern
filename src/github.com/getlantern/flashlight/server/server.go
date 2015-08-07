@@ -234,7 +234,9 @@ func (server *Server) register(updateConfig func(func(*ServerConfig) error)) {
 					}
 				}
 				if err == nil {
-					resp.Body.Close()
+					if err := resp.Body.Close(); err != nil {
+						log.Debugf("Error closing response body: %v", err)
+					}
 				}
 			}
 		}
@@ -327,10 +329,10 @@ func mapPort(addr string, port int) error {
 	if err != nil {
 		return fmt.Errorf("Unable to get IGD: %s", err)
 	}
-
-	igd.RemovePortMapping(igdman.TCP, port)
-	err = igd.AddPortMapping(igdman.TCP, internalIP, internalPort, port, 0)
-	if err != nil {
+	if err := igd.RemovePortMapping(igdman.TCP, port); err != nil {
+		log.Debugf("Unable to remove port mapping: %v", err)
+	}
+	if err = igd.AddPortMapping(igdman.TCP, internalIP, internalPort, port, 0); err != nil {
 		return fmt.Errorf("Unable to map port with igdman %d: %s", port, err)
 	}
 
@@ -343,8 +345,7 @@ func unmapPort(port int) error {
 		return fmt.Errorf("Unable to get IGD: %s", err)
 	}
 
-	igd.RemovePortMapping(igdman.TCP, port)
-	if err != nil {
+	if err := igd.RemovePortMapping(igdman.TCP, port); err != nil {
 		return fmt.Errorf("Unable to unmap port with igdman %d: %s", port, err)
 	}
 
@@ -360,7 +361,11 @@ func determineInternalIP() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("Unable to determine local IP: %s", err)
 	}
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			log.Debugf("Error closing connection: %v", err)
+		}
+	}()
 	host, _, err := net.SplitHostPort(conn.LocalAddr().String())
 	return host, err
 }

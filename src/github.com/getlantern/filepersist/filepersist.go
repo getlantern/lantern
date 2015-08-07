@@ -44,11 +44,17 @@ func Save(filename string, data []byte, fileMode os.FileMode) error {
 	log.Tracef("Created new file at %s, writing data", filename)
 	_, err = file.Write(data)
 	if err != nil {
-		os.Remove(filename)
+		if err := os.Remove(filename); err != nil {
+			log.Debugf("Unable to remove file: %v", err)
+		}
 		return fmt.Errorf("Unable to write to file at %s: %s", filename, err)
 	}
-	file.Sync()
-	file.Close()
+	if err := file.Sync(); err != nil {
+		log.Debugf("Unable to sync file: %v", err)
+	}
+	if err := file.Close(); err != nil {
+		log.Debugf("Unable to close file: %v", err)
+	}
 
 	log.Trace("File saved")
 	return nil

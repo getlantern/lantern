@@ -56,9 +56,12 @@ func init() {
 			}
 			go func() {
 				tlsConn := conn.(*tls.Conn)
-				tlsConn.Handshake()
+				// Discard this error, since we will use it for testing
+				_ = tlsConn.Handshake()
 				serverName := tlsConn.ConnectionState().ServerName
-				conn.Close()
+				if err := conn.Close(); err != nil {
+					log.Fatalf("Unable to close connection: %v", err)
+				}
 				receivedServerNames <- serverName
 			}()
 		}
@@ -258,7 +261,9 @@ func TestDeadlineBeforeTimeout(t *testing.T) {
 
 func closeAndCountFDs(t *testing.T, conn *tls.Conn, err error, fdc *fdcount.Counter) {
 	if err == nil {
-		conn.Close()
+		if err := conn.Close(); err != nil {
+			t.Fatalf("Unable to close connection: %v", err)
+		}
 	}
 	assert.NoError(t, fdc.AssertDelta(0), "Number of open TCP files should be the same after test as before")
 }

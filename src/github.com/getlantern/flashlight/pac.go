@@ -136,7 +136,9 @@ func pacOn() {
 		resp.Header().Set("Content-Type", "application/x-ns-proxy-autoconfig")
 		resp.WriteHeader(http.StatusOK)
 		muPACFile.RLock()
-		resp.Write(pacFile)
+		if _, err := resp.Write(pacFile); err != nil {
+			log.Debugf("Error writing response: %v", err)
+		}
 		muPACFile.RUnlock()
 	}
 	genPACFile()

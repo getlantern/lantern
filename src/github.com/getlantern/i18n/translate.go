@@ -65,7 +65,11 @@ func makeReadFunc(d string) ReadFunc {
 			err = fmt.Errorf("Error open file %s: %s", fileName, err)
 			return
 		}
-		defer f.Close()
+		defer func() {
+			if err := f.Close(); err != nil {
+				log.Debugf("Unable to close file: %v", err)
+			}
+		}()
 		if buf, err = ioutil.ReadAll(f); err != nil {
 			err = fmt.Errorf("Error read file %s: %s", fileName, err)
 		}

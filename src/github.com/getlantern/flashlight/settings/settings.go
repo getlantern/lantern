@@ -89,12 +89,14 @@ func read() {
 	for msg := range service.In {
 		log.Tracef("Read settings message!! %q", msg)
 		settings := (msg).(map[string]interface{})
-		config.Update(func(updated *config.Config) error {
+		err := config.Update(func(updated *config.Config) error {
 
 			if autoReport, ok := settings["autoReport"].(bool); ok {
 				// turn on/off analaytics reporting
 				if autoReport {
-					analytics.StartService()
+					if err := analytics.StartService(); err != nil {
+						log.Debugf("Unable to start analytics service: %v", err)
+					}
 				} else {
 					analytics.StopService()
 				}
@@ -110,5 +112,8 @@ func read() {
 			}
 			return nil
 		})
+		if err != nil {
+			log.Errorf("Unable to update settings: %v", err)
+		}
 	}
 }

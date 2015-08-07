@@ -38,7 +38,11 @@ func (m *Manager) startConfigServer() error {
 }
 
 func (m *Manager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	defer req.Body.Close()
+	defer func() {
+		if err := req.Body.Close(); err != nil {
+			log.Debugf("Unable to close request body: %v", err)
+		}
+	}()
 
 	if len(req.URL.Path) < 2 {
 		fail(resp, "Invalid path")
@@ -103,5 +107,7 @@ func (m *Manager) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 func fail(resp http.ResponseWriter, msg string) {
 	resp.Header().Set("Content-Type", "text/plain")
 	resp.WriteHeader(BadRequest)
-	resp.Write([]byte(msg))
+	if _, err := resp.Write([]byte(msg)); err != nil {
+		log.Debugf("Unable to write response: %v", err)
+	}
 }

@@ -41,7 +41,9 @@ func (r *SizeRotator) Write(bytes []byte) (n int, err error) {
 	// Do rotate when size exceeded
 	if r.totalSize+int64(len(bytes)) > r.RotationSize {
 		if r.file != nil {
-			r.file.Close()
+			if err := r.file.Close(); err != nil {
+				return 0, fmt.Errorf("Unable to close file: %v", err)
+			}
 			r.file = nil
 		}
 		// Remove oldest file (in case it exists)
