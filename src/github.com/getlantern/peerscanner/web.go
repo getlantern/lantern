@@ -81,12 +81,16 @@ func register(resp http.ResponseWriter, req *http.Request) {
 		resp.WriteHeader(200)
 		fmt.Fprintln(resp, "Connectivity to proxy confirmed")
 		if (supportedFronts & cloudfrontBit) == cloudfrontBit {
+			/* Temporarily disable CloudFront/DNSimple.
 			h.initCloudfront()
+			*/
 		}
 		fstr := "frontfqdns: {cloudflare: " + name + "." + *cfldomain
+		/* Temporarily disable CloudFront/DNSimple.
 		if h.cfrDist != nil {
 			fstr += ", cloudfront: " + h.cfrDist.Domain
 		}
+		*/
 		fstr += "}"
 		fmt.Fprintln(resp, fstr)
 
