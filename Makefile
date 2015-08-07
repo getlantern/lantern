@@ -224,8 +224,7 @@ docker-mobile:
 	DOCKER_CONTEXT=.$(DOCKER_MOBILE_IMAGE_TAG)-context && \
 	mkdir -p $$DOCKER_CONTEXT && \
 	cp $(LANTERN_MOBILE_DIR)/Dockerfile $$DOCKER_CONTEXT && \
-	docker build -t $(DOCKER_MOBILE_IMAGE_TAG) $$DOCKER_CONTEXT && \
-	$(GO) get -d golang.org/x/mobile/example/...
+	docker build -t $(DOCKER_MOBILE_IMAGE_TAG) $$DOCKER_CONTEXT
 
 linux: genassets linux-386 linux-amd64 linux-arm
 
