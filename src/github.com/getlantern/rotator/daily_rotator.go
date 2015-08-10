@@ -44,7 +44,9 @@ func (r *DailyRotator) Write(bytes []byte) (n int, err error) {
 			// If file exists and modificated last date, just rotate it
 			modDate := stat.ModTime().Format(dateFormat)
 			if modDate != nextDate {
-				os.Rename(r.path, r.path+"."+modDate)
+				if err := os.Rename(r.path, r.path+"."+modDate); err != nil {
+					log.Debugf("Unable to rename file: %v", err)
+				}
 			}
 		}
 
@@ -78,7 +80,9 @@ func (r *DailyRotator) Write(bytes []byte) (n int, err error) {
 				}
 			}
 			// Rename current log file to be archived
-			os.Rename(r.path, renamedName)
+			if err := os.Rename(r.path, renamedName); err != nil {
+				log.Debugf("Unable to rename file: %v", err)
+			}
 
 			file, err := os.OpenFile(r.path, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 			if err != nil {

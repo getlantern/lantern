@@ -52,7 +52,9 @@ func TestExec(t *testing.T) {
 
 	// Now mess with the file contents and make sure it gets overwritten on next
 	// ByteExec
-	ioutil.WriteFile(be.Filename, []byte("Junk"), 0755)
+	if err := ioutil.WriteFile(be.Filename, []byte("Junk"), 0755); err != nil {
+		t.Fatalf("Unable to write file: %v", err)
+	}
 	be = createByteExec(t, data)
 	updatedInfo = testByteExec(t, be)
 	assert.NotEqual(t, originalInfo.ModTime(), updatedInfo.ModTime(), "File modification time should be changed after creating new ByteExec on bad data")

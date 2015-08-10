@@ -13,7 +13,11 @@ func TestSuccess(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to listen: %s", err)
 	}
-	defer l.Close()
+	defer func() {
+		if err := l.Close(); err != nil {
+			t.Fatalf("Unable to close listener: %v", err)
+		}
+	}()
 	err = WaitForServer("tcp", l.Addr().String(), 100*time.Millisecond)
 	assert.NoError(t, err, "Server should have been found")
 }

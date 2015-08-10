@@ -137,7 +137,9 @@ func (d *dialer) defaultCheck() bool {
 			log.Debugf("Error testing dialer %s to humans.txt: %s", d.Label, err)
 			return false, nil
 		}
-		resp.Body.Close()
+		if err := resp.Body.Close(); err != nil {
+			log.Debugf("Unable to close response body: %v", err)
+		}
 		log.Tracef("Tested dialer %s to humans.txt, status code %d", d.Label, resp.StatusCode)
 		return resp.StatusCode == 200, nil
 	})

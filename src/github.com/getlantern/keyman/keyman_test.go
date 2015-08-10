@@ -18,8 +18,16 @@ const (
 )
 
 func TestRoundTrip(t *testing.T) {
-	defer os.Remove(PK_FILE)
-	defer os.Remove(CERT_FILE)
+	defer func() {
+		if err := os.Remove(PK_FILE); err != nil {
+			log.Debugf("Unable to remove file: %v", err)
+		}
+	}()
+	defer func() {
+		if err := os.Remove(CERT_FILE); err != nil {
+			log.Debugf("Unable to remove file: %v", err)
+		}
+	}()
 
 	pk, err := GeneratePK(1024)
 	assert.NoError(t, err, "Unable to generate PK")

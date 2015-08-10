@@ -43,9 +43,13 @@ func Dial(addr string, config *Config) (net.Conn, error) {
 
 	return idletiming.Conn(c, c.config.IdleTimeout, func() {
 		log.Debugf("Proxy connection to %s via %s idle for %v, closing", addr, proxyConn.conn.RemoteAddr(), c.config.IdleTimeout)
-		c.Close()
+		if err := c.Close(); err != nil {
+			log.Debugf("Unable to close connection: %v", err)
+		}
 		// Close the initial proxyConn just in case
-		proxyConn.conn.Close()
+		if err := proxyConn.conn.Close(); err != nil {
+			log.Debugf("Unable to close proxy connection: %v", err)
+		}
 	}), nil
 }
 
@@ -114,7 +118,9 @@ func (c *conn) redialProxyIfNecessary(proxyConn *connInfo) (*connInfo, error) {
 	proxyConn.closedMutex.Lock()
 	defer proxyConn.closedMutex.Unlock()
 	if proxyConn.closed || proxyConn.conn.TimesOutIn() < oneSecond {
-		proxyConn.conn.Close()
+		if err := proxyConn.conn.Close(); err != nil {
+			log.Debugf("Unable to close proxy connection: %v", err)
+		}
 		return c.dialProxy()
 	} else {
 		return proxyConn, nil
@@ -170,7 +176,9 @@ func (c *conn) doRequest(proxyConn *connInfo, host string, op string, request *r
 			log.Errorf("Could not dump response: %v", er)
 			err = fmt.Errorf("Bad response status for read from fronting provider: %s", resp.Status)
 		}
-		resp.Body.Close()
+		if err := resp.Body.Close(); err != nil {
+			log.Debugf("Unable to close response body: %v", err)
+		}
 		resp = nil
 	} else {
 		log.Debugf("Got OK from fronting provider")

@@ -21,8 +21,10 @@ var (
 	newFile = []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
 )
 
-func cleanup(path string) {
-	os.Remove(path)
+func cleanup(path string, t *testing.T) {
+	if err := os.Remove(path); err != nil {
+		t.Fatalf("Unable to remove file: %v", err)
+	}
 }
 
 // we write with a separate name for each test so that we can run them in parallel
@@ -51,7 +53,7 @@ func TestFromStream(t *testing.T) {
 	t.Parallel()
 
 	fName := "TestFromStream"
-	defer cleanup(fName)
+	defer cleanup(fName, t)
 	writeOldFile(fName, t)
 
 	err, _ := New().Target(fName).FromStream(bytes.NewReader(newFile))
@@ -63,8 +65,8 @@ func TestFromFile(t *testing.T) {
 
 	fName := "TestFromFile"
 	newFName := "NewTestFromFile"
-	defer cleanup(fName)
-	defer cleanup(newFName)
+	defer cleanup(fName, t)
+	defer cleanup(newFName, t)
 	writeOldFile(fName, t)
 
 	if err := ioutil.WriteFile(newFName, newFile, 0777); err != nil {
@@ -79,7 +81,7 @@ func TestFromUrl(t *testing.T) {
 	t.Parallel()
 
 	fName := "TestFromUrl"
-	defer cleanup(fName)
+	defer cleanup(fName, t)
 	writeOldFile(fName, t)
 
 	l, err := net.Listen("tcp", ":0")
@@ -88,9 +90,18 @@ func TestFromUrl(t *testing.T) {
 	}
 	addr := l.Addr().String()
 
-	go http.Serve(l, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write(newFile)
-	}))
+	go func() {
+		err := http.Serve(l, http.HandlerFunc(
+			func(w http.ResponseWriter,
+				r *http.Request) {
+				if _, err := w.Write(newFile); err != nil {
+					t.Fatalf("Unable to write to file: %v", err)
+				}
+			}))
+		if err != nil {
+			t.Fatalf("Error setting up HTTP server: %v", err)
+		}
+	}()
 
 	err, _ = New().Target(fName).FromUrl("http://" + addr)
 	validateUpdate(fName, err, t)
@@ -100,7 +111,7 @@ func TestVerifyChecksum(t *testing.T) {
 	t.Parallel()
 
 	fName := "TestVerifyChecksum"
-	defer cleanup(fName)
+	defer cleanup(fName, t)
 	writeOldFile(fName, t)
 
 	checksum, err := ChecksumForBytes(newFile)
@@ -116,7 +127,7 @@ func TestVerifyChecksumNegative(t *testing.T) {
 	t.Parallel()
 
 	fName := "TestVerifyChecksumNegative"
-	defer cleanup(fName)
+	defer cleanup(fName, t)
 	writeOldFile(fName, t)
 
 	badChecksum := []byte{0x0A, 0x0B, 0x0C, 0xFF}
@@ -130,7 +141,7 @@ func TestApplyPatch(t *testing.T) {
 	t.Parallel()
 
 	fName := "TestApplyPatch"
-	defer cleanup(fName)
+	defer cleanup(fName, t)
 	writeOldFile(fName, t)
 
 	patch := new(bytes.Buffer)
@@ -148,7 +159,7 @@ func TestCorruptPatch(t *testing.T) {
 	t.Parallel()
 
 	fName := "TestCorruptPatch"
-	defer cleanup(fName)
+	defer cleanup(fName, t)
 	writeOldFile(fName, t)
 
 	badPatch := []byte{0x44, 0x38, 0x86, 0x3c, 0x4f, 0x8d, 0x26, 0x54, 0xb, 0x11, 0xce, 0xfe, 0xc1, 0xc0, 0xf8, 0x31, 0x38, 0xa0, 0x12, 0x1a, 0xa2, 0x57, 0x2a, 0xe1, 0x3a, 0x48, 0x62, 0x40, 0x2b, 0x81, 0x12, 0xb1, 0x21, 0xa5, 0x16, 0xed, 0x73, 0xd6, 0x54, 0x84, 0x29, 0xa6, 0xd6, 0xb2, 0x1b, 0xfb, 0xe6, 0xbe, 0x7b, 0x70}
@@ -163,7 +174,7 @@ func TestVerifyChecksumPatchNegative(t *testing.T) {
 	t.Parallel()
 
 	fName := "TestVerifyChecksumPatchNegative"
-	defer cleanup(fName)
+	defer cleanup(fName, t)
 	writeOldFile(fName, t)
 
 	checksum, err := ChecksumForBytes(newFile)
@@ -251,7 +262,7 @@ func TestVerifySignature(t *testing.T) {
 	t.Parallel()
 
 	fName := "TestVerifySignature"
-	defer cleanup(fName)
+	defer cleanup(fName, t)
 	writeOldFile(fName, t)
 
 	up, err := New().Target(fName).VerifySignatureWithPEM([]byte(publicKey))
@@ -268,7 +279,7 @@ func TestVerifyFailBadSignature(t *testing.T) {
 	t.Parallel()
 
 	fName := "TestVerifyFailBadSignature"
-	defer cleanup(fName)
+	defer cleanup(fName, t)
 	writeOldFile(fName, t)
 
 	up, err := New().Target(fName).VerifySignatureWithPEM([]byte(publicKey))
@@ -287,7 +298,7 @@ func TestVerifyFailNoSignature(t *testing.T) {
 	t.Parallel()
 
 	fName := "TestVerifySignatureWithPEM"
-	defer cleanup(fName)
+	defer cleanup(fName, t)
 	writeOldFile(fName, t)
 
 	up, err := New().Target(fName).VerifySignatureWithPEM([]byte(publicKey))
@@ -333,7 +344,7 @@ func TestVerifyFailWrongSignature(t *testing.T) {
 	t.Parallel()
 
 	fName := "TestVerifyFailWrongSignature"
-	defer cleanup(fName)
+	defer cleanup(fName, t)
 	writeOldFile(fName, t)
 
 	up, err := New().Target(fName).VerifySignatureWithPEM([]byte(publicKey))
@@ -352,7 +363,7 @@ func TestSignatureButNoPublicKey(t *testing.T) {
 	t.Parallel()
 
 	fName := "TestSignatureButNoPublicKey"
-	defer cleanup(fName)
+	defer cleanup(fName, t)
 	writeOldFile(fName, t)
 
 	sig := sign(privateKey, newFile, t)
@@ -366,7 +377,7 @@ func TestPublicKeyButNoSignature(t *testing.T) {
 	t.Parallel()
 
 	fName := "TestPublicKeyButNoSignature"
-	defer cleanup(fName)
+	defer cleanup(fName, t)
 	writeOldFile(fName, t)
 
 	up, err := New().Target(fName).VerifySignatureWithPEM([]byte(publicKey))

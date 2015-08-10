@@ -54,7 +54,7 @@ type Server struct {
 	// Allow: Optional function that checks whether the given request to the
 	// given destAddr is allowed.  If it is not allowed, this function should
 	// return an error.
-	Allow func(req *http.Request, destAddr string) error
+	Allow func(req *http.Request, destAddr string) (int, error)
 
 	// OnBytesSent: optional callback for learning about bytes sent by this
 	// server to upstream destinations.
@@ -147,17 +147,17 @@ func (server *Server) Serve(l net.Listener) error {
 	if server.AllowNonGlobalDestinations {
 		proxy.Allow = server.Allow
 	} else {
-		proxy.Allow = func(req *http.Request, destAddr string) error {
-			err := server.checkForNonGlobalDestination(destAddr)
+		proxy.Allow = func(req *http.Request, destAddr string) (int, error) {
+			code, err := server.checkForNonGlobalDestination(destAddr)
 			if err != nil {
-				return err
+				return code, err
 			}
 
 			if server.Allow != nil {
 				return server.Allow(req, destAddr)
 			}
 
-			return nil
+			return http.StatusOK, nil
 		}
 	}
 
@@ -180,22 +180,24 @@ func (server *Server) dialDestination(addr string) (net.Conn, error) {
 	return net.DialTimeout("tcp", addr, dialTimeout)
 }
 
-func (server *Server) checkForNonGlobalDestination(addr string) error {
+func (server *Server) checkForNonGlobalDestination(addr string) (int, error) {
 	host, _, err := net.SplitHostPort(addr)
 	if err != nil {
-		return fmt.Errorf("Unable to split host and port for %v: %v", addr, err)
+		return http.StatusBadRequest, fmt.Errorf("Enproxy unable to split host and port for %v: %v", addr, err)
 	}
 
 	ipAddr, err := net.ResolveIPAddr("ip", host)
 	if err != nil || len(ipAddr.IP) == 0 {
-		return fmt.Errorf("Unable to resolve destination IP addr %v: %v", host, err)
+		// It's not really clear what we should return if we can't resolve the DNS, so
+		// might as well go with status tea pot!
+		return http.StatusTeapot, fmt.Errorf("Unable to resolve destination IP addr %v: %v", host, err)
 	}
 
 	if !ipAddr.IP.IsGlobalUnicast() {
-		return fmt.Errorf("Not accepting connections to non-global address: %s", addr)
+		return http.StatusBadRequest, fmt.Errorf("Not accepting connections to non-global address: %s", addr)
 	}
 
-	return nil
+	return http.StatusOK, nil
 }
 
 // InitServerCert initializes a PK + cert for use by a server proxy, signed by

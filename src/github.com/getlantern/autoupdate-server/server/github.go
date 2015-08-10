@@ -233,6 +233,31 @@ func (g *ReleaseManager) lookupAssetWithChecksum(os string, arch string, checksu
 	return nil, fmt.Errorf("Could not find a matching checksum in assets list.")
 }
 
+func (g *ReleaseManager) lookupAssetWithVersion(os string, arch string, version string) (asset *Asset, err error) {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+
+	if g.updateAssetsMap == nil {
+		return nil, fmt.Errorf("No updates available.")
+	}
+
+	if g.updateAssetsMap[os] == nil {
+		return nil, fmt.Errorf("No such OS.")
+	}
+
+	if g.updateAssetsMap[os][arch] == nil {
+		return nil, fmt.Errorf("No such Arch.")
+	}
+
+	for _, a := range g.updateAssetsMap[os][arch] {
+		if a.v.String() == version {
+			return a, nil
+		}
+	}
+
+	return nil, fmt.Errorf("Could not find a matching version in assets list.")
+}
+
 func (g *ReleaseManager) pushAsset(os string, arch string, asset *Asset) (err error) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
@@ -272,12 +297,16 @@ func (g *ReleaseManager) pushAsset(os string, arch string, asset *Asset) (err er
 	if g.latestAssetsMap[os] == nil {
 		g.latestAssetsMap[os] = make(map[string]*Asset)
 	}
-	if g.latestAssetsMap[os][arch] == nil {
-		g.latestAssetsMap[os][arch] = asset
-	} else {
-		// Compare against already set version
-		if asset.v.GT(g.latestAssetsMap[os][arch].v) {
+
+	// Only considering non-manoto versions for the latestAssetsMap
+	if !buildStringContainsManoto(asset.v) {
+		if g.latestAssetsMap[os][arch] == nil {
 			g.latestAssetsMap[os][arch] = asset
+		} else {
+			// Compare against already set version.
+			if asset.v.GT(g.latestAssetsMap[os][arch].v) {
+				g.latestAssetsMap[os][arch] = asset
+			}
 		}
 	}
 

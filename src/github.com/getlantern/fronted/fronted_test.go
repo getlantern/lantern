@@ -95,7 +95,11 @@ func TestNonGlobalAddressNoHost(t *testing.T) {
 func doTestNonGlobalAddress(t *testing.T, overrideAddr string) {
 	l := startServer(t, false, nil)
 	d := dialerFor(t, l, 0)
-	defer d.Close()
+	defer func() {
+		if err := d.Close(); err != nil {
+			t.Fatalf("Unable to close dialer: %v", err)
+		}
+	}()
 
 	gotConn := false
 	var gotConnMutex sync.Mutex
@@ -104,7 +108,9 @@ func doTestNonGlobalAddress(t *testing.T, overrideAddr string) {
 		t.Fatalf("Unable to listen: %s", err)
 	}
 	go func() {
-		tl.Accept()
+		if _, err := tl.Accept(); err != nil {
+			t.Fatalf("Unable to accept connections: %v", err)
+		}
 		gotConnMutex.Lock()
 		gotConn = true
 		gotConnMutex.Unlock()
@@ -120,7 +126,9 @@ func doTestNonGlobalAddress(t *testing.T, overrideAddr string) {
 	}
 
 	data := []byte("Some Meaningless Data")
-	conn.Write(data)
+	if _, err := conn.Write(data); err != nil {
+		t.Fatalf("Unable to write to connection: %v", err)
+	}
 	// Give enproxy time to flush
 	time.Sleep(500 * time.Millisecond)
 	_, err = conn.Write(data)
@@ -136,7 +144,9 @@ func TestAllowed(t *testing.T) {
 		t.Fatalf("Unable to listen: %s", err)
 	}
 	go func() {
-		tl.Accept()
+		if _, err := tl.Accept(); err != nil {
+			t.Fatalf("Unable to accept connections: %v", err)
+		}
 		gotConnMutex.Lock()
 		gotConn = true
 		gotConnMutex.Unlock()
@@ -154,14 +164,24 @@ func TestAllowed(t *testing.T) {
 	// Only allow some port other than the actual port
 	l := startServer(t, true, []int{port + 1})
 	d := dialerFor(t, l, 0)
-	defer d.Close()
+	defer func() {
+		if err := d.Close(); err != nil {
+			t.Fatalf("Unable to close dialer: %v", err)
+		}
+	}()
 
 	addr := tl.Addr().String()
 	conn, err := d.Dial("tcp", addr)
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			t.Fatalf("Unable to close connection: %v", err)
+		}
+	}()
 
 	data := []byte("Some Meaningless Data")
-	conn.Write(data)
+	if _, err := conn.Write(data); err != nil {
+		t.Fatalf("Unable to write connection: %v", err)
+	}
 	// Give enproxy time to flush
 	time.Sleep(500 * time.Millisecond)
 	_, err = conn.Write(data)
@@ -172,7 +192,11 @@ func TestAllowed(t *testing.T) {
 func TestRoundTripPooled(t *testing.T) {
 	l := startServer(t, true, nil)
 	d := dialerFor(t, l, 20)
-	defer d.Close()
+	defer func() {
+		if err := d.Close(); err != nil {
+			t.Fatalf("Unable to close dialer: %v", err)
+		}
+	}()
 
 	proxy.Test(t, d)
 }
@@ -180,7 +204,11 @@ func TestRoundTripPooled(t *testing.T) {
 func TestRoundTripUnpooled(t *testing.T) {
 	l := startServer(t, true, nil)
 	d := dialerFor(t, l, 0)
-	defer d.Close()
+	defer func() {
+		if err := d.Close(); err != nil {
+			t.Fatalf("Unable to close dialer: %v", err)
+		}
+	}()
 
 	proxy.Test(t, d)
 }
@@ -208,7 +236,11 @@ func TestIntegration(t *testing.T) {
 	}
 
 	d := integrationDialer(t, statsFunc)
-	defer d.Close()
+	defer func() {
+		if err := d.Close(); err != nil {
+			t.Fatalf("Unable to close dialer: %v", err)
+		}
+	}()
 
 	hc := &http.Client{
 		Transport: &http.Transport{
@@ -220,7 +252,11 @@ func TestIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to fetch from Google: %s", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			t.Fatalf("Unable to close response body: %v", err)
+		}
+	}()
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		t.Fatalf("Unable to read response from Google: %s", err)
@@ -238,12 +274,20 @@ func TestIntegration(t *testing.T) {
 
 func TestIntegrationDirect(t *testing.T) {
 	d := integrationDialer(t, nil)
-	defer d.Close()
+	defer func() {
+		if err := d.Close(); err != nil {
+			t.Fatalf("Unable to close dialer: %v", err)
+		}
+	}()
 
 	client := d.NewDirectDomainFronter()
 	resp, err := client.Get("http://geo.getiantem.org/lookup")
 	if assert.NoError(t, err, "Should be able to call geo.getiantem.org") {
-		defer resp.Body.Close()
+		defer func() {
+			if err := resp.Body.Close(); err != nil {
+				t.Fatalf("Unable to close response body: %v", err)
+			}
+		}()
 		if assert.Equal(t, 200, resp.StatusCode, "Response should be successful") {
 			reflectedIp := resp.Header.Get("X-Reflected-Ip")
 			assert.NotEmpty(t, reflectedIp, "Response from geo.getiantem.org should contains a reflected ip")
@@ -300,7 +344,7 @@ func startServer(t *testing.T, allowNonGlobal bool, allowedPorts []int) net.List
 		},
 	}
 	if allowedPorts != nil {
-		server.Allow = func(req *http.Request, destAddr string) error {
+		server.Allow = func(req *http.Request, destAddr string) (int, error) {
 			_, portString, err := net.SplitHostPort(destAddr)
 			if err != nil {
 				t.Fatalf("Unable to split host and port: %v", err)
@@ -317,9 +361,9 @@ func startServer(t *testing.T, allowNonGlobal bool, allowedPorts []int) net.List
 				}
 			}
 			if !portAllowed {
-				return fmt.Errorf("Port %v not allowed", portAllowed)
+				return http.StatusForbidden, fmt.Errorf("Port %v not allowed", portAllowed)
 			}
-			return nil
+			return http.StatusOK, nil
 		}
 	}
 	l, err := server.Listen()

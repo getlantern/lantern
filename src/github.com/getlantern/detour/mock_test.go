@@ -19,14 +19,20 @@ func (m *mockHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (m *mockHandler) Raw(msg string) {
 	m.writer = func(w http.ResponseWriter) {
 		conn, _, _ := w.(http.Hijacker).Hijack()
-		conn.Write([]byte(msg))
-		conn.Close()
+		if _, err := conn.Write([]byte(msg)); err != nil {
+			log.Debugf("Unable to write to connection: %v", err)
+		}
+		if err := conn.Close(); err != nil {
+			log.Debugf("Unable to close connection: %v", err)
+		}
 	}
 }
 
 func (m *mockHandler) Msg(msg string) {
 	m.writer = func(w http.ResponseWriter) {
-		w.Write([]byte(msg))
+		if _, err := w.Write([]byte(msg)); err != nil {
+			log.Debugf("Unable to write to connection: %v", err)
+		}
 		w.(http.Flusher).Flush()
 	}
 }
@@ -34,7 +40,9 @@ func (m *mockHandler) Msg(msg string) {
 func (m *mockHandler) Timeout(d time.Duration, msg string) {
 	m.writer = func(w http.ResponseWriter) {
 		time.Sleep(d)
-		w.Write([]byte(msg))
+		if _, err := w.Write([]byte(msg)); err != nil {
+			log.Debugf("Unable to write to connection: %v", err)
+		}
 		w.(http.Flusher).Flush()
 	}
 }
