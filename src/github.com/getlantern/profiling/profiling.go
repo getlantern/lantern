@@ -55,7 +55,9 @@ func startCPUProfiling(filename string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	pprof.StartCPUProfile(f)
+	if err := pprof.StartCPUProfile(f); err != nil {
+		log.Fatalf("Unable to start profiling: %v", err)
+	}
 	log.Debugf("Process will save cpu profile to %s after terminating", filename)
 }
 
@@ -72,8 +74,12 @@ func saveMemProfile(filename string) {
 		return
 	}
 	log.Debugf("Saving heap profile to: %s", filename)
-	pprof.WriteHeapProfile(f)
-	f.Close()
+	if err := pprof.WriteHeapProfile(f); err != nil {
+		log.Debugf("Unable to write heap profile: %v", err)
+	}
+	if err := f.Close(); err != nil {
+		log.Debugf("Unable to close file: %v", err)
+	}
 }
 
 func saveProfilingOnSigINT(cpu string, mem string) {

@@ -6366,11 +6366,6 @@ html, body {
   height: 100%;
 }
 
-body {
-  background: url('../img/bg.png');
-  overflow: hidden;
-}
-
 small, .small {
   font-size: 13.3px;
 }
@@ -7602,8 +7597,8 @@ body[dir=rtl] #latestDetails dd {
 #vis-container, #vis {
   height: 100%;
   background-color: #fff;
-  overflow: scroll;
   position: relative;
+  overflow: auto;
 }
 
 #map {
@@ -7753,7 +7748,7 @@ body[dir=rtl] .tooltip .vis {
 
 #footer {
   width: 100%;
-  position: absolute;
+  position: fixed;
   right: 0;
   bottom: 0;
   left: 0;
@@ -7772,6 +7767,7 @@ body[dir=rtl] .tooltip .vis {
   background-color: #242525;
   color: #666667;
   z-index: auto;
+  overflow:hidden;
 }
 
 #footer:hover {

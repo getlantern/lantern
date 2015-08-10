@@ -21,19 +21,17 @@ REVISION_DATE := $(shell date -u -j -f "%F %T %z" "$(GIT_REVISION_DATE)" +"%Y%m%
 BUILD_DATE := $(shell date -u +%Y%m%d.%H%M%S)
 
 LOGGLY_TOKEN := 469973d5-6eaf-445a-be71-cf27141316a1
+
 LDFLAGS := -w -X main.version $(GIT_REVISION) -X main.revisionDate $(REVISION_DATE) -X main.buildDate $(BUILD_DATE) -X github.com/getlantern/flashlight/logging.logglyToken \"$(LOGGLY_TOKEN)\"
-LANTERN_DESCRIPTION := "Censorship circumvention tool"
-LANTERN_EXTENDED_DESCRIPTION := "Lantern allows you to access sites blocked by internet censorship.\nWhen you run it, Lantern reroutes traffic to selected domains through servers located where such domains aren't censored."
+LANTERN_DESCRIPTION := Censorship circumvention tool
+LANTERN_EXTENDED_DESCRIPTION := Lantern allows you to access sites blocked by internet censorship.\nWhen you run it, Lantern reroutes traffic to selected domains through servers located where such domains aren't censored.
 
-LANTERN_ANDROID_DIR := src/github.com/getlantern/lantern-android
-
-PACKAGE_VENDOR := "Brave New Software Project, Inc"
-PACKAGE_MAINTAINER := "Lantern Team <team@getlantern.org>"
-PACKAGE_URL := "https://www.getlantern.org"
+PACKAGE_VENDOR := Brave New Software Project, Inc
+PACKAGE_MAINTAINER := Lantern Team <team@getlantern.org>
+PACKAGE_URL := https://www.getlantern.org
+PACKAGED_YAML := .packaged-lantern.yaml
 
 LANTERN_BINARIES_PATH ?= ../lantern-binaries
-
-GO_MOBILE_REVISION=f88f8237ec301d3403c630c0b20e940f187187e2
 
 GH_USER ?= getlantern
 
@@ -43,12 +41,26 @@ S3_BUCKET ?= lantern
 
 DOCKER_IMAGE_TAG := lantern-builder
 
-FIRETWEET_DIR ?= ../firetweet
+LANTERN_MOBILE_DIR := src/github.com/getlantern/lantern-mobile
+LANTERN_MOBILE_LIBRARY := libflashlight.aar
+DOCKER_MOBILE_IMAGE_TAG := lantern-mobile-builder
+LOGGLY_TOKEN_MOBILE := d730c074-1f0a-415d-8d71-1ebf1d8bd736
+
+FIRETWEET_MAIN_DIR ?= ../firetweet/firetweet/src/main/
+
 
 .PHONY: packages clean docker
 
+define package-settings
+	PACKAGED_SETTINGS="" && \
+	if [[ ! -z "$$MANOTO" ]]; then \
+		PACKAGED_SETTINGS="startupurl: https://www.facebook.com/manototv"; \
+	fi && \
+	PACKAGED_SETTINGS=$$(echo $$PACKAGED_SETTINGS | xargs) && echo "Packaged settings: $$PACKAGED_SETTINGS"
+endef
+
 define build-tags
-	BUILD_TAGS="" && \
+	PACKAGED_SETTINGS="" BUILD_TAGS="" && \
 	if [[ ! -z "$$VERSION" ]]; then \
 		BUILD_TAGS="prod" && \
 		sed s/'packageVersion.*'/'packageVersion = "'$$VERSION'"'/ src/github.com/getlantern/flashlight/autoupdate.go | sed s/'!prod'/'prod'/ > src/github.com/getlantern/flashlight/autoupdate-prod.go; \
@@ -58,8 +70,7 @@ define build-tags
 	if [[ ! -z "$$HEADLESS" ]]; then \
 		BUILD_TAGS="$$BUILD_TAGS headless"; \
 	fi && \
-	BUILD_TAGS=$$(echo $$BUILD_TAGS | xargs) && \
-	echo "Build tags: $$BUILD_TAGS"
+	BUILD_TAGS=$$(echo $$BUILD_TAGS | xargs) && echo "Build tags: $$BUILD_TAGS"
 endef
 
 define docker-up
@@ -77,7 +88,9 @@ define docker-up
 endef
 
 define fpm-debian-build =
-	PKG_ARCH=$1 && \
+	echo "Running fpm-debian-build" && \
+	$(call package-settings) && \
+ 	PKG_ARCH=$1 && \
 	WORKDIR=$$(mktemp -dt "$$(basename $$0).XXXXXXXXXX") && \
 	INSTALLER_RESOURCES=./installer-resources/linux && \
 	\
@@ -91,6 +104,7 @@ define fpm-debian-build =
 	cp $$INSTALLER_RESOURCES/deb-copyright $$WORKDIR/usr/share/doc/lantern/copyright && \
 	cp $$INSTALLER_RESOURCES/lantern.desktop $$WORKDIR/usr/share/applications && \
 	cp $$INSTALLER_RESOURCES/icon128x128on.png $$WORKDIR/usr/share/icons/hicolor/128x128/apps/lantern.png && \
+	echo $$PACKAGED_SETTINGS > $$WORKDIR/usr/lib/lantern/$(PACKAGED_YAML) && \
 	\
 	cp lantern_linux_$$PKG_ARCH $$WORKDIR/usr/lib/lantern/lantern-binary && \
 	cp $$INSTALLER_RESOURCES/lantern.sh $$WORKDIR/usr/lib/lantern && \
@@ -155,9 +169,6 @@ require-assets:
 require-version:
 	@if [[ -z "$$VERSION" ]]; then echo "VERSION environment value is required."; exit 1; fi
 
-require-tag:
-	@if [[ -z "$$TAG" ]]; then echo "TAG environment value is required."; exit 1; fi
-
 require-gh-token:
 	@if [[ -z "$$GH_TOKEN" ]]; then echo "GH_TOKEN environment value is required."; exit 1; fi
 
@@ -194,8 +205,10 @@ docker-package-debian-arm: require-version docker-linux-arm
 docker-package-windows: require-version docker-windows-386
 	@if [[ -z "$$BNS_CERT" ]]; then echo "BNS_CERT environment value is required."; exit 1; fi && \
 	if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
+	$(call package-settings) && \
 	INSTALLER_RESOURCES="installer-resources/windows" && \
 	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -in "lantern_windows_386.exe" -out "$$INSTALLER_RESOURCES/lantern.exe" && \
+	echo $$PACKAGED_SETTINGS > $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
 	makensis -V1 -DVERSION=$$VERSION installer-resources/windows/lantern.nsi && \
 	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer.exe";
 
@@ -206,17 +219,12 @@ docker: system-checks
 	cp Dockerfile $$DOCKER_CONTEXT && \
 	docker build -t $(DOCKER_IMAGE_TAG) $$DOCKER_CONTEXT;
 
-docker-golang-android: require-mercurial
+docker-mobile:
 	@$(call docker-up) && \
-	source setenv.bash && \
-	if [ -z "$$(docker images | grep golang/mobile)" ]; then \
-		$(GO) get -d golang.org/x/mobile/example/... && \
-		$(GO) get golang.org/x/mobile/cmd/gobind && \
-		cd src/golang.org/x/mobile && \
-		git reset --hard && \
-		git checkout $(GO_MOBILE_REVISION) && \
-		docker build -t golang/mobile .; \
-	fi
+	DOCKER_CONTEXT=.$(DOCKER_MOBILE_IMAGE_TAG)-context && \
+	mkdir -p $$DOCKER_CONTEXT && \
+	cp $(LANTERN_MOBILE_DIR)/Dockerfile $$DOCKER_CONTEXT && \
+	docker build -t $(DOCKER_MOBILE_IMAGE_TAG) $$DOCKER_CONTEXT
 
 linux: genassets linux-386 linux-amd64 linux-arm
 
@@ -264,28 +272,28 @@ genassets: docker
 linux-386: require-assets docker
 	@echo "Building linux/386..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" make docker-linux-386' && \
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" MANOTO="'$$MANOTO'" make docker-linux-386' && \
 	cat lantern_linux_386 | bzip2 > update_linux_386.bz2 && \
 	ls -l lantern_linux_386 update_linux_386.bz2
 
 linux-amd64: require-assets docker
 	@echo "Building linux/amd64..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" make docker-linux-amd64' && \
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" MANOTO="'$$MANOTO'" make docker-linux-amd64' && \
 	cat lantern_linux_amd64 | bzip2 > update_linux_amd64.bz2 && \
 	ls -l lantern_linux_amd64 update_linux_amd64.bz2
 
 linux-arm: require-assets docker
 	@echo "Building linux/arm..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="1" make docker-linux-arm' && \
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="1" MANOTO="'$$MANOTO'" make docker-linux-arm' && \
 	cat lantern_linux_arm | bzip2 > update_linux_arm.bz2 && \
 	ls -l lantern_linux_arm update_linux_arm.bz2
 
 windows-386: require-assets docker
 	@echo "Building windows/386..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" make docker-windows-386' && \
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" MANOTO="'$$MANOTO'" make docker-windows-386' && \
 	cat lantern_windows_386.exe | bzip2 > update_windows_386.bz2 && \
 	ls -l lantern_windows_386.exe update_windows_386.bz2
 
@@ -304,37 +312,39 @@ darwin-amd64: require-assets
 package-linux-386: require-version genassets linux-386
 	@echo "Generating distribution package for linux/386..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" make docker-package-linux-386'
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" MANOTO="'$$MANOTO'" make docker-package-linux-386'
 
 package-linux-amd64: require-version genassets linux-amd64
 	@echo "Generating distribution package for linux/amd64..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" make docker-package-linux-amd64'
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" MANOTO="'$$MANOTO'" make docker-package-linux-amd64'
 
 package-linux-arm: require-version genassets linux-arm
 	@echo "Generating distribution package for linux/arm..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" make docker-package-linux-arm'
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" MANOTO="'$$MANOTO'" HEADLESS="1" make docker-package-linux-arm'
 
-package-linux: require-version package-linux-386 package-linux-amd64 package-linux-arm
+package-linux: require-version package-linux-386 package-linux-amd64
 
 package-windows: require-version windows
 	@echo "Generating distribution package for windows/386..." && \
 	if [[ -z "$$SECRETS_DIR" ]]; then echo "SECRETS_DIR environment value is required."; exit 1; fi && \
 	if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -v $$SECRETS_DIR:/secrets -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && BNS_CERT="/secrets/bns_cert.p12" BNS_CERT_PASS="'$$BNS_CERT_PASS'" VERSION="'$$VERSION'" make docker-package-windows' && \
+	docker run -v $$PWD:/lantern -v $$SECRETS_DIR:/secrets -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && BNS_CERT="/secrets/bns_cert.p12" BNS_CERT_PASS="'$$BNS_CERT_PASS'" VERSION="'$$VERSION'" MANOTO="'$$MANOTO'" make docker-package-windows' && \
 	echo "-> lantern-installer.exe"
 
 package-darwin: require-version require-appdmg require-svgexport darwin
 	@echo "Generating distribution package for darwin/amd64..." && \
+	$(call package-settings) && \
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		INSTALLER_RESOURCES="installer-resources/darwin" && \
 		rm -rf Lantern.app && \
 		cp -r $$INSTALLER_RESOURCES/Lantern.app_template Lantern.app && \
 		mkdir Lantern.app/Contents/MacOS && \
 		cp -r lantern_darwin_amd64 Lantern.app/Contents/MacOS/lantern && \
-		codesign -s "Developer ID Application: $(PACKAGE_VENDOR)" Lantern.app && \
+		echo $$PACKAGED_SETTINGS > Lantern.app/Contents/Resources/$(PACKAGED_YAML) && \
+		codesign -s "Developer ID Application: Brave New Software Project, Inc" Lantern.app && \
 		rm -rf Lantern.dmg && \
 		sed "s/__VERSION__/$$VERSION/g" $$INSTALLER_RESOURCES/dmgbackground.svg > $$INSTALLER_RESOURCES/dmgbackground_versioned.svg && \
 		$(SVGEXPORT) $$INSTALLER_RESOURCES/dmgbackground_versioned.svg $$INSTALLER_RESOURCES/dmgbackground.png 600:400 && \
@@ -346,23 +356,11 @@ package-darwin: require-version require-appdmg require-svgexport darwin
 		echo "-> Skipped: Can not generate a package on a non-OSX host."; \
 	fi;
 
-manoto:
-	@echo "Replacing NO_URL with manoto"
-	perl -pi -e "s/NO_URL/https:\/\/www.facebook.com\/manototv/" src/github.com/getlantern/flashlight/ui/ui.go
-
-unmanoto:
-	@echo "Replacing manoto url with NO_URL"
-	perl -pi -e "s/https:\/\/www.facebook.com\/manototv/NO_URL/" src/github.com/getlantern/flashlight/ui/ui.go
-
-manoto-binaries: manoto binaries unmanoto
-
 binaries: docker genassets linux windows darwin
 
-packages: require-version require-secrets clean genconfig binaries package-windows package-linux package-darwin
+packages: require-version require-secrets clean binaries package-windows package-linux package-darwin
 
-manoto-packages: require-version require-secrets clean genconfig manoto-binaries package-windows package-linux package-darwin
-
-release-qa: require-tag require-s3cmd
+release-qa: require-version require-s3cmd
 	@BASE_NAME="lantern-installer-qa" && \
 	rm -f $$BASE_NAME* && \
 	cp lantern-installer.exe $$BASE_NAME.exe && \
@@ -376,7 +374,7 @@ release-qa: require-tag require-s3cmd
 		echo "Uploading $$NAME to S3" && \
 		$(S3CMD) put -P $$NAME s3://$(S3_BUCKET) && \
 		SUFFIX=$$(echo "$$NAME" | sed s/$$BASE_NAME//g) && \
-		VERSIONED=lantern-installer-$$TAG$$SUFFIX && \
+		VERSIONED=lantern-installer-$$VERSION$$SUFFIX && \
 		echo "Copying $$VERSIONED" && \
 		$(S3CMD) cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$VERSIONED; \
 	done && \
@@ -384,7 +382,7 @@ release-qa: require-tag require-s3cmd
 		echo "Copying update binary $$NAME..." && \
 		$(S3CMD) put -P $$NAME s3://$(S3_BUCKET); \
 	done && \
-	git tag -a "$$TAG" -f --annotate -m"Tagged $$VERSION" && \
+	git tag -a "$$VERSION" -f --annotate -m"Tagged $$VERSION" && \
 	git push --tags -f
 
 release-beta: require-s3cmd
@@ -401,10 +399,10 @@ release-beta: require-s3cmd
 	git add $$BETA_BASE_NAME* && \
 	(git commit -am "Latest beta binaries for Lantern released from QA." && git push origin master) || true
 
-release: require-tag require-s3cmd require-gh-token require-wget require-ruby require-lantern-binaries
-	@TAG_COMMIT=$$(git rev-list --abbrev-commit -1 $$TAG) && \
+release: require-version require-s3cmd require-gh-token require-wget require-ruby require-lantern-binaries
+	@TAG_COMMIT=$$(git rev-list --abbrev-commit -1 $$VERSION) && \
 	if [[ -z "$$TAG_COMMIT" ]]; then \
-		echo "Could not find given tag $$TAG."; \
+		echo "Could not find given tag $$VERSION."; \
 	fi && \
 	BASE_NAME="lantern-installer-beta" && \
 	PROD_BASE_NAME="lantern-installer" && \
@@ -418,14 +416,14 @@ release: require-tag require-s3cmd require-gh-token require-wget require-ruby re
 		NAME=$$(basename $$URL) && \
 		$(S3CMD) get --force s3://$(S3_BUCKET)/$$NAME $$NAME; \
 	done && \
-	$(RUBY) ./installer-resources/tools/createrelease.rb "$(GH_USER)" "$(GH_RELEASE_REPOSITORY)" $$TAG && \
+	$(RUBY) ./installer-resources/tools/createrelease.rb "$(GH_USER)" "$(GH_RELEASE_REPOSITORY)" $$VERSION && \
 	echo "Uploading Windows binary for auto-updates" && \
-	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$TAG update_windows_386.bz2 && \
+	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$VERSION update_windows_386.bz2 && \
 	echo "Uploading OSX binary for auto-updates" && \
-	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$TAG update_darwin_amd64.bz2 && \
+	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$VERSION update_darwin_amd64.bz2 && \
 	echo "Uploading Linux binaries for auto-updates" && \
-	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$TAG update_linux_amd64.bz2 && \
-	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$TAG update_linux_386.bz2 && \
+	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$VERSION update_linux_amd64.bz2 && \
+	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$VERSION update_linux_386.bz2 && \
 	echo "Copying binaries to $(LANTERN_BINARIES_PATH)..." && \
 	$(S3CMD) get --force s3://$(S3_BUCKET)/lantern-installer-32-bit.deb $(LANTERN_BINARIES_PATH)/lantern-installer-32.deb && \
 	$(S3CMD) get --force s3://$(S3_BUCKET)/lantern-installer-32-bit.deb.sha1 $(LANTERN_BINARIES_PATH)/lantern-installer-32.deb.sha1 && \
@@ -435,20 +433,20 @@ release: require-tag require-s3cmd require-gh-token require-wget require-ruby re
 	$(S3CMD) get --force s3://$(S3_BUCKET)/lantern-installer.dmg.sha1 $(LANTERN_BINARIES_PATH)/lantern-installer.dmg.sha1 && \
 	$(S3CMD) get --force s3://$(S3_BUCKET)/lantern-installer.exe $(LANTERN_BINARIES_PATH)/lantern-installer.exe && \
 	$(S3CMD) get --force s3://$(S3_BUCKET)/lantern-installer.exe.sha1 $(LANTERN_BINARIES_PATH)/lantern-installer.exe.sha1 && \
-	cp $(LANTERN_BINARIES_PATH)/lantern-installer-32.deb.sha1 $(LANTERN_BINARIES_PATH)/lantern-$$TAG-$$TAG_COMMIT-32-bit.deb.sha1 && \
-	cp $(LANTERN_BINARIES_PATH)/lantern-installer-64.deb.sha1 $(LANTERN_BINARIES_PATH)/lantern-$$TAG-$$TAG_COMMIT-64-bit.deb.sha1 && \
-	cp $(LANTERN_BINARIES_PATH)/lantern-installer.dmg.sha1 $(LANTERN_BINARIES_PATH)/lantern-$$TAG-$$TAG_COMMIT.dmg.sha1 && \
-	cp $(LANTERN_BINARIES_PATH)/lantern-installer.exe.sha1 $(LANTERN_BINARIES_PATH)/lantern-$$TAG-$$TAG_COMMIT.exe.sha1
+	cp $(LANTERN_BINARIES_PATH)/lantern-installer-32.deb.sha1 $(LANTERN_BINARIES_PATH)/lantern-$$VERSION-$$TAG_COMMIT-32-bit.deb.sha1 && \
+	cp $(LANTERN_BINARIES_PATH)/lantern-installer-64.deb.sha1 $(LANTERN_BINARIES_PATH)/lantern-$$VERSION-$$TAG_COMMIT-64-bit.deb.sha1 && \
+	cp $(LANTERN_BINARIES_PATH)/lantern-installer.dmg.sha1 $(LANTERN_BINARIES_PATH)/lantern-$$VERSION-$$TAG_COMMIT.dmg.sha1 && \
+	cp $(LANTERN_BINARIES_PATH)/lantern-installer.exe.sha1 $(LANTERN_BINARIES_PATH)/lantern-$$VERSION-$$TAG_COMMIT.exe.sha1
 	@cd $(LANTERN_BINARIES_PATH) && \
-	git add lantern-$$TAG-$$TAG_COMMIT* && \
-	(git commit -am "Latest binaries for Lantern $$TAG ($$TAG_COMMIT)." && git push origin master) || true
+	git add lantern-$$VERSION-$$TAG_COMMIT* && \
+	(git commit -am "Latest binaries for Lantern $$VERSION ($$TAG_COMMIT)." && git push origin master) || true
 
 update-icons:
 	@(which go-bindata >/dev/null) || (echo 'Missing command "go-bindata". Sett https://github.com/jteeuwen/go-bindata.' && exit 1) && \
 	go-bindata -nomemcopy -nocompress -pkg main -o src/github.com/getlantern/flashlight/icons.go -prefix src/github.com/getlantern/flashlight/ src/github.com/getlantern/flashlight/icons
 
-create-tag: require-tag
-	@git tag -a "$$TAG" -f --annotate -m"Tagged $$TAG" && \
+create-tag: require-version
+	@git tag -a "$$VERSION" -f --annotate -m"Tagged $$VERSION" && \
 	git push --tags -f
 
 test-and-cover:
@@ -462,27 +460,27 @@ test-and-cover:
 		tail -n +2 profile_tmp.cov >> profile.cov; \
 	done
 
-android-lib: docker-golang-android genconfig
-	@source setenv.bash && \
-	cd $(LANTERN_ANDROID_DIR) && \
-	mkdir -p app && \
-	cd libflashlight && \
-		mkdir -p bindings/go_bindings && \
-		gobind -lang=go github.com/getlantern/lantern-android/libflashlight/bindings > bindings/go_bindings/go_bindings.go && \
-		gobind -lang=java github.com/getlantern/lantern-android/libflashlight/bindings > bindings/Flashlight.java || exit 1;
-	@$(call docker-up) && \
-	$(DOCKER) run -v $$PWD/src:/src golang/mobile /bin/bash -c \ "cd /src/github.com/getlantern/lantern-android/libflashlight && ./make.bash $(GIT_REVISION) $(REVISION_DATE) $(BUILD_DATE)" && \
-	ls -l src/github.com/getlantern/lantern-android/app/libs/armeabi-v7a/libgojni.so && \
-	if [ -d "$(FIRETWEET_DIR)" ]; then \
-		cp -v src/github.com/getlantern/lantern-android/app/libs/armeabi-v7a/libgojni.so $(FIRETWEET_DIR)/firetweet/src/main/jniLibs/armeabi-v7a && \
-		cp -v src/github.com/getlantern/lantern-android/app/src/go/*.java $(FIRETWEET_DIR)/firetweet/src/main/java/go && \
-		cp -v src/github.com/getlantern/lantern-android/app/src/org/getlantern/Flashlight.java $(FIRETWEET_DIR)/firetweet/src/main/java/go/flashlight/Flashlight.java; \
-	fi
-
 genconfig:
 	@echo "Running genconfig..." && \
 	source setenv.bash && \
 	(cd src/github.com/getlantern/flashlight/genconfig && ./genconfig.bash)
+
+android-lib: docker-mobile
+	@source setenv.bash && \
+	cd $(LANTERN_MOBILE_DIR)
+	@$(call docker-up) && \
+	$(DOCKER) run -v $$PWD/src:/src $(DOCKER_MOBILE_IMAGE_TAG) /bin/bash -c \ "cd /src/github.com/getlantern/lantern-mobile && gomobile bind -target=android -o=$(LANTERN_MOBILE_LIBRARY) -ldflags="$(LDFLAGS)" ." && \
+	if [ -d "$(FIRETWEET_MAIN_DIR)" ]; then \
+		cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) $(FIRETWEET_MAIN_DIR)/libs/$(LANTERN_MOBILE_LIBRARY); \
+	else \
+		echo ""; \
+		echo "Either no FIRETWEET_MAIN_DIR variable was passed or the given value is not a";\
+		echo "directory. You'll have to copy the $(LANTERN_MOBILE_LIBRARY) file manually:"; \
+		echo ""; \
+		echo "cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) \$$FIRETWEET_MAIN_DIR"; \
+	fi
+
+android-lib-dist: genconfig android-lib
 
 clean:
 	@rm -f lantern_linux* && \
@@ -496,10 +494,10 @@ clean:
 	git checkout ./src/github.com/getlantern/flashlight/ui/resources.go && \
 	rm -f src/github.com/getlantern/flashlight/*.syso && \
 	rm -f *.dmg && \
-	rm -rf $(LANTERN_ANDROID_DIR)/libflashlight/bin && \
-	rm -rf $(LANTERN_ANDROID_DIR)/libflashlight/bindings/go_bindings && \
-	rm -rf $(LANTERN_ANDROID_DIR)/libflashlight/gen && \
-	rm -rf $(LANTERN_ANDROID_DIR)/libflashlight/libs && \
-	rm -rf $(LANTERN_ANDROID_DIR)/libflashlight/res && \
-	rm -rf $(LANTERN_ANDROID_DIR)/libflashlight/src && \
-	rm -rf $(LANTERN_ANDROID_DIR)/app
+	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/bin && \
+	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/bindings/go_bindings && \
+	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/gen && \
+	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/libs && \
+	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/res && \
+	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/src && \
+	rm -rf $(LANTERN_MOBILE_DIR)/app

@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/getlantern/appdir"
@@ -37,7 +38,9 @@ var (
 	errorOut io.Writer
 	debugOut io.Writer
 
-	lastAddr string
+	lastAddr   string
+	duplicates = make(map[string]bool)
+	dupLock    sync.Mutex
 )
 
 func Init() error {
@@ -180,7 +183,29 @@ type logglyErrorWriter struct {
 	client          *loggly.Client
 }
 
+func isDuplicate(msg string) bool {
+	dupLock.Lock()
+	defer dupLock.Unlock()
+
+	if duplicates[msg] {
+		return true
+	}
+
+	// Implement a crude cap on the size of the map
+	if len(duplicates) < 1000 {
+		duplicates[msg] = true
+	}
+
+	return false
+}
+
 func (w logglyErrorWriter) Write(b []byte) (int, error) {
+	fullMessage := string(b)
+	if isDuplicate(fullMessage) {
+		log.Debugf("Not logging duplicate: %v", fullMessage)
+		return 0, nil
+	}
+
 	extra := map[string]string{
 		"logLevel":  "ERROR",
 		"osName":    runtime.GOOS,
@@ -191,7 +216,6 @@ func (w logglyErrorWriter) Write(b []byte) (int, error) {
 		"timeZone":  w.tz,
 		"version":   w.versionToLoggly,
 	}
-	fullMessage := string(b)
 
 	// extract last 2 (at most) chunks of fullMessage to message, without prefix,
 	// so we can group logs with same reason in Loggly
@@ -253,7 +277,9 @@ func NonStopWriter(writers ...io.Writer) io.Writer {
 // It never fails and always return the length of bytes passed in
 func (t *nonStopWriter) Write(p []byte) (int, error) {
 	for _, w := range t.writers {
-		w.Write(p)
+		if n, err := w.Write(p); err != nil {
+			return n, err
+		}
 	}
 	return len(p), nil
 }

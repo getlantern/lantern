@@ -73,7 +73,7 @@ func Register(t string, newMessage func() interface{}, helloFn helloFnType) (*Se
 
 	// Sending existent clients the hello message of the new service.
 	if helloFn != nil {
-		helloFn(func(msg interface{}) error {
+		err := helloFn(func(msg interface{}) error {
 			b, err := newEnvelope(s.Type, msg)
 			if err != nil {
 				return err
@@ -82,6 +82,9 @@ func Register(t string, newMessage func() interface{}, helloFn helloFnType) (*Se
 			defaultUIChannel.Out <- b
 			return nil
 		})
+		if err != nil {
+			log.Debugf("Error running Hello function", err)
+		}
 	}
 
 	// Adding new service to service map.

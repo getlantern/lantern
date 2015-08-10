@@ -14,8 +14,9 @@ import (
 
 	"github.com/getlantern/cloudflare"
 	"github.com/getlantern/enproxy"
-	"github.com/getlantern/go-dnsimple/dnsimple"
-	"github.com/getlantern/peerscanner/cfr"
+	// Temporarily disable CloudFront/DNSimple.
+	//"github.com/getlantern/go-dnsimple/dnsimple"
+	//"github.com/getlantern/peerscanner/cfr"
 	"github.com/getlantern/tlsdialer"
 	"github.com/getlantern/withtimeout"
 )
@@ -57,22 +58,25 @@ type status struct {
 // If the host hasn't heard from the real-world host in over 10 minutes, it
 // pauses its processing and only resumes once it hears from the client again.
 type host struct {
-	name        string
-	ip          string
-	port        string
-	cflRecord   *cloudflare.Record
-	dspRecord   *dnsimple.Record
+	name       string
+	ip         string
+	port       string
+	cflRecord  *cloudflare.Record
+	isProxying bool
+	cflGroups  map[string]*cflGroup
+	/* Temporarily disable CloudFront/DNSimple.
+	dspRecord *dnsimple.Record
 	cfrDist     *cfr.Distribution
-	isProxying  bool
-	cflGroups   map[string]*cflGroup
 	dspGroups   map[string]*dspGroup
+	*/
 	lastSuccess time.Time
 	lastTest    time.Time
 
 	resetCh      chan string
 	unregisterCh chan interface{}
 	statusCh     chan chan *status
-	initCfrCh    chan interface{}
+	// Temporarily disable CloudFront/DNSimple.
+	//initCfrCh    chan interface{}
 
 	proxiedClient     *http.Client
 	reportedHost      string
@@ -88,17 +92,22 @@ func (h *host) String() string {
  ******************************************************************************/
 
 // newHost creates a new host for the given name, ip and optional DNS records.
-func newHost(name string, ip string, port string, cflRecord *cloudflare.Record, dspRecord *dnsimple.Record) *host {
+
+// Temporarily disable CloudFront/DNSimple.
+//func newHost(name string, ip string, port string, cflRecord *cloudflare.Record, dspRecord *dnsimple.Record) *host {
+func newHost(name string, ip string, port string, cflRecord *cloudflare.Record) *host {
 	h := &host{
-		name:         name,
-		ip:           ip,
-		port:         port,
-		cflRecord:    cflRecord,
-		dspRecord:    dspRecord,
+		name:      name,
+		ip:        ip,
+		port:      port,
+		cflRecord: cflRecord,
+		// Temporarily disable CloudFront/DNSimple.
+		//dspRecord:    dspRecord,
 		resetCh:      make(chan string, 1000),
 		unregisterCh: make(chan interface{}, 1),
 		statusCh:     make(chan chan *status, 1000),
-		initCfrCh:    make(chan interface{}, 1),
+		// Temporarily disable CloudFront/DNSimple.
+		//initCfrCh:    make(chan interface{}, 1),
 	}
 
 	if h.isFallback() {
@@ -108,16 +117,19 @@ func newHost(name string, ip string, port string, cflRecord *cloudflare.Record, 
 			Fallbacks:  &cflGroup{subdomain: Fallbacks},
 			Peers:      &cflGroup{subdomain: Peers},
 		}
+		/* Temporarily disable CloudFront/DNSimple.
 		h.dspGroups = map[string]*dspGroup{
 			RoundRobin: &dspGroup{subdomain: RoundRobin},
 			Fallbacks:  &dspGroup{subdomain: Fallbacks},
 			Peers:      &dspGroup{subdomain: Peers},
 		}
+		*/
 		country := fallbackCountry(name)
 		if country != "" {
 			// Add host to country-specific rotation
 			h.cflGroups[country] = &cflGroup{subdomain: country}
-			h.dspGroups[country] = &dspGroup{subdomain: country}
+			// Temporarily disable CloudFront/DNSimple.
+			//h.dspGroups[country] = &dspGroup{subdomain: country}
 		}
 	} else {
 		log.Errorf("Somehow adding peer host? %v (%v)", name, ip)
@@ -211,13 +223,16 @@ func (h *host) unregister() {
 	}
 }
 
+/* Temporarily disable CloudFront/DNSimple.
 func (h *host) initCloudfront() {
 	h.initCfrCh <- nil
 }
 
 func (h *host) doInitCfrDist() {
 	if h.cfrDist != nil && h.cfrDist.Status == "InProgress" {
-		cfr.RefreshStatus(cfrutil, h.cfrDist)
+		if err := cfr.RefreshStatus(cfrutil, h.cfrDist); err != nil {
+			log.Debugf("Unable to refresh status: %v", err)
+		}
 	}
 	if h.cfrDist == nil {
 		dist, err := cfr.CreateDistribution(
@@ -233,6 +248,7 @@ func (h *host) doInitCfrDist() {
 		}
 	}
 }
+*/
 
 /*******************************************************************************
  * Implementation
@@ -264,8 +280,10 @@ func (h *host) run() {
 			log.Debugf("Unregistering %v and pausing", h)
 			h.pause()
 			checkImmediately = true
+		/* Temporarily disable CloudFront/DNSimple.
 		case <-h.initCfrCh:
-			h.doInitCfrDist()
+			 h.doInitCfrDist()
+		*/
 		case <-pauseTimer.C:
 			log.Debugf("%v had no successful checks or resets in %v, pausing", h, pauseAfter)
 			h.pause()
@@ -346,6 +364,7 @@ func (h *host) doReset(newName string) {
 				log.Error(cflErr.Error())
 			}
 		}
+		/* Temporarily disable CloudFront/DNSimple.
 		if h.dspRecord != nil {
 			log.Debugf("Deregistering old DNSimple hostname %v", h.name)
 			dspErr = h.doDeregisterDspHost()
@@ -353,6 +372,7 @@ func (h *host) doReset(newName string) {
 				log.Error(dspErr.Error())
 			}
 		}
+		*/
 		if cflErr != nil || dspErr != nil {
 			return
 		}
@@ -368,7 +388,9 @@ func (h *host) doReset(newName string) {
 
 func (h *host) register() error {
 	cflErr := h.registerCfl()
-	dspErr := h.registerDsp()
+	// Temporarily disable CloudFront/DNSimple.
+	//dspErr := h.registerDsp()
+	var dspErr error
 	if cflErr != nil && dspErr == nil {
 		return fmt.Errorf("Error registering Cloudflare: %v", cflErr)
 	} else if cflErr == nil && dspErr != nil {
@@ -391,6 +413,7 @@ func (h *host) registerCfl() error {
 	return nil
 }
 
+/* Temporarily disable CloudFront/DNSimple.
 func (h *host) registerDsp() error {
 	err := h.registerDspHost()
 	if err != nil {
@@ -402,6 +425,7 @@ func (h *host) registerDsp() error {
 	}
 	return nil
 }
+*/
 
 func (h *host) registerCflHost() error {
 	if h.isProxying {
@@ -414,6 +438,7 @@ func (h *host) registerCflHost() error {
 	return err
 }
 
+/* Temporarily disable CloudFront/DNSimple.
 func (h *host) registerDspHost() error {
 	if h.dspRecord != nil {
 		log.Debugf("DNSimple record already registered, no need to re-register: %v", h)
@@ -424,6 +449,7 @@ func (h *host) registerDspHost() error {
 	h.dspRecord, err = dsputil.Register(h.name, h.ip)
 	return err
 }
+*/
 
 func (h *host) registerToCflRotations() error {
 	for _, group := range h.cflGroups {
@@ -435,6 +461,7 @@ func (h *host) registerToCflRotations() error {
 	return nil
 }
 
+/* Temporarily disable CloudFront/DNSimple.
 func (h *host) registerToDspRotations() error {
 	if !h.cfrDistReady() {
 		log.Debugf("Cloudfront distribution for %v not ready yet; not registering to rotations.", h.name)
@@ -448,14 +475,17 @@ func (h *host) registerToDspRotations() error {
 	}
 	return nil
 }
+*/
 
 func (h *host) deregisterFromRotations() {
 	for _, group := range h.cflGroups {
 		group.deregister(h)
 	}
+	/* (CloudFront/DNSimple support temporarily disabled)
 	for _, group := range h.dspGroups {
 		group.deregister(h)
 	}
+	*/
 }
 
 func (h *host) isFallback() bool {
@@ -525,7 +555,9 @@ func (h *host) reallyDoIsAbleToProxy(port string) (bool, bool, error) {
 		err2 := fmt.Errorf("Unable to connect to %v: %v", addr, err)
 		return false, strings.Contains(err.Error(), "connection refused"), err2
 	}
-	conn.Close()
+	if err := conn.Close(); err != nil {
+		log.Debugf("Unable to close connection: %v", err)
+	}
 
 	// Now actually try to proxy an http request
 	site := testSites[rand.Intn(len(testSites))]
@@ -533,7 +565,11 @@ func (h *host) reallyDoIsAbleToProxy(port string) (bool, bool, error) {
 	if err != nil {
 		return false, false, fmt.Errorf("Unable to make proxied HEAD request to %v: %v", site, err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Debugf("Unable to close response body: %v", err)
+		}
+	}()
 
 	if resp.StatusCode != 200 && resp.StatusCode != 301 {
 		err2 := fmt.Errorf("Proxying to %v via %v returned unexpected status %d,", site, h.ip, resp.StatusCode)
@@ -563,6 +599,8 @@ func (h *host) doDeregisterCflHost() error {
 	return nil
 }
 
+/* Temporarily disable CloudFront/DNSimple.
+
 func (h *host) doDeregisterDspHost() error {
 	err := dsputil.DestroyRecord(h.dspRecord)
 	h.dspRecord = nil
@@ -575,8 +613,11 @@ func (h *host) doDeregisterDspHost() error {
 func (h *host) cfrDistReady() bool {
 	return h.cfrDist != nil && h.cfrDist.Status == "Deployed"
 }
+*/
 
 func (h *host) reportedHostOk() bool {
 	// Match the FQDN at Cloudflare or Cloudfront
-	return (h.reportedHost == h.name+"."+*cfldomain) || (h.cfrDistReady() && h.reportedHost == h.cfrDist.Domain)
+	// Temporarily disable CloudFront/DNSimple.
+	//return (h.reportedHost == h.name+"."+*cfldomain) || (h.cfrDistReady() && h.reportedHost == h.cfrDist.Domain)
+	return h.reportedHost == h.name+"."+*cfldomain
 }

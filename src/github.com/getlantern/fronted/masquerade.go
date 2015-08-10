@@ -149,12 +149,16 @@ func (vms *verifiedMasqueradeSet) doVerify(masquerade *Masquerade) bool {
 			return
 		} else {
 			body, err := ioutil.ReadAll(resp.Body)
-			defer resp.Body.Close()
+			defer func() {
+				if err := resp.Body.Close(); err != nil {
+					log.Debugf("Unable to close response body: %v", err)
+				}
+			}()
 			if err != nil {
 				errCh <- fmt.Errorf("HTTP Body Error: %s", body)
 			} else {
 				delta := time.Now().Sub(start)
-				log.Tracef("Sucessful check for: %s in %s, %s", masquerade.Domain, delta, body)
+				log.Debugf("Sucessful check for: %s in %s, %s", masquerade.Domain, delta, body)
 				errCh <- nil
 			}
 		}

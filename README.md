@@ -1,8 +1,7 @@
 # lantern [![Travis CI Status](https://travis-ci.org/getlantern/lantern.svg?branch=valencia)](https://travis-ci.org/getlantern/lantern)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/lantern/badge.png?branch=valencia)](https://coveralls.io/r/getlantern/lantern)
 
 lantern is a [gost](https://github.com/getlantern/gost) project that
-provides repeatable builds and consolidated pull requests for lantern. **It's very important to read the gost documentation thoroughly in
-order to build this project.**
+provides repeatable builds and consolidated pull requests for lantern.
 
 ## Building Lantern
 
@@ -17,6 +16,32 @@ We are going to create a Docker image that will take care of compiling Lantern
 for Windows and Linux, in order to compile Lantern for OSX you'll need an OSX
 host, this is a limitation caused by Lantern depending on C code and OSX build
 tools for certain features.
+
+
+### Contributing changes
+
+Go code in Lantern must pass several tests:
+
+* [errcheck](https://github.com/kisielk/errcheck)
+* [golint](https://github.com/golang/lint)
+* Go vet
+* Go test -race
+
+You can find a generic [git-hook](https://github.com/getlantern/lantern/blob/valencia/git-hook)
+file, which can be used as a pre-push (or pre-commit) hook to automatically
+ensure these tests are passed before committing any code. Only Go packages in
+`src/github.com/getlantern` will be tested, and only those that have changes in
+them.
+
+Install by copying it into the local `.git/hooks/` directory, with the `pre-push`
+file name if you want to run it before pushing. Alternatively, you can name it
+`pre-commit` to run it before each commit..
+
+**Important notice**
+
+If you *must* commit without running the hooks, you can run git with the
+`--no-verify` flag.
+
 
 ### Building the docker image
 
@@ -197,7 +222,7 @@ Finally, use `release-qa` to upload the packages that were just generated to
 both AWS S3 and the Github release page:
 
 ```
-TAG=2.0.0-beta5 make release-qa
+VERSION=2.0.0-beta5 make release-qa
 ```
 
 ### Releasing Beta
@@ -217,7 +242,7 @@ After you're satisfied with a beta version, it will be time to promote beta
 packages to production and to publish the packages for auto-updates:
 
 ```
-TAG=2.0.0-beta5 GH_TOKEN=$GITHUB_TOKEN make release
+VERSION=2.0.0-beta5 GH_TOKEN=$GITHUB_TOKEN make release
 ```
 
 `make release` expects a `lantern-binaries` directory at `../lantern-binaries`.
@@ -226,22 +251,36 @@ env variable.
 
 ## Other tasks
 
-### Creating libgojni.so
+### Creating the Android embeddable library
 
-The `libgojni.so` is the Lantern library for Android. This is a work in
-progress but if you're feeling adventurous you can build it by using the
-`android` target:
+In order to build the Android ARM library that can be embedded in applications,
+Lantern is using `gomobile`. This simplifies the process notably.
+
+Currently, as Go 1.5 is not stable, a specific git revision is used within an
+isolated Docker image.
+
+To build a development library (takes shorter time):
 
 ```
 make android-lib
 ```
 
-If you pass the `FIRETWEET_DIR` env variable to `make android-lib`, the
+To build the final version for Firetweet
+
+```
+make android-lib-dist
+```
+
+If you pass the `FIRETWEET_MAIN_DIR` env variable to `make android-lib`, the
 generated bindings and library will be copied into it:
 
 ```
-FIRETWEET_DIR=/path/to/firetweet make android-lib
+FIRETWEET_MAIN_DIR=/path/to/firetweet/src/main make android-lib
 ```
+
+You can also override this environment variable if you want to use the
+[Flashlight Android Tester](https://github.com/getlantern/flashlight-android-tester) app.
+
 
 ### Generating assets
 
@@ -262,7 +301,7 @@ git push --tags
 Use `make create-tag` as a shortcut for creating and uploading tags:
 
 ```
-TAG='2.0.0-beta5' make create-tag
+VERSION='2.0.0-beta5' make create-tag
 ```
 
 If you want to both create a package and upload a tag run the `create-tag` task

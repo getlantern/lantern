@@ -19,9 +19,13 @@ func TestSub(t *testing.T) {
 
 func TestPublish(t *testing.T) {
 	msgs := make(chan string)
-	Sub(Location, func(s string) {
+	err := Sub(Location, func(s string) {
 		msgs <- s
 	})
+	if err != nil {
+		t.Fatalf("Unable to subscribe: %v", err)
+	}
+
 	Pub(Location, "test")
 
 	msg := <-msgs

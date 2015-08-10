@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/getlantern/flashlight/packaged"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/tarfs"
 	"github.com/skratchdot/open-golang/open"
@@ -26,7 +27,6 @@ var (
 	server       *http.Server
 	uiaddr       string
 
-	externalUrl    = "NO_URL" // this string is going to be changed by Makefile
 	openedExternal = false
 	r              = http.NewServeMux()
 )
@@ -69,9 +69,20 @@ func Start(tcpAddr *net.TCPAddr, allowRemote bool) (err error) {
 		addr = &net.TCPAddr{Port: tcpAddr.Port}
 	}
 	if l, err = net.ListenTCP("tcp4", addr); err != nil {
-		return fmt.Errorf("Unable to listen at %v: %v", addr, l)
+		return fmt.Errorf("Unable to listen at %v: %v. Error is: %v", addr, l, err)
 	}
 
+	// This allows a second Lantern running on the system to trigger the existing
+	// Lantern to show the UI, or at least try to
+	handler := func(resp http.ResponseWriter, req *http.Request) {
+		// If we're allowing remote, we're in practice not showing the UI on this
+		// typically headless system, so don't allow triggering of the UI.
+		if !allowRemote {
+			Show()
+		}
+		resp.WriteHeader(http.StatusOK)
+	}
+	r.Handle("/startup", http.HandlerFunc(handler))
 	r.Handle("/", http.FileServer(fs))
 
 	server = &http.Server{
@@ -101,13 +112,32 @@ func Show() {
 		if err != nil {
 			log.Errorf("Error opening page to `%v`: %v", uiaddr, err)
 		}
-		if externalUrl != "NO"+"_URL" && !openedExternal {
-			time.Sleep(4 * time.Second)
-			err = open.Run(externalUrl)
-			if err != nil {
-				log.Errorf("Error opening external page to `%v`: %v", uiaddr, err)
-			}
-			openedExternal = true
-		}
+		openExternalUrl()
 	}()
+}
+
+// openExternalUrl opens an external URL of one of our partners automatically
+// at startup if configured to do so. It should only open the first time in
+// a given session that Lantern is opened.
+func openExternalUrl() {
+	if openedExternal {
+		log.Debugf("Not opening external URL again")
+		return
+	}
+	defer func() {
+		openedExternal = true
+	}()
+
+	path, s, err := packaged.ReadSettings()
+	if err != nil {
+		// Let packaged itself log errors as necessary.
+		log.Debugf("Could not read yaml from %v: %v", path, err)
+		return
+	}
+
+	time.Sleep(4 * time.Second)
+	err = open.Run(s.StartupUrl)
+	if err != nil {
+		log.Errorf("Error opening external page to `%v`: %v", uiaddr, err)
+	}
 }

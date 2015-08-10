@@ -35,8 +35,7 @@ func WaitForServer(protocol string, addr string, limit time.Duration) error {
 		}
 		c, err := net.DialTimeout(protocol, addr, limit)
 		if err == nil {
-			c.Close()
-			return nil
+			return c.Close()
 		}
 		time.Sleep(50 * time.Millisecond)
 	}

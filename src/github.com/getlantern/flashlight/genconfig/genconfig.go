@@ -170,7 +170,11 @@ func loadFtVersion() {
 		log.Fatalf("Error fetching FireTweet version file: %s", err)
 	}
 
-	defer res.Body.Close()
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			log.Debugf("Error closing response body: %v", err)
+		}
+	}()
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		log.Fatalf("Could not read FT version file: %s", err)
@@ -250,7 +254,9 @@ func grabCerts() {
 			log.Errorf("Unable to dial domain %s: %s", domain, err)
 			continue
 		}
-		cwt.Conn.Close()
+		if err := cwt.Conn.Close(); err != nil {
+			log.Debugf("Error closing connection: %v", err)
+		}
 		chain := cwt.VerifiedChains[0]
 		rootCA := chain[len(chain)-1]
 		rootCert, err := keyman.LoadCertificateFromX509(rootCA)
@@ -348,7 +354,9 @@ func buildModel(cas map[string]*castat, masquerades []*masquerade) map[string]in
 			log.Debugf("Skipping fallback %v because dialing Google failed: %v", ip, err)
 			continue
 		}
-		conn.Close()
+		if err := conn.Close(); err != nil {
+			log.Debugf("Error closing connection: %v", err)
+		}
 
 		// Use this fallback
 		fbs = append(fbs, fb)
@@ -373,7 +381,11 @@ func generateTemplate(model map[string]interface{}, tmplString string, filename 
 		log.Errorf("Unable to create %s: %s", filename, err)
 		return
 	}
-	defer out.Close()
+	defer func() {
+		if err := out.Close(); err != nil {
+			log.Debugf("Error closing file: %v", err)
+		}
+	}()
 	err = tmpl.Execute(out, model)
 	if err != nil {
 		log.Errorf("Unable to generate %s: %s", filename, err)

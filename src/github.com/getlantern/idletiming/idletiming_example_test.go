@@ -1,7 +1,6 @@
 package idletiming
 
 import (
-	"log"
 	"net"
 	"time"
 )
@@ -13,10 +12,12 @@ func ExampleConn() {
 	}
 
 	ic := Conn(c, 5*time.Second, func() {
-		log.Printf("Connection was idled")
+		log.Debugf("Connection was idled")
 	})
 
-	ic.Write([]byte("My data"))
+	if _, err := ic.Write([]byte("My data")); err != nil {
+		log.Fatalf("Unable to write to connection: %v", err)
+	}
 }
 
 func ExampleListener() {
@@ -26,8 +27,10 @@ func ExampleListener() {
 	}
 
 	il := Listener(l, 5*time.Second, func(conn net.Conn) {
-		log.Printf("Connection was idled")
+		log.Debugf("Connection was idled")
 	})
 
-	il.Accept()
+	if _, err := il.Accept(); err != nil {
+		log.Fatalf("Unable to accept connections: %v", err)
+	}
 }

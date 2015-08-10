@@ -49,7 +49,9 @@ func (l *lazyConn) get() (conn net.Conn, err error) {
 			l.p.connMapMutex.Lock()
 			defer l.p.connMapMutex.Unlock()
 			delete(l.p.connMap, l.id)
-			conn.Close()
+			if err := conn.Close(); err != nil {
+				log.Debugf("Unable to close connection: %v", err)
+			}
 		})
 	}
 

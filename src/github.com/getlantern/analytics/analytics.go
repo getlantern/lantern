@@ -14,7 +14,7 @@ import (
 const (
 	ApiEndpoint       = `https://ssl.google-analytics.com/collect`
 	ProtocolVersion   = "1"
-	DefaultInstanceId = "1260961011.1389432370"
+	DefaultInstanceId = "555"
 )
 
 var (
@@ -43,7 +43,7 @@ type Event struct {
 }
 
 type Payload struct {
-	InstanceId string `json:"clientId"`
+	ClientId string `json:"clientId"`
 
 	ClientVersion string `json:"clientVersion,omitempty"`
 
@@ -77,7 +77,11 @@ func Configure(trackingId string, version string, proxyAddr string) {
 			return
 		}
 		// Store new session info whenever client proxy is ready
-		sessionEvent(version, trackingId)
+		if status, err := sessionEvent(trackingId, version); err != nil {
+			log.Errorf("Unable to store new session info: %v", err)
+		} else {
+			log.Tracef("Storing new session info: %v", status)
+		}
 	}()
 }
 
@@ -93,9 +97,10 @@ func collectArgs(payload *Payload) string {
 	if payload.TrackingId != "" {
 		vals.Add("tid", payload.TrackingId)
 	}
-	if payload.InstanceId != "" {
-		vals.Add("cid", payload.InstanceId)
+	if payload.ClientId != "" {
+		vals.Add("cid", payload.ClientId)
 	}
+
 	if payload.ScreenResolution != "" {
 		vals.Add("sr", payload.ScreenResolution)
 	}
@@ -137,13 +142,14 @@ func SendRequest(payload *Payload) (status bool, err error) {
 	args := collectArgs(payload)
 
 	r, err := http.NewRequest("POST", ApiEndpoint, bytes.NewBufferString(args))
-	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	r.Header.Add("Content-Length", strconv.Itoa(len(args)))
 
 	if err != nil {
 		log.Errorf("Error constructing GA request: %s", err)
 		return false, err
 	}
+
+	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	r.Header.Add("Content-Length", strconv.Itoa(len(args)))
 
 	resp, err := httpClient.Do(r)
 	if err != nil {
@@ -151,7 +157,11 @@ func SendRequest(payload *Payload) (status bool, err error) {
 		return false, err
 	}
 	log.Debugf("Successfully sent request to GA: %s", resp.Status)
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Debugf("Unable to close response body: %v", err)
+		}
+	}()
 
 	return true, nil
 }
@@ -163,12 +173,11 @@ func sessionEvent(trackingId string, version string) (status bool, err error) {
 		HitType:    EventType,
 		TrackingId: trackingId,
 		Hostname:   "localhost",
-		InstanceId: DefaultInstanceId,
+		ClientId:   DefaultInstanceId,
 		Event: &Event{
 			Category: "Session",
 			Action:   "Start",
 			Label:    runtime.GOOS,
-			Value:    version,
 		},
 	}
 

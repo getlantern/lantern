@@ -40,7 +40,9 @@ func TestBadServer(t *testing.T) {
 	go func() {
 		conn, err := l.Accept()
 		if err == nil {
-			conn.Close()
+			if err := conn.Close(); err != nil {
+				t.Fatalf("Unable to close connection: %v", err)
+			}
 		}
 	}()
 
@@ -64,7 +66,11 @@ func TestBadConnectStatus(t *testing.T) {
 			resp.WriteHeader(403) // forbidden
 		}),
 	}
-	go hs.Serve(l)
+	go func() {
+		if err := hs.Serve(l); err != nil {
+			t.Fatalf("Unable to serve: %v", err)
+		}
+	}()
 
 	dialer := NewDialer(Config{
 		DialServer: func() (net.Conn, error) {
