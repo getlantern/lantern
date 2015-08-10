@@ -1,7 +1,6 @@
 package logging
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -41,7 +40,7 @@ var (
 
 	lastAddr   string
 	duplicates = make(map[string]bool)
-	dupLock    = &sync.Mutex{}
+	dupLock    sync.Mutex
 )
 
 func Init() error {
@@ -184,9 +183,8 @@ func isDuplicate(msg string) bool {
 func (w logglyErrorWriter) Write(b []byte) (int, error) {
 	fullMessage := string(b)
 	if isDuplicate(fullMessage) {
-		msg := fmt.Sprintf("Not logging duplicate: %v", fullMessage)
-		fmt.Println(msg)
-		return 0, errors.New(msg)
+		log.Debugf("Not logging duplicate: %v", fullMessage)
+		return 0, nil
 	}
 
 	extra := map[string]string{
