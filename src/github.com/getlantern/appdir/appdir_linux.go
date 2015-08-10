@@ -10,6 +10,8 @@ import (
 
 func general(app string) string {
 	if runtime.GOOS == "android" {
+		// TODO: Go for Android currently doesn't support Home Directory.
+		// Remove as soon as this is available in the future
 		return fmt.Sprintf(".%s", strings.ToLower(app))
 	} else {
 		// It is more common on Linux to expect application related directories
