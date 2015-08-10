@@ -92,7 +92,6 @@ func logPanic(proxyAddr string, msg string) {
 
 	// Create the client-side proxy.
 	c := &client.Client{
-		// TODO: Next port in case the regular one hasn't been closed properly
 		Addr:         proxyAddr,
 		ReadTimeout:  0, // don't timeout
 		WriteTimeout: 0,
@@ -110,8 +109,8 @@ func logPanic(proxyAddr string, msg string) {
 
 	log.Error(msg)
 
-	time.Sleep(6 * time.Second)
-	logging.Close()
+	logging.Flush()
+	_ = logging.Close()
 }
 
 func main() {

@@ -103,6 +103,18 @@ func Configure(addr string, cloudConfigCA string, instanceId string,
 	return
 }
 
+// Flush forces flushing in case we are using Loggly
+func Flush() {
+	output := golog.GetOutputs().ErrorOut
+	if nsWriter, ok := output.(*nonStopWriter); ok {
+		for _, w := range nsWriter.writers {
+			if errWriter, ok := w.(*logglyErrorWriter); ok {
+				errWriter.client.Flush()
+			}
+		}
+	}
+}
+
 func Close() error {
 	golog.ResetOutputs()
 	return logFile.Close()

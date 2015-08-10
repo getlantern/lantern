@@ -28,8 +28,8 @@ func init() {
 
 func SetOutputs(errorOut io.Writer, debugOut io.Writer) {
 	outs.Store(&outputs{
-		errorOut: errorOut,
-		debugOut: debugOut,
+		ErrorOut: errorOut,
+		DebugOut: debugOut,
 	})
 }
 
@@ -37,13 +37,13 @@ func ResetOutputs() {
 	SetOutputs(os.Stderr, os.Stdout)
 }
 
-func getOutputs() *outputs {
+func GetOutputs() *outputs {
 	return outs.Load().(*outputs)
 }
 
 type outputs struct {
-	errorOut io.Writer
-	debugOut io.Writer
+	ErrorOut io.Writer
+	DebugOut io.Writer
 }
 
 type Logger interface {
@@ -142,40 +142,40 @@ func (l *logger) printf(out io.Writer, skipFrames int, severity string, message 
 }
 
 func (l *logger) Debug(arg interface{}) {
-	l.print(getOutputs().debugOut, 4, "DEBUG", arg)
+	l.print(GetOutputs().DebugOut, 4, "DEBUG", arg)
 }
 
 func (l *logger) Debugf(message string, args ...interface{}) {
-	l.printf(getOutputs().debugOut, 4, "DEBUG", message, args...)
+	l.printf(GetOutputs().DebugOut, 4, "DEBUG", message, args...)
 }
 
 func (l *logger) Error(arg interface{}) {
-	l.print(getOutputs().errorOut, 4, "ERROR", arg)
+	l.print(GetOutputs().ErrorOut, 4, "ERROR", arg)
 }
 
 func (l *logger) Errorf(message string, args ...interface{}) {
-	l.printf(getOutputs().errorOut, 4, "ERROR", message, args...)
+	l.printf(GetOutputs().ErrorOut, 4, "ERROR", message, args...)
 }
 
 func (l *logger) Fatal(arg interface{}) {
-	l.print(getOutputs().errorOut, 4, "FATAL", arg)
+	l.print(GetOutputs().ErrorOut, 4, "FATAL", arg)
 	os.Exit(1)
 }
 
 func (l *logger) Fatalf(message string, args ...interface{}) {
-	l.printf(getOutputs().errorOut, 4, "FATAL", message, args...)
+	l.printf(GetOutputs().ErrorOut, 4, "FATAL", message, args...)
 	os.Exit(1)
 }
 
 func (l *logger) Trace(arg interface{}) {
 	if l.traceOn {
-		l.print(getOutputs().debugOut, 4, "TRACE", arg)
+		l.print(GetOutputs().DebugOut, 4, "TRACE", arg)
 	}
 }
 
 func (l *logger) Tracef(fmt string, args ...interface{}) {
 	if l.traceOn {
-		l.printf(getOutputs().debugOut, 4, "TRACE", fmt, args...)
+		l.printf(GetOutputs().DebugOut, 4, "TRACE", fmt, args...)
 	}
 }
 
@@ -202,9 +202,9 @@ func (l *logger) newTraceWriter() io.Writer {
 			line, err := br.ReadString('\n')
 			if err == nil {
 				// Log the line (minus the trailing newline)
-				l.print(getOutputs().debugOut, 6, "TRACE", line[:len(line)-1])
+				l.print(GetOutputs().DebugOut, 6, "TRACE", line[:len(line)-1])
 			} else {
-				l.printf(getOutputs().debugOut, 6, "TRACE", "TraceWriter closed due to unexpected error: %v", err)
+				l.printf(GetOutputs().DebugOut, 6, "TRACE", "TraceWriter closed due to unexpected error: %v", err)
 				return
 			}
 		}
@@ -224,7 +224,7 @@ func (w *errorWriter) Write(p []byte) (n int, err error) {
 	if s[len(s)-1] == '\n' {
 		s = s[:len(s)-1]
 	}
-	w.l.print(getOutputs().errorOut, 6, "ERROR", s)
+	w.l.print(GetOutputs().ErrorOut, 6, "ERROR", s)
 	return len(p), nil
 }
 
