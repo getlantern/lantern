@@ -43,7 +43,7 @@ type proxyTestInterface seq.Ref
 func (p *proxyTestInterface) DoSomeWork(s *issue10788.TestStruct) {
 	in := new(seq.Buffer)
 	in.WriteGoRef(s)
-	seq.Transact((*seq.Ref)(p), proxyTestInterface_DoSomeWork_Code, in)
+	seq.Transact((*seq.Ref)(p), "go.issue10788.TestInterface", proxyTestInterface_DoSomeWork_Code, in)
 }
 
 func (p *proxyTestInterface) MultipleUnnamedParams(p0 int, p1 string, p2 int64) {
@@ -51,7 +51,7 @@ func (p *proxyTestInterface) MultipleUnnamedParams(p0 int, p1 string, p2 int64) 
 	in.WriteInt(p0)
 	in.WriteString(p1)
 	in.WriteInt64(p2)
-	seq.Transact((*seq.Ref)(p), proxyTestInterface_MultipleUnnamedParams_Code, in)
+	seq.Transact((*seq.Ref)(p), "go.issue10788.TestInterface", proxyTestInterface_MultipleUnnamedParams_Code, in)
 }
 
 const (

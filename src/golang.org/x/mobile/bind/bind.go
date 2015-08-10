@@ -16,9 +16,8 @@ import (
 	"bytes"
 	"go/format"
 	"go/token"
+	"go/types"
 	"io"
-
-	"golang.org/x/tools/go/types"
 )
 
 // GenJava generates a Java API from a Go package.

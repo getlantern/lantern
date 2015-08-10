@@ -185,7 +185,7 @@ func affine(dst *image.RGBA, src image.Image, srcb image.Rectangle, mask image.I
 	// TODO(nigeltao): is the caller or callee responsible for detecting
 	// transforms that are simple copies or scales, for which there are faster
 	// implementations in the xdraw package.
-	xdraw.ApproxBiLinear.Transform(dst, &m, src, srcb, xdraw.Op(op), &xdraw.Options{
+	xdraw.ApproxBiLinear.Transform(dst, m, src, srcb, xdraw.Op(op), &xdraw.Options{
 		SrcMask: mask,
 	})
 }

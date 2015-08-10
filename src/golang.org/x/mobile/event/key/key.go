@@ -35,11 +35,10 @@ type Event struct {
 	// For standard key codes, its value matches USB HID key codes.
 	// Compare its value to uint32-typed constants in this package, such
 	// as CodeLeftShift and CodeEscape.
-	// TODO(crawshaw): define "type Code uint32"
 	//
 	// Pressing the regular '2' key and number-pad '2' key (with Num-Lock)
 	// generate different Codes (but the same Rune).
-	Code uint32
+	Code Code
 
 	// Modifiers is a bitmask representing a set of modifier keys: ModShift,
 	// ModAlt, etc.
@@ -72,121 +71,144 @@ const (
 	ModMeta    Modifiers = 1 << 3 // called "Command" on OS X
 )
 
+// Code is the identity of a key relative to a notional "standard" keyboard.
+type Code uint32
+
 // Physical key codes.
 //
 // For standard key codes, its value matches USB HID key codes.
 // TODO: add missing codes.
 const (
-	CodeA = 4
-	CodeB = 5
-	CodeC = 6
-	CodeD = 7
-	CodeE = 8
-	CodeF = 9
-	CodeG = 10
-	CodeH = 11
-	CodeI = 12
-	CodeJ = 13
-	CodeK = 14
-	CodeL = 15
-	CodeM = 16
-	CodeN = 17
-	CodeO = 18
-	CodeP = 19
-	CodeQ = 20
-	CodeR = 21
-	CodeS = 22
-	CodeT = 23
-	CodeU = 24
-	CodeV = 25
-	CodeW = 26
-	CodeX = 27
-	CodeY = 28
-	CodeZ = 29
+	CodeUnknown Code = 0
 
-	Code1 = 30
-	Code2 = 31
-	Code3 = 32
-	Code4 = 33
-	Code5 = 34
-	Code6 = 35
-	Code7 = 36
-	Code8 = 37
-	Code9 = 38
-	Code0 = 39
+	CodeA Code = 4
+	CodeB Code = 5
+	CodeC Code = 6
+	CodeD Code = 7
+	CodeE Code = 8
+	CodeF Code = 9
+	CodeG Code = 10
+	CodeH Code = 11
+	CodeI Code = 12
+	CodeJ Code = 13
+	CodeK Code = 14
+	CodeL Code = 15
+	CodeM Code = 16
+	CodeN Code = 17
+	CodeO Code = 18
+	CodeP Code = 19
+	CodeQ Code = 20
+	CodeR Code = 21
+	CodeS Code = 22
+	CodeT Code = 23
+	CodeU Code = 24
+	CodeV Code = 25
+	CodeW Code = 26
+	CodeX Code = 27
+	CodeY Code = 28
+	CodeZ Code = 29
 
-	CodeReturn    = 40
-	CodeEscape    = 41
-	CodeBackspace = 42
-	CodeTab       = 43
+	Code1 Code = 30
+	Code2 Code = 31
+	Code3 Code = 32
+	Code4 Code = 33
+	Code5 Code = 34
+	Code6 Code = 35
+	Code7 Code = 36
+	Code8 Code = 37
+	Code9 Code = 38
+	Code0 Code = 39
 
-	CodeF1  = 58
-	CodeF2  = 59
-	CodeF3  = 60
-	CodeF4  = 61
-	CodeF5  = 62
-	CodeF6  = 63
-	CodeF7  = 64
-	CodeF8  = 65
-	CodeF9  = 66
-	CodeF10 = 67
-	CodeF11 = 68
-	CodeF12 = 69
+	CodeReturnEnter        Code = 40
+	CodeEscape             Code = 41
+	CodeDeleteBackspace    Code = 42
+	CodeTab                Code = 43
+	CodeSpacebar           Code = 44
+	CodeHyphenMinus        Code = 45 // -
+	CodeEqualSign          Code = 46 // =
+	CodeLeftSquareBracket  Code = 47 // [
+	CodeRightSquareBracket Code = 48 // ]
+	CodeBackslash          Code = 49 // \
+	CodeSemicolon          Code = 51 // ;
+	CodeApostrophe         Code = 52 // '
+	CodeGraveAccent        Code = 53 // `
+	CodeComma              Code = 54 // ,
+	CodeFullStop           Code = 55 // .
+	CodeSlash              Code = 56 // /
+	CodeCapsLock           Code = 57
 
-	CodePageUp   = 75
-	CodePageDown = 78
+	CodeF1  Code = 58
+	CodeF2  Code = 59
+	CodeF3  Code = 60
+	CodeF4  Code = 61
+	CodeF5  Code = 62
+	CodeF6  Code = 63
+	CodeF7  Code = 64
+	CodeF8  Code = 65
+	CodeF9  Code = 66
+	CodeF10 Code = 67
+	CodeF11 Code = 68
+	CodeF12 Code = 69
 
-	CodeRightArrow = 79
-	CodeLeftArrow  = 80
-	CodeDownArrow  = 81
-	CodeUpArrow    = 82
+	CodePause         Code = 72
+	CodeInsert        Code = 73
+	CodeHome          Code = 74
+	CodePageUp        Code = 75
+	CodeDeleteForward Code = 76
+	CodeEnd           Code = 77
+	CodePageDown      Code = 78
 
-	CodeKeypadNumLockAndClear = 83
-	CodeKeypadSlash           = 84
-	CodeKeypadAsterisk        = 85
-	CodeKeypadMinus           = 86
-	CodeKeypadPlus            = 87
-	CodeKeypadEnter           = 88
-	CodeKeypad1               = 89
-	CodeKeypad2               = 90
-	CodeKeypad3               = 91
-	CodeKeypad4               = 92
-	CodeKeypad5               = 93
-	CodeKeypad6               = 94
-	CodeKeypad7               = 95
-	CodeKeypad8               = 96
-	CodeKeypad9               = 97
-	CodeKeypad0               = 98
-	CodeKeypadFullStop        = 99
-	CodeKeypadEqualSign       = 103
+	CodeRightArrow Code = 79
+	CodeLeftArrow  Code = 80
+	CodeDownArrow  Code = 81
+	CodeUpArrow    Code = 82
 
-	CodeF13 = 104
-	CodeF14 = 105
-	CodeF15 = 106
-	CodeF16 = 107
-	CodeF17 = 108
-	CodeF18 = 109
-	CodeF19 = 110
-	CodeF20 = 111
-	CodeF21 = 112
-	CodeF22 = 113
-	CodeF23 = 114
-	CodeF24 = 115
+	CodeKeypadNumLock     Code = 83
+	CodeKeypadSlash       Code = 84 // /
+	CodeKeypadAsterisk    Code = 85 // *
+	CodeKeypadHyphenMinus Code = 86 // -
+	CodeKeypadPlusSign    Code = 87 // +
+	CodeKeypadEnter       Code = 88
+	CodeKeypad1           Code = 89
+	CodeKeypad2           Code = 90
+	CodeKeypad3           Code = 91
+	CodeKeypad4           Code = 92
+	CodeKeypad5           Code = 93
+	CodeKeypad6           Code = 94
+	CodeKeypad7           Code = 95
+	CodeKeypad8           Code = 96
+	CodeKeypad9           Code = 97
+	CodeKeypad0           Code = 98
+	CodeKeypadFullStop    Code = 99  // .
+	CodeKeypadEqualSign   Code = 103 // =
 
-	CodeHelp = 117
+	CodeF13 Code = 104
+	CodeF14 Code = 105
+	CodeF15 Code = 106
+	CodeF16 Code = 107
+	CodeF17 Code = 108
+	CodeF18 Code = 109
+	CodeF19 Code = 110
+	CodeF20 Code = 111
+	CodeF21 Code = 112
+	CodeF22 Code = 113
+	CodeF23 Code = 114
+	CodeF24 Code = 115
 
-	CodeMute       = 127
-	CodeVolumeUp   = 128
-	CodeVolumeDown = 129
+	CodeHelp Code = 117
 
-	CodeLeftControl  = 224
-	CodeLeftShift    = 225
-	CodeLeftAlt      = 226
-	CodeLeftMeta     = 227
-	CodeRightControl = 228
-	CodeRightShift   = 229
-	CodeRightAlt     = 230
-	CodeRightMeta    = 231
+	CodeMute       Code = 127
+	CodeVolumeUp   Code = 128
+	CodeVolumeDown Code = 129
+
+	CodeLeftControl  Code = 224
+	CodeLeftShift    Code = 225
+	CodeLeftAlt      Code = 226
+	CodeLeftGUI      Code = 227
+	CodeRightControl Code = 228
+	CodeRightShift   Code = 229
+	CodeRightAlt     Code = 230
+	CodeRightGUI     Code = 231
 )
 
 // TODO: Given we use runes outside the unicode space, should we provide a

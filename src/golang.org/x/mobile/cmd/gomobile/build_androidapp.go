@@ -21,12 +21,12 @@ import (
 	"strings"
 )
 
-func goAndroidBuild(pkg *build.Package) error {
+func goAndroidBuild(pkg *build.Package) (map[string]bool, error) {
 	libName := path.Base(pkg.ImportPath)
 	manifestData, err := ioutil.ReadFile(filepath.Join(pkg.Dir, "AndroidManifest.xml"))
 	if err != nil {
 		if !os.IsNotExist(err) {
-			return err
+			return nil, err
 		}
 		buf := new(bytes.Buffer)
 		buf.WriteString(`<?xml version="1.0" encoding="utf-8"?>`)
@@ -37,7 +37,7 @@ func goAndroidBuild(pkg *build.Package) error {
 			LibName:     libName,
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
 		manifestData = buf.Bytes()
 		if buildV {
@@ -46,7 +46,7 @@ func goAndroidBuild(pkg *build.Package) error {
 	} else {
 		libName, err = manifestLibName(manifestData)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 	libPath := filepath.Join(tmpdir, "lib"+libName+".so")
@@ -58,28 +58,34 @@ func goAndroidBuild(pkg *build.Package) error {
 		"-o", libPath,
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
+
+	nmpkgs, err := extractPkgs(androidArmNM, libPath)
+	if err != nil {
+		return nil, err
+	}
+
 	block, _ := pem.Decode([]byte(debugCert))
 	if block == nil {
-		return errors.New("no debug cert")
+		return nil, errors.New("no debug cert")
 	}
 	privKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if buildO == "" {
 		buildO = filepath.Base(pkg.Dir) + ".apk"
 	}
 	if !strings.HasSuffix(buildO, ".apk") {
-		return fmt.Errorf("output file name %q does not end in '.apk'", buildO)
+		return nil, fmt.Errorf("output file name %q does not end in '.apk'", buildO)
 	}
 	var out io.Writer
 	if !buildN {
 		f, err := os.Create(buildO)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		defer func() {
 			if cerr := f.Close(); err == nil {
@@ -105,39 +111,39 @@ func goAndroidBuild(pkg *build.Package) error {
 
 	w, err := apkwcreate("AndroidManifest.xml")
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if _, err := w.Write(manifestData); err != nil {
-		return err
+		return nil, err
 	}
 
 	w, err = apkwcreate("classes.dex")
 	if err != nil {
-		return err
+		return nil, err
 	}
 	dexData, err := base64.StdEncoding.DecodeString(dexStr)
 	if err != nil {
 		log.Fatal("internal error bad dexStr: %v", err)
 	}
 	if _, err := w.Write(dexData); err != nil {
-		return err
+		return nil, err
 	}
 
 	w, err = apkwcreate("lib/armeabi/lib" + libName + ".so")
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if !buildN {
 		r, err := os.Open(libPath)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if _, err := io.Copy(w, r); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	if pkgImportsAL(pkg) {
+	if nmpkgs["golang.org/x/mobile/exp/audio/al"] {
 		alDir := filepath.Join(ndkccpath, "openal/lib")
 		filepath.Walk(alDir, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
@@ -171,7 +177,7 @@ func goAndroidBuild(pkg *build.Package) error {
 		if os.IsNotExist(err) {
 			assetsDirExists = false
 		} else {
-			return err
+			return nil, err
 		}
 	} else {
 		assetsDirExists = fi.IsDir()
@@ -198,7 +204,7 @@ func goAndroidBuild(pkg *build.Package) error {
 			return err
 		})
 		if err != nil {
-			return fmt.Errorf("asset %v", err)
+			return nil, fmt.Errorf("asset %v", err)
 		}
 	}
 
@@ -206,39 +212,11 @@ func goAndroidBuild(pkg *build.Package) error {
 
 	if !buildN {
 		if err := apkw.Close(); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	return nil
-}
-
-var importsALPkg = make(map[string]struct{})
-
-// pkgImportsAL returns true if the given package or one of its
-// dependencies imports the x/mobile/exp/audio/al package.
-func pkgImportsAL(pkg *build.Package) bool {
-	for _, path := range pkg.Imports {
-		if path == "C" {
-			continue
-		}
-		if _, ok := importsALPkg[path]; ok {
-			continue
-		}
-		importsALPkg[path] = struct{}{}
-		if strings.HasPrefix(path, "golang.org/x/mobile/exp/audio/al") {
-			return true
-		}
-		dPkg, err := ctx.Import(path, "", build.ImportComment)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "error reading OpenAL library: %v", err)
-			os.Exit(2)
-		}
-		if pkgImportsAL(dPkg) {
-			return true
-		}
-	}
-	return false
+	return nmpkgs, nil
 }
 
 // A random uninteresting private key.

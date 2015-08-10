@@ -23,9 +23,9 @@ import (
 
 var genGoldenFiles = flag.Bool("gen_golden_files", false, "whether to generate the TestXxx golden files.")
 
-var transformMatrix = func(scale, tx, ty float64) *f64.Aff3 {
+var transformMatrix = func(scale, tx, ty float64) f64.Aff3 {
 	const cos30, sin30 = 0.866025404, 0.5
-	return &f64.Aff3{
+	return f64.Aff3{
 		+scale * cos30, -scale * sin30, tx,
 		+scale * sin30, +scale * cos30, ty,
 	}
@@ -120,6 +120,95 @@ func TestScaleDown(t *testing.T) { testInterp(t, 100, 100, "down", "go-turns-two
 func TestScaleUp(t *testing.T)   { testInterp(t, 75, 100, "up", "go-turns-two", "-14x18.png") }
 func TestTformSrc(t *testing.T)  { testInterp(t, 100, 100, "rotate", "go-turns-two", "-14x18.png") }
 func TestTformOver(t *testing.T) { testInterp(t, 100, 100, "rotate", "tux", ".png") }
+
+// TestSimpleTransforms tests Scale and Transform calls that simplify to Copy
+// or Scale calls.
+func TestSimpleTransforms(t *testing.T) {
+	f, err := os.Open("../testdata/testpattern.png") // A 100x100 image.
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	defer f.Close()
+	src, _, err := image.Decode(f)
+	if err != nil {
+		t.Fatalf("Decode: %v", err)
+	}
+
+	dst0 := image.NewRGBA(image.Rect(0, 0, 120, 150))
+	dst1 := image.NewRGBA(image.Rect(0, 0, 120, 150))
+	for _, op := range []string{"scale/copy", "tform/copy", "tform/scale"} {
+		for _, epsilon := range []float64{0, 1e-50, 1e-1} {
+			Copy(dst0, image.Point{}, image.Transparent, dst0.Bounds(), Src, nil)
+			Copy(dst1, image.Point{}, image.Transparent, dst1.Bounds(), Src, nil)
+
+			switch op {
+			case "scale/copy":
+				dr := image.Rect(10, 30, 10+100, 30+100)
+				if epsilon > 1e-10 {
+					dr.Max.X++
+				}
+				Copy(dst0, image.Point{10, 30}, src, src.Bounds(), Src, nil)
+				ApproxBiLinear.Scale(dst1, dr, src, src.Bounds(), Src, nil)
+			case "tform/copy":
+				Copy(dst0, image.Point{10, 30}, src, src.Bounds(), Src, nil)
+				ApproxBiLinear.Transform(dst1, f64.Aff3{
+					1, 0 + epsilon, 10,
+					0, 1, 30,
+				}, src, src.Bounds(), Src, nil)
+			case "tform/scale":
+				ApproxBiLinear.Scale(dst0, image.Rect(10, 50, 10+50, 50+50), src, src.Bounds(), Src, nil)
+				ApproxBiLinear.Transform(dst1, f64.Aff3{
+					0.5, 0.0 + epsilon, 10,
+					0.0, 0.5, 50,
+				}, src, src.Bounds(), Src, nil)
+			}
+
+			differ := !bytes.Equal(dst0.Pix, dst1.Pix)
+			if epsilon > 1e-10 {
+				if !differ {
+					t.Errorf("%s yielded same pixels, want different pixels: epsilon=%v", op, epsilon)
+				}
+			} else {
+				if differ {
+					t.Errorf("%s yielded different pixels, want same pixels: epsilon=%v", op, epsilon)
+				}
+			}
+		}
+	}
+}
+
+func BenchmarkSimpleScaleCopy(b *testing.B) {
+	dst := image.NewRGBA(image.Rect(0, 0, 640, 480))
+	src := image.NewRGBA(image.Rect(0, 0, 400, 300))
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ApproxBiLinear.Scale(dst, image.Rect(10, 20, 10+400, 20+300), src, src.Bounds(), Src, nil)
+	}
+}
+
+func BenchmarkSimpleTransformCopy(b *testing.B) {
+	dst := image.NewRGBA(image.Rect(0, 0, 640, 480))
+	src := image.NewRGBA(image.Rect(0, 0, 400, 300))
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ApproxBiLinear.Transform(dst, f64.Aff3{
+			1, 0, 10,
+			0, 1, 20,
+		}, src, src.Bounds(), Src, nil)
+	}
+}
+
+func BenchmarkSimpleTransformScale(b *testing.B) {
+	dst := image.NewRGBA(image.Rect(0, 0, 640, 480))
+	src := image.NewRGBA(image.Rect(0, 0, 400, 300))
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ApproxBiLinear.Transform(dst, f64.Aff3{
+			0.5, 0.0, 10,
+			0.0, 0.5, 20,
+		}, src, src.Bounds(), Src, nil)
+	}
+}
 
 func TestOps(t *testing.T) {
 	blue := image.NewUniform(color.RGBA{0x00, 0x00, 0xff, 0xff})
@@ -297,11 +386,11 @@ func TestSrcTranslationInvariance(t *testing.T) {
 				tsrc := &translatedImage{src, delta}
 				got := image.NewRGBA(image.Rect(0, 0, 20, 20))
 				if transform {
-					m := matMul(m00, &f64.Aff3{
+					m := matMul(&m00, &f64.Aff3{
 						1, 0, -float64(delta.X),
 						0, 1, -float64(delta.Y),
 					})
-					q.Transform(got, &m, tsrc, sr.Add(delta), Over, nil)
+					q.Transform(got, m, tsrc, sr.Add(delta), Over, nil)
 				} else {
 					q.Scale(got, got.Bounds(), tsrc, sr.Add(delta), Over, nil)
 				}
@@ -481,83 +570,6 @@ type (
 	dstWrapper struct{ Image }
 	srcWrapper struct{ image.Image }
 )
-
-// TestFastPaths tests that the fast path implementations produce identical
-// results to the generic implementation.
-func TestFastPaths(t *testing.T) {
-	drs := []image.Rectangle{
-		image.Rect(0, 0, 10, 10),   // The dst bounds.
-		image.Rect(3, 4, 8, 6),     // A strict subset of the dst bounds.
-		image.Rect(-3, -5, 2, 4),   // Partial out-of-bounds #0.
-		image.Rect(4, -2, 6, 12),   // Partial out-of-bounds #1.
-		image.Rect(12, 14, 23, 45), // Complete out-of-bounds.
-		image.Rect(5, 5, 5, 5),     // Empty.
-	}
-	srs := []image.Rectangle{
-		image.Rect(0, 0, 12, 9),    // The src bounds.
-		image.Rect(2, 2, 10, 8),    // A strict subset of the src bounds.
-		image.Rect(10, 5, 20, 20),  // Partial out-of-bounds #0.
-		image.Rect(-40, 0, 40, 8),  // Partial out-of-bounds #1.
-		image.Rect(-8, -8, -4, -4), // Complete out-of-bounds.
-		image.Rect(5, 5, 5, 5),     // Empty.
-	}
-	srcfs := []func(image.Rectangle) (image.Image, error){
-		srcGray,
-		srcNRGBA,
-		srcRGBA,
-		srcUnif,
-		srcYCbCr,
-	}
-	var srcs []image.Image
-	for _, srcf := range srcfs {
-		src, err := srcf(srs[0])
-		if err != nil {
-			t.Fatal(err)
-		}
-		srcs = append(srcs, src)
-	}
-	qs := []Interpolator{
-		NearestNeighbor,
-		ApproxBiLinear,
-		CatmullRom,
-	}
-	ops := []Op{
-		Over,
-		Src,
-	}
-	blue := image.NewUniform(color.RGBA{0x11, 0x22, 0x44, 0x7f})
-
-	for _, dr := range drs {
-		for _, src := range srcs {
-			for _, sr := range srs {
-				for _, transform := range []bool{false, true} {
-					for _, q := range qs {
-						for _, op := range ops {
-							dst0 := image.NewRGBA(drs[0])
-							dst1 := image.NewRGBA(drs[0])
-							Draw(dst0, dst0.Bounds(), blue, image.Point{}, Src)
-							Draw(dstWrapper{dst1}, dst1.Bounds(), srcWrapper{blue}, image.Point{}, Src)
-
-							if transform {
-								m := transformMatrix(3.75, 2, 1)
-								q.Transform(dst0, m, src, sr, op, nil)
-								q.Transform(dstWrapper{dst1}, m, srcWrapper{src}, sr, op, nil)
-							} else {
-								q.Scale(dst0, dr, src, sr, op, nil)
-								q.Scale(dstWrapper{dst1}, dr, srcWrapper{src}, sr, op, nil)
-							}
-
-							if !bytes.Equal(dst0.Pix, dst1.Pix) {
-								t.Errorf("pix differ for dr=%v, src=%T, sr=%v, transform=%t, q=%T",
-									dr, src, sr, transform, q)
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-}
 
 func srcGray(boundsHint image.Rectangle) (image.Image, error) {
 	m := image.NewGray(boundsHint)

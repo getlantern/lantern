@@ -7,7 +7,7 @@ In the absence of any formal way to specify interfaces in JavaScript,
 here's a skeleton implementation of a playground transport.
 
         function Transport() {
-                // Set up any transport state (eg, make a websocket connection).
+                // Set up any transport state (eg, make a websocket connnection).
                 return {
                         Run: function(body, output, options) {
                                 // Compile and run the program 'body' with 'options'.
@@ -49,7 +49,7 @@ function HTTPTransport() {
 		var timeout;
 		output({Kind: 'start'});
 		function next() {
-			if (!events || events.length === 0) {
+			if (events.length === 0) {
 				output({Kind: 'end'});
 				return;
 			}

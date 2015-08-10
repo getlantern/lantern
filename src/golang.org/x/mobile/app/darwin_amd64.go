@@ -111,15 +111,17 @@ func startloop(ctx C.GLintptr) {
 	go loop(ctx)
 }
 
-var windowHeight geom.Pt
+var windowHeightPx float32
 
 //export setGeom
-func setGeom(ppp float32, width, height int) {
+func setGeom(ppp float32, widthPx, heightPx int) {
 	pixelsPerPt = ppp
-	windowHeight = geom.Pt(float32(height) / pixelsPerPt)
+	windowHeightPx = float32(heightPx)
 	eventsIn <- config.Event{
-		Width:       geom.Pt(float32(width) / pixelsPerPt),
-		Height:      windowHeight,
+		WidthPx:     widthPx,
+		HeightPx:    heightPx,
+		WidthPt:     geom.Pt(float32(widthPx) / pixelsPerPt),
+		HeightPt:    geom.Pt(float32(heightPx) / pixelsPerPt),
 		PixelsPerPt: pixelsPerPt,
 	}
 }
@@ -131,12 +133,10 @@ var touchEvents struct {
 
 func sendTouch(t touch.Type, x, y float32) {
 	eventsIn <- touch.Event{
+		X:        x,
+		Y:        windowHeightPx - y,
 		Sequence: 0,
 		Type:     t,
-		Loc: geom.Point{
-			X: geom.Pt(x / pixelsPerPt),
-			Y: windowHeight - geom.Pt(y/pixelsPerPt),
-		},
 	}
 }
 
@@ -226,7 +226,7 @@ func convRune(r rune) rune {
 //
 // To get a sense of the key map, see the diagram on
 //	http://boredzo.org/blog/archives/2007-05-22/virtual-key-codes
-func convVirtualKeyCode(vkcode uint16) uint32 {
+func convVirtualKeyCode(vkcode uint16) key.Code {
 	switch vkcode {
 	case C.kVK_ANSI_A:
 		return key.CodeA
@@ -303,40 +303,40 @@ func convVirtualKeyCode(vkcode uint16) uint32 {
 	// TODO: move the rest of these codes to constants in key.go
 	// if we are happy with them.
 	case C.kVK_Return:
-		return key.CodeReturn
+		return key.CodeReturnEnter
 	case C.kVK_Escape:
 		return key.CodeEscape
 	case C.kVK_Delete:
-		return key.CodeBackspace
+		return key.CodeDeleteBackspace
 	case C.kVK_Tab:
 		return key.CodeTab
 	case C.kVK_Space:
-		return 44
+		return key.CodeSpacebar
 	case C.kVK_ANSI_Minus:
-		return 45
+		return key.CodeHyphenMinus
 	case C.kVK_ANSI_Equal:
-		return 46
+		return key.CodeEqualSign
 	case C.kVK_ANSI_LeftBracket:
-		return 47
+		return key.CodeLeftSquareBracket
 	case C.kVK_ANSI_RightBracket:
-		return 48
+		return key.CodeRightSquareBracket
 	case C.kVK_ANSI_Backslash:
-		return 49
+		return key.CodeBackslash
 	// 50: Keyboard Non-US "#" and ~
 	case C.kVK_ANSI_Semicolon:
-		return 51
+		return key.CodeSemicolon
 	case C.kVK_ANSI_Quote:
-		return 52
+		return key.CodeApostrophe
 	case C.kVK_ANSI_Grave:
-		return 53
+		return key.CodeGraveAccent
 	case C.kVK_ANSI_Comma:
-		return 54
+		return key.CodeComma
 	case C.kVK_ANSI_Period:
-		return 55
+		return key.CodeFullStop
 	case C.kVK_ANSI_Slash:
-		return 56
+		return key.CodeSlash
 	case C.kVK_CapsLock:
-		return 57
+		return key.CodeCapsLock
 	case C.kVK_F1:
 		return key.CodeF1
 	case C.kVK_F2:
@@ -366,13 +366,13 @@ func convVirtualKeyCode(vkcode uint16) uint32 {
 	// 72: Pause
 	// 73: Insert
 	case C.kVK_Home:
-		return 74
+		return key.CodeHome
 	case C.kVK_PageUp:
 		return key.CodePageUp
 	case C.kVK_ForwardDelete:
-		return 76
+		return key.CodeDeleteForward
 	case C.kVK_End:
-		return 77
+		return key.CodeEnd
 	case C.kVK_PageDown:
 		return key.CodePageDown
 	case C.kVK_RightArrow:
@@ -384,15 +384,15 @@ func convVirtualKeyCode(vkcode uint16) uint32 {
 	case C.kVK_UpArrow:
 		return key.CodeUpArrow
 	case C.kVK_ANSI_KeypadClear:
-		return key.CodeKeypadNumLockAndClear
+		return key.CodeKeypadNumLock
 	case C.kVK_ANSI_KeypadDivide:
 		return key.CodeKeypadSlash
 	case C.kVK_ANSI_KeypadMultiply:
 		return key.CodeKeypadAsterisk
 	case C.kVK_ANSI_KeypadMinus:
-		return key.CodeKeypadMinus
+		return key.CodeKeypadHyphenMinus
 	case C.kVK_ANSI_KeypadPlus:
-		return key.CodeKeypadPlus
+		return key.CodeKeypadPlusSign
 	case C.kVK_ANSI_KeypadEnter:
 		return key.CodeKeypadEnter
 	case C.kVK_ANSI_Keypad1:
@@ -466,17 +466,15 @@ func convVirtualKeyCode(vkcode uint16) uint32 {
 	case C.kVK_Option:
 		return key.CodeLeftAlt
 	case C.kVK_Command:
-		return key.CodeLeftMeta
+		return key.CodeLeftGUI
 	case C.kVK_RightControl:
 		return key.CodeRightControl
 	case C.kVK_RightShift:
 		return key.CodeRightShift
 	case C.kVK_RightOption:
 		return key.CodeRightAlt
-	// TODO key.CodeRightMeta
-	case C.kVK_Function:
-		return 3 // TODO
+	// TODO key.CodeRightGUI
 	default:
-		return 3 // Keyboard ErrorUndefined
+		return key.CodeUnknown
 	}
 }

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// +build darwin linux
+
 // An app that demonstrates the sprite package.
 //
 // Note: This demo is an early preview of Go 1.5. In order to build this
@@ -61,7 +63,7 @@ func main() {
 				c = e
 			case paint.Event:
 				onPaint(c)
-				a.EndPaint()
+				a.EndPaint(e)
 			}
 		}
 	})

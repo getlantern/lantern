@@ -11,6 +11,12 @@ import (
 )
 
 func (z nnInterpolator) Scale(dst Image, dr image.Rectangle, src image.Image, sr image.Rectangle, op Op, opts *Options) {
+	// Try to simplify a Scale to a Copy.
+	if dr.Size() == sr.Size() {
+		Copy(dst, dr.Min, src, sr, op, opts)
+		return
+	}
+
 	var o Options
 	if opts != nil {
 		o = *opts
@@ -97,13 +103,23 @@ func (z nnInterpolator) Scale(dst Image, dr image.Rectangle, src image.Image, sr
 	}
 }
 
-func (z nnInterpolator) Transform(dst Image, s2d *f64.Aff3, src image.Image, sr image.Rectangle, op Op, opts *Options) {
+func (z nnInterpolator) Transform(dst Image, s2d f64.Aff3, src image.Image, sr image.Rectangle, op Op, opts *Options) {
+	// Try to simplify a Transform to a Copy.
+	if s2d[0] == 1 && s2d[1] == 0 && s2d[3] == 0 && s2d[4] == 1 {
+		dx := int(s2d[2])
+		dy := int(s2d[5])
+		if float64(dx) == s2d[2] && float64(dy) == s2d[5] {
+			Copy(dst, image.Point{X: sr.Min.X + dx, Y: sr.Min.X + dy}, src, sr, op, opts)
+			return
+		}
+	}
+
 	var o Options
 	if opts != nil {
 		o = *opts
 	}
 
-	dr := transformRect(s2d, &sr)
+	dr := transformRect(&s2d, &sr)
 	// adr is the affected destination pixels.
 	adr := dst.Bounds().Intersect(dr)
 	adr, o.DstMask = clipAffectedDestRect(adr, o.DstMask, o.DstMaskP)
@@ -114,7 +130,7 @@ func (z nnInterpolator) Transform(dst Image, s2d *f64.Aff3, src image.Image, sr 
 		op = Src
 	}
 
-	d2s := invert(s2d)
+	d2s := invert(&s2d)
 	// bias is a translation of the mapping from dst coordinates to src
 	// coordinates such that the latter temporarily have non-negative X
 	// and Y coordinates. This allows us to write int(f) instead of
@@ -1032,6 +1048,12 @@ func (nnInterpolator) transform_Image_Image_Src(dst Image, dr, adr image.Rectang
 }
 
 func (z ablInterpolator) Scale(dst Image, dr image.Rectangle, src image.Image, sr image.Rectangle, op Op, opts *Options) {
+	// Try to simplify a Scale to a Copy.
+	if dr.Size() == sr.Size() {
+		Copy(dst, dr.Min, src, sr, op, opts)
+		return
+	}
+
 	var o Options
 	if opts != nil {
 		o = *opts
@@ -1118,13 +1140,23 @@ func (z ablInterpolator) Scale(dst Image, dr image.Rectangle, src image.Image, s
 	}
 }
 
-func (z ablInterpolator) Transform(dst Image, s2d *f64.Aff3, src image.Image, sr image.Rectangle, op Op, opts *Options) {
+func (z ablInterpolator) Transform(dst Image, s2d f64.Aff3, src image.Image, sr image.Rectangle, op Op, opts *Options) {
+	// Try to simplify a Transform to a Copy.
+	if s2d[0] == 1 && s2d[1] == 0 && s2d[3] == 0 && s2d[4] == 1 {
+		dx := int(s2d[2])
+		dy := int(s2d[5])
+		if float64(dx) == s2d[2] && float64(dy) == s2d[5] {
+			Copy(dst, image.Point{X: sr.Min.X + dx, Y: sr.Min.X + dy}, src, sr, op, opts)
+			return
+		}
+	}
+
 	var o Options
 	if opts != nil {
 		o = *opts
 	}
 
-	dr := transformRect(s2d, &sr)
+	dr := transformRect(&s2d, &sr)
 	// adr is the affected destination pixels.
 	adr := dst.Bounds().Intersect(dr)
 	adr, o.DstMask = clipAffectedDestRect(adr, o.DstMask, o.DstMaskP)
@@ -1135,7 +1167,7 @@ func (z ablInterpolator) Transform(dst Image, s2d *f64.Aff3, src image.Image, sr
 		op = Src
 	}
 
-	d2s := invert(s2d)
+	d2s := invert(&s2d)
 	// bias is a translation of the mapping from dst coordinates to src
 	// coordinates such that the latter temporarily have non-negative X
 	// and Y coordinates. This allows us to write int(f) instead of
@@ -4498,13 +4530,13 @@ func (z *kernelScaler) Scale(dst Image, dr image.Rectangle, src image.Image, sr 
 	}
 }
 
-func (q *Kernel) Transform(dst Image, s2d *f64.Aff3, src image.Image, sr image.Rectangle, op Op, opts *Options) {
+func (q *Kernel) Transform(dst Image, s2d f64.Aff3, src image.Image, sr image.Rectangle, op Op, opts *Options) {
 	var o Options
 	if opts != nil {
 		o = *opts
 	}
 
-	dr := transformRect(s2d, &sr)
+	dr := transformRect(&s2d, &sr)
 	// adr is the affected destination pixels.
 	adr := dst.Bounds().Intersect(dr)
 	adr, o.DstMask = clipAffectedDestRect(adr, o.DstMask, o.DstMaskP)
@@ -4514,7 +4546,7 @@ func (q *Kernel) Transform(dst Image, s2d *f64.Aff3, src image.Image, sr image.R
 	if op == Over && o.SrcMask == nil && opaque(src) {
 		op = Src
 	}
-	d2s := invert(s2d)
+	d2s := invert(&s2d)
 	// bias is a translation of the mapping from dst coordinates to src
 	// coordinates such that the latter temporarily have non-negative X
 	// and Y coordinates. This allows us to write int(f) instead of

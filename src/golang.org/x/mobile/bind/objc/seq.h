@@ -31,7 +31,10 @@ typedef struct GoSeq {
 @property int32_t refnum;
 @property(strong) id obj; // NULL when representing a Go object.
 
-- (id)initWithRefnum:(int32_t)refnum obj:(id)obj;
+// new GoSeqRef object to proxy a Go object. The refnum must be
+// provided from Go side.
+- (instancetype)initWithRefnum:(int32_t)refnum obj:(id)obj;
+
 @end
 
 // go_seq_free releases resources of the GoSeq.
@@ -57,17 +60,24 @@ extern void go_seq_writeInt32(GoSeq *seq, int32_t v);
 extern void go_seq_writeInt64(GoSeq *seq, int64_t v);
 extern void go_seq_writeFloat32(GoSeq *seq, float v);
 extern void go_seq_writeFloat64(GoSeq *seq, double v);
-extern void go_seq_writeRef(GoSeq *seq, GoSeqRef *v);
+extern void go_seq_writeRef(GoSeq *seq, GoSeqRef *ref);
 extern void go_seq_writeUTF8(GoSeq *seq, NSString *v);
 
 // go_seq_writeByteArray writes the data bytes to the seq. Note that the
 // data should be valid until the the subsequent go_seq_send call completes.
 extern void go_seq_writeByteArray(GoSeq *seq, NSData *data);
 
+// go_seq_writeObjcRef is a special case of go_seq_writeRef for
+// Objective-C objects that implement Go interface.
+extern void go_seq_writeObjcRef(GoSeq *seq, id obj);
+
 // go_seq_send sends a function invocation request to Go.
 // It blocks until the function completes.
 // If the request is for a method, the first element in req is
 // a Ref to the receiver.
 extern void go_seq_send(char *descriptor, int code, GoSeq *req, GoSeq *res);
+
+extern void go_seq_register_proxy(const char *descriptor,
+                           void(*fn)(id, int, GoSeq *, GoSeq *));
 
 #endif // __GO_SEQ_HDR__

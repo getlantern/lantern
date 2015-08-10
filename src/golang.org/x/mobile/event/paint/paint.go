@@ -9,4 +9,7 @@ package paint // import "golang.org/x/mobile/event/paint"
 
 // Event indicates that the app is ready to paint the next frame of the GUI. A
 // frame is completed by calling the App's EndPaint method.
-type Event struct{}
+type Event struct {
+	// Generation is a monotonically increasing generation number.
+	Generation uint32
+}

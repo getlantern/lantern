@@ -5,43 +5,45 @@
 package main
 
 import (
+	"go/ast"
+	"go/build"
+	"go/parser"
+	"go/scanner"
+	"go/token"
+	"go/types"
 	"io"
 	"os"
 	"path/filepath"
 	"unicode"
 	"unicode/utf8"
 
-	"go/ast"
-	"go/build"
-	"go/parser"
-	"go/scanner"
-	"go/token"
-
 	"golang.org/x/mobile/bind"
-	"golang.org/x/tools/go/loader"
-	"golang.org/x/tools/go/types"
+	"golang.org/x/mobile/internal/loader"
 )
 
 func genPkg(pkg *build.Package) {
-	if len(pkg.CgoFiles) > 0 {
-		errorf("gobind: cannot use cgo-dependent package as service definition: %s", pkg.CgoFiles[0])
-		return
-	}
-
 	files := parseFiles(pkg.Dir, pkg.GoFiles)
 	if len(files) == 0 {
 		return // some error has been reported
 	}
 
 	conf := loader.Config{
-		Fset: fset,
+		Fset:        fset,
+		AllowErrors: true,
 	}
+	conf.TypeChecker.IgnoreFuncBodies = true
+	conf.TypeChecker.FakeImportC = true
+	conf.TypeChecker.DisableUnusedImportCheck = true
+	var tcErrs []error
 	conf.TypeChecker.Error = func(err error) {
-		errorf("%v", err)
+		tcErrs = append(tcErrs, err)
 	}
 	conf.CreateFromFiles(pkg.ImportPath, files...)
 	program, err := conf.Load()
 	if err != nil {
+		for _, err := range tcErrs {
+			errorf("%v", err)
+		}
 		errorf("%v", err)
 		return
 	}

@@ -8,12 +8,11 @@ import (
 	"bytes"
 	"fmt"
 	"go/token"
+	"go/types"
 	"io"
 	"regexp"
 	"unicode"
 	"unicode/utf8"
-
-	"golang.org/x/tools/go/types"
 )
 
 // TODO(crawshaw): disallow basic android java type names in exported symbols.

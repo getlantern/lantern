@@ -37,7 +37,7 @@ func ExampleDraw() {
 		draw.CatmullRom,
 	}
 	const cos60, sin60 = 0.5, 0.866025404
-	t := &f64.Aff3{
+	t := f64.Aff3{
 		+2 * cos60, -2 * sin60, 100,
 		+2 * sin60, +2 * cos60, 100,
 	}
@@ -67,7 +67,7 @@ func ExampleDraw() {
 	for i, op := range ops {
 		dr := image.Rect(120+10*i, 150+60*i, 170+10*i, 200+60*i)
 		draw.NearestNeighbor.Scale(dst, dr, red, red.Bounds(), op, nil)
-		t := &f64.Aff3{
+		t := f64.Aff3{
 			+cos60, -sin60, float64(190 + 10*i),
 			+sin60, +cos60, float64(140 + 50*i),
 		}

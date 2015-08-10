@@ -133,7 +133,7 @@ func RecvRes(handle C.int32_t, out *C.uint8_t, outlen C.size_t) {
 
 // transact calls a method on a Java object instance.
 // It blocks until the call is complete.
-func transact(ref *seq.Ref, code int, in *seq.Buffer) *seq.Buffer {
+func transact(ref *seq.Ref, _ string, code int, in *seq.Buffer) *seq.Buffer {
 	recv.Lock()
 	if recv.next == 1<<31-1 {
 		panic("recv handle overflow")
@@ -173,7 +173,7 @@ func init() {
 		if ref.Num < 0 {
 			panic(fmt.Sprintf("not a Java ref: %d", ref.Num))
 		}
-		transact(ref, -1, new(seq.Buffer))
+		transact(ref, "", -1, new(seq.Buffer))
 	}
 
 	seq.Transact = transact

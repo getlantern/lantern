@@ -74,7 +74,9 @@ func (p *partition) readBit(prob uint8) bool {
 			p.unexpectedEOF = true
 			return false
 		}
-		p.bits |= uint32(p.buf[p.r]) << (8 - p.nBits)
+		// Expression split for 386 compiler.
+		x := uint32(p.buf[p.r])
+		p.bits |= x << (8 - p.nBits)
 		p.r++
 		p.nBits += 8
 	}

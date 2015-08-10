@@ -39,8 +39,10 @@ func TestAffine(t *testing.T) {
 		ptH  = geom.Pt(50)
 	)
 	cfg := config.Event{
-		Width:       ptW,
-		Height:      ptH,
+		WidthPx:     pixW,
+		HeightPx:    pixH,
+		WidthPt:     ptW,
+		HeightPt:    ptH,
 		PixelsPerPt: float32(pixW) / float32(ptW),
 	}
 

@@ -17,46 +17,54 @@ import (
 	"text/template"
 )
 
-func goIOSBuild(pkg *build.Package) error {
+func goIOSBuild(pkg *build.Package) (map[string]bool, error) {
 	src := pkg.ImportPath
 	if buildO != "" && !strings.HasSuffix(buildO, ".app") {
-		return fmt.Errorf("-o must have an .app for target=ios")
+		return nil, fmt.Errorf("-o must have an .app for target=ios")
 	}
 
 	infoplist := new(bytes.Buffer)
 	if err := infoplistTmpl.Execute(infoplist, manifestTmplData{
 		Name: strings.Title(path.Base(pkg.ImportPath)),
 	}); err != nil {
-		return err
-	}
-	layout := map[string][]byte{
-		tmpdir + "/main.xcodeproj/project.pbxproj":                        []byte(projPbxproj),
-		tmpdir + "/main/Info.plist":                                       infoplist.Bytes(),
-		tmpdir + "/main/Images.xcassets/AppIcon.appiconset/Contents.json": []byte(contentsJSON),
+		return nil, err
 	}
 
-	for dst, v := range layout {
-		if err := mkdir(filepath.Dir(dst)); err != nil {
-			return err
+	files := []struct {
+		name     string
+		contents []byte
+	}{
+		{tmpdir + "/main.xcodeproj/project.pbxproj", []byte(projPbxproj)},
+		{tmpdir + "/main/Info.plist", infoplist.Bytes()},
+		{tmpdir + "/main/Images.xcassets/AppIcon.appiconset/Contents.json", []byte(contentsJSON)},
+	}
+
+	for _, file := range files {
+		if err := mkdir(filepath.Dir(file.name)); err != nil {
+			return nil, err
 		}
 		if buildX {
-			printcmd("echo \"%s\" > %s", v, dst)
+			printcmd("echo \"%s\" > %s", file.contents, file.name)
 		}
 		if !buildN {
-			if err := ioutil.WriteFile(dst, v, 0644); err != nil {
-				return err
+			if err := ioutil.WriteFile(file.name, file.contents, 0644); err != nil {
+				return nil, err
 			}
 		}
 	}
 
 	armPath := filepath.Join(tmpdir, "arm")
 	if err := goBuild(src, darwinArmEnv, "-tags=ios", "-o="+armPath); err != nil {
-		return err
+		return nil, err
+	}
+	nmpkgs, err := extractPkgs(darwinArmNM, armPath)
+	if err != nil {
+		return nil, err
 	}
 
 	arm64Path := filepath.Join(tmpdir, "arm64")
 	if err := goBuild(src, darwinArm64Env, "-tags=ios", "-o="+arm64Path); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Apple requires builds to target both darwin/arm and darwin/arm64.
@@ -69,12 +77,12 @@ func goIOSBuild(pkg *build.Package) error {
 		"-o", filepath.Join(tmpdir, "main/main"),
 	)
 	if err := runCmd(cmd); err != nil {
-		return err
+		return nil, err
 	}
 
 	// TODO(jbd): Set the launcher icon.
 	if err := iosCopyAssets(pkg, tmpdir); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Build and move the release build to the output directory.
@@ -84,7 +92,7 @@ func goIOSBuild(pkg *build.Package) error {
 		"-project", tmpdir+"/main.xcodeproj",
 	)
 	if err := runCmd(cmd); err != nil {
-		return err
+		return nil, err
 	}
 
 	// TODO(jbd): Fallback to copying if renaming fails.
@@ -97,13 +105,13 @@ func goIOSBuild(pkg *build.Package) error {
 	if !buildN {
 		// if output already exists, remove.
 		if err := os.RemoveAll(buildO); err != nil {
-			return err
+			return nil, err
 		}
 		if err := os.Rename(tmpdir+"/build/Release-iphoneos/main.app", buildO); err != nil {
-			return err
+			return nil, err
 		}
 	}
-	return nil
+	return nmpkgs, nil
 }
 
 func iosCopyAssets(pkg *build.Package, xcodeProjDir string) error {

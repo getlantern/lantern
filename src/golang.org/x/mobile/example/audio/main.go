@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// +build darwin linux
+
 // An app that makes a sound as the gopher hits the walls of the screen.
 //
 // Note: This demo is an early preview of Go 1.5. In order to build this
@@ -82,7 +84,7 @@ func main() {
 				cfg = e
 			case paint.Event:
 				onPaint()
-				a.EndPaint()
+				a.EndPaint(e)
 			}
 		}
 	})
@@ -146,11 +148,11 @@ func loadScene() {
 			dy = 1
 			boing()
 		}
-		if x+width > float32(cfg.Width) {
+		if x+width > float32(cfg.WidthPt) {
 			dx = -1
 			boing()
 		}
-		if y+height > float32(cfg.Height) {
+		if y+height > float32(cfg.HeightPt) {
 			dy = -1
 			boing()
 		}

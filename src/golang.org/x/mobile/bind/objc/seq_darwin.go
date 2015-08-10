@@ -13,6 +13,7 @@ package objc
 #include <string.h>
 
 void init_seq();
+void go_seq_recv(int32_t, const char*, int, uint8_t*, size_t, uint8_t**, size_t*);
 */
 import "C"
 
@@ -24,7 +25,7 @@ import (
 	"golang.org/x/mobile/bind/seq"
 )
 
-const debug = true
+const debug = false
 
 const maxSliceLen = 1<<31 - 1
 
@@ -45,7 +46,7 @@ func Send(descriptor string, code int, req *C.uint8_t, reqlen C.size_t, res **C.
 
 	fn(out, in)
 	if out != nil {
-		// sender does not expect any results.
+		// sender expects results.
 		seqToBuf(res, reslen, out)
 	}
 }
@@ -104,15 +105,81 @@ func seqToBuf(bufptr **C.uint8_t, lenptr *C.size_t, buf *seq.Buffer) {
 	C.memcpy(unsafe.Pointer(*bufptr), unsafe.Pointer(&buf.Data[0]), C.size_t(len(buf.Data)))
 }
 
-func init() {
-	// TODO: seq.FinalizeRef, seq.Transact.
+type cStringMap struct {
+	sync.Mutex
+	m map[string]*C.char
+}
 
+var cstrings = &cStringMap{
+	m: make(map[string]*C.char),
+}
+
+func (s *cStringMap) get(k string) *C.char {
+	s.Lock()
+	c, ok := s.m[k]
+	if !ok {
+		c = C.CString(k)
+		s.m[k] = c
+	}
+	s.Unlock()
+	return c
+}
+
+// transact calls a method on an Objective-C object instance.
+// It blocks until the call is complete.
+//
+// Code (>0) is the method id assigned by gobind.
+// Code -1 is used to instruct Objective-C to decrement the ref count of
+// the Objective-Co object.
+func transact(ref *seq.Ref, descriptor string, code int, in *seq.Buffer) *seq.Buffer {
+	var (
+		res    *C.uint8_t = nil
+		resLen C.size_t   = 0
+		req    *C.uint8_t = nil
+		reqLen C.size_t   = 0
+	)
+
+	if len(in.Data) > 0 {
+		req = (*C.uint8_t)(unsafe.Pointer(&in.Data[0]))
+		reqLen = C.size_t(len(in.Data))
+	}
+
+	if debug {
+		fmt.Printf("transact: ref.Num = %d code = %d\n", ref.Num, code)
+	}
+
+	desc := cstrings.get(descriptor)
+	C.go_seq_recv(C.int32_t(ref.Num), desc, C.int(code), req, reqLen, &res, &resLen)
+
+	if resLen > 0 {
+		goSlice := (*[maxSliceLen]byte)(unsafe.Pointer(res))[:resLen]
+		out := new(seq.Buffer)
+		out.Data = make([]byte, int(resLen))
+		copy(out.Data, goSlice)
+		C.free(unsafe.Pointer(res))
+		// TODO: own or copy []bytes whose addresses were passed in.
+		return out
+	}
+	return nil
+}
+
+// finalizeRef notifies Objective-C side of GC of a proxy object from Go side.
+func finalizeRef(ref *seq.Ref) {
+	if ref.Num < 0 {
+		panic(fmt.Sprintf("not an Objective-C ref: %d", ref.Num))
+	}
+	transact(ref, "", -1, new(seq.Buffer))
+}
+
+func init() {
 	seq.EncString = func(out *seq.Buffer, v string) {
 		out.WriteUTF8(v)
 	}
 	seq.DecString = func(in *seq.Buffer) string {
 		return in.ReadUTF8()
 	}
+	seq.Transact = transact
+	seq.FinalizeRef = finalizeRef
 
 	C.init_seq()
 }

@@ -116,7 +116,12 @@ func helpDocumentation(path string) {
 		w.WriteString("\n\n")
 		w.WriteRune(unicode.ToUpper(r))
 		w.WriteString(cmd.Short[rlen:])
-		w.WriteString("\n\nUsage:\n\n\tgomobile " + cmd.Name + " " + cmd.Usage + "\n")
+		w.WriteString("\n\nUsage:\n\n\tgomobile " + cmd.Name)
+		if cmd.Usage != "" {
+			w.WriteRune(' ')
+			w.WriteString(cmd.Usage)
+		}
+		w.WriteRune('\n')
 		w.WriteString(cmd.Long)
 	}
 
@@ -133,6 +138,7 @@ var commands = []*command{
 	cmdBuild,
 	cmdInit,
 	cmdInstall,
+	cmdVersion,
 }
 
 type command struct {
@@ -171,6 +177,4 @@ Commands:
 	{{.Name | printf "%-11s"}} {{.Short}}{{end}}
 
 Use 'gomobile help [command]' for more information about that command.
-
-NOTE: iOS support is not ready yet.
 `))

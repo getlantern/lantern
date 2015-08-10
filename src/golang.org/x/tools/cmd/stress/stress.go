@@ -29,7 +29,6 @@ var (
 	flagTimeout = flag.Duration("timeout", 10*time.Minute, "timeout each process after `duration`")
 	flagKill    = flag.Bool("kill", true, "kill timed out processes if true, otherwise just print pid (to attach with gdb)")
 	flagFailure = flag.String("failure", "", "fail only if output matches `regexp`")
-	flagIgnore  = flag.String("ignore", "", "ignore failure if output matches `regexp`")
 )
 
 func main() {
@@ -38,18 +37,11 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
-	var failureRe, ignoreRe *regexp.Regexp
+	var failureRe *regexp.Regexp
 	if *flagFailure != "" {
 		var err error
 		if failureRe, err = regexp.Compile(*flagFailure); err != nil {
 			fmt.Println("bad failure regexp:", err)
-			os.Exit(1)
-		}
-	}
-	if *flagIgnore != "" {
-		var err error
-		if ignoreRe, err = regexp.Compile(*flagIgnore); err != nil {
-			fmt.Println("bad ignore regexp:", err)
 			os.Exit(1)
 		}
 	}
@@ -81,7 +73,7 @@ func main() {
 				}
 				out, err := cmd.CombinedOutput()
 				close(done)
-				if err != nil && (failureRe == nil || failureRe.Match(out)) && (ignoreRe == nil || !ignoreRe.Match(out)) {
+				if err != nil && (failureRe == nil || failureRe.Match(out)) {
 					out = append(out, fmt.Sprintf("\n\nERROR: %v\n", err)...)
 				} else {
 					out = []byte{}

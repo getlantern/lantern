@@ -6,10 +6,8 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 )
 
 var cmdInstall = &command{
@@ -23,7 +21,8 @@ attached mobile device.
 
 Only -target android is supported. The 'adb' tool must be on the PATH.
 
-The build flags -a, -i, -n, -x, and -tags are shared with the build command.
+The build flags -a, -i, -n, -x, -gcflags, -ldflags, -tags, and -work are
+shared with the build command.
 For documentation, see 'go help build'.
 `,
 }
@@ -35,18 +34,10 @@ func runInstall(cmd *command) error {
 	if err := runBuild(cmd); err != nil {
 		return err
 	}
-	install := exec.Command(
+	return runCmd(exec.Command(
 		`adb`,
 		`install`,
 		`-r`,
 		filepath.Base(pkg.Dir)+`.apk`,
-	)
-	if buildX {
-		printcmd("%s", strings.Join(install.Args, " "))
-	}
-	if buildV {
-		install.Stdout = os.Stdout
-		install.Stderr = os.Stderr
-	}
-	return install.Run()
+	))
 }

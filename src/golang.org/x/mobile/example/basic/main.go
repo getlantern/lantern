@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// +build darwin linux
+
 // An app that draws a green triangle on a red background.
 //
 // Note: This demo is an early preview of Go 1.5. In order to build this
@@ -38,7 +40,6 @@ import (
 	"golang.org/x/mobile/exp/app/debug"
 	"golang.org/x/mobile/exp/f32"
 	"golang.org/x/mobile/exp/gl/glutil"
-	"golang.org/x/mobile/geom"
 	"golang.org/x/mobile/gl"
 )
 
@@ -49,8 +50,9 @@ var (
 	color    gl.Uniform
 	buf      gl.Buffer
 
-	green    float32
-	touchLoc geom.Point
+	green  float32
+	touchX float32
+	touchY float32
 )
 
 func main() {
@@ -67,12 +69,14 @@ func main() {
 				}
 			case config.Event:
 				c = e
-				touchLoc = geom.Point{c.Width / 2, c.Height / 2}
+				touchX = float32(c.WidthPx / 2)
+				touchY = float32(c.HeightPx / 2)
 			case paint.Event:
 				onPaint(c)
-				a.EndPaint()
+				a.EndPaint(e)
 			case touch.Event:
-				touchLoc = e.Loc
+				touchX = e.X
+				touchY = e.Y
 			}
 		}
 	})
@@ -115,7 +119,7 @@ func onPaint(c config.Event) {
 	}
 	gl.Uniform4f(color, 0, green, 0, 1)
 
-	gl.Uniform2f(offset, float32(touchLoc.X/c.Width), float32(touchLoc.Y/c.Height))
+	gl.Uniform2f(offset, touchX/float32(c.WidthPx), touchY/float32(c.HeightPx))
 
 	gl.BindBuffer(gl.ARRAY_BUFFER, buf)
 	gl.EnableVertexAttribArray(position)

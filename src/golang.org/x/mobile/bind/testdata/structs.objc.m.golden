@@ -7,7 +7,11 @@
 #include <Foundation/Foundation.h>
 #include "seq.h"
 
-static NSString *errDomain = @"go.structs";
+static NSString* errDomain = @"go.structs";
+
+@protocol goSeqRefInterface
+-(GoSeqRef*) ref;
+@end
 
 #define _DESCRIPTOR_ "structs"
 
@@ -87,7 +91,7 @@ static NSString *errDomain = @"go.structs";
 	}
 	NSString* _error = go_seq_readUTF8(&out_);
 	if ([_error length] != 0 && error != nil) {
-		NSMutableDictionary *details = [NSMutableDictionary dictionary];
+		NSMutableDictionary* details = [NSMutableDictionary dictionary];
 		[details setValue:_error forKey:NSLocalizedDescriptionKey];
 		*error = [NSError errorWithDomain:errDomain code:1 userInfo:details];
 	}
@@ -112,7 +116,12 @@ static NSString *errDomain = @"go.structs";
 GoStructsS* GoStructsIdentity(GoStructsS* s) {
 	GoSeq in_ = {};
 	GoSeq out_ = {};
-	go_seq_writeRef(&in_, s.ref);
+	if ([(id<NSObject>)(s) isKindOfClass:[GoStructsS class]]) {
+		id<goSeqRefInterface> s_proxy = (id<goSeqRefInterface>)(s);
+		go_seq_writeRef(&in_, s_proxy.ref);
+	} else {
+		go_seq_writeObjcRef(&in_, s);
+	}
 	go_seq_send(_DESCRIPTOR_, _CALL_Identity_, &in_, &out_);
 	GoSeqRef* ret0__ref = go_seq_readRef(&out_);
 	GoStructsS* ret0_ = ret0__ref.obj;
@@ -127,7 +136,12 @@ GoStructsS* GoStructsIdentity(GoStructsS* s) {
 BOOL GoStructsIdentityWithError(GoStructsS* s, GoStructsS** ret0_, NSError** error) {
 	GoSeq in_ = {};
 	GoSeq out_ = {};
-	go_seq_writeRef(&in_, s.ref);
+	if ([(id<NSObject>)(s) isKindOfClass:[GoStructsS class]]) {
+		id<goSeqRefInterface> s_proxy = (id<goSeqRefInterface>)(s);
+		go_seq_writeRef(&in_, s_proxy.ref);
+	} else {
+		go_seq_writeObjcRef(&in_, s);
+	}
 	go_seq_send(_DESCRIPTOR_, _CALL_IdentityWithError_, &in_, &out_);
 	GoSeqRef* ret0__ref = go_seq_readRef(&out_);
 	if (ret0_ != NULL) {
@@ -138,7 +152,7 @@ BOOL GoStructsIdentityWithError(GoStructsS* s, GoStructsS** ret0_, NSError** err
 	}
 	NSString* _error = go_seq_readUTF8(&out_);
 	if ([_error length] != 0 && error != nil) {
-		NSMutableDictionary *details = [NSMutableDictionary dictionary];
+		NSMutableDictionary* details = [NSMutableDictionary dictionary];
 		[details setValue:_error forKey:NSLocalizedDescriptionKey];
 		*error = [NSError errorWithDomain:errDomain code:1 userInfo:details];
 	}

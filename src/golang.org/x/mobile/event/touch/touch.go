@@ -14,20 +14,21 @@ package touch // import "golang.org/x/mobile/event/touch"
 
 import (
 	"fmt"
-
-	"golang.org/x/mobile/geom"
 )
 
 // Event is a touch event.
-//
-// The same Sequence is shared by all events in a sequence. A sequence begins
-// with a single TypeBegin, is followed by zero or more TypeMoves, and ends
-// with a single TypeEnd. A Sequence distinguishes concurrent sequences but its
-// value is subsequently reused.
 type Event struct {
+	// X and Y are the touch location, in pixels.
+	X, Y float32
+
+	// Sequence is the sequence number. The same number is shared by all events
+	// in a sequence. A sequence begins with a single TypeBegin, is followed by
+	// zero or more TypeMoves, and ends with a single TypeEnd. A Sequence
+	// distinguishes concurrent sequences but its value is subsequently reused.
 	Sequence Sequence
-	Type     Type
-	Loc      geom.Point
+
+	// Type is the touch type.
+	Type Type
 }
 
 // Sequence identifies a sequence of touch events.

@@ -24,7 +24,7 @@ import (
 
 // Transact calls a method on a foreign object instance.
 // It blocks until the call is complete.
-var Transact func(ref *Ref, code int, in *Buffer) (out *Buffer)
+var Transact func(ref *Ref, desc string, code int, in *Buffer) (out *Buffer)
 
 // FinalizeRef is the finalizer used on foreign objects.
 var FinalizeRef func(ref *Ref)

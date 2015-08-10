@@ -41,7 +41,7 @@ type ReadSeekCloser interface {
 type Format int
 
 const (
-	Mono8 Format = iota
+	Mono8 Format = iota + 1
 	Mono16
 	Stereo8
 	Stereo16
@@ -65,6 +65,7 @@ var formatCodes = [...]uint32{
 }
 
 var formatStrings = [...]string{
+	0:        "unknown",
 	Mono8:    "mono8",
 	Mono16:   "mono16",
 	Stereo8:  "stereo8",

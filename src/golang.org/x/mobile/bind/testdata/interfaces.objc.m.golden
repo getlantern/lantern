@@ -7,19 +7,115 @@
 #include <Foundation/Foundation.h>
 #include "seq.h"
 
-static NSString *errDomain = @"go.interfaces";
+static NSString* errDomain = @"go.interfaces";
+
+@protocol goSeqRefInterface
+-(GoSeqRef*) ref;
+@end
 
 #define _DESCRIPTOR_ "interfaces"
 
 #define _CALL_Add3_ 1
 #define _CALL_Seven_ 2
 
+#define _GO_interfaces_I_DESCRIPTOR_ "go.interfaces.I"
+#define _GO_interfaces_I_Rand_ (0x10a)
 
+@interface GoInterfacesI : NSObject <GoInterfacesI> {
+}
+@property(strong, readonly) id ref;
 
-int32_t GoInterfacesAdd3(GoInterfacesI* r) {
+- (id)initWithRef:(id)ref;
+- (int32_t)Rand;
+@end
+
+@implementation GoInterfacesI {
+}
+
+- (id)initWithRef:(id)ref {
+	self = [super init];
+	if (self) { _ref = ref; }
+	return self;
+}
+
+- (int32_t)Rand {
 	GoSeq in_ = {};
 	GoSeq out_ = {};
-	go_seq_writeRef(&in_, r.ref);
+	go_seq_writeRef(&in_, self.ref);
+	go_seq_send(_GO_interfaces_I_DESCRIPTOR_, _GO_interfaces_I_Rand_, &in_, &out_);
+	int32_t ret0_ = go_seq_readInt32(&out_);
+	go_seq_free(&in_);
+	go_seq_free(&out_);
+	return ret0_;
+}
+
+@end
+
+static void proxyGoInterfacesI(id obj, int code, GoSeq* in, GoSeq* out) {
+	switch (code) {
+	case _GO_interfaces_I_Rand_: {
+		id<GoInterfacesI> o = (id<GoInterfacesI>)(obj);
+		int32_t returnVal = [o Rand];
+		go_seq_writeInt32(out, returnVal);
+	} break;
+	default:
+		NSLog(@"unknown code %x for _GO_interfaces_I_DESCRIPTOR_", code);
+	}
+}
+
+#define _GO_interfaces_WithParam_DESCRIPTOR_ "go.interfaces.WithParam"
+#define _GO_interfaces_WithParam_HasParam_ (0x10a)
+
+@interface GoInterfacesWithParam : NSObject <GoInterfacesWithParam> {
+}
+@property(strong, readonly) id ref;
+
+- (id)initWithRef:(id)ref;
+- (void)HasParam:(BOOL)p0;
+@end
+
+@implementation GoInterfacesWithParam {
+}
+
+- (id)initWithRef:(id)ref {
+	self = [super init];
+	if (self) { _ref = ref; }
+	return self;
+}
+
+- (void)HasParam:(BOOL)p0 {
+	GoSeq in_ = {};
+	GoSeq out_ = {};
+	go_seq_writeRef(&in_, self.ref);
+	go_seq_writeBool(&in_, p0);
+	go_seq_send(_GO_interfaces_WithParam_DESCRIPTOR_, _GO_interfaces_WithParam_HasParam_, &in_, &out_);
+	go_seq_free(&in_);
+	go_seq_free(&out_);
+}
+
+@end
+
+static void proxyGoInterfacesWithParam(id obj, int code, GoSeq* in, GoSeq* out) {
+	switch (code) {
+	case _GO_interfaces_WithParam_HasParam_: {
+		id<GoInterfacesWithParam> o = (id<GoInterfacesWithParam>)(obj);
+		BOOL p0 = go_seq_readBool(in);
+		[o HasParam:p0];
+	} break;
+	default:
+		NSLog(@"unknown code %x for _GO_interfaces_WithParam_DESCRIPTOR_", code);
+	}
+}
+
+int32_t GoInterfacesAdd3(id<GoInterfacesI> r) {
+	GoSeq in_ = {};
+	GoSeq out_ = {};
+	if ([(id<NSObject>)(r) isKindOfClass:[GoInterfacesI class]]) {
+		id<goSeqRefInterface> r_proxy = (id<goSeqRefInterface>)(r);
+		go_seq_writeRef(&in_, r_proxy.ref);
+	} else {
+		go_seq_writeObjcRef(&in_, r);
+	}
 	go_seq_send(_DESCRIPTOR_, _CALL_Add3_, &in_, &out_);
 	int32_t ret0_ = go_seq_readInt32(&out_);
 	go_seq_free(&in_);
@@ -27,12 +123,12 @@ int32_t GoInterfacesAdd3(GoInterfacesI* r) {
 	return ret0_;
 }
 
-GoInterfacesI* GoInterfacesSeven() {
+id<GoInterfacesI> GoInterfacesSeven() {
 	GoSeq in_ = {};
 	GoSeq out_ = {};
 	go_seq_send(_DESCRIPTOR_, _CALL_Seven_, &in_, &out_);
 	GoSeqRef* ret0__ref = go_seq_readRef(&out_);
-	GoInterfacesI* ret0_ = ret0__ref.obj;
+	id<GoInterfacesI> ret0_ = ret0__ref.obj;
 	if (ret0_ == NULL) {
 		ret0_ = [[GoInterfacesI alloc] initWithRef:ret0__ref];
 	}
@@ -41,3 +137,7 @@ GoInterfacesI* GoInterfacesSeven() {
 	return ret0_;
 }
 
+__attribute__((constructor)) static void init() {
+	go_seq_register_proxy("go.interfaces.I", proxyGoInterfacesI);
+	go_seq_register_proxy("go.interfaces.WithParam", proxyGoInterfacesWithParam);
+}

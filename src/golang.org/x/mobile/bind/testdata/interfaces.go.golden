@@ -41,7 +41,7 @@ type proxyI seq.Ref
 
 func (p *proxyI) Rand() int32 {
 	in := new(seq.Buffer)
-	out := seq.Transact((*seq.Ref)(p), proxyI_Rand_Code, in)
+	out := seq.Transact((*seq.Ref)(p), "go.interfaces.I", proxyI_Rand_Code, in)
 	res_0 := out.ReadInt32()
 	return res_0
 }
@@ -72,7 +72,7 @@ type proxyWithParam seq.Ref
 func (p *proxyWithParam) HasParam(p0 bool) {
 	in := new(seq.Buffer)
 	in.WriteBool(p0)
-	seq.Transact((*seq.Ref)(p), proxyWithParam_HasParam_Code, in)
+	seq.Transact((*seq.Ref)(p), "go.interfaces.WithParam", proxyWithParam_HasParam_Code, in)
 }
 
 func init() {

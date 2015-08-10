@@ -28,10 +28,9 @@ Commands:
 	build       compile android APK and iOS app
 	init        install android compiler toolchain
 	install     compile android APK and install on device
+	version     print version
 
 Use 'gomobile help [command]' for more information about that command.
-
-NOTE: iOS support is not ready yet.
 
 
 Build a shared library for android APK and iOS app
@@ -65,8 +64,8 @@ installed. Support is not complete.
 
 The -v flag provides verbose output, including the list of packages built.
 
-The build flags -a, -i, -n, -x, and -tags are shared with the build command.
-For documentation, see 'go help build'.
+The build flags -a, -i, -n, -x, -gcflags, -ldflags, -tags, and -work
+are shared with the build command. For documentation, see 'go help build'.
 
 
 Compile android APK and iOS app
@@ -97,8 +96,8 @@ output file name depends on the package built.
 
 The -v flag provides verbose output, including the list of packages built.
 
-The build flags -a, -i, -n, -x, and -tags are shared with the build command.
-For documentation, see 'go help build'.
+The build flags -a, -i, -n, -x, -gcflags, -ldflags, -tags, and -work are
+shared with the build command. For documentation, see 'go help build'.
 
 
 Install android compiler toolchain
@@ -128,7 +127,17 @@ attached mobile device.
 
 Only -target android is supported. The 'adb' tool must be on the PATH.
 
-The build flags -a, -i, -n, -x, and -tags are shared with the build command.
+The build flags -a, -i, -n, -x, -gcflags, -ldflags, -tags, and -work are
+shared with the build command.
 For documentation, see 'go help build'.
+
+
+Print version
+
+Usage:
+
+	gomobile version
+
+Version prints versions of the gomobile binary and tools
 */
 package main

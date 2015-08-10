@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// +build darwin linux
+
 // An app that paints green if golang.org is reachable when the app first
 // starts, or red otherwise.
 //
@@ -59,7 +61,7 @@ func main() {
 				c = e
 			case paint.Event:
 				onDraw(c)
-				a.EndPaint()
+				a.EndPaint(e)
 			}
 		}
 	})

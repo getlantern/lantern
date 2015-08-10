@@ -61,6 +61,8 @@ func TestSignPKCS7(t *testing.T) {
 
 	if keytool, err := exec.LookPath("keytool"); err != nil {
 		t.Log("command keytool not found, skipping")
+	} else if err := exec.Command(keytool, "-v").Run(); err != nil {
+		t.Log("command keytool not functioning: %s, skipping", err)
 	} else {
 		cmd := exec.Command(keytool, "-v", "-printcert", "-file", sigPath)
 		out, err := cmd.CombinedOutput()

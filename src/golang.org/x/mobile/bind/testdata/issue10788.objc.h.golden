@@ -12,6 +12,10 @@
 
 @class GoIssue10788TestStruct;
 
+@protocol GoIssue10788TestInterface
+- (void)DoSomeWork:(GoIssue10788TestStruct*)s;
+- (void)MultipleUnnamedParams:(int)p0 p1:(NSString*)p1 p2:(int64_t)p2;
+@end
 
 @interface GoIssue10788TestStruct : NSObject {
 }

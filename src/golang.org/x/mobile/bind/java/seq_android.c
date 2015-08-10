@@ -56,14 +56,23 @@ static mem *mem_ensure(mem *m, uint32_t size) {
 		m->buf = NULL;
 		m->pinned = NULL;
 	}
+	uint32_t cap = m->cap;
 	if (m->cap > m->off+size) {
 		return m;
 	}
-	m->buf = (uint8_t*)realloc((void*)m->buf, m->off+size);
+	if (cap == 0) {
+		cap = 64;
+	}
+	// TODO(hyangah): consider less aggressive allocation such as
+	//   cap += max(pow2round(size), 64)
+	while (cap < m->off+size) {
+		cap *= 2;
+	}
+	m->buf = (uint8_t*)realloc((void*)m->buf, cap);
 	if (m->buf == NULL) {
 		LOG_FATAL("mem_ensure realloc failed, off=%d, size=%d", m->off, size);
 	}
-	m->cap = m->off+size;
+	m->cap = cap;
 	return m;
 }
 
@@ -108,11 +117,7 @@ uint8_t *mem_write(JNIEnv *env, jobject obj, uint32_t size, uint32_t alignment) 
 		LOG_FATAL("write can only append to seq, size: (off=%d, len=%d, size=%d", m->off, m->len, size);
 	}
 	uint32_t offset = align(m->off, alignment);
-	uint32_t cap = m->cap;
-	while (offset+size > cap) {
-		cap *= 2;
-	}
-	m = mem_ensure(m, cap);
+	m = mem_ensure(m, offset - m->off + size);
 	uint8_t *res = m->buf+offset;
 	m->off = offset+size;
 	m->len = offset+size;
