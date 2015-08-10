@@ -5,18 +5,17 @@ import (
 	"net/http"
 	"path"
 	"sync"
-	"time"
 
 	"github.com/gorilla/websocket"
 )
 
 const (
 	// Determines the chunking size of messages used by gorilla
-	MaxMessageSize = 1 << 18
+	MaxMessageSize = 1024
 )
 
 var (
-	upgrader = &websocket.Upgrader{ReadBufferSize: 1 << 18, WriteBufferSize: MaxMessageSize}
+	upgrader = &websocket.Upgrader{ReadBufferSize: 1024, WriteBufferSize: MaxMessageSize}
 )
 
 // UIChannel represents a data channel to/from the UI. UIChannel will have one
@@ -113,7 +112,9 @@ func (c *UIChannel) write() {
 		log.Tracef("Closing all websockets to %v", c.URL)
 		c.m.Lock()
 		for _, conn := range c.conns {
-			conn.close()
+			if err := conn.ws.Close(); err != nil {
+				log.Debugf("Error closing WebSockets connection", err)
+			}
 			delete(c.conns, conn.id)
 		}
 		c.m.Unlock()
@@ -125,7 +126,6 @@ func (c *UIChannel) write() {
 			err := conn.ws.WriteMessage(websocket.TextMessage, msg)
 			if err != nil {
 				log.Debugf("Error writing to UI %v for: %v", err, c.URL)
-				conn.close()
 				delete(c.conns, conn.id)
 			}
 		}
@@ -135,13 +135,6 @@ func (c *UIChannel) write() {
 
 func (c *UIChannel) Close() {
 	log.Tracef("Closing channel")
-
-	c.m.Lock()
-	for _, conn := range c.conns {
-		conn.close()
-	}
-	c.m.Unlock()
-
 	close(c.out)
 }
 
@@ -152,13 +145,6 @@ type wsconn struct {
 	ws *websocket.Conn
 }
 
-func (c *wsconn) close() {
-	c.ws.WriteControl(websocket.CloseMessage,
-		websocket.FormatCloseMessage(websocket.CloseInvalidFramePayloadData, ""),
-		time.Time{})
-	_ = c.ws.Close()
-}
-
 func (c *wsconn) read() {
 	for {
 		_, b, err := c.ws.ReadMessage()
@@ -167,7 +153,9 @@ func (c *wsconn) read() {
 			if err != io.EOF {
 				log.Debugf("Error reading from UI: %v", err)
 			}
-			c.close()
+			if err := c.ws.Close(); err != nil {
+				log.Debugf("Error closing WebSockets connection", err)
+			}
 			return
 		}
 		log.Tracef("Sending to channel...")
