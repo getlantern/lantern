@@ -1,13 +1,29 @@
 /*
 Package detour provides a net.Conn interface which detects blockage
-of a site automatically and access it through alternative dialer.
+of a site automatically and access it through alternative connection.
 
 Basically, if a site is not whitelisted, following steps will be taken:
-1. Dial proxied dialer a small delay after dialed directly
-2. Return to caller if any connection is established
-3. Read/write through all connections in parallel
-4. Check for blocking in direct connection and closes it if it happens
-5. After sucessfully read from a connection, stick with it and close others.
+1. Dial proxied connection (detour) a small delay after dialed directly
+2. Return to caller when any connection is established
+3. Read/write through all open connections in parallel
+4. Check for blockage on direct connection and closes it if it happens
+5. If possible, replay operations on detour connection. [1]
+6. After sucessfully read from a connection, stick with it and close others.
+7. Add those sites failed on direct connection but succeeded on detour ones
+   to proxied list, so above steps can be skipped next time. The list can be
+   exported and persisted if required.
+
+Blockage can happen at several stages of a connection, what detour can detect are:
+1. Connection attempt is blocked (IP blocking / DNS hijack).
+   Symptoms can be connection time out / TCP RST / connection refused).
+2. Connection made but real data get blocked (DPI).
+3. Successfully exchanged a few packets, while follow up packets are blocked. [2]
+4. Connection made but get fake response or HTTP redirect to a fixed URL.
+
+[1] Detour will not replay nonidempotent plain HTTP requests, but will add it to
+    proxied list to be detoured next time.
+[2] Detour can only handle exact 1 successful read followed by failed read,
+    which covers most cases in reality.
 */
 package detour
 
@@ -22,13 +38,14 @@ import (
 	"github.com/getlantern/golog"
 )
 
+// If no any connection made after this period, stop dialing and fail
 var TimeoutToConnect = 30 * time.Second
 
 // To avoid unnecessarily proxy not-blocked url, detour will dial proxy connection
 // after this small delay
 var DelayBeforeDetour = 1 * time.Second
 
-// if DirectAddrCh is set, when a direct connection is closed without any error,
+// If DirectAddrCh is set, when a direct connection is closed without any error,
 // the connection's remote address (in host:port format) will be send to it
 var DirectAddrCh chan string
 
@@ -39,34 +56,37 @@ var (
 type dialFunc func(network, addr string) (net.Conn, error)
 
 type Conn struct {
-	// the underlie connections, uses buffered channel as ring queue.
+	// The underlie connections, uses buffered channel as ring queue.
+	// The length can only be 0, 1 or 2 in fact.
 	conns chan conn
-	// the channel to notify read/write that a new connection is available
+	// The channel to notify read/write that a new connection is available
 	chDetourConn chan conn
-	// the chan to notify dialer to dial detour immediately
+	// The chan to notify dialer to dial detour immediately
 	chDialDetourNow chan bool
 
-	// the chan to receive result of any read operation
+	// The chan to receive result of any read operation
 	chRead chan ioResult
-	// the chan to receive result of any write operation
+	// The chan to receive result of any write operation
 	chWrite chan ioResult
 
-	// keep track of the total bytes read from this connection, atomic
+	// Keeps track of the total bytes read from this connection, atomic
 	readBytes uint64
 
 	network, addr string
 
-	writeBuffer          *bytes.Buffer
-	nonIdempotentRequest bool
+	// Keeps written bytes through direct connection to replay it if required.
+	writeBuffer *bytes.Buffer
+	// Is it a plain HTTP request or not
+	nonIdempotentHTTPRequest bool
 }
 
 // The data structure to pass result of io operation back from underlie connection
 type ioResult struct {
-	// number of bytes read/wrote
+	// Number of bytes read/wrote
 	n int
-	// io error, if any
+	// IO error, if any
 	err error
-	// the underlie connection itself
+	// The underlie connection itself
 	conn conn
 }
 
@@ -103,7 +123,7 @@ func Dialer(detourDialer dialFunc) dialFunc {
 			chWrite:         make(chan ioResult),
 			chDialDetourNow: make(chan bool),
 		}
-		// use buffered channel, as we may send twice to it but only receive once
+		// use buffered channel as we may send twice to it but only receive once
 		chAnyConn := make(chan bool, 1)
 		ch := make(chan conn)
 		// dialing sequence
@@ -183,7 +203,7 @@ func (dc *Conn) Read(b []byte) (n int, err error) {
 	for count := 1; count > 0; count-- {
 		select {
 		case newConn := <-dc.chDetourConn:
-			if dc.nonIdempotentRequest {
+			if dc.nonIdempotentHTTPRequest {
 				log.Tracef("Not replay nonideompotent request to %s, only add to whitelist", dc.addr)
 				AddToWl(dc.addr, false)
 				newConn.Close()
@@ -242,10 +262,10 @@ func (dc *Conn) followupRead(b []byte) (n int, err error) {
 func (dc *Conn) Write(b []byte) (n int, err error) {
 	log.Tracef("Initiate a write request to %s", dc.addr)
 	if dc.anyDataReceived() {
-		return dc.followUpWrite(b)
+		return dc.followupWrite(b)
 	}
-	dc.nonIdempotentRequest = isNonIdempotentRequest(b)
-	if !dc.nonIdempotentRequest {
+	dc.nonIdempotentHTTPRequest = isNonIdempotentHTTPRequest(b)
+	if !dc.nonIdempotentHTTPRequest {
 		dc.writeBuffer.Write(b)
 	}
 	conn := <-dc.conns
@@ -269,8 +289,8 @@ func (dc *Conn) Write(b []byte) (n int, err error) {
 	return
 }
 
-// followUpWrite is called by Write() if a connection's state already settled
-func (dc *Conn) followUpWrite(b []byte) (n int, err error) {
+// followupWrite is called by Write() if a connection's state already settled
+func (dc *Conn) followupWrite(b []byte) (n int, err error) {
 	conn := <-dc.conns
 	conn.Write(b, dc.chWrite)
 	dc.conns <- conn
@@ -324,10 +344,9 @@ var nonIdempotentMethods = [][]byte{
 	[]byte("PATCH "),
 }
 
-// ref section 9.1.2 of https://www.ietf.org/rfc/rfc2616.txt.
-// checks against non-idemponent methods actually,
-// as we consider the https handshake phase to be idemponent.
-func isNonIdempotentRequest(b []byte) bool {
+// Ref section 9.1.2 of https://www.ietf.org/rfc/rfc2616.txt.
+// We consider the https handshake phase to be idemponent.
+func isNonIdempotentHTTPRequest(b []byte) bool {
 	if len(b) > 4 {
 		for _, m := range nonIdempotentMethods {
 			if bytes.HasPrefix(b, m) {
