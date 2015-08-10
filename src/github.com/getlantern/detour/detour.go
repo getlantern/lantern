@@ -76,8 +76,8 @@ type Conn struct {
 
 	// Keeps written bytes through direct connection to replay it if required.
 	writeBuffer *bytes.Buffer
-	// Is it a plain HTTP request or not
-	nonIdempotentHTTPRequest bool
+	// Is it a plain HTTP request or not, atomic
+	nonIdempotentHTTPRequest uint32
 }
 
 // The data structure to pass result of io operation back from underlie connection
@@ -203,7 +203,7 @@ func (dc *Conn) Read(b []byte) (n int, err error) {
 	for count := 1; count > 0; count-- {
 		select {
 		case newConn := <-dc.chDetourConn:
-			if dc.nonIdempotentHTTPRequest {
+			if atomic.LoadUint32(&dc.nonIdempotentHTTPRequest) == 1 {
 				log.Tracef("Not replay nonideompotent request to %s, only add to whitelist", dc.addr)
 				AddToWl(dc.addr, false)
 				newConn.Close()
@@ -264,8 +264,9 @@ func (dc *Conn) Write(b []byte) (n int, err error) {
 	if dc.anyDataReceived() {
 		return dc.followupWrite(b)
 	}
-	dc.nonIdempotentHTTPRequest = isNonIdempotentHTTPRequest(b)
-	if !dc.nonIdempotentHTTPRequest {
+	if isNonIdempotentHTTPRequest(b) {
+		atomic.StoreUint32(&dc.nonIdempotentHTTPRequest, 1)
+	} else {
 		dc.writeBuffer.Write(b)
 	}
 	conn := <-dc.conns
