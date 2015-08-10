@@ -3,6 +3,7 @@ package detour
 import (
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"time"
 )
 
@@ -26,6 +27,7 @@ func (m *mockHandler) Raw(msg string) {
 
 func (m *mockHandler) Msg(msg string) {
 	m.writer = func(w http.ResponseWriter) {
+		w.Header()["Content-Length"] = []string{strconv.Itoa(len(msg))}
 		w.Write([]byte(msg))
 		w.(http.Flusher).Flush()
 	}
@@ -34,6 +36,7 @@ func (m *mockHandler) Msg(msg string) {
 func (m *mockHandler) Timeout(d time.Duration, msg string) {
 	m.writer = func(w http.ResponseWriter) {
 		time.Sleep(d)
+		w.Header()["Content-Length"] = []string{strconv.Itoa(len(msg))}
 		w.Write([]byte(msg))
 		w.(http.Flusher).Flush()
 	}

@@ -41,7 +41,7 @@ func TestTampering(t *testing.T) {
 	client = newClient(proxiedURL, 100*time.Millisecond)
 	resp, err = client.Get("http://127.0.0.1:4325") // hopefully this port didn't open, so connection will be refused
 	if assert.NoError(t, err, "should have no error if connection is refused") {
-		time.Sleep(50 * time.Millisecond)
+		time.Sleep(60 * time.Millisecond)
 		assert.True(t, wlTemporarily("127.0.0.1:4325"), "should be added to whitelist if connection is refused")
 		assertContent(t, resp, detourMsg, "should detour if connection is refused")
 	}
@@ -51,9 +51,9 @@ func TestReadTimeout(t *testing.T) {
 	defer stopMockServers()
 	proxiedURL, _ := newMockServer(detourMsg)
 	mockURL, mock := newMockServer("")
-	mock.Timeout(900*time.Millisecond, directMsg)
+	mock.Timeout(200*time.Millisecond, directMsg)
 
-	client := &http.Client{Timeout: 50 * time.Millisecond}
+	client := &http.Client{Timeout: 100 * time.Millisecond}
 	resp, err := client.Get(mockURL)
 	assert.Error(t, err, "direct access to a timeout url should fail")
 
@@ -72,11 +72,11 @@ func TestNonIdempotentOp(t *testing.T) {
 	proxiedURL, _ := newMockServer(detourMsg)
 	mockURL, mock := newMockServer("")
 	u, _ := url.Parse(mockURL)
-	mock.Timeout(2000*time.Millisecond, directMsg)
+	mock.Timeout(200*time.Millisecond, directMsg)
 	client := newClient(proxiedURL, 100*time.Millisecond)
 	_, err := client.PostForm(mockURL, url.Values{"key": []string{"value"}})
 	if assert.Error(t, err, "Non-idempotent method should not be detoured in same connection") {
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
 		assert.True(t, wlTemporarily(u.Host), "but should be added to whitelist so will detour next time")
 	}
 }
@@ -84,7 +84,6 @@ func TestNonIdempotentOp(t *testing.T) {
 func TestBlockedAfterwards(t *testing.T) {
 	defer stopMockServers()
 	proxiedURL, _ := newMockServer(detourMsg)
-	TimeoutToConnect = 50 * time.Millisecond
 	mockURL, mock := newMockServer(directMsg)
 	client := newClient(proxiedURL, 100*time.Millisecond)
 
@@ -94,13 +93,14 @@ func TestBlockedAfterwards(t *testing.T) {
 		assertContent(t, resp, directMsg, "should access directly for normal response")
 	}
 	mock.Timeout(200*time.Millisecond, directMsg)
-	//_, err = client.Get(mockURL)
-	//assert.Error(t, err, "should have error if reading times out for a previously worked url")
+	_, err = client.Get(mockURL)
+	assert.Error(t, err, "should have error if reading times out for a previously worked url")
 	resp, err = client.Get(mockURL)
 	if assert.NoError(t, err, "but should have no error for the second time") {
 		u, _ := url.Parse(mockURL)
-		assert.True(t, wlTemporarily(u.Host), "should be added to whitelist if reading times out")
+		time.Sleep(50 * time.Millisecond)
 		assertContent(t, resp, detourMsg, "should detour if reading times out")
+		assert.True(t, wlTemporarily(u.Host), "should be added to whitelist if reading times out")
 	}
 }
 
@@ -108,7 +108,6 @@ func TestRemoveFromWhitelist(t *testing.T) {
 	defer stopMockServers()
 	proxiedURL, proxy := newMockServer(detourMsg)
 	proxy.Timeout(200*time.Millisecond, detourMsg)
-	TimeoutToConnect = 50 * time.Millisecond
 	mockURL, _ := newMockServer(directMsg)
 	client := newClient(proxiedURL, 100*time.Millisecond)
 
@@ -125,7 +124,6 @@ func TestClosing(t *testing.T) {
 	defer stopMockServers()
 	proxiedURL, proxy := newMockServer(detourMsg)
 	proxy.Timeout(200*time.Millisecond, detourMsg)
-	TimeoutToConnect = 50 * time.Millisecond
 	mockURL, mock := newMockServer(directMsg)
 	mock.Msg(directMsg)
 	DirectAddrCh = make(chan string)
@@ -140,7 +138,6 @@ func TestClosing(t *testing.T) {
 func TestIranRules(t *testing.T) {
 	defer stopMockServers()
 	proxiedURL, _ := newMockServer(detourMsg)
-	TimeoutToConnect = 50 * time.Millisecond
 	SetCountry("IR")
 	u, mock := newMockServer(directMsg)
 	client := newClient(proxiedURL, 100*time.Millisecond)
@@ -151,25 +148,21 @@ func TestIranRules(t *testing.T) {
 		assertContent(t, resp, detourMsg, "should detour if content hijacked in Iran")
 	}
 
-	// this test can verifies dns hijack detection if runs inside Iran,
-	// but only will time out and detour if runs outside Iran
+	// this test can verifies dns hijack detection when run inside Iran,
+	// but will only time out and detour when run outside.
 	resp, err = client.Get("http://" + iranRedirectAddr)
 	if assert.NoError(t, err, "should not error if dns hijacked in Iran") {
 		assertContent(t, resp, detourMsg, "should detour if dns hijacked in Iran")
 	}
 }
 
-func proxyTo(proxiedURL string) func(network, addr string) (net.Conn, error) {
-	return func(network, addr string) (net.Conn, error) {
-		u, _ := url.Parse(proxiedURL)
-		return net.Dial("tcp", u.Host)
-	}
-}
-
 func newClient(proxyURL string, timeout time.Duration) *http.Client {
 	return &http.Client{
 		Transport: &http.Transport{
-			Dial: Dialer(proxyTo(proxyURL))},
+			Dial: Dialer(func(network, addr string) (net.Conn, error) {
+				u, _ := url.Parse(proxyURL)
+				return net.Dial("tcp", u.Host)
+			})},
 		Timeout: timeout,
 	}
 }
