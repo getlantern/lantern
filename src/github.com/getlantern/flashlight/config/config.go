@@ -77,6 +77,7 @@ type CA struct {
 func Init(version string) (*Config, error) {
 	configPath, err := InConfigDir("lantern-" + version + ".yaml")
 	if err != nil {
+		log.Errorf("Could not get config path? %v", err)
 		return nil, err
 	}
 	m = &yamlconf.Manager{
@@ -355,7 +356,11 @@ func (cfg Config) fetchCloudConfig() ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to fetch cloud config at %s: %s", url, err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Debugf("Error closing response body: %v", err)
+		}
+	}()
 
 	if resp.StatusCode == 304 {
 		log.Debugf("Config unchanged in cloud")

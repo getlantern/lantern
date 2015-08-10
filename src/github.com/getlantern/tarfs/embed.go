@@ -14,15 +14,21 @@ import (
 // the given Writer in the form of an unquoted UTF-8 encoded string that
 // contains a tar archive of the directory, for example
 // \x69\x6e\x64\x65\x78\x2e\x68\x74 ...
-func EncodeToTarString(dir string, w io.Writer) error {
+func EncodeToTarString(dir string, w io.Writer) (err error) {
 	bw := bufio.NewWriter(w)
 	tw := tar.NewWriter(&stringencodingwriter{bw})
-	defer tw.Close()
+	defer func() {
+		errClose := tw.Close()
+		// Overwrite return error only if it was nil
+		if err == nil && errClose != nil {
+			err = errClose
+		}
+	}()
 
 	dirPrefix := dir + "/"
 	dirPrefixLen := len(dirPrefix)
 
-	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return fmt.Errorf("Unable to walk to %v: %v", path, err)
 		}
@@ -45,7 +51,13 @@ func EncodeToTarString(dir string, w io.Writer) error {
 		if err != nil {
 			return fmt.Errorf("Unable to open file %v: %v", path, err)
 		}
-		defer file.Close()
+		defer func() {
+			errClose := file.Close()
+			// Overwrite return error only if it was nil
+			if err == nil && errClose != nil {
+				err = errClose
+			}
+		}()
 		_, err = io.Copy(tw, file)
 		if err != nil {
 			return fmt.Errorf("Unable to copy file %v to tar: %v", path, err)

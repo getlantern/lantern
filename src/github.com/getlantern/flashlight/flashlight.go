@@ -45,9 +45,10 @@ var (
 	log = golog.LoggerFor("flashlight")
 
 	// Command-line Flags
-	help     = flag.Bool("help", false, "Get usage help")
-	headless = flag.Bool("headless", false, "if true, lantern will run with no ui")
-	startup  = flag.Bool("startup", false, "if true, Lantern was automatically run on system startup")
+	help               = flag.Bool("help", false, "Get usage help")
+	headless           = flag.Bool("headless", false, "if true, lantern will run with no ui")
+	startup            = flag.Bool("startup", false, "if true, Lantern was automatically run on system startup")
+	clearProxySettings = flag.Bool("clear-proxy-settings", false, "if true, Lantern removes proxy settings from the system.")
 
 	showui = true
 
@@ -84,6 +85,7 @@ func init() {
 
 func main() {
 	parseFlags()
+
 	showui = !*headless
 
 	if showui {
@@ -95,30 +97,34 @@ func main() {
 }
 
 func _main() {
-	err := doMain()
-	if err != nil {
+	if err := doMain(); err != nil {
 		log.Error(err)
 	}
 	log.Debug("Lantern stopped")
-	logging.Close()
+
+	if err := logging.Close(); err != nil {
+		log.Debugf("Error closing log: %v", err)
+	}
 	os.Exit(0)
 }
 
 func doMain() error {
-	err := logging.Init()
-	if err != nil {
+	if err := logging.Init(); err != nil {
 		return err
 	}
 
 	// Schedule cleanup actions
 	handleSignals()
-	addExitFunc(func() { logging.Close() })
+	addExitFunc(func() {
+		if err := logging.Close(); err != nil {
+			log.Debugf("Error closing log: %v", err)
+		}
+	})
 	addExitFunc(quitSystray)
 
 	i18nInit()
 	if showui {
-		err = configureSystemTray()
-		if err != nil {
+		if err := configureSystemTray(); err != nil {
 			return err
 		}
 	}
@@ -147,17 +153,16 @@ func doMain() error {
 	defer finishProfiling()
 
 	// Configure stats initially
-	err = statreporter.Configure(cfg.Stats)
-	if err != nil {
+	if err := statreporter.Configure(cfg.Stats); err != nil {
 		return err
 	}
 
 	log.Debug("Running proxy")
 	if cfg.IsDownstream() {
 		// This will open a proxy on the address and port given by -addr
-		runClientProxy(cfg)
+		go runClientProxy(cfg)
 	} else {
-		runServerProxy(cfg)
+		go runServerProxy(cfg)
 	}
 
 	return waitForExit()
@@ -167,8 +172,7 @@ func i18nInit() {
 	i18n.SetMessagesFunc(func(filename string) ([]byte, error) {
 		return ui.Translations.Get(filename)
 	})
-	err := i18n.UseOSLocale()
-	if err != nil {
+	if err := i18n.UseOSLocale(); err != nil {
 		log.Debugf("i18n.UseOSLocale: %q", err)
 	}
 }
@@ -190,18 +194,26 @@ func parseFlags() {
 	}
 	// Note - we can ignore the returned error because CommandLine.Parse() will
 	// exit if it fails.
-	flag.CommandLine.Parse(args)
+	_ = flag.CommandLine.Parse(args)
 }
 
 // runClientProxy runs the client-side (get mode) proxy.
 func runClientProxy(cfg *config.Config) {
-	var err error
-
 	// Set Lantern as system proxy by creating and using a PAC file.
 	setProxyAddr(cfg.Addr)
 
-	if err = setUpPacTool(); err != nil {
+	if err := setUpPacTool(); err != nil {
 		exit(err)
+	}
+
+	if *clearProxySettings {
+		// This is a workaround that attempts to fix a Windows-only problem where
+		// Lantern was unable to clean the system's proxy settings before logging
+		// off.
+		//
+		// See: https://github.com/getlantern/lantern/issues/2776
+		doPACOff(fmt.Sprintf("http://%s/proxy_on.pac", cfg.UIAddr))
+		exit(nil)
 	}
 
 	// Create the client-side proxy.
@@ -212,9 +224,6 @@ func runClientProxy(cfg *config.Config) {
 	}
 
 	// Start user interface.
-	if cfg.UIAddr == "" {
-		exit(fmt.Errorf("Please provide a valid local or remote UI address"))
-	}
 	tcpAddr, err := net.ResolveTCPAddr("tcp4", cfg.UIAddr)
 	if err != nil {
 		exit(fmt.Errorf("Unable to resolve UI address: %v", err))
@@ -239,37 +248,35 @@ func runClientProxy(cfg *config.Config) {
 	}()
 
 	/*
-		Temporarily disabling localdiscover. See:
-		https://github.com/getlantern/lantern/issues/2813
-		// Continually search for local Lantern instances and update the UI
-		go func() {
+		      Temporarily disabling localdiscover. See:
+		      https://github.com/getlantern/lantern/issues/2813
+		      // Continually search for local Lantern instances and update the UI
+		      go func() {
 			addExitFunc(localdiscovery.Stop)
 			localdiscovery.Start(!showui, strconv.Itoa(tcpAddr.Port))
-		}()
+		      }()
 	*/
 
 	// watchDirectAddrs will spawn a goroutine that will add any site that is
 	// directly accesible to the PAC file.
 	watchDirectAddrs()
 
-	go func() {
+	err = client.ListenAndServe(func() {
+		pacOn()
 		addExitFunc(pacOff)
-		err := client.ListenAndServe(func() {
-			pacOn()
-			if showui && !*startup {
-				// Launch a browser window with Lantern but only after the pac
-				// URL and the proxy server are all up and running to avoid
-				// race conditions where we change the proxy setup while the
-				// UI server and proxy server are still coming up.
-				ui.Show()
-			} else {
-				log.Debugf("Not opening browser. Startup is: %v", *startup)
-			}
-		})
-		if err != nil {
-			log.Errorf("Error calling listen and serve: %v", err)
+		if showui && !*startup {
+			// Launch a browser window with Lantern but only after the pac
+			// URL and the proxy server are all up and running to avoid
+			// race conditions where we change the proxy setup while the
+			// UI server and proxy server are still coming up.
+			ui.Show()
+		} else {
+			log.Debugf("Not opening browser. Startup is: %v", *startup)
 		}
-	}()
+	})
+	if err != nil {
+		exit(fmt.Errorf("Error calling listen and serve: %v", err))
+	}
 }
 
 // showExistingUi triggers an existing Lantern running on the same system to
@@ -306,7 +313,7 @@ func applyClientConfig(client *client.Client, cfg *config.Config) {
 	log.Debugf("Proxy all traffic or not: %v", cfg.Client.ProxyAll)
 	ServeProxyAllPacFile(cfg.Client.ProxyAll)
 	// Note - we deliberately ignore the error from statreporter.Configure here
-	statreporter.Configure(cfg.Stats)
+	_ = statreporter.Configure(cfg.Stats)
 
 	// Update client configuration and get the highest QOS dialer available.
 	hqfd := client.Configure(cfg.Client)
@@ -348,9 +355,9 @@ func runServerProxy(cfg *config.Config) {
 		},
 		AllowedPorts: []int{80, 443, 8080, 8443, 5222, 5223, 5228},
 
-		// We allow all censored countries plus us, es, mx, and gb because we do work
-		// and testing from those countries.
-		AllowedCountries: []string{"US", "ES", "MX", "GB", "CN", "VN", "IN", "IQ", "IR", "CU", "SY", "SA", "BH", "ET", "ER", "UZ", "TM", "PK", "TR", "VE"},
+		// We've observed high resource consumption from these countries for
+		// purposes unrelated to Lantern's mission, so we disallow them.
+		BannedCountries: []string{"PH"},
 	}
 
 	srv.Configure(cfg.Server)
@@ -360,7 +367,10 @@ func runServerProxy(cfg *config.Config) {
 		for {
 			cfg := <-configUpdates
 			updateServerSideConfigClient(cfg)
-			statreporter.Configure(cfg.Stats)
+			if err := statreporter.Configure(cfg.Stats); err != nil {
+				log.Debugf("Error configuring statreporter: %v", err)
+			}
+
 			srv.Configure(cfg.Server)
 		}
 	}()

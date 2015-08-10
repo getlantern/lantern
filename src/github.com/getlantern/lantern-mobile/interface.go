@@ -2,7 +2,9 @@ package client
 
 // StopClientProxy stops the proxy.
 func StopClientProxy() error {
-	defaultClient.stop()
+	if err := defaultClient.stop(); err != nil {
+		log.Errorf("Unable to stop client: %v", err)
+	}
 	return nil
 }
 

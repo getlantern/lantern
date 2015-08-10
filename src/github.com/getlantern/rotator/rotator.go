@@ -1,6 +1,14 @@
 package rotator
 
-import "io"
+import (
+	"io"
+
+	"github.com/getlantern/golog"
+)
+
+var (
+	log = golog.LoggerFor("sizerotator")
+)
 
 // Rotator interface
 type Rotator interface {

@@ -77,7 +77,11 @@ func Configure(trackingId string, version string, proxyAddr string) {
 			return
 		}
 		// Store new session info whenever client proxy is ready
-		sessionEvent(trackingId, version)
+		if status, err := sessionEvent(trackingId, version); err != nil {
+			log.Errorf("Unable to store new session info: %v", err)
+		} else {
+			log.Tracef("Storing new session info: %v", status)
+		}
 	}()
 }
 
@@ -153,7 +157,11 @@ func SendRequest(payload *Payload) (status bool, err error) {
 		return false, err
 	}
 	log.Debugf("Successfully sent request to GA: %s", resp.Status)
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Debugf("Unable to close response body: %v", err)
+		}
+	}()
 
 	return true, nil
 }

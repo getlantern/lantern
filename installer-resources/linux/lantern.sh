@@ -12,6 +12,11 @@ LANTERN_WRAPPER_DIR=$(dirname "$LANTERN_WRAPPER")
 # probably out of date.
 LANTERN_SOURCE_BINARY=$LANTERN_WRAPPER_DIR/lantern-binary
 
+# This is a packaged yaml config file allowing us to include configuration
+# in the package outside of the binary itself to enable configuration
+# that is still compatible with auto-updates.
+LANTERN_SOURCE_YAML=$LANTERN_WRAPPER_DIR/.packaged-lantern.yaml
+
 LANTERN_USER_DIRECTORY=$HOME/.lantern
 LANTERN_SOURCE_BINARY_HASH=$LANTERN_USER_DIRECTORY/bin/lantern.sha1
 LANTERN_USER_BINARY=$LANTERN_USER_DIRECTORY/bin/lantern
@@ -32,6 +37,7 @@ if [ ! -f $LANTERN_USER_BINARY ]; then
   # If there is no local copy, we use the original Lantern binary.
   mkdir -p $LANTERN_USER_DIRECTORY/bin
   cp $LANTERN_SOURCE_BINARY $LANTERN_USER_BINARY
+  cp $LANTERN_SOURCE_YAML $LANTERN_USER_DIRECTORY
   sha1sum $LANTERN_SOURCE_BINARY > $LANTERN_SOURCE_BINARY_HASH
   chmod +x $LANTERN_USER_BINARY
 fi

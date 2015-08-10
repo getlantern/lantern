@@ -78,6 +78,7 @@ wordpress.com
 youtube.com
 
 # Iran-focused sites
+kaleme.com
 30mail.net
 advar-news.biz
 balatarin.com

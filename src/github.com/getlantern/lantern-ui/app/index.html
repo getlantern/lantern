@@ -71,8 +71,7 @@
         <img src="img/spinner.gif">        
         </div>       
         <div ng-show="backendIsGone">        
-        <div>{{ 'LANTERN_GONE' | translate }}</div>        
-        <button type="button" class="btn btn-primary" onclick="window.close();">{{ 'CLOSE_WINDOW' | translate }}</button>      
+        <div class="backend-gone">{{ 'LANTERN_GONE' | translate }}</div>        
     </div>       
     </div>
     <div ng-include src="'partials/modals.html'"></div>

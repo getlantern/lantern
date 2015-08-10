@@ -76,7 +76,7 @@ type Server struct {
 	CertContext                *fronted.CertContext // context for certificate management
 	AllowNonGlobalDestinations bool                 // if true, requests to LAN, Loopback, etc. will be allowed
 	AllowedPorts               []int                // if specified, only connections to these ports will be allowed
-	AllowedCountries           []string             // if specified, only connections from clients in the given countries will be allowed (2 digit country codes)
+	BannedCountries            []string             // if specified, connections from clients in the given countries will be banned (2 digit country codes)
 
 	cfg      *ServerConfig
 	cfgMutex sync.RWMutex
@@ -134,27 +134,27 @@ func (server *Server) ListenAndServe(updateConfig func(func(*ServerConfig) error
 		AllowNonGlobalDestinations: server.AllowNonGlobalDestinations,
 	}
 
-	if server.AllowedCountries != nil {
+	if server.BannedCountries != nil {
 		server.geoCache, _ = lru.New(1000000)
 	}
 
-	if server.AllowedPorts != nil || server.AllowedCountries != nil {
-		fs.Allow = func(req *http.Request, destAddr string) error {
+	if server.AllowedPorts != nil || server.BannedCountries != nil {
+		fs.Allow = func(req *http.Request, destAddr string) (int, error) {
 			if server.AllowedPorts != nil {
 				err := server.checkForDisallowedPort(destAddr)
 				if err != nil {
-					return err
+					return http.StatusForbidden, fmt.Errorf("Port not allowed in %v", destAddr)
 				}
 			}
 
-			if server.AllowedCountries != nil {
-				err := server.checkForDisallowedCountry(req)
+			if server.BannedCountries != nil {
+				err := server.checkForBannedCountry(req)
 				if err != nil {
-					return err
+					return http.StatusForbidden, fmt.Errorf("Origin country not allowed: %v", err)
 				}
 			}
 
-			return nil
+			return http.StatusOK, nil
 		}
 	}
 
@@ -234,11 +234,13 @@ func (server *Server) register(updateConfig func(func(*ServerConfig) error)) {
 					}
 				}
 				if err == nil {
-					resp.Body.Close()
+					if err := resp.Body.Close(); err != nil {
+						log.Debugf("Error closing response body: %v", err)
+					}
 				}
-				time.Sleep(registerPeriod)
 			}
 		}
+		time.Sleep(registerPeriod)
 	}
 }
 
@@ -268,7 +270,7 @@ func (server *Server) checkForDisallowedPort(addr string) error {
 	return nil
 }
 
-func (server *Server) checkForDisallowedCountry(req *http.Request) error {
+func (server *Server) checkForBannedCountry(req *http.Request) error {
 	clientIp := getClientIp(req)
 	if clientIp == "" {
 		log.Debug("Unable to determine client ip for geolookup")
@@ -291,14 +293,14 @@ func (server *Server) checkForDisallowedCountry(req *http.Request) error {
 		server.geoCache.Add(clientIp, country)
 	}
 
-	countryAllowed := false
-	for _, allowed := range server.AllowedCountries {
-		if country == strings.ToUpper(allowed) {
-			countryAllowed = true
+	countryBanned := false
+	for _, banned := range server.BannedCountries {
+		if country == strings.ToUpper(banned) {
+			countryBanned = true
 			break
 		}
 	}
-	if !countryAllowed {
+	if countryBanned {
 		return fmt.Errorf("Not accepting connections from country %v", country)
 	}
 
@@ -327,10 +329,10 @@ func mapPort(addr string, port int) error {
 	if err != nil {
 		return fmt.Errorf("Unable to get IGD: %s", err)
 	}
-
-	igd.RemovePortMapping(igdman.TCP, port)
-	err = igd.AddPortMapping(igdman.TCP, internalIP, internalPort, port, 0)
-	if err != nil {
+	if err := igd.RemovePortMapping(igdman.TCP, port); err != nil {
+		log.Debugf("Unable to remove port mapping: %v", err)
+	}
+	if err = igd.AddPortMapping(igdman.TCP, internalIP, internalPort, port, 0); err != nil {
 		return fmt.Errorf("Unable to map port with igdman %d: %s", port, err)
 	}
 
@@ -343,8 +345,7 @@ func unmapPort(port int) error {
 		return fmt.Errorf("Unable to get IGD: %s", err)
 	}
 
-	igd.RemovePortMapping(igdman.TCP, port)
-	if err != nil {
+	if err := igd.RemovePortMapping(igdman.TCP, port); err != nil {
 		return fmt.Errorf("Unable to unmap port with igdman %d: %s", port, err)
 	}
 
@@ -360,7 +361,11 @@ func determineInternalIP() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("Unable to determine local IP: %s", err)
 	}
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			log.Debugf("Error closing connection: %v", err)
+		}
+	}()
 	host, _, err := net.SplitHostPort(conn.LocalAddr().String())
 	return host, err
 }

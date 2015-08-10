@@ -41,13 +41,16 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/getlantern/aws-sdk-go/gen/cloudfront"
+	// Temporarily disable CloudFront/DNSimple.
+	//"github.com/getlantern/aws-sdk-go/gen/cloudfront"
 	"github.com/getlantern/cloudflare"
-	"github.com/getlantern/go-dnsimple/dnsimple"
+	// Temporarily disable CloudFront/DNSimple.
+	//	"github.com/getlantern/go-dnsimple/dnsimple"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/peerscanner/cfl"
-	"github.com/getlantern/peerscanner/cfr"
-	"github.com/getlantern/peerscanner/dsp"
+	// Temporarily disable CloudFront/DNSimple.
+	//	"github.com/getlantern/peerscanner/cfr"
+	//	"github.com/getlantern/peerscanner/dsp"
 	"github.com/getlantern/profiling"
 )
 
@@ -60,9 +63,10 @@ const (
 var (
 	log = golog.LoggerFor("peerscanner")
 
-	port       = flag.Int("port", 62443, "Port, defaults to 62443")
-	cfldomain  = flag.String("cfldomain", "getiantem.org", "CloudFlare domain, defaults to getiantem.org")
-	dspdomain  = flag.String("dspdomain", "flashlightproxy.org", "DNSimple domain, defaults to flashlightproxy.org")
+	port      = flag.Int("port", 62443, "Port, defaults to 62443")
+	cfldomain = flag.String("cfldomain", "getiantem.org", "CloudFlare domain, defaults to getiantem.org")
+	// Temporarily disable CloudFront/DNSimple.
+	//dspdomain  = flag.String("dspdomain", "flashlightproxy.org", "DNSimple domain, defaults to flashlightproxy.org")
 	cpuprofile = flag.String("cpuprofile", "", "(optional) specify the name of a file to which to write cpu profiling info")
 	memprofile = flag.String("memprofile", "", "(optional) specify the name of a file to which to write memory profiling info")
 
@@ -70,6 +74,7 @@ var (
 	cflkey  = os.Getenv("CFL_KEY")
 	cflutil *cfl.Util
 
+	/* Temporarily disable CloudFront/DNSimple.
 	cfrid   = os.Getenv("CFR_ID")
 	cfrkey  = os.Getenv("CFR_KEY")
 	cfrutil *cloudfront.CloudFront
@@ -77,6 +82,7 @@ var (
 	dspid   = os.Getenv("DSP_ID")
 	dspkey  = os.Getenv("DSP_KEY")
 	dsputil *dsp.Util
+	*/
 
 	hosts      map[string]*host
 	hostsMutex sync.Mutex
@@ -93,8 +99,9 @@ func main() {
 	defer finishProfiling()
 
 	connectToCloudFlare()
-	connectToCloudFront()
-	connectToDnsimple()
+	// Temporarily disable CloudFront/DNSimple.
+	//connectToCloudFront()
+	//connectToDnsimple()
 
 	var err error
 	hosts, err = loadHosts()
@@ -113,6 +120,7 @@ func parseFlags() {
 	if cflkey == "" {
 		log.Fatal("Please specify a CFL_KEY environment variable")
 	}
+	/* Temporarily disable CloudFront/DNSimple.
 	if cfrid == "" {
 		log.Fatal("Please specify a CFR_ID environment variable")
 	}
@@ -125,6 +133,7 @@ func parseFlags() {
 	if dspkey == "" {
 		log.Fatal("Please specify a DSP_KEY environment variable")
 	}
+	*/
 }
 
 func connectToCloudFlare() {
@@ -132,6 +141,7 @@ func connectToCloudFlare() {
 	cflutil = cfl.New(*cfldomain, cflid, cflkey)
 }
 
+/* Temporarily disable CloudFront/DNSimple.
 func connectToCloudFront() {
 	log.Debug("Connecting to CloudFront ...")
 	cfrutil = cfr.New(cfrid, cfrkey, nil)
@@ -141,6 +151,7 @@ func connectToDnsimple() {
 	log.Debug("Connecting to DNSimple ...")
 	dsputil = dsp.New(*dspdomain, dspid, dspkey)
 }
+*/
 
 /*******************************************************************************
  * Functions for managing map of hosts
@@ -157,6 +168,7 @@ func loadHosts() (map[string]*host, error) {
 	}
 	log.Debugf("Loaded %d existing Cloudflare records", len(cflRecs))
 
+	/* Disable CloudFront/DNSimple
 	log.Debug("Loading existing DNSimple records ...")
 	dspRecs, err := dsputil.GetAllRecords()
 	if err != nil {
@@ -169,6 +181,7 @@ func loadHosts() (map[string]*host, error) {
 		return nil, fmt.Errorf("Unable to load cloudfront distributions: %v", err)
 	}
 	log.Debugf("Loaded %d existing distributions", len(dists))
+	*/
 
 	// Collect round-robin entries in Cloudflare
 	cflGroups := make(map[string]map[string]*cloudflare.Record, 0)
@@ -182,6 +195,7 @@ func loadHosts() (map[string]*host, error) {
 		g[r.Value] = &r
 	}
 
+	/* Temporarily disable CloudFront/DNSimple
 	// Collect round-robin entries in DNSimple
 	dspGroups := make(map[string]map[string]*dnsimple.Record, 0)
 	addToDspGroup := func(name string, r dnsimple.Record) {
@@ -193,10 +207,13 @@ func loadHosts() (map[string]*host, error) {
 		}
 		g[r.Content] = &r
 	}
+	*/
 
 	// Build map of existing hosts
 	preHosts := make(map[string]*host)
-	addHost := func(name string, ip string, cflRec *cloudflare.Record, dspRec *dnsimple.Record) {
+	// Temporarily remove CloudFront/DNSimple.
+	//addHost := func(name string, ip string, cflRec *cloudflare.Record, dspRec *dnsimple.Record) {
+	addHost := func(name string, ip string, cflRec *cloudflare.Record) {
 		h := preHosts[ip]
 		if h == nil {
 			h = &host{name: name, ip: ip}
@@ -205,16 +222,20 @@ func loadHosts() (map[string]*host, error) {
 		if cflRec != nil {
 			h.cflRecord = cflRec
 		}
+		/* Temporarily disable CloudFront/DNSimple.
 		if dspRec != nil {
 			h.dspRecord = dspRec
 		}
+		*/
 	}
 
 	// Look through Cloudflare records to find peers, fallbacks and groups
 	for _, r := range cflRecs {
 		if isFallback(r.Name) {
 			log.Debugf("Adding fallback: %v", r.Name)
-			addHost(r.Name, r.Value, &r, nil)
+			// Temporarily disable CloudFront/DNSimple.
+			//addHost(r.Name, r.Value, &r, nil)
+			addHost(r.Name, r.Value, &r)
 		} else if isPeer(r.Name) {
 			log.Debugf("Not adding peer: %v", r.Name)
 		} else if r.Name == RoundRobin {
@@ -230,6 +251,7 @@ func loadHosts() (map[string]*host, error) {
 		}
 	}
 
+	/* Temporarily disable CloudFront/DNSimple.
 	// Look through DNSimple records to find peers, fallbacks and groups
 	for _, r := range dspRecs {
 		if isFallback(r.Name) {
@@ -249,21 +271,26 @@ func loadHosts() (map[string]*host, error) {
 			log.Tracef("Unrecognized DNSimple record: %v", r.Name)
 		}
 	}
+	*/
 
 	hostsByName := make(map[string]*host)
 	hostsByIp := make(map[string]*host)
 	for _, pre := range preHosts {
-		h := newHost(pre.name, pre.ip, "", pre.cflRecord, pre.dspRecord)
+		// Temporarily disable CloudFront/DNSimple.
+		//h := newHost(pre.name, pre.ip, "", pre.cflRecord, pre.dspRecord)
+		h := newHost(pre.name, pre.ip, "", pre.cflRecord)
 		hostsByName[h.name] = h
 		hostsByIp[h.ip] = h
 	}
 
+	/* Temporarily disable CloudFront/DNSimple.
 	for _, d := range dists {
 		h, found := hostsByName[d.InstanceId]
 		if found {
 			h.cfrDist = d
 		}
 	}
+	*/
 
 	// Update hosts with Cloudflare group info
 	for _, h := range hostsByIp {
@@ -274,6 +301,7 @@ func loadHosts() (map[string]*host, error) {
 				delete(g, h.ip)
 			}
 		}
+		/* Temporarily disable CloudFront/DNSimple.
 		// Don't accept round robins unless we have a working Cloudfront
 		// distribution
 		if h.cfrDistReady() {
@@ -285,6 +313,7 @@ func loadHosts() (map[string]*host, error) {
 				}
 			}
 		}
+		*/
 	}
 
 	var wg sync.WaitGroup
@@ -296,12 +325,14 @@ func loadHosts() (map[string]*host, error) {
 			go removeCflRecord(&wg, k, r)
 		}
 	}
+	/* Temporarily disable CloudFront/DNSimple.
 	for k, g := range dspGroups {
 		for _, r := range g {
 			wg.Add(1)
 			go removeDspRecord(&wg, k, r)
 		}
 	}
+	*/
 
 	wg.Wait()
 
@@ -322,6 +353,7 @@ func removeCflRecord(wg *sync.WaitGroup, k string, r *cloudflare.Record) {
 	wg.Done()
 }
 
+/* Temporarily disable CloudFront/DNSimple.
 func removeDspRecord(wg *sync.WaitGroup, k string, r *dnsimple.Record) {
 	log.Debugf("%v in %v is missing DNSimple record, removing", r.Content, k)
 	err := dsputil.DestroyRecord(r)
@@ -330,6 +362,7 @@ func removeDspRecord(wg *sync.WaitGroup, k string, r *dnsimple.Record) {
 	}
 	wg.Done()
 }
+*/
 
 func getOrCreateHost(name string, ip string, port string) *host {
 	hostsMutex.Lock()
@@ -337,7 +370,9 @@ func getOrCreateHost(name string, ip string, port string) *host {
 
 	h := hosts[ip]
 	if h == nil {
-		h := newHost(name, ip, port, nil, nil)
+		// Temporarily disable CloudFront/DNSimple.
+		//h := newHost(name, ip, port, nil, nil)
+		h := newHost(name, ip, port, nil)
 		hosts[ip] = h
 		go h.run()
 		return h

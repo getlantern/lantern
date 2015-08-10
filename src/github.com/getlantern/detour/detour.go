@@ -300,8 +300,12 @@ func (dc *Conn) RemoteAddr() net.Addr {
 
 // SetDeadline() implements the function from net.Conn
 func (dc *Conn) SetDeadline(t time.Time) error {
-	dc.SetReadDeadline(t)
-	dc.SetWriteDeadline(t)
+	if err := dc.SetReadDeadline(t); err != nil {
+		log.Debugf("Unable to set read deadline: %v", err)
+	}
+	if err := dc.SetWriteDeadline(t); err != nil {
+		log.Debugf("Unable to set write deadline: %v", err)
+	}
 	return nil
 }
 

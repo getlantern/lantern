@@ -91,7 +91,11 @@ func pullConfigFile(cli *http.Client) ([]byte, error) {
 	if body, err = gzip.NewReader(res.Body); err != nil {
 		return nil, err
 	}
-	defer body.Close()
+	defer func() {
+		if err := body.Close(); err != nil {
+			log.Debugf("Unable to close body: %v", err)
+		}
+	}()
 
 	// Uncompressing bytes.
 	return ioutil.ReadAll(body)

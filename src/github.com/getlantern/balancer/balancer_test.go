@@ -66,7 +66,11 @@ func TestAll(t *testing.T) {
 	if err != nil {
 		log.Fatalf("Unable to listen: %s", err)
 	}
-	defer l.Close()
+	defer func() {
+		if err := l.Close(); err != nil {
+			log.Fatalf("Unable to close listener: %v", err)
+		}
+	}()
 	go func() {
 		for {
 			c, err := l.Accept()
@@ -264,7 +268,11 @@ func newFailingDialer(num int32, dialedBy *int32, attempts *int32) *Dialer {
 }
 
 func doTestConn(t *testing.T, conn net.Conn) {
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			log.Debugf("Unable to close connection: %v", err)
+		}
+	}()
 
 	var wg sync.WaitGroup
 	wg.Add(2)

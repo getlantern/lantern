@@ -6,10 +6,13 @@ import (
 	"net"
 	"sync/atomic"
 	"time"
+
+	"github.com/getlantern/golog"
 )
 
 var (
 	epoch = time.Unix(0, 0)
+	log   = golog.LoggerFor("idletiming")
 )
 
 // Conn creates a new net.Conn wrapping the given net.Conn that times out after
@@ -95,14 +98,18 @@ func (c *IdleTimingConn) Read(b []byte) (int, error) {
 		maxDeadline := time.Now().Add(c.halfIdleTimeout)
 		if readDeadline != epoch && !maxDeadline.Before(readDeadline) {
 			// Caller's deadline is before ours, use it
-			c.conn.SetReadDeadline(readDeadline)
+			if err := c.conn.SetReadDeadline(readDeadline); err != nil {
+				log.Errorf("Unable to set read deadline: %v", err)
+			}
 			n, err := c.conn.Read(b)
 			c.markActive(n)
 			totalN = totalN + n
 			return totalN, err
 		} else {
 			// Use our own deadline
-			c.conn.SetReadDeadline(maxDeadline)
+			if err := c.conn.SetReadDeadline(maxDeadline); err != nil {
+				log.Errorf("Unable to set read deadline: %v", err)
+			}
 			n, err := c.conn.Read(b)
 			c.markActive(n)
 			totalN = totalN + n
@@ -132,14 +139,18 @@ func (c *IdleTimingConn) Write(b []byte) (int, error) {
 		maxDeadline := time.Now().Add(c.halfIdleTimeout)
 		if writeDeadline != epoch && !maxDeadline.Before(writeDeadline) {
 			// Caller's deadline is before ours, use it
-			c.conn.SetWriteDeadline(writeDeadline)
+			if err := c.conn.SetWriteDeadline(writeDeadline); err != nil {
+				log.Errorf("Unable to set write deadline: %v", err)
+			}
 			n, err := c.conn.Write(b)
 			c.markActive(n)
 			totalN = totalN + n
 			return totalN, err
 		} else {
 			// Use our own deadline
-			c.conn.SetWriteDeadline(maxDeadline)
+			if err := c.conn.SetWriteDeadline(maxDeadline); err != nil {
+				log.Errorf("Unable to set write deadline: %v", err)
+			}
 			n, err := c.conn.Write(b)
 			c.markActive(n)
 			totalN = totalN + n
@@ -178,8 +189,12 @@ func (c *IdleTimingConn) RemoteAddr() net.Addr {
 }
 
 func (c *IdleTimingConn) SetDeadline(t time.Time) error {
-	c.SetReadDeadline(t)
-	c.SetWriteDeadline(t)
+	if err := c.SetReadDeadline(t); err != nil {
+		log.Errorf("Unable to set read deadline: %v", err)
+	}
+	if err := c.SetWriteDeadline(t); err != nil {
+		log.Errorf("Unable to set write deadline: %v", err)
+	}
 	return nil
 }
 

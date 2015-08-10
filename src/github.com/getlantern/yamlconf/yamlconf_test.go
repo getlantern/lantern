@@ -55,7 +55,11 @@ func TestFileAndUpdate(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to create temp file: %s", err)
 	}
-	defer os.Remove(file.Name())
+	defer func() {
+		if err := os.Remove(file.Name()); err != nil {
+			t.Fatalf("Unable to remove file: %v", err)
+		}
+	}()
 
 	m := &Manager{
 		EmptyConfig: func() Config {
@@ -155,7 +159,11 @@ func TestCustomPoll(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to create temp file: %s", err)
 	}
-	defer os.Remove(file.Name())
+	defer func() {
+		if err := os.Remove(file.Name()); err != nil {
+			t.Fatalf("Unable to remove file: %s", err)
+		}
+	}()
 
 	poll := 0
 	m := &Manager{
@@ -211,7 +219,11 @@ func TestConfigServer(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to create temp file: %s", err)
 	}
-	defer os.Remove(file.Name())
+	defer func() {
+		if err := os.Remove(file.Name()); err != nil {
+			t.Fatalf("Unable to remove file: %s", err)
+		}
+	}()
 
 	m := &Manager{
 		EmptyConfig: func() Config {

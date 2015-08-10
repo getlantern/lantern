@@ -47,7 +47,7 @@ func TestAll(t *testing.T) {
 	originalReporter := currentReporter
 
 	// Reconfigure reporting
-	doConfigure(&Config{
+	err = doConfigure(&Config{
 		ReportingPeriod: 200 * time.Millisecond,
 	}, func(r report) error {
 		go func() {
@@ -55,6 +55,9 @@ func TestAll(t *testing.T) {
 		}()
 		return nil
 	})
+	if err != nil {
+		t.Fatalf("Unable to reconfigure reporting: %v", err)
+	}
 
 	// Get the first report
 	report1 := <-reportCh

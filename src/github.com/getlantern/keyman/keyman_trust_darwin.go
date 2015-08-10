@@ -15,7 +15,11 @@ const (
 // root CA.
 func (cert *Certificate) AddAsTrustedRoot() error {
 	tempFileName, err := cert.WriteToTempFile()
-	defer os.Remove(tempFileName)
+	defer func() {
+		if err := os.Remove(tempFileName); err != nil {
+			log.Debugf("Unable to remove file: %v", err)
+		}
+	}()
 	if err != nil {
 		return fmt.Errorf("Unable to create temp file: %s", err)
 	}

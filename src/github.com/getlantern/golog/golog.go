@@ -207,8 +207,16 @@ func (l *logger) newTraceWriter() io.Writer {
 		return pw
 	}
 	go func() {
-		defer pr.Close()
-		defer pw.Close()
+		defer func() {
+			if err := pr.Close(); err != nil {
+				errorOnLogging(err)
+			}
+		}()
+		defer func() {
+			if err := pw.Close(); err != nil {
+				errorOnLogging(err)
+			}
+		}()
 
 		for {
 			line, err := br.ReadString('\n')
@@ -259,7 +267,9 @@ func (l *logger) doPrintStack() {
 		file, line := funcForPc.FileLine(pc)
 		fmt.Fprintf(buf, "\t%s\t%s: %d\n", name, file, line)
 	}
-	buf.WriteTo(os.Stderr)
+	if _, err := buf.WriteTo(os.Stderr); err != nil {
+		errorOnLogging(err)
+	}
 }
 
 func errorOnLogging(err error) {

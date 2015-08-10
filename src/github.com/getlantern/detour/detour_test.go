@@ -128,7 +128,9 @@ func TestClosing(t *testing.T) {
 	mock.Msg(directMsg)
 	DirectAddrCh = make(chan string)
 	{
-		newClient(proxiedURL, 100*time.Millisecond).Get(mockURL)
+		if _, err := newClient(proxiedURL, 100*time.Millisecond).Get(mockURL); err != nil {
+			log.Debugf("Unable to send GET request to mock URL: %v", err)
+		}
 	}
 	u, _ := url.Parse(mockURL)
 	addr := <-DirectAddrCh
