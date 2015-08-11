@@ -27,7 +27,7 @@ var (
 	// https://github.com/getlantern/lantern/issues/2857 it is hard-coded
 	// to the manoto facebook page at https://www.facebook.com/manototv for a
 	// single binary (lantern-2.0.0-beta9+manoto)
-	url = ""
+	url = "https://www.facebook.com/manototv"
 
 	// This is the local copy of our embedded configuration file. This is necessary
 	// to ensure we remember the embedded configuration across auto-updated
