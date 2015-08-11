@@ -85,28 +85,18 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-func logPanic(proxyAddr string, msg string) {
+func logPanic(msg string) {
 	cfg, err := config.Init(packageVersion)
 	if err != nil {
 		panic("Error initializing config")
 	}
-
-	// Create the client-side proxy.
-	c := &client.Client{
-		Addr:         proxyAddr,
-		ReadTimeout:  0, // don't timeout
-		WriteTimeout: 0,
-	}
-	ready := make(chan bool)
-	go c.ListenAndServe(func() { ready <- true })
-	<-ready
-
 	if err := logging.Init(); err != nil {
 		panic("Error initializing logging")
 	}
 
-	ready = logging.Configure(proxyAddr, cfg.CloudConfigCA, cfg.InstanceId, version, revisionDate)
-	<-ready
+	done := logging.Configure("", "", cfg.InstanceId, version, revisionDate)
+	<-done
+	panic("HERE")
 
 	log.Error(msg)
 
@@ -119,7 +109,7 @@ func main() {
 	// environmental variables, etc.) and monitoring the stderr of the program.
 	exitStatus, err := panicwrap.BasicWrap(
 		func(output string) {
-			logPanic("127.0.0.1:18787", output)
+			logPanic(output)
 			exit(nil)
 		})
 	if err != nil {
