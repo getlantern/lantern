@@ -27,16 +27,16 @@ which errcheck >/dev/null || (echo "Unable to find errcheck, please install it: 
 which golint >/dev/null || (echo "Unable to find golint, please install it: \`go get -u github.com/golang/lint/golint\`" && exit 1)
 
 echo "*** Running \033[0;34mErrcheck\033[0m ***" && \
-for dir in *; do
-  errcheck github.com/getlantern/$dir || \
+for dir in $MODIFIED_DIRS; do
+  errcheck github.com/getlantern/$dir || (\
     echo "\033[0;31merrcheck returned error analyzing the package '$dir'\033[0m" && \
     echo "Please, fix and run again\n" && \
-    exit 1
+    exit 1)
 done
 echo "\033[1;34mErrcheck\033[0m ran successfully\n"
 
 echo "*** Running \033[0;34mGo vet\033[0m ***" && \
-for dir in *; do
+for dir in $MODIFIED_DIRS; do
   go vet github.com/getlantern/$dir || (\
     echo "\033[0;31mgo vet returned error analyzing the package '$dir'\033[0m"
     echo "Please, fix and run again\n" && \
@@ -45,7 +45,7 @@ done
 echo "\033[1;34mGo vet\033[0m ran successfully\n"
 
 echo "*** Running \033[0;34mGolint\033[0m ***" && \
-for dir in *; do
+for dir in $MODIFIED_DIRS; do
   golint github.com/getlantern/$dir || (\
     echo "\033[0;31mgo vet returned error analyzing the package '$dir'\033[0m"
     echo "Please, fix and run again\n" && \
@@ -54,7 +54,7 @@ done
 echo "\033[1;34mGolint\033[0m ran successfully\n"
 
 echo "*** Running \033[0;34mGo test -race\033[0m ***" && \
-for dir in *; do
+for dir in $MODIFIED_DIRS; do
   go test -race github.com/getlantern/$dir || (\
     echo "\033[0;31mgo vet returned error analyzing the package '$dir'\033[0m"
     echo "Please, fix and run again\n" && \
