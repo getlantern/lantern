@@ -9,19 +9,19 @@ import (
 type Prepend func(w io.Writer) (int, error)
 
 // LinePrepender creates an io.Writer that prepends to each line by calling the
-// given prepend function. Perepend can write whatever it wants. It should
+// given prepend function. Prepend can write whatever it wants. It should
 // return the bytes written and any error encountered.
 func LinePrepender(w io.Writer, prepend Prepend) io.Writer {
-	return &lp{w, prepend, true}
+	return &linePrepender{w, prepend, true}
 }
 
-type lp struct {
+type linePrepender struct {
 	io.Writer
 	prepend       Prepend
 	prependNeeded bool
 }
 
-func (w *lp) Write(buf []byte) (int, error) {
+func (w *linePrepender) Write(buf []byte) (int, error) {
 	if w.prependNeeded {
 		_, err := w.prepend(w.Writer)
 		if err != nil {
@@ -65,4 +65,30 @@ func (w *lp) Write(buf []byte) (int, error) {
 	n, err := w.Writer.Write(buf)
 	totalN += n
 	return totalN, err
+}
+
+// SimplePrepender creates an io.Writer that prepends to each line by calling the
+// given prepend function. Prepend can write whatever it wants. It should
+// return the bytes written and any error encountered.
+func SimplePrepender(w io.Writer, prepend Prepend) io.Writer {
+	return &simplePrepender{w, prepend}
+}
+
+type simplePrepender struct {
+	io.Writer
+	prepend Prepend
+}
+
+func (w *simplePrepender) Write(buf []byte) (int, error) {
+	written := 0
+
+	n, err := w.prepend(w.Writer)
+	written = written + n
+	if err != nil {
+		return written, err
+	}
+
+	n, err = w.Writer.Write(buf)
+	written = written + n
+	return written, err
 }
