@@ -62,6 +62,18 @@ func Init() error {
 
 	// Loggly has its own timestamp so don't bother adding it in message,
 	// moreover, golog always write each line in whole, so we need not to care about line breaks.
+
+	// timestamped adds a timestamp to the beginning of log lines
+	timestamped := func(orig io.Writer) io.Writer {
+		return wfilter.SimplePrepender(orig, func(w io.Writer) (int, error) {
+			ts := time.Now()
+			runningSecs := ts.Sub(processStart).Seconds()
+			secs := int(math.Mod(runningSecs, 60))
+			mins := int(runningSecs / 60)
+			return fmt.Fprintf(w, "%s - %dm%ds ", ts.In(time.UTC).Format(logTimestampFormat), mins, secs)
+		})
+	}
+
 	errorOut = timestamped(NonStopWriter(os.Stderr, logFile))
 	debugOut = timestamped(NonStopWriter(os.Stdout, logFile))
 	golog.SetOutputs(errorOut, debugOut)
@@ -102,17 +114,6 @@ func Configure(addr string, cloudConfigCA string, instanceId string,
 func Close() error {
 	golog.ResetOutputs()
 	return logFile.Close()
-}
-
-// timestamped adds a timestamp to the beginning of log lines
-func timestamped(orig io.Writer) io.Writer {
-	return wfilter.LinePrepender(orig, func(w io.Writer) (int, error) {
-		ts := time.Now()
-		runningSecs := ts.Sub(processStart).Seconds()
-		secs := int(math.Mod(runningSecs, 60))
-		mins := int(runningSecs / 60)
-		return fmt.Fprintf(w, "%s - %dm%ds ", ts.In(time.UTC).Format(logTimestampFormat), mins, secs)
-	})
 }
 
 func enableLoggly(addr string, cloudConfigCA string, instanceId string,
