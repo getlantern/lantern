@@ -16,7 +16,7 @@ type detourConn struct {
 	errorEncountered uint32
 }
 
-func DialDetour(network string, addr string, dialer dialFunc, ch chan conn) {
+func dialDetour(network string, addr string, dialer dialFunc, ch chan conn) {
 	go func() {
 		log.Tracef("Dialing detour connection to %s", addr)
 		conn, err := dialer(network, addr)
@@ -65,10 +65,11 @@ func (dc *detourConn) Write(b []byte, ch chan ioResult) {
 	return
 }
 
-func (dc *detourConn) Close() {
-	dc.Conn.Close()
+func (dc *detourConn) Close() (err error) {
+	err = dc.Conn.Close()
 	if atomic.LoadUint64(&dc.readBytes) > 0 && atomic.LoadUint32(&dc.errorEncountered) == 0 {
 		log.Tracef("no error found till closing, add %s to whitelist", dc.addr)
 		AddToWl(dc.addr, false)
 	}
+	return
 }

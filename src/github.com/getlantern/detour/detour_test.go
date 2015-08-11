@@ -12,9 +12,9 @@ import (
 )
 
 var (
-	directMsg string = "hello direct"
-	detourMsg string = "hello detour"
-	iranResp  string = `HTTP/1.1 403 Forbidden
+	directMsg = "hello direct"
+	detourMsg = "hello detour"
+	iranResp  = `HTTP/1.1 403 Forbidden
 Connection:close
 
 <html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1256"><title>M1-6
@@ -121,12 +121,12 @@ func TestRemoveFromWhitelist(t *testing.T) {
 }
 
 func TestClosing(t *testing.T) {
+	DirectAddrCh = make(chan string)
 	defer stopMockServers()
 	proxiedURL, proxy := newMockServer(detourMsg)
 	proxy.Timeout(200*time.Millisecond, detourMsg)
 	mockURL, mock := newMockServer(directMsg)
 	mock.Msg(directMsg)
-	DirectAddrCh = make(chan string)
 	{
 		if _, err := newClient(proxiedURL, 100*time.Millisecond).Get(mockURL); err != nil {
 			log.Debugf("Unable to send GET request to mock URL: %v", err)

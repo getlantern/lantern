@@ -32,6 +32,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -53,8 +54,8 @@ var (
 	log = golog.LoggerFor("detour")
 )
 
-type dialFunc func(network, addr string) (net.Conn, error)
-
+// Conn implements an net.Conn interface by utilizing underlie direct and
+// detour connections.
 type Conn struct {
 	// The underlie connections, uses buffered channel as ring queue.
 	// The length of it can only be 0, 1 or 2 in fact.
@@ -75,6 +76,7 @@ type Conn struct {
 
 	addr string
 
+	muWriteBuffer sync.RWMutex
 	// Keeps written bytes through direct connection to replay it if required.
 	writeBuffer *bytes.Buffer
 	// Is it a plain HTTP request or not, atomic
@@ -103,7 +105,7 @@ type conn interface {
 	FirstRead(b []byte, ch chan ioResult)
 	FollowupRead(b []byte, ch chan ioResult)
 	Write(b []byte, ch chan ioResult)
-	Close()
+	Close() error
 }
 
 func typeOf(c conn) string {
@@ -111,8 +113,10 @@ func typeOf(c conn) string {
 	return connTypeDesc[c.ConnType()]
 }
 
+type dialFunc func(network, addr string) (net.Conn, error)
+
 // Dialer returns a function with same signature of net.Dialer.Dial().
-func Dialer(detourDialer dialFunc) dialFunc {
+func Dialer(detourDialer dialFunc) func(network, addr string) (net.Conn, error) {
 	return func(network, addr string) (net.Conn, error) {
 		dc := &Conn{
 			addr:            addr,
@@ -128,10 +132,10 @@ func Dialer(detourDialer dialFunc) dialFunc {
 		ch := make(chan conn)
 		// dialing sequence
 		if whitelisted(addr) {
-			DialDetour(network, addr, detourDialer, ch)
+			dialDetour(network, addr, detourDialer, ch)
 		} else {
 			go func() {
-				DialDirect(network, addr, ch)
+				dialDirect(network, addr, ch)
 				dt := time.NewTimer(DelayBeforeDetour)
 				select {
 				case <-dt.C:
@@ -140,7 +144,7 @@ func Dialer(detourDialer dialFunc) dialFunc {
 				if dc.anyDataReceived() {
 					ch <- nil
 				}
-				DialDetour(network, addr, detourDialer, ch)
+				dialDetour(network, addr, detourDialer, ch)
 			}()
 		}
 		// handle dialing result
@@ -161,7 +165,7 @@ func Dialer(detourDialer dialFunc) dialFunc {
 					} else {
 						if c.ConnType() == connTypeDirect || dc.anyDataReceived() {
 							log.Debugf("%s connection to %s established too late, close it", typeOf(c), dc.addr)
-							c.Close()
+							_ = c.Close()
 							return
 						}
 						log.Tracef("Feed detour connection to %s to read/write op", dc.addr)
@@ -206,11 +210,14 @@ func (dc *Conn) Read(b []byte) (n int, err error) {
 			if atomic.LoadUint32(&dc.nonIdempotentHTTPRequest) == 1 {
 				log.Tracef("Not replay nonideompotent request to %s, only add to whitelist", dc.addr)
 				AddToWl(dc.addr, false)
-				newConn.Close()
+				_ = newConn.Close()
 				return
 			}
 			log.Tracef("Got detour connection to %s, replay", dc.addr)
-			newConn.Write(dc.writeBuffer.Bytes(), dc.chWrite)
+			dc.muWriteBuffer.RLock()
+			sentBytes := dc.writeBuffer.Bytes()
+			dc.muWriteBuffer.RUnlock()
+			newConn.Write(sentBytes, dc.chWrite)
 			newConn.FirstRead(b, dc.chRead)
 			count++
 			// add new connection to connections
@@ -267,7 +274,9 @@ func (dc *Conn) Write(b []byte) (n int, err error) {
 	if isNonIdempotentHTTPRequest(b) {
 		atomic.StoreUint32(&dc.nonIdempotentHTTPRequest, 1)
 	} else {
-		dc.writeBuffer.Write(b)
+		dc.muWriteBuffer.Lock()
+		_, _ = dc.writeBuffer.Write(b)
+		dc.muWriteBuffer.Unlock()
 	}
 	conn := <-dc.conns
 	conn.Write(b, dc.chWrite)
@@ -277,7 +286,7 @@ func (dc *Conn) Write(b []byte) (n int, err error) {
 		case result := <-dc.chWrite:
 			if n, err = result.n, result.err; err != nil {
 				log.Tracef("Error writing %s connection to %s: %s", typeOf(result.conn), dc.addr, err)
-				result.conn.Close()
+				_ = result.conn.Close()
 				if count > 0 {
 					continue
 				}
@@ -299,27 +308,27 @@ func (dc *Conn) followupWrite(b []byte) (n int, err error) {
 	return result.n, result.err
 }
 
-// Close() implements the function from net.Conn
+// Close implements the function from net.Conn
 func (dc *Conn) Close() error {
 	log.Tracef("Closing connection to %s", dc.addr)
 	for len(dc.conns) > 0 {
 		conn := <-dc.conns
-		conn.Close()
+		_ = conn.Close()
 	}
 	return nil
 }
 
-// LocalAddr() implements the function from net.Conn
+// LocalAddr implements the function from net.Conn
 func (dc *Conn) LocalAddr() net.Addr {
 	return nil
 }
 
-// RemoteAddr() implements the function from net.Conn
+// RemoteAddr implements the function from net.Conn
 func (dc *Conn) RemoteAddr() net.Addr {
 	return nil
 }
 
-// SetDeadline() implements the function from net.Conn
+// SetDeadline implements the function from net.Conn
 func (dc *Conn) SetDeadline(t time.Time) error {
 	if err := dc.SetReadDeadline(t); err != nil {
 		log.Debugf("Unable to set read deadline: %v", err)
@@ -330,12 +339,12 @@ func (dc *Conn) SetDeadline(t time.Time) error {
 	return nil
 }
 
-// SetReadDeadline() implements the function from net.Conn
+// SetReadDeadline implements the function from net.Conn
 func (dc *Conn) SetReadDeadline(t time.Time) error {
 	return nil
 }
 
-// SetWriteDeadline() implements the function from net.Conn
+// SetWriteDeadline implements the function from net.Conn
 func (dc *Conn) SetWriteDeadline(t time.Time) error {
 	return nil
 }

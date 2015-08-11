@@ -28,14 +28,14 @@ func init() {
 	blockDetector.Store(detectorByCountry(""))
 }
 
-func DialDirect(network string, addr string, ch chan conn) {
+func dialDirect(network string, addr string, ch chan conn) {
 	go func() {
 		log.Tracef("Dialing direct connection to %s", addr)
 		conn, err := net.DialTimeout(network, addr, TimeoutToConnect)
 		detector := blockDetector.Load().(*Detector)
 		if err == nil {
 			if detector.DNSPoisoned(conn) {
-				conn.Close()
+				_ = conn.Close()
 				log.Debugf("Dial directly to %s, dns hijacked, add to whitelist", addr)
 				AddToWl(addr, false)
 				return
@@ -117,7 +117,7 @@ func (dc *directConn) doRead(b []byte, checker readChecker, ch chan ioResult) {
 			b = nil
 			n = 0
 			log.Tracef("Close direct conn to %s", dc.addr)
-			dc.Close()
+			_ = dc.Close()
 		} else {
 			atomic.AddUint64(&dc.readBytes, uint64(n))
 		}
@@ -134,8 +134,8 @@ func (dc *directConn) Write(b []byte, ch chan ioResult) {
 	return
 }
 
-func (dc *directConn) Close() {
-	dc.Conn.Close()
+func (dc *directConn) Close() (err error) {
+	err = dc.Conn.Close()
 	if atomic.LoadUint64(&dc.readBytes) > 0 && !wlTemporarily(dc.addr) {
 		log.Tracef("no error found till closing, notify caller that %s can be dialed directly", dc.addr)
 		// just fire it, but not blocking if the chan is nil or no reader
@@ -144,4 +144,5 @@ func (dc *directConn) Close() {
 		default:
 		}
 	}
+	return
 }
