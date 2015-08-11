@@ -15,7 +15,7 @@ Basically, if a site is not whitelisted, following steps will be taken:
 
 Blockage can happen at several stages of a connection, what detour can detect are:
 1. Connection attempt is blocked (IP blocking / DNS hijack).
-   Symptoms can be connection time out / TCP RST / connection refused).
+   Symptoms can be connection time out / TCP RST / connection refused.
 2. Connection made but real data get blocked (DPI).
 3. Successfully exchanged a few packets, while follow up packets are blocked. [2]
 4. Connection made but get fake response or HTTP redirect to a fixed URL.
@@ -57,12 +57,13 @@ type dialFunc func(network, addr string) (net.Conn, error)
 
 type Conn struct {
 	// The underlie connections, uses buffered channel as ring queue.
-	// The length can only be 0, 1 or 2 in fact.
+	// The length of it can only be 0, 1 or 2 in fact.
 	conns chan conn
-	// The channel to notify read/write that a new connection is available
-	chDetourConn chan conn
+
 	// The chan to notify dialer to dial detour immediately
 	chDialDetourNow chan bool
+	// The channel to notify read/write that a detour connection is available
+	chDetourConn chan conn
 
 	// The chan to receive result of any read operation
 	chRead chan ioResult
@@ -72,7 +73,7 @@ type Conn struct {
 	// Keeps track of the total bytes read from this connection, atomic
 	readBytes uint64
 
-	network, addr string
+	addr string
 
 	// Keeps written bytes through direct connection to replay it if required.
 	writeBuffer *bytes.Buffer
@@ -114,7 +115,6 @@ func typeOf(c conn) string {
 func Dialer(detourDialer dialFunc) dialFunc {
 	return func(network, addr string) (net.Conn, error) {
 		dc := &Conn{
-			network:         network,
 			addr:            addr,
 			writeBuffer:     new(bytes.Buffer),
 			conns:           make(chan conn, 2),
