@@ -21,6 +21,7 @@ const (
 var (
 	log        = golog.LoggerFor("analytics")
 	httpClient *http.Client
+	ip         string
 )
 
 type HitType string
@@ -69,7 +70,8 @@ type Payload struct {
 	Event *Event
 }
 
-func Configure(trackingId string, version string, proxyAddr string) {
+func Configure(addr string, trackingId string, version string, proxyAddr string) {
+	ip = addr
 	var err error
 	go func() {
 		httpClient, err = util.HTTPClient("", proxyAddr)
@@ -92,6 +94,8 @@ func collectArgs(payload *Payload) string {
 
 	// Add default payload
 	vals.Add("v", ProtocolVersion)
+	vals.Add("uip", ip)
+
 	if payload.ClientVersion != "" {
 		vals.Add("_v", payload.ClientVersion)
 	}

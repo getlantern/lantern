@@ -318,7 +318,7 @@ func applyClientConfig(client *client.Client, cfg *config.Config) {
 	// Update client configuration and get the highest QOS dialer available.
 	hqfd := client.Configure(cfg.Client)
 	if hqfd == nil {
-		log.Errorf("No fronted dialer available, not enabling geolocation, stats or analytics")
+		log.Errorf("No fronted dialer available, not enabling geolocation, config lookup, or stats")
 	} else {
 		// An *http.Client that uses the highest QOS dialer.
 		hqfdClient := hqfd.NewDirectDomainFronter()
