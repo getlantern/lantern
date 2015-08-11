@@ -70,7 +70,10 @@ func Init() error {
 }
 
 func Configure(addr string, cloudConfigCA string, instanceId string,
-	version string, revisionDate string) (done chan bool) {
+	version string, revisionDate string) (success chan bool) {
+
+	success = make(chan bool, 1)
+
 	if logglyToken == "" {
 		//log.Debugf("No logglyToken, not sending error logs to Loggly")
 		logglyToken = "testLogglyToken"
@@ -91,17 +94,18 @@ func Configure(addr string, cloudConfigCA string, instanceId string,
 
 	if addr != "" && addr == lastAddr {
 		log.Debug("Logging configuration unchanged")
+		// Avoid blocking if the result channel is used
+		success <- false
 		return
 	}
 
 	// Using a goroutine because we'll be using waitforserver and at this time
 	// the proxy is not yet ready.
-	done = make(chan bool, 1)
 	go func() {
 		lastAddr = addr
 		enableLoggly(addr, cloudConfigCA, instanceId, version, revisionDate)
 		// Won't block, but will allow optional blocking on receiver
-		done <- true
+		success <- true
 	}()
 	return
 }
