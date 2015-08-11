@@ -30,7 +30,6 @@ package detour
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"net"
 	"sync"
 	"sync/atomic"
@@ -57,8 +56,8 @@ var (
 // Conn implements an net.Conn interface by utilizing underlie direct and
 // detour connections.
 type Conn struct {
-	// The underlie connections, uses buffered channel as ring queue.
-	// The length of it can only be 0, 1 or 2 in fact.
+	// The underlie connections, uses buffered channel as ring queue to avoid
+	// locking. We have at most 2 connetions so a length of 2 is enough.
 	conns chan conn
 
 	// The chan to notify dialer to dial detour immediately
@@ -143,6 +142,7 @@ func Dialer(detourDialer dialFunc) func(network, addr string) (net.Conn, error) 
 				}
 				if dc.anyDataReceived() {
 					ch <- nil
+					return
 				}
 				dialDetour(network, addr, detourDialer, ch)
 			}()
@@ -159,12 +159,14 @@ func Dialer(detourDialer dialFunc) func(network, addr string) (net.Conn, error) 
 						log.Debugf("No new connection to %s remaining, return", dc.addr)
 						return
 					}
+					// first connection made, pass it back to caller
 					if i == 0 {
 						dc.conns <- c
 						chAnyConn <- true
 					} else {
-						if c.ConnType() == connTypeDirect || dc.anyDataReceived() {
-							log.Debugf("%s connection to %s established too late, close it", typeOf(c), dc.addr)
+						if c.ConnType() == connTypeDirect {
+							// Could happen if direct route is much slower.
+							log.Debugf("Direct connection to %s established too late, close it", dc.addr)
 							_ = c.Close()
 							return
 						}
@@ -200,10 +202,11 @@ func (dc *Conn) Read(b []byte) (n int, err error) {
 	if dc.anyDataReceived() {
 		return dc.followupRead(b)
 	}
+	// At initial stage, we only have one connection,
+	// but detour connection can be available at anytime.
 	conn := <-dc.conns
 	conn.FirstRead(b, dc.chRead)
 	dc.conns <- conn
-	log.Tracef("Waiting for response from %s", dc.addr)
 	for count := 1; count > 0; count-- {
 		select {
 		case newConn := <-dc.chDetourConn:
@@ -225,16 +228,17 @@ func (dc *Conn) Read(b []byte) (n int, err error) {
 		case result := <-dc.chRead:
 			log.Tracef("Read back from %s connection", typeOf(result.conn))
 			n, err = result.n, result.err
-			if err != nil && err != io.EOF {
-				log.Tracef("Read from %s connection to %s failed, count=%d: %s", typeOf(result.conn), dc.addr, count, err)
-				// skip failed connection
+			if err != nil {
+				log.Tracef("Read from %s connection to %s failed, closing: %s", typeOf(result.conn), dc.addr, err)
+				_ = result.conn.Close()
+				// skip failed connection as we have more
 				if count > 1 {
 					continue
 				}
 				switch result.conn.ConnType() {
 				case connTypeDirect:
-					select {
 					// if we haven't dial detour yet, do so now
+					select {
 					case dc.chDialDetourNow <- true:
 						count++
 					default:
@@ -281,21 +285,14 @@ func (dc *Conn) Write(b []byte) (n int, err error) {
 	conn := <-dc.conns
 	conn.Write(b, dc.chWrite)
 	dc.conns <- conn
-	for count := 1; count > 0; count-- {
-		select {
-		case result := <-dc.chWrite:
-			if n, err = result.n, result.err; err != nil {
-				log.Tracef("Error writing %s connection to %s: %s", typeOf(result.conn), dc.addr, err)
-				_ = result.conn.Close()
-				if count > 0 {
-					continue
-				}
-				return
-			}
-			log.Tracef("Wrote %d bytes to %s connection to %s", n, typeOf(result.conn), dc.addr)
-			return
-		}
+
+	result := <-dc.chWrite
+	if n, err = result.n, result.err; err != nil {
+		log.Tracef("Error writing %s connection to %s: %s", typeOf(result.conn), dc.addr, err)
+		_ = result.conn.Close()
+		return
 	}
+	log.Tracef("Wrote %d bytes to %s connection to %s", n, typeOf(result.conn), dc.addr)
 	return
 }
 

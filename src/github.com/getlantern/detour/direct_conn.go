@@ -116,8 +116,6 @@ func (dc *directConn) doRead(b []byte, checker readChecker, ch chan ioResult) {
 		if err != nil {
 			b = nil
 			n = 0
-			log.Tracef("Close direct conn to %s", dc.addr)
-			_ = dc.Close()
 		} else {
 			atomic.AddUint64(&dc.readBytes, uint64(n))
 		}
