@@ -111,9 +111,9 @@ func main() {
 			exit(nil)
 		})
 	if err != nil {
-		// Something went wrong setting up the panic wrapper. This wont' be
+		// Something went wrong setting up the panic wrapper. This won't be
 		// captured by panicwrap
-		log.Fatalf("Error setting up panic wrapper: %v", err)
+		log.Errorf("Error setting up panic wrapper: %v", err)
 	}
 	// If exitStatus >= 0, then we're the parent process.
 	if exitStatus >= 0 {
