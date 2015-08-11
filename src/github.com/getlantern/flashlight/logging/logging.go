@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"math"
-	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -90,7 +89,7 @@ func Configure(addr string, cloudConfigCA string, instanceId string,
 		//return
 	}
 
-	if addr == lastAddr {
+	if addr != "" && addr == lastAddr {
 		log.Debug("Logging configuration unchanged")
 		return
 	}
@@ -133,10 +132,8 @@ func timestamped(orig io.Writer) io.Writer {
 
 func enableLoggly(addr string, cloudConfigCA string, instanceId string,
 	version string, revisionDate string) {
-	var client *http.Client
-	var err error
 
-	client, err = util.PersistentHTTPClient(cloudConfigCA, addr)
+	client, err := util.PersistentHTTPClient(cloudConfigCA, addr)
 	if err != nil {
 		log.Errorf("Could not create HTTP client, not logging to Loggly: %v", err)
 		removeLoggly()

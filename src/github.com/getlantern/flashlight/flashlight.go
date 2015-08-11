@@ -94,9 +94,7 @@ func logPanic(msg string) {
 		panic("Error initializing logging")
 	}
 
-	done := logging.Configure("", "", cfg.InstanceId, version, revisionDate)
-	<-done
-	panic("HERE")
+	<-logging.Configure("", "", cfg.InstanceId, version, revisionDate)
 
 	log.Error(msg)
 
