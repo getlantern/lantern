@@ -3,6 +3,7 @@ package analytics
 import (
 	"bytes"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"runtime"
 	"strconv"
@@ -151,6 +152,12 @@ func SendRequest(payload *Payload) (status bool, err error) {
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	r.Header.Add("Content-Length", strconv.Itoa(len(args)))
 
+	if req, err := httputil.DumpRequestOut(r, true); err != nil {
+		log.Debugf("Could not dump request: %v", err)
+	} else {
+		log.Debugf("Full analytics request: %v", string(req))
+	}
+
 	resp, err := httpClient.Do(r)
 	if err != nil {
 		log.Errorf("Could not send HTTP request to GA: %s", err)
@@ -162,7 +169,6 @@ func SendRequest(payload *Payload) (status bool, err error) {
 			log.Debugf("Unable to close response body: %v", err)
 		}
 	}()
-
 	return true, nil
 }
 

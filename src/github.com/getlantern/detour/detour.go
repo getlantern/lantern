@@ -51,7 +51,7 @@ var TimeoutToDetour = 3 * time.Second
 
 // if DirectAddrCh is set, when a direct connection is closed without any error,
 // the connection's remote address (in host:port format) will be send to it
-var DirectAddrCh chan string
+var DirectAddrCh chan string = make(chan string)
 
 var (
 	log = golog.LoggerFor("detour")

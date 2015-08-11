@@ -13,7 +13,7 @@ import (
 
 const (
 	messageType = `Analytics`
-	TrackingId  = "UA-21815217-2"
+	TrackingId  = "UA-21815217-12"
 )
 
 var (
