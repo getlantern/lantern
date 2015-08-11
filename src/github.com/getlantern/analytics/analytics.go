@@ -94,7 +94,12 @@ func collectArgs(payload *Payload) string {
 
 	// Add default payload
 	vals.Add("v", ProtocolVersion)
+
+	// Override the users IP so we get accurate geo data.
 	vals.Add("uip", ip)
+
+	// Make call to anonymize the user's IP address.
+	vals.Add("aip", "1")
 
 	if payload.ClientVersion != "" {
 		vals.Add("_v", payload.ClientVersion)
