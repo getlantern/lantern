@@ -67,9 +67,9 @@ func (w *linePrepender) Write(buf []byte) (int, error) {
 	return totalN, err
 }
 
-// SimplePrepender creates an io.Writer that prepends to each line by calling the
-// given prepend function. Prepend can write whatever it wants. It should
-// return the bytes written and any error encountered.
+// SimplePrepender creates an io.Writer that prepends by calling the given
+// prepend function. Prepend can write whatever it wants. It should return
+// the bytes written and any error encountered.
 func SimplePrepender(w io.Writer, prepend Prepend) io.Writer {
 	return &simplePrepender{w, prepend}
 }
