@@ -71,25 +71,21 @@ func Init() error {
 
 func Configure(addr string, cloudConfigCA string, instanceId string,
 	version string, revisionDate string) (success chan bool) {
-
 	success = make(chan bool, 1)
 
 	if logglyToken == "" {
-		//log.Debugf("No logglyToken, not sending error logs to Loggly")
-		logglyToken = "testLogglyToken"
-		//return
+		log.Debugf("No logglyToken, not sending error logs to Loggly")
+		return
 	}
 
 	if version == "" {
-		//log.Error("No version configured, not sending error logs to Loggly")
-		version = "testVersion"
-		//return
+		log.Error("No version configured, not sending error logs to Loggly")
+		return
 	}
 
 	if revisionDate == "" {
-		//log.Error("No build date configured, not sending error logs to Loggly")
-		revisionDate = "testRevisionDate"
-		//return
+		log.Error("No build date configured, not sending error logs to Loggly")
+		return
 	}
 
 	if addr != "" && addr == lastAddr {
