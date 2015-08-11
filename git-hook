@@ -28,8 +28,8 @@ which golint >/dev/null || (echo "Unable to find golint, please install it: \`go
 
 echo "*** Running \033[0;34mErrcheck\033[0m ***" && \
 for dir in $MODIFIED_DIRS; do
-  errcheck github.com/getlantern/$dir || \
-    (echo "\033[0;31merrcheck returned error analyzing the package '$dir'\033[0m" && \
+  errcheck github.com/getlantern/$dir || (\
+    echo "\033[0;31merrcheck returned error analyzing the package '$dir'\033[0m" && \
     echo "Please, fix and run again\n" && \
     exit 1)
 done
