@@ -264,7 +264,9 @@ func (w logglyErrorWriter) Write(b []byte) (int, error) {
 
 // flush forces output, since it normally flushes based on an interval
 func (w *logglyErrorWriter) flush() {
-	w.client.Flush()
+	if err := w.client.Flush(); err != nil {
+		log.Debugf("Error flushing loggly error writer: %v", err)
+	}
 }
 
 type nonStopWriter struct {
