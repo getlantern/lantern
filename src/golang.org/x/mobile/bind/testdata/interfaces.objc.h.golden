@@ -12,10 +12,16 @@
 
 @class GoInterfacesWithParam;
 
+@protocol GoInterfacesI
+- (int32_t)Rand;
+@end
 
+@protocol GoInterfacesWithParam
+- (void)HasParam:(BOOL)p0;
+@end
 
-FOUNDATION_EXPORT int32_t GoInterfacesAdd3(GoInterfacesI* r);
+FOUNDATION_EXPORT int32_t GoInterfacesAdd3(id<GoInterfacesI> r);
 
-FOUNDATION_EXPORT GoInterfacesI* GoInterfacesSeven();
+FOUNDATION_EXPORT id<GoInterfacesI> GoInterfacesSeven();
 
 #endif

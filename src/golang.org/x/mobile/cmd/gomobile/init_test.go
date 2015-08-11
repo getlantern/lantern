@@ -8,6 +8,8 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"runtime"
+	"strconv"
 	"strings"
 	"testing"
 	"text/template"
@@ -22,11 +24,14 @@ func TestInit(t *testing.T) {
 		xout = os.Stderr
 		buildN = false
 		buildX = false
+		initU = false
 		os.Setenv("GOPATH", gopathorig)
 	}()
 	xout = buf
 	buildN = true
 	buildX = true
+	initU = true
+
 	// Test that first GOPATH element is chosen correctly.
 	gopath = "/GOPATH1"
 	paths := []string{"/GOPATH1", "/path2", "/path3"}
@@ -35,15 +40,14 @@ func TestInit(t *testing.T) {
 	if goos == "windows" {
 		os.Setenv("HOMEDRIVE", "C:")
 	}
+
 	err := runInit(cmdInit)
 	if err != nil {
 		t.Log(buf.String())
 		t.Fatal(err)
 	}
 
-	tmpl := initTmpl
-
-	diff, err := diffOutput(buf.String(), tmpl)
+	diff, err := diffOutput(buf.String(), initTmpl)
 	if err != nil {
 		t.Fatalf("computing diff failed: %v", err)
 	}
@@ -57,11 +61,15 @@ func diffOutput(got string, wantTmpl *template.Template) (string, error) {
 
 	wantBuf := new(bytes.Buffer)
 	data := outputData{
-		NDK:     ndkVersion,
-		GOOS:    goos,
-		GOARCH:  goarch,
-		GOPATH:  gopath,
-		NDKARCH: ndkarch,
+		NDK:       ndkVersion,
+		GOOS:      goos,
+		GOARCH:    goarch,
+		GOPATH:    gopath,
+		NDKARCH:   ndkarch,
+		Xproj:     projPbxproj,
+		Xcontents: contentsJSON,
+		Xinfo:     infoplistTmplData{Name: "Basic"},
+		NumCPU:    strconv.Itoa(runtime.NumCPU()),
 	}
 	if goos == "windows" {
 		data.EXE = ".exe"
@@ -77,12 +85,16 @@ func diffOutput(got string, wantTmpl *template.Template) (string, error) {
 }
 
 type outputData struct {
-	NDK     string
-	GOOS    string
-	GOARCH  string
-	GOPATH  string
-	NDKARCH string
-	EXE     string // .extension for executables. (ex. ".exe" for windows)
+	NDK       string
+	GOOS      string
+	GOARCH    string
+	GOPATH    string
+	NDKARCH   string
+	EXE       string // .extension for executables. (ex. ".exe" for windows)
+	Xproj     string
+	Xcontents string
+	Xinfo     infoplistTmplData
+	NumCPU    string
 }
 
 var initTmpl = template.Must(template.New("output").Parse(`GOMOBILE={{.GOPATH}}/pkg/gomobile
@@ -108,10 +120,10 @@ tar xfz $GOMOBILE/dl/gomobile-openal-soft-1.16.0.1.tar.gz
 mv $WORK/openal/include/AL $GOMOBILE/android-{{.NDK}}/arm/sysroot/usr/include/AL
 mkdir -p $GOMOBILE/android-{{.NDK}}/openal
 mv $WORK/openal/lib $GOMOBILE/android-{{.NDK}}/openal/lib
-{{if eq .GOOS "darwin"}}GOOS=android GOARCH=arm GOARM=7 CC=$GOMOBILE/android-{{.NDK}}/arm/bin/arm-linux-androideabi-gcc{{.EXE}} CXX=$GOMOBILE/android-{{.NDK}}/arm/bin/arm-linux-androideabi-g++ CGO_ENABLED=1 go install -pkgdir=$GOMOBILE/pkg_android_arm -x std
-GOOS=darwin GOARCH=arm GOARM=7 CC=clang-iphoneos CXX=clang-iphoneos CGO_CFLAGS=-isysroot=iphoneos -arch armv7 CGO_LDFLAGS=-isysroot=iphoneos -arch armv7 CGO_ENABLED=1 go install -pkgdir=$GOMOBILE/pkg_darwin_arm -x std
-GOOS=darwin GOARCH=arm64 CC=clang-iphoneos CXX=clang-iphoneos CGO_CFLAGS=-isysroot=iphoneos -arch arm64 CGO_LDFLAGS=-isysroot=iphoneos -arch arm64 CGO_ENABLED=1 go install -pkgdir=$GOMOBILE/pkg_darwin_arm64 -x std
-GOOS=darwin GOARCH=amd64 CC=clang-iphonesimulator CXX=clang-iphonesimulator CGO_CFLAGS=-isysroot=iphonesimulator -mios-simulator-version-min=6.1 -arch x86_64 CGO_LDFLAGS=-isysroot=iphonesimulator -mios-simulator-version-min=6.1 -arch x86_64 CGO_ENABLED=1 go install -pkgdir=$GOMOBILE/pkg_darwin_amd64 -tags=ios -x std
+GOOS=android GOARCH=arm GOARM=7 CC=$GOMOBILE/android-{{.NDK}}/arm/bin/arm-linux-androideabi-gcc{{.EXE}} CXX=$GOMOBILE/android-{{.NDK}}/arm/bin/arm-linux-androideabi-g++ CGO_ENABLED=1 go install -p={{.NumCPU}} -pkgdir=$GOMOBILE/pkg_android_arm -x std
+{{if eq .GOOS "darwin"}}GOOS=darwin GOARCH=arm GOARM=7 CC=clang-iphoneos CXX=clang-iphoneos CGO_CFLAGS=-isysroot=iphoneos -arch armv7 CGO_LDFLAGS=-isysroot=iphoneos -arch armv7 CGO_ENABLED=1 go install -p={{.NumCPU}} -pkgdir=$GOMOBILE/pkg_darwin_arm -x std
+GOOS=darwin GOARCH=arm64 CC=clang-iphoneos CXX=clang-iphoneos CGO_CFLAGS=-isysroot=iphoneos -arch arm64 CGO_LDFLAGS=-isysroot=iphoneos -arch arm64 CGO_ENABLED=1 go install -p={{.NumCPU}} -pkgdir=$GOMOBILE/pkg_darwin_arm64 -x std
+GOOS=darwin GOARCH=amd64 CC=clang-iphonesimulator CXX=clang-iphonesimulator CGO_CFLAGS=-isysroot=iphonesimulator -mios-simulator-version-min=6.1 -arch x86_64 CGO_LDFLAGS=-isysroot=iphonesimulator -mios-simulator-version-min=6.1 -arch x86_64 CGO_ENABLED=1 go install -p={{.NumCPU}} -pkgdir=$GOMOBILE/pkg_darwin_amd64 -tags=ios -x std
 {{end}}go version > $GOMOBILE/version
 rm -r -f "$WORK"
 `))

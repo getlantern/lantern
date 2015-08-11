@@ -7,11 +7,13 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"go/build"
 	"io"
 	"os"
 	"os/exec"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -49,8 +51,8 @@ output file name depends on the package built.
 
 The -v flag provides verbose output, including the list of packages built.
 
-The build flags -a, -i, -n, -x, -gcflags, -ldflags, and -tags are shared
-with the build command. For documentation, see 'go help build'.
+The build flags -a, -i, -n, -x, -gcflags, -ldflags, -tags, and -work are
+shared with the build command. For documentation, see 'go help build'.
 `,
 }
 
@@ -62,6 +64,16 @@ func runBuild(cmd *command) (err error) {
 	defer cleanup()
 
 	args := cmd.flag.Args()
+
+	ctx.GOARCH = "arm"
+	switch buildTarget {
+	case "android":
+		ctx.GOOS = "android"
+	case "ios":
+		ctx.GOOS = "darwin"
+	default:
+		return fmt.Errorf(`unknown -target, %q.`, buildTarget)
+	}
 
 	switch len(args) {
 	case 0:
@@ -80,12 +92,14 @@ func runBuild(cmd *command) (err error) {
 		return fmt.Errorf("cannot set -o when building non-main package")
 	}
 
+	var nmpkgs map[string]bool
 	switch buildTarget {
 	case "android":
 		if pkg.Name != "main" {
 			return goBuild(pkg.ImportPath, androidArmEnv)
 		}
-		if err := goAndroidBuild(pkg); err != nil {
+		nmpkgs, err = goAndroidBuild(pkg)
+		if err != nil {
 			return err
 		}
 	case "ios":
@@ -98,22 +112,51 @@ func runBuild(cmd *command) (err error) {
 			}
 			return goBuild(pkg.ImportPath, darwinArm64Env)
 		}
-		if err := goIOSBuild(pkg); err != nil {
+		nmpkgs, err = goIOSBuild(pkg)
+		if err != nil {
 			return err
 		}
-	default:
-		return fmt.Errorf(`unknown -target, %q.`, buildTarget)
 	}
 
-	// TODO(crawshaw): This is an incomplete package scan.
-	// A complete package scan would be too expensive. Instead,
-	// fake it. After the binary is built, scan its symbols
-	// with nm and look for the app and al packages.
-	if err := importsApp(pkg); err != nil {
-		return err
+	if !nmpkgs["golang.org/x/mobile/app"] {
+		return fmt.Errorf(`%s does not import "golang.org/x/mobile/app"`, pkg.ImportPath)
 	}
 
 	return nil
+}
+
+var nmRE = regexp.MustCompile(`[0-9a-f]{8} t (golang.org/x.*/[^.]*)`)
+
+func extractPkgs(nm string, path string) (map[string]bool, error) {
+	if buildN {
+		return map[string]bool{"golang.org/x/mobile/app": true}, nil
+	}
+	r, w := io.Pipe()
+	cmd := exec.Command(nm, path)
+	cmd.Stdout = w
+	cmd.Stderr = os.Stderr
+
+	nmpkgs := make(map[string]bool)
+	errc := make(chan error, 1)
+	go func() {
+		s := bufio.NewScanner(r)
+		for s.Scan() {
+			if res := nmRE.FindStringSubmatch(s.Text()); res != nil {
+				nmpkgs[res[1]] = true
+			}
+		}
+		errc <- s.Err()
+	}()
+
+	err := cmd.Run()
+	w.Close()
+	if err != nil {
+		return nil, fmt.Errorf("%s %s: %v", nm, path, err)
+	}
+	if err := <-errc; err != nil {
+		return nil, fmt.Errorf("%s %s: %v", nm, path, err)
+	}
+	return nmpkgs, nil
 }
 
 func importsApp(pkg *build.Package) error {
@@ -165,6 +208,7 @@ var (
 	buildGcflags string // -gcflags
 	buildLdflags string // -ldflags
 	buildTarget  string // -target
+	buildWork    bool   // -work
 )
 
 func addBuildFlags(cmd *command) {
@@ -178,10 +222,11 @@ func addBuildFlags(cmd *command) {
 	cmd.flag.Var((*stringsFlag)(&ctx.BuildTags), "tags", "")
 }
 
-func addBuildFlagsNVX(cmd *command) {
+func addBuildFlagsNVXWork(cmd *command) {
 	cmd.flag.BoolVar(&buildN, "n", false, "")
 	cmd.flag.BoolVar(&buildV, "v", false, "")
 	cmd.flag.BoolVar(&buildX, "x", false, "")
+	cmd.flag.BoolVar(&buildWork, "work", false, "")
 }
 
 type binInfo struct {
@@ -191,21 +236,24 @@ type binInfo struct {
 
 func init() {
 	addBuildFlags(cmdBuild)
-	addBuildFlagsNVX(cmdBuild)
+	addBuildFlagsNVXWork(cmdBuild)
 
 	addBuildFlags(cmdInstall)
-	addBuildFlagsNVX(cmdInstall)
+	addBuildFlagsNVXWork(cmdInstall)
 
-	addBuildFlagsNVX(cmdInit)
+	addBuildFlagsNVXWork(cmdInit)
 
 	addBuildFlags(cmdBind)
-	addBuildFlagsNVX(cmdBind)
+	addBuildFlagsNVXWork(cmdBind)
 }
 
 func goBuild(src string, env []string, args ...string) error {
+	// The -p flag is to speed up darwin/arm builds.
+	// Remove when golang.org/issue/10477 is resolved.
 	cmd := exec.Command(
 		"go",
 		"build",
+		fmt.Sprintf("-p=%d", runtime.NumCPU()),
 		"-pkgdir="+pkgdir(env),
 		"-tags="+strconv.Quote(strings.Join(ctx.BuildTags, ",")),
 	)
@@ -223,6 +271,9 @@ func goBuild(src string, env []string, args ...string) error {
 	}
 	if buildLdflags != "" {
 		cmd.Args = append(cmd.Args, "-ldflags", buildLdflags)
+	}
+	if buildWork {
+		cmd.Args = append(cmd.Args, "-work")
 	}
 	cmd.Args = append(cmd.Args, args...)
 	cmd.Args = append(cmd.Args, src)

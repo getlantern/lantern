@@ -279,10 +279,9 @@ func (x *operand) assignableTo(conf *Config, T Type) bool {
 	return false
 }
 
-// isInteger reports whether x is a value of integer type
-// or an untyped constant representable as an integer.
+// isInteger reports whether x is a (typed or untyped) integer value.
 func (x *operand) isInteger() bool {
 	return x.mode == invalid ||
 		isInteger(x.typ) ||
-		isUntyped(x.typ) && x.mode == constant && representableConst(x.val, nil, UntypedInt, nil) // no *Config required for UntypedInt
+		x.mode == constant && representableConst(x.val, nil, UntypedInt, nil) // no *Config required for UntypedInt
 }

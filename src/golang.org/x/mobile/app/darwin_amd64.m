@@ -189,7 +189,7 @@ uint64 threadID() {
 	uint32_t rune = (uint32_t)buf[0]<<0 | (uint32_t)buf[1]<<8 | (uint32_t)buf[2]<<16 | (uint32_t)buf[3]<<24;
 
 	uint8_t direction;
-	if (theEvent.ARepeat) {
+	if ([theEvent isARepeat]) {
 		direction = 0;
 	} else if (theEvent.type == NSKeyDown) {
 		direction = 1;

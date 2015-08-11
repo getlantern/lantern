@@ -7,10 +7,9 @@ package bind
 import (
 	"fmt"
 	"go/token"
+	"go/types"
 	"log"
 	"strings"
-
-	"golang.org/x/tools/go/types"
 )
 
 type goGen struct {
@@ -238,10 +237,12 @@ func (g *goGen) genStruct(obj *types.TypeName, T *types.Struct) {
 func (g *goGen) genInterface(obj *types.TypeName) {
 	iface := obj.Type().(*types.Named).Underlying().(*types.Interface)
 
+	ifaceDesc := fmt.Sprintf("go.%s.%s", g.pkg.Name(), obj.Name())
+
 	// Descriptor and code for interface methods.
 	g.Printf("const (\n")
 	g.Indent()
-	g.Printf("proxy%s_Descriptor = \"go.%s.%s\"\n", obj.Name(), g.pkg.Name(), obj.Name())
+	g.Printf("proxy%s_Descriptor = %q\n", obj.Name(), ifaceDesc)
 	for i := 0; i < iface.NumMethods(); i++ {
 		g.Printf("proxy%s_%s_Code = 0x%x0a\n", obj.Name(), iface.Method(i).Name(), i+1)
 	}
@@ -308,9 +309,9 @@ func (g *goGen) genInterface(obj *types.TypeName) {
 		}
 
 		if res.Len() == 0 {
-			g.Printf("seq.Transact((*seq.Ref)(p), proxy%s_%s_Code, in)\n", obj.Name(), m.Name())
+			g.Printf("seq.Transact((*seq.Ref)(p), %q, proxy%s_%s_Code, in)\n", ifaceDesc, obj.Name(), m.Name())
 		} else {
-			g.Printf("out := seq.Transact((*seq.Ref)(p), proxy%s_%s_Code, in)\n", obj.Name(), m.Name())
+			g.Printf("out := seq.Transact((*seq.Ref)(p), %q, proxy%s_%s_Code, in)\n", ifaceDesc, obj.Name(), m.Name())
 			var rvs []string
 			for i := 0; i < res.Len(); i++ {
 				rv := fmt.Sprintf("res_%d", i)

@@ -7,11 +7,88 @@
 #include <Foundation/Foundation.h>
 #include "seq.h"
 
-static NSString *errDomain = @"go.issue10788";
+static NSString* errDomain = @"go.issue10788";
+
+@protocol goSeqRefInterface
+-(GoSeqRef*) ref;
+@end
 
 #define _DESCRIPTOR_ "issue10788"
 
 
+#define _GO_issue10788_TestInterface_DESCRIPTOR_ "go.issue10788.TestInterface"
+#define _GO_issue10788_TestInterface_DoSomeWork_ (0x10a)
+#define _GO_issue10788_TestInterface_MultipleUnnamedParams_ (0x20a)
+
+@interface GoIssue10788TestInterface : NSObject <GoIssue10788TestInterface> {
+}
+@property(strong, readonly) id ref;
+
+- (id)initWithRef:(id)ref;
+- (void)DoSomeWork:(GoIssue10788TestStruct*)s;
+- (void)MultipleUnnamedParams:(int)p0 p1:(NSString*)p1 p2:(int64_t)p2;
+@end
+
+@implementation GoIssue10788TestInterface {
+}
+
+- (id)initWithRef:(id)ref {
+	self = [super init];
+	if (self) { _ref = ref; }
+	return self;
+}
+
+- (void)DoSomeWork:(GoIssue10788TestStruct*)s {
+	GoSeq in_ = {};
+	GoSeq out_ = {};
+	go_seq_writeRef(&in_, self.ref);
+	if ([(id<NSObject>)(s) isKindOfClass:[GoIssue10788TestStruct class]]) {
+		id<goSeqRefInterface> s_proxy = (id<goSeqRefInterface>)(s);
+		go_seq_writeRef(&in_, s_proxy.ref);
+	} else {
+		go_seq_writeObjcRef(&in_, s);
+	}
+	go_seq_send(_GO_issue10788_TestInterface_DESCRIPTOR_, _GO_issue10788_TestInterface_DoSomeWork_, &in_, &out_);
+	go_seq_free(&in_);
+	go_seq_free(&out_);
+}
+
+- (void)MultipleUnnamedParams:(int)p0 p1:(NSString*)p1 p2:(int64_t)p2 {
+	GoSeq in_ = {};
+	GoSeq out_ = {};
+	go_seq_writeRef(&in_, self.ref);
+	go_seq_writeInt(&in_, p0);
+	go_seq_writeUTF8(&in_, p1);
+	go_seq_writeInt64(&in_, p2);
+	go_seq_send(_GO_issue10788_TestInterface_DESCRIPTOR_, _GO_issue10788_TestInterface_MultipleUnnamedParams_, &in_, &out_);
+	go_seq_free(&in_);
+	go_seq_free(&out_);
+}
+
+@end
+
+static void proxyGoIssue10788TestInterface(id obj, int code, GoSeq* in, GoSeq* out) {
+	switch (code) {
+	case _GO_issue10788_TestInterface_DoSomeWork_: {
+		id<GoIssue10788TestInterface> o = (id<GoIssue10788TestInterface>)(obj);
+		GoSeqRef* s_ref = go_seq_readRef(in);
+		GoIssue10788TestStruct* s = s_ref.obj;
+		if (s == NULL) {
+			s = [[GoIssue10788TestStruct alloc] initWithRef:s_ref];
+		}
+		[o DoSomeWork:s];
+	} break;
+	case _GO_issue10788_TestInterface_MultipleUnnamedParams_: {
+		id<GoIssue10788TestInterface> o = (id<GoIssue10788TestInterface>)(obj);
+		int p0 = go_seq_readInt(in);
+		NSString* p1 = go_seq_readUTF8(in);
+		int64_t p2 = go_seq_readInt64(in);
+		[o MultipleUnnamedParams:p0 p1:p1 p2:p2];
+	} break;
+	default:
+		NSLog(@"unknown code %x for _GO_issue10788_TestInterface_DESCRIPTOR_", code);
+	}
+}
 
 #define _GO_issue10788_TestStruct_DESCRIPTOR_ "go.issue10788.TestStruct"
 #define _GO_issue10788_TestStruct_FIELD_Value_GET_ (0x00f)
@@ -49,3 +126,6 @@ static NSString *errDomain = @"go.issue10788";
 
 @end
 
+__attribute__((constructor)) static void init() {
+	go_seq_register_proxy("go.issue10788.TestInterface", proxyGoIssue10788TestInterface);
+}

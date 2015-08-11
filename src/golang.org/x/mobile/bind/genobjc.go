@@ -7,8 +7,7 @@ package bind
 import (
 	"fmt"
 	"go/token"
-	"golang.org/x/tools/go/types"
-	"log"
+	"go/types"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -68,7 +67,7 @@ func (g *objcGen) genH() error {
 	g.Printf("#ifndef __Go%s_H__\n", capitalize(g.pkgName))
 	g.Printf("#define __Go%s_H__\n", capitalize(g.pkgName))
 	g.Printf("\n")
-	g.Printf(`#include <Foundation/Foundation.h>`)
+	g.Printf("#include <Foundation/Foundation.h>")
 	g.Printf("\n\n")
 
 	// @class names
@@ -116,7 +115,12 @@ func (g *objcGen) genM() error {
 	g.Printf("#include <Foundation/Foundation.h>\n")
 	g.Printf("#include \"seq.h\"\n")
 	g.Printf("\n")
-	g.Printf("static NSString *errDomain = @\"go.%s\";\n", g.pkg.Path())
+	g.Printf("static NSString* errDomain = @\"go.%s\";\n", g.pkg.Path())
+	g.Printf("\n")
+
+	g.Printf("@protocol goSeqRefInterface\n")
+	g.Printf("-(GoSeqRef*) ref;\n")
+	g.Printf("@end\n")
 	g.Printf("\n")
 
 	g.Printf("#define _DESCRIPTOR_ %q\n\n", g.pkgName)
@@ -125,13 +129,15 @@ func (g *objcGen) genM() error {
 	}
 	g.Printf("\n")
 
-	// @implementation Go*_* : GoSeqProxyObject
+	// struct, interface.
+	var interfaces []*types.TypeName
 	for _, obj := range g.names {
 		named := obj.Type().(*types.Named)
 		switch t := named.Underlying().(type) {
 		case *types.Struct:
 			g.genStructM(obj, t)
 		case *types.Interface:
+			interfaces = append(interfaces, obj)
 			g.genInterfaceM(obj, t)
 		}
 		g.Printf("\n")
@@ -143,9 +149,21 @@ func (g *objcGen) genM() error {
 		g.Printf("\n")
 	}
 
+	// register proxy functions.
+	if len(interfaces) > 0 {
+		g.Printf("__attribute__((constructor)) static void init() {\n")
+		g.Indent()
+		for _, obj := range interfaces {
+			g.Printf("go_seq_register_proxy(\"go.%s.%s\", proxy%s%s);\n", g.pkgName, obj.Name(), g.namePrefix, obj.Name())
+		}
+		g.Outdent()
+		g.Printf("}\n")
+	}
+
 	if len(g.err) > 0 {
 		return g.err
 	}
+
 	return nil
 }
 
@@ -257,6 +275,27 @@ func (s *funcSummary) asMethod(g *objcGen) string {
 	return fmt.Sprintf("(%s)%s%s", s.ret, s.name, strings.Join(params, " "))
 }
 
+func (s *funcSummary) callMethod(g *objcGen) string {
+	var params []string
+	for i, p := range s.params {
+		var key string
+		if i != 0 {
+			key = p.name
+		}
+		params = append(params, fmt.Sprintf("%s:%s", key, p.name))
+	}
+	if !s.returnsVal() {
+		for _, p := range s.retParams {
+			var key string
+			if len(params) > 0 {
+				key = p.name
+			}
+			params = append(params, fmt.Sprintf("%s:&%s", key, p.name))
+		}
+	}
+	return fmt.Sprintf("%s%s", s.name, strings.Join(params, " "))
+}
+
 func (s *funcSummary) returnsVal() bool {
 	return len(s.retParams) == 1 && !isErrorType(s.retParams[0].typ)
 }
@@ -297,7 +336,16 @@ func (g *objcGen) genFunc(pkgDesc, callDesc string, s *funcSummary, isMethod boo
 	for _, p := range s.params {
 		st := g.seqType(p.typ)
 		if st == "Ref" {
-			g.Printf("go_seq_write%s(&in_, %s.ref);\n", st, p.name)
+			g.Printf("if ([(id<NSObject>)(%s) isKindOfClass:[%s class]]) {\n", p.name, g.refTypeBase(p.typ))
+			g.Indent()
+			g.Printf("id<goSeqRefInterface> %[1]s_proxy = (id<goSeqRefInterface>)(%[1]s);\n", p.name)
+			g.Printf("go_seq_writeRef(&in_, %s_proxy.ref);\n", p.name)
+			g.Outdent()
+			g.Printf("} else {\n")
+			g.Indent()
+			g.Printf("go_seq_writeObjcRef(&in_, %s);\n", p.name)
+			g.Outdent()
+			g.Printf("}\n")
 		} else {
 			g.Printf("go_seq_write%s(&in_, %s);\n", st, p.name)
 		}
@@ -314,7 +362,7 @@ func (g *objcGen) genFunc(pkgDesc, callDesc string, s *funcSummary, isMethod boo
 			g.Printf("%s %s = %s_ref.obj;\n", ptype, p.name, p.name)
 			g.Printf("if (%s == NULL) {\n", p.name)
 			g.Indent()
-			g.Printf("%s = [[%s alloc] initWithRef:%s_ref];\n", p.name, ptype[:len(ptype)-1], p.name)
+			g.Printf("%s = [[%s alloc] initWithRef:%s_ref];\n", p.name, g.refTypeBase(p.typ), p.name)
 			g.Outdent()
 			g.Printf("}\n")
 		}
@@ -324,7 +372,7 @@ func (g *objcGen) genFunc(pkgDesc, callDesc string, s *funcSummary, isMethod boo
 				g.Printf("NSString* _%s = go_seq_readUTF8(&out_);\n", p.name)
 				g.Printf("if ([_%s length] != 0 && %s != nil) {\n", p.name, p.name)
 				g.Indent()
-				g.Printf("NSMutableDictionary *details = [NSMutableDictionary dictionary];\n")
+				g.Printf("NSMutableDictionary* details = [NSMutableDictionary dictionary];\n")
 				g.Printf("[details setValue:_%s forKey:NSLocalizedDescriptionKey];\n", p.name)
 				g.Printf("*%s = [NSError errorWithDomain:errDomain code:1 userInfo:details];\n", p.name)
 				g.Outdent()
@@ -337,14 +385,13 @@ func (g *objcGen) genFunc(pkgDesc, callDesc string, s *funcSummary, isMethod boo
 				g.Outdent()
 				g.Printf("}\n")
 			} else {
-				ptype := g.objcType(p.typ)
 				g.Printf("GoSeqRef* %s_ref = go_seq_readRef(&out_);\n", p.name)
 				g.Printf("if (%s != NULL) {\n", p.name)
 				g.Indent()
 				g.Printf("*%s = %s_ref.obj;\n", p.name, p.name)
 				g.Printf("if (*%s == NULL) {\n", p.name)
 				g.Indent()
-				g.Printf("*%s = [[%s alloc] initWithRef:%s_ref];\n", p.name, ptype[:len(ptype)-1], p.name)
+				g.Printf("*%s = [[%s alloc] initWithRef:%s_ref];\n", p.name, g.refTypeBase(p.typ), p.name)
 				g.Outdent()
 				g.Printf("}\n")
 				g.Outdent()
@@ -366,10 +413,172 @@ func (g *objcGen) genFunc(pkgDesc, callDesc string, s *funcSummary, isMethod boo
 }
 
 func (g *objcGen) genInterfaceH(obj *types.TypeName, t *types.Interface) {
-	log.Printf("TODO: %s", obj.Name())
+	g.Printf("@protocol %s%s\n", g.namePrefix, obj.Name())
+	for _, m := range exportedMethodSet(obj.Type()) {
+		s := g.funcSummary(m)
+		g.Printf("- %s;\n", s.asMethod(g))
+	}
+	g.Printf("@end\n")
 }
+
 func (g *objcGen) genInterfaceM(obj *types.TypeName, t *types.Interface) {
-	log.Printf("TODO: %s", obj.Name())
+	methods := exportedMethodSet(obj.Type())
+
+	desc := fmt.Sprintf("_GO_%s_%s", g.pkgName, obj.Name())
+	g.Printf("#define %s_DESCRIPTOR_ \"go.%s.%s\"\n", desc, g.pkgName, obj.Name())
+	for i, m := range methods {
+		g.Printf("#define %s_%s_ (0x%x0a)\n", desc, m.Name(), i+1)
+	}
+	g.Printf("\n")
+
+	// @interface Interface -- similar to what genStructH does.
+	g.Printf("@interface %[1]s%[2]s : NSObject <%[1]s%[2]s> {\n", g.namePrefix, obj.Name())
+	g.Printf("}\n")
+	g.Printf("@property(strong, readonly) id ref;\n")
+	g.Printf("\n")
+	g.Printf("- (id)initWithRef:(id)ref;\n")
+	for _, m := range methods {
+		s := g.funcSummary(m)
+		g.Printf("- %s;\n", s.asMethod(g))
+	}
+	g.Printf("@end\n")
+	g.Printf("\n")
+
+	// @implementation Interface -- similar to what genStructM does.
+	g.Printf("@implementation %s%s {\n", g.namePrefix, obj.Name())
+	g.Printf("}\n")
+	g.Printf("\n")
+	g.Printf("- (id)initWithRef:(id)ref {\n")
+	g.Indent()
+	g.Printf("self = [super init];\n")
+	g.Printf("if (self) { _ref = ref; }\n")
+	g.Printf("return self;\n")
+	g.Outdent()
+	g.Printf("}\n")
+	g.Printf("\n")
+
+	for _, m := range methods {
+		s := g.funcSummary(m)
+		g.Printf("- %s {\n", s.asMethod(g))
+		g.Indent()
+		g.genFunc(desc+"_DESCRIPTOR_", desc+"_"+m.Name()+"_", s, true)
+		g.Outdent()
+		g.Printf("}\n\n")
+	}
+	g.Printf("@end\n")
+	g.Printf("\n")
+
+	// proxy function.
+	g.Printf("static void proxy%s%s(id obj, int code, GoSeq* in, GoSeq* out) {\n", g.namePrefix, obj.Name())
+	g.Indent()
+	g.Printf("switch (code) {\n")
+	for _, m := range methods {
+		g.Printf("case %s_%s_: {\n", desc, m.Name())
+		g.Indent()
+		g.genInterfaceMethodProxy(obj, g.funcSummary(m))
+		g.Outdent()
+		g.Printf("} break;\n")
+	}
+	g.Printf("default:\n")
+	g.Indent()
+	g.Printf("NSLog(@\"unknown code %%x for %s_DESCRIPTOR_\", code);\n", desc)
+	g.Outdent()
+	g.Printf("}\n")
+	g.Outdent()
+	g.Printf("}\n")
+}
+
+func (g *objcGen) genInterfaceMethodProxy(obj *types.TypeName, s *funcSummary) {
+	g.Printf("id<%[1]s%[2]s> o = (id<%[1]s%[2]s>)(obj);\n", g.namePrefix, obj.Name())
+	// read params from GoSeq* inseq
+	for _, p := range s.params {
+		stype := g.seqType(p.typ)
+		ptype := g.objcType(p.typ)
+		if stype == "Ref" {
+			g.Printf("GoSeqRef* %s_ref = go_seq_readRef(in);\n", p.name)
+			g.Printf("%s %s = %s_ref.obj;\n", ptype, p.name, p.name)
+			g.Printf("if (%s == NULL) {\n", p.name)
+			g.Indent()
+			g.Printf("%s = [[%s alloc] initWithRef:%s_ref];\n", p.name, g.refTypeBase(p.typ), p.name)
+			g.Outdent()
+			g.Printf("}\n")
+		} else {
+			g.Printf("%s %s = go_seq_read%s(in);\n", ptype, p.name, stype)
+		}
+	}
+
+	// call method
+	if !s.returnsVal() {
+		for _, p := range s.retParams {
+			if isErrorType(p.typ) {
+				g.Printf("NSError* %s = NULL;\n", p.name)
+			} else {
+				g.Printf("%s %s;\n", g.objcType(p.typ), p.name)
+			}
+		}
+	}
+
+	if s.ret == "void" {
+		g.Printf("[o %s];\n", s.callMethod(g))
+	} else {
+		g.Printf("%s returnVal = [o %s];\n", s.ret, s.callMethod(g))
+	}
+
+	// write result to GoSeq* outseq
+	if len(s.retParams) == 0 {
+		return
+	}
+	if s.returnsVal() { // len(s.retParams) == 1 && s.retParams[0] != error
+		p := s.retParams[0]
+		if stype := g.seqType(p.typ); stype == "Ref" {
+			g.Printf("if [(id<NSObject>)(returnVal) isKindOfClass:[%s class]]) {\n", g.refTypeBase(p.typ))
+			g.Indent()
+			g.Printf("id<goSeqRefInterface>retVal_proxy = (id<goSeqRefInterface>)(returnVal);\n")
+			g.Printf("go_seq_writeRef(out, retVal_proxy.ref);\n")
+			g.Outdent()
+			g.Printf("} else {\n")
+			g.Indent()
+			g.Printf("go_seq_writeRef(out, returnVal);\n")
+			g.Outdent()
+			g.Printf("}\n")
+		} else {
+			g.Printf("go_seq_write%s(out, returnVal);\n", stype)
+		}
+		return
+	}
+	for _, p := range s.retParams {
+		if isErrorType(p.typ) {
+			g.Printf("if (%s == NULL) {\n", p.name)
+			g.Indent()
+			g.Printf("go_seq_writeUTF8(out, NULL);\n")
+			g.Outdent()
+			g.Printf("} else {\n")
+			g.Indent()
+			g.Printf("NSString* %sDesc = [%s localizedDescription];\n", p.name, p.name)
+			g.Printf("if (%sDesc == NULL || %sDesc.length == 0) {\n", p.name, p.name)
+			g.Indent()
+			g.Printf("%sDesc = NSString(@\"%@\", %s);\n", p.name, p.name)
+			g.Outdent()
+			g.Printf("}\n")
+			g.Outdent()
+			g.Printf("go_seq_writeUTF8(out, %sDesc);\n")
+			g.Printf("}\n")
+		} else if seqTyp := g.seqType(p.typ); seqTyp != "Ref" {
+			// TODO(hyangah): NULL.
+			g.Printf("if [(id<NSObject>)(%s) isKindOfClass:[%s class]]) {\n", p.name, g.refTypeBase(p.typ))
+			g.Indent()
+			g.Printf("id<goSeqRefInterface>%[1]s_proxy = (id<goSeqRefInterface>)(%[1]s);\n", p.name)
+			g.Printf("go_seq_writeRef(out, %s_proxy.ref);\n", p.name)
+			g.Outdent()
+			g.Printf("} else {\n")
+			g.Indent()
+			g.Printf("go_seq_writeObjcRef(out, %s);\n", p.name)
+			g.Outdent()
+			g.Printf("}\n")
+		} else {
+			g.Printf("go_seq_write%s(out, %s);\n", seqTyp, p.name)
+		}
+	}
 }
 
 func (g *objcGen) genStructH(obj *types.TypeName, t *types.Struct) {
@@ -464,6 +673,26 @@ func (g *objcGen) errorf(format string, args ...interface{}) {
 	g.err = append(g.err, fmt.Errorf(format, args...))
 }
 
+func (g *objcGen) refTypeBase(typ types.Type) string {
+	switch typ := typ.(type) {
+	case *types.Pointer:
+		if _, ok := typ.Elem().(*types.Named); ok {
+			return g.objcType(typ.Elem())
+		}
+	case *types.Named:
+		n := typ.Obj()
+		if n.Pkg() == g.pkg {
+			switch typ.Underlying().(type) {
+			case *types.Interface, *types.Struct:
+				return g.namePrefix + n.Name()
+			}
+		}
+	}
+
+	// fallback to whatever objcType returns. This must not happen.
+	return g.objcType(typ)
+}
+
 func (g *objcGen) objcType(typ types.Type) string {
 	if isErrorType(typ) {
 		return "NSError*"
@@ -527,7 +756,7 @@ func (g *objcGen) objcType(typ types.Type) string {
 		}
 		switch typ.Underlying().(type) {
 		case *types.Interface:
-			return g.namePrefix + n.Name() + "*"
+			return "id<" + g.namePrefix + n.Name() + ">"
 		case *types.Struct:
 			return g.namePrefix + n.Name()
 		}

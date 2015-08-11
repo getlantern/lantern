@@ -54,7 +54,7 @@ type Scaler interface {
 //
 // A Transformer is safe to use concurrently.
 type Transformer interface {
-	Transform(dst Image, m *f64.Aff3, src image.Image, sr image.Rectangle, op Op, opts *Options)
+	Transform(dst Image, m f64.Aff3, src image.Image, sr image.Rectangle, op Op, opts *Options)
 }
 
 // Options are optional parameters to Copy, Scale and Transform.

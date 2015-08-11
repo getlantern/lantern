@@ -8,7 +8,13 @@
 
 #include <Foundation/Foundation.h>
 
+@class GoTestpkgI;
+
 @class GoTestpkgS;
+
+@protocol GoTestpkgI
+- (int64_t)Times:(int32_t)v;
+@end
 
 @interface GoTestpkgS : NSObject {
 }
@@ -20,6 +26,7 @@
 - (double)Y;
 - (void)setY:(double)v;
 - (double)Sum;
+- (NSString*)TryTwoStrings:(NSString*)first second:(NSString*)second;
 @end
 
 FOUNDATION_EXPORT NSData* GoTestpkgBytesAppend(NSData* a, NSData* b);
@@ -28,16 +35,26 @@ FOUNDATION_EXPORT double GoTestpkgCallSSum(GoTestpkgS* s);
 
 FOUNDATION_EXPORT int GoTestpkgCollectS(int want, int timeoutSec);
 
+FOUNDATION_EXPORT void GoTestpkgGC();
+
 FOUNDATION_EXPORT NSString* GoTestpkgHello(NSString* s);
 
 FOUNDATION_EXPORT void GoTestpkgHi();
 
 FOUNDATION_EXPORT void GoTestpkgInt(int32_t x);
 
+FOUNDATION_EXPORT int64_t GoTestpkgMultiply(int32_t idx, int32_t val);
+
+FOUNDATION_EXPORT id<GoTestpkgI> GoTestpkgNewI();
+
 FOUNDATION_EXPORT GoTestpkgS* GoTestpkgNewS(double x, double y);
+
+FOUNDATION_EXPORT void GoTestpkgRegisterI(int32_t idx, id<GoTestpkgI> i);
 
 FOUNDATION_EXPORT BOOL GoTestpkgReturnsError(BOOL b, NSString** ret0_, NSError** error);
 
 FOUNDATION_EXPORT int64_t GoTestpkgSum(int64_t x, int64_t y);
+
+FOUNDATION_EXPORT void GoTestpkgUnregisterI(int32_t idx);
 
 #endif

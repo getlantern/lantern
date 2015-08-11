@@ -80,20 +80,20 @@ func onResize(w, h int) {
 	// is probably the best place to start looking.
 	pixelsPerPt = 1
 	eventsIn <- config.Event{
-		Width:       geom.Pt(w),
-		Height:      geom.Pt(h),
+		WidthPx:     w,
+		HeightPx:    h,
+		WidthPt:     geom.Pt(w),
+		HeightPt:    geom.Pt(h),
 		PixelsPerPt: pixelsPerPt,
 	}
 }
 
 func sendTouch(t touch.Type, x, y float32) {
 	eventsIn <- touch.Event{
+		X:        x,
+		Y:        y,
 		Sequence: 0, // TODO: button??
 		Type:     t,
-		Loc: geom.Point{
-			X: geom.Pt(x / pixelsPerPt),
-			Y: geom.Pt(y / pixelsPerPt),
-		},
 	}
 }
 

@@ -265,7 +265,6 @@ func buildJar(w io.Writer, srcDir string) error {
 			return err
 		}
 	}
-	defer removeAll(dst)
 
 	apiPath, err := androidAPIPath()
 	if err != nil {

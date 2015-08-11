@@ -98,9 +98,13 @@ func setScreen(scale int) {
 
 //export updateConfig
 func updateConfig(width, height int) {
+	widthPx := screenScale * width
+	heightPx := screenScale * height
 	eventsIn <- config.Event{
-		Width:       geom.Pt(float32(screenScale*width) / pixelsPerPt),
-		Height:      geom.Pt(float32(screenScale*height) / pixelsPerPt),
+		WidthPx:     widthPx,
+		HeightPx:    heightPx,
+		WidthPt:     geom.Pt(float32(widthPx) / pixelsPerPt),
+		HeightPt:    geom.Pt(float32(heightPx) / pixelsPerPt),
 		PixelsPerPt: pixelsPerPt,
 	}
 }
@@ -147,12 +151,10 @@ func sendTouch(cTouch, cTouchType uintptr, x, y float32) {
 	}
 
 	eventsIn <- touch.Event{
+		X:        x,
+		Y:        y,
 		Sequence: touch.Sequence(id),
 		Type:     t,
-		Loc: geom.Point{
-			X: geom.Pt(x / pixelsPerPt),
-			Y: geom.Pt(y / pixelsPerPt),
-		},
 	}
 }
 

@@ -86,7 +86,7 @@ func runInit(cmd *command) error {
 	gomobilepath = filepath.Join(gopaths[0], "pkg/gomobile")
 	ndkccpath = filepath.Join(gopaths[0], "pkg/gomobile/android-"+ndkVersion)
 	verpath := filepath.Join(gopaths[0], "pkg/gomobile/version")
-	if buildX {
+	if buildX || buildN {
 		fmt.Fprintln(xout, "GOMOBILE="+gomobilepath)
 	}
 	removeGomobilepkg()
@@ -104,10 +104,16 @@ func runInit(cmd *command) error {
 			return err
 		}
 	}
-	if buildX {
+	if buildX || buildN {
 		fmt.Fprintln(xout, "WORK="+tmpdir)
 	}
-	defer removeAll(tmpdir)
+	defer func() {
+		if buildWork {
+			fmt.Printf("WORK=%s\n", tmpdir)
+			return
+		}
+		removeAll(tmpdir)
+	}()
 
 	if err := fetchNDK(); err != nil {
 		return err
@@ -129,7 +135,7 @@ func runInit(cmd *command) error {
 		return err
 	}
 
-	if buildX {
+	if buildX || buildN {
 		printcmd("go version > %s", verpath)
 	}
 	if !buildN {
@@ -168,13 +174,18 @@ func installStd(env []string, args ...string) error {
 		fmt.Fprintf(os.Stderr, "\n# Building standard library for %s/%s.\n", tOS, tArch)
 	}
 
-	cmd := exec.Command("go", "install", "-pkgdir="+pkgdir(env))
+	// The -p flag is to speed up darwin/arm builds.
+	// Remove when golang.org/issue/10477 is resolved.
+	cmd := exec.Command("go", "install", fmt.Sprintf("-p=%d", runtime.NumCPU()), "-pkgdir="+pkgdir(env))
 	cmd.Args = append(cmd.Args, args...)
 	if buildV {
 		cmd.Args = append(cmd.Args, "-v")
 	}
 	if buildX {
 		cmd.Args = append(cmd.Args, "-x")
+	}
+	if buildWork {
+		cmd.Args = append(cmd.Args, "-work")
 	}
 	cmd.Args = append(cmd.Args, "std")
 	cmd.Env = append([]string{}, env...)
@@ -202,7 +213,7 @@ func move(dst, src string, names ...string) error {
 	for _, name := range names {
 		srcf := filepath.Join(src, name)
 		dstf := filepath.Join(dst, name)
-		if buildX {
+		if buildX || buildN {
 			printcmd("mv %s %s", srcf, dstf)
 		}
 		if buildN {
@@ -220,7 +231,7 @@ func move(dst, src string, names ...string) error {
 }
 
 func mkdir(dir string) error {
-	if buildX {
+	if buildX || buildN {
 		printcmd("mkdir -p %s", dir)
 	}
 	if buildN {
@@ -230,7 +241,7 @@ func mkdir(dir string) error {
 }
 
 func symlink(src, dst string) error {
-	if buildX {
+	if buildX || buildN {
 		printcmd("ln -s %s %s", src, dst)
 	}
 	if buildN {
@@ -243,7 +254,7 @@ func symlink(src, dst string) error {
 }
 
 func rm(name string) error {
-	if buildX {
+	if buildX || buildN {
 		printcmd("rm %s", name)
 	}
 	if buildN {
@@ -295,7 +306,7 @@ func fetchOpenAL() error {
 }
 
 func extract(dst, src string) error {
-	if buildX {
+	if buildX || buildN {
 		printcmd("tar xfz %s", src)
 	}
 	if buildN {
@@ -428,7 +439,6 @@ func fetchFullNDK() error {
 	}
 	inflate.Dir = tmpdir
 	return runCmd(inflate)
-	return nil
 }
 
 // fetch reads a URL into $GOPATH/pkg/gomobile/dl and returns the path
@@ -440,15 +450,23 @@ func fetch(url string) (dst string, err error) {
 	}
 	name := path.Base(url)
 	dst = filepath.Join(gomobilepath, "dl", name)
+
+	// Use what's in the cache if force update is not required.
+	if !initU {
+		if buildX {
+			printcmd("stat %s", dst)
+		}
+		if _, err = os.Stat(dst); err == nil {
+			return dst, nil
+		}
+	}
 	if buildX {
 		printcmd("curl -o%s %s", dst, url)
 	}
 	if buildN {
 		return dst, nil
 	}
-	if _, err = os.Stat(dst); err == nil {
-		return dst, nil
-	}
+
 	if buildV {
 		fmt.Fprintf(os.Stderr, "Downloading %s.\n", url)
 	}
@@ -521,12 +539,13 @@ func doCopyAll(dst, src string) error {
 }
 
 func removeAll(path string) error {
-	if buildX {
+	if buildX || buildN {
 		printcmd(`rm -r -f "%s"`, path)
 	}
 	if buildN {
 		return nil
 	}
+
 	// os.RemoveAll behaves differently in windows.
 	// http://golang.org/issues/9606
 	if goos == "windows" {
@@ -569,7 +588,7 @@ func goEnv(name string) string {
 }
 
 func runCmd(cmd *exec.Cmd) error {
-	if buildX {
+	if buildX || buildN {
 		dir := ""
 		if cmd.Dir != "" {
 			dir = "PWD=" + cmd.Dir + " "
@@ -589,6 +608,15 @@ func runCmd(cmd *exec.Cmd) error {
 	} else {
 		cmd.Stdout = buf
 		cmd.Stderr = buf
+	}
+
+	if buildWork {
+		if goos == "windows" {
+			cmd.Env = append(cmd.Env, `TEMP=`+tmpdir)
+			cmd.Env = append(cmd.Env, `TMP=`+tmpdir)
+		} else {
+			cmd.Env = append(cmd.Env, `TMPDIR=`+tmpdir)
+		}
 	}
 
 	if !buildN {

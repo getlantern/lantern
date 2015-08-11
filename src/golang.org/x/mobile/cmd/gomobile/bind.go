@@ -12,6 +12,7 @@ import (
 	"go/parser"
 	"go/scanner"
 	"go/token"
+	"go/types"
 	"io"
 	"io/ioutil"
 	"os"
@@ -19,8 +20,7 @@ import (
 	"strings"
 
 	"golang.org/x/mobile/bind"
-	"golang.org/x/tools/go/loader"
-	"golang.org/x/tools/go/types"
+	"golang.org/x/mobile/internal/loader"
 )
 
 // ctx, pkg, tmpdir in build.go
@@ -56,8 +56,8 @@ installed. Support is not complete.
 
 The -v flag provides verbose output, including the list of packages built.
 
-The build flags -a, -i, -n, -x, -gcflags, -ldflags, and -tags are shared
-with the build command. For documentation, see 'go help build'.
+The build flags -a, -i, -n, -x, -gcflags, -ldflags, -tags, and -work
+are shared with the build command. For documentation, see 'go help build'.
 `,
 }
 
@@ -69,6 +69,16 @@ func runBind(cmd *command) error {
 	defer cleanup()
 
 	args := cmd.flag.Args()
+
+	ctx.GOARCH = "arm"
+	switch buildTarget {
+	case "android":
+		ctx.GOOS = "android"
+	case "ios":
+		ctx.GOOS = "darwin"
+	default:
+		return fmt.Errorf(`unknown -target, %q.`, buildTarget)
+	}
 
 	var pkg *build.Package
 	switch len(args) {
@@ -216,10 +226,6 @@ func newBinder(bindPkg *build.Package) (*binder, error) {
 		return nil, fmt.Errorf("package %q: can only bind a library package", bindPkg.Name)
 	}
 
-	if len(bindPkg.CgoFiles) > 0 {
-		return nil, fmt.Errorf("cannot use cgo-dependent package as service definition: %s", bindPkg.CgoFiles[0])
-	}
-
 	fset := token.NewFileSet()
 
 	hasErr := false
@@ -245,15 +251,23 @@ func newBinder(bindPkg *build.Package) (*binder, error) {
 	}
 
 	conf := loader.Config{
-		Fset: fset,
+		Fset:        fset,
+		AllowErrors: true,
 	}
+	conf.TypeChecker.IgnoreFuncBodies = true
+	conf.TypeChecker.FakeImportC = true
+	conf.TypeChecker.DisableUnusedImportCheck = true
+	var tcErrs []error
 	conf.TypeChecker.Error = func(err error) {
-		fmt.Fprintln(os.Stderr, err)
+		tcErrs = append(tcErrs, err)
 	}
 
 	conf.CreateFromFiles(bindPkg.ImportPath, files...)
 	program, err := conf.Load()
 	if err != nil {
+		for _, err := range tcErrs {
+			fmt.Fprintln(os.Stderr, err)
+		}
 		return nil, err
 	}
 	b := &binder{

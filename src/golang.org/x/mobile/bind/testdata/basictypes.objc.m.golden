@@ -7,7 +7,11 @@
 #include <Foundation/Foundation.h>
 #include "seq.h"
 
-static NSString *errDomain = @"go.basictypes";
+static NSString* errDomain = @"go.basictypes";
+
+@protocol goSeqRefInterface
+-(GoSeqRef*) ref;
+@end
 
 #define _DESCRIPTOR_ "basictypes"
 
@@ -45,7 +49,7 @@ BOOL GoBasictypesError(NSError** error) {
 	go_seq_send(_DESCRIPTOR_, _CALL_Error_, &in_, &out_);
 	NSString* _error = go_seq_readUTF8(&out_);
 	if ([_error length] != 0 && error != nil) {
-		NSMutableDictionary *details = [NSMutableDictionary dictionary];
+		NSMutableDictionary* details = [NSMutableDictionary dictionary];
 		[details setValue:_error forKey:NSLocalizedDescriptionKey];
 		*error = [NSError errorWithDomain:errDomain code:1 userInfo:details];
 	}
@@ -64,7 +68,7 @@ BOOL GoBasictypesErrorPair(int* ret0_, NSError** error) {
 	}
 	NSString* _error = go_seq_readUTF8(&out_);
 	if ([_error length] != 0 && error != nil) {
-		NSMutableDictionary *details = [NSMutableDictionary dictionary];
+		NSMutableDictionary* details = [NSMutableDictionary dictionary];
 		[details setValue:_error forKey:NSLocalizedDescriptionKey];
 		*error = [NSError errorWithDomain:errDomain code:1 userInfo:details];
 	}

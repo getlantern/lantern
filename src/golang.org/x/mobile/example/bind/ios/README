@@ -1,0 +1,15 @@
+1. Use gomobile bind to bind the golang.org/x/mobile/example/bind/hello package.
+   The following command will create a static framework bundle in the current
+   directory.
+
+  $ gomobile bind -target=ios golang.org/x/mobile/example/bind/hello
+
+2. Open the Xcode project by double clicking on bind.xcodeproj.
+   The project will not build - ViewController.m calls a function from the hello
+   package so requires the hello.framework the gomobild bind command created
+   in Step 1.
+
+3. Drag-and-drop the hello.framework from the desktop to the project navigation window.
+   This will automatically include the hello framework into the project.
+
+4. Build.
