@@ -30,15 +30,6 @@ var (
 	log = golog.LoggerFor("checkfallbacks")
 )
 
-type FallbackServer struct {
-	Protocol   string
-	IP         string
-	Port       string
-	Pt         bool
-	Cert       string
-	Auth_token string
-}
-
 func main() {
 	flag.Parse()
 
@@ -61,7 +52,7 @@ func main() {
 
 // Load the fallback servers list file. Failure to do so will result in
 // exiting the program.
-func loadFallbacks(filename string) (fallbacks []FallbackServer) {
+func loadFallbacks(filename string) (fallbacks []client.ChainedServerInfo) {
 	if filename == "" {
 		log.Error("Please specify a fallbacks file")
 		flag.Usage()
@@ -86,12 +77,12 @@ func loadFallbacks(filename string) (fallbacks []FallbackServer) {
 }
 
 // Test all fallback servers
-func testAllFallbacks(fallbacks []FallbackServer) (errors *chan error) {
+func testAllFallbacks(fallbacks []client.ChainedServerInfo) (errors *chan error) {
 	errorsChan := make(chan error)
 	errors = &errorsChan
 
 	// Make
-	fbChan := make(chan FallbackServer)
+	fbChan := make(chan client.ChainedServerInfo)
 	// Channel fallback servers on-demand
 	go func() {
 		for _, val := range fallbacks {
@@ -112,7 +103,7 @@ func testAllFallbacks(fallbacks []FallbackServer) (errors *chan error) {
 			// Done() when closed (i.e. range exits)
 			go func(i int) {
 				for fb := range fbChan {
-					*errors <- fb.testFallbackServer(i)
+					*errors <- testFallbackServer(&fb, i)
 				}
 				workersWg.Done()
 			}(i + 1)
@@ -125,22 +116,13 @@ func testAllFallbacks(fallbacks []FallbackServer) (errors *chan error) {
 	return
 }
 
-// Perform the test of an individual FallbackServer
-func (fb *FallbackServer) testFallbackServer(workerId int) (err error) {
-	if fb.Pt {
-		return fmt.Errorf("Skipping fallback %v because it has pluggable transport enabled", fb.IP)
-	}
-
+// Perform the test of an individual server
+func testFallbackServer(fb *client.ChainedServerInfo, workerId int) (err error) {
 	// Test connectivity
-	info := &client.ChainedServerInfo{
-		Addr:      fb.IP + ":443",
-		Cert:      fb.Cert,
-		AuthToken: fb.Auth_token,
-		Pipelined: true,
-	}
-	dialer, err := info.Dialer()
+	fb.Pipelined = true
+	dialer, err := fb.Dialer()
 	if err != nil {
-		return fmt.Errorf("%v: error building dialer: %v", fb.IP, err)
+		return fmt.Errorf("%v: error building dialer: %v", fb.Addr, err)
 	}
 	c := &http.Client{
 		Transport: &http.Transport{
@@ -150,21 +132,21 @@ func (fb *FallbackServer) testFallbackServer(workerId int) (err error) {
 	req, err := http.NewRequest("GET", "http://www.google.com/humans.txt", nil)
 	resp, err := c.Do(req)
 	if err != nil {
-		return fmt.Errorf("%v: requesting humans.txt failed: %v", fb.IP, err)
+		return fmt.Errorf("%v: requesting humans.txt failed: %v", fb.Addr, err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("%v: bad status code: %v", fb.IP, resp.StatusCode)
+		return fmt.Errorf("%v: bad status code: %v", fb.Addr, resp.StatusCode)
 	}
 	bytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("%v: error reading response body: %v", fb.IP, err)
+		return fmt.Errorf("%v: error reading response body: %v", fb.Addr, err)
 	}
 	body := string(bytes)
 	if body != expectedBody {
-		return fmt.Errorf("%v: wrong body: %s", fb.IP, body)
+		return fmt.Errorf("%v: wrong body: %s", fb.Addr, body)
 	}
 
-	log.Debugf("Worker %d: Fallback %v OK.\n", workerId, fb.IP)
+	log.Debugf("Worker %d: Fallback %v OK.\n", workerId, fb.Addr)
 	return nil
 }
