@@ -377,6 +377,7 @@ release-qa: require-version require-s3cmd
 		VERSIONED=lantern-installer-$$VERSION$$SUFFIX && \
 		echo "Copying $$VERSIONED" && \
 		$(S3CMD) cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$VERSIONED; \
+		$(S3CMD) setacl s3://$(S3_BUCKET)/$$VERSIONED --acl-public; \
 	done && \
 	for NAME in $$(ls -1 update_darwin_amd64.bz2 update_linux_386.bz2 update_linux_amd64.bz2 update_windows_386.bz2); do \
 		echo "Copying update binary $$NAME..." && \
