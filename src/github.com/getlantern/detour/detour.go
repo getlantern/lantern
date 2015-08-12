@@ -156,7 +156,7 @@ func Dialer(detourDialer dialFunc) func(network, addr string) (net.Conn, error) 
 				select {
 				case c := <-ch:
 					if c == nil {
-						log.Debugf("No new connection to %s remaining, return", dc.addr)
+						log.Tracef("No new connection to %s remaining, return", dc.addr)
 						return
 					}
 					// first connection made, pass it back to caller
@@ -216,7 +216,7 @@ func (dc *Conn) Read(b []byte) (n int, err error) {
 				_ = newConn.Close()
 				return
 			}
-			log.Tracef("Got detour connection to %s, replay", dc.addr)
+			log.Tracef("Got detour connection to %s, replay previous op on it", dc.addr)
 			dc.muWriteBuffer.RLock()
 			sentBytes := dc.writeBuffer.Bytes()
 			dc.muWriteBuffer.RUnlock()
@@ -226,16 +226,16 @@ func (dc *Conn) Read(b []byte) (n int, err error) {
 			// add new connection to connections
 			dc.conns <- newConn
 		case result := <-dc.chRead:
-			log.Tracef("Read back from %s connection", typeOf(result.conn))
-			n, err = result.n, result.err
+			conn, n, err = result.conn, result.n, result.err
+			log.Tracef("Read back from %s connection", typeOf(conn))
 			if err != nil {
-				log.Tracef("Read from %s connection to %s failed, closing: %s", typeOf(result.conn), dc.addr, err)
-				_ = result.conn.Close()
+				log.Tracef("Read from %s connection to %s failed, closing: %s", typeOf(conn), dc.addr, err)
+				_ = conn.Close()
 				// skip failed connection as we have more
 				if count > 1 {
 					continue
 				}
-				switch result.conn.ConnType() {
+				switch conn.ConnType() {
 				case connTypeDirect:
 					// if we haven't dial detour yet, do so now
 					select {
@@ -251,7 +251,7 @@ func (dc *Conn) Read(b []byte) (n int, err error) {
 					return n, err
 				}
 			}
-			log.Tracef("Read %d bytes from %s connection to %s", n, typeOf(result.conn), dc.addr)
+			log.Tracef("Read %d bytes from %s connection to %s", n, typeOf(conn), dc.addr)
 			dc.incReadBytes(n)
 			return n, err
 		}

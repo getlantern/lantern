@@ -2,7 +2,6 @@ package detour
 
 import (
 	"fmt"
-	"io"
 	"net"
 	"sync/atomic"
 )
@@ -70,13 +69,9 @@ func checkFirstRead(b []byte, n int, err error, addr string) error {
 		if !detector.FakeResponse(b) {
 			return nil
 		}
-		log.Tracef("Read %d bytes from %s directly, response is hijacked", n, addr)
+		log.Debugf("Read %d bytes from %s directly, response is hijacked", n, addr)
 		AddToWl(addr, false)
 		return fmt.Errorf("response is hijacked")
-	}
-	if err == io.EOF {
-		log.Tracef("Read %d bytes from %s directly, EOF", n, addr)
-		return err
 	}
 	log.Debugf("Error while read from %s directly: %s", addr, err)
 	if detector.TamperingSuspected(err) {
@@ -88,12 +83,8 @@ func checkFirstRead(b []byte, n int, err error, addr string) error {
 func checkFollowupRead(b []byte, n int, err error, addr string) error {
 	detector := blockDetector.Load().(*Detector)
 	if err != nil {
-		if err == io.EOF {
-			log.Tracef("Read %d bytes from %s directly, EOF", n, addr)
-			return err
-		}
 		if detector.TamperingSuspected(err) {
-			log.Tracef("Seems %s still blocked, add to whitelist to try detour next time", addr)
+			log.Debugf("Seems %s still blocked, add to whitelist to try detour next time", addr)
 			AddToWl(addr, false)
 			return err
 		}
