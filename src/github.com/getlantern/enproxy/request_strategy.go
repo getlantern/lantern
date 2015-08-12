@@ -107,7 +107,9 @@ func (srs *streamingRequestStrategy) write(b []byte) (int, error) {
 		go func() {
 			// Drain the requestFinishedCh
 			err := <-srs.c.requestFinishedCh
-			writer.Close()
+			if err := writer.Close(); err != nil {
+				log.Debugf("Unable to close writer: %v", err)
+			}
 			if err != nil && err != io.EOF {
 				srs.c.fail(err)
 			}
@@ -157,7 +159,9 @@ func (srs *streamingRequestStrategy) finishBody() error {
 		return nil
 	}
 
-	srs.writer.Close()
+	if err := srs.writer.Close(); err != nil {
+		log.Debugf("Unable to close writer: %v", err)
+	}
 	srs.writer = nil
 	decrement(&writePipeOpen)
 

@@ -13,29 +13,49 @@ func TestRotationNormalOutput(t *testing.T) {
 
 	stat, _ := os.Lstat(path)
 	if stat != nil {
-		os.Remove(path)
+		if err := os.Remove(path); err != nil {
+			t.Fatalf("Unable to remove file: %v", err)
+		}
 	}
 
 	rotator := NewDailyRotator(path)
-	defer rotator.Close()
+	defer func() {
+		if err := rotator.Close(); err != nil {
+			t.Fatalf("Unable to close rotator: %v", err)
+		}
+	}()
 
-	rotator.WriteString("SAMPLE LOG")
+	if _, err := rotator.WriteString("SAMPLE LOG"); err != nil {
+		t.Fatalf("Unable to write string: %v", err)
+	}
 
 	file, err := os.OpenFile(path, os.O_RDONLY, 0644)
 	if err != nil {
 		panic(err)
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			t.Fatalf("Unable to close file: %v", err)
+		}
+	}()
 
 	b := make([]byte, 10)
-	file.Read(b)
+	if _, err := file.Read(b); err != nil {
+		t.Fatalf("Unable to read file: %v", err)
+	}
 	assert.Equal(t, "SAMPLE LOG", string(b))
 
-	rotator.WriteString("\nNEXT LOG")
-	rotator.WriteString("\nLAST LOG")
+	if _, err := rotator.WriteString("\nNEXT LOG"); err != nil {
+		t.Fatalf("Unable to write string: %v", err)
+	}
+	if _, err := rotator.WriteString("\nLAST LOG"); err != nil {
+		t.Fatalf("Unable to write string: %v", err)
+	}
 
 	b = make([]byte, 28)
-	file.ReadAt(b, 0)
+	if _, err := file.ReadAt(b, 0); err != nil {
+		t.Fatalf("Unable to read file: %v", err)
+	}
 
 	assert.Equal(t, "SAMPLE LOG\nNEXT LOG\nLAST LOG", string(b))
 
@@ -47,27 +67,41 @@ func TestDailyRotationOnce(t *testing.T) {
 
 	stat, _ := os.Lstat(path)
 	if stat != nil {
-		os.Remove(path)
+		if err := os.Remove(path); err != nil {
+			t.Fatalf("Unable to remove: %v", err)
+		}
 	}
 
 	now := time.Now()
 
 	rotator := NewDailyRotator(path)
-	defer rotator.Close()
+	defer func() {
+		if err := rotator.Close(); err != nil {
+			t.Fatalf("Unable to close rotator: %v", err)
+		}
+	}()
 
 	rotator.Now = now
-	rotator.WriteString("SAMPLE LOG")
+	if _, err := rotator.WriteString("SAMPLE LOG"); err != nil {
+		t.Fatalf("Unable to write string: %v", err)
+	}
 
 	// simulate next day
 	rotator.Now = time.Unix(now.Unix()+86400, 0)
-	rotator.WriteString("NEXT LOG")
+	if _, err := rotator.WriteString("NEXT LOG"); err != nil {
+		t.Fatalf("Unable to write string: %v", err)
+	}
 
 	stat, _ = os.Lstat(path + "." + now.Format(dateFormat))
 
 	assert.NotNil(t, stat)
 
-	os.Remove(path)
-	os.Remove(path + "." + now.Format(dateFormat))
+	if err := os.Remove(path); err != nil {
+		t.Fatalf("Unable to remove file: %v", err)
+	}
+	if err := os.Remove(path + "." + now.Format(dateFormat)); err != nil {
+		t.Fatalf("Unable to remove file: %v", err)
+	}
 }
 
 func TestDailyRotationAtOpen(t *testing.T) {
@@ -76,28 +110,44 @@ func TestDailyRotationAtOpen(t *testing.T) {
 
 	stat, _ := os.Lstat(path)
 	if stat != nil {
-		os.Remove(path)
+		if err := os.Remove(path); err != nil {
+			t.Fatalf("Unable to remove file: %v", err)
+		}
 	}
 
 	rotator := NewDailyRotator(path)
-	rotator.WriteString("FIRST LOG")
-	rotator.Close()
+	if _, err := rotator.WriteString("FIRST LOG"); err != nil {
+		t.Fatalf("Unable to write string: %v", err)
+	}
+	if err := rotator.Close(); err != nil {
+		t.Fatalf("Unable to  close rotator: %v", err)
+	}
 
 	now := time.Now()
 
 	// simulate next day
 	rotator = NewDailyRotator(path)
-	defer rotator.Close()
+	defer func() {
+		if err := rotator.Close(); err != nil {
+			t.Fatalf("Unable to close rotator: %v", err)
+		}
+	}()
 
 	rotator.Now = time.Unix(now.Unix()+86400, 0)
-	rotator.WriteString("NEXT LOG")
+	if _, err := rotator.WriteString("NEXT LOG"); err != nil {
+		t.Fatalf("Unable to write string: %v", err)
+	}
 
 	stat, _ = os.Lstat(path + "." + now.Format(dateFormat))
 
 	assert.NotNil(t, stat)
 
-	os.Remove(path)
-	os.Remove(path + "." + now.Format(dateFormat))
+	if err := os.Remove(path); err != nil {
+		t.Fatalf("Unable to remove file: %v", err)
+	}
+	if err := os.Remove(path + "." + now.Format(dateFormat)); err != nil {
+		t.Fatalf("Unable to remove file: %v", err)
+	}
 }
 
 func TestDailyRotationError(t *testing.T) {
@@ -106,28 +156,45 @@ func TestDailyRotationError(t *testing.T) {
 
 	stat, _ := os.Lstat(path)
 	if stat != nil {
-		os.Remove(path)
+		if err := os.Remove(path); err != nil {
+			t.Fatalf("Unable to remove file: %v", err)
+		}
 	}
 
 	now := time.Now()
 
 	rotator := NewDailyRotator(path)
-	rotator.WriteString("FIRST LOG")
+	if _, err := rotator.WriteString("FIRST LOG"); err != nil {
+		t.Fatalf("Unable to write string: %v", err)
+	}
 	// Simulate rotation
 	rotator.Now = time.Unix(now.Unix()+86400, 0)
-	rotator.WriteString("SECOND LOG")
-	rotator.Close()
+	if _, err := rotator.WriteString("SECOND LOG"); err != nil {
+		t.Fatalf("Unable to write string: %v", err)
+	}
+	if err := rotator.Close(); err != nil {
+		t.Fatalf("Unable to close rotator: %v", err)
+	}
 
 	rotator = NewDailyRotator(path)
-	defer rotator.Close()
-	rotator.WriteString("FIRST LOG")
+	defer func() {
+		if err := rotator.Close(); err != nil {
+			t.Fatalf("Unable to close rotator: %v", err)
+		}
+	}()
+	if _, err := rotator.WriteString("FIRST LOG"); err != nil {
+		t.Fatalf("Unable to write string: %v", err)
+	}
 	// Simulate rotation twice
 	rotator.Now = time.Unix(now.Unix()+86400, 0)
 	_, err := rotator.WriteString("SECOND LOG")
 
 	assert.Nil(t, err)
 
-	os.Remove(path)
-	os.Remove(path + "." + now.Format(dateFormat))
-
+	if err := os.Remove(path); err != nil {
+		t.Fatalf("Unable to remove file: %v", err)
+	}
+	if err := os.Remove(path + "." + now.Format(dateFormat)); err != nil {
+		t.Fatalf("Unable to remove file: %v", err)
+	}
 }

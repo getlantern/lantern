@@ -52,7 +52,11 @@ func TestTraceEnabled(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to set trace to true")
 	}
-	defer os.Setenv("TRACE", originalTrace)
+	defer func() {
+		if err := os.Setenv("TRACE", originalTrace); err != nil {
+			t.Fatalf("Unable to set TRACE environment variable: %v", err)
+		}
+	}()
 
 	out := bytes.NewBuffer(nil)
 	SetOutputs(ioutil.Discard, out)
@@ -60,8 +64,12 @@ func TestTraceEnabled(t *testing.T) {
 	l.Trace("Hello world")
 	l.Tracef("Hello %d", 5)
 	tw := l.TraceOut()
-	tw.Write([]byte("Gravy\n"))
-	tw.(io.Closer).Close()
+	if _, err := tw.Write([]byte("Gravy\n")); err != nil {
+		t.Fatalf("Unable to write: %v", err)
+	}
+	if err := tw.(io.Closer).Close(); err != nil {
+		t.Fatalf("Unable to close: %v", err)
+	}
 
 	// Give trace writer a moment to catch up
 	time.Sleep(50 * time.Millisecond)
@@ -74,14 +82,20 @@ func TestTraceDisabled(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to set trace to false")
 	}
-	defer os.Setenv("TRACE", originalTrace)
+	defer func() {
+		if err := os.Setenv("TRACE", originalTrace); err != nil {
+			t.Fatalf("Unable to set TRACE environment variable: %v", err)
+		}
+	}()
 
 	out := bytes.NewBuffer(nil)
 	SetOutputs(ioutil.Discard, out)
 	l := LoggerFor("myprefix")
 	l.Trace("Hello world")
 	l.Tracef("Hello %d", 5)
-	l.TraceOut().Write([]byte("Gravy\n"))
+	if _, err := l.TraceOut().Write([]byte("Gravy\n")); err != nil {
+		t.Fatalf("Unable to write: %v", err)
+	}
 
 	// Give trace writer a moment to catch up
 	time.Sleep(50 * time.Millisecond)

@@ -18,6 +18,7 @@ import (
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
+	"github.com/getlantern/launcher"
 	"github.com/getlantern/proxiedsites"
 	"github.com/getlantern/yaml"
 	"github.com/getlantern/yamlconf"
@@ -298,7 +299,8 @@ func (cfg *Config) applyClientDefaults() {
 
 	if cfg.AutoLaunch == nil {
 		cfg.AutoLaunch = new(bool)
-		*cfg.AutoLaunch = false
+		*cfg.AutoLaunch = true
+		launcher.CreateLaunchFile(*cfg.AutoLaunch)
 	}
 
 	// Make sure all servers have a QOS and Weight configured
@@ -356,7 +358,11 @@ func (cfg Config) fetchCloudConfig() ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to fetch cloud config at %s: %s", url, err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Debugf("Error closing response body: %v", err)
+		}
+	}()
 
 	if resp.StatusCode == 304 {
 		log.Debugf("Config unchanged in cloud")

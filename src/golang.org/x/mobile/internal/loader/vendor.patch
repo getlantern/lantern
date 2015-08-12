@@ -1,0 +1,167 @@
+diff --git a/loader.go b/loader.go
+index 5555faa..11d06af 100644
+--- a/loader.go
++++ b/loader.go
+@@ -11,16 +11,15 @@ import (
+ 	"fmt"
+ 	"go/ast"
+ 	"go/build"
++	goimporter "go/importer"
+ 	"go/parser"
+ 	"go/token"
++	"go/types"
+ 	"os"
+ 	"sort"
+ 	"strings"
+ 	"sync"
+ 	"time"
+-
+-	"golang.org/x/tools/go/ast/astutil"
+-	"golang.org/x/tools/go/types"
+ )
+ 
+ const trace = false // show timing info for type-checking
+@@ -303,33 +302,6 @@ func (conf *Config) addImport(path string, tests bool) {
+ 	conf.ImportPkgs[path] = conf.ImportPkgs[path] || tests
+ }
+ 
+-// PathEnclosingInterval returns the PackageInfo and ast.Node that
+-// contain source interval [start, end), and all the node's ancestors
+-// up to the AST root.  It searches all ast.Files of all packages in prog.
+-// exact is defined as for astutil.PathEnclosingInterval.
+-//
+-// The zero value is returned if not found.
+-//
+-func (prog *Program) PathEnclosingInterval(start, end token.Pos) (pkg *PackageInfo, path []ast.Node, exact bool) {
+-	for _, info := range prog.AllPackages {
+-		for _, f := range info.Files {
+-			if f.Pos() == token.NoPos {
+-				// This can happen if the parser saw
+-				// too many errors and bailed out.
+-				// (Use parser.AllErrors to prevent that.)
+-				continue
+-			}
+-			if !tokenFileContainsPos(prog.Fset.File(f.Pos()), start) {
+-				continue
+-			}
+-			if path, exact := astutil.PathEnclosingInterval(f, start, end); path != nil {
+-				return info, path, exact
+-			}
+-		}
+-	}
+-	return nil, nil, false
+-}
+-
+ // InitialPackages returns a new slice containing the set of initial
+ // packages (Created + Imported) in unspecified order.
+ //
+@@ -690,55 +662,6 @@ func (conf *Config) parsePackageFiles(bp *build.Package, which rune) ([]*ast.Fil
+ 	return files, errs
+ }
+ 
+-// doImport imports the package denoted by path.
+-// It implements the types.Importer signature.
+-//
+-// imports is the type-checker's package canonicalization map.
+-//
+-// It returns an error if a package could not be created
+-// (e.g. go/build or parse error), but type errors are reported via
+-// the types.Config.Error callback (the first of which is also saved
+-// in the package's PackageInfo).
+-//
+-// Idempotent.
+-//
+-func (imp *importer) doImport(from *PackageInfo, to string) (*types.Package, error) {
+-	// Package unsafe is handled specially, and has no PackageInfo.
+-	// TODO(adonovan): move this check into go/types?
+-	if to == "unsafe" {
+-		return types.Unsafe, nil
+-	}
+-	if to == "C" {
+-		// This should be unreachable, but ad hoc packages are
+-		// not currently subject to cgo preprocessing.
+-		// See https://github.com/golang/go/issues/11627.
+-		return nil, fmt.Errorf(`the loader doesn't cgo-process ad hoc packages like %q; see Go issue 11627`,
+-			from.Pkg.Path())
+-	}
+-
+-	imp.importedMu.Lock()
+-	ii := imp.imported[to]
+-	imp.importedMu.Unlock()
+-	if ii == nil {
+-		panic("internal error: unexpected import: " + to)
+-	}
+-	if ii.err != nil {
+-		return nil, ii.err
+-	}
+-	if ii.info != nil {
+-		return ii.info.Pkg, nil
+-	}
+-
+-	// Import of incomplete package: this indicates a cycle.
+-	fromPath := from.Pkg.Path()
+-	if cycle := imp.findPath(to, fromPath); cycle != nil {
+-		cycle = append([]string{fromPath}, cycle...)
+-		return nil, fmt.Errorf("import cycle: %s", strings.Join(cycle, " -> "))
+-	}
+-
+-	panic("internal error: import of incomplete (yet acyclic) package: " + fromPath)
+-}
+-
+ // loadAll loads, parses, and type-checks the specified packages in
+ // parallel and returns their completed importInfos in unspecified order.
+ //
+@@ -922,9 +845,7 @@ func (imp *importer) newPackageInfo(path string) *PackageInfo {
+ 	if f := imp.conf.TypeCheckFuncBodies; f != nil {
+ 		tc.IgnoreFuncBodies = !f(path)
+ 	}
+-	tc.Import = func(_ map[string]*types.Package, to string) (*types.Package, error) {
+-		return imp.doImport(info, to)
+-	}
++	tc.Importer = goimporter.Default()
+ 	tc.Error = info.appendError // appendError wraps the user's Error function
+ 
+ 	info.checker = types.NewChecker(&tc, imp.conf.fset(), pkg, &info.Info)
+diff --git a/util.go b/util.go
+index 0404e99..b651fc6 100644
+--- a/util.go
++++ b/util.go
+@@ -11,10 +11,9 @@ import (
+ 	"go/token"
+ 	"io"
+ 	"os"
++	"path/filepath"
+ 	"strconv"
+ 	"sync"
+-
+-	"golang.org/x/tools/go/buildutil"
+ )
+ 
+ // We use a counting semaphore to limit
+@@ -29,6 +28,15 @@ var sema = make(chan bool, 10)
+ // displayPath is used to transform the filenames attached to the ASTs.
+ //
+ func parseFiles(fset *token.FileSet, ctxt *build.Context, displayPath func(string) string, dir string, files []string, mode parser.Mode) ([]*ast.File, []error) {
++	isAbsPath := ctxt.IsAbsPath
++	if isAbsPath == nil {
++		isAbsPath = filepath.IsAbs
++	}
++	joinPath := ctxt.JoinPath
++	if joinPath == nil {
++		joinPath = filepath.Join
++	}
++
+ 	if displayPath == nil {
+ 		displayPath = func(path string) string { return path }
+ 	}
+@@ -37,8 +45,8 @@ func parseFiles(fset *token.FileSet, ctxt *build.Context, displayPath func(strin
+ 	parsed := make([]*ast.File, n)
+ 	errors := make([]error, n)
+ 	for i, file := range files {
+-		if !buildutil.IsAbsPath(ctxt, file) {
+-			file = buildutil.JoinPath(ctxt, dir, file)
++		if !isAbsPath(file) {
++			file = joinPath(dir, file)
+ 		}
+ 		wg.Add(1)
+ 		go func(i int, file string) {

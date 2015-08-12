@@ -134,7 +134,11 @@ func testFallbackServer(fb *client.ChainedServerInfo, workerId int) (err error) 
 	if err != nil {
 		return fmt.Errorf("%v: requesting humans.txt failed: %v", fb.Addr, err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Debugf("Unable to close response body: %v", err)
+		}
+	}()
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("%v: bad status code: %v", fb.Addr, resp.StatusCode)
 	}

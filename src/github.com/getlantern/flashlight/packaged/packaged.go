@@ -78,7 +78,8 @@ func readSettingsFromFile(yamlPath string) (string, *PackagedSettings, error) {
 	log.Debugf("Opening file at: %v", yamlPath)
 	data, err := ioutil.ReadFile(yamlPath)
 	if err != nil {
-		log.Errorf("Error reading file %v", err)
+		// This will happen whenever there's no packaged settings, which is often
+		log.Debugf("Error reading file %v", err)
 		return "", &PackagedSettings{}, err
 	}
 

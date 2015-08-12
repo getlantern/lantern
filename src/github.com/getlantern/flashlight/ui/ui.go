@@ -130,7 +130,8 @@ func openExternalUrl() {
 
 	path, s, err := packaged.ReadSettings()
 	if err != nil {
-		log.Errorf("Could not read yaml from %v: %v", path, err)
+		// Let packaged itself log errors as necessary.
+		log.Debugf("Could not read yaml from %v: %v", path, err)
 		return
 	}
 

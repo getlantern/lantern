@@ -13,7 +13,7 @@ import (
 
 const (
 	messageType = `Analytics`
-	TrackingId  = "UA-21815217-2"
+	TrackingId  = "UA-21815217-12"
 )
 
 var (
@@ -89,7 +89,11 @@ func read() {
 				// for now, the only analytics messages we are
 				// currently receiving from the UI are initial page
 				// views which indicate new UI sessions
-				analytics.SendRequest(&payload)
+				if status, err := analytics.SendRequest(&payload); err != nil {
+					log.Debugf("Error sending analytics request: %v", err)
+				} else {
+					log.Tracef("Analytics request status: %v", status)
+				}
 			}
 		}
 	}

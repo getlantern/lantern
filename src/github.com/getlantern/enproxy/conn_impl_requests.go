@@ -22,7 +22,9 @@ func (c *conn) processRequests(proxyConn *connInfo) {
 		// If there's a proxyConn at the time that processRequests() exits,
 		// close it.
 		if !first && proxyConn != nil {
-			proxyConn.conn.Close()
+			if err := proxyConn.conn.Close(); err != nil {
+				log.Debugf("Unable to close proxy connection: %v", err)
+			}
 		}
 	}()
 
@@ -57,7 +59,9 @@ func (c *conn) processRequests(proxyConn *connInfo) {
 		}
 
 		if !first {
-			resp.Body.Close()
+			if err := resp.Body.Close(); err != nil {
+				log.Debugf("Unable to close response body: %v", err)
+			}
 		} else {
 			// On our first request, find out what host we're actually
 			// talking to and remember that for future requests.
@@ -111,12 +115,16 @@ func (c *conn) finishRequesting(resp *http.Response, first bool) {
 	increment(&requestingFinishing)
 	close(c.initialResponseCh)
 	if !first && resp != nil {
-		resp.Body.Close()
+		if err := resp.Body.Close(); err != nil {
+			log.Debugf("Unable to close response body: %v", err)
+		}
 	}
 	// Drain requestsOutCh
 	for req := range c.requestOutCh {
 		decrement(&writingRequestPending)
-		req.body.Close()
+		if err := req.body.Close(); err != nil {
+			log.Debugf("Unable to close request body: %v", err)
+		}
 	}
 	c.doneRequestingCh <- true
 	decrement(&requestingFinishing)

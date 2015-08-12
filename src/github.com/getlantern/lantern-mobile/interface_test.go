@@ -17,6 +17,10 @@ const (
 
 const expectedBody = "Google is built by a large team of engineers, designers, researchers, robots, and others in many different sites across the globe. It is updated continuously, and built with more tools and technologies than we can shake a stick at. If you'd like to help us out, see google.com/careers.\n"
 
+type testCb struct{}
+
+func (cb *testCb) Do() {}
+
 func testReverseProxy() error {
 	var req *http.Request
 
@@ -70,8 +74,7 @@ func TestStartClientAndTestReverseProxy(t *testing.T) {
 
 	// Let's run a proxy instance.
 	go func() {
-		var err error
-		if err = RunClientProxy(listenProxyAddr, "TestApp"); err != nil {
+		if RunClientProxy(listenProxyAddr, "TestApp", new(testCb)); err != nil {
 			t.Fatalf("RunClientProxy: %q", err)
 		}
 	}()
@@ -91,7 +94,7 @@ func TestStartClientAndTestReverseProxy(t *testing.T) {
 
 	// Attempt to run again on the same port should not fail since we stopped the
 	// server.
-	if err = RunClientProxy(listenProxyAddr, "TestApp"); err != nil {
+	if err = RunClientProxy(listenProxyAddr, "TestApp", new(testCb)); err != nil {
 		t.Fatalf("RunClientProxy: %q", err)
 	}
 

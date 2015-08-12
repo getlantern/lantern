@@ -7,6 +7,12 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+
+	"github.com/getlantern/golog"
+)
+
+var (
+	log = golog.LoggerFor("cloudflare")
 )
 
 // Client provides a client to the CloudflAre API
@@ -85,7 +91,9 @@ func (c *Client) NewRequest(params map[string]string, method string, action stri
 // decodeBody is used to JSON decode a body
 func decodeBody(resp *http.Response, out interface{}) error {
 	body, err := ioutil.ReadAll(resp.Body)
-	resp.Body.Close()
+	if err := resp.Body.Close(); err != nil {
+		log.Debugf("Unable to close response body: %v", err)
+	}
 
 	if err != nil {
 		return err

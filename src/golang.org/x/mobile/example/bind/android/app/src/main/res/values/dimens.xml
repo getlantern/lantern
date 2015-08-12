@@ -1,0 +1,8 @@
+<!-- Copyright 2015 The Go Authors. All rights reserved.
+     Use of this source code is governed by a BSD-style
+     license that can be found in the LICENSE file.  -->
+<resources>
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+</resources>

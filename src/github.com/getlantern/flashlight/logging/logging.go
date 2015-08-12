@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/getlantern/appdir"
@@ -37,7 +38,9 @@ var (
 	errorOut io.Writer
 	debugOut io.Writer
 
-	lastAddr string
+	lastAddr   string
+	duplicates = make(map[string]bool)
+	dupLock    sync.Mutex
 )
 
 func Init() error {
@@ -59,6 +62,18 @@ func Init() error {
 
 	// Loggly has its own timestamp so don't bother adding it in message,
 	// moreover, golog always write each line in whole, so we need not to care about line breaks.
+
+	// timestamped adds a timestamp to the beginning of log lines
+	timestamped := func(orig io.Writer) io.Writer {
+		return wfilter.SimplePrepender(orig, func(w io.Writer) (int, error) {
+			ts := time.Now()
+			runningSecs := ts.Sub(processStart).Seconds()
+			secs := int(math.Mod(runningSecs, 60))
+			mins := int(runningSecs / 60)
+			return fmt.Fprintf(w, "%s - %dm%ds ", ts.In(time.UTC).Format(logTimestampFormat), mins, secs)
+		})
+	}
+
 	errorOut = timestamped(NonStopWriter(os.Stderr, logFile))
 	debugOut = timestamped(NonStopWriter(os.Stdout, logFile))
 	golog.SetOutputs(errorOut, debugOut)
@@ -99,17 +114,6 @@ func Configure(addr string, cloudConfigCA string, instanceId string,
 func Close() error {
 	golog.ResetOutputs()
 	return logFile.Close()
-}
-
-// timestamped adds a timestamp to the beginning of log lines
-func timestamped(orig io.Writer) io.Writer {
-	return wfilter.LinePrepender(orig, func(w io.Writer) (int, error) {
-		ts := time.Now()
-		runningSecs := ts.Sub(processStart).Seconds()
-		secs := int(math.Mod(runningSecs, 60))
-		mins := int(runningSecs / 60)
-		return fmt.Fprintf(w, "%s - %dm%ds ", ts.In(time.UTC).Format(logTimestampFormat), mins, secs)
-	})
 }
 
 func enableLoggly(addr string, cloudConfigCA string, instanceId string,
@@ -161,7 +165,29 @@ type logglyErrorWriter struct {
 	client          *loggly.Client
 }
 
+func isDuplicate(msg string) bool {
+	dupLock.Lock()
+	defer dupLock.Unlock()
+
+	if duplicates[msg] {
+		return true
+	}
+
+	// Implement a crude cap on the size of the map
+	if len(duplicates) < 1000 {
+		duplicates[msg] = true
+	}
+
+	return false
+}
+
 func (w logglyErrorWriter) Write(b []byte) (int, error) {
+	fullMessage := string(b)
+	if isDuplicate(fullMessage) {
+		log.Debugf("Not logging duplicate: %v", fullMessage)
+		return 0, nil
+	}
+
 	extra := map[string]string{
 		"logLevel":  "ERROR",
 		"osName":    runtime.GOOS,
@@ -172,7 +198,6 @@ func (w logglyErrorWriter) Write(b []byte) (int, error) {
 		"timeZone":  w.tz,
 		"version":   w.versionToLoggly,
 	}
-	fullMessage := string(b)
 
 	// extract last 2 (at most) chunks of fullMessage to message, without prefix,
 	// so we can group logs with same reason in Loggly
@@ -234,7 +259,9 @@ func NonStopWriter(writers ...io.Writer) io.Writer {
 // It never fails and always return the length of bytes passed in
 func (t *nonStopWriter) Write(p []byte) (int, error) {
 	for _, w := range t.writers {
-		w.Write(p)
+		if n, err := w.Write(p); err != nil {
+			return n, err
+		}
 	}
 	return len(p), nil
 }

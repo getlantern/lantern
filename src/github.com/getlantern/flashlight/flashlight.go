@@ -97,30 +97,34 @@ func main() {
 }
 
 func _main() {
-	err := doMain()
-	if err != nil {
+	if err := doMain(); err != nil {
 		log.Error(err)
 	}
 	log.Debug("Lantern stopped")
-	logging.Close()
+
+	if err := logging.Close(); err != nil {
+		log.Debugf("Error closing log: %v", err)
+	}
 	os.Exit(0)
 }
 
 func doMain() error {
-	err := logging.Init()
-	if err != nil {
+	if err := logging.Init(); err != nil {
 		return err
 	}
 
 	// Schedule cleanup actions
 	handleSignals()
-	addExitFunc(func() { logging.Close() })
+	addExitFunc(func() {
+		if err := logging.Close(); err != nil {
+			log.Debugf("Error closing log: %v", err)
+		}
+	})
 	addExitFunc(quitSystray)
 
 	i18nInit()
 	if showui {
-		err = configureSystemTray()
-		if err != nil {
+		if err := configureSystemTray(); err != nil {
 			return err
 		}
 	}
@@ -149,8 +153,7 @@ func doMain() error {
 	defer finishProfiling()
 
 	// Configure stats initially
-	err = statreporter.Configure(cfg.Stats)
-	if err != nil {
+	if err := statreporter.Configure(cfg.Stats); err != nil {
 		return err
 	}
 
@@ -169,8 +172,7 @@ func i18nInit() {
 	i18n.SetMessagesFunc(func(filename string) ([]byte, error) {
 		return ui.Translations.Get(filename)
 	})
-	err := i18n.UseOSLocale()
-	if err != nil {
+	if err := i18n.UseOSLocale(); err != nil {
 		log.Debugf("i18n.UseOSLocale: %q", err)
 	}
 }
@@ -192,17 +194,15 @@ func parseFlags() {
 	}
 	// Note - we can ignore the returned error because CommandLine.Parse() will
 	// exit if it fails.
-	flag.CommandLine.Parse(args)
+	_ = flag.CommandLine.Parse(args)
 }
 
 // runClientProxy runs the client-side (get mode) proxy.
 func runClientProxy(cfg *config.Config) {
-	var err error
-
 	// Set Lantern as system proxy by creating and using a PAC file.
 	setProxyAddr(cfg.Addr)
 
-	if err = setUpPacTool(); err != nil {
+	if err := setUpPacTool(); err != nil {
 		exit(err)
 	}
 
@@ -313,7 +313,7 @@ func applyClientConfig(client *client.Client, cfg *config.Config) {
 	log.Debugf("Proxy all traffic or not: %v", cfg.Client.ProxyAll)
 	ServeProxyAllPacFile(cfg.Client.ProxyAll)
 	// Note - we deliberately ignore the error from statreporter.Configure here
-	statreporter.Configure(cfg.Stats)
+	_ = statreporter.Configure(cfg.Stats)
 
 	// Update client configuration and get the highest QOS dialer available.
 	hqfd := client.Configure(cfg.Client)
@@ -367,7 +367,10 @@ func runServerProxy(cfg *config.Config) {
 		for {
 			cfg := <-configUpdates
 			updateServerSideConfigClient(cfg)
-			statreporter.Configure(cfg.Stats)
+			if err := statreporter.Configure(cfg.Stats); err != nil {
+				log.Debugf("Error configuring statreporter: %v", err)
+			}
+
 			srv.Configure(cfg.Server)
 		}
 	}()

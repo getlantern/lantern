@@ -252,7 +252,11 @@ func (c *conn) fail(err error) {
 		}
 	}
 
-	go c.Close()
+	go func() {
+		if err := c.Close(); err != nil {
+			log.Debugf("Unable to close connection: %v", err)
+		}
+	}()
 }
 
 func (c *conn) getAsyncErr() error {

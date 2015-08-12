@@ -115,7 +115,9 @@ func TestHTTPRedirect(t *testing.T) {
 
 	resp, err := client.Head("http://www.facebook.com")
 	if assert.NoError(t, err, "Head request to facebook should have succeeded") {
-		resp.Body.Close()
+		if err := resp.Body.Close(); err != nil {
+			log.Debugf("Unable to close response body: %v", err)
+		}
 	}
 
 	assert.NoError(t, counter.AssertDelta(2), "All file descriptors except the connection from proxy to destination site should have been closed")
@@ -211,7 +213,11 @@ func doTestBad(buffered bool, t *testing.T) {
 
 	conn, err := prepareConn(httpAddr, buffered, true, t, nil)
 	if err == nil {
-		defer conn.Close()
+		defer func() {
+			if err := conn.Close(); err != nil {
+				log.Debugf("Unable to close connection: %v", err)
+			}
+		}()
 		t.Error("Bad conn should have returned error on Connect()")
 	}
 }
@@ -396,7 +402,9 @@ func doStartServer(t *testing.T, l net.Listener) {
 	go func() {
 		httpServer := &http.Server{
 			Handler: http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
-				resp.Write([]byte(TEXT))
+				if _, err := resp.Write([]byte(TEXT)); err != nil {
+					log.Debugf("Unable to write response: %v", err)
+				}
 			}),
 		}
 		err := httpServer.Serve(l)

@@ -1,0 +1,8 @@
+Vendored copy of golang.org/x/tools/go/loader.
+See vendor.bash.
+
+Modifications:
+
+- removed dependency on x/tools/astutil
+- removed dependency on x/tools/buildutil
+- uses Go 1.5's go/types package

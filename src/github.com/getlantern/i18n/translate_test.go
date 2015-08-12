@@ -9,7 +9,9 @@ import (
 
 func TestTranslate(t *testing.T) {
 	assertTranslation(t, "", "HELLO")
-	UseOSLocale()
+	if err := UseOSLocale(); err != nil {
+		log.Debugf("Unable to detect and use OS locale: %v", err)
+	}
 	assertTranslation(t, "I speak America English!", "ONLY_IN_EN_US")
 	assertTranslation(t, "I speak Generic English!", "ONLY_IN_EN")
 	assertTranslation(t, "", "NOT_EXISTED")
@@ -59,7 +61,9 @@ func TestReadFromMemory(t *testing.T) {
 
 func TestGoroutine(t *testing.T) {
 	SetMessagesDir("locale")
-	SetLocale("en_US")
+	if err := SetLocale("en_US"); err != nil {
+		log.Debugf("Unable to set en_US locale: %v", err)
+	}
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go func() {

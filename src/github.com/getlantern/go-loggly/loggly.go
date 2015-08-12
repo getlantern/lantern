@@ -118,7 +118,11 @@ func (c *Client) Send(msg Message) error {
 	debug("buffer (%d/%d) %v", len(c.buffer), c.BufferSize, msg)
 
 	if len(c.buffer) >= c.BufferSize {
-		go c.Flush()
+		go func() {
+			if err := c.Flush(); err != nil {
+				debug("Unable to flush: %v", err)
+			}
+		}()
 	}
 
 	return nil
@@ -138,7 +142,11 @@ func (c *Client) Write(b []byte) (int, error) {
 	debug("buffer (%d/%d) %q", len(c.buffer), c.BufferSize, b)
 
 	if len(c.buffer) >= c.BufferSize {
-		go c.Flush()
+		go func() {
+			if err := c.Flush(); err != nil {
+				debug("Unable to flush: %v", err)
+			}
+		}()
 	}
 
 	return len(b), nil
@@ -281,7 +289,11 @@ func (c *Client) Flush() error {
 		return err
 	}
 
-	defer res.Body.Close()
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			debug("Unable to close response body: %v", err)
+		}
+	}()
 
 	debug("%d response", res.StatusCode)
 	if res.StatusCode >= 400 {
@@ -315,7 +327,9 @@ func (c *Client) start() {
 	for {
 		time.Sleep(c.FlushInterval)
 		debug("interval %v reached", c.FlushInterval)
-		c.Flush()
+		if err := c.Flush(); err != nil {
+			debug("Unable to flush: %v", err)
+		}
 	}
 }
 

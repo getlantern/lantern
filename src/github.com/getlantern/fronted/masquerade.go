@@ -149,7 +149,11 @@ func (vms *verifiedMasqueradeSet) doVerify(masquerade *Masquerade) bool {
 			return
 		} else {
 			body, err := ioutil.ReadAll(resp.Body)
-			defer resp.Body.Close()
+			defer func() {
+				if err := resp.Body.Close(); err != nil {
+					log.Debugf("Unable to close response body: %v", err)
+				}
+			}()
 			if err != nil {
 				errCh <- fmt.Errorf("HTTP Body Error: %s", body)
 			} else {
