@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/getlantern/flashlight/client"
 	"reflect"
 	"testing"
 )
@@ -8,22 +9,16 @@ import (
 func TestJSONloading(t *testing.T) {
 	fallbacks := loadFallbacks("test.json")
 
-	expectedFb := []FallbackServer{
+	expectedFb := []client.ChainedServerInfo{
 		{
-			Protocol: "tcp",
-			IP: "78.62.239.134",
-			Port: "443",
-			Pt: false,
-			Cert: "-----CERTIFICATE-----\n",
-			Auth_token: "a1",
+			Addr:      "78.62.239.134:443",
+			Cert:      "-----CERTIFICATE-----\n",
+			AuthToken: "a1",
 		},
 		{
-			Protocol: "udp",
-			IP: "178.62.239.34",
-			Port: "80",
-			Pt: false,
-			Cert: "-----CERTIFICATE-----\n",
-			Auth_token: "a2",
+			Addr:      "178.62.239.34:80",
+			Cert:      "-----CERTIFICATE-----\n",
+			AuthToken: "a2",
 		},
 	}
 
