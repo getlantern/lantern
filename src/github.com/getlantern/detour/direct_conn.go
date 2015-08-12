@@ -11,6 +11,7 @@ type directConn struct {
 	addr string
 	// keep track of the total bytes read by this connection, atomic
 	readBytes uint64
+	closed    bool
 }
 
 var (
@@ -133,5 +134,10 @@ func (dc *directConn) Close() (err error) {
 		default:
 		}
 	}
+	dc.closed = true
 	return
+}
+
+func (dc *directConn) Closed() bool {
+	return dc.closed
 }

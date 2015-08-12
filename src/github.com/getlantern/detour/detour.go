@@ -105,6 +105,7 @@ type conn interface {
 	FollowupRead(b []byte, ch chan ioResult)
 	Write(b []byte, ch chan ioResult)
 	Close() error
+	Closed() bool
 }
 
 func typeOf(c conn) string {
@@ -152,7 +153,7 @@ func Dialer(detourDialer dialFunc) func(network, addr string) (net.Conn, error) 
 			t := time.NewTimer(TimeoutToConnect)
 			defer t.Stop()
 			for i := 0; i < 2; i++ {
-				log.Tracef("Waiting for connection to %s", dc.addr)
+				log.Tracef("Waiting for connection to %s, round %d", dc.addr, i)
 				select {
 				case c := <-ch:
 					if c == nil {
@@ -204,9 +205,9 @@ func (dc *Conn) Read(b []byte) (n int, err error) {
 	}
 	// At initial stage, we only have one connection,
 	// but detour connection can be available at anytime.
-	conn := <-dc.conns
-	conn.FirstRead(b, dc.chRead)
-	dc.conns <- conn
+	if !dc.withValidConn(func(c conn) { c.FirstRead(b, dc.chRead) }) {
+		return 0, fmt.Errorf("no connection available to %s", dc.addr)
+	}
 	for count := 1; count > 0; count-- {
 		select {
 		case newConn := <-dc.chDetourConn:
@@ -226,8 +227,7 @@ func (dc *Conn) Read(b []byte) (n int, err error) {
 			// add new connection to connections
 			dc.conns <- newConn
 		case result := <-dc.chRead:
-			conn, n, err = result.conn, result.n, result.err
-			log.Tracef("Read back from %s connection", typeOf(conn))
+			conn, n, err := result.conn, result.n, result.err
 			if err != nil {
 				log.Tracef("Read from %s connection to %s failed, closing: %s", typeOf(conn), dc.addr, err)
 				_ = conn.Close()
@@ -261,9 +261,9 @@ func (dc *Conn) Read(b []byte) (n int, err error) {
 
 // followUpRead is called by Read() if a connection's state already settled
 func (dc *Conn) followupRead(b []byte) (n int, err error) {
-	conn := <-dc.conns
-	conn.FollowupRead(b, dc.chRead)
-	dc.conns <- conn
+	if !dc.withValidConn(func(c conn) { c.FollowupRead(b, dc.chRead) }) {
+		return 0, fmt.Errorf("no connection available to %s", dc.addr)
+	}
 	result := <-dc.chRead
 	dc.incReadBytes(result.n)
 	return result.n, result.err
@@ -282,9 +282,9 @@ func (dc *Conn) Write(b []byte) (n int, err error) {
 		_, _ = dc.writeBuffer.Write(b)
 		dc.muWriteBuffer.Unlock()
 	}
-	conn := <-dc.conns
-	conn.Write(b, dc.chWrite)
-	dc.conns <- conn
+	if !dc.withValidConn(func(c conn) { c.Write(b, dc.chWrite) }) {
+		return 0, fmt.Errorf("no connection available to %s", dc.addr)
+	}
 
 	result := <-dc.chWrite
 	if n, err = result.n, result.err; err != nil {
@@ -298,9 +298,9 @@ func (dc *Conn) Write(b []byte) (n int, err error) {
 
 // followupWrite is called by Write() if a connection's state already settled
 func (dc *Conn) followupWrite(b []byte) (n int, err error) {
-	conn := <-dc.conns
-	conn.Write(b, dc.chWrite)
-	dc.conns <- conn
+	if !dc.withValidConn(func(c conn) { c.Write(b, dc.chWrite) }) {
+		return 0, fmt.Errorf("no connection available to %s", dc.addr)
+	}
 	result := <-dc.chWrite
 	return result.n, result.err
 }
@@ -344,6 +344,24 @@ func (dc *Conn) SetReadDeadline(t time.Time) error {
 // SetWriteDeadline implements the function from net.Conn
 func (dc *Conn) SetWriteDeadline(t time.Time) error {
 	return nil
+}
+
+func (dc *Conn) withValidConn(f func(conn)) bool {
+	for i := 0; i < len(dc.conns); i++ {
+		select {
+		case c := <-dc.conns:
+			if c.Closed() {
+				log.Tracef("Drain closed %s connection to %s", typeOf(c), dc.addr)
+				continue
+			}
+			f(c)
+			dc.conns <- c
+			return true
+		default:
+			break
+		}
+	}
+	return false
 }
 
 var nonIdempotentMethods = [][]byte{

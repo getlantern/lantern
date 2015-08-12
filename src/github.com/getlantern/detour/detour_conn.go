@@ -14,6 +14,7 @@ type detourConn struct {
 
 	// 1 == true, 0 == false, atomic
 	errorEncountered uint32
+	closed           bool
 }
 
 func dialDetour(network string, addr string, dialer dialFunc, ch chan conn) {
@@ -71,5 +72,10 @@ func (dc *detourConn) Close() (err error) {
 		log.Tracef("no error found till closing, add %s to whitelist", dc.addr)
 		AddToWl(dc.addr, false)
 	}
+	dc.closed = true
 	return
+}
+
+func (dc *detourConn) Closed() bool {
+	return dc.closed
 }
