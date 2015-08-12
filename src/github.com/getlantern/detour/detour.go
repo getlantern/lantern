@@ -199,7 +199,6 @@ func (dc *Conn) incReadBytes(n int) {
 
 // Read() implements the function from net.Conn
 func (dc *Conn) Read(b []byte) (n int, err error) {
-	log.Tracef("Initiate a read request to %s", dc.addr)
 	if dc.anyDataReceived() {
 		return dc.followupRead(b)
 	}
@@ -271,7 +270,6 @@ func (dc *Conn) followupRead(b []byte) (n int, err error) {
 
 // Write() implements the function from net.Conn
 func (dc *Conn) Write(b []byte) (n int, err error) {
-	log.Tracef("Initiate a write request to %s", dc.addr)
 	if dc.anyDataReceived() {
 		return dc.followupWrite(b)
 	}
