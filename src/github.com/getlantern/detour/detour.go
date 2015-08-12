@@ -317,32 +317,31 @@ func (dc *Conn) Close() error {
 
 // LocalAddr implements the function from net.Conn
 func (dc *Conn) LocalAddr() net.Addr {
+	log.Trace("LocalAddr not implemented")
 	return nil
 }
 
 // RemoteAddr implements the function from net.Conn
 func (dc *Conn) RemoteAddr() net.Addr {
+	log.Trace("RemoteAddr not implemented")
 	return nil
 }
 
 // SetDeadline implements the function from net.Conn
 func (dc *Conn) SetDeadline(t time.Time) error {
-	if err := dc.SetReadDeadline(t); err != nil {
-		log.Debugf("Unable to set read deadline: %v", err)
-	}
-	if err := dc.SetWriteDeadline(t); err != nil {
-		log.Debugf("Unable to set write deadline: %v", err)
-	}
+	log.Trace("SetDeadline not implemented")
 	return nil
 }
 
 // SetReadDeadline implements the function from net.Conn
 func (dc *Conn) SetReadDeadline(t time.Time) error {
+	log.Trace("SetReadDeadline not implemented")
 	return nil
 }
 
 // SetWriteDeadline implements the function from net.Conn
 func (dc *Conn) SetWriteDeadline(t time.Time) error {
+	log.Trace("SetWriteDeadline not implemented")
 	return nil
 }
 
