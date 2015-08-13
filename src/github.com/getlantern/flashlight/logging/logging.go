@@ -69,28 +69,34 @@ func Init() error {
 	return nil
 }
 
+// Configure will set up logging. An empty "addr" will configure logging without a proxy
+// Returns a bool channel for optional blocking.
 func Configure(addr string, cloudConfigCA string, instanceId string,
 	version string, revisionDate string) (success chan bool) {
 	success = make(chan bool, 1)
 
+	// Note: Returning from this function must always add a result to the
+	// success channel.
 	if logglyToken == "" {
 		log.Debugf("No logglyToken, not sending error logs to Loggly")
+		success <- false
 		return
 	}
 
 	if version == "" {
 		log.Error("No version configured, not sending error logs to Loggly")
+		success <- false
 		return
 	}
 
 	if revisionDate == "" {
 		log.Error("No build date configured, not sending error logs to Loggly")
+		success <- false
 		return
 	}
 
 	if addr != "" && addr == lastAddr {
 		log.Debug("Logging configuration unchanged")
-		// Avoid blocking if the result channel is used
 		success <- false
 		return
 	}
