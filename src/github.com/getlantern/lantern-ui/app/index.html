@@ -65,14 +65,14 @@
   <body ng-controller="RootCtrl" ng-cloak lang="{{ lang }}" dir="{{ langDirection }}"
     ng-class="{showVis: model.showVis, getMode: inGetMode, giveMode: inGiveMode}">
     <div id="fb-root"></div>
-    <div id="waiting" ng-show="!wsConnected">       
-    <div ng-show="!backendIsGone">       
-        <div>{{ 'WAITING_FOR_LANTERN' | translate }}</div>     
-        <img src="img/spinner.gif">        
-        </div>       
-        <div ng-show="backendIsGone">        
-        <div class="backend-gone">{{ 'LANTERN_GONE' | translate }}</div>        
-    </div>       
+    <div id="waiting" ng-show="!wsConnected">
+    <div ng-show="!backendIsGone">
+        <div>{{ 'WAITING_FOR_LANTERN' | translate }}</div>
+        <img src="img/spinner.gif">
+        </div>
+        <div ng-show="backendIsGone">
+        <div class="backend-gone">{{ 'LANTERN_GONE' | translate }}</div>
+    </div>
     </div>
     <div ng-include src="'partials/modals.html'"></div>
     <div ng-include src="'partials/bookmarks.html'" id="vis-container"></div>
