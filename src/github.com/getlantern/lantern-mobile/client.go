@@ -79,7 +79,7 @@ func (client *mobileClient) serveHTTP() {
 	go func() {
 		onListening := func() {
 			log.Debugf("Now listening for connections...")
-			analytics.Configure(trackingCodes["FireTweet"], "", client.Client.Addr)
+			analytics.Configure("", trackingCodes["FireTweet"], "", client.Client.Addr)
 			logging.Configure(client.Client.Addr, cloudConfigCA, instanceId, version, revisionDate)
 		}
 

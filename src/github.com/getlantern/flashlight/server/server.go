@@ -284,7 +284,7 @@ func (server *Server) checkForBannedCountry(req *http.Request) error {
 		country = cachedCountry.(string)
 	} else {
 		log.Tracef("Country for %v not cached, perform geolookup", clientIp)
-		city, err := geolookup.LookupIPWithClient(clientIp, nil)
+		city, _, err := geolookup.LookupIPWithClient(clientIp, nil)
 		if err != nil {
 			log.Debugf("Unable to perform geolookup for ip %v: %v", clientIp, err)
 			return nil

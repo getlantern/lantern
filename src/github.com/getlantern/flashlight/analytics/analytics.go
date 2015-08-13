@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/getlantern/flashlight/config"
+	"github.com/getlantern/flashlight/pubsub"
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/getlantern/analytics"
@@ -27,12 +28,15 @@ var (
 func Configure(cfg *config.Config, version string) {
 
 	if cfg.AutoReport != nil && *cfg.AutoReport {
-		analytics.Configure(TrackingId, version, cfg.Addr)
+		pubsub.Sub(pubsub.IP, func(ip string) {
+			log.Debugf("Got IP %v -- starting analytics", ip)
+			analytics.Configure(ip, TrackingId, version, cfg.Addr)
 
-		err := StartService()
-		if err != nil {
-			log.Errorf("Error starting analytics service: %q", err)
-		}
+			err := StartService()
+			if err != nil {
+				log.Errorf("Error starting analytics service: %q", err)
+			}
+		})
 	}
 }
 

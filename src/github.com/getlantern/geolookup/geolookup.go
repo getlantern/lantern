@@ -102,7 +102,7 @@ type Country struct {
 // LookupIPWithClient looks up the given IP using a geolocation service and returns a
 // City struct. If an httpClient was provided, it uses that, otherwise it uses
 // a default http.Client.
-func LookupIPWithClient(ipAddr string, httpClient *http.Client) (*City, error) {
+func LookupIPWithClient(ipAddr string, httpClient *http.Client) (*City, string, error) {
 	if httpClient == nil {
 		log.Trace("Using default http.Client")
 		httpClient = defaultHttpClient
@@ -116,11 +116,11 @@ func LookupIPWithClient(ipAddr string, httpClient *http.Client) (*City, error) {
 	lookupURL := fmt.Sprintf(geoServeEndpoint, ipAddr)
 
 	if req, err = http.NewRequest("GET", lookupURL, nil); err != nil {
-		return nil, fmt.Errorf("Could not create request: %q", err)
+		return nil, "", fmt.Errorf("Could not create request: %q", err)
 	}
 
 	if resp, err = httpClient.Do(req); err != nil {
-		return nil, fmt.Errorf("Could not get response from server: %q", err)
+		return nil, "", fmt.Errorf("Could not get response from server: %q", err)
 	}
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
@@ -134,15 +134,17 @@ func LookupIPWithClient(ipAddr string, httpClient *http.Client) (*City, error) {
 		if err == nil {
 			body = string(b)
 		}
-		return nil, fmt.Errorf("Unexpected response status %d: %v", resp.StatusCode, body)
+		return nil, "", fmt.Errorf("Unexpected response status %d: %v", resp.StatusCode, body)
 	}
+
+	ip := resp.Header.Get("X-Reflected-Ip")
 
 	decoder := json.NewDecoder(resp.Body)
 
 	city := &City{}
 	if err = decoder.Decode(city); err != nil {
-		return nil, err
+		return nil, ip, err
 	}
 
-	return city, nil
+	return city, ip, nil
 }
