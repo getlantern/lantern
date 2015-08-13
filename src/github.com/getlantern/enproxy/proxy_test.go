@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestBanned(t *testing.T) {
+func TestCustomHeaders(t *testing.T) {
 
 	proxy := &Proxy{}
 
