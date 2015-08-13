@@ -130,6 +130,9 @@ func (p *Proxy) Serve(l net.Listener) error {
 
 // ServeHTTP: implements the http.Handler interface
 func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	resp.Header().Set("Lantern-IP", req.Header.Get("X-Forwarded-For"))
+	resp.Header().Set("Lantern-Country", req.Header.Get("Cf-Ipcountry"))
+
 	if req.Method == "HEAD" {
 		// Just respond OK to HEAD requests (used for health checks)
 		resp.WriteHeader(200)
