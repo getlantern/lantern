@@ -81,25 +81,35 @@ func Init() error {
 	return nil
 }
 
+// Configure will set up logging. An empty "addr" will configure logging without a proxy
+// Returns a bool channel for optional blocking.
 func Configure(addr string, cloudConfigCA string, instanceId string,
-	version string, revisionDate string) {
+	version string, revisionDate string) (success chan bool) {
+	success = make(chan bool, 1)
+
+	// Note: Returning from this function must always add a result to the
+	// success channel.
 	if logglyToken == "" {
 		log.Debugf("No logglyToken, not sending error logs to Loggly")
+		success <- false
 		return
 	}
 
 	if version == "" {
-		log.Error("No version configured, Loggly won't include version information")
+		log.Error("No version configured, not sending error logs to Loggly")
+		success <- false
 		return
 	}
 
 	if revisionDate == "" {
-		log.Error("No build date configured, Loggly won't include build date information")
+		log.Error("No build date configured, not sending error logs to Loggly")
+		success <- false
 		return
 	}
 
-	if addr == lastAddr {
+	if addr != "" && addr == lastAddr {
 		log.Debug("Logging configuration unchanged")
+		success <- false
 		return
 	}
 
@@ -108,7 +118,18 @@ func Configure(addr string, cloudConfigCA string, instanceId string,
 	go func() {
 		lastAddr = addr
 		enableLoggly(addr, cloudConfigCA, instanceId, version, revisionDate)
+		// Won't block, but will allow optional blocking on receiver
+		success <- true
 	}()
+	return
+}
+
+// Flush forces output flushing if the output is flushable
+func Flush() {
+	output := golog.GetOutputs().ErrorOut
+	if output, ok := output.(flushable); ok {
+		output.flush()
+	}
 }
 
 func Close() error {
@@ -118,20 +139,19 @@ func Close() error {
 
 func enableLoggly(addr string, cloudConfigCA string, instanceId string,
 	version string, revisionDate string) {
-	if addr == "" {
-		log.Error("No known proxy, won't report to Loggly")
-		removeLoggly()
-		return
-	}
 
 	client, err := util.PersistentHTTPClient(cloudConfigCA, addr)
 	if err != nil {
-		log.Errorf("Could not create proxied HTTP client, not logging to Loggly: %v", err)
+		log.Errorf("Could not create HTTP client, not logging to Loggly: %v", err)
 		removeLoggly()
 		return
 	}
 
-	log.Debugf("Sending error logs to Loggly via proxy at %v", addr)
+	if addr == "" {
+		log.Debugf("Sending error logs to Loggly directly")
+	} else {
+		log.Debugf("Sending error logs to Loggly via proxy at %v", addr)
+	}
 
 	lang, _ := jibber_jabber.DetectLanguage()
 	logglyWriter := &logglyErrorWriter{
@@ -158,13 +178,6 @@ func removeLoggly() {
 	golog.SetOutputs(errorOut, debugOut)
 }
 
-type logglyErrorWriter struct {
-	lang            string
-	tz              string
-	versionToLoggly string
-	client          *loggly.Client
-}
-
 func isDuplicate(msg string) bool {
 	dupLock.Lock()
 	defer dupLock.Unlock()
@@ -179,6 +192,19 @@ func isDuplicate(msg string) bool {
 	}
 
 	return false
+}
+
+// flushable interface describes writers that can be flushed
+type flushable interface {
+	flush()
+	Write(p []byte) (n int, err error)
+}
+
+type logglyErrorWriter struct {
+	lang            string
+	tz              string
+	versionToLoggly string
+	client          *loggly.Client
 }
 
 func (w logglyErrorWriter) Write(b []byte) (int, error) {
@@ -243,6 +269,13 @@ func (w logglyErrorWriter) Write(b []byte) (int, error) {
 	return len(b), nil
 }
 
+// flush forces output, since it normally flushes based on an interval
+func (w *logglyErrorWriter) flush() {
+	if err := w.client.Flush(); err != nil {
+		log.Debugf("Error flushing loggly error writer: %v", err)
+	}
+}
+
 type nonStopWriter struct {
 	writers []io.Writer
 }
@@ -264,4 +297,13 @@ func (t *nonStopWriter) Write(p []byte) (int, error) {
 		}
 	}
 	return len(p), nil
+}
+
+// flush forces output of the writers that may provide this functionality.
+func (t *nonStopWriter) flush() {
+	for _, w := range t.writers {
+		if w, ok := w.(flushable); ok {
+			w.flush()
+		}
+	}
 }
