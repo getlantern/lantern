@@ -376,7 +376,7 @@ release-qa: require-version require-s3cmd
 		SUFFIX=$$(echo "$$NAME" | sed s/$$BASE_NAME//g) && \
 		VERSIONED=lantern-installer-$$VERSION$$SUFFIX && \
 		echo "Copying $$VERSIONED" && \
-		$(S3CMD) cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$VERSIONED; \
+		$(S3CMD) cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$VERSIONED && \
 		$(S3CMD) setacl s3://$(S3_BUCKET)/$$VERSIONED --acl-public; \
 	done && \
 	for NAME in $$(ls -1 update_darwin_amd64.bz2 update_linux_386.bz2 update_linux_amd64.bz2 update_windows_386.bz2); do \
@@ -392,8 +392,8 @@ release-beta: require-s3cmd
 	for URL in $$($(S3CMD) ls s3://$(S3_BUCKET)/ | grep $$BASE_NAME | awk '{print $$4}'); do \
 		NAME=$$(basename $$URL) && \
 		BETA=$$(echo $$NAME | sed s/"$$BASE_NAME"/$$BETA_BASE_NAME/) && \
-		$(S3CMD) cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$BETA; \
-		$(S3CMD) setacl s3://$(S3_BUCKET)/$$BETA --acl-public; \
+		$(S3CMD) cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$BETA && \
+		$(S3CMD) setacl s3://$(S3_BUCKET)/$$BETA --acl-public && \
 		$(S3CMD) get --force s3://$(S3_BUCKET)/$$NAME $(LANTERN_BINARIES_PATH)/$$BETA; \
 	done && \
 	cd $(LANTERN_BINARIES_PATH) && \
