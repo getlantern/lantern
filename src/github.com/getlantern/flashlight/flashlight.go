@@ -428,7 +428,8 @@ func handleSignals() {
 		syscall.SIGTERM,
 		syscall.SIGQUIT)
 	go func() {
-		<-c
+		s := <-c
+		log.Debugf("Got signal \"%s\", exiting...", s)
 		exit(nil)
 	}()
 }
