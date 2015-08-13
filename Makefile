@@ -54,7 +54,7 @@ FIRETWEET_MAIN_DIR ?= ../firetweet/firetweet/src/main/
 define package-settings
 	PACKAGED_SETTINGS="" && \
 	if [[ ! -z "$$MANOTO" ]]; then \
-		PACKAGED_SETTINGS="startupurl: https://www.facebook.com/manototv"; \
+		PACKAGED_SETTINGS="startupurl: https://www.facebook.com/manototv/app_190322544333196"; \
 	fi && \
 	PACKAGED_SETTINGS=$$(echo $$PACKAGED_SETTINGS | xargs) && echo "Packaged settings: $$PACKAGED_SETTINGS"
 endef
