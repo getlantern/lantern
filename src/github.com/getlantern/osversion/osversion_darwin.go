@@ -34,31 +34,31 @@ func GetString() (string, error) {
 }
 
 func GetHumanReadable() (string, error) {
-	versions := []string{
-		"OS X 10.0.{patch} Cheetah",
-		"OS X 10.1.{patch} Puma",
-		"OS X 10.2.{patch} Jaguar",
-		"OS X 10.3.{patch} Panther",
-		"OS X 10.4.{patch} Tiger",
-		"OS X 10.5.{patch} Leopard",
-		"OS X 10.6.{patch} Snow Leopard",
-		"OS X 10.7.{patch} Lion",
-		"OS X 10.8.{patch} Mountain Lion",
-		"OS X 10.9.{patch} Mavericks",
-		"OS X 10.10.{patch} Yosemite",
-		"OS X 10.11.{patch} El Capitan",
-	}
-
 	version, err := GetSemanticVersion()
 	if err != nil {
 		return "", err
 	}
 	if version.Major < 4 || version.Major > 11 {
-		return "", errors.New("Unknown OS X version")
+		return fmt.Sprintf("Unknown OS X version: %s", version.String()), nil
 	}
 
 	return strings.Replace(versions[version.Major-4],
 		"{patch}",
 		strconv.FormatUint(version.Patch, 10),
 		1), nil
+}
+
+var versions = []string{
+	"OS X 10.0.{patch} Cheetah",
+	"OS X 10.1.{patch} Puma",
+	"OS X 10.2.{patch} Jaguar",
+	"OS X 10.3.{patch} Panther",
+	"OS X 10.4.{patch} Tiger",
+	"OS X 10.5.{patch} Leopard",
+	"OS X 10.6.{patch} Snow Leopard",
+	"OS X 10.7.{patch} Lion",
+	"OS X 10.8.{patch} Mountain Lion",
+	"OS X 10.9.{patch} Mavericks",
+	"OS X 10.10.{patch} Yosemite",
+	"OS X 10.11.{patch} El Capitan",
 }
