@@ -44,13 +44,8 @@ func GetSemanticVersion() (semver.Version, error) {
 }
 
 func GetHumanReadable() (string, error) {
-
 	versions := []string{
-		"",
-		"",
-		"",
-		"",
-		"",
+		"OS X 10.0.{patch} Cheetah",
 		"OS X 10.1.{patch} Puma",
 		"OS X 10.2.{patch} Jaguar",
 		"OS X 10.3.{patch} Panther",
@@ -69,7 +64,7 @@ func GetHumanReadable() (string, error) {
 		return "", err
 	}
 
-	return strings.Replace(versions[version.Major],
+	return strings.Replace(versions[version.Major - 4],
 		"{patch}",
 		strconv.FormatUint(version.Patch, 10),
 		1), nil
