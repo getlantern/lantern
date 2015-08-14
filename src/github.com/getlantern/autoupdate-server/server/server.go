@@ -127,6 +127,11 @@ func (g *ReleaseManager) CheckForUpdate(p *Params) (res *Result, err error) {
 		}
 	}
 
+	// A development version should not be updated.
+	if appVersion.String() == "9999.99.99" {
+		return nil, ErrNoUpdateAvailable
+	}
+
 	// Looking if there is a newer version for the os/arch.
 	if update == nil {
 		if update, err = g.getProductUpdate(p.OS, p.Arch); err != nil {
