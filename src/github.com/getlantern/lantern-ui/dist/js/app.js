@@ -203,7 +203,7 @@ var app = angular.module('app', [
     };
 
     $rootScope.trackPageView = function() {
-        gaMgr.trackPageView('start');
+        gaMgr.trackPageView();
     };
 
     $rootScope.valByLang = function(name) {
@@ -323,7 +323,7 @@ var DEFAULT_LANG = 'en_US',
       es: {dir: 'ltr', name: 'español'},
       ar: {dir: 'rtl', name: 'العربية'}
     },
-    GOOGLE_ANALYTICS_WEBPROP_ID = 'UA-21815217-12',
+    GOOGLE_ANALYTICS_WEBPROP_ID = 'UA-21815217-13',
     GOOGLE_ANALYTICS_DISABLE_KEY = 'ga-disable-'+GOOGLE_ANALYTICS_WEBPROP_ID,
     loc = typeof location == 'object' ? location : undefined,
     // this allows the real backend to mount the entire app under a random path
@@ -896,30 +896,9 @@ angular.module('app.services', [])
       title: 'lantern-ui'
     });
 
-    function trackPageView(sessionControl) {
-      var trackers = ga.getAll();
-      for (var i =0; i < trackers.length; i++) {
-          var tracker = trackers[i];
-          if (tracker.b && tracker.b.data && tracker.b.data.w) {
-              var fields = tracker.b.data.w;
-              var gaObj = {
-                  clientId: '',
-                  clientVersion: '',
-                  language: '',
-                  screenColors: '',
-                  screenResolution: '',
-                  trackingId: '',
-                  viewPortSize: ''
-              };
-              for (var name in fields) {
-                var key = name.split(':')[1];
-                if (gaObj.hasOwnProperty(key)) {
-                    gaObj[key] = fields[name];
-                }
-              }
-              DataStream.send('Analytics', gaObj);
-          }
-      }
+    function trackPageView() {
+			console.log("SENDING PAGE VIEW")
+      ga('send', 'pageview');
     }
 
     return {

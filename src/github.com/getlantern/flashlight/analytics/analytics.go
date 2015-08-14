@@ -1,104 +1,88 @@
 package analytics
 
 import (
+	"bytes"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
+	"strconv"
 
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/pubsub"
-	"github.com/mitchellh/mapstructure"
+	"github.com/getlantern/flashlight/util"
 
-	"github.com/getlantern/analytics"
-	"github.com/getlantern/flashlight/ui"
 	"github.com/getlantern/golog"
 )
 
 const (
-	messageType = `Analytics`
-	TrackingId  = "UA-21815217-12"
+	trackingId  = "UA-21815217-12"
+	ApiEndpoint = `https://ssl.google-analytics.com/collect`
 )
 
 var (
-	log        = golog.LoggerFor("flashlight.analytics")
-	service    *ui.Service
-	httpClient *http.Client
-	hostName   *string
-	stopCh     chan bool
+	log = golog.LoggerFor("flashlight.analytics")
 )
 
 func Configure(cfg *config.Config, version string) {
-
 	if cfg.AutoReport != nil && *cfg.AutoReport {
 		pubsub.Sub(pubsub.IP, func(ip string) {
 			log.Debugf("Got IP %v -- starting analytics", ip)
-			analytics.Configure(ip, TrackingId, version, cfg.Addr)
-
-			err := StartService()
-			if err != nil {
-				log.Errorf("Error starting analytics service: %q", err)
-			}
+			go trackSession(ip, version, cfg.Addr, cfg.InstanceId)
 		})
 	}
 }
 
-// Used with clients to track user interaction with the UI
-func StartService() error {
+func trackSession(ip string, version string, proxyAddr string, clientId string) {
+	vals := make(url.Values, 0)
 
-	var err error
+	vals.Add("v", "1")
+	vals.Add("cid", clientId)
+	vals.Add("tid", trackingId)
 
-	if service != nil {
-		return nil
+	// Override the users IP so we get accurate geo data.
+	vals.Add("uip", ip)
+
+	// Make call to anonymize the user's IP address -- basically a policy thing where
+	// Google agrees not to store it.
+	vals.Add("aip", "1")
+
+	vals.Add("dp", "localhost")
+	vals.Add("t", "pageview")
+
+	// Custom variable for the Lantern version
+	vals.Add("cd1", version)
+
+	args := vals.Encode()
+
+	r, err := http.NewRequest("POST", ApiEndpoint, bytes.NewBufferString(args))
+
+	if err != nil {
+		log.Errorf("Error constructing GA request: %s", err)
+		return
 	}
 
-	newMessage := func() interface{} {
-		return &analytics.Payload{}
+	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	r.Header.Add("Content-Length", strconv.Itoa(len(args)))
+
+	if req, err := httputil.DumpRequestOut(r, true); err != nil {
+		log.Debugf("Could not dump request: %v", err)
+	} else {
+		log.Debugf("Full analytics request: %v", string(req))
 	}
 
-	if service, err = ui.Register(messageType, newMessage, nil); err != nil {
-		log.Errorf("Unable to register analytics service: %q", err)
-		return err
+	var httpClient *http.Client
+	httpClient, err = util.HTTPClient("", proxyAddr)
+	if err != nil {
+		log.Errorf("Could not create HTTP client via %s: %s", proxyAddr, err)
+		return
 	}
-
-	stopCh = make(chan bool)
-
-	// process analytics messages
-	go read()
-
-	return err
-}
-
-func StopService() {
-	if service != nil && stopCh != nil {
-		ui.Unregister(messageType)
-		stopCh <- true
-		service = nil
-		log.Debug("Successfully stopped analytics service")
+	resp, err := httpClient.Do(r)
+	if err != nil {
+		log.Errorf("Could not send HTTP request to GA: %s", err)
+		return
 	}
-}
-
-func read() {
-
-	for {
-		select {
-		case <-stopCh:
-			return
-		case msg := <-service.In:
-			log.Debugf("New UI analytics message: %q", msg)
-			var payload analytics.Payload
-			if err := mapstructure.Decode(msg, &payload); err != nil {
-				log.Errorf("Could not decode payload: %q", err)
-			} else {
-				// set to localhost on clients
-				payload.Hostname = "localhost"
-				payload.HitType = analytics.PageViewType
-				// for now, the only analytics messages we are
-				// currently receiving from the UI are initial page
-				// views which indicate new UI sessions
-				if status, err := analytics.SendRequest(&payload); err != nil {
-					log.Debugf("Error sending analytics request: %v", err)
-				} else {
-					log.Tracef("Analytics request status: %v", status)
-				}
-			}
-		}
+	log.Debugf("Successfully sent request to GA: %s", resp.Status)
+	if err := resp.Body.Close(); err != nil {
+		log.Debugf("Unable to close response body: %v", err)
 	}
 }

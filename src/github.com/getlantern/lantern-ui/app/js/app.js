@@ -203,7 +203,7 @@ var app = angular.module('app', [
     };
 
     $rootScope.trackPageView = function() {
-        gaMgr.trackPageView('start');
+        gaMgr.trackPageView();
     };
 
     $rootScope.valByLang = function(name) {
