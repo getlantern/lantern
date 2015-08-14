@@ -7,7 +7,7 @@ import (
 )
 
 func TestString(t *testing.T) {
-	reg := regexp.MustCompile("^([0-9])+\\.([0-9])+\\.([0-9])$")
+	reg := regexp.MustCompile("^([0-9])+\\.([0-9])+\\.([0-9])+.*")
 	str, err := GetString()
 	if err != nil {
 		t.Fatal("Error getting string")
@@ -27,6 +27,15 @@ func TestHumanReadable(t *testing.T) {
 		reg := regexp.MustCompile("OS X 10\\..+")
 		if !reg.MatchString(str) {
 			t.Fatalf("Improper human readable format: %s", str)
+		}
+	case "linux":
+		str, err := GetHumanReadable()
+		if err != nil {
+			t.Fatal("Error getting string")
+		}
+		reg := regexp.MustCompile(".+kernel.+")
+		if !reg.MatchString(str) {
+			t.Fatal("Improper human readable format")
 		}
 	case "windows":
 		str, err := GetHumanReadable()

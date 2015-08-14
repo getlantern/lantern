@@ -19,7 +19,7 @@ func GetString() (string, error) {
 }
 
 func GetHumanReadable() (string, error) {
-	// Kernel versio
+	// Kernel version
 	kernel, err := GetString()
 	if err != nil {
 		return "", err

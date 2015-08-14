@@ -15,7 +15,7 @@ func GetString() (string, error) {
 	if err != nil {
 		return "", errors.New(fmt.Sprintf("Error finding GetVersion procedure: %v", err))
 	}
-	// The error is alway non-nil
+	// The error is always non-nil
 	v, _, _ := p.Call()
 	return fmt.Sprintf("%d.%d.%d", byte(v), byte(v>>8), uint16(v>>16)), nil
 }
@@ -28,16 +28,17 @@ func GetHumanReadable() (string, error) {
 
 	vstr := fmt.Sprintf("%d.%d.%d", version.Major, version.Minor, version.Patch)
 
-	fmt.Print(vstr)
+	// Try to find the specific build first
 	if str, ok := specificVersions[vstr]; ok {
 		return str, nil
 	}
 
+	// Otherwise try with the generic list
 	vstr = fmt.Sprintf("%d.%d", version.Major, version.Minor)
 	if str, ok := versions[vstr]; ok {
 		return str, nil
 	} else {
-		return "", errors.New("Unknown OS X version")
+		return "", errors.New("Unknown Windows version")
 	}
 }
 
