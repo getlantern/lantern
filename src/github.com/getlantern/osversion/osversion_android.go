@@ -1,8 +1,6 @@
 package osversion
 
 /*
-#cgo CFLAGS: -I .
-
 #include <sys/system_properties.h>
 #include <stdio.h>
 
