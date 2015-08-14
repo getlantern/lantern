@@ -15,11 +15,10 @@ import "C"
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"unsafe"
-
-	"github.com/blang/semver"
 )
 
 func GetString() (string, error) {
@@ -29,18 +28,9 @@ func GetString() (string, error) {
 
 	err := C.darwin_get_os(str, bufferSize)
 	if err == -1 {
-		return "", errors.New("Error running sysctl")
+		return "", errors.New(fmt.Sprintf("Error running sysctl: %v", err))
 	}
 	return C.GoString(str), nil
-}
-
-func GetSemanticVersion() (semver.Version, error) {
-	str, err := GetString()
-	if err != nil {
-		return semver.Version{}, err
-	}
-
-	return semver.Make(str)
 }
 
 func GetHumanReadable() (string, error) {
@@ -63,8 +53,11 @@ func GetHumanReadable() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	if version.Major < 4 || version.Major > 11 {
+		return "", errors.New("Unknown OS X version")
+	}
 
-	return strings.Replace(versions[version.Major - 4],
+	return strings.Replace(versions[version.Major-4],
 		"{patch}",
 		strconv.FormatUint(version.Patch, 10),
 		1), nil
