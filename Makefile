@@ -348,7 +348,8 @@ package-darwin: require-version require-appdmg require-svgexport darwin
 		rm -rf Lantern.dmg && \
 		sed "s/__VERSION__/$$VERSION/g" $$INSTALLER_RESOURCES/dmgbackground.svg > $$INSTALLER_RESOURCES/dmgbackground_versioned.svg && \
 		$(SVGEXPORT) $$INSTALLER_RESOURCES/dmgbackground_versioned.svg $$INSTALLER_RESOURCES/dmgbackground.png 600:400 && \
-		$(APPDMG) --quiet $$INSTALLER_RESOURCES/lantern.dmg.json Lantern.dmg && \
+		sed "s/__VERSION__/$$VERSION/g" $$INSTALLER_RESOURCES/lantern.dmg.json > $$INSTALLER_RESOURCES/lantern_versioned.dmg.json && \
+		$(APPDMG) --quiet $$INSTALLER_RESOURCES/lantern_versioned.dmg.json Lantern.dmg && \
 		mv Lantern.dmg Lantern.dmg.zlib && \
 		hdiutil convert -quiet -format UDBZ -o Lantern.dmg Lantern.dmg.zlib && \
 		rm Lantern.dmg.zlib; \
