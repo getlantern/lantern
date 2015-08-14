@@ -177,7 +177,6 @@ func Dialer(detourDialer dialFunc) func(network, addr string) (net.Conn, error) 
 				case <-t.C:
 					// still no connection made
 					chAnyConn <- false
-					return
 				}
 			}
 		}()
