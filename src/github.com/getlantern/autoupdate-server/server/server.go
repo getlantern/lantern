@@ -127,16 +127,16 @@ func (g *ReleaseManager) CheckForUpdate(p *Params) (res *Result, err error) {
 		}
 	}
 
-	// A development version should not be updated.
-	if appVersion.String() == "9999.99.99" {
-		return nil, ErrNoUpdateAvailable
-	}
-
 	// Looking if there is a newer version for the os/arch.
 	if update == nil {
 		if update, err = g.getProductUpdate(p.OS, p.Arch); err != nil {
 			return nil, fmt.Errorf("Could not lookup for updates: %s", err)
 		}
+	}
+
+	// No update available.
+	if update.v.LTE(appVersion) {
+		return nil, ErrNoUpdateAvailable
 	}
 
 	// Looking for the asset thay matches the current app checksum.
@@ -155,11 +155,6 @@ func (g *ReleaseManager) CheckForUpdate(p *Params) (res *Result, err error) {
 		}
 
 		return r, nil
-	}
-
-	// No update available.
-	if update.v.LTE(appVersion) {
-		return nil, ErrNoUpdateAvailable
 	}
 
 	// A newer version is available!
