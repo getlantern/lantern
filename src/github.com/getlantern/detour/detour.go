@@ -41,9 +41,9 @@ import (
 // If no any connection made after this period, stop dialing and fail
 var TimeoutToConnect = 30 * time.Second
 
-// To avoid unnecessarily proxy not-blocked url, detour will dial proxy connection
-// after this small delay
-var DelayBeforeDetour = 1 * time.Second
+// To avoid unnecessarily proxy not-blocked url, detour will dial detour connection
+// after this small delay. Set to zero to dial in parallel to not introducing any delay.
+var DelayBeforeDetour = 0 * time.Millisecond
 
 // If DirectAddrCh is set, when a direct connection is closed without any error,
 // the connection's remote address (in host:port format) will be send to it
