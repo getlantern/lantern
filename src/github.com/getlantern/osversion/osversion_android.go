@@ -3,6 +3,7 @@ package osversion
 /*
 #include <sys/system_properties.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 int android_get_prop_value_max() {
    return PROP_VALUE_MAX;
@@ -24,11 +25,13 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"unsafe"
 )
 
 func GetString() (string, error) {
 	strSize := int(C.android_get_prop_value_max())
 	verStr := (*C.char)(C.malloc(C.size_t(strSize)))
+	defer C.free(unsafe.Pointer(verStr))
 	C.android_get_release(verStr)
 	return C.GoString(verStr), nil
 }
@@ -43,6 +46,7 @@ func GetHumanReadable() (string, error) {
 	// Then get the release name
 	strSize := int(C.android_get_prop_value_max())
 	apiStr := (*C.char)(C.malloc(C.size_t(strSize)))
+	defer C.free(unsafe.Pointer(apiStr))
 	C.android_get_api(apiStr)
 
 	i, err := strconv.ParseUint(C.GoString(apiStr), 10, 16)
