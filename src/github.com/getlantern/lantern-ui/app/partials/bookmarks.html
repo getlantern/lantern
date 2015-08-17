@@ -1,4 +1,4 @@
-<div class="message"><a href="https://getlantern.org" target="_blank"><img id="logo" src="/img/ui-header-logo.png"></a><br/><span ng-show="!backendIsGone">{{ 'WELCOME_TO_LANTERN_BLOCKED_SITES' | translate }}</span></div>
+<div class="message"><a href="https://getlantern.org" target="_blank"><img id="logo" src="/img/ui-header-logo.png"></a><br/><span ng-show="!backendIsGone || wsConnected">{{ 'WELCOME_TO_LANTERN_BLOCKED_SITES' | translate }}</span></div>
 <div id="sites" style="opacity: 1; -webkit-transform: scale(1.48245614035088, 1.48245614035088); margin-left: auto; margin-right: auto; text-align: center; width: 650px; padding-bottom:90px; cursor:pointer;">
     <a target="_blank" style="background-image: url('/img/screenshots/wikipedia.png');" class="tile top bookmark" href="https://en.wikipedia.org/wiki/"><span class="url">Wikipedia</span></a>
     <a target="_blank" class="tile top bookmark" target="_blank" href="https://www.youtube.com/" style="background-image: url('/img/screenshots/youtube.png');"><span class="url">YouTube</span></a>

@@ -77,14 +77,16 @@ func (u *updateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if res, err = releaseManager.CheckForUpdate(&params); err != nil {
 			log.Debugf("CheckForUpdate failed with error: %q", err)
 			if err == server.ErrNoUpdateAvailable {
+				log.Debugf("Got query from client %q/%q, no update available.", params.AppVersion, params.OS)
 				u.closeWithStatus(w, http.StatusNoContent)
 				return
 			}
+			log.Debugf("Got query from client %q/%q: %q.", err)
 			u.closeWithStatus(w, http.StatusExpectationFailed)
 			return
 		}
 
-		log.Debugf("Got query from client %q, resolved to upgrade to %q using %q strategy.", params.AppVersion, res.Version, res.PatchType)
+		log.Debugf("Got query from client %q/%q, resolved to upgrade to %q using %q strategy.", params.AppVersion, params.OS, res.Version, res.PatchType)
 
 		if res.PatchURL != "" {
 			res.PatchURL = *flagPublicAddr + res.PatchURL

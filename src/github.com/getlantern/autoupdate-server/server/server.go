@@ -134,6 +134,11 @@ func (g *ReleaseManager) CheckForUpdate(p *Params) (res *Result, err error) {
 		}
 	}
 
+	// No update available.
+	if update.v.LTE(appVersion) {
+		return nil, ErrNoUpdateAvailable
+	}
+
 	// Looking for the asset thay matches the current app checksum.
 	var current *Asset
 	if current, err = g.lookupAssetWithChecksum(p.OS, p.Arch, p.Checksum); err != nil {
@@ -150,11 +155,6 @@ func (g *ReleaseManager) CheckForUpdate(p *Params) (res *Result, err error) {
 		}
 
 		return r, nil
-	}
-
-	// No update available.
-	if update.v.LTE(appVersion) {
-		return nil, ErrNoUpdateAvailable
 	}
 
 	// A newer version is available!
