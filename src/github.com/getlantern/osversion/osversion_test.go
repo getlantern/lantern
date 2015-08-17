@@ -13,7 +13,7 @@ func TestString(t *testing.T) {
 		t.Fatal("Error getting string")
 	}
 	if !reg.MatchString(str) {
-		t.Fatal("Improper string format")
+		t.Fatal("Improper string format: %s", str)
 	}
 }
 
@@ -35,7 +35,7 @@ func TestHumanReadable(t *testing.T) {
 		}
 		reg := regexp.MustCompile(".+kernel.+")
 		if !reg.MatchString(str) {
-			t.Fatal("Improper human readable format")
+			t.Fatal("Improper human readable format: %s", str)
 		}
 	case "windows":
 		str, err := GetHumanReadable()
@@ -44,9 +44,9 @@ func TestHumanReadable(t *testing.T) {
 		}
 		reg := regexp.MustCompile("Windows .+")
 		if !reg.MatchString(str) {
-			t.Fatal("Improper human readable format")
+			t.Fatal("Improper human readable format: %s", str)
 		}
 	default:
-		t.Fatal("Unsupported OS detected")
+		t.Fatal("Unsupported OS detected: %s", runtime.GOOS)
 	}
 }

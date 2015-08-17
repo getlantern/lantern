@@ -30,7 +30,7 @@ func GetHumanReadable() (string, error) {
 	// Try to get the distribution info
 	fData, err := ioutil.ReadFile("/etc/os-release")
 	if err != nil {
-		return fmt.Sprintf("kernel %s", kernel), nil
+		return fmt.Sprintf("kernel: %s", kernel), nil
 	}
 
 	// At least Fedora, Debian, Ubuntu and Arch support this approach
