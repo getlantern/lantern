@@ -1,7 +1,9 @@
 package logging
 
 import (
+	"bytes"
 	"fmt"
+	"regexp"
 	"sync"
 )
 
@@ -10,6 +12,7 @@ type agentsMap map[string]int
 var (
 	userAgents  = make(agentsMap)
 	agentsMutex = &sync.Mutex{}
+	reg         = regexp.MustCompile("^Go.*package http$")
 )
 
 // registerUserAgent tries to find the User-Agent in the HTTP request
@@ -34,5 +37,14 @@ func RegisterUserAgent(agent string) {
 func GetSessionUserAgents() string {
 	agentsMutex.Lock()
 	defer agentsMutex.Unlock()
-	return (fmt.Sprintf("%v", userAgents))
+
+	var buffer bytes.Buffer
+
+	for key, val := range userAgents {
+		if !reg.MatchString(key) {
+			buffer.WriteString(key)
+			buffer.WriteString(fmt.Sprintf(": %d requests; ", val))
+		}
+	}
+	return string(buffer.String())
 }
