@@ -215,14 +215,15 @@ func (w logglyErrorWriter) Write(b []byte) (int, error) {
 	}
 
 	extra := map[string]string{
-		"logLevel":  "ERROR",
-		"osName":    runtime.GOOS,
-		"osArch":    runtime.GOARCH,
-		"osVersion": "",
-		"language":  w.lang,
-		"country":   geolookup.GetCountry(),
-		"timeZone":  w.tz,
-		"version":   w.versionToLoggly,
+		"logLevel":          "ERROR",
+		"osName":            runtime.GOOS,
+		"osArch":            runtime.GOARCH,
+		"osVersion":         "",
+		"language":          w.lang,
+		"country":           geolookup.GetCountry(),
+		"timeZone":          w.tz,
+		"version":           w.versionToLoggly,
+		"sessionUserAgents": GetSessionUserAgents(),
 	}
 
 	// extract last 2 (at most) chunks of fullMessage to message, without prefix,
