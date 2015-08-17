@@ -23,12 +23,6 @@ var (
 	log  = golog.LoggerFor("flashlight.packaged")
 	name = ".packaged-lantern.yaml"
 
-	// In almost all cases this will be blank, but as a one-time workaround for
-	// https://github.com/getlantern/lantern/issues/2857 it is hard-coded
-	// to the manoto facebook page at https://www.facebook.com/manototv for a
-	// single binary (lantern-2.0.0-beta9+manoto)
-	url = ""
-
 	// This is the local copy of our embedded configuration file. This is necessary
 	// to ensure we remember the embedded configuration across auto-updated
 	// binaries. We write to the local file system instead of to the package
@@ -60,21 +54,6 @@ func ReadSettings() (string, *PackagedSettings, error) {
 // ReadSettingsFromFile reads PackagedSettings from the yaml file at the specified
 // path.
 func readSettingsFromFile(yamlPath string) (string, *PackagedSettings, error) {
-	if url != "" {
-		log.Debugf("Startup URL is hard-coded to: %v", url)
-		ps := &PackagedSettings{StartupUrl: url}
-
-		// If there is an embedded URL, it's a temporary workaround for this issue:
-		// https://github.com/getlantern/lantern/issues/2857
-		// As such, we need to store it to disk so that subsequent binaries that
-		// are auto-updated will get the new version.
-		path, err := writeToDisk(ps)
-		if err == nil {
-			return path, ps, nil
-		}
-		return path, nil, err
-	}
-
 	log.Debugf("Opening file at: %v", yamlPath)
 	data, err := ioutil.ReadFile(yamlPath)
 	if err != nil {
