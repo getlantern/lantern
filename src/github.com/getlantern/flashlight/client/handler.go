@@ -73,6 +73,19 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// Respond OK as soon as possible, even if we don't have the outbound connection
+	// established yet, to avoid timeouts on the client application
+	success := make(chan bool, 1)
+	go func() {
+		err = respondOK(clientConn, req)
+		if err != nil {
+			log.Errorf("Unable to respond OK: %s", err)
+			success <- false
+			return
+		}
+		success <- true
+	}()
+
 	// Establish outbound connection.
 	addr := hostIncludingPort(req, 443)
 	d := func(network, addr string) (net.Conn, error) {
@@ -89,15 +102,10 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Respond OK
-	err = respondOK(clientConn, req)
-	if err != nil {
-		log.Errorf("Unable to respond OK: %s", err)
-		return
+	if <-success {
+		// Pipe data between the client and the proxy.
+		pipeData(clientConn, connOut, func() { closeOnce.Do(closeConns) })
 	}
-
-	// Pipe data between the client and the proxy.
-	pipeData(clientConn, connOut, func() { closeOnce.Do(closeConns) })
 }
 
 // targetQOS determines the target quality of service given the X-Flashlight-QOS
