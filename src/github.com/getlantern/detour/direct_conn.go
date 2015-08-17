@@ -86,7 +86,7 @@ func checkFollowupRead(b []byte, n int, err error, addr string) error {
 	detector := blockDetector.Load().(*Detector)
 	if err != nil {
 		if detector.TamperingSuspected(err) {
-			log.Debugf("Seems %s still blocked, add to whitelist to try detour next time", addr)
+			log.Debugf("Seems %s is still blocked, add to whitelist to try detour next time", addr)
 			AddToWl(addr, false)
 			return err
 		}
