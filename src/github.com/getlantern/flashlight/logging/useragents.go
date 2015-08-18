@@ -7,10 +7,8 @@ import (
 	"sync"
 )
 
-type agentsMap map[string]int
-
 var (
-	userAgents  = make(agentsMap)
+	userAgents  = make(map[string]int)
 	agentsMutex = &sync.Mutex{}
 	reg         = regexp.MustCompile("^Go.*package http$")
 )
@@ -34,7 +32,7 @@ func RegisterUserAgent(agent string) {
 }
 
 // getSessionUserAgents returns the
-func GetSessionUserAgents() string {
+func getSessionUserAgents() string {
 	agentsMutex.Lock()
 	defer agentsMutex.Unlock()
 

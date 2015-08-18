@@ -223,7 +223,7 @@ func (w logglyErrorWriter) Write(b []byte) (int, error) {
 		"country":           geolookup.GetCountry(),
 		"timeZone":          w.tz,
 		"version":           w.versionToLoggly,
-		"sessionUserAgents": GetSessionUserAgents(),
+		"sessionUserAgents": getSessionUserAgents(),
 	}
 
 	// extract last 2 (at most) chunks of fullMessage to message, without prefix,
