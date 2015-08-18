@@ -36,7 +36,9 @@ func dialDirect(network string, addr string, ch chan conn) {
 		detector := blockDetector.Load().(*Detector)
 		if err == nil {
 			if detector.DNSPoisoned(conn) {
-				_ = conn.Close()
+				if err := conn.Close(); err != nil {
+					log.Debugf("Error closing direct connection to %s: %s", addr, err)
+				}
 				log.Debugf("Dial directly to %s, dns hijacked, add to whitelist", addr)
 				AddToWl(addr, false)
 				return
@@ -120,9 +122,8 @@ func (dc *directConn) doRead(b []byte, checker readChecker, ch chan ioResult) {
 func (dc *directConn) Write(b []byte, ch chan ioResult) {
 	go func() {
 		n, err := dc.Conn.Write(b)
-		defer func() { ch <- ioResult{n, err, dc} }()
+		ch <- ioResult{n, err, dc}
 	}()
-	return
 }
 
 func (dc *directConn) Close() (err error) {

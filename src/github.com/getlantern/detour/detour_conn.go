@@ -62,7 +62,7 @@ func (dc *detourConn) doRead(b []byte, ch chan ioResult) {
 func (dc *detourConn) Write(b []byte, ch chan ioResult) {
 	go func() {
 		n, err := dc.Conn.Write(b)
-		defer func() { ch <- ioResult{n, err, dc} }()
+		ch <- ioResult{n, err, dc}
 	}()
 	return
 }

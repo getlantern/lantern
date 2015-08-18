@@ -130,6 +130,7 @@ func Dialer(detourDialer dialFunc) func(network, addr string) (net.Conn, error) 
 		// use buffered channel as we may send twice to it but only receive once
 		chAnyConn := make(chan bool, 1)
 		ch := make(chan conn)
+
 		// dialing sequence
 		if whitelisted(addr) {
 			dialDetour(network, addr, detourDialer, ch)
@@ -148,10 +149,12 @@ func Dialer(detourDialer dialFunc) func(network, addr string) (net.Conn, error) 
 				dialDetour(network, addr, detourDialer, ch)
 			}()
 		}
+
 		// handle dialing result
 		go func() {
 			t := time.NewTimer(TimeoutToConnect)
 			defer t.Stop()
+			// At most 2 connections will be made
 			for i := 0; i < 2; i++ {
 				log.Tracef("Waiting for connection to %s, round %d", dc.addr, i)
 				select {
@@ -168,15 +171,19 @@ func Dialer(detourDialer dialFunc) func(network, addr string) (net.Conn, error) 
 						if c.ConnType() == connTypeDirect {
 							// Could happen if direct route is much slower.
 							log.Debugf("Direct connection to %s established too late, close it", dc.addr)
-							_ = c.Close()
+							if err := c.Close(); err != nil {
+								log.Debugf("Error closing direct connection to %s: %s", dc.addr, err)
+							}
 							return
 						}
 						log.Tracef("Feed detour connection to %s to read/write op", dc.addr)
 						dc.chDetourConn <- c
+						return
 					}
 				case <-t.C:
 					// still no connection made
 					chAnyConn <- false
+					return
 				}
 			}
 		}()
@@ -212,7 +219,9 @@ func (dc *Conn) Read(b []byte) (n int, err error) {
 			if atomic.LoadUint32(&dc.nonIdempotentHTTPRequest) == 1 {
 				log.Tracef("Not replay nonideompotent request to %s, only add to whitelist", dc.addr)
 				AddToWl(dc.addr, false)
-				_ = newConn.Close()
+				if err := newConn.Close(); err != nil {
+					log.Debugf("Error closing detour connection to %s: %s", dc.addr, err)
+				}
 				return
 			}
 			log.Tracef("Got detour connection to %s, replay previous op on it", dc.addr)
@@ -228,7 +237,9 @@ func (dc *Conn) Read(b []byte) (n int, err error) {
 			conn, n, err := result.conn, result.n, result.err
 			if err != nil {
 				log.Tracef("Read from %s connection to %s failed, closing: %s", typeOf(conn), dc.addr, err)
-				_ = conn.Close()
+				if err := conn.Close(); err != nil {
+					log.Debugf("Error closing %s connection to %s: %s", typeOf(conn), dc.addr, err)
+				}
 				// skip failed connection as we have more
 				if count > 1 {
 					continue
@@ -286,7 +297,9 @@ func (dc *Conn) Write(b []byte) (n int, err error) {
 	result := <-dc.chWrite
 	if n, err = result.n, result.err; err != nil {
 		log.Tracef("Error writing %s connection to %s: %s", typeOf(result.conn), dc.addr, err)
-		_ = result.conn.Close()
+		if err := result.conn.Close(); err != nil {
+			log.Debugf("Error closing %s connection to %s: %s", typeOf(result.conn), dc.addr, err)
+		}
 		return
 	}
 	log.Tracef("Wrote %d bytes to %s connection to %s", n, typeOf(result.conn), dc.addr)
@@ -307,7 +320,9 @@ func (dc *Conn) Close() error {
 	log.Tracef("Closing connection to %s", dc.addr)
 	for len(dc.conns) > 0 {
 		conn := <-dc.conns
-		_ = conn.Close()
+		if err := conn.Close(); err != nil {
+			log.Debugf("Error closing %s connection to %s: %s", typeOf(conn), dc.addr, err)
+		}
 	}
 	return nil
 }
@@ -326,20 +341,17 @@ func (dc *Conn) RemoteAddr() net.Addr {
 
 // SetDeadline implements the function from net.Conn
 func (dc *Conn) SetDeadline(t time.Time) error {
-	log.Trace("SetDeadline not implemented")
-	return nil
+	return fmt.Errorf("SetDeadline not implemented")
 }
 
 // SetReadDeadline implements the function from net.Conn
 func (dc *Conn) SetReadDeadline(t time.Time) error {
-	log.Trace("SetReadDeadline not implemented")
-	return nil
+	return fmt.Errorf("SetReadDeadline not implemented")
 }
 
 // SetWriteDeadline implements the function from net.Conn
 func (dc *Conn) SetWriteDeadline(t time.Time) error {
-	log.Trace("SetWriteDeadline not implemented")
-	return nil
+	return fmt.Errorf("SetWriteDeadline not implemented")
 }
 
 func (dc *Conn) withValidConn(f func(conn)) bool {
