@@ -96,9 +96,7 @@ func lookupIp(httpClient *http.Client) (string, string, error) {
 	var req *http.Request
 	var resp *http.Response
 
-	lookupURL := "http://nl.fallbacks.getiantem.org"
-
-	if req, err = http.NewRequest("HEAD", lookupURL, nil); err != nil {
+	if req, err = http.NewRequest("HEAD", "http://nl.fallbacks.getiantem.org", nil); err != nil {
 		return "", "", fmt.Errorf("Could not create request: %q", err)
 	}
 
@@ -143,7 +141,6 @@ func write() {
 		oldCountry := GetCountry()
 
 		newCountry, newIp, err := lookupIp(client.Load().(*http.Client))
-		//newCountry, ip, err := geolookup.LookupIPWithClient("", client.Load().(*http.Client))
 		if err == nil {
 			consecutiveFailures = 0
 			if newIp != oldIp {
