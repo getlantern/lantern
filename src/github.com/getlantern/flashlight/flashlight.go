@@ -356,11 +356,11 @@ func applyClientConfig(client *client.Client, cfg *config.Config) {
 	if hqfd == nil {
 		log.Errorf("No fronted dialer available, not enabling geolocation, config lookup, or stats")
 	} else {
-		// An *http.Client that uses the highest QOS dialer.
-		hqfdClient := hqfd.NewDirectDomainFronter()
-		config.Configure(hqfdClient)
-		geolookup.Configure(hqfdClient)
-		statserver.Configure(hqfdClient)
+		// Give everyone their own *http.Client that uses the highest QOS dialer. Separate
+		// clients for everyone avoids data races configuring those clients.
+		config.Configure(hqfd.NewDirectDomainFronter())
+		geolookup.Configure(hqfd.NewDirectDomainFronter())
+		statserver.Configure(hqfd.NewDirectDomainFronter())
 		// Note we don't call Configure on analytics here, as that would
 		// result in an extra analytics call and double counting.
 	}
