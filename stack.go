@@ -45,6 +45,11 @@ func Caller(skip int) Call {
 	return c
 }
 
+// String implements fmt.Stinger. It is equivalent to fmt.Sprintf("%v", c).
+func (c Call) String() string {
+	return fmt.Sprint(c)
+}
+
 // Format implements fmt.Formatter with support for the following verbs.
 //
 //    %s    source file
@@ -171,6 +176,11 @@ func (c Call) line() int {
 // stack.
 type CallStack []Call
 
+// String implements fmt.Stinger. It is equivalent to fmt.Sprintf("%v", cs).
+func (cs CallStack) String() string {
+	return fmt.Sprint(cs)
+}
+
 // Format implements fmt.Formatter by printing the CallStack as square brackes
 // ([, ]) surrounding a space separated list of Calls each formatted with the
 // supplied verb and options.
@@ -268,12 +278,12 @@ func inGoroot(c Call) bool {
 	if runtime.GOOS == "windows" {
 		file = strings.ToLower(file)
 	}
-	return strings.HasPrefix(file, goroot)
+	return strings.HasPrefix(file, goroot) || strings.HasSuffix(file, "/_testmain.go")
 }
 
 // TrimRuntime returns a slice of the CallStack with the topmost entries from
 // the go runtime removed. It considers any calls originating from unknown
-// files or files under GOROOT as part of the runtime.
+// files, files under GOROOT, or _testmain.go as part of the runtime.
 func (cs CallStack) TrimRuntime() CallStack {
 	for len(cs) > 0 && inGoroot(cs[len(cs)-1]) {
 		cs = cs[:len(cs)-1]

@@ -77,6 +77,62 @@ func TestCallFormat(t *testing.T) {
 	}
 }
 
+func TestCallString(t *testing.T) {
+	t.Parallel()
+
+	c := stack.Caller(0)
+	_, file, line, ok := runtime.Caller(0)
+	line--
+	if !ok {
+		t.Fatal("runtime.Caller(0) failed")
+	}
+
+	c2, _, file2, line2, ok2 := testType{}.testMethod()
+	if !ok2 {
+		t.Fatal("runtime.Caller(0) failed")
+	}
+
+	data := []struct {
+		c    stack.Call
+		desc string
+		out  string
+	}{
+		{stack.Call{}, "error", "%!v(NOFUNC)"},
+		{c, "func", fmt.Sprint(path.Base(file), ":", line)},
+		{c2, "meth", fmt.Sprint(path.Base(file2), ":", line2)},
+	}
+
+	for _, d := range data {
+		got := d.c.String()
+		if got != d.out {
+			t.Errorf("got %s, want %s", got, d.out)
+		}
+	}
+}
+
+func TestCallStackString(t *testing.T) {
+	cs, line0 := getTrace(t)
+	_, file, line1, ok := runtime.Caller(0)
+	line1--
+	if !ok {
+		t.Fatal("runtime.Caller(0) failed")
+	}
+	file = path.Base(file)
+	if got, want := cs.String(), fmt.Sprintf("[%s:%d %s:%d]", file, line0, file, line1); got != want {
+		t.Errorf("\n got %v\nwant %v", got, want)
+	}
+}
+
+func getTrace(t *testing.T) (stack.CallStack, int) {
+	cs := stack.Trace().TrimRuntime()
+	_, _, line, ok := runtime.Caller(0)
+	line--
+	if !ok {
+		t.Fatal("runtime.Caller(0) failed")
+	}
+	return cs, line
+}
+
 func TestTrimAbove(t *testing.T) {
 	trace := trimAbove()
 	if got, want := len(trace), 2; got != want {
