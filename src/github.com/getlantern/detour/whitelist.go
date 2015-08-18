@@ -19,7 +19,7 @@ var (
 func AddToWl(addr string, permanent bool) {
 	muWhitelist.Lock()
 	defer muWhitelist.Unlock()
-	if add != "" {
+	if addr != "" {
 		whitelist[addr] = wlEntry{permanent}
 	}
 }
