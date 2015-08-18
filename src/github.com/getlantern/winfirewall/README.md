@@ -1,11 +1,12 @@
 # Windows Firewall Interface
 
-This library provides a Go interface for managing the Windows Firewall, using the Windows COM interface.
+This library provides Go with an interface for managing the Windows Firewall, using the Windows COM interface.
 
 
 ## Usage
 
-<TODO>
+__TODO__
+
 
 
 ## Internal documentation
@@ -39,7 +40,7 @@ gcc myfile.c -DCINTERFACE -DCOBJMACROS -lole32 -loleaut32 -lhnetcfg
 
 
 
-## Files in /doc folder
+### Files in /doc folder
 
 This folder keeps some files that should serve for documenting the process, since this library is touching internal parts of Windows and MinGW and required some fiddling.
 

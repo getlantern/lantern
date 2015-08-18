@@ -1,9 +1,11 @@
-
+/*
+ * netfw.h for MinGW
+ * Some manual modifications by the Lantern team, 2015.
+ */
 
 /* this ALWAYS GENERATED file contains the definitions for the interfaces */
 
-
- /* File created by MIDL compiler version 6.00.0366 */
+/* File created by MIDL compiler version 6.00.0366 */
 /* Compiler settings for netfw.idl:
     Oicf, W1, Zp8, env=Win32 (32b run)
     protocol : dce , ms_ext, c_ext, robust
