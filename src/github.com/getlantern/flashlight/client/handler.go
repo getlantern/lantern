@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/getlantern/detour"
+	"github.com/getlantern/flashlight/logging"
 )
 
 const (
@@ -21,6 +22,8 @@ const (
 // handler available from getHandler() and latest ReverseProxy available from
 // getReverseProxy().
 func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	logging.RegisterUserAgent(req.Header.Get("User-Agent"))
+
 	if req.Method == httpConnectMethod {
 		// CONNECT requests are often used for HTTPS requests.
 		log.Tracef("Intercepting CONNECT %s", req.URL)
