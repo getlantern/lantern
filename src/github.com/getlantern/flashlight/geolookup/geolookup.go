@@ -31,9 +31,15 @@ var (
 	service  *ui.Service
 	client   atomic.Value
 	cfgMutex sync.Mutex
-	country  atomic.Value
-	ip       atomic.Value
+	country  = atomicString()
+	ip       = atomicString()
 )
+
+func atomicString() atomic.Value {
+	var val atomic.Value
+	val.Store("")
+	return val
+}
 
 func GetIp() string {
 	return ip.Load().(string)
