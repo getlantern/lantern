@@ -36,19 +36,11 @@ var (
 )
 
 func GetIp() string {
-	c := ip.Load()
-	if c == nil {
-		return ""
-	}
-	return c.(string)
+	return ip.Load().(string)
 }
 
 func GetCountry() string {
-	c := country.Load()
-	if c == nil {
-		return ""
-	}
-	return c.(string)
+	return country.Load().(string)
 }
 
 // Configure configures geolookup to use the given http.Client to perform
@@ -58,6 +50,10 @@ func GetCountry() string {
 func Configure(newClient *http.Client) {
 	cfgMutex.Lock()
 	defer cfgMutex.Unlock()
+
+	// Avoid annoying checks for nil later.
+	ip.Store("")
+	country.Store("")
 
 	client.Store(newClient)
 
