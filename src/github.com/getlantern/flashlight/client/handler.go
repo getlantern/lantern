@@ -100,10 +100,6 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 	} else {
 		connOut, err = detour.Dialer(d)("tcp", addr)
 	}
-	if err != nil {
-		respondBadGateway(clientConn, fmt.Sprintf("Unable to handle CONNECT request: %s", err))
-		return
-	}
 
 	if <-success {
 		// Pipe data between the client and the proxy.
