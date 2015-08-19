@@ -125,12 +125,13 @@ HRESULT windows_firewall_turn_off(IN INetFwPolicy2 *policy)
 }
 
 // Set a Firewall rule
-HRESULT windows_firewall_set_rule(IN INetFwPolicy2 *policy,
+HRESULT windows_firewall_rule_set(IN INetFwPolicy2 *policy,
                                   IN char *rule_name,
                                   IN char *rule_description,
                                   IN char *rule_group,
                                   IN char *rule_application,
-                                  IN char *rule_port)
+                                  IN char *rule_port,
+                                  IN BOOL rule_direction_out)
 {
     HRESULT hr = S_OK;
     INetFwRules *fw_rules = NULL;
@@ -172,9 +173,10 @@ HRESULT windows_firewall_set_rule(IN INetFwPolicy2 *policy,
     INetFwRule_put_Name(fw_rule, bstr_rule_name);
     INetFwRule_put_Description(fw_rule, bstr_rule_description);
     INetFwRule_put_ApplicationName(fw_rule, bstr_rule_application);
-    INetFwRule_put_Protocol(fw_rule, NET_FW_IP_PROTOCOL_TCP);
+    INetFwRule_put_Protocol(fw_rule, NET_FW_IP_PROTOCOL_ANY);
     INetFwRule_put_LocalPorts(fw_rule, bstr_rule_ports);
-    INetFwRule_put_Direction(fw_rule, NET_FW_RULE_DIR_OUT);
+    INetFwRule_put_Direction(fw_rule, rule_direction_out ?
+                             NET_FW_RULE_DIR_OUT : NET_FW_RULE_DIR_IN);
     INetFwRule_put_Grouping(fw_rule, bstr_rule_group);
     INetFwRule_put_Profiles(fw_rule, current_profiles);
     INetFwRule_put_Action(fw_rule, NET_FW_ACTION_ALLOW);
@@ -202,3 +204,53 @@ cleanup:
     }
 }
 
+// Get a Firewall rule
+HRESULT windows_firewall_rule_get(IN INetFwPolicy2 *policy,
+                                  IN char *rule_name,
+                                  OUT INetFwRule **out_rule)
+{
+    HRESULT hr = S_OK;
+    INetFwRules *fw_rules = NULL;
+    INetFwRule *fw_rule = NULL;
+    BSTR bstr_rule_name = chars_to_BSTR(rule_name);
+    *out_rule = NULL;
+
+    // Retrieve INetFwRules
+    GOTO_IF_FAILED(cleanup,
+                   INetFwPolicy2_get_Rules(policy, &fw_rules));
+
+    // Create a new Firewall Rule object.
+    hr = CoCreateInstance(&CLSID_NetFwRule,
+                          NULL,
+                          CLSCTX_INPROC_SERVER,
+                          &IID_INetFwRule,
+                          (void**)&fw_rule);
+    GOTO_IF_FAILED(cleanup, hr);
+
+    INetFwRules_Item(fw_rules, bstr_rule_name, &fw_rule);
+    GOTO_IF_FAILED(cleanup, hr);
+
+    *out_rule = fw_rule;
+
+cleanup:
+    SysFreeString(bstr_rule_name);
+
+    return hr;
+}
+
+// Test whether a Firewall rule exists or not
+HRESULT windows_firewall_rule_exists(IN INetFwPolicy2 *policy,
+                                     IN char *rule_name,
+                                     OUT BOOL *exists)
+{
+    HRESULT hr = S_OK;
+    INetFwRule *fw_rule = NULL;
+    hr = windows_firewall_rule_get(policy, rule_name, &fw_rule);
+    if (fw_rule != NULL) {
+        *exists = TRUE;
+    } else {
+        *exists = FALSE;
+    }
+
+    return hr;
+}

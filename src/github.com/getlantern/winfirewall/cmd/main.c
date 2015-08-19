@@ -55,18 +55,44 @@ int main(int argc, wchar_t* argv[])
                 goto error;
         }
 
-        /*
-        windows_firewall_set_rule(policy,
-                                  "OUTBOUND_RULE",
-                                  "Allow outbound traffic from Lantern (TCP:4000)",
-                                  "Lantern Group",
-                                  "Lantern.exe",
-                                  "400");
+        hr = windows_firewall_rule_set(policy,
+                                       "Lantern Outbound Traffic",
+                                       "Allow outbound traffic from Lantern",
+                                       "Lantern Group",
+                                       "Lantern.exe",
+                                       "",
+                                       TRUE);
         if (FAILED(hr)) {
-            printf("Error retrieving Firewall status: 0x%08lx\n", hr);
+            printf("Error setting Firewall rule: 0x%08lx\n", hr);
             goto error;
         }
-        */
+
+        BOOL exists;
+        hr = windows_firewall_rule_exists(policy,
+                                          "Lantern Outbound Traffic",
+                                          &exists);
+        if (FAILED(hr)) {
+            printf("Error getting Firewall rule: 0x%08lx\n", hr);
+            goto error;
+        }
+        if (exists) {
+            printf("Lantern rule exists\n");
+        } else {
+            printf("Lantern rule does not exist\n");
+        }
+
+        hr = windows_firewall_rule_exists(policy,
+                                          "DUMMY RULE",
+                                          &exists);
+        if (FAILED(hr)) {
+            printf("Error getting Firewall rule: 0x%08lx\n", hr);
+            goto error;
+        }
+        if (exists) {
+            printf("DUMMY rule exists\n");
+        } else {
+            printf("DUMMY rule does not exist\n");
+        }
 
 
         ///
