@@ -20,69 +20,87 @@ DEFINE_GUID(CLSID_NetFwMgr,                       0x304ce942, 0x6e39, 0x40d8, 0x
 DEFINE_GUID(CLSID_NetFwOpenPort,                  0x0ca545c6, 0x37ad, 0x4a6c, 0xbf, 0x92, 0x9f, 0x76, 0x10, 0x06, 0x7e, 0xf5);
 #endif
 
-HRESULT windows_firewall_initialize(OUT INetFwProfile** fwProfile)
+// Initialize the Firewall COM service
+HRESULT windows_firewall_initialize(OUT INetFwProfile **fw_profile)
 {
         HRESULT hr = S_OK;
-        INetFwMgr* fwMgr = NULL;
-        INetFwPolicy* fwPolicy = NULL;
+        INetFwMgr *fw_mgr = NULL;
+        INetFwPolicy *fw_policy = NULL;
 
-        _ASSERT(fwProfile != NULL);
+        _ASSERT(fw_profile != NULL);
 
-        *fwProfile = NULL;
+        *fw_profile = NULL;
 
         // Create an instance of the firewall settings manager.
         hr = CoCreateInstance(&CLSID_NetFwMgr,
                               NULL,
                               CLSCTX_INPROC_SERVER,
                               &IID_INetFwMgr,
-                              (void**)&fwMgr);
-        if (FAILED(hr))
-        {
+                              (void**)&fw_mgr);
+        if (FAILED(hr)) {
                 printf("CoCreateInstance failed: 0x%08lx\n", hr);
                 goto error;
         }
 
-        LPOLESTR str;
-        hr = StringFromCLSID(&CLSID_NetFwMgr, &str );
-        if (FAILED(hr))
-        {
-                printf("StringFromCLSID failed: 0x%08lx\n", hr);
-                goto error;
-        }
-        else
-        {
-                CHAR  szCLSID[60];
-                WideCharToMultiByte(CP_ACP, 0, str, -1, szCLSID, 60, NULL, NULL);
-                printf("StringFromCLSID result: %s\n", szCLSID);
-        }
-
         // Retrieve the local firewall policy.
-        hr = INetFwMgr_get_LocalPolicy(fwMgr, &fwPolicy);
-        if (FAILED(hr))
-        {
+        hr = INetFwMgr_get_LocalPolicy(fw_mgr, &fw_policy);
+        if (FAILED(hr)) {
                 printf("get_LocalPolicy failed: 0x%08lx\n", hr);
                 goto error;
         }
 
         // Retrieve the firewall profile currently in effect.
-        hr = INetFwPolicy_get_CurrentProfile(fwPolicy, fwProfile);
-        if (FAILED(hr))
-        {
+        hr = INetFwPolicy_get_CurrentProfile(fw_policy, fw_profile);
+        if (FAILED(hr)) {
                 printf("get_CurrentProfile failed: 0x%08lx\n", hr);
                 goto error;
         }
 
 error:
         // Release the local firewall policy.
-        if (fwPolicy != NULL)
-        {
-                INetFwPolicy_Release(fwPolicy);
+        if (fw_policy != NULL) {
+                INetFwPolicy_Release(fw_policy);
         }
 
         // Release the firewall settings manager.
-        if (fwMgr != NULL)
-        {
-                INetFwMgr_Release(fwMgr);
+        if (fw_mgr != NULL) {
+                INetFwMgr_Release(fw_mgr);
         }
+
         return hr;
+}
+
+// Clean up the Firewall service safely
+void windows_firewall_cleanup(IN INetFwProfile *fw_profile)
+{
+    if (fw_profile != NULL) {
+        INetFwProfile_Release(fw_profile);
+    }
+}
+
+// Get Firewall status: returns a boolean for ON/OFF
+HRESULT windows_firewall_is_on(IN INetFwProfile *fw_profile, OUT BOOL *fw_on)
+{
+    HRESULT hr = S_OK;
+    VARIANT_BOOL fw_enabled;
+
+    _ASSERT(fw_profile != NULL);
+    _ASSERT(fw_on != NULL);
+
+    *fw_on = FALSE;
+
+    // Get the current state of the firewall.
+    hr = INetFwProfile_get_FirewallEnabled(fw_profile, &fw_enabled);
+    if (FAILED(hr)) {
+        printf("get_FirewallEnabled failed: 0x%08lx\n", hr);
+        goto error;
+    }
+
+    // Check to see if the firewall is on.
+    if (fw_enabled != VARIANT_FALSE) {
+        *fw_on = TRUE;
+    }
+
+error:
+    return hr;
 }
