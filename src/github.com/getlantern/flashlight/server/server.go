@@ -295,6 +295,11 @@ func (server *Server) checkForBannedCountry(req *http.Request) error {
 }
 
 func (server *Server) lookupCountry(req *http.Request) (string, error) {
+	// Use the country CloudFlare gives us if it's available.
+	cf := req.Header.Get("Cf-Ipcountry")
+	if cf != "" {
+		return cf, nil
+	}
 	clientIp := getClientIp(req)
 	if clientIp == "" {
 		log.Debug("Unable to determine client ip for geolookup")

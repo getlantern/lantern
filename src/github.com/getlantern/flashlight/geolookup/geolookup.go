@@ -2,15 +2,15 @@ package geolookup
 
 import (
 	"fmt"
+	"io/ioutil"
 	"math"
 	"math/rand"
 	"net/http"
-	"reflect"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	"github.com/getlantern/geolookup"
+	"github.com/getlantern/enproxy"
 	"github.com/getlantern/golog"
 
 	"github.com/getlantern/flashlight/pubsub"
@@ -31,23 +31,22 @@ var (
 	service  *ui.Service
 	client   atomic.Value
 	cfgMutex sync.Mutex
-	location atomic.Value
+	country  = atomicString()
+	ip       = atomicString()
 )
 
-func GetLocation() *geolookup.City {
-	l := location.Load()
-	if l == nil {
-		return nil
-	}
-	return l.(*geolookup.City)
+func atomicString() atomic.Value {
+	var val atomic.Value
+	val.Store("")
+	return val
+}
+
+func GetIp() string {
+	return ip.Load().(string)
 }
 
 func GetCountry() string {
-	loc := GetLocation()
-	if loc == nil {
-		return ""
-	}
-	return loc.Country.IsoCode
+	return country.Load().(string)
 }
 
 // Configure configures geolookup to use the given http.Client to perform
@@ -57,6 +56,10 @@ func GetCountry() string {
 func Configure(newClient *http.Client) {
 	cfgMutex.Lock()
 	defer cfgMutex.Unlock()
+
+	// Avoid annoying checks for nil later.
+	ip.Store("")
+	country.Store("")
 
 	client.Store(newClient)
 
@@ -74,18 +77,59 @@ func Configure(newClient *http.Client) {
 
 func registerService() error {
 	helloFn := func(write func(interface{}) error) error {
-		location := GetLocation()
-		if location == nil {
-			log.Trace("No lastKnownLocation, not sending anything to client")
+		country := GetCountry()
+		if country == "" {
+			log.Trace("No lastKnownCountry, not sending anything to client")
 			return nil
 		}
 		log.Trace("Sending last known location to new client")
-		return write(location)
+		return write(country)
 	}
 
 	var err error
 	service, err = ui.Register(messageType, nil, helloFn)
 	return err
+}
+
+func lookupIp(httpClient *http.Client) (string, string, error) {
+	httpClient.Timeout = 60 * time.Second
+
+	var err error
+	var req *http.Request
+	var resp *http.Response
+
+	// Note this will typically be an HTTP client that uses direct domain fronting to
+	// hit our server pool in the Netherlands.
+	if req, err = http.NewRequest("HEAD", "http://nl.fallbacks.getiantem.org", nil); err != nil {
+		return "", "", fmt.Errorf("Could not create request: %q", err)
+	}
+
+	// Enproxy returns an error if this isn't there.
+	req.Header.Set(enproxy.X_ENPROXY_ID, "1")
+
+	if resp, err = httpClient.Do(req); err != nil {
+		return "", "", fmt.Errorf("Could not get response from server: %q", err)
+	}
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Debugf("Unable to close reponse body: %v", err)
+		}
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		body := "body unreadable"
+		b, err := ioutil.ReadAll(resp.Body)
+		if err == nil {
+			body = string(b)
+		}
+		return "", "", fmt.Errorf("Unexpected response status %d: %v", resp.StatusCode, body)
+	}
+
+	ip := resp.Header.Get("Lantern-Ip")
+	country := resp.Header.Get("Lantern-Country")
+
+	log.Debugf("Got IP and country: %v, %v", ip, country)
+	return country, ip, nil
 }
 
 func write() {
@@ -97,17 +141,19 @@ func write() {
 		n := rand.Intn(publishSecondsVariance)
 		wait := time.Duration(basePublishSeconds-publishSecondsVariance/2+n) * time.Second
 
-		oldLocation := GetLocation()
-		newLocation, ip, err := geolookup.LookupIPWithClient("", client.Load().(*http.Client))
+		oldIp := GetIp()
+		oldCountry := GetCountry()
+
+		newCountry, newIp, err := lookupIp(client.Load().(*http.Client))
 		if err == nil {
 			consecutiveFailures = 0
-			if !reflect.DeepEqual(newLocation, oldLocation) {
-				log.Debugf("Location changed")
-				location.Store(newLocation)
+			if newIp != oldIp {
+				log.Debugf("IP changed")
+				ip.Store(newIp)
 			}
 			// Always publish location, even if unchanged
-			pubsub.Pub(pubsub.IP, ip)
-			service.Out <- newLocation
+			pubsub.Pub(pubsub.IP, newIp)
+			service.Out <- newCountry
 		} else {
 			msg := fmt.Sprintf("Unable to get current location: %s", err)
 			// When retrying after a failure, wait a different amount of time
@@ -121,8 +167,8 @@ func write() {
 			log.Debugf("Waiting %v before retrying", wait)
 			consecutiveFailures += 1
 			// If available, publish last known location
-			if oldLocation != nil {
-				service.Out <- oldLocation
+			if oldCountry != "" {
+				service.Out <- oldCountry
 			}
 		}
 
