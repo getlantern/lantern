@@ -78,7 +78,7 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 
 	// Respond OK as soon as possible, even if we don't have the outbound connection
 	// established yet, to avoid timeouts on the client application
-	success := make(chan bool)
+	success := make(chan bool, 1)
 	go func() {
 		if e := respondOK(clientConn, req); e != nil {
 			log.Errorf("Unable to respond OK: %s", e)
