@@ -26,6 +26,8 @@ int main(int argc, wchar_t* argv[])
                 }
         }
 
+        ///
+        ///
         /// Windows Vista code
 
         INetFwPolicy2 *policy = NULL;
@@ -35,8 +37,21 @@ int main(int argc, wchar_t* argv[])
             printf("CoCreateInstance for INetFwPolicy2 failed: 0x%08lx\n", hr);
         }
 
-        Get_FirewallSettings_PerProfileType(NET_FW_PROFILE2_DOMAIN, policy);
+        BOOL is_on;
+        hr = windows_firewall_is_on(policy, &is_on);
+        if (FAILED(hr)) {
+            printf("Error retrieving Firewall status: 0x%08lx\n", hr);
+            goto error;
+        }
+        if (is_on) {
+            printf("Windows Firewall is ON -> Turning OFF\n");
+        } else {
+            printf("Windows Firewall is OFF -> Turning ON\n");
+        }
 
+
+        ///
+        ///
         /// Windows Vista code
 /*
         // Retrieve the firewall profile currently in effect.
