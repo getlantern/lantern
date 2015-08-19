@@ -80,9 +80,8 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 	// established yet, to avoid timeouts on the client application
 	success := make(chan bool, 1)
 	go func() {
-		err = respondOK(clientConn, req)
-		if err != nil {
-			log.Errorf("Unable to respond OK: %s", err)
+		if e := respondOK(clientConn, req); e != nil {
+			log.Errorf("Unable to respond OK: %s", e)
 			success <- false
 			return
 		}
