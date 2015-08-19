@@ -122,15 +122,20 @@ var app = angular.module('app', [
           return;
         }
 
-        // try to reconnect indefinitely
-        // when the websocket closes
-        $interval(function() {
-          console.log("Trying to reconnect to disconnected websocket");
-          ds = $websocket('ws://' + document.location.host + '/data');
-          ds.onOpen(function(msg) {
-            $window.location.reload();
-          });
-        }, WS_RECONNECT_INTERVAL);
+        // Temporary workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=1192773
+        if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1) {
+          $rootScope.backendIsGone = true;
+          $rootScope.$digest()
+        } else {
+          // Try to reconnect indefinitely when the websocket closes
+          $interval(function() {
+            console.log("Trying to reconnect to disconnected websocket");
+            ds = $websocket('ws://' + document.location.host + '/data');
+            ds.onOpen(function(msg) {
+              $window.location.reload();
+            });
+          }, WS_RECONNECT_INTERVAL);
+        }
       });
 
       ds.onError(function(msg) {
@@ -198,7 +203,7 @@ var app = angular.module('app', [
     };
 
     $rootScope.trackPageView = function() {
-        gaMgr.trackPageView('start');
+        gaMgr.trackPageView();
     };
 
     $rootScope.valByLang = function(name) {
@@ -256,22 +261,27 @@ var app = angular.module('app', [
     $rootScope.$watch("wsConnected", function(wsConnected) {
       var MILLIS_UNTIL_BACKEND_CONSIDERED_GONE = 10000;
       if (!wsConnected) {
-        // In 11 seconds, check if we're still not connected
-        $timeout(function() {
-          var lastConnectedAt = $rootScope.wsLastConnectedAt;
-          if (lastConnectedAt) {
-            var timeSinceLastConnected = new Date().getTime() - lastConnectedAt.getTime();
-            $log.debug("Time since last connect", timeSinceLastConnected);
-            if (timeSinceLastConnected > MILLIS_UNTIL_BACKEND_CONSIDERED_GONE) {
-              // If it's been more than 10 seconds since we last connect,
-              // treat the backend as gone
-              console.log("Backend is gone");
-              $rootScope.backendIsGone = true;
-            } else {
-              $rootScope.backendIsGone = false;
+        // Temporary workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=1192773
+        if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1) {
+          $rootScope.backendIsGone = true;
+        } else {
+          // In 11 seconds, check if we're still not connected
+          $timeout(function() {
+            var lastConnectedAt = $rootScope.wsLastConnectedAt;
+            if (lastConnectedAt) {
+              var timeSinceLastConnected = new Date().getTime() - lastConnectedAt.getTime();
+              $log.debug("Time since last connect", timeSinceLastConnected);
+              if (timeSinceLastConnected > MILLIS_UNTIL_BACKEND_CONSIDERED_GONE) {
+                // If it's been more than 10 seconds since we last connect,
+                // treat the backend as gone
+                console.log("Backend is gone");
+                $rootScope.backendIsGone = true;
+              } else {
+                $rootScope.backendIsGone = false;
+              }
             }
-          }
-        }, MILLIS_UNTIL_BACKEND_CONSIDERED_GONE + 1);
+          }, MILLIS_UNTIL_BACKEND_CONSIDERED_GONE + 1000);
+        }
       }
     });
   });
@@ -313,7 +323,7 @@ var DEFAULT_LANG = 'en_US',
       es: {dir: 'ltr', name: 'español'},
       ar: {dir: 'rtl', name: 'العربية'}
     },
-    GOOGLE_ANALYTICS_WEBPROP_ID = 'UA-21815217-2',
+    GOOGLE_ANALYTICS_WEBPROP_ID = 'UA-21815217-13',
     GOOGLE_ANALYTICS_DISABLE_KEY = 'ga-disable-'+GOOGLE_ANALYTICS_WEBPROP_ID,
     loc = typeof location == 'object' ? location : undefined,
     // this allows the real backend to mount the entire app under a random path
@@ -886,30 +896,9 @@ angular.module('app.services', [])
       title: 'lantern-ui'
     });
 
-    function trackPageView(sessionControl) {
-      var trackers = ga.getAll();
-      for (var i =0; i < trackers.length; i++) {
-          var tracker = trackers[i];
-          if (tracker.b && tracker.b.data && tracker.b.data.w) {
-              var fields = tracker.b.data.w;
-              var gaObj = {
-                  clientId: '',
-                  clientVersion: '',
-                  language: '',
-                  screenColors: '',
-                  screenResolution: '',
-                  trackingId: '',
-                  viewPortSize: ''
-              };
-              for (var name in fields) {
-                var key = name.split(':')[1];
-                if (gaObj.hasOwnProperty(key)) {
-                    gaObj[key] = fields[name];
-                }
-              }
-              DataStream.send('Analytics', gaObj);
-          }
-      }
+    function trackPageView() {
+			console.log("SENDING PAGE VIEW")
+      ga('send', 'pageview');
     }
 
     return {

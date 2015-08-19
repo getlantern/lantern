@@ -54,7 +54,7 @@ FIRETWEET_MAIN_DIR ?= ../firetweet/firetweet/src/main/
 define package-settings
 	PACKAGED_SETTINGS="" && \
 	if [[ ! -z "$$MANOTO" ]]; then \
-		PACKAGED_SETTINGS="startupurl: https://www.facebook.com/manototv"; \
+		PACKAGED_SETTINGS="startupurl: https://www.facebook.com/manototv/app_190322544333196"; \
 	fi && \
 	PACKAGED_SETTINGS=$$(echo $$PACKAGED_SETTINGS | xargs) && echo "Packaged settings: $$PACKAGED_SETTINGS"
 endef
@@ -146,22 +146,22 @@ docker-genassets: require-npm
 docker-linux-386:
 	@source setenv.bash && \
 	$(call build-tags) && \
-	CGO_ENABLED=1 GOOS=linux GOARCH=386 go build -o lantern_linux_386 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
+	CGO_ENABLED=1 GOOS=linux GOARCH=386 go build -a -o lantern_linux_386 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
 
 docker-linux-amd64:
 	@source setenv.bash && \
 	$(call build-tags) && \
-	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o lantern_linux_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
+	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -a -o lantern_linux_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
 
 docker-linux-arm:
 	@source setenv.bash && \
 	$(call build-tags) && \
-	CGO_ENABLED=1 CC=arm-linux-gnueabi-gcc CXX=arm-linux-gnueabi-g++ CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 go build -o lantern_linux_arm -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
+	CGO_ENABLED=1 CC=arm-linux-gnueabi-gcc CXX=arm-linux-gnueabi-g++ CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 go build -a -o lantern_linux_arm -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
 
 docker-windows-386:
 	@source setenv.bash && \
 	$(call build-tags) && \
-	CGO_ENABLED=1 GOOS=windows GOARCH=386 go build -o lantern_windows_386.exe -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -H=windowsgui" github.com/getlantern/flashlight;
+	CGO_ENABLED=1 GOOS=windows GOARCH=386 go build -a -o lantern_windows_386.exe -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -H=windowsgui" github.com/getlantern/flashlight;
 
 require-assets:
 	@if [ ! -f ./src/github.com/getlantern/flashlight/ui/resources.go ]; then make genassets; fi
@@ -302,7 +302,7 @@ darwin-amd64: require-assets
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		source setenv.bash && \
 		$(call build-tags) && \
-		CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -o lantern_darwin_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS)" github.com/getlantern/flashlight && \
+		CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -a -o lantern_darwin_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS)" github.com/getlantern/flashlight && \
 		cat lantern_darwin_amd64 | bzip2 > update_darwin_amd64.bz2 && \
 		ls -l lantern_darwin_amd64 update_darwin_amd64.bz2; \
 	else \
@@ -348,7 +348,8 @@ package-darwin: require-version require-appdmg require-svgexport darwin
 		rm -rf Lantern.dmg && \
 		sed "s/__VERSION__/$$VERSION/g" $$INSTALLER_RESOURCES/dmgbackground.svg > $$INSTALLER_RESOURCES/dmgbackground_versioned.svg && \
 		$(SVGEXPORT) $$INSTALLER_RESOURCES/dmgbackground_versioned.svg $$INSTALLER_RESOURCES/dmgbackground.png 600:400 && \
-		$(APPDMG) --quiet $$INSTALLER_RESOURCES/lantern.dmg.json Lantern.dmg && \
+		sed "s/__VERSION__/$$VERSION/g" $$INSTALLER_RESOURCES/lantern.dmg.json > $$INSTALLER_RESOURCES/lantern_versioned.dmg.json && \
+		$(APPDMG) --quiet $$INSTALLER_RESOURCES/lantern_versioned.dmg.json Lantern.dmg && \
 		mv Lantern.dmg Lantern.dmg.zlib && \
 		hdiutil convert -quiet -format UDBZ -o Lantern.dmg Lantern.dmg.zlib && \
 		rm Lantern.dmg.zlib; \
@@ -376,7 +377,8 @@ release-qa: require-version require-s3cmd
 		SUFFIX=$$(echo "$$NAME" | sed s/$$BASE_NAME//g) && \
 		VERSIONED=lantern-installer-$$VERSION$$SUFFIX && \
 		echo "Copying $$VERSIONED" && \
-		$(S3CMD) cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$VERSIONED; \
+		$(S3CMD) cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$VERSIONED && \
+		$(S3CMD) setacl s3://$(S3_BUCKET)/$$VERSIONED --acl-public; \
 	done && \
 	for NAME in $$(ls -1 update_darwin_amd64.bz2 update_linux_386.bz2 update_linux_amd64.bz2 update_windows_386.bz2); do \
 		echo "Copying update binary $$NAME..." && \
@@ -391,8 +393,8 @@ release-beta: require-s3cmd
 	for URL in $$($(S3CMD) ls s3://$(S3_BUCKET)/ | grep $$BASE_NAME | awk '{print $$4}'); do \
 		NAME=$$(basename $$URL) && \
 		BETA=$$(echo $$NAME | sed s/"$$BASE_NAME"/$$BETA_BASE_NAME/) && \
-		$(S3CMD) cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$BETA; \
-		$(S3CMD) setacl s3://$(S3_BUCKET)/$$BETA --acl-public; \
+		$(S3CMD) cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$BETA && \
+		$(S3CMD) setacl s3://$(S3_BUCKET)/$$BETA --acl-public && \
 		$(S3CMD) get --force s3://$(S3_BUCKET)/$$NAME $(LANTERN_BINARIES_PATH)/$$BETA; \
 	done && \
 	cd $(LANTERN_BINARIES_PATH) && \

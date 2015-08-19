@@ -15,7 +15,7 @@ var (
 // The constant topics to publish and subscribe to. All topics should
 // be defined here directly.
 const (
-	Location = iota
+	IP = iota
 	// Someothertopic = iota
 )
 

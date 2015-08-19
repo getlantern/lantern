@@ -98,15 +98,15 @@ func write() {
 		wait := time.Duration(basePublishSeconds-publishSecondsVariance/2+n) * time.Second
 
 		oldLocation := GetLocation()
-		newLocation, err := geolookup.LookupIPWithClient("", client.Load().(*http.Client))
+		newLocation, ip, err := geolookup.LookupIPWithClient("", client.Load().(*http.Client))
 		if err == nil {
 			consecutiveFailures = 0
 			if !reflect.DeepEqual(newLocation, oldLocation) {
 				log.Debugf("Location changed")
 				location.Store(newLocation)
-				pubsub.Pub(pubsub.Location, newLocation)
 			}
 			// Always publish location, even if unchanged
+			pubsub.Pub(pubsub.IP, ip)
 			service.Out <- newLocation
 		} else {
 			msg := fmt.Sprintf("Unable to get current location: %s", err)

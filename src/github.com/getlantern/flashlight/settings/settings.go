@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/getlantern/flashlight/analytics"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/launcher"
 
@@ -92,14 +91,6 @@ func read() {
 		err := config.Update(func(updated *config.Config) error {
 
 			if autoReport, ok := settings["autoReport"].(bool); ok {
-				// turn on/off analaytics reporting
-				if autoReport {
-					if err := analytics.StartService(); err != nil {
-						log.Debugf("Unable to start analytics service: %v", err)
-					}
-				} else {
-					analytics.StopService()
-				}
 				baseSettings.AutoReport = autoReport
 				*updated.AutoReport = autoReport
 			} else if proxyAll, ok := settings["proxyAll"].(bool); ok {

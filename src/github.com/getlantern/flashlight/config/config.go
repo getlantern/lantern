@@ -2,7 +2,6 @@ package config
 
 import (
 	"compress/gzip"
-	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -222,7 +221,7 @@ func (cfg *Config) ApplyDefaults() {
 	}
 
 	if cfg.InstanceId == "" {
-		cfg.InstanceId = hex.EncodeToString(uuid.NodeID())
+		cfg.InstanceId = uuid.New()
 	}
 
 	// Make sure we always have a stats config

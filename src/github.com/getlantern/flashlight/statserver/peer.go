@@ -119,7 +119,7 @@ func (peer *Peer) geolocate() error {
 }
 
 func (peer *Peer) doGeolocate() error {
-	geodata, err := geolookup.LookupIPWithClient(peer.IP, geoClient.Load().(*http.Client))
+	geodata, _, err := geolookup.LookupIPWithClient(peer.IP, geoClient.Load().(*http.Client))
 
 	if err != nil {
 		return err

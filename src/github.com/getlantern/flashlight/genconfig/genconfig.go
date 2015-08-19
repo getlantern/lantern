@@ -327,31 +327,26 @@ func buildModel(cas map[string]*castat, masquerades []*masquerade) map[string]in
 	sort.Strings(ps)
 	fbs := make([]map[string]interface{}, 0, len(fallbacks))
 	for _, fb := range fallbacks {
-		ip := fb["ip"].(string)
-		if fb["pt"] != nil {
-			log.Debugf("Skipping fallback %v because it has pluggable transport enabled", ip)
-			continue
-		}
-
+		addr := fb["addr"].(string)
 		cert := fb["cert"].(string)
 		// Replace newlines in cert with newline literals
 		fb["cert"] = strings.Replace(cert, "\n", "\\n", -1)
 
 		// Test connectivity
 		info := &client.ChainedServerInfo{
-			Addr:      ip + ":443",
+			Addr:      addr,
 			Cert:      cert,
-			AuthToken: fb["auth_token"].(string),
+			AuthToken: fb["authtoken"].(string),
 			Pipelined: true,
 		}
 		dialer, err := info.Dialer()
 		if err != nil {
-			log.Debugf("Skipping fallback %v because of error building dialer: %v", ip, err)
+			log.Debugf("Skipping fallback %v because of error building dialer: %v", addr, err)
 			continue
 		}
 		conn, err := dialer.Dial("tcp", "http://www.google.com")
 		if err != nil {
-			log.Debugf("Skipping fallback %v because dialing Google failed: %v", ip, err)
+			log.Debugf("Skipping fallback %v because dialing Google failed: %v", addr, err)
 			continue
 		}
 		if err := conn.Close(); err != nil {

@@ -33,6 +33,8 @@ import (
 	"github.com/getlantern/flashlight/statserver"
 	"github.com/getlantern/flashlight/ui"
 	"github.com/getlantern/flashlight/util"
+
+	"github.com/mitchellh/panicwrap"
 )
 
 var (
@@ -83,7 +85,41 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
+func logPanic(msg string) {
+	cfg, err := config.Init(packageVersion)
+	if err != nil {
+		panic("Error initializing config")
+	}
+	if err := logging.Init(); err != nil {
+		panic("Error initializing logging")
+	}
+
+	<-logging.Configure("", "", cfg.InstanceId, version, revisionDate)
+
+	log.Error(msg)
+
+	logging.Flush()
+	_ = logging.Close()
+}
+
 func main() {
+	// panicwrap works by re-executing the running program (retaining arguments,
+	// environmental variables, etc.) and monitoring the stderr of the program.
+	exitStatus, err := panicwrap.BasicWrap(
+		func(output string) {
+			logPanic(output)
+			exit(nil)
+		})
+	if err != nil {
+		// Something went wrong setting up the panic wrapper. This won't be
+		// captured by panicwrap
+		log.Errorf("Error setting up panic wrapper: %v", err)
+	}
+	// If exitStatus >= 0, then we're the parent process.
+	if exitStatus >= 0 {
+		os.Exit(exitStatus)
+	}
+
 	parseFlags()
 
 	showui = !*headless
@@ -318,13 +354,13 @@ func applyClientConfig(client *client.Client, cfg *config.Config) {
 	// Update client configuration and get the highest QOS dialer available.
 	hqfd := client.Configure(cfg.Client)
 	if hqfd == nil {
-		log.Errorf("No fronted dialer available, not enabling geolocation, stats or analytics")
+		log.Errorf("No fronted dialer available, not enabling geolocation, config lookup, or stats")
 	} else {
-		// An *http.Client that uses the highest QOS dialer.
-		hqfdClient := hqfd.NewDirectDomainFronter()
-		config.Configure(hqfdClient)
-		geolookup.Configure(hqfdClient)
-		statserver.Configure(hqfdClient)
+		// Give everyone their own *http.Client that uses the highest QOS dialer. Separate
+		// clients for everyone avoids data races configuring those clients.
+		config.Configure(hqfd.NewDirectDomainFronter())
+		geolookup.Configure(hqfd.NewDirectDomainFronter())
+		statserver.Configure(hqfd.NewDirectDomainFronter())
 		// Note we don't call Configure on analytics here, as that would
 		// result in an extra analytics call and double counting.
 	}
@@ -428,7 +464,8 @@ func handleSignals() {
 		syscall.SIGTERM,
 		syscall.SIGQUIT)
 	go func() {
-		<-c
+		s := <-c
+		log.Debugf("Got signal \"%s\", exiting...", s)
 		exit(nil)
 	}()
 }
