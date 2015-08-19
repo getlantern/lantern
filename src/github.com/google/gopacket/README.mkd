@@ -1,0 +1,9 @@
+# GoPacket
+
+This library provides packet decoding capabilities for Go.
+See doc.go for more details.
+
+[![Build Status](https://travis-ci.org/google/gopacket.svg?branch=master)](https://travis-ci.org/google/gopacket)
+
+Originally forked from the gopcap project written by Andreas
+Krennmair <ak@synflood.at> (http://github.com/akrennmair/gopcap).
