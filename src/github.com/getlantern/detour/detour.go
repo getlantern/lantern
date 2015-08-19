@@ -217,7 +217,7 @@ func (dc *Conn) Read(b []byte) (n int, err error) {
 		select {
 		case newConn := <-dc.chDetourConn:
 			if atomic.LoadUint32(&dc.nonIdempotentHTTPRequest) == 1 {
-				log.Tracef("Not replay nonideompotent request to %s, only add to whitelist", dc.addr)
+				log.Tracef("Not replay nonidempotent request to %s, only add to whitelist", dc.addr)
 				AddToWl(dc.addr, false)
 				if err := newConn.Close(); err != nil {
 					log.Debugf("Error closing detour connection to %s: %s", dc.addr, err)
