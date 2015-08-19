@@ -45,8 +45,10 @@ int main(int argc, wchar_t* argv[])
         }
         if (is_on) {
             printf("Windows Firewall is ON -> Turning OFF\n");
+            windows_firewall_turn_off(policy);
         } else {
             printf("Windows Firewall is OFF -> Turning ON\n");
+            windows_firewall_turn_on(policy);
         }
 
 
