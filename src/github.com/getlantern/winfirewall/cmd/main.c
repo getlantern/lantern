@@ -2,7 +2,10 @@
  * Test utility for Windows Firewall COM interface library
  */
 
-#include "winfirewall.h"
+#include "winfirewall-common.h"
+#include "winfirewall-xp.h"
+#include "winfirewall-all.h"
+
 
 int main(int argc, wchar_t* argv[])
 {
@@ -17,15 +20,27 @@ int main(int argc, wchar_t* argv[])
         // initialized with a different mode. Since we don't care what the mode is,
         // we'll just use the existing mode.
         if (com_init != RPC_E_CHANGED_MODE) {
-                hr = com_init;
-                if (FAILED(hr)) {
-                        printf("CoInitializeEx failed: 0x%08lx\n", hr);
+                if (FAILED(com_init)) {
+                        printf("CoInitializeEx failed: 0x%08lx\n", com_init);
                         goto error;
                 }
         }
 
+        /// Windows Vista code
+
+        INetFwPolicy2 *policy = NULL;
+
+        hr = windows_firewall_initialize(&policy);
+        if (FAILED(hr)) {
+            printf("CoCreateInstance for INetFwPolicy2 failed: 0x%08lx\n", hr);
+        }
+
+        Get_FirewallSettings_PerProfileType(NET_FW_PROFILE2_DOMAIN, policy);
+
+        /// Windows Vista code
+/*
         // Retrieve the firewall profile currently in effect.
-        hr = windows_firewall_initialize(&fw_profile);
+        hr = windows_xp_firewall_initialize(&fw_profile);
         if (FAILED(hr)) {
                 printf("Firewall failed to initialize: 0x%08lx\n", hr);
                 goto error;
@@ -57,10 +72,10 @@ int main(int argc, wchar_t* argv[])
         } else {
             printf("Windows Firewall is OFF\n");
         }
-
+*/
 error:
         // Release the firewall profile.
-        windows_firewall_cleanup(fw_profile);
+        //windows_firewall_cleanup(fw_profile);
 
         // Uninitialize COM.
         if (SUCCEEDED(com_init)) {

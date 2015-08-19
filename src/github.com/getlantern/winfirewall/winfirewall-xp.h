@@ -1,42 +1,10 @@
 /*
  * Connector API between Go and Windows Firewall COM interface
+ * Windows XP API version
  */
 
-#include <windows.h>
-#include <crtdbg.h>
-#include <objbase.h>
-#include <oleauto.h>
-#include <stdio.h>
-
-// This hack allows for using a header from Windows 7, so previous versions
-// of Windows are supported as well
-#define __RPC__out_xcount_part_of(size, length)
-#define __RPC__in_xcount_of(size)
-#define __RPC__in_xcount_full_of(size)
-#define __RPC__in_range_of(min, max)
-#define __RPC__in_range(min, max)
-#define __RPC__inout_xcount_of(size)
-
-#include <netfw.h>
-
-
-#pragma comment(lib, "ole32.lib")
-#pragma comment(lib, "oleaut32.lib")
-#pragma comment(lib, "hnetcfg.lib")
-
-#ifdef __MINGW32__
-#include <initguid.h>
-DEFINE_GUID(IID_INetFwAuthorizedApplication,      0xb5e64ffa, 0xc2c5, 0x444e, 0xa3, 0x01, 0xfb, 0x5e, 0x00, 0x01, 0x80, 0x50);
-DEFINE_GUID(IID_INetFwMgr,                        0xf7898af5, 0xcac4, 0x4632, 0xa2, 0xec, 0xda, 0x06, 0xe5, 0x11, 0x1a, 0xf2);
-DEFINE_GUID(IID_INetFwOpenPort,                   0xe0483ba0, 0x47ff, 0x4d9c, 0xa6, 0xd6, 0x77, 0x41, 0xd0, 0xb1, 0x95, 0xf7);
-
-DEFINE_GUID(CLSID_NetFwAuthorizedApplication,     0xec9846b3, 0x2762, 0x4a6b, 0xa2, 0x14, 0x6a, 0xcb, 0x60, 0x34, 0x62, 0xd2);
-DEFINE_GUID(CLSID_NetFwMgr,                       0x304ce942, 0x6e39, 0x40d8, 0x94, 0x3a, 0xb9, 0x13, 0xc4, 0x0c, 0x9c, 0xd4);
-DEFINE_GUID(CLSID_NetFwOpenPort,                  0x0ca545c6, 0x37ad, 0x4a6c, 0xbf, 0x92, 0x9f, 0x76, 0x10, 0x06, 0x7e, 0xf5);
-#endif
-
 // Initialize the Firewall COM service
-HRESULT windows_firewall_initialize(OUT INetFwProfile **fw_profile)
+HRESULT windows_xp_firewall_initialize(OUT INetFwProfile **fw_profile)
 {
         HRESULT hr = S_OK;
         INetFwMgr *fw_mgr = NULL;
@@ -86,7 +54,7 @@ error:
 }
 
 // Clean up the Firewall service safely
-void windows_firewall_cleanup(IN INetFwProfile *fw_profile)
+void windows_xp_firewall_cleanup(IN INetFwProfile *fw_profile)
 {
     if (fw_profile != NULL) {
         INetFwProfile_Release(fw_profile);
@@ -94,7 +62,7 @@ void windows_firewall_cleanup(IN INetFwProfile *fw_profile)
 }
 
 // Get Firewall status: returns a boolean for ON/OFF
-HRESULT windows_firewall_is_on(IN INetFwProfile *fw_profile, OUT BOOL *fw_on)
+HRESULT windows_xp_firewall_is_on(IN INetFwProfile *fw_profile, OUT BOOL *fw_on)
 {
     HRESULT hr = S_OK;
     VARIANT_BOOL fw_enabled;
@@ -121,7 +89,7 @@ error:
 }
 
 //  Turn Firewall ON
-HRESULT windows_firewall_turn_on(IN INetFwProfile *fw_profile)
+HRESULT windows_xp_firewall_turn_on(IN INetFwProfile *fw_profile)
 {
     HRESULT hr = S_OK;
     BOOL fw_on;
@@ -129,7 +97,7 @@ HRESULT windows_firewall_turn_on(IN INetFwProfile *fw_profile)
     _ASSERT(fw_profile != NULL);
 
     // Check the current firewall status first
-    hr = windows_firewall_is_on(fw_profile, &fw_on);
+    hr = windows_xp_firewall_is_on(fw_profile, &fw_on);
     if (FAILED(hr)) {
         printf("WindowsFirewallIsOn failed: 0x%08lx\n", hr);
         goto error;
@@ -151,7 +119,7 @@ error:
 }
 
 //  Turn Firewall OFF
-HRESULT windows_firewall_turn_off(IN INetFwProfile *fw_profile)
+HRESULT windows_xp_firewall_turn_off(IN INetFwProfile *fw_profile)
 {
     HRESULT hr = S_OK;
     BOOL fw_on;
@@ -159,7 +127,7 @@ HRESULT windows_firewall_turn_off(IN INetFwProfile *fw_profile)
     _ASSERT(fw_profile != NULL);
 
     // Check the current firewall status first
-    hr = windows_firewall_is_on(fw_profile, &fw_on);
+    hr = windows_xp_firewall_is_on(fw_profile, &fw_on);
     if (FAILED(hr)) {
         printf("WindowsFirewallIsOn failed: 0x%08lx\n", hr);
         goto error;
