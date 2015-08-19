@@ -39,6 +39,20 @@ int main(int argc, wchar_t* argv[])
             goto error;
         }
         if (is_on) {
+            printf("Windows Firewall is ON -> Turning OFF\n");
+            windows_firewall_turn_off(fw_profile);
+        } else {
+            printf("Windows Firewall is OFF -> Turning ON\n");
+            windows_firewall_turn_on(fw_profile);
+        }
+
+        // Check Firewall status after switching it
+        hr = windows_firewall_is_on(fw_profile, &is_on);
+        if (FAILED(hr)) {
+            printf("Error retrieving Firewall status: 0x%08lx\n", hr);
+            goto error;
+        }
+        if (is_on) {
             printf("Windows Firewall is ON\n");
         } else {
             printf("Windows Firewall is OFF\n");
