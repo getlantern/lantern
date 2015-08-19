@@ -25,8 +25,8 @@ ClassName_MethodName( Object, Arguments... )
 
 Besides defining the `CINTERFACE and `COBJMACROS`, the following libraries must be included:
 
-* ole32
-* oleaut32
+* ole32.lib
+* oleaut32.lib
 * hnetcfg.dll
 
 This last DLL is not provided by MinGW, so it is provided for allowing cross-compilation.
@@ -48,3 +48,4 @@ These files are kept for documentation purposes:
 
 * __cpp_api.c__: MSDN reference file that uses de C++ API.
 * __netfw.h__: A reference implementation of netfw.h needed because MinGW didn't provide one. This had to be slighltly modified to compile properly.
+* __netfw-xp.h__: A modified version of netfw.h that works with MinGW. It only supports the old API for Windows XP.

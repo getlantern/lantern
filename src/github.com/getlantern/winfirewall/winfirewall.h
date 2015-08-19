@@ -4,10 +4,21 @@
 
 #include <windows.h>
 #include <crtdbg.h>
-#include <netfw.h>
 #include <objbase.h>
 #include <oleauto.h>
 #include <stdio.h>
+
+// This hack allows for using a header from Windows 7, so previous versions
+// of Windows are supported as well
+#define __RPC__out_xcount_part_of(size, length)
+#define __RPC__in_xcount_of(size)
+#define __RPC__in_xcount_full_of(size)
+#define __RPC__in_range_of(min, max)
+#define __RPC__in_range(min, max)
+#define __RPC__inout_xcount_of(size)
+
+#include <netfw.h>
+
 
 #pragma comment(lib, "ole32.lib")
 #pragma comment(lib, "oleaut32.lib")
