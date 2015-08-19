@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-type cannotFindServerT struct {
+type errorAccesingPageT struct {
 	ServerName   string
 	ErrorMessage string
 }
@@ -20,8 +20,8 @@ func normalizeError(err error) string {
 	return ""
 }
 
-// CannotFindServer creates and returns a generic "cannot find server" error.
-func CannotFindServer(server string, errMessage error) ([]byte, error) {
+// ErrorAccessingPage creates and returns a generic "error accessing page" error.
+func ErrorAccessingPage(server string, errMessage error) ([]byte, error) {
 	var err error
 	var buf []byte
 	var tmpl *template.Template
@@ -41,7 +41,7 @@ func CannotFindServer(server string, errMessage error) ([]byte, error) {
 		return nil, err
 	}
 
-	data := cannotFindServerT{
+	data := errorAccesingPageT{
 		ServerName:   server,
 		ErrorMessage: normalizeError(errMessage),
 	}
