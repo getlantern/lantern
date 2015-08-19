@@ -9,6 +9,10 @@
 #include <oleauto.h>
 #include <stdio.h>
 
+#pragma comment(lib, "ole32.lib")
+#pragma comment(lib, "oleaut32.lib")
+#pragma comment(lib, "hnetcfg.lib")
+
 #ifdef __MINGW32__
 #include <initguid.h>
 DEFINE_GUID(IID_INetFwAuthorizedApplication,      0xb5e64ffa, 0xc2c5, 0x444e, 0xa3, 0x01, 0xfb, 0x5e, 0x00, 0x01, 0x80, 0x50);
