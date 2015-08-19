@@ -98,6 +98,8 @@ func lookupIp(httpClient *http.Client) (string, string, error) {
 	var req *http.Request
 	var resp *http.Response
 
+	// Note this will typically be an HTTP client that uses direct domain fronting to
+	// hit our server pool in the Netherlands.
 	if req, err = http.NewRequest("HEAD", "http://nl.fallbacks.getiantem.org", nil); err != nil {
 		return "", "", fmt.Errorf("Could not create request: %q", err)
 	}
