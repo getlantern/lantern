@@ -45,11 +45,28 @@ int main(int argc, wchar_t* argv[])
         }
         if (is_on) {
             printf("Windows Firewall is ON -> Turning OFF\n");
-            windows_firewall_turn_off(policy);
+            hr = windows_firewall_turn_off(policy);
         } else {
             printf("Windows Firewall is OFF -> Turning ON\n");
-            windows_firewall_turn_on(policy);
+            hr = windows_firewall_turn_on(policy);
         }
+        if (FAILED(hr)) {
+                printf("Firewall to switch: 0x%08lx\n", hr);
+                goto error;
+        }
+
+        /*
+        windows_firewall_set_rule(policy,
+                                  "OUTBOUND_RULE",
+                                  "Allow outbound traffic from Lantern (TCP:4000)",
+                                  "Lantern Group",
+                                  "Lantern.exe",
+                                  "400");
+        if (FAILED(hr)) {
+            printf("Error retrieving Firewall status: 0x%08lx\n", hr);
+            goto error;
+        }
+        */
 
 
         ///
@@ -92,12 +109,7 @@ int main(int argc, wchar_t* argv[])
 */
 error:
         // Release the firewall profile.
-        //windows_firewall_cleanup(fw_profile);
-
-        // Uninitialize COM.
-        if (SUCCEEDED(com_init)) {
-                CoUninitialize();
-        }
+        windows_firewall_cleanup(policy);
 
         return 0;
 }
