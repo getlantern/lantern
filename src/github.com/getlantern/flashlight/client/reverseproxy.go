@@ -117,9 +117,9 @@ func (er *errorRewritingRoundTripper) RoundTrip(req *http.Request) (resp *http.R
 	if err != nil {
 
 		// It is likely we will have lots of different errors to handle but for now
-		// we will only return a CannotFindServer error.  This prevents the user
+		// we will only return a ErrorAccessingPage error.  This prevents the user
 		// from getting just a blank screen.
-		htmlerr, err := status.CannotFindServer(req.Host, err)
+		htmlerr, err := status.ErrorAccessingPage(req.Host, err)
 
 		if err != nil {
 			log.Debugf("Got error while generating status page: %q", err)
