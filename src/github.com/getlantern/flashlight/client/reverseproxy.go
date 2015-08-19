@@ -1,6 +1,8 @@
 package client
 
 import (
+	"bytes"
+	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
 	"runtime"
@@ -9,6 +11,7 @@ import (
 	"github.com/getlantern/balancer"
 	"github.com/getlantern/detour"
 	"github.com/getlantern/flashlight/proxy"
+	"github.com/getlantern/flashlight/status"
 )
 
 // getReverseProxy waits for a message from client.rpCh to arrive and then it
@@ -52,9 +55,9 @@ func (client *Client) initReverseProxy(bal *balancer.Balancer, dumpHeaders bool)
 		Director: func(req *http.Request) {
 			// do nothing
 		},
-		Transport: withDumpHeaders(
-			dumpHeaders,
-			transport),
+		Transport: &errorRewritingRoundTripper{
+			withDumpHeaders(dumpHeaders, transport),
+		},
 		// Set a FlushInterval to prevent overly aggressive buffering of
 		// responses, which helps keep memory usage down
 		FlushInterval: 250 * time.Millisecond,
@@ -101,4 +104,33 @@ func (rt *headerDumpingRoundTripper) RoundTrip(req *http.Request) (resp *http.Re
 		proxy.DumpHeaders("Response", &resp.Header)
 	}
 	return
+}
+
+// The errorRewritingRoundTripper writes creates an special *http.Response when
+// the roundtripper fails for some reason.
+type errorRewritingRoundTripper struct {
+	orig http.RoundTripper
+}
+
+func (er *errorRewritingRoundTripper) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+	res, err := er.orig.RoundTrip(req)
+	if err != nil {
+
+		// It is likely we will have lots of different errors to handle but for now
+		// we will only return a CannotFindServer error.  This prevents the user
+		// from getting just a blank screen.
+		htmlerr, err := status.CannotFindServer(req.Host, err)
+
+		if err != nil {
+			log.Debugf("Got error while generating status page: %q", err)
+		}
+
+		res = &http.Response{
+			Body: ioutil.NopCloser(bytes.NewBuffer(htmlerr)),
+		}
+
+		res.StatusCode = http.StatusServiceUnavailable
+		return res, nil
+	}
+	return res, err
 }

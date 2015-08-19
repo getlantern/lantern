@@ -445,8 +445,10 @@ release: require-version require-s3cmd require-gh-token require-wget require-rub
 
 update-resources:
 	@(which go-bindata >/dev/null) || (echo 'Missing command "go-bindata". Sett https://github.com/jteeuwen/go-bindata.' && exit 1) && \
-	go-bindata -nomemcopy -nocompress -pkg main -o src/github.com/getlantern/flashlight/resources.go -prefix src/github.com/getlantern/flashlight/ \
-	src/github.com/getlantern/flashlight/icons src/github.com/getlantern/flashlight/status_pages
+	go-bindata -nomemcopy -nocompress -pkg main -o src/github.com/getlantern/flashlight/resources.go -prefix \
+	src/github.com/getlantern/flashlight/ src/github.com/getlantern/flashlight/icons && \
+	go-bindata -nomemcopy -nocompress -pkg status -o src/github.com/getlantern/flashlight/status/resources.go -prefix \
+	src/github.com/getlantern/flashlight/status_pages src/github.com/getlantern/flashlight/status_pages
 
 create-tag: require-version
 	@git tag -a "$$VERSION" -f --annotate -m"Tagged $$VERSION" && \
