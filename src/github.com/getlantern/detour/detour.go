@@ -79,7 +79,7 @@ type Conn struct {
 	// Keeps written bytes through direct connection to replay it if required.
 	writeBuffer *bytes.Buffer
 	// Is it a plain HTTP request or not, atomic
-	nonIdempotentHTTPRequest uint32
+	nonidempotentHTTPRequest uint32
 }
 
 // The data structure to pass result of io operation back from underlie connection
@@ -216,7 +216,7 @@ func (dc *Conn) Read(b []byte) (n int, err error) {
 	for count := 1; count > 0; count-- {
 		select {
 		case newConn := <-dc.chDetourConn:
-			if atomic.LoadUint32(&dc.nonIdempotentHTTPRequest) == 1 {
+			if atomic.LoadUint32(&dc.nonidempotentHTTPRequest) == 1 {
 				log.Tracef("Not replay nonidempotent request to %s, only add to whitelist", dc.addr)
 				AddToWl(dc.addr, false)
 				if err := newConn.Close(); err != nil {
@@ -283,8 +283,8 @@ func (dc *Conn) Write(b []byte) (n int, err error) {
 	if dc.anyDataReceived() {
 		return dc.followupWrite(b)
 	}
-	if isNonIdempotentHTTPRequest(b) {
-		atomic.StoreUint32(&dc.nonIdempotentHTTPRequest, 1)
+	if isNonidempotentHTTPRequest(b) {
+		atomic.StoreUint32(&dc.nonidempotentHTTPRequest, 1)
 	} else {
 		dc.muWriteBuffer.Lock()
 		_, _ = dc.writeBuffer.Write(b)
@@ -372,16 +372,17 @@ func (dc *Conn) withValidConn(f func(conn)) bool {
 	return false
 }
 
-var nonIdempotentMethods = [][]byte{
+var nonidempotentMethods = [][]byte{
+	[]byte("PUT "),
 	[]byte("POST "),
 	[]byte("PATCH "),
 }
 
 // Ref section 9.1.2 of https://www.ietf.org/rfc/rfc2616.txt.
 // We consider the https handshake phase to be idemponent.
-func isNonIdempotentHTTPRequest(b []byte) bool {
+func isNonidempotentHTTPRequest(b []byte) bool {
 	if len(b) > 4 {
-		for _, m := range nonIdempotentMethods {
+		for _, m := range nonidempotentMethods {
 			if bytes.HasPrefix(b, m) {
 				return true
 			}
