@@ -295,6 +295,10 @@ func TestDownloadManotoBetaAndUpgradeIt(t *testing.T) {
 		t.Fatalf("Expecting 2.0.0+manoto to be lower than 2.0.1, got: %d", r)
 	}
 
+	if r := semver.MustParse("2.0.0+stable").Compare(semver.MustParse("9999.99.99")); r != -1 {
+		t.Fatalf("Expecting 2.0.0+manoto to be lower than 9999.99.99, got: %d", r)
+	}
+
 	if len(testClient.updateAssetsMap) == 0 {
 		t.Fatal("Assets map is empty.")
 	}

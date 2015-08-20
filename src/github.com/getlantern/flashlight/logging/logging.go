@@ -17,6 +17,7 @@ import (
 	"github.com/getlantern/go-loggly"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/jibber_jabber"
+	"github.com/getlantern/osversion"
 	"github.com/getlantern/rotator"
 	"github.com/getlantern/wfilter"
 )
@@ -162,6 +163,9 @@ func enableLoggly(addr string, cloudConfigCA string, instanceId string,
 	}
 	logglyWriter.client.Defaults["hostname"] = "hidden"
 	logglyWriter.client.Defaults["instanceid"] = instanceId
+	if osStr, err := osversion.GetHumanReadable(); err == nil {
+		logglyWriter.client.Defaults["osversion"] = osStr
+	}
 	logglyWriter.client.SetHTTPClient(client)
 	addLoggly(logglyWriter)
 }
@@ -215,14 +219,15 @@ func (w logglyErrorWriter) Write(b []byte) (int, error) {
 	}
 
 	extra := map[string]string{
-		"logLevel":  "ERROR",
-		"osName":    runtime.GOOS,
-		"osArch":    runtime.GOARCH,
-		"osVersion": "",
-		"language":  w.lang,
-		"country":   geolookup.GetCountry(),
-		"timeZone":  w.tz,
-		"version":   w.versionToLoggly,
+		"logLevel":          "ERROR",
+		"osName":            runtime.GOOS,
+		"osArch":            runtime.GOARCH,
+		"osVersion":         "",
+		"language":          w.lang,
+		"country":           geolookup.GetCountry(),
+		"timeZone":          w.tz,
+		"version":           w.versionToLoggly,
+		"sessionUserAgents": getSessionUserAgents(),
 	}
 
 	// extract last 2 (at most) chunks of fullMessage to message, without prefix,

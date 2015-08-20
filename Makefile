@@ -146,22 +146,22 @@ docker-genassets: require-npm
 docker-linux-386:
 	@source setenv.bash && \
 	$(call build-tags) && \
-	CGO_ENABLED=1 GOOS=linux GOARCH=386 go build -o lantern_linux_386 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
+	CGO_ENABLED=1 GOOS=linux GOARCH=386 go build -a -o lantern_linux_386 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
 
 docker-linux-amd64:
 	@source setenv.bash && \
 	$(call build-tags) && \
-	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o lantern_linux_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
+	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -a -o lantern_linux_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
 
 docker-linux-arm:
 	@source setenv.bash && \
 	$(call build-tags) && \
-	CGO_ENABLED=1 CC=arm-linux-gnueabi-gcc CXX=arm-linux-gnueabi-g++ CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 go build -o lantern_linux_arm -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
+	CGO_ENABLED=1 CC=arm-linux-gnueabi-gcc CXX=arm-linux-gnueabi-g++ CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 go build -a -o lantern_linux_arm -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
 
 docker-windows-386:
 	@source setenv.bash && \
 	$(call build-tags) && \
-	CGO_ENABLED=1 GOOS=windows GOARCH=386 go build -o lantern_windows_386.exe -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -H=windowsgui" github.com/getlantern/flashlight;
+	CGO_ENABLED=1 GOOS=windows GOARCH=386 go build -a -o lantern_windows_386.exe -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -H=windowsgui" github.com/getlantern/flashlight;
 
 require-assets:
 	@if [ ! -f ./src/github.com/getlantern/flashlight/ui/resources.go ]; then make genassets; fi
@@ -302,7 +302,7 @@ darwin-amd64: require-assets
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		source setenv.bash && \
 		$(call build-tags) && \
-		CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -o lantern_darwin_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS)" github.com/getlantern/flashlight && \
+		CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -a -o lantern_darwin_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS)" github.com/getlantern/flashlight && \
 		cat lantern_darwin_amd64 | bzip2 > update_darwin_amd64.bz2 && \
 		ls -l lantern_darwin_amd64 update_darwin_amd64.bz2; \
 	else \
@@ -443,9 +443,12 @@ release: require-version require-s3cmd require-gh-token require-wget require-rub
 	git add lantern-$$VERSION-$$TAG_COMMIT* && \
 	(git commit -am "Latest binaries for Lantern $$VERSION ($$TAG_COMMIT)." && git push origin master) || true
 
-update-icons:
+update-resources:
 	@(which go-bindata >/dev/null) || (echo 'Missing command "go-bindata". Sett https://github.com/jteeuwen/go-bindata.' && exit 1) && \
-	go-bindata -nomemcopy -nocompress -pkg main -o src/github.com/getlantern/flashlight/icons.go -prefix src/github.com/getlantern/flashlight/ src/github.com/getlantern/flashlight/icons
+	go-bindata -nomemcopy -nocompress -pkg main -o src/github.com/getlantern/flashlight/icons.go -prefix \
+	src/github.com/getlantern/flashlight/ src/github.com/getlantern/flashlight/icons && \
+	go-bindata -nomemcopy -nocompress -pkg status -o src/github.com/getlantern/flashlight/status/resources.go -prefix \
+	src/github.com/getlantern/flashlight/status_pages src/github.com/getlantern/flashlight/status_pages
 
 create-tag: require-version
 	@git tag -a "$$VERSION" -f --annotate -m"Tagged $$VERSION" && \

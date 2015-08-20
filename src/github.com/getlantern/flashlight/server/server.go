@@ -271,26 +271,13 @@ func (server *Server) checkForDisallowedPort(addr string) error {
 }
 
 func (server *Server) checkForBannedCountry(req *http.Request) error {
-	clientIp := getClientIp(req)
-	if clientIp == "" {
-		log.Debug("Unable to determine client ip for geolookup")
-		return nil
-	}
-
-	country := ""
-	cachedCountry, found := server.geoCache.Get(clientIp)
-	if found {
-		log.Tracef("Country for %v found in cache", clientIp)
-		country = cachedCountry.(string)
-	} else {
-		log.Tracef("Country for %v not cached, perform geolookup", clientIp)
-		city, _, err := geolookup.LookupIPWithClient(clientIp, nil)
-		if err != nil {
-			log.Debugf("Unable to perform geolookup for ip %v: %v", clientIp, err)
+	country := req.Header.Get("Cf-Ipcountry")
+	if country == "" {
+		var err error
+		if country, err = server.lookupCountry(req); err != nil {
+			log.Errorf("Could not find country %v", err)
 			return nil
 		}
-		country = strings.ToUpper(city.Country.IsoCode)
-		server.geoCache.Add(clientIp, country)
 	}
 
 	countryBanned := false
@@ -305,6 +292,36 @@ func (server *Server) checkForBannedCountry(req *http.Request) error {
 	}
 
 	return nil
+}
+
+func (server *Server) lookupCountry(req *http.Request) (string, error) {
+	// Use the country CloudFlare gives us if it's available.
+	cf := req.Header.Get("Cf-Ipcountry")
+	if cf != "" {
+		return cf, nil
+	}
+	clientIp := getClientIp(req)
+	if clientIp == "" {
+		log.Debug("Unable to determine client ip for geolookup")
+		return "", nil
+	}
+
+	country := ""
+	cachedCountry, found := server.geoCache.Get(clientIp)
+	if found {
+		log.Tracef("Country for %v found in cache", clientIp)
+		country = cachedCountry.(string)
+	} else {
+		log.Tracef("Country for %v not cached, perform geolookup", clientIp)
+		city, _, err := geolookup.LookupIPWithClient(clientIp, nil)
+		if err != nil {
+			log.Debugf("Unable to perform geolookup for ip %v: %v", clientIp, err)
+			return country, err
+		}
+		country = strings.ToUpper(city.Country.IsoCode)
+		server.geoCache.Add(clientIp, country)
+	}
+	return country, nil
 }
 
 func mapPort(addr string, port int) error {

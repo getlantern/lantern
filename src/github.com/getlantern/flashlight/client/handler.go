@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/getlantern/detour"
+	"github.com/getlantern/flashlight/logging"
 )
 
 const (
@@ -21,6 +22,8 @@ const (
 // handler available from getHandler() and latest ReverseProxy available from
 // getReverseProxy().
 func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	logging.RegisterUserAgent(req.Header.Get("User-Agent"))
+
 	if req.Method == httpConnectMethod {
 		// CONNECT requests are often used for HTTPS requests.
 		log.Tracef("Intercepting CONNECT %s", req.URL)
@@ -73,6 +76,18 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// Respond OK as soon as possible, even if we don't have the outbound connection
+	// established yet, to avoid timeouts on the client application
+	success := make(chan bool, 1)
+	go func() {
+		if e := respondOK(clientConn, req); e != nil {
+			log.Errorf("Unable to respond OK: %s", e)
+			success <- false
+			return
+		}
+		success <- true
+	}()
+
 	// Establish outbound connection.
 	addr := hostIncludingPort(req, 443)
 	d := func(network, addr string) (net.Conn, error) {
@@ -84,20 +99,11 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 	} else {
 		connOut, err = detour.Dialer(d)("tcp", addr)
 	}
-	if err != nil {
-		respondBadGateway(clientConn, fmt.Sprintf("Unable to handle CONNECT request: %s", err))
-		return
-	}
 
-	// Respond OK
-	err = respondOK(clientConn, req)
-	if err != nil {
-		log.Errorf("Unable to respond OK: %s", err)
-		return
+	if <-success {
+		// Pipe data between the client and the proxy.
+		pipeData(clientConn, connOut, func() { closeOnce.Do(closeConns) })
 	}
-
-	// Pipe data between the client and the proxy.
-	pipeData(clientConn, connOut, func() { closeOnce.Do(closeConns) })
 }
 
 // targetQOS determines the target quality of service given the X-Flashlight-QOS
