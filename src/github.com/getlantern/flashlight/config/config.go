@@ -83,7 +83,6 @@ func Init(version string) (*Config, error) {
 	m = &yamlconf.Manager{
 		FilePath:         configPath,
 		FilePollInterval: 1 * time.Second,
-		ConfigServerAddr: *configaddr,
 		EmptyConfig: func() yamlconf.Config {
 			return &Config{}
 		},
