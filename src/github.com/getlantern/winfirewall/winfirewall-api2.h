@@ -28,10 +28,33 @@ BSTR chars_to_BSTR(char *str)
     return bstr;
 }
 
+
+BOOL windows_is_vista_or_later() {
+    DWORD version = GetVersion();
+    DWORD major = (DWORD) (LOBYTE(LOWORD(version)));
+    DWORD minor = (DWORD) (HIBYTE(LOWORD(version)));
+    return (major > 6) || ((major == 6) && (minor >= 0));
+}
+
 // Initialize the Firewall COM service
-HRESULT windows_firewall_initialize(INetFwPolicy2** policy)
+HRESULT windows_firewall_initialize_api2(INetFwPolicy2** policy)
 {
     HRESULT hr = S_OK;
+    HRESULT com_init = E_FAIL;
+
+    // Initialize COM.
+    com_init = CoInitializeEx(0, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+
+    // Ignore RPC_E_CHANGED_MODE; this just means that COM has already been
+    // initialized with a different mode. Since we don't care what the mode is,
+    // we'll just use the existing mode.
+    if (com_init != RPC_E_CHANGED_MODE) {
+        if (FAILED(com_init)) {
+            return com_init;
+        }
+    }
+
+    // Create Policy2 instance
     hr = CoCreateInstance(&CLSID_NetFwPolicy2,
                           NULL,
                           CLSCTX_INPROC_SERVER,
@@ -41,7 +64,7 @@ HRESULT windows_firewall_initialize(INetFwPolicy2** policy)
 }
 
 // Clean up the Firewall service safely
-void windows_firewall_cleanup(IN INetFwPolicy2 *policy)
+void windows_firewall_cleanup_api2(IN INetFwPolicy2 *policy)
 {
     if (policy != NULL) {
         INetFwPolicy2_Release(policy);
@@ -51,7 +74,7 @@ void windows_firewall_cleanup(IN INetFwPolicy2 *policy)
 
 // Get Firewall status: returns a boolean for ON/OFF
 // It will return ON if any of the profiles has the firewall enabled.
-HRESULT windows_firewall_is_on(IN INetFwPolicy2 *policy, OUT BOOL *fw_on)
+HRESULT windows_firewall_is_on_api2(IN INetFwPolicy2 *policy, OUT BOOL *fw_on)
 {
     HRESULT hr = S_OK;
     VARIANT_BOOL is_enabled = FALSE;
@@ -78,7 +101,7 @@ HRESULT windows_firewall_is_on(IN INetFwPolicy2 *policy, OUT BOOL *fw_on)
 }
 
 //  Turn Firewall ON
-HRESULT windows_firewall_turn_on(IN INetFwPolicy2 *policy)
+HRESULT windows_firewall_turn_on_api2(IN INetFwPolicy2 *policy)
 {
     HRESULT hr = S_OK;
     BOOL fw_on;
@@ -86,7 +109,7 @@ HRESULT windows_firewall_turn_on(IN INetFwPolicy2 *policy)
     _ASSERT(fw_profile != NULL);
 
     // Check the current firewall status first
-    RETURN_IF_FAILED(windows_firewall_is_on(policy, &fw_on));
+    RETURN_IF_FAILED(windows_firewall_is_on_api2(policy, &fw_on));
 
     // If it is off, turn it on.
     if (!fw_on) {
@@ -101,7 +124,7 @@ HRESULT windows_firewall_turn_on(IN INetFwPolicy2 *policy)
 }
 
 //  Turn Firewall OFF
-HRESULT windows_firewall_turn_off(IN INetFwPolicy2 *policy)
+HRESULT windows_firewall_turn_off_api2(IN INetFwPolicy2 *policy)
 {
     HRESULT hr = S_OK;
     BOOL fw_on;
@@ -109,7 +132,7 @@ HRESULT windows_firewall_turn_off(IN INetFwPolicy2 *policy)
     _ASSERT(fw_profile != NULL);
 
     // Check the current firewall status first
-    hr = windows_firewall_is_on(policy, &fw_on);
+    hr = windows_firewall_is_on_api2(policy, &fw_on);
     RETURN_IF_FAILED(hr);
 
     // If it is on, turn it off.
@@ -125,13 +148,13 @@ HRESULT windows_firewall_turn_off(IN INetFwPolicy2 *policy)
 }
 
 // Set a Firewall rule
-HRESULT windows_firewall_rule_set(IN INetFwPolicy2 *policy,
-                                  IN char *rule_name,
-                                  IN char *rule_description,
-                                  IN char *rule_group,
-                                  IN char *rule_application,
-                                  IN char *rule_port,
-                                  IN BOOL rule_direction_out)
+HRESULT windows_firewall_rule_set_api2(IN INetFwPolicy2 *policy,
+                                       IN char *rule_name,
+                                       IN char *rule_description,
+                                       IN char *rule_group,
+                                       IN char *rule_application,
+                                       IN char *rule_port,
+                                       IN BOOL rule_direction_out)
 {
     HRESULT hr = S_OK;
     INetFwRules *fw_rules = NULL;
@@ -205,9 +228,9 @@ cleanup:
 }
 
 // Get a Firewall rule
-HRESULT windows_firewall_rule_get(IN INetFwPolicy2 *policy,
-                                  IN char *rule_name,
-                                  OUT INetFwRule **out_rule)
+HRESULT windows_firewall_rule_get_api2(IN INetFwPolicy2 *policy,
+                                       IN char *rule_name,
+                                       OUT INetFwRule **out_rule)
 {
     HRESULT hr = S_OK;
     INetFwRules *fw_rules = NULL;
@@ -216,8 +239,7 @@ HRESULT windows_firewall_rule_get(IN INetFwPolicy2 *policy,
     *out_rule = NULL;
 
     // Retrieve INetFwRules
-    GOTO_IF_FAILED(cleanup,
-                   INetFwPolicy2_get_Rules(policy, &fw_rules));
+    GOTO_IF_FAILED(cleanup, INetFwPolicy2_get_Rules(policy, &fw_rules));
 
     // Create a new Firewall Rule object.
     hr = CoCreateInstance(&CLSID_NetFwRule,
@@ -239,13 +261,13 @@ cleanup:
 }
 
 // Test whether a Firewall rule exists or not
-HRESULT windows_firewall_rule_exists(IN INetFwPolicy2 *policy,
-                                     IN char *rule_name,
-                                     OUT BOOL *exists)
+HRESULT windows_firewall_rule_exists_api2(IN INetFwPolicy2 *policy,
+                                          IN char *rule_name,
+                                          OUT BOOL *exists)
 {
     HRESULT hr = S_OK;
     INetFwRule *fw_rule = NULL;
-    hr = windows_firewall_rule_get(policy, rule_name, &fw_rule);
+    hr = windows_firewall_rule_get_api2(policy, rule_name, &fw_rule);
     if (fw_rule != NULL) {
         *exists = TRUE;
     } else {
@@ -254,3 +276,30 @@ HRESULT windows_firewall_rule_exists(IN INetFwPolicy2 *policy,
 
     return hr;
 }
+
+
+// Remove a Firewall rule if exists.
+// Windows API tests show that if there are many with the same, the
+// first found will be removed, but not the rest. This is not documented.
+HRESULT windows_firewall_rule_remove_api2(IN INetFwPolicy2 *policy,
+                                          IN char *rule_name)
+{
+    HRESULT hr = S_OK;
+    INetFwRules *fw_rules = NULL;
+    INetFwRule *fw_rule = NULL;
+    BSTR bstr_rule_name = chars_to_BSTR(rule_name);
+
+    // Retrieve INetFwRules
+    GOTO_IF_FAILED(cleanup, INetFwPolicy2_get_Rules(policy, &fw_rules));
+
+    INetFwRules_Remove(fw_rules, bstr_rule_name);
+    GOTO_IF_FAILED(cleanup, hr);
+
+cleanup:
+    SysFreeString(bstr_rule_name);
+
+    return hr;
+}
+
+#undef RETURN_IF_FAILED
+#undef GOTO_IF_FAILED

@@ -3,8 +3,12 @@
  * Windows XP API version
  */
 
+// TEMP:
+#include <stdio.h>
+
+
 // Initialize the Firewall COM service
-HRESULT windows_xp_firewall_initialize(OUT INetFwProfile **fw_profile)
+HRESULT windows_firewall_initialize_api1(OUT INetFwProfile **fw_profile)
 {
         HRESULT hr = S_OK;
         INetFwMgr *fw_mgr = NULL;

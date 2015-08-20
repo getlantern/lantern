@@ -2,29 +2,13 @@
  * Test utility for Windows Firewall COM interface library
  */
 
-#include "winfirewall-common.h"
-#include "winfirewall-xp.h"
-#include "winfirewall-all.h"
+#include "winfirewall.h"
 
+#include <stdio.h>
 
 int main(int argc, wchar_t* argv[])
 {
         HRESULT hr = S_OK;
-        HRESULT com_init = E_FAIL;
-        INetFwProfile* fw_profile = NULL;
-
-        // Initialize COM.
-        com_init = CoInitializeEx(0, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
-
-        // Ignore RPC_E_CHANGED_MODE; this just means that COM has already been
-        // initialized with a different mode. Since we don't care what the mode is,
-        // we'll just use the existing mode.
-        if (com_init != RPC_E_CHANGED_MODE) {
-                if (FAILED(com_init)) {
-                        printf("CoInitializeEx failed: 0x%08lx\n", com_init);
-                        goto error;
-                }
-        }
 
         ///
         ///
@@ -58,7 +42,7 @@ int main(int argc, wchar_t* argv[])
         hr = windows_firewall_rule_set(policy,
                                        "Lantern Outbound Traffic",
                                        "Allow outbound traffic from Lantern",
-                                       "Lantern Group",
+                                       "Internet Access",
                                        "Lantern.exe",
                                        "",
                                        TRUE);
@@ -81,23 +65,30 @@ int main(int argc, wchar_t* argv[])
             printf("Lantern rule does not exist\n");
         }
 
+        hr = windows_firewall_rule_remove(policy,
+                                          "Lantern Outbound Traffic");
+        if (FAILED(hr)) {
+            printf("Error removing Firewall rule: 0x%08lx\n", hr);
+            goto error;
+        }
+
         hr = windows_firewall_rule_exists(policy,
-                                          "DUMMY RULE",
+                                          "Lantern Outbound Traffic",
                                           &exists);
         if (FAILED(hr)) {
             printf("Error getting Firewall rule: 0x%08lx\n", hr);
             goto error;
         }
         if (exists) {
-            printf("DUMMY rule exists\n");
+            printf("Lantern rule exists\n");
         } else {
-            printf("DUMMY rule does not exist\n");
+            printf("Lantern rule does not exist\n");
         }
 
 
+        /// End of Windows Vista code
         ///
         ///
-        /// Windows Vista code
 /*
         // Retrieve the firewall profile currently in effect.
         hr = windows_xp_firewall_initialize(&fw_profile);
