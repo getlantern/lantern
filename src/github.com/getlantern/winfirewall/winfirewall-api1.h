@@ -418,5 +418,80 @@ HRESULT windows_firewall_rule_remove_api1(IN INetFwPolicy *policy,
                                           IN firewall_rule_t *rule)
 {
     HRESULT hr = S_OK;
-    return hr;
+
+    INetFwProfile *fw_profile;
+    INetFwAuthorizedApplication* fw_app = NULL;
+    INetFwAuthorizedApplications* fw_apps = NULL;
+    INetFwOpenPort* fw_open_port = NULL;
+    INetFwOpenPorts* fw_open_ports = NULL;
+
+    BSTR bstr_application = chars_to_BSTR(rule->application);
+
+    _ASSERT(policy != NULL);
+
+    // Retrieve the firewall profile currently in effect.
+    GOTO_IF_FAILED(cleanup,
+                   INetFwPolicy_get_CurrentProfile(policy, &fw_profile));
+
+    if (rule->application != NULL && rule->application[0] != 0) {
+        // Retrieve the authorized application collection
+        GOTO_IF_FAILED(
+            cleanup,
+            INetFwProfile_get_AuthorizedApplications(fw_profile, &fw_apps)
+            );
+
+        hr = INetFwAuthorizedApplications_Item(fw_apps, bstr_application, &fw_app);
+        if (SUCCEEDED(hr)) {
+            GOTO_IF_FAILED(cleanup,
+                           INetFwAuthorizedApplications_Remove(fw_apps, bstr_application));
+        }
+    }
+
+    if (rule->port != NULL && rule->port[0] != 0) {
+        // Retrieve the collection of globally open ports
+        GOTO_IF_FAILED(
+            cleanup,
+            INetFwProfile_get_GloballyOpenPorts(fw_profile, &fw_open_ports)
+            );
+
+        hr = INetFwOpenPorts_Item(fw_open_ports, atoi(rule->port), NET_FW_IP_PROTOCOL_TCP, &fw_open_port);
+        if (SUCCEEDED(hr)) {
+            GOTO_IF_FAILED(
+                cleanup,
+                INetFwOpenPorts_Remove(
+                    fw_open_ports,
+                    atoi(rule->port),
+                    NET_FW_IP_PROTOCOL_TCP
+                    )
+                );
+        }
+
+        hr = INetFwOpenPorts_Item(fw_open_ports, atoi(rule->port), NET_FW_IP_PROTOCOL_UDP, &fw_open_port);
+        if (SUCCEEDED(hr)) {
+            GOTO_IF_FAILED(
+                cleanup,
+                INetFwOpenPorts_Remove(
+                    fw_open_ports,
+                    atoi(rule->port),
+                    NET_FW_IP_PROTOCOL_UDP
+                    )
+                );
+        }
+    }
+
+cleanup:
+    if (fw_profile != NULL)
+        INetFwProfile_Release(fw_profile);
+    if (fw_app != NULL)
+        INetFwAuthorizedApplication_Release(fw_app);
+    if (fw_apps != NULL)
+        INetFwAuthorizedApplications_Release(fw_apps);
+    if (fw_open_port != NULL)
+        INetFwOpenPort_Release(fw_open_port);
+    if (fw_open_ports != NULL)
+        INetFwOpenPorts_Release(fw_open_ports);
+
+    SysFreeString(bstr_application);
+
+    return S_OK;
 }
