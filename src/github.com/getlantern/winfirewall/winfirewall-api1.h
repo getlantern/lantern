@@ -3,9 +3,14 @@
  * Windows XP API version
  */
 
-// TEMP:
-#include <stdio.h>
+const char const *program_suffix = " (program rule)";
+const char const *port_tcp_suffix = " (port TCP rule)";
+const char const *port_udp_suffix = " (port UDP rule)";
 
+
+
+// TEMP XXX
+#include <stdio.h>
 
 // Initialize the Firewall COM service
 HRESULT windows_firewall_initialize_api1(OUT INetFwPolicy **policy)
@@ -150,24 +155,33 @@ cleanup:
 }
 
 
-//  Turn Firewall OFF
+// Set a Firewall rule. In Windows XP, Firewall rules don't exist, so we emulate
+// them as follows:
+// * The only rule parameters taken into account are: name, application and port
+// * Application rules and port are orthogonal, ie. if the rule specifies a program
+//   it will be set for all ports of this program; if the rule specifies a port it
+//   will open the port for all apps. More fine-grained rules are not possible in
+//   this version of Windows. Both rules can be set independently. A null parameter
+//   won't set that rule.
+// * These rules are then registered with a suffix (application, port TCP/UDP).
 HRESULT windows_firewall_rule_set_api1(IN INetFwPolicy *policy,
                                        firewall_rule_t *rule)
 {
     HRESULT hr = S_OK;
 
     char *program_rule_name = NULL;
-    char *port_rule_name = NULL;
-    char *program_suffix = " (program rule)";
-    char *port_suffix = " (port rule)";
+    char *port_tcp_rule_name = NULL;
+    char *port_udp_rule_name = NULL;
     BSTR bstr_program_rule_name = NULL;
-    BSTR bstr_port_rule_name = NULL;
+    BSTR bstr_port_tcp_rule_name = NULL;
+    BSTR bstr_port_udp_rule_name = NULL;
     BSTR bstr_application = NULL;
 
     INetFwProfile *fw_profile;
     INetFwAuthorizedApplication* fw_app = NULL;
     INetFwAuthorizedApplications* fw_apps = NULL;
-    INetFwOpenPort* fw_open_port = NULL;
+    INetFwOpenPort* fw_open_port_tcp = NULL;
+    INetFwOpenPort* fw_open_port_udp = NULL;
     INetFwOpenPorts* fw_open_ports = NULL;
 
     _ASSERT(policy != NULL);
@@ -177,117 +191,146 @@ HRESULT windows_firewall_rule_set_api1(IN INetFwPolicy *policy,
                    INetFwPolicy_get_CurrentProfile(policy, &fw_profile));
 
     // Emulate API2 rules by applying Application and Port
-    if (rule->application != NULL) {
-        // TODO: Check first if already activated
-        if(TRUE) {
-            program_rule_name = malloc(strlen(rule->name)+strlen(program_suffix));
-            strcpy(program_rule_name, rule->name);
-            strcat(program_rule_name, program_suffix);
-            bstr_program_rule_name = chars_to_BSTR(program_rule_name);
+    if (rule->application != NULL && rule->application[0] != 0) {
+        // Note: Windows won't register the rule if it's already registered
+        program_rule_name = malloc(strlen(rule->name)+strlen(program_suffix));
+        strcpy(program_rule_name, rule->name);
+        strcat(program_rule_name, program_suffix);
+        bstr_program_rule_name = chars_to_BSTR(program_rule_name);
 
-            // Retrieve the authorized application collection
-            GOTO_IF_FAILED(
-                cleanup,
-                INetFwProfile_get_AuthorizedApplications(fw_profile, &fw_apps)
-                );
-            // Create an instance of an authorized application
-            GOTO_IF_FAILED(
-                cleanup,
-                CoCreateInstance(&CLSID_NetFwAuthorizedApplication,
-                                 NULL,
-                                 CLSCTX_INPROC_SERVER,
-                                 &IID_INetFwAuthorizedApplication,
-                                 (void**)&fw_app)
-                );
+        // Retrieve the authorized application collection
+        GOTO_IF_FAILED(
+            cleanup,
+            INetFwProfile_get_AuthorizedApplications(fw_profile, &fw_apps)
+            );
+        // Create an instance of an authorized application
+        GOTO_IF_FAILED(
+            cleanup,
+            CoCreateInstance(&CLSID_NetFwAuthorizedApplication,
+                             NULL,
+                             CLSCTX_INPROC_SERVER,
+                             &IID_INetFwAuthorizedApplication,
+                             (void**)&fw_app)
+            );
 
-            bstr_application = chars_to_BSTR(rule->application);
+        bstr_application = chars_to_BSTR(rule->application);
 
-            GOTO_IF_FAILED(
-                cleanup,
-                INetFwAuthorizedApplication_put_ProcessImageFileName(
-                    fw_app,
-                    bstr_application
-                    )
-                );
-            GOTO_IF_FAILED(
-                cleanup,
-                INetFwAuthorizedApplication_put_Name(fw_app, bstr_program_rule_name)
-                );
+        GOTO_IF_FAILED(
+            cleanup,
+            INetFwAuthorizedApplication_put_ProcessImageFileName(
+                fw_app,
+                bstr_application
+                )
+            );
+        GOTO_IF_FAILED(
+            cleanup,
+            INetFwAuthorizedApplication_put_Name(fw_app, bstr_program_rule_name)
+            );
 
-            GOTO_IF_FAILED(cleanup,
-                           INetFwAuthorizedApplications_Add(fw_apps, fw_app));
-        }
+        GOTO_IF_FAILED(cleanup,
+                       INetFwAuthorizedApplications_Add(fw_apps, fw_app));
     }
 
-    if (rule->port != NULL) {
-        // TODO: Check first if already activated
-        if (FALSE) {
-            port_rule_name = malloc(strlen(rule->name)+strlen(port_suffix));
-            strcpy(port_rule_name, rule->name);
-            strcat(port_rule_name, port_suffix);
-            bstr_port_rule_name = chars_to_BSTR(port_rule_name);
+    if (rule->port != NULL && rule->port[0] != 0) {
+        // Note: Windows won't register the rule if it's already registered
 
-            // Retrieve the collection of globally open ports
-            GOTO_IF_FAILED(
-                cleanup,
-                INetFwProfile_get_GloballyOpenPorts(fw_profile, &fw_open_ports)
-                );
+        // Retrieve the collection of globally open ports
+        GOTO_IF_FAILED(
+            cleanup,
+            INetFwProfile_get_GloballyOpenPorts(fw_profile, &fw_open_ports)
+            );
 
-            // Create an instance of an open port
-            GOTO_IF_FAILED(
-                cleanup,
-                CoCreateInstance(&CLSID_NetFwOpenPort,
-                                 NULL,
-                                 CLSCTX_INPROC_SERVER,
-                                 &IID_INetFwOpenPort,
-                                 (void**)&fw_open_port)
-                );
+        // TCP Rule
 
-            // Set the port number
-            GOTO_IF_FAILED(
-                cleanup,
-                INetFwOpenPort_put_Port(fw_open_port, atoi(rule->port))
-                );
+        GOTO_IF_FAILED(
+            cleanup,
+            CoCreateInstance(&CLSID_NetFwOpenPort,
+                             NULL,
+                             CLSCTX_INPROC_SERVER,
+                             &IID_INetFwOpenPort,
+                             (void**)&fw_open_port_tcp)
+            );
 
-/*            // Set the IP Protocol
-            hr = pFWOpenPort->put_Protocol( ipProtocol );
-            if( FAILED( hr ))
-                throw FW_ERR_SET_IP_PROTOCOL;
-*/
+        port_tcp_rule_name = malloc(strlen(rule->name)+strlen(port_tcp_suffix));
+        strcpy(port_tcp_rule_name, rule->name);
+        strcat(port_tcp_rule_name, port_tcp_suffix);
+        bstr_port_tcp_rule_name = chars_to_BSTR(port_tcp_rule_name);
 
-            // Set the registered name
-            GOTO_IF_FAILED(
-                cleanup,
-                INetFwOpenPort_put_Name(fw_open_port, bstr_port_rule_name)
-                );
+        GOTO_IF_FAILED(
+            cleanup,
+            INetFwOpenPort_put_Port(fw_open_port_tcp, atoi(rule->port))
+            );
+        GOTO_IF_FAILED(
+            cleanup,
+            INetFwOpenPort_put_Protocol(fw_open_port_tcp, NET_FW_IP_PROTOCOL_TCP);
+            );
+        GOTO_IF_FAILED(
+            cleanup,
+            INetFwOpenPort_put_Name(fw_open_port_tcp, bstr_port_tcp_rule_name)
+            );
+        GOTO_IF_FAILED(
+            cleanup,
+            INetFwOpenPorts_Add(fw_open_ports, fw_open_port_tcp)
+            );
 
-            GOTO_IF_FAILED(
-                cleanup,
-                INetFwOpenPorts_Add(fw_open_ports, fw_open_port)
-                );
-        }
+        // UDP Rule
+        GOTO_IF_FAILED(
+            cleanup,
+            CoCreateInstance(&CLSID_NetFwOpenPort,
+                             NULL,
+                             CLSCTX_INPROC_SERVER,
+                             &IID_INetFwOpenPort,
+                             (void**)&fw_open_port_udp)
+            );
+
+        port_udp_rule_name = malloc(strlen(rule->name)+strlen(port_udp_suffix));
+        strcpy(port_udp_rule_name, rule->name);
+        strcat(port_udp_rule_name, port_udp_suffix);
+        bstr_port_udp_rule_name = chars_to_BSTR(port_udp_rule_name);
+
+        GOTO_IF_FAILED(
+            cleanup,
+            INetFwOpenPort_put_Port(fw_open_port_udp, atoi(rule->port))
+            );
+        GOTO_IF_FAILED(
+            cleanup,
+            INetFwOpenPort_put_Protocol(fw_open_port_udp, NET_FW_IP_PROTOCOL_UDP);
+            );
+        GOTO_IF_FAILED(
+            cleanup,
+            INetFwOpenPort_put_Name(fw_open_port_udp, bstr_port_udp_rule_name)
+            );
+        GOTO_IF_FAILED(
+            cleanup,
+            INetFwOpenPorts_Add(fw_open_ports, fw_open_port_udp)
+            );
     }
 
 cleanup:
-    if (fw_profile != NULL) {
+    if (fw_profile != NULL)
         INetFwProfile_Release(fw_profile);
-    }
-    if (fw_app != NULL) {
+    if (fw_app != NULL)
         INetFwAuthorizedApplication_Release(fw_app);
-    }
-    if (fw_apps != NULL) {
+    if (fw_apps != NULL)
         INetFwAuthorizedApplications_Release(fw_apps);
-    }
-    if (fw_open_port != NULL) {
-        INetFwOpenPort_Release(fw_open_port);
-    }
-    if (fw_open_ports != NULL) {
+    if (fw_open_port_tcp != NULL)
+        INetFwOpenPort_Release(fw_open_port_tcp);
+    if (fw_open_port_udp != NULL)
+        INetFwOpenPort_Release(fw_open_port_udp);
+    if (fw_open_ports != NULL)
         INetFwOpenPorts_Release(fw_open_ports);
-    }
 
     SysFreeString(bstr_program_rule_name);
-    SysFreeString(bstr_port_rule_name);
+    SysFreeString(bstr_port_tcp_rule_name);
+    SysFreeString(bstr_port_udp_rule_name);
     SysFreeString(bstr_application);
+
+    if (program_rule_name != NULL)
+        free(program_rule_name);
+    if (port_tcp_rule_name != NULL)
+        free(port_tcp_rule_name);
+    if (port_udp_rule_name != NULL)
+        free(port_udp_rule_name);
 
     return hr;
 }
@@ -308,7 +351,6 @@ HRESULT windows_firewall_rule_exists_api1(IN INetFwPolicy *policy,
     HRESULT hr = S_OK;
     return hr;
 }
-
 
 // Remove a Firewall rule if exists.
 // Windows API tests show that if there are many with the same, the
