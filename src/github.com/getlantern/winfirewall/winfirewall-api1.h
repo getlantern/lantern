@@ -168,23 +168,6 @@ HRESULT windows_firewall_rule_set_api1(IN INetFwPolicy *policy,
     GOTO_IF_FAILED(cleanup,
                    INetFwPolicy_get_CurrentProfile(policy, &fw_profile));
 
-/*
-    INetFwRules *fw_rules = NULL;
-    INetFwRule *fw_rule = NULL;
-    long current_profiles = 0;
-
-    BSTR bstr_rule_name = chars_to_BSTR(rule_name);
-    BSTR bstr_rule_description = chars_to_BSTR(rule_description);
-    BSTR bstr_rule_group = chars_to_BSTR(rule_group);
-    BSTR bstr_rule_application = chars_to_BSTR(rule_application);
-    BSTR bstr_rule_ports = chars_to_BSTR(rule_port);
-
-    // Retrieve INetFwRules
-    GOTO_IF_FAILED(cleanup,
-                   INetFwPolicy2_get_Rules(policy, &fw_rules));
-
-*/
-
 cleanup:
     if (fw_profile != NULL) {
         INetFwProfile_Release(fw_profile);
