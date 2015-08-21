@@ -56,16 +56,30 @@ typedef struct firewall_rule_t {
     INetFwRule *firewall_rule;
 } firewall_rule_t;
 
+BSTR chars_to_BSTR(char *str);
+
+
+
+
 // Windows XP and XP SP2 versions
 #include "winfirewall-api1.h"
 
 // Windows Vista and later versions
 #include "winfirewall-api2.h"
 
+
+
+
+// Convert char* to BSTR
+inline BSTR chars_to_BSTR(char *str)
+{
+    int wslen = MultiByteToWideChar(CP_ACP, 0, str, strlen(str), 0, 0);
+    BSTR bstr = SysAllocStringLen(0, wslen);
+    MultiByteToWideChar(CP_ACP, 0, str, strlen(str), bstr, wslen);
+    return bstr;
+}
+
 BOOL is_win_vista_or_later = FALSE;
-
-
-#include <stdio.h>
 
 inline BOOL windows_is_vista_or_later() {
     DWORD version = GetVersion();
@@ -91,43 +105,41 @@ void windows_firewall_cleanup(IN void *policy)
     WRAP_API(windows_firewall_cleanup, policy);
 }
 
-HRESULT windows_firewall_is_on(IN INetFwPolicy2 *policy, OUT BOOL *is_on)
+HRESULT windows_firewall_is_on(IN void *policy, OUT BOOL *is_on)
 {
     WRAP_API(windows_firewall_is_on, policy, is_on);
 }
 
-HRESULT windows_firewall_turn_on(IN INetFwPolicy2 *policy)
+HRESULT windows_firewall_turn_on(IN void *policy)
 {
     WRAP_API(windows_firewall_turn_on, policy);
 }
 
-HRESULT windows_firewall_turn_off(IN INetFwPolicy2 *policy)
+HRESULT windows_firewall_turn_off(IN void *policy)
 {
     WRAP_API(windows_firewall_turn_off, policy);
 }
 
-HRESULT windows_firewall_rule_set(IN INetFwPolicy2 *policy,
-                                  IN firewall_rule_t *rule)
+HRESULT windows_firewall_rule_set(IN void *policy, IN firewall_rule_t *rule)
 {
     WRAP_API(windows_firewall_rule_set, policy, rule);
 }
 
-HRESULT windows_firewall_rule_get(IN INetFwPolicy2 *policy,
+HRESULT windows_firewall_rule_get(IN void *policy,
                                   IN char *rule_name,
                                   OUT firewall_rule_t **out_rule)
 {
     WRAP_API(windows_firewall_rule_get, policy, rule_name, out_rule);
 }
 
-HRESULT windows_firewall_rule_exists(IN INetFwPolicy2 *policy,
+HRESULT windows_firewall_rule_exists(IN void *policy,
                                      IN char *rule_name,
                                      OUT BOOL *exists)
 {
     WRAP_API(windows_firewall_rule_exists, policy, rule_name, exists);
 }
 
-HRESULT windows_firewall_rule_remove(IN INetFwPolicy2 *policy,
-                                     IN char *rule_name)
+HRESULT windows_firewall_rule_remove(IN void *policy, IN char *rule_name)
 {
     WRAP_API(windows_firewall_rule_remove, policy, rule_name);
 }

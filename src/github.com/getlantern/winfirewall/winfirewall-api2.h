@@ -3,15 +3,6 @@
  * Windows Vista+ API version
  */
 
-// Convert char* to BSTR
-BSTR chars_to_BSTR(char *str)
-{
-    int wslen = MultiByteToWideChar(CP_ACP, 0, str, strlen(str), 0, 0);
-    BSTR bstr = SysAllocStringLen(0, wslen);
-    MultiByteToWideChar(CP_ACP, 0, str, strlen(str), bstr, wslen);
-    return bstr;
-}
-
 // Initialize the Firewall COM service
 HRESULT windows_firewall_initialize_api2(INetFwPolicy2** policy)
 {
