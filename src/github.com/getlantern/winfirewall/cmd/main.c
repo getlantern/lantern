@@ -84,15 +84,15 @@ int main(int argc, wchar_t* argv[])
             goto error;
         }
 
+        // Here we are using a fake rule to test existence against it, but ideally
+        // we will use the same struct created above, so no field is left behind.
+        // That's how we can handle both APIs sanely, since API2 has the concept of
+        // rules but for API1 (pre Windows Vista) we need to carry the program and
+        // port components in this struct and create separate rules.
         BOOL exists;
         firewall_rule_t rule_stub = {
-            "Lantern Outbound Traffic",
-            "",
-            "",
-            "C:\\WINDOWS\\explorer.exe",
-            "",
-            TRUE,
-            NULL,
+            .name = "Lantern Outbound Traffic",
+            .application = "C:\\WINDOWS\\explorer.exe",
         };
         hr = windows_firewall_rule_exists(policy, &rule_stub, &exists);
         if (FAILED(hr)) {

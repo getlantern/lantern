@@ -81,7 +81,8 @@ inline BSTR chars_to_BSTR(char *str)
 
 BOOL is_win_vista_or_later = FALSE;
 
-inline BOOL windows_is_vista_or_later() {
+inline BOOL windows_is_vista_or_later()
+{
     DWORD version = GetVersion();
     DWORD major_version = (DWORD)(LOBYTE(LOWORD(version)));
     DWORD minor_version = (DWORD)(HIBYTE(LOWORD(version)));

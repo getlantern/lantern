@@ -411,9 +411,9 @@ cleanup:
     return S_OK;
 }
 
-// Remove a Firewall rule if exists.
-// Windows API tests show that if there are many with the same, the
-// first found will be removed, but not the rest. This is not documented.
+// Remove a Firewall rule if exists. IMPORTANT: Because we are emulating API2
+// rules, only the components provided in the rulewill be removed (program
+// and/or port TCP/UDP).
 HRESULT windows_firewall_rule_remove_api1(IN INetFwPolicy *policy,
                                           IN firewall_rule_t *rule)
 {
