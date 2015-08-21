@@ -35,13 +35,16 @@ int main(int argc, wchar_t* argv[])
                 goto error;
         }
 
-        hr = windows_firewall_rule_set(policy,
-                                       "Lantern Outbound Traffic",
-                                       "Allow outbound traffic from Lantern",
-                                       "Internet Access",
-                                       "Lantern.exe",
-                                       "",
-                                       TRUE);
+        firewall_rule_t new_rule = {
+            "Lantern Outbound Traffic",
+            "Allow outbound traffic from Lantern",
+            "Internet Access",
+            "Lantern.exe",
+            "",
+            TRUE,
+            NULL,
+        };
+        hr = windows_firewall_rule_set(policy, &new_rule);
         if (FAILED(hr)) {
             printf("Error setting Firewall rule: 0x%08lx\n", hr);
             goto error;

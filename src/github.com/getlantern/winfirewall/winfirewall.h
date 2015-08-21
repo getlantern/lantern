@@ -46,6 +46,16 @@
     } while(0)
 
 
+typedef struct firewall_rule_t {
+    char *name;
+    char *description;
+    char *group;
+    char *application;
+    char *port;
+    BOOL direction_out;
+    INetFwRule *firewall_rule;
+} firewall_rule_t;
+
 // Windows XP and XP SP2 versions
 #include "winfirewall-api1.h"
 
@@ -97,33 +107,21 @@ HRESULT windows_firewall_turn_off(IN INetFwPolicy2 *policy)
 }
 
 HRESULT windows_firewall_rule_set(IN INetFwPolicy2 *policy,
-                                  IN char *rule_name,
-                                  IN char *rule_description,
-                                  IN char *rule_group,
-                                  IN char *rule_application,
-                                  IN char *rule_port,
-                                  IN BOOL rule_direction_out)
+                                  IN firewall_rule_t *rule)
 {
-    WRAP_API(windows_firewall_rule_set,
-             policy,
-             rule_name,
-             rule_description,
-             rule_group,
-             rule_application,
-             rule_port,
-             rule_direction_out);
+    WRAP_API(windows_firewall_rule_set, policy, rule);
 }
 
 HRESULT windows_firewall_rule_get(IN INetFwPolicy2 *policy,
-                                       IN char *rule_name,
-                                       OUT INetFwRule **out_rule)
+                                  IN char *rule_name,
+                                  OUT firewall_rule_t **out_rule)
 {
     WRAP_API(windows_firewall_rule_get, policy, rule_name, out_rule);
 }
 
 HRESULT windows_firewall_rule_exists(IN INetFwPolicy2 *policy,
-                                          IN char *rule_name,
-                                          OUT BOOL *exists)
+                                     IN char *rule_name,
+                                     OUT BOOL *exists)
 {
     WRAP_API(windows_firewall_rule_exists, policy, rule_name, exists);
 }

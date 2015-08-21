@@ -152,12 +152,7 @@ cleanup:
 
 //  Turn Firewall OFF
 HRESULT windows_firewall_rule_set_api1(IN INetFwPolicy *policy,
-                                       IN char *rule_name,
-                                       IN char *rule_description,
-                                       IN char *rule_group,
-                                       IN char *rule_application,
-                                       IN char *rule_port,
-                                       IN BOOL rule_direction_out)
+                                       firewall_rule_t *rule)
 {
     HRESULT hr = S_OK;
     INetFwProfile *fw_profile;
@@ -180,12 +175,11 @@ cleanup:
 // Get a Firewall rule
 HRESULT windows_firewall_rule_get_api1(IN INetFwPolicy *policy,
                                        IN char *rule_name,
-                                       OUT INetFwRule **out_rule)
+                                       firewall_rule_t **out_rule)
 {
     HRESULT hr = S_OK;
     return hr;
 }
-
 // Test whether a Firewall rule exists or not
 HRESULT windows_firewall_rule_exists_api1(IN INetFwPolicy *policy,
                                           IN char *rule_name,

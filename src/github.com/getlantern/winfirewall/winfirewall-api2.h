@@ -125,23 +125,18 @@ HRESULT windows_firewall_turn_off_api2(IN INetFwPolicy2 *policy)
 
 // Set a Firewall rule
 HRESULT windows_firewall_rule_set_api2(IN INetFwPolicy2 *policy,
-                                       IN char *rule_name,
-                                       IN char *rule_description,
-                                       IN char *rule_group,
-                                       IN char *rule_application,
-                                       IN char *rule_port,
-                                       IN BOOL rule_direction_out)
+                                       firewall_rule_t *rule)
 {
     HRESULT hr = S_OK;
     INetFwRules *fw_rules = NULL;
     INetFwRule *fw_rule = NULL;
     long current_profiles = 0;
 
-    BSTR bstr_rule_name = chars_to_BSTR(rule_name);
-    BSTR bstr_rule_description = chars_to_BSTR(rule_description);
-    BSTR bstr_rule_group = chars_to_BSTR(rule_group);
-    BSTR bstr_rule_application = chars_to_BSTR(rule_application);
-    BSTR bstr_rule_ports = chars_to_BSTR(rule_port);
+    BSTR bstr_rule_name = chars_to_BSTR(rule->name);
+    BSTR bstr_rule_description = chars_to_BSTR(rule->description);
+    BSTR bstr_rule_group = chars_to_BSTR(rule->group);
+    BSTR bstr_rule_application = chars_to_BSTR(rule->application);
+    BSTR bstr_rule_ports = chars_to_BSTR(rule->port);
 
     // Retrieve INetFwRules
     GOTO_IF_FAILED(cleanup,
@@ -174,7 +169,7 @@ HRESULT windows_firewall_rule_set_api2(IN INetFwPolicy2 *policy,
     INetFwRule_put_ApplicationName(fw_rule, bstr_rule_application);
     INetFwRule_put_Protocol(fw_rule, NET_FW_IP_PROTOCOL_ANY);
     INetFwRule_put_LocalPorts(fw_rule, bstr_rule_ports);
-    INetFwRule_put_Direction(fw_rule, rule_direction_out ?
+    INetFwRule_put_Direction(fw_rule, rule->direction_out ?
                              NET_FW_RULE_DIR_OUT : NET_FW_RULE_DIR_IN);
     INetFwRule_put_Grouping(fw_rule, bstr_rule_group);
     INetFwRule_put_Profiles(fw_rule, current_profiles);
@@ -206,7 +201,7 @@ cleanup:
 // Get a Firewall rule
 HRESULT windows_firewall_rule_get_api2(IN INetFwPolicy2 *policy,
                                        IN char *rule_name,
-                                       OUT INetFwRule **out_rule)
+                                       firewall_rule_t **out_rule)
 {
     HRESULT hr = S_OK;
     INetFwRules *fw_rules = NULL;
@@ -228,7 +223,10 @@ HRESULT windows_firewall_rule_get_api2(IN INetFwPolicy2 *policy,
     INetFwRules_Item(fw_rules, bstr_rule_name, &fw_rule);
     GOTO_IF_FAILED(cleanup, hr);
 
-    *out_rule = fw_rule;
+    *out_rule = (firewall_rule_t*)malloc(sizeof(firewall_rule_t));
+    (*out_rule)->firewall_rule = fw_rule;
+
+    // TODO: fill the rest of parameters!!
 
 cleanup:
     SysFreeString(bstr_rule_name);
@@ -242,9 +240,9 @@ HRESULT windows_firewall_rule_exists_api2(IN INetFwPolicy2 *policy,
                                           OUT BOOL *exists)
 {
     HRESULT hr = S_OK;
-    INetFwRule *fw_rule = NULL;
-    hr = windows_firewall_rule_get_api2(policy, rule_name, &fw_rule);
-    if (fw_rule != NULL) {
+    firewall_rule_t *rule = NULL;
+    hr = windows_firewall_rule_get_api2(policy, rule_name, &rule);
+    if (rule != NULL) {
         *exists = TRUE;
     } else {
         *exists = FALSE;
