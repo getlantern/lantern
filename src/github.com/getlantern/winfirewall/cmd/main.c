@@ -13,8 +13,9 @@ int main(int argc, wchar_t* argv[])
 
         hr = windows_firewall_initialize(&policy);
         if (FAILED(hr)) {
-            printf("CoCreateInstance for INetFwPolicy2 failed: 0x%08lx\n", hr);
+            printf("Policy creation failed: 0x%08lx\n", hr);
         }
+        printf("Windows Firewall initialized\n");
 
         BOOL is_on;
         hr = windows_firewall_is_on(policy, &is_on);
@@ -30,7 +31,7 @@ int main(int argc, wchar_t* argv[])
             hr = windows_firewall_turn_on(policy);
         }
         if (FAILED(hr)) {
-                printf("Firewall to switch: 0x%08lx\n", hr);
+                printf("Failed to switch Firewall: 0x%08lx\n", hr);
                 goto error;
         }
 
