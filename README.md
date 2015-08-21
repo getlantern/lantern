@@ -128,7 +128,7 @@ will not show systray or UI.
 
 ## Packaging
 
-Packaging requires some special environemnt variables.
+Packaging requires some special environment variables.
 
 ### OSX
 
