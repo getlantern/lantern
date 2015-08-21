@@ -125,23 +125,14 @@ HRESULT windows_firewall_rule_set(IN void *policy, IN firewall_rule_t *rule)
     WRAP_API(windows_firewall_rule_set, policy, rule);
 }
 
-HRESULT windows_firewall_rule_get(IN void *policy,
-                                  IN char *rule_name,
-                                  OUT firewall_rule_t **out_rule)
+HRESULT windows_firewall_rule_exists(IN void *policy, IN firewall_rule_t *rule, OUT BOOL *exists)
 {
-    WRAP_API(windows_firewall_rule_get, policy, rule_name, out_rule);
+    WRAP_API(windows_firewall_rule_exists, policy, rule, exists);
 }
 
-HRESULT windows_firewall_rule_exists(IN void *policy,
-                                     IN char *rule_name,
-                                     OUT BOOL *exists)
+HRESULT windows_firewall_rule_remove(IN void *policy, IN firewall_rule_t *rule)
 {
-    WRAP_API(windows_firewall_rule_exists, policy, rule_name, exists);
-}
-
-HRESULT windows_firewall_rule_remove(IN void *policy, IN char *rule_name)
-{
-    WRAP_API(windows_firewall_rule_remove, policy, rule_name);
+    WRAP_API(windows_firewall_rule_remove, policy, rule);
 }
 
 

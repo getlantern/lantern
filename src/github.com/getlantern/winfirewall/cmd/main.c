@@ -85,9 +85,16 @@ int main(int argc, wchar_t* argv[])
         }
 
         BOOL exists;
-        hr = windows_firewall_rule_exists(policy,
-                                          "Lantern Outbound Traffic",
-                                          &exists);
+        firewall_rule_t rule_stub = {
+            "Lantern Outbound Traffic",
+            "",
+            "",
+            "C:\\WINDOWS\\explorer.exe",
+            "",
+            TRUE,
+            NULL,
+        };
+        hr = windows_firewall_rule_exists(policy, &rule_stub, &exists);
         if (FAILED(hr)) {
             printf("Error getting Firewall rule: 0x%08lx\n", hr);
             goto error;
@@ -98,16 +105,13 @@ int main(int argc, wchar_t* argv[])
             printf("Lantern rule does not exist\n");
         }
 
-        hr = windows_firewall_rule_remove(policy,
-                                          "Lantern Outbound Traffic");
+        hr = windows_firewall_rule_remove(policy, &rule_stub);
         if (FAILED(hr)) {
             printf("Error removing Firewall rule: 0x%08lx\n", hr);
             goto error;
         }
 
-        hr = windows_firewall_rule_exists(policy,
-                                          "Lantern Outbound Traffic",
-                                          &exists);
+        hr = windows_firewall_rule_exists(policy, &rule_stub, &exists);
         if (FAILED(hr)) {
             printf("Error getting Firewall rule: 0x%08lx\n", hr);
             goto error;

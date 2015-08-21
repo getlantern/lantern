@@ -136,16 +136,6 @@ HRESULT windows_firewall_rule_set_api2(IN INetFwPolicy2 *policy,
     // Add rule to all profiles
     current_profiles = NET_FW_PROFILE2_ALL;
 
-    /* GOTO_IF_FAILED(cleanup */
-    /*     INetFwPolicy2_get_CurrentProfileTypes(policy, &current_profiles)); */
-    /* // When possible we avoid adding firewall rules to the Public profile. */
-    /* // If Public is currently active and it is not the only active profile, */
-    /* // we remove it from the bitmask */
-    /* if ((current_profiles & NET_FW_PROFILE2_PUBLIC) && */
-    /*     (current_profiles != NET_FW_PROFILE2_PUBLIC)) { */
-    /*     current_profiles ^= NET_FW_PROFILE2_PUBLIC; */
-    /* } */
-
     // Create a new Firewall Rule object.
     hr = CoCreateInstance(&CLSID_NetFwRule,
                           NULL,
@@ -189,16 +179,15 @@ cleanup:
     }
 }
 
-// Get a Firewall rule
-HRESULT windows_firewall_rule_get_api2(IN INetFwPolicy2 *policy,
-                                       IN char *rule_name,
-                                       firewall_rule_t **out_rule)
+// Test whether a Firewall rule exists or not
+HRESULT windows_firewall_rule_exists_api2(IN INetFwPolicy2 *policy,
+                                          IN firewall_rule_t *rule,
+                                          OUT BOOL *exists)
 {
-    HRESULT hr = S_OK;
+        HRESULT hr = S_OK;
     INetFwRules *fw_rules = NULL;
     INetFwRule *fw_rule = NULL;
-    BSTR bstr_rule_name = chars_to_BSTR(rule_name);
-    *out_rule = NULL;
+    BSTR bstr_rule_name = chars_to_BSTR(rule->name);
 
     // Retrieve INetFwRules
     GOTO_IF_FAILED(cleanup, INetFwPolicy2_get_Rules(policy, &fw_rules));
@@ -214,30 +203,14 @@ HRESULT windows_firewall_rule_get_api2(IN INetFwPolicy2 *policy,
     INetFwRules_Item(fw_rules, bstr_rule_name, &fw_rule);
     GOTO_IF_FAILED(cleanup, hr);
 
-    *out_rule = (firewall_rule_t*)malloc(sizeof(firewall_rule_t));
-    (*out_rule)->firewall_rule = fw_rule;
-
-    // TODO: fill the rest of parameters!!
-
-cleanup:
-    SysFreeString(bstr_rule_name);
-
-    return hr;
-}
-
-// Test whether a Firewall rule exists or not
-HRESULT windows_firewall_rule_exists_api2(IN INetFwPolicy2 *policy,
-                                          IN char *rule_name,
-                                          OUT BOOL *exists)
-{
-    HRESULT hr = S_OK;
-    firewall_rule_t *rule = NULL;
-    hr = windows_firewall_rule_get_api2(policy, rule_name, &rule);
-    if (rule != NULL) {
+    if (fw_rule != NULL) {
         *exists = TRUE;
     } else {
         *exists = FALSE;
     }
+
+cleanup:
+    SysFreeString(bstr_rule_name);
 
     return hr;
 }
@@ -247,12 +220,12 @@ HRESULT windows_firewall_rule_exists_api2(IN INetFwPolicy2 *policy,
 // Windows API tests show that if there are many with the same, the
 // first found will be removed, but not the rest. This is not documented.
 HRESULT windows_firewall_rule_remove_api2(IN INetFwPolicy2 *policy,
-                                          IN char *rule_name)
+                                          IN firewall_rule_t *rule)
 {
     HRESULT hr = S_OK;
     INetFwRules *fw_rules = NULL;
     INetFwRule *fw_rule = NULL;
-    BSTR bstr_rule_name = chars_to_BSTR(rule_name);
+    BSTR bstr_rule_name = chars_to_BSTR(rule->name);
 
     // Retrieve INetFwRules
     GOTO_IF_FAILED(cleanup, INetFwPolicy2_get_Rules(policy, &fw_rules));
