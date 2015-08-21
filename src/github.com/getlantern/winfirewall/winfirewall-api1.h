@@ -8,15 +8,12 @@
 
 
 // Initialize the Firewall COM service
-HRESULT windows_firewall_initialize_api1(OUT INetFwProfile **fw_profile)
+HRESULT windows_firewall_initialize_api1(OUT INetFwPolicy **policy)
 {
         HRESULT hr = S_OK;
         INetFwMgr *fw_mgr = NULL;
-        INetFwPolicy *fw_policy = NULL;
 
-        _ASSERT(fw_profile != NULL);
-
-        *fw_profile = NULL;
+        _ASSERT(policy != NULL);
 
         // Create an instance of the firewall settings manager.
         hr = CoCreateInstance(&CLSID_NetFwMgr,
@@ -24,31 +21,13 @@ HRESULT windows_firewall_initialize_api1(OUT INetFwProfile **fw_profile)
                               CLSCTX_INPROC_SERVER,
                               &IID_INetFwMgr,
                               (void**)&fw_mgr);
-        if (FAILED(hr)) {
-                printf("CoCreateInstance failed: 0x%08lx\n", hr);
-                goto error;
-        }
+        GOTO_IF_FAILED(cleanup, hr);
 
         // Retrieve the local firewall policy.
-        hr = INetFwMgr_get_LocalPolicy(fw_mgr, &fw_policy);
-        if (FAILED(hr)) {
-                printf("get_LocalPolicy failed: 0x%08lx\n", hr);
-                goto error;
-        }
+        hr = INetFwMgr_get_LocalPolicy(fw_mgr, policy);
+        GOTO_IF_FAILED(cleanup, hr);
 
-        // Retrieve the firewall profile currently in effect.
-        hr = INetFwPolicy_get_CurrentProfile(fw_policy, fw_profile);
-        if (FAILED(hr)) {
-                printf("get_CurrentProfile failed: 0x%08lx\n", hr);
-                goto error;
-        }
-
-error:
-        // Release the local firewall policy.
-        if (fw_policy != NULL) {
-                INetFwPolicy_Release(fw_policy);
-        }
-
+cleanup:
         // Release the firewall settings manager.
         if (fw_mgr != NULL) {
                 INetFwMgr_Release(fw_mgr);
@@ -58,96 +37,92 @@ error:
 }
 
 // Clean up the Firewall service safely
-void windows_xp_firewall_cleanup(IN INetFwProfile *fw_profile)
+void windows_firewall_cleanup_api1(IN INetFwPolicy *policy)
 {
-    if (fw_profile != NULL) {
-        INetFwProfile_Release(fw_profile);
+    if (policy != NULL) {
+        INetFwPolicy_Release(policy);
     }
 }
 
 // Get Firewall status: returns a boolean for ON/OFF
-HRESULT windows_xp_firewall_is_on(IN INetFwProfile *fw_profile, OUT BOOL *fw_on)
+HRESULT windows_firewall_is_on_api1(IN INetFwPolicy *policy, OUT BOOL *fw_on)
 {
     HRESULT hr = S_OK;
     VARIANT_BOOL fw_enabled;
+    INetFwProfile *fw_profile;
 
-    _ASSERT(fw_profile != NULL);
+    _ASSERT(policy != NULL);
     _ASSERT(fw_on != NULL);
 
     *fw_on = FALSE;
 
+    // Retrieve the firewall profile currently in effect.
+    GOTO_IF_FAILED(cleanup,
+                   INetFwPolicy_get_CurrentProfile(policy, &fw_profile));
+
     // Get the current state of the firewall.
-    hr = INetFwProfile_get_FirewallEnabled(fw_profile, &fw_enabled);
-    if (FAILED(hr)) {
-        printf("get_FirewallEnabled failed: 0x%08lx\n", hr);
-        goto error;
-    }
+    GOTO_IF_FAILED(cleanup,
+                   INetFwProfile_get_FirewallEnabled(fw_profile, &fw_enabled));
 
     // Check to see if the firewall is on.
     if (fw_enabled != VARIANT_FALSE) {
         *fw_on = TRUE;
     }
 
-error:
+cleanup:
     return hr;
 }
 
 //  Turn Firewall ON
-HRESULT windows_xp_firewall_turn_on(IN INetFwProfile *fw_profile)
+HRESULT windows_firewall_turn_on_api1(IN INetFwPolicy *policy)
 {
     HRESULT hr = S_OK;
-    BOOL fw_on;
+    VARIANT_BOOL fw_enabled;
+    INetFwProfile *fw_profile;
 
-    _ASSERT(fw_profile != NULL);
+    _ASSERT(policy != NULL);
 
-    // Check the current firewall status first
-    hr = windows_xp_firewall_is_on(fw_profile, &fw_on);
-    if (FAILED(hr)) {
-        printf("WindowsFirewallIsOn failed: 0x%08lx\n", hr);
-        goto error;
-    }
+    // Retrieve the firewall profile currently in effect.
+    GOTO_IF_FAILED(cleanup,
+                   INetFwPolicy_get_CurrentProfile(policy, &fw_profile));
+
+    // Get the current state of the firewall.
+    GOTO_IF_FAILED(cleanup,
+                   INetFwProfile_get_FirewallEnabled(fw_profile, &fw_enabled));
 
     // If it is, turn it on.
-    if (!fw_on) {
-        // Turn the firewall on.
-        hr = INetFwProfile_put_FirewallEnabled(fw_profile, VARIANT_TRUE);
-        if (FAILED(hr)) {
-            printf("put_FirewallEnabled failed: 0x%08lx\n", hr);
-            goto error;
-        }
-        printf("The firewall is now on.\n");
+    if (fw_enabled == VARIANT_FALSE) {
+        GOTO_IF_FAILED(cleanup,
+                       INetFwProfile_put_FirewallEnabled(fw_profile, VARIANT_TRUE));
     }
 
-error:
+cleanup:
     return hr;
 }
 
 //  Turn Firewall OFF
-HRESULT windows_xp_firewall_turn_off(IN INetFwProfile *fw_profile)
+HRESULT windows_firewall_turn_off_api1(IN INetFwPolicy *policy)
 {
     HRESULT hr = S_OK;
-    BOOL fw_on;
+    VARIANT_BOOL fw_enabled;
+    INetFwProfile *fw_profile;
 
-    _ASSERT(fw_profile != NULL);
+    _ASSERT(policy != NULL);
 
-    // Check the current firewall status first
-    hr = windows_xp_firewall_is_on(fw_profile, &fw_on);
-    if (FAILED(hr)) {
-        printf("WindowsFirewallIsOn failed: 0x%08lx\n", hr);
-        goto error;
+    // Retrieve the firewall profile currently in effect.
+    GOTO_IF_FAILED(cleanup,
+                   INetFwPolicy_get_CurrentProfile(policy, &fw_profile));
+
+    // Get the current state of the firewall.
+    GOTO_IF_FAILED(cleanup,
+                   INetFwProfile_get_FirewallEnabled(fw_profile, &fw_enabled));
+
+    // If it is, turn it off.
+    if (fw_enabled == VARIANT_TRUE) {
+        GOTO_IF_FAILED(cleanup,
+                       INetFwProfile_put_FirewallEnabled(fw_profile, VARIANT_FALSE));
     }
 
-    // If it is, turn it on.
-    if (fw_on) {
-        // Turn the firewall on.
-        hr = INetFwProfile_put_FirewallEnabled(fw_profile, VARIANT_FALSE);
-        if (FAILED(hr)) {
-            printf("put_FirewallEnabled failed: 0x%08lx\n", hr);
-            goto error;
-        }
-        printf("The firewall is now off.\n");
-    }
-
-error:
+cleanup:
     return hr;
 }

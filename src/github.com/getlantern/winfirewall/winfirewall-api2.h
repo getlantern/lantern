@@ -3,22 +3,6 @@
  * Windows Vista+ API version
  */
 
-#define RETURN_IF_FAILED(expr)                  \
-    do {                                        \
-        HRESULT hr = expr;                      \
-        if (FAILED(hr)) {                       \
-            return hr;                          \
-        }                                       \
-    } while(0)
-
-#define GOTO_IF_FAILED(label, expr)             \
-    do {                                        \
-        HRESULT hr = expr;                      \
-        if (FAILED(hr)) {                       \
-            goto label;                         \
-        }                                       \
-    } while(0)
-
 // Convert char* to BSTR
 BSTR chars_to_BSTR(char *str)
 {
@@ -26,14 +10,6 @@ BSTR chars_to_BSTR(char *str)
     BSTR bstr = SysAllocStringLen(0, wslen);
     MultiByteToWideChar(CP_ACP, 0, str, strlen(str), bstr, wslen);
     return bstr;
-}
-
-
-BOOL windows_is_vista_or_later() {
-    DWORD version = GetVersion();
-    DWORD major = (DWORD) (LOBYTE(LOWORD(version)));
-    DWORD minor = (DWORD) (HIBYTE(LOWORD(version)));
-    return (major > 6) || ((major == 6) && (minor >= 0));
 }
 
 // Initialize the Firewall COM service
@@ -300,6 +276,3 @@ cleanup:
 
     return hr;
 }
-
-#undef RETURN_IF_FAILED
-#undef GOTO_IF_FAILED
