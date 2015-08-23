@@ -1,5 +1,8 @@
 # lantern [![Travis CI Status](https://travis-ci.org/getlantern/lantern.svg?branch=valencia)](https://travis-ci.org/getlantern/lantern)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/lantern/badge.png?branch=valencia)](https://coveralls.io/r/getlantern/lantern)
 
+**If you're looking for Lantern binaries, you can find all of them [here](https://github.com/getlantern/lantern-binaries).**
+
+
 lantern is a [gost](https://github.com/getlantern/gost) project that
 provides repeatable builds and consolidated pull requests for lantern.
 
