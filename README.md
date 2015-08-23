@@ -1,6 +1,11 @@
 # lantern [![Travis CI Status](https://travis-ci.org/getlantern/lantern.svg?branch=valencia)](https://travis-ci.org/getlantern/lantern)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/lantern/badge.png?branch=valencia)](https://coveralls.io/r/getlantern/lantern)
 
-**If you're looking for Lantern binaries, you can find all of them [here](https://github.com/getlantern/lantern-binaries).**
+**If you're looking for Lantern binaries, you can find all of them at the following links:**
+
+- [Windows XP SP 3 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-beta.exe)
+- [OSX 10.8 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-manoto.dmg)
+- [Ubuntu 14.04 32 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-manoto-32-bit.deb)
+- [Ubuntu 14.04 64 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-manoto-64-bit.deb)
 
 
 lantern is a [gost](https://github.com/getlantern/gost) project that
