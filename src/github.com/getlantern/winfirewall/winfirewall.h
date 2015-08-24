@@ -52,7 +52,7 @@ typedef struct firewall_rule_t {
     char *group;
     char *application;
     char *port;
-    BOOL direction_out;
+    BOOL outbound;
 } firewall_rule_t;
 
 BSTR chars_to_BSTR(char *str);
@@ -65,6 +65,23 @@ BSTR chars_to_BSTR(char *str);
 #include "winfirewall-ascom.h"
 
 
+// Get the error string from the error code
+char* hr_to_string(HRESULT error)
+{
+    // Retrieve the system error message for the last-error code
+    LPVOID msg_buf;
+    FormatMessage(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER |
+        FORMAT_MESSAGE_FROM_SYSTEM |
+        FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL,
+        error,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        (LPTSTR)&msg_buf,
+        0,
+        NULL);
+    return msg_buf;
+}
 
 // Convert char* to BSTR
 inline BSTR chars_to_BSTR(char *str)

@@ -25,7 +25,6 @@ void error_exit(DWORD error, LPTSTR lpszFunction)
         0, NULL );
 
     // Display the error message and exit the process
-
     lpDisplayBuf = (LPVOID)LocalAlloc(LMEM_ZEROINIT,
         (lstrlen((LPCTSTR)lpMsgBuf) + lstrlen((LPCTSTR)lpszFunction) + 40) * sizeof(TCHAR));
     StringCchPrintf((LPTSTR)lpDisplayBuf,
@@ -45,6 +44,7 @@ int main(int argc, wchar_t* argv[])
         HRESULT hr = S_OK;
         void *policy = NULL;
         void *elevated_policy = NULL;
+        LPVOID error_msg;
 
         hr = windows_firewall_initialize(&policy, FALSE);
         if (FAILED(hr)) {
@@ -78,13 +78,11 @@ int main(int argc, wchar_t* argv[])
         }
 
         firewall_rule_t new_rule = {
-            "Lantern Outbound Traffic",
-            "Allow outbound traffic from Lantern",
-            "Internet Access",
-            "C:\\WINDOWS\\explorer.exe",
-            "",
-            TRUE,
-            NULL,
+            .name = "Lantern Outbound Traffic",
+            .description = "Allow outbound traffic from Lantern",
+            .group = "Internet Access",
+            .application = "C:\\WINDOWS\\explorer.exe",
+            .outbound = TRUE,
         };
 
         hr = windows_firewall_rule_set(elevated_policy, &new_rule);
@@ -132,7 +130,12 @@ int main(int argc, wchar_t* argv[])
         }
 
 error:
+        error_msg = hr_to_string(hr);
+        printf("Error: %s\n", error_msg);
+        LocalFree(error_msg);
+
         error_exit(hr, "");
+
         // Release the firewall profile.
         windows_firewall_cleanup(policy);
         windows_firewall_cleanup(elevated_policy);

@@ -194,7 +194,7 @@ HRESULT windows_firewall_rule_set_ascom(IN INetFwPolicy2 *policy,
     INetFwRule_put_ApplicationName(fw_rule, bstr_rule_application);
     INetFwRule_put_Protocol(fw_rule, NET_FW_IP_PROTOCOL_ANY);
     INetFwRule_put_LocalPorts(fw_rule, bstr_rule_ports);
-    INetFwRule_put_Direction(fw_rule, rule->direction_out ?
+    INetFwRule_put_Direction(fw_rule, rule->outbound ?
                              NET_FW_RULE_DIR_OUT : NET_FW_RULE_DIR_IN);
     INetFwRule_put_Grouping(fw_rule, bstr_rule_group);
     INetFwRule_put_Profiles(fw_rule, current_profiles);
