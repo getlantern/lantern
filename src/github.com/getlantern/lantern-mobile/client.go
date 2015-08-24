@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/getlantern/analytics"
-	"github.com/getlantern/balancer"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/logging"
@@ -58,7 +57,6 @@ func (self *mobileClient) IsMasqueradeCheck(ip string) bool {
 
 // newClient creates a proxy client.
 func newClient(addr, appName string, protector protected.SocketProtector) *mobileClient {
-	balancer.Protector = protector
 
 	client := client.Client{
 		Addr:         addr,

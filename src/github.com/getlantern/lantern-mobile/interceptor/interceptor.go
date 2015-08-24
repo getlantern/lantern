@@ -85,12 +85,12 @@ func (i *Interceptor) openConnection(id, addr string) (*ProxyConn, error) {
 
 	// we haven't opened an outbound connection
 	// to this destination yet. Do so now then write the data
-	pc.pConn, err = protected.New(i.protector, i.lanternAddr)
+	pc.pConn, err = protected.New(i.lanternAddr)
 	if err != nil {
 		log.Errorf("Error creating protected connection! %s", err)
 		return nil, err
 	}
-	pc.Conn, err = pc.pConn.Create()
+	pc.Conn, err = pc.pConn.Dial()
 	if err != nil {
 		log.Errorf("Could not connect to new proxy connection: %v", err)
 		return nil, err
@@ -154,6 +154,7 @@ func New(protector protected.SocketProtector, logPackets bool,
 		isMasquerade: isMasquerade,
 		conns:        make(map[string]*ProxyConn),
 	}
+	protected.Init(protector)
 	log.Debugf("Configured interceptor; Ready to consume packets!")
 	return i
 }

@@ -14,8 +14,7 @@ import (
 )
 
 var (
-	log       = golog.LoggerFor("balancer")
-	Protector protected.SocketProtector
+	log = golog.LoggerFor("balancer")
 )
 
 var (
@@ -101,13 +100,13 @@ func (b *Balancer) DialQOS(network, addr string, targetQOS int) (net.Conn, error
 
 		// if we are running on Android, we need to bypass the VpnService
 		// and protect the underlying socket
-		if runtime.GOOS == "android" && Protector != nil {
-			pConn, err := protected.New(Protector, addr)
+		if runtime.GOOS == "android" {
+			pConn, err := protected.New(addr)
 			if err != nil {
 				log.Errorf("Error creating protected connection! %s", err)
 				return nil, err
 			}
-			conn, err = pConn.Create()
+			conn, err = pConn.Dial()
 			if err != nil {
 				log.Errorf("Could not connect to address: %s", addr)
 				return nil, err

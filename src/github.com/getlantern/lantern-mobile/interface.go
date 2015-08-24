@@ -47,7 +47,8 @@ func Configure(protector SocketProvider, ready GoCallback) error {
 }
 
 func TestConnect(protector SocketProvider, addr string) error {
-	return protected.TestConnect(protector, addr)
+	protected.Init(protector)
+	return protected.TestConnect(addr)
 }
 
 func ProcessPacket(b []byte, protector SocketProvider, ready GoCallback) error {
