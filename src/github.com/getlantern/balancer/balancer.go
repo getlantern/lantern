@@ -6,13 +6,16 @@ import (
 	"fmt"
 	"math/rand"
 	"net"
+	"runtime"
 	"sort"
 
 	"github.com/getlantern/golog"
+	"github.com/getlantern/lantern-mobile/protected"
 )
 
 var (
-	log = golog.LoggerFor("balancer")
+	log       = golog.LoggerFor("balancer")
+	Protector protected.SocketProtector
 )
 
 var (
@@ -93,7 +96,25 @@ func (b *Balancer) DialQOS(network, addr string, targetQOS int) (net.Conn, error
 			return nil, fmt.Errorf("No dialers left on pass %v", i)
 		}
 		log.Debugf("Dialing %s://%s with %s", network, addr, d.Label)
-		conn, err := d.Dial(network, addr)
+		var conn net.Conn
+		var err error
+
+		// if we are running on Android, we need to bypass the VpnService
+		// and protect the underlying socket
+		if runtime.GOOS == "android" && Protector != nil {
+			pConn, err := protected.New(Protector, addr)
+			if err != nil {
+				log.Errorf("Error creating protected connection! %s", err)
+				return nil, err
+			}
+			conn, err = pConn.Create()
+			if err != nil {
+				log.Errorf("Could not connect to address: %s", addr)
+				return nil, err
+			}
+		} else {
+			conn, err = d.Dial(network, addr)
+		}
 
 		if err != nil {
 			log.Errorf("Unable to dial via %v to %s://%s: %v on pass %v...continuing", d.Label, network, addr, err, i)

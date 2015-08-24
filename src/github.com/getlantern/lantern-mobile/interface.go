@@ -5,6 +5,8 @@ import (
 	"github.com/getlantern/lantern-mobile/protected"
 )
 
+var i *interceptor.Interceptor
+
 // Getfiretweetversion returns the current build version string
 func GetFireTweetVersion() string {
 	return defaultClient.getFireTweetVersion()
@@ -12,8 +14,9 @@ func GetFireTweetVersion() string {
 
 // GoCallback is the supertype of callbacks passed to Go
 type GoCallback interface {
-	Do()
-	WritePacket(string, int, string)
+	AfterConfigure()
+	AfterStart()
+	WritePacket([]byte)
 }
 
 type SocketProvider interface {
@@ -21,11 +24,24 @@ type SocketProvider interface {
 }
 
 // RunClientProxy creates a new client at the given address.
-func RunClientProxy(listenAddr, appName string, ready GoCallback) error {
+func RunClientProxy(listenAddr, appName string, protector SocketProvider, ready GoCallback) error {
 	go func() {
-		defaultClient = newClient(listenAddr, appName)
+		defaultClient = newClient(listenAddr, appName, protector)
 		defaultClient.serveHTTP()
-		ready.Do()
+		ready.AfterStart()
+	}()
+	return nil
+}
+
+func IsMasqueradeCheck(ip string) bool {
+	return defaultClient.IsMasqueradeCheck(ip)
+}
+
+func Configure(protector SocketProvider, ready GoCallback) error {
+	go func() {
+		i = interceptor.New(protector, false,
+			ready.WritePacket, IsMasqueradeCheck)
+		ready.AfterConfigure()
 	}()
 	return nil
 }
@@ -34,17 +50,9 @@ func TestConnect(protector SocketProvider, addr string) error {
 	return protected.TestConnect(protector, addr)
 }
 
-func CapturePacket(b []byte, ready GoCallback) error {
+func ProcessPacket(b []byte, protector SocketProvider, ready GoCallback) error {
 	go func() {
-		var destination, protocol string
-		var port int
-		p, err := interceptor.NewPacket(b)
-		if err == nil {
-			port = p.GetPort()
-			destination = p.GetDestination()
-			protocol = p.GetProtocol()
-		}
-		ready.WritePacket(destination, port, protocol)
+		i.Process(b)
 	}()
 	return nil
 }

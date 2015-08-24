@@ -6,10 +6,13 @@ import (
 	"time"
 
 	"github.com/getlantern/analytics"
+	"github.com/getlantern/balancer"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/logging"
 	"github.com/getlantern/golog"
+
+	"github.com/getlantern/lantern-mobile/protected"
 )
 
 const (
@@ -31,10 +34,11 @@ var (
 
 // mobileClient is an extension of flashlight client with a few custom declarations for mobile
 type mobileClient struct {
-	client.Client
-	closed  chan bool
-	fronter *http.Client
 	appName string
+	client.Client
+	closed      chan bool
+	fronter     *http.Client
+	masquerades map[string]bool
 }
 
 func init() {
@@ -47,8 +51,15 @@ func init() {
 	}
 }
 
+// bypass masquerade checks
+func (self *mobileClient) IsMasqueradeCheck(ip string) bool {
+	return self.masquerades[ip]
+}
+
 // newClient creates a proxy client.
-func newClient(addr, appName string) *mobileClient {
+func newClient(addr, appName string, protector protected.SocketProtector) *mobileClient {
+	balancer.Protector = protector
+
 	client := client.Client{
 		Addr:         addr,
 		ReadTimeout:  0, // don't timeout
@@ -70,6 +81,13 @@ func newClient(addr, appName string) *mobileClient {
 	}
 	if err := mClient.updateConfig(); err != nil {
 		log.Errorf("Unable to update config: %v", err)
+	}
+
+	// store default list of masquerade hosts
+	// since we want to bypass those while running
+	// Lantern on Android
+	for _, masquerade := range cloudflareMasquerades {
+		mClient.masquerades[masquerade.IpAddress] = true
 	}
 	return mClient
 }
@@ -112,6 +130,10 @@ func (client *mobileClient) updateConfig() error {
 		err := globals.SetTrustedCAs(clientConfig.getTrustedCerts())
 		if err != nil {
 			log.Errorf("Unable to configure trusted CAs: %s", err)
+		}
+
+		for _, entry := range clientConfig.Client.MasqueradeSets[cloudflare] {
+			client.masquerades[entry.IpAddress] = true
 		}
 
 		hqfc := client.Configure(clientConfig.Client)

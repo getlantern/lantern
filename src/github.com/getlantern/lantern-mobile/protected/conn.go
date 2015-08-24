@@ -41,7 +41,10 @@ var (
 	log = golog.LoggerFor("lantern-android.protected")
 )
 
-func NewProtectedConn(protector SocketProtector, addr string) (*ProtectedConn, error) {
+// Creates a new protected connection designated by host addr
+// protector is a socket protection service that's capable of
+// protecting sockets by file description id
+func New(protector SocketProtector, addr string) (*ProtectedConn, error) {
 	host, port, err := splitHostPort(addr)
 	if err != nil {
 		return nil, err
@@ -57,7 +60,10 @@ func NewProtectedConn(protector SocketProtector, addr string) (*ProtectedConn, e
 	return conn, nil
 }
 
-func (conn *ProtectedConn) createConn() (net.Conn, error) {
+// Create uses syscall API calls to create and bind a protected
+// connection to the specified system device (this is primarily
+// used for Android VpnService routing functionality)
+func (conn *ProtectedConn) Create() (net.Conn, error) {
 	// do DNS query
 	IPAddr, err := conn.lookupIP()
 	if err != nil {
@@ -89,7 +95,7 @@ func (conn *ProtectedConn) createConn() (net.Conn, error) {
 		return nil, err
 	}
 
-	// Connect to the socket
+	// Actually connect to the socket here
 	sockAddr := syscall.SockaddrInet4{Addr: ip, Port: conn.port}
 	err = syscall.Connect(conn.socketFd, &sockAddr)
 	if err != nil {
@@ -97,7 +103,7 @@ func (conn *ProtectedConn) createConn() (net.Conn, error) {
 		return nil, err
 	}
 
-	err = conn.convertConn()
+	err = conn.convert()
 	if err != nil {
 		log.Errorf("Error converting protected connection: %s", err)
 		return nil, err
@@ -128,7 +134,7 @@ func sendTestRequest(client *http.Client, addr string) {
 }
 
 func TestConnect(protector SocketProtector, addr string) error {
-	conn, err := NewProtectedConn(protector, addr)
+	conn, err := New(protector, addr)
 	if err != nil {
 		log.Errorf("Could not test protected connection: %s", err)
 		return err
@@ -137,7 +143,7 @@ func TestConnect(protector SocketProtector, addr string) error {
 	client := &http.Client{
 		Transport: &http.Transport{
 			Dial: func(netw, addr string) (net.Conn, error) {
-				return conn.createConn()
+				return conn.Create()
 			},
 			ResponseHeaderTimeout: time.Second * 2,
 		},
@@ -146,12 +152,15 @@ func TestConnect(protector SocketProtector, addr string) error {
 	return nil
 }
 
-func (conn *ProtectedConn) convertConn() error {
+// converts the protected connection specified by
+// socket fd to a net.Conn
+func (conn *ProtectedConn) convert() error {
 	conn.mutex.Lock()
-
 	file := os.NewFile(uintptr(conn.socketFd), "")
-	fileConn, err := net.FileConn(file) // net.FileConn() dups the fd
-	file.Close()                        // file.Close() closes the fd
+	// dup the fd and return a copy
+	fileConn, err := net.FileConn(file)
+	// closes the original fd
+	file.Close()
 	conn.socketFd = _SOCKET_ERROR
 	if err != nil {
 		conn.mutex.Unlock()
@@ -160,6 +169,31 @@ func (conn *ProtectedConn) convertConn() error {
 	conn.Conn = fileConn
 	conn.mutex.Unlock()
 	return nil
+}
+
+func (conn *ProtectedConn) interruptibleTCPClose() error {
+	// Assumes conn.mutex is held
+	if conn.socketFd == _SOCKET_ERROR {
+		return nil
+	}
+	err := syscall.Close(conn.socketFd)
+	conn.socketFd = _SOCKET_ERROR
+	return err
+}
+
+func (conn *ProtectedConn) Close() (err error) {
+	conn.mutex.Lock()
+	defer conn.mutex.Unlock()
+
+	if !conn.isClosed {
+		conn.isClosed = true
+		if conn.Conn == nil {
+			err = conn.interruptibleTCPClose()
+		} else {
+			err = conn.Conn.Close()
+		}
+	}
+	return err
 }
 
 func (conn *ProtectedConn) protect() error {
