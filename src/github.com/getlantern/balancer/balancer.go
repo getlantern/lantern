@@ -19,6 +19,7 @@ var (
 
 var (
 	emptyDialers = []*dialer{}
+	Protector    protected.SocketProtector
 )
 
 // Balancer balances connections established by one or more Dialers.
@@ -100,8 +101,8 @@ func (b *Balancer) DialQOS(network, addr string, targetQOS int) (net.Conn, error
 
 		// if we are running on Android, we need to bypass the VpnService
 		// and protect the underlying socket
-		if runtime.GOOS == "android" {
-			pConn, err := protected.New(addr)
+		if runtime.GOOS == "android" && Protector != nil {
+			pConn, err := protected.New(Protector, addr)
 			if err != nil {
 				log.Errorf("Error creating protected connection! %s", err)
 				return nil, err

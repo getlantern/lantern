@@ -85,7 +85,7 @@ func (i *Interceptor) openConnection(id, addr string) (*ProxyConn, error) {
 
 	// we haven't opened an outbound connection
 	// to this destination yet. Do so now then write the data
-	pc.pConn, err = protected.New(i.lanternAddr)
+	pc.pConn, err = protected.New(i.protector, i.lanternAddr)
 	if err != nil {
 		log.Errorf("Error creating protected connection! %s", err)
 		return nil, err
@@ -126,15 +126,13 @@ func (i *Interceptor) openConnection(id, addr string) (*ProxyConn, error) {
 }
 
 func (i *Interceptor) Read(pc *ProxyConn) {
-	defer func() {
-		pc.Conn.Close()
-		i.conns[pc.id] = nil
-	}()
 	for {
 		data := make([]byte, _READ_BUF)
 		_, err := pc.Conn.Read(data)
 		if err != nil {
 			if err != io.EOF {
+				pc.Conn.Close()
+				i.conns[pc.id] = nil
 				log.Errorf("Got non-EOF error: %v", err)
 				return
 			} else {
@@ -146,15 +144,16 @@ func (i *Interceptor) Read(pc *ProxyConn) {
 }
 
 func New(protector protected.SocketProtector, logPackets bool,
+	lanternAddr string,
 	writePacket func([]byte), isMasquerade func(string) bool) *Interceptor {
 	i := &Interceptor{
 		protector:    protector,
+		lanternAddr:  lanternAddr,
 		logPackets:   logPackets,
 		writePacket:  writePacket,
 		isMasquerade: isMasquerade,
 		conns:        make(map[string]*ProxyConn),
 	}
-	protected.Init(protector)
 	log.Debugf("Configured interceptor; Ready to consume packets!")
 	return i
 }
@@ -247,6 +246,7 @@ func (i *Interceptor) Process(b []byte) error {
 	if i.hasMasqAddr(p) {
 		// skip masquerade checks
 	} else {
+		log.Debugf("Got a new packet: %s", p.packet.String())
 		err := i.forwardPacket(p)
 		if err != nil {
 			log.Errorf("Unable to forward new packet: %v", err)
