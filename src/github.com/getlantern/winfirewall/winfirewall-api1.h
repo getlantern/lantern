@@ -9,10 +9,8 @@ const char const *port_udp_suffix = " (port UDP rule)";
 
 
 
-// TEMP XXX
-#include <stdio.h>
-
-// Initialize the Firewall COM service
+// Initialize the Firewall COM service. This API doesn't require elevating
+// privileges to operate on the Firewall.
 HRESULT windows_firewall_initialize_api1(OUT INetFwPolicy **policy)
 {
         HRESULT hr = S_OK;
@@ -59,6 +57,7 @@ void windows_firewall_cleanup_api1(IN INetFwPolicy *policy)
 {
     if (policy != NULL) {
         INetFwPolicy_Release(policy);
+        CoUninitialize();
     }
 }
 

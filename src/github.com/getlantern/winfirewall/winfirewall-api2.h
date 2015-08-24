@@ -3,8 +3,46 @@
  * Windows Vista+ API version
  */
 
+
+#include <strsafe.h>
+
+// Create a COM instance with elevated privileges
+HRESULT CoCreateInstanceAsAdmin(REFCLSID rclsid, REFIID riid, OUT void ** ppv)
+{
+    HRESULT hr = S_OK;
+    BIND_OPTS3 bo;
+    WCHAR wsz_clsid[50];
+    TCHAR str_clsid[50];
+    TCHAR moniker_name[300];
+    BSTR bstr_moniker_name = NULL;
+
+    StringFromGUID2(rclsid, wsz_clsid, sizeof(wsz_clsid)/sizeof(wsz_clsid[0]));
+    wcstombs(str_clsid, wsz_clsid, 50);
+
+    GOTO_IF_FAILED(
+        cleanup,
+        StringCchPrintf(moniker_name,
+                        sizeof(moniker_name)/sizeof(moniker_name[0]),
+                        "Elevation:Administrator!new:%s",
+                        str_clsid)
+        );
+
+    memset(&bo, 0, sizeof(bo));
+    bo.cbStruct = sizeof(bo);
+    bo.dwClassContext = CLSCTX_LOCAL_SERVER;
+
+    bstr_moniker_name = chars_to_BSTR(moniker_name);
+
+    hr = CoGetObject(bstr_moniker_name, (BIND_OPTS*)&bo, riid, ppv);
+
+cleanup:
+    SysFreeString(bstr_moniker_name);
+
+    return hr;
+}
+
 // Initialize the Firewall COM service
-HRESULT windows_firewall_initialize_api2(INetFwPolicy2** policy)
+HRESULT windows_firewall_initialize_api2(OUT INetFwPolicy2** policy, IN BOOL as_admin)
 {
     HRESULT hr = S_OK;
     HRESULT com_init = E_FAIL;
@@ -22,11 +60,17 @@ HRESULT windows_firewall_initialize_api2(INetFwPolicy2** policy)
     }
 
     // Create Policy2 instance
-    hr = CoCreateInstance(&CLSID_NetFwPolicy2,
+    if (as_admin) {
+        hr = CoCreateInstanceAsAdmin(&CLSID_NetFwPolicy2,
+                                     &IID_INetFwPolicy2,
+                                     (void**)policy);
+    } else {
+        hr = CoCreateInstance(&CLSID_NetFwPolicy2,
                           NULL,
                           CLSCTX_INPROC_SERVER,
                           &IID_INetFwPolicy2,
                           (void**)policy);
+    }
     return hr;
 }
 

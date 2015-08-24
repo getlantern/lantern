@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <strsafe.h>
 
-void ErrorExit(DWORD dw, LPTSTR lpszFunction)
+void error_exit(DWORD error, LPTSTR lpszFunction)
 {
     // Retrieve the system error message for the last-error code
 
@@ -19,7 +19,7 @@ void ErrorExit(DWORD dw, LPTSTR lpszFunction)
         FORMAT_MESSAGE_FROM_SYSTEM |
         FORMAT_MESSAGE_IGNORE_INSERTS,
         NULL,
-        dw,
+        error,
         MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
         (LPTSTR) &lpMsgBuf,
         0, NULL );
@@ -31,12 +31,12 @@ void ErrorExit(DWORD dw, LPTSTR lpszFunction)
     StringCchPrintf((LPTSTR)lpDisplayBuf,
         LocalSize(lpDisplayBuf) / sizeof(TCHAR),
         TEXT("%s failed with error %d: %s"),
-        lpszFunction, dw, lpMsgBuf);
+        lpszFunction, error, lpMsgBuf);
     MessageBox(NULL, (LPCTSTR)lpDisplayBuf, TEXT("Error"), MB_OK);
 
     LocalFree(lpMsgBuf);
     LocalFree(lpDisplayBuf);
-    ExitProcess(dw);
+    ExitProcess(error);
 }
 
 
@@ -44,10 +44,12 @@ int main(int argc, wchar_t* argv[])
 {
         HRESULT hr = S_OK;
         void *policy = NULL;
+        void *elevated_policy = NULL;
 
-        hr = windows_firewall_initialize(&policy);
+        hr = windows_firewall_initialize(&policy, FALSE);
         if (FAILED(hr)) {
             printf("Policy creation failed: 0x%08lx\n", hr);
+            goto error;
         }
         printf("Windows Firewall initialized\n");
 
@@ -57,16 +59,22 @@ int main(int argc, wchar_t* argv[])
             printf("Error retrieving Firewall status: 0x%08lx\n", hr);
             goto error;
         }
+
+        GOTO_IF_FAILED(
+            error,
+            windows_firewall_initialize(&elevated_policy, TRUE)
+            );
+
         if (is_on) {
             printf("Windows Firewall is ON -> Turning OFF\n");
-            hr = windows_firewall_turn_off(policy);
+            hr = windows_firewall_turn_off(elevated_policy);
         } else {
             printf("Windows Firewall is OFF -> Turning ON\n");
-            hr = windows_firewall_turn_on(policy);
+            hr = windows_firewall_turn_on(elevated_policy);
         }
         if (FAILED(hr)) {
-                printf("Failed to switch Firewall: 0x%08lx\n", hr);
-                goto error;
+            printf("Failed to switch Firewall: 0x%08lx\n", hr);
+            goto error;
         }
 
         firewall_rule_t new_rule = {
@@ -78,7 +86,8 @@ int main(int argc, wchar_t* argv[])
             TRUE,
             NULL,
         };
-        hr = windows_firewall_rule_set(policy, &new_rule);
+
+        hr = windows_firewall_rule_set(elevated_policy, &new_rule);
         if (FAILED(hr)) {
             printf("Error setting Firewall rule: 0x%08lx\n", hr);
             goto error;
@@ -105,7 +114,7 @@ int main(int argc, wchar_t* argv[])
             printf("Lantern rule does not exist\n");
         }
 
-        hr = windows_firewall_rule_remove(policy, &rule_stub);
+        hr = windows_firewall_rule_remove(elevated_policy, &rule_stub);
         if (FAILED(hr)) {
             printf("Error removing Firewall rule: 0x%08lx\n", hr);
             goto error;
@@ -123,9 +132,10 @@ int main(int argc, wchar_t* argv[])
         }
 
 error:
-        ErrorExit(hr, "");
+        error_exit(hr, "");
         // Release the firewall profile.
         windows_firewall_cleanup(policy);
+        windows_firewall_cleanup(elevated_policy);
 
         return 0;
 }

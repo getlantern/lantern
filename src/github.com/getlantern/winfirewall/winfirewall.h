@@ -60,13 +60,11 @@ BSTR chars_to_BSTR(char *str);
 
 
 
-
 // Windows XP and XP SP2 versions
 #include "winfirewall-api1.h"
 
 // Windows Vista and later versions
 #include "winfirewall-api2.h"
-
 
 
 
@@ -90,13 +88,14 @@ inline BOOL windows_is_vista_or_later()
     return (major_version > 6) || ((major_version == 6) && (minor_version >= 0));
 }
 
-HRESULT windows_firewall_initialize(OUT void **policy)
+HRESULT windows_firewall_initialize(OUT void **policy, IN BOOL as_admin)
 {
     if (windows_is_vista_or_later()) {
         is_win_vista_or_later = TRUE;
-        return (windows_firewall_initialize_api2((INetFwPolicy2**)policy));
+        return (windows_firewall_initialize_api2((INetFwPolicy2**)policy, as_admin));
     } else {
         is_win_vista_or_later = FALSE;
+        // Windows XP doesn't require elevating privileges
         return (windows_firewall_initialize_api1((INetFwPolicy**)policy));
     }
 }
