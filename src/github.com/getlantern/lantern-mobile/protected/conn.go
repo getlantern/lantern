@@ -18,11 +18,11 @@ import (
 
 const (
 	defaultDnsServer = "8.8.4.4"
-	_SOCKET_ERROR    = -1
-	_DNS_PORT        = 53
-)
+	connectTimeOut   = 15 * time.Second
 
-var protector SocketProtector
+	_SOCKET_ERROR = -1
+	_DNS_PORT     = 53
+)
 
 type SocketProtector interface {
 	Protect(fileDescriptor int) error
@@ -30,35 +30,31 @@ type SocketProtector interface {
 
 type ProtectedConn struct {
 	net.Conn
-	mutex    sync.Mutex
-	isClosed bool
-	socketFd int
-	addr     string
-	host     string
-	port     int
+	mutex     sync.Mutex
+	protector SocketProtector
+	isClosed  bool
+	socketFd  int
+	addr      string
+	host      string
+	port      int
 }
 
 var (
 	log = golog.LoggerFor("lantern-android.protected")
 )
 
-// protector is a socket protection service that triggers
-// a callback to VpnService's protect method
-func Init(protector SocketProtector) {
-	protector = protector
-}
-
 // Creates a new protected connection with destination addr
-func New(addr string) (*ProtectedConn, error) {
+func New(protector SocketProtector, addr string) (*ProtectedConn, error) {
 	host, port, err := splitHostPort(addr)
 	if err != nil {
 		return nil, err
 	}
 
 	conn := &ProtectedConn{
-		addr: addr,
-		host: host,
-		port: port,
+		addr:      addr,
+		host:      host,
+		port:      port,
+		protector: protector,
 	}
 
 	return conn, nil
@@ -102,10 +98,21 @@ func (conn *ProtectedConn) Dial() (net.Conn, error) {
 
 	// Actually connect to the socket here
 	sockAddr := syscall.SockaddrInet4{Addr: ip, Port: conn.port}
-	err = syscall.Connect(conn.socketFd, &sockAddr)
-	if err != nil {
-		log.Errorf("Could not connect to socket: %s", err)
-		return nil, err
+	if connectTimeOut != 0 {
+		errChannel := make(chan error, 2)
+		time.AfterFunc(connectTimeOut, func() {
+			errChannel <- errors.New("connect timeout")
+		})
+		go func() {
+			errChannel <- syscall.Connect(conn.socketFd, &sockAddr)
+		}()
+		err = <-errChannel
+	} else {
+		err = syscall.Connect(conn.socketFd, &sockAddr)
+		if err != nil {
+			log.Errorf("Could not connect to socket: %s", err)
+			return nil, err
+		}
 	}
 
 	err = conn.convert()
@@ -138,8 +145,8 @@ func sendTestRequest(client *http.Client, addr string) {
 	}
 }
 
-func TestConnect(addr string) error {
-	conn, err := New(addr)
+func TestConnect(protector SocketProtector, addr string) error {
+	conn, err := New(protector, addr)
 	if err != nil {
 		log.Errorf("Could not test protected connection: %s", err)
 		return err
@@ -202,7 +209,7 @@ func (conn *ProtectedConn) Close() (err error) {
 }
 
 func (conn *ProtectedConn) protect() error {
-	return protector.Protect(conn.socketFd)
+	return conn.protector.Protect(conn.socketFd)
 }
 
 func (conn *ProtectedConn) lookupIP() (net.IP, error) {
@@ -221,7 +228,7 @@ func (conn *ProtectedConn) lookupIP() (net.IP, error) {
 	}
 	defer syscall.Close(socketFd)
 
-	err = protector.Protect(socketFd)
+	err = conn.protector.Protect(socketFd)
 	if err != nil {
 		return nil, fmt.Errorf("Could not bind socket to system device: %s", err)
 	}

@@ -72,10 +72,11 @@ func newClient(addr, appName string, protector protected.SocketProtector) *mobil
 	hqfd := client.Configure(clientConfig.Client)
 
 	mClient := &mobileClient{
-		Client:  client,
-		closed:  make(chan bool),
-		fronter: hqfd.NewDirectDomainFronter(),
-		appName: appName,
+		Client:      client,
+		closed:      make(chan bool),
+		fronter:     hqfd.NewDirectDomainFronter(),
+		appName:     appName,
+		masquerades: make(map[string]bool),
 	}
 	if err := mClient.updateConfig(); err != nil {
 		log.Errorf("Unable to update config: %v", err)
