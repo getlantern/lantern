@@ -53,11 +53,9 @@ typedef struct firewall_rule_t {
     char *application;
     char *port;
     BOOL direction_out;
-    INetFwRule *firewall_rule;
 } firewall_rule_t;
 
 BSTR chars_to_BSTR(char *str);
-
 
 
 // Windows XP and XP SP2 versions
