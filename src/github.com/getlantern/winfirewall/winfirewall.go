@@ -1,4 +1,4 @@
-package main
+package winfirewall
 
 // +build windows
 
@@ -12,7 +12,6 @@ import "C"
 
 import (
 	"errors"
-	"fmt"
 	"unsafe"
 )
 
@@ -21,12 +20,12 @@ type FirewallPolicy struct {
 }
 
 type FirewallRule struct {
-	name        string
-	description string
-	group       string
-	application string
-	port        string
-	outbound    bool
+	Name        string
+	Description string
+	Group       string
+	Application string
+	Port        string
+	Outbound    bool
 }
 
 func cBool(goBool bool) C.BOOL {
@@ -39,12 +38,12 @@ func cBool(goBool bool) C.BOOL {
 
 func cFirewallRule(goFwRule *FirewallRule) *C.firewall_rule_t {
 	return &C.firewall_rule_t{
-		name:        C.CString(goFwRule.name),
-		description: C.CString(goFwRule.description),
-		group:       C.CString(goFwRule.group),
-		application: C.CString(goFwRule.application),
-		port:        C.CString(goFwRule.port),
-		outbound:    cBool(goFwRule.outbound),
+		name:        C.CString(goFwRule.Name),
+		description: C.CString(goFwRule.Description),
+		group:       C.CString(goFwRule.Group),
+		application: C.CString(goFwRule.Application),
+		port:        C.CString(goFwRule.Port),
+		outbound:    cBool(goFwRule.Outbound),
 	}
 }
 
@@ -117,12 +116,4 @@ func (fw *FirewallPolicy) RemoveRule(fwr *FirewallRule) error {
 	cFwRule := cFirewallRule(fwr)
 	defer freeCFw(cFwRule)
 	return hresultToGoError(C.windows_firewall_rule_remove(fw.policy, cFwRule))
-}
-
-func main() {
-	fw, err := NewFirewallPolicy(false)
-	if err != nil {
-		fmt.Printf("Error creating firewall policy: %v", err)
-	}
-	fmt.Println(fw)
 }
