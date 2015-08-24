@@ -150,5 +150,3 @@ HRESULT windows_firewall_rule_remove(IN void *policy, IN firewall_rule_t *rule)
     WRAP_API(windows_firewall_rule_remove, policy, rule);
 }
 
-
-#undef CHOOSE_API

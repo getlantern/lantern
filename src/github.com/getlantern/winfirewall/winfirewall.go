@@ -28,43 +28,6 @@ type FirewallRule struct {
 	Outbound    bool
 }
 
-func cBool(goBool bool) C.BOOL {
-	if goBool {
-		return C.BOOL(1)
-	} else {
-		return C.BOOL(0)
-	}
-}
-
-func cFirewallRule(goFwRule *FirewallRule) *C.firewall_rule_t {
-	return &C.firewall_rule_t{
-		name:        C.CString(goFwRule.Name),
-		description: C.CString(goFwRule.Description),
-		group:       C.CString(goFwRule.Group),
-		application: C.CString(goFwRule.Application),
-		port:        C.CString(goFwRule.Port),
-		outbound:    cBool(goFwRule.Outbound),
-	}
-}
-
-func freeCFw(fwr *C.firewall_rule_t) {
-	C.free(unsafe.Pointer(fwr.name))
-	C.free(unsafe.Pointer(fwr.description))
-	C.free(unsafe.Pointer(fwr.group))
-	C.free(unsafe.Pointer(fwr.application))
-	C.free(unsafe.Pointer(fwr.port))
-	C.free(unsafe.Pointer(fwr))
-}
-
-func hresultToGoError(hr C.HRESULT) error {
-	if hr == C.S_OK {
-		return nil
-	}
-	var cStr *C.char = C.hr_to_string(hr)
-	defer C.free(unsafe.Pointer(cStr))
-	return errors.New(C.GoString(cStr))
-}
-
 // NewFirewallPolicy creates a new instance of a Firewall Policy controller
 // The only argument is a boolean that will prompt the user to escalate privileges.
 func NewFirewallPolicy(asAdmin bool) (*FirewallPolicy, error) {
@@ -116,4 +79,43 @@ func (fw *FirewallPolicy) RemoveRule(fwr *FirewallRule) error {
 	cFwRule := cFirewallRule(fwr)
 	defer freeCFw(cFwRule)
 	return hresultToGoError(C.windows_firewall_rule_remove(fw.policy, cFwRule))
+}
+
+// Helper functions
+
+func cBool(goBool bool) C.BOOL {
+	if goBool {
+		return C.BOOL(1)
+	} else {
+		return C.BOOL(0)
+	}
+}
+
+func cFirewallRule(goFwRule *FirewallRule) *C.firewall_rule_t {
+	return &C.firewall_rule_t{
+		name:        C.CString(goFwRule.Name),
+		description: C.CString(goFwRule.Description),
+		group:       C.CString(goFwRule.Group),
+		application: C.CString(goFwRule.Application),
+		port:        C.CString(goFwRule.Port),
+		outbound:    cBool(goFwRule.Outbound),
+	}
+}
+
+func freeCFw(fwr *C.firewall_rule_t) {
+	C.free(unsafe.Pointer(fwr.name))
+	C.free(unsafe.Pointer(fwr.description))
+	C.free(unsafe.Pointer(fwr.group))
+	C.free(unsafe.Pointer(fwr.application))
+	C.free(unsafe.Pointer(fwr.port))
+	C.free(unsafe.Pointer(fwr))
+}
+
+func hresultToGoError(hr C.HRESULT) error {
+	if hr == C.S_OK {
+		return nil
+	}
+	var cStr *C.char = C.hr_to_string(hr)
+	defer C.free(unsafe.Pointer(cStr))
+	return errors.New(C.GoString(cStr))
 }

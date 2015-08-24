@@ -13,43 +13,43 @@ const char const *port_udp_suffix = " (port UDP rule)";
 // privileges to operate on the Firewall.
 HRESULT windows_firewall_initialize_compat_xp(OUT INetFwPolicy **policy)
 {
-        HRESULT hr = S_OK;
-        HRESULT com_init = E_FAIL;
-        INetFwMgr *fw_mgr = NULL;
+    HRESULT hr = S_OK;
+    HRESULT com_init = E_FAIL;
+    INetFwMgr *fw_mgr = NULL;
 
-        _ASSERT(policy != NULL);
+    _ASSERT(policy != NULL);
 
-        // Initialize COM.
-        com_init = CoInitializeEx(0, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+    // Initialize COM.
+    com_init = CoInitializeEx(0, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 
-        // Ignore RPC_E_CHANGED_MODE; this just means that COM has already been
-        // initialized with a different mode. Since we don't care what the mode is,
-        // we'll just use the existing mode.
-        if (com_init != RPC_E_CHANGED_MODE) {
-            if (FAILED(com_init)) {
-                return com_init;
-            }
+    // Ignore RPC_E_CHANGED_MODE; this just means that COM has already been
+    // initialized with a different mode. Since we don't care what the mode is,
+    // we'll just use the existing mode.
+    if (com_init != RPC_E_CHANGED_MODE) {
+        if (FAILED(com_init)) {
+            return com_init;
         }
+    }
 
-        // Create an instance of the firewall settings manager.
-        hr = CoCreateInstance(&CLSID_NetFwMgr,
-                              NULL,
-                              CLSCTX_INPROC_SERVER,
-                              &IID_INetFwMgr,
-                              (void**)&fw_mgr);
-        GOTO_IF_FAILED(cleanup, hr);
+    // Create an instance of the firewall settings manager.
+    hr = CoCreateInstance(&CLSID_NetFwMgr,
+                          NULL,
+                          CLSCTX_INPROC_SERVER,
+                          &IID_INetFwMgr,
+                          (void**)&fw_mgr);
+    GOTO_IF_FAILED(cleanup, hr);
 
-        // Retrieve the local firewall policy.
-        hr = INetFwMgr_get_LocalPolicy(fw_mgr, policy);
-        GOTO_IF_FAILED(cleanup, hr);
+    // Retrieve the local firewall policy.
+    hr = INetFwMgr_get_LocalPolicy(fw_mgr, policy);
+    GOTO_IF_FAILED(cleanup, hr);
 
 cleanup:
-        // Release the firewall settings manager.
-        if (fw_mgr != NULL) {
-                INetFwMgr_Release(fw_mgr);
-        }
+    // Release the firewall settings manager.
+    if (fw_mgr != NULL) {
+        INetFwMgr_Release(fw_mgr);
+    }
 
-        return hr;
+    return hr;
 }
 
 // Clean up the Firewall service safely
@@ -164,7 +164,7 @@ cleanup:
 //   won't set that rule.
 // * These rules are then registered with a suffix (application, port TCP/UDP).
 HRESULT windows_firewall_rule_set_compat_xp(IN INetFwPolicy *policy,
-                                       firewall_rule_t *rule)
+                                            firewall_rule_t *rule)
 {
     HRESULT hr = S_OK;
 
@@ -338,8 +338,8 @@ cleanup:
 // it will set {exists} to TRUE if any part of the rule exists (program or ports
 // TCP/UDP).
 HRESULT windows_firewall_rule_exists_compat_xp(IN INetFwPolicy *policy,
-                                          IN firewall_rule_t *rule,
-                                          OUT BOOL *exists)
+                                               IN firewall_rule_t *rule,
+                                               OUT BOOL *exists)
 {
     HRESULT hr = S_OK;
 
@@ -414,7 +414,7 @@ cleanup:
 // rules, only the components provided in the rulewill be removed (program
 // and/or port TCP/UDP).
 HRESULT windows_firewall_rule_remove_compat_xp(IN INetFwPolicy *policy,
-                                          IN firewall_rule_t *rule)
+                                               IN firewall_rule_t *rule)
 {
     HRESULT hr = S_OK;
 

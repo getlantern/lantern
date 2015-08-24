@@ -66,10 +66,10 @@ HRESULT windows_firewall_initialize_ascom(OUT INetFwPolicy2** policy, IN BOOL as
                                      (void**)policy);
     } else {
         hr = CoCreateInstance(&CLSID_NetFwPolicy2,
-                          NULL,
-                          CLSCTX_INPROC_SERVER,
-                          &IID_INetFwPolicy2,
-                          (void**)policy);
+                              NULL,
+                              CLSCTX_INPROC_SERVER,
+                              &IID_INetFwPolicy2,
+                              (void**)policy);
     }
     return hr;
 }
@@ -160,7 +160,7 @@ HRESULT windows_firewall_turn_off_ascom(IN INetFwPolicy2 *policy)
 
 // Set a Firewall rule
 HRESULT windows_firewall_rule_set_ascom(IN INetFwPolicy2 *policy,
-                                       firewall_rule_t *rule)
+                                        firewall_rule_t *rule)
 {
     HRESULT hr = S_OK;
     INetFwRules *fw_rules = NULL;
@@ -225,10 +225,10 @@ cleanup:
 
 // Test whether a Firewall rule exists or not
 HRESULT windows_firewall_rule_exists_ascom(IN INetFwPolicy2 *policy,
-                                          IN firewall_rule_t *rule,
-                                          OUT BOOL *exists)
+                                           IN firewall_rule_t *rule,
+                                           OUT BOOL *exists)
 {
-        HRESULT hr = S_OK;
+    HRESULT hr = S_OK;
     INetFwRules *fw_rules = NULL;
     INetFwRule *fw_rule = NULL;
     BSTR bstr_rule_name = chars_to_BSTR(rule->name);
@@ -264,7 +264,7 @@ cleanup:
 // Windows API tests show that if there are many with the same, the
 // first found will be removed, but not the rest. This is not documented.
 HRESULT windows_firewall_rule_remove_ascom(IN INetFwPolicy2 *policy,
-                                          IN firewall_rule_t *rule)
+                                           IN firewall_rule_t *rule)
 {
     HRESULT hr = S_OK;
     INetFwRules *fw_rules = NULL;
