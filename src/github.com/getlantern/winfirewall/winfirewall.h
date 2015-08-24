@@ -38,10 +38,10 @@
 #define WRAP_API(function, ...)                                         \
     do {                                                                \
         if (is_win_vista_or_later) {                                    \
-            return function##_api2((INetFwPolicy2*) __VA_ARGS__);       \
+            return function##_as_api((INetFwPolicy2*) __VA_ARGS__);       \
         }                                                               \
         else {                                                          \
-            return function##_api1((INetFwPolicy*) __VA_ARGS__);        \
+            return function##_compat_xp((INetFwPolicy*) __VA_ARGS__);        \
         }                                                               \
     } while(0)
 
@@ -61,10 +61,10 @@ BSTR chars_to_BSTR(char *str);
 
 
 // Windows XP and XP SP2 versions
-#include "winfirewall-api1.h"
+#include "winfirewall-compat-xp.h"
 
 // Windows Vista and later versions
-#include "winfirewall-api2.h"
+#include "winfirewall-as-api.h"
 
 
 
@@ -92,11 +92,11 @@ HRESULT windows_firewall_initialize(OUT void **policy, IN BOOL as_admin)
 {
     if (windows_is_vista_or_later()) {
         is_win_vista_or_later = TRUE;
-        return (windows_firewall_initialize_api2((INetFwPolicy2**)policy, as_admin));
+        return (windows_firewall_initialize_as_api((INetFwPolicy2**)policy, as_admin));
     } else {
         is_win_vista_or_later = FALSE;
         // Windows XP doesn't require elevating privileges
-        return (windows_firewall_initialize_api1((INetFwPolicy**)policy));
+        return (windows_firewall_initialize_compat_xp((INetFwPolicy**)policy));
     }
 }
 

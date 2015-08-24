@@ -11,7 +11,7 @@ const char const *port_udp_suffix = " (port UDP rule)";
 
 // Initialize the Firewall COM service. This API doesn't require elevating
 // privileges to operate on the Firewall.
-HRESULT windows_firewall_initialize_api1(OUT INetFwPolicy **policy)
+HRESULT windows_firewall_initialize_compat_xp(OUT INetFwPolicy **policy)
 {
         HRESULT hr = S_OK;
         HRESULT com_init = E_FAIL;
@@ -53,7 +53,7 @@ cleanup:
 }
 
 // Clean up the Firewall service safely
-void windows_firewall_cleanup_api1(IN INetFwPolicy *policy)
+void windows_firewall_cleanup_compat_xp(IN INetFwPolicy *policy)
 {
     if (policy != NULL) {
         INetFwPolicy_Release(policy);
@@ -62,7 +62,7 @@ void windows_firewall_cleanup_api1(IN INetFwPolicy *policy)
 }
 
 // Get Firewall status: returns a boolean for ON/OFF
-HRESULT windows_firewall_is_on_api1(IN INetFwPolicy *policy, OUT BOOL *fw_on)
+HRESULT windows_firewall_is_on_compat_xp(IN INetFwPolicy *policy, OUT BOOL *fw_on)
 {
     HRESULT hr = S_OK;
     VARIANT_BOOL fw_enabled;
@@ -94,7 +94,7 @@ cleanup:
 }
 
 //  Turn Firewall ON
-HRESULT windows_firewall_turn_on_api1(IN INetFwPolicy *policy)
+HRESULT windows_firewall_turn_on_compat_xp(IN INetFwPolicy *policy)
 {
     HRESULT hr = S_OK;
     VARIANT_BOOL fw_enabled;
@@ -124,7 +124,7 @@ cleanup:
 }
 
 //  Turn Firewall OFF
-HRESULT windows_firewall_turn_off_api1(IN INetFwPolicy *policy)
+HRESULT windows_firewall_turn_off_compat_xp(IN INetFwPolicy *policy)
 {
     HRESULT hr = S_OK;
     VARIANT_BOOL fw_enabled;
@@ -163,7 +163,7 @@ cleanup:
 //   this version of Windows. Both rules can be set independently. A null parameter
 //   won't set that rule.
 // * These rules are then registered with a suffix (application, port TCP/UDP).
-HRESULT windows_firewall_rule_set_api1(IN INetFwPolicy *policy,
+HRESULT windows_firewall_rule_set_compat_xp(IN INetFwPolicy *policy,
                                        firewall_rule_t *rule)
 {
     HRESULT hr = S_OK;
@@ -337,7 +337,7 @@ cleanup:
 // Test whether a Firewall rule exists or not. Since we are emulating API2,
 // it will set {exists} to TRUE if any part of the rule exists (program or ports
 // TCP/UDP).
-HRESULT windows_firewall_rule_exists_api1(IN INetFwPolicy *policy,
+HRESULT windows_firewall_rule_exists_compat_xp(IN INetFwPolicy *policy,
                                           IN firewall_rule_t *rule,
                                           OUT BOOL *exists)
 {
@@ -413,7 +413,7 @@ cleanup:
 // Remove a Firewall rule if exists. IMPORTANT: Because we are emulating API2
 // rules, only the components provided in the rulewill be removed (program
 // and/or port TCP/UDP).
-HRESULT windows_firewall_rule_remove_api1(IN INetFwPolicy *policy,
+HRESULT windows_firewall_rule_remove_compat_xp(IN INetFwPolicy *policy,
                                           IN firewall_rule_t *rule)
 {
     HRESULT hr = S_OK;

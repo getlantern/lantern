@@ -1,6 +1,6 @@
 /*
  * Connector API between Go and Windows Firewall COM interface
- * Windows Vista+ API version
+ * Windows Vista+ API version (Advanced Security COM API)
  */
 
 
@@ -42,7 +42,7 @@ cleanup:
 }
 
 // Initialize the Firewall COM service
-HRESULT windows_firewall_initialize_api2(OUT INetFwPolicy2** policy, IN BOOL as_admin)
+HRESULT windows_firewall_initialize_as_api(OUT INetFwPolicy2** policy, IN BOOL as_admin)
 {
     HRESULT hr = S_OK;
     HRESULT com_init = E_FAIL;
@@ -75,7 +75,7 @@ HRESULT windows_firewall_initialize_api2(OUT INetFwPolicy2** policy, IN BOOL as_
 }
 
 // Clean up the Firewall service safely
-void windows_firewall_cleanup_api2(IN INetFwPolicy2 *policy)
+void windows_firewall_cleanup_as_api(IN INetFwPolicy2 *policy)
 {
     if (policy != NULL) {
         INetFwPolicy2_Release(policy);
@@ -85,7 +85,7 @@ void windows_firewall_cleanup_api2(IN INetFwPolicy2 *policy)
 
 // Get Firewall status: returns a boolean for ON/OFF
 // It will return ON if any of the profiles has the firewall enabled.
-HRESULT windows_firewall_is_on_api2(IN INetFwPolicy2 *policy, OUT BOOL *fw_on)
+HRESULT windows_firewall_is_on_as_api(IN INetFwPolicy2 *policy, OUT BOOL *fw_on)
 {
     HRESULT hr = S_OK;
     VARIANT_BOOL is_enabled = FALSE;
@@ -112,7 +112,7 @@ HRESULT windows_firewall_is_on_api2(IN INetFwPolicy2 *policy, OUT BOOL *fw_on)
 }
 
 //  Turn Firewall ON
-HRESULT windows_firewall_turn_on_api2(IN INetFwPolicy2 *policy)
+HRESULT windows_firewall_turn_on_as_api(IN INetFwPolicy2 *policy)
 {
     HRESULT hr = S_OK;
     BOOL fw_on;
@@ -120,7 +120,7 @@ HRESULT windows_firewall_turn_on_api2(IN INetFwPolicy2 *policy)
     _ASSERT(fw_profile != NULL);
 
     // Check the current firewall status first
-    RETURN_IF_FAILED(windows_firewall_is_on_api2(policy, &fw_on));
+    RETURN_IF_FAILED(windows_firewall_is_on_as_api(policy, &fw_on));
 
     // If it is off, turn it on.
     if (!fw_on) {
@@ -135,7 +135,7 @@ HRESULT windows_firewall_turn_on_api2(IN INetFwPolicy2 *policy)
 }
 
 //  Turn Firewall OFF
-HRESULT windows_firewall_turn_off_api2(IN INetFwPolicy2 *policy)
+HRESULT windows_firewall_turn_off_as_api(IN INetFwPolicy2 *policy)
 {
     HRESULT hr = S_OK;
     BOOL fw_on;
@@ -143,7 +143,7 @@ HRESULT windows_firewall_turn_off_api2(IN INetFwPolicy2 *policy)
     _ASSERT(fw_profile != NULL);
 
     // Check the current firewall status first
-    hr = windows_firewall_is_on_api2(policy, &fw_on);
+    hr = windows_firewall_is_on_as_api(policy, &fw_on);
     RETURN_IF_FAILED(hr);
 
     // If it is on, turn it off.
@@ -159,7 +159,7 @@ HRESULT windows_firewall_turn_off_api2(IN INetFwPolicy2 *policy)
 }
 
 // Set a Firewall rule
-HRESULT windows_firewall_rule_set_api2(IN INetFwPolicy2 *policy,
+HRESULT windows_firewall_rule_set_as_api(IN INetFwPolicy2 *policy,
                                        firewall_rule_t *rule)
 {
     HRESULT hr = S_OK;
@@ -224,7 +224,7 @@ cleanup:
 }
 
 // Test whether a Firewall rule exists or not
-HRESULT windows_firewall_rule_exists_api2(IN INetFwPolicy2 *policy,
+HRESULT windows_firewall_rule_exists_as_api(IN INetFwPolicy2 *policy,
                                           IN firewall_rule_t *rule,
                                           OUT BOOL *exists)
 {
@@ -263,7 +263,7 @@ cleanup:
 // Remove a Firewall rule if exists.
 // Windows API tests show that if there are many with the same, the
 // first found will be removed, but not the rest. This is not documented.
-HRESULT windows_firewall_rule_remove_api2(IN INetFwPolicy2 *policy,
+HRESULT windows_firewall_rule_remove_as_api(IN INetFwPolicy2 *policy,
                                           IN firewall_rule_t *rule)
 {
     HRESULT hr = S_OK;
