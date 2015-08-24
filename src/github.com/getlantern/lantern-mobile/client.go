@@ -82,8 +82,8 @@ func newClient(addr, appName string, protector protected.SocketProtector) *mobil
 	}
 
 	// store default list of masquerade hosts
-	// since we want to bypass those while running
-	// Lantern on Android
+	// since we want to bypass those while intercepting
+	// and forwarding packets
 	for _, masquerade := range cloudflareMasquerades {
 		mClient.masquerades[masquerade.IpAddress] = true
 	}
