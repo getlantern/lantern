@@ -357,6 +357,29 @@ package-darwin: require-version require-appdmg require-svgexport darwin
 		echo "-> Skipped: Can not generate a package on a non-OSX host."; \
 	fi;
 
+package-only-darwin: require-version require-appdmg require-svgexport 
+	@echo "Generating distribution package for darwin/amd64..." && \
+	$(call package-settings) && \
+	if [[ "$$(uname -s)" == "Darwin" ]]; then \
+		INSTALLER_RESOURCES="installer-resources/darwin" && \
+		rm -rf Lantern.app && \
+		cp -r $$INSTALLER_RESOURCES/Lantern.app_template Lantern.app && \
+		mkdir Lantern.app/Contents/MacOS && \
+		cp -r lantern_darwin_amd64 Lantern.app/Contents/MacOS/lantern && \
+		echo $$PACKAGED_SETTINGS > Lantern.app/Contents/Resources/$(PACKAGED_YAML) && \
+		codesign -s "Developer ID Application: Brave New Software Project, Inc" Lantern.app && \
+		rm -rf Lantern.dmg && \
+		sed "s/__VERSION__/$$VERSION/g" $$INSTALLER_RESOURCES/dmgbackground.svg > $$INSTALLER_RESOURCES/dmgbackground_versioned.svg && \
+		$(SVGEXPORT) $$INSTALLER_RESOURCES/dmgbackground_versioned.svg $$INSTALLER_RESOURCES/dmgbackground.png 600:400 && \
+		sed "s/__VERSION__/$$VERSION/g" $$INSTALLER_RESOURCES/lantern.dmg.json > $$INSTALLER_RESOURCES/lantern_versioned.dmg.json && \
+		$(APPDMG) --quiet $$INSTALLER_RESOURCES/lantern_versioned.dmg.json Lantern.dmg && \
+		mv Lantern.dmg Lantern.dmg.zlib && \
+		hdiutil convert -quiet -format UDBZ -o Lantern.dmg Lantern.dmg.zlib && \
+		rm Lantern.dmg.zlib; \
+	else \
+		echo "-> Skipped: Can not generate a package on a non-OSX host."; \
+	fi;
+
 binaries: docker genassets linux windows darwin
 
 packages: require-version require-secrets clean binaries package-windows package-linux package-darwin
