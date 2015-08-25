@@ -5,12 +5,19 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"time"
 
 	"github.com/getlantern/balancer"
 	"github.com/getlantern/chained"
+	"github.com/getlantern/idletiming"
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/tlsdialer"
 )
+
+// Close connections idle for a period to avoid dangling connections.
+// 1 hour is long enough to avoid interrupt normal connections but short enough
+// to eliminate "too many open files" error.
+var idleTimeout = 1 * time.Hour
 
 // ChainedServerInfo provides identity information for a chained server.
 type ChainedServerInfo struct {
@@ -99,7 +106,17 @@ func (s *ChainedServerInfo) Dialer() (*balancer.Dialer, error) {
 		QOS:     s.QOS,
 		Trusted: s.Trusted,
 		Dial: func(network, addr string) (net.Conn, error) {
-			return withStats(d.Dial(network, addr))
+			conn, err := d.Dial(network, addr)
+			if err != nil {
+				return conn, err
+			}
+			conn = idletiming.Conn(conn, idleTimeout, func() {
+				log.Debugf("Proxy connection to %s via %s idle for %v, closing", addr, conn.RemoteAddr(), idleTimeout)
+				if err := conn.Close(); err != nil {
+					log.Debugf("Unable to close connection: %v", err)
+				}
+			})
+			return withStats(conn, err)
 		},
 	}, nil
 }

@@ -58,7 +58,7 @@ func startHttp() {
 func register(resp http.ResponseWriter, req *http.Request) {
 	name, ip, port, supportedFronts, err := getHostInfo(req)
 	if err == nil && !(port == "80" || port == "443") {
-		err = fmt.Errorf("Port %d not supported, only ports 80 and 443 are supported", port)
+		err = fmt.Errorf("Port %s not supported, only ports 80 and 443 are supported", port)
 	}
 	if err != nil {
 		resp.WriteHeader(http.StatusBadRequest)

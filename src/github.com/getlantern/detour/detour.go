@@ -1,40 +1,35 @@
 /*
-Package detour provides a net.Conn interface to dial another dialer if a site fails to connect directly.
-It maintains three states of a connection: initial, direct and detoured
-along with a temporary whitelist across connections.
-It also add a blocked site to permanent whitelist.
+Package detour provides a net.Conn interface which detects blockage
+of a site automatically and access it through alternative connection.
 
-The action taken and state transistion in each phase is as follows:
-+-------------------------+-----------+-------------+-------------+-------------+-------------+
-|                         | no error  |   timeout*  | conn reset/ | content     | other error |
-|                         |           |             | dns hijack  | hijack      |             |
-+-------------------------+-----------+-------------+-------------+-------------+-------------+
-| dial (intial)           | noop      | detour      | detour      | n/a         | noop        |
-| first read (intial)     | direct    | detour(buf) | detour(buf) | detour(buf) | noop        |
-|                         |           | add to tl   | add to tl   | add to tl   |             |
-| follow-up read (direct) | direct    | add to tl   | add to tl   | add to tl   | noop        |
-| follow-up read (detour) | noop      | rm from tl  | rm from tl  | rm from tl  | rm from tl  |
-| close (direct)          | noop      | n/a         | n/a         | n/a         | n/a         |
-| close (detour)          | add to wl | n/a         | n/a         | n/a         | n/a         |
-+-------------------------+-----------+-------------+-------------+-------------+-------------+
-| next dial/read(in tl)***| noop      | rm from tl  | rm from tl  | rm from tl  | rm from tl  |
-| next close(in tl)       | add to wl | n/a         | n/a         | n/a         | n/a         |
-+-------------------------+-----------+-------------+-------------+-------------+-------------+
-(buf) = resend buffer
-tl = temporary whitelist
-wl = permanent whitelist
+Basically, if a site is not whitelisted, following steps will be taken:
+1. Dial proxied connection (detour) a small delay after dialed directly
+2. Return to caller when any connection is established
+3. Read/write through all open connections in parallel
+4. Check for blockage on direct connection and closes it if it happens
+5. If possible, replay operations on detour connection. [1]
+6. After sucessfully read from a connection, stick with it and close others.
+7. Add those sites failed on direct connection but succeeded on detour ones
+   to proxied list, so above steps can be skipped next time. The list can be
+   exported and persisted if required.
 
-* Operation will time out in TimeoutToDetour in initial state,
-but at system default or caller supplied deadline for other states;
-** DNS hijack is only checked at dial time.
-*** Connection is always detoured if the site is in tl or wl.
+Blockage can happen at several stages of a connection, what detour can detect are:
+1. Connection attempt is blocked (IP blocking / DNS hijack).
+   Symptoms can be connection time out / TCP RST / connection refused.
+2. Connection made but real data get blocked (DPI).
+3. Successfully exchanged a few packets, while follow up packets are blocked. [2]
+4. Connection made but get fake response or HTTP redirect to a fixed URL.
+
+[1] Detour will not replay nonidempotent plain HTTP requests, but will add it to
+    proxied list to be detoured next time.
+[2] Detour can only handle exact 1 successful read followed by failed read,
+    which covers most cases in reality.
 */
 package detour
 
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"net"
 	"sync"
 	"sync/atomic"
@@ -43,386 +38,355 @@ import (
 	"github.com/getlantern/golog"
 )
 
-// if dial or read exceeded this timeout, we consider switch to detour
-// The value depends on OS and browser and defaults to 3s
-// For Windows XP, find TcpMaxConnectRetransmissions in
-// http://support2.microsoft.com/default.aspx?scid=kb;en-us;314053
-var TimeoutToDetour = 3 * time.Second
+// If no any connection made after this period, stop dialing and fail
+var TimeoutToConnect = 30 * time.Second
 
-// if DirectAddrCh is set, when a direct connection is closed without any error,
+// To avoid unnecessarily proxy not-blocked url, detour will dial detour connection
+// after this small delay. Set to zero to dial in parallel to not introducing any delay.
+var DelayBeforeDetour = 0 * time.Millisecond
+
+// If DirectAddrCh is set, when a direct connection is closed without any error,
 // the connection's remote address (in host:port format) will be send to it
 var DirectAddrCh chan string = make(chan string)
 
 var (
 	log = golog.LoggerFor("detour")
-
-	// instance of Detector
-	blockDetector atomic.Value
 )
 
-func init() {
-	blockDetector.Store(detectorByCountry(""))
+// Conn implements an net.Conn interface by utilizing underlie direct and
+// detour connections.
+type Conn struct {
+	// The underlie connections, uses buffered channel as ring queue to avoid
+	// locking. We have at most 2 connetions so a length of 2 is enough.
+	conns chan conn
+
+	// The chan to notify dialer to dial detour immediately
+	chDialDetourNow chan bool
+	// The channel to notify read/write that a detour connection is available
+	chDetourConn chan conn
+
+	// The chan to receive result of any read operation
+	chRead chan ioResult
+	// The chan to receive result of any write operation
+	chWrite chan ioResult
+
+	// Keeps track of the total bytes read from this connection, atomic
+	readBytes uint64
+
+	addr string
+
+	muWriteBuffer sync.RWMutex
+	// Keeps written bytes through direct connection to replay it if required.
+	writeBuffer *bytes.Buffer
+	// Is it a plain HTTP request or not, atomic
+	nonidempotentHTTPRequest uint32
+}
+
+// The data structure to pass result of io operation back from underlie connection
+type ioResult struct {
+	// Number of bytes read/wrote
+	n int
+	// IO error, if any
+	err error
+	// The underlie connection itself
+	conn conn
+}
+
+type connType int
+
+const (
+	connTypeDirect connType = iota
+	connTypeDetour connType = iota
+)
+
+type conn interface {
+	ConnType() connType
+	FirstRead(b []byte, ch chan ioResult)
+	FollowupRead(b []byte, ch chan ioResult)
+	Write(b []byte, ch chan ioResult)
+	Close() error
+	Closed() bool
+}
+
+func typeOf(c conn) string {
+	var connTypeDesc = []string{"direct", "detour"}
+	return connTypeDesc[c.ConnType()]
 }
 
 type dialFunc func(network, addr string) (net.Conn, error)
 
-type Conn struct {
-	muConn sync.RWMutex
-	// the actual connection, will change so protect it
-	// can't user atomic.Value as the concrete type may vary
-	conn net.Conn
-
-	// don't access directly, use inState() and setState() instead
-	state uint32
-
-	// the function to dial detour if the site fails to connect directly
-	dialDetour dialFunc
-
-	// keep track of the total bytes read in this connection
-	readBytes int64
-
-	muLocalBuffer sync.Mutex
-	// localBuffer keep track of bytes sent through direct connection
-	// in initial state so we can resend them when detour
-	localBuffer bytes.Buffer
-
-	network, addr string
-	readDeadline  time.Time
-	writeDeadline time.Time
-}
-
-const (
-	stateInitial = iota
-	stateDirect
-	stateDetour
-)
-
-var statesDesc = []string{
-	"initially",
-	"directly",
-	"detoured",
-}
-
-// SetCountry sets the ISO 3166-1 alpha-2 country code
-// to load country specific detection rules
-func SetCountry(country string) {
-	blockDetector.Store(detectorByCountry(country))
-}
-
 // Dialer returns a function with same signature of net.Dialer.Dial().
-func Dialer(d dialFunc) dialFunc {
-	return func(network, addr string) (conn net.Conn, err error) {
-		dc := &Conn{dialDetour: d, network: network, addr: addr}
-		if !whitelisted(addr) {
-			detector := blockDetector.Load().(*Detector)
-			dc.setState(stateInitial)
-			// always try direct connection first
-			dc.conn, err = net.DialTimeout(network, addr, TimeoutToDetour)
-			if err == nil {
-				if !detector.DNSPoisoned(dc.conn) {
-					log.Tracef("Dial %s to %s succeeded", dc.stateDesc(), addr)
-					return dc, nil
+func Dialer(detourDialer dialFunc) func(network, addr string) (net.Conn, error) {
+	return func(network, addr string) (net.Conn, error) {
+		dc := &Conn{
+			addr:            addr,
+			writeBuffer:     new(bytes.Buffer),
+			conns:           make(chan conn, 2),
+			chDetourConn:    make(chan conn),
+			chRead:          make(chan ioResult),
+			chWrite:         make(chan ioResult),
+			chDialDetourNow: make(chan bool),
+		}
+		// use buffered channel as we may send twice to it but only receive once
+		chAnyConn := make(chan bool, 1)
+		ch := make(chan conn)
+
+		// dialing sequence
+		if whitelisted(addr) {
+			dialDetour(network, addr, detourDialer, ch)
+		} else {
+			go func() {
+				dialDirect(network, addr, ch)
+				dt := time.NewTimer(DelayBeforeDetour)
+				select {
+				case <-dt.C:
+				case <-dc.chDialDetourNow:
 				}
-				log.Debugf("Dial %s to %s, dns hijacked, try detour", dc.stateDesc(), addr)
-				if err := dc.conn.Close(); err != nil {
-					log.Debugf("Unable to close connection: %v", err)
+				if dc.anyDataReceived() {
+					ch <- nil
+					return
 				}
-			} else if detector.TamperingSuspected(err) {
-				log.Debugf("Dial %s to %s failed, try detour: %s", dc.stateDesc(), addr, err)
-			} else {
-				log.Debugf("Dial %s to %s failed: %s", dc.stateDesc(), addr, err)
-				return dc, err
+				dialDetour(network, addr, detourDialer, ch)
+			}()
+		}
+
+		// handle dialing result
+		go func() {
+			t := time.NewTimer(TimeoutToConnect)
+			defer t.Stop()
+			// At most 2 connections will be made
+			for i := 0; i < 2; i++ {
+				log.Tracef("Waiting for connection to %s, round %d", dc.addr, i)
+				select {
+				case c := <-ch:
+					if c == nil {
+						log.Tracef("No new connection to %s remaining, return", dc.addr)
+						return
+					}
+					// first connection made, pass it back to caller
+					if i == 0 {
+						dc.conns <- c
+						chAnyConn <- true
+					} else {
+						if c.ConnType() == connTypeDirect {
+							// Could happen if direct route is much slower.
+							log.Debugf("Direct connection to %s established too late, close it", dc.addr)
+							if err := c.Close(); err != nil {
+								log.Debugf("Error closing direct connection to %s: %s", dc.addr, err)
+							}
+							return
+						}
+						log.Tracef("Feed detour connection to %s to read/write op", dc.addr)
+						dc.chDetourConn <- c
+						return
+					}
+				case <-t.C:
+					// still no connection made
+					chAnyConn <- false
+					return
+				}
 			}
+		}()
+		// return to caller if any connection available
+		if anyConn := <-chAnyConn; anyConn {
+			return dc, nil
 		}
-		// if whitelisted or dial directly failed, try detour
-		dc.setState(stateDetour)
-		dc.conn, err = dc.dialDetour(network, addr)
-		if err != nil {
-			log.Errorf("Dial %s failed: %s", dc.stateDesc(), err)
-			return nil, err
-		}
-		log.Tracef("Dial %s to %s succeeded", dc.stateDesc(), addr)
-		if !whitelisted(addr) {
-			log.Tracef("Add %s to whitelist", addr)
-			AddToWl(dc.addr, false)
-		}
-		return dc, err
+		return nil, fmt.Errorf("Timeout dialing any connection to %s", addr)
 	}
+}
+
+func (dc *Conn) anyDataReceived() bool {
+	return atomic.LoadUint64(&dc.readBytes) > 0
+}
+
+func (dc *Conn) incReadBytes(n int) {
+	atomic.AddUint64(&dc.readBytes, uint64(n))
 }
 
 // Read() implements the function from net.Conn
 func (dc *Conn) Read(b []byte) (n int, err error) {
-	if !dc.inState(stateInitial) {
-		return dc.followUpRead(b)
+	if dc.anyDataReceived() {
+		return dc.followupRead(b)
 	}
-	// state will always be settled after first read, safe to clear buffer at end of it
-	defer dc.resetLocalBuffer()
-	start := time.Now()
-	if !dc.readDeadline.IsZero() && dc.readDeadline.Sub(start) < 2*TimeoutToDetour {
-		log.Tracef("no time left to test %s, read %s", dc.addr, statesDesc[stateDirect])
-		dc.setState(stateDirect)
-		return dc.countedRead(b)
+	// At initial stage, we only have one connection,
+	// but detour connection can be available at anytime.
+	if !dc.withValidConn(func(c conn) { c.FirstRead(b, dc.chRead) }) {
+		return 0, fmt.Errorf("no connection available to %s", dc.addr)
 	}
-	// wait for at most TimeoutToDetour to read
-	if err := dc.getConn().SetReadDeadline(start.Add(TimeoutToDetour)); err != nil {
-		log.Debugf("Unable to set read deadline: %v", err)
-	}
-	n, err = dc.countedRead(b)
-	if err := dc.getConn().SetReadDeadline(dc.readDeadline); err != nil {
-		log.Debugf("Unable to set read deadline: %v", err)
-	}
-
-	detector := blockDetector.Load().(*Detector)
-	if err != nil {
-		log.Debugf("Error while read from %s %s: %s", dc.addr, dc.stateDesc(), err)
-		if detector.TamperingSuspected(err) {
-			// to avoid double submitting, we only resend Idempotent requests
-			// but return error directly to application for other requests.
-			if dc.isIdempotentRequest() {
-				log.Debugf("Detour HTTP GET request to %s", dc.addr)
-				return dc.detour(b)
-			} else {
-				log.Debugf("Not HTTP GET request, add to whitelist")
+	for count := 1; count > 0; count-- {
+		select {
+		case newConn := <-dc.chDetourConn:
+			if atomic.LoadUint32(&dc.nonidempotentHTTPRequest) == 1 {
+				log.Tracef("Not replay nonidempotent request to %s, only add to whitelist", dc.addr)
 				AddToWl(dc.addr, false)
+				if err := newConn.Close(); err != nil {
+					log.Debugf("Error closing detour connection to %s: %s", dc.addr, err)
+				}
+				return
 			}
+			log.Tracef("Got detour connection to %s, replay previous op on it", dc.addr)
+			dc.muWriteBuffer.RLock()
+			sentBytes := dc.writeBuffer.Bytes()
+			dc.muWriteBuffer.RUnlock()
+			newConn.Write(sentBytes, dc.chWrite)
+			newConn.FirstRead(b, dc.chRead)
+			count++
+			// add new connection to connections
+			dc.conns <- newConn
+		case result := <-dc.chRead:
+			conn, n, err := result.conn, result.n, result.err
+			if err != nil {
+				log.Tracef("Read from %s connection to %s failed, closing: %s", typeOf(conn), dc.addr, err)
+				if err := conn.Close(); err != nil {
+					log.Debugf("Error closing %s connection to %s: %s", typeOf(conn), dc.addr, err)
+				}
+				// skip failed connection as we have more
+				if count > 1 {
+					continue
+				}
+				switch conn.ConnType() {
+				case connTypeDirect:
+					// if we haven't dial detour yet, do so now
+					select {
+					case dc.chDialDetourNow <- true:
+						count++
+					default:
+					}
+					continue
+				case connTypeDetour:
+					log.Tracef("Detour connection to %s failed, removing from whitelist", dc.addr)
+					RemoveFromWl(dc.addr)
+					// no more connections, return directly to avoid dead lock
+					return n, err
+				}
+			}
+			log.Tracef("Read %d bytes from %s connection to %s", n, typeOf(conn), dc.addr)
+			dc.incReadBytes(n)
+			return n, err
 		}
-		return
 	}
-	// Hijacked content is usualy encapsulated in one IP packet,
-	// so just check it in one read rather than consecutive reads.
-	if detector.FakeResponse(b) {
-		log.Tracef("Read %d bytes from %s %s, response is hijacked, detour", n, dc.addr, dc.stateDesc())
-		return dc.detour(b)
-	}
-	log.Tracef("Read %d bytes from %s %s, set state to direct", n, dc.addr, dc.stateDesc())
-	dc.setState(stateDirect)
 	return
 }
 
 // followUpRead is called by Read() if a connection's state already settled
-func (dc *Conn) followUpRead(b []byte) (n int, err error) {
-	detector := blockDetector.Load().(*Detector)
-	if n, err = dc.countedRead(b); err != nil {
-		if err == io.EOF {
-			log.Tracef("Read %d bytes from %s %s, EOF", n, dc.addr, dc.stateDesc())
-			return
-		}
-		log.Tracef("Read from %s %s failed: %s", dc.addr, dc.stateDesc(), err)
-		switch {
-		case dc.inState(stateDirect) && detector.TamperingSuspected(err):
-			// to prevent a slow or unstable site from been treated as blocked,
-			// we only check first 4K bytes, which roughly equals to the payload of 3 full packets on Ethernet
-			if atomic.LoadInt64(&dc.readBytes) <= 4096 {
-				log.Tracef("Seems %s still blocked, add to whitelist so will try detour next time", dc.addr)
-				AddToWl(dc.addr, false)
-			}
-		case dc.inState(stateDetour) && wlTemporarily(dc.addr):
-			log.Tracef("Detoured route is not reliable for %s, not whitelist it", dc.addr)
-			RemoveFromWl(dc.addr)
-		}
-		return
+func (dc *Conn) followupRead(b []byte) (n int, err error) {
+	if !dc.withValidConn(func(c conn) { c.FollowupRead(b, dc.chRead) }) {
+		return 0, fmt.Errorf("no connection available to %s", dc.addr)
 	}
-	// Hijacked content is usualy encapsulated in one IP packet,
-	// so just check it in one read rather than consecutive reads.
-	if dc.inState(stateDirect) && detector.FakeResponse(b) {
-		log.Tracef("%s still content hijacked, add to whitelist so will try detour next time", dc.addr)
-		AddToWl(dc.addr, false)
-		return
-	}
-	log.Tracef("Read %d bytes from %s %s", n, dc.addr, dc.stateDesc())
-	return
-}
-
-// detour sets up a detoured connection and try read again from it
-func (dc *Conn) detour(b []byte) (n int, err error) {
-	if err = dc.setupDetour(); err != nil {
-		log.Errorf("Error while setup detour: %s", err)
-		return
-	}
-	if _, err = dc.resend(); err != nil {
-		err = fmt.Errorf("Error while resend buffer to %s: %s", dc.addr, err)
-		log.Error(err)
-		return
-	}
-	dc.setState(stateDetour)
-	if n, err = dc.countedRead(b); err != nil {
-		log.Debugf("Read from %s %s still failed: %s", dc.addr, dc.stateDesc(), err)
-		return
-	}
-	log.Tracef("Read %d bytes from %s %s, add to whitelist", n, dc.addr, dc.stateDesc())
-	AddToWl(dc.addr, false)
-	return
-}
-
-func (dc *Conn) resend() (int, error) {
-	dc.muLocalBuffer.Lock()
-	// we have to hold the lock until bytes written
-	// as Buffer.Bytes is subject to change through Buffer.Write()
-	defer dc.muLocalBuffer.Unlock()
-	b := dc.localBuffer.Bytes()
-	if len(b) == 0 {
-		return 0, nil
-	}
-	log.Tracef("Resending %d bytes from local buffer to %s", len(b), dc.addr)
-	n, err := dc.getConn().Write(b)
-	return n, err
-}
-
-func (dc *Conn) setupDetour() error {
-	c, err := dc.dialDetour("tcp", dc.addr)
-	if err != nil {
-		return err
-	}
-	log.Tracef("Dialed a new detour connection to %s", dc.addr)
-	dc.setConn(c)
-	return nil
+	result := <-dc.chRead
+	dc.incReadBytes(result.n)
+	return result.n, result.err
 }
 
 // Write() implements the function from net.Conn
 func (dc *Conn) Write(b []byte) (n int, err error) {
-	if dc.inState(stateInitial) {
-		if n, err = dc.writeLocalBuffer(b); err != nil {
-			return n, fmt.Errorf("Unable to write local buffer: %s", err)
-		}
+	if dc.anyDataReceived() {
+		return dc.followupWrite(b)
 	}
-	if n, err = dc.getConn().Write(b); err != nil {
-		log.Debugf("Error while write %d bytes to %s %s: %s", len(b), dc.addr, dc.stateDesc(), err)
+	if isNonidempotentHTTPRequest(b) {
+		atomic.StoreUint32(&dc.nonidempotentHTTPRequest, 1)
+	} else {
+		dc.muWriteBuffer.Lock()
+		_, _ = dc.writeBuffer.Write(b)
+		dc.muWriteBuffer.Unlock()
+	}
+	if !dc.withValidConn(func(c conn) { c.Write(b, dc.chWrite) }) {
+		return 0, fmt.Errorf("no connection available to %s", dc.addr)
+	}
+
+	result := <-dc.chWrite
+	if n, err = result.n, result.err; err != nil {
+		log.Tracef("Error writing %s connection to %s: %s", typeOf(result.conn), dc.addr, err)
+		if err := result.conn.Close(); err != nil {
+			log.Debugf("Error closing %s connection to %s: %s", typeOf(result.conn), dc.addr, err)
+		}
 		return
 	}
-	log.Tracef("Wrote %d bytes to %s %s", len(b), dc.addr, dc.stateDesc())
+	log.Tracef("Wrote %d bytes to %s connection to %s", n, typeOf(result.conn), dc.addr)
 	return
 }
 
-// Close() implements the function from net.Conn
+// followupWrite is called by Write() if a connection's state already settled
+func (dc *Conn) followupWrite(b []byte) (n int, err error) {
+	if !dc.withValidConn(func(c conn) { c.Write(b, dc.chWrite) }) {
+		return 0, fmt.Errorf("no connection available to %s", dc.addr)
+	}
+	result := <-dc.chWrite
+	return result.n, result.err
+}
+
+// Close implements the function from net.Conn
 func (dc *Conn) Close() error {
-	log.Tracef("Closing %s connection to %s", dc.stateDesc(), dc.addr)
-	if atomic.LoadInt64(&dc.readBytes) > 0 {
-		if dc.inState(stateDetour) && wlTemporarily(dc.addr) {
-			log.Tracef("no error found till closing, add %s to permanent whitelist", dc.addr)
-			AddToWl(dc.addr, true)
-		} else if dc.inState(stateDirect) && !wlTemporarily(dc.addr) {
-			log.Tracef("no error found till closing, notify caller that %s can be dialed directly", dc.addr)
-			// just fire it, but not blocking if the chan is nil or no reader
-			select {
-			case DirectAddrCh <- dc.addr:
-			default:
-			}
+	log.Tracef("Closing connection to %s", dc.addr)
+	for len(dc.conns) > 0 {
+		conn := <-dc.conns
+		if err := conn.Close(); err != nil {
+			log.Debugf("Error closing %s connection to %s: %s", typeOf(conn), dc.addr, err)
 		}
 	}
-	return dc.getConn().Close()
+	return nil
 }
 
-// LocalAddr() implements the function from net.Conn
+// LocalAddr implements the function from net.Conn
 func (dc *Conn) LocalAddr() net.Addr {
-	return dc.getConn().LocalAddr()
+	log.Trace("LocalAddr not implemented")
+	return nil
 }
 
-// RemoteAddr() implements the function from net.Conn
+// RemoteAddr implements the function from net.Conn
 func (dc *Conn) RemoteAddr() net.Addr {
-	return dc.getConn().RemoteAddr()
+	log.Trace("RemoteAddr not implemented")
+	return nil
 }
 
-// SetDeadline() implements the function from net.Conn
+// SetDeadline implements the function from net.Conn
 func (dc *Conn) SetDeadline(t time.Time) error {
-	if err := dc.SetReadDeadline(t); err != nil {
-		log.Debugf("Unable to set read deadline: %v", err)
-	}
-	if err := dc.SetWriteDeadline(t); err != nil {
-		log.Debugf("Unable to set write deadline: %v", err)
-	}
-	return nil
+	return fmt.Errorf("SetDeadline not implemented")
 }
 
-// SetReadDeadline() implements the function from net.Conn
+// SetReadDeadline implements the function from net.Conn
 func (dc *Conn) SetReadDeadline(t time.Time) error {
-	dc.readDeadline = t
-	if err := dc.getConn().SetReadDeadline(t); err != nil {
-		log.Debugf("Unable to set read deadline: %v", err)
-	}
-	return nil
+	return fmt.Errorf("SetReadDeadline not implemented")
 }
 
-// SetWriteDeadline() implements the function from net.Conn
+// SetWriteDeadline implements the function from net.Conn
 func (dc *Conn) SetWriteDeadline(t time.Time) error {
-	dc.writeDeadline = t
-	if err := dc.getConn().SetWriteDeadline(t); err != nil {
-		log.Debugf("Unable to set write deadline", err)
+	return fmt.Errorf("SetWriteDeadline not implemented")
+}
+
+func (dc *Conn) withValidConn(f func(conn)) bool {
+	for i := 0; i < len(dc.conns); i++ {
+		select {
+		case c := <-dc.conns:
+			if c.Closed() {
+				log.Tracef("Drain closed %s connection to %s", typeOf(c), dc.addr)
+				continue
+			}
+			f(c)
+			dc.conns <- c
+			return true
+		default:
+			break
+		}
 	}
-	return nil
+	return false
 }
 
-func (dc *Conn) writeLocalBuffer(b []byte) (n int, err error) {
-	dc.muLocalBuffer.Lock()
-	n, err = dc.localBuffer.Write(b)
-	dc.muLocalBuffer.Unlock()
-	return
-}
-
-func (dc *Conn) resetLocalBuffer() {
-	dc.muLocalBuffer.Lock()
-	dc.localBuffer.Reset()
-	dc.muLocalBuffer.Unlock()
-}
-
-var nonIdempotentMethods = [][]byte{
+var nonidempotentMethods = [][]byte{
+	[]byte("PUT "),
 	[]byte("POST "),
 	[]byte("PATCH "),
 }
 
-// ref section 9.1.2 of https://www.ietf.org/rfc/rfc2616.txt.
-// checks against non-idemponent methods actually,
-// as we consider the https handshake phase to be idemponent.
-func (dc *Conn) isIdempotentRequest() bool {
-	dc.muLocalBuffer.Lock()
-	defer dc.muLocalBuffer.Unlock()
-	b := dc.localBuffer.Bytes()
+// Ref section 9.1.2 of https://www.ietf.org/rfc/rfc2616.txt.
+// We consider the https handshake phase to be idemponent.
+func isNonidempotentHTTPRequest(b []byte) bool {
 	if len(b) > 4 {
-		for _, m := range nonIdempotentMethods {
+		for _, m := range nonidempotentMethods {
 			if bytes.HasPrefix(b, m) {
-				return false
+				return true
 			}
 		}
 	}
-	return true
-}
-
-func (dc *Conn) countedRead(b []byte) (n int, err error) {
-	n, err = dc.getConn().Read(b)
-	atomic.AddInt64(&dc.readBytes, int64(n))
-	return
-}
-
-func (dc *Conn) getConn() (c net.Conn) {
-	dc.muConn.RLock()
-	defer dc.muConn.RUnlock()
-	return dc.conn
-}
-
-func (dc *Conn) setConn(c net.Conn) {
-	dc.muConn.Lock()
-	oldConn := dc.conn
-	dc.conn = c
-	dc.muConn.Unlock()
-	if err := dc.conn.SetReadDeadline(dc.readDeadline); err != nil {
-		log.Debugf("Unable to set read deadline: %v", err)
-	}
-	if err := dc.conn.SetWriteDeadline(dc.writeDeadline); err != nil {
-		log.Debugf("Unable to set write deadline: %v", err)
-	}
-	log.Tracef("Replaced connection to %s from direct to detour and closing old one", dc.addr)
-	if err := oldConn.Close(); err != nil {
-		log.Debugf("Unable to close old connection: %v", err)
-	}
-}
-
-func (dc *Conn) stateDesc() string {
-	return statesDesc[atomic.LoadUint32(&dc.state)]
-}
-
-func (dc *Conn) inState(s uint32) bool {
-	return atomic.LoadUint32(&dc.state) == s
-}
-
-func (dc *Conn) setState(s uint32) {
-	atomic.StoreUint32(&dc.state, s)
+	return false
 }
