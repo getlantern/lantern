@@ -5,6 +5,7 @@ package interceptor
 
 import (
 	"bufio"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"net"
@@ -65,7 +66,6 @@ type Packet struct {
 	dstPort    int
 
 	size int
-	data []byte
 }
 
 type ProxyConn struct {
@@ -119,28 +119,58 @@ func (i *Interceptor) openConnection(id, addr string) (*ProxyConn, error) {
 		if err := pc.Conn.(*net.TCPConn).SetKeepAlive(true); err != nil {
 			log.Errorf("Could not set keep alive on connection: %s", addr)
 		}
-		go i.Read(pc)
 		return pc, nil
 	}
 	return nil, fmt.Errorf("Error creating new proxy connection: %v", err)
 }
 
 func (i *Interceptor) Read(pc *ProxyConn) {
+	defer func() {
+		pc.Conn.Close()
+		i.conns[pc.id] = nil
+	}()
+
 	for {
 		data := make([]byte, _READ_BUF)
-		_, err := pc.Conn.Read(data)
+		n, err := pc.Conn.Read(data)
 		if err != nil {
 			if err != io.EOF {
-				pc.Conn.Close()
-				i.conns[pc.id] = nil
-				log.Errorf("Got non-EOF error: %v", err)
-				return
+				log.Fatalf("Got non-EOF error: %v", err)
 			} else {
 				log.Debugf("Received err denoting end of stream: %v", err)
 				return
 			}
 		}
+		log.Debugf("received:\n%v", hex.Dump(data[:n]))
 	}
+}
+
+func (i *Interceptor) TestHttpGet() error {
+
+	log.Debugf("Trying an HTTP GET over a TCP connection")
+
+	testAddr := "example.com:80"
+	id := fmt.Sprintf("127.0.0.1:8181:%s", testAddr)
+
+	conn, err := i.openConnection(id, testAddr)
+	if err != nil {
+		log.Errorf("Error opening up new connection: %v", err)
+		return err
+	}
+
+	req, err := http.NewRequest("GET", "http://example.com", nil)
+	if err != nil {
+		log.Errorf("Error constructing HTTP request: %v", err)
+		return err
+	}
+	err = req.Write(conn.Conn)
+	if err != nil {
+		log.Errorf("Error writing request to connection: %v", err)
+		return err
+	}
+
+	go i.Read(conn)
+	return nil
 }
 
 func New(protector protected.SocketProtector, logPackets bool,
@@ -189,8 +219,6 @@ func createPacket(b []byte) (*Packet, error) {
 	src, dst := netFlow.Endpoints()
 	p.destination = dst.String()
 	p.source = src.String()
-	p.data = b
-
 	return p, nil
 }
 
@@ -205,8 +233,8 @@ func (i *Interceptor) hasMasqAddr(p *Packet) bool {
 func (i *Interceptor) forwardPacket(p *Packet) error {
 
 	addr := fmt.Sprintf("%s:%d", p.destination, p.dstPort)
-	id := fmt.Sprintf("%s:%d:%s", p.source,
-		p.sourcePort, addr)
+	id := fmt.Sprintf("%s:%d:%s", p.source, p.sourcePort,
+		addr)
 	if i.conns[id] == nil {
 		// we haven't seen this 5-tuple before
 		// open a TCP stream and forward any future
@@ -217,9 +245,10 @@ func (i *Interceptor) forwardPacket(p *Packet) error {
 			return err
 		}
 		i.conns[id] = conn
+		go i.Read(conn)
 	}
 	// write the packet to the outbound TCP connection
-	bytes, err := i.conns[id].Conn.Write(p.data)
+	bytes, err := i.conns[id].Conn.Write(p.packet.Data())
 	if err != nil {
 		log.Errorf("Could not write packet to connection for addr: %s",
 			addr)

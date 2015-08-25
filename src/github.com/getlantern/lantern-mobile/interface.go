@@ -1,11 +1,15 @@
 package client
 
 import (
+	"github.com/getlantern/balancer"
 	"github.com/getlantern/lantern-mobile/interceptor"
-	"github.com/getlantern/lantern-mobile/protected"
+	//"github.com/getlantern/lantern-mobile/protected"
 )
 
-var i *interceptor.Interceptor
+var (
+	i           *interceptor.Interceptor
+	lanternAddr string
+)
 
 // Getfiretweetversion returns the current build version string
 func GetFireTweetVersion() string {
@@ -27,6 +31,7 @@ type SocketProvider interface {
 func RunClientProxy(listenAddr, appName string, protector SocketProvider, ready GoCallback) error {
 	go func() {
 		defaultClient = newClient(listenAddr, appName, protector)
+		lanternAddr = listenAddr
 		defaultClient.serveHTTP()
 		ready.AfterStart()
 	}()
@@ -39,7 +44,9 @@ func IsMasqueradeCheck(ip string) bool {
 
 func Configure(protector SocketProvider, ready GoCallback) error {
 	go func() {
+		balancer.Protector = protector
 		i = interceptor.New(protector, false,
+			lanternAddr,
 			ready.WritePacket, IsMasqueradeCheck)
 		ready.AfterConfigure()
 	}()
@@ -47,8 +54,7 @@ func Configure(protector SocketProvider, ready GoCallback) error {
 }
 
 func TestConnect(protector SocketProvider, addr string) error {
-	protected.Init(protector)
-	return protected.TestConnect(addr)
+	return i.TestHttpGet()
 }
 
 func ProcessPacket(b []byte, protector SocketProvider, ready GoCallback) error {
