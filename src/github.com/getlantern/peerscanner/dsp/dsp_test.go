@@ -41,7 +41,7 @@ func TestRegister(t *testing.T) {
 	}
 
 	// give dnssimple enough time to complete the operation
-	time.Sleep(1 * time.Second)
+	time.Sleep(100 * time.Millisecond)
 	if rec != nil {
 		err := u.DestroyRecord(rec)
 		assert.NoError(t, err, "Should be able to destroy record")
