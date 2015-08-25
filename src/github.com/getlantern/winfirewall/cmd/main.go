@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/kardianos/osext"
+
 	"github.com/getlantern/winfirewall"
 )
 
@@ -43,12 +45,18 @@ func main() {
 		fmt.Printf("Error switching firewall status: %v\n", err)
 	}
 
+	// Get current executable name
+	var path string
+	if path, err = osext.Executable(); err != nil {
+		fmt.Printf("Error getting current executable %v\n", err)
+		os.Exit(1)
+	}
 	// Setting a new Firewall Rule
 	fwRule := &winfirewall.FirewallRule{
 		Name:        "Lantern Outbound Traffic",
 		Description: "Allow outbound traffic from Lantern",
 		Group:       "Internet Access",
-		Application: "C:\\WINDOWS\\explorer.exe",
+		Application: path,
 		Outbound:    true,
 	}
 

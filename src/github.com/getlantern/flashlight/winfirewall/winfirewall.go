@@ -1,6 +1,8 @@
 package winfirewall
 
 import (
+	"github.com/kardianos/osext"
+
 	"github.com/getlantern/golog"
 	"github.com/getlantern/winfirewall"
 )
@@ -12,8 +14,7 @@ var (
 		Name:        "Lantern Outbound Traffic",
 		Description: "Allow outbound traffic from Lantern",
 		Group:       "Internet Access",
-		// TODO!!!!
-		Application: "C:\\WINDOWS\\explorer.exe",
+		Application: getExecutablePath(),
 		Outbound:    true,
 	}
 )
@@ -54,4 +55,13 @@ func Configure() {
 	if err = fw.SetRule(fwRule); err != nil {
 		log.Errorf("Error configuring Windows firewall policy: %v", err)
 	}
+}
+
+func getExecutablePath() (path string) {
+	var err error
+	if path, err = osext.Executable(); err != nil {
+		log.Errorf("Error finding current executable: %v", err)
+		return "Lantern.exe"
+	}
+	return
 }
