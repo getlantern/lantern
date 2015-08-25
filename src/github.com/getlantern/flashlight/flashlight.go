@@ -33,6 +33,7 @@ import (
 	"github.com/getlantern/flashlight/statserver"
 	"github.com/getlantern/flashlight/ui"
 	"github.com/getlantern/flashlight/util"
+	"github.com/getlantern/flashlight/winfirewall"
 
 	"github.com/mitchellh/panicwrap"
 )
@@ -168,6 +169,7 @@ func doMain() error {
 
 	parseFlags()
 
+	// Remote configuration service and updates
 	cfg, err := config.Init(packageVersion)
 	if err != nil {
 		return fmt.Errorf("Unable to initialize configuration: %v", err)
@@ -185,6 +187,14 @@ func doMain() error {
 		return fmt.Errorf("Wrong arguments")
 	}
 
+	// Configure Windows Firewall
+	if runtime.GOOS == "windows" {
+		if !winfirewall.IsConfigured() {
+			winfirewall.Configure()
+		}
+	}
+
+	// Start profiling
 	finishProfiling := profiling.Start(cfg.CpuProfile, cfg.MemProfile)
 	defer finishProfiling()
 

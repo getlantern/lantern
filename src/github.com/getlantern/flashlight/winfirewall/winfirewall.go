@@ -18,14 +18,14 @@ var (
 	}
 )
 
-// IsWindowsFirewallConfigured checks whether the Windows firewall is ready
-// to use Lantern.
-func IsWindowsFirewallConfigured() (ok bool) {
+// IsConfigured checks whether the Windows firewall is ready to use Lantern.
+func IsConfigured() (ok bool) {
 	fw, err := winfirewall.NewFirewallPolicy(false)
 	if err != nil {
 		log.Errorf("Error creating Windows firewall policy: %v", err)
 		return false
 	}
+	defer fw.Cleanup()
 	var isOn bool
 	if isOn, err = fw.IsOn(); err != nil {
 		log.Errorf("Error querying Windows firewall: %v", err)
@@ -43,12 +43,14 @@ func IsWindowsFirewallConfigured() (ok bool) {
 	return
 }
 
-func ConfigureWindowsFirewall() {
+// Configure will set up a rule to allow Lantern outbound connections.
+func Configure() {
 	// We need to escalate privileges if we want to configure the firewall
 	fw, err := winfirewall.NewFirewallPolicy(true)
 	if err != nil {
 		log.Errorf("Error creating Windows firewall policy: %v", err)
 	}
+	defer fw.Cleanup()
 	if err = fw.SetRule(fwRule); err != nil {
 		log.Errorf("Error configuring Windows firewall policy: %v", err)
 	}
