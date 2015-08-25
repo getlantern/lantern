@@ -204,35 +204,45 @@ func TestVariableTimeouts(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	doTestTimeout := func(timeout time.Duration) (didTimeout bool) {
+		_, err := DialWithDialer(&net.Dialer{
+			Timeout: timeout,
+		}, "tcp", ADDR, false, &tls.Config{
+			RootCAs: cert.PoolContainingCert(),
+		})
+
+		if err == nil {
+			return false
+		} else {
+			if neterr, isNetError := err.(net.Error); isNetError {
+				assert.True(t, neterr.Timeout(), "Dial error should be timeout", timeout)
+			} else {
+				t.Fatal(err)
+			}
+			return true
+		}
+	}
+
+	// The 1000-5000 microseconds limits are arbitrary. In some systems this may be too low/high.
+	// The algorithm will try to adapt if connections succeed and will lower the current limit,
+	// but it won't be allowed to timeout below the established lower boundary.
+	timeoutMin := 1000
+	timeoutMax := 5000
 	for i := 0; i < 500; i++ {
-		// The 5000 microseconds limit is arbitrary. In some systems this may be too high,
-		// leading to a successful connection and thus a failed test. On the other hand,
-		// we need to make this limit relatively high, to allow timeouts to happen at different
-		// places
-		doTestTimeout(t, time.Duration(rand.Intn(5000)+1)*time.Microsecond)
+		timeout := rand.Intn(timeoutMax) + 1
+		didTimeout := doTestTimeout(time.Duration(timeout) * time.Microsecond)
+		if !didTimeout {
+			if timeout < timeoutMin {
+				t.Fatalf("The connection succeeded in an unexpected short time: %d", timeout)
+			}
+			timeoutMax = int(float64(timeoutMax) * 0.75)
+			i-- // repeat the test
+		}
 	}
 
 	// Wait to give the sockets time to close
 	time.Sleep(1 * time.Second)
 	assert.NoError(t, fdc.AssertDelta(0), "Number of open files should be the same after test as before")
-}
-
-func doTestTimeout(t *testing.T, timeout time.Duration) {
-	_, err := DialWithDialer(&net.Dialer{
-		Timeout: timeout,
-	}, "tcp", ADDR, false, &tls.Config{
-		RootCAs: cert.PoolContainingCert(),
-	})
-
-	assert.Error(t, err, "There should have been a problem dialing", timeout)
-
-	if err != nil {
-		if neterr, isNetError := err.(net.Error); isNetError {
-			assert.True(t, neterr.Timeout(), "Dial error should be timeout", timeout)
-		} else {
-			t.Fatal(err)
-		}
-	}
 }
 
 func TestDeadlineBeforeTimeout(t *testing.T) {

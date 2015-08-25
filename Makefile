@@ -146,22 +146,22 @@ docker-genassets: require-npm
 docker-linux-386:
 	@source setenv.bash && \
 	$(call build-tags) && \
-	CGO_ENABLED=1 GOOS=linux GOARCH=386 go build -o lantern_linux_386 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
+	CGO_ENABLED=1 GOOS=linux GOARCH=386 go build -a -o lantern_linux_386 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
 
 docker-linux-amd64:
 	@source setenv.bash && \
 	$(call build-tags) && \
-	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o lantern_linux_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
+	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -a -o lantern_linux_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
 
 docker-linux-arm:
 	@source setenv.bash && \
 	$(call build-tags) && \
-	CGO_ENABLED=1 CC=arm-linux-gnueabi-gcc CXX=arm-linux-gnueabi-g++ CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 go build -o lantern_linux_arm -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
+	CGO_ENABLED=1 CC=arm-linux-gnueabi-gcc CXX=arm-linux-gnueabi-g++ CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 go build -a -o lantern_linux_arm -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
 
 docker-windows-386:
 	@source setenv.bash && \
 	$(call build-tags) && \
-	CC=i686-w64-mingw32-gcc CGO_ENABLED=1 GOOS=windows GOARCH=386 go build -o lantern_windows_386.exe -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -H=windowsgui" github.com/getlantern/flashlight;
+	CC=i686-w64-mingw32-gcc CGO_ENABLED=1 GOOS=windows GOARCH=386 go build -a -o lantern_windows_386.exe -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -H=windowsgui" github.com/getlantern/flashlight;
 
 require-assets:
 	@if [ ! -f ./src/github.com/getlantern/flashlight/ui/resources.go ]; then make genassets; fi
@@ -207,10 +207,10 @@ docker-package-windows: require-version docker-windows-386
 	if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
 	$(call package-settings) && \
 	INSTALLER_RESOURCES="installer-resources/windows" && \
-	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -in "lantern_windows_386.exe" -out "$$INSTALLER_RESOURCES/lantern.exe" && \
+	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "lantern_windows_386.exe" -out "$$INSTALLER_RESOURCES/lantern.exe" && \
 	echo $$PACKAGED_SETTINGS > $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
 	makensis -V1 -DVERSION=$$VERSION installer-resources/windows/lantern.nsi && \
-	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer.exe";
+	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer.exe";
 
 docker: system-checks
 	@$(call docker-up) && \
@@ -226,7 +226,7 @@ docker-mobile:
 	cp $(LANTERN_MOBILE_DIR)/Dockerfile $$DOCKER_CONTEXT && \
 	docker build -t $(DOCKER_MOBILE_IMAGE_TAG) $$DOCKER_CONTEXT
 
-linux: genassets linux-386 linux-amd64 linux-arm
+linux: genassets linux-386 linux-amd64 
 
 windows: genassets windows-386
 
@@ -302,7 +302,7 @@ darwin-amd64: require-assets
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		source setenv.bash && \
 		$(call build-tags) && \
-		CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -o lantern_darwin_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS)" github.com/getlantern/flashlight && \
+		CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -a -o lantern_darwin_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS)" github.com/getlantern/flashlight && \
 		cat lantern_darwin_amd64 | bzip2 > update_darwin_amd64.bz2 && \
 		ls -l lantern_darwin_amd64 update_darwin_amd64.bz2; \
 	else \
@@ -331,7 +331,7 @@ package-windows: require-version windows
 	if [[ -z "$$SECRETS_DIR" ]]; then echo "SECRETS_DIR environment value is required."; exit 1; fi && \
 	if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -v $$SECRETS_DIR:/secrets -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && BNS_CERT="/secrets/bns_cert.p12" BNS_CERT_PASS="'$$BNS_CERT_PASS'" VERSION="'$$VERSION'" MANOTO="'$$MANOTO'" make docker-package-windows' && \
+	docker run -v $$PWD:/lantern -v $$SECRETS_DIR:/secrets -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && BNS_CERT="/secrets/bns.pfx" BNS_CERT_PASS="'$$BNS_CERT_PASS'" VERSION="'$$VERSION'" MANOTO="'$$MANOTO'" make docker-package-windows' && \
 	echo "-> lantern-installer.exe"
 
 package-darwin: require-version require-appdmg require-svgexport darwin
@@ -443,9 +443,12 @@ release: require-version require-s3cmd require-gh-token require-wget require-rub
 	git add lantern-$$VERSION-$$TAG_COMMIT* && \
 	(git commit -am "Latest binaries for Lantern $$VERSION ($$TAG_COMMIT)." && git push origin master) || true
 
-update-icons:
+update-resources:
 	@(which go-bindata >/dev/null) || (echo 'Missing command "go-bindata". Sett https://github.com/jteeuwen/go-bindata.' && exit 1) && \
-	go-bindata -nomemcopy -nocompress -pkg main -o src/github.com/getlantern/flashlight/icons.go -prefix src/github.com/getlantern/flashlight/ src/github.com/getlantern/flashlight/icons
+	go-bindata -nomemcopy -nocompress -pkg main -o src/github.com/getlantern/flashlight/icons.go -prefix \
+	src/github.com/getlantern/flashlight/ src/github.com/getlantern/flashlight/icons && \
+	go-bindata -nomemcopy -nocompress -pkg status -o src/github.com/getlantern/flashlight/status/resources.go -prefix \
+	src/github.com/getlantern/flashlight/status_pages src/github.com/getlantern/flashlight/status_pages
 
 create-tag: require-version
 	@git tag -a "$$VERSION" -f --annotate -m"Tagged $$VERSION" && \

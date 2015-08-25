@@ -2,7 +2,6 @@ package config
 
 import (
 	"compress/gzip"
-	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -84,7 +83,6 @@ func Init(version string) (*Config, error) {
 	m = &yamlconf.Manager{
 		FilePath:         configPath,
 		FilePollInterval: 1 * time.Second,
-		ConfigServerAddr: *configaddr,
 		EmptyConfig: func() yamlconf.Config {
 			return &Config{}
 		},
@@ -222,7 +220,7 @@ func (cfg *Config) ApplyDefaults() {
 	}
 
 	if cfg.InstanceId == "" {
-		cfg.InstanceId = hex.EncodeToString(uuid.NodeID())
+		cfg.InstanceId = uuid.New()
 	}
 
 	// Make sure we always have a stats config

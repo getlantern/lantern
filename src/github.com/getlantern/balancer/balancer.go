@@ -94,12 +94,13 @@ func (b *Balancer) DialQOS(network, addr string, targetQOS int) (net.Conn, error
 		}
 		log.Debugf("Dialing %s://%s with %s", network, addr, d.Label)
 		conn, err := d.Dial(network, addr)
+
 		if err != nil {
-			log.Errorf("Unable to dial %s://%s: %v on pass %v...continuing", network, addr, err, i)
+			log.Errorf("Unable to dial via %v to %s://%s: %v on pass %v...continuing", d.Label, network, addr, err, i)
 			d.onError(err)
 			continue
 		}
-		log.Debugf("Successfully dialed to %v://%v on pass %v", network, addr, i)
+		log.Debugf("Successfully dialed via %v to %v://%v on pass %v", d.Label, network, addr, i)
 		return conn, nil
 	}
 }

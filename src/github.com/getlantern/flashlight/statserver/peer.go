@@ -3,6 +3,7 @@ package statserver
 import (
 	"math"
 	"net/http"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -32,6 +33,7 @@ type Peer struct {
 	atLastReporting *Peer
 	lastReported    time.Time
 	reportedFinal   bool
+	sync.Mutex
 }
 
 // publish is a function to which a peer can publish itself
@@ -58,7 +60,7 @@ func (peer *Peer) run() {
 	}
 
 	for {
-		newActivity := peer.LastConnected != peer.atLastReporting.LastConnected
+		newActivity := peer.lastConnected() != peer.atLastReporting.lastConnected()
 		if newActivity {
 			// We have new activity, meaning that we will eventually need to
 			// report a final update
@@ -74,13 +76,15 @@ func (peer *Peer) run() {
 			now := time.Now()
 			peer.lastReported = now
 			delta := peer.lastReported.Sub(peer.atLastReporting.lastReported).Seconds()
-			peer.BytesUpDn = peer.BytesUp + peer.BytesDn
-			peer.BPSDn = int64(float64(peer.BytesDn-peer.atLastReporting.BytesDn) / delta)
-			peer.BPSUp = int64(float64(peer.BytesUp-peer.atLastReporting.BytesUp) / delta)
+			peer.BytesUpDn = peer.bytesUp() + peer.bytesDn()
+			peer.BPSDn = int64(float64(peer.bytesDn()-peer.atLastReporting.bytesDn()) / delta)
+			peer.BPSUp = int64(float64(peer.bytesUp()-peer.atLastReporting.bytesUp()) / delta)
 			peer.BPSUpDn = peer.BPSDn + peer.BPSUp
 
 			// Remember copy of peer as last reported
+			peer.Lock()
 			*peer.atLastReporting = *peer
+			peer.Unlock()
 
 			// Publish copy of peer
 			peer.pub(peer.atLastReporting)
@@ -132,12 +136,32 @@ func (peer *Peer) doGeolocate() error {
 	return nil
 }
 
-func (peer *Peer) onBytesReceived(bytes int64) {
+func (peer *Peer) lastConnected() time.Time {
+	peer.Lock()
+	defer peer.Unlock()
+	return peer.LastConnected
+}
+
+func (peer *Peer) setLastConnected() {
+	peer.Lock()
+	defer peer.Unlock()
 	peer.LastConnected = time.Now()
+}
+
+func (peer *Peer) bytesDn() int64 {
+	return atomic.LoadInt64(&peer.BytesDn)
+}
+
+func (peer *Peer) bytesUp() int64 {
+	return atomic.LoadInt64(&peer.BytesUp)
+}
+
+func (peer *Peer) onBytesReceived(bytes int64) {
+	peer.setLastConnected()
 	atomic.AddInt64(&peer.BytesUp, bytes)
 }
 
 func (peer *Peer) onBytesSent(bytes int64) {
-	peer.LastConnected = time.Now()
+	peer.setLastConnected()
 	atomic.AddInt64(&peer.BytesDn, bytes)
 }

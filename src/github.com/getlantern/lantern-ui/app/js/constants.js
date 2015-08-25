@@ -35,7 +35,7 @@ var DEFAULT_LANG = 'en_US',
       es: {dir: 'ltr', name: 'español'},
       ar: {dir: 'rtl', name: 'العربية'}
     },
-    GOOGLE_ANALYTICS_WEBPROP_ID = 'UA-21815217-12',
+    GOOGLE_ANALYTICS_WEBPROP_ID = 'UA-21815217-13',
     GOOGLE_ANALYTICS_DISABLE_KEY = 'ga-disable-'+GOOGLE_ANALYTICS_WEBPROP_ID,
     loc = typeof location == 'object' ? location : undefined,
     // this allows the real backend to mount the entire app under a random path
