@@ -57,12 +57,15 @@ typedef struct firewall_rule_t {
 
 BSTR chars_to_BSTR(char *str);
 
-
 // Windows XP and XP SP2 versions
 #include "winfirewall-compat-xp.h"
 
 // Windows Vista and later versions
 #include "winfirewall-ascom.h"
+
+#undef RETURN_IF_FAILED
+#undef GOTO_IF_FAILED
+#undef WRAP_API
 
 
 // Get the error string from the error code
