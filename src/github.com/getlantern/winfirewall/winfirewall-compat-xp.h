@@ -3,10 +3,9 @@
  * Windows XP API version
  */
 
-const char const *program_suffix = " (program rule)";
-const char const *port_tcp_suffix = " (port TCP rule)";
-const char const *port_udp_suffix = " (port UDP rule)";
-
+const char const *program_suffix = _T(" (program rule)");
+const char const *port_tcp_suffix = _T(" (port TCP rule)");
+const char const *port_udp_suffix = _T(" (port UDP rule)");
 
 
 // Initialize the Firewall COM service. This API doesn't require elevating
@@ -168,9 +167,9 @@ HRESULT windows_firewall_rule_set_compat_xp(IN INetFwPolicy *policy,
 {
     HRESULT hr = S_OK;
 
-    char *program_rule_name = NULL;
-    char *port_tcp_rule_name = NULL;
-    char *port_udp_rule_name = NULL;
+    TCHAR program_rule_name[1024] = {0};
+    TCHAR port_tcp_rule_name[1024] = {0};
+    TCHAR port_udp_rule_name[1024] = {0};
     BSTR bstr_program_rule_name = NULL;
     BSTR bstr_port_tcp_rule_name = NULL;
     BSTR bstr_port_udp_rule_name = NULL;
@@ -191,10 +190,15 @@ HRESULT windows_firewall_rule_set_compat_xp(IN INetFwPolicy *policy,
 
     // Emulate API2 rules by applying Application and Port
     if (rule->application != NULL && rule->application[0] != 0) {
+
+#define STRSIZE_IN_BYTES(x)  (_countof(x) * sizeof(TCHAR))
+#define STR_COPY(x, y) StringCbCopy(x, STRSIZE_IN_BYTES(x), y);
+#define STR_CAT(x, y) StringCbCat(x, STRSIZE_IN_BYTES(x), y);
+        
         // Note: Windows won't register the rule if it's already registered
-        program_rule_name = malloc(strlen(rule->name)+strlen(program_suffix));
-        strcpy(program_rule_name, rule->name);
-        strcat(program_rule_name, program_suffix);
+
+        STR_COPY(program_rule_name, rule->name);
+        STR_CAT(program_rule_name, program_suffix);
         bstr_program_rule_name = chars_to_BSTR(program_rule_name);
 
         // Retrieve the authorized application collection
@@ -250,9 +254,8 @@ HRESULT windows_firewall_rule_set_compat_xp(IN INetFwPolicy *policy,
                              (void**)&fw_open_port_tcp)
             );
 
-        port_tcp_rule_name = malloc(strlen(rule->name)+strlen(port_tcp_suffix));
-        strcpy(port_tcp_rule_name, rule->name);
-        strcat(port_tcp_rule_name, port_tcp_suffix);
+        STR_COPY(port_tcp_rule_name, rule->name);
+        STR_CAT(port_tcp_rule_name, port_tcp_suffix);
         bstr_port_tcp_rule_name = chars_to_BSTR(port_tcp_rule_name);
 
         GOTO_IF_FAILED(
@@ -282,9 +285,8 @@ HRESULT windows_firewall_rule_set_compat_xp(IN INetFwPolicy *policy,
                              (void**)&fw_open_port_udp)
             );
 
-        port_udp_rule_name = malloc(strlen(rule->name)+strlen(port_udp_suffix));
-        strcpy(port_udp_rule_name, rule->name);
-        strcat(port_udp_rule_name, port_udp_suffix);
+        STR_COPY(port_udp_rule_name, rule->name);
+        STR_CAT(port_udp_rule_name, port_udp_suffix);
         bstr_port_udp_rule_name = chars_to_BSTR(port_udp_rule_name);
 
         GOTO_IF_FAILED(
@@ -323,13 +325,6 @@ cleanup:
     SysFreeString(bstr_port_tcp_rule_name);
     SysFreeString(bstr_port_udp_rule_name);
     SysFreeString(bstr_application);
-
-    if (program_rule_name != NULL)
-        free(program_rule_name);
-    if (port_tcp_rule_name != NULL)
-        free(port_tcp_rule_name);
-    if (port_udp_rule_name != NULL)
-        free(port_udp_rule_name);
 
     return hr;
 }

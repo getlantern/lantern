@@ -4,8 +4,6 @@
  */
 
 
-#include <strsafe.h>
-
 // Create a COM instance with elevated privileges
 HRESULT CoCreateInstanceAsAdmin(REFCLSID rclsid, REFIID riid, OUT void ** ppv)
 {
@@ -23,7 +21,7 @@ HRESULT CoCreateInstanceAsAdmin(REFCLSID rclsid, REFIID riid, OUT void ** ppv)
         cleanup,
         StringCchPrintf(moniker_name,
                         sizeof(moniker_name)/sizeof(moniker_name[0]),
-                        "Elevation:Administrator!new:%s",
+                        _T("Elevation:Administrator!new:%s"),
                         str_clsid)
         );
 

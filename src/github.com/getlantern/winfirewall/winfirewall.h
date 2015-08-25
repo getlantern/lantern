@@ -2,21 +2,24 @@
  * Connector API between Go and Windows Firewall COM interface
  */
 
+// Windows headers
 #include <windows.h>
 #include <crtdbg.h>
 #include <objbase.h>
 #include <oleauto.h>
 
+// String handling
+#include <tchar.h>
+#include <strsafe.h>
+
 // Firewall API
 #include <initguid.h>
 #include <netfw.h>
-
 
 // Linker pragmas
 #pragma comment(lib, "ole32.lib")
 #pragma comment(lib, "oleaut32.lib")
 #pragma comment(lib, "hnetcfg.lib")
-
 
 // Common definitions used by both APIs
 #define RETURN_IF_FAILED(expr)                  \
@@ -45,7 +48,6 @@
         }                                                               \
     } while(0)
 
-
 typedef struct firewall_rule_t {
     char *name;
     char *description;
@@ -57,22 +59,22 @@ typedef struct firewall_rule_t {
 
 BSTR chars_to_BSTR(char *str);
 
+
+
+
 // Windows XP and XP SP2 versions
 #include "winfirewall-compat-xp.h"
 
 // Windows Vista and later versions
 #include "winfirewall-ascom.h"
 
-#undef RETURN_IF_FAILED
-#undef GOTO_IF_FAILED
-#undef WRAP_API
+
 
 
 // Get the error string from the error code
 char* hr_to_string(HRESULT error)
 {
-    // Retrieve the system error message for the last-error code
-    LPVOID msg_buf;
+    PVOID msg_buf;
     FormatMessage(
         FORMAT_MESSAGE_ALLOCATE_BUFFER |
         FORMAT_MESSAGE_FROM_SYSTEM |
@@ -83,7 +85,10 @@ char* hr_to_string(HRESULT error)
         (LPTSTR)&msg_buf,
         0,
         NULL);
-    return msg_buf;
+
+    char *output = _T(msg_buf);
+    LocalFree(msg_buf);
+    return output;
 }
 
 // Convert char* to BSTR
@@ -153,3 +158,4 @@ HRESULT windows_firewall_rule_remove(IN void *policy, IN firewall_rule_t *rule)
     WRAP_API(windows_firewall_rule_remove, policy, rule);
 }
 
+#undef WRAP_API
