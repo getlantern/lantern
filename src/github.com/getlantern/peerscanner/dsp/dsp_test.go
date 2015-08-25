@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/getlantern/fdcount"
 	"github.com/getlantern/testify/assert"
@@ -39,6 +40,8 @@ func TestRegister(t *testing.T) {
 		assert.NotNil(t, rec, "A new record should have been returned")
 	}
 
+	// give dnssimple enough time to complete the operation
+	time.Sleep(1 * time.Second)
 	if rec != nil {
 		err := u.DestroyRecord(rec)
 		assert.NoError(t, err, "Should be able to destroy record")
