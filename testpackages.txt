@@ -13,6 +13,7 @@ github.com/getlantern/enproxy
 github.com/getlantern/fdcount
 github.com/getlantern/flashlight
 github.com/getlantern/flashlight/logging
+github.com/getlantern/flashlight/packaged
 github.com/getlantern/flashlight/pubsub
 github.com/getlantern/flashlight/server
 github.com/getlantern/flashlight/statreporter
