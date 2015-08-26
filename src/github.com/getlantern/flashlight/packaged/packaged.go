@@ -94,7 +94,7 @@ func packagedSettingsPath() (string, error) {
 		// Code signing doesn't like this file in the current directory
 		// for whatever reason, so we grab it from the Resources
 		// directory in the app bundle.
-		yamldir = dir + "/../Resources"
+		yamldir = dir + "/../Resources/en.lproj"
 	} else if runtime.GOOS == "linux" {
 		yamldir = dir
 	}
