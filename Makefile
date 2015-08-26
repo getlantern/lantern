@@ -104,7 +104,6 @@ define fpm-debian-build =
 	cp $$INSTALLER_RESOURCES/deb-copyright $$WORKDIR/usr/share/doc/lantern/copyright && \
 	cp $$INSTALLER_RESOURCES/lantern.desktop $$WORKDIR/usr/share/applications && \
 	cp $$INSTALLER_RESOURCES/icon128x128on.png $$WORKDIR/usr/share/icons/hicolor/128x128/apps/lantern.png && \
-	echo $$PACKAGED_SETTINGS > $$WORKDIR/usr/lib/lantern/$(PACKAGED_YAML) && \
 	\
 	cp lantern_linux_$$PKG_ARCH $$WORKDIR/usr/lib/lantern/lantern-binary && \
 	cp $$INSTALLER_RESOURCES/lantern.sh $$WORKDIR/usr/lib/lantern && \
@@ -114,7 +113,10 @@ define fpm-debian-build =
 	\
 	ln -s /usr/lib/lantern/lantern.sh $$WORKDIR/usr/bin/lantern && \
 	\
-	fpm -a $$PKG_ARCH -s dir -t deb -n lantern -v $$VERSION -m "$(PACKAGE_MAINTAINER)" --description "$(LANTERN_DESCRIPTION)\n$(LANTERN_EXTENDED_DESCRIPTION)" --category net --license "Apache-2.0" --vendor "$(PACKAGE_VENDOR)" --url $(PACKAGE_URL) --deb-compression xz -f -C $$WORKDIR usr;
+	fpm -a $$PKG_ARCH -s dir -t deb -n lantern -v $$VERSION -m "$(PACKAGE_MAINTAINER)" --description "$(LANTERN_DESCRIPTION)\n$(LANTERN_EXTENDED_DESCRIPTION)" --category net --license "Apache-2.0" --vendor "$(PACKAGE_VENDOR)" --url $(PACKAGE_URL) --deb-compression xz -f -C $$WORKDIR usr && \
+	\
+	echo $$PACKAGED_SETTINGS > $$WORKDIR/usr/lib/lantern/$(PACKAGED_YAML) && \
+	fpm -a $$PKG_ARCH -s dir -t deb -n lantern-manoto -v $$VERSION -m "$(PACKAGE_MAINTAINER)" --description "$(LANTERN_DESCRIPTION)\n$(LANTERN_EXTENDED_DESCRIPTION)" --category net --license "Apache-2.0" --vendor "$(PACKAGE_VENDOR)" --url $(PACKAGE_URL) --deb-compression xz -f -C $$WORKDIR usr;
 endef
 
 all: binaries
@@ -208,9 +210,13 @@ docker-package-windows: require-version docker-windows-386
 	$(call package-settings) && \
 	INSTALLER_RESOURCES="installer-resources/windows" && \
 	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "lantern_windows_386.exe" -out "$$INSTALLER_RESOURCES/lantern.exe" && \
+	cat $$INSTALLER_RESOURCES/lantern.exe | bzip2 > update_windows_386.bz2 && \
+	ls -l lantern_windows_386.exe update_windows_386.bz2 && \
+	makensis -V1 -DVERSION=$$VERSION installer-resources/windows/lantern.nsi && \
+	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer.exe" && \
 	echo $$PACKAGED_SETTINGS > $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
 	makensis -V1 -DVERSION=$$VERSION installer-resources/windows/lantern.nsi && \
-	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer.exe";
+	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer-manoto.exe";
 
 docker: system-checks
 	@$(call docker-up) && \
@@ -293,18 +299,14 @@ linux-arm: require-assets docker
 windows-386: require-assets docker
 	@echo "Building windows/386..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" MANOTO="'$$MANOTO'" make docker-windows-386' && \
-	cat lantern_windows_386.exe | bzip2 > update_windows_386.bz2 && \
-	ls -l lantern_windows_386.exe update_windows_386.bz2
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" MANOTO="'$$MANOTO'" make docker-windows-386'
 
 darwin-amd64: require-assets
 	@echo "Building darwin/amd64..." && \
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		source setenv.bash && \
 		$(call build-tags) && \
-		CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -a -o lantern_darwin_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS)" github.com/getlantern/flashlight && \
-		cat lantern_darwin_amd64 | bzip2 > update_darwin_amd64.bz2 && \
-		ls -l lantern_darwin_amd64 update_darwin_amd64.bz2; \
+		CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -a -o lantern_darwin_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS)" github.com/getlantern/flashlight; \
 	else \
 		echo "-> Skipped: Can not compile Lantern for OSX on a non-OSX host."; \
 	fi
@@ -331,11 +333,11 @@ package-windows: require-version windows
 	if [[ -z "$$SECRETS_DIR" ]]; then echo "SECRETS_DIR environment value is required."; exit 1; fi && \
 	if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -v $$SECRETS_DIR:/secrets -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && BNS_CERT="/secrets/bns.pfx" BNS_CERT_PASS="'$$BNS_CERT_PASS'" VERSION="'$$VERSION'" MANOTO="'$$MANOTO'" make docker-package-windows' && \
-	echo "-> lantern-installer.exe"
+	docker run -v $$PWD:/lantern -v $$SECRETS_DIR:/secrets -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && BNS_CERT="/secrets/bns.pfx" BNS_CERT_PASS="'$$BNS_CERT_PASS'" VERSION="'$$VERSION'" MANOTO="'true'" make docker-package-windows' && \
+	echo "-> lantern-installer.exe and lantern-installer-manoto.exe"
 
-package-darwin: require-version require-appdmg require-svgexport darwin
-	@echo "Generating distribution package for darwin/amd64..." && \
+package-darwin-manoto: require-version require-appdmg require-svgexport darwin
+	@echo "Generating distribution package for darwin/amd64 manoto..." && \
 	$(call package-settings) && \
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		INSTALLER_RESOURCES="installer-resources/darwin" && \
@@ -343,38 +345,31 @@ package-darwin: require-version require-appdmg require-svgexport darwin
 		cp -r $$INSTALLER_RESOURCES/Lantern.app_template Lantern.app && \
 		mkdir Lantern.app/Contents/MacOS && \
 		cp -r lantern_darwin_amd64 Lantern.app/Contents/MacOS/lantern && \
-		echo $$PACKAGED_SETTINGS > Lantern.app/Contents/Resources/$(PACKAGED_YAML) && \
+		echo $$PACKAGED_SETTINGS > Lantern.app/Contents/Resources/en.lproj/$(PACKAGED_YAML) && \
 		codesign -s "Developer ID Application: Brave New Software Project, Inc" Lantern.app && \
-		rm -rf Lantern.dmg && \
+		cat Lantern.app/Contents/MacOS/lantern | bzip2 > update_darwin_amd64.bz2 && \
+		ls -l lantern_darwin_amd64 update_darwin_amd64.bz2 && \
+		rm -rf lantern-installer.dmg && \
 		sed "s/__VERSION__/$$VERSION/g" $$INSTALLER_RESOURCES/dmgbackground.svg > $$INSTALLER_RESOURCES/dmgbackground_versioned.svg && \
 		$(SVGEXPORT) $$INSTALLER_RESOURCES/dmgbackground_versioned.svg $$INSTALLER_RESOURCES/dmgbackground.png 600:400 && \
 		sed "s/__VERSION__/$$VERSION/g" $$INSTALLER_RESOURCES/lantern.dmg.json > $$INSTALLER_RESOURCES/lantern_versioned.dmg.json && \
-		$(APPDMG) --quiet $$INSTALLER_RESOURCES/lantern_versioned.dmg.json Lantern.dmg && \
-		mv Lantern.dmg Lantern.dmg.zlib && \
-		hdiutil convert -quiet -format UDBZ -o Lantern.dmg Lantern.dmg.zlib && \
+		$(APPDMG) --quiet $$INSTALLER_RESOURCES/lantern_versioned.dmg.json lantern-installer.dmg && \
+		mv lantern-installer.dmg Lantern.dmg.zlib && \
+		hdiutil convert -quiet -format UDBZ -o lantern-installer.dmg Lantern.dmg.zlib && \
 		rm Lantern.dmg.zlib; \
 	else \
 		echo "-> Skipped: Can not generate a package on a non-OSX host."; \
 	fi;
 
-package-only-darwin: require-version require-appdmg require-svgexport 
+package-darwin: package-darwin-manoto 
 	@echo "Generating distribution package for darwin/amd64..." && \
-	$(call package-settings) && \
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		INSTALLER_RESOURCES="installer-resources/darwin" && \
-		rm -rf Lantern.app && \
-		cp -r $$INSTALLER_RESOURCES/Lantern.app_template Lantern.app && \
-		mkdir Lantern.app/Contents/MacOS && \
-		cp -r lantern_darwin_amd64 Lantern.app/Contents/MacOS/lantern && \
-		echo $$PACKAGED_SETTINGS > Lantern.app/Contents/Resources/$(PACKAGED_YAML) && \
-		codesign -s "Developer ID Application: Brave New Software Project, Inc" Lantern.app && \
-		rm -rf Lantern.dmg && \
-		sed "s/__VERSION__/$$VERSION/g" $$INSTALLER_RESOURCES/dmgbackground.svg > $$INSTALLER_RESOURCES/dmgbackground_versioned.svg && \
-		$(SVGEXPORT) $$INSTALLER_RESOURCES/dmgbackground_versioned.svg $$INSTALLER_RESOURCES/dmgbackground.png 600:400 && \
-		sed "s/__VERSION__/$$VERSION/g" $$INSTALLER_RESOURCES/lantern.dmg.json > $$INSTALLER_RESOURCES/lantern_versioned.dmg.json && \
-		$(APPDMG) --quiet $$INSTALLER_RESOURCES/lantern_versioned.dmg.json Lantern.dmg && \
-		mv Lantern.dmg Lantern.dmg.zlib && \
-		hdiutil convert -quiet -format UDBZ -o Lantern.dmg Lantern.dmg.zlib && \
+		rm Lantern.app/Contents/Resources/en.lproj/$(PACKAGED_YAML) && \
+		rm -rf lantern-installer-manoto.dmg && \
+		$(APPDMG) --quiet $$INSTALLER_RESOURCES/lantern_versioned.dmg.json lantern-manoto.dmg && \
+		mv lantern-installer-manoto.dmg Lantern.dmg.zlib && \
+		hdiutil convert -quiet -format UDBZ -o lantern-installer-manoto.dmg Lantern.dmg.zlib && \
 		rm Lantern.dmg.zlib; \
 	else \
 		echo "-> Skipped: Can not generate a package on a non-OSX host."; \
@@ -386,12 +381,17 @@ packages: require-version require-secrets clean binaries package-windows package
 
 release-qa: require-version require-s3cmd
 	@BASE_NAME="lantern-installer-qa" && \
+	BASE_NAME_MANOTO="lantern-installer-qa-manoto" && \
 	rm -f $$BASE_NAME* && \
 	cp lantern-installer.exe $$BASE_NAME.exe && \
-	cp Lantern.dmg $$BASE_NAME.dmg && \
+	cp lantern-installer-manoto.exe $$BASE_NAME_MANOTO.exe && \
+	cp lantern-installer.dmg $$BASE_NAME.dmg && \
+	cp lantern-installer-manoto.dmg $$BASE_NAME_MANOTO.dmg && \
 	cp lantern_*386.deb $$BASE_NAME-32-bit.deb && \
+	cp lantern-manoto_*386.deb $$BASE_NAME_MANOTO-32-bit.deb && \
 	cp lantern_*amd64.deb $$BASE_NAME-64-bit.deb && \
-	for NAME in $$(ls -1 $$BASE_NAME.exe $$BASE_NAME.dmg $$BASE_NAME-32-bit.deb $$BASE_NAME-64-bit.deb); do \
+	cp lantern-manoto_*amd64.deb $$BASE_NAME_MANOTO-64-bit.deb && \
+	for NAME in $$(ls -1 $$BASE_NAME*.*); do \
 		shasum $$NAME | cut -d " " -f 1 > $$NAME.sha1 && \
 		echo "Uploading SHA-1 `cat $$NAME.sha1`" && \
 		$(S3CMD) put -P $$NAME.sha1 s3://$(S3_BUCKET) && \
@@ -403,9 +403,9 @@ release-qa: require-version require-s3cmd
 		$(S3CMD) cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$VERSIONED && \
 		$(S3CMD) setacl s3://$(S3_BUCKET)/$$VERSIONED --acl-public; \
 	done && \
-	for NAME in $$(ls -1 update_darwin_amd64.bz2 update_linux_386.bz2 update_linux_amd64.bz2 update_windows_386.bz2); do \
-		echo "Copying update binary $$NAME..." && \
-		$(S3CMD) put -P $$NAME s3://$(S3_BUCKET); \
+	for NAME in $$(ls -1 update_darwin_amd64 update_linux_386 update_linux_amd64 update_windows_386); do \
+		echo "Copying versioned name $$NAME-$$VERSION.bz2..." && \
+		$(S3CMD) put -P $$NAME-$$VERSION.bz2 s3://$(S3_BUCKET); \
 	done && \
 	git tag -a "$$VERSION" -f --annotate -m"Tagged $$VERSION" && \
 	git push --tags -f
@@ -437,18 +437,15 @@ release: require-version require-s3cmd require-gh-token require-wget require-rub
 		$(S3CMD) cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$PROD && \
 		$(S3CMD) setacl s3://$(S3_BUCKET)/$$PROD --acl-public; \
 	done && \
-	for URL in $$($(S3CMD) ls s3://$(S3_BUCKET)/ | grep update_ | awk '{print $$4}'); do \
-		NAME=$$(basename $$URL) && \
-		$(S3CMD) get --force s3://$(S3_BUCKET)/$$NAME $$NAME; \
-	done && \
 	$(RUBY) ./installer-resources/tools/createrelease.rb "$(GH_USER)" "$(GH_RELEASE_REPOSITORY)" $$VERSION && \
 	echo "Uploading Windows binary for auto-updates" && \
-	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$VERSION update_windows_386.bz2 && \
-	echo "Uploading OSX binary for auto-updates" && \
-	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$VERSION update_darwin_amd64.bz2 && \
-	echo "Uploading Linux binaries for auto-updates" && \
-	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$VERSION update_linux_amd64.bz2 && \
-	$(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$VERSION update_linux_386.bz2 && \
+	for URL in $$($(S3CMD) ls s3://$(S3_BUCKET)/ | grep update_*$$VERSION | awk '{print $$4}'); do \
+		NAME=$$(basename $$URL) && \
+		STRIPPED_NAME=$$(echo "$$NAME" | cut -d - -f 1`.bz2) && \
+		$(S3CMD) get --force s3://$(S3_BUCKET)/$$NAME $$STRIPPED_NAME && \
+	    $(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$VERSION $$STRIPPED_NAME && \
+	    echo "Uploading $$STRIPPED_NAME for auto-updates"; \
+	done && \
 	echo "Copying binaries to $(LANTERN_BINARIES_PATH)..." && \
 	$(S3CMD) get --force s3://$(S3_BUCKET)/lantern-installer-32-bit.deb $(LANTERN_BINARIES_PATH)/lantern-installer-32.deb && \
 	$(S3CMD) get --force s3://$(S3_BUCKET)/lantern-installer-32-bit.deb.sha1 $(LANTERN_BINARIES_PATH)/lantern-installer-32.deb.sha1 && \
