@@ -122,7 +122,7 @@ FunctionEnd
 # start uninstaller section
 Section "uninstall"
     # Stop Lantern if necessary
-    ${nsProcess::KillProcess} "lantern.exe" $R0
+    ${nsProcess::CloseProcess} "lantern.exe" $R0
     # Sleep for 1 second to process a chance to die and file to become writable
     Sleep 1000
 
