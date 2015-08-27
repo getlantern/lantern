@@ -91,7 +91,7 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 	// Establish outbound connection.
 	addr := hostIncludingPort(req, 443)
 	d := func(network, addr string) (net.Conn, error) {
-		return client.getBalancer().DialQOS("tcp", addr, client.targetQOS(req))
+		return client.GetBalancer().DialQOS("tcp", addr, client.targetQOS(req))
 	}
 
 	if runtime.GOOS == "android" || client.ProxyAll {

@@ -45,7 +45,7 @@ var (
 
 // Creates a new protected connection with destination addr
 func New(protector SocketProtector, addr string) (*ProtectedConn, error) {
-	host, port, err := splitHostPort(addr)
+	host, port, err := SplitHostPort(addr)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func New(protector SocketProtector, addr string) (*ProtectedConn, error) {
 //   used for Android VpnService routing functionality)
 func (conn *ProtectedConn) Dial() (net.Conn, error) {
 	// do DNS query
-	IPAddr, err := conn.lookupIP()
+	IPAddr, err := conn.LookupIP()
 	if err != nil {
 		log.Errorf("Couldn't resolve host %s: %s", conn.addr, err)
 		return nil, err
@@ -212,7 +212,7 @@ func (conn *ProtectedConn) protect() error {
 	return conn.protector.Protect(conn.socketFd)
 }
 
-func (conn *ProtectedConn) lookupIP() (net.IP, error) {
+func (conn *ProtectedConn) LookupIP() (net.IP, error) {
 
 	// Check if we already have the IP address
 	IPAddr := net.ParseIP(conn.host)
@@ -269,7 +269,7 @@ func (conn *ProtectedConn) lookupIP() (net.IP, error) {
 	return ipAddr, nil
 }
 
-func splitHostPort(addr string) (string, int, error) {
+func SplitHostPort(addr string) (string, int, error) {
 	host, sPort, err := net.SplitHostPort(addr)
 	if err != nil {
 		log.Errorf("Could not split network address: %s", err)

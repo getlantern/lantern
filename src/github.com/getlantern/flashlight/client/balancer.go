@@ -11,7 +11,7 @@ import (
 // writes it back to client.balCh before returning it as a value. This way we
 // always have a balancer at client.balCh and, if we don't have one, it would
 // block until one arrives.
-func (client *Client) getBalancer() *balancer.Balancer {
+func (client *Client) GetBalancer() *balancer.Balancer {
 	bal := <-client.balCh
 	client.balCh <- bal
 	return bal

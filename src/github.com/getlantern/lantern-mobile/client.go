@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/getlantern/analytics"
+	"github.com/getlantern/balancer"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/logging"
@@ -78,16 +79,16 @@ func newClient(addr, appName string, protector protected.SocketProtector) *mobil
 		appName:     appName,
 		masquerades: make(map[string]bool),
 	}
-	if err := mClient.updateConfig(); err != nil {
-		log.Errorf("Unable to update config: %v", err)
-	}
+	go func() {
+		if err := mClient.updateConfig(); err != nil {
+			log.Errorf("Unable to update config: %v", err)
+		}
+	}()
 
-	// store default list of masquerade hosts
-	// since we want to bypass those while intercepting
-	// and forwarding packets
 	for _, masquerade := range cloudflareMasquerades {
 		mClient.masquerades[masquerade.IpAddress] = true
 	}
+
 	return mClient
 }
 
