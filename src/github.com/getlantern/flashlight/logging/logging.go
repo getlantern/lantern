@@ -56,9 +56,9 @@ func Init() error {
 		}
 	}
 	logFile = rotator.NewSizeRotator(filepath.Join(logdir, "lantern.log"))
-	// Set log files to 1 MB
+	// Set log files to 4 MB
 	logFile.RotationSize = 4 * 1024 * 1024
-	// Keep up to 20 log files
+	// Keep up to 5 log files
 	logFile.MaxRotation = 5
 
 	// Loggly has its own timestamp so don't bother adding it in message,
