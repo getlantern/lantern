@@ -71,7 +71,7 @@ type RawSocketServer struct {
 
 	ipLayer *layers.IPv4
 
-	writePacket func([]byte)
+	relayPacket func([]byte)
 }
 
 func init() {
@@ -255,12 +255,12 @@ func (r *RawSocketServer) injectPacketFromDst(tcpLayer *layers.TCP, rawBytes []b
 
 	outgoingPacket := buffer.Bytes()
 
-	r.writePacket(outgoingPacket)
+	r.replyPacket(outgoingPacket)
 
 	return nil
 }
 
-func (t *TunIO) HandlePacket(b []byte, writePacket func([]byte)) error {
+func (t *TunIO) HandlePacket(b []byte, relayPacket func([]byte)) error {
 
 	// Decoding TCP/IP
 	decoded := gopacket.NewPacket(
@@ -398,7 +398,7 @@ func (t *TunIO) HandlePacket(b []byte, writePacket func([]byte)) error {
 			dst:         dst,
 			window:      tcp.Window,
 			wb:          bytes.NewBuffer(nil),
-			writePacket: writePacket,
+			relayPacket: relayPacket,
 		}
 
 		srv = fwdSockets[srcKey][dstKey]
