@@ -257,11 +257,7 @@ func (r *RawSocketServer) injectPacketFromDst(tcpLayer *layers.TCP, rawBytes []b
 	fmt.Printf("outgoing packet length: %d", len(outgoingPacket))
 
 	r.writePacket(outgoingPacket)
-	/*p := tuntap.Packet{
-		Protocol:  0x800,
-		Truncated: false,
-		Packet:    outgoingPacket,
-	} */
+
 	return nil
 }
 
