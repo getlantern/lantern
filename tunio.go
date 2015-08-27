@@ -255,7 +255,7 @@ func (r *RawSocketServer) injectPacketFromDst(tcpLayer *layers.TCP, rawBytes []b
 
 	outgoingPacket := buffer.Bytes()
 
-	r.replyPacket(outgoingPacket)
+	r.relayPacket(outgoingPacket)
 
 	return nil
 }
