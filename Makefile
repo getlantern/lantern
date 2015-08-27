@@ -20,7 +20,7 @@ GIT_REVISION_DATE := $(shell git show -s --format=%ci $(GIT_REVISION_SHORTCODE))
 REVISION_DATE := $(shell date -u -j -f "%F %T %z" "$(GIT_REVISION_DATE)" +"%Y%m%d.%H%M%S" 2>/dev/null || date -u -d "$(GIT_REVISION_DATE)" +"%Y%m%d.%H%M%S")
 BUILD_DATE := $(shell date -u +%Y%m%d.%H%M%S)
 
-LOGGLY_TOKEN := 469973d5-6eaf-445a-be71-cf27141316a1
+LOGGLY_TOKEN := fc148724-107c-43bf-9a14-7250230e5741 
 
 LDFLAGS := -w -X main.version $(GIT_REVISION) -X main.revisionDate $(REVISION_DATE) -X main.buildDate $(BUILD_DATE) -X github.com/getlantern/flashlight/logging.logglyToken \"$(LOGGLY_TOKEN)\"
 LANTERN_DESCRIPTION := Censorship circumvention tool
