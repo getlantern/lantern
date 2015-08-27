@@ -57,9 +57,9 @@ func Init() error {
 	}
 	logFile = rotator.NewSizeRotator(filepath.Join(logdir, "lantern.log"))
 	// Set log files to 1 MB
-	logFile.RotationSize = 1 * 1024 * 1024
+	logFile.RotationSize = 4 * 1024 * 1024
 	// Keep up to 20 log files
-	logFile.MaxRotation = 20
+	logFile.MaxRotation = 5
 
 	// Loggly has its own timestamp so don't bother adding it in message,
 	// moreover, golog always write each line in whole, so we need not to care about line breaks.
