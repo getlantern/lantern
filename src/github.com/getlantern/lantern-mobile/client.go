@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/getlantern/analytics"
-	"github.com/getlantern/balancer"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/logging"
