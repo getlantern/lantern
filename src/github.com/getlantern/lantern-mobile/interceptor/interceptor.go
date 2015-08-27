@@ -7,7 +7,6 @@ package interceptor
 
 import (
 	"fmt"
-	"net"
 
 	"github.com/getlantern/balancer"
 	"github.com/getlantern/golog"
