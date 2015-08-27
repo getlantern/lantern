@@ -3,7 +3,6 @@ package tunio
 import (
 	"bufio"
 	"bytes"
-	"code.google.com/p/tuntap"
 	"errors"
 	"fmt"
 	"github.com/google/gopacket"
@@ -70,9 +69,9 @@ type RawSocketServer struct {
 
 	window uint16
 
-	iface *tuntap.Interface
-
 	ipLayer *layers.IPv4
+
+	writePacket func([]byte)
 }
 
 func init() {
@@ -255,24 +254,34 @@ func (r *RawSocketServer) injectPacketFromDst(tcpLayer *layers.TCP, rawBytes []b
 	)
 
 	outgoingPacket := buffer.Bytes()
+	fmt.Printf("outgoing packet length: %d", len(outgoingPacket))
 
-	p := tuntap.Packet{
+	r.writePacket(outgoingPacket)
+	/*p := tuntap.Packet{
 		Protocol:  0x800,
 		Truncated: false,
 		Packet:    outgoingPacket,
-	}
-
-	return r.iface.WritePacket(&p)
+	} */
+	return nil
 }
 
-func (t *TunIO) HandlePacket(iface *tuntap.Interface, packet *tuntap.Packet) error {
+func (t *TunIO) HandlePacket(b []byte, writePacket func([]byte)) error {
 
 	// Decoding TCP/IP
 	decoded := gopacket.NewPacket(
-		packet.Packet,
+		b,
 		layers.LayerTypeIPv4,
 		gopacket.Default,
 	)
+
+	if err := decoded.ErrorLayer(); err != nil {
+		return err.Error()
+	}
+
+	if decoded.NetworkLayer() == nil || decoded.TransportLayer() == nil ||
+		decoded.TransportLayer().LayerType() != layers.LayerTypeTCP {
+		return nil
+	}
 
 	var ip *layers.IPv4
 	var tcp *layers.TCP
@@ -389,12 +398,12 @@ func (t *TunIO) HandlePacket(iface *tuntap.Interface, packet *tuntap.Packet) err
 		}
 
 		fwdSockets[srcKey][dstKey] = &RawSocketServer{
-			connOut: connOut,
-			src:     src,
-			dst:     dst,
-			iface:   iface,
-			window:  tcp.Window,
-			wb:      bytes.NewBuffer(nil),
+			connOut:     connOut,
+			src:         src,
+			dst:         dst,
+			window:      tcp.Window,
+			wb:          bytes.NewBuffer(nil),
+			writePacket: writePacket,
 		}
 
 		srv = fwdSockets[srcKey][dstKey]
