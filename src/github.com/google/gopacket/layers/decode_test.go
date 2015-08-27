@@ -63,10 +63,6 @@ var testDecodeOptions = gopacket.DecodeOptions{
 	SkipDecodeRecovery: true,
 }
 
-type nilDecodeFeedback struct{}
-
-func (n *nilDecodeFeedback) SetTruncated() {}
-
 // Benchmarks for actual gopacket code
 
 func BenchmarkLayerClassSliceContains(b *testing.B) {
@@ -180,7 +176,7 @@ func BenchmarkLazyNoCopy(b *testing.B) {
 
 func BenchmarkKnownStack(b *testing.B) {
 	stack := []gopacket.DecodingLayer{&Ethernet{}, &IPv4{}, &TCP{}, &gopacket.Payload{}}
-	var nf gopacket.DecodeFeedback = &nilDecodeFeedback{}
+	var nf gopacket.DecodeFeedback = gopacket.NilDecodeFeedback
 	for i := 0; i < b.N; i++ {
 		data := testSimpleTCPPacket[:]
 		for _, d := range stack {

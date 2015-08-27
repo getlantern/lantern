@@ -12,6 +12,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
@@ -68,14 +69,18 @@ func (w *Writer) WriteFileHeader(snaplen uint32, linktype layers.LinkType) error
 }
 
 const nanosPerMicro = 1000
-const microsPerSecond = 1000000
 
 func (w *Writer) writePacketHeader(ci gopacket.CaptureInfo) error {
 	var buf [16]byte
-	micros := ci.Timestamp.UnixNano() / nanosPerMicro
-	secs, usecs := uint32(micros/microsPerSecond), uint32(micros%microsPerSecond)
-	binary.LittleEndian.PutUint32(buf[0:4], secs)
-	binary.LittleEndian.PutUint32(buf[4:8], usecs)
+
+	t := ci.Timestamp
+	if t.IsZero() {
+		t = time.Now()
+	}
+	secs := t.Unix()
+	usecs := t.Nanosecond() / nanosPerMicro
+	binary.LittleEndian.PutUint32(buf[0:4], uint32(secs))
+	binary.LittleEndian.PutUint32(buf[4:8], uint32(usecs))
 	binary.LittleEndian.PutUint32(buf[8:12], uint32(ci.CaptureLength))
 	binary.LittleEndian.PutUint32(buf[12:16], uint32(ci.Length))
 	_, err := w.w.Write(buf[:])

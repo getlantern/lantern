@@ -54,7 +54,14 @@ func (udp *UDP) DecodeFromBytes(data []byte, df gopacket.DecodeFeedback) error {
 // SerializationBuffer, implementing gopacket.SerializableLayer.
 // See the docs for gopacket.SerializableLayer for more info.
 func (u *UDP) SerializeTo(b gopacket.SerializeBuffer, opts gopacket.SerializeOptions) error {
+	var jumbo bool
+
 	payload := b.Bytes()
+	if _, ok := u.pseudoheader.(*IPv6); ok {
+		if len(payload)+8 > 65535 {
+			jumbo = true
+		}
+	}
 	bytes, err := b.PrependBytes(8)
 	if err != nil {
 		return err
@@ -62,7 +69,11 @@ func (u *UDP) SerializeTo(b gopacket.SerializeBuffer, opts gopacket.SerializeOpt
 	binary.BigEndian.PutUint16(bytes, uint16(u.SrcPort))
 	binary.BigEndian.PutUint16(bytes[2:], uint16(u.DstPort))
 	if opts.FixLengths {
-		u.Length = uint16(len(payload)) + 8
+		if jumbo {
+			u.Length = 0
+		} else {
+			u.Length = uint16(len(payload)) + 8
+		}
 	}
 	binary.BigEndian.PutUint16(bytes[4:], u.Length)
 	if opts.ComputeChecksums {

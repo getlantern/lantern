@@ -3,7 +3,6 @@ package client
 import (
 	"github.com/getlantern/balancer"
 	"github.com/getlantern/lantern-mobile/interceptor"
-	//"github.com/getlantern/lantern-mobile/protected"
 )
 
 var (
@@ -42,19 +41,20 @@ func IsMasqueradeCheck(ip string) bool {
 	return defaultClient.IsMasqueradeCheck(ip)
 }
 
+func getBalancer() *balancer.Balancer {
+	return defaultClient.Client.GetBalancer()
+}
+
 func Configure(protector SocketProvider, ready GoCallback) error {
 	go func() {
 		balancer.Protector = protector
 		i = interceptor.New(protector, false,
 			lanternAddr,
+			getBalancer(),
 			ready.WritePacket, IsMasqueradeCheck)
 		ready.AfterConfigure()
 	}()
 	return nil
-}
-
-func TestConnect(protector SocketProvider, addr string) error {
-	return i.TestHttpGet()
 }
 
 func ProcessPacket(b []byte, protector SocketProvider, ready GoCallback) error {
