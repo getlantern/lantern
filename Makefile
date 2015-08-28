@@ -460,6 +460,7 @@ release: require-version require-s3cmd require-gh-token require-wget require-rub
 	cp $(LANTERN_BINARIES_PATH)/lantern-installer.dmg.sha1 $(LANTERN_BINARIES_PATH)/lantern-$$VERSION-$$TAG_COMMIT.dmg.sha1 && \
 	cp $(LANTERN_BINARIES_PATH)/lantern-installer.exe.sha1 $(LANTERN_BINARIES_PATH)/lantern-$$VERSION-$$TAG_COMMIT.exe.sha1
 	@cd $(LANTERN_BINARIES_PATH) && \
+	git pull && \
 	git add lantern-$$VERSION-$$TAG_COMMIT* && \
 	(git commit -am "Latest binaries for Lantern $$VERSION ($$TAG_COMMIT)." && git push origin master) || true
 
