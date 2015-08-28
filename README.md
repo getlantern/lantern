@@ -273,7 +273,7 @@ To build a development library (takes shorter time):
 make android-lib
 ```
 
-To build the final version for Firetweet
+To build the final version for Firetweet:
 
 ```
 make android-lib-dist
@@ -312,8 +312,8 @@ Use `make create-tag` as a shortcut for creating and uploading tags:
 VERSION='2.0.0-beta5' make create-tag
 ```
 
-If you want to both create a package and upload a tag run the `create-tag` task
-right after the `packages` task.
+If you want to both create a package and upload a tag, run the `create-tag` task
+right after the `packages` task:
 
 ```
 [...env variables...] make packages create-tag
