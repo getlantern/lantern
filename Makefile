@@ -367,7 +367,7 @@ package-darwin: package-darwin-manoto
 		INSTALLER_RESOURCES="installer-resources/darwin" && \
 		rm Lantern.app/Contents/Resources/en.lproj/$(PACKAGED_YAML) && \
 		rm -rf lantern-installer-manoto.dmg && \
-		$(APPDMG) --quiet $$INSTALLER_RESOURCES/lantern_versioned.dmg.json lantern-manoto.dmg && \
+		$(APPDMG) --quiet $$INSTALLER_RESOURCES/lantern_versioned.dmg.json lantern-installer-manoto.dmg && \
 		mv lantern-installer-manoto.dmg Lantern.dmg.zlib && \
 		hdiutil convert -quiet -format UDBZ -o lantern-installer-manoto.dmg Lantern.dmg.zlib && \
 		rm Lantern.dmg.zlib; \
