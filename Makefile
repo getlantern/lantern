@@ -345,6 +345,7 @@ package-darwin-manoto: require-version require-appdmg require-svgexport darwin
 		cp -r $$INSTALLER_RESOURCES/Lantern.app_template Lantern.app && \
 		mkdir Lantern.app/Contents/MacOS && \
 		cp -r lantern_darwin_amd64 Lantern.app/Contents/MacOS/lantern && \
+		mkdir Lantern.app/Contents/Resources/en.lproj && \
 		echo $$PACKAGED_SETTINGS > Lantern.app/Contents/Resources/en.lproj/$(PACKAGED_YAML) && \
 		codesign -s "Developer ID Application: Brave New Software Project, Inc" Lantern.app && \
 		cat Lantern.app/Contents/MacOS/lantern | bzip2 > update_darwin_amd64.bz2 && \
