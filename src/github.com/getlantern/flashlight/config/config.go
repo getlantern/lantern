@@ -104,13 +104,18 @@ func Init(version string) (*Config, error) {
 			}
 
 			var bytes []byte
-			bytes, err = cfg.fetchCloudConfig()
-			if err == nil && bytes != nil {
-				mutate = func(ycfg yamlconf.Config) error {
-					log.Debugf("Merging cloud configuration")
-					cfg := ycfg.(*Config)
-					return cfg.updateFrom(bytes)
+			if bytes, err = cfg.fetchCloudConfig(); err == nil {
+				if bytes != nil {
+					mutate = func(ycfg yamlconf.Config) error {
+						log.Debugf("Merging cloud configuration")
+						cfg := ycfg.(*Config)
+						return cfg.updateFrom(bytes)
+					}
+				} else {
+					log.Errorf("Nil bytes?")
 				}
+			} else {
+				log.Errorf("Could not fetch cloud config %v", err)
 			}
 			return
 		},
@@ -374,6 +379,7 @@ func (cfg Config) fetchCloudConfig() ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to open gzip reader: %s", err)
 	}
+	log.Debugf("Fetched cloud config")
 	return ioutil.ReadAll(gzReader)
 }
 
