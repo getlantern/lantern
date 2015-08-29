@@ -11,7 +11,7 @@ RUBY := $(shell which ruby 2> /dev/null)
 APPDMG := $(shell which appdmg 2> /dev/null)
 SVGEXPORT := $(shell which svgexport 2> /dev/null)
 
-BOOT2DOCKER := $(shell which boot2docker 2> /dev/null)
+DOCKERMACHINE := $(shell which docker-machine 2> /dev/null)
 
 GIT_REVISION_SHORTCODE := $(shell git rev-parse --short HEAD)
 GIT_REVISION := $(shell git describe --abbrev=0 --tags --exact-match 2> /dev/null || git rev-parse --short HEAD)
@@ -75,14 +75,14 @@ endef
 
 define docker-up
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
-		if [[ -z "$(BOOT2DOCKER)" ]]; then \
-			echo 'Missing "boot2docker" command' && exit 1; \
+		if [[ -z "$(DOCKERMACHINE)" ]]; then \
+			echo 'Missing "docker-machine" command' && exit 1; \
 		fi && \
-		if [[ "$$($(BOOT2DOCKER) status)" != "running" ]]; then \
-			$(BOOT2DOCKER) up; \
+		if [[ "$$($(DOCKERMACHINE) status default)" != "Running" ]]; then \
+			$(DOCKERMACHINE) start default; \
 		fi && \
 		if [[ -z "$$DOCKER_HOST" ]]; then \
-			$$($(BOOT2DOCKER) shellinit 2>/dev/null); \
+			$$(eval "$($DOCKERMACHINE env default)"); \
 		fi \
 	fi
 endef
