@@ -99,6 +99,10 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 	} else {
 		connOut, err = detour.Dialer(d)("tcp", addr)
 	}
+	if err != nil {
+		log.Debugf("Could not dial %v", err)
+		return
+	}
 
 	if <-success {
 		// Pipe data between the client and the proxy.
