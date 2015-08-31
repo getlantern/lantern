@@ -2,15 +2,14 @@ package geolookup
 
 import (
 	"fmt"
-	"io/ioutil"
 	"math"
 	"math/rand"
 	"net/http"
+	"net/http/httputil"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	"github.com/getlantern/enproxy"
 	"github.com/getlantern/golog"
 
 	"github.com/getlantern/flashlight/pubsub"
@@ -104,9 +103,6 @@ func lookupIp(httpClient *http.Client) (string, string, error) {
 		return "", "", fmt.Errorf("Could not create request: %q", err)
 	}
 
-	// Enproxy returns an error if this isn't there.
-	req.Header.Set(enproxy.X_ENPROXY_ID, "1")
-
 	if resp, err = httpClient.Do(req); err != nil {
 		return "", "", fmt.Errorf("Could not get response from server: %q", err)
 	}
@@ -117,12 +113,12 @@ func lookupIp(httpClient *http.Client) (string, string, error) {
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		body := "body unreadable"
-		b, err := ioutil.ReadAll(resp.Body)
-		if err == nil {
-			body = string(b)
+		if full, err := httputil.DumpResponse(resp, true); err != nil {
+			log.Errorf("Could not read full response %v", err)
+		} else {
+			log.Errorf("Unexpected response to geo IP lookup: %v", string(full))
 		}
-		return "", "", fmt.Errorf("Unexpected response status %d: %v", resp.StatusCode, body)
+		return "", "", fmt.Errorf("Unexpected response status %d", resp.StatusCode)
 	}
 
 	ip := resp.Header.Get("Lantern-Ip")

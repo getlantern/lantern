@@ -7,7 +7,6 @@ import (
 	"net"
 	"net/http"
 	"net/http/httputil"
-	"runtime"
 
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/getlantern/idletiming"
