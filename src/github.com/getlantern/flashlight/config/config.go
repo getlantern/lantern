@@ -280,7 +280,7 @@ func (cfg *Config) applyClientDefaults() {
 			&client.FrontedServerInfo{
 				Host:           "nl.fallbacks.getiantem.org",
 				Port:           443,
-				PoolSize:       30,
+				PoolSize:       0,
 				MasqueradeSet:  cloudflare,
 				MaxMasquerades: 20,
 				QOS:            10,
