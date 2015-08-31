@@ -5,6 +5,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -128,6 +129,37 @@ func (p *Proxy) Serve(l net.Listener) error {
 	return httpServer.Serve(l)
 }
 
+func (p *Proxy) parseRequestProps(resp http.ResponseWriter, req *http.Request) (string, string, string, error) {
+	path := req.URL.Path
+
+	// If it's a reasonably long path, it likely follows our new request URI format:
+	// /X-Enproxy-Id/X-Enproxy-Dest-Addr/X-Enproxy-Op
+	if len(path) > 5 {
+		r, err := regexp.Compile("/(.*)/(.*)/(.*)")
+		if err != nil {
+			return "", "", "", fmt.Errorf("Regex error: %v", err)
+		}
+		strs := r.FindStringSubmatch(path)
+		if len(strs) < 4 {
+			return "", "", "", fmt.Errorf("Unexpected request path: %v", path)
+		}
+		return strs[1], strs[2], strs[3], nil
+	}
+
+	id := req.Header.Get(X_ENPROXY_ID)
+	if id == "" {
+		return "", "", "", fmt.Errorf("No id found in header %s", X_ENPROXY_ID)
+	}
+
+	addr := req.Header.Get(X_ENPROXY_DEST_ADDR)
+	if addr == "" {
+		return "", "", "", fmt.Errorf("No address found in header %s", X_ENPROXY_DEST_ADDR)
+	}
+
+	op := req.Header.Get(X_ENPROXY_OP)
+	return id, addr, op, nil
+}
+
 // ServeHTTP: implements the http.Handler interface
 func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	resp.Header().Set("Lantern-IP", req.Header.Get("X-Forwarded-For"))
@@ -139,15 +171,10 @@ func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	id := req.Header.Get(X_ENPROXY_ID)
-	if id == "" {
-		respond(http.StatusBadRequest, resp, fmt.Sprintf("No id found in header %s", X_ENPROXY_ID))
-		return
-	}
-
-	addr := req.Header.Get(X_ENPROXY_DEST_ADDR)
-	if addr == "" {
-		respond(http.StatusBadRequest, resp, fmt.Sprintf("No address found in header %s", X_ENPROXY_DEST_ADDR))
+	id, addr, op, er := p.parseRequestProps(resp, req)
+	if er != nil {
+		respond(http.StatusBadRequest, resp, er.Error())
+		log.Errorf("Could not parse enproxy data: %v", er)
 		return
 	}
 
@@ -162,7 +189,6 @@ func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	op := req.Header.Get(X_ENPROXY_OP)
 	if op == OP_WRITE {
 		p.handleWrite(resp, req, lc, connOut, isNew)
 	} else if op == OP_READ {
