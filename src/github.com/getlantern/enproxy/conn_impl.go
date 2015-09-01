@@ -132,8 +132,8 @@ func (c *conn) doRequest(proxyConn *connInfo, host string, op string, request *r
 	if request != nil {
 		body = request.body
 	}
-	fullRequest := host + "/" + c.id + "/" + c.addr + "/" + op
-	req, err := c.config.NewRequest(fullRequest, "POST", body)
+	path := c.id + "/" + c.addr + "/" + op
+	req, err := c.config.NewRequest(host, path, "POST", body)
 	if err != nil {
 		err = fmt.Errorf("Unable to construct request to %s via proxy %s: %s", c.addr, host, err)
 		return
