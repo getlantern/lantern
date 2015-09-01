@@ -352,6 +352,9 @@ func (cfg Config) fetchCloudConfig() ([]byte, error) {
 		req.Header.Set(ifNoneMatch, lastCloudConfigETag[url])
 	}
 
+	// Prevents intermediate nodes (CloudFlare) from caching the content
+	req.Header.Set("Cache-Control", "no-cache")
+
 	// make sure to close the connection after reading the Body
 	// this prevents the occasional EOFs errors we're seeing with
 	// successive requests
@@ -374,11 +377,11 @@ func (cfg Config) fetchCloudConfig() ([]byte, error) {
 		return nil, fmt.Errorf("Unexpected response status: %d", resp.StatusCode)
 	}
 
-	lastCloudConfigETag[url] = resp.Header.Get(etag)
 	gzReader, err := gzip.NewReader(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to open gzip reader: %s", err)
 	}
+	lastCloudConfigETag[url] = resp.Header.Get(etag)
 	log.Debugf("Fetched cloud config")
 	return ioutil.ReadAll(gzReader)
 }
