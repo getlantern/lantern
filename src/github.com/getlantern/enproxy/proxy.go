@@ -16,6 +16,10 @@ const (
 	DEFAULT_READ_BUFFER_SIZE   = 65536
 )
 
+var (
+	r = regexp.MustCompile("/(.*)/(.*)/(.*)/")
+)
+
 // Proxy is the server side to an enproxy.Client.  Proxy implements the
 // http.Handler interface for plugging into an HTTP server, and it also
 // provides a convenience ListenAndServe() function for quickly starting up
@@ -131,10 +135,6 @@ func (p *Proxy) Serve(l net.Listener) error {
 
 func (p *Proxy) parseRequestPath(path string) (string, string, string, error) {
 	log.Debugf("Path is %v", path)
-	r, err := regexp.Compile("/(.*)/(.*)/(.*)/")
-	if err != nil {
-		return "", "", "", fmt.Errorf("Regex error: %v", err)
-	}
 	strs := r.FindStringSubmatch(path)
 	if len(strs) < 4 {
 		return "", "", "", fmt.Errorf("Unexpected request path: %v", path)
