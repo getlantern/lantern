@@ -113,6 +113,7 @@ define fpm-debian-build =
 	\
 	ln -s /usr/lib/lantern/lantern.sh $$WORKDIR/usr/bin/lantern && \
 	\
+	cat $$WORKDIR/usr/lib/lantern/lantern-binary | bzip2 > update_linux_$$PKG_ARCH.bz2 && \
 	fpm -a $$PKG_ARCH -s dir -t deb -n lantern -v $$VERSION -m "$(PACKAGE_MAINTAINER)" --description "$(LANTERN_DESCRIPTION)\n$(LANTERN_EXTENDED_DESCRIPTION)" --category net --license "Apache-2.0" --vendor "$(PACKAGE_VENDOR)" --url $(PACKAGE_URL) --deb-compression xz -f -C $$WORKDIR usr && \
 	\
 	echo $$PACKAGED_SETTINGS > $$WORKDIR/usr/lib/lantern/$(PACKAGED_YAML) && \
@@ -193,7 +194,8 @@ docker-package-linux-arm: docker-linux-arm docker-package-debian-arm
 docker-package-debian-386: require-version docker-linux-386
 	@cp lantern_linux_386 lantern_linux_i386;
 	@$(call fpm-debian-build,"i386")
-	@rm lantern_linux_i386 && \
+	@rm lantern_linux_i386;
+	@mv update_linux_i386.bz2 update_linux_386.bz2 && \
 	echo "-> lantern_$(VERSION)_i386.deb"
 
 docker-package-debian-amd64: require-version docker-linux-amd64
@@ -278,23 +280,17 @@ genassets: docker
 linux-386: require-assets docker
 	@echo "Building linux/386..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" MANOTO="'$$MANOTO'" make docker-linux-386' && \
-	cat lantern_linux_386 | bzip2 > update_linux_386.bz2 && \
-	ls -l lantern_linux_386 update_linux_386.bz2
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" MANOTO="'$$MANOTO'" make docker-linux-386'
 
 linux-amd64: require-assets docker
 	@echo "Building linux/amd64..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" MANOTO="'$$MANOTO'" make docker-linux-amd64' && \
-	cat lantern_linux_amd64 | bzip2 > update_linux_amd64.bz2 && \
-	ls -l lantern_linux_amd64 update_linux_amd64.bz2
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" MANOTO="'$$MANOTO'" make docker-linux-amd64'
 
 linux-arm: require-assets docker
 	@echo "Building linux/arm..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="1" MANOTO="'$$MANOTO'" make docker-linux-arm' && \
-	cat lantern_linux_arm | bzip2 > update_linux_arm.bz2 && \
-	ls -l lantern_linux_arm update_linux_arm.bz2
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="1" MANOTO="'$$MANOTO'" make docker-linux-arm'
 
 windows-386: require-assets docker
 	@echo "Building windows/386..." && \
