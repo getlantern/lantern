@@ -369,6 +369,7 @@ func (cfg Config) fetchCloudConfig() ([]byte, error) {
 			log.Debugf("Error closing response body: %v", err)
 		}
 	}()
+	lastCloudConfigETag[url] = resp.Header.Get(etag)
 
 	if resp.StatusCode == 304 {
 		log.Debugf("Config unchanged in cloud")
@@ -381,7 +382,6 @@ func (cfg Config) fetchCloudConfig() ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to open gzip reader: %s", err)
 	}
-	lastCloudConfigETag[url] = resp.Header.Get(etag)
 	log.Debugf("Fetched cloud config")
 	return ioutil.ReadAll(gzReader)
 }
