@@ -185,12 +185,6 @@ require-lantern-binaries:
 		exit 1; \
 	fi
 
-docker-package-linux-386: docker-linux-386 docker-package-debian-386
-
-docker-package-linux-amd64: docker-linux-amd64 docker-package-debian-amd64
-
-docker-package-linux-arm: docker-linux-arm docker-package-debian-arm
-
 docker-package-debian-386: require-version docker-linux-386
 	@cp lantern_linux_386 lantern_linux_i386;
 	@$(call fpm-debian-build,"i386")
@@ -310,17 +304,17 @@ darwin-amd64: require-assets
 package-linux-386: require-version genassets linux-386
 	@echo "Generating distribution package for linux/386..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" MANOTO="'$$MANOTO'" make docker-package-linux-386'
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" MANOTO="'$$MANOTO'" make docker-package-debian-386'
 
 package-linux-amd64: require-version genassets linux-amd64
 	@echo "Generating distribution package for linux/amd64..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" MANOTO="'$$MANOTO'" make docker-package-linux-amd64'
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" MANOTO="'$$MANOTO'" make docker-package-debian-amd64'
 
 package-linux-arm: require-version genassets linux-arm
 	@echo "Generating distribution package for linux/arm..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" MANOTO="'$$MANOTO'" HEADLESS="1" make docker-package-linux-arm'
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" MANOTO="'$$MANOTO'" HEADLESS="1" make docker-package-debian-arm'
 
 package-linux: require-version package-linux-386 package-linux-amd64
 
