@@ -129,21 +129,24 @@ func (p *Proxy) Serve(l net.Listener) error {
 	return httpServer.Serve(l)
 }
 
-func (p *Proxy) parseRequestProps(resp http.ResponseWriter, req *http.Request) (string, string, string, error) {
-	path := req.URL.Path
+func (p *Proxy) parseRequestPath(path string) (string, string, string, error) {
+	log.Debugf("Path is %v", path)
+	r, err := regexp.Compile("/(.*)/(.*)/(.*)/")
+	if err != nil {
+		return "", "", "", fmt.Errorf("Regex error: %v", err)
+	}
+	strs := r.FindStringSubmatch(path)
+	if len(strs) < 4 {
+		return "", "", "", fmt.Errorf("Unexpected request path: %v", path)
+	}
+	return strs[1], strs[2], strs[3], nil
+}
 
+func (p *Proxy) parseRequestProps(req *http.Request) (string, string, string, error) {
 	// If it's a reasonably long path, it likely follows our new request URI format:
 	// /X-Enproxy-Id/X-Enproxy-Dest-Addr/X-Enproxy-Op
-	if len(path) > 5 {
-		r, err := regexp.Compile("/(.*)/(.*)/(.*)")
-		if err != nil {
-			return "", "", "", fmt.Errorf("Regex error: %v", err)
-		}
-		strs := r.FindStringSubmatch(path)
-		if len(strs) < 4 {
-			return "", "", "", fmt.Errorf("Unexpected request path: %v", path)
-		}
-		return strs[1], strs[2], strs[3], nil
+	if len(req.URL.Path) > 5 {
+		return p.parseRequestPath(req.URL.Path)
 	}
 
 	id := req.Header.Get(X_ENPROXY_ID)
@@ -171,12 +174,13 @@ func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	id, addr, op, er := p.parseRequestProps(resp, req)
+	id, addr, op, er := p.parseRequestProps(req)
 	if er != nil {
 		respond(http.StatusBadRequest, resp, er.Error())
 		log.Errorf("Could not parse enproxy data: %v", er)
 		return
 	}
+	log.Debugf("Parsed enproxy data id: %v, addr: %v, op: %v", id, addr, op)
 
 	lc, isNew, err := p.getLazyConn(id, addr, req, resp)
 	if err != nil {
