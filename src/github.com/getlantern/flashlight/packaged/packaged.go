@@ -92,9 +92,15 @@ func packagedSettingsPath() (string, error) {
 		yamldir = dir
 	} else if runtime.GOOS == "darwin" {
 		// Code signing doesn't like this file in the current directory
-		// for whatever reason, so we grab it from the Resources
-		// directory in the app bundle.
-		yamldir = dir + "/../Resources"
+		// for whatever reason, so we grab it from the Resources/en.lproj
+		// directory in the app bundle. See:
+		// https://developer.apple.com/library/mac/technotes/tn2206/_index.html#//apple_ref/doc/uid/DTS40007919-CH1-TNTAG402
+		yamldir = dir + "/../Resources/en.lproj"
+		if _, err := ioutil.ReadDir(yamldir); err != nil {
+			// This likely means the user originally installed with an older version that didn't include en.lproj
+			// in the app bundle, so just look in the old location in Resources.
+			yamldir = dir + "/../Resources"
+		}
 	} else if runtime.GOOS == "linux" {
 		yamldir = dir
 	}

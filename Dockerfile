@@ -75,6 +75,9 @@ RUN gem install fpm
 # Requisites for packing Lantern for Windows.
 RUN yum install -y osslsigncode mingw32-nsis && yum clean all
 
+# Required for compressing update files
+RUN yum install -y bzip2 && yum clean all
+
 # Requisites for genassets.
 RUN yum install -y nodejs npm && yum clean all
 RUN npm install -g gulp
