@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"sync/atomic"
 	"time"
@@ -40,6 +41,7 @@ var (
 	m                   *yamlconf.Manager
 	lastCloudConfigETag = map[string]string{}
 	httpClient          atomic.Value
+	r                   = regexp.MustCompile("\\d+")
 )
 
 type Config struct {
@@ -73,9 +75,55 @@ type CA struct {
 	Cert       string // PEM-encoded
 }
 
+func exists(file string) bool {
+	if _, err := os.Stat(file); os.IsNotExist(err) {
+		return false
+	}
+	return true
+}
+
+func configExists(file string) (string, bool) {
+	configPath, err := InConfigDir(file)
+	if err != nil {
+		log.Errorf("Could not get config path? %v", err)
+		return configPath, false
+	}
+	return configPath, exists(configPath)
+}
+
+func majorVersion(version string) string {
+	return r.FindString(version)
+}
+
+// copyNewest is a one-time function for using older config files in the 2.x series.
+// from 2.0.2 forward, Lantern will consider all major versions to be compatible and
+// will name them accordingly, as in "lantern-2.yaml".
+func copyNewest(file string) {
+	// If we already have a config file with the latest name, use that one.
+	// Otherwise, copy the most recent config file available.
+	cur, exists := configExists(file)
+
+	if exists {
+		return
+	}
+	files := []string{"lantern-2.0.1.yaml", "lantern-2.0.0+stable.yaml", "lantern-2.0.0+manoto.yaml", "lantern-2.0.0-beta8.yaml"}
+
+	for _, file := range files {
+		if path, exists := configExists(file); exists {
+			if err := os.Rename(path, cur); err != nil {
+				log.Errorf("Could not rename file from %v to %v: %v", path, cur, err)
+			} else {
+				return
+			}
+		}
+	}
+}
+
 // Init initializes the configuration system.
 func Init(version string) (*Config, error) {
-	configPath, err := InConfigDir("lantern-" + version + ".yaml")
+	file := "lantern-" + majorVersion(version) + ".yaml"
+	copyNewest(file)
+	configPath, err := InConfigDir(file)
 	if err != nil {
 		log.Errorf("Could not get config path? %v", err)
 		return nil, err
@@ -105,14 +153,13 @@ func Init(version string) (*Config, error) {
 
 			var bytes []byte
 			if bytes, err = cfg.fetchCloudConfig(); err == nil {
+				// bytes will be nil if the config is unchanged (not modified)
 				if bytes != nil {
 					mutate = func(ycfg yamlconf.Config) error {
 						log.Debugf("Merging cloud configuration")
 						cfg := ycfg.(*Config)
 						return cfg.updateFrom(bytes)
 					}
-				} else {
-					log.Errorf("Nil bytes?")
 				}
 			} else {
 				log.Errorf("Could not fetch cloud config %v", err)
@@ -278,7 +325,7 @@ func (cfg *Config) applyClientDefaults() {
 	if len(cfg.Client.FrontedServers) == 0 && len(cfg.Client.ChainedServers) == 0 {
 		cfg.Client.FrontedServers = []*client.FrontedServerInfo{
 			&client.FrontedServerInfo{
-				Host:           "nl.fallbacks.getiantem.org",
+				Host:           "jp.fallbacks.getiantem.org",
 				Port:           443,
 				PoolSize:       0,
 				MasqueradeSet:  cloudflare,
@@ -369,7 +416,6 @@ func (cfg Config) fetchCloudConfig() ([]byte, error) {
 			log.Debugf("Error closing response body: %v", err)
 		}
 	}()
-	lastCloudConfigETag[url] = resp.Header.Get(etag)
 
 	if resp.StatusCode == 304 {
 		log.Debugf("Config unchanged in cloud")
@@ -378,6 +424,7 @@ func (cfg Config) fetchCloudConfig() ([]byte, error) {
 		return nil, fmt.Errorf("Unexpected response status: %d", resp.StatusCode)
 	}
 
+	lastCloudConfigETag[url] = resp.Header.Get(etag)
 	gzReader, err := gzip.NewReader(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to open gzip reader: %s", err)
