@@ -94,10 +94,6 @@ type Manager struct {
 	// to 1 second
 	FilePollInterval time.Duration
 
-	// ConfigServerAddr: optionally, specify an address at which to provide a
-	// RESTFUL HTTP server for making config updates.
-	ConfigServerAddr string
-
 	// EmptyConfig: required, factor for new empty Configs
 	EmptyConfig func() Config
 
@@ -191,13 +187,6 @@ func (m *Manager) Init() (Config, error) {
 	}
 
 	go m.processUpdates()
-
-	if m.ConfigServerAddr != "" {
-		err = m.startConfigServer()
-		if err != nil {
-			return nil, err
-		}
-	}
 
 	return m.getCfg(), nil
 }

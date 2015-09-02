@@ -1,5 +1,16 @@
 # lantern [![Travis CI Status](https://travis-ci.org/getlantern/lantern.svg?branch=valencia)](https://travis-ci.org/getlantern/lantern)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/lantern/badge.png?branch=valencia)](https://coveralls.io/r/getlantern/lantern)
 
+**If you're looking for Lantern binaries, you can find all of them at the following links:**
+- [Windows XP SP 3 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-beta.exe)
+- [OSX 10.8 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-manoto.dmg)
+- [Ubuntu 14.04 32 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-manoto-32-bit.deb)
+- [Ubuntu 14.04 64 bit](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-manoto-64-bit.deb)
+
+**If you're looking for help, please visit below user forums:**
+
+| [English](https://groups.google.com/forum/#!forum/lantern-users-en) | [中文](https://groups.google.com/forum/#!forum/lantern-users-zh) | [فارسی](https://groups.google.com/forum/#!forum/lantern-users-fa) | [français](https://groups.google.com/forum/#!forum/lantern-users-fr)
+
+
 lantern is a [gost](https://github.com/getlantern/gost) project that
 provides repeatable builds and consolidated pull requests for lantern.
 
@@ -128,7 +139,7 @@ will not show systray or UI.
 
 ## Packaging
 
-Packaging requires some special environemnt variables.
+Packaging requires some special environment variables.
 
 ### OSX
 
@@ -265,7 +276,7 @@ To build a development library (takes shorter time):
 make android-lib
 ```
 
-To build the final version for Firetweet
+To build the final version for Firetweet:
 
 ```
 make android-lib-dist
@@ -304,8 +315,8 @@ Use `make create-tag` as a shortcut for creating and uploading tags:
 VERSION='2.0.0-beta5' make create-tag
 ```
 
-If you want to both create a package and upload a tag run the `create-tag` task
-right after the `packages` task.
+If you want to both create a package and upload a tag, run the `create-tag` task
+right after the `packages` task:
 
 ```
 [...env variables...] make packages create-tag

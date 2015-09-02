@@ -36,6 +36,8 @@ var (
 	// development time, logglyToken will be empty and we won't log to Loggly.
 	logglyToken string
 
+	osVersion = ""
+
 	errorOut io.Writer
 	debugOut io.Writer
 
@@ -164,7 +166,7 @@ func enableLoggly(addr string, cloudConfigCA string, instanceId string,
 	logglyWriter.client.Defaults["hostname"] = "hidden"
 	logglyWriter.client.Defaults["instanceid"] = instanceId
 	if osStr, err := osversion.GetHumanReadable(); err == nil {
-		logglyWriter.client.Defaults["osversion"] = osStr
+		osVersion = osStr
 	}
 	logglyWriter.client.SetHTTPClient(client)
 	addLoggly(logglyWriter)
@@ -222,7 +224,7 @@ func (w logglyErrorWriter) Write(b []byte) (int, error) {
 		"logLevel":          "ERROR",
 		"osName":            runtime.GOOS,
 		"osArch":            runtime.GOARCH,
-		"osVersion":         "",
+		"osVersion":         osVersion,
 		"language":          w.lang,
 		"country":           geolookup.GetCountry(),
 		"timeZone":          w.tz,
