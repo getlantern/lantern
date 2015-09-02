@@ -203,13 +203,14 @@ docker-package-debian-arm: require-version docker-linux-arm
 docker-package-windows: require-version docker-windows-386
 	@if [[ -z "$$BNS_CERT" ]]; then echo "BNS_CERT environment value is required."; exit 1; fi && \
 	if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
-	$(call package-settings) && \
 	INSTALLER_RESOURCES="installer-resources/windows" && \
+	rm $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
 	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "lantern_windows_386.exe" -out "$$INSTALLER_RESOURCES/lantern.exe" && \
 	cat $$INSTALLER_RESOURCES/lantern.exe | bzip2 > update_windows_386.bz2 && \
 	ls -l lantern_windows_386.exe update_windows_386.bz2 && \
 	makensis -V1 -DVERSION=$$VERSION installer-resources/windows/lantern.nsi && \
 	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer.exe" && \
+	$(call package-settings) && \
 	echo $$PACKAGED_SETTINGS > $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
 	makensis -V1 -DVERSION=$$VERSION installer-resources/windows/lantern.nsi && \
 	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer-manoto.exe";
@@ -340,13 +341,13 @@ package-darwin-manoto: require-version require-appdmg require-svgexport darwin
 		codesign -s "Developer ID Application: Brave New Software Project, Inc" Lantern.app && \
 		cat Lantern.app/Contents/MacOS/lantern | bzip2 > update_darwin_amd64.bz2 && \
 		ls -l lantern_darwin_amd64 update_darwin_amd64.bz2 && \
-		rm -rf lantern-installer.dmg && \
+		rm -rf lantern-installer-manoto.dmg && \
 		sed "s/__VERSION__/$$VERSION/g" $$INSTALLER_RESOURCES/dmgbackground.svg > $$INSTALLER_RESOURCES/dmgbackground_versioned.svg && \
 		$(SVGEXPORT) $$INSTALLER_RESOURCES/dmgbackground_versioned.svg $$INSTALLER_RESOURCES/dmgbackground.png 600:400 && \
 		sed "s/__VERSION__/$$VERSION/g" $$INSTALLER_RESOURCES/lantern.dmg.json > $$INSTALLER_RESOURCES/lantern_versioned.dmg.json && \
-		$(APPDMG) --quiet $$INSTALLER_RESOURCES/lantern_versioned.dmg.json lantern-installer.dmg && \
-		mv lantern-installer.dmg Lantern.dmg.zlib && \
-		hdiutil convert -quiet -format UDBZ -o lantern-installer.dmg Lantern.dmg.zlib && \
+		$(APPDMG) --quiet $$INSTALLER_RESOURCES/lantern_versioned.dmg.json lantern-installer-manoto.dmg && \
+		mv lantern-installer-manoto.dmg Lantern.dmg.zlib && \
+		hdiutil convert -quiet -format UDBZ -o lantern-installer-manoto.dmg Lantern.dmg.zlib && \
 		rm Lantern.dmg.zlib; \
 	else \
 		echo "-> Skipped: Can not generate a package on a non-OSX host."; \
@@ -357,10 +358,10 @@ package-darwin: package-darwin-manoto
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		INSTALLER_RESOURCES="installer-resources/darwin" && \
 		rm Lantern.app/Contents/Resources/en.lproj/$(PACKAGED_YAML) && \
-		rm -rf lantern-installer-manoto.dmg && \
-		$(APPDMG) --quiet $$INSTALLER_RESOURCES/lantern_versioned.dmg.json lantern-installer-manoto.dmg && \
-		mv lantern-installer-manoto.dmg Lantern.dmg.zlib && \
-		hdiutil convert -quiet -format UDBZ -o lantern-installer-manoto.dmg Lantern.dmg.zlib && \
+		rm -rf lantern-installer.dmg && \
+		$(APPDMG) --quiet $$INSTALLER_RESOURCES/lantern_versioned.dmg.json lantern-installer.dmg && \
+		mv lantern-installer.dmg Lantern.dmg.zlib && \
+		hdiutil convert -quiet -format UDBZ -o lantern-installer.dmg Lantern.dmg.zlib && \
 		rm Lantern.dmg.zlib; \
 	else \
 		echo "-> Skipped: Can not generate a package on a non-OSX host."; \
@@ -394,7 +395,8 @@ release-qa: require-version require-s3cmd
 		$(S3CMD) cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$VERSIONED && \
 		$(S3CMD) setacl s3://$(S3_BUCKET)/$$VERSIONED --acl-public; \
 	done && \
-	for NAME in $$(ls -1 update_darwin_amd64 update_linux_386 update_linux_amd64 update_windows_386); do \
+	for NAME in update_darwin_amd64 update_linux_386 update_linux_amd64 update_windows_386 ; do \
+	    mv $$NAME.bz2 $$NAME-$$VERSION.bz2 && \
 		echo "Copying versioned name $$NAME-$$VERSION.bz2..." && \
 		$(S3CMD) put -P $$NAME-$$VERSION.bz2 s3://$(S3_BUCKET); \
 	done && \
