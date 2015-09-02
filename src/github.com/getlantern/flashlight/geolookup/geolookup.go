@@ -137,6 +137,7 @@ func write() {
 		n := rand.Intn(publishSecondsVariance)
 		wait := time.Duration(basePublishSeconds-publishSecondsVariance/2+n) * time.Second
 
+		log.Debugf("Waiting to get IP for %v seconds", wait)
 		oldIp := GetIp()
 		oldCountry := GetCountry()
 
@@ -146,9 +147,8 @@ func write() {
 			if newIp != oldIp {
 				log.Debugf("IP changed")
 				ip.Store(newIp)
+				pubsub.Pub(pubsub.IP, newIp)
 			}
-			// Always publish location, even if unchanged
-			pubsub.Pub(pubsub.IP, newIp)
 			service.Out <- newCountry
 		} else {
 			msg := fmt.Sprintf("Unable to get current location: %s", err)
