@@ -56,6 +56,11 @@ var (
 // Conn implements an net.Conn interface by utilizing underlie direct and
 // detour connections.
 type Conn struct {
+	// Keeps track of the total bytes read from this connection, atomic
+	// Due to https://golang.org/pkg/sync/atomic/#pkg-note-BUG it requires
+	// manual alignment. For this, it is best to keep it as the first field
+	readBytes uint64
+
 	// The underlie connections, uses buffered channel as ring queue to avoid
 	// locking. We have at most 2 connetions so a length of 2 is enough.
 	conns chan conn
@@ -69,9 +74,6 @@ type Conn struct {
 	chRead chan ioResult
 	// The chan to receive result of any write operation
 	chWrite chan ioResult
-
-	// Keeps track of the total bytes read from this connection, atomic
-	readBytes uint64
 
 	addr string
 
