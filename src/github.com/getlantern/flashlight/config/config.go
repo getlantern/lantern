@@ -153,14 +153,13 @@ func Init(version string) (*Config, error) {
 
 			var bytes []byte
 			if bytes, err = cfg.fetchCloudConfig(); err == nil {
+				// bytes will be nil if the config is unchanged (not modified)
 				if bytes != nil {
 					mutate = func(ycfg yamlconf.Config) error {
 						log.Debugf("Merging cloud configuration")
 						cfg := ycfg.(*Config)
 						return cfg.updateFrom(bytes)
 					}
-				} else {
-					log.Debugf("bytes is nil when the config is unmodified")
 				}
 			} else {
 				log.Errorf("Could not fetch cloud config %v", err)
