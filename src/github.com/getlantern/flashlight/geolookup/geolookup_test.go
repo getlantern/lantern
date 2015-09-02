@@ -48,7 +48,7 @@ func integrationDialer(t *testing.T, statsFunc func(success bool, domain, addr s
 	}
 
 	return fronted.NewDialer(fronted.Config{
-		Host:           "nodifferencefordirectfronter.org",
+		Host:           "fallbacks.getiantem.org",
 		Port:           443,
 		Masquerades:    masquerades,
 		MaxMasquerades: maxMasquerades,
