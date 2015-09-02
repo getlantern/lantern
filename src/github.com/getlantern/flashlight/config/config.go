@@ -109,15 +109,15 @@ func copyNewest(file string) {
 			log.Errorf("Could not rename file: %v", err)
 		}
 	} else if path, exists := configExists("lantern-2.0.0+stable.yaml"); exists {
-		if err := os.Rename(path, cur); err == nil {
+		if err := os.Rename(path, cur); err != nil {
 			log.Errorf("Could not rename file: %v", err)
 		}
 	} else if path, exists := configExists("lantern-2.0.0+manoto.yaml"); exists {
-		if err := os.Rename(path, cur); err == nil {
+		if err := os.Rename(path, cur); err != nil {
 			log.Errorf("Could not rename file: %v", err)
 		}
 	} else if path, exists := configExists("lantern-2.0.0-beta8.yaml"); exists {
-		if err := os.Rename(path, cur); err == nil {
+		if err := os.Rename(path, cur); err != nil {
 			log.Errorf("Could not rename file: %v", err)
 		}
 	}
