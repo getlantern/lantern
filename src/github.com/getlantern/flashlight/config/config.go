@@ -77,7 +77,6 @@ type CA struct {
 
 func exists(file string) bool {
 	if _, err := os.Stat(file); os.IsNotExist(err) {
-		fmt.Printf("no such file or directory: %s", file)
 		return false
 	}
 	return true
@@ -102,23 +101,20 @@ func majorVersion(version string) string {
 func copyNewest(file string) {
 	// If we already have a config file with the latest name, use that one.
 	// Otherwise, copy the most recent config file available.
-	if cur, exists := configExists(file); exists {
+	cur, exists := configExists(file)
+
+	if exists {
 		return
-	} else if path, exists := configExists("lantern-2.0.1.yaml"); exists {
-		if err := os.Rename(path, cur); err != nil {
-			log.Errorf("Could not rename file: %v", err)
-		}
-	} else if path, exists := configExists("lantern-2.0.0+stable.yaml"); exists {
-		if err := os.Rename(path, cur); err != nil {
-			log.Errorf("Could not rename file: %v", err)
-		}
-	} else if path, exists := configExists("lantern-2.0.0+manoto.yaml"); exists {
-		if err := os.Rename(path, cur); err != nil {
-			log.Errorf("Could not rename file: %v", err)
-		}
-	} else if path, exists := configExists("lantern-2.0.0-beta8.yaml"); exists {
-		if err := os.Rename(path, cur); err != nil {
-			log.Errorf("Could not rename file: %v", err)
+	}
+	files := []string{"lantern-2.0.1.yaml", "lantern-2.0.0+stable.yaml", "lantern-2.0.0+manoto.yaml", "lantern-2.0.0-beta8.yaml"}
+
+	for _, file := range files {
+		if path, exists := configExists(file); exists {
+			if err := os.Rename(path, cur); err != nil {
+				log.Errorf("Could not rename file: %v", err)
+			} else {
+				return
+			}
 		}
 	}
 }
