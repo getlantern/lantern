@@ -14,8 +14,7 @@ import (
 )
 
 const (
-	FIXED_I       = 55
-	ConfigSrvAddr = "localhost:31432"
+	FIXED_I = 55
 )
 
 var (

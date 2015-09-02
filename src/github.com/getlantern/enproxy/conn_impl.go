@@ -132,16 +132,17 @@ func (c *conn) doRequest(proxyConn *connInfo, host string, op string, request *r
 	if request != nil {
 		body = request.body
 	}
-	req, err := c.config.NewRequest(host, "POST", body)
+	path := c.id + "/" + c.addr + "/" + op
+	req, err := c.config.NewRequest(host, path, "POST", body)
 	if err != nil {
 		err = fmt.Errorf("Unable to construct request to %s via proxy %s: %s", c.addr, host, err)
 		return
 	}
-	req.Header.Set(X_ENPROXY_OP, op)
+	//req.Header.Set(X_ENPROXY_OP, op)
 	// Always send our connection id
-	req.Header.Set(X_ENPROXY_ID, c.id)
+	//req.Header.Set(X_ENPROXY_ID, c.id)
 	// Always send the address that we're trying to reach
-	req.Header.Set(X_ENPROXY_DEST_ADDR, c.addr)
+	//req.Header.Set(X_ENPROXY_DEST_ADDR, c.addr)
 	req.Header.Set("Content-type", "application/octet-stream")
 	if request != nil && request.length > 0 {
 		// Force identity encoding to appeas CDNs like Fastly that can't

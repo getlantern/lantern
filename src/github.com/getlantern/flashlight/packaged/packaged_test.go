@@ -47,7 +47,7 @@ func TestPackagedSettings(t *testing.T) {
 	assert.Equal(t, local, path, "Wrote to unexpected path")
 	assert.True(t, err == nil, "Should not be an error")
 
-	url = "https://testing.com"
+	url := "test"
 
 	path, ps, err = readSettingsFromFile(path)
 

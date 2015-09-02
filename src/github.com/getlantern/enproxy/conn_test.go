@@ -238,8 +238,8 @@ func prepareConn(addr string, buffered bool, fail bool, t *testing.T, onResponse
 		})
 }
 
-func newRequest(host string, method string, body io.Reader) (req *http.Request, err error) {
-	return http.NewRequest(method, "http://"+proxyAddr, body)
+func newRequest(host, path, method string, body io.Reader) (req *http.Request, err error) {
+	return http.NewRequest(method, "http://"+proxyAddr+"/"+path+"/", body)
 }
 
 func doRequests(conn net.Conn, t *testing.T) {

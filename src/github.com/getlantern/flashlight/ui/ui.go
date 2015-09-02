@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/getlantern/flashlight/packaged"
@@ -135,8 +136,17 @@ func openExternalUrl() {
 		return
 	}
 
+	var url string
+	if s.StartupUrl == "" {
+		return
+	} else if strings.HasPrefix(s.StartupUrl, "https://www.facebook.com/manototv") {
+		// Here we make sure to override any old manoto URLs with the latest.
+		url = "https://www.facebook.com/manototv/app_128953167177144"
+	} else {
+		url = s.StartupUrl
+	}
 	time.Sleep(4 * time.Second)
-	err = open.Run(s.StartupUrl)
+	err = open.Run(url)
 	if err != nil {
 		log.Errorf("Error opening external page to `%v`: %v", uiaddr, err)
 	}
