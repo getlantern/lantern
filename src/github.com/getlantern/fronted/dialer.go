@@ -237,12 +237,12 @@ func (d *dialer) NewDirectDomainFronter() *http.Client {
 func (d *dialer) enproxyConfigWith(dialProxy func(addr string) (net.Conn, error)) *enproxy.Config {
 	return &enproxy.Config{
 		DialProxy: dialProxy,
-		NewRequest: func(upstreamHost string, method string, body io.Reader) (req *http.Request, err error) {
+		NewRequest: func(upstreamHost, path, method string, body io.Reader) (req *http.Request, err error) {
 			if upstreamHost == "" {
 				// No specific host requested, use configured one
 				upstreamHost = d.Host
 			}
-			return http.NewRequest(method, "http://"+upstreamHost+"/", body)
+			return http.NewRequest(method, "http://"+upstreamHost+"/"+path+"/", body)
 		},
 		BufferRequests: d.BufferRequests,
 		IdleTimeout:    idleTimeout, // TODO: make this configurable
