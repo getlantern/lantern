@@ -111,7 +111,7 @@ func copyNewest(file string) {
 	for _, file := range files {
 		if path, exists := configExists(file); exists {
 			if err := os.Rename(path, cur); err != nil {
-				log.Errorf("Could not rename file: %v", err)
+				log.Errorf("Could not rename file from %v to %v: %v", path, cur, err)
 			} else {
 				return
 			}
