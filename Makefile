@@ -428,33 +428,22 @@ release: require-version require-s3cmd require-gh-token require-wget require-rub
 		NAME=$$(basename $$URL) && \
 		PROD=$$(echo $$NAME | sed s/"$$BASE_NAME"/$$PROD_BASE_NAME/) && \
 		$(S3CMD) cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$PROD && \
-		$(S3CMD) setacl s3://$(S3_BUCKET)/$$PROD --acl-public; \
+		$(S3CMD) setacl s3://$(S3_BUCKET)/$$PROD --acl-public && \
+	    echo "Downloading released binary to $(LANTERN_BINARIES_PATH)/$$PROD" && \
+	    $(S3CMD) get --force s3://$(S3_BUCKET)/$$PROD $(LANTERN_BINARIES_PATH)/$$PROD; \
 	done && \
 	$(RUBY) ./installer-resources/tools/createrelease.rb "$(GH_USER)" "$(GH_RELEASE_REPOSITORY)" $$VERSION && \
-	echo "Uploading Windows binary for auto-updates" && \
-	for URL in $$($(S3CMD) ls s3://$(S3_BUCKET)/ | grep update_*$$VERSION | awk '{print $$4}'); do \
+	for URL in $$($(S3CMD) ls s3://$(S3_BUCKET)/ | grep update_.*$$VERSION | awk '{print $$4}'); do \
 		NAME=$$(basename $$URL) && \
-		STRIPPED_NAME=$$(echo "$$NAME" | cut -d - -f 1`.bz2) && \
+		STRIPPED_NAME=$$(echo "$$NAME" | cut -d - -f 1).bz2 && \
 		$(S3CMD) get --force s3://$(S3_BUCKET)/$$NAME $$STRIPPED_NAME && \
-	    $(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$VERSION $$STRIPPED_NAME && \
-	    echo "Uploading $$STRIPPED_NAME for auto-updates"; \
+	    echo "Uploading $$STRIPPED_NAME for auto-updates" && \
+	    $(RUBY) ./installer-resources/tools/uploadghasset.rb $(GH_USER) $(GH_RELEASE_REPOSITORY) $$VERSION $$STRIPPED_NAME; \
 	done && \
-	echo "Copying binaries to $(LANTERN_BINARIES_PATH)..." && \
-	$(S3CMD) get --force s3://$(S3_BUCKET)/lantern-installer-32-bit.deb $(LANTERN_BINARIES_PATH)/lantern-installer-32.deb && \
-	$(S3CMD) get --force s3://$(S3_BUCKET)/lantern-installer-32-bit.deb.sha1 $(LANTERN_BINARIES_PATH)/lantern-installer-32.deb.sha1 && \
-	$(S3CMD) get --force s3://$(S3_BUCKET)/lantern-installer-64-bit.deb $(LANTERN_BINARIES_PATH)/lantern-installer-64.deb && \
-	$(S3CMD) get --force s3://$(S3_BUCKET)/lantern-installer-64-bit.deb.sha1 $(LANTERN_BINARIES_PATH)/lantern-installer-64.deb.sha1 && \
-	$(S3CMD) get --force s3://$(S3_BUCKET)/lantern-installer.dmg $(LANTERN_BINARIES_PATH)/lantern-installer.dmg && \
-	$(S3CMD) get --force s3://$(S3_BUCKET)/lantern-installer.dmg.sha1 $(LANTERN_BINARIES_PATH)/lantern-installer.dmg.sha1 && \
-	$(S3CMD) get --force s3://$(S3_BUCKET)/lantern-installer.exe $(LANTERN_BINARIES_PATH)/lantern-installer.exe && \
-	$(S3CMD) get --force s3://$(S3_BUCKET)/lantern-installer.exe.sha1 $(LANTERN_BINARIES_PATH)/lantern-installer.exe.sha1 && \
-	cp $(LANTERN_BINARIES_PATH)/lantern-installer-32.deb.sha1 $(LANTERN_BINARIES_PATH)/lantern-$$VERSION-$$TAG_COMMIT-32-bit.deb.sha1 && \
-	cp $(LANTERN_BINARIES_PATH)/lantern-installer-64.deb.sha1 $(LANTERN_BINARIES_PATH)/lantern-$$VERSION-$$TAG_COMMIT-64-bit.deb.sha1 && \
-	cp $(LANTERN_BINARIES_PATH)/lantern-installer.dmg.sha1 $(LANTERN_BINARIES_PATH)/lantern-$$VERSION-$$TAG_COMMIT.dmg.sha1 && \
-	cp $(LANTERN_BINARIES_PATH)/lantern-installer.exe.sha1 $(LANTERN_BINARIES_PATH)/lantern-$$VERSION-$$TAG_COMMIT.exe.sha1
+	echo "Uploading released binaries to $(LANTERN_BINARIES_PATH)"
 	@cd $(LANTERN_BINARIES_PATH) && \
 	git pull && \
-	git add lantern-$$VERSION-$$TAG_COMMIT* && \
+	git add $$PROD_BASE_NAME* && \
 	(git commit -am "Latest binaries for Lantern $$VERSION ($$TAG_COMMIT)." && git push origin master) || true
 
 update-resources:
