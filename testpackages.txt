@@ -12,6 +12,7 @@ github.com/getlantern/detour
 github.com/getlantern/enproxy
 github.com/getlantern/fdcount
 github.com/getlantern/flashlight
+github.com/getlantern/flashlight/config
 github.com/getlantern/flashlight/logging
 github.com/getlantern/flashlight/packaged
 github.com/getlantern/flashlight/pubsub
