@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -18,6 +19,7 @@ import (
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
+	"github.com/getlantern/jibber_jabber"
 	"github.com/getlantern/launcher"
 	"github.com/getlantern/proxiedsites"
 	"github.com/getlantern/yaml"
@@ -98,31 +100,33 @@ func majorVersion(version string) string {
 // copyNewest is a one-time function for using older config files in the 2.x series.
 // from 2.0.2 forward, Lantern will consider all major versions to be compatible and
 // will name them accordingly, as in "lantern-2.yaml".
-func copyNewest(file string) {
+func copyNewest(file string, existsFunc func(file string) (string, bool)) string {
 	// If we already have a config file with the latest name, use that one.
 	// Otherwise, copy the most recent config file available.
-	cur, exists := configExists(file)
-
+	cur, exists := existsFunc(file)
 	if exists {
-		return
+		log.Debugf("Using existing config")
+		return cur
 	}
 	files := []string{"lantern-2.0.1.yaml", "lantern-2.0.0+stable.yaml", "lantern-2.0.0+manoto.yaml", "lantern-2.0.0-beta8.yaml"}
 
 	for _, file := range files {
-		if path, exists := configExists(file); exists {
+		if path, exists := existsFunc(file); exists {
 			if err := os.Rename(path, cur); err != nil {
 				log.Errorf("Could not rename file from %v to %v: %v", path, cur, err)
 			} else {
-				return
+				log.Debugf("Copied old config at %v to %v", path, cur)
+				return path
 			}
 		}
 	}
+	return cur
 }
 
 // Init initializes the configuration system.
 func Init(version string) (*Config, error) {
 	file := "lantern-" + majorVersion(version) + ".yaml"
-	copyNewest(file)
+	copyNewest(file, configExists)
 	configPath, err := InConfigDir(file)
 	if err != nil {
 		log.Errorf("Could not get config path? %v", err)
@@ -216,7 +220,7 @@ func InConfigDir(filename string) (string, error) {
 		cdir = appdir.General("Lantern")
 	}
 
-	log.Debugf("Placing configuration in %v", cdir)
+	log.Debugf("Using config dir %v", cdir)
 	if _, err := os.Stat(cdir); err != nil {
 		if os.IsNotExist(err) {
 			// Create config dir
@@ -309,6 +313,27 @@ func (cfg *Config) ApplyDefaults() {
 	}
 }
 
+func defaultRoundRobin() string {
+	localeTerritory, err := jibber_jabber.DetectTerritory()
+	if err != nil {
+		localeTerritory = "us"
+	}
+	log.Debugf("Locale territory: %v", localeTerritory)
+	return defaultRoundRobinForTerritory(strings.ToLower(localeTerritory))
+}
+
+// defaultDataCenter customizes the default data center depending on the user's locale.
+func defaultRoundRobinForTerritory(localeTerritory string) string {
+	datacenter := ""
+	if localeTerritory == "cn" {
+		datacenter = "jp"
+	} else {
+		datacenter = "nl"
+	}
+	log.Debugf("datacenter: %v", datacenter)
+	return datacenter + ".fallbacks.getiantem.org"
+}
+
 func (cfg *Config) applyClientDefaults() {
 	// Make sure we always have at least one masquerade set
 	if cfg.Client.MasqueradeSets == nil {
@@ -325,7 +350,7 @@ func (cfg *Config) applyClientDefaults() {
 	if len(cfg.Client.FrontedServers) == 0 && len(cfg.Client.ChainedServers) == 0 {
 		cfg.Client.FrontedServers = []*client.FrontedServerInfo{
 			&client.FrontedServerInfo{
-				Host:           "jp.fallbacks.getiantem.org",
+				Host:           defaultRoundRobin(),
 				Port:           443,
 				PoolSize:       0,
 				MasqueradeSet:  cloudflare,
