@@ -345,7 +345,7 @@ func applyClientConfig(client *client.Client, cfg *config.Config) {
 		version, revisionDate)
 	settings.Configure(cfg, version, revisionDate, buildDate)
 	proxiedsites.Configure(cfg.ProxiedSites)
-	analytics.Configure(cfg, version)
+	addExitFunc(analytics.Configure(cfg, version))
 	log.Debugf("Proxy all traffic or not: %v", cfg.Client.ProxyAll)
 	ServeProxyAllPacFile(cfg.Client.ProxyAll)
 	// Note - we deliberately ignore the error from statreporter.Configure here
