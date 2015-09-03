@@ -60,6 +60,10 @@ func New(protector SocketProtector, addr string) (*ProtectedConn, error) {
 	return conn, nil
 }
 
+func (conn *ProtectedConn) Addr() (*net.TCPAddr, error) {
+	return net.ResolveTCPAddr("tcp", conn.addr)
+}
+
 // Dial connects to the address given by the protected connection
 // - syscall API calls are used to create and bind to the
 //   specified system device (this is primarily

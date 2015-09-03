@@ -6,8 +6,7 @@ import (
 )
 
 var (
-	i           *interceptor.Interceptor
-	lanternAddr string
+	i *interceptor.Interceptor
 )
 
 // Getfiretweetversion returns the current build version string
@@ -30,7 +29,6 @@ type SocketProvider interface {
 func RunClientProxy(listenAddr, appName string, protector SocketProvider, ready GoCallback) error {
 	go func() {
 		defaultClient = newClient(listenAddr, appName, protector)
-		lanternAddr = listenAddr
 		defaultClient.serveHTTP()
 		ready.AfterStart()
 	}()
@@ -45,21 +43,16 @@ func getBalancer() *balancer.Balancer {
 	return defaultClient.Client.GetBalancer()
 }
 
-func Configure(protector SocketProvider, ready GoCallback) error {
+func Configure(protector SocketProvider, httpAddr string,
+	socksAddr string, ready GoCallback) error {
 	go func() {
 		balancer.Protector = protector
 		i = interceptor.New(protector, false,
-			lanternAddr,
-			getBalancer(),
+			httpAddr,
+			socksAddr,
+			//getBalancer(),
 			ready.WritePacket, IsMasqueradeCheck)
 		ready.AfterConfigure()
-	}()
-	return nil
-}
-
-func ProcessPacket(b []byte, protector SocketProvider, ready GoCallback) error {
-	go func() {
-		i.Process(b)
 	}()
 	return nil
 }

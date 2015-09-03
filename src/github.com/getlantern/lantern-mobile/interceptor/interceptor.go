@@ -6,14 +6,8 @@ package interceptor
 // #cgo LDFLAGS: -I/usr/include
 
 import (
-	"fmt"
-
-	"github.com/getlantern/balancer"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/lantern-mobile/protected"
-	"github.com/getlantern/lantern-mobile/tunio"
-	"github.com/google/gopacket"
-	"github.com/google/gopacket/layers"
 )
 
 const (
@@ -46,67 +40,32 @@ type Interceptor struct {
 	// if request corresponds to a masquerade check
 	isMasquerade func(string) bool
 	// Address Lantern local proxy is running on
-	lanternAddr string
+	httpAddr  string
+	socksAddr string
 
 	// whether or not to print all incoming packets
 	logPackets bool
-
-	tunio *tunio.TunIO
-}
-
-type Packet struct {
-	packet      gopacket.Packet
-	destination string
-	source      string
-	protocol    string
-
-	sourcePort int
-	dstPort    int
-
-	size int
 }
 
 func New(protector protected.SocketProtector, logPackets bool,
-	lanternAddr string,
-	balancer *balancer.Balancer,
+	httpAddr string,
+	socksAddr string,
 	writePacket func([]byte), isMasquerade func(string) bool) *Interceptor {
 	i := &Interceptor{
 		protector:    protector,
-		lanternAddr:  lanternAddr,
+		httpAddr:     httpAddr,
+		socksAddr:    socksAddr,
 		logPackets:   logPackets,
 		writePacket:  writePacket,
 		isMasquerade: isMasquerade,
-		tunio:        tunio.NewTunIO(balancer),
+	}
+
+	_, err := NewSocksProxy(i)
+	if err != nil {
+		log.Errorf("Error starting SOCKS proxy: %v", err)
+		return nil
 	}
 
 	log.Debugf("Configured interceptor; Ready to consume packets!")
 	return i
-}
-
-func (i *Interceptor) hasMasqAddr(p *Packet) bool {
-	return i.isMasquerade(p.destination)
-}
-
-// Process takes a new Packet and writes it to its corresponding TCP stream
-func (i *Interceptor) Process(b []byte) error {
-
-	return i.tunio.HandlePacket(b, i.writePacket)
-}
-
-// isTCPPacket checks for a TCP packet
-func (p *Packet) isTCPPacket() bool {
-	packet := p.packet
-	return packet.NetworkLayer() != nil && packet.TransportLayer() != nil &&
-		packet.TransportLayer().LayerType() == layers.LayerTypeTCP
-}
-
-// Print known details about the Packet
-func (p *Packet) Print() {
-	log.Debugf("New packet: %s", p.packet.String())
-}
-
-func (p *Packet) String() string {
-	return fmt.Sprintf("%s %s:%d -> %s:%d",
-		p.protocol, p.source, p.sourcePort, p.destination,
-		p.dstPort)
 }
