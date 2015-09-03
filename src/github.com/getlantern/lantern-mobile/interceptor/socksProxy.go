@@ -20,8 +20,11 @@
 package interceptor
 
 import (
+	"bufio"
 	"io"
 	"net"
+	"net/http"
+	"net/url"
 	"os"
 	"sync"
 	"syscall"
@@ -156,15 +159,86 @@ func (proxy *SocksProxy) Close() {
 	proxy.openConns.CloseAll()
 }
 
+func (proxy *SocksProxy) socksConnectionHttpHandler(localConn *socks.SocksConn) (err error) {
+	defer localConn.Close()
+	defer proxy.openConns.Remove(localConn)
+
+	if proxy.conns[localConn.Req.Target] != nil {
+		// existing connection
+		Relay(localConn, proxy.conns[localConn.Req.Target])
+		return nil
+	}
+
+	if localConn.Req.Target == "104.131.157.209:7300" {
+		log.Debugf("UDP request....")
+		return proxy.socksConnectionHandler(localConn)
+	}
+
+	conn, err := protected.New(proxy.interceptor.protector, proxy.interceptor.httpAddr)
+	if err != nil {
+		log.Errorf("Error creating protected connection: %v", err)
+		return err
+	}
+	defer conn.Close()
+
+	remoteConn, err := conn.Dial()
+	if err != nil {
+		log.Errorf("Error tunneling request: %v", err)
+		return err
+	}
+	defer remoteConn.Close()
+
+	log.Debugf("Creating CONNECT request to %s", localConn.Req.Target)
+	connReq := &http.Request{
+		Method: "CONNECT",
+		URL:    &url.URL{Opaque: localConn.Req.Target},
+		Host:   localConn.Req.Target,
+		Header: make(http.Header),
+	}
+	connReq.Write(remoteConn)
+
+	br := bufio.NewReader(remoteConn)
+	resp, err := http.ReadResponse(br, connReq)
+
+	if err != nil {
+		log.Errorf("Error processing CONNECT response: %v", err)
+		conn.Close()
+		return err
+	}
+	if resp.StatusCode == 200 {
+		log.Debugf("Successfully established an HTTP tunnel with remote end-point: %s", localConn.Req.Target)
+
+		if err := remoteConn.(*net.TCPConn).SetKeepAlive(true); err != nil {
+			log.Errorf("Could not set keep alive on connection: %s", localConn.Req.Target)
+		}
+		addr, err := conn.Addr()
+		if err != nil {
+			log.Errorf("Could not resolve address: %v", err)
+			return err
+		}
+
+		proxy.conns[localConn.Req.Target] = localConn
+		err = localConn.Grant(addr)
+		if err != nil {
+			log.Errorf("Error granting access to connection: %v", err)
+			return err
+		}
+		Relay(localConn, remoteConn)
+	} else {
+		log.Errorf("Got invalid HTTP response code: %v", resp.StatusCode)
+	}
+	return nil
+}
+
 func (proxy *SocksProxy) socksConnectionHandler(localConn *socks.SocksConn) (err error) {
 	defer localConn.Close()
 	defer proxy.openConns.Remove(localConn)
 
-	//if proxy.conns[localConn.Req.Target] != nil {
-	// existing connection
-	//  Relay(localConn, proxy.conns[localConn.Req.Target])
-	// return nil
-	//}
+	if proxy.conns[localConn.Req.Target] != nil {
+		// existing connection
+		Relay(localConn, proxy.conns[localConn.Req.Target])
+		return nil
+	}
 
 	host, port, err := protected.SplitHostPort(localConn.Req.Target)
 	if err != nil {
