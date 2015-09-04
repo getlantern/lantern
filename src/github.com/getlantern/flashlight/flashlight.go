@@ -113,11 +113,15 @@ func main() {
 	if err != nil {
 		// Something went wrong setting up the panic wrapper. This won't be
 		// captured by panicwrap
+		// At this point, continue execution without panicwrap support. There
+		// are known cases where panicwrap will fail to fork, such as Windows
+		// GUI app
 		log.Errorf("Error setting up panic wrapper: %v", err)
-	}
-	// If exitStatus >= 0, then we're the parent process.
-	if exitStatus >= 0 {
-		os.Exit(exitStatus)
+	} else {
+		// If exitStatus >= 0, then we're the parent process.
+		if exitStatus >= 0 {
+			os.Exit(exitStatus)
+		}
 	}
 
 	parseFlags()
