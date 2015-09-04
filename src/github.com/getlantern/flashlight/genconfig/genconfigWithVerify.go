@@ -278,19 +278,24 @@ func grabCerts() {
 			IpAddress: cwt.ResolvedAddr.IP.String(),
 			RootCA:    ca,
 		}
+
 		masqueradesCh <- masq
 
 		verifyMasquerade(masq)
-
+		//log.Debugf("MASQUERADE VERIFIED: %v", domain)
 	}
 }
 
-func verifyMasquerade(masq *Masquerade) {
+func verifyMasquerade(masq *Masquerade) bool {
 	httpClient := NewDirectDomainFronter(masq)
 	country, ip, err := lookupIp(httpClient)
 	if err != nil {
+		log.Errorf("Could not lookup IP: %v", err)
+		return false
 	}
 	log.Debugf("Got country %v and ip %v", country, ip)
+
+	return len(country) > 1
 }
 
 func lookupIp(httpClient *http.Client) (string, string, error) {
@@ -408,6 +413,10 @@ func dialServerWith(masquerade *Masquerade) (net.Conn, error) {
 }
 
 // Get the address to dial for reaching the server
+//func addressForServer(masquerade *Masquerade) string {
+//	return fmt.Sprintf("%s:%d", masquerade.IpAddress, 443)
+//}
+
 func addressForServer(masquerade *Masquerade) string {
 	return fmt.Sprintf("%s:%d", serverHost(masquerade), 443)
 }
@@ -423,16 +432,18 @@ func serverHost(masquerade *Masquerade) string {
 // tls.Configs are cached on a per-masquerade basis to enable client session
 // caching and reduce the amount of PEM certificate parsing.
 func tlsConfig(masquerade *Masquerade) *tls.Config {
-	caCert, err := keyman.LoadCertificateFromPEMBytes([]byte(masquerade.RootCA.Cert))
-	if err != nil {
-		return nil
-	}
+	/*
+			caCert, err := keyman.LoadCertificateFromPEMBytes([]byte(masquerade.RootCA.Cert))
+		if err != nil {
+			return nil
+		}
+	*/
 	serverName := masquerade.Domain
 	tlsConfig := &tls.Config{
 		ClientSessionCache: tls.NewLRUClientSessionCache(1000),
 		InsecureSkipVerify: true,
 		ServerName:         serverName,
-		RootCAs:            caCert.PoolContainingCert(),
+		//		RootCAs:            caCert.PoolContainingCert(),
 	}
 
 	return tlsConfig
