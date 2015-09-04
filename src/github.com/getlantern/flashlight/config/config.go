@@ -43,7 +43,7 @@ var (
 	m                   *yamlconf.Manager
 	lastCloudConfigETag = map[string]string{}
 	httpClient          atomic.Value
-	r                   = regexp.MustCompile("\\d+")
+	r                   = regexp.MustCompile("\\d+\\.\\d+")
 )
 
 type Config struct {
@@ -126,7 +126,7 @@ func copyNewest(file string, existsFunc func(file string) (string, bool)) string
 // Init initializes the configuration system.
 func Init(version string) (*Config, error) {
 	file := "lantern-" + majorVersion(version) + ".yaml"
-	copyNewest(file, configExists)
+	//copyNewest(file, configExists)
 	configPath, err := InConfigDir(file)
 	if err != nil {
 		log.Errorf("Could not get config path? %v", err)

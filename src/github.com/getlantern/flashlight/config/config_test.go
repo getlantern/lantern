@@ -34,9 +34,9 @@ func TestCopyOldConfig(t *testing.T) {
 }
 
 func TestMajorVersion(t *testing.T) {
-	ver := "222.0.1"
+	ver := "222.00.1"
 	maj := majorVersion(ver)
-	assert.Equal(t, "222", maj, "Unexpected major version")
+	assert.Equal(t, "222.00", maj, "Unexpected major version")
 }
 
 func TestDataCenter(t *testing.T) {
