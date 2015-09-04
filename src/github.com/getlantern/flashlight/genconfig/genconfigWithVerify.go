@@ -279,10 +279,10 @@ func grabCerts() {
 			RootCA:    ca,
 		}
 
-		masqueradesCh <- masq
-
-		verifyMasquerade(masq)
-		//log.Debugf("MASQUERADE VERIFIED: %v", domain)
+		if verifyMasquerade(masq) {
+			log.Debugf("MASQUERADE VERIFIED: %v", domain)
+			masqueradesCh <- masq
+		}
 	}
 }
 
