@@ -319,13 +319,14 @@ func defaultRoundRobin() string {
 		localeTerritory = "us"
 	}
 	log.Debugf("Locale territory: %v", localeTerritory)
-	return defaultRoundRobinForTerritory(strings.ToLower(localeTerritory))
+	return defaultRoundRobinForTerritory(localeTerritory)
 }
 
 // defaultDataCenter customizes the default data center depending on the user's locale.
 func defaultRoundRobinForTerritory(localeTerritory string) string {
+	lt := strings.ToLower(localeTerritory)
 	datacenter := ""
-	if localeTerritory == "cn" {
+	if lt == "cn" {
 		datacenter = "jp"
 	} else {
 		datacenter = "nl"
