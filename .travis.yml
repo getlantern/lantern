@@ -1,6 +1,11 @@
 language: go
 go:
 - 1.4.2
+- tip
+matrix:
+  allow_failures:
+    - go: tip
+  fast_finish: true
 install:
 - sudo apt-get install make libgtk-3-dev libappindicator3-dev -y
 - go get golang.org/x/tools/cmd/cover
