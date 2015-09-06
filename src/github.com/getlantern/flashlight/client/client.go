@@ -55,6 +55,12 @@ type Client struct {
 	l    net.Listener
 }
 
+// PackagedSettings provided access to configuration embedded in the package.
+type PackagedSettings struct {
+	StartupUrl     string
+	ChainedServers map[string]*ChainedServerInfo
+}
+
 // ListenAndServe makes the client listen for HTTP connections.  onListeningFn
 // is a callback that gets invoked as soon as the server is accepting TCP
 // connections.

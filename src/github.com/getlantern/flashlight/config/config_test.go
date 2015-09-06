@@ -2,10 +2,36 @@ package config
 
 import (
 	"io/ioutil"
+	"strings"
 	"testing"
 
+	"github.com/getlantern/flashlight/client"
+	"github.com/getlantern/yaml"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestInitialConfig(t *testing.T) {
+	path, _ := ioutil.TempFile("", "config")
+
+	yamlPath := "test-packaged.yaml"
+	data, err := ioutil.ReadFile(yamlPath)
+	if err != nil {
+		// This will happen whenever there's no packaged settings, which is often
+		log.Debugf("Error reading file %v", err)
+	}
+
+	trimmed := strings.TrimSpace(string(data))
+
+	log.Debugf("Read bytes: %v", trimmed)
+	var s client.PackagedSettings
+	err = yaml.Unmarshal([]byte(trimmed), &s)
+
+	if err != nil {
+		log.Errorf("Could not read yaml: %v", err)
+	}
+	err = fetchInitialConfig(path.Name(), &s)
+
+}
 
 func TestCopyOldConfig(t *testing.T) {
 	existsFunc := func(file string) (string, bool) {

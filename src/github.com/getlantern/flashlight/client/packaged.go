@@ -1,10 +1,10 @@
-// Package packaged provided access to configuration embedded directly in Lantern installation
+// Package packaged provided access to ration embedded directly in Lantern installation
 // packages. On OSX, that means data embedded in the Lantern.app app bundle in
 // Lantern.app/Contents/Resources/.lantern.yaml, while on Windows that means data embedded
 // in AppData/Roaming/Lantern/.lantern.yaml. This allows customization embedded in the
 // installer outside of the auto-updated binary that should only be used under special
 // circumstances.
-package packaged
+package client
 
 import (
 	"errors"
@@ -15,26 +15,19 @@ import (
 	"strings"
 
 	"github.com/getlantern/appdir"
-	"github.com/getlantern/golog"
 	"github.com/getlantern/yaml"
 )
 
 var (
-	log  = golog.LoggerFor("flashlight.packaged")
 	name = ".packaged-lantern.yaml"
 
-	// This is the local copy of our embedded configuration file. This is necessary
-	// to ensure we remember the embedded configuration across auto-updated
+	// This is the local copy of our embedded ration file. This is necessary
+	// to ensure we remember the embedded ration across auto-updated
 	// binaries. We write to the local file system instead of to the package
 	// itself (app bundle on OSX, install directory on Windows) because
 	// we're not always sure we can write to that directory.
 	local = appdir.General("Lantern") + "/" + name
 )
-
-// PackagedSettings provided access to configuration embedded in the package.
-type PackagedSettings struct {
-	StartupUrl string
-}
 
 // ReadSettings reads packaged settings from pre-determined paths
 // on the various OSes.

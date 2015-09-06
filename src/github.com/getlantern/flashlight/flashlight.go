@@ -256,6 +256,12 @@ func runClientProxy(cfg *config.Config) {
 		exit(nil)
 	}
 
+	path, settings, err := packaged.ReadSettings()
+	if err != nil {
+		// Let packaged itself log errors as necessary.
+		log.Debugf("Could not read yaml from %v: %v", path, err)
+	}
+
 	// Create the client-side proxy.
 	client := &client.Client{
 		Addr:         cfg.Addr,
@@ -269,7 +275,7 @@ func runClientProxy(cfg *config.Config) {
 		exit(fmt.Errorf("Unable to resolve UI address: %v", err))
 	}
 
-	if err = ui.Start(tcpAddr, !showui); err != nil {
+	if err = ui.Start(tcpAddr, !showui, settings.StartupUrl); err != nil {
 		// This very likely means Lantern is already running on our port. Tell
 		// it to open a browser. This is useful, for example, when the user
 		// clicks the Lantern desktop shortcut when Lantern is already running.
