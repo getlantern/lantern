@@ -124,13 +124,27 @@ func copyNewest(file string, existsFunc func(file string) (string, bool)) string
 }
 
 // Init initializes the configuration system.
-func Init(version string) (*Config, error) {
+func Init(version string) (*Config, error, string) {
+	path, settings, err := client.ReadSettings()
+	if err != nil {
+		// Let packaged itself log errors as necessary.
+		// This could happen if we're auto-updated from an older version that didn't
+		// have packaged settings, for example.
+		log.Debugf("Could not read yaml from %v: %v", path, err)
+
+	}
 	file := "lantern-" + majorVersion(version) + ".yaml"
 	//copyNewest(file, configExists)
 	configPath, err := InConfigDir(file)
 	if err != nil {
 		log.Errorf("Could not get config path? %v", err)
-		return nil, err
+		return nil, err, ""
+	}
+
+	// If there's no configuration at the designated configuration path, download it
+	// using the embedded servers.
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		fetchInitialConfig(configPath, settings)
 	}
 	m = &yamlconf.Manager{
 		FilePath:         configPath,
@@ -156,7 +170,7 @@ func Init(version string) (*Config, error) {
 			}
 
 			var bytes []byte
-			if bytes, err = cfg.fetchCloudConfig(); err == nil {
+			if bytes, err = cfg.fetchCloudConfig(httpClient.Load().(*http.Client)); err == nil {
 				// bytes will be nil if the config is unchanged (not modified)
 				if bytes != nil {
 					mutate = func(ycfg yamlconf.Config) error {
@@ -177,10 +191,14 @@ func Init(version string) (*Config, error) {
 		cfg = initial.(*Config)
 		err = updateGlobals(cfg)
 		if err != nil {
-			return nil, err
+			return nil, err, ""
 		}
 	}
-	return cfg, err
+	if settings != nil {
+		return cfg, err, settings.StartupUrl
+	} else {
+		return cfg, err, ""
+	}
 }
 
 // Run runs the configuration system.
@@ -413,7 +431,37 @@ func (cfg Config) cloudPollSleepTime() time.Duration {
 	return time.Duration((CloudConfigPollInterval.Nanoseconds() / 2) + rand.Int63n(CloudConfigPollInterval.Nanoseconds()))
 }
 
-func (cfg Config) fetchCloudConfig() ([]byte, error) {
+func (cfg Config) fetchInitialConfig(path string, ps *client.PackagedSettings) error {
+	var err error
+	for _, s := range ps.ChainedServers {
+		log.Debugf("Fetching config using chained server: %v", s.Addr)
+		dialer, er := s.Dialer()
+		if er != nil {
+			log.Errorf("Unable to configure chained server. Received error: %v", er)
+			continue
+		}
+		http := &http.Client{
+			Transport: &http.Transport{
+				DisableKeepAlives: true,
+				Dial:              dialer.Dial,
+			},
+		}
+		var data []byte
+		data, err = cfg.fetchCloudConfig(http)
+		if err == nil {
+			if er := ioutil.WriteFile(path, data, 0644); er != nil {
+				log.Errorf("Could not create file at %v, %v", path, er)
+				err = er
+			} else {
+				log.Debugf("Wrote file at: %s", path)
+				return nil
+			}
+		}
+	}
+	return err
+}
+
+func (cfg Config) fetchCloudConfig(client *http.Client) ([]byte, error) {
 	url := cfg.CloudConfig
 	log.Debugf("Checking for cloud configuration at: %s", url)
 	req, err := http.NewRequest("GET", url, nil)
@@ -433,7 +481,7 @@ func (cfg Config) fetchCloudConfig() ([]byte, error) {
 	// successive requests
 	req.Close = true
 
-	resp, err := httpClient.Load().(*http.Client).Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to fetch cloud config at %s: %s", url, err)
 	}
