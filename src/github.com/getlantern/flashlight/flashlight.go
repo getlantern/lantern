@@ -371,11 +371,11 @@ func applyClientConfig(client *client.Client, cfg *config.Config) {
 func runServerProxy(cfg *config.Config) {
 	useAllCores()
 
-	pkFile, err := config.InConfigDir("proxypk.pem")
+	_, pkFile, err := config.InConfigDir("proxypk.pem")
 	if err != nil {
 		log.Fatal(err)
 	}
-	certFile, err := config.InConfigDir("servercert.pem")
+	_, certFile, err := config.InConfigDir("servercert.pem")
 	if err != nil {
 		log.Fatal(err)
 	}

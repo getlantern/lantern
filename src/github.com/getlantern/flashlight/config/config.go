@@ -105,19 +105,8 @@ func hasCustomChainedServer(configPath string) bool {
 	return nc > 0 && nc < 10
 }
 
-func isGoodConfig(file string) (string, bool) {
-	configPath, err := InConfigDir(file)
-	if err != nil {
-		log.Errorf("Could not get config path? %v", err)
-		return configPath, false
-	}
-	if exists(configPath) {
-		// If the old config has a custom chained server, use it. Otherwise ignore it.
-		if hasCustomChainedServer(configPath) {
-			return configPath, true
-		}
-	}
-	return configPath, false
+func isGoodConfig(configPath string) bool {
+	return exists(configPath) && hasCustomChainedServer(configPath)
 }
 
 func majorVersion(version string) string {
@@ -125,27 +114,37 @@ func majorVersion(version string) string {
 }
 
 // copyGoodOldConfig is a one-time function for using older config files in the 2.x series.
-func copyGoodOldConfig(file string, existsFunc func(file string) (string, bool)) string {
+func copyGoodOldConfig(configDir, configPath string) {
 	// If we already have a config file with the latest name, use that one.
 	// Otherwise, copy the most recent config file available.
-	cur, exists := existsFunc(file)
+	exists := isGoodConfig(configPath)
 	if exists {
 		log.Debugf("Using existing config")
-		return cur
+		return
 	}
-	files := []string{"lantern-2.0.yaml", "lantern-2.yaml", "lantern-2.0.1.yaml", "lantern-2.0.0+stable.yaml", "lantern-2.0.0+manoto.yaml", "lantern-2.0.0-beta8.yaml"}
+
+	files, err := ioutil.ReadDir(configDir)
+	if err != nil {
+		log.Errorf("Could not read config dir: %v", err)
+		return
+	}
 
 	for _, file := range files {
-		if path, exists := existsFunc(file); exists {
-			if err := os.Rename(path, cur); err != nil {
-				log.Errorf("Could not rename file from %v to %v: %v", path, cur, err)
+		path := file.Name()
+		if !strings.HasSuffix(path, ".yaml") {
+			continue
+		}
+		if isGoodConfig(path) {
+			// Just use the old config since configs in the 2.x series haven't changed.
+			if err := os.Rename(path, configPath); err != nil {
+				log.Errorf("Could not rename file from %v to %v: %v", path, configPath, err)
 			} else {
-				log.Debugf("Copied old config at %v to %v", path, cur)
-				return path
+				log.Debugf("Copied old config at %v to %v", path, configPath)
+				return
 			}
 		}
 	}
-	return cur
+	return
 }
 
 // Init initializes the configuration system.
@@ -159,12 +158,12 @@ func Init(version string) (*Config, error, string) {
 
 	}
 	file := "lantern-" + version + ".yaml"
-	copyGoodOldConfig(file, isGoodConfig)
-	configPath, err := InConfigDir(file)
+	configDir, configPath, err := InConfigDir(file)
 	if err != nil {
 		log.Errorf("Could not get config path? %v", err)
 		return nil, err, ""
 	}
+	copyGoodOldConfig(configDir, configPath)
 
 	m = &yamlconf.Manager{
 		FilePath:         configPath,
@@ -187,8 +186,7 @@ func Init(version string) (*Config, error, string) {
 				for _, client := range clients {
 					mutate, _, err = pollWithHttpClient(cfg, &client)
 					if err == nil {
-						log.Debugf("Performed one-time setup: Got %v chained servers",
-							len(cfg.Client.ChainedServers))
+						log.Debugf("Successfully downloaded custom config")
 						return mutate, err
 					}
 				}
@@ -234,7 +232,7 @@ func pollWithHttpClient(currentCfg yamlconf.Config, client *http.Client) (mutate
 	if bytes, err = fetchCloudConfig(client, url); err == nil {
 		// bytes will be nil if the config is unchanged (not modified)
 		if bytes != nil {
-			log.Debugf("Downloaded config:\n %v", string(bytes))
+			//log.Debugf("Downloaded config:\n %v", string(bytes))
 			mutate = func(ycfg yamlconf.Config) error {
 				log.Debugf("Merging cloud configuration")
 				cfg := ycfg.(*Config)
@@ -278,7 +276,7 @@ func Update(mutate func(cfg *Config) error) error {
 }
 
 // InConfigDir returns the path to the given filename inside of the configdir.
-func InConfigDir(filename string) (string, error) {
+func InConfigDir(filename string) (string, string, error) {
 	cdir := *configdir
 
 	if cdir == "" {
@@ -290,12 +288,12 @@ func InConfigDir(filename string) (string, error) {
 		if os.IsNotExist(err) {
 			// Create config dir
 			if err := os.MkdirAll(cdir, 0750); err != nil {
-				return "", fmt.Errorf("Unable to create configdir at %s: %s", cdir, err)
+				return "", "", fmt.Errorf("Unable to create configdir at %s: %s", cdir, err)
 			}
 		}
 	}
 
-	return filepath.Join(cdir, filename), nil
+	return cdir, filepath.Join(cdir, filename), nil
 }
 
 // TrustedCACerts returns a slice of PEM-encoded certs for the trusted CAs

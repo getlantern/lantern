@@ -97,8 +97,7 @@ func packagedSettingsPath() (string, error) {
 	} else if runtime.GOOS == "linux" {
 		yamldir = dir
 	}
-	yamlPath := yamldir + "/" + name
-	return yamlPath, nil
+	return filepath.Join(yamldir, name), nil
 }
 
 func writeToDisk(ps *PackagedSettings) (string, error) {
