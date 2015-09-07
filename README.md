@@ -10,10 +10,6 @@
 
 | [English](https://groups.google.com/forum/#!forum/lantern-users-en) | [中文](https://groups.google.com/forum/#!forum/lantern-users-zh) | [فارسی](https://groups.google.com/forum/#!forum/lantern-users-fa) | [français](https://groups.google.com/forum/#!forum/lantern-users-fr)
 
-
-lantern is a [gost](https://github.com/getlantern/gost) project that
-provides repeatable builds and consolidated pull requests for lantern.
-
 ## Building Lantern
 
 ### Requisites
@@ -27,32 +23,6 @@ We are going to create a Docker image that will take care of compiling Lantern
 for Windows and Linux, in order to compile Lantern for OSX you'll need an OSX
 host, this is a limitation caused by Lantern depending on C code and OSX build
 tools for certain features.
-
-
-### Contributing changes
-
-Go code in Lantern must pass several tests:
-
-* [errcheck](https://github.com/kisielk/errcheck)
-* [golint](https://github.com/golang/lint)
-* Go vet
-* Go test -race
-
-You can find a generic [git-hook](https://github.com/getlantern/lantern/blob/valencia/git-hook)
-file, which can be used as a pre-push (or pre-commit) hook to automatically
-ensure these tests are passed before committing any code. Only Go packages in
-`src/github.com/getlantern` will be tested, and only those that have changes in
-them.
-
-Install by copying it into the local `.git/hooks/` directory, with the `pre-push`
-file name if you want to run it before pushing. Alternatively, you can name it
-`pre-commit` to run it before each commit..
-
-**Important notice**
-
-If you *must* commit without running the hooks, you can run git with the
-`--no-verify` flag.
-
 
 ### Building the docker image
 
@@ -337,5 +307,41 @@ available
 [here](https://github.com/getlantern/too-many-secrets/blob/master/envvars.bash).
 An encrypted version is checked in as `envvars.bash.enc`, which was encrypted
 per the instructions [here](http://docs.travis-ci.com/user/encrypting-files/).
+
+
+## Documentation for developers
+
+### Dev README
+
+Please, go to [README-dev](README-dev.md) for a deeper explanation of the Lantern internals and
+cloud services.
+
+### Contributing changes
+Lantern is a [gost](https://github.com/getlantern/gost) project that
+provides repeatable builds and consolidated pull requests for lantern.
+
+Go code in Lantern must pass several tests:
+
+* [errcheck](https://github.com/kisielk/errcheck)
+* [golint](https://github.com/golang/lint)
+* Go vet
+* Go test -race
+
+You can find a generic [git-hook](https://github.com/getlantern/lantern/blob/valencia/git-hook)
+file, which can be used as a pre-push (or pre-commit) hook to automatically
+ensure these tests are passed before committing any code. Only Go packages in
+`src/github.com/getlantern` will be tested, and only those that have changes in
+them.
+
+Install by copying it into the local `.git/hooks/` directory, with the `pre-push`
+file name if you want to run it before pushing. Alternatively, you can name it
+`pre-commit` to run it before each commit..
+
+**Important notice**
+
+If you *must* commit without running the hooks, you can run git with the
+`--no-verify` flag.
+
+
 
 [1]: https://help.github.com/articles/creating-an-access-token-for-command-line-use/
