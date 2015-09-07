@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -18,6 +19,7 @@ import (
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
+	"github.com/getlantern/jibber_jabber"
 	"github.com/getlantern/launcher"
 	"github.com/getlantern/proxiedsites"
 	"github.com/getlantern/yaml"
@@ -41,7 +43,7 @@ var (
 	m                   *yamlconf.Manager
 	lastCloudConfigETag = map[string]string{}
 	httpClient          atomic.Value
-	r                   = regexp.MustCompile("\\d+")
+	r                   = regexp.MustCompile("\\d+\\.\\d+")
 )
 
 type Config struct {
@@ -98,35 +100,51 @@ func majorVersion(version string) string {
 // copyNewest is a one-time function for using older config files in the 2.x series.
 // from 2.0.2 forward, Lantern will consider all major versions to be compatible and
 // will name them accordingly, as in "lantern-2.yaml".
-func copyNewest(file string) {
+func copyNewest(file string, existsFunc func(file string) (string, bool)) string {
 	// If we already have a config file with the latest name, use that one.
 	// Otherwise, copy the most recent config file available.
-	cur, exists := configExists(file)
-
+	cur, exists := existsFunc(file)
 	if exists {
-		return
+		log.Debugf("Using existing config")
+		return cur
 	}
 	files := []string{"lantern-2.0.1.yaml", "lantern-2.0.0+stable.yaml", "lantern-2.0.0+manoto.yaml", "lantern-2.0.0-beta8.yaml"}
 
 	for _, file := range files {
-		if path, exists := configExists(file); exists {
+		if path, exists := existsFunc(file); exists {
 			if err := os.Rename(path, cur); err != nil {
 				log.Errorf("Could not rename file from %v to %v: %v", path, cur, err)
 			} else {
-				return
+				log.Debugf("Copied old config at %v to %v", path, cur)
+				return path
 			}
 		}
 	}
+	return cur
 }
 
 // Init initializes the configuration system.
-func Init(version string) (*Config, error) {
+func Init(version string) (*Config, error, string) {
+	path, settings, err := client.ReadSettings()
+	if err != nil {
+		// Let packaged itself log errors as necessary.
+		// This could happen if we're auto-updated from an older version that didn't
+		// have packaged settings, for example.
+		log.Debugf("Could not read yaml from %v: %v", path, err)
+
+	}
 	file := "lantern-" + majorVersion(version) + ".yaml"
-	copyNewest(file)
+	//copyNewest(file, configExists)
 	configPath, err := InConfigDir(file)
 	if err != nil {
 		log.Errorf("Could not get config path? %v", err)
-		return nil, err
+		return nil, err, ""
+	}
+
+	// If there's no configuration at the designated configuration path, download it
+	// using the embedded servers.
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		fetchInitialConfig(configPath, settings)
 	}
 	m = &yamlconf.Manager{
 		FilePath:         configPath,
@@ -152,7 +170,7 @@ func Init(version string) (*Config, error) {
 			}
 
 			var bytes []byte
-			if bytes, err = cfg.fetchCloudConfig(); err == nil {
+			if bytes, err = cfg.fetchCloudConfig(httpClient.Load().(*http.Client)); err == nil {
 				// bytes will be nil if the config is unchanged (not modified)
 				if bytes != nil {
 					mutate = func(ycfg yamlconf.Config) error {
@@ -173,10 +191,14 @@ func Init(version string) (*Config, error) {
 		cfg = initial.(*Config)
 		err = updateGlobals(cfg)
 		if err != nil {
-			return nil, err
+			return nil, err, ""
 		}
 	}
-	return cfg, err
+	if settings != nil {
+		return cfg, err, settings.StartupUrl
+	} else {
+		return cfg, err, ""
+	}
 }
 
 // Run runs the configuration system.
@@ -216,7 +238,7 @@ func InConfigDir(filename string) (string, error) {
 		cdir = appdir.General("Lantern")
 	}
 
-	log.Debugf("Placing configuration in %v", cdir)
+	log.Debugf("Using config dir %v", cdir)
 	if _, err := os.Stat(cdir); err != nil {
 		if os.IsNotExist(err) {
 			// Create config dir
@@ -309,6 +331,28 @@ func (cfg *Config) ApplyDefaults() {
 	}
 }
 
+func defaultRoundRobin() string {
+	localeTerritory, err := jibber_jabber.DetectTerritory()
+	if err != nil {
+		localeTerritory = "us"
+	}
+	log.Debugf("Locale territory: %v", localeTerritory)
+	return defaultRoundRobinForTerritory(localeTerritory)
+}
+
+// defaultDataCenter customizes the default data center depending on the user's locale.
+func defaultRoundRobinForTerritory(localeTerritory string) string {
+	lt := strings.ToLower(localeTerritory)
+	datacenter := ""
+	if lt == "cn" {
+		datacenter = "jp"
+	} else {
+		datacenter = "nl"
+	}
+	log.Debugf("datacenter: %v", datacenter)
+	return datacenter + ".fallbacks.getiantem.org"
+}
+
 func (cfg *Config) applyClientDefaults() {
 	// Make sure we always have at least one masquerade set
 	if cfg.Client.MasqueradeSets == nil {
@@ -325,7 +369,7 @@ func (cfg *Config) applyClientDefaults() {
 	if len(cfg.Client.FrontedServers) == 0 && len(cfg.Client.ChainedServers) == 0 {
 		cfg.Client.FrontedServers = []*client.FrontedServerInfo{
 			&client.FrontedServerInfo{
-				Host:           "jp.fallbacks.getiantem.org",
+				Host:           defaultRoundRobin(),
 				Port:           443,
 				PoolSize:       0,
 				MasqueradeSet:  cloudflare,
@@ -387,7 +431,37 @@ func (cfg Config) cloudPollSleepTime() time.Duration {
 	return time.Duration((CloudConfigPollInterval.Nanoseconds() / 2) + rand.Int63n(CloudConfigPollInterval.Nanoseconds()))
 }
 
-func (cfg Config) fetchCloudConfig() ([]byte, error) {
+func (cfg Config) fetchInitialConfig(path string, ps *client.PackagedSettings) error {
+	var err error
+	for _, s := range ps.ChainedServers {
+		log.Debugf("Fetching config using chained server: %v", s.Addr)
+		dialer, er := s.Dialer()
+		if er != nil {
+			log.Errorf("Unable to configure chained server. Received error: %v", er)
+			continue
+		}
+		http := &http.Client{
+			Transport: &http.Transport{
+				DisableKeepAlives: true,
+				Dial:              dialer.Dial,
+			},
+		}
+		var data []byte
+		data, err = cfg.fetchCloudConfig(http)
+		if err == nil {
+			if er := ioutil.WriteFile(path, data, 0644); er != nil {
+				log.Errorf("Could not create file at %v, %v", path, er)
+				err = er
+			} else {
+				log.Debugf("Wrote file at: %s", path)
+				return nil
+			}
+		}
+	}
+	return err
+}
+
+func (cfg Config) fetchCloudConfig(client *http.Client) ([]byte, error) {
 	url := cfg.CloudConfig
 	log.Debugf("Checking for cloud configuration at: %s", url)
 	req, err := http.NewRequest("GET", url, nil)
@@ -407,7 +481,7 @@ func (cfg Config) fetchCloudConfig() ([]byte, error) {
 	// successive requests
 	req.Close = true
 
-	resp, err := httpClient.Load().(*http.Client).Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to fetch cloud config at %s: %s", url, err)
 	}

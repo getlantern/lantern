@@ -86,7 +86,7 @@ func init() {
 }
 
 func logPanic(msg string) {
-	cfg, err := config.Init(packageVersion)
+	cfg, err, _ := config.Init(packageVersion)
 	if err != nil {
 		panic("Error initializing config")
 	}
@@ -172,7 +172,7 @@ func doMain() error {
 
 	parseFlags()
 
-	cfg, err := config.Init(packageVersion)
+	cfg, err, startupUrl := config.Init(packageVersion)
 	if err != nil {
 		return fmt.Errorf("Unable to initialize configuration: %v", err)
 	}
@@ -200,7 +200,7 @@ func doMain() error {
 	log.Debug("Running proxy")
 	if cfg.IsDownstream() {
 		// This will open a proxy on the address and port given by -addr
-		go runClientProxy(cfg)
+		go runClientProxy(cfg, startupUrl)
 	} else {
 		go runServerProxy(cfg)
 	}
@@ -238,7 +238,7 @@ func parseFlags() {
 }
 
 // runClientProxy runs the client-side (get mode) proxy.
-func runClientProxy(cfg *config.Config) {
+func runClientProxy(cfg *config.Config, startupUrl string) {
 	// Set Lantern as system proxy by creating and using a PAC file.
 	setProxyAddr(cfg.Addr)
 
@@ -269,7 +269,7 @@ func runClientProxy(cfg *config.Config) {
 		exit(fmt.Errorf("Unable to resolve UI address: %v", err))
 	}
 
-	if err = ui.Start(tcpAddr, !showui); err != nil {
+	if err = ui.Start(tcpAddr, !showui, startupUrl); err != nil {
 		// This very likely means Lantern is already running on our port. Tell
 		// it to open a browser. This is useful, for example, when the user
 		// clicks the Lantern desktop shortcut when Lantern is already running.
