@@ -313,7 +313,7 @@ per the instructions [here](http://docs.travis-ci.com/user/encrypting-files/).
 
 ### Dev README
 
-Please, go to [README-dev](README-dev.md) for a deeper explanation of the Lantern internals and
+Please, go to [README-dev](README-dev.md) for an in-depth explanation of the Lantern internals and
 cloud services.
 
 ### Contributing changes
