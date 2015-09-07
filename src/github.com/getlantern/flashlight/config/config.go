@@ -36,6 +36,7 @@ const (
 	cloudflare              = "cloudflare"
 	etag                    = "X-Lantern-Etag"
 	ifNoneMatch             = "X-Lantern-If-None-Match"
+	defaultCloudConfigUrl   = "https://config.getiantem.org/cloud.yaml.gz"
 )
 
 var (
@@ -141,48 +142,37 @@ func Init(version string) (*Config, error, string) {
 		return nil, err, ""
 	}
 
-	// If there's no configuration at the designated configuration path, download it
-	// using the embedded servers.
-	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		fetchInitialConfig(configPath, settings)
-	}
 	m = &yamlconf.Manager{
 		FilePath:         configPath,
 		FilePollInterval: 1 * time.Second,
 		EmptyConfig: func() yamlconf.Config {
 			return &Config{}
 		},
-		OneTimeSetup: func(ycfg yamlconf.Config) error {
+		OneTimeSetup: func(ycfg yamlconf.Config) (mutate func(yamlconf.Config) error, err error) {
 			cfg := ycfg.(*Config)
-			return cfg.applyFlags()
-		},
-		CustomPoll: func(currentCfg yamlconf.Config) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
-			// By default, do nothing
-			mutate = func(ycfg yamlconf.Config) error {
-				// do nothing
-				return nil
+			if err := cfg.applyFlags(); err != nil {
+				log.Errorf("Could not apply flags: %v", err)
+				return nil, err
 			}
-			cfg := currentCfg.(*Config)
-			waitTime = cfg.cloudPollSleepTime()
-			if cfg.CloudConfig == "" {
-				// Config doesn't have a CloudConfig, just ignore
-				return
-			}
-
-			var bytes []byte
-			if bytes, err = cfg.fetchCloudConfig(httpClient.Load().(*http.Client)); err == nil {
-				// bytes will be nil if the config is unchanged (not modified)
-				if bytes != nil {
-					mutate = func(ycfg yamlconf.Config) error {
-						log.Debugf("Merging cloud configuration")
-						cfg := ycfg.(*Config)
-						return cfg.updateFrom(bytes)
+			// If there's no configuration at the designated configuration path on startup,
+			// it likely means this is the very first run. Download the first confic using
+			// the embedded servers.
+			if _, err := os.Stat(configPath); os.IsNotExist(err) {
+				var err error
+				clients := loadPackagedHttpClients(settings)
+				for _, client := range clients {
+					mutate, _, err = pollWithHttpClient(cfg, &client)
+					if err == nil {
+						log.Debugf("Performed one-time setup: %v", len(cfg.Client.ChainedServers))
+						return mutate, err
 					}
 				}
-			} else {
-				log.Errorf("Could not fetch cloud config %v", err)
+				return nil, err
 			}
-			return
+			return nil, nil
+		},
+		CustomPoll: func(currentCfg yamlconf.Config) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
+			return pollWithHttpClient(currentCfg, httpClient.Load().(*http.Client))
 		},
 	}
 	initial, err := m.Init()
@@ -199,6 +189,38 @@ func Init(version string) (*Config, error, string) {
 	} else {
 		return cfg, err, ""
 	}
+}
+
+func pollWithHttpClient(currentCfg yamlconf.Config, client *http.Client) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
+	// By default, do nothing
+	mutate = func(ycfg yamlconf.Config) error {
+		// do nothing
+		return nil
+	}
+	cfg := currentCfg.(*Config)
+	waitTime = cfg.cloudPollSleepTime()
+	if cfg.CloudConfig == "" {
+		// Config doesn't have a CloudConfig, just ignore
+		return mutate, waitTime, nil
+	}
+
+	url := cfg.CloudConfig
+	var bytes []byte
+	if bytes, err = fetchCloudConfig(client, url); err == nil {
+		// bytes will be nil if the config is unchanged (not modified)
+		if bytes != nil {
+			log.Debugf("Downloaded config:\n %v", string(bytes))
+			mutate = func(ycfg yamlconf.Config) error {
+				log.Debugf("Merging cloud configuration")
+				cfg := ycfg.(*Config)
+				return cfg.updateFrom(bytes)
+			}
+		}
+	} else {
+		log.Errorf("Could not fetch cloud config %v", err)
+		return mutate, waitTime, err
+	}
+	return mutate, waitTime, nil
 }
 
 // Run runs the configuration system.
@@ -290,7 +312,7 @@ func (cfg *Config) ApplyDefaults() {
 	}
 
 	if cfg.CloudConfig == "" {
-		cfg.CloudConfig = "https://config.getiantem.org/cloud.yaml.gz"
+		cfg.CloudConfig = defaultCloudConfigUrl
 	}
 
 	if cfg.InstanceId == "" {
@@ -431,8 +453,8 @@ func (cfg Config) cloudPollSleepTime() time.Duration {
 	return time.Duration((CloudConfigPollInterval.Nanoseconds() / 2) + rand.Int63n(CloudConfigPollInterval.Nanoseconds()))
 }
 
-func (cfg Config) fetchInitialConfig(path string, ps *client.PackagedSettings) error {
-	var err error
+func loadPackagedHttpClients(ps *client.PackagedSettings) []http.Client {
+	var clients []http.Client
 	for _, s := range ps.ChainedServers {
 		log.Debugf("Fetching config using chained server: %v", s.Addr)
 		dialer, er := s.Dialer()
@@ -440,29 +462,17 @@ func (cfg Config) fetchInitialConfig(path string, ps *client.PackagedSettings) e
 			log.Errorf("Unable to configure chained server. Received error: %v", er)
 			continue
 		}
-		http := &http.Client{
+		clients = append(clients, http.Client{
 			Transport: &http.Transport{
 				DisableKeepAlives: true,
 				Dial:              dialer.Dial,
 			},
-		}
-		var data []byte
-		data, err = cfg.fetchCloudConfig(http)
-		if err == nil {
-			if er := ioutil.WriteFile(path, data, 0644); er != nil {
-				log.Errorf("Could not create file at %v, %v", path, er)
-				err = er
-			} else {
-				log.Debugf("Wrote file at: %s", path)
-				return nil
-			}
-		}
+		})
 	}
-	return err
+	return clients
 }
 
-func (cfg Config) fetchCloudConfig(client *http.Client) ([]byte, error) {
-	url := cfg.CloudConfig
+func fetchCloudConfig(client *http.Client, url string) ([]byte, error) {
 	log.Debugf("Checking for cloud configuration at: %s", url)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {

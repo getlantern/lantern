@@ -100,7 +100,7 @@ type Manager struct {
 	// OneTimeSetup: optional, provides the ability to perform one-time setup
 	// on the configuration at start time (for example applying command-line
 	// flags)
-	OneTimeSetup func(cfg Config) error
+	OneTimeSetup func(currentCfg Config) (mutate func(cfg Config) error, err error)
 
 	// CustomPoll: optionally, specify a custom polling function that returns
 	// a mutator for applying the result of polling, the time to wait till the
@@ -159,9 +159,16 @@ func (m *Manager) Init() (Config, error) {
 		cfg := m.EmptyConfig()
 		cfg.ApplyDefaults()
 		if m.OneTimeSetup != nil {
-			err := m.OneTimeSetup(cfg)
+			mutate, err := m.OneTimeSetup(cfg)
 			if err != nil {
 				return nil, fmt.Errorf("Unable to perform one-time setup: %s", err)
+			} else {
+				go func() {
+					err = m.Update(mutate)
+					if err != nil {
+						log.Errorf("Unable to apply update from custom polling: %s", err)
+					}
+				}()
 			}
 		}
 		_, err = m.saveToDiskAndUpdate(cfg)
@@ -173,7 +180,7 @@ func (m *Manager) Init() (Config, error) {
 		// applied and formatting to be made consistent
 		copied, err := m.copy(m.cfg)
 		if m.OneTimeSetup != nil {
-			err := m.OneTimeSetup(copied)
+			_, err := m.OneTimeSetup(copied)
 			if err != nil {
 				return nil, fmt.Errorf("Unable to perform one-time setup: %s", err)
 			}
