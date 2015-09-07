@@ -85,23 +85,47 @@ func exists(file string) bool {
 	return true
 }
 
-func configExists(file string) (string, bool) {
+// hasCustomChainedServer returns whether or not the config file at the specified
+// path includes a custom chained server or not.
+func hasCustomChainedServer(configPath string) bool {
+	bytes, err := ioutil.ReadFile(configPath)
+	if err != nil {
+		return false
+	}
+	cfg := &Config{}
+	err = yaml.Unmarshal(bytes, cfg)
+	if err != nil {
+		return false
+	}
+	nc := len(cfg.Client.ChainedServers)
+
+	// The config will have more than one but fewer than 10 chained servers
+	// if it has been given a custom config with a custom chained server
+	// list
+	return nc > 0 && nc < 10
+}
+
+func isGoodConfig(file string) (string, bool) {
 	configPath, err := InConfigDir(file)
 	if err != nil {
 		log.Errorf("Could not get config path? %v", err)
 		return configPath, false
 	}
-	return configPath, exists(configPath)
+	if exists(configPath) {
+		// If the old config has a custom chained server, use it. Otherwise ignore it.
+		if hasCustomChainedServer(configPath) {
+			return configPath, true
+		}
+	}
+	return configPath, false
 }
 
 func majorVersion(version string) string {
 	return r.FindString(version)
 }
 
-// copyNewest is a one-time function for using older config files in the 2.x series.
-// from 2.0.2 forward, Lantern will consider all major versions to be compatible and
-// will name them accordingly, as in "lantern-2.yaml".
-func copyNewest(file string, existsFunc func(file string) (string, bool)) string {
+// copyGoodOldConfig is a one-time function for using older config files in the 2.x series.
+func copyGoodOldConfig(file string, existsFunc func(file string) (string, bool)) string {
 	// If we already have a config file with the latest name, use that one.
 	// Otherwise, copy the most recent config file available.
 	cur, exists := existsFunc(file)
@@ -109,7 +133,7 @@ func copyNewest(file string, existsFunc func(file string) (string, bool)) string
 		log.Debugf("Using existing config")
 		return cur
 	}
-	files := []string{"lantern-2.0.1.yaml", "lantern-2.0.0+stable.yaml", "lantern-2.0.0+manoto.yaml", "lantern-2.0.0-beta8.yaml"}
+	files := []string{"lantern-2.0.yaml", "lantern-2.yaml", "lantern-2.0.1.yaml", "lantern-2.0.0+stable.yaml", "lantern-2.0.0+manoto.yaml", "lantern-2.0.0-beta8.yaml"}
 
 	for _, file := range files {
 		if path, exists := existsFunc(file); exists {
@@ -134,8 +158,8 @@ func Init(version string) (*Config, error, string) {
 		log.Debugf("Could not read yaml from %v: %v", path, err)
 
 	}
-	file := "lantern-" + majorVersion(version) + ".yaml"
-	//copyNewest(file, configExists)
+	file := "lantern-" + version + ".yaml"
+	copyGoodOldConfig(file, isGoodConfig)
 	configPath, err := InConfigDir(file)
 	if err != nil {
 		log.Errorf("Could not get config path? %v", err)
@@ -148,7 +172,7 @@ func Init(version string) (*Config, error, string) {
 		EmptyConfig: func() yamlconf.Config {
 			return &Config{}
 		},
-		OneTimeSetup: func(ycfg yamlconf.Config) (mutate func(yamlconf.Config) error, err error) {
+		OneTimeSetup: func(ycfg yamlconf.Config, firstRun bool) (mutate func(yamlconf.Config) error, err error) {
 			cfg := ycfg.(*Config)
 			if err := cfg.applyFlags(); err != nil {
 				log.Errorf("Could not apply flags: %v", err)
@@ -157,13 +181,14 @@ func Init(version string) (*Config, error, string) {
 			// If there's no configuration at the designated configuration path on startup,
 			// it likely means this is the very first run. Download the first confic using
 			// the embedded servers.
-			if _, err := os.Stat(configPath); os.IsNotExist(err) {
+			if firstRun {
 				var err error
 				clients := loadPackagedHttpClients(settings)
 				for _, client := range clients {
 					mutate, _, err = pollWithHttpClient(cfg, &client)
 					if err == nil {
-						log.Debugf("Performed one-time setup: %v", len(cfg.Client.ChainedServers))
+						log.Debugf("Performed one-time setup: Got %v chained servers",
+							len(cfg.Client.ChainedServers))
 						return mutate, err
 					}
 				}
