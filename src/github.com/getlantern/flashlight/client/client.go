@@ -50,14 +50,8 @@ type Client struct {
 	rpCh          chan *httputil.ReverseProxy
 	rpInitialized bool
 
-	httpClient *http.Client
-	l          net.Listener
-}
-
-// PackagedSettings provided access to configuration embedded in the package.
-type PackagedSettings struct {
-	StartupUrl     string
-	ChainedServers map[string]*ChainedServerInfo
+	httpClientFunc func() *http.Client
+	l              net.Listener
 }
 
 // ListenAndServe makes the client listen for HTTP connections.  onListeningFn
@@ -86,10 +80,10 @@ func (client *Client) ListenAndServe(onListeningFn func()) error {
 	return httpServer.Serve(l)
 }
 
-// Configure updates the client's configuration.  Configure can be called
+// Configure updates the client's configuration. Configure can be called
 // before or after ListenAndServe, and can be called multiple times.  It
 // returns the highest QOS fronted.Dialer available, or nil if none available.
-func (client *Client) Configure(cfg *ClientConfig) *http.Client {
+func (client *Client) Configure(cfg *ClientConfig) func() *http.Client {
 	client.cfgMutex.Lock()
 	defer client.cfgMutex.Unlock()
 
@@ -98,7 +92,9 @@ func (client *Client) Configure(cfg *ClientConfig) *http.Client {
 	if client.priorCfg != nil && client.priorTrustedCAs != nil {
 		if reflect.DeepEqual(client.priorCfg, cfg) && reflect.DeepEqual(client.priorTrustedCAs, globals.TrustedCAs) {
 			log.Debugf("Client configuration unchanged")
-			return client.httpClient
+			// Techniqally this might not be initialized yet and should be pulled
+			// off a channel or something similar.
+			return client.httpClientFunc
 		}
 		log.Debugf("Client configuration changed")
 	} else {
@@ -118,13 +114,15 @@ func (client *Client) Configure(cfg *ClientConfig) *http.Client {
 	client.priorCfg = cfg
 	client.priorTrustedCAs = &x509.CertPool{}
 	*client.priorTrustedCAs = *globals.TrustedCAs
-	client.httpClient = &http.Client{
-		Transport: &http.Transport{
-			DisableKeepAlives: true,
-			Dial:              bal.Dial,
-		},
+	client.httpClientFunc = func() *http.Client {
+		return &http.Client{
+			Transport: &http.Transport{
+				DisableKeepAlives: true,
+				Dial:              bal.Dial,
+			},
+		}
 	}
-	return client.httpClient
+	return client.httpClientFunc
 }
 
 // Stop is called when the client is no longer needed. It closes the

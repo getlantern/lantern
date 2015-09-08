@@ -42,6 +42,9 @@ func (client *Client) initBalancer(cfg *ClientConfig) *balancer.Balancer {
 
 	// Add chained (CONNECT proxy) servers.
 	log.Debugf("Adding %d chained servers", len(cfg.ChainedServers))
+	if len(cfg.ChainedServers) == 0 {
+		log.Error("NO CHAINED SERVERS!")
+	}
 	for _, s := range cfg.ChainedServers {
 		dialer, err := s.Dialer()
 		if err == nil {

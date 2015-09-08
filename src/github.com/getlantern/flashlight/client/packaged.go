@@ -29,6 +29,12 @@ var (
 	local = appdir.General("Lantern") + "/" + name
 )
 
+// PackagedSettings provided access to configuration embedded in the package.
+type PackagedSettings struct {
+	StartupUrl     string
+	ChainedServers map[string]*ChainedServerInfo
+}
+
 // ReadSettings reads packaged settings from pre-determined paths
 // on the various OSes.
 func ReadSettings() (string, *PackagedSettings, error) {

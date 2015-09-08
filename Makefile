@@ -48,19 +48,13 @@ LOGGLY_TOKEN_MOBILE := d730c074-1f0a-415d-8d71-1ebf1d8bd736
 
 FIRETWEET_MAIN_DIR ?= ../firetweet/firetweet/src/main/
 
+MANOTO_STARTUP := startupurl: https://www.facebook.com/manototv/app_128953167177144
+CUSTOM_SERVER_PATH := installer-resources/chained.yaml
 
 .PHONY: packages clean docker
 
-define package-settings
-	PACKAGED_SETTINGS="" && \
-	if [[ ! -z "$$MANOTO" ]]; then \
-		PACKAGED_SETTINGS="startupurl: https://www.facebook.com/manototv/app_128953167177144"; \
-	fi && \
-	PACKAGED_SETTINGS=$$(echo $$PACKAGED_SETTINGS | xargs) && echo "Packaged settings: $$PACKAGED_SETTINGS"
-endef
-
 define build-tags
-	PACKAGED_SETTINGS="" BUILD_TAGS="" && \
+	BUILD_TAGS="" && \
 	if [[ ! -z "$$VERSION" ]]; then \
 		BUILD_TAGS="prod" && \
 		sed s/'packageVersion.*'/'packageVersion = "'$$VERSION'"'/ src/github.com/getlantern/flashlight/autoupdate.go | sed s/'!prod'/'prod'/ > src/github.com/getlantern/flashlight/autoupdate-prod.go; \
@@ -89,7 +83,6 @@ endef
 
 define fpm-debian-build =
 	echo "Running fpm-debian-build" && \
-	$(call package-settings) && \
  	PKG_ARCH=$1 && \
 	WORKDIR=$$(mktemp -dt "$$(basename $$0).XXXXXXXXXX") && \
 	INSTALLER_RESOURCES=./installer-resources/linux && \
@@ -112,11 +105,14 @@ define fpm-debian-build =
 	chmod +x $$WORKDIR/usr/lib/lantern/lantern.sh && \
 	\
 	ln -s /usr/lib/lantern/lantern.sh $$WORKDIR/usr/bin/lantern && \
+	rm -f $$WORKDIR/usr/lib/lantern/$(PACKAGED_YAML) && \
+	cp $$INSTALLER_RESOURCES/$(PACKAGED_YAML) $$WORKDIR/usr/lib/lantern/$(PACKAGED_YAML) && \
+	cat $(CUSTOM_SERVER_PATH) >> $$WORKDIR/usr/lib/lantern/$(PACKAGED_YAML) && \
 	\
 	cat $$WORKDIR/usr/lib/lantern/lantern-binary | bzip2 > update_linux_$$PKG_ARCH.bz2 && \
 	fpm -a $$PKG_ARCH -s dir -t deb -n lantern -v $$VERSION -m "$(PACKAGE_MAINTAINER)" --description "$(LANTERN_DESCRIPTION)\n$(LANTERN_EXTENDED_DESCRIPTION)" --category net --license "Apache-2.0" --vendor "$(PACKAGE_VENDOR)" --url $(PACKAGE_URL) --deb-compression xz -f -C $$WORKDIR usr && \
 	\
-	echo $$PACKAGED_SETTINGS > $$WORKDIR/usr/lib/lantern/$(PACKAGED_YAML) && \
+	sed -i -- "s|startupurl:|$(MANOTO_STARTUP)|g" $$WORKDIR/usr/lib/lantern/$(PACKAGED_YAML) && \
 	fpm -a $$PKG_ARCH -s dir -t deb -n lantern-manoto -v $$VERSION -m "$(PACKAGE_MAINTAINER)" --description "$(LANTERN_DESCRIPTION)\n$(LANTERN_EXTENDED_DESCRIPTION)" --category net --license "Apache-2.0" --vendor "$(PACKAGE_VENDOR)" --url $(PACKAGE_URL) --deb-compression xz -f -C $$WORKDIR usr;
 endef
 
@@ -204,14 +200,15 @@ docker-package-windows: require-version docker-windows-386
 	@if [[ -z "$$BNS_CERT" ]]; then echo "BNS_CERT environment value is required."; exit 1; fi && \
 	if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
 	INSTALLER_RESOURCES="installer-resources/windows" && \
-	echo "" > $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
+	rm -f $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
+	cat $(CUSTOM_SERVER_PATH) >> $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
 	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "lantern_windows_386.exe" -out "$$INSTALLER_RESOURCES/lantern.exe" && \
 	cat $$INSTALLER_RESOURCES/lantern.exe | bzip2 > update_windows_386.bz2 && \
 	ls -l lantern_windows_386.exe update_windows_386.bz2 && \
 	makensis -V1 -DVERSION=$$VERSION installer-resources/windows/lantern.nsi && \
 	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer.exe" && \
-	$(call package-settings) && \
-	echo $$PACKAGED_SETTINGS > $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
+	cp installer-resources/$(PACKAGED_YAML) $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
+	sed -i -- "s|startupurl:|$(MANOTO_STARTUP)|g" $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
 	makensis -V1 -DVERSION=$$VERSION installer-resources/windows/lantern.nsi && \
 	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer-manoto.exe";
 
@@ -329,7 +326,6 @@ package-windows: require-version windows
 
 package-darwin-manoto: require-version require-appdmg require-svgexport darwin
 	@echo "Generating distribution package for darwin/amd64 manoto..." && \
-	$(call package-settings) && \
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		INSTALLER_RESOURCES="installer-resources/darwin" && \
 		rm -rf Lantern.app && \
@@ -337,7 +333,9 @@ package-darwin-manoto: require-version require-appdmg require-svgexport darwin
 		mkdir Lantern.app/Contents/MacOS && \
 		cp -r lantern_darwin_amd64 Lantern.app/Contents/MacOS/lantern && \
 		mkdir Lantern.app/Contents/Resources/en.lproj && \
-		echo $$PACKAGED_SETTINGS > Lantern.app/Contents/Resources/en.lproj/$(PACKAGED_YAML) && \
+		cp installer-resources/$(PACKAGED_YAML) Lantern.app/Contents/Resources/en.lproj/$(PACKAGED_YAML) && \
+		sed -i -- "s|startupurl:|$(MANOTO_STARTUP)|g" Lantern.app/Contents/Resources/en.lproj/$(PACKAGED_YAML) && \
+		cat $(CUSTOM_SERVER_PATH) >> Lantern.app/Contents/Resources/en.lproj/$(PACKAGED_YAML) && \
 		codesign -s "Developer ID Application: Brave New Software Project, Inc" Lantern.app && \
 		cat Lantern.app/Contents/MacOS/lantern | bzip2 > update_darwin_amd64.bz2 && \
 		ls -l lantern_darwin_amd64 update_darwin_amd64.bz2 && \
@@ -357,7 +355,9 @@ package-darwin: package-darwin-manoto
 	@echo "Generating distribution package for darwin/amd64..." && \
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		INSTALLER_RESOURCES="installer-resources/darwin" && \
-		rm Lantern.app/Contents/Resources/en.lproj/$(PACKAGED_YAML) && \
+		rm -f Lantern.app/Contents/Resources/en.lproj/$(PACKAGED_YAML) && \
+		cp installer-resources/$(PACKAGED_YAML) Lantern.app/Contents/Resources/en.lproj/$(PACKAGED_YAML) && \
+		cat $(CUSTOM_SERVER_PATH) >> Lantern.app/Contents/Resources/en.lproj/$(PACKAGED_YAML) && \
 		rm -rf lantern-installer.dmg && \
 		$(APPDMG) --quiet $$INSTALLER_RESOURCES/lantern_versioned.dmg.json lantern-installer.dmg && \
 		mv lantern-installer.dmg Lantern.dmg.zlib && \

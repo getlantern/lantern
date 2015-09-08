@@ -157,6 +157,7 @@ func Init(version string) (*Config, error, string) {
 		log.Debugf("Could not read yaml from %v: %v", path, err)
 
 	}
+	log.Debugf("Packaged settings has %v chained servers", len(settings.ChainedServers))
 	file := "lantern-" + version + ".yaml"
 	configDir, configPath, err := InConfigDir(file)
 	if err != nil {
@@ -171,34 +172,31 @@ func Init(version string) (*Config, error, string) {
 		EmptyConfig: func() yamlconf.Config {
 			return &Config{}
 		},
-		OneTimeSetup: func(ycfg yamlconf.Config, firstRun bool) (mutate func(yamlconf.Config) error, err error) {
+		OneTimeSetup: func(ycfg yamlconf.Config) error {
 			cfg := ycfg.(*Config)
 			if err := cfg.applyFlags(); err != nil {
-				log.Errorf("Could not apply flags: %v", err)
-				return nil, err
+				log.Error("Could not apply flags")
+				return err
 			}
-			// If there's no configuration at the designated configuration path on startup,
-			// it likely means this is the very first run. Download the first confic using
-			// the embedded servers.
-			if firstRun {
-				var err error
-				clients := loadPackagedHttpClients(settings)
-				for _, client := range clients {
-					mutate, _, err = pollWithHttpClient(cfg, &client)
-					if err == nil {
-						log.Debugf("Successfully downloaded custom config")
-						return mutate, err
+			clients := loadPackagedHttpClients(settings)
+			url := cfg.CloudConfig
+			for _, client := range clients {
+				if bytes, err := fetchCloudConfig(&client, url); err == nil {
+					log.Debugf("Successfully downloaded custom config")
+					if err := cfg.updateFrom(bytes); err == nil {
+						log.Debugf("Successfully updated config")
+						return nil
 					}
 				}
-				return nil, err
 			}
-			return nil, nil
+			return fmt.Errorf("Could not update config using %v", clients)
 		},
 		CustomPoll: func(currentCfg yamlconf.Config) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
 			return pollWithHttpClient(currentCfg, httpClient.Load().(*http.Client))
 		},
 	}
 	initial, err := m.Init()
+
 	var cfg *Config
 	if err == nil {
 		cfg = initial.(*Config)
@@ -228,8 +226,7 @@ func pollWithHttpClient(currentCfg yamlconf.Config, client *http.Client) (mutate
 	}
 
 	url := cfg.CloudConfig
-	var bytes []byte
-	if bytes, err = fetchCloudConfig(client, url); err == nil {
+	if bytes, err := fetchCloudConfig(client, url); err == nil {
 		// bytes will be nil if the config is unchanged (not modified)
 		if bytes != nil {
 			//log.Debugf("Downloaded config:\n %v", string(bytes))

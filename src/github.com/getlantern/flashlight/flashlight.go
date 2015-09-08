@@ -356,13 +356,13 @@ func applyClientConfig(client *client.Client, cfg *config.Config) {
 	_ = statreporter.Configure(cfg.Stats)
 
 	// Update client configuration and get the highest QOS dialer available.
-	httpClient := client.Configure(cfg.Client)
+	httpClientFunc := client.Configure(cfg.Client)
 
 	// Give everyone their own *http.Client that uses the highest QOS dialer. Separate
 	// clients for everyone avoids data races configuring those clients.
-	config.Configure(httpClient)
-	geolookup.Configure(httpClient)
-	statserver.Configure(httpClient)
+	config.Configure(httpClientFunc())
+	geolookup.Configure(httpClientFunc())
+	statserver.Configure(httpClientFunc())
 	// Note we don't call Configure on analytics here, as that would
 	// result in an extra analytics call and double counting.
 }
