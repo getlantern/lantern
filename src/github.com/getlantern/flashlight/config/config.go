@@ -88,6 +88,9 @@ func exists(file string) bool {
 // hasCustomChainedServer returns whether or not the config file at the specified
 // path includes a custom chained server or not.
 func hasCustomChainedServer(configPath string) bool {
+	if !(strings.HasPrefix(configPath, "lantern") && strings.HasSuffix(configPath, ".yaml")) {
+		return false
+	}
 	bytes, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		return false
@@ -97,6 +100,7 @@ func hasCustomChainedServer(configPath string) bool {
 	if err != nil {
 		return false
 	}
+
 	nc := len(cfg.Client.ChainedServers)
 
 	// The config will have more than one but fewer than 10 chained servers
@@ -409,23 +413,25 @@ func (cfg *Config) applyClientDefaults() {
 		cfg.Client.FrontedServers = make([]*client.FrontedServerInfo, 0)
 	}
 	if len(cfg.Client.FrontedServers) == 0 && len(cfg.Client.ChainedServers) == 0 {
-		cfg.Client.FrontedServers = []*client.FrontedServerInfo{
-			&client.FrontedServerInfo{
-				Host:           defaultRoundRobin(),
-				Port:           443,
-				PoolSize:       0,
-				MasqueradeSet:  cloudflare,
-				MaxMasquerades: 20,
-				QOS:            10,
-				Weight:         4000,
-				Trusted:        true,
-			},
-		}
+		/*
+			cfg.Client.FrontedServers = []*client.FrontedServerInfo{
+				&client.FrontedServerInfo{
+					Host:           defaultRoundRobin(),
+					Port:           443,
+					PoolSize:       0,
+					MasqueradeSet:  cloudflare,
+					MaxMasquerades: 20,
+					QOS:            10,
+					Weight:         4000,
+					Trusted:        true,
+				},
+			}
 
-		cfg.Client.ChainedServers = make(map[string]*client.ChainedServerInfo, len(fallbacks))
-		for key, fb := range fallbacks {
-			cfg.Client.ChainedServers[key] = fb
-		}
+			cfg.Client.ChainedServers = make(map[string]*client.ChainedServerInfo, len(fallbacks))
+			for key, fb := range fallbacks {
+				cfg.Client.ChainedServers[key] = fb
+			}
+		*/
 	}
 
 	if cfg.AutoReport == nil {

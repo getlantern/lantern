@@ -91,8 +91,6 @@ Section
     # Launch Lantern
     ShellExecAsUser::ShellExecAsUser "" "$INSTDIR\lantern.exe"
 
-    ${nsProcess::Unload}
-
 SectionEnd
 # end default section
 

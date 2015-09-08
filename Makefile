@@ -201,6 +201,7 @@ docker-package-windows: require-version docker-windows-386
 	if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
 	INSTALLER_RESOURCES="installer-resources/windows" && \
 	rm -f $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
+	cp installer-resources/$(PACKAGED_YAML) $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
 	cat $(CUSTOM_SERVER_PATH) >> $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
 	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "lantern_windows_386.exe" -out "$$INSTALLER_RESOURCES/lantern.exe" && \
 	cat $$INSTALLER_RESOURCES/lantern.exe | bzip2 > update_windows_386.bz2 && \
