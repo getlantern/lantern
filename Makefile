@@ -106,7 +106,7 @@ define fpm-debian-build =
 	\
 	ln -s /usr/lib/lantern/lantern.sh $$WORKDIR/usr/bin/lantern && \
 	rm -f $$WORKDIR/usr/lib/lantern/$(PACKAGED_YAML) && \
-	cp $$INSTALLER_RESOURCES/$(PACKAGED_YAML) $$WORKDIR/usr/lib/lantern/$(PACKAGED_YAML) && \
+	cp installer_resources/$(PACKAGED_YAML) $$WORKDIR/usr/lib/lantern/$(PACKAGED_YAML) && \
 	cat $(CUSTOM_SERVER_PATH) >> $$WORKDIR/usr/lib/lantern/$(PACKAGED_YAML) && \
 	\
 	cat $$WORKDIR/usr/lib/lantern/lantern-binary | bzip2 > update_linux_$$PKG_ARCH.bz2 && \
@@ -210,6 +210,7 @@ docker-package-windows: require-version docker-windows-386
 	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer.exe" && \
 	cp installer-resources/$(PACKAGED_YAML) $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
 	sed -i -- "s|startupurl:|$(MANOTO_STARTUP)|g" $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
+	cat $(CUSTOM_SERVER_PATH) >> $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
 	makensis -V1 -DVERSION=$$VERSION installer-resources/windows/lantern.nsi && \
 	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer-manoto.exe";
 
