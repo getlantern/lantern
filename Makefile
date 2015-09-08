@@ -106,7 +106,7 @@ define fpm-debian-build =
 	\
 	ln -s /usr/lib/lantern/lantern.sh $$WORKDIR/usr/bin/lantern && \
 	rm -f $$WORKDIR/usr/lib/lantern/$(PACKAGED_YAML) && \
-	cp installer_resources/$(PACKAGED_YAML) $$WORKDIR/usr/lib/lantern/$(PACKAGED_YAML) && \
+	cp installer-resources/$(PACKAGED_YAML) $$WORKDIR/usr/lib/lantern/$(PACKAGED_YAML) && \
 	cat $(CUSTOM_SERVER_PATH) >> $$WORKDIR/usr/lib/lantern/$(PACKAGED_YAML) && \
 	\
 	cat $$WORKDIR/usr/lib/lantern/lantern-binary | bzip2 > update_linux_$$PKG_ARCH.bz2 && \
