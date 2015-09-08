@@ -151,13 +151,13 @@ func copyGoodOldConfig(configDir, configPath string) {
 func Init(version string) (*Config, error, string) {
 	path, settings, err := client.ReadSettings()
 	if err != nil {
-		// Let packaged itself log errors as necessary.
+		// Let the bootstrap code itself log errors as necessary.
 		// This could happen if we're auto-updated from an older version that didn't
 		// have packaged settings, for example.
 		log.Debugf("Could not read yaml from %v: %v", path, err)
 
 	}
-	log.Debugf("Packaged settings has %v chained servers", len(settings.ChainedServers))
+	log.Debugf("Bootstrap settings has %v chained servers", len(settings.ChainedServers))
 	file := "lantern-" + version + ".yaml"
 	configDir, configPath, err := InConfigDir(file)
 	if err != nil {
@@ -178,7 +178,7 @@ func Init(version string) (*Config, error, string) {
 				log.Error("Could not apply flags")
 				return err
 			}
-			clients := loadPackagedHttpClients(settings)
+			clients := loadBootstrapHttpClients(settings)
 			url := cfg.CloudConfig
 			for _, client := range clients {
 				if bytes, err := fetchCloudConfig(&client, url); err == nil {
@@ -473,7 +473,7 @@ func (cfg Config) cloudPollSleepTime() time.Duration {
 	return time.Duration((CloudConfigPollInterval.Nanoseconds() / 2) + rand.Int63n(CloudConfigPollInterval.Nanoseconds()))
 }
 
-func loadPackagedHttpClients(ps *client.PackagedSettings) []http.Client {
+func loadBootstrapHttpClients(ps *client.BootstrapSettings) []http.Client {
 	var clients []http.Client
 	for _, s := range ps.ChainedServers {
 		log.Debugf("Fetching config using chained server: %v", s.Addr)
