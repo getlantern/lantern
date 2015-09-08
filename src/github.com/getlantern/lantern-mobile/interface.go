@@ -3,10 +3,7 @@ package client
 import (
 	"github.com/getlantern/balancer"
 	"github.com/getlantern/lantern-mobile/interceptor"
-)
-
-var (
-	i *interceptor.Interceptor
+	"github.com/getlantern/lantern-mobile/protected"
 )
 
 // Getfiretweetversion returns the current build version string
@@ -35,8 +32,12 @@ func RunClientProxy(listenAddr, appName string, protector SocketProvider, ready 
 	return nil
 }
 
-func IsMasqueradeCheck(ip string) bool {
-	return defaultClient.IsMasqueradeCheck(ip)
+func IsMasqueradeCheck(addr string) bool {
+	host, _, err := protected.SplitHostPort(addr)
+	if err != nil {
+		return false
+	}
+	return defaultClient.IsMasqueradeCheck(host)
 }
 
 func getBalancer() *balancer.Balancer {
@@ -47,11 +48,10 @@ func Configure(protector SocketProvider, httpAddr string,
 	socksAddr string, ready GoCallback) error {
 	go func() {
 		balancer.Protector = protector
-		i = interceptor.New(protector, false,
-			httpAddr,
-			socksAddr,
-			//getBalancer(),
-			ready.WritePacket, IsMasqueradeCheck)
+		_, err := interceptor.NewSocksProxy(protector, socksAddr, httpAddr, IsMasqueradeCheck)
+		if err != nil {
+			log.Errorf("Error starting SOCKS proxy: %v", err)
+		}
 		ready.AfterConfigure()
 	}()
 	return nil
