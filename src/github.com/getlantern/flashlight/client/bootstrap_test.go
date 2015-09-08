@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPackagedSettings(t *testing.T) {
+func TestBootstrapSettings(t *testing.T) {
 	file, err := ioutil.TempFile("", ".packaged-lantern.yaml")
 	defer func() {
 		err := os.Remove(file.Name())
@@ -23,7 +23,7 @@ func TestPackagedSettings(t *testing.T) {
 	file.Close()
 
 	log.Debugf("File at: %v", file.Name())
-	settings := PackagedSettings{StartupUrl: "test"}
+	settings := BootstrapSettings{StartupUrl: "test"}
 	log.Debugf("Settings: %v", settings)
 
 	data, er := yaml.Marshal(&settings)
@@ -60,11 +60,12 @@ func TestPackagedSettings(t *testing.T) {
 	assert.True(t, err == nil, "Should not be an error")
 
 	var dir string
-	dir, err = filepath.Abs(filepath.Dir(os.Args[0]))
+	dir, err = filepath.Abs(filepath.Dir(os.Args[0]) + "/../Resources")
 	assert.True(t, err == nil, "Should not be an error")
 
+	log.Debugf("Running in %v", dir)
 	if runtime.GOOS == "darwin" {
-		assert.Equal(t, dir+"/../Resources/"+name, path, "Unexpected settings dir")
+		assert.Equal(t, dir+"/"+name, path, "Unexpected settings dir")
 	} else if runtime.GOOS == "linux" {
 		assert.Equal(t, dir+"/"+name, path, "Unexpected settings dir")
 	}
