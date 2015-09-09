@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.getlantern.lantern" >
+
+    <application
+        android:name="org.getlantern.lantern.LanternApp"
+        android:allowBackup="true"
+        android:icon="@drawable/lantern_icon"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme" >
+        <activity
+            android:name=".activity.LanternMainActivity"
+            android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+                 <activity
+                     android:name=".activity.PromptVpnActivity" android:label="@string/app_name" android:exported="false"
+                     android:theme="@android:style/Theme.NoDisplay"
+                     />
+
+        <service android:name=".service.LanternVpn"
+            android:permission="android.permission.BIND_VPN_SERVICE">
+            <intent-filter>
+                <action android:name="android.net.VpnService"/>
+            </intent-filter>
+        </service>
+    </application>
+    <uses-permission android:name="android.permission.INTERNET" />
+</manifest>

@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Lantern</string>
+    <string name="action_settings">Settings</string>
+    <string name="button_text">Start</string>
+</resources>

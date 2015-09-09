@@ -1,0 +1,52 @@
+apply plugin: 'com.android.application'
+
+android {
+
+    compileSdkVersion 22
+    buildToolsVersion "22.0.1"
+
+    defaultConfig {
+        applicationId "org.getlantern.lantern"
+        minSdkVersion 19
+        targetSdkVersion 22
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        applicationVariants.all { variant ->                              
+            variant.outputs.each { output ->                              
+                output.outputFile = new File(
+                    output.outputFile.parent,
+                    output.outputFile.name.replace("app-debug", "lantern-debug")
+                )
+            }                                                             
+        }
+    }
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+}
+
+repositories {
+    flatDir {
+        dirs 'libs'
+    }
+    jcenter()
+    mavenCentral()
+}
+
+dependencies {
+    compile(name:'libflashlight', ext:'aar')
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'org.connectbot.jsocks:jsocks:1.0.0'
+    //compile fileTree(dir: 'libs/main', include: ['*.jar'])
+
+
+    compile 'com.android.support:appcompat-v7:22.0.0'
+}
