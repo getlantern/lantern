@@ -36,7 +36,7 @@ const (
 	cloudflare              = "cloudflare"
 	etag                    = "X-Lantern-Etag"
 	ifNoneMatch             = "X-Lantern-If-None-Match"
-	defaultCloudConfigUrl   = "https://config.getiantem.org/cloud.yaml.gz"
+	defaultCloudConfigUrl   = "http://config.getiantem.org/cloud.yaml.gz"
 )
 
 var (
@@ -176,12 +176,8 @@ func Init(version string) (*Config, error, string) {
 		EmptyConfig: func() yamlconf.Config {
 			return &Config{}
 		},
-		OneTimeSetup: func(ycfg yamlconf.Config) error {
+		FirstRunSetup: func(ycfg yamlconf.Config) error {
 			cfg := ycfg.(*Config)
-			if err := cfg.applyFlags(); err != nil {
-				log.Error("Could not apply flags")
-				return err
-			}
 			clients := loadBootstrapHttpClients(settings)
 			url := cfg.CloudConfig
 			for _, client := range clients {
@@ -194,6 +190,10 @@ func Init(version string) (*Config, error, string) {
 				}
 			}
 			return fmt.Errorf("Could not update config using %v", clients)
+		},
+		PerSessionSetup: func(ycfg yamlconf.Config) error {
+			cfg := ycfg.(*Config)
+			return cfg.applyFlags()
 		},
 		CustomPoll: func(currentCfg yamlconf.Config) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
 			return pollWithHttpClient(currentCfg, httpClient.Load().(*http.Client))
