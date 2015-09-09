@@ -86,7 +86,7 @@ func init() {
 }
 
 func logPanic(msg string) {
-	cfg, err, _ := config.Init(packageVersion)
+	cfg, err := config.Init(packageVersion)
 	if err != nil {
 		panic("Error initializing config")
 	}
@@ -172,7 +172,7 @@ func doMain() error {
 
 	parseFlags()
 
-	cfg, err, startupUrl := config.Init(packageVersion)
+	cfg, err := config.Init(packageVersion)
 	if err != nil {
 		return fmt.Errorf("Unable to initialize configuration: %v", err)
 	}
@@ -200,7 +200,7 @@ func doMain() error {
 	log.Debug("Running proxy")
 	if cfg.IsDownstream() {
 		// This will open a proxy on the address and port given by -addr
-		go runClientProxy(cfg, startupUrl)
+		go runClientProxy(cfg)
 	} else {
 		go runServerProxy(cfg)
 	}
@@ -238,7 +238,7 @@ func parseFlags() {
 }
 
 // runClientProxy runs the client-side (get mode) proxy.
-func runClientProxy(cfg *config.Config, startupUrl string) {
+func runClientProxy(cfg *config.Config) {
 	// Set Lantern as system proxy by creating and using a PAC file.
 	setProxyAddr(cfg.Addr)
 
@@ -256,19 +256,20 @@ func runClientProxy(cfg *config.Config, startupUrl string) {
 		exit(nil)
 	}
 
-	// Create the client-side proxy.
-	client := &client.Client{
-		Addr:         cfg.Addr,
-		ReadTimeout:  0, // don't timeout
-		WriteTimeout: 0,
-	}
-
 	// Start user interface.
 	tcpAddr, err := net.ResolveTCPAddr("tcp4", cfg.UIAddr)
 	if err != nil {
 		exit(fmt.Errorf("Unable to resolve UI address: %v", err))
 	}
 
+	settings, err := client.ReadSettings()
+	var startupUrl string
+	if err != nil {
+		log.Errorf("Could not read settings? %v", err)
+		startupUrl = ""
+	} else {
+		startupUrl = settings.StartupUrl
+	}
 	if err = ui.Start(tcpAddr, !showui, startupUrl); err != nil {
 		// This very likely means Lantern is already running on our port. Tell
 		// it to open a browser. This is useful, for example, when the user
@@ -276,6 +277,13 @@ func runClientProxy(cfg *config.Config, startupUrl string) {
 		showExistingUi(cfg.UIAddr)
 		exit(fmt.Errorf("Unable to start UI: %s", err))
 		return
+	}
+
+	// Create the client-side proxy.
+	client := &client.Client{
+		Addr:         cfg.Addr,
+		ReadTimeout:  0, // don't timeout
+		WriteTimeout: 0,
 	}
 
 	applyClientConfig(client, cfg)

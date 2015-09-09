@@ -79,31 +79,38 @@ type CA struct {
 	Cert       string // PEM-encoded
 }
 
-func exists(file string) bool {
-	if _, err := os.Stat(file); os.IsNotExist(err) {
-		return false
+func exists(file string) (os.FileInfo, bool) {
+	if fi, err := os.Stat(file); os.IsNotExist(err) {
+		log.Debugf("File does not exist at %v", file)
+		return fi, false
+	} else {
+		log.Debugf("File exists at %v", file)
+		return fi, true
 	}
-	return true
 }
 
 // hasCustomChainedServer returns whether or not the config file at the specified
 // path includes a custom chained server or not.
-func hasCustomChainedServer(configPath string) bool {
-	if !(strings.HasPrefix(configPath, "lantern") && strings.HasSuffix(configPath, ".yaml")) {
+func hasCustomChainedServer(configPath, name string) bool {
+	if !(strings.HasPrefix(name, "lantern") && strings.HasSuffix(name, ".yaml")) {
+		log.Debugf("File name does not match")
 		return false
 	}
 	bytes, err := ioutil.ReadFile(configPath)
 	if err != nil {
+		log.Errorf("Could not read file %v", err)
 		return false
 	}
 	cfg := &Config{}
 	err = yaml.Unmarshal(bytes, cfg)
 	if err != nil {
+		log.Errorf("Could not unmarshal config %v", err)
 		return false
 	}
 
 	nc := len(cfg.Client.ChainedServers)
 
+	log.Debugf("Found %v chained servers", nc)
 	// The config will have more than one but fewer than 10 chained servers
 	// if it has been given a custom config with a custom chained server
 	// list
@@ -111,7 +118,9 @@ func hasCustomChainedServer(configPath string) bool {
 }
 
 func isGoodConfig(configPath string) bool {
-	return exists(configPath) && hasCustomChainedServer(configPath)
+	log.Debugf("Checking config path: %v", configPath)
+	fi, exists := exists(configPath)
+	return exists && hasCustomChainedServer(configPath, fi.Name())
 }
 
 func majorVersion(version string) string {
@@ -135,10 +144,8 @@ func copyGoodOldConfig(configDir, configPath string) {
 	}
 
 	for _, file := range files {
-		path := file.Name()
-		if !strings.HasSuffix(path, ".yaml") {
-			continue
-		}
+		name := file.Name()
+		path := filepath.Join(configDir, name)
 		if isGoodConfig(path) {
 			// Just use the old config since configs in the 2.x series haven't changed.
 			if err := os.Rename(path, configPath); err != nil {
@@ -153,21 +160,12 @@ func copyGoodOldConfig(configDir, configPath string) {
 }
 
 // Init initializes the configuration system.
-func Init(version string) (*Config, error, string) {
-	path, settings, err := client.ReadSettings()
-	if err != nil {
-		// Let the bootstrap code itself log errors as necessary.
-		// This could happen if we're auto-updated from an older version that didn't
-		// have packaged settings, for example.
-		log.Debugf("Could not read yaml from %v: %v", path, err)
-
-	}
-	log.Debugf("Bootstrap settings has %v chained servers", len(settings.ChainedServers))
+func Init(version string) (*Config, error) {
 	file := "lantern-" + version + ".yaml"
 	configDir, configPath, err := InConfigDir(file)
 	if err != nil {
 		log.Errorf("Could not get config path? %v", err)
-		return nil, err, ""
+		return nil, err
 	}
 	copyGoodOldConfig(configDir, configPath)
 
@@ -178,8 +176,19 @@ func Init(version string) (*Config, error, string) {
 			return &Config{}
 		},
 		FirstRunSetup: func(ycfg yamlconf.Config) error {
+			log.Debugf("Running first run setup")
 			cfg := ycfg.(*Config)
-			clients := loadBootstrapHttpClients(settings)
+			servers, err := client.ReadChained()
+			if err != nil {
+				// Let the bootstrap code itself log errors as necessary.
+				// This could happen if we're auto-updated from an older version that didn't
+				// have packaged settings, for example, but those versions should all
+				// have working configs!!
+				log.Errorf("Could not read yaml: %v", err)
+				return err
+			}
+			log.Debugf("Bootstrap settings has %v chained servers", len(servers.ChainedServers))
+			clients := loadBootstrapHttpClients(servers)
 			url := cfg.CloudConfig
 
 			configs := make(chan []byte)
@@ -213,14 +222,10 @@ func Init(version string) (*Config, error, string) {
 		cfg = initial.(*Config)
 		err = updateGlobals(cfg)
 		if err != nil {
-			return nil, err, ""
+			return nil, err
 		}
 	}
-	if settings != nil {
-		return cfg, err, settings.StartupUrl
-	} else {
-		return cfg, err, ""
-	}
+	return cfg, err
 }
 
 func pollWithHttpClient(currentCfg yamlconf.Config, client *http.Client) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
@@ -486,9 +491,9 @@ func (cfg Config) cloudPollSleepTime() time.Duration {
 	return time.Duration((CloudConfigPollInterval.Nanoseconds() / 2) + rand.Int63n(CloudConfigPollInterval.Nanoseconds()))
 }
 
-func loadBootstrapHttpClients(ps *client.BootstrapSettings) []*http.Client {
+func loadBootstrapHttpClients(bs *client.BootstrapServers) []*http.Client {
 	var clients []*http.Client
-	for _, s := range ps.ChainedServers {
+	for _, s := range bs.ChainedServers {
 		log.Debugf("Fetching config using chained server: %v", s.Addr)
 		dialer, er := s.Dialer()
 		if er != nil {
