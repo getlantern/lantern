@@ -112,7 +112,7 @@ define fpm-debian-build =
 	cat $$WORKDIR/usr/lib/lantern/lantern-binary | bzip2 > update_linux_$$PKG_ARCH.bz2 && \
 	fpm -a $$PKG_ARCH -s dir -t deb -n lantern -v $$VERSION -m "$(PACKAGE_MAINTAINER)" --description "$(LANTERN_DESCRIPTION)\n$(LANTERN_EXTENDED_DESCRIPTION)" --category net --license "Apache-2.0" --vendor "$(PACKAGE_VENDOR)" --url $(PACKAGE_URL) --deb-compression xz -f -C $$WORKDIR usr && \
 	\
-	sed -i -- "s|startupurl:|$(MANOTO_STARTUP)|g" $$WORKDIR/usr/lib/lantern/$(PACKAGED_YAML) && \
+	sed -i "s|startupurl:|$(MANOTO_STARTUP)|g" $$WORKDIR/usr/lib/lantern/$(PACKAGED_YAML) && \
 	fpm -a $$PKG_ARCH -s dir -t deb -n lantern-manoto -v $$VERSION -m "$(PACKAGE_MAINTAINER)" --description "$(LANTERN_DESCRIPTION)\n$(LANTERN_EXTENDED_DESCRIPTION)" --category net --license "Apache-2.0" --vendor "$(PACKAGE_VENDOR)" --url $(PACKAGE_URL) --deb-compression xz -f -C $$WORKDIR usr;
 endef
 
@@ -209,7 +209,7 @@ docker-package-windows: require-version docker-windows-386
 	makensis -V1 -DVERSION=$$VERSION installer-resources/windows/lantern.nsi && \
 	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer.exe" && \
 	cp installer-resources/$(PACKAGED_YAML) $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
-	sed -i -- "s|startupurl:|$(MANOTO_STARTUP)|g" $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
+	sed -i "s|startupurl:|$(MANOTO_STARTUP)|g" $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
 	cat $(CUSTOM_SERVER_PATH) >> $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
 	makensis -V1 -DVERSION=$$VERSION installer-resources/windows/lantern.nsi && \
 	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer-manoto.exe";
@@ -336,7 +336,7 @@ package-darwin-manoto: require-version require-appdmg require-svgexport darwin
 		cp -r lantern_darwin_amd64 Lantern.app/Contents/MacOS/lantern && \
 		mkdir Lantern.app/Contents/Resources/en.lproj && \
 		cp installer-resources/$(PACKAGED_YAML) Lantern.app/Contents/Resources/en.lproj/$(PACKAGED_YAML) && \
-		sed -i -- "s|startupurl:|$(MANOTO_STARTUP)|g" Lantern.app/Contents/Resources/en.lproj/$(PACKAGED_YAML) && \
+		sed -i "s|startupurl:|$(MANOTO_STARTUP)|g" Lantern.app/Contents/Resources/en.lproj/$(PACKAGED_YAML) && \
 		cat $(CUSTOM_SERVER_PATH) >> Lantern.app/Contents/Resources/en.lproj/$(PACKAGED_YAML) && \
 		codesign -s "Developer ID Application: Brave New Software Project, Inc" Lantern.app && \
 		cat Lantern.app/Contents/MacOS/lantern | bzip2 > update_darwin_amd64.bz2 && \
