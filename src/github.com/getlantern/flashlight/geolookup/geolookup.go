@@ -5,11 +5,11 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
-	"net/http/httputil"
 	"sync"
 	"sync/atomic"
 	"time"
 
+	geo "github.com/getlantern/geolookup"
 	"github.com/getlantern/golog"
 
 	"github.com/getlantern/flashlight/pubsub"
@@ -91,41 +91,50 @@ func registerService() error {
 }
 
 func lookupIp(httpClient *http.Client) (string, string, error) {
-	httpClient.Timeout = 60 * time.Second
+	city, ip, err := geo.LookupIPWithClient("", httpClient)
 
-	var err error
-	var req *http.Request
-	var resp *http.Response
-
-	// Note this will typically be an HTTP client that uses direct domain fronting to
-	// hit our server pool in the Netherlands.
-	if req, err = http.NewRequest("HEAD", "http://nl.fallbacks.getiantem.org", nil); err != nil {
-		return "", "", fmt.Errorf("Could not create request: %q", err)
+	if err != nil {
+		return "", "", err
 	}
+	return city.Country.IsoCode, ip, nil
 
-	if resp, err = httpClient.Do(req); err != nil {
-		return "", "", fmt.Errorf("Could not get response from server: %q", err)
-	}
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			log.Debugf("Unable to close reponse body: %v", err)
+	/*
+		httpClient.Timeout = 60 * time.Second
+
+		var err error
+		var req *http.Request
+		var resp *http.Response
+
+		// Note this will typically be an HTTP client that uses direct domain fronting to
+		// hit our server pool in the Netherlands.
+		if req, err = http.NewRequest("HEAD", "http://nl.fallbacks.getiantem.org", nil); err != nil {
+			return "", "", fmt.Errorf("Could not create request: %q", err)
 		}
-	}()
 
-	if resp.StatusCode != http.StatusOK {
-		if full, err := httputil.DumpResponse(resp, true); err != nil {
-			log.Errorf("Could not read full response %v", err)
-		} else {
-			log.Errorf("Unexpected response to geo IP lookup: %v", string(full))
+		if resp, err = httpClient.Do(req); err != nil {
+			return "", "", fmt.Errorf("Could not get response from server: %q", err)
 		}
-		return "", "", fmt.Errorf("Unexpected response status %d", resp.StatusCode)
-	}
+		defer func() {
+			if err := resp.Body.Close(); err != nil {
+				log.Debugf("Unable to close reponse body: %v", err)
+			}
+		}()
 
-	ip := resp.Header.Get("Lantern-Ip")
-	country := resp.Header.Get("Lantern-Country")
+		if resp.StatusCode != http.StatusOK {
+			if full, err := httputil.DumpResponse(resp, true); err != nil {
+				log.Errorf("Could not read full response %v", err)
+			} else {
+				log.Errorf("Unexpected response to geo IP lookup: %v", string(full))
+			}
+			return "", "", fmt.Errorf("Unexpected response status %d", resp.StatusCode)
+		}
 
-	log.Debugf("Got IP and country: %v, %v", ip, country)
-	return country, ip, nil
+		ip := resp.Header.Get("Lantern-Ip")
+		country := resp.Header.Get("Lantern-Country")
+
+		log.Debugf("Got IP and country: %v, %v", ip, country)
+		return country, ip, nil
+	*/
 }
 
 func write() {
