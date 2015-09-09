@@ -19,8 +19,8 @@ import (
 const (
 	messageType = `GeoLookup`
 
-	basePublishSeconds     = 30
-	publishSecondsVariance = basePublishSeconds - 10
+	basePublishSeconds     = 120
+	publishSecondsVariance = basePublishSeconds - 120
 	retryWaitMillis        = 100
 )
 
@@ -94,47 +94,10 @@ func lookupIp(httpClient *http.Client) (string, string, error) {
 	city, ip, err := geo.LookupIPWithClient("", httpClient)
 
 	if err != nil {
+		log.Errorf("Could not lookup IP %v", err)
 		return "", "", err
 	}
 	return city.Country.IsoCode, ip, nil
-
-	/*
-		httpClient.Timeout = 60 * time.Second
-
-		var err error
-		var req *http.Request
-		var resp *http.Response
-
-		// Note this will typically be an HTTP client that uses direct domain fronting to
-		// hit our server pool in the Netherlands.
-		if req, err = http.NewRequest("HEAD", "http://nl.fallbacks.getiantem.org", nil); err != nil {
-			return "", "", fmt.Errorf("Could not create request: %q", err)
-		}
-
-		if resp, err = httpClient.Do(req); err != nil {
-			return "", "", fmt.Errorf("Could not get response from server: %q", err)
-		}
-		defer func() {
-			if err := resp.Body.Close(); err != nil {
-				log.Debugf("Unable to close reponse body: %v", err)
-			}
-		}()
-
-		if resp.StatusCode != http.StatusOK {
-			if full, err := httputil.DumpResponse(resp, true); err != nil {
-				log.Errorf("Could not read full response %v", err)
-			} else {
-				log.Errorf("Unexpected response to geo IP lookup: %v", string(full))
-			}
-			return "", "", fmt.Errorf("Unexpected response status %d", resp.StatusCode)
-		}
-
-		ip := resp.Header.Get("Lantern-Ip")
-		country := resp.Header.Get("Lantern-Country")
-
-		log.Debugf("Got IP and country: %v, %v", ip, country)
-		return country, ip, nil
-	*/
 }
 
 func write() {
@@ -155,9 +118,9 @@ func write() {
 			if newIp != oldIp {
 				log.Debugf("IP changed")
 				ip.Store(newIp)
+				pubsub.Pub(pubsub.IP, newIp)
 			}
 			// Always publish location, even if unchanged
-			pubsub.Pub(pubsub.IP, newIp)
 			service.Out <- newCountry
 		} else {
 			msg := fmt.Sprintf("Unable to get current location: %s", err)
