@@ -60,7 +60,12 @@ func TestBootstrapSettings(t *testing.T) {
 	assert.True(t, err == nil, "Should not be an error")
 
 	var dir string
-	dir, err = filepath.Abs(filepath.Dir(os.Args[0]) + "/../Resources")
+
+	if runtime.GOOS == "darwin" {
+		dir, err = filepath.Abs(filepath.Dir(os.Args[0]) + "/../Resources")
+	} else if runtime.GOOS == "linux" {
+		dir, err = filepath.Abs(filepath.Dir(os.Args[0]))
+	}
 	assert.True(t, err == nil, "Should not be an error")
 
 	log.Debugf("Running in %v", dir)
