@@ -74,15 +74,15 @@ func newClient(addr, appName string, protector protected.SocketProtector) *mobil
 	mClient := &mobileClient{
 		Client:      client,
 		closed:      make(chan bool),
-		fronter:     hqfd.NewDirectDomainFronter(),
+		fronter:     hqfd(),
 		appName:     appName,
 		masquerades: make(map[string]bool),
 	}
-	go func() {
+	/*go func() {
 		if err := mClient.updateConfig(); err != nil {
 			log.Errorf("Unable to update config: %v", err)
 		}
-	}()
+	}() */
 
 	for _, masquerade := range cloudflareMasquerades {
 		mClient.masquerades[masquerade.IpAddress] = true
@@ -111,7 +111,7 @@ func (client *mobileClient) serveHTTP() {
 			}
 		}
 	}()
-	go client.pollConfiguration()
+	//go client.pollConfiguration()
 }
 
 // updateConfig attempts to pull a configuration file from the network using
@@ -136,7 +136,7 @@ func (client *mobileClient) updateConfig() error {
 		}
 
 		hqfc := client.Configure(clientConfig.Client)
-		client.fronter = hqfc.NewDirectDomainFronter()
+		client.fronter = hqfc()
 	}
 	return err
 }

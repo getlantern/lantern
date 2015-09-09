@@ -3,23 +3,16 @@
 package interceptor
 
 import (
-	"crypto/tls"
 	"errors"
 	"io"
-	"io/ioutil"
 	"net"
-	"net/http"
-	"net/url"
 	"sync"
 	"time"
 
+	"github.com/getlantern/balancer"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/lantern-mobile/protected"
 	socks "github.com/getlantern/lantern-mobile/socks"
-)
-
-const (
-	udpgwServer = "104.131.157.209:7300"
 )
 
 var (
@@ -28,12 +21,47 @@ var (
 )
 
 type Tunneler struct {
-	socksAddr string
-	httpAddr  string
-	protector protected.SocketProtector
+	socksAddr   string
+	httpAddr    string
+	udpgwServer string
+	balancer    *balancer.Balancer
+	protector   protected.SocketProtector
 
-	mutex    *sync.Mutex
-	isClosed bool
+	portForwardFailures chan int
+	mutex               *sync.Mutex
+	isClosed            bool
+}
+
+type TunneledConn struct {
+	net.Conn
+	tunnel         *Tunneler
+	downstreamConn net.Conn
+}
+
+func (conn *TunneledConn) Read(buffer []byte) (n int, err error) {
+	n, err = conn.Conn.Read(buffer)
+	if err != nil && err != io.EOF {
+		// Report 1 new failure. Won't block; assumes the receiver
+		// has a sufficient buffer for the threshold number of reports.
+		// TODO: conditional on type of error or error message?
+		select {
+		case conn.tunnel.portForwardFailures <- 1:
+		default:
+		}
+	}
+	return
+}
+
+func (conn *TunneledConn) Write(buffer []byte) (n int, err error) {
+	n, err = conn.Conn.Write(buffer)
+	if err != nil && err != io.EOF {
+		// Same as TunneledConn.Read()
+		select {
+		case conn.tunnel.portForwardFailures <- 1:
+		default:
+		}
+	}
+	return
 }
 
 type dialResult struct {
@@ -44,7 +72,6 @@ type dialResult struct {
 type SocksProxy struct {
 	tunneler               Tunneler
 	listener               *socks.SocksListener
-	isMasquerade           func(string) bool
 	serveWaitGroup         *sync.WaitGroup
 	openConns              *Conns
 	conns                  map[string]net.Conn
@@ -94,13 +121,18 @@ func (conns *Conns) CloseAll() {
 }
 
 func Relay(localConn, remoteConn net.Conn) {
+
 	var wg sync.WaitGroup
 	wg.Add(2)
 
 	go func() {
-		io.Copy(localConn, remoteConn)
+		_, err := io.Copy(localConn, remoteConn)
+		if err != nil {
+			log.Errorf("Relay failed: %v", err)
+		}
 		wg.Done()
 	}()
+
 	go func() {
 		io.Copy(remoteConn, localConn)
 		wg.Done()
@@ -109,25 +141,31 @@ func Relay(localConn, remoteConn net.Conn) {
 	wg.Wait()
 }
 
-// NewSocksProxy initializes a new SOCKS server. It begins listening for
+// New initializes a local SOCKS server. It begins listening for
 // connections, starts a goroutine that runs an accept loop, and returns
 // leaving the accept loop running.
-func NewSocksProxy(protector protected.SocketProtector, socksAddr, httpAddr string, isMasquerade func(string) bool) (proxy *SocksProxy, err error) {
+func New(protector protected.SocketProtector,
+	balancer *balancer.Balancer,
+	socksAddr, httpAddr, udpgwServer string) (proxy *SocksProxy, err error) {
+
 	listener, err := socks.ListenSocks(
 		"tcp", socksAddr)
 	if err != nil {
 		log.Errorf("Could not start SOCKS server: %v", err)
 		return nil, err
 	}
+
 	proxy = &SocksProxy{
 		tunneler: Tunneler{
-			mutex:     new(sync.Mutex),
-			isClosed:  false,
-			protector: protector,
-			socksAddr: socksAddr,
-			httpAddr:  httpAddr,
+			mutex:               new(sync.Mutex),
+			isClosed:            false,
+			balancer:            balancer,
+			protector:           protector,
+			socksAddr:           socksAddr,
+			httpAddr:            httpAddr,
+			udpgwServer:         udpgwServer,
+			portForwardFailures: make(chan int, 20),
 		},
-		isMasquerade:   isMasquerade,
 		listener:       listener,
 		serveWaitGroup: new(sync.WaitGroup),
 		openConns:      new(Conns),
@@ -160,16 +198,13 @@ func (tunnel *Tunneler) Dial(addr string, localConn net.Conn) (net.Conn, error) 
 		return nil, errors.New("tunnel is closed")
 	}
 
-	conn, err := protected.New(tunnel.protector, tunnel.httpAddr)
+	host, port, err := protected.SplitHostPort(addr)
 	if err != nil {
-		log.Errorf("Error creating protected connection: %v", err)
 		return nil, err
 	}
-
-	_, port, err := protected.SplitHostPort(addr)
-	if err != nil {
-		conn.Close()
-		return nil, err
+	if port != 80 && port != 443 && port != 7300 {
+		log.Errorf("Invalid port %d for address %s", port, addr)
+		return nil, errors.New("invalid port")
 	}
 
 	resultCh := make(chan *dialResult, 2)
@@ -177,75 +212,55 @@ func (tunnel *Tunneler) Dial(addr string, localConn net.Conn) (net.Conn, error) 
 		resultCh <- &dialResult{nil,
 			errors.New("dial timoue to tunnel")}
 	})
-
 	go func() {
 
-		log.Debugf("Creating CONNECT request to %s", addr)
+		if port == 7300 {
+			conn, err := protected.New(tunnel.protector, addr)
+			if err != nil {
+				log.Errorf("Error creating protected connection: %v", err)
+				resultCh <- &dialResult{nil, err}
+				return
+			}
+			log.Debugf("Connecting to %s:%d", host, port)
 
-		scheme := "http"
-		if port == 443 {
-			scheme = "https"
+			remoteConn, err := conn.Dial()
+			if err != nil {
+				log.Errorf("Error tunneling request: %v", err)
+				conn.Close()
+				resultCh <- &dialResult{nil, err}
+				return
+			}
+			resultCh <- &dialResult{remoteConn, err}
+			return
 		}
 
-		connReq := &http.Request{
-			Method: "CONNECT",
-			URL:    &url.URL{Host: addr, Scheme: scheme},
-			Host:   addr,
-			Header: make(http.Header),
-		}
-
-		log.Debugf("Tunneling a new request to Lantern: %s", addr)
-		client := &http.Client{
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-				Dial: func(netw, addr string) (net.Conn, error) {
-					return conn.Dial()
-				},
-				ResponseHeaderTimeout: time.Second * 2,
-			},
-		}
-
-		resp, err := client.Do(connReq)
+		forwardConn, err := tunnel.balancer.Dial("tcp", addr)
 		if err != nil {
-			log.Errorf("Error reading HTTP CONNECT request response: %v", err)
-			conn.Close()
+			log.Errorf("Could not connect: %v", err)
 			resultCh <- &dialResult{nil, err}
 			return
 		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != 200 {
-			resp, _ := ioutil.ReadAll(resp.Body)
-			conn.Close()
-			resultCh <- &dialResult{nil, errors.New("proxy refused connection" + string(resp))}
-		} else {
-			log.Debugf("Successfully established an HTTP tunnel with remote end-point: %s", addr)
-			resultCh <- &dialResult{conn, nil}
-		}
+		resultCh <- &dialResult{forwardConn, nil}
 	}()
-
 	result := <-resultCh
 	if result.err != nil {
 		log.Errorf("Error dialing new request: %v", result.err)
 		return nil, result.err
 	}
-	return result.forwardConn, nil
+
+	tConn := &TunneledConn{
+		Conn:           result.forwardConn,
+		tunnel:         tunnel,
+		downstreamConn: localConn,
+	}
+	return tConn, nil
 }
 
-func (proxy *SocksProxy) httpConnectHandler(localConn *socks.SocksConn) (err error) {
+func (proxy *SocksProxy) connectionHandler(localConn *socks.SocksConn) (err error) {
 
 	defer localConn.Close()
 	defer proxy.openConns.Remove(localConn)
 	proxy.openConns.Add(localConn)
-
-	if localConn.Req.Target == udpgwServer {
-		return proxy.directHandler(localConn)
-	}
-
-	if proxy.isMasquerade(localConn.Req.Target) {
-		log.Debugf("Masquerade check...")
-		return nil
-	}
 
 	remoteConn, err := proxy.tunneler.Dial(localConn.Req.Target, localConn)
 	if err != nil {
@@ -253,48 +268,12 @@ func (proxy *SocksProxy) httpConnectHandler(localConn *socks.SocksConn) (err err
 		return err
 	}
 	defer remoteConn.Close()
+
 	err = localConn.Grant(&net.TCPAddr{IP: net.ParseIP("0.0.0.0"), Port: 0})
 	if err != nil {
-		log.Errorf("Error granting local connection: %v", err)
-		return err
-	}
-	Relay(localConn, remoteConn)
-	return nil
-}
-
-func (proxy *SocksProxy) directHandler(localConn *socks.SocksConn) (err error) {
-
-	host, port, err := protected.SplitHostPort(localConn.Req.Target)
-	if err != nil {
-		log.Errorf("Could not extract IP Address: %v", err)
 		return err
 	}
 
-	conn, err := protected.New(proxy.tunneler.protector, localConn.Req.Target)
-	if err != nil {
-		log.Errorf("Error creating protected connection: %v", err)
-		return err
-	}
-	defer conn.Close()
-	log.Debugf("Connecting to %s:%d", host, port)
-
-	remoteConn, err := conn.Dial()
-	if err != nil {
-		log.Errorf("Error tunneling request: %v", err)
-		return err
-	}
-	defer remoteConn.Close()
-	addr, err := conn.Addr()
-	if err != nil {
-		log.Errorf("Could not resolve address: %v", err)
-		return err
-	}
-
-	err = localConn.Grant(addr)
-	if err != nil {
-		log.Errorf("Error granting access to connection: %v", err)
-		return err
-	}
 	Relay(localConn, remoteConn)
 	return nil
 }
@@ -326,7 +305,7 @@ loop:
 		}
 		go func() {
 			log.Debugf("Got a new connection: %v", socksConnection)
-			err := proxy.httpConnectHandler(socksConnection)
+			err := proxy.connectionHandler(socksConnection)
 			if err != nil {
 				log.Errorf("%v", err)
 			}
