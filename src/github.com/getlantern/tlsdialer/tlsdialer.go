@@ -8,13 +8,16 @@ import (
 	"crypto/x509"
 	"fmt"
 	"net"
+	"runtime"
 	"time"
 
 	"github.com/getlantern/golog"
+	"github.com/getlantern/lantern-mobile/protected"
 )
 
 var (
-	log = golog.LoggerFor("tlsdialer")
+	log       = golog.LoggerFor("tlsdialer")
+	Protector protected.SocketProtector
 )
 
 type timeoutError struct{}
@@ -119,9 +122,21 @@ func DialForTimings(dialer *net.Dialer, network, addr string, sendServerName boo
 
 	log.Tracef("Dialing %s %s (%s)", network, addr, result.ResolvedAddr)
 	start = time.Now()
-	rawConn, err := dialer.Dial(network, result.ResolvedAddr.String())
-	if err != nil {
-		return result, err
+
+	resolvedAddr := result.ResolvedAddr.String()
+	var rawConn net.Conn
+
+	if runtime.GOOS == "android" {
+		pConn, err := protected.New(Protector, resolvedAddr)
+		if err != nil {
+			return result, err
+		}
+		rawConn, err = pConn.Dial()
+	} else {
+		rawConn, err = dialer.Dial(network, resolvedAddr)
+		if err != nil {
+			return result, err
+		}
 	}
 	result.ConnectTime = time.Now().Sub(start)
 	log.Tracef("Dialed in %s", result.ConnectTime)

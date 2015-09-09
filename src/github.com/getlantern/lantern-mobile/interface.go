@@ -4,6 +4,7 @@ import (
 	"github.com/getlantern/balancer"
 	"github.com/getlantern/lantern-mobile/interceptor"
 	"github.com/getlantern/lantern-mobile/protected"
+	"github.com/getlantern/tlsdialer"
 )
 
 // Getfiretweetversion returns the current build version string
@@ -25,6 +26,7 @@ type SocketProvider interface {
 // RunClientProxy creates a new client at the given address.
 func RunClientProxy(listenAddr, appName string, protector SocketProvider, ready GoCallback) error {
 	go func() {
+		tlsdialer.Protector = protector
 		defaultClient = newClient(listenAddr, appName, protector)
 		defaultClient.serveHTTP()
 		ready.AfterStart()
@@ -45,10 +47,12 @@ func getBalancer() *balancer.Balancer {
 }
 
 func Configure(protector SocketProvider, httpAddr string,
-	socksAddr string, ready GoCallback) error {
+	socksAddr string, udpgwServer string,
+	ready GoCallback) error {
 	go func() {
-		balancer.Protector = protector
-		_, err := interceptor.NewSocksProxy(protector, socksAddr, httpAddr, IsMasqueradeCheck)
+		tlsdialer.Protector = protector
+		_, err := interceptor.New(protector,
+			getBalancer(), socksAddr, httpAddr, udpgwServer)
 		if err != nil {
 			log.Errorf("Error starting SOCKS proxy: %v", err)
 		}
