@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/getlantern/golog"
-	"github.com/getlantern/lantern-mobile/protected"
+	"github.com/getlantern/lantern-mobile/lantern/protected"
 )
 
 var (

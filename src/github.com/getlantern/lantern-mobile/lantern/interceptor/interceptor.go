@@ -10,8 +10,8 @@ import (
 
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/golog"
-	"github.com/getlantern/lantern-mobile/protected"
-	socks "github.com/getlantern/lantern-mobile/socks"
+	"github.com/getlantern/lantern-mobile/lantern/protected"
+	socks "github.com/getlantern/lantern-mobile/lantern/socks"
 )
 
 // Errors introduced by the interceptor service

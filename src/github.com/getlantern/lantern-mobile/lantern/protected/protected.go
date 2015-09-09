@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/getlantern/golog"
-	"github.com/getlantern/lantern-mobile/resolver"
+	"github.com/getlantern/lantern-mobile/lantern/resolver"
 )
 
 const (

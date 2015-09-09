@@ -1,8 +1,8 @@
 package client
 
 import (
-	"github.com/getlantern/lantern-mobile/interceptor"
-	"github.com/getlantern/lantern-mobile/protected"
+	"github.com/getlantern/lantern-mobile/lantern/interceptor"
+	"github.com/getlantern/lantern-mobile/lantern/protected"
 )
 
 // GoCallback is the supertype of callbacks passed to Go
