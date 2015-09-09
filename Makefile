@@ -30,6 +30,7 @@ PACKAGE_VENDOR := Brave New Software Project, Inc
 PACKAGE_MAINTAINER := Lantern Team <team@getlantern.org>
 PACKAGE_URL := https://www.getlantern.org
 PACKAGED_YAML := .packaged-lantern.yaml
+MANOTO_YAML := .packaged-lantern-manoto.yaml
 
 LANTERN_BINARIES_PATH ?= ../lantern-binaries
 
@@ -48,9 +49,8 @@ LOGGLY_TOKEN_MOBILE := d730c074-1f0a-415d-8d71-1ebf1d8bd736
 
 FIRETWEET_MAIN_DIR ?= ../firetweet/firetweet/src/main/
 
-MANOTO_STARTUP := startupurl: https://www.facebook.com/manototv/app_128953167177144
 CHAINED_YAML := chained.yaml
-CHAINED_PATH := installer-resources/$(CHAINED_YAML)
+CHAINED_PATH := installer-resources/chained.yaml
 
 .PHONY: packages clean docker
 
@@ -114,7 +114,7 @@ define fpm-debian-build =
 	cat $$WORKDIR/usr/lib/lantern/lantern-binary | bzip2 > update_linux_$$PKG_ARCH.bz2 && \
 	fpm -a $$PKG_ARCH -s dir -t deb -n lantern -v $$VERSION -m "$(PACKAGE_MAINTAINER)" --description "$(LANTERN_DESCRIPTION)\n$(LANTERN_EXTENDED_DESCRIPTION)" --category net --license "Apache-2.0" --vendor "$(PACKAGE_VENDOR)" --url $(PACKAGE_URL) --deb-compression xz -f -C $$WORKDIR usr && \
 	\
-	sed -i "" "s|startupurl:|$(MANOTO_STARTUP)|g" $$WORKDIR/usr/lib/lantern/$(PACKAGED_YAML) && \
+	cp installer-resources/$(MANOTO_YAML) $$WORKDIR/usr/lib/lantern/$(PACKAGED_YAML) && \
 	fpm -a $$PKG_ARCH -s dir -t deb -n lantern-manoto -v $$VERSION -m "$(PACKAGE_MAINTAINER)" --description "$(LANTERN_DESCRIPTION)\n$(LANTERN_EXTENDED_DESCRIPTION)" --category net --license "Apache-2.0" --vendor "$(PACKAGE_VENDOR)" --url $(PACKAGE_URL) --deb-compression xz -f -C $$WORKDIR usr;
 endef
 
@@ -211,8 +211,7 @@ docker-package-windows: require-version docker-windows-386
 	ls -l lantern_windows_386.exe update_windows_386.bz2 && \
 	makensis -V1 -DVERSION=$$VERSION installer-resources/windows/lantern.nsi && \
 	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer.exe" && \
-	cp installer-resources/$(PACKAGED_YAML) $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
-	sed -i "" "s|startupurl:|$(MANOTO_STARTUP)|g" $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
+	cp installer-resources/$(MANOTO_YAML) $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
 	cp $(CHAINED_PATH) $$INSTALLER_RESOURCES/$(CHAINED_YAML) && \
 	makensis -V1 -DVERSION=$$VERSION installer-resources/windows/lantern.nsi && \
 	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer-manoto.exe";
@@ -338,9 +337,8 @@ package-darwin-manoto: require-version require-appdmg require-svgexport darwin
 		mkdir Lantern.app/Contents/MacOS && \
 		cp -r lantern_darwin_amd64 Lantern.app/Contents/MacOS/lantern && \
 		mkdir Lantern.app/Contents/Resources/en.lproj && \
-		cp installer-resources/$(PACKAGED_YAML) Lantern.app/Contents/Resources/en.lproj/$(PACKAGED_YAML) && \
+		cp installer-resources/$(MANOTO_YAML) Lantern.app/Contents/Resources/en.lproj/$(PACKAGED_YAML) && \
 		cp $(CHAINED_PATH) Lantern.app/Contents/Resources/en.lproj/$(CHAINED_YAML) && \
-		sed -i "" "s|startupurl:|$(MANOTO_STARTUP)|g" Lantern.app/Contents/Resources/en.lproj/$(PACKAGED_YAML) && \
 		codesign -s "Developer ID Application: Brave New Software Project, Inc" Lantern.app && \
 		cat Lantern.app/Contents/MacOS/lantern | bzip2 > update_darwin_amd64.bz2 && \
 		ls -l lantern_darwin_amd64 update_darwin_amd64.bz2 && \
