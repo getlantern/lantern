@@ -24,6 +24,7 @@ var (
 	clientConfig  = defaultConfig()
 	trackingCodes = map[string]string{
 		"FireTweet": "UA-21408036-4",
+		"Lantern":   "UA-21408036-4",
 	}
 
 	defaultClient *mobileClient
@@ -73,7 +74,7 @@ func newClient(addr, appName string) *mobileClient {
 		if err := mClient.updateConfig(); err != nil {
 			log.Errorf("Unable to update config: %v", err)
 		}
-	}() */
+	}()*/
 
 	return mClient
 }
@@ -83,7 +84,7 @@ func (client *mobileClient) serveHTTP() {
 	go func() {
 		onListening := func() {
 			log.Debugf("Now listening for connections...")
-			analytics.Configure("", trackingCodes["FireTweet"], "", client.Client.Addr)
+			analytics.Configure("", trackingCodes[client.appName], "", client.Client.Addr)
 			logging.Configure(client.Client.Addr, cloudConfigCA, instanceId, version, revisionDate)
 		}
 
@@ -98,7 +99,7 @@ func (client *mobileClient) serveHTTP() {
 			}
 		}
 	}()
-	//go client.pollConfiguration()
+	go client.pollConfiguration()
 }
 
 // updateConfig attempts to pull a configuration file from the network using

@@ -1,5 +1,4 @@
-// socks implements a SOCKS server that intercepts local host connections
-// and forwards them through Lantern's HTTP proxy
+// interceptor implements a service for intercepting VPN traffic on an Android device. It starts a local SOCKS server that forwards connections to Lantern's HTTP proxy
 package interceptor
 
 import (
@@ -15,109 +14,41 @@ import (
 	socks "github.com/getlantern/lantern-mobile/socks"
 )
 
+// Errors introduced by the interceptor service
 var (
-	DIAL_TIMEOUT = 15 * time.Second
-	log          = golog.LoggerFor("lantern-android.interceptor")
+	ErrTooManyFailures = errors.New("Too many connection failures")
+	ErrNoSocksProxy    = errors.New("Unable to start local SOCKS proxy")
 )
 
-type Tunneler struct {
+var (
+	dialTimeout           = 15 * time.Second
+	failureCountThreshold = 20
+	log                   = golog.LoggerFor("lantern-android.interceptor")
+)
+
+type interceptor struct {
 	client *client.Client
 
 	socksAddr   string
 	httpAddr    string
 	udpgwServer string
 
-	portForwardFailures chan int
-	mutex               *sync.Mutex
-	isClosed            bool
-}
+	failureCount chan int
+	isClosed     bool
 
-type TunneledConn struct {
-	net.Conn
-	tunnel         *Tunneler
-	downstreamConn net.Conn
-}
+	listener       *socks.SocksListener
+	serveWaitGroup *sync.WaitGroup
 
-func (conn *TunneledConn) Read(buffer []byte) (n int, err error) {
-	n, err = conn.Conn.Read(buffer)
-	if err != nil && err != io.EOF {
-		// Report 1 new failure. Won't block; assumes the receiver
-		// has a sufficient buffer for the threshold number of reports.
-		// TODO: conditional on type of error or error message?
-		select {
-		case conn.tunnel.portForwardFailures <- 1:
-		default:
-		}
-	}
-	return
-}
+	openConns              *Conns
+	conns                  map[string]net.Conn
+	stopListeningBroadcast chan struct{}
 
-func (conn *TunneledConn) Write(buffer []byte) (n int, err error) {
-	n, err = conn.Conn.Write(buffer)
-	if err != nil && err != io.EOF {
-		// Same as TunneledConn.Read()
-		select {
-		case conn.tunnel.portForwardFailures <- 1:
-		default:
-		}
-	}
-	return
+	mu *sync.Mutex
 }
 
 type dialResult struct {
 	forwardConn net.Conn
 	err         error
-}
-
-type SocksProxy struct {
-	tunneler               Tunneler
-	listener               *socks.SocksListener
-	serveWaitGroup         *sync.WaitGroup
-	openConns              *Conns
-	conns                  map[string]net.Conn
-	stopListeningBroadcast chan struct{}
-}
-
-type Conns struct {
-	mutex    sync.Mutex
-	isClosed bool
-	conns    map[net.Conn]bool
-}
-
-func (conns *Conns) Reset() {
-	conns.mutex.Lock()
-	defer conns.mutex.Unlock()
-	conns.isClosed = false
-	conns.conns = make(map[net.Conn]bool)
-}
-
-func (conns *Conns) Add(conn net.Conn) bool {
-	conns.mutex.Lock()
-	defer conns.mutex.Unlock()
-	if conns.isClosed {
-		return false
-	}
-	if conns.conns == nil {
-		conns.conns = make(map[net.Conn]bool)
-	}
-	conns.conns[conn] = true
-	return true
-}
-
-func (conns *Conns) Remove(conn net.Conn) {
-	conns.mutex.Lock()
-	defer conns.mutex.Unlock()
-	delete(conns.conns, conn)
-}
-
-func (conns *Conns) CloseAll() {
-	conns.mutex.Lock()
-	defer conns.mutex.Unlock()
-	conns.isClosed = true
-	for conn, _ := range conns.conns {
-		conn.Close()
-	}
-	conns.conns = make(map[net.Conn]bool)
 }
 
 func Relay(localConn, remoteConn net.Conn) {
@@ -141,56 +72,66 @@ func Relay(localConn, remoteConn net.Conn) {
 	wg.Wait()
 }
 
-// New initializes a local SOCKS server. It begins listening for
-// connections, starts a goroutine that runs an accept loop, and returns
-// leaving the accept loop running.
-func New(client *client.Client,
-	socksAddr, httpAddr, udpgwServer string) (proxy *SocksProxy, err error) {
+func (i *interceptor) startSocksProxy() error {
+	listener, err := socks.ListenSocks("tcp", i.socksAddr)
 
-	listener, err := socks.ListenSocks(
-		"tcp", socksAddr)
 	if err != nil {
 		log.Errorf("Could not start SOCKS server: %v", err)
-		return nil, err
+		return ErrNoSocksProxy
 	}
 
-	proxy = &SocksProxy{
-		tunneler: Tunneler{
-			mutex:               new(sync.Mutex),
-			isClosed:            false,
-			client:              client,
-			socksAddr:           socksAddr,
-			httpAddr:            httpAddr,
-			udpgwServer:         udpgwServer,
-			portForwardFailures: make(chan int, 20),
-		},
-		listener:       listener,
+	i.listener = listener
+
+	i.serveWaitGroup.Add(1)
+	go i.serve()
+	log.Debugf("SOCKS proxy now listening on port: %v",
+		i.listener.Addr().(*net.TCPAddr).Port)
+
+	return nil
+}
+
+// New initializes the interceptor service. It also starts the local SOCKS
+// proxy that we use to intercept traffic that arrives on the TUN interface
+// We listen for connections on an accept loop
+func New(client *client.Client,
+	socksAddr, httpAddr, udpgwServer string) (i *interceptor, err error) {
+
+	i = &interceptor{
+		mu:             new(sync.Mutex),
+		isClosed:       false,
+		client:         client,
+		socksAddr:      socksAddr,
+		httpAddr:       httpAddr,
+		udpgwServer:    udpgwServer,
+		failureCount:   make(chan int, failureCountThreshold),
 		serveWaitGroup: new(sync.WaitGroup),
 		openConns:      new(Conns),
 		conns:          map[string]net.Conn{},
 		stopListeningBroadcast: make(chan struct{}),
 	}
-	proxy.serveWaitGroup.Add(1)
-	go proxy.serve()
-	log.Debugf("SOCKS proxy now listening on port: %v",
-		proxy.listener.Addr().(*net.TCPAddr).Port)
-	return proxy, nil
+
+	err = i.startSocksProxy()
+	if err != nil {
+		return nil, err
+	}
+
+	return i, nil
 }
 
 // Close terminates the listener and waits for the accept loop
 // goroutine to complete.
-func (proxy *SocksProxy) Close() {
-	close(proxy.stopListeningBroadcast)
-	proxy.listener.Close()
-	proxy.serveWaitGroup.Wait()
-	proxy.openConns.CloseAll()
+func (i *interceptor) Close() {
+	close(i.stopListeningBroadcast)
+	i.listener.Close()
+	i.serveWaitGroup.Wait()
+	i.openConns.CloseAll()
 }
 
-func (tunnel *Tunneler) Dial(addr string, localConn net.Conn) (net.Conn, error) {
+func (i *interceptor) Dial(addr string, localConn net.Conn) (net.Conn, error) {
 
-	tunnel.mutex.Lock()
-	isClosed := tunnel.isClosed
-	tunnel.mutex.Unlock()
+	i.mu.Lock()
+	isClosed := i.isClosed
+	i.mu.Unlock()
 
 	if isClosed {
 		return nil, errors.New("tunnel is closed")
@@ -206,7 +147,7 @@ func (tunnel *Tunneler) Dial(addr string, localConn net.Conn) (net.Conn, error) 
 	}
 
 	resultCh := make(chan *dialResult, 2)
-	time.AfterFunc(DIAL_TIMEOUT, func() {
+	time.AfterFunc(dialTimeout, func() {
 		resultCh <- &dialResult{nil,
 			errors.New("dial timoue to tunnel")}
 	})
@@ -224,7 +165,7 @@ func (tunnel *Tunneler) Dial(addr string, localConn net.Conn) (net.Conn, error) 
 			return
 		}
 
-		balancer := tunnel.client.GetBalancer()
+		balancer := i.client.GetBalancer()
 		forwardConn, err := balancer.Dial("tcp", addr)
 		if err != nil {
 			log.Errorf("Could not connect: %v", err)
@@ -239,21 +180,20 @@ func (tunnel *Tunneler) Dial(addr string, localConn net.Conn) (net.Conn, error) 
 		return nil, result.err
 	}
 
-	tConn := &TunneledConn{
+	return &InterceptedConn{
 		Conn:           result.forwardConn,
-		tunnel:         tunnel,
+		interceptor:    i,
 		downstreamConn: localConn,
-	}
-	return tConn, nil
+	}, nil
 }
 
-func (proxy *SocksProxy) connectionHandler(localConn *socks.SocksConn) (err error) {
+func (i *interceptor) connectionHandler(localConn *socks.SocksConn) (err error) {
 
 	defer localConn.Close()
-	defer proxy.openConns.Remove(localConn)
-	proxy.openConns.Add(localConn)
+	defer i.openConns.Remove(localConn)
+	i.openConns.Add(localConn)
 
-	remoteConn, err := proxy.tunneler.Dial(localConn.Req.Target, localConn)
+	remoteConn, err := i.Dial(localConn.Req.Target, localConn)
 	if err != nil {
 		log.Errorf("Error tunneling request: %v", err)
 		return err
@@ -269,34 +209,28 @@ func (proxy *SocksProxy) connectionHandler(localConn *socks.SocksConn) (err erro
 	return nil
 }
 
-func (proxy *SocksProxy) serve() {
-	defer proxy.listener.Close()
-	defer proxy.serveWaitGroup.Done()
+func (i *interceptor) serve() {
+	defer i.listener.Close()
+	defer i.serveWaitGroup.Done()
 loop:
 	for {
-		// Note: will be interrupted by listener.Close() call made by proxy.Close()
-		socksConnection, err := proxy.listener.AcceptSocks()
-		// Can't check for the exact error that Close() will cause in Accept(),
-		// (see: https://code.google.com/p/go/issues/detail?id=4373). So using an
-		// explicit stop signal to stop gracefully.
+		socksConnection, err := i.listener.AcceptSocks()
 		select {
-		case <-proxy.stopListeningBroadcast:
+		case <-i.stopListeningBroadcast:
 			break loop
 		default:
 		}
 		if err != nil {
 			log.Errorf("SOCKS proxy accept error: %v", err)
 			if e, ok := err.(net.Error); ok && e.Temporary() {
-				// Temporary error, keep running
 				continue
 			}
-			// Fatal error, stop the proxy
 			log.Fatalf("Fatal component failure: %v", err)
 			break loop
 		}
 		go func() {
 			log.Debugf("Got a new connection: %v", socksConnection)
-			err := proxy.connectionHandler(socksConnection)
+			err := i.connectionHandler(socksConnection)
 			if err != nil {
 				log.Errorf("%v", err)
 			}
