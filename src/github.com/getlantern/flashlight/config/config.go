@@ -180,15 +180,17 @@ func Init(version string) (*Config, error, string) {
 			cfg := ycfg.(*Config)
 			clients := loadBootstrapHttpClients(settings)
 			url := cfg.CloudConfig
+
+			var once Once
 			for _, client := range clients {
-				if bytes, err := fetchCloudConfig(&client, url); err == nil {
-					log.Debugf("Successfully downloaded custom config")
-					if err := cfg.updateFrom(bytes); err == nil {
-						log.Debugf("Successfully updated config")
-						return nil
+				go func() {
+					if bytes, err := fetchCloudConfig(&client, url); err == nil {
+						log.Debugf("Successfully downloaded custom config")
+						once.Do(func() { cfg.updateFrom(bytes) })
 					}
-				}
+				}()
 			}
+
 			return fmt.Errorf("Could not update config using %v", clients)
 		},
 		PerSessionSetup: func(ycfg yamlconf.Config) error {
