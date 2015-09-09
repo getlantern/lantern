@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -181,7 +182,7 @@ func Init(version string) (*Config, error, string) {
 			clients := loadBootstrapHttpClients(settings)
 			url := cfg.CloudConfig
 
-			var once Once
+			var once sync.Once
 			for _, client := range clients {
 				go func() {
 					if bytes, err := fetchCloudConfig(&client, url); err == nil {
