@@ -73,7 +73,7 @@ make
 With Lantern Android running, to filter Logcat messages:
 
 ```
-adb logcat | grep `adb shell ps | grep org.getlantern.lantern | cut -c10-15`
+make logcat
 ```
  
 [1]: http://developer.android.com/tools/studio/index.html   

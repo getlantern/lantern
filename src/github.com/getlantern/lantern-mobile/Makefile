@@ -9,7 +9,7 @@ endef
 
 .PHONY: all
 
-all: build-debug install run watch
+all: build-debug install run logcat
 
 compile-debug:
 	./gradlew \
@@ -41,7 +41,7 @@ run:
 	echo $(MAIN_ACTIVITY)
 	adb shell am start -n $(PACKAGE)/$(MAIN_ACTIVITY)
 
-watch:
+logcat:
 	adb logcat | grep `adb shell ps | grep org.getlantern.lantern | cut -c10-15`
 
 clean:
