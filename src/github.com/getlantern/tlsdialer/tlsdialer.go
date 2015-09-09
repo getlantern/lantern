@@ -16,8 +16,7 @@ import (
 )
 
 var (
-	log       = golog.LoggerFor("tlsdialer")
-	Protector protected.SocketProtector
+	log = golog.LoggerFor("tlsdialer")
 )
 
 type timeoutError struct{}
@@ -127,17 +126,15 @@ func DialForTimings(dialer *net.Dialer, network, addr string, sendServerName boo
 	var rawConn net.Conn
 
 	if runtime.GOOS == "android" {
-		pConn, err := protected.New(Protector, resolvedAddr)
-		if err != nil {
-			return result, err
-		}
-		rawConn, err = pConn.Dial()
+		rawConn, err = protected.Dial(network, resolvedAddr)
 	} else {
 		rawConn, err = dialer.Dial(network, resolvedAddr)
-		if err != nil {
-			return result, err
-		}
 	}
+
+	if err != nil {
+		return result, err
+	}
+
 	result.ConnectTime = time.Now().Sub(start)
 	log.Tracef("Dialed in %s", result.ConnectTime)
 

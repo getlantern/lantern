@@ -1,16 +1,9 @@
 package client
 
 import (
-	"github.com/getlantern/balancer"
 	"github.com/getlantern/lantern-mobile/interceptor"
 	"github.com/getlantern/lantern-mobile/protected"
-	"github.com/getlantern/tlsdialer"
 )
-
-// Getfiretweetversion returns the current build version string
-func GetFireTweetVersion() string {
-	return defaultClient.getFireTweetVersion()
-}
 
 // GoCallback is the supertype of callbacks passed to Go
 type GoCallback interface {
@@ -26,33 +19,20 @@ type SocketProvider interface {
 // RunClientProxy creates a new client at the given address.
 func RunClientProxy(listenAddr, appName string, protector SocketProvider, ready GoCallback) error {
 	go func() {
-		tlsdialer.Protector = protector
-		defaultClient = newClient(listenAddr, appName, protector)
+		protected.Configure(protector)
+		defaultClient = newClient(listenAddr, appName)
 		defaultClient.serveHTTP()
 		ready.AfterStart()
 	}()
 	return nil
 }
 
-func IsMasqueradeCheck(addr string) bool {
-	host, _, err := protected.SplitHostPort(addr)
-	if err != nil {
-		return false
-	}
-	return defaultClient.IsMasqueradeCheck(host)
-}
-
-func getBalancer() *balancer.Balancer {
-	return defaultClient.Client.GetBalancer()
-}
-
 func Configure(protector SocketProvider, httpAddr string,
 	socksAddr string, udpgwServer string,
 	ready GoCallback) error {
 	go func() {
-		tlsdialer.Protector = protector
-		_, err := interceptor.New(protector,
-			getBalancer(), socksAddr, httpAddr, udpgwServer)
+		protected.Configure(protector)
+		_, err := interceptor.New(defaultClient.Client, socksAddr, httpAddr, udpgwServer)
 		if err != nil {
 			log.Errorf("Error starting SOCKS proxy: %v", err)
 		}

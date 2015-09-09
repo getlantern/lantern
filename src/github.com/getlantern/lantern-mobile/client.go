@@ -10,8 +10,6 @@ import (
 	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/logging"
 	"github.com/getlantern/golog"
-
-	"github.com/getlantern/lantern-mobile/protected"
 )
 
 const (
@@ -34,10 +32,9 @@ var (
 // mobileClient is an extension of flashlight client with a few custom declarations for mobile
 type mobileClient struct {
 	appName string
-	client.Client
-	closed      chan bool
-	fronter     *http.Client
-	masquerades map[string]bool
+	*client.Client
+	closed  chan bool
+	fronter *http.Client
 }
 
 func init() {
@@ -50,15 +47,10 @@ func init() {
 	}
 }
 
-// bypass masquerade checks
-func (self *mobileClient) IsMasqueradeCheck(ip string) bool {
-	return self.masquerades[ip]
-}
-
 // newClient creates a proxy client.
-func newClient(addr, appName string, protector protected.SocketProtector) *mobileClient {
+func newClient(addr, appName string) *mobileClient {
 
-	client := client.Client{
+	client := &client.Client{
 		Addr:         addr,
 		ReadTimeout:  0, // don't timeout
 		WriteTimeout: 0,
@@ -72,21 +64,16 @@ func newClient(addr, appName string, protector protected.SocketProtector) *mobil
 	hqfd := client.Configure(clientConfig.Client)
 
 	mClient := &mobileClient{
-		Client:      client,
-		closed:      make(chan bool),
-		fronter:     hqfd(),
-		appName:     appName,
-		masquerades: make(map[string]bool),
+		Client:  client,
+		closed:  make(chan bool),
+		fronter: hqfd(),
+		appName: appName,
 	}
 	/*go func() {
 		if err := mClient.updateConfig(); err != nil {
 			log.Errorf("Unable to update config: %v", err)
 		}
 	}() */
-
-	for _, masquerade := range cloudflareMasquerades {
-		mClient.masquerades[masquerade.IpAddress] = true
-	}
 
 	return mClient
 }
@@ -129,10 +116,6 @@ func (client *mobileClient) updateConfig() error {
 		err := globals.SetTrustedCAs(clientConfig.getTrustedCerts())
 		if err != nil {
 			log.Errorf("Unable to configure trusted CAs: %s", err)
-		}
-
-		for _, entry := range clientConfig.Client.MasqueradeSets[cloudflare] {
-			client.masquerades[entry.IpAddress] = true
 		}
 
 		hqfc := client.Configure(clientConfig.Client)

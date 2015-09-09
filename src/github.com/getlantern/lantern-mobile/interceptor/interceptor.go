@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/getlantern/balancer"
+	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/lantern-mobile/protected"
 	socks "github.com/getlantern/lantern-mobile/socks"
@@ -21,11 +21,11 @@ var (
 )
 
 type Tunneler struct {
+	client *client.Client
+
 	socksAddr   string
 	httpAddr    string
 	udpgwServer string
-	balancer    *balancer.Balancer
-	protector   protected.SocketProtector
 
 	portForwardFailures chan int
 	mutex               *sync.Mutex
@@ -144,8 +144,7 @@ func Relay(localConn, remoteConn net.Conn) {
 // New initializes a local SOCKS server. It begins listening for
 // connections, starts a goroutine that runs an accept loop, and returns
 // leaving the accept loop running.
-func New(protector protected.SocketProtector,
-	balancer *balancer.Balancer,
+func New(client *client.Client,
 	socksAddr, httpAddr, udpgwServer string) (proxy *SocksProxy, err error) {
 
 	listener, err := socks.ListenSocks(
@@ -159,8 +158,7 @@ func New(protector protected.SocketProtector,
 		tunneler: Tunneler{
 			mutex:               new(sync.Mutex),
 			isClosed:            false,
-			balancer:            balancer,
-			protector:           protector,
+			client:              client,
 			socksAddr:           socksAddr,
 			httpAddr:            httpAddr,
 			udpgwServer:         udpgwServer,
@@ -215,26 +213,19 @@ func (tunnel *Tunneler) Dial(addr string, localConn net.Conn) (net.Conn, error) 
 	go func() {
 
 		if port == 7300 {
-			conn, err := protected.New(tunnel.protector, addr)
+			remoteConn, err := protected.Dial("tcp", addr)
 			if err != nil {
 				log.Errorf("Error creating protected connection: %v", err)
 				resultCh <- &dialResult{nil, err}
 				return
 			}
 			log.Debugf("Connecting to %s:%d", host, port)
-
-			remoteConn, err := conn.Dial()
-			if err != nil {
-				log.Errorf("Error tunneling request: %v", err)
-				conn.Close()
-				resultCh <- &dialResult{nil, err}
-				return
-			}
 			resultCh <- &dialResult{remoteConn, err}
 			return
 		}
 
-		forwardConn, err := tunnel.balancer.Dial("tcp", addr)
+		balancer := tunnel.client.GetBalancer()
+		forwardConn, err := balancer.Dial("tcp", addr)
 		if err != nil {
 			log.Errorf("Could not connect: %v", err)
 			resultCh <- &dialResult{nil, err}

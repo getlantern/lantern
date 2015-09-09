@@ -39,24 +39,29 @@ type ProtectedConn struct {
 }
 
 var (
-	log = golog.LoggerFor("lantern-android.protected")
+	log              = golog.LoggerFor("lantern-android.protected")
+	currentProtector SocketProtector
 )
 
-// Creates a new protected connection with destination addr
-func New(protector SocketProtector, addr string) (*ProtectedConn, error) {
+func Configure(protector SocketProtector) {
+	currentProtector = protector
+}
+
+// Dials a new connection with a protected connection
+func Dial(network, addr string) (net.Conn, error) {
 	host, port, err := SplitHostPort(addr)
 	if err != nil {
 		return nil, err
 	}
 
-	conn := &ProtectedConn{
+	protectedConn := &ProtectedConn{
 		addr:      addr,
 		host:      host,
 		port:      port,
-		protector: protector,
+		protector: currentProtector,
 	}
 
-	return conn, nil
+	return protectedConn.Dial()
 }
 
 func (conn *ProtectedConn) Addr() (*net.TCPAddr, error) {
@@ -149,16 +154,12 @@ func sendTestRequest(client *http.Client, addr string) {
 }
 
 func TestConnect(protector SocketProtector, addr string) error {
-	conn, err := New(protector, addr)
-	if err != nil {
-		log.Errorf("Could not test protected connection: %s", err)
-		return err
-	}
+	Configure(protector)
 
 	client := &http.Client{
 		Transport: &http.Transport{
 			Dial: func(netw, addr string) (net.Conn, error) {
-				return conn.Dial()
+				return Dial(netw, addr)
 			},
 			ResponseHeaderTimeout: time.Second * 2,
 		},
