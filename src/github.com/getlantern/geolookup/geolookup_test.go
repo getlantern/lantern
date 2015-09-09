@@ -13,14 +13,17 @@ import (
 )
 
 func TestCityLookup(t *testing.T) {
-	d := integrationDialer(t, nil)
-	defer func() {
-		if err := d.Close(); err != nil {
-			t.Fatalf("Unable to close dialer: %v", err)
-		}
-	}()
+	/*
+		d := integrationDialer(t, nil)
+		defer func() {
+			if err := d.Close(); err != nil {
+				t.Fatalf("Unable to close dialer: %v", err)
+			}
+		}()
 
-	client := d.NewDirectDomainFronter()
+		client := d.NewDirectDomainFronter()
+	*/
+	client := &http.Client{}
 	city, _, err := LookupIPWithClient("198.199.72.101", client)
 	if assert.NoError(t, err) {
 		assert.Equal(t, "New York", city.City.Names["en"])
