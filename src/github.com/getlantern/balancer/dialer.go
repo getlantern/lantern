@@ -109,8 +109,7 @@ func (d *dialer) start() {
 }
 
 func (d *dialer) isActive() bool {
-	//return atomic.LoadInt32(&d.active) == 1
-	return true
+	return atomic.LoadInt32(&d.active) == 1
 }
 
 func (d *dialer) onError(err error) {
