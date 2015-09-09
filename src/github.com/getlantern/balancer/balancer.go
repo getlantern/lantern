@@ -83,7 +83,9 @@ func (b *Balancer) DialQOS(network, addr string, targetQOS int) (net.Conn, error
 		dialers = b.dialers
 	}
 
-	for i := 0; ; i++ {
+	// To prevent dialing infinitely
+	attempts := 3
+	for i := 0; i < attempts; i++ {
 		if len(dialers) == 0 {
 			return nil, fmt.Errorf("No dialers left to try on pass %v", i)
 		}
@@ -103,6 +105,7 @@ func (b *Balancer) DialQOS(network, addr string, targetQOS int) (net.Conn, error
 		log.Debugf("Successfully dialed via %v to %v://%v on pass %v", d.Label, network, addr, i)
 		return conn, nil
 	}
+	return nil, fmt.Errorf("Still unable to dial %s://%s after %d attempts", network, addr, attempts)
 }
 
 // Dial is like DialQOS with a targetQOS of 0.
@@ -146,7 +149,11 @@ func randomDialer(dialers []*dialer, targetQOS int) (chosen *dialer, others []*d
 		aw += d.Weight
 		if aw > t {
 			log.Tracef("Randomly selected dialer %s with weight %d, QOS %d", d.Label, d.Weight, d.QOS)
-			return d, withoutDialer(dialers, d)
+			if len(dialers) < 2 {
+				return d, dialers
+			} else {
+				return d, withoutDialer(dialers, d)
+			}
 		}
 	}
 
