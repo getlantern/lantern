@@ -19,8 +19,8 @@ import (
 const (
 	messageType = `GeoLookup`
 
-	basePublishSeconds     = 120
-	publishSecondsVariance = basePublishSeconds - 120
+	basePublishSeconds     = 30
+	publishSecondsVariance = basePublishSeconds - 10
 	retryWaitMillis        = 100
 )
 

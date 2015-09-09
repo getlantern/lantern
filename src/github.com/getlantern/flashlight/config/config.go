@@ -182,17 +182,21 @@ func Init(version string) (*Config, error, string) {
 			clients := loadBootstrapHttpClients(settings)
 			url := cfg.CloudConfig
 
+			configs := make(chan []byte)
 			var once sync.Once
 			for _, client := range clients {
-				go func() {
-					if bytes, err := fetchCloudConfig(&client, url); err == nil {
+				go func(httpClient *http.Client) {
+					if bytes, err := fetchCloudConfig(httpClient, url); err == nil {
 						log.Debugf("Successfully downloaded custom config")
-						once.Do(func() { cfg.updateFrom(bytes) })
-					}
-				}()
-			}
 
-			return fmt.Errorf("Could not update config using %v", clients)
+						// We just use the first config we learn about.
+						once.Do(func() { configs <- bytes })
+					}
+				}(client)
+			}
+			config := <-configs
+			log.Debugf("Read config")
+			return cfg.updateFrom(config)
 		},
 		PerSessionSetup: func(ycfg yamlconf.Config) error {
 			cfg := ycfg.(*Config)
@@ -482,8 +486,8 @@ func (cfg Config) cloudPollSleepTime() time.Duration {
 	return time.Duration((CloudConfigPollInterval.Nanoseconds() / 2) + rand.Int63n(CloudConfigPollInterval.Nanoseconds()))
 }
 
-func loadBootstrapHttpClients(ps *client.BootstrapSettings) []http.Client {
-	var clients []http.Client
+func loadBootstrapHttpClients(ps *client.BootstrapSettings) []*http.Client {
+	var clients []*http.Client
 	for _, s := range ps.ChainedServers {
 		log.Debugf("Fetching config using chained server: %v", s.Addr)
 		dialer, er := s.Dialer()
@@ -491,7 +495,7 @@ func loadBootstrapHttpClients(ps *client.BootstrapSettings) []http.Client {
 			log.Errorf("Unable to configure chained server. Received error: %v", er)
 			continue
 		}
-		clients = append(clients, http.Client{
+		clients = append(clients, &http.Client{
 			Transport: &http.Transport{
 				DisableKeepAlives: true,
 				Dial:              dialer.Dial,
