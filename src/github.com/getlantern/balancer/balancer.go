@@ -149,6 +149,7 @@ func randomDialer(dialers []*dialer, targetQOS int) (chosen *dialer, others []*d
 		aw += d.Weight
 		if aw > t {
 			log.Tracef("Randomly selected dialer %s with weight %d, QOS %d", d.Label, d.Weight, d.QOS)
+			// Leave at lest one dialer to try in next round
 			if len(dialers) < 2 {
 				return d, dialers
 			} else {
@@ -165,10 +166,12 @@ func dialersMeetingQOS(dialers []*dialer, targetQOS int) ([]*dialer, int) {
 	filtered := make([]*dialer, 0)
 	highestQOS := 0
 	for _, d := range dialers {
+		/* Don't exclude inactive dialer as it's the only one we have
 		if !d.isActive() {
 			log.Trace("Excluding inactive dialer")
 			continue
 		}
+		*/
 
 		highestQOS = d.QOS // don't need to compare since dialers are already sorted by QOS (ascending)
 		if d.QOS >= targetQOS {
