@@ -27,11 +27,14 @@ packages:
 vagrant ssh
 sudo yum install -y git gcc glibc-static
 
+# Go
 curl https://storage.googleapis.com/golang/go1.5.1.linux-amd64.tar.gz | sudo tar -xzv -C /usr/local/
 
-export GOROOT=/usr/local/go
-export PATH=$PATH:$GOROOT/bin
-export GOPATH=$HOME/go
+echo 'export GOROOT=/usr/local/go'    >> $HOME/.bashrc
+echo 'export PATH=$PATH:$GOROOT/bin'  >> $HOME/.bashrc
+echo 'export GOPATH=$HOME/go'         >> $HOME/.bashrc
+
+source $HOME/.bashrc
 ```
 
 Clone the `tunio` package and switch to the `badvpn-lwip` branch:
@@ -146,7 +149,7 @@ socat TCP-LISTEN:20443,fork socks:127.0.0.1:www.google.com:443,socksport=9999
 ssh -D 9999 remote@example.org
 ```
 
-And a `net.Conn` over Lantern:
+and a `net.Conn` over [Lantern][2]:
 
 ```
 # terminal 1
@@ -157,3 +160,4 @@ lantern -role client -addr :8787
 ```
 
 [1]: https://github.com/ambrop72/badvpn/tree/master/tun2socks
+[2]: https://getlantern.org
