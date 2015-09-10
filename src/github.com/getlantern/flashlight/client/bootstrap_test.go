@@ -32,9 +32,8 @@ func TestBootstrapSettings(t *testing.T) {
 	e := ioutil.WriteFile(file.Name(), data, 0644)
 	assert.True(t, e == nil, "Should not be an error")
 
-	path, ps, errr := readSettingsFromFile(file.Name())
+	ps, errr := readSettingsFromFile(file.Name())
 	assert.Equal(t, "test", ps.StartupUrl, "Unexpected startup URL")
-	assert.Equal(t, file.Name(), path, "Wrote to unexpected path")
 	assert.True(t, errr == nil, "Should not be an error")
 
 	// Now do another full round trip, writing and reading
@@ -42,21 +41,21 @@ func TestBootstrapSettings(t *testing.T) {
 	local = file.Name()
 	path, errrr := writeToDisk(ps)
 	assert.True(t, errrr == nil, "Should not be an error")
-	path, ps, err = readSettingsFromFile(path)
+	ps, err = readSettingsFromFile(path)
 	assert.Equal(t, "test", ps.StartupUrl, "Could not read data")
 	assert.Equal(t, local, path, "Wrote to unexpected path")
 	assert.True(t, err == nil, "Should not be an error")
 
 	url := "test"
 
-	path, ps, err = readSettingsFromFile(path)
+	ps, err = readSettingsFromFile(path)
 
 	log.Debugf("Wrote settings to: %v", path)
 	assert.Equal(t, url, ps.StartupUrl, "Could not read data")
 	assert.Equal(t, local, path, "Wrote to unexpected path")
 	assert.True(t, err == nil, "Should not be an error")
 
-	path, err = packagedSettingsPath()
+	path, err = bootstrapPath(name)
 	assert.True(t, err == nil, "Should not be an error")
 
 	var dir string
