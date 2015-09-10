@@ -9,7 +9,9 @@ var defaultTrustedCAs = []*CA{ {{range .cas}}
 	}, {{end}}
 }
 
-var cloudflareMasquerades = []*fronted.Masquerade{ {{range .masquerades}}
+var cloudflareMasquerades = []*frontedMasquerade{}
+
+var cloudfrontMasquerades = []*fronted.Masquerade{ {{range .masquerades}}
 	&fronted.Masquerade{
 		Domain:    "{{.Domain}}",
 		IpAddress: "{{.IpAddress}}",
