@@ -31,6 +31,7 @@ curl https://storage.googleapis.com/golang/go1.5.1.linux-amd64.tar.gz | sudo tar
 
 export GOROOT=/usr/local/go
 export PATH=$PATH:$GOROOT/bin
+export GOPATH=$HOME/go
 ```
 
 Clone the `tunio` package and switch to the `badvpn-lwip` branch:
@@ -41,6 +42,7 @@ cd projects
 git clone https://github.com/getlantern/tunio.git
 cd tunio
 git checkout badvpn-lwip
+go get -d -t .
 ```
 
 Compile `tun2io`'s libraries:
