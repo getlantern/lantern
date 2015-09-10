@@ -131,7 +131,6 @@ func bootstrapPath(fileName string) (string, error) {
 		log.Errorf("Could not get current directory %v", err)
 		return "", err
 	}
-	log.Debugf("Opening externalUrl from: %v", dir)
 	var yamldir string
 	if runtime.GOOS == "windows" {
 		yamldir = dir
@@ -147,9 +146,11 @@ func bootstrapPath(fileName string) (string, error) {
 			yamldir = dir + "/../Resources"
 		}
 	} else if runtime.GOOS == "linux" {
-		yamldir = dir
+		yamldir = dir + "/../"
 	}
-	return filepath.Join(yamldir, fileName), nil
+	fullPath := filepath.Join(yamldir, fileName)
+	log.Debugf("Opening externalUrl from: %v", fullPath)
+	return fullPath, nil
 }
 
 func writeToDisk(ps *BootstrapSettings) (string, error) {
