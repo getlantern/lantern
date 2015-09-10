@@ -24,7 +24,7 @@ tun2socks:
 
 deps-lib:
 	mkdir -p $(OBJDIR) && \
-	for f in $$(cat files.txt | grep -v "^#"); do \
+	for f in $$(cat compile.list | grep -v "^#"); do \
 		o=$$(basename "$$f" .c).o && \
 		$(CC) -fpic -c $(CFLAGS) $(CDEFS) $(INCLUDES) $(BADVPNDIR)/$$f -o $(OBJDIR)/$$o && \
 		echo "-> $(OBJDIR)/$$o"; \
@@ -32,7 +32,7 @@ deps-lib:
 
 deps:
 	mkdir -p $(OBJDIR) && \
-	for f in $$(cat files.txt | grep -v "^#"); do \
+	for f in $$(cat compile.list | grep -v "^#"); do \
 		o=$$(basename "$$f" .c).o && \
 		$(CC) -c $(CFLAGS) $(CDEFS) $(INCLUDES) $(BADVPNDIR)/$$f -o $(OBJDIR)/$$o && \
 		echo "-> $(OBJDIR)/$$o"; \
