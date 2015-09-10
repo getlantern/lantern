@@ -1,7 +1,7 @@
 # tunio
 
-The tunio package can be used to redirect I/O traffic from a tun device to a
-`net.Dialer`.
+The tunio package can be used to redirect I/O from a tun device to a
+`net.Dialer` by using a fork of [tun2socks][1] as a library.
 
 This is a work in progress.
 
@@ -20,7 +20,8 @@ end
 vagrant up
 ```
 
-Log in into the VM and install required packages:
+Log in into the newly created virtual machine and install some required
+packages:
 
 ```
 vagrant ssh
@@ -42,7 +43,7 @@ cd tunio
 git checkout badvpn-lwip
 ```
 
-Compile `tun2io`'s shared and static libraries:
+Compile `tun2io`'s libraries:
 
 ```
 make lib
@@ -51,7 +52,7 @@ make lib
 # ar rcs lib/libtun2io.a tun2io.o ./obj/*.o
 ```
 
-Create a new tun device on `tun0`.
+Create a new tun device, let's name it `tun0`.
 
 ```
 #!/bin/bash
@@ -62,16 +63,16 @@ sudo ip tuntap add $DEVICE_NAME mode tun
 sudo ifconfig $DEVICE_NAME $DEVICE_IP netmask 255.255.255.0
 ```
 
-Replace system's name servers with `8.8.8.8` and `8.8.4.4`.
+Replace the vm's name servers with `8.8.8.8` and `8.8.4.4`.
 
 ```
 echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
 echo "nameserver 8.8.4.4" | sudo tee -a /etc/resolv.conf
 ```
 
-The easiest way to try the net.Dialer is by creating a transparent tunnel with
-an external host, in this example we are going to use the vm's host as external
-host.
+The easiest way to try the `net.Dialer` is by creating a transparent tunnel
+with an external host, in this example we are going to use the vm's host as
+external host.
 
 Modify the routing table to allow direct traffic with the name servers and with
 the external host.
@@ -99,7 +100,8 @@ PING google.com (74.125.227.165) 56(84) bytes of data.
 5 packets transmitted, 0 received, 100% packet loss, time 4001ms
 ```
 
-But you should be able to ping the nameservers and `$HOST_IP`.
+But you should be able to ping the nameservers and `$HOST_IP`, because they're
+using the original router.
 
 ```
 ping $HOST_IP
@@ -120,7 +122,7 @@ brew install socat
 socat TCP-LISTEN:20443,fork TCP:www.google.com:443
 ```
 
-Now you should be able to run the test:
+Now you should be able to run the test!
 
 ```
 go test
@@ -128,3 +130,28 @@ go test
 # PASS
 # ok    _/home/vagrant/projects/tunio 1.260s
 ```
+
+We used a transparent proxy for this test, but you are not bound to transparent
+proxies only, it depends on the `net.Conn` returned by the `net.Dialer`. You
+can also use socat to create a tcp-to-socks tunnel to simulate a `net.Conn`
+over SOCKS:
+
+```
+# terminal 1
+socat TCP-LISTEN:20443,fork socks:127.0.0.1:www.google.com:443,socksport=9999
+
+# terminal 2
+ssh -D 9999 remote@example.org
+```
+
+And a `net.Conn` over Lantern:
+
+```
+# terminal 1
+socat TCP-LISTEN:20443,fork PROXY:127.0.0.1:www.google.com:443,proxyport=8787
+
+# termina 2
+lantern -role client -addr :8787
+```
+
+[1]: https://github.com/ambrop72/badvpn/tree/master/tun2socks

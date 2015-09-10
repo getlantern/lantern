@@ -8,6 +8,8 @@ import (
 	"os"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -30,13 +32,19 @@ const (
 	googleHumansTxt = "Google is built by a large team of engineers, designers, researchers, robots, and others in many different sites across the globe. It is updated continuously, and built with more tools and technologies than we can shake a stick at. If you'd like to help us out, see google.com/careers.\n"
 )
 
-func TestTransparentConfigure(t *testing.T) {
+func TestConfigure(t *testing.T) {
 	// This function dials to an external host which will take anything that
-	// arrives on port 20443 to redirect it to www.google.com:80
+	// arrives on port 20443 and redirect it to www.google.com:443
 	fn := func(proto, addr string) (net.Conn, error) {
+		// The address the client wants to connect is addr, but we ignore it and
+		// connect to a fixed known host instead because that's the easiest way to
+		// test a connection that is not routed to tun0. We're going to manually
+		// set up the external host to connect to www.google.com:443. In
+		// VpnService's context this could be achieved by protecting this socket.
 		return net.Dial("tcp", hostIP+":20443")
 	}
 	go func() {
+		// Configuring the device and passing the dialer function we want to use.
 		if err := Configure(deviceName, deviceIP, deviceMask, fn); err != nil {
 			t.Fatal(err)
 		}
@@ -45,11 +53,9 @@ func TestTransparentConfigure(t *testing.T) {
 	log.Printf("Waiting at %q...", deviceName)
 }
 
-func TestTransparentProxy(t *testing.T) {
-	c := &http.Client{}
+func TestDialerWithGoogle(t *testing.T) {
+	res, err := http.Get("https://www.google.com/humans.txt")
 
-	// This is a simple test with and https URL.
-	res, err := c.Get("https://www.google.com/humans.txt")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -59,7 +65,5 @@ func TestTransparentProxy(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if string(b) != googleHumansTxt {
-		t.Fatalf("Expecting %q, got %q.", googleHumansTxt, string(b))
-	}
+	assert.Equal(t, string(b), googleHumansTxt, "Expecting a fixex response from humans.txt")
 }
