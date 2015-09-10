@@ -63,7 +63,7 @@ func TestBootstrapSettings(t *testing.T) {
 	if runtime.GOOS == "darwin" {
 		dir, err = filepath.Abs(filepath.Dir(os.Args[0]) + "/../Resources")
 	} else if runtime.GOOS == "linux" {
-		dir, err = filepath.Abs(filepath.Dir(os.Args[0]))
+		dir, err = filepath.Abs(filepath.Dir(os.Args[0]) + "/../")
 	}
 	assert.True(t, err == nil, "Should not be an error")
 
