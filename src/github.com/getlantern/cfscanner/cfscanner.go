@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -26,17 +27,17 @@ var (
 	out        = flag.String("o", "masquerades.txt", "Output file")
 )
 
-func webSlurp(url string) (string, error) {
+func webSlurp(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
-		return "", fmt.Errorf("Error fetching IP list: %v", err)
+		return nil, fmt.Errorf("Error fetching IP list: %v", err)
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("Error trying to read response: %v", err)
+		return nil, fmt.Errorf("Error trying to read response: %v", err)
 	}
-	return string(body), nil
+	return body, nil
 }
 
 type masquerade struct {
@@ -62,6 +63,12 @@ func main() {
 	main_()
 }
 
+type cloudfrontPrefix struct {
+	Ip_prefix string
+	Region    string
+	Service   string
+}
+
 func main_() {
 	flag.Parse()
 
@@ -70,16 +77,27 @@ func main_() {
 		os.Exit(1)
 	}
 
-	s, err := webSlurp("https://www.cloudflare.com/ips-v4")
+	bs, err := webSlurp("https://ip-ranges.amazonaws.com/ip-ranges.json")
 	if err != nil {
 		log.Fatal(err)
 	}
+	var objmap map[string]*json.RawMessage
+	if err = json.Unmarshal(bs, &objmap); err != nil {
+		log.Fatal(err)
+	}
+	var prefixes []cloudfrontPrefix
+	if err = json.Unmarshal(*objmap["prefixes"], &prefixes); err != nil {
+		log.Fatal(err)
+	}
+
 	ipch := make(chan string)
 	ipwg := sync.WaitGroup{}
-	lines := strings.Split(s, "\n")
-	ipwg.Add(len(lines))
-	for _, line := range lines {
-		go enumerateRange(line, ipch, &ipwg)
+
+	for _, prefix := range prefixes {
+		if prefix.Service == "CLOUDFRONT" {
+			ipwg.Add(1)
+			go enumerateRange(prefix.Ip_prefix, ipch, &ipwg)
+		}
 	}
 
 	// Send death pill to all workers when we're done feeding IPs.
@@ -106,13 +124,13 @@ func main_() {
 		log.Fatal(err)
 	}
 	defer f.Close()
-	for domain := range resch {
-		if domain == "" {
+	for result := range resch {
+		if result == "" {
 			fmt.Println("Done!")
 			break
 		}
-		fmt.Printf("*** Successfully verified %v\n", domain)
-		_, err = f.WriteString(domain + "\n")
+		fmt.Printf("*** Successfully verified %v\n", result)
+		_, err = f.WriteString(result + "\n")
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -153,37 +171,36 @@ func checkIP(ip string) (string, error) {
 		return "", fmt.Errorf("Couldn't verify any cert chains for %v.", ip)
 	}
 	rootCA := chain[len(chain)-1]
-	rootCert, err := keyman.LoadCertificateFromX509(rootCA)
+	_, err = keyman.LoadCertificateFromX509(rootCA)
 	if err != nil {
 		return "", fmt.Errorf("Error loading root CA cert: %v", err)
 	}
-	ca := &castat{
-		CommonName: rootCA.Subject.CommonName,
-		Cert:       strings.Replace(string(rootCert.PEMEncoded()), "\n", "\\n", -1),
-	}
-	masq := &masquerade{
-		Domain:    domain,
-		IpAddress: ip,
-		RootCA:    ca,
-	}
-	if verifyMasquerade(masq) {
-		return domain, nil
-	} else {
-		return "", fmt.Errorf("Failed to verify masquerade for %v (%v)", domain, ip)
-	}
+	return ip + " " + domain, nil
+	/*
+		ca := &castat{
+			CommonName: rootCA.Subject.CommonName,
+			Cert:       strings.Replace(string(rootCert.PEMEncoded()), "\n", "\\n", -1),
+		}
+		masq := &masquerade{
+			Domain:    domain,
+			IpAddress: ip,
+			RootCA:    ca,
+		}
+		if verifyMasquerade(masq) {
+			return domain, nil
+		} else {
+			return "", fmt.Errorf("Failed to verify masquerade for %v (%v)", domain, ip)
+		}
+	*/
 }
 
 func findVerifiedChain(dnsNames []string, conn *tls.Conn, cfg *tls.Config) (string, []*x509.Certificate) {
-	// Hackery: try the following combinations in order of preference:
-	//    Non-cloudflare, non-wildcard
-	//    Non-cloudflare, wildcard
-	//    Cloudflare, non-wildcard
-	//    Cloudflare, wildcard
-	for i := 0; i < 4; i++ {
-		isWildcard := (i & 1) == 1
-		isCf := (i & 2) == 1
+	for _, isWildcard := range []bool{false, true} {
 		for _, domain := range dnsNames {
-			if strings.HasPrefix(domain, "*") == isWildcard && strings.HasSuffix(domain, ".cloudflare.com") == isCf {
+			if strings.HasPrefix(domain, "*") == isWildcard {
+				if isWildcard {
+					domain = "www" + domain[1:]
+				}
 				verifiedChains, err := verifyServerCerts(conn, domain, cfg)
 				if err == nil {
 					return domain, verifiedChains[0]
