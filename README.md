@@ -1,6 +1,6 @@
 # tunio
 
-The tunio package allows you to redirect i/o from a tun device to a
+The tunio package can be used to redirect I/O traffic from a tun device to a
 `net.Dialer`.
 
 This is a work in progress.
@@ -42,7 +42,7 @@ cd tunio
 git checkout badvpn-lwip
 ```
 
-Compile the `tun2io` shared and static libraries:
+Compile `tun2io`'s shared and static libraries:
 
 ```
 make lib
