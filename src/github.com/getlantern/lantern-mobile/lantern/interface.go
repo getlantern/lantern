@@ -24,6 +24,9 @@ func RunClientProxy(listenAddr, appName string, protector SocketProvider, ready 
 	go func() {
 		protected.Configure(protector)
 		defaultClient = newClient(listenAddr, appName)
+
+		bal := defaultClient.GetBalancer()
+
 		defaultClient.serveHTTP()
 		ready.AfterStart()
 	}()

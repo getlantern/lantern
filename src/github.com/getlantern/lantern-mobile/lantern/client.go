@@ -10,6 +10,7 @@ import (
 	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/logging"
 	"github.com/getlantern/golog"
+	"github.com/getlantern/tunio"
 )
 
 const (
@@ -42,7 +43,6 @@ func init() {
 	if version == "" {
 		version = "development"
 	}
-
 	if revisionDate == "" {
 		revisionDate = "now"
 	}

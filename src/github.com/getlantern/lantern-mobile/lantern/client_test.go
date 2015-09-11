@@ -14,6 +14,22 @@ import (
 
 const clientListenProxyAddr = "127.0.0.1:9997"
 
+var (
+	deviceName = "tun0"
+	deviceIP   = "10.0.0.2"
+	deviceMask = "255.255.255.0"
+)
+
+var hostIP string
+
+func init() {
+	if os.Getenv("HOST_IP") != "" {
+		hostIP = os.Getenv("HOST_IP")
+	} else {
+		hostIP = "10.0.0.105"
+	}
+}
+
 var globalClient *mobileClient
 
 var testURLs = map[string][]byte{
@@ -23,23 +39,16 @@ var testURLs = map[string][]byte{
 
 // Attempt to create a server in a goroutine and stop it from other place.
 func TestListenAndServeStop(t *testing.T) {
-
 	// Creating a client.
 	c := newClient(clientListenProxyAddr, "FireTweetTest")
 
 	// Allow it some seconds to start.
-	time.Sleep(time.Second * 3)
-
-	c.serveHTTP()
-
-	// Allow it some seconds to start.
-	time.Sleep(time.Second)
+	time.Sleep(time.Second * 2)
 
 	// Attempt to stop server.
 	if err := c.Client.Stop(); err != nil {
 		t.Fatal("You should be able to close listening client.")
 	}
-
 }
 
 func TestListenAndServeAgain(t *testing.T) {
@@ -48,6 +57,25 @@ func TestListenAndServeAgain(t *testing.T) {
 
 	globalClient = newClient(clientListenProxyAddr, "FireTweetTest")
 	globalClient.serveHTTP()
+
+	// Configuring proxy.
+	fn := func(proto, addr string) (net.Conn, error) {
+		bal := globalClient.GetBalancer()
+		addr, port, err := net.SplitHostPort(addr)
+		if err != nil {
+			return nil, err
+		}
+		addr = fmt.Sprintf("%s:%d", hostIP, port)
+		return bal.Dial(proto, addr)
+	}
+
+	go func() {
+		if err := tunio.Configure(deviceName, deviceIP, deviceMask, fn); err != nil {
+			panic(err.Error())
+		}
+	}()
+
+	c.serveHTTP()
 
 	// Allow it some seconds to start.
 	time.Sleep(time.Millisecond * 100)
@@ -92,9 +120,11 @@ func testClientReverseProxy(destURL string, expectedContent []byte) (err error) 
 			Proxy: func(req *http.Request) (*url.URL, error) {
 				return url.Parse(clientListenProxyAddr)
 			},
-			Dial: func(n, a string) (net.Conn, error) {
-				return net.Dial("tcp", clientListenProxyAddr)
-			},
+			/*
+				Dial: func(n, a string) (net.Conn, error) {
+					return net.Dial("tcp", clientListenProxyAddr)
+				},
+			*/
 		},
 	}
 
