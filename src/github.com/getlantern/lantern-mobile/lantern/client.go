@@ -1,10 +1,10 @@
 package client
 
 import (
-	"net"
 	"net/http"
 	"strings"
 	"time"
+	//"net"
 
 	"github.com/getlantern/analytics"
 	"github.com/getlantern/flashlight/client"
@@ -68,7 +68,7 @@ func ConfigureTUN(deviceName, deviceIP, deviceMask string) {
 // newClient creates a proxy client.
 func newClient(addr, appName string) *mobileClient {
 
-	client := &client.Client{
+	c := &client.Client{
 		Addr:         addr,
 		ReadTimeout:  0, // don't timeout
 		WriteTimeout: 0,
@@ -81,19 +81,25 @@ func newClient(addr, appName string) *mobileClient {
 
 	if tunConfig != nil {
 		// Configuring proxy.
-		fn := client.GetBalancer().Dial
-
-		go func(fn func(string, string) (net.Conn, error)) {
-			if err := tunio.Configure(deviceName, deviceIP, deviceMask, fn); err != nil {
-				log.Printf("Failed to configure tun device: %e", err)
+		go func(c *client.Client) {
+			fn := c.GetBalancer().Dial
+			/*
+				fn := func(proto, addr string) (net.Conn, error) {
+					log.Debugf("net.Conn...")
+					return net.Dial(proto, addr)
+				}
+			*/
+			log.Debug("A TUN device is configured, let's attempt to use it...")
+			if err := tunio.Configure(tunConfig.deviceName, tunConfig.deviceIP, tunConfig.deviceMask, fn); err != nil {
+				log.Debugf("Failed to configure tun device: %q", err)
 			}
-		}(fn)
+		}(c)
 	}
 
-	hqfd := client.Configure(clientConfig.Client)
+	hqfd := c.Configure(clientConfig.Client)
 
 	mClient := &mobileClient{
-		Client:  client,
+		Client:  c,
 		closed:  make(chan bool),
 		fronter: hqfd(),
 		appName: appName,

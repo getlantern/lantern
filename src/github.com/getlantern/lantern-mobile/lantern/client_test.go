@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"net"
 	"net/http"
-	"net/url"
+	//"net/url"
+	"os"
 	"sync"
 	"testing"
 	"time"
@@ -32,15 +32,20 @@ func init() {
 
 var globalClient *mobileClient
 
+var (
+	googleHumans = []byte("Google is built by a large team of engineers, designers, researchers, robots, and others in many different sites across the globe. It is updated continuously, and built with more tools and technologies than we can shake a stick at. If you'd like to help us out, see google.com/careers.\n")
+)
+
 var testURLs = map[string][]byte{
-	"http://www.google.com/humans.txt":  []byte("Google is built by a large team of engineers, designers, researchers, robots, and others in many different sites across the globe. It is updated continuously, and built with more tools and technologies than we can shake a stick at. If you'd like to help us out, see google.com/careers.\n"),
-	"https://www.google.com/humans.txt": []byte("Google is built by a large team of engineers, designers, researchers, robots, and others in many different sites across the globe. It is updated continuously, and built with more tools and technologies than we can shake a stick at. If you'd like to help us out, see google.com/careers.\n"),
+	"http://www.google.com/humans.txt":  googleHumans,
+	"https://www.google.com/humans.txt": googleHumans,
 }
 
 // Attempt to create a server in a goroutine and stop it from other place.
 func TestListenAndServeStop(t *testing.T) {
 	// Creating a client.
 	c := newClient(clientListenProxyAddr, "FireTweetTest")
+	c.serveHTTP()
 
 	// Allow it some seconds to start.
 	time.Sleep(time.Second * 2)
@@ -52,23 +57,24 @@ func TestListenAndServeStop(t *testing.T) {
 }
 
 func TestListenAndServeAgain(t *testing.T) {
-
-	// Configure TUN device.
+	fmt.Println("Setting up TUN device...")
+	// Setting up TUN device.
 	ConfigureTUN(deviceName, deviceIP, deviceMask)
 
+	fmt.Println("Spawning client...")
 	// Since we've closed out server, we should be able to launch another at the
 	// same address.
 	globalClient = newClient(clientListenProxyAddr, "FireTweetTest")
+	fmt.Println("Serving HTTP...")
 	globalClient.serveHTTP()
 
-	c.serveHTTP()
-
 	// Allow it some seconds to start.
-	time.Sleep(time.Millisecond * 100)
+	time.Sleep(time.Millisecond * 500)
 }
 
 func TestListenAndServeProxy(t *testing.T) {
 	var wg sync.WaitGroup
+	fmt.Println("Testing proxy...")
 
 	// Testing the client we've just opened.
 	for uri, expectedContent := range testURLs {
@@ -102,16 +108,16 @@ func testClientReverseProxy(destURL string, expectedContent []byte) (err error) 
 	}
 
 	client := &http.Client{
+	/*
 		Transport: &http.Transport{
 			Proxy: func(req *http.Request) (*url.URL, error) {
 				return url.Parse(clientListenProxyAddr)
 			},
-			/*
-				Dial: func(n, a string) (net.Conn, error) {
-					return net.Dial("tcp", clientListenProxyAddr)
-				},
-			*/
+			Dial: func(n, a string) (net.Conn, error) {
+				return net.Dial("tcp", clientListenProxyAddr)
+			},
 		},
+	*/
 	}
 
 	var res *http.Response

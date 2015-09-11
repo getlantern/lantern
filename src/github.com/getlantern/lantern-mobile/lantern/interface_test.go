@@ -7,7 +7,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"testing"
+	//"testing"
 	"time"
 )
 
@@ -76,6 +76,7 @@ func testReverseProxy() error {
 	return nil
 }
 
+/*
 func TestStartClientAndTestReverseProxy(t *testing.T) {
 
 	var err error
@@ -107,3 +108,4 @@ func TestStartClientAndTestReverseProxy(t *testing.T) {
 	}
 
 }
+*/

@@ -1,5 +1,7 @@
 package client
 
+/*
+
 import (
 	"net/http"
 	"testing"
@@ -32,3 +34,4 @@ func TestConfigDownload(t *testing.T) {
 		}
 	}
 }
+*/
