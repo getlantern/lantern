@@ -12,6 +12,7 @@ public interface LanternConfig {
     public final static String UDPGW_SERVER = "104.236.158.87:7300";
     public final static String ENABLE_VPN = "org.getlantern.lantern.intent.action.ENABLE";
     public final static String DISABLE_VPN = "org.getlantern.lantern.intent.action.DISABLE";
+    public final static String PREF_USE_VPN = "pref_vpn";
     public final static String START_BUTTON_TEXT = "START";
     public final static String STOP_BUTTON_TEXT = "STOP";
 }  

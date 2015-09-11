@@ -61,14 +61,15 @@ public class LanternVpn extends VpnService
         // shut down Lantern and close the VPN connection
         if (action.equals(LanternConfig.DISABLE_VPN)) {
 
+            stopLantern();
+
             if (mHandler != null) {
                 mHandler.postDelayed(new Runnable () {
-                    public void run () { stopSelf();
+                    public void run () { 
+                        stopSelf();
                     }
                 }, 1000);
             }
-
-            stopLantern();
 
             return START_STICKY;
         }

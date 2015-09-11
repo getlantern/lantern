@@ -1,6 +1,8 @@
 package org.getlantern.lantern.activity;
 
 import android.content.Intent;
+import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -23,14 +25,17 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
 
     private static final String TAG = "LanternMainActivity";
     private static final String PREFS_NAME = "LanternPrefs";
+    private SharedPreferences mPrefs = null;
+
     private Button powerLantern;
-    private boolean mLanternRunning = false;
     private Handler mHandler;
-    private boolean resumeHasRun = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mPrefs = getSharedPrefs(getApplicationContext());
+
         setContentView(R.layout.activity_lantern_main);
 
         powerLantern = (Button)findViewById(R.id.powerLantern);
@@ -40,29 +45,62 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
     @Override
     protected void onResume() {
         super.onResume();
+
+        // we check if mPrefs has been initialized before
+        // since onCreate and onResume are always both called
+        if (mPrefs != null) {
+            setBtnStatus();
+        }
     }
 
     // START/STOP button to enable full-device VPN functionality
     private void setupLanternSwitch() {
 
+        setBtnStatus();
+
         // START/STOP button to enable full-device VPN functionality
         powerLantern.setOnClickListener(new OnClickListener() {
-
             @Override
             public void onClick(View v) {
                 Button b = (Button) v;
-                if (!mLanternRunning) {
+                boolean useVpn;
+
+                if (b.getText() == LanternConfig.START_BUTTON_TEXT) {
                     enableVPN();
-                    b.setText(LanternConfig.STOP_BUTTON_TEXT);
+                    useVpn = true;
                 } else {
                     stopLantern();
-                    b.setText(LanternConfig.START_BUTTON_TEXT);
+                    useVpn = false;
                 }
 
-                mLanternRunning = !mLanternRunning;
+                // update button text after we've clicked on it
+                b.setText(useVpn ? LanternConfig.STOP_BUTTON_TEXT : LanternConfig.START_BUTTON_TEXT);
+                // store the updated preference 
+                mPrefs.edit().putBoolean(LanternConfig.PREF_USE_VPN, useVpn).commit();
+
             }
         });
     } 
+
+    // update START/STOP power Lantern button
+    // according to our stored preference
+    public void setBtnStatus() {
+        boolean useVPN = useVpn();
+        if (!useVPN) {
+            powerLantern.setText(LanternConfig.START_BUTTON_TEXT);
+        } else {
+            powerLantern.setText(LanternConfig.STOP_BUTTON_TEXT);
+        }
+    }
+
+    public SharedPreferences getSharedPrefs(Context context) {
+        return context.getSharedPreferences(PREFS_NAME,
+                Context.MODE_PRIVATE);
+    }
+
+    public boolean useVpn() {
+        return mPrefs.getBoolean(LanternConfig.PREF_USE_VPN, false);
+    }
 
     @Override
     public boolean handleMessage(Message message) {
