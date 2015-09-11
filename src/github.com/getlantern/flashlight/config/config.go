@@ -144,6 +144,9 @@ func copyGoodOldConfig(configDir, configPath string) {
 	}
 
 	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
 		name := file.Name()
 		path := filepath.Join(configDir, name)
 		if isGoodConfig(path) {
