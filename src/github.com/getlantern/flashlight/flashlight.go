@@ -172,38 +172,42 @@ func doMain() error {
 
 	parseFlags()
 
-	cfg, err := config.Init(packageVersion)
-	if err != nil {
-		return fmt.Errorf("Unable to initialize configuration: %v", err)
-	}
+	// Run below in separate goroutine as config.Init() can potentially block when Lantern runs
+	// for the first time. User can still quit Lantern through systray menu when it happens.
 	go func() {
-		err := config.Run(func(updated *config.Config) {
-			configUpdates <- updated
-		})
+		cfg, err := config.Init(packageVersion)
 		if err != nil {
+			exit(fmt.Errorf("Unable to initialize configuration: %v", err))
+		}
+		go func() {
+			err := config.Run(func(updated *config.Config) {
+				configUpdates <- updated
+			})
+			if err != nil {
+				exit(err)
+			}
+		}()
+		if *help || cfg.Addr == "" || (cfg.Role != "server" && cfg.Role != "client") {
+			flag.Usage()
+			exit(fmt.Errorf("Wrong arguments"))
+		}
+
+		finishProfiling := profiling.Start(cfg.CpuProfile, cfg.MemProfile)
+		defer finishProfiling()
+
+		// Configure stats initially
+		if err := statreporter.Configure(cfg.Stats); err != nil {
 			exit(err)
 		}
+
+		log.Debug("Running proxy")
+		if cfg.IsDownstream() {
+			// This will open a proxy on the address and port given by -addr
+			go runClientProxy(cfg)
+		} else {
+			go runServerProxy(cfg)
+		}
 	}()
-	if *help || cfg.Addr == "" || (cfg.Role != "server" && cfg.Role != "client") {
-		flag.Usage()
-		return fmt.Errorf("Wrong arguments")
-	}
-
-	finishProfiling := profiling.Start(cfg.CpuProfile, cfg.MemProfile)
-	defer finishProfiling()
-
-	// Configure stats initially
-	if err := statreporter.Configure(cfg.Stats); err != nil {
-		return err
-	}
-
-	log.Debug("Running proxy")
-	if cfg.IsDownstream() {
-		// This will open a proxy on the address and port given by -addr
-		go runClientProxy(cfg)
-	} else {
-		go runServerProxy(cfg)
-	}
 
 	return waitForExit()
 }
