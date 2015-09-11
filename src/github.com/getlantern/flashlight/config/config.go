@@ -33,7 +33,7 @@ import (
 
 const (
 	CloudConfigPollInterval = 1 * time.Minute
-	cloudflare              = "cloudflare"
+	cloudfront              = "cloudfront"
 	etag                    = "X-Lantern-Etag"
 	ifNoneMatch             = "X-Lantern-If-None-Match"
 )
@@ -341,7 +341,7 @@ func (cfg *Config) applyClientDefaults() {
 		cfg.Client.MasqueradeSets = make(map[string][]*fronted.Masquerade)
 	}
 	if len(cfg.Client.MasqueradeSets) == 0 {
-		cfg.Client.MasqueradeSets[cloudflare] = cloudflareMasquerades
+		cfg.Client.MasqueradeSets[cloudfront] = cloudfrontMasquerades
 	}
 
 	// Make sure we always have at least one server
@@ -354,7 +354,7 @@ func (cfg *Config) applyClientDefaults() {
 				Host:           defaultRoundRobin(),
 				Port:           443,
 				PoolSize:       0,
-				MasqueradeSet:  cloudflare,
+				MasqueradeSet:  cloudfront,
 				MaxMasquerades: 20,
 				QOS:            10,
 				Weight:         4000,
