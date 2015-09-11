@@ -1,6 +1,7 @@
 package client
 
 import (
+	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -48,6 +49,22 @@ func init() {
 	}
 }
 
+type tunSettings struct {
+	deviceName string
+	deviceIP   string
+	deviceMask string
+}
+
+var tunConfig *tunSettings
+
+func ConfigureTUN(deviceName, deviceIP, deviceMask string) {
+	tunConfig = &tunSettings{
+		deviceName: deviceName,
+		deviceIP:   deviceIP,
+		deviceMask: deviceMask,
+	}
+}
+
 // newClient creates a proxy client.
 func newClient(addr, appName string) *mobileClient {
 
@@ -60,6 +77,17 @@ func newClient(addr, appName string) *mobileClient {
 	err := globals.SetTrustedCAs(clientConfig.getTrustedCerts())
 	if err != nil {
 		log.Errorf("Unable to configure trusted CAs: %s", err)
+	}
+
+	if tunConfig != nil {
+		// Configuring proxy.
+		fn := client.GetBalancer().Dial
+
+		go func(fn func(string, string) (net.Conn, error)) {
+			if err := tunio.Configure(deviceName, deviceIP, deviceMask, fn); err != nil {
+				log.Printf("Failed to configure tun device: %e", err)
+			}
+		}(fn)
 	}
 
 	hqfd := client.Configure(clientConfig.Client)

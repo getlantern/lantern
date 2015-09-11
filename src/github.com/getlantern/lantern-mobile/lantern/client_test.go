@@ -52,28 +52,14 @@ func TestListenAndServeStop(t *testing.T) {
 }
 
 func TestListenAndServeAgain(t *testing.T) {
+
+	// Configure TUN device.
+	ConfigureTUN(deviceName, deviceIP, deviceMask)
+
 	// Since we've closed out server, we should be able to launch another at the
 	// same address.
-
 	globalClient = newClient(clientListenProxyAddr, "FireTweetTest")
 	globalClient.serveHTTP()
-
-	// Configuring proxy.
-	fn := func(proto, addr string) (net.Conn, error) {
-		bal := globalClient.GetBalancer()
-		addr, port, err := net.SplitHostPort(addr)
-		if err != nil {
-			return nil, err
-		}
-		addr = fmt.Sprintf("%s:%d", hostIP, port)
-		return bal.Dial(proto, addr)
-	}
-
-	go func() {
-		if err := tunio.Configure(deviceName, deviceIP, deviceMask, fn); err != nil {
-			panic(err.Error())
-		}
-	}()
 
 	c.serveHTTP()
 
