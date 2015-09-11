@@ -26,7 +26,7 @@ var (
 	log                   = golog.LoggerFor("lantern-android.interceptor")
 )
 
-type interceptor struct {
+type Interceptor struct {
 	client *client.Client
 
 	socksAddr   string
@@ -72,7 +72,7 @@ func Relay(localConn, remoteConn net.Conn) {
 	wg.Wait()
 }
 
-func (i *interceptor) startSocksProxy() error {
+func (i *Interceptor) startSocksProxy() error {
 	listener, err := socks.ListenSocks("tcp", i.socksAddr)
 
 	if err != nil {
@@ -90,13 +90,13 @@ func (i *interceptor) startSocksProxy() error {
 	return nil
 }
 
-// New initializes the interceptor service. It also starts the local SOCKS
+// New initializes the Interceptor service. It also starts the local SOCKS
 // proxy that we use to intercept traffic that arrives on the TUN interface
 // We listen for connections on an accept loop
 func New(client *client.Client,
-	socksAddr, httpAddr, udpgwServer string) (i *interceptor, err error) {
+	socksAddr, httpAddr, udpgwServer string) (i *Interceptor, err error) {
 
-	i = &interceptor{
+	i = &Interceptor{
 		mu:             new(sync.Mutex),
 		isClosed:       false,
 		client:         client,
@@ -118,16 +118,16 @@ func New(client *client.Client,
 	return i, nil
 }
 
-// Close terminates the listener and waits for the accept loop
+// Stop terminates listener and wait for the accept loop
 // goroutine to complete.
-func (i *interceptor) Close() {
+func (i *Interceptor) Stop() {
 	close(i.stopListeningBroadcast)
 	i.listener.Close()
 	i.serveWaitGroup.Wait()
 	i.openConns.CloseAll()
 }
 
-func (i *interceptor) Dial(addr string, localConn net.Conn) (net.Conn, error) {
+func (i *Interceptor) Dial(addr string, localConn net.Conn) (net.Conn, error) {
 
 	i.mu.Lock()
 	isClosed := i.isClosed
@@ -187,7 +187,7 @@ func (i *interceptor) Dial(addr string, localConn net.Conn) (net.Conn, error) {
 	}, nil
 }
 
-func (i *interceptor) connectionHandler(localConn *socks.SocksConn) (err error) {
+func (i *Interceptor) connectionHandler(localConn *socks.SocksConn) (err error) {
 
 	defer localConn.Close()
 	defer i.openConns.Remove(localConn)
@@ -209,7 +209,7 @@ func (i *interceptor) connectionHandler(localConn *socks.SocksConn) (err error) 
 	return nil
 }
 
-func (i *interceptor) serve() {
+func (i *Interceptor) serve() {
 	defer i.listener.Close()
 	defer i.serveWaitGroup.Done()
 loop:

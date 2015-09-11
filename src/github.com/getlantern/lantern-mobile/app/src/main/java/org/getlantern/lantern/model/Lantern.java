@@ -18,15 +18,9 @@ public class Lantern extends Client.SocketProvider.Stub {
     private LanternVpn service;
     private Client.GoCallback.Stub callback;
 
-    private BlockingQueue<byte[]> packets;
-
-    //
     public Lantern(LanternVpn service) {
         this.service = service;
         this.setupCallbacks();
-        // this is the queue where we write
-        // incoming packets to
-        this.packets = new LinkedBlockingQueue<>();
     }
 
     // Configures callbacks from Lantern during packet
@@ -41,35 +35,35 @@ public class Lantern extends Client.SocketProvider.Stub {
             public void AfterConfigure() {
                 Log.d(TAG, "Lantern successfully configured.");
             }
-
-            public void WritePacket(byte[] bytes) {
-                try {
-                    packets.put(bytes);
-                } catch (InterruptedException ie) {
-                    Log.e(TAG, "Unable to write packet to response channel");
-                } catch (IllegalStateException e) {
-                    Log.e(TAG, "Error writing packet to output stream.");
-                }
-            }
         };
     }
 
     public void start() {
         try {
             Log.d(TAG, "About to start Lantern..");
+
             String httpAddr = String.format("127.0.0.1:%d", LanternConfig.HTTP_PORT);
             String socksAddr = String.format("127.0.0.1:%d", LanternConfig.SOCKS_PORT);
 
-            Client.RunClientProxy(httpAddr,
-                    LanternConfig.APP_NAME, this, callback);
-            // Wait a few seconds for processing until Lantern starts
-            Thread.sleep(3000);
+            Client.RunClientProxy(httpAddr, LanternConfig.APP_NAME, this, callback);
+
+            // Wait a second for processing until Lantern starts
+            Thread.sleep(1000);
             // Configure Lantern and interception rules
             Client.Configure(this, httpAddr, socksAddr, LanternConfig.UDPGW_SERVER, callback);
 
         } catch (final Exception e) {
             Log.e(TAG, "Fatal error while trying to run Lantern: " + e);
             throw new RuntimeException(e);
+        }
+    }
+
+    public void stop() {
+        Log.d(TAG, "About to stop Lantern..");
+        try {
+            Client.StopClientProxy();
+        } catch(final Exception e) {
+            // ignore exception
         }
     }
 
@@ -81,17 +75,5 @@ public class Lantern extends Client.SocketProvider.Stub {
         if (!this.service.protect((int) fileDescriptor)) {
             throw new Exception("protect socket failed");
         }
-    }
-
-    public int readPacket(final ByteBuffer packet) {
-        if (this.packets.size() > 0) {
-            byte[] response = this.packets.poll(); 
-            if (response != null) {
-                int length = response.length;
-                packet.put(response);
-                return length;
-            }
-        }
-        return 0;
     }
 }

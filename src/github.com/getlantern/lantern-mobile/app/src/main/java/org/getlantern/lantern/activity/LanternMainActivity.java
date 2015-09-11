@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
+import android.content.SharedPreferences;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.View;
@@ -20,15 +22,18 @@ import org.getlantern.lantern.service.LanternVpn;
 public class LanternMainActivity extends ActionBarActivity implements Handler.Callback {
 
     private static final String TAG = "LanternMainActivity";
+    private static final String PREFS_NAME = "LanternPrefs";
     private Button powerLantern;
     private boolean mLanternRunning = false;
     private Handler mHandler;
+    private boolean resumeHasRun = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lantern_main);
 
+        powerLantern = (Button)findViewById(R.id.powerLantern);
         setupLanternSwitch();
     }
 
@@ -39,8 +44,8 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
 
     // START/STOP button to enable full-device VPN functionality
     private void setupLanternSwitch() {
+
         // START/STOP button to enable full-device VPN functionality
-        powerLantern = (Button)findViewById(R.id.powerLantern);
         powerLantern.setOnClickListener(new OnClickListener() {
 
             @Override
@@ -53,6 +58,7 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
                     stopLantern();
                     b.setText(LanternConfig.START_BUTTON_TEXT);
                 }
+
                 mLanternRunning = !mLanternRunning;
             }
         });
@@ -77,8 +83,12 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
 
     protected void stopLantern() {
         Log.d(TAG, "Stopping Lantern...");
-        Intent service = new Intent(LanternMainActivity.this, LanternVpn.class);
-        service.setAction(LanternConfig.DISABLE_VPN);
-        startService(service);
+        try {
+            Intent service = new Intent(LanternMainActivity.this, LanternVpn.class);
+            service.setAction(LanternConfig.DISABLE_VPN);
+            startService(service);
+        } catch (Exception e) {
+            Log.d(TAG, "Got an exception trying to stop Lantern: " + e);
+        }
     }
 }

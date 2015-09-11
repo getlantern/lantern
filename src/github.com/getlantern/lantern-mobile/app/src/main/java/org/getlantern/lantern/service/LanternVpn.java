@@ -60,13 +60,16 @@ public class LanternVpn extends VpnService
         // STOP button was pressed
         // shut down Lantern and close the VPN connection
         if (action.equals(LanternConfig.DISABLE_VPN)) {
-            stopLantern();
+
             if (mHandler != null) {
                 mHandler.postDelayed(new Runnable () {
                     public void run () { stopSelf();
                     }
                 }, 1000);
             }
+
+            stopLantern();
+
             return START_STICKY;
         }
 
@@ -115,15 +118,24 @@ public class LanternVpn extends VpnService
 
     private void stopLantern() {
         try {
+            Log.d(TAG, "Closing VPN interface and stopping Lantern..");
             if (mInterface != null) {
                 mInterface.close();
                 mInterface = null;
             }
+
+            if (lantern != null) {
+                lantern.stop(); 
+                lantern = null;
+            }
+
+            Tun2Socks.Stop();                           
+
         } catch (Exception e) {
             Log.e(TAG, "Could not stop Lantern: " + e);
         }
-        Tun2Socks.Stop();
     }
+
     @Override
     public void onDestroy() {
         if (mThread != null) {
@@ -158,10 +170,7 @@ public class LanternVpn extends VpnService
 
     private void startRun() throws Exception {
         try {
-
             configure();
-            Log.i(TAG, "Started VPN mode");
-
         } catch (Exception e) {
             Log.e(TAG, "Error with VPN" + e);
         }
@@ -207,6 +216,5 @@ public class LanternVpn extends VpnService
                 LanternConfig.UDPGW_SERVER,
                 true
         );
-        Log.i(TAG, "Successfully started Tun2Socks....");
     }
 }

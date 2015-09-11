@@ -8,7 +8,7 @@ import (
 
 type InterceptedConn struct {
 	net.Conn
-	interceptor    *interceptor
+	interceptor    *Interceptor
 	downstreamConn net.Conn
 }
 

@@ -5,11 +5,14 @@ import (
 	"github.com/getlantern/lantern-mobile/lantern/protected"
 )
 
+var (
+	i *interceptor.Interceptor
+)
+
 // GoCallback is the supertype of callbacks passed to Go
 type GoCallback interface {
 	AfterConfigure()
 	AfterStart()
-	WritePacket([]byte)
 }
 
 type SocketProvider interface {
@@ -31,8 +34,10 @@ func Configure(protector SocketProvider, httpAddr string,
 	socksAddr string, udpgwServer string,
 	ready GoCallback) error {
 	go func() {
+		var err error
 		protected.Configure(protector)
-		_, err := interceptor.New(defaultClient.Client, socksAddr, httpAddr, udpgwServer)
+
+		i, err = interceptor.New(defaultClient.Client, socksAddr, httpAddr, udpgwServer)
 		if err != nil {
 			log.Errorf("Error starting SOCKS proxy: %v", err)
 		}
@@ -44,5 +49,10 @@ func Configure(protector SocketProvider, httpAddr string,
 // StopClientProxy stops the proxy.
 func StopClientProxy() error {
 	defaultClient.stop()
+	if i != nil {
+		// here we stop the interceptor service
+		// and close any existing connections
+		i.Stop()
+	}
 	return nil
 }
