@@ -43,10 +43,14 @@ func (d *dialer) Dial(network, addr string) (net.Conn, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to dial server %v: %s", d.Label, err)
 	}
-	if err := d.sendCONNECT(network, addr, conn); err != nil {
-		// We discard this error, since we are only interested in sendCONNECT
-		_ = conn.Close()
-		return nil, err
+	log.Debugf("Network is: %v", network)
+	if network == "connect" {
+		log.Debugf("Sending CONNECT REQUEST")
+		if err := d.sendCONNECT("tcp", addr, conn); err != nil {
+			// We discard this error, since we are only interested in sendCONNECT
+			_ = conn.Close()
+			return nil, err
+		}
 	}
 	return conn, nil
 }
