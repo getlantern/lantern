@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
-	"github.com/getlantern/flashlight/packaged"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/tarfs"
 	"github.com/skratchdot/open-golang/open"
@@ -29,6 +29,7 @@ var (
 	uiaddr       string
 
 	openedExternal = false
+	externalUrl    string
 	r              = http.NewServeMux()
 )
 
@@ -63,8 +64,9 @@ func Handle(p string, handler http.Handler) string {
 	return uiaddr + p
 }
 
-func Start(tcpAddr *net.TCPAddr, allowRemote bool) (err error) {
+func Start(tcpAddr *net.TCPAddr, allowRemote bool, extUrl string) (err error) {
 	addr := tcpAddr
+	externalUrl = extUrl
 	if allowRemote {
 		// If we want to allow remote connections, we have to bind all interfaces
 		addr = &net.TCPAddr{Port: tcpAddr.Port}
@@ -113,40 +115,30 @@ func Show() {
 		if err != nil {
 			log.Errorf("Error opening page to `%v`: %v", uiaddr, err)
 		}
-		openExternalUrl()
+
+		onceBody := func() {
+			openExternalUrl(externalUrl)
+		}
+		var run sync.Once
+		run.Do(onceBody)
 	}()
 }
 
 // openExternalUrl opens an external URL of one of our partners automatically
 // at startup if configured to do so. It should only open the first time in
 // a given session that Lantern is opened.
-func openExternalUrl() {
-	if openedExternal {
-		log.Debugf("Not opening external URL again")
-		return
-	}
-	defer func() {
-		openedExternal = true
-	}()
-
-	path, s, err := packaged.ReadSettings()
-	if err != nil {
-		// Let packaged itself log errors as necessary.
-		log.Debugf("Could not read yaml from %v: %v", path, err)
-		return
-	}
-
+func openExternalUrl(u string) {
 	var url string
-	if s.StartupUrl == "" {
+	if u == "" {
 		return
-	} else if strings.HasPrefix(s.StartupUrl, "https://www.facebook.com/manototv") {
+	} else if strings.HasPrefix(u, "https://www.facebook.com/manototv") {
 		// Here we make sure to override any old manoto URLs with the latest.
 		url = "https://www.facebook.com/manototv/app_128953167177144"
 	} else {
-		url = s.StartupUrl
+		url = u
 	}
 	time.Sleep(4 * time.Second)
-	err = open.Run(url)
+	err := open.Run(url)
 	if err != nil {
 		log.Errorf("Error opening external page to `%v`: %v", uiaddr, err)
 	}

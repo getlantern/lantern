@@ -91,7 +91,14 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 	// Establish outbound connection.
 	addr := hostIncludingPort(req, 443)
 	d := func(network, addr string) (net.Conn, error) {
-		return client.getBalancer().DialQOS("tcp", addr, client.targetQOS(req))
+		// UGLY HACK ALERT! In this case, we know we need to send a CONNECT request
+		// to the chained server. We need to send that request from chained/dialer.go
+		// though because only it knows about the authentication token to use.
+		// We signal it to send the CONNECT here using the network transport argument
+		// that is effectively always "tcp" in the end, but we look for this
+		// special "transport" in the dialer and send a CONNECT request in that
+		// case.
+		return client.getBalancer().DialQOS("connect", addr, client.targetQOS(req))
 	}
 
 	if runtime.GOOS == "android" || client.ProxyAll {
