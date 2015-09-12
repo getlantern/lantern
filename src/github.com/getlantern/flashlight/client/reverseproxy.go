@@ -8,26 +8,14 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/getlantern/balancer"
 	"github.com/getlantern/detour"
 	"github.com/getlantern/flashlight/proxy"
 	"github.com/getlantern/flashlight/status"
 )
 
-// getReverseProxy waits for a message from client.rpCh to arrive and then it
-// writes it back to client.rpCh before returning it as a value. This way we
-// always have a balancer at client.rpCh and, if we don't have one, it would
-// block until one arrives.
-func (client *Client) getReverseProxy() *httputil.ReverseProxy {
-	rp := <-client.rpCh
-	client.rpCh <- rp
-	return rp
-}
-
 // initReverseProxy creates a reverse proxy that attempts to exit with any of
 // the dialers provided by the balancer.
-func (client *Client) initReverseProxy(bal *balancer.Balancer, dumpHeaders bool) {
-
+func (client *Client) newReverseProxy() *httputil.ReverseProxy {
 	transport := &http.Transport{
 		// We disable keepalives because some servers pretend to support
 		// keep-alives but close their connections immediately, which
@@ -40,23 +28,25 @@ func (client *Client) initReverseProxy(bal *balancer.Balancer, dumpHeaders bool)
 		DisableKeepAlives: true,
 	}
 
+	// Just choose a random dialer that also takes care of things like the
+	// authentication token.
+	dialer := client.getBalancer().RandomDialer()
+
 	// TODO: would be good to make this sensitive to QOS, which
 	// right now is only respected for HTTPS connections. The
 	// challenge is that ReverseProxy reuses connections for
 	// different requests, so we might have to configure different
 	// ReverseProxies for different QOS's or something like that.
 	if runtime.GOOS == "android" || client.ProxyAll {
-		transport.Dial = bal.Dial
+		transport.Dial = dialer.Dial
 	} else {
-		transport.Dial = detour.Dialer(bal.Dial)
+		transport.Dial = detour.Dialer(dialer.Dial)
 	}
 
 	rp := &httputil.ReverseProxy{
-		Director: func(req *http.Request) {
-			// do nothing
-		},
+		Director: dialer.Director,
 		Transport: &errorRewritingRoundTripper{
-			withDumpHeaders(dumpHeaders, transport),
+			withDumpHeaders(false, transport),
 		},
 		// Set a FlushInterval to prevent overly aggressive buffering of
 		// responses, which helps keep memory usage down
@@ -64,22 +54,8 @@ func (client *Client) initReverseProxy(bal *balancer.Balancer, dumpHeaders bool)
 		ErrorLog:      log.AsStdLogger(),
 	}
 
-	if client.rpInitialized {
-		log.Trace("Draining reverse proxy channel")
-		<-client.rpCh
-	} else {
-		log.Trace("Creating reverse proxy channel")
-		client.rpCh = make(chan *httputil.ReverseProxy, 1)
-	}
-
 	log.Trace("Publishing reverse proxy")
-
-	client.rpCh <- rp
-
-	// We don't need to protect client.rpInitialized from race conditions because
-	// it's only accessed here in initReverseProxy, which always gets called
-	// under Configure, which never gets called concurrently with itself.
-	client.rpInitialized = true
+	return rp
 }
 
 // withDumpHeaders creates a RoundTripper that uses the supplied RoundTripper

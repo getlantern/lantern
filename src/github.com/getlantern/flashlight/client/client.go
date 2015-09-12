@@ -106,10 +106,7 @@ func (client *Client) Configure(cfg *ClientConfig) func() *http.Client {
 	log.Debugf("Proxy all traffic or not: %v", cfg.ProxyAll)
 	client.ProxyAll = cfg.ProxyAll
 
-	var bal *balancer.Balancer
-	bal = client.initBalancer(cfg)
-
-	client.initReverseProxy(bal, cfg.DumpHeaders)
+	bal := client.initBalancer(cfg)
 
 	client.priorCfg = cfg
 	client.priorTrustedCAs = &x509.CertPool{}

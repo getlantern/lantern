@@ -123,6 +123,11 @@ func (b *Balancer) Close() {
 	}
 }
 
+func (b *Balancer) RandomDialer() (chosen *dialer) {
+	dialer, _ := randomDialer(b.dialers, 0)
+	return dialer
+}
+
 func randomDialer(dialers []*dialer, targetQOS int) (chosen *dialer, others []*dialer) {
 	// Weed out inactive dialers and those with too low QOS
 	filtered, highestQOS := dialersMeetingQOS(dialers, targetQOS)

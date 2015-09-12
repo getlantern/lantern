@@ -27,8 +27,8 @@ const (
 var (
 	log = golog.LoggerFor("flashlight.geolookup")
 
-	service  *ui.Service
 	client   atomic.Value
+	service  *ui.Service
 	cfgMutex sync.Mutex
 	country  = atomicString()
 	ip       = atomicString()
@@ -52,7 +52,7 @@ func GetCountry() string {
 // lookups. geolookup runs in a continuous loop, periodically updating its
 // location and publishing updates to any connected clients. We do this
 // continually in order to detect when the computer's location has changed.
-func Configure(newClient *http.Client) {
+func Configure(httpClient *http.Client) {
 	cfgMutex.Lock()
 	defer cfgMutex.Unlock()
 
@@ -60,7 +60,7 @@ func Configure(newClient *http.Client) {
 	ip.Store("")
 	country.Store("")
 
-	client.Store(newClient)
+	client.Store(httpClient)
 
 	if service == nil {
 		err := registerService()
@@ -90,8 +90,8 @@ func registerService() error {
 	return err
 }
 
-func lookupIp(httpClient *http.Client) (string, string, error) {
-	city, ip, err := geo.LookupIPWithClient("", httpClient)
+func lookupIp() (string, string, error) {
+	city, ip, err := geo.LookupIPWithClient("", client.Load().(*http.Client))
 
 	if err != nil {
 		log.Errorf("Could not lookup IP %v", err)
@@ -112,11 +112,11 @@ func write() {
 		oldIp := GetIp()
 		oldCountry := GetCountry()
 
-		newCountry, newIp, err := lookupIp(client.Load().(*http.Client))
+		newCountry, newIp, err := lookupIp()
 		if err == nil {
 			consecutiveFailures = 0
 			if newIp != oldIp {
-				log.Debugf("IP changed")
+				log.Debugf("IP changed from %v to %v", oldIp, newIp)
 				ip.Store(newIp)
 				pubsub.Pub(pubsub.IP, newIp)
 			}

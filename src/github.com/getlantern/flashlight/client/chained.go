@@ -101,5 +101,6 @@ func (s *ChainedServerInfo) Dialer() (*balancer.Dialer, error) {
 		Dial: func(network, addr string) (net.Conn, error) {
 			return withStats(d.Dial(network, addr))
 		},
+		AuthToken: s.AuthToken,
 	}, nil
 }

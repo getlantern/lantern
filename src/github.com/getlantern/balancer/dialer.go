@@ -43,6 +43,8 @@ type Dialer struct {
 
 	// Determines wheter a dialer can be trusted with unencrypted traffic.
 	Trusted bool
+
+	AuthToken string
 }
 
 var (
@@ -55,6 +57,10 @@ type dialer struct {
 	active  int32
 	closeCh chan interface{}
 	errCh   chan time.Time
+}
+
+func (d *Dialer) Director(req *http.Request) {
+	req.Header.Set("X-LANTERN-AUTH-TOKEN", d.AuthToken)
 }
 
 func (d *dialer) start() {
