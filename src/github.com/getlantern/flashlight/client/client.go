@@ -83,7 +83,7 @@ func (client *Client) ListenAndServe(onListeningFn func()) error {
 // Configure updates the client's configuration. Configure can be called
 // before or after ListenAndServe, and can be called multiple times.  It
 // returns the highest QOS fronted.Dialer available, or nil if none available.
-func (client *Client) Configure(cfg *ClientConfig) func() *http.Client {
+func (client *Client) Configure(cfg *ClientConfig) {
 	client.cfgMutex.Lock()
 	defer client.cfgMutex.Unlock()
 
@@ -92,9 +92,7 @@ func (client *Client) Configure(cfg *ClientConfig) func() *http.Client {
 	if client.priorCfg != nil && client.priorTrustedCAs != nil {
 		if reflect.DeepEqual(client.priorCfg, cfg) && reflect.DeepEqual(client.priorTrustedCAs, globals.TrustedCAs) {
 			log.Debugf("Client configuration unchanged")
-			// Techniqally this might not be initialized yet and should be pulled
-			// off a channel or something similar.
-			return client.httpClientFunc
+			return
 		}
 		log.Debugf("Client configuration changed")
 	} else {
@@ -106,20 +104,11 @@ func (client *Client) Configure(cfg *ClientConfig) func() *http.Client {
 	log.Debugf("Proxy all traffic or not: %v", cfg.ProxyAll)
 	client.ProxyAll = cfg.ProxyAll
 
-	bal := client.initBalancer(cfg)
+	client.initBalancer(cfg)
 
 	client.priorCfg = cfg
 	client.priorTrustedCAs = &x509.CertPool{}
 	*client.priorTrustedCAs = *globals.TrustedCAs
-	client.httpClientFunc = func() *http.Client {
-		return &http.Client{
-			Transport: &http.Transport{
-				DisableKeepAlives: true,
-				Dial:              bal.Dial,
-			},
-		}
-	}
-	return client.httpClientFunc
 }
 
 // Stop is called when the client is no longer needed. It closes the

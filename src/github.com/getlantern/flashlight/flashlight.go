@@ -370,28 +370,22 @@ func applyClientConfig(client *client.Client, cfg *config.Config) {
 	// Update client configuration and get the highest QOS dialer available.
 	client.Configure(cfg.Client)
 
+	// We offload this onto a go routine because creating the http clients
+	// blocks on waiting for the local server, and the local server starts
+	// on the thread, otherwise creating a deadlock.
 	go func() {
-		if httpClient, err := util.HTTPClient("", cfg.Addr); err != nil {
-			log.Errorf("Could not create HTTP client via %s: %s", cfg.Addr, err)
-			return
-		} else {
-			config.Configure(httpClient)
-		}
-		if httpClient, err := util.HTTPClient("", cfg.Addr); err != nil {
-			log.Errorf("Could not create HTTP client via %s: %s", cfg.Addr, err)
-			return
-		} else {
-			geolookup.Configure(httpClient)
-		}
-		if httpClient, err := util.HTTPClient("", cfg.Addr); err != nil {
-			log.Errorf("Could not create HTTP client via %s: %s", cfg.Addr, err)
-			return
-		} else {
-			statserver.Configure(httpClient)
-		}
+		withHttpClient(cfg.Addr, config.Configure)
+		withHttpClient(cfg.Addr, geolookup.Configure)
+		withHttpClient(cfg.Addr, statserver.Configure)
 	}()
-	// Note we don't call Configure on analytics here, as that would
-	// result in an extra analytics call and double counting.
+}
+
+func withHttpClient(addr string, withClient func(client *http.Client)) {
+	if httpClient, err := util.HTTPClient("", addr); err != nil {
+		log.Errorf("Could not create HTTP client via %s: %s", addr, err)
+	} else {
+		withClient(httpClient)
+	}
 }
 
 // Runs the server-side proxy

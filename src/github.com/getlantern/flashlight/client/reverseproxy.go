@@ -31,7 +31,7 @@ func (client *Client) newReverseProxy() (*httputil.ReverseProxy, error) {
 
 	// Just choose a random dialer that also takes care of things like the
 	// authentication token.
-	dialer, conn, err := client.getBalancer().HttpDialerAndConn()
+	dialer, conn, err := client.getBalancer().TrustedDialerAndConn()
 
 	if err != nil {
 		log.Errorf("Could not get balanced dialer", err)
