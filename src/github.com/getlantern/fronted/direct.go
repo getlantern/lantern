@@ -50,7 +50,9 @@ func (ddf *DirectTransport) RoundTrip(req *http.Request) (resp *http.Response, e
 	return ddf.Transport.RoundTrip(norm)
 }
 
-func (d *Direct) Response(url string, ms []*Masquerade) (string, error) {
+// Response returns the raw response body from the first masquerade that provides a
+// successful response.
+func (d *Direct) Response(url string, ms []*Masquerade) ([]byte, error) {
 	for _, m := range ms {
 		client := d.NewHttpClient(m)
 
@@ -66,14 +68,14 @@ func (d *Direct) Response(url string, ms []*Masquerade) (string, error) {
 				log.Errorf("Unexpected error %v for domain %v", err, m.Domain)
 				continue
 			} else {
-				return string(body), nil
+				return body, nil
 			}
 		}
 	}
 	msg := fmt.Sprintf("Could not get response from any masquerade!")
 
 	log.Error(msg)
-	return "", fmt.Errorf(msg)
+	return nil, fmt.Errorf(msg)
 }
 
 // NewHttpClient creates a new http.Client that does direct domain fronting.
