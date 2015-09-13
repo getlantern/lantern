@@ -3,6 +3,7 @@ package client
 import (
 	"bytes"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"runtime"
@@ -13,9 +14,9 @@ import (
 	"github.com/getlantern/flashlight/status"
 )
 
-// initReverseProxy creates a reverse proxy that attempts to exit with any of
+// newReverseProxy creates a reverse proxy that attempts to exit with any of
 // the dialers provided by the balancer.
-func (client *Client) newReverseProxy() *httputil.ReverseProxy {
+func (client *Client) newReverseProxy() (*httputil.ReverseProxy, error) {
 	transport := &http.Transport{
 		// We disable keepalives because some servers pretend to support
 		// keep-alives but close their connections immediately, which
@@ -30,7 +31,16 @@ func (client *Client) newReverseProxy() *httputil.ReverseProxy {
 
 	// Just choose a random dialer that also takes care of things like the
 	// authentication token.
-	dialer := client.getBalancer().RandomDialer()
+	dialer, conn, err := client.getBalancer().HttpDialerAndConn()
+
+	if err != nil {
+		log.Errorf("Could not get balanced dialer", err)
+		return nil, err
+	}
+
+	dial := func(network, addr string) (net.Conn, error) {
+		return conn, err
+	}
 
 	// TODO: would be good to make this sensitive to QOS, which
 	// right now is only respected for HTTPS connections. The
@@ -38,9 +48,9 @@ func (client *Client) newReverseProxy() *httputil.ReverseProxy {
 	// different requests, so we might have to configure different
 	// ReverseProxies for different QOS's or something like that.
 	if runtime.GOOS == "android" || client.ProxyAll {
-		transport.Dial = dialer.Dial
+		transport.Dial = dial
 	} else {
-		transport.Dial = detour.Dialer(dialer.Dial)
+		transport.Dial = detour.Dialer(dial)
 	}
 
 	rp := &httputil.ReverseProxy{
@@ -54,8 +64,7 @@ func (client *Client) newReverseProxy() *httputil.ReverseProxy {
 		ErrorLog:      log.AsStdLogger(),
 	}
 
-	log.Trace("Publishing reverse proxy")
-	return rp
+	return rp, nil
 }
 
 // withDumpHeaders creates a RoundTripper that uses the supplied RoundTripper
