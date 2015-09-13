@@ -172,38 +172,42 @@ func doMain() error {
 
 	parseFlags()
 
-	cfg, err := config.Init(packageVersion)
-	if err != nil {
-		return fmt.Errorf("Unable to initialize configuration: %v", err)
-	}
+	// Run below in separate goroutine as config.Init() can potentially block when Lantern runs
+	// for the first time. User can still quit Lantern through systray menu when it happens.
 	go func() {
-		err := config.Run(func(updated *config.Config) {
-			configUpdates <- updated
-		})
+		cfg, err := config.Init(packageVersion)
 		if err != nil {
+			exit(fmt.Errorf("Unable to initialize configuration: %v", err))
+		}
+		go func() {
+			err := config.Run(func(updated *config.Config) {
+				configUpdates <- updated
+			})
+			if err != nil {
+				exit(err)
+			}
+		}()
+		if *help || cfg.Addr == "" || (cfg.Role != "server" && cfg.Role != "client") {
+			flag.Usage()
+			exit(fmt.Errorf("Wrong arguments"))
+		}
+
+		finishProfiling := profiling.Start(cfg.CpuProfile, cfg.MemProfile)
+		defer finishProfiling()
+
+		// Configure stats initially
+		if err := statreporter.Configure(cfg.Stats); err != nil {
 			exit(err)
 		}
+
+		log.Debug("Running proxy")
+		if cfg.IsDownstream() {
+			// This will open a proxy on the address and port given by -addr
+			go runClientProxy(cfg)
+		} else {
+			go runServerProxy(cfg)
+		}
 	}()
-	if *help || cfg.Addr == "" || (cfg.Role != "server" && cfg.Role != "client") {
-		flag.Usage()
-		return fmt.Errorf("Wrong arguments")
-	}
-
-	finishProfiling := profiling.Start(cfg.CpuProfile, cfg.MemProfile)
-	defer finishProfiling()
-
-	// Configure stats initially
-	if err := statreporter.Configure(cfg.Stats); err != nil {
-		return err
-	}
-
-	log.Debug("Running proxy")
-	if cfg.IsDownstream() {
-		// This will open a proxy on the address and port given by -addr
-		go runClientProxy(cfg)
-	} else {
-		go runServerProxy(cfg)
-	}
 
 	return waitForExit()
 }
@@ -256,26 +260,34 @@ func runClientProxy(cfg *config.Config) {
 		exit(nil)
 	}
 
-	// Create the client-side proxy.
-	client := &client.Client{
-		Addr:         cfg.Addr,
-		ReadTimeout:  0, // don't timeout
-		WriteTimeout: 0,
-	}
-
 	// Start user interface.
 	tcpAddr, err := net.ResolveTCPAddr("tcp4", cfg.UIAddr)
 	if err != nil {
 		exit(fmt.Errorf("Unable to resolve UI address: %v", err))
 	}
 
-	if err = ui.Start(tcpAddr, !showui); err != nil {
+	settings, err := client.ReadSettings()
+	var startupUrl string
+	if err != nil {
+		log.Errorf("Could not read settings? %v", err)
+		startupUrl = ""
+	} else {
+		startupUrl = settings.StartupUrl
+	}
+	if err = ui.Start(tcpAddr, !showui, startupUrl); err != nil {
 		// This very likely means Lantern is already running on our port. Tell
 		// it to open a browser. This is useful, for example, when the user
 		// clicks the Lantern desktop shortcut when Lantern is already running.
 		showExistingUi(cfg.UIAddr)
 		exit(fmt.Errorf("Unable to start UI: %s", err))
 		return
+	}
+
+	// Create the client-side proxy.
+	client := &client.Client{
+		Addr:         cfg.Addr,
+		ReadTimeout:  0, // don't timeout
+		WriteTimeout: 0,
 	}
 
 	applyClientConfig(client, cfg)
@@ -356,29 +368,26 @@ func applyClientConfig(client *client.Client, cfg *config.Config) {
 	_ = statreporter.Configure(cfg.Stats)
 
 	// Update client configuration and get the highest QOS dialer available.
-	hqfd := client.Configure(cfg.Client)
-	if hqfd == nil {
-		log.Errorf("No fronted dialer available, not enabling geolocation, config lookup, or stats")
-	} else {
-		// Give everyone their own *http.Client that uses the highest QOS dialer. Separate
-		// clients for everyone avoids data races configuring those clients.
-		config.Configure(hqfd.NewDirectDomainFronter())
-		geolookup.Configure(hqfd.NewDirectDomainFronter())
-		statserver.Configure(hqfd.NewDirectDomainFronter())
-		// Note we don't call Configure on analytics here, as that would
-		// result in an extra analytics call and double counting.
-	}
+	httpClientFunc := client.Configure(cfg.Client)
+
+	// Give everyone their own *http.Client that uses the highest QOS dialer. Separate
+	// clients for everyone avoids data races configuring those clients.
+	config.Configure(httpClientFunc())
+	geolookup.Configure(httpClientFunc())
+	statserver.Configure(httpClientFunc())
+	// Note we don't call Configure on analytics here, as that would
+	// result in an extra analytics call and double counting.
 }
 
 // Runs the server-side proxy
 func runServerProxy(cfg *config.Config) {
 	useAllCores()
 
-	pkFile, err := config.InConfigDir("proxypk.pem")
+	_, pkFile, err := config.InConfigDir("proxypk.pem")
 	if err != nil {
 		log.Fatal(err)
 	}
-	certFile, err := config.InConfigDir("servercert.pem")
+	_, certFile, err := config.InConfigDir("servercert.pem")
 	if err != nil {
 		log.Fatal(err)
 	}

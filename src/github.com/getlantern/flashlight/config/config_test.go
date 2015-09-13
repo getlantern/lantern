@@ -1,12 +1,36 @@
 package config
 
 import (
-	"io/ioutil"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
+/*
+func TestInitialConfig(t *testing.T) {
+	path, _ := ioutil.TempFile("", "config")
+
+	yamlPath := "test-packaged.yaml"
+	data, err := ioutil.ReadFile(yamlPath)
+	if err != nil {
+		// This will happen whenever there's no packaged settings, which is often
+		log.Debugf("Error reading file %v", err)
+	}
+
+	trimmed := strings.TrimSpace(string(data))
+
+	log.Debugf("Read bytes: %v", trimmed)
+	var s client.BootstrapSettings
+	err = yaml.Unmarshal([]byte(trimmed), &s)
+
+	if err != nil {
+		log.Errorf("Could not read yaml: %v", err)
+	}
+	err = fetchInitialConfig(path.Name(), &s)
+	assert.Nil(t, err, "Should not get an error fetching config")
+}
+*/
+/*
 func TestCopyOldConfig(t *testing.T) {
 	existsFunc := func(file string) (string, bool) {
 		return "fullpath", true
@@ -32,6 +56,7 @@ func TestCopyOldConfig(t *testing.T) {
 	path = copyNewest("lantern-2.yaml", existsFunc)
 	assert.Equal(t, tf.Name(), path, "unexpected path used")
 }
+*/
 
 func TestMajorVersion(t *testing.T) {
 	ver := "222.00.1"
