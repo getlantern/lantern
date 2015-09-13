@@ -10,6 +10,7 @@ import (
 
 	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/fronted"
+	"github.com/stretchr/testify/assert"
 )
 
 func domainFrontInitialConfig() {
