@@ -1,4 +1,30 @@
-chainedservers:
+version: 1
+cloudconfig: http://config.getiantem.org/cloud.yaml.gz
+cloudconfigca: ""
+addr: 127.0.0.1:8787
+role: client
+cpuprofile: ""
+memprofile: ""
+uiaddr: 127.0.0.1:16823
+autoreport: true
+autolaunch: true
+stats:
+  reportingperiod: "0"
+  statshubaddr: pure-journey-3547.herokuapp.com
+server:
+  unencrypted: false
+  country: ""
+  registerat: ""
+  portmap: 0
+  frontfqdns: {}
+  waddelladdr: ""
+client:
+  minqos: 0
+  dumpheaders: false
+  proxyall: false
+  frontedservers: []
+  masqueradesets: {}
+  chainedservers:
     178.62.252.86:
       addr: 178.62.252.86:443
       pipelined: true

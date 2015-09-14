@@ -11,7 +11,6 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -127,20 +126,21 @@ func majorVersion(version string) string {
 	return r.FindString(version)
 }
 
-// copyGoodOldConfig is a one-time function for using older config files in the 2.x series.
-func copyGoodOldConfig(configDir, configPath string) {
+// useGoodOldConfig is a one-time function for using older config files in the 2.x series.
+// It returns true if the file specified by configPath is ready, false otherwise.
+func useGoodOldConfig(configDir, configPath string) bool {
 	// If we already have a config file with the latest name, use that one.
 	// Otherwise, copy the most recent config file available.
 	exists := isGoodConfig(configPath)
 	if exists {
 		log.Debugf("Using existing config")
-		return
+		return true
 	}
 
 	files, err := ioutil.ReadDir(configDir)
 	if err != nil {
 		log.Errorf("Could not read config dir: %v", err)
-		return
+		return false
 	}
 
 	for _, file := range files {
@@ -155,11 +155,11 @@ func copyGoodOldConfig(configDir, configPath string) {
 				log.Errorf("Could not rename file from %v to %v: %v", path, configPath, err)
 			} else {
 				log.Debugf("Copied old config at %v to %v", path, configPath)
-				return
+				return true
 			}
 		}
 	}
-	return
+	return false
 }
 
 // Init initializes the configuration system.
@@ -170,7 +170,12 @@ func Init(version string) (*Config, error) {
 		log.Errorf("Could not get config path? %v", err)
 		return nil, err
 	}
-	copyGoodOldConfig(configDir, configPath)
+	ok := useGoodOldConfig(configDir, configPath)
+	if !ok {
+		if err := client.MakeInitialConfig(configPath); err != nil {
+			return nil, err
+		}
+	}
 
 	m = &yamlconf.Manager{
 		FilePath:         configPath,
@@ -179,36 +184,7 @@ func Init(version string) (*Config, error) {
 			return &Config{}
 		},
 		FirstRunSetup: func(ycfg yamlconf.Config) error {
-			log.Debugf("Running first run setup")
-			cfg := ycfg.(*Config)
-			servers, err := client.ReadChained()
-			if err != nil {
-				// Let the bootstrap code itself log errors as necessary.
-				// This could happen if we're auto-updated from an older version that didn't
-				// have packaged settings, for example, but those versions should all
-				// have working configs!!
-				log.Errorf("Could not read yaml: %v", err)
-				return err
-			}
-			log.Debugf("Bootstrap settings has %v chained servers", len(servers.ChainedServers))
-			clients := loadBootstrapHttpClients(servers)
-			url := cfg.CloudConfig
-
-			configs := make(chan []byte)
-			var once sync.Once
-			for _, client := range clients {
-				go func(httpClient *http.Client) {
-					if bytes, err := fetchCloudConfig(httpClient, url); err == nil {
-						log.Debugf("Successfully downloaded custom config")
-
-						// We just use the first config we learn about.
-						once.Do(func() { configs <- bytes })
-					}
-				}(client)
-			}
-			config := <-configs
-			log.Debugf("Read config")
-			return cfg.updateFrom(config)
+			return nil
 		},
 		PerSessionSetup: func(ycfg yamlconf.Config) error {
 			cfg := ycfg.(*Config)
@@ -492,25 +468,6 @@ func (cfg *Config) IsUpstream() bool {
 
 func (cfg Config) cloudPollSleepTime() time.Duration {
 	return time.Duration((CloudConfigPollInterval.Nanoseconds() / 2) + rand.Int63n(CloudConfigPollInterval.Nanoseconds()))
-}
-
-func loadBootstrapHttpClients(bs *client.BootstrapServers) []*http.Client {
-	var clients []*http.Client
-	for _, s := range bs.ChainedServers {
-		log.Debugf("Fetching config using chained server: %v", s.Addr)
-		dialer, er := s.Dialer()
-		if er != nil {
-			log.Errorf("Unable to configure chained server. Received error: %v", er)
-			continue
-		}
-		clients = append(clients, &http.Client{
-			Transport: &http.Transport{
-				DisableKeepAlives: true,
-				Dial:              dialer.Dial,
-			},
-		})
-	}
-	return clients
 }
 
 func fetchCloudConfig(client *http.Client, url string) ([]byte, error) {
