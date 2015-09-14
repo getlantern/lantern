@@ -10,6 +10,13 @@ Lantern circumvention tool.
 
 ## Building Lantern Android
 
+Before building make sure you've compiled the Lantern proxy for Android:
+
+```
+cd $GOPATH/src/github.com/getlantern/lantern
+make android-lib
+```
+
 ### Building from Android Studio
 
 #### Prerequisites

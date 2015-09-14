@@ -6,3 +6,4 @@ build/
 libs/
 obj/
 lantern-mobile.iml
+app.iml
