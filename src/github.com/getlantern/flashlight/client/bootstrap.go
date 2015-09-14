@@ -8,10 +8,8 @@ package client
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -87,16 +85,13 @@ func MakeInitialConfig(configPath string) error {
 	if err != nil {
 		return err
 	}
-	var cmd, option string
-	if runtime.GOOS == "windows" {
-		cmd, option = "copy", "/y"
-	} else {
-		cmd, option = "cp", "-f"
+	bytes, err := ioutil.ReadFile(src)
+	if err != nil {
+		return err
 	}
-
-	cl := exec.Command(cmd, option, src, configPath)
-	if out, err := cl.Output(); err != nil {
-		return fmt.Errorf("Could not copy %s to %s: %v(%s)", src, configPath, err, string(out))
+	err = ioutil.WriteFile(configPath, bytes, 0644)
+	if err != nil {
+		return err
 	}
 	return nil
 }
