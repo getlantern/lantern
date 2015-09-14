@@ -59,10 +59,6 @@ type dialer struct {
 	errCh   chan time.Time
 }
 
-func (d *Dialer) Director(req *http.Request) {
-	req.Header.Set("X-LANTERN-AUTH-TOKEN", d.AuthToken)
-}
-
 func (d *dialer) start() {
 	d.active = 1
 	// to avoid blocking sender, make it buffered
