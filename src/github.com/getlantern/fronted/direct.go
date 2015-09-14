@@ -20,7 +20,7 @@ type Direct struct {
 
 // NewDirectDomain creates a new class for doing direct domain fronting using the specified
 // set of trusted root CAs.
-func NewDirectDomain(certs []string, masquerades []*Masquerade) (*Direct, error) {
+func NewDirect(certs []string, masquerades []*Masquerade) (*Direct, error) {
 	pool, err := keyman.PoolContainingCerts(certs...)
 	if err != nil {
 		log.Debugf("Could not create cert pool: %v", err)
@@ -55,25 +55,10 @@ func (ddf *DirectTransport) RoundTrip(req *http.Request) (resp *http.Response, e
 func (d *Direct) Response(url string) (*http.Response, error) {
 	for _, m := range d.ms {
 		client := d.NewHttpClient(m)
-
 		if resp, err := client.Get(url); err != nil {
 			continue
 		} else {
 			return resp, nil
-			/*
-				defer resp.Body.Close()
-				if 200 != resp.StatusCode {
-					log.Errorf("Unexpected status code %v for domain %v", resp.StatusCode, m.Domain)
-					continue
-				}
-				return resp
-				if body, err := ioutil.ReadAll(resp.Body); err != nil {
-					log.Errorf("Unexpected error %v for domain %v", err, m.Domain)
-					continue
-				} else {
-					return body, nil
-				}
-			*/
 		}
 	}
 	msg := fmt.Sprintf("Could not get response from any masquerade!")

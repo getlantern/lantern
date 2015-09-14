@@ -1,11 +1,14 @@
 package fronted
 
-import "testing"
+import (
+	"io/ioutil"
+	"testing"
+)
 
 func TestDirectDomainFronting(t *testing.T) {
 	certs := trustedCACerts()
 	m := cloudfrontMasquerades[0]
-	direct, err := NewDirectDomain(certs, cloudfrontMasquerades[:1])
+	direct, err := NewDirect(certs, cloudfrontMasquerades[:1])
 	if err != nil {
 		t.Fatalf("Could not create DDF %v", err)
 	}
@@ -20,10 +23,13 @@ func TestDirectDomainFronting(t *testing.T) {
 		}
 	}
 
-	if body, err := direct.Response(url); err != nil {
+	if resp, err := direct.Response(url); err != nil {
 		t.Fatalf("Could not get response: %v", err)
 	} else {
-		if len(body) < 300 {
+		defer resp.Body.Close()
+		if body, err := ioutil.ReadAll(resp.Body); err != nil {
+			t.Fatalf("Unexpected error %v", err)
+		} else if len(body) < 300 {
 			t.Fatalf("Unexpected response body")
 		}
 	}

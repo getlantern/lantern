@@ -38,7 +38,7 @@ const (
 	etag                    = "X-Lantern-Etag"
 	ifNoneMatch             = "X-Lantern-If-None-Match"
 	//	defaultCloudConfigUrl   = "http://config.getiantem.org/cloud.yaml.gz"
-	defaultCloudConfigUrl = "https://d2wi0vwulmtn99.cloudfront.net/cloud.yaml.gz"
+	defaultCloudConfigUrl = "http://d2wi0vwulmtn99.cloudfront.net/cloud.yaml.gz"
 )
 
 var (
@@ -211,7 +211,7 @@ func Init(version string) (*Config, error) {
 			// Simultaneously try to get the config using direct domain fronting.
 			go func() {
 				certs := trustedCACerts()
-				direct, err := fronted.NewDirectDomain(certs, cloudfrontMasquerades)
+				direct, err := fronted.NewDirect(certs, cloudfrontMasquerades)
 				if err != nil {
 					log.Errorf("Could not create direct domain fronter")
 				} else {
