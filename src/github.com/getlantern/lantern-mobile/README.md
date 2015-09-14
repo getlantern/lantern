@@ -27,13 +27,14 @@ git clone https://github.com/getlantern/lantern-mobile.git
 
 In the welcome screen choose the "Open an existing Android Studio" option and
 select the `lantern` folder you just checked out with git.
- 
+
 ### Building from the Command Line (beta, for development only)
 
 #### Prerequisites
 
 * Java Development Kit 1.7
 * Git
+* [Android NDK](https://developer.android.com/ndk/downloads/index.html#download)
 
 #### Building Tun2Socks
 Lantern Android uses [tun2socks](https://code.google.com/p/badvpn/wiki/tun2socks) to route intercepted VPN traffic through a local SOCKS server.
@@ -75,5 +76,5 @@ With Lantern Android running, to filter Logcat messages:
 ```
 make logcat
 ```
- 
-[1]: http://developer.android.com/tools/studio/index.html   
+
+[1]: http://developer.android.com/tools/studio/index.html
