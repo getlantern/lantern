@@ -368,15 +368,24 @@ func applyClientConfig(client *client.Client, cfg *config.Config) {
 	_ = statreporter.Configure(cfg.Stats)
 
 	// Update client configuration and get the highest QOS dialer available.
-	httpClientFunc := client.Configure(cfg.Client)
+	client.Configure(cfg.Client)
 
-	// Give everyone their own *http.Client that uses the highest QOS dialer. Separate
-	// clients for everyone avoids data races configuring those clients.
-	config.Configure(httpClientFunc())
-	geolookup.Configure(httpClientFunc())
-	statserver.Configure(httpClientFunc())
-	// Note we don't call Configure on analytics here, as that would
-	// result in an extra analytics call and double counting.
+	// We offload this onto a go routine because creating the http clients
+	// blocks on waiting for the local server, and the local server starts
+	// on the thread, otherwise creating a deadlock.
+	go func() {
+		withHttpClient(cfg.Addr, config.Configure)
+		withHttpClient(cfg.Addr, geolookup.Configure)
+		withHttpClient(cfg.Addr, statserver.Configure)
+	}()
+}
+
+func withHttpClient(addr string, withClient func(client *http.Client)) {
+	if httpClient, err := util.HTTPClient("", addr); err != nil {
+		log.Errorf("Could not create HTTP client via %s: %s", addr, err)
+	} else {
+		withClient(httpClient)
+	}
 }
 
 // Runs the server-side proxy

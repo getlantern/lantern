@@ -149,7 +149,7 @@ func bootstrapPath(fileName string) (string, error) {
 		yamldir = dir + "/../"
 	}
 	fullPath := filepath.Join(yamldir, fileName)
-	log.Debugf("Opening externalUrl from: %v", fullPath)
+	log.Debugf("Opening bootstrap file from: %v", fullPath)
 	return fullPath, nil
 }
 

@@ -30,8 +30,13 @@ func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		client.intercept(resp, req)
 	} else {
 		// Direct proxying can only be used for plain HTTP connections.
-		log.Tracef("Reverse proxying %s %v", req.Method, req.URL)
-		client.getReverseProxy().ServeHTTP(resp, req)
+		log.Debugf("Reverse proxying %s %v", req.Method, req.URL)
+		rp, err := client.newReverseProxy()
+		if err != nil {
+			respondBadGateway(resp, fmt.Sprintf("Unable get outgoing proxy connection: %s", err))
+			return
+		}
+		rp.ServeHTTP(resp, req)
 	}
 }
 
