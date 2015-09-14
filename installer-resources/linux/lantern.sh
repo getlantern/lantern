@@ -18,7 +18,7 @@ LANTERN_SOURCE_BINARY=$LANTERN_WRAPPER_DIR/lantern-binary
 LANTERN_SOURCE_YAML=$LANTERN_WRAPPER_DIR/.packaged-lantern.yaml
 
 # This is the file containing bootstrap chained servers at first run
-LANTERN_CHAINED_YAML=$LANTERN_WRAPPER_DIR/chained.yaml
+LANTERN_YAML=$LANTERN_WRAPPER_DIR/lantern.yaml
 
 LANTERN_USER_DIRECTORY=$HOME/.lantern
 LANTERN_SOURCE_BINARY_HASH=$LANTERN_USER_DIRECTORY/bin/lantern.sha1
