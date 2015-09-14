@@ -81,6 +81,7 @@ func readSettingsFromFile(yamlPath string) (*BootstrapSettings, error) {
 	return &s, nil
 }
 
+// MakeInitialConfig save baked-in config to the file specified by configPath
 func MakeInitialConfig(configPath string) error {
 	src, err := bootstrapPath(lanternYamlName)
 	if err != nil {
