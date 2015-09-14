@@ -5,7 +5,7 @@ import "testing"
 func TestDirectDomainFronting(t *testing.T) {
 	certs := trustedCACerts()
 	m := cloudfrontMasquerades[0]
-	direct, err := NewDirectDomain(certs)
+	direct, err := NewDirectDomain(certs, cloudfrontMasquerades[:1])
 	if err != nil {
 		t.Fatalf("Could not create DDF %v", err)
 	}
@@ -20,7 +20,7 @@ func TestDirectDomainFronting(t *testing.T) {
 		}
 	}
 
-	if body, err := direct.Response(url, cloudfrontMasquerades); err != nil {
+	if body, err := direct.Response(url); err != nil {
 		t.Fatalf("Could not get response: %v", err)
 	} else {
 		if len(body) < 300 {

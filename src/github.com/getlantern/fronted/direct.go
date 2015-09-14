@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -16,17 +15,18 @@ import (
 
 type Direct struct {
 	certPool *x509.CertPool
+	ms       []*Masquerade
 }
 
 // NewDirectDomain creates a new class for doing direct domain fronting using the specified
 // set of trusted root CAs.
-func NewDirectDomain(certs []string) (*Direct, error) {
+func NewDirectDomain(certs []string, masquerades []*Masquerade) (*Direct, error) {
 	pool, err := keyman.PoolContainingCerts(certs...)
 	if err != nil {
 		log.Debugf("Could not create cert pool: %v", err)
 		return nil, err
 	}
-	return &Direct{pool}, nil
+	return &Direct{certPool: pool, ms: masquerades}, nil
 }
 
 // DirectTransport is a wrapper struct enabling us to modify the protocol of outgoing
@@ -52,24 +52,28 @@ func (ddf *DirectTransport) RoundTrip(req *http.Request) (resp *http.Response, e
 
 // Response returns the raw response body from the first masquerade that provides a
 // successful response.
-func (d *Direct) Response(url string, ms []*Masquerade) ([]byte, error) {
-	for _, m := range ms {
+func (d *Direct) Response(url string) (*http.Response, error) {
+	for _, m := range d.ms {
 		client := d.NewHttpClient(m)
 
 		if resp, err := client.Get(url); err != nil {
 			continue
 		} else {
-			defer resp.Body.Close()
-			if 200 != resp.StatusCode {
-				log.Errorf("Unexpected status code %v for domain %v", resp.StatusCode, m.Domain)
-				continue
-			}
-			if body, err := ioutil.ReadAll(resp.Body); err != nil {
-				log.Errorf("Unexpected error %v for domain %v", err, m.Domain)
-				continue
-			} else {
-				return body, nil
-			}
+			return resp, nil
+			/*
+				defer resp.Body.Close()
+				if 200 != resp.StatusCode {
+					log.Errorf("Unexpected status code %v for domain %v", resp.StatusCode, m.Domain)
+					continue
+				}
+				return resp
+				if body, err := ioutil.ReadAll(resp.Body); err != nil {
+					log.Errorf("Unexpected error %v for domain %v", err, m.Domain)
+					continue
+				} else {
+					return body, nil
+				}
+			*/
 		}
 	}
 	msg := fmt.Sprintf("Could not get response from any masquerade!")
