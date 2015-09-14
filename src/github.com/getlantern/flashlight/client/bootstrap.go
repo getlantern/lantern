@@ -86,12 +86,15 @@ func MakeInitialConfig(configPath string) error {
 	if err != nil {
 		return err
 	}
-	wrapString := func(in string) string {
-		return in //strings.Replace(in, " ", "\\ ", -1)
+	var cmd, option string
+	if runtime.GOOS == "windows" {
+		cmd, option = "copy", "/y"
+	} else {
+		cmd, option = "cp", "-f"
 	}
-	cmd := exec.Command("cp", wrapString(src), wrapString(configPath))
-	log.Debugf("cmd: %v", cmd)
-	if out, err := cmd.Output(); err != nil {
+
+	cl := exec.Command(cmd, option, src, configPath)
+	if out, err := cl.Output(); err != nil {
 		return fmt.Errorf("Could not copy %s to %s: %v(%s)", src, configPath, err, string(out))
 	}
 	return nil
