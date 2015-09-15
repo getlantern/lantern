@@ -249,9 +249,9 @@ func Init(version string) (*Config, error) {
 
 func bootstrapConfig(bs *client.BootstrapServers, configs chan []byte, once *sync.Once, url string) {
 	for _, s := range bs.ChainedServers {
-		go func() {
+		go func(s *client.ChainedServerInfo) {
 			bootstrap(s, configs, once, url)
-		}()
+		}(s)
 	}
 }
 
