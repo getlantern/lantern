@@ -1,444 +1,165 @@
 package tunio
 
+/*
+#cgo CFLAGS: -c -std=gnu99 -DCGO=1 -DBADVPN_THREAD_SAFE=0 -DBADVPN_LINUX -DBADVPN_BREACTOR_BADVPN -D_GNU_SOURCE -DBADVPN_USE_SIGNALFD -DBADVPN_USE_EPOLL -DBADVPN_LITTLE_ENDIAN -Ibadvpn -Ibadvpn/lwip/src/include/ipv4 -Ibadvpn/lwip/src/include/ipv6 -Ibadvpn/lwip/src/include -Ibadvpn/lwip/custom
+#cgo LDFLAGS: -lc -lrt -lpthread -static-libgcc -Wl,-Bstatic -ltun2io -L./lib/
+
+static char charAt(char *in, int i) {
+	return in[i];
+}
+
+#include "tun2io.h"
+#include "tun2io.c"
+*/
+import "C"
+
 import (
-	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/google/gopacket"
-	"github.com/google/gopacket/layers"
-	"io"
 	"log"
-	"math/rand"
 	"net"
 	"sync"
+	"unsafe"
 )
+
+var tunnels map[uint32]*TunIO
+var tunnelMu sync.Mutex
 
 const (
-	ipMaxDatagramSize  = 576
-	tcpMaxDatagramSize = ipMaxDatagramSize - 40
+	minTunnID = 10
 )
-
-type node struct {
-	ip   net.IP
-	port layers.TCPPort
-}
-
-type srcNode struct {
-	node
-}
-type dstNode struct {
-	node
-}
-
-func (n *node) String() string {
-	return fmt.Sprintf("%s:%d", n.ip.String(), n.port)
-}
-
-var (
-	fwdSockets map[string]map[string]*RawSocketServer
-)
-
-type Status uint
-
-const (
-	StatusClientSYN uint = iota
-	StatusServerSYNACK
-	StatusClientACK
-	StatusEstablished
-	StatusClosing
-	StatusWaitClose
-)
-
-type RawSocketServer struct {
-	connOut net.Conn
-	step    uint
-	zero    uint32
-	seq     uint32
-	ack     uint32
-	src     *srcNode
-	dst     *dstNode
-
-	r *bufio.Reader
-	w *bufio.Writer
-
-	wb *bytes.Buffer
-
-	writeLock bool
-	writeMu   sync.Mutex
-
-	window uint16
-
-	ipLayer *layers.IPv4
-
-	relayPacket func([]byte)
-}
 
 func init() {
-	fwdSockets = make(map[string]map[string]*RawSocketServer)
+	tunnels = make(map[uint32]*TunIO)
 }
 
-type dialer interface {
-	Dial(network, address string) (net.Conn, error)
+type dialer func(proto, addr string) (net.Conn, error)
+
+var Dialer dialer
+
+func dummyDialer(proto, addr string) (net.Conn, error) {
+	return net.Dial(proto, addr)
+}
+
+type tcpClient struct {
+	client *C.struct_tcp_client
+	buf    bytes.Buffer
+}
+
+func (t *tcpClient) in(buf []byte) (n int, err error) {
+	return t.buf.Write(buf)
+}
+
+func (t *tcpClient) out(buf []byte) (n int, err error) {
+	n = len(buf)
+	// TODO: error catch from tcp_write.
+	fmt.Printf("writing to client: %q\n", string(buf))
+	C.tcp_write(t.client.pcb, unsafe.Pointer(C.CString(string(buf))), C.uint16_t(n), 0)
+	return n, nil
 }
 
 type TunIO struct {
-	dialer dialer
+	client   *tcpClient
+	destAddr string
+	connOut  net.Conn
 }
 
-func NewTunIO(d dialer) *TunIO {
-	return &TunIO{
-		dialer: d,
-	}
-}
-
-func (r *RawSocketServer) Write(message []byte) (n int, err error) {
-	var messages int
-	l := len(message)
-	for i := 0; i < l; i += tcpMaxDatagramSize {
-		push := false
-
-		j := tcpMaxDatagramSize
-		if i+j > l {
-			j = l - i
-			push = true
-		}
-
-		if messages%8 == 7 {
-			push = true
-		}
-
-		if err = r.sendPayload(message[i:i+j], push); err != nil {
-			return
-		}
-		n += j
-
-		messages++
-	}
-	return
-}
-
-func (r *RawSocketServer) sendPayload(rawBytes []byte, push bool) error {
-	if r.step != StatusEstablished {
-		return errors.New("Can't send data while opening or closing connection.")
-	}
-
-	if len(rawBytes) > tcpMaxDatagramSize {
-		return fmt.Errorf("Can't sent datagram larger than %d", tcpMaxDatagramSize)
-	}
-
-	r.writeMu.Lock()
-	r.writeLock = true
-
-	// Answering with SYN-ACK
-	tcpLayer := &layers.TCP{
-		ACK: true,
-		PSH: push,
-	}
-
-	if err := r.injectPacketFromDst(tcpLayer, rawBytes); err != nil {
-		return err
-	}
-
-	r.incrServerSeq(uint32(len(rawBytes)))
-
-	return nil
-}
-
-func (r *RawSocketServer) replyFINACK() error {
-	if r.step != StatusClosing {
-		return errors.New("Can't FIN-ACK on a non-closing connection.")
-	}
-
-	// Answering with SYN-ACK
-	tcpLayer := &layers.TCP{
-		ACK: true,
-		FIN: true,
-	}
-
-	if err := r.injectPacketFromDst(tcpLayer, nil); err != nil {
-		return err
-	}
-
-	// Expecting this seq number.
-	r.incrServerSeq(1)
-	return nil
-}
-
-func (r *RawSocketServer) replyACK(seq uint32, incr uint32) error {
-	if r.step != StatusEstablished {
-		return errors.New("Can't ACK on a non-established connection.")
-	}
-
-	r.ack = seq + incr
-
-	// Answering with SYN-ACK
-	tcpLayer := &layers.TCP{
-		ACK: true,
-	}
-
-	if err := r.injectPacketFromDst(tcpLayer, nil); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (r *RawSocketServer) replySYNACK(seq uint32) error {
-	if r.step != StatusClientSYN {
-		return errors.New("Unexpected SYN.")
-	}
-
-	r.step = StatusServerSYNACK
-	r.zero = randomSeqNumber()
-
-	r.ack = seq + 1
-	r.seq = r.zero
-
-	// Answering with SYN-ACK
-	tcpLayer := &layers.TCP{
-		ACK: true,
-		SYN: true,
-	}
-
-	if err := r.injectPacketFromDst(tcpLayer, nil); err != nil {
-		return err
-	}
-
-	// Expecting this seq number.
-	r.incrServerSeq(1)
-	return nil
-}
-
-func (r *RawSocketServer) relativeSeq(i uint32) uint32 {
-	if i >= r.zero {
-		return i - r.zero
-	}
-	return 0
-}
-
-func (r *RawSocketServer) incrServerSeq(i uint32) {
-	r.seq = r.seq + i
-}
-
-func (r *RawSocketServer) injectPacketFromDst(tcpLayer *layers.TCP, rawBytes []byte) error {
-	// Preparing ipLayer.
-	ipLayer := &layers.IPv4{
-		SrcIP:    r.dst.ip,
-		DstIP:    r.src.ip,
-		Version:  4,
-		TTL:      64,
-		Protocol: layers.IPProtocolTCP,
-	}
-
-	options := gopacket.SerializeOptions{
-		ComputeChecksums: true,
-		FixLengths:       true,
-	}
-
-	tcpLayer.SrcPort = r.dst.port
-	tcpLayer.DstPort = r.src.port
-	tcpLayer.Window = r.window
-
-	tcpLayer.Ack = r.ack
-	tcpLayer.Seq = r.seq
-
-	tcpLayer.SetNetworkLayerForChecksum(ipLayer)
-
-	// And create the packet with the layers
-	buffer := gopacket.NewSerializeBuffer()
-	gopacket.SerializeLayers(buffer, options,
-		ipLayer,
-		tcpLayer,
-		gopacket.Payload(rawBytes),
-	)
-
-	outgoingPacket := buffer.Bytes()
-
-	r.relayPacket(outgoingPacket)
-
-	return nil
-}
-
-func (t *TunIO) HandlePacket(b []byte, relayPacket func([]byte)) error {
-
-	// Decoding TCP/IP
-	decoded := gopacket.NewPacket(
-		b,
-		layers.LayerTypeIPv4,
-		gopacket.Default,
-	)
-
-	if err := decoded.ErrorLayer(); err != nil {
-		return err.Error()
-	}
-
-	if decoded.NetworkLayer() == nil || decoded.TransportLayer() == nil ||
-		decoded.TransportLayer().LayerType() != layers.LayerTypeTCP {
-		return nil
-	}
-
-	var ip *layers.IPv4
-	var tcp *layers.TCP
-
-	// Get the IP layer.
-	if ipLayer := decoded.Layer(layers.LayerTypeIPv4); ipLayer != nil {
-		ip, _ = ipLayer.(*layers.IPv4)
-	}
-
-	// Get the TCP layer from this decoded
-	if tcpLayer := decoded.Layer(layers.LayerTypeTCP); tcpLayer != nil {
-		tcp, _ = tcpLayer.(*layers.TCP)
-	}
-
-	// Check for errors
-	if err := decoded.ErrorLayer(); err != nil {
-		return fmt.Errorf("Error decoding some part of the packet:", err)
-	}
-
-	src := &srcNode{
-		node{
-			ip:   ip.SrcIP,
-			port: tcp.SrcPort,
-		},
-	}
-
-	dst := &dstNode{
-		node{
-			ip:   ip.DstIP,
-			port: tcp.DstPort,
-		},
-	}
-
-	srcKey := src.String()
-	dstKey := dst.String()
-
-	var srv *RawSocketServer
-	var ok bool
-
-	if tcp.ACK {
-		// Looking up srvection.
-
-		if srv, ok = fwdSockets[srcKey][dstKey]; !ok {
-			return errors.New("Unknown srvection.")
-		}
-
-		if tcp.Ack == srv.seq && tcp.Seq == srv.ack {
-
-			switch srv.step {
-			case StatusServerSYNACK:
-				srv.step = StatusEstablished
-
-				srv.ack = tcp.Seq
-				srv.seq = tcp.Ack
-
-				go func() {
-					if err := srv.reader(); err != nil {
-						log.Printf("reader: %q", err)
-					}
-				}()
-
-			case StatusEstablished:
-				if srv.writeLock {
-					srv.writeMu.Unlock()
-					srv.writeLock = false
-				}
-
-				payloadLen := uint32(len(tcp.Payload))
-
-				if payloadLen > 0 {
-					if err := srv.replyACK(tcp.Seq, payloadLen); err != nil {
-						return err
-					}
-					srv.w.Write(tcp.Payload)
-				}
-
-				if tcp.PSH {
-					// Forward data to application.
-					srv.w.Flush()
-					srv.connOut.Write(srv.wb.Bytes())
-					srv.wb.Reset()
-				}
-
-				if tcp.FIN {
-					if err := srv.replyACK(tcp.Seq, 1); err != nil {
-						return err
-					}
-					srv.step = StatusClosing
-
-					if err := srv.replyFINACK(); err != nil {
-						return err
-					}
-					srv.step = StatusWaitClose
-				}
-			case StatusWaitClose:
-				fwdSockets[srcKey][dstKey] = nil
-			default:
-				panic("Unsupported status.")
-			}
-		} else {
-			return fmt.Errorf("%s -> %s: Unexpected (Seq=%d, Ack=%d) expecting (Seq=%d, Ack=%d).", srcKey, dstKey, tcp.Seq, tcp.Ack, srv.ack, srv.seq)
-		}
-
-	} else if tcp.SYN && tcp.Ack == 0 {
-		// Someone is starting a connection.
-		if fwdSockets[srcKey] == nil {
-			fwdSockets[srcKey] = make(map[string]*RawSocketServer)
-		}
-
-		connOut, err := t.dialer.Dial("tcp", dstKey)
-		if err != nil {
-			// TODO: Reply RST
-			return err
-		}
-
-		fwdSockets[srcKey][dstKey] = &RawSocketServer{
-			connOut:     connOut,
-			src:         src,
-			dst:         dst,
-			window:      tcp.Window,
-			wb:          bytes.NewBuffer(nil),
-			relayPacket: relayPacket,
-		}
-
-		srv = fwdSockets[srcKey][dstKey]
-		srv.w = bufio.NewWriter(srv.wb)
-
-		if err := srv.replySYNACK(tcp.Seq); err != nil {
-			return err
-		}
-	} else {
-		return fmt.Errorf("Unknown status.")
-	}
-
-	return nil
-}
-
-func randomSeqNumber() uint32 {
-	return rand.Uint32()
-}
-
-func (r *RawSocketServer) reader() error {
-	// TODO: handle closing
-	var n, m int
-	var err error
-
+func (t *TunIO) reader() error {
 	for {
-		buf := make([]byte, 1024)
-		if n, err = r.connOut.Read(buf); err != nil {
-			if err != io.EOF {
-				return err
-			}
+		data := make([]byte, 4096)
+		n, err := t.connOut.Read(data)
+		if err != nil {
+			return err
 		}
-		if n > 0 {
-			if m, err = r.Write(buf[0:n]); err != nil {
-				return err
-			}
-			if n != m {
-				return fmt.Errorf("Failed to write some bytes to tun device.")
-			}
+		t.client.out(data[0:n])
+	}
+	return nil
+}
+
+func NewTunnel(client *C.struct_tcp_client, d dialer) (*TunIO, error) {
+	destAddr := C.dump_dest_addr(client)
+	t := &TunIO{
+		client:   &tcpClient{client: client},
+		destAddr: C.GoString(destAddr),
+	}
+	log.Printf("Opening tunnel to %q...", t.destAddr)
+	conn, err := d("tcp", t.destAddr)
+	if err != nil {
+		return nil, err
+	}
+	t.connOut = conn
+	go t.reader()
+	C.free(unsafe.Pointer(destAddr))
+	return t, nil
+}
+
+//export goNewTunnel
+func goNewTunnel(client *C.struct_tcp_client) C.uint32_t {
+	newTunn, err := NewTunnel(client, Dialer)
+	if err != nil {
+		return 0
+	}
+
+	tunnelMu.Lock()
+	// TODO: Use https://golang.org/pkg/math/rand/#Int31n
+	var i uint32
+	for i = minTunnID; ; i++ {
+		if _, ok := tunnels[i]; !ok {
+			break
+		}
+	}
+	tunnels[i] = newTunn
+	tunnelMu.Unlock()
+
+	log.Printf("%d: goNewTunnel", i)
+
+	return C.uint32_t(i)
+}
+
+//export goTunnelWrite
+func goTunnelWrite(tunno C.uint32_t, write *C.char, size C.size_t) C.int {
+	log.Printf("%d: goTunnelWrite", int(tunno))
+	tunnelMu.Lock()
+	tunn := tunnels[uint32(tunno)]
+	tunnelMu.Unlock()
+
+	if tunn != nil {
+		buf := make([]byte, 0, size)
+		for i := 0; i < int(size); i++ {
+			buf = append(buf, byte(C.charAt(write, C.int(i))))
+		}
+		if _, err := tunn.connOut.Write(buf); err != nil {
+			return C.ERR_OK
 		}
 	}
 
+	return C.ERR_ABRT
+}
+
+//export goTunnelDestroy
+func goTunnelDestroy(tunno C.uint32_t) C.int {
+	log.Printf("%d: goTunnelDestroy", int(tunno))
+	tunnelMu.Lock()
+	defer tunnelMu.Unlock()
+	tunn, ok := tunnels[uint32(tunno)]
+	if ok {
+		tunn.connOut.Close()
+		delete(tunnels, uint32(tunno))
+		return C.ERR_OK
+	}
+	return C.ERR_ABRT
+}
+
+// Configure sets up the tundevice, this is equivalent to the badvpn-tun2socks
+// configuration, except for the --socks-server-addr.
+func Configure(tundev, ipaddr, netmask string, d dialer) error {
+	if d == nil {
+		d = dummyDialer
+	}
+	Dialer = d
+	if C.configure(C.CString(tundev), C.CString(ipaddr), C.CString(netmask)) != C.ERR_OK {
+		return errors.New("Failed to configure device.")
+	}
 	return nil
 }
