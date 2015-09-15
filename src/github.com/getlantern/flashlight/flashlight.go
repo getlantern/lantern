@@ -362,9 +362,9 @@ func applyClientConfig(client *client.Client, cfg *config.Config) {
 	} else {
 		// Give everyone their own *http.Client that uses the highest QOS dialer. Separate
 		// clients for everyone avoids data races configuring those clients.
-		config.Configure(hqfd.NewDirectDomainFronter())
-		geolookup.Configure(hqfd.NewDirectDomainFronter())
-		statserver.Configure(hqfd.NewDirectDomainFronter())
+		config.Configure(hqfd())
+		geolookup.Configure(hqfd())
+		statserver.Configure(hqfd())
 		// Note we don't call Configure on analytics here, as that would
 		// result in an extra analytics call and double counting.
 	}

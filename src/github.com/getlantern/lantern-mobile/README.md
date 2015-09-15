@@ -4,8 +4,8 @@
 
 <img src="screenshots/screenshot1.png" height="330px" width="200px">
 
-Lantern Android is an App that uses the Android VpnService API to route all
-device traffic through a packet interception service and subsequently the
+Lantern Android is an App that uses the Android [VpnService][4] API to route
+all device traffic through a packet interception service and subsequently the
 Lantern circumvention tool.
 
 ## Building Lantern Android
@@ -91,14 +91,124 @@ make logcat
 
 #### Simulating tun2socks and lantern outside Android
 
-We are going to use a virtual machine to simulate the `device <-> tun <->
-tun2sock <-> lantern <-> Internet` dance.
+This is very useful when you can to check each moving part separately.
+
+Within Android, the [VpnService][4] creates a [TUN device][5] and configures
+the network to route all traffic to this virtual device, an app is listening on
+this device and has the ability to inspect, modify and reinject packets back to
+the device. Some special packets can ignore the tun device and pass to the
+Internet directly ([protected packages][6]).
+
+We are going to use a Linux virtual machine to simulate the `device <-> tun <->
+tun2sock <-> lantern <-> Internet` dance, on a normal Linux we don't have the
+[VpnService][4] API but we have the ability to create tun devices and route
+traffic at will.
+
+The main idea is to create a tun device, run a vanilla tun2socks and route all
+outgoing traffic to this device, everything but DNS server requests and a
+special route that goes directly to the virtual machine's host, which will be
+running a Lantern-SOCKs server.
+
+Let's create and configure this virtual machine:
 
 ```
 cd /path/to/lantern-mobile
 vagrant up
 ```
 
+While you're waiting for the vm to build up go back to the local machine (the
+vm's host) and compile the socks-server:
+
+```
+cd ~/go/src/github.com/getlantern/lantern
+source setenv.bash
+go build github.com/getlantern/lantern-mobile/lantern/socks-server
+```
+
+Run the server you've just compiled:
+
+```
+./socks-server
+# ...
+# DEBUG lantern-android.interceptor: interceptor.go:90 SOCKS proxy now listening on port: 8788
+# 2015/09/15 08:47:40 Go and play for 10 minutes.
+```
+
+Run a simple test with cURL and watch the `sock-server` output.
+
+```
+curl --socks5 127.0.0.1:8788 https://www.google.com/humans.txt
+# Google is built by a large team of engineers, designers, researchers, robots, and others in many different sites across the globe. It is updated continuously, and built with more tools and technologies than we can shake a stick at. If you'd like to help us out, see google.com/careers.
+```
+
+The SOCKs server will run for 10 minutes and then it will exit, you can also
+stop it anytime with `^C`.
+
+You can also cross-compile the tests we're going to run within the vm:
+
+```
+cd ~/go/src/github.com/getlantern/lantern
+make mobile-test-linux-amd64
+# ...
+# ok      github.com/getlantern/lantern-mobile/lantern    0.082s
+```
+
+Once the build has finished log in into the new box:
+
+```
+vagrant ssh
+```
+
+And run the script that is going to setup
+
+```
+chmod +x /vagrant/vagrant-tun-up.sh
+/vagrant/vagrant-tun-up.sh
+```
+
+The script will ask you for a `HOST_IP`, this is the IP of the host machine
+which in my case is `10.0.0.101`:
+
+```
+HOST_IP=10.0.0.101 /vagrant/vagrant-tun-up.sh
+# NOTICE(tun2socks): initializing BadVPN tun2socks 1.999.130
+# NOTICE(tun2socks): entering event loop
+```
+
+Go back to your host and restart the socks-server.
+
+```
+./socks-server
+# ^C
+./socks-server
+# ...
+```
+
+Open another terminal without stopping the tun2socks process and we'll be ready
+to test everything.
+
+```
+vagrant ssh
+curl https://www.google.com/humans.txt
+# Google is built by a large team of engineers, designers, researchers, robots, and others in many different sites across the globe. It is updated continuously, and built with more tools and technologies than we can shake a stick at. If you'd like to help us out, see google.com/careers.
+```
+
+Make sure the request is catched by tun2socks and by the socks-server by
+watching each program's output.
+
+Finally, run the transparent test, which will basically do the same as a normal
+cURL through tun2socks and the socks-server:
+
+```
+/vagrant/lantern/lantern_mobile_test -test.v -test.run TestTransparentRequestPassingThroughTun0
+# ...
+# --- PASS: TestTransparentRequestPassingThroughTun0 (1.36s)
+# PASS
+```
+
 [1]: http://developer.android.com/tools/studio/index.html
 [2]: https://developer.android.com/ndk/downloads/index.html#download
 [3]: https://code.google.com/p/badvpn/wiki/tun2socks
+[4]: http://developer.android.com/reference/android/net/VpnService.html
+[5]: https://www.kernel.org/doc/Documentation/networking/tuntap.txt
+[6]: http://developer.android.com/reference/android/net/VpnService.html#protect(int)
