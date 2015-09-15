@@ -297,8 +297,8 @@ func NonStopWriter(writers ...io.Writer) io.Writer {
 // It never fails and always return the length of bytes passed in
 func (t *nonStopWriter) Write(p []byte) (int, error) {
 	for _, w := range t.writers {
-		// not checking for errors
-		w.Write(p)
+		// intentionally not checking for errors
+		_, _ = w.Write(p)
 	}
 	return len(p), nil
 }
