@@ -37,7 +37,10 @@ const (
 	cloudflare              = "cloudflare"
 	etag                    = "X-Lantern-Etag"
 	ifNoneMatch             = "X-Lantern-If-None-Match"
-	defaultCloudConfigUrl   = "http://config.getiantem.org/cloud.yaml.gz"
+	//	defaultCloudConfigUrl   = "http://config.getiantem.org/cloud.yaml.gz"
+
+	// This is over HTTP because proxies do not forward X-Forwarded-For with HTTPS.
+	defaultCloudConfigUrl = "http://d2wi0vwulmtn99.cloudfront.net/cloud.yaml.gz"
 )
 
 var (
@@ -191,21 +194,32 @@ func Init(version string) (*Config, error) {
 				return err
 			}
 			log.Debugf("Bootstrap settings has %v chained servers", len(servers.ChainedServers))
-			clients := loadBootstrapHttpClients(servers)
-			url := cfg.CloudConfig
+			configs := make(chan []byte, 1)
 
-			configs := make(chan []byte)
 			var once sync.Once
-			for _, client := range clients {
-				go func(httpClient *http.Client) {
-					if bytes, err := fetchCloudConfig(httpClient, url); err == nil {
-						log.Debugf("Successfully downloaded custom config")
+			url := cfg.CloudConfig
+			bootstrapConfig(servers, configs, &once, url)
 
-						// We just use the first config we learn about.
-						once.Do(func() { configs <- bytes })
+			// Simultaneously try to get the config using direct domain fronting.
+			go func() {
+				certs := trustedCACerts()
+				direct, err := fronted.NewDirect(certs, cloudfrontMasquerades)
+				if err != nil {
+					log.Errorf("Could not create direct domain fronter")
+				} else {
+					if resp, err := direct.Response(url); err != nil {
+						log.Errorf("Could not get response %v", err)
+					} else {
+						log.Debugf("Got response with direct domain fronter")
+						if body, err := readConfigResponse(url, resp); err != nil {
+							log.Errorf("Error reading response body? %v", err)
+						} else {
+							once.Do(func() { configs <- body })
+						}
 					}
-				}(client)
-			}
+				}
+			}()
+
 			config := <-configs
 			log.Debugf("Read config")
 			return cfg.updateFrom(config)
@@ -221,7 +235,9 @@ func Init(version string) (*Config, error) {
 	initial, err := m.Init()
 
 	var cfg *Config
-	if err == nil {
+	if err != nil {
+		log.Errorf("Error initializing config: %v", err)
+	} else {
 		cfg = initial.(*Config)
 		err = updateGlobals(cfg)
 		if err != nil {
@@ -229,6 +245,36 @@ func Init(version string) (*Config, error) {
 		}
 	}
 	return cfg, err
+}
+
+func bootstrapConfig(bs *client.BootstrapServers, configs chan []byte, once *sync.Once, url string) {
+	for _, s := range bs.ChainedServers {
+		go func() {
+			bootstrap(s, configs, once, url)
+		}()
+	}
+}
+
+func bootstrap(s *client.ChainedServerInfo, configs chan []byte, once *sync.Once, url string) {
+	log.Debugf("Fetching config using chained server: %v", s.Addr)
+	dialer, er := s.Dialer()
+	if er != nil {
+		log.Errorf("Unable to configure chained server. Received error: %v", er)
+		return
+	}
+	client := &http.Client{
+		Transport: &http.Transport{
+			DisableKeepAlives:   true,
+			Dial:                dialer.Dial,
+			TLSHandshakeTimeout: 30 * time.Second,
+		},
+	}
+	if bytes, err := fetchCloudConfig(client, url, s.AuthToken); err == nil {
+		log.Debugf("Successfully downloaded custom config")
+
+		// We just use the first config we learn about.
+		once.Do(func() { configs <- bytes })
+	}
 }
 
 func pollWithHttpClient(currentCfg yamlconf.Config, client *http.Client) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
@@ -245,7 +291,11 @@ func pollWithHttpClient(currentCfg yamlconf.Config, client *http.Client) (mutate
 	}
 
 	url := cfg.CloudConfig
-	if bytes, err := fetchCloudConfig(client, url); err == nil {
+
+	// We don't pass an auth token here, as the http client is actually hitting the localhost
+	// proxy, and the auth token will ultimately be added as necessary for whatever proxy
+	// ends up getting hit.
+	if bytes, err := fetchCloudConfig(client, url, ""); err == nil {
 		// bytes will be nil if the config is unchanged (not modified)
 		if bytes != nil {
 			//log.Debugf("Downloaded config:\n %v", string(bytes))
@@ -513,7 +563,7 @@ func loadBootstrapHttpClients(bs *client.BootstrapServers) []*http.Client {
 	return clients
 }
 
-func fetchCloudConfig(client *http.Client, url string) ([]byte, error) {
+func fetchCloudConfig(client *http.Client, url, authToken string) ([]byte, error) {
 	log.Debugf("Checking for cloud configuration at: %s", url)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -522,6 +572,10 @@ func fetchCloudConfig(client *http.Client, url string) ([]byte, error) {
 	if lastCloudConfigETag[url] != "" {
 		// Don't bother fetching if unchanged
 		req.Header.Set(ifNoneMatch, lastCloudConfigETag[url])
+	}
+
+	if authToken != "" {
+		req.Header.Set("X-LANTERN-AUTH-TOKEN", authToken)
 	}
 
 	// Prevents intermediate nodes (CloudFlare) from caching the content
@@ -542,6 +596,10 @@ func fetchCloudConfig(client *http.Client, url string) ([]byte, error) {
 		}
 	}()
 
+	return readConfigResponse(url, resp)
+}
+
+func readConfigResponse(url string, resp *http.Response) ([]byte, error) {
 	if resp.StatusCode == 304 {
 		log.Debugf("Config unchanged in cloud")
 		return nil, nil
@@ -592,4 +650,12 @@ func (updated *Config) updateFrom(updateBytes []byte) error {
 		sort.Strings(updated.ProxiedSites.Cloud)
 	}
 	return nil
+}
+
+func trustedCACerts() []string {
+	certs := make([]string, 0, len(defaultTrustedCAs))
+	for _, ca := range defaultTrustedCAs {
+		certs = append(certs, ca.Cert)
+	}
+	return certs
 }

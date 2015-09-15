@@ -187,6 +187,7 @@ func doMain() error {
 				exit(err)
 			}
 		}()
+		log.Debugf("Processed config")
 		if *help || cfg.Addr == "" || (cfg.Role != "server" && cfg.Role != "client") {
 			flag.Usage()
 			exit(fmt.Errorf("Wrong arguments"))
