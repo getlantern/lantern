@@ -89,6 +89,16 @@ With Lantern Android running, to filter Logcat messages:
 make logcat
 ```
 
+#### Simulating tun2socks and lantern outside Android
+
+We are going to use a virtual machine to simulate the `device <-> tun <->
+tun2sock <-> lantern <-> Internet` dance.
+
+```
+cd /path/to/lantern-mobile
+vagrant up
+```
+
 [1]: http://developer.android.com/tools/studio/index.html
 [2]: https://developer.android.com/ndk/downloads/index.html#download
 [3]: https://code.google.com/p/badvpn/wiki/tun2socks
