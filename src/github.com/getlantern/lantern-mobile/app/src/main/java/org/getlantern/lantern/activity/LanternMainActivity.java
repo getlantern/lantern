@@ -12,7 +12,8 @@ import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.ToggleButton;
 
 import android.net.VpnService;
 
@@ -27,7 +28,7 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
     private static final String PREFS_NAME = "LanternPrefs";
     private SharedPreferences mPrefs = null;
 
-    private Button powerLantern;
+    private ToggleButton powerLantern;
     private Handler mHandler;
 
     @Override
@@ -38,7 +39,7 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
 
         setContentView(R.layout.activity_lantern_main);
 
-        powerLantern = (Button)findViewById(R.id.powerLantern);
+        powerLantern = (ToggleButton)findViewById(R.id.powerLantern);
         setupLanternSwitch();
     }
 
@@ -59,13 +60,11 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
         setBtnStatus();
 
         // START/STOP button to enable full-device VPN functionality
-        powerLantern.setOnClickListener(new OnClickListener() {
+        powerLantern.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
-            public void onClick(View v) {
-                Button b = (Button) v;
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 boolean useVpn;
-
-                if (b.getText() == LanternConfig.START_BUTTON_TEXT) {
+                if (!isChecked) {
                     enableVPN();
                     useVpn = true;
                 } else {
@@ -74,7 +73,7 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
                 }
 
                 // update button text after we've clicked on it
-                b.setText(useVpn ? LanternConfig.STOP_BUTTON_TEXT : LanternConfig.START_BUTTON_TEXT);
+                //b.setText(useVpn ? LanternConfig.STOP_BUTTON_TEXT : LanternConfig.START_BUTTON_TEXT);
                 // store the updated preference 
                 mPrefs.edit().putBoolean(LanternConfig.PREF_USE_VPN, useVpn).commit();
 
@@ -86,11 +85,7 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
     // according to our stored preference
     public void setBtnStatus() {
         boolean useVPN = useVpn();
-        if (!useVPN) {
-            powerLantern.setText(LanternConfig.START_BUTTON_TEXT);
-        } else {
-            powerLantern.setText(LanternConfig.STOP_BUTTON_TEXT);
-        }
+        powerLantern.setChecked(useVPN);
     }
 
     public SharedPreferences getSharedPrefs(Context context) {
