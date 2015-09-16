@@ -7,7 +7,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.animation.ArgbEvaluator;
+import android.animation.ObjectAnimator;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.PorterDuff; 
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Gravity;
@@ -37,6 +41,8 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
     private ToggleButton powerLantern;
     private Handler mHandler;
     private LayoutInflater inflater;
+    private ObjectAnimator colorFade;
+    private View mainView;
     private View statusLayout;
     private ImageView statusImage;
     private Toast statusToast;
@@ -79,10 +85,10 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 boolean useVpn;
                 if (isChecked) {
-                    enableVPN();
+                    //enableVPN();
                     useVpn = true;
                 } else {
-                    stopLantern();
+                    //stopLantern();
                     useVpn = false;
                 }
                 // display status message at bottom of screen
@@ -95,7 +101,14 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
         });
     } 
 
+    // A toast feedback that displays whenever the ON/OFF switch is toggled
     private void setupStatusToast() {
+        mainView = (View)findViewById(R.id.mainView); 
+        // when we switch from 'off' to 'on', we use a 1 second 
+        // fade to animate the background color
+        colorFade = ObjectAnimator.ofObject(mainView, "backgroundColor", new ArgbEvaluator(), 
+                Color.parseColor("#FAFBFB"), Color.parseColor("#39C2D6"));
+        colorFade.setDuration(1000);
         inflater = getLayoutInflater();
         statusLayout = inflater.inflate(R.layout.status_layout, 
                 (ViewGroup)findViewById(R.id.status_layout_root));
@@ -108,8 +121,13 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
 
     private void displayStatus(boolean useVpn) {
         if (useVpn) {
+            // whenever we switch 'on', we want to trigger the color
+            // fade for the background color animation and switch
+            // our image view to use the 'on' image resource
+            colorFade.start();
             statusImage.setImageResource(R.drawable.toast_on);
         } else {
+            mainView.setBackgroundColor(Color.parseColor("#FAFBFB"));
             statusImage.setImageResource(R.drawable.toast_off); 
         }
         statusToast.setView(statusLayout);
