@@ -10,10 +10,15 @@ import android.preference.PreferenceManager;
 import android.content.SharedPreferences;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.LayoutInflater;
 import android.widget.CompoundButton;
+import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
+import android.view.ViewGroup;
 
 import android.net.VpnService;
 
@@ -64,22 +69,41 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 boolean useVpn;
-                if (!isChecked) {
+                if (isChecked) {
                     enableVPN();
                     useVpn = true;
                 } else {
                     stopLantern();
                     useVpn = false;
                 }
+                // display status message at bottom of screen
+                displayStatus(useVpn);
 
-                // update button text after we've clicked on it
-                //b.setText(useVpn ? LanternConfig.STOP_BUTTON_TEXT : LanternConfig.START_BUTTON_TEXT);
                 // store the updated preference 
                 mPrefs.edit().putBoolean(LanternConfig.PREF_USE_VPN, useVpn).commit();
 
             }
         });
     } 
+
+    private void displayStatus(boolean useVpn) {
+        LayoutInflater inflater = getLayoutInflater();
+        View layout = inflater.inflate(R.layout.status_layout,
+                (ViewGroup) findViewById(R.id.status_layout_root));
+
+        TextView text = (TextView) layout.findViewById(R.id.status_text);
+        if (useVpn) {
+            text.setText(R.string.on_text);
+        } else {
+            text.setText(R.string.off_text);
+        }
+
+        Toast toast = new Toast(getApplicationContext());
+        toast.setGravity(Gravity.BOTTOM|Gravity.CENTER, 0, 0);
+        toast.setDuration(Toast.LENGTH_LONG);
+        toast.setView(layout);
+        toast.show();
+    }
 
     // update START/STOP power Lantern button
     // according to our stored preference
