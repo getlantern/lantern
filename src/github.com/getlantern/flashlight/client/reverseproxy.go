@@ -50,32 +50,29 @@ func (client *Client) newReverseProxy() (*httputil.ReverseProxy, error) {
 		return conn, err
 	}
 
-	innerTransport := http.Transport{
-		// We disable keepalives because some servers pretend to support
-		// keep-alives but close their connections immediately, which
-		// causes an error inside ReverseProxy.  This is not an issue
-		// for HTTPS because  the browser is responsible for handling
-		// the problem, which browsers like Chrome and Firefox already
-		// know to do.
-		//
-		// See https://code.google.com/p/go/issues/detail?id=4677
-		DisableKeepAlives:   true,
-		TLSHandshakeTimeout: 40 * time.Second,
+	transport := &authTransport{
+		balancedDialer: dialer,
 	}
+	// We disable keepalives because some servers pretend to support
+	// keep-alives but close their connections immediately, which
+	// causes an error inside ReverseProxy.  This is not an issue
+	// for HTTPS because  the browser is responsible for handling
+	// the problem, which browsers like Chrome and Firefox already
+	// know to do.
+	//
+	// See https://code.google.com/p/go/issues/detail?id=4677
+	transport.DisableKeepAlives = true
+	transport.TLSHandshakeTimeout = 40 * time.Second
+
 	// TODO: would be good to make this sensitive to QOS, which
 	// right now is only respected for HTTPS connections. The
 	// challenge is that ReverseProxy reuses connections for
 	// different requests, so we might have to configure different
 	// ReverseProxies for different QOS's or something like that.
 	if runtime.GOOS == "android" || client.ProxyAll {
-		innerTransport.Dial = dial
+		transport.Dial = dial
 	} else {
-		innerTransport.Dial = detour.Dialer(dial)
-	}
-
-	transport := &authTransport{
-		Transport:      innerTransport,
-		balancedDialer: dialer,
+		transport.Dial = detour.Dialer(dial)
 	}
 
 	rp := &httputil.ReverseProxy{
