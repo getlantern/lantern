@@ -15,9 +15,10 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.LayoutInflater;
 import android.widget.CompoundButton;
-import android.widget.TextView;
+import android.widget.ImageView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
+import android.view.View;
 import android.view.ViewGroup;
 
 import android.net.VpnService;
@@ -35,6 +36,10 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
 
     private ToggleButton powerLantern;
     private Handler mHandler;
+    private LayoutInflater inflater;
+    private View statusLayout;
+    private ImageView statusImage;
+    private Toast statusToast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +49,10 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
 
         setContentView(R.layout.activity_lantern_main);
 
-        powerLantern = (ToggleButton)findViewById(R.id.powerLantern);
+        // initialize and configure status toast (what's displayed
+        // whenever we use the on/off slider) 
+        setupStatusToast();
+        // configure actions to be taken whenever slider changes state
         setupLanternSwitch();
     }
 
@@ -62,6 +70,7 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
     // START/STOP button to enable full-device VPN functionality
     private void setupLanternSwitch() {
 
+        powerLantern = (ToggleButton)findViewById(R.id.powerLantern);
         setBtnStatus();
 
         // START/STOP button to enable full-device VPN functionality
@@ -86,23 +95,25 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
         });
     } 
 
+    private void setupStatusToast() {
+        inflater = getLayoutInflater();
+        statusLayout = inflater.inflate(R.layout.status_layout, 
+                (ViewGroup)findViewById(R.id.status_layout_root));
+        statusImage = (ImageView)statusLayout.findViewById(R.id.status_image);
+        statusToast = new Toast(getApplicationContext());
+        statusToast.setGravity(Gravity.BOTTOM|Gravity.CENTER, 0, 0);
+        statusToast.setDuration(Toast.LENGTH_SHORT);
+
+    }
+
     private void displayStatus(boolean useVpn) {
-        LayoutInflater inflater = getLayoutInflater();
-        View layout = inflater.inflate(R.layout.status_layout,
-                (ViewGroup) findViewById(R.id.status_layout_root));
-
-        TextView text = (TextView) layout.findViewById(R.id.status_text);
         if (useVpn) {
-            text.setText(R.string.on_text);
+            statusImage.setImageResource(R.drawable.toast_on);
         } else {
-            text.setText(R.string.off_text);
+            statusImage.setImageResource(R.drawable.toast_off); 
         }
-
-        Toast toast = new Toast(getApplicationContext());
-        toast.setGravity(Gravity.BOTTOM|Gravity.CENTER, 0, 0);
-        toast.setDuration(Toast.LENGTH_LONG);
-        toast.setView(layout);
-        toast.show();
+        statusToast.setView(statusLayout);
+        statusToast.show();
     }
 
     // update START/STOP power Lantern button

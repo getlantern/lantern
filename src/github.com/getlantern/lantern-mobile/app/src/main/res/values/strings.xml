@@ -2,6 +2,4 @@
     <string name="app_name">Lantern</string>
     <string name="action_settings">Settings</string>
     <string name="button_text">Start</string>
-    <string name="off_text">Lantern is Off. Flip the switch to access blocked sites and services!</string>
-    <string name="on_text">Lantern is On. You can now access blocked sites and services!</string>
 </resources>

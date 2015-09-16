@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <item name="powerLantern" type="id"/>
-    <item name="on_text" type="id"/>
-    <item name="off_text" type="id"/>
+    <item name="toast_on" type="id"/>
+    <item name="toast_off" type="id"/>
 </resources>
