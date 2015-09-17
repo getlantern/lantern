@@ -9,6 +9,7 @@ import (
 	"sort"
 
 	"github.com/getlantern/golog"
+	"github.com/getlantern/lantern-mobile/lantern/protected"
 )
 
 var (
@@ -21,13 +22,15 @@ var (
 
 // Balancer balances connections established by one or more Dialers.
 type Balancer struct {
-	dialers []*dialer
-	trusted []*dialer
+	dialers    []*dialer
+	trusted    []*dialer
+	dnsDialers []*dialer
 }
 
 // New creates a new Balancer using the supplied Dialers.
 func New(dialers ...*Dialer) *Balancer {
 	trustedDialersCount := 0
+	dnsDialersCount := 0
 
 	bal := new(Balancer)
 
@@ -41,16 +44,26 @@ func New(dialers ...*Dialer) *Balancer {
 		if dl.Trusted {
 			trustedDialersCount++
 		}
+
+		if dl.DnsServer != "" {
+			dnsDialersCount++
+		}
 	}
+
+	log.Debugf("number of dns dialers: %d", dnsDialersCount)
 
 	// Sort dialers by QOS (ascending) for later selection
 	sort.Sort(byQOSAscending(bal.dialers))
 
 	bal.trusted = make([]*dialer, 0, trustedDialersCount)
+	bal.dnsDialers = make([]*dialer, 0, dnsDialersCount)
 
 	for _, d := range bal.dialers {
 		if d.Trusted {
 			bal.trusted = append(bal.trusted, d)
+		}
+		if d.DnsServer != "" {
+			bal.dnsDialers = append(bal.dnsDialers, d)
 		}
 	}
 
@@ -66,7 +79,7 @@ func New(dialers ...*Dialer) *Balancer {
 // If a Dialer fails to connect, Dial will keep falling back through the
 // remaining Dialers until it either manages to connect, or runs out of dialers
 // in which case it returns an error.
-func (b *Balancer) DialQOS(network, addr string, targetQOS int) (net.Conn, error) {
+func (b *Balancer) DialQOS(network, addr string, targetQOS int) (conn net.Conn, err error) {
 	var dialers []*dialer
 
 	_, port, _ := net.SplitHostPort(addr)
@@ -79,6 +92,8 @@ func (b *Balancer) DialQOS(network, addr string, targetQOS int) (net.Conn, error
 	// send HTTP traffic to dialers marked as trusted.
 	if port == "" || port == "80" || port == "8080" {
 		dialers = b.trusted
+	} else if port == "53" {
+		dialers = b.dnsDialers
 	} else {
 		dialers = b.dialers
 	}
@@ -92,8 +107,15 @@ func (b *Balancer) DialQOS(network, addr string, targetQOS int) (net.Conn, error
 		if d == nil {
 			return nil, fmt.Errorf("No dialers left on pass %v", i)
 		}
-		log.Debugf("Dialing %s://%s with %s", network, addr, d.Label)
-		conn, err := d.Dial(network, addr)
+
+		if addr == "127.0.0.1:53" {
+			addr = d.DnsServer
+			log.Debugf("Tunneling dns request %s://%s with %s", network, addr, d.Label)
+			conn, err = protected.Dial(network, addr)
+		} else {
+			log.Debugf("Dialing %s://%s with %s", network, addr, d.Label)
+			conn, err = d.Dial(network, addr)
+		}
 
 		if err != nil {
 			log.Errorf("Unable to dial via %v to %s://%s: %v on pass %v...continuing", d.Label, network, addr, err, i)
