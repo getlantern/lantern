@@ -137,11 +137,11 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (net.Conn, error) {
 		return nil, errors.New("tunnel is closed")
 	}
 
-	host, port, err := protected.SplitHostPort(addr)
+	_, port, err := protected.SplitHostPort(addr)
 	if err != nil {
 		return nil, err
 	}
-	if port != 80 && port != 443 && port != 7300 {
+	if port != 80 && port != 443 && port != 53 {
 		log.Errorf("Invalid port %d for address %s", port, addr)
 		return nil, errors.New("invalid port")
 	}
@@ -153,7 +153,7 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (net.Conn, error) {
 	})
 	go func() {
 
-		if port == 7300 {
+		/*if port == 53 {
 			remoteConn, err := protected.Dial("tcp", addr)
 			if err != nil {
 				log.Errorf("Error creating protected connection: %v", err)
@@ -163,7 +163,7 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (net.Conn, error) {
 			log.Debugf("Connecting to %s:%d", host, port)
 			resultCh <- &dialResult{remoteConn, err}
 			return
-		}
+		}*/
 
 		balancer := i.client.GetBalancer()
 		forwardConn, err := balancer.Dial("tcp", addr)

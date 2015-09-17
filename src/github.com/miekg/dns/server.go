@@ -10,9 +10,6 @@ import (
 	"time"
 )
 
-// Maximum number of TCP queries before we close the socket.
-const maxTCPQueries = 128
-
 // Handler is implemented by any value that implements ServeDNS.
 type Handler interface {
 	ServeDNS(w ResponseWriter, r *Msg)
@@ -162,9 +159,9 @@ func (mux *ServeMux) HandleRemove(pattern string) {
 	if pattern == "" {
 		panic("dns: invalid pattern " + pattern)
 	}
-	mux.m.Lock()
+	// don't need a mutex here, because deleting is OK, even if the
+	// entry is note there.
 	delete(mux.z, Fqdn(pattern))
-	mux.m.Unlock()
 }
 
 // ServeDNS dispatches the request to the handler whose
@@ -289,6 +286,7 @@ func (srv *Server) ListenAndServe() error {
 		srv.lock.Unlock()
 		return &Error{err: "server already started"}
 	}
+	defer srv.lock.Unlock()
 	srv.stopUDP, srv.stopTCP = make(chan bool), make(chan bool)
 	srv.started = true
 	addr := srv.Addr
@@ -309,7 +307,6 @@ func (srv *Server) ListenAndServe() error {
 			return e
 		}
 		srv.Listener = l
-		srv.lock.Unlock()
 		return srv.serveTCP(l)
 	case "udp", "udp4", "udp6":
 		a, e := net.ResolveUDPAddr(srv.Net, addr)
@@ -324,10 +321,8 @@ func (srv *Server) ListenAndServe() error {
 			return e
 		}
 		srv.PacketConn = l
-		srv.lock.Unlock()
 		return srv.serveUDP(l)
 	}
-	srv.lock.Unlock()
 	return &Error{err: "bad network"}
 }
 
@@ -459,6 +454,7 @@ func (srv *Server) serveTCP(l *net.TCPListener) error {
 		srv.wgTCP.Add(1)
 		go srv.serve(rw.RemoteAddr(), handler, m, nil, nil, rw)
 	}
+	panic("dns: not reached")
 }
 
 // serveUDP starts a UDP listener for the server.
@@ -494,6 +490,7 @@ func (srv *Server) serveUDP(l *net.UDPConn) error {
 		srv.wgUDP.Add(1)
 		go srv.serve(s.RemoteAddr(), handler, m, l, s, nil)
 	}
+	panic("dns: not reached")
 }
 
 // Serve a new connection.
@@ -505,8 +502,7 @@ func (srv *Server) serve(a net.Addr, h Handler, m []byte, u *net.UDPConn, s *Ses
 		w.writer = w
 	}
 
-	q := 0 // counter for the amount of TCP queries we get
-
+	q := 0
 	defer func() {
 		if u != nil {
 			srv.wgUDP.Done()
@@ -548,12 +544,6 @@ Redo:
 	h.ServeDNS(w, req) // Writes back to the client
 
 Exit:
-	// TODO(miek): make this number configurable?
-	if q > maxTCPQueries { // close socket after this many queries
-		w.Close()
-		return
-	}
-
 	if w.hijacked {
 		return // client calls Close()
 	}
@@ -568,6 +558,11 @@ Exit:
 	m, e := reader.ReadTCP(w.tcp, idleTimeout)
 	if e == nil {
 		q++
+		// TODO(miek): make this number configurable?
+		if q > 128 { // close socket after this many queries
+			w.Close()
+			return
+		}
 		goto Redo
 	}
 	w.Close()

@@ -8,9 +8,9 @@ import (
 var testcases = [][2]string{
 	{"", ""},
 	{"a", "a"},
-	{"a-b", "a-b"},
-	{"a-b-c", "a-b-c"},
-	{"abc", "abc"},
+	{"A-B", "a-b"},
+	{"A-B-C", "a-b-c"},
+	{"AbC", "abc"},
 	{"я", "xn--41a"},
 	{"zя", "xn--z-0ub"},
 	{"яZ", "xn--z-zub"},

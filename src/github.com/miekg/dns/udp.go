@@ -7,14 +7,11 @@ import (
 	"syscall"
 )
 
-// SessionUDP holds the remote address and the associated
-// out-of-band data.
 type SessionUDP struct {
 	raddr   *net.UDPAddr
 	context []byte
 }
 
-// RemoteAddr returns the remote network address.
 func (s *SessionUDP) RemoteAddr() net.Addr { return s.raddr }
 
 // setUDPSocketOptions sets the UDP socket options.

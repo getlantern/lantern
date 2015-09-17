@@ -41,7 +41,7 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
     private ToggleButton powerLantern;
     private Handler mHandler;
     private LayoutInflater inflater;
-    private ObjectAnimator colorFade;
+    private ObjectAnimator colorFadeIn, colorFadeOut;
     private View mainView;
     private View statusLayout;
     private ImageView statusImage;
@@ -71,6 +71,12 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
         if (mPrefs != null) {
             setBtnStatus();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mPrefs.edit().remove(LanternConfig.PREF_USE_VPN).commit();
     }
 
     // START/STOP button to enable full-device VPN functionality
@@ -106,15 +112,17 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
         mainView = (View)findViewById(R.id.mainView); 
         // when we switch from 'off' to 'on', we use a 1 second 
         // fade to animate the background color
-        colorFade = ObjectAnimator.ofObject(mainView, "backgroundColor", new ArgbEvaluator(), 
-                Color.parseColor("#FAFBFB"), Color.parseColor("#39C2D6"));
-        colorFade.setDuration(1000);
+        colorFadeIn = ObjectAnimator.ofObject(mainView, "backgroundColor", new ArgbEvaluator(), Color.parseColor("#FAFBFB"), Color.parseColor("#39C2D6"));
+        colorFadeOut = ObjectAnimator.ofObject(mainView, "backgroundColor", new ArgbEvaluator(), Color.parseColor("#39C2D6"), Color.parseColor("#FAFBFB"));
+        colorFadeIn.setDuration(1000);
+        colorFadeOut.setDuration(1000);
+
         inflater = getLayoutInflater();
         statusLayout = inflater.inflate(R.layout.status_layout, 
                 (ViewGroup)findViewById(R.id.status_layout_root));
         statusImage = (ImageView)statusLayout.findViewById(R.id.status_image);
         statusToast = new Toast(getApplicationContext());
-        statusToast.setGravity(Gravity.BOTTOM|Gravity.CENTER, 0, 0);
+        statusToast.setGravity(Gravity.BOTTOM|Gravity.FILL_HORIZONTAL, 0, 0);
         statusToast.setDuration(Toast.LENGTH_SHORT);
 
     }
@@ -124,10 +132,10 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
             // whenever we switch 'on', we want to trigger the color
             // fade for the background color animation and switch
             // our image view to use the 'on' image resource
-            colorFade.start();
+            colorFadeIn.start();
             statusImage.setImageResource(R.drawable.toast_on);
         } else {
-            mainView.setBackgroundColor(Color.parseColor("#FAFBFB"));
+            colorFadeOut.start();
             statusImage.setImageResource(R.drawable.toast_off); 
         }
         statusToast.setView(statusLayout);

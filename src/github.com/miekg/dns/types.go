@@ -91,24 +91,26 @@ const (
 	TypeLP         uint16 = 107
 	TypeEUI48      uint16 = 108
 	TypeEUI64      uint16 = 109
-	TypeURI        uint16 = 256
-	TypeCAA        uint16 = 257
 
 	TypeTKEY uint16 = 249
 	TypeTSIG uint16 = 250
 
 	// valid Question.Qtype only
+
 	TypeIXFR  uint16 = 251
 	TypeAXFR  uint16 = 252
 	TypeMAILB uint16 = 253
 	TypeMAILA uint16 = 254
 	TypeANY   uint16 = 255
 
+	TypeURI      uint16 = 256
+	TypeCAA      uint16 = 257
 	TypeTA       uint16 = 32768
 	TypeDLV      uint16 = 32769
 	TypeReserved uint16 = 65535
 
 	// valid Question.Qclass
+
 	ClassINET   = 1
 	ClassCSNET  = 2
 	ClassCHAOS  = 3
@@ -116,7 +118,8 @@ const (
 	ClassNONE   = 254
 	ClassANY    = 255
 
-	// Message Response Codes.
+	// Msg.rcode
+
 	RcodeSuccess        = 0
 	RcodeFormatError    = 1
 	RcodeServerFailure  = 2
@@ -137,7 +140,8 @@ const (
 	RcodeBadAlg         = 21
 	RcodeBadTrunc       = 22 // TSIG
 
-	// Message Opcodes. There is no 3.
+	// Opcode, there is no 3
+
 	OpcodeQuery  = 0
 	OpcodeIQuery = 1
 	OpcodeStatus = 2
@@ -145,7 +149,7 @@ const (
 	OpcodeUpdate = 5
 )
 
-// Headers is the wire format for the DNS packet header.
+// The wire format for the DNS packet header.
 type Header struct {
 	Id                                 uint16
 	Bits                               uint16
@@ -174,7 +178,7 @@ const (
 	LOC_ALTITUDEBASE = 100000
 )
 
-// Different Certificate Types, see RFC 4398, Section 2.1
+// RFC 4398, Section 2.1
 const (
 	CertPKIX = 1 + iota
 	CertSPKI
@@ -188,8 +192,6 @@ const (
 	CertOID = 254
 )
 
-// CertTypeToString converts the Cert Type to its string representation.
-// See RFC 4398 and RFC 6944.
 var CertTypeToString = map[uint16]string{
 	CertPKIX:    "PKIX",
 	CertSPKI:    "SPKI",
@@ -203,7 +205,6 @@ var CertTypeToString = map[uint16]string{
 	CertOID:     "OID",
 }
 
-// StringToCertType is the reverseof CertTypeToString.
 var StringToCertType = reverseInt16(CertTypeToString)
 
 // Question holds a DNS question. There can be multiple questions in the
@@ -227,8 +228,6 @@ func (q *Question) len() int {
 	return l + 4
 }
 
-// ANY is a wildcard record. See RFC 1035, Section 3.2.3. ANY
-// is named "*" there.
 type ANY struct {
 	Hdr RR_Header
 	// Does not have any rdata
@@ -702,7 +701,7 @@ func (rr *NAPTR) len() int {
 		len(rr.Regexp) + 1 + len(rr.Replacement) + 1
 }
 
-// The CERT resource record, see RFC 4398.
+// See RFC 4398.
 type CERT struct {
 	Hdr         RR_Header
 	Type        uint16
@@ -738,7 +737,7 @@ func (rr *CERT) len() int {
 		base64.StdEncoding.DecodedLen(len(rr.Certificate))
 }
 
-// The DNAME resource record, see RFC 2672.
+// See RFC 2672.
 type DNAME struct {
 	Hdr    RR_Header
 	Target string `dns:"domain-name"`

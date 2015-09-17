@@ -40,9 +40,6 @@ A not-so-up-to-date-list-that-may-be-actually-current:
 * https://mesosphere.github.io/mesos-dns/
 * https://pulse.turbobytes.com/
 * https://play.google.com/store/apps/details?id=com.turbobytes.dig
-* https://github.com/fcambus/statzone
-* https://github.com/benschw/dns-clb-go
-* https://github.com/corny/dnscheck for http://public-dns.tk/
 
 Send pull request if you want to be listed here.
 

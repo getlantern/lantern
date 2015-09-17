@@ -1,7 +1,6 @@
 package dns
 
 import (
-	"crypto"
 	"crypto/dsa"
 	"crypto/ecdsa"
 	"crypto/rsa"
@@ -13,7 +12,7 @@ import (
 
 // NewPrivateKey returns a PrivateKey by parsing the string s.
 // s should be in the same form of the BIND private key files.
-func (k *DNSKEY) NewPrivateKey(s string) (crypto.PrivateKey, error) {
+func (k *DNSKEY) NewPrivateKey(s string) (PrivateKey, error) {
 	if s[len(s)-1] != '\n' { // We need a closing newline
 		return k.ReadPrivateKey(strings.NewReader(s+"\n"), "")
 	}
@@ -24,7 +23,7 @@ func (k *DNSKEY) NewPrivateKey(s string) (crypto.PrivateKey, error) {
 // only used in error reporting.
 // The public key must be known, because some cryptographic algorithms embed
 // the public inside the privatekey.
-func (k *DNSKEY) ReadPrivateKey(q io.Reader, file string) (crypto.PrivateKey, error) {
+func (k *DNSKEY) ReadPrivateKey(q io.Reader, file string) (PrivateKey, error) {
 	m, e := parseKey(q, file)
 	if m == nil {
 		return nil, e
@@ -51,7 +50,7 @@ func (k *DNSKEY) ReadPrivateKey(q io.Reader, file string) (crypto.PrivateKey, er
 			return nil, ErrKey
 		}
 		priv.PublicKey = *pub
-		return priv, e
+		return (*DSAPrivateKey)(priv), e
 	case RSAMD5:
 		fallthrough
 	case RSASHA1:
@@ -70,7 +69,7 @@ func (k *DNSKEY) ReadPrivateKey(q io.Reader, file string) (crypto.PrivateKey, er
 			return nil, ErrKey
 		}
 		priv.PublicKey = *pub
-		return priv, e
+		return (*RSAPrivateKey)(priv), e
 	case ECCGOST:
 		return nil, ErrPrivKey
 	case ECDSAP256SHA256:
@@ -85,7 +84,7 @@ func (k *DNSKEY) ReadPrivateKey(q io.Reader, file string) (crypto.PrivateKey, er
 			return nil, ErrKey
 		}
 		priv.PublicKey = *pub
-		return priv, e
+		return (*ECDSAPrivateKey)(priv), e
 	default:
 		return nil, ErrPrivKey
 	}

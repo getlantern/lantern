@@ -8,7 +8,8 @@
     >
     <ImageView
         android:layout_height="wrap_content"
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
+        android:adjustViewBounds="true"
         android:src="@drawable/toast_off"
         android:id="@+id/status_image">
     </ImageView>                      
