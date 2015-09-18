@@ -144,19 +144,20 @@ func testFallbackServer(fb *client.ChainedServerInfo, workerId int) (output full
 		},
 	}
 	req, err := http.NewRequest("GET", "http://www.google.com/humans.txt", nil)
-	if *verbose {
+	if *verbose && err == nil {
 		reqStr, _ := httputil.DumpRequestOut(req, true)
 		output.info = []string{"\n" + string(reqStr)}
 	}
 
 	resp, err := c.Do(req)
-	if *verbose {
-		respStr, _ := httputil.DumpResponse(resp, true)
-		output.info = append(output.info, "\n"+string(respStr))
-	}
 	if err != nil {
 		output.err = fmt.Errorf("%v: requesting humans.txt failed: %v", fb.Addr, err)
 		return
+	} else {
+		if *verbose {
+			respStr, _ := httputil.DumpResponse(resp, true)
+			output.info = append(output.info, "\n"+string(respStr))
+		}
 	}
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
