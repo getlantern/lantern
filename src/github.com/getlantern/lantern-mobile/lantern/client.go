@@ -48,6 +48,10 @@ func init() {
 	}
 }
 
+func NewDefaultClient() *mobileClient {
+	return newClient("0.0.0.0:8787", "socks-server-test")
+}
+
 // newClient creates a proxy client.
 func newClient(addr, appName string) *mobileClient {
 
