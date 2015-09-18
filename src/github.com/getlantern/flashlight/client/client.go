@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/getlantern/balancer"
-	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
 
 	"github.com/getlantern/flashlight/globals"
@@ -51,8 +50,8 @@ type Client struct {
 	rpCh          chan *httputil.ReverseProxy
 	rpInitialized bool
 
-	hqfd fronted.Dialer
-	l    net.Listener
+	httpClientFunc func() *http.Client
+	l              net.Listener
 }
 
 // ListenAndServe makes the client listen for HTTP connections.  onListeningFn
@@ -81,10 +80,10 @@ func (client *Client) ListenAndServe(onListeningFn func()) error {
 	return httpServer.Serve(l)
 }
 
-// Configure updates the client's configuration.  Configure can be called
+// Configure updates the client's configuration. Configure can be called
 // before or after ListenAndServe, and can be called multiple times.  It
 // returns the highest QOS fronted.Dialer available, or nil if none available.
-func (client *Client) Configure(cfg *ClientConfig) fronted.Dialer {
+func (client *Client) Configure(cfg *ClientConfig) {
 	client.cfgMutex.Lock()
 	defer client.cfgMutex.Unlock()
 
@@ -93,7 +92,7 @@ func (client *Client) Configure(cfg *ClientConfig) fronted.Dialer {
 	if client.priorCfg != nil && client.priorTrustedCAs != nil {
 		if reflect.DeepEqual(client.priorCfg, cfg) && reflect.DeepEqual(client.priorTrustedCAs, globals.TrustedCAs) {
 			log.Debugf("Client configuration unchanged")
-			return client.hqfd
+			return
 		}
 		log.Debugf("Client configuration changed")
 	} else {
@@ -105,23 +104,15 @@ func (client *Client) Configure(cfg *ClientConfig) fronted.Dialer {
 	log.Debugf("Proxy all traffic or not: %v", cfg.ProxyAll)
 	client.ProxyAll = cfg.ProxyAll
 
-	var bal *balancer.Balancer
-	bal, client.hqfd = client.initBalancer(cfg)
-
-	client.initReverseProxy(bal, cfg.DumpHeaders)
+	client.initBalancer(cfg)
 
 	client.priorCfg = cfg
 	client.priorTrustedCAs = &x509.CertPool{}
 	*client.priorTrustedCAs = *globals.TrustedCAs
-
-	return client.hqfd
 }
 
 // Stop is called when the client is no longer needed. It closes the
 // client listener and underlying dialer connection pool
 func (client *Client) Stop() error {
-	if err := client.hqfd.Close(); err != nil {
-		log.Debugf("Error closing client connection: %s", err)
-	}
 	return client.l.Close()
 }

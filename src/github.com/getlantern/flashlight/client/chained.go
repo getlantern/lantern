@@ -118,5 +118,6 @@ func (s *ChainedServerInfo) Dialer() (*balancer.Dialer, error) {
 			})
 			return withStats(conn, err)
 		},
+		AuthToken: s.AuthToken,
 	}, nil
 }

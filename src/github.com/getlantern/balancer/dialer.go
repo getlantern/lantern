@@ -43,6 +43,8 @@ type Dialer struct {
 
 	// Determines wheter a dialer can be trusted with unencrypted traffic.
 	Trusted bool
+
+	AuthToken string
 }
 
 var (
