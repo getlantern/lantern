@@ -138,9 +138,9 @@ func (d *dialer) defaultCheck() bool {
 		req, err := http.NewRequest("GET", "http://www.google.com/humans.txt", nil)
 		if err != nil {
 			log.Errorf("Could not create HTTP request?")
-			return false
+			return false, nil
 		}
-		req.Header.Set("X-LANTERN-AUTH-TOKEN", d.authToken)
+		req.Header.Set("X-LANTERN-AUTH-TOKEN", d.AuthToken)
 		resp, err := client.Do(req)
 		if err != nil {
 			log.Debugf("Error testing dialer %s to humans.txt: %s", d.Label, err)
