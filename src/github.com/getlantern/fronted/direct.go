@@ -77,17 +77,15 @@ func (d *Direct) NewHttpClient(m *Masquerade) *http.Client {
 		ServerName:         m.Domain,
 		RootCAs:            d.certPool,
 	}
+	trans := &DirectDomainTransport{}
+	trans.Dial = func(network, addr string) (net.Conn, error) {
+		log.Debugf("Dialing %s with direct domain fronter", addr)
+		return dialServerWith(m, tlsConfig)
+	}
+	trans.TLSHandshakeTimeout = 40 * time.Second
+	trans.DisableKeepAlives = true
 	return &http.Client{
-		Transport: &DirectDomainTransport{
-			Transport: http.Transport{
-				Dial: func(network, addr string) (net.Conn, error) {
-					log.Debugf("Dialing %s with direct domain fronter", addr)
-					return dialServerWith(m, tlsConfig)
-				},
-				TLSHandshakeTimeout: 40 * time.Second,
-				DisableKeepAlives:   true,
-			},
-		},
+		Transport: trans,
 	}
 }
 
