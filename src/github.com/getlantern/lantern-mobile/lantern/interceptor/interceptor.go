@@ -3,6 +3,7 @@ package interceptor
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"sync"
@@ -21,27 +22,31 @@ var (
 )
 
 var (
-	dialTimeout           = 15 * time.Second
-	failureCountThreshold = 20
-	log                   = golog.LoggerFor("lantern-android.interceptor")
+	dialTimeout = 15 * time.Second
+	// threshold of errors that we are withstanding
+	maxErrCount = 20
+	// how often to print stats of current interceptor
+	statsInterval = 15 * time.Second
+	log           = golog.LoggerFor("lantern-android.interceptor")
 )
 
 type Interceptor struct {
 	client *client.Client
 
-	socksAddr   string
-	httpAddr    string
-	udpgwServer string
+	socksAddr string
+	httpAddr  string
 
-	failureCount chan int
-	isClosed     bool
+	errCh         chan error
+	totalErrCount int
+	isClosed      bool
 
 	listener       *socks.SocksListener
 	serveWaitGroup *sync.WaitGroup
 
-	openConns              *Conns
-	conns                  map[string]net.Conn
-	stopListeningBroadcast chan struct{}
+	openConns   *Conns
+	conns       map[string]net.Conn
+	stopSignal  chan struct{}
+	showMessage func(string)
 
 	mu *sync.Mutex
 }
@@ -51,7 +56,7 @@ type dialResult struct {
 	err         error
 }
 
-func Relay(localConn, remoteConn net.Conn) {
+func pipe(localConn, remoteConn net.Conn) {
 
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -94,7 +99,7 @@ func (i *Interceptor) startSocksProxy() error {
 // proxy that we use to intercept traffic that arrives on the TUN interface
 // We listen for connections on an accept loop
 func New(client *client.Client,
-	socksAddr, httpAddr, udpgwServer string) (i *Interceptor, err error) {
+	socksAddr, httpAddr string, notice func(string)) (i *Interceptor, err error) {
 
 	i = &Interceptor{
 		mu:             new(sync.Mutex),
@@ -102,29 +107,38 @@ func New(client *client.Client,
 		client:         client,
 		socksAddr:      socksAddr,
 		httpAddr:       httpAddr,
-		udpgwServer:    udpgwServer,
-		failureCount:   make(chan int, failureCountThreshold),
+		errCh:          make(chan error, maxErrCount),
+		showMessage:    notice,
+		totalErrCount:  0,
 		serveWaitGroup: new(sync.WaitGroup),
 		openConns:      new(Conns),
 		conns:          map[string]net.Conn{},
-		stopListeningBroadcast: make(chan struct{}),
+		stopSignal:     make(chan struct{}),
 	}
 
 	err = i.startSocksProxy()
 	if err != nil {
 		return nil, err
 	}
-
+	go i.inspect()
 	return i, nil
 }
 
 // Stop terminates listener and wait for the accept loop
 // goroutine to complete.
 func (i *Interceptor) Stop() {
-	close(i.stopListeningBroadcast)
-	i.listener.Close()
-	i.serveWaitGroup.Wait()
-	i.openConns.CloseAll()
+	close(i.stopSignal)
+
+	i.mu.Lock()
+	isClosed := i.isClosed
+	i.isClosed = true
+	i.mu.Unlock()
+
+	if !isClosed {
+		i.listener.Close()
+		i.serveWaitGroup.Wait()
+		i.openConns.CloseAll()
+	}
 }
 
 func (i *Interceptor) Dial(addr string, localConn net.Conn) (net.Conn, error) {
@@ -141,6 +155,7 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (net.Conn, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if port != 80 && port != 443 && port != 53 {
 		log.Errorf("Invalid port %d for address %s", port, addr)
 		return nil, errors.New("invalid port")
@@ -149,22 +164,9 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (net.Conn, error) {
 	resultCh := make(chan *dialResult, 2)
 	time.AfterFunc(dialTimeout, func() {
 		resultCh <- &dialResult{nil,
-			errors.New("dial timoue to tunnel")}
+			errors.New("dial timeout to tunnel")}
 	})
 	go func() {
-
-		/*if port == 53 {
-			remoteConn, err := protected.Dial("tcp", addr)
-			if err != nil {
-				log.Errorf("Error creating protected connection: %v", err)
-				resultCh <- &dialResult{nil, err}
-				return
-			}
-			log.Debugf("Connecting to %s:%d", host, port)
-			resultCh <- &dialResult{remoteConn, err}
-			return
-		}*/
-
 		balancer := i.client.GetBalancer()
 		forwardConn, err := balancer.Dial("tcp", addr)
 		if err != nil {
@@ -187,7 +189,34 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (net.Conn, error) {
 	}, nil
 }
 
-func (i *Interceptor) connectionHandler(localConn *socks.SocksConn) (err error) {
+// inspect is used to send periodic updates about the current inceptor (such as traffic stats) and to monitor for total number of connection failures
+func (i *Interceptor) inspect() {
+
+	updatesTimer := time.NewTimer(15 * time.Second)
+	defer updatesTimer.Stop()
+L:
+	for {
+		select {
+		case <-updatesTimer.C:
+			statsMsg := fmt.Sprintf("Number of open connections: %d", i.openConns.Size())
+			log.Debug(statsMsg)
+			i.showMessage(statsMsg)
+			updatesTimer.Reset(statsInterval)
+		case err := <-i.errCh:
+			log.Debugf("New error: %v", err)
+			i.totalErrCount += 1
+			if i.totalErrCount > maxErrCount {
+				log.Errorf("Total errors: %d %v", i.totalErrCount, ErrTooManyFailures)
+				i.Stop()
+				break L
+			}
+		}
+	}
+}
+
+func (i *Interceptor) handler(localConn *socks.SocksConn) (err error) {
+
+	log.Debugf("Got a new connection: %v", localConn)
 
 	defer localConn.Close()
 	defer i.openConns.Remove(localConn)
@@ -205,7 +234,7 @@ func (i *Interceptor) connectionHandler(localConn *socks.SocksConn) (err error) 
 		return err
 	}
 
-	Relay(localConn, remoteConn)
+	pipe(localConn, remoteConn)
 	return nil
 }
 
@@ -216,7 +245,8 @@ loop:
 	for {
 		socksConnection, err := i.listener.AcceptSocks()
 		select {
-		case <-i.stopListeningBroadcast:
+		case <-i.stopSignal:
+			log.Debugf("SOCKS proxy shutting down")
 			break loop
 		default:
 		}
@@ -229,12 +259,10 @@ loop:
 			break loop
 		}
 		go func() {
-			log.Debugf("Got a new connection: %v", socksConnection)
-			err := i.connectionHandler(socksConnection)
+			err := i.handler(socksConnection)
 			if err != nil {
 				log.Errorf("%v", err)
 			}
 		}()
 	}
-	log.Debugf("SOCKS proxy stopped")
 }
