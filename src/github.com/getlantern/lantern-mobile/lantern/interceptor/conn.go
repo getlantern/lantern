@@ -16,15 +16,15 @@ type Conns struct {
 	mutex    sync.Mutex
 	isClosed bool
 	conns    map[net.Conn]bool
+	count    int
 }
 
 func (conn *InterceptedConn) Read(buffer []byte) (n int, err error) {
 	n, err = conn.Conn.Read(buffer)
 	if err != nil && err != io.EOF {
-		select {
-		case conn.interceptor.failureCount <- 1:
-		default:
-		}
+		go func() {
+			conn.interceptor.errCh <- err
+		}()
 	}
 	return
 }
@@ -32,11 +32,9 @@ func (conn *InterceptedConn) Read(buffer []byte) (n int, err error) {
 func (conn *InterceptedConn) Write(buffer []byte) (n int, err error) {
 	n, err = conn.Conn.Write(buffer)
 	if err != nil && err != io.EOF {
-		// Same as InterceptedConn.Read()
-		select {
-		case conn.interceptor.failureCount <- 1:
-		default:
-		}
+		go func() {
+			conn.interceptor.errCh <- err
+		}()
 	}
 	return
 }
@@ -48,6 +46,12 @@ func (conns *Conns) Reset() {
 	conns.conns = make(map[net.Conn]bool)
 }
 
+func (conns *Conns) Size() int {
+	conns.mutex.Lock()
+	defer conns.mutex.Unlock()
+	return conns.count
+}
+
 func (conns *Conns) Add(conn net.Conn) bool {
 	conns.mutex.Lock()
 	defer conns.mutex.Unlock()
@@ -57,6 +61,9 @@ func (conns *Conns) Add(conn net.Conn) bool {
 	if conns.conns == nil {
 		conns.conns = make(map[net.Conn]bool)
 	}
+	if !conns.conns[conn] {
+		conns.count++
+	}
 	conns.conns[conn] = true
 	return true
 }
@@ -65,6 +72,7 @@ func (conns *Conns) Remove(conn net.Conn) {
 	conns.mutex.Lock()
 	defer conns.mutex.Unlock()
 	delete(conns.conns, conn)
+	conns.count--
 }
 
 func (conns *Conns) CloseAll() {

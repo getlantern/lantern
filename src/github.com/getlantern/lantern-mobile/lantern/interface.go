@@ -17,12 +17,15 @@ type GoCallback interface {
 
 type SocketProvider interface {
 	Protect(fileDescriptor int) error
+	Notice(message string)
 }
 
 // RunClientProxy creates a new client at the given address.
 func RunClientProxy(listenAddr, appName string, protector SocketProvider, ready GoCallback) error {
 	go func() {
-		protected.Configure(protector)
+		if protector != nil {
+			protected.Configure(protector)
+		}
 		defaultClient = newClient(listenAddr, appName)
 		defaultClient.serveHTTP()
 		ready.AfterStart()
@@ -30,14 +33,13 @@ func RunClientProxy(listenAddr, appName string, protector SocketProvider, ready 
 	return nil
 }
 
-func Configure(protector SocketProvider, httpAddr string,
-	socksAddr string, udpgwServer string,
-	ready GoCallback) error {
+func Start(protector SocketProvider, httpAddr string,
+	socksAddr string, ready GoCallback) error {
 	go func() {
 		var err error
 		protected.Configure(protector)
 
-		i, err = interceptor.New(defaultClient.Client, socksAddr, httpAddr, udpgwServer)
+		i, err = interceptor.New(defaultClient.Client, socksAddr, httpAddr, protector.Notice)
 		if err != nil {
 			log.Errorf("Error starting SOCKS proxy: %v", err)
 		}

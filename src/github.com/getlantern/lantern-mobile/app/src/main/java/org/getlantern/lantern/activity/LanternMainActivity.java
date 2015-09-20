@@ -91,10 +91,10 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 boolean useVpn;
                 if (isChecked) {
-                    //enableVPN();
+                    enableVPN();
                     useVpn = true;
                 } else {
-                    //stopLantern();
+                    stopLantern();
                     useVpn = false;
                 }
                 // display status message at bottom of screen
