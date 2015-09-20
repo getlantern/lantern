@@ -50,7 +50,7 @@ public class Lantern extends Client.SocketProvider.Stub {
             // Wait a second for processing until Lantern starts
             Thread.sleep(1000);
             // Configure Lantern and interception rules
-            Client.Configure(this, httpAddr, socksAddr, LanternConfig.UDPGW_SERVER, callback);
+            Client.Start(this, httpAddr, socksAddr, callback);
 
         } catch (final Exception e) {
             Log.e(TAG, "Fatal error while trying to run Lantern: " + e);
@@ -65,6 +65,11 @@ public class Lantern extends Client.SocketProvider.Stub {
         } catch(final Exception e) {
             // ignore exception
         }
+    }
+
+    @Override
+    public void Notice(String message) {
+        Log.d(TAG, "Received a new message from Lantern: " + message);
     }
 
     // Protect is used to exclude a socket specified by fileDescriptor

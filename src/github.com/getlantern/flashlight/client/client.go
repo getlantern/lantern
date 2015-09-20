@@ -133,5 +133,11 @@ func (client *Client) Configure(cfg *ClientConfig) func() *http.Client {
 // Stop is called when the client is no longer needed. It closes the
 // client listener and underlying dialer connection pool
 func (client *Client) Stop() error {
+
+	bal := client.GetBalancer()
+	if bal != nil {
+		bal.Close()
+	}
+
 	return client.l.Close()
 }
