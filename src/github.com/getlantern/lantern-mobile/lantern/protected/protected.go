@@ -1,3 +1,6 @@
+// protected is used to mark network connections
+// "protected" to prevent them from being sent through
+// Android's VpnServicd
 package protected
 
 import (
@@ -47,7 +50,10 @@ func Configure(protector SocketProtector) {
 	currentProtector = protector
 }
 
-// Dials a new connection with a protected connection
+// Dial dials a new protected connection
+// - syscall API calls are used to create and bind to the
+//   specified system device (this is primarily
+//   used for Android VpnService routing functionality)
 func Dial(network, addr string) (net.Conn, error) {
 	host, port, err := SplitHostPort(addr)
 	if err != nil {
@@ -64,14 +70,6 @@ func Dial(network, addr string) (net.Conn, error) {
 	return protectedConn.Dial()
 }
 
-func (conn *ProtectedConn) Addr() (*net.TCPAddr, error) {
-	return net.ResolveTCPAddr("tcp", conn.addr)
-}
-
-// Dial connects to the address given by the protected connection
-// - syscall API calls are used to create and bind to the
-//   specified system device (this is primarily
-//   used for Android VpnService routing functionality)
 func (conn *ProtectedConn) Dial() (net.Conn, error) {
 	// do DNS query
 	IPAddr, err := conn.LookupIP()
@@ -131,6 +129,10 @@ func (conn *ProtectedConn) Dial() (net.Conn, error) {
 	return conn.Conn, nil
 }
 
+func (conn *ProtectedConn) Addr() (*net.TCPAddr, error) {
+	return net.ResolveTCPAddr("tcp", conn.addr)
+}
+
 func sendTestRequest(client *http.Client, addr string) {
 	req, err := http.NewRequest("GET", "http://"+addr+"/", nil)
 	if err != nil {
@@ -187,7 +189,7 @@ func (conn *ProtectedConn) convert() error {
 	return nil
 }
 
-func (conn *ProtectedConn) interruptibleTCPClose() error {
+func (conn *ProtectedConn) ProtectedClose() error {
 	// Assumes conn.mutex is held
 	if conn.socketFd == socketError {
 		return nil
@@ -204,7 +206,7 @@ func (conn *ProtectedConn) Close() (err error) {
 	if !conn.isClosed {
 		conn.isClosed = true
 		if conn.Conn == nil {
-			err = conn.interruptibleTCPClose()
+			err = conn.ProtectedClose()
 		} else {
 			err = conn.Conn.Close()
 		}
@@ -237,7 +239,6 @@ func (conn *ProtectedConn) LookupIP() (net.IP, error) {
 		return nil, fmt.Errorf("Could not bind socket to system device: %s", err)
 	}
 
-	// config.DnsServerGetter.GetDnsServer must return an IP address
 	IPAddr = net.ParseIP(defaultDnsServer)
 	if IPAddr == nil {
 		return nil, errors.New("invalid IP address")
@@ -246,13 +247,12 @@ func (conn *ProtectedConn) LookupIP() (net.IP, error) {
 	var ip [4]byte
 	copy(ip[:], IPAddr.To4())
 	sockAddr := syscall.SockaddrInet4{Addr: ip, Port: dnsPort}
-	// Note: no timeout or interrupt for this connect, as it's a datagram socket
+
 	err = syscall.Connect(socketFd, &sockAddr)
 	if err != nil {
 		return nil, err
 	}
 
-	// Convert the syscall socket to a net.Conn, for use in the dns package
 	file := os.NewFile(uintptr(socketFd), "")
 	defer file.Close()
 	fileConn, err := net.FileConn(file)
