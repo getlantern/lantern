@@ -24,13 +24,13 @@ var (
 type Balancer struct {
 	dialers    []*dialer
 	trusted    []*dialer
-	dnsDialers []*dialer
+	udpDialers []*dialer
 }
 
 // New creates a new Balancer using the supplied Dialers.
 func New(dialers ...*Dialer) *Balancer {
 	trustedDialersCount := 0
-	dnsDialersCount := 0
+	udpDialersCount := 0
 
 	bal := new(Balancer)
 
@@ -45,25 +45,23 @@ func New(dialers ...*Dialer) *Balancer {
 			trustedDialersCount++
 		}
 
-		if dl.DnsServer != "" {
-			dnsDialersCount++
+		if dl.UdpgwServer != "" {
+			udpDialersCount++
 		}
 	}
-
-	log.Debugf("number of dns dialers: %d", dnsDialersCount)
 
 	// Sort dialers by QOS (ascending) for later selection
 	sort.Sort(byQOSAscending(bal.dialers))
 
 	bal.trusted = make([]*dialer, 0, trustedDialersCount)
-	bal.dnsDialers = make([]*dialer, 0, dnsDialersCount)
+	bal.udpDialers = make([]*dialer, 0, udpDialersCount)
 
 	for _, d := range bal.dialers {
 		if d.Trusted {
 			bal.trusted = append(bal.trusted, d)
 		}
-		if d.DnsServer != "" {
-			bal.dnsDialers = append(bal.dnsDialers, d)
+		if d.UdpgwServer != "" {
+			bal.udpDialers = append(bal.udpDialers, d)
 		}
 	}
 
@@ -93,7 +91,7 @@ func (b *Balancer) DialQOS(network, addr string, targetQOS int) (conn net.Conn, 
 	if port == "" || port == "80" || port == "8080" {
 		dialers = b.trusted
 	} else if port == "53" {
-		dialers = b.dnsDialers
+		dialers = b.udpDialers
 	} else {
 		dialers = b.dialers
 	}
@@ -108,8 +106,8 @@ func (b *Balancer) DialQOS(network, addr string, targetQOS int) (conn net.Conn, 
 			return nil, fmt.Errorf("No dialers left on pass %v", i)
 		}
 
-		if addr == "127.0.0.1:53" {
-			addr = d.DnsServer
+		if port == "53" {
+			addr = d.UdpgwServer
 			log.Debugf("Tunneling dns request %s://%s with %s", network, addr, d.Label)
 			conn, err = protected.Dial(network, addr)
 		} else {
