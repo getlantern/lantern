@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	httpConnectMethod  = "CONNECT" // HTTP CONNECT method
-	httpXFlashlightQOS = "X-Flashlight-QOS"
+	httpConnectMethod = "CONNECT" // HTTP CONNECT method
+	frontedHeader     = "Lantern-Fronted"
 )
 
 // ServeHTTP implements the method from interface http.Handler using the latest
@@ -33,7 +33,13 @@ func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		log.Debugf("Reverse proxying %s %v", req.Method, req.URL)
 		rp, err := client.newReverseProxy()
 		if err != nil {
-			respondBadGateway(resp, fmt.Sprintf("Unable get outgoing proxy connection: %s", err))
+			// If the request indicates we should also attempt to fulfill it through
+			// domain fronting, do so here.
+			if frontedRequested(req) {
+				log.Debugf("Attempting to fulfill the request with domain fronting as well")
+			} else {
+				respondBadGateway(resp, fmt.Sprintf("Unable get outgoing proxy connection: %s", err))
+			}
 			return
 		}
 		rp.ServeHTTP(resp, req)
@@ -41,7 +47,7 @@ func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 }
 
 // intercept intercepts an HTTP CONNECT request, hijacks the underlying client
-// connetion and starts piping the data over a new net.Conn obtained from the
+// connection and starts piping the data over a new net.Conn obtained from the
 // given dial function.
 func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 
@@ -103,7 +109,7 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 		// that is effectively always "tcp" in the end, but we look for this
 		// special "transport" in the dialer and send a CONNECT request in that
 		// case.
-		return client.getBalancer().DialQOS("connect", addr, client.targetQOS(req))
+		return client.getBalancer().Dial("connect", addr)
 	}
 
 	if runtime.GOOS == "android" || client.ProxyAll {
@@ -122,19 +128,11 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
-// targetQOS determines the target quality of service given the X-Flashlight-QOS
-// header if available, else returns MinQOS.
-func (client *Client) targetQOS(req *http.Request) int {
-	requestedQOS := req.Header.Get(httpXFlashlightQOS)
-
-	if requestedQOS != "" {
-		rqos, err := strconv.Atoi(requestedQOS)
-		if err == nil {
-			return rqos
-		}
-	}
-
-	return client.MinQOS
+// frontedRequest determines if the request contains a header indicating that
+// we should also try to fulfill it with domain fronting.
+func frontedRequested(req *http.Request) bool {
+	fronted := req.Header.Get(frontedHeader)
+	return fronted != ""
 }
 
 // pipeData pipes data between the client and proxy connections.  It's also

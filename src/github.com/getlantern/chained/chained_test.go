@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/getlantern/proxy"
 	"github.com/getlantern/testify/assert"
@@ -51,7 +52,8 @@ func TestBadServer(t *testing.T) {
 			return net.Dial("tcp", l.Addr().String())
 		},
 	})
-	_, err = dialer.Dial("tcp", "www.google.com")
+	_, err = dialer.Dial("connect", "www.google.com")
+	log.Debugf("Error: %v", err)
 	assert.Error(t, err, "Dialing a server that disconnects too soon should have failed")
 }
 
@@ -74,10 +76,10 @@ func TestBadConnectStatus(t *testing.T) {
 
 	dialer := NewDialer(Config{
 		DialServer: func() (net.Conn, error) {
-			return net.Dial("tcp", l.Addr().String())
+			return net.DialTimeout("tcp", l.Addr().String(), 2*time.Second)
 		},
 	})
-	_, err = dialer.Dial("tcp", "www.google.com")
+	_, err = dialer.Dial("connect", "www.google.com")
 	assert.Error(t, err, "Dialing a server that sends a non-successful HTTP status to our CONNECT request should have failed")
 }
 
@@ -96,7 +98,7 @@ func TestBadAddressToServer(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to build request: %s", err)
 	}
-	conn, err := net.Dial("tcp", l.Addr().String())
+	conn, err := net.DialTimeout("tcp", l.Addr().String(), 10*time.Second)
 	if err != nil {
 		t.Fatalf("Unable to dial server: %s", err)
 	}
@@ -115,10 +117,14 @@ func TestSuccess(t *testing.T) {
 
 	dialer := NewDialer(Config{
 		DialServer: func() (net.Conn, error) {
-			return net.Dial(l.Addr().Network(), l.Addr().String())
+			log.Debugf("Dialing with timeout to: %v", l.Addr())
+			conn, err := net.DialTimeout(l.Addr().Network(), l.Addr().String(), 2*time.Second)
+			log.Debugf("Got conn %v and err %v", conn, err)
+			return conn, err
 		},
 	})
 
+	log.Debugf("TESTING SUCCESS")
 	proxy.Test(t, dialer)
 }
 

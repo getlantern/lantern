@@ -50,8 +50,7 @@ type Client struct {
 	rpCh          chan *httputil.ReverseProxy
 	rpInitialized bool
 
-	httpClientFunc func() *http.Client
-	l              net.Listener
+	l net.Listener
 }
 
 // ListenAndServe makes the client listen for HTTP connections.  onListeningFn

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"flag"
@@ -32,8 +33,8 @@ const (
 
 var (
 	help            = flag.Bool("help", false, "Get usage help")
-	domainsFile     = flag.String("domains", "", "Path to file containing list of domains to use, with one domain per line (e.g. domains.txt)")
-	blacklistFile   = flag.String("blacklist", "", "Path to file containing list of blacklisted domains, which will be excluded from the configuration even if present in the domains file (e.g. blacklist.txt)")
+	masqueradesFile = flag.String("masquerades", "", "Path to file containing list of pasquerades to use, with one space-separated 'ip domain' pair per line (e.g. masquerades.txt)")
+	blacklistFile   = flag.String("blacklist", "", "Path to file containing list of blacklisted domains, which will be excluded from the configuration even if present in the masquerades file (e.g. blacklist.txt)")
 	proxiedSitesDir = flag.String("proxiedsites", "proxiedsites", "Path to directory containing proxied site lists, which will be combined and proxied by Lantern")
 	minFreq         = flag.Float64("minfreq", 3.0, "Minimum frequency (percentage) for including CA cert in list of trusted certs, defaults to 3.0%")
 
@@ -44,14 +45,14 @@ var (
 var (
 	log = golog.LoggerFor("genconfig")
 
-	domains []string
+	masquerades []string
 
 	blacklist    = make(filter)
 	proxiedSites = make(filter)
 	fallbacks    []map[string]interface{}
 	ftVersion    string
 
-	domainsCh     = make(chan string)
+	inputCh       = make(chan string)
 	masqueradesCh = make(chan *masquerade)
 	wg            sync.WaitGroup
 )
@@ -82,7 +83,7 @@ func main() {
 	log.Debugf("Using all %d cores on machine", numcores)
 	runtime.GOMAXPROCS(numcores)
 
-	loadDomains()
+	loadMasquerades()
 	loadProxiedSitesList()
 	loadBlacklist()
 	loadFallbacks()
@@ -93,9 +94,9 @@ func main() {
 	fallbacksTmpl := loadTemplate("fallbacks.go.tmpl")
 	yamlTmpl := loadTemplate("cloud.yaml.tmpl")
 
-	go feedDomains()
-	cas, masquerades := coalesceMasquerades()
-	model := buildModel(cas, masquerades)
+	go feedMasquerades()
+	cas, masqs := coalesceMasquerades()
+	model := buildModel(cas, masqs)
 	generateTemplate(model, yamlTmpl, "cloud.yaml")
 	generateTemplate(model, masqueradesTmpl, "../config/masquerades.go")
 	_, err := run("gofmt", "-w", "../config/masquerades.go")
@@ -114,17 +115,17 @@ func main() {
 	}
 }
 
-func loadDomains() {
-	if *domainsFile == "" {
-		log.Error("Please specify a domains file")
+func loadMasquerades() {
+	if *masqueradesFile == "" {
+		log.Error("Please specify a masquerades file")
 		flag.Usage()
 		os.Exit(2)
 	}
-	domainsBytes, err := ioutil.ReadFile(*domainsFile)
+	bytes, err := ioutil.ReadFile(*masqueradesFile)
 	if err != nil {
-		log.Fatalf("Unable to read domains file at %s: %s", *domainsFile, err)
+		log.Fatalf("Unable to read masquerades file at %s: %s", *masqueradesFile, err)
 	}
-	domains = strings.Split(string(domainsBytes), "\n")
+	masquerades = strings.Split(string(bytes), "\n")
 }
 
 // Scans the proxied site directory and stores the sites in the files found
@@ -221,37 +222,46 @@ func loadTemplate(name string) string {
 	return string(bytes)
 }
 
-func feedDomains() {
+func feedMasquerades() {
 	wg.Add(numberOfWorkers)
 	for i := 0; i < numberOfWorkers; i++ {
 		go grabCerts()
 	}
 
-	for _, domain := range domains {
-		domainsCh <- domain
+	for _, masq := range masquerades {
+		if masq != "" {
+			inputCh <- masq
+		}
 	}
-	close(domainsCh)
+	close(inputCh)
 	wg.Wait()
 	close(masqueradesCh)
 }
 
-// grabCerts grabs certificates for the domains received on domainsCh and sends
+// grabCerts grabs certificates for the masquerades received on masqueradesCh and sends
 // *masquerades to masqueradesCh.
 func grabCerts() {
 	defer wg.Done()
 
-	for domain := range domainsCh {
+	for masq := range inputCh {
+		parts := strings.Split(masq, " ")
+		if len(parts) != 2 {
+			log.Error("Bad line! '" + masq + "'")
+			continue
+		}
+		ip := parts[0]
+		domain := parts[1]
 		_, blacklisted := blacklist[domain]
 		if blacklisted {
 			log.Tracef("Domain %s is blacklisted, skipping", domain)
 			continue
 		}
-		log.Tracef("Grabbing certs for domain: %s", domain)
+		log.Tracef("Grabbing certs for IP %s, domain %s", ip, domain)
 		cwt, err := tlsdialer.DialForTimings(&net.Dialer{
 			Timeout: 10 * time.Second,
-		}, "tcp", domain+":443", false, nil)
+		}, "tcp", ip+":443", false, &tls.Config{ServerName: domain})
 		if err != nil {
-			log.Errorf("Unable to dial domain %s: %s", domain, err)
+			log.Errorf("Unable to dial IP %s, domain %s: %s", ip, domain, err)
 			continue
 		}
 		if err := cwt.Conn.Close(); err != nil {
@@ -261,7 +271,7 @@ func grabCerts() {
 		rootCA := chain[len(chain)-1]
 		rootCert, err := keyman.LoadCertificateFromX509(rootCA)
 		if err != nil {
-			log.Errorf("Unablet to load keyman certificate: %s", err)
+			log.Errorf("Unable to load keyman certificate: %s", err)
 			continue
 		}
 		ca := &castat{
@@ -270,7 +280,7 @@ func grabCerts() {
 		}
 		masqueradesCh <- &masquerade{
 			Domain:    domain,
-			IpAddress: cwt.ResolvedAddr.IP.String(),
+			IpAddress: ip,
 			RootCA:    ca,
 		}
 	}

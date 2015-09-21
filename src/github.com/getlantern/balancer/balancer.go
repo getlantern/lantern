@@ -63,7 +63,7 @@ func (b *Balancer) TrustedDialerAndConn() (*Dialer, net.Conn, error) {
 	// At this point we don't actually have the destination URL. For our purposes, however,
 	// the destination URL is not actually necessary and is not even used in the dial function
 	// because dial is really just dialing the proxy server.
-	return b.dialerAndConn("tcp", "http://www.doesnotexist.com:80", 0)
+	return b.dialerAndConn("tcp", "doesnotexist.com:80", 0)
 }
 
 func (b *Balancer) dialerAndConn(network, addr string, targetQOS int) (*Dialer, net.Conn, error) {

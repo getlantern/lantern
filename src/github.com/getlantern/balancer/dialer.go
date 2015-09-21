@@ -59,10 +59,6 @@ type dialer struct {
 	errCh   chan time.Time
 }
 
-func (d *Dialer) Director(req *http.Request) {
-	req.Header.Set("X-LANTERN-AUTH-TOKEN", d.AuthToken)
-}
-
 func (d *dialer) start() {
 	d.active = 1
 	// to avoid blocking sender, make it buffered
@@ -134,11 +130,18 @@ func (d *dialer) stop() {
 func (d *dialer) defaultCheck() bool {
 	client := &http.Client{
 		Transport: &http.Transport{
-			Dial: d.Dial,
+			DisableKeepAlives: true,
+			Dial:              d.Dial,
 		},
 	}
 	ok, timedOut, _ := withtimeout.Do(60*time.Second, func() (interface{}, error) {
-		resp, err := client.Get("http://www.google.com/humans.txt")
+		req, err := http.NewRequest("GET", "http://www.google.com/humans.txt", nil)
+		if err != nil {
+			log.Errorf("Could not create HTTP request?")
+			return false, nil
+		}
+		req.Header.Set("X-LANTERN-AUTH-TOKEN", d.AuthToken)
+		resp, err := client.Do(req)
 		if err != nil {
 			log.Debugf("Error testing dialer %s to humans.txt: %s", d.Label, err)
 			return false, nil
