@@ -36,6 +36,10 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
 
     private static final String TAG = "LanternMainActivity";
     private static final String PREFS_NAME = "LanternPrefs";
+
+    private static final int onColor = Color.parseColor("#39C2D6");
+    private static final int offColor = Color.parseColor("#FAFBFB"); 
+
     private SharedPreferences mPrefs = null;
 
     private ToggleButton powerLantern;
@@ -112,8 +116,8 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
         mainView = (View)findViewById(R.id.mainView); 
         // when we switch from 'off' to 'on', we use a 1 second 
         // fade to animate the background color
-        colorFadeIn = ObjectAnimator.ofObject(mainView, "backgroundColor", new ArgbEvaluator(), Color.parseColor("#FAFBFB"), Color.parseColor("#39C2D6"));
-        colorFadeOut = ObjectAnimator.ofObject(mainView, "backgroundColor", new ArgbEvaluator(), Color.parseColor("#39C2D6"), Color.parseColor("#FAFBFB"));
+        colorFadeIn = ObjectAnimator.ofObject(mainView, "backgroundColor", new ArgbEvaluator(), offColor, onColor);
+        colorFadeOut = ObjectAnimator.ofObject(mainView, "backgroundColor", new ArgbEvaluator(), onColor, offColor);
         colorFadeIn.setDuration(1000);
         colorFadeOut.setDuration(1000);
 
@@ -147,6 +151,9 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
     public void setBtnStatus() {
         boolean useVPN = useVpn();
         powerLantern.setChecked(useVPN);
+        if (useVPN) {
+            this.mainView.setBackgroundColor(onColor);
+        }
     }
 
     public SharedPreferences getSharedPrefs(Context context) {
