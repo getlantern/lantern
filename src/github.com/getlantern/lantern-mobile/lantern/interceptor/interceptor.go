@@ -22,7 +22,7 @@ var (
 )
 
 var (
-	dialTimeout = 15 * time.Second
+	dialTimeout = 10 * time.Second
 	// threshold of errors that we are withstanding
 	maxErrCount = 20
 	// how often to print stats of current interceptor
@@ -44,9 +44,11 @@ type Interceptor struct {
 	serveWaitGroup *sync.WaitGroup
 
 	openConns   *Conns
-	conns       map[string]net.Conn
+	conns       map[string]*InterceptedConn
+	connsMutex  sync.RWMutex
 	stopSignal  chan struct{}
-	showMessage func(string)
+	stopUpdates chan struct{}
+	showMessage func(string, bool)
 
 	mu *sync.Mutex
 }
@@ -56,10 +58,16 @@ type dialResult struct {
 	err         error
 }
 
-func pipe(localConn, remoteConn net.Conn) {
+func (i *Interceptor) pipe(localConn net.Conn, remoteConn *InterceptedConn) {
 
 	var wg sync.WaitGroup
 	wg.Add(2)
+
+	removeConn := func() {
+		i.connsMutex.Lock()
+		i.conns[remoteConn.id] = nil
+		i.connsMutex.Unlock()
+	}
 
 	go func() {
 		_, err := io.Copy(localConn, remoteConn)
@@ -73,8 +81,8 @@ func pipe(localConn, remoteConn net.Conn) {
 		io.Copy(remoteConn, localConn)
 		wg.Done()
 	}()
-
 	wg.Wait()
+	removeConn()
 }
 
 func (i *Interceptor) startSocksProxy() error {
@@ -99,7 +107,7 @@ func (i *Interceptor) startSocksProxy() error {
 // proxy that we use to intercept traffic that arrives on the TUN interface
 // We listen for connections on an accept loop
 func New(client *client.Client,
-	socksAddr, httpAddr string, notice func(string)) (i *Interceptor, err error) {
+	socksAddr, httpAddr string, notice func(string, bool)) (i *Interceptor, err error) {
 
 	i = &Interceptor{
 		mu:             new(sync.Mutex),
@@ -112,8 +120,9 @@ func New(client *client.Client,
 		totalErrCount:  0,
 		serveWaitGroup: new(sync.WaitGroup),
 		openConns:      new(Conns),
-		conns:          map[string]net.Conn{},
+		conns:          make(map[string]*InterceptedConn),
 		stopSignal:     make(chan struct{}),
+		stopUpdates:    make(chan struct{}),
 	}
 
 	err = i.startSocksProxy()
@@ -128,6 +137,7 @@ func New(client *client.Client,
 // goroutine to complete.
 func (i *Interceptor) Stop() {
 	close(i.stopSignal)
+	close(i.stopUpdates)
 
 	i.mu.Lock()
 	isClosed := i.isClosed
@@ -141,7 +151,7 @@ func (i *Interceptor) Stop() {
 	}
 }
 
-func (i *Interceptor) Dial(addr string, localConn net.Conn) (net.Conn, error) {
+func (i *Interceptor) Dial(addr string, localConn net.Conn) (*InterceptedConn, error) {
 
 	i.mu.Lock()
 	isClosed := i.isClosed
@@ -160,6 +170,8 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (net.Conn, error) {
 		log.Errorf("Invalid port %d for address %s", port, addr)
 		return nil, errors.New("invalid port")
 	}
+	id := fmt.Sprintf("%s:%s", localConn.LocalAddr(), addr)
+	log.Debugf("Got a new connection: %s", id)
 
 	resultCh := make(chan *dialResult, 2)
 	time.AfterFunc(dialTimeout, func() {
@@ -182,11 +194,19 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (net.Conn, error) {
 		return nil, result.err
 	}
 
-	return &InterceptedConn{
+	conn := &InterceptedConn{
 		Conn:           result.forwardConn,
+		id:             id,
 		interceptor:    i,
 		downstreamConn: localConn,
-	}, nil
+	}
+
+	log.Debugf("Created new connection with id %s", id)
+	i.connsMutex.Lock()
+	i.conns[id] = conn
+	i.connsMutex.Unlock()
+
+	return conn, nil
 }
 
 // inspect is used to send periodic updates about the current inceptor (such as traffic stats) and to monitor for total number of connection failures
@@ -197,16 +217,20 @@ func (i *Interceptor) inspect() {
 L:
 	for {
 		select {
+		case <-i.stopUpdates:
+			log.Debug("Stopping stats service")
+			break L
 		case <-updatesTimer.C:
 			statsMsg := fmt.Sprintf("Number of open connections: %d", i.openConns.Size())
 			log.Debug(statsMsg)
-			i.showMessage(statsMsg)
+			i.showMessage(statsMsg, false)
 			updatesTimer.Reset(statsInterval)
 		case err := <-i.errCh:
 			log.Debugf("New error: %v", err)
 			i.totalErrCount += 1
 			if i.totalErrCount > maxErrCount {
 				log.Errorf("Total errors: %d %v", i.totalErrCount, ErrTooManyFailures)
+				i.showMessage(err.Error(), true)
 				i.Stop()
 				break L
 			}
@@ -215,8 +239,6 @@ L:
 }
 
 func (i *Interceptor) handler(localConn *socks.SocksConn) (err error) {
-
-	log.Debugf("Got a new connection: %v", localConn)
 
 	defer localConn.Close()
 	defer i.openConns.Remove(localConn)
@@ -234,7 +256,7 @@ func (i *Interceptor) handler(localConn *socks.SocksConn) (err error) {
 		return err
 	}
 
-	pipe(localConn, remoteConn)
+	i.pipe(localConn, remoteConn)
 	return nil
 }
 

@@ -17,7 +17,7 @@ type GoCallback interface {
 
 type SocketProvider interface {
 	Protect(fileDescriptor int) error
-	Notice(message string)
+	Notice(message string, fatal bool)
 }
 
 // RunClientProxy creates a new client at the given address.
