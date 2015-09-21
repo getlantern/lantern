@@ -119,22 +119,25 @@ public class LanternVpn extends VpnService
 
     private void stopLantern() {
         try {
-            Log.d(TAG, "Closing VPN interface and stopping Lantern..");
-            if (mInterface != null) {
-                mInterface.close();
-                mInterface = null;
-            }
-
             if (lantern != null) {
                 lantern.stop(); 
                 lantern = null;
             }
-
-            Tun2Socks.Stop();                           
+            stopTun2Socks();
 
         } catch (Exception e) {
             Log.e(TAG, "Could not stop Lantern: " + e);
         }
+    }
+
+    public void stopTun2Socks() throws Exception {
+        Log.d(TAG, "Closing VPN interface and stopping Lantern..");
+        if (mInterface != null) {
+            mInterface.close();
+            mInterface = null;
+        }
+
+        Tun2Socks.Stop();
     }
 
     @Override

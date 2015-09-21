@@ -68,8 +68,22 @@ public class Lantern extends Client.SocketProvider.Stub {
     }
 
     @Override
-    public void Notice(String message) {
+    // Notice is used to signal messages from Lantern
+    // if fatal is true, Lantern encountered a fatal error
+    // and we should shutdown
+    public void Notice(String message, boolean fatal) {
         Log.d(TAG, "Received a new message from Lantern: " + message);
+        if (fatal) {
+            Log.d(TAG, "Received fatal error.. Shutting down.");
+            try { 
+                // if we receive a fatal notice from Lantern
+                // then we shut down the VPN interface
+                // and close Tun2Socks
+                this.service.stopTun2Socks();
+            } catch (Exception e) {
+
+            }
+        }
     }
 
     // Protect is used to exclude a socket specified by fileDescriptor
