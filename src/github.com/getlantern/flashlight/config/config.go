@@ -11,7 +11,6 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -130,20 +129,21 @@ func majorVersion(version string) string {
 	return r.FindString(version)
 }
 
-// copyGoodOldConfig is a one-time function for using older config files in the 2.x series.
-func copyGoodOldConfig(configDir, configPath string) {
+// useGoodOldConfig is a one-time function for using older config files in the 2.x series.
+// It returns true if the file specified by configPath is ready, false otherwise.
+func useGoodOldConfig(configDir, configPath string) bool {
 	// If we already have a config file with the latest name, use that one.
 	// Otherwise, copy the most recent config file available.
 	exists := isGoodConfig(configPath)
 	if exists {
 		log.Debugf("Using existing config")
-		return
+		return true
 	}
 
 	files, err := ioutil.ReadDir(configDir)
 	if err != nil {
 		log.Errorf("Could not read config dir: %v", err)
-		return
+		return false
 	}
 
 	for _, file := range files {
@@ -158,11 +158,11 @@ func copyGoodOldConfig(configDir, configPath string) {
 				log.Errorf("Could not rename file from %v to %v: %v", path, configPath, err)
 			} else {
 				log.Debugf("Copied old config at %v to %v", path, configPath)
-				return
+				return true
 			}
 		}
 	}
-	return
+	return false
 }
 
 // Init initializes the configuration system.
@@ -173,7 +173,12 @@ func Init(version string) (*Config, error) {
 		log.Errorf("Could not get config path? %v", err)
 		return nil, err
 	}
-	copyGoodOldConfig(configDir, configPath)
+	ok := useGoodOldConfig(configDir, configPath)
+	if !ok {
+		if err := client.MakeInitialConfig(configPath); err != nil {
+			return nil, err
+		}
+	}
 
 	m = &yamlconf.Manager{
 		FilePath:         configPath,
@@ -182,47 +187,7 @@ func Init(version string) (*Config, error) {
 			return &Config{}
 		},
 		FirstRunSetup: func(ycfg yamlconf.Config) error {
-			log.Debugf("Running first run setup")
-			cfg := ycfg.(*Config)
-			servers, err := client.ReadChained()
-			if err != nil {
-				// Let the bootstrap code itself log errors as necessary.
-				// This could happen if we're auto-updated from an older version that didn't
-				// have packaged settings, for example, but those versions should all
-				// have working configs!!
-				log.Errorf("Could not read yaml: %v", err)
-				return err
-			}
-			log.Debugf("Bootstrap settings has %v chained servers", len(servers.ChainedServers))
-			configs := make(chan []byte, 1)
-
-			var once sync.Once
-			url := cfg.CloudConfig
-			bootstrapConfig(servers, configs, &once, url)
-
-			// Simultaneously try to get the config using direct domain fronting.
-			go func() {
-				certs := trustedCACerts()
-				direct, err := fronted.NewDirect(certs, cloudfrontMasquerades)
-				if err != nil {
-					log.Errorf("Could not create direct domain fronter")
-				} else {
-					if resp, err := direct.Response(url); err != nil {
-						log.Errorf("Could not get response %v", err)
-					} else {
-						log.Debugf("Got response with direct domain fronter")
-						if body, err := readConfigResponse(url, resp); err != nil {
-							log.Errorf("Error reading response body? %v", err)
-						} else {
-							once.Do(func() { configs <- body })
-						}
-					}
-				}
-			}()
-
-			config := <-configs
-			log.Debugf("Read config")
-			return cfg.updateFrom(config)
+			return nil
 		},
 		PerSessionSetup: func(ycfg yamlconf.Config) error {
 			cfg := ycfg.(*Config)

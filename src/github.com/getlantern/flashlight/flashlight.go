@@ -178,6 +178,7 @@ func doMain() error {
 		cfg, err := config.Init(packageVersion)
 		if err != nil {
 			exit(fmt.Errorf("Unable to initialize configuration: %v", err))
+			return
 		}
 		go func() {
 			err := config.Run(func(updated *config.Config) {

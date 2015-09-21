@@ -19,8 +19,8 @@ import (
 )
 
 var (
-	name        = ".packaged-lantern.yaml"
-	chainedName = "chained.yaml"
+	name            = ".packaged-lantern.yaml"
+	lanternYamlName = "lantern.yaml"
 
 	// This is the local copy of our embedded ration file. This is necessary
 	// to ensure we remember the embedded ration across auto-updated
@@ -35,10 +35,6 @@ type BootstrapSettings struct {
 	StartupUrl string
 }
 
-type BootstrapServers struct {
-	ChainedServers map[string]*ChainedServerInfo
-}
-
 // ReadSettings reads packaged settings from pre-determined paths
 // on the various OSes.
 func ReadSettings() (*BootstrapSettings, error) {
@@ -50,19 +46,6 @@ func ReadSettings() (*BootstrapSettings, error) {
 	ps, er := readSettingsFromFile(yamlPath)
 	if er != nil {
 		return readSettingsFromFile(local)
-	}
-	return ps, nil
-}
-
-func ReadChained() (*BootstrapServers, error) {
-	yamlPath, err := bootstrapPath(chainedName)
-	if err != nil {
-		return &BootstrapServers{}, err
-	}
-
-	ps, er := readBootstrapServers(yamlPath)
-	if er != nil {
-		return readBootstrapServers(local)
 	}
 	return ps, nil
 }
@@ -96,33 +79,21 @@ func readSettingsFromFile(yamlPath string) (*BootstrapSettings, error) {
 	return &s, nil
 }
 
-// readBootstrapServers reads BootstrapServers from the yaml file at the specified
-// path.
-func readBootstrapServers(yamlPath string) (*BootstrapServers, error) {
-	log.Debugf("Opening file at: %v", yamlPath)
-	data, err := ioutil.ReadFile(yamlPath)
+// MakeInitialConfig save baked-in config to the file specified by configPath
+func MakeInitialConfig(configPath string) error {
+	src, err := bootstrapPath(lanternYamlName)
 	if err != nil {
-		// This will happen whenever there's no packaged settings, which is often
-		log.Debugf("Error reading file %v", err)
-		return &BootstrapServers{}, err
+		return err
 	}
-
-	trimmed := strings.TrimSpace(string(data))
-
-	log.Debugf("Read bytes: %v", trimmed)
-
-	if trimmed == "" {
-		log.Debugf("Ignoring empty string")
-		return &BootstrapServers{}, errors.New("Empty string")
-	}
-	var s BootstrapServers
-	err = yaml.Unmarshal([]byte(trimmed), &s)
-
+	bytes, err := ioutil.ReadFile(src)
 	if err != nil {
-		log.Errorf("Could not read yaml: %v", err)
-		return &BootstrapServers{}, err
+		return err
 	}
-	return &s, nil
+	err = ioutil.WriteFile(configPath, bytes, 0644)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func bootstrapPath(fileName string) (string, error) {
