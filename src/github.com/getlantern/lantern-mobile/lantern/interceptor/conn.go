@@ -8,9 +8,9 @@ import (
 
 type InterceptedConn struct {
 	net.Conn
-	id             string
-	interceptor    *Interceptor
-	downstreamConn net.Conn
+	id          string
+	interceptor *Interceptor
+	localConn   net.Conn
 }
 
 type Conns struct {
