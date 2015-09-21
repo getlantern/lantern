@@ -1,4 +1,6 @@
-// interceptor implements a service for intercepting VPN traffic on an Android device. It starts a local SOCKS server that forwards connections to Lantern's HTTP proxy
+// interceptor implements a service for intercepting VPN traffic
+// on an Android device. It starts a local SOCKS server that
+// forwards connections to Lantern's HTTP proxy
 package interceptor
 
 import (
@@ -30,6 +32,8 @@ var (
 	log           = golog.LoggerFor("lantern-android.interceptor")
 )
 
+// Interceptor intercepts traffic on a VPN interface
+// and tunnels it through the Lantern HTTP proxy
 type Interceptor struct {
 	client *client.Client
 
@@ -38,17 +42,19 @@ type Interceptor struct {
 
 	errCh         chan error
 	totalErrCount int
-	isClosed      bool
 
-	listener       *socks.SocksListener
-	serveWaitGroup *sync.WaitGroup
+	listener   *socks.SocksListener
+	serveGroup *sync.WaitGroup
 
-	openConns   *Conns
-	conns       map[string]*InterceptedConn
-	connsMutex  sync.RWMutex
-	stopSignal  chan struct{}
-	stopUpdates chan struct{}
-	showMessage func(string, bool)
+	clientGone bool
+
+	openConns  *Conns
+	conns      map[string]*InterceptedConn
+	connsMutex sync.RWMutex
+	stopSignal chan struct{}
+	stopStats  chan struct{}
+
+	sendAlert func(string, bool)
 
 	mu *sync.Mutex
 }
@@ -94,12 +100,11 @@ func (i *Interceptor) startSocksProxy() error {
 	}
 
 	i.listener = listener
+	i.serveGroup.Add(1)
 
-	i.serveWaitGroup.Add(1)
 	go i.serve()
 	log.Debugf("SOCKS proxy now listening on port: %v",
 		i.listener.Addr().(*net.TCPAddr).Port)
-
 	return nil
 }
 
@@ -111,18 +116,18 @@ func New(client *client.Client,
 
 	i = &Interceptor{
 		mu:             new(sync.Mutex),
-		isClosed:       false,
+		clientGone:     false,
 		client:         client,
 		socksAddr:      socksAddr,
 		httpAddr:       httpAddr,
 		errCh:          make(chan error, maxErrCount),
-		showMessage:    notice,
+		sendAlert:      notice,
 		totalErrCount:  0,
 		serveWaitGroup: new(sync.WaitGroup),
 		openConns:      new(Conns),
 		conns:          make(map[string]*InterceptedConn),
 		stopSignal:     make(chan struct{}),
-		stopUpdates:    make(chan struct{}),
+		stopStats:      make(chan struct{}),
 	}
 
 	err = i.startSocksProxy()
@@ -133,31 +138,33 @@ func New(client *client.Client,
 	return i, nil
 }
 
-// Stop terminates listener and wait for the accept loop
-// goroutine to complete.
+// Stop closes the SOCKS listener and stats service
+// it also closes all pending connections
 func (i *Interceptor) Stop() {
 	close(i.stopSignal)
-	close(i.stopUpdates)
+	close(i.stopStats)
 
 	i.mu.Lock()
-	isClosed := i.isClosed
-	i.isClosed = true
+	clientGone := i.clientGone
+	i.clientGone = true
 	i.mu.Unlock()
 
-	if !isClosed {
+	if !clientGone {
 		i.listener.Close()
-		i.serveWaitGroup.Wait()
+		i.serveGroup.Wait()
 		i.openConns.CloseAll()
 	}
 }
 
+// Dial dials addr using our actively configured balancer
+// and relays data between the connection and our local SOCKS connection
 func (i *Interceptor) Dial(addr string, localConn net.Conn) (*InterceptedConn, error) {
 
 	i.mu.Lock()
-	isClosed := i.isClosed
+	clientGone := i.clientGone
 	i.mu.Unlock()
 
-	if isClosed {
+	if clientGone {
 		return nil, errors.New("tunnel is closed")
 	}
 
@@ -166,6 +173,7 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (*InterceptedConn, e
 		return nil, err
 	}
 
+	// check if it's traffic we actually support
 	if port != 80 && port != 443 && port != 53 {
 		log.Errorf("Invalid port %d for address %s", port, addr)
 		return nil, errors.New("invalid port")
@@ -195,10 +203,10 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (*InterceptedConn, e
 	}
 
 	conn := &InterceptedConn{
-		Conn:           result.forwardConn,
-		id:             id,
-		interceptor:    i,
-		downstreamConn: localConn,
+		Conn:        result.forwardConn,
+		id:          id,
+		interceptor: i,
+		localConn:   localConn,
 	}
 
 	log.Debugf("Created new connection with id %s", id)
@@ -217,20 +225,20 @@ func (i *Interceptor) inspect() {
 L:
 	for {
 		select {
-		case <-i.stopUpdates:
+		case <-i.stopStats:
 			log.Debug("Stopping stats service")
 			break L
 		case <-updatesTimer.C:
 			statsMsg := fmt.Sprintf("Number of open connections: %d", i.openConns.Size())
 			log.Debug(statsMsg)
-			i.showMessage(statsMsg, false)
+			i.sendAlert(statsMsg, false)
 			updatesTimer.Reset(statsInterval)
 		case err := <-i.errCh:
 			log.Debugf("New error: %v", err)
 			i.totalErrCount += 1
 			if i.totalErrCount > maxErrCount {
 				log.Errorf("Total errors: %d %v", i.totalErrCount, ErrTooManyFailures)
-				i.showMessage(err.Error(), true)
+				i.sendAlert(err.Error(), true)
 				i.Stop()
 				break L
 			}
@@ -262,14 +270,15 @@ func (i *Interceptor) handler(localConn *socks.SocksConn) (err error) {
 
 func (i *Interceptor) serve() {
 	defer i.listener.Close()
-	defer i.serveWaitGroup.Done()
-loop:
+	defer i.serveGroup.Done()
+
+L:
 	for {
 		socksConnection, err := i.listener.AcceptSocks()
 		select {
 		case <-i.stopSignal:
 			log.Debugf("SOCKS proxy shutting down")
-			break loop
+			break L
 		default:
 		}
 		if err != nil {
@@ -278,7 +287,7 @@ loop:
 				continue
 			}
 			log.Fatalf("Fatal component failure: %v", err)
-			break loop
+			break L
 		}
 		go func() {
 			err := i.handler(socksConnection)
