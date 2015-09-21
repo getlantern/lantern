@@ -217,7 +217,9 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (*InterceptedConn, e
 	return conn, nil
 }
 
-// inspect is used to send periodic updates about the current inceptor (such as traffic stats) and to monitor for total number of connection failures
+// inspect is used to send periodic updates about the
+// current inceptor (such as traffic stats) and to
+// monitor for total number of connection failures
 func (i *Interceptor) inspect() {
 
 	updatesTimer := time.NewTimer(15 * time.Second)
@@ -246,7 +248,7 @@ L:
 	}
 }
 
-func (i *Interceptor) handler(localConn *socks.SocksConn) (err error) {
+func (i *Interceptor) handle(localConn *socks.SocksConn) (err error) {
 
 	defer localConn.Close()
 	defer i.openConns.Remove(localConn)
@@ -259,7 +261,8 @@ func (i *Interceptor) handler(localConn *socks.SocksConn) (err error) {
 	}
 	defer remoteConn.Close()
 
-	err = localConn.Grant(&net.TCPAddr{IP: net.ParseIP("0.0.0.0"), Port: 0})
+	err = localConn.Grant(&net.TCPAddr{
+		IP: net.ParseIP("0.0.0.0"), Port: 0})
 	if err != nil {
 		return err
 	}
@@ -268,6 +271,7 @@ func (i *Interceptor) handler(localConn *socks.SocksConn) (err error) {
 	return nil
 }
 
+// serve processes all incoming SOCKS requests
 func (i *Interceptor) serve() {
 	defer i.listener.Close()
 	defer i.serveGroup.Done()
@@ -290,7 +294,7 @@ L:
 			break L
 		}
 		go func() {
-			err := i.handler(socksConnection)
+			err := i.handle(socksConnection)
 			if err != nil {
 				log.Errorf("%v", err)
 			}
