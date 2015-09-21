@@ -115,19 +115,19 @@ func New(client *client.Client,
 	socksAddr, httpAddr string, notice func(string, bool)) (i *Interceptor, err error) {
 
 	i = &Interceptor{
-		mu:             new(sync.Mutex),
-		clientGone:     false,
-		client:         client,
-		socksAddr:      socksAddr,
-		httpAddr:       httpAddr,
-		errCh:          make(chan error, maxErrCount),
-		sendAlert:      notice,
-		totalErrCount:  0,
-		serveWaitGroup: new(sync.WaitGroup),
-		openConns:      new(Conns),
-		conns:          make(map[string]*InterceptedConn),
-		stopSignal:     make(chan struct{}),
-		stopStats:      make(chan struct{}),
+		mu:            new(sync.Mutex),
+		clientGone:    false,
+		client:        client,
+		socksAddr:     socksAddr,
+		httpAddr:      httpAddr,
+		errCh:         make(chan error, maxErrCount),
+		sendAlert:     notice,
+		totalErrCount: 0,
+		serveGroup:    new(sync.WaitGroup),
+		openConns:     new(Conns),
+		conns:         make(map[string]*InterceptedConn),
+		stopSignal:    make(chan struct{}),
+		stopStats:     make(chan struct{}),
 	}
 
 	err = i.startSocksProxy()
