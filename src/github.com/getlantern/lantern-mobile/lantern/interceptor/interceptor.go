@@ -64,33 +64,6 @@ type dialResult struct {
 	err         error
 }
 
-func (i *Interceptor) pipe(localConn net.Conn, remoteConn *InterceptedConn) {
-
-	var wg sync.WaitGroup
-	wg.Add(2)
-
-	removeConn := func() {
-		i.connsMutex.Lock()
-		i.conns[remoteConn.id] = nil
-		i.connsMutex.Unlock()
-	}
-
-	go func() {
-		_, err := io.Copy(localConn, remoteConn)
-		if err != nil {
-			log.Errorf("Relay failed: %v", err)
-		}
-		wg.Done()
-	}()
-
-	go func() {
-		io.Copy(remoteConn, localConn)
-		wg.Done()
-	}()
-	wg.Wait()
-	removeConn()
-}
-
 func (i *Interceptor) startSocksProxy() error {
 	listener, err := socks.ListenSocks("tcp", i.socksAddr)
 
@@ -108,9 +81,10 @@ func (i *Interceptor) startSocksProxy() error {
 	return nil
 }
 
-// New initializes the Interceptor service. It also starts the local SOCKS
+// New initializes the interceptor service. It starts the local SOCKS
 // proxy that we use to intercept traffic that arrives on the TUN interface
-// We listen for connections on an accept loop
+// We listen for connections in an accept loop. We also optionally start a stats
+// reporting service
 func New(client *client.Client,
 	socksAddr, httpAddr string, notice func(string, bool)) (i *Interceptor, err error) {
 
@@ -217,10 +191,40 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (*InterceptedConn, e
 	return conn, nil
 }
 
-// inspect is used to send periodic updates about the
-// current inceptor (such as traffic stats) and to
-// monitor for total number of connection failures
-func (i *Interceptor) inspect() {
+// pipe relays between a local SOCKS connection and an interceptor
+// connection to Lantern
+func (i *Interceptor) pipe(localConn net.Conn, remoteConn *InterceptedConn) {
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	removeConn := func() {
+		i.connsMutex.Lock()
+		i.conns[remoteConn.id] = nil
+		i.connsMutex.Unlock()
+	}
+
+	go func() {
+		_, err := io.Copy(localConn, remoteConn)
+		if err != nil {
+			log.Errorf("Relay failed: %v", err)
+		}
+		wg.Done()
+	}()
+
+	go func() {
+		io.Copy(remoteConn, localConn)
+		wg.Done()
+	}()
+	wg.Wait()
+	removeConn()
+}
+
+// monitor is used to send periodic updates about the current
+// interceptor (such as traffic stats) and to watch for connection
+// failures. If we exceed a certain threshold of failures, we stop
+// the interceptor and disable the service
+func (i *Interceptor) monitor() {
 
 	updatesTimer := time.NewTimer(15 * time.Second)
 	defer updatesTimer.Stop()
