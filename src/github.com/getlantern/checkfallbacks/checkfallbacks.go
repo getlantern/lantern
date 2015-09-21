@@ -24,6 +24,7 @@ var (
 	verbose       = flag.Bool("verbose", false, "Be verbose (useful for manual testing)")
 	fallbacksFile = flag.String("fallbacks", "fallbacks.json", "File containing json array of fallback information")
 	numConns      = flag.Int("connections", 1, "Number of simultaneous connections")
+	verify        = flag.Bool("verify", false, "Verify the functionality of the fallback")
 
 	expectedBody = "Google is built by a large team of engineers, designers, researchers, robots, and others in many different sites across the globe. It is updated continuously, and built with more tools and technologies than we can shake a stick at. If you'd like to help us out, see google.com/careers.\n"
 )
@@ -149,6 +150,7 @@ func testFallbackServer(fb *client.ChainedServerInfo, workerId int) (output full
 		output.info = []string{"\n" + string(reqStr)}
 	}
 
+	req.Header.Set("X-LANTERN-AUTH-TOKEN", fb.AuthToken)
 	resp, err := c.Do(req)
 	if err != nil {
 		output.err = fmt.Errorf("%v: requesting humans.txt failed: %v", fb.Addr, err)
@@ -180,5 +182,9 @@ func testFallbackServer(fb *client.ChainedServerInfo, workerId int) (output full
 	}
 
 	log.Debugf("Worker %d: Fallback %v OK.\n", workerId, fb.Addr)
+
+	if *verify {
+		verifyFallback(fb, c)
+	}
 	return
 }
