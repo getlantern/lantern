@@ -114,11 +114,11 @@ func doVerifyMimic(addr string, req *http.Request, c *http.Client) {
 
 func verifyRedirectSites(fb *client.ChainedServerInfo, c *http.Client, url string) {
 	req, err := http.NewRequest("GET", url, nil)
-	req.Header.Set("X-LANTERN-AUTH-TOKEN", fb.AuthToken)
 	if err != nil {
 		log.Errorf("error make request to %s: %v", url, err)
 		return
 	}
+	req.Header.Set("X-LANTERN-AUTH-TOKEN", fb.AuthToken)
 	resp, err := c.Do(req)
 	if err != nil {
 		log.Errorf("%v: requesting %s failed: %v", fb.Addr, url, err)
