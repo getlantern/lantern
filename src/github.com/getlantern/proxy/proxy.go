@@ -55,7 +55,7 @@ func Test(t *testing.T, dialer Dialer) {
 		}
 	}()
 
-	conn, err := dialer.Dial(sl.Addr().Network(), sl.Addr().String())
+	conn, err := dialer.Dial("connect", sl.Addr().String())
 	if err != nil {
 		t.Fatalf("Unable to dial via proxy: %s", err)
 	}

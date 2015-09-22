@@ -30,8 +30,13 @@ func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		client.intercept(resp, req)
 	} else {
 		// Direct proxying can only be used for plain HTTP connections.
-		log.Tracef("Reverse proxying %s %v", req.Method, req.URL)
-		client.getReverseProxy().ServeHTTP(resp, req)
+		log.Debugf("Reverse proxying %s %v", req.Method, req.URL)
+		rp, err := client.newReverseProxy()
+		if err != nil {
+			respondBadGateway(resp, fmt.Sprintf("Unable get outgoing proxy connection: %s", err))
+			return
+		}
+		rp.ServeHTTP(resp, req)
 	}
 }
 
@@ -91,7 +96,14 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 	// Establish outbound connection.
 	addr := hostIncludingPort(req, 443)
 	d := func(network, addr string) (net.Conn, error) {
-		return client.GetBalancer().DialQOS("tcp", addr, client.targetQOS(req))
+		// UGLY HACK ALERT! In this case, we know we need to send a CONNECT request
+		// to the chained server. We need to send that request from chained/dialer.go
+		// though because only it knows about the authentication token to use.
+		// We signal it to send the CONNECT here using the network transport argument
+		// that is effectively always "tcp" in the end, but we look for this
+		// special "transport" in the dialer and send a CONNECT request in that
+		// case.
+		return client.getBalancer().DialQOS("connect", addr, client.targetQOS(req))
 	}
 
 	if runtime.GOOS == "android" || client.ProxyAll {

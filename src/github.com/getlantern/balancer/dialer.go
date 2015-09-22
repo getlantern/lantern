@@ -46,6 +46,8 @@ type Dialer struct {
 
 	// Whether a dialer can be used to tunnel dns requests (server is running udpgw)
 	UdpgwServer string
+
+	AuthToken string
 }
 
 var (

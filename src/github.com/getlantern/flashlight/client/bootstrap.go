@@ -19,7 +19,8 @@ import (
 )
 
 var (
-	name = ".packaged-lantern.yaml"
+	name        = ".packaged-lantern.yaml"
+	chainedName = "chained.yaml"
 
 	// This is the local copy of our embedded ration file. This is necessary
 	// to ensure we remember the embedded ration across auto-updated
@@ -29,30 +30,52 @@ var (
 	local = appdir.General("Lantern") + "/" + name
 )
 
+// BootstrapSettings provided access to configuration embedded in the package.
+type BootstrapSettings struct {
+	StartupUrl string
+}
+
+type BootstrapServers struct {
+	ChainedServers map[string]*ChainedServerInfo
+}
+
 // ReadSettings reads packaged settings from pre-determined paths
 // on the various OSes.
-func ReadSettings() (string, *PackagedSettings, error) {
-	yamlPath, err := packagedSettingsPath()
+func ReadSettings() (*BootstrapSettings, error) {
+	yamlPath, err := bootstrapPath(name)
 	if err != nil {
-		return "", &PackagedSettings{}, err
+		return &BootstrapSettings{}, err
 	}
 
-	path, ps, er := readSettingsFromFile(yamlPath)
+	ps, er := readSettingsFromFile(yamlPath)
 	if er != nil {
 		return readSettingsFromFile(local)
 	}
-	return path, ps, nil
+	return ps, nil
 }
 
-// ReadSettingsFromFile reads PackagedSettings from the yaml file at the specified
+func ReadChained() (*BootstrapServers, error) {
+	yamlPath, err := bootstrapPath(chainedName)
+	if err != nil {
+		return &BootstrapServers{}, err
+	}
+
+	ps, er := readBootstrapServers(yamlPath)
+	if er != nil {
+		return readBootstrapServers(local)
+	}
+	return ps, nil
+}
+
+// ReadSettingsFromFile reads BootstrapSettings from the yaml file at the specified
 // path.
-func readSettingsFromFile(yamlPath string) (string, *PackagedSettings, error) {
+func readSettingsFromFile(yamlPath string) (*BootstrapSettings, error) {
 	log.Debugf("Opening file at: %v", yamlPath)
 	data, err := ioutil.ReadFile(yamlPath)
 	if err != nil {
 		// This will happen whenever there's no packaged settings, which is often
 		log.Debugf("Error reading file %v", err)
-		return "", &PackagedSettings{}, err
+		return &BootstrapSettings{}, err
 	}
 
 	trimmed := strings.TrimSpace(string(data))
@@ -61,25 +84,53 @@ func readSettingsFromFile(yamlPath string) (string, *PackagedSettings, error) {
 
 	if trimmed == "" {
 		log.Debugf("Ignoring empty string")
-		return "", &PackagedSettings{}, errors.New("Empty string")
+		return &BootstrapSettings{}, errors.New("Empty string")
 	}
-	var s PackagedSettings
+	var s BootstrapSettings
 	err = yaml.Unmarshal([]byte(trimmed), &s)
 
 	if err != nil {
 		log.Errorf("Could not read yaml: %v", err)
-		return "", &PackagedSettings{}, err
+		return &BootstrapSettings{}, err
 	}
-	return yamlPath, &s, nil
+	return &s, nil
 }
 
-func packagedSettingsPath() (string, error) {
+// readBootstrapServers reads BootstrapServers from the yaml file at the specified
+// path.
+func readBootstrapServers(yamlPath string) (*BootstrapServers, error) {
+	log.Debugf("Opening file at: %v", yamlPath)
+	data, err := ioutil.ReadFile(yamlPath)
+	if err != nil {
+		// This will happen whenever there's no packaged settings, which is often
+		log.Debugf("Error reading file %v", err)
+		return &BootstrapServers{}, err
+	}
+
+	trimmed := strings.TrimSpace(string(data))
+
+	log.Debugf("Read bytes: %v", trimmed)
+
+	if trimmed == "" {
+		log.Debugf("Ignoring empty string")
+		return &BootstrapServers{}, errors.New("Empty string")
+	}
+	var s BootstrapServers
+	err = yaml.Unmarshal([]byte(trimmed), &s)
+
+	if err != nil {
+		log.Errorf("Could not read yaml: %v", err)
+		return &BootstrapServers{}, err
+	}
+	return &s, nil
+}
+
+func bootstrapPath(fileName string) (string, error) {
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
 		log.Errorf("Could not get current directory %v", err)
 		return "", err
 	}
-	log.Debugf("Opening externalUrl from: %v", dir)
 	var yamldir string
 	if runtime.GOOS == "windows" {
 		yamldir = dir
@@ -95,13 +146,14 @@ func packagedSettingsPath() (string, error) {
 			yamldir = dir + "/../Resources"
 		}
 	} else if runtime.GOOS == "linux" {
-		yamldir = dir
+		yamldir = dir + "/../"
 	}
-	yamlPath := yamldir + "/" + name
-	return yamlPath, nil
+	fullPath := filepath.Join(yamldir, fileName)
+	log.Debugf("Opening bootstrap file from: %v", fullPath)
+	return fullPath, nil
 }
 
-func writeToDisk(ps *PackagedSettings) (string, error) {
+func writeToDisk(ps *BootstrapSettings) (string, error) {
 	data, err := yaml.Marshal(ps)
 	if err != nil {
 		log.Errorf("Could not write to disk: %v", err)

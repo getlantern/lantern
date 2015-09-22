@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -36,6 +37,10 @@ const (
 	cloudflare              = "cloudflare"
 	etag                    = "X-Lantern-Etag"
 	ifNoneMatch             = "X-Lantern-If-None-Match"
+	//	defaultCloudConfigUrl   = "http://config.getiantem.org/cloud.yaml.gz"
+
+	// This is over HTTP because proxies do not forward X-Forwarded-For with HTTPS.
+	defaultCloudConfigUrl = "http://d2wi0vwulmtn99.cloudfront.net/cloud.yaml.gz"
 )
 
 var (
@@ -77,128 +82,234 @@ type CA struct {
 	Cert       string // PEM-encoded
 }
 
-func exists(file string) bool {
-	if _, err := os.Stat(file); os.IsNotExist(err) {
-		return false
+func exists(file string) (os.FileInfo, bool) {
+	if fi, err := os.Stat(file); os.IsNotExist(err) {
+		log.Debugf("File does not exist at %v", file)
+		return fi, false
+	} else {
+		log.Debugf("File exists at %v", file)
+		return fi, true
 	}
-	return true
 }
 
-func configExists(file string) (string, bool) {
-	configPath, err := InConfigDir(file)
-	if err != nil {
-		log.Errorf("Could not get config path? %v", err)
-		return configPath, false
+// hasCustomChainedServer returns whether or not the config file at the specified
+// path includes a custom chained server or not.
+func hasCustomChainedServer(configPath, name string) bool {
+	if !(strings.HasPrefix(name, "lantern") && strings.HasSuffix(name, ".yaml")) {
+		log.Debugf("File name does not match")
+		return false
 	}
-	return configPath, exists(configPath)
+	bytes, err := ioutil.ReadFile(configPath)
+	if err != nil {
+		log.Errorf("Could not read file %v", err)
+		return false
+	}
+	cfg := &Config{}
+	err = yaml.Unmarshal(bytes, cfg)
+	if err != nil {
+		log.Errorf("Could not unmarshal config %v", err)
+		return false
+	}
+
+	nc := len(cfg.Client.ChainedServers)
+
+	log.Debugf("Found %v chained servers", nc)
+	// The config will have more than one but fewer than 10 chained servers
+	// if it has been given a custom config with a custom chained server
+	// list
+	return nc > 0 && nc < 10
+}
+
+func isGoodConfig(configPath string) bool {
+	log.Debugf("Checking config path: %v", configPath)
+	fi, exists := exists(configPath)
+	return exists && hasCustomChainedServer(configPath, fi.Name())
 }
 
 func majorVersion(version string) string {
 	return r.FindString(version)
 }
 
-// copyNewest is a one-time function for using older config files in the 2.x series.
-// from 2.0.2 forward, Lantern will consider all major versions to be compatible and
-// will name them accordingly, as in "lantern-2.yaml".
-func copyNewest(file string, existsFunc func(file string) (string, bool)) string {
+// copyGoodOldConfig is a one-time function for using older config files in the 2.x series.
+func copyGoodOldConfig(configDir, configPath string) {
 	// If we already have a config file with the latest name, use that one.
 	// Otherwise, copy the most recent config file available.
-	cur, exists := existsFunc(file)
+	exists := isGoodConfig(configPath)
 	if exists {
 		log.Debugf("Using existing config")
-		return cur
+		return
 	}
-	files := []string{"lantern-2.0.1.yaml", "lantern-2.0.0+stable.yaml", "lantern-2.0.0+manoto.yaml", "lantern-2.0.0-beta8.yaml"}
+
+	files, err := ioutil.ReadDir(configDir)
+	if err != nil {
+		log.Errorf("Could not read config dir: %v", err)
+		return
+	}
 
 	for _, file := range files {
-		if path, exists := existsFunc(file); exists {
-			if err := os.Rename(path, cur); err != nil {
-				log.Errorf("Could not rename file from %v to %v: %v", path, cur, err)
+		if file.IsDir() {
+			continue
+		}
+		name := file.Name()
+		path := filepath.Join(configDir, name)
+		if isGoodConfig(path) {
+			// Just use the old config since configs in the 2.x series haven't changed.
+			if err := os.Rename(path, configPath); err != nil {
+				log.Errorf("Could not rename file from %v to %v: %v", path, configPath, err)
 			} else {
-				log.Debugf("Copied old config at %v to %v", path, cur)
-				return path
+				log.Debugf("Copied old config at %v to %v", path, configPath)
+				return
 			}
 		}
 	}
-	return cur
+	return
 }
 
 // Init initializes the configuration system.
-func Init(version string) (*Config, error, string) {
-	path, settings, err := client.ReadSettings()
-	if err != nil {
-		// Let packaged itself log errors as necessary.
-		// This could happen if we're auto-updated from an older version that didn't
-		// have packaged settings, for example.
-		log.Debugf("Could not read yaml from %v: %v", path, err)
-
-	}
-	file := "lantern-" + majorVersion(version) + ".yaml"
-	//copyNewest(file, configExists)
-	configPath, err := InConfigDir(file)
+func Init(version string) (*Config, error) {
+	file := "lantern-" + version + ".yaml"
+	configDir, configPath, err := InConfigDir(file)
 	if err != nil {
 		log.Errorf("Could not get config path? %v", err)
-		return nil, err, ""
+		return nil, err
 	}
+	copyGoodOldConfig(configDir, configPath)
 
-	// If there's no configuration at the designated configuration path, download it
-	// using the embedded servers.
-	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		fetchInitialConfig(configPath, settings)
-	}
 	m = &yamlconf.Manager{
 		FilePath:         configPath,
 		FilePollInterval: 1 * time.Second,
 		EmptyConfig: func() yamlconf.Config {
 			return &Config{}
 		},
-		OneTimeSetup: func(ycfg yamlconf.Config) error {
+		FirstRunSetup: func(ycfg yamlconf.Config) error {
+			log.Debugf("Running first run setup")
+			cfg := ycfg.(*Config)
+			servers, err := client.ReadChained()
+			if err != nil {
+				// Let the bootstrap code itself log errors as necessary.
+				// This could happen if we're auto-updated from an older version that didn't
+				// have packaged settings, for example, but those versions should all
+				// have working configs!!
+				log.Errorf("Could not read yaml: %v", err)
+				return err
+			}
+			log.Debugf("Bootstrap settings has %v chained servers", len(servers.ChainedServers))
+			configs := make(chan []byte, 1)
+
+			var once sync.Once
+			url := cfg.CloudConfig
+			bootstrapConfig(servers, configs, &once, url)
+
+			// Simultaneously try to get the config using direct domain fronting.
+			go func() {
+				certs := trustedCACerts()
+				direct, err := fronted.NewDirect(certs, cloudfrontMasquerades)
+				if err != nil {
+					log.Errorf("Could not create direct domain fronter")
+				} else {
+					if resp, err := direct.Response(url); err != nil {
+						log.Errorf("Could not get response %v", err)
+					} else {
+						log.Debugf("Got response with direct domain fronter")
+						if body, err := readConfigResponse(url, resp); err != nil {
+							log.Errorf("Error reading response body? %v", err)
+						} else {
+							once.Do(func() { configs <- body })
+						}
+					}
+				}
+			}()
+
+			config := <-configs
+			log.Debugf("Read config")
+			return cfg.updateFrom(config)
+		},
+		PerSessionSetup: func(ycfg yamlconf.Config) error {
 			cfg := ycfg.(*Config)
 			return cfg.applyFlags()
 		},
 		CustomPoll: func(currentCfg yamlconf.Config) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
-			// By default, do nothing
-			mutate = func(ycfg yamlconf.Config) error {
-				// do nothing
-				return nil
-			}
-			cfg := currentCfg.(*Config)
-			waitTime = cfg.cloudPollSleepTime()
-			if cfg.CloudConfig == "" {
-				// Config doesn't have a CloudConfig, just ignore
-				return
-			}
-
-			var bytes []byte
-			if bytes, err = cfg.fetchCloudConfig(httpClient.Load().(*http.Client)); err == nil {
-				// bytes will be nil if the config is unchanged (not modified)
-				if bytes != nil {
-					mutate = func(ycfg yamlconf.Config) error {
-						log.Debugf("Merging cloud configuration")
-						cfg := ycfg.(*Config)
-						return cfg.updateFrom(bytes)
-					}
-				}
-			} else {
-				log.Errorf("Could not fetch cloud config %v", err)
-			}
-			return
+			return pollWithHttpClient(currentCfg, httpClient.Load().(*http.Client))
 		},
 	}
 	initial, err := m.Init()
+
 	var cfg *Config
-	if err == nil {
+	if err != nil {
+		log.Errorf("Error initializing config: %v", err)
+	} else {
 		cfg = initial.(*Config)
 		err = updateGlobals(cfg)
 		if err != nil {
-			return nil, err, ""
+			return nil, err
 		}
 	}
-	if settings != nil {
-		return cfg, err, settings.StartupUrl
-	} else {
-		return cfg, err, ""
+	return cfg, err
+}
+
+func bootstrapConfig(bs *client.BootstrapServers, configs chan []byte, once *sync.Once, url string) {
+	for _, s := range bs.ChainedServers {
+		go func(s *client.ChainedServerInfo) {
+			bootstrap(s, configs, once, url)
+		}(s)
 	}
+}
+
+func bootstrap(s *client.ChainedServerInfo, configs chan []byte, once *sync.Once, url string) {
+	log.Debugf("Fetching config using chained server: %v", s.Addr)
+	dialer, er := s.Dialer()
+	if er != nil {
+		log.Errorf("Unable to configure chained server. Received error: %v", er)
+		return
+	}
+	client := &http.Client{
+		Transport: &http.Transport{
+			DisableKeepAlives:   true,
+			Dial:                dialer.Dial,
+			TLSHandshakeTimeout: 30 * time.Second,
+		},
+	}
+	if bytes, err := fetchCloudConfig(client, url, s.AuthToken); err == nil {
+		log.Debugf("Successfully downloaded custom config")
+
+		// We just use the first config we learn about.
+		once.Do(func() { configs <- bytes })
+	}
+}
+
+func pollWithHttpClient(currentCfg yamlconf.Config, client *http.Client) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
+	// By default, do nothing
+	mutate = func(ycfg yamlconf.Config) error {
+		// do nothing
+		return nil
+	}
+	cfg := currentCfg.(*Config)
+	waitTime = cfg.cloudPollSleepTime()
+	if cfg.CloudConfig == "" {
+		// Config doesn't have a CloudConfig, just ignore
+		return mutate, waitTime, nil
+	}
+
+	url := cfg.CloudConfig
+
+	// We don't pass an auth token here, as the http client is actually hitting the localhost
+	// proxy, and the auth token will ultimately be added as necessary for whatever proxy
+	// ends up getting hit.
+	if bytes, err := fetchCloudConfig(client, url, ""); err == nil {
+		// bytes will be nil if the config is unchanged (not modified)
+		if bytes != nil {
+			//log.Debugf("Downloaded config:\n %v", string(bytes))
+			mutate = func(ycfg yamlconf.Config) error {
+				log.Debugf("Merging cloud configuration")
+				cfg := ycfg.(*Config)
+				return cfg.updateFrom(bytes)
+			}
+		}
+	} else {
+		log.Errorf("Could not fetch cloud config %v", err)
+		return mutate, waitTime, err
+	}
+	return mutate, waitTime, nil
 }
 
 // Run runs the configuration system.
@@ -231,7 +342,7 @@ func Update(mutate func(cfg *Config) error) error {
 }
 
 // InConfigDir returns the path to the given filename inside of the configdir.
-func InConfigDir(filename string) (string, error) {
+func InConfigDir(filename string) (string, string, error) {
 	cdir := *configdir
 
 	if cdir == "" {
@@ -243,12 +354,12 @@ func InConfigDir(filename string) (string, error) {
 		if os.IsNotExist(err) {
 			// Create config dir
 			if err := os.MkdirAll(cdir, 0750); err != nil {
-				return "", fmt.Errorf("Unable to create configdir at %s: %s", cdir, err)
+				return "", "", fmt.Errorf("Unable to create configdir at %s: %s", cdir, err)
 			}
 		}
 	}
 
-	return filepath.Join(cdir, filename), nil
+	return cdir, filepath.Join(cdir, filename), nil
 }
 
 // TrustedCACerts returns a slice of PEM-encoded certs for the trusted CAs
@@ -290,7 +401,7 @@ func (cfg *Config) ApplyDefaults() {
 	}
 
 	if cfg.CloudConfig == "" {
-		cfg.CloudConfig = "https://config.getiantem.org/cloud.yaml.gz"
+		cfg.CloudConfig = defaultCloudConfigUrl
 	}
 
 	if cfg.InstanceId == "" {
@@ -367,23 +478,25 @@ func (cfg *Config) applyClientDefaults() {
 		cfg.Client.FrontedServers = make([]*client.FrontedServerInfo, 0)
 	}
 	if len(cfg.Client.FrontedServers) == 0 && len(cfg.Client.ChainedServers) == 0 {
-		cfg.Client.FrontedServers = []*client.FrontedServerInfo{
-			&client.FrontedServerInfo{
-				Host:           defaultRoundRobin(),
-				Port:           443,
-				PoolSize:       0,
-				MasqueradeSet:  cloudflare,
-				MaxMasquerades: 20,
-				QOS:            10,
-				Weight:         4000,
-				Trusted:        true,
-			},
-		}
+		/*
+			cfg.Client.FrontedServers = []*client.FrontedServerInfo{
+				&client.FrontedServerInfo{
+					Host:           defaultRoundRobin(),
+					Port:           443,
+					PoolSize:       0,
+					MasqueradeSet:  cloudflare,
+					MaxMasquerades: 20,
+					QOS:            10,
+					Weight:         4000,
+					Trusted:        true,
+				},
+			}
 
-		cfg.Client.ChainedServers = make(map[string]*client.ChainedServerInfo, len(fallbacks))
-		for key, fb := range fallbacks {
-			cfg.Client.ChainedServers[key] = fb
-		}
+			cfg.Client.ChainedServers = make(map[string]*client.ChainedServerInfo, len(fallbacks))
+			for key, fb := range fallbacks {
+				cfg.Client.ChainedServers[key] = fb
+			}
+		*/
 	}
 
 	if cfg.AutoReport == nil {
@@ -431,38 +544,26 @@ func (cfg Config) cloudPollSleepTime() time.Duration {
 	return time.Duration((CloudConfigPollInterval.Nanoseconds() / 2) + rand.Int63n(CloudConfigPollInterval.Nanoseconds()))
 }
 
-func (cfg Config) fetchInitialConfig(path string, ps *client.PackagedSettings) error {
-	var err error
-	for _, s := range ps.ChainedServers {
+func loadBootstrapHttpClients(bs *client.BootstrapServers) []*http.Client {
+	var clients []*http.Client
+	for _, s := range bs.ChainedServers {
 		log.Debugf("Fetching config using chained server: %v", s.Addr)
 		dialer, er := s.Dialer()
 		if er != nil {
 			log.Errorf("Unable to configure chained server. Received error: %v", er)
 			continue
 		}
-		http := &http.Client{
+		clients = append(clients, &http.Client{
 			Transport: &http.Transport{
 				DisableKeepAlives: true,
 				Dial:              dialer.Dial,
 			},
-		}
-		var data []byte
-		data, err = cfg.fetchCloudConfig(http)
-		if err == nil {
-			if er := ioutil.WriteFile(path, data, 0644); er != nil {
-				log.Errorf("Could not create file at %v, %v", path, er)
-				err = er
-			} else {
-				log.Debugf("Wrote file at: %s", path)
-				return nil
-			}
-		}
+		})
 	}
-	return err
+	return clients
 }
 
-func (cfg Config) fetchCloudConfig(client *http.Client) ([]byte, error) {
-	url := cfg.CloudConfig
+func fetchCloudConfig(client *http.Client, url, authToken string) ([]byte, error) {
 	log.Debugf("Checking for cloud configuration at: %s", url)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -471,6 +572,10 @@ func (cfg Config) fetchCloudConfig(client *http.Client) ([]byte, error) {
 	if lastCloudConfigETag[url] != "" {
 		// Don't bother fetching if unchanged
 		req.Header.Set(ifNoneMatch, lastCloudConfigETag[url])
+	}
+
+	if authToken != "" {
+		req.Header.Set("X-LANTERN-AUTH-TOKEN", authToken)
 	}
 
 	// Prevents intermediate nodes (CloudFlare) from caching the content
@@ -491,6 +596,10 @@ func (cfg Config) fetchCloudConfig(client *http.Client) ([]byte, error) {
 		}
 	}()
 
+	return readConfigResponse(url, resp)
+}
+
+func readConfigResponse(url string, resp *http.Response) ([]byte, error) {
 	if resp.StatusCode == 304 {
 		log.Debugf("Config unchanged in cloud")
 		return nil, nil
@@ -541,4 +650,12 @@ func (updated *Config) updateFrom(updateBytes []byte) error {
 		sort.Strings(updated.ProxiedSites.Cloud)
 	}
 	return nil
+}
+
+func trustedCACerts() []string {
+	certs := make([]string, 0, len(defaultTrustedCAs))
+	for _, ca := range defaultTrustedCAs {
+		certs = append(certs, ca.Cert)
+	}
+	return certs
 }
