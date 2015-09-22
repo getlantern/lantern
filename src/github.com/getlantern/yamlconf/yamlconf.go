@@ -97,10 +97,13 @@ type Manager struct {
 	// EmptyConfig: required, factor for new empty Configs
 	EmptyConfig func() Config
 
-	// OneTimeSetup: optional, provides the ability to perform one-time setup
-	// on the configuration at start time (for example applying command-line
+	// FirstRunSetup: optional, provides the ability to perform one-time setup
+	// on the configuration on the very first run.
+	FirstRunSetup func(currentCfg Config) error
+
+	// PerSessionSetup runs at the beginning of each session (for example applying command-line
 	// flags)
-	OneTimeSetup func(cfg Config) error
+	PerSessionSetup func(currentCfg Config) error
 
 	// CustomPoll: optionally, specify a custom polling function that returns
 	// a mutator for applying the result of polling, the time to wait till the
@@ -158,10 +161,14 @@ func (m *Manager) Init() (Config, error) {
 		// Problem reading config, assume that we need to save a new one
 		cfg := m.EmptyConfig()
 		cfg.ApplyDefaults()
-		if m.OneTimeSetup != nil {
-			err := m.OneTimeSetup(cfg)
-			if err != nil {
+		if m.PerSessionSetup != nil {
+			if err := m.PerSessionSetup(cfg); err != nil {
 				return nil, fmt.Errorf("Unable to perform one-time setup: %s", err)
+			}
+		}
+		if m.FirstRunSetup != nil {
+			if err := m.FirstRunSetup(cfg); err != nil {
+				return nil, fmt.Errorf("Unable to perform first run setup: %s", err)
 			}
 		}
 		_, err = m.saveToDiskAndUpdate(cfg)
@@ -172,8 +179,8 @@ func (m *Manager) Init() (Config, error) {
 		// Always save whatever we loaded, which will cause defaults to be
 		// applied and formatting to be made consistent
 		copied, err := m.copy(m.cfg)
-		if m.OneTimeSetup != nil {
-			err := m.OneTimeSetup(copied)
+		if m.PerSessionSetup != nil {
+			err := m.PerSessionSetup(copied)
 			if err != nil {
 				return nil, fmt.Errorf("Unable to perform one-time setup: %s", err)
 			}

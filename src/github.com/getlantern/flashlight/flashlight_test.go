@@ -15,11 +15,6 @@ import (
 
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/getlantern/fronted"
-
-	"github.com/getlantern/flashlight/client"
-	"github.com/getlantern/flashlight/config"
-	"github.com/getlantern/flashlight/globals"
-	"github.com/getlantern/flashlight/server"
 )
 
 const (
@@ -41,6 +36,7 @@ const (
 // with each other to proxy traffic for an HTTP client using the CloudFlare
 // protocol.  This does not test actually running through CloudFlare and just
 // uses a local HTTP server to serve the test content.
+/*
 func TestCloudFlare(t *testing.T) {
 	// Set up a mock HTTP server
 	mockServer := &MockServer{}
@@ -160,6 +156,7 @@ func TestCloudFlare(t *testing.T) {
 	testRequest("HTTPS Request", t, mockServer.requests, true, certPool, 200, nil)
 	testRequest("HTTPS Request without server Cert", t, mockServer.requests, true, nil, 200, fmt.Errorf("Get https://"+HTTPS_ADDR+": x509: certificate signed by unknown authority"))
 }
+*/
 
 // testRequest tests an individual request, either HTTP or HTTPS, making sure
 // that the response status and body match the expected values.  If the request
