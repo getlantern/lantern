@@ -37,6 +37,7 @@ func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 			// domain fronting, do so here.
 			if frontedRequested(req) {
 				log.Debugf("Attempting to fulfill the request with domain fronting as well")
+				serveHTTPWithFronting(resp, req)
 			} else {
 				respondBadGateway(resp, fmt.Sprintf("Unable get outgoing proxy connection: %s", err))
 			}
@@ -44,6 +45,10 @@ func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		}
 		rp.ServeHTTP(resp, req)
 	}
+}
+
+func serveHTTPWithFronting(resp http.ResponseWriter, req *http.Request) {
+
 }
 
 // intercept intercepts an HTTP CONNECT request, hijacks the underlying client

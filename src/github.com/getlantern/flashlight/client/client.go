@@ -12,12 +12,11 @@ import (
 
 	"github.com/getlantern/balancer"
 	"github.com/getlantern/golog"
-
-	"github.com/getlantern/flashlight/globals"
 )
 
 var (
-	log = golog.LoggerFor("flashlight.client")
+	log    = golog.LoggerFor("flashlight.client")
+	poolCh = make(chan *x509.CertPool, 1)
 )
 
 // Client is an HTTP proxy that accepts connections from local programs and
@@ -53,6 +52,14 @@ type Client struct {
 	l net.Listener
 }
 
+func getCertPool() *x509.CertPool {
+	pool := <-poolCh
+	if len(poolCh) == 0 {
+		poolCh <- pool
+	}
+	return pool
+}
+
 // ListenAndServe makes the client listen for HTTP connections.  onListeningFn
 // is a callback that gets invoked as soon as the server is accepting TCP
 // connections.
@@ -82,14 +89,15 @@ func (client *Client) ListenAndServe(onListeningFn func()) error {
 // Configure updates the client's configuration. Configure can be called
 // before or after ListenAndServe, and can be called multiple times.  It
 // returns the highest QOS fronted.Dialer available, or nil if none available.
-func (client *Client) Configure(cfg *ClientConfig) {
+func (client *Client) Configure(cfg *ClientConfig, pool *x509.CertPool) {
 	client.cfgMutex.Lock()
 	defer client.cfgMutex.Unlock()
 
 	log.Debug("Configure() called")
 
+	poolCh <- pool
 	if client.priorCfg != nil && client.priorTrustedCAs != nil {
-		if reflect.DeepEqual(client.priorCfg, cfg) && reflect.DeepEqual(client.priorTrustedCAs, globals.TrustedCAs) {
+		if reflect.DeepEqual(client.priorCfg, cfg) && reflect.DeepEqual(client.priorTrustedCAs, pool) {
 			log.Debugf("Client configuration unchanged")
 			return
 		}
@@ -107,7 +115,7 @@ func (client *Client) Configure(cfg *ClientConfig) {
 
 	client.priorCfg = cfg
 	client.priorTrustedCAs = &x509.CertPool{}
-	*client.priorTrustedCAs = *globals.TrustedCAs
+	*client.priorTrustedCAs = *pool
 }
 
 // Stop is called when the client is no longer needed. It closes the

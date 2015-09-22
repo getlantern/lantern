@@ -9,24 +9,45 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/getlantern/keyman"
 	"github.com/getlantern/tlsdialer"
 )
 
-type Direct struct {
-	certPool *x509.CertPool
-	ms       []*Masquerade
+var (
+	poolCh        = make(chan *x509.CertPool, 1)
+	masqueradesCh = make(chan []*Masquerade, 1)
+)
+
+func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
+	poolCh <- pool
+
+	m := make([]*Masquerade, 0, len(masquerades))
+
+	for _, value := range masquerades {
+		for _, masq := range value {
+			m = append(m, masq)
+		}
+	}
+
+	masqueradesCh <- m
 }
 
-// NewDirectDomain creates a new class for doing direct domain fronting using the specified
-// set of trusted root CAs.
-func NewDirect(certs []string, masquerades []*Masquerade) (*Direct, error) {
-	pool, err := keyman.PoolContainingCerts(certs...)
-	if err != nil {
-		log.Debugf("Could not create cert pool: %v", err)
-		return nil, err
+func getCertPool() *x509.CertPool {
+	pool := <-poolCh
+	if len(poolCh) == 0 {
+		poolCh <- pool
 	}
-	return &Direct{certPool: pool, ms: masquerades}, nil
+	return pool
+}
+
+func getMasquerades() []*Masquerade {
+	m := <-masqueradesCh
+	if len(masqueradesCh) == 0 {
+		masqueradesCh <- m
+	}
+	return m
+}
+
+type Direct struct {
 }
 
 // DirectTransport is a wrapper struct enabling us to modify the protocol of outgoing
@@ -53,7 +74,7 @@ func (ddf *DirectTransport) RoundTrip(req *http.Request) (resp *http.Response, e
 // Response returns the raw response body from the first masquerade that provides a
 // successful response.
 func (d *Direct) Response(url string) (*http.Response, error) {
-	for _, m := range d.ms {
+	for _, m := range getMasquerades() {
 		client := d.NewHttpClient(m)
 		if resp, err := client.Get(url); err != nil {
 			continue
@@ -75,7 +96,7 @@ func (d *Direct) NewHttpClient(m *Masquerade) *http.Client {
 		ClientSessionCache: tls.NewLRUClientSessionCache(1000),
 		InsecureSkipVerify: false,
 		ServerName:         m.Domain,
-		RootCAs:            d.certPool,
+		RootCAs:            getCertPool(),
 	}
 	trans := &DirectDomainTransport{}
 	trans.Dial = func(network, addr string) (net.Conn, error) {
