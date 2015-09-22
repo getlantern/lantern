@@ -71,10 +71,6 @@ func doVerifyMimic(addr string, req *http.Request, c *http.Client) {
 	resp, err := c.Do(req)
 	if err != nil {
 		log.Errorf("%v: requesting humans.txt failed: %v", addr, err)
-		if *verbose {
-			reqStr, _ := httputil.DumpRequestOut(req, true)
-			log.Debug(string(reqStr))
-		}
 		return
 	}
 	defer func() {
@@ -84,6 +80,10 @@ func doVerifyMimic(addr string, req *http.Request, c *http.Client) {
 	}()
 	if resp.StatusCode != 404 {
 		log.Errorf("%v: should get 404 if auth failed", addr)
+		if *verbose {
+			respStr, _ := httputil.DumpResponse(resp, true)
+			log.Debug(string(respStr))
+		}
 		return
 	}
 	if resp.Header.Get("Content-Type") != "text/html" ||
@@ -92,6 +92,10 @@ func doVerifyMimic(addr string, req *http.Request, c *http.Client) {
 		resp.Header.Get("Content-Language") != "en" ||
 		resp.Header.Get("Content-Length") != "297" {
 		log.Errorf("%v: should have correct headers present", addr)
+		if *verbose {
+			respStr, _ := httputil.DumpResponse(resp, true)
+			log.Debug(string(respStr))
+		}
 		return
 	}
 	b, err := ioutil.ReadAll(resp.Body)
@@ -111,6 +115,10 @@ func doVerifyMimic(addr string, req *http.Request, c *http.Client) {
 func verifyRedirectSites(fb *client.ChainedServerInfo, c *http.Client, url string) {
 	req, err := http.NewRequest("GET", url, nil)
 	req.Header.Set("X-LANTERN-AUTH-TOKEN", fb.AuthToken)
+	if err != nil {
+		log.Errorf("error make request to %s: %v", url, err)
+		return
+	}
 	resp, err := c.Do(req)
 	if err != nil {
 		log.Errorf("%v: requesting %s failed: %v", fb.Addr, url, err)
