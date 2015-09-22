@@ -131,7 +131,7 @@ func testAllFallbacks(fallbacks []client.ChainedServerInfo) (output *chan fullOu
 }
 
 // Perform the test of an individual server
-func testFallbackServer(fb *client.ChainedServerInfo, workerId int) (output fullOutput) {
+func testFallbackServer(fb *client.ChainedServerInfo, workerID int) (output fullOutput) {
 	// Test connectivity
 	fb.Pipelined = true
 	dialer, err := fb.Dialer()
@@ -145,7 +145,11 @@ func testFallbackServer(fb *client.ChainedServerInfo, workerId int) (output full
 		},
 	}
 	req, err := http.NewRequest("GET", "http://www.google.com/humans.txt", nil)
-	if *verbose && err == nil {
+	if err != nil {
+		output.err = fmt.Errorf("%v: NewRequest to humans.txt failed: %v", fb.Addr, err)
+		return
+	}
+	if *verbose {
 		reqStr, _ := httputil.DumpRequestOut(req, true)
 		output.info = []string{"\n" + string(reqStr)}
 	}
@@ -155,11 +159,10 @@ func testFallbackServer(fb *client.ChainedServerInfo, workerId int) (output full
 	if err != nil {
 		output.err = fmt.Errorf("%v: requesting humans.txt failed: %v", fb.Addr, err)
 		return
-	} else {
-		if *verbose {
-			respStr, _ := httputil.DumpResponse(resp, true)
-			output.info = append(output.info, "\n"+string(respStr))
-		}
+	}
+	if *verbose {
+		respStr, _ := httputil.DumpResponse(resp, true)
+		output.info = append(output.info, "\n"+string(respStr))
 	}
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
@@ -181,7 +184,7 @@ func testFallbackServer(fb *client.ChainedServerInfo, workerId int) (output full
 		return
 	}
 
-	log.Debugf("Worker %d: Fallback %v OK.\n", workerId, fb.Addr)
+	log.Debugf("Worker %d: Fallback %v OK.\n", workerID, fb.Addr)
 
 	if *verify {
 		verifyFallback(fb, c)
