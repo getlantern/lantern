@@ -12,20 +12,27 @@ import android.animation.ObjectAnimator;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.PorterDuff; 
+import android.net.VpnService;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.LayoutInflater;
+import android.widget.AdapterView;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 import android.widget.ToggleButton;
+import android.view.MenuItem; 
 import android.view.View;
 import android.view.ViewGroup;
 
-import android.net.VpnService;
+import java.util.ArrayList;
 
 import org.getlantern.lantern.config.LanternConfig;
 import org.getlantern.lantern.R;
@@ -51,13 +58,26 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
     private ImageView statusImage;
     private Toast statusToast;
 
+
+    ListView mDrawerList;
+    RelativeLayout mDrawerPane;
+    private ActionBarDrawerToggle mDrawerToggle;
+    private DrawerLayout mDrawerLayout;
+
+    ArrayList<NavItem> mNavItems = new ArrayList<NavItem>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         mPrefs = getSharedPrefs(getApplicationContext());
 
         setContentView(R.layout.activity_lantern_main);
+
+        // setup our side menu
+        setupSideMenu();
 
         // initialize and configure status toast (what's displayed
         // whenever we use the on/off slider) 
@@ -81,6 +101,49 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
     protected void onDestroy() {
         super.onDestroy();
         mPrefs.edit().remove(LanternConfig.PREF_USE_VPN).commit();
+    }
+
+    private void setupSideMenu() {
+        mNavItems.add(new NavItem("Share", "", R.drawable.ic_action_share));
+        mNavItems.add(new NavItem("Desktop Version", "", R.drawable.ic_action_share));
+        mNavItems.add(new NavItem("Contact", "", R.drawable.ic_action_share));
+        mNavItems.add(new NavItem("Privacy Policy", "", R.drawable.ic_action_share));
+        mNavItems.add(new NavItem("Quitt", "", R.drawable.ic_action_share));
+
+
+        // DrawerLayout
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
+
+        // Populate the Navigtion Drawer with options
+        mDrawerPane = (RelativeLayout) findViewById(R.id.drawerPane);
+        mDrawerList = (ListView) findViewById(R.id.navList);
+        ListAdapter adapter = new ListAdapter(this, mNavItems);
+        mDrawerList.setAdapter(adapter);
+
+        // Drawer Item click listeners
+        mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                //selectItemFromDrawer(position);
+            }
+        });
+
+
+        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.drawer_open, R.string.drawer_close) {
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                invalidateOptionsMenu();
+            }
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                super.onDrawerClosed(drawerView);
+                Log.d(TAG, "onDrawerClosed: " + getTitle());
+                invalidateOptionsMenu();
+            }
+        };
+        mDrawerLayout.setDrawerListener(mDrawerToggle);
     }
 
     // START/STOP button to enable full-device VPN functionality
@@ -191,5 +254,26 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
         } catch (Exception e) {
             Log.d(TAG, "Got an exception trying to stop Lantern: " + e);
         }
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Pass the event to ActionBarDrawerToggle
+        // If it returns true, then it has handled
+        // the nav drawer indicator touch event
+        if (mDrawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+
+        // Handle your other action bar items...
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        mDrawerToggle.syncState();
     }
 }
