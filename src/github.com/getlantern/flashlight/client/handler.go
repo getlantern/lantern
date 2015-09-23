@@ -170,18 +170,11 @@ func respondOK(writer io.Writer, req *http.Request) error {
 	return resp.Write(writer)
 }
 
-func respondBadGateway(w io.Writer, msg string) {
+func respondBadGateway(resp http.ResponseWriter, msg string) {
 	log.Debugf("Responding BadGateway: %v", msg)
-	resp := &http.Response{
-		StatusCode: http.StatusBadGateway,
-		ProtoMajor: 1,
-		ProtoMinor: 1,
-	}
-	err := resp.Write(w)
-	if err == nil {
-		if _, err = w.Write([]byte(msg)); err != nil {
-			log.Debugf("Error writing error to io.Writer: %s", err)
-		}
+	resp.WriteHeader(http.StatusBadGateway)
+	if _, err := resp.Write([]byte(msg)); err != nil {
+		log.Debugf("Error writing error to io.Writer: %s", err)
 	}
 }
 
