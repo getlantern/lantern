@@ -77,7 +77,7 @@ func (b *Balancer) TrustedDialerAndConn() (*Dialer, net.Conn, error) {
 	return b.dialerAndConn("tcp", "doesnotexist.com:80", 0)
 }
 
-func (b *Balancer) dialerAndConn(network, addr string, targetQOS int) (*Dialer, net.Conn, error) {
+func (b *Balancer) dialerAndConn(network, addr string, targetQOS int) (d *Dialer, conn net.Conn, err error) {
 	var dialers []*dialer
 
 	_, port, _ := net.SplitHostPort(addr)
@@ -95,7 +95,6 @@ func (b *Balancer) dialerAndConn(network, addr string, targetQOS int) (*Dialer, 
 	} else {
 		dialers = b.dialers
 	}
-
 	// To prevent dialing infinitely
 	attempts := 3
 	for i := 0; i < attempts; i++ {

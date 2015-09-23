@@ -103,7 +103,7 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 		// that is effectively always "tcp" in the end, but we look for this
 		// special "transport" in the dialer and send a CONNECT request in that
 		// case.
-		return client.getBalancer().DialQOS("connect", addr, client.targetQOS(req))
+		return client.GetBalancer().DialQOS("connect", addr, client.targetQOS(req))
 	}
 
 	if runtime.GOOS == "android" || client.ProxyAll {
