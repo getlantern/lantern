@@ -108,7 +108,7 @@ func New(client *client.Client,
 	if err != nil {
 		return nil, err
 	}
-	go i.inspect()
+	go i.monitor()
 	return i, nil
 }
 

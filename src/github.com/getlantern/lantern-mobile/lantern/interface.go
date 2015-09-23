@@ -28,6 +28,7 @@ func RunClientProxy(listenAddr, appName string, protector SocketProvider, ready 
 		}
 		defaultClient = newClient(listenAddr, appName)
 		defaultClient.serveHTTP()
+		defaultClient.createHTTPClient()
 		ready.AfterStart()
 	}()
 	return nil
