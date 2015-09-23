@@ -1,21 +1,20 @@
 package fronted
 
 import (
-	"io/ioutil"
+	"crypto/x509"
 	"testing"
+
+	"github.com/getlantern/keyman"
 )
 
 func TestDirectDomainFronting(t *testing.T) {
-	certs := trustedCACerts()
-	m := cloudfrontMasquerades[0]
-	direct, err := NewDirect(certs, cloudfrontMasquerades[:1])
-	if err != nil {
-		t.Fatalf("Could not create DDF %v", err)
-	}
-	client := direct.NewHttpClient(m)
+	certs := trustedCACerts(t)
+	Configure(certs, cloudfrontMasquerades)
+
+	client := NewDirectHttpClient()
 
 	url := "https://d2wi0vwulmtn99.cloudfront.net/cloud.yaml.gz"
-	if resp, err := client.Get(url); err != nil {
+	if resp, err := client.Head(url); err != nil {
 		t.Fatalf("Could not get response: %v", err)
 	} else {
 		if 200 != resp.StatusCode {
@@ -23,25 +22,20 @@ func TestDirectDomainFronting(t *testing.T) {
 		}
 	}
 
-	if resp, err := direct.Response(url); err != nil {
-		t.Fatalf("Could not get response: %v", err)
-	} else {
-		defer resp.Body.Close()
-		if body, err := ioutil.ReadAll(resp.Body); err != nil {
-			t.Fatalf("Unexpected error %v", err)
-		} else if len(body) < 300 {
-			t.Fatalf("Unexpected response body")
-		}
-	}
 	log.Debugf("DIRECT DOMAIN FRONTING TEST SUCCEEDED")
 }
 
-func trustedCACerts() []string {
+func trustedCACerts(t *testing.T) *x509.CertPool {
 	certs := make([]string, 0, len(defaultTrustedCAs))
 	for _, ca := range defaultTrustedCAs {
 		certs = append(certs, ca.Cert)
 	}
-	return certs
+	pool, err := keyman.PoolContainingCerts(certs...)
+	if err != nil {
+		log.Errorf("Could not create pool %v", err)
+		t.Fatalf("Unable to set up cert pool")
+	}
+	return pool
 }
 
 type CA struct {

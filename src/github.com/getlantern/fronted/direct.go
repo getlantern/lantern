@@ -4,9 +4,11 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"math/rand"
 	"net"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/getlantern/tlsdialer"
@@ -15,20 +17,12 @@ import (
 var (
 	poolCh        = make(chan *x509.CertPool, 1)
 	masqueradesCh = make(chan []*Masquerade, 1)
+	masqCh        = make(chan *Masquerade, 1)
 )
 
-func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
+func Configure(pool *x509.CertPool, masquerades []*Masquerade) {
 	poolCh <- pool
-
-	m := make([]*Masquerade, 0, len(masquerades))
-
-	for _, value := range masquerades {
-		for _, masq := range value {
-			m = append(m, masq)
-		}
-	}
-
-	masqueradesCh <- m
+	masqueradesCh <- masquerades
 }
 
 func getCertPool() *x509.CertPool {
@@ -47,17 +41,49 @@ func getMasquerades() []*Masquerade {
 	return m
 }
 
+func getMasquerade() *Masquerade {
+	if len(masqCh) > 0 {
+		return <-masqCh
+	}
+	log.Debugf("Refreshing live masquerades")
+	ms := <-masqueradesCh
+	size := len(ms)
+	for i := 0; i < 10; i++ {
+		go func() {
+			r := rand.Intn(size)
+			m := ms[r]
+			if strings.Contains(m.Domain, "cloudfront") {
+				return
+			}
+			log.Debugf("Dialing to %v", m)
+			conn, err := dialServerWith(m)
+			if err != nil {
+				log.Debugf("Could not dial to %v, %v", m.IpAddress, err)
+			} else {
+				log.Debugf("Got successful connection to: %v", m)
+				defer func() {
+					if err := conn.Close(); err != nil {
+						log.Debugf("Could not close body %v", err)
+					}
+				}()
+				masqCh <- m
+			}
+		}()
+	}
+	return <-masqCh
+}
+
 type Direct struct {
 }
 
-// DirectTransport is a wrapper struct enabling us to modify the protocol of outgoing
+// directTransport is a wrapper struct enabling us to modify the protocol of outgoing
 // requests to make them all HTTP instead of potentially HTTPS, which breaks our particular
 // implemenation of direct domain fronting.
-type DirectTransport struct {
+type directTransport struct {
 	http.Transport
 }
 
-func (ddf *DirectTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+func (ddf *directTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
 	// The connection is already encrypted by domain fronting.  We need to rewrite URLs starting
 	// with "https://" to "http://", lest we get an error for doubling up on TLS.
 
@@ -71,37 +97,21 @@ func (ddf *DirectTransport) RoundTrip(req *http.Request) (resp *http.Response, e
 	return ddf.Transport.RoundTrip(norm)
 }
 
-// Response returns the raw response body from the first masquerade that provides a
-// successful response.
-func (d *Direct) Response(url string) (*http.Response, error) {
-	for _, m := range getMasquerades() {
-		client := d.NewHttpClient(m)
-		if resp, err := client.Get(url); err != nil {
-			continue
-		} else {
-			return resp, nil
-		}
-	}
-	msg := fmt.Sprintf("Could not get response from any masquerade!")
-
-	log.Error(msg)
-	return nil, fmt.Errorf(msg)
-}
-
 // NewHttpClient creates a new http.Client that does direct domain fronting.
-func (d *Direct) NewHttpClient(m *Masquerade) *http.Client {
-	log.Debugf("Creating new direct domain fronter.")
-	tlsConfig := &tls.Config{
-		// TODO: Should we cache this globally accross http clients?
-		ClientSessionCache: tls.NewLRUClientSessionCache(1000),
-		InsecureSkipVerify: false,
-		ServerName:         m.Domain,
-		RootCAs:            getCertPool(),
-	}
-	trans := &DirectDomainTransport{}
+func NewDirectHttpClient() *http.Client {
+	log.Debugf("Creating new direct domain fronter")
+	m := getMasquerade()
+	log.Debugf("Using %v", m)
+	trans := &directTransport{}
 	trans.Dial = func(network, addr string) (net.Conn, error) {
 		log.Debugf("Dialing %s with direct domain fronter", addr)
-		return dialServerWith(m, tlsConfig)
+		conn, err := dialServerWith(m)
+		if err != nil {
+			log.Debugf("Error dialing? %v", err)
+		} else {
+			log.Debugf("Got connection to %v!", conn.RemoteAddr().String())
+		}
+		return conn, err
 	}
 	trans.TLSHandshakeTimeout = 40 * time.Second
 	trans.DisableKeepAlives = true
@@ -110,7 +120,14 @@ func (d *Direct) NewHttpClient(m *Masquerade) *http.Client {
 	}
 }
 
-func dialServerWith(masquerade *Masquerade, tlsConfig *tls.Config) (net.Conn, error) {
+func dialServerWith(masquerade *Masquerade) (net.Conn, error) {
+	tlsConfig := &tls.Config{
+		// TODO: Should we cache this globally accross http clients?
+		ClientSessionCache: tls.NewLRUClientSessionCache(1000),
+		InsecureSkipVerify: false,
+		ServerName:         masquerade.Domain,
+		RootCAs:            getCertPool(),
+	}
 	dialTimeout := 30 * time.Second
 	sendServerNameExtension := false
 

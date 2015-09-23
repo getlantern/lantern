@@ -11,11 +11,12 @@ import (
 
 	"github.com/getlantern/detour"
 	"github.com/getlantern/flashlight/logging"
+	"github.com/getlantern/fronted"
 )
 
 const (
 	httpConnectMethod = "CONNECT" // HTTP CONNECT method
-	frontedHeader     = "Lantern-Fronted"
+	frontedHeader     = "Lantern-Fronted-URL"
 )
 
 // ServeHTTP implements the method from interface http.Handler using the latest
@@ -30,25 +31,56 @@ func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		client.intercept(resp, req)
 	} else {
 		// Direct proxying can only be used for plain HTTP connections.
-		log.Debugf("Reverse proxying %s %v", req.Method, req.URL)
-		rp, err := client.newReverseProxy()
-		if err != nil {
-			// If the request indicates we should also attempt to fulfill it through
-			// domain fronting, do so here.
-			if frontedRequested(req) {
-				log.Debugf("Attempting to fulfill the request with domain fronting as well")
-				serveHTTPWithFronting(resp, req)
-			} else {
-				respondBadGateway(resp, fmt.Sprintf("Unable get outgoing proxy connection: %s", err))
-			}
-			return
-		}
+		client.serveHTTP(resp, req)
+	}
+}
+
+func (client *Client) serveHTTP(resp http.ResponseWriter, req *http.Request) {
+	log.Debugf("Reverse proxying %s %v", req.Method, req.URL)
+	if rp, err := client.newReverseProxy(); err != nil {
+		// If the request indicates we should also attempt to fulfill it through
+		// domain fronting, do so here.
+		serveHTTPWithFronting(resp, req)
+	} else {
 		rp.ServeHTTP(resp, req)
 	}
 }
 
-func serveHTTPWithFronting(resp http.ResponseWriter, req *http.Request) {
+// serveHTTPWithFronting tries to serve the HTTP request using direct domain fronting.
+// This will only work if the client has set the special header indicating the URL
+// we should use for the fronted request.
+func serveHTTPWithFronting(rw http.ResponseWriter, req *http.Request) {
+	log.Debugf("Direct fronting to: %v", req.URL)
 
+	frontedUrl := req.Header.Get(frontedHeader)
+	if frontedUrl == "" {
+		log.Debugf("No fronting header found")
+		respondBadGateway(rw, fmt.Sprintf("Unable get outgoing proxy connection"))
+	}
+
+	log.Debugf("Using fronted URL: %v", frontedUrl)
+	client := fronted.NewDirectHttpClient()
+
+	if r, err := http.NewRequest(req.Method, frontedUrl, nil); err != nil {
+		log.Errorf("Could not create request with URL: %v", frontedUrl)
+		respondBadGateway(rw, fmt.Sprintf("Unable to create request: %s", err))
+	} else if resp, err := client.Do(r); err != nil {
+		respondBadGateway(rw, fmt.Sprintf("Unable get outgoing proxy connection: %s", err))
+	} else {
+		defer func() {
+			if err := resp.Body.Close(); err != nil {
+				log.Debugf("Could not close body %v", err)
+			}
+		}()
+
+		// We have to hijack the connection to write directly to avoid some of the automated
+		// response handling ResponseWriter does.
+		if clientConn, _, err := rw.(http.Hijacker).Hijack(); err != nil {
+			respondBadGateway(rw, fmt.Sprintf("Unable to hijack connection: %s", err))
+		} else {
+			resp.Write(clientConn)
+		}
+	}
 }
 
 // intercept intercepts an HTTP CONNECT request, hijacks the underlying client
@@ -133,13 +165,6 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
-// frontedRequest determines if the request contains a header indicating that
-// we should also try to fulfill it with domain fronting.
-func frontedRequested(req *http.Request) bool {
-	fronted := req.Header.Get(frontedHeader)
-	return fronted != ""
-}
-
 // pipeData pipes data between the client and proxy connections.  It's also
 // responsible for responding to the initial CONNECT request with a 200 OK.
 func pipeData(clientConn net.Conn, connOut net.Conn, closeFunc func()) {
@@ -158,6 +183,7 @@ func pipeData(clientConn net.Conn, connOut net.Conn, closeFunc func()) {
 }
 
 func respondOK(writer io.Writer, req *http.Request) error {
+	log.Debugf("Responding OK to %v", req.URL)
 	defer func() {
 		if err := req.Body.Close(); err != nil {
 			log.Debugf("Error closing body of OK response: %s", err)

@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"net/http/httputil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -20,7 +21,6 @@ import (
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
-	"github.com/getlantern/jibber_jabber"
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/launcher"
 	"github.com/getlantern/proxiedsites"
@@ -38,10 +38,12 @@ const (
 	cloudfront              = "cloudfront"
 	etag                    = "X-Lantern-Etag"
 	ifNoneMatch             = "X-Lantern-If-None-Match"
-	//	defaultCloudConfigUrl   = "http://config.getiantem.org/cloud.yaml.gz"
+	chainedCloudConfigUrl   = "http://config.getiantem.org/cloud.yaml.gz"
 
-	// This is over HTTP because proxies do not forward X-Forwarded-For with HTTPS.
-	defaultCloudConfigUrl = "http://d2wi0vwulmtn99.cloudfront.net/cloud.yaml.gz"
+	// This is over HTTP because proxies do not forward X-Forwarded-For with HTTPS
+	// and because we only support falling back to direct domain fronting through
+	// the local proxy for HTTP.
+	frontedCloudConfigUrl = "http://d2wi0vwulmtn99.cloudfront.net/cloud.yaml.gz"
 )
 
 var (
@@ -215,38 +217,6 @@ func Init(version string) (*Config, error) {
 	return cfg, err
 }
 
-/*
-func bootstrapConfig(bs *client.BootstrapServers, configs chan []byte, once *sync.Once, url string) {
-	for _, s := range bs.ChainedServers {
-		go func(s *client.ChainedServerInfo) {
-			bootstrap(s, configs, once, url)
-		}(s)
-	}
-}
-
-func bootstrap(s *client.ChainedServerInfo, configs chan []byte, once *sync.Once, url string) {
-	log.Debugf("Fetching config using chained server: %v", s.Addr)
-	dialer, er := s.Dialer()
-	if er != nil {
-		log.Errorf("Unable to configure chained server. Received error: %v", er)
-		return
-	}
-	client := &http.Client{
-		Transport: &http.Transport{
-			DisableKeepAlives:   true,
-			Dial:                dialer.Dial,
-			TLSHandshakeTimeout: 30 * time.Second,
-		},
-	}
-	if bytes, err := fetchCloudConfig(client, url, s.AuthToken); err == nil {
-		log.Debugf("Successfully downloaded custom config")
-
-		// We just use the first config we learn about.
-		once.Do(func() { configs <- bytes })
-	}
-}
-*/
-
 func pollWithHttpClient(currentCfg yamlconf.Config, client *http.Client) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
 	// By default, do nothing
 	mutate = func(ycfg yamlconf.Config) error {
@@ -260,12 +230,10 @@ func pollWithHttpClient(currentCfg yamlconf.Config, client *http.Client) (mutate
 		return mutate, waitTime, nil
 	}
 
-	url := cfg.CloudConfig
-
 	// We don't pass an auth token here, as the http client is actually hitting the localhost
 	// proxy, and the auth token will ultimately be added as necessary for whatever proxy
 	// ends up getting hit.
-	if bytes, err := fetchCloudConfig(client, url, ""); err == nil {
+	if bytes, err := fetchCloudConfig(client, chainedCloudConfigUrl, ""); err == nil {
 		// bytes will be nil if the config is unchanged (not modified)
 		if bytes != nil {
 			//log.Debugf("Downloaded config:\n %v", string(bytes))
@@ -332,17 +300,6 @@ func InConfigDir(filename string) (string, string, error) {
 	return cdir, filepath.Join(cdir, filename), nil
 }
 
-// TrustedCACerts returns a slice of PEM-encoded certs for the trusted CAs
-/*
-func (cfg *Config) TrustedCACerts() []string {
-	certs := make([]string, 0, len(cfg.TrustedCAs))
-	for _, ca := range cfg.TrustedCAs {
-		certs = append(certs, ca.Cert)
-	}
-	return certs
-}
-*/
-
 func (cfg *Config) GetTrustedCACerts() *x509.CertPool {
 	pool := <-poolCh
 	if len(poolCh) == 0 {
@@ -395,7 +352,7 @@ func (cfg *Config) ApplyDefaults() {
 	}
 
 	if cfg.CloudConfig == "" {
-		cfg.CloudConfig = defaultCloudConfigUrl
+		cfg.CloudConfig = chainedCloudConfigUrl
 	}
 
 	if cfg.InstanceId == "" {
@@ -436,28 +393,6 @@ func (cfg *Config) ApplyDefaults() {
 	}
 }
 
-func defaultRoundRobin() string {
-	localeTerritory, err := jibber_jabber.DetectTerritory()
-	if err != nil {
-		localeTerritory = "us"
-	}
-	log.Debugf("Locale territory: %v", localeTerritory)
-	return defaultRoundRobinForTerritory(localeTerritory)
-}
-
-// defaultDataCenter customizes the default data center depending on the user's locale.
-func defaultRoundRobinForTerritory(localeTerritory string) string {
-	lt := strings.ToLower(localeTerritory)
-	datacenter := ""
-	if lt == "cn" {
-		datacenter = "jp"
-	} else {
-		datacenter = "nl"
-	}
-	log.Debugf("datacenter: %v", datacenter)
-	return datacenter + ".fallbacks.getiantem.org"
-}
-
 func (cfg *Config) applyClientDefaults() {
 	// Make sure we always have at least one masquerade set
 	if cfg.Client.MasqueradeSets == nil {
@@ -486,11 +421,11 @@ func (cfg *Config) applyClientDefaults() {
 				},
 			}
 
-			cfg.Client.ChainedServers = make(map[string]*client.ChainedServerInfo, len(fallbacks))
-			for key, fb := range fallbacks {
-				cfg.Client.ChainedServers[key] = fb
-			}
 		*/
+		cfg.Client.ChainedServers = make(map[string]*client.ChainedServerInfo, len(fallbacks))
+		for key, fb := range fallbacks {
+			cfg.Client.ChainedServers[key] = fb
+		}
 	}
 
 	if cfg.AutoReport == nil {
@@ -539,27 +474,6 @@ func (cfg Config) cloudPollSleepTime() time.Duration {
 	return time.Duration((CloudConfigPollInterval.Nanoseconds() / 2) + rand.Int63n(CloudConfigPollInterval.Nanoseconds()))
 }
 
-/*
-func loadBootstrapHttpClients(bs *client.BootstrapServers) []*http.Client {
-	var clients []*http.Client
-	for _, s := range bs.ChainedServers {
-		log.Debugf("Fetching config using chained server: %v", s.Addr)
-		dialer, er := s.Dialer()
-		if er != nil {
-			log.Errorf("Unable to configure chained server. Received error: %v", er)
-			continue
-		}
-		clients = append(clients, &http.Client{
-			Transport: &http.Transport{
-				DisableKeepAlives: true,
-				Dial:              dialer.Dial,
-			},
-		})
-	}
-	return clients
-}
-*/
-
 func fetchCloudConfig(client *http.Client, url, authToken string) ([]byte, error) {
 	log.Debugf("Checking for cloud configuration at: %s", url)
 	req, err := http.NewRequest("GET", url, nil)
@@ -574,6 +488,8 @@ func fetchCloudConfig(client *http.Client, url, authToken string) ([]byte, error
 	if authToken != "" {
 		req.Header.Set("X-LANTERN-AUTH-TOKEN", authToken)
 	}
+
+	req.Header.Set("Lantern-Fronted-URL", frontedCloudConfigUrl)
 
 	// Prevents intermediate nodes (CloudFlare) from caching the content
 	req.Header.Set("Cache-Control", "no-cache")
@@ -605,6 +521,8 @@ func readConfigResponse(url string, resp *http.Response) ([]byte, error) {
 	}
 
 	lastCloudConfigETag[url] = resp.Header.Get(etag)
+	body, _ := httputil.DumpResponse(resp, true)
+	log.Debugf("Got response for URL:%v\n%v", url, string(body))
 	gzReader, err := gzip.NewReader(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to open gzip reader: %s", err)
@@ -648,13 +566,3 @@ func (updated *Config) updateFrom(updateBytes []byte) error {
 	}
 	return nil
 }
-
-/*
-func trustedCACerts() []string {
-	certs := make([]string, 0, len(defaultTrustedCAs))
-	for _, ca := range defaultTrustedCAs {
-		certs = append(certs, ca.Cert)
-	}
-	return certs
-}
-*/

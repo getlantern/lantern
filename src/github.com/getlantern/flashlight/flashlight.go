@@ -358,7 +358,7 @@ func applyClientConfig(client *client.Client, cfg *config.Config) {
 	cfgMutex.Lock()
 	defer cfgMutex.Unlock()
 
-	fronted.Configure(cfg.GetTrustedCACerts(), cfg.Client.MasqueradeSets)
+	fronted.Configure(cfg.GetTrustedCACerts(), cfg.Client.MasqueradeSets["cloudfront"])
 
 	autoupdate.Configure(cfg)
 	logging.Configure(cfg.Addr, cfg.CloudConfigCA, cfg.InstanceId,
