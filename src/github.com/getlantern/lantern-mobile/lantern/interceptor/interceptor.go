@@ -162,7 +162,7 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (*InterceptedConn, e
 	})
 	go func() {
 		balancer := i.client.GetBalancer()
-		forwardConn, err := balancer.Dial("tcp", addr)
+		forwardConn, err := balancer.Dial("connect", addr)
 		if err != nil {
 			log.Errorf("Could not connect: %v", err)
 			resultCh <- &dialResult{nil, err}
