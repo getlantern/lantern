@@ -55,19 +55,12 @@
                     android:id="@+id/userName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-medium"
+                    android:layout_marginTop="14dp"
                     android:text="Lantern"
+                    android:textSize="14sp"
                     android:textColor="#fff"
-                    android:textSize="16sp"
                     android:textStyle="bold" />
-                <!--<TextView
-                    android:id="@+id/desc"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="bottom"
-                    android:layout_marginTop="4dp"
-                    android:text=""
-                    android:textColor="#fff"
-                    android:textSize="12sp" />-->
             </LinearLayout>
         </RelativeLayout>
         <!-- List of Actions (pages) -->

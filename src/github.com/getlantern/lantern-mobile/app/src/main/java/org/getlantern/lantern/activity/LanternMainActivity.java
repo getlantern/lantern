@@ -13,6 +13,7 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.PorterDuff; 
 import android.net.VpnService;
+import android.net.Uri;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
@@ -70,6 +71,11 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        if (getIntent().getBooleanExtra("EXIT", false)) {
+            finish();
+            return;
+        }
+
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         mPrefs = getSharedPrefs(getApplicationContext());
@@ -100,15 +106,17 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mPrefs.edit().remove(LanternConfig.PREF_USE_VPN).commit();
+        if (mPrefs != null) {
+            mPrefs.edit().remove(LanternConfig.PREF_USE_VPN).commit();
+        }
     }
 
     private void setupSideMenu() {
-        mNavItems.add(new NavItem("Share", "", R.drawable.ic_action_share));
-        mNavItems.add(new NavItem("Desktop Version", "", R.drawable.ic_action_share));
-        mNavItems.add(new NavItem("Contact", "", R.drawable.ic_action_share));
-        mNavItems.add(new NavItem("Privacy Policy", "", R.drawable.ic_action_share));
-        mNavItems.add(new NavItem("Quitt", "", R.drawable.ic_action_share));
+        mNavItems.add(new NavItem("Share", R.drawable.ic_share));
+        mNavItems.add(new NavItem("Desktop Version", R.drawable.ic_desktop));
+        mNavItems.add(new NavItem("Contact", R.drawable.ic_contact));
+        mNavItems.add(new NavItem("Privacy Policy", R.drawable.ic_privacy_policy));
+        mNavItems.add(new NavItem("Quit", R.drawable.ic_quit));
 
 
         // DrawerLayout
@@ -124,7 +132,7 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
         mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //selectItemFromDrawer(position);
+                selectItemFromDrawer(position);
             }
         });
 
@@ -144,6 +152,68 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
             }
         };
         mDrawerLayout.setDrawerListener(mDrawerToggle);
+    }
+
+
+    private void selectItemFromDrawer(int position) {
+        //Fragment fragment = new PreferencesFragment();
+
+        //FragmentManager fragmentManager = getFragmentManager();
+        //fragmentManager.beginTransaction()
+        //    .replace(R.id.mainContent, fragment)
+        //    .commit();
+ 
+        mDrawerList.setItemChecked(position, true);
+
+        String title = mNavItems.get(position).mTitle;
+
+        Log.d(TAG, "Menu option " + title + " selected");
+
+        // Close the drawer
+        mDrawerLayout.closeDrawer(mDrawerPane);
+
+
+        if (title.equals("Quit")) {
+            quitLantern();
+        } else if (title.equals("Contact")) {
+            contactLantern();
+        } else if (title.equals("Desktop Version")) {
+            openDesktopPage();
+        }
+    }
+    
+    private void quitLantern() {
+        try {
+            stopLantern();
+            mPrefs.edit().remove(LanternConfig.PREF_USE_VPN).commit();
+
+            Log.d(TAG, "About to exit Lantern...");
+            // sleep for a few ms before exiting
+            Thread.sleep(200);
+
+
+            Intent intent = new Intent(getApplicationContext(), LanternMainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            intent.putExtra("EXIT", true);
+            startActivity(intent);
+        } catch (Exception e) {
+
+        }
+    }
+
+    private void contactLantern() {
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setType("plain/text");
+        intent.putExtra(Intent.EXTRA_EMAIL, new String[] { "team@getlantern.org" });
+        intent.putExtra(Intent.EXTRA_SUBJECT, "Lantern Android Contact");
+        intent.putExtra(Intent.EXTRA_TEXT, "");
+        startActivity(Intent.createChooser(intent, ""));
+    }
+
+    private void openDesktopPage() {
+        Uri uri = Uri.parse("http://www.getlantern.org"); // missing 'http://' will cause crashed
+        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+        startActivity(intent);
     }
 
     // START/STOP button to enable full-device VPN functionality
@@ -249,8 +319,10 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
         Log.d(TAG, "Stopping Lantern...");
         try {
             Intent service = new Intent(LanternMainActivity.this, LanternVpn.class);
-            service.setAction(LanternConfig.DISABLE_VPN);
-            startService(service);
+            if (service != null) {
+                service.setAction(LanternConfig.DISABLE_VPN);
+                startService(service);
+            }
         } catch (Exception e) {
             Log.d(TAG, "Got an exception trying to stop Lantern: " + e);
         }
