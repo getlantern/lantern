@@ -174,7 +174,7 @@ func respondBadGateway(resp http.ResponseWriter, msg string) {
 	log.Debugf("Responding BadGateway: %v", msg)
 	resp.WriteHeader(http.StatusBadGateway)
 	if _, err := resp.Write([]byte(msg)); err != nil {
-		log.Debugf("Error writing error to io.Writer: %s", err)
+		log.Debugf("Error writing error to ResponseWriter: %s", err)
 	}
 }
 
