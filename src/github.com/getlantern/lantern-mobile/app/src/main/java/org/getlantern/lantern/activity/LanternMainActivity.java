@@ -34,6 +34,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.getlantern.lantern.config.LanternConfig;
 import org.getlantern.lantern.R;
@@ -59,6 +61,8 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
     private ImageView statusImage;
     private Toast statusToast;
 
+    private Map<String, Command> menuMap = new HashMap<String, Command>();
+
 
     ListView mDrawerList;
     RelativeLayout mDrawerPane;
@@ -83,7 +87,11 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
         setContentView(R.layout.activity_lantern_main);
 
         // setup our side menu
-        setupSideMenu();
+        try { 
+            setupSideMenu();
+        } catch (Exception e) {
+            Log.d(TAG, "Got an exception " + e);
+        }
 
         // initialize and configure status toast (what's displayed
         // whenever we use the on/off slider) 
@@ -111,13 +119,32 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
         }
     }
 
-    private void setupSideMenu() {
+    interface Command {
+        void runCommand();
+    }
+
+    private void setupSideMenu() throws Exception {
         mNavItems.add(new NavItem("Share", R.drawable.ic_share));
         mNavItems.add(new NavItem("Desktop Version", R.drawable.ic_desktop));
         mNavItems.add(new NavItem("Contact", R.drawable.ic_contact));
         mNavItems.add(new NavItem("Privacy Policy", R.drawable.ic_privacy_policy));
         mNavItems.add(new NavItem("Quit", R.drawable.ic_quit));
 
+        menuMap.put("Quit", new Command() { 
+            public void runCommand() { quitLantern(); } 
+        });
+
+        menuMap.put("Contact", new Command() { 
+            public void runCommand() { contactOption(); } 
+        });
+
+        menuMap.put("Desktop Version", new Command() { 
+            public void runCommand() { desktopOption(); } 
+        });
+
+        menuMap.put("Share", new Command() { 
+            public void runCommand() { shareOption(); } 
+        });   
 
         // DrawerLayout
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
@@ -165,21 +192,18 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
  
         mDrawerList.setItemChecked(position, true);
 
-        String title = mNavItems.get(position).mTitle;
+        try {
+            String title = mNavItems.get(position).mTitle;
 
-        Log.d(TAG, "Menu option " + title + " selected");
+            Log.d(TAG, "Menu option " + title + " selected");
+            menuMap.get(title).runCommand();
+
+        } catch (Exception e) {
+
+        }
 
         // Close the drawer
         mDrawerLayout.closeDrawer(mDrawerPane);
-
-
-        if (title.equals("Quit")) {
-            quitLantern();
-        } else if (title.equals("Contact")) {
-            contactLantern();
-        } else if (title.equals("Desktop Version")) {
-            openDesktopPage();
-        }
     }
     
     private void quitLantern() {
@@ -201,7 +225,16 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
         }
     }
 
-    private void contactLantern() {
+    private void shareOption() {
+        Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND); 
+        sharingIntent.setType("text/plain");
+        String shareBody = "You can download Lantern on Android here: ";
+        sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "Lantern Android");
+        sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareBody);
+        startActivity(Intent.createChooser(sharingIntent, "Share via"));
+    }
+
+    private void contactOption() {
         Intent intent = new Intent(Intent.ACTION_SEND);
         intent.setType("plain/text");
         intent.putExtra(Intent.EXTRA_EMAIL, new String[] { "team@getlantern.org" });
@@ -210,7 +243,7 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
         startActivity(Intent.createChooser(intent, ""));
     }
 
-    private void openDesktopPage() {
+    private void desktopOption() {
         Uri uri = Uri.parse("http://www.getlantern.org"); // missing 'http://' will cause crashed
         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
         startActivity(intent);
@@ -346,6 +379,8 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        mDrawerToggle.syncState();
+        if (mDrawerToggle != null) {
+            mDrawerToggle.syncState();
+        }
     }
 }
