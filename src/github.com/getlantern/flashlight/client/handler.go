@@ -36,32 +36,29 @@ func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 }
 
 func (client *Client) serveHTTP(resp http.ResponseWriter, req *http.Request) {
-	log.Debugf("Reverse proxying %s %v", req.Method, req.URL)
-	if rp, err := client.newReverseProxy(); err != nil {
-		// If the request indicates we should also attempt to fulfill it through
-		// domain fronting, do so here.
-		serveHTTPWithFronting(resp, req)
-	} else {
+	if rp, err := client.newReverseProxy(); err == nil {
+		log.Debugf("Reverse proxying %s %v", req.Method, req.URL)
 		rp.ServeHTTP(resp, req)
-	}
-}
-
-// serveHTTPWithFronting tries to serve the HTTP request using direct domain fronting.
-// This will only work if the client has set the special header indicating the URL
-// we should use for the fronted request.
-func serveHTTPWithFronting(rw http.ResponseWriter, req *http.Request) {
-	log.Debugf("Direct fronting to: %v", req.URL)
-
-	frontedUrl := req.Header.Get(frontedHeader)
-	if frontedUrl == "" {
-		log.Debugf("No fronting header found")
-		respondBadGateway(rw, fmt.Sprintf("Unable get outgoing proxy connection"))
 		return
 	}
 
-	log.Debugf("Using fronted URL: %v", frontedUrl)
-	client := fronted.NewDirectHttpClient()
+	// If the request indicates we should also attempt to fulfill it through
+	// domain fronting, do so here.
+	frontedUrl := req.Header.Get(frontedHeader)
+	if frontedUrl == "" {
+		log.Debugf("No fronting header found for %v, skipping DDF", req.URL)
+		respondBadGateway(resp, fmt.Sprintf("Unable get outgoing proxy connection"))
+		return
+	}
+	serveHTTPWithDDF(resp, req, frontedUrl)
+}
 
+// serveHTTPWithDDF tries to serve the HTTP request using direct domain fronting.
+// This will only work if the client has set the special header indicating the URL
+// we should use for the fronted request.
+func serveHTTPWithDDF(rw http.ResponseWriter, req *http.Request, frontedUrl string) {
+	log.Debugf("Direct domain fronting to %v using fronted URL %v", req.URL, frontedUrl)
+	client := fronted.NewDirectHttpClient()
 	if r, err := http.NewRequest(req.Method, frontedUrl, nil); err != nil {
 		log.Errorf("Could not create request with URL: %v", frontedUrl)
 		respondBadGateway(rw, fmt.Sprintf("Unable to create request: %s", err))
