@@ -56,6 +56,7 @@ func serveHTTPWithFronting(rw http.ResponseWriter, req *http.Request) {
 	if frontedUrl == "" {
 		log.Debugf("No fronting header found")
 		respondBadGateway(rw, fmt.Sprintf("Unable get outgoing proxy connection"))
+		return
 	}
 
 	log.Debugf("Using fronted URL: %v", frontedUrl)
