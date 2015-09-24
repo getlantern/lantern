@@ -51,7 +51,6 @@ var (
 	lastCloudConfigETag = map[string]string{}
 	httpClient          atomic.Value
 	r                   = regexp.MustCompile("\\d+\\.\\d+")
-	poolCh              = make(chan *x509.CertPool, 1)
 )
 
 type Config struct {
@@ -264,10 +263,6 @@ func Run(updateHandler func(updated *Config)) error {
 
 func updateGlobals(cfg *Config) error {
 	globals.InstanceId = cfg.InstanceId
-	err := cfg.createCertPool()
-	if err != nil {
-		return fmt.Errorf("Unable to configure trusted CAs: %s", err)
-	}
 	return nil
 }
 
@@ -299,26 +294,16 @@ func InConfigDir(filename string) (string, string, error) {
 	return cdir, filepath.Join(cdir, filename), nil
 }
 
-func (cfg *Config) GetTrustedCACerts() *x509.CertPool {
-	pool := <-poolCh
-	if len(poolCh) == 0 {
-		poolCh <- pool
-	}
-	return pool
-}
-
-func (cfg *Config) createCertPool() error {
+func (cfg *Config) GetTrustedCACerts() (pool *x509.CertPool, err error) {
 	certs := make([]string, 0, len(cfg.TrustedCAs))
 	for _, ca := range cfg.TrustedCAs {
 		certs = append(certs, ca.Cert)
 	}
-	pool, err := keyman.PoolContainingCerts(certs...)
+	pool, err = keyman.PoolContainingCerts(certs...)
 	if err != nil {
 		log.Errorf("Could not create pool %v", err)
-		return err
 	}
-	poolCh <- pool
-	return nil
+	return
 }
 
 // GetVersion implements the method from interface yamlconf.Config

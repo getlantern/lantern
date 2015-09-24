@@ -358,7 +358,12 @@ func applyClientConfig(client *client.Client, cfg *config.Config) {
 	cfgMutex.Lock()
 	defer cfgMutex.Unlock()
 
-	fronted.Configure(cfg.GetTrustedCACerts(), cfg.Client.MasqueradeSets["cloudfront"])
+	certs, err := cfg.GetTrustedCACerts()
+	if err != nil {
+		log.Errorf("Unable to get trusted ca certs, not configure fronted: %s", err)
+	} else {
+		fronted.Configure(certs, cfg.Client.MasqueradeSets["cloudfront"])
+	}
 
 	autoupdate.Configure(cfg)
 	logging.Configure(cfg.Addr, cfg.CloudConfigCA, cfg.InstanceId,
