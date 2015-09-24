@@ -196,7 +196,7 @@ func testRequest(testCase string, t *testing.T, requests chan *http.Request, htt
 	} else if requestSuccessful {
 		defer func() {
 			if err := resp.Body.Close(); err != nil {
-				t.Fatalf("Error closing response body", err)
+				t.Fatalf("Error closing response body: %s", err)
 			}
 		}()
 		if resp.StatusCode != expectedStatus {
