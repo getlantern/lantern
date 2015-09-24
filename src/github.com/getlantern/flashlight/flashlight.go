@@ -372,7 +372,7 @@ func applyClientConfig(client *client.Client, cfg *config.Config) {
 	_ = statreporter.Configure(cfg.Stats)
 
 	// Update client configuration and get the highest QOS dialer available.
-	client.Configure(cfg.Client, cfg.GetTrustedCACerts())
+	client.Configure(cfg.Client)
 
 	// We offload this onto a go routine because creating the http clients
 	// blocks on waiting for the local server, and the local server starts

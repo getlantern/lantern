@@ -75,7 +75,6 @@ func (s *FrontedServerInfo) dialer(masqueradeSets map[string][]*fronted.Masquera
 		OnDialStats:        s.onDialStats,
 		Masquerades:        masqueradeSets[s.MasqueradeSet],
 		MaxMasquerades:     s.MaxMasquerades,
-		RootCAs:            getCertPool(),
 	})
 
 	var masqueradeQualifier string

@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
-	"net/http/httputil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -521,8 +520,6 @@ func readConfigResponse(url string, resp *http.Response) ([]byte, error) {
 	}
 
 	lastCloudConfigETag[url] = resp.Header.Get(etag)
-	body, _ := httputil.DumpResponse(resp, true)
-	log.Debugf("Got response for URL:%v\n%v", url, string(body))
 	gzReader, err := gzip.NewReader(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to open gzip reader: %s", err)
