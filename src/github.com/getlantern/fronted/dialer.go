@@ -4,7 +4,6 @@ package fronted
 
 import (
 	"crypto/tls"
-	"crypto/x509"
 	"fmt"
 	"io"
 	"net"
@@ -75,10 +74,6 @@ type Config struct {
 
 	// InsecureSkipVerify: if true, server's certificate is not verified.
 	InsecureSkipVerify bool
-
-	// RootCAs: optional CertPool specifying the root CAs to use for verifying
-	// servers
-	RootCAs *x509.CertPool
 
 	// BufferRequests: if true, requests to the proxy will be buffered and sent
 	// with identity encoding.  If false, they'll be streamed with chunked
@@ -333,7 +328,7 @@ func (d *dialer) tlsConfig(masquerade *Masquerade) *tls.Config {
 			ClientSessionCache: tls.NewLRUClientSessionCache(1000),
 			InsecureSkipVerify: d.InsecureSkipVerify,
 			ServerName:         serverName,
-			RootCAs:            d.RootCAs,
+			RootCAs:            getCertPool(),
 		}
 		d.tlsConfigs[serverName] = tlsConfig
 	}
