@@ -7,8 +7,9 @@ import (
 
 	"github.com/getlantern/analytics"
 	"github.com/getlantern/flashlight/client"
-	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/logging"
+	"github.com/getlantern/flashlight/util"
+
 	"github.com/getlantern/golog"
 )
 
@@ -32,9 +33,9 @@ var (
 // mobileClient is an extension of flashlight client with a few custom declarations for mobile
 type mobileClient struct {
 	client.Client
-	closed  chan bool
-	fronter *http.Client
-	appName string
+	closed     chan bool
+	httpClient *http.Client
+	appName    string
 }
 
 func init() {
@@ -55,23 +56,24 @@ func newClient(addr, appName string) *mobileClient {
 		WriteTimeout: 0,
 	}
 
-	err := globals.SetTrustedCAs(clientConfig.getTrustedCerts())
-	if err != nil {
-		log.Errorf("Unable to configure trusted CAs: %s", err)
-	}
-
-	hqfd := client.Configure(clientConfig.Client)
+	client.Configure(clientConfig.Client)
 
 	mClient := &mobileClient{
 		Client:  client,
 		closed:  make(chan bool),
-		fronter: hqfd.NewDirectDomainFronter(),
 		appName: appName,
 	}
-	if err := mClient.updateConfig(); err != nil {
-		log.Errorf("Unable to update config: %v", err)
-	}
 	return mClient
+}
+
+func (client *mobileClient) createHTTPClient() {
+	httpClient, err := util.HTTPClient("", client.Client.Addr)
+	if err != nil {
+		log.Errorf("Could not create HTTP client via %s: %s",
+			client.Client.Addr, err)
+	} else {
+		client.httpClient = httpClient
+	}
 }
 
 // serveHTTP will run the proxy
@@ -103,19 +105,18 @@ func (client *mobileClient) updateConfig() error {
 	var buf []byte
 	var err error
 
-	if buf, err = pullConfigFile(client.fronter); err != nil {
+	if client.httpClient == nil {
+		log.Debugf("Not fetching the config without HTTP client")
+		return nil
+	}
+
+	if buf, err = pullConfigFile(client.httpClient); err != nil {
 		log.Errorf("Could not update config: '%v'", err)
 		return err
 	}
 	if err = clientConfig.updateFrom(buf); err == nil {
 		// Configuration changed, lets reload.
-		err := globals.SetTrustedCAs(clientConfig.getTrustedCerts())
-		if err != nil {
-			log.Errorf("Unable to configure trusted CAs: %s", err)
-		}
-
-		hqfc := client.Configure(clientConfig.Client)
-		client.fronter = hqfc.NewDirectDomainFronter()
+		client.Configure(clientConfig.Client)
 	}
 	return err
 }
