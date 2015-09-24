@@ -22,7 +22,7 @@ const (
 var (
 	// This is for doing direct domain fronting if necessary. We store this as
 	// an instance variable because it caches TLS session configs.
-	direct = &fronted.Direct{}
+	direct = fronted.NewDirect()
 )
 
 // ServeHTTP implements the method from interface http.Handler using the latest
