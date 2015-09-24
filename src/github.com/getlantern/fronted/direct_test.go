@@ -11,7 +11,7 @@ func TestDirectDomainFronting(t *testing.T) {
 	certs := trustedCACerts(t)
 	Configure(certs, cloudfrontMasquerades)
 
-	client := NewDirectHttpClient()
+	client := NewDirect().NewDirectHttpClient()
 
 	url := "https://d2wi0vwulmtn99.cloudfront.net/cloud.yaml.gz"
 	if resp, err := client.Head(url); err != nil {

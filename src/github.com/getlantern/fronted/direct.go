@@ -22,8 +22,10 @@ var (
 )
 
 func Configure(pool *x509.CertPool, masquerades []*Masquerade) {
-	poolCh <- pool
-	masqueradesCh <- masquerades
+	go func() {
+		poolCh <- pool
+		masqueradesCh <- masquerades
+	}()
 }
 
 func getCertPool() *x509.CertPool {
@@ -32,6 +34,17 @@ func getCertPool() *x509.CertPool {
 		poolCh <- pool
 	}
 	return pool
+}
+
+type Direct struct {
+	tlsConfigs      map[string]*tls.Config
+	tlsConfigsMutex sync.Mutex
+}
+
+func NewDirect() *Direct {
+	return &Direct{
+		tlsConfigs: make(map[string]*tls.Config),
+	}
 }
 
 func (d *Direct) getMasquerade() *Masquerade {
@@ -64,11 +77,6 @@ func (d *Direct) getMasquerade() *Masquerade {
 		}()
 	}
 	return <-masqCh
-}
-
-type Direct struct {
-	tlsConfigs      map[string]*tls.Config
-	tlsConfigsMutex sync.Mutex
 }
 
 // directTransport is a wrapper struct enabling us to modify the protocol of outgoing

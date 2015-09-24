@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/keyman"
@@ -25,8 +24,8 @@ func TestCityLookup(t *testing.T) {
 	rootCAs := certPool(t)
 	masquerades := masquerades()
 	fronted.Configure(rootCAs, masquerades)
-
-	client = fronted.NewDirectHttpClient()
+	direct := fronted.NewDirect()
+	client = direct.NewDirectHttpClient()
 	cloudfrontEndpoint := `http://d3u5fqukq7qrhd.cloudfront.net/lookup/%v`
 	city, _, err = LookupIPWithEndpoint(cloudfrontEndpoint, "198.199.72.101", client)
 	if assert.NoError(t, err) {
