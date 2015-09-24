@@ -74,6 +74,7 @@ func serveHTTPWithDDF(rw http.ResponseWriter, req *http.Request, frontedUrl stri
 		// We have to hijack the connection to write directly to avoid some of the automated
 		// response handling ResponseWriter does.
 		if clientConn, _, err := rw.(http.Hijacker).Hijack(); err != nil {
+			log.Errorf("Could not hijack connection to %s: %s", frontedUrl, err)
 			respondBadGateway(rw, fmt.Sprintf("Unable to hijack connection: %s", err))
 		} else {
 			resp.Write(clientConn)
