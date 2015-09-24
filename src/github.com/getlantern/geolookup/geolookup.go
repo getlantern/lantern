@@ -11,8 +11,9 @@ import (
 )
 
 const (
-	geoServeEndpoint = `http://geo.getiantem.org/lookup/%s`
-	geoLookupTimeout = 60 * time.Second
+	cloudflareEndpoint = `http://geo.getiantem.org/lookup/%s`
+	cloudfrontEndpoint = `http://d3u5fqukq7qrhd.cloudfront.net/lookup/%s`
+	geoLookupTimeout   = 60 * time.Second
 )
 
 var (
@@ -103,6 +104,13 @@ type Country struct {
 // City struct. If an httpClient was provided, it uses that, otherwise it uses
 // a default http.Client.
 func LookupIPWithClient(ipAddr string, httpClient *http.Client) (*City, string, error) {
+	return LookupIPWithEndpoint(cloudflareEndpoint, ipAddr, httpClient)
+}
+
+// LookupIPWithEndpoint looks up the given IP using a geolocation service and returns a
+// City struct. If an httpClient was provided, it uses that, otherwise it uses
+// a default http.Client.
+func LookupIPWithEndpoint(endpoint string, ipAddr string, httpClient *http.Client) (*City, string, error) {
 	if httpClient == nil {
 		log.Trace("Using default http.Client")
 		httpClient = defaultHttpClient
@@ -112,12 +120,14 @@ func LookupIPWithClient(ipAddr string, httpClient *http.Client) (*City, string, 
 	var err error
 	var req *http.Request
 	var resp *http.Response
-
-	lookupURL := fmt.Sprintf(geoServeEndpoint, ipAddr)
+	lookupURL := fmt.Sprintf(endpoint, ipAddr)
 
 	if req, err = http.NewRequest("GET", lookupURL, nil); err != nil {
 		return nil, "", fmt.Errorf("Could not create request: %q", err)
 	}
+
+	frontedUrl := fmt.Sprintf(cloudfrontEndpoint, ipAddr)
+	req.Header.Set("Lantern-Fronted-URL", frontedUrl)
 
 	if resp, err = httpClient.Do(req); err != nil {
 		return nil, "", fmt.Errorf("Could not get response from server: %q", err)

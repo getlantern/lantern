@@ -178,6 +178,7 @@ func doMain() error {
 		cfg, err := config.Init(packageVersion)
 		if err != nil {
 			exit(fmt.Errorf("Unable to initialize configuration: %v", err))
+			return
 		}
 		go func() {
 			err := config.Run(func(updated *config.Config) {
@@ -356,6 +357,13 @@ func addExitFunc(exitFunc func()) {
 func applyClientConfig(client *client.Client, cfg *config.Config) {
 	cfgMutex.Lock()
 	defer cfgMutex.Unlock()
+
+	certs, err := cfg.GetTrustedCACerts()
+	if err != nil {
+		log.Errorf("Unable to get trusted ca certs, not configure fronted: %s", err)
+	} else {
+		fronted.Configure(certs, cfg.Client.MasqueradeSets["cloudfront"])
+	}
 
 	autoupdate.Configure(cfg)
 	logging.Configure(cfg.Addr, cfg.CloudConfigCA, cfg.InstanceId,

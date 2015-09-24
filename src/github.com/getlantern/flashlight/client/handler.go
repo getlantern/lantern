@@ -11,11 +11,18 @@ import (
 
 	"github.com/getlantern/detour"
 	"github.com/getlantern/flashlight/logging"
+	"github.com/getlantern/fronted"
 )
 
 const (
-	httpConnectMethod  = "CONNECT" // HTTP CONNECT method
-	httpXFlashlightQOS = "X-Flashlight-QOS"
+	httpConnectMethod = "CONNECT" // HTTP CONNECT method
+	frontedHeader     = "Lantern-Fronted-URL"
+)
+
+var (
+	// This is for doing direct domain fronting if necessary. We store this as
+	// an instance variable because it caches TLS session configs.
+	direct = fronted.NewDirect()
 )
 
 // ServeHTTP implements the method from interface http.Handler using the latest
@@ -30,18 +37,59 @@ func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		client.intercept(resp, req)
 	} else {
 		// Direct proxying can only be used for plain HTTP connections.
+		client.serveHTTP(resp, req)
+	}
+}
+
+func (client *Client) serveHTTP(resp http.ResponseWriter, req *http.Request) {
+	if rp, err := client.newReverseProxy(); err == nil {
 		log.Debugf("Reverse proxying %s %v", req.Method, req.URL)
-		rp, err := client.newReverseProxy()
-		if err != nil {
-			respondBadGateway(resp, fmt.Sprintf("Unable get outgoing proxy connection: %s", err))
-			return
-		}
 		rp.ServeHTTP(resp, req)
+		return
+	}
+
+	// If the request indicates we should also attempt to fulfill it through
+	// domain fronting, do so here.
+	frontedUrl := req.Header.Get(frontedHeader)
+	if frontedUrl == "" {
+		log.Debugf("No fronting header found for %v, skipping DDF", req.URL)
+		respondBadGateway(resp, fmt.Sprintf("Unable get outgoing proxy connection"))
+		return
+	}
+	serveHTTPWithDDF(resp, req, frontedUrl)
+}
+
+// serveHTTPWithDDF tries to serve the HTTP request using direct domain fronting.
+// This will only work if the client has set the special header indicating the URL
+// we should use for the fronted request.
+func serveHTTPWithDDF(rw http.ResponseWriter, req *http.Request, frontedUrl string) {
+	log.Debugf("Direct domain fronting to %v using fronted URL %v", req.URL, frontedUrl)
+	client := direct.NewDirectHttpClient()
+	if r, err := http.NewRequest(req.Method, frontedUrl, nil); err != nil {
+		log.Errorf("Could not create request with URL: %v", frontedUrl)
+		respondBadGateway(rw, fmt.Sprintf("Unable to create request: %s", err))
+	} else if resp, err := client.Do(r); err != nil {
+		respondBadGateway(rw, fmt.Sprintf("Unable get outgoing proxy connection: %s", err))
+	} else {
+		defer func() {
+			if err := resp.Body.Close(); err != nil {
+				log.Debugf("Could not close body %v", err)
+			}
+		}()
+
+		// We have to hijack the connection to write directly to avoid some of the automated
+		// response handling ResponseWriter does.
+		if clientConn, _, err := rw.(http.Hijacker).Hijack(); err != nil {
+			log.Errorf("Could not hijack connection to %s: %s", frontedUrl, err)
+			respondBadGateway(rw, fmt.Sprintf("Unable to hijack connection: %s", err))
+		} else {
+			resp.Write(clientConn)
+		}
 	}
 }
 
 // intercept intercepts an HTTP CONNECT request, hijacks the underlying client
-// connetion and starts piping the data over a new net.Conn obtained from the
+// connection and starts piping the data over a new net.Conn obtained from the
 // given dial function.
 func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 
@@ -103,7 +151,7 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 		// that is effectively always "tcp" in the end, but we look for this
 		// special "transport" in the dialer and send a CONNECT request in that
 		// case.
-		return client.getBalancer().DialQOS("connect", addr, client.targetQOS(req))
+		return client.getBalancer().Dial("connect", addr)
 	}
 
 	if runtime.GOOS == "android" || client.ProxyAll {
@@ -120,21 +168,6 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 		// Pipe data between the client and the proxy.
 		pipeData(clientConn, connOut, func() { closeOnce.Do(closeConns) })
 	}
-}
-
-// targetQOS determines the target quality of service given the X-Flashlight-QOS
-// header if available, else returns MinQOS.
-func (client *Client) targetQOS(req *http.Request) int {
-	requestedQOS := req.Header.Get(httpXFlashlightQOS)
-
-	if requestedQOS != "" {
-		rqos, err := strconv.Atoi(requestedQOS)
-		if err == nil {
-			return rqos
-		}
-	}
-
-	return client.MinQOS
 }
 
 // pipeData pipes data between the client and proxy connections.  It's also
@@ -155,6 +188,7 @@ func pipeData(clientConn net.Conn, connOut net.Conn, closeFunc func()) {
 }
 
 func respondOK(writer io.Writer, req *http.Request) error {
+	log.Debugf("Responding OK to %v", req.URL)
 	defer func() {
 		if err := req.Body.Close(); err != nil {
 			log.Debugf("Error closing body of OK response: %s", err)
