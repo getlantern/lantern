@@ -19,6 +19,12 @@ const (
 	frontedHeader     = "Lantern-Fronted-URL"
 )
 
+var (
+	// This is for doing direct domain fronting if necessary. We store this as
+	// an instance variable because it caches TLS session configs.
+	direct = &fronted.Direct{}
+)
+
 // ServeHTTP implements the method from interface http.Handler using the latest
 // handler available from getHandler() and latest ReverseProxy available from
 // getReverseProxy().
@@ -58,7 +64,7 @@ func (client *Client) serveHTTP(resp http.ResponseWriter, req *http.Request) {
 // we should use for the fronted request.
 func serveHTTPWithDDF(rw http.ResponseWriter, req *http.Request, frontedUrl string) {
 	log.Debugf("Direct domain fronting to %v using fronted URL %v", req.URL, frontedUrl)
-	client := fronted.NewDirectHttpClient()
+	client := direct.NewDirectHttpClient()
 	if r, err := http.NewRequest(req.Method, frontedUrl, nil); err != nil {
 		log.Errorf("Could not create request with URL: %v", frontedUrl)
 		respondBadGateway(rw, fmt.Sprintf("Unable to create request: %s", err))

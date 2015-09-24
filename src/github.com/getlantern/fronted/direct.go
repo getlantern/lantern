@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/getlantern/tlsdialer"
@@ -33,15 +34,7 @@ func getCertPool() *x509.CertPool {
 	return pool
 }
 
-func getMasquerades() []*Masquerade {
-	m := <-masqueradesCh
-	if len(masqueradesCh) == 0 {
-		masqueradesCh <- m
-	}
-	return m
-}
-
-func getMasquerade() *Masquerade {
+func (d *Direct) getMasquerade() *Masquerade {
 	if len(masqCh) > 0 {
 		return <-masqCh
 	}
@@ -56,7 +49,7 @@ func getMasquerade() *Masquerade {
 				return
 			}
 			log.Debugf("Dialing to %v", m)
-			conn, err := dialServerWith(m)
+			conn, err := d.dialServerWith(m)
 			if err != nil {
 				log.Debugf("Could not dial to %v, %v", m.IpAddress, err)
 			} else {
@@ -74,6 +67,8 @@ func getMasquerade() *Masquerade {
 }
 
 type Direct struct {
+	tlsConfigs      map[string]*tls.Config
+	tlsConfigsMutex sync.Mutex
 }
 
 // directTransport is a wrapper struct enabling us to modify the protocol of outgoing
@@ -98,14 +93,12 @@ func (ddf *directTransport) RoundTrip(req *http.Request) (resp *http.Response, e
 }
 
 // NewHttpClient creates a new http.Client that does direct domain fronting.
-func NewDirectHttpClient() *http.Client {
-	log.Debugf("Creating new direct domain fronter")
-	m := getMasquerade()
-	log.Debugf("Using %v", m)
+func (d *Direct) NewDirectHttpClient() *http.Client {
+	m := d.getMasquerade()
 	trans := &directTransport{}
 	trans.Dial = func(network, addr string) (net.Conn, error) {
 		log.Debugf("Dialing %s with direct domain fronter", addr)
-		conn, err := dialServerWith(m)
+		conn, err := d.dialServerWith(m)
 		if err != nil {
 			log.Debugf("Error dialing? %v", err)
 		} else {
@@ -120,14 +113,8 @@ func NewDirectHttpClient() *http.Client {
 	}
 }
 
-func dialServerWith(masquerade *Masquerade) (net.Conn, error) {
-	tlsConfig := &tls.Config{
-		// TODO: Should we cache this globally accross http clients?
-		ClientSessionCache: tls.NewLRUClientSessionCache(1000),
-		InsecureSkipVerify: false,
-		ServerName:         masquerade.Domain,
-		RootCAs:            getCertPool(),
-	}
+func (d *Direct) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
+	tlsConfig := d.tlsConfig(masquerade)
 	dialTimeout := 30 * time.Second
 	sendServerNameExtension := false
 
@@ -144,4 +131,25 @@ func dialServerWith(masquerade *Masquerade) (net.Conn, error) {
 		err = fmt.Errorf("Unable to dial masquerade %s: %s", masquerade.Domain, err)
 	}
 	return cwt.Conn, err
+}
+
+// tlsConfig builds a tls.Config for dialing the upstream host. Constructed
+// tls.Configs are cached on a per-masquerade basis to enable client session
+// caching and reduce the amount of PEM certificate parsing.
+func (d *Direct) tlsConfig(m *Masquerade) *tls.Config {
+	d.tlsConfigsMutex.Lock()
+	defer d.tlsConfigsMutex.Unlock()
+
+	tlsConfig := d.tlsConfigs[m.Domain]
+	if tlsConfig == nil {
+		tlsConfig = &tls.Config{
+			ClientSessionCache: tls.NewLRUClientSessionCache(1000),
+			InsecureSkipVerify: false,
+			ServerName:         m.Domain,
+			RootCAs:            getCertPool(),
+		}
+		d.tlsConfigs[m.Domain] = tlsConfig
+	}
+
+	return tlsConfig
 }
