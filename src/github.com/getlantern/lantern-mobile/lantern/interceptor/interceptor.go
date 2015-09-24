@@ -30,6 +30,12 @@ var (
 	// how often to print stats of current interceptor
 	statsInterval = 15 * time.Second
 	log           = golog.LoggerFor("lantern-android.interceptor")
+
+	allowedPorts = map[int]bool{
+		80:  true,
+		443: true,
+		53:  true,
+	}
 )
 
 // Interceptor intercepts traffic on a VPN interface
@@ -148,10 +154,11 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (*InterceptedConn, e
 	}
 
 	// check if it's traffic we actually support
-	if port != 80 && port != 443 && port != 53 {
+	if !allowedPorts[port] {
 		log.Errorf("Invalid port %d for address %s", port, addr)
 		return nil, errors.New("invalid port")
 	}
+
 	id := fmt.Sprintf("%s:%s", localConn.LocalAddr(), addr)
 	log.Debugf("Got a new connection: %s", id)
 
@@ -160,6 +167,7 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (*InterceptedConn, e
 		resultCh <- &dialResult{nil,
 			errors.New("dial timeout to tunnel")}
 	})
+
 	go func() {
 		balancer := i.client.GetBalancer()
 		forwardConn, err := balancer.Dial("connect", addr)
@@ -170,6 +178,7 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (*InterceptedConn, e
 		}
 		resultCh <- &dialResult{forwardConn, nil}
 	}()
+
 	result := <-resultCh
 	if result.err != nil {
 		log.Errorf("Error dialing new request: %v", result.err)
@@ -216,6 +225,7 @@ func (i *Interceptor) pipe(localConn net.Conn, remoteConn *InterceptedConn) {
 		io.Copy(remoteConn, localConn)
 		wg.Done()
 	}()
+
 	wg.Wait()
 	removeConn()
 }
