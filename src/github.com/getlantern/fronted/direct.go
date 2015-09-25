@@ -8,7 +8,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"strings"
 	"sync"
 	"time"
 
@@ -58,9 +57,6 @@ func (d *Direct) getMasquerade() *Masquerade {
 		go func() {
 			r := rand.Intn(size)
 			m := ms[r]
-			if strings.Contains(m.Domain, "cloudfront") {
-				return
-			}
 			log.Debugf("Dialing to %v", m)
 			conn, err := d.dialServerWith(m)
 			if err != nil {
