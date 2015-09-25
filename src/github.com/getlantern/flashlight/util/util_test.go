@@ -42,9 +42,8 @@ func TestChainedAndFronted(t *testing.T) {
 	chained, err := http.NewRequest("GET", geo, nil)
 	assert.NoError(t, err)
 
-	ch, err := ChainedAndFronted(chained, geo)
+	resp, err := ChainedAndFronted(chained, geo)
 	assert.NoError(t, err)
-	resp := <-ch
 	body, err := ioutil.ReadAll(resp.Body)
 	assert.NoError(t, err)
 	//log.Debugf("Got body: %v", string(body))
@@ -57,9 +56,8 @@ func TestChainedAndFronted(t *testing.T) {
 	bad := "http://48290.cloudfront.net/lookup/198.199.72.101"
 	chained, err = http.NewRequest("GET", geo, nil)
 	assert.NoError(t, err)
-	ch, err = ChainedAndFronted(chained, geo)
+	resp, err = ChainedAndFronted(chained, geo)
 	assert.NoError(t, err)
-	resp = <-ch
 	log.Debugf("Got response in test")
 	body, err = ioutil.ReadAll(resp.Body)
 	assert.NoError(t, err)
@@ -72,9 +70,8 @@ func TestChainedAndFronted(t *testing.T) {
 	bad = "http://48290.cloudfront.net/lookup/198.199.72.101"
 	chained, err = http.NewRequest("GET", bad, nil)
 	assert.NoError(t, err)
-	ch, err = ChainedAndFronted(chained, geo)
+	resp, err = ChainedAndFronted(chained, geo)
 	assert.NoError(t, err)
-	resp = <-ch
 	body, err = ioutil.ReadAll(resp.Body)
 	assert.NoError(t, err)
 	assert.True(t, strings.Contains(string(body), "New York"), "Unexpected response "+string(body))
@@ -85,9 +82,8 @@ func TestChainedAndFronted(t *testing.T) {
 	timeout = time.After(1 * time.Millisecond)
 	chained, err = http.NewRequest("GET", geo, nil)
 	assert.NoError(t, err)
-	ch, err = ChainedAndFronted(chained, geo)
+	resp, err = ChainedAndFronted(chained, geo)
 	assert.Error(t, err)
-	resp = <-ch
 	assert.True(t, resp == nil)
 }
 

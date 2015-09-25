@@ -31,9 +31,7 @@ var (
 // This method will attempt to execute the specified HTTP request using both
 // chained and fronted servers, simply returning the first response to
 // arrive.
-func ChainedAndFronted(chained *http.Request, frontedUrl string) (<-chan *http.Response, error) {
-
-	c := make(chan *http.Response, 1)
+func ChainedAndFronted(chained *http.Request, frontedUrl string) (*http.Response, error) {
 	responses := make(chan *http.Response, 2)
 	errs := make(chan error, 2)
 
@@ -73,12 +71,10 @@ func ChainedAndFronted(chained *http.Request, frontedUrl string) (<-chan *http.R
 		case resp := <-responses:
 			if i == 1 {
 				log.Debugf("Got second response -- sending")
-				c <- resp
-				return c, nil
+				return resp, nil
 			} else if success(resp) {
 				log.Debugf("Got good response")
-				c <- resp
-				return c, nil
+				return resp, nil
 			} else {
 				log.Debugf("Got bad first response -- wait for second")
 				_ = resp.Body.Close()
@@ -86,17 +82,14 @@ func ChainedAndFronted(chained *http.Request, frontedUrl string) (<-chan *http.R
 		case err := <-errs:
 			log.Debugf("Got an error: %v", err)
 			if i == 1 {
-				close(c)
-				return c, errors.New("All requests errored")
+				return nil, errors.New("All requests errored")
 			}
 		case <-timeout:
 			log.Errorf("Timed out!")
-			close(c)
-			return c, errors.New("Timed out!")
+			return nil, errors.New("Timed out!")
 		}
 	}
-	close(c)
-	return c, errors.New("Reached end")
+	return nil, errors.New("Reached end")
 }
 
 // PersistentHTTPClient creates an http.Client that persists across requests.
