@@ -38,14 +38,19 @@ func (at *authTransport) RoundTrip(req *http.Request) (resp *http.Response, err 
 // the dialers provided by the balancer.
 func (client *Client) newReverseProxy() (*httputil.ReverseProxy, error) {
 
-	// Just choose a random dialer that also takes care of things like the
-	// authentication token.
+	// This is a bit unorthodox in that we get a load balanced connection
+	// first and then simply return that in our dial function below.
+	// The reason for this is that the only the dialer knows the
+	// authentication token for its associated server, and we need to
+	// set that in the Transport RoundTrip call above.
 	dialer, conn, err := client.getBalancer().TrustedDialerAndConn()
 	if err != nil {
 		log.Errorf("Could not get balanced dialer", err)
 		return nil, err
 	}
 
+	// We we simply return the already-established connection - see
+	// above comment.
 	dial := func(network, addr string) (net.Conn, error) {
 		return conn, err
 	}
