@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"path"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"strings"
 	"testing"
@@ -110,6 +111,43 @@ func TestCallString(t *testing.T) {
 	}
 }
 
+func TestCallMarshalText(t *testing.T) {
+	t.Parallel()
+
+	c := stack.Caller(0)
+	_, file, line, ok := runtime.Caller(0)
+	line--
+	if !ok {
+		t.Fatal("runtime.Caller(0) failed")
+	}
+
+	c2, _, file2, line2, ok2 := testType{}.testMethod()
+	if !ok2 {
+		t.Fatal("runtime.Caller(0) failed")
+	}
+
+	data := []struct {
+		c    stack.Call
+		desc string
+		out  []byte
+		err  error
+	}{
+		{stack.Call{}, "error", nil, stack.ErrNoFunc},
+		{c, "func", []byte(fmt.Sprint(path.Base(file), ":", line)), nil},
+		{c2, "meth", []byte(fmt.Sprint(path.Base(file2), ":", line2)), nil},
+	}
+
+	for _, d := range data {
+		text, err := d.c.MarshalText()
+		if got, want := err, d.err; got != want {
+			t.Errorf("%s: got err %v, want err %v", d.desc, got, want)
+		}
+		if got, want := text, d.out; !reflect.DeepEqual(got, want) {
+			t.Errorf("%s: got %s, want %s", d.desc, got, want)
+		}
+	}
+}
+
 func TestCallStackString(t *testing.T) {
 	cs, line0 := getTrace(t)
 	_, file, line1, ok := runtime.Caller(0)
@@ -123,6 +161,19 @@ func TestCallStackString(t *testing.T) {
 	}
 }
 
+func TestCallStackMarshalText(t *testing.T) {
+	cs, line0 := getTrace(t)
+	_, file, line1, ok := runtime.Caller(0)
+	line1--
+	if !ok {
+		t.Fatal("runtime.Caller(0) failed")
+	}
+	file = path.Base(file)
+	text, _ := cs.MarshalText()
+	if got, want := text, []byte(fmt.Sprintf("[%s:%d %s:%d]", file, line0, file, line1)); !reflect.DeepEqual(got, want) {
+		t.Errorf("\n got %v\nwant %v", got, want)
+	}
+}
 func getTrace(t *testing.T) (stack.CallStack, int) {
 	cs := stack.Trace().TrimRuntime()
 	_, _, line, ok := runtime.Caller(0)

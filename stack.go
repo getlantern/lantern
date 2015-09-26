@@ -10,6 +10,8 @@
 package stack
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"path/filepath"
@@ -49,6 +51,21 @@ func Caller(skip int) Call {
 func (c Call) String() string {
 	return fmt.Sprint(c)
 }
+
+// MarshalText implements encoding.TextMarshaler. It formats the Call the same
+// as fmt.Sprintf("%v", c).
+func (c Call) MarshalText() ([]byte, error) {
+	if c.fn == nil {
+		return nil, ErrNoFunc
+	}
+	buf := bytes.Buffer{}
+	fmt.Fprint(&buf, c)
+	return buf.Bytes(), nil
+}
+
+// ErrNoFunc means that the Call has a nil *runtime.Func. The most likely
+// cause is a Call with the zero value.
+var ErrNoFunc = errors.New("no call stack information")
 
 // Format implements fmt.Formatter with support for the following verbs.
 //
@@ -181,18 +198,42 @@ func (cs CallStack) String() string {
 	return fmt.Sprint(cs)
 }
 
+var (
+	openBracketBytes  = []byte("[")
+	closeBracketBytes = []byte("]")
+	spaceBytes        = []byte(" ")
+)
+
+// MarshalText implements encoding.TextMarshaler. It formats the CallStack the
+// same as fmt.Sprintf("%v", cs).
+func (cs CallStack) MarshalText() ([]byte, error) {
+	buf := bytes.Buffer{}
+	buf.Write(openBracketBytes)
+	for i, pc := range cs {
+		if pc.fn == nil {
+			return nil, ErrNoFunc
+		}
+		if i > 0 {
+			buf.Write(spaceBytes)
+		}
+		fmt.Fprint(&buf, pc)
+	}
+	buf.Write(closeBracketBytes)
+	return buf.Bytes(), nil
+}
+
 // Format implements fmt.Formatter by printing the CallStack as square brackes
 // ([, ]) surrounding a space separated list of Calls each formatted with the
 // supplied verb and options.
 func (cs CallStack) Format(s fmt.State, verb rune) {
-	s.Write([]byte("["))
+	s.Write(openBracketBytes)
 	for i, pc := range cs {
 		if i > 0 {
-			s.Write([]byte(" "))
+			s.Write(spaceBytes)
 		}
 		pc.Format(s, verb)
 	}
-	s.Write([]byte("]"))
+	s.Write(closeBracketBytes)
 }
 
 // findSigpanic intentially executes faulting code to generate a stack trace
