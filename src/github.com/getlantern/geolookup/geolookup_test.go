@@ -23,7 +23,10 @@ func TestCityLookup(t *testing.T) {
 	// Now test with direct domain fronting.
 	rootCAs := certPool(t)
 	masquerades := masquerades()
-	fronted.Configure(rootCAs, masquerades)
+
+	m := make(map[string][]*fronted.Masquerade)
+	m["cloudfront"] = masquerades
+	fronted.Configure(rootCAs, m)
 	direct := fronted.NewDirect()
 	client = direct.NewDirectHttpClient()
 	cloudfrontEndpoint := `http://d3u5fqukq7qrhd.cloudfront.net/lookup/%v`
