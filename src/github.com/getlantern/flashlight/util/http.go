@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"sync/atomic"
 	"time"
 
 	"github.com/getlantern/fronted"
@@ -28,29 +29,70 @@ var (
 	timeout = time.After(60 * time.Second)
 )
 
+// HTTPFetcher is a simple interface for types that are able to fetch data over HTTP.
+type HTTPFetcher interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
+// NewChainedAndFronted creates a new struct for accessing resources using chained
+// and direct fronted servers in parallel.
+func NewChainedAndFronted() *chainedAndFronted {
+	cf := &chainedAndFronted{}
+	// Just make sure we initialize the atomic value, as otherwise we have to worry
+	// about nil.
+	cf.chainedSucceeded.Store(false)
+	return cf
+}
+
+// ChainedAndFronted fetches HTTP data in parallel using both chained and fronted
+// servers.
+type chainedAndFronted struct {
+	chainedSucceeded atomic.Value
+}
+
 // This method will attempt to execute the specified HTTP request using both
 // chained and fronted servers, simply returning the first response to
-// arrive.
-func ChainedAndFronted(chained *http.Request, frontedUrl string) (*http.Response, error) {
+// arrive. Callers MUST use the Lantern-Fronted-URL HTTP header to
+// specify the fronted URL to use.
+func (c *chainedAndFronted) Do(req *http.Request) (*http.Response, error) {
+	frontedUrl := req.Header.Get("Lantern-Fronted-URL")
+	req.Header.Del("Lantern-Fronted-URL")
+
+	if frontedUrl == "" {
+		return nil, errors.New("Callers MUST specify the fronted URL in the Lantern-Fronted-URL header")
+	}
 	responses := make(chan *http.Response, 2)
 	errs := make(chan error, 2)
 
-	doRequest := func(client *http.Client, req *http.Request) {
+	doRequest := func(client *http.Client, req *http.Request, chained bool) {
 		if resp, err := client.Do(req); err != nil {
 			log.Errorf("Could not complete request with: %v, %v", frontedUrl, err)
 			errs <- err
+			if chained {
+				c.chainedSucceeded.Store(false)
+			}
 		} else {
+			if chained {
+				c.chainedSucceeded.Store(true)
+			}
 			responses <- resp
 		}
 	}
 
 	go func() {
+		// If chained servers have been succeeding generally, just keep using
+		// them instead of using fronting.
+		if c.chainedSucceeded.Load().(bool) {
+			// This is a bit of a hack to work with the select logic below.
+			errs <- errors.New("Not using fronting since chained previously succeeded")
+			return
+		}
 		client := direct.NewDirectHttpClient()
 		if r, err := http.NewRequest("GET", frontedUrl, nil); err != nil {
 			log.Errorf("Could not create request for: %v, %v", frontedUrl, err)
 			errs <- err
 		} else {
-			doRequest(client, r)
+			doRequest(client, r, false)
 		}
 	}()
 	go func() {
@@ -58,7 +100,7 @@ func ChainedAndFronted(chained *http.Request, frontedUrl string) (*http.Response
 			log.Errorf("Could not create HTTP client: %v", err)
 			errs <- err
 		} else {
-			doRequest(client, chained)
+			doRequest(client, req, true)
 		}
 	}()
 

@@ -15,16 +15,34 @@ import (
 )
 
 var (
-	poolCh        = make(chan *x509.CertPool, 1)
-	masqueradesCh = make(chan []*Masquerade, 1)
-	masqCh        = make(chan *Masquerade, 1)
+	poolCh      = make(chan *x509.CertPool, 1)
+	candidateCh = make(chan *Masquerade)
+	masqCh      = make(chan *Masquerade, 1)
 )
 
-func Configure(pool *x509.CertPool, masquerades []*Masquerade) {
+func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
+	if masquerades == nil || len(masquerades) == 0 {
+		log.Errorf("No masquerades!!")
+	}
+
 	go func() {
 		poolCh <- pool
-		masqueradesCh <- masquerades
+		for _, arr := range masquerades {
+			shuffle(arr)
+			for _, m := range arr {
+				candidateCh <- m
+			}
+		}
 	}()
+}
+
+func shuffle(slc []*Masquerade) {
+	n := len(slc)
+	for i := 0; i < n; i++ {
+		// choose index uniformly in [i, n-1]
+		r := i + rand.Intn(n-i)
+		slc[r], slc[i] = slc[i], slc[r]
+	}
 }
 
 func getCertPool() *x509.CertPool {
@@ -35,28 +53,23 @@ func getCertPool() *x509.CertPool {
 	return pool
 }
 
-type Direct struct {
+type direct struct {
 	tlsConfigs      map[string]*tls.Config
 	tlsConfigsMutex sync.Mutex
 }
 
-func NewDirect() *Direct {
-	return &Direct{
+func NewDirect() *direct {
+	d := &direct{
 		tlsConfigs: make(map[string]*tls.Config),
 	}
+	d.fillMasquerades()
+	return d
 }
 
-func (d *Direct) getMasquerade() *Masquerade {
-	if len(masqCh) > 0 {
-		return <-masqCh
-	}
-	log.Debugf("Refreshing live masquerades")
-	ms := <-masqueradesCh
-	size := len(ms)
-	for i := 0; i < 10; i++ {
+func (d *direct) fillMasquerades() {
+	for i := 0; i < 40; i++ {
 		go func() {
-			r := rand.Intn(size)
-			m := ms[r]
+			m := <-candidateCh
 			log.Debugf("Dialing to %v", m)
 			conn, err := d.dialServerWith(m)
 			if err != nil {
@@ -72,7 +85,16 @@ func (d *Direct) getMasquerade() *Masquerade {
 			}
 		}()
 	}
-	return <-masqCh
+}
+
+func (d *direct) getMasquerade() *Masquerade {
+	m := <-masqCh
+
+	// Since we know m is already working, simply requeue it.
+	go func() {
+		masqCh <- m
+	}()
+	return m
 }
 
 // directTransport is a wrapper struct enabling us to modify the protocol of outgoing
@@ -97,7 +119,7 @@ func (ddf *directTransport) RoundTrip(req *http.Request) (resp *http.Response, e
 }
 
 // NewHttpClient creates a new http.Client that does direct domain fronting.
-func (d *Direct) NewDirectHttpClient() *http.Client {
+func (d *direct) NewDirectHttpClient() *http.Client {
 	m := d.getMasquerade()
 	trans := &directTransport{}
 	trans.Dial = func(network, addr string) (net.Conn, error) {
@@ -117,7 +139,7 @@ func (d *Direct) NewDirectHttpClient() *http.Client {
 	}
 }
 
-func (d *Direct) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
+func (d *direct) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
 	tlsConfig := d.tlsConfig(masquerade)
 	dialTimeout := 30 * time.Second
 	sendServerNameExtension := false
@@ -140,7 +162,7 @@ func (d *Direct) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
 // tlsConfig builds a tls.Config for dialing the upstream host. Constructed
 // tls.Configs are cached on a per-masquerade basis to enable client session
 // caching and reduce the amount of PEM certificate parsing.
-func (d *Direct) tlsConfig(m *Masquerade) *tls.Config {
+func (d *direct) tlsConfig(m *Masquerade) *tls.Config {
 	d.tlsConfigsMutex.Lock()
 	defer d.tlsConfigsMutex.Unlock()
 

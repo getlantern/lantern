@@ -1,0 +1,16 @@
+=== RUN TestChainedAndFronted
+DEBUG fronted: direct.go:54 Refreshing live masquerades
+DEBUG flashlight.util: http.go:137 Creating new HTTPClient with proxy: 127.0.0.1:8787
+DEBUG flashlight.util: http.go:167 Waiting for loopback proxy server to came online...
+DEBUG fronted: direct.go:61 Dialing to &{a-ritani.com 54.192.0.2}
+DEBUG fronted: direct.go:61 Dialing to &{101.livere.co.kr 54.182.0.48}
+DEBUG fronted: direct.go:61 Dialing to &{a-ritani.com 54.192.0.2}
+DEBUG fronted: direct.go:61 Dialing to &{a-ritani.com 54.192.0.2}
+DEBUG fronted: direct.go:61 Dialing to &{Images-na.ssl-images-amazon.com 54.192.0.70}
+DEBUG fronted: direct.go:61 Dialing to &{101.livere.co.kr 54.182.0.48}
+DEBUG fronted: direct.go:61 Dialing to &{Images-na.ssl-images-amazon.com 54.192.0.70}
+DEBUG fronted: direct.go:61 Dialing to &{a-ritani.com 54.192.0.2}
+DEBUG fronted: direct.go:61 Dialing to &{Images-na.ssl-images-amazon.com 54.192.0.70}
+DEBUG fronted: direct.go:61 Dialing to &{101.livere.co.kr 54.182.0.48}
+DEBUG flashlight.util: http.go:181 Connected to proxy on localhost
+DEBUG flashlight.util: util_test.go:26 Got request

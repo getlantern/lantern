@@ -36,13 +36,18 @@ func TestChainedAndFronted(t *testing.T) {
 	go s.ListenAndServe()
 
 	certs := trustedCATestCerts()
-	fronted.Configure(certs, cloudfrontMasquerades)
+	m := make(map[string][]*fronted.Masquerade)
+	m["cloudfront"] = cloudfrontMasquerades
+	fronted.Configure(certs, m)
 
 	geo := "http://d3u5fqukq7qrhd.cloudfront.net/lookup/198.199.72.101"
-	chained, err := http.NewRequest("GET", geo, nil)
+	req, err := http.NewRequest("GET", geo, nil)
+	req.Header.Set("Lantern-Fronted-URL", geo)
+
 	assert.NoError(t, err)
 
-	resp, err := ChainedAndFronted(chained, geo)
+	cf := NewChainedAndFronted()
+	resp, err := cf.Do(req)
 	assert.NoError(t, err)
 	body, err := ioutil.ReadAll(resp.Body)
 	assert.NoError(t, err)
@@ -51,12 +56,14 @@ func TestChainedAndFronted(t *testing.T) {
 	_ = resp.Body.Close()
 
 	// Now test with a bad cloudfront url that won't resolve and make sure even the
-	// delayed chained server still gives us the result
+	// delayed req server still gives us the result
 	sleep = 2 * time.Second
 	bad := "http://48290.cloudfront.net/lookup/198.199.72.101"
-	chained, err = http.NewRequest("GET", geo, nil)
+	req, err = http.NewRequest("GET", geo, nil)
+	req.Header.Set("Lantern-Fronted-URL", bad)
 	assert.NoError(t, err)
-	resp, err = ChainedAndFronted(chained, geo)
+	cf = NewChainedAndFronted()
+	resp, err = cf.Do(req)
 	assert.NoError(t, err)
 	log.Debugf("Got response in test")
 	body, err = ioutil.ReadAll(resp.Body)
@@ -64,13 +71,15 @@ func TestChainedAndFronted(t *testing.T) {
 	assert.True(t, strings.Contains(string(body), "New York"), "Unexpected response ")
 	_ = resp.Body.Close()
 
-	// Now give the bad url to the chained server and make sure we still get the corret
+	// Now give the bad url to the req server and make sure we still get the corret
 	// result from the fronted server.
-	log.Debugf("Running test with bad URL in the chained server")
+	log.Debugf("Running test with bad URL in the req server")
 	bad = "http://48290.cloudfront.net/lookup/198.199.72.101"
-	chained, err = http.NewRequest("GET", bad, nil)
+	req, err = http.NewRequest("GET", bad, nil)
+	req.Header.Set("Lantern-Fronted-URL", geo)
 	assert.NoError(t, err)
-	resp, err = ChainedAndFronted(chained, geo)
+	cf = NewChainedAndFronted()
+	resp, err = cf.Do(req)
 	assert.NoError(t, err)
 	body, err = ioutil.ReadAll(resp.Body)
 	assert.NoError(t, err)
@@ -80,9 +89,11 @@ func TestChainedAndFronted(t *testing.T) {
 	// Now test with a super short timeout
 	log.Debugf("Running test with short timeout")
 	timeout = time.After(1 * time.Millisecond)
-	chained, err = http.NewRequest("GET", geo, nil)
+	req, err = http.NewRequest("GET", geo, nil)
+	req.Header.Set("Lantern-Fronted-URL", geo)
 	assert.NoError(t, err)
-	resp, err = ChainedAndFronted(chained, geo)
+	cf = NewChainedAndFronted()
+	resp, err = cf.Do(req)
 	assert.Error(t, err)
 	assert.True(t, resp == nil)
 }

@@ -5,22 +5,28 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"time"
 
 	"github.com/getlantern/golog"
 )
 
 const (
+
+	// The CloudFlare endpoint can only be hit via chained proxies because domain
+	// fronting no longer works there.
 	cloudflareEndpoint = `http://geo.getiantem.org/lookup/%s`
+
+	// The CloudFront endpoint is used for "direct" domain fronted requests.
 	cloudfrontEndpoint = `http://d3u5fqukq7qrhd.cloudfront.net/lookup/%s`
-	geoLookupTimeout   = 60 * time.Second
 )
 
 var (
 	log = golog.LoggerFor("geolookup")
-
-	defaultHttpClient = &http.Client{}
 )
+
+// HTTPFetcher is a simple interface for types that are able to fetch geo data.
+type HTTPFetcher interface {
+	Do(req *http.Request) (*http.Response, error)
+}
 
 // The City structure corresponds to the data in the GeoIP2/GeoLite2 City
 // databases.
@@ -103,20 +109,14 @@ type Country struct {
 // LookupIPWithClient looks up the given IP using a geolocation service and returns a
 // City struct. If an httpClient was provided, it uses that, otherwise it uses
 // a default http.Client.
-func LookupIPWithClient(ipAddr string, httpClient *http.Client) (*City, string, error) {
-	return LookupIPWithEndpoint(cloudflareEndpoint, ipAddr, httpClient)
+func LookupIPWithClient(ipAddr string, fetcher HTTPFetcher) (*City, string, error) {
+	return LookupIPWithEndpoint(cloudflareEndpoint, ipAddr, fetcher)
 }
 
 // LookupIPWithEndpoint looks up the given IP using a geolocation service and returns a
 // City struct. If an httpClient was provided, it uses that, otherwise it uses
 // a default http.Client.
-func LookupIPWithEndpoint(endpoint string, ipAddr string, httpClient *http.Client) (*City, string, error) {
-	if httpClient == nil {
-		log.Trace("Using default http.Client")
-		httpClient = defaultHttpClient
-	}
-	httpClient.Timeout = geoLookupTimeout
-
+func LookupIPWithEndpoint(endpoint string, ipAddr string, fetcher HTTPFetcher) (*City, string, error) {
 	var err error
 	var req *http.Request
 	var resp *http.Response
@@ -127,9 +127,10 @@ func LookupIPWithEndpoint(endpoint string, ipAddr string, httpClient *http.Clien
 	}
 
 	frontedUrl := fmt.Sprintf(cloudfrontEndpoint, ipAddr)
+
 	req.Header.Set("Lantern-Fronted-URL", frontedUrl)
 
-	if resp, err = httpClient.Do(req); err != nil {
+	if resp, err = fetcher.Do(req); err != nil {
 		return nil, "", fmt.Errorf("Could not get response from server: %q", err)
 	}
 	defer func() {
@@ -156,5 +157,6 @@ func LookupIPWithEndpoint(endpoint string, ipAddr string, httpClient *http.Clien
 		return nil, ip, err
 	}
 
+	log.Debugf("Successfully looked up IP '%v' and country '%v'", ip, city.Country.IsoCode)
 	return city, ip, nil
 }

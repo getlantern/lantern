@@ -12,7 +12,6 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-	"sync/atomic"
 	"time"
 
 	"code.google.com/p/go-uuid/uuid"
@@ -30,6 +29,7 @@ import (
 	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/statreporter"
+	"github.com/getlantern/flashlight/util"
 )
 
 const (
@@ -49,7 +49,6 @@ var (
 	log                 = golog.LoggerFor("flashlight.config")
 	m                   *yamlconf.Manager
 	lastCloudConfigETag = map[string]string{}
-	httpClient          atomic.Value
 	r                   = regexp.MustCompile("\\d+\\.\\d+")
 )
 
@@ -72,8 +71,8 @@ type Config struct {
 	TrustedCAs    []*CA
 }
 
-func Configure(c *http.Client) {
-	httpClient.Store(c)
+// StartPolling starts the process of polling for new configuration files.
+func StartPolling() {
 	// No-op if already started.
 	m.StartPolling()
 }
@@ -171,13 +170,17 @@ func useGoodOldConfig(configDir, configPath string) bool {
 // Init initializes the configuration system.
 func Init(version string) (*Config, error) {
 	file := "lantern-" + version + ".yaml"
-	configDir, configPath, err := InConfigDir(file)
+	_, configPath, err := InConfigDir(file)
 	if err != nil {
 		log.Errorf("Could not get config path? %v", err)
 		return nil, err
 	}
-	ok := useGoodOldConfig(configDir, configPath)
-	if !ok {
+	run := isGoodConfig(configPath)
+	if !run {
+
+		// If this is our first run of this version of Lantern, use the embedded configuration
+		// file and use it to download our custom config file on this first poll for our
+		// config.
 		if err := client.MakeInitialConfig(configPath); err != nil {
 			return nil, err
 		}
@@ -189,15 +192,12 @@ func Init(version string) (*Config, error) {
 		EmptyConfig: func() yamlconf.Config {
 			return &Config{}
 		},
-		FirstRunSetup: func(ycfg yamlconf.Config) error {
-			return nil
-		},
 		PerSessionSetup: func(ycfg yamlconf.Config) error {
 			cfg := ycfg.(*Config)
 			return cfg.applyFlags()
 		},
-		CustomPoll: func(currentCfg yamlconf.Config) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
-			return pollWithHttpClient(currentCfg, httpClient.Load().(*http.Client))
+		CustomPoll: func(ycfg yamlconf.Config) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
+			return pollForConfig(ycfg)
 		},
 	}
 	initial, err := m.Init()
@@ -212,10 +212,12 @@ func Init(version string) (*Config, error) {
 			return nil, err
 		}
 	}
+	log.Debugf("Returning config")
 	return cfg, err
 }
 
-func pollWithHttpClient(currentCfg yamlconf.Config, client *http.Client) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
+func pollForConfig(currentCfg yamlconf.Config) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
+	log.Debugf("Polling for config")
 	// By default, do nothing
 	mutate = func(ycfg yamlconf.Config) error {
 		// do nothing
@@ -224,6 +226,7 @@ func pollWithHttpClient(currentCfg yamlconf.Config, client *http.Client) (mutate
 	cfg := currentCfg.(*Config)
 	waitTime = cfg.cloudPollSleepTime()
 	if cfg.CloudConfig == "" {
+		log.Debugf("No cloud config URL!")
 		// Config doesn't have a CloudConfig, just ignore
 		return mutate, waitTime, nil
 	}
@@ -231,7 +234,7 @@ func pollWithHttpClient(currentCfg yamlconf.Config, client *http.Client) (mutate
 	// We don't pass an auth token here, as the http client is actually hitting the localhost
 	// proxy, and the auth token will ultimately be added as necessary for whatever proxy
 	// ends up getting hit.
-	if bytes, err := fetchCloudConfig(client, chainedCloudConfigUrl, ""); err == nil {
+	if bytes, err := fetchCloudConfig(chainedCloudConfigUrl); err == nil {
 		// bytes will be nil if the config is unchanged (not modified)
 		if bytes != nil {
 			//log.Debugf("Downloaded config:\n %v", string(bytes))
@@ -458,8 +461,7 @@ func (cfg Config) cloudPollSleepTime() time.Duration {
 	return time.Duration((CloudConfigPollInterval.Nanoseconds() / 2) + rand.Int63n(CloudConfigPollInterval.Nanoseconds()))
 }
 
-func fetchCloudConfig(client *http.Client, url, authToken string) ([]byte, error) {
-	log.Debugf("Checking for cloud configuration at: %s", url)
+func fetchCloudConfig(url string) ([]byte, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to construct request for cloud config at %s: %s", url, err)
@@ -469,21 +471,19 @@ func fetchCloudConfig(client *http.Client, url, authToken string) ([]byte, error
 		req.Header.Set(ifNoneMatch, lastCloudConfigETag[url])
 	}
 
-	if authToken != "" {
-		req.Header.Set("X-LANTERN-AUTH-TOKEN", authToken)
-	}
-
-	req.Header.Set("Lantern-Fronted-URL", frontedCloudConfigUrl)
-
 	// Prevents intermediate nodes (CloudFlare) from caching the content
 	req.Header.Set("Cache-Control", "no-cache")
+
+	req.Header.Set("Lantern-Fronted-URL", frontedCloudConfigUrl)
 
 	// make sure to close the connection after reading the Body
 	// this prevents the occasional EOFs errors we're seeing with
 	// successive requests
 	req.Close = true
 
-	resp, err := client.Do(req)
+	// Request the config via either chained servers or direct fronted servers.
+	cf := util.NewChainedAndFronted()
+	resp, err := cf.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to fetch cloud config at %s: %s", url, err)
 	}
@@ -493,10 +493,6 @@ func fetchCloudConfig(client *http.Client, url, authToken string) ([]byte, error
 		}
 	}()
 
-	return readConfigResponse(url, resp)
-}
-
-func readConfigResponse(url string, resp *http.Response) ([]byte, error) {
 	if resp.StatusCode == 304 {
 		log.Debugf("Config unchanged in cloud")
 		return nil, nil
