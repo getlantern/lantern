@@ -471,6 +471,7 @@ func fetchCloudConfig(url string) ([]byte, error) {
 	// Prevents intermediate nodes (domain-fronters) from caching the content
 	req.Header.Set("Cache-Control", "no-cache")
 
+	// Set the fronted URL to lookup the config in parallel using chained and domain fronted servers.
 	req.Header.Set("Lantern-Fronted-URL", frontedCloudConfigUrl)
 
 	// make sure to close the connection after reading the Body
