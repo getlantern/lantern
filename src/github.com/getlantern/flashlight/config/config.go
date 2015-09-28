@@ -231,9 +231,6 @@ func pollForConfig(currentCfg yamlconf.Config) (mutate func(yamlconf.Config) err
 		return mutate, waitTime, nil
 	}
 
-	// We don't pass an auth token here, as the http client is actually hitting the localhost
-	// proxy, and the auth token will ultimately be added as necessary for whatever proxy
-	// ends up getting hit.
 	if bytes, err := fetchCloudConfig(chainedCloudConfigUrl); err == nil {
 		// bytes will be nil if the config is unchanged (not modified)
 		if bytes != nil {
