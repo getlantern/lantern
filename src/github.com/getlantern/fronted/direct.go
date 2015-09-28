@@ -3,11 +3,14 @@ package fronted
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"math/rand"
 	"net"
 	"net/http"
 	"net/url"
+	"reflect"
+	"strings"
 	"sync"
 	"time"
 
@@ -67,13 +70,26 @@ func NewDirect() *direct {
 }
 
 func (d *direct) fillMasquerades() {
+	// We loop through the candidate masquerades to find ones that succeed, adding
+	// them to a channel of verified masquerades.
 	for i := 0; i < 40; i++ {
 		go func() {
 			m := <-candidateCh
 			log.Debugf("Dialing to %v", m)
+
+			// We do the full TLS connection here because in practice the domains at a given IP
+			// address can change frequently on CDNs, so the certificate may not match what
+			// we expect.
 			conn, err := d.dialServerWith(m)
 			if err != nil {
 				log.Debugf("Could not dial to %v, %v", m.IpAddress, err)
+				// Don't re-add this candidate if it's any certificate error, as that
+				// will just keep failing and will waste connections. We can't access the underlying
+				// error at this point so just look for "certificate".
+				if strings.Contains(err.Error(), "certificate") {
+					log.Debugf("Continuing on certificate error")
+					return
+				}
 			} else {
 				log.Debugf("Got successful connection to: %v", m)
 				if err := conn.Close(); err != nil {
@@ -81,18 +97,23 @@ func (d *direct) fillMasquerades() {
 				}
 				masqCh <- m
 			}
+			// We now requeue the masquerade onto the candidate channel
+			// so we don't churn through all the candidates. We do this regardless
+			// of success or failure because the user being offline could easily cause
+			// failures for masquerades that would otherwise succeed.
+			go func() {
+				candidateCh <- m
+			}()
 		}()
 	}
 }
 
 func (d *direct) getMasquerade() *Masquerade {
-	m := <-masqCh
-
-	// Since we know m is already working, simply requeue it.
-	go func() {
-		masqCh <- m
-	}()
-	return m
+	// We don't automatically requeue this masquerade into the valid channel because masquerade mappings can change
+	// quite frequently to the point that a masquerade that was valid at the beginning of a run may no longer
+	// be valid. In particular the certificate served at a given IP address may no longer match the domain
+	// we have on record as it matching.
+	return <-masqCh
 }
 
 // directTransport is a wrapper struct enabling us to modify the protocol of outgoing
@@ -118,23 +139,29 @@ func (ddf *directTransport) RoundTrip(req *http.Request) (resp *http.Response, e
 
 // NewHttpClient creates a new http.Client that does direct domain fronting.
 func (d *direct) NewDirectHttpClient() *http.Client {
-	m := d.getMasquerade()
 	trans := &directTransport{}
-	trans.Dial = func(network, addr string) (net.Conn, error) {
-		log.Debugf("Dialing %s with direct domain fronter", addr)
-		conn, err := d.dialServerWith(m)
-		if err != nil {
-			log.Debugf("Error dialing? %v", err)
-		} else {
-			log.Debugf("Got connection to %v!", conn.RemoteAddr().String())
-		}
-		return conn, err
-	}
+	trans.Dial = d.Dial
 	trans.TLSHandshakeTimeout = 40 * time.Second
 	trans.DisableKeepAlives = true
 	return &http.Client{
 		Transport: trans,
 	}
+}
+
+// Dial persistently dials masquerades until one succeeds.
+func (d *direct) Dial(network, addr string) (net.Conn, error) {
+	for i := 0; i < 20; i++ {
+		log.Debugf("Dialing %s with direct domain fronter", addr)
+		conn, err := d.dialServerWith(d.getMasquerade())
+		if err != nil {
+			log.Debugf("Error dialing? %v", err)
+			continue
+		} else {
+			log.Debugf("Got connection to %v!", conn.RemoteAddr().String())
+		}
+		return conn, err
+	}
+	return nil, errors.New("Could not dial any masquerade?")
 }
 
 func (d *direct) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
