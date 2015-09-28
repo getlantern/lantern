@@ -76,11 +76,9 @@ func (d *direct) fillMasquerades() {
 				log.Debugf("Could not dial to %v, %v", m.IpAddress, err)
 			} else {
 				log.Debugf("Got successful connection to: %v", m)
-				defer func() {
-					if err := conn.Close(); err != nil {
-						log.Debugf("Could not close body %v", err)
-					}
-				}()
+				if err := conn.Close(); err != nil {
+					log.Debugf("Could not close body %v", err)
+				}
 				masqCh <- m
 			}
 		}()
