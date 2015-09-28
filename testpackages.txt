@@ -17,6 +17,7 @@ github.com/getlantern/flashlight/logging
 github.com/getlantern/flashlight/pubsub
 github.com/getlantern/flashlight/server
 github.com/getlantern/flashlight/statreporter
+github.com/getlantern/flashlight/util
 github.com/getlantern/geolookup
 github.com/getlantern/golog
 github.com/getlantern/idletiming
