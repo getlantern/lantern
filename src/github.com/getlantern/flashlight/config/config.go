@@ -468,7 +468,7 @@ func fetchCloudConfig(url string) ([]byte, error) {
 		req.Header.Set(ifNoneMatch, lastCloudConfigETag[url])
 	}
 
-	// Prevents intermediate nodes (CloudFlare) from caching the content
+	// Prevents intermediate nodes (domain-fronters) from caching the content
 	req.Header.Set("Cache-Control", "no-cache")
 
 	req.Header.Set("Lantern-Fronted-URL", frontedCloudConfigUrl)
