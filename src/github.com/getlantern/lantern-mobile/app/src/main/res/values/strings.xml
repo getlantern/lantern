@@ -4,4 +4,5 @@
     <string name="button_text">Start</string>
     <string name="drawer_open">Drawer Open</string>
     <string name="drawer_close">Drawer Close</string>
+    <string name="default_fragment">Default Fragment</string>
 </resources>

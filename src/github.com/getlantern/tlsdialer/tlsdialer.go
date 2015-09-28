@@ -176,6 +176,7 @@ func DialForTimings(dialer *net.Dialer, network, addr string, sendServerName boo
 		err = conn.Handshake()
 	} else {
 		log.Trace("Handshaking on goroutine")
+		log.Debugf("Performing TLS handshake with remote connection: %v", conn.RemoteAddr())
 		go func() {
 			errCh <- conn.Handshake()
 		}()
