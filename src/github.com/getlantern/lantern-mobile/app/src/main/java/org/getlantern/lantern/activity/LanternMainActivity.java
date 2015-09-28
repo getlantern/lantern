@@ -1,19 +1,23 @@
 package org.getlantern.lantern.activity;
 
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.content.Intent;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.preference.PreferenceManager;
 import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.TransitionDrawable;
 import android.graphics.PorterDuff; 
 import android.net.VpnService;
 import android.net.Uri;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
@@ -50,6 +54,13 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
     private static final int onColor = Color.parseColor("#39C2D6");
     private static final int offColor = Color.parseColor("#FAFBFB"); 
 
+    ColorDrawable[] offTransColor = {new ColorDrawable(offColor), new ColorDrawable(onColor)};
+    ColorDrawable[] onTransColor = {new ColorDrawable(onColor), new ColorDrawable(offColor)};     
+
+    private TransitionDrawable offNavTrans = new TransitionDrawable(offTransColor);
+    private TransitionDrawable onNavTrans = new TransitionDrawable(onTransColor);
+
+
     private SharedPreferences mPrefs = null;
 
     private ToggleButton powerLantern;
@@ -67,6 +78,7 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
     ListView mDrawerList;
     RelativeLayout mDrawerPane;
     private ActionBarDrawerToggle mDrawerToggle;
+    private ActionBar actionBar;
     private DrawerLayout mDrawerLayout;
 
     ArrayList<NavItem> mNavItems = new ArrayList<NavItem>();
@@ -79,8 +91,6 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
             finish();
             return;
         }
-
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         mPrefs = getSharedPrefs(getApplicationContext());
 
@@ -113,10 +123,18 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
-        if (mPrefs != null) {
-            mPrefs.edit().remove(LanternConfig.PREF_USE_VPN).commit();
+        try {
+            if (mPrefs != null) {
+                mPrefs.edit().remove(LanternConfig.PREF_USE_VPN);
+                mPrefs.edit().clear().commit();
+            }
+            stopLantern();
+            // give Lantern a second to stop
+            Thread.sleep(1000);
+        } catch (Exception e) {
+
         }
+        super.onDestroy();
     }
 
     interface Command {
@@ -183,13 +201,6 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
 
 
     private void selectItemFromDrawer(int position) {
-        //Fragment fragment = new PreferencesFragment();
-
-        //FragmentManager fragmentManager = getFragmentManager();
-        //fragmentManager.beginTransaction()
-        //    .replace(R.id.mainContent, fragment)
-        //    .commit();
- 
         mDrawerList.setItemChecked(position, true);
 
         try {
@@ -209,7 +220,10 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
     private void quitLantern() {
         try {
             stopLantern();
-            mPrefs.edit().remove(LanternConfig.PREF_USE_VPN).commit();
+            if (mPrefs != null) {
+                mPrefs.edit().remove(LanternConfig.PREF_USE_VPN).commit();
+            }
+
 
             Log.d(TAG, "About to exit Lantern...");
             // sleep for a few ms before exiting
@@ -247,6 +261,7 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
         Uri uri = Uri.parse("http://www.getlantern.org"); // missing 'http://' will cause crashed
         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
         startActivity(intent);
+
     }
 
     // START/STOP button to enable full-device VPN functionality
@@ -284,8 +299,17 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
         // fade to animate the background color
         colorFadeIn = ObjectAnimator.ofObject(mainView, "backgroundColor", new ArgbEvaluator(), offColor, onColor);
         colorFadeOut = ObjectAnimator.ofObject(mainView, "backgroundColor", new ArgbEvaluator(), onColor, offColor);
-        colorFadeIn.setDuration(1000);
-        colorFadeOut.setDuration(1000);
+        colorFadeIn.setDuration(500);
+        colorFadeOut.setDuration(500);
+
+        actionBar = getSupportActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setDisplayShowTitleEnabled(false);
+        actionBar.setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
+
+        onNavTrans.startTransition(500);
+        offNavTrans.startTransition(500);
+
 
         inflater = getLayoutInflater();
         statusLayout = inflater.inflate(R.layout.status_layout, 
@@ -294,7 +318,6 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
         statusToast = new Toast(getApplicationContext());
         statusToast.setGravity(Gravity.BOTTOM|Gravity.FILL_HORIZONTAL, 0, 0);
         statusToast.setDuration(Toast.LENGTH_SHORT);
-
     }
 
     private void displayStatus(boolean useVpn) {
@@ -303,9 +326,11 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
             // fade for the background color animation and switch
             // our image view to use the 'on' image resource
             colorFadeIn.start();
+            actionBar.setBackgroundDrawable(offNavTrans); 
             statusImage.setImageResource(R.drawable.toast_on);
         } else {
             colorFadeOut.start();
+            actionBar.setBackgroundDrawable(onNavTrans); 
             statusImage.setImageResource(R.drawable.toast_off); 
         }
         statusToast.setView(statusLayout);
@@ -319,6 +344,7 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
         powerLantern.setChecked(useVPN);
         if (useVPN) {
             this.mainView.setBackgroundColor(onColor);
+            actionBar.setBackgroundDrawable(new ColorDrawable(onColor)); 
         }
     }
 
@@ -342,20 +368,31 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
     // Prompt the user to enable full-device VPN mode
     protected void enableVPN() {
         Log.d(TAG, "Load VPN configuration");
-        Intent intent = new Intent(LanternMainActivity.this, PromptVpnActivity.class);
-        if (intent != null) {
-            startActivity(intent);
-        }
+        Thread thread = new Thread() {
+            public void run() { 
+                Intent intent = new Intent(LanternMainActivity.this, PromptVpnActivity.class);
+                if (intent != null) {
+                    startActivity(intent);
+                }
+            }
+        };
+        thread.start();
     }
 
     protected void stopLantern() {
         Log.d(TAG, "Stopping Lantern...");
         try {
-            Intent service = new Intent(LanternMainActivity.this, LanternVpn.class);
-            if (service != null) {
-                service.setAction(LanternConfig.DISABLE_VPN);
-                startService(service);
-            }
+            Thread thread = new Thread() {
+                public void run() { 
+
+                    Intent service = new Intent(LanternMainActivity.this, LanternVpn.class);
+                    if (service != null) {
+                        service.setAction(LanternConfig.DISABLE_VPN);
+                        startService(service);
+                    }
+                }
+            };
+            thread.start();
         } catch (Exception e) {
             Log.d(TAG, "Got an exception trying to stop Lantern: " + e);
         }
