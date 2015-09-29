@@ -7,7 +7,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"sync/atomic"
 	"time"
 
 	"github.com/getlantern/fronted"
@@ -38,23 +37,56 @@ type HTTPFetcher interface {
 // and direct fronted servers in parallel.
 func NewChainedAndFronted() *chainedAndFronted {
 	cf := &chainedAndFronted{}
-	// Just make sure we initialize the atomic value, as otherwise we have to worry
-	// about nil.
-	cf.chainedSucceeded.Store(false)
+	dual := &dualFetcher{cf}
+
+	cf.fetcher = dual
+	cf.dual = dual
+	cf.chained = &chainedFetcher{}
 	return cf
 }
 
 // ChainedAndFronted fetches HTTP data in parallel using both chained and fronted
 // servers.
 type chainedAndFronted struct {
-	chainedSucceeded atomic.Value
+	fetcher HTTPFetcher
+	chained HTTPFetcher
+	dual    HTTPFetcher
 }
 
-// This method will attempt to execute the specified HTTP request using both
+// Do will attempt to execute the specified HTTP request using only a chained fetcher
+func (cf *chainedAndFronted) Do(req *http.Request) (*http.Response, error) {
+	res, err := cf.fetcher.Do(req)
+	if err != nil {
+		// If there's an error, switch back to using the dual fetcher.
+		cf.fetcher = cf.dual
+	}
+	return res, err
+}
+
+type chainedFetcher struct {
+}
+
+// Do will attempt to execute the specified HTTP request using only a chained fetcher
+func (cf *chainedFetcher) Do(req *http.Request) (*http.Response, error) {
+	log.Debugf("Using chained fronter")
+	if client, err := HTTPClient("", defaultAddr); err != nil {
+		log.Errorf("Could not create HTTP client: %v", err)
+		return nil, err
+	} else {
+		return client.Do(req)
+	}
+}
+
+type dualFetcher struct {
+	cf *chainedAndFronted
+}
+
+// Do will attempt to execute the specified HTTP request using both
 // chained and fronted servers, simply returning the first response to
 // arrive. Callers MUST use the Lantern-Fronted-URL HTTP header to
 // specify the fronted URL to use.
-func (c *chainedAndFronted) Do(req *http.Request) (*http.Response, error) {
+func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
+	log.Debugf("Using dual fronter")
 	frontedUrl := req.Header.Get("Lantern-Fronted-URL")
 	req.Header.Del("Lantern-Fronted-URL")
 
@@ -64,37 +96,18 @@ func (c *chainedAndFronted) Do(req *http.Request) (*http.Response, error) {
 	responses := make(chan *http.Response, 2)
 	errs := make(chan error, 2)
 
-	doRequest := func(client *http.Client, req *http.Request, chained bool) {
-		if resp, err := client.Do(req); err != nil {
-			log.Errorf("Could not complete request with: %v, %v", frontedUrl, err)
-			if chained {
-				c.chainedSucceeded.Store(false)
-			}
-			errs <- err
-		} else {
-			if chained {
-				log.Debugf("Storing chained succeeded")
-				c.chainedSucceeded.Store(true)
-			}
-			responses <- resp
-		}
-	}
-
 	go func() {
-		// If chained servers have been succeeding generally, just keep using
-		// them instead of using fronting.
-		if c.chainedSucceeded.Load().(bool) {
-			log.Debugf("Not using fronted with chained succeeding")
-			// This is a bit of a hack to work with the select logic below.
-			errs <- errors.New("Not using fronting since chained previously succeeded")
-			return
-		}
 		client := direct.NewDirectHttpClient()
 		if r, err := http.NewRequest("GET", frontedUrl, nil); err != nil {
 			log.Errorf("Could not create request for: %v, %v", frontedUrl, err)
 			errs <- err
 		} else {
-			doRequest(client, r, false)
+			if resp, err := client.Do(r); err != nil {
+				log.Errorf("Could not complete request with: %v, %v", frontedUrl, err)
+				errs <- err
+			} else {
+				responses <- resp
+			}
 		}
 	}()
 	go func() {
@@ -102,7 +115,16 @@ func (c *chainedAndFronted) Do(req *http.Request) (*http.Response, error) {
 			log.Errorf("Could not create HTTP client: %v", err)
 			errs <- err
 		} else {
-			doRequest(client, req, true)
+			if resp, err := client.Do(req); err != nil {
+				log.Errorf("Could not complete request with: %v, %v", frontedUrl, err)
+				errs <- err
+			} else {
+				log.Debugf("Storing chained succeeded")
+
+				// Switch to the chained fronter since it's succeeding.
+				df.cf.fetcher = df.cf.chained
+				responses <- resp
+			}
 		}
 	}()
 

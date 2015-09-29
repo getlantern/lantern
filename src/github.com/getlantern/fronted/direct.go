@@ -28,7 +28,6 @@ func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
 	}
 
 	go func() {
-
 		poolCh <- pool
 		size := 0
 		for _, arr := range masquerades {

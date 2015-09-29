@@ -31,6 +31,7 @@ var (
 	cfgMutex sync.Mutex
 	country  = atomicString()
 	ip       = atomicString()
+	cf       = util.NewChainedAndFronted()
 )
 
 func atomicString() atomic.Value {
@@ -85,7 +86,6 @@ func registerService() error {
 }
 
 func lookupIp() (string, string, error) {
-	cf := util.NewChainedAndFronted()
 	city, ip, err := geo.LookupIPWithClient("", cf)
 
 	if err != nil {
