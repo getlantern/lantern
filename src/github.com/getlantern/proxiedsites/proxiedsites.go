@@ -10,7 +10,7 @@ import (
 
 	"github.com/getlantern/golog"
 
-	"gopkg.in/fatih/set.v0"
+	"github.com/fatih/set"
 )
 
 var (
@@ -68,13 +68,15 @@ func (cfg *Config) toCS() *configsets {
 // toSet converts a slice of strings into a set
 func toSet(s []string) set.Interface {
 	if s == nil {
-		return set.NewNonTS()
+		return set.New(set.NonThreadSafe)
 	}
 	is := make([]interface{}, len(s))
 	for i, s := range s {
 		is[i] = s
 	}
-	return set.NewNonTS(is...)
+	set := set.New(set.NonThreadSafe)
+	set.Add(is...)
+	return set
 }
 
 // toStrings converts a set into a slice of strings
