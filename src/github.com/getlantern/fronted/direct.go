@@ -18,7 +18,7 @@ import (
 
 var (
 	poolCh      = make(chan *x509.CertPool, 1)
-	candidateCh = make(chan *Masquerade)
+	candidateCh = make(chan *Masquerade, 1)
 	masqCh      = make(chan *Masquerade, 1)
 )
 
@@ -28,9 +28,18 @@ func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
 	}
 
 	go func() {
+
 		poolCh <- pool
+		size := 0
 		for _, arr := range masquerades {
 			shuffle(arr)
+			size += len(arr)
+		}
+
+		// Make an unblocke channel the same size as our group
+		// of masquerades and push all of them into it.
+		candidateCh = make(chan *Masquerade, size)
+		for _, arr := range masquerades {
 			for _, m := range arr {
 				candidateCh <- m
 			}
@@ -64,55 +73,7 @@ func NewDirect() *direct {
 	d := &direct{
 		tlsConfigs: make(map[string]*tls.Config),
 	}
-	d.fillMasquerades()
 	return d
-}
-
-func (d *direct) fillMasquerades() {
-	// We loop through the candidate masquerades to find ones that succeed, adding
-	// them to a channel of verified masquerades.
-	for i := 0; i < 40; i++ {
-		go func() {
-			m := <-candidateCh
-			log.Debugf("Dialing to %v", m)
-
-			// We do the full TLS connection here because in practice the domains at a given IP
-			// address can change frequently on CDNs, so the certificate may not match what
-			// we expect.
-			conn, err := d.dialServerWith(m)
-			if err != nil {
-				log.Debugf("Could not dial to %v, %v", m.IpAddress, err)
-				// Don't re-add this candidate if it's any certificate error, as that
-				// will just keep failing and will waste connections. We can't access the underlying
-				// error at this point so just look for "certificate".
-				if strings.Contains(err.Error(), "certificate") {
-					log.Debugf("Continuing on certificate error")
-					return
-				}
-			} else {
-				log.Debugf("Got successful connection to: %v", m)
-				if err := conn.Close(); err != nil {
-					log.Debugf("Could not close body %v", err)
-				}
-				masqCh <- m
-			}
-			// We now requeue the masquerade onto the candidate channel
-			// so we don't churn through all the candidates. We do this regardless
-			// of success or failure because the user being offline could easily cause
-			// failures for masquerades that would otherwise succeed.
-			go func() {
-				candidateCh <- m
-			}()
-		}()
-	}
-}
-
-func (d *direct) getMasquerade() *Masquerade {
-	// We don't automatically requeue this masquerade into the valid channel because masquerade mappings can change
-	// quite frequently to the point that a masquerade that was valid at the beginning of a run may no longer
-	// be valid. In particular the certificate served at a given IP address may no longer match the domain
-	// we have on record as it matching.
-	return <-masqCh
 }
 
 // directTransport is a wrapper struct enabling us to modify the protocol of outgoing
@@ -149,16 +110,29 @@ func (d *direct) NewDirectHttpClient() *http.Client {
 
 // Dial persistently dials masquerades until one succeeds.
 func (d *direct) Dial(network, addr string) (net.Conn, error) {
-	for i := 0; i < 20; i++ {
-		log.Debugf("Dialing %s with direct domain fronter", addr)
-		conn, err := d.dialServerWith(d.getMasquerade())
+	for i := 0; i < 40; i++ {
+		m := <-candidateCh
+		log.Debugf("Dialing to %v", m)
+
+		// We do the full TLS connection here because in practice the domains at a given IP
+		// address can change frequently on CDNs, so the certificate may not match what
+		// we expect.
+		conn, err := d.dialServerWith(m)
 		if err != nil {
-			log.Debugf("Error dialing? %v", err)
-			continue
+			log.Debugf("Could not dial to %v, %v", m.IpAddress, err)
+			// Don't re-add this candidate if it's any certificate error, as that
+			// will just keep failing and will waste connections. We can't access the underlying
+			// error at this point so just look for "certificate".
+			if strings.Contains(err.Error(), "certificate") {
+				log.Debugf("Continuing on certificate error")
+			} else {
+				candidateCh <- m
+			}
 		} else {
-			log.Debugf("Got connection to %v!", conn.RemoteAddr().String())
+			log.Debugf("Got successful connection to: %v", m)
+			candidateCh <- m
+			return conn, nil
 		}
-		return conn, err
 	}
 	return nil, errors.New("Could not dial any masquerade?")
 }
