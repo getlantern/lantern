@@ -67,12 +67,13 @@ func (c *chainedAndFronted) Do(req *http.Request) (*http.Response, error) {
 	doRequest := func(client *http.Client, req *http.Request, chained bool) {
 		if resp, err := client.Do(req); err != nil {
 			log.Errorf("Could not complete request with: %v, %v", frontedUrl, err)
-			errs <- err
 			if chained {
 				c.chainedSucceeded.Store(false)
 			}
+			errs <- err
 		} else {
 			if chained {
+				log.Debugf("Storing chained succeeded")
 				c.chainedSucceeded.Store(true)
 			}
 			responses <- resp
@@ -83,6 +84,7 @@ func (c *chainedAndFronted) Do(req *http.Request) (*http.Response, error) {
 		// If chained servers have been succeeding generally, just keep using
 		// them instead of using fronting.
 		if c.chainedSucceeded.Load().(bool) {
+			log.Debugf("Not using fronted with chained succeeding")
 			// This is a bit of a hack to work with the select logic below.
 			errs <- errors.New("Not using fronting since chained previously succeeded")
 			return
