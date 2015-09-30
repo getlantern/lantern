@@ -13,8 +13,9 @@ import java.util.ArrayList;
 import org.getlantern.lantern.R;
 
 class ListAdapter extends BaseAdapter {
-    Context mContext;
-    ArrayList<NavItem> mNavItems;
+
+    private Context mContext;
+    private ArrayList<NavItem> mNavItems;
 
     public ListAdapter(Context context, ArrayList<NavItem> navItems) {
         mContext = context;
