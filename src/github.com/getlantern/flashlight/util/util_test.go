@@ -85,17 +85,6 @@ func TestChainedAndFronted(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, strings.Contains(string(body), "New York"), "Unexpected response "+string(body))
 	_ = resp.Body.Close()
-
-	// Now test with a super short timeout
-	log.Debugf("Running test with short timeout")
-	timeout = time.After(1 * time.Millisecond)
-	req, err = http.NewRequest("GET", geo, nil)
-	req.Header.Set("Lantern-Fronted-URL", geo)
-	assert.NoError(t, err)
-	cf = NewChainedAndFronted()
-	resp, err = cf.Do(req)
-	assert.Error(t, err)
-	assert.True(t, resp == nil)
 }
 
 func trustedCATestCerts() *x509.CertPool {

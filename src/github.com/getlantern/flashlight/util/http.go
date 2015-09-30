@@ -24,8 +24,7 @@ var (
 
 	// This is for doing direct domain fronting if necessary. We store this as
 	// an instance variable because it caches TLS session configs.
-	direct  = fronted.NewDirect()
-	timeout = time.After(60 * time.Second)
+	direct = fronted.NewDirect()
 )
 
 // HTTPFetcher is a simple interface for types that are able to fetch data over HTTP.
@@ -37,11 +36,7 @@ type HTTPFetcher interface {
 // and direct fronted servers in parallel.
 func NewChainedAndFronted() *chainedAndFronted {
 	cf := &chainedAndFronted{}
-	dual := &dualFetcher{cf}
-
-	cf.fetcher = dual
-	cf.dual = dual
-	cf.chained = &chainedFetcher{}
+	cf.fetcher = &dualFetcher{cf}
 	return cf
 }
 
@@ -49,8 +44,6 @@ func NewChainedAndFronted() *chainedAndFronted {
 // servers.
 type chainedAndFronted struct {
 	fetcher HTTPFetcher
-	chained HTTPFetcher
-	dual    HTTPFetcher
 }
 
 // Do will attempt to execute the specified HTTP request using only a chained fetcher
@@ -58,7 +51,7 @@ func (cf *chainedAndFronted) Do(req *http.Request) (*http.Response, error) {
 	res, err := cf.fetcher.Do(req)
 	if err != nil {
 		// If there's an error, switch back to using the dual fetcher.
-		cf.fetcher = cf.dual
+		cf.fetcher = &dualFetcher{cf}
 	}
 	return res, err
 }
@@ -122,7 +115,7 @@ func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
 				log.Debugf("Storing chained succeeded")
 
 				// Switch to the chained fronter since it's succeeding.
-				df.cf.fetcher = df.cf.chained
+				df.cf.fetcher = &chainedFetcher{}
 				responses <- resp
 			}
 		}
@@ -140,6 +133,9 @@ func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
 				return resp, nil
 			} else if success(resp) {
 				log.Debugf("Got good response")
+				// Returning preemptively here means the second response
+				// will not be closed properly. We need to ultimately
+				// handle that.
 				return resp, nil
 			} else {
 				log.Debugf("Got bad first response -- wait for second")
@@ -150,9 +146,6 @@ func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
 			if i == 1 {
 				return nil, errors.New("All requests errored")
 			}
-		case <-timeout:
-			log.Errorf("Timed out!")
-			return nil, errors.New("Timed out!")
 		}
 	}
 	return nil, errors.New("Reached end")
