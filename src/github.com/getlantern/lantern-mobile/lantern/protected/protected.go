@@ -5,9 +5,7 @@ package protected
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net"
-	"net/http"
 	"os"
 	"strconv"
 	"sync"
@@ -130,43 +128,6 @@ func (conn *ProtectedConn) Addr() (*net.TCPAddr, error) {
 	return net.ResolveTCPAddr("tcp", conn.addr)
 }
 
-func sendTestRequest(client *http.Client, addr string) {
-	req, err := http.NewRequest("GET", "http://"+addr+"/", nil)
-	if err != nil {
-		log.Errorf("Error constructing new HTTP request: %s", err)
-		return
-	}
-	req.Header.Add("Connection", "keep-alive")
-	if resp, err := client.Do(req); err != nil {
-		log.Errorf("Could not make request to %s: %s", addr, err)
-		return
-	} else {
-		result, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			log.Errorf("Error reading response body: %s", err)
-			return
-		}
-		resp.Body.Close()
-		log.Debugf("Successfully processed request to %s", addr)
-		log.Debugf("RESULT: %s", result)
-	}
-}
-
-func TestConnect(protector SocketProtector, addr string) error {
-	Configure(protector)
-
-	client := &http.Client{
-		Transport: &http.Transport{
-			Dial: func(netw, addr string) (net.Conn, error) {
-				return Dial(netw, addr)
-			},
-			ResponseHeaderTimeout: time.Second * 2,
-		},
-	}
-	sendTestRequest(client, addr)
-	return nil
-}
-
 // converts the protected connection specified by
 // socket fd to a net.Conn
 func (conn *ProtectedConn) convert() error {
@@ -186,16 +147,6 @@ func (conn *ProtectedConn) convert() error {
 	return nil
 }
 
-func (conn *ProtectedConn) ProtectedClose() error {
-	// Assumes conn.mutex is held
-	if conn.socketFd == socketError {
-		return nil
-	}
-	err := syscall.Close(conn.socketFd)
-	conn.socketFd = socketError
-	return err
-}
-
 // cleanup is ran whenever we encounter a socket error
 // we use a mutex since this connection is active in a variety
 // of goroutines and to prevent any possible race conditions
@@ -209,6 +160,7 @@ func (conn *ProtectedConn) cleanup() {
 	}
 }
 
+// Close is used to destroy a protected connection
 func (conn *ProtectedConn) Close() (err error) {
 	conn.mutex.Lock()
 	defer conn.mutex.Unlock()
@@ -216,7 +168,15 @@ func (conn *ProtectedConn) Close() (err error) {
 	if !conn.isClosed {
 		conn.isClosed = true
 		if conn.Conn == nil {
-			err = conn.ProtectedClose()
+			if conn.socketFd == socketError {
+				err = nil
+			} else {
+				err = syscall.Close(conn.socketFd)
+				// update socket fd to socketError
+				// to make it explicit this connection
+				// has been closed
+				conn.socketFd = socketError
+			}
 		} else {
 			err = conn.Conn.Close()
 		}
@@ -296,6 +256,8 @@ func (conn *ProtectedConn) resolveHostname() (net.IP, error) {
 	return ipAddr, nil
 }
 
+// wrapper around net.SplitHostPort that also converts
+// uses strconv to convert the port to an int
 func SplitHostPort(addr string) (string, int, error) {
 	host, sPort, err := net.SplitHostPort(addr)
 	if err != nil {

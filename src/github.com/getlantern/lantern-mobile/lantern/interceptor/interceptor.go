@@ -153,7 +153,7 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (*InterceptedConn, e
 		return nil, err
 	}
 
-	// check if it's traffic we actually support
+	// check if it's a request on a port we actually support
 	if !allowedPorts[port] {
 		return nil, errors.New("Tried to tunnel request to invalid port; ignoring request")
 	}
@@ -168,6 +168,9 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (*InterceptedConn, e
 	})
 
 	go func() {
+		// retrieve balancer and dial the given address
+		// tlsdialer has been modified to dial a protected connection
+		// whenever the detected OS is Android
 		balancer := i.client.GetBalancer()
 		forwardConn, err := balancer.Dial("connect", addr)
 		if err != nil {
@@ -201,19 +204,19 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (*InterceptedConn, e
 
 // pipe relays between a local SOCKS connection and an interceptor
 // connection to Lantern
-func (i *Interceptor) pipe(localConn net.Conn, remoteConn *InterceptedConn) {
+func (i *Interceptor) pipe(localConn net.Conn, proxyConn *InterceptedConn) {
 
 	var wg sync.WaitGroup
 	wg.Add(2)
 
 	removeConn := func() {
 		i.connsMutex.Lock()
-		i.conns[remoteConn.id] = nil
+		i.conns[proxyConn.id] = nil
 		i.connsMutex.Unlock()
 	}
 
 	go func() {
-		_, err := io.Copy(localConn, remoteConn)
+		_, err := io.Copy(localConn, proxyConn)
 		if err != nil {
 			log.Errorf("Relay failed: %v", err)
 		}
@@ -221,7 +224,7 @@ func (i *Interceptor) pipe(localConn net.Conn, remoteConn *InterceptedConn) {
 	}()
 
 	go func() {
-		io.Copy(remoteConn, localConn)
+		io.Copy(proxyConn, localConn)
 		wg.Done()
 	}()
 
@@ -261,26 +264,30 @@ L:
 	}
 }
 
+// handle forwards an intercepted connection to our local Lantern
+// HTTP proxy
 func (i *Interceptor) handle(localConn *socks.SocksConn) (err error) {
 
 	defer localConn.Close()
 	defer i.openConns.Remove(localConn)
 	i.openConns.Add(localConn)
 
-	remoteConn, err := i.Dial(localConn.Req.Target, localConn)
+	proxyConn, err := i.Dial(localConn.Req.Target, localConn)
 	if err != nil {
 		log.Errorf("Error tunneling request: %v", err)
 		return err
 	}
-	defer remoteConn.Close()
+	defer proxyConn.Close()
 
+	// inform proxy client that access to the given
+	// address is granted
 	err = localConn.Grant(&net.TCPAddr{
 		IP: net.ParseIP("0.0.0.0"), Port: 0})
 	if err != nil {
 		return err
 	}
 
-	i.pipe(localConn, remoteConn)
+	i.pipe(localConn, proxyConn)
 	return nil
 }
 
