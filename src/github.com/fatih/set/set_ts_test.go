@@ -8,20 +8,17 @@ import (
 )
 
 func TestSet_New(t *testing.T) {
-	s := New()
+	s := newTS()
 
 	if s.Size() != 0 {
 		t.Error("New: calling without any parameters should create a set with zero size")
 	}
 
-	u := s.New()
-	if u.Size() != 0 {
-		t.Error("New: creating a new set via s.New() should create a set with zero size")
-	}
 }
 
 func TestSet_New_parameters(t *testing.T) {
-	s := New("string", "another_string", 1, 3.14)
+	s := newTS()
+	s.Add("string", "another_string", 1, 3.14)
 
 	if s.Size() != 4 {
 		t.Error("New: calling with parameters should create a set with size of four")
@@ -29,7 +26,7 @@ func TestSet_New_parameters(t *testing.T) {
 }
 
 func TestSet_Add(t *testing.T) {
-	s := New()
+	s := newTS()
 	s.Add(1)
 	s.Add(2)
 	s.Add(2) // duplicate
@@ -47,7 +44,7 @@ func TestSet_Add(t *testing.T) {
 }
 
 func TestSet_Add_multiple(t *testing.T) {
-	s := New()
+	s := newTS()
 	s.Add("ankara", "san francisco", 3.14)
 
 	if s.Size() != 3 {
@@ -60,7 +57,7 @@ func TestSet_Add_multiple(t *testing.T) {
 }
 
 func TestSet_Remove(t *testing.T) {
-	s := New()
+	s := newTS()
 	s.Add(1)
 	s.Add(2)
 	s.Add("fatih")
@@ -85,7 +82,7 @@ func TestSet_Remove(t *testing.T) {
 }
 
 func TestSet_Remove_multiple(t *testing.T) {
-	s := New()
+	s := newTS()
 	s.Add("ankara", "san francisco", 3.14, "istanbul")
 	s.Remove("ankara", "san francisco", 3.14)
 
@@ -99,7 +96,7 @@ func TestSet_Remove_multiple(t *testing.T) {
 }
 
 func TestSet_Pop(t *testing.T) {
-	s := New()
+	s := newTS()
 	s.Add(1)
 	s.Add(2)
 	s.Add("fatih")
@@ -124,7 +121,8 @@ func TestSet_Pop(t *testing.T) {
 }
 
 func TestSet_Has(t *testing.T) {
-	s := New("1", "2", "3", "4")
+	s := newTS()
+	s.Add("1", "2", "3", "4")
 
 	if !s.Has("1") {
 		t.Error("Has: the item 1 exist, but 'Has' is returning false")
@@ -136,7 +134,7 @@ func TestSet_Has(t *testing.T) {
 }
 
 func TestSet_Clear(t *testing.T) {
-	s := New()
+	s := newTS()
 	s.Add(1)
 	s.Add("istanbul")
 	s.Add("san francisco")
@@ -148,7 +146,7 @@ func TestSet_Clear(t *testing.T) {
 }
 
 func TestSet_IsEmpty(t *testing.T) {
-	s := New()
+	s := newTS()
 
 	empty := s.IsEmpty()
 	if !empty {
@@ -165,8 +163,11 @@ func TestSet_IsEmpty(t *testing.T) {
 }
 
 func TestSet_IsEqual(t *testing.T) {
-	s := New("1", "2", "3")
-	u := New("1", "2", "3")
+	// same size, same content
+	s := newTS()
+	s.Add("1", "2", "3")
+	u := newTS()
+	u.Add("1", "2", "3")
 
 	ok := s.IsEqual(u)
 	if !ok {
@@ -174,8 +175,10 @@ func TestSet_IsEqual(t *testing.T) {
 	}
 
 	// same size, different content
-	a := New("1", "2", "3")
-	b := New("4", "5", "6")
+	a := newTS()
+	a.Add("1", "2", "3")
+	b := newTS()
+	b.Add("4", "5", "6")
 
 	ok = a.IsEqual(b)
 	if ok {
@@ -183,19 +186,22 @@ func TestSet_IsEqual(t *testing.T) {
 	}
 
 	// different size, similar content
-	a = New("1", "2", "3")
-	b = New("1", "2", "3", "4")
+	a = newTS()
+	a.Add("1", "2", "3")
+	b = newTS()
+	b.Add("1", "2", "3", "4")
 
 	ok = a.IsEqual(b)
 	if ok {
 		t.Error("IsEqual: set s and t are now equal (2). However it returns true")
 	}
-
 }
 
 func TestSet_IsSubset(t *testing.T) {
-	s := New("1", "2", "3", "4")
-	u := New("1", "2", "3")
+	s := newTS()
+	s.Add("1", "2", "3", "4")
+	u := newTS()
+	u.Add("1", "2", "3")
 
 	ok := s.IsSubset(u)
 	if !ok {
@@ -210,8 +216,10 @@ func TestSet_IsSubset(t *testing.T) {
 }
 
 func TestSet_IsSuperset(t *testing.T) {
-	s := New("1", "2", "3", "4")
-	u := New("1", "2", "3")
+	s := newTS()
+	s.Add("1", "2", "3", "4")
+	u := newTS()
+	u.Add("1", "2", "3")
 
 	ok := u.IsSuperset(s)
 	if !ok {
@@ -226,12 +234,11 @@ func TestSet_IsSuperset(t *testing.T) {
 }
 
 func TestSet_String(t *testing.T) {
-	s := New()
+	s := newTS()
 	if s.String() != "[]" {
 		t.Errorf("String: output is not what is excepted '%s'", s.String())
 	}
 
-	s.Add("1", "2", "3", "4")
 	if !strings.HasPrefix(s.String(), "[") {
 		t.Error("String: output should begin with a square bracket")
 	}
@@ -242,7 +249,8 @@ func TestSet_String(t *testing.T) {
 }
 
 func TestSet_List(t *testing.T) {
-	s := New("1", "2", "3", "4")
+	s := newTS()
+	s.Add("1", "2", "3", "4")
 
 	// this returns a slice of interface{}
 	if len(s.List()) != 4 {
@@ -258,7 +266,8 @@ func TestSet_List(t *testing.T) {
 }
 
 func TestSet_Copy(t *testing.T) {
-	s := New("1", "2", "3", "4")
+	s := newTS()
+	s.Add("1", "2", "3", "4")
 	r := s.Copy()
 
 	if !s.IsEqual(r) {
@@ -267,8 +276,10 @@ func TestSet_Copy(t *testing.T) {
 }
 
 func TestSet_Merge(t *testing.T) {
-	s := New("1", "2", "3")
-	r := New("3", "4", "5")
+	s := newTS()
+	s.Add("1", "2", "3")
+	r := newTS()
+	r.Add("3", "4", "5")
 	s.Merge(r)
 
 	if s.Size() != 5 {
@@ -281,8 +292,10 @@ func TestSet_Merge(t *testing.T) {
 }
 
 func TestSet_Separate(t *testing.T) {
-	s := New("1", "2", "3")
-	r := New("3", "5")
+	s := newTS()
+	s.Add("1", "2", "3")
+	r := newTS()
+	r.Add("3", "5")
 	s.Separate(r)
 
 	if s.Size() != 2 {
@@ -298,8 +311,8 @@ func TestSet_RaceAdd(t *testing.T) {
 	// Create two sets. Add concurrently items to each of them. Remove from the
 	// other one.
 	// "go test -race" should detect this if the library is not thread-safe.
-	s := New()
-	u := New()
+	s := newTS()
+	u := newTS()
 
 	go func() {
 		for i := 0; i < 1000; i++ {

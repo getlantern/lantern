@@ -7,9 +7,45 @@ import (
 	"github.com/getlantern/keyman"
 )
 
+func TestShuffle(t *testing.T) {
+
+	shuffled := make([]*Masquerade, len(cloudfrontMasquerades))
+	copy(shuffled, cloudfrontMasquerades)
+	shuffle(shuffled)
+	eq := testEq(shuffled, cloudfrontMasquerades)
+	if eq {
+		t.Fatalf("Slices should not be equal")
+	}
+}
+
+func testEq(a, b []*Masquerade) bool {
+
+	if a == nil && b == nil {
+		return true
+	}
+
+	if a == nil || b == nil {
+		return false
+	}
+
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+
+	return true
+}
+
 func TestDirectDomainFronting(t *testing.T) {
 	certs := trustedCACerts(t)
-	Configure(certs, cloudfrontMasquerades)
+	m := make(map[string][]*Masquerade)
+	m["cloudfront"] = cloudfrontMasquerades
+	Configure(certs, m)
 
 	client := NewDirect().NewDirectHttpClient()
 
@@ -88,5 +124,21 @@ var cloudfrontMasquerades = []*Masquerade{
 	&Masquerade{
 		Domain:    "a-ritani.com",
 		IpAddress: "54.192.0.2",
+	},
+	&Masquerade{
+		Domain:    "1rx.io",
+		IpAddress: "54.239.200.149",
+	},
+	&Masquerade{
+		Domain:    "1rx.io",
+		IpAddress: "54.230.3.195",
+	},
+	&Masquerade{
+		Domain:    "1rx.io",
+		IpAddress: "204.246.169.62",
+	},
+	&Masquerade{
+		Domain:    "1rx.io",
+		IpAddress: "54.182.1.99",
 	},
 }

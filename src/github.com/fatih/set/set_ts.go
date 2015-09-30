@@ -1,8 +1,6 @@
 package set
 
-import (
-	"sync"
-)
+import "sync"
 
 // Set defines a thread safe set data structure.
 type Set struct {
@@ -13,22 +11,14 @@ type Set struct {
 // New creates and initialize a new Set. It's accept a variable number of
 // arguments to populate the initial set. If nothing passed a Set with zero
 // size is created.
-func New(items ...interface{}) *Set {
+func newTS() *Set {
 	s := &Set{}
 	s.m = make(map[interface{}]struct{})
 
 	// Ensure interface compliance
 	var _ Interface = s
 
-	s.Add(items...)
 	return s
-}
-
-// New creates and initalizes a new Set interface. It accepts a variable
-// number of arguments to populate the initial set. If nothing is passed a
-// zero size Set based on the struct is created.
-func (s *Set) New(items ...interface{}) Interface {
-	return New(items...)
 }
 
 // Add includes the specified items (one or more) to the set. The underlying
@@ -184,7 +174,11 @@ func (s *Set) List() []interface{} {
 
 // Copy returns a new Set with a copy of s.
 func (s *Set) Copy() Interface {
-	return New(s.List()...)
+	u := newTS()
+	for item := range s.m {
+		u.Add(item)
+	}
+	return u
 }
 
 // Merge is like Union, however it modifies the current set it's applied on

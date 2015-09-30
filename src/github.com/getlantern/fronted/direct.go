@@ -3,6 +3,7 @@ package fronted
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"math/rand"
 	"net"
@@ -16,16 +17,42 @@ import (
 )
 
 var (
-	poolCh        = make(chan *x509.CertPool, 1)
-	masqueradesCh = make(chan []*Masquerade, 1)
-	masqCh        = make(chan *Masquerade, 1)
+	poolCh      = make(chan *x509.CertPool, 1)
+	candidateCh = make(chan *Masquerade, 1)
+	masqCh      = make(chan *Masquerade, 1)
 )
 
-func Configure(pool *x509.CertPool, masquerades []*Masquerade) {
+func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
+	if masquerades == nil || len(masquerades) == 0 {
+		log.Errorf("No masquerades!!")
+	}
+
 	go func() {
 		poolCh <- pool
-		masqueradesCh <- masquerades
+		size := 0
+		for _, arr := range masquerades {
+			shuffle(arr)
+			size += len(arr)
+		}
+
+		// Make an unblocke channel the same size as our group
+		// of masquerades and push all of them into it.
+		candidateCh = make(chan *Masquerade, size)
+		for _, arr := range masquerades {
+			for _, m := range arr {
+				candidateCh <- m
+			}
+		}
 	}()
+}
+
+func shuffle(slc []*Masquerade) {
+	n := len(slc)
+	for i := 0; i < n; i++ {
+		// choose index uniformly in [i, n-1]
+		r := i + rand.Intn(n-i)
+		slc[r], slc[i] = slc[i], slc[r]
+	}
 }
 
 func getCertPool() *x509.CertPool {
@@ -36,47 +63,16 @@ func getCertPool() *x509.CertPool {
 	return pool
 }
 
-type Direct struct {
+type direct struct {
 	tlsConfigs      map[string]*tls.Config
 	tlsConfigsMutex sync.Mutex
 }
 
-func NewDirect() *Direct {
-	return &Direct{
+func NewDirect() *direct {
+	d := &direct{
 		tlsConfigs: make(map[string]*tls.Config),
 	}
-}
-
-func (d *Direct) getMasquerade() *Masquerade {
-	if len(masqCh) > 0 {
-		return <-masqCh
-	}
-	log.Debugf("Refreshing live masquerades")
-	ms := <-masqueradesCh
-	size := len(ms)
-	for i := 0; i < 10; i++ {
-		go func() {
-			r := rand.Intn(size)
-			m := ms[r]
-			if strings.Contains(m.Domain, "cloudfront") {
-				return
-			}
-			log.Debugf("Dialing to %v", m)
-			conn, err := d.dialServerWith(m)
-			if err != nil {
-				log.Debugf("Could not dial to %v, %v", m.IpAddress, err)
-			} else {
-				log.Debugf("Got successful connection to: %v", m)
-				defer func() {
-					if err := conn.Close(); err != nil {
-						log.Debugf("Could not close body %v", err)
-					}
-				}()
-				masqCh <- m
-			}
-		}()
-	}
-	return <-masqCh
+	return d
 }
 
 // directTransport is a wrapper struct enabling us to modify the protocol of outgoing
@@ -101,19 +97,9 @@ func (ddf *directTransport) RoundTrip(req *http.Request) (resp *http.Response, e
 }
 
 // NewHttpClient creates a new http.Client that does direct domain fronting.
-func (d *Direct) NewDirectHttpClient() *http.Client {
-	m := d.getMasquerade()
+func (d *direct) NewDirectHttpClient() *http.Client {
 	trans := &directTransport{}
-	trans.Dial = func(network, addr string) (net.Conn, error) {
-		log.Debugf("Dialing %s with direct domain fronter", addr)
-		conn, err := d.dialServerWith(m)
-		if err != nil {
-			log.Debugf("Error dialing? %v", err)
-		} else {
-			log.Debugf("Got connection to %v!", conn.RemoteAddr().String())
-		}
-		return conn, err
-	}
+	trans.Dial = d.Dial
 	trans.TLSHandshakeTimeout = 40 * time.Second
 	trans.DisableKeepAlives = true
 	return &http.Client{
@@ -121,7 +107,36 @@ func (d *Direct) NewDirectHttpClient() *http.Client {
 	}
 }
 
-func (d *Direct) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
+// Dial persistently dials masquerades until one succeeds.
+func (d *direct) Dial(network, addr string) (net.Conn, error) {
+	for i := 0; i < 40; i++ {
+		m := <-candidateCh
+		log.Debugf("Dialing to %v", m)
+
+		// We do the full TLS connection here because in practice the domains at a given IP
+		// address can change frequently on CDNs, so the certificate may not match what
+		// we expect.
+		conn, err := d.dialServerWith(m)
+		if err != nil {
+			log.Debugf("Could not dial to %v, %v", m.IpAddress, err)
+			// Don't re-add this candidate if it's any certificate error, as that
+			// will just keep failing and will waste connections. We can't access the underlying
+			// error at this point so just look for "certificate".
+			if strings.Contains(err.Error(), "certificate") {
+				log.Debugf("Continuing on certificate error")
+			} else {
+				candidateCh <- m
+			}
+		} else {
+			log.Debugf("Got successful connection to: %v", m)
+			candidateCh <- m
+			return conn, nil
+		}
+	}
+	return nil, errors.New("Could not dial any masquerade?")
+}
+
+func (d *direct) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
 	tlsConfig := d.tlsConfig(masquerade)
 	dialTimeout := 30 * time.Second
 	sendServerNameExtension := false
@@ -144,7 +159,7 @@ func (d *Direct) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
 // tlsConfig builds a tls.Config for dialing the upstream host. Constructed
 // tls.Configs are cached on a per-masquerade basis to enable client session
 // caching and reduce the amount of PEM certificate parsing.
-func (d *Direct) tlsConfig(m *Masquerade) *tls.Config {
+func (d *direct) tlsConfig(m *Masquerade) *tls.Config {
 	d.tlsConfigsMutex.Lock()
 	defer d.tlsConfigsMutex.Unlock()
 

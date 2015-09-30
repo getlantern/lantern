@@ -2,20 +2,154 @@ package util
 
 import (
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
 	"net/url"
 	"time"
 
+	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/waitforserver"
 )
 
+const (
+	defaultAddr = "127.0.0.1:8787"
+)
+
 var (
 	log = golog.LoggerFor("flashlight.util")
+
+	// This is for doing direct domain fronting if necessary. We store this as
+	// an instance variable because it caches TLS session configs.
+	direct = fronted.NewDirect()
 )
+
+// HTTPFetcher is a simple interface for types that are able to fetch data over HTTP.
+type HTTPFetcher interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
+// NewChainedAndFronted creates a new struct for accessing resources using chained
+// and direct fronted servers in parallel.
+func NewChainedAndFronted() *chainedAndFronted {
+	cf := &chainedAndFronted{}
+	cf.fetcher = &dualFetcher{cf}
+	return cf
+}
+
+// ChainedAndFronted fetches HTTP data in parallel using both chained and fronted
+// servers.
+type chainedAndFronted struct {
+	fetcher HTTPFetcher
+}
+
+// Do will attempt to execute the specified HTTP request using only a chained fetcher
+func (cf *chainedAndFronted) Do(req *http.Request) (*http.Response, error) {
+	res, err := cf.fetcher.Do(req)
+	if err != nil {
+		// If there's an error, switch back to using the dual fetcher.
+		cf.fetcher = &dualFetcher{cf}
+	}
+	return res, err
+}
+
+type chainedFetcher struct {
+}
+
+// Do will attempt to execute the specified HTTP request using only a chained fetcher
+func (cf *chainedFetcher) Do(req *http.Request) (*http.Response, error) {
+	log.Debugf("Using chained fronter")
+	if client, err := HTTPClient("", defaultAddr); err != nil {
+		log.Errorf("Could not create HTTP client: %v", err)
+		return nil, err
+	} else {
+		return client.Do(req)
+	}
+}
+
+type dualFetcher struct {
+	cf *chainedAndFronted
+}
+
+// Do will attempt to execute the specified HTTP request using both
+// chained and fronted servers, simply returning the first response to
+// arrive. Callers MUST use the Lantern-Fronted-URL HTTP header to
+// specify the fronted URL to use.
+func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
+	log.Debugf("Using dual fronter")
+	frontedUrl := req.Header.Get("Lantern-Fronted-URL")
+	req.Header.Del("Lantern-Fronted-URL")
+
+	if frontedUrl == "" {
+		return nil, errors.New("Callers MUST specify the fronted URL in the Lantern-Fronted-URL header")
+	}
+	responses := make(chan *http.Response, 2)
+	errs := make(chan error, 2)
+
+	go func() {
+		client := direct.NewDirectHttpClient()
+		if r, err := http.NewRequest("GET", frontedUrl, nil); err != nil {
+			log.Errorf("Could not create request for: %v, %v", frontedUrl, err)
+			errs <- err
+		} else {
+			if resp, err := client.Do(r); err != nil {
+				log.Errorf("Could not complete request with: %v, %v", frontedUrl, err)
+				errs <- err
+			} else {
+				responses <- resp
+			}
+		}
+	}()
+	go func() {
+		if client, err := HTTPClient("", defaultAddr); err != nil {
+			log.Errorf("Could not create HTTP client: %v", err)
+			errs <- err
+		} else {
+			if resp, err := client.Do(req); err != nil {
+				log.Errorf("Could not complete request with: %v, %v", frontedUrl, err)
+				errs <- err
+			} else {
+				log.Debugf("Storing chained succeeded")
+
+				// Switch to the chained fronter since it's succeeding.
+				df.cf.fetcher = &chainedFetcher{}
+				responses <- resp
+			}
+		}
+	}()
+
+	success := func(resp *http.Response) bool {
+		return resp.StatusCode > 199 && resp.StatusCode < 300
+	}
+
+	for i := 0; i < 2; i++ {
+		select {
+		case resp := <-responses:
+			if i == 1 {
+				log.Debugf("Got second response -- sending")
+				return resp, nil
+			} else if success(resp) {
+				log.Debugf("Got good response")
+				// Returning preemptively here means the second response
+				// will not be closed properly. We need to ultimately
+				// handle that.
+				return resp, nil
+			} else {
+				log.Debugf("Got bad first response -- wait for second")
+				_ = resp.Body.Close()
+			}
+		case err := <-errs:
+			log.Debugf("Got an error: %v", err)
+			if i == 1 {
+				return nil, errors.New("All requests errored")
+			}
+		}
+	}
+	return nil, errors.New("Reached end")
+}
 
 // PersistentHTTPClient creates an http.Client that persists across requests.
 // If rootCA is specified, the client will validate the server's certificate

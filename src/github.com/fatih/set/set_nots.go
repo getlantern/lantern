@@ -15,25 +15,15 @@ type SetNonTS struct {
 	set
 }
 
-// NewNonTS creates and initialize a new non-threadsafe Set.
-// It accepts a variable number of arguments to populate the initial set.
-// If nothing is passed a SetNonTS with zero size is created.
-func NewNonTS(items ...interface{}) *SetNonTS {
+// NewNonTS creates and initializes a new non-threadsafe Set.
+func newNonTS() *SetNonTS {
 	s := &SetNonTS{}
 	s.m = make(map[interface{}]struct{})
 
 	// Ensure interface compliance
 	var _ Interface = s
 
-	s.Add(items...)
 	return s
-}
-
-// New creates and initalizes a new Set interface. It accepts a variable
-// number of arguments to populate the initial set. If nothing is passed a
-// zero size Set based on the struct is created.
-func (s *set) New(items ...interface{}) Interface {
-	return NewNonTS(items...)
 }
 
 // Add includes the specified items (one or more) to the set. The underlying
@@ -152,6 +142,15 @@ func (s *set) Each(f func(item interface{}) bool) {
 	}
 }
 
+// Copy returns a new Set with a copy of s.
+func (s *set) Copy() Interface {
+	u := newNonTS()
+	for item := range s.m {
+		u.Add(item)
+	}
+	return u
+}
+
 // String returns a string representation of s
 func (s *set) String() string {
 	t := make([]string, 0, len(s.List()))
@@ -172,11 +171,6 @@ func (s *set) List() []interface{} {
 	}
 
 	return list
-}
-
-// Copy returns a new Set with a copy of s.
-func (s *set) Copy() Interface {
-	return NewNonTS(s.List()...)
 }
 
 // Merge is like Union, however it modifies the current set it's applied on
