@@ -23,6 +23,83 @@
             android:textOn="" />
     </RelativeLayout>
 
+   <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+        android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:id="@+id/desktopView"
+        android:visibility="invisible"
+        android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".LanternMainActivity">
+
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="top">
+            
+            <ImageView
+            android:id="@+id/desktop_graphic"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            android:src="@drawable/desktop_graphic"
+            />
+
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="top"
+            android:layout_gravity="top"> 
+
+            <TextView
+            android:id="@+id/receive_lantern"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:textSize="19sp"
+            android:paddingBottom="5dp"
+            android:textStyle="bold" 
+            android:singleLine="true"
+            android:textColor="#000"
+            android:text="@string/receive_lantern"
+            android:textAppearance="?android:attr/textAppearanceSmall"/>
+
+        <EditText
+            android:id="@+id/sendEmail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#d3d3d3"
+            android:hint="@string/email_hint"
+            android:ems="10"
+            android:textColor="#000"
+            android:padding="12dp"
+            android:inputType="textEmailAddress" />
+
+        <Button
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:text="@string/send_button"
+            android:layout_margin="20dp"
+            android:textSize="20sp"
+            android:clickable="true"
+            android:minHeight="48dp"
+            android:textStyle="bold"
+            android:textColor="#fff"
+            android:background="@drawable/send_btn"
+            android:onClick="sendDesktopVersion" />
+    </LinearLayout>
+
+    </LinearLayout>
+    </RelativeLayout>
+   
+
     <!-- The navigation drawer -->
     <RelativeLayout
         android:layout_width="280dp"
