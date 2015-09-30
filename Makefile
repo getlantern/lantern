@@ -492,7 +492,7 @@ android-lib: docker-mobile
 	$(DOCKER) run -v $$PWD/src:/src $(DOCKER_MOBILE_IMAGE_TAG) /bin/bash -c \ "cd /src/github.com/getlantern/lantern-mobile/lantern && gomobile bind -target=android -o=$(LANTERN_MOBILE_LIBRARY) -ldflags="$(LDFLAGS)" ." && \
 	cp -v $(LANTERN_MOBILE_DIR)/lantern/$(LANTERN_MOBILE_LIBRARY) $(LANTERN_MOBILE_DIR)/app/libs; \
 	if [ -d "$(FIRETWEET_MAIN_DIR)" ]; then \
-		cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) $(FIRETWEET_MAIN_DIR)/libs/$(LANTERN_MOBILE_LIBRARY); \
+		cp -v $(LANTERN_MOBILE_DIR)/lantern/$(LANTERN_MOBILE_LIBRARY) $(FIRETWEET_MAIN_DIR)/libs/$(LANTERN_MOBILE_LIBRARY); \
 	else \
 		echo ""; \
 		echo "Either no FIRETWEET_MAIN_DIR variable was passed or the given value is not a";\
