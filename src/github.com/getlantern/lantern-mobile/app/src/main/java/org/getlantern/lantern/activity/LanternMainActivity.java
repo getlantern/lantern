@@ -203,6 +203,9 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
         profileBox.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
+                mainView.setVisibility(View.VISIBLE);
+                desktopView.setVisibility(View.INVISIBLE);
+
                 mDrawerLayout.closeDrawers();
             }
         });
@@ -235,7 +238,6 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
             if (mPrefs != null) {
                 mPrefs.edit().remove(LanternConfig.PREF_USE_VPN).commit();
             }
-
 
             Log.d(TAG, "About to exit Lantern...");
             // sleep for a few ms before exiting

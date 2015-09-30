@@ -155,8 +155,7 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (*InterceptedConn, e
 
 	// check if it's traffic we actually support
 	if !allowedPorts[port] {
-		log.Errorf("Invalid port %d for address %s", port, addr)
-		return nil, errors.New("invalid port")
+		return nil, errors.New("Tried to tunnel request to invalid port; ignoring request")
 	}
 
 	id := fmt.Sprintf("%s:%s", localConn.LocalAddr(), addr)
