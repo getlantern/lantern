@@ -5,4 +5,10 @@
     <string name="drawer_open">Drawer Open</string>
     <string name="drawer_close">Drawer Close</string>
     <string name="default_fragment">Default Fragment</string>
+    <string name="receive_lantern">Receive Lantern desktop by email</string>
+    <string name="email_hint">Email</string>
+    <string name="send_button">Send</string>
+    <string name="contact_email">team@getlantern.org</string>
+    <string name="contact_message">Help Me</string>      
+    <string name="contact_subject">Lantern Android</string>
 </resources>
