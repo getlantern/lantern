@@ -67,7 +67,7 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
     private Handler mHandler;
     private LayoutInflater inflater;
     private ObjectAnimator colorFadeIn, colorFadeOut;
-    private View mainView;
+    private View mainView, desktopView;
     private View statusLayout;
     private ImageView statusImage;
     private Toast statusToast;
@@ -197,6 +197,18 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
             }
         };
         mDrawerLayout.setDrawerListener(mDrawerToggle);
+
+        RelativeLayout profileBox = (RelativeLayout)findViewById(R.id.profileBox);
+
+        profileBox.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                mDrawerLayout.closeDrawers();
+            }
+        });
+
+        //mDrawerToggle.setDrawerIndicatorEnabled(false); //disable "hamburger to arrow" drawable
+        //mDrawerToggle.setHomeAsUpIndicator(R.drawable.menu); //set your own
     }
 
 
@@ -229,11 +241,9 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
             // sleep for a few ms before exiting
             Thread.sleep(200);
 
+            finish();
+            moveTaskToBack(true);
 
-            Intent intent = new Intent(getApplicationContext(), LanternMainActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            intent.putExtra("EXIT", true);
-            startActivity(intent);
         } catch (Exception e) {
 
         }
@@ -248,20 +258,23 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
         startActivity(Intent.createChooser(sharingIntent, "Share via"));
     }
 
+    // opens an e-mail message with some default options
     private void contactOption() {
+        String contactEmail = getResources().getString(R.string.contact_email);
+
         Intent intent = new Intent(Intent.ACTION_SEND);
         intent.setType("plain/text");
-        intent.putExtra(Intent.EXTRA_EMAIL, new String[] { "team@getlantern.org" });
-        intent.putExtra(Intent.EXTRA_SUBJECT, "Lantern Android Contact");
-        intent.putExtra(Intent.EXTRA_TEXT, "");
+        intent.putExtra(Intent.EXTRA_EMAIL, new String[] { contactEmail });
+        intent.putExtra(Intent.EXTRA_SUBJECT, R.string.contact_subject);
+        intent.putExtra(Intent.EXTRA_TEXT, R.string.contact_message);
         startActivity(Intent.createChooser(intent, ""));
     }
 
+    // this prompts the user to enter their e-mail address
+    // to receive Lantern Desktop by e-mail
     private void desktopOption() {
-        Uri uri = Uri.parse("http://www.getlantern.org"); // missing 'http://' will cause crashed
-        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-        startActivity(intent);
-
+        mainView.setVisibility(View.INVISIBLE);
+        desktopView.setVisibility(View.VISIBLE);
     }
 
     // START/STOP button to enable full-device VPN functionality
@@ -294,7 +307,10 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
 
     // A toast feedback that displays whenever the ON/OFF switch is toggled
     private void setupStatusToast() {
+
         mainView = (View)findViewById(R.id.mainView); 
+        desktopView = (View)findViewById(R.id.desktopView);
+
         // when we switch from 'off' to 'on', we use a 1 second 
         // fade to animate the background color
         colorFadeIn = ObjectAnimator.ofObject(mainView, "backgroundColor", new ArgbEvaluator(), offColor, onColor);
