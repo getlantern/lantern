@@ -1,6 +1,5 @@
-// protected is used to mark network connections
-// "protected" to prevent them from being sent through
-// Android's VpnServicd
+// Package protected is used for creating "protected" connections
+// that bypass Android's VpnService
 package protected
 
 import (
@@ -16,12 +15,13 @@ import (
 	"time"
 
 	"github.com/getlantern/golog"
-	"github.com/getlantern/lantern-mobile/lantern/resolver"
 )
 
 const (
 	defaultDnsServer = "8.8.4.4"
 	connectTimeOut   = 15 * time.Second
+	readDeadline     = 15 * time.Second
+	writeDeadline    = 15 * time.Second
 	socketError      = -1
 	dnsPort          = 53
 )
@@ -38,6 +38,7 @@ type ProtectedConn struct {
 	socketFd  int
 	addr      string
 	host      string
+	ip        [4]byte
 	port      int
 }
 
@@ -72,14 +73,13 @@ func Dial(network, addr string) (net.Conn, error) {
 
 func (conn *ProtectedConn) Dial() (net.Conn, error) {
 	// do DNS query
-	IPAddr, err := conn.LookupIP()
+	IPAddr, err := conn.resolveHostname()
 	if err != nil {
 		log.Errorf("Couldn't resolve host %s: %s", conn.addr, err)
 		return nil, err
 	}
 
-	var ip [4]byte
-	copy(ip[:], IPAddr.To4())
+	copy(conn.ip[:], IPAddr.To4())
 
 	socketFd, err := syscall.Socket(syscall.AF_INET, syscall.SOCK_STREAM, 0)
 	if err != nil {
@@ -88,45 +88,42 @@ func (conn *ProtectedConn) Dial() (net.Conn, error) {
 	}
 	conn.socketFd = socketFd
 
-	defer func() {
-		conn.mutex.Lock()
-		if err != nil && conn.socketFd != socketError {
-			syscall.Close(conn.socketFd)
-			conn.socketFd = socketError
-		}
-		conn.mutex.Unlock()
-	}()
-	err = conn.protect()
+	defer conn.cleanup()
+
+	// Actually protect the underlying socket here
+	err = conn.protector.Protect(conn.socketFd)
 	if err != nil {
-		log.Errorf("Error protecting socket: %s", err)
+		return nil, fmt.Errorf("Could not bind socket to system device: %s", err)
+	}
+
+	err = conn.connectSocket()
+	if err != nil {
+		log.Errorf("Could not connect to socket: %v", err)
 		return nil, err
 	}
 
-	// Actually connect to the socket here
-	sockAddr := syscall.SockaddrInet4{Addr: ip, Port: conn.port}
-	if connectTimeOut != 0 {
-		errChannel := make(chan error, 2)
-		time.AfterFunc(connectTimeOut, func() {
-			errChannel <- errors.New("connect timeout")
-		})
-		go func() {
-			errChannel <- syscall.Connect(conn.socketFd, &sockAddr)
-		}()
-		err = <-errChannel
-	} else {
-		err = syscall.Connect(conn.socketFd, &sockAddr)
-		if err != nil {
-			log.Errorf("Could not connect to socket: %s", err)
-			return nil, err
-		}
-	}
-
+	// finally, convert the socket fd to a net.Conn
 	err = conn.convert()
 	if err != nil {
 		log.Errorf("Error converting protected connection: %s", err)
 		return nil, err
 	}
 	return conn.Conn, nil
+}
+
+// connectSocket makes the connection to the given IP address port
+// for the given socket fd
+func (conn *ProtectedConn) connectSocket() error {
+	sockAddr := syscall.SockaddrInet4{Addr: conn.ip, Port: conn.port}
+	errCh := make(chan error, 2)
+	time.AfterFunc(connectTimeOut, func() {
+		errCh <- errors.New("connect timeout")
+	})
+	go func() {
+		errCh <- syscall.Connect(conn.socketFd, &sockAddr)
+	}()
+	err := <-errCh
+	return err
 }
 
 func (conn *ProtectedConn) Addr() (*net.TCPAddr, error) {
@@ -199,6 +196,19 @@ func (conn *ProtectedConn) ProtectedClose() error {
 	return err
 }
 
+// cleanup is ran whenever we encounter a socket error
+// we use a mutex since this connection is active in a variety
+// of goroutines and to prevent any possible race conditions
+func (conn *ProtectedConn) cleanup() {
+	conn.mutex.Lock()
+	defer conn.mutex.Unlock()
+
+	if conn.socketFd != socketError {
+		syscall.Close(conn.socketFd)
+		conn.socketFd = socketError
+	}
+}
+
 func (conn *ProtectedConn) Close() (err error) {
 	conn.mutex.Lock()
 	defer conn.mutex.Unlock()
@@ -214,11 +224,15 @@ func (conn *ProtectedConn) Close() (err error) {
 	return err
 }
 
-func (conn *ProtectedConn) protect() error {
-	return conn.protector.Protect(conn.socketFd)
+// configure DNS query expiration
+func setQueryTimeouts(c net.Conn) {
+	now := time.Now()
+	c.SetReadDeadline(now.Add(readDeadline))
+	c.SetWriteDeadline(now.Add(writeDeadline))
 }
 
-func (conn *ProtectedConn) LookupIP() (net.IP, error) {
+// resolveHostname creates a UDP socket and binds it to the device
+func (conn *ProtectedConn) resolveHostname() (net.IP, error) {
 
 	// Check if we already have the IP address
 	IPAddr := net.ParseIP(conn.host)
@@ -234,6 +248,9 @@ func (conn *ProtectedConn) LookupIP() (net.IP, error) {
 	}
 	defer syscall.Close(socketFd)
 
+	// Here we protect the underlying socket from the
+	// VPN connection by passing the file descriptor
+	// back to Java for exclusion
 	err = conn.protector.Protect(socketFd)
 	if err != nil {
 		return nil, fmt.Errorf("Could not bind socket to system device: %s", err)
@@ -253,14 +270,20 @@ func (conn *ProtectedConn) LookupIP() (net.IP, error) {
 		return nil, err
 	}
 
-	file := os.NewFile(uintptr(socketFd), "")
+	fd := uintptr(socketFd)
+	file := os.NewFile(fd, "")
 	defer file.Close()
+
+	// return a copy of the network connection
+	// represented by file
 	fileConn, err := net.FileConn(file)
 	if err != nil {
 		return nil, err
 	}
 
-	result, err := resolver.ResolveIP(conn.host, fileConn)
+	setQueryTimeouts(fileConn)
+
+	result, err := dnsLookup(conn.host, fileConn)
 	if err != nil {
 		log.Errorf("Error doing DNS resolution: %s", err)
 		return nil, err

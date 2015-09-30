@@ -1,4 +1,4 @@
-package resolver
+package protected
 
 import (
 	"crypto/rand"
@@ -7,12 +7,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/getlantern/golog"
 	"github.com/miekg/dns"
-)
-
-var (
-	log = golog.LoggerFor("lantern-android.resolver")
 )
 
 type record struct {
@@ -24,6 +19,7 @@ type DnsResponse struct {
 	records []record
 }
 
+// PickRandomIP picks a random IP address from a DNS response
 func (response *DnsResponse) PickRandomIP() (net.IP, error) {
 	length := int64(len(response.records))
 	if length < 1 {
@@ -39,27 +35,40 @@ func (response *DnsResponse) PickRandomIP() (net.IP, error) {
 	return record.IP, nil
 }
 
-func ResolveIP(addr string, conn net.Conn) (*DnsResponse, error) {
+// dnsLookup is used whenever we need to conduct a DNS query over a given TCP connection
+func dnsLookup(addr string, conn net.Conn) (*DnsResponse, error) {
+
+	log.Debugf("Doing a DNS lookup on %s", addr)
 
 	dnsResponse := &DnsResponse{
 		records: make([]record, 0),
 	}
 
-	// Send the DNS query
+	// create the connection to the DNS server
 	dnsConn := &dns.Conn{Conn: conn}
 	defer dnsConn.Close()
-	query := new(dns.Msg)
-	query.SetQuestion(dns.Fqdn(addr), dns.TypeA)
-	query.RecursionDesired = true
-	dnsConn.WriteMsg(query)
 
-	// Process the response
+	m := new(dns.Msg)
+	m.Id = dns.Id()
+	// set the question section in the dns query
+	// Fqdn returns the fully qualified domain name
+	m.SetQuestion(dns.Fqdn(addr), dns.TypeA)
+	m.RecursionDesired = true
+
+	dnsConn.WriteMsg(m)
+
 	response, err := dnsConn.ReadMsg()
 	if err != nil {
+		log.Errorf("Could not process DNS response: %v", err)
 		return nil, err
 	}
+
+	// iterate over RRs containing the DNS answer
 	for _, answer := range response.Answer {
 		if a, ok := answer.(*dns.A); ok {
+			// append the result to our list of records
+			// the A records in the RDATA section of the DNS answer
+			// contains the actual IP address
 			dnsResponse.records = append(dnsResponse.records,
 				record{
 					IP:  a.A,
