@@ -31,6 +31,9 @@ func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		// Direct proxying can only be used for plain HTTP connections.
 		log.Debugf("Reverse proxying %s %v", req.Method, req.URL)
 		rp.ServeHTTP(resp, req)
+	} else {
+		log.Debugf("Could not get a reverse proxy connection -- responding bad gateway")
+		respondBadGateway(resp, fmt.Sprintf("Unable to get a connection: %s", err))
 	}
 }
 
@@ -75,18 +78,6 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Respond OK as soon as possible, even if we don't have the outbound connection
-	// established yet, to avoid timeouts on the client application
-	success := make(chan bool, 1)
-	go func() {
-		if e := respondOK(clientConn, req); e != nil {
-			log.Errorf("Unable to respond OK: %s", e)
-			success <- false
-			return
-		}
-		success <- true
-	}()
-
 	// Establish outbound connection.
 	addr := hostIncludingPort(req, 443)
 	d := func(network, addr string) (net.Conn, error) {
@@ -107,8 +98,19 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 	}
 	if err != nil {
 		log.Debugf("Could not dial %v", err)
+		respondBadGatewayHijacked(clientConn, req)
 		return
 	}
+
+	success := make(chan bool, 1)
+	go func() {
+		if e := respondOK(clientConn, req); e != nil {
+			log.Errorf("Unable to respond OK: %s", e)
+			success <- false
+			return
+		}
+		success <- true
+	}()
 
 	if <-success {
 		// Pipe data between the client and the proxy.
@@ -135,6 +137,15 @@ func pipeData(clientConn net.Conn, connOut net.Conn, closeFunc func()) {
 
 func respondOK(writer io.Writer, req *http.Request) error {
 	log.Debugf("Responding OK to %v", req.URL)
+	return respondHijacked(writer, req, http.StatusOK)
+}
+
+func respondBadGatewayHijacked(writer io.Writer, req *http.Request) error {
+	return respondHijacked(writer, req, http.StatusBadGateway)
+}
+
+func respondHijacked(writer io.Writer, req *http.Request, statusCode int) error {
+	log.Debugf("Responding %v to %v", statusCode, req.URL)
 	defer func() {
 		if err := req.Body.Close(); err != nil {
 			log.Debugf("Error closing body of OK response: %s", err)
@@ -142,11 +153,10 @@ func respondOK(writer io.Writer, req *http.Request) error {
 	}()
 
 	resp := &http.Response{
-		StatusCode: http.StatusOK,
+		StatusCode: statusCode,
 		ProtoMajor: 1,
 		ProtoMinor: 1,
 	}
-
 	return resp.Write(writer)
 }
 

@@ -112,11 +112,16 @@ func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
 				log.Errorf("Could not complete request with: %v, %v", frontedUrl, err)
 				errs <- err
 			} else {
-				log.Debugf("Storing chained succeeded")
-
-				// Switch to the chained fronter since it's succeeding.
-				df.cf.fetcher = &chainedFetcher{}
-				responses <- resp
+				if resp.StatusCode > 199 && resp.StatusCode < 400 {
+					log.Debugf("Got successful HTTP call! Switching to chained fetcher")
+					// Switch to the chained fronter since it's succeeding.
+					df.cf.fetcher = &chainedFetcher{}
+					responses <- resp
+				} else {
+					// If the local proxy can't connect to any upstread proxies, for example,
+					// it will return a 502.
+					errs <- errors.New("Bad response code")
+				}
 			}
 		}
 	}()
