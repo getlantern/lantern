@@ -48,12 +48,14 @@ type chainedAndFronted struct {
 
 // Do will attempt to execute the specified HTTP request using only a chained fetcher
 func (cf *chainedAndFronted) Do(req *http.Request) (*http.Response, error) {
-	res, err := cf.fetcher.Do(req)
+	resp, err := cf.fetcher.Do(req)
 	if err != nil {
 		// If there's an error, switch back to using the dual fetcher.
 		cf.fetcher = &dualFetcher{cf}
+	} else if resp.StatusCode < 200 || resp.StatusCode > 399 {
+		cf.fetcher = &dualFetcher{cf}
 	}
-	return res, err
+	return resp, err
 }
 
 type chainedFetcher struct {
