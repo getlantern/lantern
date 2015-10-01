@@ -48,12 +48,14 @@ type chainedAndFronted struct {
 
 // Do will attempt to execute the specified HTTP request using only a chained fetcher
 func (cf *chainedAndFronted) Do(req *http.Request) (*http.Response, error) {
-	res, err := cf.fetcher.Do(req)
+	resp, err := cf.fetcher.Do(req)
 	if err != nil {
 		// If there's an error, switch back to using the dual fetcher.
 		cf.fetcher = &dualFetcher{cf}
+	} else if resp.StatusCode < 200 || resp.StatusCode > 399 {
+		cf.fetcher = &dualFetcher{cf}
 	}
-	return res, err
+	return resp, err
 }
 
 type chainedFetcher struct {
@@ -112,11 +114,16 @@ func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
 				log.Errorf("Could not complete request with: %v, %v", frontedUrl, err)
 				errs <- err
 			} else {
-				log.Debugf("Storing chained succeeded")
-
-				// Switch to the chained fronter since it's succeeding.
-				df.cf.fetcher = &chainedFetcher{}
-				responses <- resp
+				if resp.StatusCode > 199 && resp.StatusCode < 400 {
+					log.Debugf("Got successful HTTP call! Switching to chained fetcher")
+					// Switch to the chained fronter since it's succeeding.
+					df.cf.fetcher = &chainedFetcher{}
+					responses <- resp
+				} else {
+					// If the local proxy can't connect to any upstread proxies, for example,
+					// it will return a 502.
+					errs <- errors.New("Bad response code")
+				}
 			}
 		}
 	}()
