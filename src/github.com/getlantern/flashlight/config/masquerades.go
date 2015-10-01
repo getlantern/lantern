@@ -42,6 +42,18 @@ var cloudflareMasquerades = []*fronted.Masquerade{}
 var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "101.livere.co.kr",
+		IpAddress: "54.182.2.67",
+	},
+	&fronted.Masquerade{
+		Domain:    "101.livere.co.kr",
+		IpAddress: "54.182.0.48",
+	},
+	&fronted.Masquerade{
+		Domain:    "101.livere.co.kr",
+		IpAddress: "54.230.7.18",
+	},
+	&fronted.Masquerade{
+		Domain:    "101.livere.co.kr",
 		IpAddress: "54.182.3.155",
 	},
 	&fronted.Masquerade{
@@ -50,27 +62,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "101.livere.co.kr",
-		IpAddress: "54.182.0.48",
-	},
-	&fronted.Masquerade{
-		Domain:    "101.livere.co.kr",
 		IpAddress: "54.239.130.104",
-	},
-	&fronted.Masquerade{
-		Domain:    "101.livere.co.kr",
-		IpAddress: "54.182.2.67",
-	},
-	&fronted.Masquerade{
-		Domain:    "101.livere.co.kr",
-		IpAddress: "54.230.7.18",
-	},
-	&fronted.Masquerade{
-		Domain:    "1life.com",
-		IpAddress: "54.182.3.96",
 	},
 	&fronted.Masquerade{
 		Domain:    "1life.com",
 		IpAddress: "205.251.253.84",
+	},
+	&fronted.Masquerade{
+		Domain:    "1life.com",
+		IpAddress: "54.182.3.96",
 	},
 	&fronted.Masquerade{
 		Domain:    "1life.com",
@@ -82,11 +82,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "1rx.io",
-		IpAddress: "54.182.3.78",
+		IpAddress: "54.182.1.99",
 	},
 	&fronted.Masquerade{
 		Domain:    "1rx.io",
-		IpAddress: "54.192.4.168",
+		IpAddress: "54.182.3.78",
 	},
 	&fronted.Masquerade{
 		Domain:    "1rx.io",
@@ -94,15 +94,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "1rx.io",
-		IpAddress: "54.182.1.99",
-	},
-	&fronted.Masquerade{
-		Domain:    "1rx.io",
 		IpAddress: "204.246.169.62",
 	},
 	&fronted.Masquerade{
+		Domain:    "1rx.io",
+		IpAddress: "54.192.4.168",
+	},
+	&fronted.Masquerade{
 		Domain:    "1stmd.com",
-		IpAddress: "54.230.5.126",
+		IpAddress: "54.182.0.126",
 	},
 	&fronted.Masquerade{
 		Domain:    "1stmd.com",
@@ -110,11 +110,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "1stmd.com",
-		IpAddress: "216.137.39.49",
+		IpAddress: "54.230.5.126",
 	},
 	&fronted.Masquerade{
 		Domain:    "1stmd.com",
-		IpAddress: "54.182.0.126",
+		IpAddress: "216.137.39.49",
 	},
 	&fronted.Masquerade{
 		Domain:    "254a.com",
@@ -126,22 +126,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "2u.com",
-		IpAddress: "54.192.5.83",
-	},
-	&fronted.Masquerade{
-		Domain:    "2u.com",
-		IpAddress: "54.239.200.39",
-	},
-	&fronted.Masquerade{
-		Domain:    "2u.com",
-		IpAddress: "54.182.5.186",
-	},
-	&fronted.Masquerade{
-		Domain:    "2u.com",
-		IpAddress: "54.182.0.241",
-	},
-	&fronted.Masquerade{
-		Domain:    "2u.com",
 		IpAddress: "54.239.200.16",
 	},
 	&fronted.Masquerade{
@@ -150,7 +134,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "2u.com",
+		IpAddress: "54.182.5.186",
+	},
+	&fronted.Masquerade{
+		Domain:    "2u.com",
+		IpAddress: "54.239.200.39",
+	},
+	&fronted.Masquerade{
+		Domain:    "2u.com",
+		IpAddress: "54.192.5.83",
+	},
+	&fronted.Masquerade{
+		Domain:    "2u.com",
 		IpAddress: "54.230.6.100",
+	},
+	&fronted.Masquerade{
+		Domain:    "2u.com",
+		IpAddress: "54.182.0.241",
 	},
 	&fronted.Masquerade{
 		Domain:    "2xu.com",
@@ -162,27 +162,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "30ads.com",
-		IpAddress: "205.251.251.62",
-	},
-	&fronted.Masquerade{
-		Domain:    "30ads.com",
 		IpAddress: "54.182.5.198",
 	},
 	&fronted.Masquerade{
 		Domain:    "30ads.com",
+		IpAddress: "205.251.251.62",
+	},
+	&fronted.Masquerade{
+		Domain:    "30ads.com",
 		IpAddress: "54.192.7.152",
-	},
-	&fronted.Masquerade{
-		Domain:    "4v1game.net",
-		IpAddress: "54.239.200.191",
-	},
-	&fronted.Masquerade{
-		Domain:    "4v1game.net",
-		IpAddress: "54.230.7.162",
-	},
-	&fronted.Masquerade{
-		Domain:    "4v1game.net",
-		IpAddress: "54.182.7.142",
 	},
 	&fronted.Masquerade{
 		Domain:    "4v1game.net",
@@ -191,6 +179,18 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "4v1game.net",
 		IpAddress: "204.246.169.248",
+	},
+	&fronted.Masquerade{
+		Domain:    "4v1game.net",
+		IpAddress: "54.239.200.191",
+	},
+	&fronted.Masquerade{
+		Domain:    "4v1game.net",
+		IpAddress: "54.182.7.142",
+	},
+	&fronted.Masquerade{
+		Domain:    "4v1game.net",
+		IpAddress: "54.230.7.162",
 	},
 	&fronted.Masquerade{
 		Domain:    "7pass.de",
@@ -202,175 +202,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.239.132.92",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "205.251.203.131",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.230.6.198",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "216.137.36.148",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.230.6.109",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.230.6.251",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.182.7.33",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.230.6.101",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.230.6.253",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "216.137.36.11",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.192.5.211",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.230.5.76",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.230.5.60",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.230.5.68",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.230.6.73",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.230.6.214",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.230.5.66",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.230.6.8",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "216.137.36.67",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.182.7.5",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "216.137.39.126",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.230.5.209",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "216.137.39.121",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "216.137.39.138",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.230.5.16",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.230.5.177",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.182.2.62",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.182.6.253",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.230.7.2",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "204.246.169.190",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "204.246.169.201",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.230.4.51",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "205.251.253.236",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "204.246.169.216",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "216.137.39.53",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.230.4.231",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.239.200.194",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.230.4.223",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.192.5.138",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "205.251.253.15",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.230.4.13",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "205.251.253.122",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.239.130.211",
+		IpAddress: "54.230.7.49",
 	},
 	&fronted.Masquerade{
 		Domain:    "Images-na.ssl-images-amazon.com",
@@ -378,15 +210,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "205.251.253.114",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.192.6.14",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "205.251.253.110",
+		IpAddress: "54.230.7.67",
 	},
 	&fronted.Masquerade{
 		Domain:    "Images-na.ssl-images-amazon.com",
@@ -394,27 +218,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "205.251.251.232",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "205.251.251.216",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
 		IpAddress: "216.137.43.202",
 	},
 	&fronted.Masquerade{
 		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.182.3.194",
+		IpAddress: "54.230.5.177",
 	},
 	&fronted.Masquerade{
 		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "205.251.203.90",
+		IpAddress: "54.230.7.90",
 	},
 	&fronted.Masquerade{
 		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.239.132.130",
+		IpAddress: "205.251.253.122",
 	},
 	&fronted.Masquerade{
 		Domain:    "Images-na.ssl-images-amazon.com",
@@ -422,75 +238,31 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "216.137.43.247",
+		IpAddress: "54.230.6.198",
 	},
 	&fronted.Masquerade{
 		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.182.5.67",
+		IpAddress: "205.251.253.114",
 	},
 	&fronted.Masquerade{
 		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "205.251.203.108",
+		IpAddress: "205.251.253.110",
 	},
 	&fronted.Masquerade{
 		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "216.137.43.52",
+		IpAddress: "54.239.132.92",
 	},
 	&fronted.Masquerade{
 		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "205.251.203.15",
+		IpAddress: "54.230.5.209",
 	},
 	&fronted.Masquerade{
 		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "216.137.43.63",
+		IpAddress: "216.137.36.11",
 	},
 	&fronted.Masquerade{
 		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "216.137.43.66",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "205.251.203.216",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.192.4.79",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "216.137.43.81",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.192.6.199",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.182.3.251",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "216.137.45.106",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.192.4.25",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.192.6.92",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "216.137.45.83",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.192.6.217",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "216.137.45.26",
+		IpAddress: "205.251.251.232",
 	},
 	&fronted.Masquerade{
 		Domain:    "Images-na.ssl-images-amazon.com",
@@ -498,19 +270,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.192.6.72",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "216.137.45.69",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.182.2.104",
-	},
-	&fronted.Masquerade{
-		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.230.5.105",
+		IpAddress: "205.251.251.216",
 	},
 	&fronted.Masquerade{
 		Domain:    "Images-na.ssl-images-amazon.com",
@@ -518,15 +278,99 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "205.251.253.62",
+		IpAddress: "54.230.6.214",
 	},
 	&fronted.Masquerade{
 		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.230.7.49",
+		IpAddress: "205.251.203.108",
 	},
 	&fronted.Masquerade{
 		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.230.7.67",
+		IpAddress: "205.251.203.131",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.182.5.67",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.239.132.130",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.192.6.14",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "205.251.203.90",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "205.251.203.15",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.182.7.5",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "216.137.39.53",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.239.130.211",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.230.5.68",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "205.251.253.15",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.230.5.60",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.230.5.76",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.182.7.33",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.192.6.199",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.192.6.92",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.182.6.253",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.192.6.72",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.192.6.217",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "205.251.203.216",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.230.6.109",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.230.6.101",
 	},
 	&fronted.Masquerade{
 		Domain:    "Images-na.ssl-images-amazon.com",
@@ -534,19 +378,167 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "216.137.36.148",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "205.251.253.62",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "216.137.43.63",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.230.4.13",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.182.2.62",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "216.137.43.66",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.230.4.223",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "216.137.36.67",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "216.137.43.81",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.192.5.138",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.230.6.8",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "216.137.45.106",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.230.6.73",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "205.251.253.236",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.230.4.51",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.192.5.211",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.230.7.2",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.182.3.194",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.192.4.79",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "216.137.39.121",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "216.137.39.126",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "216.137.45.26",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "204.246.169.201",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "216.137.39.138",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.230.5.105",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "216.137.43.247",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "216.137.43.52",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.182.3.251",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
 		IpAddress: "205.251.253.194",
 	},
 	&fronted.Masquerade{
 		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.230.7.90",
+		IpAddress: "54.230.5.16",
 	},
 	&fronted.Masquerade{
-		Domain:    "a-ritani.com",
-		IpAddress: "54.192.5.201",
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "204.246.169.216",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "216.137.45.69",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.192.4.25",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.239.200.194",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.230.6.251",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.230.6.253",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "54.182.2.104",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "216.137.45.83",
+	},
+	&fronted.Masquerade{
+		Domain:    "Images-na.ssl-images-amazon.com",
+		IpAddress: "204.246.169.190",
 	},
 	&fronted.Masquerade{
 		Domain:    "a-ritani.com",
 		IpAddress: "54.182.2.102",
+	},
+	&fronted.Masquerade{
+		Domain:    "a-ritani.com",
+		IpAddress: "54.192.5.201",
 	},
 	&fronted.Masquerade{
 		Domain:    "a1.adform.net",
@@ -558,7 +550,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "abtasty.com",
-		IpAddress: "54.182.7.175",
+		IpAddress: "54.230.5.48",
 	},
 	&fronted.Masquerade{
 		Domain:    "abtasty.com",
@@ -566,7 +558,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "abtasty.com",
-		IpAddress: "54.230.5.48",
+		IpAddress: "54.182.7.175",
+	},
+	&fronted.Masquerade{
+		Domain:    "achievemore.com.br",
+		IpAddress: "54.192.4.239",
 	},
 	&fronted.Masquerade{
 		Domain:    "achievemore.com.br",
@@ -578,39 +574,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "achievemore.com.br",
-		IpAddress: "54.192.4.239",
-	},
-	&fronted.Masquerade{
-		Domain:    "achievemore.com.br",
 		IpAddress: "54.182.7.115",
 	},
 	&fronted.Masquerade{
 		Domain:    "achievers.com",
-		IpAddress: "205.251.203.117",
-	},
-	&fronted.Masquerade{
-		Domain:    "achievers.com",
-		IpAddress: "54.192.5.114",
-	},
-	&fronted.Masquerade{
-		Domain:    "achievers.com",
-		IpAddress: "204.246.169.79",
-	},
-	&fronted.Masquerade{
-		Domain:    "achievers.com",
-		IpAddress: "54.239.200.92",
-	},
-	&fronted.Masquerade{
-		Domain:    "achievers.com",
-		IpAddress: "216.137.45.90",
-	},
-	&fronted.Masquerade{
-		Domain:    "achievers.com",
 		IpAddress: "216.137.39.20",
-	},
-	&fronted.Masquerade{
-		Domain:    "achievers.com",
-		IpAddress: "216.137.36.119",
 	},
 	&fronted.Masquerade{
 		Domain:    "achievers.com",
@@ -621,12 +589,40 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.239.132.200",
 	},
 	&fronted.Masquerade{
-		Domain:    "activerideshop.com",
-		IpAddress: "54.230.5.145",
+		Domain:    "achievers.com",
+		IpAddress: "205.251.203.117",
+	},
+	&fronted.Masquerade{
+		Domain:    "achievers.com",
+		IpAddress: "216.137.45.90",
+	},
+	&fronted.Masquerade{
+		Domain:    "achievers.com",
+		IpAddress: "54.239.200.92",
+	},
+	&fronted.Masquerade{
+		Domain:    "achievers.com",
+		IpAddress: "216.137.36.119",
+	},
+	&fronted.Masquerade{
+		Domain:    "achievers.com",
+		IpAddress: "54.192.5.114",
+	},
+	&fronted.Masquerade{
+		Domain:    "achievers.com",
+		IpAddress: "204.246.169.79",
 	},
 	&fronted.Masquerade{
 		Domain:    "activerideshop.com",
 		IpAddress: "54.182.7.87",
+	},
+	&fronted.Masquerade{
+		Domain:    "activerideshop.com",
+		IpAddress: "54.230.5.145",
+	},
+	&fronted.Masquerade{
+		Domain:    "actnx.com",
+		IpAddress: "205.251.203.121",
 	},
 	&fronted.Masquerade{
 		Domain:    "actnx.com",
@@ -637,20 +633,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.6.7",
 	},
 	&fronted.Masquerade{
-		Domain:    "actnx.com",
-		IpAddress: "205.251.203.121",
-	},
-	&fronted.Masquerade{
 		Domain:    "ad-lancers.jp",
-		IpAddress: "54.182.0.94",
-	},
-	&fronted.Masquerade{
-		Domain:    "ad-lancers.jp",
-		IpAddress: "54.182.1.223",
-	},
-	&fronted.Masquerade{
-		Domain:    "ad-lancers.jp",
-		IpAddress: "216.137.33.46",
+		IpAddress: "216.137.36.110",
 	},
 	&fronted.Masquerade{
 		Domain:    "ad-lancers.jp",
@@ -658,15 +642,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "ad-lancers.jp",
+		IpAddress: "54.182.0.94",
+	},
+	&fronted.Masquerade{
+		Domain:    "ad-lancers.jp",
 		IpAddress: "54.192.4.219",
 	},
 	&fronted.Masquerade{
 		Domain:    "ad-lancers.jp",
-		IpAddress: "216.137.36.110",
+		IpAddress: "216.137.33.46",
 	},
 	&fronted.Masquerade{
-		Domain:    "adcade.com",
-		IpAddress: "54.239.132.201",
+		Domain:    "ad-lancers.jp",
+		IpAddress: "54.182.1.223",
 	},
 	&fronted.Masquerade{
 		Domain:    "adcade.com",
@@ -678,11 +666,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "adcade.com",
-		IpAddress: "216.137.33.149",
+		IpAddress: "54.239.132.201",
 	},
 	&fronted.Masquerade{
-		Domain:    "adform.net",
-		IpAddress: "54.182.4.83",
+		Domain:    "adcade.com",
+		IpAddress: "216.137.33.149",
 	},
 	&fronted.Masquerade{
 		Domain:    "adform.net",
@@ -690,15 +678,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "adform.net",
+		IpAddress: "54.182.4.83",
+	},
+	&fronted.Masquerade{
+		Domain:    "adform.net",
 		IpAddress: "54.230.6.142",
 	},
 	&fronted.Masquerade{
 		Domain:    "adgreetz.com",
-		IpAddress: "54.230.6.207",
+		IpAddress: "54.182.5.38",
 	},
 	&fronted.Masquerade{
 		Domain:    "adgreetz.com",
-		IpAddress: "54.182.5.38",
+		IpAddress: "54.230.6.207",
 	},
 	&fronted.Masquerade{
 		Domain:    "adk2.com",
@@ -726,7 +718,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "adobelogin.com",
+		IpAddress: "216.137.33.169",
+	},
+	&fronted.Masquerade{
+		Domain:    "adobelogin.com",
+		IpAddress: "54.192.7.171",
+	},
+	&fronted.Masquerade{
+		Domain:    "adobelogin.com",
 		IpAddress: "54.239.200.74",
+	},
+	&fronted.Masquerade{
+		Domain:    "adobelogin.com",
+		IpAddress: "54.182.2.216",
 	},
 	&fronted.Masquerade{
 		Domain:    "adobelogin.com",
@@ -738,35 +742,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "adobelogin.com",
-		IpAddress: "54.182.5.43",
-	},
-	&fronted.Masquerade{
-		Domain:    "adobelogin.com",
-		IpAddress: "54.192.7.171",
-	},
-	&fronted.Masquerade{
-		Domain:    "adobelogin.com",
 		IpAddress: "54.239.130.50",
 	},
 	&fronted.Masquerade{
 		Domain:    "adobelogin.com",
-		IpAddress: "216.137.33.169",
-	},
-	&fronted.Masquerade{
-		Domain:    "adobelogin.com",
-		IpAddress: "54.182.2.216",
-	},
-	&fronted.Masquerade{
-		Domain:    "adrd.co",
-		IpAddress: "54.230.5.21",
+		IpAddress: "54.182.5.43",
 	},
 	&fronted.Masquerade{
 		Domain:    "adrd.co",
 		IpAddress: "54.182.7.38",
 	},
 	&fronted.Masquerade{
-		Domain:    "adrta.com",
-		IpAddress: "54.192.4.190",
+		Domain:    "adrd.co",
+		IpAddress: "54.230.5.21",
 	},
 	&fronted.Masquerade{
 		Domain:    "adrta.com",
@@ -781,12 +769,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.7.82",
 	},
 	&fronted.Masquerade{
-		Domain:    "ads.linkedin.com",
-		IpAddress: "54.239.132.224",
-	},
-	&fronted.Masquerade{
-		Domain:    "ads.linkedin.com",
-		IpAddress: "54.182.0.133",
+		Domain:    "adrta.com",
+		IpAddress: "54.192.4.190",
 	},
 	&fronted.Masquerade{
 		Domain:    "ads.linkedin.com",
@@ -798,7 +782,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "ads.linkedin.com",
+		IpAddress: "54.239.132.224",
+	},
+	&fronted.Masquerade{
+		Domain:    "ads.linkedin.com",
 		IpAddress: "216.137.45.95",
+	},
+	&fronted.Masquerade{
+		Domain:    "ads.linkedin.com",
+		IpAddress: "54.182.0.133",
 	},
 	&fronted.Masquerade{
 		Domain:    "ads.swyftmedia.com",
@@ -806,27 +798,35 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "ads.swyftmedia.com",
-		IpAddress: "54.239.132.151",
-	},
-	&fronted.Masquerade{
-		Domain:    "ads.swyftmedia.com",
 		IpAddress: "54.192.5.64",
 	},
 	&fronted.Masquerade{
-		Domain:    "adtdp.com",
-		IpAddress: "54.192.6.251",
+		Domain:    "ads.swyftmedia.com",
+		IpAddress: "54.239.132.151",
 	},
 	&fronted.Masquerade{
 		Domain:    "adtdp.com",
 		IpAddress: "54.182.7.89",
 	},
 	&fronted.Masquerade{
-		Domain:    "advisor.bskyb.com",
-		IpAddress: "54.182.7.184",
+		Domain:    "adtdp.com",
+		IpAddress: "54.192.6.251",
 	},
 	&fronted.Masquerade{
 		Domain:    "advisor.bskyb.com",
 		IpAddress: "54.230.7.177",
+	},
+	&fronted.Masquerade{
+		Domain:    "advisor.bskyb.com",
+		IpAddress: "54.182.7.184",
+	},
+	&fronted.Masquerade{
+		Domain:    "aerlingus.com",
+		IpAddress: "54.182.5.99",
+	},
+	&fronted.Masquerade{
+		Domain:    "aerlingus.com",
+		IpAddress: "216.137.33.77",
 	},
 	&fronted.Masquerade{
 		Domain:    "aerlingus.com",
@@ -835,14 +835,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "aerlingus.com",
 		IpAddress: "54.230.5.153",
-	},
-	&fronted.Masquerade{
-		Domain:    "aerlingus.com",
-		IpAddress: "216.137.33.77",
-	},
-	&fronted.Masquerade{
-		Domain:    "aerlingus.com",
-		IpAddress: "54.182.5.99",
 	},
 	&fronted.Masquerade{
 		Domain:    "afl.com.au",
@@ -866,11 +858,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "airbnb.com",
-		IpAddress: "54.192.4.218",
+		IpAddress: "54.239.130.120",
 	},
 	&fronted.Masquerade{
 		Domain:    "airbnb.com",
-		IpAddress: "54.239.130.120",
+		IpAddress: "54.192.4.218",
 	},
 	&fronted.Masquerade{
 		Domain:    "airbnb.com",
@@ -878,7 +870,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "akamai.hls.o.brightcove.com",
-		IpAddress: "205.251.203.144",
+		IpAddress: "54.182.6.199",
 	},
 	&fronted.Masquerade{
 		Domain:    "akamai.hls.o.brightcove.com",
@@ -886,15 +878,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "akamai.hls.o.brightcove.com",
-		IpAddress: "54.182.6.199",
-	},
-	&fronted.Masquerade{
-		Domain:    "alauda.io",
-		IpAddress: "54.230.5.111",
+		IpAddress: "205.251.203.144",
 	},
 	&fronted.Masquerade{
 		Domain:    "alauda.io",
 		IpAddress: "54.182.7.40",
+	},
+	&fronted.Masquerade{
+		Domain:    "alauda.io",
+		IpAddress: "54.230.5.111",
 	},
 	&fronted.Masquerade{
 		Domain:    "aldebaran.com",
@@ -906,14 +898,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "alenty.com",
-		IpAddress: "216.137.39.75",
-	},
-	&fronted.Masquerade{
-		Domain:    "alenty.com",
-		IpAddress: "205.251.203.170",
-	},
-	&fronted.Masquerade{
-		Domain:    "alenty.com",
 		IpAddress: "54.182.5.209",
 	},
 	&fronted.Masquerade{
@@ -921,8 +905,16 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.230.6.210",
 	},
 	&fronted.Masquerade{
+		Domain:    "alenty.com",
+		IpAddress: "216.137.39.75",
+	},
+	&fronted.Masquerade{
+		Domain:    "alenty.com",
+		IpAddress: "205.251.203.170",
+	},
+	&fronted.Masquerade{
 		Domain:    "altium.com",
-		IpAddress: "205.251.203.215",
+		IpAddress: "54.192.5.246",
 	},
 	&fronted.Masquerade{
 		Domain:    "altium.com",
@@ -930,27 +922,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "altium.com",
-		IpAddress: "54.182.3.131",
-	},
-	&fronted.Masquerade{
-		Domain:    "altium.com",
 		IpAddress: "205.251.203.211",
 	},
 	&fronted.Masquerade{
 		Domain:    "altium.com",
-		IpAddress: "54.192.5.246",
+		IpAddress: "205.251.203.215",
 	},
 	&fronted.Masquerade{
-		Domain:    "amoad.com",
-		IpAddress: "54.182.2.35",
+		Domain:    "altium.com",
+		IpAddress: "54.182.3.131",
 	},
 	&fronted.Masquerade{
 		Domain:    "amoad.com",
 		IpAddress: "54.192.7.80",
 	},
 	&fronted.Masquerade{
-		Domain:    "ampaxs.com",
-		IpAddress: "54.182.1.101",
+		Domain:    "amoad.com",
+		IpAddress: "54.182.2.35",
 	},
 	&fronted.Masquerade{
 		Domain:    "ampaxs.com",
@@ -958,11 +946,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "ampaxs.com",
-		IpAddress: "54.239.200.58",
+		IpAddress: "54.239.130.149",
 	},
 	&fronted.Masquerade{
 		Domain:    "ampaxs.com",
-		IpAddress: "54.239.130.149",
+		IpAddress: "54.182.1.101",
+	},
+	&fronted.Masquerade{
+		Domain:    "ampaxs.com",
+		IpAddress: "54.239.200.58",
 	},
 	&fronted.Masquerade{
 		Domain:    "api.5rocks.io",
@@ -974,11 +966,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "api.beta.tab.com.au",
-		IpAddress: "54.230.7.14",
-	},
-	&fronted.Masquerade{
-		Domain:    "api.beta.tab.com.au",
-		IpAddress: "54.239.200.226",
+		IpAddress: "54.239.200.197",
 	},
 	&fronted.Masquerade{
 		Domain:    "api.beta.tab.com.au",
@@ -986,7 +974,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "api.beta.tab.com.au",
-		IpAddress: "54.239.200.197",
+		IpAddress: "54.230.7.14",
+	},
+	&fronted.Masquerade{
+		Domain:    "api.beta.tab.com.au",
+		IpAddress: "54.239.200.226",
 	},
 	&fronted.Masquerade{
 		Domain:    "api.e1-np.km.playstation.net",
@@ -1002,15 +994,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "api.futebol.globosat.tv",
-		IpAddress: "54.239.132.146",
-	},
-	&fronted.Masquerade{
-		Domain:    "api.futebol.globosat.tv",
 		IpAddress: "216.137.39.39",
 	},
 	&fronted.Masquerade{
 		Domain:    "api.futebol.globosat.tv",
-		IpAddress: "54.230.6.252",
+		IpAddress: "54.182.4.149",
+	},
+	&fronted.Masquerade{
+		Domain:    "api.futebol.globosat.tv",
+		IpAddress: "54.239.132.146",
 	},
 	&fronted.Masquerade{
 		Domain:    "api.futebol.globosat.tv",
@@ -1018,11 +1010,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "api.futebol.globosat.tv",
-		IpAddress: "54.182.4.149",
-	},
-	&fronted.Masquerade{
-		Domain:    "api.vod.globosat.tv",
-		IpAddress: "54.239.132.5",
+		IpAddress: "54.230.6.252",
 	},
 	&fronted.Masquerade{
 		Domain:    "api.vod.globosat.tv",
@@ -1030,7 +1018,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "api.vod.globosat.tv",
+		IpAddress: "54.239.132.5",
+	},
+	&fronted.Masquerade{
+		Domain:    "api.vod.globosat.tv",
 		IpAddress: "216.137.43.42",
+	},
+	&fronted.Masquerade{
+		Domain:    "apotheke.medpex.de",
+		IpAddress: "54.182.5.131",
 	},
 	&fronted.Masquerade{
 		Domain:    "apotheke.medpex.de",
@@ -1041,28 +1037,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.192.4.234",
 	},
 	&fronted.Masquerade{
-		Domain:    "apotheke.medpex.de",
-		IpAddress: "54.182.5.131",
-	},
-	&fronted.Masquerade{
-		Domain:    "app.powerpo.st",
-		IpAddress: "54.192.6.178",
-	},
-	&fronted.Masquerade{
 		Domain:    "app.powerpo.st",
 		IpAddress: "54.182.3.28",
 	},
 	&fronted.Masquerade{
-		Domain:    "appgreen.com",
-		IpAddress: "54.239.130.167",
-	},
-	&fronted.Masquerade{
-		Domain:    "appgreen.com",
-		IpAddress: "54.182.3.225",
-	},
-	&fronted.Masquerade{
-		Domain:    "appgreen.com",
-		IpAddress: "54.192.7.42",
+		Domain:    "app.powerpo.st",
+		IpAddress: "54.192.6.178",
 	},
 	&fronted.Masquerade{
 		Domain:    "appgreen.com",
@@ -1070,15 +1050,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "appgreen.com",
+		IpAddress: "54.239.130.167",
+	},
+	&fronted.Masquerade{
+		Domain:    "appgreen.com",
+		IpAddress: "54.192.7.42",
+	},
+	&fronted.Masquerade{
+		Domain:    "appgreen.com",
 		IpAddress: "205.251.253.206",
 	},
 	&fronted.Masquerade{
-		Domain:    "appland.se",
-		IpAddress: "54.192.6.127",
-	},
-	&fronted.Masquerade{
-		Domain:    "appland.se",
-		IpAddress: "216.137.39.186",
+		Domain:    "appgreen.com",
+		IpAddress: "54.182.3.225",
 	},
 	&fronted.Masquerade{
 		Domain:    "appland.se",
@@ -1089,8 +1073,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "216.137.45.17",
 	},
 	&fronted.Masquerade{
-		Domain:    "apps.lifetechnologies.com",
-		IpAddress: "54.182.2.154",
+		Domain:    "appland.se",
+		IpAddress: "216.137.39.186",
+	},
+	&fronted.Masquerade{
+		Domain:    "appland.se",
+		IpAddress: "54.192.6.127",
 	},
 	&fronted.Masquerade{
 		Domain:    "apps.lifetechnologies.com",
@@ -1101,8 +1089,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.192.5.194",
 	},
 	&fronted.Masquerade{
-		Domain:    "appstore.good.com",
-		IpAddress: "54.182.5.57",
+		Domain:    "apps.lifetechnologies.com",
+		IpAddress: "54.182.2.154",
 	},
 	&fronted.Masquerade{
 		Domain:    "appstore.good.com",
@@ -1113,8 +1101,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.192.5.151",
 	},
 	&fronted.Masquerade{
-		Domain:    "apxlv.com",
-		IpAddress: "54.192.5.25",
+		Domain:    "appstore.good.com",
+		IpAddress: "54.182.5.57",
 	},
 	&fronted.Masquerade{
 		Domain:    "apxlv.com",
@@ -1129,6 +1117,10 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.230.7.235",
 	},
 	&fronted.Masquerade{
+		Domain:    "apxlv.com",
+		IpAddress: "54.192.5.25",
+	},
+	&fronted.Masquerade{
 		Domain:    "arbitersports.com",
 		IpAddress: "54.182.3.243",
 	},
@@ -1138,23 +1130,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "arcgis.com",
-		IpAddress: "216.137.36.40",
-	},
-	&fronted.Masquerade{
-		Domain:    "arcgis.com",
-		IpAddress: "216.137.43.18",
-	},
-	&fronted.Masquerade{
-		Domain:    "arcgis.com",
 		IpAddress: "54.182.1.162",
+	},
+	&fronted.Masquerade{
+		Domain:    "arcgis.com",
+		IpAddress: "216.137.36.40",
 	},
 	&fronted.Masquerade{
 		Domain:    "arcgis.com",
 		IpAddress: "54.239.130.99",
 	},
 	&fronted.Masquerade{
-		Domain:    "argusmedia.com",
-		IpAddress: "216.137.33.101",
+		Domain:    "arcgis.com",
+		IpAddress: "216.137.43.18",
 	},
 	&fronted.Masquerade{
 		Domain:    "argusmedia.com",
@@ -1162,11 +1150,27 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "argusmedia.com",
-		IpAddress: "54.192.5.248",
+		IpAddress: "216.137.33.101",
 	},
 	&fronted.Masquerade{
 		Domain:    "argusmedia.com",
 		IpAddress: "204.246.169.227",
+	},
+	&fronted.Masquerade{
+		Domain:    "argusmedia.com",
+		IpAddress: "54.192.5.248",
+	},
+	&fronted.Masquerade{
+		Domain:    "artaic.com",
+		IpAddress: "54.239.130.206",
+	},
+	&fronted.Masquerade{
+		Domain:    "artaic.com",
+		IpAddress: "216.137.45.122",
+	},
+	&fronted.Masquerade{
+		Domain:    "artaic.com",
+		IpAddress: "54.182.4.6",
 	},
 	&fronted.Masquerade{
 		Domain:    "artaic.com",
@@ -1177,16 +1181,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "205.251.203.116",
 	},
 	&fronted.Masquerade{
-		Domain:    "artaic.com",
-		IpAddress: "54.182.4.6",
-	},
-	&fronted.Masquerade{
-		Domain:    "artaic.com",
-		IpAddress: "216.137.45.122",
-	},
-	&fronted.Masquerade{
-		Domain:    "artaic.com",
-		IpAddress: "54.239.130.206",
+		Domain:    "artspace-static.com",
+		IpAddress: "54.192.6.185",
 	},
 	&fronted.Masquerade{
 		Domain:    "artspace-static.com",
@@ -1194,35 +1190,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "artspace-static.com",
-		IpAddress: "54.192.6.185",
+		IpAddress: "216.137.39.64",
 	},
 	&fronted.Masquerade{
 		Domain:    "artspace-static.com",
 		IpAddress: "54.182.1.52",
 	},
 	&fronted.Masquerade{
-		Domain:    "artspace-static.com",
-		IpAddress: "216.137.39.64",
-	},
-	&fronted.Masquerade{
-		Domain:    "artspace.com",
-		IpAddress: "54.192.6.68",
-	},
-	&fronted.Masquerade{
 		Domain:    "artspace.com",
 		IpAddress: "54.182.0.130",
 	},
 	&fronted.Masquerade{
-		Domain:    "ask.fm",
-		IpAddress: "54.182.4.82",
-	},
-	&fronted.Masquerade{
-		Domain:    "ask.fm",
-		IpAddress: "216.137.36.173",
-	},
-	&fronted.Masquerade{
-		Domain:    "ask.fm",
-		IpAddress: "54.192.6.7",
+		Domain:    "artspace.com",
+		IpAddress: "54.192.6.68",
 	},
 	&fronted.Masquerade{
 		Domain:    "ask.fm",
@@ -1230,7 +1210,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "ask.fm",
-		IpAddress: "54.230.6.34",
+		IpAddress: "54.192.5.207",
+	},
+	&fronted.Masquerade{
+		Domain:    "ask.fm",
+		IpAddress: "204.246.169.169",
 	},
 	&fronted.Masquerade{
 		Domain:    "ask.fm",
@@ -1238,11 +1222,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "ask.fm",
+		IpAddress: "54.230.6.34",
+	},
+	&fronted.Masquerade{
+		Domain:    "ask.fm",
 		IpAddress: "205.251.203.61",
 	},
 	&fronted.Masquerade{
 		Domain:    "ask.fm",
-		IpAddress: "54.192.5.207",
+		IpAddress: "54.182.4.82",
+	},
+	&fronted.Masquerade{
+		Domain:    "ask.fm",
+		IpAddress: "54.192.6.7",
 	},
 	&fronted.Masquerade{
 		Domain:    "ask.fm",
@@ -1250,31 +1242,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "ask.fm",
-		IpAddress: "204.246.169.169",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.bwbx.io",
-		IpAddress: "54.239.200.190",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.bwbx.io",
-		IpAddress: "54.239.130.16",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.bwbx.io",
-		IpAddress: "54.239.200.93",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.bwbx.io",
-		IpAddress: "205.251.253.204",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.bwbx.io",
-		IpAddress: "54.239.200.236",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.bwbx.io",
-		IpAddress: "54.182.6.202",
+		IpAddress: "216.137.36.173",
 	},
 	&fronted.Masquerade{
 		Domain:    "assets.bwbx.io",
@@ -1282,35 +1250,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "assets.bwbx.io",
-		IpAddress: "204.246.169.194",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.bwbx.io",
-		IpAddress: "54.182.0.101",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.bwbx.io",
-		IpAddress: "216.137.36.214",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.bwbx.io",
-		IpAddress: "54.239.200.7",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.bwbx.io",
-		IpAddress: "54.182.3.80",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.bwbx.io",
-		IpAddress: "54.182.3.105",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.bwbx.io",
-		IpAddress: "216.137.33.115",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.bwbx.io",
-		IpAddress: "54.182.7.168",
+		IpAddress: "54.239.132.112",
 	},
 	&fronted.Masquerade{
 		Domain:    "assets.bwbx.io",
@@ -1318,15 +1258,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "assets.bwbx.io",
-		IpAddress: "204.246.169.108",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.bwbx.io",
-		IpAddress: "205.251.203.29",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.bwbx.io",
-		IpAddress: "54.239.130.199",
+		IpAddress: "54.182.7.168",
 	},
 	&fronted.Masquerade{
 		Domain:    "assets.bwbx.io",
@@ -1338,7 +1270,67 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "assets.bwbx.io",
-		IpAddress: "54.239.132.112",
+		IpAddress: "205.251.203.29",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.bwbx.io",
+		IpAddress: "54.182.6.202",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.bwbx.io",
+		IpAddress: "54.239.130.199",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.bwbx.io",
+		IpAddress: "54.239.130.16",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.bwbx.io",
+		IpAddress: "54.182.3.80",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.bwbx.io",
+		IpAddress: "54.182.0.101",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.bwbx.io",
+		IpAddress: "204.246.169.194",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.bwbx.io",
+		IpAddress: "216.137.33.115",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.bwbx.io",
+		IpAddress: "54.239.200.190",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.bwbx.io",
+		IpAddress: "205.251.253.204",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.bwbx.io",
+		IpAddress: "54.239.200.236",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.bwbx.io",
+		IpAddress: "216.137.36.214",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.bwbx.io",
+		IpAddress: "54.239.200.7",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.bwbx.io",
+		IpAddress: "54.182.3.105",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.bwbx.io",
+		IpAddress: "54.239.200.93",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.bwbx.io",
+		IpAddress: "204.246.169.108",
 	},
 	&fronted.Masquerade{
 		Domain:    "assets.football.com",
@@ -1350,10 +1342,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "assets.gi.rgsgames.com",
-		IpAddress: "216.137.39.108",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.gi.rgsgames.com",
 		IpAddress: "54.239.130.139",
 	},
 	&fronted.Masquerade{
@@ -1362,11 +1350,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "assets.gi.rgsgames.com",
+		IpAddress: "216.137.39.108",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.gi.rgsgames.com",
 		IpAddress: "54.192.4.52",
 	},
 	&fronted.Masquerade{
 		Domain:    "assets.hosted-commerce.net",
-		IpAddress: "54.239.130.98",
+		IpAddress: "54.192.7.240",
 	},
 	&fronted.Masquerade{
 		Domain:    "assets.hosted-commerce.net",
@@ -1374,31 +1366,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "assets.hosted-commerce.net",
-		IpAddress: "54.192.7.240",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.thinkthroughmath.com",
-		IpAddress: "54.182.6.126",
+		IpAddress: "54.239.130.98",
 	},
 	&fronted.Masquerade{
 		Domain:    "assets.thinkthroughmath.com",
 		IpAddress: "54.230.6.37",
 	},
 	&fronted.Masquerade{
-		Domain:    "assets.tumblr.com",
-		IpAddress: "205.251.203.59",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.tumblr.com",
-		IpAddress: "54.239.200.77",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.tumblr.com",
-		IpAddress: "205.251.203.148",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.tumblr.com",
-		IpAddress: "216.137.43.39",
+		Domain:    "assets.thinkthroughmath.com",
+		IpAddress: "54.182.6.126",
 	},
 	&fronted.Masquerade{
 		Domain:    "assets.tumblr.com",
@@ -1406,47 +1382,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "assets.tumblr.com",
-		IpAddress: "205.251.203.156",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.tumblr.com",
-		IpAddress: "54.192.5.231",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.tumblr.com",
-		IpAddress: "54.230.6.90",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.tumblr.com",
-		IpAddress: "54.182.7.66",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.tumblr.com",
-		IpAddress: "205.251.203.6",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.tumblr.com",
-		IpAddress: "216.137.43.199",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.tumblr.com",
-		IpAddress: "54.192.7.79",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.tumblr.com",
-		IpAddress: "54.230.6.237",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.tumblr.com",
-		IpAddress: "216.137.33.159",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.tumblr.com",
-		IpAddress: "204.246.169.251",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.tumblr.com",
-		IpAddress: "204.246.169.95",
+		IpAddress: "216.137.45.40",
 	},
 	&fronted.Masquerade{
 		Domain:    "assets.tumblr.com",
@@ -1454,19 +1390,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "assets.tumblr.com",
-		IpAddress: "54.230.5.17",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.tumblr.com",
-		IpAddress: "54.230.4.230",
-	},
-	&fronted.Masquerade{
-		Domain:    "assets.tumblr.com",
 		IpAddress: "54.182.6.207",
 	},
 	&fronted.Masquerade{
 		Domain:    "assets.tumblr.com",
-		IpAddress: "216.137.45.40",
+		IpAddress: "54.192.5.231",
 	},
 	&fronted.Masquerade{
 		Domain:    "assets.tumblr.com",
@@ -1474,15 +1402,71 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "assets.tumblr.com",
+		IpAddress: "54.230.5.17",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.tumblr.com",
+		IpAddress: "205.251.203.6",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.tumblr.com",
+		IpAddress: "54.230.4.230",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.tumblr.com",
+		IpAddress: "216.137.43.199",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.tumblr.com",
+		IpAddress: "205.251.203.59",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.tumblr.com",
+		IpAddress: "54.230.6.90",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.tumblr.com",
+		IpAddress: "216.137.33.159",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.tumblr.com",
+		IpAddress: "216.137.43.39",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.tumblr.com",
+		IpAddress: "205.251.203.156",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.tumblr.com",
+		IpAddress: "205.251.203.148",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.tumblr.com",
 		IpAddress: "54.239.200.107",
 	},
 	&fronted.Masquerade{
-		Domain:    "assets.viralstyle.com",
-		IpAddress: "54.182.2.6",
+		Domain:    "assets.tumblr.com",
+		IpAddress: "54.230.6.237",
 	},
 	&fronted.Masquerade{
-		Domain:    "assets.viralstyle.com",
-		IpAddress: "216.137.36.198",
+		Domain:    "assets.tumblr.com",
+		IpAddress: "54.239.200.77",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.tumblr.com",
+		IpAddress: "204.246.169.251",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.tumblr.com",
+		IpAddress: "54.192.7.79",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.tumblr.com",
+		IpAddress: "54.182.7.66",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.tumblr.com",
+		IpAddress: "204.246.169.95",
 	},
 	&fronted.Masquerade{
 		Domain:    "assets.viralstyle.com",
@@ -1490,11 +1474,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "assets.viralstyle.com",
-		IpAddress: "54.192.5.156",
+		IpAddress: "205.251.203.195",
 	},
 	&fronted.Masquerade{
 		Domain:    "assets.viralstyle.com",
-		IpAddress: "205.251.203.195",
+		IpAddress: "216.137.36.198",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.viralstyle.com",
+		IpAddress: "54.182.2.6",
+	},
+	&fronted.Masquerade{
+		Domain:    "assets.viralstyle.com",
+		IpAddress: "54.192.5.156",
 	},
 	&fronted.Masquerade{
 		Domain:    "assetserv.com",
@@ -1506,7 +1498,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "atedra.com",
-		IpAddress: "54.192.4.141",
+		IpAddress: "54.182.0.254",
 	},
 	&fronted.Masquerade{
 		Domain:    "atedra.com",
@@ -1514,7 +1506,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "atedra.com",
-		IpAddress: "54.182.0.254",
+		IpAddress: "54.192.4.141",
 	},
 	&fronted.Masquerade{
 		Domain:    "atko.biz",
@@ -1534,11 +1526,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "automatic.com",
-		IpAddress: "54.192.4.165",
+		IpAddress: "54.182.1.113",
 	},
 	&fronted.Masquerade{
 		Domain:    "automatic.com",
-		IpAddress: "54.182.7.177",
+		IpAddress: "54.192.4.165",
 	},
 	&fronted.Masquerade{
 		Domain:    "automatic.com",
@@ -1546,7 +1538,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "automatic.com",
-		IpAddress: "54.182.1.113",
+		IpAddress: "54.182.7.177",
 	},
 	&fronted.Masquerade{
 		Domain:    "automatic.com",
@@ -1554,11 +1546,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "autoweb.com",
-		IpAddress: "54.182.3.191",
+		IpAddress: "54.192.7.102",
 	},
 	&fronted.Masquerade{
 		Domain:    "autoweb.com",
-		IpAddress: "54.192.7.102",
+		IpAddress: "54.182.3.191",
 	},
 	&fronted.Masquerade{
 		Domain:    "autoweb.com",
@@ -1570,15 +1562,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "awadserver.com",
-		IpAddress: "204.246.169.159",
-	},
-	&fronted.Masquerade{
-		Domain:    "awadserver.com",
 		IpAddress: "54.192.5.240",
-	},
-	&fronted.Masquerade{
-		Domain:    "awadserver.com",
-		IpAddress: "54.230.6.249",
 	},
 	&fronted.Masquerade{
 		Domain:    "awadserver.com",
@@ -1586,11 +1570,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "awadserver.com",
-		IpAddress: "204.246.169.192",
+		IpAddress: "204.246.169.159",
 	},
 	&fronted.Masquerade{
-		Domain:    "awm.gov.au",
-		IpAddress: "54.239.130.12",
+		Domain:    "awadserver.com",
+		IpAddress: "204.246.169.192",
 	},
 	&fronted.Masquerade{
 		Domain:    "awm.gov.au",
@@ -1601,44 +1585,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.7.41",
 	},
 	&fronted.Masquerade{
-		Domain:    "awsapps.com",
-		IpAddress: "54.182.4.107",
-	},
-	&fronted.Masquerade{
-		Domain:    "awsapps.com",
-		IpAddress: "54.192.6.82",
-	},
-	&fronted.Masquerade{
-		Domain:    "awsapps.com",
-		IpAddress: "54.230.7.17",
+		Domain:    "awm.gov.au",
+		IpAddress: "54.239.130.12",
 	},
 	&fronted.Masquerade{
 		Domain:    "awsapps.com",
 		IpAddress: "216.137.36.13",
-	},
-	&fronted.Masquerade{
-		Domain:    "awsapps.com",
-		IpAddress: "54.182.2.242",
-	},
-	&fronted.Masquerade{
-		Domain:    "awsapps.com",
-		IpAddress: "54.182.5.191",
-	},
-	&fronted.Masquerade{
-		Domain:    "awsapps.com",
-		IpAddress: "54.230.7.19",
-	},
-	&fronted.Masquerade{
-		Domain:    "awsapps.com",
-		IpAddress: "54.192.6.250",
-	},
-	&fronted.Masquerade{
-		Domain:    "awsapps.com",
-		IpAddress: "205.251.253.64",
-	},
-	&fronted.Masquerade{
-		Domain:    "awsapps.com",
-		IpAddress: "54.230.4.233",
 	},
 	&fronted.Masquerade{
 		Domain:    "awsapps.com",
@@ -1650,7 +1602,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "awsapps.com",
-		IpAddress: "54.182.5.224",
+		IpAddress: "54.182.5.65",
 	},
 	&fronted.Masquerade{
 		Domain:    "awsapps.com",
@@ -1658,11 +1610,47 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "awsapps.com",
-		IpAddress: "54.182.5.65",
+		IpAddress: "54.182.5.224",
+	},
+	&fronted.Masquerade{
+		Domain:    "awsapps.com",
+		IpAddress: "54.182.4.107",
 	},
 	&fronted.Masquerade{
 		Domain:    "awsapps.com",
 		IpAddress: "54.182.6.131",
+	},
+	&fronted.Masquerade{
+		Domain:    "awsapps.com",
+		IpAddress: "54.192.6.250",
+	},
+	&fronted.Masquerade{
+		Domain:    "awsapps.com",
+		IpAddress: "54.192.6.82",
+	},
+	&fronted.Masquerade{
+		Domain:    "awsapps.com",
+		IpAddress: "54.230.4.233",
+	},
+	&fronted.Masquerade{
+		Domain:    "awsapps.com",
+		IpAddress: "54.230.7.19",
+	},
+	&fronted.Masquerade{
+		Domain:    "awsapps.com",
+		IpAddress: "54.182.2.242",
+	},
+	&fronted.Masquerade{
+		Domain:    "awsapps.com",
+		IpAddress: "54.230.7.17",
+	},
+	&fronted.Masquerade{
+		Domain:    "awsapps.com",
+		IpAddress: "205.251.253.64",
+	},
+	&fronted.Masquerade{
+		Domain:    "awsapps.com",
+		IpAddress: "54.182.5.191",
 	},
 	&fronted.Masquerade{
 		Domain:    "axonify.com",
@@ -1670,15 +1658,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "axonify.com",
-		IpAddress: "54.230.6.201",
-	},
-	&fronted.Masquerade{
-		Domain:    "axonify.com",
 		IpAddress: "54.182.4.151",
 	},
 	&fronted.Masquerade{
+		Domain:    "axonify.com",
+		IpAddress: "54.230.6.201",
+	},
+	&fronted.Masquerade{
 		Domain:    "babblr.me",
-		IpAddress: "54.182.5.227",
+		IpAddress: "54.239.130.218",
 	},
 	&fronted.Masquerade{
 		Domain:    "babblr.me",
@@ -1686,7 +1674,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "babblr.me",
-		IpAddress: "54.239.130.218",
+		IpAddress: "54.182.5.227",
 	},
 	&fronted.Masquerade{
 		Domain:    "babblr.me",
@@ -1706,11 +1694,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "barbour-abi.com",
-		IpAddress: "54.192.5.228",
+		IpAddress: "54.182.2.213",
 	},
 	&fronted.Masquerade{
 		Domain:    "barbour-abi.com",
-		IpAddress: "54.182.2.213",
+		IpAddress: "54.192.5.228",
+	},
+	&fronted.Masquerade{
+		Domain:    "bazaarvoice.com",
+		IpAddress: "54.239.130.153",
 	},
 	&fronted.Masquerade{
 		Domain:    "bazaarvoice.com",
@@ -1721,12 +1713,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.1.186",
 	},
 	&fronted.Masquerade{
-		Domain:    "bazaarvoice.com",
-		IpAddress: "54.239.130.153",
+		Domain:    "bblr.me",
+		IpAddress: "54.230.7.42",
 	},
 	&fronted.Masquerade{
 		Domain:    "bblr.me",
-		IpAddress: "54.182.5.89",
+		IpAddress: "216.137.36.144",
 	},
 	&fronted.Masquerade{
 		Domain:    "bblr.me",
@@ -1734,11 +1726,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "bblr.me",
-		IpAddress: "54.230.7.41",
-	},
-	&fronted.Masquerade{
-		Domain:    "bblr.me",
-		IpAddress: "54.230.7.42",
+		IpAddress: "216.137.39.205",
 	},
 	&fronted.Masquerade{
 		Domain:    "bblr.me",
@@ -1746,27 +1734,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "bblr.me",
+		IpAddress: "54.182.5.89",
+	},
+	&fronted.Masquerade{
+		Domain:    "bblr.me",
+		IpAddress: "54.230.7.41",
+	},
+	&fronted.Masquerade{
+		Domain:    "bblr.me",
 		IpAddress: "54.182.5.90",
-	},
-	&fronted.Masquerade{
-		Domain:    "bblr.me",
-		IpAddress: "216.137.39.205",
-	},
-	&fronted.Masquerade{
-		Domain:    "bblr.me",
-		IpAddress: "216.137.36.144",
-	},
-	&fronted.Masquerade{
-		Domain:    "bcash.com.br",
-		IpAddress: "54.230.6.88",
 	},
 	&fronted.Masquerade{
 		Domain:    "bcash.com.br",
 		IpAddress: "54.182.1.138",
 	},
 	&fronted.Masquerade{
-		Domain:    "beautyheroes.fr",
-		IpAddress: "54.182.3.199",
+		Domain:    "bcash.com.br",
+		IpAddress: "54.230.6.88",
 	},
 	&fronted.Masquerade{
 		Domain:    "beautyheroes.fr",
@@ -1777,12 +1761,16 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "216.137.33.71",
 	},
 	&fronted.Masquerade{
-		Domain:    "behancemanage.com",
-		IpAddress: "54.192.5.75",
+		Domain:    "beautyheroes.fr",
+		IpAddress: "54.182.3.199",
 	},
 	&fronted.Masquerade{
 		Domain:    "behancemanage.com",
 		IpAddress: "216.137.45.123",
+	},
+	&fronted.Masquerade{
+		Domain:    "behancemanage.com",
+		IpAddress: "54.192.5.75",
 	},
 	&fronted.Masquerade{
 		Domain:    "behancemanage.com",
@@ -1794,15 +1782,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "bethesda.net",
-		IpAddress: "216.137.43.127",
-	},
-	&fronted.Masquerade{
-		Domain:    "bethesda.net",
 		IpAddress: "54.239.132.235",
 	},
 	&fronted.Masquerade{
 		Domain:    "bethesda.net",
+		IpAddress: "216.137.43.127",
+	},
+	&fronted.Masquerade{
+		Domain:    "bethesda.net",
 		IpAddress: "54.182.7.20",
+	},
+	&fronted.Masquerade{
+		Domain:    "betterdoctor.com",
+		IpAddress: "54.192.5.42",
 	},
 	&fronted.Masquerade{
 		Domain:    "betterdoctor.com",
@@ -1811,10 +1803,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "betterdoctor.com",
 		IpAddress: "54.239.130.193",
-	},
-	&fronted.Masquerade{
-		Domain:    "betterdoctor.com",
-		IpAddress: "54.192.5.42",
 	},
 	&fronted.Masquerade{
 		Domain:    "bibliocommons.com",
@@ -1826,15 +1814,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "bikebandit-images.com",
-		IpAddress: "54.230.6.36",
-	},
-	&fronted.Masquerade{
-		Domain:    "bikebandit-images.com",
 		IpAddress: "205.251.203.49",
 	},
 	&fronted.Masquerade{
 		Domain:    "bikebandit-images.com",
 		IpAddress: "54.182.2.144",
+	},
+	&fronted.Masquerade{
+		Domain:    "bikebandit-images.com",
+		IpAddress: "54.230.6.36",
 	},
 	&fronted.Masquerade{
 		Domain:    "bikebandit-images.com",
@@ -1858,19 +1846,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "bizo.com",
-		IpAddress: "216.137.39.139",
-	},
-	&fronted.Masquerade{
-		Domain:    "bizo.com",
-		IpAddress: "54.239.132.51",
-	},
-	&fronted.Masquerade{
-		Domain:    "bizo.com",
 		IpAddress: "54.192.4.72",
 	},
 	&fronted.Masquerade{
 		Domain:    "bizo.com",
 		IpAddress: "54.182.0.225",
+	},
+	&fronted.Masquerade{
+		Domain:    "bizo.com",
+		IpAddress: "216.137.39.139",
+	},
+	&fronted.Masquerade{
+		Domain:    "bizo.com",
+		IpAddress: "54.239.132.51",
 	},
 	&fronted.Masquerade{
 		Domain:    "bizographics.com",
@@ -1886,7 +1874,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "blispay.com",
-		IpAddress: "54.182.3.121",
+		IpAddress: "54.239.132.231",
 	},
 	&fronted.Masquerade{
 		Domain:    "blispay.com",
@@ -1894,23 +1882,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "blispay.com",
-		IpAddress: "54.239.132.231",
-	},
-	&fronted.Masquerade{
-		Domain:    "blog.amazonathlete.com",
-		IpAddress: "54.182.4.64",
+		IpAddress: "54.182.3.121",
 	},
 	&fronted.Masquerade{
 		Domain:    "blog.amazonathlete.com",
 		IpAddress: "54.230.5.23",
 	},
 	&fronted.Masquerade{
-		Domain:    "blog.physi.rocks",
-		IpAddress: "54.230.6.140",
+		Domain:    "blog.amazonathlete.com",
+		IpAddress: "54.182.4.64",
 	},
 	&fronted.Masquerade{
 		Domain:    "blog.physi.rocks",
-		IpAddress: "54.182.7.161",
+		IpAddress: "54.230.6.140",
 	},
 	&fronted.Masquerade{
 		Domain:    "blog.physi.rocks",
@@ -1921,28 +1905,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.239.132.68",
 	},
 	&fronted.Masquerade{
-		Domain:    "bluefinlabs.com",
-		IpAddress: "54.182.1.252",
+		Domain:    "blog.physi.rocks",
+		IpAddress: "54.182.7.161",
 	},
 	&fronted.Masquerade{
 		Domain:    "bluefinlabs.com",
-		IpAddress: "205.251.253.52",
-	},
-	&fronted.Masquerade{
-		Domain:    "bluefinlabs.com",
-		IpAddress: "204.246.169.38",
-	},
-	&fronted.Masquerade{
-		Domain:    "bluefinlabs.com",
-		IpAddress: "216.137.45.43",
-	},
-	&fronted.Masquerade{
-		Domain:    "bluefinlabs.com",
-		IpAddress: "54.239.200.43",
-	},
-	&fronted.Masquerade{
-		Domain:    "bluefinlabs.com",
-		IpAddress: "216.137.43.120",
+		IpAddress: "216.137.36.57",
 	},
 	&fronted.Masquerade{
 		Domain:    "bluefinlabs.com",
@@ -1950,15 +1918,35 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "bluefinlabs.com",
-		IpAddress: "205.251.203.57",
+		IpAddress: "54.182.1.252",
 	},
 	&fronted.Masquerade{
 		Domain:    "bluefinlabs.com",
-		IpAddress: "216.137.36.57",
+		IpAddress: "204.246.169.38",
+	},
+	&fronted.Masquerade{
+		Domain:    "bluefinlabs.com",
+		IpAddress: "205.251.253.52",
+	},
+	&fronted.Masquerade{
+		Domain:    "bluefinlabs.com",
+		IpAddress: "216.137.43.120",
+	},
+	&fronted.Masquerade{
+		Domain:    "bluefinlabs.com",
+		IpAddress: "54.239.200.43",
+	},
+	&fronted.Masquerade{
+		Domain:    "bluefinlabs.com",
+		IpAddress: "216.137.45.43",
+	},
+	&fronted.Masquerade{
+		Domain:    "bluefinlabs.com",
+		IpAddress: "205.251.203.57",
 	},
 	&fronted.Masquerade{
 		Domain:    "bookbyte.com",
-		IpAddress: "54.230.4.215",
+		IpAddress: "216.137.33.104",
 	},
 	&fronted.Masquerade{
 		Domain:    "bookbyte.com",
@@ -1966,15 +1954,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "bookbyte.com",
-		IpAddress: "216.137.33.104",
-	},
-	&fronted.Masquerade{
-		Domain:    "booking.airportshuttles.com",
-		IpAddress: "54.239.132.157",
-	},
-	&fronted.Masquerade{
-		Domain:    "booking.airportshuttles.com",
-		IpAddress: "54.182.1.29",
+		IpAddress: "54.230.4.215",
 	},
 	&fronted.Masquerade{
 		Domain:    "booking.airportshuttles.com",
@@ -1982,15 +1962,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "booking.airportshuttles.com",
-		IpAddress: "54.239.130.146",
+		IpAddress: "54.239.132.157",
 	},
 	&fronted.Masquerade{
 		Domain:    "booking.airportshuttles.com",
 		IpAddress: "54.192.4.6",
 	},
 	&fronted.Masquerade{
-		Domain:    "bounceexchange.com",
-		IpAddress: "205.251.203.125",
+		Domain:    "booking.airportshuttles.com",
+		IpAddress: "54.239.130.146",
+	},
+	&fronted.Masquerade{
+		Domain:    "booking.airportshuttles.com",
+		IpAddress: "54.182.1.29",
 	},
 	&fronted.Masquerade{
 		Domain:    "bounceexchange.com",
@@ -1998,11 +1982,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "bounceexchange.com",
-		IpAddress: "54.182.1.82",
+		IpAddress: "54.192.5.118",
 	},
 	&fronted.Masquerade{
 		Domain:    "bounceexchange.com",
-		IpAddress: "54.192.5.118",
+		IpAddress: "205.251.203.125",
+	},
+	&fronted.Masquerade{
+		Domain:    "bounceexchange.com",
+		IpAddress: "54.182.1.82",
 	},
 	&fronted.Masquerade{
 		Domain:    "boundary.com",
@@ -2014,15 +2002,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "boundless.com",
-		IpAddress: "54.230.6.108",
-	},
-	&fronted.Masquerade{
-		Domain:    "boundless.com",
-		IpAddress: "54.182.3.133",
-	},
-	&fronted.Masquerade{
-		Domain:    "boundless.com",
-		IpAddress: "54.239.130.71",
+		IpAddress: "54.192.5.124",
 	},
 	&fronted.Masquerade{
 		Domain:    "boundless.com",
@@ -2034,19 +2014,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "boundless.com",
-		IpAddress: "54.192.5.124",
+		IpAddress: "54.182.3.133",
+	},
+	&fronted.Masquerade{
+		Domain:    "boundless.com",
+		IpAddress: "54.230.6.108",
+	},
+	&fronted.Masquerade{
+		Domain:    "boundless.com",
+		IpAddress: "54.239.130.71",
 	},
 	&fronted.Masquerade{
 		Domain:    "boundless.com",
 		IpAddress: "54.182.7.42",
 	},
 	&fronted.Masquerade{
-		Domain:    "brandmovers.co",
-		IpAddress: "54.192.4.128",
-	},
-	&fronted.Masquerade{
 		Domain:    "brcdn.com",
-		IpAddress: "54.239.200.219",
+		IpAddress: "54.192.6.223",
 	},
 	&fronted.Masquerade{
 		Domain:    "brcdn.com",
@@ -2054,19 +2038,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "brcdn.com",
-		IpAddress: "54.182.7.116",
+		IpAddress: "54.239.200.219",
 	},
 	&fronted.Masquerade{
 		Domain:    "brcdn.com",
-		IpAddress: "54.192.6.223",
+		IpAddress: "54.182.7.116",
+	},
+	&fronted.Masquerade{
+		Domain:    "brickworksoftware.com",
+		IpAddress: "54.230.5.207",
 	},
 	&fronted.Masquerade{
 		Domain:    "brickworksoftware.com",
 		IpAddress: "54.182.3.247",
 	},
 	&fronted.Masquerade{
-		Domain:    "brickworksoftware.com",
-		IpAddress: "54.230.5.207",
+		Domain:    "brightcove.com",
+		IpAddress: "54.230.6.193",
 	},
 	&fronted.Masquerade{
 		Domain:    "brightcove.com",
@@ -2081,20 +2069,48 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.6.66",
 	},
 	&fronted.Masquerade{
-		Domain:    "brightcove.com",
-		IpAddress: "54.230.6.193",
+		Domain:    "bscdn.net",
+		IpAddress: "54.230.6.78",
 	},
 	&fronted.Masquerade{
 		Domain:    "bscdn.net",
-		IpAddress: "54.230.6.78",
+		IpAddress: "54.182.5.164",
 	},
 	&fronted.Masquerade{
 		Domain:    "bscdn.net",
 		IpAddress: "216.137.33.200",
 	},
 	&fronted.Masquerade{
-		Domain:    "bscdn.net",
-		IpAddress: "54.182.5.164",
+		Domain:    "btrll.com",
+		IpAddress: "54.230.6.35",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "54.192.4.189",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "54.230.7.134",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "216.137.43.56",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "54.192.5.203",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "216.137.43.75",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "54.192.5.159",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "205.251.203.246",
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
@@ -2102,19 +2118,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
-		IpAddress: "54.230.5.115",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "54.230.4.68",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "204.246.169.237",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "54.230.4.52",
+		IpAddress: "54.230.7.163",
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
@@ -2122,11 +2126,47 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
-		IpAddress: "54.230.4.37",
+		IpAddress: "54.230.7.190",
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
-		IpAddress: "54.192.4.110",
+		IpAddress: "205.251.253.220",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "205.251.253.80",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "54.192.4.89",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "54.230.7.203",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "54.192.4.62",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "205.251.253.111",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "205.251.253.94",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "54.230.6.38",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "216.137.33.112",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "54.192.4.245",
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
@@ -2138,7 +2178,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
-		IpAddress: "54.230.5.125",
+		IpAddress: "54.230.7.112",
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
@@ -2146,131 +2186,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
-		IpAddress: "54.192.5.159",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "205.251.253.80",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "54.230.4.31",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "205.251.253.220",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "54.230.7.217",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "205.251.253.94",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "54.192.4.13",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "54.230.5.155",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
 		IpAddress: "54.192.4.151",
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
-		IpAddress: "216.137.33.112",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "216.137.39.177",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "54.230.7.190",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "216.137.43.145",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "216.137.43.148",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "54.230.5.174",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "54.230.7.203",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "204.246.169.171",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "216.137.39.168",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "54.230.5.171",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "54.230.4.115",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "54.230.4.136",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "54.230.7.163",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "205.251.253.111",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "54.192.5.203",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "54.230.5.221",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "54.239.132.132",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "54.230.7.134",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "54.230.5.232",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "54.230.5.224",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "54.230.7.112",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "54.192.7.253",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "54.230.5.5",
+		IpAddress: "54.230.6.224",
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
@@ -2278,23 +2198,27 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
-		IpAddress: "216.137.36.53",
+		IpAddress: "54.230.7.217",
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
-		IpAddress: "54.192.7.23",
+		IpAddress: "205.251.203.192",
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
-		IpAddress: "54.182.0.32",
+		IpAddress: "54.230.6.222",
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
-		IpAddress: "54.192.4.189",
+		IpAddress: "54.192.4.110",
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
-		IpAddress: "54.230.5.62",
+		IpAddress: "216.137.43.148",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "216.137.43.145",
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
@@ -2302,31 +2226,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
-		IpAddress: "204.246.169.55",
+		IpAddress: "54.230.6.115",
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
-		IpAddress: "216.137.43.56",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "54.239.132.223",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "54.192.7.181",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "216.137.36.252",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "54.239.132.212",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "54.230.6.35",
+		IpAddress: "54.192.6.248",
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
@@ -2334,31 +2238,35 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
-		IpAddress: "54.230.6.38",
+		IpAddress: "216.137.39.85",
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
-		IpAddress: "54.192.4.245",
+		IpAddress: "54.239.132.132",
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
-		IpAddress: "216.137.43.75",
+		IpAddress: "54.192.6.70",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "54.182.0.32",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "54.230.5.62",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "54.230.5.5",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "216.137.36.53",
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
 		IpAddress: "54.192.7.14",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "205.251.203.246",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "54.230.6.115",
-	},
-	&fronted.Masquerade{
-		Domain:    "btrll.com",
-		IpAddress: "54.230.6.222",
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
@@ -2370,15 +2278,83 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
-		IpAddress: "205.251.203.192",
+		IpAddress: "54.230.5.232",
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
-		IpAddress: "216.137.39.85",
+		IpAddress: "54.230.5.224",
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
-		IpAddress: "54.192.4.89",
+		IpAddress: "54.230.5.221",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "54.192.7.181",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "54.239.132.223",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "54.230.5.155",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "204.246.169.237",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "204.246.169.55",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "54.239.132.212",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "54.230.5.174",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "54.230.5.171",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "216.137.39.177",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "54.192.7.23",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "216.137.39.168",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "54.230.5.125",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "54.192.7.253",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "54.230.5.115",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "54.230.4.68",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "54.230.4.62",
+	},
+	&fronted.Masquerade{
+		Domain:    "btrll.com",
+		IpAddress: "54.230.4.52",
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
@@ -2386,27 +2362,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
-		IpAddress: "54.192.6.248",
+		IpAddress: "54.230.4.37",
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
-		IpAddress: "54.192.6.70",
+		IpAddress: "54.230.4.31",
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
-		IpAddress: "54.230.6.224",
+		IpAddress: "216.137.36.252",
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
-		IpAddress: "54.192.4.62",
+		IpAddress: "54.230.4.115",
 	},
 	&fronted.Masquerade{
 		Domain:    "btrll.com",
-		IpAddress: "54.230.4.62",
-	},
-	&fronted.Masquerade{
-		Domain:    "bttrack.com",
-		IpAddress: "54.239.130.53",
+		IpAddress: "54.230.4.136",
 	},
 	&fronted.Masquerade{
 		Domain:    "bttrack.com",
@@ -2414,15 +2386,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "bttrack.com",
+		IpAddress: "54.230.5.189",
+	},
+	&fronted.Masquerade{
+		Domain:    "bttrack.com",
 		IpAddress: "54.182.6.27",
 	},
 	&fronted.Masquerade{
 		Domain:    "bttrack.com",
-		IpAddress: "54.230.5.189",
+		IpAddress: "54.239.130.53",
 	},
 	&fronted.Masquerade{
 		Domain:    "buddydo.com",
-		IpAddress: "54.239.200.25",
+		IpAddress: "54.230.7.40",
 	},
 	&fronted.Masquerade{
 		Domain:    "buddydo.com",
@@ -2434,7 +2410,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "buddydo.com",
-		IpAddress: "54.230.7.40",
+		IpAddress: "54.239.200.25",
 	},
 	&fronted.Masquerade{
 		Domain:    "buildbucket.org",
@@ -2462,10 +2438,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "bundles.bittorrent.com",
-		IpAddress: "54.182.2.56",
-	},
-	&fronted.Masquerade{
-		Domain:    "bundles.bittorrent.com",
 		IpAddress: "216.137.39.36",
 	},
 	&fronted.Masquerade{
@@ -2473,16 +2445,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.192.7.96",
 	},
 	&fronted.Masquerade{
-		Domain:    "buuteeq.com",
-		IpAddress: "54.192.5.199",
+		Domain:    "bundles.bittorrent.com",
+		IpAddress: "54.182.2.56",
 	},
 	&fronted.Masquerade{
 		Domain:    "buuteeq.com",
-		IpAddress: "54.192.5.44",
-	},
-	&fronted.Masquerade{
-		Domain:    "buuteeq.com",
-		IpAddress: "54.182.0.85",
+		IpAddress: "54.182.2.39",
 	},
 	&fronted.Masquerade{
 		Domain:    "buuteeq.com",
@@ -2490,7 +2458,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "buuteeq.com",
-		IpAddress: "54.182.2.39",
+		IpAddress: "54.192.5.44",
+	},
+	&fronted.Masquerade{
+		Domain:    "buuteeq.com",
+		IpAddress: "54.192.5.199",
+	},
+	&fronted.Masquerade{
+		Domain:    "buuteeq.com",
+		IpAddress: "54.182.0.85",
 	},
 	&fronted.Masquerade{
 		Domain:    "bysymphony.com",
@@ -2506,19 +2482,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "ca-conv.jp",
+		IpAddress: "54.182.2.49",
+	},
+	&fronted.Masquerade{
+		Domain:    "ca-conv.jp",
 		IpAddress: "54.182.0.223",
 	},
 	&fronted.Masquerade{
 		Domain:    "ca-conv.jp",
-		IpAddress: "54.182.1.224",
-	},
-	&fronted.Masquerade{
-		Domain:    "ca-conv.jp",
 		IpAddress: "54.192.4.117",
-	},
-	&fronted.Masquerade{
-		Domain:    "ca-conv.jp",
-		IpAddress: "54.182.2.49",
 	},
 	&fronted.Masquerade{
 		Domain:    "ca-conv.jp",
@@ -2529,8 +2501,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.192.6.210",
 	},
 	&fronted.Masquerade{
-		Domain:    "cache.dough.com",
-		IpAddress: "216.137.39.200",
+		Domain:    "ca-conv.jp",
+		IpAddress: "54.182.1.224",
 	},
 	&fronted.Masquerade{
 		Domain:    "cache.dough.com",
@@ -2538,23 +2510,27 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cache.dough.com",
-		IpAddress: "216.137.43.174",
+		IpAddress: "216.137.39.200",
 	},
 	&fronted.Masquerade{
 		Domain:    "cache.dough.com",
-		IpAddress: "216.137.33.50",
+		IpAddress: "216.137.43.174",
 	},
 	&fronted.Masquerade{
 		Domain:    "cache.dough.com",
 		IpAddress: "54.182.0.13",
 	},
 	&fronted.Masquerade{
-		Domain:    "cafewell.com",
-		IpAddress: "54.182.5.30",
+		Domain:    "cache.dough.com",
+		IpAddress: "216.137.33.50",
 	},
 	&fronted.Masquerade{
 		Domain:    "cafewell.com",
 		IpAddress: "54.239.200.230",
+	},
+	&fronted.Masquerade{
+		Domain:    "cafewell.com",
+		IpAddress: "54.182.5.30",
 	},
 	&fronted.Masquerade{
 		Domain:    "cafewell.com",
@@ -2574,7 +2550,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "camdenmarket.com",
-		IpAddress: "54.239.200.71",
+		IpAddress: "216.137.43.141",
 	},
 	&fronted.Masquerade{
 		Domain:    "camdenmarket.com",
@@ -2582,7 +2558,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "camdenmarket.com",
-		IpAddress: "216.137.43.141",
+		IpAddress: "54.239.200.71",
+	},
+	&fronted.Masquerade{
+		Domain:    "campaigns.prezzip.com",
+		IpAddress: "54.182.0.135",
 	},
 	&fronted.Masquerade{
 		Domain:    "campaigns.prezzip.com",
@@ -2591,10 +2571,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "campaigns.prezzip.com",
 		IpAddress: "54.230.7.27",
-	},
-	&fronted.Masquerade{
-		Domain:    "campaigns.prezzip.com",
-		IpAddress: "54.182.0.135",
 	},
 	&fronted.Masquerade{
 		Domain:    "canaldapeca.com.br",
@@ -2606,10 +2582,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "canary-cf.dropbox.com",
-		IpAddress: "205.251.203.137",
-	},
-	&fronted.Masquerade{
-		Domain:    "canary-cf.dropbox.com",
 		IpAddress: "54.182.7.126",
 	},
 	&fronted.Masquerade{
@@ -2617,24 +2589,24 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.192.7.160",
 	},
 	&fronted.Masquerade{
+		Domain:    "canary-cf.dropbox.com",
+		IpAddress: "205.251.203.137",
+	},
+	&fronted.Masquerade{
+		Domain:    "capella.edu",
+		IpAddress: "54.192.7.235",
+	},
+	&fronted.Masquerade{
+		Domain:    "capella.edu",
+		IpAddress: "54.239.200.123",
+	},
+	&fronted.Masquerade{
 		Domain:    "capella.edu",
 		IpAddress: "216.137.36.80",
 	},
 	&fronted.Masquerade{
 		Domain:    "capella.edu",
-		IpAddress: "54.230.7.174",
-	},
-	&fronted.Masquerade{
-		Domain:    "capella.edu",
 		IpAddress: "54.182.7.171",
-	},
-	&fronted.Masquerade{
-		Domain:    "capella.edu",
-		IpAddress: "54.182.7.3",
-	},
-	&fronted.Masquerade{
-		Domain:    "capella.edu",
-		IpAddress: "54.182.6.170",
 	},
 	&fronted.Masquerade{
 		Domain:    "capella.edu",
@@ -2646,19 +2618,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "capella.edu",
-		IpAddress: "54.239.200.123",
+		IpAddress: "54.182.6.170",
 	},
 	&fronted.Masquerade{
 		Domain:    "capella.edu",
-		IpAddress: "54.192.7.235",
+		IpAddress: "54.230.7.174",
+	},
+	&fronted.Masquerade{
+		Domain:    "capella.edu",
+		IpAddress: "54.182.7.3",
 	},
 	&fronted.Masquerade{
 		Domain:    "captora.com",
-		IpAddress: "54.182.7.154",
-	},
-	&fronted.Masquerade{
-		Domain:    "captora.com",
-		IpAddress: "54.230.7.209",
+		IpAddress: "54.182.7.84",
 	},
 	&fronted.Masquerade{
 		Domain:    "captora.com",
@@ -2670,11 +2642,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "captora.com",
+		IpAddress: "54.230.7.209",
+	},
+	&fronted.Masquerade{
+		Domain:    "captora.com",
 		IpAddress: "205.251.253.198",
 	},
 	&fronted.Masquerade{
 		Domain:    "captora.com",
-		IpAddress: "54.182.7.84",
+		IpAddress: "54.182.7.154",
 	},
 	&fronted.Masquerade{
 		Domain:    "carglass.com",
@@ -2682,23 +2658,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "carglass.com",
-		IpAddress: "204.246.169.131",
-	},
-	&fronted.Masquerade{
-		Domain:    "carglass.com",
-		IpAddress: "54.182.7.79",
-	},
-	&fronted.Masquerade{
-		Domain:    "carglass.com",
 		IpAddress: "54.239.130.147",
+	},
+	&fronted.Masquerade{
+		Domain:    "carglass.com",
+		IpAddress: "204.246.169.131",
 	},
 	&fronted.Masquerade{
 		Domain:    "carglass.com",
 		IpAddress: "54.239.200.29",
 	},
 	&fronted.Masquerade{
-		Domain:    "casacasino.com",
-		IpAddress: "54.192.4.248",
+		Domain:    "carglass.com",
+		IpAddress: "54.182.7.79",
 	},
 	&fronted.Masquerade{
 		Domain:    "casacasino.com",
@@ -2710,15 +2682,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "casacasino.com",
+		IpAddress: "54.192.4.248",
+	},
+	&fronted.Masquerade{
+		Domain:    "casacasino.com",
 		IpAddress: "216.137.39.225",
-	},
-	&fronted.Masquerade{
-		Domain:    "catchoftheday.com.au",
-		IpAddress: "54.239.200.250",
-	},
-	&fronted.Masquerade{
-		Domain:    "catchoftheday.com.au",
-		IpAddress: "54.230.4.226",
 	},
 	&fronted.Masquerade{
 		Domain:    "catchoftheday.com.au",
@@ -2729,24 +2697,28 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.1.47",
 	},
 	&fronted.Masquerade{
-		Domain:    "cbcdn1.qa1.gp-static.com",
-		IpAddress: "54.192.7.182",
+		Domain:    "catchoftheday.com.au",
+		IpAddress: "54.230.4.226",
 	},
 	&fronted.Masquerade{
-		Domain:    "cdn-discuss.pif.gov",
-		IpAddress: "54.192.7.220",
+		Domain:    "catchoftheday.com.au",
+		IpAddress: "54.239.200.250",
+	},
+	&fronted.Masquerade{
+		Domain:    "cbcdn1.qa1.gp-static.com",
+		IpAddress: "54.192.7.182",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn-discuss.pif.gov",
 		IpAddress: "54.182.4.128",
 	},
 	&fronted.Masquerade{
-		Domain:    "cdn-images.mailchimp.com",
-		IpAddress: "205.251.253.60",
+		Domain:    "cdn-discuss.pif.gov",
+		IpAddress: "54.192.7.220",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn-images.mailchimp.com",
-		IpAddress: "216.137.45.49",
+		IpAddress: "216.137.43.36",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn-images.mailchimp.com",
@@ -2754,11 +2726,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn-images.mailchimp.com",
-		IpAddress: "54.239.200.50",
+		IpAddress: "204.246.169.44",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn-images.mailchimp.com",
-		IpAddress: "204.246.169.44",
+		IpAddress: "205.251.253.60",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn-images.mailchimp.com",
@@ -2766,7 +2738,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn-images.mailchimp.com",
-		IpAddress: "216.137.43.36",
+		IpAddress: "216.137.45.49",
+	},
+	&fronted.Masquerade{
+		Domain:    "cdn-images.mailchimp.com",
+		IpAddress: "54.239.200.50",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn-payscale.com",
@@ -2774,15 +2750,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn-payscale.com",
-		IpAddress: "54.182.5.132",
+		IpAddress: "54.230.5.93",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn-payscale.com",
-		IpAddress: "54.230.5.93",
+		IpAddress: "54.182.5.132",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn-recruiter-image.theladders.net",
 		IpAddress: "54.192.4.230",
+	},
+	&fronted.Masquerade{
+		Domain:    "cdn-recruiter-image.theladders.net",
+		IpAddress: "216.137.36.48",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn-recruiter-image.theladders.net",
@@ -2791,10 +2771,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "cdn-recruiter-image.theladders.net",
 		IpAddress: "216.137.33.99",
-	},
-	&fronted.Masquerade{
-		Domain:    "cdn-recruiter-image.theladders.net",
-		IpAddress: "216.137.36.48",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn-test.klarna.com",
@@ -2806,7 +2782,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.5050sports.com",
-		IpAddress: "216.137.43.41",
+		IpAddress: "54.239.200.56",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.5050sports.com",
@@ -2814,11 +2790,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.5050sports.com",
-		IpAddress: "204.246.169.47",
-	},
-	&fronted.Masquerade{
-		Domain:    "cdn.5050sports.com",
-		IpAddress: "205.251.253.65",
+		IpAddress: "216.137.36.71",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.5050sports.com",
@@ -2826,23 +2798,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.5050sports.com",
-		IpAddress: "54.239.200.56",
+		IpAddress: "216.137.43.41",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.5050sports.com",
-		IpAddress: "216.137.36.71",
-	},
-	&fronted.Masquerade{
-		Domain:    "cdn.active-robots.com",
-		IpAddress: "54.230.7.206",
+		IpAddress: "205.251.253.65",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.active-robots.com",
 		IpAddress: "54.182.5.188",
 	},
 	&fronted.Masquerade{
-		Domain:    "cdn.avivaworld.com",
-		IpAddress: "204.246.169.11",
+		Domain:    "cdn.active-robots.com",
+		IpAddress: "54.230.7.206",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.avivaworld.com",
@@ -2850,11 +2818,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.avivaworld.com",
-		IpAddress: "54.239.200.150",
+		IpAddress: "54.230.4.161",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.avivaworld.com",
-		IpAddress: "54.230.4.161",
+		IpAddress: "54.192.7.119",
+	},
+	&fronted.Masquerade{
+		Domain:    "cdn.avivaworld.com",
+		IpAddress: "54.239.200.150",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.avivaworld.com",
@@ -2862,11 +2834,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.avivaworld.com",
-		IpAddress: "54.192.7.119",
-	},
-	&fronted.Masquerade{
-		Domain:    "cdn.blitzsport.com",
-		IpAddress: "216.137.39.132",
+		IpAddress: "204.246.169.11",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.blitzsport.com",
@@ -2877,8 +2845,16 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.0.65",
 	},
 	&fronted.Masquerade{
+		Domain:    "cdn.blitzsport.com",
+		IpAddress: "216.137.39.132",
+	},
+	&fronted.Masquerade{
 		Domain:    "cdn.bswift.com",
 		IpAddress: "54.230.5.158",
+	},
+	&fronted.Masquerade{
+		Domain:    "cdn.bswift.com",
+		IpAddress: "216.137.36.108",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.bswift.com",
@@ -2889,16 +2865,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "204.246.169.63",
 	},
 	&fronted.Masquerade{
-		Domain:    "cdn.bswift.com",
-		IpAddress: "216.137.36.108",
+		Domain:    "cdn.bswiftqa.com",
+		IpAddress: "54.182.6.205",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.bswiftqa.com",
 		IpAddress: "216.137.39.228",
-	},
-	&fronted.Masquerade{
-		Domain:    "cdn.bswiftqa.com",
-		IpAddress: "54.182.6.205",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.bswiftqa.com",
@@ -2914,15 +2886,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.choremonster.com",
-		IpAddress: "216.137.43.131",
-	},
-	&fronted.Masquerade{
-		Domain:    "cdn.choremonster.com",
 		IpAddress: "205.251.253.5",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.choremonster.com",
 		IpAddress: "54.182.2.135",
+	},
+	&fronted.Masquerade{
+		Domain:    "cdn.choremonster.com",
+		IpAddress: "216.137.43.131",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.ckeditor.com",
@@ -2938,19 +2910,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.cloud.acer.com",
-		IpAddress: "54.182.0.38",
-	},
-	&fronted.Masquerade{
-		Domain:    "cdn.cloud.acer.com",
 		IpAddress: "54.230.6.126",
 	},
 	&fronted.Masquerade{
-		Domain:    "cdn.concordnow.com",
-		IpAddress: "54.239.132.39",
+		Domain:    "cdn.cloud.acer.com",
+		IpAddress: "54.182.0.38",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.concordnow.com",
 		IpAddress: "54.182.2.174",
+	},
+	&fronted.Masquerade{
+		Domain:    "cdn.concordnow.com",
+		IpAddress: "54.239.132.39",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.concordnow.com",
@@ -2962,14 +2934,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.credit-suisse.com",
-		IpAddress: "54.230.4.169",
-	},
-	&fronted.Masquerade{
-		Domain:    "cdn.credit-suisse.com",
-		IpAddress: "205.251.253.200",
-	},
-	&fronted.Masquerade{
-		Domain:    "cdn.credit-suisse.com",
 		IpAddress: "205.251.203.51",
 	},
 	&fronted.Masquerade{
@@ -2977,8 +2941,16 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.0.206",
 	},
 	&fronted.Masquerade{
+		Domain:    "cdn.credit-suisse.com",
+		IpAddress: "54.230.4.169",
+	},
+	&fronted.Masquerade{
+		Domain:    "cdn.credit-suisse.com",
+		IpAddress: "205.251.253.200",
+	},
+	&fronted.Masquerade{
 		Domain:    "cdn.d2gstores.com",
-		IpAddress: "54.182.0.34",
+		IpAddress: "216.137.33.252",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.d2gstores.com",
@@ -2986,11 +2958,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.d2gstores.com",
-		IpAddress: "216.137.33.252",
-	},
-	&fronted.Masquerade{
-		Domain:    "cdn.displays2go.com",
-		IpAddress: "54.239.132.248",
+		IpAddress: "54.182.0.34",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.displays2go.com",
@@ -2998,7 +2966,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.displays2go.com",
-		IpAddress: "54.239.200.185",
+		IpAddress: "205.251.203.238",
+	},
+	&fronted.Masquerade{
+		Domain:    "cdn.displays2go.com",
+		IpAddress: "54.239.132.248",
+	},
+	&fronted.Masquerade{
+		Domain:    "cdn.displays2go.com",
+		IpAddress: "205.251.253.211",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.displays2go.com",
@@ -3006,19 +2982,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.displays2go.com",
-		IpAddress: "205.251.203.238",
+		IpAddress: "54.239.200.185",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.displays2go.com",
 		IpAddress: "54.192.5.180",
 	},
 	&fronted.Masquerade{
-		Domain:    "cdn.displays2go.com",
-		IpAddress: "205.251.253.211",
-	},
-	&fronted.Masquerade{
 		Domain:    "cdn.elitefts.com",
-		IpAddress: "216.137.36.5",
+		IpAddress: "54.182.0.186",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.elitefts.com",
@@ -3026,7 +2998,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.elitefts.com",
-		IpAddress: "54.182.0.186",
+		IpAddress: "216.137.36.5",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.evergage.com",
@@ -3042,15 +3014,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.geocomply.com",
-		IpAddress: "205.251.203.27",
-	},
-	&fronted.Masquerade{
-		Domain:    "cdn.geocomply.com",
 		IpAddress: "54.182.5.34",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.geocomply.com",
 		IpAddress: "54.192.5.63",
+	},
+	&fronted.Masquerade{
+		Domain:    "cdn.geocomply.com",
+		IpAddress: "205.251.203.27",
+	},
+	&fronted.Masquerade{
+		Domain:    "cdn.globalhealingcenter.com",
+		IpAddress: "54.239.200.45",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.globalhealingcenter.com",
@@ -3061,20 +3037,16 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.4.147",
 	},
 	&fronted.Masquerade{
-		Domain:    "cdn.globalhealingcenter.com",
-		IpAddress: "54.239.200.45",
-	},
-	&fronted.Masquerade{
 		Domain:    "cdn.gotomeet.at",
 		IpAddress: "216.137.43.147",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.gotomeet.at",
-		IpAddress: "216.137.39.113",
+		IpAddress: "54.182.5.177",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.gotomeet.at",
-		IpAddress: "54.182.5.177",
+		IpAddress: "216.137.39.113",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.gotraffic.net",
@@ -3106,11 +3078,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.integration.viber.com",
-		IpAddress: "54.182.3.161",
-	},
-	&fronted.Masquerade{
-		Domain:    "cdn.integration.viber.com",
-		IpAddress: "216.137.36.70",
+		IpAddress: "54.182.2.209",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.integration.viber.com",
@@ -3118,35 +3086,39 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.integration.viber.com",
-		IpAddress: "54.182.2.209",
+		IpAddress: "205.251.203.70",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.integration.viber.com",
-		IpAddress: "205.251.203.70",
+		IpAddress: "54.182.3.161",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.integration.viber.com",
 		IpAddress: "54.192.5.93",
 	},
 	&fronted.Masquerade{
-		Domain:    "cdn.klarna.com",
-		IpAddress: "54.182.4.34",
+		Domain:    "cdn.integration.viber.com",
+		IpAddress: "216.137.36.70",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.klarna.com",
 		IpAddress: "54.230.5.104",
 	},
 	&fronted.Masquerade{
-		Domain:    "cdn.kornferry.com",
-		IpAddress: "54.239.200.48",
+		Domain:    "cdn.klarna.com",
+		IpAddress: "54.182.4.34",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.kornferry.com",
-		IpAddress: "216.137.45.48",
+		IpAddress: "205.251.203.62",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.kornferry.com",
 		IpAddress: "54.192.5.91",
+	},
+	&fronted.Masquerade{
+		Domain:    "cdn.kornferry.com",
+		IpAddress: "54.239.200.48",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.kornferry.com",
@@ -3162,15 +3134,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.kornferry.com",
-		IpAddress: "205.251.203.62",
-	},
-	&fronted.Masquerade{
-		Domain:    "cdn.livefyre.com",
-		IpAddress: "54.182.2.27",
+		IpAddress: "216.137.45.48",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.livefyre.com",
 		IpAddress: "54.230.7.8",
+	},
+	&fronted.Masquerade{
+		Domain:    "cdn.livefyre.com",
+		IpAddress: "54.182.2.27",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.medallia.com",
@@ -3181,12 +3153,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "216.137.33.122",
 	},
 	&fronted.Masquerade{
-		Domain:    "cdn.medallia.com",
-		IpAddress: "54.230.7.212",
-	},
-	&fronted.Masquerade{
 		Domain:    "cdn.mozilla.net",
-		IpAddress: "54.192.7.157",
+		IpAddress: "54.182.6.159",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.mozilla.net",
@@ -3194,7 +3162,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.mozilla.net",
-		IpAddress: "54.182.6.159",
+		IpAddress: "54.192.7.157",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.otherlevels.com",
@@ -3214,15 +3182,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.pc-odm.igware.net",
-		IpAddress: "54.182.6.124",
-	},
-	&fronted.Masquerade{
-		Domain:    "cdn.pc-odm.igware.net",
 		IpAddress: "216.137.33.35",
 	},
 	&fronted.Masquerade{
-		Domain:    "cdn.perfdrive.com",
-		IpAddress: "54.182.1.230",
+		Domain:    "cdn.pc-odm.igware.net",
+		IpAddress: "54.182.6.124",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.perfdrive.com",
@@ -3230,19 +3194,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.perfdrive.com",
+		IpAddress: "54.182.1.230",
+	},
+	&fronted.Masquerade{
+		Domain:    "cdn.perfdrive.com",
 		IpAddress: "54.192.7.162",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.reminds.co",
-		IpAddress: "54.182.7.222",
+		IpAddress: "54.239.132.202",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.reminds.co",
 		IpAddress: "204.246.169.72",
-	},
-	&fronted.Masquerade{
-		Domain:    "cdn.reminds.co",
-		IpAddress: "54.239.132.202",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.reminds.co",
@@ -3253,12 +3217,16 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "205.251.203.221",
 	},
 	&fronted.Masquerade{
-		Domain:    "cdn.searchspring.net",
-		IpAddress: "54.192.5.209",
+		Domain:    "cdn.reminds.co",
+		IpAddress: "54.182.7.222",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.searchspring.net",
 		IpAddress: "54.182.1.67",
+	},
+	&fronted.Masquerade{
+		Domain:    "cdn.searchspring.net",
+		IpAddress: "54.192.5.209",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.segmentify.com",
@@ -3269,24 +3237,16 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "216.137.43.208",
 	},
 	&fronted.Masquerade{
-		Domain:    "cdn.shptrn.com",
-		IpAddress: "54.239.200.218",
-	},
-	&fronted.Masquerade{
-		Domain:    "cdn.shptrn.com",
-		IpAddress: "205.251.253.244",
-	},
-	&fronted.Masquerade{
-		Domain:    "cdn.shptrn.com",
-		IpAddress: "216.137.43.146",
+		Domain:    "cdn.sqexeu.com",
+		IpAddress: "54.182.3.112",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.sqexeu.com",
 		IpAddress: "54.192.6.93",
 	},
 	&fronted.Masquerade{
-		Domain:    "cdn.sqexeu.com",
-		IpAddress: "54.182.3.112",
+		Domain:    "cdn.virginpulse.com",
+		IpAddress: "54.182.5.61",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.virginpulse.com",
@@ -3295,10 +3255,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "cdn.virginpulse.com",
 		IpAddress: "54.239.132.42",
-	},
-	&fronted.Masquerade{
-		Domain:    "cdn.virginpulse.com",
-		IpAddress: "54.182.5.61",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.voyat.com",
@@ -3310,11 +3266,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.wdesk.com",
-		IpAddress: "54.182.0.79",
+		IpAddress: "54.230.7.249",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdn.wdesk.com",
-		IpAddress: "54.230.7.249",
+		IpAddress: "54.182.0.79",
 	},
 	&fronted.Masquerade{
 		Domain:    "cdnmedia.advent.com",
@@ -3330,11 +3286,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "centrastage.net",
-		IpAddress: "54.182.5.109",
+		IpAddress: "204.246.169.241",
 	},
 	&fronted.Masquerade{
 		Domain:    "centrastage.net",
-		IpAddress: "204.246.169.241",
+		IpAddress: "54.182.5.109",
 	},
 	&fronted.Masquerade{
 		Domain:    "centrastage.net",
@@ -3342,7 +3298,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cev.ibiztb.com",
-		IpAddress: "54.239.200.83",
+		IpAddress: "54.230.5.51",
 	},
 	&fronted.Masquerade{
 		Domain:    "cev.ibiztb.com",
@@ -3350,11 +3306,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cev.ibiztb.com",
-		IpAddress: "54.230.5.51",
-	},
-	&fronted.Masquerade{
-		Domain:    "cf.cpcdn.com",
-		IpAddress: "205.251.203.127",
+		IpAddress: "54.239.200.83",
 	},
 	&fronted.Masquerade{
 		Domain:    "cf.cpcdn.com",
@@ -3362,19 +3314,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cf.cpcdn.com",
+		IpAddress: "216.137.43.68",
+	},
+	&fronted.Masquerade{
+		Domain:    "cf.cpcdn.com",
 		IpAddress: "54.182.1.74",
 	},
 	&fronted.Masquerade{
 		Domain:    "cf.cpcdn.com",
-		IpAddress: "216.137.43.68",
-	},
-	&fronted.Masquerade{
-		Domain:    "cf.dropboxpayments.com",
-		IpAddress: "54.182.7.157",
-	},
-	&fronted.Masquerade{
-		Domain:    "cf.dropboxpayments.com",
-		IpAddress: "216.137.36.21",
+		IpAddress: "205.251.203.127",
 	},
 	&fronted.Masquerade{
 		Domain:    "cf.dropboxpayments.com",
@@ -3382,7 +3330,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cf.dropboxpayments.com",
+		IpAddress: "54.182.7.157",
+	},
+	&fronted.Masquerade{
+		Domain:    "cf.dropboxpayments.com",
 		IpAddress: "216.137.33.250",
+	},
+	&fronted.Masquerade{
+		Domain:    "cf.dropboxpayments.com",
+		IpAddress: "216.137.36.21",
 	},
 	&fronted.Masquerade{
 		Domain:    "cf.dropboxpayments.com",
@@ -3418,11 +3374,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "chaordicsystems.com",
-		IpAddress: "54.182.6.132",
+		IpAddress: "204.246.169.119",
 	},
 	&fronted.Masquerade{
 		Domain:    "chaordicsystems.com",
-		IpAddress: "204.246.169.119",
+		IpAddress: "54.182.6.132",
 	},
 	&fronted.Masquerade{
 		Domain:    "charmingcharlie.com",
@@ -3438,23 +3394,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "chatgame.me",
-		IpAddress: "54.182.6.100",
+		IpAddress: "54.192.7.114",
 	},
 	&fronted.Masquerade{
 		Domain:    "chatgame.me",
-		IpAddress: "54.192.7.114",
+		IpAddress: "54.182.6.100",
 	},
 	&fronted.Masquerade{
 		Domain:    "chatwork.com",
 		IpAddress: "216.137.33.136",
-	},
-	&fronted.Masquerade{
-		Domain:    "chatwork.com",
-		IpAddress: "54.192.6.139",
-	},
-	&fronted.Masquerade{
-		Domain:    "chatwork.com",
-		IpAddress: "54.239.200.180",
 	},
 	&fronted.Masquerade{
 		Domain:    "chatwork.com",
@@ -3463,6 +3411,14 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "chatwork.com",
 		IpAddress: "205.251.253.172",
+	},
+	&fronted.Masquerade{
+		Domain:    "chatwork.com",
+		IpAddress: "54.239.200.180",
+	},
+	&fronted.Masquerade{
+		Domain:    "chatwork.com",
+		IpAddress: "54.192.6.139",
 	},
 	&fronted.Masquerade{
 		Domain:    "cheggcdn.com",
@@ -3474,6 +3430,10 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "chemistdirect.co.uk",
+		IpAddress: "54.230.6.71",
+	},
+	&fronted.Masquerade{
+		Domain:    "chemistdirect.co.uk",
 		IpAddress: "204.246.169.120",
 	},
 	&fronted.Masquerade{
@@ -3481,28 +3441,20 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.6.161",
 	},
 	&fronted.Masquerade{
-		Domain:    "chemistdirect.co.uk",
-		IpAddress: "54.230.6.71",
+		Domain:    "chronicled.org",
+		IpAddress: "54.182.6.191",
 	},
 	&fronted.Masquerade{
 		Domain:    "chronicled.org",
 		IpAddress: "54.192.5.160",
 	},
 	&fronted.Masquerade{
-		Domain:    "chronicled.org",
-		IpAddress: "54.182.6.191",
-	},
-	&fronted.Masquerade{
-		Domain:    "ciggws.net",
-		IpAddress: "54.182.7.14",
-	},
-	&fronted.Masquerade{
 		Domain:    "ciggws.net",
 		IpAddress: "54.230.5.90",
 	},
 	&fronted.Masquerade{
-		Domain:    "classdojo.com",
-		IpAddress: "216.137.39.107",
+		Domain:    "ciggws.net",
+		IpAddress: "54.182.7.14",
 	},
 	&fronted.Masquerade{
 		Domain:    "classdojo.com",
@@ -3510,19 +3462,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "classdojo.com",
-		IpAddress: "54.182.0.21",
+		IpAddress: "216.137.39.107",
 	},
 	&fronted.Masquerade{
 		Domain:    "classdojo.com",
 		IpAddress: "204.246.169.221",
 	},
 	&fronted.Masquerade{
-		Domain:    "classpass.com",
-		IpAddress: "54.182.5.133",
+		Domain:    "classdojo.com",
+		IpAddress: "54.182.0.21",
 	},
 	&fronted.Masquerade{
 		Domain:    "classpass.com",
-		IpAddress: "54.192.4.39",
+		IpAddress: "216.137.39.8",
 	},
 	&fronted.Masquerade{
 		Domain:    "classpass.com",
@@ -3530,7 +3482,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "classpass.com",
-		IpAddress: "216.137.39.8",
+		IpAddress: "54.192.4.39",
+	},
+	&fronted.Masquerade{
+		Domain:    "classpass.com",
+		IpAddress: "54.182.5.133",
+	},
+	&fronted.Masquerade{
+		Domain:    "cldup.com",
+		IpAddress: "205.251.253.125",
 	},
 	&fronted.Masquerade{
 		Domain:    "cldup.com",
@@ -3541,160 +3501,16 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.192.5.9",
 	},
 	&fronted.Masquerade{
-		Domain:    "cldup.com",
-		IpAddress: "205.251.253.125",
-	},
-	&fronted.Masquerade{
 		Domain:    "clearslide.com",
 		IpAddress: "54.182.2.5",
-	},
-	&fronted.Masquerade{
-		Domain:    "clearslide.com",
-		IpAddress: "54.192.6.205",
 	},
 	&fronted.Masquerade{
 		Domain:    "clearslide.com",
 		IpAddress: "216.137.33.109",
 	},
 	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "216.137.33.202",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.230.6.229",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.192.5.24",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.182.5.103",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.182.0.46",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "204.246.169.141",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.230.6.14",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.230.6.127",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.230.6.225",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "204.246.169.18",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.230.6.240",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.182.1.131",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.230.5.7",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.230.6.43",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "204.246.169.91",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.230.6.66",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.230.5.58",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.230.6.70",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.182.2.244",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.230.5.45",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.230.5.250",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.230.6.83",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.192.6.117",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "204.246.169.34",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.230.7.143",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "205.251.203.115",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "205.251.203.112",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "216.137.39.137",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.230.5.210",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "216.137.45.39",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "216.137.33.17",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.192.4.7",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "205.251.203.200",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "205.251.203.184",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.230.5.187",
+		Domain:    "clearslide.com",
+		IpAddress: "54.192.6.205",
 	},
 	&fronted.Masquerade{
 		Domain:    "client-cf.dropbox.com",
@@ -3702,87 +3518,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.230.7.204",
+		IpAddress: "205.251.203.184",
 	},
 	&fronted.Masquerade{
 		Domain:    "client-cf.dropbox.com",
-		IpAddress: "205.251.203.210",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.182.2.78",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.192.7.137",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.230.5.15",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.192.7.149",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.230.7.232",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.230.5.142",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.182.5.41",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "205.251.203.230",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "205.251.253.43",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "216.137.39.35",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.230.7.3",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.239.132.161",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.182.5.91",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.230.7.61",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.230.4.30",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "205.251.203.92",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.230.4.242",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.239.132.100",
-	},
-	&fronted.Masquerade{
-		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.182.3.170",
+		IpAddress: "54.230.4.209",
 	},
 	&fronted.Masquerade{
 		Domain:    "client-cf.dropbox.com",
@@ -3794,7 +3534,211 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.230.4.209",
+		IpAddress: "54.230.4.30",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.182.2.78",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.182.2.244",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "216.137.39.137",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.230.4.242",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "216.137.39.35",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "204.246.169.141",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.230.5.142",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.182.3.170",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.230.5.187",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.230.5.210",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "204.246.169.18",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.230.5.250",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.192.7.149",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.230.5.15",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.230.5.45",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.192.7.137",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.230.6.127",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.230.6.14",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "204.246.169.34",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.230.5.7",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.182.5.103",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.230.6.221",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.192.6.117",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "216.137.33.17",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.230.6.225",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.230.6.229",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.230.6.240",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "204.246.169.91",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.230.5.58",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.192.5.24",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.230.6.43",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.182.5.41",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.230.6.66",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.230.6.70",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "205.251.203.112",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.230.7.143",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "205.251.253.43",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.182.1.131",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.192.4.7",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.239.132.161",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.230.7.232",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "205.251.203.200",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "216.137.45.39",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.230.6.83",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "205.251.203.210",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.230.7.3",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.182.0.46",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "205.251.203.115",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "205.251.203.230",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.230.7.61",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.230.7.204",
 	},
 	&fronted.Masquerade{
 		Domain:    "client-cf.dropbox.com",
@@ -3802,11 +3746,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "client-cf.dropbox.com",
-		IpAddress: "54.230.6.221",
+		IpAddress: "54.239.132.100",
 	},
 	&fronted.Masquerade{
-		Domain:    "client-notifications.lookout.com",
-		IpAddress: "54.182.1.94",
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "205.251.203.92",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "54.182.5.91",
+	},
+	&fronted.Masquerade{
+		Domain:    "client-cf.dropbox.com",
+		IpAddress: "216.137.33.202",
 	},
 	&fronted.Masquerade{
 		Domain:    "client-notifications.lookout.com",
@@ -3817,12 +3769,20 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.239.132.16",
 	},
 	&fronted.Masquerade{
+		Domain:    "client-notifications.lookout.com",
+		IpAddress: "54.182.1.94",
+	},
+	&fronted.Masquerade{
 		Domain:    "clientupdates.dropboxstatic.com",
-		IpAddress: "54.182.2.124",
+		IpAddress: "205.251.203.126",
 	},
 	&fronted.Masquerade{
 		Domain:    "clientupdates.dropboxstatic.com",
 		IpAddress: "216.137.33.162",
+	},
+	&fronted.Masquerade{
+		Domain:    "clientupdates.dropboxstatic.com",
+		IpAddress: "205.251.251.137",
 	},
 	&fronted.Masquerade{
 		Domain:    "clientupdates.dropboxstatic.com",
@@ -3834,11 +3794,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "clientupdates.dropboxstatic.com",
-		IpAddress: "205.251.203.126",
+		IpAddress: "54.182.2.124",
 	},
 	&fronted.Masquerade{
-		Domain:    "clientupdates.dropboxstatic.com",
-		IpAddress: "205.251.251.137",
+		Domain:    "climate.com",
+		IpAddress: "54.192.7.187",
+	},
+	&fronted.Masquerade{
+		Domain:    "climate.com",
+		IpAddress: "54.230.7.179",
+	},
+	&fronted.Masquerade{
+		Domain:    "climate.com",
+		IpAddress: "204.246.169.105",
 	},
 	&fronted.Masquerade{
 		Domain:    "climate.com",
@@ -3850,11 +3818,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "climate.com",
-		IpAddress: "54.192.7.187",
-	},
-	&fronted.Masquerade{
-		Domain:    "climate.com",
-		IpAddress: "54.182.5.210",
+		IpAddress: "216.137.36.32",
 	},
 	&fronted.Masquerade{
 		Domain:    "climate.com",
@@ -3862,27 +3826,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "climate.com",
+		IpAddress: "54.182.5.210",
+	},
+	&fronted.Masquerade{
+		Domain:    "climate.com",
 		IpAddress: "54.192.5.250",
-	},
-	&fronted.Masquerade{
-		Domain:    "climate.com",
-		IpAddress: "216.137.36.32",
-	},
-	&fronted.Masquerade{
-		Domain:    "climate.com",
-		IpAddress: "204.246.169.105",
-	},
-	&fronted.Masquerade{
-		Domain:    "climate.com",
-		IpAddress: "54.230.7.179",
-	},
-	&fronted.Masquerade{
-		Domain:    "cloud.accedo.tv",
-		IpAddress: "54.239.132.33",
-	},
-	&fronted.Masquerade{
-		Domain:    "cloud.accedo.tv",
-		IpAddress: "54.182.5.39",
 	},
 	&fronted.Masquerade{
 		Domain:    "cloud.accedo.tv",
@@ -3893,36 +3841,24 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.192.5.189",
 	},
 	&fronted.Masquerade{
-		Domain:    "cloud.sailpoint.com",
-		IpAddress: "54.182.0.181",
+		Domain:    "cloud.accedo.tv",
+		IpAddress: "54.182.5.39",
+	},
+	&fronted.Masquerade{
+		Domain:    "cloud.accedo.tv",
+		IpAddress: "54.239.132.33",
 	},
 	&fronted.Masquerade{
 		Domain:    "cloud.sailpoint.com",
-		IpAddress: "216.137.43.234",
+		IpAddress: "54.182.0.181",
 	},
 	&fronted.Masquerade{
 		Domain:    "cloud.sailpoint.com",
 		IpAddress: "54.239.200.140",
 	},
 	&fronted.Masquerade{
-		Domain:    "cloudfrontdemo.com",
-		IpAddress: "54.182.2.219",
-	},
-	&fronted.Masquerade{
-		Domain:    "cloudfrontdemo.com",
-		IpAddress: "54.192.5.200",
-	},
-	&fronted.Masquerade{
-		Domain:    "cloudfrontdemo.com",
-		IpAddress: "54.182.1.166",
-	},
-	&fronted.Masquerade{
-		Domain:    "cloudfrontdemo.com",
-		IpAddress: "204.246.169.13",
-	},
-	&fronted.Masquerade{
-		Domain:    "cloudfrontdemo.com",
-		IpAddress: "54.239.130.204",
+		Domain:    "cloud.sailpoint.com",
+		IpAddress: "216.137.43.234",
 	},
 	&fronted.Masquerade{
 		Domain:    "cloudfrontdemo.com",
@@ -3930,7 +3866,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cloudfrontdemo.com",
-		IpAddress: "54.192.5.230",
+		IpAddress: "54.182.2.219",
+	},
+	&fronted.Masquerade{
+		Domain:    "cloudfrontdemo.com",
+		IpAddress: "204.246.169.13",
+	},
+	&fronted.Masquerade{
+		Domain:    "cloudfrontdemo.com",
+		IpAddress: "54.192.7.6",
+	},
+	&fronted.Masquerade{
+		Domain:    "cloudfrontdemo.com",
+		IpAddress: "54.239.130.204",
 	},
 	&fronted.Masquerade{
 		Domain:    "cloudfrontdemo.com",
@@ -3938,23 +3886,31 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cloudfrontdemo.com",
-		IpAddress: "216.137.43.189",
+		IpAddress: "54.192.5.230",
 	},
 	&fronted.Masquerade{
 		Domain:    "cloudfrontdemo.com",
-		IpAddress: "54.192.7.6",
+		IpAddress: "54.182.1.166",
 	},
 	&fronted.Masquerade{
-		Domain:    "cloudimg.io",
-		IpAddress: "54.182.1.197",
+		Domain:    "cloudfrontdemo.com",
+		IpAddress: "54.192.5.200",
+	},
+	&fronted.Masquerade{
+		Domain:    "cloudfrontdemo.com",
+		IpAddress: "216.137.43.189",
 	},
 	&fronted.Masquerade{
 		Domain:    "cloudimg.io",
 		IpAddress: "54.192.6.13",
 	},
 	&fronted.Masquerade{
+		Domain:    "cloudimg.io",
+		IpAddress: "54.182.1.197",
+	},
+	&fronted.Masquerade{
 		Domain:    "cloudmetro.com",
-		IpAddress: "54.182.7.48",
+		IpAddress: "54.192.5.8",
 	},
 	&fronted.Masquerade{
 		Domain:    "cloudmetro.com",
@@ -3962,11 +3918,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cloudmetro.com",
-		IpAddress: "54.192.5.8",
-	},
-	&fronted.Masquerade{
-		Domain:    "cms.veikkaus.fi",
-		IpAddress: "205.251.253.205",
+		IpAddress: "54.182.7.48",
 	},
 	&fronted.Masquerade{
 		Domain:    "cms.veikkaus.fi",
@@ -3974,19 +3926,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cms.veikkaus.fi",
+		IpAddress: "205.251.253.205",
+	},
+	&fronted.Masquerade{
+		Domain:    "cms.veikkaus.fi",
 		IpAddress: "54.182.5.112",
-	},
-	&fronted.Masquerade{
-		Domain:    "collage.com",
-		IpAddress: "216.137.36.79",
-	},
-	&fronted.Masquerade{
-		Domain:    "collage.com",
-		IpAddress: "54.182.7.230",
-	},
-	&fronted.Masquerade{
-		Domain:    "collage.com",
-		IpAddress: "54.182.1.195",
 	},
 	&fronted.Masquerade{
 		Domain:    "collage.com",
@@ -3994,35 +3938,47 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "collage.com",
-		IpAddress: "54.192.4.227",
+		IpAddress: "216.137.36.79",
 	},
 	&fronted.Masquerade{
-		Domain:    "collectivehealth.com",
-		IpAddress: "54.182.7.153",
+		Domain:    "collage.com",
+		IpAddress: "54.182.1.195",
+	},
+	&fronted.Masquerade{
+		Domain:    "collage.com",
+		IpAddress: "54.182.7.230",
+	},
+	&fronted.Masquerade{
+		Domain:    "collage.com",
+		IpAddress: "54.192.4.227",
 	},
 	&fronted.Masquerade{
 		Domain:    "collectivehealth.com",
 		IpAddress: "54.230.4.36",
 	},
 	&fronted.Masquerade{
-		Domain:    "colopl.co.jp",
-		IpAddress: "54.192.4.59",
+		Domain:    "collectivehealth.com",
+		IpAddress: "54.182.7.153",
 	},
 	&fronted.Masquerade{
 		Domain:    "colopl.co.jp",
 		IpAddress: "54.182.3.21",
 	},
 	&fronted.Masquerade{
-		Domain:    "commonfloor.com",
-		IpAddress: "54.230.5.191",
+		Domain:    "colopl.co.jp",
+		IpAddress: "54.192.4.59",
 	},
 	&fronted.Masquerade{
 		Domain:    "commonfloor.com",
 		IpAddress: "54.182.1.15",
 	},
 	&fronted.Masquerade{
+		Domain:    "commonfloor.com",
+		IpAddress: "54.230.5.191",
+	},
+	&fronted.Masquerade{
 		Domain:    "conferencinghub.com",
-		IpAddress: "54.182.1.3",
+		IpAddress: "54.192.6.148",
 	},
 	&fronted.Masquerade{
 		Domain:    "conferencinghub.com",
@@ -4030,11 +3986,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "conferencinghub.com",
-		IpAddress: "54.192.6.148",
-	},
-	&fronted.Masquerade{
-		Domain:    "connectivity.amazonworkspaces.com",
-		IpAddress: "205.251.203.73",
+		IpAddress: "54.182.1.3",
 	},
 	&fronted.Masquerade{
 		Domain:    "connectivity.amazonworkspaces.com",
@@ -4042,7 +3994,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "connectivity.amazonworkspaces.com",
-		IpAddress: "54.182.5.110",
+		IpAddress: "54.192.4.38",
+	},
+	&fronted.Masquerade{
+		Domain:    "connectivity.amazonworkspaces.com",
+		IpAddress: "205.251.203.73",
+	},
+	&fronted.Masquerade{
+		Domain:    "connectivity.amazonworkspaces.com",
+		IpAddress: "54.239.130.232",
 	},
 	&fronted.Masquerade{
 		Domain:    "connectivity.amazonworkspaces.com",
@@ -4050,35 +4010,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "connectivity.amazonworkspaces.com",
-		IpAddress: "54.192.4.38",
+		IpAddress: "54.182.5.110",
 	},
 	&fronted.Masquerade{
-		Domain:    "connectivity.amazonworkspaces.com",
-		IpAddress: "54.239.130.232",
+		Domain:    "connectwise.com",
+		IpAddress: "54.192.6.136",
 	},
 	&fronted.Masquerade{
 		Domain:    "connectwise.com",
 		IpAddress: "205.251.253.178",
-	},
-	&fronted.Masquerade{
-		Domain:    "connectwise.com",
-		IpAddress: "54.182.2.169",
-	},
-	&fronted.Masquerade{
-		Domain:    "connectwise.com",
-		IpAddress: "216.137.36.206",
-	},
-	&fronted.Masquerade{
-		Domain:    "connectwise.com",
-		IpAddress: "205.251.203.202",
-	},
-	&fronted.Masquerade{
-		Domain:    "connectwise.com",
-		IpAddress: "205.251.203.145",
-	},
-	&fronted.Masquerade{
-		Domain:    "connectwise.com",
-		IpAddress: "54.239.130.225",
 	},
 	&fronted.Masquerade{
 		Domain:    "connectwise.com",
@@ -4090,11 +4030,31 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "connectwise.com",
-		IpAddress: "54.192.6.136",
+		IpAddress: "54.182.2.169",
+	},
+	&fronted.Masquerade{
+		Domain:    "connectwise.com",
+		IpAddress: "205.251.203.145",
+	},
+	&fronted.Masquerade{
+		Domain:    "connectwise.com",
+		IpAddress: "54.239.130.225",
 	},
 	&fronted.Masquerade{
 		Domain:    "connectwise.com",
 		IpAddress: "216.137.45.37",
+	},
+	&fronted.Masquerade{
+		Domain:    "connectwise.com",
+		IpAddress: "205.251.203.202",
+	},
+	&fronted.Masquerade{
+		Domain:    "connectwise.com",
+		IpAddress: "216.137.36.206",
+	},
+	&fronted.Masquerade{
+		Domain:    "consumertranscript.intuit.com",
+		IpAddress: "54.182.2.26",
 	},
 	&fronted.Masquerade{
 		Domain:    "consumertranscript.intuit.com",
@@ -4105,28 +4065,20 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.192.5.2",
 	},
 	&fronted.Masquerade{
-		Domain:    "consumertranscript.intuit.com",
-		IpAddress: "54.182.2.26",
+		Domain:    "consumertranscript.preprod.intuit.com",
+		IpAddress: "216.137.43.231",
 	},
 	&fronted.Masquerade{
 		Domain:    "consumertranscript.preprod.intuit.com",
 		IpAddress: "216.137.45.72",
 	},
 	&fronted.Masquerade{
-		Domain:    "consumertranscript.preprod.intuit.com",
-		IpAddress: "216.137.43.231",
-	},
-	&fronted.Masquerade{
-		Domain:    "contactatonce.com",
-		IpAddress: "54.182.4.54",
-	},
-	&fronted.Masquerade{
 		Domain:    "contactatonce.com",
 		IpAddress: "54.230.6.3",
 	},
 	&fronted.Masquerade{
-		Domain:    "content.abcmouse.com",
-		IpAddress: "54.230.5.238",
+		Domain:    "contactatonce.com",
+		IpAddress: "54.182.4.54",
 	},
 	&fronted.Masquerade{
 		Domain:    "content.abcmouse.com",
@@ -4137,6 +4089,18 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "216.137.36.197",
 	},
 	&fronted.Masquerade{
+		Domain:    "content.abcmouse.com",
+		IpAddress: "54.230.5.238",
+	},
+	&fronted.Masquerade{
+		Domain:    "content.thinkthroughmath.com",
+		IpAddress: "54.230.5.212",
+	},
+	&fronted.Masquerade{
+		Domain:    "content.thinkthroughmath.com",
+		IpAddress: "54.239.132.95",
+	},
+	&fronted.Masquerade{
 		Domain:    "content.thinkthroughmath.com",
 		IpAddress: "54.182.4.144",
 	},
@@ -4145,16 +4109,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "216.137.36.203",
 	},
 	&fronted.Masquerade{
-		Domain:    "content.thinkthroughmath.com",
-		IpAddress: "54.239.132.95",
-	},
-	&fronted.Masquerade{
-		Domain:    "content.thinkthroughmath.com",
-		IpAddress: "54.230.5.212",
-	},
-	&fronted.Masquerade{
 		Domain:    "cookie.oup.com",
-		IpAddress: "216.137.45.5",
+		IpAddress: "54.182.3.52",
 	},
 	&fronted.Masquerade{
 		Domain:    "cookie.oup.com",
@@ -4162,11 +4118,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cookie.oup.com",
-		IpAddress: "54.182.3.52",
-	},
-	&fronted.Masquerade{
-		Domain:    "couchsurfing.com",
-		IpAddress: "54.239.132.167",
+		IpAddress: "216.137.45.5",
 	},
 	&fronted.Masquerade{
 		Domain:    "couchsurfing.com",
@@ -4174,15 +4126,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "couchsurfing.com",
-		IpAddress: "54.182.3.217",
-	},
-	&fronted.Masquerade{
-		Domain:    "couchsurfing.com",
 		IpAddress: "204.246.169.4",
 	},
 	&fronted.Masquerade{
 		Domain:    "couchsurfing.com",
+		IpAddress: "54.182.3.217",
+	},
+	&fronted.Masquerade{
+		Domain:    "couchsurfing.com",
 		IpAddress: "216.137.33.236",
+	},
+	&fronted.Masquerade{
+		Domain:    "couchsurfing.com",
+		IpAddress: "54.239.132.167",
 	},
 	&fronted.Masquerade{
 		Domain:    "couchsurfing.org",
@@ -4202,19 +4158,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "counsyl.com",
+		IpAddress: "54.182.5.100",
+	},
+	&fronted.Masquerade{
+		Domain:    "counsyl.com",
 		IpAddress: "216.137.39.27",
 	},
 	&fronted.Masquerade{
 		Domain:    "counsyl.com",
 		IpAddress: "54.192.6.145",
-	},
-	&fronted.Masquerade{
-		Domain:    "counsyl.com",
-		IpAddress: "54.182.5.100",
-	},
-	&fronted.Masquerade{
-		Domain:    "coveritlive.com",
-		IpAddress: "54.230.4.113",
 	},
 	&fronted.Masquerade{
 		Domain:    "coveritlive.com",
@@ -4226,11 +4178,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "coveritlive.com",
-		IpAddress: "204.246.169.6",
+		IpAddress: "54.230.4.113",
 	},
 	&fronted.Masquerade{
-		Domain:    "cozy.co",
-		IpAddress: "205.251.203.50",
+		Domain:    "coveritlive.com",
+		IpAddress: "204.246.169.6",
 	},
 	&fronted.Masquerade{
 		Domain:    "cozy.co",
@@ -4239,6 +4191,10 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "cozy.co",
 		IpAddress: "54.230.6.171",
+	},
+	&fronted.Masquerade{
+		Domain:    "cozy.co",
+		IpAddress: "205.251.203.50",
 	},
 	&fronted.Masquerade{
 		Domain:    "cproxy.veikkaus.fi",
@@ -4254,11 +4210,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cpserve.com",
-		IpAddress: "54.182.1.31",
+		IpAddress: "54.192.4.115",
 	},
 	&fronted.Masquerade{
 		Domain:    "cpserve.com",
-		IpAddress: "54.192.4.115",
+		IpAddress: "54.182.1.31",
 	},
 	&fronted.Masquerade{
 		Domain:    "cquotient.com",
@@ -4274,14 +4230,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "craftsy.com",
-		IpAddress: "54.230.5.26",
-	},
-	&fronted.Masquerade{
-		Domain:    "craftsy.com",
-		IpAddress: "205.251.203.247",
-	},
-	&fronted.Masquerade{
-		Domain:    "craftsy.com",
 		IpAddress: "54.182.4.140",
 	},
 	&fronted.Masquerade{
@@ -4290,7 +4238,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "craftsy.com",
+		IpAddress: "205.251.203.247",
+	},
+	&fronted.Masquerade{
+		Domain:    "craftsy.com",
+		IpAddress: "54.230.5.26",
+	},
+	&fronted.Masquerade{
+		Domain:    "craftsy.com",
 		IpAddress: "54.239.130.254",
+	},
+	&fronted.Masquerade{
+		Domain:    "cran.rstudio.com",
+		IpAddress: "54.230.6.195",
 	},
 	&fronted.Masquerade{
 		Domain:    "cran.rstudio.com",
@@ -4301,16 +4261,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.239.130.234",
 	},
 	&fronted.Masquerade{
-		Domain:    "cran.rstudio.com",
-		IpAddress: "54.230.6.195",
+		Domain:    "credibility.com",
+		IpAddress: "54.182.0.240",
 	},
 	&fronted.Masquerade{
 		Domain:    "credibility.com",
 		IpAddress: "54.192.7.100",
-	},
-	&fronted.Masquerade{
-		Domain:    "credibility.com",
-		IpAddress: "54.182.0.240",
 	},
 	&fronted.Masquerade{
 		Domain:    "crispadvertising.com",
@@ -4318,11 +4274,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "croooober.com",
-		IpAddress: "54.182.0.59",
+		IpAddress: "54.230.4.104",
 	},
 	&fronted.Masquerade{
 		Domain:    "croooober.com",
-		IpAddress: "54.230.4.104",
+		IpAddress: "54.182.0.59",
+	},
+	&fronted.Masquerade{
+		Domain:    "crossfit.com",
+		IpAddress: "54.192.7.236",
+	},
+	&fronted.Masquerade{
+		Domain:    "crossfit.com",
+		IpAddress: "54.192.6.216",
 	},
 	&fronted.Masquerade{
 		Domain:    "crossfit.com",
@@ -4333,18 +4297,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.3.151",
 	},
 	&fronted.Masquerade{
-		Domain:    "crossfit.com",
-		IpAddress: "54.192.6.216",
-	},
-	&fronted.Masquerade{
-		Domain:    "crossfit.com",
-		IpAddress: "54.192.7.236",
-	},
-	&fronted.Masquerade{
-		Domain:    "crownpeak.net",
-		IpAddress: "54.239.200.222",
-	},
-	&fronted.Masquerade{
 		Domain:    "crownpeak.net",
 		IpAddress: "216.137.43.149",
 	},
@@ -4353,8 +4305,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "205.251.253.247",
 	},
 	&fronted.Masquerade{
-		Domain:    "ctctcdn.com",
-		IpAddress: "205.251.253.4",
+		Domain:    "crownpeak.net",
+		IpAddress: "54.239.200.222",
 	},
 	&fronted.Masquerade{
 		Domain:    "ctctcdn.com",
@@ -4362,11 +4314,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "ctctcdn.com",
-		IpAddress: "216.137.36.4",
-	},
-	&fronted.Masquerade{
-		Domain:    "ctctcdn.com",
-		IpAddress: "54.230.6.153",
+		IpAddress: "205.251.253.4",
 	},
 	&fronted.Masquerade{
 		Domain:    "ctctcdn.com",
@@ -4377,12 +4325,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.239.200.4",
 	},
 	&fronted.Masquerade{
-		Domain:    "cubics.co",
-		IpAddress: "54.182.2.200",
+		Domain:    "ctctcdn.com",
+		IpAddress: "216.137.36.4",
 	},
 	&fronted.Masquerade{
-		Domain:    "cubics.co",
-		IpAddress: "216.137.45.93",
+		Domain:    "ctctcdn.com",
+		IpAddress: "54.230.6.153",
 	},
 	&fronted.Masquerade{
 		Domain:    "cubics.co",
@@ -4390,11 +4338,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "cubics.co",
-		IpAddress: "54.239.132.192",
+		IpAddress: "216.137.45.93",
 	},
 	&fronted.Masquerade{
-		Domain:    "d16w83149ahatb.6cloud.fr",
-		IpAddress: "205.251.203.186",
+		Domain:    "cubics.co",
+		IpAddress: "54.182.2.200",
+	},
+	&fronted.Masquerade{
+		Domain:    "cubics.co",
+		IpAddress: "54.239.132.192",
 	},
 	&fronted.Masquerade{
 		Domain:    "d16w83149ahatb.6cloud.fr",
@@ -4402,11 +4354,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "d16w83149ahatb.6cloud.fr",
-		IpAddress: "54.192.5.148",
+		IpAddress: "216.137.36.189",
 	},
 	&fronted.Masquerade{
 		Domain:    "d16w83149ahatb.6cloud.fr",
-		IpAddress: "216.137.36.189",
+		IpAddress: "205.251.203.186",
+	},
+	&fronted.Masquerade{
+		Domain:    "d16w83149ahatb.6cloud.fr",
+		IpAddress: "54.192.5.148",
+	},
+	&fronted.Masquerade{
+		Domain:    "d1ahq84kgt5vd1.cloudfront.net",
+		IpAddress: "54.192.5.102",
 	},
 	&fronted.Masquerade{
 		Domain:    "d1ahq84kgt5vd1.cloudfront.net",
@@ -4417,24 +4377,20 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "204.246.169.15",
 	},
 	&fronted.Masquerade{
-		Domain:    "d1ahq84kgt5vd1.cloudfront.net",
-		IpAddress: "54.192.5.102",
+		Domain:    "d1ami0ppw26nmn.amazon.com",
+		IpAddress: "54.182.3.140",
 	},
 	&fronted.Masquerade{
 		Domain:    "d1ami0ppw26nmn.amazon.com",
 		IpAddress: "54.192.7.75",
 	},
 	&fronted.Masquerade{
-		Domain:    "d1ami0ppw26nmn.amazon.com",
-		IpAddress: "54.182.3.140",
+		Domain:    "d1jwpcr0q4pcq0.cloudfront.net",
+		IpAddress: "216.137.43.188",
 	},
 	&fronted.Masquerade{
 		Domain:    "d1jwpcr0q4pcq0.cloudfront.net",
 		IpAddress: "54.182.0.106",
-	},
-	&fronted.Masquerade{
-		Domain:    "d1jwpcr0q4pcq0.cloudfront.net",
-		IpAddress: "216.137.43.188",
 	},
 	&fronted.Masquerade{
 		Domain:    "d1rucrevwzgc5t.cloudfront.net",
@@ -4442,15 +4398,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "d1rucrevwzgc5t.cloudfront.net",
-		IpAddress: "54.182.3.135",
-	},
-	&fronted.Masquerade{
-		Domain:    "d1rucrevwzgc5t.cloudfront.net",
-		IpAddress: "216.137.39.247",
-	},
-	&fronted.Masquerade{
-		Domain:    "d1rucrevwzgc5t.cloudfront.net",
-		IpAddress: "205.251.203.218",
+		IpAddress: "54.192.5.192",
 	},
 	&fronted.Masquerade{
 		Domain:    "d1rucrevwzgc5t.cloudfront.net",
@@ -4458,15 +4406,27 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "d1rucrevwzgc5t.cloudfront.net",
-		IpAddress: "54.182.1.172",
-	},
-	&fronted.Masquerade{
-		Domain:    "d1rucrevwzgc5t.cloudfront.net",
 		IpAddress: "216.137.33.111",
 	},
 	&fronted.Masquerade{
 		Domain:    "d1rucrevwzgc5t.cloudfront.net",
-		IpAddress: "54.192.5.192",
+		IpAddress: "216.137.39.247",
+	},
+	&fronted.Masquerade{
+		Domain:    "d1rucrevwzgc5t.cloudfront.net",
+		IpAddress: "54.182.1.172",
+	},
+	&fronted.Masquerade{
+		Domain:    "d1rucrevwzgc5t.cloudfront.net",
+		IpAddress: "54.182.3.135",
+	},
+	&fronted.Masquerade{
+		Domain:    "d1rucrevwzgc5t.cloudfront.net",
+		IpAddress: "205.251.203.218",
+	},
+	&fronted.Masquerade{
+		Domain:    "d1vipartqpsj5t.cloudfront.net",
+		IpAddress: "216.137.43.182",
 	},
 	&fronted.Masquerade{
 		Domain:    "d1vipartqpsj5t.cloudfront.net",
@@ -4477,12 +4437,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.3.13",
 	},
 	&fronted.Masquerade{
-		Domain:    "d1vipartqpsj5t.cloudfront.net",
-		IpAddress: "216.137.43.182",
-	},
-	&fronted.Masquerade{
 		Domain:    "d38tb5qffyy06c.cloudfront.net",
-		IpAddress: "54.182.3.12",
+		IpAddress: "216.137.43.235",
 	},
 	&fronted.Masquerade{
 		Domain:    "d38tb5qffyy06c.cloudfront.net",
@@ -4490,27 +4446,27 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "d38tb5qffyy06c.cloudfront.net",
-		IpAddress: "216.137.43.235",
-	},
-	&fronted.Masquerade{
-		Domain:    "d3doxs0mwx271h.cloudfront.net",
-		IpAddress: "54.182.3.57",
+		IpAddress: "54.182.3.12",
 	},
 	&fronted.Masquerade{
 		Domain:    "d3doxs0mwx271h.cloudfront.net",
 		IpAddress: "54.192.5.41",
 	},
 	&fronted.Masquerade{
-		Domain:    "d3t555v1iom78z.cloudfront.net",
-		IpAddress: "54.182.3.222",
+		Domain:    "d3doxs0mwx271h.cloudfront.net",
+		IpAddress: "54.182.3.57",
 	},
 	&fronted.Masquerade{
 		Domain:    "d3t555v1iom78z.cloudfront.net",
 		IpAddress: "54.192.6.234",
 	},
 	&fronted.Masquerade{
+		Domain:    "d3t555v1iom78z.cloudfront.net",
+		IpAddress: "54.182.3.222",
+	},
+	&fronted.Masquerade{
 		Domain:    "d3tyii1ml8c0t0.cloudfront.net",
-		IpAddress: "54.239.130.51",
+		IpAddress: "54.182.3.59",
 	},
 	&fronted.Masquerade{
 		Domain:    "d3tyii1ml8c0t0.cloudfront.net",
@@ -4518,7 +4474,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "d3tyii1ml8c0t0.cloudfront.net",
-		IpAddress: "54.182.3.59",
+		IpAddress: "54.239.130.51",
+	},
+	&fronted.Masquerade{
+		Domain:    "dariffnjgq54b.cloudfront.net",
+		IpAddress: "54.182.0.49",
 	},
 	&fronted.Masquerade{
 		Domain:    "dariffnjgq54b.cloudfront.net",
@@ -4529,28 +4489,16 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.239.130.95",
 	},
 	&fronted.Masquerade{
-		Domain:    "dariffnjgq54b.cloudfront.net",
-		IpAddress: "54.182.0.49",
-	},
-	&fronted.Masquerade{
-		Domain:    "dariffnjgq54b.cloudfront.net",
-		IpAddress: "204.246.169.126",
+		Domain:    "data.annalect.com",
+		IpAddress: "54.182.1.69",
 	},
 	&fronted.Masquerade{
 		Domain:    "data.annalect.com",
 		IpAddress: "54.192.6.231",
 	},
 	&fronted.Masquerade{
-		Domain:    "data.annalect.com",
-		IpAddress: "54.182.1.69",
-	},
-	&fronted.Masquerade{
 		Domain:    "data.plus.bandainamcoid.com",
 		IpAddress: "54.182.5.200",
-	},
-	&fronted.Masquerade{
-		Domain:    "data.plus.bandainamcoid.com",
-		IpAddress: "54.192.7.115",
 	},
 	&fronted.Masquerade{
 		Domain:    "datalens.here.com",
@@ -4562,19 +4510,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "datawrapper.de",
-		IpAddress: "54.230.5.219",
-	},
-	&fronted.Masquerade{
-		Domain:    "datawrapper.de",
-		IpAddress: "216.137.45.36",
-	},
-	&fronted.Masquerade{
-		Domain:    "datawrapper.de",
 		IpAddress: "54.182.2.184",
 	},
 	&fronted.Masquerade{
 		Domain:    "datawrapper.de",
+		IpAddress: "54.230.5.219",
+	},
+	&fronted.Masquerade{
+		Domain:    "datawrapper.de",
 		IpAddress: "204.246.169.87",
+	},
+	&fronted.Masquerade{
+		Domain:    "datawrapper.de",
+		IpAddress: "216.137.45.36",
 	},
 	&fronted.Masquerade{
 		Domain:    "dating.zoosk.com",
@@ -4582,11 +4530,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "dating.zoosk.com",
-		IpAddress: "54.230.7.182",
+		IpAddress: "205.251.253.182",
 	},
 	&fronted.Masquerade{
 		Domain:    "dating.zoosk.com",
-		IpAddress: "205.251.253.182",
+		IpAddress: "54.230.7.182",
 	},
 	&fronted.Masquerade{
 		Domain:    "dating.zoosk.com",
@@ -4602,14 +4550,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "decarta.com",
-		IpAddress: "54.230.5.57",
-	},
-	&fronted.Masquerade{
-		Domain:    "decarta.com",
-		IpAddress: "54.239.130.242",
-	},
-	&fronted.Masquerade{
-		Domain:    "decarta.com",
 		IpAddress: "216.137.36.181",
 	},
 	&fronted.Masquerade{
@@ -4617,8 +4557,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.3.110",
 	},
 	&fronted.Masquerade{
-		Domain:    "demandbase.com",
-		IpAddress: "54.192.7.94",
+		Domain:    "decarta.com",
+		IpAddress: "54.239.130.242",
+	},
+	&fronted.Masquerade{
+		Domain:    "decarta.com",
+		IpAddress: "54.230.5.57",
 	},
 	&fronted.Masquerade{
 		Domain:    "demandbase.com",
@@ -4629,12 +4573,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.2.52",
 	},
 	&fronted.Masquerade{
-		Domain:    "democrats.org",
-		IpAddress: "54.182.3.77",
+		Domain:    "demandbase.com",
+		IpAddress: "54.192.7.94",
 	},
 	&fronted.Masquerade{
 		Domain:    "democrats.org",
-		IpAddress: "54.239.200.181",
+		IpAddress: "205.251.253.249",
 	},
 	&fronted.Masquerade{
 		Domain:    "democrats.org",
@@ -4646,7 +4590,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "democrats.org",
-		IpAddress: "216.137.43.151",
+		IpAddress: "54.239.200.181",
+	},
+	&fronted.Masquerade{
+		Domain:    "democrats.org",
+		IpAddress: "54.182.3.77",
 	},
 	&fronted.Masquerade{
 		Domain:    "democrats.org",
@@ -4654,19 +4602,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "democrats.org",
-		IpAddress: "205.251.253.249",
-	},
-	&fronted.Masquerade{
-		Domain:    "dev-be-aws.net",
-		IpAddress: "54.230.7.126",
+		IpAddress: "216.137.43.151",
 	},
 	&fronted.Masquerade{
 		Domain:    "dev-be-aws.net",
 		IpAddress: "54.182.5.169",
 	},
 	&fronted.Masquerade{
+		Domain:    "dev-be-aws.net",
+		IpAddress: "54.230.7.126",
+	},
+	&fronted.Masquerade{
 		Domain:    "dev.sungevity.com",
-		IpAddress: "54.182.4.10",
+		IpAddress: "205.251.203.193",
 	},
 	&fronted.Masquerade{
 		Domain:    "dev.sungevity.com",
@@ -4674,7 +4622,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "dev.sungevity.com",
-		IpAddress: "205.251.203.193",
+		IpAddress: "54.182.4.10",
 	},
 	&fronted.Masquerade{
 		Domain:    "dev.sungevity.com",
@@ -4690,11 +4638,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "developer.sony.com",
-		IpAddress: "54.182.2.166",
+		IpAddress: "54.192.5.252",
 	},
 	&fronted.Masquerade{
 		Domain:    "developer.sony.com",
-		IpAddress: "54.192.5.252",
+		IpAddress: "54.182.2.166",
 	},
 	&fronted.Masquerade{
 		Domain:    "devwowcher.co.uk",
@@ -4710,15 +4658,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "dfoneople.com",
-		IpAddress: "54.182.7.122",
-	},
-	&fronted.Masquerade{
-		Domain:    "dfoneople.com",
 		IpAddress: "54.230.7.226",
 	},
 	&fronted.Masquerade{
 		Domain:    "dfoneople.com",
 		IpAddress: "216.137.39.95",
+	},
+	&fronted.Masquerade{
+		Domain:    "dfoneople.com",
+		IpAddress: "54.182.7.122",
 	},
 	&fronted.Masquerade{
 		Domain:    "discoverhawaiitours.com",
@@ -4730,15 +4678,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "dispatch.me",
-		IpAddress: "54.182.2.148",
-	},
-	&fronted.Masquerade{
-		Domain:    "dispatch.me",
 		IpAddress: "216.137.43.70",
 	},
 	&fronted.Masquerade{
-		Domain:    "dmnso1wfcoh34.cloudfront.net",
-		IpAddress: "54.192.4.63",
+		Domain:    "dispatch.me",
+		IpAddress: "54.182.2.148",
 	},
 	&fronted.Masquerade{
 		Domain:    "dmnso1wfcoh34.cloudfront.net",
@@ -4749,12 +4693,16 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.2.91",
 	},
 	&fronted.Masquerade{
-		Domain:    "doctorbase.com",
-		IpAddress: "54.182.0.219",
+		Domain:    "dmnso1wfcoh34.cloudfront.net",
+		IpAddress: "54.192.4.63",
 	},
 	&fronted.Masquerade{
 		Domain:    "doctorbase.com",
 		IpAddress: "54.192.7.229",
+	},
+	&fronted.Masquerade{
+		Domain:    "doctorbase.com",
+		IpAddress: "54.182.0.219",
 	},
 	&fronted.Masquerade{
 		Domain:    "domain.com.au",
@@ -4766,6 +4714,10 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "domdex.com",
+		IpAddress: "54.239.130.65",
+	},
+	&fronted.Masquerade{
+		Domain:    "domdex.com",
 		IpAddress: "54.182.3.66",
 	},
 	&fronted.Masquerade{
@@ -4774,15 +4726,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "domdex.com",
-		IpAddress: "216.137.39.145",
-	},
-	&fronted.Masquerade{
-		Domain:    "domdex.com",
 		IpAddress: "54.230.4.252",
-	},
-	&fronted.Masquerade{
-		Domain:    "domdex.com",
-		IpAddress: "54.182.5.98",
 	},
 	&fronted.Masquerade{
 		Domain:    "domdex.com",
@@ -4790,15 +4734,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "domdex.com",
-		IpAddress: "54.239.130.65",
+		IpAddress: "216.137.39.145",
 	},
 	&fronted.Masquerade{
-		Domain:    "dots.here.com",
-		IpAddress: "54.230.7.242",
-	},
-	&fronted.Masquerade{
-		Domain:    "dots.here.com",
-		IpAddress: "54.182.5.148",
+		Domain:    "domdex.com",
+		IpAddress: "54.182.5.98",
 	},
 	&fronted.Masquerade{
 		Domain:    "dots.here.com",
@@ -4809,20 +4749,20 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "205.251.253.98",
 	},
 	&fronted.Masquerade{
-		Domain:    "download.engelmann.com",
-		IpAddress: "54.182.6.109",
+		Domain:    "dots.here.com",
+		IpAddress: "54.182.5.148",
+	},
+	&fronted.Masquerade{
+		Domain:    "dots.here.com",
+		IpAddress: "54.230.7.242",
 	},
 	&fronted.Masquerade{
 		Domain:    "download.engelmann.com",
 		IpAddress: "54.192.4.106",
 	},
 	&fronted.Masquerade{
-		Domain:    "download.epicgames.com",
-		IpAddress: "204.246.169.32",
-	},
-	&fronted.Masquerade{
-		Domain:    "download.epicgames.com",
-		IpAddress: "54.230.7.200",
+		Domain:    "download.engelmann.com",
+		IpAddress: "54.182.6.109",
 	},
 	&fronted.Masquerade{
 		Domain:    "download.epicgames.com",
@@ -4830,19 +4770,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "download.epicgames.com",
-		IpAddress: "54.182.7.166",
+		IpAddress: "54.230.7.200",
 	},
 	&fronted.Masquerade{
 		Domain:    "download.epicgames.com",
 		IpAddress: "205.251.253.215",
 	},
 	&fronted.Masquerade{
-		Domain:    "downloads.gradle.org",
-		IpAddress: "216.137.33.179",
+		Domain:    "download.epicgames.com",
+		IpAddress: "204.246.169.32",
 	},
 	&fronted.Masquerade{
-		Domain:    "downloads.gradle.org",
-		IpAddress: "54.182.3.93",
+		Domain:    "download.epicgames.com",
+		IpAddress: "54.182.7.166",
 	},
 	&fronted.Masquerade{
 		Domain:    "downloads.gradle.org",
@@ -4850,7 +4790,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "downloads.gradle.org",
+		IpAddress: "216.137.33.179",
+	},
+	&fronted.Masquerade{
+		Domain:    "downloads.gradle.org",
 		IpAddress: "54.230.7.147",
+	},
+	&fronted.Masquerade{
+		Domain:    "downloads.gradle.org",
+		IpAddress: "54.182.3.93",
 	},
 	&fronted.Masquerade{
 		Domain:    "dpl.unicornmedia.com",
@@ -4870,7 +4818,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "dropcam.com",
-		IpAddress: "54.230.4.180",
+		IpAddress: "54.182.6.237",
 	},
 	&fronted.Masquerade{
 		Domain:    "dropcam.com",
@@ -4878,15 +4826,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "dropcam.com",
-		IpAddress: "54.182.6.77",
-	},
-	&fronted.Masquerade{
-		Domain:    "dropcam.com",
-		IpAddress: "54.230.6.226",
-	},
-	&fronted.Masquerade{
-		Domain:    "dropcam.com",
-		IpAddress: "54.182.6.237",
+		IpAddress: "216.137.39.135",
 	},
 	&fronted.Masquerade{
 		Domain:    "dropcam.com",
@@ -4894,7 +4834,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "dropcam.com",
-		IpAddress: "216.137.39.135",
+		IpAddress: "54.230.6.226",
 	},
 	&fronted.Masquerade{
 		Domain:    "dropcam.com",
@@ -4905,12 +4845,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.4.12",
 	},
 	&fronted.Masquerade{
-		Domain:    "dwell.com",
-		IpAddress: "216.137.36.100",
+		Domain:    "dropcam.com",
+		IpAddress: "54.230.4.180",
 	},
 	&fronted.Masquerade{
-		Domain:    "dwell.com",
-		IpAddress: "204.246.169.70",
+		Domain:    "dropcam.com",
+		IpAddress: "54.182.6.77",
 	},
 	&fronted.Masquerade{
 		Domain:    "dwell.com",
@@ -4918,7 +4858,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "dwell.com",
+		IpAddress: "216.137.36.100",
+	},
+	&fronted.Masquerade{
+		Domain:    "dwell.com",
 		IpAddress: "54.239.200.79",
+	},
+	&fronted.Masquerade{
+		Domain:    "dwell.com",
+		IpAddress: "205.251.203.99",
 	},
 	&fronted.Masquerade{
 		Domain:    "dwell.com",
@@ -4930,11 +4878,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "dwell.com",
-		IpAddress: "205.251.203.99",
+		IpAddress: "204.246.169.70",
 	},
 	&fronted.Masquerade{
 		Domain:    "dwell.com",
 		IpAddress: "54.192.5.107",
+	},
+	&fronted.Masquerade{
+		Domain:    "eco-tag.jp",
+		IpAddress: "54.182.6.163",
 	},
 	&fronted.Masquerade{
 		Domain:    "eco-tag.jp",
@@ -4945,20 +4897,16 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.230.6.104",
 	},
 	&fronted.Masquerade{
-		Domain:    "eco-tag.jp",
-		IpAddress: "54.182.6.163",
-	},
-	&fronted.Masquerade{
-		Domain:    "editionf.com",
-		IpAddress: "54.230.4.236",
-	},
-	&fronted.Masquerade{
 		Domain:    "editionf.com",
 		IpAddress: "54.239.132.141",
 	},
 	&fronted.Masquerade{
 		Domain:    "editionf.com",
 		IpAddress: "54.182.1.40",
+	},
+	&fronted.Masquerade{
+		Domain:    "editionf.com",
+		IpAddress: "54.230.4.236",
 	},
 	&fronted.Masquerade{
 		Domain:    "edraak.org",
@@ -4970,10 +4918,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "educationperfect.com",
-		IpAddress: "205.251.203.196",
-	},
-	&fronted.Masquerade{
-		Domain:    "educationperfect.com",
 		IpAddress: "54.230.5.235",
 	},
 	&fronted.Masquerade{
@@ -4981,8 +4925,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.7.200",
 	},
 	&fronted.Masquerade{
-		Domain:    "edurite.com",
-		IpAddress: "54.239.132.222",
+		Domain:    "educationperfect.com",
+		IpAddress: "205.251.203.196",
 	},
 	&fronted.Masquerade{
 		Domain:    "edurite.com",
@@ -4993,8 +4937,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.3.74",
 	},
 	&fronted.Masquerade{
-		Domain:    "edx-video.org",
-		IpAddress: "205.251.203.223",
+		Domain:    "edurite.com",
+		IpAddress: "54.239.132.222",
 	},
 	&fronted.Masquerade{
 		Domain:    "edx-video.org",
@@ -5002,11 +4946,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "edx-video.org",
-		IpAddress: "54.230.6.133",
+		IpAddress: "205.251.203.223",
 	},
 	&fronted.Masquerade{
 		Domain:    "edx-video.org",
 		IpAddress: "54.239.130.143",
+	},
+	&fronted.Masquerade{
+		Domain:    "edx-video.org",
+		IpAddress: "54.230.6.133",
 	},
 	&fronted.Masquerade{
 		Domain:    "eegeo.com",
@@ -5014,19 +4962,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "eegeo.com",
-		IpAddress: "205.251.203.229",
-	},
-	&fronted.Masquerade{
-		Domain:    "eegeo.com",
 		IpAddress: "54.192.7.63",
 	},
 	&fronted.Masquerade{
-		Domain:    "effectivemeasure.net",
-		IpAddress: "54.182.7.26",
+		Domain:    "eegeo.com",
+		IpAddress: "205.251.203.229",
 	},
 	&fronted.Masquerade{
 		Domain:    "effectivemeasure.net",
 		IpAddress: "54.230.5.3",
+	},
+	&fronted.Masquerade{
+		Domain:    "effectivemeasure.net",
+		IpAddress: "54.182.7.26",
 	},
 	&fronted.Masquerade{
 		Domain:    "elo7.com.br",
@@ -5038,7 +4986,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "emlfiles.com",
-		IpAddress: "54.239.200.132",
+		IpAddress: "54.192.5.142",
 	},
 	&fronted.Masquerade{
 		Domain:    "emlfiles.com",
@@ -5046,7 +4994,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "emlfiles.com",
-		IpAddress: "216.137.36.171",
+		IpAddress: "205.251.253.152",
 	},
 	&fronted.Masquerade{
 		Domain:    "emlfiles.com",
@@ -5054,23 +5002,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "emlfiles.com",
-		IpAddress: "54.192.5.142",
-	},
-	&fronted.Masquerade{
-		Domain:    "emlfiles.com",
-		IpAddress: "216.137.45.127",
-	},
-	&fronted.Masquerade{
-		Domain:    "emlfiles.com",
-		IpAddress: "205.251.253.152",
+		IpAddress: "54.239.200.132",
 	},
 	&fronted.Masquerade{
 		Domain:    "emlfiles.com",
 		IpAddress: "205.251.203.168",
 	},
 	&fronted.Masquerade{
+		Domain:    "emlfiles.com",
+		IpAddress: "216.137.36.171",
+	},
+	&fronted.Masquerade{
+		Domain:    "emlfiles.com",
+		IpAddress: "216.137.45.127",
+	},
+	&fronted.Masquerade{
 		Domain:    "empowernetwork.com",
-		IpAddress: "54.192.5.45",
+		IpAddress: "54.182.0.90",
 	},
 	&fronted.Masquerade{
 		Domain:    "empowernetwork.com",
@@ -5078,7 +5026,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "empowernetwork.com",
-		IpAddress: "54.182.0.90",
+		IpAddress: "54.192.5.45",
 	},
 	&fronted.Masquerade{
 		Domain:    "enetscores.com",
@@ -5098,19 +5046,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "engage.io",
-		IpAddress: "216.137.43.163",
-	},
-	&fronted.Masquerade{
-		Domain:    "engage.io",
 		IpAddress: "54.182.7.110",
 	},
 	&fronted.Masquerade{
-		Domain:    "enish-games.com",
-		IpAddress: "54.239.200.207",
-	},
-	&fronted.Masquerade{
-		Domain:    "enish-games.com",
-		IpAddress: "205.251.253.13",
+		Domain:    "engage.io",
+		IpAddress: "216.137.43.163",
 	},
 	&fronted.Masquerade{
 		Domain:    "enish-games.com",
@@ -5119,6 +5059,14 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "enish-games.com",
 		IpAddress: "54.192.5.22",
+	},
+	&fronted.Masquerade{
+		Domain:    "enish-games.com",
+		IpAddress: "54.239.200.207",
+	},
+	&fronted.Masquerade{
+		Domain:    "enish-games.com",
+		IpAddress: "205.251.253.13",
 	},
 	&fronted.Masquerade{
 		Domain:    "enjoy.point.auone.jp",
@@ -5130,23 +5078,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "enlightresearch.com",
-		IpAddress: "54.239.132.230",
-	},
-	&fronted.Masquerade{
-		Domain:    "enlightresearch.com",
 		IpAddress: "54.230.6.196",
 	},
 	&fronted.Masquerade{
 		Domain:    "enlightresearch.com",
+		IpAddress: "54.239.132.230",
+	},
+	&fronted.Masquerade{
+		Domain:    "enlightresearch.com",
 		IpAddress: "54.182.1.2",
-	},
-	&fronted.Masquerade{
-		Domain:    "enterprise.weatherbug.com",
-		IpAddress: "205.251.203.191",
-	},
-	&fronted.Masquerade{
-		Domain:    "enterprise.weatherbug.com",
-		IpAddress: "54.239.132.228",
 	},
 	&fronted.Masquerade{
 		Domain:    "enterprise.weatherbug.com",
@@ -5157,12 +5097,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.230.6.80",
 	},
 	&fronted.Masquerade{
-		Domain:    "enthought.com",
-		IpAddress: "54.230.7.89",
-	},
-	&fronted.Masquerade{
-		Domain:    "enthought.com",
-		IpAddress: "216.137.45.79",
+		Domain:    "enterprise.weatherbug.com",
+		IpAddress: "54.239.132.228",
 	},
 	&fronted.Masquerade{
 		Domain:    "enthought.com",
@@ -5173,16 +5109,16 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "216.137.33.133",
 	},
 	&fronted.Masquerade{
+		Domain:    "enthought.com",
+		IpAddress: "54.230.7.89",
+	},
+	&fronted.Masquerade{
+		Domain:    "enthought.com",
+		IpAddress: "216.137.45.79",
+	},
+	&fronted.Masquerade{
 		Domain:    "epicgames.com",
 		IpAddress: "54.239.132.165",
-	},
-	&fronted.Masquerade{
-		Domain:    "epicgames.com",
-		IpAddress: "54.182.1.12",
-	},
-	&fronted.Masquerade{
-		Domain:    "epicgames.com",
-		IpAddress: "54.239.200.106",
 	},
 	&fronted.Masquerade{
 		Domain:    "epicgames.com",
@@ -5193,8 +5129,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.192.7.121",
 	},
 	&fronted.Masquerade{
-		Domain:    "epicwar-online.com",
-		IpAddress: "216.137.33.15",
+		Domain:    "epicgames.com",
+		IpAddress: "54.239.200.106",
+	},
+	&fronted.Masquerade{
+		Domain:    "epicgames.com",
+		IpAddress: "54.182.1.12",
 	},
 	&fronted.Masquerade{
 		Domain:    "epicwar-online.com",
@@ -5202,19 +5142,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "epicwar-online.com",
+		IpAddress: "216.137.33.15",
+	},
+	&fronted.Masquerade{
+		Domain:    "epicwar-online.com",
 		IpAddress: "54.182.2.186",
-	},
-	&fronted.Masquerade{
-		Domain:    "eshop.sonymobile.com",
-		IpAddress: "205.251.203.132",
-	},
-	&fronted.Masquerade{
-		Domain:    "eshop.sonymobile.com",
-		IpAddress: "216.137.45.101",
-	},
-	&fronted.Masquerade{
-		Domain:    "eshop.sonymobile.com",
-		IpAddress: "54.239.200.104",
 	},
 	&fronted.Masquerade{
 		Domain:    "eshop.sonymobile.com",
@@ -5222,7 +5154,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "eshop.sonymobile.com",
-		IpAddress: "205.251.253.121",
+		IpAddress: "216.137.45.101",
 	},
 	&fronted.Masquerade{
 		Domain:    "eshop.sonymobile.com",
@@ -5233,12 +5165,24 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.192.5.121",
 	},
 	&fronted.Masquerade{
+		Domain:    "eshop.sonymobile.com",
+		IpAddress: "205.251.253.121",
+	},
+	&fronted.Masquerade{
+		Domain:    "eshop.sonymobile.com",
+		IpAddress: "54.239.200.104",
+	},
+	&fronted.Masquerade{
+		Domain:    "eshop.sonymobile.com",
+		IpAddress: "205.251.203.132",
+	},
+	&fronted.Masquerade{
 		Domain:    "esparklearning.com",
 		IpAddress: "54.182.6.153",
 	},
 	&fronted.Masquerade{
 		Domain:    "esparklearning.com",
-		IpAddress: "54.182.2.122",
+		IpAddress: "54.239.200.130",
 	},
 	&fronted.Masquerade{
 		Domain:    "esparklearning.com",
@@ -5250,11 +5194,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "esparklearning.com",
-		IpAddress: "54.239.200.130",
-	},
-	&fronted.Masquerade{
-		Domain:    "euroinvestor.com",
-		IpAddress: "54.239.200.40",
+		IpAddress: "54.182.2.122",
 	},
 	&fronted.Masquerade{
 		Domain:    "euroinvestor.com",
@@ -5262,7 +5202,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "euroinvestor.com",
+		IpAddress: "54.239.200.40",
+	},
+	&fronted.Masquerade{
+		Domain:    "euroinvestor.com",
 		IpAddress: "216.137.33.242",
+	},
+	&fronted.Masquerade{
+		Domain:    "evenfinancial.com",
+		IpAddress: "54.192.6.137",
 	},
 	&fronted.Masquerade{
 		Domain:    "evenfinancial.com",
@@ -5270,15 +5218,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "evenfinancial.com",
-		IpAddress: "204.246.169.48",
-	},
-	&fronted.Masquerade{
-		Domain:    "evenfinancial.com",
 		IpAddress: "54.239.130.220",
-	},
-	&fronted.Masquerade{
-		Domain:    "evenfinancial.com",
-		IpAddress: "54.192.6.137",
 	},
 	&fronted.Masquerade{
 		Domain:    "eventable.com",
@@ -5290,7 +5230,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "evident.io",
-		IpAddress: "216.137.45.112",
+		IpAddress: "205.251.203.54",
 	},
 	&fronted.Masquerade{
 		Domain:    "evident.io",
@@ -5298,23 +5238,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "evident.io",
+		IpAddress: "54.182.5.78",
+	},
+	&fronted.Masquerade{
+		Domain:    "evident.io",
 		IpAddress: "54.192.7.192",
 	},
 	&fronted.Masquerade{
 		Domain:    "evident.io",
-		IpAddress: "205.251.203.54",
-	},
-	&fronted.Masquerade{
-		Domain:    "evident.io",
-		IpAddress: "54.182.5.78",
-	},
-	&fronted.Masquerade{
-		Domain:    "eyes.nasa.gov",
-		IpAddress: "54.230.4.16",
+		IpAddress: "216.137.45.112",
 	},
 	&fronted.Masquerade{
 		Domain:    "eyes.nasa.gov",
 		IpAddress: "54.182.5.211",
+	},
+	&fronted.Masquerade{
+		Domain:    "eyes.nasa.gov",
+		IpAddress: "54.230.4.16",
 	},
 	&fronted.Masquerade{
 		Domain:    "fancred.org",
@@ -5326,11 +5266,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "fanduel.com",
-		IpAddress: "54.182.0.54",
+		IpAddress: "216.137.43.30",
 	},
 	&fronted.Masquerade{
 		Domain:    "fanduel.com",
-		IpAddress: "216.137.43.30",
+		IpAddress: "54.182.0.54",
 	},
 	&fronted.Masquerade{
 		Domain:    "fanmules.com",
@@ -5338,11 +5278,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "fanmules.com",
-		IpAddress: "54.192.6.2",
+		IpAddress: "54.239.132.63",
 	},
 	&fronted.Masquerade{
 		Domain:    "fanmules.com",
-		IpAddress: "54.239.132.63",
+		IpAddress: "54.192.6.2",
+	},
+	&fronted.Masquerade{
+		Domain:    "fareoffice.com",
+		IpAddress: "54.182.3.120",
 	},
 	&fronted.Masquerade{
 		Domain:    "fareoffice.com",
@@ -5354,15 +5298,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "fareoffice.com",
-		IpAddress: "54.239.132.82",
-	},
-	&fronted.Masquerade{
-		Domain:    "fareoffice.com",
 		IpAddress: "54.192.4.232",
 	},
 	&fronted.Masquerade{
 		Domain:    "fareoffice.com",
-		IpAddress: "54.182.3.120",
+		IpAddress: "54.239.132.82",
 	},
 	&fronted.Masquerade{
 		Domain:    "fg-games.co.jp",
@@ -5370,11 +5310,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "fg-games.co.jp",
-		IpAddress: "216.137.33.249",
+		IpAddress: "54.192.4.56",
 	},
 	&fronted.Masquerade{
 		Domain:    "fg-games.co.jp",
-		IpAddress: "54.182.5.156",
+		IpAddress: "216.137.33.249",
 	},
 	&fronted.Masquerade{
 		Domain:    "fg-games.co.jp",
@@ -5382,15 +5322,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "fg-games.co.jp",
-		IpAddress: "54.192.4.56",
-	},
-	&fronted.Masquerade{
-		Domain:    "fg-games.co.jp",
 		IpAddress: "54.182.5.58",
 	},
 	&fronted.Masquerade{
+		Domain:    "fg-games.co.jp",
+		IpAddress: "54.182.5.156",
+	},
+	&fronted.Masquerade{
 		Domain:    "fifaconnect.org",
-		IpAddress: "54.192.7.72",
+		IpAddress: "54.239.132.171",
 	},
 	&fronted.Masquerade{
 		Domain:    "fifaconnect.org",
@@ -5398,11 +5338,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "fifaconnect.org",
-		IpAddress: "54.182.5.75",
-	},
-	&fronted.Masquerade{
-		Domain:    "fifaconnect.org",
-		IpAddress: "54.182.5.108",
+		IpAddress: "216.137.45.38",
 	},
 	&fronted.Masquerade{
 		Domain:    "fifaconnect.org",
@@ -5410,15 +5346,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "fifaconnect.org",
+		IpAddress: "54.182.5.108",
+	},
+	&fronted.Masquerade{
+		Domain:    "fifaconnect.org",
 		IpAddress: "54.230.7.202",
 	},
 	&fronted.Masquerade{
 		Domain:    "fifaconnect.org",
-		IpAddress: "216.137.45.38",
+		IpAddress: "54.182.5.75",
 	},
 	&fronted.Masquerade{
 		Domain:    "fifaconnect.org",
-		IpAddress: "54.239.132.171",
+		IpAddress: "54.192.7.72",
 	},
 	&fronted.Masquerade{
 		Domain:    "figma.com",
@@ -5430,19 +5370,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "files.accessiq.sailpoint.com",
-		IpAddress: "54.230.7.160",
-	},
-	&fronted.Masquerade{
-		Domain:    "files.accessiq.sailpoint.com",
 		IpAddress: "216.137.36.65",
 	},
 	&fronted.Masquerade{
 		Domain:    "files.accessiq.sailpoint.com",
-		IpAddress: "54.182.5.220",
+		IpAddress: "54.230.7.160",
 	},
 	&fronted.Masquerade{
-		Domain:    "files.gem.godaddy.com",
-		IpAddress: "54.192.4.84",
+		Domain:    "files.accessiq.sailpoint.com",
+		IpAddress: "54.182.5.220",
 	},
 	&fronted.Masquerade{
 		Domain:    "files.gem.godaddy.com",
@@ -5453,12 +5389,16 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.7.117",
 	},
 	&fronted.Masquerade{
-		Domain:    "files.robertwalters.com",
-		IpAddress: "54.239.132.219",
+		Domain:    "files.gem.godaddy.com",
+		IpAddress: "54.192.4.84",
 	},
 	&fronted.Masquerade{
 		Domain:    "files.robertwalters.com",
 		IpAddress: "54.182.6.158",
+	},
+	&fronted.Masquerade{
+		Domain:    "files.robertwalters.com",
+		IpAddress: "54.239.132.219",
 	},
 	&fronted.Masquerade{
 		Domain:    "files.robertwalters.com",
@@ -5474,19 +5414,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "firetalk.com",
-		IpAddress: "54.230.7.133",
-	},
-	&fronted.Masquerade{
-		Domain:    "firetalk.com",
 		IpAddress: "54.182.6.85",
 	},
 	&fronted.Masquerade{
-		Domain:    "first-utility.com",
-		IpAddress: "54.239.132.169",
+		Domain:    "firetalk.com",
+		IpAddress: "54.230.7.133",
 	},
 	&fronted.Masquerade{
 		Domain:    "first-utility.com",
-		IpAddress: "216.137.33.218",
+		IpAddress: "216.137.39.144",
 	},
 	&fronted.Masquerade{
 		Domain:    "first-utility.com",
@@ -5498,11 +5434,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "first-utility.com",
-		IpAddress: "216.137.39.144",
+		IpAddress: "54.239.132.169",
+	},
+	&fronted.Masquerade{
+		Domain:    "first-utility.com",
+		IpAddress: "216.137.33.218",
 	},
 	&fronted.Masquerade{
 		Domain:    "firstrade.com",
-		IpAddress: "205.251.253.196",
+		IpAddress: "54.192.4.80",
 	},
 	&fronted.Masquerade{
 		Domain:    "firstrade.com",
@@ -5510,7 +5450,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "firstrade.com",
-		IpAddress: "54.192.4.80",
+		IpAddress: "205.251.253.196",
 	},
 	&fronted.Masquerade{
 		Domain:    "fisherpaykel.com",
@@ -5526,15 +5466,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "fitchlearning.com",
-		IpAddress: "54.239.132.66",
-	},
-	&fronted.Masquerade{
-		Domain:    "fitchlearning.com",
 		IpAddress: "54.182.0.229",
 	},
 	&fronted.Masquerade{
 		Domain:    "fitchlearning.com",
 		IpAddress: "216.137.33.207",
+	},
+	&fronted.Masquerade{
+		Domain:    "fitchlearning.com",
+		IpAddress: "54.239.132.66",
+	},
+	&fronted.Masquerade{
+		Domain:    "fitmoo.com",
+		IpAddress: "54.182.2.182",
 	},
 	&fronted.Masquerade{
 		Domain:    "fitmoo.com",
@@ -5546,10 +5490,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "fitmoo.com",
-		IpAddress: "54.182.2.182",
-	},
-	&fronted.Masquerade{
-		Domain:    "fitmoo.com",
 		IpAddress: "54.239.132.187",
 	},
 	&fronted.Masquerade{
@@ -5558,7 +5498,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "flamingo.gomobile.jp",
-		IpAddress: "54.239.130.240",
+		IpAddress: "54.192.5.59",
 	},
 	&fronted.Masquerade{
 		Domain:    "flamingo.gomobile.jp",
@@ -5566,7 +5506,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "flamingo.gomobile.jp",
-		IpAddress: "54.192.5.59",
+		IpAddress: "54.239.130.240",
 	},
 	&fronted.Masquerade{
 		Domain:    "flash.dropboxstatic.com",
@@ -5575,10 +5515,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "flash.dropboxstatic.com",
 		IpAddress: "54.182.3.231",
-	},
-	&fronted.Masquerade{
-		Domain:    "flash.dropboxstatic.com",
-		IpAddress: "204.246.169.188",
 	},
 	&fronted.Masquerade{
 		Domain:    "flash.dropboxstatic.com",
@@ -5594,19 +5530,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "flipboard.com",
-		IpAddress: "216.137.36.207",
-	},
-	&fronted.Masquerade{
-		Domain:    "flipboard.com",
-		IpAddress: "216.137.43.113",
-	},
-	&fronted.Masquerade{
-		Domain:    "flipboard.com",
-		IpAddress: "205.251.253.179",
-	},
-	&fronted.Masquerade{
-		Domain:    "flipboard.com",
-		IpAddress: "54.182.2.232",
+		IpAddress: "54.182.2.233",
 	},
 	&fronted.Masquerade{
 		Domain:    "flipboard.com",
@@ -5614,11 +5538,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "flipboard.com",
-		IpAddress: "54.182.2.233",
+		IpAddress: "216.137.43.113",
 	},
 	&fronted.Masquerade{
 		Domain:    "flipboard.com",
 		IpAddress: "205.251.203.203",
+	},
+	&fronted.Masquerade{
+		Domain:    "flipboard.com",
+		IpAddress: "205.251.253.179",
+	},
+	&fronted.Masquerade{
+		Domain:    "flipboard.com",
+		IpAddress: "216.137.36.207",
+	},
+	&fronted.Masquerade{
+		Domain:    "flipboard.com",
+		IpAddress: "54.182.2.232",
 	},
 	&fronted.Masquerade{
 		Domain:    "flite.com",
@@ -5654,7 +5590,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "foodlogiq.com",
-		IpAddress: "54.182.1.210",
+		IpAddress: "54.182.3.136",
 	},
 	&fronted.Masquerade{
 		Domain:    "foodlogiq.com",
@@ -5662,7 +5598,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "foodlogiq.com",
-		IpAddress: "54.182.3.136",
+		IpAddress: "54.182.1.210",
+	},
+	&fronted.Masquerade{
+		Domain:    "formisimo.com",
+		IpAddress: "216.137.43.78",
+	},
+	&fronted.Masquerade{
+		Domain:    "formisimo.com",
+		IpAddress: "54.182.0.64",
 	},
 	&fronted.Masquerade{
 		Domain:    "formisimo.com",
@@ -5673,12 +5617,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "216.137.36.149",
 	},
 	&fronted.Masquerade{
-		Domain:    "formisimo.com",
-		IpAddress: "54.182.0.64",
+		Domain:    "framework-gb-ssl.cdn.gob.mx",
+		IpAddress: "54.192.5.147",
 	},
 	&fronted.Masquerade{
-		Domain:    "formisimo.com",
-		IpAddress: "216.137.43.78",
+		Domain:    "framework-gb-ssl.cdn.gob.mx",
+		IpAddress: "216.137.33.54",
 	},
 	&fronted.Masquerade{
 		Domain:    "framework-gb-ssl.cdn.gob.mx",
@@ -5693,14 +5637,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.239.200.15",
 	},
 	&fronted.Masquerade{
-		Domain:    "framework-gb-ssl.cdn.gob.mx",
-		IpAddress: "54.192.5.147",
-	},
-	&fronted.Masquerade{
-		Domain:    "framework-gb-ssl.cdn.gob.mx",
-		IpAddress: "216.137.33.54",
-	},
-	&fronted.Masquerade{
 		Domain:    "freecaster.com",
 		IpAddress: "54.230.6.30",
 	},
@@ -5710,15 +5646,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "front.xoedge.com",
-		IpAddress: "54.182.2.89",
-	},
-	&fronted.Masquerade{
-		Domain:    "front.xoedge.com",
-		IpAddress: "54.239.200.65",
-	},
-	&fronted.Masquerade{
-		Domain:    "front.xoedge.com",
-		IpAddress: "204.246.169.57",
+		IpAddress: "54.192.5.98",
 	},
 	&fronted.Masquerade{
 		Domain:    "front.xoedge.com",
@@ -5730,7 +5658,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "front.xoedge.com",
-		IpAddress: "205.251.253.77",
+		IpAddress: "216.137.36.83",
+	},
+	&fronted.Masquerade{
+		Domain:    "front.xoedge.com",
+		IpAddress: "54.239.200.65",
 	},
 	&fronted.Masquerade{
 		Domain:    "front.xoedge.com",
@@ -5738,15 +5670,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "front.xoedge.com",
-		IpAddress: "216.137.36.83",
+		IpAddress: "204.246.169.57",
+	},
+	&fronted.Masquerade{
+		Domain:    "front.xoedge.com",
+		IpAddress: "205.251.253.77",
+	},
+	&fronted.Masquerade{
+		Domain:    "front.xoedge.com",
+		IpAddress: "54.182.2.89",
 	},
 	&fronted.Masquerade{
 		Domain:    "front.xoedge.com",
 		IpAddress: "216.137.45.63",
-	},
-	&fronted.Masquerade{
-		Domain:    "front.xoedge.com",
-		IpAddress: "54.192.5.98",
 	},
 	&fronted.Masquerade{
 		Domain:    "ftp.mozilla.org",
@@ -5758,11 +5694,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "fullscreen.net",
-		IpAddress: "216.137.39.69",
+		IpAddress: "54.239.130.84",
 	},
 	&fronted.Masquerade{
 		Domain:    "fullscreen.net",
-		IpAddress: "54.230.6.10",
+		IpAddress: "216.137.39.69",
 	},
 	&fronted.Masquerade{
 		Domain:    "fullscreen.net",
@@ -5770,7 +5706,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "fullscreen.net",
-		IpAddress: "54.239.130.84",
+		IpAddress: "54.230.6.10",
 	},
 	&fronted.Masquerade{
 		Domain:    "futurelearn.com",
@@ -5782,19 +5718,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "gaitexam.com",
-		IpAddress: "216.137.43.27",
-	},
-	&fronted.Masquerade{
-		Domain:    "gaitexam.com",
 		IpAddress: "216.137.39.61",
 	},
 	&fronted.Masquerade{
-		Domain:    "gallery.mailchimp.com",
-		IpAddress: "54.230.7.74",
+		Domain:    "gaitexam.com",
+		IpAddress: "216.137.43.27",
 	},
 	&fronted.Masquerade{
 		Domain:    "gallery.mailchimp.com",
 		IpAddress: "54.239.200.244",
+	},
+	&fronted.Masquerade{
+		Domain:    "gallery.mailchimp.com",
+		IpAddress: "54.230.7.74",
 	},
 	&fronted.Masquerade{
 		Domain:    "gallery.mailchimp.com",
@@ -5814,23 +5750,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "gcm.web.bms.com",
-		IpAddress: "216.137.36.61",
-	},
-	&fronted.Masquerade{
-		Domain:    "gcm.web.bms.com",
-		IpAddress: "204.246.169.235",
-	},
-	&fronted.Masquerade{
-		Domain:    "gcm.web.bms.com",
-		IpAddress: "54.230.7.207",
-	},
-	&fronted.Masquerade{
-		Domain:    "gcm.web.bms.com",
-		IpAddress: "216.137.39.101",
-	},
-	&fronted.Masquerade{
-		Domain:    "gcm.web.bms.com",
 		IpAddress: "54.182.3.116",
+	},
+	&fronted.Masquerade{
+		Domain:    "gcm.web.bms.com",
+		IpAddress: "216.137.36.61",
 	},
 	&fronted.Masquerade{
 		Domain:    "gcm.web.bms.com",
@@ -5838,19 +5762,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "gcm.web.bms.com",
+		IpAddress: "216.137.39.101",
+	},
+	&fronted.Masquerade{
+		Domain:    "gcm.web.bms.com",
+		IpAddress: "54.230.7.207",
+	},
+	&fronted.Masquerade{
+		Domain:    "gcm.web.bms.com",
 		IpAddress: "54.182.4.17",
 	},
 	&fronted.Masquerade{
-		Domain:    "gepower.com",
-		IpAddress: "54.239.130.166",
-	},
-	&fronted.Masquerade{
-		Domain:    "gepower.com",
-		IpAddress: "54.182.3.32",
-	},
-	&fronted.Masquerade{
-		Domain:    "gepower.com",
-		IpAddress: "54.230.7.223",
+		Domain:    "gcm.web.bms.com",
+		IpAddress: "204.246.169.235",
 	},
 	&fronted.Masquerade{
 		Domain:    "gepower.com",
@@ -5861,8 +5785,16 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.239.200.13",
 	},
 	&fronted.Masquerade{
-		Domain:    "get.com",
-		IpAddress: "54.239.200.82",
+		Domain:    "gepower.com",
+		IpAddress: "54.239.130.166",
+	},
+	&fronted.Masquerade{
+		Domain:    "gepower.com",
+		IpAddress: "54.230.7.223",
+	},
+	&fronted.Masquerade{
+		Domain:    "gepower.com",
+		IpAddress: "54.182.3.32",
 	},
 	&fronted.Masquerade{
 		Domain:    "get.com",
@@ -5870,11 +5802,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "get.com",
-		IpAddress: "54.182.3.7",
+		IpAddress: "54.230.6.233",
 	},
 	&fronted.Masquerade{
 		Domain:    "get.com",
-		IpAddress: "54.230.6.233",
+		IpAddress: "54.239.200.82",
+	},
+	&fronted.Masquerade{
+		Domain:    "get.com",
+		IpAddress: "54.182.3.7",
 	},
 	&fronted.Masquerade{
 		Domain:    "getamigo.io",
@@ -5898,10 +5834,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "getchute.com",
-		IpAddress: "54.192.7.147",
-	},
-	&fronted.Masquerade{
-		Domain:    "getchute.com",
 		IpAddress: "54.182.4.32",
 	},
 	&fronted.Masquerade{
@@ -5913,12 +5845,16 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.6.10",
 	},
 	&fronted.Masquerade{
-		Domain:    "getdata.intuitcdn.net",
-		IpAddress: "54.192.6.86",
+		Domain:    "getchute.com",
+		IpAddress: "54.192.7.147",
 	},
 	&fronted.Masquerade{
 		Domain:    "getdata.intuitcdn.net",
 		IpAddress: "54.239.130.93",
+	},
+	&fronted.Masquerade{
+		Domain:    "getdata.intuitcdn.net",
+		IpAddress: "54.192.6.86",
 	},
 	&fronted.Masquerade{
 		Domain:    "getdata.intuitcdn.net",
@@ -5930,7 +5866,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "getdata.preprod.intuitcdn.net",
-		IpAddress: "205.251.203.104",
+		IpAddress: "216.137.43.58",
 	},
 	&fronted.Masquerade{
 		Domain:    "getdata.preprod.intuitcdn.net",
@@ -5938,23 +5874,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "getdata.preprod.intuitcdn.net",
-		IpAddress: "216.137.43.58",
-	},
-	&fronted.Masquerade{
-		Domain:    "getstream.io",
-		IpAddress: "54.230.5.22",
+		IpAddress: "205.251.203.104",
 	},
 	&fronted.Masquerade{
 		Domain:    "getstream.io",
 		IpAddress: "54.182.5.225",
 	},
 	&fronted.Masquerade{
-		Domain:    "getsync.com",
-		IpAddress: "54.239.132.139",
-	},
-	&fronted.Masquerade{
-		Domain:    "getsync.com",
-		IpAddress: "216.137.39.181",
+		Domain:    "getstream.io",
+		IpAddress: "54.230.5.22",
 	},
 	&fronted.Masquerade{
 		Domain:    "getsync.com",
@@ -5962,11 +5890,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "getsync.com",
+		IpAddress: "216.137.39.181",
+	},
+	&fronted.Masquerade{
+		Domain:    "getsync.com",
 		IpAddress: "216.137.43.126",
 	},
 	&fronted.Masquerade{
-		Domain:    "ghimg.com",
-		IpAddress: "216.137.36.243",
+		Domain:    "getsync.com",
+		IpAddress: "54.239.132.139",
 	},
 	&fronted.Masquerade{
 		Domain:    "ghimg.com",
@@ -5982,11 +5914,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "ghimg.com",
-		IpAddress: "205.251.253.210",
+		IpAddress: "54.239.200.184",
 	},
 	&fronted.Masquerade{
 		Domain:    "ghimg.com",
-		IpAddress: "54.239.200.184",
+		IpAddress: "205.251.253.210",
 	},
 	&fronted.Masquerade{
 		Domain:    "glide.me",
@@ -6002,6 +5934,10 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "globalcitizen.org",
+		IpAddress: "216.137.33.171",
+	},
+	&fronted.Masquerade{
+		Domain:    "globalcitizen.org",
 		IpAddress: "54.239.130.55",
 	},
 	&fronted.Masquerade{
@@ -6009,16 +5945,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.230.5.226",
 	},
 	&fronted.Masquerade{
-		Domain:    "globalcitizen.org",
-		IpAddress: "216.137.33.171",
+		Domain:    "globalmeet.com",
+		IpAddress: "54.192.4.208",
 	},
 	&fronted.Masquerade{
 		Domain:    "globalmeet.com",
 		IpAddress: "54.182.2.97",
-	},
-	&fronted.Masquerade{
-		Domain:    "globalmeet.com",
-		IpAddress: "54.192.4.208",
 	},
 	&fronted.Masquerade{
 		Domain:    "globalsocialinc.com",
@@ -6034,7 +5966,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "goinstant.net",
-		IpAddress: "54.182.0.231",
+		IpAddress: "54.230.7.156",
 	},
 	&fronted.Masquerade{
 		Domain:    "goinstant.net",
@@ -6042,7 +5974,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "goinstant.net",
-		IpAddress: "54.230.7.156",
+		IpAddress: "205.251.203.242",
+	},
+	&fronted.Masquerade{
+		Domain:    "goinstant.net",
+		IpAddress: "205.251.253.218",
+	},
+	&fronted.Masquerade{
+		Domain:    "goinstant.net",
+		IpAddress: "54.182.0.231",
+	},
+	&fronted.Masquerade{
+		Domain:    "goinstant.net",
+		IpAddress: "216.137.36.248",
 	},
 	&fronted.Masquerade{
 		Domain:    "goinstant.net",
@@ -6054,27 +5998,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "goinstant.net",
-		IpAddress: "216.137.36.248",
-	},
-	&fronted.Masquerade{
-		Domain:    "goinstant.net",
 		IpAddress: "204.246.169.157",
-	},
-	&fronted.Masquerade{
-		Domain:    "goinstant.net",
-		IpAddress: "205.251.203.242",
-	},
-	&fronted.Masquerade{
-		Domain:    "goinstant.net",
-		IpAddress: "205.251.253.218",
-	},
-	&fronted.Masquerade{
-		Domain:    "goinstant.org",
-		IpAddress: "216.137.45.113",
-	},
-	&fronted.Masquerade{
-		Domain:    "goinstant.org",
-		IpAddress: "54.192.5.130",
 	},
 	&fronted.Masquerade{
 		Domain:    "goinstant.org",
@@ -6082,7 +6006,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "goinstant.org",
-		IpAddress: "205.251.253.137",
+		IpAddress: "205.251.203.153",
 	},
 	&fronted.Masquerade{
 		Domain:    "goinstant.org",
@@ -6090,23 +6014,27 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "goinstant.org",
+		IpAddress: "216.137.45.113",
+	},
+	&fronted.Masquerade{
+		Domain:    "goinstant.org",
+		IpAddress: "205.251.253.137",
+	},
+	&fronted.Masquerade{
+		Domain:    "goinstant.org",
 		IpAddress: "54.239.200.118",
 	},
 	&fronted.Masquerade{
 		Domain:    "goinstant.org",
-		IpAddress: "205.251.203.153",
-	},
-	&fronted.Masquerade{
-		Domain:    "gooru.org",
-		IpAddress: "54.192.4.23",
+		IpAddress: "54.192.5.130",
 	},
 	&fronted.Masquerade{
 		Domain:    "gooru.org",
 		IpAddress: "54.239.130.47",
 	},
 	&fronted.Masquerade{
-		Domain:    "goorulearning.org",
-		IpAddress: "216.137.39.158",
+		Domain:    "gooru.org",
+		IpAddress: "54.192.4.23",
 	},
 	&fronted.Masquerade{
 		Domain:    "goorulearning.org",
@@ -6114,11 +6042,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "goorulearning.org",
-		IpAddress: "54.182.5.215",
+		IpAddress: "216.137.33.197",
 	},
 	&fronted.Masquerade{
 		Domain:    "goorulearning.org",
-		IpAddress: "216.137.33.197",
+		IpAddress: "216.137.39.158",
+	},
+	&fronted.Masquerade{
+		Domain:    "goorulearning.org",
+		IpAddress: "54.182.5.215",
 	},
 	&fronted.Masquerade{
 		Domain:    "gopro.com",
@@ -6146,7 +6078,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "gozoomo.com",
-		IpAddress: "54.182.0.61",
+		IpAddress: "205.251.253.40",
 	},
 	&fronted.Masquerade{
 		Domain:    "gozoomo.com",
@@ -6158,19 +6090,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "gozoomo.com",
-		IpAddress: "205.251.253.40",
-	},
-	&fronted.Masquerade{
-		Domain:    "gp-static.com",
-		IpAddress: "216.137.43.246",
-	},
-	&fronted.Masquerade{
-		Domain:    "gp-static.com",
-		IpAddress: "54.192.7.57",
+		IpAddress: "54.182.0.61",
 	},
 	&fronted.Masquerade{
 		Domain:    "gp-static.com",
 		IpAddress: "54.239.130.61",
+	},
+	&fronted.Masquerade{
+		Domain:    "gp-static.com",
+		IpAddress: "54.192.5.4",
+	},
+	&fronted.Masquerade{
+		Domain:    "gp-static.com",
+		IpAddress: "54.192.7.57",
 	},
 	&fronted.Masquerade{
 		Domain:    "gp-static.com",
@@ -6182,11 +6114,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "gp-static.com",
-		IpAddress: "54.192.5.4",
+		IpAddress: "54.182.0.31",
 	},
 	&fronted.Masquerade{
 		Domain:    "gp-static.com",
-		IpAddress: "54.182.0.31",
+		IpAddress: "216.137.43.246",
 	},
 	&fronted.Masquerade{
 		Domain:    "gr-assets.com",
@@ -6210,43 +6142,27 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "greatnationseat.org",
-		IpAddress: "216.137.33.155",
-	},
-	&fronted.Masquerade{
-		Domain:    "greatnationseat.org",
 		IpAddress: "54.192.5.217",
 	},
 	&fronted.Masquerade{
-		Domain:    "groupme.com",
-		IpAddress: "54.192.4.253",
+		Domain:    "greatnationseat.org",
+		IpAddress: "216.137.33.155",
 	},
 	&fronted.Masquerade{
 		Domain:    "groupme.com",
 		IpAddress: "204.246.169.210",
 	},
 	&fronted.Masquerade{
-		Domain:    "gumbuya.net",
-		IpAddress: "54.230.7.208",
+		Domain:    "groupme.com",
+		IpAddress: "54.192.4.253",
 	},
 	&fronted.Masquerade{
 		Domain:    "gumbuya.net",
 		IpAddress: "54.182.1.137",
 	},
 	&fronted.Masquerade{
-		Domain:    "gyft.com",
-		IpAddress: "54.192.5.72",
-	},
-	&fronted.Masquerade{
-		Domain:    "gyft.com",
-		IpAddress: "216.137.36.20",
-	},
-	&fronted.Masquerade{
-		Domain:    "gyft.com",
-		IpAddress: "205.251.203.20",
-	},
-	&fronted.Masquerade{
-		Domain:    "gyft.com",
-		IpAddress: "54.182.2.214",
+		Domain:    "gumbuya.net",
+		IpAddress: "54.230.7.208",
 	},
 	&fronted.Masquerade{
 		Domain:    "gyft.com",
@@ -6257,12 +6173,28 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.192.5.40",
 	},
 	&fronted.Masquerade{
-		Domain:    "hagah.com",
-		IpAddress: "54.230.4.166",
+		Domain:    "gyft.com",
+		IpAddress: "54.182.2.214",
+	},
+	&fronted.Masquerade{
+		Domain:    "gyft.com",
+		IpAddress: "216.137.36.20",
+	},
+	&fronted.Masquerade{
+		Domain:    "gyft.com",
+		IpAddress: "54.192.5.72",
+	},
+	&fronted.Masquerade{
+		Domain:    "gyft.com",
+		IpAddress: "205.251.203.20",
 	},
 	&fronted.Masquerade{
 		Domain:    "hagah.com",
-		IpAddress: "54.239.200.152",
+		IpAddress: "54.182.2.100",
+	},
+	&fronted.Masquerade{
+		Domain:    "hagah.com",
+		IpAddress: "54.230.4.166",
 	},
 	&fronted.Masquerade{
 		Domain:    "hagah.com",
@@ -6270,7 +6202,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "hagah.com",
-		IpAddress: "54.182.2.100",
+		IpAddress: "54.239.200.152",
 	},
 	&fronted.Masquerade{
 		Domain:    "hagah.com",
@@ -6290,11 +6222,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "handoutsstage.gotowebinar.com",
-		IpAddress: "54.192.4.67",
+		IpAddress: "54.182.2.13",
 	},
 	&fronted.Masquerade{
 		Domain:    "handoutsstage.gotowebinar.com",
-		IpAddress: "54.182.2.13",
+		IpAddress: "54.192.4.67",
 	},
 	&fronted.Masquerade{
 		Domain:    "handoutsstage.gotowebinar.com",
@@ -6302,19 +6234,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "happify.com",
-		IpAddress: "216.137.33.247",
+		IpAddress: "54.182.2.248",
 	},
 	&fronted.Masquerade{
 		Domain:    "happify.com",
 		IpAddress: "54.192.7.136",
 	},
 	&fronted.Masquerade{
-		Domain:    "happify.com",
-		IpAddress: "54.182.2.248",
-	},
-	&fronted.Masquerade{
 		Domain:    "hbfiles.com",
-		IpAddress: "205.251.203.18",
+		IpAddress: "205.251.253.22",
 	},
 	&fronted.Masquerade{
 		Domain:    "hbfiles.com",
@@ -6322,7 +6250,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "hbfiles.com",
-		IpAddress: "205.251.253.22",
+		IpAddress: "205.251.203.18",
 	},
 	&fronted.Masquerade{
 		Domain:    "hbfiles.com",
@@ -6334,35 +6262,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "hbonow.com",
-		IpAddress: "54.230.5.208",
-	},
-	&fronted.Masquerade{
-		Domain:    "hbonow.com",
-		IpAddress: "54.182.7.118",
-	},
-	&fronted.Masquerade{
-		Domain:    "hbonow.com",
-		IpAddress: "54.182.6.176",
-	},
-	&fronted.Masquerade{
-		Domain:    "hbonow.com",
 		IpAddress: "54.192.7.183",
 	},
 	&fronted.Masquerade{
 		Domain:    "hbonow.com",
-		IpAddress: "54.182.7.220",
-	},
-	&fronted.Masquerade{
-		Domain:    "hbonow.com",
-		IpAddress: "54.239.132.236",
-	},
-	&fronted.Masquerade{
-		Domain:    "hbonow.com",
-		IpAddress: "54.230.6.31",
-	},
-	&fronted.Masquerade{
-		Domain:    "hbonow.com",
-		IpAddress: "54.182.7.128",
+		IpAddress: "54.230.5.208",
 	},
 	&fronted.Masquerade{
 		Domain:    "hbonow.com",
@@ -6370,11 +6274,35 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "hbonow.com",
-		IpAddress: "54.230.6.163",
+		IpAddress: "54.182.6.176",
+	},
+	&fronted.Masquerade{
+		Domain:    "hbonow.com",
+		IpAddress: "54.182.7.118",
+	},
+	&fronted.Masquerade{
+		Domain:    "hbonow.com",
+		IpAddress: "54.182.7.128",
+	},
+	&fronted.Masquerade{
+		Domain:    "hbonow.com",
+		IpAddress: "54.182.7.220",
 	},
 	&fronted.Masquerade{
 		Domain:    "hbonow.com",
 		IpAddress: "54.230.5.170",
+	},
+	&fronted.Masquerade{
+		Domain:    "hbonow.com",
+		IpAddress: "54.230.6.163",
+	},
+	&fronted.Masquerade{
+		Domain:    "hbonow.com",
+		IpAddress: "54.230.6.31",
+	},
+	&fronted.Masquerade{
+		Domain:    "hbonow.com",
+		IpAddress: "54.239.132.236",
 	},
 	&fronted.Masquerade{
 		Domain:    "hbr.org",
@@ -6386,14 +6314,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "hc1.com",
-		IpAddress: "216.137.33.184",
-	},
-	&fronted.Masquerade{
-		Domain:    "hc1.com",
-		IpAddress: "54.239.200.105",
-	},
-	&fronted.Masquerade{
-		Domain:    "hc1.com",
 		IpAddress: "54.182.6.141",
 	},
 	&fronted.Masquerade{
@@ -6401,8 +6321,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.192.5.23",
 	},
 	&fronted.Masquerade{
-		Domain:    "healthcare.com",
-		IpAddress: "54.239.132.38",
+		Domain:    "hc1.com",
+		IpAddress: "216.137.33.184",
+	},
+	&fronted.Masquerade{
+		Domain:    "hc1.com",
+		IpAddress: "54.239.200.105",
 	},
 	&fronted.Masquerade{
 		Domain:    "healthcare.com",
@@ -6413,8 +6337,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.192.5.169",
 	},
 	&fronted.Masquerade{
+		Domain:    "healthcare.com",
+		IpAddress: "54.239.132.38",
+	},
+	&fronted.Masquerade{
 		Domain:    "healthcheck.dropboxstatic.com",
-		IpAddress: "216.137.33.84",
+		IpAddress: "54.182.4.117",
 	},
 	&fronted.Masquerade{
 		Domain:    "healthcheck.dropboxstatic.com",
@@ -6422,7 +6350,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "healthcheck.dropboxstatic.com",
-		IpAddress: "54.182.4.117",
+		IpAddress: "216.137.33.84",
 	},
 	&fronted.Masquerade{
 		Domain:    "healthgrades.com",
@@ -6446,15 +6374,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "healthination.com",
-		IpAddress: "205.251.253.219",
-	},
-	&fronted.Masquerade{
-		Domain:    "healthination.com",
 		IpAddress: "54.182.0.200",
 	},
 	&fronted.Masquerade{
+		Domain:    "healthination.com",
+		IpAddress: "205.251.253.219",
+	},
+	&fronted.Masquerade{
 		Domain:    "healthtap.com",
-		IpAddress: "216.137.43.71",
+		IpAddress: "216.137.36.74",
+	},
+	&fronted.Masquerade{
+		Domain:    "healthtap.com",
+		IpAddress: "54.239.200.6",
 	},
 	&fronted.Masquerade{
 		Domain:    "healthtap.com",
@@ -6466,15 +6398,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "healthtap.com",
+		IpAddress: "216.137.43.71",
+	},
+	&fronted.Masquerade{
+		Domain:    "healthtap.com",
 		IpAddress: "54.192.7.218",
-	},
-	&fronted.Masquerade{
-		Domain:    "healthtap.com",
-		IpAddress: "54.239.200.6",
-	},
-	&fronted.Masquerade{
-		Domain:    "healthtap.com",
-		IpAddress: "216.137.36.74",
 	},
 	&fronted.Masquerade{
 		Domain:    "hellocdn.net",
@@ -6486,11 +6414,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "hirevue.com",
-		IpAddress: "54.182.2.75",
+		IpAddress: "54.192.4.220",
 	},
 	&fronted.Masquerade{
 		Domain:    "hirevue.com",
-		IpAddress: "54.192.4.220",
+		IpAddress: "54.182.2.75",
 	},
 	&fronted.Masquerade{
 		Domain:    "hirevue.com",
@@ -6498,11 +6426,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "homepackbuzz.com",
-		IpAddress: "54.182.4.14",
-	},
-	&fronted.Masquerade{
-		Domain:    "homepackbuzz.com",
-		IpAddress: "216.137.33.58",
+		IpAddress: "54.230.5.182",
 	},
 	&fronted.Masquerade{
 		Domain:    "homepackbuzz.com",
@@ -6510,7 +6434,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "homepackbuzz.com",
-		IpAddress: "54.230.5.182",
+		IpAddress: "216.137.33.58",
 	},
 	&fronted.Masquerade{
 		Domain:    "homepackbuzz.com",
@@ -6519,6 +6443,10 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "homepackbuzz.com",
 		IpAddress: "54.230.5.109",
+	},
+	&fronted.Masquerade{
+		Domain:    "homepackbuzz.com",
+		IpAddress: "54.182.4.14",
 	},
 	&fronted.Masquerade{
 		Domain:    "homes.co.jp",
@@ -6530,10 +6458,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "homes.jp",
-		IpAddress: "216.137.33.167",
-	},
-	&fronted.Masquerade{
-		Domain:    "homes.jp",
 		IpAddress: "204.246.169.128",
 	},
 	&fronted.Masquerade{
@@ -6541,12 +6465,16 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.230.6.151",
 	},
 	&fronted.Masquerade{
-		Domain:    "honey.is",
-		IpAddress: "54.239.130.140",
+		Domain:    "homes.jp",
+		IpAddress: "216.137.33.167",
 	},
 	&fronted.Masquerade{
 		Domain:    "honey.is",
-		IpAddress: "54.182.6.48",
+		IpAddress: "216.137.36.28",
+	},
+	&fronted.Masquerade{
+		Domain:    "honey.is",
+		IpAddress: "54.239.130.140",
 	},
 	&fronted.Masquerade{
 		Domain:    "honey.is",
@@ -6554,11 +6482,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "honey.is",
-		IpAddress: "205.251.203.13",
+		IpAddress: "54.182.6.48",
 	},
 	&fronted.Masquerade{
 		Domain:    "honey.is",
-		IpAddress: "216.137.36.28",
+		IpAddress: "205.251.203.13",
 	},
 	&fronted.Masquerade{
 		Domain:    "hoodline.com",
@@ -6566,7 +6494,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "hoodline.com",
-		IpAddress: "54.239.130.20",
+		IpAddress: "205.251.203.154",
 	},
 	&fronted.Masquerade{
 		Domain:    "hoodline.com",
@@ -6574,15 +6502,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "hoodline.com",
-		IpAddress: "205.251.203.154",
-	},
-	&fronted.Masquerade{
-		Domain:    "housingcdn.com",
-		IpAddress: "54.192.10.68",
-	},
-	&fronted.Masquerade{
-		Domain:    "housingcdn.com",
-		IpAddress: "216.137.33.6",
+		IpAddress: "54.239.130.20",
 	},
 	&fronted.Masquerade{
 		Domain:    "housingcdn.com",
@@ -6590,7 +6510,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "housingcdn.com",
+		IpAddress: "216.137.33.6",
+	},
+	&fronted.Masquerade{
+		Domain:    "housingcdn.com",
 		IpAddress: "54.182.6.248",
+	},
+	&fronted.Masquerade{
+		Domain:    "huddle.com",
+		IpAddress: "54.182.7.173",
+	},
+	&fronted.Masquerade{
+		Domain:    "huddle.com",
+		IpAddress: "216.137.39.242",
 	},
 	&fronted.Masquerade{
 		Domain:    "huddle.com",
@@ -6601,24 +6533,16 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.230.6.206",
 	},
 	&fronted.Masquerade{
-		Domain:    "huddle.com",
-		IpAddress: "216.137.39.242",
-	},
-	&fronted.Masquerade{
-		Domain:    "huddle.com",
-		IpAddress: "54.182.7.173",
-	},
-	&fronted.Masquerade{
 		Domain:    "hyprmx.com",
 		IpAddress: "205.251.253.139",
 	},
 	&fronted.Masquerade{
 		Domain:    "hyprmx.com",
-		IpAddress: "54.239.132.58",
+		IpAddress: "54.230.4.235",
 	},
 	&fronted.Masquerade{
 		Domain:    "hyprmx.com",
-		IpAddress: "54.230.4.235",
+		IpAddress: "54.239.132.58",
 	},
 	&fronted.Masquerade{
 		Domain:    "hyprmx.com",
@@ -6646,19 +6570,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "icontactimg.com",
-		IpAddress: "54.182.5.204",
-	},
-	&fronted.Masquerade{
-		Domain:    "icontactimg.com",
 		IpAddress: "54.230.5.136",
 	},
 	&fronted.Masquerade{
-		Domain:    "idtargeting.com",
-		IpAddress: "54.230.6.5",
+		Domain:    "icontactimg.com",
+		IpAddress: "54.182.5.204",
 	},
 	&fronted.Masquerade{
 		Domain:    "idtargeting.com",
 		IpAddress: "54.182.7.226",
+	},
+	&fronted.Masquerade{
+		Domain:    "idtargeting.com",
+		IpAddress: "54.230.6.5",
 	},
 	&fronted.Masquerade{
 		Domain:    "idtech.com",
@@ -6666,27 +6590,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "idtech.com",
-		IpAddress: "54.182.3.25",
-	},
-	&fronted.Masquerade{
-		Domain:    "idtech.com",
 		IpAddress: "204.246.169.21",
 	},
 	&fronted.Masquerade{
-		Domain:    "ifcdn.com",
-		IpAddress: "216.137.43.121",
-	},
-	&fronted.Masquerade{
-		Domain:    "ifcdn.com",
-		IpAddress: "54.230.4.44",
-	},
-	&fronted.Masquerade{
-		Domain:    "ifcdn.com",
-		IpAddress: "54.192.7.21",
-	},
-	&fronted.Masquerade{
-		Domain:    "ifcdn.com",
-		IpAddress: "205.251.203.161",
+		Domain:    "idtech.com",
+		IpAddress: "54.182.3.25",
 	},
 	&fronted.Masquerade{
 		Domain:    "ifcdn.com",
@@ -6694,23 +6602,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "ifcdn.com",
-		IpAddress: "54.192.4.68",
-	},
-	&fronted.Masquerade{
-		Domain:    "ifcdn.com",
-		IpAddress: "205.251.203.204",
-	},
-	&fronted.Masquerade{
-		Domain:    "ifcdn.com",
 		IpAddress: "205.251.251.151",
 	},
 	&fronted.Masquerade{
 		Domain:    "ifcdn.com",
-		IpAddress: "54.182.1.38",
-	},
-	&fronted.Masquerade{
-		Domain:    "ifcdn.com",
-		IpAddress: "216.137.36.158",
+		IpAddress: "54.239.132.237",
 	},
 	&fronted.Masquerade{
 		Domain:    "ifcdn.com",
@@ -6718,19 +6614,35 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "ifcdn.com",
-		IpAddress: "54.192.7.60",
+		IpAddress: "54.192.5.20",
 	},
 	&fronted.Masquerade{
 		Domain:    "ifcdn.com",
-		IpAddress: "216.137.43.159",
+		IpAddress: "54.182.1.38",
 	},
 	&fronted.Masquerade{
 		Domain:    "ifcdn.com",
-		IpAddress: "54.230.5.113",
+		IpAddress: "205.251.203.204",
+	},
+	&fronted.Masquerade{
+		Domain:    "ifcdn.com",
+		IpAddress: "54.230.4.44",
+	},
+	&fronted.Masquerade{
+		Domain:    "ifcdn.com",
+		IpAddress: "216.137.36.158",
 	},
 	&fronted.Masquerade{
 		Domain:    "ifcdn.com",
 		IpAddress: "216.137.36.146",
+	},
+	&fronted.Masquerade{
+		Domain:    "ifcdn.com",
+		IpAddress: "54.192.4.68",
+	},
+	&fronted.Masquerade{
+		Domain:    "ifcdn.com",
+		IpAddress: "216.137.43.121",
 	},
 	&fronted.Masquerade{
 		Domain:    "ifcdn.com",
@@ -6742,19 +6654,27 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "ifcdn.com",
-		IpAddress: "54.192.5.20",
+		IpAddress: "216.137.43.159",
 	},
 	&fronted.Masquerade{
 		Domain:    "ifcdn.com",
-		IpAddress: "54.239.132.237",
+		IpAddress: "54.192.7.60",
 	},
 	&fronted.Masquerade{
 		Domain:    "ifcdn.com",
-		IpAddress: "204.246.169.182",
+		IpAddress: "205.251.203.161",
+	},
+	&fronted.Masquerade{
+		Domain:    "ifcdn.com",
+		IpAddress: "54.230.5.113",
+	},
+	&fronted.Masquerade{
+		Domain:    "ifcdn.com",
+		IpAddress: "54.192.7.21",
 	},
 	&fronted.Masquerade{
 		Domain:    "iframes.airbnbpayments.com",
-		IpAddress: "54.182.5.116",
+		IpAddress: "54.230.5.116",
 	},
 	&fronted.Masquerade{
 		Domain:    "iframes.airbnbpayments.com",
@@ -6766,23 +6686,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "iframes.airbnbpayments.com",
-		IpAddress: "54.230.5.116",
-	},
-	&fronted.Masquerade{
-		Domain:    "igarage.hyperplatform.com",
-		IpAddress: "54.192.5.39",
+		IpAddress: "54.182.5.116",
 	},
 	&fronted.Masquerade{
 		Domain:    "igarage.hyperplatform.com",
 		IpAddress: "54.182.2.64",
 	},
 	&fronted.Masquerade{
-		Domain:    "igstatic.com",
-		IpAddress: "205.251.253.238",
-	},
-	&fronted.Masquerade{
-		Domain:    "igstatic.com",
-		IpAddress: "204.246.169.174",
+		Domain:    "igarage.hyperplatform.com",
+		IpAddress: "54.192.5.39",
 	},
 	&fronted.Masquerade{
 		Domain:    "igstatic.com",
@@ -6790,27 +6702,27 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "igstatic.com",
-		IpAddress: "54.239.200.211",
+		IpAddress: "204.246.169.174",
 	},
 	&fronted.Masquerade{
-		Domain:    "ilearn.robertwalters.com",
-		IpAddress: "54.230.7.125",
+		Domain:    "igstatic.com",
+		IpAddress: "205.251.253.238",
+	},
+	&fronted.Masquerade{
+		Domain:    "igstatic.com",
+		IpAddress: "54.239.200.211",
 	},
 	&fronted.Masquerade{
 		Domain:    "ilearn.robertwalters.com",
 		IpAddress: "54.182.7.75",
 	},
 	&fronted.Masquerade{
-		Domain:    "images.countryoutfitter.com",
-		IpAddress: "216.137.36.242",
+		Domain:    "ilearn.robertwalters.com",
+		IpAddress: "54.230.7.125",
 	},
 	&fronted.Masquerade{
 		Domain:    "images.countryoutfitter.com",
 		IpAddress: "54.182.3.76",
-	},
-	&fronted.Masquerade{
-		Domain:    "images.countryoutfitter.com",
-		IpAddress: "54.192.5.177",
 	},
 	&fronted.Masquerade{
 		Domain:    "images.countryoutfitter.com",
@@ -6821,12 +6733,20 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "205.251.203.236",
 	},
 	&fronted.Masquerade{
-		Domain:    "images.food52.com",
-		IpAddress: "54.182.7.125",
+		Domain:    "images.countryoutfitter.com",
+		IpAddress: "54.192.5.177",
+	},
+	&fronted.Masquerade{
+		Domain:    "images.countryoutfitter.com",
+		IpAddress: "216.137.36.242",
 	},
 	&fronted.Masquerade{
 		Domain:    "images.food52.com",
 		IpAddress: "54.230.6.165",
+	},
+	&fronted.Masquerade{
+		Domain:    "images.food52.com",
+		IpAddress: "54.182.7.125",
 	},
 	&fronted.Masquerade{
 		Domain:    "images.insinkerator-worldwide.com",
@@ -6858,7 +6778,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "images01.iqoption.com",
-		IpAddress: "216.137.33.13",
+		IpAddress: "204.246.169.240",
 	},
 	&fronted.Masquerade{
 		Domain:    "images01.iqoption.com",
@@ -6866,7 +6786,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "images01.iqoption.com",
-		IpAddress: "204.246.169.240",
+		IpAddress: "216.137.33.13",
 	},
 	&fronted.Masquerade{
 		Domain:    "images01.iqoption.com",
@@ -6882,7 +6802,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "imeet.powwownow.com",
-		IpAddress: "54.182.6.200",
+		IpAddress: "54.192.4.94",
 	},
 	&fronted.Masquerade{
 		Domain:    "imeet.powwownow.com",
@@ -6890,15 +6810,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "imeet.powwownow.com",
-		IpAddress: "54.192.4.94",
-	},
-	&fronted.Masquerade{
-		Domain:    "imeet.se",
-		IpAddress: "54.182.6.95",
+		IpAddress: "54.182.6.200",
 	},
 	&fronted.Masquerade{
 		Domain:    "imeet.se",
 		IpAddress: "54.230.4.194",
+	},
+	&fronted.Masquerade{
+		Domain:    "imeet.se",
+		IpAddress: "54.182.6.95",
 	},
 	&fronted.Masquerade{
 		Domain:    "imeetbeta.net",
@@ -6926,11 +6846,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "img.nrtwebservices.com",
-		IpAddress: "205.251.253.51",
-	},
-	&fronted.Masquerade{
-		Domain:    "img.nrtwebservices.com",
-		IpAddress: "54.192.5.85",
+		IpAddress: "54.239.130.113",
 	},
 	&fronted.Masquerade{
 		Domain:    "img.nrtwebservices.com",
@@ -6938,15 +6854,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "img.nrtwebservices.com",
-		IpAddress: "54.239.130.113",
+		IpAddress: "216.137.45.42",
 	},
 	&fronted.Masquerade{
 		Domain:    "img.nrtwebservices.com",
-		IpAddress: "205.251.203.56",
-	},
-	&fronted.Masquerade{
-		Domain:    "img.nrtwebservices.com",
-		IpAddress: "216.137.36.56",
+		IpAddress: "54.192.5.85",
 	},
 	&fronted.Masquerade{
 		Domain:    "img.nrtwebservices.com",
@@ -6954,7 +6866,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "img.nrtwebservices.com",
-		IpAddress: "216.137.45.42",
+		IpAddress: "205.251.253.51",
+	},
+	&fronted.Masquerade{
+		Domain:    "img.nrtwebservices.com",
+		IpAddress: "216.137.36.56",
+	},
+	&fronted.Masquerade{
+		Domain:    "img.nrtwebservices.com",
+		IpAddress: "205.251.203.56",
 	},
 	&fronted.Masquerade{
 		Domain:    "img.point.auone.jp",
@@ -6966,7 +6886,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "img3.nrtwebservices.com",
-		IpAddress: "216.137.36.58",
+		IpAddress: "54.239.200.44",
+	},
+	&fronted.Masquerade{
+		Domain:    "img3.nrtwebservices.com",
+		IpAddress: "205.251.253.53",
 	},
 	&fronted.Masquerade{
 		Domain:    "img3.nrtwebservices.com",
@@ -6974,15 +6898,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "img3.nrtwebservices.com",
-		IpAddress: "54.239.200.44",
-	},
-	&fronted.Masquerade{
-		Domain:    "img3.nrtwebservices.com",
 		IpAddress: "216.137.33.5",
 	},
 	&fronted.Masquerade{
 		Domain:    "img3.nrtwebservices.com",
-		IpAddress: "205.251.253.53",
+		IpAddress: "216.137.36.58",
 	},
 	&fronted.Masquerade{
 		Domain:    "imoji.io",
@@ -6994,7 +6914,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "inform.com",
-		IpAddress: "216.137.39.124",
+		IpAddress: "216.137.45.7",
 	},
 	&fronted.Masquerade{
 		Domain:    "inform.com",
@@ -7002,7 +6922,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "inform.com",
-		IpAddress: "216.137.45.7",
+		IpAddress: "216.137.39.124",
 	},
 	&fronted.Masquerade{
 		Domain:    "inform.com",
@@ -7010,7 +6930,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "infospace.com",
-		IpAddress: "54.230.6.203",
+		IpAddress: "54.182.5.178",
 	},
 	&fronted.Masquerade{
 		Domain:    "infospace.com",
@@ -7018,7 +6938,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "infospace.com",
-		IpAddress: "54.182.5.178",
+		IpAddress: "54.230.6.203",
 	},
 	&fronted.Masquerade{
 		Domain:    "inkfrog.com",
@@ -7034,19 +6954,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "innotas.com",
-		IpAddress: "216.137.43.17",
-	},
-	&fronted.Masquerade{
-		Domain:    "innotas.com",
 		IpAddress: "54.192.6.170",
-	},
-	&fronted.Masquerade{
-		Domain:    "innotas.com",
-		IpAddress: "216.137.36.38",
-	},
-	&fronted.Masquerade{
-		Domain:    "innotas.com",
-		IpAddress: "216.137.33.185",
 	},
 	&fronted.Masquerade{
 		Domain:    "innotas.com",
@@ -7054,7 +6962,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "innotas.com",
-		IpAddress: "205.251.203.38",
+		IpAddress: "216.137.43.17",
+	},
+	&fronted.Masquerade{
+		Domain:    "innotas.com",
+		IpAddress: "216.137.45.33",
 	},
 	&fronted.Masquerade{
 		Domain:    "innotas.com",
@@ -7066,19 +6978,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "innotas.com",
-		IpAddress: "204.246.169.31",
-	},
-	&fronted.Masquerade{
-		Domain:    "innotas.com",
 		IpAddress: "204.246.169.28",
 	},
 	&fronted.Masquerade{
 		Domain:    "innotas.com",
-		IpAddress: "216.137.45.33",
+		IpAddress: "205.251.203.38",
 	},
 	&fronted.Masquerade{
 		Domain:    "innotas.com",
-		IpAddress: "205.251.253.37",
+		IpAddress: "216.137.33.185",
+	},
+	&fronted.Masquerade{
+		Domain:    "innotas.com",
+		IpAddress: "204.246.169.31",
+	},
+	&fronted.Masquerade{
+		Domain:    "innotas.com",
+		IpAddress: "216.137.36.38",
 	},
 	&fronted.Masquerade{
 		Domain:    "innovid.com",
@@ -7090,11 +7006,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "insead.edu",
-		IpAddress: "216.137.43.51",
+		IpAddress: "205.251.203.111",
 	},
 	&fronted.Masquerade{
 		Domain:    "insead.edu",
-		IpAddress: "54.182.4.92",
+		IpAddress: "216.137.43.51",
 	},
 	&fronted.Masquerade{
 		Domain:    "insead.edu",
@@ -7102,7 +7018,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "insead.edu",
-		IpAddress: "205.251.203.111",
+		IpAddress: "54.182.4.92",
 	},
 	&fronted.Masquerade{
 		Domain:    "insead.edu",
@@ -7110,11 +7026,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "instaforex.com",
-		IpAddress: "54.182.3.53",
+		IpAddress: "205.251.203.150",
 	},
 	&fronted.Masquerade{
 		Domain:    "instaforex.com",
-		IpAddress: "205.251.203.150",
+		IpAddress: "54.182.3.53",
 	},
 	&fronted.Masquerade{
 		Domain:    "instaforex.com",
@@ -7126,19 +7042,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "intercom.io",
-		IpAddress: "54.182.1.92",
-	},
-	&fronted.Masquerade{
-		Domain:    "intercom.io",
 		IpAddress: "54.192.6.175",
 	},
 	&fronted.Masquerade{
 		Domain:    "intercom.io",
-		IpAddress: "216.137.45.76",
+		IpAddress: "54.192.4.149",
 	},
 	&fronted.Masquerade{
 		Domain:    "intercom.io",
-		IpAddress: "54.192.4.149",
+		IpAddress: "54.182.1.92",
+	},
+	&fronted.Masquerade{
+		Domain:    "intercom.io",
+		IpAddress: "216.137.45.76",
 	},
 	&fronted.Masquerade{
 		Domain:    "interpolls.com",
@@ -7150,11 +7066,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "intwowcher.co.uk",
-		IpAddress: "54.182.1.39",
+		IpAddress: "54.239.130.7",
 	},
 	&fronted.Masquerade{
 		Domain:    "intwowcher.co.uk",
-		IpAddress: "54.239.130.7",
+		IpAddress: "54.182.1.39",
 	},
 	&fronted.Masquerade{
 		Domain:    "intwowcher.co.uk",
@@ -7166,27 +7082,27 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "io-virtualvenue.com",
-		IpAddress: "54.182.3.130",
-	},
-	&fronted.Masquerade{
-		Domain:    "io-virtualvenue.com",
 		IpAddress: "216.137.36.204",
 	},
 	&fronted.Masquerade{
 		Domain:    "io-virtualvenue.com",
-		IpAddress: "216.137.39.55",
+		IpAddress: "54.182.3.130",
 	},
 	&fronted.Masquerade{
 		Domain:    "io-virtualvenue.com",
 		IpAddress: "216.137.43.107",
 	},
 	&fronted.Masquerade{
-		Domain:    "ipredictive.com",
-		IpAddress: "54.239.200.240",
+		Domain:    "io-virtualvenue.com",
+		IpAddress: "216.137.39.55",
 	},
 	&fronted.Masquerade{
 		Domain:    "ipredictive.com",
 		IpAddress: "54.192.4.244",
+	},
+	&fronted.Masquerade{
+		Domain:    "ipredictive.com",
+		IpAddress: "54.239.200.240",
 	},
 	&fronted.Masquerade{
 		Domain:    "italam.org",
@@ -7202,15 +7118,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "itcher.com",
-		IpAddress: "54.182.2.168",
-	},
-	&fronted.Masquerade{
-		Domain:    "itcher.com",
 		IpAddress: "54.230.6.33",
 	},
 	&fronted.Masquerade{
-		Domain:    "itravel2000.com",
-		IpAddress: "54.182.2.23",
+		Domain:    "itcher.com",
+		IpAddress: "54.182.2.168",
 	},
 	&fronted.Masquerade{
 		Domain:    "itravel2000.com",
@@ -7218,11 +7130,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "itravel2000.com",
-		IpAddress: "54.192.7.69",
+		IpAddress: "54.182.2.23",
 	},
 	&fronted.Masquerade{
-		Domain:    "itriagehealth.com",
-		IpAddress: "54.182.2.4",
+		Domain:    "itravel2000.com",
+		IpAddress: "54.192.7.69",
 	},
 	&fronted.Masquerade{
 		Domain:    "itriagehealth.com",
@@ -7233,12 +7145,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.192.5.127",
 	},
 	&fronted.Masquerade{
-		Domain:    "iubenda.com",
-		IpAddress: "205.251.203.67",
-	},
-	&fronted.Masquerade{
-		Domain:    "iubenda.com",
-		IpAddress: "54.239.200.176",
+		Domain:    "itriagehealth.com",
+		IpAddress: "54.182.2.4",
 	},
 	&fronted.Masquerade{
 		Domain:    "iubenda.com",
@@ -7246,7 +7154,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "iubenda.com",
+		IpAddress: "205.251.203.67",
+	},
+	&fronted.Masquerade{
+		Domain:    "iubenda.com",
 		IpAddress: "54.182.6.104",
+	},
+	&fronted.Masquerade{
+		Domain:    "iubenda.com",
+		IpAddress: "54.239.200.176",
 	},
 	&fronted.Masquerade{
 		Domain:    "jagranjosh.com",
@@ -7258,11 +7174,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "jawbone.com",
-		IpAddress: "216.137.36.182",
+		IpAddress: "216.137.43.94",
 	},
 	&fronted.Masquerade{
 		Domain:    "jawbone.com",
-		IpAddress: "216.137.43.94",
+		IpAddress: "216.137.36.182",
 	},
 	&fronted.Masquerade{
 		Domain:    "jazz.co",
@@ -7274,19 +7190,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "jivox.com",
-		IpAddress: "54.230.5.83",
-	},
-	&fronted.Masquerade{
-		Domain:    "jivox.com",
 		IpAddress: "54.182.0.37",
 	},
 	&fronted.Masquerade{
-		Domain:    "jobvite.com",
-		IpAddress: "216.137.43.21",
+		Domain:    "jivox.com",
+		IpAddress: "54.230.5.83",
 	},
 	&fronted.Masquerade{
 		Domain:    "jobvite.com",
 		IpAddress: "54.182.1.207",
+	},
+	&fronted.Masquerade{
+		Domain:    "jobvite.com",
+		IpAddress: "216.137.43.21",
 	},
 	&fronted.Masquerade{
 		Domain:    "jswfplayer.jp",
@@ -7302,7 +7218,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "jungroup.com",
+		IpAddress: "216.137.39.26",
+	},
+	&fronted.Masquerade{
+		Domain:    "jungroup.com",
+		IpAddress: "216.137.43.37",
+	},
+	&fronted.Masquerade{
+		Domain:    "jungroup.com",
 		IpAddress: "216.137.45.50",
+	},
+	&fronted.Masquerade{
+		Domain:    "jungroup.com",
+		IpAddress: "216.137.36.66",
 	},
 	&fronted.Masquerade{
 		Domain:    "jungroup.com",
@@ -7314,27 +7242,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "jungroup.com",
-		IpAddress: "204.246.169.45",
-	},
-	&fronted.Masquerade{
-		Domain:    "jungroup.com",
 		IpAddress: "54.239.200.51",
 	},
 	&fronted.Masquerade{
 		Domain:    "jungroup.com",
-		IpAddress: "216.137.39.26",
-	},
-	&fronted.Masquerade{
-		Domain:    "jungroup.com",
-		IpAddress: "216.137.36.66",
-	},
-	&fronted.Masquerade{
-		Domain:    "jungroup.com",
-		IpAddress: "216.137.43.37",
+		IpAddress: "204.246.169.45",
 	},
 	&fronted.Masquerade{
 		Domain:    "jvidev.com",
-		IpAddress: "216.137.43.33",
+		IpAddress: "54.239.132.18",
 	},
 	&fronted.Masquerade{
 		Domain:    "jvidev.com",
@@ -7342,15 +7258,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "jvidev.com",
-		IpAddress: "54.239.132.18",
-	},
-	&fronted.Masquerade{
-		Domain:    "jwplayer.com",
-		IpAddress: "54.192.7.66",
+		IpAddress: "216.137.43.33",
 	},
 	&fronted.Masquerade{
 		Domain:    "jwplayer.com",
 		IpAddress: "54.182.3.27",
+	},
+	&fronted.Masquerade{
+		Domain:    "jwplayer.com",
+		IpAddress: "54.192.7.66",
 	},
 	&fronted.Masquerade{
 		Domain:    "jwpsrv.com",
@@ -7362,11 +7278,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "jwpsrv.com",
-		IpAddress: "54.230.6.189",
+		IpAddress: "54.182.3.122",
 	},
 	&fronted.Masquerade{
-		Domain:    "jwpsrv.com",
-		IpAddress: "54.182.3.122",
+		Domain:    "kaercher.com",
+		IpAddress: "54.192.6.40",
 	},
 	&fronted.Masquerade{
 		Domain:    "kaercher.com",
@@ -7378,10 +7294,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "kaercher.com",
-		IpAddress: "54.192.6.40",
-	},
-	&fronted.Masquerade{
-		Domain:    "kaercher.com",
 		IpAddress: "204.246.169.195",
 	},
 	&fronted.Masquerade{
@@ -7390,7 +7302,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "kaltura.com",
-		IpAddress: "216.137.33.95",
+		IpAddress: "54.192.5.176",
 	},
 	&fronted.Masquerade{
 		Domain:    "kaltura.com",
@@ -7398,11 +7310,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "kaltura.com",
-		IpAddress: "54.192.5.176",
-	},
-	&fronted.Masquerade{
-		Domain:    "karte.io",
-		IpAddress: "54.182.5.251",
+		IpAddress: "216.137.33.95",
 	},
 	&fronted.Masquerade{
 		Domain:    "karte.io",
@@ -7410,19 +7318,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "karte.io",
+		IpAddress: "54.182.7.235",
+	},
+	&fronted.Masquerade{
+		Domain:    "karte.io",
 		IpAddress: "54.192.5.244",
 	},
 	&fronted.Masquerade{
 		Domain:    "karte.io",
-		IpAddress: "54.182.7.235",
-	},
-	&fronted.Masquerade{
-		Domain:    "keas.com",
-		IpAddress: "54.182.5.216",
+		IpAddress: "54.182.5.251",
 	},
 	&fronted.Masquerade{
 		Domain:    "keas.com",
 		IpAddress: "54.182.5.68",
+	},
+	&fronted.Masquerade{
+		Domain:    "keas.com",
+		IpAddress: "54.182.5.216",
 	},
 	&fronted.Masquerade{
 		Domain:    "keas.com",
@@ -7442,19 +7354,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "kenshoo-lab.com",
-		IpAddress: "54.182.7.164",
-	},
-	&fronted.Masquerade{
-		Domain:    "kenshoo-lab.com",
 		IpAddress: "54.230.4.99",
 	},
 	&fronted.Masquerade{
-		Domain:    "kik.com",
-		IpAddress: "54.182.0.102",
+		Domain:    "kenshoo-lab.com",
+		IpAddress: "54.182.7.164",
 	},
 	&fronted.Masquerade{
 		Domain:    "kik.com",
 		IpAddress: "54.230.4.64",
+	},
+	&fronted.Masquerade{
+		Domain:    "kik.com",
+		IpAddress: "54.182.0.102",
 	},
 	&fronted.Masquerade{
 		Domain:    "kinnek.com",
@@ -7462,23 +7374,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "kinnek.com",
-		IpAddress: "216.137.39.131",
-	},
-	&fronted.Masquerade{
-		Domain:    "kinnek.com",
 		IpAddress: "216.137.36.170",
 	},
 	&fronted.Masquerade{
-		Domain:    "kissmetrics.com",
-		IpAddress: "54.192.4.112",
+		Domain:    "kinnek.com",
+		IpAddress: "216.137.39.131",
 	},
 	&fronted.Masquerade{
 		Domain:    "kissmetrics.com",
 		IpAddress: "54.182.1.23",
 	},
 	&fronted.Masquerade{
+		Domain:    "kissmetrics.com",
+		IpAddress: "54.192.4.112",
+	},
+	&fronted.Masquerade{
 		Domain:    "kixeye.com",
-		IpAddress: "54.182.2.240",
+		IpAddress: "54.230.5.146",
 	},
 	&fronted.Masquerade{
 		Domain:    "kixeye.com",
@@ -7486,11 +7398,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "kixeye.com",
-		IpAddress: "54.230.5.146",
+		IpAddress: "54.182.2.240",
 	},
 	&fronted.Masquerade{
 		Domain:    "klevu.com",
-		IpAddress: "54.192.5.132",
+		IpAddress: "216.137.36.201",
 	},
 	&fronted.Masquerade{
 		Domain:    "klevu.com",
@@ -7502,7 +7414,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "klevu.com",
-		IpAddress: "216.137.36.201",
+		IpAddress: "54.192.5.132",
+	},
+	&fronted.Masquerade{
+		Domain:    "kobes.co.kr",
+		IpAddress: "54.182.0.210",
+	},
+	&fronted.Masquerade{
+		Domain:    "kobes.co.kr",
+		IpAddress: "54.239.132.129",
 	},
 	&fronted.Masquerade{
 		Domain:    "kobes.co.kr",
@@ -7513,20 +7433,16 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.192.4.65",
 	},
 	&fronted.Masquerade{
-		Domain:    "kobes.co.kr",
-		IpAddress: "54.239.132.129",
-	},
-	&fronted.Masquerade{
-		Domain:    "kobes.co.kr",
-		IpAddress: "54.182.0.210",
+		Domain:    "krossover.com",
+		IpAddress: "54.192.6.101",
 	},
 	&fronted.Masquerade{
 		Domain:    "krossover.com",
 		IpAddress: "54.182.3.142",
 	},
 	&fronted.Masquerade{
-		Domain:    "krossover.com",
-		IpAddress: "54.192.6.101",
+		Domain:    "krxd.net",
+		IpAddress: "216.137.39.198",
 	},
 	&fronted.Masquerade{
 		Domain:    "krxd.net",
@@ -7537,8 +7453,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.0.237",
 	},
 	&fronted.Masquerade{
-		Domain:    "krxd.net",
-		IpAddress: "216.137.39.198",
+		Domain:    "kusmitea.com",
+		IpAddress: "204.246.169.22",
+	},
+	&fronted.Masquerade{
+		Domain:    "kusmitea.com",
+		IpAddress: "54.182.6.193",
 	},
 	&fronted.Masquerade{
 		Domain:    "kusmitea.com",
@@ -7547,14 +7467,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "kusmitea.com",
 		IpAddress: "205.251.253.202",
-	},
-	&fronted.Masquerade{
-		Domain:    "kusmitea.com",
-		IpAddress: "54.182.6.193",
-	},
-	&fronted.Masquerade{
-		Domain:    "kusmitea.com",
-		IpAddress: "204.246.169.22",
 	},
 	&fronted.Masquerade{
 		Domain:    "kuvo.com",
@@ -7574,7 +7486,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "labtechsoftware.com",
-		IpAddress: "216.137.43.92",
+		IpAddress: "205.251.203.175",
+	},
+	&fronted.Masquerade{
+		Domain:    "labtechsoftware.com",
+		IpAddress: "54.182.2.226",
 	},
 	&fronted.Masquerade{
 		Domain:    "labtechsoftware.com",
@@ -7582,19 +7498,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "labtechsoftware.com",
-		IpAddress: "205.251.203.175",
-	},
-	&fronted.Masquerade{
-		Domain:    "labtechsoftware.com",
 		IpAddress: "205.251.253.160",
 	},
 	&fronted.Masquerade{
 		Domain:    "labtechsoftware.com",
-		IpAddress: "54.182.2.226",
+		IpAddress: "216.137.43.92",
 	},
 	&fronted.Masquerade{
 		Domain:    "ladsp.com",
-		IpAddress: "54.192.6.195",
+		IpAddress: "54.182.1.48",
 	},
 	&fronted.Masquerade{
 		Domain:    "ladsp.com",
@@ -7602,11 +7514,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "ladsp.com",
-		IpAddress: "54.182.1.48",
+		IpAddress: "54.192.6.195",
 	},
 	&fronted.Masquerade{
 		Domain:    "lafabric.jp",
-		IpAddress: "54.182.4.60",
+		IpAddress: "54.239.132.254",
 	},
 	&fronted.Masquerade{
 		Domain:    "lafabric.jp",
@@ -7614,7 +7526,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "lafabric.jp",
-		IpAddress: "54.239.132.254",
+		IpAddress: "54.182.4.60",
 	},
 	&fronted.Masquerade{
 		Domain:    "lafayette148ny.com",
@@ -7630,18 +7542,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "languageperfect.com",
-		IpAddress: "54.182.5.159",
-	},
-	&fronted.Masquerade{
-		Domain:    "languageperfect.com",
-		IpAddress: "54.192.5.14",
-	},
-	&fronted.Masquerade{
-		Domain:    "languageperfect.com",
-		IpAddress: "54.239.200.178",
-	},
-	&fronted.Masquerade{
-		Domain:    "languageperfect.com",
 		IpAddress: "54.239.200.151",
 	},
 	&fronted.Masquerade{
@@ -7649,12 +7549,16 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "216.137.33.11",
 	},
 	&fronted.Masquerade{
-		Domain:    "launchpie.com",
-		IpAddress: "205.251.203.21",
+		Domain:    "languageperfect.com",
+		IpAddress: "54.239.200.178",
 	},
 	&fronted.Masquerade{
-		Domain:    "launchpie.com",
-		IpAddress: "54.182.7.241",
+		Domain:    "languageperfect.com",
+		IpAddress: "54.192.5.14",
+	},
+	&fronted.Masquerade{
+		Domain:    "languageperfect.com",
+		IpAddress: "54.182.5.159",
 	},
 	&fronted.Masquerade{
 		Domain:    "launchpie.com",
@@ -7662,19 +7566,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "launchpie.com",
+		IpAddress: "54.182.7.241",
+	},
+	&fronted.Masquerade{
+		Domain:    "launchpie.com",
+		IpAddress: "205.251.203.21",
+	},
+	&fronted.Masquerade{
+		Domain:    "launchpie.com",
 		IpAddress: "54.230.4.65",
-	},
-	&fronted.Masquerade{
-		Domain:    "layeredearth.com",
-		IpAddress: "54.182.6.103",
-	},
-	&fronted.Masquerade{
-		Domain:    "layeredearth.com",
-		IpAddress: "216.137.36.73",
-	},
-	&fronted.Masquerade{
-		Domain:    "layeredearth.com",
-		IpAddress: "54.192.4.122",
 	},
 	&fronted.Masquerade{
 		Domain:    "layeredearth.com",
@@ -7682,19 +7582,27 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "layeredearth.com",
+		IpAddress: "54.182.6.103",
+	},
+	&fronted.Masquerade{
+		Domain:    "layeredearth.com",
+		IpAddress: "54.192.4.122",
+	},
+	&fronted.Masquerade{
+		Domain:    "layeredearth.com",
 		IpAddress: "205.251.203.113",
 	},
 	&fronted.Masquerade{
-		Domain:    "lazydays.com",
-		IpAddress: "54.230.6.143",
+		Domain:    "layeredearth.com",
+		IpAddress: "216.137.36.73",
 	},
 	&fronted.Masquerade{
 		Domain:    "lazydays.com",
 		IpAddress: "54.182.2.172",
 	},
 	&fronted.Masquerade{
-		Domain:    "leadformix.com",
-		IpAddress: "54.192.5.218",
+		Domain:    "lazydays.com",
+		IpAddress: "54.230.6.143",
 	},
 	&fronted.Masquerade{
 		Domain:    "leadformix.com",
@@ -7702,15 +7610,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "leadformix.com",
+		IpAddress: "54.192.5.218",
+	},
+	&fronted.Masquerade{
+		Domain:    "leadformix.com",
 		IpAddress: "216.137.39.71",
-	},
-	&fronted.Masquerade{
-		Domain:    "learning.com",
-		IpAddress: "54.192.4.116",
-	},
-	&fronted.Masquerade{
-		Domain:    "learning.com",
-		IpAddress: "204.246.169.206",
 	},
 	&fronted.Masquerade{
 		Domain:    "learning.com",
@@ -7718,11 +7622,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "learning.com",
+		IpAddress: "204.246.169.206",
+	},
+	&fronted.Masquerade{
+		Domain:    "learning.com",
 		IpAddress: "54.182.5.124",
 	},
 	&fronted.Masquerade{
+		Domain:    "learning.com",
+		IpAddress: "54.192.4.116",
+	},
+	&fronted.Masquerade{
 		Domain:    "learningcenter.com",
-		IpAddress: "54.182.7.233",
+		IpAddress: "54.239.132.241",
 	},
 	&fronted.Masquerade{
 		Domain:    "learningcenter.com",
@@ -7734,23 +7646,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "learningcenter.com",
-		IpAddress: "54.239.132.241",
-	},
-	&fronted.Masquerade{
-		Domain:    "learningcenter.com",
 		IpAddress: "54.182.7.248",
 	},
 	&fronted.Masquerade{
-		Domain:    "learnivore.com",
-		IpAddress: "216.137.39.111",
-	},
-	&fronted.Masquerade{
-		Domain:    "learnivore.com",
-		IpAddress: "205.251.253.154",
-	},
-	&fronted.Masquerade{
-		Domain:    "learnivore.com",
-		IpAddress: "54.182.7.72",
+		Domain:    "learningcenter.com",
+		IpAddress: "54.182.7.233",
 	},
 	&fronted.Masquerade{
 		Domain:    "learnivore.com",
@@ -7758,15 +7658,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "learnivore.com",
+		IpAddress: "54.182.7.72",
+	},
+	&fronted.Masquerade{
+		Domain:    "learnivore.com",
+		IpAddress: "205.251.253.154",
+	},
+	&fronted.Masquerade{
+		Domain:    "learnivore.com",
 		IpAddress: "54.230.6.120",
 	},
 	&fronted.Masquerade{
-		Domain:    "lebara.com",
-		IpAddress: "54.182.2.141",
-	},
-	&fronted.Masquerade{
-		Domain:    "lebara.com",
-		IpAddress: "205.251.253.68",
+		Domain:    "learnivore.com",
+		IpAddress: "216.137.39.111",
 	},
 	&fronted.Masquerade{
 		Domain:    "lebara.com",
@@ -7774,11 +7678,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "lebara.com",
-		IpAddress: "216.137.36.76",
+		IpAddress: "205.251.253.68",
 	},
 	&fronted.Masquerade{
 		Domain:    "lebara.com",
 		IpAddress: "205.251.203.74",
+	},
+	&fronted.Masquerade{
+		Domain:    "lebara.com",
+		IpAddress: "216.137.36.76",
+	},
+	&fronted.Masquerade{
+		Domain:    "lebara.com",
+		IpAddress: "54.182.2.141",
 	},
 	&fronted.Masquerade{
 		Domain:    "lfe.com",
@@ -7786,27 +7698,27 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "lfe.com",
-		IpAddress: "54.230.4.212",
-	},
-	&fronted.Masquerade{
-		Domain:    "lfe.com",
 		IpAddress: "216.137.39.250",
 	},
 	&fronted.Masquerade{
-		Domain:    "lgcpm.com",
-		IpAddress: "54.230.7.139",
+		Domain:    "lfe.com",
+		IpAddress: "54.230.4.212",
 	},
 	&fronted.Masquerade{
 		Domain:    "lgcpm.com",
 		IpAddress: "54.182.0.117",
 	},
 	&fronted.Masquerade{
-		Domain:    "lifelock.com",
-		IpAddress: "54.230.6.114",
+		Domain:    "lgcpm.com",
+		IpAddress: "54.230.7.139",
 	},
 	&fronted.Masquerade{
 		Domain:    "lifelock.com",
 		IpAddress: "54.182.4.7",
+	},
+	&fronted.Masquerade{
+		Domain:    "lifelock.com",
+		IpAddress: "54.230.6.114",
 	},
 	&fronted.Masquerade{
 		Domain:    "lifelock.com",
@@ -7818,15 +7730,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "linkbynet.com",
-		IpAddress: "54.182.5.175",
-	},
-	&fronted.Masquerade{
-		Domain:    "linkbynet.com",
 		IpAddress: "205.251.253.164",
 	},
 	&fronted.Masquerade{
 		Domain:    "linkbynet.com",
 		IpAddress: "54.239.200.213",
+	},
+	&fronted.Masquerade{
+		Domain:    "linkbynet.com",
+		IpAddress: "54.182.5.175",
 	},
 	&fronted.Masquerade{
 		Domain:    "listrakbi.com",
@@ -7842,11 +7754,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "litmus.com",
-		IpAddress: "216.137.36.209",
+		IpAddress: "54.182.2.38",
 	},
 	&fronted.Masquerade{
 		Domain:    "litmus.com",
-		IpAddress: "216.137.43.114",
+		IpAddress: "216.137.36.209",
 	},
 	&fronted.Masquerade{
 		Domain:    "litmus.com",
@@ -7854,7 +7766,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "litmus.com",
-		IpAddress: "54.182.2.38",
+		IpAddress: "216.137.43.114",
 	},
 	&fronted.Masquerade{
 		Domain:    "litmuscdn.com",
@@ -7882,31 +7794,27 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "liveminutes.com",
-		IpAddress: "54.192.4.119",
-	},
-	&fronted.Masquerade{
-		Domain:    "liveminutes.com",
 		IpAddress: "54.182.1.35",
 	},
 	&fronted.Masquerade{
 		Domain:    "liveminutes.com",
-		IpAddress: "54.239.130.162",
+		IpAddress: "54.192.4.119",
 	},
 	&fronted.Masquerade{
 		Domain:    "liveminutes.com",
 		IpAddress: "216.137.33.168",
 	},
 	&fronted.Masquerade{
-		Domain:    "locationkit.io",
-		IpAddress: "54.230.6.98",
+		Domain:    "liveminutes.com",
+		IpAddress: "54.239.130.162",
 	},
 	&fronted.Masquerade{
 		Domain:    "locationkit.io",
 		IpAddress: "54.182.6.117",
 	},
 	&fronted.Masquerade{
-		Domain:    "loggly.com",
-		IpAddress: "54.182.5.226",
+		Domain:    "locationkit.io",
+		IpAddress: "54.230.6.98",
 	},
 	&fronted.Masquerade{
 		Domain:    "loggly.com",
@@ -7914,27 +7822,35 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "loggly.com",
-		IpAddress: "216.137.36.239",
-	},
-	&fronted.Masquerade{
-		Domain:    "loggly.com",
 		IpAddress: "54.230.6.58",
 	},
 	&fronted.Masquerade{
-		Domain:    "logpostback.com",
-		IpAddress: "54.182.1.185",
+		Domain:    "loggly.com",
+		IpAddress: "54.182.5.226",
 	},
 	&fronted.Masquerade{
 		Domain:    "logpostback.com",
 		IpAddress: "54.192.7.19",
 	},
 	&fronted.Masquerade{
-		Domain:    "lotterybonusplay.com",
-		IpAddress: "54.230.5.197",
+		Domain:    "logpostback.com",
+		IpAddress: "54.182.1.185",
 	},
 	&fronted.Masquerade{
 		Domain:    "lotterybonusplay.com",
 		IpAddress: "54.182.3.213",
+	},
+	&fronted.Masquerade{
+		Domain:    "lotterybonusplay.com",
+		IpAddress: "54.230.5.197",
+	},
+	&fronted.Masquerade{
+		Domain:    "lovegold.cn",
+		IpAddress: "54.230.5.106",
+	},
+	&fronted.Masquerade{
+		Domain:    "lovegold.cn",
+		IpAddress: "54.239.130.39",
 	},
 	&fronted.Masquerade{
 		Domain:    "lovegold.cn",
@@ -7945,12 +7861,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.5.82",
 	},
 	&fronted.Masquerade{
-		Domain:    "lovegold.cn",
-		IpAddress: "54.239.130.39",
-	},
-	&fronted.Masquerade{
-		Domain:    "lovegold.cn",
-		IpAddress: "54.230.5.106",
+		Domain:    "luc.id",
+		IpAddress: "54.192.7.9",
 	},
 	&fronted.Masquerade{
 		Domain:    "luc.id",
@@ -7961,20 +7873,24 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "216.137.33.92",
 	},
 	&fronted.Masquerade{
-		Domain:    "luc.id",
-		IpAddress: "54.192.7.9",
+		Domain:    "luup.tv",
+		IpAddress: "54.182.6.79",
 	},
 	&fronted.Masquerade{
 		Domain:    "luup.tv",
-		IpAddress: "54.182.6.79",
+		IpAddress: "54.192.4.69",
 	},
 	&fronted.Masquerade{
 		Domain:    "luup.tv",
 		IpAddress: "205.251.253.129",
 	},
 	&fronted.Masquerade{
-		Domain:    "luup.tv",
-		IpAddress: "54.192.4.69",
+		Domain:    "lyft.com",
+		IpAddress: "54.182.6.244",
+	},
+	&fronted.Masquerade{
+		Domain:    "lyft.com",
+		IpAddress: "54.230.7.142",
 	},
 	&fronted.Masquerade{
 		Domain:    "lyft.com",
@@ -7985,24 +7901,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.239.200.5",
 	},
 	&fronted.Masquerade{
-		Domain:    "lyft.com",
-		IpAddress: "54.230.7.142",
-	},
-	&fronted.Masquerade{
-		Domain:    "lyft.com",
-		IpAddress: "54.182.6.244",
-	},
-	&fronted.Masquerade{
-		Domain:    "m-ink.etradefinancial.com",
-		IpAddress: "54.192.5.13",
-	},
-	&fronted.Masquerade{
 		Domain:    "m-ink.etradefinancial.com",
 		IpAddress: "54.182.1.45",
 	},
 	&fronted.Masquerade{
-		Domain:    "m.here.com",
-		IpAddress: "54.182.4.81",
+		Domain:    "m-ink.etradefinancial.com",
+		IpAddress: "54.192.5.13",
 	},
 	&fronted.Masquerade{
 		Domain:    "m.here.com",
@@ -8013,12 +7917,16 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "216.137.39.94",
 	},
 	&fronted.Masquerade{
-		Domain:    "m.static.iqoption.com",
-		IpAddress: "54.230.6.121",
+		Domain:    "m.here.com",
+		IpAddress: "54.182.4.81",
 	},
 	&fronted.Masquerade{
 		Domain:    "m.static.iqoption.com",
 		IpAddress: "54.239.130.138",
+	},
+	&fronted.Masquerade{
+		Domain:    "m.static.iqoption.com",
+		IpAddress: "54.230.6.121",
 	},
 	&fronted.Masquerade{
 		Domain:    "m.static.iqoption.com",
@@ -8050,11 +7958,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "main.cdn.wish.com",
-		IpAddress: "54.230.6.59",
-	},
-	&fronted.Masquerade{
-		Domain:    "main.cdn.wish.com",
-		IpAddress: "205.251.253.223",
+		IpAddress: "205.251.253.47",
 	},
 	&fronted.Masquerade{
 		Domain:    "main.cdn.wish.com",
@@ -8062,47 +7966,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "main.cdn.wish.com",
-		IpAddress: "204.246.169.65",
-	},
-	&fronted.Masquerade{
-		Domain:    "main.cdn.wish.com",
-		IpAddress: "204.246.169.246",
-	},
-	&fronted.Masquerade{
-		Domain:    "main.cdn.wish.com",
-		IpAddress: "205.251.253.243",
-	},
-	&fronted.Masquerade{
-		Domain:    "main.cdn.wish.com",
-		IpAddress: "54.230.5.124",
-	},
-	&fronted.Masquerade{
-		Domain:    "main.cdn.wish.com",
-		IpAddress: "54.239.132.37",
-	},
-	&fronted.Masquerade{
-		Domain:    "main.cdn.wish.com",
-		IpAddress: "204.246.169.239",
-	},
-	&fronted.Masquerade{
-		Domain:    "main.cdn.wish.com",
-		IpAddress: "54.192.7.164",
-	},
-	&fronted.Masquerade{
-		Domain:    "main.cdn.wish.com",
-		IpAddress: "54.230.5.242",
-	},
-	&fronted.Masquerade{
-		Domain:    "main.cdn.wish.com",
-		IpAddress: "54.192.7.178",
-	},
-	&fronted.Masquerade{
-		Domain:    "main.cdn.wish.com",
-		IpAddress: "205.251.253.23",
-	},
-	&fronted.Masquerade{
-		Domain:    "main.cdn.wish.com",
-		IpAddress: "204.246.169.213",
+		IpAddress: "54.230.6.59",
 	},
 	&fronted.Masquerade{
 		Domain:    "main.cdn.wish.com",
@@ -8110,7 +7974,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "main.cdn.wish.com",
-		IpAddress: "54.230.5.248",
+		IpAddress: "54.192.5.66",
 	},
 	&fronted.Masquerade{
 		Domain:    "main.cdn.wish.com",
@@ -8118,39 +7982,39 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "main.cdn.wish.com",
-		IpAddress: "54.239.200.161",
-	},
-	&fronted.Masquerade{
-		Domain:    "main.cdn.wish.com",
-		IpAddress: "54.239.132.101",
-	},
-	&fronted.Masquerade{
-		Domain:    "main.cdn.wish.com",
-		IpAddress: "205.251.253.47",
-	},
-	&fronted.Masquerade{
-		Domain:    "main.cdn.wish.com",
-		IpAddress: "54.182.3.18",
-	},
-	&fronted.Masquerade{
-		Domain:    "main.cdn.wish.com",
-		IpAddress: "54.239.132.250",
-	},
-	&fronted.Masquerade{
-		Domain:    "main.cdn.wish.com",
-		IpAddress: "54.230.5.148",
-	},
-	&fronted.Masquerade{
-		Domain:    "main.cdn.wish.com",
-		IpAddress: "54.192.5.66",
-	},
-	&fronted.Masquerade{
-		Domain:    "main.cdn.wish.com",
 		IpAddress: "54.192.5.36",
 	},
 	&fronted.Masquerade{
 		Domain:    "main.cdn.wish.com",
-		IpAddress: "204.246.169.142",
+		IpAddress: "204.246.169.239",
+	},
+	&fronted.Masquerade{
+		Domain:    "main.cdn.wish.com",
+		IpAddress: "205.251.253.243",
+	},
+	&fronted.Masquerade{
+		Domain:    "main.cdn.wish.com",
+		IpAddress: "205.251.253.23",
+	},
+	&fronted.Masquerade{
+		Domain:    "main.cdn.wish.com",
+		IpAddress: "204.246.169.65",
+	},
+	&fronted.Masquerade{
+		Domain:    "main.cdn.wish.com",
+		IpAddress: "54.230.5.248",
+	},
+	&fronted.Masquerade{
+		Domain:    "main.cdn.wish.com",
+		IpAddress: "205.251.253.223",
+	},
+	&fronted.Masquerade{
+		Domain:    "main.cdn.wish.com",
+		IpAddress: "204.246.169.213",
+	},
+	&fronted.Masquerade{
+		Domain:    "main.cdn.wish.com",
+		IpAddress: "54.230.5.242",
 	},
 	&fronted.Masquerade{
 		Domain:    "main.cdn.wish.com",
@@ -8158,27 +8022,59 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "main.cdn.wish.com",
-		IpAddress: "205.251.203.240",
+		IpAddress: "54.239.200.161",
+	},
+	&fronted.Masquerade{
+		Domain:    "main.cdn.wish.com",
+		IpAddress: "54.230.5.124",
+	},
+	&fronted.Masquerade{
+		Domain:    "main.cdn.wish.com",
+		IpAddress: "54.182.3.18",
+	},
+	&fronted.Masquerade{
+		Domain:    "main.cdn.wish.com",
+		IpAddress: "54.239.132.37",
+	},
+	&fronted.Masquerade{
+		Domain:    "main.cdn.wish.com",
+		IpAddress: "54.239.132.101",
+	},
+	&fronted.Masquerade{
+		Domain:    "main.cdn.wish.com",
+		IpAddress: "54.239.132.250",
+	},
+	&fronted.Masquerade{
+		Domain:    "main.cdn.wish.com",
+		IpAddress: "54.192.7.164",
+	},
+	&fronted.Masquerade{
+		Domain:    "main.cdn.wish.com",
+		IpAddress: "54.192.7.178",
+	},
+	&fronted.Masquerade{
+		Domain:    "main.cdn.wish.com",
+		IpAddress: "204.246.169.142",
+	},
+	&fronted.Masquerade{
+		Domain:    "main.cdn.wish.com",
+		IpAddress: "204.246.169.246",
 	},
 	&fronted.Masquerade{
 		Domain:    "main.cdn.wish.com",
 		IpAddress: "205.251.203.23",
 	},
 	&fronted.Masquerade{
-		Domain:    "malwarebytes.org",
-		IpAddress: "216.137.33.181",
+		Domain:    "main.cdn.wish.com",
+		IpAddress: "205.251.203.240",
 	},
 	&fronted.Masquerade{
 		Domain:    "malwarebytes.org",
 		IpAddress: "54.192.5.182",
 	},
 	&fronted.Masquerade{
-		Domain:    "mangahigh.com",
-		IpAddress: "216.137.45.111",
-	},
-	&fronted.Masquerade{
-		Domain:    "mangahigh.com",
-		IpAddress: "54.182.5.64",
+		Domain:    "malwarebytes.org",
+		IpAddress: "216.137.33.181",
 	},
 	&fronted.Masquerade{
 		Domain:    "mangahigh.com",
@@ -8186,11 +8082,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "mangahigh.com",
-		IpAddress: "54.182.3.63",
-	},
-	&fronted.Masquerade{
-		Domain:    "mangahigh.com",
-		IpAddress: "216.137.36.156",
+		IpAddress: "54.192.6.163",
 	},
 	&fronted.Masquerade{
 		Domain:    "mangahigh.com",
@@ -8198,19 +8090,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "mangahigh.com",
+		IpAddress: "54.182.5.64",
+	},
+	&fronted.Masquerade{
+		Domain:    "mangahigh.com",
+		IpAddress: "54.182.3.63",
+	},
+	&fronted.Masquerade{
+		Domain:    "mangahigh.com",
 		IpAddress: "54.230.5.103",
 	},
 	&fronted.Masquerade{
 		Domain:    "mangahigh.com",
-		IpAddress: "54.192.6.163",
+		IpAddress: "216.137.45.111",
 	},
 	&fronted.Masquerade{
-		Domain:    "manta-r3.com",
-		IpAddress: "54.192.7.3",
-	},
-	&fronted.Masquerade{
-		Domain:    "manta-r3.com",
-		IpAddress: "54.182.0.35",
+		Domain:    "mangahigh.com",
+		IpAddress: "216.137.36.156",
 	},
 	&fronted.Masquerade{
 		Domain:    "manta-r3.com",
@@ -8218,7 +8114,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "manta-r3.com",
+		IpAddress: "54.182.0.35",
+	},
+	&fronted.Masquerade{
+		Domain:    "manta-r3.com",
 		IpAddress: "54.239.132.54",
+	},
+	&fronted.Masquerade{
+		Domain:    "manta-r3.com",
+		IpAddress: "54.192.7.3",
 	},
 	&fronted.Masquerade{
 		Domain:    "maplarge.com",
@@ -8226,11 +8130,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "maplarge.com",
-		IpAddress: "54.182.7.143",
+		IpAddress: "54.192.4.121",
 	},
 	&fronted.Masquerade{
 		Domain:    "maplarge.com",
-		IpAddress: "54.192.4.121",
+		IpAddress: "54.182.7.143",
 	},
 	&fronted.Masquerade{
 		Domain:    "massrelevance.com",
@@ -8242,7 +8146,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "mataharimall.co",
-		IpAddress: "216.137.33.223",
+		IpAddress: "54.182.1.164",
 	},
 	&fronted.Masquerade{
 		Domain:    "mataharimall.co",
@@ -8250,15 +8154,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "mataharimall.co",
-		IpAddress: "54.239.200.196",
+		IpAddress: "216.137.33.223",
 	},
 	&fronted.Masquerade{
 		Domain:    "mataharimall.co",
-		IpAddress: "54.182.1.164",
-	},
-	&fronted.Masquerade{
-		Domain:    "matrixbooking.com",
-		IpAddress: "54.182.5.232",
+		IpAddress: "54.239.200.196",
 	},
 	&fronted.Masquerade{
 		Domain:    "matrixbooking.com",
@@ -8266,15 +8166,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "matrixbooking.com",
+		IpAddress: "54.182.5.232",
+	},
+	&fronted.Masquerade{
+		Domain:    "matrixbooking.com",
 		IpAddress: "216.137.39.44",
 	},
 	&fronted.Masquerade{
 		Domain:    "me.dm",
-		IpAddress: "216.137.43.7",
+		IpAddress: "54.182.2.22",
 	},
 	&fronted.Masquerade{
 		Domain:    "me.dm",
-		IpAddress: "54.182.2.22",
+		IpAddress: "216.137.43.7",
 	},
 	&fronted.Masquerade{
 		Domain:    "media.amazonwebservices.com",
@@ -8290,11 +8194,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "media.front.xoedge.com",
-		IpAddress: "54.192.6.88",
-	},
-	&fronted.Masquerade{
-		Domain:    "media.front.xoedge.com",
-		IpAddress: "54.239.130.32",
+		IpAddress: "216.137.39.86",
 	},
 	&fronted.Masquerade{
 		Domain:    "media.front.xoedge.com",
@@ -8302,7 +8202,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "media.front.xoedge.com",
-		IpAddress: "216.137.39.86",
+		IpAddress: "54.192.6.88",
+	},
+	&fronted.Masquerade{
+		Domain:    "media.front.xoedge.com",
+		IpAddress: "54.239.130.32",
+	},
+	&fronted.Masquerade{
+		Domain:    "media.healthdirect.org.au",
+		IpAddress: "54.182.0.45",
 	},
 	&fronted.Masquerade{
 		Domain:    "media.healthdirect.org.au",
@@ -8313,16 +8221,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "204.246.169.243",
 	},
 	&fronted.Masquerade{
-		Domain:    "media.healthdirect.org.au",
-		IpAddress: "54.182.0.45",
-	},
-	&fronted.Masquerade{
 		Domain:    "media.shawmedia.ca",
-		IpAddress: "54.192.6.121",
-	},
-	&fronted.Masquerade{
-		Domain:    "media.shawmedia.ca",
-		IpAddress: "54.192.4.146",
+		IpAddress: "54.239.130.48",
 	},
 	&fronted.Masquerade{
 		Domain:    "media.shawmedia.ca",
@@ -8330,7 +8230,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "media.shawmedia.ca",
-		IpAddress: "54.239.130.48",
+		IpAddress: "216.137.33.229",
 	},
 	&fronted.Masquerade{
 		Domain:    "media.shawmedia.ca",
@@ -8338,15 +8238,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "media.shawmedia.ca",
-		IpAddress: "216.137.33.229",
+		IpAddress: "54.192.4.146",
+	},
+	&fronted.Masquerade{
+		Domain:    "media.shawmedia.ca",
+		IpAddress: "54.192.6.121",
 	},
 	&fronted.Masquerade{
 		Domain:    "media.tumblr.com",
-		IpAddress: "205.251.253.141",
-	},
-	&fronted.Masquerade{
-		Domain:    "media.tumblr.com",
-		IpAddress: "54.192.6.151",
+		IpAddress: "216.137.33.175",
 	},
 	&fronted.Masquerade{
 		Domain:    "media.tumblr.com",
@@ -8354,15 +8254,35 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "media.tumblr.com",
+		IpAddress: "54.230.7.238",
+	},
+	&fronted.Masquerade{
+		Domain:    "media.tumblr.com",
+		IpAddress: "205.251.253.146",
+	},
+	&fronted.Masquerade{
+		Domain:    "media.tumblr.com",
+		IpAddress: "216.137.36.150",
+	},
+	&fronted.Masquerade{
+		Domain:    "media.tumblr.com",
 		IpAddress: "54.192.5.167",
 	},
 	&fronted.Masquerade{
 		Domain:    "media.tumblr.com",
-		IpAddress: "54.239.132.52",
+		IpAddress: "216.137.39.10",
 	},
 	&fronted.Masquerade{
 		Domain:    "media.tumblr.com",
-		IpAddress: "54.239.132.179",
+		IpAddress: "216.137.33.216",
+	},
+	&fronted.Masquerade{
+		Domain:    "media.tumblr.com",
+		IpAddress: "205.251.253.141",
+	},
+	&fronted.Masquerade{
+		Domain:    "media.tumblr.com",
+		IpAddress: "204.246.169.138",
 	},
 	&fronted.Masquerade{
 		Domain:    "media.tumblr.com",
@@ -8370,7 +8290,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "media.tumblr.com",
-		IpAddress: "216.137.39.10",
+		IpAddress: "54.230.4.107",
+	},
+	&fronted.Masquerade{
+		Domain:    "media.tumblr.com",
+		IpAddress: "54.239.132.179",
 	},
 	&fronted.Masquerade{
 		Domain:    "media.tumblr.com",
@@ -8382,35 +8306,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "media.tumblr.com",
-		IpAddress: "54.230.4.107",
+		IpAddress: "54.239.132.52",
 	},
 	&fronted.Masquerade{
 		Domain:    "media.tumblr.com",
-		IpAddress: "54.239.200.234",
-	},
-	&fronted.Masquerade{
-		Domain:    "media.tumblr.com",
-		IpAddress: "216.137.36.150",
-	},
-	&fronted.Masquerade{
-		Domain:    "media.tumblr.com",
-		IpAddress: "54.230.6.241",
-	},
-	&fronted.Masquerade{
-		Domain:    "media.tumblr.com",
-		IpAddress: "216.137.33.216",
-	},
-	&fronted.Masquerade{
-		Domain:    "media.tumblr.com",
-		IpAddress: "54.230.6.89",
-	},
-	&fronted.Masquerade{
-		Domain:    "media.tumblr.com",
-		IpAddress: "216.137.33.175",
-	},
-	&fronted.Masquerade{
-		Domain:    "media.tumblr.com",
-		IpAddress: "204.246.169.138",
+		IpAddress: "54.192.6.151",
 	},
 	&fronted.Masquerade{
 		Domain:    "media.tumblr.com",
@@ -8418,7 +8318,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "media.tumblr.com",
-		IpAddress: "54.230.7.238",
+		IpAddress: "54.230.6.89",
+	},
+	&fronted.Masquerade{
+		Domain:    "media.tumblr.com",
+		IpAddress: "54.230.6.241",
 	},
 	&fronted.Masquerade{
 		Domain:    "media.tumblr.com",
@@ -8426,23 +8330,35 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "media.tumblr.com",
-		IpAddress: "54.192.4.126",
-	},
-	&fronted.Masquerade{
-		Domain:    "media.tumblr.com",
 		IpAddress: "216.137.43.46",
 	},
 	&fronted.Masquerade{
 		Domain:    "media.tumblr.com",
-		IpAddress: "205.251.253.146",
+		IpAddress: "54.239.200.234",
+	},
+	&fronted.Masquerade{
+		Domain:    "mediagraph.com",
+		IpAddress: "54.182.2.190",
 	},
 	&fronted.Masquerade{
 		Domain:    "mediagraph.com",
 		IpAddress: "54.230.7.144",
 	},
 	&fronted.Masquerade{
-		Domain:    "mediagraph.com",
-		IpAddress: "54.182.2.190",
+		Domain:    "mediatek.com",
+		IpAddress: "205.251.253.230",
+	},
+	&fronted.Masquerade{
+		Domain:    "mediatek.com",
+		IpAddress: "216.137.45.15",
+	},
+	&fronted.Masquerade{
+		Domain:    "mediatek.com",
+		IpAddress: "54.182.0.227",
+	},
+	&fronted.Masquerade{
+		Domain:    "mediatek.com",
+		IpAddress: "204.246.169.14",
 	},
 	&fronted.Masquerade{
 		Domain:    "mediatek.com",
@@ -8454,7 +8370,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "mediatek.com",
-		IpAddress: "54.182.5.219",
+		IpAddress: "54.239.200.73",
 	},
 	&fronted.Masquerade{
 		Domain:    "mediatek.com",
@@ -8462,27 +8378,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "mediatek.com",
-		IpAddress: "54.182.0.227",
-	},
-	&fronted.Masquerade{
-		Domain:    "mediatek.com",
-		IpAddress: "205.251.253.230",
-	},
-	&fronted.Masquerade{
-		Domain:    "mediatek.com",
 		IpAddress: "54.182.7.113",
 	},
 	&fronted.Masquerade{
 		Domain:    "mediatek.com",
-		IpAddress: "54.239.200.73",
-	},
-	&fronted.Masquerade{
-		Domain:    "mediatek.com",
-		IpAddress: "205.251.251.73",
-	},
-	&fronted.Masquerade{
-		Domain:    "mediatek.com",
-		IpAddress: "54.192.4.75",
+		IpAddress: "54.182.0.16",
 	},
 	&fronted.Masquerade{
 		Domain:    "mediatek.com",
@@ -8494,27 +8394,27 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "mediatek.com",
-		IpAddress: "54.182.5.185",
-	},
-	&fronted.Masquerade{
-		Domain:    "mediatek.com",
-		IpAddress: "204.246.169.14",
-	},
-	&fronted.Masquerade{
-		Domain:    "mediatek.com",
-		IpAddress: "216.137.45.15",
-	},
-	&fronted.Masquerade{
-		Domain:    "mediatek.com",
 		IpAddress: "54.182.7.121",
 	},
 	&fronted.Masquerade{
 		Domain:    "mediatek.com",
-		IpAddress: "54.182.0.16",
+		IpAddress: "54.182.5.219",
+	},
+	&fronted.Masquerade{
+		Domain:    "mediatek.com",
+		IpAddress: "54.192.4.75",
+	},
+	&fronted.Masquerade{
+		Domain:    "mediatek.com",
+		IpAddress: "54.182.5.185",
+	},
+	&fronted.Masquerade{
+		Domain:    "mediatek.com",
+		IpAddress: "205.251.251.73",
 	},
 	&fronted.Masquerade{
 		Domain:    "medibang.com",
-		IpAddress: "204.246.169.100",
+		IpAddress: "216.137.36.101",
 	},
 	&fronted.Masquerade{
 		Domain:    "medibang.com",
@@ -8522,7 +8422,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "medibang.com",
-		IpAddress: "216.137.36.101",
+		IpAddress: "204.246.169.100",
 	},
 	&fronted.Masquerade{
 		Domain:    "medibang.com",
@@ -8538,19 +8438,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "mheducation.com",
-		IpAddress: "54.230.4.154",
-	},
-	&fronted.Masquerade{
-		Domain:    "mheducation.com",
-		IpAddress: "54.182.1.4",
-	},
-	&fronted.Masquerade{
-		Domain:    "mheducation.com",
 		IpAddress: "54.192.5.46",
-	},
-	&fronted.Masquerade{
-		Domain:    "mheducation.com",
-		IpAddress: "54.239.132.88",
 	},
 	&fronted.Masquerade{
 		Domain:    "mheducation.com",
@@ -8561,8 +8449,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "216.137.33.55",
 	},
 	&fronted.Masquerade{
-		Domain:    "micpn.com",
-		IpAddress: "54.182.1.102",
+		Domain:    "mheducation.com",
+		IpAddress: "54.239.132.88",
+	},
+	&fronted.Masquerade{
+		Domain:    "mheducation.com",
+		IpAddress: "54.182.1.4",
 	},
 	&fronted.Masquerade{
 		Domain:    "micpn.com",
@@ -8573,16 +8465,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "216.137.39.178",
 	},
 	&fronted.Masquerade{
-		Domain:    "midasplayer.com",
-		IpAddress: "54.230.5.234",
-	},
-	&fronted.Masquerade{
-		Domain:    "midasplayer.com",
-		IpAddress: "205.251.203.100",
-	},
-	&fronted.Masquerade{
-		Domain:    "midasplayer.com",
-		IpAddress: "205.251.253.191",
+		Domain:    "micpn.com",
+		IpAddress: "54.182.1.102",
 	},
 	&fronted.Masquerade{
 		Domain:    "midasplayer.com",
@@ -8593,12 +8477,20 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.1.130",
 	},
 	&fronted.Masquerade{
-		Domain:    "mightybell.com",
-		IpAddress: "54.182.5.195",
+		Domain:    "midasplayer.com",
+		IpAddress: "205.251.253.191",
+	},
+	&fronted.Masquerade{
+		Domain:    "midasplayer.com",
+		IpAddress: "205.251.203.100",
 	},
 	&fronted.Masquerade{
 		Domain:    "mightybell.com",
 		IpAddress: "205.251.253.193",
+	},
+	&fronted.Masquerade{
+		Domain:    "mightybell.com",
+		IpAddress: "54.182.5.195",
 	},
 	&fronted.Masquerade{
 		Domain:    "mightybell.com",
@@ -8610,7 +8502,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "millesima.fr",
-		IpAddress: "54.182.7.91",
+		IpAddress: "54.230.7.124",
 	},
 	&fronted.Masquerade{
 		Domain:    "millesima.fr",
@@ -8618,7 +8510,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "millesima.fr",
-		IpAddress: "54.230.7.124",
+		IpAddress: "54.182.7.91",
+	},
+	&fronted.Masquerade{
+		Domain:    "minecraft.net",
+		IpAddress: "54.239.200.223",
+	},
+	&fronted.Masquerade{
+		Domain:    "minecraft.net",
+		IpAddress: "216.137.43.150",
+	},
+	&fronted.Masquerade{
+		Domain:    "minecraft.net",
+		IpAddress: "205.251.253.248",
 	},
 	&fronted.Masquerade{
 		Domain:    "minecraft.net",
@@ -8629,28 +8533,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "204.246.169.184",
 	},
 	&fronted.Masquerade{
-		Domain:    "minecraft.net",
-		IpAddress: "205.251.253.248",
-	},
-	&fronted.Masquerade{
-		Domain:    "minecraft.net",
-		IpAddress: "216.137.43.150",
-	},
-	&fronted.Masquerade{
-		Domain:    "minecraft.net",
-		IpAddress: "54.239.200.223",
-	},
-	&fronted.Masquerade{
 		Domain:    "mlbstatic.com",
-		IpAddress: "216.137.43.65",
+		IpAddress: "54.230.4.5",
 	},
 	&fronted.Masquerade{
 		Domain:    "mlbstatic.com",
 		IpAddress: "54.239.200.174",
-	},
-	&fronted.Masquerade{
-		Domain:    "mlbstatic.com",
-		IpAddress: "54.230.4.5",
 	},
 	&fronted.Masquerade{
 		Domain:    "mlbstatic.com",
@@ -8662,10 +8550,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "mobilerq.com",
-		IpAddress: "54.192.5.29",
-	},
-	&fronted.Masquerade{
-		Domain:    "mobilerq.com",
 		IpAddress: "54.182.7.174",
 	},
 	&fronted.Masquerade{
@@ -8673,8 +8557,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.239.132.175",
 	},
 	&fronted.Masquerade{
+		Domain:    "mobilerq.com",
+		IpAddress: "54.192.5.29",
+	},
+	&fronted.Masquerade{
 		Domain:    "mobizen.com",
-		IpAddress: "54.239.200.12",
+		IpAddress: "216.137.43.166",
 	},
 	&fronted.Masquerade{
 		Domain:    "mobizen.com",
@@ -8682,7 +8570,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "mobizen.com",
-		IpAddress: "216.137.43.166",
+		IpAddress: "54.239.200.12",
 	},
 	&fronted.Masquerade{
 		Domain:    "mojang.com",
@@ -8694,15 +8582,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "monoprix.fr",
-		IpAddress: "54.182.5.167",
-	},
-	&fronted.Masquerade{
-		Domain:    "monoprix.fr",
 		IpAddress: "216.137.33.116",
 	},
 	&fronted.Masquerade{
 		Domain:    "monoprix.fr",
+		IpAddress: "54.182.5.167",
+	},
+	&fronted.Masquerade{
+		Domain:    "monoprix.fr",
 		IpAddress: "54.230.4.216",
+	},
+	&fronted.Masquerade{
+		Domain:    "moovitapp.com",
+		IpAddress: "216.137.43.233",
 	},
 	&fronted.Masquerade{
 		Domain:    "moovitapp.com",
@@ -8713,16 +8605,16 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.0.142",
 	},
 	&fronted.Masquerade{
-		Domain:    "moovitapp.com",
-		IpAddress: "216.137.43.233",
+		Domain:    "moveguides.com",
+		IpAddress: "54.192.4.180",
 	},
 	&fronted.Masquerade{
 		Domain:    "moveguides.com",
 		IpAddress: "54.182.2.153",
 	},
 	&fronted.Masquerade{
-		Domain:    "moveguides.com",
-		IpAddress: "54.192.4.180",
+		Domain:    "movetv.com",
+		IpAddress: "54.192.7.132",
 	},
 	&fronted.Masquerade{
 		Domain:    "movetv.com",
@@ -8734,14 +8626,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "movetv.com",
-		IpAddress: "54.182.3.123",
-	},
-	&fronted.Masquerade{
-		Domain:    "movetv.com",
-		IpAddress: "54.192.5.68",
-	},
-	&fronted.Masquerade{
-		Domain:    "movetv.com",
 		IpAddress: "54.182.2.236",
 	},
 	&fronted.Masquerade{
@@ -8750,11 +8634,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "movetv.com",
-		IpAddress: "54.192.6.46",
+		IpAddress: "54.192.5.68",
 	},
 	&fronted.Masquerade{
 		Domain:    "movetv.com",
-		IpAddress: "54.192.7.132",
+		IpAddress: "54.182.3.123",
+	},
+	&fronted.Masquerade{
+		Domain:    "movetv.com",
+		IpAddress: "54.192.6.46",
 	},
 	&fronted.Masquerade{
 		Domain:    "mparticle.com",
@@ -8770,10 +8658,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "mtstatic.com",
-		IpAddress: "54.239.132.96",
-	},
-	&fronted.Masquerade{
-		Domain:    "mtstatic.com",
 		IpAddress: "54.182.0.89",
 	},
 	&fronted.Masquerade{
@@ -8781,12 +8665,32 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.192.6.119",
 	},
 	&fronted.Masquerade{
+		Domain:    "mtstatic.com",
+		IpAddress: "54.239.132.96",
+	},
+	&fronted.Masquerade{
+		Domain:    "multisight.com",
+		IpAddress: "54.239.200.158",
+	},
+	&fronted.Masquerade{
+		Domain:    "multisight.com",
+		IpAddress: "54.239.200.217",
+	},
+	&fronted.Masquerade{
+		Domain:    "multisight.com",
+		IpAddress: "54.239.130.226",
+	},
+	&fronted.Masquerade{
 		Domain:    "multisight.com",
 		IpAddress: "54.192.7.111",
 	},
 	&fronted.Masquerade{
 		Domain:    "multisight.com",
-		IpAddress: "54.182.4.42",
+		IpAddress: "54.182.4.43",
+	},
+	&fronted.Masquerade{
+		Domain:    "multisight.com",
+		IpAddress: "54.239.132.208",
 	},
 	&fronted.Masquerade{
 		Domain:    "multisight.com",
@@ -8798,23 +8702,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "multisight.com",
-		IpAddress: "54.239.200.158",
-	},
-	&fronted.Masquerade{
-		Domain:    "multisight.com",
-		IpAddress: "54.182.4.43",
-	},
-	&fronted.Masquerade{
-		Domain:    "multisight.com",
-		IpAddress: "54.239.130.226",
-	},
-	&fronted.Masquerade{
-		Domain:    "multisight.com",
-		IpAddress: "54.239.200.217",
-	},
-	&fronted.Masquerade{
-		Domain:    "multisight.com",
-		IpAddress: "54.239.132.208",
+		IpAddress: "54.182.4.42",
 	},
 	&fronted.Masquerade{
 		Domain:    "munchery.com",
@@ -8822,19 +8710,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "munchery.com",
-		IpAddress: "216.137.33.244",
-	},
-	&fronted.Masquerade{
-		Domain:    "munchery.com",
 		IpAddress: "54.192.6.226",
 	},
 	&fronted.Masquerade{
-		Domain:    "musixmatch.com",
-		IpAddress: "54.182.2.151",
+		Domain:    "munchery.com",
+		IpAddress: "216.137.33.244",
 	},
 	&fronted.Masquerade{
 		Domain:    "musixmatch.com",
 		IpAddress: "54.192.5.18",
+	},
+	&fronted.Masquerade{
+		Domain:    "musixmatch.com",
+		IpAddress: "54.182.2.151",
 	},
 	&fronted.Masquerade{
 		Domain:    "myconnectwise.net",
@@ -8854,23 +8742,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "myfonts.net",
-		IpAddress: "216.137.36.163",
-	},
-	&fronted.Masquerade{
-		Domain:    "myfonts.net",
-		IpAddress: "204.246.169.231",
-	},
-	&fronted.Masquerade{
-		Domain:    "myfonts.net",
 		IpAddress: "54.182.5.143",
-	},
-	&fronted.Masquerade{
-		Domain:    "myfonts.net",
-		IpAddress: "54.192.4.170",
-	},
-	&fronted.Masquerade{
-		Domain:    "myfonts.net",
-		IpAddress: "216.137.45.99",
 	},
 	&fronted.Masquerade{
 		Domain:    "myfonts.net",
@@ -8882,11 +8754,27 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "myfonts.net",
+		IpAddress: "54.239.132.40",
+	},
+	&fronted.Masquerade{
+		Domain:    "myfonts.net",
 		IpAddress: "205.251.253.180",
 	},
 	&fronted.Masquerade{
 		Domain:    "myfonts.net",
-		IpAddress: "54.239.132.40",
+		IpAddress: "204.246.169.231",
+	},
+	&fronted.Masquerade{
+		Domain:    "myfonts.net",
+		IpAddress: "216.137.36.163",
+	},
+	&fronted.Masquerade{
+		Domain:    "myfonts.net",
+		IpAddress: "216.137.45.99",
+	},
+	&fronted.Masquerade{
+		Domain:    "myfonts.net",
+		IpAddress: "54.192.4.170",
 	},
 	&fronted.Masquerade{
 		Domain:    "myfonts.net",
@@ -8894,15 +8782,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "myportfolio.com",
-		IpAddress: "54.230.6.129",
+		IpAddress: "54.182.3.162",
 	},
 	&fronted.Masquerade{
 		Domain:    "myportfolio.com",
-		IpAddress: "54.182.3.162",
+		IpAddress: "54.230.6.129",
 	},
 	&fronted.Masquerade{
 		Domain:    "mytaxi.com",
 		IpAddress: "204.246.169.8",
+	},
+	&fronted.Masquerade{
+		Domain:    "mytaxi.com",
+		IpAddress: "54.239.200.9",
 	},
 	&fronted.Masquerade{
 		Domain:    "mytaxi.com",
@@ -8914,11 +8806,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "mytaxi.com",
-		IpAddress: "54.239.200.9",
-	},
-	&fronted.Masquerade{
-		Domain:    "mytaxi.com",
-		IpAddress: "216.137.43.6",
+		IpAddress: "54.239.132.64",
 	},
 	&fronted.Masquerade{
 		Domain:    "mytaxi.com",
@@ -8930,15 +8818,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "mytaxi.com",
-		IpAddress: "54.239.132.64",
+		IpAddress: "216.137.43.6",
+	},
+	&fronted.Masquerade{
+		Domain:    "navionics.io",
+		IpAddress: "54.182.0.243",
 	},
 	&fronted.Masquerade{
 		Domain:    "navionics.io",
 		IpAddress: "54.192.6.214",
 	},
 	&fronted.Masquerade{
-		Domain:    "navionics.io",
-		IpAddress: "54.182.0.243",
+		Domain:    "nend.net",
+		IpAddress: "54.182.4.9",
 	},
 	&fronted.Masquerade{
 		Domain:    "nend.net",
@@ -8950,31 +8842,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "nend.net",
-		IpAddress: "54.182.4.9",
-	},
-	&fronted.Masquerade{
-		Domain:    "nend.net",
 		IpAddress: "54.230.4.219",
-	},
-	&fronted.Masquerade{
-		Domain:    "netseer.com",
-		IpAddress: "54.182.5.84",
 	},
 	&fronted.Masquerade{
 		Domain:    "netseer.com",
 		IpAddress: "54.192.6.129",
 	},
 	&fronted.Masquerade{
-		Domain:    "newscred.com",
-		IpAddress: "54.239.132.232",
-	},
-	&fronted.Masquerade{
-		Domain:    "newscred.com",
-		IpAddress: "204.246.169.92",
-	},
-	&fronted.Masquerade{
-		Domain:    "newscred.com",
-		IpAddress: "54.239.132.61",
+		Domain:    "netseer.com",
+		IpAddress: "54.182.5.84",
 	},
 	&fronted.Masquerade{
 		Domain:    "newscred.com",
@@ -8982,11 +8858,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "newscred.com",
+		IpAddress: "216.137.43.216",
+	},
+	&fronted.Masquerade{
+		Domain:    "newscred.com",
+		IpAddress: "216.137.45.81",
+	},
+	&fronted.Masquerade{
+		Domain:    "newscred.com",
+		IpAddress: "54.239.132.61",
+	},
+	&fronted.Masquerade{
+		Domain:    "newscred.com",
 		IpAddress: "54.182.7.196",
 	},
 	&fronted.Masquerade{
 		Domain:    "newscred.com",
-		IpAddress: "216.137.43.216",
+		IpAddress: "204.246.169.92",
 	},
 	&fronted.Masquerade{
 		Domain:    "newscred.com",
@@ -8994,19 +8882,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "newscred.com",
-		IpAddress: "54.192.4.164",
+		IpAddress: "54.239.132.232",
 	},
 	&fronted.Masquerade{
 		Domain:    "newscred.com",
-		IpAddress: "216.137.45.81",
-	},
-	&fronted.Masquerade{
-		Domain:    "newsinc.com",
-		IpAddress: "54.192.6.34",
+		IpAddress: "54.192.4.164",
 	},
 	&fronted.Masquerade{
 		Domain:    "newsinc.com",
 		IpAddress: "54.182.0.145",
+	},
+	&fronted.Masquerade{
+		Domain:    "newsinc.com",
+		IpAddress: "54.192.6.34",
 	},
 	&fronted.Masquerade{
 		Domain:    "nex8.net",
@@ -9022,7 +8910,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "nextguide.tv",
-		IpAddress: "205.251.203.190",
+		IpAddress: "54.230.7.24",
 	},
 	&fronted.Masquerade{
 		Domain:    "nextguide.tv",
@@ -9030,11 +8918,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "nextguide.tv",
-		IpAddress: "54.230.7.24",
+		IpAddress: "205.251.203.190",
 	},
 	&fronted.Masquerade{
 		Domain:    "nhlstatic.com",
-		IpAddress: "216.137.43.26",
+		IpAddress: "216.137.33.47",
 	},
 	&fronted.Masquerade{
 		Domain:    "nhlstatic.com",
@@ -9046,23 +8934,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "nhlstatic.com",
-		IpAddress: "216.137.33.47",
-	},
-	&fronted.Masquerade{
-		Domain:    "notonthehighstreet.com",
-		IpAddress: "54.182.3.64",
-	},
-	&fronted.Masquerade{
-		Domain:    "notonthehighstreet.com",
-		IpAddress: "54.239.132.99",
-	},
-	&fronted.Masquerade{
-		Domain:    "notonthehighstreet.com",
-		IpAddress: "54.239.130.247",
-	},
-	&fronted.Masquerade{
-		Domain:    "notonthehighstreet.com",
-		IpAddress: "54.192.4.194",
+		IpAddress: "216.137.43.26",
 	},
 	&fronted.Masquerade{
 		Domain:    "notonthehighstreet.com",
@@ -9074,7 +8946,27 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "notonthehighstreet.com",
+		IpAddress: "54.182.3.64",
+	},
+	&fronted.Masquerade{
+		Domain:    "notonthehighstreet.com",
+		IpAddress: "54.192.4.194",
+	},
+	&fronted.Masquerade{
+		Domain:    "notonthehighstreet.com",
 		IpAddress: "54.230.5.183",
+	},
+	&fronted.Masquerade{
+		Domain:    "notonthehighstreet.com",
+		IpAddress: "54.239.132.99",
+	},
+	&fronted.Masquerade{
+		Domain:    "notonthehighstreet.com",
+		IpAddress: "54.239.130.247",
+	},
+	&fronted.Masquerade{
+		Domain:    "notonthehighstreet.de",
+		IpAddress: "54.192.5.3",
 	},
 	&fronted.Masquerade{
 		Domain:    "notonthehighstreet.de",
@@ -9082,7 +8974,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "notonthehighstreet.de",
-		IpAddress: "54.182.5.142",
+		IpAddress: "205.251.203.47",
 	},
 	&fronted.Masquerade{
 		Domain:    "notonthehighstreet.de",
@@ -9090,15 +8982,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "notonthehighstreet.de",
-		IpAddress: "205.251.203.47",
-	},
-	&fronted.Masquerade{
-		Domain:    "notonthehighstreet.de",
-		IpAddress: "54.192.5.3",
-	},
-	&fronted.Masquerade{
-		Domain:    "novu.com",
-		IpAddress: "216.137.39.140",
+		IpAddress: "54.182.5.142",
 	},
 	&fronted.Masquerade{
 		Domain:    "novu.com",
@@ -9106,11 +8990,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "novu.com",
-		IpAddress: "204.246.169.29",
+		IpAddress: "205.251.203.44",
 	},
 	&fronted.Masquerade{
 		Domain:    "novu.com",
-		IpAddress: "205.251.203.44",
+		IpAddress: "216.137.39.140",
+	},
+	&fronted.Masquerade{
+		Domain:    "novu.com",
+		IpAddress: "216.137.33.196",
 	},
 	&fronted.Masquerade{
 		Domain:    "novu.com",
@@ -9118,7 +9006,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "novu.com",
+		IpAddress: "216.137.45.34",
+	},
+	&fronted.Masquerade{
+		Domain:    "novu.com",
 		IpAddress: "205.251.253.41",
+	},
+	&fronted.Masquerade{
+		Domain:    "novu.com",
+		IpAddress: "204.246.169.29",
 	},
 	&fronted.Masquerade{
 		Domain:    "novu.com",
@@ -9129,16 +9025,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "216.137.36.43",
 	},
 	&fronted.Masquerade{
-		Domain:    "novu.com",
-		IpAddress: "216.137.33.196",
-	},
-	&fronted.Masquerade{
-		Domain:    "novu.com",
-		IpAddress: "216.137.45.34",
-	},
-	&fronted.Masquerade{
 		Domain:    "nowforce.com",
-		IpAddress: "205.251.253.232",
+		IpAddress: "205.251.253.96",
 	},
 	&fronted.Masquerade{
 		Domain:    "nowforce.com",
@@ -9146,7 +9034,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "nowforce.com",
-		IpAddress: "54.182.5.173",
+		IpAddress: "205.251.203.77",
 	},
 	&fronted.Masquerade{
 		Domain:    "nowforce.com",
@@ -9154,11 +9042,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "nowforce.com",
-		IpAddress: "205.251.203.77",
-	},
-	&fronted.Masquerade{
-		Domain:    "nowforce.com",
-		IpAddress: "54.182.3.55",
+		IpAddress: "54.182.5.173",
 	},
 	&fronted.Masquerade{
 		Domain:    "nowforce.com",
@@ -9166,15 +9050,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "nowforce.com",
-		IpAddress: "205.251.253.96",
+		IpAddress: "205.251.253.232",
+	},
+	&fronted.Masquerade{
+		Domain:    "nowforce.com",
+		IpAddress: "54.182.3.55",
 	},
 	&fronted.Masquerade{
 		Domain:    "nrl.com",
 		IpAddress: "54.182.2.252",
-	},
-	&fronted.Masquerade{
-		Domain:    "nrl.com",
-		IpAddress: "216.137.33.103",
 	},
 	&fronted.Masquerade{
 		Domain:    "nrl.com",
@@ -9185,12 +9069,20 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "205.251.253.130",
 	},
 	&fronted.Masquerade{
-		Domain:    "ns-cdn.neustar.biz",
-		IpAddress: "54.192.6.141",
+		Domain:    "nrl.com",
+		IpAddress: "216.137.33.103",
 	},
 	&fronted.Masquerade{
 		Domain:    "ns-cdn.neustar.biz",
 		IpAddress: "54.182.0.238",
+	},
+	&fronted.Masquerade{
+		Domain:    "ns-cdn.neustar.biz",
+		IpAddress: "54.192.6.141",
+	},
+	&fronted.Masquerade{
+		Domain:    "ns-cdn.neuweb.biz",
+		IpAddress: "216.137.39.174",
 	},
 	&fronted.Masquerade{
 		Domain:    "ns-cdn.neuweb.biz",
@@ -9201,28 +9093,16 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.2.34",
 	},
 	&fronted.Masquerade{
-		Domain:    "ns-cdn.neuweb.biz",
-		IpAddress: "216.137.39.174",
-	},
-	&fronted.Masquerade{
-		Domain:    "oceanpark.com.hk",
-		IpAddress: "54.182.1.204",
-	},
-	&fronted.Masquerade{
-		Domain:    "oceanpark.com.hk",
-		IpAddress: "54.182.7.145",
-	},
-	&fronted.Masquerade{
 		Domain:    "oceanpark.com.hk",
 		IpAddress: "54.182.7.30",
 	},
 	&fronted.Masquerade{
 		Domain:    "oceanpark.com.hk",
-		IpAddress: "54.182.0.191",
+		IpAddress: "54.182.4.164",
 	},
 	&fronted.Masquerade{
 		Domain:    "oceanpark.com.hk",
-		IpAddress: "54.182.4.164",
+		IpAddress: "54.182.1.204",
 	},
 	&fronted.Masquerade{
 		Domain:    "oceanpark.com.hk",
@@ -9234,7 +9114,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "oceanpark.com.hk",
+		IpAddress: "54.182.7.145",
+	},
+	&fronted.Masquerade{
+		Domain:    "oceanpark.com.hk",
 		IpAddress: "205.251.253.29",
+	},
+	&fronted.Masquerade{
+		Domain:    "oceanpark.com.hk",
+		IpAddress: "54.182.0.191",
 	},
 	&fronted.Masquerade{
 		Domain:    "oceanpark.com.hk",
@@ -9242,15 +9130,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "oct.assets.appreciatehub.com",
-		IpAddress: "54.230.6.32",
-	},
-	&fronted.Masquerade{
-		Domain:    "oct.assets.appreciatehub.com",
 		IpAddress: "205.251.253.123",
 	},
 	&fronted.Masquerade{
-		Domain:    "officeworks.com.au",
-		IpAddress: "54.182.3.253",
+		Domain:    "oct.assets.appreciatehub.com",
+		IpAddress: "54.230.6.32",
 	},
 	&fronted.Masquerade{
 		Domain:    "officeworks.com.au",
@@ -9262,6 +9146,10 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "officeworks.com.au",
+		IpAddress: "54.182.3.253",
+	},
+	&fronted.Masquerade{
+		Domain:    "officeworks.com.au",
 		IpAddress: "54.192.7.234",
 	},
 	&fronted.Masquerade{
@@ -9270,7 +9158,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "okta.com",
-		IpAddress: "216.137.43.254",
+		IpAddress: "54.239.130.101",
 	},
 	&fronted.Masquerade{
 		Domain:    "okta.com",
@@ -9278,15 +9166,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "okta.com",
-		IpAddress: "54.239.130.101",
+		IpAddress: "216.137.43.254",
 	},
 	&fronted.Masquerade{
 		Domain:    "onewithx.com",
-		IpAddress: "54.239.132.188",
-	},
-	&fronted.Masquerade{
-		Domain:    "onewithx.com",
-		IpAddress: "54.182.7.130",
+		IpAddress: "54.230.4.101",
 	},
 	&fronted.Masquerade{
 		Domain:    "onewithx.com",
@@ -9294,7 +9178,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "onewithx.com",
-		IpAddress: "54.230.4.101",
+		IpAddress: "54.182.7.130",
+	},
+	&fronted.Masquerade{
+		Domain:    "onewithx.com",
+		IpAddress: "54.239.132.188",
 	},
 	&fronted.Masquerade{
 		Domain:    "onthemarket.com",
@@ -9310,11 +9198,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "ooyala.com",
-		IpAddress: "54.182.5.83",
+		IpAddress: "205.251.253.17",
 	},
 	&fronted.Masquerade{
 		Domain:    "ooyala.com",
-		IpAddress: "54.192.6.155",
+		IpAddress: "54.182.1.13",
 	},
 	&fronted.Masquerade{
 		Domain:    "ooyala.com",
@@ -9326,15 +9214,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "ooyala.com",
+		IpAddress: "54.182.5.83",
+	},
+	&fronted.Masquerade{
+		Domain:    "ooyala.com",
+		IpAddress: "54.192.6.155",
+	},
+	&fronted.Masquerade{
+		Domain:    "ooyala.com",
 		IpAddress: "54.230.7.220",
-	},
-	&fronted.Masquerade{
-		Domain:    "ooyala.com",
-		IpAddress: "54.182.1.13",
-	},
-	&fronted.Masquerade{
-		Domain:    "ooyala.com",
-		IpAddress: "205.251.253.17",
 	},
 	&fronted.Masquerade{
 		Domain:    "opencds.fujixerox.co.jp",
@@ -9350,15 +9238,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "openenglish.com",
-		IpAddress: "54.230.5.252",
-	},
-	&fronted.Masquerade{
-		Domain:    "openenglish.com",
 		IpAddress: "54.182.3.186",
 	},
 	&fronted.Masquerade{
-		Domain:    "openrec.tv",
-		IpAddress: "216.137.43.223",
+		Domain:    "openenglish.com",
+		IpAddress: "54.230.5.252",
 	},
 	&fronted.Masquerade{
 		Domain:    "openrec.tv",
@@ -9366,11 +9250,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "openrec.tv",
-		IpAddress: "54.182.5.77",
+		IpAddress: "216.137.43.223",
 	},
 	&fronted.Masquerade{
 		Domain:    "openrec.tv",
 		IpAddress: "54.239.200.171",
+	},
+	&fronted.Masquerade{
+		Domain:    "openrec.tv",
+		IpAddress: "54.182.5.77",
 	},
 	&fronted.Masquerade{
 		Domain:    "opinionlab.com",
@@ -9390,7 +9278,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "order.hbonow.com",
-		IpAddress: "216.137.39.173",
+		IpAddress: "54.182.0.40",
 	},
 	&fronted.Masquerade{
 		Domain:    "order.hbonow.com",
@@ -9398,15 +9286,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "order.hbonow.com",
-		IpAddress: "54.182.0.40",
-	},
-	&fronted.Masquerade{
-		Domain:    "origin-preprod.roberthalf.com",
-		IpAddress: "216.137.33.72",
+		IpAddress: "216.137.39.173",
 	},
 	&fronted.Masquerade{
 		Domain:    "origin-preprod.roberthalf.com",
 		IpAddress: "54.192.6.10",
+	},
+	&fronted.Masquerade{
+		Domain:    "origin-preprod.roberthalf.com",
+		IpAddress: "216.137.33.72",
 	},
 	&fronted.Masquerade{
 		Domain:    "origin-preprod.roberthalf.com",
@@ -9418,19 +9306,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "ouropal.com",
-		IpAddress: "216.137.45.89",
-	},
-	&fronted.Masquerade{
-		Domain:    "ouropal.com",
 		IpAddress: "54.239.130.235",
 	},
 	&fronted.Masquerade{
 		Domain:    "ouropal.com",
-		IpAddress: "54.230.4.189",
+		IpAddress: "216.137.45.89",
 	},
 	&fronted.Masquerade{
-		Domain:    "p.script.5thfinger.com",
-		IpAddress: "54.182.0.157",
+		Domain:    "ouropal.com",
+		IpAddress: "54.230.4.189",
 	},
 	&fronted.Masquerade{
 		Domain:    "p.script.5thfinger.com",
@@ -9441,12 +9325,20 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "205.251.203.165",
 	},
 	&fronted.Masquerade{
-		Domain:    "pageuppeople.com",
-		IpAddress: "54.182.2.206",
+		Domain:    "p.script.5thfinger.com",
+		IpAddress: "54.182.0.157",
 	},
 	&fronted.Masquerade{
 		Domain:    "pageuppeople.com",
 		IpAddress: "54.192.6.154",
+	},
+	&fronted.Masquerade{
+		Domain:    "pageuppeople.com",
+		IpAddress: "54.182.2.206",
+	},
+	&fronted.Masquerade{
+		Domain:    "paltalk.com",
+		IpAddress: "54.182.2.71",
 	},
 	&fronted.Masquerade{
 		Domain:    "paltalk.com",
@@ -9457,12 +9349,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "216.137.45.87",
 	},
 	&fronted.Masquerade{
-		Domain:    "paltalk.com",
-		IpAddress: "54.182.2.71",
-	},
-	&fronted.Masquerade{
 		Domain:    "paribus.co",
-		IpAddress: "54.182.2.60",
+		IpAddress: "54.239.200.41",
 	},
 	&fronted.Masquerade{
 		Domain:    "paribus.co",
@@ -9470,7 +9358,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "paribus.co",
-		IpAddress: "54.192.6.48",
+		IpAddress: "54.182.2.60",
 	},
 	&fronted.Masquerade{
 		Domain:    "paribus.co",
@@ -9478,11 +9366,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "paribus.co",
-		IpAddress: "54.239.200.41",
+		IpAddress: "205.251.253.118",
 	},
 	&fronted.Masquerade{
 		Domain:    "paribus.co",
-		IpAddress: "205.251.253.118",
+		IpAddress: "54.192.6.48",
+	},
+	&fronted.Masquerade{
+		Domain:    "parse.com",
+		IpAddress: "54.230.4.14",
 	},
 	&fronted.Masquerade{
 		Domain:    "parse.com",
@@ -9493,20 +9385,16 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.2.198",
 	},
 	&fronted.Masquerade{
-		Domain:    "parse.com",
-		IpAddress: "54.230.4.14",
-	},
-	&fronted.Masquerade{
-		Domain:    "password.amazonworkspaces.com",
-		IpAddress: "54.239.132.244",
-	},
-	&fronted.Masquerade{
 		Domain:    "password.amazonworkspaces.com",
 		IpAddress: "54.230.5.173",
 	},
 	&fronted.Masquerade{
 		Domain:    "password.amazonworkspaces.com",
 		IpAddress: "54.182.1.25",
+	},
+	&fronted.Masquerade{
+		Domain:    "password.amazonworkspaces.com",
+		IpAddress: "54.239.132.244",
 	},
 	&fronted.Masquerade{
 		Domain:    "pay.jp",
@@ -9546,15 +9434,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "pearsontexas.com",
-		IpAddress: "54.182.5.69",
-	},
-	&fronted.Masquerade{
-		Domain:    "pearsontexas.com",
 		IpAddress: "54.230.5.225",
 	},
 	&fronted.Masquerade{
-		Domain:    "periscope.tv",
-		IpAddress: "54.182.2.82",
+		Domain:    "pearsontexas.com",
+		IpAddress: "54.182.5.69",
 	},
 	&fronted.Masquerade{
 		Domain:    "periscope.tv",
@@ -9563,6 +9447,10 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "periscope.tv",
 		IpAddress: "54.192.6.186",
+	},
+	&fronted.Masquerade{
+		Domain:    "periscope.tv",
+		IpAddress: "54.182.2.82",
 	},
 	&fronted.Masquerade{
 		Domain:    "pgastatic.com",
@@ -9574,19 +9462,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "pgatourlive.com",
+		IpAddress: "54.239.130.229",
+	},
+	&fronted.Masquerade{
+		Domain:    "pgatourlive.com",
 		IpAddress: "54.192.6.98",
 	},
 	&fronted.Masquerade{
 		Domain:    "pgatourlive.com",
 		IpAddress: "54.182.5.222",
-	},
-	&fronted.Masquerade{
-		Domain:    "pgatourlive.com",
-		IpAddress: "54.239.130.229",
-	},
-	&fronted.Masquerade{
-		Domain:    "pgealerts.com",
-		IpAddress: "54.230.5.190",
 	},
 	&fronted.Masquerade{
 		Domain:    "pgealerts.com",
@@ -9598,6 +9482,10 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "pgealerts.com",
+		IpAddress: "54.230.5.190",
+	},
+	&fronted.Masquerade{
+		Domain:    "pgealerts.com",
 		IpAddress: "216.137.33.214",
 	},
 	&fronted.Masquerade{
@@ -9606,19 +9494,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "pgimgs.com",
-		IpAddress: "54.192.5.162",
-	},
-	&fronted.Masquerade{
-		Domain:    "pgimgs.com",
-		IpAddress: "54.239.132.140",
-	},
-	&fronted.Masquerade{
-		Domain:    "pgimgs.com",
-		IpAddress: "216.137.36.211",
-	},
-	&fronted.Masquerade{
-		Domain:    "pgimgs.com",
 		IpAddress: "54.182.3.83",
+	},
+	&fronted.Masquerade{
+		Domain:    "pgimgs.com",
+		IpAddress: "205.251.253.183",
+	},
+	&fronted.Masquerade{
+		Domain:    "pgimgs.com",
+		IpAddress: "54.192.5.162",
 	},
 	&fronted.Masquerade{
 		Domain:    "pgimgs.com",
@@ -9630,15 +9514,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "pgimgs.com",
-		IpAddress: "205.251.253.183",
+		IpAddress: "216.137.39.68",
+	},
+	&fronted.Masquerade{
+		Domain:    "pgimgs.com",
+		IpAddress: "54.239.132.140",
+	},
+	&fronted.Masquerade{
+		Domain:    "pgimgs.com",
+		IpAddress: "216.137.36.211",
 	},
 	&fronted.Masquerade{
 		Domain:    "pgimgs.com",
 		IpAddress: "54.239.200.159",
-	},
-	&fronted.Masquerade{
-		Domain:    "pgimgs.com",
-		IpAddress: "216.137.39.68",
 	},
 	&fronted.Masquerade{
 		Domain:    "photorait.net",
@@ -9650,11 +9538,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "pie.co",
-		IpAddress: "54.192.4.10",
+		IpAddress: "54.182.3.174",
 	},
 	&fronted.Masquerade{
 		Domain:    "pie.co",
-		IpAddress: "54.182.3.174",
+		IpAddress: "54.192.4.10",
 	},
 	&fronted.Masquerade{
 		Domain:    "pimg.jp",
@@ -9670,15 +9558,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "pinterest.com",
+		IpAddress: "54.239.130.241",
+	},
+	&fronted.Masquerade{
+		Domain:    "pinterest.com",
 		IpAddress: "216.137.43.250",
-	},
-	&fronted.Masquerade{
-		Domain:    "pinterest.com",
-		IpAddress: "54.239.130.96",
-	},
-	&fronted.Masquerade{
-		Domain:    "pinterest.com",
-		IpAddress: "54.182.2.93",
 	},
 	&fronted.Masquerade{
 		Domain:    "pinterest.com",
@@ -9690,15 +9574,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "pinterest.com",
-		IpAddress: "54.239.130.241",
+		IpAddress: "54.239.130.96",
 	},
 	&fronted.Masquerade{
-		Domain:    "pixelsquid.com",
-		IpAddress: "54.192.5.5",
+		Domain:    "pinterest.com",
+		IpAddress: "54.182.2.93",
 	},
 	&fronted.Masquerade{
 		Domain:    "pixelsquid.com",
 		IpAddress: "54.182.1.235",
+	},
+	&fronted.Masquerade{
+		Domain:    "pixelsquid.com",
+		IpAddress: "54.192.5.5",
 	},
 	&fronted.Masquerade{
 		Domain:    "playfirst.com",
@@ -9706,23 +9594,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "playfirst.com",
-		IpAddress: "216.137.43.60",
-	},
-	&fronted.Masquerade{
-		Domain:    "playfirst.com",
-		IpAddress: "54.192.4.228",
-	},
-	&fronted.Masquerade{
-		Domain:    "playfirst.com",
 		IpAddress: "216.137.36.113",
+	},
+	&fronted.Masquerade{
+		Domain:    "playfirst.com",
+		IpAddress: "216.137.43.60",
 	},
 	&fronted.Masquerade{
 		Domain:    "playfirst.com",
 		IpAddress: "216.137.45.75",
 	},
 	&fronted.Masquerade{
-		Domain:    "playmmc.com",
-		IpAddress: "204.246.169.111",
+		Domain:    "playfirst.com",
+		IpAddress: "54.192.4.228",
 	},
 	&fronted.Masquerade{
 		Domain:    "playmmc.com",
@@ -9730,15 +9614,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "playmmc.com",
+		IpAddress: "204.246.169.111",
+	},
+	&fronted.Masquerade{
+		Domain:    "playmmc.com",
 		IpAddress: "54.182.5.79",
 	},
 	&fronted.Masquerade{
 		Domain:    "playstove.com",
-		IpAddress: "54.182.1.170",
+		IpAddress: "54.239.200.38",
 	},
 	&fronted.Masquerade{
 		Domain:    "playstove.com",
-		IpAddress: "54.239.200.38",
+		IpAddress: "54.182.1.170",
 	},
 	&fronted.Masquerade{
 		Domain:    "playstove.com",
@@ -9750,15 +9638,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "ple.platoweb.com",
-		IpAddress: "54.182.2.225",
-	},
-	&fronted.Masquerade{
-		Domain:    "ple.platoweb.com",
 		IpAddress: "54.192.7.81",
 	},
 	&fronted.Masquerade{
-		Domain:    "policygenius.com",
-		IpAddress: "54.239.200.37",
+		Domain:    "ple.platoweb.com",
+		IpAddress: "54.182.2.225",
 	},
 	&fronted.Masquerade{
 		Domain:    "policygenius.com",
@@ -9766,11 +9650,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "policygenius.com",
-		IpAddress: "54.230.7.193",
+		IpAddress: "54.239.200.37",
 	},
 	&fronted.Masquerade{
-		Domain:    "popanyform.net",
-		IpAddress: "54.182.6.46",
+		Domain:    "policygenius.com",
+		IpAddress: "54.230.7.193",
 	},
 	&fronted.Masquerade{
 		Domain:    "popanyform.net",
@@ -9778,15 +9662,27 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "popanyform.net",
+		IpAddress: "54.182.6.46",
+	},
+	&fronted.Masquerade{
+		Domain:    "popanyform.net",
 		IpAddress: "205.251.203.22",
+	},
+	&fronted.Masquerade{
+		Domain:    "portfoliocheckup.com",
+		IpAddress: "54.239.200.228",
 	},
 	&fronted.Masquerade{
 		Domain:    "portfoliocheckup.com",
 		IpAddress: "54.230.7.148",
 	},
 	&fronted.Masquerade{
-		Domain:    "portfoliocheckup.com",
-		IpAddress: "54.239.200.228",
+		Domain:    "powermarketing.com",
+		IpAddress: "54.192.4.179",
+	},
+	&fronted.Masquerade{
+		Domain:    "powermarketing.com",
+		IpAddress: "54.182.1.176",
 	},
 	&fronted.Masquerade{
 		Domain:    "powermarketing.com",
@@ -9798,19 +9694,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "powermarketing.com",
-		IpAddress: "54.182.1.176",
-	},
-	&fronted.Masquerade{
-		Domain:    "powermarketing.com",
-		IpAddress: "54.192.4.179",
-	},
-	&fronted.Masquerade{
-		Domain:    "powermarketing.com",
 		IpAddress: "216.137.39.142",
 	},
 	&fronted.Masquerade{
 		Domain:    "ppjol.net",
 		IpAddress: "54.182.3.47",
+	},
+	&fronted.Masquerade{
+		Domain:    "ppjol.net",
+		IpAddress: "54.239.132.25",
 	},
 	&fronted.Masquerade{
 		Domain:    "ppjol.net",
@@ -9821,20 +9713,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.192.4.252",
 	},
 	&fronted.Masquerade{
-		Domain:    "ppjol.net",
-		IpAddress: "54.239.132.25",
-	},
-	&fronted.Masquerade{
-		Domain:    "preciseres.com",
-		IpAddress: "54.192.7.82",
-	},
-	&fronted.Masquerade{
 		Domain:    "preciseres.com",
 		IpAddress: "54.182.1.84",
 	},
 	&fronted.Masquerade{
-		Domain:    "preziusercontent.com",
-		IpAddress: "54.182.4.155",
+		Domain:    "preciseres.com",
+		IpAddress: "54.192.7.82",
 	},
 	&fronted.Masquerade{
 		Domain:    "preziusercontent.com",
@@ -9842,23 +9726,27 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "preziusercontent.com",
-		IpAddress: "204.246.169.139",
+		IpAddress: "54.182.4.155",
 	},
 	&fronted.Masquerade{
-		Domain:    "pro.com",
-		IpAddress: "54.192.6.116",
+		Domain:    "preziusercontent.com",
+		IpAddress: "204.246.169.139",
 	},
 	&fronted.Masquerade{
 		Domain:    "pro.com",
 		IpAddress: "54.182.5.202",
 	},
 	&fronted.Masquerade{
-		Domain:    "prodstaticcdn.stanfordhealthcare.org",
-		IpAddress: "54.182.7.158",
+		Domain:    "pro.com",
+		IpAddress: "54.192.6.116",
 	},
 	&fronted.Masquerade{
 		Domain:    "prodstaticcdn.stanfordhealthcare.org",
 		IpAddress: "54.230.4.160",
+	},
+	&fronted.Masquerade{
+		Domain:    "prodstaticcdn.stanfordhealthcare.org",
+		IpAddress: "54.182.7.158",
 	},
 	&fronted.Masquerade{
 		Domain:    "program-dev.abcradio.net.au",
@@ -9882,10 +9770,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "promospot.vistaprint.com",
-		IpAddress: "54.182.0.196",
-	},
-	&fronted.Masquerade{
-		Domain:    "promospot.vistaprint.com",
 		IpAddress: "205.251.203.228",
 	},
 	&fronted.Masquerade{
@@ -9897,8 +9781,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.192.6.197",
 	},
 	&fronted.Masquerade{
-		Domain:    "promotw.com",
-		IpAddress: "54.230.5.33",
+		Domain:    "promospot.vistaprint.com",
+		IpAddress: "54.182.0.196",
 	},
 	&fronted.Masquerade{
 		Domain:    "promotw.com",
@@ -9906,11 +9790,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "promotw.com",
-		IpAddress: "204.246.169.133",
+		IpAddress: "54.230.5.33",
 	},
 	&fronted.Masquerade{
 		Domain:    "promotw.com",
 		IpAddress: "216.137.33.85",
+	},
+	&fronted.Masquerade{
+		Domain:    "promotw.com",
+		IpAddress: "204.246.169.133",
 	},
 	&fronted.Masquerade{
 		Domain:    "ps.ns-cdn.com",
@@ -9938,10 +9826,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "pureprofile.com",
-		IpAddress: "216.137.43.157",
-	},
-	&fronted.Masquerade{
-		Domain:    "pureprofile.com",
 		IpAddress: "54.182.4.44",
 	},
 	&fronted.Masquerade{
@@ -9949,12 +9833,16 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.239.200.188",
 	},
 	&fronted.Masquerade{
-		Domain:    "qa.7pass.ctf.prosiebensat1.com",
-		IpAddress: "54.182.2.228",
+		Domain:    "pureprofile.com",
+		IpAddress: "216.137.43.157",
 	},
 	&fronted.Masquerade{
 		Domain:    "qa.7pass.ctf.prosiebensat1.com",
 		IpAddress: "216.137.43.232",
+	},
+	&fronted.Masquerade{
+		Domain:    "qa.7pass.ctf.prosiebensat1.com",
+		IpAddress: "54.182.2.228",
 	},
 	&fronted.Masquerade{
 		Domain:    "qa.app.loopcommerce.net",
@@ -9962,7 +9850,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "qa.app.loopcommerce.net",
-		IpAddress: "54.239.130.154",
+		IpAddress: "216.137.36.193",
 	},
 	&fronted.Masquerade{
 		Domain:    "qa.app.loopcommerce.net",
@@ -9970,15 +9858,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "qa.app.loopcommerce.net",
-		IpAddress: "216.137.36.193",
-	},
-	&fronted.Masquerade{
-		Domain:    "qa.assets.appreciatehub.com",
-		IpAddress: "54.192.6.212",
+		IpAddress: "54.239.130.154",
 	},
 	&fronted.Masquerade{
 		Domain:    "qa.assets.appreciatehub.com",
 		IpAddress: "54.182.2.119",
+	},
+	&fronted.Masquerade{
+		Domain:    "qa.assets.appreciatehub.com",
+		IpAddress: "54.192.6.212",
 	},
 	&fronted.Masquerade{
 		Domain:    "qa.media.front.xoedge.com",
@@ -9990,10 +9878,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "qa.o.brightcove.com",
-		IpAddress: "54.239.130.45",
-	},
-	&fronted.Masquerade{
-		Domain:    "qa.o.brightcove.com",
 		IpAddress: "54.182.6.9",
 	},
 	&fronted.Masquerade{
@@ -10002,23 +9886,27 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "qa.o.brightcove.com",
-		IpAddress: "54.192.7.155",
+		IpAddress: "54.239.130.45",
 	},
 	&fronted.Masquerade{
-		Domain:    "qa2preview.buuteeq.com",
-		IpAddress: "216.137.36.60",
+		Domain:    "qa.o.brightcove.com",
+		IpAddress: "54.192.7.155",
 	},
 	&fronted.Masquerade{
 		Domain:    "qa2preview.buuteeq.com",
 		IpAddress: "54.230.6.39",
 	},
 	&fronted.Masquerade{
-		Domain:    "qkids.com",
-		IpAddress: "54.192.4.158",
+		Domain:    "qa2preview.buuteeq.com",
+		IpAddress: "216.137.36.60",
 	},
 	&fronted.Masquerade{
 		Domain:    "qkids.com",
 		IpAddress: "54.182.0.183",
+	},
+	&fronted.Masquerade{
+		Domain:    "qkids.com",
+		IpAddress: "54.192.4.158",
 	},
 	&fronted.Masquerade{
 		Domain:    "qpyou.cn",
@@ -10026,11 +9914,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "qpyou.cn",
-		IpAddress: "54.192.4.3",
+		IpAddress: "54.239.200.103",
 	},
 	&fronted.Masquerade{
 		Domain:    "qpyou.cn",
-		IpAddress: "54.239.200.103",
+		IpAddress: "54.192.4.3",
 	},
 	&fronted.Masquerade{
 		Domain:    "quelon.com",
@@ -10042,11 +9930,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "quettra.com",
-		IpAddress: "54.182.5.249",
+		IpAddress: "204.246.169.152",
 	},
 	&fronted.Masquerade{
 		Domain:    "quettra.com",
-		IpAddress: "204.246.169.152",
+		IpAddress: "54.182.5.249",
 	},
 	&fronted.Masquerade{
 		Domain:    "quettra.com",
@@ -10058,10 +9946,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "queue-it.net",
-		IpAddress: "54.182.6.130",
-	},
-	&fronted.Masquerade{
-		Domain:    "queue-it.net",
 		IpAddress: "54.230.4.197",
 	},
 	&fronted.Masquerade{
@@ -10069,8 +9953,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "216.137.36.116",
 	},
 	&fronted.Masquerade{
+		Domain:    "queue-it.net",
+		IpAddress: "54.182.6.130",
+	},
+	&fronted.Masquerade{
 		Domain:    "r1-cdn.net",
-		IpAddress: "54.182.5.181",
+		IpAddress: "54.230.6.234",
 	},
 	&fronted.Masquerade{
 		Domain:    "r1-cdn.net",
@@ -10078,7 +9966,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "r1-cdn.net",
-		IpAddress: "54.230.6.234",
+		IpAddress: "54.182.5.181",
 	},
 	&fronted.Masquerade{
 		Domain:    "racing.com",
@@ -10087,14 +9975,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "racing.com",
 		IpAddress: "54.182.7.191",
-	},
-	&fronted.Masquerade{
-		Domain:    "rafflecopter.com",
-		IpAddress: "54.239.132.180",
-	},
-	&fronted.Masquerade{
-		Domain:    "rafflecopter.com",
-		IpAddress: "216.137.43.106",
 	},
 	&fronted.Masquerade{
 		Domain:    "rafflecopter.com",
@@ -10110,6 +9990,14 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "rafflecopter.com",
+		IpAddress: "54.239.132.180",
+	},
+	&fronted.Masquerade{
+		Domain:    "rafflecopter.com",
+		IpAddress: "216.137.43.106",
+	},
+	&fronted.Masquerade{
+		Domain:    "rafflecopter.com",
 		IpAddress: "54.192.5.90",
 	},
 	&fronted.Masquerade{
@@ -10118,19 +10006,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "randpaul.com",
-		IpAddress: "54.182.7.192",
-	},
-	&fronted.Masquerade{
-		Domain:    "randpaul.com",
 		IpAddress: "216.137.39.224",
 	},
 	&fronted.Masquerade{
-		Domain:    "rcapp.co",
-		IpAddress: "54.192.6.4",
+		Domain:    "randpaul.com",
+		IpAddress: "54.182.7.192",
 	},
 	&fronted.Masquerade{
 		Domain:    "rcapp.co",
 		IpAddress: "54.182.6.34",
+	},
+	&fronted.Masquerade{
+		Domain:    "rcapp.co",
+		IpAddress: "54.192.6.4",
 	},
 	&fronted.Masquerade{
 		Domain:    "rcstatic.com",
@@ -10162,7 +10050,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "realisticgames.co.uk",
-		IpAddress: "54.192.4.118",
+		IpAddress: "54.182.1.34",
+	},
+	&fronted.Masquerade{
+		Domain:    "realisticgames.co.uk",
+		IpAddress: "54.192.5.55",
 	},
 	&fronted.Masquerade{
 		Domain:    "realisticgames.co.uk",
@@ -10170,23 +10062,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "realisticgames.co.uk",
-		IpAddress: "54.182.1.34",
-	},
-	&fronted.Masquerade{
-		Domain:    "realisticgames.co.uk",
 		IpAddress: "216.137.39.38",
 	},
 	&fronted.Masquerade{
 		Domain:    "realisticgames.co.uk",
-		IpAddress: "54.192.5.55",
+		IpAddress: "54.192.4.118",
 	},
 	&fronted.Masquerade{
 		Domain:    "realtime.co",
 		IpAddress: "54.182.7.182",
-	},
-	&fronted.Masquerade{
-		Domain:    "realtime.co",
-		IpAddress: "54.182.7.183",
 	},
 	&fronted.Masquerade{
 		Domain:    "realtime.co",
@@ -10195,6 +10079,10 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "realtime.co",
 		IpAddress: "54.192.5.141",
+	},
+	&fronted.Masquerade{
+		Domain:    "realtime.co",
+		IpAddress: "54.182.7.183",
 	},
 	&fronted.Masquerade{
 		Domain:    "rebelmail.com",
@@ -10210,6 +10098,10 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "redef.com",
+		IpAddress: "54.182.6.194",
+	},
+	&fronted.Masquerade{
+		Domain:    "redef.com",
 		IpAddress: "205.251.253.151",
 	},
 	&fronted.Masquerade{
@@ -10217,28 +10109,20 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.230.4.156",
 	},
 	&fronted.Masquerade{
-		Domain:    "redef.com",
-		IpAddress: "54.182.6.194",
-	},
-	&fronted.Masquerade{
 		Domain:    "relateiq.com",
 		IpAddress: "54.182.4.95",
-	},
-	&fronted.Masquerade{
-		Domain:    "relateiq.com",
-		IpAddress: "216.137.36.237",
 	},
 	&fronted.Masquerade{
 		Domain:    "relateiq.com",
 		IpAddress: "54.192.4.34",
 	},
 	&fronted.Masquerade{
-		Domain:    "relayit.com",
-		IpAddress: "216.137.36.6",
+		Domain:    "relateiq.com",
+		IpAddress: "216.137.36.237",
 	},
 	&fronted.Masquerade{
 		Domain:    "relayit.com",
-		IpAddress: "54.182.6.209",
+		IpAddress: "54.192.4.240",
 	},
 	&fronted.Masquerade{
 		Domain:    "relayit.com",
@@ -10246,7 +10130,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "relayit.com",
-		IpAddress: "54.192.4.240",
+		IpAddress: "54.182.6.209",
+	},
+	&fronted.Masquerade{
+		Domain:    "relayit.com",
+		IpAddress: "216.137.36.6",
+	},
+	&fronted.Masquerade{
+		Domain:    "rentalcar.com",
+		IpAddress: "54.182.3.248",
 	},
 	&fronted.Masquerade{
 		Domain:    "rentalcar.com",
@@ -10257,36 +10149,28 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "216.137.39.125",
 	},
 	&fronted.Masquerade{
-		Domain:    "rentalcar.com",
-		IpAddress: "54.182.3.248",
+		Domain:    "repo.mongodb.com",
+		IpAddress: "54.182.5.139",
 	},
 	&fronted.Masquerade{
 		Domain:    "repo.mongodb.com",
 		IpAddress: "216.137.43.98",
 	},
 	&fronted.Masquerade{
-		Domain:    "repo.mongodb.com",
-		IpAddress: "54.182.5.139",
+		Domain:    "repo.mongodb.org",
+		IpAddress: "54.182.5.244",
 	},
 	&fronted.Masquerade{
 		Domain:    "repo.mongodb.org",
 		IpAddress: "54.192.4.196",
 	},
 	&fronted.Masquerade{
-		Domain:    "repo.mongodb.org",
-		IpAddress: "54.182.5.244",
-	},
-	&fronted.Masquerade{
-		Domain:    "resources.sunbaymath.com",
-		IpAddress: "54.192.6.113",
-	},
-	&fronted.Masquerade{
 		Domain:    "resources.sunbaymath.com",
 		IpAddress: "54.182.6.250",
 	},
 	&fronted.Masquerade{
-		Domain:    "rewardstyle.com",
-		IpAddress: "216.137.43.93",
+		Domain:    "resources.sunbaymath.com",
+		IpAddress: "54.192.6.113",
 	},
 	&fronted.Masquerade{
 		Domain:    "rewardstyle.com",
@@ -10294,7 +10178,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "rewardstyle.com",
+		IpAddress: "216.137.43.93",
+	},
+	&fronted.Masquerade{
+		Domain:    "rewardstyle.com",
 		IpAddress: "216.137.33.80",
+	},
+	&fronted.Masquerade{
+		Domain:    "rightaction.com",
+		IpAddress: "204.246.169.27",
 	},
 	&fronted.Masquerade{
 		Domain:    "rightaction.com",
@@ -10306,19 +10198,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "rightaction.com",
-		IpAddress: "204.246.169.27",
-	},
-	&fronted.Masquerade{
-		Domain:    "rightaction.com",
 		IpAddress: "54.182.6.146",
 	},
 	&fronted.Masquerade{
 		Domain:    "rightaction.com",
 		IpAddress: "54.239.200.52",
-	},
-	&fronted.Masquerade{
-		Domain:    "rl.talis.com",
-		IpAddress: "216.137.43.209",
 	},
 	&fronted.Masquerade{
 		Domain:    "rl.talis.com",
@@ -10329,8 +10213,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.239.130.108",
 	},
 	&fronted.Masquerade{
-		Domain:    "rlcdn.com",
-		IpAddress: "54.230.5.156",
+		Domain:    "rl.talis.com",
+		IpAddress: "216.137.43.209",
 	},
 	&fronted.Masquerade{
 		Domain:    "rlcdn.com",
@@ -10341,6 +10225,14 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.3.86",
 	},
 	&fronted.Masquerade{
+		Domain:    "rlcdn.com",
+		IpAddress: "54.230.5.156",
+	},
+	&fronted.Masquerade{
+		Domain:    "rockabox.co",
+		IpAddress: "54.192.6.218",
+	},
+	&fronted.Masquerade{
 		Domain:    "rockabox.co",
 		IpAddress: "54.182.3.33",
 	},
@@ -10349,24 +10241,20 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.239.200.246",
 	},
 	&fronted.Masquerade{
-		Domain:    "rockabox.co",
-		IpAddress: "54.192.6.218",
+		Domain:    "roomorama.com",
+		IpAddress: "54.230.6.155",
 	},
 	&fronted.Masquerade{
 		Domain:    "roomorama.com",
 		IpAddress: "54.182.3.138",
 	},
 	&fronted.Masquerade{
-		Domain:    "roomorama.com",
-		IpAddress: "54.230.6.155",
+		Domain:    "rosettastone.com",
+		IpAddress: "54.230.4.35",
 	},
 	&fronted.Masquerade{
 		Domain:    "rosettastone.com",
 		IpAddress: "54.182.4.16",
-	},
-	&fronted.Masquerade{
-		Domain:    "rosettastone.com",
-		IpAddress: "54.230.4.35",
 	},
 	&fronted.Masquerade{
 		Domain:    "rosettastone.com",
@@ -10382,11 +10270,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "rovio.com",
-		IpAddress: "54.182.3.230",
+		IpAddress: "54.192.6.49",
 	},
 	&fronted.Masquerade{
 		Domain:    "rovio.com",
-		IpAddress: "54.182.3.24",
+		IpAddress: "54.182.3.230",
 	},
 	&fronted.Masquerade{
 		Domain:    "rovio.com",
@@ -10394,7 +10282,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "rovio.com",
-		IpAddress: "54.192.6.49",
+		IpAddress: "54.182.3.24",
 	},
 	&fronted.Masquerade{
 		Domain:    "rsrve.com",
@@ -10403,10 +10291,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "rsrve.com",
 		IpAddress: "54.182.0.247",
-	},
-	&fronted.Masquerade{
-		Domain:    "rtbcdn.com",
-		IpAddress: "54.192.4.202",
 	},
 	&fronted.Masquerade{
 		Domain:    "rtbcdn.com",
@@ -10422,7 +10306,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "rtl.nl",
-		IpAddress: "216.137.36.145",
+		IpAddress: "205.251.203.143",
 	},
 	&fronted.Masquerade{
 		Domain:    "rtl.nl",
@@ -10430,11 +10314,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "rtl.nl",
-		IpAddress: "205.251.203.143",
+		IpAddress: "216.137.36.145",
 	},
 	&fronted.Masquerade{
 		Domain:    "rwaws.com",
-		IpAddress: "54.192.6.244",
+		IpAddress: "54.192.7.22",
 	},
 	&fronted.Masquerade{
 		Domain:    "rwaws.com",
@@ -10442,23 +10326,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "rwaws.com",
-		IpAddress: "54.192.7.22",
-	},
-	&fronted.Masquerade{
-		Domain:    "s3-turbo.amazonaws.com",
-		IpAddress: "54.182.6.175",
+		IpAddress: "54.192.6.244",
 	},
 	&fronted.Masquerade{
 		Domain:    "s3-turbo.amazonaws.com",
 		IpAddress: "54.230.6.23",
 	},
 	&fronted.Masquerade{
-		Domain:    "sagebridge.org",
-		IpAddress: "216.137.43.160",
+		Domain:    "s3-turbo.amazonaws.com",
+		IpAddress: "54.182.6.175",
 	},
 	&fronted.Masquerade{
 		Domain:    "sagebridge.org",
 		IpAddress: "54.239.132.120",
+	},
+	&fronted.Masquerade{
+		Domain:    "sagebridge.org",
+		IpAddress: "216.137.43.160",
 	},
 	&fronted.Masquerade{
 		Domain:    "salesforcesos.com",
@@ -10470,19 +10354,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "samsungcloudsolution.com",
-		IpAddress: "204.246.169.76",
-	},
-	&fronted.Masquerade{
-		Domain:    "samsungcloudsolution.com",
-		IpAddress: "54.192.6.84",
-	},
-	&fronted.Masquerade{
-		Domain:    "samsungcloudsolution.com",
 		IpAddress: "54.182.0.42",
 	},
 	&fronted.Masquerade{
 		Domain:    "samsungcloudsolution.com",
 		IpAddress: "205.251.203.222",
+	},
+	&fronted.Masquerade{
+		Domain:    "samsungcloudsolution.com",
+		IpAddress: "204.246.169.76",
+	},
+	&fronted.Masquerade{
+		Domain:    "samsungcloudsolution.com",
+		IpAddress: "54.192.6.84",
 	},
 	&fronted.Masquerade{
 		Domain:    "samsungknox.com",
@@ -10494,7 +10378,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "sanoma.com",
-		IpAddress: "54.192.6.71",
+		IpAddress: "54.182.0.19",
 	},
 	&fronted.Masquerade{
 		Domain:    "sanoma.com",
@@ -10502,11 +10386,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "sanoma.com",
-		IpAddress: "54.182.0.19",
+		IpAddress: "54.239.200.248",
 	},
 	&fronted.Masquerade{
 		Domain:    "sanoma.com",
-		IpAddress: "54.239.200.248",
+		IpAddress: "54.192.6.71",
+	},
+	&fronted.Masquerade{
+		Domain:    "saucelabs.com",
+		IpAddress: "54.192.6.108",
 	},
 	&fronted.Masquerade{
 		Domain:    "saucelabs.com",
@@ -10517,16 +10405,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.0.180",
 	},
 	&fronted.Masquerade{
-		Domain:    "saucelabs.com",
-		IpAddress: "54.192.6.108",
+		Domain:    "sbal4kp.com",
+		IpAddress: "54.192.6.66",
 	},
 	&fronted.Masquerade{
 		Domain:    "sbal4kp.com",
 		IpAddress: "54.182.3.69",
-	},
-	&fronted.Masquerade{
-		Domain:    "sbal4kp.com",
-		IpAddress: "54.192.6.66",
 	},
 	&fronted.Masquerade{
 		Domain:    "sblk.io",
@@ -10538,11 +10422,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "schulershoes.com",
-		IpAddress: "54.182.3.43",
+		IpAddress: "54.230.7.32",
 	},
 	&fronted.Masquerade{
 		Domain:    "schulershoes.com",
-		IpAddress: "54.230.7.32",
+		IpAddress: "54.182.3.43",
 	},
 	&fronted.Masquerade{
 		Domain:    "scoopon.com.au",
@@ -10554,7 +10438,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "scribblelive.com",
-		IpAddress: "54.182.1.65",
+		IpAddress: "216.137.36.9",
 	},
 	&fronted.Masquerade{
 		Domain:    "scribblelive.com",
@@ -10562,7 +10446,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "scribblelive.com",
-		IpAddress: "216.137.36.9",
+		IpAddress: "54.239.132.8",
 	},
 	&fronted.Masquerade{
 		Domain:    "scribblelive.com",
@@ -10570,19 +10454,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "scribblelive.com",
+		IpAddress: "54.182.1.65",
+	},
+	&fronted.Masquerade{
+		Domain:    "scribblelive.com",
 		IpAddress: "205.251.203.9",
 	},
 	&fronted.Masquerade{
 		Domain:    "scribblelive.com",
-		IpAddress: "54.239.132.8",
-	},
-	&fronted.Masquerade{
-		Domain:    "scribblelive.com",
 		IpAddress: "216.137.43.5",
-	},
-	&fronted.Masquerade{
-		Domain:    "script.crazyegg.com",
-		IpAddress: "216.137.36.180",
 	},
 	&fronted.Masquerade{
 		Domain:    "script.crazyegg.com",
@@ -10591,6 +10471,10 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "script.crazyegg.com",
 		IpAddress: "54.182.1.139",
+	},
+	&fronted.Masquerade{
+		Domain:    "script.crazyegg.com",
+		IpAddress: "216.137.36.180",
 	},
 	&fronted.Masquerade{
 		Domain:    "script.i-parcel.com",
@@ -10610,11 +10494,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "seal.beyondsecurity.com",
-		IpAddress: "54.182.5.63",
+		IpAddress: "54.192.4.185",
 	},
 	&fronted.Masquerade{
 		Domain:    "seal.beyondsecurity.com",
-		IpAddress: "54.192.4.185",
+		IpAddress: "54.182.5.63",
 	},
 	&fronted.Masquerade{
 		Domain:    "secondlife-staging.com",
@@ -10638,19 +10522,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "secure.morethan.com",
-		IpAddress: "54.192.5.53",
-	},
-	&fronted.Masquerade{
-		Domain:    "secure.morethan.com",
 		IpAddress: "54.182.5.106",
 	},
 	&fronted.Masquerade{
 		Domain:    "secure.morethan.com",
-		IpAddress: "205.251.253.148",
+		IpAddress: "216.137.45.108",
 	},
 	&fronted.Masquerade{
 		Domain:    "secure.morethan.com",
-		IpAddress: "216.137.45.108",
+		IpAddress: "54.192.5.53",
+	},
+	&fronted.Masquerade{
+		Domain:    "secure.morethan.com",
+		IpAddress: "205.251.253.148",
 	},
 	&fronted.Masquerade{
 		Domain:    "segment.com",
@@ -10658,7 +10542,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "segment.com",
-		IpAddress: "54.182.3.228",
+		IpAddress: "54.230.6.218",
 	},
 	&fronted.Masquerade{
 		Domain:    "segment.com",
@@ -10666,15 +10550,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "segment.com",
-		IpAddress: "54.230.6.218",
-	},
-	&fronted.Masquerade{
-		Domain:    "segment.io",
-		IpAddress: "54.182.0.7",
-	},
-	&fronted.Masquerade{
-		Domain:    "segment.io",
-		IpAddress: "204.246.169.212",
+		IpAddress: "54.182.3.228",
 	},
 	&fronted.Masquerade{
 		Domain:    "segment.io",
@@ -10682,23 +10558,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "segment.io",
-		IpAddress: "54.192.5.235",
+		IpAddress: "204.246.169.212",
 	},
 	&fronted.Masquerade{
-		Domain:    "servicechannel.com",
-		IpAddress: "54.182.2.210",
+		Domain:    "segment.io",
+		IpAddress: "54.182.0.7",
+	},
+	&fronted.Masquerade{
+		Domain:    "segment.io",
+		IpAddress: "54.192.5.235",
 	},
 	&fronted.Masquerade{
 		Domain:    "servicechannel.com",
 		IpAddress: "54.230.4.22",
 	},
 	&fronted.Masquerade{
-		Domain:    "services.adobe.com",
-		IpAddress: "216.137.43.164",
-	},
-	&fronted.Masquerade{
-		Domain:    "services.adobe.com",
-		IpAddress: "204.246.169.82",
+		Domain:    "servicechannel.com",
+		IpAddress: "54.182.2.210",
 	},
 	&fronted.Masquerade{
 		Domain:    "services.adobe.com",
@@ -10706,11 +10582,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "services.adobe.com",
-		IpAddress: "54.230.6.112",
+		IpAddress: "204.246.169.82",
 	},
 	&fronted.Masquerade{
 		Domain:    "services.adobe.com",
-		IpAddress: "54.182.1.50",
+		IpAddress: "54.230.6.112",
 	},
 	&fronted.Masquerade{
 		Domain:    "services.adobe.com",
@@ -10718,15 +10594,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "services.adobe.com",
+		IpAddress: "216.137.33.227",
+	},
+	&fronted.Masquerade{
+		Domain:    "services.adobe.com",
 		IpAddress: "54.182.2.76",
 	},
 	&fronted.Masquerade{
 		Domain:    "services.adobe.com",
-		IpAddress: "216.137.33.227",
+		IpAddress: "54.182.1.50",
 	},
 	&fronted.Masquerade{
-		Domain:    "shall-we-date.com",
-		IpAddress: "205.251.253.7",
+		Domain:    "services.adobe.com",
+		IpAddress: "216.137.43.164",
 	},
 	&fronted.Masquerade{
 		Domain:    "shall-we-date.com",
@@ -10734,11 +10614,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "shall-we-date.com",
+		IpAddress: "54.239.200.192",
+	},
+	&fronted.Masquerade{
+		Domain:    "shall-we-date.com",
 		IpAddress: "54.182.4.109",
 	},
 	&fronted.Masquerade{
 		Domain:    "shall-we-date.com",
-		IpAddress: "54.239.200.192",
+		IpAddress: "205.251.253.7",
 	},
 	&fronted.Masquerade{
 		Domain:    "share.origin.9cdn.net",
@@ -10746,11 +10630,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "share.origin.9cdn.net",
-		IpAddress: "54.192.4.207",
+		IpAddress: "54.182.3.67",
 	},
 	&fronted.Masquerade{
 		Domain:    "share.origin.9cdn.net",
-		IpAddress: "54.182.3.67",
+		IpAddress: "54.192.4.207",
 	},
 	&fronted.Masquerade{
 		Domain:    "sharecare.com",
@@ -10762,19 +10646,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "sharefile.com",
-		IpAddress: "54.192.7.95",
+		IpAddress: "54.182.4.18",
 	},
 	&fronted.Masquerade{
 		Domain:    "sharefile.com",
-		IpAddress: "54.182.4.18",
+		IpAddress: "54.192.7.95",
+	},
+	&fronted.Masquerade{
+		Domain:    "sharethis.com",
+		IpAddress: "54.192.4.188",
 	},
 	&fronted.Masquerade{
 		Domain:    "sharethis.com",
 		IpAddress: "54.182.2.139",
 	},
 	&fronted.Masquerade{
-		Domain:    "sharethis.com",
-		IpAddress: "54.192.4.188",
+		Domain:    "shopstyle.com",
+		IpAddress: "216.137.43.187",
 	},
 	&fronted.Masquerade{
 		Domain:    "shopstyle.com",
@@ -10783,10 +10671,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "shopstyle.com",
 		IpAddress: "216.137.43.212",
-	},
-	&fronted.Masquerade{
-		Domain:    "shopstyle.com",
-		IpAddress: "216.137.43.187",
 	},
 	&fronted.Masquerade{
 		Domain:    "shopstyle.com",
@@ -10806,11 +10690,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "signal.is",
-		IpAddress: "216.137.36.128",
+		IpAddress: "205.251.253.213",
 	},
 	&fronted.Masquerade{
 		Domain:    "signal.is",
-		IpAddress: "205.251.253.213",
+		IpAddress: "54.192.5.49",
 	},
 	&fronted.Masquerade{
 		Domain:    "signal.is",
@@ -10818,31 +10702,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "signal.is",
-		IpAddress: "54.192.5.49",
+		IpAddress: "216.137.36.128",
 	},
 	&fronted.Masquerade{
 		Domain:    "sketchup.com",
-		IpAddress: "54.182.2.241",
-	},
-	&fronted.Masquerade{
-		Domain:    "sketchup.com",
-		IpAddress: "54.230.5.249",
-	},
-	&fronted.Masquerade{
-		Domain:    "sketchup.com",
-		IpAddress: "54.239.130.102",
-	},
-	&fronted.Masquerade{
-		Domain:    "sketchup.com",
-		IpAddress: "54.182.0.215",
-	},
-	&fronted.Masquerade{
-		Domain:    "sketchup.com",
-		IpAddress: "216.137.39.179",
-	},
-	&fronted.Masquerade{
-		Domain:    "sketchup.com",
-		IpAddress: "54.182.7.61",
+		IpAddress: "54.192.4.87",
 	},
 	&fronted.Masquerade{
 		Domain:    "sketchup.com",
@@ -10850,15 +10714,35 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "sketchup.com",
+		IpAddress: "54.182.2.241",
+	},
+	&fronted.Masquerade{
+		Domain:    "sketchup.com",
+		IpAddress: "54.239.130.102",
+	},
+	&fronted.Masquerade{
+		Domain:    "sketchup.com",
 		IpAddress: "54.192.5.198",
 	},
 	&fronted.Masquerade{
 		Domain:    "sketchup.com",
-		IpAddress: "54.192.4.87",
+		IpAddress: "54.182.7.61",
+	},
+	&fronted.Masquerade{
+		Domain:    "sketchup.com",
+		IpAddress: "216.137.39.179",
+	},
+	&fronted.Masquerade{
+		Domain:    "sketchup.com",
+		IpAddress: "54.230.5.249",
+	},
+	&fronted.Masquerade{
+		Domain:    "sketchup.com",
+		IpAddress: "54.182.0.215",
 	},
 	&fronted.Masquerade{
 		Domain:    "skybzz.com",
-		IpAddress: "205.251.203.88",
+		IpAddress: "54.230.5.165",
 	},
 	&fronted.Masquerade{
 		Domain:    "skybzz.com",
@@ -10870,15 +10754,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "skybzz.com",
-		IpAddress: "54.230.5.165",
-	},
-	&fronted.Masquerade{
-		Domain:    "slatergordon.com.au",
-		IpAddress: "54.230.6.79",
-	},
-	&fronted.Masquerade{
-		Domain:    "slatergordon.com.au",
-		IpAddress: "205.251.253.38",
+		IpAddress: "205.251.203.88",
 	},
 	&fronted.Masquerade{
 		Domain:    "slatergordon.com.au",
@@ -10889,16 +10765,24 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "205.251.203.133",
 	},
 	&fronted.Masquerade{
-		Domain:    "sling.com",
-		IpAddress: "54.182.3.210",
+		Domain:    "slatergordon.com.au",
+		IpAddress: "205.251.253.38",
+	},
+	&fronted.Masquerade{
+		Domain:    "slatergordon.com.au",
+		IpAddress: "54.230.6.79",
 	},
 	&fronted.Masquerade{
 		Domain:    "sling.com",
-		IpAddress: "216.137.45.24",
+		IpAddress: "54.182.3.51",
 	},
 	&fronted.Masquerade{
 		Domain:    "sling.com",
-		IpAddress: "205.251.253.228",
+		IpAddress: "54.192.7.45",
+	},
+	&fronted.Masquerade{
+		Domain:    "sling.com",
+		IpAddress: "54.192.6.3",
 	},
 	&fronted.Masquerade{
 		Domain:    "sling.com",
@@ -10910,23 +10794,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "sling.com",
-		IpAddress: "54.192.7.45",
-	},
-	&fronted.Masquerade{
-		Domain:    "sling.com",
-		IpAddress: "54.182.3.51",
-	},
-	&fronted.Masquerade{
-		Domain:    "sling.com",
-		IpAddress: "54.192.6.3",
-	},
-	&fronted.Masquerade{
-		Domain:    "sling.com",
 		IpAddress: "204.246.169.39",
 	},
 	&fronted.Masquerade{
-		Domain:    "smartica.jp",
-		IpAddress: "204.246.169.214",
+		Domain:    "sling.com",
+		IpAddress: "205.251.253.228",
+	},
+	&fronted.Masquerade{
+		Domain:    "sling.com",
+		IpAddress: "54.182.3.210",
+	},
+	&fronted.Masquerade{
+		Domain:    "sling.com",
+		IpAddress: "216.137.45.24",
 	},
 	&fronted.Masquerade{
 		Domain:    "smartica.jp",
@@ -10938,6 +10818,10 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "smartica.jp",
+		IpAddress: "216.137.43.172",
+	},
+	&fronted.Masquerade{
+		Domain:    "smartica.jp",
 		IpAddress: "54.239.200.253",
 	},
 	&fronted.Masquerade{
@@ -10946,7 +10830,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "smartica.jp",
-		IpAddress: "216.137.43.172",
+		IpAddress: "204.246.169.214",
 	},
 	&fronted.Masquerade{
 		Domain:    "smartrecruiters.com",
@@ -10958,19 +10842,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "smmove.de",
-		IpAddress: "54.230.5.59",
-	},
-	&fronted.Masquerade{
-		Domain:    "smmove.de",
 		IpAddress: "54.182.6.149",
 	},
 	&fronted.Masquerade{
-		Domain:    "smtown.com",
-		IpAddress: "54.182.6.121",
+		Domain:    "smmove.de",
+		IpAddress: "54.230.5.59",
 	},
 	&fronted.Masquerade{
 		Domain:    "smtown.com",
-		IpAddress: "54.182.1.198",
+		IpAddress: "54.192.4.8",
+	},
+	&fronted.Masquerade{
+		Domain:    "smtown.com",
+		IpAddress: "205.251.203.252",
 	},
 	&fronted.Masquerade{
 		Domain:    "smtown.com",
@@ -10982,23 +10866,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "smtown.com",
-		IpAddress: "216.137.39.83",
-	},
-	&fronted.Masquerade{
-		Domain:    "smtown.com",
 		IpAddress: "216.137.39.148",
 	},
 	&fronted.Masquerade{
 		Domain:    "smtown.com",
-		IpAddress: "205.251.203.252",
-	},
-	&fronted.Masquerade{
-		Domain:    "smtown.com",
-		IpAddress: "54.192.4.8",
+		IpAddress: "54.182.6.121",
 	},
 	&fronted.Masquerade{
 		Domain:    "smtown.com",
 		IpAddress: "54.192.4.15",
+	},
+	&fronted.Masquerade{
+		Domain:    "smtown.com",
+		IpAddress: "54.182.1.198",
+	},
+	&fronted.Masquerade{
+		Domain:    "smtown.com",
+		IpAddress: "216.137.39.83",
 	},
 	&fronted.Masquerade{
 		Domain:    "smyte.com",
@@ -11018,14 +10902,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "snapapp.com",
-		IpAddress: "54.182.2.120",
-	},
-	&fronted.Masquerade{
-		Domain:    "snapapp.com",
-		IpAddress: "54.239.132.216",
-	},
-	&fronted.Masquerade{
-		Domain:    "snapapp.com",
 		IpAddress: "54.192.6.62",
 	},
 	&fronted.Masquerade{
@@ -11033,20 +10909,24 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "216.137.39.78",
 	},
 	&fronted.Masquerade{
-		Domain:    "sndcdn.com",
-		IpAddress: "54.192.4.85",
+		Domain:    "snapapp.com",
+		IpAddress: "54.182.2.120",
+	},
+	&fronted.Masquerade{
+		Domain:    "snapapp.com",
+		IpAddress: "54.239.132.216",
 	},
 	&fronted.Masquerade{
 		Domain:    "sndcdn.com",
-		IpAddress: "216.137.43.53",
+		IpAddress: "54.192.4.251",
 	},
 	&fronted.Masquerade{
 		Domain:    "sndcdn.com",
-		IpAddress: "54.230.5.80",
+		IpAddress: "54.192.7.46",
 	},
 	&fronted.Masquerade{
 		Domain:    "sndcdn.com",
-		IpAddress: "54.192.7.11",
+		IpAddress: "54.192.4.176",
 	},
 	&fronted.Masquerade{
 		Domain:    "sndcdn.com",
@@ -11058,7 +10938,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "sndcdn.com",
-		IpAddress: "54.192.7.46",
+		IpAddress: "54.192.4.36",
 	},
 	&fronted.Masquerade{
 		Domain:    "sndcdn.com",
@@ -11066,19 +10946,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "sndcdn.com",
-		IpAddress: "54.192.4.36",
-	},
-	&fronted.Masquerade{
-		Domain:    "sndcdn.com",
-		IpAddress: "54.192.4.176",
-	},
-	&fronted.Masquerade{
-		Domain:    "sndcdn.com",
-		IpAddress: "54.192.4.251",
+		IpAddress: "54.230.5.80",
 	},
 	&fronted.Masquerade{
 		Domain:    "sndcdn.com",
 		IpAddress: "54.182.0.175",
+	},
+	&fronted.Masquerade{
+		Domain:    "sndcdn.com",
+		IpAddress: "54.192.7.11",
+	},
+	&fronted.Masquerade{
+		Domain:    "sndcdn.com",
+		IpAddress: "54.192.4.85",
+	},
+	&fronted.Masquerade{
+		Domain:    "sny.tv",
+		IpAddress: "54.239.130.6",
 	},
 	&fronted.Masquerade{
 		Domain:    "sny.tv",
@@ -11087,10 +10971,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "sny.tv",
 		IpAddress: "54.192.7.241",
-	},
-	&fronted.Masquerade{
-		Domain:    "sny.tv",
-		IpAddress: "54.239.130.6",
 	},
 	&fronted.Masquerade{
 		Domain:    "snystatic.tv",
@@ -11102,11 +10982,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "social-matic.com",
-		IpAddress: "54.182.3.160",
+		IpAddress: "54.192.6.230",
 	},
 	&fronted.Masquerade{
 		Domain:    "social-matic.com",
-		IpAddress: "54.192.6.230",
+		IpAddress: "54.182.3.160",
 	},
 	&fronted.Masquerade{
 		Domain:    "social.intuitlabs.com",
@@ -11118,7 +10998,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "society6.com",
-		IpAddress: "205.251.251.211",
+		IpAddress: "216.137.43.57",
 	},
 	&fronted.Masquerade{
 		Domain:    "society6.com",
@@ -11126,11 +11006,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "society6.com",
-		IpAddress: "216.137.43.57",
+		IpAddress: "216.137.36.165",
 	},
 	&fronted.Masquerade{
 		Domain:    "society6.com",
-		IpAddress: "216.137.36.165",
+		IpAddress: "205.251.251.211",
 	},
 	&fronted.Masquerade{
 		Domain:    "sol.no",
@@ -11146,11 +11026,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "solidus.io",
-		IpAddress: "54.182.7.193",
-	},
-	&fronted.Masquerade{
-		Domain:    "solidus.io",
-		IpAddress: "54.192.6.35",
+		IpAddress: "54.239.130.178",
 	},
 	&fronted.Masquerade{
 		Domain:    "solidus.io",
@@ -11158,11 +11034,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "solidus.io",
-		IpAddress: "54.239.130.178",
+		IpAddress: "54.182.7.193",
 	},
 	&fronted.Masquerade{
-		Domain:    "sonicwall.com",
-		IpAddress: "54.192.5.229",
+		Domain:    "solidus.io",
+		IpAddress: "54.192.6.35",
 	},
 	&fronted.Masquerade{
 		Domain:    "sonicwall.com",
@@ -11170,19 +11046,27 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "sonicwall.com",
-		IpAddress: "54.182.0.5",
+		IpAddress: "54.239.200.249",
 	},
 	&fronted.Masquerade{
 		Domain:    "sonicwall.com",
-		IpAddress: "54.239.200.249",
+		IpAddress: "54.192.5.229",
+	},
+	&fronted.Masquerade{
+		Domain:    "sonicwall.com",
+		IpAddress: "54.182.0.5",
+	},
+	&fronted.Masquerade{
+		Domain:    "sortlist.com",
+		IpAddress: "54.182.5.122",
 	},
 	&fronted.Masquerade{
 		Domain:    "sortlist.com",
 		IpAddress: "54.230.5.29",
 	},
 	&fronted.Masquerade{
-		Domain:    "sortlist.com",
-		IpAddress: "54.182.5.122",
+		Domain:    "sparxcdn.net",
+		IpAddress: "54.182.6.174",
 	},
 	&fronted.Masquerade{
 		Domain:    "sparxcdn.net",
@@ -11194,10 +11078,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "sparxcdn.net",
-		IpAddress: "54.182.6.174",
-	},
-	&fronted.Masquerade{
-		Domain:    "sparxcdn.net",
 		IpAddress: "54.239.132.133",
 	},
 	&fronted.Masquerade{
@@ -11206,19 +11086,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "spl.rpg.kabam.com",
-		IpAddress: "54.182.7.70",
+		IpAddress: "54.192.7.196",
 	},
 	&fronted.Masquerade{
 		Domain:    "spl.rpg.kabam.com",
-		IpAddress: "54.192.7.196",
+		IpAddress: "54.182.7.70",
+	},
+	&fronted.Masquerade{
+		Domain:    "sportsyapper.com",
+		IpAddress: "54.182.0.63",
 	},
 	&fronted.Masquerade{
 		Domain:    "sportsyapper.com",
 		IpAddress: "54.192.7.93",
 	},
 	&fronted.Masquerade{
-		Domain:    "sportsyapper.com",
-		IpAddress: "54.182.0.63",
+		Domain:    "springest.com",
+		IpAddress: "54.192.5.73",
 	},
 	&fronted.Masquerade{
 		Domain:    "springest.com",
@@ -11229,28 +11113,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "216.137.39.123",
 	},
 	&fronted.Masquerade{
-		Domain:    "springest.com",
-		IpAddress: "54.192.5.73",
-	},
-	&fronted.Masquerade{
 		Domain:    "sprinklr.com",
-		IpAddress: "54.230.4.55",
-	},
-	&fronted.Masquerade{
-		Domain:    "sprinklr.com",
-		IpAddress: "54.182.7.234",
-	},
-	&fronted.Masquerade{
-		Domain:    "sprinklr.com",
-		IpAddress: "204.246.169.40",
-	},
-	&fronted.Masquerade{
-		Domain:    "sprinklr.com",
-		IpAddress: "54.239.132.150",
-	},
-	&fronted.Masquerade{
-		Domain:    "sprinklr.com",
-		IpAddress: "54.230.6.158",
+		IpAddress: "54.230.4.232",
 	},
 	&fronted.Masquerade{
 		Domain:    "sprinklr.com",
@@ -11258,35 +11122,35 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "sprinklr.com",
+		IpAddress: "54.182.7.234",
+	},
+	&fronted.Masquerade{
+		Domain:    "sprinklr.com",
+		IpAddress: "54.239.132.150",
+	},
+	&fronted.Masquerade{
+		Domain:    "sprinklr.com",
+		IpAddress: "54.230.4.55",
+	},
+	&fronted.Masquerade{
+		Domain:    "sprinklr.com",
 		IpAddress: "54.182.6.42",
-	},
-	&fronted.Masquerade{
-		Domain:    "sprinklr.com",
-		IpAddress: "54.230.4.232",
-	},
-	&fronted.Masquerade{
-		Domain:    "sprinklr.com",
-		IpAddress: "216.137.45.86",
 	},
 	&fronted.Masquerade{
 		Domain:    "sprinklr.com",
 		IpAddress: "216.137.36.51",
 	},
 	&fronted.Masquerade{
-		Domain:    "sso.ng",
-		IpAddress: "216.137.39.213",
+		Domain:    "sprinklr.com",
+		IpAddress: "54.230.6.158",
 	},
 	&fronted.Masquerade{
-		Domain:    "sso.ng",
-		IpAddress: "216.137.45.124",
+		Domain:    "sprinklr.com",
+		IpAddress: "204.246.169.40",
 	},
 	&fronted.Masquerade{
-		Domain:    "sso.ng",
-		IpAddress: "216.137.43.16",
-	},
-	&fronted.Masquerade{
-		Domain:    "sso.ng",
-		IpAddress: "54.182.0.71",
+		Domain:    "sprinklr.com",
+		IpAddress: "216.137.45.86",
 	},
 	&fronted.Masquerade{
 		Domain:    "sso.ng",
@@ -11298,19 +11162,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "sso.ng",
+		IpAddress: "54.182.0.71",
+	},
+	&fronted.Masquerade{
+		Domain:    "sso.ng",
+		IpAddress: "216.137.45.124",
+	},
+	&fronted.Masquerade{
+		Domain:    "sso.ng",
+		IpAddress: "216.137.43.16",
+	},
+	&fronted.Masquerade{
+		Domain:    "sso.ng",
+		IpAddress: "216.137.39.213",
+	},
+	&fronted.Masquerade{
+		Domain:    "sso.ng",
 		IpAddress: "216.137.36.188",
-	},
-	&fronted.Masquerade{
-		Domain:    "sspinc.io",
-		IpAddress: "216.137.39.80",
-	},
-	&fronted.Masquerade{
-		Domain:    "sspinc.io",
-		IpAddress: "54.239.130.181",
-	},
-	&fronted.Masquerade{
-		Domain:    "sspinc.io",
-		IpAddress: "54.182.1.53",
 	},
 	&fronted.Masquerade{
 		Domain:    "sspinc.io",
@@ -11318,7 +11186,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "sspinc.io",
-		IpAddress: "54.230.6.177",
+		IpAddress: "54.230.5.184",
+	},
+	&fronted.Masquerade{
+		Domain:    "sspinc.io",
+		IpAddress: "216.137.39.80",
 	},
 	&fronted.Masquerade{
 		Domain:    "sspinc.io",
@@ -11326,39 +11198,39 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "sspinc.io",
-		IpAddress: "54.230.5.184",
+		IpAddress: "54.239.130.181",
 	},
 	&fronted.Masquerade{
-		Domain:    "stage.kissmetrics.com",
-		IpAddress: "54.230.7.194",
+		Domain:    "sspinc.io",
+		IpAddress: "54.230.6.177",
+	},
+	&fronted.Masquerade{
+		Domain:    "sspinc.io",
+		IpAddress: "54.182.1.53",
 	},
 	&fronted.Masquerade{
 		Domain:    "stage.kissmetrics.com",
 		IpAddress: "54.182.2.204",
 	},
 	&fronted.Masquerade{
-		Domain:    "stage01.publish.adobe.com",
-		IpAddress: "54.192.4.108",
+		Domain:    "stage.kissmetrics.com",
+		IpAddress: "54.230.7.194",
 	},
 	&fronted.Masquerade{
 		Domain:    "stage01.publish.adobe.com",
 		IpAddress: "54.182.0.41",
 	},
 	&fronted.Masquerade{
-		Domain:    "stage02.publish.adobe.com",
-		IpAddress: "216.137.43.79",
+		Domain:    "stage01.publish.adobe.com",
+		IpAddress: "54.192.4.108",
 	},
 	&fronted.Masquerade{
 		Domain:    "stage02.publish.adobe.com",
 		IpAddress: "54.182.2.74",
 	},
 	&fronted.Masquerade{
-		Domain:    "staging.hairessentials.com",
-		IpAddress: "54.182.0.14",
-	},
-	&fronted.Masquerade{
-		Domain:    "staging.hairessentials.com",
-		IpAddress: "205.251.253.155",
+		Domain:    "stage02.publish.adobe.com",
+		IpAddress: "216.137.43.79",
 	},
 	&fronted.Masquerade{
 		Domain:    "staging.hairessentials.com",
@@ -11366,11 +11238,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "staging.hairessentials.com",
-		IpAddress: "54.192.7.28",
+		IpAddress: "205.251.253.155",
 	},
 	&fronted.Masquerade{
-		Domain:    "static-assets.shoptv.com",
-		IpAddress: "205.251.253.35",
+		Domain:    "staging.hairessentials.com",
+		IpAddress: "54.182.0.14",
+	},
+	&fronted.Masquerade{
+		Domain:    "staging.hairessentials.com",
+		IpAddress: "54.192.7.28",
 	},
 	&fronted.Masquerade{
 		Domain:    "static-assets.shoptv.com",
@@ -11402,7 +11278,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "static.bn-static.com",
-		IpAddress: "216.137.33.117",
+		IpAddress: "54.230.7.157",
 	},
 	&fronted.Masquerade{
 		Domain:    "static.bn-static.com",
@@ -11410,11 +11286,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "static.bn-static.com",
-		IpAddress: "54.230.7.157",
-	},
-	&fronted.Masquerade{
-		Domain:    "static.emarsys.com",
-		IpAddress: "205.251.253.177",
+		IpAddress: "216.137.33.117",
 	},
 	&fronted.Masquerade{
 		Domain:    "static.emarsys.com",
@@ -11425,8 +11297,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.2.176",
 	},
 	&fronted.Masquerade{
-		Domain:    "static.heydealer.com",
-		IpAddress: "54.182.4.27",
+		Domain:    "static.emarsys.com",
+		IpAddress: "205.251.253.177",
 	},
 	&fronted.Masquerade{
 		Domain:    "static.heydealer.com",
@@ -11437,8 +11309,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "204.246.169.129",
 	},
 	&fronted.Masquerade{
-		Domain:    "static.id.fc2.com",
-		IpAddress: "54.192.4.231",
+		Domain:    "static.heydealer.com",
+		IpAddress: "54.182.4.27",
 	},
 	&fronted.Masquerade{
 		Domain:    "static.id.fc2.com",
@@ -11446,15 +11318,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "static.id.fc2.com",
+		IpAddress: "54.192.4.231",
+	},
+	&fronted.Masquerade{
+		Domain:    "static.id.fc2.com",
 		IpAddress: "54.182.1.202",
+	},
+	&fronted.Masquerade{
+		Domain:    "static.id.fc2cn.com",
+		IpAddress: "54.182.1.226",
 	},
 	&fronted.Masquerade{
 		Domain:    "static.id.fc2cn.com",
 		IpAddress: "54.192.4.246",
 	},
 	&fronted.Masquerade{
-		Domain:    "static.id.fc2cn.com",
-		IpAddress: "54.182.1.226",
+		Domain:    "static.iqoption.com",
+		IpAddress: "54.192.7.78",
 	},
 	&fronted.Masquerade{
 		Domain:    "static.iqoption.com",
@@ -11463,10 +11343,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "static.iqoption.com",
 		IpAddress: "54.182.2.33",
-	},
-	&fronted.Masquerade{
-		Domain:    "static.iqoption.com",
-		IpAddress: "54.192.7.78",
 	},
 	&fronted.Masquerade{
 		Domain:    "static.mailchimp.com",
@@ -11478,11 +11354,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "static.neteller.com",
-		IpAddress: "54.230.4.159",
+		IpAddress: "54.182.2.43",
 	},
 	&fronted.Masquerade{
 		Domain:    "static.neteller.com",
-		IpAddress: "54.182.2.43",
+		IpAddress: "54.230.4.159",
 	},
 	&fronted.Masquerade{
 		Domain:    "static.o2.co.uk",
@@ -11494,15 +11370,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "static.secure.website",
-		IpAddress: "205.251.253.102",
-	},
-	&fronted.Masquerade{
-		Domain:    "static.secure.website",
-		IpAddress: "54.182.6.37",
-	},
-	&fronted.Masquerade{
-		Domain:    "static.secure.website",
-		IpAddress: "54.192.7.169",
+		IpAddress: "204.246.169.156",
 	},
 	&fronted.Masquerade{
 		Domain:    "static.secure.website",
@@ -11510,15 +11378,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "static.secure.website",
-		IpAddress: "204.246.169.156",
+		IpAddress: "54.192.7.169",
+	},
+	&fronted.Masquerade{
+		Domain:    "static.secure.website",
+		IpAddress: "54.182.6.37",
 	},
 	&fronted.Masquerade{
 		Domain:    "static.studyladder.com",
 		IpAddress: "54.192.5.87",
-	},
-	&fronted.Masquerade{
-		Domain:    "static.studyladder.com",
-		IpAddress: "205.251.253.76",
 	},
 	&fronted.Masquerade{
 		Domain:    "static.studyladder.com",
@@ -11529,24 +11397,28 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "204.246.169.117",
 	},
 	&fronted.Masquerade{
-		Domain:    "static.suite.io",
-		IpAddress: "54.239.132.109",
+		Domain:    "static.studyladder.com",
+		IpAddress: "205.251.253.76",
 	},
 	&fronted.Masquerade{
 		Domain:    "static.suite.io",
-		IpAddress: "54.182.3.49",
+		IpAddress: "54.239.132.109",
 	},
 	&fronted.Masquerade{
 		Domain:    "static.suite.io",
 		IpAddress: "54.192.4.184",
 	},
 	&fronted.Masquerade{
-		Domain:    "static.une.edu.au",
-		IpAddress: "54.182.0.189",
+		Domain:    "static.suite.io",
+		IpAddress: "54.182.3.49",
 	},
 	&fronted.Masquerade{
 		Domain:    "static.une.edu.au",
 		IpAddress: "54.192.4.48",
+	},
+	&fronted.Masquerade{
+		Domain:    "static.une.edu.au",
+		IpAddress: "54.182.0.189",
 	},
 	&fronted.Masquerade{
 		Domain:    "static.yub-cdn.com",
@@ -11555,14 +11427,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "static.yub-cdn.com",
 		IpAddress: "54.230.6.202",
-	},
-	&fronted.Masquerade{
-		Domain:    "staticapp.icpsc.com",
-		IpAddress: "54.192.5.170",
-	},
-	&fronted.Masquerade{
-		Domain:    "staticapp.icpsc.com",
-		IpAddress: "54.182.0.108",
 	},
 	&fronted.Masquerade{
 		Domain:    "staticapp.icpsc.com",
@@ -11577,8 +11441,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "216.137.36.221",
 	},
 	&fronted.Masquerade{
-		Domain:    "staticshop.o2.co.uk",
-		IpAddress: "54.182.6.180",
+		Domain:    "staticapp.icpsc.com",
+		IpAddress: "54.182.0.108",
 	},
 	&fronted.Masquerade{
 		Domain:    "staticshop.o2.co.uk",
@@ -11586,11 +11450,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "staticshop.o2.co.uk",
+		IpAddress: "54.182.6.180",
+	},
+	&fronted.Masquerade{
+		Domain:    "staticshop.o2.co.uk",
 		IpAddress: "54.230.4.234",
 	},
 	&fronted.Masquerade{
 		Domain:    "statista.com",
-		IpAddress: "216.137.39.215",
+		IpAddress: "54.182.3.115",
 	},
 	&fronted.Masquerade{
 		Domain:    "statista.com",
@@ -11602,11 +11470,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "statista.com",
-		IpAddress: "54.182.3.115",
+		IpAddress: "54.239.200.115",
 	},
 	&fronted.Masquerade{
 		Domain:    "statista.com",
-		IpAddress: "54.239.200.115",
+		IpAddress: "216.137.39.215",
 	},
 	&fronted.Masquerade{
 		Domain:    "stayinout.com",
@@ -11614,15 +11482,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "stayinout.com",
-		IpAddress: "54.182.0.173",
-	},
-	&fronted.Masquerade{
-		Domain:    "stayinout.com",
 		IpAddress: "54.239.130.133",
 	},
 	&fronted.Masquerade{
-		Domain:    "stg.assets.appreciatehub.com",
-		IpAddress: "216.137.33.173",
+		Domain:    "stayinout.com",
+		IpAddress: "54.182.0.173",
 	},
 	&fronted.Masquerade{
 		Domain:    "stg.assets.appreciatehub.com",
@@ -11633,12 +11497,16 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.192.5.150",
 	},
 	&fronted.Masquerade{
-		Domain:    "stg.game.auone.jp",
-		IpAddress: "54.182.0.12",
+		Domain:    "stg.assets.appreciatehub.com",
+		IpAddress: "216.137.33.173",
 	},
 	&fronted.Masquerade{
 		Domain:    "stg.game.auone.jp",
 		IpAddress: "54.230.5.198",
+	},
+	&fronted.Masquerade{
+		Domain:    "stg.game.auone.jp",
+		IpAddress: "54.182.0.12",
 	},
 	&fronted.Masquerade{
 		Domain:    "stgwww.capella.edu",
@@ -11670,23 +11538,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "storify.com",
-		IpAddress: "216.137.36.250",
-	},
-	&fronted.Masquerade{
-		Domain:    "storify.com",
-		IpAddress: "216.137.43.86",
-	},
-	&fronted.Masquerade{
-		Domain:    "storify.com",
-		IpAddress: "54.182.6.189",
-	},
-	&fronted.Masquerade{
-		Domain:    "storify.com",
 		IpAddress: "216.137.43.135",
-	},
-	&fronted.Masquerade{
-		Domain:    "storify.com",
-		IpAddress: "54.239.200.18",
 	},
 	&fronted.Masquerade{
 		Domain:    "storify.com",
@@ -11694,7 +11546,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "storify.com",
+		IpAddress: "54.239.200.18",
+	},
+	&fronted.Masquerade{
+		Domain:    "storify.com",
+		IpAddress: "54.182.6.189",
+	},
+	&fronted.Masquerade{
+		Domain:    "storify.com",
 		IpAddress: "204.246.169.36",
+	},
+	&fronted.Masquerade{
+		Domain:    "storify.com",
+		IpAddress: "216.137.43.86",
+	},
+	&fronted.Masquerade{
+		Domain:    "storify.com",
+		IpAddress: "216.137.36.250",
 	},
 	&fronted.Masquerade{
 		Domain:    "strongholdfinancial.com",
@@ -11714,7 +11582,27 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "sundaysky.com",
+		IpAddress: "205.251.253.120",
+	},
+	&fronted.Masquerade{
+		Domain:    "sundaysky.com",
 		IpAddress: "216.137.43.238",
+	},
+	&fronted.Masquerade{
+		Domain:    "sundaysky.com",
+		IpAddress: "54.182.1.122",
+	},
+	&fronted.Masquerade{
+		Domain:    "sundaysky.com",
+		IpAddress: "54.182.0.53",
+	},
+	&fronted.Masquerade{
+		Domain:    "sundaysky.com",
+		IpAddress: "216.137.39.30",
+	},
+	&fronted.Masquerade{
+		Domain:    "sundaysky.com",
+		IpAddress: "54.192.7.62",
 	},
 	&fronted.Masquerade{
 		Domain:    "sundaysky.com",
@@ -11725,36 +11613,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.239.132.138",
 	},
 	&fronted.Masquerade{
-		Domain:    "sundaysky.com",
-		IpAddress: "216.137.39.30",
-	},
-	&fronted.Masquerade{
-		Domain:    "sundaysky.com",
-		IpAddress: "54.182.0.53",
-	},
-	&fronted.Masquerade{
-		Domain:    "sundaysky.com",
-		IpAddress: "54.182.1.122",
-	},
-	&fronted.Masquerade{
-		Domain:    "sundaysky.com",
-		IpAddress: "54.192.7.62",
-	},
-	&fronted.Masquerade{
-		Domain:    "sundaysky.com",
-		IpAddress: "205.251.253.120",
-	},
-	&fronted.Masquerade{
-		Domain:    "supercell.com",
-		IpAddress: "54.192.4.203",
-	},
-	&fronted.Masquerade{
 		Domain:    "supercell.com",
 		IpAddress: "54.182.2.92",
 	},
 	&fronted.Masquerade{
-		Domain:    "superrewards-offers.com",
-		IpAddress: "54.182.4.65",
+		Domain:    "supercell.com",
+		IpAddress: "54.192.4.203",
 	},
 	&fronted.Masquerade{
 		Domain:    "superrewards-offers.com",
@@ -11762,7 +11626,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "superrewards-offers.com",
-		IpAddress: "54.192.5.92",
+		IpAddress: "54.239.200.156",
 	},
 	&fronted.Masquerade{
 		Domain:    "superrewards-offers.com",
@@ -11770,7 +11634,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "superrewards-offers.com",
-		IpAddress: "54.239.200.156",
+		IpAddress: "54.192.5.92",
+	},
+	&fronted.Masquerade{
+		Domain:    "superrewards-offers.com",
+		IpAddress: "54.182.4.65",
 	},
 	&fronted.Masquerade{
 		Domain:    "superrewards-offers.com",
@@ -11778,15 +11646,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "swat.rpg.kabam.com",
-		IpAddress: "54.182.6.50",
-	},
-	&fronted.Masquerade{
-		Domain:    "swat.rpg.kabam.com",
 		IpAddress: "54.192.6.168",
 	},
 	&fronted.Masquerade{
-		Domain:    "swipesapp.com",
-		IpAddress: "216.137.43.204",
+		Domain:    "swat.rpg.kabam.com",
+		IpAddress: "54.182.6.50",
 	},
 	&fronted.Masquerade{
 		Domain:    "swipesapp.com",
@@ -11794,7 +11658,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "swipesapp.com",
+		IpAddress: "216.137.43.204",
+	},
+	&fronted.Masquerade{
+		Domain:    "swipesapp.com",
 		IpAddress: "205.251.253.83",
+	},
+	&fronted.Masquerade{
+		Domain:    "swipesense.com",
+		IpAddress: "54.239.200.215",
 	},
 	&fronted.Masquerade{
 		Domain:    "swipesense.com",
@@ -11805,12 +11677,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.6.226",
 	},
 	&fronted.Masquerade{
-		Domain:    "swipesense.com",
-		IpAddress: "54.239.200.215",
+		Domain:    "swrve.com",
+		IpAddress: "54.230.4.168",
 	},
 	&fronted.Masquerade{
 		Domain:    "swrve.com",
-		IpAddress: "54.230.4.168",
+		IpAddress: "216.137.33.182",
 	},
 	&fronted.Masquerade{
 		Domain:    "swrve.com",
@@ -11821,16 +11693,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "205.251.253.240",
 	},
 	&fronted.Masquerade{
-		Domain:    "swrve.com",
-		IpAddress: "216.137.33.182",
+		Domain:    "sxg.ibiztb.com",
+		IpAddress: "216.137.43.158",
 	},
 	&fronted.Masquerade{
 		Domain:    "sxg.ibiztb.com",
 		IpAddress: "54.182.5.74",
-	},
-	&fronted.Masquerade{
-		Domain:    "sxg.ibiztb.com",
-		IpAddress: "216.137.43.158",
 	},
 	&fronted.Masquerade{
 		Domain:    "symphonycommerce.com",
@@ -11842,23 +11710,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "synapse-link.com",
-		IpAddress: "54.230.5.185",
-	},
-	&fronted.Masquerade{
-		Domain:    "synapse-link.com",
 		IpAddress: "54.182.4.88",
 	},
 	&fronted.Masquerade{
-		Domain:    "sync.amazonworkspaces.com",
-		IpAddress: "54.230.6.236",
+		Domain:    "synapse-link.com",
+		IpAddress: "54.230.5.185",
 	},
 	&fronted.Masquerade{
 		Domain:    "sync.amazonworkspaces.com",
 		IpAddress: "54.182.1.63",
 	},
 	&fronted.Masquerade{
+		Domain:    "sync.amazonworkspaces.com",
+		IpAddress: "54.230.6.236",
+	},
+	&fronted.Masquerade{
 		Domain:    "synthesio.com",
-		IpAddress: "54.182.6.97",
+		IpAddress: "54.239.130.216",
 	},
 	&fronted.Masquerade{
 		Domain:    "synthesio.com",
@@ -11866,19 +11734,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "synthesio.com",
-		IpAddress: "204.246.169.245",
-	},
-	&fronted.Masquerade{
-		Domain:    "synthesio.com",
 		IpAddress: "54.192.4.32",
 	},
 	&fronted.Masquerade{
 		Domain:    "synthesio.com",
-		IpAddress: "54.239.130.216",
+		IpAddress: "204.246.169.245",
+	},
+	&fronted.Masquerade{
+		Domain:    "synthesio.com",
+		IpAddress: "54.182.6.97",
 	},
 	&fronted.Masquerade{
 		Domain:    "tab.com.au",
-		IpAddress: "54.239.132.160",
+		IpAddress: "216.137.43.136",
+	},
+	&fronted.Masquerade{
+		Domain:    "tab.com.au",
+		IpAddress: "216.137.33.241",
 	},
 	&fronted.Masquerade{
 		Domain:    "tab.com.au",
@@ -11890,23 +11762,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "tab.com.au",
-		IpAddress: "216.137.43.136",
-	},
-	&fronted.Masquerade{
-		Domain:    "tab.com.au",
-		IpAddress: "216.137.33.241",
-	},
-	&fronted.Masquerade{
-		Domain:    "tagboard.com",
-		IpAddress: "205.251.253.20",
-	},
-	&fronted.Masquerade{
-		Domain:    "tagboard.com",
-		IpAddress: "216.137.33.191",
+		IpAddress: "54.239.132.160",
 	},
 	&fronted.Masquerade{
 		Domain:    "tagboard.com",
 		IpAddress: "54.182.7.76",
+	},
+	&fronted.Masquerade{
+		Domain:    "tagboard.com",
+		IpAddress: "205.251.253.20",
 	},
 	&fronted.Masquerade{
 		Domain:    "tagboard.com",
@@ -11917,8 +11781,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.239.132.4",
 	},
 	&fronted.Masquerade{
-		Domain:    "talentqgroup.com",
-		IpAddress: "216.137.39.134",
+		Domain:    "tagboard.com",
+		IpAddress: "216.137.33.191",
 	},
 	&fronted.Masquerade{
 		Domain:    "talentqgroup.com",
@@ -11929,8 +11793,16 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.230.5.40",
 	},
 	&fronted.Masquerade{
+		Domain:    "talentqgroup.com",
+		IpAddress: "216.137.39.134",
+	},
+	&fronted.Masquerade{
 		Domain:    "tango.me",
-		IpAddress: "204.246.169.217",
+		IpAddress: "216.137.43.173",
+	},
+	&fronted.Masquerade{
+		Domain:    "tango.me",
+		IpAddress: "54.182.0.11",
 	},
 	&fronted.Masquerade{
 		Domain:    "tango.me",
@@ -11942,31 +11814,27 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "tango.me",
-		IpAddress: "216.137.43.173",
-	},
-	&fronted.Masquerade{
-		Domain:    "tango.me",
-		IpAddress: "54.182.0.11",
-	},
-	&fronted.Masquerade{
-		Domain:    "tap-secure.rubiconproject.com",
-		IpAddress: "54.192.6.69",
+		IpAddress: "204.246.169.217",
 	},
 	&fronted.Masquerade{
 		Domain:    "tap-secure.rubiconproject.com",
 		IpAddress: "216.137.33.57",
 	},
 	&fronted.Masquerade{
-		Domain:    "tapad.com",
-		IpAddress: "54.192.6.32",
+		Domain:    "tap-secure.rubiconproject.com",
+		IpAddress: "54.192.6.69",
 	},
 	&fronted.Masquerade{
 		Domain:    "tapad.com",
 		IpAddress: "54.182.0.83",
 	},
 	&fronted.Masquerade{
+		Domain:    "tapad.com",
+		IpAddress: "54.192.6.32",
+	},
+	&fronted.Masquerade{
 		Domain:    "tapjoy.com",
-		IpAddress: "205.251.253.63",
+		IpAddress: "54.182.7.246",
 	},
 	&fronted.Masquerade{
 		Domain:    "tapjoy.com",
@@ -11974,7 +11842,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "tapjoy.com",
-		IpAddress: "54.182.7.246",
+		IpAddress: "205.251.253.63",
 	},
 	&fronted.Masquerade{
 		Domain:    "tapjoy.com",
@@ -11990,7 +11858,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "techrocket.com",
-		IpAddress: "216.137.33.31",
+		IpAddress: "54.239.200.145",
+	},
+	&fronted.Masquerade{
+		Domain:    "techrocket.com",
+		IpAddress: "54.192.5.149",
 	},
 	&fronted.Masquerade{
 		Domain:    "techrocket.com",
@@ -12002,19 +11874,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "techrocket.com",
-		IpAddress: "54.239.200.145",
-	},
-	&fronted.Masquerade{
-		Domain:    "techrocket.com",
 		IpAddress: "205.251.203.188",
 	},
 	&fronted.Masquerade{
 		Domain:    "techrocket.com",
-		IpAddress: "54.192.5.149",
-	},
-	&fronted.Masquerade{
-		Domain:    "tenso.com",
-		IpAddress: "205.251.253.66",
+		IpAddress: "216.137.33.31",
 	},
 	&fronted.Masquerade{
 		Domain:    "tenso.com",
@@ -12022,15 +11886,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "tenso.com",
-		IpAddress: "54.192.5.188",
-	},
-	&fronted.Masquerade{
-		Domain:    "tenso.com",
 		IpAddress: "54.182.0.50",
 	},
 	&fronted.Masquerade{
-		Domain:    "test.wpcp.shiseido.co.jp",
-		IpAddress: "216.137.39.154",
+		Domain:    "tenso.com",
+		IpAddress: "205.251.253.66",
+	},
+	&fronted.Masquerade{
+		Domain:    "tenso.com",
+		IpAddress: "54.192.5.188",
 	},
 	&fronted.Masquerade{
 		Domain:    "test.wpcp.shiseido.co.jp",
@@ -12041,8 +11905,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.192.6.193",
 	},
 	&fronted.Masquerade{
-		Domain:    "testshop.shopch.jp",
-		IpAddress: "54.230.4.53",
+		Domain:    "test.wpcp.shiseido.co.jp",
+		IpAddress: "216.137.39.154",
 	},
 	&fronted.Masquerade{
 		Domain:    "testshop.shopch.jp",
@@ -12050,19 +11914,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "testshop.shopch.jp",
-		IpAddress: "216.137.45.12",
+		IpAddress: "54.230.4.53",
 	},
 	&fronted.Masquerade{
-		Domain:    "theitnation.com",
-		IpAddress: "54.182.2.215",
+		Domain:    "testshop.shopch.jp",
+		IpAddress: "216.137.45.12",
 	},
 	&fronted.Masquerade{
 		Domain:    "theitnation.com",
 		IpAddress: "216.137.43.244",
 	},
 	&fronted.Masquerade{
-		Domain:    "theknot.com",
-		IpAddress: "54.182.0.39",
+		Domain:    "theitnation.com",
+		IpAddress: "54.182.2.215",
 	},
 	&fronted.Masquerade{
 		Domain:    "theknot.com",
@@ -12074,11 +11938,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "theknot.com",
+		IpAddress: "54.230.6.141",
+	},
+	&fronted.Masquerade{
+		Domain:    "theknot.com",
 		IpAddress: "54.239.132.123",
 	},
 	&fronted.Masquerade{
 		Domain:    "theknot.com",
-		IpAddress: "54.230.6.141",
+		IpAddress: "54.182.0.39",
+	},
+	&fronted.Masquerade{
+		Domain:    "thescore.com",
+		IpAddress: "54.182.1.238",
+	},
+	&fronted.Masquerade{
+		Domain:    "thescore.com",
+		IpAddress: "205.251.203.174",
 	},
 	&fronted.Masquerade{
 		Domain:    "thescore.com",
@@ -12090,7 +11966,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "thescore.com",
-		IpAddress: "54.192.7.64",
+		IpAddress: "205.251.253.167",
 	},
 	&fronted.Masquerade{
 		Domain:    "thescore.com",
@@ -12098,19 +11974,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "thescore.com",
-		IpAddress: "205.251.203.174",
-	},
-	&fronted.Masquerade{
-		Domain:    "thescore.com",
-		IpAddress: "54.182.1.238",
-	},
-	&fronted.Masquerade{
-		Domain:    "thescore.com",
-		IpAddress: "205.251.253.167",
-	},
-	&fronted.Masquerade{
-		Domain:    "thron.com",
-		IpAddress: "216.137.39.170",
+		IpAddress: "54.192.7.64",
 	},
 	&fronted.Masquerade{
 		Domain:    "thron.com",
@@ -12118,11 +11982,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "thron.com",
-		IpAddress: "204.246.169.170",
+		IpAddress: "54.182.7.225",
 	},
 	&fronted.Masquerade{
 		Domain:    "thron.com",
-		IpAddress: "54.239.132.117",
+		IpAddress: "216.137.39.170",
 	},
 	&fronted.Masquerade{
 		Domain:    "thron.com",
@@ -12130,11 +11994,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "thron.com",
-		IpAddress: "54.230.4.34",
+		IpAddress: "54.239.132.117",
 	},
 	&fronted.Masquerade{
 		Domain:    "thron.com",
-		IpAddress: "54.182.7.225",
+		IpAddress: "204.246.169.170",
+	},
+	&fronted.Masquerade{
+		Domain:    "thron.com",
+		IpAddress: "54.230.4.34",
 	},
 	&fronted.Masquerade{
 		Domain:    "thumb.fc2.com",
@@ -12146,11 +12014,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "tickets.uefa.com",
-		IpAddress: "54.182.5.115",
+		IpAddress: "54.230.4.195",
 	},
 	&fronted.Masquerade{
 		Domain:    "tickets.uefa.com",
-		IpAddress: "54.230.4.195",
+		IpAddress: "54.182.5.115",
 	},
 	&fronted.Masquerade{
 		Domain:    "tigerwoodsfoundation.org",
@@ -12158,19 +12026,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "tigerwoodsfoundation.org",
-		IpAddress: "54.182.5.193",
+		IpAddress: "54.230.4.170",
 	},
 	&fronted.Masquerade{
 		Domain:    "tigerwoodsfoundation.org",
-		IpAddress: "54.230.4.170",
+		IpAddress: "54.182.5.193",
+	},
+	&fronted.Masquerade{
+		Domain:    "timeincukcontent.com",
+		IpAddress: "54.230.5.247",
 	},
 	&fronted.Masquerade{
 		Domain:    "timeincukcontent.com",
 		IpAddress: "54.182.6.65",
 	},
 	&fronted.Masquerade{
-		Domain:    "timeincukcontent.com",
-		IpAddress: "54.230.5.247",
+		Domain:    "tlo.com",
+		IpAddress: "54.182.7.214",
 	},
 	&fronted.Masquerade{
 		Domain:    "tlo.com",
@@ -12181,8 +12053,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "216.137.36.118",
 	},
 	&fronted.Masquerade{
-		Domain:    "tlo.com",
-		IpAddress: "54.182.7.214",
+		Domain:    "tokuten.auone.jp",
+		IpAddress: "54.182.5.134",
+	},
+	&fronted.Masquerade{
+		Domain:    "tokuten.auone.jp",
+		IpAddress: "54.182.1.85",
 	},
 	&fronted.Masquerade{
 		Domain:    "tokuten.auone.jp",
@@ -12194,7 +12070,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "tokuten.auone.jp",
-		IpAddress: "216.137.43.198",
+		IpAddress: "216.137.36.235",
 	},
 	&fronted.Masquerade{
 		Domain:    "tokuten.auone.jp",
@@ -12202,15 +12078,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "tokuten.auone.jp",
-		IpAddress: "54.182.1.85",
+		IpAddress: "216.137.43.198",
 	},
 	&fronted.Masquerade{
-		Domain:    "tokuten.auone.jp",
-		IpAddress: "54.182.5.134",
+		Domain:    "toons.tv",
+		IpAddress: "54.182.3.221",
 	},
 	&fronted.Masquerade{
-		Domain:    "tokuten.auone.jp",
-		IpAddress: "216.137.36.235",
+		Domain:    "toons.tv",
+		IpAddress: "205.251.203.123",
+	},
+	&fronted.Masquerade{
+		Domain:    "toons.tv",
+		IpAddress: "54.192.4.175",
 	},
 	&fronted.Masquerade{
 		Domain:    "toons.tv",
@@ -12218,7 +12098,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "toons.tv",
+		IpAddress: "54.192.5.117",
+	},
+	&fronted.Masquerade{
+		Domain:    "toons.tv",
+		IpAddress: "216.137.43.236",
+	},
+	&fronted.Masquerade{
+		Domain:    "toons.tv",
+		IpAddress: "54.239.200.97",
+	},
+	&fronted.Masquerade{
+		Domain:    "toons.tv",
 		IpAddress: "216.137.45.94",
+	},
+	&fronted.Masquerade{
+		Domain:    "toons.tv",
+		IpAddress: "204.246.169.83",
 	},
 	&fronted.Masquerade{
 		Domain:    "toons.tv",
@@ -12227,34 +12123,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "toons.tv",
 		IpAddress: "216.137.36.125",
-	},
-	&fronted.Masquerade{
-		Domain:    "toons.tv",
-		IpAddress: "54.192.5.117",
-	},
-	&fronted.Masquerade{
-		Domain:    "toons.tv",
-		IpAddress: "205.251.203.123",
-	},
-	&fronted.Masquerade{
-		Domain:    "toons.tv",
-		IpAddress: "54.239.200.97",
-	},
-	&fronted.Masquerade{
-		Domain:    "toons.tv",
-		IpAddress: "204.246.169.83",
-	},
-	&fronted.Masquerade{
-		Domain:    "toons.tv",
-		IpAddress: "216.137.43.236",
-	},
-	&fronted.Masquerade{
-		Domain:    "toons.tv",
-		IpAddress: "54.192.4.175",
-	},
-	&fronted.Masquerade{
-		Domain:    "toons.tv",
-		IpAddress: "54.182.3.221",
 	},
 	&fronted.Masquerade{
 		Domain:    "topspin.net",
@@ -12310,10 +12178,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "trusteer.com",
-		IpAddress: "54.182.7.141",
-	},
-	&fronted.Masquerade{
-		Domain:    "trusteer.com",
 		IpAddress: "54.230.7.198",
 	},
 	&fronted.Masquerade{
@@ -12321,8 +12185,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "205.251.253.203",
 	},
 	&fronted.Masquerade{
-		Domain:    "trusteerqa.com",
-		IpAddress: "54.230.6.91",
+		Domain:    "trusteer.com",
+		IpAddress: "54.182.7.141",
 	},
 	&fronted.Masquerade{
 		Domain:    "trusteerqa.com",
@@ -12330,11 +12194,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "trusteerqa.com",
-		IpAddress: "205.251.203.81",
+		IpAddress: "54.230.6.91",
 	},
 	&fronted.Masquerade{
-		Domain:    "trustlook.com",
-		IpAddress: "54.230.6.81",
+		Domain:    "trusteerqa.com",
+		IpAddress: "205.251.203.81",
 	},
 	&fronted.Masquerade{
 		Domain:    "trustlook.com",
@@ -12342,15 +12206,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "trustlook.com",
+		IpAddress: "54.182.7.219",
+	},
+	&fronted.Masquerade{
+		Domain:    "trustlook.com",
 		IpAddress: "54.239.132.252",
 	},
 	&fronted.Masquerade{
 		Domain:    "trustlook.com",
-		IpAddress: "54.182.7.219",
-	},
-	&fronted.Masquerade{
-		Domain:    "trustpilot.com",
-		IpAddress: "54.182.1.100",
+		IpAddress: "54.230.6.81",
 	},
 	&fronted.Masquerade{
 		Domain:    "trustpilot.com",
@@ -12358,19 +12222,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "trustpilot.com",
+		IpAddress: "54.182.1.100",
+	},
+	&fronted.Masquerade{
+		Domain:    "trustpilot.com",
 		IpAddress: "54.239.132.75",
-	},
-	&fronted.Masquerade{
-		Domain:    "tstatic.eu",
-		IpAddress: "54.192.5.81",
-	},
-	&fronted.Masquerade{
-		Domain:    "tstatic.eu",
-		IpAddress: "54.239.132.210",
-	},
-	&fronted.Masquerade{
-		Domain:    "tstatic.eu",
-		IpAddress: "54.182.0.116",
 	},
 	&fronted.Masquerade{
 		Domain:    "tstatic.eu",
@@ -12381,8 +12237,20 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "216.137.39.143",
 	},
 	&fronted.Masquerade{
+		Domain:    "tstatic.eu",
+		IpAddress: "54.182.0.116",
+	},
+	&fronted.Masquerade{
+		Domain:    "tstatic.eu",
+		IpAddress: "54.192.5.81",
+	},
+	&fronted.Masquerade{
+		Domain:    "tstatic.eu",
+		IpAddress: "54.239.132.210",
+	},
+	&fronted.Masquerade{
 		Domain:    "tto.intuitcdn.net",
-		IpAddress: "54.192.6.74",
+		IpAddress: "54.182.1.225",
 	},
 	&fronted.Masquerade{
 		Domain:    "tto.intuitcdn.net",
@@ -12390,7 +12258,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "tto.intuitcdn.net",
-		IpAddress: "54.182.1.225",
+		IpAddress: "54.192.6.74",
 	},
 	&fronted.Masquerade{
 		Domain:    "tto.preprod.intuitcdn.net",
@@ -12426,31 +12294,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "ubcdn.co",
-		IpAddress: "54.182.0.24",
-	},
-	&fronted.Masquerade{
-		Domain:    "ubcdn.co",
 		IpAddress: "54.192.4.138",
 	},
 	&fronted.Masquerade{
-		Domain:    "ubnt.com",
-		IpAddress: "54.182.7.237",
+		Domain:    "ubcdn.co",
+		IpAddress: "54.182.0.24",
 	},
 	&fronted.Masquerade{
 		Domain:    "ubnt.com",
 		IpAddress: "54.230.7.35",
 	},
 	&fronted.Masquerade{
-		Domain:    "ulpurview.com",
-		IpAddress: "205.251.203.119",
-	},
-	&fronted.Masquerade{
-		Domain:    "ulpurview.com",
-		IpAddress: "54.239.200.94",
-	},
-	&fronted.Masquerade{
-		Domain:    "ulpurview.com",
-		IpAddress: "216.137.43.64",
+		Domain:    "ubnt.com",
+		IpAddress: "54.182.7.237",
 	},
 	&fronted.Masquerade{
 		Domain:    "ulpurview.com",
@@ -12458,11 +12314,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "ulpurview.com",
+		IpAddress: "216.137.43.64",
+	},
+	&fronted.Masquerade{
+		Domain:    "ulpurview.com",
+		IpAddress: "54.239.200.94",
+	},
+	&fronted.Masquerade{
+		Domain:    "ulpurview.com",
 		IpAddress: "54.192.6.128",
 	},
 	&fronted.Masquerade{
 		Domain:    "ulpurview.com",
-		IpAddress: "54.182.3.148",
+		IpAddress: "205.251.203.119",
+	},
+	&fronted.Masquerade{
+		Domain:    "ulpurview.com",
+		IpAddress: "205.251.253.109",
 	},
 	&fronted.Masquerade{
 		Domain:    "ulpurview.com",
@@ -12470,11 +12338,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "ulpurview.com",
-		IpAddress: "204.246.169.80",
+		IpAddress: "54.182.3.148",
 	},
 	&fronted.Masquerade{
 		Domain:    "ulpurview.com",
-		IpAddress: "205.251.253.109",
+		IpAddress: "204.246.169.80",
 	},
 	&fronted.Masquerade{
 		Domain:    "ulpurview.com",
@@ -12490,15 +12358,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "unblu.com",
-		IpAddress: "54.230.6.191",
-	},
-	&fronted.Masquerade{
-		Domain:    "unblu.com",
 		IpAddress: "54.182.1.218",
 	},
 	&fronted.Masquerade{
+		Domain:    "unblu.com",
+		IpAddress: "54.230.6.191",
+	},
+	&fronted.Masquerade{
 		Domain:    "unleashus.org",
-		IpAddress: "54.192.6.65",
+		IpAddress: "216.137.39.72",
 	},
 	&fronted.Masquerade{
 		Domain:    "unleashus.org",
@@ -12506,7 +12374,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "unleashus.org",
-		IpAddress: "216.137.39.72",
+		IpAddress: "54.192.6.65",
 	},
 	&fronted.Masquerade{
 		Domain:    "unleashus.org",
@@ -12538,15 +12406,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "update.xdk.intel.com",
-		IpAddress: "54.182.2.192",
-	},
-	&fronted.Masquerade{
-		Domain:    "update.xdk.intel.com",
 		IpAddress: "54.192.5.56",
 	},
 	&fronted.Masquerade{
 		Domain:    "update.xdk.intel.com",
 		IpAddress: "216.137.33.145",
+	},
+	&fronted.Masquerade{
+		Domain:    "update.xdk.intel.com",
+		IpAddress: "54.182.2.192",
+	},
+	&fronted.Masquerade{
+		Domain:    "uploads.skyhighnetworks.com",
+		IpAddress: "54.192.5.57",
 	},
 	&fronted.Masquerade{
 		Domain:    "uploads.skyhighnetworks.com",
@@ -12557,14 +12429,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.7.129",
 	},
 	&fronted.Masquerade{
-		Domain:    "uploads.skyhighnetworks.com",
-		IpAddress: "54.192.5.57",
-	},
-	&fronted.Masquerade{
-		Domain:    "upthere.com",
-		IpAddress: "54.182.5.229",
-	},
-	&fronted.Masquerade{
 		Domain:    "upthere.com",
 		IpAddress: "205.251.203.167",
 	},
@@ -12573,12 +12437,20 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.192.7.67",
 	},
 	&fronted.Masquerade{
-		Domain:    "useiti.doi.gov",
-		IpAddress: "54.192.5.254",
+		Domain:    "upthere.com",
+		IpAddress: "54.182.5.229",
 	},
 	&fronted.Masquerade{
 		Domain:    "useiti.doi.gov",
 		IpAddress: "54.182.0.132",
+	},
+	&fronted.Masquerade{
+		Domain:    "useiti.doi.gov",
+		IpAddress: "54.192.5.254",
+	},
+	&fronted.Masquerade{
+		Domain:    "uswitch.com",
+		IpAddress: "54.182.0.52",
 	},
 	&fronted.Masquerade{
 		Domain:    "uswitch.com",
@@ -12587,10 +12459,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "uswitch.com",
 		IpAddress: "216.137.33.254",
-	},
-	&fronted.Masquerade{
-		Domain:    "uswitch.com",
-		IpAddress: "54.182.0.52",
 	},
 	&fronted.Masquerade{
 		Domain:    "vc.kixeye.com",
@@ -12602,11 +12470,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "vc.kixeye.com",
-		IpAddress: "54.182.3.90",
+		IpAddress: "54.192.5.152",
 	},
 	&fronted.Masquerade{
 		Domain:    "vc.kixeye.com",
-		IpAddress: "54.192.5.152",
+		IpAddress: "54.182.3.90",
 	},
 	&fronted.Masquerade{
 		Domain:    "vdna-assets.com",
@@ -12618,11 +12486,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "veeam.com",
-		IpAddress: "54.182.1.33",
+		IpAddress: "54.192.6.165",
 	},
 	&fronted.Masquerade{
 		Domain:    "veeam.com",
-		IpAddress: "54.192.6.165",
+		IpAddress: "54.182.1.33",
 	},
 	&fronted.Masquerade{
 		Domain:    "venraas.tw",
@@ -12646,11 +12514,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "versal.com",
-		IpAddress: "54.182.5.166",
+		IpAddress: "54.230.6.211",
 	},
 	&fronted.Masquerade{
 		Domain:    "versal.com",
-		IpAddress: "54.230.6.211",
+		IpAddress: "54.182.5.166",
 	},
 	&fronted.Masquerade{
 		Domain:    "video.cpcdn.com",
@@ -12666,11 +12534,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "viggleassets.com",
-		IpAddress: "54.182.5.165",
+		IpAddress: "54.192.4.183",
 	},
 	&fronted.Masquerade{
 		Domain:    "viggleassets.com",
-		IpAddress: "54.192.4.183",
+		IpAddress: "54.182.5.165",
 	},
 	&fronted.Masquerade{
 		Domain:    "viggleassets.com",
@@ -12678,11 +12546,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "viglink.com",
-		IpAddress: "54.182.2.46",
+		IpAddress: "54.230.7.201",
 	},
 	&fronted.Masquerade{
 		Domain:    "viglink.com",
-		IpAddress: "54.230.7.201",
+		IpAddress: "54.182.2.46",
 	},
 	&fronted.Masquerade{
 		Domain:    "virtualpiggy.com",
@@ -12706,11 +12574,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "vivoom.co",
-		IpAddress: "205.251.253.46",
+		IpAddress: "205.251.203.219",
 	},
 	&fronted.Masquerade{
 		Domain:    "vivoom.co",
-		IpAddress: "205.251.203.219",
+		IpAddress: "54.230.4.138",
 	},
 	&fronted.Masquerade{
 		Domain:    "vivoom.co",
@@ -12718,15 +12586,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "vivoom.co",
-		IpAddress: "54.230.4.138",
-	},
-	&fronted.Masquerade{
-		Domain:    "vle.marymountcaliforniauniversity-online.com",
-		IpAddress: "54.182.3.56",
+		IpAddress: "205.251.253.46",
 	},
 	&fronted.Masquerade{
 		Domain:    "vle.marymountcaliforniauniversity-online.com",
 		IpAddress: "54.230.6.110",
+	},
+	&fronted.Masquerade{
+		Domain:    "vle.marymountcaliforniauniversity-online.com",
+		IpAddress: "54.182.3.56",
 	},
 	&fronted.Masquerade{
 		Domain:    "vmweb.net",
@@ -12778,11 +12646,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "warehouse.tekla.com",
-		IpAddress: "54.192.4.205",
+		IpAddress: "205.251.203.17",
 	},
 	&fronted.Masquerade{
 		Domain:    "warehouse.tekla.com",
-		IpAddress: "205.251.203.17",
+		IpAddress: "54.192.4.205",
 	},
 	&fronted.Masquerade{
 		Domain:    "warehouse.tekla.com",
@@ -12798,15 +12666,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "wavebreak.media",
-		IpAddress: "216.137.36.185",
-	},
-	&fronted.Masquerade{
-		Domain:    "wavebreak.media",
 		IpAddress: "54.239.200.70",
 	},
 	&fronted.Masquerade{
-		Domain:    "wayinhub.com",
-		IpAddress: "204.246.169.196",
+		Domain:    "wavebreak.media",
+		IpAddress: "216.137.36.185",
 	},
 	&fronted.Masquerade{
 		Domain:    "wayinhub.com",
@@ -12814,11 +12678,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "wayinhub.com",
+		IpAddress: "54.182.0.127",
+	},
+	&fronted.Masquerade{
+		Domain:    "wayinhub.com",
 		IpAddress: "205.251.251.116",
 	},
 	&fronted.Masquerade{
 		Domain:    "wayinhub.com",
-		IpAddress: "54.182.0.127",
+		IpAddress: "204.246.169.196",
+	},
+	&fronted.Masquerade{
+		Domain:    "web.crowdfireapp.com",
+		IpAddress: "216.137.33.138",
 	},
 	&fronted.Masquerade{
 		Domain:    "web.crowdfireapp.com",
@@ -12829,16 +12701,20 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.5.66",
 	},
 	&fronted.Masquerade{
-		Domain:    "web.crowdfireapp.com",
-		IpAddress: "216.137.33.138",
-	},
-	&fronted.Masquerade{
 		Domain:    "webcast.sambatech.com.br",
 		IpAddress: "54.192.6.37",
 	},
 	&fronted.Masquerade{
 		Domain:    "webcast.sambatech.com.br",
 		IpAddress: "54.182.0.93",
+	},
+	&fronted.Masquerade{
+		Domain:    "webdamdb.com",
+		IpAddress: "54.239.132.156",
+	},
+	&fronted.Masquerade{
+		Domain:    "webdamdb.com",
+		IpAddress: "54.239.200.138",
 	},
 	&fronted.Masquerade{
 		Domain:    "webdamdb.com",
@@ -12854,15 +12730,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "webdamdb.com",
-		IpAddress: "54.239.200.138",
-	},
-	&fronted.Masquerade{
-		Domain:    "webdamdb.com",
 		IpAddress: "216.137.33.220",
-	},
-	&fronted.Masquerade{
-		Domain:    "webdamdb.com",
-		IpAddress: "54.239.132.156",
 	},
 	&fronted.Masquerade{
 		Domain:    "webspectator.com",
@@ -12871,22 +12739,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "webspectator.com",
 		IpAddress: "54.230.7.56",
-	},
-	&fronted.Masquerade{
-		Domain:    "weddingwire.com",
-		IpAddress: "54.182.1.177",
-	},
-	&fronted.Masquerade{
-		Domain:    "weddingwire.com",
-		IpAddress: "54.192.4.215",
-	},
-	&fronted.Masquerade{
-		Domain:    "weddingwire.com",
-		IpAddress: "216.137.39.122",
-	},
-	&fronted.Masquerade{
-		Domain:    "weddingwire.com",
-		IpAddress: "54.182.1.59",
 	},
 	&fronted.Masquerade{
 		Domain:    "weddingwire.com",
@@ -12901,8 +12753,20 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.239.132.135",
 	},
 	&fronted.Masquerade{
-		Domain:    "weebo.it",
-		IpAddress: "54.192.6.247",
+		Domain:    "weddingwire.com",
+		IpAddress: "54.182.1.59",
+	},
+	&fronted.Masquerade{
+		Domain:    "weddingwire.com",
+		IpAddress: "54.192.4.215",
+	},
+	&fronted.Masquerade{
+		Domain:    "weddingwire.com",
+		IpAddress: "216.137.39.122",
+	},
+	&fronted.Masquerade{
+		Domain:    "weddingwire.com",
+		IpAddress: "54.182.1.177",
 	},
 	&fronted.Masquerade{
 		Domain:    "weebo.it",
@@ -12914,11 +12778,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "weebo.it",
+		IpAddress: "54.239.132.127",
+	},
+	&fronted.Masquerade{
+		Domain:    "weebo.it",
 		IpAddress: "54.182.1.106",
 	},
 	&fronted.Masquerade{
 		Domain:    "weebo.it",
-		IpAddress: "205.251.203.93",
+		IpAddress: "54.192.6.247",
 	},
 	&fronted.Masquerade{
 		Domain:    "weebo.it",
@@ -12926,15 +12794,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "weebo.it",
-		IpAddress: "54.239.132.127",
+		IpAddress: "205.251.203.93",
+	},
+	&fronted.Masquerade{
+		Domain:    "wgucollector.purepredictive.com",
+		IpAddress: "54.182.5.81",
 	},
 	&fronted.Masquerade{
 		Domain:    "wgucollector.purepredictive.com",
 		IpAddress: "54.230.7.166",
 	},
 	&fronted.Masquerade{
-		Domain:    "wgucollector.purepredictive.com",
-		IpAddress: "54.182.5.81",
+		Domain:    "whipclip.com",
+		IpAddress: "54.230.6.21",
 	},
 	&fronted.Masquerade{
 		Domain:    "whipclip.com",
@@ -12950,19 +12822,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "whipclip.com",
-		IpAddress: "54.230.6.21",
-	},
-	&fronted.Masquerade{
-		Domain:    "whipclip.com",
-		IpAddress: "204.246.169.61",
-	},
-	&fronted.Masquerade{
-		Domain:    "whipclip.com",
 		IpAddress: "54.230.5.119",
-	},
-	&fronted.Masquerade{
-		Domain:    "whisbi.com",
-		IpAddress: "54.182.4.116",
 	},
 	&fronted.Masquerade{
 		Domain:    "whisbi.com",
@@ -12970,7 +12830,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "whisbi.com",
-		IpAddress: "54.230.5.215",
+		IpAddress: "205.251.203.60",
 	},
 	&fronted.Masquerade{
 		Domain:    "whisbi.com",
@@ -12978,15 +12838,27 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "whisbi.com",
+		IpAddress: "54.230.5.215",
+	},
+	&fronted.Masquerade{
+		Domain:    "whisbi.com",
 		IpAddress: "216.137.43.88",
 	},
 	&fronted.Masquerade{
 		Domain:    "whisbi.com",
-		IpAddress: "205.251.203.60",
+		IpAddress: "54.182.4.116",
 	},
 	&fronted.Masquerade{
 		Domain:    "whisbi.com",
 		IpAddress: "205.251.253.54",
+	},
+	&fronted.Masquerade{
+		Domain:    "whispir.com",
+		IpAddress: "216.137.36.154",
+	},
+	&fronted.Masquerade{
+		Domain:    "whispir.com",
+		IpAddress: "54.182.2.32",
 	},
 	&fronted.Masquerade{
 		Domain:    "whispir.com",
@@ -12997,20 +12869,16 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "216.137.43.83",
 	},
 	&fronted.Masquerade{
-		Domain:    "whispir.com",
-		IpAddress: "54.182.2.32",
+		Domain:    "whitecloudelectroniccigarettes.com",
+		IpAddress: "54.239.132.242",
 	},
 	&fronted.Masquerade{
-		Domain:    "whispir.com",
-		IpAddress: "216.137.36.154",
+		Domain:    "whitecloudelectroniccigarettes.com",
+		IpAddress: "216.137.39.231",
 	},
 	&fronted.Masquerade{
 		Domain:    "whitecloudelectroniccigarettes.com",
 		IpAddress: "216.137.39.251",
-	},
-	&fronted.Masquerade{
-		Domain:    "whitecloudelectroniccigarettes.com",
-		IpAddress: "54.239.132.242",
 	},
 	&fronted.Masquerade{
 		Domain:    "whitecloudelectroniccigarettes.com",
@@ -13019,10 +12887,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "whitecloudelectroniccigarettes.com",
 		IpAddress: "54.192.6.8",
-	},
-	&fronted.Masquerade{
-		Domain:    "whitecloudelectroniccigarettes.com",
-		IpAddress: "216.137.39.231",
 	},
 	&fronted.Masquerade{
 		Domain:    "whitecloudelectroniccigarettes.com",
@@ -13038,7 +12902,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "whizz.com",
-		IpAddress: "54.182.2.9",
+		IpAddress: "54.182.7.108",
 	},
 	&fronted.Masquerade{
 		Domain:    "whizz.com",
@@ -13050,7 +12914,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "whizz.com",
-		IpAddress: "54.182.7.108",
+		IpAddress: "54.182.2.9",
 	},
 	&fronted.Masquerade{
 		Domain:    "whopper.com",
@@ -13062,15 +12926,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "whoscall.com",
-		IpAddress: "54.192.5.129",
-	},
-	&fronted.Masquerade{
-		Domain:    "whoscall.com",
 		IpAddress: "54.182.3.22",
 	},
 	&fronted.Masquerade{
-		Domain:    "widencdn.net",
-		IpAddress: "54.239.130.230",
+		Domain:    "whoscall.com",
+		IpAddress: "54.192.5.129",
 	},
 	&fronted.Masquerade{
 		Domain:    "widencdn.net",
@@ -13082,23 +12942,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "widencdn.net",
-		IpAddress: "54.239.200.128",
+		IpAddress: "54.239.130.230",
 	},
 	&fronted.Masquerade{
 		Domain:    "widencdn.net",
 		IpAddress: "54.182.1.51",
 	},
 	&fronted.Masquerade{
-		Domain:    "wms-na.amazon-adsystem.com",
-		IpAddress: "216.137.33.110",
+		Domain:    "widencdn.net",
+		IpAddress: "54.239.200.128",
 	},
 	&fronted.Masquerade{
 		Domain:    "wms-na.amazon-adsystem.com",
 		IpAddress: "54.230.7.215",
 	},
 	&fronted.Masquerade{
-		Domain:    "wms.assoc-amazon.fr",
-		IpAddress: "54.182.5.114",
+		Domain:    "wms-na.amazon-adsystem.com",
+		IpAddress: "216.137.33.110",
 	},
 	&fronted.Masquerade{
 		Domain:    "wms.assoc-amazon.fr",
@@ -13109,12 +12969,20 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "216.137.36.30",
 	},
 	&fronted.Masquerade{
+		Domain:    "wms.assoc-amazon.fr",
+		IpAddress: "54.182.5.114",
+	},
+	&fronted.Masquerade{
 		Domain:    "worldseries.com",
 		IpAddress: "54.182.7.156",
 	},
 	&fronted.Masquerade{
 		Domain:    "worldseries.com",
 		IpAddress: "54.192.7.221",
+	},
+	&fronted.Masquerade{
+		Domain:    "wowcher.co.uk",
+		IpAddress: "216.137.33.170",
 	},
 	&fronted.Masquerade{
 		Domain:    "wowcher.co.uk",
@@ -13129,8 +12997,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.1.17",
 	},
 	&fronted.Masquerade{
-		Domain:    "wowcher.co.uk",
-		IpAddress: "216.137.33.170",
+		Domain:    "wpcp.shiseido.co.jp",
+		IpAddress: "54.239.132.108",
 	},
 	&fronted.Masquerade{
 		Domain:    "wpcp.shiseido.co.jp",
@@ -13141,8 +13009,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.2.239",
 	},
 	&fronted.Masquerade{
-		Domain:    "wpcp.shiseido.co.jp",
-		IpAddress: "54.239.132.108",
+		Domain:    "ws.sonos.com",
+		IpAddress: "54.239.130.151",
 	},
 	&fronted.Masquerade{
 		Domain:    "ws.sonos.com",
@@ -13153,20 +13021,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.192.7.167",
 	},
 	&fronted.Masquerade{
-		Domain:    "ws.sonos.com",
-		IpAddress: "54.239.130.151",
-	},
-	&fronted.Masquerade{
-		Domain:    "wuaki.tv",
-		IpAddress: "54.230.7.25",
-	},
-	&fronted.Masquerade{
-		Domain:    "wuaki.tv",
-		IpAddress: "54.182.6.63",
-	},
-	&fronted.Masquerade{
 		Domain:    "wuaki.tv",
 		IpAddress: "54.239.132.148",
+	},
+	&fronted.Masquerade{
+		Domain:    "wuaki.tv",
+		IpAddress: "54.239.200.179",
 	},
 	&fronted.Masquerade{
 		Domain:    "wuaki.tv",
@@ -13174,15 +13034,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "wuaki.tv",
-		IpAddress: "54.239.200.179",
+		IpAddress: "54.182.6.63",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.Star-Registration.com",
-		IpAddress: "54.192.7.219",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.Star-Registration.com",
-		IpAddress: "54.239.132.44",
+		Domain:    "wuaki.tv",
+		IpAddress: "54.230.7.25",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.Star-Registration.com",
@@ -13190,15 +13046,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.Star-Registration.com",
+		IpAddress: "54.239.132.44",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.Star-Registration.com",
+		IpAddress: "54.192.7.219",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.Star-Registration.com",
 		IpAddress: "54.182.7.73",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.abcmouse.com",
-		IpAddress: "54.230.6.238",
+		IpAddress: "54.182.1.103",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.abcmouse.com",
-		IpAddress: "54.182.1.103",
+		IpAddress: "54.230.6.238",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.aditi.lindenlab.com",
@@ -13218,11 +13082,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.amgdgt.com",
-		IpAddress: "54.230.4.39",
+		IpAddress: "54.182.1.217",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.amgdgt.com",
-		IpAddress: "54.182.1.217",
+		IpAddress: "54.230.4.39",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.api.brightcove.com",
@@ -13242,19 +13106,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.api.everforth.com",
-		IpAddress: "54.192.7.148",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.api.everforth.com",
 		IpAddress: "54.182.7.149",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.appia.com",
-		IpAddress: "54.230.4.225",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.appia.com",
-		IpAddress: "54.230.6.199",
+		Domain:    "www.api.everforth.com",
+		IpAddress: "54.192.7.148",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.appia.com",
@@ -13262,19 +13118,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.appia.com",
+		IpAddress: "54.230.6.199",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.appia.com",
 		IpAddress: "204.246.169.146",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.appia.com",
+		IpAddress: "54.230.4.225",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.appia.com",
 		IpAddress: "54.182.3.91",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.apps.umbel.com",
-		IpAddress: "54.230.5.122",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.apps.umbel.com",
-		IpAddress: "54.239.132.158",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.apps.umbel.com",
@@ -13285,8 +13141,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "205.251.253.159",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.argentina.jlt.com",
-		IpAddress: "216.137.36.124",
+		Domain:    "www.apps.umbel.com",
+		IpAddress: "54.230.5.122",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.apps.umbel.com",
+		IpAddress: "54.239.132.158",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.argentina.jlt.com",
@@ -13294,7 +13154,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.argentina.jlt.com",
-		IpAddress: "54.230.6.208",
+		IpAddress: "54.182.7.49",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.argentina.jlt.com",
@@ -13302,11 +13162,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.argentina.jlt.com",
-		IpAddress: "54.182.7.49",
+		IpAddress: "54.230.6.208",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.autodata-group.com",
-		IpAddress: "54.182.2.230",
+		Domain:    "www.argentina.jlt.com",
+		IpAddress: "216.137.36.124",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.autodata-group.com",
@@ -13314,11 +13174,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.autodata-group.com",
+		IpAddress: "54.182.2.230",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.autodata-group.com",
 		IpAddress: "204.246.169.215",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.autotrader.co.uk",
-		IpAddress: "54.230.5.19",
+		IpAddress: "205.251.203.101",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.autotrader.co.uk",
@@ -13330,15 +13194,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.autotrader.co.uk",
-		IpAddress: "205.251.203.101",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.awsstatic.com",
-		IpAddress: "54.239.130.175",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.awsstatic.com",
-		IpAddress: "54.230.5.140",
+		IpAddress: "54.230.5.19",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.awsstatic.com",
@@ -13346,19 +13202,27 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.awsstatic.com",
-		IpAddress: "54.182.2.205",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.awsstatic.com",
-		IpAddress: "54.182.7.181",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.awsstatic.com",
 		IpAddress: "216.137.43.76",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.awsstatic.com",
+		IpAddress: "54.230.5.140",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.awsstatic.com",
+		IpAddress: "54.239.130.175",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.awsstatic.com",
+		IpAddress: "54.182.2.205",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.awsstatic.com",
 		IpAddress: "54.230.5.117",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.awsstatic.com",
+		IpAddress: "54.182.7.181",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.awsstatic.com",
@@ -13390,10 +13254,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.bamsec.com",
-		IpAddress: "54.182.2.155",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.bamsec.com",
 		IpAddress: "54.239.132.131",
 	},
 	&fronted.Masquerade{
@@ -13405,8 +13265,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "216.137.33.60",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.bankofmelbourne.com.au",
-		IpAddress: "54.239.130.171",
+		Domain:    "www.bamsec.com",
+		IpAddress: "54.182.2.155",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.bankofmelbourne.com.au",
@@ -13417,12 +13277,16 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.192.7.143",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.banksa.com.au",
-		IpAddress: "54.230.5.42",
+		Domain:    "www.bankofmelbourne.com.au",
+		IpAddress: "54.239.130.171",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.banksa.com.au",
 		IpAddress: "54.182.5.213",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.banksa.com.au",
+		IpAddress: "54.230.5.42",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.behance.net",
@@ -13430,19 +13294,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.behance.net",
-		IpAddress: "54.230.7.122",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.behance.net",
 		IpAddress: "54.239.130.157",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.beta.tab.com.au",
-		IpAddress: "216.137.39.253",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.beta.tab.com.au",
-		IpAddress: "204.246.169.238",
+		Domain:    "www.behance.net",
+		IpAddress: "54.230.7.122",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.beta.tab.com.au",
@@ -13450,7 +13306,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.beta.tab.com.au",
-		IpAddress: "216.137.36.16",
+		IpAddress: "204.246.169.238",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.beta.tab.com.au",
+		IpAddress: "216.137.39.253",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.bomnegocio.com",
+		IpAddress: "54.230.7.16",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.bomnegocio.com",
@@ -13459,10 +13323,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "www.bomnegocio.com",
 		IpAddress: "205.251.253.48",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.bomnegocio.com",
-		IpAddress: "54.230.7.16",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.capella.edu",
@@ -13482,11 +13342,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ccdc02.com",
-		IpAddress: "54.182.2.156",
+		IpAddress: "54.192.7.40",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ccdc02.com",
-		IpAddress: "54.192.7.40",
+		IpAddress: "54.182.2.156",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ccpsx.com",
+		IpAddress: "54.230.7.186",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ccpsx.com",
@@ -13495,10 +13359,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "www.ccpsx.com",
 		IpAddress: "54.182.0.75",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ccpsx.com",
-		IpAddress: "54.230.7.186",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cdn.development.viber.com",
@@ -13518,14 +13378,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cdn.telerik.com",
-		IpAddress: "54.239.130.91",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cdn.telerik.com",
-		IpAddress: "216.137.36.103",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cdn.telerik.com",
 		IpAddress: "216.137.33.106",
 	},
 	&fronted.Masquerade{
@@ -13534,15 +13386,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cdn.telerik.com",
+		IpAddress: "216.137.36.103",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cdn.telerik.com",
 		IpAddress: "54.230.5.8",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.cdn.viber.com",
-		IpAddress: "54.182.6.188",
+		Domain:    "www.cdn.telerik.com",
+		IpAddress: "54.239.130.91",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cdn.viber.com",
-		IpAddress: "54.239.132.234",
+		IpAddress: "204.246.169.136",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cdn.viber.com",
@@ -13550,7 +13406,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cdn.viber.com",
-		IpAddress: "204.246.169.136",
+		IpAddress: "54.239.132.234",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cdn.viber.com",
+		IpAddress: "54.182.6.188",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cdn.viber.com",
@@ -13562,7 +13422,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cinemanow.com",
-		IpAddress: "54.230.5.181",
+		IpAddress: "205.251.253.186",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cinemanow.com",
@@ -13570,7 +13430,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cinemanow.com",
-		IpAddress: "205.251.253.186",
+		IpAddress: "54.230.5.181",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.clients.litmuscdn.com",
@@ -13582,23 +13442,91 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.150",
+		IpAddress: "54.240.129.90",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.35",
+		IpAddress: "54.240.129.89",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.56",
+		IpAddress: "54.240.129.9",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.216",
+		IpAddress: "54.240.129.41",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.10",
+		IpAddress: "54.240.129.104",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.186",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.45",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.87",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.88",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.12",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.84",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.8",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.78",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.211",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.189",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.79",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.72",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.73",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.51",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.5",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.71",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.70",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
@@ -13606,27 +13534,435 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.7",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.69",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.42",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.43",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.44",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.40",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
 		IpAddress: "54.240.129.102",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.103",
+		IpAddress: "54.240.129.47",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.115",
+		IpAddress: "54.240.129.46",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.113",
+		IpAddress: "54.240.129.67",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.118",
+		IpAddress: "54.240.129.68",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.66",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.65",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.63",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.64",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.205",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.206",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.210",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.62",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.35",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.86",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.76",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.37",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.29",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.31",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.36",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.34",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.33",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.32",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.183",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.28",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.27",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.13",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.182",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.253",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.26",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.252",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.254",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.248",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.246",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.247",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.251",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.244",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.250",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.25",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.245",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.241",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.242",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.82",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.243",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.239",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.240",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.24",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.234",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.83",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.238",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.236",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.237",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.231",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.235",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.81",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.232",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.48",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.233",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
 		IpAddress: "54.240.129.110",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.229",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.23",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.230",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.227",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.228",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.223",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.140",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.220",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.217",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.14",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.139",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.74",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.225",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.224",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.226",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.222",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.221",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.218",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.216",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.142",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.30",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.22",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.219",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.141",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.215",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.212",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.38",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.213",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.214",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.202",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.180",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.75",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.207",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.21",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.59",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.54",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.209",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.208",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.204",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.203",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.201",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.200",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.114",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
@@ -13638,23 +13974,43 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.116",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.115",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.39",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.118",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.120",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.19",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.121",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.57",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
 		IpAddress: "54.240.129.123",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.100",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.126",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.127",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.125",
+		IpAddress: "54.240.129.122",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
@@ -13662,7 +14018,99 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.129",
+		IpAddress: "54.240.129.20",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.6",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.197",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.194",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.60",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.61",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.196",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.198",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.2",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.195",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.199",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.193",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.192",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.191",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.190",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.188",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.187",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.58",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.56",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.98",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.18",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.178",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.176",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.177",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
@@ -13670,67 +14118,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.13",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.12",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.128",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.132",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.134",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.133",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.14",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.136",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.135",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.145",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.141",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.146",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.137",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.144",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.142",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.140",
+		IpAddress: "54.240.129.179",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
@@ -13738,95 +14126,67 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.143",
+		IpAddress: "54.240.129.112",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.147",
+		IpAddress: "54.240.129.175",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.148",
+		IpAddress: "54.240.129.4",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.149",
+		IpAddress: "54.240.129.174",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.139",
+		IpAddress: "54.240.129.3",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.138",
+		IpAddress: "54.240.129.50",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.15",
+		IpAddress: "54.240.129.173",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.105",
+		IpAddress: "54.240.129.172",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.107",
+		IpAddress: "54.240.129.170",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.153",
+		IpAddress: "54.240.129.171",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.154",
+		IpAddress: "54.240.129.168",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.155",
+		IpAddress: "54.240.129.17",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.151",
+		IpAddress: "54.240.129.169",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.152",
+		IpAddress: "54.240.129.80",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.158",
+		IpAddress: "54.240.129.167",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.114",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.104",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.157",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.156",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.159",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.109",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.160",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.161",
+		IpAddress: "54.240.129.165",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
@@ -13838,595 +14198,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.165",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.121",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.171",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.169",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.168",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.178",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.170",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.17",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.120",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.172",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.175",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.116",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.174",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.173",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.112",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.177",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.176",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.179",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.11",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.180",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.181",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.183",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.19",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.186",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
 		IpAddress: "54.240.129.164",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.106",
+		IpAddress: "54.240.129.135",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.185",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.16",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.210",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.21",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.211",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.22",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.214",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.219",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.218",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.213",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.220",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.204",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.217",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.223",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.215",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.221",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.222",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.167",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.162",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.228",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.226",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.184",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.225",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.182",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.238",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.2",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.224",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.18",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.227",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.233",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.108",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.197",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.23",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.189",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.234",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.241",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.236",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.230",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.198",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.194",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.187",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.229",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.240",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.192",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.231",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.232",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.24",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.208",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.237",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.193",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.196",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.122",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.235",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.249",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.242",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.245",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.248",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.252",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.243",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.246",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.244",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.247",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.239",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.25",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.3",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.20",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.188",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.250",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.191",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.199",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.201",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.26",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.195",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.28",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.205",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.203",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.37",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.34",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.42",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.36",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.202",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.33",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.30",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.207",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.209",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.41",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.29",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.206",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.52",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.190",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.57",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.6",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.50",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.58",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.4",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.49",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.27",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.69",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.61",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.65",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.62",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.251",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.70",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.254",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.53",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.60",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.68",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.32",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.55",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.71",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.54",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.64",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.63",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.67",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.253",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.212",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.200",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.73",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.8",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.84",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.59",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.66",
+		IpAddress: "54.240.129.105",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
@@ -14434,95 +14214,91 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.72",
+		IpAddress: "54.240.129.162",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.7",
+		IpAddress: "54.240.129.133",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.87",
+		IpAddress: "54.240.129.134",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.75",
+		IpAddress: "54.240.129.109",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.76",
+		IpAddress: "54.240.129.161",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.79",
+		IpAddress: "54.240.129.160",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.74",
+		IpAddress: "54.240.129.16",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.89",
+		IpAddress: "54.240.129.136",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.94",
+		IpAddress: "54.240.129.55",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.78",
+		IpAddress: "54.240.129.52",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.82",
+		IpAddress: "54.240.129.158",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.93",
+		IpAddress: "54.240.129.157",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.90",
+		IpAddress: "54.240.129.156",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.44",
+		IpAddress: "54.240.129.155",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.92",
+		IpAddress: "54.240.129.154",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.86",
+		IpAddress: "54.240.129.153",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.95",
+		IpAddress: "54.240.129.53",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.98",
+		IpAddress: "54.240.129.152",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.83",
+		IpAddress: "54.240.129.151",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.80",
+		IpAddress: "54.240.129.150",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.38",
+		IpAddress: "54.240.129.15",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.91",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.85",
+		IpAddress: "54.240.129.149",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
@@ -14530,19 +14306,31 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.96",
+		IpAddress: "54.240.129.147",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.9",
+		IpAddress: "54.240.129.148",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.51",
+		IpAddress: "54.240.129.100",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.45",
+		IpAddress: "54.240.129.108",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.146",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.11",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.145",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
@@ -14550,71 +14338,87 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.40",
+		IpAddress: "54.240.129.103",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.39",
+		IpAddress: "54.240.129.106",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.47",
+		IpAddress: "54.240.129.159",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.48",
+		IpAddress: "54.240.129.85",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.46",
+		IpAddress: "54.240.129.96",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.43",
+		IpAddress: "54.240.129.144",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.31",
+		IpAddress: "54.240.129.143",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.5",
+		IpAddress: "54.240.129.95",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.88",
+		IpAddress: "54.240.129.129",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cloudfront.net",
-		IpAddress: "54.240.129.81",
+		IpAddress: "54.240.129.113",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.cmcm.com",
-		IpAddress: "54.239.200.189",
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.128",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.cmcm.com",
-		IpAddress: "216.137.36.245",
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.127",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.cmcm.com",
-		IpAddress: "54.182.1.146",
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.126",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.cmcm.com",
-		IpAddress: "205.251.203.239",
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.125",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.cmcm.com",
-		IpAddress: "216.137.36.109",
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.249",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.cmcm.com",
-		IpAddress: "205.251.253.214",
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.107",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.cmcm.com",
-		IpAddress: "54.239.130.194",
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.10",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.94",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.93",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.92",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cloudfront.net",
+		IpAddress: "54.240.129.91",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cmcm.com",
@@ -14622,19 +14426,43 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cmcm.com",
+		IpAddress: "54.192.5.183",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cmcm.com",
+		IpAddress: "205.251.203.239",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cmcm.com",
+		IpAddress: "54.182.1.146",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cmcm.com",
+		IpAddress: "205.251.253.214",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cmcm.com",
+		IpAddress: "216.137.36.109",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cmcm.com",
 		IpAddress: "204.246.169.155",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cmcm.com",
-		IpAddress: "205.251.203.107",
+		IpAddress: "54.239.200.189",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cmcm.com",
-		IpAddress: "54.192.5.183",
+		IpAddress: "54.239.130.194",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.cmcm.com",
+		IpAddress: "216.137.36.245",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cmcmcdn.com",
-		IpAddress: "54.192.4.4",
+		IpAddress: "54.239.132.229",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cmcmcdn.com",
@@ -14642,7 +14470,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.cmcmcdn.com",
-		IpAddress: "54.239.132.229",
+		IpAddress: "54.192.4.4",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.connectwise.co.uk",
@@ -14658,11 +14486,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.consumerreportscdn.org",
-		IpAddress: "216.137.33.82",
+		IpAddress: "54.192.4.233",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.consumerreportscdn.org",
-		IpAddress: "54.192.4.233",
+		IpAddress: "216.137.33.82",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.currencyfair.com",
@@ -14670,11 +14498,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.currencyfair.com",
-		IpAddress: "54.182.7.93",
+		IpAddress: "216.137.33.66",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.currencyfair.com",
-		IpAddress: "216.137.33.66",
+		IpAddress: "54.182.7.93",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.developer.sony.com",
@@ -14686,7 +14514,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.diageo.com",
-		IpAddress: "216.137.39.201",
+		IpAddress: "54.182.2.50",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.diageo.com",
+		IpAddress: "54.230.4.121",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.diageo.com",
@@ -14698,11 +14530,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.diageo.com",
-		IpAddress: "204.246.169.49",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.diageo.com",
-		IpAddress: "54.182.2.50",
+		IpAddress: "216.137.39.201",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.diageo.com",
@@ -14710,15 +14538,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.diageo.com",
-		IpAddress: "54.230.4.121",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.diageohorizon.com",
-		IpAddress: "216.137.36.75",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.diageohorizon.com",
-		IpAddress: "54.192.6.189",
+		IpAddress: "204.246.169.49",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.diageohorizon.com",
@@ -14726,15 +14546,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.diageohorizon.com",
+		IpAddress: "54.192.6.189",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.diageohorizon.com",
 		IpAddress: "54.182.5.248",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.directbrandsclubs.com",
-		IpAddress: "216.137.43.118",
+		Domain:    "www.diageohorizon.com",
+		IpAddress: "216.137.36.75",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.directbrandsclubs.com",
 		IpAddress: "54.182.7.63",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.directbrandsclubs.com",
+		IpAddress: "216.137.43.118",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.download.cdn.delivery.amazonmusic.com",
@@ -14742,23 +14570,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.download.cdn.delivery.amazonmusic.com",
-		IpAddress: "54.239.200.11",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.download.cdn.delivery.amazonmusic.com",
 		IpAddress: "54.192.7.2",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.execute-api.us-east-1.amazonaws.com",
-		IpAddress: "54.182.2.24",
+		Domain:    "www.download.cdn.delivery.amazonmusic.com",
+		IpAddress: "54.239.200.11",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.execute-api.us-east-1.amazonaws.com",
 		IpAddress: "54.230.4.239",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.fairfaxmedia.com.au",
-		IpAddress: "205.251.203.69",
+		Domain:    "www.execute-api.us-east-1.amazonaws.com",
+		IpAddress: "54.182.2.24",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.fairfaxmedia.com.au",
@@ -14767,6 +14591,10 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "www.fairfaxmedia.com.au",
 		IpAddress: "54.182.5.102",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.fairfaxmedia.com.au",
+		IpAddress: "205.251.203.69",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.fanduel.com",
@@ -14790,7 +14618,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.fmicassets.com",
-		IpAddress: "54.182.0.47",
+		IpAddress: "216.137.33.86",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.fmicassets.com",
@@ -14802,7 +14630,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.fmicassets.com",
-		IpAddress: "216.137.33.86",
+		IpAddress: "54.182.0.47",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.fogcity.digital",
@@ -14814,19 +14642,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.games.dev.starmp.com",
-		IpAddress: "54.192.4.178",
+		IpAddress: "54.182.3.212",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.games.dev.starmp.com",
 		IpAddress: "216.137.39.197",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.games.dev.starmp.com",
-		IpAddress: "54.182.3.212",
-	},
-	&fronted.Masquerade{
 		Domain:    "www.gaydar.net",
-		IpAddress: "54.192.6.120",
+		IpAddress: "54.182.7.167",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.gaydar.net",
@@ -14834,11 +14658,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.gaydar.net",
-		IpAddress: "54.182.7.167",
+		IpAddress: "54.192.6.120",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.gigmasters.com",
-		IpAddress: "54.182.1.161",
+		IpAddress: "54.192.7.200",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.gigmasters.com",
@@ -14846,11 +14670,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.gigmasters.com",
-		IpAddress: "54.239.130.128",
+		IpAddress: "54.182.1.161",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.gigmasters.com",
-		IpAddress: "54.192.7.200",
+		IpAddress: "54.239.130.128",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.glico.com",
@@ -14862,15 +14686,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.globalauctionplatform.com",
-		IpAddress: "54.182.2.77",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.globalauctionplatform.com",
 		IpAddress: "54.192.6.77",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.groupalia.com",
-		IpAddress: "54.192.4.167",
+		Domain:    "www.globalauctionplatform.com",
+		IpAddress: "54.182.2.77",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.groupalia.com",
@@ -14878,15 +14698,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.groupalia.com",
-		IpAddress: "54.192.7.15",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.groupalia.com",
 		IpAddress: "54.182.1.149",
 	},
 	&fronted.Masquerade{
+		Domain:    "www.groupalia.com",
+		IpAddress: "54.192.4.167",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.groupalia.com",
+		IpAddress: "54.192.7.15",
+	},
+	&fronted.Masquerade{
 		Domain:    "www.hagemeyershop.com",
-		IpAddress: "204.246.169.143",
+		IpAddress: "54.192.7.44",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.hagemeyershop.com",
@@ -14898,23 +14722,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.hagemeyershop.com",
-		IpAddress: "54.192.7.44",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ias.global.rakuten.com",
-		IpAddress: "216.137.43.128",
+		IpAddress: "204.246.169.143",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ias.global.rakuten.com",
 		IpAddress: "54.182.6.219",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.inspsearchapi.com",
-		IpAddress: "54.192.6.162",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.inspsearchapi.com",
-		IpAddress: "216.137.43.9",
+		Domain:    "www.ias.global.rakuten.com",
+		IpAddress: "216.137.43.128",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.inspsearchapi.com",
@@ -14922,7 +14738,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.inspsearchapi.com",
+		IpAddress: "54.192.6.162",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.inspsearchapi.com",
 		IpAddress: "54.182.1.90",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.inspsearchapi.com",
+		IpAddress: "216.137.43.9",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.jjshouse.com",
@@ -14930,19 +14754,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.jjshouse.com",
-		IpAddress: "54.239.132.145",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.jjshouse.com",
 		IpAddress: "216.137.43.240",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.kaercher-media.com",
-		IpAddress: "54.182.1.120",
+		Domain:    "www.jjshouse.com",
+		IpAddress: "54.239.132.145",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.kaercher-media.com",
 		IpAddress: "54.192.6.222",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.kaercher-media.com",
+		IpAddress: "54.182.1.120",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.keystone-jobs.com",
@@ -14954,14 +14778,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.knowledgevision.com",
-		IpAddress: "54.192.4.5",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.knowledgevision.com",
-		IpAddress: "54.192.5.210",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.knowledgevision.com",
 		IpAddress: "54.182.3.62",
 	},
 	&fronted.Masquerade{
@@ -14970,91 +14786,47 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.knowledgevision.com",
+		IpAddress: "54.192.4.5",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.knowledgevision.com",
 		IpAddress: "54.182.0.158",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.1.18",
+		Domain:    "www.knowledgevision.com",
+		IpAddress: "54.192.5.210",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
-		IpAddress: "54.230.6.118",
+		IpAddress: "54.230.6.125",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.7.186",
+		IpAddress: "205.251.203.96",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.0.185",
+		IpAddress: "54.192.7.83",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
-		IpAddress: "205.251.203.55",
+		IpAddress: "54.192.6.55",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
-		IpAddress: "54.230.4.46",
+		IpAddress: "54.230.10.70",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
-		IpAddress: "205.251.203.26",
+		IpAddress: "54.192.7.29",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.0.184",
+		IpAddress: "54.192.7.250",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
-		IpAddress: "54.239.130.180",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.230.5.166",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "205.251.203.79",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.0.146",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.239.130.186",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.192.4.242",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.239.130.184",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.230.7.159",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.192.5.86",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.2.55",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.1.150",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.7.211",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.239.132.193",
+		IpAddress: "54.192.7.113",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
@@ -15062,59 +14834,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
-		IpAddress: "205.251.203.181",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.0.249",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.192.4.83",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "205.251.203.160",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.239.130.11",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.192.5.27",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.3.104",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.192.6.22",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.192.5.103",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "216.137.45.8",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.7.208",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.239.132.85",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.239.132.94",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "216.137.43.125",
+		IpAddress: "54.230.4.46",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
@@ -15126,135 +14846,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
-		IpAddress: "54.230.4.155",
+		IpAddress: "54.230.5.120",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.7.209",
+		IpAddress: "54.192.6.22",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
-		IpAddress: "54.192.5.242",
+		IpAddress: "216.137.43.125",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.7.60",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "216.137.45.45",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "216.137.45.44",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.7.119",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.7.210",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.2.149",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.7.74",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.192.6.55",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.7.188",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.5.85",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "204.246.169.66",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.230.6.49",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "216.137.43.178",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.230.10.70",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.230.5.38",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.230.5.47",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "205.251.203.96",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "204.246.169.51",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.0.167",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.192.5.99",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.7.207",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.0.155",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.192.10.162",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.230.7.38",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.192.7.83",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.239.130.80",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.3.239",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.3.241",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.3.26",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.192.7.113",
+		IpAddress: "54.192.5.27",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
@@ -15262,15 +14866,27 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
-		IpAddress: "54.230.6.56",
+		IpAddress: "54.230.5.166",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.1.201",
+		IpAddress: "54.192.5.99",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
-		IpAddress: "54.239.130.67",
+		IpAddress: "54.192.5.86",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.230.5.38",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "216.137.43.178",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.230.5.47",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
@@ -15278,67 +14894,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
-		IpAddress: "54.230.6.69",
+		IpAddress: "54.230.5.137",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.1.66",
+		IpAddress: "54.192.5.242",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
-		IpAddress: "54.192.5.100",
+		IpAddress: "54.230.6.118",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
-		IpAddress: "54.239.200.21",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.4.86",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.5.189",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.5.180",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.239.130.219",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.5.179",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.239.130.57",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.230.6.184",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.5.147",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.3.98",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.5.158",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.192.7.29",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.5.138",
+		IpAddress: "54.230.6.123",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
@@ -15346,7 +14914,139 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
+		IpAddress: "54.192.5.103",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.192.5.100",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.230.6.248",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
 		IpAddress: "54.192.4.95",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.192.4.83",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.192.4.16",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.230.6.41",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.230.6.49",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.230.6.56",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "216.137.45.44",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "216.137.45.45",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.192.4.242",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "216.137.45.8",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.192.4.187",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.230.7.159",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.230.4.155",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.230.7.197",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.192.10.162",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.230.7.230",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.0.146",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.0.155",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.0.167",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.7.74",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.0.185",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.0.184",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.230.6.69",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.230.7.38",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.7.60",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.7.211",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.7.210",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.7.209",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.7.207",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.7.208",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.7.205",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
@@ -15358,71 +15058,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
-		IpAddress: "54.230.6.41",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.192.7.250",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.230.5.137",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.239.130.40",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.2.211",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.230.7.230",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.230.6.248",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.230.5.120",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.230.7.197",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.0.98",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.1.152",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.2.2",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.192.4.187",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
 		IpAddress: "54.182.7.202",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.230.6.125",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.7.189",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ksmobile.com",
-		IpAddress: "54.182.7.205",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
@@ -15430,19 +15066,187 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
-		IpAddress: "54.192.4.16",
+		IpAddress: "54.239.130.11",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
-		IpAddress: "54.230.6.123",
+		IpAddress: "54.182.7.189",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.7.188",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ksmobile.com",
 		IpAddress: "54.182.7.185",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.lovegold.com",
-		IpAddress: "54.192.7.38",
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.7.186",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "205.251.203.55",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.239.130.180",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.0.249",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.239.130.184",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.239.130.186",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "205.251.203.79",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.239.130.219",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.7.119",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.0.98",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.239.130.40",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "205.251.203.26",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.239.130.57",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.239.130.67",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.239.130.80",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.1.150",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.1.152",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.5.85",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.1.18",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.1.201",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.5.189",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.5.180",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.5.179",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.2.2",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.5.158",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.5.147",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.5.138",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.239.132.85",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.239.132.94",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.239.132.193",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "204.246.169.51",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.4.86",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.1.66",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.3.98",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.2.149",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.239.200.21",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.3.26",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.3.239",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.3.241",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.2.211",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.3.104",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ksmobile.com",
+		IpAddress: "54.182.2.55",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.lovegold.com",
@@ -15453,40 +15257,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "204.246.169.185",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.mapnwea.org",
-		IpAddress: "216.137.33.237",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.mapnwea.org",
-		IpAddress: "54.192.7.34",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.mapnwea.org",
-		IpAddress: "54.182.2.221",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.mapnwea.org",
-		IpAddress: "205.251.253.142",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.mapnwea.org",
-		IpAddress: "205.251.253.117",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.mapnwea.org",
-		IpAddress: "205.251.253.135",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.mapnwea.org",
-		IpAddress: "54.182.1.206",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.mapnwea.org",
-		IpAddress: "216.137.39.188",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.mapnwea.org",
-		IpAddress: "54.239.130.63",
+		Domain:    "www.lovegold.com",
+		IpAddress: "54.192.7.38",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.mapnwea.org",
@@ -15494,15 +15266,43 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.mapnwea.org",
+		IpAddress: "54.182.1.206",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.mapnwea.org",
 		IpAddress: "216.137.33.176",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.metacdn.com",
-		IpAddress: "54.182.7.160",
+		Domain:    "www.mapnwea.org",
+		IpAddress: "205.251.253.135",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.metacdn.com",
-		IpAddress: "54.182.7.133",
+		Domain:    "www.mapnwea.org",
+		IpAddress: "205.251.253.117",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.mapnwea.org",
+		IpAddress: "216.137.33.237",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.mapnwea.org",
+		IpAddress: "54.182.2.221",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.mapnwea.org",
+		IpAddress: "216.137.39.188",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.mapnwea.org",
+		IpAddress: "54.192.7.34",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.mapnwea.org",
+		IpAddress: "205.251.253.142",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.mapnwea.org",
+		IpAddress: "54.239.130.63",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.metacdn.com",
@@ -15513,6 +15313,18 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.192.7.204",
 	},
 	&fronted.Masquerade{
+		Domain:    "www.metacdn.com",
+		IpAddress: "54.182.7.133",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.metacdn.com",
+		IpAddress: "54.182.7.160",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.myharmony.com",
+		IpAddress: "205.251.253.45",
+	},
+	&fronted.Masquerade{
 		Domain:    "www.myharmony.com",
 		IpAddress: "54.182.3.229",
 	},
@@ -15521,8 +15333,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.192.5.187",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.myharmony.com",
-		IpAddress: "205.251.253.45",
+		Domain:    "www.netmarble.net",
+		IpAddress: "205.251.253.31",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.netmarble.net",
+		IpAddress: "54.182.1.22",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.netmarble.net",
@@ -15530,11 +15346,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.netmarble.net",
-		IpAddress: "205.251.253.31",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.netmarble.net",
-		IpAddress: "54.239.130.56",
+		IpAddress: "54.192.7.71",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.netmarble.net",
@@ -15542,23 +15354,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.netmarble.net",
-		IpAddress: "54.192.7.71",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.netmarble.net",
-		IpAddress: "54.182.1.22",
+		IpAddress: "54.239.130.56",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.nissan.square-root.com",
-		IpAddress: "54.192.5.249",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.nissan.square-root.com",
-		IpAddress: "204.246.169.229",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.nissan.square-root.com",
-		IpAddress: "216.137.33.94",
+		IpAddress: "54.182.2.19",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.nissan.square-root.com",
@@ -15566,11 +15366,27 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.nissan.square-root.com",
+		IpAddress: "54.192.5.249",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.nissan.square-root.com",
+		IpAddress: "216.137.33.94",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.nissan.square-root.com",
 		IpAddress: "216.137.43.243",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.nissan.square-root.com",
-		IpAddress: "54.182.2.19",
+		IpAddress: "204.246.169.229",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.olx.com.br",
+		IpAddress: "216.137.33.139",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.olx.com.br",
+		IpAddress: "216.137.36.143",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.olx.com.br",
@@ -15578,7 +15394,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.olx.com.br",
-		IpAddress: "216.137.33.139",
+		IpAddress: "54.230.7.111",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.olx.com.br",
@@ -15587,14 +15403,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "www.olx.com.br",
 		IpAddress: "204.246.169.98",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.olx.com.br",
-		IpAddress: "54.230.7.111",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.olx.com.br",
-		IpAddress: "216.137.36.143",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.oneclickventures.com",
@@ -15618,11 +15426,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.playscdn.tv",
-		IpAddress: "216.137.43.224",
+		IpAddress: "54.182.1.153",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.playscdn.tv",
-		IpAddress: "54.182.1.153",
+		IpAddress: "216.137.43.224",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.pravail.com",
@@ -15634,27 +15442,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.presidentialinnovationfellows.gov",
-		IpAddress: "54.182.0.78",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.presidentialinnovationfellows.gov",
 		IpAddress: "54.230.7.188",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.qld.gov.au",
-		IpAddress: "205.251.253.150",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.qld.gov.au",
-		IpAddress: "54.230.7.123",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.qld.gov.au",
-		IpAddress: "54.239.130.233",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.qld.gov.au",
-		IpAddress: "54.182.6.12",
+		Domain:    "www.presidentialinnovationfellows.gov",
+		IpAddress: "54.182.0.78",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.qld.gov.au",
@@ -15662,7 +15454,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.qld.gov.au",
+		IpAddress: "205.251.253.150",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.qld.gov.au",
 		IpAddress: "216.137.45.54",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.qld.gov.au",
+		IpAddress: "54.230.7.123",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.qld.gov.au",
+		IpAddress: "54.230.6.179",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.qld.gov.au",
@@ -15670,7 +15474,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.qld.gov.au",
-		IpAddress: "54.230.6.179",
+		IpAddress: "54.182.6.12",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.qld.gov.au",
+		IpAddress: "54.239.130.233",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.razoo.com",
@@ -15678,43 +15486,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.razoo.com",
-		IpAddress: "54.182.2.234",
+		IpAddress: "205.251.203.166",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.razoo.com",
-		IpAddress: "205.251.203.166",
+		IpAddress: "54.182.2.234",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.razoo.com",
 		IpAddress: "54.192.5.140",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.readyflowers.com",
-		IpAddress: "216.137.36.153",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.readyflowers.com",
-		IpAddress: "54.239.200.116",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.readyflowers.com",
-		IpAddress: "205.251.253.136",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.readyflowers.com",
-		IpAddress: "54.192.5.128",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.readyflowers.com",
-		IpAddress: "205.251.203.151",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.readyflowers.com",
-		IpAddress: "54.239.132.185",
-	},
-	&fronted.Masquerade{
 		Domain:    "www.rexel.nl",
-		IpAddress: "216.137.36.98",
+		IpAddress: "205.251.203.97",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.rexel.nl",
@@ -15722,7 +15506,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.rexel.nl",
-		IpAddress: "205.251.203.97",
+		IpAddress: "216.137.36.98",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.rexel.nl",
@@ -15738,15 +15522,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.roxionow.com",
-		IpAddress: "205.251.253.86",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.roxionow.com",
 		IpAddress: "54.182.7.138",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.roxionow.com",
 		IpAddress: "54.230.4.24",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.roxionow.com",
+		IpAddress: "205.251.253.86",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.rview.com",
@@ -15758,27 +15542,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.rview.com",
-		IpAddress: "54.230.4.49",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.rview.com",
 		IpAddress: "216.137.39.240",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.s3.envato.com",
-		IpAddress: "54.182.3.154",
+		Domain:    "www.rview.com",
+		IpAddress: "54.230.4.49",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.s3.envato.com",
 		IpAddress: "216.137.43.175",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.samsung.com",
-		IpAddress: "216.137.36.136",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.samsung.com",
-		IpAddress: "205.251.203.134",
+		Domain:    "www.s3.envato.com",
+		IpAddress: "54.182.3.154",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.samsung.com",
@@ -15786,7 +15562,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.samsung.com",
+		IpAddress: "205.251.203.134",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.samsung.com",
 		IpAddress: "216.137.43.73",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.samsung.com",
+		IpAddress: "216.137.36.136",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.samsung.com",
@@ -15802,11 +15586,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.samsungapps.com",
-		IpAddress: "205.251.253.251",
+		IpAddress: "54.192.5.214",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.samsungapps.com",
-		IpAddress: "54.230.7.175",
+		IpAddress: "205.251.253.251",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.samsungapps.com",
@@ -15814,23 +15598,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.samsungapps.com",
-		IpAddress: "54.192.5.214",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.samsungknowledge.com",
-		IpAddress: "54.182.2.247",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.samsungknowledge.com",
-		IpAddress: "54.192.5.222",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.samsungknowledge.com",
-		IpAddress: "216.137.43.101",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.samsungknowledge.com",
-		IpAddress: "54.182.7.240",
+		IpAddress: "54.230.7.175",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.samsungknowledge.com",
@@ -15838,19 +15606,35 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.samsungknowledge.com",
-		IpAddress: "54.230.7.210",
+		IpAddress: "216.137.43.101",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.samsungknowledge.com",
+		IpAddress: "54.192.5.222",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.samsungknowledge.com",
+		IpAddress: "54.182.2.247",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.samsungknowledge.com",
 		IpAddress: "54.239.200.119",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.samsungqbe.com",
-		IpAddress: "54.192.7.55",
+		Domain:    "www.samsungknowledge.com",
+		IpAddress: "54.230.7.210",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.samsungknowledge.com",
+		IpAddress: "54.182.7.240",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.samsungqbe.com",
 		IpAddress: "54.182.1.248",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.samsungqbe.com",
+		IpAddress: "54.192.7.55",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.saveur-biere.com",
@@ -15862,11 +15646,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.sdeck.org",
-		IpAddress: "54.192.5.67",
+		IpAddress: "54.182.1.71",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.sdeck.org",
-		IpAddress: "54.182.1.71",
+		IpAddress: "54.192.5.67",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.sdeck.org",
@@ -15878,18 +15662,6 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.secb2b.com",
-		IpAddress: "54.239.132.207",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.secb2b.com",
-		IpAddress: "54.230.4.124",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.secb2b.com",
-		IpAddress: "54.182.7.98",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.secb2b.com",
 		IpAddress: "54.192.6.176",
 	},
 	&fronted.Masquerade{
@@ -15897,12 +15669,24 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.6.157",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.sf-cdn.net",
-		IpAddress: "216.137.43.142",
+		Domain:    "www.secb2b.com",
+		IpAddress: "54.182.7.98",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.secb2b.com",
+		IpAddress: "54.239.132.207",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.secb2b.com",
+		IpAddress: "54.230.4.124",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.sf-cdn.net",
 		IpAddress: "204.246.169.172",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.sf-cdn.net",
+		IpAddress: "216.137.43.142",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.sf-cdn.net",
@@ -15914,15 +15698,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.shasso.com",
-		IpAddress: "54.182.3.183",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.shasso.com",
 		IpAddress: "54.192.4.14",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.shopch.jp",
-		IpAddress: "54.230.4.150",
+		Domain:    "www.shasso.com",
+		IpAddress: "54.182.3.183",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.shopch.jp",
@@ -15933,16 +15713,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.4.47",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.skavaone.com",
-		IpAddress: "54.239.132.118",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.skavaone.com",
-		IpAddress: "54.182.0.152",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.skavaone.com",
-		IpAddress: "54.182.2.251",
+		Domain:    "www.shopch.jp",
+		IpAddress: "54.230.4.150",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.skavaone.com",
@@ -15950,11 +15722,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.skavaone.com",
-		IpAddress: "216.137.39.6",
+		IpAddress: "54.182.0.152",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.skavaone.com",
 		IpAddress: "54.192.6.87",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.skavaone.com",
+		IpAddress: "54.182.2.251",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.skavaone.com",
+		IpAddress: "54.239.132.118",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.skavaone.com",
+		IpAddress: "216.137.39.6",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.skyprepago.com.br",
@@ -15978,11 +15762,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.softcoin.com",
-		IpAddress: "54.192.5.32",
+		IpAddress: "54.182.0.25",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.softcoin.com",
-		IpAddress: "54.182.0.25",
+		IpAddress: "54.192.5.32",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.softcoin.com",
@@ -15990,23 +15774,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.srv.ygles-test.com",
-		IpAddress: "54.239.132.106",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.srv.ygles-test.com",
-		IpAddress: "216.137.36.91",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.srv.ygles-test.com",
 		IpAddress: "54.192.4.90",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.srv.ygles-test.com",
-		IpAddress: "54.192.4.19",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.srv.ygles-test.com",
-		IpAddress: "54.182.7.254",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.srv.ygles-test.com",
@@ -16022,23 +15790,35 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.srv.ygles-test.com",
-		IpAddress: "54.182.7.65",
+		IpAddress: "216.137.36.91",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.srv.ygles-test.com",
 		IpAddress: "54.192.6.135",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.srv.ygles.com",
-		IpAddress: "54.182.2.101",
+		Domain:    "www.srv.ygles-test.com",
+		IpAddress: "54.192.4.19",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.srv.ygles.com",
-		IpAddress: "205.251.251.38",
+		Domain:    "www.srv.ygles-test.com",
+		IpAddress: "54.182.7.65",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.srv.ygles-test.com",
+		IpAddress: "54.182.7.254",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.srv.ygles-test.com",
+		IpAddress: "54.239.132.106",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.srv.ygles.com",
 		IpAddress: "54.192.5.154",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.srv.ygles.com",
+		IpAddress: "54.182.2.101",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.srv.ygles.com",
@@ -16049,16 +15829,12 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.2.94",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.srv.ygles.com",
-		IpAddress: "216.137.43.96",
+		Domain:    "www.stag.vdna-assets.com",
+		IpAddress: "54.192.6.179",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.stag.vdna-assets.com",
 		IpAddress: "54.182.3.100",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.stag.vdna-assets.com",
-		IpAddress: "54.192.6.179",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.stag.vdna-assets.com",
@@ -16074,11 +15850,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.streaming.cdn.delivery.amazonmusic.com",
-		IpAddress: "54.239.130.182",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.streaming.cdn.delivery.amazonmusic.com",
-		IpAddress: "54.230.4.133",
+		IpAddress: "54.182.0.123",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.streaming.cdn.delivery.amazonmusic.com",
@@ -16086,7 +15858,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.streaming.cdn.delivery.amazonmusic.com",
-		IpAddress: "54.182.0.123",
+		IpAddress: "54.239.130.182",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.streaming.cdn.delivery.amazonmusic.com",
+		IpAddress: "54.230.4.133",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.syndication.grab-media.com",
@@ -16102,11 +15878,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.tag-team-app.com",
-		IpAddress: "54.182.3.35",
+		IpAddress: "204.246.169.5",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.tag-team-app.com",
-		IpAddress: "204.246.169.5",
+		IpAddress: "54.182.3.35",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.tag-team-app.com",
@@ -16118,15 +15894,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.taggstar.com",
-		IpAddress: "54.230.6.204",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.taggstar.com",
 		IpAddress: "54.182.3.84",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.tenki-yoho.jp",
-		IpAddress: "54.192.4.198",
+		Domain:    "www.taggstar.com",
+		IpAddress: "54.230.6.204",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.tenki-yoho.jp",
@@ -16135,6 +15907,10 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "www.tenki-yoho.jp",
 		IpAddress: "54.182.5.62",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.tenki-yoho.jp",
+		IpAddress: "54.192.4.198",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.trafalgar.com",
@@ -16146,23 +15922,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.tribalfusion.com",
-		IpAddress: "54.192.4.197",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.tribalfusion.com",
 		IpAddress: "216.137.39.117",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.tribalfusion.com",
+		IpAddress: "54.192.4.197",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.tribalfusion.com",
 		IpAddress: "54.182.1.158",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.truste.com",
-		IpAddress: "216.137.43.191",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.truste.com",
-		IpAddress: "54.239.200.88",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.truste.com",
@@ -16173,8 +15941,24 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.239.130.203",
 	},
 	&fronted.Masquerade{
+		Domain:    "www.truste.com",
+		IpAddress: "216.137.43.191",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.truste.com",
+		IpAddress: "54.239.200.88",
+	},
+	&fronted.Masquerade{
 		Domain:    "www.typekit.net",
 		IpAddress: "204.246.169.179",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.typekit.net",
+		IpAddress: "54.182.0.201",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.typekit.net",
+		IpAddress: "54.192.5.153",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.typekit.net",
@@ -16186,19 +15970,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.typekit.net",
-		IpAddress: "54.182.0.201",
+		IpAddress: "216.137.33.188",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.typekit.net",
 		IpAddress: "54.182.1.133",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.typekit.net",
-		IpAddress: "54.192.5.153",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.typekit.net",
-		IpAddress: "216.137.33.188",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.uat.jltinteractive.com",
@@ -16214,6 +15990,10 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ukbusprod.com",
+		IpAddress: "54.239.132.122",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.ukbusprod.com",
 		IpAddress: "54.192.5.111",
 	},
 	&fronted.Masquerade{
@@ -16221,16 +16001,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.4.2",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.ukbusprod.com",
-		IpAddress: "54.239.132.122",
-	},
-	&fronted.Masquerade{
 		Domain:    "www.ukbusstage.com",
 		IpAddress: "216.137.39.43",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.ukbusstage.com",
-		IpAddress: "54.182.7.15",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.ukbusstage.com",
@@ -16245,12 +16017,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "205.251.203.182",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.undercovertourist.com",
-		IpAddress: "54.182.6.64",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.undercovertourist.com",
-		IpAddress: "54.239.130.173",
+		Domain:    "www.ukbusstage.com",
+		IpAddress: "54.182.7.15",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.undercovertourist.com",
@@ -16258,15 +16026,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.undercovertourist.com",
+		IpAddress: "54.239.130.173",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.undercovertourist.com",
 		IpAddress: "54.192.7.108",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.v2.krossover.com",
-		IpAddress: "54.182.1.239",
+		Domain:    "www.undercovertourist.com",
+		IpAddress: "54.182.6.64",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.v2.krossover.com",
 		IpAddress: "54.230.6.217",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.v2.krossover.com",
+		IpAddress: "54.182.1.239",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.venue.maps.api.here.com",
@@ -16278,31 +16054,23 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.venue.maps.cit.api.here.com",
-		IpAddress: "54.182.3.218",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.venue.maps.cit.api.here.com",
 		IpAddress: "216.137.43.214",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.via.infonow.net",
-		IpAddress: "54.182.1.233",
+		Domain:    "www.venue.maps.cit.api.here.com",
+		IpAddress: "54.182.3.218",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.via.infonow.net",
 		IpAddress: "54.192.7.48",
 	},
 	&fronted.Masquerade{
+		Domain:    "www.via.infonow.net",
+		IpAddress: "54.182.1.233",
+	},
+	&fronted.Masquerade{
 		Domain:    "www.voidsphere.jp",
 		IpAddress: "54.230.7.205",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.voidsphere.jp",
-		IpAddress: "54.230.4.153",
-	},
-	&fronted.Masquerade{
-		Domain:    "www.voidsphere.jp",
-		IpAddress: "54.182.7.201",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.voidsphere.jp",
@@ -16313,8 +16081,8 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.7.217",
 	},
 	&fronted.Masquerade{
-		Domain:    "www.w55c.net",
-		IpAddress: "204.246.169.19",
+		Domain:    "www.voidsphere.jp",
+		IpAddress: "54.182.7.201",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.w55c.net",
@@ -16322,11 +16090,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.w55c.net",
-		IpAddress: "54.182.3.125",
+		IpAddress: "216.137.45.23",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.w55c.net",
-		IpAddress: "216.137.45.23",
+		IpAddress: "204.246.169.19",
+	},
+	&fronted.Masquerade{
+		Domain:    "www.w55c.net",
+		IpAddress: "54.182.3.125",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.waze.com",
@@ -16334,7 +16106,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.waze.com",
-		IpAddress: "54.192.4.42",
+		IpAddress: "205.251.253.144",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.waze.com",
@@ -16342,11 +16114,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www.waze.com",
-		IpAddress: "205.251.253.144",
+		IpAddress: "204.246.169.173",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.waze.com",
-		IpAddress: "204.246.169.173",
+		IpAddress: "54.192.4.42",
 	},
 	&fronted.Masquerade{
 		Domain:    "www.webchat.shell.com.cn",
@@ -16362,15 +16134,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "www1.chemistwarehouse.com.au",
-		IpAddress: "54.182.2.10",
-	},
-	&fronted.Masquerade{
-		Domain:    "www1.chemistwarehouse.com.au",
 		IpAddress: "54.230.7.141",
 	},
 	&fronted.Masquerade{
 		Domain:    "www1.chemistwarehouse.com.au",
 		IpAddress: "54.239.200.144",
+	},
+	&fronted.Masquerade{
+		Domain:    "www1.chemistwarehouse.com.au",
+		IpAddress: "54.182.2.10",
 	},
 	&fronted.Masquerade{
 		Domain:    "www1.mabuhaymiles.com",
@@ -16398,15 +16170,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "xperialounge.sonymobile.com",
-		IpAddress: "54.182.6.87",
-	},
-	&fronted.Masquerade{
-		Domain:    "xperialounge.sonymobile.com",
-		IpAddress: "54.182.6.220",
-	},
-	&fronted.Masquerade{
-		Domain:    "xperialounge.sonymobile.com",
-		IpAddress: "54.239.200.157",
+		IpAddress: "216.137.33.151",
 	},
 	&fronted.Masquerade{
 		Domain:    "xperialounge.sonymobile.com",
@@ -16414,7 +16178,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "xperialounge.sonymobile.com",
-		IpAddress: "216.137.33.151",
+		IpAddress: "54.182.6.220",
+	},
+	&fronted.Masquerade{
+		Domain:    "xperialounge.sonymobile.com",
+		IpAddress: "54.182.6.87",
+	},
+	&fronted.Masquerade{
+		Domain:    "xperialounge.sonymobile.com",
+		IpAddress: "54.239.200.157",
 	},
 	&fronted.Masquerade{
 		Domain:    "xperialounge.sonymobile.com",
@@ -16422,19 +16194,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "yanmar.com",
-		IpAddress: "54.230.5.69",
-	},
-	&fronted.Masquerade{
-		Domain:    "yanmar.com",
 		IpAddress: "54.182.7.206",
 	},
 	&fronted.Masquerade{
-		Domain:    "yldbt.com",
-		IpAddress: "54.192.6.220",
+		Domain:    "yanmar.com",
+		IpAddress: "54.230.5.69",
 	},
 	&fronted.Masquerade{
 		Domain:    "yldbt.com",
 		IpAddress: "54.182.3.233",
+	},
+	&fronted.Masquerade{
+		Domain:    "yldbt.com",
+		IpAddress: "54.192.6.220",
 	},
 	&fronted.Masquerade{
 		Domain:    "yottaa.net",
@@ -16446,11 +16218,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "younow.com",
-		IpAddress: "54.230.7.244",
+		IpAddress: "54.182.4.62",
 	},
 	&fronted.Masquerade{
 		Domain:    "younow.com",
-		IpAddress: "54.182.4.62",
+		IpAddress: "54.230.7.244",
 	},
 	&fronted.Masquerade{
 		Domain:    "younow.com",
@@ -16458,7 +16230,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "youview.tv",
-		IpAddress: "216.137.43.72",
+		IpAddress: "54.239.130.174",
 	},
 	&fronted.Masquerade{
 		Domain:    "youview.tv",
@@ -16466,7 +16238,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "youview.tv",
-		IpAddress: "54.239.130.174",
+		IpAddress: "216.137.43.72",
 	},
 	&fronted.Masquerade{
 		Domain:    "yumpu.com",
@@ -16474,23 +16246,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "yumpu.com",
-		IpAddress: "204.246.169.123",
-	},
-	&fronted.Masquerade{
-		Domain:    "yumpu.com",
 		IpAddress: "216.137.36.39",
-	},
-	&fronted.Masquerade{
-		Domain:    "yumpu.com",
-		IpAddress: "54.182.3.45",
-	},
-	&fronted.Masquerade{
-		Domain:    "yumpu.com",
-		IpAddress: "54.182.2.254",
-	},
-	&fronted.Masquerade{
-		Domain:    "yumpu.com",
-		IpAddress: "205.251.203.40",
 	},
 	&fronted.Masquerade{
 		Domain:    "yumpu.com",
@@ -16501,8 +16257,20 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "205.251.253.39",
 	},
 	&fronted.Masquerade{
-		Domain:    "z-eu.amazon-adsystem.com",
-		IpAddress: "216.137.33.29",
+		Domain:    "yumpu.com",
+		IpAddress: "205.251.203.40",
+	},
+	&fronted.Masquerade{
+		Domain:    "yumpu.com",
+		IpAddress: "204.246.169.123",
+	},
+	&fronted.Masquerade{
+		Domain:    "yumpu.com",
+		IpAddress: "54.182.2.254",
+	},
+	&fronted.Masquerade{
+		Domain:    "yumpu.com",
+		IpAddress: "54.182.3.45",
 	},
 	&fronted.Masquerade{
 		Domain:    "z-eu.amazon-adsystem.com",
@@ -16513,20 +16281,20 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		IpAddress: "54.182.3.223",
 	},
 	&fronted.Masquerade{
-		Domain:    "z-fe.amazon-adsystem.com",
-		IpAddress: "54.182.2.87",
+		Domain:    "z-eu.amazon-adsystem.com",
+		IpAddress: "216.137.33.29",
 	},
 	&fronted.Masquerade{
 		Domain:    "z-fe.amazon-adsystem.com",
-		IpAddress: "216.137.33.81",
+		IpAddress: "54.182.2.87",
 	},
 	&fronted.Masquerade{
 		Domain:    "z-fe.amazon-adsystem.com",
 		IpAddress: "54.192.7.199",
 	},
 	&fronted.Masquerade{
-		Domain:    "z-in.amazon-adsystem.com",
-		IpAddress: "54.192.6.17",
+		Domain:    "z-fe.amazon-adsystem.com",
+		IpAddress: "216.137.33.81",
 	},
 	&fronted.Masquerade{
 		Domain:    "z-in.amazon-adsystem.com",
@@ -16538,19 +16306,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "z-in.amazon-adsystem.com",
+		IpAddress: "54.192.6.17",
+	},
+	&fronted.Masquerade{
+		Domain:    "z-in.amazon-adsystem.com",
 		IpAddress: "54.239.132.115",
-	},
-	&fronted.Masquerade{
-		Domain:    "zalora.com",
-		IpAddress: "216.137.36.115",
-	},
-	&fronted.Masquerade{
-		Domain:    "zalora.com",
-		IpAddress: "54.182.7.12",
-	},
-	&fronted.Masquerade{
-		Domain:    "zalora.com",
-		IpAddress: "54.230.4.213",
 	},
 	&fronted.Masquerade{
 		Domain:    "zalora.com",
@@ -16558,15 +16318,19 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "zalora.com",
+		IpAddress: "54.182.7.12",
+	},
+	&fronted.Masquerade{
+		Domain:    "zalora.com",
+		IpAddress: "216.137.36.115",
+	},
+	&fronted.Masquerade{
+		Domain:    "zalora.com",
 		IpAddress: "54.182.6.81",
 	},
 	&fronted.Masquerade{
-		Domain:    "zenoss.io",
-		IpAddress: "54.182.2.196",
-	},
-	&fronted.Masquerade{
-		Domain:    "zenoss.io",
-		IpAddress: "216.137.36.25",
+		Domain:    "zalora.com",
+		IpAddress: "54.230.4.213",
 	},
 	&fronted.Masquerade{
 		Domain:    "zenoss.io",
@@ -16574,7 +16338,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "zenoss.io",
+		IpAddress: "216.137.36.25",
+	},
+	&fronted.Masquerade{
+		Domain:    "zenoss.io",
 		IpAddress: "216.137.43.10",
+	},
+	&fronted.Masquerade{
+		Domain:    "zenoss.io",
+		IpAddress: "54.182.2.196",
 	},
 	&fronted.Masquerade{
 		Domain:    "zenoss.io",
@@ -16582,11 +16354,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "ziftsolutions.com",
-		IpAddress: "54.182.0.20",
-	},
-	&fronted.Masquerade{
-		Domain:    "ziftsolutions.com",
-		IpAddress: "216.137.36.26",
+		IpAddress: "205.251.203.25",
 	},
 	&fronted.Masquerade{
 		Domain:    "ziftsolutions.com",
@@ -16594,11 +16362,15 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "ziftsolutions.com",
-		IpAddress: "205.251.203.25",
+		IpAddress: "216.137.36.26",
+	},
+	&fronted.Masquerade{
+		Domain:    "ziftsolutions.com",
+		IpAddress: "54.182.0.20",
 	},
 	&fronted.Masquerade{
 		Domain:    "zillowstatic.com",
-		IpAddress: "54.182.7.243",
+		IpAddress: "216.137.36.138",
 	},
 	&fronted.Masquerade{
 		Domain:    "zillowstatic.com",
@@ -16610,7 +16382,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "zillowstatic.com",
-		IpAddress: "216.137.36.138",
+		IpAddress: "54.182.7.243",
 	},
 	&fronted.Masquerade{
 		Domain:    "zimbra.com",
@@ -16618,11 +16390,11 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "zimbra.com",
-		IpAddress: "54.192.5.101",
+		IpAddress: "54.182.2.51",
 	},
 	&fronted.Masquerade{
 		Domain:    "zimbra.com",
-		IpAddress: "54.182.2.51",
+		IpAddress: "54.192.5.101",
 	},
 	&fronted.Masquerade{
 		Domain:    "zipmark.com",
@@ -16638,15 +16410,7 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	},
 	&fronted.Masquerade{
 		Domain:    "zoocdn.com",
-		IpAddress: "54.230.7.219",
-	},
-	&fronted.Masquerade{
-		Domain:    "zoocdn.com",
 		IpAddress: "54.182.1.126",
-	},
-	&fronted.Masquerade{
-		Domain:    "zoocdn.com",
-		IpAddress: "54.230.7.218",
 	},
 	&fronted.Masquerade{
 		Domain:    "zoocdn.com",
@@ -16655,6 +16419,14 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 	&fronted.Masquerade{
 		Domain:    "zoocdn.com",
 		IpAddress: "216.137.39.56",
+	},
+	&fronted.Masquerade{
+		Domain:    "zoocdn.com",
+		IpAddress: "54.230.7.218",
+	},
+	&fronted.Masquerade{
+		Domain:    "zoocdn.com",
+		IpAddress: "54.230.7.219",
 	},
 	&fronted.Masquerade{
 		Domain:    "zuus.com",

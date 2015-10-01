@@ -97,8 +97,10 @@ func main() {
 
 	go feedMasquerades()
 	cas, masqs := coalesceMasquerades()
-	model := buildModel(cas, masqs)
+	model := buildModel(cas, masqs, false)
 	generateTemplate(model, yamlTmpl, "cloud.yaml")
+	model = buildModel(cas, masqs, true)
+	generateTemplate(model, yamlTmpl, "lantern.yaml")
 	generateTemplate(model, masqueradesTmpl, "../config/masquerades.go")
 	_, err := run("gofmt", "-w", "../config/masquerades.go")
 	if err != nil {
@@ -324,7 +326,7 @@ func coalesceMasquerades() (map[string]*castat, []*masquerade) {
 	return trustedCAs, trustedMasquerades
 }
 
-func buildModel(cas map[string]*castat, masquerades []*masquerade) map[string]interface{} {
+func buildModel(cas map[string]*castat, masquerades []*masquerade, useFallbacks bool) map[string]interface{} {
 	casList := make([]*castat, 0, len(cas))
 	for _, ca := range cas {
 		casList = append(casList, ca)
@@ -337,32 +339,34 @@ func buildModel(cas map[string]*castat, masquerades []*masquerade) map[string]in
 	}
 	sort.Strings(ps)
 	fbs := make([]map[string]interface{}, 0, len(fallbacks))
-	for _, f := range fallbacks {
-		fb := make(map[string]interface{})
-		fb["ip"] = f.Addr
-		fb["auth_token"] = f.AuthToken
+	if useFallbacks {
+		for _, f := range fallbacks {
+			fb := make(map[string]interface{})
+			fb["ip"] = f.Addr
+			fb["auth_token"] = f.AuthToken
 
-		cert := f.Cert
-		// Replace newlines in cert with newline literals
-		fb["cert"] = strings.Replace(cert, "\n", "\\n", -1)
+			cert := f.Cert
+			// Replace newlines in cert with newline literals
+			fb["cert"] = strings.Replace(cert, "\n", "\\n", -1)
 
-		info := f
-		dialer, err := info.Dialer()
-		if err != nil {
-			log.Debugf("Skipping fallback %v because of error building dialer: %v", f.Addr, err)
-			continue
-		}
-		conn, err := dialer.Dial("tcp", "http://www.google.com")
-		if err != nil {
-			log.Debugf("Skipping fallback %v because dialing Google failed: %v", f.Addr, err)
-			continue
-		}
-		if err := conn.Close(); err != nil {
-			log.Debugf("Error closing connection: %v", err)
-		}
+			info := f
+			dialer, err := info.Dialer()
+			if err != nil {
+				log.Debugf("Skipping fallback %v because of error building dialer: %v", f.Addr, err)
+				continue
+			}
+			conn, err := dialer.Dial("tcp", "http://www.google.com")
+			if err != nil {
+				log.Debugf("Skipping fallback %v because dialing Google failed: %v", f.Addr, err)
+				continue
+			}
+			if err := conn.Close(); err != nil {
+				log.Debugf("Error closing connection: %v", err)
+			}
 
-		// Use this fallback
-		fbs = append(fbs, fb)
+			// Use this fallback
+			fbs = append(fbs, fb)
+		}
 	}
 	return map[string]interface{}{
 		"cas":          casList,
