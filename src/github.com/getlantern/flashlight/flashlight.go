@@ -268,7 +268,7 @@ func runClientProxy(cfg *config.Config) {
 		exit(fmt.Errorf("Unable to resolve UI address: %v", err))
 	}
 
-	settings, err := client.ReadSettings()
+	settings, err := config.ReadSettings()
 	var startupUrl string
 	if err != nil {
 		log.Errorf("Could not read settings? %v", err)

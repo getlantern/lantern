@@ -1,4 +1,4 @@
-package client
+package config
 
 import (
 	"io/ioutil"

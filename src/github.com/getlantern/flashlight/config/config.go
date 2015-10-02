@@ -183,7 +183,7 @@ func Init(version string) (*Config, error) {
 		// If this is our first run of this version of Lantern, use the embedded configuration
 		// file and use it to download our custom config file on this first poll for our
 		// config.
-		if err := client.MakeInitialConfig(configPath); err != nil {
+		if err := MakeInitialConfig(configPath); err != nil {
 			return nil, err
 		}
 	}
