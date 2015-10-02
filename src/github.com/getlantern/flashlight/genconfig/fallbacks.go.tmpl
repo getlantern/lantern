@@ -6,7 +6,7 @@ import (
 
 var fallbacks = map[string]*client.ChainedServerInfo{ {{range .fallbacks}}
   "fallback-{{.ip}}": &client.ChainedServerInfo{
-    Addr:      "{{.ip}}:443",
+    Addr:      "{{.ip}}",
     Cert:      "{{.cert}}",
     AuthToken: "{{.auth_token}}",
     Pipelined: true,
