@@ -1,4 +1,4 @@
-package client
+package config
 
 import (
 	"io/ioutil"
@@ -55,7 +55,7 @@ func TestBootstrapSettings(t *testing.T) {
 	assert.Equal(t, local, path, "Wrote to unexpected path")
 	assert.True(t, err == nil, "Should not be an error")
 
-	path, err = bootstrapPath(name)
+	_, path, err = bootstrapPath(name)
 	assert.True(t, err == nil, "Should not be an error")
 
 	var dir string

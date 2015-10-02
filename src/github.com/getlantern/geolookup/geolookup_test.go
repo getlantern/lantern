@@ -27,9 +27,12 @@ func TestCityLookup(t *testing.T) {
 	m := make(map[string][]*fronted.Masquerade)
 	m["cloudfront"] = masquerades
 	fronted.Configure(rootCAs, m)
+	log.Debugf("Configured fronted")
 	direct := fronted.NewDirect()
 	client = direct.NewDirectHttpClient()
 	cloudfrontEndpoint := `http://d3u5fqukq7qrhd.cloudfront.net/lookup/%v`
+
+	log.Debugf("Looking up IP with CloudFront")
 	city, _, err = LookupIPWithEndpoint(cloudfrontEndpoint, "198.199.72.101", client)
 	if assert.NoError(t, err) {
 		assert.Equal(t, "New York", city.City.Names["en"])
