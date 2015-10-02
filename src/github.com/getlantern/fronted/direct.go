@@ -38,6 +38,7 @@ func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
 		// Make an unblocke channel the same size as our group
 		// of masquerades and push all of them into it.
 		candidateCh = make(chan *Masquerade, size)
+		log.Debugf("Adding %v candidates...", size)
 		for _, arr := range masquerades {
 			for _, m := range arr {
 				candidateCh <- m
