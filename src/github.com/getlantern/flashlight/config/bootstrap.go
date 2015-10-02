@@ -86,6 +86,10 @@ func MakeInitialConfig(configPath string) error {
 		log.Errorf("Could not get bootstrap path %v", err)
 		return err
 	}
+
+	// We need to use tarfs here because the lantern.yaml needs to embedded
+	// in the binary for auto-updates to work. We also want the flexibility,
+	// however, to embed it in installers to change various settings.
 	fs, err := tarfs.New(Resources, dir)
 	if err != nil {
 		log.Errorf("Could not read resources? %v", err)
@@ -93,7 +97,6 @@ func MakeInitialConfig(configPath string) error {
 	}
 
 	bytes, err := fs.Get("lantern.yaml")
-	//bytes, err := ioutil.ReadFile(src)
 	if err != nil {
 		log.Errorf("Could not read bootstrap file %v", err)
 		return err
