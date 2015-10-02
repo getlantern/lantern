@@ -27,23 +27,24 @@ func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
 		log.Errorf("No masquerades!!")
 	}
 
-	go func() {
-		poolCh <- pool
-		size := 0
-		for _, arr := range masquerades {
-			shuffle(arr)
-			size += len(arr)
-		}
+	size := 0
+	for _, arr := range masquerades {
+		shuffle(arr)
+		size += len(arr)
+	}
 
-		// Make an unblocke channel the same size as our group
-		// of masquerades and push all of them into it.
-		candidateCh = make(chan *Masquerade, size)
+	// Make an unblocke channel the same size as our group
+	// of masquerades and push all of them into it.
+	candidateCh = make(chan *Masquerade, size)
+
+	go func() {
 		log.Debugf("Adding %v candidates...", size)
 		for _, arr := range masquerades {
 			for _, m := range arr {
 				candidateCh <- m
 			}
 		}
+		poolCh <- pool
 	}()
 }
 
