@@ -27,8 +27,15 @@ func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
 		log.Errorf("No masquerades!!")
 	}
 
+	// Make a copy of the masquerades to avoid data races.
+	masq := make(map[string][]*Masquerade)
+	for k, v := range masquerades {
+		c := make([]*Masquerade, len(v))
+		copy(c, v)
+		masq[k] = c
+	}
 	size := 0
-	for _, arr := range masquerades {
+	for _, arr := range masq {
 		shuffle(arr)
 		size += len(arr)
 	}
@@ -39,7 +46,7 @@ func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
 
 	go func() {
 		log.Debugf("Adding %v candidates...", size)
-		for _, arr := range masquerades {
+		for _, arr := range masq {
 			for _, m := range arr {
 				candidateCh <- m
 			}
