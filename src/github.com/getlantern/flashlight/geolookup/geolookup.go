@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
-	"net/http"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/getlantern/flashlight/pubsub"
 	"github.com/getlantern/flashlight/ui"
+	"github.com/getlantern/flashlight/util"
 )
 
 const (
@@ -27,11 +27,11 @@ const (
 var (
 	log = golog.LoggerFor("flashlight.geolookup")
 
-	client   atomic.Value
 	service  *ui.Service
 	cfgMutex sync.Mutex
 	country  = atomicString()
 	ip       = atomicString()
+	cf       = util.NewChainedAndFronted()
 )
 
 func atomicString() atomic.Value {
@@ -52,15 +52,10 @@ func GetCountry() string {
 // lookups. geolookup runs in a continuous loop, periodically updating its
 // location and publishing updates to any connected clients. We do this
 // continually in order to detect when the computer's location has changed.
-func Configure(httpClient *http.Client) {
-	cfgMutex.Lock()
-	defer cfgMutex.Unlock()
-
+func Start() {
 	// Avoid annoying checks for nil later.
 	ip.Store("")
 	country.Store("")
-
-	client.Store(httpClient)
 
 	if service == nil {
 		err := registerService()
@@ -91,7 +86,7 @@ func registerService() error {
 }
 
 func lookupIp() (string, string, error) {
-	city, ip, err := geo.LookupIPWithClient("", client.Load().(*http.Client))
+	city, ip, err := geo.LookupIPWithClient("", cf)
 
 	if err != nil {
 		log.Errorf("Could not lookup IP %v", err)

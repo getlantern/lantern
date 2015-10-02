@@ -63,12 +63,3 @@ func TestMajorVersion(t *testing.T) {
 	maj := majorVersion(ver)
 	assert.Equal(t, "222.00", maj, "Unexpected major version")
 }
-
-func TestDataCenter(t *testing.T) {
-	dc := defaultRoundRobinForTerritory("IR")
-	assert.Equal(t, "nl.fallbacks.getiantem.org", dc, "Unexpected data center")
-	dc = defaultRoundRobinForTerritory("cn")
-	assert.Equal(t, "jp.fallbacks.getiantem.org", dc, "Unexpected data center")
-	dc = defaultRoundRobin()
-	assert.Equal(t, "nl.fallbacks.getiantem.org", dc, "Unexpected data center")
-}
