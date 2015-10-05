@@ -65,5 +65,5 @@ func TestDialerWithGoogle(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	assert.Equal(t, string(b), googleHumansTxt, "Expecting a fixex response from humans.txt")
+	assert.Equal(t, string(b), googleHumansTxt, "Expecting a fixed response from google.com")
 }
