@@ -102,9 +102,7 @@
 
 // command-line options
 typedef struct {
-	int help;
-	int version;
-	int logger;
+  int logger;
 	#ifndef BADVPN_USE_WINAPI
 	char *logger_syslog_facility;
 	char *logger_syslog_ident;
@@ -123,7 +121,6 @@ options_t options;
 struct tcp_client {
 	dead_t dead;
 	dead_t dead_client;
-	LinkedList1Node list_node;
 	BAddr local_addr;
 	BAddr remote_addr;
 	struct tcp_pcb *pcb;
@@ -134,9 +131,6 @@ struct tcp_client {
 };
 
 static void terminate (void);
-static void print_help (const char *name);
-static void print_version (void);
-static int parse_arguments (int argc, char *argv[]);
 static void signal_handler (void *unused);
 static BAddr baddr_from_lwip (int is_ipv6, const ipX_addr_t *ipx_addr, uint16_t port_hostorder);
 static void lwip_init_job_hadler (void *unused);
@@ -151,11 +145,7 @@ static err_t netif_input_func (struct pbuf *p, struct netif *inp);
 static void client_logfunc (struct tcp_client *client);
 static void client_log (struct tcp_client *client, int level, const char *fmt, ...);
 static err_t listener_accept_func (void *arg, struct tcp_pcb *newpcb, err_t err);
-static void client_handle_freed_client (struct tcp_client *client);
-static void client_free_client (struct tcp_client *client);
-static void client_abort_client (struct tcp_client *client);
-static void client_murder (struct tcp_client *client);
-static void client_dealloc (struct tcp_client *client);
+static void client_close (struct tcp_client *client);
 static void client_err_func (void *arg, err_t err);
 static err_t client_recv_func (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err);
 static err_t client_sent_func (void *arg, struct tcp_pcb *tpcb, u16_t len);
