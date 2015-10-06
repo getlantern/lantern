@@ -77,46 +77,46 @@
 #define LOGGER_SYSLOG 2
 
 #define SYNC_DECL \
-	BPending sync_mark; \
+  BPending sync_mark; \
 
 #define SYNC_FROMHERE \
-	BPending_Init(&sync_mark, BReactor_PendingGroup(&ss), NULL, NULL); \
-	BPending_Set(&sync_mark);
+  BPending_Init(&sync_mark, BReactor_PendingGroup(&ss), NULL, NULL); \
+  BPending_Set(&sync_mark);
 
 #define SYNC_BREAK \
-	BPending_Free(&sync_mark);
+  BPending_Free(&sync_mark);
 
 #define SYNC_COMMIT \
-	BReactor_Synchronize(&ss, &sync_mark.base); \
-	BPending_Free(&sync_mark);
+  BReactor_Synchronize(&ss, &sync_mark.base); \
+  BPending_Free(&sync_mark);
 
 // command-line options
 typedef struct {
   int logger;
-	#ifndef BADVPN_USE_WINAPI
-	char *logger_syslog_facility;
-	char *logger_syslog_ident;
-	#endif
-	int loglevel;
-	char *tundev;
-	char *netif_ipaddr;
-	char *netif_netmask;
-	char *netif_ip6addr;
+  #ifndef BADVPN_USE_WINAPI
+  char *logger_syslog_facility;
+  char *logger_syslog_ident;
+  #endif
+  int loglevel;
+  char *tundev;
+  char *netif_ipaddr;
+  char *netif_netmask;
+  char *netif_ip6addr;
 } options_t;
 
 options_t options;
 
 // TCP client
 struct tcp_client {
-	dead_t dead;
-	dead_t dead_client;
-	BAddr local_addr;
-	BAddr remote_addr;
-	struct tcp_pcb *pcb;
-	int client_closed;
-	uint8_t buf[TCP_WND];
-	int buf_used;
-	uint32_t tunnel_id;
+  dead_t dead;
+  dead_t dead_client;
+  BAddr local_addr;
+  BAddr remote_addr;
+  struct tcp_pcb *pcb;
+  int client_closed;
+  uint8_t buf[TCP_WND];
+  int buf_used;
+  uint32_t tunnel_id;
 };
 
 static void terminate (void);

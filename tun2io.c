@@ -368,7 +368,7 @@ void lwip_init_job_hadler (void *unused)
     tcp_accept(listener_ip6, listener_accept_func);
   }
 
-	BLog(BLOG_NOTICE, "lwip_init_job_hadler");
+  BLog(BLOG_NOTICE, "lwip_init_job_hadler");
 }
 
 void tcp_timer_handler (void *unused)
@@ -406,13 +406,13 @@ void device_read_handler_send (void *unused, uint8_t *data, int data_len)
   // obtain pbuf
   if (data_len > UINT16_MAX) {
     BLog(BLOG_WARNING, "device read: packet too large");
-		free(data);
+    free(data);
     return;
   }
   struct pbuf *p = pbuf_alloc(PBUF_RAW, data_len, PBUF_POOL);
   if (!p) {
     BLog(BLOG_WARNING, "device read: pbuf_alloc failed");
-		free(data);
+    free(data);
     return;
   }
 
@@ -531,8 +531,6 @@ err_t listener_accept_func (void *arg, struct tcp_pcb *newpcb, err_t err)
 {
   ASSERT(err == ERR_OK)
 
-	BLog(BLOG_NOTICE, "listener accept...");
-
   // signal accepted
   struct tcp_pcb *this_listener = (PCB_ISIPV6(newpcb) ? listener_ip6 : listener);
   tcp_accepted(this_listener);
@@ -562,7 +560,6 @@ err_t listener_accept_func (void *arg, struct tcp_pcb *newpcb, err_t err)
   switch (client->remote_addr.type) {
     case BADDR_TYPE_IPV4:
       client->tunnel_id = goNewTunnel(client);
-      printf("Tunnel ID: %d\n", client->tunnel_id);
     break;
   }
 #endif
@@ -583,18 +580,16 @@ err_t listener_accept_func (void *arg, struct tcp_pcb *newpcb, err_t err)
   // setup buffer
   client->buf_used = 0;
 
-  client_log(client, BLOG_INFO, "accepted");
-
   return ERR_OK;
 }
 
 void client_close(struct tcp_client *client)
 {
-	if (client != NULL) {
-		return;
-	}
+  if (client != NULL) {
+    return;
+  }
 
-  client_log(client, BLOG_INFO, "client_close");
+  client_log(client, BLOG_INFO, "client closed");
 
   // free client
   if (!client->client_closed) {
@@ -609,7 +604,7 @@ void client_close(struct tcp_client *client)
     // abort
     tcp_abort(client->pcb);
 
-		goTunnelDestroy(client->tunnel_id);
+    goTunnelDestroy(client->tunnel_id);
   }
 
   free(client);
@@ -630,24 +625,21 @@ static err_t client_recv_func(void *arg, struct tcp_pcb *pcb, struct pbuf *p, er
   struct tcp_client *client = (struct tcp_client *)arg;
 
   if (client->client_closed) {
-		BLog(BLOG_INFO, "after client_closed");
     return ERR_ABRT;
   }
 
   if (err != ERR_OK) {
-		BLog(BLOG_INFO, "after err ok");
     return ERR_ABRT;
   }
 
   if (!p) {
-    client_log(client, BLOG_INFO, "client closed");
     client_close(client);
     return ERR_ABRT;
   }
 
   ASSERT(p->tot_len > 0)
 
-	err_t werr;
+  err_t werr;
   werr = goTunnelWrite(client->tunnel_id, p->payload, p->len);
 
   pbuf_free(p);

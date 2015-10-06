@@ -41,7 +41,8 @@ func TestConfigure(t *testing.T) {
 		// test a connection that is not routed to tun0. We're going to manually
 		// set up the external host to connect to www.google.com:443. In
 		// VpnService's context this could be achieved by protecting this socket.
-		return net.Dial("tcp", hostIP+":20443")
+		_, port, _ := net.SplitHostPort(addr)
+		return net.Dial("tcp", hostIP+":20"+port)
 	}
 	go func() {
 		// Configuring the device and passing the dialer function we want to use.
@@ -51,7 +52,7 @@ func TestConfigure(t *testing.T) {
 		}
 	}()
 	time.Sleep(time.Millisecond * 500)
-	log.Printf("Waiting at %q...", deviceName)
+	log.Printf("Waiting for %q...", deviceName)
 }
 
 func dialAndWaitForResponse(uri, expects string) error {
@@ -60,8 +61,8 @@ func dialAndWaitForResponse(uri, expects string) error {
 	cli := &http.Client{
 		Transport: &http.Transport{
 			DisableKeepAlives:     true,
-			ResponseHeaderTimeout: time.Second * 10,
-			TLSHandshakeTimeout:   time.Second * 10,
+			ResponseHeaderTimeout: time.Second * 30,
+			TLSHandshakeTimeout:   time.Second * 30,
 		},
 	}
 
@@ -85,7 +86,16 @@ func dialAndWaitForResponse(uri, expects string) error {
 	return nil
 }
 
-func TestSequenceDialer(t *testing.T) {
+func TestSequenceDialerHTTP(t *testing.T) {
+	for i := 0; i < 20; i++ {
+		err := dialAndWaitForResponse("http://www.google.com/humans.txt", googleHumansTxt)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestSequenceDialerHTTPS(t *testing.T) {
 	for i := 0; i < 20; i++ {
 		err := dialAndWaitForResponse("https://www.google.com/humans.txt", googleHumansTxt)
 		if err != nil {
@@ -94,12 +104,32 @@ func TestSequenceDialer(t *testing.T) {
 	}
 }
 
-func TestConcurrentDialer(t *testing.T) {
+func TestConcurrentDialerHTTP(t *testing.T) {
 
 	for j := 0; j < 10; j++ {
 		var wg sync.WaitGroup
 
-		for i := 0; i < 100; i++ {
+		for i := 0; i < 200; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				err := dialAndWaitForResponse("http://www.google.com/humans.txt", googleHumansTxt)
+				if err != nil {
+					log.Printf("dialAndWaitForResponse: %q", err.Error())
+				}
+			}()
+		}
+
+		wg.Wait()
+	}
+}
+
+func TestConcurrentDialerHTTPS(t *testing.T) {
+
+	for j := 0; j < 10; j++ {
+		var wg sync.WaitGroup
+
+		for i := 0; i < 200; i++ {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()

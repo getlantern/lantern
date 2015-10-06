@@ -105,7 +105,7 @@ func NewTunnel(client *C.struct_tcp_client, d dialer) (*TunIO, error) {
 		quit:     make(chan bool),
 	}
 
-	log.Printf("Opening tunnel to %q...", t.destAddr)
+	//log.Printf("Opening tunnel to %q...", t.destAddr)
 
 	conn, err := d("tcp", t.destAddr)
 	if err != nil {
