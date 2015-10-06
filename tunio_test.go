@@ -1,15 +1,15 @@
 package tunio
 
 import (
+	"errors"
 	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
 	"os"
+	"sync"
 	"testing"
 	"time"
-
-	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -53,17 +53,46 @@ func TestConfigure(t *testing.T) {
 	log.Printf("Waiting at %q...", deviceName)
 }
 
-func TestDialerWithGoogle(t *testing.T) {
-	res, err := http.Get("https://www.google.com/humans.txt")
-
+func dialAndWaitForResponse(uri, expects string) error {
+	res, err := http.Get(uri)
 	if err != nil {
-		t.Fatal(err)
+		return err
 	}
 
 	b, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		t.Fatal(err)
+		return err
 	}
 
-	assert.Equal(t, string(b), googleHumansTxt, "Expecting a fixed response from google.com")
+	if string(b) != googleHumansTxt {
+		return errors.New(`Expecting a fixed response.`)
+	}
+
+	return nil
+}
+
+func TestSequenceDialer(t *testing.T) {
+	for i := 0; i < 10; i++ {
+		err := dialAndWaitForResponse("https://www.google.com/humans.txt", googleHumansTxt)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestConcurrentDialer(t *testing.T) {
+	var wg sync.WaitGroup
+
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func() {
+			err := dialAndWaitForResponse("https://www.google.com/humans.txt", googleHumansTxt)
+			if err != nil {
+				panic(err)
+			}
+			wg.Done()
+		}()
+	}
+
+	wg.Wait()
 }

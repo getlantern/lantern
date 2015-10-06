@@ -16,7 +16,7 @@ import "C"
 import (
 	"bytes"
 	"errors"
-	"fmt"
+	//"fmt"
 	"log"
 	"net"
 	"sync"
@@ -54,7 +54,8 @@ func (t *tcpClient) in(buf []byte) (n int, err error) {
 func (t *tcpClient) out(buf []byte) (n int, err error) {
 	n = len(buf)
 	// TODO: error catch from tcp_write.
-	fmt.Printf("writing to client: %q\n", string(buf))
+	//fmt.Printf("writing to client: %q\n", string(buf))
+
 	C.tcp_write(t.client.pcb, unsafe.Pointer(C.CString(string(buf))), C.uint16_t(n), 0)
 	return n, nil
 }
@@ -67,7 +68,7 @@ type TunIO struct {
 
 func (t *TunIO) reader() error {
 	for {
-		data := make([]byte, 4096)
+		data := make([]byte, 1024)
 		n, err := t.connOut.Read(data)
 		if err != nil {
 			return err
@@ -112,14 +113,14 @@ func goNewTunnel(client *C.struct_tcp_client) C.uint32_t {
 	tunnels[i] = newTunn
 	tunnelMu.Unlock()
 
-	log.Printf("%d: goNewTunnel", i)
+	//log.Printf("%d: goNewTunnel", i)
 
 	return C.uint32_t(i)
 }
 
 //export goTunnelWrite
 func goTunnelWrite(tunno C.uint32_t, write *C.char, size C.size_t) C.int {
-	log.Printf("%d: goTunnelWrite", int(tunno))
+	//log.Printf("%d: goTunnelWrite", int(tunno))
 	tunnelMu.Lock()
 	tunn := tunnels[uint32(tunno)]
 	tunnelMu.Unlock()
@@ -139,7 +140,7 @@ func goTunnelWrite(tunno C.uint32_t, write *C.char, size C.size_t) C.int {
 
 //export goTunnelDestroy
 func goTunnelDestroy(tunno C.uint32_t) C.int {
-	log.Printf("%d: goTunnelDestroy", int(tunno))
+	//log.Printf("%d: goTunnelDestroy", int(tunno))
 	tunnelMu.Lock()
 	defer tunnelMu.Unlock()
 	tunn, ok := tunnels[uint32(tunno)]
