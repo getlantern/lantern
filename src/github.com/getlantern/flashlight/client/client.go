@@ -1,7 +1,6 @@
 package client
 
 import (
-	"crypto/x509"
 	"fmt"
 	"net"
 	"net/http"
@@ -12,8 +11,6 @@ import (
 
 	"github.com/getlantern/balancer"
 	"github.com/getlantern/golog"
-
-	"github.com/getlantern/flashlight/globals"
 )
 
 var (
@@ -38,9 +35,8 @@ type Client struct {
 	// MinQOS: (optional) the minimum QOS to require from proxies.
 	MinQOS int
 
-	priorCfg        *ClientConfig
-	priorTrustedCAs *x509.CertPool
-	cfgMutex        sync.RWMutex
+	priorCfg *ClientConfig
+	cfgMutex sync.RWMutex
 
 	// Balanced CONNECT dialers.
 	balCh          chan *balancer.Balancer
@@ -50,8 +46,7 @@ type Client struct {
 	rpCh          chan *httputil.ReverseProxy
 	rpInitialized bool
 
-	httpClientFunc func() *http.Client
-	l              net.Listener
+	l net.Listener
 }
 
 // ListenAndServe makes the client listen for HTTP connections.  onListeningFn
@@ -89,8 +84,8 @@ func (client *Client) Configure(cfg *ClientConfig) {
 
 	log.Debug("Configure() called")
 
-	if client.priorCfg != nil && client.priorTrustedCAs != nil {
-		if reflect.DeepEqual(client.priorCfg, cfg) && reflect.DeepEqual(client.priorTrustedCAs, globals.TrustedCAs) {
+	if client.priorCfg != nil {
+		if reflect.DeepEqual(client.priorCfg, cfg) {
 			log.Debugf("Client configuration unchanged")
 			return
 		}
@@ -107,8 +102,6 @@ func (client *Client) Configure(cfg *ClientConfig) {
 	client.initBalancer(cfg)
 
 	client.priorCfg = cfg
-	client.priorTrustedCAs = &x509.CertPool{}
-	*client.priorTrustedCAs = *globals.TrustedCAs
 }
 
 // Stop is called when the client is no longer needed. It closes the

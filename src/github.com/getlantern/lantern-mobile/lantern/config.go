@@ -103,7 +103,6 @@ func pullConfigFile(cli *http.Client) ([]byte, error) {
 
 // defaultConfig returns the embedded configuration.
 func defaultConfig() *config {
-
 	cfg := &config{
 		Client: &client.ClientConfig{
 			ChainedServers: defaultChainedServers,

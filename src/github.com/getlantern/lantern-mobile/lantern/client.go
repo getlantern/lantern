@@ -7,7 +7,6 @@ import (
 
 	"github.com/getlantern/analytics"
 	"github.com/getlantern/flashlight/client"
-	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/logging"
 	"github.com/getlantern/flashlight/util"
 
@@ -59,11 +58,6 @@ func newClient(addr, appName string) *mobileClient {
 		WriteTimeout: 0,
 	}
 
-	err := globals.SetTrustedCAs(clientConfig.getTrustedCerts())
-	if err != nil {
-		log.Errorf("Unable to configure trusted CAs: %s", err)
-	}
-
 	client.Configure(clientConfig.Client)
 
 	mClient := &mobileClient{
@@ -71,12 +65,6 @@ func newClient(addr, appName string) *mobileClient {
 		closed:  make(chan bool),
 		appName: appName,
 	}
-
-	/*go func() {
-		if err := mClient.updateConfig(); err != nil {
-			log.Errorf("Unable to update config: %v", err)
-		}
-	}()*/
 
 	return mClient
 }
@@ -131,11 +119,6 @@ func (client *mobileClient) updateConfig() error {
 	}
 	if err = clientConfig.updateFrom(buf); err == nil {
 		// Configuration changed, lets reload.
-		err := globals.SetTrustedCAs(clientConfig.getTrustedCerts())
-		if err != nil {
-			log.Errorf("Unable to configure trusted CAs: %s", err)
-		}
-
 		client.Configure(clientConfig.Client)
 	}
 	return err

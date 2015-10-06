@@ -1,21 +1,56 @@
 package fronted
 
 import (
-	"io/ioutil"
+	"crypto/x509"
 	"testing"
+
+	"github.com/getlantern/keyman"
 )
 
-func TestDirectDomainFronting(t *testing.T) {
-	certs := trustedCACerts()
-	m := cloudfrontMasquerades[0]
-	direct, err := NewDirect(certs, cloudfrontMasquerades[:1])
-	if err != nil {
-		t.Fatalf("Could not create DDF %v", err)
+func TestShuffle(t *testing.T) {
+
+	shuffled := make([]*Masquerade, len(cloudfrontMasquerades))
+	copy(shuffled, cloudfrontMasquerades)
+	shuffle(shuffled)
+	eq := testEq(shuffled, cloudfrontMasquerades)
+	if eq {
+		t.Fatalf("Slices should not be equal")
 	}
-	client := direct.NewHttpClient(m)
+}
+
+func testEq(a, b []*Masquerade) bool {
+
+	if a == nil && b == nil {
+		return true
+	}
+
+	if a == nil || b == nil {
+		return false
+	}
+
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+
+	return true
+}
+
+func TestDirectDomainFronting(t *testing.T) {
+	certs := trustedCACerts(t)
+	m := make(map[string][]*Masquerade)
+	m["cloudfront"] = cloudfrontMasquerades
+	Configure(certs, m)
+
+	client := NewDirect().NewDirectHttpClient()
 
 	url := "https://d2wi0vwulmtn99.cloudfront.net/cloud.yaml.gz"
-	if resp, err := client.Get(url); err != nil {
+	if resp, err := client.Head(url); err != nil {
 		t.Fatalf("Could not get response: %v", err)
 	} else {
 		if 200 != resp.StatusCode {
@@ -23,25 +58,20 @@ func TestDirectDomainFronting(t *testing.T) {
 		}
 	}
 
-	if resp, err := direct.Response(url); err != nil {
-		t.Fatalf("Could not get response: %v", err)
-	} else {
-		defer resp.Body.Close()
-		if body, err := ioutil.ReadAll(resp.Body); err != nil {
-			t.Fatalf("Unexpected error %v", err)
-		} else if len(body) < 300 {
-			t.Fatalf("Unexpected response body")
-		}
-	}
 	log.Debugf("DIRECT DOMAIN FRONTING TEST SUCCEEDED")
 }
 
-func trustedCACerts() []string {
+func trustedCACerts(t *testing.T) *x509.CertPool {
 	certs := make([]string, 0, len(defaultTrustedCAs))
 	for _, ca := range defaultTrustedCAs {
 		certs = append(certs, ca.Cert)
 	}
-	return certs
+	pool, err := keyman.PoolContainingCerts(certs...)
+	if err != nil {
+		log.Errorf("Could not create pool %v", err)
+		t.Fatalf("Unable to set up cert pool")
+	}
+	return pool
 }
 
 type CA struct {
@@ -94,5 +124,21 @@ var cloudfrontMasquerades = []*Masquerade{
 	&Masquerade{
 		Domain:    "a-ritani.com",
 		IpAddress: "54.192.0.2",
+	},
+	&Masquerade{
+		Domain:    "1rx.io",
+		IpAddress: "54.239.200.149",
+	},
+	&Masquerade{
+		Domain:    "1rx.io",
+		IpAddress: "54.230.3.195",
+	},
+	&Masquerade{
+		Domain:    "1rx.io",
+		IpAddress: "204.246.169.62",
+	},
+	&Masquerade{
+		Domain:    "1rx.io",
+		IpAddress: "54.182.1.99",
 	},
 }
