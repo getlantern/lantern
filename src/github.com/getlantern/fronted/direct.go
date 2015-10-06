@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/getlantern/idletiming"
 	"github.com/getlantern/tlsdialer"
 )
 
@@ -138,7 +139,18 @@ func (d *direct) Dial(network, addr string) (net.Conn, error) {
 			}
 		} else {
 			log.Debugf("Got successful connection to: %v", m)
+			// Requeue the working connection
 			candidateCh <- m
+			idleTimeout := 70 * time.Second
+
+			log.Debug("Wrapping connecting in idletiming connection")
+			conn = idletiming.Conn(conn, idleTimeout, func() {
+				log.Debugf("Connection to %s via %s idle for %v, closing", addr, conn.RemoteAddr(), idleTimeout)
+				if err := conn.Close(); err != nil {
+					log.Debugf("Unable to close connection: %v", err)
+				}
+			})
+			log.Debug("Returning connection")
 			return conn, nil
 		}
 	}

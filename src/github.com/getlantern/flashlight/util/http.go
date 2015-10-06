@@ -32,6 +32,10 @@ type HTTPFetcher interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
+func success(resp *http.Response) bool {
+	return resp.StatusCode > 199 && resp.StatusCode < 400
+}
+
 // NewChainedAndFronted creates a new struct for accessing resources using chained
 // and direct fronted servers in parallel.
 func NewChainedAndFronted() *chainedAndFronted {
@@ -52,7 +56,7 @@ func (cf *chainedAndFronted) Do(req *http.Request) (*http.Response, error) {
 	if err != nil {
 		// If there's an error, switch back to using the dual fetcher.
 		cf.fetcher = &dualFetcher{cf}
-	} else if resp.StatusCode < 200 || resp.StatusCode > 399 {
+	} else if !success(resp) {
 		cf.fetcher = &dualFetcher{cf}
 	}
 	return resp, err
@@ -91,17 +95,33 @@ func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
 	responses := make(chan *http.Response, 2)
 	errs := make(chan error, 2)
 
+	request := func(client HTTPFetcher, req *http.Request) bool {
+		if resp, err := client.Do(req); err != nil {
+			log.Errorf("Could not complete request with: %v, %v", frontedUrl, err)
+			errs <- err
+		} else {
+			if success(resp) {
+				log.Debugf("Got successful HTTP call!")
+				responses <- resp
+				return true
+			} else {
+				// If the local proxy can't connect to any upstread proxies, for example,
+				// it will return a 502.
+				errs <- fmt.Errorf("Bad response code: %v", resp.StatusCode)
+			}
+		}
+		return false
+	}
+
 	go func() {
 		client := direct.NewDirectHttpClient()
-		if r, err := http.NewRequest("GET", frontedUrl, nil); err != nil {
+		if req, err := http.NewRequest("GET", frontedUrl, nil); err != nil {
 			log.Errorf("Could not create request for: %v, %v", frontedUrl, err)
 			errs <- err
 		} else {
-			if resp, err := client.Do(r); err != nil {
-				log.Errorf("Could not complete request with: %v, %v", frontedUrl, err)
-				errs <- err
-			} else {
-				responses <- resp
+			log.Debug("Sending request via DDF")
+			if request(client, req) {
+				log.Debug("Fronted request succeeded")
 			}
 		}
 	}()
@@ -110,27 +130,13 @@ func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
 			log.Errorf("Could not create HTTP client: %v", err)
 			errs <- err
 		} else {
-			if resp, err := client.Do(req); err != nil {
-				log.Errorf("Could not complete request with: %v, %v", frontedUrl, err)
-				errs <- err
-			} else {
-				if resp.StatusCode > 199 && resp.StatusCode < 400 {
-					log.Debugf("Got successful HTTP call! Switching to chained fetcher")
-					// Switch to the chained fronter since it's succeeding.
-					df.cf.fetcher = &chainedFetcher{}
-					responses <- resp
-				} else {
-					// If the local proxy can't connect to any upstread proxies, for example,
-					// it will return a 502.
-					errs <- errors.New("Bad response code")
-				}
+			log.Debug("Sending chained request")
+			if request(client, req) {
+				log.Debug("Switching to chained fronter for future requests since it succeeded")
+				df.cf.fetcher = &chainedFetcher{}
 			}
 		}
 	}()
-
-	success := func(resp *http.Response) bool {
-		return resp.StatusCode > 199 && resp.StatusCode < 300
-	}
 
 	for i := 0; i < 2; i++ {
 		select {
