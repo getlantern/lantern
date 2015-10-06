@@ -13,7 +13,6 @@ import (
 
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/golog"
-	"github.com/getlantern/lantern-mobile/lantern/protected"
 	socks "github.com/getlantern/lantern-mobile/lantern/socks"
 )
 
@@ -30,12 +29,6 @@ var (
 	// how often to print stats of current interceptor
 	statsInterval = 15 * time.Second
 	log           = golog.LoggerFor("lantern-android.interceptor")
-
-	allowedPorts = map[int]bool{
-		80:   true,
-		443:  true,
-		7300: true,
-	}
 )
 
 // Interceptor intercepts traffic on a VPN interface
@@ -146,16 +139,6 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (*InterceptedConn, e
 
 	if clientGone {
 		return nil, errors.New("tunnel is closed")
-	}
-
-	_, port, err := protected.SplitHostPort(addr)
-	if err != nil {
-		return nil, err
-	}
-
-	// check if it's a request on a port we actually support
-	if !allowedPorts[port] {
-		return nil, errors.New("Tried to tunnel request to invalid port; ignoring request")
 	}
 
 	id := fmt.Sprintf("%s:%s", localConn.LocalAddr(), addr)
