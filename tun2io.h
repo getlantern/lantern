@@ -98,7 +98,6 @@ typedef struct {
 	char *logger_syslog_ident;
 	#endif
 	int loglevel;
-	int loglevels[BLOG_NUM_CHANNELS];
 	char *tundev;
 	char *netif_ipaddr;
 	char *netif_netmask;

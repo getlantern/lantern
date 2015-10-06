@@ -24,7 +24,7 @@ func init() {
 	if os.Getenv("HOST_IP") != "" {
 		hostIP = os.Getenv("HOST_IP")
 	} else {
-		hostIP = "10.0.0.105"
+		hostIP = "10.0.0.101"
 	}
 }
 
@@ -46,7 +46,8 @@ func TestConfigure(t *testing.T) {
 	go func() {
 		// Configuring the device and passing the dialer function we want to use.
 		if err := Configure(deviceName, deviceIP, deviceMask, fn); err != nil {
-			t.Fatal(err)
+			log.Printf("error: %v\n", err)
+			//t.Fatal(err)
 		}
 	}()
 	time.Sleep(time.Millisecond * 500)
@@ -54,7 +55,17 @@ func TestConfigure(t *testing.T) {
 }
 
 func dialAndWaitForResponse(uri, expects string) error {
-	res, err := http.Get(uri)
+	log.Printf("Getting %s...", uri)
+
+	cli := &http.Client{
+		Transport: &http.Transport{
+			DisableKeepAlives:     true,
+			ResponseHeaderTimeout: time.Second * 10,
+			TLSHandshakeTimeout:   time.Second * 10,
+		},
+	}
+
+	res, err := cli.Get(uri)
 	if err != nil {
 		return err
 	}
@@ -63,6 +74,9 @@ func dialAndWaitForResponse(uri, expects string) error {
 	if err != nil {
 		return err
 	}
+	res.Body.Close()
+
+	log.Printf("OK!")
 
 	if string(b) != googleHumansTxt {
 		return errors.New(`Expecting a fixed response.`)
@@ -72,7 +86,7 @@ func dialAndWaitForResponse(uri, expects string) error {
 }
 
 func TestSequenceDialer(t *testing.T) {
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 20; i++ {
 		err := dialAndWaitForResponse("https://www.google.com/humans.txt", googleHumansTxt)
 		if err != nil {
 			t.Fatal(err)
@@ -81,18 +95,21 @@ func TestSequenceDialer(t *testing.T) {
 }
 
 func TestConcurrentDialer(t *testing.T) {
-	var wg sync.WaitGroup
 
-	for i := 0; i < 10; i++ {
-		wg.Add(1)
-		go func() {
-			err := dialAndWaitForResponse("https://www.google.com/humans.txt", googleHumansTxt)
-			if err != nil {
-				panic(err)
-			}
-			wg.Done()
-		}()
+	for j := 0; j < 10; j++ {
+		var wg sync.WaitGroup
+
+		for i := 0; i < 100; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				err := dialAndWaitForResponse("https://www.google.com/humans.txt", googleHumansTxt)
+				if err != nil {
+					log.Printf("dialAndWaitForResponse: %q", err.Error())
+				}
+			}()
+		}
+
+		wg.Wait()
 	}
-
-	wg.Wait()
 }

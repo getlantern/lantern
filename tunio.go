@@ -17,21 +17,21 @@ import (
 	"bytes"
 	"errors"
 	//"fmt"
+	"io"
 	"log"
+	"math/rand"
 	"net"
 	"sync"
+	"time"
 	"unsafe"
 )
 
 var tunnels map[uint32]*TunIO
 var tunnelMu sync.Mutex
 
-const (
-	minTunnID = 10
-)
-
 func init() {
 	tunnels = make(map[uint32]*TunIO)
+	rand.Seed(time.Now().UnixNano())
 }
 
 type dialer func(proto, addr string) (net.Conn, error)
@@ -53,10 +53,16 @@ func (t *tcpClient) in(buf []byte) (n int, err error) {
 
 func (t *tcpClient) out(buf []byte) (n int, err error) {
 	n = len(buf)
-	// TODO: error catch from tcp_write.
-	//fmt.Printf("writing to client: %q\n", string(buf))
+	cbuf := C.CString(string(buf))
 
-	C.tcp_write(t.client.pcb, unsafe.Pointer(C.CString(string(buf))), C.uint16_t(n), 0)
+	defer func() {
+		// C.free(unsafe.Pointer(cbuf))
+	}()
+
+	if err_t := C.tcp_write(t.client.pcb, unsafe.Pointer(cbuf), C.uint16_t(n), 0); err_t != C.ERR_OK {
+		return n, errors.New("Write error")
+	}
+
 	return n, nil
 }
 
@@ -64,6 +70,11 @@ type TunIO struct {
 	client   *tcpClient
 	destAddr string
 	connOut  net.Conn
+	quit     chan bool
+}
+
+func (t *TunIO) TunnelID() C.uint32_t {
+	return t.client.client.tunnel_id
 }
 
 func (t *TunIO) reader() error {
@@ -71,27 +82,40 @@ func (t *TunIO) reader() error {
 		data := make([]byte, 1024)
 		n, err := t.connOut.Read(data)
 		if err != nil {
+			if err == io.EOF {
+				C.client_close(t.client.client)
+				return nil
+			}
 			return err
 		}
-		t.client.out(data[0:n])
+		if _, err := t.client.out(data[0:n]); err != nil {
+			log.Printf("Write error: %q", err)
+		}
 	}
 	return nil
 }
 
 func NewTunnel(client *C.struct_tcp_client, d dialer) (*TunIO, error) {
 	destAddr := C.dump_dest_addr(client)
+	defer C.free(unsafe.Pointer(destAddr))
+
 	t := &TunIO{
 		client:   &tcpClient{client: client},
 		destAddr: C.GoString(destAddr),
+		quit:     make(chan bool),
 	}
+
 	log.Printf("Opening tunnel to %q...", t.destAddr)
+
 	conn, err := d("tcp", t.destAddr)
 	if err != nil {
 		return nil, err
 	}
+
 	t.connOut = conn
+
 	go t.reader()
-	C.free(unsafe.Pointer(destAddr))
+
 	return t, nil
 }
 
@@ -103,9 +127,9 @@ func goNewTunnel(client *C.struct_tcp_client) C.uint32_t {
 	}
 
 	tunnelMu.Lock()
-	// TODO: Use https://golang.org/pkg/math/rand/#Int31n
 	var i uint32
-	for i = minTunnID; ; i++ {
+	for {
+		i = uint32(rand.Int31())
 		if _, ok := tunnels[i]; !ok {
 			break
 		}
@@ -113,24 +137,22 @@ func goNewTunnel(client *C.struct_tcp_client) C.uint32_t {
 	tunnels[i] = newTunn
 	tunnelMu.Unlock()
 
-	//log.Printf("%d: goNewTunnel", i)
-
 	return C.uint32_t(i)
 }
 
 //export goTunnelWrite
 func goTunnelWrite(tunno C.uint32_t, write *C.char, size C.size_t) C.int {
-	//log.Printf("%d: goTunnelWrite", int(tunno))
 	tunnelMu.Lock()
-	tunn := tunnels[uint32(tunno)]
-	tunnelMu.Unlock()
+	tunn, ok := tunnels[uint32(tunno)]
+	defer tunnelMu.Unlock()
 
-	if tunn != nil {
-		buf := make([]byte, 0, size)
-		for i := 0; i < int(size); i++ {
-			buf = append(buf, byte(C.charAt(write, C.int(i))))
+	if ok {
+		size := int(size)
+		buf := make([]byte, size)
+		for i := 0; i < size; i++ {
+			buf[i] = byte(C.charAt(write, C.int(i)))
 		}
-		if _, err := tunn.connOut.Write(buf); err != nil {
+		if _, err := tunn.connOut.Write(buf); err == nil {
 			return C.ERR_OK
 		}
 	}
@@ -140,15 +162,18 @@ func goTunnelWrite(tunno C.uint32_t, write *C.char, size C.size_t) C.int {
 
 //export goTunnelDestroy
 func goTunnelDestroy(tunno C.uint32_t) C.int {
-	//log.Printf("%d: goTunnelDestroy", int(tunno))
 	tunnelMu.Lock()
 	defer tunnelMu.Unlock()
+
 	tunn, ok := tunnels[uint32(tunno)]
+
 	if ok {
-		tunn.connOut.Close()
 		delete(tunnels, uint32(tunno))
+		//tunn.quit <- true
+		tunn.connOut.Close()
 		return C.ERR_OK
 	}
+
 	return C.ERR_ABRT
 }
 
@@ -158,9 +183,22 @@ func Configure(tundev, ipaddr, netmask string, d dialer) error {
 	if d == nil {
 		d = dummyDialer
 	}
+
 	Dialer = d
-	if C.configure(C.CString(tundev), C.CString(ipaddr), C.CString(netmask)) != C.ERR_OK {
+
+	ctundev := C.CString(tundev)
+	cipaddr := C.CString(ipaddr)
+	cnetmask := C.CString(netmask)
+
+	defer func() {
+		C.free(unsafe.Pointer(ctundev))
+		C.free(unsafe.Pointer(cipaddr))
+		C.free(unsafe.Pointer(cnetmask))
+	}()
+
+	if err_t := C.configure(ctundev, cipaddr, cnetmask); err_t != C.ERR_OK {
 		return errors.New("Failed to configure device.")
 	}
+
 	return nil
 }
