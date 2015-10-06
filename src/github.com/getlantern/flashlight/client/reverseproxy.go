@@ -46,7 +46,7 @@ func (client *Client) newReverseProxy() (*httputil.ReverseProxy, error) {
 	dialer, conn, err := client.getBalancer().TrustedDialerAndConn()
 	if err != nil {
 		// The internal code has already reported an error here.
-		log.Debugf("Could not get balanced dialer", err)
+		log.Debugf("Could not get balanced dialer %v", err)
 		return nil, err
 	}
 

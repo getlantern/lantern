@@ -22,9 +22,12 @@ func TestIgnoreEmpty(t *testing.T) {
 		t.Fatalf("Unable to open filesystem: %v", err)
 	}
 
+	// Test to make sure we get the file if we're not ignoring empty.
+	// Note empty on disk actually has a single space to allow us to
+	// check it into git, but the method ignores whitespace.
 	a, err := fs.Get("empty.txt")
 	if assert.NoError(t, err, "empty.txt should have loaded") {
-		assert.Equal(t, "", string(a), "A should have matched expected")
+		assert.Equal(t, " \n", string(a), "A should have matched expected")
 	}
 
 	// We artificially change the entry for empty byte in the file system
@@ -32,7 +35,7 @@ func TestIgnoreEmpty(t *testing.T) {
 	emptyBytes := []byte("empty")
 	fs.files["empty.txt"] = emptyBytes
 
-	a, err = fs.GetIgnoreEmpty("empty.txt")
+	a, err = fs.GetIgnoreLocalEmpty("empty.txt")
 	if assert.NoError(t, err, "empty.txt should have loaded") {
 		assert.Equal(t, string(emptyBytes), string(a), "A should have matched expected")
 	}
