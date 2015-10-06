@@ -9,7 +9,7 @@ go run genconfig.go -blacklist="blacklist.txt" -masquerades="masquerades.txt" -p
 
 mkdir lantern-yaml-temp || die "Could not make directory"
 cp lantern.yaml lantern-yaml-temp || die "Could not copy yaml"
-which tarfs || go install github.com/getlantern/tarfs/tarfs || die "Could not install tarfs"
+go install github.com/getlantern/tarfs/tarfs || die "Could not install tarfs"
 echo "// +build !stub" > ../config/resources.go
 tarfs -pkg config lantern-yaml-temp >> ../config/resources.go
 
