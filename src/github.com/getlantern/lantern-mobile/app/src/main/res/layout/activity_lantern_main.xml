@@ -54,9 +54,10 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:paddingLeft="20dp"
             android:orientation="vertical"
-            android:gravity="top"
-            android:layout_gravity="top"> 
+            android:gravity="top|center_horizontal"
+            android:layout_gravity="top|center_horizontal"> 
 
             <TextView
             android:id="@+id/receive_lantern"
