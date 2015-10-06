@@ -1,15 +1,15 @@
 package tunio
 
 import (
+	"errors"
 	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
 	"os"
+	"sync"
 	"testing"
 	"time"
-
-	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -24,7 +24,7 @@ func init() {
 	if os.Getenv("HOST_IP") != "" {
 		hostIP = os.Getenv("HOST_IP")
 	} else {
-		hostIP = "10.0.0.105"
+		hostIP = "10.0.0.101"
 	}
 }
 
@@ -41,29 +41,105 @@ func TestConfigure(t *testing.T) {
 		// test a connection that is not routed to tun0. We're going to manually
 		// set up the external host to connect to www.google.com:443. In
 		// VpnService's context this could be achieved by protecting this socket.
-		return net.Dial("tcp", hostIP+":20443")
+		_, port, _ := net.SplitHostPort(addr)
+		return net.Dial("tcp", hostIP+":20"+port)
 	}
 	go func() {
 		// Configuring the device and passing the dialer function we want to use.
 		if err := Configure(deviceName, deviceIP, deviceMask, fn); err != nil {
-			t.Fatal(err)
+			log.Printf("error: %v\n", err)
+			//t.Fatal(err)
 		}
 	}()
 	time.Sleep(time.Millisecond * 500)
-	log.Printf("Waiting at %q...", deviceName)
+	log.Printf("Waiting for %q...", deviceName)
 }
 
-func TestDialerWithGoogle(t *testing.T) {
-	res, err := http.Get("https://www.google.com/humans.txt")
+func dialAndWaitForResponse(uri, expects string) error {
+	log.Printf("Getting %s...", uri)
 
+	cli := &http.Client{
+		Transport: &http.Transport{
+			DisableKeepAlives:     true,
+			ResponseHeaderTimeout: time.Second * 30,
+			TLSHandshakeTimeout:   time.Second * 30,
+		},
+	}
+
+	res, err := cli.Get(uri)
 	if err != nil {
-		t.Fatal(err)
+		return err
 	}
 
 	b, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		t.Fatal(err)
+		return err
+	}
+	res.Body.Close()
+
+	log.Printf("OK!")
+
+	if string(b) != googleHumansTxt {
+		return errors.New(`Expecting a fixed response.`)
 	}
 
-	assert.Equal(t, string(b), googleHumansTxt, "Expecting a fixex response from humans.txt")
+	return nil
+}
+
+func TestSequenceDialerHTTP(t *testing.T) {
+	for i := 0; i < 20; i++ {
+		err := dialAndWaitForResponse("http://www.google.com/humans.txt", googleHumansTxt)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestSequenceDialerHTTPS(t *testing.T) {
+	for i := 0; i < 20; i++ {
+		err := dialAndWaitForResponse("https://www.google.com/humans.txt", googleHumansTxt)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestConcurrentDialerHTTP(t *testing.T) {
+
+	for j := 0; j < 10; j++ {
+		var wg sync.WaitGroup
+
+		for i := 0; i < 200; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				err := dialAndWaitForResponse("http://www.google.com/humans.txt", googleHumansTxt)
+				if err != nil {
+					log.Printf("dialAndWaitForResponse: %q", err.Error())
+				}
+			}()
+		}
+
+		wg.Wait()
+	}
+}
+
+func TestConcurrentDialerHTTPS(t *testing.T) {
+
+	for j := 0; j < 10; j++ {
+		var wg sync.WaitGroup
+
+		for i := 0; i < 200; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				err := dialAndWaitForResponse("https://www.google.com/humans.txt", googleHumansTxt)
+				if err != nil {
+					log.Printf("dialAndWaitForResponse: %q", err.Error())
+				}
+			}()
+		}
+
+		wg.Wait()
+	}
 }

@@ -52,21 +52,12 @@
 #include <limits.h>
 
 #include <misc/version.h>
-#include <misc/loggers_string.h>
 #include <misc/loglevel.h>
-#include <misc/minmax.h>
-#include <misc/offset.h>
 #include <misc/dead.h>
 #include <misc/ipv4_proto.h>
 #include <misc/ipv6_proto.h>
-#include <misc/byteorder.h>
-#include <misc/balloc.h>
 #include <misc/open_standard_streams.h>
-#include <misc/read_file.h>
 #include <misc/ipaddr6.h>
-#include <misc/concat_strings.h>
-#include <structure/LinkedList1.h>
-#include <base/BLog.h>
 #include <system/BReactor.h>
 #include <system/BSignal.h>
 #include <system/BAddr.h>
@@ -77,7 +68,6 @@
 #include <lwip/tcp_impl.h>
 #include <lwip/netif.h>
 #include <lwip/tcp.h>
-#include <generated/blog_channel_tun2socks.h>
 
 #ifndef BADVPN_USE_WINAPI
 #include <base/BLog_syslog.h>
@@ -87,56 +77,49 @@
 #define LOGGER_SYSLOG 2
 
 #define SYNC_DECL \
-	BPending sync_mark; \
+  BPending sync_mark; \
 
 #define SYNC_FROMHERE \
-	BPending_Init(&sync_mark, BReactor_PendingGroup(&ss), NULL, NULL); \
-	BPending_Set(&sync_mark);
+  BPending_Init(&sync_mark, BReactor_PendingGroup(&ss), NULL, NULL); \
+  BPending_Set(&sync_mark);
 
 #define SYNC_BREAK \
-	BPending_Free(&sync_mark);
+  BPending_Free(&sync_mark);
 
 #define SYNC_COMMIT \
-	BReactor_Synchronize(&ss, &sync_mark.base); \
-	BPending_Free(&sync_mark);
+  BReactor_Synchronize(&ss, &sync_mark.base); \
+  BPending_Free(&sync_mark);
 
 // command-line options
 typedef struct {
-	int help;
-	int version;
-	int logger;
-	#ifndef BADVPN_USE_WINAPI
-	char *logger_syslog_facility;
-	char *logger_syslog_ident;
-	#endif
-	int loglevel;
-	int loglevels[BLOG_NUM_CHANNELS];
-	char *tundev;
-	char *netif_ipaddr;
-	char *netif_netmask;
-	char *netif_ip6addr;
+  int logger;
+  #ifndef BADVPN_USE_WINAPI
+  char *logger_syslog_facility;
+  char *logger_syslog_ident;
+  #endif
+  int loglevel;
+  char *tundev;
+  char *netif_ipaddr;
+  char *netif_netmask;
+  char *netif_ip6addr;
 } options_t;
 
 options_t options;
 
 // TCP client
 struct tcp_client {
-	dead_t dead;
-	dead_t dead_client;
-	LinkedList1Node list_node;
-	BAddr local_addr;
-	BAddr remote_addr;
-	struct tcp_pcb *pcb;
-	int client_closed;
-	uint8_t buf[TCP_WND];
-	int buf_used;
-	uint32_t tunnel_id;
+  dead_t dead;
+  dead_t dead_client;
+  BAddr local_addr;
+  BAddr remote_addr;
+  struct tcp_pcb *pcb;
+  int client_closed;
+  uint8_t buf[TCP_WND];
+  int buf_used;
+  uint32_t tunnel_id;
 };
 
 static void terminate (void);
-static void print_help (const char *name);
-static void print_version (void);
-static int parse_arguments (int argc, char *argv[]);
 static void signal_handler (void *unused);
 static BAddr baddr_from_lwip (int is_ipv6, const ipX_addr_t *ipx_addr, uint16_t port_hostorder);
 static void lwip_init_job_hadler (void *unused);
@@ -151,11 +134,7 @@ static err_t netif_input_func (struct pbuf *p, struct netif *inp);
 static void client_logfunc (struct tcp_client *client);
 static void client_log (struct tcp_client *client, int level, const char *fmt, ...);
 static err_t listener_accept_func (void *arg, struct tcp_pcb *newpcb, err_t err);
-static void client_handle_freed_client (struct tcp_client *client);
-static void client_free_client (struct tcp_client *client);
-static void client_abort_client (struct tcp_client *client);
-static void client_murder (struct tcp_client *client);
-static void client_dealloc (struct tcp_client *client);
+static void client_close (struct tcp_client *client);
 static void client_err_func (void *arg, err_t err);
 static err_t client_recv_func (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err);
 static err_t client_sent_func (void *arg, struct tcp_pcb *tpcb, u16_t len);
