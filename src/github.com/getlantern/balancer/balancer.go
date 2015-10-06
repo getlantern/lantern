@@ -9,7 +9,6 @@ import (
 	"sort"
 
 	"github.com/getlantern/golog"
-	"github.com/getlantern/lantern-mobile/lantern/protected"
 )
 
 var (
@@ -45,7 +44,7 @@ func New(dialers ...*Dialer) *Balancer {
 			trustedDialersCount++
 		}
 
-		if dl.UdpgwServer != "" {
+		if dl.UdpgwServer {
 			udpDialersCount++
 		}
 	}
@@ -60,7 +59,7 @@ func New(dialers ...*Dialer) *Balancer {
 		if d.Trusted {
 			bal.trusted = append(bal.trusted, d)
 		}
-		if d.UdpgwServer != "" {
+		if d.UdpgwServer {
 			bal.udpDialers = append(bal.udpDialers, d)
 		}
 	}
@@ -90,7 +89,7 @@ func (b *Balancer) dialerAndConn(network, addr string, targetQOS int) (d *Dialer
 	// send HTTP traffic to dialers marked as trusted.
 	if port == "" || port == "80" || port == "8080" {
 		dialers = b.trusted
-	} else if port == "53" {
+	} else if port == "7300" {
 		dialers = b.udpDialers
 	} else {
 		dialers = b.dialers
@@ -107,14 +106,8 @@ func (b *Balancer) dialerAndConn(network, addr string, targetQOS int) (d *Dialer
 			return nil, nil, fmt.Errorf("No dialers left on pass %v", i)
 		}
 
-		if port == "53" {
-			addr = d.UdpgwServer
-			log.Debugf("Tunneling dns request %s://%s with %s", network, addr, d.Label)
-			conn, err = protected.Dial(network, addr)
-		} else {
-			log.Debugf("Dialing %s://%s with %s", network, addr, d.Label)
-			conn, err = d.Dial(network, addr)
-		}
+		log.Debugf("Dialing %s://%s with %s", network, addr, d.Label)
+		conn, err = d.Dial(network, addr)
 
 		if err != nil {
 			log.Errorf("Unable to dial via %v to %s://%s: %v on pass %v...continuing", d.Label, network, addr, err, i)

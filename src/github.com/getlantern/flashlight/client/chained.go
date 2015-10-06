@@ -45,8 +45,8 @@ type ChainedServerInfo struct {
 	// Trusted: Determines if a host can be trusted with plain HTTP traffic.
 	Trusted bool
 
-	// UdpgwServer: if server can be used to handle tunneled UDP requests
-	UdpgwServer string
+	// UdpgwServer: if server can be used to tunnel DNS requests
+	UdpgwServer bool
 }
 
 // Dialer creates a *balancer.Dialer backed by a chained server.

@@ -44,8 +44,8 @@ type Dialer struct {
 	// Determines wheter a dialer can be trusted with unencrypted traffic.
 	Trusted bool
 
-	// Whether a dialer can be used to tunnel dns requests (server is running udpgw)
-	UdpgwServer string
+	// Whether a given dialer can be used to tunnel dns requests
+	UdpgwServer bool
 
 	AuthToken string
 }

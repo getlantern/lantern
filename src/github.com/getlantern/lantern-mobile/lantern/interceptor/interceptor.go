@@ -32,9 +32,9 @@ var (
 	log           = golog.LoggerFor("lantern-android.interceptor")
 
 	allowedPorts = map[int]bool{
-		80:  true,
-		443: true,
-		53:  true,
+		80:   true,
+		443:  true,
+		7300: true,
 	}
 )
 
