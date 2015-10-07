@@ -31,6 +31,14 @@ const (
 	writeBufSize = 1024 * 16
 )
 
+const (
+	maxEnqueueAttempts = 8
+)
+
+var (
+	maxWaitingTime = time.Millisecond * 50
+)
+
 var tunnels map[uint32]*TunIO
 var tunnelMu sync.Mutex
 
@@ -75,7 +83,7 @@ func (t *TunIO) writer() error {
 		select {
 		case <-t.doFlush:
 			if err := t.client.flush(); err != nil {
-				return fmt.Errorf("Terminating writer abnormally.")
+				return fmt.Errorf("Terminating writer abnormally: %q", err)
 			}
 		}
 	}
@@ -86,9 +94,10 @@ func (t *tcpClient) enqueue(chunk []byte) error {
 	cchunk := C.CString(string(chunk))
 	defer C.free(unsafe.Pointer(cchunk))
 
-	for {
-		err_t := C.tcp_write(t.client.pcb, unsafe.Pointer(cchunk), C.uint16_t(len(chunk)), 1)
+	sleepTime := time.Millisecond * 2
 
+	for j := 0; j < maxEnqueueAttempts; j++ {
+		err_t := C.tcp_write(t.client.pcb, unsafe.Pointer(cchunk), C.uint16_t(len(chunk)), 1)
 		if err_t == C.ERR_OK {
 			return nil
 		}
@@ -97,16 +106,21 @@ func (t *tcpClient) enqueue(chunk []byte) error {
 			// Could not enqueue anymore, let's flush and try again.
 			err_t := C.tcp_output(t.client.pcb)
 			if err_t == C.ERR_OK {
+				// Last part was flushed, now continue and try again...
+				time.Sleep(sleepTime)
+				if sleepTime < maxWaitingTime {
+					sleepTime = sleepTime * 2
+				}
 				continue
 			}
 			return fmt.Errorf("tcp_output: %d", int(err_t))
 		}
 	}
 
+	return fmt.Errorf("Could not flush data. Giving up.")
 }
 
 func (t *tcpClient) flush() error {
-
 	for {
 		blen := t.outbuf.Len()
 
