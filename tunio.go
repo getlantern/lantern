@@ -32,7 +32,7 @@ const (
 )
 
 const (
-	maxEnqueueAttempts = 8
+	maxEnqueueAttempts = 16
 )
 
 var (
@@ -94,7 +94,7 @@ func (t *tcpClient) enqueue(chunk []byte) error {
 	cchunk := C.CString(string(chunk))
 	defer C.free(unsafe.Pointer(cchunk))
 
-	sleepTime := time.Millisecond * 2
+	sleepTime := time.Millisecond * 5
 
 	for j := 0; j < maxEnqueueAttempts; j++ {
 		err_t := C.tcp_write(t.client.pcb, unsafe.Pointer(cchunk), C.uint16_t(len(chunk)), 1)
@@ -177,7 +177,7 @@ func NewTunnel(client *C.struct_tcp_client, d dialer) (*TunIO, error) {
 		client:   &tcpClient{client: client},
 		destAddr: C.GoString(destAddr),
 		quit:     make(chan bool),
-		doFlush:  make(chan bool, 16),
+		doFlush:  make(chan bool, 256),
 	}
 
 	conn, err := d("tcp", t.destAddr)

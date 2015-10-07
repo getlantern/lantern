@@ -43,11 +43,11 @@ func LanternDialer(proto, addr string) (net.Conn, error) {
 	}
 
 	if resp.StatusCode >= 200 && resp.StatusCode <= 299 {
-		log.Printf("Proxying %q to Lantern...", addr)
+		log.Printf("Sending request for %q to Lantern...", addr)
 		return conn, nil
 	}
 
-	log.Printf("Could not reach Lantern.")
+	log.Printf("Sorry. Could not reach Lantern.")
 
 	return nil, errors.New("Could not connect.")
 }
