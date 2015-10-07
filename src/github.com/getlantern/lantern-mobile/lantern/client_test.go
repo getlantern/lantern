@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	//"net"
 	"net/http"
 	//"net/url"
 	"os"
@@ -26,7 +27,7 @@ func init() {
 	if os.Getenv("HOST_IP") != "" {
 		hostIP = os.Getenv("HOST_IP")
 	} else {
-		hostIP = "10.0.0.105"
+		hostIP = "10.0.0.101"
 	}
 }
 
@@ -73,23 +74,29 @@ func TestListenAndServeAgain(t *testing.T) {
 }
 
 func TestListenAndServeProxy(t *testing.T) {
-	var wg sync.WaitGroup
-	fmt.Println("Testing proxy...")
+	for i := 0; i < 10; i++ {
+		var wg sync.WaitGroup
+		// Testing the client we've just opened.
+		for uri, expectedContent := range testURLs {
+			wg.Add(2)
 
-	// Testing the client we've just opened.
-	for uri, expectedContent := range testURLs {
-		wg.Add(1)
+			go func(wg *sync.WaitGroup, uri string, expectedContent []byte) {
+				if err := testClientReverseProxy(true, uri, expectedContent); err != nil {
+					t.Fatal(err)
+				}
+				wg.Done()
+			}(&wg, uri, expectedContent)
 
-		go func(wg *sync.WaitGroup, uri string, expectedContent []byte) {
-			if err := testClientReverseProxy(uri, expectedContent); err != nil {
-				t.Fatal(err)
-			}
-			wg.Done()
-		}(&wg, uri, expectedContent)
+			go func(wg *sync.WaitGroup, uri string, expectedContent []byte) {
+				if err := testClientReverseProxy(false, uri, expectedContent); err != nil {
+					t.Fatal(err)
+				}
+				wg.Done()
+			}(&wg, uri, expectedContent)
 
+		}
+		wg.Wait()
 	}
-
-	wg.Wait()
 }
 
 func TestCloseClient(t *testing.T) {
@@ -100,7 +107,7 @@ func TestCloseClient(t *testing.T) {
 	}
 }
 
-func testClientReverseProxy(destURL string, expectedContent []byte) (err error) {
+func testClientReverseProxy(keepAlive bool, destURL string, expectedContent []byte) (err error) {
 	var req *http.Request
 
 	if req, err = http.NewRequest("GET", destURL, nil); err != nil {
@@ -108,16 +115,9 @@ func testClientReverseProxy(destURL string, expectedContent []byte) (err error) 
 	}
 
 	client := &http.Client{
-	/*
 		Transport: &http.Transport{
-			Proxy: func(req *http.Request) (*url.URL, error) {
-				return url.Parse(clientListenProxyAddr)
-			},
-			Dial: func(n, a string) (net.Conn, error) {
-				return net.Dial("tcp", clientListenProxyAddr)
-			},
+			DisableKeepAlives: keepAlive,
 		},
-	*/
 	}
 
 	var res *http.Response

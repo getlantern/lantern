@@ -1,10 +1,10 @@
 package client
 
 import (
+	"net"
 	"net/http"
 	"strings"
 	"time"
-	//"net"
 
 	"github.com/getlantern/analytics"
 	"github.com/getlantern/flashlight/client"
@@ -82,7 +82,10 @@ func newClient(addr, appName string) *mobileClient {
 	if tunConfig != nil {
 		// Configuring proxy.
 		go func(c *client.Client) {
-			fn := c.GetBalancer().Dial
+			fn := func(proto, addr string) (net.Conn, error) {
+				log.Debugf("tunio: %s://%s", proto, addr)
+				return c.GetBalancer().Dial(proto, addr)
+			}
 			/*
 				fn := func(proto, addr string) (net.Conn, error) {
 					log.Debugf("net.Conn...")
