@@ -95,32 +95,35 @@ func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
 	responses := make(chan *http.Response, 2)
 	errs := make(chan error, 2)
 
-	request := func(client HTTPFetcher, req *http.Request) bool {
+	request := func(client HTTPFetcher, req *http.Request) error {
 		if resp, err := client.Do(req); err != nil {
 			log.Errorf("Could not complete request with: %v, %v", frontedUrl, err)
 			errs <- err
+			return err
 		} else {
 			if success(resp) {
 				log.Debugf("Got successful HTTP call!")
 				responses <- resp
-				return true
+				return nil
 			} else {
 				// If the local proxy can't connect to any upstread proxies, for example,
 				// it will return a 502.
-				errs <- fmt.Errorf("Bad response code: %v", resp.StatusCode)
+				err := fmt.Errorf("Bad response code: %v", resp.StatusCode)
+				errs <- err
+				return err
 			}
 		}
-		return false
 	}
 
 	go func() {
-		client := direct.NewDirectHttpClient()
 		if req, err := http.NewRequest("GET", frontedUrl, nil); err != nil {
 			log.Errorf("Could not create request for: %v, %v", frontedUrl, err)
 			errs <- err
 		} else {
 			log.Debug("Sending request via DDF")
-			if request(client, req) {
+			if err := request(direct, req); err != nil {
+				log.Errorf("Fronted request failed: %v", err)
+			} else {
 				log.Debug("Fronted request succeeded")
 			}
 		}
@@ -131,7 +134,9 @@ func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
 			errs <- err
 		} else {
 			log.Debug("Sending chained request")
-			if request(client, req) {
+			if err := request(client, req); err != nil {
+				log.Errorf("Chained request failed %v", err)
+			} else {
 				log.Debug("Switching to chained fronter for future requests since it succeeded")
 				df.cf.fetcher = &chainedFetcher{}
 			}
