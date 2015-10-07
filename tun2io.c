@@ -576,6 +576,7 @@ err_t listener_accept_func (void *arg, struct tcp_pcb *newpcb, err_t err)
   // setup handlers
   tcp_err(client->pcb, client_err_func);
   tcp_recv(client->pcb, client_recv_func);
+  //tcp_sent(client->pcb, client_sent_func);
 
   // setup buffer
   client->buf_used = 0;
@@ -645,6 +646,18 @@ static err_t client_recv_func(void *arg, struct tcp_pcb *pcb, struct pbuf *p, er
   pbuf_free(p);
 
   return werr;
+}
+
+err_t client_sent_func (void *arg, struct tcp_pcb *tpcb, u16_t len)
+{
+  struct tcp_client *client = (struct tcp_client *)arg;
+
+  ASSERT(!client->client_closed)
+  ASSERT(len > 0)
+
+  client_log(client, BLOG_INFO, "got data received...");
+
+  return ERR_OK;
 }
 
 // dump_dest_addr dumps the client's local address into an string.
