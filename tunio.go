@@ -2,7 +2,7 @@ package tunio
 
 /*
 #cgo CFLAGS: -c -std=gnu99 -DCGO=1 -DBADVPN_THREAD_SAFE=0 -DBADVPN_LINUX -DBADVPN_BREACTOR_BADVPN -D_GNU_SOURCE -DBADVPN_USE_SIGNALFD -DBADVPN_USE_EPOLL -DBADVPN_LITTLE_ENDIAN -Ibadvpn -Ibadvpn/lwip/src/include/ipv4 -Ibadvpn/lwip/src/include/ipv6 -Ibadvpn/lwip/src/include -Ibadvpn/lwip/custom
-#cgo LDFLAGS: -lc -lrt -lpthread -static-libgcc -Wl,-Bstatic -ltun2io -L./lib/
+#cgo LDFLAGS: -lc -lrt -lpthread -static-libgcc -Wl,-Bstatic -ltun2io -L${SRCDIR}/lib/
 
 static char charAt(char *in, int i) {
 	return in[i];
@@ -16,7 +16,7 @@ import "C"
 import (
 	"bytes"
 	"errors"
-	//"fmt"
+	"fmt"
 	"io"
 	"log"
 	"math/rand"
@@ -24,6 +24,19 @@ import (
 	"sync"
 	"time"
 	"unsafe"
+)
+
+const (
+	readBufSize  = 1024 * 16 // CYGNUM_LWIP_TCP_SND_BUF
+	writeBufSize = 1024 * 16
+)
+
+const (
+	maxEnqueueAttempts = 16
+)
+
+var (
+	maxWaitingTime = time.Millisecond * 50
 )
 
 var tunnels map[uint32]*TunIO
@@ -45,25 +58,12 @@ func dummyDialer(proto, addr string) (net.Conn, error) {
 type tcpClient struct {
 	client *C.struct_tcp_client
 	buf    bytes.Buffer
+	outbuf bytes.Buffer
+	outMu  sync.Mutex
 }
 
 func (t *tcpClient) in(buf []byte) (n int, err error) {
 	return t.buf.Write(buf)
-}
-
-func (t *tcpClient) out(buf []byte) (n int, err error) {
-	n = len(buf)
-	cbuf := C.CString(string(buf))
-
-	defer func() {
-		// C.free(unsafe.Pointer(cbuf))
-	}()
-
-	if err_t := C.tcp_write(t.client.pcb, unsafe.Pointer(cbuf), C.uint16_t(n), 0); err_t != C.ERR_OK {
-		return n, errors.New("Write error")
-	}
-
-	return n, nil
 }
 
 type TunIO struct {
@@ -71,15 +71,88 @@ type TunIO struct {
 	destAddr string
 	connOut  net.Conn
 	quit     chan bool
+	doFlush  chan bool
 }
 
 func (t *TunIO) TunnelID() C.uint32_t {
 	return t.client.client.tunnel_id
 }
 
+func (t *TunIO) writer() error {
+	for {
+		select {
+		case <-t.doFlush:
+			if err := t.client.flush(); err != nil {
+				return fmt.Errorf("Terminating writer abnormally: %q", err)
+			}
+		}
+	}
+	return nil
+}
+
+func (t *tcpClient) enqueue(chunk []byte) error {
+	cchunk := C.CString(string(chunk))
+	defer C.free(unsafe.Pointer(cchunk))
+
+	sleepTime := time.Millisecond * 5
+
+	for j := 0; j < maxEnqueueAttempts; j++ {
+		err_t := C.tcp_write(t.client.pcb, unsafe.Pointer(cchunk), C.uint16_t(len(chunk)), 1)
+		if err_t == C.ERR_OK {
+			return nil
+		}
+
+		if err_t == C.ERR_MEM {
+			// Could not enqueue anymore, let's flush and try again.
+			err_t := C.tcp_output(t.client.pcb)
+			if err_t == C.ERR_OK {
+				// Last part was flushed, now continue and try again...
+				time.Sleep(sleepTime)
+				if sleepTime < maxWaitingTime {
+					sleepTime = sleepTime * 2
+				}
+				continue
+			}
+			return fmt.Errorf("tcp_output: %d", int(err_t))
+		}
+	}
+
+	return fmt.Errorf("Could not flush data. Giving up.")
+}
+
+func (t *tcpClient) flush() error {
+	for {
+		blen := t.outbuf.Len()
+
+		if blen > writeBufSize {
+			blen = writeBufSize
+		}
+
+		if blen == 0 {
+			break
+		}
+
+		chunk := make([]byte, blen)
+		if _, err := t.outbuf.Read(chunk); err != nil {
+			return err
+		}
+
+		if err := t.enqueue(chunk); err != nil {
+			return err
+		}
+	}
+
+	err_t := C.tcp_output(t.client.pcb)
+	if err_t != C.ERR_OK {
+		return fmt.Errorf("tcp_output: %d", int(err_t))
+	}
+
+	return nil
+}
+
 func (t *TunIO) reader() error {
 	for {
-		data := make([]byte, 1024)
+		data := make([]byte, readBufSize)
 		n, err := t.connOut.Read(data)
 		if err != nil {
 			if err == io.EOF {
@@ -88,8 +161,9 @@ func (t *TunIO) reader() error {
 			}
 			return err
 		}
-		if _, err := t.client.out(data[0:n]); err != nil {
-			log.Printf("Write error: %q", err)
+		if n > 0 {
+			t.client.outbuf.Write(data[0:n])
+			t.doFlush <- true
 		}
 	}
 	return nil
@@ -103,9 +177,8 @@ func NewTunnel(client *C.struct_tcp_client, d dialer) (*TunIO, error) {
 		client:   &tcpClient{client: client},
 		destAddr: C.GoString(destAddr),
 		quit:     make(chan bool),
+		doFlush:  make(chan bool, 256),
 	}
-
-	//log.Printf("Opening tunnel to %q...", t.destAddr)
 
 	conn, err := d("tcp", t.destAddr)
 	if err != nil {
@@ -114,7 +187,17 @@ func NewTunnel(client *C.struct_tcp_client, d dialer) (*TunIO, error) {
 
 	t.connOut = conn
 
-	go t.reader()
+	go func() {
+		if err := t.reader(); err != nil {
+			log.Printf("t.reader: %q", err)
+		}
+	}()
+
+	go func() {
+		if err := t.writer(); err != nil {
+			log.Printf("t.writer: %q", err)
+		}
+	}()
 
 	return t, nil
 }
