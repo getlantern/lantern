@@ -124,12 +124,10 @@ func (d *direct) Do(req *http.Request) (*http.Response, error) {
 		client := d.NewDirectHttpClient()
 		if resp, err := client.Do(req); err != nil {
 			log.Errorf("Could not complete request %v", err)
-			continue
 		} else if resp.StatusCode > 199 && resp.StatusCode < 400 {
 			return resp, err
 		} else {
 			_ = resp.Body.Close()
-			continue
 		}
 	}
 	return nil, errors.New("Could not complete request even with retries")
