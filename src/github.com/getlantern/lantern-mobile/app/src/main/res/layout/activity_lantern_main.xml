@@ -46,9 +46,9 @@
             <ImageView
             android:id="@+id/desktop_graphic"
             android:layout_width="fill_parent"
-            android:layout_height="187dp"
+            android:layout_height="195dp"
             android:layout_gravity="top"
-            android:layout_marginTop="15dp"
+            android:layout_marginTop="30dp"
             android:adjustViewBounds="true"
             android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true"
@@ -106,7 +106,6 @@
             android:elevation="2dp"
             android:clickable="true"
             android:minHeight="48dp"
-            android:textStyle="bold"
             android:textColor="#fff"
             android:background="@drawable/send_btn"
             android:onClick="sendDesktopVersion" />
