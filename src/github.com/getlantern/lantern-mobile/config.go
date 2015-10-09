@@ -123,7 +123,7 @@ func (c *config) updateFrom(buf []byte) error {
 	}
 
 	// Making sure we can actually use this configuration.
-	if len(newCfg.Client.FrontedServers) > 0 && len(newCfg.Client.MasqueradeSets) > 0 && len(newCfg.TrustedCAs) > 0 {
+	if len(newCfg.Client.MasqueradeSets) > 0 && len(newCfg.TrustedCAs) > 0 {
 		if reflect.DeepEqual(newCfg, *c) {
 			return errConfigurationUnchanged
 		}

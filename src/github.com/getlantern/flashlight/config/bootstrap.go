@@ -96,7 +96,10 @@ func MakeInitialConfig(configPath string) error {
 		return err
 	}
 
-	bytes, err := fs.Get("lantern.yaml")
+	// Get the yaml file from either the local file system or from an
+	// embedded resource, but ignore local file system files if they're
+	// empty.
+	bytes, err := fs.GetIgnoreLocalEmpty("lantern.yaml")
 	if err != nil {
 		log.Errorf("Could not read bootstrap file %v", err)
 		return err
