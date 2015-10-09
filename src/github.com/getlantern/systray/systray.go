@@ -39,7 +39,7 @@ var (
 	menuItems     = make(map[int32]*MenuItem)
 	menuItemsLock sync.RWMutex
 
-	currentId int32
+	currentID int32
 )
 
 // Run initializes GUI and starts the event loop, then invokes the onReady
@@ -61,54 +61,59 @@ func Quit() {
 	quit()
 }
 
-// Add menu item with designated title and tooltip, returning a channel that
-// notifies whenever that menu item has been clicked.
+// AddMenuItem adds menu item with designated title and tooltip, returning a channel
+// that notifies whenever that menu item is clicked.
 //
-// Menu items are keyed to an id. If the same id is added twice, the 2nd one
-// overwrites the first.
-//
-// AddMenuItem can be safely invoked from different goroutines.
+// It can be safely invoked from different goroutines.
 func AddMenuItem(title string, tooltip string) *MenuItem {
-	id := atomic.AddInt32(&currentId, 1)
+	id := atomic.AddInt32(&currentID, 1)
 	item := &MenuItem{nil, id, title, tooltip, false, false}
 	item.ClickedCh = make(chan interface{})
 	item.update()
 	return item
 }
 
+// SetTitle set the text to display on a menu item
 func (item *MenuItem) SetTitle(title string) {
 	item.title = title
 	item.update()
 }
 
+// SetTooltip set the tooltip to show when mouse hover
 func (item *MenuItem) SetTooltip(tooltip string) {
 	item.tooltip = tooltip
 	item.update()
 }
 
+// Disabled checkes if the menu item is disabled
 func (item *MenuItem) Disabled() bool {
 	return item.disabled
 }
 
+// Enable a menu item regardless if it's previously enabled or not
 func (item *MenuItem) Enable() {
 	item.disabled = false
 	item.update()
 }
 
+// Disable a menu item regardless if it's previously disabled or not
 func (item *MenuItem) Disable() {
 	item.disabled = true
 	item.update()
 }
 
+// Checked returns if the menu item has a check mark
 func (item *MenuItem) Checked() bool {
 	return item.checked
 }
 
+// Check a menu item regardless if it's previously checked or not
 func (item *MenuItem) Check() {
 	item.checked = true
 	item.update()
 }
 
+// Uncheck a menu item regardless if it's previously unchecked or not
 func (item *MenuItem) Uncheck() {
 	item.checked = false
 	item.update()
