@@ -51,6 +51,7 @@ Section
     File lantern.exe
     File lantern.ico
     File .packaged-lantern.yaml
+    File lantern.yaml
 
     # Store installation folder
     WriteRegStr HKCU "Software\Lantern" "" $INSTDIR
@@ -90,8 +91,6 @@ Section
 
     # Launch Lantern
     ShellExecAsUser::ShellExecAsUser "" "$INSTDIR\lantern.exe"
-
-    ${nsProcess::Unload}
 
 SectionEnd
 # end default section

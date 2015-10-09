@@ -90,17 +90,12 @@ type Manager struct {
 	// FilePath: required, path to the config file on disk
 	FilePath string
 
-	// FilePollInterval: how frequently to poll the file for changes, defaults
-	// to 1 second
-	FilePollInterval time.Duration
-
 	// EmptyConfig: required, factor for new empty Configs
 	EmptyConfig func() Config
 
-	// OneTimeSetup: optional, provides the ability to perform one-time setup
-	// on the configuration at start time (for example applying command-line
+	// PerSessionSetup runs at the beginning of each session (for example applying command-line
 	// flags)
-	OneTimeSetup func(cfg Config) error
+	PerSessionSetup func(currentCfg Config) error
 
 	// CustomPoll: optionally, specify a custom polling function that returns
 	// a mutator for applying the result of polling, the time to wait till the
@@ -147,33 +142,20 @@ func (m *Manager) Init() (Config, error) {
 	if m.FilePath == "" {
 		return nil, fmt.Errorf("FilePath must be specified")
 	}
-	if m.FilePollInterval == 0 {
-		m.FilePollInterval = 1 * time.Second
-	}
 	m.deltasCh = make(chan *delta)
 	m.nextCfgCh = make(chan Config)
 
 	err := m.loadFromDisk()
 	if err != nil {
-		// Problem reading config, assume that we need to save a new one
-		cfg := m.EmptyConfig()
-		cfg.ApplyDefaults()
-		if m.OneTimeSetup != nil {
-			err := m.OneTimeSetup(cfg)
-			if err != nil {
-				return nil, fmt.Errorf("Unable to perform one-time setup: %s", err)
-			}
-		}
-		_, err = m.saveToDiskAndUpdate(cfg)
-		if err != nil {
-			return nil, err
-		}
+		return nil, fmt.Errorf("Could not load config? %v", err)
 	} else {
+		log.Debugf("Loading per session setup")
+
 		// Always save whatever we loaded, which will cause defaults to be
 		// applied and formatting to be made consistent
 		copied, err := m.copy(m.cfg)
-		if m.OneTimeSetup != nil {
-			err := m.OneTimeSetup(copied)
+		if m.PerSessionSetup != nil {
+			err := m.PerSessionSetup(copied)
 			if err != nil {
 				return nil, fmt.Errorf("Unable to perform one-time setup: %s", err)
 			}
@@ -216,14 +198,6 @@ func (m *Manager) processUpdates() {
 			if err != nil {
 				continue
 			}
-		case <-time.After(m.FilePollInterval):
-			log.Trace("Read update from disk")
-			var err error
-			changed, err = m.reloadFromDisk()
-			if err != nil {
-				log.Errorf("Unable to read updated config from disk: %s", err)
-				continue
-			}
 		}
 
 		if changed {
@@ -241,6 +215,7 @@ func (m *Manager) processCustomPolling() {
 }
 
 func (m *Manager) poll() time.Duration {
+	log.Debugf("Polling for new config from yamlconf")
 	mutate, waitTime, err := m.CustomPoll(m.getCfg())
 	if err != nil {
 		log.Errorf("Custom polling failed: %s", err)

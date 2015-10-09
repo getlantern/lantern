@@ -47,7 +47,7 @@ var DelayBeforeDetour = 0 * time.Millisecond
 
 // If DirectAddrCh is set, when a direct connection is closed without any error,
 // the connection's remote address (in host:port format) will be send to it
-var DirectAddrCh chan string = make(chan string)
+var DirectAddrCh = make(chan string)
 
 var (
 	log = golog.LoggerFor("detour")
@@ -108,6 +108,8 @@ type conn interface {
 	Write(b []byte, ch chan ioResult)
 	Close() error
 	Closed() bool
+	LocalAddr() net.Addr
+	RemoteAddr() net.Addr
 }
 
 func typeOf(c conn) string {
@@ -330,15 +332,19 @@ func (dc *Conn) Close() error {
 }
 
 // LocalAddr implements the function from net.Conn
-func (dc *Conn) LocalAddr() net.Addr {
-	log.Trace("LocalAddr not implemented")
-	return nil
+func (dc *Conn) LocalAddr() (addr net.Addr) {
+	if !dc.withValidConn(func(c conn) { addr = c.LocalAddr() }) {
+		panic("no valid connection to call LocalAddr()")
+	}
+	return
 }
 
 // RemoteAddr implements the function from net.Conn
-func (dc *Conn) RemoteAddr() net.Addr {
-	log.Trace("RemoteAddr not implemented")
-	return nil
+func (dc *Conn) RemoteAddr() (addr net.Addr) {
+	if !dc.withValidConn(func(c conn) { addr = c.RemoteAddr() }) {
+		panic("no valid connection to call RemoteAddr()")
+	}
+	return
 }
 
 // SetDeadline implements the function from net.Conn

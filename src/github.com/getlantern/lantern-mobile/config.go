@@ -103,20 +103,9 @@ func pullConfigFile(cli *http.Client) ([]byte, error) {
 
 // defaultConfig returns the embedded configuration.
 func defaultConfig() *config {
-
 	cfg := &config{
 		Client: &client.ClientConfig{
-			FrontedServers: []*client.FrontedServerInfo{
-				&client.FrontedServerInfo{
-					Host:           "nl.fallbacks.getiantem.org",
-					Port:           443,
-					PoolSize:       30,
-					MasqueradeSet:  cloudflare,
-					MaxMasquerades: 20,
-					QOS:            10,
-					Weight:         4000,
-				},
-			},
+			ChainedServers: defaultChainedServers,
 			MasqueradeSets: defaultMasqueradeSets,
 		},
 		TrustedCAs: defaultTrustedCAs,
@@ -134,7 +123,7 @@ func (c *config) updateFrom(buf []byte) error {
 	}
 
 	// Making sure we can actually use this configuration.
-	if len(newCfg.Client.FrontedServers) > 0 && len(newCfg.Client.MasqueradeSets) > 0 && len(newCfg.TrustedCAs) > 0 {
+	if len(newCfg.Client.MasqueradeSets) > 0 && len(newCfg.TrustedCAs) > 0 {
 		if reflect.DeepEqual(newCfg, *c) {
 			return errConfigurationUnchanged
 		}

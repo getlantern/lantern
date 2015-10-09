@@ -3,6 +3,7 @@ package client
 import (
 	"bytes"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"runtime"
@@ -14,31 +15,60 @@ import (
 	"github.com/getlantern/flashlight/status"
 )
 
-// getReverseProxy waits for a message from client.rpCh to arrive and then it
-// writes it back to client.rpCh before returning it as a value. This way we
-// always have a balancer at client.rpCh and, if we don't have one, it would
-// block until one arrives.
-func (client *Client) getReverseProxy() *httputil.ReverseProxy {
-	rp := <-client.rpCh
-	client.rpCh <- rp
-	return rp
+// authTransport allows us to override request headers for authentication and for
+// stripping X-Forwarded-For
+type authTransport struct {
+	http.Transport
+	balancedDialer *balancer.Dialer
 }
 
-// initReverseProxy creates a reverse proxy that attempts to exit with any of
-// the dialers provided by the balancer.
-func (client *Client) initReverseProxy(bal *balancer.Balancer, dumpHeaders bool) {
+// We need to set the authentication token for the server we're connecting to,
+// and we also need to strip out X-Forwarded-For that reverseproxy adds because
+// it confuses the upstream servers with the additional 127.0.0.1 field when
+// upstream servers are trying to determin the client IP.
+func (at *authTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+	norm := new(http.Request)
+	*norm = *req // includes shallow copies of maps, but okay
+	norm.Header.Del("X-Forwarded-For")
+	norm.Header.Set("X-LANTERN-AUTH-TOKEN", at.balancedDialer.AuthToken)
+	return at.Transport.RoundTrip(norm)
+}
 
-	transport := &http.Transport{
-		// We disable keepalives because some servers pretend to support
-		// keep-alives but close their connections immediately, which
-		// causes an error inside ReverseProxy.  This is not an issue
-		// for HTTPS because  the browser is responsible for handling
-		// the problem, which browsers like Chrome and Firefox already
-		// know to do.
-		//
-		// See https://code.google.com/p/go/issues/detail?id=4677
-		DisableKeepAlives: true,
+// newReverseProxy creates a reverse proxy that attempts to exit with any of
+// the dialers provided by the balancer.
+func (client *Client) newReverseProxy() (*httputil.ReverseProxy, error) {
+
+	// This is a bit unorthodox in that we get a load balanced connection
+	// first and then simply return that in our dial function below.
+	// The reason for this is that the only the dialer knows the
+	// authentication token for its associated server, and we need to
+	// set that in the Transport RoundTrip call above.
+	dialer, conn, err := client.getBalancer().TrustedDialerAndConn()
+	if err != nil {
+		// The internal code has already reported an error here.
+		log.Debugf("Could not get balanced dialer %v", err)
+		return nil, err
 	}
+
+	// We we simply return the already-established connection - see
+	// above comment.
+	dial := func(network, addr string) (net.Conn, error) {
+		return conn, err
+	}
+
+	transport := &authTransport{
+		balancedDialer: dialer,
+	}
+	// We disable keepalives because some servers pretend to support
+	// keep-alives but close their connections immediately, which
+	// causes an error inside ReverseProxy.  This is not an issue
+	// for HTTPS because  the browser is responsible for handling
+	// the problem, which browsers like Chrome and Firefox already
+	// know to do.
+	//
+	// See https://code.google.com/p/go/issues/detail?id=4677
+	transport.DisableKeepAlives = true
+	transport.TLSHandshakeTimeout = 40 * time.Second
 
 	// TODO: would be good to make this sensitive to QOS, which
 	// right now is only respected for HTTPS connections. The
@@ -46,9 +76,9 @@ func (client *Client) initReverseProxy(bal *balancer.Balancer, dumpHeaders bool)
 	// different requests, so we might have to configure different
 	// ReverseProxies for different QOS's or something like that.
 	if runtime.GOOS == "android" || client.ProxyAll {
-		transport.Dial = bal.Dial
+		transport.Dial = dial
 	} else {
-		transport.Dial = detour.Dialer(bal.Dial)
+		transport.Dial = detour.Dialer(dial)
 	}
 
 	rp := &httputil.ReverseProxy{
@@ -56,7 +86,7 @@ func (client *Client) initReverseProxy(bal *balancer.Balancer, dumpHeaders bool)
 			// do nothing
 		},
 		Transport: &errorRewritingRoundTripper{
-			withDumpHeaders(dumpHeaders, transport),
+			withDumpHeaders(false, transport),
 		},
 		// Set a FlushInterval to prevent overly aggressive buffering of
 		// responses, which helps keep memory usage down
@@ -64,22 +94,7 @@ func (client *Client) initReverseProxy(bal *balancer.Balancer, dumpHeaders bool)
 		ErrorLog:      log.AsStdLogger(),
 	}
 
-	if client.rpInitialized {
-		log.Trace("Draining reverse proxy channel")
-		<-client.rpCh
-	} else {
-		log.Trace("Creating reverse proxy channel")
-		client.rpCh = make(chan *httputil.ReverseProxy, 1)
-	}
-
-	log.Trace("Publishing reverse proxy")
-
-	client.rpCh <- rp
-
-	// We don't need to protect client.rpInitialized from race conditions because
-	// it's only accessed here in initReverseProxy, which always gets called
-	// under Configure, which never gets called concurrently with itself.
-	client.rpInitialized = true
+	return rp, nil
 }
 
 // withDumpHeaders creates a RoundTripper that uses the supplied RoundTripper

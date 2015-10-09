@@ -9,7 +9,6 @@ import (
 	"github.com/getlantern/fronted"
 
 	"github.com/getlantern/flashlight/geolookup"
-	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/statreporter"
 )
 
@@ -76,7 +75,6 @@ func (s *FrontedServerInfo) dialer(masqueradeSets map[string][]*fronted.Masquera
 		OnDialStats:        s.onDialStats,
 		Masquerades:        masqueradeSets[s.MasqueradeSet],
 		MaxMasquerades:     s.MaxMasquerades,
-		RootCAs:            globals.TrustedCAs,
 	})
 
 	var masqueradeQualifier string
