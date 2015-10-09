@@ -104,6 +104,7 @@ func write() {
 		n := rand.Intn(publishSecondsVariance)
 		wait := time.Duration(basePublishSeconds-publishSecondsVariance/2+n) * time.Second
 
+		log.Debugf("Waiting to get IP for %v seconds", wait)
 		oldIp := GetIp()
 		oldCountry := GetCountry()
 

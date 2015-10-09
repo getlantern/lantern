@@ -297,7 +297,7 @@ func runClientProxy(cfg *config.Config) {
 	// Only run analytics once on startup. It subscribes to IP discovery
 	// events from geolookup, so it needs to be subscribed here before
 	// the geolookup code executes.
-	analytics.Configure(cfg, version)
+    addExitFunc(analytics.Configure(cfg, version))
 	geolookup.Start()
 
 	// Continually poll for config updates and update client accordingly
