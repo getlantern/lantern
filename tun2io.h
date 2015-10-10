@@ -129,6 +129,8 @@ static int configure(char *tundev, char *ipaddr, char *netmask);
 uint32_t goNewTunnel(struct tcp_client *client);
 int goTunnelWrite(uint32_t tunno, char *data, size_t size);
 int goTunnelDestroy(uint32_t tunno);
+int goInitTunnel(uint32_t tunno);
+void goLog(struct tcp_client *client, char *data);
 
 static char *dump_dest_addr(struct tcp_client *client);
 

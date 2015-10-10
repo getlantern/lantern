@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"time"
 )
 
 var (
@@ -17,11 +18,18 @@ var (
 	proxyAddr  = flag.String("proxy-addr", "", "Lantern address.")
 )
 
-var DefaultDialer = LanternDialer
+var (
+	timeout   = time.Second * 120
+	keepAlive = time.Second * 120
+)
 
 func LanternDialer(proto, addr string) (net.Conn, error) {
-	conn, err := net.Dial("tcp", *proxyAddr)
+	d := net.Dialer{
+		Timeout:   timeout,
+		KeepAlive: keepAlive,
+	}
 
+	conn, err := d.Dial("tcp", *proxyAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -43,20 +51,20 @@ func LanternDialer(proto, addr string) (net.Conn, error) {
 	}
 
 	if resp.StatusCode >= 200 && resp.StatusCode <= 299 {
-		log.Printf("Sending request for %q to Lantern...", addr)
+		log.Printf("Dialing %q through Lantern...", addr)
 		return conn, nil
 	}
 
 	log.Printf("Sorry. Could not reach Lantern.")
 
-	return nil, errors.New("Could not connect.")
+	return nil, errors.New("Could not connect to Lantern.")
 }
 
 func main() {
 	flag.Parse()
 
 	log.Printf("Configuring device %q (ipaddr: %q, netmask: %q)", *deviceName, *deviceIP, *deviceMask)
-	if err := tunio.Configure(*deviceName, *deviceIP, *deviceMask, DefaultDialer); err != nil {
+	if err := tunio.Configure(*deviceName, *deviceIP, *deviceMask, LanternDialer); err != nil {
 		log.Fatalf("Failed to configure device: %q", err)
 	}
 }
