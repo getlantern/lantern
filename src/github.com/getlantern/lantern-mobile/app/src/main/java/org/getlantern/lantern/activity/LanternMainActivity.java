@@ -5,6 +5,7 @@ import android.app.FragmentManager;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.Context;
+import android.content.pm.ApplicationInfo; 
 import android.content.pm.LabeledIntent;
 import android.content.pm.ResolveInfo;
 import android.content.res.Resources;
@@ -22,6 +23,7 @@ import android.graphics.PorterDuff;
 import android.net.VpnService;
 import android.net.Uri;
 import android.content.pm.PackageManager;
+import android.content.pm.PackageInfo;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -43,6 +45,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -258,6 +261,55 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
         }
     }
 
+
+    private HashMap<String, String> getAllInstalledApkFiles(Context context) {
+        HashMap<String, String> installedApkFilePaths = new HashMap<>();
+
+        PackageManager packageManager = context.getPackageManager();
+        List<PackageInfo> packageInfoList = packageManager.getInstalledPackages(PackageManager.SIGNATURE_MATCH);
+
+        if (isValid(packageInfoList)) {
+
+            final PackageManager pm = getApplicationContext().getPackageManager();
+
+            for (PackageInfo packageInfo : packageInfoList) {
+                ApplicationInfo applicationInfo;
+
+                try {
+                    applicationInfo = pm.getApplicationInfo(packageInfo.packageName, 0);
+
+                    String packageName = applicationInfo.packageName;
+                    String versionName = packageInfo.versionName;
+                    int versionCode = packageInfo.versionCode;
+
+                    File apkFile = new File(applicationInfo.publicSourceDir);
+                    if (apkFile.exists()) {
+                        installedApkFilePaths.put(packageName, apkFile.getAbsolutePath());
+                        Log.d(TAG, packageName + " = " + apkFile.getName());
+                    }
+                } catch (PackageManager.NameNotFoundException error) {
+                    error.printStackTrace();
+                }
+            }
+        }
+
+        return installedApkFilePaths;
+    }
+
+    public File getApkFile(Context context, String packageName) {
+        HashMap<String, String> installedApkFilePaths = getAllInstalledApkFiles(context);
+        File apkFile = new File(installedApkFilePaths.get(packageName));
+        if (apkFile.exists()) {
+            return apkFile;
+        }
+
+        return null;
+    }
+
+    private boolean isValid(List<PackageInfo> packageInfos) {
+        return packageInfos != null && !packageInfos.isEmpty();
+    }
+
     private void customShareOption() {
         Resources resources = getResources();
 
@@ -285,6 +337,7 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
             String packageName = ri.activityInfo.packageName;
             if(packageName.contains("android.email")) {
                 emailIntent.setPackage(packageName);
+
             } else if ("com.twitter.android.composer.ComposerActivity".equals(ri.activityInfo.name) || 
                 packageName.contains("facebook") || 
                 "com.tencent.mm.ui.tools.ShareImgUI".equals(ri.activityInfo.name) ||
@@ -323,6 +376,10 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
 
     // opens an e-mail message with some default options
     private void contactOption() {
+
+
+        File f = getApkFile(this, "org.getlantern.lantern");
+
         String contactEmail = getResources().getString(R.string.contact_email);
 
         Intent intent = new Intent(Intent.ACTION_SEND);
@@ -330,6 +387,10 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
         intent.putExtra(Intent.EXTRA_EMAIL, new String[] { contactEmail });
         intent.putExtra(Intent.EXTRA_SUBJECT, R.string.contact_subject);
         intent.putExtra(Intent.EXTRA_TEXT, R.string.contact_message);
+
+        Uri uri = Uri.parse("file://" + f);
+        intent.putExtra(Intent.EXTRA_STREAM, uri);
+
         startActivity(Intent.createChooser(intent, ""));
     }
 
