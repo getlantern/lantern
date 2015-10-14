@@ -17,10 +17,12 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"math/rand"
 	"net"
 	"sync"
+	"sync/atomic"
 	"time"
 	"unsafe"
 )
@@ -143,10 +145,25 @@ func dummyDialer(proto, addr string) (net.Conn, error) {
 type tcpClient struct {
 	client *C.struct_tcp_client
 	//buf      bytes.Buffer
-	outbuf bytes.Buffer
+	written uint64
+	acked   uint64
+	outbuf  bytes.Buffer
 	//outbufMu sync.Mutex
 	//outMu    sync.Mutex
 	//flushing bool
+}
+
+func (t *tcpClient) flushed() bool {
+	t.log("written: %d, acked: %d", t.written, t.acked)
+	return t.written == t.acked
+}
+
+func (t *tcpClient) accWritten(i uint64) uint64 {
+	return atomic.AddUint64(&t.written, i)
+}
+
+func (t *tcpClient) accAcked(i uint64) uint64 {
+	return atomic.AddUint64(&t.acked, i)
 }
 
 func (t *tcpClient) log(f string, args ...interface{}) {
@@ -187,6 +204,7 @@ type TunIO struct {
 	statusMu sync.Mutex
 
 	send chan []byte
+	ack  chan bool
 
 	waitForReader chan bool
 	waitForWriter chan bool
@@ -218,29 +236,35 @@ func (t *TunIO) TunnelID() C.uint32_t {
 	return t.client.tunnelID()
 }
 
+func (t *TunIO) flush() error {
+	t.log("flush: request to flush")
+	if t.Status() != StatusProxying {
+		t.log("flush: client is not proxying!")
+		return fmt.Errorf("client is not proxying!")
+	}
+	if err := t.client.flush(); err != nil {
+		t.log("flush: could not flush: %q", err)
+		return fmt.Errorf("could not flush!")
+	}
+	t.log("flush: flushed!")
+	return nil
+}
+
 func (t *TunIO) writer() error {
 	t.waitForWriter <- true
 
 	var err error
 
 	for message := range t.send {
+		t.log("writer: got send message.")
 		if _, err = t.client.outbuf.Write(message); err != nil {
 			t.log("writer: could not write buffer: %q", err)
 			break
 		}
-		t.Lock()
-		if t.Status() != StatusProxying {
-			t.log("writer: client is not proxying!")
-			t.Unlock()
-			break
-		}
-		if err = t.client.flush(); err != nil {
+		if err := t.flush(); err != nil {
 			t.log("writer: could not flush: %q", err)
-			t.Unlock()
 			break
 		}
-		t.Unlock()
-		t.log("writer: flushed!")
 	}
 
 	t.quit("writer: closed loop.")
@@ -270,12 +294,23 @@ func (t *TunIO) quit(reason string) error {
 
 	t.SetStatus(StatusClosing)
 
-	t.log("quit: close send")
-	close(t.send)
+	for i := 0; !t.client.flushed(); i++ {
+		t.log("quit: some packages still need to be written (%d)...", i)
+		time.Sleep(time.Millisecond * 100)
+		if i > 10 {
+			t.log("quit: sorry, can't continue waiting...")
+			break
+		}
+	}
 
 	t.log("quit: connOut.Close()")
 	err := t.connOut.Close()
 	t.log("quit: connOut.Close(): %v", err)
+
+	t.log("quit: close send")
+
+	close(t.send)
+	close(t.ack)
 
 	// Freeing client on the C side.
 	t.log("quit: C.client_close()")
@@ -301,7 +336,8 @@ func (t *tcpClient) enqueue(chunk []byte) error {
 	for j = 0; j < maxEnqueueAttempts; j++ {
 		t.log("enqueue: attempt %d", j)
 
-		err_t := C.tcp_write(t.client.pcb, unsafe.Pointer(cchunk), C.uint16_t(clen), 1)
+		err_t := C.tcp_write(t.client.pcb, unsafe.Pointer(cchunk), C.uint16_t(clen), C.TCP_WRITE_FLAG_COPY)
+		t.accWritten(uint64(clen))
 
 		switch err_t {
 		case C.ERR_OK:
@@ -337,14 +373,17 @@ func (t *tcpClient) flush() error {
 
 	for {
 		blen := t.outbuf.Len()
+		mlen := int(C.tcp_client_sndbuf(t.client))
 
-		if blen > writeBufSize {
-			blen = writeBufSize
+		if blen > mlen {
+			blen = mlen
+			t.log("flush: mlen = %d!", mlen)
 		}
 
 		t.log("flush: blen = %d", blen)
 
 		if blen == 0 {
+			t.log("flush: nothing to flush")
 			break
 		}
 
@@ -387,18 +426,25 @@ func (t *TunIO) reader() error {
 		if err != nil {
 			// Closing the connOut will also cause an error here.
 			t.log("reader: t.connOut.Read: %q", err)
+			if err == io.EOF {
+				// Maybe wait for the buffer to fail or flush?
+				t.log("reader: server closed connection.")
+			}
 			break
 		}
 		if n > 0 {
-			t.Lock()
 			t.log("D -> C: t.send <- data[0:%d].", n)
 			if t.Status() == StatusProxying {
+				//go func() {
 				t.send <- data[0:n]
+				//}()
+				t.log("wait for ack")
+				//<-t.ack
+				//t.log("ack ok")
 			} else {
 				t.log("Already closing...")
 				break
 			}
-			t.Unlock()
 		}
 	}
 
@@ -422,7 +468,8 @@ func NewTunnel(client *C.struct_tcp_client, d dialer) (*TunIO, error) {
 		//doFlush:       make(chan bool, 8),
 		waitForReader: make(chan bool),
 		waitForWriter: make(chan bool),
-		send:          make(chan []byte, 256),
+		send:          make(chan []byte),
+		ack:           make(chan bool),
 	}
 
 	t.SetStatus(StatusConnecting)
@@ -538,6 +585,8 @@ func goTunnelWrite(tunno C.uint32_t, write *C.char, size C.size_t) C.int {
 			buf[i] = byte(C.charAt(write, C.int(i)))
 		}
 
+		t.log("connOut.Write: %s", string(buf))
+
 		t.connOut.SetWriteDeadline(time.Now().Add(ioTimeout))
 		_, err := t.connOut.Write(buf)
 		if err == nil {
@@ -573,6 +622,30 @@ func goLog(client *C.struct_tcp_client, c *C.char) {
 	}
 
 	t.log(s)
+}
+
+//export goTunnelSentACK
+// goTunnelSentACK acknowledges a tunnel sent.
+func goTunnelSentACK(tunno C.uint32_t, dlen C.u16_t) C.int {
+	tunID := uint32(tunno)
+	log.Printf("%d: goTunnelSentACK", tunID)
+
+	tunnelMu.Lock()
+	t, ok := tunnels[tunID]
+	tunnelMu.Unlock()
+
+	if !ok {
+		return C.ERR_ABRT
+	}
+
+	if t.Status() == StatusProxying {
+		t.log("goTunnelSentACK: acknowledging %d...", int(dlen))
+		t.client.accAcked(uint64(dlen))
+	}
+
+	t.log("goTunnelSentACK: wrote ack %d...", int(dlen))
+
+	return C.ERR_OK
 }
 
 //export goTunnelDestroy

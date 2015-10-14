@@ -585,7 +585,7 @@ err_t listener_accept_func (void *arg, struct tcp_pcb *newpcb, err_t err)
   // setup handlers
   tcp_err(client->pcb, client_err_func);
   tcp_recv(client->pcb, client_recv_func);
-  //tcp_sent(client->pcb, client_sent_func);
+  tcp_sent(client->pcb, client_sent_func);
 
   // setup buffer
   client->buf_used = 0;
@@ -668,6 +668,7 @@ static err_t client_recv_func(void *arg, struct tcp_pcb *pcb, struct pbuf *p, er
 
   ASSERT(p->tot_len > 0)
 
+
   err_t werr;
   werr = goTunnelWrite(client->tunnel_id, p->payload, p->len);
 
@@ -680,12 +681,22 @@ err_t client_sent_func (void *arg, struct tcp_pcb *tpcb, u16_t len)
 {
   struct tcp_client *client = (struct tcp_client *)arg;
 
-  ASSERT(!client->client_closed)
-  ASSERT(len > 0)
+  //ASSERT(!client->client_closed)
+  //ASSERT(len > 0)
+	//
+  if (client == NULL) {
+    BLog(BLOG_ERROR, "client_sent_func(): client is nil.");
+    return ERR_ABRT;
+  }
 
-  client_log(client, BLOG_INFO, "got data received...");
+	if (client->client_closed) {
+		goLog(client, "client_sent_func(): client is closed.");
+    return ERR_ABRT;
+	}
 
-  return ERR_OK;
+  goLog(client, "got data ack...");
+
+	return goTunnelSentACK(client->tunnel_id, len);
 }
 
 // dump_dest_addr dumps the client's local address into an string.
@@ -694,4 +705,8 @@ static char *dump_dest_addr(struct tcp_client *client) {
   addr = malloc(sizeof(char)*BADDR_MAX_ADDR_LEN);
   BAddr_Print(&client->local_addr, addr);
   return addr;
+}
+
+static int tcp_client_sndbuf(struct tcp_client *client) {
+	return tcp_sndbuf(client->pcb);
 }
