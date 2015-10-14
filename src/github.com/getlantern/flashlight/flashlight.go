@@ -170,8 +170,6 @@ func doMain() error {
 	}
 	displayVersion()
 
-	parseFlags()
-
 	// Run below in separate goroutine as config.Init() can potentially block when Lantern runs
 	// for the first time. User can still quit Lantern through systray menu when it happens.
 	go func() {
@@ -180,6 +178,7 @@ func doMain() error {
 			exit(fmt.Errorf("Unable to initialize configuration: %v", err))
 			return
 		}
+
 		go func() {
 			err := config.Run(func(updated *config.Config) {
 				configUpdates <- updated
@@ -194,8 +193,11 @@ func doMain() error {
 			exit(fmt.Errorf("Wrong arguments"))
 		}
 
-		finishProfiling := profiling.Start(cfg.CpuProfile, cfg.MemProfile)
-		defer finishProfiling()
+		if cfg.CpuProfile != "" || cfg.MemProfile != "" {
+			log.Debugf("Start profiling with cpu file %s and mem file %s", cfg.CpuProfile, cfg.MemProfile)
+			finishProfiling := profiling.Start(cfg.CpuProfile, cfg.MemProfile)
+			addExitFunc(finishProfiling)
+		}
 
 		// Configure stats initially
 		if err := statreporter.Configure(cfg.Stats); err != nil {
@@ -205,9 +207,9 @@ func doMain() error {
 		log.Debug("Running proxy")
 		if cfg.IsDownstream() {
 			// This will open a proxy on the address and port given by -addr
-			go runClientProxy(cfg)
+			runClientProxy(cfg)
 		} else {
-			go runServerProxy(cfg)
+			runServerProxy(cfg)
 		}
 	}()
 
