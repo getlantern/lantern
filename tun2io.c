@@ -668,9 +668,12 @@ static err_t client_recv_func(void *arg, struct tcp_pcb *pcb, struct pbuf *p, er
 
   ASSERT(p->tot_len > 0)
 
-
   err_t werr;
   werr = goTunnelWrite(client->tunnel_id, p->payload, p->len);
+
+	if (werr == ERR_OK) {
+		tcp_recved(client->pcb, p->len);
+	}
 
   pbuf_free(p);
 

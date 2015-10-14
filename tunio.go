@@ -36,7 +36,7 @@ const (
 	maxEnqueueAttempts = 100
 )
 
-var ioTimeout = time.Second * 120
+var ioTimeout = time.Second * 30
 
 var (
 	maxWaitingTime = time.Millisecond * 100
@@ -337,7 +337,6 @@ func (t *tcpClient) enqueue(chunk []byte) error {
 		t.log("enqueue: attempt %d", j)
 
 		err_t := C.tcp_write(t.client.pcb, unsafe.Pointer(cchunk), C.uint16_t(clen), C.TCP_WRITE_FLAG_COPY)
-		t.accWritten(uint64(clen))
 
 		switch err_t {
 		case C.ERR_OK:
@@ -432,18 +431,27 @@ func (t *TunIO) reader() error {
 			}
 			break
 		}
+		t.log("reader: got read %d, %q", n, err)
 		if n > 0 {
 			t.log("D -> C: t.send <- data[0:%d].", n)
 			if t.Status() == StatusProxying {
-				//go func() {
-				t.send <- data[0:n]
-				//}()
-				t.log("wait for ack")
+				t.client.accWritten(uint64(n))
+				go func() {
+					t.send <- data[0:n]
+				}()
+				//t.log("wait for ack")
 				//<-t.ack
 				//t.log("ack ok")
 			} else {
 				t.log("Already closing...")
 				break
+			}
+		}
+		for i := 0; !t.client.flushed(); i++ {
+			t.log("reader: some packages still need to be written (%d)...", i)
+			time.Sleep(time.Millisecond * 10)
+			if i > 10 {
+				t.quit("sorry, can't continue waiting...")
 			}
 		}
 	}
@@ -585,11 +593,12 @@ func goTunnelWrite(tunno C.uint32_t, write *C.char, size C.size_t) C.int {
 			buf[i] = byte(C.charAt(write, C.int(i)))
 		}
 
-		t.log("connOut.Write: %s", string(buf))
+		t.log("connOut.Write: %dbytes", len(buf))
 
 		t.connOut.SetWriteDeadline(time.Now().Add(ioTimeout))
 		_, err := t.connOut.Write(buf)
 		if err == nil {
+			t.log("connOut.Write: OK")
 			return C.ERR_OK
 		}
 
