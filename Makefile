@@ -40,5 +40,7 @@ deps:
 
 clean:
 	rm -f $(OBJDIR)/*.o
+	rm -f lib/* 
+	rm -f *.o
 
 .PHONY: main tun2socks
