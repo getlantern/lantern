@@ -560,15 +560,15 @@ err_t listener_accept_func (void *arg, struct tcp_pcb *newpcb, err_t err)
   switch (client->remote_addr.type) {
     case BADDR_TYPE_IPV4:
       client->tunnel_id = goNewTunnel(client);
-			if (client->tunnel_id == 0) {
-				BLog(BLOG_ERROR, "could not create new tunnel.");
-				return ERR_MEM;
-			}
-			err_t err = goInitTunnel(client->tunnel_id);
-			if (err != ERR_OK) {
-				BLog(BLOG_ERROR, "could not initialize tunnel.");
-				return ERR_ABRT;
-			}
+      if (client->tunnel_id == 0) {
+        BLog(BLOG_ERROR, "could not create new tunnel.");
+        return ERR_MEM;
+      }
+      err_t err = goInitTunnel(client->tunnel_id);
+      if (err != ERR_OK) {
+        BLog(BLOG_ERROR, "could not initialize tunnel.");
+        return ERR_ABRT;
+      }
     break;
   }
 #endif
@@ -595,52 +595,52 @@ err_t listener_accept_func (void *arg, struct tcp_pcb *newpcb, err_t err)
 
 void client_close(struct tcp_client *client)
 {
-	goLog(client, "client_close(): requested");
+  goLog(client, "client_close(): requested");
 
   if (client == NULL) {
-		goLog(client, "client_close(): can't close client, is nil.");
+    goLog(client, "client_close(): can't close client, is nil.");
     return;
   }
 
-	goLog(client, "client_close(): closing client.");
+  goLog(client, "client_close(): closing client.");
 
   // free client
   if (!client->client_closed) {
     // set client closed
     client->client_closed = 1;
 
-		// actually closing client.
-		goLog(client, "client_close(): issuing tcp_close...");
-		err_t err = tcp_close(client->pcb);
+    // actually closing client.
+    goLog(client, "client_close(): issuing tcp_close...");
+    err_t err = tcp_close(client->pcb);
 
-		if (err != ERR_OK) {
-			goLog(client, "client_close(): tcp_close: NOT OK, aborting...");
-			tcp_abort(client->pcb);
-		}
+    if (err != ERR_OK) {
+      goLog(client, "client_close(): tcp_close: NOT OK, aborting...");
+      tcp_abort(client->pcb);
+    }
 
-		goLog(client, "client_close(): removing callbacks...");
+    goLog(client, "client_close(): removing callbacks...");
 
     // remove callbacks
     tcp_err(client->pcb, NULL);
     tcp_recv(client->pcb, NULL);
     tcp_sent(client->pcb, NULL);
 
-		goLog(client, "client_close(): destroying tunnel...");
+    goLog(client, "client_close(): destroying tunnel...");
     goTunnelDestroy(client->tunnel_id);
-		goLog(client, "client_close(): tunnel destroyed.");
+    goLog(client, "client_close(): tunnel destroyed.");
 
-		goLog(client, "client_close(): freeing client.");
-		free(client);
+    goLog(client, "client_close(): freeing client.");
+    free(client);
   } else {
-		goLog(client, "client_close(): already closed.");
-	}
+    goLog(client, "client_close(): already closed.");
+  }
 
 }
 
 void client_err_func (void *arg, err_t err)
 {
   struct tcp_client *client = (struct tcp_client *)arg;
-	goLog(client, "client_err_func!");
+  goLog(client, "client_err_func!");
 
   ASSERT(!client->client_closed)
 
@@ -671,9 +671,9 @@ static err_t client_recv_func(void *arg, struct tcp_pcb *pcb, struct pbuf *p, er
   err_t werr;
   werr = goTunnelWrite(client->tunnel_id, p->payload, p->len);
 
-	if (werr == ERR_OK) {
-		tcp_recved(client->pcb, p->len);
-	}
+  if (werr == ERR_OK) {
+    tcp_recved(client->pcb, p->len);
+  }
 
   pbuf_free(p);
 
@@ -686,20 +686,20 @@ err_t client_sent_func (void *arg, struct tcp_pcb *tpcb, u16_t len)
 
   //ASSERT(!client->client_closed)
   //ASSERT(len > 0)
-	//
+  //
   if (client == NULL) {
     BLog(BLOG_ERROR, "client_sent_func(): client is nil.");
     return ERR_ABRT;
   }
 
-	if (client->client_closed) {
-		goLog(client, "client_sent_func(): client is closed.");
+  if (client->client_closed) {
+    goLog(client, "client_sent_func(): client is closed.");
     return ERR_ABRT;
-	}
+  }
 
   goLog(client, "got data ack...");
 
-	return goTunnelSentACK(client->tunnel_id, len);
+  return goTunnelSentACK(client->tunnel_id, len);
 }
 
 // dump_dest_addr dumps the client's local address into an string.
@@ -711,5 +711,5 @@ static char *dump_dest_addr(struct tcp_client *client) {
 }
 
 static int tcp_client_sndbuf(struct tcp_client *client) {
-	return tcp_sndbuf(client->pcb);
+  return tcp_sndbuf(client->pcb);
 }
