@@ -2,20 +2,172 @@ package util
 
 import (
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
 	"net/url"
 	"time"
 
+	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/waitforserver"
 )
 
+const (
+	defaultAddr = "127.0.0.1:8787"
+)
+
 var (
 	log = golog.LoggerFor("flashlight.util")
+
+	// This is for doing direct domain fronting if necessary. We store this as
+	// an instance variable because it caches TLS session configs.
+	direct = fronted.NewDirect()
 )
+
+// HTTPFetcher is a simple interface for types that are able to fetch data over HTTP.
+type HTTPFetcher interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
+func success(resp *http.Response) bool {
+	return resp.StatusCode > 199 && resp.StatusCode < 400
+}
+
+// NewChainedAndFronted creates a new struct for accessing resources using chained
+// and direct fronted servers in parallel.
+func NewChainedAndFronted() *chainedAndFronted {
+	cf := &chainedAndFronted{}
+	cf.fetcher = &dualFetcher{cf}
+	return cf
+}
+
+// ChainedAndFronted fetches HTTP data in parallel using both chained and fronted
+// servers.
+type chainedAndFronted struct {
+	fetcher HTTPFetcher
+}
+
+// Do will attempt to execute the specified HTTP request using only a chained fetcher
+func (cf *chainedAndFronted) Do(req *http.Request) (*http.Response, error) {
+	resp, err := cf.fetcher.Do(req)
+	if err != nil {
+		// If there's an error, switch back to using the dual fetcher.
+		cf.fetcher = &dualFetcher{cf}
+	} else if !success(resp) {
+		cf.fetcher = &dualFetcher{cf}
+	}
+	return resp, err
+}
+
+type chainedFetcher struct {
+}
+
+// Do will attempt to execute the specified HTTP request using only a chained fetcher
+func (cf *chainedFetcher) Do(req *http.Request) (*http.Response, error) {
+	log.Debugf("Using chained fronter")
+	if client, err := HTTPClient("", defaultAddr); err != nil {
+		log.Errorf("Could not create HTTP client: %v", err)
+		return nil, err
+	} else {
+		return client.Do(req)
+	}
+}
+
+type dualFetcher struct {
+	cf *chainedAndFronted
+}
+
+// Do will attempt to execute the specified HTTP request using both
+// chained and fronted servers, simply returning the first response to
+// arrive. Callers MUST use the Lantern-Fronted-URL HTTP header to
+// specify the fronted URL to use.
+func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
+	log.Debugf("Using dual fronter")
+	frontedUrl := req.Header.Get("Lantern-Fronted-URL")
+	req.Header.Del("Lantern-Fronted-URL")
+
+	if frontedUrl == "" {
+		return nil, errors.New("Callers MUST specify the fronted URL in the Lantern-Fronted-URL header")
+	}
+	responses := make(chan *http.Response, 2)
+	errs := make(chan error, 2)
+
+	request := func(client HTTPFetcher, req *http.Request) error {
+		if resp, err := client.Do(req); err != nil {
+			log.Errorf("Could not complete request with: %v, %v", frontedUrl, err)
+			errs <- err
+			return err
+		} else {
+			if success(resp) {
+				log.Debugf("Got successful HTTP call!")
+				responses <- resp
+				return nil
+			} else {
+				// If the local proxy can't connect to any upstread proxies, for example,
+				// it will return a 502.
+				err := fmt.Errorf("Bad response code: %v", resp.StatusCode)
+				errs <- err
+				return err
+			}
+		}
+	}
+
+	go func() {
+		if req, err := http.NewRequest("GET", frontedUrl, nil); err != nil {
+			log.Errorf("Could not create request for: %v, %v", frontedUrl, err)
+			errs <- err
+		} else {
+			log.Debug("Sending request via DDF")
+			if err := request(direct, req); err != nil {
+				log.Errorf("Fronted request failed: %v", err)
+			} else {
+				log.Debug("Fronted request succeeded")
+			}
+		}
+	}()
+	go func() {
+		if client, err := HTTPClient("", defaultAddr); err != nil {
+			log.Errorf("Could not create HTTP client: %v", err)
+			errs <- err
+		} else {
+			log.Debug("Sending chained request")
+			if err := request(client, req); err != nil {
+				log.Errorf("Chained request failed %v", err)
+			} else {
+				log.Debug("Switching to chained fronter for future requests since it succeeded")
+				df.cf.fetcher = &chainedFetcher{}
+			}
+		}
+	}()
+
+	for i := 0; i < 2; i++ {
+		select {
+		case resp := <-responses:
+			if i == 1 {
+				log.Debugf("Got second response -- sending")
+				return resp, nil
+			} else if success(resp) {
+				log.Debugf("Got good response")
+				// Returning preemptively here means the second response
+				// will not be closed properly. We need to ultimately
+				// handle that.
+				return resp, nil
+			} else {
+				log.Debugf("Got bad first response -- wait for second")
+				_ = resp.Body.Close()
+			}
+		case err := <-errs:
+			log.Debugf("Got an error: %v", err)
+			if i == 1 {
+				return nil, errors.New("All requests errored")
+			}
+		}
+	}
+	return nil, errors.New("Reached end")
+}
 
 // PersistentHTTPClient creates an http.Client that persists across requests.
 // If rootCA is specified, the client will validate the server's certificate

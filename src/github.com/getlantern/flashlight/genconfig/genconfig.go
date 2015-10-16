@@ -22,6 +22,7 @@ import (
 	"github.com/getlantern/golog"
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/tlsdialer"
+	"github.com/getlantern/yaml"
 
 	"github.com/getlantern/flashlight/client"
 )
@@ -39,7 +40,7 @@ var (
 	minFreq         = flag.Float64("minfreq", 3.0, "Minimum frequency (percentage) for including CA cert in list of trusted certs, defaults to 3.0%")
 
 	// Note - you can get the content for the fallbacksFile from https://lanternctrl1-2.appspot.com/listfallbacks
-	fallbacksFile = flag.String("fallbacks", "fallbacks.json", "File containing json array of fallback information")
+	fallbacksFile = flag.String("fallbacks", "fallbacks.yaml", "File containing json array of fallback information")
 )
 
 var (
@@ -49,7 +50,7 @@ var (
 
 	blacklist    = make(filter)
 	proxiedSites = make(filter)
-	fallbacks    []map[string]interface{}
+	fallbacks    map[string]*client.ChainedServerInfo
 	ftVersion    string
 
 	inputCh       = make(chan string)
@@ -96,8 +97,10 @@ func main() {
 
 	go feedMasquerades()
 	cas, masqs := coalesceMasquerades()
-	model := buildModel(cas, masqs)
+	model := buildModel(cas, masqs, false)
 	generateTemplate(model, yamlTmpl, "cloud.yaml")
+	model = buildModel(cas, masqs, true)
+	generateTemplate(model, yamlTmpl, "lantern.yaml")
 	generateTemplate(model, masqueradesTmpl, "../config/masquerades.go")
 	_, err := run("gofmt", "-w", "../config/masquerades.go")
 	if err != nil {
@@ -208,7 +211,7 @@ func loadFallbacks() {
 	if err != nil {
 		log.Fatalf("Unable to read fallbacks file at %s: %s", *fallbacksFile, err)
 	}
-	err = json.Unmarshal(fallbacksBytes, &fallbacks)
+	err = yaml.Unmarshal(fallbacksBytes, &fallbacks)
 	if err != nil {
 		log.Fatalf("Unable to unmarshal json from %v: %v", *fallbacksFile, err)
 	}
@@ -323,7 +326,7 @@ func coalesceMasquerades() (map[string]*castat, []*masquerade) {
 	return trustedCAs, trustedMasquerades
 }
 
-func buildModel(cas map[string]*castat, masquerades []*masquerade) map[string]interface{} {
+func buildModel(cas map[string]*castat, masquerades []*masquerade, useFallbacks bool) map[string]interface{} {
 	casList := make([]*castat, 0, len(cas))
 	for _, ca := range cas {
 		casList = append(casList, ca)
@@ -336,35 +339,34 @@ func buildModel(cas map[string]*castat, masquerades []*masquerade) map[string]in
 	}
 	sort.Strings(ps)
 	fbs := make([]map[string]interface{}, 0, len(fallbacks))
-	for _, fb := range fallbacks {
-		addr := fb["addr"].(string)
-		cert := fb["cert"].(string)
-		// Replace newlines in cert with newline literals
-		fb["cert"] = strings.Replace(cert, "\n", "\\n", -1)
+	if useFallbacks {
+		for _, f := range fallbacks {
+			fb := make(map[string]interface{})
+			fb["ip"] = f.Addr
+			fb["auth_token"] = f.AuthToken
 
-		// Test connectivity
-		info := &client.ChainedServerInfo{
-			Addr:      addr,
-			Cert:      cert,
-			AuthToken: fb["authtoken"].(string),
-			Pipelined: true,
-		}
-		dialer, err := info.Dialer()
-		if err != nil {
-			log.Debugf("Skipping fallback %v because of error building dialer: %v", addr, err)
-			continue
-		}
-		conn, err := dialer.Dial("tcp", "http://www.google.com")
-		if err != nil {
-			log.Debugf("Skipping fallback %v because dialing Google failed: %v", addr, err)
-			continue
-		}
-		if err := conn.Close(); err != nil {
-			log.Debugf("Error closing connection: %v", err)
-		}
+			cert := f.Cert
+			// Replace newlines in cert with newline literals
+			fb["cert"] = strings.Replace(cert, "\n", "\\n", -1)
 
-		// Use this fallback
-		fbs = append(fbs, fb)
+			info := f
+			dialer, err := info.Dialer()
+			if err != nil {
+				log.Debugf("Skipping fallback %v because of error building dialer: %v", f.Addr, err)
+				continue
+			}
+			conn, err := dialer.Dial("tcp", "http://www.google.com")
+			if err != nil {
+				log.Debugf("Skipping fallback %v because dialing Google failed: %v", f.Addr, err)
+				continue
+			}
+			if err := conn.Close(); err != nil {
+				log.Debugf("Error closing connection: %v", err)
+			}
+
+			// Use this fallback
+			fbs = append(fbs, fb)
+		}
 	}
 	return map[string]interface{}{
 		"cas":          casList,

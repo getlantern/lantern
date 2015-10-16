@@ -5,7 +5,7 @@
 FROM fedora:22
 MAINTAINER "Ulysses Aalto" <uaalto@getlantern.org>
 
-ENV GO_VERSION go1.4.2
+ENV GO_VERSION go1.4.3
 ENV GOROOT_BOOTSTRAP /go1.4
 ENV GOROOT /go
 ENV GOPATH /

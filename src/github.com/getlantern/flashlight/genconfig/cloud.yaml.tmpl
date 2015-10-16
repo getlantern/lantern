@@ -7,7 +7,7 @@ client:
   frontedservers: []
   chainedservers: {{range .fallbacks}}
     fallback-{{.ip}}:
-      addr: {{.ip}}:443
+      addr: {{.ip}}
       cert: "{{.cert}}"
       authtoken: "{{.auth_token}}"
       pipelined: true
@@ -20,6 +20,9 @@ client:
     - domain: {{.Domain}}
       ipaddress: {{.IpAddress}}{{end}}
 proxiedsites:
+  delta:
+    additions: []
+    deletions: []
   cloud:{{range $domain := .proxiedsites }}
   - {{$domain}}{{end}}
 trustedcas: {{range .cas}}

@@ -158,6 +158,32 @@ func TestIranRules(t *testing.T) {
 	}
 }
 
+func TestGetAddr(t *testing.T) {
+	defer stopMockServers()
+	mockURL, _ := newMockServer(directMsg)
+	proxiedURL, _ := newMockServer(detourMsg)
+	u, _ := url.Parse(mockURL)
+	d := Dialer(func(network, addr string) (net.Conn, error) {
+		u, _ := url.Parse(proxiedURL)
+		return net.Dial("tcp", u.Host)
+	})
+	c1, e1 := d("tcp", u.Host)
+	if assert.NoError(t, e1, "should dial server") {
+		assert.Equal(t, "tcp", c1.LocalAddr().Network())
+		assert.NotEmpty(t, c1.LocalAddr().String())
+		assert.Equal(t, "tcp", c1.RemoteAddr().Network())
+		assert.Equal(t, u.Host, c1.RemoteAddr().String(), "should get remote address of direct connection")
+	}
+	c2, e2 := d("tcp", "invalid:80")
+	u2, _ := url.Parse(proxiedURL)
+	if assert.NoError(t, e2, "should dial server") {
+		assert.Equal(t, "tcp", c2.LocalAddr().Network())
+		assert.NotEmpty(t, c2.LocalAddr().String())
+		assert.Equal(t, "tcp", c2.RemoteAddr().Network())
+		assert.Equal(t, u2.Host, c2.RemoteAddr().String(), "should get remote address of detour connection")
+	}
+}
+
 func newClient(proxyURL string, timeout time.Duration) *http.Client {
 	return &http.Client{
 		Transport: &http.Transport{

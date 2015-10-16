@@ -51,6 +51,3 @@ of the README of the lantern_aws project.
 Although server queue is automatically managed **<Fill with link and explanation here>**, the [`cfg2redis.py`](cfg2redis.py) can be used to manually update the server queue in config-server. You can follow these steps to achieve that:
 
 1. Make sure you have *REDISCLOUD_PRODUCTION_URL* set as an environment variable -- see https://github.com/getlantern/too-many-secrets/blob/master/lantern_aws/config_server.yaml#L2
-1. Run ```./genconfig.bash```
-1. Run ```./cfg2redis.py --global cloud.yaml -```. Keep in mind that nothing will be uploaded unless you specify on of `--global`, `--dc`, or `--srv` flags to upload global, data center or server config respectively.
-

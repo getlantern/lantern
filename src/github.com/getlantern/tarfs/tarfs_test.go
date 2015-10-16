@@ -10,6 +10,37 @@ import (
 	"github.com/getlantern/testify/assert"
 )
 
+func TestIgnoreEmpty(t *testing.T) {
+	tarString := bytes.NewBuffer(nil)
+	err := EncodeToTarString("resources", tarString)
+	if err != nil {
+		t.Fatalf("Unable to encode to tar string: %v", err)
+	}
+
+	fs, err := New(tarStringToBytes(t, tarString), "localresources")
+	if err != nil {
+		t.Fatalf("Unable to open filesystem: %v", err)
+	}
+
+	// Test to make sure we get the file if we're not ignoring empty.
+	// Note empty on disk actually has a single space to allow us to
+	// check it into git, but the method ignores whitespace.
+	a, err := fs.Get("empty.txt")
+	if assert.NoError(t, err, "empty.txt should have loaded") {
+		assert.Equal(t, " \n", string(a), "A should have matched expected")
+	}
+
+	// We artificially change the entry for empty byte in the file system
+	// to make sure we get the file system and not the local version.
+	emptyBytes := []byte("empty")
+	fs.files["empty.txt"] = emptyBytes
+
+	a, err = fs.GetIgnoreLocalEmpty("empty.txt")
+	if assert.NoError(t, err, "empty.txt should have loaded") {
+		assert.Equal(t, string(emptyBytes), string(a), "A should have matched expected")
+	}
+}
+
 func TestRoundTrip(t *testing.T) {
 	expectedA, err := ioutil.ReadFile("resources/a.txt")
 	if err != nil {
