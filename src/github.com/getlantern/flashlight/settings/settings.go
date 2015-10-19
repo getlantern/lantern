@@ -2,11 +2,15 @@
 package settings
 
 import (
+	"io/ioutil"
 	"net/http"
+	"path/filepath"
 	"sync"
 
+	"github.com/getlantern/appdir"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/launcher"
+	"github.com/getlantern/yaml"
 
 	"github.com/getlantern/flashlight/ui"
 	"github.com/getlantern/golog"
@@ -22,7 +26,10 @@ var (
 	cfgMutex      sync.RWMutex
 	settingsMutex sync.RWMutex
 	baseSettings  *Settings
+	settings      *Settings
 	httpClient    *http.Client
+	name          = "settings.yaml"
+	dir           = appdir.General("Lantern")
 )
 
 type Settings struct {
@@ -32,6 +39,26 @@ type Settings struct {
 	AutoReport   bool
 	AutoLaunch   bool
 	ProxyAll     bool
+}
+
+func Load(version, revisionDate, buildDate string) {
+	// Create default settings that may or may not be overridden from an existing file
+	// on disk.
+	settings = &Settings{
+		Version:      version,
+		BuildDate:    buildDate,
+		RevisionDate: revisionDate,
+		AutoReport:   true,
+		AutoLaunch:   true,
+		ProxyAll:     false,
+	}
+	path := filepath.Join(dir, name)
+	if bytes, err := ioutil.ReadFile(path); err != nil {
+		return
+	} else if err := yaml.Unmarshal(bytes, settings); err != nil {
+		log.Errorf("Could not load yaml %v", err)
+		return
+	}
 }
 
 func Configure(cfg *config.Config, version, revisionDate string, buildDate string) {
