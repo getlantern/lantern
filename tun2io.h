@@ -137,5 +137,6 @@ static char *dump_dest_addr(struct tcp_client *client);
 
 static char charAt(char *in, int i);
 static int tcp_client_sndbuf(struct tcp_client *client);
+static int tcp_client_outbuf(struct tcp_client *client);
 
 #endif

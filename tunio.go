@@ -27,9 +27,12 @@ import (
 	"unsafe"
 )
 
+var (
+	errBufferIsFull = errors.New("Buffer is full.")
+)
+
 const (
-	readBufSize  = 1024 * 16 // CYGNUM_LWIP_TCP_SND_BUF
-	writeBufSize = 1024 * 16
+	readBufSize = 1024 * 16
 )
 
 const (
@@ -143,14 +146,10 @@ func dummyDialer(proto, addr string) (net.Conn, error) {
 }
 
 type tcpClient struct {
-	client *C.struct_tcp_client
-	//buf      bytes.Buffer
+	client  *C.struct_tcp_client
 	written uint64
 	acked   uint64
 	outbuf  bytes.Buffer
-	//outbufMu sync.Mutex
-	//outMu    sync.Mutex
-	//flushing bool
 }
 
 func (t *tcpClient) flushed() bool {
@@ -184,6 +183,7 @@ const (
 	StatusConnected
 	StatusReady
 	StatusProxying
+	StatusServerClosed
 	StatusClosing
 	StatusClosed
 )
@@ -194,11 +194,6 @@ type TunIO struct {
 
 	destAddr string
 	connOut  net.Conn
-	//exitWriter chan bool
-	//exitReader chan bool
-	//writing    bool
-	//reading    bool
-	//closed     bool
 
 	status   Status
 	statusMu sync.Mutex
@@ -261,9 +256,12 @@ func (t *TunIO) writer() error {
 			t.log("writer: could not write buffer: %q", err)
 			break
 		}
-		if err := t.flush(); err != nil {
-			t.log("writer: could not flush: %q", err)
-			break
+		for t.client.outbuf.Len() > 0 {
+			t.log("writer: remaining: %d.", t.client.outbuf.Len())
+			if err := t.flush(); err != nil {
+				t.log("writer: could not flush: %q", err)
+				break
+			}
 		}
 	}
 
@@ -278,6 +276,7 @@ func (t *TunIO) quit(reason string) error {
 
 	switch s := t.Status(); s {
 	case StatusProxying:
+	case StatusServerClosed:
 	case StatusClosing:
 		t.log("quit: already closing!")
 		return fmt.Errorf("unexpected status %d", s)
@@ -292,16 +291,18 @@ func (t *TunIO) quit(reason string) error {
 	t.Lock()
 	defer t.Unlock()
 
-	t.SetStatus(StatusClosing)
-
-	for i := 0; !t.client.flushed(); i++ {
-		t.log("quit: some packages still need to be written (%d)...", i)
-		time.Sleep(time.Millisecond * 100)
-		if i > 10 {
-			t.log("quit: sorry, can't continue waiting...")
-			break
+	if t.Status() == StatusProxying {
+		for i := 0; !t.client.flushed(); i++ {
+			t.log("quit: some packages still need to be written (%d)...", i)
+			time.Sleep(time.Millisecond * 100)
+			if i > 10 {
+				t.log("quit: sorry, can't continue waiting...")
+				break
+			}
 		}
 	}
+
+	t.SetStatus(StatusClosing)
 
 	t.log("quit: connOut.Close()")
 	err := t.connOut.Close()
@@ -329,6 +330,27 @@ func (t *tcpClient) enqueue(chunk []byte) error {
 	cchunk := C.CString(string(chunk))
 	defer C.free(unsafe.Pointer(cchunk))
 
+	err_t := C.tcp_write(t.client.pcb, unsafe.Pointer(cchunk), C.uint16_t(clen), C.TCP_WRITE_FLAG_COPY)
+	t.log("enqueue: tcp_write.")
+
+	switch err_t {
+	case C.ERR_OK:
+		t.log("enqueue: tcp_write. ERR_OK")
+		return nil
+	case C.ERR_MEM:
+		t.log("enqueue: tcp_write. ERR_MEM")
+		return errBufferIsFull
+	}
+
+	t.log("enqueue: tcp_write. unknown error.")
+	return fmt.Errorf("Unknown error %d", int(err_t))
+}
+
+func (t *tcpClient) enqueue2(chunk []byte) error {
+	clen := len(chunk)
+	cchunk := C.CString(string(chunk))
+	defer C.free(unsafe.Pointer(cchunk))
+
 	sleepTime := time.Millisecond * 80
 
 	var j int
@@ -340,7 +362,7 @@ func (t *tcpClient) enqueue(chunk []byte) error {
 
 		switch err_t {
 		case C.ERR_OK:
-			t.log("enqueue: ok")
+			t.log("enqueue: ok, enqueued %d bytes", clen)
 			return nil
 		case C.ERR_MEM:
 			t.log("enqueue: C.ERR_MEM")
@@ -382,7 +404,7 @@ func (t *tcpClient) flush() error {
 		t.log("flush: blen = %d", blen)
 
 		if blen == 0 {
-			t.log("flush: nothing to flush")
+			t.log("flush: nothing more to flush")
 			break
 		}
 
@@ -392,6 +414,10 @@ func (t *tcpClient) flush() error {
 		}
 
 		if err := t.enqueue(chunk); err != nil {
+			if err == errBufferIsFull {
+				t.log("flush: buffer is full, let's flush it.")
+				break
+			}
 			return err
 		}
 	}
@@ -400,7 +426,8 @@ func (t *tcpClient) flush() error {
 }
 
 func (t *tcpClient) tcpOutput() error {
-	err_t := C.tcp_output(t.client.pcb)
+	t.log("tcpOutput: about to force tcp_output.")
+	err_t := C.tcp_client_output(t.client)
 	if err_t != C.ERR_OK {
 		return fmt.Errorf("tcp_output: %d", int(err_t))
 	}
@@ -427,6 +454,7 @@ func (t *TunIO) reader() error {
 			t.log("reader: t.connOut.Read: %q", err)
 			if err == io.EOF {
 				// Maybe wait for the buffer to fail or flush?
+				t.SetStatus(StatusServerClosed)
 				t.log("reader: server closed connection.")
 			}
 			break
@@ -436,9 +464,7 @@ func (t *TunIO) reader() error {
 			t.log("D -> C: t.send <- data[0:%d].", n)
 			if t.Status() == StatusProxying {
 				t.client.accWritten(uint64(n))
-				go func() {
-					t.send <- data[0:n]
-				}()
+				t.send <- data[0:n]
 				//t.log("wait for ack")
 				//<-t.ack
 				//t.log("ack ok")
@@ -447,13 +473,16 @@ func (t *TunIO) reader() error {
 				break
 			}
 		}
-		for i := 0; !t.client.flushed(); i++ {
-			t.log("reader: some packages still need to be written (%d)...", i)
-			time.Sleep(time.Millisecond * 10)
-			if i > 10 {
-				t.quit("sorry, can't continue waiting...")
+		/*
+			t.log("reader: making sure to flush...")
+			for i := 0; !t.client.flushed(); i++ {
+				t.log("reader: some packages still need to be written (%d)...", i)
+				time.Sleep(time.Millisecond * 10)
+				if i > 10 {
+					t.quit("sorry, can't continue waiting...")
+				}
 			}
-		}
+		*/
 	}
 
 	t.quit("reader: closed loop.")
@@ -469,14 +498,11 @@ func NewTunnel(client *C.struct_tcp_client, d dialer) (*TunIO, error) {
 	defer C.free(unsafe.Pointer(destAddr))
 
 	t := &TunIO{
-		client:   &tcpClient{client: client},
-		destAddr: C.GoString(destAddr),
-		//exitWriter:    make(chan bool),
-		//exitReader:    make(chan bool),
-		//doFlush:       make(chan bool, 8),
+		client:        &tcpClient{client: client},
+		destAddr:      C.GoString(destAddr),
 		waitForReader: make(chan bool),
 		waitForWriter: make(chan bool),
-		send:          make(chan []byte),
+		send:          make(chan []byte, 16),
 		ack:           make(chan bool),
 	}
 
@@ -593,7 +619,7 @@ func goTunnelWrite(tunno C.uint32_t, write *C.char, size C.size_t) C.int {
 			buf[i] = byte(C.charAt(write, C.int(i)))
 		}
 
-		t.log("connOut.Write: %dbytes", len(buf))
+		t.log("connOut.Write: %d bytes", len(buf))
 
 		t.connOut.SetWriteDeadline(time.Now().Add(ioTimeout))
 		_, err := t.connOut.Write(buf)

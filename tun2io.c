@@ -214,6 +214,7 @@ static int setup_listener (options_t options)
   // enter event loop
   BLog(BLOG_NOTICE, "entering event loop");
   BReactor_Exec(&ss);
+  BLog(BLOG_NOTICE, "exiting event loop");
 
   // free listener
   if (listener_ip6) {
@@ -542,8 +543,8 @@ err_t listener_accept_func (void *arg, struct tcp_pcb *newpcb, err_t err)
     return ERR_MEM;
   }
 
-  //SYNC_DECL
-  //SYNC_FROMHERE
+  SYNC_DECL
+  SYNC_FROMHERE
 
   // read addresses
   client->local_addr = baddr_from_lwip(PCB_ISIPV6(newpcb), &newpcb->local_ip, newpcb->local_port);
@@ -587,8 +588,17 @@ err_t listener_accept_func (void *arg, struct tcp_pcb *newpcb, err_t err)
   tcp_recv(client->pcb, client_recv_func);
   tcp_sent(client->pcb, client_sent_func);
 
+	goLog(client, "accepted.");
+
   // setup buffer
   client->buf_used = 0;
+
+	DEAD_ENTER(client->dead_client)
+	SYNC_COMMIT
+	DEAD_LEAVE2(client->dead_client)
+	if (DEAD_KILLED) {
+			return ERR_ABRT;
+	}
 
   return ERR_OK;
 }
@@ -668,12 +678,23 @@ static err_t client_recv_func(void *arg, struct tcp_pcb *pcb, struct pbuf *p, er
 
   ASSERT(p->tot_len > 0)
 
-  err_t werr;
+
+	SYNC_DECL
+	SYNC_FROMHERE
+
+	err_t werr;
   werr = goTunnelWrite(client->tunnel_id, p->payload, p->len);
 
   if (werr == ERR_OK) {
     tcp_recved(client->pcb, p->len);
   }
+
+	DEAD_ENTER(client->dead_client)
+	SYNC_COMMIT
+	DEAD_LEAVE2(client->dead_client)
+	if (DEAD_KILLED) {
+			return ERR_ABRT;
+	}
 
   pbuf_free(p);
 
@@ -699,6 +720,16 @@ err_t client_sent_func (void *arg, struct tcp_pcb *tpcb, u16_t len)
 
   goLog(client, "got data ack...");
 
+	SYNC_DECL
+	SYNC_FROMHERE
+
+	DEAD_ENTER(client->dead_client)
+	SYNC_COMMIT
+	DEAD_LEAVE2(client->dead_client)
+	if (DEAD_KILLED) {
+			return ERR_ABRT;
+	}
+
   return goTunnelSentACK(client->tunnel_id, len);
 }
 
@@ -712,4 +743,22 @@ static char *dump_dest_addr(struct tcp_client *client) {
 
 static int tcp_client_sndbuf(struct tcp_client *client) {
   return tcp_sndbuf(client->pcb);
+}
+
+static int tcp_client_output(struct tcp_client *client) {
+  if (client == NULL) {
+    BLog(BLOG_ERROR, "tcp_client_output(): client is nil.");
+    return ERR_ABRT;
+  }
+
+  if (client->client_closed) {
+    goLog(client, "tcp_client_output(): client is closed.");
+    return ERR_ABRT;
+  }
+
+  goLog(client, "tcp_output: actually forcing output...");
+  err_t err =  tcp_output(client->pcb);
+  goLog(client, "tcp_output: forced!");
+
+	return err;
 }
