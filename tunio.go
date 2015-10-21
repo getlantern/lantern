@@ -323,9 +323,12 @@ func (t *TunIO) quit(reason string) error {
 
 	// Freeing client on the C side.
 	if status == StatusProxying {
-		t.log("quit: C.client_close()")
-		C.client_close(t.client.client)
-		t.log("quit: C.client_close(): ok")
+		//t.log("quit: C.client_close()")
+		//C.client_close(t.client.client)
+		//t.log("quit: C.client_close(): ok")
+		t.log("quit: goTunnelDestroy")
+		goTunnelDestroy(t.TunnelID())
+		t.log("quit: goTunnelDestroy: ok")
 	} else {
 		t.log("quit: C.client_abort_client()")
 		C.client_abort_client(t.client.client)
@@ -344,8 +347,8 @@ func (t *tcpClient) enqueue(chunk []byte) error {
 	cchunk := C.CString(string(chunk))
 	defer C.free(unsafe.Pointer(cchunk))
 
-	err_t := C.tcp_write(t.client.pcb, unsafe.Pointer(cchunk), C.uint16_t(clen), C.TCP_WRITE_FLAG_COPY)
 	t.log("enqueue: tcp_write.")
+	err_t := C.tcp_write(t.client.pcb, unsafe.Pointer(cchunk), C.uint16_t(clen), C.TCP_WRITE_FLAG_COPY)
 
 	switch err_t {
 	case C.ERR_OK:
@@ -405,6 +408,8 @@ func (t *tcpClient) tcpOutput() error {
 		if err_t != C.ERR_OK {
 			return fmt.Errorf("tcp_output: %d", int(err_t))
 		}
+	} else {
+		t.log("tcpOutput: can't force tcp output, closed.")
 	}
 	return nil
 }
@@ -618,7 +623,7 @@ func goLog(client *C.struct_tcp_client, c *C.char) {
 	tunnelMu.Unlock()
 
 	if !ok {
-		log.Printf("%d: tunnel does not exist: %s", tunID, s)
+		log.Printf("%d: (???!): %s", tunID, s)
 		return
 	}
 
@@ -655,14 +660,18 @@ func goTunnelDestroy(tunno C.uint32_t) C.int {
 
 	tunnelMu.Lock()
 	t, ok := tunnels[tunID]
+	tunnelMu.Unlock()
+
 	if !ok {
 		log.Printf("%d: goTunnelDestroy can't destroy, tunnel does not exist.", tunID)
 		return C.ERR_ABRT
 	}
-	delete(tunnels, tunID)
-	tunnelMu.Unlock()
 
 	t.quit("goTunnelDestroy: C code request tunnel destruction...")
+
+	tunnelMu.Lock()
+	delete(tunnels, tunID)
+	tunnelMu.Unlock()
 
 	return C.ERR_OK
 }

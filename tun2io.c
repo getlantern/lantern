@@ -612,9 +612,13 @@ static void client_handle_freed_client(struct tcp_client *client)
     return;
   }
 
+  goLog(client, "client_handle_freed_client(): marking as closed");
   client->client_closed = 1;
+
+	goLog(client, "client_handle_freed_client(): calling destroy");
   goTunnelDestroy(client->tunnel_id);
 
+  goLog(client, "client_handle_freed_client(): free");
 	free(client);
 }
 
@@ -632,6 +636,7 @@ void client_close(struct tcp_client *client)
   // free client
   if (!client->client_closed) {
     // actually closing client.
+    goLog(client, "client_close(): client_free_client.");
 		client_free_client(client);
   } else {
     goLog(client, "client_close(): already closed.");
@@ -644,6 +649,12 @@ static void client_free_client (struct tcp_client *client)
     ASSERT(!client->client_closed)
     goLog(client, "client_free_client");
 
+		// remove callbacks
+    goLog(client, "remove callbacks");
+    tcp_err(client->pcb, NULL);
+    tcp_recv(client->pcb, NULL);
+    tcp_sent(client->pcb, NULL);
+
     // free pcb
     goLog(client, "attempt to tcp_close");
     err_t err = tcp_close(client->pcb);
@@ -651,11 +662,6 @@ static void client_free_client (struct tcp_client *client)
       goLog(client, "client_close(): tcp_close: NOT OK, aborting...");
       tcp_abort(client->pcb);
     }
-
-		// remove callbacks
-    tcp_err(client->pcb, NULL);
-    tcp_recv(client->pcb, NULL);
-    tcp_sent(client->pcb, NULL);
 
 		client_handle_freed_client(client);
 }
@@ -718,9 +724,9 @@ err_t client_sent_func (void *arg, struct tcp_pcb *tpcb, u16_t len)
 {
   struct tcp_client *client = (struct tcp_client *)arg;
 
-  //ASSERT(!client->client_closed)
-  //ASSERT(len > 0)
-  //
+  ASSERT(!client->client_closed)
+  ASSERT(len > 0)
+
   if (client == NULL) {
     BLog(BLOG_ERROR, "client_sent_func(): client is nil.");
     return ERR_ABRT;
@@ -740,6 +746,7 @@ err_t client_sent_func (void *arg, struct tcp_pcb *tpcb, u16_t len)
 	SYNC_COMMIT
 	DEAD_LEAVE2(client->dead_client)
 	if (DEAD_KILLED) {
+			goLog(client, "dead killed");
 			return ERR_ABRT;
 	}
 
