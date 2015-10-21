@@ -199,7 +199,6 @@ type TunIO struct {
 	statusMu sync.Mutex
 
 	send chan []byte
-	ack  chan bool
 
 	waitForReader chan bool
 	waitForWriter chan bool
@@ -231,38 +230,49 @@ func (t *TunIO) TunnelID() C.uint32_t {
 	return t.client.tunnelID()
 }
 
+func (t *TunIO) canFlush() bool {
+	s := t.Status()
+	return s == StatusProxying || s == StatusClosing || s == StatusServerClosed
+}
+
 func (t *TunIO) flush() error {
 	t.log("flush: request to flush")
-	if t.Status() != StatusProxying {
-		t.log("flush: client is not proxying!")
+	if t.canFlush() {
+		if err := t.client.flush(); err != nil {
+			t.log("flush: could not flush: %q", err)
+			return fmt.Errorf("could not flush!")
+		}
+	} else {
+		t.log("flush: client is not proxying! %d", t.Status())
 		return fmt.Errorf("client is not proxying!")
 	}
-	if err := t.client.flush(); err != nil {
-		t.log("flush: could not flush: %q", err)
-		return fmt.Errorf("could not flush!")
-	}
 	t.log("flush: flushed!")
+	return nil
+}
+
+func (t *TunIO) writeMessage(message []byte) error {
+	var err error
+	t.client.accWritten(uint64(len(message)))
+	if _, err = t.client.outbuf.Write(message); err != nil {
+		t.log("writeMessage: could not write buffer: %q", err)
+		return err
+	}
+	for t.client.outbuf.Len() > 0 {
+		t.log("writeMessage: remaining: %d.", t.client.outbuf.Len())
+		if err := t.flush(); err != nil {
+			t.log("writerMessage: could not flush: %q", err)
+			return err
+		}
+	}
 	return nil
 }
 
 func (t *TunIO) writer() error {
 	t.waitForWriter <- true
 
-	var err error
-
 	for message := range t.send {
 		t.log("writer: got send message.")
-		if _, err = t.client.outbuf.Write(message); err != nil {
-			t.log("writer: could not write buffer: %q", err)
-			break
-		}
-		for t.client.outbuf.Len() > 0 {
-			t.log("writer: remaining: %d.", t.client.outbuf.Len())
-			if err := t.flush(); err != nil {
-				t.log("writer: could not flush: %q", err)
-				break
-			}
-		}
+		t.writeMessage(message)
 	}
 
 	t.quit("writer: closed loop.")
@@ -274,49 +284,53 @@ func (t *TunIO) writer() error {
 func (t *TunIO) quit(reason string) error {
 	t.log("quit: start: %q", reason)
 
-	switch s := t.Status(); s {
+	status := t.Status()
+
+	switch status {
 	case StatusProxying:
 	case StatusServerClosed:
 	case StatusClosing:
 		t.log("quit: already closing!")
-		return fmt.Errorf("unexpected status %d", s)
+		return fmt.Errorf("unexpected status %d", status)
 	case StatusClosed:
 		t.log("quit: already closed!")
-		return fmt.Errorf("unexpected status %d", s)
+		return fmt.Errorf("unexpected status %d", status)
 	default:
-		t.log("quit: expecting status StatusProxying, got %d", s)
-		return fmt.Errorf("unexpected status %d", s)
+		t.log("quit: expecting status StatusProxying, got %d", status)
+		return fmt.Errorf("unexpected status %d", status)
 	}
 
 	t.Lock()
 	defer t.Unlock()
 
-	if t.Status() == StatusProxying {
-		for i := 0; !t.client.flushed(); i++ {
-			t.log("quit: some packages still need to be written (%d)...", i)
-			time.Sleep(time.Millisecond * 100)
-			if i > 10 {
-				t.log("quit: sorry, can't continue waiting...")
-				break
-			}
+	t.SetStatus(StatusClosing)
+
+	t.log("quit: attempt to flush...")
+	for i := 0; !t.client.flushed(); i++ {
+		t.log("quit: some packages still need to be written (%d)...", i)
+		time.Sleep(time.Millisecond * 100)
+		if i > 10 {
+			t.log("quit: sorry, can't continue waiting...")
+			break
 		}
 	}
-
-	t.SetStatus(StatusClosing)
 
 	t.log("quit: connOut.Close()")
 	err := t.connOut.Close()
 	t.log("quit: connOut.Close(): %v", err)
 
-	t.log("quit: close send")
-
 	close(t.send)
-	close(t.ack)
 
 	// Freeing client on the C side.
-	t.log("quit: C.client_close()")
-	C.client_close(t.client.client)
-	t.log("quit: C.client_close(): ok")
+	if status == StatusProxying || true {
+		t.log("quit: C.client_close()")
+		C.client_close(t.client.client)
+		t.log("quit: C.client_close(): ok")
+	} else {
+		t.log("quit: C.client_handle_freed_client()")
+		C.client_handle_freed_client(t.client.client)
+		t.log("quit: C.client_handle_freed_client(): ok")
+	}
 
 	t.SetStatus(StatusClosed)
 
@@ -344,48 +358,6 @@ func (t *tcpClient) enqueue(chunk []byte) error {
 
 	t.log("enqueue: tcp_write. unknown error.")
 	return fmt.Errorf("Unknown error %d", int(err_t))
-}
-
-func (t *tcpClient) enqueue2(chunk []byte) error {
-	clen := len(chunk)
-	cchunk := C.CString(string(chunk))
-	defer C.free(unsafe.Pointer(cchunk))
-
-	sleepTime := time.Millisecond * 80
-
-	var j int
-
-	for j = 0; j < maxEnqueueAttempts; j++ {
-		t.log("enqueue: attempt %d", j)
-
-		err_t := C.tcp_write(t.client.pcb, unsafe.Pointer(cchunk), C.uint16_t(clen), C.TCP_WRITE_FLAG_COPY)
-
-		switch err_t {
-		case C.ERR_OK:
-			t.log("enqueue: ok, enqueued %d bytes", clen)
-			return nil
-		case C.ERR_MEM:
-			t.log("enqueue: C.ERR_MEM")
-			// Could not enqueue anymore data, let's flush it and try again.
-			if err := t.tcpOutput(); err != nil {
-				t.log("enqueue: tcp output: %q", err)
-				return err
-			}
-			// Last part was flushed, now continue and try to write again.
-			t.log("enqueue: sleeping %v", sleepTime)
-			time.Sleep(sleepTime)
-			if sleepTime < maxWaitingTime {
-				sleepTime = sleepTime * 2
-			}
-		default:
-			t.log("enqueue: got unexpected error from tcp_write %q", err_t)
-			return fmt.Errorf("tcp_write: %d", err_t)
-		}
-	}
-
-	t.log("enqueue: giving up after %d/%d", j, maxEnqueueAttempts)
-
-	return fmt.Errorf("Could not flush data. Giving up.")
 }
 
 // flush will keep flushing data until the buffer is empty.
@@ -463,26 +435,12 @@ func (t *TunIO) reader() error {
 		if n > 0 {
 			t.log("D -> C: t.send <- data[0:%d].", n)
 			if t.Status() == StatusProxying {
-				t.client.accWritten(uint64(n))
 				t.send <- data[0:n]
-				//t.log("wait for ack")
-				//<-t.ack
-				//t.log("ack ok")
 			} else {
 				t.log("Already closing...")
 				break
 			}
 		}
-		/*
-			t.log("reader: making sure to flush...")
-			for i := 0; !t.client.flushed(); i++ {
-				t.log("reader: some packages still need to be written (%d)...", i)
-				time.Sleep(time.Millisecond * 10)
-				if i > 10 {
-					t.quit("sorry, can't continue waiting...")
-				}
-			}
-		*/
 	}
 
 	t.quit("reader: closed loop.")
@@ -502,8 +460,7 @@ func NewTunnel(client *C.struct_tcp_client, d dialer) (*TunIO, error) {
 		destAddr:      C.GoString(destAddr),
 		waitForReader: make(chan bool),
 		waitForWriter: make(chan bool),
-		send:          make(chan []byte, 16),
-		ack:           make(chan bool),
+		send:          make(chan []byte),
 	}
 
 	t.SetStatus(StatusConnecting)

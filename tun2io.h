@@ -120,6 +120,8 @@ static void client_logfunc (struct tcp_client *client);
 static void client_log (struct tcp_client *client, int level, const char *fmt, ...);
 static err_t listener_accept_func (void *arg, struct tcp_pcb *newpcb, err_t err);
 static void client_close (struct tcp_client *client);
+static void client_free_client (struct tcp_client *client);
+static void client_handle_freed_client(struct tcp_client *client);
 static void client_err_func (void *arg, err_t err);
 static err_t client_recv_func (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err);
 static err_t client_sent_func (void *arg, struct tcp_pcb *tpcb, u16_t len);
