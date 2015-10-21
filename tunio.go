@@ -150,11 +150,12 @@ type tcpClient struct {
 	written uint64
 	acked   uint64
 	outbuf  bytes.Buffer
+	closed  bool
 }
 
 func (t *tcpClient) flushed() bool {
 	t.log("written: %d, acked: %d", t.written, t.acked)
-	return t.written == t.acked
+	return atomic.AddUint64(&t.written, 0) == atomic.AddUint64(&t.acked, 0)
 }
 
 func (t *tcpClient) accWritten(i uint64) uint64 {
@@ -275,8 +276,6 @@ func (t *TunIO) writer() error {
 		t.writeMessage(message)
 	}
 
-	t.quit("writer: closed loop.")
-
 	t.log("writer: exiting writer")
 	return nil
 }
@@ -305,31 +304,32 @@ func (t *TunIO) quit(reason string) error {
 
 	t.SetStatus(StatusClosing)
 
-	t.log("quit: attempt to flush...")
-	for i := 0; !t.client.flushed(); i++ {
-		t.log("quit: some packages still need to be written (%d)...", i)
-		time.Sleep(time.Millisecond * 100)
-		if i > 10 {
-			t.log("quit: sorry, can't continue waiting...")
-			break
+	if status == StatusProxying {
+		t.log("quit: attempt to flush...")
+		for i := 0; !t.client.flushed(); i++ {
+			t.log("quit: some packages still need to be written (%d)...", i)
+			time.Sleep(time.Millisecond * 100)
+			if i > 10 {
+				t.log("quit: sorry, can't continue waiting...")
+				break
+			}
 		}
+		t.log("quit: looks like the buffer was flushed...")
 	}
 
 	t.log("quit: connOut.Close()")
 	err := t.connOut.Close()
 	t.log("quit: connOut.Close(): %v", err)
 
-	close(t.send)
-
 	// Freeing client on the C side.
-	if status == StatusProxying || true {
+	if status == StatusProxying {
 		t.log("quit: C.client_close()")
 		C.client_close(t.client.client)
 		t.log("quit: C.client_close(): ok")
 	} else {
-		t.log("quit: C.client_handle_freed_client()")
-		C.client_handle_freed_client(t.client.client)
-		t.log("quit: C.client_handle_freed_client(): ok")
+		t.log("quit: C.client_abort_client()")
+		C.client_abort_client(t.client.client)
+		t.log("quit: C.client_abort_client(): ok")
 	}
 
 	t.SetStatus(StatusClosed)
@@ -390,6 +390,7 @@ func (t *tcpClient) flush() error {
 				t.log("flush: buffer is full, let's flush it.")
 				break
 			}
+			t.log("flush: other kind of error, let's abort.")
 			return err
 		}
 	}
@@ -398,10 +399,12 @@ func (t *tcpClient) flush() error {
 }
 
 func (t *tcpClient) tcpOutput() error {
-	t.log("tcpOutput: about to force tcp_output.")
-	err_t := C.tcp_client_output(t.client)
-	if err_t != C.ERR_OK {
-		return fmt.Errorf("tcp_output: %d", int(err_t))
+	if !t.closed {
+		t.log("tcpOutput: about to force tcp_output.")
+		err_t := C.tcp_client_output(t.client)
+		if err_t != C.ERR_OK {
+			return fmt.Errorf("tcp_output: %d", int(err_t))
+		}
 	}
 	return nil
 }
@@ -426,10 +429,11 @@ func (t *TunIO) reader() error {
 			t.log("reader: t.connOut.Read: %q", err)
 			if err == io.EOF {
 				// Maybe wait for the buffer to fail or flush?
-				t.SetStatus(StatusServerClosed)
+				//t.SetStatus(StatusServerClosed)
+				t.client.closed = true
 				t.log("reader: server closed connection.")
 			}
-			break
+			return err
 		}
 		t.log("reader: got read %d, %q", n, err)
 		if n > 0 {
@@ -443,9 +447,8 @@ func (t *TunIO) reader() error {
 		}
 	}
 
-	t.quit("reader: closed loop.")
-
 	t.log("reader: exiting reader.")
+
 	return nil
 }
 
@@ -460,7 +463,7 @@ func NewTunnel(client *C.struct_tcp_client, d dialer) (*TunIO, error) {
 		destAddr:      C.GoString(destAddr),
 		waitForReader: make(chan bool),
 		waitForWriter: make(chan bool),
-		send:          make(chan []byte),
+		send:          make(chan []byte, 16),
 	}
 
 	t.SetStatus(StatusConnecting)
@@ -526,10 +529,9 @@ func goInitTunnel(tunno C.uint32_t) C.int {
 	go func() {
 		addReader(t)
 		t.log("goreader: start.")
-		if err := t.reader(); err != nil {
-			t.quit(fmt.Sprintf("goreader: error: %q", err))
-		}
-		t.log("goreader: exit")
+		err := t.reader()
+		t.log("goreader: exit with error: %q", err)
+		close(t.send)
 		delReader(t)
 	}()
 
@@ -538,6 +540,8 @@ func goInitTunnel(tunno C.uint32_t) C.int {
 		t.log("gowriter: start.")
 		if err := t.writer(); err != nil {
 			t.quit(fmt.Sprintf("gowriter: error: %q", err))
+		} else {
+			t.quit("writer: closed loop.")
 		}
 		t.log("gowriter: exit")
 		delWriter(t)
@@ -564,11 +568,6 @@ func goTunnelWrite(tunno C.uint32_t, write *C.char, size C.size_t) C.int {
 	t.Lock()
 	defer t.Unlock()
 
-	if t.Status() != StatusProxying {
-		t.log("expecting status StatusProxying, got %d", t.Status())
-		return C.ERR_ABRT
-	}
-
 	if ok {
 		size := int(size)
 		buf := make([]byte, size)
@@ -577,6 +576,11 @@ func goTunnelWrite(tunno C.uint32_t, write *C.char, size C.size_t) C.int {
 		}
 
 		t.log("connOut.Write: %d bytes", len(buf))
+
+		if s := t.Status(); s != StatusProxying {
+			t.log("expecting status StatusProxying, got %d", s)
+			return C.ERR_ABRT
+		}
 
 		t.connOut.SetWriteDeadline(time.Now().Add(ioTimeout))
 		_, err := t.connOut.Write(buf)
@@ -591,6 +595,11 @@ func goTunnelWrite(tunno C.uint32_t, write *C.char, size C.size_t) C.int {
 	log.Printf("%d: client is not registered!", int(tunno))
 
 	return C.ERR_ABRT
+}
+
+//export goInspect
+func goInspect(data *C.struct_tcp_pcb) {
+	log.Printf("INSPECT: %#v", data)
 }
 
 //export goLog
@@ -613,7 +622,7 @@ func goLog(client *C.struct_tcp_client, c *C.char) {
 		return
 	}
 
-	t.log(s)
+	t.log(fmt.Sprintf("C: %s", s))
 }
 
 //export goTunnelSentACK
@@ -630,10 +639,8 @@ func goTunnelSentACK(tunno C.uint32_t, dlen C.u16_t) C.int {
 		return C.ERR_ABRT
 	}
 
-	if t.Status() == StatusProxying {
-		t.log("goTunnelSentACK: acknowledging %d...", int(dlen))
-		t.client.accAcked(uint64(dlen))
-	}
+	t.log("goTunnelSentACK: acknowledging %d...", int(dlen))
+	t.client.accAcked(uint64(dlen))
 
 	t.log("goTunnelSentACK: wrote ack %d...", int(dlen))
 

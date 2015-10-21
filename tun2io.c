@@ -597,7 +597,7 @@ err_t listener_accept_func (void *arg, struct tcp_pcb *newpcb, err_t err)
 	SYNC_COMMIT
 	DEAD_LEAVE2(client->dead_client)
 	if (DEAD_KILLED) {
-			return ERR_ABRT;
+		return ERR_ABRT;
 	}
 
   return ERR_OK;
@@ -612,10 +612,8 @@ static void client_handle_freed_client(struct tcp_client *client)
     return;
   }
 
-	if (!client->client_closed) {
-    client->client_closed = 1;
-    goTunnelDestroy(client->tunnel_id);
-	}
+  client->client_closed = 1;
+  goTunnelDestroy(client->tunnel_id);
 
 	free(client);
 }
@@ -644,8 +642,10 @@ void client_close(struct tcp_client *client)
 static void client_free_client (struct tcp_client *client)
 {
     ASSERT(!client->client_closed)
+    goLog(client, "client_free_client");
 
     // free pcb
+    goLog(client, "attempt to tcp_close");
     err_t err = tcp_close(client->pcb);
     if (err != ERR_OK) {
       goLog(client, "client_close(): tcp_close: NOT OK, aborting...");
@@ -685,12 +685,12 @@ static err_t client_recv_func(void *arg, struct tcp_pcb *pcb, struct pbuf *p, er
   }
 
   if (!p) {
-    client_close(client);
+		goLog(client, "not p!");
+    client_free_client(client);
     return ERR_ABRT;
   }
 
   ASSERT(p->tot_len > 0)
-
 
 	SYNC_DECL
 	SYNC_FROMHERE
@@ -758,6 +758,28 @@ static int tcp_client_sndbuf(struct tcp_client *client) {
   return tcp_sndbuf(client->pcb);
 }
 
+static void client_dealloc (struct tcp_client *client)
+{
+	ASSERT(client->client_closed)
+	free(client);
+}
+
+static void client_abort_client (struct tcp_client *client)
+{
+    ASSERT(!client->client_closed)
+    goLog(client, "client_abort_client.");
+
+    // remove callbacks
+    tcp_err(client->pcb, NULL);
+    tcp_recv(client->pcb, NULL);
+    tcp_sent(client->pcb, NULL);
+
+    // free pcb
+    tcp_abort(client->pcb);
+
+    client_handle_freed_client(client);
+}
+
 static int tcp_client_output(struct tcp_client *client) {
   if (client == NULL) {
     BLog(BLOG_ERROR, "tcp_client_output(): client is nil.");
@@ -771,6 +793,9 @@ static int tcp_client_output(struct tcp_client *client) {
 
 	if (client->pcb) {
 		goLog(client, "tcp_output: actually forcing output...");
+
+		goInspect(client->pcb);
+
 		err_t err =  tcp_output(client->pcb);
 
 		goLog(client, "tcp_output: forced!");

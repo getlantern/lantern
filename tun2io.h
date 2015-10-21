@@ -123,6 +123,8 @@ static void client_close (struct tcp_client *client);
 static void client_free_client (struct tcp_client *client);
 static void client_handle_freed_client(struct tcp_client *client);
 static void client_err_func (void *arg, err_t err);
+static void client_abort_client (struct tcp_client *client);
+static void client_dealloc (struct tcp_client *client);
 static err_t client_recv_func (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err);
 static err_t client_sent_func (void *arg, struct tcp_pcb *tpcb, u16_t len);
 static int setup_listener(options_t);
@@ -133,6 +135,7 @@ int goTunnelWrite(uint32_t tunno, char *data, size_t size);
 int goTunnelDestroy(uint32_t tunno);
 int goTunnelSentACK(uint32_t tunno, u16_t len);
 int goInitTunnel(uint32_t tunno);
+void goInspect(struct tcp_pcb *tpcb);
 void goLog(struct tcp_client *client, char *data);
 
 static char *dump_dest_addr(struct tcp_client *client);
