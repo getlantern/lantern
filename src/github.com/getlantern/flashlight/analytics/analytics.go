@@ -9,6 +9,7 @@ import (
 
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/pubsub"
+	"github.com/getlantern/flashlight/settings"
 	"github.com/getlantern/flashlight/util"
 
 	"github.com/getlantern/golog"
@@ -24,24 +25,24 @@ var (
 )
 
 func Configure(cfg *config.Config, version string) func() {
-	if cfg.AutoReport != nil && *cfg.AutoReport {
+	if settings.IsAutoReport() {
 		addr := ""
 		pubsub.Sub(pubsub.IP, func(ip string) {
 			log.Debugf("Got IP %v -- starting analytics", ip)
 			addr = ip
-			go startSession(ip, version, cfg.Addr, cfg.InstanceId)
+			go startSession(ip, version, cfg.Addr, settings.GetInstanceID())
 		})
 		return func() {
 			if addr != "" {
 				log.Debugf("Ending analytics session with ip %v", addr)
-				endSession(addr, version, cfg.Addr, cfg.InstanceId)
+				endSession(addr, version, cfg.Addr, settings.GetInstanceID())
 			}
 		}
 	}
 	return func() {}
 }
 
-func sessionVals(ip string, version string, clientId string, sc string) string {
+func sessionVals(ip, version, clientId, sc string) string {
 	vals := make(url.Values, 0)
 
 	vals.Add("v", "1")

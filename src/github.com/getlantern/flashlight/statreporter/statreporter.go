@@ -10,8 +10,6 @@ import (
 	"time"
 
 	"github.com/getlantern/golog"
-
-	"github.com/getlantern/flashlight/globals"
 )
 
 const (
@@ -55,14 +53,14 @@ type reportPoster func(report report) error
 
 // Start runs a goroutine that periodically coalesces the collected statistics
 // and reports them to statshub via HTTPS post
-func Configure(cfg *Config) error {
+func Configure(cfg *Config, instanceID string) error {
 	if cfg.StatshubAddr == "" {
 		return fmt.Errorf("Must specify StatshubAddr if reporting stats")
 	}
-	return doConfigure(cfg, posterForDimGroupStats(cfg))
+	return doConfigure(cfg, posterForDimGroupStats(cfg, instanceID), instanceID)
 }
 
-func doConfigure(cfg *Config, poster reportPoster) error {
+func doConfigure(cfg *Config, poster reportPoster, instanceID string) error {
 	cfgMutex.Lock()
 	defer cfgMutex.Unlock()
 
@@ -84,11 +82,11 @@ func doConfigure(cfg *Config, poster reportPoster) error {
 		return nil
 	}
 
-	if globals.InstanceId == "" {
+	if instanceID == "" {
 		return fmt.Errorf("Must specify InstanceId if reporting stats")
 	}
 
-	log.Debugf("Reporting stats to %s every %s under instance id '%s'", cfg.StatshubAddr, cfg.ReportingPeriod, globals.InstanceId)
+	log.Debugf("Reporting stats to %s every %s under instance id '%s'", cfg.StatshubAddr, cfg.ReportingPeriod, instanceID)
 	currentReporter = &reporter{
 		cfg:    cfg,
 		poster: poster,
@@ -229,14 +227,14 @@ func (dgAccum *dimGroupAccumulator) makeReport() report {
 	return report
 }
 
-func posterForDimGroupStats(cfg *Config) reportPoster {
+func posterForDimGroupStats(cfg *Config, instanceID string) reportPoster {
 	return func(report report) error {
 		jsonBytes, err := json.Marshal(report)
 		if err != nil {
 			return fmt.Errorf("Unable to marshal json for stats: %s", err)
 		}
 
-		url := fmt.Sprintf(statshubUrlTemplate, cfg.StatshubAddr, globals.InstanceId)
+		url := fmt.Sprintf(statshubUrlTemplate, cfg.StatshubAddr, instanceID)
 		resp, err := http.Post(url, "application/json", bytes.NewReader(jsonBytes))
 		if err != nil {
 			return fmt.Errorf("Unable to post stats to statshub: %s", err)

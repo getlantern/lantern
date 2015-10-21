@@ -14,19 +14,15 @@ import (
 	"strings"
 	"time"
 
-	"code.google.com/p/go-uuid/uuid"
-
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/keyman"
-	"github.com/getlantern/launcher"
 	"github.com/getlantern/proxiedsites"
 	"github.com/getlantern/yaml"
 	"github.com/getlantern/yamlconf"
 
 	"github.com/getlantern/flashlight/client"
-	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/statreporter"
 	"github.com/getlantern/flashlight/util"
@@ -60,12 +56,9 @@ type Config struct {
 	CloudConfigCA string
 	Addr          string
 	Role          string
-	InstanceId    string
 	CpuProfile    string
 	MemProfile    string
 	UIAddr        string // UI HTTP server address
-	AutoReport    *bool  // Report anonymous usage to GA
-	AutoLaunch    *bool  // Automatically launch Lantern on system startup
 	Stats         *statreporter.Config
 	Server        *server.ServerConfig
 	Client        *client.ClientConfig
@@ -208,10 +201,6 @@ func Init(version string) (*Config, error) {
 		log.Errorf("Error initializing config: %v", err)
 	} else {
 		cfg = initial.(*Config)
-		err = updateGlobals(cfg)
-		if err != nil {
-			return nil, err
-		}
 	}
 	log.Debugf("Returning config")
 	return cfg, err
@@ -254,17 +243,8 @@ func Run(updateHandler func(updated *Config)) error {
 	for {
 		next := m.Next()
 		nextCfg := next.(*Config)
-		err := updateGlobals(nextCfg)
-		if err != nil {
-			return err
-		}
 		updateHandler(nextCfg)
 	}
-}
-
-func updateGlobals(cfg *Config) error {
-	globals.InstanceId = cfg.InstanceId
-	return nil
 }
 
 // Update updates the configuration using the given mutator function.
@@ -340,10 +320,6 @@ func (cfg *Config) ApplyDefaults() {
 		cfg.CloudConfig = chainedCloudConfigUrl
 	}
 
-	if cfg.InstanceId == "" {
-		cfg.InstanceId = uuid.New()
-	}
-
 	// Make sure we always have a stats config
 	if cfg.Stats == nil {
 		cfg.Stats = &statreporter.Config{}
@@ -411,17 +387,6 @@ func (cfg *Config) applyClientDefaults() {
 		for key, fb := range fallbacks {
 			cfg.Client.ChainedServers[key] = fb
 		}
-	}
-
-	if cfg.AutoReport == nil {
-		cfg.AutoReport = new(bool)
-		*cfg.AutoReport = true
-	}
-
-	if cfg.AutoLaunch == nil {
-		cfg.AutoLaunch = new(bool)
-		*cfg.AutoLaunch = true
-		launcher.CreateLaunchFile(*cfg.AutoLaunch)
 	}
 
 	// Make sure all servers have a QOS and Weight configured

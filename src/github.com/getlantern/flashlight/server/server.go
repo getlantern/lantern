@@ -20,7 +20,6 @@ import (
 	"github.com/getlantern/yaml"
 	"github.com/hashicorp/golang-lru"
 
-	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/statreporter"
 	"github.com/getlantern/flashlight/statserver"
 )
@@ -123,7 +122,7 @@ func (server *Server) Configure(newCfg *ServerConfig) {
 	server.cfg = newCfg
 }
 
-func (server *Server) ListenAndServe(updateConfig func(func(*ServerConfig) error)) error {
+func (server *Server) ListenAndServe(updateConfig func(func(*ServerConfig) error), instanceID string) error {
 
 	fs := &fronted.Server{
 		Addr:                       server.Addr,
@@ -165,11 +164,11 @@ func (server *Server) ListenAndServe(updateConfig func(func(*ServerConfig) error
 
 	// Add callbacks to track bytes given
 	fs.OnBytesReceived = func(ip string, destAddr string, req *http.Request, bytes int64) {
-		onBytesGiven(destAddr, req, bytes)
+		onBytesGiven(destAddr, req, bytes, instanceID)
 		statserver.OnBytesReceived(ip, bytes)
 	}
 	fs.OnBytesSent = func(ip string, destAddr string, req *http.Request, bytes int64) {
-		onBytesGiven(destAddr, req, bytes)
+		onBytesGiven(destAddr, req, bytes, instanceID)
 		statserver.OnBytesSent(ip, bytes)
 	}
 
@@ -178,12 +177,12 @@ func (server *Server) ListenAndServe(updateConfig func(func(*ServerConfig) error
 		return fmt.Errorf("Unable to listen at %s: %s", server.Addr, err)
 	}
 
-	go server.register(updateConfig)
+	go server.register(updateConfig, instanceID)
 
 	return fs.Serve(l)
 }
 
-func (server *Server) register(updateConfig func(func(*ServerConfig) error)) {
+func (server *Server) register(updateConfig func(func(*ServerConfig) error), instanceID string) {
 	supportedFronts := make([]string, 0, len(frontingProviders))
 	for name := range frontingProviders {
 		supportedFronts = append(supportedFronts, name)
@@ -199,13 +198,13 @@ func (server *Server) register(updateConfig func(func(*ServerConfig) error)) {
 		}
 		server.cfgMutex.RUnlock()
 		if baseUrl != "" {
-			if globals.InstanceId == "" {
+			if instanceID == "" {
 				log.Error("Unable to register server because no InstanceId is configured")
 			} else {
 				log.Debugf("Registering server at %v", baseUrl)
 				registerUrl := baseUrl + "/register"
 				vals := url.Values{
-					"name":   []string{globals.InstanceId},
+					"name":   []string{instanceID},
 					"port":   []string{port},
 					"fronts": supportedFronts,
 				}
@@ -387,14 +386,14 @@ func determineInternalIP() (string, error) {
 	return host, err
 }
 
-func onBytesGiven(destAddr string, req *http.Request, bytes int64) {
+func onBytesGiven(destAddr string, req *http.Request, bytes int64, instanceID string) {
 	host, port, _ := net.SplitHostPort(destAddr)
 	if port == "" {
 		port = "0"
 	}
 
 	given := statreporter.CountryDim().
-		And("flserver", globals.InstanceId).
+		And("flserver", instanceID).
 		And("destport", port)
 	given.Increment("bytesGiven").Add(bytes)
 	given.Increment("bytesGivenByFlashlight").Add(bytes)

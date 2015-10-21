@@ -35,9 +35,9 @@ type BootstrapSettings struct {
 	StartupUrl string
 }
 
-// ReadSettings reads packaged settings from pre-determined paths
+// ReadBootstrapSettings reads packaged settings from pre-determined paths
 // on the various OSes.
-func ReadSettings() (*BootstrapSettings, error) {
+func ReadBootstrapSettings() (*BootstrapSettings, error) {
 	_, yamlPath, err := bootstrapPath(name)
 	if err != nil {
 		return &BootstrapSettings{}, err
