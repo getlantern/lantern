@@ -214,6 +214,7 @@ static int setup_listener (options_t options)
   // enter event loop
   BLog(BLOG_NOTICE, "entering event loop");
   BReactor_Exec(&ss);
+  BLog(BLOG_NOTICE, "exiting event loop");
 
   // free listener
   if (listener_ip6) {
@@ -450,7 +451,7 @@ err_t netif_output_ip6_func (struct netif *netif, struct pbuf *p, ip6_addr_t *ip
 
 err_t common_netif_output (struct netif *netif, struct pbuf *p)
 {
-  SYNC_DECL
+  //SYNC_DECL
 
   BLog(BLOG_DEBUG, "device write: send packet");
 
@@ -465,9 +466,9 @@ err_t common_netif_output (struct netif *netif, struct pbuf *p)
       return ERR_OK;
     }
 
-    SYNC_FROMHERE
+    //SYNC_FROMHERE
     BTap_Send(&device, (uint8_t *)p->payload, p->len);
-    SYNC_COMMIT
+    //SYNC_COMMIT
   } else {
     int len = 0;
     do {
@@ -479,9 +480,9 @@ err_t common_netif_output (struct netif *netif, struct pbuf *p)
       len += p->len;
     } while (p = p->next);
 
-    SYNC_FROMHERE
+    //SYNC_FROMHERE
     BTap_Send(&device, device_write_buf, len);
-    SYNC_COMMIT
+    //SYNC_COMMIT
   }
 
   return ERR_OK;
@@ -556,10 +557,21 @@ err_t listener_accept_func (void *arg, struct tcp_pcb *newpcb, err_t err)
 #endif
 
   // Init Go tunnel.
+  client->tunnel_id = 0;
+
 #ifdef CGO
   switch (client->remote_addr.type) {
     case BADDR_TYPE_IPV4:
       client->tunnel_id = goNewTunnel(client);
+      if (client->tunnel_id == 0) {
+        BLog(BLOG_ERROR, "could not create new tunnel.");
+        return ERR_MEM;
+      }
+      err_t err = goInitTunnel(client->tunnel_id);
+      if (err != ERR_OK) {
+        BLog(BLOG_ERROR, "could not initialize tunnel.");
+        return ERR_ABRT;
+      }
     break;
   }
 #endif
@@ -576,49 +588,105 @@ err_t listener_accept_func (void *arg, struct tcp_pcb *newpcb, err_t err)
   // setup handlers
   tcp_err(client->pcb, client_err_func);
   tcp_recv(client->pcb, client_recv_func);
-  //tcp_sent(client->pcb, client_sent_func);
+  tcp_sent(client->pcb, client_sent_func);
+
+  goLog(client, "accepted.");
 
   // setup buffer
   client->buf_used = 0;
 
+  //DEAD_ENTER(client->dead_client)
+  //SYNC_COMMIT
+
+  //DEAD_LEAVE2(client->dead_client)
+  //if (DEAD_KILLED) {
+  //  return ERR_ABRT;
+  //}
+
   return ERR_OK;
+}
+
+static void client_handle_freed_client(struct tcp_client *client)
+{
+  goLog(client, "client_handle_freed_client(): requested");
+
+  if (client == NULL) {
+    goLog(client, "client_handle_freed_client(): can't close client, is nil.");
+    return;
+  }
+
+  goLog(client, "client_handle_freed_client(): calling destroy");
+  err_t err = goTunnelDestroy(client->tunnel_id);
+
+  if (err == ERR_OK) {
+
+    goLog(client, "client_handle_freed_client(): marking as closed");
+    client->client_closed = 1;
+
+    goLog(client, "client_handle_freed_client(): unsetting tunnel_id");
+    client->tunnel_id = 0;
+
+    goLog(client, "client_handle_freed_client(): free");
+    free(client);
+  } else {
+    goLog(client, "client_handle_freed_client(): could not destroy");
+  }
 }
 
 void client_close(struct tcp_client *client)
 {
-  if (client != NULL) {
+  goLog(client, "client_close(): requested");
+
+  if (client == NULL) {
+    goLog(client, "client_close(): can't close client, is nil.");
     return;
   }
 
-  client_log(client, BLOG_INFO, "client closed");
+  goLog(client, "client_close(): closing client.");
 
   // free client
   if (!client->client_closed) {
-    // set client closed
-    client->client_closed = 1;
+    // actually closing client.
+    goLog(client, "client_close(): client_free_client.");
+    client_free_client(client);
+  } else {
+    goLog(client, "client_close(): already closed.");
+  }
+
+}
+
+static void client_free_client (struct tcp_client *client)
+{
+    ASSERT(!client->client_closed)
+    goLog(client, "client_free_client");
 
     // remove callbacks
+    goLog(client, "remove callbacks");
     tcp_err(client->pcb, NULL);
     tcp_recv(client->pcb, NULL);
     tcp_sent(client->pcb, NULL);
 
-    // abort
-    tcp_abort(client->pcb);
+    // free pcb
+    goLog(client, "attempt to tcp_close");
+    err_t err = tcp_close(client->pcb);
+    if (err != ERR_OK) {
+      goLog(client, "client_close(): tcp_close: NOT OK, aborting...");
+      tcp_abort(client->pcb);
+    }
 
-    goTunnelDestroy(client->tunnel_id);
-  }
-
-  free(client);
+    client_handle_freed_client(client);
 }
 
 void client_err_func (void *arg, err_t err)
 {
   struct tcp_client *client = (struct tcp_client *)arg;
+  goLog(client, "client_err_func!");
+
   ASSERT(!client->client_closed)
 
   client_log(client, BLOG_INFO, "client error (%d)", (int)err);
 
-  client_close(client);
+  client_handle_freed_client(client);
 }
 
 static err_t client_recv_func(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err)
@@ -634,14 +702,29 @@ static err_t client_recv_func(void *arg, struct tcp_pcb *pcb, struct pbuf *p, er
   }
 
   if (!p) {
-    client_close(client);
+    goLog(client, "not p!");
+    client_free_client(client);
     return ERR_ABRT;
   }
 
   ASSERT(p->tot_len > 0)
 
+  //SYNC_DECL
+  //SYNC_FROMHERE
+
   err_t werr;
   werr = goTunnelWrite(client->tunnel_id, p->payload, p->len);
+
+  if (werr == ERR_OK) {
+    tcp_recved(client->pcb, p->len);
+  }
+
+  //DEAD_ENTER(client->dead_client)
+  //SYNC_COMMIT
+  //DEAD_LEAVE2(client->dead_client)
+  //if (DEAD_KILLED) {
+  //    return ERR_ABRT;
+  //}
 
   pbuf_free(p);
 
@@ -655,9 +738,30 @@ err_t client_sent_func (void *arg, struct tcp_pcb *tpcb, u16_t len)
   ASSERT(!client->client_closed)
   ASSERT(len > 0)
 
-  client_log(client, BLOG_INFO, "got data received...");
+  if (client == NULL) {
+    BLog(BLOG_ERROR, "client_sent_func(): client is nil.");
+    return ERR_ABRT;
+  }
 
-  return ERR_OK;
+  if (client->client_closed) {
+    goLog(client, "client_sent_func(): client is closed.");
+    return ERR_ABRT;
+  }
+
+  goLog(client, "got data ack...");
+
+  //SYNC_DECL
+  //SYNC_FROMHERE
+
+  //DEAD_ENTER(client->dead_client)
+  //SYNC_COMMIT
+  //DEAD_LEAVE2(client->dead_client)
+  //if (DEAD_KILLED) {
+  //    goLog(client, "dead killed");
+  //    return ERR_ABRT;
+  //}
+
+  return goTunnelSentACK(client->tunnel_id, len);
 }
 
 // dump_dest_addr dumps the client's local address into an string.
@@ -666,4 +770,60 @@ static char *dump_dest_addr(struct tcp_client *client) {
   addr = malloc(sizeof(char)*BADDR_MAX_ADDR_LEN);
   BAddr_Print(&client->local_addr, addr);
   return addr;
+}
+
+static int tcp_client_sndbuf(struct tcp_client *client) {
+  return tcp_sndbuf(client->pcb);
+}
+
+static void client_dealloc (struct tcp_client *client)
+{
+  ASSERT(client->client_closed)
+  free(client);
+}
+
+static void client_abort_client (struct tcp_client *client)
+{
+    ASSERT(!client->client_closed)
+    goLog(client, "client_abort_client.");
+
+    // remove callbacks
+    tcp_err(client->pcb, NULL);
+    tcp_recv(client->pcb, NULL);
+    tcp_sent(client->pcb, NULL);
+
+    // free pcb
+    tcp_abort(client->pcb);
+
+    client_handle_freed_client(client);
+}
+
+static int tcp_client_output(struct tcp_client *client) {
+  if (client == NULL) {
+    BLog(BLOG_ERROR, "tcp_client_output(): client is nil.");
+    return ERR_ABRT;
+  }
+
+  if (client->client_closed) {
+    goLog(client, "tcp_client_output(): client is closed.");
+    return ERR_ABRT;
+  }
+
+  if (client->pcb) {
+    goLog(client, "tcp_output: actually forcing output...");
+
+    goInspect(client->pcb);
+
+    err_t err =  tcp_output(client->pcb);
+
+    goLog(client, "tcp_output: forced!");
+    if (err != ERR_OK) {
+      goLog(client, "tcp_output: failed!");
+      return -1;
+    }
+  } else {
+    goLog(client, "tcp_output: no pcb!");
+  }
+
+  return ERR_OK;
 }

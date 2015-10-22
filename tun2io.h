@@ -38,7 +38,7 @@
 
 #include <misc/version.h>
 #include <misc/loglevel.h>
-#include <misc/dead.h>
+//#include <misc/dead.h>
 #include <misc/ipv4_proto.h>
 #include <misc/ipv6_proto.h>
 #include <misc/open_standard_streams.h>
@@ -93,8 +93,8 @@ options_t options;
 
 // TCP client
 struct tcp_client {
-  dead_t dead;
-  dead_t dead_client;
+  //dead_t dead;
+  //dead_t dead_client;
   BAddr local_addr;
   BAddr remote_addr;
   struct tcp_pcb *pcb;
@@ -120,7 +120,11 @@ static void client_logfunc (struct tcp_client *client);
 static void client_log (struct tcp_client *client, int level, const char *fmt, ...);
 static err_t listener_accept_func (void *arg, struct tcp_pcb *newpcb, err_t err);
 static void client_close (struct tcp_client *client);
+static void client_free_client (struct tcp_client *client);
+static void client_handle_freed_client(struct tcp_client *client);
 static void client_err_func (void *arg, err_t err);
+static void client_abort_client (struct tcp_client *client);
+static void client_dealloc (struct tcp_client *client);
 static err_t client_recv_func (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err);
 static err_t client_sent_func (void *arg, struct tcp_pcb *tpcb, u16_t len);
 static int setup_listener(options_t);
@@ -129,7 +133,15 @@ static int configure(char *tundev, char *ipaddr, char *netmask);
 uint32_t goNewTunnel(struct tcp_client *client);
 int goTunnelWrite(uint32_t tunno, char *data, size_t size);
 int goTunnelDestroy(uint32_t tunno);
+int goTunnelSentACK(uint32_t tunno, u16_t len);
+int goInitTunnel(uint32_t tunno);
+void goInspect(struct tcp_pcb *tpcb);
+void goLog(struct tcp_client *client, char *data);
 
 static char *dump_dest_addr(struct tcp_client *client);
+
+static char charAt(char *in, int i);
+static int tcp_client_sndbuf(struct tcp_client *client);
+static int tcp_client_outbuf(struct tcp_client *client);
 
 #endif

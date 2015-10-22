@@ -24,3 +24,4 @@ sudo route add 8.8.8.8 gw $ORIGINAL_GW metric 5
 sudo route add 8.8.4.4 gw $ORIGINAL_GW metric 5
 sudo route add $HOST_IP gw $ORIGINAL_GW metric 5
 sudo route add default gw $DEVICE_GW_IP metric 6
+sudo route del default gw $ORIGINAL_GW
