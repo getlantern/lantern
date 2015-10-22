@@ -60,8 +60,13 @@ public class PromptVpnActivity extends Activity {
     protected void onActivityResult(int request, int response, Intent data) {
         super.onActivityResult(request, response, data);
 
-        if (request == REQUEST_VPN && response == RESULT_OK)
-        {
+        if (request == REQUEST_VPN) {
+            if (response != RESULT_OK) {
+                UI.toggleSwitch(false);
+                finish();
+                return;
+            }
+    
             UI.toggleSwitch(true);
 
             Handler h = new Handler();
@@ -73,9 +78,6 @@ public class PromptVpnActivity extends Activity {
                     finish();
                 }
             }, 1000);
-        } else if (request == REQUEST_VPN) {
-            UI.toggleSwitch(false);
-            finish();
         }
     }
 
