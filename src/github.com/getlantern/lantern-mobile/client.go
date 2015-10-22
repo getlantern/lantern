@@ -8,6 +8,7 @@ import (
 	"github.com/getlantern/analytics"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/logging"
+	"github.com/getlantern/flashlight/settings"
 	"github.com/getlantern/flashlight/util"
 
 	"github.com/getlantern/golog"
@@ -46,6 +47,7 @@ func init() {
 	if revisionDate == "" {
 		revisionDate = "now"
 	}
+	settings.Load(version, revisionDate, "")
 }
 
 // newClient creates a proxy client.
