@@ -38,7 +38,7 @@
 
 #include <misc/version.h>
 #include <misc/loglevel.h>
-#include <misc/dead.h>
+//#include <misc/dead.h>
 #include <misc/ipv4_proto.h>
 #include <misc/ipv6_proto.h>
 #include <misc/open_standard_streams.h>
@@ -93,8 +93,8 @@ options_t options;
 
 // TCP client
 struct tcp_client {
-  dead_t dead;
-  dead_t dead_client;
+  //dead_t dead;
+  //dead_t dead_client;
   BAddr local_addr;
   BAddr remote_addr;
   struct tcp_pcb *pcb;
