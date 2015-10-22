@@ -5,15 +5,12 @@ import android.app.FragmentManager;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.Context;
-import android.content.pm.ApplicationInfo; 
-import android.content.pm.LabeledIntent;
-import android.content.pm.ResolveInfo;
+
 import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Parcelable;
 import android.os.Message;
 import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
@@ -49,9 +46,9 @@ import android.view.ViewGroup;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 import org.getlantern.lantern.activity.LanternMainActivity;
 import org.getlantern.lantern.config.LanternConfig;
@@ -60,7 +57,7 @@ import org.getlantern.lantern.service.LanternVpn;
 
 public class UI {
 
-    private static final String TAG = "SideMenu";
+    private static final String TAG = "UI";
 
     private ArrayList<NavItem> mNavItems;
     private Map<String, Command> menuMap;
@@ -80,6 +77,9 @@ public class UI {
     private Toast statusToast;
 
     private SharedPreferences mPrefs = null;
+    final private Shareable shareable;
+    final private LanternMainActivity activity;
+
     private ToggleButton powerLantern;
 
     private static final int onColor = Color.parseColor("#39C2D6");
@@ -93,7 +93,6 @@ public class UI {
 
 
     private View mainView, desktopView, statusLayout;
-    private LanternMainActivity activity;
 
     public UI(LanternMainActivity activity, SharedPreferences mPrefs) {
         this.mNavItems = new ArrayList<NavItem>();
@@ -111,6 +110,8 @@ public class UI {
 
         this.powerLantern = (ToggleButton)this.activity.findViewById(R.id.powerLantern);
 
+        this.shareable = new Shareable(this.activity);
+
         // DrawerLayout
         this.mDrawerLayout = (DrawerLayout) this.activity.findViewById(R.id.drawerLayout);
 
@@ -122,8 +123,6 @@ public class UI {
     }
 
     public void setupSideMenu() throws Exception {
-
-        final LanternMainActivity activity = this.activity;
 
         mNavItems.add(new NavItem("Share", R.drawable.ic_share));
         mNavItems.add(new NavItem("Desktop Version", R.drawable.ic_desktop));
@@ -144,7 +143,7 @@ public class UI {
         });
 
         menuMap.put("Share", new Command() { 
-            public void runCommand() { activity.customShareOption(); } 
+            public void runCommand() { shareable.showOption(); } 
         });   
 
         // Populate the Navigtion Drawer with options
@@ -200,59 +199,9 @@ public class UI {
         desktopView.setVisibility(View.VISIBLE);
     }
 
-    public File getApkFile(Context context, String packageName) {
-        HashMap<String, String> installedApkFilePaths = getAllInstalledApkFiles(context);
-        File apkFile = new File(installedApkFilePaths.get(packageName));
-        if (apkFile.exists()) {
-            return apkFile;
-        }
-
-        return null;
-    }
-
-    private HashMap<String, String> getAllInstalledApkFiles(Context context) {
-        HashMap<String, String> installedApkFilePaths = new HashMap<>();
-
-        PackageManager packageManager = context.getPackageManager();
-        List<PackageInfo> packageInfoList = packageManager.getInstalledPackages(PackageManager.SIGNATURE_MATCH);
-
-        if (isValid(packageInfoList)) {
-
-            final PackageManager pm = this.activity.getApplicationContext().getPackageManager();
-
-            for (PackageInfo packageInfo : packageInfoList) {
-                ApplicationInfo applicationInfo;
-
-                try {
-                    applicationInfo = pm.getApplicationInfo(packageInfo.packageName, 0);
-
-                    String packageName = applicationInfo.packageName;
-                    String versionName = packageInfo.versionName;
-                    int versionCode = packageInfo.versionCode;
-
-                    File apkFile = new File(applicationInfo.publicSourceDir);
-                    if (apkFile.exists()) {
-                        installedApkFilePaths.put(packageName, apkFile.getAbsolutePath());
-                        Log.d(TAG, packageName + " = " + apkFile.getName());
-                    }
-                } catch (PackageManager.NameNotFoundException error) {
-                    error.printStackTrace();
-                }
-            }
-        }
-
-        return installedApkFilePaths;
-    }
-
-
-    private boolean isValid(List<PackageInfo> packageInfos) {
-        return packageInfos != null && !packageInfos.isEmpty();
-    }
-   
     // opens an e-mail message with some default options
     private void contactOption() {
 
-        File f = getApkFile(this.activity, "org.getlantern.lantern");
         String contactEmail = this.activity.getResources().getString(R.string.contact_email);
 
         Intent intent = new Intent(Intent.ACTION_SEND);
@@ -260,9 +209,6 @@ public class UI {
         intent.putExtra(Intent.EXTRA_EMAIL, new String[] { contactEmail });
         intent.putExtra(Intent.EXTRA_SUBJECT, R.string.contact_subject);
         intent.putExtra(Intent.EXTRA_TEXT, R.string.contact_message);
-
-        Uri uri = Uri.parse("file://" + f);
-        intent.putExtra(Intent.EXTRA_STREAM, uri);
 
         this.activity.startActivity(Intent.createChooser(intent, ""));
     }
