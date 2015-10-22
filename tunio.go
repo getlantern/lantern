@@ -28,6 +28,10 @@ import (
 )
 
 var (
+	debug = false
+)
+
+var (
 	errBufferIsFull = errors.New("Buffer is full.")
 )
 
@@ -48,6 +52,7 @@ var (
 var (
 	writers map[uint32]bool
 	readers map[uint32]bool
+	times   map[uint32]int
 )
 
 var (
@@ -87,8 +92,10 @@ func init() {
 
 	writers = make(map[uint32]bool)
 	readers = make(map[uint32]bool)
+	times = make(map[uint32]int)
 
-	rand.Seed(time.Now().UnixNano())
+	//rand.Seed(time.Now().UnixNano())
+	rand.Seed(1)
 
 	go stats()
 }
@@ -151,6 +158,7 @@ type tcpClient struct {
 	acked   uint64
 	outbuf  bytes.Buffer
 	closed  bool
+	logn    uint64
 }
 
 func (t *tcpClient) flushed() bool {
@@ -167,7 +175,7 @@ func (t *tcpClient) accAcked(i uint64) uint64 {
 }
 
 func (t *tcpClient) log(f string, args ...interface{}) {
-	f = fmt.Sprintf("%d: %s", t.tunnelID(), f)
+	f = fmt.Sprintf("%d: (%04d) %s", t.tunnelID(), atomic.AddUint64(&t.logn, 1), f)
 	log.Printf(f, args...)
 }
 
@@ -178,20 +186,19 @@ func (t *tcpClient) tunnelID() C.uint32_t {
 type Status uint
 
 const (
-	StatusNew Status = iota
-	StatusConnecting
-	StatusConnectionFailed
-	StatusConnected
-	StatusReady
-	StatusProxying
-	StatusServerClosed
-	StatusClosing
-	StatusClosed
+	StatusNew              Status = iota // 0
+	StatusConnecting                     // 1
+	StatusConnectionFailed               // 2
+	StatusConnected                      // 3
+	StatusReady                          // 4
+	StatusProxying                       // 5
+	StatusServerClosed                   // 6
+	StatusClosing                        // 7
+	StatusClosed                         // 8
 )
 
 type TunIO struct {
 	client *tcpClient
-	opMu   sync.Mutex
 
 	destAddr string
 	connOut  net.Conn
@@ -204,7 +211,17 @@ type TunIO struct {
 	waitForReader chan bool
 	waitForWriter chan bool
 
+	writerRunning bool
+	readerRunning bool
+
 	lock sync.Mutex
+}
+
+func (t *TunIO) exitWriter() {
+	if t.writerRunning {
+		t.writerRunning = false
+		close(t.send)
+	}
 }
 
 func (t *TunIO) Lock() {
@@ -271,10 +288,14 @@ func (t *TunIO) writeMessage(message []byte) error {
 func (t *TunIO) writer() error {
 	t.waitForWriter <- true
 
+	t.writerRunning = true
+
 	for message := range t.send {
 		t.log("writer: got send message.")
 		t.writeMessage(message)
 	}
+
+	t.writerRunning = false
 
 	t.log("writer: exiting writer")
 	return nil
@@ -318,6 +339,7 @@ func (t *TunIO) quit(reason string) error {
 	}
 
 	t.log("quit: connOut.Close()")
+	t.exitWriter()
 	err := t.connOut.Close()
 	t.log("quit: connOut.Close(): %v", err)
 
@@ -338,6 +360,10 @@ func (t *TunIO) quit(reason string) error {
 	t.SetStatus(StatusClosed)
 
 	t.log("quit: ok")
+
+	tunnelMu.Lock()
+	delete(tunnels, uint32(t.TunnelID()))
+	tunnelMu.Unlock()
 
 	return nil
 }
@@ -391,14 +417,14 @@ func (t *tcpClient) flush() error {
 		if err := t.enqueue(chunk); err != nil {
 			if err == errBufferIsFull {
 				t.log("flush: buffer is full, let's flush it.")
-				break
+				return t.tcpOutput()
 			}
 			t.log("flush: other kind of error, let's abort.")
 			return err
 		}
 	}
 
-	return t.tcpOutput()
+	return nil
 }
 
 func (t *tcpClient) tcpOutput() error {
@@ -415,7 +441,11 @@ func (t *tcpClient) tcpOutput() error {
 }
 
 func (t *TunIO) log(f string, args ...interface{}) {
-	t.client.log(f, args...)
+	if t.client != nil {
+		t.client.log(f, args...)
+	} else {
+		log.Printf("(??!) "+f, args...)
+	}
 }
 
 // reader is a goroutine that reads whatever the connOut (destination) //
@@ -468,7 +498,7 @@ func NewTunnel(client *C.struct_tcp_client, d dialer) (*TunIO, error) {
 		destAddr:      C.GoString(destAddr),
 		waitForReader: make(chan bool),
 		waitForWriter: make(chan bool),
-		send:          make(chan []byte, 16),
+		send:          make(chan []byte, 8),
 	}
 
 	t.SetStatus(StatusConnecting)
@@ -490,6 +520,8 @@ func NewTunnel(client *C.struct_tcp_client, d dialer) (*TunIO, error) {
 func goNewTunnel(client *C.struct_tcp_client) C.uint32_t {
 	var i uint32
 
+	log.Printf("goNewTunnel (lookup)")
+
 	t, err := NewTunnel(client, Dialer)
 	if err != nil {
 		log.Printf("Could not start tunnel: %q", err)
@@ -502,10 +534,16 @@ func goNewTunnel(client *C.struct_tcp_client) C.uint32_t {
 		i = uint32(rand.Int31())
 		if _, ok := tunnels[i]; !ok {
 			tunnels[i] = t
+			if _, ok := times[i]; !ok {
+				times[i] = 0
+			}
+			times[i]++
 			break
 		}
 	}
 	tunnelMu.Unlock()
+
+	log.Printf("goNewTunnel: %d, (%d)", i, times[i])
 
 	t.SetStatus(StatusReady)
 
@@ -536,7 +574,7 @@ func goInitTunnel(tunno C.uint32_t) C.int {
 		t.log("goreader: start.")
 		err := t.reader()
 		t.log("goreader: exit with error: %q", err)
-		close(t.send)
+		t.exitWriter()
 		delReader(t)
 	}()
 
@@ -554,6 +592,9 @@ func goInitTunnel(tunno C.uint32_t) C.int {
 
 	<-t.waitForReader
 	<-t.waitForWriter
+
+	close(t.waitForReader)
+	close(t.waitForWriter)
 
 	t.SetStatus(StatusProxying)
 
@@ -609,6 +650,9 @@ func goInspect(data *C.struct_tcp_pcb) {
 
 //export goLog
 func goLog(client *C.struct_tcp_client, c *C.char) {
+	if !debug {
+		return
+	}
 	s := C.GoString(c)
 
 	if client == nil {
@@ -667,11 +711,9 @@ func goTunnelDestroy(tunno C.uint32_t) C.int {
 		return C.ERR_ABRT
 	}
 
-	t.quit("goTunnelDestroy: C code request tunnel destruction...")
-
-	tunnelMu.Lock()
-	delete(tunnels, tunID)
-	tunnelMu.Unlock()
+	if err := t.quit("goTunnelDestroy: C code request tunnel destruction..."); err != nil {
+		return C.ERR_ABRT
+	}
 
 	return C.ERR_OK
 }

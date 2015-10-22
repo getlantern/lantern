@@ -557,6 +557,8 @@ err_t listener_accept_func (void *arg, struct tcp_pcb *newpcb, err_t err)
 #endif
 
   // Init Go tunnel.
+	client->tunnel_id = 0;
+
 #ifdef CGO
   switch (client->remote_addr.type) {
     case BADDR_TYPE_IPV4:
@@ -595,10 +597,11 @@ err_t listener_accept_func (void *arg, struct tcp_pcb *newpcb, err_t err)
 
 	DEAD_ENTER(client->dead_client)
 	SYNC_COMMIT
-	DEAD_LEAVE2(client->dead_client)
-	if (DEAD_KILLED) {
-		return ERR_ABRT;
-	}
+
+	//DEAD_LEAVE2(client->dead_client)
+	//if (DEAD_KILLED) {
+	//	return ERR_ABRT;
+	//}
 
   return ERR_OK;
 }
@@ -612,14 +615,22 @@ static void client_handle_freed_client(struct tcp_client *client)
     return;
   }
 
-  goLog(client, "client_handle_freed_client(): marking as closed");
-  client->client_closed = 1;
-
 	goLog(client, "client_handle_freed_client(): calling destroy");
-  goTunnelDestroy(client->tunnel_id);
+  err_t err = goTunnelDestroy(client->tunnel_id);
 
-  goLog(client, "client_handle_freed_client(): free");
-	free(client);
+	if (err == ERR_OK) {
+
+		goLog(client, "client_handle_freed_client(): marking as closed");
+		client->client_closed = 1;
+
+		goLog(client, "client_handle_freed_client(): unsetting tunnel_id");
+		client->tunnel_id = 0;
+
+		goLog(client, "client_handle_freed_client(): free");
+		free(client);
+	} else {
+		goLog(client, "client_handle_freed_client(): could not destroy");
+	}
 }
 
 void client_close(struct tcp_client *client)
