@@ -48,13 +48,10 @@ func Load(version, revisionDate, buildDate string) {
 	// Create default settings that may or may not be overridden from an existing file
 	// on disk.
 	settings = &Settings{
-		Version:      version,
-		BuildDate:    buildDate,
-		RevisionDate: revisionDate,
-		AutoReport:   true,
-		AutoLaunch:   true,
-		ProxyAll:     false,
-		InstanceID:   uuid.New(),
+		AutoReport: true,
+		AutoLaunch: true,
+		ProxyAll:   false,
+		InstanceID: uuid.New(),
 	}
 
 	// Use settings from disk if they're available.
@@ -68,6 +65,10 @@ func Load(version, revisionDate, buildDate string) {
 	if settings.AutoLaunch {
 		launcher.CreateLaunchFile(settings.AutoLaunch)
 	}
+	// always override below 3 attributes as they are not meant to be persisted across versions
+	settings.Version = version
+	settings.BuildDate = buildDate
+	settings.RevisionDate = revisionDate
 
 	// Only configure the UI once. This will typically be the case in the normal
 	// application flow, but tests might call Load twice, for example, which we
