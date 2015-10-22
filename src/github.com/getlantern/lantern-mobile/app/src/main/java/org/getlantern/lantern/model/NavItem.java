@@ -1,4 +1,4 @@
-package org.getlantern.lantern.activity;
+package org.getlantern.lantern.model;
 
 class NavItem {
     String mTitle;

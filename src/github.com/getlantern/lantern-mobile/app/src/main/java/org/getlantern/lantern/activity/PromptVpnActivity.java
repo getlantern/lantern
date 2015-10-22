@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.util.Log;
 
 import org.getlantern.lantern.config.LanternConfig;
+import org.getlantern.lantern.model.UI;
 import org.getlantern.lantern.service.LanternVpn;
 
 public class PromptVpnActivity extends Activity {
@@ -16,6 +17,8 @@ public class PromptVpnActivity extends Activity {
     private final static int REQUEST_VPN = 7777;
     private	Intent intent = null;
 
+    public static UI UI;
+
     @Override
     public void onCreate( Bundle icicle ) {
         super.onCreate( icicle );
@@ -23,6 +26,7 @@ public class PromptVpnActivity extends Activity {
         Log.d(TAG, "Prompting user to start Lantern VPN");
 
         intent = VpnService.prepare(this);
+
         startVpnService();
 
     }
@@ -36,6 +40,8 @@ public class PromptVpnActivity extends Activity {
             startActivityForResult(intent,REQUEST_VPN);
         } else {
             Log.d(TAG, "VPN enabled, starting Lantern...");
+
+            UI.toggleSwitch(true);
 
             Handler h = new Handler();
             h.postDelayed(new Runnable () {
@@ -56,6 +62,8 @@ public class PromptVpnActivity extends Activity {
 
         if (request == REQUEST_VPN && response == RESULT_OK)
         {
+            UI.toggleSwitch(true);
+
             Handler h = new Handler();
             h.postDelayed(new Runnable () {
 
@@ -65,6 +73,9 @@ public class PromptVpnActivity extends Activity {
                     finish();
                 }
             }, 1000);
+        } else if (request == REQUEST_VPN) {
+            UI.toggleSwitch(false);
+            finish();
         }
     }
 

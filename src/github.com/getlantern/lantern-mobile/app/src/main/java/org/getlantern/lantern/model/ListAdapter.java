@@ -1,4 +1,4 @@
-package org.getlantern.lantern.activity;
+package org.getlantern.lantern.model;
  
 import android.content.Context;
 import android.view.LayoutInflater;
