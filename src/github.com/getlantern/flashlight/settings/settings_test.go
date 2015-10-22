@@ -23,15 +23,10 @@ func TestSettings(t *testing.T) {
 }
 
 func TestNotPersistVersion(t *testing.T) {
-	version := "old-version"
+	path = "./test.yaml"
+	version := "version-not-on-disk"
 	revisionDate := "1970-1-1"
 	buildDate := "1970-1-1"
 	Load(version, revisionDate, buildDate)
-	assert.Equal(t, settings.Version, "old-version", "Should be set to version")
-
-	path = "./test.yaml"
-	version = "new-version"
-
-	Load(version, revisionDate, buildDate)
-	assert.Equal(t, settings.Version, "new-version", "Should be set to a new version")
+	assert.Equal(t, settings.Version, version, "Should be set to version")
 }
