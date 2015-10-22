@@ -47,7 +47,6 @@ func init() {
 	if revisionDate == "" {
 		revisionDate = "now"
 	}
-	settings.Load(version, revisionDate, "")
 }
 
 // newClient creates a proxy client.
