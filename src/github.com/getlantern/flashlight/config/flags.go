@@ -6,6 +6,7 @@ import (
 
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/server"
+	"github.com/getlantern/flashlight/settings"
 	"github.com/getlantern/flashlight/statreporter"
 )
 
@@ -59,7 +60,7 @@ func (updated *Config) applyFlags() error {
 		case "role":
 			updated.Role = *role
 		case "instanceid":
-			updated.InstanceId = *instanceid
+			settings.SetInstanceID(*instanceid)
 			// Stats
 		case "statsperiod":
 			updated.Stats.ReportingPeriod = time.Duration(*statsPeriod) * time.Second
@@ -72,7 +73,7 @@ func (updated *Config) applyFlags() error {
 
 		// Client
 		case "proxyall":
-			updated.Client.ProxyAll = *proxyAll
+			settings.SetProxyAll(*proxyAll)
 
 		// Server
 		case "portmap":
