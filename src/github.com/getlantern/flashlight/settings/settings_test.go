@@ -21,3 +21,17 @@ func TestSettings(t *testing.T) {
 
 	assert.Equal(t, settings.AutoLaunch, false, "Should not be set to auto launch")
 }
+
+func TestNotPersistVersion(t *testing.T) {
+	version := "old-version"
+	revisionDate := "1970-1-1"
+	buildDate := "1970-1-1"
+	Load(version, revisionDate, buildDate)
+	assert.Equal(t, settings.Version, "old-version", "Should be set to version")
+
+	path = "./test.yaml"
+	version = "new-version"
+
+	Load(version, revisionDate, buildDate)
+	assert.Equal(t, settings.Version, "new-version", "Should be set to a new version")
+}
