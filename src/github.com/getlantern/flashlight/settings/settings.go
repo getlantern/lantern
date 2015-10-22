@@ -65,7 +65,7 @@ func Load(version, revisionDate, buildDate string) {
 	if settings.AutoLaunch {
 		launcher.CreateLaunchFile(settings.AutoLaunch)
 	}
-	// always override below 3 attributes as it's not meant to persist across versions
+	// always override below 3 attributes as they are not meant to be persisted across versions
 	settings.Version = version
 	settings.BuildDate = buildDate
 	settings.RevisionDate = revisionDate
