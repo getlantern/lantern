@@ -39,11 +39,6 @@ func TestTCP(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer func() {
-		if err := l.Close(); err != nil {
-			fmt.Println("Unable to close listener: %v", err)
-		}
-	}()
 	_, middle, err := Matching("TCP")
 	if err != nil {
 		t.Fatal(err)
@@ -65,7 +60,7 @@ func TestTCP(t *testing.T) {
 	}
 
 	if err := l.Close(); err != nil {
-		t.Fatalf("Unable to close listener", err)
+		t.Fatalf("Unable to close listener: %v", err)
 	}
 	err = middle.AssertDelta(0)
 	if assert.Error(t, err, "Asserting wrong count should fail") {
@@ -80,13 +75,8 @@ func TestWaitUntilNoneMatchOK(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to dial google: %v", err)
 	}
-	defer func() {
-		if err := conn.Close(); err != nil {
-			fmt.Println("Unable to close connection: %v", err)
-		}
-	}()
 
-	wait := 250 * time.Millisecond
+	wait := 50 * time.Millisecond
 	start := time.Now()
 	go func() {
 		time.Sleep(wait)
@@ -95,7 +85,7 @@ func TestWaitUntilNoneMatchOK(t *testing.T) {
 		}
 	}()
 
-	err = WaitUntilNoneMatch("TCP", wait*2)
+	err = WaitUntilNoneMatch("TCP", wait*5)
 	elapsed := time.Now().Sub(start)
 	assert.NoError(t, err, "Waiting should have succeeded")
 	assert.True(t, elapsed >= wait, "Should have waited a while")
@@ -108,11 +98,11 @@ func TestWaitUntilNoneMatchTimeout(t *testing.T) {
 	}
 	defer func() {
 		if err := conn.Close(); err != nil {
-			fmt.Println("Unable to close connection: %v", err)
+			fmt.Printf("Unable to close connection: %v", err)
 		}
 	}()
 
-	wait := 500 * time.Millisecond
+	wait := 200 * time.Millisecond
 	start := time.Now()
 	go func() {
 		time.Sleep(wait)
@@ -121,7 +111,7 @@ func TestWaitUntilNoneMatchTimeout(t *testing.T) {
 		}
 	}()
 
-	err = WaitUntilNoneMatch("TCP", wait/2)
+	err = WaitUntilNoneMatch("TCP", wait/4)
 	elapsed := time.Now().Sub(start)
 	assert.Error(t, err, "Waiting should have failed")
 	assert.True(t, elapsed < wait, "Should have waited less than time to close conn")
