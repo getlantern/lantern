@@ -90,12 +90,12 @@ func (t *TunIO) flush() error {
 func (t *TunIO) writeMessage(message []byte) error {
 	var err error
 	t.client.accWritten(uint64(len(message)))
-	if _, err = t.client.outbuf.Write(message); err != nil {
+	if _, err = t.client.buf.Write(message); err != nil {
 		t.log("writeMessage: could not write buffer: %q", err)
 		return err
 	}
-	for t.client.outbuf.Len() > 0 {
-		t.log("writeMessage: remaining: %d.", t.client.outbuf.Len())
+	for t.client.buf.Len() > 0 {
+		t.log("writeMessage: remaining: %d.", t.client.buf.Len())
 		if err := t.flush(); err != nil {
 			t.log("writerMessage: could not flush: %q", err)
 			return err
@@ -212,7 +212,6 @@ func (t *TunIO) reader() error {
 			if err == io.EOF {
 				// Maybe wait for the buffer to fail or flush?
 				//t.SetStatus(StatusServerClosed)
-				t.client.closed = true
 				t.log("reader: server closed connection.")
 			}
 			return err

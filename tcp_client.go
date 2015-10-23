@@ -15,12 +15,13 @@ import (
 import "C"
 
 type tcpClient struct {
-	client  *C.struct_tcp_client
+	client *C.struct_tcp_client
+
 	written uint64
 	acked   uint64
-	outbuf  bytes.Buffer
-	closed  bool
-	logn    uint64
+
+	buf  bytes.Buffer
+	logn uint64
 }
 
 func (t *tcpClient) flushed() bool {
@@ -71,7 +72,7 @@ func (t *tcpClient) flush() error {
 	t.log("flush: start")
 
 	for {
-		blen := t.outbuf.Len()
+		blen := t.buf.Len()
 		mlen := int(C.tcp_client_sndbuf(t.client))
 
 		if blen > mlen {
@@ -87,7 +88,7 @@ func (t *tcpClient) flush() error {
 		}
 
 		chunk := make([]byte, blen)
-		if _, err := t.outbuf.Read(chunk); err != nil {
+		if _, err := t.buf.Read(chunk); err != nil {
 			return err
 		}
 
@@ -105,14 +106,10 @@ func (t *tcpClient) flush() error {
 }
 
 func (t *tcpClient) tcpOutput() error {
-	if !t.closed {
-		t.log("tcpOutput: about to force tcp_output.")
-		err_t := C.tcp_client_output(t.client)
-		if err_t != C.ERR_OK {
-			return fmt.Errorf("tcp_output: %d", int(err_t))
-		}
-	} else {
-		t.log("tcpOutput: can't force tcp output, closed.")
+	t.log("tcpOutput: about to force tcp_output.")
+	err_t := C.tcp_client_output(t.client)
+	if err_t != C.ERR_OK {
+		return fmt.Errorf("tcp_output: %d", int(err_t))
 	}
 	return nil
 }
