@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"sync"
 	"sync/atomic"
 	"unsafe"
 )
@@ -22,6 +23,10 @@ type tcpClient struct {
 
 	buf  bytes.Buffer
 	logn uint64
+
+	pending bool
+
+	writeLock sync.Mutex
 }
 
 func (t *tcpClient) flushed() bool {
@@ -52,7 +57,10 @@ func (t *tcpClient) enqueue(chunk []byte) error {
 	defer C.free(unsafe.Pointer(cchunk))
 
 	t.log("enqueue: tcp_write.")
+
+	t.writeLock.Lock()
 	err_t := C.tcp_write(t.client.pcb, unsafe.Pointer(cchunk), C.uint16_t(clen), C.TCP_WRITE_FLAG_COPY)
+	t.writeLock.Unlock()
 
 	switch err_t {
 	case C.ERR_OK:
@@ -73,7 +81,15 @@ func (t *tcpClient) flush() error {
 
 	for {
 		blen := t.buf.Len()
+
+		t.writeLock.Lock()
 		mlen := int(C.tcp_client_sndbuf(t.client))
+		t.writeLock.Unlock()
+
+		if mlen == 0 {
+			t.log("flush: mlen = 0!")
+			return errBufferIsFull
+		}
 
 		if blen > mlen {
 			blen = mlen
@@ -107,7 +123,9 @@ func (t *tcpClient) flush() error {
 
 func (t *tcpClient) tcpOutput() error {
 	t.log("tcpOutput: about to force tcp_output.")
+	t.writeLock.Lock()
 	err_t := C.tcp_client_output(t.client)
+	t.writeLock.Unlock()
 	if err_t != C.ERR_OK {
 		return fmt.Errorf("tcp_output: %d", int(err_t))
 	}

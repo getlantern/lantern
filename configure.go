@@ -17,7 +17,7 @@ import (
 import "C"
 
 var (
-	debug = false
+	debug = true
 )
 
 var (

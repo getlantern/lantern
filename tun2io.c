@@ -692,6 +692,7 @@ void client_err_func (void *arg, err_t err)
 static err_t client_recv_func(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err)
 {
   struct tcp_client *client = (struct tcp_client *)arg;
+  goLog(client, "client_recv_func: 1");
 
   if (client->client_closed) {
     return ERR_ABRT;
@@ -715,7 +716,10 @@ static err_t client_recv_func(void *arg, struct tcp_pcb *pcb, struct pbuf *p, er
   err_t werr;
   werr = goTunnelWrite(client->tunnel_id, p->payload, p->len);
 
+	goLog(client, "client_recv_func: 2");
+
   if (werr == ERR_OK) {
+		goLog(client, "client_recv_func: 3");
     tcp_recved(client->pcb, p->len);
   }
 
@@ -799,6 +803,8 @@ static void client_abort_client (struct tcp_client *client)
 }
 
 static int tcp_client_output(struct tcp_client *client) {
+  goLog(client, "tcp_client_output(): start.");
+
   if (client == NULL) {
     BLog(BLOG_ERROR, "tcp_client_output(): client is nil.");
     return ERR_ABRT;

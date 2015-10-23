@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 	"unsafe"
+	//"golang.org/x/net/context"
 )
 
 /*
@@ -32,6 +33,8 @@ type TunIO struct {
 
 	writerRunning bool
 	readerRunning bool
+
+	writeLock sync.Mutex
 
 	lock sync.Mutex
 }
@@ -75,9 +78,18 @@ func (t *TunIO) canFlush() bool {
 func (t *TunIO) flush() error {
 	t.log("flush: request to flush")
 	if t.canFlush() {
-		if err := t.client.flush(); err != nil {
-			t.log("flush: could not flush: %q", err)
-			return fmt.Errorf("could not flush!")
+		for {
+			err := t.client.flush()
+			if err == nil {
+				break
+			}
+			if err == errBufferIsFull {
+				t.log("buffer is full!")
+				time.Sleep(time.Millisecond * 100)
+				continue
+			} else {
+				return fmt.Errorf("could not flush!")
+			}
 		}
 	} else {
 		t.log("flush: client is not proxying! %d", t.Status())
@@ -88,6 +100,8 @@ func (t *TunIO) flush() error {
 }
 
 func (t *TunIO) writeMessage(message []byte) error {
+	t.writeLock.Lock()
+	defer t.writeLock.Unlock()
 	var err error
 	t.client.accWritten(uint64(len(message)))
 	if _, err = t.client.buf.Write(message); err != nil {
