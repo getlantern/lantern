@@ -79,20 +79,24 @@ func (client *mobileClient) createHTTPClient() {
 	}
 }
 
+func (client *mobileClient) afterSetup() {
+	log.Debugf("Now listening for connections...")
+	client.createHTTPClient()
+	clientConfig.configureFronted()
+
+	analytics.Configure("", trackingCodes[client.appName], "", client.Client.Addr)
+	logging.Configure(client.Client.Addr, cloudConfigCA, instanceId, version, revisionDate)
+}
+
 // serveHTTP will run the proxy
 func (client *mobileClient) serveHTTP() {
 	go func() {
-		onListening := func() {
-			log.Debugf("Now listening for connections...")
-			analytics.Configure("", trackingCodes[client.appName], "", client.Client.Addr)
-			logging.Configure(client.Client.Addr, cloudConfigCA, instanceId, version, revisionDate)
-		}
 
 		defer func() {
 			close(client.closed)
 		}()
 
-		if err := client.ListenAndServe(onListening); err != nil {
+		if err := client.ListenAndServe(client.afterSetup); err != nil {
 			// Error is not exported: https://golang.org/src/net/net.go#L284
 			if !strings.Contains(err.Error(), "use of closed network connection") {
 				panic(err.Error())
@@ -119,7 +123,9 @@ func (client *mobileClient) updateConfig() error {
 	}
 	if err = clientConfig.updateFrom(buf); err == nil {
 		// Configuration changed, lets reload.
+		log.Debugf("Fetched config; merging with existing..")
 		client.Configure(clientConfig.Client)
+		clientConfig.configureFronted()
 	}
 	return err
 }

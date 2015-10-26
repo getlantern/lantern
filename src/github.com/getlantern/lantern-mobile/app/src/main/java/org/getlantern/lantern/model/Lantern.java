@@ -9,27 +9,33 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import go.client.*;
+import org.getlantern.lantern.model.Analytics;
 import org.getlantern.lantern.service.LanternVpn;
 import org.getlantern.lantern.config.LanternConfig;
 
 public class Lantern extends Client.SocketProvider.Stub {
 
     private static final String TAG = "Lantern";
-    private LanternVpn service;
+    final private LanternVpn service;
+    final private Analytics analytics;
     private Client.GoCallback.Stub callback;
 
     public Lantern(LanternVpn service) {
         this.service = service;
+        this.analytics = new Analytics(service.getApplicationContext());
         this.setupCallbacks();
     }
 
     // Configures callbacks from Lantern during packet
     // processing
     private void setupCallbacks() {
-        final Lantern service = this;
+
+        final Analytics analytics = this.analytics;
+
         this.callback = new Client.GoCallback.Stub() {
             public void AfterStart() {
                 Log.d(TAG, "Lantern successfully started.");
+                analytics.sendNewSessionEvent();
             }
 
             public void AfterConfigure() {
@@ -45,12 +51,8 @@ public class Lantern extends Client.SocketProvider.Stub {
             String httpAddr = String.format("127.0.0.1:%d", LanternConfig.HTTP_PORT);
             String socksAddr = String.format("127.0.0.1:%d", LanternConfig.SOCKS_PORT);
 
-            Client.RunClientProxy(httpAddr, LanternConfig.APP_NAME, this, callback);
-
-            // Wait a second for processing until Lantern starts
-            Thread.sleep(1000);
-            // Configure Lantern and interception rules
-            Client.Start(this, httpAddr, socksAddr, callback);
+            Client.Start(this, httpAddr, socksAddr, LanternConfig.APP_NAME, callback);
+            //Client.Start(this, httpAddr, socksAddr, callback);
 
         } catch (final Exception e) {
             Log.e(TAG, "Fatal error while trying to run Lantern: " + e);
@@ -79,7 +81,7 @@ public class Lantern extends Client.SocketProvider.Stub {
                 // if we receive a fatal notice from Lantern
                 // then we shut down the VPN interface
                 // and close Tun2Socks
-                this.service.stopTun2Socks();
+                this.service.stopLantern();
             } catch (Exception e) {
 
             }

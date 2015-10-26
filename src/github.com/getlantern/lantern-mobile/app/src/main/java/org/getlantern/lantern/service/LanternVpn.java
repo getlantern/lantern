@@ -28,10 +28,10 @@ import android.widget.Toast;
 
 import org.getlantern.lantern.config.LanternConfig;
 import org.getlantern.lantern.model.Lantern;
+import org.getlantern.lantern.model.LanternUI;
 import org.getlantern.lantern.android.vpn.Tun2Socks;
 
-public class LanternVpn extends VpnService
-    implements Handler.Callback, Runnable {
+public class LanternVpn extends VpnService implements Handler.Callback {
     private static final String TAG = "LanternVpn";
 
     private PendingIntent mConfigureIntent;
@@ -39,6 +39,8 @@ public class LanternVpn extends VpnService
 
     private Handler mHandler;
     private Thread mThread;
+
+    public static LanternUI UI;
     private Lantern lantern = null;
 
     private ParcelFileDescriptor mInterface;
@@ -48,11 +50,6 @@ public class LanternVpn extends VpnService
 
         if (intent == null) {
             return START_STICKY;
-        }
-
-        // Stop the previous session by interrupting the thread.
-        if (mThread != null) {
-            mThread.interrupt();
         }
 
         String action = intent.getAction();
@@ -74,6 +71,12 @@ public class LanternVpn extends VpnService
             return START_STICKY;
         }
 
+        // Stop the previous session by interrupting the thread.
+        if (mThread != null) {
+            mThread.interrupt();
+        }
+
+
         // The handler is only used to show messages.
         if (mHandler == null) {
             mHandler = new Handler(this);
@@ -82,18 +85,8 @@ public class LanternVpn extends VpnService
 
         // Make sure we check for null here
         // as on start command can run multiple times
-        if (lantern == null) {
+        if (mThread == null || (!mThread.isAlive())) {
             startLantern();
-        }
-
-        // Start a new session by creating a new thread.
-        mThread = new Thread(this, "LanternVpnThread");
-        try {
-            mThread.sleep(5000);
-            mThread.start();
-        }
-        catch (Exception e) {
-            Log.d(TAG, "Couldn't configure VPN interface: " + e);
         }
         return START_STICKY;
     }
@@ -102,29 +95,28 @@ public class LanternVpn extends VpnService
 
         Log.d(TAG, "Loading Lantern library");
         final LanternVpn service = this;
-        Thread thread = new Thread() {
+        mThread = new Thread() {
             public void run() {
                 try {
                     lantern = new Lantern(service);
                     lantern.start();
                     Thread.sleep(3000);
-
+                    startRun();
                 } catch (Exception uhe) {
                     Log.e(TAG, "Error starting Lantern with given host: " + uhe);
                 }
             }
         };
-        thread.start();
+        mThread.start();
     }
 
-    private void stopLantern() {
+    public void stopLantern() {
         try {
             if (lantern != null) {
                 lantern.stop(); 
                 lantern = null;
             }
             stopTun2Socks();
-
         } catch (Exception e) {
             Log.e(TAG, "Could not stop Lantern: " + e);
         }
@@ -132,18 +124,26 @@ public class LanternVpn extends VpnService
 
     public void stopTun2Socks() throws Exception {
         Log.d(TAG, "Closing VPN interface and stopping Lantern..");
-        Tun2Socks.Stop();
 
         if (mInterface != null) {
             mInterface.close();
             mInterface = null;
         }
+
+        Tun2Socks.Stop();
+        mThread = null;
     }
 
     @Override
     public void onDestroy() {
         if (mThread != null) {
             mThread.interrupt();
+        }
+
+        try {
+            stopLantern();
+        } catch (Exception e) {
+
         }
     }
 
@@ -155,7 +155,7 @@ public class LanternVpn extends VpnService
         return true;
     }
 
-    @Override
+    /*@Override
     public synchronized void run() {
         try {
             if (!isRunning()) {
@@ -166,7 +166,7 @@ public class LanternVpn extends VpnService
             Log.e(TAG, "Error trying to start VPN: " + e);
             throw new RuntimeException("Couldn't configure VPN");
         }
-    }
+    }*/
 
     private boolean isRunning() {
         return mInterface != null;

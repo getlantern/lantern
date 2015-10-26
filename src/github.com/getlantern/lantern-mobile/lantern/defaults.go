@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	cloudflare = `cloudflare`
+	cloudfront = "cloudfront"
 )
 
 const (
@@ -14,15 +14,7 @@ const (
 )
 
 // defaultFrontedServerList holds the list of fronted servers.
-var defaultFrontedServerList = []*client.FrontedServerInfo{
-	&client.FrontedServerInfo{
-		Host:          "roundrobin.getiantem.org",
-		Port:          443,
-		MasqueradeSet: cloudflare,
-		QOS:           10,
-		Weight:        1000000,
-	},
-}
+var defaultFrontedServerList = []*client.FrontedServerInfo{}
 
 var defaultChainedServers = map[string]*client.ChainedServerInfo{
 	"fallback-104.236.158.87": &client.ChainedServerInfo{
@@ -48,5 +40,5 @@ var defaultChainedServers = map[string]*client.ChainedServerInfo{
 // defaultMasqueradeSets holds the default masquerades for fronted servers.
 var defaultMasqueradeSets = map[string][]*fronted.Masquerade{
 	// See masquerades.go
-	cloudflare: cloudflareMasquerades,
+	cloudfront: cloudfrontMasquerades,
 }

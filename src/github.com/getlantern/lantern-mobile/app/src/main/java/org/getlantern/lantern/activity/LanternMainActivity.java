@@ -16,7 +16,7 @@ import android.net.VpnService;
 import android.net.Uri;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageInfo;
-import android.support.v7.app.ActionBarActivity;
+import android.app.Activity;
 import android.text.Html;
 import android.util.Log;
 import android.view.View;
@@ -37,19 +37,19 @@ import java.util.List;
 import java.util.Map;
 
 import org.getlantern.lantern.config.LanternConfig;
-import org.getlantern.lantern.model.UI;
+import org.getlantern.lantern.model.LanternUI;
 import org.getlantern.lantern.R;
 import org.getlantern.lantern.service.LanternVpn;
 
 
-public class LanternMainActivity extends ActionBarActivity implements Handler.Callback {
+public class LanternMainActivity extends Activity implements Handler.Callback {
 
     private static final String TAG = "LanternMainActivity";
     private static final String PREFS_NAME = "LanternPrefs";
 
     private SharedPreferences mPrefs = null;
 
-    private UI UI;
+    private LanternUI UI;
     private Handler mHandler;
 
     @Override
@@ -67,12 +67,13 @@ public class LanternMainActivity extends ActionBarActivity implements Handler.Ca
 
         // setup our UI
         try { 
-            UI = new UI(this, mPrefs);
+            UI = new LanternUI(this, mPrefs);
             UI.setupSideMenu();
             UI.setupStatusToast();
             // configure actions to be taken whenever slider changes state
             UI.setupLanternSwitch();
             PromptVpnActivity.UI = UI;
+            LanternVpn.UI = UI;
         } catch (Exception e) {
             Log.d(TAG, "Got an exception " + e);
         }

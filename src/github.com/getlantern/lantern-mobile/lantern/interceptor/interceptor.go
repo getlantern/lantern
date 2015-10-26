@@ -25,7 +25,7 @@ var (
 var (
 	dialTimeout = 10 * time.Second
 	// threshold of errors that we are withstanding
-	maxErrCount = 20
+	maxErrCount = 10
 	// how often to print stats of current interceptor
 	statsInterval = 15 * time.Second
 	log           = golog.LoggerFor("lantern-android.interceptor")
@@ -113,13 +113,15 @@ func New(client *client.Client,
 
 // Stop closes the SOCKS listener and stats service
 // it also closes all pending connections
-func (i *Interceptor) Stop() {
-	close(i.stopSignal)
-	close(i.stopStats)
+func (i *Interceptor) Stop(closechs bool) {
+
+	if closechs {
+		close(i.stopSignal)
+		close(i.stopStats)
+	}
 
 	i.mu.Lock()
 	clientGone := i.clientGone
-	i.clientGone = true
 	i.mu.Unlock()
 
 	if !clientGone {
@@ -127,6 +129,10 @@ func (i *Interceptor) Stop() {
 		i.serveGroup.Wait()
 		i.openConns.CloseAll()
 	}
+
+	i.mu.Lock()
+	i.clientGone = true
+	i.mu.Unlock()
 }
 
 // Dial dials addr using our actively configured balancer
@@ -239,8 +245,8 @@ L:
 			i.totalErrCount += 1
 			if i.totalErrCount > maxErrCount {
 				log.Errorf("Total errors: %d %v", i.totalErrCount, ErrTooManyFailures)
-				i.sendAlert(err.Error(), true)
-				i.Stop()
+				i.sendAlert(ErrTooManyFailures.Error(), true)
+				i.Stop(false)
 				break L
 			}
 		}
@@ -258,6 +264,7 @@ func (i *Interceptor) handle(localConn *socks.SocksConn) (err error) {
 	proxyConn, err := i.Dial(localConn.Req.Target, localConn)
 	if err != nil {
 		log.Errorf("Error tunneling request: %v", err)
+		i.errCh <- err
 		return err
 	}
 	defer proxyConn.Close()

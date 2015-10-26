@@ -8,7 +8,7 @@ import android.os.Handler;
 import android.util.Log;
 
 import org.getlantern.lantern.config.LanternConfig;
-import org.getlantern.lantern.model.UI;
+import org.getlantern.lantern.model.LanternUI;
 import org.getlantern.lantern.service.LanternVpn;
 
 public class PromptVpnActivity extends Activity {
@@ -17,7 +17,7 @@ public class PromptVpnActivity extends Activity {
     private final static int REQUEST_VPN = 7777;
     private	Intent intent = null;
 
-    public static UI UI;
+    public static LanternUI UI;
 
     @Override
     public void onCreate( Bundle icicle ) {

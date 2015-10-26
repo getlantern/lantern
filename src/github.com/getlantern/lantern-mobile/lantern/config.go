@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"reflect"
 
+	"github.com/getlantern/fronted"
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/yaml"
 
@@ -113,6 +114,18 @@ func defaultConfig() *config {
 	return cfg
 }
 
+func (c *config) configureFronted() error {
+	certs, err := c.getTrustedCertPool()
+	if err != nil {
+		log.Errorf("Unable to get trusted ca certs, fronted not configured: %s", err)
+		return err
+	} else {
+		fronted.Configure(certs, c.Client.MasqueradeSets)
+	}
+
+	return nil
+}
+
 func (c *config) updateFrom(buf []byte) error {
 	var err error
 	var newCfg config
@@ -151,8 +164,10 @@ func (c *config) getTrustedCerts() []string {
 
 func (c *config) getTrustedCertPool() (certPool *x509.CertPool, err error) {
 	trustedCerts := c.getTrustedCerts()
+	log.Debugf("Length of trusted certs: %d", len(trustedCerts))
 
 	if certPool, err = keyman.PoolContainingCerts(trustedCerts...); err != nil {
+		log.Debugf("Error configuring certs pool: %v", err)
 		return nil, err
 	}
 

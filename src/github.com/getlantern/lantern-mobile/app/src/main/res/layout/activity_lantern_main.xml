@@ -2,21 +2,43 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+    <ImageView
+        android:id="@+id/settings_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|left"
+        android:clickable="true"
+        android:adjustViewBounds="true"
+        android:paddingTop="15dp"
+        android:paddingLeft="15dp"
+        android:src="@drawable/menu" />
+    </RelativeLayout>
 
     <!-- The main content view -->
     <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-        android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:layout_height="match_parent" 
         android:paddingRight="@dimen/activity_horizontal_margin"
-        android:paddingTop="@dimen/activity_vertical_margin"
+        android:paddingTop="18dp"
+        android:paddingLeft="18dp"
         android:id="@+id/mainView"
+        android:gravity="center"
         android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".LanternMainActivity">
         <ToggleButton
             android:id="@+id/powerLantern"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"   
             android:background="@drawable/toggle_switch"
+            android:layout_marginTop="50dp" 
+            android:layout_marginLeft="65dp" 
+            android:layout_gravity="center"
             android:checked="false"
             android:text="ToggleButton"
             android:textOff=""
@@ -24,20 +46,60 @@
     </RelativeLayout>
 
    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-        android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
-        android:paddingRight="@dimen/activity_horizontal_margin"
-        android:paddingTop="@dimen/activity_vertical_margin"
+       xmlns:tools="http://schemas.android.com/tools" 
+       android:layout_width="match_parent"
+        android:layout_height="match_parent" 
         android:id="@+id/desktopView"
         android:visibility="invisible"
         android:background="#F1F1F1"
-        android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".LanternMainActivity">
+        tools:context=".LanternMainActivity">
+
+        <RelativeLayout
+            android:id="@+id/navDesktop"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:background="#39C2D6"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
+            android:padding="8dp" >
+            <ImageView
+            android:id="@+id/navAvatar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:src="@drawable/abc_ic_ab_back_mtrl_am_alpha"/>
+            <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="42dp"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="15dp"
+            android:layout_toRightOf="@+id/navAvatar"
+            android:orientation="vertical" >
+
+            <TextView
+                android:id="@+id/desktopText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif"
+                android:layout_marginTop="14dp"
+                android:paddingLeft="10dp"
+                android:text="Desktop Version"
+                android:textSize="15sp"
+                android:textColor="#fff"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        </RelativeLayout>
 
         <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:tools="http://schemas.android.com/tools"
-            android:layout_width="fill_parent"
+            android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/activity_horizontal_margin"
+            android:paddingTop="@dimen/activity_vertical_margin"
+            android:layout_width="340dp"
             android:layout_height="327dp"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="60dp"
+            android:layout_marginLeft="10dp"
             android:orientation="vertical"
             android:elevation="1dp"
             android:background="@drawable/desktop_card"
@@ -46,8 +108,9 @@
             <ImageView
             android:id="@+id/desktop_graphic"
             android:layout_width="fill_parent"
-            android:layout_height="195dp"
+            android:layout_height="215dp"
             android:layout_gravity="top"
+            android:scaleType="centerCrop"
             android:layout_marginTop="30dp"
             android:adjustViewBounds="true"
             android:layout_alignParentTop="true"
@@ -72,13 +135,12 @@
             android:id="@+id/receive_lantern"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="50dp"
             android:fontFamily="sans-serif" 
             android:textSize="16sp"
             android:gravity="center"
-            android:paddingBottom="5dp"
             android:singleLine="true"
+            android:textStyle="bold"
             android:textColor="#000000"
             android:text="@string/receive_lantern"
             android:textAppearance="?android:attr/textAppearanceSmall"/>
@@ -92,7 +154,7 @@
             android:hint="@string/email_hint"
             android:ems="10"
             android:textColor="#BDBDBD"
-            android:layout_marginBottom="-4dp"
+            android:layout_marginBottom="-14dp"
             android:padding="20dp"
             android:inputType="textEmailAddress" />
 
@@ -116,7 +178,7 @@
 
     <!-- The navigation drawer -->
     <RelativeLayout
-        android:layout_width="280dp"
+        android:layout_width="250dp"
         android:layout_height="match_parent"
         android:id="@+id/drawerPane"
         android:layout_gravity="start">
@@ -125,15 +187,17 @@
         <RelativeLayout
             android:id="@+id/profileBox"
             android:layout_width="match_parent"
-            android:layout_height="100dp"
+            android:layout_height="wrap_content"
             android:background="#39C2D6"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
             android:padding="8dp" >
             <ImageView
                 android:id="@+id/avatar"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:src="@drawable/lantern_icon"
-                android:layout_marginTop="15dp" />
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:src="@drawable/abc_ic_ab_back_mtrl_am_alpha"/>
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="42dp"
@@ -146,10 +210,12 @@
                     android:id="@+id/userName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif-medium"
+                    android:fontFamily="sans-serif"
                     android:layout_marginTop="14dp"
+                    android:gravity="center_horizontal"
+                    android:paddingLeft="10dp"
                     android:text="Lantern"
-                    android:textSize="14sp"
+                    android:textSize="15sp"
                     android:textColor="#fff"
                     android:textStyle="bold" />
             </LinearLayout>

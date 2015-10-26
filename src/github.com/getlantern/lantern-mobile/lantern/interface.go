@@ -21,30 +21,22 @@ type SocketProvider interface {
 }
 
 // RunClientProxy creates a new client at the given address.
-func RunClientProxy(listenAddr, appName string, protector SocketProvider, ready GoCallback) error {
+func Start(protector SocketProvider, httpAddr, socksAddr, appName string, ready GoCallback) error {
 	go func() {
+
+		var err error
+
 		if protector != nil {
 			protected.Configure(protector)
 		}
-		defaultClient = newClient(listenAddr, appName)
+		defaultClient = newClient(httpAddr, appName)
 		defaultClient.serveHTTP()
-		defaultClient.createHTTPClient()
-		ready.AfterStart()
-	}()
-	return nil
-}
-
-func Start(protector SocketProvider, httpAddr string,
-	socksAddr string, ready GoCallback) error {
-	go func() {
-		var err error
-		protected.Configure(protector)
 
 		i, err = interceptor.New(defaultClient.Client, socksAddr, httpAddr, protector.Notice)
 		if err != nil {
 			log.Errorf("Error starting SOCKS proxy: %v", err)
 		}
-		ready.AfterConfigure()
+		ready.AfterStart()
 	}()
 	return nil
 }
@@ -55,7 +47,7 @@ func StopClientProxy() error {
 	if i != nil {
 		// here we stop the interceptor service
 		// and close any existing connections
-		i.Stop()
+		i.Stop(true)
 	}
 	return nil
 }
