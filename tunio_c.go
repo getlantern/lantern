@@ -5,6 +5,8 @@ import (
 	"log"
 	"math/rand"
 	"time"
+
+	"golang.org/x/net/context"
 )
 
 /*
@@ -36,24 +38,18 @@ func goNewTunnel(client *C.struct_tcp_client) C.uint32_t {
 
 	// Looking for an unused ID to identify this tunnel.
 	tunnelMu.Lock()
+	defer tunnelMu.Unlock()
+
 	for {
 		i = uint32(rand.Int31())
 		if _, ok := tunnels[i]; !ok {
 			tunnels[i] = t
-			if _, ok := times[i]; !ok {
-				times[i] = 0
-			}
-			times[i]++
-			break
+			t.SetStatus(StatusReady)
+			return C.uint32_t(i)
 		}
 	}
-	tunnelMu.Unlock()
 
-	log.Printf("goNewTunnel: %d, (%d)", i, times[i])
-
-	t.SetStatus(StatusReady)
-
-	return C.uint32_t(i)
+	panic("reached.")
 }
 
 //export goInitTunnel
@@ -74,33 +70,16 @@ func goInitTunnel(tunno C.uint32_t) C.int {
 	defer t.Unlock()
 
 	t.log("spawning reader and writer...")
+	t.ctx, t.ctxCancel = context.WithCancel(context.Background())
 
-	go func() {
-		addReader(t)
-		t.log("goreader: start.")
-		err := t.reader()
-		t.log("goreader: exit with error: %q", err)
-		t.exitWriter()
-		delReader(t)
-	}()
+	writerOk := make(chan error)
+	readerOk := make(chan error)
 
-	go func() {
-		addWriter(t)
-		t.log("gowriter: start.")
-		if err := t.writer(); err != nil {
-			t.quit(fmt.Sprintf("gowriter: error: %q", err))
-		} else {
-			t.quit("writer: closed loop.")
-		}
-		t.log("gowriter: exit")
-		delWriter(t)
-	}()
+	go t.reader(readerOk)
+	go t.writer(writerOk)
 
-	<-t.waitForReader
-	<-t.waitForWriter
-
-	close(t.waitForReader)
-	close(t.waitForWriter)
+	<-writerOk
+	<-readerOk
 
 	t.SetStatus(StatusProxying)
 
@@ -141,7 +120,7 @@ func goTunnelWrite(tunno C.uint32_t, write *C.char, size C.size_t) C.int {
 			return C.ERR_OK
 		}
 
-		t.quit(fmt.Sprintf("got write error: %q", err))
+		//t.quit(fmt.Sprintf("got write error: %q", err))
 	}
 
 	log.Printf("%d: client is not registered!", int(tunno))

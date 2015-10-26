@@ -26,7 +26,7 @@ type tcpClient struct {
 
 	pending bool
 
-	writeLock sync.Mutex
+	tcpLock sync.Mutex
 }
 
 func (t *tcpClient) flushed() bool {
@@ -48,43 +48,43 @@ func (t *tcpClient) log(f string, args ...interface{}) {
 }
 
 func (t *tcpClient) tunnelID() C.uint32_t {
-	return t.client.tunnel_id
+	if t != nil && t.client != nil {
+		return t.client.tunnel_id
+	}
+	return 0
 }
 
-func (t *tcpClient) enqueue(chunk []byte) error {
+func (t *tcpClient) tcpWrite(chunk []byte) error {
 	clen := len(chunk)
 	cchunk := C.CString(string(chunk))
 	defer C.free(unsafe.Pointer(cchunk))
 
-	t.log("enqueue: tcp_write.")
+	t.log("tcpWrite: tcp_write.")
 
-	t.writeLock.Lock()
+	t.tcpLock.Lock()
 	err_t := C.tcp_write(t.client.pcb, unsafe.Pointer(cchunk), C.uint16_t(clen), C.TCP_WRITE_FLAG_COPY)
-	t.writeLock.Unlock()
+	t.tcpLock.Unlock()
 
 	switch err_t {
 	case C.ERR_OK:
-		t.log("enqueue: tcp_write. ERR_OK")
+		t.log("tcpWrite: tcp_write. ERR_OK")
 		return nil
 	case C.ERR_MEM:
-		t.log("enqueue: tcp_write. ERR_MEM")
+		t.log("tcpWrite: tcp_write. ERR_MEM")
 		return errBufferIsFull
 	}
 
-	t.log("enqueue: tcp_write. unknown error.")
+	t.log("tcpWrite: tcp_write. unknown error.")
 	return fmt.Errorf("Unknown error %d", int(err_t))
 }
 
-// flush will keep flushing data until the buffer is empty.
 func (t *tcpClient) flush() error {
 	t.log("flush: start")
 
 	for {
 		blen := t.buf.Len()
 
-		t.writeLock.Lock()
-		mlen := int(C.tcp_client_sndbuf(t.client))
-		t.writeLock.Unlock()
+		mlen := t.sendBufSize()
 
 		if mlen == 0 {
 			t.log("flush: mlen = 0!")
@@ -108,12 +108,12 @@ func (t *tcpClient) flush() error {
 			return err
 		}
 
-		if err := t.enqueue(chunk); err != nil {
+		if err := t.tcpWrite(chunk); err != nil {
 			if err == errBufferIsFull {
 				t.log("flush: buffer is full, let's flush it.")
 				return t.tcpOutput()
 			}
-			t.log("flush: other kind of error, let's abort.")
+			t.log("flush: got another kind of error, let's abort.")
 			return err
 		}
 	}
@@ -121,11 +121,17 @@ func (t *tcpClient) flush() error {
 	return nil
 }
 
+func (t *tcpClient) sendBufSize() int {
+	t.tcpLock.Lock()
+	defer t.tcpLock.Unlock()
+	return int(C.tcp_client_sndbuf(t.client))
+}
+
 func (t *tcpClient) tcpOutput() error {
 	t.log("tcpOutput: about to force tcp_output.")
-	t.writeLock.Lock()
+	t.tcpLock.Lock()
 	err_t := C.tcp_client_output(t.client)
-	t.writeLock.Unlock()
+	t.tcpLock.Unlock()
 	if err_t != C.ERR_OK {
 		return fmt.Errorf("tcp_output: %d", int(err_t))
 	}

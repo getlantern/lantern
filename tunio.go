@@ -2,13 +2,13 @@ package tunio
 
 import (
 	"fmt"
+	"golang.org/x/net/context"
 	"io"
 	"log"
 	"net"
 	"sync"
 	"time"
 	"unsafe"
-	//"golang.org/x/net/context"
 )
 
 /*
@@ -31,19 +31,10 @@ type TunIO struct {
 	waitForReader chan bool
 	waitForWriter chan bool
 
-	writerRunning bool
-	readerRunning bool
-
-	writeLock sync.Mutex
-
 	lock sync.Mutex
-}
 
-func (t *TunIO) exitWriter() {
-	if t.writerRunning {
-		t.writerRunning = false
-		close(t.send)
-	}
+	ctx       context.Context
+	ctxCancel context.CancelFunc
 }
 
 func (t *TunIO) Lock() {
@@ -85,7 +76,7 @@ func (t *TunIO) flush() error {
 			}
 			if err == errBufferIsFull {
 				t.log("buffer is full!")
-				time.Sleep(time.Millisecond * 100)
+				time.Sleep(time.Millisecond * 500)
 				continue
 			} else {
 				return fmt.Errorf("could not flush!")
@@ -99,17 +90,15 @@ func (t *TunIO) flush() error {
 	return nil
 }
 
-func (t *TunIO) writeMessage(message []byte) error {
-	t.writeLock.Lock()
-	defer t.writeLock.Unlock()
+func (t *TunIO) sendMessage(message []byte) error {
 	var err error
 	t.client.accWritten(uint64(len(message)))
 	if _, err = t.client.buf.Write(message); err != nil {
-		t.log("writeMessage: could not write buffer: %q", err)
+		t.log("sendMessage: could not write buffer: %q", err)
 		return err
 	}
 	for t.client.buf.Len() > 0 {
-		t.log("writeMessage: remaining: %d.", t.client.buf.Len())
+		t.log("sendMessage: remaining: %d.", t.client.buf.Len())
 		if err := t.flush(); err != nil {
 			t.log("writerMessage: could not flush: %q", err)
 			return err
@@ -118,17 +107,26 @@ func (t *TunIO) writeMessage(message []byte) error {
 	return nil
 }
 
-func (t *TunIO) writer() error {
-	t.waitForWriter <- true
+func (t *TunIO) writer(started chan error) error {
+	started <- nil
 
-	t.writerRunning = true
-
-	for message := range t.send {
-		t.log("writer: got send message.")
-		t.writeMessage(message)
+	for {
+		select {
+		case <-t.ctx.Done():
+			t.log("writer: done")
+			return t.ctx.Err()
+		case message, ok := <-t.send:
+			if !ok {
+				t.log("writer: closed channel")
+				return nil
+			}
+			t.log("writer: got send message.")
+			if err := t.sendMessage(message); err != nil {
+				t.log("writer: sendMessage: %q", err)
+				return err
+			}
+		}
 	}
-
-	t.writerRunning = false
 
 	t.log("writer: exiting writer")
 	return nil
@@ -172,7 +170,6 @@ func (t *TunIO) quit(reason string) error {
 	}
 
 	t.log("quit: connOut.Close()")
-	t.exitWriter()
 	err := t.connOut.Close()
 	t.log("quit: connOut.Close(): %v", err)
 
@@ -192,11 +189,16 @@ func (t *TunIO) quit(reason string) error {
 
 	t.SetStatus(StatusClosed)
 
-	t.log("quit: ok")
+	t.log("quit: cancelled")
+
+	t.ctxCancel()
+	close(t.send)
 
 	tunnelMu.Lock()
 	delete(tunnels, uint32(t.TunnelID()))
 	tunnelMu.Unlock()
+
+	t.log("quit: ok")
 
 	return nil
 }
@@ -212,34 +214,42 @@ func (t *TunIO) log(f string, args ...interface{}) {
 // reader is a goroutine that reads whatever the connOut (destination) //
 // receives. After reading, the data is stored into the client buffer and a
 // request to flush it is issued.
-func (t *TunIO) reader() error {
-	t.waitForReader <- true
+func (t *TunIO) reader(started chan error) error {
+	started <- nil
 
 	for {
-		data := make([]byte, readBufSize)
-		t.connOut.SetReadDeadline(time.Now().Add(ioTimeout))
-		t.log("reader: connOut.Read (reader is blocking)")
-		n, err := t.connOut.Read(data)
-		if err != nil {
-			// Closing the connOut will also cause an error here.
-			t.log("reader: t.connOut.Read: %q", err)
-			if err == io.EOF {
-				// Maybe wait for the buffer to fail or flush?
-				//t.SetStatus(StatusServerClosed)
-				t.log("reader: server closed connection.")
+
+		select {
+		case <-t.ctx.Done():
+			t.log("reader: done")
+			return t.ctx.Err()
+		default:
+			data := make([]byte, readBufSize)
+			t.connOut.SetReadDeadline(time.Now().Add(ioTimeout))
+			t.log("reader: connOut.Read (reader is blocking)")
+			n, err := t.connOut.Read(data)
+			if err != nil {
+				// Closing the connOut will also cause an error here.
+				t.log("reader: t.connOut.Read: %q", err)
+				if err == io.EOF {
+					// Maybe wait for the buffer to fail or flush?
+					//t.SetStatus(StatusServerClosed)
+					t.log("reader: server closed connection.")
+				}
+				return err
 			}
-			return err
-		}
-		t.log("reader: got read %d, %q", n, err)
-		if n > 0 {
-			t.log("D -> C: t.send <- data[0:%d].", n)
-			if t.Status() == StatusProxying {
-				t.send <- data[0:n]
-			} else {
-				t.log("Already closing...")
-				break
+			t.log("reader: got read %d, %q", n, err)
+			if n > 0 {
+				t.log("D -> C: t.send <- data[0:%d].", n)
+				if t.Status() == StatusProxying {
+					t.send <- data[0:n]
+				} else {
+					t.log("Already closing...")
+					break
+				}
 			}
 		}
+
 	}
 
 	t.log("reader: exiting reader.")
@@ -254,11 +264,9 @@ func NewTunnel(client *C.struct_tcp_client, d dialer) (*TunIO, error) {
 	defer C.free(unsafe.Pointer(destAddr))
 
 	t := &TunIO{
-		client:        &tcpClient{client: client},
-		destAddr:      C.GoString(destAddr),
-		waitForReader: make(chan bool),
-		waitForWriter: make(chan bool),
-		send:          make(chan []byte, 8),
+		client:   &tcpClient{client: client},
+		destAddr: C.GoString(destAddr),
+		send:     make(chan []byte, 8),
 	}
 
 	t.SetStatus(StatusConnecting)
