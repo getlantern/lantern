@@ -26,7 +26,7 @@ var (
 )
 
 const (
-	readBufSize = 1024 * 16
+	readBufSize = 1024 * 64
 )
 
 var ioTimeout = time.Second * 30

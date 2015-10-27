@@ -668,6 +668,7 @@ static void client_free_client (struct tcp_client *client)
       tcp_abort(client->pcb);
     }
 
+		goLog(client, "client_free_client(): requested");
     client_handle_freed_client(client);
 }
 
@@ -677,6 +678,7 @@ void client_err_func (void *arg, err_t err)
 
   ASSERT(!client->client_closed)
 
+  goLog(client, "client_err_func(): requested");
   client_handle_freed_client(client);
 }
 
@@ -693,6 +695,7 @@ static err_t client_recv_func(void *arg, struct tcp_pcb *pcb, struct pbuf *p, er
   }
 
   if (!p) {
+    goLog(client, "not p!.");
     client_free_client(client);
     return ERR_ABRT;
   }
@@ -780,6 +783,7 @@ static void client_abort_client (struct tcp_client *client)
     // free pcb
     tcp_abort(client->pcb);
 
+  goLog(client, "client_abort_client(): requested");
     client_handle_freed_client(client);
 }
 

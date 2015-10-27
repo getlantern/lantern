@@ -22,6 +22,10 @@ static char charAt(char *in, int i) {
 */
 import "C"
 
+var (
+	reasonClientAbort = "Aborted by client."
+)
+
 //export goNewTunnel
 // goNewTunnel is called from listener_accept_func. It creates a tunnel and
 // assigns an unique ID to it.
@@ -196,7 +200,7 @@ func goTunnelDestroy(tunno C.uint32_t) C.int {
 		return C.ERR_ABRT
 	}
 
-	if err := t.quit("goTunnelDestroy: C code request tunnel destruction..."); err != nil {
+	if err := t.quit(reasonClientAbort); err != nil {
 		return C.ERR_ABRT
 	}
 
