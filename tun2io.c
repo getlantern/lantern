@@ -590,8 +590,6 @@ err_t listener_accept_func (void *arg, struct tcp_pcb *newpcb, err_t err)
   tcp_recv(client->pcb, client_recv_func);
   tcp_sent(client->pcb, client_sent_func);
 
-  goLog(client, "accepted.");
-
   // setup buffer
   client->buf_used = 0;
 
@@ -658,19 +656,15 @@ void client_close(struct tcp_client *client)
 static void client_free_client (struct tcp_client *client)
 {
     ASSERT(!client->client_closed)
-    goLog(client, "client_free_client");
 
     // remove callbacks
-    goLog(client, "remove callbacks");
     tcp_err(client->pcb, NULL);
     tcp_recv(client->pcb, NULL);
     tcp_sent(client->pcb, NULL);
 
     // free pcb
-    goLog(client, "attempt to tcp_close");
     err_t err = tcp_close(client->pcb);
     if (err != ERR_OK) {
-      goLog(client, "client_close(): tcp_close: NOT OK, aborting...");
       tcp_abort(client->pcb);
     }
 
@@ -680,11 +674,8 @@ static void client_free_client (struct tcp_client *client)
 void client_err_func (void *arg, err_t err)
 {
   struct tcp_client *client = (struct tcp_client *)arg;
-  goLog(client, "client_err_func!");
 
   ASSERT(!client->client_closed)
-
-  client_log(client, BLOG_INFO, "client error (%d)", (int)err);
 
   client_handle_freed_client(client);
 }
@@ -692,7 +683,6 @@ void client_err_func (void *arg, err_t err)
 static err_t client_recv_func(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err)
 {
   struct tcp_client *client = (struct tcp_client *)arg;
-  goLog(client, "client_recv_func: 1");
 
   if (client->client_closed) {
     return ERR_ABRT;
@@ -703,7 +693,6 @@ static err_t client_recv_func(void *arg, struct tcp_pcb *pcb, struct pbuf *p, er
   }
 
   if (!p) {
-    goLog(client, "not p!");
     client_free_client(client);
     return ERR_ABRT;
   }
@@ -716,10 +705,7 @@ static err_t client_recv_func(void *arg, struct tcp_pcb *pcb, struct pbuf *p, er
   err_t werr;
   werr = goTunnelWrite(client->tunnel_id, p->payload, p->len);
 
-	goLog(client, "client_recv_func: 2");
-
   if (werr == ERR_OK) {
-		goLog(client, "client_recv_func: 3");
     tcp_recved(client->pcb, p->len);
   }
 
@@ -743,16 +729,12 @@ err_t client_sent_func (void *arg, struct tcp_pcb *tpcb, u16_t len)
   ASSERT(len > 0)
 
   if (client == NULL) {
-    BLog(BLOG_ERROR, "client_sent_func(): client is nil.");
     return ERR_ABRT;
   }
 
   if (client->client_closed) {
-    goLog(client, "client_sent_func(): client is closed.");
     return ERR_ABRT;
   }
-
-  goLog(client, "got data ack...");
 
   //SYNC_DECL
   //SYNC_FROMHERE
@@ -789,7 +771,6 @@ static void client_dealloc (struct tcp_client *client)
 static void client_abort_client (struct tcp_client *client)
 {
     ASSERT(!client->client_closed)
-    goLog(client, "client_abort_client.");
 
     // remove callbacks
     tcp_err(client->pcb, NULL);
@@ -803,32 +784,19 @@ static void client_abort_client (struct tcp_client *client)
 }
 
 static int tcp_client_output(struct tcp_client *client) {
-  goLog(client, "tcp_client_output(): start.");
-
   if (client == NULL) {
-    BLog(BLOG_ERROR, "tcp_client_output(): client is nil.");
     return ERR_ABRT;
   }
 
   if (client->client_closed) {
-    goLog(client, "tcp_client_output(): client is closed.");
     return ERR_ABRT;
   }
 
   if (client->pcb) {
-    goLog(client, "tcp_output: actually forcing output...");
-
-    goInspect(client->pcb);
-
     err_t err =  tcp_output(client->pcb);
-
-    goLog(client, "tcp_output: forced!");
     if (err != ERR_OK) {
-      goLog(client, "tcp_output: failed!");
       return -1;
     }
-  } else {
-    goLog(client, "tcp_output: no pcb!");
   }
 
   return ERR_OK;

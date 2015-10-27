@@ -160,8 +160,8 @@ func (t *TunIO) quit(reason string) error {
 		t.log("quit: attempt to flush...")
 		for i := 0; !t.client.flushed(); i++ {
 			t.log("quit: some packages still need to be written (%d)...", i)
-			time.Sleep(time.Millisecond * 100)
-			if i > 10 {
+			time.Sleep(time.Millisecond * 10)
+			if i > 100 {
 				t.log("quit: sorry, can't continue waiting...")
 				break
 			}

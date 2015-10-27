@@ -130,7 +130,7 @@ func (t *tcpClient) sendBufSize() int {
 func (t *tcpClient) tcpOutput() error {
 	t.log("tcpOutput: about to force tcp_output.")
 	t.tcpLock.Lock()
-	err_t := C.tcp_client_output(t.client)
+	err_t := C.tcp_output(t.client.pcb)
 	t.tcpLock.Unlock()
 	if err_t != C.ERR_OK {
 		return fmt.Errorf("tcp_output: %d", int(err_t))
