@@ -143,28 +143,9 @@ func (t *TunIO) quit(reason string) error {
 		return fmt.Errorf("unexpected status %d", status)
 	}
 
-	t.log("quit: %q", reason)
+	//t.log("quit: %q", reason)
 
 	t.SetStatus(StatusClosing)
-
-	/*
-		if status == StatusProxying {
-			if reason != reasonClientAbort {
-				t.log("quit: attempt to flush...")
-				for i := 0; !t.client.flushed(); i++ {
-					t.log("quit: some packages still need to be written (%d)...", i)
-					time.Sleep(time.Millisecond * 10)
-					if i > 100 {
-						t.log("quit: sorry, can't continue waiting...")
-						break
-					}
-				}
-				t.log("quit: looks like the buffer was flushed...")
-			} else {
-				t.log("quit: not flushing anything. client closed.")
-			}
-		}
-	*/
 
 	t.connOut.Close()
 
@@ -222,7 +203,7 @@ func NewTunnel(client *C.struct_tcp_client, d dialer) (*TunIO, error) {
 	t := &TunIO{
 		client:   &tcpClient{client: client},
 		destAddr: C.GoString(destAddr),
-		chunk:    make(chan []byte, 8),
+		chunk:    make(chan []byte, 256),
 	}
 
 	t.SetStatus(StatusConnecting)

@@ -7,7 +7,7 @@ import (
 
 type Buffer struct {
 	bytes.Buffer
-	mu sync.RWMutex
+	mu sync.Mutex
 }
 
 func (rw *Buffer) Write(p []byte) (int, error) {
@@ -17,13 +17,13 @@ func (rw *Buffer) Write(p []byte) (int, error) {
 }
 
 func (rw *Buffer) Read(p []byte) (int, error) {
-	rw.mu.RLock()
-	defer rw.mu.RUnlock()
+	rw.mu.Lock()
+	defer rw.mu.Unlock()
 	return rw.Buffer.Read(p)
 }
 
 func (rw *Buffer) Len() int {
-	rw.mu.RLock()
-	defer rw.mu.RUnlock()
+	rw.mu.Lock()
+	defer rw.mu.Unlock()
 	return rw.Buffer.Len()
 }

@@ -151,7 +151,6 @@ func goTunnelSentACK(tunno C.uint32_t, dlen C.u16_t) C.int {
 	tunnelMu.Unlock()
 
 	if !ok {
-		t.log("goTunnelSentACK: does not exist.")
 		return C.ERR_ABRT
 	}
 
@@ -168,14 +167,12 @@ func goTunnelSentACK(tunno C.uint32_t, dlen C.u16_t) C.int {
 // goTunnelDestroy aborts all tunnel connections and removes the tunnel.
 func goTunnelDestroy(tunno C.uint32_t) C.int {
 	tunID := uint32(tunno)
-	log.Printf("%d: goTunnelDestroy", tunID)
 
 	tunnelMu.Lock()
 	t, ok := tunnels[tunID]
 	tunnelMu.Unlock()
 
 	if !ok {
-		log.Printf("%d: goTunnelDestroy can't destroy, tunnel does not exist.", tunID)
 		return C.ERR_ABRT
 	}
 

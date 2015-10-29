@@ -451,8 +451,6 @@ err_t netif_output_ip6_func (struct netif *netif, struct pbuf *p, ip6_addr_t *ip
 
 err_t common_netif_output (struct netif *netif, struct pbuf *p)
 {
-  //SYNC_DECL
-
   BLog(BLOG_DEBUG, "device write: send packet");
 
   if (quitting) {
@@ -466,9 +464,7 @@ err_t common_netif_output (struct netif *netif, struct pbuf *p)
       return ERR_OK;
     }
 
-    //SYNC_FROMHERE
     BTap_Send(&device, (uint8_t *)p->payload, p->len);
-    //SYNC_COMMIT
   } else {
     int len = 0;
     do {
@@ -480,9 +476,7 @@ err_t common_netif_output (struct netif *netif, struct pbuf *p)
       len += p->len;
     } while (p = p->next);
 
-    //SYNC_FROMHERE
     BTap_Send(&device, device_write_buf, len);
-    //SYNC_COMMIT
   }
 
   return ERR_OK;
@@ -510,24 +504,6 @@ err_t netif_input_func (struct pbuf *p, struct netif *inp)
   return ERR_OK;
 }
 
-void client_logfunc (struct tcp_client *client)
-{
-  char local_addr_s[BADDR_MAX_PRINT_LEN];
-  BAddr_Print(&client->local_addr, local_addr_s);
-  char remote_addr_s[BADDR_MAX_PRINT_LEN];
-  BAddr_Print(&client->remote_addr, remote_addr_s);
-
-  BLog_Append("%05d (%s %s): ", client->tunnel_id, local_addr_s, remote_addr_s);
-}
-
-void client_log (struct tcp_client *client, int level, const char *fmt, ...)
-{
-  va_list vl;
-  va_start(vl, fmt);
-  BLog_LogViaFuncVarArg((BLog_logfunc)client_logfunc, client, BLOG_CURRENT_CHANNEL, level, fmt, vl);
-  va_end(vl);
-}
-
 err_t listener_accept_func (void *arg, struct tcp_pcb *newpcb, err_t err)
 {
   ASSERT(err == ERR_OK)
@@ -542,9 +518,6 @@ err_t listener_accept_func (void *arg, struct tcp_pcb *newpcb, err_t err)
     BLog(BLOG_ERROR, "listener accept: malloc failed");
     return ERR_MEM;
   }
-
-  //SYNC_DECL
-  //SYNC_FROMHERE
 
   // read addresses
   client->local_addr = baddr_from_lwip(PCB_ISIPV6(newpcb), &newpcb->local_ip, newpcb->local_port);
@@ -593,64 +566,33 @@ err_t listener_accept_func (void *arg, struct tcp_pcb *newpcb, err_t err)
   // setup buffer
   client->buf_used = 0;
 
-  //DEAD_ENTER(client->dead_client)
-  //SYNC_COMMIT
-
-  //DEAD_LEAVE2(client->dead_client)
-  //if (DEAD_KILLED) {
-  //  return ERR_ABRT;
-  //}
-
   return ERR_OK;
 }
 
 static void client_handle_freed_client(struct tcp_client *client)
 {
-  goLog(client, "client_handle_freed_client(): requested");
-
   if (client == NULL) {
-    goLog(client, "client_handle_freed_client(): can't close client, is nil.");
     return;
   }
 
-  goLog(client, "client_handle_freed_client(): calling destroy");
   err_t err = goTunnelDestroy(client->tunnel_id);
 
   if (err == ERR_OK) {
-
-    goLog(client, "client_handle_freed_client(): marking as closed");
     client->client_closed = 1;
-
-    goLog(client, "client_handle_freed_client(): unsetting tunnel_id");
     client->tunnel_id = 0;
-
-    goLog(client, "client_handle_freed_client(): free");
     free(client);
-  } else {
-    goLog(client, "client_handle_freed_client(): could not destroy");
   }
 }
 
 void client_close(struct tcp_client *client)
 {
-  goLog(client, "client_close(): requested");
-
   if (client == NULL) {
-    goLog(client, "client_close(): can't close client, is nil.");
     return;
   }
 
-  goLog(client, "client_close(): closing client.");
-
-  // free client
   if (!client->client_closed) {
-    // actually closing client.
-    goLog(client, "client_close(): client_free_client.");
     client_free_client(client);
-  } else {
-    goLog(client, "client_close(): already closed.");
   }
-
 }
 
 static void client_free_client (struct tcp_client *client)
@@ -668,7 +610,6 @@ static void client_free_client (struct tcp_client *client)
       tcp_abort(client->pcb);
     }
 
-		goLog(client, "client_free_client(): requested");
     client_handle_freed_client(client);
 }
 
@@ -678,7 +619,6 @@ void client_err_func (void *arg, err_t err)
 
   ASSERT(!client->client_closed)
 
-  goLog(client, "client_err_func(): requested");
   client_handle_freed_client(client);
 }
 
@@ -695,15 +635,11 @@ static err_t client_recv_func(void *arg, struct tcp_pcb *pcb, struct pbuf *p, er
   }
 
   if (!p) {
-    goLog(client, "not p!.");
     client_free_client(client);
     return ERR_ABRT;
   }
 
   ASSERT(p->tot_len > 0)
-
-  //SYNC_DECL
-  //SYNC_FROMHERE
 
   err_t werr;
   werr = goTunnelWrite(client->tunnel_id, p->payload, p->len);
@@ -711,13 +647,6 @@ static err_t client_recv_func(void *arg, struct tcp_pcb *pcb, struct pbuf *p, er
   if (werr == ERR_OK) {
     tcp_recved(client->pcb, p->len);
   }
-
-  //DEAD_ENTER(client->dead_client)
-  //SYNC_COMMIT
-  //DEAD_LEAVE2(client->dead_client)
-  //if (DEAD_KILLED) {
-  //    return ERR_ABRT;
-  //}
 
   pbuf_free(p);
 
@@ -738,17 +667,6 @@ err_t client_sent_func (void *arg, struct tcp_pcb *tpcb, u16_t len)
   if (client->client_closed) {
     return ERR_ABRT;
   }
-
-  //SYNC_DECL
-  //SYNC_FROMHERE
-
-  //DEAD_ENTER(client->dead_client)
-  //SYNC_COMMIT
-  //DEAD_LEAVE2(client->dead_client)
-  //if (DEAD_KILLED) {
-  //    goLog(client, "dead killed");
-  //    return ERR_ABRT;
-  //}
 
   return goTunnelSentACK(client->tunnel_id, len);
 }
@@ -773,18 +691,17 @@ static void client_dealloc (struct tcp_client *client)
 
 static void client_abort_client (struct tcp_client *client)
 {
-    ASSERT(!client->client_closed)
+  ASSERT(!client->client_closed)
 
-    // remove callbacks
-    tcp_err(client->pcb, NULL);
-    tcp_recv(client->pcb, NULL);
-    tcp_sent(client->pcb, NULL);
+  // remove callbacks
+  tcp_err(client->pcb, NULL);
+  tcp_recv(client->pcb, NULL);
+  tcp_sent(client->pcb, NULL);
 
-    // free pcb
-    tcp_abort(client->pcb);
+  // free pcb
+  tcp_abort(client->pcb);
 
-  goLog(client, "client_abort_client(): requested");
-    client_handle_freed_client(client);
+  client_handle_freed_client(client);
 }
 
 static int tcp_client_output(struct tcp_client *client) {
