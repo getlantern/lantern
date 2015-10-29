@@ -30,6 +30,18 @@
 // name of the program
 #define PROGRAM_NAME "tun2io"
 
+// maximum number of udpgw connections
+#define DEFAULT_UDPGW_MAX_CONNECTIONS 256
+
+// udpgw per-connection send buffer size, in number of packets
+#define DEFAULT_UDPGW_CONNECTION_BUFFER_SIZE 8
+
+// udpgw reconnect time after connection fails
+#define UDPGW_RECONNECT_TIME 5000
+
+// udpgw keepalive sending interval
+#define UDPGW_KEEPALIVE_TIME 10000
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stddef.h>
@@ -41,6 +53,7 @@
 //#include <misc/dead.h>
 #include <misc/ipv4_proto.h>
 #include <misc/ipv6_proto.h>
+#include <misc/udp_proto.h>
 #include <misc/open_standard_streams.h>
 #include <misc/ipaddr6.h>
 #include <system/BReactor.h>
@@ -53,6 +66,7 @@
 #include <lwip/tcp_impl.h>
 #include <lwip/netif.h>
 #include <lwip/tcp.h>
+#include "SocksUdpGwClient.h"
 
 #ifndef BADVPN_USE_WINAPI
 #include <base/BLog_syslog.h>
@@ -87,6 +101,11 @@ typedef struct {
   char *netif_ipaddr;
   char *netif_netmask;
   char *netif_ip6addr;
+
+  char *udpgw_remote_server_addr;
+  int udpgw_max_connections;
+  int udpgw_connection_buffer_size;
+  int udpgw_transparent_dns;
 } options_t;
 
 options_t options;
@@ -127,8 +146,11 @@ static void client_abort_client (struct tcp_client *client);
 static void client_dealloc (struct tcp_client *client);
 static err_t client_recv_func (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err);
 static err_t client_sent_func (void *arg, struct tcp_pcb *tpcb, u16_t len);
+
+static void udpgw_client_handler_received (void *unused, BAddr local_addr, BAddr remote_addr, const uint8_t *data, int data_len);
+
 static int setup_listener(options_t);
-static int configure(char *tundev, char *ipaddr, char *netmask);
+static int configure(char *tundev, char *ipaddr, char *netmask, char *udpgw_remote_server_addr);
 
 uint32_t goNewTunnel(struct tcp_client *client);
 int goTunnelWrite(uint32_t tunno, char *data, size_t size);

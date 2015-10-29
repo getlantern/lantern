@@ -53,6 +53,13 @@ uint8_t *device_write_buf;
 SinglePacketBuffer device_read_buffer;
 PacketPassInterface device_read_interface;
 
+// udpgw client
+TunioUdpGwClient udpgw_client;
+int udp_mtu;
+
+// remote udpgw server addr, if provided
+BAddr udpgw_remote_server_addr;
+
 // TCP timer
 BTimer tcp_timer;
 
@@ -69,7 +76,7 @@ struct tcp_pcb *listener;
 // lwip TCP/IPv6 listener
 struct tcp_pcb *listener_ip6;
 
-static int configure(char *tundev, char *ipaddr, char *netmask)
+static int configure(char *tundev, char *ipaddr, char *netmask, char *udpgw_addr)
 {
   // open standard streams
   open_standard_streams();
@@ -86,6 +93,7 @@ static int configure(char *tundev, char *ipaddr, char *netmask)
   options.tundev = tundev;
   options.netif_ipaddr = ipaddr;
   options.netif_netmask = netmask;
+  options.udpgw_remote_server_addr = udpgw_addr;
 
   // initialize logger
   switch (options.logger) {
@@ -129,6 +137,14 @@ static int configure(char *tundev, char *ipaddr, char *netmask)
   if (options.netif_ip6addr) {
     if (!ipaddr6_parse_ipv6_addr(options.netif_ip6addr, &netif_ip6addr)) {
       BLog(BLOG_ERROR, "netif ip6addr: incorrect");
+      return 0;
+    }
+  }
+
+  // resolve remote udpgw server address
+  if (options.udpgw_remote_server_addr) {
+    if (!BAddr_Parse2(&udpgw_remote_server_addr, options.udpgw_remote_server_addr, NULL, 0, 0)) {
+      BLog(BLOG_ERROR, "remote udpgw server addr: BAddr_Parse2 failed");
       return 0;
     }
   }
@@ -186,6 +202,40 @@ static int setup_listener (options_t options)
     PacketPassInterface_Free(&device_read_interface);
     BTap_Free(&device);
     return 1;
+  }
+
+  if (options.udpgw_remote_server_addr) {
+    // compute maximum UDP payload size we need to pass through udpgw
+    udp_mtu = BTap_GetMTU(&device) - (int)(sizeof(struct ipv4_header) + sizeof(struct udp_header));
+    if (options.netif_ip6addr) {
+      int udp_ip6_mtu = BTap_GetMTU(&device) - (int)(sizeof(struct ipv6_header) + sizeof(struct udp_header));
+      if (udp_mtu < udp_ip6_mtu) {
+        udp_mtu = udp_ip6_mtu;
+      }
+    }
+    if (udp_mtu < 0) {
+      udp_mtu = 0;
+    }
+
+    // make sure our UDP payloads aren't too large for udpgw
+    int udpgw_mtu = udpgw_compute_mtu(udp_mtu);
+    if (udpgw_mtu < 0 || udpgw_mtu > PACKETPROTO_MAXPAYLOAD) {
+      BLog(BLOG_ERROR, "device MTU is too large for UDP");
+      SinglePacketBuffer_Free(&device_read_buffer);
+      return 1;
+    }
+
+    // init udpgw client
+    int udpgw_client_err = TunioUdpGwClient_Init(
+      &udpgw_client, udp_mtu, DEFAULT_UDPGW_MAX_CONNECTIONS, options.udpgw_connection_buffer_size, UDPGW_KEEPALIVE_TIME,
+      udpgw_remote_server_addr, UDPGW_RECONNECT_TIME, &ss, NULL,
+      udpgw_client_handler_received);
+
+    if (udpgw_client_err) {
+      BLog(BLOG_ERROR, "TunioUdpGwClient_Init failed");
+      SinglePacketBuffer_Free(&device_read_buffer);
+      return 1;
+    }
   }
 
   // init lwip init job
@@ -721,4 +771,99 @@ static int tcp_client_output(struct tcp_client *client) {
   }
 
   return ERR_OK;
+}
+
+static void udpgw_client_handler_received(void *unused, BAddr local_addr, BAddr remote_addr, const uint8_t *data, int data_len)
+{
+  ASSERT(options.udpgw_remote_server_addr)
+  ASSERT(local_addr.type == BADDR_TYPE_IPV4 || local_addr.type == BADDR_TYPE_IPV6)
+  ASSERT(local_addr.type == remote_addr.type)
+  ASSERT(data_len >= 0)
+
+  int packet_length = 0;
+
+  switch (local_addr.type) {
+    case BADDR_TYPE_IPV4: {
+      BLog(BLOG_INFO, "UDP: from udpgw %d bytes", data_len);
+
+      if (data_len > UINT16_MAX - (sizeof(struct ipv4_header) + sizeof(struct udp_header)) ||
+        data_len > BTap_GetMTU(&device) - (int)(sizeof(struct ipv4_header) + sizeof(struct udp_header))
+      ) {
+        BLog(BLOG_ERROR, "UDP: packet is too large");
+        return;
+      }
+
+      // build IP header
+      struct ipv4_header iph;
+      iph.version4_ihl4 = IPV4_MAKE_VERSION_IHL(sizeof(iph));
+      iph.ds = hton8(0);
+      iph.total_length = hton16(sizeof(iph) + sizeof(struct udp_header) + data_len);
+      iph.identification = hton16(0);
+      iph.flags3_fragmentoffset13 = hton16(0);
+      iph.ttl = hton8(64);
+      iph.protocol = hton8(IPV4_PROTOCOL_UDP);
+      iph.checksum = hton16(0);
+      iph.source_address = remote_addr.ipv4.ip;
+      iph.destination_address = local_addr.ipv4.ip;
+      iph.checksum = ipv4_checksum(&iph, NULL, 0);
+
+      // build UDP header
+      struct udp_header udph;
+      udph.source_port = remote_addr.ipv4.port;
+      udph.dest_port = local_addr.ipv4.port;
+      udph.length = hton16(sizeof(udph) + data_len);
+      udph.checksum = hton16(0);
+      udph.checksum = udp_checksum(&udph, data, data_len, iph.source_address, iph.destination_address);
+
+      // write packet
+      memcpy(device_write_buf, &iph, sizeof(iph));
+      memcpy(device_write_buf + sizeof(iph), &udph, sizeof(udph));
+      memcpy(device_write_buf + sizeof(iph) + sizeof(udph), data, data_len);
+      packet_length = sizeof(iph) + sizeof(udph) + data_len;
+    } break;
+
+    case BADDR_TYPE_IPV6: {
+      BLog(BLOG_INFO, "UDP/IPv6: from udpgw %d bytes", data_len);
+
+      if (!options.netif_ip6addr) {
+        BLog(BLOG_ERROR, "got IPv6 packet from udpgw but IPv6 is disabled");
+        return;
+      }
+
+      if (data_len > UINT16_MAX - sizeof(struct udp_header) ||
+        data_len > BTap_GetMTU(&device) - (int)(sizeof(struct ipv6_header) + sizeof(struct udp_header))
+      ) {
+        BLog(BLOG_ERROR, "UDP/IPv6: packet is too large");
+        return;
+      }
+
+      // build IPv6 header
+      struct ipv6_header iph;
+      iph.version4_tc4 = hton8((6 << 4));
+      iph.tc4_fl4 = hton8(0);
+      iph.fl = hton16(0);
+      iph.payload_length = hton16(sizeof(struct udp_header) + data_len);
+      iph.next_header = hton8(IPV6_NEXT_UDP);
+      iph.hop_limit = hton8(64);
+      memcpy(iph.source_address, remote_addr.ipv6.ip, 16);
+      memcpy(iph.destination_address, local_addr.ipv6.ip, 16);
+
+      // build UDP header
+      struct udp_header udph;
+      udph.source_port = remote_addr.ipv6.port;
+      udph.dest_port = local_addr.ipv6.port;
+      udph.length = hton16(sizeof(udph) + data_len);
+      udph.checksum = hton16(0);
+      udph.checksum = udp_ip6_checksum(&udph, data, data_len, iph.source_address, iph.destination_address);
+
+      // write packet
+      memcpy(device_write_buf, &iph, sizeof(iph));
+      memcpy(device_write_buf + sizeof(iph), &udph, sizeof(udph));
+      memcpy(device_write_buf + sizeof(iph) + sizeof(udph), data, data_len);
+      packet_length = sizeof(iph) + sizeof(udph) + data_len;
+    } break;
+  }
+
+  // submit packet
+  BTap_Send(&device, device_write_buf, packet_length);
 }
