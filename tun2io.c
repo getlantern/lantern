@@ -761,8 +761,8 @@ static char *dump_dest_addr(struct tcp_client *client) {
   return addr;
 }
 
-static int tcp_client_sndbuf(struct tcp_client *client) {
-  return tcp_sndbuf(client->pcb);
+static unsigned int tcp_client_sndbuf(struct tcp_client *client) {
+  return (unsigned int)tcp_sndbuf(client->pcb);
 }
 
 static void client_dealloc (struct tcp_client *client)

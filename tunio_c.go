@@ -70,10 +70,6 @@ func goInitTunnel(tunno C.uint32_t) C.int {
 		return C.ERR_ABRT
 	}
 
-	t.Lock()
-	defer t.Unlock()
-
-	t.log("spawning reader and writer...")
 	t.ctx, t.ctxCancel = context.WithCancel(context.Background())
 
 	writerOk := make(chan error)
@@ -87,7 +83,7 @@ func goInitTunnel(tunno C.uint32_t) C.int {
 
 	t.SetStatus(StatusProxying)
 
-	t.log("tunnel is ready.")
+	t.log("Ready.")
 	return C.ERR_OK
 }
 
@@ -98,43 +94,25 @@ func goTunnelWrite(tunno C.uint32_t, write *C.char, size C.size_t) C.int {
 	t, ok := tunnels[uint32(tunno)]
 	tunnelMu.Unlock()
 
-	t.log("C -> D: goTunnelWrite: %d bytes.", int(size))
-
-	t.Lock()
-	defer t.Unlock()
-
 	if ok {
 		size := int(size)
 		buf := make([]byte, size)
+
 		for i := 0; i < size; i++ {
 			buf[i] = byte(C.charAt(write, C.int(i)))
 		}
 
-		t.log("connOut.Write: %d bytes", len(buf))
-
-		if s := t.Status(); s != StatusProxying {
-			t.log("expecting status StatusProxying, got %d", s)
+		if t.Status() != StatusProxying {
 			return C.ERR_ABRT
 		}
 
 		t.connOut.SetWriteDeadline(time.Now().Add(ioTimeout))
-		_, err := t.connOut.Write(buf)
-		if err == nil {
-			t.log("connOut.Write: OK")
+		if _, err := t.connOut.Write(buf); err == nil {
 			return C.ERR_OK
 		}
-
-		//t.quit(fmt.Sprintf("got write error: %q", err))
 	}
 
-	log.Printf("%d: client is not registered!", int(tunno))
-
 	return C.ERR_ABRT
-}
-
-//export goInspect
-func goInspect(data *C.struct_tcp_pcb) {
-	log.Printf("INSPECT: %#v", data)
 }
 
 //export goLog
@@ -167,20 +145,21 @@ func goLog(client *C.struct_tcp_client, c *C.char) {
 // goTunnelSentACK acknowledges a tunnel sent.
 func goTunnelSentACK(tunno C.uint32_t, dlen C.u16_t) C.int {
 	tunID := uint32(tunno)
-	log.Printf("%d: goTunnelSentACK", tunID)
 
 	tunnelMu.Lock()
 	t, ok := tunnels[tunID]
 	tunnelMu.Unlock()
 
 	if !ok {
+		t.log("goTunnelSentACK: does not exist.")
 		return C.ERR_ABRT
 	}
 
-	t.log("goTunnelSentACK: acknowledging %d...", int(dlen))
 	t.client.accAcked(uint64(dlen))
 
-	t.log("goTunnelSentACK: wrote ack %d...", int(dlen))
+	// Now that the client ACKed a few packages we might be able to continue
+	// writing.
+	go t.writeToClient()
 
 	return C.ERR_OK
 }

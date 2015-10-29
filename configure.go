@@ -57,9 +57,8 @@ const (
 	StatusConnected                      // 3
 	StatusReady                          // 4
 	StatusProxying                       // 5
-	StatusServerClosed                   // 6
-	StatusClosing                        // 7
-	StatusClosed                         // 8
+	StatusClosing                        // 6
+	StatusClosed                         // 7
 )
 
 // Configure sets up the tundevice, this is equivalent to the badvpn-tun2socks

@@ -135,13 +135,12 @@ int goTunnelWrite(uint32_t tunno, char *data, size_t size);
 int goTunnelDestroy(uint32_t tunno);
 int goTunnelSentACK(uint32_t tunno, u16_t len);
 int goInitTunnel(uint32_t tunno);
-void goInspect(struct tcp_pcb *tpcb);
 void goLog(struct tcp_client *client, char *data);
 
 static char *dump_dest_addr(struct tcp_client *client);
 
 static char charAt(char *in, int i);
-static int tcp_client_sndbuf(struct tcp_client *client);
+static unsigned int tcp_client_sndbuf(struct tcp_client *client);
 static int tcp_client_outbuf(struct tcp_client *client);
 
 #endif
