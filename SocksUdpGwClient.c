@@ -172,8 +172,8 @@ int TunioUdpGwClient_Init (TunioUdpGwClient *o, int udp_mtu, int max_connections
   o->udp_mtu = udp_mtu;
   o->remote_udpgw_addr = remote_udpgw_addr;
   o->reactor = reactor;
-  o->handler_received = handler_received;
   o->user = user;
+  o->handler_received = handler_received;
 
   // init udpgw client
   if (!UdpGwClient_Init(&o->udpgw_client, udp_mtu, max_connections, send_buffer_size, keepalive_time, o->reactor, o,

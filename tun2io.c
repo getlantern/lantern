@@ -141,6 +141,11 @@ static int configure(char *tundev, char *ipaddr, char *netmask, char *udpgw_addr
     }
   }
 
+  options.udpgw_remote_server_addr = NULL;
+  options.udpgw_max_connections = DEFAULT_UDPGW_MAX_CONNECTIONS;
+  options.udpgw_connection_buffer_size = DEFAULT_UDPGW_CONNECTION_BUFFER_SIZE;
+  options.udpgw_transparent_dns = 0;
+
   // resolve remote udpgw server address
   if (options.udpgw_remote_server_addr) {
     if (!BAddr_Parse2(&udpgw_remote_server_addr, options.udpgw_remote_server_addr, NULL, 0, 0)) {
