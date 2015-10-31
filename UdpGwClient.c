@@ -512,6 +512,25 @@ void UdpGwClient_Free (UdpGwClient *o)
     PacketPassConnector_Free(&o->send_connector);
 }
 
+void UdpGwClient_SubmitPacket2(UdpGwClient *o, BAddr local_addr, BAddr remote_addr, int is_dns, const uint8_t *data, int data_len)
+{
+    DebugObject_Access(&o->d_obj);
+    ASSERT(local_addr.type == BADDR_TYPE_IPV4 || local_addr.type == BADDR_TYPE_IPV6)
+    ASSERT(remote_addr.type == BADDR_TYPE_IPV4 || remote_addr.type == BADDR_TYPE_IPV6)
+    ASSERT(data_len >= 0)
+    ASSERT(data_len <= o->udp_mtu)
+
+    uint8_t flags = 0;
+
+    if (is_dns) {
+        // route to remote DNS server instead of provided address
+        flags |= UDPGW_CLIENT_FLAG_DNS;
+    }
+    printf("UdpGwClient_SubmitPacket2\n");
+
+    //connection_send(con, flags, data, data_len);
+}
+
 void UdpGwClient_SubmitPacket (UdpGwClient *o, BAddr local_addr, BAddr remote_addr, int is_dns, const uint8_t *data, int data_len)
 {
     DebugObject_Access(&o->d_obj);

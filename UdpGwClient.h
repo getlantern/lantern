@@ -112,6 +112,7 @@ int UdpGwClient_Init (UdpGwClient *o, int udp_mtu, int max_connections, int send
                       UdpGwClient_handler_received handler_received) WARN_UNUSED;
 void UdpGwClient_Free (UdpGwClient *o);
 void UdpGwClient_SubmitPacket (UdpGwClient *o, BAddr local_addr, BAddr remote_addr, int is_dns, const uint8_t *data, int data_len);
+void UdpGwClient_SubmitPacket2 (UdpGwClient *o, BAddr local_addr, BAddr remote_addr, int is_dns, const uint8_t *data, int data_len);
 int UdpGwClient_ConnectServer (UdpGwClient *o, StreamPassInterface *send_if, StreamRecvInterface *recv_if) WARN_UNUSED;
 void UdpGwClient_DisconnectServer (UdpGwClient *o);
 

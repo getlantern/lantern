@@ -32,10 +32,12 @@
 #include <misc/debug.h>
 #include <base/BLog.h>
 
+/*
 //static void free_socks (TunioUdpGwClient *o);
 static void try_connect (TunioUdpGwClient *o);
 static void reconnect_timer_handler (TunioUdpGwClient *o);
 static void socks_client_handler (TunioUdpGwClient *o, int event);
+*/
 static void udpgw_handler_servererror (TunioUdpGwClient *o);
 static void udpgw_handler_received (TunioUdpGwClient *o, BAddr local_addr, BAddr remote_addr, const uint8_t *data, int data_len);
 
@@ -57,9 +59,9 @@ static void free_socks (TunioUdpGwClient *o)
 }
 */
 
+/*
 static void try_connect (TunioUdpGwClient *o)
 {
-    /*
     ASSERT(!BTimer_IsRunning(&o->reconnect_timer))
 
     // init SOCKS client
@@ -79,9 +81,10 @@ static void try_connect (TunioUdpGwClient *o)
 fail0:
     // set reconnect timer
     BReactor_SetTimer(o->reactor, &o->reconnect_timer);
-    */
 }
+    */
 
+/*
 static void reconnect_timer_handler (TunioUdpGwClient *o)
 {
     DebugObject_Access(&o->d_obj);
@@ -89,6 +92,7 @@ static void reconnect_timer_handler (TunioUdpGwClient *o)
     // try connecting
     try_connect(o);
 }
+*/
 
 /*
 static void socks_client_handler (TunioUdpGwClient *o, int event)
@@ -143,13 +147,13 @@ static void udpgw_handler_servererror (TunioUdpGwClient *o)
     //ASSERT(o->have_socks)
     //ASSERT(o->socks_up)
 
-    BLog(BLOG_ERROR, "client reports server error");
+    BLog(BLOG_INFO, "udpgw_handler_servererror");
 
     // free SOCKS
     //free_socks(o);
 
     // set reconnect timer
-    BReactor_SetTimer(o->reactor, &o->reconnect_timer);
+    //BReactor_SetTimer(o->reactor, &o->reconnect_timer);
 }
 
 static void udpgw_handler_received (TunioUdpGwClient *o, BAddr local_addr, BAddr remote_addr, const uint8_t *data, int data_len)
@@ -157,7 +161,8 @@ static void udpgw_handler_received (TunioUdpGwClient *o, BAddr local_addr, BAddr
     DebugObject_Access(&o->d_obj);
 
     // submit to user
-    o->handler_received(o->user, local_addr, remote_addr, data, data_len);
+    //o->handler_received(o->user, local_addr, remote_addr, data, data_len);
+    BLog(BLOG_INFO, "udpgw_handler_received");
     return;
 }
 
@@ -184,10 +189,10 @@ int TunioUdpGwClient_Init (TunioUdpGwClient *o, int udp_mtu, int max_connections
   }
 
   // init reconnect timer
-  BTimer_Init(&o->reconnect_timer, reconnect_time, (BTimer_handler)reconnect_timer_handler, o);
+  //BTimer_Init(&o->reconnect_timer, reconnect_time, (BTimer_handler)reconnect_timer_handler, o);
 
   // try connecting
-  try_connect(o);
+  //try_connect(o);
 
   DebugObject_Init(&o->d_obj);
   return 1;
@@ -212,13 +217,18 @@ void TunioUdpGwClient_Free (TunioUdpGwClient *o)
     // free udpgw client
     UdpGwClient_Free(&o->udpgw_client);
 }
+*/
 
 void TunioUdpGwClient_SubmitPacket (TunioUdpGwClient *o, BAddr local_addr, BAddr remote_addr, int is_dns, const uint8_t *data, int data_len)
 {
-    DebugObject_Access(&o->d_obj);
-    // see asserts in UdpGwClient_SubmitPacket
+  DebugObject_Access(&o->d_obj);
+  // see asserts in UdpGwClient_SubmitPacket
+  printf("TunioUdpGwClient_SubmitPacket\n");
 
-    // submit to udpgw client
-    UdpGwClient_SubmitPacket(&o->udpgw_client, local_addr, remote_addr, is_dns, data, data_len);
+  // submit to udpgw client
+  UdpGwClient_SubmitPacket2(&o->udpgw_client, local_addr, remote_addr, is_dns, data, data_len);
+
+  // 1. Create a reusable connection.
+  // 2. Create a packet.
+  //goUdpGwClient_SubmitPacket(local_addr, remote_addr, is_dns, data, data_len);
 }
-*/

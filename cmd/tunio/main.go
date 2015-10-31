@@ -56,7 +56,7 @@ func LanternDialer(proto, addr string) (net.Conn, error) {
 		return conn, nil
 	}
 
-	log.Printf("Sorry. Could not reach Lantern.")
+	log.Printf("Status code %v.", resp.StatusCode)
 
 	return nil, errors.New("Could not connect to Lantern.")
 }

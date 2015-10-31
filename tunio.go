@@ -196,7 +196,7 @@ func (t *TunIO) reader(started chan error) error {
 
 // NewTunnel creates a tunnel to the destination indicated by client using the
 // given dialer function.
-func NewTunnel(client *C.struct_tcp_client, d dialer) (*TunIO, error) {
+func NewTunnel(client *C.struct_tcp_client, dialFn dialer) (*TunIO, error) {
 	destAddr := C.dump_dest_addr(client)
 	defer C.free(unsafe.Pointer(destAddr))
 
@@ -209,7 +209,7 @@ func NewTunnel(client *C.struct_tcp_client, d dialer) (*TunIO, error) {
 	t.SetStatus(StatusConnecting)
 
 	var err error
-	if t.connOut, err = d("tcp", t.destAddr); err != nil {
+	if t.connOut, err = dialFn("tcp", t.destAddr); err != nil {
 		t.SetStatus(StatusConnectionFailed)
 		return nil, err
 	}

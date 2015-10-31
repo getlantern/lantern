@@ -32,7 +32,7 @@
 #include <misc/debug.h>
 #include <base/DebugObject.h>
 #include <system/BReactor.h>
-#include <udpgw_client/UdpGwClient.h>
+#include "UdpGwClient.h"
 
 typedef void (*TunioUdpGwClient_handler_received) (void *user, BAddr local_addr, BAddr remote_addr, const uint8_t *data, int data_len);
 

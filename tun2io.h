@@ -150,7 +150,8 @@ static err_t client_sent_func (void *arg, struct tcp_pcb *tpcb, u16_t len);
 static void udpgw_client_handler_received (void *unused, BAddr local_addr, BAddr remote_addr, const uint8_t *data, int data_len);
 
 static int setup_listener(options_t);
-static int configure(char *tundev, char *ipaddr, char *netmask, char *udpgw_remote_server_addr);
+static int configure(char *tundev, char *ipaddr, char *netmask, char *udpgw_addr);
+static char *baddr_to_str(BAddr *baddr);
 
 uint32_t goNewTunnel(struct tcp_client *client);
 int goTunnelWrite(uint32_t tunno, char *data, size_t size);
@@ -159,10 +160,13 @@ int goTunnelSentACK(uint32_t tunno, u16_t len);
 int goInitTunnel(uint32_t tunno);
 void goLog(struct tcp_client *client, char *data);
 
+int goUdpGwClient_SubmitPacket(BAddr localAddr, BAddr remoteAddr, int is_dns, uint8_t *data, int data_len);
+
 static char *dump_dest_addr(struct tcp_client *client);
 
 static char charAt(char *in, int i);
 static unsigned int tcp_client_sndbuf(struct tcp_client *client);
 static int tcp_client_outbuf(struct tcp_client *client);
+static int process_device_udp_packet (uint8_t *data, int data_len);
 
 #endif
