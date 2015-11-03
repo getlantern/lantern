@@ -50,7 +50,6 @@ typedef struct {
 int TunioUdpGwClient_Init (TunioUdpGwClient *o, int udp_mtu, int max_connections, int send_buffer_size, btime_t keepalive_time,
                            BAddr remote_udpgw_addr, btime_t reconnect_time, BReactor *reactor, void *user,
                            TunioUdpGwClient_handler_received handler_received) WARN_UNUSED;
-void TunioUdpGwClient_Free (TunioUdpGwClient *o);
 void TunioUdpGwClient_SubmitPacket (TunioUdpGwClient *o, BAddr local_addr, BAddr remote_addr, int is_dns, const uint8_t *data, int data_len);
 
 #endif

@@ -46,16 +46,6 @@
 #include <flow/PacketPassConnector.h>
 #include <flowextra/PacketPassInactivityMonitor.h>
 
-typedef void (*UdpGwClient_handler_servererror) (void *user);
-typedef void (*UdpGwClient_handler_received) (void *user, BAddr local_addr, BAddr remote_addr, const uint8_t *data, int data_len);
-
-B_START_PACKED
-struct UdpGwClient__keepalive_packet {
-    struct packetproto_header pp;
-    struct udpgw_header udpgw;
-} B_PACKED;
-B_END_PACKED
-
 typedef struct {
     int udp_mtu;
     int max_connections;
@@ -63,8 +53,6 @@ typedef struct {
     btime_t keepalive_time;
     BReactor *reactor;
     void *user;
-    UdpGwClient_handler_servererror handler_servererror;
-    UdpGwClient_handler_received handler_received;
     int udpgw_mtu;
     int pp_mtu;
     BAVL connections_tree_by_conaddr;
@@ -75,7 +63,6 @@ typedef struct {
     PacketPassFairQueue send_queue;
     PacketPassInactivityMonitor send_monitor;
     PacketPassConnector send_connector;
-    struct UdpGwClient__keepalive_packet keepalive_packet;
     PacketPassInterface *keepalive_if;
     PacketPassFairQueueFlow keepalive_qflow;
     int keepalive_sending;
@@ -107,13 +94,6 @@ struct UdpGwClient_connection {
     LinkedList1Node connections_list_node;
 };
 
-int UdpGwClient_Init (UdpGwClient *o, int udp_mtu, int max_connections, int send_buffer_size, btime_t keepalive_time, BReactor *reactor, void *user,
-                      UdpGwClient_handler_servererror handler_servererror,
-                      UdpGwClient_handler_received handler_received) WARN_UNUSED;
-void UdpGwClient_Free (UdpGwClient *o);
-void UdpGwClient_SubmitPacket (UdpGwClient *o, BAddr local_addr, BAddr remote_addr, int is_dns, const uint8_t *data, int data_len);
 void UdpGwClient_SubmitPacket2 (UdpGwClient *o, BAddr local_addr, BAddr remote_addr, int is_dns, const uint8_t *data, int data_len);
-int UdpGwClient_ConnectServer (UdpGwClient *o, StreamPassInterface *send_if, StreamRecvInterface *recv_if) WARN_UNUSED;
-void UdpGwClient_DisconnectServer (UdpGwClient *o);
 
 #endif

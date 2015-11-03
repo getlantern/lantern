@@ -34,12 +34,14 @@ func DialUDP() (net.Conn, error) {
 	}
 	go func() {
 		for {
-			buf := make([]byte, 256)
+			buf := make([]byte, 1024)
 			n, err := conn.Read(buf)
 			if err != nil {
 				return
 			}
+			log.Printf("data: %q, len: %d\n", buf[0:n], n)
 			if n > 0 {
+				log.Printf("buf[0]: %d, buf[1]: %d", buf[0], buf[1])
 				if buf[1] != 0 {
 					panic("Don't know how to handle this.")
 				}
@@ -48,7 +50,6 @@ func DialUDP() (net.Conn, error) {
 					panic("Don't know how to handle this.")
 				}
 				data := buf[2:]
-				log.Printf("data: %q\n", data)
 
 				cchunk := C.CString(string(data))
 
