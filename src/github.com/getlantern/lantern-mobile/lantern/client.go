@@ -1,7 +1,6 @@
 package client
 
 import (
-	"net/http"
 	"strings"
 	"time"
 
@@ -22,10 +21,11 @@ var (
 	version       string
 	revisionDate  string
 	log           = golog.LoggerFor("lantern-android.client")
+	cf            = util.NewChainedAndFronted()
 	clientConfig  = defaultConfig()
 	trackingCodes = map[string]string{
 		"FireTweet": "UA-21408036-4",
-		"Lantern":   "UA-21408036-4",
+		"Lantern":   "UA-21815217-14",
 	}
 
 	defaultClient *mobileClient
@@ -35,8 +35,7 @@ var (
 type mobileClient struct {
 	appName string
 	*client.Client
-	closed     chan bool
-	httpClient *http.Client
+	closed chan bool
 }
 
 func init() {
@@ -69,20 +68,11 @@ func newClient(addr, appName string) *mobileClient {
 	return mClient
 }
 
-func (client *mobileClient) createHTTPClient() {
-	httpClient, err := util.HTTPClient("", client.Client.Addr)
-	if err != nil {
-		log.Errorf("Could not create HTTP client via %s: %s",
-			client.Client.Addr, err)
-	} else {
-		client.httpClient = httpClient
-	}
-}
-
 func (client *mobileClient) afterSetup() {
 	log.Debugf("Now listening for connections...")
-	client.createHTTPClient()
 	clientConfig.configureFronted()
+
+	go client.updateConfig()
 
 	analytics.Configure("", trackingCodes[client.appName], "", client.Client.Addr)
 	logging.Configure(client.Client.Addr, cloudConfigCA, instanceId, version, revisionDate)
@@ -112,12 +102,7 @@ func (client *mobileClient) updateConfig() error {
 	var buf []byte
 	var err error
 
-	if client.httpClient == nil {
-		log.Debugf("Not fetching the config without HTTP client")
-		return nil
-	}
-
-	if buf, err = pullConfigFile(client.httpClient); err != nil {
+	if buf, err = pullConfigFile(); err != nil {
 		log.Errorf("Could not update config: '%v'", err)
 		return err
 	}
