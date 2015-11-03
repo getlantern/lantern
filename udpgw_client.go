@@ -15,8 +15,16 @@ import (
 import "C"
 
 type udpGwClient struct {
-	connID int
-	conn   net.Conn
+	connID      int
+	conn        net.Conn
+	cLocalAddr  C.BAddr
+	cRemoteAddr C.BAddr
+}
+
+//export goUdpGwClient_GetLocalAddrByConnId
+func goUdpGwClient_GetLocalAddrByConnId(cConnID C.uint16_t) C.BAddr {
+	conn := udpgwGetConnById(uint32(cConnID))
+	return conn.cLocalAddr
 }
 
 func DialUDP() (net.Conn, error) {
@@ -26,12 +34,25 @@ func DialUDP() (net.Conn, error) {
 	}
 	go func() {
 		for {
-			buf := make([]byte, 10)
+			buf := make([]byte, 256)
 			n, err := conn.Read(buf)
-			log.Printf("got read: %d, %q", n, err)
-			log.Printf("data: %v\n", buf)
 			if err != nil {
 				return
+			}
+			if n > 0 {
+				if buf[1] != 0 {
+					panic("Don't know how to handle this.")
+				}
+				size := int(buf[0])
+				if n != size+2 {
+					panic("Don't know how to handle this.")
+				}
+				data := buf[2:]
+				log.Printf("data: %q\n", data)
+
+				cchunk := C.CString(string(data))
+
+				C.udpGWClient_ReceiveFromServer(cchunk, C.int(len(data)))
 			}
 		}
 	}()
@@ -89,19 +110,23 @@ func goUdpGwClient_Send(connId uint32, flags C.uint8_t, data *C.uint8_t, dataLen
 	c := udpgwGetConnById(connId)
 
 	bl := int(dataLen)
-	buf := make([]byte, bl)
-
-	for i := 0; i < bl; i++ {
-		buf[i] = byte(C.dataAt(data, C.int(i)))
+	if bl > 254 {
+		panic("don't know how to send a packet larger than 254bytes.")
 	}
 
-	buf2 := make([]byte, 0, bl+2)
-	buf2 = append([]byte{0x25, 0x00}, buf...)
+	buf := make([]byte, 2+bl)
 
-	log.Printf("%05d: got packet %db, len: %db\n", connId, int(dataLen), len(buf2))
-	log.Printf("data: %q", string(buf2))
+	buf[0] = byte(bl)
+	buf[1] = 0
 
-	n, err := c.conn.Write(buf2)
+	for i := 0; i < bl; i++ {
+		buf[i+2] = byte(C.dataAt(data, C.int(i)))
+	}
+
+	log.Printf("%05d: got packet %db, len: %db\n", connId, int(dataLen), len(buf))
+	log.Printf("data: %q", string(buf))
+
+	n, err := c.conn.Write(buf)
 
 	if err != nil {
 		log.Printf("got err: %q\n", err)
@@ -130,6 +155,10 @@ func goUdpGwClient_FindConnectionByAddr(cLocalAddr C.BAddr, cRemoteAddr C.BAddr)
 	if err != nil {
 		return 0
 	}
+
+	client := udpgwGetConnById(connId)
+	client.cLocalAddr = cLocalAddr
+	client.cRemoteAddr = cRemoteAddr
 
 	return C.uint32_t(connId)
 }

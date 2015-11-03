@@ -1012,4 +1012,55 @@ static uint8_t dataAt(uint8_t *in, int i) {
 	return in[i];
 }
 
+static void udpGWClient_ReceiveFromServer(char *data, int data_len)
+{
+    ASSERT(data_len >= 0)
+    //ASSERT(data_len <= o->udpgw_mtu)
+
+    // check header
+    if (data_len < sizeof(struct udpgw_header)) {
+        BLog(BLOG_ERROR, "missing header");
+        return;
+    }
+
+    struct udpgw_header header;
+    memcpy(&header, data, sizeof(header));
+    data += sizeof(header);
+    data_len -= sizeof(header);
+    uint8_t flags = ltoh8(header.flags);
+    uint16_t conid = ltoh16(header.conid);
+
+    // parse address
+    BAddr remote_addr;
+    if ((flags & UDPGW_CLIENT_FLAG_IPV6)) {
+        if (data_len < sizeof(struct udpgw_addr_ipv6)) {
+            BLog(BLOG_ERROR, "missing ipv6 address");
+            return;
+        }
+        struct udpgw_addr_ipv6 addr_ipv6;
+        memcpy(&addr_ipv6, data, sizeof(addr_ipv6));
+        data += sizeof(addr_ipv6);
+        data_len -= sizeof(addr_ipv6);
+        BAddr_InitIPv6(&remote_addr, addr_ipv6.addr_ip, addr_ipv6.addr_port);
+    } else {
+        if (data_len < sizeof(struct udpgw_addr_ipv4)) {
+            BLog(BLOG_ERROR, "missing ipv4 address");
+            return;
+        }
+        struct udpgw_addr_ipv4 addr_ipv4;
+        memcpy(&addr_ipv4, data, sizeof(addr_ipv4));
+        data += sizeof(addr_ipv4);
+        data_len -= sizeof(addr_ipv4);
+        BAddr_InitIPv4(&remote_addr, addr_ipv4.addr_ip, addr_ipv4.addr_port);
+    }
+
+		BAddr local_addr;
+		local_addr = goUdpGwClient_GetLocalAddrByConnId(conid);
+
+    // pass packet to user
+    udpgw_client_handler_received(NULL, local_addr, remote_addr, data, data_len);
+    return;
+}
+
+
 #endif

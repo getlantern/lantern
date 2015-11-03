@@ -26,6 +26,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef _UDPGW_CLIENT_C
+#define _UDPGW_CLIENT_C
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -673,3 +676,5 @@ void UdpGwClient_DisconnectServer (UdpGwClient *o)
     // set have no server
     o->have_server = 0;
 }
+
+#endif
