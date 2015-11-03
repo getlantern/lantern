@@ -21,15 +21,13 @@ var (
 
 // Balancer balances connections established by one or more Dialers.
 type Balancer struct {
-	dialers    []*dialer
-	trusted    []*dialer
-	udpDialers []*dialer
+	dialers []*dialer
+	trusted []*dialer
 }
 
 // New creates a new Balancer using the supplied Dialers.
 func New(dialers ...*Dialer) *Balancer {
 	trustedDialersCount := 0
-	udpDialersCount := 0
 
 	bal := new(Balancer)
 
@@ -43,24 +41,16 @@ func New(dialers ...*Dialer) *Balancer {
 		if dl.Trusted {
 			trustedDialersCount++
 		}
-
-		if dl.UdpgwServer {
-			udpDialersCount++
-		}
 	}
 
 	// Sort dialers by QOS (ascending) for later selection
 	sort.Sort(byQOSAscending(bal.dialers))
 
 	bal.trusted = make([]*dialer, 0, trustedDialersCount)
-	bal.udpDialers = make([]*dialer, 0, udpDialersCount)
 
 	for _, d := range bal.dialers {
 		if d.Trusted {
 			bal.trusted = append(bal.trusted, d)
-		}
-		if d.UdpgwServer {
-			bal.udpDialers = append(bal.udpDialers, d)
 		}
 	}
 
@@ -87,10 +77,8 @@ func (b *Balancer) dialerAndConn(network, addr string, targetQOS int) (d *Dialer
 
 	// We try to identify HTTP traffic (as opposed to HTTPS) by port and only
 	// send HTTP traffic to dialers marked as trusted.
-	if port == "" || port == "80" || port == "8080" {
+	if port == "" || port == "80" || port == "8080" || port == "7300" {
 		dialers = b.trusted
-	} else if port == "7300" {
-		dialers = b.udpDialers
 	} else {
 		dialers = b.dialers
 	}

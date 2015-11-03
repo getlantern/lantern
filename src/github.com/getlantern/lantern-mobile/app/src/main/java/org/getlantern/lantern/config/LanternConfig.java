@@ -7,7 +7,7 @@ public interface LanternConfig {
 
     public final static String APP_NAME = "Lantern";
 
-    public final static int HTTP_PORT = 9121;
+    public final static int HTTP_PORT = 8787;
     public final static int SOCKS_PORT = 9131;
     public final static String UDPGW_SERVER = "127.0.0.1:7300";
     public final static String ENABLE_VPN = "org.getlantern.lantern.intent.action.ENABLE";

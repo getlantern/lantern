@@ -1,5 +1,7 @@
 package org.getlantern.lantern.model;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.ComponentName;
@@ -7,6 +9,7 @@ import android.content.Intent;
 import android.content.Context;
 
 import android.content.res.Resources;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -18,6 +21,8 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.graphics.PorterDuff; 
 import android.net.VpnService;
@@ -28,14 +33,18 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.text.Editable;
 import android.text.Html;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.LayoutInflater;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -46,13 +55,17 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.getlantern.lantern.activity.LanternMainActivity;
 import org.getlantern.lantern.config.LanternConfig;
+import org.getlantern.lantern.model.GmailSender;
 import org.getlantern.lantern.R;
 import org.getlantern.lantern.service.LanternVpn;
 
@@ -82,6 +95,9 @@ public class LanternUI {
     final private LanternMainActivity activity;
 
     private ToggleButton powerLantern;
+    private EditText emailInput;
+    private Button sendBtn;
+    private View separator;
 
     private static final int onColor = Color.parseColor("#39C2D6");
     private static final int offColor = Color.parseColor("#FAFBFB"); 
@@ -102,6 +118,9 @@ public class LanternUI {
 
         this.mainView = (View)this.activity.findViewById(R.id.mainView); 
         this.desktopView = (View)this.activity.findViewById(R.id.desktopView);
+        this.emailInput = (EditText)this.activity.findViewById(R.id.sendEmail);
+        this.sendBtn = (Button)activity.findViewById(R.id.sendBtn);
+        this.separator = (View)activity.findViewById(R.id.separator);
 
         // DrawerLayout
         this.mDrawerLayout = (DrawerLayout) this.activity.findViewById(R.id.drawerLayout);
@@ -117,6 +136,8 @@ public class LanternUI {
         this.shareable = new Shareable(this.activity);
 
         this.menuMap = new HashMap<String, Command>();
+
+        this.configureEmailInput();
     }
 
     interface Command {
@@ -128,7 +149,6 @@ public class LanternUI {
         mNavItems.add(new NavItem("Share", R.drawable.ic_share));
         mNavItems.add(new NavItem("Desktop Version", R.drawable.ic_desktop));
         mNavItems.add(new NavItem("Contact", R.drawable.ic_contact));
-        mNavItems.add(new NavItem("Privacy Policy", R.drawable.ic_privacy_policy));
         mNavItems.add(new NavItem("Quit", R.drawable.ic_quit));
 
         menuMap.put("Quit", new Command() { 
@@ -164,7 +184,6 @@ public class LanternUI {
             }
         });
 
-
         mDrawerToggle = new ActionBarDrawerToggle(this.activity, mDrawerLayout, R.string.drawer_open, R.string.drawer_close) {
             @Override
             public void onDrawerOpened(View drawerView) {
@@ -196,6 +215,18 @@ public class LanternUI {
 
         RelativeLayout profileBox = (RelativeLayout)this.activity.findViewById(R.id.profileBox);
 
+        ImageView backBtn = (ImageView)this.activity.findViewById(R.id.navAvatar);
+
+        backBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mainView.setVisibility(View.VISIBLE);
+                desktopView.setVisibility(View.INVISIBLE);
+
+                mDrawerLayout.closeDrawers();
+            }
+        });
+
         profileBox.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
@@ -210,6 +241,99 @@ public class LanternUI {
     private void desktopOption() {
         mainView.setVisibility(View.INVISIBLE);
         desktopView.setVisibility(View.VISIBLE);
+    }
+
+    private static boolean isEmailValid(String email) {
+        boolean isValid = false;
+
+        String expression = "^[\\w\\.-]+@([\\w\\-]+\\.)+[A-Z]{2,4}$";
+        CharSequence inputStr = email;
+
+        Pattern pattern = Pattern.compile(expression, Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(inputStr);
+        if (matcher.matches()) {
+            isValid = true;
+        }
+        return isValid;
+    }
+
+    public void sendDesktopVersion(View view) {
+        final String body = "Thank you for contacting the Lantern team. Lantern uses a combination of techniques, including proxies and peer-to-peer, to access the censored web sites.\n" +
+            "The latest version of Lantern can be downloaded from the following links.\n\n" +
+            "Windows XP SP3 and above:\nhttps://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer.exe\n\n" +
+            "Mac OSX 64-bit:\nhttps://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer.dmg\n\n" +
+            "32-bit Ubuntu 14.04 and above:\nhttps://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-32-bit.deb\n\n" +
+            "64-bit Ubuntu 14.04 and above:\nhttps://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-64-bit.deb\n\n" +
+            "Android:\nhttps://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer.apk\n\n" + 
+            "Thanks!\nLantern\n";
+        final String email = emailInput.getText().toString();
+        final GmailSender sender = new GmailSender("lanterngfw77@gmail.com", "irequiremorefluffypillows");
+
+        Log.d(TAG, "Sending Lantern Desktop to " + email);
+
+        new AsyncTask<Void, Void, Void>() {
+            @Override 
+            public Void doInBackground(Void... arg) {
+                try {
+                    sender.sendMail("Your Lantern Download Link", body, "team@getlantern.org", email);
+                } catch (Exception e) {
+                    Log.e(TAG, e.getMessage(), e);     
+                }
+                return null;
+            }
+        }.execute();
+
+        String msg = this.activity.getResources().getString(R.string.success_email);
+
+        AlertDialog alertDialog = new AlertDialog.Builder(this.activity).create();
+        alertDialog.setTitle("Lantern");
+        alertDialog.setMessage(msg);
+        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        alertDialog.show();
+
+
+        // revert send button, separator back to defaults
+        sendBtn.setBackgroundResource(R.drawable.send_btn);
+        sendBtn.setClickable(false);
+        separator.setBackgroundResource(R.color.edittext_color);
+        emailInput.setText("");
+    }
+
+    private void configureEmailInput() {
+
+        final LanternMainActivity activity = this.activity;
+
+        emailInput.addTextChangedListener(new TextWatcher() {
+            public void afterTextChanged(Editable s) {
+                if (s.length() == 0) {
+                    separator.setBackgroundResource(R.color.edittext_color);
+                } else {
+                    separator.setBackgroundResource(R.color.blue_color);
+                }
+            }
+
+            public void beforeTextChanged(CharSequence s, int start,
+                    int count, int after) {
+            }
+
+            public void onTextChanged(CharSequence s, int start,
+                    int before, int count) {
+                if (isEmailValid(s.toString())) {
+                    sendBtn.setBackgroundResource(R.drawable.send_btn_blue);
+                    sendBtn.setClickable(true);
+                } else {
+                    sendBtn.setBackgroundResource(R.drawable.send_btn);
+                    sendBtn.setClickable(false);
+                }
+            }
+
+        });
+
     }
 
     // opens an e-mail message with some default options

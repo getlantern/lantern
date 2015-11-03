@@ -82,6 +82,7 @@ public class Lantern extends Client.SocketProvider.Stub {
                 // then we shut down the VPN interface
                 // and close Tun2Socks
                 this.service.stopLantern();
+                this.service.UI.toggleSwitch(false);
             } catch (Exception e) {
 
             }

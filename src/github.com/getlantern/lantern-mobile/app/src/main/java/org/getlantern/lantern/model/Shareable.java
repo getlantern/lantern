@@ -151,7 +151,7 @@ public class Shareable {
         LabeledIntent[] extraIntents = intentList.toArray( new LabeledIntent[ intentList.size() ]);
 
         openInChooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, extraIntents);
-        activity.startActivity(openInChooser);     
+        activity.startActivityForResult(openInChooser);     
     }
 
 }
