@@ -25,7 +25,7 @@ var lastCloudConfigETag string
 
 type config struct {
 	Client           *client.ClientConfig `yaml:"client"`
-	TrustedCAs       []*ca                `yaml:"trustedcas"`
+	TrustedCAs       []*CA                `yaml:"trustedcas"`
 	InstanceId       string               `yaml:"instanceid"`
 	FireTweetVersion string               `yaml:"firetweetversion"`
 }
@@ -45,22 +45,19 @@ var (
 const (
 	cloudConfigCA = ``
 	// URL of the configuration file. Remember to use HTTPs.
-	remoteConfigURL = `https://config.getiantem.org/cloud.yaml.gz`
-	instanceId      = ``
+	chainedCloudConfigUrl = "http://config.getiantem.org/cloud-android.yaml.gz"
+	frontedCloudConfigUrl = "http://d2wi0vwulmtn99.cloudfront.net/cloud.yaml.gz"
+	instanceId            = ``
 )
 
 // pullConfigFile attempts to retrieve a configuration file over the network,
 // then it decompresses it and returns the file's raw bytes.
-func pullConfigFile(cli *http.Client) ([]byte, error) {
+func pullConfigFile() ([]byte, error) {
 	var err error
 	var req *http.Request
 	var res *http.Response
 
-	if cli == nil {
-		return nil, errors.New("Missing HTTP client.")
-	}
-
-	if req, err = http.NewRequest("GET", remoteConfigURL, nil); err != nil {
+	if req, err = http.NewRequest("GET", chainedCloudConfigUrl, nil); err != nil {
 		return nil, err
 	}
 
@@ -69,7 +66,11 @@ func pullConfigFile(cli *http.Client) ([]byte, error) {
 		req.Header.Set(httpIfNoneMatch, lastCloudConfigETag)
 	}
 
-	if res, err = cli.Do(req); err != nil {
+	req.Header.Set("Cache-Control", "no-cache")
+	req.Header.Set("Lantern-Fronted-URL", frontedCloudConfigUrl)
+	req.Close = true
+
+	if res, err = cf.Do(req); err != nil {
 		return nil, err
 	}
 
