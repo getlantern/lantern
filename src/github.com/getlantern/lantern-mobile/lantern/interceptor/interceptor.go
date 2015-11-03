@@ -13,6 +13,7 @@ import (
 
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/golog"
+	"github.com/getlantern/lantern-mobile/lantern/protected"
 	socks "github.com/getlantern/lantern-mobile/lantern/socks"
 )
 
@@ -20,12 +21,13 @@ import (
 var (
 	ErrTooManyFailures = errors.New("Too many connection failures")
 	ErrNoSocksProxy    = errors.New("Unable to start local SOCKS proxy")
+	ErrInvalidPort     = errors.New("Tried to tunnel request to invalid port; ignoring request")
 )
 
 var (
 	dialTimeout = 10 * time.Second
 	// threshold of errors that we are withstanding
-	maxErrCount = 10
+	maxErrCount = 40
 	// how often to print stats of current interceptor
 	statsInterval = 15 * time.Second
 	log           = golog.LoggerFor("lantern-android.interceptor")
@@ -147,6 +149,15 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (*InterceptedConn, e
 		return nil, errors.New("tunnel is closed")
 	}
 
+	_, port, err := protected.SplitHostPort(addr)
+	if err != nil {
+		return nil, err
+	}
+
+	if port == 4828 {
+		return nil, ErrInvalidPort
+	}
+
 	id := fmt.Sprintf("%s:%s", localConn.LocalAddr(), addr)
 	log.Debugf("Got a new connection: %s", id)
 
@@ -264,7 +275,9 @@ func (i *Interceptor) handle(localConn *socks.SocksConn) (err error) {
 	proxyConn, err := i.Dial(localConn.Req.Target, localConn)
 	if err != nil {
 		log.Errorf("Error tunneling request: %v", err)
-		i.errCh <- err
+		if err != ErrInvalidPort {
+			i.errCh <- err
+		}
 		return err
 	}
 	defer proxyConn.Close()

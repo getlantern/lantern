@@ -11,6 +11,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.StrictMode;
 import android.content.SharedPreferences;
 import android.net.VpnService;
 import android.net.Uri;
@@ -55,6 +56,9 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
 
         if (getIntent().getBooleanExtra("EXIT", false)) {
             finish();
@@ -139,6 +143,10 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
             //Toast.makeText(this, message.what, Toast.LENGTH_SHORT).show();
         }
         return true;
+    }
+
+    public void sendDesktopVersion(View view) {
+        UI.sendDesktopVersion(view);
     }
 
     // Prompt the user to enable full-device VPN mode

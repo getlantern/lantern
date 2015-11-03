@@ -23,8 +23,9 @@
 
     <!-- The main content view -->
     <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-        android:layout_height="match_parent" 
+        xmlns:tools="http://schemas.android.com/tools" 
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent" 
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingTop="18dp"
         android:paddingLeft="18dp"
@@ -36,8 +37,7 @@
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"   
             android:background="@drawable/toggle_switch"
-            android:layout_marginTop="50dp" 
-            android:layout_marginLeft="65dp" 
+            android:layout_marginLeft="65dp"
             android:layout_gravity="center"
             android:checked="false"
             android:text="ToggleButton"
@@ -54,23 +54,28 @@
         android:background="#F1F1F1"
         tools:context=".LanternMainActivity">
 
+        <!--
+        android:background="#39C2D6" -->
+
         <RelativeLayout
             android:id="@+id/navDesktop"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:background="#39C2D6"
+            android:background="@drawable/nav_background"
             android:paddingTop="15dp"
             android:paddingBottom="15dp"
-            android:padding="8dp" >
+            android:padding="8dp">
+
             <ImageView
             android:id="@+id/navAvatar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:src="@drawable/abc_ic_ab_back_mtrl_am_alpha"/>
+
             <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="42dp"
+            android:layout_height="52dp"
             android:layout_centerVertical="true"
             android:layout_marginLeft="15dp"
             android:layout_toRightOf="@+id/navAvatar"
@@ -98,11 +103,11 @@
             android:paddingTop="@dimen/activity_vertical_margin"
             android:layout_width="340dp"
             android:layout_height="327dp"
-            android:layout_marginTop="60dp"
+            android:layout_marginTop="80dp"
             android:layout_marginLeft="10dp"
             android:orientation="vertical"
-            android:elevation="1dp"
-            android:background="@drawable/desktop_card"
+            android:elevation="5dp"
+            android:background="@android:drawable/dialog_holo_light_frame"
             android:gravity="center_vertical|bottom">
             
             <ImageView
@@ -111,7 +116,7 @@
             android:layout_height="215dp"
             android:layout_gravity="top"
             android:scaleType="centerCrop"
-            android:layout_marginTop="30dp"
+            android:layout_marginTop="5dp"
             android:adjustViewBounds="true"
             android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true"
@@ -150,15 +155,30 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif" 
-            android:background="@drawable/editbox"
+            android:background="@null"
             android:hint="@string/email_hint"
             android:ems="10"
             android:textColor="#BDBDBD"
-            android:layout_marginBottom="-14dp"
-            android:padding="20dp"
+            android:paddingRight="20dp"
+            android:autoText="false"
+            android:paddingTop="20dp"
+            android:paddingBottom="5dp"
+            android:gravity="fill_horizontal"
+            android:textAppearance="?android:attr/textAppearanceMedium"
             android:inputType="textEmailAddress" />
 
+        <View
+            android:id="@+id/separator"
+            android:background="@color/edittext_color"
+            android:layout_below="@+id/sendEmail"
+            android:layout_width = "fill_parent"
+            android:layout_height="1dip"
+            android:layout_centerVertical ="true"
+            android:layout_alignParentTop="true"
+        />
+
         <Button
+            android:id="@+id/sendBtn"
             android:layout_height="41.5dp"
             android:layout_width="fill_parent"
             android:layout_marginTop="20dp"
@@ -166,9 +186,9 @@
             android:fontFamily="sans-serif" 
             android:textSize="20sp"
             android:elevation="2dp"
-            android:clickable="true"
             android:minHeight="48dp"
             android:textColor="#fff"
+            android:clickable = "false"
             android:background="@drawable/send_btn"
             android:onClick="sendDesktopVersion" />
     </LinearLayout>
@@ -180,6 +200,8 @@
     <RelativeLayout
         android:layout_width="250dp"
         android:layout_height="match_parent"
+        android:elevation="7.5dp"
+        android:background="@android:drawable/dialog_holo_light_frame"
         android:id="@+id/drawerPane"
         android:layout_gravity="start">
 
@@ -188,7 +210,7 @@
             android:id="@+id/profileBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#39C2D6"
+            android:background="@drawable/nav_background"
             android:paddingTop="15dp"
             android:paddingBottom="15dp"
             android:padding="8dp" >
@@ -200,7 +222,7 @@
                 android:src="@drawable/abc_ic_ab_back_mtrl_am_alpha"/>
             <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="42dp"
+                android:layout_height="52dp"
                 android:layout_centerVertical="true"
                 android:layout_marginLeft="15dp"
                 android:layout_toRightOf="@+id/avatar"
@@ -213,7 +235,7 @@
                     android:fontFamily="sans-serif"
                     android:layout_marginTop="14dp"
                     android:gravity="center_horizontal"
-                    android:paddingLeft="10dp"
+                    android:paddingLeft="16dp"
                     android:text="Lantern"
                     android:textSize="15sp"
                     android:textColor="#fff"
