@@ -180,6 +180,8 @@ int TunioUdpGwClient_Init (TunioUdpGwClient *o, int udp_mtu, int max_connections
   o->user = user;
   o->handler_received = handler_received;
 
+  printf("MTU WAS %d\n", udp_mtu);
+
   // init udpgw client
   if (!UdpGwClient_Init(&o->udpgw_client, udp_mtu, max_connections, send_buffer_size, keepalive_time, o->reactor, o,
                         (UdpGwClient_handler_servererror)udpgw_handler_servererror,

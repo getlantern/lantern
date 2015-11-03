@@ -1008,4 +1008,8 @@ fail:
   return 0;
 }
 
+static uint8_t dataAt(uint8_t *in, int i) {
+	return in[i];
+}
+
 #endif
