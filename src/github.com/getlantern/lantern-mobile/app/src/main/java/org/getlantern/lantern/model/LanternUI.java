@@ -267,7 +267,7 @@ public class LanternUI {
             "Android:\nhttps://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer.apk\n\n" + 
             "Thanks!\nLantern\n";
         final String email = emailInput.getText().toString();
-        final GmailSender sender = new GmailSender("lanterngfw77@gmail.com", "irequiremorefluffypillows");
+        final GmailSender sender = new GmailSender("lanterngfw77@gmail.com", "");
 
         Log.d(TAG, "Sending Lantern Desktop to " + email);
 
