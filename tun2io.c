@@ -1052,5 +1052,75 @@ static void udpGWClient_ReceiveFromServer(char *data, int data_len)
     return;
 }
 
+static void UdpGwClient_SendData(uint16_t connId, BAddr remote_addr, uint8_t flags, const uint8_t *data, int data_len)
+{
+  ASSERT(data_len >= 0)
+  // ASSERT(data_len <= o->udp_mtu)
+
+  // get buffer location
+  uint8_t *out;
+  out = malloc(sizeof(char)*(data_len + sizeof(struct udpgw_header) + sizeof(struct udpgw_addr_ipv6)));
+  int out_pos = 0;
+
+  flags |= UDPGW_CLIENT_FLAG_REBIND;
+  //flags |= UDPGW_CLIENT_FLAG_DNS;
+
+  if (remote_addr.type == BADDR_TYPE_IPV6) {
+      flags |= UDPGW_CLIENT_FLAG_IPV6;
+  }
+
+  // write header
+  struct udpgw_header header;
+  header.flags = ltoh8(flags);
+  header.conid = ltoh16(connId);
+  memcpy(out + out_pos, &header, sizeof(header));
+  out_pos += sizeof(header);
+
+  // write address
+  switch (remote_addr.type) {
+      case BADDR_TYPE_IPV4: {
+          struct udpgw_addr_ipv4 addr_ipv4;
+          addr_ipv4.addr_ip = remote_addr.ipv4.ip;
+          addr_ipv4.addr_port = remote_addr.ipv4.port;
+          memcpy(out + out_pos, &addr_ipv4, sizeof(addr_ipv4));
+          out_pos += sizeof(addr_ipv4);
+      } break;
+      case BADDR_TYPE_IPV6: {
+          struct udpgw_addr_ipv6 addr_ipv6;
+          memcpy(addr_ipv6.addr_ip, remote_addr.ipv6.ip, sizeof(addr_ipv6.addr_ip));
+          addr_ipv6.addr_port = remote_addr.ipv6.port;
+          memcpy(out + out_pos, &addr_ipv6, sizeof(addr_ipv6));
+          out_pos += sizeof(addr_ipv6);
+      } break;
+      default:
+        printf("no remote addr provided.");
+      break;
+  }
+
+  // write packet to buffer
+  memcpy(out + out_pos, data, data_len);
+  out_pos += data_len;
+
+  goUdpGwClient_Send(connId, out, out_pos);
+
+  free(out);
+}
+
+static void UdpGwClient_SubmitPacket(BAddr local_addr, BAddr remote_addr, int is_dns, const uint8_t *data, int data_len)
+{
+	ASSERT(local_addr.type == BADDR_TYPE_IPV4 || local_addr.type == BADDR_TYPE_IPV6)
+	ASSERT(remote_addr.type == BADDR_TYPE_IPV4 || remote_addr.type == BADDR_TYPE_IPV6)
+
+	uint8_t flags = 0;
+
+	if (is_dns) {
+		// route to remote DNS server instead of provided address
+		flags |= UDPGW_CLIENT_FLAG_DNS;
+	}
+
+	uint16_t connId = goUdpGwClient_FindConnectionByAddr(local_addr, remote_addr);
+	UdpGwClient_SendData(connId, remote_addr, flags, data, data_len);
+}
+
 
 #endif

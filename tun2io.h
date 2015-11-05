@@ -66,7 +66,10 @@
 #include <lwip/tcp_impl.h>
 #include <lwip/netif.h>
 #include <lwip/tcp.h>
-#include "UdpGwClient.h"
+
+#include <protocol/udpgw_proto.h>
+#include <misc/packed.h>
+#include <flow/PacketProtoDecoder.h>
 
 #ifndef BADVPN_USE_WINAPI
 #include <base/BLog_syslog.h>
@@ -165,6 +168,7 @@ int goUdpGwClient_Send(uint16_t connId, uint8_t *data, int data_len);
 static void udpGWClient_ReceiveFromServer(char *data, int data_len);
 BAddr goUdpGwClient_GetLocalAddrByConnId(uint16_t cConnID);
 int goUdpGwClient_Configure(int mtu, int maxConnections, int bufferSize, int keepAliveTime);
+static void UdpGwClient_SubmitPacket(BAddr local_addr, BAddr remote_addr, int is_dns, const uint8_t *data, int data_len);
 
 static char *dump_dest_addr(struct tcp_client *client);
 
