@@ -18,12 +18,17 @@ public class Lantern extends Client.SocketProvider.Stub {
     private static final String TAG = "Lantern";
     final private LanternVpn service;
     final private Analytics analytics;
+
+    private String device, model, version;
     private Client.GoCallback.Stub callback;
 
     public Lantern(LanternVpn service) {
         this.service = service;
         this.analytics = new Analytics(service.getApplicationContext());
         this.setupCallbacks();
+        this.device = android.os.Build.DEVICE;
+        this.model = android.os.Build.MODEL;
+        this.version = "" + android.os.Build.VERSION.SDK_INT + " ("  + android.os.Build.VERSION.RELEASE + ")";
     }
 
     // Configures callbacks from Lantern during packet
@@ -51,7 +56,7 @@ public class Lantern extends Client.SocketProvider.Stub {
             String httpAddr = String.format("127.0.0.1:%d", LanternConfig.HTTP_PORT);
             String socksAddr = String.format("127.0.0.1:%d", LanternConfig.SOCKS_PORT);
 
-            Client.Start(this, httpAddr, socksAddr, LanternConfig.APP_NAME, callback);
+            Client.Start(this, httpAddr, socksAddr, LanternConfig.APP_NAME, this.device, this.model, this.version, callback);
             //Client.Start(this, httpAddr, socksAddr, callback);
 
         } catch (final Exception e) {

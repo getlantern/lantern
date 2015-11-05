@@ -21,15 +21,23 @@ type SocketProvider interface {
 }
 
 // RunClientProxy creates a new client at the given address.
-func Start(protector SocketProvider, httpAddr, socksAddr, appName string, ready GoCallback) error {
-	go func() {
+func Start(protector SocketProvider, httpAddr, socksAddr, appName string,
+	device string, model string, version string, ready GoCallback) error {
 
+	go func() {
 		var err error
 
 		if protector != nil {
 			protected.Configure(protector)
 		}
-		defaultClient = newClient(httpAddr, appName)
+
+		androidProps := map[string]string{
+			"androidDevice":     device,
+			"androidModel":      model,
+			"androidSdkVersion": version,
+		}
+
+		defaultClient = newClient(httpAddr, appName, androidProps)
 		defaultClient.serveHTTP()
 
 		i, err = interceptor.New(defaultClient.Client, socksAddr, httpAddr, protector.Notice)

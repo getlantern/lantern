@@ -31,6 +31,13 @@ var (
 	// how often to print stats of current interceptor
 	statsInterval = 15 * time.Second
 	log           = golog.LoggerFor("lantern-android.interceptor")
+
+	allowedPorts = map[int]bool{
+		80:   true,
+		443:  true,
+		53:   true,
+		7300: true,
+	}
 )
 
 // Interceptor intercepts traffic on a VPN interface
@@ -154,7 +161,7 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (*InterceptedConn, e
 		return nil, err
 	}
 
-	if port == 4828 {
+	if !allowedPorts[port] {
 		return nil, ErrInvalidPort
 	}
 
