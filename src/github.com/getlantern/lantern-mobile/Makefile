@@ -21,6 +21,7 @@ build-debug:
 
 build-tun2socks:
 	ndk-build
+	mkdir -p app/libs/armeabi-v7a 
 	cp libs/armeabi-v7a/libtun2socks.so app/libs/armeabi-v7a/
 
 build-lantern:
