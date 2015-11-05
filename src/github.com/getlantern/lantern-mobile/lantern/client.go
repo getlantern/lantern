@@ -23,6 +23,8 @@ var (
 	log           = golog.LoggerFor("lantern-android.client")
 	cf            = util.NewChainedAndFronted()
 	clientConfig  = defaultConfig()
+	logglyToken   = "2b68163b-89b6-4196-b878-c1aca4bbdf84"
+	logglyTag     = "lantern-android"
 	trackingCodes = map[string]string{
 		"FireTweet": "UA-21408036-4",
 		"Lantern":   "UA-21815217-14",
@@ -33,7 +35,8 @@ var (
 
 // mobileClient is an extension of flashlight client with a few custom declarations for mobile
 type mobileClient struct {
-	appName string
+	appName      string
+	androidProps map[string]string
 	*client.Client
 	closed chan bool
 }
@@ -49,7 +52,7 @@ func init() {
 }
 
 // newClient creates a proxy client.
-func newClient(addr, appName string) *mobileClient {
+func newClient(addr, appName string, androidProps map[string]string) *mobileClient {
 
 	client := &client.Client{
 		Addr:         addr,
@@ -60,9 +63,10 @@ func newClient(addr, appName string) *mobileClient {
 	client.Configure(clientConfig.Client)
 
 	mClient := &mobileClient{
-		Client:  client,
-		closed:  make(chan bool),
-		appName: appName,
+		Client:       client,
+		closed:       make(chan bool),
+		appName:      appName,
+		androidProps: androidProps,
 	}
 
 	return mClient
@@ -75,6 +79,7 @@ func (client *mobileClient) afterSetup() {
 	go client.updateConfig()
 
 	analytics.Configure("", trackingCodes[client.appName], "", client.Client.Addr)
+	logging.ConfigureAndroid(logglyToken, logglyTag, client.androidProps)
 	logging.Configure(client.Client.Addr, cloudConfigCA, instanceId, version, revisionDate)
 }
 
