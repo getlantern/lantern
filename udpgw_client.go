@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"net"
 	"sync"
+	"time"
 	"unsafe"
 )
 
@@ -13,6 +14,13 @@ import (
 #include "tun2io.c"
 */
 import "C"
+
+var (
+	udpgwMTU            int
+	udpgwBufferSize     int
+	udpgwMaxConnections int
+	udpgwKeepAliveTime  time.Duration
+)
 
 type udpGwClient struct {
 	connID      uint16
@@ -107,6 +115,16 @@ func udpgwGetConn(localAddr, remoteAddr string) (uint16, error) {
 	}
 
 	return connId, nil
+}
+
+//export goUdpGwClient_Configure
+// goUdpGwClient_Configure configures client values.
+func goUdpGwClient_Configure(mtu C.int, maxConnections C.int, bufferSize C.int, keepAliveTime C.int) C.int {
+	udpgwMTU = int(mtu)
+	udpgwMaxConnections = int(maxConnections)
+	udpgwBufferSize = int(bufferSize)
+	udpgwKeepAliveTime = time.Second * time.Duration(int(keepAliveTime))
+	return C.ERR_OK
 }
 
 //export goUdpGwClient_Send

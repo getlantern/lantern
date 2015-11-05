@@ -57,7 +57,6 @@ SinglePacketBuffer device_read_buffer;
 PacketPassInterface device_read_interface;
 
 // udpgw client
-TunioUdpGwClient udpgw_client;
 int udp_mtu;
 
 // remote udpgw server addr, if provided
@@ -232,17 +231,12 @@ static int setup_listener (options_t options)
       return 1;
     }
 
-    // init udpgw client
-    int udpgw_client_err = TunioUdpGwClient_Init(
-      &udpgw_client, udp_mtu, DEFAULT_UDPGW_MAX_CONNECTIONS, options.udpgw_connection_buffer_size, UDPGW_KEEPALIVE_TIME,
-      udpgw_remote_server_addr, UDPGW_RECONNECT_TIME, &ss, NULL,
-      udpgw_client_handler_received);
-
-    if (!udpgw_client_err) {
-      BLog(BLOG_ERROR, "TunioUdpGwClient_Init failed");
+		int udpgw_client_err = goUdpGwClient_Configure(udp_mtu, DEFAULT_UDPGW_MAX_CONNECTIONS, options.udpgw_connection_buffer_size, UDPGW_KEEPALIVE_TIME);
+		if (udpgw_client_err != ERR_OK) {
+      BLog(BLOG_ERROR, "goUdpGwClient_Configure failed");
       SinglePacketBuffer_Free(&device_read_buffer);
       return 1;
-    }
+		}
   }
 
   // init lwip init job
@@ -892,10 +886,9 @@ static int process_device_udp_packet (uint8_t *data, int data_len)
 {
   ASSERT(data_len >= 0)
 
-  // do nothing if we don't have udpgw
+  // Do nothing if we don't have udpgw
   if (!options.udpgw_remote_server_addr) {
-    BLog(BLOG_NOTICE, "device: do nuttin");
-    goto fail;
+		return 0;
   }
 
   BAddr local_addr;
@@ -911,19 +904,19 @@ static int process_device_udp_packet (uint8_t *data, int data_len)
     case 4: {
       // ignore non-UDP packets
       if (data_len < sizeof(struct ipv4_header) || data[offsetof(struct ipv4_header, protocol)] != IPV4_PROTOCOL_UDP) {
-        goto fail;
+				return 0;
       }
 
       // parse IPv4 header
       struct ipv4_header ipv4_header;
       if (!ipv4_check(data, data_len, &ipv4_header, &data, &data_len)) {
-        goto fail;
+				return 0;
       }
 
       // parse UDP
       struct udp_header udp_header;
       if (!udp_check(data, data_len, &udp_header, &data, &data_len)) {
-        goto fail;
+				return 0;
       }
 
       // verify UDP checksum
@@ -931,7 +924,7 @@ static int process_device_udp_packet (uint8_t *data, int data_len)
       udp_header.checksum = 0;
       uint16_t checksum_computed = udp_checksum(&udp_header, data, data_len, ipv4_header.source_address, ipv4_header.destination_address);
       if (checksum_in_packet != checksum_computed) {
-        goto fail;
+				return 0;
       }
 
       BLog(BLOG_INFO, "UDP: from device %d bytes", data_len);
@@ -950,24 +943,24 @@ static int process_device_udp_packet (uint8_t *data, int data_len)
     case 6: {
       // ignore if IPv6 support is disabled
       if (!options.netif_ip6addr) {
-        goto fail;
+				return 0;
       }
 
       // ignore non-UDP packets
       if (data_len < sizeof(struct ipv6_header) || data[offsetof(struct ipv6_header, next_header)] != IPV6_NEXT_UDP) {
-        goto fail;
+				return 0;
       }
 
       // parse IPv6 header
       struct ipv6_header ipv6_header;
       if (!ipv6_check(data, data_len, &ipv6_header, &data, &data_len)) {
-        goto fail;
+				return 0;
       }
 
       // parse UDP
       struct udp_header udp_header;
       if (!udp_check(data, data_len, &udp_header, &data, &data_len)) {
-        goto fail;
+				return 0;
       }
 
       // verify UDP checksum
@@ -975,7 +968,7 @@ static int process_device_udp_packet (uint8_t *data, int data_len)
       udp_header.checksum = 0;
       uint16_t checksum_computed = udp_ip6_checksum(&udp_header, data, data_len, ipv6_header.source_address, ipv6_header.destination_address);
       if (checksum_in_packet != checksum_computed) {
-        goto fail;
+				return 0;
       }
 
       BLog(BLOG_INFO, "UDP/IPv6: from device %d bytes", data_len);
@@ -989,23 +982,20 @@ static int process_device_udp_packet (uint8_t *data, int data_len)
     } break;
 
     default: {
-        goto fail;
+			return 0;
     } break;
   }
 
   // check payload length
   if (data_len > udp_mtu) {
     BLog(BLOG_ERROR, "packet is too large, cannot send to udpgw");
-    goto fail;
+		return 0;
   }
 
   // submit packet to udpgw
-  TunioUdpGwClient_SubmitPacket(&udpgw_client, local_addr, remote_addr, is_dns, data, data_len);
+	UdpGwClient_SubmitPacket(local_addr, remote_addr, is_dns, data, data_len);
 
   return 1;
-
-fail:
-  return 0;
 }
 
 static uint8_t dataAt(uint8_t *in, int i) {

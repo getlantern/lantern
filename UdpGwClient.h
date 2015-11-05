@@ -54,6 +54,6 @@ typedef struct {
     int pp_mtu;
 } UdpGwClient;
 
-void UdpGwClient_SubmitPacket(UdpGwClient *o, BAddr local_addr, BAddr remote_addr, int is_dns, const uint8_t *data, int data_len);
+void UdpGwClient_SubmitPacket(BAddr local_addr, BAddr remote_addr, int is_dns, const uint8_t *data, int data_len);
 
 #endif

@@ -96,10 +96,8 @@ static void prepare_data(uint32_t connId, BAddr remote_addr, uint8_t flags, cons
   free(out);
 }
 
-void UdpGwClient_SubmitPacket(UdpGwClient *o, BAddr local_addr, BAddr remote_addr, int is_dns, const uint8_t *data, int data_len)
+void UdpGwClient_SubmitPacket(BAddr local_addr, BAddr remote_addr, int is_dns, const uint8_t *data, int data_len)
 {
-    //DebugObject_Access(&o->d_obj);
-
     ASSERT(local_addr.type == BADDR_TYPE_IPV4 || local_addr.type == BADDR_TYPE_IPV6)
     ASSERT(remote_addr.type == BADDR_TYPE_IPV4 || remote_addr.type == BADDR_TYPE_IPV6)
     ASSERT(data_len >= 0)
@@ -111,8 +109,6 @@ void UdpGwClient_SubmitPacket(UdpGwClient *o, BAddr local_addr, BAddr remote_add
         // route to remote DNS server instead of provided address
         //flags |= UDPGW_CLIENT_FLAG_DNS;
     }
-
-    printf("UdpGwClient_SubmitPacket2\n");
 
     uint32_t connId = goUdpGwClient_FindConnectionByAddr(local_addr, remote_addr);
     prepare_data(connId, remote_addr, flags, data, data_len);
