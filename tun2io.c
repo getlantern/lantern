@@ -231,12 +231,12 @@ static int setup_listener (options_t options)
       return 1;
     }
 
-		int udpgw_client_err = goUdpGwClient_Configure(udp_mtu, DEFAULT_UDPGW_MAX_CONNECTIONS, options.udpgw_connection_buffer_size, UDPGW_KEEPALIVE_TIME);
-		if (udpgw_client_err != ERR_OK) {
+    int udpgw_client_err = goUdpGwClient_Configure(udp_mtu, DEFAULT_UDPGW_MAX_CONNECTIONS, options.udpgw_connection_buffer_size, UDPGW_KEEPALIVE_TIME);
+    if (udpgw_client_err != ERR_OK) {
       BLog(BLOG_ERROR, "goUdpGwClient_Configure failed");
       SinglePacketBuffer_Free(&device_read_buffer);
       return 1;
-		}
+    }
   }
 
   // init lwip init job
@@ -888,7 +888,7 @@ static int process_device_udp_packet (uint8_t *data, int data_len)
 
   // Do nothing if we don't have udpgw
   if (!options.udpgw_remote_server_addr) {
-		return 0;
+    return 0;
   }
 
   BAddr local_addr;
@@ -904,19 +904,19 @@ static int process_device_udp_packet (uint8_t *data, int data_len)
     case 4: {
       // ignore non-UDP packets
       if (data_len < sizeof(struct ipv4_header) || data[offsetof(struct ipv4_header, protocol)] != IPV4_PROTOCOL_UDP) {
-				return 0;
+        return 0;
       }
 
       // parse IPv4 header
       struct ipv4_header ipv4_header;
       if (!ipv4_check(data, data_len, &ipv4_header, &data, &data_len)) {
-				return 0;
+        return 0;
       }
 
       // parse UDP
       struct udp_header udp_header;
       if (!udp_check(data, data_len, &udp_header, &data, &data_len)) {
-				return 0;
+        return 0;
       }
 
       // verify UDP checksum
@@ -924,7 +924,7 @@ static int process_device_udp_packet (uint8_t *data, int data_len)
       udp_header.checksum = 0;
       uint16_t checksum_computed = udp_checksum(&udp_header, data, data_len, ipv4_header.source_address, ipv4_header.destination_address);
       if (checksum_in_packet != checksum_computed) {
-				return 0;
+        return 0;
       }
 
       BLog(BLOG_INFO, "UDP: from device %d bytes", data_len);
@@ -943,24 +943,24 @@ static int process_device_udp_packet (uint8_t *data, int data_len)
     case 6: {
       // ignore if IPv6 support is disabled
       if (!options.netif_ip6addr) {
-				return 0;
+        return 0;
       }
 
       // ignore non-UDP packets
       if (data_len < sizeof(struct ipv6_header) || data[offsetof(struct ipv6_header, next_header)] != IPV6_NEXT_UDP) {
-				return 0;
+        return 0;
       }
 
       // parse IPv6 header
       struct ipv6_header ipv6_header;
       if (!ipv6_check(data, data_len, &ipv6_header, &data, &data_len)) {
-				return 0;
+        return 0;
       }
 
       // parse UDP
       struct udp_header udp_header;
       if (!udp_check(data, data_len, &udp_header, &data, &data_len)) {
-				return 0;
+        return 0;
       }
 
       // verify UDP checksum
@@ -968,7 +968,7 @@ static int process_device_udp_packet (uint8_t *data, int data_len)
       udp_header.checksum = 0;
       uint16_t checksum_computed = udp_ip6_checksum(&udp_header, data, data_len, ipv6_header.source_address, ipv6_header.destination_address);
       if (checksum_in_packet != checksum_computed) {
-				return 0;
+        return 0;
       }
 
       BLog(BLOG_INFO, "UDP/IPv6: from device %d bytes", data_len);
@@ -982,74 +982,73 @@ static int process_device_udp_packet (uint8_t *data, int data_len)
     } break;
 
     default: {
-			return 0;
+      return 0;
     } break;
   }
 
   // check payload length
   if (data_len > udp_mtu) {
     BLog(BLOG_ERROR, "packet is too large, cannot send to udpgw");
-		return 0;
+    return 0;
   }
 
   // submit packet to udpgw
-	UdpGwClient_SubmitPacket(local_addr, remote_addr, is_dns, data, data_len);
+  UdpGwClient_SubmitPacket(local_addr, remote_addr, is_dns, data, data_len);
 
   return 1;
 }
 
 static uint8_t dataAt(uint8_t *in, int i) {
-	return in[i];
+  return in[i];
 }
 
 static void udpGWClient_ReceiveFromServer(char *data, int data_len)
 {
-    ASSERT(data_len >= 0)
-    //ASSERT(data_len <= o->udpgw_mtu)
+  ASSERT(data_len >= 0)
 
-    // check header
-    if (data_len < sizeof(struct udpgw_header)) {
-        BLog(BLOG_ERROR, "missing header");
-        return;
-    }
-
-    struct udpgw_header header;
-    memcpy(&header, data, sizeof(header));
-    data += sizeof(header);
-    data_len -= sizeof(header);
-    uint8_t flags = ltoh8(header.flags);
-    uint16_t conid = ltoh16(header.conid);
-
-    // parse address
-    BAddr remote_addr;
-    if ((flags & UDPGW_CLIENT_FLAG_IPV6)) {
-        if (data_len < sizeof(struct udpgw_addr_ipv6)) {
-            BLog(BLOG_ERROR, "missing ipv6 address");
-            return;
-        }
-        struct udpgw_addr_ipv6 addr_ipv6;
-        memcpy(&addr_ipv6, data, sizeof(addr_ipv6));
-        data += sizeof(addr_ipv6);
-        data_len -= sizeof(addr_ipv6);
-        BAddr_InitIPv6(&remote_addr, addr_ipv6.addr_ip, addr_ipv6.addr_port);
-    } else {
-        if (data_len < sizeof(struct udpgw_addr_ipv4)) {
-            BLog(BLOG_ERROR, "missing ipv4 address");
-            return;
-        }
-        struct udpgw_addr_ipv4 addr_ipv4;
-        memcpy(&addr_ipv4, data, sizeof(addr_ipv4));
-        data += sizeof(addr_ipv4);
-        data_len -= sizeof(addr_ipv4);
-        BAddr_InitIPv4(&remote_addr, addr_ipv4.addr_ip, addr_ipv4.addr_port);
-    }
-
-		BAddr local_addr;
-		local_addr = goUdpGwClient_GetLocalAddrByConnId(conid);
-
-    // pass packet to user
-    udpgw_client_handler_received(NULL, local_addr, remote_addr, data, data_len);
+  // check header
+  if (data_len < sizeof(struct udpgw_header)) {
+    BLog(BLOG_ERROR, "missing header");
     return;
+  }
+
+  struct udpgw_header header;
+  memcpy(&header, data, sizeof(header));
+  data += sizeof(header);
+  data_len -= sizeof(header);
+  uint8_t flags = ltoh8(header.flags);
+  uint16_t conid = ltoh16(header.conid);
+
+  // parse address
+  BAddr remote_addr;
+  if ((flags & UDPGW_CLIENT_FLAG_IPV6)) {
+    if (data_len < sizeof(struct udpgw_addr_ipv6)) {
+      BLog(BLOG_ERROR, "missing ipv6 address");
+      return;
+    }
+    struct udpgw_addr_ipv6 addr_ipv6;
+    memcpy(&addr_ipv6, data, sizeof(addr_ipv6));
+    data += sizeof(addr_ipv6);
+    data_len -= sizeof(addr_ipv6);
+    BAddr_InitIPv6(&remote_addr, addr_ipv6.addr_ip, addr_ipv6.addr_port);
+  } else {
+    if (data_len < sizeof(struct udpgw_addr_ipv4)) {
+      BLog(BLOG_ERROR, "missing ipv4 address");
+      return;
+    }
+    struct udpgw_addr_ipv4 addr_ipv4;
+    memcpy(&addr_ipv4, data, sizeof(addr_ipv4));
+    data += sizeof(addr_ipv4);
+    data_len -= sizeof(addr_ipv4);
+    BAddr_InitIPv4(&remote_addr, addr_ipv4.addr_ip, addr_ipv4.addr_port);
+  }
+
+  BAddr local_addr;
+  local_addr = goUdpGwClient_GetLocalAddrByConnId(conid);
+
+  // pass packet to user
+  udpgw_client_handler_received(NULL, local_addr, remote_addr, data, data_len);
+  return;
 }
 
 static void UdpGwClient_SendData(uint16_t connId, BAddr remote_addr, uint8_t flags, const uint8_t *data, int data_len)
@@ -1066,7 +1065,7 @@ static void UdpGwClient_SendData(uint16_t connId, BAddr remote_addr, uint8_t fla
   //flags |= UDPGW_CLIENT_FLAG_DNS;
 
   if (remote_addr.type == BADDR_TYPE_IPV6) {
-      flags |= UDPGW_CLIENT_FLAG_IPV6;
+    flags |= UDPGW_CLIENT_FLAG_IPV6;
   }
 
   // write header
@@ -1078,23 +1077,23 @@ static void UdpGwClient_SendData(uint16_t connId, BAddr remote_addr, uint8_t fla
 
   // write address
   switch (remote_addr.type) {
-      case BADDR_TYPE_IPV4: {
-          struct udpgw_addr_ipv4 addr_ipv4;
-          addr_ipv4.addr_ip = remote_addr.ipv4.ip;
-          addr_ipv4.addr_port = remote_addr.ipv4.port;
-          memcpy(out + out_pos, &addr_ipv4, sizeof(addr_ipv4));
-          out_pos += sizeof(addr_ipv4);
-      } break;
-      case BADDR_TYPE_IPV6: {
-          struct udpgw_addr_ipv6 addr_ipv6;
-          memcpy(addr_ipv6.addr_ip, remote_addr.ipv6.ip, sizeof(addr_ipv6.addr_ip));
-          addr_ipv6.addr_port = remote_addr.ipv6.port;
-          memcpy(out + out_pos, &addr_ipv6, sizeof(addr_ipv6));
-          out_pos += sizeof(addr_ipv6);
-      } break;
-      default:
-        printf("no remote addr provided.");
-      break;
+    case BADDR_TYPE_IPV4: {
+      struct udpgw_addr_ipv4 addr_ipv4;
+      addr_ipv4.addr_ip = remote_addr.ipv4.ip;
+      addr_ipv4.addr_port = remote_addr.ipv4.port;
+      memcpy(out + out_pos, &addr_ipv4, sizeof(addr_ipv4));
+      out_pos += sizeof(addr_ipv4);
+    } break;
+    case BADDR_TYPE_IPV6: {
+      struct udpgw_addr_ipv6 addr_ipv6;
+      memcpy(addr_ipv6.addr_ip, remote_addr.ipv6.ip, sizeof(addr_ipv6.addr_ip));
+      addr_ipv6.addr_port = remote_addr.ipv6.port;
+      memcpy(out + out_pos, &addr_ipv6, sizeof(addr_ipv6));
+      out_pos += sizeof(addr_ipv6);
+    } break;
+    default:
+      printf("no remote addr provided.");
+    break;
   }
 
   // write packet to buffer
@@ -1108,19 +1107,18 @@ static void UdpGwClient_SendData(uint16_t connId, BAddr remote_addr, uint8_t fla
 
 static void UdpGwClient_SubmitPacket(BAddr local_addr, BAddr remote_addr, int is_dns, const uint8_t *data, int data_len)
 {
-	ASSERT(local_addr.type == BADDR_TYPE_IPV4 || local_addr.type == BADDR_TYPE_IPV6)
-	ASSERT(remote_addr.type == BADDR_TYPE_IPV4 || remote_addr.type == BADDR_TYPE_IPV6)
+  ASSERT(local_addr.type == BADDR_TYPE_IPV4 || local_addr.type == BADDR_TYPE_IPV6)
+  ASSERT(remote_addr.type == BADDR_TYPE_IPV4 || remote_addr.type == BADDR_TYPE_IPV6)
 
-	uint8_t flags = 0;
+  uint8_t flags = 0;
 
-	if (is_dns) {
-		// route to remote DNS server instead of provided address
-		flags |= UDPGW_CLIENT_FLAG_DNS;
-	}
+  if (is_dns) {
+    // route to remote DNS server instead of provided address
+    flags |= UDPGW_CLIENT_FLAG_DNS;
+  }
 
-	uint16_t connId = goUdpGwClient_FindConnectionByAddr(local_addr, remote_addr);
-	UdpGwClient_SendData(connId, remote_addr, flags, data, data_len);
+  uint16_t connId = goUdpGwClient_FindConnectionByAddr(local_addr, remote_addr);
+  UdpGwClient_SendData(connId, remote_addr, flags, data, data_len);
 }
-
 
 #endif
