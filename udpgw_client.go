@@ -15,7 +15,7 @@ import (
 import "C"
 
 type udpGwClient struct {
-	connID      int
+	connID      uint16
 	conn        net.Conn
 	cLocalAddr  C.BAddr
 	cRemoteAddr C.BAddr
@@ -23,7 +23,7 @@ type udpGwClient struct {
 
 //export goUdpGwClient_GetLocalAddrByConnId
 func goUdpGwClient_GetLocalAddrByConnId(cConnID C.uint16_t) C.BAddr {
-	conn := udpgwGetConnById(uint32(cConnID))
+	conn := udpgwGetConnById(uint16(cConnID))
 	return conn.cLocalAddr
 }
 
@@ -34,25 +34,27 @@ func DialUDP() (net.Conn, error) {
 	}
 	go func() {
 		for {
-			buf := make([]byte, 1024)
-			n, err := conn.Read(buf)
+			head := make([]byte, 2)
+			n, err := conn.Read(head)
 			if err != nil {
 				return
 			}
-			log.Printf("data: %q, len: %d\n", buf[0:n], n)
 			if n > 0 {
-				log.Printf("buf[0]: %d, buf[1]: %d", buf[0], buf[1])
-				if buf[1] != 0 {
-					panic("Don't know how to handle this.")
+				size := 0
+				size += int(head[0])
+				size += int(head[1]) << 8
+
+				data := make([]byte, size)
+				n, err := conn.Read(data)
+				if err != nil {
+					return
 				}
-				size := int(buf[0])
-				if n != size+2 {
-					panic("Don't know how to handle this.")
+
+				if n != size {
+					panic("dont know how to handle this.")
 				}
-				data := buf[2:]
 
 				cchunk := C.CString(string(data))
-
 				C.udpGWClient_ReceiveFromServer(cchunk, C.int(len(data)))
 			}
 		}
@@ -61,16 +63,17 @@ func DialUDP() (net.Conn, error) {
 }
 
 var (
-	udpgwConnMap map[string]map[string]uint32
-	udpgwConn    map[uint32]*udpGwClient
+	udpgwConnMap map[string]map[string]uint16
+	udpgwConn    map[uint16]*udpGwClient
 	udpgwConnMu  sync.Mutex
 )
 
-func udpgwGetConnById(connId uint32) *udpGwClient {
+func udpgwGetConnById(connId uint16) *udpGwClient {
 	return udpgwConn[connId]
 }
 
-func udpgwGetConn(localAddr, remoteAddr string) (uint32, error) {
+// udpgwGetConn returns or creates a connection and returns the connection ID.
+func udpgwGetConn(localAddr, remoteAddr string) (uint16, error) {
 
 	connId, ok := udpgwConnMap[localAddr][remoteAddr]
 
@@ -88,7 +91,7 @@ func udpgwGetConn(localAddr, remoteAddr string) (uint32, error) {
 		// Get ID
 		udpgwConnMu.Lock()
 		for {
-			connId = uint32(rand.Int31()%256 + 1)
+			connId = uint16(rand.Int31() % (1 << 16))
 			if _, ok := udpgwConn[connId]; !ok {
 				udpgwConn[connId] = client
 				break
@@ -97,7 +100,7 @@ func udpgwGetConn(localAddr, remoteAddr string) (uint32, error) {
 		udpgwConnMu.Unlock()
 
 		if udpgwConnMap[localAddr] == nil {
-			udpgwConnMap[localAddr] = make(map[string]uint32)
+			udpgwConnMap[localAddr] = make(map[string]uint16)
 		}
 
 		udpgwConnMap[localAddr][remoteAddr] = connId
@@ -107,39 +110,41 @@ func udpgwGetConn(localAddr, remoteAddr string) (uint32, error) {
 }
 
 //export goUdpGwClient_Send
-func goUdpGwClient_Send(connId uint32, flags C.uint8_t, data *C.uint8_t, dataLen C.int) C.int {
+// goUdpGwClient_Send sends a packet to the udpgw server.
+func goUdpGwClient_Send(connId uint16, data *C.uint8_t, dataLen C.int) C.int {
 	c := udpgwGetConnById(connId)
 
-	bl := int(dataLen)
-	if bl > 254 {
-		panic("don't know how to send a packet larger than 254bytes.")
+	size := int(dataLen)
+
+	if size >= (1 << 16) {
+		panic("Packet is too large.")
 	}
 
-	buf := make([]byte, 2+bl)
+	buf := make([]byte, 2+size)
 
-	buf[0] = byte(bl)
-	buf[1] = 0
+	// First two bytes for packet length. Low byte first.
+	buf[0] = byte(size % (1 << 8))
+	buf[1] = byte(size / (1 << 8))
 
-	for i := 0; i < bl; i++ {
+	// Then the packet.
+	for i := 0; i < size; i++ {
 		buf[i+2] = byte(C.dataAt(data, C.int(i)))
 	}
 
-	log.Printf("%05d: got packet %db, len: %db\n", connId, int(dataLen), len(buf))
-	log.Printf("data: %q", string(buf))
-
-	n, err := c.conn.Write(buf)
-
+	// Sending packet to udpgw server.
+	_, err := c.conn.Write(buf)
 	if err != nil {
-		log.Printf("got err: %q\n", err)
+		log.Printf("conn.Write: %q\n", err)
+		return C.ERR_ABRT
 	}
 
-	log.Printf("packet was sent? %d\n", n)
-
-	return 0
+	return C.ERR_OK
 }
 
 //export goUdpGwClient_FindConnectionByAddr
-func goUdpGwClient_FindConnectionByAddr(cLocalAddr C.BAddr, cRemoteAddr C.BAddr) C.uint32_t {
+// goUdpGwClient_FindConnectionByAddr returns a connection ID given local and
+// remote addresses.
+func goUdpGwClient_FindConnectionByAddr(cLocalAddr C.BAddr, cRemoteAddr C.BAddr) C.uint16_t {
 	// Open a connection for localAddr and remoteAddr
 	laddr := C.baddr_to_str(&cLocalAddr)
 	raddr := C.baddr_to_str(&cRemoteAddr)
@@ -161,5 +166,5 @@ func goUdpGwClient_FindConnectionByAddr(cLocalAddr C.BAddr, cRemoteAddr C.BAddr)
 	client.cLocalAddr = cLocalAddr
 	client.cRemoteAddr = cRemoteAddr
 
-	return C.uint32_t(connId)
+	return C.uint16_t(connId)
 }

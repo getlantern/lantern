@@ -42,26 +42,6 @@
 
 #include <generated/blog_channel_UdpGwClient.h>
 
-static int uint16_comparator (void *unused, uint16_t *v1, uint16_t *v2);
-static int conaddr_comparator (void *unused, struct UdpGwClient_conaddr *v1, struct UdpGwClient_conaddr *v2);
-static void free_server (UdpGwClient *o);
-static void recv_interface_handler_send (UdpGwClient *o, uint8_t *data, int data_len);
-static struct UdpGwClient_connection * reuse_connection (UdpGwClient *o, struct UdpGwClient_conaddr conaddr);
-
-static int uint16_comparator (void *unused, uint16_t *v1, uint16_t *v2)
-{
-    return B_COMPARE(*v1, *v2);
-}
-
-static int conaddr_comparator (void *unused, struct UdpGwClient_conaddr *v1, struct UdpGwClient_conaddr *v2)
-{
-    int r = BAddr_CompareOrder(&v1->remote_addr, &v2->remote_addr);
-    if (r) {
-        return r;
-    }
-    return BAddr_CompareOrder(&v1->local_addr, &v2->local_addr);
-}
-
 static void prepare_data(uint32_t connId, BAddr remote_addr, uint8_t flags, const uint8_t *data, int data_len)
 {
   ASSERT(data_len >= 0)
@@ -111,12 +91,12 @@ static void prepare_data(uint32_t connId, BAddr remote_addr, uint8_t flags, cons
   memcpy(out + out_pos, data, data_len);
   out_pos += data_len;
 
-  goUdpGwClient_Send(connId, flags, out, out_pos);
+  goUdpGwClient_Send(connId, out, out_pos);
 
   free(out);
 }
 
-void UdpGwClient_SubmitPacket2(UdpGwClient *o, BAddr local_addr, BAddr remote_addr, int is_dns, const uint8_t *data, int data_len)
+void UdpGwClient_SubmitPacket(UdpGwClient *o, BAddr local_addr, BAddr remote_addr, int is_dns, const uint8_t *data, int data_len)
 {
     //DebugObject_Access(&o->d_obj);
 

@@ -38,8 +38,8 @@ var (
 
 func init() {
 	tunnels = make(map[uint32]*TunIO)
-	udpgwConnMap = make(map[string]map[string]uint32)
-	udpgwConn = make(map[uint32]*udpGwClient)
+	udpgwConnMap = make(map[string]map[string]uint16)
+	udpgwConn = make(map[uint16]*udpGwClient)
 	//rand.Seed(time.Now().UnixNano())
 	rand.Seed(1)
 }

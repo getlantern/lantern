@@ -64,17 +64,6 @@ int TunioUdpGwClient_Init (TunioUdpGwClient *o, int udp_mtu, int max_connections
 
   printf("MTU WAS %d\n", udp_mtu);
 
-  /*
-  // init udpgw client
-  if (!UdpGwClient_Init(&o->udpgw_client, udp_mtu, max_connections, send_buffer_size, keepalive_time, o->reactor, o,
-                        (UdpGwClient_handler_servererror)udpgw_handler_servererror,
-                        (UdpGwClient_handler_received)udpgw_handler_received
-  )) {
-    goto fail0;
-  }
-  */
-
-  //DebugObject_Init(&o->d_obj);
   return 1;
 
 fail0:
@@ -84,5 +73,5 @@ fail0:
 void TunioUdpGwClient_SubmitPacket (TunioUdpGwClient *o, BAddr local_addr, BAddr remote_addr, int is_dns, const uint8_t *data, int data_len)
 {
   //DebugObject_Access(&o->d_obj);
-  UdpGwClient_SubmitPacket2(&o->udpgw_client, local_addr, remote_addr, is_dns, data, data_len);
+  UdpGwClient_SubmitPacket(&o->udpgw_client, local_addr, remote_addr, is_dns, data, data_len);
 }

@@ -160,8 +160,8 @@ int goTunnelSentACK(uint32_t tunno, u16_t len);
 int goInitTunnel(uint32_t tunno);
 void goLog(struct tcp_client *client, char *data);
 
-uint32_t goUdpGwClient_FindConnectionByAddr(BAddr localAddr, BAddr remoteAddr);
-int goUdpGwClient_Send(uint32_t connId, uint8_t flags, uint8_t *data, int data_len);
+uint16_t goUdpGwClient_FindConnectionByAddr(BAddr localAddr, BAddr remoteAddr);
+int goUdpGwClient_Send(uint16_t connId, uint8_t *data, int data_len);
 static void udpGWClient_ReceiveFromServer(char *data, int data_len);
 BAddr goUdpGwClient_GetLocalAddrByConnId(uint16_t cConnID);
 
