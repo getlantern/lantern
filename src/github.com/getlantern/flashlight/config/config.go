@@ -163,7 +163,7 @@ func useGoodOldConfig(configDir, configPath string) bool {
 }
 
 // Init initializes the configuration system.
-func Init(version string) (*Config, error) {
+func Init(version string, disableConfigUpdate bool) (*Config, error) {
 	file := "lantern-" + version + ".yaml"
 	_, configPath, err := InConfigDir(file)
 	if err != nil {
@@ -191,6 +191,9 @@ func Init(version string) (*Config, error) {
 			return cfg.applyFlags()
 		},
 		CustomPoll: func(ycfg yamlconf.Config) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
+			if disableConfigUpdate {
+				return func(yamlconf.Config) error { return nil }, 1 * time.Day, nil
+			}
 			return pollForConfig(ycfg)
 		},
 	}
