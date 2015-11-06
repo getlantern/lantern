@@ -192,7 +192,7 @@ func Init(version string, disableConfigUpdate bool) (*Config, error) {
 		},
 		CustomPoll: func(ycfg yamlconf.Config) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
 			if disableConfigUpdate {
-				return func(yamlconf.Config) error { return nil }, 1 * time.Day, nil
+				return func(yamlconf.Config) error { return nil }, 24 * time.Hour, nil
 			}
 			return pollForConfig(ycfg)
 		},
