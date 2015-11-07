@@ -993,7 +993,7 @@ static int process_device_udp_packet (uint8_t *data, int data_len)
   }
 
   // submit packet to udpgw
-  UdpGwClient_SubmitPacket(local_addr, remote_addr, is_dns, data, data_len);
+  UdpGwClient_GotPacket(local_addr, remote_addr, is_dns, data, data_len);
 
   return 1;
 }
@@ -1018,6 +1018,11 @@ static void udpGWClient_ReceiveFromServer(char *data, int data_len)
   data_len -= sizeof(header);
   uint8_t flags = ltoh8(header.flags);
   uint16_t conid = ltoh16(header.conid);
+
+	if (goUdpGwClient_ConnIdExists(conid) == ERR_ABRT) {
+		// Discard packet.
+		return;
+	}
 
   // parse address
   BAddr remote_addr;
@@ -1044,6 +1049,7 @@ static void udpGWClient_ReceiveFromServer(char *data, int data_len)
   }
 
   BAddr local_addr;
+
   local_addr = goUdpGwClient_GetLocalAddrByConnId(conid);
 
   // pass packet to user
@@ -1051,17 +1057,16 @@ static void udpGWClient_ReceiveFromServer(char *data, int data_len)
   return;
 }
 
-static void UdpGwClient_SendData(uint16_t connId, BAddr remote_addr, uint8_t flags, const uint8_t *data, int data_len)
+static void UdpGwClient_SendPacket(uint16_t connId, BAddr remote_addr, uint8_t flags, const uint8_t *data, int data_len)
 {
   ASSERT(data_len >= 0)
-  // ASSERT(data_len <= o->udp_mtu)
 
   // get buffer location
   uint8_t *out;
   out = malloc(sizeof(char)*(data_len + sizeof(struct udpgw_header) + sizeof(struct udpgw_addr_ipv6)));
   int out_pos = 0;
 
-  flags |= UDPGW_CLIENT_FLAG_REBIND;
+ // flags |= UDPGW_CLIENT_FLAG_REBIND;
   //flags |= UDPGW_CLIENT_FLAG_DNS;
 
   if (remote_addr.type == BADDR_TYPE_IPV6) {
@@ -1105,7 +1110,7 @@ static void UdpGwClient_SendData(uint16_t connId, BAddr remote_addr, uint8_t fla
   free(out);
 }
 
-static void UdpGwClient_SubmitPacket(BAddr local_addr, BAddr remote_addr, int is_dns, const uint8_t *data, int data_len)
+static void UdpGwClient_GotPacket(BAddr local_addr, BAddr remote_addr, int is_dns, const uint8_t *data, int data_len)
 {
   ASSERT(local_addr.type == BADDR_TYPE_IPV4 || local_addr.type == BADDR_TYPE_IPV6)
   ASSERT(remote_addr.type == BADDR_TYPE_IPV4 || remote_addr.type == BADDR_TYPE_IPV6)
@@ -1113,12 +1118,17 @@ static void UdpGwClient_SubmitPacket(BAddr local_addr, BAddr remote_addr, int is
   uint8_t flags = 0;
 
   if (is_dns) {
-    // route to remote DNS server instead of provided address
     flags |= UDPGW_CLIENT_FLAG_DNS;
   }
 
-  uint16_t connId = goUdpGwClient_FindConnectionByAddr(local_addr, remote_addr);
-  UdpGwClient_SendData(connId, remote_addr, flags, data, data_len);
+  uint16_t connId = goUdpGwClient_FindConnectionIdByAddr(local_addr, remote_addr);
+
+	if (connId == 0) {
+		connId = goUdpGwClient_NewConnection(local_addr, remote_addr);
+		flags |= UDPGW_CLIENT_FLAG_REBIND;
+	}
+
+  UdpGwClient_SendPacket(connId, remote_addr, flags, data, data_len);
 }
 
 #endif
