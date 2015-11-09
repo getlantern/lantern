@@ -1019,10 +1019,13 @@ static void udpGWClient_ReceiveFromServer(char *data, int data_len)
   uint8_t flags = ltoh8(header.flags);
   uint16_t conid = ltoh16(header.conid);
 
-	if (goUdpGwClient_ConnIdExists(conid) == ERR_ABRT) {
-		// Discard packet.
-		return;
-	}
+  if (goUdpGwClient_ConnIdExists(conid) == ERR_ABRT) {
+    // Discard packet.
+    return;
+  }
+
+  // Move the connection to the head of the list.
+  goUdpGwClient_UnshiftConn(conid);
 
   // parse address
   BAddr remote_addr;
@@ -1057,6 +1060,7 @@ static void udpGWClient_ReceiveFromServer(char *data, int data_len)
   return;
 }
 
+// UdpGwClient_SendPacket encapsulates a packet.
 static void UdpGwClient_SendPacket(uint16_t connId, BAddr remote_addr, uint8_t flags, const uint8_t *data, int data_len)
 {
   ASSERT(data_len >= 0)
@@ -1065,9 +1069,6 @@ static void UdpGwClient_SendPacket(uint16_t connId, BAddr remote_addr, uint8_t f
   uint8_t *out;
   out = malloc(sizeof(char)*(data_len + sizeof(struct udpgw_header) + sizeof(struct udpgw_addr_ipv6)));
   int out_pos = 0;
-
- // flags |= UDPGW_CLIENT_FLAG_REBIND;
-  //flags |= UDPGW_CLIENT_FLAG_DNS;
 
   if (remote_addr.type == BADDR_TYPE_IPV6) {
     flags |= UDPGW_CLIENT_FLAG_IPV6;
@@ -1105,11 +1106,16 @@ static void UdpGwClient_SendPacket(uint16_t connId, BAddr remote_addr, uint8_t f
   memcpy(out + out_pos, data, data_len);
   out_pos += data_len;
 
+  // Move the connection to the head of the list.
+  goUdpGwClient_UnshiftConn(connId);
+
+  // Pass the packet to Go.
   goUdpGwClient_Send(connId, out, out_pos);
 
   free(out);
 }
 
+// UdpGwClient_GotPacket processes UDP packets from a client.
 static void UdpGwClient_GotPacket(BAddr local_addr, BAddr remote_addr, int is_dns, const uint8_t *data, int data_len)
 {
   ASSERT(local_addr.type == BADDR_TYPE_IPV4 || local_addr.type == BADDR_TYPE_IPV6)
@@ -1121,13 +1127,17 @@ static void UdpGwClient_GotPacket(BAddr local_addr, BAddr remote_addr, int is_dn
     flags |= UDPGW_CLIENT_FLAG_DNS;
   }
 
+  // We need to know if we already have a connection.
   uint16_t connId = goUdpGwClient_FindConnectionIdByAddr(local_addr, remote_addr);
 
-	if (connId == 0) {
-		connId = goUdpGwClient_NewConnection(local_addr, remote_addr);
-		flags |= UDPGW_CLIENT_FLAG_REBIND;
-	}
+  if (connId == 0) {
+    // If not we create a new one.
+    connId = goUdpGwClient_NewConnection(local_addr, remote_addr);
+    flags |= UDPGW_CLIENT_FLAG_REBIND;
+  }
 
+  // We then use UdpGwClient_SendPacket to encapsulate the packet and send it
+  // to the udpgw server.
   UdpGwClient_SendPacket(connId, remote_addr, flags, data, data_len);
 }
 

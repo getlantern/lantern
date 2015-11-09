@@ -165,7 +165,7 @@ void goLog(struct tcp_client *client, char *data);
 
 uint16_t goUdpGwClient_FindConnectionIdByAddr(BAddr localAddr, BAddr remoteAddr);
 uint16_t goUdpGwClient_NewConnection(BAddr localAddr, BAddr remoteAddr);
-
+void goUdpGwClient_UnshiftConn(uint16_t connId);
 
 int goUdpGwClient_Send(uint16_t connId, uint8_t *data, int data_len);
 static void udpGWClient_ReceiveFromServer(char *data, int data_len);

@@ -69,6 +69,8 @@ func (ls *list) Add(key int, value interface{}) error {
 	ls.m.Lock()
 	defer ls.m.Unlock()
 
+	node.v = value
+
 	ls.nodes[node.k] = node
 
 	if ls.head == nil {
