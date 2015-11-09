@@ -51,7 +51,7 @@ vagrant ssh
 sudo yum install -y git gcc glibc-static
 
 # Go
-curl https://storage.googleapis.com/golang/go1.5.1.linux-amd64.tar.gz \
+curl --silent https://storage.googleapis.com/golang/go1.5.1.linux-amd64.tar.gz \
 	| sudo tar -xzv -C /usr/local/
 
 echo 'export GOROOT=/usr/local/go'    >> $HOME/.bashrc
@@ -61,13 +61,11 @@ echo 'export GOPATH=$HOME/go'         >> $HOME/.bashrc
 source $HOME/.bashrc
 ```
 
-Clone the `tunio` package into a projects directory:
+Clone the `tunio` package with `go get` and change to the source directory:
 
 ```sh
-mkdir -p projects
-cd projects
-git clone https://github.com/getlantern/tunio.git
-cd tunio
+go get github.com/getlantern/tunio
+cd $GOPATH/src/github.com/getlantern/tunio
 go get -d -t .
 ```
 
@@ -131,7 +129,7 @@ Now change directory to `tunio/cmd/tunio` and build the `tunio` command with
 `go build`:
 
 ```sh
-cd ~/go/src/github.com/getlantern/tunio/cmd/tunio
+cd cmd/tunio
 go build -v
 ```
 
