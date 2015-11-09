@@ -221,7 +221,7 @@ func udpgwGetConnFromPool() *udpgwConn {
 
 func udpgwNewConn() *udpgwConn {
 	log.Printf("udpgwNewConn")
-	conn, err := net.Dial("tcp", "10.4.4.120:5353")
+	conn, err := Dialer("tcp", udpGwServerAddress)
 
 	if err != nil {
 		log.Printf("udpgwNewConn: %q", err)

@@ -29,6 +29,10 @@ const (
 	readBufSize = 1024 * 64
 )
 
+var (
+	udpGwServerAddress string
+)
+
 var ioTimeout = time.Second * 30
 
 var (
@@ -70,6 +74,7 @@ func Configure(tundev, ipaddr, netmask, udpgw string, d dialer) error {
 	}
 
 	Dialer = d
+	udpGwServerAddress = udpgw
 
 	ctundev := C.CString(tundev)
 	cipaddr := C.CString(ipaddr)
