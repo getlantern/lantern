@@ -30,6 +30,18 @@
 // name of the program
 #define PROGRAM_NAME "tun2io"
 
+// maximum number of udpgw connections
+#define DEFAULT_UDPGW_MAX_CONNECTIONS 256
+
+// udpgw per-connection send buffer size, in number of packets
+#define DEFAULT_UDPGW_CONNECTION_BUFFER_SIZE 8
+
+// udpgw reconnect time after connection fails
+#define UDPGW_RECONNECT_TIME 5000
+
+// udpgw keepalive sending interval
+#define UDPGW_KEEPALIVE_TIME 10000
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stddef.h>
@@ -41,6 +53,7 @@
 //#include <misc/dead.h>
 #include <misc/ipv4_proto.h>
 #include <misc/ipv6_proto.h>
+#include <misc/udp_proto.h>
 #include <misc/open_standard_streams.h>
 #include <misc/ipaddr6.h>
 #include <system/BReactor.h>
@@ -53,6 +66,10 @@
 #include <lwip/tcp_impl.h>
 #include <lwip/netif.h>
 #include <lwip/tcp.h>
+
+#include <protocol/udpgw_proto.h>
+#include <misc/packed.h>
+#include <flow/PacketProtoDecoder.h>
 
 #ifndef BADVPN_USE_WINAPI
 #include <base/BLog_syslog.h>
@@ -87,6 +104,11 @@ typedef struct {
   char *netif_ipaddr;
   char *netif_netmask;
   char *netif_ip6addr;
+
+  char *udpgw_remote_server_addr;
+  int udpgw_max_connections;
+  int udpgw_connection_buffer_size;
+  int udpgw_transparent_dns;
 } options_t;
 
 options_t options;
@@ -127,21 +149,40 @@ static void client_abort_client (struct tcp_client *client);
 static void client_dealloc (struct tcp_client *client);
 static err_t client_recv_func (void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err);
 static err_t client_sent_func (void *arg, struct tcp_pcb *tpcb, u16_t len);
+
+static void udpgw_client_handler_received (void *unused, BAddr local_addr, BAddr remote_addr, const uint8_t *data, int data_len);
+
 static int setup_listener(options_t);
-static int configure(char *tundev, char *ipaddr, char *netmask);
+static int configure(char *tundev, char *ipaddr, char *netmask, char *udpgw_addr);
+static char *baddr_to_str(BAddr *baddr);
 
 uint32_t goNewTunnel(struct tcp_client *client);
 int goTunnelWrite(uint32_t tunno, char *data, size_t size);
 int goTunnelDestroy(uint32_t tunno);
 int goTunnelSentACK(uint32_t tunno, u16_t len);
 int goInitTunnel(uint32_t tunno);
-void goInspect(struct tcp_pcb *tpcb);
 void goLog(struct tcp_client *client, char *data);
+
+uint16_t goUdpGwClient_FindConnectionIdByAddr(BAddr localAddr, BAddr remoteAddr);
+uint16_t goUdpGwClient_NewConnection(BAddr localAddr, BAddr remoteAddr);
+void goUdpGwClient_UnshiftConn(uint16_t connId);
+
+int goUdpGwClient_Send(uint16_t connId, uint8_t *data, int data_len);
+static void udpGWClient_ReceiveFromServer(char *data, int data_len);
+
+BAddr goUdpGwClient_GetLocalAddrByConnId(uint16_t cConnID);
+BAddr goUdpGwClient_GetRemoteAddrByConnId(uint16_t cConnID);
+int goUdpGwClient_ConnIdExists(uint16_t cConnID);
+
+int goUdpGwClient_Configure(int mtu, int maxConnections, int bufferSize, int keepAliveTime);
+static void UdpGwClient_GotPacket(BAddr local_addr, BAddr remote_addr, int is_dns, const uint8_t *data, int data_len);
 
 static char *dump_dest_addr(struct tcp_client *client);
 
+static uint8_t dataAt(uint8_t *in, int i);
 static char charAt(char *in, int i);
-static int tcp_client_sndbuf(struct tcp_client *client);
+static unsigned int tcp_client_sndbuf(struct tcp_client *client);
 static int tcp_client_outbuf(struct tcp_client *client);
+static int process_device_udp_packet (uint8_t *data, int data_len);
 
 #endif
