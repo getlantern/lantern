@@ -25,12 +25,85 @@ var (
 )
 
 var (
-	errUdpGwNoSuchConn = errors.New("No such conn.")
+	errUdpGwNoSuchConn        = errors.New("No such conn.")
+	errUdpGwConnectionExpired = errors.New("Connection expired.")
+)
+
+var (
+	udpgwClientList = NewConnList(10)
 )
 
 type udpgwConn struct {
 	net.Conn
-	connIDs []uint16
+	connIDs map[uint16]*udpGwClient
+}
+
+func setUdpGwClient(connID uint16, c *udpGwClient) error {
+	udpgwConnMu.Lock()
+	defer udpgwConnMu.Unlock()
+
+	udpgwClientList.Add(int(connID), c)
+	udpgwConnIdMap[connID] = c
+
+	return nil
+}
+
+func removeUdpGwClient(connID uint16) error {
+	udpgwConnMu.Lock()
+	defer udpgwConnMu.Unlock()
+
+	c, ok := udpgwConnIdMap[connID]
+	if !ok {
+		return errUdpGwNoSuchConn
+	}
+
+	delete(udpgwConnIdMap, connID)
+	delete(udpgwConnMap[c.localAddr], c.remoteAddr)
+	if len(udpgwConnMap[c.localAddr]) == 0 {
+		delete(udpgwConnMap, c.localAddr)
+	}
+	delete(c.conn.connIDs, connID)
+
+	return nil
+}
+
+func udpgwLookupConnId(localAddr, remoteAddr string) (uint16, error) {
+	udpgwConnMu.Lock()
+	connID, ok := udpgwConnMap[localAddr][remoteAddr]
+	udpgwConnMu.Unlock()
+
+	if !ok {
+		return 0, errUdpGwNoSuchConn
+	}
+
+	v := udpgwClientList.Get(int(connID))
+
+	if v == nil {
+		removeUdpGwClient(connID)
+		return 0, errUdpGwConnectionExpired
+	}
+
+	return connID, nil
+}
+
+func getUdpGwClientById(connID uint16) (*udpGwClient, error) {
+
+	udpgwConnMu.Lock()
+	_, ok := udpgwConnIdMap[connID]
+	udpgwConnMu.Unlock()
+
+	if !ok {
+		return nil, errUdpGwNoSuchConn
+	}
+
+	v := udpgwClientList.Get(int(connID))
+
+	if v == nil {
+		removeUdpGwClient(connID)
+		return nil, errUdpGwConnectionExpired
+	}
+
+	return v.(*udpGwClient), nil
 }
 
 type udpGwClient struct {
@@ -39,7 +112,7 @@ type udpGwClient struct {
 	localAddr  string
 	remoteAddr string
 
-	conn net.Conn
+	conn *udpgwConn
 
 	cLocalAddr  C.BAddr
 	cRemoteAddr C.BAddr
@@ -107,6 +180,7 @@ func udpgwWriterService() error {
 }
 
 func udpgwGetConnFromPool() *udpgwConn {
+
 	if len(udpgwConnPool) < udpgwMaxConnPoolSize {
 		// Create and return a new conn.
 		conn := udpgwNewConn()
@@ -117,19 +191,20 @@ func udpgwGetConnFromPool() *udpgwConn {
 		return conn
 	}
 
-	// Return a random conn.
-	for len(udpgwConnPool) > 0 {
-		conn := udpgwConnPool[rand.Int()%len(udpgwConnPool)]
-		if len(conn.connIDs) > udpgwMaxClientsPerConn {
-			log.Printf("lets try to close.")
-			// Conn is exhausted, let's close it.
-			conn.Close()
-		} else {
-			return conn
+	// Return the conn with the least connections.
+	var conn *udpgwConn
+	var connN int
+
+	for i := range udpgwConnPool {
+		c := udpgwConnPool[i]
+		n := len(c.connIDs)
+		if i == 0 || n < connN {
+			connN = n
+			conn = c
 		}
 	}
 
-	panic("exhausted.")
+	return conn
 }
 
 func udpgwNewConn() *udpgwConn {
@@ -143,7 +218,7 @@ func udpgwNewConn() *udpgwConn {
 
 	c := &udpgwConn{
 		Conn:    conn,
-		connIDs: make([]uint16, 0, udpgwMaxClientsPerConn),
+		connIDs: make(map[uint16]*udpGwClient),
 	}
 
 	go c.reader()
@@ -152,32 +227,7 @@ func udpgwNewConn() *udpgwConn {
 }
 
 func (c *udpgwConn) Close() error {
-	log.Printf("close...")
-
 	c.Conn.Close()
-
-	// also close associated clients
-	if c.connIDs != nil {
-		for _, connID := range c.connIDs {
-			client := udpgwGetConnById(uint16(connID))
-			client.Close()
-		}
-	}
-
-	c.connIDs = nil
-
-	newConn := udpgwNewConn()
-	// remove current conn from pool
-	for i := 0; i < len(udpgwConnPool); i++ {
-		if udpgwConnPool[i] == c {
-			if newConn == nil {
-				udpgwConnPool = append(udpgwConnPool[:i], udpgwConnPool[i+1:]...)
-			} else {
-				udpgwConnPool[i] = newConn
-			}
-		}
-	}
-
 	return nil
 }
 
@@ -216,23 +266,26 @@ func (c *udpgwConn) reader() error {
 
 //export goUdpGwClient_GetLocalAddrByConnId
 func goUdpGwClient_GetLocalAddrByConnId(cConnID C.uint16_t) C.BAddr {
-	conn := udpgwGetConnById(uint16(cConnID))
-	return conn.cLocalAddr
+	if conn, err := getUdpGwClientById(uint16(cConnID)); err != nil {
+		return conn.cLocalAddr
+	}
+	return C.BAddr{}
 }
 
 //export goUdpGwClient_GetRemoteAddrByConnId
 func goUdpGwClient_GetRemoteAddrByConnId(cConnID C.uint16_t) C.BAddr {
-	conn := udpgwGetConnById(uint16(cConnID))
-	return conn.cRemoteAddr
+	if conn, err := getUdpGwClientById(uint16(cConnID)); err != nil {
+		return conn.cRemoteAddr
+	}
+	return C.BAddr{}
 }
 
 //export goUdpGwClient_ConnIdExists
 func goUdpGwClient_ConnIdExists(cConnID C.uint16_t) C.int {
-	conn := udpgwGetConnById(uint16(cConnID))
-	if conn == nil {
-		return C.ERR_ABRT
+	if _, err := getUdpGwClientById(uint16(cConnID)); err != nil {
+		return C.ERR_OK
 	}
-	return C.ERR_OK
+	return C.ERR_ABRT
 }
 
 var (
@@ -241,25 +294,13 @@ var (
 	udpgwConnMu    sync.Mutex
 )
 
-func udpgwGetConnById(connId uint16) *udpGwClient {
-	return udpgwConnIdMap[connId]
-}
-
-func udpgwLookupConnId(localAddr, remoteAddr string) (uint16, error) {
-	connId, ok := udpgwConnMap[localAddr][remoteAddr]
-	if ok {
-		return connId, nil
-	}
-	return 0, errUdpGwNoSuchConn
-}
-
 // udpgwLookupOrCreateConnId returns or creates a connection and returns the connection ID.
 func udpgwLookupOrCreateConnId(localAddr, remoteAddr string) (uint16, error) {
 
-	connId, err := udpgwLookupConnId(localAddr, remoteAddr)
+	connID, err := udpgwLookupConnId(localAddr, remoteAddr)
 
 	if err == nil {
-		return connId, nil
+		return connID, nil
 	}
 
 	if err == errUdpGwNoSuchConn {
@@ -276,33 +317,34 @@ func udpgwLookupOrCreateConnId(localAddr, remoteAddr string) (uint16, error) {
 		}
 
 		// Get ID
-		udpgwConnMu.Lock()
 		for {
-			//connId = uint16(rand.Int31() % (1 << 16))
-			connId = uint16(rand.Int31() % 50)
-			if _, ok := udpgwConnIdMap[connId]; !ok {
-				udpgwConnIdMap[connId] = client
+			//connID = uint16(rand.Int31() % (1 << 16))
+			connID = uint16(rand.Int31() % 50)
+			if _, err := getUdpGwClientById(connID); err != nil {
+				setUdpGwClient(connID, client)
 				break
 			}
-			log.Printf("look...")
 		}
-		udpgwConnMu.Unlock()
 
-		client.connID = connId
-		conn.connIDs = append(conn.connIDs, connId)
+		log.Printf("Creating a new connection %s:%s (%d)...", localAddr, remoteAddr, connID)
 
+		client.connID = connID
+		client.conn = conn
+
+		conn.connIDs[connID] = client
+
+		udpgwConnMu.Lock()
 		if udpgwConnMap[localAddr] == nil {
 			udpgwConnMap[localAddr] = make(map[string]uint16)
 		}
+		udpgwConnMap[localAddr][remoteAddr] = connID
+		udpgwConnMu.Unlock()
 
-		log.Printf("Creating a new connection %s:%s (%d)...", localAddr, remoteAddr, connId)
-
-		udpgwConnMap[localAddr][remoteAddr] = connId
 	} else {
 		return 0, err
 	}
 
-	return connId, nil
+	return connID, nil
 }
 
 //export goUdpGwClient_Configure
@@ -323,8 +365,7 @@ func goUdpGwClient_Configure(mtu C.int, maxConnections C.int, bufferSize C.int, 
 
 //export goUdpGwClient_Send
 // goUdpGwClient_Send sends a packet to the udpgw server.
-func goUdpGwClient_Send(connId uint16, data *C.uint8_t, dataLen C.int) C.int {
-	//c := udpgwGetConnById(connId)
+func goUdpGwClient_Send(connID uint16, data *C.uint8_t, dataLen C.int) C.int {
 
 	size := int(dataLen)
 
@@ -361,12 +402,12 @@ func goUdpGwClient_FindConnectionIdByAddr(cLocalAddr C.BAddr, cRemoteAddr C.BAdd
 		C.free(unsafe.Pointer(raddr))
 	}()
 
-	connId, err := udpgwLookupConnId(C.GoString(laddr), C.GoString(raddr))
+	connID, err := udpgwLookupConnId(C.GoString(laddr), C.GoString(raddr))
 	if err != nil {
 		return 0
 	}
 
-	return C.uint16_t(connId)
+	return C.uint16_t(connID)
 }
 
 //export goUdpGwClient_NewConnection
@@ -386,15 +427,15 @@ func goUdpGwClient_NewConnection(cLocalAddr C.BAddr, cRemoteAddr C.BAddr) C.uint
 	localAddr := C.GoString(laddr)
 	remoteAddr := C.GoString(raddr)
 
-	connId, err := udpgwLookupOrCreateConnId(localAddr, remoteAddr)
+	connID, err := udpgwLookupOrCreateConnId(localAddr, remoteAddr)
 	if err != nil {
 		return 0
 	}
 
-	client := udpgwGetConnById(connId)
+	client, _ := getUdpGwClientById(connID)
 
 	client.cLocalAddr = cLocalAddr
 	client.cRemoteAddr = cRemoteAddr
 
-	return C.uint16_t(connId)
+	return C.uint16_t(connID)
 }

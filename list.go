@@ -2,6 +2,7 @@ package tunio
 
 import (
 	"errors"
+	"sync"
 )
 
 type List interface {
@@ -25,9 +26,12 @@ type list struct {
 	head      *listNode
 	tail      *listNode
 	nodes     map[int]*listNode
+	m         sync.RWMutex
 }
 
 func (ls *list) Head() int {
+	ls.m.RLock()
+	defer ls.m.RUnlock()
 	if ls.head == nil {
 		return -1
 	}
@@ -35,6 +39,8 @@ func (ls *list) Head() int {
 }
 
 func (ls *list) Tail() int {
+	ls.m.RLock()
+	defer ls.m.RUnlock()
 	if ls.tail == nil {
 		return -1
 	}
@@ -42,6 +48,8 @@ func (ls *list) Tail() int {
 }
 
 func (ls *list) Size() int {
+	ls.m.RLock()
+	defer ls.m.RUnlock()
 	return len(ls.nodes)
 }
 
@@ -57,6 +65,9 @@ func (ls *list) Add(key int, value interface{}) error {
 	for ls.Size() >= ls.maxLength {
 		ls.Remove(ls.tail.k)
 	}
+
+	ls.m.Lock()
+	defer ls.m.Unlock()
 
 	ls.nodes[node.k] = node
 
@@ -103,6 +114,8 @@ func (ls *list) Remove(key int) error {
 		return errors.New("No such key.")
 	}
 
+	ls.m.Lock()
+
 	if node == ls.head {
 		ls.head = node.n
 	}
@@ -123,6 +136,8 @@ func (ls *list) Remove(key int) error {
 
 	delete(ls.nodes, node.k)
 
+	ls.m.Unlock()
+
 	return nil
 }
 
@@ -135,6 +150,8 @@ func (ls *list) Get(key int) interface{} {
 }
 
 func (ls *list) getNode(key int) *listNode {
+	ls.m.RLock()
+	defer ls.m.RUnlock()
 	for node := ls.head; node != nil; node = node.n {
 		if node.k == key {
 			return node
