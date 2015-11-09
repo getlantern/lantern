@@ -61,12 +61,13 @@ echo 'export GOPATH=$HOME/go'         >> $HOME/.bashrc
 source $HOME/.bashrc
 ```
 
-Clone the `tunio` package with `go get` and change to the source directory:
+Clone the `tunio` package with `git` and change to the source directory:
 
 ```sh
-go get github.com/getlantern/tunio
-cd $GOPATH/src/github.com/getlantern/tunio
-go get -d -t .
+mkdir -p $GOPATH/src/github.com/getlantern
+cd $GOPATH/src/github.com/getlantern
+git clone https://github.com/getlantern/tunio.git
+cd tunio
 ```
 
 Compile `tun2io`'s libraries with `make lib`:
