@@ -51,7 +51,8 @@ vagrant ssh
 sudo yum install -y git gcc glibc-static
 
 # Go
-curl https://storage.googleapis.com/golang/go1.5.1.linux-amd64.tar.gz | sudo tar -xzv -C /usr/local/
+curl https://storage.googleapis.com/golang/go1.5.1.linux-amd64.tar.gz \
+	| sudo tar -xzv -C /usr/local/
 
 echo 'export GOROOT=/usr/local/go'    >> $HOME/.bashrc
 echo 'export PATH=$PATH:$GOROOT/bin'  >> $HOME/.bashrc
@@ -143,7 +144,7 @@ address of the udpgw server as Lantern sees it).
   --netif-ipaddr 10.0.0.2 \
   --netif-netmask 255.255.255.0 \
   --proxy-addr $PROXY_IP:2099 \
-  --udpgw-remote-server-addr $UDPGW_IP:5353
+  --udpgw-remote-server-addr 127.0.0.1:5353
 ```
 
 You should be able to browse any site now!
