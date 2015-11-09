@@ -1,22 +1,45 @@
 # tunio
 
-The tunio package can be used to redirect I/O from a tun device to a
-`net.Dialer` by using a fork of [tun2socks][1] as a library.
+The `tunio` package captures and encapsulates TCP packets and forwards them to
+a Go `net.Dialer`.
 
-This is a work in progress.
+UDP packets can also be processed by `tunio`, but an external
+[badvpn-udpgw](https://felixc.at/BadVPN) server is required to capture and
+forward those packets.
 
-## Proof of concept
+## How to compile and run?
 
-Create a CentOS 7 virtual machine:
+Throughout this example we are going to create a virtual machine and proxy all
+its TCP and UDP traffic to another machine which is running
+[Lantern](https://getlantern.org/) and `badvpn-udpgw`. Let's call this machine
+the host and let's say the IP of the host is `10.0.0.101`. You can also use two
+different hosts to run those programs.
+
+So, before starting, make sure you're running Lantern and badvpn-udpgw on their
+respective hosts:
 
 ```
-cat Vagrantfile
+lantern -addr :2099
+```
+
+```
+badvpn-udpgw --listen-addr 0.0.0.0:5353
+```
+
+And now let's create the virtual machine, here's the definition for a CentOS 7
+virtual machine:
+
+```
 # Vagrantfile
 Vagrant.configure(2) do |config|
   config.vm.box = "chef/centos-7.0"
   config.vm.network "private_network", ip: "192.168.88.10"
 end
+```
 
+Use the `Vagrantfile` above to create a new virtual machine.
+
+```
 vagrant up
 ```
 
@@ -37,18 +60,17 @@ echo 'export GOPATH=$HOME/go'         >> $HOME/.bashrc
 source $HOME/.bashrc
 ```
 
-Clone the `tunio` package and switch to the `badvpn-lwip` branch:
+Clone the `tunio` package:
 
 ```
 mkdir -p projects
 cd projects
 git clone https://github.com/getlantern/tunio.git
 cd tunio
-git checkout badvpn-lwip
 go get -d -t .
 ```
 
-Compile `tun2io`'s libraries:
+Compile `tun2io`'s libraries with `make lib`:
 
 ```
 make lib
@@ -57,42 +79,43 @@ make lib
 # ar rcs lib/libtun2io.a tun2io.o ./obj/*.o
 ```
 
-Create a new tun device, let's name it `tun0`.
+Create a new tun device, let's name it `tun0` and assign the `10.0.0.1` IP
+address to it.
 
 ```
 #!/bin/bash
-DEVICE_NAME=tun0
-DEVICE_IP=10.0.0.1
+export ORIGINAL_GW=$(ip route  | grep default | awk '{print $3}')
+
+export DEVICE_NAME=tun0
+export DEVICE_IP=10.0.0.1
+
 sudo ip tuntap del $DEVICE_NAME mode tun
 sudo ip tuntap add $DEVICE_NAME mode tun
 sudo ifconfig $DEVICE_NAME $DEVICE_IP netmask 255.255.255.0
 ```
 
-Replace the vm's name servers with `8.8.8.8` and `8.8.4.4`.
+Replace the virtual machine's name servers with `8.8.8.8` and `8.8.4.4`.
 
 ```
 echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
 echo "nameserver 8.8.4.4" | sudo tee -a /etc/resolv.conf
 ```
 
-The easiest way to try the `net.Dialer` is by creating a transparent tunnel
-with an external host, in this example we are going to use the vm's host as
-external host.
-
-Modify the routing table to allow direct traffic with the name servers and with
-the external host.
+Modify the routing table to allow direct traffic with the external host
+(`10.0.0.101`). If you're running `badvpn-udpgw` on a different IP remember to
+add a route for it as well.
 
 ```
 #!/bin/bash
-HOST_IP=10.0.0.105
+LANTERN_IP=10.0.0.101
+UDPGW_IP=10.4.4.120
+
 ORIGINAL_GW=10.0.2.2
-sudo route add 8.8.8.8 gw $ORIGINAL_GW metric 5
-sudo route add 8.8.4.4 gw $ORIGINAL_GW metric 5
-sudo route add $HOST_IP gw $ORIGINAL_GW metric 5
+
+sudo route add $LANTERN_IP gw $ORIGINAL_GW metric 5
+sudo route add $UDPGW_IP gw $ORIGINAL_GW metric 5
 sudo route add default gw 10.0.0.2 metric 6
 ```
-
-Any other package will pass through `10.0.0.2` (our `tun0` device).
 
 After altering the routing table, you should not be able to ping external
 hosts:
@@ -105,59 +128,38 @@ PING google.com (74.125.227.165) 56(84) bytes of data.
 5 packets transmitted, 0 received, 100% packet loss, time 4001ms
 ```
 
-But you should be able to ping the nameservers and `$HOST_IP`, because they're
-using the original router.
+But you should be able to ping `$LANTERN_IP` and `$UDPGW_IP`.
 
 ```
-ping $HOST_IP
-PING 10.0.0.105 (10.0.0.105) 56(84) bytes of data.
-64 bytes from 10.0.0.105: icmp_seq=1 ttl=63 time=3.45 ms
-64 bytes from 10.0.0.105: icmp_seq=2 ttl=63 time=0.403 ms
+ping $LANTERN_IP
+PING 10.0.0.101 (10.0.0.101) 56(84) bytes of data.
+64 bytes from 10.0.0.101: icmp_seq=1 ttl=63 time=3.45 ms
+64 bytes from 10.0.0.101: icmp_seq=2 ttl=63 time=0.403 ms
 ^C
---- 10.0.0.105 ping statistics ---
+--- 10.0.0.101 ping statistics ---
 2 packets transmitted, 2 received, 0% packet loss, time 1001ms
 rtt min/avg/max/mdev = 0.403/1.928/3.454/1.526 ms
 ```
 
-Install `socat` in your host and open a transparent TCP tunnel from port
-`20443` to `google.com:443`.
+Now change directory to `tunio/cmd/tunio` and build the `tunio` command:
 
 ```
-brew install socat
-socat TCP-LISTEN:20443,fork TCP:www.google.com:443
+cd ~/go/src/github.com/getlantern/tunio/cmd/tunio
+go build -v
 ```
 
-Now you should be able to run the test!
+Finally, run `tunio` with the `--proxy-addr` parameter pointing to Lantern and
+with `--udpgw-remote-server-addr` pointing to the udpgw server.
 
 ```
-go test
-# ...
-# PASS
-# ok    _/home/vagrant/projects/tunio 1.260s
+./tunio --tundev tun0 \
+  --netif-ipaddr 10.0.0.2 \
+  --netif-netmask 255.255.255.0 \
+  --proxy-addr $LANTERN_IP:2099 \
+  --udpgw-remote-server-addr $UDPGW_IP:5353
 ```
 
-We used a transparent proxy for this test, but you are not bound to transparent
-proxies only, it depends on the `net.Conn` returned by the `net.Dialer`. You
-can also use socat to create a tcp-to-socks tunnel to simulate a `net.Conn`
-over SOCKS:
-
-```
-# terminal 1
-socat TCP-LISTEN:20443,fork socks:127.0.0.1:www.google.com:443,socksport=9999
-
-# terminal 2
-ssh -D 9999 remote@example.org
-```
-
-and a `net.Conn` over [Lantern][2]:
-
-```
-# terminal 1
-socat TCP-LISTEN:20443,fork PROXY:127.0.0.1:www.google.com:443,proxyport=8787
-
-# termina 2
-lantern -role client -addr :8787
-```
+You should be able to browse now!
 
 [1]: https://github.com/ambrop72/badvpn/tree/master/tun2socks
 [2]: https://getlantern.org
