@@ -40,6 +40,7 @@ func init() {
 	tunnels = make(map[uint32]*TunIO)
 	//rand.Seed(time.Now().UnixNano())
 	rand.Seed(1)
+	udpgwInit()
 }
 
 var Dialer dialer
@@ -63,7 +64,7 @@ const (
 
 // Configure sets up the tundevice, this is equivalent to the badvpn-tun2socks
 // configuration, except for the --socks-server-addr.
-func Configure(tundev, ipaddr, netmask string, d dialer) error {
+func Configure(tundev, ipaddr, netmask, udpgw string, d dialer) error {
 	if d == nil {
 		d = dummyDialer
 	}
@@ -73,14 +74,16 @@ func Configure(tundev, ipaddr, netmask string, d dialer) error {
 	ctundev := C.CString(tundev)
 	cipaddr := C.CString(ipaddr)
 	cnetmask := C.CString(netmask)
+	cudpgw_addr := C.CString(udpgw)
 
 	defer func() {
 		C.free(unsafe.Pointer(ctundev))
 		C.free(unsafe.Pointer(cipaddr))
 		C.free(unsafe.Pointer(cnetmask))
+		C.free(unsafe.Pointer(cudpgw_addr))
 	}()
 
-	if err_t := C.configure(ctundev, cipaddr, cnetmask); err_t != C.ERR_OK {
+	if err_t := C.configure(ctundev, cipaddr, cnetmask, cudpgw_addr); err_t != C.ERR_OK {
 		return errors.New("Failed to configure device.")
 	}
 

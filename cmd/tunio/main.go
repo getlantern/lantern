@@ -16,6 +16,7 @@ var (
 	deviceIP   = flag.String("netif-ipaddr", "", "Address of the virtual router inside the TUN device.")
 	deviceMask = flag.String("netif-netmask", "", "Network mask that defines the traffic that is going to be redirected to the TUN device.")
 	proxyAddr  = flag.String("proxy-addr", "", "Lantern address.")
+	udpgwAddr  = flag.String("udpgw-remote-server-addr", "", "UDPGW remote server address (optional).")
 )
 
 var (
@@ -55,7 +56,7 @@ func LanternDialer(proto, addr string) (net.Conn, error) {
 		return conn, nil
 	}
 
-	log.Printf("Sorry. Could not reach Lantern.")
+	log.Printf("Status code %v.", resp.StatusCode)
 
 	return nil, errors.New("Could not connect to Lantern.")
 }
@@ -64,7 +65,7 @@ func main() {
 	flag.Parse()
 
 	log.Printf("Configuring device %q (ipaddr: %q, netmask: %q)", *deviceName, *deviceIP, *deviceMask)
-	if err := tunio.Configure(*deviceName, *deviceIP, *deviceMask, LanternDialer); err != nil {
+	if err := tunio.Configure(*deviceName, *deviceIP, *deviceMask, *udpgwAddr, LanternDialer); err != nil {
 		log.Fatalf("Failed to configure device: %q", err)
 	}
 }
