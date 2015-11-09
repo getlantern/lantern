@@ -35,6 +35,7 @@ var (
 
 type udpgwConn struct {
 	net.Conn
+	closed  bool
 	connIDs map[uint16]*udpGwClient
 }
 
@@ -204,6 +205,10 @@ func udpgwGetConnFromPool() *udpgwConn {
 
 	for i := range udpgwConnPool {
 		c := udpgwConnPool[i]
+		if c.closed {
+			c.Conn = udpgwNewConn()
+			c.closed = false
+		}
 		n := len(c.connIDs)
 		if i == 0 || n < connN {
 			connN = n
@@ -241,6 +246,9 @@ func (c *udpgwConn) Close() error {
 	for connID := range c.connIDs {
 		removeUdpGwClient(connID)
 	}
+
+	// Cancel connection.
+	c.closed = true
 
 	return nil
 }
