@@ -271,26 +271,21 @@ type Server struct {
 	// DecorateWriter is optional, allows customization of the process that writes raw DNS messages.
 	DecorateWriter DecorateWriter
 
-	// For graceful shutdown.
-	stopUDP chan bool
-	stopTCP chan bool
-	wgUDP   sync.WaitGroup
-	wgTCP   sync.WaitGroup
+	// Graceful shutdown handling
 
-	// make start/shutdown not racy
-	lock    sync.Mutex
+	inFlight sync.WaitGroup
+
+	lock    sync.RWMutex
 	started bool
 }
 
 // ListenAndServe starts a nameserver on the configured address in *Server.
 func (srv *Server) ListenAndServe() error {
 	srv.lock.Lock()
+	defer srv.lock.Unlock()
 	if srv.started {
-		srv.lock.Unlock()
 		return &Error{err: "server already started"}
 	}
-	srv.stopUDP, srv.stopTCP = make(chan bool), make(chan bool)
-	srv.started = true
 	addr := srv.Addr
 	if addr == "" {
 		addr = ":domain"
@@ -309,8 +304,11 @@ func (srv *Server) ListenAndServe() error {
 			return e
 		}
 		srv.Listener = l
+		srv.started = true
 		srv.lock.Unlock()
-		return srv.serveTCP(l)
+		e = srv.serveTCP(l)
+		srv.lock.Lock() // to satisfy the defer at the top
+		return e
 	case "udp", "udp4", "udp6":
 		a, e := net.ResolveUDPAddr(srv.Net, addr)
 		if e != nil {
@@ -324,10 +322,12 @@ func (srv *Server) ListenAndServe() error {
 			return e
 		}
 		srv.PacketConn = l
+		srv.started = true
 		srv.lock.Unlock()
-		return srv.serveUDP(l)
+		e = srv.serveUDP(l)
+		srv.lock.Lock() // to satisfy the defer at the top
+		return e
 	}
-	srv.lock.Unlock()
 	return &Error{err: "bad network"}
 }
 
@@ -335,15 +335,12 @@ func (srv *Server) ListenAndServe() error {
 // configured in *Server. Its main use is to start a server from systemd.
 func (srv *Server) ActivateAndServe() error {
 	srv.lock.Lock()
+	defer srv.lock.Unlock()
 	if srv.started {
-		srv.lock.Unlock()
 		return &Error{err: "server already started"}
 	}
-	srv.stopUDP, srv.stopTCP = make(chan bool), make(chan bool)
-	srv.started = true
 	pConn := srv.PacketConn
 	l := srv.Listener
-	srv.lock.Unlock()
 	if pConn != nil {
 		if srv.UDPSize == 0 {
 			srv.UDPSize = MinMsgSize
@@ -352,12 +349,20 @@ func (srv *Server) ActivateAndServe() error {
 			if e := setUDPSocketOptions(t); e != nil {
 				return e
 			}
-			return srv.serveUDP(t)
+			srv.started = true
+			srv.lock.Unlock()
+			e := srv.serveUDP(t)
+			srv.lock.Lock() // to satisfy the defer at the top
+			return e
 		}
 	}
 	if l != nil {
 		if t, ok := l.(*net.TCPListener); ok {
-			return srv.serveTCP(t)
+			srv.started = true
+			srv.lock.Unlock()
+			e := srv.serveTCP(t)
+			srv.lock.Lock() // to satisfy the defer at the top
+			return e
 		}
 	}
 	return &Error{err: "bad listeners"}
@@ -374,36 +379,20 @@ func (srv *Server) Shutdown() error {
 		return &Error{err: "server not started"}
 	}
 	srv.started = false
-	net, addr := srv.Net, srv.Addr
-	switch {
-	case srv.Listener != nil:
-		a := srv.Listener.Addr()
-		net, addr = a.Network(), a.String()
-	case srv.PacketConn != nil:
-		a := srv.PacketConn.LocalAddr()
-		net, addr = a.Network(), a.String()
-	}
 	srv.lock.Unlock()
 
-	fin := make(chan bool)
-	switch net {
-	case "tcp", "tcp4", "tcp6":
-		go func() {
-			srv.stopTCP <- true
-			srv.wgTCP.Wait()
-			fin <- true
-		}()
-
-	case "udp", "udp4", "udp6":
-		go func() {
-			srv.stopUDP <- true
-			srv.wgUDP.Wait()
-			fin <- true
-		}()
+	if srv.PacketConn != nil {
+		srv.PacketConn.Close()
+	}
+	if srv.Listener != nil {
+		srv.Listener.Close()
 	}
 
-	c := &Client{Net: net}
-	go c.Exchange(new(Msg), addr) // extra query to help ReadXXX loop to pass
+	fin := make(chan bool)
+	go func() {
+		srv.inFlight.Wait()
+		fin <- true
+	}()
 
 	select {
 	case <-time.After(srv.getReadTimeout()):
@@ -445,18 +434,22 @@ func (srv *Server) serveTCP(l *net.TCPListener) error {
 	for {
 		rw, e := l.AcceptTCP()
 		if e != nil {
-			continue
+			if neterr, ok := e.(net.Error); ok && neterr.Temporary() {
+				continue
+			}
+			return e
 		}
 		m, e := reader.ReadTCP(rw, rtimeout)
-		select {
-		case <-srv.stopTCP:
+		srv.lock.RLock()
+		if !srv.started {
+			srv.lock.RUnlock()
 			return nil
-		default:
 		}
+		srv.lock.RUnlock()
 		if e != nil {
 			continue
 		}
-		srv.wgTCP.Add(1)
+		srv.inFlight.Add(1)
 		go srv.serve(rw.RemoteAddr(), handler, m, nil, nil, rw)
 	}
 }
@@ -483,21 +476,24 @@ func (srv *Server) serveUDP(l *net.UDPConn) error {
 	// deadline is not used here
 	for {
 		m, s, e := reader.ReadUDP(l, rtimeout)
-		select {
-		case <-srv.stopUDP:
+		srv.lock.RLock()
+		if !srv.started {
+			srv.lock.RUnlock()
 			return nil
-		default:
 		}
+		srv.lock.RUnlock()
 		if e != nil {
 			continue
 		}
-		srv.wgUDP.Add(1)
+		srv.inFlight.Add(1)
 		go srv.serve(s.RemoteAddr(), handler, m, l, s, nil)
 	}
 }
 
 // Serve a new connection.
 func (srv *Server) serve(a net.Addr, h Handler, m []byte, u *net.UDPConn, s *SessionUDP, t *net.TCPConn) {
+	defer srv.inFlight.Done()
+
 	w := &response{tsigSecret: srv.TsigSecret, udp: u, tcp: t, remoteAddr: a, udpSession: s}
 	if srv.DecorateWriter != nil {
 		w.writer = srv.DecorateWriter(w)
@@ -506,15 +502,6 @@ func (srv *Server) serve(a net.Addr, h Handler, m []byte, u *net.UDPConn, s *Ses
 	}
 
 	q := 0 // counter for the amount of TCP queries we get
-
-	defer func() {
-		if u != nil {
-			srv.wgUDP.Done()
-		}
-		if t != nil {
-			srv.wgTCP.Done()
-		}
-	}()
 
 	reader := Reader(&defaultReader{srv})
 	if srv.DecorateReader != nil {

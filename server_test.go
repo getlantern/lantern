@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"sync"
 	"testing"
+	"time"
 )
 
 func HelloServer(w ResponseWriter, req *Msg) {
@@ -41,7 +42,7 @@ func RunLocalUDPServer(laddr string) (*Server, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	server := &Server{PacketConn: pc}
+	server := &Server{PacketConn: pc, ReadTimeout: time.Hour, WriteTimeout: time.Hour}
 
 	waitLock := sync.Mutex{}
 	waitLock.Lock()
@@ -61,7 +62,8 @@ func RunLocalUDPServerUnsafe(laddr string) (*Server, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	server := &Server{PacketConn: pc, Unsafe: true}
+	server := &Server{PacketConn: pc, Unsafe: true,
+		ReadTimeout: time.Hour, WriteTimeout: time.Hour}
 
 	waitLock := sync.Mutex{}
 	waitLock.Lock()
@@ -82,7 +84,7 @@ func RunLocalTCPServer(laddr string) (*Server, string, error) {
 		return nil, "", err
 	}
 
-	server := &Server{Listener: l}
+	server := &Server{Listener: l, ReadTimeout: time.Hour, WriteTimeout: time.Hour}
 
 	waitLock := sync.Mutex{}
 	waitLock.Lock()
@@ -422,6 +424,7 @@ func ExampleDecorateWriter() {
 	server := &Server{
 		PacketConn:     pc,
 		DecorateWriter: wf,
+		ReadTimeout:    time.Hour, WriteTimeout: time.Hour,
 	}
 
 	waitLock := sync.Mutex{}

@@ -30,11 +30,6 @@ type OPT struct {
 	Option []EDNS0 `dns:"opt"`
 }
 
-// Header implements the RR interface.
-func (rr *OPT) Header() *RR_Header {
-	return &rr.Hdr
-}
-
 func (rr *OPT) String() string {
 	s := "\n;; OPT PSEUDOSECTION:\n; EDNS: version " + strconv.Itoa(int(rr.Version())) + "; "
 	if rr.Do() {
@@ -86,10 +81,6 @@ func (rr *OPT) len() int {
 		l += len(lo)
 	}
 	return l
-}
-
-func (rr *OPT) copy() RR {
-	return &OPT{*rr.Hdr.copyHeader(), rr.Option}
 }
 
 // return the old value -> delete SetVersion?

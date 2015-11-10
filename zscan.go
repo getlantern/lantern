@@ -144,8 +144,10 @@ func ReadRR(q io.Reader, filename string) (RR, error) {
 //
 //	for x := range dns.ParseZone(strings.NewReader(z), "", "") {
 //		if x.Error != nil {
-//			// Do something with x.RR
-//		}
+//                  // log.Println(x.Error)
+//              } else {
+//                  // Do something with x.RR
+//              }
 //	}
 //
 // Comments specified after an RR (and on the same line!) are returned too:

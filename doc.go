@@ -184,7 +184,7 @@ Basic use pattern validating and replying to a message that has TSIG set.
 	dns.HandleFunc(".", handleRequest)
 
 	func handleRequest(w dns.ResponseWriter, r *dns.Msg) {
-		m := new(Msg)
+		m := new(dns.Msg)
 		m.SetReply(r)
 		if r.IsTsig() {
 			if w.TsigStatus() == nil {
