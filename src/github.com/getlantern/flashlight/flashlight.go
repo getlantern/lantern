@@ -47,10 +47,11 @@ var (
 	log = golog.LoggerFor("flashlight")
 
 	// Command-line Flags
-	help               = flag.Bool("help", false, "Get usage help")
-	headless           = flag.Bool("headless", false, "if true, lantern will run with no ui")
-	startup            = flag.Bool("startup", false, "if true, Lantern was automatically run on system startup")
-	clearProxySettings = flag.Bool("clear-proxy-settings", false, "if true, Lantern removes proxy settings from the system.")
+	help                = flag.Bool("help", false, "Get usage help")
+	headless            = flag.Bool("headless", false, "if true, lantern will run with no ui")
+	startup             = flag.Bool("startup", false, "if true, Lantern was automatically run on system startup")
+	clearProxySettings  = flag.Bool("clear-proxy-settings", false, "if true, Lantern removes proxy settings from the system.")
+	disableConfigUpdate = flag.Bool("disable-config-update", false, "if true, Lantern will not try to update configuration.")
 
 	showui = true
 
@@ -88,7 +89,7 @@ func init() {
 }
 
 func logPanic(msg string) {
-	_, err := config.Init(packageVersion)
+	_, err := config.Init(packageVersion, false)
 	if err != nil {
 		panic("Error initializing config")
 	}
@@ -176,7 +177,7 @@ func doMain() error {
 	// Run below in separate goroutine as config.Init() can potentially block when Lantern runs
 	// for the first time. User can still quit Lantern through systray menu when it happens.
 	go func() {
-		cfg, err := config.Init(packageVersion)
+		cfg, err := config.Init(packageVersion, *disableConfigUpdate)
 		if err != nil {
 			exit(fmt.Errorf("Unable to initialize configuration: %v", err))
 			return
