@@ -19,6 +19,7 @@ var (
 	deviceName = "tun0"
 	deviceIP   = "10.0.0.2"
 	deviceMask = "255.255.255.0"
+	udpgwAddr  = "127.0.0.1:5353"
 )
 
 var hostIP string
@@ -45,7 +46,7 @@ var testURLs = map[string][]byte{
 // Attempt to create a server in a goroutine and stop it from other place.
 func TestListenAndServeStop(t *testing.T) {
 	// Creating a client.
-	c := newClient(clientListenProxyAddr, "FireTweetTest")
+	c := newClient(clientListenProxyAddr, "FireTweetTest", nil)
 	c.serveHTTP()
 
 	// Allow it some seconds to start.
@@ -60,12 +61,12 @@ func TestListenAndServeStop(t *testing.T) {
 func TestListenAndServeAgain(t *testing.T) {
 	fmt.Println("Setting up TUN device...")
 	// Setting up TUN device.
-	ConfigureTUN(deviceName, deviceIP, deviceMask)
+	ConfigureTUN(deviceName, deviceIP, deviceMask, udpgwAddr)
 
 	fmt.Println("Spawning client...")
 	// Since we've closed out server, we should be able to launch another at the
 	// same address.
-	globalClient = newClient(clientListenProxyAddr, "FireTweetTest")
+	globalClient = newClient(clientListenProxyAddr, "FireTweetTest", nil)
 	fmt.Println("Serving HTTP...")
 	globalClient.serveHTTP()
 

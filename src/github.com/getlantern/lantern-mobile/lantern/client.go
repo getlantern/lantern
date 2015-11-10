@@ -2,7 +2,6 @@ package client
 
 import (
 	"net"
-	"net/http"
 	"strings"
 	"time"
 
@@ -57,15 +56,17 @@ type tunSettings struct {
 	deviceName string
 	deviceIP   string
 	deviceMask string
+	udpgwAddr  string
 }
 
 var tunConfig *tunSettings
 
-func ConfigureTUN(deviceName, deviceIP, deviceMask string) {
+func ConfigureTUN(deviceName, deviceIP, deviceMask, udpgwAddr string) {
 	tunConfig = &tunSettings{
 		deviceName: deviceName,
 		deviceIP:   deviceIP,
 		deviceMask: deviceMask,
+		udpgwAddr:  udpgwAddr,
 	}
 }
 
@@ -78,11 +79,6 @@ func newClient(addr, appName string, androidProps map[string]string) *mobileClie
 		WriteTimeout: 0,
 	}
 
-	err := globals.SetTrustedCAs(clientConfig.getTrustedCerts())
-	if err != nil {
-		log.Errorf("Unable to configure trusted CAs: %s", err)
-	}
-
 	if tunConfig != nil {
 		// Configuring proxy.
 		go func(c *client.Client) {
@@ -90,25 +86,19 @@ func newClient(addr, appName string, androidProps map[string]string) *mobileClie
 				log.Debugf("tunio: %s://%s", proto, addr)
 				return c.GetBalancer().Dial(proto, addr)
 			}
-			/*
-				fn := func(proto, addr string) (net.Conn, error) {
-					log.Debugf("net.Conn...")
-					return net.Dial(proto, addr)
-				}
-			*/
-			log.Debug("A TUN device is configured, let's attempt to use it...")
-			if err := tunio.Configure(tunConfig.deviceName, tunConfig.deviceIP, tunConfig.deviceMask, fn); err != nil {
+
+			log.Debug("A TUN device is configured, let's try to use it...")
+			if err := tunio.Configure(tunConfig.deviceName, tunConfig.deviceIP, tunConfig.deviceMask, tunConfig.udpgwAddr, fn); err != nil {
 				log.Debugf("Failed to configure tun device: %q", err)
 			}
 		}(c)
 	}
 
-	hqfd := c.Configure(clientConfig.Client)
+	c.Configure(clientConfig.Client)
 
 	mClient := &mobileClient{
 		Client:       c,
 		closed:       make(chan bool),
-		fronter:      hqfd(),
 		appName:      appName,
 		androidProps: androidProps,
 	}
