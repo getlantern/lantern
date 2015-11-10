@@ -84,6 +84,7 @@ Now change directory to `tunio/cmd/tunio` and build the `tunio` command with
 
 ```sh
 cd cmd/tunio
+go get -d
 go build -v
 ```
 
@@ -99,6 +100,13 @@ export DEVICE_IP=10.0.0.1
 sudo ip tuntap del $DEVICE_NAME mode tun
 sudo ip tuntap add $DEVICE_NAME mode tun
 sudo ifconfig $DEVICE_NAME $DEVICE_IP netmask 255.255.255.0
+```
+
+Replace the virtual machine's name servers with 8.8.8.8 and 8.8.4.4.
+
+```
+echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
+echo "nameserver 8.8.4.4" | sudo tee -a /etc/resolv.conf
 ```
 
 Modify the routing table to only allow direct traffic with the proxy server
