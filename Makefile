@@ -157,8 +157,9 @@ docker-linux-amd64:
 docker-mobile-test-linux-amd64:
 	@source setenv.bash && \
 	$(call build-tags) && \
-	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go test -run=none -o lantern_mobile_test -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/lantern-mobile/lantern && \
-	cp lantern_mobile_test src/github.com/getlantern/lantern-mobile/lantern
+	(cd src/github.com/getlantern/tunio && make clean && make lib) && \
+	go test -run=none -o lantern_mobile_test -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/lantern-mobile/lantern && \
+	cp lantern_mobile_test_linux_amd64 src/github.com/getlantern/lantern-mobile/lantern
 
 docker-linux-arm:
 	@source setenv.bash && \

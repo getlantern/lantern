@@ -6,8 +6,7 @@
 FROM fedora:21
 MAINTAINER "José Carlos Nieto" <xiam@getlantern.org>
 
-ENV GO_VERSION go1.4.2
-ENV GOROOT_BOOTSTRAP /go1.4
+ENV GOROOT_BOOTSTRAP /go1.5
 ENV GOROOT /go
 ENV GOPATH /
 
@@ -15,7 +14,7 @@ ENV PATH $PATH:$GOROOT/bin
 ENV WORKDIR /lantern
 
 # Go binary for bootstrapping.
-ENV GO_PACKAGE_URL https://storage.googleapis.com/golang/go1.4.2.linux-amd64.tar.gz
+ENV GO_PACKAGE_URL https://storage.googleapis.com/golang/go1.5.1.linux-amd64.tar.gz
 
 # Updating system.
 RUN yum -y update && yum clean all
@@ -34,14 +33,10 @@ RUN (curl -sSL $GO_PACKAGE_URL | tar -xvz -C /tmp) && \
 RUN mkdir -p $GOROOT && \
   git clone https://go.googlesource.com/go $GOROOT && \
   cd $GOROOT && \
-  git checkout release-branch.go1.4
+  git checkout release-branch.go1.5
 
 # Patch for skipping a failing test in new docker versions. See https://github.com/getlantern/lantern/issues/2578
 RUN yum install -y patch && yum clean all
-RUN curl https://gist.githubusercontent.com/xiam/f50f6dd6085f9a07ccfd/raw/5e0f472221f9c1556fe34788ff01724b63980337/docker_golang | patch -p0
-
-# Bootstrapping Go.
-RUN cd $GOROOT/src && CGO_ENABLED=1 ./all.bash
 
 # Requisites for bootstrapping.
 RUN yum install -y glibc-devel glibc-static && yum clean all
@@ -54,6 +49,9 @@ RUN yum install -y yum-utils && yum-config-manager --add-repo=https://copr.fedor
 
 # Requisites for windows.
 RUN yum install -y mingw32-gcc.x86_64 && yum clean all
+
+# Bootstrapping Go.
+RUN cd $GOROOT/src && CGO_ENABLED=1 ./all.bash
 
 # Boostrapping Go for different platforms.
 RUN cd $GOROOT/src && CGO_ENABLED=1 GOOS=linux GOARCH=amd64 ./make.bash --no-clean
