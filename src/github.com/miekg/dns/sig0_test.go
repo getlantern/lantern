@@ -1,7 +1,6 @@
 package dns
 
 import (
-	"crypto"
 	"testing"
 	"time"
 )
@@ -12,7 +11,7 @@ func TestSIG0(t *testing.T) {
 	}
 	m := new(Msg)
 	m.SetQuestion("example.org.", TypeSOA)
-	for _, alg := range []uint8{ECDSAP256SHA256, ECDSAP384SHA384, RSASHA1, RSASHA256, RSASHA512} {
+	for _, alg := range []uint8{DSA, ECDSAP256SHA256, ECDSAP384SHA384, RSASHA1, RSASHA256, RSASHA512} {
 		algstr := AlgorithmToString[alg]
 		keyrr := new(KEY)
 		keyrr.Hdr.Name = algstr + "."
@@ -41,7 +40,7 @@ func TestSIG0(t *testing.T) {
 		sigrr.Inception = now - 300
 		sigrr.KeyTag = keyrr.KeyTag()
 		sigrr.SignerName = keyrr.Hdr.Name
-		mb, err := sigrr.Sign(pk.(crypto.Signer), m)
+		mb, err := sigrr.Sign(pk, m)
 		if err != nil {
 			t.Errorf("Failed to sign message using “%s”: %v", algstr, err)
 			continue
@@ -80,7 +79,7 @@ func TestSIG0(t *testing.T) {
 		}
 		sigrr.Expiration = 2
 		sigrr.Inception = 1
-		mb, _ = sigrr.Sign(pk.(crypto.Signer), m)
+		mb, _ = sigrr.Sign(pk, m)
 		if err := sigrr.Verify(keyrr, mb); err == nil {
 			t.Errorf("Verify succeeded on an expired message using “%s”", algstr)
 			continue

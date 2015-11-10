@@ -13,7 +13,7 @@ import (
 // Sign signs a dns.Msg. It fills the signature with the appropriate data.
 // The SIG record should have the SignerName, KeyTag, Algorithm, Inception
 // and Expiration set.
-func (rr *SIG) Sign(k crypto.Signer, m *Msg) ([]byte, error) {
+func (rr *SIG) Sign(k PrivateKey, m *Msg) ([]byte, error) {
 	if k == nil {
 		return nil, ErrPrivKey
 	}
@@ -41,26 +41,31 @@ func (rr *SIG) Sign(k crypto.Signer, m *Msg) ([]byte, error) {
 		return nil, err
 	}
 	buf = buf[:off:cap(buf)]
-
-	hash, ok := AlgorithmToHash[rr.Algorithm]
-	if !ok {
+	var hash crypto.Hash
+	switch rr.Algorithm {
+	case DSA, RSASHA1:
+		hash = crypto.SHA1
+	case RSASHA256, ECDSAP256SHA256:
+		hash = crypto.SHA256
+	case ECDSAP384SHA384:
+		hash = crypto.SHA384
+	case RSASHA512:
+		hash = crypto.SHA512
+	default:
 		return nil, ErrAlg
 	}
-
 	hasher := hash.New()
 	// Write SIG rdata
 	hasher.Write(buf[len(mbuf)+1+2+2+4+2:])
 	// Write message
 	hasher.Write(buf[:len(mbuf)])
+	hashed := hasher.Sum(nil)
 
-	signature, err := sign(k, hasher.Sum(nil), hash, rr.Algorithm)
+	sig, err := k.Sign(hashed, rr.Algorithm)
 	if err != nil {
 		return nil, err
 	}
-
-	rr.Signature = toBase64(signature)
-	sig := string(signature)
-
+	rr.Signature = toBase64(sig)
 	buf = append(buf, sig...)
 	if len(buf) > int(^uint16(0)) {
 		return nil, ErrBuf

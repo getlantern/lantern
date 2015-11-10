@@ -1,9 +1,6 @@
 package dns
 
 import (
-	"crypto"
-	"crypto/ecdsa"
-	"crypto/rsa"
 	"reflect"
 	"strings"
 	"testing"
@@ -171,17 +168,6 @@ func TestSignVerify(t *testing.T) {
 	srv.Weight = 800
 	srv.Target = "web1.miek.nl."
 
-	hinfo := &HINFO{
-		Hdr: RR_Header{
-			Name:   "miek.nl.",
-			Rrtype: TypeHINFO,
-			Class:  ClassINET,
-			Ttl:    3789,
-		},
-		Cpu: "X",
-		Os:  "Y",
-	}
-
 	// With this key
 	key := new(DNSKEY)
 	key.Hdr.Rrtype = TypeDNSKEY
@@ -205,12 +191,12 @@ func TestSignVerify(t *testing.T) {
 	sig.SignerName = key.Hdr.Name
 	sig.Algorithm = RSASHA256
 
-	for _, r := range []RR{soa, soa1, srv, hinfo} {
-		if err := sig.Sign(privkey.(*rsa.PrivateKey), []RR{r}); err != nil {
-			t.Error("failure to sign the record:", err)
+	for _, r := range []RR{soa, soa1, srv} {
+		if sig.Sign(privkey, []RR{r}) != nil {
+			t.Error("failure to sign the record")
 			continue
 		}
-		if err := sig.Verify(key, []RR{r}); err != nil {
+		if sig.Verify(key, []RR{r}) != nil {
 			t.Error("failure to validate")
 			continue
 		}
@@ -242,7 +228,7 @@ func Test65534(t *testing.T) {
 	sig.KeyTag = key.KeyTag()
 	sig.SignerName = key.Hdr.Name
 	sig.Algorithm = RSASHA256
-	if err := sig.Sign(privkey.(*rsa.PrivateKey), []RR{t6}); err != nil {
+	if err := sig.Sign(privkey, []RR{t6}); err != nil {
 		t.Error(err)
 		t.Error("failure to sign the TYPE65534 record")
 	}
@@ -338,7 +324,7 @@ func TestKeyRSA(t *testing.T) {
 	sig.KeyTag = key.KeyTag()
 	sig.SignerName = key.Hdr.Name
 
-	if err := sig.Sign(priv.(*rsa.PrivateKey), []RR{soa}); err != nil {
+	if err := sig.Sign(priv, []RR{soa}); err != nil {
 		t.Error("failed to sign")
 		return
 	}
@@ -388,7 +374,7 @@ Activate: 20110302104537`
 		t.Error(err)
 	}
 	switch priv := p.(type) {
-	case *rsa.PrivateKey:
+	case *RSAPrivateKey:
 		if 65537 != priv.PublicKey.E {
 			t.Error("exponenent should be 65537")
 		}
@@ -417,7 +403,7 @@ Activate: 20110302104537`
 	sig.SignerName = k.Hdr.Name
 	sig.Algorithm = k.Algorithm
 
-	sig.Sign(p.(*rsa.PrivateKey), []RR{soa})
+	sig.Sign(p, []RR{soa})
 	if sig.Signature != "D5zsobpQcmMmYsUMLxCVEtgAdCvTu8V/IEeP4EyLBjqPJmjt96bwM9kqihsccofA5LIJ7DN91qkCORjWSTwNhzCv7bMyr2o5vBZElrlpnRzlvsFIoAZCD9xg6ZY7ZyzUJmU6IcTwG4v3xEYajcpbJJiyaw/RqR90MuRdKPiBzSo=" {
 		t.Errorf("signature is not correct: %v", sig)
 	}
@@ -457,7 +443,7 @@ PrivateKey: WURgWHCcYIYUPWgeLmiPY2DJJk02vgrmTfitxgqcL4vwW7BOrbawVmVe0d9V94SR`
 	sig.SignerName = eckey.(*DNSKEY).Hdr.Name
 	sig.Algorithm = eckey.(*DNSKEY).Algorithm
 
-	if sig.Sign(privkey.(*ecdsa.PrivateKey), []RR{a}) != nil {
+	if sig.Sign(privkey, []RR{a}) != nil {
 		t.Fatal("failure to sign the record")
 	}
 
@@ -505,7 +491,7 @@ func TestSignVerifyECDSA2(t *testing.T) {
 	sig.SignerName = key.Hdr.Name
 	sig.Algorithm = ECDSAP256SHA256
 
-	if sig.Sign(privkey.(*ecdsa.PrivateKey), []RR{srv}) != nil {
+	if sig.Sign(privkey, []RR{srv}) != nil {
 		t.Fatal("failure to sign the record")
 	}
 
@@ -578,7 +564,7 @@ PrivateKey: GU6SnQ/Ou+xC5RumuIUIuJZteXT2z0O/ok1s38Et6mQ=`
 	}
 	ourRRSIG.Expiration, _ = StringToTime("20100909100439")
 	ourRRSIG.Inception, _ = StringToTime("20100812100439")
-	err = ourRRSIG.Sign(priv.(*ecdsa.PrivateKey), []RR{rrA})
+	err = ourRRSIG.Sign(priv, []RR{rrA})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -654,7 +640,7 @@ PrivateKey: WURgWHCcYIYUPWgeLmiPY2DJJk02vgrmTfitxgqcL4vwW7BOrbawVmVe0d9V94SR`
 	}
 	ourRRSIG.Expiration, _ = StringToTime("20100909102025")
 	ourRRSIG.Inception, _ = StringToTime("20100812102025")
-	err = ourRRSIG.Sign(priv.(*ecdsa.PrivateKey), []RR{rrA})
+	err = ourRRSIG.Sign(priv, []RR{rrA})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -723,7 +709,7 @@ func TestInvalidRRSet(t *testing.T) {
 	}
 
 	// Sign the good record set and then make sure verification fails on the bad record set
-	if err := signature.Sign(privatekey.(crypto.Signer), goodRecords); err != nil {
+	if err := signature.Sign(privatekey, goodRecords); err != nil {
 		t.Fatal("Signing good records failed")
 	}
 

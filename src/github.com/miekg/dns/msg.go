@@ -36,8 +36,7 @@ var (
 	// ErrFqdn indicates that a domain name does not have a closing dot.
 	ErrFqdn error = &Error{err: "domain must be fully qualified"}
 	// ErrId indicates there is a mismatch with the message's ID.
-	ErrId error = &Error{err: "id mismatch"}
-	// ErrKeyAlg indicates that the algorithm in the key is not valid.
+	ErrId        error = &Error{err: "id mismatch"}
 	ErrKeyAlg    error = &Error{err: "bad key algorithm"}
 	ErrKey       error = &Error{err: "bad key"}
 	ErrKeySize   error = &Error{err: "bad key size"}
@@ -54,9 +53,6 @@ var (
 	ErrSoa error = &Error{err: "no SOA"}
 	// ErrTime indicates a timing error in TSIG authentication.
 	ErrTime error = &Error{err: "bad time"}
-	// ErrTruncated indicates that we failed to unpack a truncated message.
-	// We unpacked as much as we had so Msg can still be used, if desired.
-	ErrTruncated error = &Error{err: "failed to unpack truncated message"}
 )
 
 // Id, by default, returns a 16 bits random number to be used as a
@@ -90,6 +86,84 @@ type Msg struct {
 	Answer   []RR       // Holds the RR(s) of the answer section.
 	Ns       []RR       // Holds the RR(s) of the authority section.
 	Extra    []RR       // Holds the RR(s) of the additional section.
+}
+
+// TypeToString is a map of strings for each RR wire type.
+var TypeToString = map[uint16]string{
+	TypeA:          "A",
+	TypeAAAA:       "AAAA",
+	TypeAFSDB:      "AFSDB",
+	TypeANY:        "ANY", // Meta RR
+	TypeATMA:       "ATMA",
+	TypeAXFR:       "AXFR", // Meta RR
+	TypeCAA:        "CAA",
+	TypeCDNSKEY:    "CDNSKEY",
+	TypeCDS:        "CDS",
+	TypeCERT:       "CERT",
+	TypeCNAME:      "CNAME",
+	TypeDHCID:      "DHCID",
+	TypeDLV:        "DLV",
+	TypeDNAME:      "DNAME",
+	TypeDNSKEY:     "DNSKEY",
+	TypeDS:         "DS",
+	TypeEID:        "EID",
+	TypeEUI48:      "EUI48",
+	TypeEUI64:      "EUI64",
+	TypeGID:        "GID",
+	TypeGPOS:       "GPOS",
+	TypeHINFO:      "HINFO",
+	TypeHIP:        "HIP",
+	TypeIPSECKEY:   "IPSECKEY",
+	TypeISDN:       "ISDN",
+	TypeIXFR:       "IXFR", // Meta RR
+	TypeKEY:        "KEY",
+	TypeKX:         "KX",
+	TypeL32:        "L32",
+	TypeL64:        "L64",
+	TypeLOC:        "LOC",
+	TypeLP:         "LP",
+	TypeMB:         "MB",
+	TypeMD:         "MD",
+	TypeMF:         "MF",
+	TypeMG:         "MG",
+	TypeMINFO:      "MINFO",
+	TypeMR:         "MR",
+	TypeMX:         "MX",
+	TypeNAPTR:      "NAPTR",
+	TypeNID:        "NID",
+	TypeNINFO:      "NINFO",
+	TypeNIMLOC:     "NIMLOC",
+	TypeNS:         "NS",
+	TypeNSAPPTR:    "NSAP-PTR",
+	TypeNSEC3:      "NSEC3",
+	TypeNSEC3PARAM: "NSEC3PARAM",
+	TypeNSEC:       "NSEC",
+	TypeNULL:       "NULL",
+	TypeOPT:        "OPT",
+	TypeOPENPGPKEY: "OPENPGPKEY",
+	TypePTR:        "PTR",
+	TypeRKEY:       "RKEY",
+	TypeRP:         "RP",
+	TypeRRSIG:      "RRSIG",
+	TypeRT:         "RT",
+	TypeSIG:        "SIG",
+	TypeSOA:        "SOA",
+	TypeSPF:        "SPF",
+	TypeSRV:        "SRV",
+	TypeSSHFP:      "SSHFP",
+	TypeTA:         "TA",
+	TypeTALINK:     "TALINK",
+	TypeTKEY:       "TKEY", // Meta RR
+	TypeTLSA:       "TLSA",
+	TypeTSIG:       "TSIG", // Meta RR
+	TypeTXT:        "TXT",
+	TypePX:         "PX",
+	TypeUID:        "UID",
+	TypeUINFO:      "UINFO",
+	TypeUNSPEC:     "UNSPEC",
+	TypeURI:        "URI",
+	TypeWKS:        "WKS",
+	TypeX25:        "X25",
 }
 
 // StringToType is the reverse of TypeToString, needed for string parsing.
@@ -1241,8 +1315,8 @@ func unpackStructValue(val reflect.Value, msg []byte, off int) (off1 int, err er
 						continue
 					}
 				}
-				if off == lenmsg && int(val.FieldByName("Hdr").FieldByName("Rdlength").Uint()) == 0 {
-					// zero rdata is ok for dyn updates, but only if rdlength is 0
+				if off == lenmsg {
+					// zero rdata foo, OK for dyn. updates
 					break
 				}
 				s, off, err = UnpackDomainName(msg, off)
@@ -1386,7 +1460,7 @@ func UnpackRR(msg []byte, off int) (rr RR, off1 int, err error) {
 	}
 	end := off + int(h.Rdlength)
 	// make an rr of that type and re-unpack.
-	mk, known := TypeToRR[h.Rrtype]
+	mk, known := typeToRR[h.Rrtype]
 	if !known {
 		rr = new(RFC3597)
 	} else {
@@ -1397,32 +1471,6 @@ func UnpackRR(msg []byte, off int) (rr RR, off1 int, err error) {
 		return &h, end, &Error{err: "bad rdlength"}
 	}
 	return rr, off, err
-}
-
-// unpackRRslice unpacks msg[off:] into an []RR.
-// If we cannot unpack the whole array, then it will return nil
-func unpackRRslice(l int, msg []byte, off int) (dst1 []RR, off1 int, err error) {
-	var r RR
-	// Optimistically make dst be the length that was sent
-	dst := make([]RR, 0, l)
-	for i := 0; i < l; i++ {
-		off1 := off
-		r, off, err = UnpackRR(msg, off)
-		if err != nil {
-			off = len(msg)
-			break
-		}
-		// If offset does not increase anymore, l is a lie
-		if off1 == off {
-			l = i
-			break
-		}
-		dst = append(dst, r)
-	}
-	if err != nil && off == len(msg) {
-		dst = nil
-	}
-	return dst, off, err
 }
 
 // Reverse a map
@@ -1623,48 +1671,84 @@ func (dns *Msg) Unpack(msg []byte) (err error) {
 	dns.CheckingDisabled = (dh.Bits & _CD) != 0
 	dns.Rcode = int(dh.Bits & 0xF)
 
-	// Optimistically use the count given to us in the header
-	dns.Question = make([]Question, 0, int(dh.Qdcount))
+	// Don't pre-alloc these arrays, the incoming lengths are from the network.
+	dns.Question = make([]Question, 0, 1)
+	dns.Answer = make([]RR, 0, 10)
+	dns.Ns = make([]RR, 0, 10)
+	dns.Extra = make([]RR, 0, 10)
 
 	var q Question
 	for i := 0; i < int(dh.Qdcount); i++ {
 		off1 := off
 		off, err = UnpackStruct(&q, msg, off)
 		if err != nil {
-			// Even if Truncated is set, we only will set ErrTruncated if we
-			// actually got the questions
 			return err
 		}
 		if off1 == off { // Offset does not increase anymore, dh.Qdcount is a lie!
 			dh.Qdcount = uint16(i)
 			break
 		}
+
 		dns.Question = append(dns.Question, q)
+
+	}
+	// If we see a TC bit being set we return here, without
+	// an error, because technically it isn't an error. So return
+	// without parsing the potentially corrupt packet and hitting an error.
+	// TODO(miek): this isn't the best strategy!
+	// Better stragey would be: set boolean indicating truncated message, go forth and parse
+	// until we hit an error, return the message without the latest parsed rr if this boolean
+	// is true.
+	if dns.Truncated {
+		dns.Answer = nil
+		dns.Ns = nil
+		dns.Extra = nil
+		return nil
 	}
 
-	dns.Answer, off, err = unpackRRslice(int(dh.Ancount), msg, off)
-	// The header counts might have been wrong so we need to update it
-	dh.Ancount = uint16(len(dns.Answer))
-	if err == nil {
-		dns.Ns, off, err = unpackRRslice(int(dh.Nscount), msg, off)
+	var r RR
+	for i := 0; i < int(dh.Ancount); i++ {
+		off1 := off
+		r, off, err = UnpackRR(msg, off)
+		if err != nil {
+			return err
+		}
+		if off1 == off { // Offset does not increase anymore, dh.Ancount is a lie!
+			dh.Ancount = uint16(i)
+			break
+		}
+		dns.Answer = append(dns.Answer, r)
 	}
-	// The header counts might have been wrong so we need to update it
-	dh.Nscount = uint16(len(dns.Ns))
-	if err == nil {
-		dns.Extra, off, err = unpackRRslice(int(dh.Arcount), msg, off)
+	for i := 0; i < int(dh.Nscount); i++ {
+		off1 := off
+		r, off, err = UnpackRR(msg, off)
+		if err != nil {
+			return err
+		}
+		if off1 == off { // Offset does not increase anymore, dh.Nscount is a lie!
+			dh.Nscount = uint16(i)
+			break
+		}
+		dns.Ns = append(dns.Ns, r)
 	}
-	// The header counts might have been wrong so we need to update it
-	dh.Arcount = uint16(len(dns.Extra))
+	for i := 0; i < int(dh.Arcount); i++ {
+		off1 := off
+		r, off, err = UnpackRR(msg, off)
+		if err != nil {
+			return err
+		}
+		if off1 == off { // Offset does not increase anymore, dh.Arcount is a lie!
+			dh.Arcount = uint16(i)
+			break
+		}
+		dns.Extra = append(dns.Extra, r)
+	}
 	if off != len(msg) {
 		// TODO(miek) make this an error?
 		// use PackOpt to let people tell how detailed the error reporting should be?
 		// println("dns: extra bytes in dns packet", off, "<", len(msg))
-	} else if dns.Truncated {
-		// Whether we ran into a an error or not, we want to return that it
-		// was truncated
-		err = ErrTruncated
 	}
-	return err
+	return nil
 }
 
 // Convert a complete message to a string with dig-like output.

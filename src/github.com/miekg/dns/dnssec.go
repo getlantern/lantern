@@ -6,14 +6,14 @@ import (
 	"crypto/dsa"
 	"crypto/ecdsa"
 	"crypto/elliptic"
-	_ "crypto/md5"
-	"crypto/rand"
+	"crypto/md5"
 	"crypto/rsa"
-	_ "crypto/sha1"
-	_ "crypto/sha256"
-	_ "crypto/sha512"
-	"encoding/asn1"
+	"crypto/sha1"
+	"crypto/sha256"
+	"crypto/sha512"
 	"encoding/hex"
+	"hash"
+	"io"
 	"math/big"
 	"sort"
 	"strings"
@@ -42,38 +42,6 @@ const (
 	PRIVATEOID uint8 = 254
 )
 
-// Map for algorithm names.
-var AlgorithmToString = map[uint8]string{
-	RSAMD5:           "RSAMD5",
-	DH:               "DH",
-	DSA:              "DSA",
-	RSASHA1:          "RSASHA1",
-	DSANSEC3SHA1:     "DSA-NSEC3-SHA1",
-	RSASHA1NSEC3SHA1: "RSASHA1-NSEC3-SHA1",
-	RSASHA256:        "RSASHA256",
-	RSASHA512:        "RSASHA512",
-	ECCGOST:          "ECC-GOST",
-	ECDSAP256SHA256:  "ECDSAP256SHA256",
-	ECDSAP384SHA384:  "ECDSAP384SHA384",
-	INDIRECT:         "INDIRECT",
-	PRIVATEDNS:       "PRIVATEDNS",
-	PRIVATEOID:       "PRIVATEOID",
-}
-
-// Map of algorithm strings.
-var StringToAlgorithm = reverseInt8(AlgorithmToString)
-
-// Map of algorithm crypto hashes.
-var AlgorithmToHash = map[uint8]crypto.Hash{
-	RSAMD5:           crypto.MD5, // Deprecated in RFC 6725
-	RSASHA1:          crypto.SHA1,
-	RSASHA1NSEC3SHA1: crypto.SHA1,
-	RSASHA256:        crypto.SHA256,
-	ECDSAP256SHA256:  crypto.SHA256,
-	ECDSAP384SHA384:  crypto.SHA384,
-	RSASHA512:        crypto.SHA512,
-}
-
 // DNSSEC hashing algorithm codes.
 const (
 	_      uint8 = iota
@@ -84,18 +52,6 @@ const (
 	SHA512       // Experimental
 )
 
-// Map for hash names.
-var HashToString = map[uint8]string{
-	SHA1:   "SHA1",
-	SHA256: "SHA256",
-	GOST94: "GOST94",
-	SHA384: "SHA384",
-	SHA512: "SHA512",
-}
-
-// Map of hash strings.
-var StringToHash = reverseInt8(HashToString)
-
 // DNSKEY flag values.
 const (
 	SEP    = 1
@@ -104,7 +60,7 @@ const (
 )
 
 // The RRSIG needs to be converted to wireformat with some of
-// the rdata (the signature) missing. Use this struct to ease
+// the rdata (the signature) missing. Use this struct to easy
 // the conversion (and re-use the pack/unpack functions).
 type rrsigWireFmt struct {
 	TypeCovered uint16
@@ -212,23 +168,24 @@ func (k *DNSKEY) ToDS(h uint8) *DS {
 	// digest buffer
 	digest := append(owner, wire...) // another copy
 
-	var hash crypto.Hash
 	switch h {
 	case SHA1:
-		hash = crypto.SHA1
+		s := sha1.New()
+		io.WriteString(s, string(digest))
+		ds.Digest = hex.EncodeToString(s.Sum(nil))
 	case SHA256:
-		hash = crypto.SHA256
+		s := sha256.New()
+		io.WriteString(s, string(digest))
+		ds.Digest = hex.EncodeToString(s.Sum(nil))
 	case SHA384:
-		hash = crypto.SHA384
-	case SHA512:
-		hash = crypto.SHA512
+		s := sha512.New384()
+		io.WriteString(s, string(digest))
+		ds.Digest = hex.EncodeToString(s.Sum(nil))
+	case GOST94:
+		/* I have no clue */
 	default:
 		return nil
 	}
-
-	s := hash.New()
-	s.Write(digest)
-	ds.Digest = hex.EncodeToString(s.Sum(nil))
 	return ds
 }
 
@@ -248,13 +205,14 @@ func (d *DS) ToCDS() *CDS {
 	return c
 }
 
-// Sign signs an RRSet. The signature needs to be filled in with the values:
-// Inception, Expiration, KeyTag, SignerName and Algorithm.  The rest is copied
-// from the RRset. Sign returns a non-nill error when the signing went OK.
-// There is no check if RRSet is a proper (RFC 2181) RRSet.  If OrigTTL is non
-// zero, it is used as-is, otherwise the TTL of the RRset is used as the
-// OrigTTL.
-func (rr *RRSIG) Sign(k crypto.Signer, rrset []RR) error {
+// Sign signs an RRSet. The signature needs to be filled in with
+// the values: Inception, Expiration, KeyTag, SignerName and Algorithm.
+// The rest is copied from the RRset. Sign returns true when the signing went OK,
+// otherwise false.
+// There is no check if RRSet is a proper (RFC 2181) RRSet.
+// If OrigTTL is non zero, it is used as-is, otherwise the TTL of the RRset
+// is used as the OrigTTL.
+func (rr *RRSIG) Sign(k PrivateKey, rrset []RR) error {
 	if k == nil {
 		return ErrPrivKey
 	}
@@ -300,64 +258,37 @@ func (rr *RRSIG) Sign(k crypto.Signer, rrset []RR) error {
 	}
 	signdata = append(signdata, wire...)
 
-	hash, ok := AlgorithmToHash[rr.Algorithm]
-	if !ok {
+	var h hash.Hash
+	switch rr.Algorithm {
+	case DSA, DSANSEC3SHA1:
+		// TODO: this seems bugged, will panic
+	case RSASHA1, RSASHA1NSEC3SHA1:
+		h = sha1.New()
+	case RSASHA256, ECDSAP256SHA256:
+		h = sha256.New()
+	case ECDSAP384SHA384:
+		h = sha512.New384()
+	case RSASHA512:
+		h = sha512.New()
+	case RSAMD5:
+		fallthrough // Deprecated in RFC 6725
+	default:
 		return ErrAlg
 	}
 
-	h := hash.New()
-	h.Write(signdata)
-
-	signature, err := sign(k, h.Sum(nil), hash, rr.Algorithm)
+	_, err = h.Write(signdata)
 	if err != nil {
 		return err
 	}
+	sighash := h.Sum(nil)
 
+	signature, err := k.Sign(sighash, rr.Algorithm)
+	if err != nil {
+		return err
+	}
 	rr.Signature = toBase64(signature)
 
 	return nil
-}
-
-func sign(k crypto.Signer, hashed []byte, hash crypto.Hash, alg uint8) ([]byte, error) {
-	signature, err := k.Sign(rand.Reader, hashed, hash)
-	if err != nil {
-		return nil, err
-	}
-
-	switch alg {
-	case RSASHA1, RSASHA1NSEC3SHA1, RSASHA256, RSASHA512:
-		return signature, nil
-
-	case ECDSAP256SHA256, ECDSAP384SHA384:
-		ecdsaSignature := &struct {
-			R, S *big.Int
-		}{}
-		if _, err := asn1.Unmarshal(signature, ecdsaSignature); err != nil {
-			return nil, err
-		}
-
-		var intlen int
-		switch alg {
-		case ECDSAP256SHA256:
-			intlen = 32
-		case ECDSAP384SHA384:
-			intlen = 48
-		}
-
-		signature := intToBytes(ecdsaSignature.R, intlen)
-		signature = append(signature, intToBytes(ecdsaSignature.S, intlen)...)
-		return signature, nil
-
-	// There is no defined interface for what a DSA backed crypto.Signer returns
-	case DSA, DSANSEC3SHA1:
-		// 	t := divRoundUp(divRoundUp(p.PublicKey.Y.BitLen(), 8)-64, 8)
-		// 	signature := []byte{byte(t)}
-		// 	signature = append(signature, intToBytes(r1, 20)...)
-		// 	signature = append(signature, intToBytes(s1, 20)...)
-		// 	rr.Signature = signature
-	}
-
-	return nil, ErrAlg
 }
 
 // Verify validates an RRSet with the signature and key. This is only the
@@ -420,13 +351,8 @@ func (rr *RRSIG) Verify(k *DNSKEY, rrset []RR) error {
 
 	sigbuf := rr.sigBuf()           // Get the binary signature data
 	if rr.Algorithm == PRIVATEDNS { // PRIVATEOID
-		// TODO(miek)
-		// remove the domain name and assume its ours?
-	}
-
-	hash, ok := AlgorithmToHash[rr.Algorithm]
-	if !ok {
-		return ErrAlg
+		// TODO(mg)
+		// remove the domain name and assume its our
 	}
 
 	switch rr.Algorithm {
@@ -436,31 +362,52 @@ func (rr *RRSIG) Verify(k *DNSKEY, rrset []RR) error {
 		if pubkey == nil {
 			return ErrKey
 		}
-
-		h := hash.New()
-		h.Write(signeddata)
-		return rsa.VerifyPKCS1v15(pubkey, hash, h.Sum(nil), sigbuf)
-
+		// Setup the hash as defined for this alg.
+		var h hash.Hash
+		var ch crypto.Hash
+		switch rr.Algorithm {
+		case RSAMD5:
+			h = md5.New()
+			ch = crypto.MD5
+		case RSASHA1, RSASHA1NSEC3SHA1:
+			h = sha1.New()
+			ch = crypto.SHA1
+		case RSASHA256:
+			h = sha256.New()
+			ch = crypto.SHA256
+		case RSASHA512:
+			h = sha512.New()
+			ch = crypto.SHA512
+		}
+		io.WriteString(h, string(signeddata))
+		sighash := h.Sum(nil)
+		return rsa.VerifyPKCS1v15(pubkey, ch, sighash, sigbuf)
 	case ECDSAP256SHA256, ECDSAP384SHA384:
 		pubkey := k.publicKeyECDSA()
 		if pubkey == nil {
 			return ErrKey
 		}
-
+		var h hash.Hash
+		switch rr.Algorithm {
+		case ECDSAP256SHA256:
+			h = sha256.New()
+		case ECDSAP384SHA384:
+			h = sha512.New384()
+		}
+		io.WriteString(h, string(signeddata))
+		sighash := h.Sum(nil)
 		// Split sigbuf into the r and s coordinates
-		r := new(big.Int).SetBytes(sigbuf[:len(sigbuf)/2])
-		s := new(big.Int).SetBytes(sigbuf[len(sigbuf)/2:])
-
-		h := hash.New()
-		h.Write(signeddata)
-		if ecdsa.Verify(pubkey, h.Sum(nil), r, s) {
+		r := big.NewInt(0)
+		r.SetBytes(sigbuf[:len(sigbuf)/2])
+		s := big.NewInt(0)
+		s.SetBytes(sigbuf[len(sigbuf)/2:])
+		if ecdsa.Verify(pubkey, sighash, r, s) {
 			return nil
 		}
 		return ErrSig
-
-	default:
-		return ErrAlg
 	}
+	// Unknown alg
+	return ErrAlg
 }
 
 // ValidityPeriod uses RFC1982 serial arithmetic to calculate
@@ -608,12 +555,6 @@ func rawSignatureData(rrset []RR, s *RRSIG) (buf []byte, err error) {
 		//   NS, MD, MF, CNAME, SOA, MB, MG, MR, PTR,
 		//   HINFO, MINFO, MX, RP, AFSDB, RT, SIG, PX, NXT, NAPTR, KX,
 		//   SRV, DNAME, A6
-		//
-		// RFC 6840 - Clarifications and Implementation Notes for DNS Security (DNSSEC):
-		//	Section 6.2 of [RFC4034] also erroneously lists HINFO as a record
-		//	that needs conversion to lowercase, and twice at that.  Since HINFO
-		//	records contain no domain names, they are not subject to case
-		//	conversion.
 		switch x := r1.(type) {
 		case *NS:
 			x.Ns = strings.ToLower(x.Ns)
@@ -662,3 +603,36 @@ func rawSignatureData(rrset []RR, s *RRSIG) (buf []byte, err error) {
 	}
 	return buf, nil
 }
+
+// Map for algorithm names.
+var AlgorithmToString = map[uint8]string{
+	RSAMD5:           "RSAMD5",
+	DH:               "DH",
+	DSA:              "DSA",
+	RSASHA1:          "RSASHA1",
+	DSANSEC3SHA1:     "DSA-NSEC3-SHA1",
+	RSASHA1NSEC3SHA1: "RSASHA1-NSEC3-SHA1",
+	RSASHA256:        "RSASHA256",
+	RSASHA512:        "RSASHA512",
+	ECCGOST:          "ECC-GOST",
+	ECDSAP256SHA256:  "ECDSAP256SHA256",
+	ECDSAP384SHA384:  "ECDSAP384SHA384",
+	INDIRECT:         "INDIRECT",
+	PRIVATEDNS:       "PRIVATEDNS",
+	PRIVATEOID:       "PRIVATEOID",
+}
+
+// Map of algorithm strings.
+var StringToAlgorithm = reverseInt8(AlgorithmToString)
+
+// Map for hash names.
+var HashToString = map[uint8]string{
+	SHA1:   "SHA1",
+	SHA256: "SHA256",
+	GOST94: "GOST94",
+	SHA384: "SHA384",
+	SHA512: "SHA512",
+}
+
+// Map of hash strings.
+var StringToHash = reverseInt8(HashToString)

@@ -33,7 +33,7 @@ type PrivateRR struct {
 
 func mkPrivateRR(rrtype uint16) *PrivateRR {
 	// Panics if RR is not an instance of PrivateRR.
-	rrfunc, ok := TypeToRR[rrtype]
+	rrfunc, ok := typeToRR[rrtype]
 	if !ok {
 		panic(fmt.Sprintf("dns: invalid operation with Private RR type %d", rrtype))
 	}
@@ -43,13 +43,11 @@ func mkPrivateRR(rrtype uint16) *PrivateRR {
 	case *PrivateRR:
 		return rr
 	}
-	panic(fmt.Sprintf("dns: RR is not a PrivateRR, TypeToRR[%d] generator returned %T", rrtype, anyrr))
+	panic(fmt.Sprintf("dns: RR is not a PrivateRR, typeToRR[%d] generator returned %T", rrtype, anyrr))
 }
 
-// Header return the RR header of r.
 func (r *PrivateRR) Header() *RR_Header { return &r.Hdr }
-
-func (r *PrivateRR) String() string { return r.Hdr.String() + r.Data.String() }
+func (r *PrivateRR) String() string     { return r.Hdr.String() + r.Data.String() }
 
 // Private len and copy parts to satisfy RR interface.
 func (r *PrivateRR) len() int { return r.Hdr.len() + r.Data.Len() }
@@ -71,7 +69,7 @@ func (r *PrivateRR) copy() RR {
 func PrivateHandle(rtypestr string, rtype uint16, generator func() PrivateRdata) {
 	rtypestr = strings.ToUpper(rtypestr)
 
-	TypeToRR[rtype] = func() RR { return &PrivateRR{RR_Header{}, generator()} }
+	typeToRR[rtype] = func() RR { return &PrivateRR{RR_Header{}, generator()} }
 	TypeToString[rtype] = rtypestr
 	StringToType[rtypestr] = rtype
 
@@ -108,7 +106,7 @@ func PrivateHandle(rtypestr string, rtype uint16, generator func() PrivateRdata)
 func PrivateHandleRemove(rtype uint16) {
 	rtypestr, ok := TypeToString[rtype]
 	if ok {
-		delete(TypeToRR, rtype)
+		delete(typeToRR, rtype)
 		delete(TypeToString, rtype)
 		delete(typeToparserFunc, rtype)
 		delete(StringToType, rtypestr)

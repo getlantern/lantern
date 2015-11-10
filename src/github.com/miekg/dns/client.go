@@ -42,7 +42,7 @@ type Client struct {
 //
 //	co := &dns.Conn{Conn: c} // c is your net.Conn
 //	co.WriteMsg(m)
-//	in, err := co.ReadMsg()
+//	in, err  := co.ReadMsg()
 //	co.Close()
 //
 func Exchange(m *Msg, a string) (r *Msg, err error) {
@@ -53,6 +53,8 @@ func Exchange(m *Msg, a string) (r *Msg, err error) {
 	}
 
 	defer co.Close()
+	co.SetReadDeadline(time.Now().Add(dnsTimeout))
+	co.SetWriteDeadline(time.Now().Add(dnsTimeout))
 
 	opt := m.IsEdns0()
 	// If EDNS0 is used use that for size.
@@ -60,12 +62,9 @@ func Exchange(m *Msg, a string) (r *Msg, err error) {
 		co.UDPSize = opt.UDPSize()
 	}
 
-	co.SetWriteDeadline(time.Now().Add(dnsTimeout))
 	if err = co.WriteMsg(m); err != nil {
 		return nil, err
 	}
-
-	co.SetReadDeadline(time.Now().Add(dnsTimeout))
 	r, err = co.ReadMsg()
 	if err == nil && r.Id != m.Id {
 		err = ErrId
@@ -172,13 +171,13 @@ func (c *Client) exchange(m *Msg, a string) (r *Msg, rtt time.Duration, err erro
 		co.UDPSize = c.UDPSize
 	}
 
-	co.TsigSecret = c.TsigSecret
+	co.SetReadDeadline(time.Now().Add(c.readTimeout()))
 	co.SetWriteDeadline(time.Now().Add(c.writeTimeout()))
+
+	co.TsigSecret = c.TsigSecret
 	if err = co.WriteMsg(m); err != nil {
 		return nil, 0, err
 	}
-
-	co.SetReadDeadline(time.Now().Add(c.readTimeout()))
 	r, err = co.ReadMsg()
 	if err == nil && r.Id != m.Id {
 		err = ErrId
@@ -197,12 +196,6 @@ func (co *Conn) ReadMsg() (*Msg, error) {
 
 	m := new(Msg)
 	if err := m.Unpack(p); err != nil {
-		// If ErrTruncated was returned, we still want to allow the user to use
-		// the message, but naively they can just check err if they don't want
-		// to use a truncated message
-		if err == ErrTruncated {
-			return m, err
-		}
 		return nil, err
 	}
 	if t := m.IsTsig(); t != nil {

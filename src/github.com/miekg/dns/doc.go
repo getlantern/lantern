@@ -13,8 +13,7 @@ Resource records are native types. They are not stored in wire format.
 Basic usage pattern for creating a new resource record:
 
      r := new(dns.MX)
-     r.Hdr = dns.RR_Header{Name: "miek.nl.", Rrtype: dns.TypeMX,
-	Class: dns.ClassINET, Ttl: 3600}
+     r.Hdr = dns.RR_Header{Name: "miek.nl.", Rrtype: dns.TypeMX, Class: dns.ClassINET, Ttl: 3600}
      r.Preference = 10
      r.Mx = "mx.miek.nl."
 
@@ -58,8 +57,8 @@ server configured on 127.0.0.1 and port 53:
      c := new(dns.Client)
      in, rtt, err := c.Exchange(m1, "127.0.0.1:53")
 
-Suppressing multiple outstanding queries (with the same question, type and
-class) is as easy as setting:
+Suppressing
+multiple outstanding queries (with the same question, type and class) is as easy as setting:
 
 	c.SingleInflight = true
 
@@ -119,7 +118,7 @@ certain resource records or names in a zone to specify if resource records
 should be added or removed. The table from RFC 2136 supplemented with the Go
 DNS function shows which functions exist to specify the prerequisites.
 
- 3.2.4 - Table Of Metavalues Used In Prerequisite Section
+3.2.4 - Table Of Metavalues Used In Prerequisite Section
 
   CLASS    TYPE     RDATA    Meaning                    Function
   --------------------------------------------------------------
@@ -134,7 +133,7 @@ If you have decided on the prerequisites you can tell what RRs should
 be added or deleted. The next table shows the options you have and
 what functions to call.
 
- 3.4.2.6 - Table Of Metavalues Used In Update Section
+3.4.2.6 - Table Of Metavalues Used In Update Section
 
   CLASS    TYPE     RDATA    Meaning                     Function
   ---------------------------------------------------------------
@@ -184,7 +183,7 @@ Basic use pattern validating and replying to a message that has TSIG set.
 	dns.HandleFunc(".", handleRequest)
 
 	func handleRequest(w dns.ResponseWriter, r *dns.Msg) {
-		m := new(dns.Msg)
+		m := new(Msg)
 		m.SetReply(r)
 		if r.IsTsig() {
 			if w.TsigStatus() == nil {

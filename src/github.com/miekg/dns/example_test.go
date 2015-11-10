@@ -3,10 +3,9 @@ package dns_test
 import (
 	"errors"
 	"fmt"
+	"github.com/miekg/dns"
 	"log"
 	"net"
-
-	"github.com/miekg/dns"
 )
 
 // Retrieve the MX records for miek.nl.
@@ -32,11 +31,13 @@ func ExampleMX() {
 
 // Retrieve the DNSKEY records of a zone and convert them
 // to DS records for SHA1, SHA256 and SHA384.
-func ExampleDS() {
+func ExampleDS(zone string) {
 	config, _ := dns.ClientConfigFromFile("/etc/resolv.conf")
 	c := new(dns.Client)
 	m := new(dns.Msg)
-	zone := "miek.nl"
+	if zone == "" {
+		zone = "miek.nl"
+	}
 	m.SetQuestion(dns.Fqdn(zone), dns.TypeDNSKEY)
 	m.SetEdns0(4096, true)
 	r, _, err := c.Exchange(m, config.Servers[0]+":"+config.Port)
