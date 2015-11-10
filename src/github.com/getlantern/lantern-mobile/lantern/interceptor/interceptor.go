@@ -21,11 +21,10 @@ import (
 var (
 	ErrTooManyFailures = errors.New("Too many connection failures")
 	ErrNoSocksProxy    = errors.New("Unable to start local SOCKS proxy")
-	ErrInvalidPort     = errors.New("Tried to tunnel request to invalid port; ignoring request")
 )
 
 var (
-	dialTimeout = 10 * time.Second
+	dialTimeout = 20 * time.Second
 	// threshold of errors that we are withstanding
 	maxErrCount = 40
 	// how often to print stats of current interceptor
@@ -72,6 +71,8 @@ type dialResult struct {
 	err         error
 }
 
+// startSocksProxy launches the local SOCKS proxy
+// that Tun2Socks forwards VPN traffic to
 func (i *Interceptor) startSocksProxy() error {
 	listener, err := socks.ListenSocks("tcp", i.socksAddr)
 
@@ -161,12 +162,27 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (*InterceptedConn, e
 		return nil, err
 	}
 
-	if !allowedPorts[port] {
-		return nil, ErrInvalidPort
-	}
-
 	id := fmt.Sprintf("%s:%s", localConn.LocalAddr(), addr)
 	log.Debugf("Got a new connection: %s", id)
+
+	// if we get a request on an unsupported port
+	// we just make a direct request but protect/bypass
+	// the connection from the VpnService first
+	if !allowedPorts[port] {
+		log.Debugf("Dialing direct request to %s", addr)
+		dConn, err := protected.Dial("tcp", addr)
+		if err != nil {
+			log.Debugf("Error dialing direct request: %v", err)
+			return nil, err
+		}
+		conn := &InterceptedConn{
+			Conn:        dConn,
+			id:          id,
+			interceptor: i,
+			localConn:   localConn,
+		}
+		return conn, nil
+	}
 
 	resultCh := make(chan *dialResult, 2)
 	time.AfterFunc(dialTimeout, func() {
@@ -181,7 +197,7 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (*InterceptedConn, e
 		balancer := i.client.GetBalancer()
 		forwardConn, err := balancer.Dial("connect", addr)
 		if err != nil {
-			log.Errorf("Could not connect: %v", err)
+			log.Debugf("Could not connect: %v", err)
 			resultCh <- &dialResult{nil, err}
 			return
 		}
@@ -190,7 +206,7 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (*InterceptedConn, e
 
 	result := <-resultCh
 	if result.err != nil {
-		log.Errorf("Error dialing new request: %v", result.err)
+		log.Debugf("Error dialing new request: %v", result.err)
 		return nil, result.err
 	}
 
@@ -216,12 +232,6 @@ func (i *Interceptor) pipe(localConn net.Conn, proxyConn *InterceptedConn) {
 	var wg sync.WaitGroup
 	wg.Add(2)
 
-	removeConn := func() {
-		i.connsMutex.Lock()
-		i.conns[proxyConn.id] = nil
-		i.connsMutex.Unlock()
-	}
-
 	go func() {
 		_, err := io.Copy(localConn, proxyConn)
 		if err != nil {
@@ -236,7 +246,7 @@ func (i *Interceptor) pipe(localConn net.Conn, proxyConn *InterceptedConn) {
 	}()
 
 	wg.Wait()
-	removeConn()
+	proxyConn.RemoveConn()
 }
 
 // monitor is used to send periodic updates about the current
@@ -263,9 +273,6 @@ L:
 			i.totalErrCount += 1
 			if i.totalErrCount > maxErrCount {
 				log.Errorf("Total errors: %d %v", i.totalErrCount, ErrTooManyFailures)
-				i.sendAlert(ErrTooManyFailures.Error(), true)
-				i.Stop(false)
-				break L
 			}
 		}
 	}
@@ -282,9 +289,7 @@ func (i *Interceptor) handle(localConn *socks.SocksConn) (err error) {
 	proxyConn, err := i.Dial(localConn.Req.Target, localConn)
 	if err != nil {
 		log.Errorf("Error tunneling request: %v", err)
-		if err != ErrInvalidPort {
-			i.errCh <- err
-		}
+		i.errCh <- err
 		return err
 	}
 	defer proxyConn.Close()
@@ -326,7 +331,7 @@ L:
 		go func() {
 			err := i.handle(socksConnection)
 			if err != nil {
-				log.Errorf("%v", err)
+				log.Errorf("SOCKS error: %v", err)
 			}
 		}()
 	}

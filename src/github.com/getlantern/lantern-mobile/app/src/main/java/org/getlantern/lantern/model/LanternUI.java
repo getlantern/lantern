@@ -65,7 +65,7 @@ import java.util.regex.Pattern;
 
 import org.getlantern.lantern.activity.LanternMainActivity;
 import org.getlantern.lantern.config.LanternConfig;
-import org.getlantern.lantern.model.GmailSender;
+import org.getlantern.lantern.model.MailSender;
 import org.getlantern.lantern.R;
 import org.getlantern.lantern.service.LanternVpn;
 
@@ -258,24 +258,16 @@ public class LanternUI {
     }
 
     public void sendDesktopVersion(View view) {
-        final String body = "Thank you for contacting the Lantern team. Lantern uses a combination of techniques, including proxies and peer-to-peer, to access the censored web sites.\n" +
-            "The latest version of Lantern can be downloaded from the following links.\n\n" +
-            "Windows XP SP3 and above:\nhttps://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer.exe\n\n" +
-            "Mac OSX 64-bit:\nhttps://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer.dmg\n\n" +
-            "32-bit Ubuntu 14.04 and above:\nhttps://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-32-bit.deb\n\n" +
-            "64-bit Ubuntu 14.04 and above:\nhttps://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-64-bit.deb\n\n" +
-            "Android:\nhttps://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer.apk\n\n" + 
-            "Thanks!\nLantern\n";
-        final String email = emailInput.getText().toString();
-        final GmailSender sender = new GmailSender("lanterngfw77@gmail.com", "");
+        final MailSender sender = new MailSender();
 
+        final String email = emailInput.getText().toString();
         Log.d(TAG, "Sending Lantern Desktop to " + email);
 
         new AsyncTask<Void, Void, Void>() {
             @Override 
             public Void doInBackground(Void... arg) {
                 try {
-                    sender.sendMail("Your Lantern Download Link", body, "team@getlantern.org", email);
+                    sender.sendMail(email);
                 } catch (Exception e) {
                     Log.e(TAG, e.getMessage(), e);     
                 }
