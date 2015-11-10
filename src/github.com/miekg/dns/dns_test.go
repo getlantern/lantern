@@ -428,7 +428,7 @@ func TestToRFC3597(t *testing.T) {
 
 func TestNoRdataPack(t *testing.T) {
 	data := make([]byte, 1024)
-	for typ, fn := range typeToRR {
+	for typ, fn := range TypeToRR {
 		r := fn()
 		*r.Header() = RR_Header{Name: "miek.nl.", Rrtype: typ, Class: ClassINET, Ttl: 3600}
 		_, err := PackRR(r, data, 0, nil, false)
@@ -441,7 +441,7 @@ func TestNoRdataPack(t *testing.T) {
 // TODO(miek): fix dns buffer too small errors this throws
 func TestNoRdataUnpack(t *testing.T) {
 	data := make([]byte, 1024)
-	for typ, fn := range typeToRR {
+	for typ, fn := range TypeToRR {
 		if typ == TypeSOA || typ == TypeTSIG || typ == TypeWKS {
 			// SOA, TSIG will not be seen (like this) in dyn. updates?
 			// WKS is an bug, but...deprecated record.

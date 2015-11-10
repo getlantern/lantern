@@ -569,7 +569,7 @@ test                          IN CNAME test.a.example.com.
 	t.Logf("%d RRs parsed in %.2f s (%.2f RR/s)", i, float32(delta)/1e9, float32(i)/(float32(delta)/1e9))
 }
 
-func ExampleZone() {
+func ExampleParseZone() {
 	zone := `$ORIGIN .
 $TTL 3600       ; 1 hour
 name                    IN SOA  a6.nstld.com. hostmaster.nic.name. (
@@ -799,7 +799,7 @@ func TestLowercaseTokens(t *testing.T) {
 	}
 }
 
-func ExampleGenerate() {
+func ExampleParseZone_generate() {
 	// From the manual: http://www.bind9.net/manual/bind/9.3.2/Bv9ARM.ch06.html#id2566761
 	zone := "$GENERATE 1-2 0 NS SERVER$.EXAMPLE.\n$GENERATE 1-8 $ CNAME $.0"
 	to := ParseZone(strings.NewReader(zone), "0.0.192.IN-ADDR.ARPA.", "")

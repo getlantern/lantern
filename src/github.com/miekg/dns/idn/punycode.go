@@ -199,7 +199,6 @@ func needFromPunycode(s string) bool {
 			return true
 		}
 	}
-	panic("dns: not reached")
 }
 
 // encode transforms Unicode input bytes (that represent DNS label) into

@@ -171,6 +171,17 @@ func TestSignVerify(t *testing.T) {
 	srv.Weight = 800
 	srv.Target = "web1.miek.nl."
 
+	hinfo := &HINFO{
+		Hdr: RR_Header{
+			Name:   "miek.nl.",
+			Rrtype: TypeHINFO,
+			Class:  ClassINET,
+			Ttl:    3789,
+		},
+		Cpu: "X",
+		Os:  "Y",
+	}
+
 	// With this key
 	key := new(DNSKEY)
 	key.Hdr.Rrtype = TypeDNSKEY
@@ -194,12 +205,12 @@ func TestSignVerify(t *testing.T) {
 	sig.SignerName = key.Hdr.Name
 	sig.Algorithm = RSASHA256
 
-	for _, r := range []RR{soa, soa1, srv} {
-		if sig.Sign(privkey.(*rsa.PrivateKey), []RR{r}) != nil {
-			t.Error("failure to sign the record")
+	for _, r := range []RR{soa, soa1, srv, hinfo} {
+		if err := sig.Sign(privkey.(*rsa.PrivateKey), []RR{r}); err != nil {
+			t.Error("failure to sign the record:", err)
 			continue
 		}
-		if sig.Verify(key, []RR{r}) != nil {
+		if err := sig.Verify(key, []RR{r}); err != nil {
 			t.Error("failure to validate")
 			continue
 		}
