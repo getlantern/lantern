@@ -14,6 +14,11 @@ import android.net.Uri;
 import android.util.Log;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.io.InputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,6 +47,33 @@ public class Shareable {
         }
 
         return null;
+    }
+
+    private static void copyFile(InputStream in, OutputStream out) throws IOException {
+        byte[] buffer = new byte[1024];
+        int read;
+        while ((read = in.read(buffer)) > 0) {
+            Log.d(TAG, "Copying file " + read);
+            out.write(buffer, 0, read);
+        }
+    }
+
+    public static File createCachedFile(Context context, String fileName,
+            File apkFile) throws IOException {
+
+        File cacheFile = new File(context.getExternalCacheDir() + File.separator
+                + fileName);
+        cacheFile.createNewFile();
+
+        FileInputStream fis = new FileInputStream(apkFile);
+        FileOutputStream fos = new FileOutputStream(cacheFile);
+
+        copyFile(fis, fos);
+
+        fis.close();
+        fos.close();
+
+        return cacheFile;
     }
 
     private boolean isValid(List<PackageInfo> packageInfos) {
@@ -139,10 +171,20 @@ public class Shareable {
 
                 if (packageName.contains("android.gm") || packageName.contains("android.email")) {
                     File f = getApkFile(this.activity, "org.getlantern.lantern");
-                    Uri uri = Uri.parse("file://" + f);
-                    intent.putExtra(Intent.EXTRA_STREAM, uri);
+                    Uri currentUri = Uri.fromFile(f);
+                    Log.d(TAG, "current uri is " + currentUri);
+                    if (f != null) {
+                        try {
+                            String fileName = "lantern.apk";
+                            File newFile = createCachedFile(this.activity, fileName, f);
+                            Uri uri = Uri.fromFile(newFile);
+                            Log.d(TAG, "New uri is " + uri);
+                            intent.putExtra(Intent.EXTRA_STREAM, uri);
+                        } catch (Exception e) {
+                            Log.d(TAG, "Error attaching APK file " + e.getMessage());
+                        }
+                    }
                 }
-
                 intentList.add(new LabeledIntent(intent, packageName, ri.loadLabel(this.packageManager), ri.icon));
             }
         }
@@ -151,7 +193,7 @@ public class Shareable {
         LabeledIntent[] extraIntents = intentList.toArray( new LabeledIntent[ intentList.size() ]);
 
         openInChooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, extraIntents);
-        activity.startActivity(openInChooser);     
+        activity.startActivityForResult(openInChooser, 0);     
     }
 
 }

@@ -20,9 +20,29 @@ type Conns struct {
 	count    int
 }
 
+func (conn *InterceptedConn) RemoveConn() {
+	i := conn.interceptor
+	i.connsMutex.Lock()
+	i.conns[conn.id] = nil
+	i.connsMutex.Unlock()
+}
+
+func (conn *InterceptedConn) Close() error {
+	log.Debugf("Closing a connection with id: %s:%s", conn.LocalAddr(),
+		conn.RemoteAddr())
+	conn.RemoveConn()
+
+	if conn.localConn != nil {
+		conn.localConn.Close()
+	}
+	return conn.Conn.Close()
+}
+
 func (conn *InterceptedConn) Read(buffer []byte) (n int, err error) {
+
 	n, err = conn.Conn.Read(buffer)
 	if err != nil && err != io.EOF {
+		log.Debugf("Got a read error with connection %v", conn)
 		go func() {
 			conn.interceptor.errCh <- err
 		}()
@@ -31,8 +51,10 @@ func (conn *InterceptedConn) Read(buffer []byte) (n int, err error) {
 }
 
 func (conn *InterceptedConn) Write(buffer []byte) (n int, err error) {
+
 	n, err = conn.Conn.Write(buffer)
 	if err != nil && err != io.EOF {
+		log.Debugf("Got a write error with connection %v", conn)
 		go func() {
 			conn.interceptor.errCh <- err
 		}()

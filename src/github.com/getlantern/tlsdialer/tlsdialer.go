@@ -84,6 +84,7 @@ func DialForTimings(dialer *net.Dialer, network, addr string, sendServerName boo
 	}
 
 	var errCh chan error
+	var rawConn net.Conn
 
 	if timeout != 0 {
 		errCh = make(chan error, 10)
@@ -124,7 +125,6 @@ func DialForTimings(dialer *net.Dialer, network, addr string, sendServerName boo
 	start = time.Now()
 
 	resolvedAddr := result.ResolvedAddr.String()
-	var rawConn net.Conn
 
 	if runtime.GOOS == "android" {
 		rawConn, err = protected.Dial(network, resolvedAddr)
