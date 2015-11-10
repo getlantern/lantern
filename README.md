@@ -79,7 +79,15 @@ make lib
 # ar rcs lib/libtun2io.a tun2io.o ./obj/*.o
 ```
 
-Create a new tun device, let's name it `tun0` and assign the `10.0.0.1` IP
+Now change directory to `tunio/cmd/tunio` and build the `tunio` command with
+`go build`:
+
+```sh
+cd cmd/tunio
+go build -v
+```
+
+Create a new TUN device, let's name it `tun0` and assign the `10.0.0.1` IP
 address to it.
 
 ```sh
@@ -124,14 +132,6 @@ PING 10.4.4.120 (10.4.4.120) 56(84) bytes of data.
 --- 10.4.4.120 ping statistics ---
 2 packets transmitted, 2 received, 0% packet loss, time 1001ms
 rtt min/avg/max/mdev = 0.403/1.928/3.454/1.526 ms
-```
-
-Now change directory to `tunio/cmd/tunio` and build the `tunio` command with
-`go build`:
-
-```sh
-cd cmd/tunio
-go build -v
 ```
 
 Finally, run `tunio` with the `--proxy-addr` parameter pointing to Lantern and
