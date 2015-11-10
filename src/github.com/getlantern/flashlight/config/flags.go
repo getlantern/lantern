@@ -28,6 +28,7 @@ var (
 	portmap       = flag.Int("portmap", 0, "try to map this port on the firewall to the port on which flashlight is listening, using UPnP or NAT-PMP. If mapping this port fails, flashlight will exit with status code 50")
 	uiaddr        = flag.String("uiaddr", "", "if specified, indicates host:port the UI HTTP server should be started on")
 	proxyAll      = flag.Bool("proxyall", false, "set to true to proxy all traffic through Lantern network")
+	stickyConfig  = flag.Bool("stickyconfig", false, "set to true to only use the local config file")
 )
 
 // applyFlags updates this Config from any command-line flags that were passed

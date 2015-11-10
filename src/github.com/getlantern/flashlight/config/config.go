@@ -220,6 +220,10 @@ func pollForConfig(currentCfg yamlconf.Config) (mutate func(yamlconf.Config) err
 		// Config doesn't have a CloudConfig, just ignore
 		return mutate, waitTime, nil
 	}
+	if *stickyConfig {
+		log.Debugf("Not downloading remote config with sticky config flag set")
+		return mutate, waitTime, nil
+	}
 
 	if bytes, err := fetchCloudConfig(chainedCloudConfigUrl); err == nil {
 		// bytes will be nil if the config is unchanged (not modified)
