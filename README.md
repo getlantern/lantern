@@ -2,7 +2,7 @@
 
 The `tunio` package captures and forwards TCP packets to a `net.Dialer` using a
 TUN device (i.e.: it proxies every TCP packet that goes into the TUN device to
-a `net.Dialer`).
+a [net.Dialer](https://golang.org/pkg/net/#Dialer)).
 
 `tunio` is able to forward UDP packets as well, but an external
 [badvpn-udpgw](https://felixc.at/BadVPN) server is required.
@@ -13,7 +13,7 @@ Throughout this example we are going to create a virtual machine and route all
 its external traffic to a special TUN device, then we're going to listen on the
 TUN device to capture TCP and UDP packets and forward them to another machine
 running [Lantern](https://getlantern.org/) and `badvpn-udpgw`. Let's call this
-machine the **proxy** and let's say the IP of the **proxy** is `10.4.4.120`.
+machine the *proxy* and let's say the IP of the proxy is `10.4.4.120`.
 
 So, before starting, make sure you're running both Lantern and `badvpn-udpgw`
 on the proxy machine:
