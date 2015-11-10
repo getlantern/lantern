@@ -1,5 +1,7 @@
 package tunio
 
+/*
+
 import (
 	"errors"
 	"io/ioutil"
@@ -143,3 +145,4 @@ func TestConcurrentDialerHTTPS(t *testing.T) {
 		wg.Wait()
 	}
 }
+*/

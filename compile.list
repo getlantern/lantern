@@ -44,9 +44,9 @@ lwip/src/core/ipv6/ip6_addr.c
 lwip/src/core/ipv6/ip6_frag.c
 lwip/custom/sys.c
 #tun2socks/tun2socks.c
-#base/DebugObject.c
-#base/BLog.c
-#base/BPending.c
-#flowextra/PacketPassInactivityMonitor.c
-#tun2socks/SocksUdpGwClient.c
-#udpgw_client/UdpGwClient.c
+base/DebugObject.c
+base/BLog.c
+base/BPending.c
+flowextra/PacketPassInactivityMonitor.c
+tun2socks/SocksUdpGwClient.c
+udpgw_client/UdpGwClient.c
