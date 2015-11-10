@@ -17,17 +17,31 @@ const (
 
 const expectedBody = "Google is built by a large team of engineers, designers, researchers, robots, and others in many different sites across the globe. It is updated continuously, and built with more tools and technologies than we can shake a stick at. If you'd like to help us out, see google.com/careers.\n"
 
-type testCb struct{}
+type testProtector struct{}
 
-func (cb *testCb) Do() {}
-func (cb *testCb) Protect(fileDescriptor int) error {
+func (p *testProtector) Protect(fd int) error {
+	log.Debugf("Simulating fd(%d) protection...")
 	return nil
 }
 
-type testGoCallback struct{}
+type testCb struct{}
 
-func (gc *testGoCallback) AfterConfigure() {}
-func (gc *testGoCallback) AfterStart()     {}
+func (cb *testCb) Do() {
+	log.Debugf("Do called.")
+}
+
+func (cb *testCb) Protect(fileDescriptor int) error {
+	log.Debugf("Protect called.")
+	return nil
+}
+
+func (cb *testCb) AfterConfigure() {
+	log.Debugf("AfterConfigure called.")
+}
+
+func (cb *testCb) AfterStart() {
+	log.Debugf("AfterStart called.")
+}
 
 func testReverseProxy() error {
 	var req *http.Request
@@ -83,7 +97,7 @@ func TestStartClientAndTestReverseProxy(t *testing.T) {
 
 	// Let's run a proxy instance.
 	go func() {
-		if RunClientProxy(listenProxyAddr, "TestApp", new(testCb), new(testGoCallback)); err != nil {
+		if RunClientProxy(listenProxyAddr, "TestApp", new(testProtector), new(testCb)); err != nil {
 			t.Fatalf("RunClientProxy: %q", err)
 		}
 	}()
@@ -103,7 +117,7 @@ func TestStartClientAndTestReverseProxy(t *testing.T) {
 
 	// Attempt to run again on the same port should not fail since we stopped the
 	// server.
-	if err = RunClientProxy(listenProxyAddr, "TestApp", new(testCb), new(testGoCallback)); err != nil {
+	if err = RunClientProxy(listenProxyAddr, "TestApp", new(testProtector), new(testCb)); err != nil {
 		t.Fatalf("RunClientProxy: %q", err)
 	}
 

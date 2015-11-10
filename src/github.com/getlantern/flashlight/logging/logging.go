@@ -36,6 +36,9 @@ var (
 	// development time, logglyToken will be empty and we won't log to Loggly.
 	logglyToken string
 
+	// to show client logs in separate Loggly source group
+	logglyTag = "lantern-client"
+
 	osVersion = ""
 
 	errorOut io.Writer
@@ -44,6 +47,8 @@ var (
 	lastAddr   string
 	duplicates = make(map[string]bool)
 	dupLock    sync.Mutex
+
+	androidProps = make(map[string]string)
 )
 
 func Init() error {
@@ -82,6 +87,17 @@ func Init() error {
 	golog.SetOutputs(errorOut, debugOut)
 
 	return nil
+}
+
+// On Android, we set the loggly token
+// before calling Configure
+func ConfigureAndroid(token string, tag string, props map[string]string) {
+	logglyToken = token
+	logglyTag = tag
+
+	for k, v := range props {
+		androidProps[k] = v
+	}
 }
 
 // Configure will set up logging. An empty "addr" will configure logging without a proxy
@@ -161,7 +177,7 @@ func enableLoggly(addr string, cloudConfigCA string, instanceId string,
 		lang:            lang,
 		tz:              time.Now().Format("MST"),
 		versionToLoggly: fmt.Sprintf("%v (%v)", version, revisionDate),
-		client:          loggly.New(logglyToken),
+		client:          loggly.New(logglyToken, logglyTag),
 	}
 	logglyWriter.client.Defaults["hostname"] = "hidden"
 	logglyWriter.client.Defaults["instanceid"] = instanceId
@@ -232,6 +248,12 @@ func (w logglyErrorWriter) Write(b []byte) (int, error) {
 		"sessionUserAgents": getSessionUserAgents(),
 	}
 
+	// if we're running on Android, we want to set
+	// additional properties (i.e. the device, model, and version)
+	for k, v := range androidProps {
+		extra[k] = v
+	}
+
 	// extract last 2 (at most) chunks of fullMessage to message, without prefix,
 	// so we can group logs with same reason in Loggly
 	lastColonPos := -1
@@ -299,9 +321,8 @@ func NonStopWriter(writers ...io.Writer) io.Writer {
 // It never fails and always return the length of bytes passed in
 func (t *nonStopWriter) Write(p []byte) (int, error) {
 	for _, w := range t.writers {
-		if n, err := w.Write(p); err != nil {
-			return n, err
-		}
+		// intentionally not checking for errors
+		_, _ = w.Write(p)
 	}
 	return len(p), nil
 }

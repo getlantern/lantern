@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"flag"
@@ -21,6 +22,7 @@ import (
 	"github.com/getlantern/golog"
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/tlsdialer"
+	"github.com/getlantern/yaml"
 
 	"github.com/getlantern/flashlight/client"
 )
@@ -32,26 +34,26 @@ const (
 
 var (
 	help            = flag.Bool("help", false, "Get usage help")
-	domainsFile     = flag.String("domains", "", "Path to file containing list of domains to use, with one domain per line (e.g. domains.txt)")
-	blacklistFile   = flag.String("blacklist", "", "Path to file containing list of blacklisted domains, which will be excluded from the configuration even if present in the domains file (e.g. blacklist.txt)")
+	masqueradesFile = flag.String("masquerades", "", "Path to file containing list of pasquerades to use, with one space-separated 'ip domain' pair per line (e.g. masquerades.txt)")
+	blacklistFile   = flag.String("blacklist", "", "Path to file containing list of blacklisted domains, which will be excluded from the configuration even if present in the masquerades file (e.g. blacklist.txt)")
 	proxiedSitesDir = flag.String("proxiedsites", "proxiedsites", "Path to directory containing proxied site lists, which will be combined and proxied by Lantern")
 	minFreq         = flag.Float64("minfreq", 3.0, "Minimum frequency (percentage) for including CA cert in list of trusted certs, defaults to 3.0%")
 
 	// Note - you can get the content for the fallbacksFile from https://lanternctrl1-2.appspot.com/listfallbacks
-	fallbacksFile = flag.String("fallbacks", "fallbacks.json", "File containing json array of fallback information")
+	fallbacksFile = flag.String("fallbacks", "fallbacks.yaml", "File containing json array of fallback information")
 )
 
 var (
 	log = golog.LoggerFor("genconfig")
 
-	domains []string
+	masquerades []string
 
 	blacklist    = make(filter)
 	proxiedSites = make(filter)
-	fallbacks    []map[string]interface{}
+	fallbacks    map[string]*client.ChainedServerInfo
 	ftVersion    string
 
-	domainsCh     = make(chan string)
+	inputCh       = make(chan string)
 	masqueradesCh = make(chan *masquerade)
 	wg            sync.WaitGroup
 )
@@ -82,7 +84,7 @@ func main() {
 	log.Debugf("Using all %d cores on machine", numcores)
 	runtime.GOMAXPROCS(numcores)
 
-	loadDomains()
+	loadMasquerades()
 	loadProxiedSitesList()
 	loadBlacklist()
 	loadFallbacks()
@@ -93,10 +95,12 @@ func main() {
 	fallbacksTmpl := loadTemplate("fallbacks.go.tmpl")
 	yamlTmpl := loadTemplate("cloud.yaml.tmpl")
 
-	go feedDomains()
-	cas, masquerades := coalesceMasquerades()
-	model := buildModel(cas, masquerades)
+	go feedMasquerades()
+	cas, masqs := coalesceMasquerades()
+	model := buildModel(cas, masqs, false)
 	generateTemplate(model, yamlTmpl, "cloud.yaml")
+	model = buildModel(cas, masqs, true)
+	generateTemplate(model, yamlTmpl, "lantern.yaml")
 	generateTemplate(model, masqueradesTmpl, "../config/masquerades.go")
 	_, err := run("gofmt", "-w", "../config/masquerades.go")
 	if err != nil {
@@ -114,17 +118,17 @@ func main() {
 	}
 }
 
-func loadDomains() {
-	if *domainsFile == "" {
-		log.Error("Please specify a domains file")
+func loadMasquerades() {
+	if *masqueradesFile == "" {
+		log.Error("Please specify a masquerades file")
 		flag.Usage()
 		os.Exit(2)
 	}
-	domainsBytes, err := ioutil.ReadFile(*domainsFile)
+	bytes, err := ioutil.ReadFile(*masqueradesFile)
 	if err != nil {
-		log.Fatalf("Unable to read domains file at %s: %s", *domainsFile, err)
+		log.Fatalf("Unable to read masquerades file at %s: %s", *masqueradesFile, err)
 	}
-	domains = strings.Split(string(domainsBytes), "\n")
+	masquerades = strings.Split(string(bytes), "\n")
 }
 
 // Scans the proxied site directory and stores the sites in the files found
@@ -207,7 +211,7 @@ func loadFallbacks() {
 	if err != nil {
 		log.Fatalf("Unable to read fallbacks file at %s: %s", *fallbacksFile, err)
 	}
-	err = json.Unmarshal(fallbacksBytes, &fallbacks)
+	err = yaml.Unmarshal(fallbacksBytes, &fallbacks)
 	if err != nil {
 		log.Fatalf("Unable to unmarshal json from %v: %v", *fallbacksFile, err)
 	}
@@ -221,37 +225,46 @@ func loadTemplate(name string) string {
 	return string(bytes)
 }
 
-func feedDomains() {
+func feedMasquerades() {
 	wg.Add(numberOfWorkers)
 	for i := 0; i < numberOfWorkers; i++ {
 		go grabCerts()
 	}
 
-	for _, domain := range domains {
-		domainsCh <- domain
+	for _, masq := range masquerades {
+		if masq != "" {
+			inputCh <- masq
+		}
 	}
-	close(domainsCh)
+	close(inputCh)
 	wg.Wait()
 	close(masqueradesCh)
 }
 
-// grabCerts grabs certificates for the domains received on domainsCh and sends
+// grabCerts grabs certificates for the masquerades received on masqueradesCh and sends
 // *masquerades to masqueradesCh.
 func grabCerts() {
 	defer wg.Done()
 
-	for domain := range domainsCh {
+	for masq := range inputCh {
+		parts := strings.Split(masq, " ")
+		if len(parts) != 2 {
+			log.Error("Bad line! '" + masq + "'")
+			continue
+		}
+		ip := parts[0]
+		domain := parts[1]
 		_, blacklisted := blacklist[domain]
 		if blacklisted {
 			log.Tracef("Domain %s is blacklisted, skipping", domain)
 			continue
 		}
-		log.Tracef("Grabbing certs for domain: %s", domain)
+		log.Tracef("Grabbing certs for IP %s, domain %s", ip, domain)
 		cwt, err := tlsdialer.DialForTimings(&net.Dialer{
 			Timeout: 10 * time.Second,
-		}, "tcp", domain+":443", false, nil)
+		}, "tcp", ip+":443", false, &tls.Config{ServerName: domain})
 		if err != nil {
-			log.Errorf("Unable to dial domain %s: %s", domain, err)
+			log.Errorf("Unable to dial IP %s, domain %s: %s", ip, domain, err)
 			continue
 		}
 		if err := cwt.Conn.Close(); err != nil {
@@ -261,7 +274,7 @@ func grabCerts() {
 		rootCA := chain[len(chain)-1]
 		rootCert, err := keyman.LoadCertificateFromX509(rootCA)
 		if err != nil {
-			log.Errorf("Unablet to load keyman certificate: %s", err)
+			log.Errorf("Unable to load keyman certificate: %s", err)
 			continue
 		}
 		ca := &castat{
@@ -270,7 +283,7 @@ func grabCerts() {
 		}
 		masqueradesCh <- &masquerade{
 			Domain:    domain,
-			IpAddress: cwt.ResolvedAddr.IP.String(),
+			IpAddress: ip,
 			RootCA:    ca,
 		}
 	}
@@ -313,7 +326,7 @@ func coalesceMasquerades() (map[string]*castat, []*masquerade) {
 	return trustedCAs, trustedMasquerades
 }
 
-func buildModel(cas map[string]*castat, masquerades []*masquerade) map[string]interface{} {
+func buildModel(cas map[string]*castat, masquerades []*masquerade, useFallbacks bool) map[string]interface{} {
 	casList := make([]*castat, 0, len(cas))
 	for _, ca := range cas {
 		casList = append(casList, ca)
@@ -326,35 +339,34 @@ func buildModel(cas map[string]*castat, masquerades []*masquerade) map[string]in
 	}
 	sort.Strings(ps)
 	fbs := make([]map[string]interface{}, 0, len(fallbacks))
-	for _, fb := range fallbacks {
-		addr := fb["addr"].(string)
-		cert := fb["cert"].(string)
-		// Replace newlines in cert with newline literals
-		fb["cert"] = strings.Replace(cert, "\n", "\\n", -1)
+	if useFallbacks {
+		for _, f := range fallbacks {
+			fb := make(map[string]interface{})
+			fb["ip"] = f.Addr
+			fb["auth_token"] = f.AuthToken
 
-		// Test connectivity
-		info := &client.ChainedServerInfo{
-			Addr:      addr,
-			Cert:      cert,
-			AuthToken: fb["authtoken"].(string),
-			Pipelined: true,
-		}
-		dialer, err := info.Dialer()
-		if err != nil {
-			log.Debugf("Skipping fallback %v because of error building dialer: %v", addr, err)
-			continue
-		}
-		conn, err := dialer.Dial("tcp", "http://www.google.com")
-		if err != nil {
-			log.Debugf("Skipping fallback %v because dialing Google failed: %v", addr, err)
-			continue
-		}
-		if err := conn.Close(); err != nil {
-			log.Debugf("Error closing connection: %v", err)
-		}
+			cert := f.Cert
+			// Replace newlines in cert with newline literals
+			fb["cert"] = strings.Replace(cert, "\n", "\\n", -1)
 
-		// Use this fallback
-		fbs = append(fbs, fb)
+			info := f
+			dialer, err := info.Dialer()
+			if err != nil {
+				log.Debugf("Skipping fallback %v because of error building dialer: %v", f.Addr, err)
+				continue
+			}
+			conn, err := dialer.Dial("tcp", "http://www.google.com")
+			if err != nil {
+				log.Debugf("Skipping fallback %v because dialing Google failed: %v", f.Addr, err)
+				continue
+			}
+			if err := conn.Close(); err != nil {
+				log.Debugf("Error closing connection: %v", err)
+			}
+
+			// Use this fallback
+			fbs = append(fbs, fb)
+		}
 	}
 	return map[string]interface{}{
 		"cas":          casList,

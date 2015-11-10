@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
-	"net/http"
-	"net/http/httputil"
 	"sync"
 	"sync/atomic"
 	"time"
 
+	geo "github.com/getlantern/geolookup"
 	"github.com/getlantern/golog"
 
 	"github.com/getlantern/flashlight/pubsub"
 	"github.com/getlantern/flashlight/ui"
+	"github.com/getlantern/flashlight/util"
 )
 
 const (
@@ -28,10 +28,10 @@ var (
 	log = golog.LoggerFor("flashlight.geolookup")
 
 	service  *ui.Service
-	client   atomic.Value
 	cfgMutex sync.Mutex
 	country  = atomicString()
 	ip       = atomicString()
+	cf       = util.NewChainedAndFronted()
 )
 
 func atomicString() atomic.Value {
@@ -52,15 +52,10 @@ func GetCountry() string {
 // lookups. geolookup runs in a continuous loop, periodically updating its
 // location and publishing updates to any connected clients. We do this
 // continually in order to detect when the computer's location has changed.
-func Configure(newClient *http.Client) {
-	cfgMutex.Lock()
-	defer cfgMutex.Unlock()
-
+func Start() {
 	// Avoid annoying checks for nil later.
 	ip.Store("")
 	country.Store("")
-
-	client.Store(newClient)
 
 	if service == nil {
 		err := registerService()
@@ -90,42 +85,14 @@ func registerService() error {
 	return err
 }
 
-func lookupIp(httpClient *http.Client) (string, string, error) {
-	httpClient.Timeout = 60 * time.Second
+func lookupIp() (string, string, error) {
+	city, ip, err := geo.LookupIPWithClient("", cf)
 
-	var err error
-	var req *http.Request
-	var resp *http.Response
-
-	// Note this will typically be an HTTP client that uses direct domain fronting to
-	// hit our server pool in the Netherlands.
-	if req, err = http.NewRequest("HEAD", "http://nl.fallbacks.getiantem.org", nil); err != nil {
-		return "", "", fmt.Errorf("Could not create request: %q", err)
+	if err != nil {
+		log.Errorf("Could not lookup IP %v", err)
+		return "", "", err
 	}
-
-	if resp, err = httpClient.Do(req); err != nil {
-		return "", "", fmt.Errorf("Could not get response from server: %q", err)
-	}
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			log.Debugf("Unable to close reponse body: %v", err)
-		}
-	}()
-
-	if resp.StatusCode != http.StatusOK {
-		if full, err := httputil.DumpResponse(resp, true); err != nil {
-			log.Errorf("Could not read full response %v", err)
-		} else {
-			log.Errorf("Unexpected response to geo IP lookup: %v", string(full))
-		}
-		return "", "", fmt.Errorf("Unexpected response status %d", resp.StatusCode)
-	}
-
-	ip := resp.Header.Get("Lantern-Ip")
-	country := resp.Header.Get("Lantern-Country")
-
-	log.Debugf("Got IP and country: %v, %v", ip, country)
-	return country, ip, nil
+	return city.Country.IsoCode, ip, nil
 }
 
 func write() {
@@ -140,15 +107,15 @@ func write() {
 		oldIp := GetIp()
 		oldCountry := GetCountry()
 
-		newCountry, newIp, err := lookupIp(client.Load().(*http.Client))
+		newCountry, newIp, err := lookupIp()
 		if err == nil {
 			consecutiveFailures = 0
 			if newIp != oldIp {
-				log.Debugf("IP changed")
+				log.Debugf("IP changed from %v to %v", oldIp, newIp)
 				ip.Store(newIp)
+				pubsub.Pub(pubsub.IP, newIp)
 			}
 			// Always publish location, even if unchanged
-			pubsub.Pub(pubsub.IP, newIp)
 			service.Out <- newCountry
 		} else {
 			msg := fmt.Sprintf("Unable to get current location: %s", err)

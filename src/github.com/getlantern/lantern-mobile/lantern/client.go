@@ -8,8 +8,9 @@ import (
 
 	"github.com/getlantern/analytics"
 	"github.com/getlantern/flashlight/client"
-	"github.com/getlantern/flashlight/globals"
 	"github.com/getlantern/flashlight/logging"
+	"github.com/getlantern/flashlight/util"
+
 	"github.com/getlantern/golog"
 	"github.com/getlantern/tunio"
 )
@@ -23,10 +24,13 @@ var (
 	version       string
 	revisionDate  string
 	log           = golog.LoggerFor("lantern-android.client")
+	cf            = util.NewChainedAndFronted()
 	clientConfig  = defaultConfig()
+	logglyToken   = "2b68163b-89b6-4196-b878-c1aca4bbdf84"
+	logglyTag     = "lantern-android"
 	trackingCodes = map[string]string{
 		"FireTweet": "UA-21408036-4",
-		"Lantern":   "UA-21408036-4",
+		"Lantern":   "UA-21815217-14",
 	}
 
 	defaultClient *mobileClient
@@ -34,10 +38,10 @@ var (
 
 // mobileClient is an extension of flashlight client with a few custom declarations for mobile
 type mobileClient struct {
-	appName string
+	appName      string
+	androidProps map[string]string
 	*client.Client
-	closed  chan bool
-	fronter *http.Client
+	closed chan bool
 }
 
 func init() {
@@ -66,7 +70,7 @@ func ConfigureTUN(deviceName, deviceIP, deviceMask string) {
 }
 
 // newClient creates a proxy client.
-func newClient(addr, appName string) *mobileClient {
+func newClient(addr, appName string, androidProps map[string]string) *mobileClient {
 
 	c := &client.Client{
 		Addr:         addr,
@@ -102,34 +106,36 @@ func newClient(addr, appName string) *mobileClient {
 	hqfd := c.Configure(clientConfig.Client)
 
 	mClient := &mobileClient{
-		Client:  c,
-		closed:  make(chan bool),
-		fronter: hqfd(),
-		appName: appName,
+		Client:       c,
+		closed:       make(chan bool),
+		fronter:      hqfd(),
+		appName:      appName,
+		androidProps: androidProps,
 	}
-	/*go func() {
-		if err := mClient.updateConfig(); err != nil {
-			log.Errorf("Unable to update config: %v", err)
-		}
-	}()*/
 
 	return mClient
+}
+
+func (client *mobileClient) afterSetup() {
+	log.Debugf("Now listening for connections...")
+	clientConfig.configureFronted()
+
+	go client.updateConfig()
+
+	analytics.Configure("", trackingCodes[client.appName], "", client.Client.Addr)
+	logging.ConfigureAndroid(logglyToken, logglyTag, client.androidProps)
+	logging.Configure(client.Client.Addr, cloudConfigCA, instanceId, version, revisionDate)
 }
 
 // serveHTTP will run the proxy
 func (client *mobileClient) serveHTTP() {
 	go func() {
-		onListening := func() {
-			log.Debugf("Now listening for connections...")
-			analytics.Configure("", trackingCodes[client.appName], "", client.Client.Addr)
-			logging.Configure(client.Client.Addr, cloudConfigCA, instanceId, version, revisionDate)
-		}
 
 		defer func() {
 			close(client.closed)
 		}()
 
-		if err := client.ListenAndServe(onListening); err != nil {
+		if err := client.ListenAndServe(client.afterSetup); err != nil {
 			// Error is not exported: https://golang.org/src/net/net.go#L284
 			if !strings.Contains(err.Error(), "use of closed network connection") {
 				panic(err.Error())
@@ -145,19 +151,15 @@ func (client *mobileClient) updateConfig() error {
 	var buf []byte
 	var err error
 
-	if buf, err = pullConfigFile(client.fronter); err != nil {
+	if buf, err = pullConfigFile(); err != nil {
 		log.Errorf("Could not update config: '%v'", err)
 		return err
 	}
 	if err = clientConfig.updateFrom(buf); err == nil {
 		// Configuration changed, lets reload.
-		err := globals.SetTrustedCAs(clientConfig.getTrustedCerts())
-		if err != nil {
-			log.Errorf("Unable to configure trusted CAs: %s", err)
-		}
-
-		hqfc := client.Configure(clientConfig.Client)
-		client.fronter = hqfc()
+		log.Debugf("Fetched config; merging with existing..")
+		client.Configure(clientConfig.Client)
+		clientConfig.configureFronted()
 	}
 	return err
 }

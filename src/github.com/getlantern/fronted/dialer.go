@@ -4,12 +4,10 @@ package fronted
 
 import (
 	"crypto/tls"
-	"crypto/x509"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
-	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -44,12 +42,6 @@ type Dialer interface {
 	// HttpClientUsing creates a simple domain-fronted HTTP client using the
 	// specified Masquerade.
 	HttpClientUsing(masquerade *Masquerade) *http.Client
-
-	// NewDirectDomainFronter creates an HttpClient that domain-fronts but instead
-	// of using enproxy proxies routes to the destination server directly from the
-	// CDN. This is useful for web properties registered on the CDN itself, for
-	// example geo.getiantem.org.
-	NewDirectDomainFronter() *http.Client
 }
 
 // Config captures the configuration of a domain-fronted dialer.
@@ -75,10 +67,6 @@ type Config struct {
 
 	// InsecureSkipVerify: if true, server's certificate is not verified.
 	InsecureSkipVerify bool
-
-	// RootCAs: optional CertPool specifying the root CAs to use for verifying
-	// servers
-	RootCAs *x509.CertPool
 
 	// BufferRequests: if true, requests to the proxy will be buffered and sent
 	// with identity encoding.  If false, they'll be streamed with chunked
@@ -196,44 +184,6 @@ func (d *dialer) HttpClientUsing(masquerade *Masquerade) *http.Client {
 	}
 }
 
-// DirectDomainTransport is a wrapper struct enabling us to modify the protocol of outgoing
-// requests to make them all HTTP instead of potentially HTTPS, which breaks our particular
-// implemenation of direct domain fronting.
-type DirectDomainTransport struct {
-	http.Transport
-}
-
-func (ddf *DirectDomainTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
-	// The connection is already encrypted by domain fronting.  We need to rewrite URLs starting
-	// with "https://" to "http://", lest we get an error for doubling up on TLS.
-
-	// The RoundTrip interface requires that we not modify the memory in the request, so we just
-	// create a copy.
-	norm := new(http.Request)
-	*norm = *req // includes shallow copies of maps, but okay
-	norm.URL = new(url.URL)
-	*norm.URL = *req.URL
-	norm.URL.Scheme = "http"
-	return ddf.Transport.RoundTrip(norm)
-}
-
-// Creates a new http.Client that does direct domain fronting.
-func (d *dialer) NewDirectDomainFronter() *http.Client {
-	log.Debugf("Creating new direct domain fronter.")
-	return &http.Client{
-		Transport: &DirectDomainTransport{
-			Transport: http.Transport{
-				Dial: func(network, addr string) (net.Conn, error) {
-					log.Debugf("Dialing %s with direct domain fronter", addr)
-					return d.dialServer()
-				},
-				TLSHandshakeTimeout: 40 * time.Second,
-				DisableKeepAlives:   true,
-			},
-		},
-	}
-}
-
 func (d *dialer) enproxyConfigWith(dialProxy func(addr string) (net.Conn, error)) *enproxy.Config {
 	return &enproxy.Config{
 		DialProxy: dialProxy,
@@ -333,7 +283,7 @@ func (d *dialer) tlsConfig(masquerade *Masquerade) *tls.Config {
 			ClientSessionCache: tls.NewLRUClientSessionCache(1000),
 			InsecureSkipVerify: d.InsecureSkipVerify,
 			ServerName:         serverName,
-			RootCAs:            d.RootCAs,
+			RootCAs:            getCertPool(),
 		}
 		d.tlsConfigs[serverName] = tlsConfig
 	}

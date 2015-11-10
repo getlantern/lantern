@@ -138,3 +138,50 @@ func testClientReverseProxy(keepAlive bool, destURL string, expectedContent []by
 
 	return nil
 }
+
+func TestTransparentRequestPassingThroughTun0(t *testing.T) {
+	var wg sync.WaitGroup
+
+	// Testing the client we've just opened.
+	for uri, expectedContent := range testURLs {
+		wg.Add(1)
+
+		go func(wg *sync.WaitGroup, uri string, expectedContent []byte) {
+			if err := testTransparentRequest(uri, expectedContent); err != nil {
+				t.Fatal(err)
+			}
+			wg.Done()
+		}(&wg, uri, expectedContent)
+
+	}
+
+	wg.Wait()
+}
+
+func testTransparentRequest(destURL string, expectedContent []byte) (err error) {
+	var req *http.Request
+
+	if req, err = http.NewRequest("GET", destURL, nil); err != nil {
+		return err
+	}
+
+	client := &http.Client{}
+
+	var res *http.Response
+
+	if res, err = client.Do(req); err != nil {
+		return err
+	}
+
+	var buf []byte
+
+	buf, err = ioutil.ReadAll(res.Body)
+
+	fmt.Printf("Read: %v", string(buf))
+
+	if bytes.Equal(buf, expectedContent) == false {
+		return fmt.Errorf("The response we've got from %s differs from what we expected.", destURL)
+	}
+
+	return nil
+}

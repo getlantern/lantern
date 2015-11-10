@@ -6,6 +6,7 @@ package tlsdialer
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"net"
 	"runtime"
@@ -177,7 +178,11 @@ func DialForTimings(dialer *net.Dialer, network, addr string, sendServerName boo
 	} else {
 		log.Trace("Handshaking on goroutine")
 		go func() {
-			errCh <- conn.Handshake()
+			if conn.RemoteAddr() == nil {
+				errCh <- errors.New("Remote address nil and underlying connection likely closed; skipping handshake")
+			} else {
+				errCh <- conn.Handshake()
+			}
 		}()
 		err = <-errCh
 	}

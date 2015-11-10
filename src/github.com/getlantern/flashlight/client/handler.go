@@ -14,8 +14,7 @@ import (
 )
 
 const (
-	httpConnectMethod  = "CONNECT" // HTTP CONNECT method
-	httpXFlashlightQOS = "X-Flashlight-QOS"
+	httpConnectMethod = "CONNECT" // HTTP CONNECT method
 )
 
 // ServeHTTP implements the method from interface http.Handler using the latest
@@ -28,15 +27,18 @@ func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		// CONNECT requests are often used for HTTPS requests.
 		log.Tracef("Intercepting CONNECT %s", req.URL)
 		client.intercept(resp, req)
-	} else {
+	} else if rp, err := client.newReverseProxy(); err == nil {
 		// Direct proxying can only be used for plain HTTP connections.
-		log.Tracef("Reverse proxying %s %v", req.Method, req.URL)
-		client.getReverseProxy().ServeHTTP(resp, req)
+		log.Debugf("Reverse proxying %s %v", req.Method, req.URL)
+		rp.ServeHTTP(resp, req)
+	} else {
+		log.Debugf("Could not get a reverse proxy connection -- responding bad gateway")
+		respondBadGateway(resp, fmt.Sprintf("Unable to get a connection: %s", err))
 	}
 }
 
 // intercept intercepts an HTTP CONNECT request, hijacks the underlying client
-// connetion and starts piping the data over a new net.Conn obtained from the
+// connection and starts piping the data over a new net.Conn obtained from the
 // given dial function.
 func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 
@@ -76,8 +78,30 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Respond OK as soon as possible, even if we don't have the outbound connection
-	// established yet, to avoid timeouts on the client application
+	// Establish outbound connection.
+	addr := hostIncludingPort(req, 443)
+	d := func(network, addr string) (net.Conn, error) {
+		// UGLY HACK ALERT! In this case, we know we need to send a CONNECT request
+		// to the chained server. We need to send that request from chained/dialer.go
+		// though because only it knows about the authentication token to use.
+		// We signal it to send the CONNECT here using the network transport argument
+		// that is effectively always "tcp" in the end, but we look for this
+		// special "transport" in the dialer and send a CONNECT request in that
+		// case.
+		return client.GetBalancer().Dial("connect", addr)
+	}
+
+	if runtime.GOOS == "android" || client.ProxyAll {
+		connOut, err = d("tcp", addr)
+	} else {
+		connOut, err = detour.Dialer(d)("tcp", addr)
+	}
+	if err != nil {
+		log.Debugf("Could not dial %v", err)
+		respondBadGatewayHijacked(clientConn, req)
+		return
+	}
+
 	success := make(chan bool, 1)
 	go func() {
 		if e := respondOK(clientConn, req); e != nil {
@@ -88,41 +112,10 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 		success <- true
 	}()
 
-	// Establish outbound connection.
-	addr := hostIncludingPort(req, 443)
-	d := func(network, addr string) (net.Conn, error) {
-		return client.GetBalancer().DialQOS("tcp", addr, client.targetQOS(req))
-	}
-
-	if runtime.GOOS == "android" || client.ProxyAll {
-		connOut, err = d("tcp", addr)
-	} else {
-		connOut, err = detour.Dialer(d)("tcp", addr)
-	}
-	if err != nil {
-		log.Debugf("Could not dial %v", err)
-		return
-	}
-
 	if <-success {
 		// Pipe data between the client and the proxy.
 		pipeData(clientConn, connOut, func() { closeOnce.Do(closeConns) })
 	}
-}
-
-// targetQOS determines the target quality of service given the X-Flashlight-QOS
-// header if available, else returns MinQOS.
-func (client *Client) targetQOS(req *http.Request) int {
-	requestedQOS := req.Header.Get(httpXFlashlightQOS)
-
-	if requestedQOS != "" {
-		rqos, err := strconv.Atoi(requestedQOS)
-		if err == nil {
-			return rqos
-		}
-	}
-
-	return client.MinQOS
 }
 
 // pipeData pipes data between the client and proxy connections.  It's also
@@ -143,6 +136,16 @@ func pipeData(clientConn net.Conn, connOut net.Conn, closeFunc func()) {
 }
 
 func respondOK(writer io.Writer, req *http.Request) error {
+	log.Debugf("Responding OK to %v", req.URL)
+	return respondHijacked(writer, req, http.StatusOK)
+}
+
+func respondBadGatewayHijacked(writer io.Writer, req *http.Request) error {
+	return respondHijacked(writer, req, http.StatusBadGateway)
+}
+
+func respondHijacked(writer io.Writer, req *http.Request, statusCode int) error {
+	log.Debugf("Responding %v to %v", statusCode, req.URL)
 	defer func() {
 		if err := req.Body.Close(); err != nil {
 			log.Debugf("Error closing body of OK response: %s", err)
@@ -150,26 +153,18 @@ func respondOK(writer io.Writer, req *http.Request) error {
 	}()
 
 	resp := &http.Response{
-		StatusCode: http.StatusOK,
+		StatusCode: statusCode,
 		ProtoMajor: 1,
 		ProtoMinor: 1,
 	}
-
 	return resp.Write(writer)
 }
 
-func respondBadGateway(w io.Writer, msg string) {
+func respondBadGateway(resp http.ResponseWriter, msg string) {
 	log.Debugf("Responding BadGateway: %v", msg)
-	resp := &http.Response{
-		StatusCode: http.StatusBadGateway,
-		ProtoMajor: 1,
-		ProtoMinor: 1,
-	}
-	err := resp.Write(w)
-	if err == nil {
-		if _, err = w.Write([]byte(msg)); err != nil {
-			log.Debugf("Error writing error to io.Writer: %s", err)
-		}
+	resp.WriteHeader(http.StatusBadGateway)
+	if _, err := resp.Write([]byte(msg)); err != nil {
+		log.Debugf("Error writing error to ResponseWriter: %s", err)
 	}
 }
 

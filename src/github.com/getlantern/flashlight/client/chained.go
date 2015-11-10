@@ -44,6 +44,9 @@ type ChainedServerInfo struct {
 
 	// Trusted: Determines if a host can be trusted with plain HTTP traffic.
 	Trusted bool
+
+	// UdpgwServer: if server can be used to tunnel DNS requests
+	UdpgwServer bool
 }
 
 // Dialer creates a *balancer.Dialer backed by a chained server.
@@ -101,12 +104,13 @@ func (s *ChainedServerInfo) Dialer() (*balancer.Dialer, error) {
 	d := chained.NewDialer(ccfg)
 
 	return &balancer.Dialer{
-		Label:   label,
-		Weight:  s.Weight,
-		QOS:     s.QOS,
-		Trusted: s.Trusted,
-		Dial: func(network, addr string) (net.Conn, error) {
-			conn, err := d.Dial(network, addr)
+		Label:       label,
+		Weight:      s.Weight,
+		QOS:         s.QOS,
+		Trusted:     s.Trusted,
+		UdpgwServer: s.UdpgwServer,
+		Dial: func(network, addr string) (conn net.Conn, err error) {
+			conn, err = d.Dial(network, addr)
 			if err != nil {
 				return conn, err
 			}
@@ -118,5 +122,6 @@ func (s *ChainedServerInfo) Dialer() (*balancer.Dialer, error) {
 			})
 			return withStats(conn, err)
 		},
+		AuthToken: s.AuthToken,
 	}, nil
 }

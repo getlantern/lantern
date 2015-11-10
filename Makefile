@@ -20,7 +20,7 @@ GIT_REVISION_DATE := $(shell git show -s --format=%ci $(GIT_REVISION_SHORTCODE))
 REVISION_DATE := $(shell date -u -j -f "%F %T %z" "$(GIT_REVISION_DATE)" +"%Y%m%d.%H%M%S" 2>/dev/null || date -u -d "$(GIT_REVISION_DATE)" +"%Y%m%d.%H%M%S")
 BUILD_DATE := $(shell date -u +%Y%m%d.%H%M%S)
 
-LOGGLY_TOKEN := 2b68163b-89b6-4196-b878-c1aca4bbdf84 
+LOGGLY_TOKEN := 2b68163b-89b6-4196-b878-c1aca4bbdf84
 
 LDFLAGS := -w -X main.version $(GIT_REVISION) -X main.revisionDate $(REVISION_DATE) -X main.buildDate $(BUILD_DATE) -X github.com/getlantern/flashlight/logging.logglyToken \"$(LOGGLY_TOKEN)\"
 LANTERN_DESCRIPTION := Censorship circumvention tool
@@ -30,6 +30,7 @@ PACKAGE_VENDOR := Brave New Software Project, Inc
 PACKAGE_MAINTAINER := Lantern Team <team@getlantern.org>
 PACKAGE_URL := https://www.getlantern.org
 PACKAGED_YAML := .packaged-lantern.yaml
+MANOTO_YAML := .packaged-lantern-manoto.yaml
 
 LANTERN_BINARIES_PATH ?= ../lantern-binaries
 
@@ -48,19 +49,13 @@ LOGGLY_TOKEN_MOBILE := d730c074-1f0a-415d-8d71-1ebf1d8bd736
 
 FIRETWEET_MAIN_DIR ?= ../firetweet/firetweet/src/main/
 
+LANTERN_YAML := lantern.yaml
+LANTERN_YAML_PATH := installer-resources/lantern.yaml
 
 .PHONY: packages clean docker
 
-define package-settings
-	PACKAGED_SETTINGS="" && \
-	if [[ ! -z "$$MANOTO" ]]; then \
-		PACKAGED_SETTINGS="startupurl: https://www.facebook.com/manototv/app_128953167177144"; \
-	fi && \
-	PACKAGED_SETTINGS=$$(echo $$PACKAGED_SETTINGS | xargs) && echo "Packaged settings: $$PACKAGED_SETTINGS"
-endef
-
 define build-tags
-	PACKAGED_SETTINGS="" BUILD_TAGS="" && \
+	BUILD_TAGS="" && \
 	if [[ ! -z "$$VERSION" ]]; then \
 		BUILD_TAGS="prod" && \
 		sed s/'packageVersion.*'/'packageVersion = "'$$VERSION'"'/ src/github.com/getlantern/flashlight/autoupdate.go | sed s/'!prod'/'prod'/ > src/github.com/getlantern/flashlight/autoupdate-prod.go; \
@@ -89,7 +84,6 @@ endef
 
 define fpm-debian-build =
 	echo "Running fpm-debian-build" && \
-	$(call package-settings) && \
  	PKG_ARCH=$1 && \
 	WORKDIR=$$(mktemp -dt "$$(basename $$0).XXXXXXXXXX") && \
 	INSTALLER_RESOURCES=./installer-resources/linux && \
@@ -112,11 +106,15 @@ define fpm-debian-build =
 	chmod +x $$WORKDIR/usr/lib/lantern/lantern.sh && \
 	\
 	ln -s /usr/lib/lantern/lantern.sh $$WORKDIR/usr/bin/lantern && \
+	rm -f $$WORKDIR/usr/lib/lantern/$(PACKAGED_YAML) && \
+	rm -f $$WORKDIR/usr/lib/lantern/$(LANTERN_YAML) && \
+	cp installer-resources/$(PACKAGED_YAML) $$WORKDIR/usr/lib/lantern/$(PACKAGED_YAML) && \
+	cp $(LANTERN_YAML_PATH) $$WORKDIR/usr/lib/lantern/$(LANTERN_YAML) && \
 	\
 	cat $$WORKDIR/usr/lib/lantern/lantern-binary | bzip2 > update_linux_$$PKG_ARCH.bz2 && \
 	fpm -a $$PKG_ARCH -s dir -t deb -n lantern -v $$VERSION -m "$(PACKAGE_MAINTAINER)" --description "$(LANTERN_DESCRIPTION)\n$(LANTERN_EXTENDED_DESCRIPTION)" --category net --license "Apache-2.0" --vendor "$(PACKAGE_VENDOR)" --url $(PACKAGE_URL) --deb-compression xz -f -C $$WORKDIR usr && \
 	\
-	echo $$PACKAGED_SETTINGS > $$WORKDIR/usr/lib/lantern/$(PACKAGED_YAML) && \
+	cp installer-resources/$(MANOTO_YAML) $$WORKDIR/usr/lib/lantern/$(PACKAGED_YAML) && \
 	fpm -a $$PKG_ARCH -s dir -t deb -n lantern-manoto -v $$VERSION -m "$(PACKAGE_MAINTAINER)" --description "$(LANTERN_DESCRIPTION)\n$(LANTERN_EXTENDED_DESCRIPTION)" --category net --license "Apache-2.0" --vendor "$(PACKAGE_VENDOR)" --url $(PACKAGE_URL) --deb-compression xz -f -C $$WORKDIR usr;
 endef
 
@@ -155,6 +153,12 @@ docker-linux-amd64:
 	@source setenv.bash && \
 	$(call build-tags) && \
 	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -a -o lantern_linux_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
+
+docker-mobile-test-linux-amd64:
+	@source setenv.bash && \
+	$(call build-tags) && \
+	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go test -run=none -o lantern_mobile_test -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/lantern-mobile/lantern && \
+	cp lantern_mobile_test src/github.com/getlantern/lantern-mobile/lantern
 
 docker-linux-arm:
 	@source setenv.bash && \
@@ -204,14 +208,17 @@ docker-package-windows: require-version docker-windows-386
 	@if [[ -z "$$BNS_CERT" ]]; then echo "BNS_CERT environment value is required."; exit 1; fi && \
 	if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
 	INSTALLER_RESOURCES="installer-resources/windows" && \
-	echo "" > $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
+	rm -f $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
+	rm -f $$INSTALLER_RESOURCES/$(LANTERN_YAML) && \
+	cp installer-resources/$(PACKAGED_YAML) $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
+	cp $(LANTERN_YAML_PATH) $$INSTALLER_RESOURCES/$(LANTERN_YAML) && \
 	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "lantern_windows_386.exe" -out "$$INSTALLER_RESOURCES/lantern.exe" && \
 	cat $$INSTALLER_RESOURCES/lantern.exe | bzip2 > update_windows_386.bz2 && \
 	ls -l lantern_windows_386.exe update_windows_386.bz2 && \
 	makensis -V1 -DVERSION=$$VERSION installer-resources/windows/lantern.nsi && \
 	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer.exe" && \
-	$(call package-settings) && \
-	echo $$PACKAGED_SETTINGS > $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
+	cp installer-resources/$(MANOTO_YAML) $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
+	cp $(LANTERN_YAML_PATH) $$INSTALLER_RESOURCES/$(LANTERN_YAML) && \
 	makensis -V1 -DVERSION=$$VERSION installer-resources/windows/lantern.nsi && \
 	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer-manoto.exe";
 
@@ -229,7 +236,7 @@ docker-mobile:
 	cp $(LANTERN_MOBILE_DIR)/lantern/Dockerfile $$DOCKER_CONTEXT && \
 	docker build -t $(DOCKER_MOBILE_IMAGE_TAG) $$DOCKER_CONTEXT
 
-linux: genassets linux-386 linux-amd64 
+linux: genassets linux-386 linux-amd64
 
 windows: genassets windows-386
 
@@ -275,22 +282,27 @@ genassets: docker
 linux-386: require-assets docker
 	@echo "Building linux/386..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" MANOTO="'$$MANOTO'" make docker-linux-386'
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" make docker-linux-386'
 
 linux-amd64: require-assets docker
 	@echo "Building linux/amd64..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" MANOTO="'$$MANOTO'" make docker-linux-amd64'
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" make docker-linux-amd64'
+
+mobile-test-linux-amd64: require-assets docker
+	@echo "Building linux/amd64..." && \
+	$(call docker-up) && \
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" MANOTO="'$$MANOTO'" make docker-mobile-test-linux-amd64'
 
 linux-arm: require-assets docker
 	@echo "Building linux/arm..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="1" MANOTO="'$$MANOTO'" make docker-linux-arm'
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="1" make docker-linux-arm'
 
 windows-386: require-assets docker
 	@echo "Building windows/386..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" MANOTO="'$$MANOTO'" make docker-windows-386'
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" make docker-windows-386'
 
 darwin-amd64: require-assets
 	@echo "Building darwin/amd64..." && \
@@ -305,17 +317,17 @@ darwin-amd64: require-assets
 package-linux-386: require-version genassets linux-386
 	@echo "Generating distribution package for linux/386..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" MANOTO="'$$MANOTO'" make docker-package-debian-386'
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" make docker-package-debian-386'
 
 package-linux-amd64: require-version genassets linux-amd64
 	@echo "Generating distribution package for linux/amd64..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" MANOTO="'$$MANOTO'" make docker-package-debian-amd64'
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" make docker-package-debian-amd64'
 
 package-linux-arm: require-version genassets linux-arm
 	@echo "Generating distribution package for linux/arm..." && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" MANOTO="'$$MANOTO'" HEADLESS="1" make docker-package-debian-arm'
+	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="1" make docker-package-debian-arm'
 
 package-linux: require-version package-linux-386 package-linux-amd64
 
@@ -324,12 +336,11 @@ package-windows: require-version windows
 	if [[ -z "$$SECRETS_DIR" ]]; then echo "SECRETS_DIR environment value is required."; exit 1; fi && \
 	if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
 	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -v $$SECRETS_DIR:/secrets -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && BNS_CERT="/secrets/bns.pfx" BNS_CERT_PASS="'$$BNS_CERT_PASS'" VERSION="'$$VERSION'" MANOTO="'true'" make docker-package-windows' && \
+	docker run -v $$PWD:/lantern -v $$SECRETS_DIR:/secrets -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && BNS_CERT="/secrets/bns.pfx" BNS_CERT_PASS="'$$BNS_CERT_PASS'" VERSION="'$$VERSION'" make docker-package-windows' && \
 	echo "-> lantern-installer.exe and lantern-installer-manoto.exe"
 
 package-darwin-manoto: require-version require-appdmg require-svgexport darwin
 	@echo "Generating distribution package for darwin/amd64 manoto..." && \
-	$(call package-settings) && \
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		INSTALLER_RESOURCES="installer-resources/darwin" && \
 		rm -rf Lantern.app && \
@@ -337,7 +348,8 @@ package-darwin-manoto: require-version require-appdmg require-svgexport darwin
 		mkdir Lantern.app/Contents/MacOS && \
 		cp -r lantern_darwin_amd64 Lantern.app/Contents/MacOS/lantern && \
 		mkdir Lantern.app/Contents/Resources/en.lproj && \
-		echo $$PACKAGED_SETTINGS > Lantern.app/Contents/Resources/en.lproj/$(PACKAGED_YAML) && \
+		cp installer-resources/$(MANOTO_YAML) Lantern.app/Contents/Resources/en.lproj/$(PACKAGED_YAML) && \
+		cp $(LANTERN_YAML_PATH) Lantern.app/Contents/Resources/en.lproj/$(LANTERN_YAML) && \
 		codesign -s "Developer ID Application: Brave New Software Project, Inc" Lantern.app && \
 		cat Lantern.app/Contents/MacOS/lantern | bzip2 > update_darwin_amd64.bz2 && \
 		ls -l lantern_darwin_amd64 update_darwin_amd64.bz2 && \
@@ -353,11 +365,11 @@ package-darwin-manoto: require-version require-appdmg require-svgexport darwin
 		echo "-> Skipped: Can not generate a package on a non-OSX host."; \
 	fi;
 
-package-darwin: package-darwin-manoto 
+package-darwin: package-darwin-manoto
 	@echo "Generating distribution package for darwin/amd64..." && \
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		INSTALLER_RESOURCES="installer-resources/darwin" && \
-		rm Lantern.app/Contents/Resources/en.lproj/$(PACKAGED_YAML) && \
+		rm -f Lantern.app/Contents/Resources/en.lproj/$(PACKAGED_YAML) && \
 		rm -rf lantern-installer.dmg && \
 		$(APPDMG) --quiet $$INSTALLER_RESOURCES/lantern_versioned.dmg.json lantern-installer.dmg && \
 		mv lantern-installer.dmg Lantern.dmg.zlib && \
@@ -480,7 +492,7 @@ android-lib: docker-mobile
 	$(DOCKER) run -v $$PWD/src:/src $(DOCKER_MOBILE_IMAGE_TAG) /bin/bash -c \ "cd /src/github.com/getlantern/lantern-mobile/lantern && gomobile bind -target=android -o=$(LANTERN_MOBILE_LIBRARY) -ldflags="$(LDFLAGS)" ." && \
 	cp -v $(LANTERN_MOBILE_DIR)/lantern/$(LANTERN_MOBILE_LIBRARY) $(LANTERN_MOBILE_DIR)/app/libs; \
 	if [ -d "$(FIRETWEET_MAIN_DIR)" ]; then \
-		cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) $(FIRETWEET_MAIN_DIR)/libs/$(LANTERN_MOBILE_LIBRARY); \
+		cp -v $(LANTERN_MOBILE_DIR)/lantern/$(LANTERN_MOBILE_LIBRARY) $(FIRETWEET_MAIN_DIR)/libs/$(LANTERN_MOBILE_LIBRARY); \
 	else \
 		echo ""; \
 		echo "Either no FIRETWEET_MAIN_DIR variable was passed or the given value is not a";\

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"reflect"
 
+	"github.com/getlantern/fronted"
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/yaml"
 
@@ -24,7 +25,7 @@ var lastCloudConfigETag string
 
 type config struct {
 	Client           *client.ClientConfig `yaml:"client"`
-	TrustedCAs       []*ca                `yaml:"trustedcas"`
+	TrustedCAs       []*CA                `yaml:"trustedcas"`
 	InstanceId       string               `yaml:"instanceid"`
 	FireTweetVersion string               `yaml:"firetweetversion"`
 }
@@ -44,22 +45,19 @@ var (
 const (
 	cloudConfigCA = ``
 	// URL of the configuration file. Remember to use HTTPs.
-	remoteConfigURL = `https://config.getiantem.org/cloud.yaml.gz`
-	instanceId      = ``
+	chainedCloudConfigUrl = "http://config.getiantem.org/cloud-android.yaml.gz"
+	frontedCloudConfigUrl = "http://d2wi0vwulmtn99.cloudfront.net/cloud.yaml.gz"
+	instanceId            = ``
 )
 
 // pullConfigFile attempts to retrieve a configuration file over the network,
 // then it decompresses it and returns the file's raw bytes.
-func pullConfigFile(cli *http.Client) ([]byte, error) {
+func pullConfigFile() ([]byte, error) {
 	var err error
 	var req *http.Request
 	var res *http.Response
 
-	if cli == nil {
-		return nil, errors.New("Missing HTTP client.")
-	}
-
-	if req, err = http.NewRequest("GET", remoteConfigURL, nil); err != nil {
+	if req, err = http.NewRequest("GET", chainedCloudConfigUrl, nil); err != nil {
 		return nil, err
 	}
 
@@ -68,7 +66,11 @@ func pullConfigFile(cli *http.Client) ([]byte, error) {
 		req.Header.Set(httpIfNoneMatch, lastCloudConfigETag)
 	}
 
-	if res, err = cli.Do(req); err != nil {
+	req.Header.Set("Cache-Control", "no-cache")
+	req.Header.Set("Lantern-Fronted-URL", frontedCloudConfigUrl)
+	req.Close = true
+
+	if res, err = cf.Do(req); err != nil {
 		return nil, err
 	}
 
@@ -103,7 +105,6 @@ func pullConfigFile(cli *http.Client) ([]byte, error) {
 
 // defaultConfig returns the embedded configuration.
 func defaultConfig() *config {
-
 	cfg := &config{
 		Client: &client.ClientConfig{
 			ChainedServers: defaultChainedServers,
@@ -112,6 +113,18 @@ func defaultConfig() *config {
 		TrustedCAs: defaultTrustedCAs,
 	}
 	return cfg
+}
+
+func (c *config) configureFronted() error {
+	certs, err := c.getTrustedCertPool()
+	if err != nil {
+		log.Errorf("Unable to get trusted ca certs, fronted not configured: %s", err)
+		return err
+	} else {
+		fronted.Configure(certs, c.Client.MasqueradeSets)
+	}
+
+	return nil
 }
 
 func (c *config) updateFrom(buf []byte) error {
@@ -152,8 +165,10 @@ func (c *config) getTrustedCerts() []string {
 
 func (c *config) getTrustedCertPool() (certPool *x509.CertPool, err error) {
 	trustedCerts := c.getTrustedCerts()
+	log.Debugf("Length of trusted certs: %d", len(trustedCerts))
 
 	if certPool, err = keyman.PoolContainingCerts(trustedCerts...); err != nil {
+		log.Debugf("Error configuring certs pool: %v", err)
 		return nil, err
 	}
 

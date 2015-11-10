@@ -1,15 +1,12 @@
 package config
 
 import (
-	"io/ioutil"
-	"strings"
 	"testing"
 
-	"github.com/getlantern/flashlight/client"
-	"github.com/getlantern/yaml"
 	"github.com/stretchr/testify/assert"
 )
 
+/*
 func TestInitialConfig(t *testing.T) {
 	path, _ := ioutil.TempFile("", "config")
 
@@ -23,7 +20,7 @@ func TestInitialConfig(t *testing.T) {
 	trimmed := strings.TrimSpace(string(data))
 
 	log.Debugf("Read bytes: %v", trimmed)
-	var s client.PackagedSettings
+	var s client.BootstrapSettings
 	err = yaml.Unmarshal([]byte(trimmed), &s)
 
 	if err != nil {
@@ -32,7 +29,7 @@ func TestInitialConfig(t *testing.T) {
 	err = fetchInitialConfig(path.Name(), &s)
 	assert.Nil(t, err, "Should not get an error fetching config")
 }
-
+*/
 /*
 func TestCopyOldConfig(t *testing.T) {
 	existsFunc := func(file string) (string, bool) {
@@ -59,19 +56,10 @@ func TestCopyOldConfig(t *testing.T) {
 	path = copyNewest("lantern-2.yaml", existsFunc)
 	assert.Equal(t, tf.Name(), path, "unexpected path used")
 }
+*/
 
 func TestMajorVersion(t *testing.T) {
 	ver := "222.00.1"
 	maj := majorVersion(ver)
 	assert.Equal(t, "222.00", maj, "Unexpected major version")
 }
-
-func TestDataCenter(t *testing.T) {
-	dc := defaultRoundRobinForTerritory("IR")
-	assert.Equal(t, "nl.fallbacks.getiantem.org", dc, "Unexpected data center")
-	dc = defaultRoundRobinForTerritory("cn")
-	assert.Equal(t, "jp.fallbacks.getiantem.org", dc, "Unexpected data center")
-	dc = defaultRoundRobin()
-	assert.Equal(t, "nl.fallbacks.getiantem.org", dc, "Unexpected data center")
-}
-*/

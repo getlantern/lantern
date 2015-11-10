@@ -4,18 +4,10 @@ addr: 127.0.0.1:8787
 uiaddr: 127.0.0.1:16823
 client:
   firetweetversion: "{{.ftVersion}}"
-  frontedservers:
-  - host: nl.fallbacks.getiantem.org
-    port: 443
-    poolsize: 30
-    masqueradeset: "cloudflare"
-    maxmasquerades: 20
-    qos: 10
-    weight: 4000
-    trusted: true
+  frontedservers: []
   chainedservers: {{range .fallbacks}}
     fallback-{{.ip}}:
-      addr: {{.ip}}:443
+      addr: {{.ip}}
       cert: "{{.cert}}"
       authtoken: "{{.auth_token}}"
       pipelined: true
@@ -23,10 +15,14 @@ client:
       qos: 10
       trusted: true{{end}}
   masqueradesets:
-    cloudflare:{{range .masquerades}}
+    cloudflare: []
+    cloudfront: {{range .masquerades}}
     - domain: {{.Domain}}
       ipaddress: {{.IpAddress}}{{end}}
 proxiedsites:
+  delta:
+    additions: []
+    deletions: []
   cloud:{{range $domain := .proxiedsites }}
   - {{$domain}}{{end}}
 trustedcas: {{range .cas}}
