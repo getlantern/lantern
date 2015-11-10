@@ -28,6 +28,9 @@
 
 #include "tun2io.h"
 
+#ifndef _TUN2IO_C
+#define _TUN2IO_C
+
 // IP address of netif
 BIPAddr netif_ipaddr;
 
@@ -53,6 +56,12 @@ uint8_t *device_write_buf;
 SinglePacketBuffer device_read_buffer;
 PacketPassInterface device_read_interface;
 
+// udpgw client
+int udp_mtu;
+
+// remote udpgw server addr, if provided
+BAddr udpgw_remote_server_addr;
+
 // TCP timer
 BTimer tcp_timer;
 
@@ -69,7 +78,7 @@ struct tcp_pcb *listener;
 // lwip TCP/IPv6 listener
 struct tcp_pcb *listener_ip6;
 
-static int configure(char *tundev, char *ipaddr, char *netmask)
+static int configure(char *tundev, char *ipaddr, char *netmask, char *udpgw_addr)
 {
   // open standard streams
   open_standard_streams();
@@ -133,6 +142,19 @@ static int configure(char *tundev, char *ipaddr, char *netmask)
     }
   }
 
+  options.udpgw_remote_server_addr = udpgw_addr;
+  options.udpgw_max_connections = DEFAULT_UDPGW_MAX_CONNECTIONS;
+  options.udpgw_connection_buffer_size = DEFAULT_UDPGW_CONNECTION_BUFFER_SIZE;
+  options.udpgw_transparent_dns = 0;
+
+  // resolve remote udpgw server address
+  if (options.udpgw_remote_server_addr) {
+    if (!BAddr_Parse2(&udpgw_remote_server_addr, options.udpgw_remote_server_addr, NULL, 0, 0)) {
+      BLog(BLOG_ERROR, "remote udpgw server addr: BAddr_Parse2 failed");
+      return 0;
+    }
+  }
+
   return setup_listener(options);
 }
 
@@ -188,6 +210,35 @@ static int setup_listener (options_t options)
     return 1;
   }
 
+  if (options.udpgw_remote_server_addr) {
+    // compute maximum UDP payload size we need to pass through udpgw
+    udp_mtu = BTap_GetMTU(&device) - (int)(sizeof(struct ipv4_header) + sizeof(struct udp_header));
+    if (options.netif_ip6addr) {
+      int udp_ip6_mtu = BTap_GetMTU(&device) - (int)(sizeof(struct ipv6_header) + sizeof(struct udp_header));
+      if (udp_mtu < udp_ip6_mtu) {
+        udp_mtu = udp_ip6_mtu;
+      }
+    }
+    if (udp_mtu < 0) {
+      udp_mtu = 0;
+    }
+
+    // make sure our UDP payloads aren't too large for udpgw
+    int udpgw_mtu = udpgw_compute_mtu(udp_mtu);
+    if (udpgw_mtu < 0 || udpgw_mtu > PACKETPROTO_MAXPAYLOAD) {
+      BLog(BLOG_ERROR, "device MTU is too large for UDP");
+      SinglePacketBuffer_Free(&device_read_buffer);
+      return 1;
+    }
+
+    int udpgw_client_err = goUdpGwClient_Configure(udp_mtu, DEFAULT_UDPGW_MAX_CONNECTIONS, options.udpgw_connection_buffer_size, UDPGW_KEEPALIVE_TIME);
+    if (udpgw_client_err != ERR_OK) {
+      BLog(BLOG_ERROR, "goUdpGwClient_Configure failed");
+      SinglePacketBuffer_Free(&device_read_buffer);
+      return 1;
+    }
+  }
+
   // init lwip init job
   BPending_Init(&lwip_init_job, BReactor_PendingGroup(&ss), lwip_init_job_hadler, NULL);
   BPending_Set(&lwip_init_job);
@@ -214,6 +265,7 @@ static int setup_listener (options_t options)
   // enter event loop
   BLog(BLOG_NOTICE, "entering event loop");
   BReactor_Exec(&ss);
+  BLog(BLOG_NOTICE, "exiting event loop");
 
   // free listener
   if (listener_ip6) {
@@ -399,9 +451,15 @@ void device_read_handler_send (void *unused, uint8_t *data, int data_len)
 {
   ASSERT(!quitting)
   ASSERT(data_len >= 0)
+  BLog(BLOG_NOTICE, "device: received packet");
 
   // accept packet
   PacketPassInterface_Done(&device_read_interface);
+
+  // process UDP directly
+  if (process_device_udp_packet(data, data_len)) {
+    return;
+  }
 
   // obtain pbuf
   if (data_len > UINT16_MAX) {
@@ -450,8 +508,6 @@ err_t netif_output_ip6_func (struct netif *netif, struct pbuf *p, ip6_addr_t *ip
 
 err_t common_netif_output (struct netif *netif, struct pbuf *p)
 {
-  SYNC_DECL
-
   BLog(BLOG_DEBUG, "device write: send packet");
 
   if (quitting) {
@@ -465,9 +521,7 @@ err_t common_netif_output (struct netif *netif, struct pbuf *p)
       return ERR_OK;
     }
 
-    SYNC_FROMHERE
     BTap_Send(&device, (uint8_t *)p->payload, p->len);
-    SYNC_COMMIT
   } else {
     int len = 0;
     do {
@@ -479,9 +533,7 @@ err_t common_netif_output (struct netif *netif, struct pbuf *p)
       len += p->len;
     } while (p = p->next);
 
-    SYNC_FROMHERE
     BTap_Send(&device, device_write_buf, len);
-    SYNC_COMMIT
   }
 
   return ERR_OK;
@@ -509,24 +561,6 @@ err_t netif_input_func (struct pbuf *p, struct netif *inp)
   return ERR_OK;
 }
 
-void client_logfunc (struct tcp_client *client)
-{
-  char local_addr_s[BADDR_MAX_PRINT_LEN];
-  BAddr_Print(&client->local_addr, local_addr_s);
-  char remote_addr_s[BADDR_MAX_PRINT_LEN];
-  BAddr_Print(&client->remote_addr, remote_addr_s);
-
-  BLog_Append("%05d (%s %s): ", client->tunnel_id, local_addr_s, remote_addr_s);
-}
-
-void client_log (struct tcp_client *client, int level, const char *fmt, ...)
-{
-  va_list vl;
-  va_start(vl, fmt);
-  BLog_LogViaFuncVarArg((BLog_logfunc)client_logfunc, client, BLOG_CURRENT_CHANNEL, level, fmt, vl);
-  va_end(vl);
-}
-
 err_t listener_accept_func (void *arg, struct tcp_pcb *newpcb, err_t err)
 {
   ASSERT(err == ERR_OK)
@@ -542,9 +576,6 @@ err_t listener_accept_func (void *arg, struct tcp_pcb *newpcb, err_t err)
     return ERR_MEM;
   }
 
-  //SYNC_DECL
-  //SYNC_FROMHERE
-
   // read addresses
   client->local_addr = baddr_from_lwip(PCB_ISIPV6(newpcb), &newpcb->local_ip, newpcb->local_port);
   client->remote_addr = baddr_from_lwip(PCB_ISIPV6(newpcb), &newpcb->remote_ip, newpcb->remote_port);
@@ -556,10 +587,21 @@ err_t listener_accept_func (void *arg, struct tcp_pcb *newpcb, err_t err)
 #endif
 
   // Init Go tunnel.
+  client->tunnel_id = 0;
+
 #ifdef CGO
   switch (client->remote_addr.type) {
     case BADDR_TYPE_IPV4:
       client->tunnel_id = goNewTunnel(client);
+      if (client->tunnel_id == 0) {
+        BLog(BLOG_ERROR, "could not create new tunnel.");
+        return ERR_MEM;
+      }
+      err_t err = goInitTunnel(client->tunnel_id);
+      if (err != ERR_OK) {
+        BLog(BLOG_ERROR, "could not initialize tunnel.");
+        return ERR_ABRT;
+      }
     break;
   }
 #endif
@@ -576,6 +618,7 @@ err_t listener_accept_func (void *arg, struct tcp_pcb *newpcb, err_t err)
   // setup handlers
   tcp_err(client->pcb, client_err_func);
   tcp_recv(client->pcb, client_recv_func);
+  tcp_sent(client->pcb, client_sent_func);
 
   // setup buffer
   client->buf_used = 0;
@@ -583,41 +626,57 @@ err_t listener_accept_func (void *arg, struct tcp_pcb *newpcb, err_t err)
   return ERR_OK;
 }
 
-void client_close(struct tcp_client *client)
+static void client_handle_freed_client(struct tcp_client *client)
 {
-  if (client != NULL) {
+  if (client == NULL) {
     return;
   }
 
-  client_log(client, BLOG_INFO, "client closed");
+  err_t err = goTunnelDestroy(client->tunnel_id);
 
-  // free client
-  if (!client->client_closed) {
-    // set client closed
+  if (err == ERR_OK) {
     client->client_closed = 1;
+    client->tunnel_id = 0;
+    free(client);
+  }
+}
+
+void client_close(struct tcp_client *client)
+{
+  if (client == NULL) {
+    return;
+  }
+
+  if (!client->client_closed) {
+    client_free_client(client);
+  }
+}
+
+static void client_free_client (struct tcp_client *client)
+{
+    ASSERT(!client->client_closed)
 
     // remove callbacks
     tcp_err(client->pcb, NULL);
     tcp_recv(client->pcb, NULL);
     tcp_sent(client->pcb, NULL);
 
-    // abort
-    tcp_abort(client->pcb);
+    // free pcb
+    err_t err = tcp_close(client->pcb);
+    if (err != ERR_OK) {
+      tcp_abort(client->pcb);
+    }
 
-    goTunnelDestroy(client->tunnel_id);
-  }
-
-  free(client);
+    client_handle_freed_client(client);
 }
 
 void client_err_func (void *arg, err_t err)
 {
   struct tcp_client *client = (struct tcp_client *)arg;
+
   ASSERT(!client->client_closed)
 
-  client_log(client, BLOG_INFO, "client error (%d)", (int)err);
-
-  client_close(client);
+  client_handle_freed_client(client);
 }
 
 static err_t client_recv_func(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err)
@@ -633,7 +692,7 @@ static err_t client_recv_func(void *arg, struct tcp_pcb *pcb, struct pbuf *p, er
   }
 
   if (!p) {
-    client_close(client);
+    client_free_client(client);
     return ERR_ABRT;
   }
 
@@ -642,9 +701,38 @@ static err_t client_recv_func(void *arg, struct tcp_pcb *pcb, struct pbuf *p, er
   err_t werr;
   werr = goTunnelWrite(client->tunnel_id, p->payload, p->len);
 
+  if (werr == ERR_OK) {
+    tcp_recved(client->pcb, p->len);
+  }
+
   pbuf_free(p);
 
   return werr;
+}
+
+err_t client_sent_func (void *arg, struct tcp_pcb *tpcb, u16_t len)
+{
+  struct tcp_client *client = (struct tcp_client *)arg;
+
+  ASSERT(!client->client_closed)
+  ASSERT(len > 0)
+
+  if (client == NULL) {
+    return ERR_ABRT;
+  }
+
+  if (client->client_closed) {
+    return ERR_ABRT;
+  }
+
+  return goTunnelSentACK(client->tunnel_id, len);
+}
+
+static char *baddr_to_str(BAddr *baddr) {
+  char *dest;
+  dest = malloc(sizeof(char)*BADDR_MAX_ADDR_LEN);
+  BAddr_Print(baddr, dest);
+  return dest;
 }
 
 // dump_dest_addr dumps the client's local address into an string.
@@ -654,3 +742,403 @@ static char *dump_dest_addr(struct tcp_client *client) {
   BAddr_Print(&client->local_addr, addr);
   return addr;
 }
+
+static unsigned int tcp_client_sndbuf(struct tcp_client *client) {
+  return (unsigned int)tcp_sndbuf(client->pcb);
+}
+
+static void client_dealloc (struct tcp_client *client)
+{
+  ASSERT(client->client_closed)
+  free(client);
+}
+
+static void client_abort_client (struct tcp_client *client)
+{
+  ASSERT(!client->client_closed)
+
+  // remove callbacks
+  tcp_err(client->pcb, NULL);
+  tcp_recv(client->pcb, NULL);
+  tcp_sent(client->pcb, NULL);
+
+  // free pcb
+  tcp_abort(client->pcb);
+
+  client_handle_freed_client(client);
+}
+
+static int tcp_client_output(struct tcp_client *client) {
+  if (client == NULL) {
+    return ERR_ABRT;
+  }
+
+  if (client->client_closed) {
+    return ERR_ABRT;
+  }
+
+  if (client->pcb) {
+    err_t err =  tcp_output(client->pcb);
+    if (err != ERR_OK) {
+      return -1;
+    }
+  }
+
+  return ERR_OK;
+}
+
+static void udpgw_client_handler_received(void *unused, BAddr local_addr, BAddr remote_addr, const uint8_t *data, int data_len)
+{
+  ASSERT(options.udpgw_remote_server_addr)
+  ASSERT(local_addr.type == BADDR_TYPE_IPV4 || local_addr.type == BADDR_TYPE_IPV6)
+  ASSERT(local_addr.type == remote_addr.type)
+  ASSERT(data_len >= 0)
+
+  int packet_length = 0;
+
+  switch (local_addr.type) {
+    case BADDR_TYPE_IPV4: {
+      BLog(BLOG_INFO, "UDP: from udpgw %d bytes", data_len);
+
+      if (data_len > UINT16_MAX - (sizeof(struct ipv4_header) + sizeof(struct udp_header)) ||
+        data_len > BTap_GetMTU(&device) - (int)(sizeof(struct ipv4_header) + sizeof(struct udp_header))
+      ) {
+        BLog(BLOG_ERROR, "UDP: packet is too large");
+        return;
+      }
+
+      // build IP header
+      struct ipv4_header iph;
+      iph.version4_ihl4 = IPV4_MAKE_VERSION_IHL(sizeof(iph));
+      iph.ds = hton8(0);
+      iph.total_length = hton16(sizeof(iph) + sizeof(struct udp_header) + data_len);
+      iph.identification = hton16(0);
+      iph.flags3_fragmentoffset13 = hton16(0);
+      iph.ttl = hton8(64);
+      iph.protocol = hton8(IPV4_PROTOCOL_UDP);
+      iph.checksum = hton16(0);
+      iph.source_address = remote_addr.ipv4.ip;
+      iph.destination_address = local_addr.ipv4.ip;
+      iph.checksum = ipv4_checksum(&iph, NULL, 0);
+
+      // build UDP header
+      struct udp_header udph;
+      udph.source_port = remote_addr.ipv4.port;
+      udph.dest_port = local_addr.ipv4.port;
+      udph.length = hton16(sizeof(udph) + data_len);
+      udph.checksum = hton16(0);
+      udph.checksum = udp_checksum(&udph, data, data_len, iph.source_address, iph.destination_address);
+
+      // write packet
+      memcpy(device_write_buf, &iph, sizeof(iph));
+      memcpy(device_write_buf + sizeof(iph), &udph, sizeof(udph));
+      memcpy(device_write_buf + sizeof(iph) + sizeof(udph), data, data_len);
+      packet_length = sizeof(iph) + sizeof(udph) + data_len;
+    } break;
+
+    case BADDR_TYPE_IPV6: {
+      BLog(BLOG_INFO, "UDP/IPv6: from udpgw %d bytes", data_len);
+
+      if (!options.netif_ip6addr) {
+        BLog(BLOG_ERROR, "got IPv6 packet from udpgw but IPv6 is disabled");
+        return;
+      }
+
+      if (data_len > UINT16_MAX - sizeof(struct udp_header) ||
+        data_len > BTap_GetMTU(&device) - (int)(sizeof(struct ipv6_header) + sizeof(struct udp_header))
+      ) {
+        BLog(BLOG_ERROR, "UDP/IPv6: packet is too large");
+        return;
+      }
+
+      // build IPv6 header
+      struct ipv6_header iph;
+      iph.version4_tc4 = hton8((6 << 4));
+      iph.tc4_fl4 = hton8(0);
+      iph.fl = hton16(0);
+      iph.payload_length = hton16(sizeof(struct udp_header) + data_len);
+      iph.next_header = hton8(IPV6_NEXT_UDP);
+      iph.hop_limit = hton8(64);
+      memcpy(iph.source_address, remote_addr.ipv6.ip, 16);
+      memcpy(iph.destination_address, local_addr.ipv6.ip, 16);
+
+      // build UDP header
+      struct udp_header udph;
+      udph.source_port = remote_addr.ipv6.port;
+      udph.dest_port = local_addr.ipv6.port;
+      udph.length = hton16(sizeof(udph) + data_len);
+      udph.checksum = hton16(0);
+      udph.checksum = udp_ip6_checksum(&udph, data, data_len, iph.source_address, iph.destination_address);
+
+      // write packet
+      memcpy(device_write_buf, &iph, sizeof(iph));
+      memcpy(device_write_buf + sizeof(iph), &udph, sizeof(udph));
+      memcpy(device_write_buf + sizeof(iph) + sizeof(udph), data, data_len);
+      packet_length = sizeof(iph) + sizeof(udph) + data_len;
+    } break;
+  }
+
+  // submit packet
+  BTap_Send(&device, device_write_buf, packet_length);
+}
+
+static int process_device_udp_packet (uint8_t *data, int data_len)
+{
+  ASSERT(data_len >= 0)
+
+  // Do nothing if we don't have udpgw
+  if (!options.udpgw_remote_server_addr) {
+    return 0;
+  }
+
+  BAddr local_addr;
+  BAddr remote_addr;
+  int is_dns;
+
+  uint8_t ip_version = 0;
+  if (data_len > 0) {
+    ip_version = (data[0] >> 4);
+  }
+
+  switch (ip_version) {
+    case 4: {
+      // ignore non-UDP packets
+      if (data_len < sizeof(struct ipv4_header) || data[offsetof(struct ipv4_header, protocol)] != IPV4_PROTOCOL_UDP) {
+        return 0;
+      }
+
+      // parse IPv4 header
+      struct ipv4_header ipv4_header;
+      if (!ipv4_check(data, data_len, &ipv4_header, &data, &data_len)) {
+        return 0;
+      }
+
+      // parse UDP
+      struct udp_header udp_header;
+      if (!udp_check(data, data_len, &udp_header, &data, &data_len)) {
+        return 0;
+      }
+
+      // verify UDP checksum
+      uint16_t checksum_in_packet = udp_header.checksum;
+      udp_header.checksum = 0;
+      uint16_t checksum_computed = udp_checksum(&udp_header, data, data_len, ipv4_header.source_address, ipv4_header.destination_address);
+      if (checksum_in_packet != checksum_computed) {
+        return 0;
+      }
+
+      BLog(BLOG_INFO, "UDP: from device %d bytes", data_len);
+
+      // construct addresses
+      BAddr_InitIPv4(&local_addr, ipv4_header.source_address, udp_header.source_port);
+      BAddr_InitIPv4(&remote_addr, ipv4_header.destination_address, udp_header.dest_port);
+
+      // if transparent DNS is enabled, any packet arriving at out netif
+      // address to port 53 is considered a DNS packet
+      is_dns = (options.udpgw_transparent_dns &&
+                ipv4_header.destination_address == netif_ipaddr.ipv4 &&
+                udp_header.dest_port == hton16(53));
+    } break;
+
+    case 6: {
+      // ignore if IPv6 support is disabled
+      if (!options.netif_ip6addr) {
+        return 0;
+      }
+
+      // ignore non-UDP packets
+      if (data_len < sizeof(struct ipv6_header) || data[offsetof(struct ipv6_header, next_header)] != IPV6_NEXT_UDP) {
+        return 0;
+      }
+
+      // parse IPv6 header
+      struct ipv6_header ipv6_header;
+      if (!ipv6_check(data, data_len, &ipv6_header, &data, &data_len)) {
+        return 0;
+      }
+
+      // parse UDP
+      struct udp_header udp_header;
+      if (!udp_check(data, data_len, &udp_header, &data, &data_len)) {
+        return 0;
+      }
+
+      // verify UDP checksum
+      uint16_t checksum_in_packet = udp_header.checksum;
+      udp_header.checksum = 0;
+      uint16_t checksum_computed = udp_ip6_checksum(&udp_header, data, data_len, ipv6_header.source_address, ipv6_header.destination_address);
+      if (checksum_in_packet != checksum_computed) {
+        return 0;
+      }
+
+      BLog(BLOG_INFO, "UDP/IPv6: from device %d bytes", data_len);
+
+      // construct addresses
+      BAddr_InitIPv6(&local_addr, ipv6_header.source_address, udp_header.source_port);
+      BAddr_InitIPv6(&remote_addr, ipv6_header.destination_address, udp_header.dest_port);
+
+      // TODO dns
+      is_dns = 0;
+    } break;
+
+    default: {
+      return 0;
+    } break;
+  }
+
+  // check payload length
+  if (data_len > udp_mtu) {
+    BLog(BLOG_ERROR, "packet is too large, cannot send to udpgw");
+    return 0;
+  }
+
+  // submit packet to udpgw
+  UdpGwClient_GotPacket(local_addr, remote_addr, is_dns, data, data_len);
+
+  return 1;
+}
+
+static uint8_t dataAt(uint8_t *in, int i) {
+  return in[i];
+}
+
+static void udpGWClient_ReceiveFromServer(char *data, int data_len)
+{
+  ASSERT(data_len >= 0)
+
+  // check header
+  if (data_len < sizeof(struct udpgw_header)) {
+    BLog(BLOG_ERROR, "missing header");
+    return;
+  }
+
+  struct udpgw_header header;
+  memcpy(&header, data, sizeof(header));
+  data += sizeof(header);
+  data_len -= sizeof(header);
+  uint8_t flags = ltoh8(header.flags);
+  uint16_t conid = ltoh16(header.conid);
+
+  if (goUdpGwClient_ConnIdExists(conid) == ERR_ABRT) {
+    // Discard packet.
+    return;
+  }
+
+  // Move the connection to the head of the list.
+  goUdpGwClient_UnshiftConn(conid);
+
+  // parse address
+  BAddr remote_addr;
+  if ((flags & UDPGW_CLIENT_FLAG_IPV6)) {
+    if (data_len < sizeof(struct udpgw_addr_ipv6)) {
+      BLog(BLOG_ERROR, "missing ipv6 address");
+      return;
+    }
+    struct udpgw_addr_ipv6 addr_ipv6;
+    memcpy(&addr_ipv6, data, sizeof(addr_ipv6));
+    data += sizeof(addr_ipv6);
+    data_len -= sizeof(addr_ipv6);
+    BAddr_InitIPv6(&remote_addr, addr_ipv6.addr_ip, addr_ipv6.addr_port);
+  } else {
+    if (data_len < sizeof(struct udpgw_addr_ipv4)) {
+      BLog(BLOG_ERROR, "missing ipv4 address");
+      return;
+    }
+    struct udpgw_addr_ipv4 addr_ipv4;
+    memcpy(&addr_ipv4, data, sizeof(addr_ipv4));
+    data += sizeof(addr_ipv4);
+    data_len -= sizeof(addr_ipv4);
+    BAddr_InitIPv4(&remote_addr, addr_ipv4.addr_ip, addr_ipv4.addr_port);
+  }
+
+  BAddr local_addr;
+
+  local_addr = goUdpGwClient_GetLocalAddrByConnId(conid);
+
+  // pass packet to user
+  udpgw_client_handler_received(NULL, local_addr, remote_addr, data, data_len);
+  return;
+}
+
+// UdpGwClient_SendPacket encapsulates a packet.
+static void UdpGwClient_SendPacket(uint16_t connId, BAddr remote_addr, uint8_t flags, const uint8_t *data, int data_len)
+{
+  ASSERT(data_len >= 0)
+
+  // get buffer location
+  uint8_t *out;
+  out = malloc(sizeof(char)*(data_len + sizeof(struct udpgw_header) + sizeof(struct udpgw_addr_ipv6)));
+  int out_pos = 0;
+
+  if (remote_addr.type == BADDR_TYPE_IPV6) {
+    flags |= UDPGW_CLIENT_FLAG_IPV6;
+  }
+
+  // write header
+  struct udpgw_header header;
+  header.flags = ltoh8(flags);
+  header.conid = ltoh16(connId);
+  memcpy(out + out_pos, &header, sizeof(header));
+  out_pos += sizeof(header);
+
+  // write address
+  switch (remote_addr.type) {
+    case BADDR_TYPE_IPV4: {
+      struct udpgw_addr_ipv4 addr_ipv4;
+      addr_ipv4.addr_ip = remote_addr.ipv4.ip;
+      addr_ipv4.addr_port = remote_addr.ipv4.port;
+      memcpy(out + out_pos, &addr_ipv4, sizeof(addr_ipv4));
+      out_pos += sizeof(addr_ipv4);
+    } break;
+    case BADDR_TYPE_IPV6: {
+      struct udpgw_addr_ipv6 addr_ipv6;
+      memcpy(addr_ipv6.addr_ip, remote_addr.ipv6.ip, sizeof(addr_ipv6.addr_ip));
+      addr_ipv6.addr_port = remote_addr.ipv6.port;
+      memcpy(out + out_pos, &addr_ipv6, sizeof(addr_ipv6));
+      out_pos += sizeof(addr_ipv6);
+    } break;
+    default:
+      printf("no remote addr provided.");
+    break;
+  }
+
+  // write packet to buffer
+  memcpy(out + out_pos, data, data_len);
+  out_pos += data_len;
+
+  // Move the connection to the head of the list.
+  goUdpGwClient_UnshiftConn(connId);
+
+  // Pass the packet to Go.
+  goUdpGwClient_Send(connId, out, out_pos);
+
+  free(out);
+}
+
+// UdpGwClient_GotPacket processes UDP packets from a client.
+static void UdpGwClient_GotPacket(BAddr local_addr, BAddr remote_addr, int is_dns, const uint8_t *data, int data_len)
+{
+  ASSERT(local_addr.type == BADDR_TYPE_IPV4 || local_addr.type == BADDR_TYPE_IPV6)
+  ASSERT(remote_addr.type == BADDR_TYPE_IPV4 || remote_addr.type == BADDR_TYPE_IPV6)
+
+  uint8_t flags = 0;
+
+  if (is_dns) {
+    flags |= UDPGW_CLIENT_FLAG_DNS;
+  }
+
+  // We need to know if we already have a connection.
+  uint16_t connId = goUdpGwClient_FindConnectionIdByAddr(local_addr, remote_addr);
+
+  if (connId == 0) {
+    // If not we create a new one.
+    connId = goUdpGwClient_NewConnection(local_addr, remote_addr);
+    flags |= UDPGW_CLIENT_FLAG_REBIND;
+  }
+
+  // We then use UdpGwClient_SendPacket to encapsulate the packet and send it
+  // to the udpgw server.
+  UdpGwClient_SendPacket(connId, remote_addr, flags, data, data_len);
+}
+
+#endif
