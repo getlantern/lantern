@@ -17,16 +17,6 @@ const (
 var defaultFrontedServerList = []*client.FrontedServerInfo{}
 
 var defaultChainedServers = map[string]*client.ChainedServerInfo{
-
-	/*"fallback-188.166.15.105": &client.ChainedServerInfo{
-		Addr:      "188.166.15.105:443",
-		AuthToken: "UHNMtvwYpr58cXpbFkH4Fbzd3Zq1FqWnRn7KDH2Si9DKt4nVlfIZOkv2k8D0Pniz",
-		Cert:      "-----BEGIN CERTIFICATE-----\n MIIDdjCCAl6gAwIBAgIEerpDxTANBgkqhkiG9w0BAQsFADBjMQswCQYDVQQGEwJVUzEQMA4GA1UE CBMHR2VvcmdpYTESMBAGA1UEBxMJQmF5b25ldGVkMRwwGgYDVQQKExNXZWxkb24gRGVub3VuY2Vt ZW50MRAwDgYDVQQDEwdCbGFua2V0MB4XDTE1MTAxNjAzMjM1OVoXDTE2MTAxNTAzMjM1OVowYzEL MAkGA1UEBhMCVVMxEDAOBgNVBAgTB0dlb3JnaWExEjAQBgNVBAcTCUJheW9uZXRlZDEcMBoGA1UE ChMTV2VsZG9uIERlbm91bmNlbWVudDEQMA4GA1UEAxMHQmxhbmtldDCCASIwDQYJKoZIhvcNAQEB BQADggEPADCCAQoCggEBALMKOvyvlY3oZKzXwHR9Iu+WFuAtvl11Is5H11bQhkr1Ma1SNxBolaX+ s+5hGuhs5WMiyCTwnxSy7Fu77j6oYahEhmvMLEsR07dzsQRPER8Yr814alHnj1HBqX+L9T2bk84H 80smCQZZjwa17mOQzWrI1u1do8fnBMCeDPshCtQltTKIIzBAuOq1ftGjJVCr/0hgJ5rMnjtLHcwH PgIiAv+za4+U3HqXOuISBIQ/REWaitk+/4B1toy/HdUexltRAoxbgesw+5ycqhYvfjtEjWsD1eoo YXNpz36jumKHgJJSMRPSSVjo+DQde0M9eMT/TtjO4WtuHvpzUTqq0Yh4Qo8CAwEAAaMyMDAwDwYD VR0RBAgwBocEvKYPaTAdBgNVHQ4EFgQUOkJYWbLqH6vPU2TRz9ODffnpZygwDQYJKoZIhvcNAQEL BQADggEBAKLtLRGPGDmdn3u9a+VR38aQRUyxjteBMoIBNHuCz/95pY5LK+pOtKavCwYEGDYvbgi+ UrL0pL4inOBs5coNMBHpNuCIaMnkwkip/vhdoedKd1e9dUZTacZBStzEBCOG5TxjsOJSZ9SqZnfm lHaxTTnfsi3ExYT3ym43Mt34qwq3rhOKtKe9m8d6fBzE/G1u4Q9QsvMZrn1IbUJ0Ogu0Ub3rTDSR VS5bhTRsbHa4G9WjAxSwTlp4T3JoRBO/9e2yXVtcSk5VIpU5My+/gJyRMZBi9jZ5xOFXMWIlaKDD J7gC6kpLNKbpEkLaDOPg2EQOModFR79xwIFZhRKQn69pX24=\n-----END CERTIFICATE-----",
-		Weight:    1000000,
-		Pipelined: true,
-		QOS:       10,
-		Trusted:   true,
-	},*/
 	"fallback-128.199.42.142": &client.ChainedServerInfo{
 		Addr:      "128.199.42.142:443",
 		AuthToken: "tKPlcDVuahj3xQbfFL0RBq9awr2fbgDZRjl2xOul1myiZ1eqrZ0JA1p9Z7ilIY6V",

@@ -43,33 +43,34 @@ type ProtectedConn struct {
 var (
 	log              = golog.LoggerFor("lantern-android.protected")
 	currentProtector SocketProtector
+	currentDnsServer string
 )
 
-func Configure(protector SocketProtector) {
+func Configure(protector SocketProtector, dnsServer string) {
 	currentProtector = protector
+	if dnsServer != "" {
+		currentDnsServer = dnsServer
+	} else {
+		dnsServer = defaultDnsServer
+	}
 }
 
-// Dial dials a new protected connection
+// Dial creates a new protected connection
 // - syscall API calls are used to create and bind to the
 //   specified system device (this is primarily
 //   used for Android VpnService routing functionality)
-func Dial(network, addr string) (net.Conn, error) {
+func Dial(network, addr string) (*ProtectedConn, error) {
 	host, port, err := SplitHostPort(addr)
 	if err != nil {
 		return nil, err
 	}
 
-	protectedConn := &ProtectedConn{
+	conn := &ProtectedConn{
 		addr:      addr,
 		host:      host,
 		port:      port,
 		protector: currentProtector,
 	}
-
-	return protectedConn.Dial()
-}
-
-func (conn *ProtectedConn) Dial() (net.Conn, error) {
 	// do DNS query
 	IPAddr, err := conn.resolveHostname()
 	if err != nil {
@@ -106,7 +107,7 @@ func (conn *ProtectedConn) Dial() (net.Conn, error) {
 		log.Errorf("Error converting protected connection: %s", err)
 		return nil, err
 	}
-	return conn.Conn, nil
+	return conn, nil
 }
 
 // connectSocket makes the connection to the given IP address port
@@ -216,7 +217,7 @@ func (conn *ProtectedConn) resolveHostname() (net.IP, error) {
 		return nil, fmt.Errorf("Could not bind socket to system device: %s", err)
 	}
 
-	IPAddr = net.ParseIP(defaultDnsServer)
+	IPAddr = net.ParseIP(currentDnsServer)
 	if IPAddr == nil {
 		return nil, errors.New("invalid IP address")
 	}
