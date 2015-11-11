@@ -115,6 +115,7 @@ func (client *mobileClient) afterSetup() {
 	analytics.Configure("", trackingCodes[client.appName], "", client.Client.Addr)
 	logging.ConfigureAndroid(logglyToken, logglyTag, client.androidProps)
 	logging.Configure(client.Client.Addr, cloudConfigCA, instanceId, version, revisionDate)
+	logging.Init()
 }
 
 // serveHTTP will run the proxy

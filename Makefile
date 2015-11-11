@@ -155,11 +155,11 @@ docker-linux-amd64:
 	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -a -o lantern_linux_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
 
 docker-mobile-test-linux-amd64:
-	@source setenv.bash && \
+	source setenv.bash && \
 	$(call build-tags) && \
 	(cd src/github.com/getlantern/tunio && make clean && make lib) && \
-	go test -run=none -o lantern_mobile_test -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/lantern-mobile/lantern && \
-	cp lantern_mobile_test_linux_amd64 src/github.com/getlantern/lantern-mobile/lantern
+	go test -run=none -o lantern_mobile_test_linux_amd64 -tags="$$BUILD_TAGS" github.com/getlantern/lantern-mobile/lantern && \
+	cp lantern_mobile_test_linux_amd64 src/github.com/getlantern/
 
 docker-linux-arm:
 	@source setenv.bash && \
@@ -291,7 +291,7 @@ linux-amd64: require-assets docker
 	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" make docker-linux-amd64'
 
 mobile-test-linux-amd64: require-assets docker
-	@echo "Building linux/amd64..." && \
+	@echo "Building test for lantern-mobile linux/amd64..." && \
 	$(call docker-up) && \
 	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" MANOTO="'$$MANOTO'" make docker-mobile-test-linux-amd64'
 

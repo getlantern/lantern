@@ -4,10 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	//"net"
 	"net/http"
-	//"net/url"
-	"os"
 	"sync"
 	"testing"
 	"time"
@@ -21,16 +18,6 @@ var (
 	deviceMask = "255.255.255.0"
 	udpgwAddr  = "127.0.0.1:5353"
 )
-
-var hostIP string
-
-func init() {
-	if os.Getenv("HOST_IP") != "" {
-		hostIP = os.Getenv("HOST_IP")
-	} else {
-		hostIP = "10.0.0.101"
-	}
-}
 
 var globalClient *mobileClient
 
@@ -50,7 +37,7 @@ func TestListenAndServeStop(t *testing.T) {
 	c.serveHTTP()
 
 	// Allow it some seconds to start.
-	time.Sleep(time.Second * 2)
+	time.Sleep(time.Second * 3)
 
 	// Attempt to stop server.
 	if err := c.Client.Stop(); err != nil {
