@@ -417,11 +417,6 @@ public class LanternUI {
     // whenever we use the on/off slider) 
     public void setupStatusToast() {
 
-        /*actionBar = this.activity.getSupportActionBar();
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setDisplayShowTitleEnabled(false);
-        actionBar.setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));*/
-
         onNavTrans.startTransition(500);
         offNavTrans.startTransition(500);
 
