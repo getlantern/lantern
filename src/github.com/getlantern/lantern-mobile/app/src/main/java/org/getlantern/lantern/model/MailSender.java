@@ -15,28 +15,21 @@ public class MailSender {
     private final String apiKey = "fmYlUdjEpGGonI4NDx9xeA";
 
     public synchronized void sendMail(String toEmail) throws Exception {   
-        try {
-            MandrillApi mandrillApi = new MandrillApi(apiKey);
-            MandrillMessage message = new MandrillMessage();
+        MandrillApi mandrillApi = new MandrillApi(apiKey);
+        MandrillMessage message = new MandrillMessage();
 
-            ArrayList<MandrillMessage.Recipient> recipients = new ArrayList<MandrillMessage.Recipient>();
-            MandrillMessage.Recipient recipient = new MandrillMessage.Recipient();
-            recipient.setEmail(toEmail);
-            recipients.add(recipient);
+        ArrayList<MandrillMessage.Recipient> recipients = new ArrayList<MandrillMessage.Recipient>();
+        MandrillMessage.Recipient recipient = new MandrillMessage.Recipient();
+        recipient.setEmail(toEmail);
+        recipients.add(recipient);
 
-            message.setTo(recipients);
-            message.setPreserveRecipients(true);
+        message.setTo(recipients);
+        message.setPreserveRecipients(true);
 
-            final HashMap<String,String> templateContent =
-                new HashMap<String,String>();
-            templateContent.put("content", "example content");
-            mandrillApi.messages().sendTemplate("download-link-from-lantern-website",
-                    templateContent, message, null);
-            //MandrillMessageStatus[] messageStatusReports = mandrillApi
-            //    .messages().send(message, false);
-
-        } catch(Exception e) {
-            Log.e(TAG, e.getMessage(), e);
-        }
+        final HashMap<String,String> templateContent =
+            new HashMap<String,String>();
+        templateContent.put("content", "example content");
+        mandrillApi.messages().sendTemplate("download-link-from-lantern-website",
+                templateContent, message, null);
     }   
 }  

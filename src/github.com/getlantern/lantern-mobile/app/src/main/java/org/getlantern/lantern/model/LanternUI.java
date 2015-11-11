@@ -257,25 +257,9 @@ public class LanternUI {
         return isValid;
     }
 
-    public void sendDesktopVersion(View view) {
-        final MailSender sender = new MailSender();
-
-        final String email = emailInput.getText().toString();
-        Log.d(TAG, "Sending Lantern Desktop to " + email);
-
-        new AsyncTask<Void, Void, Void>() {
-            @Override 
-            public Void doInBackground(Void... arg) {
-                try {
-                    sender.sendMail(email);
-                } catch (Exception e) {
-                    Log.e(TAG, e.getMessage(), e);     
-                }
-                return null;
-            }
-        }.execute();
-
-        String msg = this.activity.getResources().getString(R.string.success_email);
+    private void showAlertDialog(String title, String msg) {
+        Log.d(TAG, "Showing alert dialog...");
+        Looper.prepare();
 
         AlertDialog alertDialog = new AlertDialog.Builder(this.activity).create();
         alertDialog.setTitle("Lantern");
@@ -287,6 +271,48 @@ public class LanternUI {
                     }
                 });
         alertDialog.show();
+
+        Looper.loop();
+    }
+
+    public void handleFatalError() {
+        this.toggleSwitch(false);
+        String msg = this.activity.getResources().getString(R.string.fatal_error);
+        showAlertDialog("Lantern", msg);
+    }
+
+    public void sendDesktopVersion(View view) {
+        final MailSender sender = new MailSender();
+        final LanternMainActivity activity = this.activity;
+        final String email = emailInput.getText().toString();
+        Log.d(TAG, "Sending Lantern Desktop to " + email);
+
+        AsyncTask<Void, Void, Void> asyncTask = new AsyncTask<Void, Void, Void>() {
+            @Override 
+            public Void doInBackground(Void... arg) {
+                String msg;
+
+                try {
+                    Log.d(TAG, "Calling send mail...");
+                    sender.sendMail(email);
+                    Log.d(TAG, "Successfully called send mail");
+                    msg = activity.getResources().getString(R.string.success_email);
+                } catch (Exception e) {
+                    Log.e(TAG, e.getMessage(), e);     
+                    msg = activity.getResources().getString(R.string.error_email);
+                }
+
+                showAlertDialog("Lantern", msg);
+                return null;
+            }
+        };
+
+        if (Build.VERSION.SDK_INT >= 11) {
+            asyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }
+        else {
+            asyncTask.execute();
+        }
 
 
         // revert send button, separator back to defaults
