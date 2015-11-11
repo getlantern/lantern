@@ -9,7 +9,7 @@ import com.google.android.gms.analytics.Tracker;
 public class Analytics {
     private GoogleAnalytics analytics;
     private Tracker tracker;
-    private final String TRACKING_ID = "UA-21408036-4";
+    private final String TRACKING_ID = "UA-21815217-14";
 
     public Analytics(Context context) {
         analytics = GoogleAnalytics.getInstance(context);
