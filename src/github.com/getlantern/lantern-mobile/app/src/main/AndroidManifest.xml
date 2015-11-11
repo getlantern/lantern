@@ -9,6 +9,9 @@
         android:theme="@style/AppTheme"
         android:label="@string/app_name">
 
+        <provider android:name="org.getlantern.lantern.model.ApkProvider" android:authorities="org.getlantern.lantern.gmailattach.provider" android:exported="false">
+        </provider>
+
         <service android:name="com.google.android.gms.analytics.AnalyticsService"
             android:enabled="true"
             android:exported="false"/>

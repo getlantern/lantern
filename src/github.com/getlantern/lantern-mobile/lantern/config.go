@@ -142,10 +142,6 @@ func (c *config) updateFrom(buf []byte) error {
 			return errConfigurationUnchanged
 		}
 
-		for key, server := range defaultChainedServers {
-			// make sure we keep the default chained server (for now)
-			newCfg.Client.ChainedServers[key] = server
-		}
 		*c = newCfg
 		return nil
 	}

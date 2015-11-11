@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="app_name">Lantern</string>
+  <string name="action_settings">Configurações</string>
+  <string name="send_button">Enviar</string>
+  <string name="contact_option">Contato</string>
+  <string name="share_option">Compartilhar</string>
+  <string name="quit_option">Fechar</string>
+  <string name="share_email_native"></string>
+</resources>
