@@ -13,6 +13,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.StrictMode;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
 import android.net.VpnService;
 import android.net.Uri;
 import android.content.pm.PackageManager;
@@ -131,7 +132,6 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
 
     // update START/STOP power Lantern button
     // according to our stored preference
-
     public SharedPreferences getSharedPrefs(Context context) {
         return context.getSharedPreferences(PREFS_NAME,
                 Context.MODE_PRIVATE);
@@ -149,9 +149,19 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         UI.sendDesktopVersion(view);
     }
 
+    // isNetworkAvailable checks whether or not we are connected to
+    // the Internet; if no connection is available, the toggle
+    // switch is inactive
+    public boolean isNetworkAvailable() {
+        final Context context = this;
+        final ConnectivityManager connectivityManager = ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE));
+        return connectivityManager.getActiveNetworkInfo() != null && connectivityManager.getActiveNetworkInfo().isConnected();
+    }
+
     // Prompt the user to enable full-device VPN mode
     public void enableVPN() {
         Log.d(TAG, "Load VPN configuration");
+
         Thread thread = new Thread() {
             public void run() { 
                 Intent intent = new Intent(LanternMainActivity.this, PromptVpnActivity.class);

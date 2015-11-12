@@ -43,6 +43,7 @@ import android.view.View.OnClickListener;
 import android.view.LayoutInflater;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -259,7 +260,9 @@ public class LanternUI {
 
     private void showAlertDialog(String title, String msg) {
         Log.d(TAG, "Showing alert dialog...");
-        Looper.prepare();
+        if (Looper.myLooper() == null) {
+            Looper.prepare();
+        }
 
         AlertDialog alertDialog = new AlertDialog.Builder(this.activity).create();
         alertDialog.setTitle("Lantern");
@@ -436,9 +439,16 @@ public class LanternUI {
         setBtnStatus();
 
         // START/STOP button to enable full-device VPN functionality
-        powerLantern.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        powerLantern.setOnClickListener(new OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            public void onClick(View v) {
+                boolean isChecked = powerLantern.isChecked();
+
+                if (!activity.isNetworkAvailable()) {
+                    powerLantern.setChecked(false);
+                    showAlertDialog("Lantern", "No Internet connection available!");
+                    return;
+                }
 
                 if (isChecked) {
                     activity.enableVPN();
