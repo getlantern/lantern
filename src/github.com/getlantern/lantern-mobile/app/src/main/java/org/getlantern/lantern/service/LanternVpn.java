@@ -77,8 +77,10 @@ public class LanternVpn extends VpnBuilder implements Handler.Callback {
                 try {
                     lantern = new Lantern(service);
                     lantern.start();
-                    Thread.sleep(3000);
-                    startVpn();
+
+                    Thread.sleep(2000);
+                    service.configure();
+
                 } catch (Exception uhe) {
                     Log.e(TAG, "Error starting Lantern with given host: " + uhe);
                 }
@@ -94,6 +96,7 @@ public class LanternVpn extends VpnBuilder implements Handler.Callback {
                 lantern = null;
             }
             Log.d(TAG, "Closing VPN interface and stopping Lantern..");
+
             super.close();
             mThread = null;
         } catch (Exception e) {
@@ -121,14 +124,4 @@ public class LanternVpn extends VpnBuilder implements Handler.Callback {
         }
         return true;
     }
-
-    private void startVpn() {
-        try {
-            super.configure();
-        } catch (Exception e) {
-            Log.e(TAG, "Error with VPN" + e);
-        }
-
-    }
-
 }
