@@ -13,6 +13,7 @@ var (
 type GoCallback interface {
 	AfterConfigure()
 	AfterStart()
+	GetDnsServer() string
 }
 
 type SocketProvider interface {
@@ -27,8 +28,10 @@ func Start(protector SocketProvider, httpAddr, socksAddr, appName string,
 	go func() {
 		var err error
 
+		dnsServer := ready.GetDnsServer()
+
 		if protector != nil {
-			protected.Configure(protector)
+			protected.Configure(protector, dnsServer)
 		}
 
 		androidProps := map[string]string{

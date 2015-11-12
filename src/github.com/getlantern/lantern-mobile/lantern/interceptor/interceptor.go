@@ -26,7 +26,7 @@ var (
 var (
 	dialTimeout = 20 * time.Second
 	// threshold of errors that we are withstanding
-	maxErrCount = 40
+	maxErrCount = 15
 	// how often to print stats of current interceptor
 	statsInterval = 15 * time.Second
 	log           = golog.LoggerFor("lantern-android.interceptor")
@@ -273,6 +273,9 @@ L:
 			i.totalErrCount += 1
 			if i.totalErrCount > maxErrCount {
 				log.Errorf("Total errors: %d %v", i.totalErrCount, ErrTooManyFailures)
+				i.sendAlert(ErrTooManyFailures.Error(), true)
+				i.Stop(false)
+				break L
 			}
 		}
 	}

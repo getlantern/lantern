@@ -20,6 +20,9 @@ public class Lantern extends Client.SocketProvider.Stub {
     final private Analytics analytics;
 
     private String device, model, version;
+
+    private final static String DEFAULT_DNS_SERVER = "8.8.4.4";
+
     private Client.GoCallback.Stub callback;
 
     public Lantern(LanternVpn service) {
@@ -37,7 +40,18 @@ public class Lantern extends Client.SocketProvider.Stub {
 
         final Analytics analytics = this.analytics;
 
+        final LanternVpn service = this.service;
+
         this.callback = new Client.GoCallback.Stub() {
+
+            public String GetDnsServer() {
+                try {
+                    return service.getDnsResolver(service);
+                } catch (Exception e) {
+                    return DEFAULT_DNS_SERVER;
+                }
+            }
+
             public void AfterStart() {
                 Log.d(TAG, "Lantern successfully started.");
                 analytics.sendNewSessionEvent();
@@ -86,8 +100,9 @@ public class Lantern extends Client.SocketProvider.Stub {
                 // if we receive a fatal notice from Lantern
                 // then we shut down the VPN interface
                 // and close Tun2Socks
-                this.service.stopLantern();
-                this.service.UI.toggleSwitch(false);
+                this.service.stop();
+                this.service.UI.handleFatalError();
+
             } catch (Exception e) {
 
             }
