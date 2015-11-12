@@ -50,6 +50,7 @@ func init() {
 	if revisionDate == "" {
 		revisionDate = "now"
 	}
+
 }
 
 type tunSettings struct {
@@ -83,6 +84,10 @@ func newClient(addr, appName string, androidProps map[string]string) *mobileClie
 		// Configuring proxy.
 		go func(c *client.Client) {
 			fn := func(proto, addr string) (net.Conn, error) {
+				_, port, _ := net.SplitHostPort(addr)
+				if port != "80" {
+					proto = "connect"
+				}
 				log.Debugf("tunio: %s://%s", proto, addr)
 				return c.GetBalancer().Dial(proto, addr)
 			}
@@ -111,15 +116,16 @@ func (client *mobileClient) afterSetup() {
 	clientConfig.configureFronted()
 
 	go client.updateConfig()
+}
+
+// serveHTTP will run the proxy
+func (client *mobileClient) serveHTTP() {
 
 	analytics.Configure("", trackingCodes[client.appName], "", client.Client.Addr)
 	logging.ConfigureAndroid(logglyToken, logglyTag, client.androidProps)
 	logging.Configure(client.Client.Addr, cloudConfigCA, instanceId, version, revisionDate)
 	logging.Init()
-}
 
-// serveHTTP will run the proxy
-func (client *mobileClient) serveHTTP() {
 	go func() {
 
 		defer func() {

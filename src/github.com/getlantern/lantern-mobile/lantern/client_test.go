@@ -10,13 +10,13 @@ import (
 	"time"
 )
 
-const clientListenProxyAddr = "127.0.0.1:9997"
+const clientListenProxyAddr = "127.0.0.1:8787"
 
 var (
 	deviceName = "tun0"
 	deviceIP   = "10.0.0.2"
 	deviceMask = "255.255.255.0"
-	udpgwAddr  = "127.0.0.1:5353"
+	udpgwAddr  = "127.0.0.1:7300"
 )
 
 var globalClient *mobileClient
