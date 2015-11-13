@@ -2,6 +2,7 @@
 package settings
 
 import (
+	"encoding/base64"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
@@ -51,7 +52,10 @@ func Load(version, revisionDate, buildDate string) {
 		AutoReport: true,
 		AutoLaunch: true,
 		ProxyAll:   false,
-		InstanceID: uuid.New(),
+		// There is no true privacy or security in instance ID.  For that, we rely on
+		// transport security.  Hashing MAC would buy us nothing, since the space of
+		// MACs is trivially mapped, especially since the salt would be known
+		InstanceID: base64.StdEncoding.EncodeToString(uuid.NodeID()),
 	}
 
 	// Use settings from disk if they're available.
