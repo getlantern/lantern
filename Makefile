@@ -490,9 +490,9 @@ android-lib: docker-mobile
 	@source setenv.bash && \
 	cd $(LANTERN_MOBILE_DIR)/lantern
 	@$(call docker-up) && \
-	$(DOCKER) run -v $$PWD/src:/src $(DOCKER_MOBILE_IMAGE_TAG) /bin/bash -c \ "cd /src/github.com/getlantern/lantern-mobile/lantern && gomobile bind -target=android -o=$(LANTERN_MOBILE_LIBRARY) -ldflags="$(LDFLAGS)" ." && \
+	$(DOCKER) run -v $$PWD/src:/src $(DOCKER_MOBILE_IMAGE_TAG) /bin/bash -c \ "cd /src/github.com/getlantern/tunio && make clean && make docker-android-lib && cd /src/github.com/getlantern/lantern-mobile/lantern && gomobile bind -v -target=android -o=$(LANTERN_MOBILE_LIBRARY) -ldflags="$(LDFLAGS)" ." && \
 	cp -v $(LANTERN_MOBILE_DIR)/lantern/$(LANTERN_MOBILE_LIBRARY) $(LANTERN_MOBILE_DIR)/app/libs; \
-	if [ -d "$(FIRETWEET_MAIN_DIR)" ]; then \
+	if [[ ! -z "$(FIRETWEET_MAIN_DIR)" ]]; then \
 		cp -v $(LANTERN_MOBILE_DIR)/lantern/$(LANTERN_MOBILE_LIBRARY) $(FIRETWEET_MAIN_DIR)/libs/$(LANTERN_MOBILE_LIBRARY); \
 	else \
 		echo ""; \
