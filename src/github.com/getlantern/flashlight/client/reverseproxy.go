@@ -12,6 +12,7 @@ import (
 	"github.com/getlantern/balancer"
 	"github.com/getlantern/detour"
 	"github.com/getlantern/flashlight/proxy"
+	"github.com/getlantern/flashlight/settings"
 	"github.com/getlantern/flashlight/status"
 )
 
@@ -26,11 +27,13 @@ type authTransport struct {
 // and we also need to strip out X-Forwarded-For that reverseproxy adds because
 // it confuses the upstream servers with the additional 127.0.0.1 field when
 // upstream servers are trying to determin the client IP.
+// We need to add also the X-Lantern-Device-Id field.
 func (at *authTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
 	norm := new(http.Request)
 	*norm = *req // includes shallow copies of maps, but okay
 	norm.Header.Del("X-Forwarded-For")
 	norm.Header.Set("X-LANTERN-AUTH-TOKEN", at.balancedDialer.AuthToken)
+	norm.Header.Set("X-LANTERN-DEVICE-ID", settings.GetInstanceID())
 	return at.Transport.RoundTrip(norm)
 }
 
