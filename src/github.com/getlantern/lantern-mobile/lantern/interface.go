@@ -21,8 +21,8 @@ type SocketProvider interface {
 	Notice(message string, fatal bool)
 }
 
-// RunClientProxy creates a new client at the given address.
-func Start(protector SocketProvider, httpAddr, socksAddr, appName string,
+// StartWithSocks
+func StartWithSocks(protector SocketProvider, httpAddr, socksAddr, appName string,
 	device string, model string, version string, ready GoCallback) error {
 
 	go func() {
@@ -47,6 +47,25 @@ func Start(protector SocketProvider, httpAddr, socksAddr, appName string,
 		if err != nil {
 			log.Errorf("Error starting SOCKS proxy: %v", err)
 		}
+		ready.AfterStart()
+	}()
+	return nil
+}
+
+// StartWithTunio
+func StartWithTunio(protector SocketProvider, httpAddr, appName string,
+	device string, model string, version string, ready GoCallback) error {
+
+	go func() {
+		androidProps := map[string]string{
+			"androidDevice":     device,
+			"androidModel":      model,
+			"androidSdkVersion": version,
+		}
+
+		defaultClient = newClient(httpAddr, appName, androidProps)
+		defaultClient.serveHTTP()
+
 		ready.AfterStart()
 	}()
 	return nil

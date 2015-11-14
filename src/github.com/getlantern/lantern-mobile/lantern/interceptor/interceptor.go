@@ -113,9 +113,11 @@ func New(client *client.Client,
 		stopStats:     make(chan struct{}),
 	}
 
-	err = i.startSocksProxy()
-	if err != nil {
-		return nil, err
+	if socksAddr != "" {
+		err = i.startSocksProxy()
+		if err != nil {
+			return nil, err
+		}
 	}
 	go i.monitor()
 	return i, nil

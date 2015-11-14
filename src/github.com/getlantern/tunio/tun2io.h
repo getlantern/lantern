@@ -109,6 +109,10 @@ typedef struct {
   int udpgw_max_connections;
   int udpgw_connection_buffer_size;
   int udpgw_transparent_dns;
+
+  int tun_fd;
+  int tun_mtu;
+  int set_signal;
 } options_t;
 
 options_t options;
@@ -153,7 +157,12 @@ static err_t client_sent_func (void *arg, struct tcp_pcb *tpcb, u16_t len);
 static void udpgw_client_handler_received (void *unused, BAddr local_addr, BAddr remote_addr, const uint8_t *data, int data_len);
 
 static int setup_listener(options_t);
-static int configure(char *tundev, char *ipaddr, char *netmask, char *udpgw_addr);
+
+static int configure_defaults();
+static int configure_commit();
+static int configure_tun(char *tundev, char *ipaddr, char *netmask, char *udpgw_addr);
+static int configure_fd(int tun_fd, int tun_mtu, char *ipaddr, char *netmask, char *udpgw_addr);
+
 static char *baddr_to_str(BAddr *baddr);
 
 uint32_t goNewTunnel(struct tcp_client *client);

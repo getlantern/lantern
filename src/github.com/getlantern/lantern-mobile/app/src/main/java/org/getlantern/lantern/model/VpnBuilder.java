@@ -27,8 +27,12 @@ import java.util.Map;
 
 import org.getlantern.lantern.config.LanternConfig;
 import org.getlantern.lantern.android.vpn.Tun2Socks;
+import org.getlantern.lantern.android.vpn.Tunio;
+
 
 public class VpnBuilder extends VpnService {
+
+    public static boolean USE_LANTERN_SOCKS = true;
 
     private static final String TAG = "VpnBuilder";
     private PendingIntent mConfigureIntent;
@@ -85,15 +89,29 @@ public class VpnBuilder extends VpnService {
 
         Log.i(TAG, "New interface: " + mInterface);
 
-        Tun2Socks.Start(
-                mInterface,
-                VPN_MTU,
-                routerAddress,
-                virtualNetMask,
-                "127.0.0.1:" + String.valueOf(LanternConfig.SOCKS_PORT),
-                LanternConfig.UDPGW_SERVER,
-                true
-                );
+        if (this.USE_LANTERN_SOCKS) {
+            Log.i(TAG, "Using tun2socks");
+
+            Tun2Socks.Start(
+                    mInterface,
+                    VPN_MTU,
+                    routerAddress,
+                    virtualNetMask,
+                    "127.0.0.1:" + String.valueOf(LanternConfig.SOCKS_PORT),
+                    LanternConfig.UDPGW_SERVER,
+                    true
+            );
+        } else {
+            Log.i(TAG, "Using tunio");
+
+            Tunio.Start(
+                    mInterface,
+                    VPN_MTU,
+                    routerAddress,
+                    virtualNetMask,
+                    LanternConfig.UDPGW_SERVER);
+        }
+
     }
 
     public void close() throws Exception {
@@ -101,7 +119,11 @@ public class VpnBuilder extends VpnService {
             mInterface.close();
             mInterface = null;
         }
-        Tun2Socks.Stop();
+        if (this.USE_LANTERN_SOCKS) {
+            Tun2Socks.Stop();
+        } else {
+            Tunio.Stop();
+        }
     }
 
     public static String getDnsResolver(Context context)

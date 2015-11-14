@@ -12,6 +12,7 @@ import go.client.*;
 import org.getlantern.lantern.model.Analytics;
 import org.getlantern.lantern.service.LanternVpn;
 import org.getlantern.lantern.config.LanternConfig;
+import org.getlantern.lantern.model.VpnBuilder;
 
 public class Lantern extends Client.SocketProvider.Stub {
 
@@ -70,8 +71,11 @@ public class Lantern extends Client.SocketProvider.Stub {
             String httpAddr = String.format("127.0.0.1:%d", LanternConfig.HTTP_PORT);
             String socksAddr = String.format("127.0.0.1:%d", LanternConfig.SOCKS_PORT);
 
-            Client.Start(this, httpAddr, socksAddr, LanternConfig.APP_NAME, this.device, this.model, this.version, callback);
-            //Client.Start(this, httpAddr, socksAddr, callback);
+            if (VpnBuilder.USE_LANTERN_SOCKS) {
+                Client.StartWithSocks(this, httpAddr, socksAddr, LanternConfig.APP_NAME, this.device, this.model, this.version, callback);
+            } else {
+                Client.StartWithTunio(this, httpAddr, LanternConfig.APP_NAME, this.device, this.model, this.version, callback);
+            }
 
         } catch (final Exception e) {
             Log.e(TAG, "Fatal error while trying to run Lantern: " + e);

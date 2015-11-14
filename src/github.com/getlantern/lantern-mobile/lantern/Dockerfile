@@ -63,6 +63,8 @@ RUN echo y | $ANDROID_HOME/tools/android update sdk --no-ui --all --filter build
 RUN go get golang.org/x/mobile/cmd/gomobile
 RUN gomobile init
 
+RUN dnf install -y zip unzip && dnf clean all
+
 RUN mkdir -p $WORKDIR
 
 VOLUME [ "$WORKDIR" ]

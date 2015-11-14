@@ -54,6 +54,8 @@ func init() {
 }
 
 type tunSettings struct {
+	deviceFD   int
+	deviceMTU  int
 	deviceName string
 	deviceIP   string
 	deviceMask string
@@ -61,6 +63,16 @@ type tunSettings struct {
 }
 
 var tunConfig *tunSettings
+
+func ConfigureFD(deviceFD, deviceMTU int, deviceIP, deviceMask, udpgwAddr string) {
+	tunConfig = &tunSettings{
+		deviceFD:   deviceFD,
+		deviceMTU:  deviceMTU,
+		deviceIP:   deviceIP,
+		deviceMask: deviceMask,
+		udpgwAddr:  udpgwAddr,
+	}
+}
 
 func ConfigureTUN(deviceName, deviceIP, deviceMask, udpgwAddr string) {
 	tunConfig = &tunSettings{
@@ -93,8 +105,14 @@ func newClient(addr, appName string, androidProps map[string]string) *mobileClie
 			}
 
 			log.Debug("A TUN device is configured, let's try to use it...")
-			if err := tunio.Configure(tunConfig.deviceName, tunConfig.deviceIP, tunConfig.deviceMask, tunConfig.udpgwAddr, fn); err != nil {
-				log.Debugf("Failed to configure tun device: %q", err)
+			if tunConfig.deviceFD > 0 {
+				if err := tunio.ConfigureFD(tunConfig.deviceFD, tunConfig.deviceMTU, tunConfig.deviceIP, tunConfig.deviceMask, tunConfig.udpgwAddr, fn); err != nil {
+					log.Debugf("Failed to configure tun device (fd): %q", err)
+				}
+			} else {
+				if err := tunio.ConfigureTUN(tunConfig.deviceName, tunConfig.deviceIP, tunConfig.deviceMask, tunConfig.udpgwAddr, fn); err != nil {
+					log.Debugf("Failed to configure tun device: %q", err)
+				}
 			}
 		}(c)
 	}
