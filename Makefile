@@ -488,19 +488,14 @@ genconfig:
 
 android-lib: docker-mobile
 	@source setenv.bash
-	$(call docker-up) && \
+	@$(call docker-up) && \
 	$(DOCKER) run -v $$PWD/src:/src $(DOCKER_MOBILE_IMAGE_TAG) /bin/bash -c " \
 		cd /src/github.com/getlantern/tunio && \
 		make clean && \
 		make docker-android-lib && \
+		cp lib/*.so /$(LANTERN_MOBILE_DIR)/app/libs/armeabi-v7a && \
 		cd /$(LANTERN_MOBILE_DIR)/lantern && \
-		gomobile bind -v -target=android -o=$(LANTERN_MOBILE_LIBRARY) && \
-		rm -rf /tmp/$(LANTERN_MOBILE_LIBRARY) && \
-		mkdir -p /tmp/$(LANTERN_MOBILE_LIBRARY) && \
-		unzip $(LANTERN_MOBILE_LIBRARY) -d /tmp/$(LANTERN_MOBILE_LIBRARY) && \
-		rm $(LANTERN_MOBILE_LIBRARY) && \
-		cp -v /src/github.com/getlantern/tunio/lib/*.so /tmp/$(LANTERN_MOBILE_LIBRARY)/jni/armeabi-v7a/ && \
-		(cd /tmp/$(LANTERN_MOBILE_LIBRARY) && zip -r /$(LANTERN_MOBILE_DIR)/lantern/$(LANTERN_MOBILE_LIBRARY) *)" && \
+		gomobile bind -v -target=android -o=$(LANTERN_MOBILE_LIBRARY)" && \
 	cp -v $(LANTERN_MOBILE_DIR)/lantern/$(LANTERN_MOBILE_LIBRARY) $(LANTERN_MOBILE_DIR)/app/libs/$(LANTERN_MOBILE_LIBRARY) && \
 	if [[ -d "$(FIRETWEET_MAIN_DIR)" ]]; then \
 		cp -v $(LANTERN_MOBILE_DIR)/lantern/$(LANTERN_MOBILE_LIBRARY) $(FIRETWEET_MAIN_DIR)/libs/$(LANTERN_MOBILE_LIBRARY); \
