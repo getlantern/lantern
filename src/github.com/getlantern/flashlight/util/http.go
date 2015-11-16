@@ -143,30 +143,59 @@ func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
 		}
 	}()
 
+	// Create channels for the final response or error. The response channel will be filled
+	// in the case of any successful response as well as a non-error response for the second
+	// response received. The error channel will only be filled if the first response non-successful
+	// and the second is an error.
+	finalResponseCh := make(chan *http.Response, 1)
+	finalErrorCh := make(chan error, 1)
+
+	go readResponses(finalResponseCh, responses, finalErrorCh, errs)
+
+	for {
+		select {
+		case resp := <-finalResponseCh:
+			return resp, nil
+		case err := <-finalErrorCh:
+			return nil, err
+		}
+	}
+}
+
+func readResponses(finalResponse chan *http.Response, responses chan *http.Response, finalErr chan error, errs chan error) {
 	for i := 0; i < 2; i++ {
 		select {
 		case resp := <-responses:
 			if i == 1 {
-				log.Debugf("Got second response -- sending")
-				return resp, nil
+				log.Debug("Got second response -- sending")
+				finalResponse <- resp
 			} else if success(resp) {
-				log.Debugf("Got good response")
-				// Returning preemptively here means the second response
-				// will not be closed properly. We need to ultimately
-				// handle that.
-				return resp, nil
+				log.Debug("Got good response")
+				finalResponse <- resp
+				select {
+				case <-responses:
+					log.Debug("Closing second response body")
+					_ = resp.Body.Close()
+					return
+				case <-errs:
+					log.Debug("Ignoring error on second response")
+					return
+				}
 			} else {
 				log.Debugf("Got bad first response -- wait for second")
+				// Note that the caller is responsible for closing the
+				// response body of the response they receive.
 				_ = resp.Body.Close()
 			}
 		case err := <-errs:
 			log.Debugf("Got an error: %v", err)
 			if i == 1 {
-				return nil, errors.New("All requests errored")
+				// In this case all requests have errored, so our final response
+				// is an error.
+				finalErr <- err
 			}
 		}
 	}
-	return nil, errors.New("Reached end")
 }
 
 // PersistentHTTPClient creates an http.Client that persists across requests.
