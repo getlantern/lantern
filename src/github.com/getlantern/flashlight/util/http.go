@@ -219,7 +219,6 @@ func httpClient(rootCA string, proxyAddr string, persistent bool) (*http.Client,
 	}
 
 	if proxyAddr != "" {
-
 		host, _, err := net.SplitHostPort(proxyAddr)
 		if err != nil {
 			return nil, fmt.Errorf("Unable to split host and port for %v: %v", proxyAddr, err)
@@ -232,20 +231,15 @@ func httpClient(rootCA string, proxyAddr string, persistent bool) (*http.Client,
 			proxyAddr = host + proxyAddr
 		}
 
-		if isLoopback(host) {
-			log.Debugf("Waiting for loopback proxy server to came online...")
-			// Waiting for proxy server to came online.
-			err := waitforserver.WaitForServer("tcp", proxyAddr, 60*time.Second)
-			if err != nil {
-				// Instead of finishing here we just log the error and continue, the client
-				// we are going to create will surely fail when used and return errors,
-				// those errors should be handled by the code that depends on such client.
-				log.Errorf("Proxy never came online at %v: %q", proxyAddr, err)
-			}
-			log.Debugf("Connected to proxy on localhost")
-		} else {
-			log.Errorf("Attempting to proxy through server other than loopback %v", host)
+		log.Debugf("Waiting for proxy server to came online...")
+		// Waiting for proxy server to came online.
+		if err := waitforserver.WaitForServer("tcp", proxyAddr, 60*time.Second); err != nil {
+			// Instead of finishing here we just log the error and continue, the client
+			// we are going to create will surely fail when used and return errors,
+			// those errors should be handled by the code that depends on such client.
+			log.Errorf("Proxy never came online at %v: %q", proxyAddr, err)
 		}
+		log.Debugf("Connected to proxy")
 
 		tr.Proxy = func(req *http.Request) (*url.URL, error) {
 			return url.Parse("http://" + proxyAddr)
@@ -254,15 +248,4 @@ func httpClient(rootCA string, proxyAddr string, persistent bool) (*http.Client,
 		log.Errorf("Using direct http client with no proxyAddr")
 	}
 	return &http.Client{Transport: tr}, nil
-}
-
-func isLoopback(host string) bool {
-	if host == "localhost" {
-		return true
-	}
-	var ip net.IP
-	if ip = net.ParseIP(host); ip != nil {
-		return ip.IsLoopback()
-	}
-	return false
 }
