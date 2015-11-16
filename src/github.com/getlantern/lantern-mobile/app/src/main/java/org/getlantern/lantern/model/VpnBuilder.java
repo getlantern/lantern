@@ -82,8 +82,8 @@ public class VpnBuilder extends VpnService {
             Tun2Socks.Start(
                     mInterface,
                     VPN_MTU,
-                mVirtualIP,
-                mNetMask,
+                    mVirtualIP,
+                    mNetMask,
                     "127.0.0.1:" + String.valueOf(LanternConfig.SOCKS_PORT),
                     LanternConfig.UDPGW_SERVER,
                     true

@@ -63,6 +63,12 @@ func StartWithTunio(protector SocketProvider, httpAddr, appName string,
 			"androidSdkVersion": version,
 		}
 
+		dnsServer := ready.GetDnsServer()
+
+		if protector != nil {
+			protected.Configure(protector, dnsServer)
+		}
+
 		defaultClient = newClient(httpAddr, appName, androidProps)
 		defaultClient.serveHTTP()
 
