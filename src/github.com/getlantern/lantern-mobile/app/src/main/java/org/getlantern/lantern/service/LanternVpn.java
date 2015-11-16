@@ -6,9 +6,13 @@ import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+
 import org.getlantern.lantern.config.LanternConfig;
 import org.getlantern.lantern.model.Lantern;
 import org.getlantern.lantern.model.LanternUI;
+import org.getlantern.lantern.model.Utils;
 import org.getlantern.lantern.model.VpnBuilder;
 
 public class LanternVpn extends VpnBuilder implements Handler.Callback {
@@ -18,8 +22,6 @@ public class LanternVpn extends VpnBuilder implements Handler.Callback {
 
     private Handler mHandler;
     private Thread mThread;
-
-    public static LanternUI UI;
 
     private Lantern lantern = null;
 
@@ -96,6 +98,7 @@ public class LanternVpn extends VpnBuilder implements Handler.Callback {
                 lantern = null;
             }
             Log.d(TAG, "Closing VPN interface and stopping Lantern..");
+            Utils.clearPreferences(this);
 
             super.close();
             mThread = null;

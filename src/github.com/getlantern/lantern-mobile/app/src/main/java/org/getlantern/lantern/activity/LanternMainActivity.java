@@ -42,6 +42,7 @@ import java.util.Map;
 
 import org.getlantern.lantern.config.LanternConfig;
 import org.getlantern.lantern.model.LanternUI;
+import org.getlantern.lantern.model.Utils;
 import org.getlantern.lantern.R;
 import org.getlantern.lantern.service.LanternVpn;
 
@@ -76,7 +77,7 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
             return;
         }
 
-        mPrefs = getSharedPrefs(getApplicationContext());
+        mPrefs = Utils.getSharedPrefs(getApplicationContext());
 
         setContentView(R.layout.activity_lantern_main);
 
@@ -109,7 +110,7 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
     protected void onDestroy() {
         try {
 
-            clearPreferences(mPrefs);
+            Utils.clearPreferences(this);
             stopLantern();
             // give Lantern a second to stop
             Thread.sleep(1000);
@@ -125,7 +126,7 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
             Log.d(TAG, "About to exit Lantern...");
 
             stopLantern();
-            clearPreferences(mPrefs);
+            Utils.clearPreferences(this);
 
             // sleep for a few ms before exiting
             Thread.sleep(200);
@@ -136,14 +137,6 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         } catch (Exception e) {
             Log.e(TAG, "Got an exception when quitting Lantern " + e.getMessage());
         }
-    }
-
-
-    // update START/STOP power Lantern button
-    // according to our stored preference
-    public SharedPreferences getSharedPrefs(Context context) {
-        return context.getSharedPreferences(PREFS_NAME,
-                Context.MODE_PRIVATE);
     }
 
     @Override
@@ -222,18 +215,10 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         UI.syncState();
     }
 
-    private void clearPreferences(SharedPreferences mPrefs) {
-        if (mPrefs != null) {
-            mPrefs.edit().remove(LanternConfig.PREF_USE_VPN);
-            mPrefs.edit().clear().commit();
-        }
-    }
-
     private class ShutDownReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            SharedPreferences mPrefs = getSharedPrefs(context);
-            clearPreferences(mPrefs);
+            Utils.clearPreferences(context);
         }
     }
 }

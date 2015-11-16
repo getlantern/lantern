@@ -33,6 +33,8 @@ public class VpnBuilder extends VpnService {
     private static final String TAG = "VpnBuilder";
     private PendingIntent mConfigureIntent;
 
+    public static LanternUI UI;
+
     private final static String sessionName = "LanternVpn";
     private final static String virtualNetMask = "255.255.255.0";
     private final static int VPN_MTU = 1500;
