@@ -287,7 +287,7 @@ func PoolContainingCerts(certs ...string) (*x509.CertPool, error) {
 	for _, cert := range certs {
 		c, err := LoadCertificateFromPEMBytes([]byte(cert))
 		if err != nil {
-			return nil, err
+			continue
 		}
 		pool.AddCert(c.cert)
 	}
