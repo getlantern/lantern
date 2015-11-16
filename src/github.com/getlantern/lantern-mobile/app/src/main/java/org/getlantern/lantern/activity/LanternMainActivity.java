@@ -3,8 +3,10 @@ package org.getlantern.lantern.activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.ComponentName;
-import android.content.Intent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo; 
 import android.content.res.Resources;
 import android.os.Build;
@@ -13,6 +15,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.StrictMode;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
 import android.net.VpnService;
 import android.net.Uri;
 import android.content.pm.PackageManager;
@@ -39,6 +42,7 @@ import java.util.Map;
 
 import org.getlantern.lantern.config.LanternConfig;
 import org.getlantern.lantern.model.LanternUI;
+import org.getlantern.lantern.model.Utils;
 import org.getlantern.lantern.R;
 import org.getlantern.lantern.service.LanternVpn;
 
@@ -60,12 +64,20 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
+        // the ACTION_SHUTDOWN intent is broadcast when the phone is
+        // about to be shutdown. We register a receiver to make sure we
+        // clear the preferences and switch the VpnService to the off
+        // state when this happens
+        IntentFilter filter = new IntentFilter(Intent.ACTION_SHUTDOWN);
+        BroadcastReceiver mReceiver = new ShutDownReceiver();
+        registerReceiver(mReceiver, filter);
+
         if (getIntent().getBooleanExtra("EXIT", false)) {
             finish();
             return;
         }
 
-        mPrefs = getSharedPrefs(getApplicationContext());
+        mPrefs = Utils.getSharedPrefs(getApplicationContext());
 
         setContentView(R.layout.activity_lantern_main);
 
@@ -97,10 +109,8 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
     @Override
     protected void onDestroy() {
         try {
-            if (mPrefs != null) {
-                mPrefs.edit().remove(LanternConfig.PREF_USE_VPN);
-                mPrefs.edit().clear().commit();
-            }
+
+            Utils.clearPreferences(this);
             stopLantern();
             // give Lantern a second to stop
             Thread.sleep(1000);
@@ -110,13 +120,14 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         super.onDestroy();
     }
 
+    // quitLantern is the side menu option and cleanyl exits the app
     public void quitLantern() {
         try {
-            stopLantern();
-            if (mPrefs != null) {
-                mPrefs.edit().remove(LanternConfig.PREF_USE_VPN).commit();
-            }
             Log.d(TAG, "About to exit Lantern...");
+
+            stopLantern();
+            Utils.clearPreferences(this);
+
             // sleep for a few ms before exiting
             Thread.sleep(200);
 
@@ -124,17 +135,8 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
             moveTaskToBack(true);
 
         } catch (Exception e) {
-
+            Log.e(TAG, "Got an exception when quitting Lantern " + e.getMessage());
         }
-    }
-
-
-    // update START/STOP power Lantern button
-    // according to our stored preference
-
-    public SharedPreferences getSharedPrefs(Context context) {
-        return context.getSharedPreferences(PREFS_NAME,
-                Context.MODE_PRIVATE);
     }
 
     @Override
@@ -149,9 +151,19 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         UI.sendDesktopVersion(view);
     }
 
+    // isNetworkAvailable checks whether or not we are connected to
+    // the Internet; if no connection is available, the toggle
+    // switch is inactive
+    public boolean isNetworkAvailable() {
+        final Context context = this;
+        final ConnectivityManager connectivityManager = ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE));
+        return connectivityManager.getActiveNetworkInfo() != null && connectivityManager.getActiveNetworkInfo().isConnected();
+    }
+
     // Prompt the user to enable full-device VPN mode
     public void enableVPN() {
         Log.d(TAG, "Load VPN configuration");
+
         Thread thread = new Thread() {
             public void run() { 
                 Intent intent = new Intent(LanternMainActivity.this, PromptVpnActivity.class);
@@ -173,7 +185,6 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
                     if (service != null) {
                         service.setAction(LanternConfig.DISABLE_VPN);
                         startService(service);
-                        UI.toggleSwitch(false);
                     }
                 }
             };
@@ -201,5 +212,12 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         UI.syncState();
+    }
+
+    private class ShutDownReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Utils.clearPreferences(context);
+        }
     }
 }

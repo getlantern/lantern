@@ -20,6 +20,13 @@
             android:name=".activity.LanternMainActivity"
             android:screenOrientation="portrait"
             android:label="@string/app_name" >
+
+            <receiver android:name=".ShutDownReceiver">
+                <intent-filter>
+                    <action android:name="android.intent.action.ACTION_SHUTDOWN" />
+                </intent-filter>
+            </receiver>
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

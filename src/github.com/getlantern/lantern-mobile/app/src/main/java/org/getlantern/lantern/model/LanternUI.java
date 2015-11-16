@@ -7,7 +7,6 @@ import android.app.FragmentManager;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.Context;
-
 import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -43,6 +42,7 @@ import android.view.View.OnClickListener;
 import android.view.LayoutInflater;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -259,7 +259,9 @@ public class LanternUI {
 
     private void showAlertDialog(String title, String msg) {
         Log.d(TAG, "Showing alert dialog...");
-        Looper.prepare();
+        if (Looper.myLooper() == null) {
+            Looper.prepare();
+        }
 
         AlertDialog alertDialog = new AlertDialog.Builder(this.activity).create();
         alertDialog.setTitle("Lantern");
@@ -436,15 +438,36 @@ public class LanternUI {
         setBtnStatus();
 
         // START/STOP button to enable full-device VPN functionality
-        powerLantern.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        powerLantern.setOnClickListener(new OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            public void onClick(View v) {
+                boolean isChecked = powerLantern.isChecked();
+
+                if (!activity.isNetworkAvailable()) {
+                    powerLantern.setChecked(false);
+                    showAlertDialog("Lantern", "No Internet connection available!");
+                    return;
+                }
+
+                // disable the on/off switch while the VpnService
+                // is updating the connection
+                powerLantern.setEnabled(false);
 
                 if (isChecked) {
                     activity.enableVPN();
                 } else {
+                    toggleSwitch(false);
                     activity.stopLantern();
                 }
+
+                // after 2000ms, enable the switch again
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        powerLantern.setEnabled(true);
+                    }
+                }, 2000);
+
             }
         });
     } 

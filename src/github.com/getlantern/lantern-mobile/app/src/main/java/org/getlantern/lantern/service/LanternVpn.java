@@ -6,9 +6,13 @@ import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+
 import org.getlantern.lantern.config.LanternConfig;
 import org.getlantern.lantern.model.Lantern;
 import org.getlantern.lantern.model.LanternUI;
+import org.getlantern.lantern.model.Utils;
 import org.getlantern.lantern.model.VpnBuilder;
 
 public class LanternVpn extends VpnBuilder implements Handler.Callback {
@@ -18,8 +22,6 @@ public class LanternVpn extends VpnBuilder implements Handler.Callback {
 
     private Handler mHandler;
     private Thread mThread;
-
-    public static LanternUI UI;
 
     private Lantern lantern = null;
 
@@ -77,8 +79,10 @@ public class LanternVpn extends VpnBuilder implements Handler.Callback {
                 try {
                     lantern = new Lantern(service);
                     lantern.start();
-                    Thread.sleep(3000);
-                    startVpn();
+
+                    Thread.sleep(2000);
+                    service.configure();
+
                 } catch (Exception uhe) {
                     Log.e(TAG, "Error starting Lantern with given host: " + uhe);
                 }
@@ -94,7 +98,12 @@ public class LanternVpn extends VpnBuilder implements Handler.Callback {
                 lantern = null;
             }
             Log.d(TAG, "Closing VPN interface and stopping Lantern..");
+            Utils.clearPreferences(this);
+
+            Thread.sleep(2000);
+
             super.close();
+
             mThread = null;
         } catch (Exception e) {
             Log.e(TAG, "Could not stop Lantern: " + e);
@@ -121,14 +130,4 @@ public class LanternVpn extends VpnBuilder implements Handler.Callback {
         }
         return true;
     }
-
-    private void startVpn() {
-        try {
-            super.configure();
-        } catch (Exception e) {
-            Log.e(TAG, "Error with VPN" + e);
-        }
-
-    }
-
 }

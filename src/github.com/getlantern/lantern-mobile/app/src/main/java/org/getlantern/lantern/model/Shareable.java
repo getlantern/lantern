@@ -58,6 +58,8 @@ public class Shareable {
         }
     }
 
+    // createCachedFile is used to copy the APK file to external storage
+    // to prevent issues GMail 5.0 security checks
     public static File createCachedFile(Context context, String fileName,
             File apkFile) throws IOException {
 
@@ -80,6 +82,8 @@ public class Shareable {
         return packageInfos != null && !packageInfos.isEmpty();
     }
 
+    // getAllInstalledApkFiles iterates through the list of apps installed
+    // and returns a map of package names mapped to absolute file locations
     private HashMap<String, String> getAllInstalledApkFiles(Context context) {
         HashMap<String, String> installedApkFilePaths = new HashMap<>();
 
@@ -114,9 +118,9 @@ public class Shareable {
         return installedApkFilePaths;
     }
 
-
-
-
+    // showOption is used to present the share intent
+    // we customize the apps shown (here limited to WhatsApp, Twitter, FB,
+    // Weibo, and the normal mail clients)
     public void showOption() {
 
         Intent emailIntent = new Intent();
