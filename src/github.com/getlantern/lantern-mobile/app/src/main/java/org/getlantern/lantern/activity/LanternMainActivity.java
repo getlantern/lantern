@@ -185,7 +185,6 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
                     if (service != null) {
                         service.setAction(LanternConfig.DISABLE_VPN);
                         startService(service);
-                        UI.toggleSwitch(false);
                     }
                 }
             };

@@ -7,7 +7,6 @@ import android.app.FragmentManager;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.Context;
-
 import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -450,11 +449,25 @@ public class LanternUI {
                     return;
                 }
 
+                // disable the on/off switch while the VpnService
+                // is updating the connection
+                powerLantern.setEnabled(false);
+
                 if (isChecked) {
                     activity.enableVPN();
                 } else {
+                    toggleSwitch(false);
                     activity.stopLantern();
                 }
+
+                // after 2000ms, enable the switch again
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        powerLantern.setEnabled(true);
+                    }
+                }, 2000);
+
             }
         });
     } 

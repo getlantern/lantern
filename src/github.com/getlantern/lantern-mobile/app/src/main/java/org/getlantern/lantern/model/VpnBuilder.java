@@ -35,20 +35,13 @@ public class VpnBuilder extends VpnService {
 
     public static LanternUI UI;
 
-    private final static String sessionName = "LanternVpn";
-    private final static String virtualNetMask = "255.255.255.0";
+    private final static String mSessionName = "LanternVpn";
+    private final static String mVirtualIP = "10.0.0.2";
+    private final static String mGateway = "10.0.0.1";
+    private final static String mNetMask = "255.255.255.0";
     private final static int VPN_MTU = 1500;
 
     private ParcelFileDescriptor mInterface;
-
-    private final static Map<String, Integer> prefixLengths = new HashMap<String, Integer>();
-    static
-    {
-        prefixLengths.put("10.0.0.0", 8);
-        prefixLengths.put("172.16.0.0", 12);
-        prefixLengths.put("192.168.0.0", 16);
-        prefixLengths.put("169.254.1.0", 24);
-    }
 
     public synchronized void configure() throws Exception {
 
@@ -58,20 +51,12 @@ public class VpnBuilder extends VpnService {
             return;
         }
 
-        String addressRange = getLocalHostLANRange();
-        Log.d(TAG, "Address range is " + addressRange);
-        String ipAddress = getNextIPV4Address(addressRange);
-        String routerAddress = getNextIPV4Address(ipAddress);
-        Log.d(TAG, "IP address is " + ipAddress);
-        Log.d(TAG, "Router address is " + routerAddress);
-
         // Configure a builder while parsing the parameters.
         Builder builder = new Builder();
         builder.setMtu(VPN_MTU);
         builder.addRoute("0.0.0.0", 0);
-        builder.addAddress(ipAddress, prefixLengths.get(addressRange));
-        builder.addRoute(addressRange, prefixLengths.get(addressRange));
-        builder.addDnsServer(routerAddress);
+        builder.addAddress(mGateway, 28);
+        builder.addDnsServer(mVirtualIP);
 
         // Close old VPN interface
         try {
@@ -81,21 +66,20 @@ public class VpnBuilder extends VpnService {
         }
 
         // Create a new interface using the builder and save the parameters.
-        mInterface = builder.setSession(sessionName)
+        mInterface = builder.setSession(mSessionName)
             .setConfigureIntent(mConfigureIntent)
             .establish();
 
         Log.i(TAG, "New interface: " + mInterface);
-
         Tun2Socks.Start(
                 mInterface,
                 VPN_MTU,
-                routerAddress,
-                virtualNetMask,
+                mVirtualIP,
+                mNetMask,
                 "127.0.0.1:" + String.valueOf(LanternConfig.SOCKS_PORT),
                 LanternConfig.UDPGW_SERVER,
                 true
-                );
+        );
     }
 
     public void close() throws Exception {
@@ -119,8 +103,6 @@ public class VpnBuilder extends VpnService {
         return dnsResolver;
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    // we use a Hidden API here only available in Android 4.0 and above
     private static Collection<InetAddress> getDnsResolvers(Context context)
             throws Exception {
         ArrayList<InetAddress> addresses = new ArrayList<InetAddress>();
@@ -157,48 +139,4 @@ public class VpnBuilder extends VpnService {
                 i >>   8 & 0xFF, i >>  0 & 0xFF);
     }
 
-    // getLocalHostLANRange iterates through the active network interfaces
-    // to identify the first available private IP address range
-    private static String getLocalHostLANRange() throws Exception {
-
-        Map<String, Boolean> addressRanges = new HashMap<String, Boolean>();
-        addressRanges.put("10.0.0.0", true);
-        addressRanges.put("172.16.0.0", true);
-        addressRanges.put("192.168.0.0", true);
-        addressRanges.put("169.254.1.0", true);
-
-        InetAddress candidateAddress = null;
-        // Iterate all NICs (network interface cards)...
-        for (Enumeration ifaces = NetworkInterface.getNetworkInterfaces(); ifaces.hasMoreElements();) {
-            NetworkInterface iface = (NetworkInterface) ifaces.nextElement();
-            // Iterate all IP addresses assigned to each card...
-            // to mark off unavailable address ranges
-            for (Enumeration inetAddrs = iface.getInetAddresses(); inetAddrs.hasMoreElements();) {
-                InetAddress inetAddr = (InetAddress) inetAddrs.nextElement();
-                String ipAddr = inetAddr.getHostAddress();
-                if (InetAddressUtils.isIPv4Address(ipAddr) && !inetAddr.isLoopbackAddress()) {
-                    if (ipAddr.startsWith("10.")) {
-                        addressRanges.remove("10.0.0.0");
-                    }
-                    else if (
-                            ipAddr.length() >= 6 &&
-                            ipAddr.substring(0, 6).compareTo("172.16") >= 0 &&
-                            ipAddr.substring(0, 6).compareTo("172.31") <= 0) {
-                        addressRanges.remove("172.16.0.0");
-                    }
-                    else if (ipAddr.startsWith("192.168")) {
-                        addressRanges.remove("192.168.0.0");
-                    }
-                }
-            }
-        }
-
-        for (Map.Entry<String, Boolean> entry : addressRanges.entrySet()) {
-            if (entry.getValue()) {
-                return entry.getKey();
-            }
-        }
-
-        throw new Exception("No available private address range");
-    }
 }

@@ -100,7 +100,10 @@ public class LanternVpn extends VpnBuilder implements Handler.Callback {
             Log.d(TAG, "Closing VPN interface and stopping Lantern..");
             Utils.clearPreferences(this);
 
+            Thread.sleep(2000);
+
             super.close();
+
             mThread = null;
         } catch (Exception e) {
             Log.e(TAG, "Could not stop Lantern: " + e);
