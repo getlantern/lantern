@@ -492,8 +492,7 @@ android-lib: docker-mobile
 	$(DOCKER) run -v $$PWD/src:/src $(DOCKER_MOBILE_IMAGE_TAG) /bin/bash -c " \
 		cd /src/github.com/getlantern/tunio && \
 		make clean && \
-		make docker-android-lib && \
-		cp lib/*.so /$(LANTERN_MOBILE_DIR)/app/libs/armeabi-v7a && \
+		make docker-android-libtun2io && \
 		cd /$(LANTERN_MOBILE_DIR)/lantern && \
 		gomobile bind -v -target=android -o=$(LANTERN_MOBILE_LIBRARY)" && \
 	cp -v $(LANTERN_MOBILE_DIR)/lantern/$(LANTERN_MOBILE_LIBRARY) $(LANTERN_MOBILE_DIR)/app/libs/$(LANTERN_MOBILE_LIBRARY) && \

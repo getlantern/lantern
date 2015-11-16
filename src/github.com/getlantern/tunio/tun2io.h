@@ -131,7 +131,6 @@ struct tcp_client {
 };
 
 static void terminate (void);
-static void signal_handler (void *unused);
 static BAddr baddr_from_lwip (int is_ipv6, const ipX_addr_t *ipx_addr, uint16_t port_hostorder);
 static void lwip_init_job_hadler (void *unused);
 static void tcp_timer_handler (void *unused);
@@ -193,5 +192,6 @@ static char charAt(char *in, int i);
 static unsigned int tcp_client_sndbuf(struct tcp_client *client);
 static int tcp_client_outbuf(struct tcp_client *client);
 static int process_device_udp_packet (uint8_t *data, int data_len);
+static void signal_handler (void *unused);
 
 #endif

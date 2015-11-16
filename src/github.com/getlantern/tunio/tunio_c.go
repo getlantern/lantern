@@ -10,14 +10,14 @@ import (
 )
 
 /*
-#cgo CFLAGS: -c -std=gnu99 -DCGO=1 -DBADVPN_THREAD_SAFE=0 -DBADVPN_LINUX -DBADVPN_BREACTOR_BADVPN -D_GNU_SOURCE -DBADVPN_USE_SELFPIPE -DBADVPN_USE_POLL -DBADVPN_LITTLE_ENDIAN -Ibadvpn -Ibadvpn/lwip/src/include/ipv4 -Ibadvpn/lwip/src/include/ipv6 -Ibadvpn/lwip/src/include -Ibadvpn/lwip/custom
-#cgo LDFLAGS: -ltun2io -L${SRCDIR}/lib/
+#cgo CFLAGS: -c -std=gnu99 -DCGO=1 -DBADVPN_THREAD_SAFE=0 -DBADVPN_LINUX -DBADVPN_BREACTOR_BADVPN -D_GNU_SOURCE -DBADVPN_USE_SELFPIPE -DBADVPN_USE_EPOLL -DBADVPN_LITTLE_ENDIAN -I${SRCDIR}/badvpn -I${SRCDIR}/badvpn/lwip/src/include/ipv4 -I${SRCDIR}/badvpn/lwip/src/include/ipv6 -I${SRCDIR}/badvpn/lwip/src/include -I${SRCDIR}/badvpn/lwip/custom
+#cgo LDFLAGS: -Wl,--as-needed -Wl,-Bstatic -ltun2io -L${SRCDIR}/lib/ -Wl,-Bdynamic -ldl
+
 
 static char charAt(char *in, int i) {
 	return in[i];
 }
 
-#include "tun2io.h"
 #include "tun2io.c"
 */
 import "C"
