@@ -3,8 +3,10 @@ package org.getlantern.lantern.activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.ComponentName;
-import android.content.Intent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo; 
 import android.content.res.Resources;
 import android.os.Build;
@@ -61,6 +63,14 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
+        // the ACTION_SHUTDOWN intent is broadcast when the phone is
+        // about to be shutdown. We register a receiver to make sure we
+        // clear the preferences and switch the VpnService to the off
+        // state when this happens
+        IntentFilter filter = new IntentFilter(Intent.ACTION_SHUTDOWN);
+        BroadcastReceiver mReceiver = new ShutDownReceiver();
+        registerReceiver(mReceiver, filter);
+
         if (getIntent().getBooleanExtra("EXIT", false)) {
             finish();
             return;
@@ -98,10 +108,8 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
     @Override
     protected void onDestroy() {
         try {
-            if (mPrefs != null) {
-                mPrefs.edit().remove(LanternConfig.PREF_USE_VPN);
-                mPrefs.edit().clear().commit();
-            }
+
+            clearPreferences(mPrefs);
             stopLantern();
             // give Lantern a second to stop
             Thread.sleep(1000);
@@ -111,13 +119,14 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         super.onDestroy();
     }
 
+    // quitLantern is the side menu option and cleanyl exits the app
     public void quitLantern() {
         try {
-            stopLantern();
-            if (mPrefs != null) {
-                mPrefs.edit().remove(LanternConfig.PREF_USE_VPN).commit();
-            }
             Log.d(TAG, "About to exit Lantern...");
+
+            stopLantern();
+            clearPreferences(mPrefs);
+
             // sleep for a few ms before exiting
             Thread.sleep(200);
 
@@ -125,7 +134,7 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
             moveTaskToBack(true);
 
         } catch (Exception e) {
-
+            Log.e(TAG, "Got an exception when quitting Lantern " + e.getMessage());
         }
     }
 
@@ -211,5 +220,20 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         UI.syncState();
+    }
+
+    private void clearPreferences(SharedPreferences mPrefs) {
+        if (mPrefs != null) {
+            mPrefs.edit().remove(LanternConfig.PREF_USE_VPN);
+            mPrefs.edit().clear().commit();
+        }
+    }
+
+    private class ShutDownReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            SharedPreferences mPrefs = getSharedPrefs(context);
+            clearPreferences(mPrefs);
+        }
     }
 }
