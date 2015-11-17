@@ -145,8 +145,8 @@ func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
 
 	// Create channels for the final response or error. The response channel will be filled
 	// in the case of any successful response as well as a non-error response for the second
-	// response received. The error channel will only be filled if the first response non-successful
-	// and the second is an error.
+	// response received. The error channel will only be filled if the first response is
+	// unsuccessful and the second is an error.
 	finalResponseCh := make(chan *http.Response, 1)
 	finalErrorCh := make(chan error, 1)
 
@@ -161,37 +161,41 @@ func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
 }
 
 func readResponses(finalResponse chan *http.Response, responses chan *http.Response, finalErr chan error, errs chan error) {
-	for i := 0; i < 2; i++ {
-		select {
-		case resp := <-responses:
-			if i == 1 {
-				log.Debug("Got second response -- sending")
-				finalResponse <- resp
-			} else if success(resp) {
-				log.Debug("Got good response")
-				finalResponse <- resp
-				select {
-				case <-responses:
-					log.Debug("Closing second response body")
-					_ = resp.Body.Close()
-					return
-				case <-errs:
-					log.Debug("Ignoring error on second response")
-					return
-				}
-			} else {
-				log.Debugf("Got bad first response -- wait for second")
-				// Note that the caller is responsible for closing the
-				// response body of the response they receive.
+	select {
+	case resp := <-responses:
+		if success(resp) {
+			log.Debug("Got good first response")
+			finalResponse <- resp
+
+			// Just ignore the second response, but still process it.
+			select {
+			case <-responses:
+				log.Debug("Closing second response body")
 				_ = resp.Body.Close()
+				return
+			case <-errs:
+				log.Debug("Ignoring error on second response")
+				return
 			}
-		case err := <-errs:
-			log.Debugf("Got an error: %v", err)
-			if i == 1 {
-				// In this case all requests have errored, so our final response
-				// is an error.
+		} else {
+			log.Debugf("Got bad first response -- wait for second")
+			_ = resp.Body.Close()
+			// Just use whatever we get from the second response.
+			select {
+			case resp := <-responses:
+				finalResponse <- resp
+			case err := <-errs:
 				finalErr <- err
 			}
+		}
+	case err := <-errs:
+		log.Debugf("Got an error: %v", err)
+		// Just use whatever we get from the second response.
+		select {
+		case resp := <-responses:
+			finalResponse <- resp
+		case err := <-errs:
+			finalErr <- err
 		}
 	}
 }
