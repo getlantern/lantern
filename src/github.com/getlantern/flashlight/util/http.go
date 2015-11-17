@@ -152,13 +152,11 @@ func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
 
 	go readResponses(finalResponseCh, responses, finalErrorCh, errs)
 
-	for {
-		select {
-		case resp := <-finalResponseCh:
-			return resp, nil
-		case err := <-finalErrorCh:
-			return nil, err
-		}
+	select {
+	case resp := <-finalResponseCh:
+		return resp, nil
+	case err := <-finalErrorCh:
+		return nil, err
 	}
 }
 
