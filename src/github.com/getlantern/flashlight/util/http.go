@@ -169,7 +169,7 @@ func readResponses(finalResponse chan *http.Response, responses chan *http.Respo
 
 			// Just ignore the second response, but still process it.
 			select {
-			case <-responses:
+			case resp := <-responses:
 				log.Debug("Closing second response body")
 				_ = resp.Body.Close()
 				return
