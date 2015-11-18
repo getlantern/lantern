@@ -46,12 +46,15 @@ public class Tunio
         mUdpgwServerAddress = udpgwServerAddress;
 
         if (mVpnInterfaceFileDescriptor != null) {
+            Log.d(TAG, "Calling ConfigureD");
             Client.ConfigureFD(
                     mVpnInterfaceFileDescriptor.detachFd(),
                     mVpnInterfaceMTU,
                     mVpnIpAddress,
                     mVpnNetMask,
                     mUdpgwServerAddress);
+        } else {
+            Log.d(TAG, "No interface desriptor.");
         }
     }
 

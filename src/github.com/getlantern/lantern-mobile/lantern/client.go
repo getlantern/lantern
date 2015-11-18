@@ -65,6 +65,7 @@ type tunSettings struct {
 var tunConfig *tunSettings
 
 func ConfigureFD(deviceFD, deviceMTU int, deviceIP, deviceMask, udpgwAddr string) {
+	log.Debugf("ConfigureFD")
 	tunConfig = &tunSettings{
 		deviceFD:   deviceFD,
 		deviceMTU:  deviceMTU,
@@ -72,27 +73,25 @@ func ConfigureFD(deviceFD, deviceMTU int, deviceIP, deviceMask, udpgwAddr string
 		deviceMask: deviceMask,
 		udpgwAddr:  udpgwAddr,
 	}
+	log.Debugf("%#v", tunConfig)
+	startTunIO()
 }
 
 func ConfigureTUN(deviceName, deviceIP, deviceMask, udpgwAddr string) {
+	log.Debugf("ConfigureTUN")
 	tunConfig = &tunSettings{
 		deviceName: deviceName,
 		deviceIP:   deviceIP,
 		deviceMask: deviceMask,
 		udpgwAddr:  udpgwAddr,
 	}
+	startTunIO()
 }
 
-// newClient creates a proxy client.
-func newClient(addr, appName string, androidProps map[string]string) *mobileClient {
-
-	c := &client.Client{
-		Addr:         addr,
-		ReadTimeout:  0, // don't timeout
-		WriteTimeout: 0,
-	}
-
+func startTunIO() {
+	log.Debug("startTunIO")
 	if tunConfig != nil {
+		log.Debug("A TUN device is configured, let's try to use it...")
 		// Configuring proxy.
 		go func(c *client.Client) {
 			fn := func(proto, addr string) (net.Conn, error) {
@@ -104,17 +103,28 @@ func newClient(addr, appName string, androidProps map[string]string) *mobileClie
 				return c.GetBalancer().Dial(proto, addr)
 			}
 
-			log.Debug("A TUN device is configured, let's try to use it...")
 			if tunConfig.deviceFD > 0 {
+				log.Debug("tunio: with file descriptor.")
 				if err := tunio.ConfigureFD(tunConfig.deviceFD, tunConfig.deviceMTU, tunConfig.deviceIP, tunConfig.deviceMask, tunConfig.udpgwAddr, fn); err != nil {
 					log.Debugf("Failed to configure tun device (fd): %q", err)
 				}
 			} else {
+				log.Debug("tunio: with device name.")
 				if err := tunio.ConfigureTUN(tunConfig.deviceName, tunConfig.deviceIP, tunConfig.deviceMask, tunConfig.udpgwAddr, fn); err != nil {
 					log.Debugf("Failed to configure tun device: %q", err)
 				}
 			}
-		}(c)
+		}(defaultClient.Client)
+	}
+}
+
+// newClient creates a proxy client.
+func newClient(addr, appName string, androidProps map[string]string) *mobileClient {
+
+	c := &client.Client{
+		Addr:         addr,
+		ReadTimeout:  0, // don't timeout
+		WriteTimeout: 0,
 	}
 
 	c.Configure(clientConfig.Client)

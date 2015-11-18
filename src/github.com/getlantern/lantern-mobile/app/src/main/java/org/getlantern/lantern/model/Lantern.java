@@ -46,11 +46,14 @@ public class Lantern extends Client.SocketProvider.Stub {
         this.callback = new Client.GoCallback.Stub() {
 
             public String GetDnsServer() {
+                return DEFAULT_DNS_SERVER;
+                /*
                 try {
                     return service.getDnsResolver(service);
                 } catch (Exception e) {
                     return DEFAULT_DNS_SERVER;
                 }
+                */
             }
 
             public void AfterStart() {

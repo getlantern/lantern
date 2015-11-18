@@ -60,7 +60,9 @@ public class VpnBuilder extends VpnService {
         builder.setMtu(VPN_MTU);
         builder.addRoute("0.0.0.0", 0);
         builder.addAddress(mGateway, 28);
-        builder.addDnsServer(mVirtualIP);
+        builder.addDnsServer("8.8.8.8");
+        builder.addDnsServer("8.8.4.4");
+
 
         // Close old VPN interface
         try {
@@ -96,7 +98,8 @@ public class VpnBuilder extends VpnService {
                     VPN_MTU,
                     mVirtualIP,
                     mNetMask,
-                    LanternConfig.UDPGW_SERVER);
+                    LanternConfig.UDPGW_SERVER
+            );
         }
     }
 
