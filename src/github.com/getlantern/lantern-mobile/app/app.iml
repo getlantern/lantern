@@ -100,8 +100,8 @@
     <orderEntry type="library" exported="" name="gson-2.2.2" level="project" />
     <orderEntry type="library" exported="" name="appcompat-v7-22.0.0" level="project" />
     <orderEntry type="library" exported="" name="libflashlight-" level="project" />
-    <orderEntry type="library" exported="" name="commons-io-1.3.2" level="project" />
     <orderEntry type="library" exported="" name="lutung-0.0.6" level="project" />
+    <orderEntry type="library" exported="" name="commons-io-1.3.2" level="project" />
     <orderEntry type="library" exported="" name="slf4j-android-1.7.7" level="project" />
     <orderEntry type="library" exported="" name="play-services-analytics-7.0.0" level="project" />
   </component>
