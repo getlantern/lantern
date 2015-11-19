@@ -109,6 +109,10 @@ typedef struct {
   int udpgw_max_connections;
   int udpgw_connection_buffer_size;
   int udpgw_transparent_dns;
+
+  int tun_fd;
+  int tun_mtu;
+  int set_signal;
 } options_t;
 
 options_t options;
@@ -127,7 +131,6 @@ struct tcp_client {
 };
 
 static void terminate (void);
-static void signal_handler (void *unused);
 static BAddr baddr_from_lwip (int is_ipv6, const ipX_addr_t *ipx_addr, uint16_t port_hostorder);
 static void lwip_init_job_hadler (void *unused);
 static void tcp_timer_handler (void *unused);
@@ -153,7 +156,12 @@ static err_t client_sent_func (void *arg, struct tcp_pcb *tpcb, u16_t len);
 static void udpgw_client_handler_received (void *unused, BAddr local_addr, BAddr remote_addr, const uint8_t *data, int data_len);
 
 static int setup_listener(options_t);
-static int configure(char *tundev, char *ipaddr, char *netmask, char *udpgw_addr);
+
+static int configure_defaults();
+static int configure_commit();
+static int configure_tun(char *tundev, char *ipaddr, char *netmask, char *udpgw_addr);
+static int configure_fd(int tun_fd, int tun_mtu, char *ipaddr, char *netmask, char *udpgw_addr);
+
 static char *baddr_to_str(BAddr *baddr);
 
 uint32_t goNewTunnel(struct tcp_client *client);
@@ -184,5 +192,6 @@ static char charAt(char *in, int i);
 static unsigned int tcp_client_sndbuf(struct tcp_client *client);
 static int tcp_client_outbuf(struct tcp_client *client);
 static int process_device_udp_packet (uint8_t *data, int data_len);
+static void signal_handler (void *unused);
 
 #endif

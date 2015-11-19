@@ -78,9 +78,7 @@ struct tcp_pcb *listener;
 // lwip TCP/IPv6 listener
 struct tcp_pcb *listener_ip6;
 
-static int configure(char *tundev, char *ipaddr, char *netmask, char *udpgw_addr)
-{
-  // open standard streams
+static int configure_defaults() {
   open_standard_streams();
 
   // parse command-line arguments
@@ -90,11 +88,11 @@ static int configure(char *tundev, char *ipaddr, char *netmask, char *udpgw_addr
   options.logger_syslog_ident = "tun2io";
   #endif
 
-  options.loglevel = -1;
+  options.tun_fd = 0;
+  options.tun_mtu = 0;
+  options.udpgw_remote_server_addr = NULL;
 
-  options.tundev = tundev;
-  options.netif_ipaddr = ipaddr;
-  options.netif_netmask = netmask;
+  options.loglevel = -1;
 
   // initialize logger
   switch (options.logger) {
@@ -114,6 +112,10 @@ static int configure(char *tundev, char *ipaddr, char *netmask, char *udpgw_addr
       ASSERT(0);
   }
 
+  return 0;
+}
+
+static int configure_commit() {
   // resolve netif ipaddr
   if (!BIPAddr_Resolve(&netif_ipaddr, options.netif_ipaddr, 0)) {
     BLog(BLOG_ERROR, "netif ipaddr: BIPAddr_Resolve failed");
@@ -142,7 +144,6 @@ static int configure(char *tundev, char *ipaddr, char *netmask, char *udpgw_addr
     }
   }
 
-  options.udpgw_remote_server_addr = udpgw_addr;
   options.udpgw_max_connections = DEFAULT_UDPGW_MAX_CONNECTIONS;
   options.udpgw_connection_buffer_size = DEFAULT_UDPGW_CONNECTION_BUFFER_SIZE;
   options.udpgw_transparent_dns = 0;
@@ -154,6 +155,34 @@ static int configure(char *tundev, char *ipaddr, char *netmask, char *udpgw_addr
       return 0;
     }
   }
+
+  return 1;
+}
+
+static int configure_fd(int tun_fd, int tun_mtu, char *ipaddr, char *netmask, char *udpgw_addr) {
+  configure_defaults();
+
+  options.tun_fd = tun_fd;
+  options.tun_mtu = tun_mtu;
+  options.netif_ipaddr = ipaddr;
+  options.netif_netmask = netmask;
+  options.udpgw_remote_server_addr = udpgw_addr;
+
+  configure_commit();
+
+  return setup_listener(options);
+}
+
+static int configure_tun(char *tundev, char *ipaddr, char *netmask, char *udpgw_addr)
+{
+  configure_defaults();
+
+  options.tundev = tundev;
+  options.netif_ipaddr = ipaddr;
+  options.netif_netmask = netmask;
+  options.udpgw_remote_server_addr = udpgw_addr;
+
+  configure_commit();
 
   return setup_listener(options);
 }
@@ -189,11 +218,20 @@ static int setup_listener (options_t options)
     return 1;
   }
 
-  // init TUN device
-  if (!BTap_Init(&device, &ss, options.tundev, device_error_handler, NULL, 1)) {
-    BLog(BLOG_ERROR, "BTap_Init failed");
-    BSignal_Finish();
-    return 1;
+  if (options.tun_fd > 0) {
+    // use supplied file descriptor.
+    if (!BTap_InitWithFD(&device, &ss, options.tun_fd, options.tun_mtu, device_error_handler, NULL, 1)) {
+      BLog(BLOG_ERROR, "BTap_InitWithFD failed");
+      BSignal_Finish();
+      return 1;
+    }
+  } else {
+    // init TUN device
+    if (!BTap_Init(&device, &ss, options.tundev, device_error_handler, NULL, 1)) {
+      BLog(BLOG_ERROR, "BTap_Init failed");
+      BSignal_Finish();
+      return 1;
+    }
   }
 
   // NOTE: the order of the following is important:

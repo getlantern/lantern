@@ -13,7 +13,6 @@ import (
 )
 
 /*
-#include "tun2io.h"
 #include "tun2io.c"
 */
 import "C"
