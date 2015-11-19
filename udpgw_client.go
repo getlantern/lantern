@@ -11,7 +11,6 @@ import (
 )
 
 /*
-#include "tun2io.h"
 #include "tun2io.c"
 */
 import "C"
@@ -171,6 +170,7 @@ func udpgwReaderService() error {
 func udpgwWriterService() error {
 	for message := range udpgwMessageOut {
 		for {
+			log.Printf("udpgw: do write")
 			// Get conn from pool.
 			c := udpgwGetConnFromPool()
 			// Attempt to write.
@@ -259,6 +259,7 @@ func (c *udpgwConn) reader() error {
 	for {
 		head := make([]byte, 2)
 		n, err := c.Read(head)
+		log.Printf("udpgw: got read")
 		if err != nil {
 			log.Printf("c.Read: %q", err)
 			return err

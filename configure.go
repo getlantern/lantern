@@ -2,6 +2,7 @@ package tunio
 
 import (
 	"errors"
+	"log"
 	"math/rand"
 	"net"
 	"sync"
@@ -10,7 +11,6 @@ import (
 )
 
 /*
-#include "tun2io.h"
 #include "tun2io.c"
 */
 import "C"
@@ -66,9 +66,9 @@ const (
 	StatusClosed                         // 7
 )
 
-// Configure sets up the tundevice, this is equivalent to the badvpn-tun2socks
-// configuration, except for the --socks-server-addr.
-func Configure(tundev, ipaddr, netmask, udpgw string, d dialer) error {
+// ConfigureTUN sets up the tun device, this is equivalent to the
+// badvpn-tun2socks configuration, except for the --socks-server-addr.
+func ConfigureTUN(tundev, ipaddr, netmask, udpgw string, d dialer) error {
 	if d == nil {
 		d = dummyDialer
 	}
@@ -88,7 +88,39 @@ func Configure(tundev, ipaddr, netmask, udpgw string, d dialer) error {
 		C.free(unsafe.Pointer(cudpgw_addr))
 	}()
 
-	if err_t := C.configure(ctundev, cipaddr, cnetmask, cudpgw_addr); err_t != C.ERR_OK {
+	log.Printf("Configuring with TUN device...")
+
+	if err_t := C.configure_tun(ctundev, cipaddr, cnetmask, cudpgw_addr); err_t != C.ERR_OK {
+		return errors.New("Failed to configure device.")
+	}
+
+	return nil
+}
+
+// ConfigureFD sets up the tun device using a file descriptor.
+func ConfigureFD(tunFd int, tunMTU int, ipaddr, netmask, udpgw string, d dialer) error {
+	if d == nil {
+		d = dummyDialer
+	}
+
+	Dialer = d
+	udpGwServerAddress = udpgw
+
+	ctunFd := C.int(tunFd)
+	ctunMTU := C.int(tunMTU)
+	cipaddr := C.CString(ipaddr)
+	cnetmask := C.CString(netmask)
+	cudpgw_addr := C.CString(udpgw)
+
+	defer func() {
+		C.free(unsafe.Pointer(cipaddr))
+		C.free(unsafe.Pointer(cnetmask))
+		C.free(unsafe.Pointer(cudpgw_addr))
+	}()
+
+	log.Printf("Configuring with file descriptor...")
+
+	if err_t := C.configure_fd(ctunFd, ctunMTU, cipaddr, cnetmask, cudpgw_addr); err_t != C.ERR_OK {
 		return errors.New("Failed to configure device.")
 	}
 
