@@ -168,20 +168,25 @@ func udpgwReaderService() error {
 }
 
 func udpgwWriterService() error {
+	var err error
 	for message := range udpgwMessageOut {
 		for {
 			log.Printf("udpgw: do write")
 			// Get conn from pool.
 			c := udpgwGetConnFromPool()
-			// Attempt to write.
-			_, err := c.Write(message)
-			if err == nil {
-				break
+			if c != nil {
+				// Attempt to write.
+				_, err = c.Write(message)
+				if err == nil {
+					break
+				}
+				log.Printf("udpgwWriterService")
+				c.Close()
+			} else {
+				err = errors.New("No connections in pool.")
 			}
-			log.Printf("udpgwWriterService")
-			c.Close()
 			time.Sleep(udpgwRetryTimeout)
-			log.Printf("w.Write: %q", err)
+			log.Printf("Could not write UDP message: %q", err)
 		}
 	}
 	return nil

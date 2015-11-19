@@ -65,7 +65,7 @@ func main() {
 	flag.Parse()
 
 	log.Printf("Configuring device %q (ipaddr: %q, netmask: %q)", *deviceName, *deviceIP, *deviceMask)
-	if err := tunio.Configure(*deviceName, *deviceIP, *deviceMask, *udpgwAddr, LanternDialer); err != nil {
+	if err := tunio.ConfigureTUN(*deviceName, *deviceIP, *deviceMask, *udpgwAddr, LanternDialer); err != nil {
 		log.Fatalf("Failed to configure device: %q", err)
 	}
 }
