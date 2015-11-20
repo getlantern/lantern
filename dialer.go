@@ -3,7 +3,6 @@ package tunio
 import (
 	"bufio"
 	"errors"
-	"log"
 	"net"
 	"net/http"
 	"time"
@@ -14,14 +13,18 @@ var (
 	keepAlive = time.Second * 120
 )
 
-func NewLanternDialer(proxyAddr string) func(proto, addr string) (net.Conn, error) {
-	return func(proto, addr string) (net.Conn, error) {
+type dialerFn func(proto, addr string) (net.Conn, error)
+
+func NewLanternDialer(proxyAddr string, dial dialerFn) dialerFn {
+	if dial == nil {
 		d := net.Dialer{
 			Timeout:   timeout,
 			KeepAlive: keepAlive,
 		}
-
-		conn, err := d.Dial("tcp", proxyAddr)
+		dial = d.Dial
+	}
+	return func(proto, addr string) (net.Conn, error) {
+		conn, err := dial("tcp", proxyAddr)
 		if err != nil {
 			return nil, err
 		}
@@ -43,11 +46,8 @@ func NewLanternDialer(proxyAddr string) func(proto, addr string) (net.Conn, erro
 		}
 
 		if resp.StatusCode >= 200 && resp.StatusCode <= 299 {
-			log.Printf("Dialing %q through Lantern...", addr)
 			return conn, nil
 		}
-
-		log.Printf("Status code %v.", resp.StatusCode)
 
 		return nil, errors.New("Could not connect to Lantern.")
 	}
