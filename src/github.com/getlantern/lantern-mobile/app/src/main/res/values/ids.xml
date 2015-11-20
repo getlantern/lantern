@@ -5,4 +5,5 @@
     <item name="toast_on" type="id"/>
     <item name="toast_off" type="id"/>
     <item name="editbox_shape" type="id"/>
+    <item name="update_available" type="id"/>
 </resources>
