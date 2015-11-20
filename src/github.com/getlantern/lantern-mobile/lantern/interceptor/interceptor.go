@@ -21,6 +21,7 @@ import (
 var (
 	ErrTooManyFailures = errors.New("Too many connection failures")
 	ErrNoSocksProxy    = errors.New("Unable to start local SOCKS proxy")
+	ErrDialTimeout     = errors.New("Error dialing tunnel: timeout")
 )
 
 var (
@@ -186,8 +187,7 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (*InterceptedConn, e
 
 	resultCh := make(chan *dialResult, 2)
 	time.AfterFunc(dialTimeout, func() {
-		resultCh <- &dialResult{nil,
-			errors.New("dial timeout to tunnel")}
+		resultCh <- &dialResult{nil, ErrDialTimeout}
 	})
 
 	go func() {
@@ -195,7 +195,11 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (*InterceptedConn, e
 		// tlsdialer has been modified to dial a protected connection
 		// whenever the detected OS is Android
 		balancer := i.client.GetBalancer()
-		forwardConn, err := balancer.Dial("connect", addr)
+		proto := "tcp"
+		if port != 80 {
+			proto = "connect"
+		}
+		forwardConn, err := balancer.Dial(proto, addr)
 		if err != nil {
 			log.Debugf("Could not connect: %v", err)
 			resultCh <- &dialResult{nil, err}
