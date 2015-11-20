@@ -6,6 +6,7 @@ import (
 
 	"github.com/getlantern/analytics"
 	"github.com/getlantern/flashlight/client"
+	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/logging"
 	"github.com/getlantern/flashlight/util"
 
@@ -79,6 +80,9 @@ func (client *mobileClient) afterSetup() {
 	go client.updateConfig()
 
 	analytics.Configure("", trackingCodes[client.appName], "", client.Client.Addr)
+
+	geolookup.Start()
+
 	logging.ConfigureAndroid(logglyToken, logglyTag, client.androidProps)
 	logging.Configure(client.Client.Addr, cloudConfigCA, instanceId, version, revisionDate)
 }
