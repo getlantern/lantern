@@ -9,6 +9,7 @@ import (
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/logging"
 	"github.com/getlantern/flashlight/util"
+	"github.com/getlantern/lantern-mobile/lantern/protected"
 
 	"github.com/getlantern/golog"
 	"github.com/getlantern/tunio"
@@ -16,6 +17,8 @@ import (
 
 const (
 	cloudConfigPollInterval = time.Second * 60
+	//lanterProxyFixedAddress = "10.0.0.92:8787"
+	lanterProxyFixedAddress = "" // the address of a lantern server, for testing locally.
 )
 
 // clientConfig holds global configuration settings for all clients.
@@ -31,7 +34,6 @@ var (
 		"FireTweet": "UA-21408036-4",
 		"Lantern":   "UA-21815217-14",
 	}
-
 	defaultClient *mobileClient
 )
 
@@ -50,7 +52,6 @@ func init() {
 	if revisionDate == "" {
 		revisionDate = "now"
 	}
-
 }
 
 type tunSettings struct {
@@ -94,13 +95,20 @@ func startTunIO() {
 		log.Debug("A TUN device is configured, let's try to use it...")
 		// Configuring proxy.
 		go func(c *client.Client) {
-			fn := func(proto, addr string) (net.Conn, error) {
-				_, port, _ := net.SplitHostPort(addr)
-				if port != "80" {
-					proto = "connect"
+			var fn func(proto, addr string) (net.Conn, error)
+
+			if lanterProxyFixedAddress == "" {
+				fn = func(proto, addr string) (net.Conn, error) {
+					_, port, _ := net.SplitHostPort(addr)
+					if port != "80" {
+						proto = "connect"
+					}
+					log.Debugf("tunio: %s://%s", proto, addr)
+					return c.GetBalancer().Dial(proto, addr)
 				}
-				log.Debugf("tunio: %s://%s", proto, addr)
-				return c.GetBalancer().Dial(proto, addr)
+			} else {
+				log.Debugf("Creating Lantern Dialer at %s", lanterProxyFixedAddress)
+				fn = tunio.NewLanternDialer(lanterProxyFixedAddress, protected.Dial)
 			}
 
 			if tunConfig.deviceFD > 0 {

@@ -32,7 +32,7 @@ import org.getlantern.lantern.android.vpn.Tunio;
 
 public class VpnBuilder extends VpnService {
 
-    public static boolean USE_LANTERN_SOCKS = false;
+    public static boolean USE_LANTERN_SOCKS = true;
 
     private static final String TAG = "VpnBuilder";
     private PendingIntent mConfigureIntent;

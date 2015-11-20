@@ -154,7 +154,7 @@ func goTunnelSentACK(tunno C.uint32_t, dlen C.u16_t) C.int {
 		return C.ERR_ABRT
 	}
 
-	t.client.accAcked(uint64(dlen))
+	t.client.accAcked(uint32(dlen))
 
 	// Now that the client ACKed a few packages we might be able to continue
 	// writing.

@@ -59,7 +59,7 @@ func Configure(protector SocketProtector, dnsServer string) {
 // - syscall API calls are used to create and bind to the
 //   specified system device (this is primarily
 //   used for Android VpnService routing functionality)
-func Dial(network, addr string) (*ProtectedConn, error) {
+func Dial(network, addr string) (net.Conn, error) {
 	host, port, err := SplitHostPort(addr)
 	if err != nil {
 		return nil, err

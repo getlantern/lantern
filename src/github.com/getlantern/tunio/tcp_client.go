@@ -17,27 +17,27 @@ type tcpClient struct {
 	client *C.struct_tcp_client
 	mu     sync.Mutex
 
-	written uint64
-	acked   uint64
+	written uint32
+	acked   uint32
 
 	buf  Buffer
-	logn uint64
+	logn uint32
 }
 
 func (t *tcpClient) flushed() bool {
-	return atomic.AddUint64(&t.written, 0) == atomic.AddUint64(&t.acked, 0)
+	return atomic.AddUint32(&t.written, 0) == atomic.AddUint32(&t.acked, 0)
 }
 
-func (t *tcpClient) accWritten(i uint64) uint64 {
-	return atomic.AddUint64(&t.written, i)
+func (t *tcpClient) accWritten(i uint32) uint32 {
+	return atomic.AddUint32(&t.written, i)
 }
 
-func (t *tcpClient) accAcked(i uint64) uint64 {
-	return atomic.AddUint64(&t.acked, i)
+func (t *tcpClient) accAcked(i uint32) uint32 {
+	return atomic.AddUint32(&t.acked, i)
 }
 
 func (t *tcpClient) log(f string, args ...interface{}) {
-	f = fmt.Sprintf("%d: (%04d) %s", t.tunnelID(), atomic.AddUint64(&t.logn, 1), f)
+	f = fmt.Sprintf("%d: (%04d) %s", t.tunnelID(), atomic.AddUint32(&t.logn, 1), f)
 	log.Printf(f, args...)
 }
 
@@ -60,7 +60,7 @@ func (t *tcpClient) tcpWrite(chunk []byte) error {
 
 	switch err_t {
 	case C.ERR_OK:
-		t.accWritten(uint64(clen))
+		t.accWritten(uint32(clen))
 		return nil
 	case C.ERR_MEM:
 		return errBufferIsFull
