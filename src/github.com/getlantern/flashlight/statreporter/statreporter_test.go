@@ -6,12 +6,10 @@ import (
 	"time"
 
 	"github.com/getlantern/testify/assert"
-
-	"github.com/getlantern/flashlight/globals"
 )
 
 func TestAll(t *testing.T) {
-	globals.InstanceId = "testinstance"
+	id := "testinstance"
 
 	// Set up fake statshub
 	reportCh := make(chan report)
@@ -28,7 +26,7 @@ func TestAll(t *testing.T) {
 			reportCh <- r
 		}()
 		return nil
-	})
+	}, id)
 	if err != nil {
 		t.Fatalf("Unable to configure statreporter: %s", err)
 	}
@@ -54,7 +52,7 @@ func TestAll(t *testing.T) {
 			reportCh <- r
 		}()
 		return nil
-	})
+	}, id)
 	if err != nil {
 		t.Fatalf("Unable to reconfigure reporting: %v", err)
 	}

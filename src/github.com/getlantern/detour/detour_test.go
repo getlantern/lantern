@@ -33,7 +33,7 @@ func TestTampering(t *testing.T) {
 	client := newClient(proxiedURL, 100*time.Millisecond)
 	resp, err := client.Get("http://255.0.0.1") // it's reserved for future use so will always time out
 	if assert.NoError(t, err, "should have no error when dial a timeout host") {
-		time.Sleep(50 * time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
 		assert.True(t, wlTemporarily("255.0.0.1:80"), "should be added to whitelist if dialing times out")
 		assertContent(t, resp, detourMsg, "should detour if dialing times out")
 	}

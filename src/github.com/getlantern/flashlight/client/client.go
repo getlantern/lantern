@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/getlantern/balancer"
+	"github.com/getlantern/flashlight/settings"
 	"github.com/getlantern/golog"
 )
 
@@ -96,8 +97,8 @@ func (client *Client) Configure(cfg *ClientConfig) {
 
 	log.Debugf("Requiring minimum QOS of %d", cfg.MinQOS)
 	client.MinQOS = cfg.MinQOS
-	log.Debugf("Proxy all traffic or not: %v", cfg.ProxyAll)
-	client.ProxyAll = cfg.ProxyAll
+	log.Debugf("Proxy all traffic or not: %v", settings.GetProxyAll())
+	client.ProxyAll = settings.GetProxyAll()
 
 	client.initBalancer(cfg)
 

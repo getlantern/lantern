@@ -148,4 +148,52 @@ var cloudfrontMasquerades = []*fronted.Masquerade{
 		Domain:    "a-ritani.com",
 		IpAddress: "54.192.0.2",
 	},
+	&fronted.Masquerade{
+		Domain:    "1stmd.com",
+		IpAddress: "54.239.130.35",
+	},
+	&fronted.Masquerade{
+		Domain:    "1stmd.com",
+		IpAddress: "54.182.0.126",
+	},
+	&fronted.Masquerade{
+		Domain:    "1stmd.com",
+		IpAddress: "54.192.8.22",
+	},
+	&fronted.Masquerade{
+		Domain:    "1stmd.com",
+		IpAddress: "54.230.5.126",
+	},
+	&fronted.Masquerade{
+		Domain:    "1stmd.com",
+		IpAddress: "216.137.39.49",
+	},
+	&fronted.Masquerade{
+		Domain:    "254a.com",
+		IpAddress: "216.137.41.204",
+	},
+	&fronted.Masquerade{
+		Domain:    "254a.com",
+		IpAddress: "54.230.13.59",
+	},
+	&fronted.Masquerade{
+		Domain:    "254a.com",
+		IpAddress: "54.192.0.202",
+	},
+	&fronted.Masquerade{
+		Domain:    "254a.com",
+		IpAddress: "54.192.9.2",
+	},
+	&fronted.Masquerade{
+		Domain:    "254a.com",
+		IpAddress: "54.182.0.226",
+	},
+	&fronted.Masquerade{
+		Domain:    "254a.com",
+		IpAddress: "54.192.6.130",
+	},
+	&fronted.Masquerade{
+		Domain:    "2u.com",
+		IpAddress: "54.182.0.241",
+	},
 }

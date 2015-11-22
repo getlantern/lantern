@@ -9,6 +9,7 @@ import (
 
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/pubsub"
+	"github.com/getlantern/flashlight/settings"
 	"github.com/getlantern/flashlight/util"
 
 	"github.com/getlantern/golog"
@@ -23,16 +24,25 @@ var (
 	log = golog.LoggerFor("flashlight.analytics")
 )
 
-func Configure(cfg *config.Config, version string) {
-	if cfg.AutoReport != nil && *cfg.AutoReport {
+func Configure(cfg *config.Config, version string) func() {
+	if settings.IsAutoReport() {
+		addr := ""
 		pubsub.Sub(pubsub.IP, func(ip string) {
 			log.Debugf("Got IP %v -- starting analytics", ip)
-			go trackSession(ip, version, cfg.Addr, cfg.InstanceId)
+			addr = ip
+			go startSession(ip, version, cfg.Addr, settings.GetInstanceID())
 		})
+		return func() {
+			if addr != "" {
+				log.Debugf("Ending analytics session with ip %v", addr)
+				endSession(addr, version, cfg.Addr, settings.GetInstanceID())
+			}
+		}
 	}
+	return func() {}
 }
 
-func trackSession(ip string, version string, proxyAddr string, clientId string) {
+func sessionVals(ip, version, clientId, sc string) string {
 	vals := make(url.Values, 0)
 
 	vals.Add("v", "1")
@@ -52,8 +62,24 @@ func trackSession(ip string, version string, proxyAddr string, clientId string) 
 	// Custom variable for the Lantern version
 	vals.Add("cd1", version)
 
-	args := vals.Encode()
+	// This forces the recording of the session duration. It must be either
+	// "start" or "end". See:
+	// https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters
+	vals.Add("sc", sc)
+	return vals.Encode()
+}
 
+func endSession(ip, version, proxyAddr, clientId string) {
+	args := sessionVals(ip, version, clientId, "end")
+	trackSession(args, proxyAddr)
+}
+
+func startSession(ip, version, proxyAddr, clientId string) {
+	args := sessionVals(ip, version, clientId, "start")
+	trackSession(args, proxyAddr)
+}
+
+func trackSession(args, proxyAddr string) {
 	r, err := http.NewRequest("POST", ApiEndpoint, bytes.NewBufferString(args))
 
 	if err != nil {
