@@ -12,8 +12,9 @@ import (
 	"time"
 
 	"github.com/getlantern/flashlight/client"
+	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/golog"
-	"github.com/getlantern/lantern-mobile/lantern/protected"
+
 	socks "github.com/getlantern/lantern-mobile/lantern/socks"
 )
 
@@ -28,16 +29,10 @@ var (
 	dialTimeout = 20 * time.Second
 	// threshold of errors that we are withstanding
 	maxErrCount = 15
+	cf          = util.NewChainedAndFronted()
 	// how often to print stats of current interceptor
 	statsInterval = 15 * time.Second
 	log           = golog.LoggerFor("lantern-android.interceptor")
-
-	allowedPorts = map[int]bool{
-		80:   true,
-		443:  true,
-		53:   true,
-		7300: true,
-	}
 )
 
 // Interceptor intercepts traffic on a VPN interface
@@ -158,32 +153,12 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (*InterceptedConn, e
 		return nil, errors.New("tunnel is closed")
 	}
 
-	_, port, err := protected.SplitHostPort(addr)
-	if err != nil {
-		return nil, err
-	}
-
 	id := fmt.Sprintf("%s:%s", localConn.LocalAddr(), addr)
 	log.Debugf("Got a new connection: %s", id)
 
 	// if we get a request on an unsupported port
 	// we just make a direct request but protect/bypass
 	// the connection from the VpnService first
-	if !allowedPorts[port] {
-		log.Debugf("Dialing direct request to %s", addr)
-		dConn, err := protected.Dial("tcp", addr)
-		if err != nil {
-			log.Debugf("Error dialing direct request: %v", err)
-			return nil, err
-		}
-		conn := &InterceptedConn{
-			Conn:        dConn,
-			id:          id,
-			interceptor: i,
-			localConn:   localConn,
-		}
-		return conn, nil
-	}
 
 	resultCh := make(chan *dialResult, 2)
 	time.AfterFunc(dialTimeout, func() {
@@ -194,12 +169,7 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (*InterceptedConn, e
 		// retrieve balancer and dial the given address
 		// tlsdialer has been modified to dial a protected connection
 		// whenever the detected OS is Android
-		balancer := i.client.GetBalancer()
-		proto := "tcp"
-		if port != 80 {
-			proto = "connect"
-		}
-		forwardConn, err := balancer.Dial(proto, addr)
+		forwardConn, err := i.client.GetBalancer().Dial("connect", addr)
 		if err != nil {
 			log.Debugf("Could not connect: %v", err)
 			resultCh <- &dialResult{nil, err}

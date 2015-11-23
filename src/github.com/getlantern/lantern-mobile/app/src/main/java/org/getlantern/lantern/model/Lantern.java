@@ -1,5 +1,7 @@
 package org.getlantern.lantern.model;
 
+import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 
 import java.net.InetAddress;
@@ -9,6 +11,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import go.client.*;
+import org.getlantern.lantern.activity.UpdaterActivity;
 import org.getlantern.lantern.model.Analytics;
 import org.getlantern.lantern.service.LanternVpn;
 import org.getlantern.lantern.config.LanternConfig;
@@ -20,6 +23,7 @@ public class Lantern extends Client.SocketProvider.Stub {
     final private Analytics analytics;
 
     private String device, model, version;
+    private Context context;
 
     private final static String DEFAULT_DNS_SERVER = "8.8.4.4";
 
@@ -27,7 +31,8 @@ public class Lantern extends Client.SocketProvider.Stub {
 
     public Lantern(LanternVpn service) {
         this.service = service;
-        this.analytics = new Analytics(service.getApplicationContext());
+        this.context = service.getApplicationContext();
+        this.analytics = new Analytics(this.context);
         this.setupCallbacks();
         this.device = android.os.Build.DEVICE;
         this.model = android.os.Build.MODEL;
@@ -52,7 +57,7 @@ public class Lantern extends Client.SocketProvider.Stub {
                 }
             }
 
-            public void AfterStart() {
+            public void AfterStart(String latestVersion) {
                 Log.d(TAG, "Lantern successfully started.");
                 analytics.sendNewSessionEvent();
             }

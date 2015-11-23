@@ -60,6 +60,7 @@ func Configure(protector SocketProtector, dnsServer string) {
 //   specified system device (this is primarily
 //   used for Android VpnService routing functionality)
 func Dial(network, addr string) (*ProtectedConn, error) {
+	log.Debugf("Dialing a new protected connection to %s", addr)
 	host, port, err := SplitHostPort(addr)
 	if err != nil {
 		return nil, err
@@ -119,6 +120,7 @@ func (conn *ProtectedConn) connectSocket() error {
 		errCh <- errors.New("connect timeout")
 	})
 	go func() {
+		log.Debugf("CALLING SYSCALL CONNECT ON %v", sockAddr)
 		errCh <- syscall.Connect(conn.socketFd, &sockAddr)
 	}()
 	err := <-errCh
@@ -226,6 +228,7 @@ func (conn *ProtectedConn) resolveHostname() (net.IP, error) {
 	copy(ip[:], IPAddr.To4())
 	sockAddr := syscall.SockaddrInet4{Addr: ip, Port: dnsPort}
 
+	log.Debugf("CALLING SYSCALL CONNECT ON %v", ip)
 	err = syscall.Connect(socketFd, &sockAddr)
 	if err != nil {
 		return nil, err
@@ -239,11 +242,13 @@ func (conn *ProtectedConn) resolveHostname() (net.IP, error) {
 	// represented by file
 	fileConn, err := net.FileConn(file)
 	if err != nil {
+		log.Errorf("Error returning a copy of the network connection: %v", err)
 		return nil, err
 	}
 
 	setQueryTimeouts(fileConn)
 
+	log.Debugf("performing dns lookup...!!")
 	result, err := dnsLookup(conn.host, fileConn)
 	if err != nil {
 		log.Errorf("Error doing DNS resolution: %s", err)
