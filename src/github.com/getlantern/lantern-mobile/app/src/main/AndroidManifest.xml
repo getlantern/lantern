@@ -53,6 +53,10 @@
                 <action android:name="android.net.VpnService"/>
             </intent-filter>
         </service>
+
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="284fdb6578c78a774887f65e1a34b9024732a29c" />
     </application>
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
