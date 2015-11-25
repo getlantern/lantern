@@ -23,6 +23,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.net.InetAddress;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.getlantern.lantern.config.LanternConfig;
@@ -49,11 +50,15 @@ public class VpnBuilder extends VpnService {
 
     public synchronized void configure() throws Exception {
 
-
         if (mInterface != null) {
             Log.i(TAG, "Using the previous interface");
             return;
         }
+
+        // Set the locale to English
+        // since the VpnBuilder encounters
+        // issues with non-English numerals
+        Locale.setDefault(new Locale("en"));
 
         // Configure a builder while parsing the parameters.
         Builder builder = new Builder();

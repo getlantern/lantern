@@ -45,7 +45,8 @@ func (client *Client) newReverseProxy() (*httputil.ReverseProxy, error) {
 	// set that in the Transport RoundTrip call above.
 	dialer, conn, err := client.GetBalancer().TrustedDialerAndConn()
 	if err != nil {
-		log.Errorf("Could not get balanced dialer", err)
+		// The internal code has already reported an error here.
+		log.Debugf("Could not get balanced dialer %v", err)
 		return nil, err
 	}
 

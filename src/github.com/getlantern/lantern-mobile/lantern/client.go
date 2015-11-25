@@ -7,7 +7,9 @@ import (
 
 	"github.com/getlantern/analytics"
 	"github.com/getlantern/flashlight/client"
+	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/logging"
+	"github.com/getlantern/flashlight/settings"
 	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/lantern-mobile/lantern/protected"
 
@@ -52,6 +54,7 @@ func init() {
 	if revisionDate == "" {
 		revisionDate = "now"
 	}
+	settings.Load(version, revisionDate, "")
 }
 
 type tunSettings struct {
@@ -155,6 +158,9 @@ func (client *mobileClient) afterSetup() {
 func (client *mobileClient) serveHTTP() {
 
 	analytics.Configure("", trackingCodes[client.appName], "", client.Client.Addr)
+
+	geolookup.Start()
+
 	logging.ConfigureAndroid(logglyToken, logglyTag, client.androidProps)
 	logging.Configure(client.Client.Addr, cloudConfigCA, instanceId, version, revisionDate)
 	logging.Init()

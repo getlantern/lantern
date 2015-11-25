@@ -8,6 +8,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo; 
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
@@ -51,9 +53,12 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
 
     private static final String TAG = "LanternMainActivity";
     private static final String PREFS_NAME = "LanternPrefs";
+    private static final int CHECK_NEW_VERSION_DELAY = 10000;
+ 
 
     private SharedPreferences mPrefs = null;
 
+    private Context context;
     private LanternUI UI;
     private Handler mHandler;
 
@@ -77,7 +82,9 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
             return;
         }
 
-        mPrefs = Utils.getSharedPrefs(getApplicationContext());
+        context = getApplicationContext();
+
+        mPrefs = Utils.getSharedPrefs(context);
 
         setContentView(R.layout.activity_lantern_main);
 
@@ -220,4 +227,27 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
             Utils.clearPreferences(context);
         }
     }
+
+    public void checkNewVersion() {
+        try {
+            final Context context = this;
+
+            String latestVersion = "test";
+
+            PackageInfo pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+
+            String version = pInfo.versionName;
+            Log.d(TAG, "Current version of app is " + version);
+
+            if (latestVersion != null && !latestVersion.equals(version)) {
+                // Latest version of FireTweet and the version currently running differ
+                // display the update view
+                final Intent intent = new Intent(context, UpdaterActivity.class);
+                context.startActivity(intent);
+            }
+
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.e(TAG, "Error fetching package information");
+        }
+    }  
 }

@@ -29,4 +29,9 @@
     <string name="contact_email">team@getlantern.org</string>
     <string name="contact_message">Help Me</string>      
     <string name="contact_subject">Lantern Android</string>
+    <string name="update_available">A new version of Lantern is available! Would you like to upgrade now?</string>
+    <string name="not_now">Not Now</string>
+    <string name="install_update">Update</string>
+    <string name="error_update">Error Downloading Update</string>
+    <string name="manual_update">Try manually installing the latest version from &lt;a href="https://lantern-android.io">here1&lt;/a></string>
 </resources>

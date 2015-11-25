@@ -90,10 +90,6 @@ type Manager struct {
 	// FilePath: required, path to the config file on disk
 	FilePath string
 
-	// FilePollInterval: how frequently to poll the file for changes, defaults
-	// to 1 second
-	FilePollInterval time.Duration
-
 	// EmptyConfig: required, factor for new empty Configs
 	EmptyConfig func() Config
 
@@ -145,9 +141,6 @@ func (m *Manager) Init() (Config, error) {
 	}
 	if m.FilePath == "" {
 		return nil, fmt.Errorf("FilePath must be specified")
-	}
-	if m.FilePollInterval == 0 {
-		m.FilePollInterval = 1 * time.Second
 	}
 	m.deltasCh = make(chan *delta)
 	m.nextCfgCh = make(chan Config)
@@ -203,14 +196,6 @@ func (m *Manager) processUpdates() {
 			changed, err = m.saveToDiskAndUpdate(updated)
 			delta.errCh <- err
 			if err != nil {
-				continue
-			}
-		case <-time.After(m.FilePollInterval):
-			log.Trace("Read update from disk")
-			var err error
-			changed, err = m.reloadFromDisk()
-			if err != nil {
-				log.Errorf("Unable to read updated config from disk: %s", err)
 				continue
 			}
 		}

@@ -59,7 +59,8 @@ func Configure(protector SocketProtector, dnsServer string) {
 // - syscall API calls are used to create and bind to the
 //   specified system device (this is primarily
 //   used for Android VpnService routing functionality)
-func Dial(network, addr string) (net.Conn, error) {
+func Dial(network, addr string) (*ProtectedConn, error) {
+	log.Debugf("Dialing a new protected connection to %s", addr)
 	host, port, err := SplitHostPort(addr)
 	if err != nil {
 		return nil, err
@@ -239,11 +240,13 @@ func (conn *ProtectedConn) resolveHostname() (net.IP, error) {
 	// represented by file
 	fileConn, err := net.FileConn(file)
 	if err != nil {
+		log.Errorf("Error returning a copy of the network connection: %v", err)
 		return nil, err
 	}
 
 	setQueryTimeouts(fileConn)
 
+	log.Debugf("performing dns lookup...!!")
 	result, err := dnsLookup(conn.host, fileConn)
 	if err != nil {
 		log.Errorf("Error doing DNS resolution: %s", err)

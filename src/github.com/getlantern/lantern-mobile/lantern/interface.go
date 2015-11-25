@@ -12,7 +12,7 @@ var (
 // GoCallback is the supertype of callbacks passed to Go
 type GoCallback interface {
 	AfterConfigure()
-	AfterStart()
+	AfterStart(string)
 	GetDnsServer() string
 }
 
@@ -47,7 +47,8 @@ func StartWithSocks(protector SocketProvider, httpAddr, socksAddr, appName strin
 		if err != nil {
 			log.Errorf("Error starting SOCKS proxy: %v", err)
 		}
-		ready.AfterStart()
+		latestVersion := "2.0"
+		ready.AfterStart(latestVersion)
 	}()
 	return nil
 }

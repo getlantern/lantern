@@ -111,6 +111,12 @@ func (fs *FileSystem) SubDir(dir string) *FileSystem {
 	}
 }
 
+// GetIgnoreLocalEmpty is the same as Get, but it ignores local file system files
+// if they're empty.
+func (fs *FileSystem) GetIgnoreLocalEmpty(p string) ([]byte, error) {
+	return fs.get(p, true)
+}
+
 // Get returns the bytes for the resource at the given path. If this FileSystem
 // was configured with a local directory, and that local directory contains
 // a file at the given path, Get will return the value from the local file.
@@ -119,6 +125,10 @@ func (fs *FileSystem) SubDir(dir string) *FileSystem {
 // Note - the implementation of local reads is not optimized and is primarily
 // intended for development-time usage.
 func (fs *FileSystem) Get(p string) ([]byte, error) {
+	return fs.get(p, false)
+}
+
+func (fs *FileSystem) get(p string, ignoreempty bool) ([]byte, error) {
 	p = path.Clean(p)
 	log.Tracef("Getting %v", p)
 	if fs.local != "" {
@@ -129,9 +139,15 @@ func (fs *FileSystem) Get(p string) ([]byte, error) {
 				return nil, err
 			}
 			log.Tracef("Resource %v does not exist on filesystem, using embedded resource instead", p)
-		} else {
+		} else if !ignoreempty {
 			log.Tracef("Using local resource %v", p)
 			return b, nil
+		} else {
+			trimmed := strings.TrimSpace(string(b))
+			if len(trimmed) > 0 {
+				log.Tracef("Using local non-empty resource %v", p)
+				return b, nil
+			}
 		}
 	}
 	b, found := fs.files[p]

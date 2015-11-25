@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/getlantern/idletiming"
 	"github.com/getlantern/tlsdialer"
 )
 
@@ -105,7 +106,7 @@ func (ddf *directTransport) RoundTrip(req *http.Request) (resp *http.Response, e
 	return ddf.Transport.RoundTrip(norm)
 }
 
-// NewHttpClient creates a new http.Client that does direct domain fronting.
+// NewDirectHttpClient creates a new http.Client that does direct domain fronting.
 func (d *direct) NewDirectHttpClient() *http.Client {
 	trans := &directTransport{}
 	trans.Dial = d.Dial
@@ -114,6 +115,22 @@ func (d *direct) NewDirectHttpClient() *http.Client {
 	return &http.Client{
 		Transport: trans,
 	}
+}
+
+// Do continually retries a given request until it succeeds because some fronting providers
+// will return a 403 for some domains.
+func (d *direct) Do(req *http.Request) (*http.Response, error) {
+	for i := 0; i < 6; i++ {
+		client := d.NewDirectHttpClient()
+		if resp, err := client.Do(req); err != nil {
+			log.Errorf("Could not complete request %v", err)
+		} else if resp.StatusCode > 199 && resp.StatusCode < 400 {
+			return resp, err
+		} else {
+			_ = resp.Body.Close()
+		}
+	}
+	return nil, errors.New("Could not complete request even with retries")
 }
 
 // Dial persistently dials masquerades until one succeeds.
@@ -138,7 +155,18 @@ func (d *direct) Dial(network, addr string) (net.Conn, error) {
 			}
 		} else {
 			log.Debugf("Got successful connection to: %v", m)
+			// Requeue the working connection
 			candidateCh <- m
+			idleTimeout := 70 * time.Second
+
+			log.Debug("Wrapping connecting in idletiming connection")
+			conn = idletiming.Conn(conn, idleTimeout, func() {
+				log.Debugf("Connection to %s via %s idle for %v, closing", addr, conn.RemoteAddr(), idleTimeout)
+				if err := conn.Close(); err != nil {
+					log.Debugf("Unable to close connection: %v", err)
+				}
+			})
+			log.Debug("Returning connection")
 			return conn, nil
 		}
 	}
