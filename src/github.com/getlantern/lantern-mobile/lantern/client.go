@@ -99,10 +99,7 @@ func startTunIO() {
 
 			if lanterProxyFixedAddress == "" {
 				fn = func(proto, addr string) (net.Conn, error) {
-					_, port, _ := net.SplitHostPort(addr)
-					if port != "80" {
-						proto = "connect"
-					}
+					proto = "connect"
 					log.Debugf("tunio: %s://%s", proto, addr)
 					return c.GetBalancer().Dial(proto, addr)
 				}
