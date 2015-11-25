@@ -220,6 +220,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:src="@drawable/abc_ic_ab_back_mtrl_am_alpha"/>
+
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="52dp"
@@ -250,5 +251,22 @@
             android:layout_below="@+id/profileBox"
             android:choiceMode="singleChoice"
             android:background="#ffffffff" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true" >
+           <TextView
+                    android:id="@+id/versionNum"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="Roboto Regular"
+                    android:gravity="bottom|center_horizontal"
+                    android:paddingBottom="5dp"
+                    android:text=""
+                    android:textSize="10sp"
+                    android:textColor="#767676"
+                    android:textStyle="bold" />
+        </RelativeLayout>
     </RelativeLayout>
 </android.support.v4.widget.DrawerLayout>
