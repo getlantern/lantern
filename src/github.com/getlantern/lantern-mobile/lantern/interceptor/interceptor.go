@@ -156,10 +156,6 @@ func (i *Interceptor) Dial(addr string, localConn net.Conn) (*InterceptedConn, e
 	id := fmt.Sprintf("%s:%s", localConn.LocalAddr(), addr)
 	log.Debugf("Got a new connection: %s", id)
 
-	// if we get a request on an unsupported port
-	// we just make a direct request but protect/bypass
-	// the connection from the VpnService first
-
 	resultCh := make(chan *dialResult, 2)
 	time.AfterFunc(dialTimeout, func() {
 		resultCh <- &dialResult{nil, ErrDialTimeout}

@@ -120,7 +120,6 @@ func (conn *ProtectedConn) connectSocket() error {
 		errCh <- errors.New("connect timeout")
 	})
 	go func() {
-		log.Debugf("CALLING SYSCALL CONNECT ON %v", sockAddr)
 		errCh <- syscall.Connect(conn.socketFd, &sockAddr)
 	}()
 	err := <-errCh
@@ -228,7 +227,6 @@ func (conn *ProtectedConn) resolveHostname() (net.IP, error) {
 	copy(ip[:], IPAddr.To4())
 	sockAddr := syscall.SockaddrInet4{Addr: ip, Port: dnsPort}
 
-	log.Debugf("CALLING SYSCALL CONNECT ON %v", ip)
 	err = syscall.Connect(socketFd, &sockAddr)
 	if err != nil {
 		return nil, err
