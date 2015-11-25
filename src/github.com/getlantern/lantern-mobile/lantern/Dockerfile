@@ -40,11 +40,10 @@ RUN (curl -sSL https://golang.org/dl/go1.5.1.linux-amd64.tar.gz | tar -vxz -C /t
 # GOVERSION string is the output of 'git log -n 1 --format="format: devel +%h %cd" HEAD'
 # like in go tool dist.
 ENV GO_REV go1.5.1
-ENV GO_VERSION devel +f2e4c8b Wed Sep 9 00:52:53 2015 +0000
+ENV GO_VERSION go1.5.1
 
 ENV GOROOT /go
-ENV GOPATH /
-ENV PATH $PATH:$GOROOT/bin
+ENV PATH $GOROOT/bin:$PATH
 
 RUN mkdir -p $GOROOT && \
     curl -sSL "https://go.googlesource.com/go/+archive/$GO_REV.tar.gz" | tar -vxz -C $GOROOT
@@ -60,8 +59,8 @@ RUN echo y | $ANDROID_HOME/tools/android update sdk --no-ui --all --filter build
 	echo y | $ANDROID_HOME/tools/android update sdk --no-ui --all --filter android-19
 
 # Install and initialize gomobile
-RUN go get golang.org/x/mobile/cmd/gomobile
-RUN gomobile init
+RUN go get -v golang.org/x/mobile/cmd/gomobile
+RUN gomobile init -v
 
 RUN dnf install -y zip unzip && dnf clean all
 
