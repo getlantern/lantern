@@ -10,12 +10,26 @@ import (
 	"time"
 
 	"github.com/getlantern/balancer"
+	"github.com/getlantern/flashlight/autoupdate"
+	clientconfig "github.com/getlantern/flashlight/client/config"
+	"github.com/getlantern/flashlight/config"
+	"github.com/getlantern/flashlight/logging"
+	"github.com/getlantern/flashlight/pac"
+	"github.com/getlantern/flashlight/proxiedsites"
 	"github.com/getlantern/flashlight/settings"
+	"github.com/getlantern/flashlight/statreporter"
+	"github.com/getlantern/flashlight/statserver"
+	"github.com/getlantern/flashlight/util"
+	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
 )
 
 var (
-	log = golog.LoggerFor("flashlight.client")
+	log      = golog.LoggerFor("flashlight.client")
+	cfgMutex sync.Mutex
+
+	Version      string
+	RevisionDate string
 )
 
 // Client is an HTTP proxy that accepts connections from local programs and
@@ -36,7 +50,7 @@ type Client struct {
 	// MinQOS: (optional) the minimum QOS to require from proxies.
 	MinQOS int
 
-	priorCfg *ClientConfig
+	priorCfg *clientconfig.ClientConfig
 	cfgMutex sync.RWMutex
 
 	// Balanced CONNECT dialers.
@@ -76,10 +90,48 @@ func (client *Client) ListenAndServe(onListeningFn func()) error {
 	return httpServer.Serve(l)
 }
 
+func (client *Client) ApplyClientConfig(cfg *config.Config) {
+	cfgMutex.Lock()
+	defer cfgMutex.Unlock()
+
+	certs, err := cfg.GetTrustedCACerts()
+	if err != nil {
+		log.Errorf("Unable to get trusted ca certs, not configure fronted: %s", err)
+	} else {
+		fronted.Configure(certs, cfg.Client.MasqueradeSets)
+	}
+
+	autoupdate.Configure(cfg)
+	logging.Configure(cfg.Addr, cfg.CloudConfigCA, settings.GetInstanceID(), Version, RevisionDate)
+	proxiedsites.Configure(cfg.ProxiedSites)
+	log.Debugf("Proxy all traffic or not: %v", settings.GetProxyAll())
+	pac.ServeProxyAllPacFile(settings.GetProxyAll())
+	// Note - we deliberately ignore the error from statreporter.Configure here
+	_ = statreporter.Configure(cfg.Stats, settings.GetInstanceID())
+
+	// Update client configuration and get the highest QOS dialer available.
+	client.Configure(cfg.Client)
+
+	// We offload this onto a go routine because creating the http clients
+	// blocks on waiting for the local server, and the local server starts
+	// later on this same thread, so it would otherwise creating a deadlock.
+	go func() {
+		withHttpClient(cfg.Addr, statserver.Configure)
+	}()
+}
+
+func withHttpClient(addr string, withClient func(client *http.Client)) {
+	if httpClient, err := util.HTTPClient("", addr); err != nil {
+		log.Errorf("Could not create HTTP client via %s: %s", addr, err)
+	} else {
+		withClient(httpClient)
+	}
+}
+
 // Configure updates the client's configuration. Configure can be called
 // before or after ListenAndServe, and can be called multiple times.  It
 // returns the highest QOS fronted.Dialer available, or nil if none available.
-func (client *Client) Configure(cfg *ClientConfig) {
+func (client *Client) Configure(cfg *clientconfig.ClientConfig) {
 	client.cfgMutex.Lock()
 	defer client.cfgMutex.Unlock()
 

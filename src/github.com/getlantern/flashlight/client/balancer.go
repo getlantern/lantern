@@ -1,6 +1,9 @@
 package client
 
-import "github.com/getlantern/balancer"
+import (
+	"github.com/getlantern/balancer"
+	config "github.com/getlantern/flashlight/client/config"
+)
 
 // getBalancer waits for a message from client.balCh to arrive and then it
 // writes it back to client.balCh before returning it as a value. This way we
@@ -15,7 +18,7 @@ func (client *Client) GetBalancer() *balancer.Balancer {
 // initBalancer takes hosts from cfg.FrontedServers and cfg.ChainedServers and
 // it uses them to create a balancer. It also looks for the highest QOS dialer
 // available among the fronted servers.
-func (client *Client) initBalancer(cfg *ClientConfig) {
+func (client *Client) initBalancer(cfg *config.ClientConfig) {
 	//var highestQOSFrontedDialer fronted.Dialer
 
 	// The dialers slice must be large enough to handle all fronted and chained
