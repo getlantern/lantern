@@ -20,8 +20,7 @@ public class Utils {
         SharedPreferences mPrefs = getSharedPrefs(context);
 
         if (mPrefs != null) {
-            mPrefs.edit().remove(LanternConfig.PREF_USE_VPN);
-            mPrefs.edit().clear().commit();
+            mPrefs.edit().remove(LanternConfig.PREF_USE_VPN).commit();
         }
     }
 }
