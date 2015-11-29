@@ -9,6 +9,7 @@ import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.io.File;
 
 import go.client.*;
 import org.getlantern.lantern.activity.UpdaterActivity;
@@ -72,10 +73,7 @@ public class Lantern extends Client.SocketProvider.Stub {
         try {
             Log.d(TAG, "About to start Lantern..");
 
-            String httpAddr = String.format("127.0.0.1:%d", LanternConfig.HTTP_PORT);
-            String socksAddr = String.format("127.0.0.1:%d", LanternConfig.SOCKS_PORT);
-
-            Client.Start(this, httpAddr, socksAddr, LanternConfig.APP_NAME, this.device, this.model, this.version, callback);
+            Client.Start(this, LanternConfig.APP_NAME, this.device, this.model, this.version, callback);
             //Client.Start(this, httpAddr, socksAddr, callback);
 
         } catch (final Exception e) {
@@ -91,6 +89,18 @@ public class Lantern extends Client.SocketProvider.Stub {
         } catch(final Exception e) {
             // ignore exception
         }
+    }
+
+    @Override
+    // LoadSettingsDir gets the path to the app's internal storage directory
+    public String SettingsDir() {
+        File f = this.context.getFilesDir();
+        String path = "";
+        if (f != null) {
+            path = f.getPath();
+            Log.d(TAG, "Got user settings dir: " + path);
+        }
+        return path;
     }
 
     @Override

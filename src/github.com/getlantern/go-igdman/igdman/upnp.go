@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -24,6 +25,11 @@ var (
 )
 
 func init() {
+
+	if runtime.GOOS == "android" {
+		return
+	}
+
 	upnpcBytes, err := Asset("upnpc")
 	if err != nil {
 		panic(fmt.Errorf("Unable to read upnpc bytes: %s", err))
