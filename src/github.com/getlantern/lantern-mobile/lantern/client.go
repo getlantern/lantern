@@ -71,7 +71,7 @@ func newClient(addr, appName string, androidProps map[string]string, configDir s
 
 	go mClient.pollConfiguration()
 
-	mClient.ListenAndServe(func() {
+	go mClient.ListenAndServe(func() {
 		config.StartPolling()
 	})
 
