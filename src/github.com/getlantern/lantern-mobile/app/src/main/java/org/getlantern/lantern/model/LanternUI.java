@@ -91,7 +91,7 @@ public class LanternUI {
     private ImageView statusImage;
     private Toast statusToast;
 
-    private SharedPreferences mPrefs = null;
+    final private SharedPreferences mPrefs;
     final private Shareable shareable;
     final private LanternMainActivity activity;
 
@@ -148,11 +148,11 @@ public class LanternUI {
 
     public void setVersionNum(final String latestVersion) {
 
-        mPrefs.edit().putString("versionNum", latestVersion).commit();
-
         this.activity.runOnUiThread(new Runnable() {
                  @Override
                       public void run() {
+                        mPrefs.edit().putString("versionNum", latestVersion).commit();
+
                         versionNum.setText(latestVersion);
                       }
         });
@@ -180,10 +180,6 @@ public class LanternUI {
         menuMap.put("Share", new Command() { 
             public void runCommand() { shareable.showOption(); } 
         });   
-
-        versionNum = (TextView)this.activity.findViewById(R.id.versionNum);
-
-        versionNum.setText(mPrefs.getString("versionNum", ""));
 
         // Populate the Navigtion Drawer with options
         mDrawerPane = (RelativeLayout) this.activity.findViewById(R.id.drawerPane);
@@ -233,6 +229,12 @@ public class LanternUI {
 
         RelativeLayout profileBox = (RelativeLayout)this.activity.findViewById(R.id.profileBox);
 
+        // update version number that appears at the bottom of the side menu
+        // if we have it stored in shared preferences; otherwise, default to absent until
+        // Lantern starts
+        versionNum = (TextView)this.activity.findViewById(R.id.versionNum);
+        versionNum.setText(mPrefs.getString("versionNum", ""));
+
         ImageView backBtn = (ImageView)this.activity.findViewById(R.id.navAvatar);
 
         backBtn.setOnClickListener(new View.OnClickListener() {
@@ -254,6 +256,7 @@ public class LanternUI {
                 mDrawerLayout.closeDrawers();
             }
         });
+
     }
 
     private void desktopOption() {
