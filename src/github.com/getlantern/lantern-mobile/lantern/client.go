@@ -1,7 +1,6 @@
 package client
 
 import (
-	"strings"
 	"sync"
 
 	"github.com/getlantern/analytics"
