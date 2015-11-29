@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <item name="versionNum" type="id"/>
     <item name="updater" type="id"/>
     <item name="powerLantern" type="id"/>
     <item name="settings_icon" type="id"/>

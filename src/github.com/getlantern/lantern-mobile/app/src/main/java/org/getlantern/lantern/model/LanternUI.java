@@ -48,6 +48,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 import android.view.MenuItem; 
@@ -96,6 +97,7 @@ public class LanternUI {
 
     private ToggleButton powerLantern;
     private EditText emailInput;
+    private TextView versionNum;
     private Button sendBtn;
     private View separator;
 
@@ -144,6 +146,15 @@ public class LanternUI {
         void runCommand();
     }
 
+    public void setVersionNum(final String latestVersion) {
+        this.activity.runOnUiThread(new Runnable() {
+                 @Override
+                      public void run() {
+                        versionNum.setText(latestVersion);
+                      }
+        });
+    }
+
     public void setupSideMenu() throws Exception {
 
         mNavItems.add(new NavItem("Share", R.drawable.ic_share));
@@ -166,6 +177,8 @@ public class LanternUI {
         menuMap.put("Share", new Command() { 
             public void runCommand() { shareable.showOption(); } 
         });   
+
+        versionNum = (TextView)this.activity.findViewById(R.id.versionNum);
 
         // Populate the Navigtion Drawer with options
         mDrawerPane = (RelativeLayout) this.activity.findViewById(R.id.drawerPane);

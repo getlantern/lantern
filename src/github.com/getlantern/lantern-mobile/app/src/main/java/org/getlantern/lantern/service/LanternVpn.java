@@ -110,6 +110,10 @@ public class LanternVpn extends VpnBuilder implements Handler.Callback {
         }
     }
 
+    public void setVersionNum(String latestVersion) {
+        UI.setVersionNum(latestVersion);
+    }
+
     @Override
     public void onDestroy() {
         if (mThread != null) {

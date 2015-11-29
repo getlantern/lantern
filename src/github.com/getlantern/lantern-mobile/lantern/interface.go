@@ -12,9 +12,7 @@ import (
 )
 
 var (
-	i            *interceptor.Interceptor
-	version      = "development"
-	revisionDate = "now"
+	i *interceptor.Interceptor
 )
 
 func init() {
@@ -68,8 +66,7 @@ func Start(protector SocketProvider, appName string,
 		if err != nil {
 			log.Errorf("Error starting SOCKS proxy: %v", err)
 		}
-		latestVersion := "2.0"
-		ready.AfterStart(latestVersion)
+		ready.AfterStart(client.Version)
 	}()
 	return nil
 }
