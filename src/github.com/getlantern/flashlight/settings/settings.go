@@ -31,12 +31,6 @@ var (
 	once       = &sync.Once{}
 )
 
-func init() {
-	if runtime.GOOS == "android" {
-		path = appdir.General("Lantern")
-	}
-}
-
 // Settings is a struct of all settings unique to this particular Lantern instance.
 type Settings struct {
 	Version      string
