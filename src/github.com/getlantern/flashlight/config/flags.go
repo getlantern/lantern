@@ -4,7 +4,7 @@ import (
 	"flag"
 	"time"
 
-	"github.com/getlantern/flashlight/client"
+	client "github.com/getlantern/flashlight/client/config"
 	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/settings"
 	"github.com/getlantern/flashlight/statreporter"

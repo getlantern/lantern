@@ -26,13 +26,11 @@ import (
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/logging"
-	"github.com/getlantern/flashlight/proxiedsites"
 	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/settings"
 	"github.com/getlantern/flashlight/statreporter"
 	"github.com/getlantern/flashlight/statserver"
 	"github.com/getlantern/flashlight/ui"
-	"github.com/getlantern/flashlight/util"
 
 	"github.com/mitchellh/panicwrap"
 )
@@ -41,8 +39,6 @@ var (
 	version      string
 	revisionDate string // The revision date and time that is associated with the version string.
 	buildDate    string // The actual date and time the binary was built.
-
-	cfgMutex sync.Mutex
 
 	log = golog.LoggerFor("flashlight")
 
@@ -81,6 +77,8 @@ func init() {
 	// Passing public key and version to the autoupdate service.
 	autoupdate.PublicKey = []byte(packagePublicKey)
 	autoupdate.Version = packageVersion
+	client.Version = packageVersion
+	client.RevisionDate = revisionDate
 
 	rand.Seed(time.Now().UnixNano())
 
@@ -298,7 +296,7 @@ func runClientProxy(cfg *config.Config) {
 		WriteTimeout: 0,
 	}
 
-	applyClientConfig(client, cfg)
+	client.ApplyClientConfig(cfg)
 
 	// Only run analytics once on startup. It subscribes to IP discovery
 	// events from geolookup, so it needs to be subscribed here before
@@ -310,7 +308,7 @@ func runClientProxy(cfg *config.Config) {
 	go func() {
 		for {
 			cfg := <-configUpdates
-			applyClientConfig(client, cfg)
+			client.ApplyClientConfig(cfg)
 		}
 	}()
 
@@ -372,46 +370,6 @@ func showExistingUi(tcpAddr string) {
 // addExitFunc adds a function to be called before the application exits.
 func addExitFunc(exitFunc func()) {
 	chExitFuncs <- exitFunc
-}
-
-func applyClientConfig(client *client.Client, cfg *config.Config) {
-	cfgMutex.Lock()
-	defer cfgMutex.Unlock()
-
-	certs, err := cfg.GetTrustedCACerts()
-	if err != nil {
-		log.Errorf("Unable to get trusted ca certs, not configure fronted: %s", err)
-	} else {
-		fronted.Configure(certs, cfg.Client.MasqueradeSets)
-	}
-
-	autoupdate.Configure(cfg)
-	logging.Configure(cfg.Addr, cfg.CloudConfigCA, settings.GetInstanceID(),
-		version, revisionDate)
-	proxiedsites.Configure(cfg.ProxiedSites)
-	log.Debugf("Proxy all traffic or not: %v", settings.GetProxyAll())
-	ServeProxyAllPacFile(settings.GetProxyAll())
-	// Note - we deliberately ignore the error from statreporter.Configure here
-	_ = statreporter.Configure(cfg.Stats, settings.GetInstanceID())
-
-	// Update client configuration and get the highest QOS dialer available.
-	client.Configure(cfg.Client)
-
-	// We offload this onto a go routine because creating the http clients
-	// blocks on waiting for the local server, and the local server starts
-	// later on this same thread, so it would otherwise creating a deadlock.
-	go func() {
-		withHttpClient(cfg.Addr, statserver.Configure)
-	}()
-
-}
-
-func withHttpClient(addr string, withClient func(client *http.Client)) {
-	if httpClient, err := util.HTTPClient("", addr); err != nil {
-		log.Errorf("Could not create HTTP client via %s: %s", addr, err)
-	} else {
-		withClient(httpClient)
-	}
 }
 
 // Runs the server-side proxy
