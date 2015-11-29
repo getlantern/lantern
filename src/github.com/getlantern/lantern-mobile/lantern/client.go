@@ -2,35 +2,38 @@ package client
 
 import (
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/getlantern/analytics"
 	"github.com/getlantern/flashlight/client"
+	"github.com/getlantern/flashlight/config"
+
 	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/logging"
+	"github.com/getlantern/flashlight/proxiedsites"
 	"github.com/getlantern/flashlight/settings"
 	"github.com/getlantern/flashlight/util"
+	"github.com/getlantern/fronted"
 
 	"github.com/getlantern/golog"
 )
 
-const (
-	cloudConfigPollInterval = time.Second * 60
-)
-
 // clientConfig holds global configuration settings for all clients.
 var (
-	version       string
-	revisionDate  string
 	log           = golog.LoggerFor("lantern-android.client")
 	cf            = util.NewChainedAndFronted()
-	clientConfig  = defaultConfig()
+	configUpdates = make(chan *config.Config)
+	cfgMutex      sync.Mutex
+
 	logglyToken   = "2b68163b-89b6-4196-b878-c1aca4bbdf84"
 	logglyTag     = "lantern-android"
 	trackingCodes = map[string]string{
 		"FireTweet": "UA-21408036-4",
 		"Lantern":   "UA-21815217-14",
 	}
+
+	InstanceId = ""
 
 	defaultClient *mobileClient
 )
@@ -44,49 +47,74 @@ type mobileClient struct {
 }
 
 func init() {
-	if version == "" {
-		version = "development"
-	}
-
-	if revisionDate == "" {
-		revisionDate = "now"
-	}
 	settings.Load(version, revisionDate, "")
+	InstanceId = settings.GetInstanceID()
 }
 
 // newClient creates a proxy client.
-func newClient(addr, appName string, androidProps map[string]string) *mobileClient {
+func newClient(addr, appName string, androidProps map[string]string, configDir string) *mobileClient {
 
-	client := &client.Client{
-		Addr:         addr,
-		ReadTimeout:  0, // don't timeout
-		WriteTimeout: 0,
+	cfg, err := config.Init(version)
+	if err != nil {
+		log.Fatalf("Unable to initialize configuration: %v", err)
 	}
 
-	client.Configure(clientConfig.Client)
-
 	mClient := &mobileClient{
-		Client:       client,
+		Client: &client.Client{
+			Addr:         addr,
+			ReadTimeout:  0, // don't timeout
+			WriteTimeout: 0,
+		},
 		closed:       make(chan bool),
 		appName:      appName,
 		androidProps: androidProps,
 	}
+	mClient.applyClientConfig(cfg)
+	mClient.serveHTTP()
+
+	go func() {
+		err := config.Run(func(updated *config.Config) {
+			configUpdates <- updated
+		})
+		if err != nil {
+			log.Fatalf("Error updating configuration file: %v", err)
+		}
+		log.Debugf("Processed config")
+	}()
 
 	return mClient
 }
 
+func (client *mobileClient) applyClientConfig(cfg *config.Config) {
+	cfgMutex.Lock()
+	defer cfgMutex.Unlock()
+
+	certs, err := cfg.GetTrustedCACerts()
+	if err != nil {
+		log.Errorf("Unable to get trusted ca certs, not configure fronted: %s", err)
+	} else {
+		fronted.Configure(certs, cfg.Client.MasqueradeSets)
+	}
+
+	logging.ConfigureAndroid(logglyToken, logglyTag, client.androidProps)
+	logging.Configure(client.Client.Addr, cfg.CloudConfigCA, InstanceId, version, revisionDate)
+
+	proxiedsites.Configure(cfg.ProxiedSites)
+
+	// Update client configuration and get the highest QOS dialer available.
+	client.Configure(cfg.Client)
+
+}
+
 func (client *mobileClient) afterSetup() {
 	log.Debugf("Now listening for connections...")
-	clientConfig.configureFronted()
-
-	go client.updateConfig()
 
 	analytics.Configure("", trackingCodes[client.appName], "", client.Client.Addr)
 
 	geolookup.Start()
 
-	logging.ConfigureAndroid(logglyToken, logglyTag, client.androidProps)
-	logging.Configure(client.Client.Addr, cloudConfigCA, instanceId, version, revisionDate)
+	config.StartPolling()
+
 }
 
 // serveHTTP will run the proxy
@@ -107,51 +135,16 @@ func (client *mobileClient) serveHTTP() {
 	go client.pollConfiguration()
 }
 
-// updateConfig attempts to pull a configuration file from the network using
-// the client proxy itself.
-func (client *mobileClient) updateConfig() error {
-	var buf []byte
-	var err error
-
-	if buf, err = pullConfigFile(); err != nil {
-		log.Errorf("Could not update config: '%v'", err)
-		return err
-	}
-	if err = clientConfig.updateFrom(buf); err == nil {
-		// Configuration changed, lets reload.
-		log.Debugf("Fetched config; merging with existing..")
-		client.Configure(clientConfig.Client)
-		clientConfig.configureFronted()
-	}
-	return err
-}
-
-// getFireTweetVersion returns the current version of the build
-func (client *mobileClient) getFireTweetVersion() string {
-	return clientConfig.FireTweetVersion
-}
-
 // pollConfiguration periodically checks for updates in the cloud configuration
 // file.
 func (client *mobileClient) pollConfiguration() {
-
-	pollTimer := time.NewTimer(cloudConfigPollInterval)
-	defer pollTimer.Stop()
-
 	for {
 		select {
 		case <-client.closed:
 			log.Debug("Closing poll configuration channel")
 			return
-		case <-pollTimer.C:
-			// Attempt to update configuration.
-			if err := client.updateConfig(); err != nil {
-				log.Errorf("Unable to update config: %v", err)
-			}
-
-			// Sleeping 'till next pull.
-			// update timer to poll every 60 seconds
-			pollTimer.Reset(cloudConfigPollInterval)
+		case cfg := <-configUpdates:
+			client.applyClientConfig(cfg)
 		}
 	}
 }
