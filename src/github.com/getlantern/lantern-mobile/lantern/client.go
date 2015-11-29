@@ -7,9 +7,8 @@ import (
 	"github.com/getlantern/analytics"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
-
 	"github.com/getlantern/flashlight/geolookup"
-	"github.com/getlantern/flashlight/settings"
+	"github.com/getlantern/flashlight/logging"
 	"github.com/getlantern/flashlight/util"
 
 	"github.com/getlantern/golog"
@@ -22,14 +21,10 @@ var (
 	configUpdates = make(chan *config.Config)
 	cfgMutex      sync.Mutex
 
-	logglyToken   = "2b68163b-89b6-4196-b878-c1aca4bbdf84"
-	logglyTag     = "lantern-android"
 	trackingCodes = map[string]string{
 		"FireTweet": "UA-21408036-4",
 		"Lantern":   "UA-21815217-14",
 	}
-
-	InstanceId = ""
 
 	defaultClient *mobileClient
 )
@@ -42,15 +37,12 @@ type mobileClient struct {
 	closed chan bool
 }
 
-func init() {
-	settings.Load(version, revisionDate, "")
-	InstanceId = settings.GetInstanceID()
-}
-
 // newClient creates a proxy client.
 func newClient(addr, appName string, androidProps map[string]string, configDir string) *mobileClient {
 
-	cfg, err := config.Init(version)
+	logging.ConfigureAndroid(client.LogglyToken, client.LogglyTag, androidProps)
+
+	cfg, err := config.Init(client.Version)
 	if err != nil {
 		log.Fatalf("Unable to initialize configuration: %v", err)
 	}
