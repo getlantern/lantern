@@ -57,8 +57,9 @@ func newClient(addr, appName string, androidProps map[string]string, configDir s
 		appName:      appName,
 		androidProps: androidProps,
 	}
+
 	mClient.ApplyClientConfig(cfg)
-	mClient.serveHTTP()
+	geolookup.Start()
 
 	go func() {
 		err := config.Run(func(updated *config.Config) {
@@ -67,8 +68,15 @@ func newClient(addr, appName string, androidProps map[string]string, configDir s
 		if err != nil {
 			log.Fatalf("Error updating configuration file: %v", err)
 		}
-		log.Debugf("Processed config")
 	}()
+
+	go mClient.pollConfiguration()
+
+	mClient.ListenAndServe(func() {
+		config.StartPolling()
+	})
+
+	log.Debugf("Processed config")
 
 	return mClient
 }
@@ -78,41 +86,16 @@ func (client *mobileClient) afterSetup() {
 
 	analytics.Configure("", trackingCodes[client.appName], "", client.Client.Addr)
 
-	geolookup.Start()
-
 	config.StartPolling()
 
-}
-
-// serveHTTP will run the proxy
-func (client *mobileClient) serveHTTP() {
-	go func() {
-
-		defer func() {
-			close(client.closed)
-		}()
-
-		if err := client.ListenAndServe(client.afterSetup); err != nil {
-			// Error is not exported: https://golang.org/src/net/net.go#L284
-			if !strings.Contains(err.Error(), "use of closed network connection") {
-				panic(err.Error())
-			}
-		}
-	}()
-	go client.pollConfiguration()
 }
 
 // pollConfiguration periodically checks for updates in the cloud configuration
 // file.
 func (client *mobileClient) pollConfiguration() {
 	for {
-		select {
-		case <-client.closed:
-			log.Debug("Closing poll configuration channel")
-			return
-		case cfg := <-configUpdates:
-			client.ApplyClientConfig(cfg)
-		}
+		cfg := <-configUpdates
+		client.ApplyClientConfig(cfg)
 	}
 }
 
