@@ -23,7 +23,10 @@ import (
 	"github.com/getlantern/yaml"
 	"github.com/getlantern/yamlconf"
 
-	"github.com/getlantern/flashlight/client"
+	chained "github.com/getlantern/flashlight/client/chained"
+	cconfig "github.com/getlantern/flashlight/client/config"
+	client "github.com/getlantern/flashlight/client/fronted"
+
 	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/statreporter"
 	"github.com/getlantern/flashlight/util"
@@ -65,7 +68,7 @@ type Config struct {
 	UIAddr        string // UI HTTP server address
 	Stats         *statreporter.Config
 	Server        *server.ServerConfig
-	Client        *client.ClientConfig
+	Client        *cconfig.ClientConfig
 	ProxiedSites  *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
 	TrustedCAs    []*CA
 }
@@ -397,7 +400,7 @@ func (cfg *Config) applyClientDefaults() {
 			}
 
 		*/
-		cfg.Client.ChainedServers = make(map[string]*client.ChainedServerInfo, len(fallbacks))
+		cfg.Client.ChainedServers = make(map[string]*chained.ChainedServerInfo, len(fallbacks))
 		for key, fb := range fallbacks {
 			cfg.Client.ChainedServers[key] = fb
 		}
@@ -418,7 +421,7 @@ func (cfg *Config) applyClientDefaults() {
 
 	// Always make sure we have a map of ChainedServers
 	if cfg.Client.ChainedServers == nil {
-		cfg.Client.ChainedServers = make(map[string]*client.ChainedServerInfo)
+		cfg.Client.ChainedServers = make(map[string]*chained.ChainedServerInfo)
 	}
 
 	// Sort servers so that they're always in a predictable order
@@ -495,7 +498,7 @@ func (updated *Config) updateFrom(updateBytes []byte) error {
 	oldMasqueradeSets := updated.Client.MasqueradeSets
 	oldTrustedCAs := updated.TrustedCAs
 	updated.Client.FrontedServers = []*client.FrontedServerInfo{}
-	updated.Client.ChainedServers = map[string]*client.ChainedServerInfo{}
+	updated.Client.ChainedServers = map[string]*chained.ChainedServerInfo{}
 	updated.Client.MasqueradeSets = map[string][]*fronted.Masquerade{}
 	updated.TrustedCAs = []*CA{}
 	err := yaml.Unmarshal(updateBytes, updated)

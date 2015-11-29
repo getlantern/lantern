@@ -3,18 +3,14 @@ package client
 import (
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/getlantern/analytics"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
 
 	"github.com/getlantern/flashlight/geolookup"
-	"github.com/getlantern/flashlight/logging"
-	"github.com/getlantern/flashlight/proxiedsites"
 	"github.com/getlantern/flashlight/settings"
 	"github.com/getlantern/flashlight/util"
-	"github.com/getlantern/fronted"
 
 	"github.com/getlantern/golog"
 )
@@ -69,7 +65,7 @@ func newClient(addr, appName string, androidProps map[string]string, configDir s
 		appName:      appName,
 		androidProps: androidProps,
 	}
-	mClient.applyClientConfig(cfg)
+	mClient.ApplyClientConfig(cfg)
 	mClient.serveHTTP()
 
 	go func() {
@@ -83,27 +79,6 @@ func newClient(addr, appName string, androidProps map[string]string, configDir s
 	}()
 
 	return mClient
-}
-
-func (client *mobileClient) applyClientConfig(cfg *config.Config) {
-	cfgMutex.Lock()
-	defer cfgMutex.Unlock()
-
-	certs, err := cfg.GetTrustedCACerts()
-	if err != nil {
-		log.Errorf("Unable to get trusted ca certs, not configure fronted: %s", err)
-	} else {
-		fronted.Configure(certs, cfg.Client.MasqueradeSets)
-	}
-
-	logging.ConfigureAndroid(logglyToken, logglyTag, client.androidProps)
-	logging.Configure(client.Client.Addr, cfg.CloudConfigCA, InstanceId, version, revisionDate)
-
-	proxiedsites.Configure(cfg.ProxiedSites)
-
-	// Update client configuration and get the highest QOS dialer available.
-	client.Configure(cfg.Client)
-
 }
 
 func (client *mobileClient) afterSetup() {
@@ -144,7 +119,7 @@ func (client *mobileClient) pollConfiguration() {
 			log.Debug("Closing poll configuration channel")
 			return
 		case cfg := <-configUpdates:
-			client.applyClientConfig(cfg)
+			client.ApplyClientConfig(cfg)
 		}
 	}
 }
