@@ -249,7 +249,7 @@ func parseFlags() {
 // runClientProxy runs the client-side (get mode) proxy.
 func runClientProxy(cfg *config.Config) {
 	// Set Lantern as system proxy by creating and using a PAC file.
-	setProxyAddr(cfg.Addr)
+	pac.setProxyAddr(cfg.Addr)
 
 	if err := setUpPacTool(); err != nil {
 		exit(err)

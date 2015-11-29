@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"reflect"
+	"runtime"
 	"sync"
 	"time"
 
@@ -117,9 +118,11 @@ func (client *Client) ApplyClientConfig(cfg *config.Config) {
 	// We offload this onto a go routine because creating the http clients
 	// blocks on waiting for the local server, and the local server starts
 	// later on this same thread, so it would otherwise creating a deadlock.
-	go func() {
-		withHttpClient(cfg.Addr, statserver.Configure)
-	}()
+	if runtime.GOOS != "android" {
+		go func() {
+			withHttpClient(cfg.Addr, statserver.Configure)
+		}()
+	}
 }
 
 func withHttpClient(addr string, withClient func(client *http.Client)) {
