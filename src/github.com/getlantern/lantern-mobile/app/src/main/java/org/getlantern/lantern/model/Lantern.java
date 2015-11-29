@@ -60,6 +60,9 @@ public class Lantern extends Client.SocketProvider.Stub {
 
             public void AfterStart(String latestVersion) {
                 Log.d(TAG, "Lantern successfully started.");
+
+                service.setVersionNum(latestVersion);
+
                 analytics.sendNewSessionEvent();
             }
 
