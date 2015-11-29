@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"sort"
 	"strings"
 	"time"
@@ -28,12 +29,15 @@ import (
 	"github.com/getlantern/flashlight/util"
 )
 
+var (
+	chainedCloudConfigUrl = "http://config.getiantem.org/cloud.yaml.gz"
+)
+
 const (
 	CloudConfigPollInterval = 1 * time.Minute
 	cloudfront              = "cloudfront"
 	etag                    = "X-Lantern-Etag"
 	ifNoneMatch             = "X-Lantern-If-None-Match"
-	chainedCloudConfigUrl   = "http://config.getiantem.org/cloud.yaml.gz"
 
 	// This is over HTTP because proxies do not forward X-Forwarded-For with HTTPS
 	// and because we only support falling back to direct domain fronting through
@@ -64,6 +68,12 @@ type Config struct {
 	Client        *client.ClientConfig
 	ProxiedSites  *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
 	TrustedCAs    []*CA
+}
+
+func init() {
+	if runtime.GOOS == "android" {
+		chainedCloudConfigUrl = "http://config.getiantem.org/cloud-android.yaml.gz"
+	}
 }
 
 // StartPolling starts the process of polling for new configuration files.
