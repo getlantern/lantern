@@ -1,4 +1,4 @@
-package main
+package pac
 
 import (
 	"fmt"
@@ -12,8 +12,10 @@ import (
 
 	"github.com/getlantern/detour"
 	"github.com/getlantern/filepersist"
+	"github.com/getlantern/golog"
 	"github.com/getlantern/pac"
 
+	"github.com/getlantern/flashlight/icons"
 	"github.com/getlantern/flashlight/ui"
 )
 
@@ -25,6 +27,7 @@ var (
 	pacFile     []byte
 	directHosts = make(map[string]bool)
 	proxyAll    = int32(0)
+	log         = golog.LoggerFor("flashlight.pac")
 )
 
 func ServeProxyAllPacFile(b bool) {
@@ -42,7 +45,7 @@ func setUpPacTool() error {
 		// We have to use a short filepath here because Cocoa won't display the
 		// icon if the path is too long.
 		iconFile := filepath.Join("/tmp", "escalatelantern.ico")
-		icon, err := Asset("icons/32on.ico")
+		icon, err := icons.Asset("icons/32on.ico")
 		if err != nil {
 			return fmt.Errorf("Unable to load escalation prompt icon: %v", err)
 		} else {
