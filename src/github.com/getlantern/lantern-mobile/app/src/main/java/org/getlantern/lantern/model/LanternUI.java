@@ -149,12 +149,12 @@ public class LanternUI {
     public void setVersionNum(final String latestVersion) {
 
         this.activity.runOnUiThread(new Runnable() {
-                 @Override
-                      public void run() {
-                        mPrefs.edit().putString("versionNum", latestVersion).commit();
+            @Override
+            public void run() {
+                mPrefs.edit().putString("versionNum", latestVersion).commit();
 
-                        versionNum.setText(latestVersion);
-                      }
+                versionNum.setText(latestVersion);
+            }
         });
     }
 
