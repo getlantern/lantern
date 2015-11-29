@@ -6,11 +6,22 @@ import (
 	"fmt"
 	"os/user"
 	"path/filepath"
+	"runtime"
+
+	"github.com/getlantern/golog"
+)
+
+var (
+	AndroidDir = ""
+	log        = golog.LoggerFor("flashlight.appdir")
 )
 
 // General returns the path for general aplication resources (e.g.
 // ~/Library/<App>).
 func General(app string) string {
+	if runtime.GOOS == "android" {
+		return filepath.Join(AndroidDir, app)
+	}
 	return general(app)
 }
 

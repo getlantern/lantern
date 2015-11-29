@@ -3,10 +3,15 @@ package client
 import (
 	"github.com/getlantern/lantern-mobile/lantern/interceptor"
 	"github.com/getlantern/lantern-mobile/lantern/protected"
+
+	"github.com/getlantern/appdir"
+	"github.com/getlantern/flashlight/settings"
 )
 
 var (
-	i *interceptor.Interceptor
+	i            *interceptor.Interceptor
+	version      = "development"
+	revisionDate = "now"
 )
 
 // GoCallback is the supertype of callbacks passed to Go
@@ -19,10 +24,11 @@ type GoCallback interface {
 type SocketProvider interface {
 	Protect(fileDescriptor int) error
 	Notice(message string, fatal bool)
+	SettingsDir() string
 }
 
 // RunClientProxy creates a new client at the given address.
-func Start(protector SocketProvider, httpAddr, socksAddr, appName string,
+func Start(protector SocketProvider, appName string,
 	device string, model string, version string, ready GoCallback) error {
 
 	go func() {
@@ -40,10 +46,15 @@ func Start(protector SocketProvider, httpAddr, socksAddr, appName string,
 			"androidSdkVersion": version,
 		}
 
-		defaultClient = newClient(httpAddr, appName, androidProps)
-		defaultClient.serveHTTP()
+		settingsDir := protector.SettingsDir()
+		log.Debugf("settings directory is %s", settingsDir)
+		appdir.AndroidDir = settingsDir
 
-		i, err = interceptor.New(defaultClient.Client, socksAddr, httpAddr, protector.Notice)
+		settings := settings.Load(version, revisionDate, "")
+
+		defaultClient = newClient(settings.HttpAddr, appName, androidProps, settingsDir)
+
+		i, err = interceptor.New(defaultClient.Client, settings.SocksAddr, settings.HttpAddr, protector.Notice)
 		if err != nil {
 			log.Errorf("Error starting SOCKS proxy: %v", err)
 		}

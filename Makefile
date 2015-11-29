@@ -39,10 +39,15 @@ GH_USER ?= getlantern
 GH_RELEASE_REPOSITORY ?= lantern
 
 S3_BUCKET ?= lantern
+ANDROID_S3_BUCKET ?= lantern-android
+ANDROID_BUILD_DIR := src/github.com/getlantern/lantern-mobile/app/build/outputs/apk
+LANTERN_DEBUG_APK := lantern-debug.apk
+APK_FILE := src/github.com/getlantern/lantern-mobile/app/build/outputs/apk/lantern-debug.apk
 
 DOCKER_IMAGE_TAG := lantern-builder
 
 LANTERN_MOBILE_DIR := src/github.com/getlantern/lantern-mobile
+GRADLE := $(LANTERN_MOBILE_DIR)/gradlew
 LANTERN_MOBILE_LIBRARY := libflashlight.aar
 DOCKER_MOBILE_IMAGE_TAG := lantern-mobile-builder
 LOGGLY_TOKEN_MOBILE := d730c074-1f0a-415d-8d71-1ebf1d8bd736
@@ -51,6 +56,11 @@ FIRETWEET_MAIN_DIR ?= ../firetweet/firetweet/src/main/
 
 LANTERN_YAML := lantern.yaml
 LANTERN_YAML_PATH := installer-resources/lantern.yaml
+
+define pkg_variables
+$(eval PACKAGE := $(shell aapt dump badging $(APK_FILE)|awk -F" " '/package/ {print $$2}'|awk -F"'" '/name=/ {print $$2}'))
+$(eval MAIN_ACTIVITY := $(shell aapt dump badging $(APK_FILE)|awk -F" " '/launchable-activity/ {print $$2}'|awk -F"'" '/name=/ {print $$2}' | grep MainActivity))
+endef
 
 .PHONY: packages clean docker
 
@@ -119,6 +129,7 @@ define fpm-debian-build =
 endef
 
 all: binaries
+android: android-lib build-android-debug android-install android-run
 
 # This is to be called within the docker image.
 docker-genassets: require-npm
@@ -279,6 +290,8 @@ genassets: docker
 	git update-index --assume-unchanged src/github.com/getlantern/flashlight/ui/resources.go && \
 	echo "OK"
 
+genassets-android: docker
+
 linux-386: require-assets docker
 	@echo "Building linux/386..." && \
 	$(call docker-up) && \
@@ -429,6 +442,24 @@ release-beta: require-s3cmd
 	git add $$BETA_BASE_NAME* && \
 	(git commit -am "Latest beta binaries for Lantern released from QA." && git push origin master) || true
 
+release-android-beta: require-s3cmd
+	@BASE_NAME="lantern-android-beta" && \
+		rm -f $$BASE_NAME* && \
+		cp $(ANDROID_BUILD_DIR)/$(LANTERN_DEBUG_APK) $$BASE_NAME.apk && \
+		for NAME in $$(ls -1 $$BASE_NAME*.*); do \
+			shasum $$NAME | cut -d " " -f 1 > $$NAME.sha1 && \
+			echo "Uploading SHA-1 `cat $$NAME.sha1`" && \
+			$(S3CMD) put -P $$NAME.sha1 s3://$(S3_BUCKET) && \
+			echo "Uploading $$NAME to S3" && \
+			$(S3CMD) put -P $$NAME s3://$(S3_BUCKET) && \
+			SUFFIX=$$(echo "$$NAME" | sed s/$$BASE_NAME//g) && \
+			VERSIONED=lantern-installer-$$VERSION$$SUFFIX && \
+			echo "Copying $$VERSIONED" && \
+			$(S3CMD) cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$VERSIONED && \
+			$(S3CMD) setacl s3://$(S3_BUCKET)/$$VERSIONED --acl-public; \
+		done
+
+
 release: require-version require-s3cmd require-gh-token require-wget require-ruby require-lantern-binaries
 	@TAG_COMMIT=$$(git rev-list --abbrev-commit -1 $$VERSION) && \
 	if [[ -z "$$TAG_COMMIT" ]]; then \
@@ -501,6 +532,33 @@ android-lib: docker-mobile
 		echo "cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) \$$FIRETWEET_MAIN_DIR"; \
 	fi
 
+build-android-debug:
+	./$(GRADLE) -b $(LANTERN_MOBILE_DIR)/build.gradle \
+		compileDebugSources \
+		compileDebugAndroidTestSources \
+		assembleDebug
+
+build-tun2socks:
+	cd $(LANTERN_MOBILE_DIR)
+	ndk-build
+	mkdir -p app/libs/armeabi-v7a 
+	cp libs/armeabi-v7a/libtun2socks.so app/libs/armeabi-v7a/
+
+$(APK_FILE): build-android-debug
+
+android-install: $(APK_FILE)
+	adb install -r $(APK_FILE)
+
+android-uninstall: $(APK_FILE)
+	adb uninstall -r $(ANDROID_PACKAGE)
+
+android-run:
+	$(call pkg_variables)
+	echo $(PACKAGE)
+	echo $(MAIN_ACTIVITY)
+	adb shell am start -n $(PACKAGE)/$(MAIN_ACTIVITY)
+	adb logcat | grep `adb shell ps | grep org.getlantern.lantern | cut -c10-15`
+
 android-lib-dist: genconfig android-lib
 
 clean:
@@ -521,4 +579,5 @@ clean:
 	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/libs && \
 	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/res && \
 	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/src && \
-	rm -rf $(LANTERN_MOBILE_DIR)/app
+	rm -rf $(LANTERN_MOBILE_DIR)/app && \
+	./$(GRADLE) -b $(LANTERN_MOBILE_DIR)/build.gradle clean
