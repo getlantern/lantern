@@ -147,6 +147,9 @@ public class LanternUI {
     }
 
     public void setVersionNum(final String latestVersion) {
+
+        mPrefs.edit().putString("versionNum", latestVersion).commit();
+
         this.activity.runOnUiThread(new Runnable() {
                  @Override
                       public void run() {
@@ -179,6 +182,8 @@ public class LanternUI {
         });   
 
         versionNum = (TextView)this.activity.findViewById(R.id.versionNum);
+
+        versionNum.setText(mPrefs.getString("versionNum", ""));
 
         // Populate the Navigtion Drawer with options
         mDrawerPane = (RelativeLayout) this.activity.findViewById(R.id.drawerPane);
