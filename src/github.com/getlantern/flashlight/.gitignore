@@ -1,6 +1,7 @@
 flashlight
 flashlight.ex?
 autoupdate-prod.go
+src/github.com/getlantern/lantern-mobile/interface-prod.go
 *.tar.gz
 *.pem
 *.swo

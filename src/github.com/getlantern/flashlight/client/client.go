@@ -30,6 +30,8 @@ var (
 
 	Version      string
 	RevisionDate string
+	LogglyToken  string
+	LogglyTag    string
 )
 
 // Client is an HTTP proxy that accepts connections from local programs and

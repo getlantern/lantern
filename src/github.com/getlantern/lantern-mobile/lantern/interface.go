@@ -1,6 +1,9 @@
+// +build prod
+
 package client
 
 import (
+	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/lantern-mobile/lantern/interceptor"
 	"github.com/getlantern/lantern-mobile/lantern/protected"
 
@@ -13,6 +16,13 @@ var (
 	version      = "development"
 	revisionDate = "now"
 )
+
+func init() {
+	client.Version = defaultPackageVersion
+	client.RevisionDate = defaultRevisionDate
+	client.LogglyTag = "android-tag"
+	client.LogglyToken = "2b68163b-89b6-4196-b878-c1aca4bbdf84"
+}
 
 // GoCallback is the supertype of callbacks passed to Go
 type GoCallback interface {
@@ -50,7 +60,7 @@ func Start(protector SocketProvider, appName string,
 		log.Debugf("settings directory is %s", settingsDir)
 		appdir.AndroidDir = settingsDir
 
-		settings := settings.Load(version, revisionDate, "")
+		settings := settings.Load(client.Version, client.RevisionDate, "")
 
 		defaultClient = newClient(settings.HttpAddr, appName, androidProps, settingsDir)
 

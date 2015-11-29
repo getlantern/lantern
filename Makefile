@@ -23,6 +23,9 @@ BUILD_DATE := $(shell date -u +%Y%m%d.%H%M%S)
 LOGGLY_TOKEN := 2b68163b-89b6-4196-b878-c1aca4bbdf84
 
 LDFLAGS := -w -X=main.version=$(GIT_REVISION) -X=main.revisionDate=$(REVISION_DATE) -X=main.buildDate=$(BUILD_DATE) -X=github.com/getlantern/flashlight/logging.logglyToken=$(LOGGLY_TOKEN)
+LDFLAGS_MOBILE='\"-X version $(GIT_REVISION) -X client.revisionDate $(REVISION_DATE) -X client.buildDate $(BUILD_DATE) -X client.logglyToken $(LOGGLY_TOKEN)\"'
+LDFLAGS_MOBILE_TEST='\"-X=main.version=$(GIT_REVISION)\"'
+
 LANTERN_DESCRIPTION := Censorship circumvention tool
 LANTERN_EXTENDED_DESCRIPTION := Lantern allows you to access sites blocked by internet censorship.\nWhen you run it, Lantern reroutes traffic to selected domains through servers located where such domains are uncensored.
 
@@ -520,7 +523,7 @@ android-lib: docker-mobile
 	@source setenv.bash && \
 	cd $(LANTERN_MOBILE_DIR)/lantern
 	@$(call docker-up) && \
-	$(DOCKER) run -v $$PWD/src:/src $(DOCKER_MOBILE_IMAGE_TAG) /bin/bash -c \ "cd /src/github.com/getlantern/lantern-mobile/lantern && gomobile bind -target=android -o=$(LANTERN_MOBILE_LIBRARY) -ldflags="$(LDFLAGS)" ." && \
+$(DOCKER) run -v $$PWD/src:/src $(DOCKER_MOBILE_IMAGE_TAG) /bin/bash -c \ "cd /src/github.com/getlantern/lantern-mobile/lantern && sed s/'defaultPackageVersion.*'/'\"'$(GIT_REVISION)'\"'/ interface.go > tmp && sed s/'defaultRevisionDate.*'/'\"'$(REVISION_DATE)'\"'/ tmp > tmp2 && sed s/'prod'/'!prod'/ tmp2 > tmp3 && mv tmp3 interface-prod.go && echo -ldflags=$(LDFLAGS_MOBILE) && BUILD_TAGS="prod" gomobile bind -target=android -o=$(LANTERN_MOBILE_LIBRARY) -ldflags=$(LDFLAGS_MOBILE_TEST) ." && \
 	cp -v $(LANTERN_MOBILE_DIR)/lantern/$(LANTERN_MOBILE_LIBRARY) $(LANTERN_MOBILE_DIR)/app/libs; \
 	if [ -d "$(FIRETWEET_MAIN_DIR)" ]; then \
 		cp -v $(LANTERN_MOBILE_DIR)/lantern/$(LANTERN_MOBILE_LIBRARY) $(FIRETWEET_MAIN_DIR)/libs/$(LANTERN_MOBILE_LIBRARY); \
@@ -578,6 +581,4 @@ clean:
 	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/gen && \
 	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/libs && \
 	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/res && \
-	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/src && \
-	rm -rf $(LANTERN_MOBILE_DIR)/app && \
-	./$(GRADLE) -b $(LANTERN_MOBILE_DIR)/build.gradle clean
+	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/src
