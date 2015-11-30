@@ -39,7 +39,7 @@ func ServeProxyAllPacFile(b bool) {
 	genPACFile()
 }
 
-func setUpPacTool() error {
+func SetUpPacTool() error {
 	var iconFile string
 	if runtime.GOOS == "darwin" {
 		// We have to use a short filepath here because Cocoa won't display the
@@ -64,7 +64,7 @@ func setUpPacTool() error {
 	return nil
 }
 
-func setProxyAddr(addr string) {
+func SetProxyAddr(addr string) {
 	proxyAddr = addr
 }
 
@@ -109,7 +109,7 @@ func genPACFile() {
 }
 
 // watchDirectAddrs adds any site that has accessed directly without error to PAC file
-func watchDirectAddrs() {
+func WatchDirectAddrs() {
 	go func() {
 		for {
 			addr := <-detour.DirectAddrCh
@@ -125,14 +125,14 @@ func watchDirectAddrs() {
 				directHosts[host] = true
 				genPACFile()
 				// reapply so browser will fetch the PAC URL again
-				doPACOff(pacURL)
-				doPACOn(pacURL)
+				DoPACOff(pacURL)
+				DoPACOn(pacURL)
 			}
 		}
 	}()
 }
 
-func pacOn() {
+func PacOn() {
 	log.Debug("Setting lantern as system proxy")
 	handler := func(resp http.ResponseWriter, req *http.Request) {
 		resp.Header().Set("Content-Type", "application/x-ns-proxy-autoconfig")
@@ -146,26 +146,26 @@ func pacOn() {
 	genPACFile()
 	pacURL = ui.Handle("/proxy_on.pac", http.HandlerFunc(handler))
 	log.Debugf("Serving PAC file at %v", pacURL)
-	doPACOn(pacURL)
+	DoPACOn(pacURL)
 	atomic.StoreInt32(&isPacOn, 1)
 }
 
-func pacOff() {
+func PacOff() {
 	if atomic.CompareAndSwapInt32(&isPacOn, 1, 0) {
 		log.Debug("Unsetting lantern as system proxy")
-		doPACOff(pacURL)
+		DoPACOff(pacURL)
 		log.Debug("Unset lantern as system proxy")
 	}
 }
 
-func doPACOn(pacURL string) {
+func DoPACOn(pacURL string) {
 	err := pac.On(pacURL)
 	if err != nil {
 		log.Errorf("Unable to set lantern as system proxy: %v", err)
 	}
 }
 
-func doPACOff(pacURL string) {
+func DoPACOff(pacURL string) {
 	err := pac.Off(pacURL)
 	if err != nil {
 		log.Errorf("Unable to unset lantern as system proxy: %v", err)

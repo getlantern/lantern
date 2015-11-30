@@ -70,7 +70,10 @@ func Start(protector SocketProvider, appName string,
 			"androidSdkVersion": version,
 		}
 
-		defaultClient = newClient(bootstrapSettings.HttpAddr, appName, androidProps, settingsDir)
+		defaultClient, err = newClient(bootstrapSettings.HttpAddr, appName, androidProps, settingsDir)
+		if err != nil {
+			log.Fatalf("Could not start Lantern")
+		}
 
 		i, err = interceptor.New(defaultClient.Client, bootstrapSettings.SocksAddr, bootstrapSettings.HttpAddr, protector.Notice)
 		if err != nil {
@@ -84,7 +87,7 @@ func Start(protector SocketProvider, appName string,
 // StopClientProxy stops the proxy.
 func StopClientProxy() error {
 	if defaultClient != nil {
-		defaultClient.stop()
+		defaultClient.Stop()
 	}
 	if i != nil {
 		// here we stop the interceptor service

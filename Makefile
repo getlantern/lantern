@@ -523,7 +523,7 @@ android-lib: docker-mobile
 	@source setenv.bash && \
 	cd $(LANTERN_MOBILE_DIR)/lantern
 	@$(call docker-up) && \
-$(DOCKER) run -v $$PWD/src:/src $(DOCKER_MOBILE_IMAGE_TAG) /bin/bash -c \ "cd /src/github.com/getlantern/lantern-mobile/lantern && sed s/'defaultPackageVersion.*'/'\"'$(GIT_REVISION)'\"'/ interface.go > tmp && sed s/'defaultRevisionDate.*'/'\"'$(REVISION_DATE)'\"'/ tmp > tmp2 && sed s/'prod'/'!prod'/ tmp2 > tmp3 && mv tmp3 interface-prod.go && echo -ldflags=$(LDFLAGS_MOBILE) && BUILD_TAGS="prod" gomobile bind -target=android -o=$(LANTERN_MOBILE_LIBRARY) -ldflags=$(LDFLAGS_MOBILE_TEST) ." && \
+$(DOCKER) run -v $$PWD/src:/src $(DOCKER_MOBILE_IMAGE_TAG) /bin/bash -c \ "cd /src/github.com/getlantern/lantern-mobile/lantern && sed s/'defaultPackageVersion.*'/'\"'$(GIT_REVISION)'\"'/ interface.go > tmp && sed s/'defaultRevisionDate.*'/'\"'$(REVISION_DATE)'\"'/ tmp > tmp2 && sed s/'prod'/'!prod'/ tmp2 > tmp3 && mv tmp3 interface-prod.go && echo -ldflags=$(LDFLAGS_MOBILE) && gomobile bind -target=android -tags='headless' -o=$(LANTERN_MOBILE_LIBRARY) -ldflags=$(LDFLAGS_MOBILE_TEST) ." && \
 	cp -v $(LANTERN_MOBILE_DIR)/lantern/$(LANTERN_MOBILE_LIBRARY) $(LANTERN_MOBILE_DIR)/app/libs; \
 	if [ -d "$(FIRETWEET_MAIN_DIR)" ]; then \
 		cp -v $(LANTERN_MOBILE_DIR)/lantern/$(LANTERN_MOBILE_LIBRARY) $(FIRETWEET_MAIN_DIR)/libs/$(LANTERN_MOBILE_LIBRARY); \
