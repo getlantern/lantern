@@ -2,6 +2,7 @@ package org.getlantern.lantern.model;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.util.Log;
 
 import java.net.InetAddress;
@@ -10,12 +11,15 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.io.File;
+import java.util.Map;
+import java.util.HashMap;
+ 
 
 import go.client.*;
 import org.getlantern.lantern.activity.UpdaterActivity;
 import org.getlantern.lantern.model.Analytics;
+import org.getlantern.lantern.model.Utils;
 import org.getlantern.lantern.service.LanternVpn;
-import org.getlantern.lantern.config.LanternConfig;
 
 public class Lantern extends Client.SocketProvider.Stub {
 
@@ -23,8 +27,12 @@ public class Lantern extends Client.SocketProvider.Stub {
     final private LanternVpn service;
     final private Analytics analytics;
 
-    private String device, model, version;
+    private String device, model, version, appName;
     private Context context;
+
+    private final static String settingsFile = "settings.yaml";
+
+    private Map settings = null;
 
     private final static String DEFAULT_DNS_SERVER = "8.8.4.4";
 
@@ -38,6 +46,31 @@ public class Lantern extends Client.SocketProvider.Stub {
         this.device = android.os.Build.DEVICE;
         this.model = android.os.Build.MODEL;
         this.version = "" + android.os.Build.VERSION.SDK_INT + " ("  + android.os.Build.VERSION.RELEASE + ")";
+        this.settings = this.loadSettings();
+        this.appName = "Lantern";
+    }
+
+    public Map getSettings() {
+        return settings;
+    }
+
+    // loadSettings loads the settings.yaml file into a map
+    // and copies it over to the app's internal storage directory
+    // for easy access from the backend
+    public Map loadSettings() {
+        Map settings = new HashMap();
+        try {
+            settings = Utils.loadSettings(this.context, settingsFile);
+            if (settings != null) {
+                appName = (String)settings.get("appname");
+                Log.d(TAG, "App name is " + appName);
+            }
+            Client.Configure(this, appName, callback);
+
+        } catch (Exception e) {
+            Log.d(TAG, "Unable to load settings file: " + e.getMessage());
+        }
+        return settings;
     }
 
     // Configures callbacks from Lantern during packet
@@ -76,7 +109,7 @@ public class Lantern extends Client.SocketProvider.Stub {
         try {
             Log.d(TAG, "About to start Lantern..");
 
-            Client.Start(this, LanternConfig.APP_NAME, this.device, this.model, this.version, callback);
+            Client.Start(this, appName, this.device, this.model, this.version, callback);
             //Client.Start(this, httpAddr, socksAddr, callback);
 
         } catch (final Exception e) {

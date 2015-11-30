@@ -20,7 +20,7 @@ var (
 // ~/Library/<App>).
 func General(app string) string {
 	if runtime.GOOS == "android" {
-		return filepath.Join(AndroidDir, app)
+		return AndroidDir
 	}
 	return general(app)
 }

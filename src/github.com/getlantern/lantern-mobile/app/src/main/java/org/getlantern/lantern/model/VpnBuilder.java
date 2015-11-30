@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import org.getlantern.lantern.config.LanternConfig;
 import org.getlantern.lantern.android.vpn.Tun2Socks;
 
 public class VpnBuilder extends VpnService {
@@ -44,7 +43,7 @@ public class VpnBuilder extends VpnService {
 
     private ParcelFileDescriptor mInterface;
 
-    public synchronized void configure() throws Exception {
+    public synchronized void configure(Map settings) throws Exception {
 
         if (mInterface != null) {
             Log.i(TAG, "Using the previous interface");
@@ -76,13 +75,21 @@ public class VpnBuilder extends VpnService {
             .establish();
 
         Log.i(TAG, "New interface: " + mInterface);
+
+        String socksAddr = "127.0.0.1:9131";
+        String udpgwAddr = "127.0.0.1:7131";
+        if (settings != null) {
+            socksAddr = (String)settings.get("socksaddr");
+            udpgwAddr = (String)settings.get("udpgwaddr");
+        }
+
         Tun2Socks.Start(
                 mInterface,
                 VPN_MTU,
                 mVirtualIP,
                 mNetMask,
-                "127.0.0.1:" + String.valueOf(LanternConfig.SOCKS_PORT),
-                LanternConfig.UDPGW_SERVER,
+                socksAddr,
+                udpgwAddr,
                 true
         );
     }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"runtime"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -57,7 +58,7 @@ func Start() {
 	ip.Store("")
 	country.Store("")
 
-	if service == nil {
+	if service == nil && runtime.GOOS != "android" {
 		err := registerService()
 		if err != nil {
 			log.Errorf("Unable to register service: %s", err)

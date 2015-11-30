@@ -27,7 +27,8 @@ var (
 	service    *ui.Service
 	settings   *Settings
 	httpClient *http.Client
-	path       = filepath.Join(appdir.General("Lantern"), "settings.yaml")
+	yamlName   = "settings.yaml"
+	path       = filepath.Join(appdir.General("Lantern"), yamlName)
 	once       = &sync.Once{}
 )
 
@@ -45,6 +46,10 @@ type Settings struct {
 	SocksAddr string
 
 	sync.RWMutex
+}
+
+func SetAndroidPath(settingsDir string) {
+	path = filepath.Join(settingsDir, yamlName)
 }
 
 // Load loads the initial settings at startup, either from disk or using defaults.
