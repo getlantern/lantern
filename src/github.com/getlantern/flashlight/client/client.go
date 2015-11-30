@@ -164,11 +164,11 @@ func (client *Client) Configure(cfg *clientconfig.ClientConfig) {
 
 // Stop is called when the client is no longer needed. It closes the
 // client listener and underlying dialer connection pool
-func (client *Client) Stop() error {
+func (client *Client) Stop() {
 
 	bal := client.GetBalancer()
 	if bal != nil {
 		bal.Close()
 	}
-	return client.l.Close()
+	client.l.Close()
 }

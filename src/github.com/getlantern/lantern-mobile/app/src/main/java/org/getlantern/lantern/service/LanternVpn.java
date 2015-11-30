@@ -83,7 +83,6 @@ public class LanternVpn extends VpnBuilder implements Handler.Callback {
         mThread = new Thread() {
             public void run() {
                 try {
-
                     lantern.start();
                     Thread.sleep(2000);
                     service.configure(lantern.getSettings());
@@ -98,10 +97,7 @@ public class LanternVpn extends VpnBuilder implements Handler.Callback {
 
     public void stop() {
         try {
-            if (lantern != null) {
-                lantern.stop(); 
-                lantern = null;
-            }
+            lantern.stop(); 
             Log.d(TAG, "Closing VPN interface and stopping Lantern..");
             Utils.clearPreferences(this);
 

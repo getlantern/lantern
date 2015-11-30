@@ -4,6 +4,7 @@ package client
 
 import (
 	"github.com/getlantern/flashlight/client"
+	"github.com/getlantern/flashlight/lantern"
 	"github.com/getlantern/lantern-mobile/lantern/interceptor"
 	"github.com/getlantern/lantern-mobile/lantern/protected"
 
@@ -79,20 +80,20 @@ func Start(protector SocketProvider, appName string,
 		if err != nil {
 			log.Errorf("Error starting SOCKS proxy: %v", err)
 		}
+
+		lantern.AddExitFunc(func() {
+			if i != nil {
+				i.Stop(true)
+			}
+		})
 		ready.AfterStart(client.Version)
+
 	}()
 	return nil
 }
 
 // StopClientProxy stops the proxy.
 func StopClientProxy() error {
-	if defaultClient != nil {
-		defaultClient.Stop()
-	}
-	if i != nil {
-		// here we stop the interceptor service
-		// and close any existing connections
-		i.Stop(true)
-	}
+	go lantern.Exit(nil)
 	return nil
 }

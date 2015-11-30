@@ -81,7 +81,7 @@ func configureDesktop(cfg *config.Config, clearProxySettings bool, showui bool) 
 	pac.SetProxyAddr(cfg.Addr)
 
 	if err := pac.SetUpPacTool(); err != nil {
-		exit(err)
+		Exit(err)
 	}
 
 	if clearProxySettings {
@@ -91,13 +91,13 @@ func configureDesktop(cfg *config.Config, clearProxySettings bool, showui bool) 
 		//
 		// See: https://github.com/getlantern/lantern/issues/2776
 		pac.DoPACOff(fmt.Sprintf("http://%s/proxy_on.pac", cfg.UIAddr))
-		exit(nil)
+		Exit(nil)
 	}
 
 	// Start user interface.
 	tcpAddr, err := net.ResolveTCPAddr("tcp4", cfg.UIAddr)
 	if err != nil {
-		exit(fmt.Errorf("Unable to resolve UI address: %v", err))
+		Exit(fmt.Errorf("Unable to resolve UI address: %v", err))
 	}
 
 	bootstrap, err := config.ReadBootstrapSettings()
@@ -114,7 +114,7 @@ func configureDesktop(cfg *config.Config, clearProxySettings bool, showui bool) 
 		// it to open a browser. This is useful, for example, when the user
 		// clicks the Lantern desktop shortcut when Lantern is already running.
 		showExistingUi(cfg.UIAddr)
-		exit(fmt.Errorf("Unable to start UI: %s", err))
+		Exit(fmt.Errorf("Unable to start UI: %s", err))
 		return
 	}
 }
@@ -131,6 +131,8 @@ func (self *Lantern) RunClientProxy(cfg *config.Config, android bool, clearProxy
 		ReadTimeout:  0, // don't timeout
 		WriteTimeout: 0,
 	}
+
+	AddExitFunc(self.Client.Stop)
 
 	self.Client.ApplyClientConfig(cfg)
 
@@ -181,7 +183,7 @@ func (self *Lantern) RunClientProxy(cfg *config.Config, android bool, clearProxy
 			}
 		})
 		if err != nil {
-			exit(fmt.Errorf("Error calling listen and serve: %v", err))
+			Exit(fmt.Errorf("Error calling listen and serve: %v", err))
 		}
 	}()
 }
@@ -243,7 +245,7 @@ func RunServerProxy(cfg *config.Config) {
 
 // exit tells the application to exit, optionally supplying an error that caused
 // the exit.
-func exit(err error) {
+func Exit(err error) {
 	defer func() { exitCh <- err }()
 	for {
 		select {
@@ -309,7 +311,7 @@ func (self *Lantern) ProcessConfig(f func(*config.Config)) *config.Config {
 	// for the first time. User can still quit Lantern through systray menu when it happens.
 	cfg, err := config.Init(packageVersion)
 	if err != nil {
-		exit(fmt.Errorf("Unable to initialize configuration: %v", err))
+		Exit(fmt.Errorf("Unable to initialize configuration: %v", err))
 		return nil
 	}
 	self.config = cfg
@@ -319,7 +321,7 @@ func (self *Lantern) ProcessConfig(f func(*config.Config)) *config.Config {
 			configUpdates <- updated
 		})
 		if err != nil {
-			exit(err)
+			Exit(err)
 		}
 	}()
 
@@ -374,7 +376,7 @@ func handleSignals() {
 	go func() {
 		s := <-c
 		log.Debugf("Got signal \"%s\", exiting...", s)
-		exit(nil)
+		Exit(nil)
 	}()
 }
 
