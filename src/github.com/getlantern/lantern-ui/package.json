@@ -37,7 +37,6 @@
     "gulp-rev": "^5.0.1",
     "gulp-uglify": "^1.2.0",
     "gulp-usemin": "^0.3.11",
-    "websocket": "^1.0.22",
     "ws": "^0.8.1"
   },
   "analyze": false,

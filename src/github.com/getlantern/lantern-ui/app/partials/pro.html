@@ -1,0 +1,58 @@
+<div class="message">Upgrade to <a href="#" ng-click="showModal('buypro')"><strong>Lantern Pro</strong></a> to have fast, reliable access to blocked sites, and help Lantern!</div>
+
+<div ng-controller="BuyProCtrl" ng-show="wsConnected && currentModal == 'buypro'" class="modal">
+  <div class="modal-header">
+    <h3>
+      <i class="lsf-icon lsf-shopping"></i>
+      {{ 'BUY_PRO' | translate }}
+    </h3>
+  </div>
+  <div class="modal-body" id="settings">
+    <script>
+      $.ajax({
+        url: 'https://checkout.stripe.com/checkout.js',
+        dataType: 'script',
+        cache: true,
+        success: function() {
+          var handler = StripeCheckout.configure({
+            key: 'pk_test_4MSPZvz9QtXGWEKdODmzV9ql',
+            image: '/img/lantern-logo.png',
+            locale: 'auto',
+            token: function(token) {
+              $.post('https://pro.getlantern.org/purchase', {
+                token: token.id,
+                amount: 2000
+              })
+              .done(function(data) {
+              })
+              .fail(function(data) {
+              })
+            }
+          });
+
+          $('#customButton').on('click', function(e) {
+            // Open Checkout with further options
+            handler.open({
+              name: 'Brave New Software Project, Inc.',
+              description: 'Lantern Pro',
+              amount: 2000,
+              email: $('#email').val()
+            });
+            e.preventDefault();
+          });
+
+          // Close Checkout on page navigation
+          $(window).on('popstate', function() {
+            handler.close();
+          });
+        }
+      });
+    </script>
+    <div class="smaller">{{ 'INPUT_EMAIL' | translate }}</div>
+    <input id="email" type="email" ng-model="model.buypro.email" focus-on="show">
+    <button id="customButton">Purchase</button>
+  </div>
+  <div class="modal-footer">
+    <button type="button" id="settings-close" class="btn btn-primary" ng-click="closeModal()">{{ 'CLOSE' | translate }}</button>
+  </div>
+</div>

@@ -237,3 +237,16 @@ app.controller('ProxiedSitesCtrl', ['$rootScope', '$scope', '$filter', 'SETTING'
     $scope.closeModal();
   };
 }]);
+
+app.controller('BuyProCtrl', ['$scope', '$timeout', 'MODAL', function($scope, $timeout, MODAL) {
+  $scope.show = false;
+  $scope.$watch('model.buypro.email', function (val) {
+    var timeout;
+    if (timeout) $timeout.cancel(timeout);
+    timeout = $timeout(function() {
+      // check availability of email account
+    }, 1000); // delay 1s
+  })
+}])
+
+
