@@ -3,6 +3,7 @@ package proxiedsites
 import (
 	"encoding/json"
 	"fmt"
+	"runtime"
 	"sync"
 
 	"github.com/getlantern/detour"
@@ -32,6 +33,12 @@ func Configure(cfg *proxiedsites.Config) {
 	if delta != nil {
 		updateDetour(delta)
 	}
+
+	if runtime.GOOS == "android" {
+		startMutex.Unlock()
+		return
+	}
+
 	if service == nil {
 		// Initializing service.
 		if err := start(); err != nil {
