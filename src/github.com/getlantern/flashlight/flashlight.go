@@ -6,29 +6,18 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
-	"os/signal"
 	"runtime"
 	"strings"
-	"sync"
-	"syscall"
 	"time"
 
-	"github.com/getlantern/fronted"
-	"github.com/getlantern/golog"
-	"github.com/getlantern/i18n"
-	"github.com/getlantern/profiling"
-
-	"github.com/getlantern/flashlight/analytics"
-	"github.com/getlantern/flashlight/client"
+	"github.com/getlantern/flashlight/autoupdate"
 	"github.com/getlantern/flashlight/config"
-	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/lantern"
 	"github.com/getlantern/flashlight/logging"
-	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/settings"
 	"github.com/getlantern/flashlight/statreporter"
-	"github.com/getlantern/flashlight/statserver"
-	"github.com/getlantern/flashlight/ui"
+	"github.com/getlantern/golog"
+	"github.com/getlantern/profiling"
 
 	"github.com/mitchellh/panicwrap"
 )
@@ -37,6 +26,8 @@ var (
 	version      string
 	revisionDate string // The revision date and time that is associated with the version string.
 	buildDate    string // The actual date and time the binary was built.
+
+	log = golog.LoggerFor("flashlight")
 
 	// Command-line Flags
 	help               = flag.Bool("help", false, "Get usage help")
@@ -54,8 +45,33 @@ var (
 	chExitFuncs = make(chan func(), 10)
 )
 
+func init() {
+
+	if lantern.PackageVersion != lantern.DefaultPackageVersion {
+		// packageVersion has precedence over GIT revision. This will happen when
+		// packing a version intended for release.
+		version = lantern.PackageVersion
+	}
+
+	if version == "" {
+		version = "development"
+	}
+
+	if revisionDate == "" {
+		revisionDate = "now"
+	}
+
+	// Passing public key and version to the autoupdate service.
+	autoupdate.PublicKey = []byte(lantern.PackagePublicKey)
+	autoupdate.Version = lantern.PackageVersion
+
+	rand.Seed(time.Now().UnixNano())
+
+	settings.Load(version, revisionDate, buildDate)
+}
+
 func logPanic(msg string) {
-	_, err := config.Init(packageVersion)
+	_, err := config.Init(lantern.PackageVersion)
 	if err != nil {
 		panic("Error initializing config")
 	}
@@ -77,7 +93,7 @@ func main() {
 	exitStatus, err := panicwrap.BasicWrap(
 		func(output string) {
 			logPanic(output)
-			exit(nil)
+			lantern.Exit(nil)
 		})
 	if err != nil {
 		// Something went wrong setting up the panic wrapper. This won't be
@@ -98,7 +114,7 @@ func main() {
 	showui = !*headless
 
 	if showui {
-		runOnSystrayReady(_main)
+		lantern.RunOnSystrayReady(_main)
 	} else {
 		log.Debug("Running headless")
 		_main()
@@ -116,12 +132,11 @@ func _main() {
 }
 
 func doMain() error {
-
 	// Run below in separate goroutine as config.Init() can potentially block when Lantern runs
 	// for the first time. User can still quit Lantern through systray menu when it happens.
 	go func() {
 		isAndroid := runtime.GOOS == "android"
-		lantern.Start(showui, isAndroid, func(cfg *config.Config) {
+		cfgFn := func(cfg *config.Config) {
 			if *help || cfg.Addr == "" || (cfg.Role != "server" && cfg.Role != "client") {
 				flag.Usage()
 				lantern.Exit(fmt.Errorf("Wrong arguments"))
@@ -134,9 +149,11 @@ func doMain() error {
 			}
 			// Configure stats initially
 			if err := statreporter.Configure(cfg.Stats, settings.GetInstanceID()); err != nil {
-				exit(err)
+				lantern.Exit(err)
 			}
-		})
+		}
+		lantern.Start(showui, isAndroid, *clearProxySettings,
+			*startup, cfgFn)
 	}()
 
 	return lantern.WaitForExit()

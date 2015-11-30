@@ -51,10 +51,10 @@ type Lantern struct {
 
 func init() {
 
-	if packageVersion != defaultPackageVersion {
+	if PackageVersion != DefaultPackageVersion {
 		// packageVersion has precedence over GIT revision. This will happen when
 		// packing a version intended for release.
-		Version = packageVersion
+		Version = PackageVersion
 	}
 
 	if Version == "" {
@@ -66,8 +66,8 @@ func init() {
 	}
 
 	// Passing public key and version to the autoupdate service.
-	autoupdate.PublicKey = []byte(packagePublicKey)
-	autoupdate.Version = packageVersion
+	autoupdate.PublicKey = []byte(PackagePublicKey)
+	autoupdate.Version = PackageVersion
 
 	rand.Seed(time.Now().UnixNano())
 
@@ -307,7 +307,7 @@ func Start(showui bool, android bool, clearProxySettings bool, startup bool, cfg
 func (self *Lantern) ProcessConfig(f func(*config.Config)) *config.Config {
 	// Run below in separate goroutine as config.Init() can potentially block when Lantern runs
 	// for the first time. User can still quit Lantern through systray menu when it happens.
-	cfg, err := config.Init(packageVersion)
+	cfg, err := config.Init(PackageVersion)
 	if err != nil {
 		Exit(fmt.Errorf("Unable to initialize configuration: %v", err))
 		return nil
@@ -345,10 +345,10 @@ func showExistingUi(tcpAddr string) {
 }
 
 func displayVersion() {
-	log.Debugf("---- lantern version: %s, release: %s, build revision date: %s ----", Version, packageVersion, RevisionDate)
+	log.Debugf("---- lantern version: %s, release: %s, build revision date: %s ----", Version, PackageVersion, RevisionDate)
 }
 
-func (self *Lantern) Stop() {
+func Stop() {
 	if err := logging.Close(); err != nil {
 		log.Debugf("Error closing log: %v", err)
 	}

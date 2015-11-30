@@ -7,13 +7,13 @@ package lantern
 // disabling the feature completely. The "make package-*" tool will take care
 // of bumping this version number so you don't have to do it by hand.
 const (
-	defaultPackageVersion = "9999.99.99"
-	packageVersion        = defaultPackageVersion
+	DefaultPackageVersion = "9999.99.99"
+	PackageVersion        = DefaultPackageVersion
 )
 
 // This is the public key of the BNS cert. Incoming updates will be signed to
 // prevent MITM attacks.
-const packagePublicKey = `-----BEGIN PUBLIC KEY-----
+const PackagePublicKey = `-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxeReZ0VHDQ+/XYEHhFq0
 krT+a/+/mlhCkgJ/605KmPXqBv8qo5f1iK6C+TQ87264J4Z9yw0tRwcdY1/ofpH7
 Tywq3pBOgfrnnP9gFtquQ/tgzVkorQ0L51w9HLZ3cCjpaLpofIaztgbCIzsCT6kV

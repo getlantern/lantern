@@ -2,7 +2,7 @@
 
 package lantern
 
-func runOnSystrayReady(f func()) {
+func RunOnSystrayReady(f func()) {
 	f()
 }
 
