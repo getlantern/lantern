@@ -9,6 +9,8 @@ import android.widget.Toast;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import java.util.Map;
+
 import org.getlantern.lantern.config.LanternConfig;
 import org.getlantern.lantern.model.Lantern;
 import org.getlantern.lantern.model.LanternUI;
@@ -30,6 +32,10 @@ public class LanternVpn extends VpnBuilder implements Handler.Callback {
 
         if (intent == null) {
             return START_STICKY;
+        }
+
+        if (lantern == null) {
+            lantern = new Lantern(this); 
         }
 
         String action = intent.getAction();
@@ -77,11 +83,10 @@ public class LanternVpn extends VpnBuilder implements Handler.Callback {
         mThread = new Thread() {
             public void run() {
                 try {
-                    lantern = new Lantern(service);
-                    lantern.start();
 
+                    lantern.start();
                     Thread.sleep(2000);
-                    service.configure();
+                    service.configure(lantern.getSettings());
 
                 } catch (Exception uhe) {
                     Log.e(TAG, "Error starting Lantern with given host: " + uhe);
