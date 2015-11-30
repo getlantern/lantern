@@ -6,6 +6,7 @@ var util = require('util'),
     url = require('url'),
     events = require('events');
 var MockBackend = require('../mock/backend').MockBackend;
+var ws = require('../mock/websocket').MockWS;
 
 var DEFAULT_HOST = '127.0.0.1';
 var DEFAULT_PORT = 8000;
@@ -43,6 +44,7 @@ function HttpServer(handlers) {
   var mockBackend = new MockBackend(this);
   this.handlers.POST = mockBackend.handleRequest.bind(mockBackend);
   this.server = http.createServer(this.handleRequest_.bind(this));
+  ws(this.server);
   mockBackend.attachServer(this.server);
 }
 
@@ -101,8 +103,10 @@ StaticServlet.MimeMap = {
 StaticServlet.prototype.handleRequest = function(req, res) {
   var self = this;
   // assets in html file are absolute path start with '/img' etc.
-  if (req.url.pathname.indexOf("/app", 0) === -1) {
-    req.url.pathname = "/app" + req.url.pathname
+  if (req.url.pathname.indexOf("/data", 0) === -1) { // /data is for websockets
+    if (req.url.pathname.indexOf("/app", 0) === -1) {
+      req.url.pathname = "/app" + req.url.pathname
+    }
   }
   var path = ('./' + req.url.pathname).replace('//','/').replace(/%(..)/g, function(match, hex){
     return String.fromCharCode(parseInt(hex, 16));
