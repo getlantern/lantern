@@ -13,3 +13,4 @@ build.xml
 logs/*
 !.gitkeep
 build
+npm-debug.log

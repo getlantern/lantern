@@ -1,0 +1,34 @@
+<head>
+  <title>Mock Google Oauth Page</title>
+  <link href="/app/_css/app.css" rel="stylesheet">
+  <script src="/app/bower_components/jquery/jquery.js"></script>
+  <script src="/app/js/constants.js"></script>
+  <script>
+    $(function() {
+      $('#allow').click(function() {
+        var continueUrl ='/app/api/0.0/interaction/continue'; 
+        $.post(continueUrl);
+        setTimeout(function() {
+          window.close();
+        }, 100);
+        return false;
+      });
+    });
+  </script>
+  <style>
+    body { background: #fff; }
+    h1, p { margin: 30px 0 0 0; }
+  </style>
+<head>
+<body class="pagination-centered">
+  <h1>Mock Google Oauth Page</h1>
+
+  <p>
+    Lantern is requesting permission to access your Google account.
+  </p>
+
+  <p>
+    <button id="allow" class="btn btn-primary" autofocus>Allow</button>
+  </p>
+
+</body>
