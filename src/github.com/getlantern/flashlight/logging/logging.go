@@ -152,8 +152,12 @@ func Flush() {
 }
 
 func Close() error {
-	golog.ResetOutputs()
-	return logFile.Close()
+	if runtime.GOOS == "android" {
+		return nil
+	} else {
+		golog.ResetOutputs()
+		return logFile.Close()
+	}
 }
 
 func enableLoggly(addr string, cloudConfigCA string, instanceId string,

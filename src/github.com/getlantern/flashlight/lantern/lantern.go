@@ -345,7 +345,7 @@ func showExistingUi(tcpAddr string) {
 }
 
 func displayVersion() {
-	log.Debugf("---- flashlight version: %s, release: %s, build revision date: %s ----", version, packageVersion, revisionDate)
+	log.Debugf("---- lantern version: %s, release: %s, build revision date: %s ----", version, packageVersion, revisionDate)
 }
 
 func (self *Lantern) Stop() {
