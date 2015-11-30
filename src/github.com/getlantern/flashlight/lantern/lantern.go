@@ -38,6 +38,7 @@ var (
 
 	configUpdates = make(chan *config.Config)
 	exitCh        = make(chan error, 1)
+	doneCfg       = make(chan bool, 2)
 
 	// use buffered channel to avoid blocking the caller of 'addExitFunc'
 	// the number 10 is arbitrary
@@ -144,10 +145,16 @@ func (self *Lantern) RunClientProxy(cfg *config.Config, android bool, clearProxy
 	// Continually poll for config updates and update client accordingly
 	go func() {
 		for {
-			cfg := <-configUpdates
-			self.Client.ApplyClientConfig(cfg)
+			select {
+			case cfg := <-configUpdates:
+				self.Client.ApplyClientConfig(cfg)
+			case <-doneCfg:
+				return
+			}
 		}
 	}()
+
+	AddExitFunc(func() { doneCfg <- true })
 
 	if !android {
 		// watchDirectAddrs will spawn a goroutine that will add any site that is
