@@ -8,17 +8,18 @@
   var rev = require('gulp-rev');
   var del = require('del');
 
-  gulp.task('usemin', function () {
+  gulp.task('usemin', ['clean'], function () {
     return gulp.src('app/index.html')
     .pipe(usemin({
-      css: [minifyCss(), 'concat'],
+      css: [minifyCss(), 'concat', rev()],
       html: [minifyHtml({empty: true, conditionals: true})],
+      libjs: [rev()],
       js: [uglify(), rev()]
     }))
     .pipe(gulp.dest('dist/'));
   });
 
-  gulp.task('copy', function () {
+  gulp.task('copy', ['clean'], function () {
     gulp.src('app/data/*')
     .pipe(gulp.dest('dist/data'));
     gulp.src('app/font/*')
@@ -35,7 +36,7 @@
     del(['dist/'], cb);
   });
 
-  gulp.task('build', ['clean', 'usemin', 'copy'], function() {
+  gulp.task('build', ['usemin', 'copy'], function() {
     // place code for your default task here
   });
   gulp.task('default', ['build'], function() {
