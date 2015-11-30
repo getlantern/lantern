@@ -19,8 +19,8 @@ var (
 )
 
 func init() {
-	client.Version = defaultPackageVersion
-	client.RevisionDate = defaultRevisionDate
+	lantern.Version = defaultPackageVersion
+	lantern.RevisionDate = defaultRevisionDate
 	client.LogglyTag = "android-tag"
 	client.LogglyToken = "2b68163b-89b6-4196-b878-c1aca4bbdf84"
 }

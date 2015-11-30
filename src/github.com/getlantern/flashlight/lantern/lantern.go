@@ -32,8 +32,8 @@ import (
 var (
 	log = golog.LoggerFor("lantern")
 
-	version      string
-	revisionDate string // The revision date and time that is associated with the version string.
+	Version      string
+	RevisionDate string // The revision date and time that is associated with the version string.
 	buildDate    string // The actual date and time the binary was built.
 
 	configUpdates = make(chan *config.Config)
@@ -54,26 +54,24 @@ func init() {
 	if packageVersion != defaultPackageVersion {
 		// packageVersion has precedence over GIT revision. This will happen when
 		// packing a version intended for release.
-		version = packageVersion
+		Version = packageVersion
 	}
 
-	if version == "" {
-		version = "development"
+	if Version == "" {
+		Version = "development"
 	}
 
-	if revisionDate == "" {
-		revisionDate = "now"
+	if RevisionDate == "" {
+		RevisionDate = "now"
 	}
 
 	// Passing public key and version to the autoupdate service.
 	autoupdate.PublicKey = []byte(packagePublicKey)
 	autoupdate.Version = packageVersion
-	client.Version = packageVersion
-	client.RevisionDate = revisionDate
 
 	rand.Seed(time.Now().UnixNano())
 
-	settings.Load(version, revisionDate, buildDate)
+	settings.Load(Version, RevisionDate, buildDate)
 }
 
 func configureDesktop(cfg *config.Config, clearProxySettings bool, showui bool) {
@@ -139,7 +137,7 @@ func (self *Lantern) RunClientProxy(cfg *config.Config, android bool, clearProxy
 	// Only run analytics once on startup. It subscribes to IP discovery
 	// events from geolookup, so it needs to be subscribed here before
 	// the geolookup code executes.
-	AddExitFunc(analytics.Configure(cfg, version))
+	AddExitFunc(analytics.Configure(cfg, Version))
 
 	geolookup.Start()
 
@@ -347,7 +345,7 @@ func showExistingUi(tcpAddr string) {
 }
 
 func displayVersion() {
-	log.Debugf("---- lantern version: %s, release: %s, build revision date: %s ----", version, packageVersion, revisionDate)
+	log.Debugf("---- lantern version: %s, release: %s, build revision date: %s ----", Version, packageVersion, RevisionDate)
 }
 
 func (self *Lantern) Stop() {
