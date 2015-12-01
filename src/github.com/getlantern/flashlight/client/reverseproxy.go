@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/getlantern/balancer"
@@ -130,6 +131,15 @@ type errorRewritingRoundTripper struct {
 func (er *errorRewritingRoundTripper) RoundTrip(req *http.Request) (resp *http.Response, err error) {
 	res, err := er.orig.RoundTrip(req)
 	if err != nil {
+		agent := req.Header.Get("User-Agent")
+		// Virtually all browsers mark themselves as Mozilla compatible
+		// while Opera has a user selectable option.
+		// Ref http://webaim.org/blog/user-agent-string-history/
+		// We only render user friendly error page to browsers.
+		isBrowser := strings.HasPrefix(agent, "Mozilla") || strings.HasPrefix(agent, "Opera")
+		if !isBrowser {
+			return res, err
+		}
 
 		// It is likely we will have lots of different errors to handle but for now
 		// we will only return a ErrorAccessingPage error.  This prevents the user
