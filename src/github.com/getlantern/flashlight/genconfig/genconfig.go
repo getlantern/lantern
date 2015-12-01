@@ -19,21 +19,44 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/garyburd/redigo/redis"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/tlsdialer"
 	"github.com/getlantern/yaml"
 
-	"github.com/getlantern/flashlight/client"
+	"github.com/getlantern/flashlight/client/chained"
 )
 
 const (
 	numberOfWorkers = 50
 	ftVersionFile   = `https://raw.githubusercontent.com/firetweet/downloads/master/version.txt`
+	// KEYS[1]: '<region>:srvq'
+	// KEYS[2]: '<region>:bakedin'
+	// KEYS[3]: '<region>:bakedin-names'
+	// KEYS[4]: 'srvcount'
+	// KEYS[5]: '<region>:srvreqq'
+	// ARGV[1]: unix timestamp in seconds
+	fetchscript = `
+	local cfg = redis.call("rpop", KEYS[1])
+	if not cfg then
+	return "<no-servers-in-srvq>"
+	end
+	redis.call("lpush", KEYS[2], ARGV[1] .. "|" .. cfg)
+	local begin = string.find(cfg, "|")
+	local end_ = string.find(cfg, "|", begin + 1)
+	local name = string.sub(cfg, begin+1, end_-1)
+	redis.call("sadd", KEYS[3], name)
+	local serial = redis.call("incr", KEYS[4])
+	redis.call("lpush", KEYS[5], serial)
+	return cfg
+	`
 )
 
 var (
 	help            = flag.Bool("help", false, "Get usage help")
+	fetchcfg        = flag.Bool("fetchcfg", false, "Fetch a chained fallback server and embed in resulting config")
+	userRegion      = flag.String("region", "", "Region must be one of 'sea' for Southeast Asia (currently, only China) or 'etc' (default) for anywhere else.")
 	masqueradesFile = flag.String("masquerades", "", "Path to file containing list of pasquerades to use, with one space-separated 'ip domain' pair per line (e.g. masquerades.txt)")
 	blacklistFile   = flag.String("blacklist", "", "Path to file containing list of blacklisted domains, which will be excluded from the configuration even if present in the masquerades file (e.g. blacklist.txt)")
 	proxiedSitesDir = flag.String("proxiedsites", "proxiedsites", "Path to directory containing proxied site lists, which will be combined and proxied by Lantern")
@@ -84,10 +107,15 @@ func main() {
 	log.Debugf("Using all %d cores on machine", numcores)
 	runtime.GOMAXPROCS(numcores)
 
+	if *fetchcfg {
+		fetchFallbacks()
+	} else {
+		loadFallbacks()
+	}
+
 	loadMasquerades()
 	loadProxiedSitesList()
 	loadBlacklist()
-	loadFallbacks()
 	loadFtVersion()
 
 	masqueradesTmpl := loadTemplate("masquerades.go.tmpl")
@@ -215,6 +243,59 @@ func loadFallbacks() {
 	if err != nil {
 		log.Fatalf("Unable to unmarshal json from %v: %v", *fallbacksFile, err)
 	}
+}
+
+func fetchFallbacks() {
+	c, err := redis.DialURL(os.Getenv("REDIS_URL"))
+	if err != nil {
+		log.Fatalf("You need a REDIS_URL env variable.  Get the value at https://github.com/getlantern/too-many-secrets/blob/master/lantern_aws/config_server.yaml#L2")
+	}
+
+	if *userRegion == "" {
+		var region string
+		reply, err := redis.Values(c.Do("MGET", "default-user-region"))
+		if err != nil {
+			log.Fatalf("Could not get default user region: %v", err)
+		}
+		if _, err := redis.Scan(reply, &region); err != nil {
+			log.Fatalf("Could not get default user region: %v", err)
+		}
+		*userRegion = region
+	}
+	log.Debugf("Fetching fallbacks from user region: %s", *userRegion)
+
+	prepend := func(s string) string { return *userRegion + s }
+
+	args := []interface{}{
+		prepend(":srvq"),
+		prepend(":bakedin"),
+		prepend(":bakedin-names"),
+		"srvcount",
+		prepend(":srvreqq"),
+		int64(time.Now().Unix()),
+	}
+
+	reply, err := redis.NewScript(1, fetchscript).Do(c, args...)
+	if err != nil {
+		log.Fatalf("Could not execute LUA script: %v", err)
+	}
+
+	var dest []struct {
+		Fallbacks string
+	}
+
+	if err := redis.ScanSlice([]interface{}{reply}, &dest); err != nil {
+		log.Fatalf("Could not execute script: %v", err)
+	}
+
+	strs := strings.Split(dest[0].Fallbacks, "|")
+
+	err = yaml.Unmarshal([]byte(strs[2]), &fallbacks)
+	if err != nil {
+		log.Fatalf("Unable to unmarshal json from %v: %v", *fallbacksFile, err)
+	}
+
+	log.Debugf("Got fallbacks: %v", fallbacks)
 }
 
 func loadTemplate(name string) string {
