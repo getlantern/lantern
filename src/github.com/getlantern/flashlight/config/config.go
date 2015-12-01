@@ -24,8 +24,8 @@ import (
 	"github.com/getlantern/yamlconf"
 
 	chained "github.com/getlantern/flashlight/client/chained"
-	cconfig "github.com/getlantern/flashlight/client/config"
-	client "github.com/getlantern/flashlight/client/fronted"
+	clientconfig "github.com/getlantern/flashlight/client/config"
+	cfronted "github.com/getlantern/flashlight/client/fronted"
 
 	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/statreporter"
@@ -68,7 +68,7 @@ type Config struct {
 	UIAddr        string // UI HTTP server address
 	Stats         *statreporter.Config
 	Server        *server.ServerConfig
-	Client        *cconfig.ClientConfig
+	Client        *clientconfig.ClientConfig
 	ProxiedSites  *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
 	TrustedCAs    []*CA
 }
@@ -76,6 +76,9 @@ type Config struct {
 func init() {
 	if runtime.GOOS == "android" {
 		chainedCloudConfigUrl = "http://config.getiantem.org/cloud-android.yaml.gz"
+	} else {
+		chainedCloudConfigUrl = "http://config.getiantem.org/cloud.yaml.gz"
+
 	}
 }
 
@@ -382,24 +385,9 @@ func (cfg *Config) applyClientDefaults() {
 
 	// Make sure we always have at least one server
 	if cfg.Client.FrontedServers == nil {
-		cfg.Client.FrontedServers = make([]*client.FrontedServerInfo, 0)
+		cfg.Client.FrontedServers = make([]*cfronted.FrontedServerInfo, 0)
 	}
 	if len(cfg.Client.FrontedServers) == 0 && len(cfg.Client.ChainedServers) == 0 {
-		/*
-			cfg.Client.FrontedServers = []*client.FrontedServerInfo{
-				&client.FrontedServerInfo{
-					Host:           defaultRoundRobin(),
-					Port:           443,
-					PoolSize:       0,
-					MasqueradeSet:  cloudflare,
-					MaxMasquerades: 20,
-					QOS:            10,
-					Weight:         4000,
-					Trusted:        true,
-				},
-			}
-
-		*/
 		cfg.Client.ChainedServers = make(map[string]*chained.ChainedServerInfo, len(fallbacks))
 		for key, fb := range fallbacks {
 			cfg.Client.ChainedServers[key] = fb
