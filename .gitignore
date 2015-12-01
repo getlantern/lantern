@@ -27,6 +27,8 @@ flashlight.yaml
 envvars.bash
 Lantern.app
 lantern.dmg
+src/github.com/getlantern/flashlight/genconfig/fallbacks.yaml
+src/github.com/getlantern/flashlight/config/resources.go
 src/github.com/getlantern/autoupdate/_test_app/main.go
 src/github.com/getlantern/autoupdate/_test_app/autoupdate-binary-*
 src/github.com/getlantern/autoupdate/_test_app/main

@@ -132,7 +132,7 @@ define fpm-debian-build =
 endef
 
 all: binaries
-android: android-lib build-android-debug android-install android-run
+android: genconfig android-lib build-android-debug android-install android-run
 
 # This is to be called within the docker image.
 docker-genassets: require-npm
@@ -517,7 +517,7 @@ test-and-cover:
 genconfig:
 	@echo "Running genconfig..." && \
 	source setenv.bash && \
-	(cd src/github.com/getlantern/flashlight/genconfig && ./genconfig.bash)
+	(cd src/github.com/getlantern/flashlight/genconfig && ./genconfig-android.bash)
 
 android-lib: docker-mobile
 	@source setenv.bash && \
