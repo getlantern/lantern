@@ -3,7 +3,6 @@ package client
 import (
 	"sync"
 
-	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/lantern"
 	"github.com/getlantern/flashlight/logging"
@@ -31,7 +30,7 @@ var (
 // newClient creates a proxy client.
 func newClient(addr, appName string, androidProps map[string]string, configDir string) (*lantern.Lantern, error) {
 
-	logging.ConfigureAndroid(client.LogglyToken, client.LogglyTag, androidProps)
+	logging.ConfigureAndroid(androidProps)
 
 	cfgFn := func(cfg *config.Config) {
 

@@ -1,9 +1,6 @@
-// +build prod
-
 package client
 
 import (
-	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/lantern"
 	"github.com/getlantern/lantern-mobile/lantern/interceptor"
 	"github.com/getlantern/lantern-mobile/lantern/protected"
@@ -16,14 +13,10 @@ var (
 	i                 *interceptor.Interceptor
 	bootstrapSettings *settings.Settings
 	settingsDir       string
-)
 
-func init() {
-	lantern.Version = defaultPackageVersion
-	lantern.RevisionDate = defaultRevisionDate
-	client.LogglyTag = "android-tag"
-	client.LogglyToken = "2b68163b-89b6-4196-b878-c1aca4bbdf84"
-}
+	version      string
+	revisionDate string
+)
 
 // GoCallback is the supertype of callbacks passed to Go
 type GoCallback interface {
@@ -53,8 +46,7 @@ func Configure(protector SocketProvider, appName string, ready GoCallback) error
 
 	settings.SetAndroidPath(settingsDir)
 
-	bootstrapSettings = settings.Load(client.Version, client.RevisionDate, "")
-
+	bootstrapSettings = settings.Load(version, revisionDate, "")
 	return nil
 }
 
@@ -86,7 +78,7 @@ func Start(protector SocketProvider, appName string,
 				i.Stop(true)
 			}
 		})
-		ready.AfterStart(client.Version)
+		ready.AfterStart(version)
 
 	}()
 	return nil

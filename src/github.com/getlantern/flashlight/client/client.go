@@ -28,11 +28,6 @@ import (
 var (
 	log      = golog.LoggerFor("flashlight.client")
 	cfgMutex sync.Mutex
-
-	Version      string
-	RevisionDate string
-	LogglyToken  string
-	LogglyTag    string
 )
 
 // Client is an HTTP proxy that accepts connections from local programs and
@@ -63,6 +58,10 @@ type Client struct {
 	// Reverse HTTP proxies.
 	rpCh          chan *httputil.ReverseProxy
 	rpInitialized bool
+
+	// version of Lantern for this client
+	Version      string
+	RevisionDate string
 
 	l net.Listener
 }
@@ -105,8 +104,13 @@ func (client *Client) ApplyClientConfig(cfg *config.Config) {
 	}
 
 	autoupdate.Configure(cfg)
-	logging.Configure(cfg.Addr, cfg.CloudConfigCA, settings.GetInstanceID(), Version, RevisionDate)
+
+	logging.Configure(cfg.Addr, cfg.CloudConfigCA,
+		settings.GetInstanceID(),
+		client.Version, client.RevisionDate)
+
 	proxiedsites.Configure(cfg.ProxiedSites)
+
 	log.Debugf("Proxy all traffic or not: %v", settings.GetProxyAll())
 	pac.ServeProxyAllPacFile(settings.GetProxyAll())
 	// Note - we deliberately ignore the error from statreporter.Configure here
