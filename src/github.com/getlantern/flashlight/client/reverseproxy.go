@@ -131,29 +131,31 @@ type errorRewritingRoundTripper struct {
 func (er *errorRewritingRoundTripper) RoundTrip(req *http.Request) (resp *http.Response, err error) {
 	res, err := er.orig.RoundTrip(req)
 	if err != nil {
-		agent := req.Header.Get("User-Agent")
+		var htmlerr []byte
+
 		// Virtually all browsers mark themselves as Mozilla compatible
 		// while Opera has a user selectable option.
 		// Ref http://webaim.org/blog/user-agent-string-history/
 		// We only render user friendly error page to browsers.
+		agent := req.Header.Get("User-Agent")
 		isBrowser := strings.HasPrefix(agent, "Mozilla") || strings.HasPrefix(agent, "Opera")
-		if !isBrowser {
-			return res, err
-		}
-
-		// It is likely we will have lots of different errors to handle but for now
-		// we will only return a ErrorAccessingPage error.  This prevents the user
-		// from getting just a blank screen.
-		htmlerr, err := status.ErrorAccessingPage(req.Host, err)
-
-		if err != nil {
-			log.Debugf("Got error while generating status page: %q", err)
+		if isBrowser {
+			// It is likely we will have lots of different errors to handle but for now
+			// we will only return a ErrorAccessingPage error.  This prevents the user
+			// from getting just a blank screen.
+			htmlerr, err = status.ErrorAccessingPage(req.Host, err)
+			if err != nil {
+				log.Debugf("Got error while generating status page: %q", err)
+			}
+		} else {
+			// For non-browser applications, wrap the error message in http content,
+			// or http.ReverseProxy will response 500 Internal Server Error instead.
+			htmlerr = []byte(err.Error())
 		}
 
 		res = &http.Response{
 			Body: ioutil.NopCloser(bytes.NewBuffer(htmlerr)),
 		}
-
 		res.StatusCode = http.StatusServiceUnavailable
 		return res, nil
 	}
