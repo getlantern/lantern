@@ -21,11 +21,11 @@ REVISION_DATE := $(shell date -u -j -f "%F %T %z" "$(GIT_REVISION_DATE)" +"%Y%m%
 BUILD_DATE := $(shell date -u +%Y%m%d.%H%M%S)
 
 LOGGLY_TOKEN := 2b68163b-89b6-4196-b878-c1aca4bbdf84
+LOGGLY_TAG := lantern-client
+LOGGLY_TAG_ANDROID := lantern-android
 
-LDFLAGS := -w -X=main.version=$(GIT_REVISION) -X=main.revisionDate=$(REVISION_DATE) -X=main.buildDate=$(BUILD_DATE) -X=github.com/getlantern/flashlight/logging.logglyToken=$(LOGGLY_TOKEN)
-LDFLAGS_MOBILE='\"-X version $(GIT_REVISION) -X client.revisionDate $(REVISION_DATE) -X client.buildDate $(BUILD_DATE) -X client.logglyToken $(LOGGLY_TOKEN)\"'
-LDFLAGS_MOBILE_TEST='\"-X=main.version=$(GIT_REVISION)\"'
-
+LDFLAGS := -w -X=main.version=$(GIT_REVISION) -X=main.revisionDate=$(REVISION_DATE) -X=main.buildDate=$(BUILD_DATE) -X=github.com/getlantern/flashlight/logging.logglyToken=$(LOGGLY_TOKEN) -X=github.com/getlantern/flashlight/logging.logglyTag=$(LOGGLY_TAG)
+LDFLAGS_MOBILE := -X github.com/getlantern/flashlight/lantern.version=$(GIT_REVISION) -X github.com/getlantern/flashlight/lantern.revisionDate=$(REVISION_DATE) -X github.com/getlantern/flashlight/lantern.buildDate=$(BUILD_DATE) -X github.com/getlantern/flashlight/logging.logglyToken=$(LOGGLY_TOKEN)
 LANTERN_DESCRIPTION := Censorship circumvention tool
 LANTERN_EXTENDED_DESCRIPTION := Lantern allows you to access sites blocked by internet censorship.\nWhen you run it, Lantern reroutes traffic to selected domains through servers located where such domains are uncensored.
 
@@ -132,7 +132,8 @@ define fpm-debian-build =
 endef
 
 all: binaries
-android: genconfig android-lib build-android-debug android-install android-run
+android: android-lib build-android-debug android-install android-run
+android-dist: genconfig android
 
 # This is to be called within the docker image.
 docker-genassets: require-npm
@@ -523,7 +524,7 @@ android-lib: docker-mobile
 	@source setenv.bash && \
 	cd $(LANTERN_MOBILE_DIR)/lantern
 	@$(call docker-up) && \
-$(DOCKER) run -v $$PWD/src:/src $(DOCKER_MOBILE_IMAGE_TAG) /bin/bash -c \ "cd /src/github.com/getlantern/lantern-mobile/lantern && sed s/'defaultPackageVersion.*'/'\"'$(GIT_REVISION)'\"'/ interface.go > tmp && sed s/'defaultRevisionDate.*'/'\"'$(REVISION_DATE)'\"'/ tmp > tmp2 && sed s/'prod'/'!prod'/ tmp2 > tmp3 && mv tmp3 interface-prod.go && echo -ldflags=$(LDFLAGS_MOBILE) && gomobile bind -target=android -tags='headless' -o=$(LANTERN_MOBILE_LIBRARY) -ldflags=$(LDFLAGS_MOBILE_TEST) ." && \
+$(DOCKER) run -v $$PWD/src:/src $(DOCKER_MOBILE_IMAGE_TAG) /bin/bash -c \ "cd /src/github.com/getlantern/lantern-mobile/lantern && gomobile bind -target=android -tags='headless' -o=$(LANTERN_MOBILE_LIBRARY) -ldflags='$(LDFLAGS_MOBILE)' ." && \
 	cp -v $(LANTERN_MOBILE_DIR)/lantern/$(LANTERN_MOBILE_LIBRARY) $(LANTERN_MOBILE_DIR)/app/libs; \
 	if [ -d "$(FIRETWEET_MAIN_DIR)" ]; then \
 		cp -v $(LANTERN_MOBILE_DIR)/lantern/$(LANTERN_MOBILE_LIBRARY) $(FIRETWEET_MAIN_DIR)/libs/$(LANTERN_MOBILE_LIBRARY); \
