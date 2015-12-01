@@ -84,8 +84,6 @@ func Load(version, revisionDate, buildDate string) *Settings {
 		// Just keep going with the original settings not from disk.
 	}
 
-	log.Debugf("New settings are: %v", settings)
-
 	// don't create an launch file on android
 	if runtime.GOOS != "android" && settings.AutoLaunch {
 		launcher.CreateLaunchFile(settings.AutoLaunch)

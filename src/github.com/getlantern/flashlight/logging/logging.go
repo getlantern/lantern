@@ -91,10 +91,7 @@ func Init() error {
 
 // On Android, we set the loggly token
 // before calling Configure
-func ConfigureAndroid(token string, tag string, props map[string]string) {
-	logglyToken = token
-	logglyTag = tag
-
+func ConfigureAndroid(props map[string]string) {
 	for k, v := range props {
 		androidProps[k] = v
 	}

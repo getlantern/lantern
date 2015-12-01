@@ -32,8 +32,8 @@ import (
 var (
 	log = golog.LoggerFor("lantern")
 
-	Version      string
-	RevisionDate string // The revision date and time that is associated with the version string.
+	version      string
+	revisionDate string // The revision date and time that is associated with the version string.
 	buildDate    string // The actual date and time the binary was built.
 
 	configUpdates = make(chan *config.Config)
@@ -55,15 +55,15 @@ func init() {
 	if PackageVersion != DefaultPackageVersion {
 		// packageVersion has precedence over GIT revision. This will happen when
 		// packing a version intended for release.
-		Version = PackageVersion
+		version = PackageVersion
 	}
 
-	if Version == "" {
-		Version = "development"
+	if version == "" {
+		version = "development"
 	}
 
-	if RevisionDate == "" {
-		RevisionDate = "now"
+	if revisionDate == "" {
+		revisionDate = "now"
 	}
 
 	// Passing public key and version to the autoupdate service.
@@ -72,7 +72,7 @@ func init() {
 
 	rand.Seed(time.Now().UnixNano())
 
-	settings.Load(Version, RevisionDate, buildDate)
+	settings.Load(version, revisionDate, buildDate)
 }
 
 func configureDesktop(cfg *config.Config, clearProxySettings bool, showui bool) {
@@ -129,6 +129,8 @@ func (self *Lantern) RunClientProxy(cfg *config.Config, android bool, clearProxy
 		Addr:         cfg.Addr,
 		ReadTimeout:  0, // don't timeout
 		WriteTimeout: 0,
+		Version:      version,
+		RevisionDate: revisionDate,
 	}
 
 	AddExitFunc(self.Client.Stop)
@@ -138,7 +140,7 @@ func (self *Lantern) RunClientProxy(cfg *config.Config, android bool, clearProxy
 	// Only run analytics once on startup. It subscribes to IP discovery
 	// events from geolookup, so it needs to be subscribed here before
 	// the geolookup code executes.
-	AddExitFunc(analytics.Configure(cfg, Version))
+	AddExitFunc(analytics.Configure(cfg, version))
 
 	geolookup.Start()
 
@@ -352,7 +354,7 @@ func showExistingUi(tcpAddr string) {
 }
 
 func displayVersion() {
-	log.Debugf("---- lantern version: %s, release: %s, build revision date: %s ----", Version, PackageVersion, RevisionDate)
+	log.Debugf("---- lantern version: %s, release: %s, build revision date: %s ----", version, PackageVersion, revisionDate)
 }
 
 func Stop() {
