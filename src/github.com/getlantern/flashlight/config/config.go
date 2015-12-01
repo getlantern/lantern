@@ -187,12 +187,12 @@ func Init(version string) (*Config, error) {
 		return nil, err
 	}
 	run := isGoodConfig(configPath)
-	if !run {
-
+	if !run || runtime.GOOS == "android" {
 		// If this is our first run of this version of Lantern, use the embedded configuration
 		// file and use it to download our custom config file on this first poll for our
 		// config.
 		if err := MakeInitialConfig(configPath); err != nil {
+			log.Errorf("Could not load initial config file: %v", err)
 			return nil, err
 		}
 	}
@@ -485,7 +485,7 @@ func (updated *Config) updateFrom(updateBytes []byte) error {
 	oldChainedServers := updated.Client.ChainedServers
 	oldMasqueradeSets := updated.Client.MasqueradeSets
 	oldTrustedCAs := updated.TrustedCAs
-	updated.Client.FrontedServers = []*client.FrontedServerInfo{}
+	updated.Client.FrontedServers = []*cfronted.FrontedServerInfo{}
 	updated.Client.ChainedServers = map[string]*chained.ChainedServerInfo{}
 	updated.Client.MasqueradeSets = map[string][]*fronted.Masquerade{}
 	updated.TrustedCAs = []*CA{}
