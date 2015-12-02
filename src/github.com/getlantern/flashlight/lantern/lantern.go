@@ -79,6 +79,10 @@ func GetVersion() string {
 	return version
 }
 
+func GetRevisionDate() string {
+	return revisionDate
+}
+
 func configureDesktop(cfg *config.Config, clearProxySettings bool, showui bool) {
 	// Set Lantern as system proxy by creating and using a PAC file.
 	pac.SetProxyAddr(cfg.Addr)

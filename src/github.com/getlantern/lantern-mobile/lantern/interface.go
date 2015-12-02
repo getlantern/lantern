@@ -38,6 +38,9 @@ type Provider interface {
 }
 
 func Configure(provider Provider) error {
+
+	log.Debugf("Configuring Lantern version: %s", lantern.GetVersion())
+
 	if provider.VpnMode() {
 		dnsServer := provider.GetDnsServer()
 		protected.Configure(provider, dnsServer)
@@ -49,7 +52,7 @@ func Configure(provider Provider) error {
 	appdir.AndroidDir = settingsDir
 	settings.SetAndroidPath(settingsDir)
 
-	appSettings = settings.Load(version, revisionDate, "")
+	appSettings = settings.Load(lantern.GetVersion(), lantern.GetRevisionDate(), "")
 
 	return nil
 }
