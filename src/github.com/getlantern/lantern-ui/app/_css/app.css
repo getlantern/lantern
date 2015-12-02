@@ -1,11 +1,11 @@
 @charset "UTF-8";
 @font-face {
   font-family: "Droid Sans Mono";
-  src: url('../font/DroidSansMono.woff') format('woff');
+  src: url('../../font/DroidSansMono.woff') format('woff');
 }
 @font-face {
   font-family: "LigatureSymbols";
-  src: url('../font/LigatureSymbols-2.11.woff') format('woff');
+  src: url('../../font/LigatureSymbols-2.11.woff') format('woff');
   font-weight: normal;
   font-style: normal;
 }
@@ -2111,8 +2111,8 @@ table th[class*="span"],
  */
 @font-face {
   font-family: "FontAwesome";
-  src: url('../font/fontawesome-webfont.eot?v=3.0.1');
-  src: url('../font/fontawesome-webfont.eot?v=3.0.1?#iefix') format('embedded-opentype'), url('../font/fontawesome-webfont.woff?v=3.0.1') format('woff'), url('../font/fontawesome-webfont.ttf?v=3.0.1') format('truetype');
+  src: url('../../font/fontawesome-webfont.eot?v=3.0.1');
+  src: url('../../font/fontawesome-webfont.eot?v=3.0.1?#iefix') format('embedded-opentype'), url('../../font/fontawesome-webfont.woff?v=3.0.1') format('woff'), url('../../font/fontawesome-webfont.ttf?v=3.0.1') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
@@ -7540,7 +7540,7 @@ body[dir=rtl] #latestDetails dd {
   top: 0;
   right: 0;
   left: 0;
-  background: url('../img/bg-topbar.png') repeat-x;
+  background: url('../../img/bg-topbar.png') repeat-x;
   padding: 10px;
   color: #fff;
   text-shadow: 0 1px 1px #000;

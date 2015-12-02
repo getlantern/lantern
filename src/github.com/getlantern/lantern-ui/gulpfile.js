@@ -1,14 +1,26 @@
 (function () {
   'use strict';
   var gulp = require('gulp');
+  var compass = require('gulp-compass');
   var usemin = require('gulp-usemin');
   var uglify = require('gulp-uglify');
   var minifyHtml = require('gulp-minify-html');
   var minifyCss = require('gulp-minify-css');
   var rev = require('gulp-rev');
+  var livereload = require('gulp-livereload');
   var del = require('del');
+  var path = require('path');
 
-  gulp.task('usemin', ['clean'], function () {
+  gulp.task('compass', ['clean'], function() {
+    gulp.src('app/sass/*.scss')
+    .pipe(compass({
+      config_file: 'config/compass.rb',
+      css: 'app/_css'
+    }))
+    .pipe(gulp.dest('app/assets/temp'));
+  });
+
+  gulp.task('usemin', ['compass', 'clean'], function () {
     return gulp.src('app/index.html')
     .pipe(usemin({
       css: [minifyCss(), 'concat', rev()],
@@ -39,7 +51,15 @@
   gulp.task('build', ['usemin', 'copy'], function() {
     // place code for your default task here
   });
-  gulp.task('default', ['build'], function() {
+
+  //watch
+  gulp.task('watch', function() {
+    livereload.listen();
+    //watch .scss files
+    gulp.watch('app/sass/*.scss', ['compass']);
+  });
+
+  gulp.task('default', ['watch'], function() {
     // place code for your default task here
   });
 }());

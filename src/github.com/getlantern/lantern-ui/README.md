@@ -44,8 +44,7 @@ Tell compass to watch for changes in the sass stylesheets and automatically
 compile them into css in the directory specified by the compass config file
 (`config/compass.rb`):
 
-    $ scripts/start-compass.sh & >>> Compass is watching for changes. Press
-Ctrl-C to Stop.
+    $ gulp watch
 
 
 ## Build
