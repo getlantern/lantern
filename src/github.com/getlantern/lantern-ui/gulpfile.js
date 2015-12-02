@@ -11,8 +11,10 @@
   var del = require('del');
   var path = require('path');
 
-  gulp.task('compass', ['clean'], function() {
-    gulp.src('app/sass/*.scss')
+  var scssGlob = 'app/scss/*.scss';
+
+  gulp.task('compass', function() {
+    gulp.src(scssGlob)
     .pipe(compass({
       config_file: 'config/compass.rb',
       css: 'app/_css'
@@ -56,7 +58,7 @@
   gulp.task('watch', function() {
     livereload.listen();
     //watch .scss files
-    gulp.watch('app/sass/*.scss', ['compass']);
+    gulp.watch(scssGlob, ['compass']);
   });
 
   gulp.task('default', ['watch'], function() {
