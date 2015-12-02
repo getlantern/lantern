@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"runtime"
-	"strings"
 	"time"
 
 	"github.com/getlantern/balancer"
@@ -133,13 +132,14 @@ func (er *errorRewritingRoundTripper) RoundTrip(req *http.Request) (resp *http.R
 	if err != nil {
 		var htmlerr []byte
 
-		// Virtually all browsers mark themselves as Mozilla compatible
-		// while Opera has a user selectable option.
-		// Ref http://webaim.org/blog/user-agent-string-history/
-		// We only render user friendly error page to browsers.
-		agent := req.Header.Get("User-Agent")
-		isBrowser := strings.HasPrefix(agent, "Mozilla") || strings.HasPrefix(agent, "Opera")
-		if isBrowser {
+		// If the request has an 'Accept' header preferring HTML, or
+		// doesn't have that header at all, render the error page.
+		switch req.Header.Get("Accept") {
+		case "text/html":
+			fallthrough
+		case "application/xhtml+xml":
+			fallthrough
+		case "":
 			// It is likely we will have lots of different errors to handle but for now
 			// we will only return a ErrorAccessingPage error.  This prevents the user
 			// from getting just a blank screen.
@@ -147,9 +147,10 @@ func (er *errorRewritingRoundTripper) RoundTrip(req *http.Request) (resp *http.R
 			if err != nil {
 				log.Debugf("Got error while generating status page: %q", err)
 			}
-		} else {
-			// For non-browser applications, wrap the error message in http content,
-			// or http.ReverseProxy will response 500 Internal Server Error instead.
+		default:
+			// We know for sure that the requested resource is not HTML page,
+			// wrap the error message in http content, or http.ReverseProxy
+			// will response 500 Internal Server Error instead.
 			htmlerr = []byte(err.Error())
 		}
 
