@@ -1,76 +1,87 @@
 package client
 
 import (
+	"github.com/getlantern/appdir"
+	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/lantern"
+	"github.com/getlantern/flashlight/logging"
+	"github.com/getlantern/flashlight/settings"
+	"github.com/getlantern/golog"
 	"github.com/getlantern/lantern-mobile/lantern/interceptor"
 	"github.com/getlantern/lantern-mobile/lantern/protected"
-
-	"github.com/getlantern/appdir"
-	"github.com/getlantern/flashlight/settings"
 )
 
 var (
-	i                 *interceptor.Interceptor
-	bootstrapSettings *settings.Settings
-	settingsDir       string
-
+	log          = golog.LoggerFor("lantern-android.client")
+	i            *interceptor.Interceptor
+	appSettings  *settings.Settings
 	version      string
 	revisionDate string
+
+	trackingCodes = map[string]string{
+		"FireTweet": "UA-21408036-4",
+		"Lantern":   "UA-21815217-14",
+	}
 )
 
-// GoCallback is the supertype of callbacks passed to Go
-type GoCallback interface {
-	AfterConfigure()
-	AfterStart(string)
+type Provider interface {
+	Model() string
+	Device() string
+	Version() string
+	AppName() string
+	VpnMode() bool
 	GetDnsServer() string
-}
-
-type SocketProvider interface {
+	SettingsDir() string
+	AfterStart(string)
 	Protect(fileDescriptor int) error
 	Notice(message string, fatal bool)
-	SettingsDir() string
 }
 
-func Configure(protector SocketProvider, appName string, ready GoCallback) error {
-
-	dnsServer := ready.GetDnsServer()
-
-	if protector != nil {
-		protected.Configure(protector, dnsServer)
+func Configure(provider Provider) error {
+	if provider.VpnMode() {
+		dnsServer := provider.GetDnsServer()
+		protected.Configure(provider, dnsServer)
 	}
 
-	settingsDir = protector.SettingsDir()
+	settingsDir := provider.SettingsDir()
 	log.Debugf("settings directory is %s", settingsDir)
 
 	appdir.AndroidDir = settingsDir
-
 	settings.SetAndroidPath(settingsDir)
 
-	bootstrapSettings = settings.Load(version, revisionDate, "")
+	appSettings = settings.Load(version, revisionDate, "")
+
 	return nil
 }
 
-// RunClientProxy creates a new client at the given address.
-func Start(protector SocketProvider, appName string,
-	device string, model string, version string, ready GoCallback) error {
+// Start creates a new client at the given address.
+func Start(provider Provider) error {
 
 	go func() {
-		var err error
 
 		androidProps := map[string]string{
-			"androidDevice":     device,
-			"androidModel":      model,
-			"androidSdkVersion": version,
+			"androidDevice":     provider.Device(),
+			"androidModel":      provider.Model(),
+			"androidSdkVersion": provider.Version(),
+		}
+		logging.ConfigureAndroid(androidProps)
+
+		cfgFn := func(cfg *config.Config) {
+
 		}
 
-		defaultClient, err = newClient(bootstrapSettings.HttpAddr, appName, androidProps, settingsDir)
+		l, err := lantern.Start(false, true, false,
+			true, cfgFn)
+
 		if err != nil {
 			log.Fatalf("Could not start Lantern")
 		}
 
-		i, err = interceptor.New(defaultClient.Client, bootstrapSettings.SocksAddr, bootstrapSettings.HttpAddr, protector.Notice)
-		if err != nil {
-			log.Errorf("Error starting SOCKS proxy: %v", err)
+		if provider.VpnMode() {
+			i, err = interceptor.New(l.Client, appSettings.SocksAddr, appSettings.HttpAddr, provider.Notice)
+			if err != nil {
+				log.Errorf("Error starting SOCKS proxy: %v", err)
+			}
 		}
 
 		lantern.AddExitFunc(func() {
@@ -78,14 +89,12 @@ func Start(protector SocketProvider, appName string,
 				i.Stop(true)
 			}
 		})
-		ready.AfterStart(version)
-
+		provider.AfterStart(lantern.GetVersion())
 	}()
 	return nil
 }
 
-// StopClientProxy stops the proxy.
-func StopClientProxy() error {
+func Stop() error {
 	go lantern.Exit(nil)
 	return nil
 }

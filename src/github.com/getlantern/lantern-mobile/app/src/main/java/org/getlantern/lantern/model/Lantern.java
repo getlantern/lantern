@@ -21,7 +21,7 @@ import org.getlantern.lantern.model.Analytics;
 import org.getlantern.lantern.model.Utils;
 import org.getlantern.lantern.service.LanternVpn;
 
-public class Lantern extends Client.SocketProvider.Stub {
+public class Lantern extends Client.Provider.Stub {
 
     private static final String TAG = "Lantern";
     final private LanternVpn service;
@@ -34,18 +34,23 @@ public class Lantern extends Client.SocketProvider.Stub {
 
     private Map settings = null;
 
-    private final static String DEFAULT_DNS_SERVER = "8.8.4.4";
+    private boolean vpnMode = false;
 
-    private Client.GoCallback.Stub callback;
+    private final static String DEFAULT_DNS_SERVER = "8.8.4.4";
 
     public Lantern(LanternVpn service) {
         this.service = service;
         this.context = service.getApplicationContext();
         this.analytics = new Analytics(this.context);
-        this.setupCallbacks();
+
         this.device = android.os.Build.DEVICE;
         this.model = android.os.Build.MODEL;
         this.version = "" + android.os.Build.VERSION.SDK_INT + " ("  + android.os.Build.VERSION.RELEASE + ")";
+    }
+
+    public Lantern(LanternVpn service, boolean vpnMode) {
+        this(service);
+        this.vpnMode = vpnMode;
         this.settings = this.loadSettings();
         this.appName = "Lantern";
     }
@@ -65,7 +70,7 @@ public class Lantern extends Client.SocketProvider.Stub {
                 appName = (String)settings.get("appname");
                 Log.d(TAG, "App name is " + appName);
             }
-            Client.Configure(this, appName, callback);
+            Client.Configure(this);
 
         } catch (Exception e) {
             Log.d(TAG, "Unable to load settings file: " + e.getMessage());
@@ -73,44 +78,10 @@ public class Lantern extends Client.SocketProvider.Stub {
         return settings;
     }
 
-    // Configures callbacks from Lantern during packet
-    // processing
-    private void setupCallbacks() {
-
-        final Analytics analytics = this.analytics;
-
-        final LanternVpn service = this.service;
-
-        this.callback = new Client.GoCallback.Stub() {
-
-            public String GetDnsServer() {
-                try {
-                    return service.getDnsResolver(service);
-                } catch (Exception e) {
-                    return DEFAULT_DNS_SERVER;
-                }
-            }
-
-            public void AfterStart(String latestVersion) {
-                Log.d(TAG, "Lantern successfully started.");
-
-                service.setVersionNum(latestVersion);
-
-                analytics.sendNewSessionEvent();
-            }
-
-            public void AfterConfigure() {
-                Log.d(TAG, "Lantern successfully configured.");
-            }
-        };
-    }
-
     public void start() {
         try {
             Log.d(TAG, "About to start Lantern..");
-
-            Client.Start(this, appName, this.device, this.model, this.version, callback);
-            //Client.Start(this, httpAddr, socksAddr, callback);
+            Client.Start(this);
 
         } catch (final Exception e) {
             Log.e(TAG, "Fatal error while trying to run Lantern: " + e);
@@ -121,14 +92,61 @@ public class Lantern extends Client.SocketProvider.Stub {
     public void stop() {
         Log.d(TAG, "About to stop Lantern..");
         try {
-            Client.StopClientProxy();
+            Client.Stop();
         } catch(final Exception e) {
             // ignore exception
         }
     }
 
+    public void setVpnMode(boolean vpnMode) {
+        this.vpnMode = vpnMode;
+    }
+
     @Override
+    public String GetDnsServer() {
+        try {
+            return service.getDnsResolver(service);
+        } catch (Exception e) {
+            return DEFAULT_DNS_SERVER;
+        }
+    }
+
+
+    @Override
+    public void AfterStart(String latestVersion) {
+        Log.d(TAG, "Lantern successfully started; running version: " + latestVersion);
+        service.setVersionNum(latestVersion);
+        analytics.sendNewSessionEvent();
+    }
+
+
+    @Override
+    public String Model() {
+        return this.model;
+    }
+
+    @Override
+    public String Device() {
+        return this.device;
+    }
+
+    @Override
+    public String Version() {
+        return this.version;
+    }
+
+    @Override
+    public String AppName() {
+        return this.appName;
+    }
+
+    @Override
+    public boolean VpnMode() {
+        return this.vpnMode;
+    }
+
     // LoadSettingsDir gets the path to the app's internal storage directory
+    @Override
     public String SettingsDir() {
         File f = this.context.getFilesDir();
         String path = "";
@@ -139,10 +157,10 @@ public class Lantern extends Client.SocketProvider.Stub {
         return path;
     }
 
-    @Override
     // Notice is used to signal messages from Lantern
     // if fatal is true, Lantern encountered a fatal error
     // and we should shutdown
+    @Override
     public void Notice(String message, boolean fatal) {
         Log.d(TAG, "Received a new message from Lantern: " + message);
         if (fatal) {

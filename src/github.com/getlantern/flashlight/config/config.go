@@ -187,7 +187,7 @@ func Init(version string) (*Config, error) {
 		return nil, err
 	}
 	run := isGoodConfig(configPath)
-	if !run || runtime.GOOS == "android" {
+	if !run {
 		// If this is our first run of this version of Lantern, use the embedded configuration
 		// file and use it to download our custom config file on this first poll for our
 		// config.
