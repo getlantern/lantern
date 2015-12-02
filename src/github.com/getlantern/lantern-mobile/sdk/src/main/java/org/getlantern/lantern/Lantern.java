@@ -1,4 +1,4 @@
-package org.getlantern.lantern.model;
+package org.getlantern.lantern;
 
 import android.content.Context;
 import android.util.Log;
@@ -14,9 +14,9 @@ import java.util.HashMap;
  
 
 import go.client.*;
-import org.getlantern.lantern.model.Analytics;
-import org.getlantern.lantern.model.Utils;
-import org.getlantern.lantern.service.LanternVpn;
+import org.getlantern.lantern.Analytics;
+import org.getlantern.lantern.Utils;
+import org.getlantern.lantern.LanternVpn;
 
 public class Lantern extends Client.Provider.Stub {
 

@@ -1,0 +1,98 @@
+apply plugin: 'android-sdk-manager'
+apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
+apply from: rootProject.commonPlugins
+
+group = 'org.getlantern.lantern'
+version = '1.0'
+
+repositories {
+    flatDir{
+        dirs 'libs'
+    }
+    maven {
+        mavenCentral()
+        url 's3://lantern-mvn/releases'
+        credentials(AwsCredentials) {
+            accessKey AWS_ACCESS_KEY
+            secretKey AWS_SECRET_KEY
+        }
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+}
+
+android {
+    compileSdkVersion rootProject.compileSdkVersion
+    buildToolsVersion rootProject.buildToolsVersion
+
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 22
+        versionCode 1
+        versionName "1.0"
+        consumerProguardFiles 'proguard.txt'
+    }
+
+def scribeEndpointOverride
+    if (project.hasProperty('scribeEndpointOverride')) {
+        scribeEndpointOverride = project.getProperty('scribeEndpointOverride')
+    } else {
+        scribeEndpointOverride = ''
+    }
+    def scribeSequence
+    if (project.hasProperty("scribeSequence")) {
+        scribeSequence = project.getProperty('scribeSequence')
+    } else {
+        scribeSequence = ''
+    }
+
+    buildTypes {
+        debug {
+            buildConfigField "String", "GROUP", "\"${pom_group_id}\""
+                buildConfigField "String", "ARTIFACT_ID", "\"${pom_artifact_id}\""
+                buildConfigField "String", "BUILD_NUMBER", "\"${buildNumber}\""
+                buildConfigField "long", "BUILD_TIME", "${System.currentTimeMillis()}L"
+                buildConfigField "String", "SCRIBE_ENDPOINT_OVERRIDE", "\"${scribeEndpointOverride}\""
+                buildConfigField "String", "SCRIBE_SEQUENCE", "\"${scribeSequence}\""
+
+                testCoverageEnabled enableTestCodeCoverage
+        }
+
+        release {
+            buildConfigField "String", "GROUP", "\"${pom_group_id}\""
+                buildConfigField "String", "ARTIFACT_ID", "\"${pom_artifact_id}\""
+                buildConfigField "String", "BUILD_NUMBER", "\"${buildNumber}\""
+                buildConfigField "long", "BUILD_TIME", "${System.currentTimeMillis()}L"
+                buildConfigField "String", "SCRIBE_ENDPOINT_OVERRIDE", "\"${scribeEndpointOverride}\""
+                buildConfigField "String", "SCRIBE_SEQUENCE", "\"${scribeSequence}\""
+        }
+    }
+
+    lintOptions {
+        warningsAsErrors true
+    }
+
+    defaultPublishConfig 'release'
+    publishNonDefault true
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+}
+
+ext.projectDependencies = []
+
+dependencies {
+    compile(name:'libflashlight', ext:'aar')
+    compile 'org.yaml:snakeyaml:1.10-android'
+    compile libs
+    compile appCompat
+    compile gplay
+
+    projectDependencies.each { path, binary ->
+        debugCompile project(path: path, configuration: 'debug')
+            releaseCompile projectOrBinary(path: path, configuration: 'release', binary: binary)
+    }
+}
+
