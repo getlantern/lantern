@@ -1,0 +1,188 @@
+$unknownModeColor: #eee;
+$cloudPeerColor: #008000;
+
+#projectionButtons {
+  @include position(false, false, 75px, 25px);
+}
+
+#vis-block {
+  @include position(0, 0, 0, 0);
+}
+
+#vis-container, #vis {
+  height: 100%;
+  background-color: #fff;
+  position: relative;
+  overflow: auto;
+}
+
+#map {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+$waterColor: rgba(6, 21, 50, 0.1);
+
+#globe {
+  fill: $waterColor;
+}
+
+#countries path {
+  @include single-transition(all, 0.5s, ease);
+
+  stroke: #364d58;
+  stroke-width: 1px;
+  fill: #000;
+  fill-opacity: 0.2;
+
+  &.censors {
+    fill-opacity: 0.3;
+  }
+
+  &.updating {
+    fill-opacity: 0.1 !important;
+    stroke-opacity: 1 !important;
+  }
+
+  &:hover {
+    stroke-opacity: 1 !important;
+  }
+}
+
+//&.AQ // antarctica
+// display: none
+
+path.peer {
+  @include single-transition(all, 0.5s, ease);
+}
+
+g.peer {
+  path.peer {
+    opacity: 0.4;
+  }
+
+  &:hover {
+    path.peer {
+      opacity: 1;
+    }
+  }
+}
+
+path.peer-hover-area {
+  opacity: 0;
+}
+
+path.peer.connected {
+  opacity: 1 !important;
+}
+
+#self {
+  fill: #fff;
+}
+
+path.peer.get, #self.get {
+  fill: $getModeColor;
+}
+
+path.peer.give, #self.give {
+  fill: $giveModeColorMap;
+}
+
+path.peer.unknown {
+  fill: $unknownModeColor;
+}
+
+path.peer.cloud, path.peer.laeproxy {
+  fill: $cloudPeerColor !important;
+}
+
+path.connection {
+  fill: none;
+  stroke-width: 1px;
+  stroke: #fff;
+
+  @include single-transition(stroke-opacity, 0.5s, ease);
+}
+
+g.transferring .connection {
+  opacity: 1;
+}
+
+.tooltip .vis {
+  text-align: left;
+
+  body[dir=rtl] & {
+    text-align: right;
+  }
+
+  .picture {
+    height: 64px;
+    width: 64px;
+    margin: 5px 10px 0 0;
+  }
+
+  .picture, .headers {
+    float: left;
+  }
+
+  .header {
+    @include bold;
+
+    font-size: $baseFontSize * 1.05;
+  }
+
+  .get .header, .get .type {
+    @include get-colored;
+  }
+
+  .give .header, .give .type {
+    color: $giveModeColorMap;
+  }
+
+  .unknown .header, .unknown .type {
+    color: $unknownModeColor;
+  }
+
+  .cloud .header, .laeproxy .header, .cloud .type, .laeproxy .type {
+    color: $cloudPeerColor !important;
+  }
+
+  .type {
+    @include smaller;
+  }
+
+  .peerid, .id {
+    @include smaller;
+
+    color: #ddd;
+  }
+
+  .stats {
+    @include smaller;
+
+    clear: both;
+  }
+
+  .bps0, .bytes0 {
+    @include gray;
+  }
+
+  .lastConnected {
+    @include smaller;
+
+    @include gray;
+  }
+
+  .nusers {
+    color: #eee;
+
+    &.gray {
+      @include gray;
+    }
+  }
+
+  .give-colored {
+    color: $giveModeColorMap;
+  }
+}
