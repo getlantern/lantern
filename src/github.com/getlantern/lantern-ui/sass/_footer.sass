@@ -4,16 +4,13 @@
   +aboveModal
   +centered
   +small
-  +text-shadow($black 1px 1px 1px)
   +box-sizing(border-box)
-  +opaqueOnMouseover
-  background: linear-gradient(rgba(0, 0, 0, .2), rgba(0, 0, 0, .75))
-  line-height: $baseFontSize * 1.5
-  padding: 12px 0
-  outline: 1px solid rgba(0, 0, 0, .5)
-  border-top: 1px solid rgba(255, 255, 255, .1)
-  color: $grayLight
+  line-height: 12px
+  height: 50px
+  background-color: #242525
+  color: #666667
   z-index: auto
+  overflow: hidden
 
 #offline, #noproxies
   +yellow-colored
@@ -34,25 +31,22 @@ $globalNavPosBottom: 15px
   +position(false, $globalNavPosRight, $globalNavPosBottom)
   z-index: $zindexGlobalNav
   white-space: nowrap
+  border: none
+  background: none
   button
-    width: $globalNavBtnWidth
-    padding: 10px
+    border: none
+    outline: 0
+    z-index: -1
+    background: none
+    margin-bottom: 8px
+    box-shadow: none
+    -webkit-box-shadow: none
     i.lsf-icon
-      color: $grayLight
+      color: #fff
       line-height: 17px
-      font-size: 22px
+      font-size: 27px
       vertical-align: middle
-  button.active, button.active:hover
-    z-index: $zindexModal + 1 !important
-    background-color: #fff
-    //outline: 5px auto -webkit-focus-ring-color
-    //outline-offset: -2px
-    i.lsf-icon
-      color: #000
-  button.ng-disabled
-    color: $grayDark
-  .lsf-icon:before
-    font-size: 130%
+      position: absolute
 
 $npendingIndexGiveMode: 1
 $npendingIndexGetMode: 2
@@ -66,10 +60,28 @@ $npendingOffsetRight: 36px
   body.giveMode &
     +position(false, $globalNavPosRight + ($npendingIndexGiveMode * $globalNavBtnWidth) + $npendingOffsetRight, $npendingPosBottom)
 
+#share
+  position: absolute
+  left: 15px
+  bottom: 10px
+  span
+    font: normal .875rem/1.4rem 'prxnv_r', sans-serif
+    color: #fff
+    float: left
+    margin-top: 5px
+    padding-left: 5px
+  div 
+    float: left
+    cursor: pointer
+    img
+      width: 30px
+
+
 #appInfo
-  +smaller
   +aboveModal
+  font: normal .875rem/1.4rem 'prxnv_r', sans-serif
   color: $white
+  margin-bottom: 5px
   a
     color: $white
   .update-available *

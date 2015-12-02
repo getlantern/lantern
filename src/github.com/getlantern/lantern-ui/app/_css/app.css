@@ -7748,30 +7748,22 @@ body[dir=rtl] .tooltip .vis {
 
 #footer {
   width: 100%;
-  position: fixed;
+  position: absolute;
   right: 0;
   bottom: 0;
   left: 0;
-  height: 50px;
   z-index: 1051;
-  line-height: 12px;
   text-align: center;
   font-size: 13.3px;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
-  -moz-transition: opacity 0.5s ease;
-  -o-transition: opacity 0.5s ease;
-  -webkit-transition: opacity 0.5s ease;
-  transition: opacity 0.5s ease;
+  line-height: 12px;
+  height: 50px;
   background-color: #242525;
   color: #666667;
   z-index: auto;
-  overflow:hidden;
-}
-
-#footer:hover {
-  opacity: 1;
+  overflow: hidden;
 }
 
 #offline, #noproxies {
@@ -7798,13 +7790,13 @@ body[dir=rtl] .tooltip .vis {
   background: none;
 }
 #global-nav button {
-  border: none;  
+  border: none;
   outline: 0;
   z-index: -1;
   background: none;
   margin-bottom: 8px;
-  -webkit-box-shadow: none;
   box-shadow: none;
+  -webkit-box-shadow: none;
 }
 #global-nav button i.lsf-icon {
   color: #fff;
@@ -7832,31 +7824,28 @@ body.giveMode #npending {
 }
 
 #share {
-    position: absolute;
-    left: 15px;
-    bottom: 10px;
+  position: absolute;
+  left: 15px;
+  bottom: 10px;
 }
-
 #share span {
-    font: normal .875rem/1.4rem 'prxnv_r', sans-serif;
-    color: #fff;
-    float: left;
-    margin-top: 5px;
-    padding-left: 5px;
+  font: normal 0.875rem/1.4rem "prxnv_r", sans-serif;
+  color: #fff;
+  float: left;
+  margin-top: 5px;
+  padding-left: 5px;
 }
-
 #share div {
-    float: left;
-    cursor: pointer;
+  float: left;
+  cursor: pointer;
 }
-
 #share div img {
   width: 30px;
 }
 
 #appInfo {
-  font: normal .875rem/1.4rem 'prxnv_r', sans-serif;
   z-index: 1051;
+  font: normal 0.875rem/1.4rem "prxnv_r", sans-serif;
   color: #fff;
   margin-bottom: 5px;
 }
