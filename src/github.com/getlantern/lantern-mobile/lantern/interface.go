@@ -12,11 +12,9 @@ import (
 )
 
 var (
-	log          = golog.LoggerFor("lantern-android.client")
-	i            *interceptor.Interceptor
-	appSettings  *settings.Settings
-	version      string
-	revisionDate string
+	log         = golog.LoggerFor("lantern-android.client")
+	i           *interceptor.Interceptor
+	appSettings *settings.Settings
 
 	trackingCodes = map[string]string{
 		"FireTweet": "UA-21408036-4",
@@ -51,7 +49,6 @@ func Configure(provider Provider) error {
 
 	appdir.AndroidDir = settingsDir
 	settings.SetAndroidPath(settingsDir)
-
 	appSettings = settings.Load(lantern.GetVersion(), lantern.GetRevisionDate(), "")
 
 	return nil

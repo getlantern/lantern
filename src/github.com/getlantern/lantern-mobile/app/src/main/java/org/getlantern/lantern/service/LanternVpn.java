@@ -35,7 +35,7 @@ public class LanternVpn extends VpnBuilder implements Handler.Callback {
         }
 
         if (lantern == null) {
-            lantern = new Lantern(this, true); 
+            lantern = new Lantern(this); 
         }
 
         String action = intent.getAction();

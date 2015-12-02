@@ -332,6 +332,7 @@ func (self *Lantern) ProcessConfig(f func(*config.Config)) *config.Config {
 	self.config = cfg
 
 	go func() {
+		AddExitFunc(config.Exit)
 		err := config.Run(func(updated *config.Config) {
 			configUpdates <- updated
 		})

@@ -54,7 +54,8 @@ var (
 	lastCloudConfigETag = map[string]string{}
 	r                   = regexp.MustCompile("\\d+\\.\\d+")
 	// Request the config via either chained servers or direct fronted servers.
-	cf = util.NewChainedAndFronted()
+	cf      = util.NewChainedAndFronted()
+	doneCfg = make(chan bool, 2)
 )
 
 type Config struct {
@@ -261,10 +262,19 @@ func pollForConfig(currentCfg yamlconf.Config) (mutate func(yamlconf.Config) err
 // Run runs the configuration system.
 func Run(updateHandler func(updated *Config)) error {
 	for {
-		next := m.Next()
-		nextCfg := next.(*Config)
-		updateHandler(nextCfg)
+		select {
+		case next := <-m.NextCh():
+			nextCfg := next.(*Config)
+			updateHandler(nextCfg)
+		case <-doneCfg:
+			log.Debugf("Closing config system")
+			return nil
+		}
 	}
+}
+
+func Exit() {
+	doneCfg <- true
 }
 
 // Update updates the configuration using the given mutator function.

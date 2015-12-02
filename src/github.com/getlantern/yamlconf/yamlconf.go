@@ -125,6 +125,10 @@ func (m *Manager) Next() Config {
 	return <-m.nextCfgCh
 }
 
+func (m *Manager) NextCh() chan Config {
+	return m.nextCfgCh
+}
+
 // Update updates the config by using the given mutator function.
 func (m *Manager) Update(mutate func(cfg Config) error) error {
 	errCh := make(chan error)

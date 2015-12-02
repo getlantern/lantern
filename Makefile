@@ -25,7 +25,7 @@ LOGGLY_TAG := lantern-client
 LOGGLY_TAG_ANDROID := lantern-android
 
 LDFLAGS := -w -X=main.version=$(GIT_REVISION) -X=main.revisionDate=$(REVISION_DATE) -X=main.buildDate=$(BUILD_DATE) -X=github.com/getlantern/flashlight/logging.logglyToken=$(LOGGLY_TOKEN) -X=github.com/getlantern/flashlight/logging.logglyTag=$(LOGGLY_TAG)
-LDFLAGS_MOBILE := -X github.com/getlantern/flashlight/lantern.version=$(GIT_REVISION) -X github.com/getlantern/flashlight/lantern.revisionDate=$(REVISION_DATE) -X github.com/getlantern/flashlight/lantern.buildDate=$(BUILD_DATE) -X github.com/getlantern/flashlight/logging.logglyToken=$(LOGGLY_TOKEN)
+LDFLAGS_MOBILE := -X github.com/getlantern/flashlight/lantern.version=$(GIT_REVISION) -X github.com/getlantern/flashlight/lantern.revisionDate=$(REVISION_DATE) -X github.com/getlantern/flashlight/lantern.buildDate=$(BUILD_DATE) -X github.com/getlantern/flashlight/logging.logglyToken=$(LOGGLY_TOKEN) -X github.com/getlantern/flashlight/logging.logglyTag=$(LOGGLY_TAG)
 LANTERN_DESCRIPTION := Censorship circumvention tool
 LANTERN_EXTENDED_DESCRIPTION := Lantern allows you to access sites blocked by internet censorship.\nWhen you run it, Lantern reroutes traffic to selected domains through servers located where such domains are uncensored.
 

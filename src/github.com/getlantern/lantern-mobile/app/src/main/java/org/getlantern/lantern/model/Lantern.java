@@ -24,15 +24,19 @@ import org.getlantern.lantern.service.LanternVpn;
 public class Lantern extends Client.Provider.Stub {
 
     private static final String TAG = "Lantern";
-    final private LanternVpn service;
+    private LanternVpn service;
     final private Analytics analytics;
 
-    private String device, model, version, appName;
     private Context context;
+    private String appName = "Lantern";
+    private final String device = android.os.Build.DEVICE;
+    private final String model = android.os.Build.MODEL;
+    private final String version = "" + android.os.Build.VERSION.SDK_INT + " ("  + android.os.Build.VERSION.RELEASE + ")";
+
 
     private final static String settingsFile = "settings.yaml";
 
-    private Map settings = null;
+    private Map settings = new HashMap();
 
     private boolean vpnMode = false;
 
@@ -41,18 +45,16 @@ public class Lantern extends Client.Provider.Stub {
     public Lantern(LanternVpn service) {
         this.service = service;
         this.context = service.getApplicationContext();
+        this.vpnMode = true;
         this.analytics = new Analytics(this.context);
-
-        this.device = android.os.Build.DEVICE;
-        this.model = android.os.Build.MODEL;
-        this.version = "" + android.os.Build.VERSION.SDK_INT + " ("  + android.os.Build.VERSION.RELEASE + ")";
+        this.loadSettings();
     }
 
-    public Lantern(LanternVpn service, boolean vpnMode) {
-        this(service);
-        this.vpnMode = vpnMode;
-        this.settings = this.loadSettings();
-        this.appName = "Lantern";
+    public Lantern(Context context) {
+        this.context = context;
+        this.vpnMode = false;
+        this.analytics = new Analytics(this.context);
+        this.loadSettings();
     }
 
     public Map getSettings() {
@@ -63,12 +65,11 @@ public class Lantern extends Client.Provider.Stub {
     // and copies it over to the app's internal storage directory
     // for easy access from the backend
     public Map loadSettings() {
-        Map settings = new HashMap();
         try {
             settings = Utils.loadSettings(this.context, settingsFile);
             if (settings != null) {
                 appName = (String)settings.get("appname");
-                Log.d(TAG, "App name is " + appName);
+                Log.d(TAG, "App running Lantern is " + appName);
             }
             Client.Configure(this);
 
@@ -94,7 +95,7 @@ public class Lantern extends Client.Provider.Stub {
         try {
             Client.Stop();
         } catch(final Exception e) {
-            // ignore exception
+            Log.e(TAG, "Error while trying to stop Lantern: " + e);
         }
     }
 
