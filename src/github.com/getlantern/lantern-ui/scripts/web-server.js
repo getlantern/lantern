@@ -5,7 +5,6 @@ var util = require('util'),
     fs = require('fs'),
     url = require('url'),
     events = require('events');
-var MockBackend = require('../mock/backend').MockBackend;
 var ws = require('../mock/websocket').MockWS;
 
 var DEFAULT_HOST = '127.0.0.1';
@@ -41,11 +40,8 @@ function createServlet(Class) {
  */
 function HttpServer(handlers) {
   this.handlers = handlers;
-  var mockBackend = new MockBackend(this);
-  this.handlers.POST = mockBackend.handleRequest.bind(mockBackend);
   this.server = http.createServer(this.handleRequest_.bind(this));
   ws(this.server);
-  mockBackend.attachServer(this.server);
 }
 
 HttpServer.prototype.start = function(port, host) {
