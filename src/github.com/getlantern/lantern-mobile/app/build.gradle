@@ -8,7 +8,7 @@ repositories {
     }  
     jcenter()
     maven { url 'https://maven.fabric.io/public' }
-    mavenLocal()
+    maven { url 's3://lantern-mvn/release' }
     mavenCentral()
     maven { url 'https://plugins.gradle.org/m2/' }
 }

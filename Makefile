@@ -133,6 +133,7 @@ endef
 
 all: binaries
 android: android-lib build-android-debug android-install android-run
+android-sdk: android-lib build-android-sdk
 android-dist: genconfig android
 
 # This is to be called within the docker image.
@@ -536,7 +537,7 @@ $(DOCKER) run -v $$PWD/src:/src $(DOCKER_MOBILE_IMAGE_TAG) /bin/bash -c \ "cd /s
 		echo "cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) \$$FIRETWEET_MAIN_DIR"; \
 	fi
 
-android-sdk: 
+build-android-sdk: 
 	./$(GRADLE) -b $(LANTERN_MOBILE_DIR)/sdk/build.gradle \
 		build \
 		publish
