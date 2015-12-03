@@ -7,9 +7,10 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 
-import org.getlantern.lantern.config.LanternConfig;
 import org.getlantern.lantern.model.LanternUI;
-import org.getlantern.lantern.service.LanternVpn;
+import org.getlantern.lantern.sdk.LanternConfig;
+import org.getlantern.lantern.sdk.LanternVpn;
+ 
 
 public class PromptVpnActivity extends Activity {
 
