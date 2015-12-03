@@ -1,4 +1,4 @@
-package org.getlantern.lantern.model;
+package org.getlantern.lantern.ui.model;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -64,11 +64,10 @@ import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.getlantern.lantern.activity.LanternMainActivity;
-import org.getlantern.lantern.config.LanternConfig;
-import org.getlantern.lantern.model.MailSender;
-import org.getlantern.lantern.R;
-import org.getlantern.lantern.service.LanternVpn;
+import org.getlantern.lantern.ui.activity.LanternMainActivity;
+import org.getlantern.lantern.ui.model.MailSender;
+import org.getlantern.lantern.ui.R;
+import org.getlantern.lantern.sdk.LanternConfig;
 
 public class LanternUI {
 
