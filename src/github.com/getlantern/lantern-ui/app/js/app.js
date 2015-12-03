@@ -1,21 +1,22 @@
 'use strict';
 
 var app = angular.module('app', [
-  'app.constants',
   'ngWebSocket',
-  'LocalStorageModule',
-  'app.helpers',
-  'pascalprecht.translate',
-  'app.filters',
-  'app.services',
-  'app.directives',
   'ngSanitize',
   'ngResource',
+  'LocalStorageModule',
+  'stripe.checkout',
+  'pascalprecht.translate',
   'ui.utils',
   'ui.showhide',
   'ui.validate',
   'ui.bootstrap',
-  'ui.bootstrap.tpls'
+  'ui.bootstrap.tpls',
+  'app.constants',
+  'app.helpers',
+  'app.filters',
+  'app.services',
+  'app.directives'
 ])
 .directive('dynamic', ['$compile', function ($compile) {
   return {
@@ -34,8 +35,10 @@ var app = angular.module('app', [
   '$httpProvider',
   '$resourceProvider',
   '$translateProvider',
+  'StripeCheckoutProvider',
+  'STRIPE_PUB_KEY',
   'DEFAULT_LANG',
-  function($tooltipProvider, $httpProvider, $resourceProvider, $translateProvider, DEFAULT_LANG) {
+  function($tooltipProvider, $httpProvider, $resourceProvider, $translateProvider, StripeCheckoutProvider, STRIPE_PUB_KEY, DEFAULT_LANG) {
 
     $translateProvider.preferredLanguage(DEFAULT_LANG);
     $translateProvider.useStaticFilesLoader({
@@ -47,6 +50,9 @@ var app = angular.module('app', [
     //$httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
     $tooltipProvider.options({
       appendToBody: true
+    });
+    StripeCheckoutProvider.defaults({
+      key: STRIPE_PUB_KEY
     });
   }
 ])

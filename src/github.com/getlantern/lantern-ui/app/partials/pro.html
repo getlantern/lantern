@@ -8,50 +8,9 @@
     </h3>
   </div>
   <div class="modal-body" id="settings">
-    <script>
-      $.ajax({
-        url: 'https://checkout.stripe.com/checkout.js',
-        dataType: 'script',
-        cache: true,
-        success: function() {
-          var handler = StripeCheckout.configure({
-            key: 'pk_test_4MSPZvz9QtXGWEKdODmzV9ql',
-            image: '/img/ui-header-logo.png',
-            locale: 'auto',
-            alipay: true,
-            token: function(token) {
-              $.post('http://localhost:3030/purchase', {
-                token: token.id,
-                amount: 2000
-              })
-              .done(function(data) {
-              })
-              .fail(function(data) {
-              })
-            }
-          });
-
-          $('#customButton').on('click', function(e) {
-            // Open Checkout with further options
-            handler.open({
-              name: 'Brave New Software Project, Inc.',
-              description: 'Lantern Pro',
-              amount: 2000,
-              email: $('#email').val()
-            });
-            e.preventDefault();
-          });
-
-          // Close Checkout on page navigation
-          $(window).on('popstate', function() {
-            handler.close();
-          });
-        }
-      });
-    </script>
     <div class="smaller">{{ 'INPUT_EMAIL' | translate }}</div>
     <input id="email" type="email" ng-model="model.buypro.email" focus-on="show">
-    <button id="customButton">Purchase</button>
+    <button ng-click="pay()">Purchase</button>
   </div>
   <div class="modal-footer">
     <button type="button" id="settings-close" class="btn btn-primary" ng-click="closeModal()">{{ 'CLOSE' | translate }}</button>
