@@ -1,25 +1,25 @@
 'use strict';
 
 var directives = angular.module('app.directives', [])
-  .directive('compileUnsafe', function ($compile) {
-    return function (scope, element, attr) {
-      scope.$watch(attr.compileUnsafe, function (val, oldVal) {
-        if (!val || (val === oldVal && element[0].innerHTML)) return;
-        element.html(val);
-        $compile(element)(scope);
-      });
-    };
-  })
-  .directive('focusOn', function ($parse) {
-    return function(scope, element, attr) {
-      var val = $parse(attr['focusOn']);
-      scope.$watch(val, function (val) {
-        if (val) {
-          element.focus();
-        }
-      });
-    }
-  });
+.directive('compileUnsafe', ['$compile', function ($compile) {
+  return function (scope, element, attr) {
+    scope.$watch(attr.compileUnsafe, function (val, oldVal) {
+      if (!val || (val === oldVal && element[0].innerHTML)) return;
+      element.html(val);
+      $compile(element)(scope);
+    });
+  };
+}])
+.directive('focusOn', ['$parse', function ($parse) {
+  return function(scope, element, attr) {
+    var val = $parse(attr['focusOn']);
+    scope.$watch(val, function (val) {
+      if (val) {
+        element.focus();
+      }
+    });
+  }
+}]);
 
 // XXX https://github.com/angular/angular.js/issues/1050#issuecomment-9650293
 angular.forEach(['x', 'y', 'cx', 'cy', 'd', 'fill', 'r'], function(name) {
@@ -28,7 +28,7 @@ angular.forEach(['x', 'y', 'cx', 'cy', 'd', 'fill', 'r'], function(name) {
     return function(scope, element, attrs) {
       attrs.$observe(ngName, function(value) {
         attrs.$set(name, value); 
-      })
+      });
     };
   });
 });
