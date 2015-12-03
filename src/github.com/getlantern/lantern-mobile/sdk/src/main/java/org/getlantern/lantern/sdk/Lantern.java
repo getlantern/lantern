@@ -32,6 +32,10 @@ public class Lantern extends Client.Provider.Stub {
     private String appName = "Lantern";
     private Map settings = new HashMap();
 
+    public Lantern() {
+        this.analytics = new Analytics(null);
+    }
+
     public Lantern(LanternVpn service) {
         this.service = service;
         this.context = service.getApplicationContext();

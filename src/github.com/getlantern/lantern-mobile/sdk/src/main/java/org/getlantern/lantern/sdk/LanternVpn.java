@@ -11,11 +11,6 @@ import android.content.SharedPreferences;
 
 import java.util.Map;
 
-import org.getlantern.lantern.sdk.LanternConfig;
-import org.getlantern.lantern.sdk.Lantern;
-import org.getlantern.lantern.sdk.Utils;
-import org.getlantern.lantern.sdk.VpnBuilder;
-
 public class LanternVpn extends VpnBuilder implements Handler.Callback {
     private static final String TAG = "LanternVpn";
 
