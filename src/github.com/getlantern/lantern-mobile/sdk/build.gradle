@@ -62,13 +62,6 @@ buildscript {
         jcenter()
         maven { url 'https://maven.fabric.io/public' }
         maven { url 'https://plugins.gradle.org/m2/' }
-        maven { url 's3://lantern-mvn/releases' 
-        
-            credentials(AwsCredentials) {
-                accessKey AWS_ACCESS_KEY
-                secretKey AWS_SECRET_KEY
-            }
-        }
         mavenCentral()
         maven { url "https://plugins.gradle.org/m2/" }
     }
