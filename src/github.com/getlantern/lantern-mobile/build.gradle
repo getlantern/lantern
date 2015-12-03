@@ -4,12 +4,16 @@ apply plugin: 'maven-publish'
 buildscript {
     repositories {
         jcenter()
+        mavenCentral()
+        mavenLocal()
         maven { url 'https://maven.fabric.io/public' } 
+        maven { url 'https://plugins.gradle.org/m2/' }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:1.5.0'
         classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
         classpath 'io.fabric.tools:gradle:1.+'
+        classpath 'org.getlantern.lantern:sdk:1.0.1'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -42,6 +46,7 @@ ext {
     libs = fileTree(dir: 'libs', include: ['*.jar'])
     appCompat = 'com.android.support:appcompat-v7:22.0.0' 
     gplay   = 'com.google.android.gms:play-services-analytics:7.0.0'
+    yaml    = 'org.yaml:snakeyaml:1.10'
     mavenAntTasks = 'org.apache.maven:maven-ant-tasks:2.1.3'
 }
 

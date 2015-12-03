@@ -42,11 +42,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.getlantern.lantern.config.LanternConfig;
+import org.getlantern.lantern.sdk.LanternConfig;
+import org.getlantern.lantern.sdk.LanternVpn;
+import org.getlantern.lantern.sdk.Utils;
 import org.getlantern.lantern.model.LanternUI;
-import org.getlantern.lantern.model.Utils;
 import org.getlantern.lantern.R;
-import org.getlantern.lantern.service.LanternVpn;
 
 
 public class LanternMainActivity extends Activity implements Handler.Callback {
@@ -96,7 +96,7 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
             // configure actions to be taken whenever slider changes state
             UI.setupLanternSwitch();
             PromptVpnActivity.UI = UI;
-            LanternVpn.UI = UI;
+            //LanternVpn.UI = UI;
         } catch (Exception e) {
             Log.d(TAG, "Got an exception " + e);
         }
