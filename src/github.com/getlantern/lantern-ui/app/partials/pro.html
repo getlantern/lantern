@@ -16,10 +16,11 @@
         success: function() {
           var handler = StripeCheckout.configure({
             key: 'pk_test_4MSPZvz9QtXGWEKdODmzV9ql',
-            image: '/img/lantern-logo.png',
+            image: '/img/ui-header-logo.png',
             locale: 'auto',
+            alipay: true,
             token: function(token) {
-              $.post('https://pro.getlantern.org/purchase', {
+              $.post('http://localhost:3030/purchase', {
                 token: token.id,
                 amount: 2000
               })
