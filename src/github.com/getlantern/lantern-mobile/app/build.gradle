@@ -1,5 +1,6 @@
 apply plugin: 'com.android.application'
 apply from: rootProject.commonPlugins
+apply plugin: 'maven-publish'
 apply plugin: 'io.fabric'
 
 repositories {
@@ -8,7 +9,13 @@ repositories {
     }  
     jcenter()
     maven { url 'https://maven.fabric.io/public' }
-    maven { url 's3://lantern-mvn/release' }
+    maven { url 's3://lantern-mvn/release' 
+
+        credentials(AwsCredentials) {
+            accessKey AWS_ACCESS_KEY
+            secretKey AWS_SECRET_KEY
+        }
+    }
     mavenCentral()
     maven { url 'https://plugins.gradle.org/m2/' }
 }

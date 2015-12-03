@@ -132,7 +132,7 @@ define fpm-debian-build =
 endef
 
 all: binaries
-android: android-lib build-android-debug android-install android-run
+android: build-android-debug android-install android-run
 android-sdk: android-lib build-android-sdk
 android-dist: genconfig android
 
@@ -538,14 +538,13 @@ $(DOCKER) run -v $$PWD/src:/src $(DOCKER_MOBILE_IMAGE_TAG) /bin/bash -c \ "cd /s
 	fi
 
 build-android-sdk: 
-	./$(GRADLE) -b $(LANTERN_MOBILE_DIR)/sdk/build.gradle \
+	gradle -b $(LANTERN_MOBILE_DIR)/sdk/build.gradle \
 		build \
 		publish
 
 build-android-debug:
-	./$(GRADLE) -b $(LANTERN_MOBILE_DIR)/build.gradle \
-		compileDebugSources \
-		compileDebugAndroidTestSources \
+	cd $(LANTERN_MOBILE_DIR)/app
+	gradle -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
 		assembleDebug
 
 build-tun2socks:
