@@ -3,8 +3,12 @@ apply plugin: 'io.fabric'
 
 android {
 
-    compileSdkVersion 22
-    buildToolsVersion "22.0.1"
+    android {
+        useLibrary 'org.apache.http.legacy'
+    }
+
+    compileSdkVersion 23
+    buildToolsVersion "23.0.1"
 
     defaultConfig {
         applicationId "org.getlantern.lantern"
@@ -13,12 +17,15 @@ android {
         versionCode 1
         versionName "1.0"
     }
+    lintOptions {
+        abortOnError false
+    }
     buildTypes {
         debug {
             minifyEnabled false
         }
         release {
-            minifyEnabled true
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
         applicationVariants.all { variant ->                              
@@ -42,13 +49,13 @@ repositories {
         dirs 'libs'
     }
     jcenter()
+    mavenLocal()
     maven { url 'https://maven.fabric.io/public' }
     mavenCentral()
 }
 
 dependencies {
-
-    compile(name:'libflashlight', ext:'aar')
+    compile 'org.getlantern.lantern:sdk:1.0.1'
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.google.android.gms:play-services-analytics:7.0.0'
     compile 'com.mandrillapp.wrapper.lutung:lutung:0.0.6'
