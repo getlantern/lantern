@@ -1,29 +1,10 @@
 apply plugin: 'com.android.application'
-apply from: rootProject.commonPlugins
-apply plugin: 'maven-publish'
 apply plugin: 'io.fabric'
-
-repositories {
-    flatDir {
-        dirs 'libs'
-    }  
-    jcenter()
-    maven { url 'https://maven.fabric.io/public' }
-    maven { url 's3://lantern-mvn/release' 
-
-        credentials(AwsCredentials) {
-            accessKey AWS_ACCESS_KEY
-            secretKey AWS_SECRET_KEY
-        }
-    }
-    mavenCentral()
-    maven { url 'https://plugins.gradle.org/m2/' }
-}
 
 android {
 
-    compileSdkVersion rootProject.compileSdkVersion
-    buildToolsVersion rootProject.buildToolsVersion
+    compileSdkVersion 22
+    buildToolsVersion "22.0.1"
 
     defaultConfig {
         applicationId "org.getlantern.lantern"
@@ -32,13 +13,12 @@ android {
         versionCode 1
         versionName "1.0"
     }
-
     buildTypes {
         debug {
             minifyEnabled false
         }
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
         applicationVariants.all { variant ->                              
@@ -50,19 +30,25 @@ android {
             }                                                             
         }
     }
-
     sourceSets {
         main {
+            jniLibs.srcDirs = ['libs']
         }
-    }
-
-    lintOptions {
-        abortOnError false
     }
 }
 
+repositories {
+    flatDir {
+        dirs 'libs'
+    }
+    jcenter()
+    maven { url 'https://maven.fabric.io/public' }
+    mavenCentral()
+}
+
 dependencies {
-    compile 'org.getlantern.lantern:sdk:1.0.1'
+
+    compile(name:'libflashlight', ext:'aar')
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.google.android.gms:play-services-analytics:7.0.0'
     compile 'com.mandrillapp.wrapper.lutung:lutung:0.0.6'
