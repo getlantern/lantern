@@ -260,7 +260,7 @@ FIRETWEET_MAIN_DIR=/path/to/firetweet/src/main make android-lib
 ```
 
 You can also override this environment variable if you want to use the
-[Flashlight Android Tester](https://github.com/getlantern/flashlight-android-tester) app.
+[Flashlight Android Tester](https://github.com/getlantern/lantern-mobile-single-app-example) app.
 
 
 ### Generating assets
@@ -306,7 +306,7 @@ to be populated with credentials for cloudflare. The original `envvars.bash` is
 available
 [here](https://github.com/getlantern/too-many-secrets/blob/master/envvars.bash).
 An encrypted version is checked in as `envvars.bash.enc`, which was encrypted
-per the instructions [here](http://docs.travis-ci.com/user/encrypting-files/).
+per the instructions [here](https://docs.travis-ci.com/user/encrypting-files/).
 
 
 ## Documentation for developers
