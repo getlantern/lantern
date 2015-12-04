@@ -47,7 +47,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name="org.getlantern.lantern.sdk.LanternVpn"
+        <service android:name="org.getlantern.lantern.vpn.Service"
             android:permission="android.permission.BIND_VPN_SERVICE">
             <intent-filter>
                 <action android:name="android.net.VpnService"/>

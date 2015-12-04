@@ -1,4 +1,4 @@
-package org.getlantern.lantern.sdk;
+package org.getlantern.lantern.vpn;
 
 import android.content.Intent;
 import android.os.Handler;
@@ -9,17 +9,22 @@ import android.widget.Toast;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import org.getlantern.lantern.config.LanternConfig;
+import org.getlantern.lantern.model.UI;
+import org.getlantern.lantern.sdk.Utils;
+
 import java.util.Map;
 
-public class LanternVpn extends VpnBuilder implements Handler.Callback {
-    private static final String TAG = "LanternVpn";
-
+public class Service extends VpnBuilder implements Handler.Callback {
+    private static final String TAG = "VpnService";
     private String mSessionName = "LanternVpn";
 
     private Handler mHandler;
     private Thread mThread;
 
-    private Lantern lantern = null;
+    public static UI LanternUI;
+
+    private LanternVpn lantern = null;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -29,7 +34,7 @@ public class LanternVpn extends VpnBuilder implements Handler.Callback {
         }
 
         if (lantern == null) {
-            lantern = new Lantern(this); 
+            lantern = new LanternVpn(this); 
         }
 
         String action = intent.getAction();
@@ -73,7 +78,7 @@ public class LanternVpn extends VpnBuilder implements Handler.Callback {
 
     private synchronized void start() {
         Log.d(TAG, "Loading Lantern library");
-        final LanternVpn service = this;
+        final Service service = this;
         mThread = new Thread() {
             public void run() {
                 try {
@@ -106,7 +111,7 @@ public class LanternVpn extends VpnBuilder implements Handler.Callback {
     }
 
     public void setVersionNum(String latestVersion) {
-        //UI.setVersionNum(latestVersion);
+        LanternUI.setVersionNum(latestVersion);
     }
 
     @Override

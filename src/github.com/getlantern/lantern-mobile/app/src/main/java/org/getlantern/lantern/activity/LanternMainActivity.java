@@ -42,10 +42,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.getlantern.lantern.sdk.LanternConfig;
-import org.getlantern.lantern.sdk.LanternVpn;
+import org.getlantern.lantern.config.LanternConfig;
+import org.getlantern.lantern.vpn.Service;
+import org.getlantern.lantern.model.UI;
 import org.getlantern.lantern.sdk.Utils;
-import org.getlantern.lantern.model.LanternUI;
 import org.getlantern.lantern.R;
 
 
@@ -59,7 +59,7 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
     private SharedPreferences mPrefs = null;
 
     private Context context;
-    private LanternUI UI;
+    private UI LanternUI;
     private Handler mHandler;
 
     @Override
@@ -90,13 +90,13 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
 
         // setup our UI
         try { 
-            UI = new LanternUI(this, mPrefs);
-            UI.setupSideMenu();
-            UI.setupStatusToast();
+            LanternUI = new UI(this, mPrefs);
+            LanternUI.setupSideMenu();
+            LanternUI.setupStatusToast();
             // configure actions to be taken whenever slider changes state
-            UI.setupLanternSwitch();
-            PromptVpnActivity.UI = UI;
-            //LanternVpn.UI = UI;
+            LanternUI.setupLanternSwitch();
+            PromptVpnActivity.LanternUI = LanternUI;
+            Service.LanternUI = LanternUI;
         } catch (Exception e) {
             Log.d(TAG, "Got an exception " + e);
         }
@@ -109,7 +109,7 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         // we check if mPrefs has been initialized before
         // since onCreate and onResume are always both called
         if (mPrefs != null) {
-            UI.setBtnStatus();
+            LanternUI.setBtnStatus();
         }
     }
 
@@ -155,7 +155,7 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
     }
 
     public void sendDesktopVersion(View view) {
-        UI.sendDesktopVersion(view);
+        LanternUI.sendDesktopVersion(view);
     }
 
     // isNetworkAvailable checks whether or not we are connected to
@@ -188,7 +188,7 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
             Thread thread = new Thread() {
                 public void run() { 
 
-                    Intent service = new Intent(LanternMainActivity.this, LanternVpn.class);
+                    Intent service = new Intent(LanternMainActivity.this, Service.class);
                     if (service != null) {
                         service.setAction(LanternConfig.DISABLE_VPN);
                         startService(service);
@@ -206,7 +206,7 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         // Pass the event to ActionBarDrawerToggle
         // If it returns true, then it has handled
         // the nav drawer indicator touch event
-        if (UI.optionSelected(item)) {
+        if (LanternUI.optionSelected(item)) {
             return true;
         }
 
@@ -218,7 +218,7 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        UI.syncState();
+        LanternUI.syncState();
     }
 
     private class ShutDownReceiver extends BroadcastReceiver {

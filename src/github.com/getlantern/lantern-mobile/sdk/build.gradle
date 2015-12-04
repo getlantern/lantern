@@ -1,16 +1,46 @@
 apply plugin: 'android-sdk-manager'
-apply plugin: 'com.android.library'
+apply plugin: 'android-library'
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
-apply from: rootProject.commonPlugins
-apply plugin: 'io.fabric'
 
 group = 'org.getlantern.lantern.sdk'
 version = '0.1.0'
 
+buildscript {
+    repositories {
+        flatDir {
+            dirs 'libs'
+        }  
+        jcenter()
+        maven { url 'https://maven.fabric.io/public' }
+        maven { url 'https://plugins.gradle.org/m2/' }
+        mavenCentral()
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:1.5.0'
+        classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.+'
+    }
+}    
+
+repositories {
+    flatDir {
+        dirs 'libs'
+    }  
+    jcenter()
+    maven { url 'https://maven.fabric.io/public' }
+    maven { url 'https://plugins.gradle.org/m2/' }
+    mavenCentral()
+    maven { url "https://plugins.gradle.org/m2/" }
+}
+    
+
 android {
-    compileSdkVersion rootProject.compileSdkVersion
-    buildToolsVersion rootProject.buildToolsVersion
+
+    useLibrary 'org.apache.http.legacy'
+    compileSdkVersion 23
+    buildToolsVersion "23.0.1"
 
     defaultConfig {
         minSdkVersion 15
@@ -19,6 +49,19 @@ android {
         versionName "1.0"
         consumerProguardFiles 'proguard-rules.pro'
     }
+
+    sourceSets {
+        main {
+            java {
+                srcDir 'src/main/java'
+                jniLibs.srcDirs = ['libs/jni']
+            }
+            resources {
+                srcDir 'libs/jni'
+            }
+        }
+    }
+
 
     buildTypes {
         debug {
@@ -29,7 +72,6 @@ android {
         release {
             buildConfigField "String", "GROUP", "\"${pom_group_id}\""
             buildConfigField "String", "ARTIFACT_ID", "\"${pom_artifact_id}\""
-            buildConfigField "String", "BUILD_NUMBER", "\"${buildNumber}\""
             buildConfigField "long", "BUILD_TIME", "${System.currentTimeMillis()}L"
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             minifyEnabled false
@@ -48,27 +90,6 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_7
         targetCompatibility JavaVersion.VERSION_1_7
     }
-}
-
-dependencies {
-    compile(name:'libflashlight', ext:'aar')
-}
-
-buildscript {
-    repositories {
-        flatDir {
-            dirs 'libs'
-        }  
-        jcenter()
-        maven { url 'https://maven.fabric.io/public' }
-        maven { url 'https://plugins.gradle.org/m2/' }
-        mavenCentral()
-        maven { url "https://plugins.gradle.org/m2/" }
-    }
-}
- 
-configurations {
-    published
 }
 
 final pomConfig = {
@@ -91,28 +112,28 @@ final pomConfig = {
     }
 }
 
-task sourcesJar(type: Jar) {
-    classifier = 'sources'
-    from android.sourceSets.main.java.srcDirs
+dependencies {
+    compile fileTree(include: ['*.so', '*.jar'], dir: 'libs')
+    compile group: 'commons-io', name: 'commons-io', version: '2.0.1'
+    compile 'com.android.support:appcompat-v7:22.0.0'
+    compile 'com.google.android.gms:play-services-analytics:7.0.0'
+    compile 'org.yaml:snakeyaml:1.10'
+}  
+
+task sourceJar(type: Jar) {
+    classifier "source"
 }
 
-task javadoc(type: Javadoc) {
-    source = android.sourceSets.main.java.srcDirs
-        classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-        from javadoc.destinationDir
-}
+artifacts {
+    archives sourceJar
+}     
 
 publishing {
     publications {
-        aar(MavenPublication) {
+        jar(MavenPublication) {
             groupId 'org.getlantern.lantern'
             version '1.0.1'
             artifactId 'sdk'
-            // Tell maven to prepare the generated "*.aar" file for publishing
             artifact("$buildDir/outputs/aar/${project.getName()}-release.aar")
         }      
     }
@@ -125,17 +146,4 @@ publishing {
             }
         }
     }
-}
-
-artifacts {
-    published sourcesJar
-}
-
-dependencies {
-    compile(name:'libflashlight', ext:'aar')
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile group: 'commons-io', name: 'commons-io', version: '2.0.1'
-    compile yaml
-    compile appCompat
-    compile gplay
 }

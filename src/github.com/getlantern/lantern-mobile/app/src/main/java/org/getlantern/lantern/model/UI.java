@@ -65,11 +65,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.getlantern.lantern.activity.LanternMainActivity;
+import org.getlantern.lantern.config.LanternConfig;
 import org.getlantern.lantern.model.MailSender;
 import org.getlantern.lantern.R;
-import org.getlantern.lantern.sdk.LanternConfig;
 
-public class LanternUI {
+public class UI {
 
     private static final String TAG = "LanternUI";
 
@@ -112,7 +112,7 @@ public class LanternUI {
 
     private View mainView, desktopView, statusLayout;
 
-    public LanternUI(LanternMainActivity activity, SharedPreferences mPrefs) {
+    public UI(LanternMainActivity activity, SharedPreferences mPrefs) {
         this.mNavItems = new ArrayList<NavItem>();
         this.activity = activity;
         this.mPrefs = mPrefs;

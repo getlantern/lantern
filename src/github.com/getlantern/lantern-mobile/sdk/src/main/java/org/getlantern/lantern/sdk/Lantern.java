@@ -16,7 +16,6 @@ import java.util.HashMap;
 import go.client.*;
 import org.getlantern.lantern.sdk.Analytics;
 import org.getlantern.lantern.sdk.Utils;
-import org.getlantern.lantern.sdk.LanternVpn;
 
 public class Lantern extends Client.Provider.Stub {
 
@@ -26,25 +25,19 @@ public class Lantern extends Client.Provider.Stub {
     private final String device = android.os.Build.DEVICE;
     private final String model = android.os.Build.MODEL;
     private final String version = "" + android.os.Build.VERSION.SDK_INT + " ("  + android.os.Build.VERSION.RELEASE + ")";
-    private LanternVpn service = null;
     final private Analytics analytics;
     private Context context;
     private String appName = "Lantern";
     private Map settings = new HashMap();
+    private boolean vpnMode = false;
 
     public Lantern() {
         this.analytics = new Analytics(null);
     }
 
-    public Lantern(LanternVpn service) {
-        this.service = service;
-        this.context = service.getApplicationContext();
-        this.analytics = new Analytics(this.context);
-        this.loadSettings();
-    }
-
-    public Lantern(Context context) {
+    public Lantern(Context context, boolean vpnMode) {
         this.context = context;
+        this.vpnMode = vpnMode;
         this.analytics = new Analytics(this.context);
         this.loadSettings();
     }
@@ -93,18 +86,13 @@ public class Lantern extends Client.Provider.Stub {
 
     @Override
     public String GetDnsServer() {
-        try {
-            return service.getDnsResolver(service);
-        } catch (Exception e) {
-            return DEFAULT_DNS_SERVER;
-        }
+        return DEFAULT_DNS_SERVER;
     }
 
 
     @Override
     public void AfterStart(String latestVersion) {
         Log.d(TAG, "Lantern successfully started; running version: " + latestVersion);
-        service.setVersionNum(latestVersion);
         analytics.sendNewSessionEvent();
     }
 
@@ -131,7 +119,7 @@ public class Lantern extends Client.Provider.Stub {
 
     @Override
     public boolean VpnMode() {
-        return this.service != null;
+        return vpnMode;
     }
 
     // LoadSettingsDir gets the path to the app's internal storage directory
@@ -151,29 +139,11 @@ public class Lantern extends Client.Provider.Stub {
     // and we should shutdown
     @Override
     public void Notice(String message, boolean fatal) {
-        Log.d(TAG, "Received a new message from Lantern: " + message);
-        if (fatal) {
-            Log.d(TAG, "Received fatal error.. Shutting down.");
-            try { 
-                // if we receive a fatal notice from Lantern
-                // then we shut down the VPN interface
-                // and close Tun2Socks
-                this.service.stop();
-                //this.service.UI.handleFatalError();
 
-            } catch (Exception e) {
-
-            }
-        }
     }
 
-    // Protect is used to exclude a socket specified by fileDescriptor
-    // from the VPN connection. Once protected, the underlying connection
-    // is bound to the VPN device and won't be forwarded
     @Override
     public void Protect(long fileDescriptor) throws Exception {
-        if (!this.service.protect((int) fileDescriptor)) {
-            throw new Exception("protect socket failed");
-        }
+
     }
 }

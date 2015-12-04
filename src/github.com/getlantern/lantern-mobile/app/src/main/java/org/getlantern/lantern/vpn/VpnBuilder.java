@@ -1,4 +1,4 @@
-package org.getlantern.lantern.sdk;
+package org.getlantern.lantern.vpn;
 
 import android.app.PendingIntent;
 import android.content.Context;
@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import org.getlantern.lantern.sdk.android.vpn.Tun2Socks;
+import org.getlantern.lantern.android.vpn.Tun2Socks;
 
 public class VpnBuilder extends VpnService {
 
