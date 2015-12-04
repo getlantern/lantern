@@ -7,19 +7,21 @@ android {
         useLibrary 'org.apache.http.legacy'
     }
 
-    compileSdkVersion 23
-    buildToolsVersion "23.0.1"
+    compileSdkVersion rootProject.compileSdkVersion
+    buildToolsVersion rootProject.buildToolsVersion
 
     defaultConfig {
         applicationId "org.getlantern.lantern"
-        minSdkVersion 15
-        targetSdkVersion 22
+        minSdkVersion rootProject.minSdkVersion
+        targetSdkVersion rootProject.targetSdkVersion
         versionCode 1
         versionName "1.0"
     }
+
     lintOptions {
         abortOnError false
     }
+
     buildTypes {
         debug {
             minifyEnabled false
@@ -57,10 +59,10 @@ repositories {
 dependencies {
     compile 'org.getlantern.lantern:sdk:1.0.1'
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.google.android.gms:play-services-analytics:7.0.0'
+    compile gplay
+    compile appCompat
     compile 'com.mandrillapp.wrapper.lutung:lutung:0.0.6'
     compile 'com.github.tony19:timber-loggly:1.0.1'
-    compile 'com.android.support:appcompat-v7:22.0.0'
     compile('com.crashlytics.sdk.android:crashlytics:2.5.3@aar') {
         transitive = true
     }

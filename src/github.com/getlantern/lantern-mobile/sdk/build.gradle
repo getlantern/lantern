@@ -39,12 +39,13 @@ repositories {
 android {
 
     useLibrary 'org.apache.http.legacy'
-    compileSdkVersion 23
-    buildToolsVersion "23.0.1"
+
+    compileSdkVersion rootProject.compileSdkVersion
+    buildToolsVersion rootProject.buildToolsVersion
 
     defaultConfig {
-        minSdkVersion 15
-        targetSdkVersion 22
+        minSdkVersion rootProject.minSdkVersion
+        targetSdkVersion rootProject.targetSdkVersion
         versionCode 1
         versionName "1.0"
         consumerProguardFiles 'proguard-rules.pro'

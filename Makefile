@@ -133,7 +133,7 @@ endef
 
 all: binaries
 android: build-android-debug android-install android-run
-android-sdk: build-android-sdk
+android-sdk: android-lib build-android-sdk
 android-dist: genconfig android
 
 # This is to be called within the docker image.
@@ -527,6 +527,10 @@ android-lib: docker-mobile
 	@$(call docker-up) && \
 $(DOCKER) run -v $$PWD/src:/src $(DOCKER_MOBILE_IMAGE_TAG) /bin/bash -c \ "cd /src/github.com/getlantern/lantern-mobile/lantern && gomobile bind -target=android -tags='headless' -o=$(LANTERN_MOBILE_LIBRARY) -ldflags='$(LDFLAGS_MOBILE)' ." && \
 	cp -v $(LANTERN_MOBILE_DIR)/lantern/$(LANTERN_MOBILE_LIBRARY) $(LANTERN_MOBILE_DIR)/sdk/libs; \
+	cd $(LANTERN_MOBILE_DIR)/sdk/libs; \
+	mkdir tmp; \
+	mv libflashlight.aar tmp; cd tmp; \
+	jar xf libflashlight.aar && cp classes.jar ../ && cp -r jni ../ && cd .. && rm -rf tmp; \
 	if [ -d "$(FIRETWEET_MAIN_DIR)" ]; then \
 		cp -v $(LANTERN_MOBILE_DIR)/lantern/$(LANTERN_MOBILE_LIBRARY) $(FIRETWEET_MAIN_DIR)/libs/$(LANTERN_MOBILE_LIBRARY); \
 	else \
@@ -546,7 +550,7 @@ build-android-sdk:
 build-android-debug:
 	cd $(LANTERN_MOBILE_DIR)/app
 	gradle -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
-		assembleDebug
+		assembleRelease
 
 build-tun2socks:
 	cd $(LANTERN_MOBILE_DIR)
