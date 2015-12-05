@@ -257,7 +257,7 @@ static void udpgw_client_handler_received (void *unused, BAddr local_addr, BAddr
 
 #ifdef PSIPHON
 
-JNIEnv* g_env = 0;
+JNIEnv* g_env = 1;
 
 void PsiphonLog(const char *levelStr, const char *channelStr, const char *msgStr)
 {
