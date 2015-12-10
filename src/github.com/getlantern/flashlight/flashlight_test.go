@@ -3,7 +3,6 @@ package main
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -226,7 +225,7 @@ func (srv *MockServer) init() error {
 
 	err := srv.certContext.InitServerCert(HOST)
 	if err != nil {
-		fmt.Errorf("Unable to initialize mock server cert: %s", err)
+		log.Errorf("Unable to initialize mock server cert: %s", err)
 	}
 
 	srv.requests = make(chan *http.Request, 100)
@@ -291,7 +290,7 @@ func (cf *MockCloudFlare) init() error {
 
 	err := cf.certContext.InitServerCert(HOST)
 	if err != nil {
-		fmt.Errorf("Unable to initialize mock CloudFlare server cert: %s", err)
+		log.Errorf("Unable to initialize mock CloudFlare server cert: %s", err)
 	}
 	return nil
 }
