@@ -78,7 +78,7 @@ type dialResult struct {
 }
 
 func (i *Interceptor) dialHost(addr string) (net.Conn, error) {
-	dial := i.Dial
+	dial := i.client.GetBalancer().Dial
 	if dial == nil {
 		dial = net.Dial
 	}
@@ -219,7 +219,6 @@ func Do(client *client.Client,
 		client:        client,
 		socksAddr:     socksAddr,
 		httpAddr:      httpAddr,
-		Dial:          client.GetBalancer().Dial,
 		errCh:         make(chan error, maxErrCount),
 		sendAlert:     notice,
 		WriteTimeout:  dialTimeout,

@@ -44,15 +44,21 @@ var (
 	log              = golog.LoggerFor("lantern-android.protected")
 	currentProtector SocketProtector
 	currentDnsServer string
+	vpnMode          = false
 )
 
-func Configure(protector SocketProtector, dnsServer string) {
+func Configure(protector SocketProtector, dnsServer string, mode bool) {
 	currentProtector = protector
 	if dnsServer != "" {
 		currentDnsServer = dnsServer
 	} else {
 		dnsServer = defaultDnsServer
 	}
+	vpnMode = mode
+}
+
+func VpnMode() bool {
+	return vpnMode
 }
 
 // Dial creates a new protected connection
@@ -60,7 +66,6 @@ func Configure(protector SocketProtector, dnsServer string) {
 //   specified system device (this is primarily
 //   used for Android VpnService routing functionality)
 func Dial(network, addr string) (*ProtectedConn, error) {
-	log.Debugf("Dialing a new protected connection to %s", addr)
 	host, port, err := SplitHostPort(addr)
 	if err != nil {
 		return nil, err

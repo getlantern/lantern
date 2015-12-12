@@ -1,6 +1,8 @@
 package client
 
 import (
+	"net"
+
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/lantern"
@@ -30,7 +32,7 @@ type Provider interface {
 	VpnMode() bool
 	GetDnsServer() string
 	SettingsDir() string
-	AfterStart(string)
+	AfterStart(string, string, string)
 	Protect(fileDescriptor int) error
 	Notice(message string, fatal bool)
 }
@@ -41,7 +43,7 @@ func Configure(provider Provider) error {
 
 	if provider.VpnMode() {
 		dnsServer := provider.GetDnsServer()
-		protected.Configure(provider, dnsServer)
+		protected.Configure(provider, dnsServer, true)
 	}
 
 	settingsDir := provider.SettingsDir()
@@ -82,19 +84,28 @@ func Start(provider Provider) error {
 			if err != nil {
 				log.Errorf("Error starting SOCKS proxy: %v", err)
 			}
+			lantern.AddExitFunc(func() {
+				if i != nil {
+					i.Stop()
+				}
+			})
 		}
 
-		lantern.AddExitFunc(func() {
-			if i != nil {
-				i.Stop()
-			}
-		})
-		provider.AfterStart(lantern.GetVersion())
+		proxyHost, proxyPort, _ := net.SplitHostPort(appSettings.HttpAddr)
+
+		provider.AfterStart(lantern.GetVersion(), proxyHost,
+			proxyPort)
 	}()
 	return nil
 }
 
-func Stop() error {
+func Restart(provider Provider) {
+	log.Debugf("Restarting Lantern..")
+	Stop()
+	Configure(provider)
+	Start(provider)
+}
+
+func Stop() {
 	go lantern.Exit(nil)
-	return nil
 }
