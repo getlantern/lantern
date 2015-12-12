@@ -78,7 +78,7 @@ func Start(provider Provider) error {
 		}
 
 		if provider.VpnMode() {
-			i, err = interceptor.New(l.Client, appSettings.SocksAddr, appSettings.HttpAddr, provider.Notice)
+			i, err = interceptor.Do(l.Client, appSettings.SocksAddr, appSettings.HttpAddr, provider.Notice)
 			if err != nil {
 				log.Errorf("Error starting SOCKS proxy: %v", err)
 			}
@@ -86,7 +86,7 @@ func Start(provider Provider) error {
 
 		lantern.AddExitFunc(func() {
 			if i != nil {
-				i.Stop(true)
+				i.Stop()
 			}
 		})
 		provider.AfterStart(lantern.GetVersion())
