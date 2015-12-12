@@ -109,6 +109,7 @@ type Manager struct {
 	fileInfo  os.FileInfo
 	deltasCh  chan *delta
 	nextCfgCh chan Config
+	doneCfgCh chan bool
 }
 
 type mutator func(cfg Config) error
@@ -148,6 +149,7 @@ func (m *Manager) Init() (Config, error) {
 	}
 	m.deltasCh = make(chan *delta)
 	m.nextCfgCh = make(chan Config)
+	m.doneCfgCh = make(chan bool, 2)
 
 	err := m.loadFromDisk()
 	if err != nil {
@@ -213,9 +215,18 @@ func (m *Manager) processUpdates() {
 
 func (m *Manager) processCustomPolling() {
 	for {
-		waitTime := m.poll()
-		time.Sleep(waitTime)
+		select {
+		case <-m.doneCfgCh:
+			return
+		default:
+			waitTime := m.poll()
+			time.Sleep(waitTime)
+		}
 	}
+}
+
+func (m *Manager) Exit() {
+	m.doneCfgCh <- true
 }
 
 func (m *Manager) poll() time.Duration {

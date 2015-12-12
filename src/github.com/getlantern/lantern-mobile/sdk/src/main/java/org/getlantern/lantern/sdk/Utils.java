@@ -16,8 +16,6 @@ import java.util.HashMap;
 
 import org.yaml.snakeyaml.Yaml;
 
-import org.apache.commons.io.FilenameUtils;
-
 
 public class Utils {
     private static final String PREFS_NAME = "LanternPrefs";
@@ -42,7 +40,7 @@ public class Utils {
             Resources resources = context.getResources();
             String packageName = context.getPackageName();
 
-            String resourceName = FilenameUtils.removeExtension(filename);
+            String resourceName = filename.substring(0, filename.lastIndexOf('.'));
 
             in = resources.openRawResource(
                     resources.getIdentifier("raw/" + resourceName,

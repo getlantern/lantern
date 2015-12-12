@@ -35,6 +35,10 @@ public class Lantern extends Client.Provider.Stub {
         this.analytics = new Analytics(null);
     }
 
+    public Lantern(Context context) {
+        this(context, false);
+    }
+
     public Lantern(Context context, boolean vpnMode) {
         this.context = context;
         this.vpnMode = vpnMode;
@@ -91,8 +95,14 @@ public class Lantern extends Client.Provider.Stub {
 
 
     @Override
-    public void AfterStart(String latestVersion) {
+    public void AfterStart(String latestVersion, String host, String port) {
         Log.d(TAG, "Lantern successfully started; running version: " + latestVersion);
+        if (!VpnMode()) {
+            System.setProperty("http.proxyHost", host);
+            System.setProperty("http.proxyPort", port);
+            System.setProperty("https.proxyHost", host);
+            System.setProperty("https.proxyPort", port);
+        }
         analytics.sendNewSessionEvent();
     }
 
