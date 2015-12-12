@@ -50,6 +50,7 @@ APK_FILE := src/github.com/getlantern/lantern-mobile/app/build/outputs/apk/lante
 DOCKER_IMAGE_TAG := lantern-builder
 
 LANTERN_MOBILE_DIR := src/github.com/getlantern/lantern-mobile
+LANTERN_MOBILE_PKG := github.com/getlantern/lantern-mobile/lantern
 GRADLE := $(LANTERN_MOBILE_DIR)/gradlew
 LANTERN_MOBILE_LIBRARY := libflashlight.aar
 DOCKER_MOBILE_IMAGE_TAG := lantern-mobile-builder
@@ -521,12 +522,10 @@ genconfig:
 	source setenv.bash && \
 	(cd src/github.com/getlantern/flashlight/genconfig && ./genconfig-android.bash)
 
-android-lib: docker-mobile
+android-lib:
 	@source setenv.bash && \
-	cd $(LANTERN_MOBILE_DIR)/lantern
-	@$(call docker-up) && \
-$(DOCKER) run -v $$PWD/src:/src $(DOCKER_MOBILE_IMAGE_TAG) /bin/bash -c \ "cd /src/github.com/getlantern/lantern-mobile/lantern && gomobile bind -target=android -tags='headless' -o=$(LANTERN_MOBILE_LIBRARY) -ldflags='$(LDFLAGS_MOBILE)' ." && \
-	cp -v $(LANTERN_MOBILE_DIR)/lantern/$(LANTERN_MOBILE_LIBRARY) $(LANTERN_MOBILE_DIR)/sdk/libs; \
+	gomobile bind -target=android -tags='headless' -o=$(LANTERN_MOBILE_LIBRARY) -ldflags='$(LDFLAGS_MOBILE)' $(LANTERN_MOBILE_PKG); \
+	mkdir -p tmp && mv libflashlight.aar tmp && cd tmp && jar xf libflashlight.aar && cp classes.jar ../$(LANTERN_MOBILE_DIR)/sdk/libs && cp -r jni ../$(LANTERN_MOBILE_DIR)/sdk/libs && cd .. && rm -rf tmp
 	if [ -d "$(FIRETWEET_MAIN_DIR)" ]; then \
 		cp -v $(LANTERN_MOBILE_DIR)/lantern/$(LANTERN_MOBILE_LIBRARY) $(FIRETWEET_MAIN_DIR)/libs/$(LANTERN_MOBILE_LIBRARY); \
 	else \
@@ -540,11 +539,12 @@ $(DOCKER) run -v $$PWD/src:/src $(DOCKER_MOBILE_IMAGE_TAG) /bin/bash -c \ "cd /s
 build-android-sdk: 
 	gradle -b $(LANTERN_MOBILE_DIR)/sdk/build.gradle \
 		build \
-		publish
+		publishToMavenLocal
 
 build-android-debug:
 	cd $(LANTERN_MOBILE_DIR)/app
 	gradle -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
+		clean \
 		assembleDebug
 
 build-tun2socks:
@@ -555,7 +555,7 @@ build-tun2socks:
 
 $(APK_FILE): build-android-debug
 
-android-install: $(APK_FILE)
+android-install:
 	adb install -r $(APK_FILE)
 
 android-uninstall: $(APK_FILE)

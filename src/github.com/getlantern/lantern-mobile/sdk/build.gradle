@@ -1,24 +1,75 @@
 apply plugin: 'android-sdk-manager'
-apply plugin: 'com.android.library'
+apply plugin: 'android-library'
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
-apply from: rootProject.commonPlugins
-apply plugin: 'io.fabric'
+apply plugin: 'signing'
 
-group = 'org.getlantern.lantern.sdk'
-version = '0.1.0'
+group = 'org.getlantern'
+version = '1.0.1'
+
+project.ext {
+    groupId = 'org.getlantern'
+    artifactId = 'sdk'
+    isReleaseVersion = !version.endsWith("SNAPSHOT")
+}
+
+buildscript {
+    repositories {
+        flatDir {
+            dirs 'libs'
+        }  
+        jcenter()
+        maven { url 'https://maven.fabric.io/public' }
+        maven { url 'https://plugins.gradle.org/m2/' }
+        mavenCentral()
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:1.5.0'
+        classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.+'
+    }
+}    
+
+repositories {
+    flatDir {
+        dirs 'libs'
+    }  
+    jcenter()
+    maven { url 'https://maven.fabric.io/public' }
+    maven { url 'https://plugins.gradle.org/m2/' }
+    mavenCentral()
+    maven { url "https://plugins.gradle.org/m2/" }
+}
+    
 
 android {
+
+    useLibrary 'org.apache.http.legacy'
+
     compileSdkVersion rootProject.compileSdkVersion
     buildToolsVersion rootProject.buildToolsVersion
 
     defaultConfig {
-        minSdkVersion 15
-        targetSdkVersion 22
+        minSdkVersion rootProject.minSdkVersion
+        targetSdkVersion rootProject.targetSdkVersion
         versionCode 1
         versionName "1.0"
         consumerProguardFiles 'proguard-rules.pro'
     }
+
+    sourceSets {
+        main {
+            java {
+                srcDir 'src/main/java'
+                jniLibs.srcDirs = ['libs/jni']
+            }
+            resources {
+                srcDir 'libs/jni'
+            }
+        }
+    }
+
 
     buildTypes {
         debug {
@@ -29,7 +80,6 @@ android {
         release {
             buildConfigField "String", "GROUP", "\"${pom_group_id}\""
             buildConfigField "String", "ARTIFACT_ID", "\"${pom_artifact_id}\""
-            buildConfigField "String", "BUILD_NUMBER", "\"${buildNumber}\""
             buildConfigField "long", "BUILD_TIME", "${System.currentTimeMillis()}L"
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             minifyEnabled false
@@ -50,29 +100,8 @@ android {
     }
 }
 
-dependencies {
-    compile(name:'libflashlight', ext:'aar')
-}
-
-buildscript {
-    repositories {
-        flatDir {
-            dirs 'libs'
-        }  
-        jcenter()
-        maven { url 'https://maven.fabric.io/public' }
-        maven { url 'https://plugins.gradle.org/m2/' }
-        mavenCentral()
-        maven { url "https://plugins.gradle.org/m2/" }
-    }
-}
- 
-configurations {
-    published
-}
-
 final pomConfig = {
-    packaging "jar"
+    packaging "aar"
     name "Lantern SDK Plugin"
     url "https://github.com/getlantern/lantern"
     licenses {
@@ -91,28 +120,65 @@ final pomConfig = {
     }
 }
 
-task sourcesJar(type: Jar) {
-    classifier = 'sources'
-    from android.sourceSets.main.java.srcDirs
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            pom.project {
+                pomConfig
+            }
+        }
+    }
 }
 
-task javadoc(type: Javadoc) {
-    source = android.sourceSets.main.java.srcDirs
-        classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+dependencies {
+    compile fileTree(include: ['*.so', '*.jar'], dir: 'libs')
+    compile group: 'commons-io', name: 'commons-io', version: '2.0.1'
+    compile 'com.android.support:appcompat-v7:22.0.0'
+    compile 'com.google.android.gms:play-services-analytics:7.0.0'
+    compile 'org.yaml:snakeyaml:1.10'
+}  
+
+task sourceJar(type: Jar) {
+    classifier = 'source'
 }
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-        from javadoc.destinationDir
+android.libraryVariants.all { variant ->
+    task("generate${variant.name}Javadoc", type: Javadoc) {
+        description "Generates Javadoc for $variant.name."
+        source = variant.javaCompile.source
+        ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
+        classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
+        options.links("http://docs.oracle.com/javase/7/docs/api/");
+        options.links("http://d.android.com/reference/");
+        exclude '**/BuildConfig.java'
+        exclude '**/R.java'
+    }
+}
+
+artifacts {
+    archives sourceJar
+}     
+
+signing {
+    sign configurations.archives
 }
 
 publishing {
     publications {
-        aar(MavenPublication) {
+        jar(MavenPublication) {
             groupId 'org.getlantern.lantern'
             version '1.0.1'
             artifactId 'sdk'
-            // Tell maven to prepare the generated "*.aar" file for publishing
             artifact("$buildDir/outputs/aar/${project.getName()}-release.aar")
         }      
     }
@@ -125,17 +191,4 @@ publishing {
             }
         }
     }
-}
-
-artifacts {
-    published sourcesJar
-}
-
-dependencies {
-    compile(name:'libflashlight', ext:'aar')
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile group: 'commons-io', name: 'commons-io', version: '2.0.1'
-    compile yaml
-    compile appCompat
-    compile gplay
 }

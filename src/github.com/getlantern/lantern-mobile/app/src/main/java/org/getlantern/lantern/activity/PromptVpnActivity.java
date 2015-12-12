@@ -7,9 +7,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 
-import org.getlantern.lantern.model.LanternUI;
-import org.getlantern.lantern.sdk.LanternConfig;
-import org.getlantern.lantern.sdk.LanternVpn;
+import org.getlantern.lantern.model.UI;
+import org.getlantern.lantern.config.LanternConfig;
+import org.getlantern.lantern.vpn.Service;
  
 
 public class PromptVpnActivity extends Activity {
@@ -18,7 +18,7 @@ public class PromptVpnActivity extends Activity {
     private final static int REQUEST_VPN = 7777;
     private	Intent intent = null;
 
-    public static LanternUI UI;
+    public static UI LanternUI;
 
     @Override
     public void onCreate( Bundle icicle ) {
@@ -42,7 +42,7 @@ public class PromptVpnActivity extends Activity {
         } else {
             Log.d(TAG, "VPN enabled, starting Lantern...");
 
-            UI.toggleSwitch(true);
+            LanternUI.toggleSwitch(true);
 
             Handler h = new Handler();
             h.postDelayed(new Runnable () {
@@ -63,12 +63,12 @@ public class PromptVpnActivity extends Activity {
 
         if (request == REQUEST_VPN) {
             if (response != RESULT_OK) {
-                UI.toggleSwitch(false);
+                LanternUI.toggleSwitch(false);
                 finish();
                 return;
             }
     
-            UI.toggleSwitch(true);
+            LanternUI.toggleSwitch(true);
 
             Handler h = new Handler();
             h.postDelayed(new Runnable () {
@@ -84,7 +84,7 @@ public class PromptVpnActivity extends Activity {
 
 
     private void sendIntentToService(String action) {
-        Intent lanternService = new Intent(this, LanternVpn.class);
+        Intent lanternService = new Intent(this, Service.class);
         lanternService.setAction(action);
         startService(lanternService);
     }

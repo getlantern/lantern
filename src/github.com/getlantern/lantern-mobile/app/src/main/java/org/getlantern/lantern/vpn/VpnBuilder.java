@@ -1,4 +1,4 @@
-package org.getlantern.lantern.sdk;
+package org.getlantern.lantern.vpn;
 
 import android.app.PendingIntent;
 import android.content.Context;
@@ -26,12 +26,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import org.getlantern.lantern.sdk.android.vpn.Tun2Socks;
+import org.getlantern.lantern.android.vpn.Tun2Socks;
 
 public class VpnBuilder extends VpnService {
 
     private static final String TAG = "VpnBuilder";
     private PendingIntent mConfigureIntent;
+    private Thread mThread;
 
     private final static String mSessionName = "LanternVpn";
     private final static String mVirtualIP = "10.0.0.2";
@@ -41,18 +42,16 @@ public class VpnBuilder extends VpnService {
 
     private ParcelFileDescriptor mInterface;
 
-    public synchronized void configure(Map settings) throws Exception {
-
-        if (mInterface != null) {
-            Log.i(TAG, "Using the previous interface");
-            return;
-        }
-
+    @Override
+    public void onCreate() {
+        super.onCreate();
         // Set the locale to English
         // since the VpnBuilder encounters
         // issues with non-English numerals
         Locale.setDefault(new Locale("en"));
+    }
 
+    public void createBuilder() {
         // Configure a builder while parsing the parameters.
         Builder builder = new Builder();
         builder.setMtu(VPN_MTU);
@@ -62,7 +61,7 @@ public class VpnBuilder extends VpnService {
 
         // Close old VPN interface
         try {
-            mInterface.close();
+            close();
         } catch (Exception e) {
             // ignore
         }
@@ -73,23 +72,37 @@ public class VpnBuilder extends VpnService {
             .establish();
 
         Log.i(TAG, "New interface: " + mInterface);
+    }
 
-        String socksAddr = "127.0.0.1:9131";
-        String udpgwAddr = "127.0.0.1:7131";
-        if (settings != null) {
-            socksAddr = (String)settings.get("socksaddr");
-            udpgwAddr = (String)settings.get("udpgwaddr");
+    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+    public synchronized void configure(final Map settings) throws Exception {
+
+        if (mInterface != null) {
+            Log.i(TAG, "Using the previous interface");
+            return;
         }
 
-        Tun2Socks.Start(
-                mInterface,
-                VPN_MTU,
-                mVirtualIP,
-                mNetMask,
-                socksAddr,
-                udpgwAddr,
-                true
-        );
+        mThread = new Thread() {
+            public void run() {
+                createBuilder();
+                String socksAddr = "127.0.0.1:9131";
+                String udpgwAddr = "127.0.0.1:7131";
+                if (settings != null) {
+                    socksAddr = (String)settings.get("socksaddr");
+                    udpgwAddr = (String)settings.get("udpgwaddr");
+                }
+                Tun2Socks.Start(
+                        mInterface,
+                        VPN_MTU,
+                        mVirtualIP,
+                        mNetMask,
+                        socksAddr,
+                        udpgwAddr,
+                        true
+                        );  
+            }
+        };
+        mThread.start();
     }
 
     public void close() throws Exception {
@@ -98,6 +111,16 @@ public class VpnBuilder extends VpnService {
             mInterface = null;
         }
         Tun2Socks.Stop();
+        if (mThread != null) {
+            mThread.interrupt();
+        }
+        mThread = null;
+    }
+
+    public void restart(Map settings) throws Exception {
+        close();
+        Thread.sleep(3000);
+        configure(settings);
     }
 
     public static String getDnsResolver(Context context)
@@ -113,6 +136,7 @@ public class VpnBuilder extends VpnService {
         return dnsResolver;
     }
 
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private static Collection<InetAddress> getDnsResolvers(Context context)
             throws Exception {
         ArrayList<InetAddress> addresses = new ArrayList<InetAddress>();

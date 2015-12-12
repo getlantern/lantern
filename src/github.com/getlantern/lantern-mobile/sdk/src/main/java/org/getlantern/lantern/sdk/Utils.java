@@ -16,13 +16,11 @@ import java.util.HashMap;
 
 import org.yaml.snakeyaml.Yaml;
 
-import org.apache.commons.io.FilenameUtils;
-
-import org.getlantern.lantern.sdk.LanternConfig;
 
 public class Utils {
     private static final String PREFS_NAME = "LanternPrefs";
     private static final String TAG = "Utils";
+    private final static String PREF_USE_VPN = "pref_vpn";
 
 
     // update START/STOP power Lantern button
@@ -42,7 +40,7 @@ public class Utils {
             Resources resources = context.getResources();
             String packageName = context.getPackageName();
 
-            String resourceName = FilenameUtils.removeExtension(filename);
+            String resourceName = filename.substring(0, filename.lastIndexOf('.'));
 
             in = resources.openRawResource(
                     resources.getIdentifier("raw/" + resourceName,
@@ -79,7 +77,7 @@ public class Utils {
         SharedPreferences mPrefs = getSharedPrefs(context);
 
         if (mPrefs != null) {
-            mPrefs.edit().remove(LanternConfig.PREF_USE_VPN).commit();
+            mPrefs.edit().remove(PREF_USE_VPN).commit();
         }
     }
 }

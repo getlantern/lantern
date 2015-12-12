@@ -274,6 +274,7 @@ func Run(updateHandler func(updated *Config)) error {
 }
 
 func Exit() {
+	m.Exit()
 	doneCfg <- true
 }
 
