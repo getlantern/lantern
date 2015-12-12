@@ -27,8 +27,8 @@ public class LanternVpn extends Lantern {
     }
 
     @Override
-    public void AfterStart(String latestVersion) {
-        super.AfterStart(latestVersion);
+    public void AfterStart(String latestVersion, String host, String port) {
+        super.AfterStart(latestVersion, host, port);
         Log.d(TAG, "Lantern successfully started; running version: " + latestVersion);
         service.setVersionNum(latestVersion);
     }

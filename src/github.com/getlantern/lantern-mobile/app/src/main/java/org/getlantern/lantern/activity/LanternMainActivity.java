@@ -14,6 +14,7 @@ import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.os.StrictMode;
 import android.content.SharedPreferences;
@@ -33,6 +34,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 import android.view.MenuItem; 
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -57,9 +59,10 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
  
 
     private SharedPreferences mPrefs = null;
+    private BroadcastReceiver mReceiver, userPresentReceiver;
 
     private Context context;
-    private UI LanternUI;
+    private UI LanternUI = null;
     private Handler mHandler;
 
     @Override
@@ -69,30 +72,34 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
+        setContentView(R.layout.activity_lantern_main);
+
+        context = getApplicationContext();
+        mPrefs = Utils.getSharedPrefs(context);
+
+
+        LanternUI = new UI(this, mPrefs);
+
+
         // the ACTION_SHUTDOWN intent is broadcast when the phone is
         // about to be shutdown. We register a receiver to make sure we
         // clear the preferences and switch the VpnService to the off
         // state when this happens
         IntentFilter filter = new IntentFilter(Intent.ACTION_SHUTDOWN);
-        BroadcastReceiver mReceiver = new ShutDownReceiver();
+        mReceiver = new ShutDownReceiver();
         registerReceiver(mReceiver, filter);
+
+        IntentFilter userPresentFilter = new IntentFilter(Intent.ACTION_USER_PRESENT);
+        userPresentReceiver = new SleepReceiver();
+        registerReceiver(userPresentReceiver, userPresentFilter);
 
         if (getIntent().getBooleanExtra("EXIT", false)) {
             finish();
             return;
         }
 
-        context = getApplicationContext();
-
-        mPrefs = Utils.getSharedPrefs(context);
-
-        setContentView(R.layout.activity_lantern_main);
-
         // setup our UI
         try { 
-            LanternUI = new UI(this, mPrefs);
-            LanternUI.setupSideMenu();
-            LanternUI.setupStatusToast();
             // configure actions to be taken whenever slider changes state
             LanternUI.setupLanternSwitch();
             PromptVpnActivity.LanternUI = LanternUI;
@@ -114,9 +121,32 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
     }
 
     @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event)  {
+        if (Integer.parseInt(android.os.Build.VERSION.SDK) > 5
+                && keyCode == KeyEvent.KEYCODE_BACK
+                && event.getRepeatCount() == 0) {
+            Log.d(TAG, "onKeyDown Called");
+            onBackPressed();
+            return true; 
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+
+    @Override
+    public void onBackPressed() {
+        Log.d(TAG, "onBackPressed Called");
+        Intent setIntent = new Intent(Intent.ACTION_MAIN);
+        setIntent.addCategory(Intent.CATEGORY_HOME);
+        setIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(setIntent);
+    }
+
+    @Override
     protected void onDestroy() {
         try {
-
+            unregisterReceiver(userPresentReceiver);
+            unregisterReceiver(mReceiver);
             Utils.clearPreferences(this);
             stopLantern();
             // give Lantern a second to stop
@@ -155,7 +185,9 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
     }
 
     public void sendDesktopVersion(View view) {
-        LanternUI.sendDesktopVersion(view);
+        if (LanternUI != null) {
+            LanternUI.sendDesktopVersion(view);
+        }
     }
 
     // isNetworkAvailable checks whether or not we are connected to
@@ -182,6 +214,17 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         thread.start();
     }
 
+    public void restart() {
+        if (LanternUI.useVpn()) {
+            Log.d(TAG, "Restarting Lantern...");
+            Intent service = new Intent(LanternMainActivity.this, Service.class);
+            if (service != null) {
+                service.setAction(LanternConfig.RESTART_VPN);
+                startService(service);
+            }
+        }  
+    }
+
     public void stopLantern() {
         Log.d(TAG, "Stopping Lantern...");
         try {
@@ -206,7 +249,8 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         // Pass the event to ActionBarDrawerToggle
         // If it returns true, then it has handled
         // the nav drawer indicator touch event
-        if (LanternUI.optionSelected(item)) {
+        if (LanternUI != null && 
+                LanternUI.optionSelected(item)) {
             return true;
         }
 
@@ -218,7 +262,16 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        LanternUI.syncState();
+        if (LanternUI != null) {
+            LanternUI.syncState();
+        }
+    }
+
+    private class SleepReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            restart();
+        }
     }
 
     private class ShutDownReceiver extends BroadcastReceiver {

@@ -139,6 +139,14 @@ public class UI {
         this.menuMap = new HashMap<String, Command>();
 
         this.configureEmailInput();
+
+        try { 
+            this.setupSideMenu();
+        } catch (Exception e) {
+            Log.e(TAG, "Error setting up side menu! " + e.getMessage());
+        }
+
+        this.setupStatusToast();
     }
 
     interface Command {

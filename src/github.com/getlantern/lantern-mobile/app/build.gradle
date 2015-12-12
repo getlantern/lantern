@@ -51,9 +51,10 @@ repositories {
         dirs 'libs'
     }
     jcenter()
-    mavenLocal()
-    maven { url 'https://maven.fabric.io/public' }
     mavenCentral()
+    mavenLocal()
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+    maven { url 'https://maven.fabric.io/public' }
 }
 
 dependencies {
