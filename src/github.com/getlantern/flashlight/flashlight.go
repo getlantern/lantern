@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"runtime"
@@ -51,6 +52,7 @@ var (
 	headless           = flag.Bool("headless", false, "if true, lantern will run with no ui")
 	startup            = flag.Bool("startup", false, "if true, Lantern was automatically run on system startup")
 	clearProxySettings = flag.Bool("clear-proxy-settings", false, "if true, Lantern removes proxy settings from the system.")
+	pprofAddr          = flag.String("pprofaddr", "", "pprof address to listen on, not activate pprof if empty")
 
 	showui = true
 
@@ -127,6 +129,15 @@ func main() {
 	}
 
 	parseFlags()
+
+	if *pprofAddr != "" {
+		go func() {
+			log.Debugf("Starting pprof page at http://%s/debug/pprof", *pprofAddr)
+			if err := http.ListenAndServe(*pprofAddr, nil); err != nil {
+				log.Error(err)
+			}
+		}()
+	}
 
 	showui = !*headless
 
