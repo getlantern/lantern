@@ -465,7 +465,7 @@ test-and-cover:
 		source envvars.bash; \
 	fi && \
 	for pkg in $$(cat testpackages.txt); do \
-		go test -v -covermode=count -coverprofile=profile_tmp.cov $$pkg || exit 1; \
+		go test -v -tags="headless" -covermode=count -coverprofile=profile_tmp.cov $$pkg || exit 1; \
 		tail -n +2 profile_tmp.cov >> profile.cov; \
 	done
 
