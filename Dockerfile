@@ -18,6 +18,8 @@ ENV WORKDIR /lantern
 ENV GO_PACKAGE_URL https://storage.googleapis.com/golang/go1.4.3.linux-amd64.tar.gz
 
 # Updating system.
+RUN yum makecache
+RUN yum install -y deltarpm
 RUN yum -y update && yum clean all
 
 # Requisites for building Go.
