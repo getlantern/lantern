@@ -87,7 +87,7 @@ public class Service extends VpnBuilder implements Handler.Callback {
                         lantern = new LanternVpn(service);
                     }
                     lantern.start();
-                    Thread.sleep(2000);
+                    Thread.sleep(200);
                     service.configure(lantern.getSettings());
                 } catch (Exception uhe) {
                     Log.e(TAG, "Error starting Lantern with given host: " + uhe);

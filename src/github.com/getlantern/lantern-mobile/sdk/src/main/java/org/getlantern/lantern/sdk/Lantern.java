@@ -31,6 +31,8 @@ public class Lantern extends Client.Provider.Stub {
     private Map settings = new HashMap();
     private boolean vpnMode = false;
 
+    private Thread mThread;
+
     public Lantern() {
         this.analytics = new Analytics(null);
     }
@@ -43,7 +45,6 @@ public class Lantern extends Client.Provider.Stub {
         this.context = context;
         this.vpnMode = vpnMode;
         this.analytics = new Analytics(this.context);
-        this.loadSettings();
     }
 
     public Map getSettings() {
@@ -69,22 +70,25 @@ public class Lantern extends Client.Provider.Stub {
     }
 
     public void start() {
-        try {
-            Log.d(TAG, "About to start Lantern..");
-            Client.Start(this);
-
-        } catch (final Exception e) {
-            Log.e(TAG, "Fatal error while trying to run Lantern: " + e);
-            throw new RuntimeException(e);
-        }
+        final Lantern lantern = this;
+        mThread = new Thread() {
+            public void run() {
+                try {
+                    Log.d(TAG, "About to start Lantern..");
+                    lantern.loadSettings();
+                    Client.Start(lantern);
+                } catch (final Exception e) {
+                    Log.e(TAG, "Fatal error while trying to run Lantern: " + e);
+                }
+            }
+        };
+        mThread.start();
     }
 
     public void stop() {
         Log.d(TAG, "About to stop Lantern..");
-        try {
-            Client.Stop();
-        } catch(final Exception e) {
-            Log.e(TAG, "Error while trying to stop Lantern: " + e);
+        if (mThread != null) {
+            mThread.interrupt();
         }
     }
 

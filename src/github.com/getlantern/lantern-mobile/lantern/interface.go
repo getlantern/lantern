@@ -2,7 +2,6 @@ package client
 
 import (
 	"net"
-	"os"
 
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/flashlight/config"
@@ -109,5 +108,4 @@ func Restart(provider Provider) {
 
 func Stop() {
 	go lantern.Exit(nil)
-	os.Exit(1)
 }

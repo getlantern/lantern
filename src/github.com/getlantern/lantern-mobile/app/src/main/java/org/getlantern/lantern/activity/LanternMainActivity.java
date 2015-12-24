@@ -221,7 +221,6 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
     }
 
     public void stopLantern() {
-        Log.d(TAG, "Stopping Lantern...");
         try {
             Thread thread = new Thread() {
                 public void run() { 
