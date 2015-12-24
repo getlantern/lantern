@@ -59,7 +59,7 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
  
 
     private SharedPreferences mPrefs = null;
-    private BroadcastReceiver mReceiver, userPresentReceiver;
+    private BroadcastReceiver mReceiver;
 
     private Context context;
     private UI LanternUI = null;
@@ -86,12 +86,10 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         // clear the preferences and switch the VpnService to the off
         // state when this happens
         IntentFilter filter = new IntentFilter(Intent.ACTION_SHUTDOWN);
-        mReceiver = new ShutDownReceiver();
+        filter.addAction(Intent.ACTION_SHUTDOWN);
+        filter.addAction(Intent.ACTION_USER_PRESENT);
+        mReceiver = new LanternReceiver();
         registerReceiver(mReceiver, filter);
-
-        IntentFilter userPresentFilter = new IntentFilter(Intent.ACTION_USER_PRESENT);
-        userPresentReceiver = new SleepReceiver();
-        registerReceiver(userPresentReceiver, userPresentFilter);
 
         if (getIntent().getBooleanExtra("EXIT", false)) {
             finish();
@@ -145,12 +143,9 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
     @Override
     protected void onDestroy() {
         try {
-            unregisterReceiver(userPresentReceiver);
             unregisterReceiver(mReceiver);
             Utils.clearPreferences(this);
             stopLantern();
-            // give Lantern a second to stop
-            Thread.sleep(1000);
         } catch (Exception e) {
 
         }
@@ -255,7 +250,6 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         }
 
         // Handle your other action bar items...
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -267,17 +261,15 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         }
     }
 
-    private class SleepReceiver extends BroadcastReceiver {
+    private class LanternReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            restart();
-        }
-    }
-
-    private class ShutDownReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Utils.clearPreferences(context);
+            String action = intent.getAction();
+            if (action.equals(Intent.ACTION_SHUTDOWN)) {
+                Utils.clearPreferences(context);
+            } else if (action.equals(Intent.ACTION_USER_PRESENT)) {
+                //restart();
+            }
         }
     }
 

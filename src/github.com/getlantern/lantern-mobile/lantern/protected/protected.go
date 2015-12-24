@@ -65,7 +65,7 @@ func VpnMode() bool {
 // - syscall API calls are used to create and bind to the
 //   specified system device (this is primarily
 //   used for Android VpnService routing functionality)
-func Dial(network, addr string) (*ProtectedConn, error) {
+func Dial(network, addr string, timeout time.Duration) (*ProtectedConn, error) {
 	host, port, err := SplitHostPort(addr)
 	if err != nil {
 		return nil, err
@@ -113,6 +113,8 @@ func Dial(network, addr string) (*ProtectedConn, error) {
 		log.Errorf("Error converting protected connection: %s", err)
 		return nil, err
 	}
+
+	conn.Conn.SetDeadline(time.Now().Add(timeout))
 	return conn, nil
 }
 

@@ -455,14 +455,14 @@ release-android-beta: require-s3cmd
 		for NAME in $$(ls -1 $$BASE_NAME*.*); do \
 			shasum $$NAME | cut -d " " -f 1 > $$NAME.sha1 && \
 			echo "Uploading SHA-1 `cat $$NAME.sha1`" && \
-			$(S3CMD) put -P $$NAME.sha1 s3://$(S3_BUCKET) && \
+			$(S3CMD) put -P $$NAME.sha1 s3://$(ANDROID_S3_BUCKET) && \
 			echo "Uploading $$NAME to S3" && \
-			$(S3CMD) put -P $$NAME s3://$(S3_BUCKET) && \
+			$(S3CMD) put -P $$NAME s3://$(ANDROID_S3_BUCKET) && \
 			SUFFIX=$$(echo "$$NAME" | sed s/$$BASE_NAME//g) && \
 			VERSIONED=lantern-installer-$$VERSION$$SUFFIX && \
 			echo "Copying $$VERSIONED" && \
-			$(S3CMD) cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$VERSIONED && \
-			$(S3CMD) setacl s3://$(S3_BUCKET)/$$VERSIONED --acl-public; \
+			$(S3CMD) cp s3://$(ANDROID_S3_BUCKET)/$$NAME s3://$(ANDROID_S3_BUCKET)/$$VERSIONED && \
+			$(S3CMD) setacl s3://$(ANDROID_S3_BUCKET)/$$VERSIONED --acl-public; \
 		done
 
 

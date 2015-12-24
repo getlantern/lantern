@@ -25,6 +25,9 @@ public class Service extends VpnBuilder implements Handler.Callback {
 
     private LanternVpn lantern;
 
+    private Thread mThread = null;
+
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent == null) {
@@ -33,15 +36,11 @@ public class Service extends VpnBuilder implements Handler.Callback {
 
         String action = intent.getAction();
 
-        if (lantern == null) {
-            lantern = new LanternVpn(this);
-        }
-
         // STOP button was pressed
         // shut down Lantern and close the VPN connection
         if (action.equals(LanternConfig.DISABLE_VPN)) {
 
-            stop();
+            stop(false);
             lantern = null;
 
             if (mHandler != null) {
@@ -52,11 +51,18 @@ public class Service extends VpnBuilder implements Handler.Callback {
                 }, 1000);
             }
         } else if (action.equals(LanternConfig.ENABLE_VPN)) {
-            start();
+            if (this.vpnThread == null || !this.vpnThread.isAlive()) {
+                start();
+            }
         } else if (action.equals(LanternConfig.RESTART_VPN)) {
             try { 
                 if (lantern != null) {
-                    super.restart(lantern.getSettings());
+                    stop(true);
+                    mHandler.postDelayed(new Runnable () {
+                        public void run () { 
+                            start();
+                        }
+                    }, 2000);
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Could not restart Lantern: " + e.getMessage());
@@ -74,9 +80,12 @@ public class Service extends VpnBuilder implements Handler.Callback {
     private synchronized void start() {
         Log.d(TAG, "Loading Lantern library");
         final Service service = this;
-        Thread mThread = new Thread() {
+        mThread = new Thread() {
             public void run() {
                 try {
+                    if (lantern == null) {
+                        lantern = new LanternVpn(service);
+                    }
                     lantern.start();
                     Thread.sleep(2000);
                     service.configure(lantern.getSettings());
@@ -88,13 +97,22 @@ public class Service extends VpnBuilder implements Handler.Callback {
         mThread.start();
     }
 
-    public void stop() {
+    public void stop(boolean restart) {
         try {
             Log.d(TAG, "Stopping Lantern...");
             if (lantern != null) {
                 lantern.stop(); 
+                lantern = null;
             }
-            Utils.clearPreferences(this);
+
+            if (mThread != null) {
+                mThread.interrupt();
+                mThread = null;
+            }
+
+            if (!restart) {
+                Utils.clearPreferences(this);
+            }
 
             Log.d(TAG, "Closing VPN interface..");
             super.close();
@@ -110,7 +128,7 @@ public class Service extends VpnBuilder implements Handler.Callback {
     @Override
     public void onDestroy() {
         try {
-            stop();
+            stop(true);
         } catch (Exception e) {
 
         }

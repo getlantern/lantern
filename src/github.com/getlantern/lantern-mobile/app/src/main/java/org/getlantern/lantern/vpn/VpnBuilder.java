@@ -8,6 +8,7 @@ import android.net.ConnectivityManager;
 import android.net.LinkProperties;
 import android.net.VpnService;
 import android.os.Build;
+import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 
 import org.apache.http.conn.util.InetAddressUtils;
@@ -28,11 +29,12 @@ import java.util.Map;
 
 import org.getlantern.lantern.android.vpn.Tun2Socks;
 
+@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 public class VpnBuilder extends VpnService {
 
     private static final String TAG = "VpnBuilder";
     private PendingIntent mConfigureIntent;
-    private Thread mThread;
+    protected Thread vpnThread = null;
 
     private final static String mSessionName = "LanternVpn";
     private final static String mVirtualIP = "10.0.0.2";
@@ -77,12 +79,7 @@ public class VpnBuilder extends VpnService {
     @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
     public synchronized void configure(final Map settings) throws Exception {
 
-        if (mInterface != null) {
-            Log.i(TAG, "Using the previous interface");
-            return;
-        }
-
-        mThread = new Thread() {
+        vpnThread = new Thread() {
             public void run() {
                 createBuilder();
                 String socksAddr = "127.0.0.1:9131";
@@ -102,7 +99,7 @@ public class VpnBuilder extends VpnService {
                         );  
             }
         };
-        mThread.start();
+        vpnThread.start();
     }
 
     public void close() throws Exception {
@@ -111,16 +108,24 @@ public class VpnBuilder extends VpnService {
             mInterface = null;
         }
         Tun2Socks.Stop();
-        if (mThread != null) {
-            mThread.interrupt();
+        if (vpnThread != null) {
+            vpnThread.interrupt();
         }
-        mThread = null;
+        vpnThread = null;
     }
 
-    public void restart(Map settings) throws Exception {
+    public void restart(final Map settings) throws Exception {
         close();
-        Thread.sleep(3000);
-        configure(settings);
+        Handler mHandler = new Handler();
+        mHandler.postDelayed(new Runnable () {
+            public void run () { 
+                try { 
+                    configure(settings);
+                } catch (Exception e) {
+                    Log.e(TAG, "Could not call configure again!" + e.getMessage());
+                }
+            }
+        }, 2000);
     }
 
     public static String getDnsResolver(Context context)

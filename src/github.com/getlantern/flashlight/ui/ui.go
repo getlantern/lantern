@@ -49,10 +49,6 @@ func init() {
 		log.Debugf("Creating tarfs filesystem that prefers local resources at %v", absLocalResourcesPath)
 	}
 
-	if runtime.GOOS == "android" {
-		return
-	}
-
 	var err error
 	fs, err = tarfs.New(Resources, localResourcesPath)
 	if err != nil {

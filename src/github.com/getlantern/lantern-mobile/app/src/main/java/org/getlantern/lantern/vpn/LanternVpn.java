@@ -65,7 +65,7 @@ public class LanternVpn extends Lantern {
                 // if we receive a fatal notice from Lantern
                 // then we shut down the VPN interface
                 // and close Tun2Socks
-                this.service.stop();
+                this.service.stop(false);
                 //this.service.UI.handleFatalError();
 
             } catch (Exception e) {
