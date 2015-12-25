@@ -81,8 +81,6 @@ public class Service extends VpnBuilder implements Runnable {
             
         }
 
-        Log.d(TAG, "Now going to stop myself...");
-
         stopSelf();
         IsRunning = false;
     }
