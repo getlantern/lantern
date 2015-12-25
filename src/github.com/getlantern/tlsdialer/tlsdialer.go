@@ -127,7 +127,7 @@ func DialForTimings(dialer *net.Dialer, network, addr string, sendServerName boo
 	resolvedAddr := result.ResolvedAddr.String()
 
 	if runtime.GOOS == "android" && protected.VpnMode() {
-		rawConn, err = protected.Dial(network, resolvedAddr)
+		rawConn, err = protected.Dial(network, resolvedAddr, timeout)
 	} else {
 		rawConn, err = dialer.Dial(network, resolvedAddr)
 	}

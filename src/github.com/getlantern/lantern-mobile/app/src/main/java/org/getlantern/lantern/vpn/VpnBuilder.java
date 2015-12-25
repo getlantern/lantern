@@ -1,13 +1,16 @@
 package org.getlantern.lantern.vpn;
 
+import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.annotation.TargetApi;
 import android.util.Log;
 import android.net.ConnectivityManager;
 import android.net.LinkProperties;
 import android.net.VpnService;
 import android.os.Build;
+import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 
 import org.apache.http.conn.util.InetAddressUtils;
@@ -26,21 +29,32 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import org.getlantern.lantern.activity.LanternMainActivity;
+import org.getlantern.lantern.R;
+
 import org.getlantern.lantern.android.vpn.Tun2Socks;
 
+@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 public class VpnBuilder extends VpnService {
 
     private static final String TAG = "VpnBuilder";
-    private PendingIntent mConfigureIntent;
-    private Thread mThread;
+    protected Thread vpnThread = null;
 
     private final static String mSessionName = "LanternVpn";
     private final static String mVirtualIP = "10.0.0.2";
-    private final static String mGateway = "10.0.0.1";
     private final static String mNetMask = "255.255.255.0";
+    private final static String networkIp = "26.25.0.0";
     private final static int VPN_MTU = 1500;
+    private ArrayList<IPAddress> m_IpList = new ArrayList<IPAddress>();
+    private ArrayList<IPAddress> m_dnsList = new ArrayList<IPAddress>();
 
     private ParcelFileDescriptor mInterface;
+
+    public VpnBuilder() {
+        m_IpList.add(new IPAddress("26.26.26.2", 32));
+        m_dnsList.add(new IPAddress("114.114.114.114"));
+        m_dnsList.add(new IPAddress("8.8.8.8"));
+    }
 
     @Override
     public void onCreate() {
@@ -55,34 +69,36 @@ public class VpnBuilder extends VpnService {
         // Configure a builder while parsing the parameters.
         Builder builder = new Builder();
         builder.setMtu(VPN_MTU);
-        builder.addRoute("0.0.0.0", 0);
-        builder.addAddress(mGateway, 28);
-        builder.addDnsServer(mVirtualIP);
 
-        // Close old VPN interface
-        try {
-            close();
-        } catch (Exception e) {
-            // ignore
+        IPAddress ipAddress = m_IpList.get(0);
+        builder.addAddress(ipAddress.Address, ipAddress.PrefixLength);
+        Log.d(TAG, String.format("VpnBuilder addAddress: %s/%d\n", ipAddress.Address, ipAddress.PrefixLength));
+
+        for (IPAddress dns : m_dnsList) {
+            builder.addDnsServer(dns.Address);
         }
 
-        // Create a new interface using the builder and save the parameters.
-        mInterface = builder.setSession(mSessionName)
-            .setConfigureIntent(mConfigureIntent)
-            .establish();
+        builder.addRoute(networkIp, 16);
+        for (String routeAddress : getResources().getStringArray(R.array.bypass_private_route)) {
+            String[] addr = routeAddress.split("/");
+            builder.addRoute(addr[0], Integer.parseInt(addr[1]));
+        }                                                   
 
+        Intent intent = new Intent(this, LanternMainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+        builder.setConfigureIntent(pendingIntent);
+
+        builder.setSession(mSessionName);
+
+        // Create a new interface using the builder and save the parameters.
+        mInterface = builder.establish();
         Log.i(TAG, "New interface: " + mInterface);
     }
 
     @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
     public synchronized void configure(final Map settings) throws Exception {
 
-        if (mInterface != null) {
-            Log.i(TAG, "Using the previous interface");
-            return;
-        }
-
-        mThread = new Thread() {
+        vpnThread = new Thread() {
             public void run() {
                 createBuilder();
                 String socksAddr = "127.0.0.1:9131";
@@ -102,7 +118,7 @@ public class VpnBuilder extends VpnService {
                         );  
             }
         };
-        mThread.start();
+        vpnThread.start();
     }
 
     public void close() throws Exception {
@@ -111,16 +127,24 @@ public class VpnBuilder extends VpnService {
             mInterface = null;
         }
         Tun2Socks.Stop();
-        if (mThread != null) {
-            mThread.interrupt();
+        if (vpnThread != null) {
+            vpnThread.interrupt();
         }
-        mThread = null;
+        vpnThread = null;
     }
 
-    public void restart(Map settings) throws Exception {
+    public void restart(final Map settings) throws Exception {
         close();
-        Thread.sleep(3000);
-        configure(settings);
+        Handler mHandler = new Handler();
+        mHandler.postDelayed(new Runnable () {
+            public void run () { 
+                try { 
+                    configure(settings);
+                } catch (Exception e) {
+                    Log.e(TAG, "Could not call configure again!" + e.getMessage());
+                }
+            }
+        }, 2000);
     }
 
     public static String getDnsResolver(Context context)
@@ -161,6 +185,7 @@ public class VpnBuilder extends VpnService {
         return addresses;
     }
 
+
     public static String getNextIPV4Address(String ip) {
         String[] nums = ip.split("\\.");
         int i = (Integer.parseInt(nums[0]) << 24 | Integer.parseInt(nums[2]) << 8
@@ -172,5 +197,41 @@ public class VpnBuilder extends VpnService {
         return String.format("%d.%d.%d.%d", i >>> 24 & 0xFF, i >> 16 & 0xFF,
                 i >>   8 & 0xFF, i >>  0 & 0xFF);
     }
+
+    public class IPAddress {
+        public final String Address;
+        public final int PrefixLength;
+
+        public IPAddress(String address, int prefixLength) {
+            this.Address = address;
+            this.PrefixLength = prefixLength;
+        }
+
+        public IPAddress(String ipAddresString) {
+            String[] arrStrings = ipAddresString.split("/");
+            String address = arrStrings[0];
+            int prefixLength = 32;
+            if (arrStrings.length > 1) {
+                prefixLength = Integer.parseInt(arrStrings[1]);
+            }
+            this.Address = address;
+            this.PrefixLength = prefixLength;
+        }
+
+        @SuppressLint("DefaultLocale")
+        @Override
+        public String toString() {
+            return String.format("%s/%d", Address, PrefixLength);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == null) {
+                return false;
+            } else {
+                return this.toString().equals(o.toString());
+            }
+        }
+    } 
 
 }

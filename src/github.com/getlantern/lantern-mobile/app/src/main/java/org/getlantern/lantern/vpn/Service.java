@@ -10,117 +10,86 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import org.getlantern.lantern.config.LanternConfig;
-import org.getlantern.lantern.model.UI;
 import org.getlantern.lantern.sdk.Utils;
 
 import java.util.Map;
 
-public class Service extends VpnBuilder implements Handler.Callback {
+public class Service extends VpnBuilder implements Runnable {
+
     private static final String TAG = "VpnService";
+    public static boolean IsRunning = false;
+
     private String mSessionName = "LanternVpn";
 
     private Handler mHandler;
-
-    public static UI LanternUI;
-
     private LanternVpn lantern;
+    private Thread mThread = null;
+
+    public Service() {
+        mHandler = new Handler();
+    }
+
+    @Override
+    public void onCreate() {
+        Log.d(TAG, "VpnService created");
+        mThread = new Thread(this, "VpnService");
+        mThread.start();
+        super.onCreate();
+    }
+
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent == null) {
-            return START_STICKY;
-        }
-
-        String action = intent.getAction();
-
-        if (lantern == null) {
-            lantern = new LanternVpn(this);
-        }
-
-        // STOP button was pressed
-        // shut down Lantern and close the VPN connection
-        if (action.equals(LanternConfig.DISABLE_VPN)) {
-
-            stop();
-            lantern = null;
-
-            if (mHandler != null) {
-                mHandler.postDelayed(new Runnable () {
-                    public void run () { 
-                        stopSelf();
-                    }
-                }, 1000);
-            }
-        } else if (action.equals(LanternConfig.ENABLE_VPN)) {
-            start();
-        } else if (action.equals(LanternConfig.RESTART_VPN)) {
-            try { 
-                if (lantern != null) {
-                    super.restart(lantern.getSettings());
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "Could not restart Lantern: " + e.getMessage());
-            }
-        }
-
-        // The handler is only used to show messages.
-        if (mHandler == null) {
-            mHandler = new Handler(this);
-        }
-
-        return START_STICKY;
+        IsRunning = true;
+        return super.onStartCommand(intent, flags, startId);
     }
 
-    private synchronized void start() {
-        Log.d(TAG, "Loading Lantern library");
-        final Service service = this;
-        Thread mThread = new Thread() {
-            public void run() {
-                try {
-                    lantern.start();
-                    Thread.sleep(2000);
-                    service.configure(lantern.getSettings());
-                } catch (Exception uhe) {
-                    Log.e(TAG, "Error starting Lantern with given host: " + uhe);
-                }
-            }
-        };
-        mThread.start();
-    }
-
-    public void stop() {
+    @Override
+    public synchronized void run() {
         try {
-            Log.d(TAG, "Stopping Lantern...");
-            if (lantern != null) {
-                lantern.stop(); 
-            }
-            Utils.clearPreferences(this);
+            Log.d(TAG, "Loading Lantern library");
+            final Service service = this;
+            lantern = new LanternVpn(this);
+            lantern.start();
 
+            Thread.sleep(1000*2);
+            service.configure(lantern.getSettings());
+
+            while (IsRunning) {
+                Thread.sleep(100);
+            } 
+        } catch (InterruptedException e) {
+            Log.e(TAG, "Exception", e);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e(TAG, "Fatal error", e);
+        } finally {
+            Log.e(TAG, "Lantern terminated.");
+            stop();
+        }
+    }
+
+    private synchronized void stop() {
+        try {
             Log.d(TAG, "Closing VPN interface..");
             super.close();
-        } catch (Exception e) {
-            Log.e(TAG, "Could not stop Lantern: " + e);
-        }
-    }
+            Utils.clearPreferences(this);
 
-    public void setVersionNum(String latestVersion) {
-        LanternUI.setVersionNum(latestVersion);
+            Log.d(TAG, "About to stop Lantern");
+            lantern.stop();
+        } catch (Exception e) {
+            
+        }
+
+        stopSelf();
+        IsRunning = false;
     }
 
     @Override
     public void onDestroy() {
-        try {
-            stop();
-        } catch (Exception e) {
-
+        Log.d(TAG, "Lantern VpnService destroyed");
+        if (mThread != null) {
+            mThread.interrupt();
         }
-    }
-
-    @Override
-    public boolean handleMessage(Message message) {
-        if (message != null) {
-            Toast.makeText(this, message.what, Toast.LENGTH_SHORT).show();
-        }
-        return true;
     }
 }

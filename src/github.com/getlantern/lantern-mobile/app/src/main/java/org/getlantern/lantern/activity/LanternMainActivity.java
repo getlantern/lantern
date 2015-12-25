@@ -48,6 +48,7 @@ import org.getlantern.lantern.config.LanternConfig;
 import org.getlantern.lantern.vpn.Service;
 import org.getlantern.lantern.model.UI;
 import org.getlantern.lantern.sdk.Utils;
+import org.getlantern.lantern.vpn.LanternVpn;
 import org.getlantern.lantern.R;
 
 
@@ -59,10 +60,10 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
  
 
     private SharedPreferences mPrefs = null;
-    private BroadcastReceiver mReceiver, userPresentReceiver;
+    private BroadcastReceiver mReceiver;
 
     private Context context;
-    private UI LanternUI = null;
+    private UI LanternUI;
     private Handler mHandler;
 
     @Override
@@ -86,12 +87,10 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         // clear the preferences and switch the VpnService to the off
         // state when this happens
         IntentFilter filter = new IntentFilter(Intent.ACTION_SHUTDOWN);
-        mReceiver = new ShutDownReceiver();
+        filter.addAction(Intent.ACTION_SHUTDOWN);
+        filter.addAction(Intent.ACTION_USER_PRESENT);
+        mReceiver = new LanternReceiver();
         registerReceiver(mReceiver, filter);
-
-        IntentFilter userPresentFilter = new IntentFilter(Intent.ACTION_USER_PRESENT);
-        userPresentReceiver = new SleepReceiver();
-        registerReceiver(userPresentReceiver, userPresentFilter);
 
         if (getIntent().getBooleanExtra("EXIT", false)) {
             finish();
@@ -103,7 +102,7 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
             // configure actions to be taken whenever slider changes state
             LanternUI.setupLanternSwitch();
             PromptVpnActivity.LanternUI = LanternUI;
-            Service.LanternUI = LanternUI;
+            LanternVpn.LanternUI = LanternUI;
         } catch (Exception e) {
             Log.d(TAG, "Got an exception " + e);
         }
@@ -145,12 +144,9 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
     @Override
     protected void onDestroy() {
         try {
-            unregisterReceiver(userPresentReceiver);
             unregisterReceiver(mReceiver);
             Utils.clearPreferences(this);
             stopLantern();
-            // give Lantern a second to stop
-            Thread.sleep(1000);
         } catch (Exception e) {
 
         }
@@ -226,22 +222,7 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
     }
 
     public void stopLantern() {
-        Log.d(TAG, "Stopping Lantern...");
-        try {
-            Thread thread = new Thread() {
-                public void run() { 
-
-                    Intent service = new Intent(LanternMainActivity.this, Service.class);
-                    if (service != null) {
-                        service.setAction(LanternConfig.DISABLE_VPN);
-                        startService(service);
-                    }
-                }
-            };
-            thread.start();
-        } catch (Exception e) {
-            Log.d(TAG, "Got an exception trying to stop Lantern: " + e);
-        }
+        Service.IsRunning = false;  
     }
 
     @Override
@@ -255,7 +236,6 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         }
 
         // Handle your other action bar items...
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -267,17 +247,15 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         }
     }
 
-    private class SleepReceiver extends BroadcastReceiver {
+    private class LanternReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            restart();
-        }
-    }
-
-    private class ShutDownReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Utils.clearPreferences(context);
+            String action = intent.getAction();
+            if (action.equals(Intent.ACTION_SHUTDOWN)) {
+                Utils.clearPreferences(context);
+            } else if (action.equals(Intent.ACTION_USER_PRESENT)) {
+                //restart();
+            }
         }
     }
 

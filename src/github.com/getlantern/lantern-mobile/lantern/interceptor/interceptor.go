@@ -234,7 +234,7 @@ func Do(client *client.Client,
 	}
 
 	go defaultClient.monitor()
-	//go defaultClient.connsCleaner()
+	go defaultClient.connsCleaner()
 
 	return &defaultClient, nil
 }
@@ -258,7 +258,7 @@ func (i *Interceptor) connsCleaner() {
 		i.connsLock.Lock()
 		m := i.conns
 		for _, conn := range m {
-			if t.Sub(conn.t) > 20*time.Second {
+			if conn != nil && t.Sub(conn.t) > 20*time.Second {
 				i.closeConn(conn)
 				i.connsCount--
 			}

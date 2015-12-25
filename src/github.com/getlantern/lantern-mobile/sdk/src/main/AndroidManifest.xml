@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.getlantern.lantern.sdk" >
+    package="org.getlantern.lantern.sdk" 
+    android:versionName="1.1">
 
     <application>
         <service android:name="com.google.android.gms.analytics.AnalyticsService"

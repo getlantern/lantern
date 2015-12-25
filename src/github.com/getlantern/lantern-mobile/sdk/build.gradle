@@ -5,7 +5,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
 group = 'org.getlantern'
-version = '1.0.1'
+version = '1.6-SNAPSHOT'
 
 project.ext {
     groupId = 'org.getlantern'
@@ -26,6 +26,7 @@ buildscript {
     }
 
     dependencies {
+        classpath group: 'org.yaml', name: 'snakeyaml', version: '1.10'
         classpath 'com.android.tools.build:gradle:1.5.0'
         classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.+'
     }
@@ -72,11 +73,6 @@ android {
 
 
     buildTypes {
-        debug {
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            minifyEnabled false
-        }
-
         release {
             buildConfigField "String", "GROUP", "\"${pom_group_id}\""
             buildConfigField "String", "ARTIFACT_ID", "\"${pom_artifact_id}\""
@@ -92,7 +88,7 @@ android {
     }
 
     defaultPublishConfig 'release'
-    publishNonDefault true
+    publishNonDefault false
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_7
@@ -100,27 +96,8 @@ android {
     }
 }
 
-final pomConfig = {
-    packaging "aar"
-    name "Lantern SDK Plugin"
-    url "https://github.com/getlantern/lantern"
-    licenses {
-        license {
-            name "The Apache Software License, Version 2.0"
-            url "http://www.apache.org/licenses/LICENSE-2.0.txt"
-            distribution "repo"
-        }
-    }
-    developers {
-        developer {
-            id "getlantern"
-            name "Lantern"
-            email "dev@getlantern.org"
-        }
-    }
-}
-
 uploadArchives {
+    configuration = configurations.archives
     repositories {
         mavenDeployer {
             beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
@@ -134,8 +111,35 @@ uploadArchives {
             }
 
             pom.project {
-                pomConfig
+                name 'Lantern SDK'
+                packaging 'aar'
+                description 'Android library for the Lantern circumvention tool'
+                url 'https://github.com/getlantern/lantern'
+                scm {
+                    url 'scm:git@github.com:getlantern/lantern.git'
+                    connection 'scm:git@github.com:getlantern/lantern.git'
+                    developerConnection 'scm:git@github.com:getlantern/lantern.git'
+                }
+
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                            distribution 'repo'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'atavism'
+                        name 'atavism'
+                    }
+                }
             }
+
+            pom.groupId = 'org.getlantern'
+            pom.artifactId = 'android-sdk'
+            pom.version = version
         }
     }
 }
@@ -143,52 +147,84 @@ uploadArchives {
 dependencies {
     compile fileTree(include: ['*.so', '*.jar'], dir: 'libs')
     compile group: 'commons-io', name: 'commons-io', version: '2.0.1'
+    compile group: 'org.yaml', name: 'snakeyaml', version: '1.10'
     compile 'com.android.support:appcompat-v7:22.0.0'
     compile 'com.google.android.gms:play-services-analytics:7.0.0'
-    compile 'org.yaml:snakeyaml:1.10'
 }  
+ 
 
-task sourceJar(type: Jar) {
-    classifier = 'source'
-}
+publishing {
+    publications {
+        // Create different publications for every build types (debug and release)
+        android.buildTypes.all { variant ->
+            // Dynamically creating publications name
+            "${variant.name}Aar"(MavenPublication) {
 
-android.libraryVariants.all { variant ->
-    task("generate${variant.name}Javadoc", type: Javadoc) {
-        description "Generates Javadoc for $variant.name."
-        source = variant.javaCompile.source
-        ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
-        classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
-        options.links("http://docs.oracle.com/javase/7/docs/api/");
-        options.links("http://d.android.com/reference/");
-        exclude '**/BuildConfig.java'
-        exclude '**/R.java'
+                def manifest = new XmlSlurper().parse(project.android.sourceSets.main.manifest.srcFile);
+                def libVersion = manifest['@android:versionName'].text()
+                def artifactName = project.getName()
+
+                // Artifact properties
+                groupId group
+                version = libVersion == '' ? version : libVersion
+                artifactId variant.name == 'debug' ? artifactName + '-dev' : artifactName
+
+                // Tell maven to prepare the generated "*.aar" file for publishing
+                artifact("$buildDir/outputs/aar/${project.getName()}-${variant.name}.aar")
+
+                pom.withXml {
+                    //Creating additional node for dependencies
+                    def dependenciesNode = asNode().appendNode('dependencies')
+
+                    //Defining configuration names from which dependencies will be taken (debugCompile or releaseCompile and compile)
+                    def configurationNames = ["${variant.name}Compile", 'compile']
+
+                    configurationNames.each { configurationName ->
+                        configurations[configurationName].allDependencies.each {
+                            if (it.group != null && it.name != null) {
+                                def dependencyNode = dependenciesNode.appendNode('dependency')
+                                dependencyNode.appendNode('groupId', it.group)
+                                dependencyNode.appendNode('artifactId', it.name)
+                                dependencyNode.appendNode('version', it.version)
+
+                                //If there are any exclusions in dependency
+                                if (it.excludeRules.size() > 0) {
+                                    def exclusionsNode = dependencyNode.appendNode('exclusions')
+                                    it.excludeRules.each { rule ->
+                                        def exclusionNode = exclusionsNode.appendNode('exclusion')
+                                        exclusionNode.appendNode('groupId', rule.group)
+                                        exclusionNode.appendNode('artifactId', rule.module)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    failOnError false
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
 artifacts {
-    archives sourceJar
+    archives javadocJar
+    archives sourcesJar
 }     
 
 signing {
     sign configurations.archives
-}
-
-publishing {
-    publications {
-        jar(MavenPublication) {
-            groupId 'org.getlantern.lantern'
-            version '1.0.1'
-            artifactId 'sdk'
-            artifact("$buildDir/outputs/aar/${project.getName()}-release.aar")
-        }      
-    }
-    repositories {
-        maven { url 's3://lantern-mvn/releases' 
-
-            credentials(AwsCredentials) {
-                accessKey AWS_ACCESS_KEY
-                    secretKey AWS_SECRET_KEY
-            }
-        }
-    }
 }
