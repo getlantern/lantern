@@ -5,7 +5,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
 group = 'org.getlantern'
-version = '1.2-SNAPSHOT'
+version = '1.6-SNAPSHOT'
 
 project.ext {
     groupId = 'org.getlantern'

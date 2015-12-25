@@ -87,9 +87,14 @@ public class Lantern extends Client.Provider.Stub {
 
     public void stop() {
         Log.d(TAG, "About to stop Lantern..");
-        if (mThread != null) {
-            mThread.interrupt();
-        }
+        try {
+            Client.Stop();
+            if (mThread != null) {
+                mThread.interrupt();
+            }
+        } catch (final Exception e) {
+
+        } 
     }
 
     @Override

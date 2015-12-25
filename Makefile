@@ -539,7 +539,7 @@ android-lib:
 build-android-sdk: 
 	gradle -b $(LANTERN_MOBILE_DIR)/sdk/build.gradle \
 		build \
-		publishToMavenLocal
+		uploadArchives
 
 build-android-debug:
 	cd $(LANTERN_MOBILE_DIR)/app

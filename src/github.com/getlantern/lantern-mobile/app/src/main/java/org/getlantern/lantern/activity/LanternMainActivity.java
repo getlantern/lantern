@@ -48,6 +48,7 @@ import org.getlantern.lantern.config.LanternConfig;
 import org.getlantern.lantern.vpn.Service;
 import org.getlantern.lantern.model.UI;
 import org.getlantern.lantern.sdk.Utils;
+import org.getlantern.lantern.vpn.LanternVpn;
 import org.getlantern.lantern.R;
 
 
@@ -62,7 +63,7 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
     private BroadcastReceiver mReceiver;
 
     private Context context;
-    private UI LanternUI = null;
+    private UI LanternUI;
     private Handler mHandler;
 
     @Override
@@ -101,7 +102,7 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
             // configure actions to be taken whenever slider changes state
             LanternUI.setupLanternSwitch();
             PromptVpnActivity.LanternUI = LanternUI;
-            Service.LanternUI = LanternUI;
+            LanternVpn.LanternUI = LanternUI;
         } catch (Exception e) {
             Log.d(TAG, "Got an exception " + e);
         }
@@ -221,21 +222,7 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
     }
 
     public void stopLantern() {
-        try {
-            Thread thread = new Thread() {
-                public void run() { 
-
-                    Intent service = new Intent(LanternMainActivity.this, Service.class);
-                    if (service != null) {
-                        service.setAction(LanternConfig.DISABLE_VPN);
-                        startService(service);
-                    }
-                }
-            };
-            thread.start();
-        } catch (Exception e) {
-            Log.d(TAG, "Got an exception trying to stop Lantern: " + e);
-        }
+        Service.IsRunning = false;  
     }
 
     @Override
