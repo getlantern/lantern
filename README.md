@@ -1,4 +1,4 @@
-# lantern [![Travis CI Status](https://travis-ci.org/getlantern/lantern.svg?branch=valencia)](https://travis-ci.org/getlantern/lantern)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/lantern/badge.png?branch=valencia)](https://coveralls.io/r/getlantern/lantern)&nbsp;[![ProjectTalk](http://www.projecttalk.io/images/gh_badge-3e578a9f437f841de7446bab9a49d103.svg?vsn=d)] (http://www.projecttalk.io/boards/getlantern%2Flantern?utm_campaign=gh-badge&utm_medium=badge&utm_source=github) 
+# lantern [![Travis CI Status](https://travis-ci.org/getlantern/lantern.svg?branch=valencia)](https://travis-ci.org/getlantern/lantern)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/lantern/badge.png?branch=valencia)](https://coveralls.io/r/getlantern/lantern)&nbsp;[![ProjectTalk](http://www.projecttalk.io/images/gh_badge-3e578a9f437f841de7446bab9a49d103.svg?vsn=d)] (http://www.projecttalk.io/boards/getlantern%2Flantern?utm_campaign=gh-badge&utm_medium=badge&utm_source=github)
 
 **If you're looking for Lantern binaries, you can find all of them at the following links:**
 - [Windows XP SP 3 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-beta.exe)
@@ -23,6 +23,18 @@ We are going to create a Docker image that will take care of compiling Lantern
 for Windows and Linux, in order to compile Lantern for OSX you'll need an OSX
 host, this is a limitation caused by Lantern depending on C code and OSX build
 tools for certain features.
+
+### Docker Installation Instructions
+
+1. Get the [Docker Toolbox](https://www.docker.com/docker-toolbox)
+2. Install docker per [these instructions](https://docs.docker.com/mac/step_one/)
+
+After installation, you'll have a docker machine called `default`, which is what the build script uses. You'll probably want to increase the memory and cpu for the default machine, which will require you to recreate it:
+
+```bash
+docker-machine rm default
+docker-machine create --driver virtualbox --virtualbox-cpu-count 2 --virtualbox-memory 4096 default
+```
 
 ### Building the docker image
 
