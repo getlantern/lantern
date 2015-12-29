@@ -5,7 +5,7 @@
 FROM fedora:22
 MAINTAINER "Ulysses Aalto" <uaalto@getlantern.org>
 
-ENV GO_VERSION go1.5.1
+ENV GO_VERSION go1.5.2
 ENV GOROOT_BOOTSTRAP /go1.5
 ENV GOROOT /go
 ENV GOPATH /
@@ -32,15 +32,15 @@ RUN dnf install -y make vim strace tmux && dnf clean all
 # Install Go.
 #   1) 1.5 for bootstrap.
 ENV GOROOT_BOOTSTRAP /go1.5
-RUN (curl -sSL https://golang.org/dl/go1.5.1.linux-amd64.tar.gz | tar -vxz -C /tmp) && \
+RUN (curl -sSL https://golang.org/dl/go1.5.2.linux-amd64.tar.gz | tar -vxz -C /tmp) && \
 	mv /tmp/go $GOROOT_BOOTSTRAP
 
 #   2) Download and cross compile the Go on revision GOREV.
 #
 # GOVERSION string is the output of 'git log -n 1 --format="format: devel +%h %cd" HEAD'
 # like in go tool dist.
-ENV GO_REV go1.5.1
-ENV GO_VERSION go1.5.1
+ENV GO_REV go1.5.2
+ENV GO_VERSION go1.5.2
 
 ENV GOROOT /go
 ENV PATH $GOROOT/bin:$PATH
