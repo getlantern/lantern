@@ -362,15 +362,21 @@ Go code in Lantern must pass several tests:
 * Go vet
 * Go test -race
 
-You can find a generic [git-hook](https://github.com/getlantern/lantern/blob/valencia/git-hook)
+You can find a generic [git-hook](https://github.com/getlantern/lantern/blob/valencia/pre-push)
 file, which can be used as a pre-push (or pre-commit) hook to automatically
 ensure these tests are passed before committing any code. Only Go packages in
 `src/github.com/getlantern` will be tested, and only those that have changes in
 them.
 
 Install by copying it into the local `.git/hooks/` directory, with the `pre-push`
-file name if you want to run it before pushing. Alternatively, you can name it
-`pre-commit` to run it before each commit..
+file name if you want to run it before pushing. Alternatively, you can copy
+[pre-commit.hook](https://github.com/getlantern/lantern/blob/valencia/pre-commit)
+to `pre-commit` to run it before each commit.
+
+```bash
+ln -s "$(pwd)/prehook.sh" .git/hooks/prehook.sh
+ln -s "$(pwd)/pre-push" .git/hooks/pre-push
+```
 
 **Important notice**
 

@@ -1,25 +1,21 @@
 #!/bin/sh
 
-# Git pre-push hook for the Lantern project
+# Shared pre push/commit hook for the Lantern project
 # Maintainer: Ulysses Aalto <uaalto@getlantern.org>
 #
-# Installation: Copy into .git/hooks/pre-push
+# Installation: Symlink or copy into .git/hooks/prehook.sh
 
-
-# Exit immediately if a command exits with a non-zero status.
-set -e
-
-# Find only modified files/directories
-MODIFIED_DIRS=$(git status --porcelain | \
-                        awk 'match($1, "M") && match($2, "src/github.com/getlantern/*"){print $2}' | \
-                        sed 's+src/github.com/getlantern/++g' | \
-                        sed 's+/.*++' | \
-                        uniq)
 echo "Running hook -- Analyzing modified packages..."
+FOUND_CHANGE=false
 for i in $MODIFIED_DIRS; do
     echo " * $i";
+    FOUND_CHANGE=true;
 done
-echo
+
+if [ "$FOUND_CHANGE" = false ]; then
+    echo "No changes to analyze";
+    exit 0;
+fi
 
 cd src/github.com/getlantern
 
