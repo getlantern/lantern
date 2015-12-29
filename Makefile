@@ -499,6 +499,20 @@ android-lib: docker-mobile
 		echo "cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) \$$FIRETWEET_MAIN_DIR"; \
 	fi
 
+android-lib-local:
+	@source setenv.bash && \
+	cd $(LANTERN_MOBILE_DIR) && \
+	gomobile bind -target=android -o=$(LANTERN_MOBILE_LIBRARY) -ldflags="$(LDFLAGS)" . && \
+	if [ -d "$(FIRETWEET_MAIN_DIR)" ]; then \
+		cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) $(FIRETWEET_MAIN_DIR)/libs/$(LANTERN_MOBILE_LIBRARY); \
+	else \
+		echo ""; \
+		echo "Either no FIRETWEET_MAIN_DIR variable was passed or the given value is not a";\
+		echo "directory. You'll have to copy the $(LANTERN_MOBILE_LIBRARY) file manually:"; \
+		echo ""; \
+		echo "cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) \$$FIRETWEET_MAIN_DIR"; \
+	fi
+
 android-lib-dist: genconfig android-lib
 
 clean:

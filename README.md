@@ -274,6 +274,29 @@ FIRETWEET_MAIN_DIR=/path/to/firetweet/src/main make android-lib
 You can also override this environment variable if you want to use the
 [Flashlight Android Tester](https://github.com/getlantern/lantern-mobile-single-app-example) app.
 
+#### Creating the Android library without docker
+
+1. Install Java JDK 7 or 8
+2. Install [Android SDK Tools](http://developer.android.com/sdk/index.html#Other)
+3. Install NDK(http://developer.android.com/ndk/downloads/index.html)
+4. Install lantern's [fork of gomobile](https://github.com/getlantern/mobile)
+
+Useful environment variables (replace the paths based on wherever you've
+installed the Android SDK and NDK).
+
+```bash
+export ANDROID_HOME=/opt/adt-bundle-mac-x86_64-20130917/sdk
+export PATH=$ANDROID_HOME/tools:$PATH
+export NDK_HOME=/opt/android-ndk-r10e
+export PATH=$NDK_HOME:$PATH
+```
+)
+
+Then to build the library:
+
+```bash
+make android-lib-local
+```
 
 ### Generating assets
 
