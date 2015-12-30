@@ -21,6 +21,7 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.VpnService;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageInfo;
 import android.app.Activity;
@@ -89,6 +90,7 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         IntentFilter filter = new IntentFilter(Intent.ACTION_SHUTDOWN);
         filter.addAction(Intent.ACTION_SHUTDOWN);
         filter.addAction(Intent.ACTION_USER_PRESENT);
+        filter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
         mReceiver = new LanternReceiver();
         registerReceiver(mReceiver, filter);
 
@@ -210,19 +212,30 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         thread.start();
     }
 
-    public void restart() {
+    public void restart(final Context context, Intent intent) {
         if (LanternUI.useVpn()) {
             Log.d(TAG, "Restarting Lantern...");
-            Intent service = new Intent(LanternMainActivity.this, Service.class);
-            if (service != null) {
-                service.setAction(LanternConfig.RESTART_VPN);
-                startService(service);
-            }
+            Service.IsRunning = false;
+
+            final LanternMainActivity activity = this;
+            Handler h = new Handler();
+            h.postDelayed(new Runnable () {
+                public void run() {
+                    Intent pIntent = Service.prepare(activity);
+                    if (pIntent == null) {
+                        context.startService(new Intent(context, Service.class));
+                    } else {
+                        startActivity(new Intent(LanternMainActivity.this, PromptVpnActivity.class));
+                    }
+                }
+
+            }, 1000);
         }  
     }
 
     public void stopLantern() {
         Service.IsRunning = false;  
+        Utils.clearPreferences(this);
     }
 
     @Override
@@ -247,14 +260,15 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         }
     }
 
-    private class LanternReceiver extends BroadcastReceiver {
+    public class LanternReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (action.equals(Intent.ACTION_SHUTDOWN)) {
                 Utils.clearPreferences(context);
-            } else if (action.equals(Intent.ACTION_USER_PRESENT)) {
-                //restart();
+            } else if (action.equals(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION) || action.equals(Intent.ACTION_USER_PRESENT)) {
+                if (isNetworkAvailable()) 
+                    restart(context, intent);
             }
         }
     }

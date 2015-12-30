@@ -49,7 +49,7 @@ public class PromptVpnActivity extends Activity {
 
                 public void run ()
                 {
-                    sendIntentToService(LanternConfig.ENABLE_VPN);
+                    sendIntentToService();
                     finish();
                 }
             }, 1000);
@@ -75,7 +75,7 @@ public class PromptVpnActivity extends Activity {
 
                 public void run ()
                 {
-                    sendIntentToService(LanternConfig.ENABLE_VPN);		
+                    sendIntentToService();
                     finish();
                 }
             }, 1000);
@@ -83,10 +83,8 @@ public class PromptVpnActivity extends Activity {
     }
 
 
-    private void sendIntentToService(String action) {
-        Intent lanternService = new Intent(this, Service.class);
-        lanternService.setAction(action);
-        startService(lanternService);
+    private void sendIntentToService() {
+        startService(new Intent(this, Service.class));
     }
 
 }

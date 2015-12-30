@@ -15,6 +15,9 @@ import java.util.HashMap;
 import org.getlantern.lantern.model.UI;
 import org.getlantern.lantern.sdk.Lantern;
 
+// LanternVpn is a subclass of the SDK class Lantern
+// it instantiates Lantern to run in full-device VPN mode
+// along with a few customizations/extensions
 public class LanternVpn extends Lantern {
 
     private static final String TAG = "LanternVpn";
@@ -32,6 +35,9 @@ public class LanternVpn extends Lantern {
     public void AfterStart(String latestVersion, String host, String port) {
         super.AfterStart(latestVersion, host, port);
         Log.d(TAG, "Lantern successfully started; running version: " + latestVersion);
+        // we pass the version number to setVersionNum which
+        // populates the version string that appears at the bottom
+        // of the side menu
         if (LanternUI != null) {
             LanternUI.setVersionNum(latestVersion);
         }
