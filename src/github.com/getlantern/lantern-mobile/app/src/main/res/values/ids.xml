@@ -8,4 +8,6 @@
     <item name="toast_off" type="id"/>
     <item name="editbox_shape" type="id"/>
     <item name="update_available" type="id"/>
+    <item name="pro_welcome" type="id"/>
+    <item name="welcome_text" type="id"/>
 </resources>

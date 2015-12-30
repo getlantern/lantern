@@ -34,4 +34,9 @@
     <string name="install_update">Update</string>
     <string name="error_update">Error Downloading Update</string>
     <string name="manual_update">Try manually installing the latest version from &lt;a href="https://lantern-android.io">here1&lt;/a></string>
+    <string name="pro_welcome_text">Welcome to Lantern Pro!</string>
+    <string name="thanks_purchase">Thanks for your purchase of Lantern Pro!</string>
+    <string name="invite_friends">Invite friends and you will both get a free month of Lantern Pro when they sign up \r\nStart inviting!</string>
+    <string name="invite_friends_btn">Invite Friends</string>
+    <string name="continue_to_pro">Continue to Pro</string>
 </resources>
