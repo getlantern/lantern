@@ -24,7 +24,7 @@
 
         <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="52dp"
+            android:layout_height="60dp"
             android:layout_centerVertical="true"
             android:layout_marginLeft="15dp"
             android:layout_toRightOf="@+id/inviteAvatar"
@@ -70,9 +70,111 @@
         android:layout_weight="1"
         android:padding="8dp">
 
-        <LinearLayout android:orientation="vertical"
+
+        <LinearLayout
+            android:id="@+id/get_code_view"
+            android:orientation="vertical"
             android:gravity="center"
             android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/get_code_text"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginTop="14dp"
+                android:text="@string/invite_friends"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:alpha=".87"
+                android:layout_centerHorizontal="true"
+                android:gravity="center"
+                android:textColor="#000000"/>
+
+            <EditText
+                android:id="@+id/proEmailAddress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif" 
+                android:background="@null"
+                android:hint="@string/email_hint"
+                android:ems="10"
+                android:textColor="#BDBDBD"
+                android:paddingRight="20dp"
+                android:autoText="false"
+                android:paddingTop="20dp"
+                android:paddingBottom="5dp"
+                android:gravity="fill_horizontal"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:inputType="textEmailAddress" />
+
+            <View
+                android:id="@+id/separator"
+                android:background="@color/edittext_color"
+                android:layout_below="@+id/sendEmail"
+                android:layout_width = "fill_parent"
+                android:layout_height="1dip"
+                android:layout_centerVertical ="true"
+                android:layout_alignParentTop="true"
+                />
+
+            <TextView
+                android:id="@+id/enter_your_email"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginTop="14dp"
+                android:text="@string/enter_your_email"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:alpha=".87"
+                android:layout_centerHorizontal="true"
+                android:gravity="center"
+                android:textColor="#000000"/>
+
+            <TextView
+                android:id="@+id/previous_code"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif"
+                android:layout_marginTop="14dp"
+                android:text="@string/previous_code"
+                android:textSize="12sp"
+                android:alpha=".54"
+                android:layout_centerHorizontal="true"
+                android:gravity="center"
+                android:textColor="#000000"/>         
+
+
+            <Button
+                android:id="@+id/getCodeBtn"
+                android:layout_height="36dp"
+                android:layout_width="216dp"
+                android:text="@string/get_code"
+                android:fontFamily="sans-serif-medium" 
+                android:textSize="14sp"
+                android:elevation="2dp"
+                android:minHeight="48dp"
+                android:textAllCaps="true"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:clickable = "true"
+                android:layout_marginTop="10dp"
+                android:background="#0297A7"
+                android:layout_centerInParent="true"
+                android:onClick="continueToPro" />
+
+
+
+        </LinearLayout>
+
+        <LinearLayout 
+            android:id="@+id/referral_code_view"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_width="fill_parent"
+            android:visibility="invisible"                 
             android:layout_height="wrap_content">
 
          <TextView

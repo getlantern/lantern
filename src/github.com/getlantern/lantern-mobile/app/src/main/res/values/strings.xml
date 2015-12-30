@@ -44,4 +44,8 @@
     <string name="text_invite">Text Invite</string>
     <string name="email_invite">Email Invite</string>
     <string name="your_referral_code">Your Referral Code</string>
+    <string name="get_code">Get Code</string>
+    <string name="get_code_text">Enter your email to receive a code to share with your friends, get a free month of PRO when they sign up!</string>
+    <string name="enter_your_email">Enter your email to receive a referral code</string>
+    <string name="previous_code">If you have previously received a referral code\r\nplease make sure to use the same email address.</string>
 </resources>
