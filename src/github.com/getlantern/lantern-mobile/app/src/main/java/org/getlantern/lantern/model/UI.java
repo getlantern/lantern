@@ -66,6 +66,7 @@ import java.util.regex.Pattern;
 
 import org.getlantern.lantern.activity.LanternMainActivity;
 import org.getlantern.lantern.activity.WelcomeActivity;
+import org.getlantern.lantern.activity.InviteActivity;
 import org.getlantern.lantern.config.LanternConfig;
 import org.getlantern.lantern.model.MailSender;
 import org.getlantern.lantern.R;
@@ -169,11 +170,18 @@ public class UI {
     public void setupSideMenu() throws Exception {
 
         mNavItems.add(new NavItem("Share", R.drawable.ic_share));
+        mNavItems.add(new NavItem("Get Free Months", R.drawable.ic_share));
         mNavItems.add(new NavItem("Desktop Version", R.drawable.ic_desktop));
         mNavItems.add(new NavItem("Contact", R.drawable.ic_contact));
         mNavItems.add(new NavItem("Welcome", R.drawable.ic_contact));
 
         mNavItems.add(new NavItem("Quit", R.drawable.ic_quit));
+
+        menuMap.put("Get Free Months", new Command() {
+            public void runCommand() {
+                openScreen("get_free_months");
+            }
+        });
 
         menuMap.put("Quit", new Command() { 
             public void runCommand() { activity.quitLantern(); } 
@@ -185,7 +193,7 @@ public class UI {
 
         menuMap.put("Welcome", new Command() {
             public void runCommand() {
-                openScreen();
+                openScreen("welcome");
             }
         });
 
@@ -393,9 +401,14 @@ public class UI {
 
     }
 
-    private void openScreen() {
+    private void openScreen(String screen) {
         Log.d(TAG, "Welcome button clicked...");
-        Intent intent = new Intent(this.activity, WelcomeActivity.class);
+        Intent intent = null;
+        if (screen == "welcome") {
+            intent = new Intent(this.activity, WelcomeActivity.class);
+        } else if (screen == "get_free_months") {
+            intent = new Intent(this.activity, InviteActivity.class);
+        }
         this.activity.startActivity(intent);
     }
 
