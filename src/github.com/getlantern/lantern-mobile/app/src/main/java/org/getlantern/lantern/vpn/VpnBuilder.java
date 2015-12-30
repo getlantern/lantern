@@ -38,22 +38,21 @@ import org.getlantern.lantern.android.vpn.Tun2Socks;
 public class VpnBuilder extends VpnService {
 
     private static final String TAG = "VpnBuilder";
-    protected Thread vpnThread = null;
-
+    protected Thread vpnThread;
     private final static String mSessionName = "LanternVpn";
-    private final static String mVirtualIP = "10.0.0.2";
     private final static String mNetMask = "255.255.255.0";
-    private final static String networkIp = "26.25.0.0";
+    private final static String mVirtualIP = "26.25.0.0";
     private final static int VPN_MTU = 1500;
-    private ArrayList<IPAddress> m_IpList = new ArrayList<IPAddress>();
-    private ArrayList<IPAddress> m_dnsList = new ArrayList<IPAddress>();
+
+    private ArrayList<IPAddress> IpList = new ArrayList<IPAddress>();
+    private ArrayList<IPAddress> DnsList = new ArrayList<IPAddress>();
 
     private ParcelFileDescriptor mInterface;
 
     public VpnBuilder() {
-        m_IpList.add(new IPAddress("26.26.26.2", 32));
-        m_dnsList.add(new IPAddress("114.114.114.114"));
-        m_dnsList.add(new IPAddress("8.8.8.8"));
+        IpList.add(new IPAddress("26.26.26.2", 32));
+        DnsList.add(new IPAddress("114.114.114.114"));
+        DnsList.add(new IPAddress("8.8.8.8"));
     }
 
     @Override
@@ -70,15 +69,15 @@ public class VpnBuilder extends VpnService {
         Builder builder = new Builder();
         builder.setMtu(VPN_MTU);
 
-        IPAddress ipAddress = m_IpList.get(0);
+        IPAddress ipAddress = IpList.get(0);
         builder.addAddress(ipAddress.Address, ipAddress.PrefixLength);
         Log.d(TAG, String.format("VpnBuilder addAddress: %s/%d\n", ipAddress.Address, ipAddress.PrefixLength));
 
-        for (IPAddress dns : m_dnsList) {
+        for (IPAddress dns : DnsList) {
             builder.addDnsServer(dns.Address);
         }
 
-        builder.addRoute(networkIp, 16);
+        builder.addRoute(mVirtualIP, 16);
         for (String routeAddress : getResources().getStringArray(R.array.bypass_private_route)) {
             String[] addr = routeAddress.split("/");
             builder.addRoute(addr[0], Integer.parseInt(addr[1]));
@@ -182,6 +181,8 @@ public class VpnBuilder extends VpnService {
                 }
             }
         }
+
+        Log.d(TAG, "Dns addresses found: " + addresses);
         return addresses;
     }
 

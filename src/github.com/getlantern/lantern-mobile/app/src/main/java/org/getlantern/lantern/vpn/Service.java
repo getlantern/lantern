@@ -73,7 +73,6 @@ public class Service extends VpnBuilder implements Runnable {
         try {
             Log.d(TAG, "Closing VPN interface..");
             super.close();
-            Utils.clearPreferences(this);
 
             Log.d(TAG, "About to stop Lantern");
             lantern.stop();
