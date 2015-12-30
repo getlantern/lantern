@@ -4,18 +4,20 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true">
-    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools" 
         android:layout_width="match_parent"
         android:layout_height="match_parent" 
+        android:orientation="vertical"
+        android:baselineAligned="false"
         android:id="@+id/proWelcomeView"
-        android:background="#F1F1F1"
-        tools:context=".LanternMainActivity">
+        tools:context=".ProActivity">
 
         <RelativeLayout
             android:id="@+id/welcome"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:background="#22BCD3"
             android:paddingTop="15dp"
             android:paddingBottom="15dp"
@@ -28,7 +30,7 @@
                 android:fontFamily="Roboto Medium"
                 android:layout_marginTop="14dp"
                 android:text="@string/pro_welcome_text"
-                android:textSize="14pt"
+                android:textSize="14sp"
                 android:textColor="#FFFFFF"
                 android:textStyle="bold" />
 
@@ -48,6 +50,7 @@
             android:background="#FFFFFF"
             android:paddingTop="15dp"
             android:paddingBottom="15dp"
+            android:layout_weight="1"
             android:padding="8dp">
 
             <TextView
@@ -57,7 +60,7 @@
                 android:fontFamily="Roboto Medium"
                 android:layout_marginTop="14dp"
                 android:text="@string/thanks_purchase"
-                android:textSize="14pt"
+                android:textSize="14sp"
                 android:alpha=".87"
                 android:textColor="#000000"
                 android:textStyle="bold" />
@@ -69,11 +72,10 @@
                 android:fontFamily="Roboto Regular"
                 android:layout_marginTop="14dp"
                 android:text="@string/invite_friends"
-                android:textSize="14pt"
+                android:textSize="14sp"
                 android:alpha=".87"
                 android:textColor="#000000"
                 android:textStyle="bold" />          
-
 
             <Button
                 android:id="@+id/inviteFriendsBtn"
@@ -82,7 +84,7 @@
                 android:layout_marginTop="20dp"
                 android:text="@string/invite_friends_btn"
                 android:fontFamily="Roboto Medium" 
-                android:textSize="14pt"
+                android:textSize="14sp"
                 android:elevation="2dp"
                 android:minHeight="48dp"
                 android:textColor="#000000"
@@ -94,10 +96,10 @@
                 android:id="@+id/continueToProBtn"
                 android:layout_height="36dp"
                 android:layout_width="216dp"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="40dp"
                 android:text="@string/continue_to_pro"
                 android:fontFamily="Roboto Medium" 
-                android:textSize="14pt"
+                android:textSize="14sp"
                 android:elevation="2dp"
                 android:minHeight="48dp"
                 android:textColor="#FFFFFF"
@@ -105,7 +107,6 @@
                 android:background="#0297A7"
                 android:onClick="continueToPro" />
 
-
         </RelativeLayout>
-    </RelativeLayout>
+    </LinearLayout>
 </android.support.v4.widget.DrawerLayout> 

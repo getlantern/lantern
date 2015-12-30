@@ -65,6 +65,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.getlantern.lantern.activity.LanternMainActivity;
+import org.getlantern.lantern.activity.ProActivity;
 import org.getlantern.lantern.config.LanternConfig;
 import org.getlantern.lantern.model.MailSender;
 import org.getlantern.lantern.R;
@@ -170,6 +171,8 @@ public class UI {
         mNavItems.add(new NavItem("Share", R.drawable.ic_share));
         mNavItems.add(new NavItem("Desktop Version", R.drawable.ic_desktop));
         mNavItems.add(new NavItem("Contact", R.drawable.ic_contact));
+        mNavItems.add(new NavItem("Welcome", R.drawable.ic_contact));
+
         mNavItems.add(new NavItem("Quit", R.drawable.ic_quit));
 
         menuMap.put("Quit", new Command() { 
@@ -178,6 +181,12 @@ public class UI {
 
         menuMap.put("Contact", new Command() { 
             public void runCommand() { contactOption(); } 
+        });
+
+        menuMap.put("Welcome", new Command() {
+            public void runCommand() {
+                openScreen();
+            }
         });
 
         menuMap.put("Desktop Version", new Command() { 
@@ -382,6 +391,12 @@ public class UI {
 
         });
 
+    }
+
+    private void openScreen() {
+        Log.d(TAG, "Welcome button clicked...");
+        Intent intent = new Intent(this.activity, ProActivity.class);
+        this.activity.startActivity(intent);
     }
 
     // opens an e-mail message with some default options
