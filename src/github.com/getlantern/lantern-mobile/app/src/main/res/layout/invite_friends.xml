@@ -4,55 +4,85 @@
     android:layout_height="match_parent" 
     android:orientation="vertical"
     android:baselineAligned="false"
-    android:id="@+id/proWelcomeView"
-    tools:context=".WelcomeActivity">
+    android:id="@+id/inviteView"
+    tools:context=".InviteActivity">
 
     <RelativeLayout
-        android:id="@+id/welcome"
+        android:id="@+id/navInvite"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/nav_background"
+        android:paddingTop="15dp"
+        android:padding="8dp">
+
+        <ImageView
+            android:id="@+id/inviteAvatar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:src="@drawable/abc_ic_ab_back_mtrl_am_alpha"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="52dp"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="15dp"
+            android:layout_toRightOf="@+id/inviteAvatar"
+            android:orientation="vertical" >
+
+            <TextView
+                android:id="@+id/inviteHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif"
+                android:layout_marginTop="14dp"
+                android:paddingLeft="10dp"
+                android:text="@string/get_free_months"
+                android:textSize="15sp"
+                android:textColor="#fff"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </RelativeLayout>
+    <RelativeLayout
+        android:id="@+id/credits_left"
         android:layout_width="fill_parent"
         android:layout_height="262dp"
         android:layout_weight="1"
         android:background="#22BCD3"
-        android:paddingTop="15dp"
-        android:paddingBottom="15dp"
-        android:padding="8dp">
-
-        <TextView
-            android:id="@+id/welcome_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-medium"
-            android:layout_centerHorizontal="true"
-            android:text="@string/pro_welcome_text"
-            android:textSize="14sp"
-            android:textColor="#FFFFFF"
-            android:textStyle="bold" />
+        android:elevation="2dp">
 
         <ImageView
-            android:id="@+id/pro_welcome"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="#22BCD3"
-            android:src="@drawable/pro_welcome"/>
+            android:id="@+id/invite_friends"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:adjustViewBounds="true"
+            android:scaleType="centerCrop"
+            android:src="@drawable/invite_friends"/>
     </RelativeLayout>
 
     <RelativeLayout
-        android:id="@+id/welcome"
+        android:id="@+id/invite_bottom_sheet"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:background="#FFFFFF"
+        android:background="#F4F6F6"
         android:paddingTop="15dp"
         android:paddingBottom="15dp"
         android:layout_weight="1"
         android:padding="8dp">
 
-        <TextView
-            android:id="@+id/thanks_purchase"
+        <LinearLayout android:orientation="vertical"
+            android:layout_marginTop="20dp"
+            android:gravity="center"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+
+         <TextView
+            android:id="@+id/invite_friends_text"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-medium"
             android:layout_marginTop="14dp"
-            android:text="@string/thanks_purchase"
+            android:text="@string/invite_friends"
             android:textSize="14sp"
             android:textStyle="bold"
             android:alpha=".87"
@@ -61,43 +91,27 @@
             android:textColor="#000000"/>
 
         <TextView
-            android:id="@+id/invite_friends"
+            android:id="@+id/your_referral_code"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif"
-            android:layout_marginTop="40dp"
-            android:text="@string/invite_friends"
+            android:text="@string/your_referral_code"
+            android:textAllCaps="true"       
             android:textSize="14sp"
             android:alpha=".87"
             android:gravity="center"
             android:textColor="#000000"/>          
-
-        <TextView
-            android:id="@+id/start_inviting"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="sans-serif"
-            android:text="@string/start_inviting"
-            android:textSize="14sp"
-            android:alpha=".87"
-            android:gravity="center"
-            android:textColor="#000000"/>    
-
-        <LinearLayout android:orientation="vertical"
-            android:layout_marginTop="120dp"
-            android:gravity="center"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content">
-
+        
             <Button
-                android:id="@+id/inviteFriendsBtn"
+                android:id="@+id/textInviteBtn"
                 android:layout_height="36dp"
                 android:layout_width="216dp"
-                android:text="@string/invite_friends_btn"
+                android:text="@string/text_invite"
                 android:fontFamily="sans-serif-medium" 
                 android:textSize="14sp"
                 android:elevation="2dp"
                 android:minHeight="48dp"
+                android:textAllCaps="true"
                 android:textColor="#000000"
                 android:textStyle="bold"     
                 android:clickable = "true"
@@ -106,14 +120,15 @@
                 android:onClick="inviteFriends" />
 
             <Button
-                android:id="@+id/continueToProBtn"
+                android:id="@+id/emailInviteBtn"
                 android:layout_height="36dp"
                 android:layout_width="216dp"
-                android:text="@string/continue_to_pro"
+                android:text="@string/email_invite"
                 android:fontFamily="sans-serif-medium" 
                 android:textSize="14sp"
                 android:elevation="2dp"
                 android:minHeight="48dp"
+                android:textAllCaps="true"
                 android:textColor="#FFFFFF"
                 android:textStyle="bold"
                 android:clickable = "true"
@@ -121,6 +136,9 @@
                 android:background="#0297A7"
                 android:layout_centerInParent="true"
                 android:onClick="continueToPro" />
+
         </LinearLayout>
+
     </RelativeLayout>
+
 </LinearLayout>
