@@ -11,7 +11,7 @@
         android:orientation="vertical"
         android:baselineAligned="false"
         android:id="@+id/proWelcomeView"
-        tools:context=".ProActivity">
+        tools:context=".WelcomeActivity">
 
         <RelativeLayout
             android:id="@+id/welcome"

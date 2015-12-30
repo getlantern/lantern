@@ -40,7 +40,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activity.ProActivity"
+            android:name=".activity.WelcomeActivity"
             android:launchMode="singleTask"
             />
         <activity

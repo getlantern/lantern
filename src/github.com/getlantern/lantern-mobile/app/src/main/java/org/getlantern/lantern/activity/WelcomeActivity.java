@@ -7,8 +7,8 @@ import android.view.View;
 
 import org.getlantern.lantern.R;
 
-public class ProActivity extends Activity {
-    private static final String TAG = "ProActivity";
+public class WelcomeActivity extends Activity {
+    private static final String TAG = "WelcomeActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

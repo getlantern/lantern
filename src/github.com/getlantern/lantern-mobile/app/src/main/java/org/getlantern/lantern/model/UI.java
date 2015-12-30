@@ -65,7 +65,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.getlantern.lantern.activity.LanternMainActivity;
-import org.getlantern.lantern.activity.ProActivity;
+import org.getlantern.lantern.activity.WelcomeActivity;
 import org.getlantern.lantern.config.LanternConfig;
 import org.getlantern.lantern.model.MailSender;
 import org.getlantern.lantern.R;
@@ -395,7 +395,7 @@ public class UI {
 
     private void openScreen() {
         Log.d(TAG, "Welcome button clicked...");
-        Intent intent = new Intent(this.activity, ProActivity.class);
+        Intent intent = new Intent(this.activity, WelcomeActivity.class);
         this.activity.startActivity(intent);
     }
 
