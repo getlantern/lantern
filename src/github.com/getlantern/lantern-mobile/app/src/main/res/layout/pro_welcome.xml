@@ -16,7 +16,7 @@
         <RelativeLayout
             android:id="@+id/welcome"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="262dp"
             android:layout_weight="1"
             android:background="#22BCD3"
             android:paddingTop="15dp"
@@ -25,9 +25,9 @@
 
             <TextView
                 android:id="@+id/welcome_text"
-                android:layout_width="wrap_content"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="Roboto Medium"
+                android:fontFamily="sans-serif-medium"
                 android:layout_marginTop="14dp"
                 android:text="@string/pro_welcome_text"
                 android:textSize="14sp"
@@ -55,58 +55,69 @@
 
             <TextView
                 android:id="@+id/thanks_purchase"
-                android:layout_width="wrap_content"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="Roboto Medium"
+                android:fontFamily="sans-serif-medium"
                 android:layout_marginTop="14dp"
                 android:text="@string/thanks_purchase"
                 android:textSize="14sp"
+                android:textStyle="bold"
                 android:alpha=".87"
-                android:textColor="#000000"
-                android:textStyle="bold" />
+                android:layout_centerHorizontal="true"
+                android:gravity="center"
+                android:textColor="#000000"/>
 
             <TextView
                 android:id="@+id/invite_friends"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="Roboto Regular"
-                android:layout_marginTop="14dp"
+                android:fontFamily="sans-serif"
+                android:layout_marginTop="40dp"
                 android:text="@string/invite_friends"
                 android:textSize="14sp"
                 android:alpha=".87"
-                android:textColor="#000000"
-                android:textStyle="bold" />          
+                android:gravity="center"
+                android:textColor="#000000"/>          
+
+            <LinearLayout android:orientation="vertical"
+                android:layout_marginTop="100dp"
+                android:gravity="center"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content">
 
             <Button
                 android:id="@+id/inviteFriendsBtn"
                 android:layout_height="36dp"
                 android:layout_width="216dp"
-                android:layout_marginTop="20dp"
                 android:text="@string/invite_friends_btn"
-                android:fontFamily="Roboto Medium" 
+                android:fontFamily="sans-serif-medium" 
                 android:textSize="14sp"
                 android:elevation="2dp"
                 android:minHeight="48dp"
                 android:textColor="#000000"
+                android:textStyle="bold"     
                 android:clickable = "true"
                 android:background="#B6E3EB"
+                android:layout_centerInParent="true"
                 android:onClick="inviteFriends" />
 
             <Button
                 android:id="@+id/continueToProBtn"
                 android:layout_height="36dp"
                 android:layout_width="216dp"
-                android:layout_marginTop="40dp"
                 android:text="@string/continue_to_pro"
-                android:fontFamily="Roboto Medium" 
+                android:fontFamily="sans-serif-medium" 
                 android:textSize="14sp"
                 android:elevation="2dp"
                 android:minHeight="48dp"
                 android:textColor="#FFFFFF"
+                android:textStyle="bold"
                 android:clickable = "true"
+                android:layout_marginTop="10dp"
                 android:background="#0297A7"
+                android:layout_centerInParent="true"
                 android:onClick="continueToPro" />
-
+            </LinearLayout>
         </RelativeLayout>
     </LinearLayout>
 </android.support.v4.widget.DrawerLayout> 
