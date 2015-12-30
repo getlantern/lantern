@@ -71,7 +71,6 @@
         android:padding="8dp">
 
         <LinearLayout android:orientation="vertical"
-            android:layout_marginTop="20dp"
             android:gravity="center"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content">

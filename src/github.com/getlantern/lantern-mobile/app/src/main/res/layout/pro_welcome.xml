@@ -46,48 +46,50 @@
         android:layout_weight="1"
         android:padding="8dp">
 
-        <TextView
-            android:id="@+id/thanks_purchase"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-medium"
-            android:layout_marginTop="14dp"
-            android:text="@string/thanks_purchase"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:alpha=".87"
-            android:layout_centerHorizontal="true"
-            android:gravity="center"
-            android:textColor="#000000"/>
-
-        <TextView
-            android:id="@+id/invite_friends"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="sans-serif"
-            android:layout_marginTop="40dp"
-            android:text="@string/invite_friends"
-            android:textSize="14sp"
-            android:alpha=".87"
-            android:gravity="center"
-            android:textColor="#000000"/>          
-
-        <TextView
-            android:id="@+id/start_inviting"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="sans-serif"
-            android:text="@string/start_inviting"
-            android:textSize="14sp"
-            android:alpha=".87"
-            android:gravity="center"
-            android:textColor="#000000"/>    
-
         <LinearLayout android:orientation="vertical"
-            android:layout_marginTop="120dp"
             android:gravity="center"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/thanks_purchase"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginTop="5dp"
+                android:text="@string/thanks_purchase"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:alpha=".87"
+                android:layout_centerHorizontal="true"
+                android:gravity="center"
+                android:textColor="#000000"/>
+
+            <TextView
+                android:id="@+id/invite_friends"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif"
+                android:layout_marginTop="10dp"
+                android:text="@string/invite_friends"
+                android:textSize="14sp"
+                android:alpha=".87"
+                android:gravity="center"
+                android:textColor="#000000"/>          
+
+            <TextView
+                android:id="@+id/start_inviting"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif"
+                android:layout_marginTop="-5dp"
+                android:layout_marginBottom="-5dp"
+                android:text="@string/start_inviting"
+                android:textSize="14sp"
+                android:alpha=".87"
+                android:gravity="center"
+                android:textColor="#000000"/>    
+
 
             <Button
                 android:id="@+id/inviteFriendsBtn"
@@ -102,6 +104,7 @@
                 android:textStyle="bold"     
                 android:clickable = "true"
                 android:background="#B6E3EB"
+                android:layout_marginTop="10dp"  
                 android:layout_centerInParent="true"
                 android:onClick="inviteFriends" />
 
