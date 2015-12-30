@@ -28,7 +28,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
-                android:layout_marginTop="14dp"
                 android:layout_centerHorizontal="true"
                 android:text="@string/pro_welcome_text"
                 android:textSize="14sp"
@@ -39,7 +38,6 @@
                 android:id="@+id/pro_welcome"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
                 android:background="#22BCD3"
                 android:src="@drawable/pro_welcome"/>
         </RelativeLayout>
