@@ -68,7 +68,11 @@
             android:launchMode="singleTask"
         />                           
         <activity
-            android:name=".activity.PromptVpnActivity" android:label="@string/app_name" android:exported="false"
+        android:name=".activity.SignInActivity"
+        android:launchMode="singleTask"
+        />                           
+        <activity
+        android:name=".activity.PromptVpnActivity" android:label="@string/app_name" android:exported="false"
             android:theme="@android:style/Theme.NoDisplay"
             />
         <activity

@@ -7,7 +7,7 @@
     <string name="default_fragment">Default Fragment</string>
     <string name="receive_lantern">Receive Lantern desktop by email</string>
     <string name="email_hint">Email</string>
-    <string name="send_button">Send</string>
+    <string name="send_button">Send Desktop</string>
     <string name="on_text">On</string>
     <string name="off_text">Off</string>
     <string name="desktop_option">Desktop Version</string>
@@ -59,4 +59,7 @@
     <string name="ok">Ok</string>
     <string name="progressMessage">Creating Token&#8230;</string>
     <string name="language">Language</string>
+    <string name="sign_in_pro">Sign in to Pro</string>
+    <string name="sign_in_list"><![CDATA[ &#8226; Enter your email and we will send you a link<br/>&#8226; Click the link to authorize this device to use your Lantern Pro account ]]></string>
+    <string name="send_link">Send Link</string>
 </resources>
