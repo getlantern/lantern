@@ -67,6 +67,7 @@ import java.util.regex.Pattern;
 import org.getlantern.lantern.activity.LanternMainActivity;
 import org.getlantern.lantern.activity.WelcomeActivity;
 import org.getlantern.lantern.activity.InviteActivity;
+import org.getlantern.lantern.activity.PaymentActivity;
 import org.getlantern.lantern.activity.PlansActivity;
 import org.getlantern.lantern.config.LanternConfig;
 import org.getlantern.lantern.model.MailSender;
@@ -172,6 +173,7 @@ public class UI {
 
         mNavItems.add(new NavItem("Share", R.drawable.ic_share));
         mNavItems.add(new NavItem("Pro Now", R.drawable.ic_contact));
+		mNavItems.add(new NavItem("Checkout", R.drawable.ic_quit));
         mNavItems.add(new NavItem("Get Free Months", R.drawable.ic_share));
         mNavItems.add(new NavItem("Desktop Version", R.drawable.ic_desktop));
         mNavItems.add(new NavItem("Contact", R.drawable.ic_contact));
@@ -190,6 +192,13 @@ public class UI {
                 openScreen("pro_plans");
             }
         });
+
+
+		menuMap.put("Checkout", new Command() {
+			public void runCommand() {
+				openScreen("checkout");
+			}
+		});                               
 
         menuMap.put("Quit", new Command() { 
             public void runCommand() { activity.quitLantern(); } 
@@ -410,7 +419,7 @@ public class UI {
     }
 
     private void openScreen(String screen) {
-        Log.d(TAG, "Welcome button clicked...");
+        Log.d(TAG, "Opening screen: " + screen);
         Intent intent = null;
         if (screen == "welcome") {
             intent = new Intent(this.activity, WelcomeActivity.class);
@@ -418,7 +427,9 @@ public class UI {
             intent = new Intent(this.activity, InviteActivity.class);
         } else if (screen == "pro_plans") {
             intent = new Intent(this.activity,PlansActivity.class);
-        }
+        } else if (screen == "checkout") {
+        	intent = new Intent(this.activity, PaymentActivity.class);
+		}
         this.activity.startActivity(intent);
     }
 
