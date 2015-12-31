@@ -12,6 +12,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import android.support.v4.app.Fragment;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 
@@ -20,6 +21,7 @@ import com.stripe.android.TokenCallback;
 import com.stripe.android.model.Card;
 import com.stripe.android.model.Token;
 
+import org.getlantern.lantern.fragment.PaymentFormFragment;
 import org.getlantern.lantern.model.ErrorDialogFragment;
 import org.getlantern.lantern.model.ProgressDialogFragment;
 import org.getlantern.lantern.model.PaymentForm;
@@ -31,11 +33,23 @@ public class PaymentActivity extends FragmentActivity {
     private static final String publishableApiKey = "pk_test_4MSPZvz9QtXGWEKdODmzV9ql";
 
     private ProgressDialogFragment progressFragment;
+    private Button checkoutBtn;
+    private PaymentFormFragment paymentForm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.checkout);
+
+        paymentForm = (PaymentFormFragment)getSupportFragmentManager().findFragmentById(R.id.payment_form);
+
+        checkoutBtn = (Button)findViewById(R.id.checkoutBtn);
+        checkoutBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                submitCard();
+            }
+        });
 
         progressFragment = ProgressDialogFragment.newInstance(R.string.progressMessage);
 		ImageView backBtn = (ImageView)findViewById(R.id.paymentAvatar);
@@ -49,7 +63,7 @@ public class PaymentActivity extends FragmentActivity {
 		});
     }
 
-	public void submitCard(PaymentForm form) {
+	public void submitCard() {
 		// TODO: replace with your own test key
 		Log.d(TAG, "Submit card button clicked..");
 		//final String publishableApiKey = BuildConfig.DEBUG ?
@@ -57,10 +71,10 @@ public class PaymentActivity extends FragmentActivity {
 		//getString(R.string.com_stripe_publishable_key);
         //
         Card card = new Card(
-                form.getCardNumber(),
-                form.getExpMonth(),
-                form.getExpYear(),
-                form.getCvc());
+                paymentForm.getCardNumber(),
+                paymentForm.getExpMonth(),
+                paymentForm.getExpYear(),
+                paymentForm.getCvc());
 
         boolean validation = card.validateCard();
         if (validation) {

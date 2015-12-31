@@ -182,12 +182,6 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         return true;
     }
 
-    public void sendDesktopVersion(View view) {
-        if (LanternUI != null) {
-            LanternUI.sendDesktopVersion(view);
-        }
-    }
-
     // isNetworkAvailable checks whether or not we are connected to
     // the Internet; if no connection is available, the toggle
     // switch is inactive

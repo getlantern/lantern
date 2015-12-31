@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.Context;
 import android.content.res.Resources;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -32,9 +31,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.text.Editable;
 import android.text.Html;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -61,16 +58,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.google.common.collect.ImmutableMap;
 
-import org.getlantern.lantern.activity.LanternMainActivity;
-import org.getlantern.lantern.activity.WelcomeActivity;
-import org.getlantern.lantern.activity.InviteActivity;
-import org.getlantern.lantern.activity.PaymentActivity;
-import org.getlantern.lantern.activity.PlansActivity;
+import org.getlantern.lantern.activity.*;
 import org.getlantern.lantern.config.LanternConfig;
-import org.getlantern.lantern.model.MailSender;
+import org.getlantern.lantern.sdk.Utils;
 import org.getlantern.lantern.R;
 
 public class UI {
@@ -78,7 +70,6 @@ public class UI {
     private static final String TAG = "LanternUI";
 
     private ArrayList<NavItem> mNavItems;
-    private Map<String, Command> menuMap;
 
     private DrawerLayout mDrawerLayout;
     private ObjectAnimator colorFadeIn, colorFadeOut;
@@ -99,10 +90,7 @@ public class UI {
     final private LanternMainActivity activity;
 
     private ToggleButton powerLantern;
-    private EditText emailInput;
     private TextView versionNum;
-    private Button sendBtn;
-    private View separator;
 
     private static final int onColor = Color.parseColor("#39C2D6");
     private static final int offColor = Color.parseColor("#FAFBFB"); 
@@ -113,19 +101,23 @@ public class UI {
     private TransitionDrawable offNavTrans = new TransitionDrawable(offTransColor);
     private TransitionDrawable onNavTrans = new TransitionDrawable(onTransColor);
 
+    private View statusLayout;
 
-    private View mainView, desktopView, statusLayout;
+    static final Map<String, Integer> menuOptions = ImmutableMap.<String, Integer>builder()
+        .put("Share", R.drawable.ic_share)
+        .put("Pro Now", R.drawable.pro_now)
+        .put("Checkout", R.drawable.ic_quit)
+        .put("Get Free Months", R.drawable.get_free)
+        .put("Desktop Version", R.drawable.ic_desktop)
+        .put("Contact", R.drawable.ic_contact)
+        .put("Welcome", R.drawable.ic_contact)
+        .build();
 
     public UI(LanternMainActivity activity, SharedPreferences mPrefs) {
         this.mNavItems = new ArrayList<NavItem>();
+
         this.activity = activity;
         this.mPrefs = mPrefs;
-
-        this.mainView = (View)this.activity.findViewById(R.id.mainView); 
-        this.desktopView = (View)this.activity.findViewById(R.id.desktopView);
-        this.emailInput = (EditText)this.activity.findViewById(R.id.sendEmail);
-        this.sendBtn = (Button)activity.findViewById(R.id.sendBtn);
-        this.separator = (View)activity.findViewById(R.id.separator);
 
         // DrawerLayout
         this.mDrawerLayout = (DrawerLayout) this.activity.findViewById(R.id.drawerLayout);
@@ -140,10 +132,6 @@ public class UI {
 
         this.shareable = new Shareable(this.activity);
 
-        this.menuMap = new HashMap<String, Command>();
-
-        this.configureEmailInput();
-
         try { 
             this.setupSideMenu();
         } catch (Exception e) {
@@ -151,10 +139,6 @@ public class UI {
         }
 
         this.setupStatusToast();
-    }
-
-    interface Command {
-        void runCommand();
     }
 
     public void setVersionNum(final String latestVersion) {
@@ -171,56 +155,9 @@ public class UI {
 
     public void setupSideMenu() throws Exception {
 
-        mNavItems.add(new NavItem("Share", R.drawable.ic_share));
-        mNavItems.add(new NavItem("Pro Now", R.drawable.ic_contact));
-		mNavItems.add(new NavItem("Checkout", R.drawable.ic_quit));
-        mNavItems.add(new NavItem("Get Free Months", R.drawable.ic_share));
-        mNavItems.add(new NavItem("Desktop Version", R.drawable.ic_desktop));
-        mNavItems.add(new NavItem("Contact", R.drawable.ic_contact));
-        mNavItems.add(new NavItem("Welcome", R.drawable.ic_contact));
-
-        mNavItems.add(new NavItem("Quit", R.drawable.ic_quit));
-
-        menuMap.put("Get Free Months", new Command() {
-            public void runCommand() {
-                openScreen("get_free_months");
-            }
-        });
-
-        menuMap.put("Pro Now", new Command() {
-            public void runCommand() {
-                openScreen("pro_plans");
-            }
-        });
-
-
-		menuMap.put("Checkout", new Command() {
-			public void runCommand() {
-				openScreen("checkout");
-			}
-		});                               
-
-        menuMap.put("Quit", new Command() { 
-            public void runCommand() { activity.quitLantern(); } 
-        });
-
-        menuMap.put("Contact", new Command() { 
-            public void runCommand() { contactOption(); } 
-        });
-
-        menuMap.put("Welcome", new Command() {
-            public void runCommand() {
-                openScreen("welcome");
-            }
-        });
-
-        menuMap.put("Desktop Version", new Command() { 
-            public void runCommand() { desktopOption(); } 
-        });
-
-        menuMap.put("Share", new Command() { 
-            public void runCommand() { shareable.showOption(); } 
-        });   
+        for (Map.Entry<String, Integer> entry : menuOptions.entrySet()) {
+            mNavItems.add(new NavItem(entry.getKey(), entry.getValue()));
+        }
 
         // Populate the Navigtion Drawer with options
         mDrawerPane = (RelativeLayout) this.activity.findViewById(R.id.drawerPane);
@@ -276,161 +213,12 @@ public class UI {
         versionNum = (TextView)this.activity.findViewById(R.id.versionNum);
         versionNum.setText(mPrefs.getString("versionNum", ""));
 
-        ImageView backBtn = (ImageView)this.activity.findViewById(R.id.navAvatar);
-
-        backBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mainView.setVisibility(View.VISIBLE);
-                desktopView.setVisibility(View.INVISIBLE);
-
-                mDrawerLayout.closeDrawers();
-            }
-        });
-
-        profileBox.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                mainView.setVisibility(View.VISIBLE);
-                desktopView.setVisibility(View.INVISIBLE);
-
-                mDrawerLayout.closeDrawers();
-            }
-        });
-
-    }
-
-    private void desktopOption() {
-        mainView.setVisibility(View.INVISIBLE);
-        desktopView.setVisibility(View.VISIBLE);
-    }
-
-    private static boolean isEmailValid(String email) {
-        boolean isValid = false;
-
-        String expression = "^[\\w\\.-]+@([\\w\\-]+\\.)+[A-Z]{2,4}$";
-        CharSequence inputStr = email;
-
-        Pattern pattern = Pattern.compile(expression, Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(inputStr);
-        if (matcher.matches()) {
-            isValid = true;
-        }
-        return isValid;
-    }
-
-    private void showAlertDialog(String title, String msg) {
-        Log.d(TAG, "Showing alert dialog...");
-        if (Looper.myLooper() == null) {
-            Looper.prepare();
-        }
-
-        AlertDialog alertDialog = new AlertDialog.Builder(this.activity).create();
-        alertDialog.setTitle("Lantern");
-        alertDialog.setMessage(msg);
-        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
-        alertDialog.show();
-
-        Looper.loop();
     }
 
     public void handleFatalError() {
         this.toggleSwitch(false);
         String msg = this.activity.getResources().getString(R.string.fatal_error);
-        showAlertDialog("Lantern", msg);
-    }
-
-    public void sendDesktopVersion(View view) {
-        final MailSender sender = new MailSender();
-        final LanternMainActivity activity = this.activity;
-        final String email = emailInput.getText().toString();
-        Log.d(TAG, "Sending Lantern Desktop to " + email);
-
-        AsyncTask<Void, Void, Void> asyncTask = new AsyncTask<Void, Void, Void>() {
-            @Override 
-            public Void doInBackground(Void... arg) {
-                String msg;
-
-                try {
-                    Log.d(TAG, "Calling send mail...");
-                    sender.sendMail(email);
-                    Log.d(TAG, "Successfully called send mail");
-                    msg = activity.getResources().getString(R.string.success_email);
-                } catch (Exception e) {
-                    Log.e(TAG, e.getMessage(), e);     
-                    msg = activity.getResources().getString(R.string.error_email);
-                }
-
-                showAlertDialog("Lantern", msg);
-                return null;
-            }
-        };
-
-        if (Build.VERSION.SDK_INT >= 11) {
-            asyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        }
-        else {
-            asyncTask.execute();
-        }
-
-
-        // revert send button, separator back to defaults
-        sendBtn.setBackgroundResource(R.drawable.send_btn);
-        sendBtn.setClickable(false);
-        separator.setBackgroundResource(R.color.edittext_color);
-        emailInput.setText("");
-    }
-
-    private void configureEmailInput() {
-
-        final LanternMainActivity activity = this.activity;
-
-        emailInput.addTextChangedListener(new TextWatcher() {
-            public void afterTextChanged(Editable s) {
-                if (s.length() == 0) {
-                    separator.setBackgroundResource(R.color.edittext_color);
-                } else {
-                    separator.setBackgroundResource(R.color.blue_color);
-                }
-            }
-
-            public void beforeTextChanged(CharSequence s, int start,
-                    int count, int after) {
-            }
-
-            public void onTextChanged(CharSequence s, int start,
-                    int before, int count) {
-                if (isEmailValid(s.toString())) {
-                    sendBtn.setBackgroundResource(R.drawable.send_btn_blue);
-                    sendBtn.setClickable(true);
-                } else {
-                    sendBtn.setBackgroundResource(R.drawable.send_btn);
-                    sendBtn.setClickable(false);
-                }
-            }
-
-        });
-
-    }
-
-    private void openScreen(String screen) {
-        Log.d(TAG, "Opening screen: " + screen);
-        Intent intent = null;
-        if (screen == "welcome") {
-            intent = new Intent(this.activity, WelcomeActivity.class);
-        } else if (screen == "get_free_months") {
-            intent = new Intent(this.activity, InviteActivity.class);
-        } else if (screen == "pro_plans") {
-            intent = new Intent(this.activity,PlansActivity.class);
-        } else if (screen == "checkout") {
-        	intent = new Intent(this.activity, PaymentActivity.class);
-		}
-        this.activity.startActivity(intent);
+        Utils.showAlertDialog(this.activity, "Lantern", msg);
     }
 
     // opens an e-mail message with some default options
@@ -522,7 +310,7 @@ public class UI {
 
                 if (!activity.isNetworkAvailable()) {
                     powerLantern.setChecked(false);
-                    showAlertDialog("Lantern", "No Internet connection available!");
+                    Utils.showAlertDialog(activity, "Lantern", "No Internet connection available!");
                     return;
                 }
 
@@ -576,8 +364,40 @@ public class UI {
             String title = mNavItems.get(position).mTitle;
 
             Log.d(TAG, "Menu option " + title + " selected");
-            menuMap.get(title).runCommand();
 
+            Intent intent = null;
+
+            switch (title) {
+                case "Share":
+                    shareable.showOption();
+                    break;
+                case "Contact":
+                    contactOption();
+                    break;
+                case "Quit":
+                    activity.quitLantern();
+                    break;
+                case "Desktop Version":
+                    intent = new Intent(this.activity, DesktopActivity.class);
+                    break;
+                case "Pro Now":
+                    intent = new Intent(this.activity, PlansActivity.class);
+                    break;
+                case "Get Free Months":
+                    intent = new Intent(this.activity, InviteActivity.class);
+                    break;
+                case "Checkout":
+                    intent = new Intent(this.activity, PaymentActivity.class);
+                    break;
+                case "Welcome":
+                    intent = new Intent(this.activity, WelcomeActivity.class);
+                    break;
+                default:
+            }
+
+            if (intent != null) {
+                this.activity.startActivity(intent);
+            }
         } catch (Exception e) {
 
         }

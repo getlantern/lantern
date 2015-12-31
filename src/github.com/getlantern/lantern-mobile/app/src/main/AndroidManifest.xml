@@ -52,6 +52,12 @@
 			android:launchMode="singleTask"
             android:noHistory="true"
 			/>   
+
+        <activity
+            android:name=".activity.DesktopActivity"
+            android:launchMode="singleTask"
+            />   
+
  
         <activity
             android:name=".activity.PlansActivity"

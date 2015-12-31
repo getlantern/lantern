@@ -1,10 +1,15 @@
 package org.getlantern.lantern.sdk;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
+import android.os.Looper;
 import android.util.Log;
+import android.view.View.OnClickListener;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -71,6 +76,27 @@ public class Utils {
 
         return settings;
     }
+
+    public static void showAlertDialog(Activity activity, String title, String msg) {
+        Log.d(TAG, "Showing alert dialog...");
+        if (Looper.myLooper() == null) {
+            Looper.prepare();
+        }
+
+        AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
+        alertDialog.setTitle("Lantern");
+        alertDialog.setMessage(msg);
+        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        alertDialog.show();
+
+        Looper.loop();
+    }
+
 
     public static void clearPreferences(Context context) {
 

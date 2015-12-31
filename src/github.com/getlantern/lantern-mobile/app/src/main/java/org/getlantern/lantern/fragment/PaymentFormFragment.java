@@ -15,7 +15,7 @@ import org.getlantern.lantern.activity.PaymentActivity;
 
 public class PaymentFormFragment extends Fragment implements PaymentForm {
 
-    Button saveButton;
+    Button checkoutBtn;
     EditText cardNumber;
     EditText cvc;
     Spinner monthSpinner;
@@ -24,14 +24,6 @@ public class PaymentFormFragment extends Fragment implements PaymentForm {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.payment_form_fragment, container, false);
-
-        this.saveButton = (Button) view.findViewById(R.id.save);
-        saveButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                saveForm(view);
-            }
-        });
 
         this.cardNumber = (EditText) view.findViewById(R.id.number);
         this.cvc = (EditText) view.findViewById(R.id.cvc);
@@ -59,10 +51,6 @@ public class PaymentFormFragment extends Fragment implements PaymentForm {
     @Override
     public Integer getExpYear() {
         return getInteger(this.yearSpinner);
-    }
-
-    public void saveForm(View button) {
-        ((PaymentActivity)getActivity()).submitCard(this);
     }
 
     private Integer getInteger(Spinner spinner) {
