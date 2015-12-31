@@ -27,7 +27,7 @@
 			android:layout_height="52dp"
 			android:layout_centerVertical="true"
 			android:layout_marginLeft="15dp"
-			android:layout_toRightOf="@+id/plansAvatar"
+            android:layout_toRightOf="@+id/paymentAvatar"
 			android:orientation="vertical" >
 
 			<TextView
@@ -44,19 +44,62 @@
 		</LinearLayout>
 	</RelativeLayout>
 
-	<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-		xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-		android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
-		android:paddingRight="@dimen/activity_horizontal_margin"
-		android:paddingTop="@dimen/activity_vertical_margin"
-		android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".MainActivity">
+    <RelativeLayout 
+		android:layout_width="fill_parent"
+        android:layout_height="wrap_content" 
+        android:layout_weight="1"
+        android:background="@color/accent_white"
+        android:elevation="2dp"
+		tools:context=".PaymentsActivity">
 
-
-        <fragment android:id="@+id/payment_form"
-            android:layout_below="@id/checkout_header"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            class="org.getlantern.lantern.fragment.PaymentFormFragment"/>
-
+            <fragment android:id="@+id/payment_form"
+                android:layout_below="@id/checkout_header"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                class="org.getlantern.lantern.fragment.PaymentFormFragment"/>
 	</RelativeLayout>
+
+    <EditText
+        android:id="@+id/referralCode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif" 
+        android:background="@null"
+        android:hint="@string/email_hint"
+        android:ems="10"
+        android:textColor="#BDBDBD"
+        android:paddingRight="20dp"
+        android:autoText="false"
+        android:paddingTop="20dp"
+        android:paddingBottom="5dp"
+        android:gravity="fill_horizontal"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:inputType="number" />
+
+    <View
+        android:background="@color/edittext_color"
+        android:layout_below="@+id/referralCode"
+        android:layout_width = "fill_parent"
+        android:layout_height="1dip"
+        android:layout_centerVertical ="true"
+        android:layout_alignParentTop="true"
+        />                               
+
+    <Button
+        android:id="@+id/checkoutBtn"
+        android:layout_height="36dp"
+        android:layout_width="216dp"
+        android:text="@string/checkout"
+        android:fontFamily="sans-serif-medium" 
+        android:textSize="14sp"
+        android:elevation="2dp"
+        android:minHeight="48dp"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:clickable = "true"
+        android:layout_marginTop="10dp"
+        android:background="#0297A7"
+        android:layout_centerInParent="true"
+        android:onClick="submitCard" />
+
 </LinearLayout>
