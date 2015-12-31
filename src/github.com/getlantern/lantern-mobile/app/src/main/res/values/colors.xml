@@ -2,5 +2,6 @@
 <resources>
     <color name="edittext_color">#BDBDBD</color>
     <color name="blue_color">#39C2D6</color>
+    <color name="pro_blue_color">#22BCD3</color>
     <color name="accent_white">#ffffff</color>
 </resources>

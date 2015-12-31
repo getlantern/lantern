@@ -11,7 +11,7 @@
         android:id="@+id/navInvite"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:background="#22BCD3"
+        android:background="@color/pro_blue_color"
         android:paddingTop="15dp"
         android:padding="8dp">
 
@@ -48,7 +48,7 @@
         android:layout_width="fill_parent"
         android:layout_height="262dp"
         android:layout_weight="1"
-        android:background="#22BCD3"
+        android:background="@color/pro_blue_color"
         android:elevation="2dp">
 
         <ImageView
@@ -157,15 +157,13 @@
                 android:elevation="2dp"
                 android:minHeight="48dp"
                 android:textAllCaps="true"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/accent_white"
                 android:textStyle="bold"
                 android:clickable = "true"
                 android:layout_marginTop="10dp"
                 android:background="#0297A7"
                 android:layout_centerInParent="true"
                 android:onClick="continueToPro" />
-
-
 
         </LinearLayout>
 
@@ -230,7 +228,7 @@
                 android:elevation="2dp"
                 android:minHeight="48dp"
                 android:textAllCaps="true"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/accent_white"
                 android:textStyle="bold"
                 android:clickable = "true"
                 android:layout_marginTop="10dp"

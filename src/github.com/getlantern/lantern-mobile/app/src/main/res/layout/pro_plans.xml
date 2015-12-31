@@ -1,0 +1,98 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" 
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" 
+    android:orientation="vertical"
+    android:baselineAligned="false"
+    android:id="@+id/inviteView"
+    tools:context=".PlansActivity">
+
+    <RelativeLayout
+        android:id="@+id/navPaymentPlans"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/pro_blue_color"
+        android:paddingTop="15dp"
+        android:padding="8dp">
+
+        <ImageView
+            android:id="@+id/plansAvatar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:src="@drawable/abc_ic_ab_back_mtrl_am_alpha"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="52dp"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="15dp"
+            android:layout_toRightOf="@+id/plansAvatar"
+            android:orientation="vertical" >
+
+            <TextView
+                android:id="@+id/plansHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif"
+                android:layout_marginTop="14dp"
+                android:paddingLeft="10dp"
+                android:text="@string/payment_plans"
+                android:textSize="15sp"
+                android:textColor="#fff"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </RelativeLayout>
+    <RelativeLayout
+        android:id="@+id/plans_bottom_sheet"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="#F4F6F6"
+        android:paddingTop="15dp"
+        android:paddingBottom="15dp"
+        android:layout_weight="1"
+        android:padding="8dp">
+
+
+        <LinearLayout
+            android:id="@+id/plans_view"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/features_image"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/lantern_icon"/>
+
+            <TextView
+                android:id="@+id/features_text"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif"
+                android:layout_marginTop="5dp"
+                android:text="@string/features_text"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:alpha=".87"
+                android:layout_centerHorizontal="true"
+                android:gravity="center"
+                android:textColor="#000000"/>
+
+            <TextView
+                android:id="@+id/features_list"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginTop="5dp"
+                android:text=""
+                android:textSize="14sp"
+                android:alpha=".54"
+                android:layout_centerHorizontal="true"
+                android:gravity="left"
+                android:textColor="#000000"/>
+        </LinearLayout>
+    </RelativeLayout>
+</LinearLayout>

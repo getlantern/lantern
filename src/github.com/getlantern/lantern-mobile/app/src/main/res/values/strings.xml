@@ -48,4 +48,7 @@
     <string name="get_code_text">Enter your email to receive a code to share with your friends, get a free month of PRO when they sign up!</string>
     <string name="enter_your_email">Enter your email to receive a referral code</string>
     <string name="previous_code">If you have previously received a referral code\r\nplease make sure to use the same email address.</string>
+    <string name="payment_plans">Lantern Pro Payment Plans</string>
+    <string name="features_text">Lantern Pro Features</string>
+    <string name="features_list"><![CDATA[ &#8226; Faster Connection Speed<br/>&#8226; Smarter Servers<br/>&#8226; Stronger Blocking Resistance ]]></string>
 </resources>

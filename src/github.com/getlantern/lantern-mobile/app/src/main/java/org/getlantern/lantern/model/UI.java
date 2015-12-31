@@ -67,6 +67,7 @@ import java.util.regex.Pattern;
 import org.getlantern.lantern.activity.LanternMainActivity;
 import org.getlantern.lantern.activity.WelcomeActivity;
 import org.getlantern.lantern.activity.InviteActivity;
+import org.getlantern.lantern.activity.PlansActivity;
 import org.getlantern.lantern.config.LanternConfig;
 import org.getlantern.lantern.model.MailSender;
 import org.getlantern.lantern.R;
@@ -170,6 +171,7 @@ public class UI {
     public void setupSideMenu() throws Exception {
 
         mNavItems.add(new NavItem("Share", R.drawable.ic_share));
+        mNavItems.add(new NavItem("Pro Now", R.drawable.ic_contact));
         mNavItems.add(new NavItem("Get Free Months", R.drawable.ic_share));
         mNavItems.add(new NavItem("Desktop Version", R.drawable.ic_desktop));
         mNavItems.add(new NavItem("Contact", R.drawable.ic_contact));
@@ -180,6 +182,12 @@ public class UI {
         menuMap.put("Get Free Months", new Command() {
             public void runCommand() {
                 openScreen("get_free_months");
+            }
+        });
+
+        menuMap.put("Pro Now", new Command() {
+            public void runCommand() {
+                openScreen("pro_plans");
             }
         });
 
@@ -408,6 +416,8 @@ public class UI {
             intent = new Intent(this.activity, WelcomeActivity.class);
         } else if (screen == "get_free_months") {
             intent = new Intent(this.activity, InviteActivity.class);
+        } else if (screen == "pro_plans") {
+            intent = new Intent(this.activity,PlansActivity.class);
         }
         this.activity.startActivity(intent);
     }
