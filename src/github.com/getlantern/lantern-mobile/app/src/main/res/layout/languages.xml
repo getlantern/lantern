@@ -27,7 +27,7 @@
             android:layout_height="52dp"
             android:layout_centerVertical="true"
             android:layout_marginLeft="15dp"
-            android:layout_toRightOf="@+id/inviteAvatar"
+            android:layout_toRightOf="@+id/languageAvatar"
             android:orientation="vertical" >
 
             <TextView

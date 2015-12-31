@@ -39,6 +39,16 @@ public class LanguageActivity extends ListActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.languages);
 
+        ImageView backBtn = (ImageView)findViewById(R.id.languageAvatar);
+        backBtn.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                Log.d(TAG, "Back button pressed");
+                finish();
+            }
+        });  
+
         adapter = new ArrayAdapter<String>(this, R.layout.language_item, R.id.title, languages);
         setListAdapter(adapter); 
     }
@@ -58,8 +68,8 @@ public class LanguageActivity extends ListActivity {
         Configuration conf = res.getConfiguration(); 
         conf.locale = locale; 
         res.updateConfiguration(conf, dm); 
-        Intent refresh = new Intent(this, LanguageActivity.class); 
+        /*Intent refresh = new Intent(this, LanguageActivity.class); 
         startActivity(refresh); 
-        finish();
+        finish();*/
     } 
 }
