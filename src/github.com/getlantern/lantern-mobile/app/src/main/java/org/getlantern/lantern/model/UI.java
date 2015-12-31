@@ -215,6 +215,16 @@ public class UI {
         versionNum = (TextView)this.activity.findViewById(R.id.versionNum);
         versionNum.setText(mPrefs.getString("versionNum", ""));
 
+        settingsIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mDrawerLayout.openDrawer(Gravity.START);
+                Log.v(TAG, " click");         
+            }        
+        });
+
+
+
     }
 
     public void handleFatalError() {

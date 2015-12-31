@@ -45,6 +45,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.getlantern.lantern.activity.PlansActivity;
+import org.getlantern.lantern.activity.InviteActivity;
 import org.getlantern.lantern.config.LanternConfig;
 import org.getlantern.lantern.vpn.Service;
 import org.getlantern.lantern.model.UI;
@@ -265,6 +267,16 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
             }
         }
     }
+
+    public void selectPro(View view) {
+        Log.d(TAG, "Lantern Pro button clicked");
+        if (view.getId() == R.id.lantern_pro) {
+            startActivity(new Intent(this, PlansActivity.class));
+        } else {
+            startActivity(new Intent(this, InviteActivity.class));
+        }
+    }
+
 
     public void checkNewVersion() {
         try {

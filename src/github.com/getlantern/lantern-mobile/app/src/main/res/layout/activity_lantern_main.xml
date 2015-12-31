@@ -57,6 +57,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="128dp"
                 android:layout_weight="1"
+                android:clickable="true"
+                android:onClick="selectPro"
                 android:padding="8dp">
 
                 <ImageView
@@ -71,10 +73,11 @@
                 <LinearLayout android:orientation="vertical"
                     android:layout_centerHorizontal="true"
                     android:gravity="bottom"
-                    android:layout_marginLeft="117dp"
                     android:layout_weight="1"
+                    android:layout_gravity="center"
+                    android:paddingLeft="90dp"    
                     android:layout_height="wrap_content" 
-                    android:layout_width="match_parent">
+                    android:layout_width="wrap_content">
 
                     <TextView
                         android:id="@+id/lantern_pro_header"
@@ -92,8 +95,8 @@
                         android:id="@+id/pro_desc"
                         android:layout_width="fill_parent"
                         android:layout_height="wrap_content"
+                        android:singleLine="true"
                         android:fontFamily="sans-serif-medium"
-                        android:layout_marginTop="5dp"
                         android:text="@string/pro_desc"
                         android:textSize="14sp"
                         android:alpha=".54"
@@ -110,6 +113,7 @@
                 android:layout_below="@+id/lantern_pro"
                 android:layout_width = "fill_parent"
                 android:layout_height="1dip"
+                android:alpha=".54"
                 android:layout_centerVertical ="true"
                 android:layout_alignParentTop="true"
                 />
@@ -119,6 +123,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="128dp"
                 android:layout_weight="1"
+                android:clickable="true"
+                android:onClick="selectPro"
                 android:padding="8dp">
 
                 <ImageView
@@ -135,10 +141,11 @@
                 <LinearLayout android:orientation="vertical"
                     android:layout_centerHorizontal="true"
                     android:gravity="bottom"
-                    android:layout_marginLeft="117dp"
+                    android:paddingLeft="120dp"    
+                    android:layout_gravity="center"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
-                    android:layout_width="match_parent">
+                    android:layout_width="wrap_content">
 
                     <TextView
                         android:id="@+id/lantern_pro_header"
@@ -157,7 +164,6 @@
                         android:layout_width="fill_parent"
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-medium"
-                        android:layout_marginTop="5dp"
                         android:text="@string/free_month"
                         android:textSize="14sp"
                         android:alpha=".54"
