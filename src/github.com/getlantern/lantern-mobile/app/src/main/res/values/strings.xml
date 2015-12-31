@@ -63,6 +63,8 @@
     <string name="sign_in_list"><![CDATA[ &#8226; Enter your email and we will send you a link<br/>&#8226; Click the link to authorize this device to use your Lantern Pro account ]]></string>
     <string name="send_link">Send Link</string>
     <string name="click_button">Click the button to access blocked sites and services</string>
+    <string name="lantern_pro">Lantern Pro</string>
+    <string name="invite_friends_header">Invite friends</string>
     <string name="pro_desc">Faster, Smarter, more Resilient</string>
     <string name="free_month">Get a free month of pro for each sign up</string>
 </resources>

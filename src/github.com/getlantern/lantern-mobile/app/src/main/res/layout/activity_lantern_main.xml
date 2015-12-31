@@ -35,7 +35,7 @@
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"   
             android:background="@drawable/toggle_switch"
-            android:layout_marginLeft="125dp"
+            android:layout_marginLeft="117dp"
             android:layout_marginTop="140dp"
             android:layout_gravity="center"
             android:checked="false"
@@ -68,6 +68,40 @@
                     android:layout_marginLeft="13dp"
                     android:src="@drawable/speed"/>
 
+                <LinearLayout android:orientation="vertical"
+                    android:layout_centerHorizontal="true"
+                    android:gravity="bottom"
+                    android:layout_marginLeft="117dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content" 
+                    android:layout_width="match_parent">
+
+                    <TextView
+                        android:id="@+id/lantern_pro_header"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:layout_marginTop="5dp"
+                        android:text="@string/lantern_pro"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:alpha=".87"
+                        android:textColor="@color/accent_white"/>
+
+                    <TextView
+                        android:id="@+id/pro_desc"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:layout_marginTop="5dp"
+                        android:text="@string/pro_desc"
+                        android:textSize="14sp"
+                        android:alpha=".54"
+                        android:textColor="@color/accent_white"/>
+
+                </LinearLayout>
+
+
             </RelativeLayout>
 
             <View
@@ -96,6 +130,39 @@
                     android:layout_marginLeft="13dp"
                     android:src="@drawable/present"/>
 
+
+ 
+                <LinearLayout android:orientation="vertical"
+                    android:layout_centerHorizontal="true"
+                    android:gravity="bottom"
+                    android:layout_marginLeft="117dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent">
+
+                    <TextView
+                        android:id="@+id/lantern_pro_header"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:layout_marginTop="5dp"
+                        android:text="@string/invite_friends_header"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:alpha=".87"
+                        android:textColor="@color/accent_white"/>
+
+                    <TextView
+                        android:id="@+id/free_month"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:layout_marginTop="5dp"
+                        android:text="@string/free_month"
+                        android:textSize="14sp"
+                        android:alpha=".54"
+                        android:textColor="@color/accent_white"/>
+                </LinearLayout>           
             </RelativeLayout>
         </LinearLayout>
     </RelativeLayout>
