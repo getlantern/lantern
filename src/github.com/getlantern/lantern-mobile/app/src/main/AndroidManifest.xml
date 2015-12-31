@@ -42,29 +42,31 @@
         <activity
             android:name=".activity.WelcomeActivity"
             android:launchMode="singleTask"
-            />
+            android:noHistory="true"
+        />
         <activity
             android:name=".activity.InviteActivity"
             android:launchMode="singleTask"
-            />       
+        />       
 		<activity
 			android:name=".activity.PaymentActivity"
 			android:launchMode="singleTask"
             android:noHistory="true"
-			/>   
+		/>   
 
         <activity
             android:name=".activity.DesktopActivity"
             android:launchMode="singleTask"
-            />   
-
+        />   
  
         <activity
             android:name=".activity.PlansActivity"
             android:launchMode="singleTask"
-            />   
-
-
+        />   
+        <activity
+            android:name=".activity.LanguageActivity"
+            android:launchMode="singleTask"
+        />                           
         <activity
             android:name=".activity.PromptVpnActivity" android:label="@string/app_name" android:exported="false"
             android:theme="@android:style/Theme.NoDisplay"

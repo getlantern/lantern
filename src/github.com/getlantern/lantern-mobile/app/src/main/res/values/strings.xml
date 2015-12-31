@@ -57,5 +57,6 @@
     <string name="card_number">Card Number</string>
     <string name="validation_errors">Validation Errors</string>
     <string name="ok">Ok</string>
-     <string name="progressMessage">Creating Token&#8230;</string>
+    <string name="progressMessage">Creating Token&#8230;</string>
+    <string name="language">Language</string>
 </resources>

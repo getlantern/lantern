@@ -1,10 +1,12 @@
 package org.getlantern.lantern.activity;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;                          
 
+import org.getlantern.lantern.activity.InviteActivity;
 import org.getlantern.lantern.R;
 
 public class WelcomeActivity extends Activity {
@@ -19,6 +21,7 @@ public class WelcomeActivity extends Activity {
 
     public void inviteFriends(View view) {
         Log.d(TAG, "Invite friends button clicked!");
+        startActivity(new Intent(this, InviteActivity.class));
     }
 
     public void continueToPro(View view) {

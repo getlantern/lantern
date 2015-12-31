@@ -16,10 +16,12 @@ class ListAdapter extends BaseAdapter {
 
     private Context mContext;
     private ArrayList<NavItem> mNavItems;
+    private int mLayout;
 
-    public ListAdapter(Context context, ArrayList<NavItem> navItems) {
+    public ListAdapter(Context context, ArrayList<NavItem> navItems, int layout) {
         mContext = context;
         mNavItems = navItems;
+        mLayout = layout;
     }
 
     @Override
@@ -43,7 +45,7 @@ class ListAdapter extends BaseAdapter {
 
         if (convertView == null) {
             LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            view = inflater.inflate(R.layout.drawer_item, null);
+            view = inflater.inflate(mLayout, null);
         }
         else {
             view = convertView;

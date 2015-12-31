@@ -108,6 +108,7 @@ public class UI {
         .put("Pro Now", R.drawable.pro_now)
         .put("Checkout", R.drawable.ic_quit)
         .put("Get Free Months", R.drawable.get_free)
+        .put("Language", R.drawable.language)
         .put("Desktop Version", R.drawable.ic_desktop)
         .put("Contact", R.drawable.ic_contact)
         .put("Welcome", R.drawable.ic_contact)
@@ -162,7 +163,7 @@ public class UI {
         // Populate the Navigtion Drawer with options
         mDrawerPane = (RelativeLayout) this.activity.findViewById(R.id.drawerPane);
         mDrawerList = (ListView) this.activity.findViewById(R.id.navList);
-        ListAdapter adapter = new ListAdapter(this.activity, mNavItems);
+        ListAdapter adapter = new ListAdapter(this.activity, mNavItems, R.layout.drawer_item);
         mDrawerList.setAdapter(adapter);
 
         // remove ListView border
@@ -385,6 +386,9 @@ public class UI {
                     break;
                 case "Get Free Months":
                     intent = new Intent(this.activity, InviteActivity.class);
+                    break;
+                case "Language":
+                    intent = new Intent(this.activity, LanguageActivity.class);
                     break;
                 case "Checkout":
                     intent = new Intent(this.activity, PaymentActivity.class);
