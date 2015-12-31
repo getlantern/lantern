@@ -1,0 +1,62 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools" 
+	android:layout_width="match_parent"
+	android:layout_height="match_parent" 
+	android:orientation="vertical"
+	android:baselineAligned="false"
+	android:id="@+id/paymentView"
+	tools:context=".PaymentActivity">
+
+	<RelativeLayout
+		android:id="@+id/navPaymentPlans"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:background="@color/pro_blue_color"
+		android:paddingTop="15dp"
+		android:padding="8dp">
+
+		<ImageView
+			android:id="@+id/paymentAvatar"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="10dp"
+			android:src="@drawable/abc_ic_ab_back_mtrl_am_alpha"/>
+
+		<LinearLayout
+			android:layout_width="wrap_content"
+			android:layout_height="52dp"
+			android:layout_centerVertical="true"
+			android:layout_marginLeft="15dp"
+			android:layout_toRightOf="@+id/plansAvatar"
+			android:orientation="vertical" >
+
+			<TextView
+				android:id="@+id/checkout_header"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:fontFamily="sans-serif"
+				android:layout_marginTop="14dp"
+				android:paddingLeft="10dp"
+				android:text="@string/checkout"
+				android:textSize="15sp"
+				android:textColor="#fff"
+				android:textStyle="bold" />
+		</LinearLayout>
+	</RelativeLayout>
+
+	<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+		xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+		android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+		android:paddingRight="@dimen/activity_horizontal_margin"
+		android:paddingTop="@dimen/activity_vertical_margin"
+		android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".MainActivity">
+
+
+        <fragment android:id="@+id/payment_form"
+            android:layout_below="@id/checkout_header"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            class="org.getlantern.lantern.fragment.PaymentFormFragment"/>
+
+	</RelativeLayout>
+</LinearLayout>

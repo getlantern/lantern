@@ -51,4 +51,11 @@
     <string name="payment_plans">Lantern Pro Payment Plans</string>
     <string name="features_text">Lantern Pro Features</string>
     <string name="features_list"><![CDATA[ &#8226; Faster Connection Speed<br/>&#8226; Smarter Servers<br/>&#8226; Stronger Blocking Resistance ]]></string>
+	<string name="checkout">Checkout</string>
+	<string name="com.stripe.publishable_key">your-live-publishable-key</string>
+    <string name="cvc">CVC</string>
+    <string name="card_number">Card Number</string>
+    <string name="validation_errors">Validation Errors</string>
+    <string name="ok">Ok</string>
+     <string name="progressMessage">Creating Token&#8230;</string>
 </resources>

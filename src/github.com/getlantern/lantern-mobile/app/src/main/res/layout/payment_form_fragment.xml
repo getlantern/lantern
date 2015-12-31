@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:gravity="center_horizontal"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content"
+              android:paddingLeft="8dp"
+              android:paddingRight="8dp">
+
+        <EditText android:id="@+id/number" style="@style/CardNumber" android:text="4242 4242 4242 4242" android:nextFocusDown="@+id/expMonth" android:nextFocusRight="@+id/expMonth" android:nextFocusForward="@+id/expMonth" />
+
+        <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+            <Spinner android:id="@+id/expMonth" style="@style/ExpMonth" android:nextFocusForward="@+id/expYear" />
+
+            <Spinner android:id="@+id/expYear" style="@style/ExpYear" android:nextFocusForward="@+id/cvc" />
+
+            <EditText android:id="@+id/cvc" style="@style/CVC" android:nextFocusForward="@+id/save" />
+
+        </LinearLayout>
+
+        <Button android:id="@+id/save" style="@style/Save"/>
+
+</LinearLayout>
