@@ -52,9 +52,8 @@
         android:paddingLeft="@dimen/activity_horizontal_margin"
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingTop="@dimen/activity_vertical_margin"
-        android:layout_width="340dp"
-        android:layout_height="327dp"
-        android:layout_marginTop="80dp"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
         android:layout_marginLeft="10dp"
         android:orientation="vertical"
         android:elevation="5dp"
@@ -76,9 +75,9 @@
 
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:tools="http://schemas.android.com/tools"
-            android:layout_width="300dp"
+            android:layout_width="334dp"
             android:layout_marginTop="75dp"
-            android:layout_height="300dp"
+            android:layout_height="206dp"
             android:layout_weight="1"
             android:layout_marginLeft="10dp"
             android:padding="15dp"
@@ -91,7 +90,7 @@
                 android:id="@+id/receive_lantern"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="50dp"
+                android:layout_marginTop="10dp"
                 android:fontFamily="sans-serif" 
                 android:textSize="16sp"
                 android:gravity="center"
@@ -127,21 +126,22 @@
                 android:layout_centerVertical ="true"
                 android:layout_alignParentTop="true"
                 />
-
-            <Button
-                android:id="@+id/sendBtn"
-                android:layout_height="41.5dp"
-                android:layout_width="fill_parent"
-                android:layout_marginTop="20dp"
-                android:text="@string/send_button"
-                android:fontFamily="sans-serif" 
-                android:textSize="20sp"
-                android:elevation="2dp"
-                android:minHeight="48dp"
-                android:textColor="#fff"
-                android:clickable = "false"
-                android:background="@drawable/send_btn"
-                android:onClick="sendDesktopVersion" />
         </LinearLayout>
     </RelativeLayout>
+    <Button
+        android:id="@+id/sendBtn"
+        android:layout_height="36dp"
+        android:layout_width="216dp"
+        android:layout_marginTop="20dp"
+        android:text="@string/send_button"
+        android:fontFamily="sans-serif" 
+        android:textSize="20sp"
+        android:elevation="2dp"
+        android:minHeight="48dp"
+        android:textColor="@color/accent_white"
+        android:gravity="center"
+        android:layout_gravity="center" 
+        android:clickable = "false"
+        android:background="@drawable/send_btn"
+        android:onClick="sendDesktopVersion" />
 </LinearLayout>
