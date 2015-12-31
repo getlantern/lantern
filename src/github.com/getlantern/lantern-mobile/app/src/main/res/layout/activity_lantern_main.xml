@@ -24,25 +24,80 @@
     <!-- The main content view -->
     <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools" 
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="fill_parent" 
-        android:paddingRight="@dimen/activity_horizontal_margin"
-        android:paddingTop="18dp"
-        android:paddingLeft="18dp"
         android:id="@+id/mainView"
         android:gravity="center"
-        android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".LanternMainActivity">
+        tools:context=".LanternMainActivity">
+
         <ToggleButton
             android:id="@+id/powerLantern"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"   
             android:background="@drawable/toggle_switch"
-            android:layout_marginLeft="65dp"
+            android:layout_marginLeft="125dp"
+            android:layout_marginTop="140dp"
             android:layout_gravity="center"
             android:checked="false"
             android:text="ToggleButton"
             android:textOff=""
             android:textOn="" />
+
+        <LinearLayout android:orientation="vertical"
+            android:background="@color/cyan"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:gravity="bottom"
+            android:layout_weight="1"
+            android:layout_height="256dp"
+            android:layout_width="match_parent">
+
+            <RelativeLayout 
+                android:id="@+id/lantern_pro"
+                android:layout_width="match_parent"
+                android:layout_height="128dp"
+                android:layout_weight="1"
+                android:padding="8dp">
+
+                <ImageView
+                    android:id="@+id/speed"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true"
+                    android:layout_marginLeft="13dp"
+                    android:src="@drawable/speed"/>
+
+            </RelativeLayout>
+
+            <View
+                android:id="@+id/separator"
+                android:background="@color/edittext_color"
+                android:layout_below="@+id/lantern_pro"
+                android:layout_width = "fill_parent"
+                android:layout_height="1dip"
+                android:layout_centerVertical ="true"
+                android:layout_alignParentTop="true"
+                />
+
+            <RelativeLayout 
+                android:id="@+id/invite_friends"
+                android:layout_width="match_parent"
+                android:layout_height="128dp"
+                android:layout_weight="1"
+                android:padding="8dp">
+
+                <ImageView
+                    android:id="@+id/present"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true"
+                    android:layout_marginLeft="13dp"
+                    android:src="@drawable/present"/>
+
+            </RelativeLayout>
+        </LinearLayout>
     </RelativeLayout>
 
     <!-- The navigation drawer -->
