@@ -1,0 +1,31 @@
+<html ng-app="simpleExample">
+  <head>
+    <title>Simple Example - Angular Stripe Checkout</title>
+  </head>
+  <body ng-controller="SimpleExampleController as ctrl">
+    <!--
+      Works like Stripe Checkout's simple integration, but calls the
+      function passed to stripe-checkout with the token object instead
+      of submitting a form.
+    -->
+    <button stripe-checkout="ctrl.doCheckout"
+            data-key="YOUR PUBLISHABLE STRIPE KEY"
+            data-name="Simple Example"
+            data-description="Five dollahs!"
+            data-amount="500">
+      Buy
+    </button>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.js"></script>
+    <script src="../angular-stripe-checkout.js"></script>
+
+    <script>
+      angular.module("simpleExample",["stripe.checkout"])
+        .controller("SimpleExampleController",function() {
+          this.doCheckout = function(token) {
+            alert("Got Stripe token: " + token.id);
+          };
+        });
+    </script>
+  </body>
+</html>

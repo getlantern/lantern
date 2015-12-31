@@ -1,0 +1,245 @@
+@mixin hidden {
+  display: none;
+  visibility: hidden;
+}
+
+@mixin centered {
+  text-align: center;
+}
+
+// font weights
+// normal == 400
+// bold == 700
+
+@mixin thin {
+  font-family: "Helvetica Light", "Segoe UI Light", Arial;
+}
+
+@mixin light {
+  font-family: "Helvetica", "Segoe UI", Arial;
+}
+
+@mixin bold {
+  font-weight: bold;
+}
+
+@mixin bolder {
+  font-family: "Helvetica Bold", "Segoe UI Semibold", Arial;
+}
+
+@mixin boldest {
+  font-family: "Helvetica Bold", "Segoe UI Bold", Arial;
+}
+
+@mixin base-size {
+  font-size: $baseFontSize;
+}
+
+@mixin bigger {
+  font-size: $baseFontSize * 1.05;
+}
+
+@mixin small {
+  font-size: $baseFontSize * 0.95;
+}
+
+@mixin smaller {
+  font-size: $baseFontSize * 0.85;
+}
+
+@mixin smallest {
+  font-size: $baseFontSize * 0.75;
+}
+
+@mixin error-colored {
+  color: $errorText !important;
+}
+
+@mixin warning-colored {
+  color: $warningText !important;
+}
+
+@mixin info-colored {
+  color: $infoText !important;
+}
+
+@mixin success-colored {
+  color: $successText !important;
+}
+
+@mixin give-colored {
+  color: $giveModeColor;
+}
+
+@mixin give-colored-alt {
+  color: $giveModeColorAccent;
+}
+
+@mixin get-colored-alt {
+  color: $getModeColorAccent;
+}
+
+@mixin get-colored {
+  color: $getModeColor;
+}
+
+@mixin yellow-colored {
+  color: $yellowLight;
+}
+
+@mixin white {
+  color: $white;
+}
+
+@mixin gray {
+  color: $grayLight;
+}
+
+@mixin grayDark {
+  color: $gray;
+}
+
+@mixin monofont {
+  font-family: $monoFontFamily;
+}
+
+@mixin size($width: false, $height: $width) {
+  @if $width {
+    width: $width;
+  }
+
+  @if $height {
+    height: $height;
+  }
+}
+
+@mixin position($top: false, $right: false, $bottom: false, $left: false) {
+  position: absolute;
+
+  @if $top {
+    top: $top;
+  }
+
+  @if $right {
+    right: $right;
+  }
+
+  @if $bottom {
+    bottom: $bottom;
+  }
+
+  @if $left {
+    left: $left;
+  }
+}
+
+@mixin absolute-center($width, $height) {
+  @include position(50%, false, false, 50%);
+
+  margin-left: -1 * $width / 2;
+  margin-top: -1 * $height / 2;
+  width: $width;
+  height: $height;
+}
+
+@mixin never-underlined {
+  text-decoration: none;
+
+  &:active, &:visited, &:hover {
+    text-decoration: none;
+  }
+}
+
+@mixin always-underlined {
+  text-decoration: underline;
+}
+
+@mixin indented($amount: 20px) {
+  body[dir=ltr] & {
+    margin-left: $amount;
+  }
+
+  body[dir=rtl] & {
+    margin-right: $amount;
+  }
+}
+
+@mixin aboveModal($delta: 1) {
+  z-index: $zindexModal + $delta;
+}
+
+@mixin inputInvalid {
+  border-color: darken(#ee5f5b, 10%) !important;
+
+  @include ctb-box-shadow(0 0 6px lighten(#ee5f5b, 20%) !important);
+}
+
+@mixin ellipsisPast($maxwidth, $inline: false) {
+  max-width: $maxwidth;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  @if $inline {
+    display: inline-block;
+  }
+}
+
+@mixin dashed-underline {
+  border-bottom-width: 1px;
+  border-bottom-style: dashed;
+}
+
+@mixin opaqueOnMouseover($opacityMouseout: 0.5) {
+  opacity: $opacityMouseout;
+
+  @include single-transition(opacity, 0.5s, ease);
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+// http://stackoverflow.com/questions/7855590/how-can-i-prevent-scroll-bars-from-being-hidden-for-trackpad-users-in-webkit/7855592#7855592
+@mixin neverHideScrollbars {
+  &::-webkit-scrollbar {
+    -webkit-appearance: none;
+    width: 11px;
+    height: 11px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 8px;
+    border: 2px solid white;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+}
+
+@-webkit-keyframes defaultPulse {
+  from {
+    opacity: 1;
+  }
+
+  40% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.25;
+  }
+
+  60% {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@mixin pulsing($name: defaultPulse, $duration: 3s) {
+  -webkit-animation-name: $name;
+  -webkit-animation-duration: $duration;
+  -webkit-animation-iteration-count: infinite;
+  -webkit-animation-timing-function: linear;
+}

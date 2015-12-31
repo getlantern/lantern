@@ -13,3 +13,7 @@ build.xml
 logs/*
 !.gitkeep
 build
+npm-debug.log
+app/_css/*.map
+app/js/env.js
+pro-spec

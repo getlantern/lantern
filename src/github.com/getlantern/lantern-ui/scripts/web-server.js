@@ -5,7 +5,7 @@ var util = require('util'),
     fs = require('fs'),
     url = require('url'),
     events = require('events');
-var MockBackend = require('../mock/backend').MockBackend;
+var ws = require('../mock/websocket').MockWS;
 
 var DEFAULT_HOST = '127.0.0.1';
 var DEFAULT_PORT = 8000;
@@ -40,17 +40,15 @@ function createServlet(Class) {
  */
 function HttpServer(handlers) {
   this.handlers = handlers;
-  var mockBackend = new MockBackend(this);
-  this.handlers.POST = mockBackend.handleRequest.bind(mockBackend);
   this.server = http.createServer(this.handleRequest_.bind(this));
-  mockBackend.attachServer(this.server);
+  ws(this.server);
 }
 
 HttpServer.prototype.start = function(port, host) {
   this.port = port;
   this.server.listen(port, host);
   util.puts('Mock Lantern client backend running at http://'+host+':'+port);
-  util.puts('Load Lantern UI at http://'+host+':'+port+'/dist/index.html');
+  util.puts('Load Lantern UI at http://'+host+':'+port+'/app/index.html');
 };
 
 HttpServer.prototype.parseUrl_ = function(urlString) {
@@ -100,6 +98,12 @@ StaticServlet.MimeMap = {
 
 StaticServlet.prototype.handleRequest = function(req, res) {
   var self = this;
+  // assets in html file are absolute path start with '/img' etc.
+  if (req.url.pathname.indexOf("/data", 0) === -1) { // /data is for websockets
+    if (req.url.pathname.indexOf("/app", 0) === -1) {
+      req.url.pathname = "/app" + req.url.pathname
+    }
+  }
   var path = ('./' + req.url.pathname).replace('//','/').replace(/%(..)/g, function(match, hex){
     return String.fromCharCode(parseInt(hex, 16));
   });
@@ -107,8 +111,9 @@ StaticServlet.prototype.handleRequest = function(req, res) {
   if (parts[parts.length-1].charAt(0) === '.')
     return self.sendForbidden_(req, res, path);
   fs.stat(path, function(err, stat) {
-    if (err)
+    if (err) {
       return self.sendMissing_(req, res, path);
+    }
     if (stat.isDirectory())
       return self.sendDirectory_(req, res, path);
     return self.sendFile_(req, res, path);

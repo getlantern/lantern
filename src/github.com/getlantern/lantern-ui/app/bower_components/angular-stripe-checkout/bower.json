@@ -1,0 +1,11 @@
+{
+  "name": "angular-stripe-checkout",
+  "main": "angular-stripe-checkout.js",
+  "version": "4.0.0",
+  "authors": [
+    "Tobyn Baugher <tobynb@gmail.com>"
+  ],
+  "description": "AngularJS wrapper around Stripe Checkout",
+  "moduleType": [ "globals" ],
+  "license": "MIT"
+}
