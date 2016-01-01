@@ -8,4 +8,5 @@
     <color name="buttonText">#EEEEEE</color>
     <color name="spinnerItem">#AAAAAA</color>
     <color name="editText">#AAAAAA</color>
+    <color name="get_btn_text">#FEE900</color>
 </resources>
