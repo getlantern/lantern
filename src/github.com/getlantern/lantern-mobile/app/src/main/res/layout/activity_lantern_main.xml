@@ -159,7 +159,7 @@
                 <LinearLayout android:orientation="vertical"
                     android:layout_centerHorizontal="true"
                     android:gravity="center"
-                    android:paddingLeft="120dp"    
+                    android:paddingLeft="125dp"    
                     android:layout_gravity="right"
                     android:layout_weight="1"
                     android:layout_height="fill_parent"

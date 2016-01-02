@@ -107,7 +107,6 @@ public class UI {
         .put("Share", R.drawable.ic_share)
         .put("Sign in to Pro", R.drawable.sign_in)
         .put("Pro Now", R.drawable.pro_now)
-        .put("Checkout", R.drawable.ic_quit)
         .put("Get Free Months", R.drawable.get_free)
         .put("Language", R.drawable.language)
         .put("Desktop Version", R.drawable.ic_desktop)
@@ -403,9 +402,6 @@ public class UI {
                     break;
                 case "Language":
                     intent = new Intent(this.activity, LanguageActivity.class);
-                    break;
-                case "Checkout":
-                    intent = new Intent(this.activity, PaymentActivity.class);
                     break;
                 case "Welcome":
                     intent = new Intent(this.activity, WelcomeActivity.class);

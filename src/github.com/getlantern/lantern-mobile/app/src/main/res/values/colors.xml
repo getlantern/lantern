@@ -4,9 +4,13 @@
     <color name="blue_color">#39C2D6</color>
     <color name="pro_blue_color">#22BCD3</color>
     <color name="cyan">#0297A7</color>
+    <color name="black">#000000</color>
     <color name="accent_white">#ffffff</color>
     <color name="buttonText">#EEEEEE</color>
     <color name="spinnerItem">#AAAAAA</color>
     <color name="editText">#AAAAAA</color>
     <color name="get_btn_text">#FEE900</color>
+    <color name="year_plan_bg">#E1E2E0</color>
+    <color name="month_plan_bg">#BDBDBD</color>
+    <color name="best_value">#FEE900</color>
 </resources>

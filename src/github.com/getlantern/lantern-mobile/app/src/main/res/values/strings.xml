@@ -68,4 +68,8 @@
     <string name="pro_desc">Faster, Smarter, more Resilient</string>
     <string name="free_month">Get a free month of pro for each sign up</string>
     <string name="get_pro_now">Get Pro Now</string>
+    <string name="select">Select</string>
+    <string name="twelve_months">for 12 months</string>
+    <string name="one_month">for 1 month</string>
+    <string name="best_value">Best value!</string>
 </resources>

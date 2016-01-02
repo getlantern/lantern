@@ -1,6 +1,7 @@
 package org.getlantern.lantern.activity;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
@@ -10,6 +11,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import org.getlantern.lantern.activity.PaymentActivity;
 import org.getlantern.lantern.R;
 
 public class PlansActivity extends Activity {
@@ -39,6 +41,11 @@ public class PlansActivity extends Activity {
             }
         });
 
+    }
+
+    public void selectPlan(View view) {
+        Log.d(TAG, "Plan selected...");
+        startActivity(new Intent(this, PaymentActivity.class));
     }
 
 }  
