@@ -27,8 +27,8 @@ public class PaymentFormFragment extends Fragment implements PaymentForm {
 
         this.cardNumber = (EditText) view.findViewById(R.id.number);
         this.cvc = (EditText) view.findViewById(R.id.cvc);
-        //this.monthSpinner = (Spinner) view.findViewById(R.id.expMonth);
-        //this.yearSpinner = (Spinner) view.findViewById(R.id.expYear);
+        this.monthSpinner = (Spinner) view.findViewById(R.id.expMonth);
+        this.yearSpinner = (Spinner) view.findViewById(R.id.expYear);
 
         return view;
     }
@@ -45,14 +45,12 @@ public class PaymentFormFragment extends Fragment implements PaymentForm {
 
     @Override
     public Integer getExpMonth() {
-        return 0;
-        //return getInteger(this.monthSpinner);
+        return getInteger(this.monthSpinner);
     }
 
     @Override
     public Integer getExpYear() {
-        return 0;
-        //return getInteger(this.yearSpinner);
+        return getInteger(this.yearSpinner);
     }
 
     private Integer getInteger(Spinner spinner) {

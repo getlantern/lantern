@@ -60,18 +60,19 @@
 
     <style name="Spinner" parent="@android:style/Widget.Spinner">
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:background">@color/pro_blue_color</item>
+        <item name="android:background">@null</item>
         <item name="android:spinnerItemStyle">@style/SpinnerItem</item>
     </style>
+
     <style name="SpinnerItem" parent="@android:style/Widget.TextView.SpinnerItem">
 
         <item name="android:textAppearance">@style/TextAppearance.SpinnerItem</item>
-        <item name="android:textColor">@color/spinnerItem</item>
-    </style>
-    <style name="TextAppearance.SpinnerItem" parent="@android:style/TextAppearance.Widget.TextView.SpinnerItem">
-        <item name="android:textColor">@color/spinnerItem</item>
+        <item name="android:textColor">@color/edittext_color</item>
     </style>
 
+    <style name="TextAppearance.SpinnerItem" parent="@android:style/TextAppearance.Widget.TextView.SpinnerItem">
+        <item name="android:textColor">@color/edittext_color</item>
+    </style>
 
     <style name="ExpMonth" parent="@style/Spinner">
         <item name="android:entries">@array/month_array</item>

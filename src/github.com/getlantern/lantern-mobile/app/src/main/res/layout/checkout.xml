@@ -50,6 +50,7 @@
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingTop="@dimen/activity_vertical_margin"
         android:paddingBottom="65dp"
+        android:layout_marginTop="10dp"
 		android:layout_width="wrap_content"
         android:layout_height="wrap_content" 
         android:orientation="vertical"
@@ -69,7 +70,7 @@
         android:id="@+id/referralCode"
         android:layout_width="334dp"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="15dp"
+        android:layout_marginLeft="20dp"
         android:fontFamily="sans-serif" 
         android:background="@null"
         android:hint="@string/referral_code"
@@ -77,7 +78,7 @@
         android:textColor="#BDBDBD"
         android:paddingRight="20dp"
         android:autoText="false"
-        android:paddingTop="20dp"
+        android:layout_marginTop="30dp"
         android:paddingBottom="5dp"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:inputType="number" />
@@ -85,7 +86,7 @@
     <View
         android:background="@color/edittext_color"
         android:layout_below="@+id/referralCode"
-        android:layout_width = "325dp"
+        android:layout_width = "330dp"
         android:layout_height="1dip"
         android:gravity="center"
         android:layout_gravity="center" 
@@ -93,11 +94,46 @@
         android:layout_alignParentTop="true"
         />                               
 
+    <RelativeLayout 
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/total"
+        android:layout_width="216dp"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical ="true"
+        android:layout_gravity="center" 
+        android:layout_marginTop="45dp"
+        android:weightSum="2"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:fontFamily="sans-serif"
+            android:text="@string/total"
+            android:textSize="20sp"
+            android:textAllCaps="true"
+            android:textStyle="bold"     
+            android:textColor="@color/black"/>
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:fontFamily="sans-serif"
+            android:text="$7.99"
+            android:textSize="20sp"
+            android:textStyle="bold"     
+            android:textColor="@color/pro_blue_color"/>
+
+    </RelativeLayout>
+
     <Button
         android:id="@+id/checkoutBtn"
         android:layout_height="36dp"
         android:layout_width="216dp"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="10dp"
         android:text="@string/checkout"
         android:gravity="center"
         android:layout_gravity="center" 

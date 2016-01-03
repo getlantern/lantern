@@ -73,4 +73,5 @@
     <string name="one_month">for 1 month</string>
     <string name="best_value">Best value!</string>
     <string name="referral_code">Referral Code (optional)</string>
+    <string name="total">Total:</string>
 </resources>

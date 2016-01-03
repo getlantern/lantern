@@ -5,6 +5,7 @@
     <color name="pro_blue_color">#22BCD3</color>
     <color name="cyan">#0297A7</color>
     <color name="black">#000000</color>
+    <color name="gray">#BDBDBD</color>
     <color name="accent_white">#ffffff</color>
     <color name="buttonText">#EEEEEE</color>
     <color name="spinnerItem">#AAAAAA</color>

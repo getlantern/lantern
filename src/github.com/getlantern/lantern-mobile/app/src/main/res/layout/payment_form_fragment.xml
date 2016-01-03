@@ -12,14 +12,13 @@
         android:id="@+id/checkoutEmail"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="20dp"
         android:fontFamily="sans-serif" 
         android:background="@null"
         android:hint="@string/email_hint"
         android:ems="10"
-        android:textColor="#BDBDBD"
+        android:textColor="@color/edittext_color"
         android:autoText="false"
-        android:paddingTop="20dp"
         android:paddingBottom="5dp"
         android:gravity="fill_horizontal"
         android:textAppearance="?android:attr/textAppearanceMedium"
@@ -38,9 +37,9 @@
         android:id="@+id/number" 
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="25dp"
         android:fontFamily="sans-serif" 
-        android:textColor="#BDBDBD"
+        android:textColor="@color/edittext_color"
         android:ems="10"
         android:paddingTop="20dp"
         android:paddingBottom="5dp"
@@ -60,24 +59,24 @@
         android:layout_alignParentTop="true"
         />
 
-    <EditText 
-        android:id="@+id/monthyear" 
-        android:layout_width="match_parent"
+    <LinearLayout android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
-        android:fontFamily="sans-serif" 
-        android:background="@null"
-        android:hint="323"
-        android:ems="10"
-        android:textColor="#BDBDBD"
-        android:paddingRight="20dp"
-        android:autoText="false"
-        android:paddingTop="20dp"
-        android:paddingBottom="5dp"
-        android:gravity="fill_horizontal"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        />
+        android:id="@+id/monthyear" 
+        android:layout_marginTop="40dp"
+        android:weightSum="2"
+        android:orientation="horizontal">
 
+        <Spinner 
+            android:id="@+id/expMonth" 
+            style="@style/ExpMonth" 
+            android:nextFocusForward="@+id/expYear"/>
+
+        <Spinner 
+            android:id="@+id/expYear" 
+            style="@style/ExpYear" 
+            android:nextFocusForward="@+id/cvc"/>
+
+    </LinearLayout>
 
     <View
         android:background="@color/edittext_color"
@@ -93,12 +92,12 @@
         android:id="@+id/cvc" 
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="25dp"
         android:fontFamily="sans-serif" 
         android:background="@null"
         android:hint="323"
         android:ems="10"
-        android:textColor="#BDBDBD"
+        android:textColor="@color/edittext_color"
         android:paddingRight="20dp"
         android:autoText="false"
         android:paddingTop="20dp"
@@ -111,7 +110,6 @@
         android:layout_below="@+id/cvc"
         android:layout_width = "fill_parent"
         android:layout_height="1dip"
-        android:paddingBottom="30dp"    
         android:layout_centerVertical ="true"
         android:layout_alignParentTop="true"
         />
