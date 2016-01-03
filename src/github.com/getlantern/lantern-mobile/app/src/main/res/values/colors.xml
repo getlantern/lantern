@@ -13,4 +13,5 @@
     <color name="year_plan_bg">#E1E2E0</color>
     <color name="month_plan_bg">#BDBDBD</color>
     <color name="best_value">#FEE900</color>
+    <color name="text_shadow">#7F000000</color>
 </resources>

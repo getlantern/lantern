@@ -37,7 +37,7 @@
     <string name="pro_welcome_text">Welcome to Lantern Pro!</string>
     <string name="thanks_purchase">Thanks for your purchase of Lantern Pro!</string>
     <string name="start_inviting">\r\nStart inviting!</string>
-    <string name="invite_friends">Invite friends and you will both get a free month of Lantern Pro when they sign up</string>
+    <string name="invite_friends">Invite friends and you will both get a free\r\nmonth of Lantern Pro when they sign up</string>
     <string name="invite_friends_btn">Invite Friends</string>
     <string name="continue_to_pro">Continue to Pro</string>
     <string name="get_free_months">Get Free Months</string>
@@ -72,4 +72,5 @@
     <string name="twelve_months">for 12 months</string>
     <string name="one_month">for 1 month</string>
     <string name="best_value">Best value!</string>
+    <string name="referral_code">Referral Code (optional)</string>
 </resources>
