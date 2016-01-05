@@ -59,8 +59,6 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
     private static final String PREFS_NAME = "LanternPrefs";
     private static final int CHECK_NEW_VERSION_DELAY = 10000;
     private final static int REQUEST_VPN = 7777;
-    protected static final int REQUEST_CODE_PREPARE_VPN = 100;
-
     private SharedPreferences mPrefs = null;
     private BroadcastReceiver mReceiver;
 
