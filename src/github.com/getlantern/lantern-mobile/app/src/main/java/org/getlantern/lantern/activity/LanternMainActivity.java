@@ -58,7 +58,8 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
     private static final String TAG = "LanternMainActivity";
     private static final String PREFS_NAME = "LanternPrefs";
     private static final int CHECK_NEW_VERSION_DELAY = 10000;
- 
+    private final static int REQUEST_VPN = 7777;
+    protected static final int REQUEST_CODE_PREPARE_VPN = 100;
 
     private SharedPreferences mPrefs = null;
     private BroadcastReceiver mReceiver;
@@ -103,7 +104,6 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         try { 
             // configure actions to be taken whenever slider changes state
             LanternUI.setupLanternSwitch();
-            PromptVpnActivity.LanternUI = LanternUI;
             LanternVpn.LanternUI = LanternUI;
         } catch (Exception e) {
             Log.d(TAG, "Got an exception " + e);
@@ -197,22 +197,60 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         return connectivityManager.getActiveNetworkInfo() != null && connectivityManager.getActiveNetworkInfo().isConnected();
     }
 
+    // Make a VPN connection from the client
+    // We should only have one active VPN connection per client
+    private void startVpnService ()
+    {
+        Intent intent = VpnService.prepare(this);
+        if (intent != null) {
+            Log.w(TAG,"Requesting VPN connection");
+            startActivityForResult(intent, REQUEST_VPN);
+        } else {
+            Log.d(TAG, "VPN enabled, starting Lantern...");
+            LanternUI.toggleSwitch(true);
+            sendIntentToService();
+        }
+    }
+
+
     // Prompt the user to enable full-device VPN mode
     public void enableVPN() {
         Log.d(TAG, "Load VPN configuration");
 
-        Thread thread = new Thread() {
-            public void run() { 
-                Intent intent = new Intent(LanternMainActivity.this, PromptVpnActivity.class);
-                if (intent != null) {
-                    startActivity(intent);
-                }
-            }
-        };
-        thread.start();
+        try {
+            startVpnService();
+        } catch (Exception e) {
+            Log.d(TAG, "Could not establish VPN connection: " + e.getMessage());
+        }
     }
 
-    public void restart(final Context context, Intent intent) {
+    @Override
+    protected void onActivityResult(int request, int response, Intent data) {
+        super.onActivityResult(request, response, data);
+
+        if (request == REQUEST_VPN) {
+            if (response != RESULT_OK) {
+                LanternUI.toggleSwitch(false);
+            } else {
+                LanternUI.toggleSwitch(true);
+
+                Handler h = new Handler();
+                h.postDelayed(new Runnable () {
+
+                    public void run ()
+                    {
+                        sendIntentToService();
+                    }
+                }, 1000);
+            }
+        }
+    }
+
+    private void sendIntentToService() {
+        startService(new Intent(this, Service.class));
+    }
+
+    public void restart(final Context context, final Intent intent) {
         if (LanternUI.useVpn()) {
             Log.d(TAG, "Restarting Lantern...");
             Service.IsRunning = false;
@@ -225,7 +263,7 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
                     if (pIntent == null) {
                         context.startService(new Intent(context, Service.class));
                     } else {
-                        startActivity(new Intent(LanternMainActivity.this, PromptVpnActivity.class));
+                        startActivityForResult(intent, REQUEST_VPN);
                     }
                 }
 
@@ -267,8 +305,7 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
             if (action.equals(Intent.ACTION_SHUTDOWN)) {
                 Utils.clearPreferences(context);
             } else if (action.equals(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION) || action.equals(Intent.ACTION_USER_PRESENT)) {
-                if (isNetworkAvailable()) 
-                    restart(context, intent);
+                restart(context, intent);
             }
         }
     }
