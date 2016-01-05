@@ -450,9 +450,9 @@ func fetchCloudConfig(url string) ([]byte, error) {
 		req.Header.Set(ifNoneMatch, lastCloudConfigETag[url])
 	}
 
+	req.Header.Set("Accept", "application/x-gzip")
 	// Prevents intermediate nodes (domain-fronters) from caching the content
 	req.Header.Set("Cache-Control", "no-cache")
-
 	// Set the fronted URL to lookup the config in parallel using chained and domain fronted servers.
 	req.Header.Set("Lantern-Fronted-URL", frontedCloudConfigUrl)
 
