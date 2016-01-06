@@ -20,7 +20,7 @@ GIT_REVISION_DATE := $(shell git show -s --format=%ci $(GIT_REVISION_SHORTCODE))
 REVISION_DATE := $(shell date -u -j -f "%F %T %z" "$(GIT_REVISION_DATE)" +"%Y%m%d.%H%M%S" 2>/dev/null || date -u -d "$(GIT_REVISION_DATE)" +"%Y%m%d.%H%M%S")
 BUILD_DATE := $(shell date -u +%Y%m%d.%H%M%S)
 
-LOGGLY_TOKEN := 2b68163b-89b6-4196-b878-c1aca4bbdf84 
+LOGGLY_TOKEN := 2b68163b-89b6-4196-b878-c1aca4bbdf84
 
 LDFLAGS := -w -X=main.version=$(GIT_REVISION) -X=main.revisionDate=$(REVISION_DATE) -X=main.buildDate=$(BUILD_DATE) -X=github.com/getlantern/flashlight/logging.logglyToken=$(LOGGLY_TOKEN)
 LANTERN_DESCRIPTION := Censorship circumvention tool
@@ -230,7 +230,7 @@ docker-mobile:
 	cp $(LANTERN_MOBILE_DIR)/Dockerfile $$DOCKER_CONTEXT && \
 	docker build -t $(DOCKER_MOBILE_IMAGE_TAG) $$DOCKER_CONTEXT
 
-linux: genassets linux-386 linux-amd64 
+linux: genassets linux-386 linux-amd64
 
 windows: genassets windows-386
 
@@ -354,7 +354,7 @@ package-darwin-manoto: require-version require-appdmg require-svgexport darwin
 		echo "-> Skipped: Can not generate a package on a non-OSX host."; \
 	fi;
 
-package-darwin: package-darwin-manoto 
+package-darwin: package-darwin-manoto
 	@echo "Generating distribution package for darwin/amd64..." && \
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		INSTALLER_RESOURCES="installer-resources/darwin" && \
