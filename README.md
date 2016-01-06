@@ -1,4 +1,4 @@
-# lantern [![Travis CI Status](https://travis-ci.org/getlantern/lantern.svg?branch=valencia)](https://travis-ci.org/getlantern/lantern)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/lantern/badge.png?branch=valencia)](https://coveralls.io/r/getlantern/lantern)&nbsp;[![ProjectTalk](http://www.projecttalk.io/images/gh_badge-3e578a9f437f841de7446bab9a49d103.svg?vsn=d)] (http://www.projecttalk.io/boards/getlantern%2Flantern?utm_campaign=gh-badge&utm_medium=badge&utm_source=github) 
+# lantern [![Travis CI Status](https://travis-ci.org/getlantern/lantern.svg?branch=valencia)](https://travis-ci.org/getlantern/lantern)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/lantern/badge.png?branch=valencia)](https://coveralls.io/r/getlantern/lantern)&nbsp;[![ProjectTalk](http://www.projecttalk.io/images/gh_badge-3e578a9f437f841de7446bab9a49d103.svg?vsn=d)] (http://www.projecttalk.io/boards/getlantern%2Flantern?utm_campaign=gh-badge&utm_medium=badge&utm_source=github)
 
 **If you're looking for Lantern installers, you can find all of them at the following links:**
 - [Windows XP SP 3 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-beta.exe)
@@ -308,6 +308,78 @@ available
 An encrypted version is checked in as `envvars.bash.enc`, which was encrypted
 per the instructions [here](https://docs.travis-ci.com/user/encrypting-files/).
 
+## Building from source
+
+Building Lantern using the Docker method is the less complicated way to build
+Lantern on your own. If for some reason you're unable to make it work or if you
+rather do it without docker, then you can try getting all the required tools
+together and build it using the Go compiler.
+
+This process can be very different depending on the operating system you're
+running. This is an example that works on Ubuntu 14.03 but the process is very
+similar to what you're supposed to do on other Linux distributions: You
+basically need some programs and packages (git, GCC and the sources from GTK3 and
+libappindicator).
+
+Let's start, go on and install the prerequisites:
+
+```
+sudo apt-get update
+sudo apt-get install -y git curl libappindicator3-dev build-essential libgtk-3-dev
+```
+
+Now install Go 1.4.3, if you don't have it already:
+
+```
+curl https://storage.googleapis.com/golang/go1.4.3.linux-amd64.tar.gz | sudo tar -xvzf - -C /usr/local
+```
+
+You'll need the Lantern source, use `git` to download a copy:
+
+```
+mkdir -p ~/projects
+cd ~/projects
+git clone https://github.com/getlantern/lantern.git
+```
+
+Use the Go compiler (which should be at `/usr/local/go/bin/go`) to build the
+`lantern` binary:
+
+```
+cd lantern
+source setenv.bash
+/usr/local/go/bin/go build -o lantern github.com/getlantern/flashlight
+```
+
+Move the binary to `/usr/bin` for easy access.
+
+```
+sudo mv lantern /usr/bin/lantern
+```
+
+And test that everything is working fine. This line will run Lantern without
+opening the browser window:
+
+```
+./lantern -headless
+```
+
+Use `curl` to test that the proxy is working fine:
+
+```
+curl -x 127.0.0.1:8787 https://www.google.com/humans.txt
+Google is built by a large team of engineers, designers, researchers, robots, and others in many different sites across the globe. It is updated continuously, and built with more tools and technologies than we can shake a stick at. If you'd like to help us out, see google.com/careers.
+```
+
+Remove `-headless` to run Lantern as usual.
+
+Lantern will try to set up itself as the system proxy, if your application
+does not seem to be proxied you can always try to set up the proxy manually.
+
+![screen shot 2016-01-05 at 8 17 25 pm](https://cloud.githubusercontent.com/assets/385670/12133298/99f6b85a-b3e9-11e5-9b17-db477fbd031e.png)
+
+Remember that Lantern provides an HTTP proxy, so make sure you're using it like
+that.
 
 ## Documentation for developers
 
