@@ -36,6 +36,15 @@ docker-machine rm default
 docker-machine create --driver virtualbox --virtualbox-cpu-count 2 --virtualbox-memory 4096 default
 ```
 
+### Migrating from boot2docker
+
+If you already have a boot2docker vm that you want to use with the new
+docker-toolbox, you can migrate it with this command:
+
+```bash
+docker-machine create -d virtualbox --virtualbox-import-boot2docker-vm boot2docker-vm default
+```
+
 ### Building the docker image
 
 In order to build the docker image open a terminal, `cd` into the
