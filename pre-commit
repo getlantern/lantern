@@ -10,7 +10,7 @@
 set -e
 
 # Find only modified files/directories
-MODIFIED_DIRS=$(git status --porcelain | \
+export MODIFIED_DIRS=$(git status --porcelain | \
                         awk 'match($1, "M") && match($2, "src/github.com/getlantern/*"){print $2}' | \
                         sed 's+src/github.com/getlantern/++g' | \
                         sed 's+/.*++' | \

@@ -11,7 +11,7 @@ set -e
 
 # Find only modified files/directories
 BRANCH=`git rev-parse --abbrev-ref HEAD`
-MODIFIED_DIRS=$(git diff --name-status origin/$BRANCH..$BRANCH | \
+export MODIFIED_DIRS=$(git diff --name-status origin/$BRANCH..$BRANCH | \
                         awk 'match($1, "M") && match($2, "src/github.com/getlantern/*"){print $2}' | \
                         sed 's+src/github.com/getlantern/++g' | \
                         sed 's+/.*++' | \
