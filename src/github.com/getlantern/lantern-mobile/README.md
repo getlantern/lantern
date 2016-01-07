@@ -43,6 +43,19 @@ select the `lantern` folder you just checked out with git.
 * Java Development Kit 1.7
 * Git
 * [Android NDK][2]
+* [Android SDK Tools][4] (if not using Android Studio)
+
+Replaces the paths based on wherever you've installed the Android SDK and NDK
+
+```bash
+export ANDROID_HOME=/opt/adt-bundle-mac-x86_64-20130917/sdk
+export PATH=$ANDROID_HOME/tools:$PATH
+export NDK_HOME=/opt/android-ndk-r10e
+export PATH=$NDK_HOME:$PATH
+```
+
+Using the sdk-manager (`$ANDROID_HOME/tools/android`), install Android 6.0 API
+23 and also the Android SDK Build Tools rev. 23.0.1.
 
 #### Building `tun2socks`
 
@@ -212,3 +225,4 @@ cURL through tun2socks and the socks-server:
 [4]: http://developer.android.com/reference/android/net/VpnService.html
 [5]: https://www.kernel.org/doc/Documentation/networking/tuntap.txt
 [6]: http://developer.android.com/reference/android/net/VpnService.html#protect(int)
+[7]: http://developer.android.com/sdk/index.html#Other
