@@ -21,6 +21,7 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.VpnService;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageInfo;
 import android.app.Activity;
@@ -48,6 +49,7 @@ import org.getlantern.lantern.config.LanternConfig;
 import org.getlantern.lantern.vpn.Service;
 import org.getlantern.lantern.model.UI;
 import org.getlantern.lantern.sdk.Utils;
+import org.getlantern.lantern.vpn.LanternVpn;
 import org.getlantern.lantern.R;
 
 
@@ -56,13 +58,12 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
     private static final String TAG = "LanternMainActivity";
     private static final String PREFS_NAME = "LanternPrefs";
     private static final int CHECK_NEW_VERSION_DELAY = 10000;
- 
-
+    private final static int REQUEST_VPN = 7777;
     private SharedPreferences mPrefs = null;
-    private BroadcastReceiver mReceiver, userPresentReceiver;
+    private BroadcastReceiver mReceiver;
 
     private Context context;
-    private UI LanternUI = null;
+    private UI LanternUI;
     private Handler mHandler;
 
     @Override
@@ -86,12 +87,11 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         // clear the preferences and switch the VpnService to the off
         // state when this happens
         IntentFilter filter = new IntentFilter(Intent.ACTION_SHUTDOWN);
-        mReceiver = new ShutDownReceiver();
+        filter.addAction(Intent.ACTION_SHUTDOWN);
+        filter.addAction(Intent.ACTION_USER_PRESENT);
+        filter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
+        mReceiver = new LanternReceiver();
         registerReceiver(mReceiver, filter);
-
-        IntentFilter userPresentFilter = new IntentFilter(Intent.ACTION_USER_PRESENT);
-        userPresentReceiver = new SleepReceiver();
-        registerReceiver(userPresentReceiver, userPresentFilter);
 
         if (getIntent().getBooleanExtra("EXIT", false)) {
             finish();
@@ -102,8 +102,7 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         try { 
             // configure actions to be taken whenever slider changes state
             LanternUI.setupLanternSwitch();
-            PromptVpnActivity.LanternUI = LanternUI;
-            Service.LanternUI = LanternUI;
+            LanternVpn.LanternUI = LanternUI;
         } catch (Exception e) {
             Log.d(TAG, "Got an exception " + e);
         }
@@ -145,12 +144,9 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
     @Override
     protected void onDestroy() {
         try {
-            unregisterReceiver(userPresentReceiver);
             unregisterReceiver(mReceiver);
             Utils.clearPreferences(this);
             stopLantern();
-            // give Lantern a second to stop
-            Thread.sleep(1000);
         } catch (Exception e) {
 
         }
@@ -199,49 +195,83 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         return connectivityManager.getActiveNetworkInfo() != null && connectivityManager.getActiveNetworkInfo().isConnected();
     }
 
+    // Make a VPN connection from the client
+    // We should only have one active VPN connection per client
+    private void startVpnService ()
+    {
+        Intent intent = VpnService.prepare(this);
+        if (intent != null) {
+            Log.w(TAG,"Requesting VPN connection");
+            startActivityForResult(intent, REQUEST_VPN);
+        } else {
+            Log.d(TAG, "VPN enabled, starting Lantern...");
+            LanternUI.toggleSwitch(true);
+            sendIntentToService();
+        }
+    }
+
+
     // Prompt the user to enable full-device VPN mode
     public void enableVPN() {
         Log.d(TAG, "Load VPN configuration");
 
-        Thread thread = new Thread() {
-            public void run() { 
-                Intent intent = new Intent(LanternMainActivity.this, PromptVpnActivity.class);
-                if (intent != null) {
-                    startActivity(intent);
-                }
-            }
-        };
-        thread.start();
+        try {
+            startVpnService();
+        } catch (Exception e) {
+            Log.d(TAG, "Could not establish VPN connection: " + e.getMessage());
+        }
     }
 
-    public void restart() {
+    @Override
+    protected void onActivityResult(int request, int response, Intent data) {
+        super.onActivityResult(request, response, data);
+
+        if (request == REQUEST_VPN) {
+            if (response != RESULT_OK) {
+                LanternUI.toggleSwitch(false);
+            } else {
+                LanternUI.toggleSwitch(true);
+
+                Handler h = new Handler();
+                h.postDelayed(new Runnable () {
+
+                    public void run ()
+                    {
+                        sendIntentToService();
+                    }
+                }, 1000);
+            }
+        }
+    }
+
+    private void sendIntentToService() {
+        startService(new Intent(this, Service.class));
+    }
+
+    public void restart(final Context context, final Intent intent) {
         if (LanternUI.useVpn()) {
             Log.d(TAG, "Restarting Lantern...");
-            Intent service = new Intent(LanternMainActivity.this, Service.class);
-            if (service != null) {
-                service.setAction(LanternConfig.RESTART_VPN);
-                startService(service);
-            }
+            Service.IsRunning = false;
+
+            final LanternMainActivity activity = this;
+            Handler h = new Handler();
+            h.postDelayed(new Runnable () {
+                public void run() {
+                    Intent pIntent = Service.prepare(activity);
+                    if (pIntent == null) {
+                        context.startService(new Intent(context, Service.class));
+                    } else {
+                        startActivityForResult(intent, REQUEST_VPN);
+                    }
+                }
+
+            }, 1000);
         }  
     }
 
     public void stopLantern() {
-        Log.d(TAG, "Stopping Lantern...");
-        try {
-            Thread thread = new Thread() {
-                public void run() { 
-
-                    Intent service = new Intent(LanternMainActivity.this, Service.class);
-                    if (service != null) {
-                        service.setAction(LanternConfig.DISABLE_VPN);
-                        startService(service);
-                    }
-                }
-            };
-            thread.start();
-        } catch (Exception e) {
-            Log.d(TAG, "Got an exception trying to stop Lantern: " + e);
-        }
+        Service.IsRunning = false;  
+        Utils.clearPreferences(this);
     }
 
     @Override
@@ -255,7 +285,6 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         }
 
         // Handle your other action bar items...
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -267,17 +296,15 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         }
     }
 
-    private class SleepReceiver extends BroadcastReceiver {
+    public class LanternReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            restart();
-        }
-    }
-
-    private class ShutDownReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Utils.clearPreferences(context);
+            String action = intent.getAction();
+            if (action.equals(Intent.ACTION_SHUTDOWN)) {
+                Utils.clearPreferences(context);
+            } else if (action.equals(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION) || action.equals(Intent.ACTION_USER_PRESENT)) {
+                restart(context, intent);
+            }
         }
     }
 

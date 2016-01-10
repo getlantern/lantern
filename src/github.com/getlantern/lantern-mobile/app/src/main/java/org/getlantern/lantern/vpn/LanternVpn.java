@@ -12,13 +12,18 @@ import java.io.File;
 import java.util.Map;
 import java.util.HashMap;
 
+import org.getlantern.lantern.model.UI;
 import org.getlantern.lantern.sdk.Lantern;
 
+// LanternVpn is a subclass of the SDK class Lantern
+// it instantiates Lantern to run in full-device VPN mode
+// along with a few customizations/extensions
 public class LanternVpn extends Lantern {
 
     private static final String TAG = "LanternVpn";
+    public static UI LanternUI;
 
-    private Service service = null;
+    private Service service;
 
     public LanternVpn(Service service) {
         // start Lantern in VPN mode
@@ -30,7 +35,12 @@ public class LanternVpn extends Lantern {
     public void AfterStart(String latestVersion, String host, String port) {
         super.AfterStart(latestVersion, host, port);
         Log.d(TAG, "Lantern successfully started; running version: " + latestVersion);
-        service.setVersionNum(latestVersion);
+        // we pass the version number to setVersionNum which
+        // populates the version string that appears at the bottom
+        // of the side menu
+        if (LanternUI != null) {
+            LanternUI.setVersionNum(latestVersion);
+        }
     }
 
 
@@ -65,7 +75,7 @@ public class LanternVpn extends Lantern {
                 // if we receive a fatal notice from Lantern
                 // then we shut down the VPN interface
                 // and close Tun2Socks
-                this.service.stop();
+                //this.service.stop(false);
                 //this.service.UI.handleFatalError();
 
             } catch (Exception e) {

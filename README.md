@@ -1,4 +1,4 @@
-# lantern [![Travis CI Status](https://travis-ci.org/getlantern/lantern.svg?branch=valencia)](https://travis-ci.org/getlantern/lantern)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/lantern/badge.png?branch=valencia)](https://coveralls.io/r/getlantern/lantern)&nbsp;[![ProjectTalk](http://www.projecttalk.io/images/gh_badge-3e578a9f437f841de7446bab9a49d103.svg?vsn=d)] (http://www.projecttalk.io/boards/getlantern%2Flantern?utm_campaign=gh-badge&utm_medium=badge&utm_source=github) 
+# lantern [![Travis CI Status](https://travis-ci.org/getlantern/lantern.svg?branch=valencia)](https://travis-ci.org/getlantern/lantern)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/lantern/badge.png?branch=valencia)](https://coveralls.io/r/getlantern/lantern)&nbsp;[![ProjectTalk](http://www.projecttalk.io/images/gh_badge-3e578a9f437f841de7446bab9a49d103.svg?vsn=d)] (http://www.projecttalk.io/boards/getlantern%2Flantern?utm_campaign=gh-badge&utm_medium=badge&utm_source=github)
 
 **If you're looking for Lantern binaries, you can find all of them at the following links:**
 - [Windows XP SP 3 and above](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-beta.exe)
@@ -23,6 +23,18 @@ We are going to create a Docker image that will take care of compiling Lantern
 for Windows and Linux, in order to compile Lantern for OSX you'll need an OSX
 host, this is a limitation caused by Lantern depending on C code and OSX build
 tools for certain features.
+
+### Docker Installation Instructions
+
+1. Get the [Docker Toolbox](https://www.docker.com/docker-toolbox)
+2. Install docker per [these instructions](https://docs.docker.com/mac/step_one/)
+
+After installation, you'll have a docker machine called `default`, which is what the build script uses. You'll probably want to increase the memory and cpu for the default machine, which will require you to recreate it:
+
+```bash
+docker-machine rm default
+docker-machine create --driver virtualbox --virtualbox-cpu-count 2 --virtualbox-memory 4096 default
+```
 
 ### Building the docker image
 
@@ -260,8 +272,31 @@ FIRETWEET_MAIN_DIR=/path/to/firetweet/src/main make android-lib
 ```
 
 You can also override this environment variable if you want to use the
-[Flashlight Android Tester](https://github.com/getlantern/flashlight-android-tester) app.
+[Flashlight Android Tester](https://github.com/getlantern/lantern-mobile-single-app-example) app.
 
+#### Creating the Android library without docker
+
+1. Install Java JDK 7 or 8
+2. Install [Android SDK Tools](http://developer.android.com/sdk/index.html#Other)
+3. Install NDK(http://developer.android.com/ndk/downloads/index.html)
+4. Install lantern's [fork of gomobile](https://github.com/getlantern/mobile)
+
+Useful environment variables (replace the paths based on wherever you've
+installed the Android SDK and NDK).
+
+```bash
+export ANDROID_HOME=/opt/adt-bundle-mac-x86_64-20130917/sdk
+export PATH=$ANDROID_HOME/tools:$PATH
+export NDK_HOME=/opt/android-ndk-r10e
+export PATH=$NDK_HOME:$PATH
+```
+)
+
+Then to build the library:
+
+```bash
+make android-lib-local
+```
 
 ### Generating assets
 
@@ -306,7 +341,7 @@ to be populated with credentials for cloudflare. The original `envvars.bash` is
 available
 [here](https://github.com/getlantern/too-many-secrets/blob/master/envvars.bash).
 An encrypted version is checked in as `envvars.bash.enc`, which was encrypted
-per the instructions [here](http://docs.travis-ci.com/user/encrypting-files/).
+per the instructions [here](https://docs.travis-ci.com/user/encrypting-files/).
 
 
 ## Documentation for developers
@@ -327,15 +362,21 @@ Go code in Lantern must pass several tests:
 * Go vet
 * Go test -race
 
-You can find a generic [git-hook](https://github.com/getlantern/lantern/blob/valencia/git-hook)
+You can find a generic [git-hook](https://github.com/getlantern/lantern/blob/valencia/pre-push)
 file, which can be used as a pre-push (or pre-commit) hook to automatically
 ensure these tests are passed before committing any code. Only Go packages in
 `src/github.com/getlantern` will be tested, and only those that have changes in
 them.
 
 Install by copying it into the local `.git/hooks/` directory, with the `pre-push`
-file name if you want to run it before pushing. Alternatively, you can name it
-`pre-commit` to run it before each commit..
+file name if you want to run it before pushing. Alternatively, you can copy
+[pre-commit.hook](https://github.com/getlantern/lantern/blob/valencia/pre-commit)
+to `pre-commit` to run it before each commit.
+
+```bash
+ln -s "$(pwd)/prehook.sh" .git/hooks/prehook.sh
+ln -s "$(pwd)/pre-push" .git/hooks/pre-push
+```
 
 **Important notice**
 

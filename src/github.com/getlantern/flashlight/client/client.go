@@ -174,5 +174,7 @@ func (client *Client) Stop() {
 	if bal != nil {
 		bal.Close()
 	}
-	client.l.Close()
+	if client.l != nil {
+		client.l.Close()
+	}
 }

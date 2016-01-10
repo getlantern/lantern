@@ -14,6 +14,8 @@ import (
 	"github.com/getlantern/idletiming"
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/tlsdialer"
+
+	"github.com/getlantern/flashlight/settings"
 )
 
 // Close connections idle for a period to avoid dangling connections.
@@ -100,10 +102,16 @@ func (s *ChainedServerInfo) Dialer() (*balancer.Dialer, error) {
 		Label:      label,
 	}
 
+<<<<<<< HEAD:src/github.com/getlantern/flashlight/client/chained/chained.go
 	if s.AuthToken != "" {
 		ccfg.OnRequest = func(req *http.Request) {
+=======
+	ccfg.OnRequest = func(req *http.Request) {
+		if s.AuthToken != "" {
+>>>>>>> origin/valencia_ox:src/github.com/getlantern/flashlight/client/chained.go
 			req.Header.Set("X-LANTERN-AUTH-TOKEN", s.AuthToken)
 		}
+		req.Header.Set("X-LANTERN-DEVICE-ID", settings.GetInstanceID())
 	}
 	d := chained.NewDialer(ccfg)
 
