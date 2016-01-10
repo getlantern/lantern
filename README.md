@@ -288,18 +288,7 @@ You can also override this environment variable if you want to use the
 1. Install Java JDK 7 or 8
 2. Install [Android SDK Tools](http://developer.android.com/sdk/index.html#Other)
 3. Install NDK(http://developer.android.com/ndk/downloads/index.html)
-4. Install lantern's [fork of gomobile](https://github.com/getlantern/mobile)
-
-##### Installing gomobile
-Because gomobile uses absolute import paths, one has to resort to some trickery
-to install the Lantern fork. In your usual `$GOPATH` (not the gosted one):
-
-```bash
-git clone https://github.com/getlantern/mobile.git $GOPATH/src/golang.org/x/mobile
-cd $GOPATH/src/golang.org/x/mobile/cmd/gomobile
-go get .
-gomobile init -u -noios
-```
+4. Install [gomobile](https://godoc.org/golang.org/x/mobile/cmd/gomobile)
 
 Useful environment variables (replace the paths based on wherever you've
 installed the Android SDK and NDK).
