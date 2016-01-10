@@ -45,7 +45,7 @@ select the `lantern` folder you just checked out with git.
 * [Android NDK][2]
 * [Android SDK Tools][4] (if not using Android Studio)
 
-Replaces the paths based on wherever you've installed the Android SDK and NDK
+Replace the paths based on wherever you've installed the Android SDK and NDK
 
 ```bash
 export ANDROID_HOME=/opt/adt-bundle-mac-x86_64-20130917/sdk
