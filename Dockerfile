@@ -17,20 +17,21 @@ ENV SECRETS /secrets
 ENV GO_PACKAGE_URL https://storage.googleapis.com/golang/go1.5.2.linux-amd64.tar.gz
 
 # Updating system.
-RUN yum -y update && yum clean all
+RUN yum update -y && yum makecache && yum clean packages
+RUN yum install -y deltarpm && yum clean packages
 
 # Requisites for building Go.
-RUN yum install -y git tar gzip curl hostname && yum clean all
+RUN yum install -y git tar gzip curl hostname && yum clean packages
 
 # Compilers and tools for CGO.
-RUN yum install -y gcc gcc-c++ libgcc.i686 gcc-c++.i686 pkg-config && yum clean all
+RUN yum install -y gcc gcc-c++ libgcc.i686 gcc-c++.i686 pkg-config && yum clean packages
 
 # Getting Go.
 RUN curl -sSL $GO_PACKAGE_URL | tar -xvzf - -C /usr/local
 
 # Requisites for bootstrapping.
-RUN yum install -y glibc-devel glibc-static && yum clean all
-RUN yum install -y glibc-devel.i686 glib2-static.i686 glibc-2.20-8.fc21.i686 libgcc.i686 && yum clean all
+RUN yum install -y glibc-devel glibc-static && yum clean packages
+RUN yum install -y glibc-devel.i686 glib2-static.i686 glibc-2.20-8.fc21.i686 libgcc.i686 && yum clean packages
 
 # Requisites for ARM
 # ARM EABI toolchain must be grabbed from an contributor repository, such as:
@@ -38,30 +39,30 @@ RUN yum install -y glibc-devel.i686 glib2-static.i686 glibc-2.20-8.fc21.i686 lib
 RUN yum install -y yum-utils && \
   yum-config-manager --add-repo=https://copr.fedoraproject.org/coprs/lantw44/arm-linux-gnueabi-toolchain/repo/fedora-21/lantw44-arm-linux-gnueabi-toolchain-fedora-21.repo && \
   yum install -y arm-linux-gnueabi-gcc arm-linux-gnueabi-binutils arm-linux-gnueabi-glibc && \
-  yum clean all
+  yum clean packages
 
 # Requisites for windows.
-RUN yum install -y mingw32-gcc.x86_64 && yum clean all
+RUN yum install -y mingw32-gcc.x86_64 && yum clean packages
 
 # Requisites for building Lantern on Linux.
-RUN yum install -y gtk3-devel libappindicator-gtk3 libappindicator-gtk3-devel && yum clean all
+RUN yum install -y gtk3-devel libappindicator-gtk3 libappindicator-gtk3-devel && yum clean packages
 RUN yum install -y pango.i686 pango-devel.i686 gtk3-devel.i686 gdk-pixbuf2-devel.i686 cairo-gobject-devel.i686 \
   atk-devel.i686 libappindicator-gtk3-devel.i686 libdbusmenu-devel.i686 dbus-devel.i686 pkgconfig.i686 && \
-  yum clean all
+  yum clean packages
 
 # Requisites for packing Lantern for Debian.
 # The fpm packer. (https://rubygems.org/gems/fpm)
-RUN yum install -y ruby ruby-devel make && yum clean all
+RUN yum install -y ruby ruby-devel make && yum clean packages
 RUN gem install fpm
 
 # Requisites for packing Lantern for Windows.
-RUN yum install -y osslsigncode mingw32-nsis && yum clean all
+RUN yum install -y osslsigncode mingw32-nsis && yum clean packages
 
 # Required for compressing update files
-RUN yum install -y bzip2 && yum clean all
+RUN yum install -y bzip2 && yum clean packages
 
 # Requisites for genassets.
-RUN yum install -y nodejs npm && yum clean all
+RUN yum install -y nodejs npm && yum clean packages
 RUN npm install -g gulp
 
 RUN mkdir -p $WORKDIR
