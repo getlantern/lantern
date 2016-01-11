@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# Git pre-push hook for the Lantern project
+# Maintainer: Ulysses Aalto <uaalto@getlantern.org>
+#
+# Installation: Symlink or copy into .git/hooks/pre-push
+
+
+# Exit immediately if a command exits with a non-zero status.
+set -e
+
+# Find only modified files/directories
+BRANCH=`git rev-parse --abbrev-ref HEAD`
+export MODIFIED_DIRS=$(git diff --name-status origin/$BRANCH..$BRANCH | \
+                        awk 'match($1, "M") && match($2, "src/github.com/getlantern/*"){print $2}' | \
+                        sed 's+src/github.com/getlantern/++g' | \
+                        sed 's+/.*++' | \
+                        uniq)
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+$DIR/prehook.sh
