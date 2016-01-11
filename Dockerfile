@@ -4,17 +4,11 @@
 FROM fedora:21
 MAINTAINER "The Lantern Team" <team@getlantern.org>
 
-ENV GO_VERSION go1.5
-ENV GOROOT /usr/local/go
-ENV GOPATH /
-
-ENV PATH $PATH:$GOROOT/bin
-
 ENV WORKDIR /lantern
 ENV SECRETS /secrets
 
-# Go binary for bootstrapping.
-ENV GO_PACKAGE_URL https://storage.googleapis.com/golang/go1.5.2.linux-amd64.tar.gz
+RUN mkdir -p $WORKDIR
+RUN mkdir -p $SECRETS
 
 # Updating system.
 RUN yum update -y && yum makecache && yum clean packages
@@ -25,9 +19,6 @@ RUN yum install -y git tar gzip curl hostname && yum clean packages
 
 # Compilers and tools for CGO.
 RUN yum install -y gcc gcc-c++ libgcc.i686 gcc-c++.i686 pkg-config && yum clean packages
-
-# Getting Go.
-RUN curl -sSL $GO_PACKAGE_URL | tar -xvzf - -C /usr/local
 
 # Requisites for bootstrapping.
 RUN yum install -y glibc-devel glibc-static && yum clean packages
@@ -65,8 +56,15 @@ RUN yum install -y bzip2 && yum clean packages
 RUN yum install -y nodejs npm && yum clean packages
 RUN npm install -g gulp
 
-RUN mkdir -p $WORKDIR
-RUN mkdir -p $SECRETS
+# Getting Go.
+ENV GO_VERSION go1.5.2
+ENV GOROOT /usr/local/go
+ENV GOPATH /
+
+ENV PATH $PATH:$GOROOT/bin
+
+ENV GO_PACKAGE_URL https://storage.googleapis.com/golang/$GO_VERSION.linux-amd64.tar.gz
+RUN curl -sSL $GO_PACKAGE_URL | tar -xvzf - -C /usr/local
 
 # Expect the $WORKDIR volume to be mounted.
 VOLUME [ "$WORKDIR" ]
