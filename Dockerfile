@@ -27,6 +27,7 @@ RUN yum install -y glibc-devel.i686 glib2-static.i686 glibc-2.20-8.fc21.i686 lib
 # ARM EABI toolchain must be grabbed from an contributor repository, such as:
 # https://copr.fedoraproject.org/coprs/lantw44/arm-linux-gnueabi-toolchain/
 RUN yum install -y yum-utils && \
+  rpm --import https://copr-be.cloud.fedoraproject.org/results/lantw44/arm-linux-gnueabi-toolchain/pubkey.gpg && \
   yum-config-manager --add-repo=https://copr.fedoraproject.org/coprs/lantw44/arm-linux-gnueabi-toolchain/repo/fedora-21/lantw44-arm-linux-gnueabi-toolchain-fedora-21.repo && \
   yum install -y arm-linux-gnueabi-gcc arm-linux-gnueabi-binutils arm-linux-gnueabi-glibc && \
   yum clean packages
