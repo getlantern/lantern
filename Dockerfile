@@ -11,8 +11,7 @@ RUN mkdir -p $WORKDIR
 RUN mkdir -p $SECRETS
 
 # Updating system.
-RUN yum update -y && yum makecache && yum clean packages
-RUN yum install -y deltarpm && yum clean packages
+RUN yum install -y deltarpm && yum update -y && yum clean packages
 
 # Requisites for building Go.
 RUN yum install -y git tar gzip curl hostname && yum clean packages
