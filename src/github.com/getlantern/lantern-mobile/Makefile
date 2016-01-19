@@ -26,7 +26,7 @@ build-debug:
 
 build-tun2socks:
 	ndk-build
-	mkdir -p app/libs/armeabi-v7a 
+	mkdir -p app/libs/armeabi-v7a
 	cp libs/armeabi-v7a/libtun2socks.so app/libs/armeabi-v7a/
 
 build-lantern:
@@ -47,7 +47,7 @@ run:
 	echo $(MAIN_ACTIVITY)
 	adb shell am start -n $(PACKAGE)/$(MAIN_ACTIVITY)
 
-require-version: 
+require-version:
 	@if [[ -z "$$VERSION" ]]; then echo "VERSION environment value is required."; exit 1; fi
 
 require-s3cmd:
