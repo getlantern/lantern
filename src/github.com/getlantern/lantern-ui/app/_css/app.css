@@ -7798,7 +7798,7 @@ body[dir=rtl] .tooltip .vis {
   background: none;
 }
 #global-nav button {
-  border: none;  
+  border: none;
   outline: 0;
   z-index: -1;
   background: none;
@@ -7973,4 +7973,141 @@ body.giveMode #npending {
 #langchooser li.active {
   font-weight: bold;
   background-color: #5586ff;
+}
+
+/* Ad for Lantern mobile */
+
+#mobile-ad {
+  width: 627px;
+  height: 473px;
+  border: 1px solid #000;
+  text-align: center;
+
+  position: relative;
+  top: 230px;
+  margin: 0 auto;
+}
+
+#mobile-ad form {
+  padding: 0px;
+  margin: 0px;
+}
+
+#mobile-ad-image {
+  width: 625px;
+  height: 312px;
+}
+
+#mobile-ad #get-the-app-via-email {
+  width: 109px;
+  height: 16.8px;
+  padding: 0px;
+  margin: 0px;
+  margin-top: 20px;
+}
+
+#mobile-ad input {
+  color: #333;
+  border: none;
+  border-bottom: 1px solid #888;
+  border-radius: 0px;
+  font-size: 12pt;
+  width: 206px;
+  top: 20px;
+  padding: 0px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 0px;
+  height: 28px;
+  margin: 0 auto;
+
+  outline: none;
+  -webkit-box-shadow: none !important;
+  -moz-box-shadow: none !important;
+  box-shadow: none !important;
+}
+
+#mobile-ad button {
+  border: none;
+  margin: 0px;
+  padding: 0px;
+  width: 190px;
+  height: 42px;
+  top: 10px;
+  text-indent: -10000px;
+
+  display: block;
+  margin: 0 auto;
+}
+#mobile-ad .mail-input-wrapper {
+  display: block;
+}
+#mobile-ad .mail-input-wrapper .mail-input-icon {
+  margin-right: 10px;
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  background: url('../img/mobile-ad/email.svg');
+
+  text-indent: -10000px;
+}
+
+/* Tell your friends */
+#tell-your-friends {
+  text-align: center;
+}
+
+#tell-your-friends ul {
+  width: 314px;
+  height: 60px;
+  display: block;
+  margin: 0 auto;
+  margin-bottom: 80px;
+  margin-top: 40px;
+}
+#tell-your-friends ul li {
+  display: block;
+  padding: 0px;
+  margin: 0px;
+  float: left;
+  width: 52px;
+  margin-left: 26px;
+  text-align: center;
+}
+#tell-your-friends ul li a {
+  width: 52px;
+  height: 52px;
+  display: block;
+  text-indent: -10000px;
+}
+#tell-your-friends li.wechat a {
+  background: url('../img/mobile-ad/wechat.png');
+}
+#tell-your-friends li.weibo a {
+  background: url('../img/mobile-ad/weibo.png');
+}
+#tell-your-friends li.twitter a {
+  background: url('../img/mobile-ad/twitter.png');
+}
+#tell-your-friends li.facebook a {
+  background: url('../img/mobile-ad/facebook.png');
+}
+#tell-your-friends button {
+  border: none;
+  margin: 0px;
+  padding: 0px;
+  width: 128px;
+  height: 32px;
+  top: 10px;
+  text-indent: -10000px;
+
+  display: block;
+  margin: 0 auto;
+}
+
+
+.download-link {
+  font-size: 9pt;
+  display: block;
+  margin-top: 20px;
 }

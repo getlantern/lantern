@@ -256,3 +256,26 @@
     <button type="button" id="settings-close" class="btn btn-primary" ng-click="closeModal()">{{ 'CLOSE' | translate }}</button>
   </div>
 </div>
+
+<div ng-controller="MobileAdCtrl" ng-show="false && currentModal == 'lantern-mobile-ad'" modal="show" class="modal">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <h3>
+      {{ 'TELL_YOUR_FRIENDS' | translate }}
+    </h3>
+  </div>
+  <div class="modal-body" id="settings">
+    <div id="tell-your-friends">
+      <ul class="social-icons">
+        <li class="wechat"><a href="#">WeChat</a>WeChat</li>
+        <li class="weibo"><a href="#">Weibo</a>Weibo</li>
+        <li class="twitter"><a href="#">Twitter</a>Twitter</li>
+        <li class="facebook"><a href="#">Facebook</a>Facebook</li>
+      </ul>
+      <p class="download-link">
+        <b>Download Link:</b> <a href="https://s3.amazonaws.com/lantern-android/lantern-pro-beta.apk">https://s3.amazonaws.com/lantern-android/lantern-pro-beta.apk</a>
+      </p>
+      <button type="button" style="background: url('/img/mobile-ad/en/copy-link.svg')">Copy link</button>
+    </div>
+  </div>
+</div>

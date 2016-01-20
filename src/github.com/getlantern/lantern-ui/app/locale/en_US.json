@@ -262,6 +262,7 @@
   "BACKEND_MANUAL_NETWORK_PROMPT":"Lantern was unable to automatically configure your network. To fix this, you can either enable UPnP or NAT-PMP on your router, or you can manually map a port. Lantern can automatically open the configuration page, and you will need your user name and password. Please either forward external port 443 to internal port 44377 or enable UPnP or NAT-PMP if your router supports them.<br><br><center><a ng-click=\"openRouterConfig()\">Click here to open your router configuration screen.</a></center>",
   "BACKEND_MANUAL_NETWORK_SUCCESS":"Lantern is now able to proxy traffic!",
   "BACKEND_BROWSER_ERROR":"There was an unknown error opening your browser.",
+  "TELL_YOUR_FRIENDS": "Tell your friends about Lantern Mobile",
   "P": "petabyte",
   "T": "terabyte",
   "G": "gigabyte",

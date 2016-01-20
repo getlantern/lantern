@@ -1,12 +1,12 @@
 'use strict';
 
-app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$http', 
-               'localStorageService', 
+app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$http',
+               'localStorageService',
                function($rootScope, $scope, $compile, $window, $http, localStorageService) {
     $scope.currentModal = 'none';
 
     $scope.loadScript = function(src) {
-        (function() { 
+        (function() {
             var script  = document.createElement("script")
             script.type = "text/javascript";
             script.src  = src;
@@ -111,6 +111,14 @@ app.controller('SettingsCtrl', ['$scope', 'MODAL', 'DataStream', 'gaMgr', functi
 
   $scope.$watch('model.settings.proxyAllSites', function (proxyAllSites) {
     $scope.proxyAllSites = proxyAllSites;
+  });
+}]);
+
+app.controller('MobileAdCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
+  $scope.show = false;
+
+  $scope.$watch('model.modal', function (modal) {
+    $scope.show = modal === MODAL.settings;
   });
 }]);
 
