@@ -2,6 +2,7 @@ package org.getlantern.lantern.sdk;
 
 import android.content.Context;
 import android.util.Log;
+import android.webkit.WebView;
 
 import java.net.InetAddress;
 import java.io.FileOutputStream;
@@ -14,7 +15,6 @@ import java.util.HashMap;
  
 
 import go.client.*;
-import org.getlantern.lantern.sdk.Analytics;
 import org.getlantern.lantern.sdk.Utils;
 
 public class Lantern extends Client.Provider.Stub {
@@ -25,26 +25,28 @@ public class Lantern extends Client.Provider.Stub {
     private final String device = android.os.Build.DEVICE;
     private final String model = android.os.Build.MODEL;
     private final String version = "" + android.os.Build.VERSION.SDK_INT + " ("  + android.os.Build.VERSION.RELEASE + ")";
-    final private Analytics analytics;
     private Context context;
+    private String settingsDir;
     private String appName = "Lantern";
+    private String proxyHost = "127.0.0.1";
+    private int proxyPort = 8787;
     private Map settings = new HashMap();
     private boolean vpnMode = false;
 
     private Thread mThread;
 
     public Lantern() {
-        this.analytics = new Analytics(null);
+
     }
 
-    public Lantern(Context context) {
-        this(context, false);
+    public Lantern(Context context, String settingsDir) {
+        this(context, settingsDir, false);
     }
 
-    public Lantern(Context context, boolean vpnMode) {
+    public Lantern(Context context, String settingsDir, boolean vpnMode) {
         this.context = context;
+        this.settingsDir = settingsDir;
         this.vpnMode = vpnMode;
-        this.analytics = new Analytics(this.context);
     }
 
     public Map getSettings() {
@@ -56,7 +58,7 @@ public class Lantern extends Client.Provider.Stub {
     // for easy access from the backend
     public Map loadSettings() {
         try {
-            settings = Utils.loadSettings(this.context, settingsFile);
+            //settings = Utils.loadSettings(settingsDir, settingsFile);
             if (settings != null) {
                 appName = (String)settings.get("appname");
                 Log.d(TAG, "App running Lantern is " + appName);
@@ -69,20 +71,15 @@ public class Lantern extends Client.Provider.Stub {
         return settings;
     }
 
-    public void start() {
+    public void Start() {
         final Lantern lantern = this;
-        mThread = new Thread() {
-            public void run() {
-                try {
-                    Log.d(TAG, "About to start Lantern..");
-                    lantern.loadSettings();
-                    Client.Start(lantern);
-                } catch (final Exception e) {
-                    Log.e(TAG, "Fatal error while trying to run Lantern: " + e);
-                }
-            }
-        };
-        mThread.start();
+        try {
+            Log.d(TAG, "About to start Lantern..");
+            lantern.loadSettings();
+            Client.Start(lantern);
+        } catch (final Exception e) {
+            Log.e(TAG, "Fatal error while trying to run Lantern: " + e);
+        }
     }
 
     public void stop() {
@@ -106,15 +103,23 @@ public class Lantern extends Client.Provider.Stub {
     @Override
     public void AfterStart(String latestVersion, String host, String port) {
         Log.d(TAG, "Lantern successfully started; running version: " + latestVersion);
+
+        this.proxyHost = host;
+        this.proxyPort = Integer.parseInt(port);
+
         if (!VpnMode()) {
             System.setProperty("http.proxyHost", host);
             System.setProperty("http.proxyPort", port);
             System.setProperty("https.proxyHost", host);
             System.setProperty("https.proxyPort", port);
         }
-        analytics.sendNewSessionEvent();
+
     }
 
+    public void SetWebViewProxy(WebView webView) {
+        Log.d(TAG, "Updating webview proxy settings");
+        ProxySettings.setProxy(context, webView, proxyHost, proxyPort);
+    }
 
     @Override
     public String Model() {
@@ -144,13 +149,7 @@ public class Lantern extends Client.Provider.Stub {
     // LoadSettingsDir gets the path to the app's internal storage directory
     @Override
     public String SettingsDir() {
-        File f = this.context.getFilesDir();
-        String path = "";
-        if (f != null) {
-            path = f.getPath();
-            Log.d(TAG, "Got user settings dir: " + path);
-        }
-        return path;
+        return settingsDir;
     }
 
     // Notice is used to signal messages from Lantern

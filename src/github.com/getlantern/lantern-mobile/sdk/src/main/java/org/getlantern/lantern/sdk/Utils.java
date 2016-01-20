@@ -16,7 +16,6 @@ import java.util.HashMap;
 
 import org.yaml.snakeyaml.Yaml;
 
-
 public class Utils {
     private static final String PREFS_NAME = "LanternPrefs";
     private static final String TAG = "Utils";

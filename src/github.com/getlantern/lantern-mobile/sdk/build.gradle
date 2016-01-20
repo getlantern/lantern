@@ -5,7 +5,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
 group = 'org.getlantern'
-version = '1.6-SNAPSHOT'
+version = '1.9.5-SNAPSHOT'
 
 project.ext {
     groupId = 'org.getlantern'
@@ -46,8 +46,6 @@ repositories {
 
 android {
 
-    useLibrary 'org.apache.http.legacy'
-
     compileSdkVersion rootProject.compileSdkVersion
     buildToolsVersion rootProject.buildToolsVersion
 
@@ -67,6 +65,7 @@ android {
             }
             resources {
                 srcDir 'libs/jni'
+                jniLibs.srcDirs = ['libs/jni']
             }
         }
     }
@@ -144,67 +143,30 @@ uploadArchives {
     }
 }
 
+android.libraryVariants.all { variant ->
+
+    task("generate${variant.name}Javadoc", type: Javadoc) {
+        title = "$name $version API"
+            description "Generates Javadoc for $variant.name."
+            source = variant.javaCompile.source
+            ext.androidJar =
+            "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
+            classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
+            options.links("http://docs.oracle.com/javase/7/docs/api/");
+        options.links("http://d.android.com/reference/");
+        exclude '**/BuildConfig.java'
+            exclude '**/R.java'
+    }
+
+}
+
 dependencies {
-    compile fileTree(include: ['*.so', '*.jar'], dir: 'libs')
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     compile group: 'commons-io', name: 'commons-io', version: '2.0.1'
     compile group: 'org.yaml', name: 'snakeyaml', version: '1.10'
     compile 'com.android.support:appcompat-v7:22.0.0'
-    compile 'com.google.android.gms:play-services-analytics:7.0.0'
 }  
  
-
-publishing {
-    publications {
-        // Create different publications for every build types (debug and release)
-        android.buildTypes.all { variant ->
-            // Dynamically creating publications name
-            "${variant.name}Aar"(MavenPublication) {
-
-                def manifest = new XmlSlurper().parse(project.android.sourceSets.main.manifest.srcFile);
-                def libVersion = manifest['@android:versionName'].text()
-                def artifactName = project.getName()
-
-                // Artifact properties
-                groupId group
-                version = libVersion == '' ? version : libVersion
-                artifactId variant.name == 'debug' ? artifactName + '-dev' : artifactName
-
-                // Tell maven to prepare the generated "*.aar" file for publishing
-                artifact("$buildDir/outputs/aar/${project.getName()}-${variant.name}.aar")
-
-                pom.withXml {
-                    //Creating additional node for dependencies
-                    def dependenciesNode = asNode().appendNode('dependencies')
-
-                    //Defining configuration names from which dependencies will be taken (debugCompile or releaseCompile and compile)
-                    def configurationNames = ["${variant.name}Compile", 'compile']
-
-                    configurationNames.each { configurationName ->
-                        configurations[configurationName].allDependencies.each {
-                            if (it.group != null && it.name != null) {
-                                def dependencyNode = dependenciesNode.appendNode('dependency')
-                                dependencyNode.appendNode('groupId', it.group)
-                                dependencyNode.appendNode('artifactId', it.name)
-                                dependencyNode.appendNode('version', it.version)
-
-                                //If there are any exclusions in dependency
-                                if (it.excludeRules.size() > 0) {
-                                    def exclusionsNode = dependencyNode.appendNode('exclusions')
-                                    it.excludeRules.each { rule ->
-                                        def exclusionNode = exclusionsNode.appendNode('exclusion')
-                                        exclusionNode.appendNode('groupId', rule.group)
-                                        exclusionNode.appendNode('artifactId', rule.module)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
 task sourcesJar(type: Jar) {
     classifier = 'sources'
 }
