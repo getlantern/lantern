@@ -3,10 +3,6 @@ apply plugin: 'io.fabric'
 
 android {
 
-    android {
-        useLibrary 'org.apache.http.legacy'
-    }
-
     compileSdkVersion rootProject.compileSdkVersion
     buildToolsVersion rootProject.buildToolsVersion
 
@@ -58,7 +54,7 @@ repositories {
 }
 
 dependencies {
-    compile 'org.getlantern:android-sdk:1.6-SNAPSHOT@aar'
+    compile 'org.getlantern:android-sdk:1.9.6-SNAPSHOT@aar'
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile gplay
     compile appCompat
