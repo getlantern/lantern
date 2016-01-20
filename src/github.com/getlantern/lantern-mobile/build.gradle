@@ -22,8 +22,8 @@ ext {
     libflashlight = 'libflashlight+@aar'
 
 
-    compileSdkVersion = 23
-    targetSdkVersion = 23
+    compileSdkVersion = 22
+    targetSdkVersion = 22
     minSdkVersion = 15
     buildToolsVersion = '23.0.1'
     buildNumber = 'dev'
