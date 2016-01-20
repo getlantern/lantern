@@ -11,6 +11,7 @@ RUBY := $(shell which ruby 2> /dev/null)
 APPDMG := $(shell which appdmg 2> /dev/null)
 SVGEXPORT := $(shell which svgexport 2> /dev/null)
 
+DOCKERMACHINE := $(shell which docker-machine 2> /dev/null)
 BOOT2DOCKER := $(shell which boot2docker 2> /dev/null)
 
 GIT_REVISION_SHORTCODE := $(shell git rev-parse --short HEAD)
@@ -20,7 +21,7 @@ GIT_REVISION_DATE := $(shell git show -s --format=%ci $(GIT_REVISION_SHORTCODE))
 REVISION_DATE := $(shell date -u -j -f "%F %T %z" "$(GIT_REVISION_DATE)" +"%Y%m%d.%H%M%S" 2>/dev/null || date -u -d "$(GIT_REVISION_DATE)" +"%Y%m%d.%H%M%S")
 BUILD_DATE := $(shell date -u +%Y%m%d.%H%M%S)
 
-LOGGLY_TOKEN := 2b68163b-89b6-4196-b878-c1aca4bbdf84 
+LOGGLY_TOKEN := 2b68163b-89b6-4196-b878-c1aca4bbdf84
 
 LDFLAGS := -w -X=main.version=$(GIT_REVISION) -X=main.revisionDate=$(REVISION_DATE) -X=main.buildDate=$(BUILD_DATE) -X=github.com/getlantern/flashlight/logging.logglyToken=$(LOGGLY_TOKEN)
 LANTERN_DESCRIPTION := Censorship circumvention tool
@@ -70,14 +71,23 @@ endef
 
 define docker-up
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
-		if [[ -z "$(BOOT2DOCKER)" ]]; then \
-			echo 'Missing "boot2docker" command' && exit 1; \
-		fi && \
-		if [[ "$$($(BOOT2DOCKER) status)" != "running" ]]; then \
-			$(BOOT2DOCKER) up; \
-		fi && \
-		if [[ -z "$$DOCKER_HOST" ]]; then \
-			$$($(BOOT2DOCKER) shellinit 2>/dev/null); \
+		if [[ -z "$(DOCKERMACHINE)" ]]; then \
+		  if [[ -z "$(BOOT2DOCKER)" ]]; then \
+  			echo 'Missing "docker-machine" command' && exit 1; \
+			fi && \
+			echo "Falling back to using $(BOOT2DOCKER), recommend upgrading to latest docker toolbox from https://www.docker.com/docker-toolbox" && \
+			if [[ "$$($(BOOT2DOCKER) status)" != "running" ]]; then \
+				$(BOOT2DOCKER) up; \
+			fi && \
+			if [[ -z "$$DOCKER_HOST" ]]; then \
+				$$($(BOOT2DOCKER) shellinit 2>/dev/null); \
+			fi \
+		else \
+		  echo "Using $(DOCKERMACHINE)" && \
+			if [[ "$$($(DOCKERMACHINE) status default)" != "Running" ]]; then \
+				$(DOCKERMACHINE) start default; \
+			fi && \
+			$$($(DOCKERMACHINE) env default 2>/dev/null | head -4 | tr -d '"'); \
 		fi \
 	fi
 endef
@@ -230,7 +240,7 @@ docker-mobile:
 	cp $(LANTERN_MOBILE_DIR)/Dockerfile $$DOCKER_CONTEXT && \
 	docker build -t $(DOCKER_MOBILE_IMAGE_TAG) $$DOCKER_CONTEXT
 
-linux: genassets linux-386 linux-amd64 
+linux: genassets linux-386 linux-amd64
 
 windows: genassets windows-386
 
@@ -354,7 +364,7 @@ package-darwin-manoto: require-version require-appdmg require-svgexport darwin
 		echo "-> Skipped: Can not generate a package on a non-OSX host."; \
 	fi;
 
-package-darwin: package-darwin-manoto 
+package-darwin: package-darwin-manoto
 	@echo "Generating distribution package for darwin/amd64..." && \
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		INSTALLER_RESOURCES="installer-resources/darwin" && \
@@ -465,7 +475,7 @@ test-and-cover:
 		source envvars.bash; \
 	fi && \
 	for pkg in $$(cat testpackages.txt); do \
-		go test -v -covermode=count -coverprofile=profile_tmp.cov $$pkg || exit 1; \
+		go test -v -tags="headless" -covermode=count -coverprofile=profile_tmp.cov $$pkg || exit 1; \
 		tail -n +2 profile_tmp.cov >> profile.cov; \
 	done
 
@@ -479,6 +489,20 @@ android-lib: docker-mobile
 	cd $(LANTERN_MOBILE_DIR)
 	@$(call docker-up) && \
 	$(DOCKER) run -v $$PWD/src:/src $(DOCKER_MOBILE_IMAGE_TAG) /bin/bash -c \ "cd /src/github.com/getlantern/lantern-mobile && gomobile bind -target=android -o=$(LANTERN_MOBILE_LIBRARY) -ldflags="$(LDFLAGS)" ." && \
+	if [ -d "$(FIRETWEET_MAIN_DIR)" ]; then \
+		cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) $(FIRETWEET_MAIN_DIR)/libs/$(LANTERN_MOBILE_LIBRARY); \
+	else \
+		echo ""; \
+		echo "Either no FIRETWEET_MAIN_DIR variable was passed or the given value is not a";\
+		echo "directory. You'll have to copy the $(LANTERN_MOBILE_LIBRARY) file manually:"; \
+		echo ""; \
+		echo "cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) \$$FIRETWEET_MAIN_DIR"; \
+	fi
+
+android-lib-local:
+	@source setenv.bash && \
+	cd $(LANTERN_MOBILE_DIR) && \
+	gomobile bind -target=android -o=$(LANTERN_MOBILE_LIBRARY) -ldflags="$(LDFLAGS)" . && \
 	if [ -d "$(FIRETWEET_MAIN_DIR)" ]; then \
 		cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) $(FIRETWEET_MAIN_DIR)/libs/$(LANTERN_MOBILE_LIBRARY); \
 	else \

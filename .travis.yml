@@ -2,7 +2,7 @@ language: go
 go:
 - 1.4.3
 install:
-- sudo apt-get install make libgtk-3-dev libappindicator3-dev -y
+- sudo apt-get install make -y
 - go get golang.org/x/tools/cmd/cover
 - go get -v github.com/axw/gocov/gocov
 - go get -v github.com/mattn/goveralls

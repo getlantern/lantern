@@ -143,30 +143,61 @@ func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
 		}
 	}()
 
-	for i := 0; i < 2; i++ {
-		select {
-		case resp := <-responses:
-			if i == 1 {
-				log.Debugf("Got second response -- sending")
-				return resp, nil
-			} else if success(resp) {
-				log.Debugf("Got good response")
-				// Returning preemptively here means the second response
-				// will not be closed properly. We need to ultimately
-				// handle that.
-				return resp, nil
-			} else {
-				log.Debugf("Got bad first response -- wait for second")
+	// Create channels for the final response or error. The response channel will be filled
+	// in the case of any successful response as well as a non-error response for the second
+	// response received. The error channel will only be filled if the first response is
+	// unsuccessful and the second is an error.
+	finalResponseCh := make(chan *http.Response, 1)
+	finalErrorCh := make(chan error, 1)
+
+	go readResponses(finalResponseCh, responses, finalErrorCh, errs)
+
+	select {
+	case resp := <-finalResponseCh:
+		return resp, nil
+	case err := <-finalErrorCh:
+		return nil, err
+	}
+}
+
+func readResponses(finalResponse chan *http.Response, responses chan *http.Response, finalErr chan error, errs chan error) {
+	select {
+	case resp := <-responses:
+		if success(resp) {
+			log.Debug("Got good first response")
+			finalResponse <- resp
+
+			// Just ignore the second response, but still process it.
+			select {
+			case resp := <-responses:
+				log.Debug("Closing second response body")
 				_ = resp.Body.Close()
+				return
+			case <-errs:
+				log.Debug("Ignoring error on second response")
+				return
 			}
-		case err := <-errs:
-			log.Debugf("Got an error: %v", err)
-			if i == 1 {
-				return nil, errors.New("All requests errored")
+		} else {
+			log.Debugf("Got bad first response -- wait for second")
+			_ = resp.Body.Close()
+			// Just use whatever we get from the second response.
+			select {
+			case resp := <-responses:
+				finalResponse <- resp
+			case err := <-errs:
+				finalErr <- err
 			}
 		}
+	case err := <-errs:
+		log.Debugf("Got an error: %v", err)
+		// Just use whatever we get from the second response.
+		select {
+		case resp := <-responses:
+			finalResponse <- resp
+		case err := <-errs:
+			finalErr <- err
+		}
 	}
-	return nil, errors.New("Reached end")
 }
 
 // PersistentHTTPClient creates an http.Client that persists across requests.
@@ -219,7 +250,6 @@ func httpClient(rootCA string, proxyAddr string, persistent bool) (*http.Client,
 	}
 
 	if proxyAddr != "" {
-
 		host, _, err := net.SplitHostPort(proxyAddr)
 		if err != nil {
 			return nil, fmt.Errorf("Unable to split host and port for %v: %v", proxyAddr, err)
@@ -232,20 +262,15 @@ func httpClient(rootCA string, proxyAddr string, persistent bool) (*http.Client,
 			proxyAddr = host + proxyAddr
 		}
 
-		if isLoopback(host) {
-			log.Debugf("Waiting for loopback proxy server to came online...")
-			// Waiting for proxy server to came online.
-			err := waitforserver.WaitForServer("tcp", proxyAddr, 60*time.Second)
-			if err != nil {
-				// Instead of finishing here we just log the error and continue, the client
-				// we are going to create will surely fail when used and return errors,
-				// those errors should be handled by the code that depends on such client.
-				log.Errorf("Proxy never came online at %v: %q", proxyAddr, err)
-			}
-			log.Debugf("Connected to proxy on localhost")
-		} else {
-			log.Errorf("Attempting to proxy through server other than loopback %v", host)
+		log.Debugf("Waiting for proxy server to came online...")
+		// Waiting for proxy server to came online.
+		if err := waitforserver.WaitForServer("tcp", proxyAddr, 60*time.Second); err != nil {
+			// Instead of finishing here we just log the error and continue, the client
+			// we are going to create will surely fail when used and return errors,
+			// those errors should be handled by the code that depends on such client.
+			log.Errorf("Proxy never came online at %v: %q", proxyAddr, err)
 		}
+		log.Debugf("Connected to proxy")
 
 		tr.Proxy = func(req *http.Request) (*url.URL, error) {
 			return url.Parse("http://" + proxyAddr)
@@ -254,15 +279,4 @@ func httpClient(rootCA string, proxyAddr string, persistent bool) (*http.Client,
 		log.Errorf("Using direct http client with no proxyAddr")
 	}
 	return &http.Client{Transport: tr}, nil
-}
-
-func isLoopback(host string) bool {
-	if host == "localhost" {
-		return true
-	}
-	var ip net.IP
-	if ip = net.ParseIP(host); ip != nil {
-		return ip.IsLoopback()
-	}
-	return false
 }

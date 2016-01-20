@@ -12,6 +12,7 @@ import (
 	"github.com/getlantern/balancer"
 	"github.com/getlantern/detour"
 	"github.com/getlantern/flashlight/proxy"
+	"github.com/getlantern/flashlight/settings"
 	"github.com/getlantern/flashlight/status"
 )
 
@@ -26,11 +27,13 @@ type authTransport struct {
 // and we also need to strip out X-Forwarded-For that reverseproxy adds because
 // it confuses the upstream servers with the additional 127.0.0.1 field when
 // upstream servers are trying to determin the client IP.
+// We need to add also the X-Lantern-Device-Id field.
 func (at *authTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
 	norm := new(http.Request)
 	*norm = *req // includes shallow copies of maps, but okay
 	norm.Header.Del("X-Forwarded-For")
 	norm.Header.Set("X-LANTERN-AUTH-TOKEN", at.balancedDialer.AuthToken)
+	norm.Header.Set("X-LANTERN-DEVICE-ID", settings.GetInstanceID())
 	return at.Transport.RoundTrip(norm)
 }
 
@@ -130,20 +133,33 @@ type errorRewritingRoundTripper struct {
 func (er *errorRewritingRoundTripper) RoundTrip(req *http.Request) (resp *http.Response, err error) {
 	res, err := er.orig.RoundTrip(req)
 	if err != nil {
+		var htmlerr []byte
 
-		// It is likely we will have lots of different errors to handle but for now
-		// we will only return a ErrorAccessingPage error.  This prevents the user
-		// from getting just a blank screen.
-		htmlerr, err := status.ErrorAccessingPage(req.Host, err)
-
-		if err != nil {
-			log.Debugf("Got error while generating status page: %q", err)
+		// If the request has an 'Accept' header preferring HTML, or
+		// doesn't have that header at all, render the error page.
+		switch req.Header.Get("Accept") {
+		case "text/html":
+			fallthrough
+		case "application/xhtml+xml":
+			fallthrough
+		case "":
+			// It is likely we will have lots of different errors to handle but for now
+			// we will only return a ErrorAccessingPage error.  This prevents the user
+			// from getting just a blank screen.
+			htmlerr, err = status.ErrorAccessingPage(req.Host, err)
+			if err != nil {
+				log.Debugf("Got error while generating status page: %q", err)
+			}
+		default:
+			// We know for sure that the requested resource is not HTML page,
+			// wrap the error message in http content, or http.ReverseProxy
+			// will response 500 Internal Server Error instead.
+			htmlerr = []byte(err.Error())
 		}
 
 		res = &http.Response{
 			Body: ioutil.NopCloser(bytes.NewBuffer(htmlerr)),
 		}
-
 		res.StatusCode = http.StatusServiceUnavailable
 		return res, nil
 	}
