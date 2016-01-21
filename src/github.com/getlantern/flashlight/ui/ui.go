@@ -34,6 +34,11 @@ var (
 )
 
 func init() {
+	// skip Android
+	if runtime.GOOS == "android" {
+		return
+	}
+
 	// Assume the default directory containing UI assets is
 	// a sibling directory to this file's directory.
 	localResourcesPath := ""

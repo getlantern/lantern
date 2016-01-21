@@ -79,11 +79,6 @@ func Load(version, revisionDate, buildDate string) *Settings {
 		}
 	}
 
-	if err := yaml.Unmarshal(bytes, settings); err != nil {
-		log.Errorf("Could not load yaml %v", err)
-		// Just keep going with the original settings not from disk.
-	}
-
 	// don't create an launch file on android
 	if runtime.GOOS != "android" && settings.AutoLaunch {
 		launcher.CreateLaunchFile(settings.AutoLaunch)

@@ -30,7 +30,7 @@
                     <action android:name="android.intent.action.ACTION_SHUTDOWN" />
                     <action android:name="android.intent.action.SCREEN_ON" />
                     <action android:name="android.intent.action.SCREEN_OFF" />
-                    <action android:name="android.Intent.ACTION_USER_PRESENT" />
+                    <action android:name="android.intent.action.USER_PRESENT" />
                 </intent-filter> 
             </receiver>
 

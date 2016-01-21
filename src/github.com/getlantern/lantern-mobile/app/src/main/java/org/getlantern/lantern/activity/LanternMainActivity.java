@@ -257,14 +257,8 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
             Handler h = new Handler();
             h.postDelayed(new Runnable () {
                 public void run() {
-                    Intent pIntent = Service.prepare(activity);
-                    if (pIntent == null) {
-                        context.startService(new Intent(context, Service.class));
-                    } else {
-                        startActivityForResult(intent, REQUEST_VPN);
-                    }
+                    enableVPN();
                 }
-
             }, 1000);
         }  
     }
@@ -302,8 +296,8 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
             String action = intent.getAction();
             if (action.equals(Intent.ACTION_SHUTDOWN)) {
                 Utils.clearPreferences(context);
-            } else if (action.equals(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION) || action.equals(Intent.ACTION_USER_PRESENT)) {
-                restart(context, intent);
+            } else if (action.equals(Intent.ACTION_USER_PRESENT)) {
+                //restart(context, intent);
             }
         }
     }
