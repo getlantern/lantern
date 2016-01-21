@@ -128,6 +128,7 @@ func LookupIPWithEndpoint(endpoint string, ipAddr string, fetcher HTTPFetcher) (
 
 	frontedUrl := fmt.Sprintf(cloudfrontEndpoint, ipAddr)
 
+	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Lantern-Fronted-URL", frontedUrl)
 	log.Debugf("Fetching ip...")
 	if resp, err = fetcher.Do(req); err != nil {

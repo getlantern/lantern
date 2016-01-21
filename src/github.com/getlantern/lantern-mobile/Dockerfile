@@ -5,8 +5,7 @@
 FROM fedora:22
 MAINTAINER "Ulysses Aalto" <uaalto@getlantern.org>
 
-ENV GO_VERSION go1.4.3
-ENV GOROOT_BOOTSTRAP /go1.4
+ENV GOROOT_BOOTSTRAP /go1.5
 ENV GOROOT /go
 ENV GOPATH /
 
@@ -22,23 +21,28 @@ RUN dnf install -y git tar patch gzip curl hostname pcre-devel && dnf clean all
 # Compilers and tools for CGO.
 RUN dnf install -y gcc gcc-c++ libgcc.i686 gcc-c++.i686 glibc-static pkgconfig && dnf clean all
 
+# Requisites for bootstrapping.
+RUN dnf install -y glibc-devel glibc-static && dnf clean all
+RUN dnf install -y glibc-devel.i686 glib2-static.i686 glibc.i686 && dnf clean all
+
+# Debugging
+RUN dnf install -y make vim strace tmux && dnf clean all
+
 # Install Go.
-#   1) 1.4 for bootstrap.
-ENV GOROOT_BOOTSTRAP /go1.4
-RUN (curl -sSL https://golang.org/dl/go1.4.linux-amd64.tar.gz | tar -vxz -C /tmp) && \
+#   1) 1.5 for bootstrap.
+ENV GOROOT_BOOTSTRAP /go1.5
+RUN (curl -sSL https://golang.org/dl/go1.5.2.linux-amd64.tar.gz | tar -vxz -C /tmp) && \
 	mv /tmp/go $GOROOT_BOOTSTRAP
 
 #   2) Download and cross compile the Go on revision GOREV.
 #
 # GOVERSION string is the output of 'git log -n 1 --format="format: devel +%h %cd" HEAD'
 # like in go tool dist.
-# Revision picked on Jul 13, 2015.
-ENV GO_REV go1.5rc1
-ENV GO_VERSION devel +0d20a61 Thu Aug 6 04:06:12 2015 +0000
+ENV GO_REV go1.5.2
+ENV GO_VERSION go1.5.2
 
 ENV GOROOT /go
-ENV GOPATH /
-ENV PATH $PATH:$GOROOT/bin
+ENV PATH $GOROOT/bin:$PATH
 
 RUN mkdir -p $GOROOT && \
     curl -sSL "https://go.googlesource.com/go/+archive/$GO_REV.tar.gz" | tar -vxz -C $GOROOT
@@ -54,8 +58,10 @@ RUN echo y | $ANDROID_HOME/tools/android update sdk --no-ui --all --filter build
 	echo y | $ANDROID_HOME/tools/android update sdk --no-ui --all --filter android-19
 
 # Install and initialize gomobile
-RUN go get golang.org/x/mobile/cmd/gomobile
-RUN gomobile init
+RUN go get -v golang.org/x/mobile/cmd/gomobile
+RUN gomobile init -v
+
+RUN dnf install -y zip unzip && dnf clean all
 
 RUN mkdir -p $WORKDIR
 
