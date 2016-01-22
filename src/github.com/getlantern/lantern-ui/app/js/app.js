@@ -34,12 +34,13 @@ var app = angular.module('app', [
   .config(function($tooltipProvider, $httpProvider,
                    $resourceProvider, $translateProvider, DEFAULT_LANG) {
 
-      $translateProvider.preferredLanguage(DEFAULT_LANG);
-
-      $translateProvider.useStaticFilesLoader({
+      $translateProvider.fallbackLanguage(DEFAULT_LANG).
+        determinePreferredLanguage().
+        useStaticFilesLoader({
           prefix: './locale/',
           suffix: '.json'
-      });
+        });
+
     $httpProvider.defaults.useXDomain = true;
     delete $httpProvider.defaults.headers.common["X-Requested-With"];
     //$httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';

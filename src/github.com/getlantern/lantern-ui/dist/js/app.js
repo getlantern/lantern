@@ -198,8 +198,8 @@ var app = angular.module('app', [
     };
 
     $rootScope.switchLang = function (lang) {
-        $rootScope.lang = lang;
-        $translate.use(lang);
+      $rootScope.lang = lang;
+      $translate.use(lang);
     };
 
     $rootScope.trackPageView = function() {
@@ -208,7 +208,7 @@ var app = angular.module('app', [
 
     $rootScope.valByLang = function(name) {
         // use language-specific forums URL
-        if (name && $rootScope.lang && 
+        if (name && $rootScope.lang &&
             name.hasOwnProperty($rootScope.lang)) {
             return name[$rootScope.lang];
         }
@@ -919,13 +919,13 @@ angular.module('app.services', [])
 
 'use strict';
 
-app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$http', 
-               'localStorageService', 
+app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$http',
+               'localStorageService',
                function($rootScope, $scope, $compile, $window, $http, localStorageService) {
     $scope.currentModal = 'none';
 
     $scope.loadScript = function(src) {
-        (function() { 
+        (function() {
             var script  = document.createElement("script")
             script.type = "text/javascript";
             script.src  = src;
@@ -1186,7 +1186,7 @@ angular.forEach(['x', 'y', 'cx', 'cy', 'd', 'fill', 'r'], function(name) {
   directives.directive(ngName, function() {
     return function(scope, element, attrs) {
       attrs.$observe(ngName, function(value) {
-        attrs.$set(name, value); 
+        attrs.$set(name, value);
       })
     };
   });
@@ -1259,19 +1259,19 @@ angular.module('app.vis', ['ngSanitize'])
       var unwatch = scope.$watch('model.countries', function (countries) {
         if (!countries) return;
         d3.select(element[0]).selectAll('path').each(function (d) {
-          var censors = !!getByPath(countries, '/'+d.alpha2+'/censors'); 
+          var censors = !!getByPath(countries, '/'+d.alpha2+'/censors');
           if (censors) {
             d3.select(this).classed('censors', censors);
           }
         });
         unwatch();
       }, true);
-      
+
       // Format connectivity ip for display
       scope.$watch('model.connectivity', function(connectivity) {
         if (connectivity) {
           if (model.dev) {
-            connectivity.formattedIp = " (" + connectivity.ip + ")"; 
+            connectivity.formattedIp = " (" + connectivity.ip + ")";
           }
         }
       });
@@ -1302,10 +1302,10 @@ angular.module('app.vis', ['ngSanitize'])
             }
           });
       });
-      
+
       /*
        * Every time that our list of countries changes, do the following:
-       * 
+       *
        * - Iterate over all countries to fine the maximum number of peers online
        *   (used for scaling opacity of countries)
        * - Update the opacity for every country based on our new scale
@@ -1321,20 +1321,20 @@ angular.module('app.vis', ['ngSanitize'])
         var npeersOnline, oldNpeersOnline;
         var updated;
         var changedCountries;
-        
+
         for (countryCode in newCountries) {
           newCountry = newCountries[countryCode];
           oldCountry = oldCountries ? oldCountries[countryCode] : null;
           npeersOnline = getByPath(newCountry, '/npeers/online/giveGet') || 0;
           oldNpeersOnline = oldCountry ? getByPath(oldCountry, '/npeers/online/giveGet') || 0 : 0;
-          
+
           npeersOnlineByCountry[countryCode] = npeersOnline;
-          
+
           // Remember the maxNpeersOnline
           if (npeersOnline > maxNpeersOnline) {
             maxNpeersOnline = npeersOnline;
           }
-          
+
           // Country changed number of peers online, flag it
           if (npeersOnline !== oldNpeersOnline) {
             if (!firstChangedCountry) {
@@ -1344,16 +1344,16 @@ angular.module('app.vis', ['ngSanitize'])
             firstChangedCountry = false;
           }
         }
-        
+
         // Update opacity for all known countries
         strokeOpacityScale.domain([0, maxNpeersOnline]);
         d3.select(element[0]).selectAll("path.COUNTRY_KNOWN").attr('stroke-opacity', function(d) {
           return strokeOpacityScale(npeersOnlineByCountry[d.alpha2] || 0);
         });
-        
+
         // Flash update for changed countries
         if (changedCountriesSelector.length > 0) {
-          changedCountries = d3.select(element[0]).selectAll(changedCountriesSelector); 
+          changedCountries = d3.select(element[0]).selectAll(changedCountriesSelector);
           changedCountries.classed("updating", true);
           $timeout(function () {
             changedCountries.classed('updating', false);
@@ -1391,60 +1391,60 @@ angular.module('app.vis', ['ngSanitize'])
           </div> \
         </div> \
       </div>";
-      
+
       // Scaling function for our connection opacity
       var connectionOpacityScale = d3.scale.linear()
         .clamp(true).domain([0, 0]).range([0, .9]);
-      
+
       // Functions for calculating arc dimensions
       function getTotalLength(d) { return this.getTotalLength() || 0.0000001; }
       function getDashArray(d) { var l = this.getTotalLength(); return l+' '+l; }
-      
+
       // Peers are uniquely identified by their peerid.
       function peerIdentifier(peer) {
         return peer.peerid;
       }
-      
+
       /**
        * Return the CSS escaped version of the peer identifier
        */
       function escapedPeerIdentifier(peer) {
         return cssesc(peerIdentifier(peer), {isIdentifier: true});
       }
-      
+
       var peersContainer = d3.select(element[0]);
-      
+
       /*
        * Every time that our list of peers changes, we do the following:
-       * 
+       *
        * For new peers only:
-       * 
+       *
        * - Create an SVG group to contain everything related to that peer
        * - Create another SVG group to contain their dot/tooltip
        * - Add dots to show them on the map
        * - Add a hover target around the dot that activates a tooltip
        * - Bind those tooltips to the peer's data using Angular
        * - Add an arc connecting the user's dot to the peer
-       * 
+       *
        * For all peers:
-       * 
+       *
        * - Adjust the position of the peer dots
        * - Adjust the style of the peer dots based on whether or not the peer
        *   is currently connected
-       * 
+       *
        * For all connecting arcs:
-       * 
+       *
        * - Adjust the path of the arc based on the peer's current position
        * - If the peer has become connected, animate it to become visible
        * - If the peer has become disconnected, animate it to become hidden
        * - note: the animation is done in bulk for all connected/disconnected
        *   arcs
-       * 
+       *
        * For disappeared peers:
-       * 
+       *
        * - Remove their group, which removes everything associated with that
        *   peer
-       * 
+       *
        */
       function renderPeers(peers, oldPeers) {
         if (!peers) return;
@@ -1452,7 +1452,7 @@ angular.module('app.vis', ['ngSanitize'])
         // disregard peers on null island
         peers = noNullIsland(peers);
         oldPeers = noNullIsland(oldPeers);
-      
+
         // Figure out our maxBps
         var maxBpsUpDn = 0;
         peers.forEach(function(peer) {
@@ -1462,12 +1462,12 @@ angular.module('app.vis', ['ngSanitize'])
         if (maxBpsUpDn !== connectionOpacityScale.domain()[1]) {
           connectionOpacityScale.domain([0, maxBpsUpDn]);
         }
-        
+
         // Set up our d3 selections
         var allPeers = peersContainer.selectAll("g.peerGroup").data(peers, peerIdentifier);
         var newPeers = allPeers.enter().append("g").classed("peerGroup", true);
         var departedPeers = allPeers.exit();
-        
+
         // Add groups for new peers, including tooltips
         var peerItems = newPeers.append("g")
           .attr("id", peerIdentifier)
@@ -1484,11 +1484,11 @@ angular.module('app.vis', ['ngSanitize'])
             }
             $compile(this)(childScope);
           });
-        
+
         // Create points and hover areas for each peer
         peerItems.append("path").classed("peer", true);
         peerItems.append("path").classed("peer-hover-area", true);
-        
+
         // Configure points and hover areas on each update
         allPeers.select("g.peer path.peer").attr("d", function(peer) {
             return scope.path({type: 'Point', coordinates: [peer.lon, peer.lat]})
@@ -1507,12 +1507,12 @@ angular.module('app.vis', ['ngSanitize'])
         .attr("d", function(peer) {
           return scope.path({type: 'Point', coordinates: [peer.lon, peer.lat]}, 6);
         });
-        
+
         // Add arcs for new peers
         newPeers.append("path")
           .classed("connection", true)
           .attr("id", function(peer) { return "connection_to_" + peerIdentifier(peer); });
-        
+
           // Set paths for arcs for all peers
           allPeers.select("path.connection")
           .attr("d", scope.pathConnection)
@@ -1526,13 +1526,13 @@ angular.module('app.vis', ['ngSanitize'])
         var newlyDisconnectedPeersSelector = "";
         var firstNewlyDisconnectedPeer = true;
         var oldPeersById = {};
-        
+
         if (oldPeers) {
           oldPeers.forEach(function(oldPeer) {
             oldPeersById[peerIdentifier(oldPeer)] = oldPeer;
           });
         }
-        
+
         // Find out which peers have had status changes
         peers.forEach(function(peer) {
           var peerId = peerIdentifier(peer);
@@ -1556,7 +1556,7 @@ angular.module('app.vis', ['ngSanitize'])
             }
           }
         });
-        
+
         if (newlyConnectedPeersSelector) {
           peersContainer.selectAll(newlyConnectedPeersSelector)
             .transition().duration(500)
@@ -1567,7 +1567,7 @@ angular.module('app.vis', ['ngSanitize'])
                   .classed('active', true);
               }).attr('stroke-dashoffset', 0);
         }
-        
+
         if (newlyDisconnectedPeersSelector) {
           peersContainer.selectAll(newlyDisconnectedPeersSelector)
             .transition().duration(500)
@@ -1578,16 +1578,16 @@ angular.module('app.vis', ['ngSanitize'])
                 .classed('active', false);
             }).attr('stroke-dashoffset', getTotalLength);
         }
-        
+
         // Remove departed peers
         departedPeers.remove();
 
         scope.redraw(scope.zoom.translate(), scope.zoom.scale());
       }
-      
+
       // Handle model changes
       scope.$watch('model.peers', renderPeers, true);
-      
+
       // Handle resize
       scope.$on("mapResized", function() {
 
@@ -1598,12 +1598,12 @@ angular.module('app.vis', ['ngSanitize'])
 
         // The above render call left the arcs alone because there were no
         // changes.  We now need to do some additional maintenance on the arcs.
-        
+
         // First clear the stroke-dashoffset and stroke-dasharray for all connections
         peersContainer.selectAll("path.connection")
           .attr("stroke-dashoffset", null)
           .attr("stroke-dasharray", null);
-        
+
         // Then for active connections, update their values
         peersContainer.selectAll("path.connection.active")
           .attr("stroke-dashoffset", 0)
@@ -1637,7 +1637,7 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
       var lon = self.getAttribute("lon");
       if (self.getAttribute('d') != null &&
           lat != '' && lon != '') {
-        var d = {type: 'Point', coordinates: [lon, 
+        var d = {type: 'Point', coordinates: [lon,
                 lat]};
         self.setAttribute('d', path(d));
       }
@@ -1650,7 +1650,7 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
       var strokeWidth = Math.min(0.5, 1/scale);
       path.pointRadius(scaleFactor);
       $scope.scaleSelf(scaleFactor);
-      d3.selectAll("#countries path").attr("stroke-width", 
+      d3.selectAll("#countries path").attr("stroke-width",
         strokeWidth);
       d3.selectAll("path.connection").attr("stroke-width",
         strokeWidth);
@@ -1668,16 +1668,16 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
       } else {
           $scope.filterBlur.attr("stdDeviation", 0.8);
       }
-      
+
   }
-  
+
   // Constrain translate to prevent panning off map
   function constrainTranslate(translate, scale) {
-    var vz = document.getElementById('vis'); 
+    var vz = document.getElementById('vis');
     var w = vz.offsetWidth;
     var h = vz.offsetHeight;
     var topLeft = [0, 0];
-    var bottomRight = [w * (scale - 1), h * (scale - 1)];  
+    var bottomRight = [w * (scale - 1), h * (scale - 1)];
     bottomRight[0] = -1 * bottomRight[0];
     bottomRight[1] = -1 * bottomRight[1];
     return [ Math.max(Math.min(translate[0], topLeft[0]), bottomRight[0]),
@@ -1690,23 +1690,23 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
       scale = !scale ? d3.event.scale : scale;
 
       translate = constrainTranslate(translate, scale);
-      
+
       // Update the translate on the D3 zoom behavior to our constrained
       // value to keep them in sync.
       $scope.zoom.translate(translate);
-      
+
       /* reset translation matrix */
-      $scope.transMatrix = [scale, 0, 0, scale, 
+      $scope.transMatrix = [scale, 0, 0, scale,
         translate[0], translate[1]];
 
-      d3.select("#zoomGroup").attr("transform", 
+      d3.select("#zoomGroup").attr("transform",
         "translate(" + translate.join(",") + ")scale(" + scale + ")");
-    
+
       scaleMapElements(scale);
 
   };
 
-  $scope.zoom = d3.behavior.zoom().scaleExtent([1,10]).on("zoom", 
+  $scope.zoom = d3.behavior.zoom().scaleExtent([1,10]).on("zoom",
                 $scope.redraw);
 
    /* apply zoom behavior to container if we're running in webview since
@@ -1714,8 +1714,8 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
    d3.select(isSafari ? '#vis' : 'svg').call($scope.zoom);
    $scope.svg = d3.select('svg');
    $scope.filterBlur = $scope.svg.append("filter").attr("id", "defaultBlur").append("feGaussianBlur").attr("stdDeviation", "1");
-  
-  /* translation matrix on container zoom group element 
+
+  /* translation matrix on container zoom group element
   *  used for combining scaling and translation transformations
   *  and for programmatically setting scale and zoom settings
   * */
@@ -1755,7 +1755,7 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
       translate = constrainTranslate(translate, $scope.transMatrix[0]);
       $scope.transMatrix[4] = translate[0];
       $scope.transMatrix[5] = translate[1];
-      
+
       var newMatrix = "matrix(" +  $scope.transMatrix.join(' ') + ")";
       d3.select("#zoomGroup").attr("transform", newMatrix);
 
@@ -1773,14 +1773,14 @@ app.controller('VisCtrl', ['$scope', '$rootScope', '$compile', '$window', '$time
 
   $scope.pathConnection = function (peer) {
     var MINIMUM_PEER_DISTANCE_FOR_NORMAL_ARCS = 30;
-    
+
     var pSelf = projection([model.location.lon, model.location.lat]),
         pPeer = projection([peer.lon, peer.lat]),
         xS = pSelf[0], yS = pSelf[1], xP = pPeer[0], yP = pPeer[1];
-    
+
     var distanceBetweenPeers = Math.sqrt(Math.pow(xS - xP, 2) + Math.pow(yS - yP, 2));
     var xL, xR, yL, yR;
-    
+
     if (distanceBetweenPeers < MINIMUM_PEER_DISTANCE_FOR_NORMAL_ARCS) {
       // Peer and self are very close, draw a loopy arc
       // Make sure that the arc's line doesn't cross itself by ordering the
