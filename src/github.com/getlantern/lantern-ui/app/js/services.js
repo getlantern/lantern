@@ -65,6 +65,10 @@ angular.module('app.services', [])
             model.location.resolved = true;
         }
       },
+      'Ad': function(data) {
+        console.log('model Ad');
+        model.ad = {}
+      },
       'Settings': function(data) {
         console.log('Got Lantern default settings: ', data);
         if (data && data.Version) {

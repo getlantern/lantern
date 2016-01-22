@@ -12,6 +12,7 @@ var app = angular.module('app', [
   'app.vis',
   'ngSanitize',
   'ngResource',
+  'ngclipboard',
   'ui.utils',
   'ui.showhide',
   'ui.validate',
@@ -208,7 +209,7 @@ var app = angular.module('app', [
 
     $rootScope.valByLang = function(name) {
         // use language-specific forums URL
-        if (name && $rootScope.lang && 
+        if (name && $rootScope.lang &&
             name.hasOwnProperty($rootScope.lang)) {
             return name[$rootScope.lang];
         }
@@ -285,3 +286,7 @@ var app = angular.module('app', [
       }
     });
   });
+
+app.filter('urlencode', function() {
+    return window.encodeURIComponent;
+});

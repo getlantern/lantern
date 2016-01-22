@@ -257,9 +257,9 @@
   </div>
 </div>
 
-<div ng-controller="MobileAdCtrl" ng-show="false && currentModal == 'lantern-mobile-ad'" modal="show" class="modal">
+<div ng-controller="MobileAdCtrl" ng-show="currentModal == 'lantern-mobile-ad'" modal="show" class="modal">
   <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close" ng-click="closeModal()"><span aria-hidden="true">&times;</span></button>
     <h3>
       {{ 'TELL_YOUR_FRIENDS' | translate }}
     </h3>
@@ -267,15 +267,17 @@
   <div class="modal-body" id="settings">
     <div id="tell-your-friends">
       <ul class="social-icons">
-        <li class="wechat"><a href="#">WeChat</a>WeChat</li>
-        <li class="weibo"><a href="#">Weibo</a>Weibo</li>
-        <li class="twitter"><a href="#">Twitter</a>Twitter</li>
-        <li class="facebook"><a href="#">Facebook</a>Facebook</li>
+        <li class="wechat"><a target="_blank" href="#">WeChat</a>WeChat</li>
+        <li class="weibo"><a target="_blank" href="http://service.weibo.com/share/share.php?title={{ 'LANTERN_MOBILE_SHARE' | translate | urlencode }}">Weibo</a>Weibo</li>
+        <li class="twitter"><a target="_blank" href="https://twitter.com/intent/tweet?text={{ 'LANTERN_MOBILE_SHARE' | translate | urlencode }}">Twitter</a>Twitter</li>
+        <li class="facebook"><a target="_blank" href="http://www.facebook.com/sharer.php?u={{ 'LANTERN_MOBILE_ANDROID' | translate }}">Facebook</a>Facebook</li>
       </ul>
       <p class="download-link">
-        <b>Download Link:</b> <a href="https://s3.amazonaws.com/lantern-android/lantern-pro-beta.apk">https://s3.amazonaws.com/lantern-android/lantern-pro-beta.apk</a>
+        <b>{{ 'LANTERN_MOBILE_ANDROID_TEXT' | translate }}:</b> <a href="{{ 'LANTERN_MOBILE_ANDROID' | translate }}">{{ 'LANTERN_MOBILE_ANDROID' | translate }}</a>
       </p>
-      <button type="button" style="background: url('/img/mobile-ad/en/copy-link.svg')">Copy link</button>
+      <button ngclipboard data-clipboard-text="{{ 'LANTERN_MOBILE_ANDROID' | translate }}" type="button" style="background: url('/img/mobile-ad/{{ 'LANG_ID' | translate }}/copy-link.svg')" ng-click="copyAndroidMobileLink()">
+        Copy link
+      </button>
     </div>
   </div>
 </div>

@@ -4,6 +4,7 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$htt
                'localStorageService',
                function($rootScope, $scope, $compile, $window, $http, localStorageService) {
     $scope.currentModal = 'none';
+    $scope.email = 'xxx"xxx.com';
 
     $scope.loadScript = function(src) {
         (function() {
@@ -25,32 +26,58 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$htt
     };
 
     $scope.showModal = function(val) {
-        if (val == 'welcome') {
-            $scope.loadShareScripts();
-        }
+      $scope.closeModal();
 
-        $scope.currentModal = val;
+      if (val == 'welcome') {
+        $scope.loadShareScripts();
+      } else {
+        $('<div class="modal-backdrop"></div>').appendTo(document.body);
+      }
+
+      $scope.currentModal = val;
+    };
+
+    $scope.$watch('model.email', function(email) {
+      $scope.email = email;
+    });
+
+    $rootScope.sendMobileAppLink = function() {
+      var email = $scope.email;
+
+      var mc = new mandrill.Mandrill('fmYlUdjEpGGonI4NDx9xeA');
+
+      var message = {
+        "to": [
+          { "email": email }
+        ]
+      };
+
+      mc.messages.sendTemplate({
+        'template_name': 'lantern-mobile-message',
+        'template_content': {},
+        'message': message
+      });
+
+      $rootScope.showMobileAd = false;
+      $scope.showModal("lantern-mobile-ad");
     };
 
     $rootScope.lanternWelcomeKey = localStorageService.get('lanternWelcomeKey');
+    $rootScope.lanternWelcomeKey = false;
 
     $scope.closeModal = function() {
-
-        // if it's our first time opening the UI,
-        // show the settings modal first immediately followed by
-        // the welcome screen
-        if ($scope.currentModal == 'welcome' && !$rootScope.lanternWelcomeKey) {
-            $rootScope.lanternWelcomeKey = true;
-            localStorageService.set('lanternWelcomeKey', true);
-        } else {
-            $scope.currentModal = 'none';
-        }
+      if (!$rootScope.lanternWelcomeKey) {
+        $rootScope.lanternWelcomeKey = true;
+        localStorageService.set('lanternWelcomeKey', true);
+      }
+      $scope.currentModal = 'none';
+      $(".modal-backdrop").remove();
     };
 
     if (!$rootScope.lanternWelcomeKey) {
-        $scope.showModal('welcome');
+      //$scope.showModal('welcome');
+      $rootScope.showMobileAd = true;
     };
-
 
 }]);
 
@@ -120,6 +147,10 @@ app.controller('MobileAdCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
   $scope.$watch('model.modal', function (modal) {
     $scope.show = modal === MODAL.settings;
   });
+
+  $scope.copyAndroidMobileLink = function() {
+    $scope.closeModal();
+  }
 }]);
 
 app.controller('ProxiedSitesCtrl', ['$rootScope', '$scope', '$filter', 'SETTING', 'INTERACTION', 'INPUT_PAT', 'MODAL', 'ProxiedSites', function($rootScope, $scope, $filter, SETTING, INTERACTION, INPUT_PAT, MODAL, ProxiedSites) {
