@@ -17,7 +17,7 @@ buildscript {
     repositories {
         flatDir {
             dirs 'libs'
-        }  
+        }
         jcenter()
         maven { url 'https://maven.fabric.io/public' }
         maven { url 'https://plugins.gradle.org/m2/' }
@@ -30,19 +30,19 @@ buildscript {
         classpath 'com.android.tools.build:gradle:1.5.0'
         classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.+'
     }
-}    
+}
 
 repositories {
     flatDir {
         dirs 'libs'
-    }  
+    }
     jcenter()
     maven { url 'https://maven.fabric.io/public' }
     maven { url 'https://plugins.gradle.org/m2/' }
     mavenCentral()
     maven { url "https://plugins.gradle.org/m2/" }
 }
-    
+
 
 android {
 
@@ -102,11 +102,11 @@ uploadArchives {
             beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
 
             repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                authentication(userName: ossrhUsername, password: ossrhPassword)
+                authentication(userName: hasProperty('ossrhUsername')?ossrhUsername:'', password: hasProperty('ossrhPassword')?ossrhPassword:'')
             }
 
             snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-                authentication(userName: ossrhUsername, password: ossrhPassword)
+                authentication(userName: hasProperty('ossrhUsername')?ossrhUsername:'', password: hasProperty('ossrhPassword')?ossrhPassword:'')
             }
 
             pom.project {
@@ -166,8 +166,8 @@ dependencies {
     compile group: 'org.yaml', name: 'snakeyaml', version: '1.10'
     compile 'com.android.support:appcompat-v7:22.0.0'
     compile 'com.google.android.gms:play-services-analytics:7.0.0'
-}  
- 
+}
+
 task sourcesJar(type: Jar) {
     classifier = 'sources'
 }
@@ -186,7 +186,7 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 artifacts {
     archives javadocJar
     archives sourcesJar
-}     
+}
 
 signing {
     sign configurations.archives

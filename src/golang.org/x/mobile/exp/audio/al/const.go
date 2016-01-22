@@ -76,3 +76,7 @@ const (
 	FormatStereo8  = 0x1102
 	FormatStereo16 = 0x1103
 )
+
+// CapabilityDistanceModel represents the capability of specifying a different distance
+// model for each source.
+const CapabilityDistanceModel = Capability(0x200)

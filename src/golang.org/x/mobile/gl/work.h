@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 #ifdef os_linux
-#include <GLES2/gl2.h>
+#include <GLES2/gl2.h> // install on Ubuntu with: sudo apt-get install libegl1-mesa-dev libgles2-mesa-dev libx11-dev
 #endif
 #ifdef os_ios
 #include <OpenGLES/ES2/glext.h>
@@ -15,6 +15,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+// TODO: generate this enum from fn.go.
 typedef enum {
 	glfnUNDEFINED,
 
@@ -160,6 +161,7 @@ typedef enum {
 	glfnViewport,
 } glfn;
 
+// TODO: generate this type from fn.go.
 struct fnargs {
 	glfn fn;
 
@@ -171,9 +173,6 @@ struct fnargs {
 	uintptr_t a5;
 	uintptr_t a6;
 	uintptr_t a7;
-	uintptr_t a8;
 };
 
-extern uintptr_t ret;
-
-extern void processFn(struct fnargs* args);
+extern uintptr_t processFn(struct fnargs* args, char* parg);

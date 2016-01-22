@@ -88,15 +88,17 @@
 // registered by calling go_seq_register_proxy from a global contructor funcion.
 static goSeqDictionary *proxies = NULL;
 
-__attribute__((constructor)) static void go_seq_very_init() {
-  proxies = [[goSeqDictionary alloc] init];
-}
-
 void go_seq_register_proxy(const char *descriptor,
                            void (*fn)(id, int, GoSeq *, GoSeq *)) {
-  [proxies put:^(id obj, int code, GoSeq *in, GoSeq *out) {
+  if (proxies == NULL) {
+    proxies = [[goSeqDictionary alloc] init];
+  }
+  // Copying moves the block to the heap.
+  id block = [^(id obj, int code, GoSeq *in, GoSeq *out) {
     fn(obj, code, in, out);
-  } withKey:[NSString stringWithUTF8String:descriptor]];
+  } copy];
+
+  [proxies put:block withKey:[NSString stringWithUTF8String:descriptor]];
 }
 
 // RefTracker encapsulates a map of objective-C objects passed to Go and
@@ -245,8 +247,8 @@ void go_seq_writeFloat64(GoSeq *seq, double v) { MEM_WRITE(seq, double) = v; }
 
 NSString *go_seq_readUTF8(GoSeq *seq) {
   int32_t len = *MEM_READ(seq, int32_t);
-  if (len == 0) {
-    return NULL;
+  if (len == 0) {  // empty string.
+    return @"";
   }
   const void *buf = (const void *)mem_read(seq, len, 1);
   return [[NSString alloc] initWithBytes:buf
@@ -322,7 +324,10 @@ void go_seq_recv(int32_t refnum, const char *desc, int code, uint8_t *in_ptr,
 
   NSString *k = [NSString stringWithUTF8String:desc];
 
-  proxyFn fn = [proxies get:k];
+  proxyFn fn = NULL;
+  if (proxies != NULL) {
+    fn = [proxies get:k];
+  }
   if (fn == NULL) {
     LOG_FATAL(@"cannot find a proxy function for %s", desc);
     return;

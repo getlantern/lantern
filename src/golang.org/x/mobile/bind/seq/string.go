@@ -87,7 +87,7 @@ func (b *Buffer) WriteUTF8(s string) {
 const maxSliceLen = (1<<31 - 1) / 2
 
 func (b *Buffer) ReadError() error {
-	if s := b.ReadUTF16(); s != "" {
+	if s := b.ReadString(); s != "" {
 		return errors.New(s)
 	}
 	return nil

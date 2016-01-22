@@ -92,11 +92,11 @@ type contextGL struct {
 	surf C.EGLSurface
 }
 
-func createContext() *contextGL {
+func createContext() (*contextGL, error) {
 	runtime.LockOSThread()
 	c := &contextGL{}
 	C.createContext(&c.dpy, &c.ctx, &c.surf)
-	return c
+	return c, nil
 }
 
 func (c *contextGL) destroy() {

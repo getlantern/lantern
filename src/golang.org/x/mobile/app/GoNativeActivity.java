@@ -7,6 +7,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyCharacterMap;
 
 public class GoNativeActivity extends NativeActivity {
 	private static GoNativeActivity goNativeActivity;
@@ -18,6 +19,21 @@ public class GoNativeActivity extends NativeActivity {
 
 	String getTmpdir() {
 		return getCacheDir().getAbsolutePath();
+	}
+
+	int getRune(int deviceId, int keyCode, int metaState) {
+		try {
+			int rune = KeyCharacterMap.load(deviceId).get(keyCode, metaState);
+			if (rune == 0) {
+				return -1;
+			}
+			return rune;
+		} catch (KeyCharacterMap.UnavailableException e) {
+			return -1;
+		} catch (Exception e) {
+			Log.e("Go", "exception reading KeyCharacterMap", e);
+			return -1;
+		}
 	}
 
 	private void load() {

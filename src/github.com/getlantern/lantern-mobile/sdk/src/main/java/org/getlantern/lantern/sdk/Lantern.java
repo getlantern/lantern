@@ -12,7 +12,7 @@ import java.util.concurrent.BlockingQueue;
 import java.io.File;
 import java.util.Map;
 import java.util.HashMap;
- 
+
 
 import go.client.*;
 import org.getlantern.lantern.sdk.Utils;
@@ -91,7 +91,7 @@ public class Lantern extends Client.Provider.Stub {
             }
         } catch (final Exception e) {
 
-        } 
+        }
     }
 
     @Override
@@ -118,7 +118,7 @@ public class Lantern extends Client.Provider.Stub {
 
     public void SetWebViewProxy(WebView webView) {
         Log.d(TAG, "Updating webview proxy settings");
-        ProxySettings.setProxy(context, webView, proxyHost, proxyPort);
+        // ProxySettings.setProxy(context, webView, proxyHost, proxyPort);
     }
 
     @Override
