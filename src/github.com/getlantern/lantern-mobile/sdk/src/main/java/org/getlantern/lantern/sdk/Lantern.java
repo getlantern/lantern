@@ -25,6 +25,8 @@ public class Lantern extends Client.Provider.Stub {
     private final String device = android.os.Build.DEVICE;
     private final String model = android.os.Build.MODEL;
     private final String version = "" + android.os.Build.VERSION.SDK_INT + " ("  + android.os.Build.VERSION.RELEASE + ")";
+    private final Analytics analytics;
+
     private Context context;
     private String settingsDir;
     private String appName = "Lantern";
@@ -36,7 +38,7 @@ public class Lantern extends Client.Provider.Stub {
     private Thread mThread;
 
     public Lantern() {
-
+        this.analytics = new Analytics(null);
     }
 
     public Lantern(Context context, String settingsDir) {
@@ -47,6 +49,7 @@ public class Lantern extends Client.Provider.Stub {
         this.context = context;
         this.settingsDir = settingsDir;
         this.vpnMode = vpnMode;
+        this.analytics = new Analytics(context);
     }
 
     public Map getSettings() {
@@ -58,7 +61,7 @@ public class Lantern extends Client.Provider.Stub {
     // for easy access from the backend
     public Map loadSettings() {
         try {
-            //settings = Utils.loadSettings(settingsDir, settingsFile);
+            settings = Utils.loadSettings(settingsDir, settingsFile);
             if (settings != null) {
                 appName = (String)settings.get("appname");
                 Log.d(TAG, "App running Lantern is " + appName);
@@ -114,6 +117,7 @@ public class Lantern extends Client.Provider.Stub {
             System.setProperty("https.proxyPort", port);
         }
 
+        analytics.sendNewSessionEvent();
     }
 
     public void SetWebViewProxy(WebView webView) {
