@@ -24,19 +24,22 @@
 // http://repo.or.cz/w/openal-soft.git/blob/HEAD:/COPYING.
 package al // import "golang.org/x/mobile/exp/audio/al"
 
+// Capability represents OpenAL extension capabilities.
+type Capability int32
+
 // Enable enables a capability.
-func Enable(capability int32) {
-	alEnable(capability)
+func Enable(c Capability) {
+	alEnable(int32(c))
 }
 
 // Disable disables a capability.
-func Disable(capability int32) {
-	alDisable(capability)
+func Disable(c Capability) {
+	alDisable(int32(c))
 }
 
 // Enabled returns true if the specified capability is enabled.
-func Enabled(capability int32) bool {
-	return alIsEnabled(capability)
+func Enabled(c Capability) bool {
+	return alIsEnabled(int32(c))
 }
 
 // Vector represents an vector in a Cartesian coordinate system.
@@ -298,13 +301,13 @@ func setSourcefv(s Source, param int, v []float32) {
 }
 
 // QueueBuffers adds the buffers to the buffer queue.
-func (s Source) QueueBuffers(buffers []Buffer) {
-	alSourceQueueBuffers(s, buffers)
+func (s Source) QueueBuffers(buffer ...Buffer) {
+	alSourceQueueBuffers(s, buffer)
 }
 
 // UnqueueBuffers removes the specified buffers from the buffer queue.
-func (s Source) UnqueueBuffers(buffers []Buffer) {
-	alSourceUnqueueBuffers(s, buffers)
+func (s Source) UnqueueBuffers(buffer ...Buffer) {
+	alSourceUnqueueBuffers(s, buffer)
 }
 
 // ListenerGain returns the total gain applied to the final mix.
@@ -380,8 +383,8 @@ func GenBuffers(n int) []Buffer {
 }
 
 // DeleteBuffers deletes the buffers.
-func DeleteBuffers(buffers []Buffer) {
-	alDeleteBuffers(buffers)
+func DeleteBuffers(buffer ...Buffer) {
+	alDeleteBuffers(buffer)
 }
 
 func getBufferi(b Buffer, param int) int32 {

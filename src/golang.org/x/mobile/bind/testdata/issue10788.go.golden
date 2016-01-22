@@ -78,6 +78,3 @@ func init() {
 	seq.Register(proxyTestStruct_Descriptor, proxyTestStruct_Value_Set_Code, proxyTestStruct_Value_Set)
 	seq.Register(proxyTestStruct_Descriptor, proxyTestStruct_Value_Get_Code, proxyTestStruct_Value_Get)
 }
-
-func init() {
-}

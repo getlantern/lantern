@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// +build linux darwin
+// +build linux darwin windows
 // +build gldebug
 
 package gl
@@ -10,8 +10,6 @@ package gl
 // Alternate versions of the types defined in types.go with extra
 // debugging information attached. For documentation, see types.go.
 
-// #include "work.h"
-import "C"
 import "fmt"
 
 type Enum uint32
@@ -22,6 +20,7 @@ type Attrib struct {
 }
 
 type Program struct {
+	Init  bool
 	Value uint32
 }
 
@@ -50,15 +49,22 @@ type Uniform struct {
 	name  string
 }
 
-func (v Attrib) c() C.uintptr_t       { return C.uintptr_t(v.Value) }
-func (v Enum) c() C.uintptr_t         { return C.uintptr_t(v) }
-func (v Program) c() C.uintptr_t      { return C.uintptr_t(v.Value) }
-func (v Shader) c() C.uintptr_t       { return C.uintptr_t(v.Value) }
-func (v Buffer) c() C.uintptr_t       { return C.uintptr_t(v.Value) }
-func (v Framebuffer) c() C.uintptr_t  { return C.uintptr_t(v.Value) }
-func (v Renderbuffer) c() C.uintptr_t { return C.uintptr_t(v.Value) }
-func (v Texture) c() C.uintptr_t      { return C.uintptr_t(v.Value) }
-func (v Uniform) c() C.uintptr_t      { return C.uintptr_t(v.Value) }
+func (v Attrib) c() uintptr { return uintptr(v.Value) }
+func (v Enum) c() uintptr   { return uintptr(v) }
+func (v Program) c() uintptr {
+	if !v.Init {
+		ret := uintptr(0)
+		ret--
+		return ret
+	}
+	return uintptr(v.Value)
+}
+func (v Shader) c() uintptr       { return uintptr(v.Value) }
+func (v Buffer) c() uintptr       { return uintptr(v.Value) }
+func (v Framebuffer) c() uintptr  { return uintptr(v.Value) }
+func (v Renderbuffer) c() uintptr { return uintptr(v.Value) }
+func (v Texture) c() uintptr      { return uintptr(v.Value) }
+func (v Uniform) c() uintptr      { return uintptr(v.Value) }
 
 func (v Attrib) String() string       { return fmt.Sprintf("Attrib(%d:%s)", v.Value, v.name) }
 func (v Program) String() string      { return fmt.Sprintf("Program(%d)", v.Value) }

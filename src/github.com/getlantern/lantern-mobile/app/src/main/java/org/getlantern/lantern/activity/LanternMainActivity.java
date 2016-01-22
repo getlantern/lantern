@@ -7,7 +7,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.ApplicationInfo; 
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
@@ -34,10 +34,11 @@ import android.widget.CompoundButton;
 import android.widget.ListView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
-import android.view.MenuItem; 
+import android.view.MenuItem;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.support.v7.app.AppCompatActivity;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -53,7 +54,7 @@ import org.getlantern.lantern.vpn.LanternVpn;
 import org.getlantern.lantern.R;
 
 
-public class LanternMainActivity extends Activity implements Handler.Callback {
+public class LanternMainActivity extends AppCompatActivity implements Handler.Callback {
 
     private static final String TAG = "LanternMainActivity";
     private static final String PREFS_NAME = "LanternPrefs";
@@ -99,7 +100,7 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         }
 
         // setup our UI
-        try { 
+        try {
             // configure actions to be taken whenever slider changes state
             LanternUI.setupLanternSwitch();
             LanternVpn.LanternUI = LanternUI;
@@ -126,7 +127,7 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
                 && event.getRepeatCount() == 0) {
             Log.d(TAG, "onKeyDown Called");
             onBackPressed();
-            return true; 
+            return true;
         }
         return super.onKeyDown(keyCode, event);
     }
@@ -260,11 +261,11 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
                     enableVPN();
                 }
             }, 1000);
-        }  
+        }
     }
 
     public void stopLantern() {
-        Service.IsRunning = false;  
+        Service.IsRunning = false;
         Utils.clearPreferences(this);
     }
 
@@ -273,7 +274,7 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         // Pass the event to ActionBarDrawerToggle
         // If it returns true, then it has handled
         // the nav drawer indicator touch event
-        if (LanternUI != null && 
+        if (LanternUI != null &&
                 LanternUI.optionSelected(item)) {
             return true;
         }
@@ -323,5 +324,5 @@ public class LanternMainActivity extends Activity implements Handler.Callback {
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, "Error fetching package information");
         }
-    }  
+    }
 }

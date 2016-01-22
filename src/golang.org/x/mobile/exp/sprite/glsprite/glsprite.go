@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// +build darwin linux windows
+
 // Package glsprite implements a sprite Engine using OpenGL ES 2.
 //
 // Each sprite.Texture is loaded as a GL texture object and drawn
@@ -12,7 +14,7 @@ import (
 	"image"
 	"image/draw"
 
-	"golang.org/x/mobile/event/config"
+	"golang.org/x/mobile/event/size"
 	"golang.org/x/mobile/exp/f32"
 	"golang.org/x/mobile/exp/gl/glutil"
 	"golang.org/x/mobile/exp/sprite"
@@ -26,6 +28,7 @@ type node struct {
 }
 
 type texture struct {
+	e       *engine
 	glImage *glutil.Image
 	b       image.Rectangle
 }
@@ -41,18 +44,23 @@ func (t *texture) Upload(r image.Rectangle, src image.Image) {
 	t.glImage.Upload()
 }
 
-func (t *texture) Unload() {
-	panic("TODO")
+func (t *texture) Release() {
+	t.glImage.Release()
+	delete(t.e.textures, t)
 }
 
-func Engine() sprite.Engine {
+// Engine creates an OpenGL-based sprite.Engine.
+func Engine(images *glutil.Images) sprite.Engine {
 	return &engine{
-		nodes: []*node{nil},
+		nodes:    []*node{nil},
+		images:   images,
+		textures: make(map[*texture]struct{}),
 	}
 }
 
 type engine struct {
-	glImages map[sprite.Texture]*glutil.Image
+	images   *glutil.Images
+	textures map[*texture]struct{}
 	nodes    []*node
 
 	absTransforms []f32.Affine
@@ -75,7 +83,12 @@ func (e *engine) Unregister(n *sprite.Node) {
 
 func (e *engine) LoadTexture(src image.Image) (sprite.Texture, error) {
 	b := src.Bounds()
-	t := &texture{glutil.NewImage(b.Dx(), b.Dy()), b}
+	t := &texture{
+		e:       e,
+		glImage: e.images.NewImage(b.Dx(), b.Dy()),
+		b:       b,
+	}
+	e.textures[t] = struct{}{}
 	t.Upload(b, src)
 	// TODO: set "glImage.Pix = nil"?? We don't need the CPU-side image any more.
 	return t, nil
@@ -91,15 +104,15 @@ func (e *engine) SetTransform(n *sprite.Node, m f32.Affine) {
 	e.nodes[n.EngineFields.Index].relTransform = m
 }
 
-func (e *engine) Render(scene *sprite.Node, t clock.Time, cfg config.Event) {
+func (e *engine) Render(scene *sprite.Node, t clock.Time, sz size.Event) {
 	e.absTransforms = append(e.absTransforms[:0], f32.Affine{
 		{1, 0, 0},
 		{0, 1, 0},
 	})
-	e.render(scene, t, cfg)
+	e.render(scene, t, sz)
 }
 
-func (e *engine) render(n *sprite.Node, t clock.Time, cfg config.Event) {
+func (e *engine) render(n *sprite.Node, t clock.Time, sz size.Event) {
 	if n.EngineFields.Index == 0 {
 		panic("glsprite: sprite.Node not registered")
 	}
@@ -116,7 +129,7 @@ func (e *engine) render(n *sprite.Node, t clock.Time, cfg config.Event) {
 
 	if x := n.EngineFields.SubTex; x.T != nil {
 		x.T.(*texture).glImage.Draw(
-			cfg,
+			sz,
 			geom.Point{
 				geom.Pt(m[0][2]),
 				geom.Pt(m[1][2]),
@@ -134,9 +147,15 @@ func (e *engine) render(n *sprite.Node, t clock.Time, cfg config.Event) {
 	}
 
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		e.render(c, t, cfg)
+		e.render(c, t, sz)
 	}
 
 	// Pop absTransforms.
 	e.absTransforms = e.absTransforms[:len(e.absTransforms)-1]
+}
+
+func (e *engine) Release() {
+	for img := range e.textures {
+		img.Release()
+	}
 }

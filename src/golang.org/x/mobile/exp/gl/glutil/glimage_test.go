@@ -18,17 +18,18 @@ import (
 	"runtime"
 	"testing"
 
-	"golang.org/x/mobile/event/config"
+	"golang.org/x/mobile/event/size"
 	"golang.org/x/mobile/geom"
 	"golang.org/x/mobile/gl"
 )
 
 func TestImage(t *testing.T) {
-	done := make(chan struct{})
+	done := make(chan error)
 	defer close(done)
 	go func() {
 		runtime.LockOSThread()
-		ctx := createContext()
+		ctx, err := createContext()
+		done <- err
 		for {
 			select {
 			case <-gl.WorkAvailable:
@@ -39,6 +40,10 @@ func TestImage(t *testing.T) {
 			}
 		}
 	}()
+	if err := <-done; err != nil {
+		t.Fatalf("cannot create GL context: %v", err)
+	}
+
 	start()
 	defer stop()
 
@@ -65,7 +70,7 @@ func TestImage(t *testing.T) {
 		ptW  = geom.Pt(50)
 		ptH  = geom.Pt(50)
 	)
-	cfg := config.Event{
+	sz := size.Event{
 		WidthPx:     pixW,
 		HeightPx:    pixH,
 		WidthPt:     ptW,
@@ -109,7 +114,7 @@ func TestImage(t *testing.T) {
 	ptTopRight := geom.Point{32, 0}
 	ptBottomLeft := geom.Point{12, 24 + 16}
 	ptBottomRight := geom.Point{12 + 32, 16}
-	m.Draw(cfg, ptTopLeft, ptTopRight, ptBottomLeft, b)
+	m.Draw(sz, ptTopLeft, ptTopRight, ptBottomLeft, b)
 
 	// For unknown reasons, a windowless OpenGL context renders upside-
 	// down. That is, a quad covering the initial viewport spans:
@@ -131,8 +136,8 @@ func TestImage(t *testing.T) {
 	}
 
 	drawCross(got, 0, 0)
-	drawCross(got, int(ptTopLeft.X.Px(cfg.PixelsPerPt)), int(ptTopLeft.Y.Px(cfg.PixelsPerPt)))
-	drawCross(got, int(ptBottomRight.X.Px(cfg.PixelsPerPt)), int(ptBottomRight.Y.Px(cfg.PixelsPerPt)))
+	drawCross(got, int(ptTopLeft.X.Px(sz.PixelsPerPt)), int(ptTopLeft.Y.Px(sz.PixelsPerPt)))
+	drawCross(got, int(ptBottomRight.X.Px(sz.PixelsPerPt)), int(ptBottomRight.Y.Px(sz.PixelsPerPt)))
 	drawCross(got, pixW-1, pixH-1)
 
 	const wantPath = "../../../testdata/testpattern-window.png"

@@ -45,6 +45,17 @@ const (
 // Event is a lifecycle change from an old stage to a new stage.
 type Event struct {
 	From, To Stage
+
+	// DrawContext is the state used for painting, if any is valid.
+	//
+	// For OpenGL apps, a non-nil DrawContext is a gl.Context.
+	//
+	// TODO: make this an App method if we move away from an event channel?
+	DrawContext interface{}
+}
+
+func (e Event) String() string {
+	return fmt.Sprintf("lifecycle.Event{From:%v, To:%v, DrawContext:%v}", e.From, e.To, e.DrawContext)
 }
 
 // Crosses returns whether the transition from From to To crosses the stage s:

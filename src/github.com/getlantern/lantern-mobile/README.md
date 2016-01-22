@@ -43,6 +43,20 @@ select the `lantern` folder you just checked out with git.
 * Java Development Kit 1.7
 * Git
 * [Android NDK][2]
+* [Android SDK Tools][4] (if not using Android Studio)
+* Go (1.6 tip is best as it eliminates text-relocations and provides the best performance)
+
+Replace the paths based on wherever you've installed the Android SDK and NDK
+
+```bash
+export ANDROID_HOME=/opt/adt-bundle-mac-x86_64-20130917/sdk
+export PATH=$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/23.0.2/:$PATH
+export NDK_HOME=/opt/android-ndk-r10e
+export PATH=$NDK_HOME:$PATH
+```
+
+Using the sdk-manager (`$ANDROID_HOME/tools/android`), install Android 6.0 API
+23 and also the Android SDK Build Tools rev. 23.0.1.
 
 #### Building `tun2socks`
 
@@ -77,6 +91,31 @@ By default, all three tasks will be run in order with:
 
 ```
 make
+```
+
+Note - if you want to test with an emulator, run `android` and then choose
+Tools -> Manage AVDs.  Create an AVD (e.g. Nexus_4) and then run the emulator
+from the command line like so:
+
+```
+emulator -avd Nexus_4
+```
+
+The following settings seem to work well enough performance wise:
+
+```
+Device: 3.4" WQVGA 240x432
+Target: Android 5.1.1 - API Level 22
+CPU/ABI: ARM (armeabi-v7a)
+Keyboard: x Hardware keyboard present
+Skin: Skin with dynamic hardware controls
+Front Camera: None
+Back Camera: None
+Memory RAM: 2048
+VM Heap: 128
+Internal Storage: 200
+SD Card: 4GiB (probably more than necessary)
+Emulation Options: x Use Host GPU
 ```
 
 #### Testing the app
@@ -212,3 +251,4 @@ cURL through tun2socks and the socks-server:
 [4]: http://developer.android.com/reference/android/net/VpnService.html
 [5]: https://www.kernel.org/doc/Documentation/networking/tuntap.txt
 [6]: http://developer.android.com/reference/android/net/VpnService.html#protect(int)
+[7]: http://developer.android.com/sdk/index.html#Other
