@@ -10,9 +10,6 @@ package app
 Simple on-screen app debugging for X11. Not an officially supported
 development target for apps, as screens with mice are very different
 than screens with touch panels.
-
-On Ubuntu 14.04 'Trusty', you may have to install these libraries:
-sudo apt-get install libegl1-mesa-dev libgles2-mesa-dev libx11-dev
 */
 
 /*
@@ -27,48 +24,54 @@ import (
 	"runtime"
 	"time"
 
-	"golang.org/x/mobile/event/config"
 	"golang.org/x/mobile/event/lifecycle"
 	"golang.org/x/mobile/event/paint"
+	"golang.org/x/mobile/event/size"
 	"golang.org/x/mobile/event/touch"
 	"golang.org/x/mobile/geom"
-	"golang.org/x/mobile/gl"
 )
 
 func init() {
-	registerGLViewportFilter()
+	theApp.registerGLViewportFilter()
 }
 
 func main(f func(App)) {
 	runtime.LockOSThread()
+
+	workAvailable := theApp.worker.WorkAvailable()
+
 	C.createWindow()
 
 	// TODO: send lifecycle events when e.g. the X11 window is iconified or moved off-screen.
-	sendLifecycle(lifecycle.StageFocused)
+	theApp.sendLifecycle(lifecycle.StageFocused)
+
+	// TODO: translate X11 expose events to shiny paint events, instead of
+	// sending this synthetic paint event as a hack.
+	theApp.eventsIn <- paint.Event{}
 
 	donec := make(chan struct{})
 	go func() {
-		f(app{})
+		f(theApp)
 		close(donec)
 	}()
 
 	// TODO: can we get the actual vsync signal?
 	ticker := time.NewTicker(time.Second / 60)
 	defer ticker.Stop()
-	tc := ticker.C
+	var tc <-chan time.Time
 
 	for {
 		select {
 		case <-donec:
 			return
-		case <-gl.WorkAvailable:
-			gl.DoWork()
-		case <-endPaint:
+		case <-workAvailable:
+			theApp.worker.DoWork()
+		case <-theApp.publish:
 			C.swapBuffers()
 			tc = ticker.C
 		case <-tc:
 			tc = nil
-			eventsIn <- paint.Event{}
+			theApp.publishResult <- PublishResult{}
 		}
 		C.processEvents()
 	}
@@ -78,8 +81,8 @@ func main(f func(App)) {
 func onResize(w, h int) {
 	// TODO(nigeltao): don't assume 72 DPI. DisplayWidth and DisplayWidthMM
 	// is probably the best place to start looking.
-	pixelsPerPt = 1
-	eventsIn <- config.Event{
+	pixelsPerPt := float32(1)
+	theApp.eventsIn <- size.Event{
 		WidthPx:     w,
 		HeightPx:    h,
 		WidthPt:     geom.Pt(w),
@@ -89,7 +92,7 @@ func onResize(w, h int) {
 }
 
 func sendTouch(t touch.Type, x, y float32) {
-	eventsIn <- touch.Event{
+	theApp.eventsIn <- touch.Event{
 		X:        x,
 		Y:        y,
 		Sequence: 0, // TODO: button??
@@ -114,6 +117,6 @@ func onStop() {
 		return
 	}
 	stopped = true
-	sendLifecycle(lifecycle.StageDead)
-	eventsIn <- stopPumping{}
+	theApp.sendLifecycle(lifecycle.StageDead)
+	theApp.eventsIn <- stopPumping{}
 }

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// +build darwin linux windows
+
 // Package debug provides GL-based debugging tools for apps.
 package debug // import "golang.org/x/mobile/exp/app/debug"
 
@@ -9,32 +11,44 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
-	"sync"
 	"time"
 
-	"golang.org/x/mobile/event/config"
+	"golang.org/x/mobile/event/size"
 	"golang.org/x/mobile/exp/gl/glutil"
 	"golang.org/x/mobile/geom"
 )
 
-var lastDraw = time.Now()
-
-var fps struct {
-	mu sync.Mutex
-	c  config.Event
-	m  *glutil.Image
+// FPS draws a count of the frames rendered per second.
+type FPS struct {
+	sz       size.Event
+	images   *glutil.Images
+	m        *glutil.Image
+	lastDraw time.Time
+	// TODO: store *gl.Context
 }
 
-// DrawFPS draws the per second framerate in the bottom-left of the screen.
-func DrawFPS(c config.Event) {
+// NewFPS creates an FPS tied to the current GL context.
+func NewFPS(images *glutil.Images) *FPS {
+	return &FPS{
+		lastDraw: time.Now(),
+		images:   images,
+	}
+}
+
+// Draw draws the per second framerate in the bottom-left of the screen.
+func (p *FPS) Draw(sz size.Event) {
 	const imgW, imgH = 7*(fontWidth+1) + 1, fontHeight + 2
 
-	fps.mu.Lock()
-	if fps.c != c || fps.m == nil {
-		fps.c = c
-		fps.m = glutil.NewImage(imgW, imgH)
+	if sz.WidthPx == 0 && sz.HeightPx == 0 {
+		return
 	}
-	fps.mu.Unlock()
+	if p.sz != sz {
+		p.sz = sz
+		if p.m != nil {
+			p.m.Release()
+		}
+		p.m = p.images.NewImage(imgW, imgH)
+	}
 
 	display := [7]byte{
 		4: 'F',
@@ -43,13 +57,13 @@ func DrawFPS(c config.Event) {
 	}
 	now := time.Now()
 	f := 0
-	if dur := now.Sub(lastDraw); dur > 0 {
+	if dur := now.Sub(p.lastDraw); dur > 0 {
 		f = int(time.Second / dur)
 	}
 	display[2] = '0' + byte((f/1e0)%10)
 	display[1] = '0' + byte((f/1e1)%10)
 	display[0] = '0' + byte((f/1e2)%10)
-	draw.Draw(fps.m.RGBA, fps.m.RGBA.Bounds(), image.White, image.Point{}, draw.Src)
+	draw.Draw(p.m.RGBA, p.m.RGBA.Bounds(), image.White, image.Point{}, draw.Src)
 	for i, c := range display {
 		glyph := glyphs[c]
 		if len(glyph) != fontWidth*fontHeight {
@@ -60,21 +74,29 @@ func DrawFPS(c config.Event) {
 				if glyph[fontWidth*y+x] == ' ' {
 					continue
 				}
-				fps.m.RGBA.SetRGBA((fontWidth+1)*i+x+1, y+1, color.RGBA{A: 0xff})
+				p.m.RGBA.SetRGBA((fontWidth+1)*i+x+1, y+1, color.RGBA{A: 0xff})
 			}
 		}
 	}
 
-	fps.m.Upload()
-	fps.m.Draw(
-		c,
-		geom.Point{0, c.HeightPt - imgH},
-		geom.Point{imgW, c.HeightPt - imgH},
-		geom.Point{0, c.HeightPt},
-		fps.m.RGBA.Bounds(),
+	p.m.Upload()
+	p.m.Draw(
+		sz,
+		geom.Point{0, sz.HeightPt - imgH},
+		geom.Point{imgW, sz.HeightPt - imgH},
+		geom.Point{0, sz.HeightPt},
+		p.m.RGBA.Bounds(),
 	)
 
-	lastDraw = now
+	p.lastDraw = now
+}
+
+func (f *FPS) Release() {
+	if f.m != nil {
+		f.m.Release()
+		f.m = nil
+		f.images = nil
+	}
 }
 
 const (

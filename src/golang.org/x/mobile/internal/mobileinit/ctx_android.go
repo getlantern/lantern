@@ -19,43 +19,106 @@ JavaVM* current_vm;
 // current_ctx is Android's android.context.Context. May be NULL.
 jobject current_ctx;
 
-// Set current_vm and current_ctx. The ctx passed in must be a global
-// reference instance.
-void set_vm_ctx(JavaVM* vm, jobject ctx) {
-	current_vm = vm;
-	current_ctx = ctx;
-	// TODO: check leak
+char* lockJNI(uintptr_t* envp, int* attachedp) {
+	JNIEnv* env;
+
+	if (current_vm == NULL) {
+		return "no current JVM";
+	}
+
+	*attachedp = 0;
+	switch ((*current_vm)->GetEnv(current_vm, (void**)&env, JNI_VERSION_1_6)) {
+	case JNI_OK:
+		break;
+	case JNI_EDETACHED:
+		if ((*current_vm)->AttachCurrentThread(current_vm, &env, 0) != 0) {
+			return "cannot attach to JVM";
+		}
+		*attachedp = 1;
+		break;
+	case JNI_EVERSION:
+		return "bad JNI version";
+	default:
+		return "unknown JNI error from GetEnv";
+	}
+
+	*envp = (uintptr_t)env;
+	return NULL;
+}
+
+char* checkException(uintptr_t jnienv) {
+	jthrowable exc;
+	JNIEnv* env = (JNIEnv*)jnienv;
+
+	if (!(*env)->ExceptionCheck(env)) {
+		return NULL;
+	}
+
+	exc = (*env)->ExceptionOccurred(env);
+	(*env)->ExceptionClear(env);
+
+	jclass clazz = (*env)->FindClass(env, "java/lang/Throwable");
+	jmethodID toString = (*env)->GetMethodID(env, clazz, "toString", "()Ljava/lang/String;");
+	jobject msgStr = (*env)->CallObjectMethod(env, exc, toString);
+	return (char*)(*env)->GetStringUTFChars(env, msgStr, 0);
+}
+
+void unlockJNI() {
+	(*current_vm)->DetachCurrentThread(current_vm);
 }
 */
 import "C"
 
-import "unsafe"
+import (
+	"errors"
+	"runtime"
+	"unsafe"
+)
 
 // SetCurrentContext populates the global Context object with the specified
 // current JavaVM instance (vm) and android.context.Context object (ctx).
 // The android.context.Context object must be a global reference.
 func SetCurrentContext(vm, ctx unsafe.Pointer) {
-	C.set_vm_ctx((*C.JavaVM)(vm), (C.jobject)(ctx))
+	C.current_vm = (*C.JavaVM)(vm)
+	C.current_ctx = (C.jobject)(ctx)
 }
 
-// TODO(hyangah): should the app package have Context? It may be useful for
-// external packages that need to access android context and vm.
-
-// Context holds global OS-specific context.
+// RunOnJVM runs fn on a new goroutine locked to an OS thread with a JNIEnv.
 //
-// Its extra methods are deliberately difficult to access because they must be
-// used with care. Their use implies the use of cgo, which probably requires
-// you understand the initialization process in the app package. Also care must
-// be taken to write both Android, iOS, and desktop-testing versions to
-// maintain portability.
-type Context struct{}
+// RunOnJVM blocks until the call to fn is complete. Any Java
+// exception or failure to attach to the JVM is returned as an error.
+//
+// The function fn takes vm, the current JavaVM*,
+// env, the current JNIEnv*, and
+// ctx, a jobject representing the global android.context.Context.
+func RunOnJVM(fn func(vm, env, ctx uintptr) error) error {
+	errch := make(chan error)
+	go func() {
+		runtime.LockOSThread()
+		defer runtime.UnlockOSThread()
 
-// AndroidContext returns a jobject for the app android.context.Context.
-func (Context) AndroidContext() unsafe.Pointer {
-	return unsafe.Pointer(C.current_ctx)
-}
+		env := C.uintptr_t(0)
+		attached := C.int(0)
+		if errStr := C.lockJNI(&env, &attached); errStr != nil {
+			errch <- errors.New(C.GoString(errStr))
+			return
+		}
+		if attached != 0 {
+			defer C.unlockJNI()
+		}
 
-// JavaVM returns a JNI *JavaVM.
-func (Context) JavaVM() unsafe.Pointer {
-	return unsafe.Pointer(C.current_vm)
+		vm := uintptr(unsafe.Pointer(C.current_vm))
+		if err := fn(vm, uintptr(env), uintptr(C.current_ctx)); err != nil {
+			errch <- err
+			return
+		}
+
+		if exc := C.checkException(env); exc != nil {
+			errch <- errors.New(C.GoString(exc))
+			C.free(unsafe.Pointer(exc))
+			return
+		}
+		errch <- nil
+	}()
+	return <-errch
 }

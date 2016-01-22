@@ -20,71 +20,85 @@ package gl
 #include <stdint.h>
 #include "work.h"
 
-struct fnargs cargs[10];
-uintptr_t ret;
+uintptr_t process(struct fnargs* cargs, char* parg0, char* parg1, char* parg2, int count) {
+	uintptr_t ret;
 
-void process(int count) {
-	int i;
-	for (i = 0; i < count; i++) {
-		processFn(&cargs[i]);
+	ret = processFn(&cargs[0], parg0);
+	if (count > 1) {
+		ret = processFn(&cargs[1], parg1);
 	}
+	if (count > 2) {
+		ret = processFn(&cargs[2], parg2);
+	}
+
+	return ret;
 }
 */
 import "C"
 
-// work is a queue of calls to execute.
-var work = make(chan call, 10)
+import "unsafe"
 
-// retvalue is sent a return value when blocking calls complete.
-// It is safe to use a global unbuffered channel here as calls
-// cannot currently be made concurrently.
-//
-// TODO: the comment above about concurrent calls isn't actually true: package
-// app calls package gl, but it has to do so in a separate goroutine, which
-// means that its gl calls (which may be blocking) can race with other gl calls
-// in the main program. We should make it safe to issue blocking gl calls
-// concurrently, or get the gl calls out of package app, or both.
-var retvalue = make(chan C.uintptr_t)
+const workbufLen = 3
 
-type call struct {
-	args     C.struct_fnargs
-	blocking bool
+type context struct {
+	cptr  uintptr
+	debug int32
+
+	workAvailable chan struct{}
+
+	// work is a queue of calls to execute.
+	work chan call
+
+	// retvalue is sent a return value when blocking calls complete.
+	// It is safe to use a global unbuffered channel here as calls
+	// cannot currently be made concurrently.
+	//
+	// TODO: the comment above about concurrent calls isn't actually true: package
+	// app calls package gl, but it has to do so in a separate goroutine, which
+	// means that its gl calls (which may be blocking) can race with other gl calls
+	// in the main program. We should make it safe to issue blocking gl calls
+	// concurrently, or get the gl calls out of package app, or both.
+	retvalue chan C.uintptr_t
+
+	cargs [workbufLen]C.struct_fnargs
+	parg  [workbufLen]*C.char
 }
 
-func enqueue(c call) C.uintptr_t {
-	work <- c
+func (ctx *context) WorkAvailable() <-chan struct{} { return ctx.workAvailable }
+
+// NewContext creates a cgo OpenGL context.
+//
+// See the Worker interface for more details on how it is used.
+func NewContext() (Context, Worker) {
+	glctx := &context{
+		workAvailable: make(chan struct{}, 1),
+		work:          make(chan call, workbufLen),
+		retvalue:      make(chan C.uintptr_t),
+	}
+	return glctx, glctx
+}
+
+func (ctx *context) enqueue(c call) uintptr {
+	ctx.work <- c
 
 	select {
-	case workAvailable <- struct{}{}:
+	case ctx.workAvailable <- struct{}{}:
 	default:
 	}
 
 	if c.blocking {
-		return <-retvalue
+		return uintptr(<-ctx.retvalue)
 	}
 	return 0
 }
 
-var (
-	workAvailable = make(chan struct{}, 1)
-	// WorkAvailable communicates when DoWork should be called.
-	//
-	// This is an internal implementation detail and should only be used by the
-	// golang.org/x/mobile/app package.
-	WorkAvailable <-chan struct{} = workAvailable
-)
-
-// DoWork performs any pending OpenGL calls.
-//
-// This is an internal implementation detail and should only be used by the
-// golang.org/x/mobile/app package.
-func DoWork() {
-	queue := make([]call, 0, len(work))
+func (ctx *context) DoWork() {
+	queue := make([]call, 0, workbufLen)
 	for {
 		// Wait until at least one piece of work is ready.
 		// Accumulate work until a piece is marked as blocking.
 		select {
-		case w := <-work:
+		case w := <-ctx.work:
 			queue = append(queue, w)
 		default:
 			return
@@ -93,7 +107,7 @@ func DoWork() {
 	enqueue:
 		for len(queue) < cap(queue) && !blocking {
 			select {
-			case w := <-work:
+			case w := <-ctx.work:
 				queue = append(queue, w)
 				blocking = queue[len(queue)-1].blocking
 			default:
@@ -103,21 +117,40 @@ func DoWork() {
 
 		// Process the queued GL functions.
 		for i, q := range queue {
-			C.cargs[i] = q.args
+			ctx.cargs[i] = *(*C.struct_fnargs)(unsafe.Pointer(&q.args))
+			ctx.parg[i] = (*C.char)(q.parg)
 		}
-		C.process(C.int(len(queue)))
+		ret := C.process(&ctx.cargs[0], ctx.parg[0], ctx.parg[1], ctx.parg[2], C.int(len(queue)))
 
 		// Cleanup and signal.
 		queue = queue[:0]
 		if blocking {
-			retvalue <- C.ret
+			ctx.retvalue <- ret
 		}
 	}
 }
 
-func glBoolean(b bool) C.uintptr_t {
-	if b {
-		return TRUE
+func init() {
+	if unsafe.Sizeof(C.GLint(0)) != unsafe.Sizeof(int32(0)) {
+		panic("GLint is not an int32")
 	}
-	return FALSE
+}
+
+// cString creates C string off the Go heap.
+// ret is a *char.
+func (ctx *context) cString(str string) (uintptr, func()) {
+	ptr := unsafe.Pointer(C.CString(str))
+	return uintptr(ptr), func() { C.free(ptr) }
+}
+
+// cString creates a pointer to a C string off the Go heap.
+// ret is a **char.
+func (ctx *context) cStringPtr(str string) (uintptr, func()) {
+	s, free := ctx.cString(str)
+	ptr := C.malloc(C.size_t(unsafe.Sizeof((*int)(nil))))
+	*(*uintptr)(ptr) = s
+	return uintptr(ptr), func() {
+		free()
+		C.free(ptr)
+	}
 }

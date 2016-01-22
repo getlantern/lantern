@@ -106,7 +106,7 @@ func cp(dst, src string) error {
 	defer r.Close()
 	w, err := os.Create(dst)
 	if err != nil {
-		return fmt.Errorf("failed to open destination: $v", err)
+		return fmt.Errorf("failed to open destination: %v", err)
 	}
 	_, err = io.Copy(w, r)
 	cerr := w.Close()
@@ -141,7 +141,7 @@ apply plugin: 'com.android.library'
 android {
     compileSdkVersion 'android-19'
     buildToolsVersion '21.1.2'
-    defaultConfig { minSdkVersion 14 }
+    defaultConfig { minSdkVersion 15 }
 }
 
 repositories {

@@ -1,0 +1,44 @@
+<!--
+Copyright 2015 The Go Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+<head>
+<style>
+body {
+	padding: 0;
+	margin: 0;
+	font-family: Menlo, monospace;
+}
+
+.flowhide {
+	text-overflow: ellipsis;
+	word-break: break-all;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.flowshow {
+	word-break: break-all;
+}
+</style>
+<script>
+function flowclick(el) {
+	el.classList.toggle("flowhide");
+	el.classList.toggle("flowshow");
+}
+function appendDiv(text) {
+    var el = document.createElement("div");
+    el.classList.add("flowhide");
+	el.innerHTML = text;
+	el.onclick = function() {
+		flowclick(el);
+	};
+	document.body.appendChild(el);
+	window.scrollBy(0, document.body.offsetHeight);
+}
+</script>
+<body>
+</body>
+</html>

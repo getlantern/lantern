@@ -2,14 +2,13 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// +build linux darwin
+// +build linux darwin windows
 
 package app
 
 import (
-	"golang.org/x/mobile/event/config"
 	"golang.org/x/mobile/event/lifecycle"
-	"golang.org/x/mobile/event/paint"
+	"golang.org/x/mobile/event/size"
 	"golang.org/x/mobile/gl"
 	_ "golang.org/x/mobile/internal/mobileinit"
 )
@@ -26,10 +25,10 @@ func Main(f func(App)) {
 type App interface {
 	// Events returns the events channel. It carries events from the system to
 	// the app. The type of such events include:
-	//  - config.Event
 	//  - lifecycle.Event
 	//  - mouse.Event
 	//  - paint.Event
+	//  - size.Event
 	//  - touch.Event
 	// from the golang.org/x/mobile/event/etc packages. Other packages may
 	// define other event types that are carried on this channel.
@@ -38,42 +37,75 @@ type App interface {
 	// Send sends an event on the events channel. It does not block.
 	Send(event interface{})
 
-	// EndPaint flushes any pending OpenGL commands or buffers to the screen.
-	// If EndPaint is called with an old generation number, it is ignored.
-	EndPaint(paint.Event)
+	// Publish flushes any pending drawing commands, such as OpenGL calls, and
+	// swaps the back buffer to the screen.
+	Publish() PublishResult
+
+	// TODO: replace filters (and the Events channel) with a NextEvent method?
+
+	// Filter calls each registered event filter function in sequence.
+	Filter(event interface{}) interface{}
+
+	// RegisterFilter registers a event filter function to be called by Filter. The
+	// function can return a different event, or return nil to consume the event,
+	// but the function can also return its argument unchanged, where its purpose
+	// is to trigger a side effect rather than modify the event.
+	RegisterFilter(f func(interface{}) interface{})
 }
 
-var (
-	lifecycleStage = lifecycle.StageDead
-	pixelsPerPt    = float32(1)
+// PublishResult is the result of an App.Publish call.
+type PublishResult struct {
+	// BackBufferPreserved is whether the contents of the back buffer was
+	// preserved. If false, the contents are undefined.
+	BackBufferPreserved bool
+}
 
-	eventsOut = make(chan interface{})
-	eventsIn  = pump(eventsOut)
-	endPaint  = make(chan paint.Event, 1)
-)
+var theApp = &app{
+	eventsOut:      make(chan interface{}),
+	lifecycleStage: lifecycle.StageDead,
+	publish:        make(chan struct{}),
+	publishResult:  make(chan PublishResult),
+}
 
-func sendLifecycle(to lifecycle.Stage) {
-	if lifecycleStage == to {
+func init() {
+	theApp.eventsIn = pump(theApp.eventsOut)
+	theApp.glctx, theApp.worker = gl.NewContext()
+}
+
+func (a *app) sendLifecycle(to lifecycle.Stage) {
+	if a.lifecycleStage == to {
 		return
 	}
-	eventsIn <- lifecycle.Event{
-		From: lifecycleStage,
-		To:   to,
+	a.eventsIn <- lifecycle.Event{
+		From:        a.lifecycleStage,
+		To:          to,
+		DrawContext: a.glctx,
 	}
-	lifecycleStage = to
+	a.lifecycleStage = to
 }
 
-type app struct{}
+type app struct {
+	filters []func(interface{}) interface{}
 
-func (app) Events() <-chan interface{} {
-	return eventsOut
+	eventsOut      chan interface{}
+	eventsIn       chan interface{}
+	lifecycleStage lifecycle.Stage
+	publish        chan struct{}
+	publishResult  chan PublishResult
+
+	glctx  gl.Context
+	worker gl.Worker
 }
 
-func (app) Send(event interface{}) {
-	eventsIn <- event
+func (a *app) Events() <-chan interface{} {
+	return a.eventsOut
 }
 
-func (app) EndPaint(e paint.Event) {
+func (a *app) Send(event interface{}) {
+	a.eventsIn <- event
+}
+
+func (a *app) Publish() PublishResult {
 	// gl.Flush is a lightweight (on modern GL drivers) blocking call
 	// that ensures all GL functions pending in the gl package have
 	// been passed onto the GL driver before the app package attempts
@@ -81,28 +113,20 @@ func (app) EndPaint(e paint.Event) {
 	//
 	// This enforces that the final receive (for this paint cycle) on
 	// gl.WorkAvailable happens before the send on endPaint.
-	gl.Flush()
-	endPaint <- e
+	a.glctx.Flush()
+	a.publish <- struct{}{}
+	return <-a.publishResult
 }
 
-var filters []func(interface{}) interface{}
-
-// Filter calls each registered event filter function in sequence.
-func Filter(event interface{}) interface{} {
-	for _, f := range filters {
+func (a *app) Filter(event interface{}) interface{} {
+	for _, f := range a.filters {
 		event = f(event)
 	}
 	return event
 }
 
-// RegisterFilter registers a event filter function to be called by Filter. The
-// function can return a different event, or return nil to consume the event,
-// but the function can also return its argument unchanged, where its purpose
-// is to trigger a side effect rather than modify the event.
-//
-// RegisterFilter should only be called from init functions.
-func RegisterFilter(f func(interface{}) interface{}) {
-	filters = append(filters, f)
+func (a *app) RegisterFilter(f func(interface{}) interface{}) {
+	a.filters = append(a.filters, f)
 }
 
 type stopPumping struct{}
@@ -174,10 +198,10 @@ func pump(dst chan interface{}) (src chan interface{}) {
 //
 // TODO: does Android need this?? It seems to work without it (Nexus 7,
 // KitKat). If only x11 needs this, should we move this to x11.go??
-func registerGLViewportFilter() {
-	RegisterFilter(func(e interface{}) interface{} {
-		if e, ok := e.(config.Event); ok {
-			gl.Viewport(0, 0, e.WidthPx, e.HeightPx)
+func (a *app) registerGLViewportFilter() {
+	a.RegisterFilter(func(e interface{}) interface{} {
+		if e, ok := e.(size.Event); ok {
+			a.glctx.Viewport(0, 0, e.WidthPx, e.HeightPx)
 		}
 		return e
 	})

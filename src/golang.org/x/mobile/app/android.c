@@ -35,6 +35,8 @@ static jmethodID find_method(JNIEnv *env, jclass clazz, const char *name, const 
 	return m;
 }
 
+jmethodID key_rune_method;
+
 jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 	JNIEnv* env;
 	if ((*vm)->GetEnv(vm, (void**)&env, JNI_VERSION_1_6) != JNI_OK) {
@@ -44,6 +46,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 	// Load classes here, which uses the correct ClassLoader.
 	current_ctx_clazz = find_class(env, "org/golang/app/GoNativeActivity");
 	current_ctx_clazz = (jclass)(*env)->NewGlobalRef(env, current_ctx_clazz);
+	key_rune_method =  find_method(env, current_ctx_clazz, "getRune", "(III)I");
 
 	return JNI_VERSION_1_6;
 }
@@ -63,8 +66,8 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void* savedState, size_
 		JNIEnv* env = activity->env;
 
 		// Note that activity->clazz is mis-named.
-		JavaVM* current_vm = activity->vm;
-		jobject current_ctx = activity->clazz;
+		current_vm = activity->vm;
+		current_ctx = activity->clazz;
 
 		setCurrentContext(current_vm, (*env)->NewGlobalRef(env, current_ctx));
 
@@ -175,4 +178,15 @@ char* destroyEGLSurface() {
 		return "EGL destroy surface failed";
 	}
 	return NULL;
+}
+
+int32_t getKeyRune(JNIEnv* env, AInputEvent* e) {
+	return (int32_t)(*env)->CallIntMethod(
+		env,
+		current_ctx,
+		key_rune_method,
+		AInputEvent_getDeviceId(e),
+		AKeyEvent_getKeyCode(e),
+		AKeyEvent_getMetaState(e)
+	);
 }

@@ -15,7 +15,7 @@ import (
 
 	xdraw "golang.org/x/image/draw"
 	"golang.org/x/image/math/f64"
-	"golang.org/x/mobile/event/config"
+	"golang.org/x/mobile/event/size"
 	"golang.org/x/mobile/exp/f32"
 	"golang.org/x/mobile/exp/sprite"
 	"golang.org/x/mobile/exp/sprite/clock"
@@ -51,7 +51,7 @@ func (t *texture) Upload(r image.Rectangle, src image.Image) {
 	draw.Draw(t.m, r, src, src.Bounds().Min, draw.Src)
 }
 
-func (t *texture) Unload() { panic("TODO") }
+func (t *texture) Release() {}
 
 type engine struct {
 	dst           *image.RGBA
@@ -94,13 +94,13 @@ func (e *engine) SetTransform(n *sprite.Node, m f32.Affine) {
 	e.nodes[n.EngineFields.Index].relTransform = m
 }
 
-func (e *engine) Render(scene *sprite.Node, t clock.Time, cfg config.Event) {
+func (e *engine) Render(scene *sprite.Node, t clock.Time, sz size.Event) {
 	// Affine transforms are done in geom.Pt. When finally drawing
 	// the geom.Pt onto an image.Image we need to convert to system
-	// pixels. We scale by cfg.PixelsPerPt to do this.
+	// pixels. We scale by sz.PixelsPerPt to do this.
 	e.absTransforms = append(e.absTransforms[:0], f32.Affine{
-		{cfg.PixelsPerPt, 0, 0},
-		{0, cfg.PixelsPerPt, 0},
+		{sz.PixelsPerPt, 0, 0},
+		{0, sz.PixelsPerPt, 0},
 	})
 	e.render(scene, t)
 }
@@ -130,7 +130,7 @@ func (e *engine) render(n *sprite.Node, t clock.Time) {
 		// should have the dimensions (1pt, 1pt). To do this we divide
 		// by the pixel width and height, reducing the texture to
 		// (1px, 1px) of the destination image. Multiplying by
-		// cfg.PixelsPerPt, done in Render above, makes it (1pt, 1pt).
+		// sz.PixelsPerPt, done in Render above, makes it (1pt, 1pt).
 		dx, dy := x.R.Dx(), x.R.Dy()
 		if dx > 0 && dy > 0 {
 			m.Scale(&m, 1/float32(dx), 1/float32(dy))
@@ -148,6 +148,8 @@ func (e *engine) render(n *sprite.Node, t clock.Time) {
 	// Pop absTransforms.
 	e.absTransforms = e.absTransforms[:len(e.absTransforms)-1]
 }
+
+func (e *engine) Release() {}
 
 // affine draws each pixel of dst using bilinear interpolation of the
 // affine-transformed position in src. This is equivalent to:

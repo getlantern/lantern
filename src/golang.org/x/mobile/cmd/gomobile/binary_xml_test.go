@@ -5,10 +5,15 @@
 package main
 
 import (
+	"archive/zip"
 	"bytes"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
+	"os/exec"
+	"path/filepath"
 	"testing"
 )
 
@@ -23,33 +28,93 @@ func TestBinaryXML(t *testing.T) {
 	sortPool, sortAttr = sortToMatchTest, sortAttrToMatchTest
 	defer func() { sortPool, sortAttr = origSortPool, origSortAttr }()
 
-	got, err := binaryXML(bytes.NewBufferString(input))
+	bin, err := binaryXML(bytes.NewBufferString(fmt.Sprintf(input, "")))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if *dump {
-		if err := ioutil.WriteFile("junk.bin", got, 0660); err != nil {
+		if err := ioutil.WriteFile("junk.bin", bin, 0660); err != nil {
 			t.Fatal(err)
 		}
 	}
 
-	skipByte := map[int]bool{
-		0x04ec: true, // line number of fake </uses-sdk> off by one
-		0x0610: true, // line number of fake </meta-data> off by one
-		0x064c: true, // line number of CData off by one
-		0x06a0: true, // line number of fake </action> off by one
-		0x06f0: true, // line number of fake </category> off by one
-		0x0768: true, // line number of fake *end namespace* off by one
+	if exec.Command("which", "aapt").Run() != nil {
+		t.Skip("command aapt not found, skipping")
 	}
 
-	for i, o := range output {
-		if skipByte[i] {
+	apiPath, err := androidAPIPath()
+	if err != nil {
+		t.Fatal(err)
+	}
+	androidJar := filepath.Join(apiPath, "android.jar")
+
+	tmpdir, err := ioutil.TempDir("", "gomobile-test-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpdir)
+
+	buf := new(bytes.Buffer)
+	zw := zip.NewWriter(buf)
+	zf, err := zw.Create("AndroidManifest.xml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := zf.Write(bin); err != nil {
+		t.Fatal(err)
+	}
+	if err := zw.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	mblapk := filepath.Join(tmpdir, "mbl.apk")
+	if err := ioutil.WriteFile(mblapk, buf.Bytes(), 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := exec.Command("aapt", "d", "xmltree", mblapk, "AndroidManifest.xml").Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	manifest := filepath.Join(tmpdir, "AndroidManifest.xml")
+	inp := fmt.Sprintf(input, "<uses-sdk android:minSdkVersion=\"15\" />")
+	if err := ioutil.WriteFile(manifest, []byte(inp), 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	sdkapk := filepath.Join(tmpdir, "sdk.apk")
+	if _, err := exec.Command("aapt", "p", "-M", manifest, "-I", androidJar, "-F", sdkapk).Output(); err != nil {
+		t.Fatal(err)
+	}
+
+	sdkout, err := exec.Command("aapt", "d", "xmltree", sdkapk, "AndroidManifest.xml").Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if *dump {
+		b, err := ioutil.ReadFile(sdkapk)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := ioutil.WriteFile("junk.sdk.apk", b, 0755); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// manifests contain platformBuildVersionCode and platformBuildVersionName
+	// which are not present in gomobile output.
+	var fo [][]byte
+	for _, line := range bytes.Split(sdkout, []byte{'\n'}) {
+		if bytes.Contains(line, []byte("platformBuildVersionCode")) || bytes.Contains(line, []byte("platformBuildVersionName")) {
 			continue
 		}
-		if i >= len(got) || o != got[i] {
-			t.Errorf("mismatch at %04x", i)
-			break
-		}
+		fo = append(fo, line)
+	}
+	want := bytes.Join(fo, []byte{'\n'})
+
+	if !bytes.Equal(want, got) {
+		t.Fatalf("output does not match\nWANT\n%s\nGOT\n%s\n", want, got)
 	}
 }
 
@@ -60,10 +125,12 @@ func sortToMatchTest(p *binStringPool) {
 		"versionCode",
 		"versionName",
 		"minSdkVersion",
+		"theme",
 		"label",
 		"hasCode",
 		"debuggable",
 		"name",
+		"screenOrientation",
 		"configChanges",
 		"value",
 		"android",
@@ -120,8 +187,10 @@ func sortAttrToMatchTest(e *binStartElement, p *binStringPool) {
 		"versionName",
 		"versionPackage",
 
+		"theme",
 		"label",
 		"name",
+		"screenOrientation",
 		"configChanges",
 	}
 	ordered := make([]*binAttr, len(order))
@@ -740,10 +809,12 @@ license that can be found in the LICENSE file.
 	android:versionCode="1"
 	android:versionName="1.0">
 
-	<uses-sdk android:minSdkVersion="9" />
+	%s
 	<application android:label="Balloon世界" android:hasCode="false" android:debuggable="true">
 	<activity android:name="android.app.NativeActivity"
+		android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
 		android:label="Balloon"
+		android:screenOrientation="portrait"
 		android:configChanges="orientation|keyboardHidden">
 		<meta-data android:name="android.app.lib_name" android:value="balloon" />
 		<intent-filter>

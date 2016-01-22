@@ -15,7 +15,8 @@ package glutil
 #import <OpenGL/OpenGL.h>
 #import <OpenGL/gl3.h>
 
-void CGCreate(CGLContextObj* ctx) {
+CGLError CGCreate(CGLContextObj* ctx) {
+	CGLError err;
 	CGLPixelFormatAttribute attributes[] = {
 		kCGLPFAOpenGLProfile, (CGLPixelFormatAttribute)kCGLOGLPVersion_3_2_Core,
 		kCGLPFAColorSize, (CGLPixelFormatAttribute)24,
@@ -27,16 +28,31 @@ void CGCreate(CGLContextObj* ctx) {
 	};
 	CGLPixelFormatObj pix;
 	GLint num;
-	CGLChoosePixelFormat(attributes, &pix, &num);
-	CGLCreateContext(pix, 0, ctx);
-	CGLDestroyPixelFormat(pix);
-	CGLSetCurrentContext(*ctx);
-	CGLLockContext(*ctx);
+
+	if ((err = CGLChoosePixelFormat(attributes, &pix, &num)) != kCGLNoError) {
+		return err;
+	}
+	if ((err = CGLCreateContext(pix, 0, ctx)) != kCGLNoError) {
+		return err;
+	}
+	if ((err = CGLDestroyPixelFormat(pix)) != kCGLNoError) {
+		return err;
+	}
+	if ((err = CGLSetCurrentContext(*ctx)) != kCGLNoError) {
+		return err;
+	}
+	if ((err = CGLLockContext(*ctx)) != kCGLNoError) {
+		return err;
+	}
+	return kCGLNoError;
 }
 */
 import "C"
 
-import "runtime"
+import (
+	"fmt"
+	"runtime"
+)
 
 // contextGL holds a copy of the OpenGL Context from thread-local storage.
 //
@@ -48,12 +64,14 @@ type contextGL struct {
 // createContext creates an OpenGL context, binds it as the current context
 // stored in thread-local storage, and locks the current goroutine to an os
 // thread.
-func createContext() *contextGL {
+func createContext() (*contextGL, error) {
 	// The OpenGL active context is stored in TLS.
 	runtime.LockOSThread()
 
 	c := new(contextGL)
-	C.CGCreate(&c.ctx)
+	if cglErr := C.CGCreate(&c.ctx); cglErr != C.kCGLNoError {
+		return nil, fmt.Errorf("CGL: %v", C.GoString(C.CGLErrorString(cglErr)))
+	}
 
 	// Using attribute arrays in OpenGL 3.3 requires the use of a VBA.
 	// But VBAs don't exist in ES 2. So we bind a default one.
@@ -61,7 +79,7 @@ func createContext() *contextGL {
 	C.glGenVertexArrays(1, &id)
 	C.glBindVertexArray(id)
 
-	return c
+	return c, nil
 }
 
 // destroy destroys an OpenGL context and unlocks the current goroutine from

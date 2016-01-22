@@ -10,6 +10,8 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -56,11 +58,11 @@ var cmdInit = &command{
 	Usage: "[-u]",
 	Short: "install android compiler toolchain",
 	Long: `
-Init downloads and installs the Android C++ compiler toolchain.
+Init installs the Android C++ compiler toolchain and builds copies
+of the Go standard library for mobile devices.
 
+When first run, it downloads part of the Android NDK.
 The toolchain is installed in $GOPATH/pkg/gomobile.
-If the Android C++ compiler toolchain already exists in the path,
-it skips download and uses the existing toolchain.
 
 The -u option forces download and installation of the new toolchain
 even when the toolchain exists.
@@ -74,24 +76,19 @@ func init() {
 }
 
 func runInit(cmd *command) error {
-	version, err := goVersion()
-	if err != nil {
-		return fmt.Errorf("%v: %s", err, version)
-	}
-
 	gopaths := filepath.SplitList(goEnv("GOPATH"))
 	if len(gopaths) == 0 {
 		return fmt.Errorf("GOPATH is not set")
 	}
 	gomobilepath = filepath.Join(gopaths[0], "pkg/gomobile")
-	ndkccpath = filepath.Join(gopaths[0], "pkg/gomobile/android-"+ndkVersion)
-	verpath := filepath.Join(gopaths[0], "pkg/gomobile/version")
+
+	verpath := filepath.Join(gomobilepath, "version")
 	if buildX || buildN {
 		fmt.Fprintln(xout, "GOMOBILE="+gomobilepath)
 	}
 	removeGomobilepkg()
 
-	if err := mkdir(ndkccpath); err != nil {
+	if err := mkdir(ndk.Root()); err != nil {
 		return err
 	}
 
@@ -115,6 +112,10 @@ func runInit(cmd *command) error {
 		removeAll(tmpdir)
 	}()
 
+	if err := envInit(); err != nil {
+		return err
+	}
+
 	if err := fetchNDK(); err != nil {
 		return err
 	}
@@ -122,15 +123,35 @@ func runInit(cmd *command) error {
 		return err
 	}
 
-	if err := envInit(); err != nil {
-		return err
+	if runtime.GOOS == "darwin" {
+		// Install common x/mobile packages for local development.
+		// These are often slow to compile (due to cgo) and easy to forget.
+		//
+		// Limited to darwin for now as it is common for linux to
+		// not have GLES installed.
+		//
+		// TODO: consider testing GLES installation and suggesting it here
+		for _, pkg := range commonPkgs {
+			if err := installPkg(pkg, nil); err != nil {
+				return err
+			}
+		}
 	}
 
 	// Install standard libraries for cross compilers.
 	start := time.Now()
-	if err := installStd(androidArmEnv); err != nil {
-		return err
+	var androidArgs []string
+	if goVersion == go1_6 {
+		// Ideally this would be -buildmode=c-shared.
+		// https://golang.org/issue/13234.
+		androidArgs = []string{"-gcflags=-shared", "-ldflags=-shared"}
 	}
+	for _, env := range androidEnv {
+		if err := installStd(env, androidArgs...); err != nil {
+			return err
+		}
+	}
+
 	if err := installDarwin(); err != nil {
 		return err
 	}
@@ -139,7 +160,7 @@ func runInit(cmd *command) error {
 		printcmd("go version > %s", verpath)
 	}
 	if !buildN {
-		if err := ioutil.WriteFile(verpath, version, 0644); err != nil {
+		if err := ioutil.WriteFile(verpath, goVersionOut, 0644); err != nil {
 			return err
 		}
 	}
@@ -148,6 +169,12 @@ func runInit(cmd *command) error {
 		fmt.Fprintf(os.Stderr, "\nDone, build took %s.\n", took)
 	}
 	return nil
+}
+
+var commonPkgs = []string{
+	"golang.org/x/mobile/gl",
+	"golang.org/x/mobile/app",
+	"golang.org/x/mobile/exp/app/debug",
 }
 
 func installDarwin() error {
@@ -168,15 +195,25 @@ func installDarwin() error {
 }
 
 func installStd(env []string, args ...string) error {
-	tOS := getenv(env, "GOOS")
-	tArch := getenv(env, "GOARCH")
-	if buildV {
-		fmt.Fprintf(os.Stderr, "\n# Building standard library for %s/%s.\n", tOS, tArch)
+	return installPkg("std", env, args...)
+}
+
+func installPkg(pkg string, env []string, args ...string) error {
+	tOS, tArch, pd := getenv(env, "GOOS"), getenv(env, "GOARCH"), pkgdir(env)
+	if tOS != "" && tArch != "" {
+		if buildV {
+			fmt.Fprintf(os.Stderr, "\n# Installing %s for %s/%s.\n", pkg, tOS, tArch)
+		}
+		args = append(args, "-pkgdir="+pd)
+	} else {
+		if buildV {
+			fmt.Fprintf(os.Stderr, "\n# Installing %s.\n", pkg)
+		}
 	}
 
 	// The -p flag is to speed up darwin/arm builds.
 	// Remove when golang.org/issue/10477 is resolved.
-	cmd := exec.Command("go", "install", fmt.Sprintf("-p=%d", runtime.NumCPU()), "-pkgdir="+pkgdir(env))
+	cmd := exec.Command("go", "install", fmt.Sprintf("-p=%d", runtime.NumCPU()))
 	cmd.Args = append(cmd.Args, args...)
 	if buildV {
 		cmd.Args = append(cmd.Args, "-v")
@@ -187,7 +224,7 @@ func installStd(env []string, args ...string) error {
 	if buildWork {
 		cmd.Args = append(cmd.Args, "-work")
 	}
-	cmd.Args = append(cmd.Args, "std")
+	cmd.Args = append(cmd.Args, pkg)
 	cmd.Env = append([]string{}, env...)
 	return runCmd(cmd)
 }
@@ -221,7 +258,7 @@ func move(dst, src string, names ...string) error {
 		}
 		if goos == "windows" {
 			// os.Rename fails if dstf already exists.
-			os.Remove(dstf)
+			removeAll(dstf)
 		}
 		if err := os.Rename(srcf, dstf); err != nil {
 			return err
@@ -263,23 +300,6 @@ func rm(name string) error {
 	return os.Remove(name)
 }
 
-func goVersion() ([]byte, error) {
-	gobin, err := exec.LookPath("go")
-	if err != nil {
-		return nil, fmt.Errorf(`no Go tool on $PATH`)
-	}
-	buildHelp, err := exec.Command(gobin, "help", "build").CombinedOutput()
-	if err != nil {
-		return nil, fmt.Errorf("bad Go tool: %v (%s)", err, buildHelp)
-	}
-	// TODO(crawshaw): this is a crude test for Go 1.5. After release,
-	// remove this and check it is not an old release version.
-	if !bytes.Contains(buildHelp, []byte("-pkgdir")) {
-		return nil, fmt.Errorf("installed Go tool does not support -pkgdir")
-	}
-	return exec.Command(gobin, "version").CombinedOutput()
-}
-
 func fetchOpenAL() error {
 	url := "https://dl.google.com/go/mobile/gomobile-" + openALVersion + ".tar.gz"
 	archive, err := fetch(url)
@@ -289,12 +309,25 @@ func fetchOpenAL() error {
 	if err := extract("openal", archive); err != nil {
 		return err
 	}
-	dst := filepath.Join(ndkccpath, "arm", "sysroot", "usr", "include")
-	src := filepath.Join(tmpdir, "openal", "include")
-	if err := move(dst, src, "AL"); err != nil {
-		return err
+	if goos == "windows" {
+		resetReadOnlyFlagAll(filepath.Join(tmpdir, "openal"))
 	}
-	libDst := filepath.Join(ndkccpath, "openal")
+	ndkroot := ndk.Root()
+	src := filepath.Join(tmpdir, "openal/include/AL")
+	for arch := range androidEnv {
+		toolchain := ndk.Toolchain(arch)
+		dst := filepath.Join(ndkroot, toolchain.arch+"/sysroot/usr/include/AL")
+		if buildX || buildN {
+			printcmd("cp -r %s %s", src, dst)
+		}
+		if buildN {
+			continue
+		}
+		if err := doCopyAll(dst, src); err != nil {
+			return err
+		}
+	}
+	libDst := filepath.Join(ndkroot, "openal")
 	libSrc := filepath.Join(tmpdir, "openal")
 	if err := mkdir(libDst); err != nil {
 		return nil
@@ -364,38 +397,47 @@ func fetchNDK() error {
 			return err
 		}
 	}
-
-	dst := filepath.Join(ndkccpath, "arm")
-	dstSysroot := filepath.Join(dst, "sysroot/usr")
-	if err := mkdir(dstSysroot); err != nil {
-		return err
+	if goos == "windows" {
+		resetReadOnlyFlagAll(filepath.Join(tmpdir, "android-"+ndkVersion))
 	}
 
-	srcSysroot := filepath.Join(tmpdir, "android-"+ndkVersion+"/platforms/android-15/arch-arm/usr")
-	if err := move(dstSysroot, srcSysroot, "include", "lib"); err != nil {
-		return err
-	}
-
-	ndkpath := filepath.Join(tmpdir, "android-"+ndkVersion+"/toolchains/arm-linux-androideabi-4.8/prebuilt")
-	if goos == "windows" && ndkarch == "x86" {
-		ndkpath = filepath.Join(ndkpath, "windows")
-	} else {
-		ndkpath = filepath.Join(ndkpath, goos+"-"+ndkarch)
-	}
-	if err := move(dst, ndkpath, "bin", "lib", "libexec"); err != nil {
-		return err
-	}
-
-	linkpath := filepath.Join(dst, "arm-linux-androideabi/bin")
-	if err := mkdir(linkpath); err != nil {
-		return err
-	}
-	for _, name := range []string{"ld", "as", "gcc", "g++"} {
-		if goos == "windows" {
-			name += ".exe"
-		}
-		if err := symlink(filepath.Join(dst, "bin", "arm-linux-androideabi-"+name), filepath.Join(linkpath, name)); err != nil {
+	for arch := range androidEnv {
+		toolchain := ndk.Toolchain(arch)
+		dst := filepath.Join(ndk.Root(), toolchain.arch)
+		dstSysroot := filepath.Join(dst, "sysroot")
+		if err := mkdir(dstSysroot); err != nil {
 			return err
+		}
+
+		srcSysroot := filepath.Join(tmpdir, fmt.Sprintf(
+			"android-%s/platforms/%s/arch-%s", ndkVersion, toolchain.platform, toolchain.arch))
+		if err := move(dstSysroot, srcSysroot, "usr"); err != nil {
+			return err
+		}
+
+		ndkpath := filepath.Join(tmpdir, fmt.Sprintf(
+			"android-%s/toolchains/%s/prebuilt", ndkVersion, toolchain.gcc))
+		if goos == "windows" && ndkarch == "x86" {
+			ndkpath = filepath.Join(ndkpath, "windows")
+		} else {
+			ndkpath = filepath.Join(ndkpath, goos+"-"+ndkarch)
+		}
+		if err := move(dst, ndkpath, "bin", "lib", "libexec"); err != nil {
+			return err
+		}
+
+		linkpath := filepath.Join(dst, toolchain.toolPrefix+"/bin")
+		if err := mkdir(linkpath); err != nil {
+			return err
+		}
+
+		for _, name := range []string{"ld", "as", "gcc", "g++"} {
+			if goos == "windows" {
+				name += ".exe"
+			}
+			if err := symlink(filepath.Join(dst, "bin", toolchain.toolPrefix+"-"+name), filepath.Join(linkpath, name)); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -433,6 +475,10 @@ func fetchFullNDK() error {
 	// is not used, and 7z.exe is not a normal dependency.
 	var inflate *exec.Cmd
 	if goos != "windows" {
+		// The downloaded archive is executed on linux and os x to unarchive.
+		// To do this execute permissions are needed.
+		os.Chmod(archive, 0755)
+
 		inflate = exec.Command(archive)
 	} else {
 		inflate = exec.Command("7z.exe", "x", archive)
@@ -481,6 +527,7 @@ func fetch(url string) (dst string, err error) {
 			os.Remove(f.Name())
 		}
 	}()
+	hashw := sha256.New()
 
 	resp, err := http.Get(url)
 	if err != nil {
@@ -489,7 +536,7 @@ func fetch(url string) (dst string, err error) {
 	if resp.StatusCode != http.StatusOK {
 		err = fmt.Errorf("error fetching %v, status: %v", url, resp.Status)
 	} else {
-		_, err = io.Copy(f, resp.Body)
+		_, err = io.Copy(io.MultiWriter(hashw, f), resp.Body)
 	}
 	if err2 := resp.Body.Close(); err == nil {
 		err = err2
@@ -499,6 +546,10 @@ func fetch(url string) (dst string, err error) {
 	}
 	if err = f.Close(); err != nil {
 		return "", err
+	}
+	hash := hex.EncodeToString(hashw.Sum(nil))
+	if fetchHashes[name] != hash {
+		return "", fmt.Errorf("sha256 for %q: %v, want %v", name, hash, fetchHashes[name])
 	}
 	if err = os.Rename(f.Name(), dst); err != nil {
 		return "", err

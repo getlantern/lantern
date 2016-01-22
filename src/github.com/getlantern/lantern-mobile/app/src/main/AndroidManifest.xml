@@ -18,7 +18,7 @@
         <service android:name="com.google.android.gms.analytics.AnalyticsService"
             android:enabled="true"
             android:exported="false"/>
-      
+
         <activity
             android:name=".activity.LanternMainActivity"
             android:launchMode="singleTask"
@@ -26,12 +26,12 @@
             android:label="@string/app_name">
 
             <receiver android:name=".LanternReceiver">
-                <intent-filter> 
+                <intent-filter>
                     <action android:name="android.intent.action.ACTION_SHUTDOWN" />
                     <action android:name="android.intent.action.SCREEN_ON" />
                     <action android:name="android.intent.action.SCREEN_OFF" />
                     <action android:name="android.intent.action.USER_PRESENT" />
-                </intent-filter> 
+                </intent-filter>
             </receiver>
 
             <intent-filter>
