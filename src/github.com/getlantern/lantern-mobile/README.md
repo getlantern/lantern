@@ -44,6 +44,7 @@ select the `lantern` folder you just checked out with git.
 * Git
 * [Android NDK][2]
 * [Android SDK Tools][4] (if not using Android Studio)
+* Go (1.6 tip is best as it eliminates text-relocations and provides the best performance)
 
 Replace the paths based on wherever you've installed the Android SDK and NDK
 
