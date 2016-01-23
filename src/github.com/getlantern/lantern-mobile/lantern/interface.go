@@ -3,7 +3,6 @@ package client
 import (
 	"net"
 
-	"github.com/getlantern/analytics"
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/lantern"
@@ -69,7 +68,6 @@ func Start(provider Provider) error {
 		}
 
 		logging.ConfigureAndroid(androidProps)
-		analytics.Configure("", provider.AppName(), "", appSettings.HttpAddr)
 
 		cfgFn := func(cfg *config.Config) {
 
