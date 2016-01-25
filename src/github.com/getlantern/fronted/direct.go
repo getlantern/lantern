@@ -45,15 +45,13 @@ func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
 	// of masquerades and push all of them into it.
 	candidateCh = make(chan *Masquerade, size)
 
-	go func() {
-		log.Debugf("Adding %v candidates...", size)
-		for _, arr := range masq {
-			for _, m := range arr {
-				candidateCh <- m
-			}
+	log.Debugf("Adding %v candidates...", size)
+	for _, arr := range masq {
+		for _, m := range arr {
+			candidateCh <- m
 		}
-		poolCh <- pool
-	}()
+	}
+	poolCh <- pool
 }
 
 func shuffle(slc []*Masquerade) {
