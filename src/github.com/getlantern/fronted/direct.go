@@ -41,7 +41,7 @@ func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
 		size += len(arr)
 	}
 
-	// Make an unblocke channel the same size as our group
+	// Make an unblocked channel the same size as our group
 	// of masquerades and push all of them into it.
 	candidateCh = make(chan *Masquerade, size)
 
@@ -135,42 +135,49 @@ func (d *direct) Do(req *http.Request) (*http.Response, error) {
 
 // Dial persistently dials masquerades until one succeeds.
 func (d *direct) Dial(network, addr string) (net.Conn, error) {
-	for i := 0; i < 40; i++ {
-		m := <-candidateCh
-		log.Debugf("Dialing to %v", m)
+	gotFirst := false
+	for {
+		select {
+		case m := <-candidateCh:
+			gotFirst = true
+			log.Debugf("Dialing to %v", m)
 
-		// We do the full TLS connection here because in practice the domains at a given IP
-		// address can change frequently on CDNs, so the certificate may not match what
-		// we expect.
-		conn, err := d.dialServerWith(m)
-		if err != nil {
-			log.Debugf("Could not dial to %v, %v", m.IpAddress, err)
-			// Don't re-add this candidate if it's any certificate error, as that
-			// will just keep failing and will waste connections. We can't access the underlying
-			// error at this point so just look for "certificate".
-			if strings.Contains(err.Error(), "certificate") {
-				log.Debugf("Continuing on certificate error")
-			} else {
-				candidateCh <- m
-			}
-		} else {
-			log.Debugf("Got successful connection to: %v", m)
-			// Requeue the working connection
-			candidateCh <- m
-			idleTimeout := 70 * time.Second
-
-			log.Debug("Wrapping connecting in idletiming connection")
-			conn = idletiming.Conn(conn, idleTimeout, func() {
-				log.Debugf("Connection to %s via %s idle for %v, closing", addr, conn.RemoteAddr(), idleTimeout)
-				if err := conn.Close(); err != nil {
-					log.Debugf("Unable to close connection: %v", err)
+			// We do the full TLS connection here because in practice the domains at a given IP
+			// address can change frequently on CDNs, so the certificate may not match what
+			// we expect.
+			conn, err := d.dialServerWith(m)
+			if err != nil {
+				log.Debugf("Could not dial to %v, %v", m.IpAddress, err)
+				// Don't re-add this candidate if it's any certificate error, as that
+				// will just keep failing and will waste connections. We can't access the underlying
+				// error at this point so just look for "certificate".
+				if strings.Contains(err.Error(), "certificate") {
+					log.Debugf("Continuing on certificate error")
+				} else {
+					candidateCh <- m
 				}
-			})
-			log.Debug("Returning connection")
-			return conn, nil
+			} else {
+				log.Debugf("Got successful connection to: %v", m)
+				// Requeue the working connection
+				candidateCh <- m
+				idleTimeout := 70 * time.Second
+
+				log.Debug("Wrapping connecting in idletiming connection")
+				conn = idletiming.Conn(conn, idleTimeout, func() {
+					log.Debugf("Connection to %s via %s idle for %v, closing", addr, conn.RemoteAddr(), idleTimeout)
+					if err := conn.Close(); err != nil {
+						log.Debugf("Unable to close connection: %v", err)
+					}
+				})
+				log.Debug("Returning connection")
+				return conn, nil
+			}
+		default:
+			if gotFirst {
+				return nil, errors.New("Could not dial any masquerade?")
+			}
 		}
 	}
-	return nil, errors.New("Could not dial any masquerade?")
 }
 
 func (d *direct) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
