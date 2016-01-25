@@ -17,6 +17,8 @@ import java.util.HashMap;
 import go.client.*;
 import org.getlantern.lantern.sdk.Utils;
 
+import com.google.common.net.HostAndPort;
+
 public class Lantern extends Client.Provider.Stub {
 
     private static final String TAG = "Lantern";
@@ -31,7 +33,7 @@ public class Lantern extends Client.Provider.Stub {
     private String settingsDir = "";
     private String appName = "Lantern";
     private String proxyHost = "127.0.0.1";
-    private String proxyPort = "8787";
+    private int proxyPort = 8787;
     private Map settings = new HashMap();
     private boolean vpnMode = false;
 
@@ -72,10 +74,10 @@ public class Lantern extends Client.Provider.Stub {
             settings = Utils.loadSettings(context, settingsFile);
             if (settings.get("httpaddr") != null) {
                 String httpAddr = (String)settings.get("httpaddr");
-                String s[] = httpAddr.split(":");
-                if (s.length > 1) {
-                    this.proxyHost = s[0];
-                    this.proxyPort = s[1];
+                if (httpAddr != null) {
+                    HostAndPort hp = HostAndPort.fromString(httpAddr);
+                    this.proxyHost = hp.getHostText();
+                    this.proxyPort = hp.getPort();
                 }
             }
             Client.Configure(this);
@@ -126,9 +128,9 @@ public class Lantern extends Client.Provider.Stub {
 
         if (!VpnMode()) {
             System.setProperty("http.proxyHost", this.proxyHost);
-            System.setProperty("http.proxyPort", this.proxyPort);
+            System.setProperty("http.proxyPort",  this.proxyPort + "");
             System.setProperty("https.proxyHost", this.proxyHost);
-            System.setProperty("https.proxyPort", this.proxyPort);
+            System.setProperty("https.proxyPort", this.proxyPort + "");
         }
 
         analytics.sendNewSessionEvent();
@@ -137,7 +139,7 @@ public class Lantern extends Client.Provider.Stub {
     public void SetWebViewProxy(WebView webView) {
         Log.d(TAG, "Updating webview proxy settings");
         ProxySettings.setProxy(context, webView, 
-                this.proxyHost, Integer.parseInt(this.proxyPort));
+                this.proxyHost, this.proxyPort);
     }
 
     @Override

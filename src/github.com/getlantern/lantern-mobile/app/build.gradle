@@ -59,6 +59,7 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile gplay
     compile appCompat
+    compile 'com.google.guava:guava:19.0'
     compile 'com.mandrillapp.wrapper.lutung:lutung:0.0.6'
     compile 'com.github.tony19:timber-loggly:1.0.1'
     compile('com.crashlytics.sdk.android:crashlytics:2.5.3@aar') {
