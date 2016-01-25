@@ -45,13 +45,15 @@ func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
 	// of masquerades and push all of them into it.
 	candidateCh = make(chan *Masquerade, size)
 
-	log.Debugf("Adding %v candidates...", size)
-	for _, arr := range masq {
-		for _, m := range arr {
-			candidateCh <- m
+	go func() {
+		log.Debugf("Adding %v candidates...", size)
+		for _, arr := range masq {
+			for _, m := range arr {
+				candidateCh <- m
+			}
 		}
-	}
-	poolCh <- pool
+		poolCh <- pool
+	}()
 }
 
 func shuffle(slc []*Masquerade) {
@@ -133,9 +135,11 @@ func (d *direct) Do(req *http.Request) (*http.Response, error) {
 
 // Dial persistently dials masquerades until one succeeds.
 func (d *direct) Dial(network, addr string) (net.Conn, error) {
+	gotFirst := false
 	for {
 		select {
 		case m := <-candidateCh:
+			gotFirst = true
 			log.Debugf("Dialing to %v", m)
 
 			// We do the full TLS connection here because in practice the domains at a given IP
@@ -169,7 +173,9 @@ func (d *direct) Dial(network, addr string) (net.Conn, error) {
 				return conn, nil
 			}
 		default:
-			return nil, errors.New("Could not dial any masquerade?")
+			if gotFirst {
+				return nil, errors.New("Could not dial any masquerade?")
+			}
 		}
 	}
 }
