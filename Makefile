@@ -1,5 +1,7 @@
 SHELL := /bin/bash
 
+MIN_OS_VERSION_MAC := 10.7
+
 DOCKER := $(shell which docker 2> /dev/null)
 GO := $(shell which go 2> /dev/null)
 NODE := $(shell which node 2> /dev/null)
@@ -298,7 +300,7 @@ darwin-amd64: require-assets
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		source setenv.bash && \
 		$(call build-tags) && \
-		MACOSX_DEPLOYMENT_TARGET=10.7 CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -a -o lantern_darwin_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS)" github.com/getlantern/flashlight; \
+		MACOSX_DEPLOYMENT_TARGET=$(MIN_OS_VERSION_MAC) CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -a -o lantern_darwin_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS)" github.com/getlantern/flashlight; \
 	else \
 		echo "-> Skipped: Can not compile Lantern for OSX on a non-OSX host."; \
 	fi
