@@ -73,7 +73,6 @@
 
 #include <generated/blog_channel_tun2socks.h>
 
-#define PSIPHON 1
 #define LOGGER_STDOUT 1
 #define LOGGER_SYSLOG 2
 
@@ -330,6 +329,14 @@ JNIEXPORT jint JNICALL Java_org_getlantern_lantern_android_vpn_Tun2Socks_runTun2
     return 1;
 }
 
+JNIEXPORT jint JNICALL Java_org_getlantern_lantern_android_vpn_Tun2Socks_terminateTun2Socks(
+        jclass cls,
+        JNIEnv* env)
+{
+    terminate();
+    return 0;
+}
+
 // from tcp_helper.c
 /** Remove all pcbs on the given list. */
 static void tcp_remove(struct tcp_pcb* pcb_list)
@@ -344,7 +351,6 @@ static void tcp_remove(struct tcp_pcb* pcb_list)
         tcp_abort(pcb2);
     }
 }
-
 //==== PSIPHON ====
 
 #else
