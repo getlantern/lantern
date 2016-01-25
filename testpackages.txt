@@ -27,7 +27,6 @@ github.com/getlantern/lantern-mobile
 github.com/getlantern/multicast
 github.com/getlantern/osversion
 github.com/getlantern/pathreflect
-github.com/getlantern/peerscanner/cfr
 github.com/getlantern/peerscanner/dsp
 github.com/getlantern/proxiedsites
 github.com/getlantern/proxy
