@@ -1,8 +1,6 @@
 package client
 
 import (
-	"net"
-
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/lantern"
@@ -32,7 +30,7 @@ type Provider interface {
 	VpnMode() bool
 	GetDnsServer() string
 	SettingsDir() string
-	AfterStart(string, string, string)
+	AfterStart(string)
 	Protect(fileDescriptor int) error
 	Notice(message string, fatal bool)
 }
@@ -40,11 +38,6 @@ type Provider interface {
 func Configure(provider Provider) error {
 
 	log.Debugf("Configuring Lantern version: %s", lantern.GetVersion())
-
-	if provider.VpnMode() {
-		dnsServer := provider.GetDnsServer()
-		protected.Configure(provider, dnsServer, true)
-	}
 
 	settingsDir := provider.SettingsDir()
 	log.Debugf("settings directory is %s", settingsDir)
@@ -60,6 +53,13 @@ func Configure(provider Provider) error {
 func Start(provider Provider) error {
 
 	go func() {
+
+		log.Debugf("About to configure Lantern")
+
+		if provider.VpnMode() {
+			dnsServer := provider.GetDnsServer()
+			protected.Configure(provider, dnsServer, true)
+		}
 
 		androidProps := map[string]string{
 			"androidDevice":     provider.Device(),
@@ -82,28 +82,18 @@ func Start(provider Provider) error {
 		if provider.VpnMode() {
 			i, err = interceptor.Do(l.Client, appSettings.SocksAddr, appSettings.HttpAddr, provider.Notice)
 			if err != nil {
-				log.Errorf("Error starting SOCKS proxy: %v", err)
+				log.Errorf("Error starting interceptor: %v", err)
+			} else {
+				lantern.AddExitFunc(func() {
+					if i != nil {
+						i.Stop()
+					}
+				})
 			}
-			lantern.AddExitFunc(func() {
-				if i != nil {
-					i.Stop()
-				}
-			})
 		}
-
-		proxyHost, proxyPort, _ := net.SplitHostPort(appSettings.HttpAddr)
-
-		provider.AfterStart(lantern.GetVersion(), proxyHost,
-			proxyPort)
+		provider.AfterStart(lantern.GetVersion())
 	}()
 	return nil
-}
-
-func Restart(provider Provider) {
-	log.Debugf("Restarting Lantern..")
-	Stop()
-	Configure(provider)
-	Start(provider)
 }
 
 func Stop() {
