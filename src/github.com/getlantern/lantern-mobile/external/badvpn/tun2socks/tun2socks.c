@@ -455,7 +455,6 @@ void run()
             goto fail2;
         }
     }
-
     // PSIPHON
     if (options.tun_fd) {
         // use supplied file descriptor
