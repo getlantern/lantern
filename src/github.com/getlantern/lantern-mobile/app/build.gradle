@@ -3,6 +3,8 @@ apply plugin: 'io.fabric'
 
 android {
 
+    useLibrary 'org.apache.http.legacy'
+
     compileSdkVersion rootProject.compileSdkVersion
     buildToolsVersion rootProject.buildToolsVersion
 
@@ -49,12 +51,11 @@ repositories {
     jcenter()
     mavenCentral()
     mavenLocal()
-    maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
     maven { url 'https://maven.fabric.io/public' }
 }
 
 dependencies {
-    compile 'org.getlantern:android-sdk:1.9.6-SNAPSHOT@aar'
+    compile (name:'libflashlight', ext:'aar')
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile gplay
     compile appCompat
@@ -65,3 +66,4 @@ dependencies {
     }
 
 }
+

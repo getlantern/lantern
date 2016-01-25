@@ -72,7 +72,9 @@ func init() {
 
 	rand.Seed(time.Now().UnixNano())
 
-	settings.Load(version, revisionDate, buildDate)
+	if runtime.GOOS != "android" {
+		settings.Load(version, revisionDate, buildDate)
+	}
 }
 
 func GetVersion() string {

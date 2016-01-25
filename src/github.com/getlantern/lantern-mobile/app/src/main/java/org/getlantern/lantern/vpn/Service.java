@@ -31,10 +31,10 @@ public class Service extends VpnBuilder implements Runnable {
 
     @Override
     public void onCreate() {
+        super.onCreate();
         Log.d(TAG, "VpnService created");
         mThread = new Thread(this, "VpnService");
         mThread.start();
-        super.onCreate();
     }
 
 
@@ -50,12 +50,13 @@ public class Service extends VpnBuilder implements Runnable {
             Log.d(TAG, "Loading Lantern library");
             final Service service = this;
             lantern = new LanternVpn(this);
-            lantern.start();
+            lantern.Start();
 
             Thread.sleep(1000*2);
             service.configure(lantern.getSettings());
 
             while (IsRunning) {
+                // sleep to avoid busy looping
                 Thread.sleep(100);
             } 
         } catch (InterruptedException e) {
@@ -71,11 +72,9 @@ public class Service extends VpnBuilder implements Runnable {
 
     private synchronized void stop() {
         try {
-            Log.d(TAG, "Closing VPN interface..");
             super.close();
-
-            Log.d(TAG, "About to stop Lantern");
-            lantern.stop();
+            Log.d(TAG, "Closing VPN interface..");
+            lantern.Stop();
         } catch (Exception e) {
             
         }
