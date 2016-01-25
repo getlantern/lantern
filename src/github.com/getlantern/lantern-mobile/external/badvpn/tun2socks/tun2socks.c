@@ -330,8 +330,8 @@ JNIEXPORT jint JNICALL Java_org_getlantern_lantern_android_vpn_Tun2Socks_runTun2
 }
 
 JNIEXPORT jint JNICALL Java_org_getlantern_lantern_android_vpn_Tun2Socks_terminateTun2Socks(
-        jclass cls,
-        JNIEnv* env)
+    jclass cls,
+    JNIEnv* env)
 {
     terminate();
     return 0;
@@ -351,6 +351,7 @@ static void tcp_remove(struct tcp_pcb* pcb_list)
         tcp_abort(pcb2);
     }
 }
+
 //==== PSIPHON ====
 
 #else
