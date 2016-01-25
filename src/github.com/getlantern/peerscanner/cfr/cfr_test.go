@@ -18,6 +18,10 @@ import (
 const COMMENT = "TEST -- DELETE"
 
 func TestList(t *testing.T) {
+	if true {
+		t.Log("We don't currently use peerscanner, so this test is disabled")
+		return
+	}
 	_, counter, err := fdcount.Matching("TCP")
 	if err != nil {
 		t.Fatalf("Unable to get starting fdcount: %v", err)
@@ -26,7 +30,7 @@ func TestList(t *testing.T) {
 	dists, err := ListDistributions(cfr)
 	if assert.NoError(t, err, "Should be able to get all distributions") {
 		for _, d := range dists {
-			log.Tracef("%v : %v (%v)", d.InstanceId, d.Domain, d.Status)
+			log.Tracef("%v : %v (%v)\t\t%v", d.InstanceId, d.Domain, d.Status, d.Comment)
 		}
 		assert.True(t, len(dists) > 0, "There should be some distributions")
 	}
@@ -34,6 +38,10 @@ func TestList(t *testing.T) {
 }
 
 func TestCreateAndRefresh(t *testing.T) {
+	if true {
+		t.Log("We don't currently use peerscanner, so this test is disabled. To reenable, we'll need to delete test distributions to avoid hitting our limit")
+		return
+	}
 	_, counter, err := fdcount.Matching("TCP")
 	if err != nil {
 		t.Fatalf("Unable to get starting fdcount: %v", err)
