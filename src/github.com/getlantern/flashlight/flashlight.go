@@ -406,7 +406,7 @@ func applyClientConfig(client *client.Client, cfg *config.Config) {
 	_ = statreporter.Configure(cfg.Stats, settings.GetInstanceID())
 
 	// Update client configuration and get the highest QOS dialer available.
-	client.Configure(cfg.Client)
+	client.Configure(cfg.Client, settings.GetProxyAll())
 
 	// We offload this onto a go routine because creating the http clients
 	// blocks on waiting for the local server, and the local server starts

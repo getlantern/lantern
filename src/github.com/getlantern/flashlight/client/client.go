@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/getlantern/balancer"
-	"github.com/getlantern/flashlight/settings"
 	"github.com/getlantern/golog"
 )
 
@@ -77,9 +76,8 @@ func (client *Client) ListenAndServe(onListeningFn func()) error {
 }
 
 // Configure updates the client's configuration. Configure can be called
-// before or after ListenAndServe, and can be called multiple times.  It
-// returns the highest QOS fronted.Dialer available, or nil if none available.
-func (client *Client) Configure(cfg *ClientConfig) {
+// before or after ListenAndServe, and can be called multiple times.
+func (client *Client) Configure(cfg *ClientConfig, proxyAll bool) {
 	client.cfgMutex.Lock()
 	defer client.cfgMutex.Unlock()
 
@@ -97,8 +95,8 @@ func (client *Client) Configure(cfg *ClientConfig) {
 
 	log.Debugf("Requiring minimum QOS of %d", cfg.MinQOS)
 	client.MinQOS = cfg.MinQOS
-	log.Debugf("Proxy all traffic or not: %v", settings.GetProxyAll())
-	client.ProxyAll = settings.GetProxyAll()
+	log.Debugf("Proxy all traffic or not: %v", proxyAll)
+	client.ProxyAll = proxyAll
 
 	client.initBalancer(cfg)
 
