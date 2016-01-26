@@ -192,6 +192,11 @@ func doMain() error {
 	// Run below in separate goroutine as config.Init() can potentially block when Lantern runs
 	// for the first time. User can still quit Lantern through systray menu when it happens.
 	go func() {
+		// If proxyall flag was supplied, force proxying of all
+		if flag.Lookup("proxyall") != nil {
+			settings.SetProxyAll(*proxyAll)
+		}
+
 		cfg, cfgUpdates, configErrors, err := flashlight.InitConfig(*configdir, *stickyConfig, flagsAsMap())
 		if err != nil {
 			exit(err)

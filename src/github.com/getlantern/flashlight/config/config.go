@@ -27,7 +27,6 @@ import (
 
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/server"
-	"github.com/getlantern/flashlight/settings"
 	"github.com/getlantern/flashlight/statreporter"
 	"github.com/getlantern/flashlight/util"
 )
@@ -352,10 +351,6 @@ func (updated *Config) applyFlags(flags map[string]interface{}) error {
 		// HTTP-server
 		case "uiaddr":
 			updated.UIAddr = value.(string)
-
-		// Client
-		case "proxyall":
-			settings.SetProxyAll(value.(bool))
 
 		// Server
 		case "portmap":
