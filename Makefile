@@ -549,6 +549,7 @@ build-android-debug:
 
 build-tun2socks:
 	cd $(LANTERN_MOBILE_DIR) && ndk-build
+	mkdir -p $(LANTERN_MOBILE_DIR)/app/libs/armeabi-v7a
 	cp $(LANTERN_MOBILE_DIR)/libs/armeabi-v7a/libtun2socks.so $(LANTERN_MOBILE_DIR)/app/libs/armeabi-v7a/libtun2socks.so
 
 $(APK_FILE): build-android-debug
