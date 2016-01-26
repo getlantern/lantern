@@ -38,13 +38,14 @@ repositories {
     }
     jcenter()
     maven { url 'https://maven.fabric.io/public' }
-    maven { url 'https://plugins.gradle.org/m2/' }
     mavenCentral()
     maven { url "https://plugins.gradle.org/m2/" }
 }
 
 
 android {
+
+    useLibrary 'org.apache.http.legacy'
 
     compileSdkVersion rootProject.compileSdkVersion
     buildToolsVersion rootProject.buildToolsVersion
@@ -65,7 +66,6 @@ android {
             }
             resources {
                 srcDir 'libs/jni'
-                jniLibs.srcDirs = ['libs/jni']
             }
         }
     }
@@ -162,6 +162,7 @@ android.libraryVariants.all { variant ->
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile fileTree(include: ['*.so', '*.jar'], dir: 'libs')
     compile group: 'commons-io', name: 'commons-io', version: '2.0.1'
     compile group: 'org.yaml', name: 'snakeyaml', version: '1.10'
     compile 'com.android.support:appcompat-v7:22.0.0'

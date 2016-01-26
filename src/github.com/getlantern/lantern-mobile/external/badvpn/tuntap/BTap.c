@@ -484,9 +484,9 @@ int BTap_InitWithFD (BTap *o, BReactor *reactor, int fd, int mtu, BTap_handler_e
     o->handler_error_user = handler_error_user;
     o->frame_mtu = mtu;
     o->fd = fd;
-    o->close_fd = 1;
+    o->close_fd = 0;
 
-    // TODO: use BTap_Init2? Still some different behavior (we don't want the fcntl block; we do want close to be called)
+    // TODO: use BTap_Init2? Still some different behavior (we don't want the fcntl block)
 
     // The following is identical to BTap_Init...
 
@@ -517,6 +517,22 @@ success:
     DebugError_Init(&o->d_err, BReactor_PendingGroup(o->reactor));
     DebugObject_Init(&o->d_obj);
     return 1;
+}
+
+void BTap_FreeWithFD (BTap *o)
+{
+    DebugObject_Free(&o->d_obj);
+    DebugError_Free(&o->d_err);
+    
+    // free output
+    PacketRecvInterface_Free(&o->output);
+
+    // TODO: skips BReactor_RemoveFileDescriptor call, which
+    // will fails with EBADF since the fd has been closed by
+    // Psiphon. Since we're shutting down tun2socks, the
+    // entire BReactor will be freed. It would be cleaner
+    // to still call BReactor_RemoveFileDescriptor and handle
+    // the EBADF.
 }
 
 // ==== PSIPHON ====

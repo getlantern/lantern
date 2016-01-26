@@ -133,7 +133,7 @@ define fpm-debian-build =
 endef
 
 all: binaries
-android: build-android-debug android-install android-run
+android: build-tun2socks build-android-debug android-install android-run
 android-sdk: android-lib build-android-sdk
 android-dist: genconfig android
 
@@ -525,7 +525,7 @@ genconfig:
 android-lib:
 	@source setenv.bash && \
 	gomobile bind -target=android -tags='headless' -o=$(LANTERN_MOBILE_LIBRARY) -ldflags='$(LDFLAGS_MOBILE)' $(LANTERN_MOBILE_PKG); \
-	mkdir -p $(LANTERN_MOBILE_DIR)/sdk/libs && mkdir -p tmp && mv libflashlight.aar tmp && cd tmp && jar xf libflashlight.aar && cp classes.jar ../$(LANTERN_MOBILE_DIR)/sdk/libs && cp -r jni ../$(LANTERN_MOBILE_DIR)/sdk/libs && cd .. && rm -rf tmp
+	mv libflashlight.aar $(LANTERN_MOBILE_DIR)/app/libs; \
 	if [ -d "$(FIRETWEET_MAIN_DIR)" ]; then \
 		cp -v $(LANTERN_MOBILE_DIR)/lantern/$(LANTERN_MOBILE_LIBRARY) $(FIRETWEET_MAIN_DIR)/libs/$(LANTERN_MOBILE_LIBRARY); \
 	else \
@@ -548,10 +548,9 @@ build-android-debug:
 		assembleDebug
 
 build-tun2socks:
-	cd $(LANTERN_MOBILE_DIR)
-	ndk-build
-	mkdir -p app/libs/armeabi-v7a
-	cp libs/armeabi-v7a/libtun2socks.so app/libs/armeabi-v7a/
+	cd $(LANTERN_MOBILE_DIR) && ndk-build
+	mkdir -p $(LANTERN_MOBILE_DIR)/app/libs/armeabi-v7a
+	cp $(LANTERN_MOBILE_DIR)/libs/armeabi-v7a/libtun2socks.so $(LANTERN_MOBILE_DIR)/app/libs/armeabi-v7a/libtun2socks.so
 
 $(APK_FILE): build-android-debug
 

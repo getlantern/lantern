@@ -26,14 +26,14 @@ public class LanternVpn extends Lantern {
     private Service service;
 
     public LanternVpn(Service service) {
+        super(service.getApplicationContext(), "", true);
         // start Lantern in VPN mode
-        super(service.getApplicationContext(), true);
         this.service = service;
     }
 
     @Override
-    public void AfterStart(String latestVersion, String host, String port) {
-        super.AfterStart(latestVersion, host, port);
+    public void AfterStart(String latestVersion) {
+        super.AfterStart(latestVersion);
         Log.d(TAG, "Lantern successfully started; running version: " + latestVersion);
         // we pass the version number to setVersionNum which
         // populates the version string that appears at the bottom

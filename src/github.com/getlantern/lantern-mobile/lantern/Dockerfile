@@ -5,8 +5,8 @@
 FROM fedora:22
 MAINTAINER "Ulysses Aalto" <uaalto@getlantern.org>
 
-ENV GO_VERSION go1.5.1
-ENV GOROOT_BOOTSTRAP /go1.5
+ENV GO_VERSION go1.5.3
+ENV GOROOT_BOOTSTRAP /go1.5.3
 ENV GOROOT /go
 ENV GOPATH /
 
@@ -31,16 +31,16 @@ RUN dnf install -y make vim strace tmux && dnf clean all
 
 # Install Go.
 #   1) 1.5 for bootstrap.
-ENV GOROOT_BOOTSTRAP /go1.5
-RUN (curl -sSL https://golang.org/dl/go1.5.1.linux-amd64.tar.gz | tar -vxz -C /tmp) && \
+ENV GOROOT_BOOTSTRAP /go1.5.3
+RUN (curl -sSL https://golang.org/dl/go1.5.3.linux-amd64.tar.gz | tar -vxz -C /tmp) && \
 	mv /tmp/go $GOROOT_BOOTSTRAP
 
 #   2) Download and cross compile the Go on revision GOREV.
 #
 # GOVERSION string is the output of 'git log -n 1 --format="format: devel +%h %cd" HEAD'
 # like in go tool dist.
-ENV GO_REV go1.5.1
-ENV GO_VERSION go1.5.1
+ENV GO_REV go1.5.3
+#ENV GO_VERSION go1.5.1
 
 ENV GOROOT /go
 ENV PATH $GOROOT/bin:$PATH
@@ -52,10 +52,10 @@ RUN cd $GOROOT/src && ./all.bash
 
 # Install Android SDK
 RUN dnf install -y java-1.8.0-openjdk-devel.x86_64
-RUN curl -L http://dl.google.com/android/android-sdk_r23.0.2-linux.tgz | tar xz -C /usr/local
+RUN curl -L http://dl.google.com/android/android-sdk_r22-linux.tgz | tar xz -C /usr/local
 ENV ANDROID_HOME /usr/local/android-sdk-linux
 # Install Android tools
-RUN echo y | /usr/local/android-sdk-linux/tools/android update sdk --no-ui --all --filter platform-tools,build-tools-21.1.2,android-21,extra-android-support
+RUN echo y | /usr/local/android-sdk-linux/tools/android update sdk --no-ui --all --filter platform-tools,build-tools-21.1.2,android-22,extra-android-support
 
 # Install and initialize gomobile
 RUN go get -v golang.org/x/mobile/cmd/gomobile

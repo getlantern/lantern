@@ -76,6 +76,13 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
 
         setContentView(R.layout.activity_lantern_main);
 
+        // we want to use the ActionBar from the AppCompat
+        // support library, but with our custom design
+        // we hide the default action bar
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }  
+
         context = getApplicationContext();
         mPrefs = Utils.getSharedPrefs(context);
 
@@ -229,6 +236,8 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
 
         if (request == REQUEST_VPN) {
             if (response != RESULT_OK) {
+                // no permission given to open
+                // VPN connection; return to off state
                 LanternUI.toggleSwitch(false);
             } else {
                 LanternUI.toggleSwitch(true);
@@ -295,6 +304,8 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
+            // whenever the device is powered off or the app
+            // abruptly closed, we want to clear user preferences
             if (action.equals(Intent.ACTION_SHUTDOWN)) {
                 Utils.clearPreferences(context);
             } else if (action.equals(Intent.ACTION_USER_PRESENT)) {

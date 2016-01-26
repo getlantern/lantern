@@ -98,12 +98,16 @@ public class VpnBuilder extends VpnService {
         vpnThread = new Thread() {
             public void run() {
                 createBuilder();
+
                 String socksAddr = "127.0.0.1:9131";
-                String udpgwAddr = "127.0.0.1:7131";
-                if (settings != null) {
+                String udpgwAddr = "127.0.0.1:7300";
+                if (settings != null &&
+                    settings.get("socksaddr") != null &&
+                    settings.get("udpgwaddr") != null) {
                     socksAddr = (String)settings.get("socksaddr");
                     udpgwAddr = (String)settings.get("udpgwaddr");
                 }
+
                 Tun2Socks.Start(
                         mInterface,
                         VPN_MTU,

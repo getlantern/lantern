@@ -257,7 +257,8 @@ static void udpgw_client_handler_received (void *unused, BAddr local_addr, BAddr
 
 #ifdef PSIPHON
 
-JNIEnv* g_env = 1;
+int g_tun_fd = -1;
+JNIEnv* g_env = 0;
 
 void PsiphonLog(const char *levelStr, const char *channelStr, const char *msgStr)
 {
@@ -455,7 +456,6 @@ void run()
             goto fail2;
         }
     }
-    
     // PSIPHON
     if (options.tun_fd) {
         // use supplied file descriptor
@@ -463,6 +463,7 @@ void run()
             BLog(BLOG_ERROR, "BTap_InitWithFD failed");
             goto fail3;
         }
+        g_tun_fd = options.tun_fd;
     } else {
         // init TUN device
         if (!BTap_Init(&device, &ss, options.tundev, device_error_handler, NULL, 1)) {
@@ -594,7 +595,11 @@ fail4a:
     SinglePacketBuffer_Free(&device_read_buffer);
 fail4:
     PacketPassInterface_Free(&device_read_interface);
-    BTap_Free(&device);
+    if (options.tun_fd) {
+        BTap_FreeWithFD(&device);
+    } else {
+        BTap_Free(&device);
+    }
 fail3:
     BSignal_Finish();
 fail2:
@@ -1118,6 +1123,24 @@ void tcp_timer_handler (void *unused)
 {
     ASSERT(!quitting)
     
+    // ==== PSIPHON ====
+
+    // Check if the tun fd has been closed by Psiphon,
+    // which is a signal to stop tun2socks.
+
+    // TODO: instead of piggybacking on this timer,
+    // we could perhaps write to a pipe hooked into
+    // the BReactor event loop, which would eliminate
+    // any shutdown delay due to waiting for this timer.
+
+    if (fcntl(g_tun_fd, F_GETFL) < 0 && errno == EBADF) {
+        BLog(BLOG_NOTICE, "g_tun_fd is closed");
+        terminate();
+        return;
+    }
+
+    // ==== PSIPHON ====
+
     BLog(BLOG_DEBUG, "TCP timer");
     
     // schedule next timer
@@ -1459,6 +1482,10 @@ err_t listener_accept_func (void *arg, struct tcp_pcb *newpcb, err_t err)
     
     // set client not closed
     client->client_closed = 0;
+    
+    // From: https://github.com/shadowsocks/shadowsocks-android/commit/97cfd1f8698d8f59b146bbcf345eec0fe1ca260
+    // enable TCP_NODELAY
+    tcp_nagle_disable(client->pcb);
     
     // setup handler argument
     tcp_arg(client->pcb, client);
