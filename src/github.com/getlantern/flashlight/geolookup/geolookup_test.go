@@ -9,6 +9,7 @@ import (
 )
 
 func TestNonDefaultClient(t *testing.T) {
+	Start("localhost:8787")
 	rootCAs := certPool(t)
 	masquerades := masquerades()
 

@@ -1,5 +1,9 @@
 package flashlight
 
+import (
+	"github.com/getlantern/golog"
+)
+
 // While in development mode we probably would not want auto-updates to be
 // applied. Using a big number here prevents such auto-updates without
 // disabling the feature completely. The "make package-*" tool will take care
@@ -7,4 +11,8 @@ package flashlight
 const (
 	DefaultPackageVersion = "9999.99.99"
 	PackageVersion        = DefaultPackageVersion
+)
+
+var (
+	log = golog.LoggerFor("flashlight")
 )
