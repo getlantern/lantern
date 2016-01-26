@@ -21,22 +21,27 @@ var (
 	log = golog.LoggerFor("flashlight")
 )
 
-func InitConfig(configDir string, stickyConfig bool, flagsAsMap map[string]interface{}) (*config.Config, chan *config.Config, chan error, error) {
-	configUpdates := make(chan *config.Config)
-	errorCh := make(chan error, 1)
+func Start(configDir string,
+	stickyConfig bool,
+	flagsAsMap map[string]interface{},
+	onFirstConfig func(cfg *config.Config),
+	onConfigUpdate func(cfg *config.Config),
+	onError func(err error)) error {
 	cfg, err := config.Init(PackageVersion, configDir, stickyConfig, flagsAsMap)
 	if err != nil {
-		return cfg, configUpdates, errorCh, fmt.Errorf("Unable to initialize configuration: %v", err)
+		return fmt.Errorf("Unable to initialize configuration: %v", err)
 	}
 
 	go func() {
 		err := config.Run(func(updated *config.Config) {
-			configUpdates <- updated
+			onConfigUpdate(updated)
 		})
 		if err != nil {
-			errorCh <- err
+			onError(err)
 		}
 	}()
 
-	return cfg, configUpdates, errorCh, nil
+	onFirstConfig(cfg)
+
+	return nil
 }

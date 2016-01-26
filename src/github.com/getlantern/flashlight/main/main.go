@@ -197,49 +197,45 @@ func doMain() error {
 			settings.SetProxyAll(*proxyAll)
 		}
 
-		cfg, cfgUpdates, configErrors, err := flashlight.InitConfig(*configdir, *stickyConfig, flagsAsMap())
+		err := flashlight.Start(*configdir, *stickyConfig, flagsAsMap(),
+			func(cfg *config.Config) {
+				log.Debugf("Processed config")
+				if *help || cfg.Addr == "" || (cfg.Role != "server" && cfg.Role != "client") {
+					flag.Usage()
+					exit(fmt.Errorf("Wrong arguments"))
+					return
+				}
+
+				if cfg.CpuProfile != "" || cfg.MemProfile != "" {
+					log.Debugf("Start profiling with cpu file %s and mem file %s", cfg.CpuProfile, cfg.MemProfile)
+					finishProfiling := profiling.Start(cfg.CpuProfile, cfg.MemProfile)
+					addExitFunc(finishProfiling)
+				}
+
+				// Configure stats initially
+				if err := statreporter.Configure(cfg.Stats, cfg.Client.DeviceID); err != nil {
+					exit(err)
+				}
+
+				log.Debug("Running proxy")
+				if cfg.IsDownstream() {
+					// This will open a proxy on the address and port given by -addr
+					runClientProxy(cfg)
+				} else {
+					runServerProxy(cfg)
+				}
+			},
+			func(cfg *config.Config) {
+				log.Debug("Got config update")
+				configUpdates <- cfg
+			},
+			func(err error) {
+				exit(err)
+			})
+
 		if err != nil {
 			exit(err)
 			return
-		}
-
-		go func() {
-			for {
-				select {
-				case update := <-cfgUpdates:
-					configUpdates <- update
-				case err := <-configErrors:
-					if err != nil {
-						exit(err)
-						return
-					}
-				}
-			}
-		}()
-
-		log.Debugf("Processed config")
-		if *help || cfg.Addr == "" || (cfg.Role != "server" && cfg.Role != "client") {
-			flag.Usage()
-			exit(fmt.Errorf("Wrong arguments"))
-		}
-
-		if cfg.CpuProfile != "" || cfg.MemProfile != "" {
-			log.Debugf("Start profiling with cpu file %s and mem file %s", cfg.CpuProfile, cfg.MemProfile)
-			finishProfiling := profiling.Start(cfg.CpuProfile, cfg.MemProfile)
-			addExitFunc(finishProfiling)
-		}
-
-		// Configure stats initially
-		if err := statreporter.Configure(cfg.Stats, cfg.Client.DeviceID); err != nil {
-			exit(err)
-		}
-
-		log.Debug("Running proxy")
-		if cfg.IsDownstream() {
-			// This will open a proxy on the address and port given by -addr
-			runClientProxy(cfg)
-		} else {
-			runServerProxy(cfg)
 		}
 	}()
 
@@ -277,6 +273,7 @@ func parseFlags() {
 
 // runClientProxy runs the client-side (get mode) proxy.
 func runClientProxy(cfg *config.Config) {
+	log.Debug("Running as client")
 	// Set Lantern as system proxy by creating and using a PAC file.
 	setProxyAddr(cfg.Addr)
 
@@ -443,6 +440,7 @@ func withHttpClient(addr string, withClient func(client *http.Client)) {
 
 // Runs the server-side proxy
 func runServerProxy(cfg *config.Config) {
+	log.Debug("Running as server")
 	useAllCores()
 
 	_, pkFile, err := cfg.InConfigDir("proxypk.pem")
