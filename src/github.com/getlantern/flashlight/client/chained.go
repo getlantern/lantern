@@ -19,6 +19,12 @@ import (
 // to eliminate "too many open files" error.
 var idleTimeout = 1 * time.Hour
 
+// If specified, all proxying will go through this address
+var ForceChainedProxyAddr string
+
+// If specified, auth token will be forced to this
+var ForceAuthToken string
+
 // ChainedServerInfo provides identity information for a chained server.
 type ChainedServerInfo struct {
 	// Addr: the host:port of the upstream proxy server
@@ -50,11 +56,18 @@ type ChainedServerInfo struct {
 func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 	netd := &net.Dialer{Timeout: chainedDialTimeout}
 
+	forceProxy := ForceChainedProxyAddr != ""
+	addr := s.Addr
+	if forceProxy {
+		log.Errorf("Forcing proxying to server at %v instead of configured server at %v", ForceChainedProxyAddr, s.Addr)
+		addr = ForceChainedProxyAddr
+	}
+
 	var dial func() (net.Conn, error)
-	if s.Cert == "" {
+	if s.Cert == "" && !forceProxy {
 		log.Error("No Cert configured for chained server, will dial with plain tcp")
 		dial = func() (net.Conn, error) {
-			return netd.Dial("tcp", s.Addr)
+			return netd.Dial("tcp", addr)
 		}
 	} else {
 		log.Trace("Cert configured for chained server, will dial with tls over tcp")
@@ -65,14 +78,14 @@ func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 		x509cert := cert.X509()
 		sessionCache := tls.NewLRUClientSessionCache(1000)
 		dial = func() (net.Conn, error) {
-			conn, err := tlsdialer.DialWithDialer(netd, "tcp", s.Addr, false, &tls.Config{
+			conn, err := tlsdialer.DialWithDialer(netd, "tcp", addr, false, &tls.Config{
 				ClientSessionCache: sessionCache,
 				InsecureSkipVerify: true,
 			})
 			if err != nil {
 				return nil, err
 			}
-			if !conn.ConnectionState().PeerCertificates[0].Equal(x509cert) {
+			if !forceProxy && !conn.ConnectionState().PeerCertificates[0].Equal(x509cert) {
 				if err := conn.Close(); err != nil {
 					log.Debugf("Error closing chained server connection: %s", err)
 				}
@@ -94,9 +107,14 @@ func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 		Label:      label,
 	}
 
+	authToken := s.AuthToken
+	if ForceAuthToken != "" {
+		authToken = ForceAuthToken
+	}
+
 	ccfg.OnRequest = func(req *http.Request) {
-		if s.AuthToken != "" {
-			req.Header.Set("X-LANTERN-AUTH-TOKEN", s.AuthToken)
+		if authToken != "" {
+			req.Header.Set("X-LANTERN-AUTH-TOKEN", authToken)
 		}
 		req.Header.Set("X-LANTERN-DEVICE-ID", deviceID)
 	}
@@ -120,6 +138,6 @@ func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 			})
 			return withStats(conn, err)
 		},
-		AuthToken: s.AuthToken,
+		AuthToken: authToken,
 	}, nil
 }
