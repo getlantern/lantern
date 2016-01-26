@@ -187,20 +187,26 @@ func doMain() error {
 	// Run below in separate goroutine as config.Init() can potentially block when Lantern runs
 	// for the first time. User can still quit Lantern through systray menu when it happens.
 	go func() {
-		cfg, err := config.Init(flashlight.PackageVersion, *configdir, *stickyConfig, flagsAsMap())
+		cfg, cfgUpdates, configErrors, err := flashlight.InitConfig(*configdir, *stickyConfig, flagsAsMap())
 		if err != nil {
-			exit(fmt.Errorf("Unable to initialize configuration: %v", err))
+			exit(err)
 			return
 		}
 
 		go func() {
-			err := config.Run(func(updated *config.Config) {
-				configUpdates <- updated
-			})
-			if err != nil {
-				exit(err)
+			for {
+				select {
+				case update := <-cfgUpdates:
+					configUpdates <- update
+				case err := <-configErrors:
+					if err != nil {
+						exit(err)
+						return
+					}
+				}
 			}
 		}()
+
 		log.Debugf("Processed config")
 		if *help || cfg.Addr == "" || (cfg.Role != "server" && cfg.Role != "client") {
 			flag.Usage()
