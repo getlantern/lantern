@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-MIN_OS_VERSION_MAC := 10.7
+OSX_MIN_VERSION := 10.9
 
 DOCKER := $(shell which docker 2> /dev/null)
 GO := $(shell which go 2> /dev/null)
@@ -22,7 +22,7 @@ GIT_REVISION_DATE := $(shell git show -s --format=%ci $(GIT_REVISION_SHORTCODE))
 REVISION_DATE := $(shell date -u -j -f "%F %T %z" "$(GIT_REVISION_DATE)" +"%Y%m%d.%H%M%S" 2>/dev/null || date -u -d "$(GIT_REVISION_DATE)" +"%Y%m%d.%H%M%S")
 BUILD_DATE := $(shell date -u +%Y%m%d.%H%M%S)
 
-LOGGLY_TOKEN := 2b68163b-89b6-4196-b878-c1aca4bbdf84 
+LOGGLY_TOKEN := 2b68163b-89b6-4196-b878-c1aca4bbdf84
 
 LDFLAGS := -w -X main.version $(GIT_REVISION) -X main.revisionDate $(REVISION_DATE) -X main.buildDate $(BUILD_DATE) -X github.com/getlantern/flashlight/logging.logglyToken \"$(LOGGLY_TOKEN)\"
 LANTERN_DESCRIPTION := Censorship circumvention tool
@@ -232,7 +232,7 @@ docker-mobile:
 	cp $(LANTERN_MOBILE_DIR)/Dockerfile $$DOCKER_CONTEXT && \
 	docker build -t $(DOCKER_MOBILE_IMAGE_TAG) $$DOCKER_CONTEXT
 
-linux: genassets linux-386 linux-amd64 
+linux: genassets linux-386 linux-amd64
 
 windows: genassets windows-386
 
@@ -297,10 +297,11 @@ windows-386: require-assets docker
 
 darwin-amd64: require-assets
 	@echo "Building darwin/amd64..." && \
+	export MACOSX_DEPLOYMENT_TARGET=$(OSX_MIN_VERSION) && \
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		source setenv.bash && \
 		$(call build-tags) && \
-		MACOSX_DEPLOYMENT_TARGET=$(MIN_OS_VERSION_MAC) CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -a -o lantern_darwin_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS)" github.com/getlantern/flashlight; \
+		CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -a -o lantern_darwin_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS)" github.com/getlantern/flashlight; \
 	else \
 		echo "-> Skipped: Can not compile Lantern for OSX on a non-OSX host."; \
 	fi
@@ -356,7 +357,7 @@ package-darwin-manoto: require-version require-appdmg require-svgexport darwin
 		echo "-> Skipped: Can not generate a package on a non-OSX host."; \
 	fi;
 
-package-darwin: package-darwin-manoto 
+package-darwin: package-darwin-manoto
 	@echo "Generating distribution package for darwin/amd64..." && \
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		INSTALLER_RESOURCES="installer-resources/darwin" && \

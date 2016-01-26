@@ -79,7 +79,8 @@ RUN yum install -y osslsigncode mingw32-nsis && yum clean all
 RUN yum install -y bzip2 && yum clean all
 
 # Requisites for genassets.
-RUN yum install -y nodejs npm && yum clean all
+RUN curl --silent --location https://rpm.nodesource.com/setup_5.x | bash -
+RUN yum -y install nodejs && yum clean all
 RUN npm install -g gulp
 
 # Expect the $WORKDIR volume to be mounted.
