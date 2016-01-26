@@ -30,12 +30,12 @@ func Configure(cfg *config.Config, version string) func() {
 		pubsub.Sub(pubsub.IP, func(ip string) {
 			log.Debugf("Got IP %v -- starting analytics", ip)
 			addr = ip
-			go startSession(ip, version, cfg.Addr, settings.GetInstanceID())
+			go startSession(ip, version, cfg.Addr, cfg.Client.DeviceID)
 		})
 		return func() {
 			if addr != "" {
 				log.Debugf("Ending analytics session with ip %v", addr)
-				endSession(addr, version, cfg.Addr, settings.GetInstanceID())
+				endSession(addr, version, cfg.Addr, cfg.Client.DeviceID)
 			}
 		}
 	}

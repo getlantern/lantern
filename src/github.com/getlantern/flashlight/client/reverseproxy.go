@@ -12,7 +12,6 @@ import (
 	"github.com/getlantern/balancer"
 	"github.com/getlantern/detour"
 	"github.com/getlantern/flashlight/proxy"
-	"github.com/getlantern/flashlight/settings"
 	"github.com/getlantern/flashlight/status"
 )
 
@@ -21,6 +20,7 @@ import (
 type authTransport struct {
 	http.Transport
 	balancedDialer *balancer.Dialer
+	deviceID       string
 }
 
 // We need to set the authentication token for the server we're connecting to,
@@ -33,7 +33,7 @@ func (at *authTransport) RoundTrip(req *http.Request) (resp *http.Response, err 
 	*norm = *req // includes shallow copies of maps, but okay
 	norm.Header.Del("X-Forwarded-For")
 	norm.Header.Set("X-LANTERN-AUTH-TOKEN", at.balancedDialer.AuthToken)
-	norm.Header.Set("X-LANTERN-DEVICE-ID", settings.GetInstanceID())
+	norm.Header.Set("X-LANTERN-DEVICE-ID", at.deviceID)
 	return at.Transport.RoundTrip(norm)
 }
 
@@ -61,6 +61,7 @@ func (client *Client) newReverseProxy() (*httputil.ReverseProxy, error) {
 
 	transport := &authTransport{
 		balancedDialer: dialer,
+		deviceID:       client.DeviceID,
 	}
 	// We disable keepalives because some servers pretend to support
 	// keep-alives but close their connections immediately, which

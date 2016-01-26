@@ -15,6 +15,7 @@ var (
 type ClientConfig struct {
 	MinQOS         int
 	DumpHeaders    bool // whether or not to dump headers of requests and responses
+	DeviceID       string
 	FrontedServers []*FrontedServerInfo
 	ChainedServers map[string]*ChainedServerInfo
 	MasqueradeSets map[string][]*fronted.Masquerade

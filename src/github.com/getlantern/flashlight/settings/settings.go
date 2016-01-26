@@ -2,13 +2,10 @@
 package settings
 
 import (
-	"encoding/base64"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
 	"sync"
-
-	"code.google.com/p/go-uuid/uuid"
 
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/launcher"
@@ -39,7 +36,6 @@ type Settings struct {
 	AutoReport   bool
 	AutoLaunch   bool
 	ProxyAll     bool
-	InstanceID   string
 
 	sync.RWMutex
 }
@@ -52,10 +48,6 @@ func Load(version, revisionDate, buildDate string) {
 		AutoReport: true,
 		AutoLaunch: true,
 		ProxyAll:   false,
-		// There is no true privacy or security in instance ID.  For that, we rely on
-		// transport security.  Hashing MAC would buy us nothing, since the space of
-		// MACs is trivially mapped, especially since the salt would be known
-		InstanceID: base64.StdEncoding.EncodeToString(uuid.NodeID()),
 	}
 
 	// Use settings from disk if they're available.
@@ -85,20 +77,6 @@ func Load(version, revisionDate, buildDate string) {
 		}
 		go read()
 	})
-}
-
-// GetInstanceID returns the unique identifier for Lantern on this machine.
-func GetInstanceID() string {
-	settings.RLock()
-	defer settings.RUnlock()
-	return settings.InstanceID
-}
-
-// SetInstanceID sets the unique identifier for Lantern on this machine.
-func SetInstanceID(id string) {
-	settings.Lock()
-	defer settings.Unlock()
-	settings.InstanceID = id
 }
 
 // GetProxyAll returns whether or not to proxy all traffic.

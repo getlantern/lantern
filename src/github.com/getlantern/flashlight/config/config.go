@@ -3,6 +3,7 @@ package config
 import (
 	"compress/gzip"
 	"crypto/x509"
+	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -13,6 +14,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"code.google.com/p/go-uuid/uuid"
 
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/fronted"
@@ -339,7 +342,7 @@ func (updated *Config) applyFlags(flags map[string]interface{}) error {
 		case "role":
 			updated.Role = value.(string)
 		case "instanceid":
-			settings.SetInstanceID(value.(string))
+			updated.Client.DeviceID = value.(string)
 			// Stats
 		case "statsperiod":
 			updated.Stats.ReportingPeriod = time.Duration(value.(int)) * time.Second
@@ -431,6 +434,13 @@ func (cfg *Config) ApplyDefaults() {
 
 	if cfg.TrustedCAs == nil || len(cfg.TrustedCAs) == 0 {
 		cfg.TrustedCAs = defaultTrustedCAs
+	}
+
+	if cfg.Client.DeviceID == "" {
+		// There is no true privacy or security in instance ID.  For that, we rely on
+		// transport security.  Hashing MAC would buy us nothing, since the space of
+		// MACs is trivially mapped, especially since the salt would be known
+		cfg.Client.DeviceID = base64.StdEncoding.EncodeToString(uuid.NodeID())
 	}
 }
 
@@ -558,6 +568,7 @@ func (cfg *Config) fetchCloudConfig(url string) ([]byte, error) {
 func (updated *Config) updateFrom(updateBytes []byte) error {
 	// XXX: does this need a mutex, along with everyone that uses the config?
 	oldAddr := updated.Addr
+	oldDeviceID := updated.Client.DeviceID
 	oldFrontedServers := updated.Client.FrontedServers
 	oldChainedServers := updated.Client.ChainedServers
 	oldMasqueradeSets := updated.Client.MasqueradeSets
@@ -587,7 +598,8 @@ func (updated *Config) updateFrom(updateBytes []byte) error {
 		sort.Strings(updated.ProxiedSites.Cloud)
 	}
 
-	// Ignore address from yaml
+	// Ignore address and instanceid from yaml
 	updated.Addr = oldAddr
+	updated.Client.DeviceID = oldDeviceID
 	return nil
 }

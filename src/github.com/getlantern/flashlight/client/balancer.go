@@ -46,7 +46,7 @@ func (client *Client) initBalancer(cfg *ClientConfig) {
 		log.Error("NO CHAINED SERVERS!")
 	}
 	for _, s := range cfg.ChainedServers {
-		dialer, err := s.Dialer()
+		dialer, err := s.Dialer(cfg.DeviceID)
 		if err == nil {
 			dialers = append(dialers, dialer)
 		} else {

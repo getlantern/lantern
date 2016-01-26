@@ -35,6 +35,9 @@ type Client struct {
 	// MinQOS: (optional) the minimum QOS to require from proxies.
 	MinQOS int
 
+	// Unique identifier for this device
+	DeviceID string
+
 	priorCfg *ClientConfig
 	cfgMutex sync.RWMutex
 
@@ -98,6 +101,7 @@ func (client *Client) Configure(cfg *ClientConfig, proxyAll bool) {
 	client.MinQOS = cfg.MinQOS
 	log.Debugf("Proxy all traffic or not: %v", proxyAll)
 	client.ProxyAll = proxyAll
+	client.DeviceID = cfg.DeviceID
 
 	client.initBalancer(cfg)
 

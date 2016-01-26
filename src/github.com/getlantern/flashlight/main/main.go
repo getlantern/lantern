@@ -90,7 +90,7 @@ func init() {
 }
 
 func logPanic(msg string) {
-	_, err := config.Init(flashlight.PackageVersion, *configdir, *stickyConfig, flagsAsMap())
+	cfg, err := config.Init(flashlight.PackageVersion, *configdir, *stickyConfig, flagsAsMap())
 	if err != nil {
 		panic("Error initializing config")
 	}
@@ -98,7 +98,7 @@ func logPanic(msg string) {
 		panic("Error initializing logging")
 	}
 
-	<-logging.Configure("", "", settings.GetInstanceID(), version, revisionDate)
+	<-logging.Configure("", "", cfg.Client.DeviceID, version, revisionDate)
 
 	log.Error(msg)
 
@@ -214,7 +214,7 @@ func doMain() error {
 		}
 
 		// Configure stats initially
-		if err := statreporter.Configure(cfg.Stats, settings.GetInstanceID()); err != nil {
+		if err := statreporter.Configure(cfg.Stats, cfg.Client.DeviceID); err != nil {
 			exit(err)
 		}
 
@@ -397,13 +397,13 @@ func applyClientConfig(client *client.Client, cfg *config.Config) {
 	}
 
 	autoupdate.Configure(cfg)
-	logging.Configure(cfg.Addr, cfg.CloudConfigCA, settings.GetInstanceID(),
+	logging.Configure(cfg.Addr, cfg.CloudConfigCA, cfg.Client.DeviceID,
 		version, revisionDate)
 	proxiedsites.Configure(cfg.ProxiedSites)
 	log.Debugf("Proxy all traffic or not: %v", settings.GetProxyAll())
 	ServeProxyAllPacFile(settings.GetProxyAll())
 	// Note - we deliberately ignore the error from statreporter.Configure here
-	_ = statreporter.Configure(cfg.Stats, settings.GetInstanceID())
+	_ = statreporter.Configure(cfg.Stats, cfg.Client.DeviceID)
 
 	// Update client configuration and get the highest QOS dialer available.
 	client.Configure(cfg.Client, settings.GetProxyAll())
@@ -459,7 +459,7 @@ func runServerProxy(cfg *config.Config) {
 	go func() {
 		for {
 			cfg := <-configUpdates
-			if err := statreporter.Configure(cfg.Stats, settings.GetInstanceID()); err != nil {
+			if err := statreporter.Configure(cfg.Stats, cfg.Client.DeviceID); err != nil {
 				log.Debugf("Error configuring statreporter: %v", err)
 			}
 
@@ -474,7 +474,7 @@ func runServerProxy(cfg *config.Config) {
 		if err != nil {
 			log.Errorf("Error while trying to update: %v", err)
 		}
-	}, settings.GetInstanceID())
+	}, cfg.Client.DeviceID)
 	if err != nil {
 		log.Fatalf("Unable to run server proxy: %s", err)
 	}
