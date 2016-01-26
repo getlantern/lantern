@@ -52,9 +52,7 @@ func init() {
 	// Loggly has its own timestamp so don't bother adding it in message,
 	// moreover, golog always writes each line in whole, so we need not to care
 	// about line breaks.
-	errorOut = timestamped(os.Stderr)
-	debugOut = timestamped(os.Stdout)
-	golog.SetOutputs(errorOut, debugOut)
+	initLogging()
 }
 
 func EnableFileLogging() error {
@@ -139,8 +137,17 @@ func Flush() {
 }
 
 func Close() error {
-	golog.ResetOutputs()
-	return logFile.Close()
+	initLogging()
+	if logFile != nil {
+		return logFile.Close()
+	}
+	return nil
+}
+
+func initLogging() {
+	errorOut = timestamped(os.Stderr)
+	debugOut = timestamped(os.Stdout)
+	golog.SetOutputs(errorOut, debugOut)
 }
 
 // timestamped adds a timestamp to the beginning of log lines
