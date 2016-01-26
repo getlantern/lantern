@@ -1,14 +1,6 @@
-package config
+package main
 
-import (
-	"flag"
-	"time"
-
-	"github.com/getlantern/flashlight/client"
-	"github.com/getlantern/flashlight/server"
-	"github.com/getlantern/flashlight/settings"
-	"github.com/getlantern/flashlight/statreporter"
-)
+import "flag"
 
 var (
 	configdir     = flag.String("configdir", "", "directory in which to store configuration, including flashlight.yaml (defaults to current directory)")
@@ -31,72 +23,11 @@ var (
 	stickyConfig  = flag.Bool("stickyconfig", false, "set to true to only use the local config file")
 )
 
-// applyFlags updates this Config from any command-line flags that were passed
-// in. ApplyFlags assumes that flag.Parse() has already been called.
-func (updated *Config) applyFlags() error {
-	if updated.Client == nil {
-		updated.Client = &client.ClientConfig{}
-	}
-
-	if updated.Server == nil {
-		updated.Server = &server.ServerConfig{}
-	}
-
-	if updated.Stats == nil {
-		updated.Stats = &statreporter.Config{}
-	}
-
-	var visitErr error
-
-	// Visit all flags that have been set and copy to config
+// flagsAsMap returns a map of all flags that were provided at runtime
+func flagsAsMap() map[string]interface{} {
+	flags := make(map[string]interface{})
 	flag.Visit(func(f *flag.Flag) {
-		switch f.Name {
-		// General
-		case "cloudconfig":
-			updated.CloudConfig = *cloudconfig
-		case "cloudconfigca":
-			updated.CloudConfigCA = *cloudconfigca
-		case "addr":
-			updated.Addr = *addr
-		case "role":
-			updated.Role = *role
-		case "instanceid":
-			settings.SetInstanceID(*instanceid)
-			// Stats
-		case "statsperiod":
-			updated.Stats.ReportingPeriod = time.Duration(*statsPeriod) * time.Second
-		case "statshub":
-			updated.Stats.StatshubAddr = *statshubAddr
-
-		// HTTP-server
-		case "uiaddr":
-			updated.UIAddr = *uiaddr
-
-		// Client
-		case "proxyall":
-			settings.SetProxyAll(*proxyAll)
-
-		// Server
-		case "portmap":
-			updated.Server.Portmap = *portmap
-		case "frontfqdns":
-			fqdns, err := server.ParseFrontFQDNs(*frontFQDNs)
-			if err == nil {
-				updated.Server.FrontFQDNs = fqdns
-			} else {
-				visitErr = err
-			}
-		case "registerat":
-			updated.Server.RegisterAt = *registerat
-		}
+		flags[f.Name] = f.Value.(flag.Getter).Get()
 	})
-	if visitErr != nil {
-		return visitErr
-	}
-	// Settings that get set no matter what
-	updated.CpuProfile = *cpuprofile
-	updated.MemProfile = *memprofile
-	updated.Server.Unencrypted = *unencrypted
-
-	return nil
+	return flags
 }

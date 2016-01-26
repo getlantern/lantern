@@ -44,9 +44,20 @@ var (
 	lastAddr   string
 	duplicates = make(map[string]bool)
 	dupLock    sync.Mutex
+
+	extraLogglyInfo = make(map[string]string)
 )
 
-func Init() error {
+func init() {
+	// Loggly has its own timestamp so don't bother adding it in message,
+	// moreover, golog always writes each line in whole, so we need not to care
+	// about line breaks.
+	errorOut = timestamped(os.Stderr)
+	debugOut = timestamped(os.Stdout)
+	golog.SetOutputs(errorOut, debugOut)
+}
+
+func EnableFileLogging() error {
 	logdir := appdir.Logs("Lantern")
 	log.Debugf("Placing logs in %v", logdir)
 	if _, err := os.Stat(logdir); err != nil {
@@ -62,20 +73,6 @@ func Init() error {
 	logFile.RotationSize = 4 * 1024 * 1024
 	// Keep up to 5 log files
 	logFile.MaxRotation = 5
-
-	// Loggly has its own timestamp so don't bother adding it in message,
-	// moreover, golog always write each line in whole, so we need not to care about line breaks.
-
-	// timestamped adds a timestamp to the beginning of log lines
-	timestamped := func(orig io.Writer) io.Writer {
-		return wfilter.SimplePrepender(orig, func(w io.Writer) (int, error) {
-			ts := time.Now()
-			runningSecs := ts.Sub(processStart).Seconds()
-			secs := int(math.Mod(runningSecs, 60))
-			mins := int(runningSecs / 60)
-			return fmt.Fprintf(w, "%s - %dm%ds ", ts.In(time.UTC).Format(logTimestampFormat), mins, secs)
-		})
-	}
 
 	errorOut = timestamped(NonStopWriter(os.Stderr, logFile))
 	debugOut = timestamped(NonStopWriter(os.Stdout, logFile))
@@ -127,6 +124,12 @@ func Configure(addr string, cloudConfigCA string, instanceId string,
 	return
 }
 
+// SetExtraLogglyInfo supports setting an extra info value to include in Loggly
+// reports (for example Android application details)
+func SetExtraLogglyInfo(key, value string) {
+	extraLogglyInfo[key] = value
+}
+
 // Flush forces output flushing if the output is flushable
 func Flush() {
 	output := golog.GetOutputs().ErrorOut
@@ -138,6 +141,17 @@ func Flush() {
 func Close() error {
 	golog.ResetOutputs()
 	return logFile.Close()
+}
+
+// timestamped adds a timestamp to the beginning of log lines
+func timestamped(orig io.Writer) io.Writer {
+	return wfilter.SimplePrepender(orig, func(w io.Writer) (int, error) {
+		ts := time.Now()
+		runningSecs := ts.Sub(processStart).Seconds()
+		secs := int(math.Mod(runningSecs, 60))
+		mins := int(runningSecs / 60)
+		return fmt.Fprintf(w, "%s - %dm%ds ", ts.In(time.UTC).Format(logTimestampFormat), mins, secs)
+	})
 }
 
 func enableLoggly(addr string, cloudConfigCA string, instanceId string,
@@ -173,11 +187,7 @@ func enableLoggly(addr string, cloudConfigCA string, instanceId string,
 }
 
 func addLoggly(logglyWriter io.Writer) {
-	if runtime.GOOS == "android" {
-		golog.SetOutputs(logglyWriter, os.Stdout)
-	} else {
-		golog.SetOutputs(NonStopWriter(errorOut, logglyWriter), debugOut)
-	}
+	golog.SetOutputs(NonStopWriter(errorOut, logglyWriter), debugOut)
 }
 
 func removeLoggly() {
@@ -230,6 +240,11 @@ func (w logglyErrorWriter) Write(b []byte) (int, error) {
 		"timeZone":          w.tz,
 		"version":           w.versionToLoggly,
 		"sessionUserAgents": getSessionUserAgents(),
+	}
+
+	// Add extra logging info
+	for key, val := range extraLogglyInfo {
+		extra[key] = val
 	}
 
 	// extract last 2 (at most) chunks of fullMessage to message, without prefix,

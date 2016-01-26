@@ -24,6 +24,7 @@ import (
 
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/server"
+	"github.com/getlantern/flashlight/settings"
 	"github.com/getlantern/flashlight/statreporter"
 	"github.com/getlantern/flashlight/util"
 )
@@ -51,6 +52,7 @@ var (
 )
 
 type Config struct {
+	configDir     string
 	Version       int
 	CloudConfig   string
 	CloudConfigCA string
@@ -163,9 +165,14 @@ func useGoodOldConfig(configDir, configPath string) bool {
 }
 
 // Init initializes the configuration system.
-func Init(version string) (*Config, error) {
+//
+// version - the version of lantern
+// stickyConfig - if true, we ignore cloud updates
+// flags - map of flags (generally from command-line) that always get applied
+//         to the config.
+func Init(version string, configDir string, stickyConfig bool, flags map[string]interface{}) (*Config, error) {
 	file := "lantern-" + version + ".yaml"
-	_, configPath, err := InConfigDir(file)
+	_, configPath, err := inConfigDir(configDir, file)
 	if err != nil {
 		log.Errorf("Could not get config path? %v", err)
 		return nil, err
@@ -184,14 +191,14 @@ func Init(version string) (*Config, error) {
 	m = &yamlconf.Manager{
 		FilePath: configPath,
 		EmptyConfig: func() yamlconf.Config {
-			return &Config{}
+			return &Config{configDir: configDir}
 		},
 		PerSessionSetup: func(ycfg yamlconf.Config) error {
 			cfg := ycfg.(*Config)
-			return cfg.applyFlags()
+			return cfg.applyFlags(flags)
 		},
 		CustomPoll: func(ycfg yamlconf.Config) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
-			return pollForConfig(ycfg)
+			return pollForConfig(ycfg, stickyConfig)
 		},
 	}
 	initial, err := m.Init()
@@ -206,7 +213,7 @@ func Init(version string) (*Config, error) {
 	return cfg, err
 }
 
-func pollForConfig(currentCfg yamlconf.Config) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
+func pollForConfig(currentCfg yamlconf.Config, stickyConfig bool) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
 	log.Debugf("Polling for config")
 	// By default, do nothing
 	mutate = func(ycfg yamlconf.Config) error {
@@ -220,7 +227,7 @@ func pollForConfig(currentCfg yamlconf.Config) (mutate func(yamlconf.Config) err
 		// Config doesn't have a CloudConfig, just ignore
 		return mutate, waitTime, nil
 	}
-	if *stickyConfig {
+	if stickyConfig {
 		log.Debugf("Not downloading remote config with sticky config flag set")
 		return mutate, waitTime, nil
 	}
@@ -259,8 +266,12 @@ func Update(mutate func(cfg *Config) error) error {
 }
 
 // InConfigDir returns the path to the given filename inside of the configdir.
-func InConfigDir(filename string) (string, string, error) {
-	cdir := *configdir
+func (cfg *Config) InConfigDir(filename string) (string, string, error) {
+	return inConfigDir(cfg.configDir, filename)
+}
+
+func inConfigDir(configDir string, filename string) (string, string, error) {
+	cdir := configDir
 
 	if cdir == "" {
 		cdir = appdir.General("Lantern")
@@ -301,6 +312,80 @@ func (cfg *Config) SetVersion(version int) {
 	cfg.Version = version
 }
 
+// applyFlags updates this Config from any command-line flags that were passed
+// in.
+func (updated *Config) applyFlags(flags map[string]interface{}) error {
+	if updated.Client == nil {
+		updated.Client = &client.ClientConfig{}
+	}
+
+	if updated.Server == nil {
+		updated.Server = &server.ServerConfig{}
+	}
+
+	if updated.Stats == nil {
+		updated.Stats = &statreporter.Config{}
+	}
+
+	var visitErr error
+
+	// Visit all flags that have been set and copy to config
+	for key, value := range flags {
+		switch key {
+		// General
+		case "cloudconfig":
+			updated.CloudConfig = value.(string)
+		case "cloudconfigca":
+			updated.CloudConfigCA = value.(string)
+		case "addr":
+			updated.Addr = value.(string)
+		case "role":
+			updated.Role = value.(string)
+		case "instanceid":
+			settings.SetInstanceID(value.(string))
+			// Stats
+		case "statsperiod":
+			updated.Stats.ReportingPeriod = time.Duration(value.(int)) * time.Second
+		case "statshub":
+			updated.Stats.StatshubAddr = value.(string)
+
+		// HTTP-server
+		case "uiaddr":
+			updated.UIAddr = value.(string)
+
+		// Client
+		case "proxyall":
+			settings.SetProxyAll(value.(bool))
+
+		// Server
+		case "portmap":
+			updated.Server.Portmap = value.(int)
+		case "frontfqdns":
+			fqdns, err := server.ParseFrontFQDNs(value.(string))
+			if err == nil {
+				updated.Server.FrontFQDNs = fqdns
+			} else {
+				visitErr = err
+			}
+		case "registerat":
+			updated.Server.RegisterAt = value.(string)
+		case "cpuprofile":
+			updated.CpuProfile = value.(string)
+		case "memprofile":
+			updated.MemProfile = value.(string)
+		case "unencrypted":
+			updated.Server.Unencrypted = value.(bool)
+		case "statshubaddr":
+			updated.Stats.StatshubAddr = value.(string)
+		}
+	}
+	if visitErr != nil {
+		return visitErr
+	}
+
+	return nil
+}
+
 // ApplyDefaults implements the method from interface yamlconf.Config
 //
 // ApplyDefaults populates default values on a Config to make sure that we have
@@ -327,10 +412,6 @@ func (cfg *Config) ApplyDefaults() {
 	// Make sure we always have a stats config
 	if cfg.Stats == nil {
 		cfg.Stats = &statreporter.Config{}
-	}
-
-	if cfg.Stats.StatshubAddr == "" {
-		cfg.Stats.StatshubAddr = *statshubAddr
 	}
 
 	if cfg.Client != nil && cfg.Role == "client" {

@@ -18,20 +18,20 @@ import (
 )
 
 var (
-	isPacOn     = int32(0)
-	proxyAddr   string
-	pacURL      string
-	muPACFile   sync.RWMutex
-	pacFile     []byte
-	directHosts = make(map[string]bool)
-	proxyAll    = int32(0)
+	isPacOn        = int32(0)
+	proxyAddr      string
+	pacURL         string
+	muPACFile      sync.RWMutex
+	pacFile        []byte
+	directHosts    = make(map[string]bool)
+	shouldProxyAll = int32(0)
 )
 
 func ServeProxyAllPacFile(b bool) {
 	if b {
-		atomic.StoreInt32(&proxyAll, 1)
+		atomic.StoreInt32(&shouldProxyAll, 1)
 	} else {
-		atomic.StoreInt32(&proxyAll, 0)
+		atomic.StoreInt32(&shouldProxyAll, 0)
 	}
 	genPACFile()
 }
@@ -68,7 +68,7 @@ func setProxyAddr(addr string) {
 func genPACFile() {
 	hostsString := "[]"
 	// only bypass sites if proxy all option is unset
-	if atomic.LoadInt32(&proxyAll) == 0 {
+	if atomic.LoadInt32(&shouldProxyAll) == 0 {
 		var hosts []string
 		for k, v := range directHosts {
 			if v {

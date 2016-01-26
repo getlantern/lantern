@@ -59,7 +59,7 @@ define build-tags
 	BUILD_TAGS="" && \
 	if [[ ! -z "$$VERSION" ]]; then \
 		BUILD_TAGS="prod" && \
-		sed s/'packageVersion.*'/'packageVersion = "'$$VERSION'"'/ src/github.com/getlantern/flashlight/autoupdate.go | sed s/'!prod'/'prod'/ > src/github.com/getlantern/flashlight/autoupdate-prod.go; \
+		sed s/'PackageVersion.*'/'PackageVersion = "'$$VERSION'"'/ src/github.com/getlantern/flashlight/flashlight.go | sed s/'!prod'/'prod'/ > src/github.com/getlantern/flashlight/flashlight-prod.go; \
 	else \
 		echo "** VERSION was not set, using git revision instead ($(GIT_REVISION)). This is OK while in development."; \
 	fi && \

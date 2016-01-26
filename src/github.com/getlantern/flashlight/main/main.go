@@ -21,6 +21,7 @@ import (
 	"github.com/getlantern/i18n"
 	"github.com/getlantern/profiling"
 
+	"github.com/getlantern/flashlight"
 	"github.com/getlantern/flashlight/analytics"
 	"github.com/getlantern/flashlight/autoupdate"
 	"github.com/getlantern/flashlight/client"
@@ -65,11 +66,10 @@ var (
 )
 
 func init() {
-
-	if packageVersion != defaultPackageVersion {
+	if flashlight.PackageVersion != flashlight.DefaultPackageVersion {
 		// packageVersion has precedence over GIT revision. This will happen when
 		// packing a version intended for release.
-		version = packageVersion
+		version = flashlight.PackageVersion
 	}
 
 	if version == "" {
@@ -82,7 +82,7 @@ func init() {
 
 	// Passing public key and version to the autoupdate service.
 	autoupdate.PublicKey = []byte(packagePublicKey)
-	autoupdate.Version = packageVersion
+	autoupdate.Version = flashlight.PackageVersion
 
 	rand.Seed(time.Now().UnixNano())
 
@@ -90,11 +90,11 @@ func init() {
 }
 
 func logPanic(msg string) {
-	_, err := config.Init(packageVersion)
+	_, err := config.Init(flashlight.PackageVersion, *configdir, *stickyConfig, flagsAsMap())
 	if err != nil {
 		panic("Error initializing config")
 	}
-	if err := logging.Init(); err != nil {
+	if err := logging.EnableFileLogging(); err != nil {
 		panic("Error initializing logging")
 	}
 
@@ -162,7 +162,7 @@ func _main() {
 }
 
 func doMain() error {
-	if err := logging.Init(); err != nil {
+	if err := logging.EnableFileLogging(); err != nil {
 		return err
 	}
 
@@ -187,7 +187,7 @@ func doMain() error {
 	// Run below in separate goroutine as config.Init() can potentially block when Lantern runs
 	// for the first time. User can still quit Lantern through systray menu when it happens.
 	go func() {
-		cfg, err := config.Init(packageVersion)
+		cfg, err := config.Init(flashlight.PackageVersion, *configdir, *stickyConfig, flagsAsMap())
 		if err != nil {
 			exit(fmt.Errorf("Unable to initialize configuration: %v", err))
 			return
@@ -240,7 +240,7 @@ func i18nInit() {
 }
 
 func displayVersion() {
-	log.Debugf("---- flashlight version: %s, release: %s, build revision date: %s ----", version, packageVersion, revisionDate)
+	log.Debugf("---- flashlight version: %s, release: %s, build revision date: %s ----", version, flashlight.PackageVersion, revisionDate)
 }
 
 func parseFlags() {
@@ -429,11 +429,11 @@ func withHttpClient(addr string, withClient func(client *http.Client)) {
 func runServerProxy(cfg *config.Config) {
 	useAllCores()
 
-	_, pkFile, err := config.InConfigDir("proxypk.pem")
+	_, pkFile, err := cfg.InConfigDir("proxypk.pem")
 	if err != nil {
 		log.Fatal(err)
 	}
-	_, certFile, err := config.InConfigDir("servercert.pem")
+	_, certFile, err := cfg.InConfigDir("servercert.pem")
 	if err != nil {
 		log.Fatal(err)
 	}
