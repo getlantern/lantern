@@ -47,8 +47,6 @@ var (
 	m                   *yamlconf.Manager
 	lastCloudConfigETag = map[string]string{}
 	r                   = regexp.MustCompile("\\d+\\.\\d+")
-	// Request the config via either chained servers or direct fronted servers.
-	cf = util.NewChainedAndFronted()
 )
 
 type Config struct {
@@ -179,7 +177,6 @@ func Init(version string, configDir string, stickyConfig bool, flags map[string]
 	}
 	run := isGoodConfig(configPath)
 	if !run {
-
 		// If this is our first run of this version of Lantern, use the embedded configuration
 		// file and use it to download our custom config file on this first poll for our
 		// config.
@@ -209,7 +206,7 @@ func Init(version string, configDir string, stickyConfig bool, flags map[string]
 	} else {
 		cfg = initial.(*Config)
 	}
-	log.Debugf("Returning config")
+	log.Debug("Returning config")
 	return cfg, err
 }
 
@@ -232,7 +229,7 @@ func pollForConfig(currentCfg yamlconf.Config, stickyConfig bool) (mutate func(y
 		return mutate, waitTime, nil
 	}
 
-	if bytes, err := fetchCloudConfig(chainedCloudConfigUrl); err == nil {
+	if bytes, err := cfg.fetchCloudConfig(chainedCloudConfigUrl); err == nil {
 		// bytes will be nil if the config is unchanged (not modified)
 		if bytes != nil {
 			//log.Debugf("Downloaded config:\n %v", string(bytes))
@@ -375,8 +372,6 @@ func (updated *Config) applyFlags(flags map[string]interface{}) error {
 			updated.MemProfile = value.(string)
 		case "unencrypted":
 			updated.Server.Unencrypted = value.(bool)
-		case "statshubaddr":
-			updated.Stats.StatshubAddr = value.(string)
 		}
 	}
 	if visitErr != nil {
@@ -509,7 +504,7 @@ func (cfg Config) cloudPollSleepTime() time.Duration {
 	return time.Duration((CloudConfigPollInterval.Nanoseconds() / 2) + rand.Int63n(CloudConfigPollInterval.Nanoseconds()))
 }
 
-func fetchCloudConfig(url string) ([]byte, error) {
+func (cfg *Config) fetchCloudConfig(url string) ([]byte, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to construct request for cloud config at %s: %s", url, err)
@@ -530,6 +525,7 @@ func fetchCloudConfig(url string) ([]byte, error) {
 	// successive requests
 	req.Close = true
 
+	cf := util.NewChainedAndFronted(cfg.Addr)
 	resp, err := cf.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to fetch cloud config at %s: %s", url, err)
@@ -561,6 +557,7 @@ func fetchCloudConfig(url string) ([]byte, error) {
 // update yaml  completely replace the ones in the original Config.
 func (updated *Config) updateFrom(updateBytes []byte) error {
 	// XXX: does this need a mutex, along with everyone that uses the config?
+	oldAddr := updated.Addr
 	oldFrontedServers := updated.Client.FrontedServers
 	oldChainedServers := updated.Client.ChainedServers
 	oldMasqueradeSets := updated.Client.MasqueradeSets
@@ -589,5 +586,8 @@ func (updated *Config) updateFrom(updateBytes []byte) error {
 		}
 		sort.Strings(updated.ProxiedSites.Cloud)
 	}
+
+	// Ignore address from yaml
+	updated.Addr = oldAddr
 	return nil
 }

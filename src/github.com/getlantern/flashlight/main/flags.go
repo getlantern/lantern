@@ -29,5 +29,10 @@ func flagsAsMap() map[string]interface{} {
 	flag.Visit(func(f *flag.Flag) {
 		flags[f.Name] = f.Value.(flag.Getter).Get()
 	})
+	// Some properties should always be included
+	flags["statshub"] = *statshubAddr
+	flags["cpuprofile"] = *cpuprofile
+	flags["memprofile"] = *memprofile
+	flags["unencrypted"] = *unencrypted
 	return flags
 }

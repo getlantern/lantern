@@ -31,7 +31,7 @@ var (
 	cfgMutex sync.Mutex
 	country  = atomicString()
 	ip       = atomicString()
-	cf       = util.NewChainedAndFronted()
+	cf       util.HTTPFetcher
 )
 
 func atomicString() atomic.Value {
@@ -52,7 +52,8 @@ func GetCountry() string {
 // lookups. geolookup runs in a continuous loop, periodically updating its
 // location and publishing updates to any connected clients. We do this
 // continually in order to detect when the computer's location has changed.
-func Start() {
+func Start(proxyAddr string) {
+	cf = util.NewChainedAndFronted(proxyAddr)
 	// Avoid annoying checks for nil later.
 	ip.Store("")
 	country.Store("")

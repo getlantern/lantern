@@ -15,10 +15,6 @@ import (
 	"github.com/getlantern/waitforserver"
 )
 
-const (
-	defaultAddr = "127.0.0.1:8787"
-)
-
 var (
 	log = golog.LoggerFor("flashlight.util")
 
@@ -38,8 +34,8 @@ func success(resp *http.Response) bool {
 
 // NewChainedAndFronted creates a new struct for accessing resources using chained
 // and direct fronted servers in parallel.
-func NewChainedAndFronted() *chainedAndFronted {
-	cf := &chainedAndFronted{}
+func NewChainedAndFronted(proxyAddr string) *chainedAndFronted {
+	cf := &chainedAndFronted{proxyAddr: proxyAddr}
 	cf.fetcher = &dualFetcher{cf}
 	return cf
 }
@@ -47,7 +43,8 @@ func NewChainedAndFronted() *chainedAndFronted {
 // ChainedAndFronted fetches HTTP data in parallel using both chained and fronted
 // servers.
 type chainedAndFronted struct {
-	fetcher HTTPFetcher
+	proxyAddr string
+	fetcher   HTTPFetcher
 }
 
 // Do will attempt to execute the specified HTTP request using only a chained fetcher
@@ -63,12 +60,13 @@ func (cf *chainedAndFronted) Do(req *http.Request) (*http.Response, error) {
 }
 
 type chainedFetcher struct {
+	proxyAddr string
 }
 
 // Do will attempt to execute the specified HTTP request using only a chained fetcher
 func (cf *chainedFetcher) Do(req *http.Request) (*http.Response, error) {
 	log.Debugf("Using chained fronter")
-	if client, err := HTTPClient("", defaultAddr); err != nil {
+	if client, err := HTTPClient("", cf.proxyAddr); err != nil {
 		log.Errorf("Could not create HTTP client: %v", err)
 		return nil, err
 	} else {
@@ -129,7 +127,7 @@ func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
 		}
 	}()
 	go func() {
-		if client, err := HTTPClient("", defaultAddr); err != nil {
+		if client, err := HTTPClient("", df.cf.proxyAddr); err != nil {
 			log.Errorf("Could not create HTTP client: %v", err)
 			errs <- err
 		} else {

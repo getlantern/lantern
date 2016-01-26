@@ -53,6 +53,7 @@ type Client struct {
 // is a callback that gets invoked as soon as the server is accepting TCP
 // connections.
 func (client *Client) ListenAndServe(onListeningFn func()) error {
+	log.Debugf("Client about to listen at: %v", client.Addr)
 	var err error
 	var l net.Listener
 

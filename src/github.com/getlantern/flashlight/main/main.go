@@ -315,7 +315,7 @@ func runClientProxy(cfg *config.Config) {
 	// events from geolookup, so it needs to be subscribed here before
 	// the geolookup code executes.
 	addExitFunc(analytics.Configure(cfg, version))
-	geolookup.Start()
+	geolookup.Start(cfg.Addr)
 
 	// Continually poll for config updates and update client accordingly
 	go func() {
