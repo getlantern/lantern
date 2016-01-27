@@ -65,14 +65,13 @@ func Start(configDir string,
 	}
 
 	client := &client.Client{
-		Addr:         cfg.Addr,
 		ReadTimeout:  0, // don't timeout
 		WriteTimeout: 0,
 	}
 
 	if beforeStart(cfg) {
 		log.Debug("Preparing to start client proxy")
-		geolookup.Refresh(cfg.Addr)
+		geolookup.Refresh(client.Addr)
 		cfgMutex.Lock()
 		applyClientConfig(client, cfg, proxyAll)
 		cfgMutex.Unlock()
@@ -118,7 +117,7 @@ func applyClientConfig(client *client.Client, cfg *config.Config, proxyAll func(
 	} else {
 		fronted.Configure(certs, cfg.Client.MasqueradeSets)
 	}
-	logging.Configure(cfg.Addr, cfg.CloudConfigCA, cfg.Client.DeviceID,
+	logging.Configure(client.Addr, cfg.CloudConfigCA, cfg.Client.DeviceID,
 		Version, RevisionDate)
 	// Update client configuration and get the highest QOS dialer available.
 	client.Configure(cfg.Client, proxyAll)

@@ -10,19 +10,19 @@ import (
 	"time"
 
 	"github.com/getlantern/balancer"
+	"github.com/getlantern/eventual"
 	"github.com/getlantern/golog"
 )
 
 var (
 	log = golog.LoggerFor("flashlight.client")
+
+	addr = eventual.NewValue()
 )
 
 // Client is an HTTP proxy that accepts connections from local programs and
 // proxies these via remote flashlight servers.
 type Client struct {
-	// Addr: listen address in form of host:port
-	Addr string
-
 	// ReadTimeout: (optional) timeout for read ops
 	ReadTimeout time.Duration
 
@@ -52,19 +52,31 @@ type Client struct {
 	l net.Listener
 }
 
-// ListenAndServe makes the client listen for HTTP connections.  onListeningFn
-// is a callback that gets invoked as soon as the server is accepting TCP
-// connections.
+// Addr returns the address at which the client is listening, blocking until the
+// given timeout for an address to become available.
+func Addr(timeout time.Duration) (interface{}, bool) {
+	return addr.Get(timeout)
+}
+
+func (c *Client) Addr(timeout time.Duration) (interface{}, bool) {
+	return Addr(timeout)
+}
+
+// ListenAndServe makes the client listen for HTTP connections at a random port
+// on localhost. onListeningFn is a callback that gets invoked as soon as the
+// server is accepting TCP connections.
 func (client *Client) ListenAndServe(onListeningFn func()) error {
-	log.Debugf("Client about to listen at: %v", client.Addr)
+	log.Debug("About to listen")
 	var err error
 	var l net.Listener
 
-	if l, err = net.Listen("tcp", client.Addr); err != nil {
-		return fmt.Errorf("Client proxy was unable to listen at %s: %q", client.Addr, err)
+	if l, err = net.Listen("tcp", "localhost:0"); err != nil {
+		return fmt.Errorf("Unable to listen: %q", err)
 	}
 
 	client.l = l
+	listenAddr := l.Addr().String()
+	addr.Set(listenAddr)
 	onListeningFn()
 
 	httpServer := &http.Server{
@@ -74,8 +86,7 @@ func (client *Client) ListenAndServe(onListeningFn func()) error {
 		ErrorLog:     log.AsStdLogger(),
 	}
 
-	log.Debugf("About to start client (HTTP) proxy at %s", client.Addr)
-
+	log.Debugf("About to start client (HTTP) proxy at %s", listenAddr)
 	return httpServer.Serve(l)
 }
 

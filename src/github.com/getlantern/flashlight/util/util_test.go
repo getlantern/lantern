@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/getlantern/eventual"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/keyman"
 	"github.com/mailgun/oxy/forward"
@@ -40,7 +41,7 @@ func TestChainedAndFronted(t *testing.T) {
 	}
 	go s.Serve(l)
 
-	proxyAddr := l.Addr().String()
+	proxyAddr := eventual.DefaultGetter(l.Addr().String())
 
 	certs := trustedCATestCerts()
 	m := make(map[string][]*fronted.Masquerade)

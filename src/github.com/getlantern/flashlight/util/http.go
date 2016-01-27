@@ -9,10 +9,10 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/getlantern/eventual"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/keyman"
-	"github.com/getlantern/waitforserver"
 )
 
 var (
@@ -34,8 +34,8 @@ func success(resp *http.Response) bool {
 
 // NewChainedAndFronted creates a new struct for accessing resources using chained
 // and direct fronted servers in parallel.
-func NewChainedAndFronted(proxyAddr string) *chainedAndFronted {
-	cf := &chainedAndFronted{proxyAddr: proxyAddr}
+func NewChainedAndFronted(proxyAddrFN eventual.Getter) *chainedAndFronted {
+	cf := &chainedAndFronted{proxyAddrFN: proxyAddrFN}
 	cf.fetcher = &dualFetcher{cf}
 	return cf
 }
@@ -43,8 +43,8 @@ func NewChainedAndFronted(proxyAddr string) *chainedAndFronted {
 // ChainedAndFronted fetches HTTP data in parallel using both chained and fronted
 // servers.
 type chainedAndFronted struct {
-	proxyAddr string
-	fetcher   HTTPFetcher
+	proxyAddrFN eventual.Getter
+	fetcher     HTTPFetcher
 }
 
 // Do will attempt to execute the specified HTTP request using only a chained fetcher
@@ -60,13 +60,13 @@ func (cf *chainedAndFronted) Do(req *http.Request) (*http.Response, error) {
 }
 
 type chainedFetcher struct {
-	proxyAddr string
+	proxyAddrFN eventual.Getter
 }
 
 // Do will attempt to execute the specified HTTP request using only a chained fetcher
 func (cf *chainedFetcher) Do(req *http.Request) (*http.Response, error) {
 	log.Debugf("Using chained fronter")
-	if client, err := HTTPClient("", cf.proxyAddr); err != nil {
+	if client, err := HTTPClient("", cf.proxyAddrFN); err != nil {
 		log.Errorf("Could not create HTTP client: %v", err)
 		return nil, err
 	} else {
@@ -127,7 +127,7 @@ func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
 		}
 	}()
 	go func() {
-		if client, err := HTTPClient("", df.cf.proxyAddr); err != nil {
+		if client, err := HTTPClient("", df.cf.proxyAddrFN); err != nil {
 			log.Errorf("Could not create HTTP client: %v", err)
 			errs <- err
 		} else {
@@ -202,23 +202,22 @@ func readResponses(finalResponse chan *http.Response, responses chan *http.Respo
 // If rootCA is specified, the client will validate the server's certificate
 // on TLS connections against that RootCA. If proxyAddr is specified, the client
 // will proxy through the given http proxy.
-func PersistentHTTPClient(rootCA string, proxyAddr string) (*http.Client, error) {
-	return httpClient(rootCA, proxyAddr, true)
+func PersistentHTTPClient(rootCA string, proxyAddrFN eventual.Getter) (*http.Client, error) {
+	return httpClient(rootCA, proxyAddrFN, true)
 }
 
 // HTTPClient creates an http.Client. If rootCA is specified, the client will
 // validate the server's certificate on TLS connections against that RootCA. If
 // proxyAddr is specified, the client will proxy through the given http proxy.
-func HTTPClient(rootCA string, proxyAddr string) (*http.Client, error) {
-	return httpClient(rootCA, proxyAddr, false)
+func HTTPClient(rootCA string, proxyAddrFN eventual.Getter) (*http.Client, error) {
+	return httpClient(rootCA, proxyAddrFN, false)
 }
 
 // httpClient creates an http.Client. If rootCA is specified, the client will
 // validate the server's certificate on TLS connections against that RootCA. If
 // proxyAddr is specified, the client will proxy through the given http proxy.
-func httpClient(rootCA string, proxyAddr string, persistent bool) (*http.Client, error) {
-
-	log.Debugf("Creating new HTTPClient with proxy: %v", proxyAddr)
+func httpClient(rootCA string, proxyAddrFN eventual.Getter, persistent bool) (*http.Client, error) {
+	log.Debugf("Creating new HTTPClient with proxyAddrFN", proxyAddrFN)
 
 	tr := &http.Transport{
 		Dial: (&net.Dialer{
@@ -247,31 +246,19 @@ func httpClient(rootCA string, proxyAddr string, persistent bool) (*http.Client,
 		}
 	}
 
-	if proxyAddr != "" {
-		host, _, err := net.SplitHostPort(proxyAddr)
-		if err != nil {
-			return nil, fmt.Errorf("Unable to split host and port for %v: %v", proxyAddr, err)
-		}
-
-		noHostSpecified := host == ""
-		if noHostSpecified {
-			// For addresses of the form ":8080", prepend the loopback IP
-			host = "127.0.0.1"
-			proxyAddr = host + proxyAddr
-		}
-
-		log.Debugf("Waiting for proxy server to came online...")
-		// Waiting for proxy server to came online.
-		if err := waitforserver.WaitForServer("tcp", proxyAddr, 60*time.Second); err != nil {
+	if proxyAddrFN != nil {
+		log.Debug("Waiting for proxy server to come online")
+		proxyAddr, ok := proxyAddrFN(60 * time.Second)
+		if !ok {
 			// Instead of finishing here we just log the error and continue, the client
 			// we are going to create will surely fail when used and return errors,
 			// those errors should be handled by the code that depends on such client.
-			log.Errorf("Proxy never came online at %v: %q", proxyAddr, err)
+			log.Errorf("Proxy never came online")
 		}
 		log.Debugf("Connected to proxy")
 
 		tr.Proxy = func(req *http.Request) (*url.URL, error) {
-			return url.Parse("http://" + proxyAddr)
+			return url.Parse("http://" + proxyAddr.(string))
 		}
 	} else {
 		log.Errorf("Using direct http client with no proxyAddr")

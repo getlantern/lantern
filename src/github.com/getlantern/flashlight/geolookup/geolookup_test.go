@@ -5,12 +5,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/getlantern/eventual"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/keyman"
 )
 
 func TestNonDefaultClient(t *testing.T) {
-	Refresh("localhost:8787")
+	Refresh(eventual.DefaultGetter("localhost:8787"))
 	rootCAs := certPool(t)
 	masquerades := masquerades()
 

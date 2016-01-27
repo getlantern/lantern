@@ -18,6 +18,9 @@ type Value interface {
 	Get(timeout time.Duration) (interface{}, bool)
 }
 
+// Getter is a functional interface for the Value.Get function
+type Getter func(time.Duration) (interface{}, bool)
+
 type value struct {
 	val      atomic.Value
 	wg       sync.WaitGroup
@@ -33,6 +36,13 @@ func NewValue() Value {
 	v.wg.Add(1)
 	go v.processUpdates()
 	return v
+}
+
+// DefaultGetter builds a Getter that always returns the supplied value.
+func DefaultGetter(val interface{}) Getter {
+	return func(time.Duration) (interface{}, bool) {
+		return val, true
+	}
 }
 
 func (v *value) Set(val interface{}) {

@@ -54,7 +54,6 @@ type Config struct {
 	Version       int
 	CloudConfig   string
 	CloudConfigCA string
-	Addr          string
 	CpuProfile    string
 	MemProfile    string
 	UIAddr        string // UI HTTP server address
@@ -323,8 +322,6 @@ func (updated *Config) applyFlags(flags map[string]interface{}) error {
 			updated.CloudConfig = value.(string)
 		case "cloudconfigca":
 			updated.CloudConfigCA = value.(string)
-		case "addr":
-			updated.Addr = value.(string)
 		case "instanceid":
 			updated.Client.DeviceID = value.(string)
 
@@ -352,10 +349,6 @@ func (updated *Config) applyFlags(flags map[string]interface{}) error {
 // flashlight, this function should be updated to provide sensible defaults for
 // those settings.
 func (cfg *Config) ApplyDefaults() {
-	if cfg.Addr == "" {
-		cfg.Addr = "127.0.0.1:8787"
-	}
-
 	if cfg.UIAddr == "" {
 		cfg.UIAddr = "127.0.0.1:16823"
 	}
@@ -479,7 +472,7 @@ func (cfg *Config) fetchCloudConfig(url string) ([]byte, error) {
 	// successive requests
 	req.Close = true
 
-	cf := util.NewChainedAndFronted(cfg.Addr)
+	cf := util.NewChainedAndFronted(client.Addr)
 	resp, err := cf.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to fetch cloud config at %s: %s", url, err)
@@ -511,7 +504,6 @@ func (cfg *Config) fetchCloudConfig(url string) ([]byte, error) {
 // update yaml  completely replace the ones in the original Config.
 func (updated *Config) updateFrom(updateBytes []byte) error {
 	// XXX: does this need a mutex, along with everyone that uses the config?
-	oldAddr := updated.Addr
 	oldDeviceID := updated.Client.DeviceID
 	oldFrontedServers := updated.Client.FrontedServers
 	oldChainedServers := updated.Client.ChainedServers
@@ -542,8 +534,7 @@ func (updated *Config) updateFrom(updateBytes []byte) error {
 		sort.Strings(updated.ProxiedSites.Cloud)
 	}
 
-	// Ignore address and instanceid from yaml
-	updated.Addr = oldAddr
+	// Ignore DeviceID from yaml
 	updated.Client.DeviceID = oldDeviceID
 	return nil
 }
