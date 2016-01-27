@@ -1,10 +1,9 @@
 'use strict';
 
-app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$http',
+app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$http', 'gaMgr',
                'localStorageService',
-               function($rootScope, $scope, $compile, $window, $http, localStorageService) {
+               function($rootScope, $scope, $compile, $window, $http, gaMgr, localStorageService) {
     $scope.currentModal = 'none';
-    $scope.email = 'xxx"xxx.com';
 
     $scope.loadScript = function(src) {
         (function() {
@@ -48,6 +47,7 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$htt
 
     $rootScope.sendMobileAppLink = function() {
       var email = $scope.email;
+
       $scope.resetPlaceholder();
 
       if (!email) {
@@ -72,10 +72,12 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$htt
 
       $rootScope.showMobileAd = false;
       $scope.showModal("lantern-mobile-ad");
+
+      gaMgr.trackSendLinkToMobile();
     };
 
     $rootScope.lanternWelcomeKey = localStorageService.get('lanternWelcomeKey');
-    $rootScope.lanternWelcomeKey = false;
+    // $rootScope.lanternWelcomeKey = false;
 
     $scope.closeModal = function() {
       if (!$rootScope.lanternWelcomeKey) {
@@ -154,7 +156,7 @@ app.controller('SettingsCtrl', ['$scope', 'MODAL', 'DataStream', 'gaMgr', functi
   });
 }]);
 
-app.controller('MobileAdCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
+app.controller('MobileAdCtrl', ['$scope', 'MODAL', 'gaMgr', function($scope, MODAL, gaMgr) {
   $scope.show = false;
 
   $scope.$watch('model.modal', function (modal) {
@@ -164,6 +166,7 @@ app.controller('MobileAdCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
   $scope.copyAndroidMobileLink = function() {
     $scope.linkCopied = true;
     //$scope.closeModal();
+    gaMgr.trackCopyLink();
   }
 }]);
 
