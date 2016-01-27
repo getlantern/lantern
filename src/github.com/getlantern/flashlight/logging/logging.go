@@ -243,7 +243,7 @@ func (w logglyErrorWriter) Write(b []byte) (int, error) {
 		"osArch":            runtime.GOARCH,
 		"osVersion":         osVersion,
 		"language":          w.lang,
-		"country":           geolookup.GetCountry(),
+		"country":           geolookup.GetCountry(0),
 		"timeZone":          w.tz,
 		"version":           w.versionToLoggly,
 		"sessionUserAgents": getSessionUserAgents(),

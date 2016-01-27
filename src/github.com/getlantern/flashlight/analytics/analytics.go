@@ -2,14 +2,16 @@ package analytics
 
 import (
 	"bytes"
+	"math"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"strconv"
+	"sync/atomic"
+	"time"
 
 	"github.com/getlantern/flashlight/config"
-	"github.com/getlantern/flashlight/pubsub"
-	"github.com/getlantern/flashlight/settings"
+	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/util"
 
 	"github.com/getlantern/golog"
@@ -22,24 +24,31 @@ const (
 
 var (
 	log = golog.LoggerFor("flashlight.analytics")
+
+	maxWaitForIP = math.MaxInt32 * time.Second
 )
 
-func Configure(cfg *config.Config, version string) func() {
-	if settings.IsAutoReport() {
-		addr := ""
-		pubsub.Sub(pubsub.IP, func(ip string) {
-			log.Debugf("Got IP %v -- starting analytics", ip)
-			addr = ip
-			go startSession(ip, version, cfg.Addr, cfg.Client.DeviceID)
-		})
-		return func() {
-			if addr != "" {
-				log.Debugf("Ending analytics session with ip %v", addr)
-				endSession(addr, version, cfg.Addr, cfg.Client.DeviceID)
-			}
+func Start(cfg *config.Config, version string) func() {
+	var addr atomic.Value
+	go func() {
+		ip := geolookup.GetIP(maxWaitForIP)
+		if ip == "" {
+			log.Errorf("No IP found within %v, not starting analytics session", maxWaitForIP)
+			return
+		}
+		addr.Store(ip)
+		log.Debugf("Starting analytics session with ip %v", ip)
+		startSession(ip, version, cfg.Addr, cfg.Client.DeviceID)
+	}()
+
+	stop := func() {
+		if addr.Load() != nil {
+			ip := addr.Load().(string)
+			log.Debugf("Ending analytics session with ip %v", ip)
+			endSession(ip, version, cfg.Addr, cfg.Client.DeviceID)
 		}
 	}
-	return func() {}
+	return stop
 }
 
 func sessionVals(ip, version, clientId, sc string) string {

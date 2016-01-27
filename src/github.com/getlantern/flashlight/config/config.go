@@ -26,8 +26,6 @@ import (
 	"github.com/getlantern/yamlconf"
 
 	"github.com/getlantern/flashlight/client"
-	"github.com/getlantern/flashlight/server"
-	"github.com/getlantern/flashlight/statreporter"
 	"github.com/getlantern/flashlight/util"
 )
 
@@ -57,12 +55,9 @@ type Config struct {
 	CloudConfig   string
 	CloudConfigCA string
 	Addr          string
-	Role          string
 	CpuProfile    string
 	MemProfile    string
 	UIAddr        string // UI HTTP server address
-	Stats         *statreporter.Config
-	Server        *server.ServerConfig
 	Client        *client.ClientConfig
 	ProxiedSites  *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
 	TrustedCAs    []*CA
@@ -318,14 +313,6 @@ func (updated *Config) applyFlags(flags map[string]interface{}) error {
 		updated.Client = &client.ClientConfig{}
 	}
 
-	if updated.Server == nil {
-		updated.Server = &server.ServerConfig{}
-	}
-
-	if updated.Stats == nil {
-		updated.Stats = &statreporter.Config{}
-	}
-
 	var visitErr error
 
 	// Visit all flags that have been set and copy to config
@@ -338,38 +325,17 @@ func (updated *Config) applyFlags(flags map[string]interface{}) error {
 			updated.CloudConfigCA = value.(string)
 		case "addr":
 			updated.Addr = value.(string)
-		case "role":
-			updated.Role = value.(string)
 		case "instanceid":
 			updated.Client.DeviceID = value.(string)
-			// Stats
-		case "statsperiod":
-			updated.Stats.ReportingPeriod = time.Duration(value.(int)) * time.Second
-		case "statshub":
-			updated.Stats.StatshubAddr = value.(string)
 
 		// HTTP-server
 		case "uiaddr":
 			updated.UIAddr = value.(string)
 
-		// Server
-		case "portmap":
-			updated.Server.Portmap = value.(int)
-		case "frontfqdns":
-			fqdns, err := server.ParseFrontFQDNs(value.(string))
-			if err == nil {
-				updated.Server.FrontFQDNs = fqdns
-			} else {
-				visitErr = err
-			}
-		case "registerat":
-			updated.Server.RegisterAt = value.(string)
 		case "cpuprofile":
 			updated.CpuProfile = value.(string)
 		case "memprofile":
 			updated.MemProfile = value.(string)
-		case "unencrypted":
-			updated.Server.Unencrypted = value.(bool)
 		}
 	}
 	if visitErr != nil {
@@ -386,10 +352,6 @@ func (updated *Config) applyFlags(flags map[string]interface{}) error {
 // flashlight, this function should be updated to provide sensible defaults for
 // those settings.
 func (cfg *Config) ApplyDefaults() {
-	if cfg.Role == "" {
-		cfg.Role = "client"
-	}
-
 	if cfg.Addr == "" {
 		cfg.Addr = "127.0.0.1:8787"
 	}
@@ -402,12 +364,7 @@ func (cfg *Config) ApplyDefaults() {
 		cfg.CloudConfig = chainedCloudConfigUrl
 	}
 
-	// Make sure we always have a stats config
-	if cfg.Stats == nil {
-		cfg.Stats = &statreporter.Config{}
-	}
-
-	if cfg.Client != nil && cfg.Role == "client" {
+	if cfg.Client != nil {
 		cfg.applyClientDefaults()
 	}
 
@@ -495,14 +452,6 @@ func (cfg *Config) applyClientDefaults() {
 	// Sort servers so that they're always in a predictable order
 	cfg.Client.SortServers()
 
-}
-
-func (cfg *Config) IsDownstream() bool {
-	return cfg.Role == "client"
-}
-
-func (cfg *Config) IsUpstream() bool {
-	return !cfg.IsDownstream()
 }
 
 func (cfg Config) cloudPollSleepTime() time.Duration {

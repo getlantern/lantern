@@ -1,148 +1,122 @@
 package geolookup
 
 import (
-	"fmt"
 	"math"
-	"math/rand"
-	"sync"
-	"sync/atomic"
 	"time"
 
 	geo "github.com/getlantern/geolookup"
 	"github.com/getlantern/golog"
 
-	"github.com/getlantern/flashlight/pubsub"
-	"github.com/getlantern/flashlight/ui"
 	"github.com/getlantern/flashlight/util"
-)
-
-const (
-	messageType = `GeoLookup`
-
-	basePublishSeconds     = 30
-	publishSecondsVariance = basePublishSeconds - 10
-	retryWaitMillis        = 100
 )
 
 var (
 	log = golog.LoggerFor("flashlight.geolookup")
 
-	service  *ui.Service
-	cfgMutex sync.Mutex
-	country  = atomicString()
-	ip       = atomicString()
-	cf       util.HTTPFetcher
+	refreshRequest = make(chan string, 1)
+	currentGeoInfo = make(chan *geoInfo, 1)
+	cf             util.HTTPFetcher
+
+	retryWaitMillis = 100
+	maxRetryWait    = 30 * time.Second
 )
 
-func atomicString() atomic.Value {
-	var val atomic.Value
-	val.Store("")
-	return val
+type geoInfo struct {
+	ip   string
+	city *geo.City
 }
 
-func GetIp() string {
-	return ip.Load().(string)
+// GetIP gets the IP. If the IP hasn't been determined yet, waits up to the
+// given timeout for an IP to become available.
+func GetIP(timeout time.Duration) string {
+	gi := getGeoInfo(timeout)
+	if gi == nil {
+		return ""
+	}
+	return gi.ip
 }
 
-func GetCountry() string {
-	return country.Load().(string)
+// GetCountry gets the country. If the country hasn't been determined yet, waits
+// up to the given timeout for a country to become available.
+func GetCountry(timeout time.Duration) string {
+	gi := getGeoInfo(timeout)
+	if gi == nil {
+		return ""
+	}
+	return gi.city.Country.IsoCode
 }
 
-// Configure configures geolookup to use the given http.Client to perform
-// lookups. geolookup runs in a continuous loop, periodically updating its
-// location and publishing updates to any connected clients. We do this
-// continually in order to detect when the computer's location has changed.
-func Start(proxyAddr string) {
-	cf = util.NewChainedAndFronted(proxyAddr)
-	// Avoid annoying checks for nil later.
-	ip.Store("")
-	country.Store("")
+func getGeoInfo(timeout time.Duration) *geoInfo {
+	select {
+	case gi := <-currentGeoInfo:
+		// Recycle for future calls
+		currentGeoInfo <- gi
+		return gi
+	case <-time.After(timeout):
+		// No information available within timeout
+		return nil
+	}
+}
 
-	if service == nil {
-		err := registerService()
+// Refresh refreshes the geolookup information by calling the remote geolookup
+// service. It will keep calling the service until it's able to determine an IP
+// and country.
+func Refresh(proxyAddr string) {
+	select {
+	case refreshRequest <- proxyAddr:
+		log.Debug("Requested refresh")
+	default:
+		log.Debug("Refresh already in progress")
+	}
+}
+
+func init() {
+	go run()
+}
+
+func run() {
+	for proxyAddr := range refreshRequest {
+		gi := lookup(util.NewChainedAndFronted(proxyAddr))
+		log.Debug("Got new geolocation info")
+		// Drain geoInfo
+		select {
+		case <-currentGeoInfo:
+			// Drained
+		default:
+			// Nothing to drain
+		}
+		// Replace with new geoInfo
+		currentGeoInfo <- gi
+	}
+}
+
+func lookup(cf util.HTTPFetcher) *geoInfo {
+	consecutiveFailures := 0
+
+	for {
+		gi, err := doLookup(cf)
 		if err != nil {
-			log.Errorf("Unable to register service: %s", err)
-			return
+			log.Debugf("Unable to get current location: %s", err)
+			wait := time.Duration(math.Pow(2, float64(consecutiveFailures))*float64(retryWaitMillis)) * time.Millisecond
+			if wait > maxRetryWait {
+				wait = maxRetryWait
+			}
+			log.Debugf("Waiting %v before retrying", wait)
+			time.Sleep(wait)
+			consecutiveFailures += 1
+		} else {
+			log.Debugf("IP is %v", gi.ip)
+			return gi
 		}
-		go write()
-		go read()
-		log.Debug("Running")
 	}
 }
 
-func registerService() error {
-	helloFn := func(write func(interface{}) error) error {
-		country := GetCountry()
-		if country == "" {
-			log.Trace("No lastKnownCountry, not sending anything to client")
-			return nil
-		}
-		log.Trace("Sending last known location to new client")
-		return write(country)
-	}
-
-	var err error
-	service, err = ui.Register(messageType, nil, helloFn)
-	return err
-}
-
-func lookupIp() (string, string, error) {
+func doLookup(cf util.HTTPFetcher) (*geoInfo, error) {
 	city, ip, err := geo.LookupIPWithClient("", cf)
 
 	if err != nil {
 		log.Errorf("Could not lookup IP %v", err)
-		return "", "", err
+		return nil, err
 	}
-	return city.Country.IsoCode, ip, nil
-}
-
-func write() {
-	consecutiveFailures := 0
-
-	for {
-		// Wait a random amount of time (to avoid looking too suspicious)
-		// Note - rand was seeded with the startup time in flashlight.go
-		n := rand.Intn(publishSecondsVariance)
-		wait := time.Duration(basePublishSeconds-publishSecondsVariance/2+n) * time.Second
-
-		log.Debugf("Waiting to get IP for %v seconds", wait)
-		oldIp := GetIp()
-		oldCountry := GetCountry()
-
-		newCountry, newIp, err := lookupIp()
-		if err == nil {
-			consecutiveFailures = 0
-			if newIp != oldIp {
-				log.Debugf("IP changed from %v to %v", oldIp, newIp)
-				ip.Store(newIp)
-				pubsub.Pub(pubsub.IP, newIp)
-			}
-			// Always publish location, even if unchanged
-			service.Out <- newCountry
-		} else {
-			msg := fmt.Sprintf("Unable to get current location: %s", err)
-			// When retrying after a failure, wait a different amount of time
-			retryWait := time.Duration(math.Pow(2, float64(consecutiveFailures))*float64(retryWaitMillis)) * time.Millisecond
-			if retryWait < wait {
-				log.Debug(msg)
-				wait = retryWait
-			} else {
-				log.Error(msg)
-			}
-			log.Debugf("Waiting %v before retrying", wait)
-			consecutiveFailures += 1
-			// If available, publish last known location
-			if oldCountry != "" {
-				service.Out <- oldCountry
-			}
-		}
-
-		time.Sleep(wait)
-	}
-}
-
-func read() {
-	for _ = range service.In {
-		// Discard message, just in case any message is sent to this service.
-	}
+	return &geoInfo{ip, city}, nil
 }

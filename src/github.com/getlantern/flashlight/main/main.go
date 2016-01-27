@@ -10,7 +10,6 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
-	"runtime"
 	"strings"
 	"sync"
 	"syscall"
@@ -29,10 +28,7 @@ import (
 	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/logging"
 	"github.com/getlantern/flashlight/proxiedsites"
-	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/settings"
-	"github.com/getlantern/flashlight/statreporter"
-	"github.com/getlantern/flashlight/statserver"
 	"github.com/getlantern/flashlight/ui"
 	"github.com/getlantern/flashlight/util"
 
@@ -200,7 +196,7 @@ func doMain() error {
 		err := flashlight.Start(*configdir, *stickyConfig, flagsAsMap(),
 			func(cfg *config.Config) {
 				log.Debugf("Processed config")
-				if *help || cfg.Addr == "" || (cfg.Role != "server" && cfg.Role != "client") {
+				if *help || cfg.Addr == "" {
 					flag.Usage()
 					exit(fmt.Errorf("Wrong arguments"))
 					return
@@ -212,18 +208,9 @@ func doMain() error {
 					addExitFunc(finishProfiling)
 				}
 
-				// Configure stats initially
-				if err := statreporter.Configure(cfg.Stats, cfg.Client.DeviceID); err != nil {
-					exit(err)
-				}
-
 				log.Debug("Running proxy")
-				if cfg.IsDownstream() {
-					// This will open a proxy on the address and port given by -addr
-					runClientProxy(cfg)
-				} else {
-					runServerProxy(cfg)
-				}
+				// This will open a proxy on the address and port given by -addr
+				runClientProxy(cfg)
 			},
 			func(cfg *config.Config) {
 				log.Debug("Got config update")
@@ -324,11 +311,12 @@ func runClientProxy(cfg *config.Config) {
 
 	applyClientConfig(client, cfg)
 
-	// Only run analytics once on startup. It subscribes to IP discovery
-	// events from geolookup, so it needs to be subscribed here before
-	// the geolookup code executes.
-	addExitFunc(analytics.Configure(cfg, version))
-	geolookup.Start(cfg.Addr)
+	geolookup.Refresh(cfg.Addr)
+	// Only run analytics once on startup.
+	if settings.IsAutoReport() {
+		stopAnalytics := analytics.Start(cfg, version)
+		addExitFunc(stopAnalytics)
+	}
 
 	// Continually poll for config updates and update client accordingly
 	go func() {
@@ -415,19 +403,8 @@ func applyClientConfig(client *client.Client, cfg *config.Config) {
 	proxiedsites.Configure(cfg.ProxiedSites)
 	log.Debugf("Proxy all traffic or not: %v", settings.GetProxyAll())
 	ServeProxyAllPacFile(settings.GetProxyAll())
-	// Note - we deliberately ignore the error from statreporter.Configure here
-	_ = statreporter.Configure(cfg.Stats, cfg.Client.DeviceID)
-
 	// Update client configuration and get the highest QOS dialer available.
 	client.Configure(cfg.Client, settings.GetProxyAll())
-
-	// We offload this onto a go routine because creating the http clients
-	// blocks on waiting for the local server, and the local server starts
-	// later on this same thread, so it would otherwise creating a deadlock.
-	go func() {
-		withHttpClient(cfg.Addr, statserver.Configure)
-	}()
-
 }
 
 func withHttpClient(addr string, withClient func(client *http.Client)) {
@@ -436,68 +413,6 @@ func withHttpClient(addr string, withClient func(client *http.Client)) {
 	} else {
 		withClient(httpClient)
 	}
-}
-
-// Runs the server-side proxy
-func runServerProxy(cfg *config.Config) {
-	log.Debug("Running as server")
-	useAllCores()
-
-	_, pkFile, err := cfg.InConfigDir("proxypk.pem")
-	if err != nil {
-		log.Fatal(err)
-	}
-	_, certFile, err := cfg.InConfigDir("servercert.pem")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	srv := &server.Server{
-		Addr:         cfg.Addr,
-		ReadTimeout:  0, // don't timeout
-		WriteTimeout: 0,
-		CertContext: &fronted.CertContext{
-			PKFile:         pkFile,
-			ServerCertFile: certFile,
-		},
-		AllowedPorts: []int{80, 443, 8080, 8443, 5222, 5223, 5228},
-
-		// We've observed high resource consumption from these countries for
-		// purposes unrelated to Lantern's mission, so we disallow them.
-		BannedCountries: []string{"PH"},
-	}
-
-	srv.Configure(cfg.Server)
-
-	// Continually poll for config updates and update server accordingly
-	go func() {
-		for {
-			cfg := <-configUpdates
-			if err := statreporter.Configure(cfg.Stats, cfg.Client.DeviceID); err != nil {
-				log.Debugf("Error configuring statreporter: %v", err)
-			}
-
-			srv.Configure(cfg.Server)
-		}
-	}()
-
-	err = srv.ListenAndServe(func(update func(*server.ServerConfig) error) {
-		err := config.Update(func(cfg *config.Config) error {
-			return update(cfg.Server)
-		})
-		if err != nil {
-			log.Errorf("Error while trying to update: %v", err)
-		}
-	}, cfg.Client.DeviceID)
-	if err != nil {
-		log.Fatalf("Unable to run server proxy: %s", err)
-	}
-}
-
-func useAllCores() {
-	numcores := runtime.NumCPU()
-	log.Debugf("Using all %d cores on machine", numcores)
-	runtime.GOMAXPROCS(numcores)
 }
 
 // exit tells the application to exit, optionally supplying an error that caused

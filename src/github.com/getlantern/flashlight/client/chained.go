@@ -136,7 +136,7 @@ func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 					log.Debugf("Unable to close connection: %v", err)
 				}
 			})
-			return withStats(conn, err)
+			return conn, nil
 		},
 		AuthToken: authToken,
 	}, nil
