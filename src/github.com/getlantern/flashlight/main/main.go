@@ -168,7 +168,7 @@ func doMain() error {
 			settings.SetProxyAll(true)
 		}
 
-		err := flashlight.Start(
+		err := flashlight.Run(
 			*configdir,
 			*stickyConfig,
 			settings.GetProxyAll,
