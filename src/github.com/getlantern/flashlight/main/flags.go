@@ -6,7 +6,6 @@ var (
 	configdir     = flag.String("configdir", "", "directory in which to store configuration, including flashlight.yaml (defaults to current directory)")
 	cloudconfig   = flag.String("cloudconfig", "", "optional http(s) URL to a cloud-based source for configuration updates")
 	cloudconfigca = flag.String("cloudconfigca", "", "optional PEM encoded certificate used to verify TLS connections to fetch cloudconfig")
-	addr          = flag.String("addr", "", "ip:port on which to listen for requests. When running as a client proxy, we'll listen with http, when running as a server proxy we'll listen with https (required)")
 	instanceid    = flag.String("instanceid", "", "instanceId under which to report stats to statshub. If not specified, no stats are reported.")
 	registerat    = flag.String("registerat", "", "base URL for peer DNS registry at which to register (e.g. https://peerscanner.getiantem.org)")
 	country       = flag.String("country", "xx", "2 digit country code under which to report stats. Defaults to xx.")

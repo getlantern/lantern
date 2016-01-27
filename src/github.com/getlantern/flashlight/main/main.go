@@ -14,6 +14,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/getlantern/eventual"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/i18n"
 	"github.com/getlantern/profiling"
@@ -71,7 +72,7 @@ func logPanic(msg string) {
 		panic("Error initializing logging")
 	}
 
-	<-logging.Configure("", "", cfg.Client.DeviceID, flashlight.Version, flashlight.RevisionDate)
+	<-logging.Configure(eventual.DefaultGetter(""), "", cfg.Client.DeviceID, flashlight.Version, flashlight.RevisionDate)
 
 	log.Error(msg)
 
@@ -187,7 +188,7 @@ func doMain() error {
 
 func beforeStart(cfg *config.Config) bool {
 	log.Debug("Got first config")
-	if *help || cfg.Addr == "" {
+	if *help {
 		flag.Usage()
 		exit(fmt.Errorf("Wrong arguments"))
 		return false
@@ -200,7 +201,14 @@ func beforeStart(cfg *config.Config) bool {
 	}
 
 	// Set Lantern as system proxy by creating and using a PAC file.
-	setProxyAddr(cfg.Addr)
+	go func() {
+		addr, ok := client.Addr(5 * time.Minute)
+		if !ok {
+			log.Error("Unable to obtain client address to set as system proxy")
+		} else {
+			setProxyAddr(addr.(string))
+		}
+	}()
 
 	if err := setUpPacTool(); err != nil {
 		exit(err)
@@ -241,8 +249,6 @@ func beforeStart(cfg *config.Config) bool {
 		return false
 	}
 
-	onConfigUpdate(cfg)
-
 	// Only run analytics once on startup.
 	if settings.IsAutoReport() {
 		stopAnalytics := analytics.Start(cfg, flashlight.Version)
@@ -254,6 +260,7 @@ func beforeStart(cfg *config.Config) bool {
 }
 
 func afterStart(cfg *config.Config) {
+	onConfigUpdate(cfg)
 	pacOn()
 	addExitFunc(pacOff)
 

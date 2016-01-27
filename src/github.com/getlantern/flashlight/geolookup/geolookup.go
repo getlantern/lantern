@@ -14,7 +14,7 @@ import (
 var (
 	log = golog.LoggerFor("flashlight.geolookup")
 
-	refreshRequest = make(chan string, 1)
+	refreshRequest = make(chan eventual.Getter, 1)
 	currentGeoInfo = eventual.NewValue()
 	cf             util.HTTPFetcher
 
@@ -50,9 +50,9 @@ func GetCountry(timeout time.Duration) string {
 // Refresh refreshes the geolookup information by calling the remote geolookup
 // service. It will keep calling the service until it's able to determine an IP
 // and country.
-func Refresh(proxyAddr string) {
+func Refresh(proxyAddrFN eventual.Getter) {
 	select {
-	case refreshRequest <- proxyAddr:
+	case refreshRequest <- proxyAddrFN:
 		log.Debug("Requested refresh")
 	default:
 		log.Debug("Refresh already in progress")

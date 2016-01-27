@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/getlantern/autoupdate"
+	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/golog"
@@ -31,19 +32,12 @@ var (
 	watching   int32 = 0
 
 	applyNextAttemptTime = time.Hour * 2
-	lastAddr             string
 )
 
 func Configure(cfg *config.Config) {
 	cfgMutex.Lock()
-	if cfg.Addr == lastAddr {
-		cfgMutex.Unlock()
-		log.Debug("Autoupdate configuration unchanged")
-		return
-	}
 
 	go func() {
-		lastAddr = cfg.Addr
 		enableAutoupdate(cfg)
 		cfgMutex.Unlock()
 	}()
@@ -53,12 +47,7 @@ func Configure(cfg *config.Config) {
 func enableAutoupdate(cfg *config.Config) {
 	var err error
 
-	if cfg.Addr == "" {
-		log.Error("No known proxy, disabling auto updates.")
-		return
-	}
-
-	httpClient, err = util.HTTPClient(cfg.CloudConfigCA, cfg.Addr)
+	httpClient, err = util.HTTPClient(cfg.CloudConfigCA, client.Addr)
 	if err != nil {
 		log.Errorf("Could not create proxied HTTP client, disabling auto-updates: %v", err)
 		return

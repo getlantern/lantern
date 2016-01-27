@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/getlantern/appdir"
+	"github.com/getlantern/eventual"
 	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/go-loggly"
@@ -41,7 +42,6 @@ var (
 	errorOut io.Writer
 	debugOut io.Writer
 
-	lastAddr   string
 	duplicates = make(map[string]bool)
 	dupLock    sync.Mutex
 
@@ -81,7 +81,7 @@ func EnableFileLogging() error {
 
 // Configure will set up logging. An empty "addr" will configure logging without a proxy
 // Returns a bool channel for optional blocking.
-func Configure(addr string, cloudConfigCA string, instanceId string,
+func Configure(addrFN eventual.Getter, cloudConfigCA string, instanceId string,
 	version string, revisionDate string) (success chan bool) {
 	success = make(chan bool, 1)
 
@@ -105,17 +105,10 @@ func Configure(addr string, cloudConfigCA string, instanceId string,
 		return
 	}
 
-	if addr != "" && addr == lastAddr {
-		log.Debug("Logging configuration unchanged")
-		success <- false
-		return
-	}
-
 	// Using a goroutine because we'll be using waitforserver and at this time
 	// the proxy is not yet ready.
 	go func() {
-		lastAddr = addr
-		enableLoggly(addr, cloudConfigCA, instanceId, version, revisionDate)
+		enableLoggly(addrFN, cloudConfigCA, instanceId, version, revisionDate)
 		// Won't block, but will allow optional blocking on receiver
 		success <- true
 	}()
@@ -161,20 +154,20 @@ func timestamped(orig io.Writer) io.Writer {
 	})
 }
 
-func enableLoggly(addr string, cloudConfigCA string, instanceId string,
+func enableLoggly(addrFN eventual.Getter, cloudConfigCA string, instanceId string,
 	version string, revisionDate string) {
 
-	client, err := util.PersistentHTTPClient(cloudConfigCA, addr)
+	client, err := util.PersistentHTTPClient(cloudConfigCA, addrFN)
 	if err != nil {
 		log.Errorf("Could not create HTTP client, not logging to Loggly: %v", err)
 		removeLoggly()
 		return
 	}
 
-	if addr == "" {
-		log.Debugf("Sending error logs to Loggly directly")
+	if addrFN == nil {
+		log.Debug("Sending error logs to Loggly directly")
 	} else {
-		log.Debugf("Sending error logs to Loggly via proxy at %v", addr)
+		log.Debug("Sending error logs to Loggly via proxy")
 	}
 
 	lang, _ := jibber_jabber.DetectLanguage()

@@ -62,6 +62,7 @@ func setUpPacTool() error {
 }
 
 func setProxyAddr(addr string) {
+	log.Debugf("Setting proxy address to: %v", addr)
 	proxyAddr = addr
 }
 

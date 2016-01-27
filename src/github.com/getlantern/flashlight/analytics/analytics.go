@@ -10,6 +10,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/getlantern/eventual"
+	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/util"
@@ -38,14 +40,14 @@ func Start(cfg *config.Config, version string) func() {
 		}
 		addr.Store(ip)
 		log.Debugf("Starting analytics session with ip %v", ip)
-		startSession(ip, version, cfg.Addr, cfg.Client.DeviceID)
+		startSession(ip, version, client.Addr, cfg.Client.DeviceID)
 	}()
 
 	stop := func() {
 		if addr.Load() != nil {
 			ip := addr.Load().(string)
 			log.Debugf("Ending analytics session with ip %v", ip)
-			endSession(ip, version, cfg.Addr, cfg.Client.DeviceID)
+			endSession(ip, version, client.Addr, cfg.Client.DeviceID)
 		}
 	}
 	return stop
@@ -78,17 +80,17 @@ func sessionVals(ip, version, clientId, sc string) string {
 	return vals.Encode()
 }
 
-func endSession(ip, version, proxyAddr, clientId string) {
+func endSession(ip string, version string, proxyAddrFN eventual.Getter, clientId string) {
 	args := sessionVals(ip, version, clientId, "end")
-	trackSession(args, proxyAddr)
+	trackSession(args, proxyAddrFN)
 }
 
-func startSession(ip, version, proxyAddr, clientId string) {
+func startSession(ip string, version string, proxyAddrFN eventual.Getter, clientId string) {
 	args := sessionVals(ip, version, clientId, "start")
-	trackSession(args, proxyAddr)
+	trackSession(args, proxyAddrFN)
 }
 
-func trackSession(args, proxyAddr string) {
+func trackSession(args string, proxyAddrFN eventual.Getter) {
 	r, err := http.NewRequest("POST", ApiEndpoint, bytes.NewBufferString(args))
 
 	if err != nil {
@@ -106,9 +108,9 @@ func trackSession(args, proxyAddr string) {
 	}
 
 	var httpClient *http.Client
-	httpClient, err = util.HTTPClient("", proxyAddr)
+	httpClient, err = util.HTTPClient("", proxyAddrFN)
 	if err != nil {
-		log.Errorf("Could not create HTTP client via %s: %s", proxyAddr, err)
+		log.Errorf("Could not create HTTP client: %s", err)
 		return
 	}
 	resp, err := httpClient.Do(r)
