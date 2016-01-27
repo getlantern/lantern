@@ -41,8 +41,20 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$htt
       $scope.email = email;
     });
 
+    $scope.resetPlaceholder = function() {
+      $scope.inputClass = "";
+      $scope.inputPlaceholder = "you@example.com";
+    }
+
     $rootScope.sendMobileAppLink = function() {
       var email = $scope.email;
+      $scope.resetPlaceholder();
+
+      if (!email) {
+        $scope.inputClass = "fail";
+        $scope.inputPlaceholder = "Please enter a valid e-mail";
+        return;
+      }
 
       var mc = new mandrill.Mandrill('fmYlUdjEpGGonI4NDx9xeA');
 
@@ -77,6 +89,7 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$htt
     if (!$rootScope.lanternWelcomeKey) {
       //$scope.showModal('welcome');
       $rootScope.showMobileAd = true;
+      $scope.resetPlaceholder();
     };
 
 }]);
@@ -149,7 +162,8 @@ app.controller('MobileAdCtrl', ['$scope', 'MODAL', function($scope, MODAL) {
   });
 
   $scope.copyAndroidMobileLink = function() {
-    $scope.closeModal();
+    $scope.linkCopied = true;
+    //$scope.closeModal();
   }
 }]);
 

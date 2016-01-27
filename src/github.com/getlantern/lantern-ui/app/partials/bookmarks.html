@@ -9,7 +9,7 @@
   <form ng-submit="sendMobileAppLink()">
     <div class="mail-input-wrapper">
       <span class="mail-input-icon">icon</span>
-      <input ng-model="model.email" name="email" type="text" placeholder="you@example.com" autocomplete="off" />
+      <input ng-model="model.email" name="email" type="text" class="{{ inputClass }}" placeholder="{{ inputPlaceholder }}" autocomplete="off" />
     </div>
     <button type="submit" style="background: url('/img/mobile-ad/{{ 'LANG_ID' | translate }}/get-the-app.svg')">Get the app via e-mail</button>
   </form>

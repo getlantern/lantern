@@ -267,7 +267,6 @@
   <div class="modal-body" id="settings">
     <div id="tell-your-friends">
       <ul class="social-icons">
-        <li class="wechat"><a target="_blank" href="#">WeChat</a>WeChat</li>
         <li class="weibo"><a target="_blank" href="http://service.weibo.com/share/share.php?title={{ 'LANTERN_MOBILE_SHARE' | translate | urlencode }}">Weibo</a>Weibo</li>
         <li class="twitter"><a target="_blank" href="https://twitter.com/intent/tweet?text={{ 'LANTERN_MOBILE_SHARE' | translate | urlencode }}">Twitter</a>Twitter</li>
         <li class="facebook"><a target="_blank" href="http://www.facebook.com/sharer.php?u={{ 'LANTERN_MOBILE_ANDROID' | translate }}">Facebook</a>Facebook</li>
@@ -278,6 +277,7 @@
       <button ngclipboard data-clipboard-text="{{ 'LANTERN_MOBILE_ANDROID' | translate }}" type="button" style="background: url('/img/mobile-ad/{{ 'LANG_ID' | translate }}/copy-link.svg')" ng-click="copyAndroidMobileLink()">
         Copy link
       </button>
+      <p ng-show="linkCopied" id="link-copied">Link copied</p>
     </div>
   </div>
 </div>

@@ -7984,7 +7984,7 @@ body.giveMode #npending {
   text-align: center;
 
   position: relative;
-  top: 230px;
+  top: 140px;
   margin: 0 auto;
 }
 
@@ -8081,16 +8081,16 @@ body.giveMode #npending {
   text-indent: -10000px;
 }
 #tell-your-friends li.wechat a {
-  background: url('../img/mobile-ad/wechat.png');
+  background: url('../img/mobile-ad/wechat.svg');
 }
 #tell-your-friends li.weibo a {
-  background: url('../img/mobile-ad/weibo.png');
+  background: url('../img/mobile-ad/weibo.svg');
 }
 #tell-your-friends li.twitter a {
-  background: url('../img/mobile-ad/twitter.png');
+  background: url('../img/mobile-ad/twitter.svg');
 }
 #tell-your-friends li.facebook a {
-  background: url('../img/mobile-ad/facebook.png');
+  background: url('../img/mobile-ad/facebook.svg');
 }
 #tell-your-friends button {
   border: none;
@@ -8110,4 +8110,25 @@ body.giveMode #npending {
   font-size: 9pt;
   display: block;
   margin-top: 20px;
+}
+#link-copied {
+  font-family: Roboto 10pt;
+  color: #000000;
+}
+
+/* do not group these rules */
+input.fail::-webkit-input-placeholder {
+    color: red;
+}
+input.fail:-moz-placeholder {
+    /* FF 4-18 */
+    color: red;
+}
+input.fail::-moz-placeholder {
+    /* FF 19+ */
+    color: red;
+}
+input.fail:-ms-input-placeholder {
+    /* IE 10+ */
+    color: red;
 }

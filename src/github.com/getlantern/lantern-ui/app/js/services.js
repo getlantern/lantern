@@ -66,7 +66,6 @@ angular.module('app.services', [])
         }
       },
       'Ad': function(data) {
-        console.log('model Ad');
         model.ad = {}
       },
       'Settings': function(data) {
