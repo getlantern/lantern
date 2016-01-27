@@ -48,7 +48,8 @@ func init() {
 	}
 }
 
-func Start(configDir string,
+// Run runs a client proxy. It blocks as long as the proxy is running.
+func Run(configDir string,
 	stickyConfig bool,
 	proxyAll func() bool,
 	flagsAsMap map[string]interface{},
