@@ -304,14 +304,13 @@ windows-386: require-assets docker
 darwin-amd64: require-assets
 	@echo "Building darwin/amd64..." && \
 	export OSX_DEV_SDK=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX$(OSX_MIN_VERSION).sdk && \
-	if [[ ! -d $$OSX_DEV_SDK ]]; then \
-		echo "Expecting SDK $(OSX_MIN_VERSION) at $$OSX_DEV_SDK." && exit 1; \
-	fi && \
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		source setenv.bash && \
 		$(call build-tags) && \
-		CGO_CFLAGS="--sysroot $$OSX_DEV_SDK" \
-		CGO_LDFLAGS="--sysroot $$OSX_DEV_SDK" \
+		if [[ -d $$OSX_DEV_SDK ]]; then \
+			export CGO_CFLAGS="--sysroot $$OSX_DEV_SDK" && \
+			export CGO_LDFLAGS="--sysroot $$OSX_DEV_SDK"; \
+		fi && \
 		MACOSX_DEPLOYMENT_TARGET=$(OSX_MIN_VERSION) \
 		CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -a -o lantern_darwin_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS)" github.com/getlantern/flashlight; \
 	else \
