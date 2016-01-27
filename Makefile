@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-OSX_MIN_VERSION := 10.9
+OSX_MIN_VERSION := 10.7
 
 DOCKER := $(shell which docker 2> /dev/null)
 GO := $(shell which go 2> /dev/null)
