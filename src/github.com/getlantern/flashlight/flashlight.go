@@ -11,7 +11,6 @@ import (
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/logging"
-	"github.com/getlantern/flashlight/settings"
 )
 
 // While in development mode we probably would not want auto-updates to be
@@ -51,6 +50,7 @@ func init() {
 
 func Start(configDir string,
 	stickyConfig bool,
+	proxyAll func() bool,
 	flagsAsMap map[string]interface{},
 	beforeStart func(cfg *config.Config) bool,
 	afterStart func(cfg *config.Config),
@@ -74,14 +74,14 @@ func Start(configDir string,
 		log.Debug("Preparing to start client proxy")
 		geolookup.Refresh(cfg.Addr)
 		cfgMutex.Lock()
-		applyClientConfig(client, cfg)
+		applyClientConfig(client, cfg, proxyAll)
 		cfgMutex.Unlock()
 
 		go func() {
 			err := config.Run(func(updated *config.Config) {
 				log.Debug("Applying updated configuration")
 				cfgMutex.Lock()
-				applyClientConfig(client, updated)
+				applyClientConfig(client, updated, proxyAll)
 				onConfigUpdate(updated)
 				cfgMutex.Unlock()
 				log.Debug("Applied updated configuration")
@@ -111,7 +111,7 @@ func Start(configDir string,
 	return nil
 }
 
-func applyClientConfig(client *client.Client, cfg *config.Config) {
+func applyClientConfig(client *client.Client, cfg *config.Config, proxyAll func() bool) {
 	certs, err := cfg.GetTrustedCACerts()
 	if err != nil {
 		log.Errorf("Unable to get trusted ca certs, not configuring fronted: %s", err)
@@ -121,7 +121,7 @@ func applyClientConfig(client *client.Client, cfg *config.Config) {
 	logging.Configure(cfg.Addr, cfg.CloudConfigCA, cfg.Client.DeviceID,
 		Version, RevisionDate)
 	// Update client configuration and get the highest QOS dialer available.
-	client.Configure(cfg.Client, settings.GetProxyAll())
+	client.Configure(cfg.Client, proxyAll)
 }
 
 func displayVersion() {

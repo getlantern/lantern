@@ -42,6 +42,7 @@ type Settings struct {
 
 // Load loads the initial settings at startup, either from disk or using defaults.
 func Load(version, revisionDate, buildDate string) {
+	log.Debug("Loading settings")
 	// Create default settings that may or may not be overridden from an existing file
 	// on disk.
 	settings = &Settings{
@@ -56,6 +57,8 @@ func Load(version, revisionDate, buildDate string) {
 	} else if err := yaml.Unmarshal(bytes, settings); err != nil {
 		log.Errorf("Could not load yaml %v", err)
 		// Just keep going with the original settings not from disk.
+	} else {
+		log.Debugf("Loaded settings from %v", path)
 	}
 
 	if settings.AutoLaunch {
@@ -147,11 +150,14 @@ func read() {
 
 // Saves settings to disk.
 func Save() {
+	log.Debug("Saving settings")
 	settings.Lock()
 	defer settings.Unlock()
 	if bytes, err := yaml.Marshal(settings); err != nil {
 		log.Errorf("Could not create yaml from settings %v", err)
 	} else if err := ioutil.WriteFile(path, bytes, 0644); err != nil {
 		log.Errorf("Could not write settings file %v", err)
+	} else {
+		log.Debugf("Saved settings to %s", path)
 	}
 }

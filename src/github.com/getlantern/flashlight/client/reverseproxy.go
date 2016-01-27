@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/http"
 	"net/http/httputil"
-	"runtime"
 	"time"
 
 	"github.com/getlantern/balancer"
@@ -79,7 +78,7 @@ func (client *Client) newReverseProxy() (*httputil.ReverseProxy, error) {
 	// challenge is that ReverseProxy reuses connections for
 	// different requests, so we might have to configure different
 	// ReverseProxies for different QOS's or something like that.
-	if runtime.GOOS == "android" || client.ProxyAll {
+	if client.ProxyAll() {
 		transport.Dial = dial
 	} else {
 		transport.Dial = detour.Dialer(dial)

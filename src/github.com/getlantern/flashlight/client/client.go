@@ -29,8 +29,8 @@ type Client struct {
 	// WriteTimeout: (optional) timeout for write ops
 	WriteTimeout time.Duration
 
-	// ProxyAll: (optional)  poxy all sites regardless of being blocked or not
-	ProxyAll bool
+	// ProxyAll: (optional) proxy all sites regardless of being blocked or not
+	ProxyAll func() bool
 
 	// MinQOS: (optional) the minimum QOS to require from proxies.
 	MinQOS int
@@ -81,7 +81,7 @@ func (client *Client) ListenAndServe(onListeningFn func()) error {
 
 // Configure updates the client's configuration. Configure can be called
 // before or after ListenAndServe, and can be called multiple times.
-func (client *Client) Configure(cfg *ClientConfig, proxyAll bool) {
+func (client *Client) Configure(cfg *ClientConfig, proxyAll func() bool) {
 	client.cfgMutex.Lock()
 	defer client.cfgMutex.Unlock()
 
@@ -99,7 +99,7 @@ func (client *Client) Configure(cfg *ClientConfig, proxyAll bool) {
 
 	log.Debugf("Requiring minimum QOS of %d", cfg.MinQOS)
 	client.MinQOS = cfg.MinQOS
-	log.Debugf("Proxy all traffic or not: %v", proxyAll)
+	log.Debugf("Proxy all traffic or not: %v", proxyAll())
 	client.ProxyAll = proxyAll
 	client.DeviceID = cfg.DeviceID
 
