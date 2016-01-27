@@ -34,7 +34,7 @@ func Start(appName string, timeout time.Duration) (string, error) {
 }
 
 func run(appName string) {
-	flashlight.Start(appdir.General("lantern_"+appName),
+	flashlight.Run(appdir.General("lantern_"+appName),
 		false,
 		func() bool { return true },
 		make(map[string]interface{}),
