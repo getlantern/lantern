@@ -4,6 +4,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/getlantern/eventual"
 	geo "github.com/getlantern/geolookup"
 	"github.com/getlantern/golog"
 
@@ -14,7 +15,7 @@ var (
 	log = golog.LoggerFor("flashlight.geolookup")
 
 	refreshRequest = make(chan string, 1)
-	currentGeoInfo = make(chan *geoInfo, 1)
+	currentGeoInfo = eventual.NewValue()
 	cf             util.HTTPFetcher
 
 	retryWaitMillis = 100
@@ -29,33 +30,21 @@ type geoInfo struct {
 // GetIP gets the IP. If the IP hasn't been determined yet, waits up to the
 // given timeout for an IP to become available.
 func GetIP(timeout time.Duration) string {
-	gi := getGeoInfo(timeout)
-	if gi == nil {
+	gi, ok := currentGeoInfo.Get(timeout)
+	if !ok || gi == nil {
 		return ""
 	}
-	return gi.ip
+	return gi.(*geoInfo).ip
 }
 
 // GetCountry gets the country. If the country hasn't been determined yet, waits
 // up to the given timeout for a country to become available.
 func GetCountry(timeout time.Duration) string {
-	gi := getGeoInfo(timeout)
-	if gi == nil {
+	gi, ok := currentGeoInfo.Get(timeout)
+	if !ok || gi == nil {
 		return ""
 	}
-	return gi.city.Country.IsoCode
-}
-
-func getGeoInfo(timeout time.Duration) *geoInfo {
-	select {
-	case gi := <-currentGeoInfo:
-		// Recycle for future calls
-		currentGeoInfo <- gi
-		return gi
-	case <-time.After(timeout):
-		// No information available within timeout
-		return nil
-	}
+	return gi.(*geoInfo).city.Country.IsoCode
 }
 
 // Refresh refreshes the geolookup information by calling the remote geolookup
@@ -78,15 +67,7 @@ func run() {
 	for proxyAddr := range refreshRequest {
 		gi := lookup(util.NewChainedAndFronted(proxyAddr))
 		log.Debug("Got new geolocation info")
-		// Drain geoInfo
-		select {
-		case <-currentGeoInfo:
-			// Drained
-		default:
-			// Nothing to drain
-		}
-		// Replace with new geoInfo
-		currentGeoInfo <- gi
+		currentGeoInfo.Set(gi)
 	}
 }
 

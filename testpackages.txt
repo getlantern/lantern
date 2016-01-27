@@ -9,6 +9,7 @@ github.com/getlantern/checkfallbacks
 github.com/getlantern/connpool
 github.com/getlantern/deepcopy
 github.com/getlantern/detour
+github.com/getlantern/eventual
 github.com/getlantern/fdcount
 github.com/getlantern/flashlight
 github.com/getlantern/flashlight/client
