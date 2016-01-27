@@ -5,35 +5,18 @@
 package asset
 
 /*
-#cgo LDFLAGS: -llog -landroid
-#include <android/log.h>
+#cgo LDFLAGS: -landroid
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
 #include <jni.h>
 #include <stdlib.h>
 
-#define LOG_FATAL(...) __android_log_print(ANDROID_LOG_FATAL, "Go/asset", __VA_ARGS__)
-
 // asset_manager is the asset manager of the app.
 AAssetManager* asset_manager;
 
-void asset_manager_init(void* java_vm, void* ctx) {
-	JavaVM* vm = (JavaVM*)(java_vm);
-	JNIEnv* env;
-	int err;
-	int attached = 0;
-
-	err = (*vm)->GetEnv(vm, (void**)&env, JNI_VERSION_1_6);
-	if (err != JNI_OK) {
-		if (err == JNI_EDETACHED) {
-			if ((*vm)->AttachCurrentThread(vm, &env, 0) != 0) {
-				LOG_FATAL("cannot attach JVM");
-			}
-			attached = 1;
-		} else {
-			LOG_FATAL("GetEnv unexpected error: %d", err);
-		}
-	}
+void asset_manager_init(uintptr_t java_vm, uintptr_t jni_env, jobject ctx) {
+	JavaVM* vm = (JavaVM*)java_vm;
+	JNIEnv* env = (JNIEnv*)jni_env;
 
 	// Equivalent to:
 	//	assetManager = ctx.getResources().getAssets();
@@ -47,16 +30,13 @@ void asset_manager_init(void* java_vm, void* ctx) {
 	// Pin the AssetManager and load an AAssetManager from it.
 	am = (*env)->NewGlobalRef(env, am);
 	asset_manager = AAssetManager_fromJava(env, am);
-
-	if (attached) {
-		(*vm)->DetachCurrentThread(vm);
-	}
 }
 */
 import "C"
 import (
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"sync"
 	"unsafe"
@@ -67,8 +47,13 @@ import (
 var assetOnce sync.Once
 
 func assetInit() {
-	ctx := mobileinit.Context{}
-	C.asset_manager_init(ctx.JavaVM(), ctx.AndroidContext())
+	err := mobileinit.RunOnJVM(func(vm, env, ctx uintptr) error {
+		C.asset_manager_init(C.uintptr_t(vm), C.uintptr_t(env), C.jobject(ctx))
+		return nil
+	})
+	if err != nil {
+		log.Fatalf("asset: %v", err)
+	}
 }
 
 func openAsset(name string) (File, error) {

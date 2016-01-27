@@ -98,7 +98,7 @@ N: android=http://schemas.android.com/apk/res/android
     A: android:versionCode(0x0101021b)=(type 0x10)0x1
     A: android:versionName(0x0101021c)="1.0" (Raw: "1.0")
     E: uses-sdk (line=8)
-      A: android:minSdkVersion(0x0101020c)=(type 0x10)0x9
+      A: android:minSdkVersion(0x0101020c)=(type 0x10)0xf
     E: application (line=9)
       A: android:label(0x01010001)="FakeApp" (Raw: "FakeApp")
       A: android:hasCode(0x0101000c)=(type 0x12)0x0
@@ -121,7 +121,7 @@ const androidManifest = `
 	android:versionCode="1"
 	android:versionName="1.0">
 
-	<uses-sdk android:minSdkVersion="9" />
+	
 	<application android:label="FakeApp" android:hasCode="false" android:debuggable="true">
 		<activity android:name="android.app.NativeActivity"
 			android:label="FakeApp"

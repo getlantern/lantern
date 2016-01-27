@@ -12,11 +12,8 @@ To install:
 	$ go get golang.org/x/mobile/cmd/gomobile
 	$ gomobile init
 
-At least Go 1.5 is required. Until it is released, build tip from
-source: http://golang.org/doc/install/source
-
-Initialization rebuilds the standard library and may download
-the Android NDK compiler.
+At least Go 1.5 is required.
+For detailed instructions, see https://golang.org/wiki/Mobile.
 
 Usage:
 
@@ -24,7 +21,7 @@ Usage:
 
 Commands:
 
-	bind        build a shared library for android APK and iOS app
+	bind        build a library for Android and iOS
 	build       compile android APK and iOS app
 	init        install android compiler toolchain
 	install     compile android APK and install on device
@@ -33,7 +30,7 @@ Commands:
 Use 'gomobile help [command]' for more information about that command.
 
 
-Build a shared library for android APK and iOS app
+Build a library for Android and iOS
 
 Usage:
 
@@ -57,10 +54,12 @@ the module import wizard (File > New > New Module > Import .JAR or
 (File > Project Structure > Dependencies).  This requires 'javac'
 (version 1.7+) and Android SDK (API level 9 or newer) to build the
 library for Android. The environment variable ANDROID_HOME must be set
-to the path to Android SDK.
+to the path to Android SDK. The generated Java class is in the java
+package 'go.<package_name>' unless -javapkg flag is specified.
 
 For -target ios, gomobile must be run on an OS X machine with Xcode
-installed. Support is not complete.
+installed. Support is not complete. The generated Objective-C types
+are prefixed with 'Go' unless the -prefix flag is provided.
 
 The -v flag provides verbose output, including the list of packages built.
 
@@ -106,11 +105,11 @@ Usage:
 
 	gomobile init [-u]
 
-Init downloads and installs the Android C++ compiler toolchain.
+Init installs the Android C++ compiler toolchain and builds copies
+of the Go standard library for mobile devices.
 
+When first run, it downloads part of the Android NDK.
 The toolchain is installed in $GOPATH/pkg/gomobile.
-If the Android C++ compiler toolchain already exists in the path,
-it skips download and uses the existing toolchain.
 
 The -u option forces download and installation of the new toolchain
 even when the toolchain exists.
@@ -140,4 +139,4 @@ Usage:
 
 Version prints versions of the gomobile binary and tools
 */
-package main
+package main // import "golang.org/x/mobile/cmd/gomobile"

@@ -10,18 +10,65 @@ package testpkg
 import (
 	"errors"
 	"fmt"
+	"math"
 	"runtime"
 	"time"
 )
 
+const (
+	AString = "a string"
+	AnInt   = 7
+	ABool   = true
+	AFloat  = 0.12345
+
+	MinInt32               int32   = math.MinInt32
+	MaxInt32               int32   = math.MaxInt32
+	MinInt64                       = math.MinInt64
+	MaxInt64                       = math.MaxInt64
+	SmallestNonzeroFloat64         = math.SmallestNonzeroFloat64
+	MaxFloat64                     = math.MaxFloat64
+	SmallestNonzeroFloat32 float32 = math.SmallestNonzeroFloat64
+	MaxFloat32             float32 = math.MaxFloat32
+	Log2E                          = math.Log2E
+)
+
+var (
+	StringVar    = "a string var"
+	IntVar       = 77
+	StructVar    = &Node{V: "a struct var"}
+	InterfaceVar I
+)
+
 type I interface {
 	Times(v int32) int64
+	Error(triggerError bool) error
+
+	StringError(s string) (string, error)
 }
 
 type myI struct{}
 
 func (i *myI) Times(v int32) int64 {
 	return int64(v) * 10
+}
+
+func (i *myI) Error(e bool) error {
+	if e {
+		return errors.New("some error")
+	}
+	return nil
+}
+
+func (i *myI) StringError(s string) (string, error) {
+	return s, nil
+}
+
+func CallIError(i I, triggerError bool) error {
+	return i.Error(triggerError)
+}
+
+func CallIStringError(i I, s string) (string, error) {
+	return i.StringError(s)
 }
 
 func NewI() I {
@@ -41,7 +88,7 @@ func UnregisterI(idx int32) {
 func Multiply(idx int32, val int32) int64 {
 	i, ok := pinnedI[idx]
 	if !ok {
-		panic(fmt.Sprintf("unknown I with index %d", i))
+		panic(fmt.Sprintf("unknown I with index %d", idx))
 	}
 	return i.Times(val)
 }
@@ -121,4 +168,25 @@ func (s *S) Sum() float64 {
 
 func CallSSum(s *S) float64 {
 	return s.Sum()
+}
+
+type Node struct {
+	V   string
+	Err error
+}
+
+func NewNode(name string) *Node {
+	return &Node{V: name}
+}
+
+// issue 13004
+type StructThatStartsWithLetterBeforeZ struct {
+	Value Z
+}
+
+type Z interface {
+}
+
+func Echo(s string) string {
+	return s
 }

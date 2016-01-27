@@ -15,7 +15,7 @@
 
 struct utsname sysInfo;
 
-@interface GoAppAppController : GLKViewController<UIContentContainer>
+@interface GoAppAppController : GLKViewController<UIContentContainer, GLKViewDelegate>
 @end
 
 @interface GoAppAppDelegate : UIResponder<UIApplicationDelegate>
@@ -25,27 +25,58 @@ struct utsname sysInfo;
 
 @implementation GoAppAppDelegate
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+	lifecycleAlive();
 	self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
 	self.controller = [[GoAppAppController alloc] initWithNibName:nil bundle:nil];
 	self.window.rootViewController = self.controller;
 	[self.window makeKeyAndVisible];
 	return YES;
 }
+
+- (void)applicationDidBecomeActive:(UIApplication * )application {
+	lifecycleFocused();
+}
+
+- (void)applicationWillResignActive:(UIApplication *)application {
+	lifecycleVisible();
+}
+
+- (void)applicationDidEnterBackground:(UIApplication *)application {
+	lifecycleAlive();
+}
+
+- (void)applicationWillTerminate:(UIApplication *)application {
+	lifecycleDead();
+}
 @end
 
 @interface GoAppAppController ()
 @property (strong, nonatomic) EAGLContext *context;
+@property (strong, nonatomic) GLKView *glview;
 @end
 
 @implementation GoAppAppController
+- (void)viewWillAppear:(BOOL)animated
+{
+	// TODO: replace by swapping out GLKViewController for a UIVIewController.
+	[super viewWillAppear:animated];
+	self.paused = YES;
+}
+
 - (void)viewDidLoad {
 	[super viewDidLoad];
-	self.preferredFramesPerSecond = 60;
 	self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
-	GLKView *view = (GLKView *)self.view;
-	view.context = self.context;
-	view.drawableDepthFormat = GLKViewDrawableDepthFormat24;
-	view.multipleTouchEnabled = true; // TODO expose setting to user.
+	self.glview = (GLKView*)self.view;
+	self.glview.drawableDepthFormat = GLKViewDrawableDepthFormat24;
+	self.glview.multipleTouchEnabled = true; // TODO expose setting to user.
+	self.glview.context = self.context;
+	self.glview.userInteractionEnabled = YES;
+	self.glview.enableSetNeedsDisplay = YES; // only invoked once
+
+	// Do not use the GLKViewController draw loop.
+	self.paused = YES;
+	self.resumeOnDidBecomeActive = NO;
+	self.preferredFramesPerSecond = 0;
 
 	int scale = 1;
 	if ([[UIScreen mainScreen] respondsToSelector:@selector(displayLinkWithTarget:selector:)]) {
@@ -54,15 +85,24 @@ struct utsname sysInfo;
 	setScreen(scale);
 
 	CGSize size = [UIScreen mainScreen].bounds.size;
-	updateConfig((int)size.width, (int)size.height);
+	UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
+	updateConfig((int)size.width, (int)size.height, orientation);
 }
 
 - (void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator {
-	updateConfig((int)size.width, (int)size.height);
+	[coordinator animateAlongsideTransition:^(id<UIViewControllerTransitionCoordinatorContext> context) {
+		// TODO(crawshaw): come up with a plan to handle animations.
+	} completion:^(id<UIViewControllerTransitionCoordinatorContext> context) {
+		UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
+		updateConfig((int)size.width, (int)size.height, orientation);
+	}];
 }
 
-- (void)update {
-	drawgl((GoUintptr)self.context);
+- (void)glkView:(GLKView *)view drawInRect:(CGRect)rect {
+	// Now that we have been asked to do the first draw, disable any
+	// future draw and hand control over to the Go paint.Event cycle.
+	self.glview.enableSetNeedsDisplay = NO;
+	startloop((GLintptr)self.context);
 }
 
 #define TOUCH_TYPE_BEGIN 0 // touch.TypeBegin
@@ -88,6 +128,10 @@ static void sendTouches(int change, NSSet* touches) {
 - (void)touchesEnded:(NSSet*)touches withEvent:(UIEvent*)event {
 	sendTouches(TOUCH_TYPE_END, touches);
 }
+
+- (void)touchesCanceled:(NSSet*)touches withEvent:(UIEvent*)event {
+    sendTouches(TOUCH_TYPE_END, touches);
+}
 @end
 
 void runApp(void) {
@@ -96,12 +140,20 @@ void runApp(void) {
 	}
 }
 
-void setContext(void* context) {
+void makeCurrentContext(GLintptr context) {
 	EAGLContext* ctx = (EAGLContext*)context;
 	if (![EAGLContext setCurrentContext:ctx]) {
 		// TODO(crawshaw): determine how terrible this is. Exit?
 		NSLog(@"failed to set current context");
 	}
+}
+
+void swapBuffers(GLintptr context) {
+	__block EAGLContext* ctx = (EAGLContext*)context;
+	dispatch_sync(dispatch_get_main_queue(), ^{
+		[EAGLContext setCurrentContext:ctx];
+		[ctx presentRenderbuffer:GL_RENDERBUFFER];
+	});
 }
 
 uint64_t threadID() {

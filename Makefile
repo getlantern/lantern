@@ -23,7 +23,7 @@ BUILD_DATE := $(shell date -u +%Y%m%d.%H%M%S)
 
 LOGGLY_TOKEN := 2b68163b-89b6-4196-b878-c1aca4bbdf84
 
-LDFLAGS := -w -X=main.version=$(GIT_REVISION) -X=main.revisionDate=$(REVISION_DATE) -X=main.buildDate=$(BUILD_DATE) -X=github.com/getlantern/flashlight/logging.logglyToken=$(LOGGLY_TOKEN)
+LDFLAGS := -X github.com/getlantern/flashlight/flashlight.Version=$(GIT_REVISION) -X github.com/getlantern/flashlight/flashlight.RevisionDate=$(REVISION_DATE) -X github.com/getlantern/flashlight/flashlight.BuildDate=$(BUILD_DATE) -X github.com/getlantern/flashlight/logging.logglyToken=$(LOGGLY_TOKEN) -X github.com/getlantern/flashlight/logging.logglyTag=$(LOGGLY_TAG)
 LANTERN_DESCRIPTION := Censorship circumvention tool
 LANTERN_EXTENDED_DESCRIPTION := Lantern allows you to access sites blocked by internet censorship.\nWhen you run it, Lantern reroutes traffic to selected domains through servers located where such domains are uncensored.
 
@@ -484,34 +484,21 @@ genconfig:
 	source setenv.bash && \
 	(cd src/github.com/getlantern/flashlight/genconfig && ./genconfig.bash)
 
-android-lib: docker-mobile
+android-lib:
 	@source setenv.bash && \
-	cd $(LANTERN_MOBILE_DIR)
-	@$(call docker-up) && \
-	$(DOCKER) run -v $$PWD/src:/src $(DOCKER_MOBILE_IMAGE_TAG) /bin/bash -c \ "cd /src/github.com/getlantern/lantern-mobile && gomobile bind -target=android -o=$(LANTERN_MOBILE_LIBRARY) -ldflags="$(LDFLAGS)" ." && \
-	if [ -d "$(FIRETWEET_MAIN_DIR)" ]; then \
-		cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) $(FIRETWEET_MAIN_DIR)/libs/$(LANTERN_MOBILE_LIBRARY); \
-	else \
-		echo ""; \
-		echo "Either no FIRETWEET_MAIN_DIR variable was passed or the given value is not a";\
-		echo "directory. You'll have to copy the $(LANTERN_MOBILE_LIBRARY) file manually:"; \
-		echo ""; \
-		echo "cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) \$$FIRETWEET_MAIN_DIR"; \
-	fi
-
-android-lib-local:
-	@source setenv.bash && \
-	cd $(LANTERN_MOBILE_DIR) && \
-	gomobile bind -target=android -o=$(LANTERN_MOBILE_LIBRARY) -ldflags="$(LDFLAGS)" . && \
-	if [ -d "$(FIRETWEET_MAIN_DIR)" ]; then \
-		cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) $(FIRETWEET_MAIN_DIR)/libs/$(LANTERN_MOBILE_LIBRARY); \
-	else \
-		echo ""; \
-		echo "Either no FIRETWEET_MAIN_DIR variable was passed or the given value is not a";\
-		echo "directory. You'll have to copy the $(LANTERN_MOBILE_LIBRARY) file manually:"; \
-		echo ""; \
-		echo "cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) \$$FIRETWEET_MAIN_DIR"; \
-	fi
+	(cd src/github.com/getlantern/flashlight && \
+	 gomobile bind -target=android -tags='headless' -o=$(LANTERN_MOBILE_LIBRARY) -ldflags='$(LDFLAGS)' $(LANTERN_MOBILE_PKG))
+	# mkdir -p $(LANTERN_MOBILE_DIR)/sdk/libs && mkdir -p tmp && mv libflashlight.aar tmp && cd tmp && jar xf libflashlight.aar && cp classes.jar ../$(LANTERN_MOBILE_DIR)/sdk/libs && cp -r jni ../$(LANTERN_MOBILE_DIR)/sdk/libs && cd .. && rm -rf tmp
+	# cp libflashlight.aar src/github.com/getlantern/lantern-mobile/LanternMobileTestbed/app/libs
+	# if [ -d "$(FIRETWEET_MAIN_DIR)" ]; then \
+	# 	cp -v $(LANTERN_MOBILE_DIR)/lantern/$(LANTERN_MOBILE_LIBRARY) $(FIRETWEET_MAIN_DIR)/libs/$(LANTERN_MOBILE_LIBRARY); \
+	# else \
+	# 	echo ""; \
+	# 	echo "Either no FIRETWEET_MAIN_DIR variable was passed or the given value is not a";\
+	# 	echo "directory. You'll have to copy the $(LANTERN_MOBILE_LIBRARY) file manually:"; \
+	# 	echo ""; \
+	# 	echo "cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) \$$FIRETWEET_MAIN_DIR"; \
+	# fi
 
 android-lib-dist: genconfig android-lib
 

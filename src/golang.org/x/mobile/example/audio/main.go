@@ -41,12 +41,12 @@ import (
 
 	"golang.org/x/mobile/app"
 	"golang.org/x/mobile/asset"
-	"golang.org/x/mobile/event/config"
 	"golang.org/x/mobile/event/lifecycle"
 	"golang.org/x/mobile/event/paint"
-	"golang.org/x/mobile/exp/app/debug"
+	"golang.org/x/mobile/event/size"
 	"golang.org/x/mobile/exp/audio"
 	"golang.org/x/mobile/exp/f32"
+	"golang.org/x/mobile/exp/gl/glutil"
 	"golang.org/x/mobile/exp/sprite"
 	"golang.org/x/mobile/exp/sprite/clock"
 	"golang.org/x/mobile/exp/sprite/glsprite"
@@ -61,36 +61,49 @@ const (
 var (
 	startTime = time.Now()
 
-	eng   = glsprite.Engine()
-	scene *sprite.Node
+	images *glutil.Images
+	eng    sprite.Engine
+	scene  *sprite.Node
 
 	player *audio.Player
 
-	cfg config.Event
+	sz size.Event
 )
 
 func main() {
 	app.Main(func(a app.App) {
+		var glctx gl.Context
 		for e := range a.Events() {
-			switch e := app.Filter(e).(type) {
+			switch e := a.Filter(e).(type) {
 			case lifecycle.Event:
 				switch e.Crosses(lifecycle.StageVisible) {
 				case lifecycle.CrossOn:
-					onStart()
+					glctx, _ = e.DrawContext.(gl.Context)
+					onStart(glctx)
+					a.Send(paint.Event{})
 				case lifecycle.CrossOff:
 					onStop()
+					glctx = nil
 				}
-			case config.Event:
-				cfg = e
+			case size.Event:
+				sz = e
 			case paint.Event:
-				onPaint()
-				a.EndPaint(e)
+				if glctx == nil || e.External {
+					continue
+				}
+				onPaint(glctx)
+				a.Publish()
+				a.Send(paint.Event{}) // keep animating
 			}
 		}
 	})
 }
 
-func onStart() {
+func onStart(glctx gl.Context) {
+	images = glutil.NewImages(glctx)
+	eng = glsprite.Engine(images)
+	loadScene()
+
 	rc, err := asset.Open("boing.wav")
 	if err != nil {
 		log.Fatal(err)
@@ -102,18 +115,16 @@ func onStart() {
 }
 
 func onStop() {
+	eng.Release()
+	images.Release()
 	player.Close()
 }
 
-func onPaint() {
-	if scene == nil {
-		loadScene()
-	}
-	gl.ClearColor(1, 1, 1, 1)
-	gl.Clear(gl.COLOR_BUFFER_BIT)
+func onPaint(glctx gl.Context) {
+	glctx.ClearColor(1, 1, 1, 1)
+	glctx.Clear(gl.COLOR_BUFFER_BIT)
 	now := clock.Time(time.Since(startTime) * 60 / time.Second)
-	eng.Render(scene, now, cfg)
-	debug.DrawFPS(cfg)
+	eng.Render(scene, now, sz)
 }
 
 func newNode() *sprite.Node {
@@ -136,7 +147,7 @@ func loadScene() {
 	dx, dy := float32(1), float32(1)
 
 	n := newNode()
-	// TODO: Shouldn't arranger pass the config.Event?
+	// TODO: Shouldn't arranger pass the size.Event?
 	n.Arranger = arrangerFunc(func(eng sprite.Engine, n *sprite.Node, t clock.Time) {
 		eng.SetSubTex(n, gopher)
 
@@ -148,11 +159,11 @@ func loadScene() {
 			dy = 1
 			boing()
 		}
-		if x+width > float32(cfg.WidthPt) {
+		if x+width > float32(sz.WidthPt) {
 			dx = -1
 			boing()
 		}
-		if y+height > float32(cfg.HeightPt) {
+		if y+height > float32(sz.HeightPt) {
 			dy = -1
 			boing()
 		}

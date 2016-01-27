@@ -121,7 +121,35 @@ The Java implementation can be used like so:
 	Myfmt.Printer printer = new SysPrint();
 	Myfmt.PrintHello(printer);
 
-Objective-C support for interfaces will be available soon.
+
+For Objective-C binding, gobind generates a protocol that declares
+methods corresponding to Go interface's methods.
+
+	@protocol GoMyfmtPrinter
+	- (void)Print:(NSString*)s;
+	@end
+
+	FOUNDATION_EXPORT void GoMyfmtPrintHello(id<GoMyfmtPrinter> p0);
+
+Any Objective-C classes conforming to the GoMyfmtPrinter protocol can be
+passed to Go using the GoMyfmtPrintHello function:
+
+	@interface SysPrint : NSObject<GoMyfmtPrinter> {
+	}
+	@end
+
+	@implementation SysPrint {
+	}
+	- (void)Print:(NSString*)s {
+		NSLog("%@", s);
+	}
+	@end
+
+The Objective-C implementation can be used like so:
+
+	SysPrint* printer = [[SysPrint alloc] init];
+	GoMyfmtPrintHello(printer);
+
 
 Type restrictions
 
@@ -134,7 +162,9 @@ Supported types include:
 
 	- String and boolean types.
 
-	- Byte slice types.
+	- Byte slice types. Note the current implementation does not
+	  support data mutation of slices passed in as function arguments.
+	  (https://golang.org/issues/12113)
 
 	- Any function type all of whose parameters and results have
 	  supported types. Functions must return either no results,

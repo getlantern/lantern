@@ -1,0 +1,60 @@
+<!--
+Copyright 2015 The Go Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+
+        div {
+            padding: 1;
+        }
+
+        .comment {
+            color: grey;
+        }
+
+        .flow-hide {
+            text-overflow: ellipsis;
+            word-break: break-all;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .flow-show {
+            word-break: break-all;
+        }
+    </style>
+
+    <script>
+
+function flowClick(el) {
+    el.classList.toggle("flow-hide");
+    el.classList.toggle("flow-show");
+}
+
+function appendDiv(txt, tag) {
+    var el = document.createElement("div");
+    el.innerHTML = txt;
+    if (tag == "comment") {
+        el.classList.add("comment");
+    } else if (tag == "expr") {
+
+    } else {
+        el.classList.add("flow-show");
+        el.onclick = function() {
+                flowClick(el);
+        };
+    }
+    document.body.appendChild(el);
+}
+
+</script>
+<body>
+</body>
+</html>

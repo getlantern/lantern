@@ -84,14 +84,14 @@ func main() {
 
 	for _, d := range f.Decls {
 		// Before:
-		// func StencilMask(mask uint32) {
+		// func (ctx *context) StencilMask(mask uint32) {
 		//	C.glStencilMask(C.GLuint(mask))
 		// }
 		//
 		// After:
-		// func StencilMask(mask uint32) {
+		// func (ctx *context) StencilMask(mask uint32) {
 		// 	defer func() {
-		// 		errstr := errDrain()
+		// 		errstr := ctx.errDrain()
 		// 		log.Printf("gl.StencilMask(%v) %v", mask, errstr)
 		//	}()
 		//	C.glStencilMask(C.GLuint(mask))
@@ -100,7 +100,7 @@ func main() {
 		if !ok {
 			continue
 		}
-		if fn.Recv != nil {
+		if fn.Recv == nil || fn.Recv.List[0].Names[0].Name != "ctx" {
 			continue
 		}
 
@@ -112,7 +112,7 @@ func main() {
 		)
 
 		// Print function signature.
-		fmt.Fprintf(buf, "func %s(", fn.Name.Name)
+		fmt.Fprintf(buf, "func (ctx *context) %s(", fn.Name.Name)
 		for i, p := range fn.Type.Params.List {
 			if i > 0 {
 				fmt.Fprint(buf, ", ")
@@ -162,7 +162,7 @@ func main() {
 		if !skip {
 			// Insert a defer block for tracing.
 			fmt.Fprintf(buf, "defer func() {\n")
-			fmt.Fprintf(buf, "\terrstr := errDrain()\n")
+			fmt.Fprintf(buf, "\terrstr := ctx.errDrain()\n")
 			switch fn.Name.Name {
 			case "GetUniformLocation", "GetAttribLocation":
 				fmt.Fprintf(buf, "\tr0.name = name\n")
@@ -200,6 +200,10 @@ func main() {
 
 		// Print original body of function.
 		for _, s := range fn.Body.List {
+			if c := enqueueCall(s); c != nil {
+				c.Fun.(*ast.SelectorExpr).Sel.Name = "enqueueDebug"
+				setEnqueueBlocking(c)
+			}
 			printer.Fprint(buf, fset, s)
 			fmt.Fprintf(buf, "\n")
 		}
@@ -221,6 +225,43 @@ func main() {
 	}
 }
 
+func enqueueCall(stmt ast.Stmt) *ast.CallExpr {
+	exprStmt, ok := stmt.(*ast.ExprStmt)
+	if !ok {
+		return nil
+	}
+	call, ok := exprStmt.X.(*ast.CallExpr)
+	if !ok {
+		return nil
+	}
+	fun, ok := call.Fun.(*ast.SelectorExpr)
+	if !ok {
+		return nil
+	}
+	if fun.Sel.Name != "enqueue" {
+		return nil
+	}
+	return call
+}
+
+func setEnqueueBlocking(c *ast.CallExpr) {
+	lit := c.Args[0].(*ast.CompositeLit)
+	for _, elt := range lit.Elts {
+		kv := elt.(*ast.KeyValueExpr)
+		if kv.Key.(*ast.Ident).Name == "blocking" {
+			kv.Value = &ast.Ident{Name: "true"}
+			return
+		}
+	}
+	lit.Elts = append(lit.Elts, &ast.KeyValueExpr{
+		Key: &ast.Ident{
+			NamePos: lit.Rbrace,
+			Name:    "blocking",
+		},
+		Value: &ast.Ident{Name: "true"},
+	})
+}
+
 const preamble = `// Copyright 2014 The Go Authors.  All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
@@ -228,25 +269,23 @@ const preamble = `// Copyright 2014 The Go Authors.  All rights reserved.
 // Generated from gl.go using go generate. DO NOT EDIT.
 // See doc.go for details.
 
-// +build linux darwin
+// +build linux darwin windows
 // +build gldebug
 
 package gl
-
-// #include "work.h"
-import "C"
 
 import (
 	"fmt"
 	"log"
 	"math"
+	"sync/atomic"
 	"unsafe"
 )
 
-func errDrain() string {
+func (ctx *context) errDrain() string {
 	var errs []Enum
 	for {
-		e := GetError()
+		e := ctx.GetError()
 		if e == 0 {
 			break
 		}
@@ -256,6 +295,20 @@ func errDrain() string {
 		return fmt.Sprintf(" error: %v", errs)
 	}
 	return ""
+}
+
+func (ctx *context) enqueueDebug(c call) uintptr {
+	numCalls := atomic.AddInt32(&ctx.debug, 1)
+	if numCalls > 1 {
+		panic("concurrent calls made to the same GL context")
+	}
+	defer func() {
+		if atomic.AddInt32(&ctx.debug, -1) > 0 {
+			select {} // block so you see us in the panic
+		}
+	}()
+
+	return ctx.enqueue(c)
 }
 
 `

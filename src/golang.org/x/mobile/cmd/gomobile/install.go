@@ -6,8 +6,10 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 var cmdInstall = &command{
@@ -28,16 +30,27 @@ For documentation, see 'go help build'.
 }
 
 func runInstall(cmd *command) error {
-	if buildTarget != "android" {
+	if !strings.HasPrefix(buildTarget, "android") {
 		return fmt.Errorf("install is not supported for -target=%s", buildTarget)
 	}
 	if err := runBuild(cmd); err != nil {
 		return err
 	}
-	return runCmd(exec.Command(
+
+	// Don't use runCmd as adb does not return a useful exit code.
+	c := exec.Command(
 		`adb`,
 		`install`,
 		`-r`,
-		filepath.Base(pkg.Dir)+`.apk`,
-	))
+		androidPkgName(filepath.Base(pkg.Dir))+`.apk`,
+	)
+	c.Stdout = os.Stdout
+	c.Stderr = os.Stderr
+	if buildX || buildN {
+		printcmd("%s", strings.Join(c.Args, " "))
+	}
+	if buildN {
+		return nil
+	}
+	return c.Run()
 }
