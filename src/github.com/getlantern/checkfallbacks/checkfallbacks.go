@@ -8,8 +8,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/getlantern/flashlight/client"
-	"github.com/getlantern/golog"
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
@@ -17,6 +15,13 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+
+	"github.com/getlantern/flashlight/client"
+	"github.com/getlantern/golog"
+)
+
+const (
+	DeviceID = "999999"
 )
 
 var (
@@ -134,7 +139,7 @@ func testAllFallbacks(fallbacks []client.ChainedServerInfo) (output *chan fullOu
 func testFallbackServer(fb *client.ChainedServerInfo, workerID int) (output fullOutput) {
 	// Test connectivity
 	fb.Pipelined = true
-	dialer, err := fb.Dialer()
+	dialer, err := fb.Dialer(DeviceID)
 	if err != nil {
 		output.err = fmt.Errorf("%v: error building dialer: %v", fb.Addr, err)
 		return
