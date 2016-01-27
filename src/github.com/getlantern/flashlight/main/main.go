@@ -11,11 +11,9 @@ import (
 	"os"
 	"os/signal"
 	"strings"
-	"sync"
 	"syscall"
 	"time"
 
-	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/i18n"
 	"github.com/getlantern/profiling"
@@ -25,23 +23,15 @@ import (
 	"github.com/getlantern/flashlight/autoupdate"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
-	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/logging"
 	"github.com/getlantern/flashlight/proxiedsites"
 	"github.com/getlantern/flashlight/settings"
 	"github.com/getlantern/flashlight/ui"
-	"github.com/getlantern/flashlight/util"
 
 	"github.com/mitchellh/panicwrap"
 )
 
 var (
-	version      string
-	revisionDate string // The revision date and time that is associated with the version string.
-	buildDate    string // The actual date and time the binary was built.
-
-	cfgMutex sync.Mutex
-
 	log = golog.LoggerFor("flashlight")
 
 	// Command-line Flags
@@ -55,8 +45,7 @@ var (
 
 	showui = true
 
-	configUpdates = make(chan *config.Config)
-	exitCh        = make(chan error, 1)
+	exitCh = make(chan error, 1)
 
 	// use buffered channel to avoid blocking the caller of 'addExitFunc'
 	// the number 10 is arbitrary
@@ -64,27 +53,13 @@ var (
 )
 
 func init() {
-	if flashlight.PackageVersion != flashlight.DefaultPackageVersion {
-		// packageVersion has precedence over GIT revision. This will happen when
-		// packing a version intended for release.
-		version = flashlight.PackageVersion
-	}
-
-	if version == "" {
-		version = "development"
-	}
-
-	if revisionDate == "" {
-		revisionDate = "now"
-	}
-
 	// Passing public key and version to the autoupdate service.
 	autoupdate.PublicKey = []byte(packagePublicKey)
 	autoupdate.Version = flashlight.PackageVersion
 
 	rand.Seed(time.Now().UnixNano())
 
-	settings.Load(version, revisionDate, buildDate)
+	settings.Load(flashlight.Version, flashlight.RevisionDate, flashlight.BuildDate)
 }
 
 func logPanic(msg string) {
@@ -96,7 +71,7 @@ func logPanic(msg string) {
 		panic("Error initializing logging")
 	}
 
-	<-logging.Configure("", "", cfg.Client.DeviceID, version, revisionDate)
+	<-logging.Configure("", "", cfg.Client.DeviceID, flashlight.Version, flashlight.RevisionDate)
 
 	log.Error(msg)
 
@@ -183,7 +158,6 @@ func doMain() error {
 			return err
 		}
 	}
-	displayVersion()
 
 	// Run below in separate goroutine as config.Init() can potentially block when Lantern runs
 	// for the first time. User can still quit Lantern through systray menu when it happens.
@@ -193,33 +167,14 @@ func doMain() error {
 			settings.SetProxyAll(*proxyAll)
 		}
 
-		err := flashlight.Start(*configdir, *stickyConfig, flagsAsMap(),
-			func(cfg *config.Config) {
-				log.Debugf("Processed config")
-				if *help || cfg.Addr == "" {
-					flag.Usage()
-					exit(fmt.Errorf("Wrong arguments"))
-					return
-				}
-
-				if cfg.CpuProfile != "" || cfg.MemProfile != "" {
-					log.Debugf("Start profiling with cpu file %s and mem file %s", cfg.CpuProfile, cfg.MemProfile)
-					finishProfiling := profiling.Start(cfg.CpuProfile, cfg.MemProfile)
-					addExitFunc(finishProfiling)
-				}
-
-				log.Debug("Running proxy")
-				// This will open a proxy on the address and port given by -addr
-				runClientProxy(cfg)
-			},
-			func(cfg *config.Config) {
-				log.Debug("Got config update")
-				configUpdates <- cfg
-			},
-			func(err error) {
-				exit(err)
-			})
-
+		err := flashlight.Start(
+			*configdir,
+			*stickyConfig,
+			flagsAsMap(),
+			beforeStart,
+			afterStart,
+			onConfigUpdate,
+			exit)
 		if err != nil {
 			exit(err)
 			return
@@ -229,38 +184,20 @@ func doMain() error {
 	return waitForExit()
 }
 
-func i18nInit() {
-	i18n.SetMessagesFunc(func(filename string) ([]byte, error) {
-		return ui.Translations.Get(filename)
-	})
-	if err := i18n.UseOSLocale(); err != nil {
-		log.Debugf("i18n.UseOSLocale: %q", err)
+func beforeStart(cfg *config.Config) bool {
+	log.Debug("Got first config")
+	if *help || cfg.Addr == "" {
+		flag.Usage()
+		exit(fmt.Errorf("Wrong arguments"))
+		return false
 	}
-}
 
-func displayVersion() {
-	log.Debugf("---- flashlight version: %s, release: %s, build revision date: %s ----", version, flashlight.PackageVersion, revisionDate)
-}
-
-func parseFlags() {
-	args := os.Args[1:]
-	// On OS X, the first time that the program is run after download it is
-	// quarantined.  OS X will ask the user whether or not it's okay to run the
-	// program.  If the user says that it's okay, OS X will run the program but
-	// pass an extra flag like -psn_0_1122578.  flag.Parse() fails if it sees
-	// any flags that haven't been declared, so we remove the extra flag.
-	if len(os.Args) == 2 && strings.HasPrefix(os.Args[1], "-psn") {
-		log.Debugf("Ignoring extra flag %v", os.Args[1])
-		args = []string{}
+	if cfg.CpuProfile != "" || cfg.MemProfile != "" {
+		log.Debugf("Start profiling with cpu file %s and mem file %s", cfg.CpuProfile, cfg.MemProfile)
+		finishProfiling := profiling.Start(cfg.CpuProfile, cfg.MemProfile)
+		addExitFunc(finishProfiling)
 	}
-	// Note - we can ignore the returned error because CommandLine.Parse() will
-	// exit if it fails.
-	_ = flag.CommandLine.Parse(args)
-}
 
-// runClientProxy runs the client-side (get mode) proxy.
-func runClientProxy(cfg *config.Config) {
-	log.Debug("Running as client")
 	// Set Lantern as system proxy by creating and using a PAC file.
 	setProxyAddr(cfg.Addr)
 
@@ -274,11 +211,12 @@ func runClientProxy(cfg *config.Config) {
 		// off.
 		//
 		// See: https://github.com/getlantern/lantern/issues/2776
+		log.Debug("Clearing proxy settings")
 		doPACOff(fmt.Sprintf("http://%s/proxy_on.pac", cfg.UIAddr))
 		exit(nil)
 	}
 
-	// Start user interface.
+	log.Debug("Starting client UI")
 	tcpAddr, err := net.ResolveTCPAddr("tcp4", cfg.UIAddr)
 	if err != nil {
 		exit(fmt.Errorf("Unable to resolve UI address: %v", err))
@@ -299,70 +237,66 @@ func runClientProxy(cfg *config.Config) {
 		// clicks the Lantern desktop shortcut when Lantern is already running.
 		showExistingUi(cfg.UIAddr)
 		exit(fmt.Errorf("Unable to start UI: %s", err))
-		return
+		return false
 	}
 
-	// Create the client-side proxy.
-	client := &client.Client{
-		Addr:         cfg.Addr,
-		ReadTimeout:  0, // don't timeout
-		WriteTimeout: 0,
-	}
+	onConfigUpdate(cfg)
 
-	applyClientConfig(client, cfg)
-
-	geolookup.Refresh(cfg.Addr)
 	// Only run analytics once on startup.
 	if settings.IsAutoReport() {
-		stopAnalytics := analytics.Start(cfg, version)
+		stopAnalytics := analytics.Start(cfg, flashlight.Version)
 		addExitFunc(stopAnalytics)
 	}
-
-	// Continually poll for config updates and update client accordingly
-	go func() {
-		for {
-			cfg := <-configUpdates
-			applyClientConfig(client, cfg)
-		}
-	}()
-
-	/*
-		      Temporarily disabling localdiscover. See:
-		      https://github.com/getlantern/lantern/issues/2813
-		      // Continually search for local Lantern instances and update the UI
-		      go func() {
-			addExitFunc(localdiscovery.Stop)
-			localdiscovery.Start(!showui, strconv.Itoa(tcpAddr.Port))
-		      }()
-	*/
-
-	// watchDirectAddrs will spawn a goroutine that will add any site that is
-	// directly accesible to the PAC file.
 	watchDirectAddrs()
 
-	err = client.ListenAndServe(func() {
-		pacOn()
-		addExitFunc(pacOff)
+	return true
+}
 
-		// We finally tell the config package to start polling for new configurations.
-		// This is the final step because the config polling itself uses the full
-		// proxying capabilities of Lantern, so it needs everything to be properly
-		// set up with at least an initial bootstrap config (on first run) to
-		// complete successfully.
-		config.StartPolling()
-		if showui && !*startup {
-			// Launch a browser window with Lantern but only after the pac
-			// URL and the proxy server are all up and running to avoid
-			// race conditions where we change the proxy setup while the
-			// UI server and proxy server are still coming up.
-			ui.Show()
-		} else {
-			log.Debugf("Not opening browser. Startup is: %v", *startup)
-		}
-	})
-	if err != nil {
-		exit(fmt.Errorf("Error calling listen and serve: %v", err))
+func afterStart(cfg *config.Config) {
+	pacOn()
+	addExitFunc(pacOff)
+
+	if showui && !*startup {
+		// Launch a browser window with Lantern but only after the pac
+		// URL and the proxy server are all up and running to avoid
+		// race conditions where we change the proxy setup while the
+		// UI server and proxy server are still coming up.
+		ui.Show()
+	} else {
+		log.Debugf("Not opening browser. Startup is: %v", *startup)
 	}
+}
+
+func onConfigUpdate(cfg *config.Config) {
+	autoupdate.Configure(cfg)
+	proxiedsites.Configure(cfg.ProxiedSites)
+	log.Debugf("Proxy all traffic or not: %v", settings.GetProxyAll())
+	ServeProxyAllPacFile(settings.GetProxyAll())
+}
+
+func i18nInit() {
+	i18n.SetMessagesFunc(func(filename string) ([]byte, error) {
+		return ui.Translations.Get(filename)
+	})
+	if err := i18n.UseOSLocale(); err != nil {
+		log.Debugf("i18n.UseOSLocale: %q", err)
+	}
+}
+
+func parseFlags() {
+	args := os.Args[1:]
+	// On OS X, the first time that the program is run after download it is
+	// quarantined.  OS X will ask the user whether or not it's okay to run the
+	// program.  If the user says that it's okay, OS X will run the program but
+	// pass an extra flag like -psn_0_1122578.  flag.Parse() fails if it sees
+	// any flags that haven't been declared, so we remove the extra flag.
+	if len(os.Args) == 2 && strings.HasPrefix(os.Args[1], "-psn") {
+		log.Debugf("Ignoring extra flag %v", os.Args[1])
+		args = []string{}
+	}
+	// Note - we can ignore the returned error because CommandLine.Parse() will
+	// exit if it fails.
+	_ = flag.CommandLine.Parse(args)
 }
 
 // showExistingUi triggers an existing Lantern running on the same system to
@@ -384,35 +318,6 @@ func showExistingUi(tcpAddr string) {
 // addExitFunc adds a function to be called before the application exits.
 func addExitFunc(exitFunc func()) {
 	chExitFuncs <- exitFunc
-}
-
-func applyClientConfig(client *client.Client, cfg *config.Config) {
-	cfgMutex.Lock()
-	defer cfgMutex.Unlock()
-
-	certs, err := cfg.GetTrustedCACerts()
-	if err != nil {
-		log.Errorf("Unable to get trusted ca certs, not configure fronted: %s", err)
-	} else {
-		fronted.Configure(certs, cfg.Client.MasqueradeSets)
-	}
-
-	autoupdate.Configure(cfg)
-	logging.Configure(cfg.Addr, cfg.CloudConfigCA, cfg.Client.DeviceID,
-		version, revisionDate)
-	proxiedsites.Configure(cfg.ProxiedSites)
-	log.Debugf("Proxy all traffic or not: %v", settings.GetProxyAll())
-	ServeProxyAllPacFile(settings.GetProxyAll())
-	// Update client configuration and get the highest QOS dialer available.
-	client.Configure(cfg.Client, settings.GetProxyAll())
-}
-
-func withHttpClient(addr string, withClient func(client *http.Client)) {
-	if httpClient, err := util.HTTPClient("", addr); err != nil {
-		log.Errorf("Could not create HTTP client via %s: %s", addr, err)
-	} else {
-		withClient(httpClient)
-	}
 }
 
 // exit tells the application to exit, optionally supplying an error that caused
