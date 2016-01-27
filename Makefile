@@ -128,6 +128,9 @@ docker-genassets: require-npm
 	LANTERN_UI="src/github.com/getlantern/lantern-ui" && \
 	APP="$$LANTERN_UI/app" && \
 	DIST="$$LANTERN_UI/dist" && \
+	if [[ ! -d $$DIST ]]; then \
+		UPDATE_DIST=true; \
+	fi && \
 	DEST="src/github.com/getlantern/flashlight/ui/resources.go" && \
 	\
 	if [ "$$UPDATE_DIST" ]; then \
