@@ -232,6 +232,9 @@ docker-mobile:
 	cp $(LANTERN_MOBILE_DIR)/Dockerfile $$DOCKER_CONTEXT && \
 	docker build -t $(DOCKER_MOBILE_IMAGE_TAG) $$DOCKER_CONTEXT
 
+update-dist:
+	UPDATE_DIST=true make genassets
+
 linux: genassets linux-386 linux-amd64
 
 windows: genassets windows-386
@@ -379,7 +382,7 @@ package-darwin: package-darwin-manoto
 
 binaries: docker genassets linux windows darwin
 
-packages: require-version require-secrets clean binaries package-windows package-linux package-darwin
+packages: require-version require-secrets clean update-dist binaries package-windows package-linux package-darwin
 
 release-qa: require-version require-s3cmd
 	@BASE_NAME="lantern-installer-qa" && \
