@@ -217,7 +217,7 @@ func HTTPClient(rootCA string, proxyAddrFN eventual.Getter) (*http.Client, error
 // validate the server's certificate on TLS connections against that RootCA. If
 // proxyAddr is specified, the client will proxy through the given http proxy.
 func httpClient(rootCA string, proxyAddrFN eventual.Getter, persistent bool) (*http.Client, error) {
-	log.Debugf("Creating new HTTPClient with proxyAddrFN", proxyAddrFN)
+	log.Debugf("Creating new HTTPClient with proxyAddrFN: %v", proxyAddrFN)
 
 	tr := &http.Transport{
 		Dial: (&net.Dialer{
