@@ -65,6 +65,9 @@ angular.module('app.services', [])
             model.location.resolved = true;
         }
       },
+      'Ad': function(data) {
+        model.ad = {}
+      },
       'Settings': function(data) {
         console.log('Got Lantern default settings: ', data);
         if (data && data.Version) {
@@ -206,9 +209,16 @@ angular.module('app.services', [])
     });
 
     function trackPageView() {
-			console.log("SENDING PAGE VIEW")
       ga('send', 'pageview');
-    }
+    };
+
+    function trackSendLinkToMobile() {
+      ga('send', 'send-link-to-mobile');
+    };
+
+    function trackCopyLink() {
+      ga('send', 'send-link-to-mobile');
+    };
 
     return {
       trackPageView: trackPageView

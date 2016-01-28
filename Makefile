@@ -1,5 +1,7 @@
 SHELL := /bin/bash
 
+OSX_MIN_VERSION := 10.9
+
 DOCKER := $(shell which docker 2> /dev/null)
 GO := $(shell which go 2> /dev/null)
 NODE := $(shell which node 2> /dev/null)
@@ -20,7 +22,7 @@ GIT_REVISION_DATE := $(shell git show -s --format=%ci $(GIT_REVISION_SHORTCODE))
 REVISION_DATE := $(shell date -u -j -f "%F %T %z" "$(GIT_REVISION_DATE)" +"%Y%m%d.%H%M%S" 2>/dev/null || date -u -d "$(GIT_REVISION_DATE)" +"%Y%m%d.%H%M%S")
 BUILD_DATE := $(shell date -u +%Y%m%d.%H%M%S)
 
-LOGGLY_TOKEN := 2b68163b-89b6-4196-b878-c1aca4bbdf84 
+LOGGLY_TOKEN := 2b68163b-89b6-4196-b878-c1aca4bbdf84
 
 LDFLAGS := -w -X main.version $(GIT_REVISION) -X main.revisionDate $(REVISION_DATE) -X main.buildDate $(BUILD_DATE) -X github.com/getlantern/flashlight/logging.logglyToken \"$(LOGGLY_TOKEN)\"
 LANTERN_DESCRIPTION := Censorship circumvention tool
@@ -126,6 +128,9 @@ docker-genassets: require-npm
 	LANTERN_UI="src/github.com/getlantern/lantern-ui" && \
 	APP="$$LANTERN_UI/app" && \
 	DIST="$$LANTERN_UI/dist" && \
+	if [[ ! -d $$DIST ]]; then \
+		UPDATE_DIST=true; \
+	fi && \
 	DEST="src/github.com/getlantern/flashlight/ui/resources.go" && \
 	\
 	if [ "$$UPDATE_DIST" ]; then \
@@ -230,7 +235,10 @@ docker-mobile:
 	cp $(LANTERN_MOBILE_DIR)/Dockerfile $$DOCKER_CONTEXT && \
 	docker build -t $(DOCKER_MOBILE_IMAGE_TAG) $$DOCKER_CONTEXT
 
-linux: genassets linux-386 linux-amd64 
+update-dist:
+	UPDATE_DIST=true make genassets
+
+linux: genassets linux-386 linux-amd64
 
 windows: genassets windows-386
 
@@ -295,10 +303,16 @@ windows-386: require-assets docker
 
 darwin-amd64: require-assets
 	@echo "Building darwin/amd64..." && \
+	export OSX_DEV_SDK=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX$(OSX_MIN_VERSION).sdk && \
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		source setenv.bash && \
 		$(call build-tags) && \
-		CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -a -o lantern_darwin_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS)" github.com/getlantern/flashlight; \
+		if [[ -d $$OSX_DEV_SDK ]]; then \
+			export CGO_CFLAGS="--sysroot $$OSX_DEV_SDK" && \
+			export CGO_LDFLAGS="--sysroot $$OSX_DEV_SDK"; \
+		fi && \
+		MACOSX_DEPLOYMENT_TARGET=$(OSX_MIN_VERSION) \
+		CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -a -o lantern_darwin_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -s" github.com/getlantern/flashlight; \
 	else \
 		echo "-> Skipped: Can not compile Lantern for OSX on a non-OSX host."; \
 	fi
@@ -339,7 +353,7 @@ package-darwin-manoto: require-version require-appdmg require-svgexport darwin
 		mkdir Lantern.app/Contents/Resources/en.lproj && \
 		cp installer-resources/$(MANOTO_YAML) Lantern.app/Contents/Resources/en.lproj/$(PACKAGED_YAML) && \
 		cp $(LANTERN_YAML_PATH) Lantern.app/Contents/Resources/en.lproj/$(LANTERN_YAML) && \
-		codesign -s "Developer ID Application: Brave New Software Project, Inc" Lantern.app && \
+		codesign --force -s "Developer ID Application: Brave New Software Project, Inc" -v Lantern.app && \
 		cat Lantern.app/Contents/MacOS/lantern | bzip2 > update_darwin_amd64.bz2 && \
 		ls -l lantern_darwin_amd64 update_darwin_amd64.bz2 && \
 		rm -rf lantern-installer-manoto.dmg && \
@@ -354,7 +368,7 @@ package-darwin-manoto: require-version require-appdmg require-svgexport darwin
 		echo "-> Skipped: Can not generate a package on a non-OSX host."; \
 	fi;
 
-package-darwin: package-darwin-manoto 
+package-darwin: package-darwin-manoto
 	@echo "Generating distribution package for darwin/amd64..." && \
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
 		INSTALLER_RESOURCES="installer-resources/darwin" && \
@@ -370,7 +384,7 @@ package-darwin: package-darwin-manoto
 
 binaries: docker genassets linux windows darwin
 
-packages: require-version require-secrets clean binaries package-windows package-linux package-darwin
+packages: require-version require-secrets clean update-dist binaries package-windows package-linux package-darwin
 
 release-qa: require-version require-s3cmd
 	@BASE_NAME="lantern-installer-qa" && \
@@ -500,6 +514,7 @@ clean:
 	rm -f *.deb && \
 	rm -f *.png && \
 	rm -rf *.app && \
+	rm -rf pkg && \
 	git checkout ./src/github.com/getlantern/flashlight/ui/resources.go && \
 	rm -f src/github.com/getlantern/flashlight/*.syso && \
 	rm -f *.dmg && \

@@ -73,7 +73,7 @@ func generic_errorHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "generic_error.html", size: 13156, mode: os.FileMode(420), modTime: time.Unix(1440015378, 0)}
+	info := bindataFileInfo{name: "generic_error.html", size: 13156, mode: os.FileMode(420), modTime: time.Unix(1449025059, 0)}
 	a := &asset{bytes: bytes, info:  info}
 	return a, nil
 }

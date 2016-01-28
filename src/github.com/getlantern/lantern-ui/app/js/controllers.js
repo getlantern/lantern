@@ -1,12 +1,12 @@
 'use strict';
 
-app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$http', 
-               'localStorageService', 
-               function($rootScope, $scope, $compile, $window, $http, localStorageService) {
+app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$http', 'gaMgr',
+               'localStorageService',
+               function($rootScope, $scope, $compile, $window, $http, gaMgr, localStorageService) {
     $scope.currentModal = 'none';
 
     $scope.loadScript = function(src) {
-        (function() { 
+        (function() {
             var script  = document.createElement("script")
             script.type = "text/javascript";
             script.src  = src;
@@ -25,32 +25,74 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$htt
     };
 
     $scope.showModal = function(val) {
-        if (val == 'welcome') {
-            $scope.loadShareScripts();
-        }
+      $scope.closeModal();
 
-        $scope.currentModal = val;
+      if (val == 'welcome') {
+        $scope.loadShareScripts();
+      } else {
+        $('<div class="modal-backdrop"></div>').appendTo(document.body);
+      }
+
+      $scope.currentModal = val;
+    };
+
+    $scope.$watch('model.email', function(email) {
+      $scope.email = email;
+    });
+
+    $scope.resetPlaceholder = function() {
+      $scope.inputClass = "";
+      $scope.inputPlaceholder = "you@example.com";
+    }
+
+    $rootScope.sendMobileAppLink = function() {
+      var email = $scope.email;
+
+      $scope.resetPlaceholder();
+
+      if (!email) {
+        $scope.inputClass = "fail";
+        $scope.inputPlaceholder = "Please enter a valid e-mail";
+        return;
+      }
+
+      var mc = new mandrill.Mandrill('fmYlUdjEpGGonI4NDx9xeA');
+
+      var message = {
+        "to": [
+          { "email": email }
+        ]
+      };
+
+      mc.messages.sendTemplate({
+        'template_name': 'lantern-mobile-message',
+        'template_content': {},
+        'message': message
+      });
+
+      $rootScope.showMobileAd = false;
+      $scope.showModal("lantern-mobile-ad");
+
+      gaMgr.trackSendLinkToMobile();
     };
 
     $rootScope.lanternWelcomeKey = localStorageService.get('lanternWelcomeKey');
+    // $rootScope.lanternWelcomeKey = false;
 
     $scope.closeModal = function() {
-
-        // if it's our first time opening the UI,
-        // show the settings modal first immediately followed by
-        // the welcome screen
-        if ($scope.currentModal == 'welcome' && !$rootScope.lanternWelcomeKey) {
-            $rootScope.lanternWelcomeKey = true;
-            localStorageService.set('lanternWelcomeKey', true);
-        } else {
-            $scope.currentModal = 'none';
-        }
+      if (!$rootScope.lanternWelcomeKey) {
+        $rootScope.lanternWelcomeKey = true;
+        localStorageService.set('lanternWelcomeKey', true);
+      }
+      $scope.currentModal = 'none';
+      $(".modal-backdrop").remove();
     };
 
     if (!$rootScope.lanternWelcomeKey) {
-        $scope.showModal('welcome');
+      //$scope.showModal('welcome');
+      $rootScope.showMobileAd = true;
+      $scope.resetPlaceholder();
     };
-
 
 }]);
 
@@ -112,6 +154,20 @@ app.controller('SettingsCtrl', ['$scope', 'MODAL', 'DataStream', 'gaMgr', functi
   $scope.$watch('model.settings.proxyAllSites', function (proxyAllSites) {
     $scope.proxyAllSites = proxyAllSites;
   });
+}]);
+
+app.controller('MobileAdCtrl', ['$scope', 'MODAL', 'gaMgr', function($scope, MODAL, gaMgr) {
+  $scope.show = false;
+
+  $scope.$watch('model.modal', function (modal) {
+    $scope.show = modal === MODAL.settings;
+  });
+
+  $scope.copyAndroidMobileLink = function() {
+    $scope.linkCopied = true;
+    //$scope.closeModal();
+    gaMgr.trackCopyLink();
+  }
 }]);
 
 app.controller('ProxiedSitesCtrl', ['$rootScope', '$scope', '$filter', 'SETTING', 'INTERACTION', 'INPUT_PAT', 'MODAL', 'ProxiedSites', function($rootScope, $scope, $filter, SETTING, INTERACTION, INPUT_PAT, MODAL, ProxiedSites) {
