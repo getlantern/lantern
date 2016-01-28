@@ -9,7 +9,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/getlantern/balancer"
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/golog"
 )
@@ -42,8 +41,7 @@ type Client struct {
 	cfgMutex sync.RWMutex
 
 	// Balanced CONNECT dialers.
-	balCh          chan *balancer.Balancer
-	balInitialized bool
+	bal eventual.Value
 
 	// Reverse HTTP proxies.
 	rpCh          chan *httputil.ReverseProxy
@@ -97,6 +95,9 @@ func (client *Client) Configure(cfg *ClientConfig, proxyAll func() bool) {
 	defer client.cfgMutex.Unlock()
 
 	log.Debug("Configure() called")
+	if client.bal == nil {
+		client.bal = eventual.NewValue()
+	}
 
 	if client.priorCfg != nil {
 		if reflect.DeepEqual(client.priorCfg, cfg) {

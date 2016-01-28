@@ -120,7 +120,7 @@ func applyClientConfig(client *client.Client, cfg *config.Config, proxyAll func(
 	}
 	logging.Configure(client.Addr, cfg.CloudConfigCA, cfg.Client.DeviceID,
 		Version, RevisionDate)
-	// Update client configuration and get the highest QOS dialer available.
+	// Update client configuration
 	client.Configure(cfg.Client, proxyAll)
 }
 
