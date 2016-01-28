@@ -78,7 +78,7 @@ func icons128onIco() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "icons/128on.ico", size: 99678, mode: os.FileMode(420), modTime: time.Unix(1437508727, 0)}
+	info := bindataFileInfo{name: "icons/128on.ico", size: 99678, mode: os.FileMode(420), modTime: time.Unix(1450273603, 0)}
 	a := &asset{bytes: bytes, info:  info}
 	return a, nil
 }
@@ -98,7 +98,7 @@ func icons16offIco() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "icons/16off.ico", size: 1150, mode: os.FileMode(420), modTime: time.Unix(1437508727, 0)}
+	info := bindataFileInfo{name: "icons/16off.ico", size: 1150, mode: os.FileMode(420), modTime: time.Unix(1450273603, 0)}
 	a := &asset{bytes: bytes, info:  info}
 	return a, nil
 }
@@ -118,7 +118,7 @@ func icons16onIco() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "icons/16on.ico", size: 1150, mode: os.FileMode(420), modTime: time.Unix(1437508727, 0)}
+	info := bindataFileInfo{name: "icons/16on.ico", size: 1150, mode: os.FileMode(420), modTime: time.Unix(1450273603, 0)}
 	a := &asset{bytes: bytes, info:  info}
 	return a, nil
 }
@@ -138,7 +138,7 @@ func icons32offIco() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "icons/32off.ico", size: 5430, mode: os.FileMode(420), modTime: time.Unix(1437508727, 0)}
+	info := bindataFileInfo{name: "icons/32off.ico", size: 5430, mode: os.FileMode(420), modTime: time.Unix(1450273603, 0)}
 	a := &asset{bytes: bytes, info:  info}
 	return a, nil
 }
@@ -158,7 +158,7 @@ func icons32onIco() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "icons/32on.ico", size: 5430, mode: os.FileMode(420), modTime: time.Unix(1437508727, 0)}
+	info := bindataFileInfo{name: "icons/32on.ico", size: 5430, mode: os.FileMode(420), modTime: time.Unix(1450273603, 0)}
 	a := &asset{bytes: bytes, info:  info}
 	return a, nil
 }
@@ -178,7 +178,7 @@ func icons64onIco() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "icons/64on.ico", size: 32038, mode: os.FileMode(420), modTime: time.Unix(1437508727, 0)}
+	info := bindataFileInfo{name: "icons/64on.ico", size: 32038, mode: os.FileMode(420), modTime: time.Unix(1450273603, 0)}
 	a := &asset{bytes: bytes, info:  info}
 	return a, nil
 }
