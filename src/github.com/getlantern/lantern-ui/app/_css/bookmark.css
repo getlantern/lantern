@@ -33,7 +33,7 @@ html {
 
 #sites {
 	position: relative;
-	top: 200px;
+	top: 280px;
 	text-align: left;
 	opacity: 0.0;
 	-webkit-transition: opacity 0.1s linear;
@@ -76,7 +76,7 @@ html {
 }
 
 #logo {
-  width: 75px;
+  width: 150px;
 }
 
 .message p {

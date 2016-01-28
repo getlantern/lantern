@@ -1,0 +1,10 @@
+<div id="topbar" dir="ltr">
+  <div>
+    {{ model.profile.email }}
+  </div>
+  <div id="bpsUpDn" class="{{ model.settings.mode }}">
+    <div ng-class="{inactive: !model.instanceStats.allBytes.rate}">
+      <i class="icon icon-arrow-up"></i><i class="icon icon-arrow-down"></i> {{ model.instanceStats.allBytes.rate | prettyBps }}
+    </div>
+  </div>
+</div>
