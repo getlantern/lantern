@@ -1,0 +1,33 @@
+<div ng-init="uiState = {}" class="noselect">
+  <div id="developer" ng-show="model.dev" dir="ltr">
+    <div id="dev-label">Developer</div>
+    <div id="dev-buttons" class="btn-group" dir="ltr">
+      <button class="btn btn-mini btn-dev"
+              ng-click="interaction(INTERACTION.scenarios)"
+              ng-disabled="!mockBackend"
+              tooltip="Scenarios">
+        <i class="icon-reorder"></i>
+      </button>
+      <button class="btn btn-mini btn-dev dropup"
+              ng-click="(uiState.showModel=!uiState.showModel) && (uiState.showLangChooser=false)"
+              tooltip="Model">
+        <i class="icon-file"></i>
+        <span class="caret"></span>
+      </button>
+      <button class="btn btn-mini btn-dev dropup"
+              ng-click="(uiState.showLangChooser=!uiState.showLangChooser) && (uiState.showModel=false)"
+              tooltip="Language">
+        <i class="icon-globe"></i>
+        <span class="caret"></span>
+      </button>
+    </div>
+  </div>
+  
+  <textarea id="model" ui-if="model.dev" ui-toggle="uiState.showModel"
+    class="noHeightWhenHidden" lang="en" dir="ltr" readonly>{{ model | json }}</textarea>
+
+    <ul id="langchooser" ui-if="model.dev" ui-toggle="uiState.showLangChooser" dir="ltr">
+      <li ng-repeat="(langKey, langVal) in LANGS" ng-class="{active: lang == langKey}"><a
+          ng-click="lang != langKey && changeLang(langKey); uiState.showLangChooser=!uiState.showLangChooser">{{ langVal.name }}</a></li>
+    </ul>
+</div>

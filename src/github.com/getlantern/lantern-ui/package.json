@@ -25,7 +25,8 @@
     "lantern"
   ],
   "dependencies": {
-    "faye": "1.0.1"
+    "faye": "1.0.1",
+    "sleep": "1.1.3"
   },
   "devDependencies": {
     "del": "^1.1.1",

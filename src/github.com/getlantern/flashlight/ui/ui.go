@@ -131,9 +131,9 @@ func openExternalUrl(u string) {
 	var url string
 	if u == "" {
 		return
-	} else if strings.HasPrefix(u, "https://www.manoto1.com/") || strings.HasPrefix(u, "https://www.facebook.com/manototv") {
+	} else if strings.HasPrefix(u, "https://www.facebook.com/manototv") {
 		// Here we make sure to override any old manoto URLs with the latest.
-		url = "https://www.manototv.com/iran?utm_campaign=manotolantern"
+		url = "https://www.facebook.com/manototv/app_128953167177144"
 	} else {
 		url = u
 	}
