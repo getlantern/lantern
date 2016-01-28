@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-OSX_MIN_VERSION := 10.7
+OSX_MIN_VERSION := 10.9
 
 DOCKER := $(shell which docker 2> /dev/null)
 GO := $(shell which go 2> /dev/null)
@@ -312,7 +312,7 @@ darwin-amd64: require-assets
 			export CGO_LDFLAGS="--sysroot $$OSX_DEV_SDK"; \
 		fi && \
 		MACOSX_DEPLOYMENT_TARGET=$(OSX_MIN_VERSION) \
-		CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -a -o lantern_darwin_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS)" github.com/getlantern/flashlight; \
+		CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -a -o lantern_darwin_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -s" github.com/getlantern/flashlight; \
 	else \
 		echo "-> Skipped: Can not compile Lantern for OSX on a non-OSX host."; \
 	fi
@@ -353,7 +353,7 @@ package-darwin-manoto: require-version require-appdmg require-svgexport darwin
 		mkdir Lantern.app/Contents/Resources/en.lproj && \
 		cp installer-resources/$(MANOTO_YAML) Lantern.app/Contents/Resources/en.lproj/$(PACKAGED_YAML) && \
 		cp $(LANTERN_YAML_PATH) Lantern.app/Contents/Resources/en.lproj/$(LANTERN_YAML) && \
-		codesign -s "Developer ID Application: Brave New Software Project, Inc" Lantern.app && \
+		codesign --force -s "Developer ID Application: Brave New Software Project, Inc" -v Lantern.app && \
 		cat Lantern.app/Contents/MacOS/lantern | bzip2 > update_darwin_amd64.bz2 && \
 		ls -l lantern_darwin_amd64 update_darwin_amd64.bz2 && \
 		rm -rf lantern-installer-manoto.dmg && \
@@ -514,6 +514,7 @@ clean:
 	rm -f *.deb && \
 	rm -f *.png && \
 	rm -rf *.app && \
+	rm -rf pkg && \
 	git checkout ./src/github.com/getlantern/flashlight/ui/resources.go && \
 	rm -f src/github.com/getlantern/flashlight/*.syso && \
 	rm -f *.dmg && \
