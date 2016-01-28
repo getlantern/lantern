@@ -295,7 +295,7 @@ installed the Android SDK and NDK).
 
 ```bash
 export ANDROID_HOME=/opt/adt-bundle-mac-x86_64-20130917/sdk
-export PATH=$ANDROID_HOME/tools:$PATH
+export PATH=$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools:$PATH
 export NDK_HOME=/opt/android-ndk-r10e
 export PATH=$NDK_HOME:$PATH
 ```

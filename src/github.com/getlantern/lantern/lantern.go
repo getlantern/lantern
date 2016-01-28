@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/getlantern/appdir"
 	"github.com/getlantern/flashlight"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
@@ -22,19 +21,19 @@ var (
 // Start starts a client proxy at a random address. It blocks up till the given
 // timeout waiting for the proxy to listen, and returns the address at which it
 // is listening.
-func Start(appName string, timeout time.Duration) (string, error) {
+func Start(configDir string, timeoutMillis int) (string, error) {
 	startOnce.Do(func() {
-		go run(appName)
+		go run(configDir)
 	})
-	addr, ok := client.Addr(timeout)
+	addr, ok := client.Addr(time.Duration(timeoutMillis) * time.Millisecond)
 	if !ok {
 		return "", fmt.Errorf("Proxy didn't start within given timeout")
 	}
 	return addr.(string), nil
 }
 
-func run(appName string) {
-	flashlight.Run(appdir.General("lantern_"+appName),
+func run(configDir string) {
+	flashlight.Run(configDir,
 		false,
 		func() bool { return true },
 		make(map[string]interface{}),

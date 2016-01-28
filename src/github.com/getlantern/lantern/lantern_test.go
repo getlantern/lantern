@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"testing"
 	"time"
 
@@ -18,13 +19,17 @@ const expectedBody = "Google is built by a large team of engineers, designers, r
 type testProtector struct{}
 
 func TestProxying(t *testing.T) {
-	addr, err := Start("testapp", 5*time.Second)
-	if assert.NoError(t, err, "Should have been able to start lantern") {
-		newAddr, err := Start("testapp", 5*time.Second)
-		if assert.NoError(t, err, "Should have been able to start lantern twice") {
-			if assert.Equal(t, addr, newAddr, "2nd start should have resulted in the same address") {
-				err = testProxiedRequest(newAddr)
-				assert.NoError(t, err, "Proxying request should have worked")
+	tmpDir, err := ioutil.TempDir("", "testconfig")
+	if assert.NoError(t, err, "Unable to create temp configDir") {
+		defer os.RemoveAll(tmpDir)
+		addr, err := Start(tmpDir, 5000)
+		if assert.NoError(t, err, "Should have been able to start lantern") {
+			newAddr, err := Start("testapp", 5000)
+			if assert.NoError(t, err, "Should have been able to start lantern twice") {
+				if assert.Equal(t, addr, newAddr, "2nd start should have resulted in the same address") {
+					err = testProxiedRequest(newAddr)
+					assert.NoError(t, err, "Proxying request should have worked")
+				}
 			}
 		}
 	}
@@ -48,7 +53,7 @@ func testProxiedRequest(proxyAddr string) error {
 	}
 
 	client := &http.Client{
-		Timeout: time.Second * 5,
+		Timeout: time.Second * 15,
 		Transport: &http.Transport{
 			Dial: func(n, a string) (net.Conn, error) {
 				//return net.Dial("tcp", "127.0.0.1:9898")

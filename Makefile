@@ -44,7 +44,8 @@ S3_BUCKET ?= lantern
 DOCKER_IMAGE_TAG := lantern-builder
 
 LANTERN_MOBILE_DIR := src/github.com/getlantern/lantern-mobile
-LANTERN_MOBILE_LIBRARY := libflashlight.aar
+LANTERN_MOBILE_PKG := github.com/getlantern/lantern
+LANTERN_MOBILE_LIBRARY := liblantern.aar
 DOCKER_MOBILE_IMAGE_TAG := lantern-mobile-builder
 LOGGLY_TOKEN_MOBILE := d730c074-1f0a-415d-8d71-1ebf1d8bd736
 
@@ -486,21 +487,8 @@ genconfig:
 
 android-lib:
 	@source setenv.bash && \
-	(cd src/github.com/getlantern/flashlight && \
-	 gomobile bind -target=android -tags='headless' -o=$(LANTERN_MOBILE_LIBRARY) -ldflags='$(LDFLAGS)' $(LANTERN_MOBILE_PKG))
-	# mkdir -p $(LANTERN_MOBILE_DIR)/sdk/libs && mkdir -p tmp && mv libflashlight.aar tmp && cd tmp && jar xf libflashlight.aar && cp classes.jar ../$(LANTERN_MOBILE_DIR)/sdk/libs && cp -r jni ../$(LANTERN_MOBILE_DIR)/sdk/libs && cd .. && rm -rf tmp
-	# cp libflashlight.aar src/github.com/getlantern/lantern-mobile/LanternMobileTestbed/app/libs
-	# if [ -d "$(FIRETWEET_MAIN_DIR)" ]; then \
-	# 	cp -v $(LANTERN_MOBILE_DIR)/lantern/$(LANTERN_MOBILE_LIBRARY) $(FIRETWEET_MAIN_DIR)/libs/$(LANTERN_MOBILE_LIBRARY); \
-	# else \
-	# 	echo ""; \
-	# 	echo "Either no FIRETWEET_MAIN_DIR variable was passed or the given value is not a";\
-	# 	echo "directory. You'll have to copy the $(LANTERN_MOBILE_LIBRARY) file manually:"; \
-	# 	echo ""; \
-	# 	echo "cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) \$$FIRETWEET_MAIN_DIR"; \
-	# fi
-
-android-lib-dist: genconfig android-lib
+	gomobile bind -target=android -tags='headless' -o=$(LANTERN_MOBILE_LIBRARY) -ldflags='$(LDFLAGS)' $(LANTERN_MOBILE_PKG) && \
+	mkdir LanternMobileTestBed/app/libs && mv $(LANTERN_MOBILE_LIBRARY) LanternMobileTestBed/app/libs/
 
 clean:
 	@rm -f lantern_linux* && \

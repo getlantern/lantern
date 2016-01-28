@@ -63,16 +63,22 @@ public class Browse extends AppCompatActivity {
                 boolean on = params[0];
                 try {
                     if (on) {
-                        Lantern.On("LanternTestBed",
-                                android.os.Build.DEVICE,
-                                android.os.Build.MODEL,
-                                "" + android.os.Build.VERSION.SDK_INT + " ("  + android.os.Build.VERSION.RELEASE + ")");
-                        System.setProperty("http.proxyHost", "localhost");
-                        System.setProperty("http.proxyPort", "8787");
-                        System.setProperty("https.proxyHost", "localhost");
-                        System.setProperty("https.proxyPort", "8787");
+                        String addr = Lantern.Start("LanternTestBed", 30000);
+                        String host = addr.split(":")[0];
+                        String port = addr.split(":")[1];
+//                        Lantern.On("LanternTestBed",
+//                                android.os.Build.DEVICE,
+//                                android.os.Build.MODEL,
+//                                "" + android.os.Build.VERSION.SDK_INT + " ("  + android.os.Build.VERSION.RELEASE + ")");
+                        System.setProperty("http.proxyHost", host);
+                        System.setProperty("http.proxyPort", port);
+                        System.setProperty("https.proxyHost", host);
+                        System.setProperty("https.proxyPort", port);
                     } else {
-                        Lantern.Off();
+                        System.clearProperty("http.proxyHost");
+                        System.clearProperty("http.proxyPort");
+                        System.clearProperty("https.proxyHost");
+                        System.clearProperty("https.proxyPort");
                     }
                     return null;
                 } catch (Exception e) {
