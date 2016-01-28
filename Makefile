@@ -133,7 +133,7 @@ define fpm-debian-build =
 endef
 
 all: binaries
-android: build-android-debug android-install android-run
+android: build-tun2socks build-android-debug android-install android-run
 android-sdk: android-lib build-android-sdk
 android-dist: genconfig android
 
@@ -548,10 +548,9 @@ build-android-debug:
 		assembleDebug
 
 build-tun2socks:
-	cd $(LANTERN_MOBILE_DIR)
-	ndk-build
-	mkdir -p app/libs/armeabi-v7a
-	cp libs/armeabi-v7a/libtun2socks.so app/libs/armeabi-v7a/
+	cd $(LANTERN_MOBILE_DIR) && ndk-build
+	mkdir -p $(LANTERN_MOBILE_DIR)/app/libs/armeabi-v7a
+	cp $(LANTERN_MOBILE_DIR)/libs/armeabi-v7a/libtun2socks.so $(LANTERN_MOBILE_DIR)/app/libs/armeabi-v7a/libtun2socks.so
 
 $(APK_FILE): build-android-debug
 
