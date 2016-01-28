@@ -53,11 +53,12 @@ RUN yum install -y osslsigncode mingw32-nsis && yum clean packages
 RUN yum install -y bzip2 && yum clean packages
 
 # Requisites for genassets.
-RUN yum install -y nodejs npm && yum clean packages
+RUN curl --silent --location https://rpm.nodesource.com/setup_5.x | bash -
+RUN yum -y install nodejs && yum clean packages
 RUN npm install -g gulp
 
 # Getting Go.
-ENV GO_VERSION go1.5.2
+ENV GO_VERSION go1.5.3
 ENV GOROOT /usr/local/go
 ENV GOPATH /
 
