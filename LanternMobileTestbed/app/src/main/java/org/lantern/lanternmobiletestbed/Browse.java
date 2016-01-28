@@ -41,7 +41,7 @@ public class Browse extends AppCompatActivity {
         setContentView(R.layout.activity_browse);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        onToggleLantern(findViewById(R.id.toggleButton));
+        refreshIP(null);
     }
 
     @Override
@@ -67,6 +67,8 @@ public class Browse extends AppCompatActivity {
     }
 
     public void onToggleLantern(View view) {
+        getIPAddressView().setText("Toggling Lantern ...");
+        getIPAddressView().setEnabled(false);
         ToggleButton button = (ToggleButton) view;
         new AsyncTask<Boolean, Void, String>() {
             @Override
@@ -95,7 +97,26 @@ public class Browse extends AppCompatActivity {
                         System.clearProperty("https.proxyPort");
                         Log.i(TAG, "Turned off proxy");
                     }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                return null;
+            }
 
+            @Override
+            protected void onPostExecute(String ipAddress) {
+                refreshIP(null);
+            }
+        }.execute(button.isChecked());
+    }
+
+    public void refreshIP(View view) {
+        getIPAddressView().setText("refreshing ...");
+        getIPAddressView().setEnabled(false);
+        new AsyncTask<Void, Void, String>() {
+            @Override
+            protected String doInBackground(Void... params) {
+                try {
                     Log.i(TAG, "Opening connection to " + GEO_LOOKUP);
                     URL url = new URL(GEO_LOOKUP);
                     HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
@@ -110,15 +131,20 @@ public class Browse extends AppCompatActivity {
                         Log.i(TAG, "Finished doing geolookup");
                     }
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    return "Unable to refresh IP: " + e.getMessage();
                 }
             }
 
             @Override
             protected void onPostExecute(String ipAddress) {
                 Log.i(TAG, "Setting IP Address to: " + ipAddress);
-                ((TextView) findViewById(R.id.ipAddress)).setText(ipAddress);
+                getIPAddressView().setText(ipAddress);
+                getIPAddressView().setEnabled(true);
             }
-        }.execute(button.isChecked());
+        }.execute();
+    }
+
+    private TextView getIPAddressView() {
+        return (TextView) findViewById(R.id.ipAddress);
     }
 }

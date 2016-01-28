@@ -37,20 +37,21 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="IP Address:"
-        android:id="@+id/textView2"
-        android:layout_below="@+id/textView"
+        android:id="@+id/ipAddress"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_marginTop="64dp" />
+        android:layout_marginTop="56dp"
+        android:text="IP Address ..."
+        android:layout_below="@+id/textView" />
 
-    <TextView
+    <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:id="@+id/ipAddress"
-        android:layout_alignTop="@+id/textView2"
-        android:layout_alignRight="@+id/toggleButton"
-        android:layout_alignEnd="@+id/toggleButton" />
+        android:text="Refresh IP"
+        android:id="@+id/button"
+        android:onClick="refreshIP"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="172dp" />
 
 </RelativeLayout>
