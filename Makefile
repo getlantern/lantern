@@ -488,7 +488,7 @@ genconfig:
 android-lib:
 	@source setenv.bash && \
 	gomobile bind -target=android -tags='headless' -o=$(LANTERN_MOBILE_LIBRARY) -ldflags='$(LDFLAGS)' $(LANTERN_MOBILE_PKG) && \
-	mkdir LanternMobileTestBed/app/libs && mv $(LANTERN_MOBILE_LIBRARY) LanternMobileTestBed/app/libs/
+	mkdir -p LanternMobileTestBed/app/libs && mv -f $(LANTERN_MOBILE_LIBRARY) LanternMobileTestBed/app/libs/
 
 clean:
 	@rm -f lantern_linux* && \
@@ -502,10 +502,4 @@ clean:
 	git checkout ./src/github.com/getlantern/flashlight/ui/resources.go && \
 	rm -f src/github.com/getlantern/flashlight/*.syso && \
 	rm -f *.dmg && \
-	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/bin && \
-	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/bindings/go_bindings && \
-	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/gen && \
-	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/libs && \
-	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/res && \
-	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/src && \
-	rm -rf $(LANTERN_MOBILE_DIR)/app
+	rm -rf LanternMobileTestBed/app/libs/$(LANTERN_MOBILE_LIBRARY)

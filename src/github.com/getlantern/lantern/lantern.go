@@ -3,6 +3,7 @@ package lantern
 
 import (
 	"fmt"
+	"os"
 	"sync"
 	"time"
 
@@ -33,6 +34,11 @@ func Start(configDir string, timeoutMillis int) (string, error) {
 }
 
 func run(configDir string) {
+	err := os.MkdirAll(configDir, 0755)
+	if os.IsExist(err) {
+		log.Errorf("Unable to create configDir at %v: %v", configDir, err)
+		return
+	}
 	flashlight.Run(configDir,
 		false,
 		func() bool { return true },

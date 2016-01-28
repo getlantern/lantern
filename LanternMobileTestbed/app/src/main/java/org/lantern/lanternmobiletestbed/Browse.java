@@ -2,22 +2,38 @@ package org.lantern.lanternmobiletestbed;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.ToggleButton;
-import android.util.Log;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.ProxySelector;
+import java.net.SocketAddress;
+import java.net.URI;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicReference;
 
 import go.lantern.Lantern;
 
 public class Browse extends AppCompatActivity {
     private static final String TAG = "Browse";
+    private static final String GEO_LOOKUP = "http://ipinfo.io/ip";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,12 +41,7 @@ public class Browse extends AppCompatActivity {
         setContentView(R.layout.activity_browse);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        WebView webView = getWebView();
-        WebSettings webSettings = webView.getSettings();
-        webSettings.setBuiltInZoomControls(true);
-        webSettings.setJavaScriptEnabled(true);
-        webView.loadUrl("http://whatismyipaddress.com/");
+        onToggleLantern(findViewById(R.id.toggleButton));
     }
 
     @Override
@@ -57,13 +68,14 @@ public class Browse extends AppCompatActivity {
 
     public void onToggleLantern(View view) {
         ToggleButton button = (ToggleButton) view;
-        new AsyncTask<Boolean, Void, Void>() {
+        new AsyncTask<Boolean, Void, String>() {
             @Override
-            protected Void doInBackground(Boolean... params) {
+            protected String doInBackground(Boolean... params) {
                 boolean on = params[0];
                 try {
                     if (on) {
-                        String addr = Lantern.Start("LanternTestBed", 30000);
+                        Log.i(TAG, "Turning on proxy");
+                        String addr = Lantern.Start(new File(getApplicationContext().getFilesDir().getAbsolutePath(), "lantern_LanternMobileTestBed").getAbsolutePath(), 30000);
                         String host = addr.split(":")[0];
                         String port = addr.split(":")[1];
 //                        Lantern.On("LanternTestBed",
@@ -74,26 +86,39 @@ public class Browse extends AppCompatActivity {
                         System.setProperty("http.proxyPort", port);
                         System.setProperty("https.proxyHost", host);
                         System.setProperty("https.proxyPort", port);
+                        Log.i(TAG, "Turned on proxy to: " + addr);
                     } else {
+                        Log.i(TAG, "Turning off proxy");
                         System.clearProperty("http.proxyHost");
                         System.clearProperty("http.proxyPort");
                         System.clearProperty("https.proxyHost");
                         System.clearProperty("https.proxyPort");
+                        Log.i(TAG, "Turned off proxy");
                     }
-                    return null;
+
+                    Log.i(TAG, "Opening connection to " + GEO_LOOKUP);
+                    URL url = new URL(GEO_LOOKUP);
+                    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                    // Need to force closing so that old connections (with old proxy settings) don't get reused.
+                    urlConnection.setRequestProperty("Connection", "close");
+                    try {
+                        InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+                        Scanner s = new Scanner(in).useDelimiter("\\A");
+                        return s.hasNext() ? s.next() : "";
+                    } finally {
+                        urlConnection.disconnect();
+                        Log.i(TAG, "Finished doing geolookup");
+                    }
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
             }
 
             @Override
-            protected void onPostExecute(Void aVoid) {
-                getWebView().reload();
+            protected void onPostExecute(String ipAddress) {
+                Log.i(TAG, "Setting IP Address to: " + ipAddress);
+                ((TextView) findViewById(R.id.ipAddress)).setText(ipAddress);
             }
         }.execute(button.isChecked());
-    }
-
-    private WebView getWebView() {
-        return (WebView) findViewById(R.id.webView);
     }
 }
