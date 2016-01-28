@@ -45,3 +45,4 @@ installer-resources/darwin/dmgbackground.png
 installer-resources/darwin/dmgbackground_versioned.svg
 lantern.yaml
 LanternMobileTestbed/app/libs/
+*.apk

@@ -307,6 +307,64 @@ Then to build the library:
 make android-lib-local
 ```
 
+### Android Tips
+#### Uninstall for All Users
+If you use `adb` to install and debug an app to your Android device during
+development and then subsequently build a signed APK and try to install it on
+that same device, you may receive an unhelpful error saying "App Not Installed".
+This typically means that you tried to install the same app but signed with a
+different key.  The solution is to uninstall the app first, but **you have to
+uninstall it for all users**. You can do this by selecting "Uninstall for all
+users" from:
+
+```
+Settings -> Apps -> [Pick the App] -> Hamburger Menu (...) -> Uninstall for all users.
+```
+
+If you forget to do this and just uninstall normally, you'll still encounter the
+error. To fix this, you'll have to run the app with `adb` again and then
+uninstall for all users.
+
+#### Getting HTTP Connections to Use Proxy
+
+In android, programmatic access to HTTP resources typically uses the
+`HttpURLConnection` class.  You can tell it to use a proxy by setting some
+system properties:
+
+```java
+System.setProperty("http.proxyHost", host);
+System.setProperty("http.proxyPort", port);
+System.setProperty("https.proxyHost", host);
+System.setProperty("https.proxyPort", port);
+```
+
+You can disable proxying by clearing those properties:
+
+```java
+System.clearProperty("http.proxyHost");
+System.clearProperty("http.proxyPort");
+System.clearProperty("https.proxyHost");
+System.clearProperty("https.proxyPort");
+```
+
+However, there is one big caveat - **`HttpURLConnection` uses keep-alives to
+reuse existing TCP connections**. These TCP connections will still be using the
+old proxy settings. This has several implications:
+
+**Set the proxy settings as early in the application's lifecycle as possible**,
+ideally before any `HttpURLConnection`s have been opened.
+
+**Don't expect the settings to take effect immediately** if some
+`HttpURLConnection`s have already been opened.
+
+**Disable keep-alives if you need to**, which you can do like this:
+
+```java
+HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+// Need to force closing so that old connections (with old proxy settings) don't get reused.
+urlConnection.setRequestProperty("Connection", "close");
+```
+
 ### Generating assets
 
 ```sh
