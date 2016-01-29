@@ -52,47 +52,44 @@ func Configure(provider Provider) error {
 // Start creates a new client at the given address.
 func Start(provider Provider) error {
 
+	log.Debugf("About to configure Lantern")
+
+	if provider.VpnMode() {
+		dnsServer := provider.GetDnsServer()
+		protected.Configure(provider, dnsServer, true)
+	}
+
+	androidProps := map[string]string{
+		"androidDevice":     provider.Device(),
+		"androidModel":      provider.Model(),
+		"androidSdkVersion": provider.Version(),
+	}
+	logging.ConfigureAndroid(androidProps)
+
+	l = lantern.New(appSettings.HttpAddr)
+
 	go func() {
 
-		log.Debugf("About to configure Lantern")
-
-		if provider.VpnMode() {
-			dnsServer := provider.GetDnsServer()
-			protected.Configure(provider, dnsServer, true)
-		}
-
-		androidProps := map[string]string{
-			"androidDevice":     provider.Device(),
-			"androidModel":      provider.Model(),
-			"androidSdkVersion": provider.Version(),
-		}
-		logging.ConfigureAndroid(androidProps)
-
-		cfgFn := func(cfg *config.Config) {
-
-		}
-
-		l, err := lantern.Start(false, true, false,
-			true, cfgFn)
+		err := l.Start(false, false, true, nil)
 
 		if err != nil {
 			log.Fatalf("Could not start Lantern")
 		}
-
-		if provider.VpnMode() {
-			i, err = interceptor.Do(l.Client, appSettings.SocksAddr, appSettings.HttpAddr, provider.Notice)
-			if err != nil {
-				log.Errorf("Error starting interceptor: %v", err)
-			} else {
-				lantern.AddExitFunc(func() {
-					if i != nil {
-						i.Stop()
-					}
-				})
-			}
-		}
-		provider.AfterStart(lantern.GetVersion())
 	}()
+
+	if provider.VpnMode() {
+		i, err = interceptor.Do(l.Client, appSettings.SocksAddr, appSettings.HttpAddr, provider.Notice)
+		if err != nil {
+			log.Errorf("Error starting interceptor: %v", err)
+		} else {
+			l.AddExitFunc(func() {
+				if i != nil {
+					i.Stop()
+				}
+			})
+		}
+	}
+	provider.AfterStart(lantern.GetVersion())
 	return nil
 }
 
