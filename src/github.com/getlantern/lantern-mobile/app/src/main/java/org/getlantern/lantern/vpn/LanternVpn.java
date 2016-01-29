@@ -34,7 +34,6 @@ public class LanternVpn extends Lantern {
     @Override
     public void AfterStart(String latestVersion) {
         super.AfterStart(latestVersion);
-        Log.d(TAG, "Lantern successfully started; running version: " + latestVersion);
         // we pass the version number to setVersionNum which
         // populates the version string that appears at the bottom
         // of the side menu
