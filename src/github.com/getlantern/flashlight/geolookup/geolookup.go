@@ -14,12 +14,13 @@ import (
 var (
 	log = golog.LoggerFor("flashlight.geolookup")
 
-	refreshRequest = make(chan eventual.Getter, 1)
-	currentGeoInfo = eventual.NewValue()
+	refreshRequest = make(chan interface{}, 1)
 	cf             util.HTTPFetcher
+	currentGeoInfo = eventual.NewValue()
 
-	retryWaitMillis = 100
-	maxRetryWait    = 30 * time.Second
+	waitForProxyTimeout = 1 * time.Minute
+	retryWaitMillis     = 100
+	maxRetryWait        = 30 * time.Second
 )
 
 type geoInfo struct {
@@ -47,12 +48,19 @@ func GetCountry(timeout time.Duration) string {
 	return gi.(*geoInfo).city.Country.IsoCode
 }
 
+// Configures geolookup to use the given proxyAddrFN to determine which proxy
+// to use.
+func Configure(proxyAddrFN eventual.Getter) {
+	cf = util.NewChainedAndFronted(proxyAddrFN)
+	Refresh()
+}
+
 // Refresh refreshes the geolookup information by calling the remote geolookup
 // service. It will keep calling the service until it's able to determine an IP
 // and country.
-func Refresh(proxyAddrFN eventual.Getter) {
+func Refresh() {
 	select {
-	case refreshRequest <- proxyAddrFN:
+	case refreshRequest <- true:
 		log.Debug("Requested refresh")
 	default:
 		log.Debug("Refresh already in progress")
@@ -64,18 +72,18 @@ func init() {
 }
 
 func run() {
-	for proxyAddr := range refreshRequest {
-		gi := lookup(util.NewChainedAndFronted(proxyAddr))
+	for _ = range refreshRequest {
+		gi := lookup()
 		log.Debug("Got new geolocation info")
 		currentGeoInfo.Set(gi)
 	}
 }
 
-func lookup(cf util.HTTPFetcher) *geoInfo {
+func lookup() *geoInfo {
 	consecutiveFailures := 0
 
 	for {
-		gi, err := doLookup(cf)
+		gi, err := doLookup()
 		if err != nil {
 			log.Debugf("Unable to get current location: %s", err)
 			wait := time.Duration(math.Pow(2, float64(consecutiveFailures))*float64(retryWaitMillis)) * time.Millisecond
@@ -92,7 +100,7 @@ func lookup(cf util.HTTPFetcher) *geoInfo {
 	}
 }
 
-func doLookup(cf util.HTTPFetcher) (*geoInfo, error) {
+func doLookup() (*geoInfo, error) {
 	city, ip, err := geo.LookupIPWithClient("", cf)
 
 	if err != nil {

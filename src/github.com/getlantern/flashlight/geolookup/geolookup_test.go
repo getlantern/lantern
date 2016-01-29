@@ -11,7 +11,7 @@ import (
 )
 
 func TestNonDefaultClient(t *testing.T) {
-	Refresh(eventual.DefaultGetter("localhost:8787"))
+	Configure(eventual.DefaultGetter("localhost:8787"))
 	rootCAs := certPool(t)
 	masquerades := masquerades()
 
