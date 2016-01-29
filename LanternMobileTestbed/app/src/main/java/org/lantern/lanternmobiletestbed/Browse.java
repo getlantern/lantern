@@ -27,7 +27,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -77,15 +79,13 @@ public class Browse extends AppCompatActivity {
                 try {
                     if (on) {
                         Log.i(TAG, "Turning on proxy");
-                        Lantern.start(new File(getApplicationContext().getFilesDir().getAbsolutePath(), "lantern_LanternMobileTestBed").getAbsolutePath(), 30000);
-//                        Lantern.On("LanternTestBed",
-//                                android.os.Build.DEVICE,
-//                                android.os.Build.MODEL,
-//                                "" + android.os.Build.VERSION.SDK_INT + " ("  + android.os.Build.VERSION.RELEASE + ")");
+                        String configDir = new File(getApplicationContext().getFilesDir().getAbsolutePath(), "lantern_LanternMobileTestBed").getAbsolutePath();
+                        long startupTimeoutMillis = 30000;
+                        Lantern.enable(configDir, 30000);
                         Log.i(TAG, "Turned on proxy");
                     } else {
                         Log.i(TAG, "Turning off proxy");
-                        Lantern.stop();
+                        Lantern.disable();
                         Log.i(TAG, "Turned off proxy");
                     }
                 } catch (Exception e) {

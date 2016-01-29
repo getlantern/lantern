@@ -496,8 +496,8 @@ android-lib:
 	mkdir -p $(MOBILE_SDK_LIBS) && cp -f $(LANTERN_MOBILE_LIBRARY) $(MOBILE_SDK_LIBS)
 
 android-sdk: android-lib
-	(cd $(MOBILE_SDK) && gradle) && \
-	cp $(MOBILE_SDK)/sdk/build/outputs/aar/sdk-release.aar $(MOBILE_TESTBED_LIBS)
+	(cd $(MOBILE_SDK) && gradle assembleDebug) && \
+	cp $(MOBILE_SDK)/sdk/build/outputs/aar/sdk-debug.aar $(MOBILE_TESTBED_LIBS)
 
 clean:
 	@rm -f lantern_linux* && \

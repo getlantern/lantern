@@ -4,7 +4,29 @@ package org.lantern.mobilesdk;
  * Created by ox.to.a.cart on 1/28/16.
  */
 public class Lantern {
-    public static void start(String configDir, int timeoutMillis) {
+    static {
+        // Track extra info about Android for logging to Loggly.
+        Lantern.addLoggingMetadata("androidDevice", android.os.Build.DEVICE);
+        Lantern.addLoggingMetadata("androidModel", android.os.Build.MODEL);
+        Lantern.addLoggingMetadata("androidSdkVersion", "" + android.os.Build.VERSION.SDK_INT + " (" + android.os.Build.VERSION.RELEASE + ")");
+    }
+
+    /**
+     * <p>Starts Lantern at a random port, storing configuration information in the indicated
+     * configDir and waiting up to timeoutMillis for the proxy to come online. If the proxy fails to
+     * come online within the timeout, this throws an exception.</p>
+     *
+     * <p>If a Lantern proxy is already running within this process, that proxy is reused.</p>
+     *
+     * <p>Note - this does not wait for the entire initialization sequence to finish, just for the
+     * proxy to be listening. Once the proxy is listening, one can start to use it, even as it
+     * finishes its initialization sequence. However, initial activity may be slow, so clients with
+     * low read timeouts may time out.</p>
+     *
+     * @param configDir
+     * @param timeoutMillis
+     */
+    public static void enable(String configDir, int timeoutMillis) {
         try {
             String addr = go.lantern.Lantern.Start(configDir, timeoutMillis);
             String host = addr.split(":")[0];
@@ -18,10 +40,25 @@ public class Lantern {
         }
     }
 
-    public static void stop() {
+    /**
+     * Disables the Lantern proxy so that connections within this process will no longer be proxied.
+     * This leaves any background activity for the proxy running, and subsequent calls to
+     * {@link #enable(String, int)} will reuse the existing proxy in this process.
+     */
+    public static void disable() {
         System.clearProperty("http.proxyHost");
         System.clearProperty("http.proxyPort");
         System.clearProperty("https.proxyHost");
         System.clearProperty("https.proxyPort");
+    }
+
+    /**
+     * Adds metadata for reporting to cloud logging services.
+     *
+     * @param key
+     * @param value
+     */
+    public static void addLoggingMetadata(String key, String value) {
+        go.lantern.Lantern.AddLoggingMetadata(key, value);
     }
 }

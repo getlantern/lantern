@@ -10,6 +10,7 @@ import (
 	"github.com/getlantern/flashlight"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
+	"github.com/getlantern/flashlight/logging"
 	"github.com/getlantern/golog"
 )
 
@@ -21,7 +22,17 @@ var (
 
 // Start starts a client proxy at a random address. It blocks up till the given
 // timeout waiting for the proxy to listen, and returns the address at which it
-// is listening.
+// is listening. If the proxy doesn't start within the given timeout, this
+// method returns an error.
+//
+// If a Lantern proxy is already running within this process, that proxy is
+// reused.
+//
+// Note - this does not wait for the entire initialization sequence to finish,
+// just for the proxy to be listening. Once the proxy is listening, one can
+// start to use it, even as it finishes its initialization sequence. However,
+// initial activity may be slow, so clients with low read timeouts may
+// time out.
 func Start(configDir string, timeoutMillis int) (string, error) {
 	startOnce.Do(func() {
 		go run(configDir)
@@ -31,6 +42,11 @@ func Start(configDir string, timeoutMillis int) (string, error) {
 		return "", fmt.Errorf("Proxy didn't start within given timeout")
 	}
 	return addr.(string), nil
+}
+
+// AddLoggingMetadata adds metadata for reporting to cloud logging services
+func AddLoggingMetadata(key, value string) {
+	logging.SetExtraLogglyInfo(key, value)
 }
 
 func run(configDir string) {

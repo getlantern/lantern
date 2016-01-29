@@ -3,8 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/MobileSDK.iml" filepath="$PROJECT_DIR$/MobileSDK.iml" />
-      <module fileurl="file://$PROJECT_DIR$/sdk/app.iml" filepath="$PROJECT_DIR$/sdk/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/lantern/lantern.iml" filepath="$PROJECT_DIR$/lantern/lantern.iml" />
+      <module fileurl="file://$PROJECT_DIR$/sdk/sdk.iml" filepath="$PROJECT_DIR$/sdk/sdk.iml" />
     </modules>
   </component>
 </project>
