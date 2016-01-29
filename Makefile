@@ -134,7 +134,6 @@ endef
 
 all: binaries
 android: build-tun2socks build-android-debug android-install android-run
-android-sdk: android-lib build-android-sdk
 android-dist: genconfig android
 
 # This is to be called within the docker image.
@@ -536,8 +535,10 @@ android-lib:
 		echo "cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) \$$FIRETWEET_MAIN_DIR"; \
 	fi
 
-build-android-sdk:
+android-sdk: android-lib
+	(cd src/github.com/getlantern/lantern-mobile/sdk && ./gen.bash)
 	gradle -b $(LANTERN_MOBILE_DIR)/sdk/build.gradle \
+		clean \
 		build \
 		uploadArchives
 
