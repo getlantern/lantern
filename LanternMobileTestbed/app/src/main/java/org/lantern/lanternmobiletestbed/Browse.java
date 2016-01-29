@@ -11,6 +11,8 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
+import org.lantern.mobilesdk.Lantern;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -28,8 +30,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicReference;
-
-import go.lantern.Lantern;
 
 public class Browse extends AppCompatActivity {
     private static final String TAG = "Browse";
@@ -77,24 +77,15 @@ public class Browse extends AppCompatActivity {
                 try {
                     if (on) {
                         Log.i(TAG, "Turning on proxy");
-                        String addr = Lantern.Start(new File(getApplicationContext().getFilesDir().getAbsolutePath(), "lantern_LanternMobileTestBed").getAbsolutePath(), 30000);
-                        String host = addr.split(":")[0];
-                        String port = addr.split(":")[1];
+                        Lantern.start(new File(getApplicationContext().getFilesDir().getAbsolutePath(), "lantern_LanternMobileTestBed").getAbsolutePath(), 30000);
 //                        Lantern.On("LanternTestBed",
 //                                android.os.Build.DEVICE,
 //                                android.os.Build.MODEL,
 //                                "" + android.os.Build.VERSION.SDK_INT + " ("  + android.os.Build.VERSION.RELEASE + ")");
-                        System.setProperty("http.proxyHost", host);
-                        System.setProperty("http.proxyPort", port);
-                        System.setProperty("https.proxyHost", host);
-                        System.setProperty("https.proxyPort", port);
-                        Log.i(TAG, "Turned on proxy to: " + addr);
+                        Log.i(TAG, "Turned on proxy");
                     } else {
                         Log.i(TAG, "Turning off proxy");
-                        System.clearProperty("http.proxyHost");
-                        System.clearProperty("http.proxyPort");
-                        System.clearProperty("https.proxyHost");
-                        System.clearProperty("https.proxyPort");
+                        Lantern.stop();
                         Log.i(TAG, "Turned off proxy");
                     }
                 } catch (Exception e) {

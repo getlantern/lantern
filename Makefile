@@ -46,6 +46,10 @@ DOCKER_IMAGE_TAG := lantern-builder
 LANTERN_MOBILE_DIR := src/github.com/getlantern/lantern-mobile
 LANTERN_MOBILE_PKG := github.com/getlantern/lantern
 LANTERN_MOBILE_LIBRARY := liblantern.aar
+MOBILE_TESTBED := LanternMobileTestbed
+MOBILE_TESTBED_LIBS := $(MOBILE_TESTBED)/app/libs
+MOBILE_SDK := MobileSDK
+MOBILE_SDK_LIBS := $(MOBILE_SDK)/sdk/libs
 DOCKER_MOBILE_IMAGE_TAG := lantern-mobile-builder
 LOGGLY_TOKEN_MOBILE := d730c074-1f0a-415d-8d71-1ebf1d8bd736
 
@@ -488,7 +492,12 @@ genconfig:
 android-lib:
 	@source setenv.bash && \
 	gomobile bind -target=android -tags='headless' -o=$(LANTERN_MOBILE_LIBRARY) -ldflags='$(LDFLAGS)' $(LANTERN_MOBILE_PKG) && \
-	mkdir -p LanternMobileTestBed/app/libs && mv -f $(LANTERN_MOBILE_LIBRARY) LanternMobileTestBed/app/libs/
+	mkdir -p $(MOBILE_TESTBED_LIBS) && cp -f $(LANTERN_MOBILE_LIBRARY) $(MOBILE_TESTBED_LIBS) && \
+	mkdir -p $(MOBILE_SDK_LIBS) && cp -f $(LANTERN_MOBILE_LIBRARY) $(MOBILE_SDK_LIBS)
+
+android-sdk: android-lib
+	(cd $(MOBILE_SDK) && gradle) && \
+	cp $(MOBILE_SDK)/sdk/build/outputs/aar/sdk-release.aar $(MOBILE_TESTBED_LIBS)
 
 clean:
 	@rm -f lantern_linux* && \
@@ -502,4 +511,5 @@ clean:
 	git checkout ./src/github.com/getlantern/flashlight/ui/resources.go && \
 	rm -f src/github.com/getlantern/flashlight/*.syso && \
 	rm -f *.dmg && \
-	rm -rf LanternMobileTestBed/app/libs/$(LANTERN_MOBILE_LIBRARY)
+	rm -rf $(MOBILE_TESTBED_LIBS)/$(LANTERN_MOBILE_LIBRARY) && \
+	rm -rf $(MOBILE_SDK_LIBS)/$(LANTERN_MOBILE_LIBRARY)
