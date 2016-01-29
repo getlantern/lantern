@@ -19,6 +19,7 @@ import android.os.Message;
 import android.os.StrictMode;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.VpnService;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
@@ -97,7 +98,9 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         IntentFilter filter = new IntentFilter(Intent.ACTION_SHUTDOWN);
         filter.addAction(Intent.ACTION_SHUTDOWN);
         filter.addAction(Intent.ACTION_USER_PRESENT);
+        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         filter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
+
         mReceiver = new LanternReceiver();
         registerReceiver(mReceiver, filter);
 
@@ -300,16 +303,29 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         }
     }
 
+    // LanternReceiver is used to capture broadcasts 
+    // such as network connectivity and when the app
+    // is powered off
     public class LanternReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            // whenever the device is powered off or the app
-            // abruptly closed, we want to clear user preferences
             if (action.equals(Intent.ACTION_SHUTDOWN)) {
+                // whenever the device is powered off or the app
+                // abruptly closed, we want to clear user preferences
                 Utils.clearPreferences(context);
             } else if (action.equals(Intent.ACTION_USER_PRESENT)) {
                 //restart(context, intent);
+            } else if (action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
+                // whenever a user disconnects from Wifi and Lantern is running
+                NetworkInfo networkInfo =
+                    intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
+                if (LanternUI.useVpn() && 
+                    networkInfo.getType() == ConnectivityManager.TYPE_WIFI &&
+                    !networkInfo.isConnected()) {
+                    stopLantern();
+                    Utils.clearPreferences(context);
+                }
             }
         }
     }
