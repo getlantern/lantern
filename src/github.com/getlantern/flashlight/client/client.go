@@ -60,15 +60,20 @@ func (c *Client) Addr(timeout time.Duration) (interface{}, bool) {
 	return Addr(timeout)
 }
 
-// ListenAndServe makes the client listen for HTTP connections at a random port
-// on localhost. onListeningFn is a callback that gets invoked as soon as the
-// server is accepting TCP connections.
-func (client *Client) ListenAndServe(onListeningFn func()) error {
+// ListenAndServe makes the client listen for HTTP connections at a the given
+// address or, if a blank address is given, at a random port on localhost.
+// onListeningFn is a callback that gets invoked as soon as the server is
+// accepting TCP connections.
+func (client *Client) ListenAndServe(requestedAddr string, onListeningFn func()) error {
 	log.Debug("About to listen")
 	var err error
 	var l net.Listener
 
-	if l, err = net.Listen("tcp", "localhost:0"); err != nil {
+	if requestedAddr == "" {
+		requestedAddr = "localhost:0"
+	}
+
+	if l, err = net.Listen("tcp", requestedAddr); err != nil {
 		return fmt.Errorf("Unable to listen: %q", err)
 	}
 

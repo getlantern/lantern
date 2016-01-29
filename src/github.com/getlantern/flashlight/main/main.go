@@ -169,6 +169,7 @@ func doMain() error {
 		}
 
 		err := flashlight.Run(
+			"localhost:8787",
 			*configdir,
 			*stickyConfig,
 			settings.GetProxyAll,

@@ -49,7 +49,8 @@ func init() {
 }
 
 // Run runs a client proxy. It blocks as long as the proxy is running.
-func Run(configDir string,
+func Run(httpProxyAddr string,
+	configDir string,
 	stickyConfig bool,
 	proxyAll func() bool,
 	flagsAsMap map[string]interface{},
@@ -92,7 +93,7 @@ func Run(configDir string,
 		}()
 
 		log.Debug("Starting client proxy")
-		err = client.ListenAndServe(func() {
+		err = client.ListenAndServe(httpProxyAddr, func() {
 			log.Debug("Started client proxy")
 			// We finally tell the config package to start polling for new configurations.
 			// This is the final step because the config polling itself uses the full

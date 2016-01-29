@@ -258,11 +258,6 @@ func Update(mutate func(cfg *Config) error) error {
 	})
 }
 
-// InConfigDir returns the path to the given filename inside of the configdir.
-func (cfg *Config) InConfigDir(filename string) (string, string, error) {
-	return inConfigDir(cfg.configDir, filename)
-}
-
 func inConfigDir(configDir string, filename string) (string, string, error) {
 	cdir := configDir
 
