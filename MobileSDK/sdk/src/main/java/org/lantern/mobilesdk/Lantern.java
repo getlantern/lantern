@@ -1,5 +1,9 @@
 package org.lantern.mobilesdk;
 
+import android.content.Context;
+
+import java.io.File;
+
 /**
  * Created by ox.to.a.cart on 1/28/16.
  */
@@ -23,9 +27,15 @@ public class Lantern {
      * finishes its initialization sequence. However, initial activity may be slow, so clients with
      * low read timeouts may time out.</p>
      *
-     * @param configDir
+     * @param context
+     * @param appName
      * @param timeoutMillis
      */
+    public static void enable(Context context, String appName, int timeoutMillis) {
+        String configDir = new File(context.getFilesDir().getAbsolutePath(), ".lantern_" + appName).getAbsolutePath();
+        enable(configDir, timeoutMillis);
+    }
+
     public static void enable(String configDir, int timeoutMillis) {
         try {
             String addr = go.lantern.Lantern.Start(configDir, timeoutMillis);
