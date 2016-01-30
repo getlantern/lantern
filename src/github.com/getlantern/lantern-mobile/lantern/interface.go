@@ -97,5 +97,5 @@ func Start(provider Provider) error {
 }
 
 func Stop() {
-	go lantern.Exit(nil)
+	lantern.Exit(nil)
 }
