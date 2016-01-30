@@ -130,6 +130,9 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         }
     }
 
+    // override onKeyDown and onBackPressed default 
+    // behavior to prevent back button from interfering 
+    // with on/off switch
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event)  {
         if (Integer.parseInt(android.os.Build.VERSION.SDK) > 5
@@ -154,14 +157,15 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
 
     @Override
     protected void onDestroy() {
+        super.onDestroy();
         try {
-            unregisterReceiver(mReceiver);
-            Utils.clearPreferences(this);
+            if (mReceiver != null) {
+                unregisterReceiver(mReceiver);
+            }
             stopLantern();
         } catch (Exception e) {
 
         }
-        super.onDestroy();
     }
 
     // quitLantern is the side menu option and cleanyl exits the app
@@ -170,7 +174,6 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
             Log.d(TAG, "About to exit Lantern...");
 
             stopLantern();
-            Utils.clearPreferences(this);
 
             // sleep for a few ms before exiting
             Thread.sleep(200);
@@ -186,7 +189,7 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
     @Override
     public boolean handleMessage(Message message) {
         if (message != null) {
-            //Toast.makeText(this, message.what, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, message.what, Toast.LENGTH_SHORT).show();
         }
         return true;
     }
@@ -195,15 +198,6 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         if (LanternUI != null) {
             LanternUI.sendDesktopVersion(view);
         }
-    }
-
-    // isNetworkAvailable checks whether or not we are connected to
-    // the Internet; if no connection is available, the toggle
-    // switch is inactive
-    public boolean isNetworkAvailable() {
-        final Context context = this;
-        final ConnectivityManager connectivityManager = ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE));
-        return connectivityManager.getActiveNetworkInfo() != null && connectivityManager.getActiveNetworkInfo().isConnected();
     }
 
     // Make a VPN connection from the client
@@ -323,8 +317,8 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
                 if (LanternUI.useVpn() && 
                     networkInfo.getType() == ConnectivityManager.TYPE_WIFI &&
                     !networkInfo.isConnected()) {
+
                     stopLantern();
-                    Utils.clearPreferences(context);
                 }
             }
         }
