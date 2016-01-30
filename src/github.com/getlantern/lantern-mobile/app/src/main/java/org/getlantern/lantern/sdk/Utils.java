@@ -103,9 +103,9 @@ public class Utils {
     // the Internet; if no connection is available, the toggle
     // switch is inactive
     public static boolean isNetworkAvailable(final Context context) {
-        final ConnectivityManager connectivityManager = ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE));
-        return connectivityManager.getActiveNetworkInfo() != null && connectivityManager.getActiveNetworkInfo().isConnectedOrConnecting();
+        final ConnectivityManager connectivityManager = 
+            ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE));
+        return connectivityManager.getActiveNetworkInfo() != null && 
+            connectivityManager.getActiveNetworkInfo().isConnectedOrConnecting();
     }
-
-
 }
