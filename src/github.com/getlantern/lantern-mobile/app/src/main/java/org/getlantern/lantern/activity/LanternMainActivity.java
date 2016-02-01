@@ -19,6 +19,7 @@ import android.os.Message;
 import android.os.StrictMode;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.VpnService;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
@@ -97,7 +98,9 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         IntentFilter filter = new IntentFilter(Intent.ACTION_SHUTDOWN);
         filter.addAction(Intent.ACTION_SHUTDOWN);
         filter.addAction(Intent.ACTION_USER_PRESENT);
+        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         filter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
+
         mReceiver = new LanternReceiver();
         registerReceiver(mReceiver, filter);
 
@@ -127,6 +130,9 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         }
     }
 
+    // override onKeyDown and onBackPressed default 
+    // behavior to prevent back button from interfering 
+    // with on/off switch
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event)  {
         if (Integer.parseInt(android.os.Build.VERSION.SDK) > 5
@@ -151,14 +157,15 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
 
     @Override
     protected void onDestroy() {
+        super.onDestroy();
         try {
-            unregisterReceiver(mReceiver);
-            Utils.clearPreferences(this);
+            if (mReceiver != null) {
+                unregisterReceiver(mReceiver);
+            }
             stopLantern();
         } catch (Exception e) {
 
         }
-        super.onDestroy();
     }
 
     // quitLantern is the side menu option and cleanyl exits the app
@@ -167,7 +174,6 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
             Log.d(TAG, "About to exit Lantern...");
 
             stopLantern();
-            Utils.clearPreferences(this);
 
             // sleep for a few ms before exiting
             Thread.sleep(200);
@@ -183,7 +189,7 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
     @Override
     public boolean handleMessage(Message message) {
         if (message != null) {
-            //Toast.makeText(this, message.what, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, message.what, Toast.LENGTH_SHORT).show();
         }
         return true;
     }
@@ -192,15 +198,6 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         if (LanternUI != null) {
             LanternUI.sendDesktopVersion(view);
         }
-    }
-
-    // isNetworkAvailable checks whether or not we are connected to
-    // the Internet; if no connection is available, the toggle
-    // switch is inactive
-    public boolean isNetworkAvailable() {
-        final Context context = this;
-        final ConnectivityManager connectivityManager = ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE));
-        return connectivityManager.getActiveNetworkInfo() != null && connectivityManager.getActiveNetworkInfo().isConnected();
     }
 
     // Make a VPN connection from the client
@@ -300,16 +297,29 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         }
     }
 
+    // LanternReceiver is used to capture broadcasts 
+    // such as network connectivity and when the app
+    // is powered off
     public class LanternReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            // whenever the device is powered off or the app
-            // abruptly closed, we want to clear user preferences
             if (action.equals(Intent.ACTION_SHUTDOWN)) {
+                // whenever the device is powered off or the app
+                // abruptly closed, we want to clear user preferences
                 Utils.clearPreferences(context);
             } else if (action.equals(Intent.ACTION_USER_PRESENT)) {
                 //restart(context, intent);
+            } else if (action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
+                // whenever a user disconnects from Wifi and Lantern is running
+                NetworkInfo networkInfo =
+                    intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
+                if (LanternUI.useVpn() && 
+                    networkInfo.getType() == ConnectivityManager.TYPE_WIFI &&
+                    !networkInfo.isConnected()) {
+
+                    stopLantern();
+                }
             }
         }
     }

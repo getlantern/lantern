@@ -67,6 +67,7 @@ import java.util.regex.Pattern;
 import org.getlantern.lantern.activity.LanternMainActivity;
 import org.getlantern.lantern.config.LanternConfig;
 import org.getlantern.lantern.model.MailSender;
+import org.getlantern.lantern.sdk.Utils;
 import org.getlantern.lantern.R;
 
 public class UI {
@@ -471,7 +472,7 @@ public class UI {
             public void onClick(View v) {
                 boolean isChecked = powerLantern.isChecked();
 
-                if (!activity.isNetworkAvailable()) {
+                if (!Utils.isNetworkAvailable(activity.getApplicationContext())) {
                     powerLantern.setChecked(false);
                     toggleSwitch(false);
                     showAlertDialog("Lantern", "No Internet connection available!");
