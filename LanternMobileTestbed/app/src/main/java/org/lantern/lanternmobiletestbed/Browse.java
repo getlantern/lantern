@@ -79,9 +79,9 @@ public class Browse extends AppCompatActivity {
                 try {
                     if (on) {
                         Log.i(TAG, "Turning on proxy");
-                        String appName = "LanternMobileTestbed";
                         int startupTimeoutMillis = 30000;
-                        Lantern.enable(getApplicationContext(), appName, startupTimeoutMillis);
+                        String trackingId = "UA-21815217-17";
+                        Lantern.enable(getApplicationContext(), startupTimeoutMillis, trackingId);
                         Log.i(TAG, "Turned on proxy");
                     } else {
                         Log.i(TAG, "Turning off proxy");

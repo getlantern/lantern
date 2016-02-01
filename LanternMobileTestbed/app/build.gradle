@@ -24,6 +24,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'com.android.support:design:23.1.1'
+    compile 'com.google.android.gms:play-services-analytics:7.0.0'
     compile(name:'liblantern', ext:'aar')
     compile(name:'sdk-debug', ext:'aar')
 }

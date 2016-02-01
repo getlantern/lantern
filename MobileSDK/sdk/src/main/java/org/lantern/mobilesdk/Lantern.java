@@ -2,12 +2,24 @@ package org.lantern.mobilesdk;
 
 import android.content.Context;
 
+import com.google.android.gms.analytics.GoogleAnalytics;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
+
+
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by ox.to.a.cart on 1/28/16.
  */
 public class Lantern {
+    private static boolean enabled = false;
+
+    private static final Map<String, Tracker> trackersById = new HashMap<>();
+
     static {
         // Track extra info about Android for logging to Loggly.
         Lantern.addLoggingMetadata("androidDevice", android.os.Build.DEVICE);
@@ -28,15 +40,19 @@ public class Lantern {
      * low read timeouts may time out.</p>
      *
      * @param context
-     * @param appName
-     * @param timeoutMillis
+     * @param timeoutMillis how long to wait for proxy to start listening (should be fairly quick)
+     * @param analyticsTrackingId (optional tracking ID for tracking Google analytics)
      */
-    public static void enable(Context context, String appName, int timeoutMillis) {
+    public synchronized static void enable(Context context, int timeoutMillis, String analyticsTrackingId) {
+        String appName = context.getString(context.getApplicationInfo().labelRes);
         String configDir = new File(context.getFilesDir().getAbsolutePath(), ".lantern_" + appName).getAbsolutePath();
         enable(configDir, timeoutMillis);
+        if (analyticsTrackingId != null && !enabled) {
+            trackStartSession(context, analyticsTrackingId);
+        }
     }
 
-    public static void enable(String configDir, int timeoutMillis) {
+    private static void enable(String configDir, int timeoutMillis) {
         try {
             String addr = go.lantern.Lantern.Start(configDir, timeoutMillis);
             String host = addr.split(":")[0];
@@ -55,11 +71,12 @@ public class Lantern {
      * This leaves any background activity for the proxy running, and subsequent calls to
      * {@link #enable(String, int)} will reuse the existing proxy in this process.
      */
-    public static void disable() {
+    public synchronized static void disable() {
         System.clearProperty("http.proxyHost");
         System.clearProperty("http.proxyPort");
         System.clearProperty("https.proxyHost");
         System.clearProperty("https.proxyPort");
+        enabled = false;
     }
 
     /**
@@ -70,5 +87,36 @@ public class Lantern {
      */
     public static void addLoggingMetadata(String key, String value) {
         go.lantern.Lantern.AddLoggingMetadata(key, value);
+    }
+
+    private static void trackStartSession(Context context, String trackingId) {
+        sendSessionEvent(context, trackingId, "Start");
+    }
+
+    private static void sendSessionEvent(Context context, String trackingId, String action) {
+        trackerFor(context, trackingId).send(new HitBuilders.EventBuilder()
+                        .setCategory("Session")
+                        .setLabel("android")
+                        .setAction(action)
+                .build());
+    }
+
+    private synchronized static Tracker trackerFor(Context context, String trackingId) {
+        Tracker tracker = trackersById.get(trackingId);
+
+        if (tracker == null) {
+            GoogleAnalytics analytics = GoogleAnalytics.getInstance(context);
+            analytics.setLocalDispatchPeriod(1800);
+
+            tracker = analytics.newTracker(trackingId);
+            tracker.enableAdvertisingIdCollection(true);
+            tracker.enableAutoActivityTracking(true);
+            tracker.enableExceptionReporting(true);
+            tracker.setAnonymizeIp(true);
+
+            trackersById.put(trackingId, tracker);
+        }
+
+        return tracker;
     }
 }
