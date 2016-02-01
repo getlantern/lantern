@@ -55,7 +55,8 @@ func run(configDir string) {
 		log.Errorf("Unable to create configDir at %v: %v", configDir, err)
 		return
 	}
-	flashlight.Run(configDir,
+	flashlight.Run("localhost:0",
+		configDir,
 		false,
 		func() bool { return true },
 		make(map[string]interface{}),
