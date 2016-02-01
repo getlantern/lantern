@@ -44,7 +44,7 @@ func (client *Client) initBalancer(cfg *ClientConfig) {
 	}
 
 	bal := balancer.New(dialers...)
-	oldBal, ok := client.bal.Get(25 * time.Millisecond)
+	oldBal, ok := client.bal.Get(0 * time.Millisecond)
 	if ok {
 		// Close old balancer on a goroutine to avoid blocking here
 		go func() {
