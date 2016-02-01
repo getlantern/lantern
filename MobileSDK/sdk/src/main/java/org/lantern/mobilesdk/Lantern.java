@@ -44,8 +44,7 @@ public class Lantern {
      * @param analyticsTrackingId (optional tracking ID for tracking Google analytics)
      */
     public synchronized static void enable(Context context, int timeoutMillis, String analyticsTrackingId) {
-        String appName = context.getString(context.getApplicationInfo().labelRes);
-        String configDir = new File(context.getFilesDir().getAbsolutePath(), ".lantern_" + appName).getAbsolutePath();
+        String configDir = new File(context.getFilesDir().getAbsolutePath(), ".lantern").getAbsolutePath();
         enable(configDir, timeoutMillis);
         if (analyticsTrackingId != null && !enabled) {
             trackStartSession(context, analyticsTrackingId);
