@@ -322,7 +322,7 @@ darwin-amd64: require-assets
 			export CGO_LDFLAGS="--sysroot $$OSX_DEV_SDK"; \
 		fi && \
 		MACOSX_DEPLOYMENT_TARGET=$(OSX_MIN_VERSION) \
-		CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -a -o lantern_darwin_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -s" github.com/getlantern/main; \
+		CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -a -o lantern_darwin_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -s" github.com/getlantern/flashlight/main; \
 	else \
 		echo "-> Skipped: Can not compile Lantern for OSX on a non-OSX host."; \
 	fi
