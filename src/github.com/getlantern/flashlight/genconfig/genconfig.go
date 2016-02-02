@@ -30,6 +30,7 @@ import (
 const (
 	numberOfWorkers = 50
 	ftVersionFile   = `https://raw.githubusercontent.com/firetweet/downloads/master/version.txt`
+	defaultDeviceID = "555"
 )
 
 var (
@@ -350,7 +351,7 @@ func buildModel(cas map[string]*castat, masquerades []*masquerade, useFallbacks 
 			fb["cert"] = strings.Replace(cert, "\n", "\\n", -1)
 
 			info := f
-			dialer, err := info.Dialer()
+			dialer, err := info.Dialer(defaultDeviceID)
 			if err != nil {
 				log.Debugf("Skipping fallback %v because of error building dialer: %v", f.Addr, err)
 				continue

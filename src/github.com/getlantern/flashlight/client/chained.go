@@ -12,8 +12,6 @@ import (
 	"github.com/getlantern/idletiming"
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/tlsdialer"
-
-	"github.com/getlantern/flashlight/settings"
 )
 
 // Close connections idle for a period to avoid dangling connections.
@@ -55,7 +53,7 @@ type ChainedServerInfo struct {
 }
 
 // Dialer creates a *balancer.Dialer backed by a chained server.
-func (s *ChainedServerInfo) Dialer() (*balancer.Dialer, error) {
+func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 	netd := &net.Dialer{Timeout: chainedDialTimeout}
 
 	forceProxy := ForceChainedProxyAddr != ""
@@ -118,7 +116,7 @@ func (s *ChainedServerInfo) Dialer() (*balancer.Dialer, error) {
 		if authToken != "" {
 			req.Header.Set("X-LANTERN-AUTH-TOKEN", authToken)
 		}
-		req.Header.Set("X-LANTERN-DEVICE-ID", settings.GetInstanceID())
+		req.Header.Set("X-LANTERN-DEVICE-ID", deviceID)
 	}
 	d := chained.NewDialer(ccfg)
 
@@ -138,7 +136,7 @@ func (s *ChainedServerInfo) Dialer() (*balancer.Dialer, error) {
 					log.Debugf("Unable to close connection: %v", err)
 				}
 			})
-			return withStats(conn, err)
+			return conn, nil
 		},
 		AuthToken: authToken,
 	}, nil

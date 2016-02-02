@@ -3,29 +3,29 @@ package geolookup
 import (
 	"crypto/x509"
 	"testing"
+	"time"
 
+	"github.com/getlantern/eventual"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/keyman"
 )
 
 func TestNonDefaultClient(t *testing.T) {
+	Configure(eventual.DefaultGetter("localhost:8787"))
 	rootCAs := certPool(t)
 	masquerades := masquerades()
 
 	m := make(map[string][]*fronted.Masquerade)
 	m["cloudfront"] = masquerades
 	fronted.Configure(rootCAs, m)
-	country, ip, err := lookupIp()
+	country := GetCountry(5 * time.Second)
+	ip := GetIP(5 * time.Second)
 	if len(country) != 2 {
 		t.Fatalf("Bad country %v for ip %v", country, ip)
 	}
 
 	if len(ip) < 7 {
 		t.Fatalf("Bad IP %s", ip)
-	}
-
-	if err != nil {
-		t.Fatalf("Should not have gotten an error looking up country and IP %v", err)
 	}
 }
 

@@ -2,15 +2,6 @@
 
 package main
 
-// While in development mode we probably would not want auto-updates to be
-// applied. Using a big number here prevents such auto-updates without
-// disabling the feature completely. The "make package-*" tool will take care
-// of bumping this version number so you don't have to do it by hand.
-const (
-	defaultPackageVersion = "9999.99.99"
-	packageVersion        = defaultPackageVersion
-)
-
 // This is the public key of the BNS cert. Incoming updates will be signed to
 // prevent MITM attacks.
 const packagePublicKey = `-----BEGIN PUBLIC KEY-----

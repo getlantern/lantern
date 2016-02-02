@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strconv"
 
+	"github.com/getlantern/eventual"
 	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/golog"
 )
@@ -74,7 +75,7 @@ func Configure(addr string, trackingId string, version string, proxyAddr string)
 	ip = addr
 	var err error
 	go func() {
-		httpClient, err = util.HTTPClient("", proxyAddr)
+		httpClient, err = util.HTTPClient("", eventual.DefaultGetter(proxyAddr))
 		if err != nil {
 			log.Errorf("Could not create HTTP client via %s: %s", proxyAddr, err)
 			return

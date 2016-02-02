@@ -3,11 +3,13 @@ package util
 import (
 	"crypto/x509"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/getlantern/eventual"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/keyman"
 	"github.com/mailgun/oxy/forward"
@@ -29,12 +31,17 @@ func TestChainedAndFronted(t *testing.T) {
 
 	// that's it! our reverse proxy is ready!
 	s := &http.Server{
-		Addr:    defaultAddr,
 		Handler: forward,
 	}
 
 	log.Debug("Starting server")
-	go s.ListenAndServe()
+	l, err := net.Listen("tcp", "localhost:0")
+	if err != nil {
+		assert.NoError(t, err, "Unable to listen")
+	}
+	go s.Serve(l)
+
+	proxyAddr := eventual.DefaultGetter(l.Addr().String())
 
 	certs := trustedCATestCerts()
 	m := make(map[string][]*fronted.Masquerade)
@@ -47,7 +54,7 @@ func TestChainedAndFronted(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	cf := NewChainedAndFronted()
+	cf := NewChainedAndFronted(proxyAddr)
 	resp, err := cf.Do(req)
 	assert.NoError(t, err)
 	body, err := ioutil.ReadAll(resp.Body)
@@ -63,7 +70,7 @@ func TestChainedAndFronted(t *testing.T) {
 	req, err = http.NewRequest("GET", geo, nil)
 	req.Header.Set("Lantern-Fronted-URL", bad)
 	assert.NoError(t, err)
-	cf = NewChainedAndFronted()
+	cf = NewChainedAndFronted(proxyAddr)
 	resp, err = cf.Do(req)
 	assert.NoError(t, err)
 	log.Debugf("Got response in test")
@@ -79,7 +86,7 @@ func TestChainedAndFronted(t *testing.T) {
 	req, err = http.NewRequest("GET", bad, nil)
 	req.Header.Set("Lantern-Fronted-URL", geo)
 	assert.NoError(t, err)
-	cf = NewChainedAndFronted()
+	cf = NewChainedAndFronted(proxyAddr)
 	resp, err = cf.Do(req)
 	assert.NoError(t, err)
 	body, err = ioutil.ReadAll(resp.Body)

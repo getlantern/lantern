@@ -2,13 +2,10 @@
 package settings
 
 import (
-	"encoding/base64"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
 	"sync"
-
-	"code.google.com/p/go-uuid/uuid"
 
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/launcher"
@@ -39,23 +36,19 @@ type Settings struct {
 	AutoReport   bool
 	AutoLaunch   bool
 	ProxyAll     bool
-	InstanceID   string
 
 	sync.RWMutex
 }
 
 // Load loads the initial settings at startup, either from disk or using defaults.
 func Load(version, revisionDate, buildDate string) {
+	log.Debug("Loading settings")
 	// Create default settings that may or may not be overridden from an existing file
 	// on disk.
 	settings = &Settings{
 		AutoReport: true,
 		AutoLaunch: true,
 		ProxyAll:   false,
-		// There is no true privacy or security in instance ID.  For that, we rely on
-		// transport security.  Hashing MAC would buy us nothing, since the space of
-		// MACs is trivially mapped, especially since the salt would be known
-		InstanceID: base64.StdEncoding.EncodeToString(uuid.NodeID()),
 	}
 
 	// Use settings from disk if they're available.
@@ -64,6 +57,8 @@ func Load(version, revisionDate, buildDate string) {
 	} else if err := yaml.Unmarshal(bytes, settings); err != nil {
 		log.Errorf("Could not load yaml %v", err)
 		// Just keep going with the original settings not from disk.
+	} else {
+		log.Debugf("Loaded settings from %v", path)
 	}
 
 	if settings.AutoLaunch {
@@ -85,20 +80,6 @@ func Load(version, revisionDate, buildDate string) {
 		}
 		go read()
 	})
-}
-
-// GetInstanceID returns the unique identifier for Lantern on this machine.
-func GetInstanceID() string {
-	settings.RLock()
-	defer settings.RUnlock()
-	return settings.InstanceID
-}
-
-// SetInstanceID sets the unique identifier for Lantern on this machine.
-func SetInstanceID(id string) {
-	settings.Lock()
-	defer settings.Unlock()
-	settings.InstanceID = id
 }
 
 // GetProxyAll returns whether or not to proxy all traffic.
@@ -169,11 +150,14 @@ func read() {
 
 // Saves settings to disk.
 func Save() {
+	log.Debug("Saving settings")
 	settings.Lock()
 	defer settings.Unlock()
 	if bytes, err := yaml.Marshal(settings); err != nil {
 		log.Errorf("Could not create yaml from settings %v", err)
 	} else if err := ioutil.WriteFile(path, bytes, 0644); err != nil {
 		log.Errorf("Could not write settings file %v", err)
+	} else {
+		log.Debugf("Saved settings to %s", path)
 	}
 }

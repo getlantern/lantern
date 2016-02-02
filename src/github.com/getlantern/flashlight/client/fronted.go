@@ -2,14 +2,9 @@ package client
 
 import (
 	"fmt"
-	"math"
-	"time"
 
 	"github.com/getlantern/balancer"
 	"github.com/getlantern/fronted"
-
-	"github.com/getlantern/flashlight/geolookup"
-	"github.com/getlantern/flashlight/statreporter"
 )
 
 // FrontedServerInfo captures configuration information for an upstream domain-
@@ -71,8 +66,6 @@ func (s *FrontedServerInfo) dialer(masqueradeSets map[string][]*fronted.Masquera
 		BufferRequests:     s.BufferRequests,
 		DialTimeoutMillis:  s.DialTimeoutMillis,
 		RedialAttempts:     s.RedialAttempts,
-		OnDial:             withStats,
-		OnDialStats:        s.onDialStats,
 		Masquerades:        masqueradeSets[s.MasqueradeSet],
 		MaxMasquerades:     s.MaxMasquerades,
 	})
@@ -101,60 +94,4 @@ func (s *FrontedServerInfo) dialer(masqueradeSets map[string][]*fronted.Masquera
 	}
 
 	return fd, bal
-}
-
-func (s *FrontedServerInfo) onDialStats(success bool, domain, addr string, resolutionTime, connectTime, handshakeTime time.Duration) {
-	if resolutionTime > 0 {
-		s.recordTiming("DNSLookup", resolutionTime)
-		if resolutionTime > 1*time.Second {
-			log.Debugf("DNS lookup for %s (%s) took %s", domain, addr, resolutionTime)
-		}
-	}
-
-	if connectTime > 0 {
-		s.recordTiming("TCPConnect", connectTime)
-		if connectTime > 5*time.Second {
-			log.Debugf("TCP connecting to %s (%s) took %s", domain, addr, connectTime)
-		}
-	}
-
-	if handshakeTime > 0 {
-		s.recordTiming("TLSHandshake", handshakeTime)
-		if handshakeTime > 5*time.Second {
-			log.Debugf("TLS handshake to %s (%s) took %s", domain, addr, handshakeTime)
-		}
-	}
-}
-
-// recordTimings records timing information for the given step in establishing
-// a connection. It always records that the step happened, and it records the
-// highest timing threshold exceeded by the step.  Thresholds are 1, 2, 4, 8,
-// and 16 seconds.
-//
-// For example, if calling this with step = "DNSLookup" and duration = 2.5
-// seconds, we will increment two gauges, "DNSLookup" and
-// "DNSLookupOver2Sec".
-//
-// The stats are qualified by MasqueradeSet (if specified), otherwise they're
-// qualified by host. For example, if the MasqueradeSet is "cloudflare", the
-// above stats would be recorded as "DNSLookupTocloudflare" and
-// "DNSLookupTocloudflareOver2Sec". If the MasqueradeSet is "" and the host is
-// "localhost", the stats would be recorded as "DNSLookupTolocalhost" and
-// "DNSLookupTolocalhostOver2Sec".
-func (s *FrontedServerInfo) recordTiming(step string, duration time.Duration) {
-	if s.MasqueradeSet != "" {
-		step = fmt.Sprintf("%sTo%s", step, s.MasqueradeSet)
-	} else {
-		step = fmt.Sprintf("%sTo%s", step, s.Host)
-	}
-	dims := statreporter.Dim("country", geolookup.GetCountry())
-	dims.Gauge(step).Add(1)
-	for i := 4; i >= 0; i-- {
-		seconds := int(math.Pow(float64(2), float64(i)))
-		if duration > time.Duration(seconds)*time.Second {
-			key := fmt.Sprintf("%sOver%dSec", step, seconds)
-			dims.Gauge(key).Add(1)
-			return
-		}
-	}
 }
