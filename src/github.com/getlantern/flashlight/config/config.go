@@ -47,6 +47,9 @@ var (
 	m                   *yamlconf.Manager
 	lastCloudConfigETag = map[string]string{}
 	r                   = regexp.MustCompile("\\d+\\.\\d+")
+
+	// Request the config via either chained servers or direct fronted servers.
+	cf = util.NewChainedAndFronted(client.Addr)
 )
 
 type Config struct {
@@ -467,7 +470,6 @@ func (cfg *Config) fetchCloudConfig(url string) ([]byte, error) {
 	// successive requests
 	req.Close = true
 
-	cf := util.NewChainedAndFronted(client.Addr)
 	resp, err := cf.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to fetch cloud config at %s: %s", url, err)
