@@ -50,6 +50,12 @@ type Client struct {
 	l net.Listener
 }
 
+func NewClient() *Client {
+	return &Client{
+		bal: eventual.NewValue(),
+	}
+}
+
 // Addr returns the address at which the client is listening, blocking until the
 // given timeout for an address to become available.
 func Addr(timeout time.Duration) (interface{}, bool) {
@@ -100,9 +106,6 @@ func (client *Client) Configure(cfg *ClientConfig, proxyAll func() bool) {
 	defer client.cfgMutex.Unlock()
 
 	log.Debug("Configure() called")
-	if client.bal == nil {
-		client.bal = eventual.NewValue()
-	}
 
 	if client.priorCfg != nil {
 		if reflect.DeepEqual(client.priorCfg, cfg) {

@@ -66,10 +66,7 @@ func Run(httpProxyAddr string,
 		return fmt.Errorf("Unable to initialize configuration: %v", err)
 	}
 
-	client := &client.Client{
-		ReadTimeout:  0, // don't timeout
-		WriteTimeout: 0,
-	}
+	client := client.NewClient()
 
 	if beforeStart(cfg) {
 		log.Debug("Preparing to start client proxy")
