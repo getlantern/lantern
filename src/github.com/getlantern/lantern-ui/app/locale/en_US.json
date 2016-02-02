@@ -1,4 +1,9 @@
 {
+  "LANG_ID": "en",
+  "LANTERN_MOBILE_ANDROID": "https://s3.amazonaws.com/lantern-android/lantern-android-beta.apk",
+  "LANTERN_MOBILE_ANDROID_TEXT": "Android download link",
+  "LANTERN_MOBILE_SHARE": "Trying out Lantern for Android! https://s3.amazonaws.com/lantern-android/lantern-android-beta.apk #getlantern",
+  "TELL_YOUR_FRIENDS": "Thanks! Tell your friends about Lantern Mobile",
   "HELP_TRANSLATE": "Help translate",
   "LANTERN": "Lantern",
   "LANGUAGE": "Language",

@@ -12,6 +12,7 @@ var app = angular.module('app', [
   'app.vis',
   'ngSanitize',
   'ngResource',
+  'ngclipboard',
   'ui.utils',
   'ui.showhide',
   'ui.validate',
@@ -33,12 +34,13 @@ var app = angular.module('app', [
   .config(function($tooltipProvider, $httpProvider,
                    $resourceProvider, $translateProvider, DEFAULT_LANG) {
 
-      $translateProvider.preferredLanguage(DEFAULT_LANG);
-
-      $translateProvider.useStaticFilesLoader({
+      $translateProvider.fallbackLanguage(DEFAULT_LANG).
+        determinePreferredLanguage().
+        useStaticFilesLoader({
           prefix: './locale/',
           suffix: '.json'
-      });
+        });
+
     $httpProvider.defaults.useXDomain = true;
     delete $httpProvider.defaults.headers.common["X-Requested-With"];
     //$httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
@@ -208,7 +210,7 @@ var app = angular.module('app', [
 
     $rootScope.valByLang = function(name) {
         // use language-specific forums URL
-        if (name && $rootScope.lang && 
+        if (name && $rootScope.lang &&
             name.hasOwnProperty($rootScope.lang)) {
             return name[$rootScope.lang];
         }
@@ -285,3 +287,7 @@ var app = angular.module('app', [
       }
     });
   });
+
+app.filter('urlencode', function() {
+    return window.encodeURIComponent;
+});
