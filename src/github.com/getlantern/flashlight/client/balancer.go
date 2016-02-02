@@ -44,15 +44,21 @@ func (client *Client) initBalancer(cfg *ClientConfig) {
 	}
 
 	bal := balancer.New(dialers...)
-	oldBal, ok := client.bal.Get(0 * time.Millisecond)
+	var oldBal *balancer.Balancer
+	var ok bool
+	ob, ok := client.bal.Get(0 * time.Millisecond)
 	if ok {
-		// Close old balancer on a goroutine to avoid blocking here
-		go func() {
-			oldBal.(*balancer.Balancer).Close()
-			log.Debug("Closed old balancer")
-		}()
+		oldBal = ob.(*balancer.Balancer)
 	}
 
 	log.Trace("Publishing balancer")
 	client.bal.Set(bal)
+
+	if oldBal != nil {
+		// Close old balancer on a goroutine to avoid blocking here
+		go func() {
+			oldBal.Close()
+			log.Debug("Closed old balancer")
+		}()
+	}
 }
