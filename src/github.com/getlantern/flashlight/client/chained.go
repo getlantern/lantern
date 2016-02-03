@@ -100,7 +100,7 @@ func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 	if s.Trusted {
 		trusted = "(trusted) "
 	}
-	label := fmt.Sprintf("%schained proxy at %s", trusted, s.Addr)
+	label := fmt.Sprintf("%schained proxy at %s", trusted, addr)
 
 	ccfg := chained.Config{
 		DialServer: dial,
