@@ -3,75 +3,23 @@ package client
 import (
 	"bytes"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"net/http/httputil"
 	"time"
 
-	"github.com/getlantern/balancer"
 	"github.com/getlantern/detour"
 	"github.com/getlantern/flashlight/proxy"
 	"github.com/getlantern/flashlight/status"
 )
 
-// authTransport allows us to override request headers for authentication and for
-// stripping X-Forwarded-For
-type authTransport struct {
-	http.Transport
-	balancedDialer *balancer.Dialer
-	deviceID       string
-}
+// newReverseProxy creates a reverse proxy that uses the client's balancer to
+// dial out.
+func (client *Client) newReverseProxy() *httputil.ReverseProxy {
+	bal := client.getBalancer()
 
-// We need to set the authentication token for the server we're connecting to,
-// and we also need to strip out X-Forwarded-For that reverseproxy adds because
-// it confuses the upstream servers with the additional 127.0.0.1 field when
-// upstream servers are trying to determin the client IP.
-// We need to add also the X-Lantern-Device-Id field.
-func (at *authTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
-	norm := new(http.Request)
-	*norm = *req // includes shallow copies of maps, but okay
-	norm.Header.Del("X-Forwarded-For")
-	norm.Header.Set("X-LANTERN-AUTH-TOKEN", at.balancedDialer.AuthToken)
-	norm.Header.Set("X-LANTERN-DEVICE-ID", at.deviceID)
-	return at.Transport.RoundTrip(norm)
-}
-
-// newReverseProxy creates a reverse proxy that attempts to exit with any of
-// the dialers provided by the balancer.
-func (client *Client) newReverseProxy() (*httputil.ReverseProxy, error) {
-
-	// This is a bit unorthodox in that we get a load balanced connection
-	// first and then simply return that in our dial function below.
-	// The reason for this is that the only the dialer knows the
-	// authentication token for its associated server, and we need to
-	// set that in the Transport RoundTrip call above.
-	dialer, conn, err := client.getBalancer().TrustedDialerAndConn()
-	if err != nil {
-		// The internal code has already reported an error here.
-		log.Debugf("Could not get balanced dialer %v", err)
-		return nil, err
+	transport := &http.Transport{
+		TLSHandshakeTimeout: 40 * time.Second,
 	}
-
-	// We we simply return the already-established connection - see
-	// above comment.
-	dial := func(network, addr string) (net.Conn, error) {
-		return conn, err
-	}
-
-	transport := &authTransport{
-		balancedDialer: dialer,
-		deviceID:       client.DeviceID,
-	}
-	// We disable keepalives because some servers pretend to support
-	// keep-alives but close their connections immediately, which
-	// causes an error inside ReverseProxy.  This is not an issue
-	// for HTTPS because  the browser is responsible for handling
-	// the problem, which browsers like Chrome and Firefox already
-	// know to do.
-	//
-	// See https://code.google.com/p/go/issues/detail?id=4677
-	transport.DisableKeepAlives = true
-	transport.TLSHandshakeTimeout = 40 * time.Second
 
 	// TODO: would be good to make this sensitive to QOS, which
 	// right now is only respected for HTTPS connections. The
@@ -79,14 +27,25 @@ func (client *Client) newReverseProxy() (*httputil.ReverseProxy, error) {
 	// different requests, so we might have to configure different
 	// ReverseProxies for different QOS's or something like that.
 	if client.ProxyAll() {
-		transport.Dial = dial
+		transport.Dial = bal.Dial
 	} else {
-		transport.Dial = detour.Dialer(dial)
+		transport.Dial = detour.Dialer(bal.Dial)
 	}
 
-	rp := &httputil.ReverseProxy{
+	allAuthTokens := bal.AllAuthTokens()
+	return &httputil.ReverseProxy{
+		// We need to set the authentication tokens for all servers that we might
+		// connect to because we don't know which one the dialer will actually
+		// pick. We also need to strip out X-Forwarded-For that reverseproxy adds
+		// because it confuses the upstream servers with the additional 127.0.0.1
+		// field when upstream servers are trying to determin the client IP.
+		// We need to add also the X-Lantern-Device-Id field.
 		Director: func(req *http.Request) {
-			// do nothing
+			req.Header.Del("X-Forwarded-For")
+			req.Header.Set("X-LANTERN-DEVICE-ID", client.DeviceID)
+			for _, authToken := range allAuthTokens {
+				req.Header.Add("X-LANTERN-AUTH-TOKEN", authToken)
+			}
 		},
 		Transport: &errorRewritingRoundTripper{
 			withDumpHeaders(false, transport),
@@ -96,8 +55,6 @@ func (client *Client) newReverseProxy() (*httputil.ReverseProxy, error) {
 		FlushInterval: 250 * time.Millisecond,
 		ErrorLog:      log.AsStdLogger(),
 	}
-
-	return rp, nil
 }
 
 // withDumpHeaders creates a RoundTripper that uses the supplied RoundTripper

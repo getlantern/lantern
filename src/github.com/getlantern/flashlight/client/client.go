@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"net/http/httputil"
 	"reflect"
 	"sync"
 	"time"
@@ -43,9 +42,8 @@ type Client struct {
 	// Balanced CONNECT dialers.
 	bal eventual.Value
 
-	// Reverse HTTP proxies.
-	rpCh          chan *httputil.ReverseProxy
-	rpInitialized bool
+	// Reverse proxy
+	rp eventual.Value
 
 	l net.Listener
 }
@@ -53,6 +51,7 @@ type Client struct {
 func NewClient() *Client {
 	return &Client{
 		bal: eventual.NewValue(),
+		rp:  eventual.NewValue(),
 	}
 }
 
@@ -124,6 +123,7 @@ func (client *Client) Configure(cfg *ClientConfig, proxyAll func() bool) {
 	client.DeviceID = cfg.DeviceID
 
 	client.initBalancer(cfg)
+	client.rp.Set(client.newReverseProxy())
 
 	client.priorCfg = cfg
 }

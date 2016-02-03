@@ -5,8 +5,10 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/http/httputil"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/getlantern/detour"
 	"github.com/getlantern/flashlight/logging"
@@ -26,13 +28,13 @@ func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		// CONNECT requests are often used for HTTPS requests.
 		log.Tracef("Intercepting CONNECT %s", req.URL)
 		client.intercept(resp, req)
-	} else if rp, err := client.newReverseProxy(); err == nil {
+	} else if rp, ok := client.rp.Get(1 * time.Minute); ok {
 		// Direct proxying can only be used for plain HTTP connections.
 		log.Debugf("Reverse proxying %s %v", req.Method, req.URL)
-		rp.ServeHTTP(resp, req)
+		rp.(*httputil.ReverseProxy).ServeHTTP(resp, req)
 	} else {
 		log.Debugf("Could not get a reverse proxy connection -- responding bad gateway")
-		respondBadGateway(resp, fmt.Sprintf("Unable to get a connection: %s", err))
+		respondBadGateway(resp, "Unable to get a connection")
 	}
 }
 

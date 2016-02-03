@@ -57,6 +57,16 @@ func New(dialers ...*Dialer) *Balancer {
 	return bal
 }
 
+// AllAuthTokens() returns a list of all auth tokens for all dialers on this
+// balancer.
+func (b *Balancer) AllAuthTokens() []string {
+	result := make([]string, 0, len(b.dialers))
+	for i := 0; i < len(b.dialers); i++ {
+		result = append(result, b.dialers[i].AuthToken)
+	}
+	return result
+}
+
 // TrustedDialerAndConn creaetes a balancer.Dialer and a network connection for an HTTP connection
 // (as opposed to HTTPS).
 func (b *Balancer) TrustedDialerAndConn() (*Dialer, net.Conn, error) {
@@ -71,14 +81,13 @@ func (b *Balancer) dialerAndConn(network, addr string, targetQOS int) (*Dialer, 
 
 	_, port, _ := net.SplitHostPort(addr)
 
-	if len(b.trusted) == 0 {
-		log.Error("No trusted dialers!")
-	}
-
 	// We try to identify HTTP traffic (as opposed to HTTPS) by port and only
 	// send HTTP traffic to dialers marked as trusted.
 	if port == "" || port == "80" || port == "8080" {
 		dialers = b.trusted
+		if len(b.trusted) == 0 {
+			log.Error("No trusted dialers!")
+		}
 	} else {
 		dialers = b.dialers
 	}
