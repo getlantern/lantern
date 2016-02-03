@@ -38,7 +38,7 @@ func (client *Client) newReverseProxy() *httputil.ReverseProxy {
 		// connect to because we don't know which one the dialer will actually
 		// pick. We also need to strip out X-Forwarded-For that reverseproxy adds
 		// because it confuses the upstream servers with the additional 127.0.0.1
-		// field when upstream servers are trying to determin the client IP.
+		// field when upstream servers are trying to determine the client IP.
 		// We need to add also the X-Lantern-Device-Id field.
 		Director: func(req *http.Request) {
 			req.Header.Del("X-Forwarded-For")
