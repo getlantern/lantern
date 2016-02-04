@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"golang.org/x/net/proxy"
+
 	"github.com/getlantern/testify/assert"
 )
 
@@ -18,16 +20,16 @@ const expectedBody = "Google is built by a large team of engineers, designers, r
 
 type testProtector struct{}
 
-func TestProxying(t *testing.T) {
+func TestProxyingHTTP(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "testconfig")
 	if assert.NoError(t, err, "Unable to create temp configDir") {
 		defer os.RemoveAll(tmpDir)
-		addr, err := Start(tmpDir, 5000)
+		addr, _, err := Start(tmpDir, 5000)
 		if assert.NoError(t, err, "Should have been able to start lantern") {
-			newAddr, err := Start("testapp", 5000)
+			newAddr, _, err := Start("testapp", 5000)
 			if assert.NoError(t, err, "Should have been able to start lantern twice") {
 				if assert.Equal(t, addr, newAddr, "2nd start should have resulted in the same address") {
-					err = testProxiedRequest(newAddr)
+					err = testProxiedRequest(newAddr, false)
 					assert.NoError(t, err, "Proxying request should have worked")
 				}
 			}
@@ -35,7 +37,24 @@ func TestProxying(t *testing.T) {
 	}
 }
 
-func testProxiedRequest(proxyAddr string) error {
+func TestProxyingSOCKS(t *testing.T) {
+	tmpDir, err := ioutil.TempDir("", "testconfig")
+	if assert.NoError(t, err, "Unable to create temp configDir") {
+		defer os.RemoveAll(tmpDir)
+		_, addr, err := Start(tmpDir, 5000)
+		if assert.NoError(t, err, "Should have been able to start lantern") {
+			_, newAddr, err := Start("testapp", 5000)
+			if assert.NoError(t, err, "Should have been able to start lantern twice") {
+				if assert.Equal(t, addr, newAddr, "2nd start should have resulted in the same address") {
+					err = testProxiedRequest(newAddr, true)
+					assert.NoError(t, err, "Proxying request should have worked")
+				}
+			}
+		}
+	}
+}
+
+func testProxiedRequest(proxyAddr string, socks bool) error {
 	var req *http.Request
 
 	req = &http.Request{
@@ -52,14 +71,30 @@ func testProxiedRequest(proxyAddr string) error {
 		},
 	}
 
+	transport := &http.Transport{}
+	if socks {
+		// Set up SOCKS proxy
+		proxyURL, err := url.Parse("socks5://" + proxyAddr)
+		if err != nil {
+			return fmt.Errorf("Failed to parse proxy URL: %v\n", err)
+		}
+
+		socksDialer, err := proxy.FromURL(proxyURL, proxy.Direct)
+		if err != nil {
+			return fmt.Errorf("Failed to obtain proxy dialer: %v\n", err)
+		}
+		transport.Dial = socksDialer.Dial
+	} else {
+		// Set up HTTP proxy
+		transport.Dial = func(n, a string) (net.Conn, error) {
+			//return net.Dial("tcp", "127.0.0.1:9898")
+			return net.Dial("tcp", proxyAddr)
+		}
+	}
+
 	client := &http.Client{
-		Timeout: time.Second * 15,
-		Transport: &http.Transport{
-			Dial: func(n, a string) (net.Conn, error) {
-				//return net.Dial("tcp", "127.0.0.1:9898")
-				return net.Dial("tcp", proxyAddr)
-			},
-		},
+		Timeout:   time.Second * 15,
+		Transport: transport,
 	}
 
 	var res *http.Response
