@@ -67,15 +67,6 @@ func (b *Balancer) AllAuthTokens() []string {
 	return result
 }
 
-// TrustedDialerAndConn creaetes a balancer.Dialer and a network connection for an HTTP connection
-// (as opposed to HTTPS).
-func (b *Balancer) TrustedDialerAndConn() (*Dialer, net.Conn, error) {
-	// At this point we don't actually have the destination URL. For our purposes, however,
-	// the destination URL is not actually necessary and is not even used in the dial function
-	// because dial is really just dialing the proxy server.
-	return b.dialerAndConn("tcp", "doesnotexist.com:80", 0)
-}
-
 func (b *Balancer) dialerAndConn(network, addr string, targetQOS int) (*Dialer, net.Conn, error) {
 	var dialers []*dialer
 

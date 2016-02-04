@@ -122,10 +122,12 @@ func (client *Client) Configure(cfg *ClientConfig, proxyAll func() bool) {
 	client.ProxyAll = proxyAll
 	client.DeviceID = cfg.DeviceID
 
-	client.initBalancer(cfg)
-	go func() {
-		client.rp.Set(client.newReverseProxy())
-	}()
+	bal, err := client.initBalancer(cfg)
+	if err != nil {
+		log.Error(err)
+	} else if bal != nil {
+		client.rp.Set(client.newReverseProxy(bal))
+	}
 
 	client.priorCfg = cfg
 }
