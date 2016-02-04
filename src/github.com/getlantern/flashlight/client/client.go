@@ -8,7 +8,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/getlantern/balancer"
 	"github.com/getlantern/eventual"
+	"github.com/getlantern/go-socks5"
 	"github.com/getlantern/golog"
 )
 
@@ -69,15 +71,14 @@ func (c *Client) Addr(timeout time.Duration) (interface{}, bool) {
 // address or, if a blank address is given, at a random port on localhost.
 // onListeningFn is a callback that gets invoked as soon as the server is
 // accepting TCP connections.
-func (client *Client) ListenAndServe(requestedAddr string, onListeningFn func()) error {
+func (client *Client) ListenAndServeHTTP(requestedAddr string, onListeningFn func()) error {
 	log.Debug("About to listen")
-	var err error
-	var l net.Listener
-
 	if requestedAddr == "" {
 		requestedAddr = "localhost:0"
 	}
 
+	var err error
+	var l net.Listener
 	if l, err = net.Listen("tcp", requestedAddr); err != nil {
 		return fmt.Errorf("Unable to listen: %q", err)
 	}
@@ -94,8 +95,37 @@ func (client *Client) ListenAndServe(requestedAddr string, onListeningFn func())
 		ErrorLog:     log.AsStdLogger(),
 	}
 
-	log.Debugf("About to start client (HTTP) proxy at %s", listenAddr)
+	log.Debugf("About to start HTTP client proxy at %v", listenAddr)
 	return httpServer.Serve(l)
+}
+
+func (client *Client) ListenAndServeSOCKS5(requestedAddr string) error {
+	var err error
+	var l net.Listener
+	if l, err = net.Listen("tcp", requestedAddr); err != nil {
+		return fmt.Errorf("Unable to listen: %q", err)
+	}
+	listenAddr := l.Addr().String()
+
+	conf := &socks5.Config{
+		Dial: func(network, addr string) (net.Conn, error) {
+			bal, ok := client.bal.Get(1 * time.Minute)
+			if !ok {
+				return nil, fmt.Errorf("Unable to get balancer")
+			}
+			// Using protocol "connect" will cause the balancer to issue an HTTP
+			// CONNECT request to the upstream proxy and return the resulting channel
+			// as a connection.
+			return bal.(*balancer.Balancer).Dial("connect", addr)
+		},
+	}
+	server, err := socks5.New(conf)
+	if err != nil {
+		return fmt.Errorf("Unable to create SOCKS5 server: %v", err)
+	}
+
+	log.Debugf("About to start SOCKS5 client proxy at %v", listenAddr)
+	return server.Serve(l)
 }
 
 // Configure updates the client's configuration. Configure can be called

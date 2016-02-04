@@ -55,9 +55,10 @@ func run(configDir string) {
 		log.Errorf("Unable to create configDir at %v: %v", configDir, err)
 		return
 	}
-	flashlight.Run("localhost:0", // listen on random address
-		configDir, // place to store lantern configuration
-		false,     // don't make config sticky
+	flashlight.Run("localhost:0", // listen for HTTP on random address
+		"localhost:0", // listen for SOCKS on random address
+		configDir,     // place to store lantern configuration
+		false,         // don't make config sticky
 		func() bool { return true },                   // proxy all requests
 		make(map[string]interface{}),                  // no special configuration flags
 		func(cfg *config.Config) bool { return true }, // beforeStart()
