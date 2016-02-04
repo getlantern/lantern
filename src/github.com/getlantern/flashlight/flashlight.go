@@ -13,17 +13,21 @@ import (
 	"github.com/getlantern/flashlight/logging"
 )
 
-// While in development mode we probably would not want auto-updates to be
-// applied. Using a big number here prevents such auto-updates without
-// disabling the feature completely. The "make package-*" tool will take care
-// of bumping this version number so you don't have to do it by hand.
 const (
+	// While in development mode we probably would not want auto-updates to be
+	// applied. Using a big number here prevents such auto-updates without
+	// disabling the feature completely. The "make package-*" tool will take care
+	// of bumping this version number so you don't have to do it by hand.
 	DefaultPackageVersion = "9999.99.99"
-	PackageVersion        = DefaultPackageVersion
 )
 
 var (
 	log = golog.LoggerFor("flashlight")
+
+	// compileTimePackageVersion is set at compile-time for production builds
+	compileTimePackageVersion string
+
+	PackageVersion = bestPackageVersion()
 
 	Version      string
 	RevisionDate string // The revision date and time that is associated with the version string.
@@ -32,7 +36,16 @@ var (
 	cfgMutex sync.Mutex
 )
 
+func bestPackageVersion() string {
+	if compileTimePackageVersion != "" {
+		return compileTimePackageVersion
+	} else {
+		return DefaultPackageVersion
+	}
+}
+
 func init() {
+	log.Debugf("****************************** Package Version: %v", PackageVersion)
 	if PackageVersion != DefaultPackageVersion {
 		// packageVersion has precedence over GIT revision. This will happen when
 		// packing a version intended for release.
