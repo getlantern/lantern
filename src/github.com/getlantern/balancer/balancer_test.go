@@ -132,12 +132,12 @@ func TestAll(t *testing.T) {
 	}
 
 	// Test failure with no dialers
-	b := New()
+	b := New(Sticky)
 	_, err = b.Dial("tcp", addr)
 	assert.Error(t, err, "Dialing with no dialers should have failed")
 
 	// Test successful single dialer
-	b = New(dialer1)
+	b = New(Sticky, dialer1)
 	defer func() {
 		b.Close()
 		time.Sleep(250 * time.Millisecond)
@@ -156,7 +156,7 @@ func TestAll(t *testing.T) {
 
 	// Test QOS
 	dialedBy = 0
-	b = New(dialer1, dialer2)
+	b = New(Sticky, dialer1, dialer2)
 	defer b.Close()
 	conn, err = b.DialQOS("tcp", addr, 5)
 	assert.NoError(t, err, "Dialing should have succeeded")
@@ -176,7 +176,7 @@ func TestAll(t *testing.T) {
 
 	// Test success with failing dialer
 	dialedBy = 0
-	b = New(dialer1, dialer2, dialer3)
+	b = New(Sticky, dialer1, dialer2, dialer3)
 	defer b.Close()
 	conn, err = b.DialQOS("tcp", addr, 20)
 	assert.NoError(t, err, "Dialing should have succeeded")
@@ -189,7 +189,7 @@ func TestAll(t *testing.T) {
 	dialer5 := newFailingDialer(5, &dialedBy, &d5Attempts)
 
 	// Test that a dialer that initially fails will successfully get rechecked and ultimately succeed.
-	b = New(dialer5)
+	b = New(Sticky, dialer5)
 
 	// Lower the maximum time between rechecks so the test can run in a reasonable amount of time.
 	maxCheckTimeout = 100 * time.Millisecond
@@ -224,7 +224,7 @@ func TestAll(t *testing.T) {
 	}
 
 	// Test failure
-	b = New(dialer4, dialer4)
+	b = New(Sticky, dialer4, dialer4)
 	_, err = b.Dial("tcp", addr)
 	assert.NoError(t, err, "Dialing should have succeeded as we have 2nd try")
 	assert.Equal(t, 2, atomic.LoadInt32(&d4attempts), "Wrong number of dial attempts on failed dialer")

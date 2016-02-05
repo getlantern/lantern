@@ -51,6 +51,10 @@ var (
 	maxCheckTimeout = 5 * time.Second
 )
 
+type metrics struct {
+	consecSuccesses uint32
+	consecFailures  uint32
+}
 type dialer struct {
 	*Dialer
 	consecSuccesses uint32
@@ -102,6 +106,11 @@ func (d *dialer) start() {
 			}
 		}
 	}()
+}
+
+func (d *dialer) metrics() metrics {
+	return metrics{atomic.LoadUint32(&d.consecSuccesses), atomic.LoadUint32(&d.consecFailures)}
+
 }
 
 func (d *dialer) isActive() bool {

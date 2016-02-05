@@ -3,10 +3,10 @@
 package balancer
 
 import (
+	"container/heap"
 	"fmt"
 	"math/rand"
 	"net"
-	"sort"
 
 	"github.com/getlantern/golog"
 )
@@ -15,60 +15,49 @@ var (
 	log = golog.LoggerFor("balancer")
 )
 
-var (
-	emptyDialers = []*dialer{}
-)
-
 // Balancer balances connections established by one or more Dialers.
 type Balancer struct {
-	dialers []*dialer
-	trusted []*dialer
+	dialers dialerHeap
+	trusted dialerHeap
 }
 
 // New creates a new Balancer using the supplied Dialers.
-func New(dialers ...*Dialer) *Balancer {
+func New(cr HeapCreater, dialers ...*Dialer) *Balancer {
 	trustedDialersCount := 0
 
-	bal := new(Balancer)
-
-	bal.dialers = make([]*dialer, 0, len(dialers))
+	var dls []*dialer
+	var tdls []*dialer
 
 	for _, d := range dialers {
 		dl := &dialer{Dialer: d}
 		dl.start()
-		bal.dialers = append(bal.dialers, dl)
+		dls = append(dls, dl)
 
 		if dl.Trusted {
 			trustedDialersCount++
+			tdls = append(tdls, dl)
 		}
 	}
 
-	// Sort dialers by QOS (ascending) for later selection
-	sort.Sort(byQOSAscending(bal.dialers))
-
-	bal.trusted = make([]*dialer, 0, trustedDialersCount)
-
-	for _, d := range bal.dialers {
-		if d.Trusted {
-			bal.trusted = append(bal.trusted, d)
-		}
-	}
-
+	bal := &Balancer{cr(dls), cr(tdls)}
+	heap.Init(&bal.dialers)
+	heap.Init(&bal.trusted)
 	return bal
+
 }
 
 // AllAuthTokens() returns a list of all auth tokens for all dialers on this
 // balancer.
 func (b *Balancer) AllAuthTokens() []string {
-	result := make([]string, 0, len(b.dialers))
-	for i := 0; i < len(b.dialers); i++ {
-		result = append(result, b.dialers[i].AuthToken)
+	var result []string
+	for i := 0; i < b.dialers.Len(); i++ {
+		result = append(result, b.dialers.dialers[i].AuthToken)
 	}
 	return result
 }
 
 func (b *Balancer) dialerAndConn(network, addr string, targetQOS int) (*Dialer, net.Conn, error) {
-	var dialers []*dialer
+	var dialers dialerHeap
 
 	_, port, _ := net.SplitHostPort(addr)
 
@@ -76,7 +65,7 @@ func (b *Balancer) dialerAndConn(network, addr string, targetQOS int) (*Dialer, 
 	// send HTTP traffic to dialers marked as trusted.
 	if port == "" || port == "80" || port == "8080" {
 		dialers = b.trusted
-		if len(b.trusted) == 0 {
+		if b.trusted.Len() == 0 {
 			log.Error("No trusted dialers!")
 		}
 	} else {
@@ -86,11 +75,11 @@ func (b *Balancer) dialerAndConn(network, addr string, targetQOS int) (*Dialer, 
 	// To prevent dialing infinitely
 	attempts := 3
 	for i := 0; i < attempts; i++ {
-		if len(dialers) == 0 {
+		if dialers.Len() == 0 {
 			return nil, nil, fmt.Errorf("No dialers left to try on pass %v", i)
 		}
 		var d *dialer
-		d, dialers = randomDialer(dialers, targetQOS)
+		d = heap.Pop(&dialers).(*dialer)
 		if d == nil {
 			return nil, nil, fmt.Errorf("No dialers left on pass %v", i)
 		}
@@ -129,8 +118,8 @@ func (b *Balancer) Dial(network, addr string) (net.Conn, error) {
 // Close to avoid leaking goroutines.
 func (b *Balancer) Close() {
 	oldDialers := b.dialers
-	b.dialers = nil
-	for _, d := range oldDialers {
+	b.dialers.dialers = nil
+	for _, d := range oldDialers.dialers {
 		d.stop()
 	}
 }
@@ -206,7 +195,7 @@ func withoutDialer(dialers []*dialer, d *dialer) []*dialer {
 
 func without(dialers []*dialer, i int) []*dialer {
 	if len(dialers) == 1 {
-		return emptyDialers
+		return []*dialer{}
 	} else if i == len(dialers)-1 {
 		return dialers[:i]
 	} else {
