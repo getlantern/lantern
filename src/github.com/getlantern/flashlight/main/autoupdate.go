@@ -1,5 +1,3 @@
-// +build !prod
-
 package main
 
 // This is the public key of the BNS cert. Incoming updates will be signed to

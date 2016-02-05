@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/getlantern/balancer"
@@ -20,10 +21,9 @@ func (client *Client) getBalancer() *balancer.Balancer {
 
 // initBalancer takes hosts from cfg.ChainedServers and it uses them to create a
 // balancer.
-func (client *Client) initBalancer(cfg *ClientConfig) {
+func (client *Client) initBalancer(cfg *ClientConfig) (*balancer.Balancer, error) {
 	if len(cfg.ChainedServers) == 0 {
-		log.Debug("No chained servers configured, not initializing balancer")
-		return
+		return nil, fmt.Errorf("No chained servers configured, not initializing balancer")
 	}
 	// The dialers slice must be large enough to handle all chained
 	// servers.
@@ -31,9 +31,6 @@ func (client *Client) initBalancer(cfg *ClientConfig) {
 
 	// Add chained (CONNECT proxy) servers.
 	log.Debugf("Adding %d chained servers", len(cfg.ChainedServers))
-	if len(cfg.ChainedServers) == 0 {
-		log.Error("NO CHAINED SERVERS!")
-	}
 	for _, s := range cfg.ChainedServers {
 		dialer, err := s.Dialer(cfg.DeviceID)
 		if err == nil {
@@ -61,4 +58,6 @@ func (client *Client) initBalancer(cfg *ClientConfig) {
 			log.Debug("Closed old balancer")
 		}()
 	}
+
+	return bal, nil
 }

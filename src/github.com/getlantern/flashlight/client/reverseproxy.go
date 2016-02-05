@@ -7,6 +7,7 @@ import (
 	"net/http/httputil"
 	"time"
 
+	"github.com/getlantern/balancer"
 	"github.com/getlantern/detour"
 	"github.com/getlantern/flashlight/proxy"
 	"github.com/getlantern/flashlight/status"
@@ -14,9 +15,7 @@ import (
 
 // newReverseProxy creates a reverse proxy that uses the client's balancer to
 // dial out.
-func (client *Client) newReverseProxy() *httputil.ReverseProxy {
-	bal := client.getBalancer()
-
+func (client *Client) newReverseProxy(bal *balancer.Balancer) *httputil.ReverseProxy {
 	transport := &http.Transport{
 		TLSHandshakeTimeout: 40 * time.Second,
 	}
