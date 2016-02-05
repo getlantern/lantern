@@ -52,6 +52,7 @@ var (
 )
 
 type metrics struct {
+	avgConnTime     int64
 	consecSuccesses int32
 	consecFailures  int32
 }
@@ -59,8 +60,13 @@ type dialer struct {
 	*Dialer
 	consecSuccesses int32
 	consecFailures  int32
-	closeCh         chan struct{}
-	errCh           chan struct{}
+	// It's actually the average of last connect time and previous average. so
+	// if the connect time for i iteration is t[i], after n iteration, its value
+	// will be 1/2(t[n] + 1/2(t[n-1] + 1/2(t[n-2) + ... + t[1]))...), most
+	// recent connect time contributes most to the value, seems a good indicator.
+	avgConnTime int64
+	closeCh     chan struct{}
+	errCh       chan struct{}
 }
 
 func (d *dialer) start() {
@@ -99,6 +105,9 @@ func (d *dialer) start() {
 			case <-timer.C:
 				ok := d.Check()
 				if ok {
+					// Note: we don't calculate avgConnTime here as the time to
+					// check a dialer may be different from actual requests.
+					atomic.AddInt32(&d.consecSuccesses, 1)
 					atomic.StoreInt32(&d.consecFailures, 0)
 				} else {
 					d.errCh <- struct{}{}
@@ -109,7 +118,7 @@ func (d *dialer) start() {
 }
 
 func (d *dialer) metrics() metrics {
-	return metrics{atomic.LoadInt32(&d.consecSuccesses), atomic.LoadInt32(&d.consecFailures)}
+	return metrics{atomic.LoadInt32(&d.avgConnTime), atomic.LoadInt32(&d.consecSuccesses), atomic.LoadInt32(&d.consecFailures)}
 
 }
 
@@ -118,11 +127,16 @@ func (d *dialer) isActive() bool {
 }
 
 func (d *dialer) checkedDial(network, addr string) (net.Conn, error) {
+	t := time.Now()
 	conn, err := d.Dial(network, addr)
 	if err != nil {
 		d.onError(err)
 	} else {
 		atomic.AddInt32(&d.consecSuccesses, 1)
+		// Ref the declaration of avgConnTime for the rationale
+		newConnTime := (time.Now().Sub(t)).Nanoseconds()
+		newAvg := (atomic.LoadInt64(&d.avgConnTime) + newConnTime) / 2
+		atomic.StoreInt64(&d.avgConnTime, newAvg)
 	}
 	return conn, err
 }

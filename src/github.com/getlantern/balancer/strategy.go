@@ -8,9 +8,34 @@ func Sticky(dialers []*dialer) dialerHeap {
 	return dialerHeap{dialers, func(i, j int) bool {
 		mi := dialers[i].metrics()
 		mj := dialers[j].metrics()
-		return (mi.consecSuccesses - mi.consecFailures) <
+		return (mi.consecSuccesses - mi.consecFailures) >
 			(mj.consecSuccesses - mj.consecFailures)
 	}}
+}
+
+func Fastest(dialers []*dialer) dialerHeap {
+	return dialerHeap{dialers, func(i, j int) bool {
+		mi := dialers[i].metrics()
+		mj := dialers[j].metrics()
+		return mi.avgConnTime < mj.avgConnTime
+	}}
+}
+
+func Weighted(pr, pt int) Strategy {
+	return func(dialers []*dialer) dialerHeap {
+		return dialerHeap{dialers, func(i, j int) bool {
+			m1 := dialers[i].metrics()
+			m2 := dialers[j].metrics()
+			r1 := float64(m1.consecSuccesses - m1.consecFailures)
+			r2 := float64(m2.consecSuccesses - m2.consecFailures)
+			t1 = float64(m1.avgConnTime)
+			t2 = float64(m2.avgConnTime)
+
+			w1 = (r2/r1)*pr + (t1/t2)*pt
+			w2 = (r1/r2)*pr + (t2/t1)*pt
+			return w1 < w2
+		}}
+	}
 }
 
 func RoundRobin(dialers []*dialer) dialerHeap {
