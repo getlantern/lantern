@@ -1014,7 +1014,7 @@ input[type="color"],
   margin-bottom: 9px;
   font-size: 14px;
   line-height: 18px;
-  color: #555;
+  color: #333;
   -webkit-border-radius: 4px;
   -moz-border-radius: 4px;
   border-radius: 4px;
@@ -8007,7 +8007,6 @@ body.giveMode #npending {
 }
 
 #mobile-ad input {
-  color: #333;
   border: none;
   border-bottom: 1px solid #888;
   border-radius: 0px;
@@ -8116,19 +8115,15 @@ body.giveMode #npending {
   color: #000000;
 }
 
-/* do not group these rules */
 input.fail::-webkit-input-placeholder {
-    color: red;
+  color: red;
 }
 input.fail:-moz-placeholder {
-    /* FF 4-18 */
-    color: red;
+  color: red;
 }
 input.fail::-moz-placeholder {
-    /* FF 19+ */
-    color: red;
+  color: red;
 }
 input.fail:-ms-input-placeholder {
-    /* IE 10+ */
-    color: red;
+  color: red;
 }
