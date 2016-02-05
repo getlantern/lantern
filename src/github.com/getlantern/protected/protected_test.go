@@ -29,7 +29,11 @@ func TestConnect(t *testing.T) {
 	client := &http.Client{
 		Transport: &http.Transport{
 			Dial: func(netw, addr string) (net.Conn, error) {
-				return Dial(netw, addr, 10*time.Second)
+				resolved, err := Resolve(addr)
+				if err != nil {
+					return nil, err
+				}
+				return Dial(netw, resolved.String(), 10*time.Second)
 			},
 			ResponseHeaderTimeout: time.Second * 2,
 		},
