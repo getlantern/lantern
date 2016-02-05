@@ -251,47 +251,20 @@ VERSION=2.0.0-beta5 GH_TOKEN=$GITHUB_TOKEN make release
 You can provide a different directory by passing the `LANTERN_BINARIES_PATH`
 env variable.
 
-## Other tasks
+## Mobile
 
-### Creating the Android embeddable library
+### Mobile Prerequisites
 
-In order to build the Android ARM library that can be embedded in applications,
-Lantern is using `gomobile`. This simplifies the process notably.
-
-Currently, as Go 1.5 is not stable, a specific git revision is used within an
-isolated Docker image.
-
-To build a development library (takes shorter time):
-
-```
-make android-lib
-```
-
-To build the final version for Firetweet:
-
-```
-make android-lib-dist
-```
-
-If you pass the `FIRETWEET_MAIN_DIR` env variable to `make android-lib`, the
-generated bindings and library will be copied into it:
-
-```
-FIRETWEET_MAIN_DIR=/path/to/firetweet/src/main make android-lib
-```
-
-You can also override this environment variable if you want to use the
-[Flashlight Android Tester](https://github.com/getlantern/lantern-mobile-single-app-example) app.
-
-#### Creating the Android library without docker
+Building the mobile library and app requires the following:
 
 1. Install Java JDK 7 or 8
-2. Install [Android SDK Tools](http://developer.android.com/sdk/index.html#Other)
-3. Install NDK(http://developer.android.com/ndk/downloads/index.html)
-4. Install [gomobile](https://godoc.org/golang.org/x/mobile/cmd/gomobile)
+2. Install Go 1.6rc1 or higher
+3. Install [Android SDK Tools](http://developer.android.com/sdk/index.html#Other)
+4. Install NDK(http://developer.android.com/ndk/downloads/index.html)
 
-Useful environment variables (replace the paths based on wherever you've
-installed the Android SDK and NDK).
+Make sure to set these environment variables before trying to build any Android
+components (replace the paths based on wherever you've installed the Android
+SDK and NDK).
 
 ```bash
 export ANDROID_HOME=/opt/adt-bundle-mac-x86_64-20130917/sdk
@@ -299,12 +272,46 @@ export PATH=$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build
 export NDK_HOME=/opt/android-ndk-r10e
 export PATH=$NDK_HOME:$PATH
 ```
-)
 
-Then to build the library:
+### Go Android Library
 
-```bash
-make android-lib-local
+The core Lantern functionality can be packaged into a native Android library
+with:
+
+```
+make android-lib
+```
+
+### Java Android SDK
+
+The Java-based Android SDK allows easy embedding of Lantern functionality in 3rd
+party Android apps such as Manoto TV. The SDK can be built with:
+
+```
+make android-sdk
+```
+
+### Lantern Mobile Testbed
+
+This simple Android application provides a way to test the Android SDK. It can
+be built with:
+
+```
+make android-testbed
+```
+
+### Lantern Mobile App
+
+To build the full lantern mobile app:
+
+```
+make android-debug
+```
+
+To install on the default device:
+
+```
+make android-install
 ```
 
 ### Android Tips
@@ -365,6 +372,7 @@ HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 urlConnection.setRequestProperty("Connection", "close");
 ```
 
+## Other
 ### Generating assets
 
 ```sh

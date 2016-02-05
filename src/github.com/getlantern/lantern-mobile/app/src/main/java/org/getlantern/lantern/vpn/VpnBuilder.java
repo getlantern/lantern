@@ -32,6 +32,13 @@ import org.getlantern.lantern.R;
 
 import org.getlantern.lantern.android.vpn.Tun2Socks;
 
+/**
+ * <p>This code is largely based on Shadowsocks code from
+ * <a href="https://github.com/andforce/SmartZPN/tree/master/app/src/main/java/org/zarroboogs/smartzpn">here</a>.</p>
+ *
+ * <p>The tun2socks code came from
+ * <a href="https://github.com/ambrop72/badvpn/tree/master/tun2socks">here</a>.</p>
+ */
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 public class VpnBuilder extends VpnService {
 

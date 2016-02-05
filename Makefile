@@ -45,23 +45,37 @@ S3_BUCKET ?= lantern
 
 DOCKER_IMAGE_TAG := lantern-builder
 
+S3_BUCKET ?= lantern
+ANDROID_S3_BUCKET ?= lantern-android
+ANDROID_BUILD_DIR := src/github.com/getlantern/lantern-mobile/app/build/outputs/apk
+LANTERN_DEBUG_APK := lantern-debug.apk
+
+ANDROID_LIB_PKG := github.com/getlantern/lantern
+ANDROID_LIB := liblantern.aar
+
+ANDROID_SDK_DIR := MobileSDK
+ANDROID_SDK_LIBS := $(ANDROID_SDK_DIR)/sdk/libs/
+ANDROID_SDK_ANDROID_LIB := $(ANDROID_SDK_LIBS)/$(ANDROID_LIB)
+ANDROID_SDK := $(ANDROID_SDK_DIR)/sdk/build/outputs/aar/sdk-debug.aar
+
+ANDROID_TESTBED_DIR := LanternMobileTestbed
+ANDROID_TESTBED_LIBS := $(ANDROID_TESTBED_DIR)/app/libs/
+ANDROID_TESTBED_ANDROID_LIB := $(ANDROID_TESTBED_LIBS)/$(ANDROID_LIB)
+ANDROID_TESTBED_ANDROID_SDK := $(ANDROID_TESTBED_LIBS)/sdk-debug.aar
+ANDROID_TESTBED := $(ANDROID_TESTBED_DIR)/app/build/outputs/apk/app-debug.apk
+
 LANTERN_MOBILE_DIR := src/github.com/getlantern/lantern-mobile
 LANTERN_MOBILE_LIBS := $(LANTERN_MOBILE_DIR)/app/libs
-LANTERN_MOBILE_PKG := github.com/getlantern/lantern
-LANTERN_MOBILE_LIBRARY := liblantern.aar
-MOBILE_TESTBED := LanternMobileTestbed
-MOBILE_TESTBED_LIBS := $(MOBILE_TESTBED)/app/libs
-MOBILE_SDK := MobileSDK
-MOBILE_SDK_LIBS := $(MOBILE_SDK)/sdk/libs
-DOCKER_MOBILE_IMAGE_TAG := lantern-mobile-builder
-LOGGLY_TOKEN_MOBILE := d730c074-1f0a-415d-8d71-1ebf1d8bd736
-
-FIRETWEET_MAIN_DIR ?= ../firetweet/firetweet/src/main/
+TUN2SOCKS := $(LANTERN_MOBILE_DIR)/libs/armeabi-v7a/libtun2socks.so
+LANTERN_MOBILE_TUN2SOCKS := $(LANTERN_MOBILE_LIBS)/armeabi-v7a/libtun2socks.so
+LANTERN_MOBILE_ANDROID_LIB := $(LANTERN_MOBILE_LIBS)/$(ANDROID_LIB)
+LANTERN_MOBILE_ANDROID_SDK := $(LANTERN_MOBILE_LIBS)/sdk-debug.aar
+LANTERN_MOBILE := $(LANTERN_MOBILE_DIR)/app/build/outputs/apk/lantern-debug.apk
 
 LANTERN_YAML := lantern.yaml
 LANTERN_YAML_PATH := installer-resources/lantern.yaml
 
-.PHONY: packages clean docker
+.PHONY: packages clean docker tun2socks android-lib android-sdk android-testbed android-debug android-install
 
 define build-tags
 	BUILD_TAGS="" && \
@@ -138,7 +152,6 @@ define fpm-debian-build =
 endef
 
 all: binaries
-android: tun2socks android-lib android-sdk android-debug android-install android-run
 android-dist: genconfig android
 
 # This is to be called within the docker image.
@@ -246,13 +259,6 @@ docker: system-checks
 	mkdir -p $$DOCKER_CONTEXT && \
 	cp Dockerfile $$DOCKER_CONTEXT && \
 	docker build -t $(DOCKER_IMAGE_TAG) $$DOCKER_CONTEXT;
-
-docker-mobile:
-	@$(call docker-up) && \
-	DOCKER_CONTEXT=.$(DOCKER_MOBILE_IMAGE_TAG)-context && \
-	mkdir -p $$DOCKER_CONTEXT && \
-	cp $(LANTERN_MOBILE_DIR)/Dockerfile $$DOCKER_CONTEXT && \
-	docker build -t $(DOCKER_MOBILE_IMAGE_TAG) $$DOCKER_CONTEXT
 
 update-dist:
 	UPDATE_DIST=true make genassets
@@ -507,47 +513,70 @@ genconfig:
 	source setenv.bash && \
 	(cd src/github.com/getlantern/flashlight/genconfig && ./genconfig.bash)
 
-android-lib:
-	@source setenv.bash && \
+$(ANDROID_LIB):
+	source setenv.bash && \
+	go install golang.org/x/mobile/cmd/gomobile && \
+	gomobile init && \
 	$(call build-tags) && \
-	gomobile bind -target=android -tags='headless' -o=$(LANTERN_MOBILE_LIBRARY) -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS" $(LANTERN_MOBILE_PKG) && \
-	mkdir -p $(MOBILE_TESTBED_LIBS) && cp -f $(LANTERN_MOBILE_LIBRARY) $(MOBILE_TESTBED_LIBS) && \
-	mkdir -p $(MOBILE_SDK_LIBS) && cp -f $(LANTERN_MOBILE_LIBRARY) $(MOBILE_SDK_LIBS) && \
-	mkdir -p $(LANTERN_MOBILE_LIBS) && cp -f $(LANTERN_MOBILE_LIBRARY) $(LANTERN_MOBILE_LIBS)
+	gomobile bind -target=android -tags='headless' -o=$(ANDROID_LIB) -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS" $(ANDROID_LIB_PKG)
 
-android-sdk: android-lib
-	(cd $(MOBILE_SDK) && gradle assembleDebug) && \
-	cp $(MOBILE_SDK)/sdk/build/outputs/aar/sdk-debug.aar $(MOBILE_TESTBED_LIBS) && \
-	cp $(MOBILE_SDK)/sdk/build/outputs/aar/sdk-debug.aar $(LANTERN_MOBILE_LIBS)
+android-lib: $(ANDROID_LIB)
 
-android-debug:
+$(ANDROID_SDK_ANDROID_LIB): $(ANDROID_LIB)
+	mkdir -p $(ANDROID_SDK_LIBS) && \
+	cp $(ANDROID_LIB) $(ANDROID_SDK_ANDROID_LIB)
+
+$(ANDROID_SDK): $(ANDROID_SDK_ANDROID_LIB)
+	(cd $(ANDROID_SDK_DIR) && gradle assembleDebug)
+
+android-sdk: $(ANDROID_SDK)
+
+$(ANDROID_TESTBED_ANDROID_LIB): $(ANDROID_LIB)
+	mkdir -p $(ANDROID_TESTBED_LIBS) && \
+	cp $(ANDROID_LIB) $(ANDROID_TESTBED_ANDROID_LIB)
+
+$(ANDROID_TESTBED_ANDROID_SDK): $(ANDROID_SDK)
+	mkdir -p $(ANDROID_TESTBED_LIBS) && \
+	cp $(ANDROID_SDK) $(ANDROID_TESTBED_ANDROID_SDK)
+
+$(ANDROID_TESTBED): $(ANDROID_TESTBED_ANDROID_LIB) $(ANDROID_TESTBED_ANDROID_SDK)
+	cd $(ANDROID_TESTBED_DIR)/app
+	gradle -b $(ANDROID_TESTBED_DIR)/app/build.gradle \
+		clean \
+		assembleDebug
+
+android-testbed: $(ANDROID_TESTBED)
+
+$(TUN2SOCKS):
+	cd $(LANTERN_MOBILE_DIR) && ndk-build
+
+$(LANTERN_MOBILE_TUN2SOCKS): $(TUN2SOCKS)
+	mkdir -p $(LANTERN_MOBILE_LIBS) && \
+	cp $(TUN2SOCKS) $(LANTERN_MOBILE_TUN2SOCKS)
+
+$(LANTERN_MOBILE_ANDROID_LIB): $(ANDROID_LIB)
+	mkdir -p $(LANTERN_MOBILE_LIBS) && \
+	cp $(ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_LIB)
+
+$(LANTERN_MOBILE_ANDROID_SDK): $(ANDROID_SDK)
+	mkdir -p $(LANTERN_MOBILE_LIBS) && \
+	cp $(ANDROID_SDK) $(LANTERN_MOBILE_ANDROID_SDK)
+
+$(LANTERN_MOBILE): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK)
 	cd $(LANTERN_MOBILE_DIR)/app
 	gradle -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
 		clean \
 		assembleDebug
 
-tun2socks:
-	cd $(LANTERN_MOBILE_DIR) && ndk-build
-	mkdir -p $(LANTERN_MOBILE_DIR)/app/libs/armeabi-v7a
-	cp $(LANTERN_MOBILE_DIR)/libs/armeabi-v7a/libtun2socks.so $(LANTERN_MOBILE_DIR)/app/libs/armeabi-v7a/libtun2socks.so
+android: $(LANTERN_MOBILE)
 
-$(APK_FILE): build-android-debug
+android-debug: $(LANTERN_MOBILE)
 
-android-install:
-	adb install -r $(APK_FILE)
-
-android-uninstall: $(APK_FILE)
-	adb uninstall -r $(ANDROID_PACKAGE)
-
-android-run:
-	$(call pkg_variables)
-	echo $(PACKAGE)
-	echo $(MAIN_ACTIVITY)
-	adb shell am start -n $(PACKAGE)/$(MAIN_ACTIVITY)
-	adb logcat | grep `adb shell ps | grep org.getlantern.lantern | cut -c10-15`
+android-install: $(LANTERN_MOBILE)
+	adb install -r $(LANTERN_MOBILE)
 
 clean:
-	@rm -f lantern_linux* && \
+	rm -f lantern_linux* && \
 	rm -f lantern_darwin* && \
 	rm -f lantern_windows* && \
 	rm -f lantern-installer* && \
@@ -559,5 +588,14 @@ clean:
 	git checkout ./src/github.com/getlantern/flashlight/ui/resources.go && \
 	rm -f src/github.com/getlantern/flashlight/*.syso && \
 	rm -f *.dmg && \
-	rm -rf $(MOBILE_TESTBED_LIBS)/$(LANTERN_MOBILE_LIBRARY) && \
-	rm -rf $(MOBILE_SDK_LIBS)/$(LANTERN_MOBILE_LIBRARY)
+	rm -f $(ANDROID_LIB) && \
+	rm -f $(ANDROID_SDK_ANDROID_LIB) && \
+	rm -f $(ANDROID_SDK) && \
+	rm -f $(ANDROID_TESTBED_ANDROID_LIB) && \
+	rm -f $(ANDROID_TESTBED_ANDROID_SDK) && \
+	rm -f $(ANDROID_TESTBED) && \
+	rm -f $(LANTERN_MOBILE_TUN2SOCKS) && \
+	rm -f $(LANTERN_MOBILE_ANDROID_LIB) && \
+	rm -f $(LANTERN_MOBILE_ANDROID_SDK) && \
+	rm -rf $(LANTERN_MOBILE_DIR)/libs/armeabi* && \
+	rm -f $(LANTERN_MOBILE)
