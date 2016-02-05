@@ -52,13 +52,13 @@ var (
 )
 
 type metrics struct {
-	consecSuccesses uint32
-	consecFailures  uint32
+	consecSuccesses int32
+	consecFailures  int32
 }
 type dialer struct {
 	*Dialer
-	consecSuccesses uint32
-	consecFailures  uint32
+	consecSuccesses int32
+	consecFailures  int32
 	closeCh         chan struct{}
 	errCh           chan struct{}
 }
@@ -76,7 +76,7 @@ func (d *dialer) start() {
 	go func() {
 		timer := time.NewTimer(longDuration)
 		for {
-			cf := atomic.LoadUint32(&d.consecFailures)
+			cf := atomic.LoadInt32(&d.consecFailures)
 			timeout := time.Duration(cf*cf) * 100 * time.Millisecond
 			if timeout > maxCheckTimeout {
 				timeout = maxCheckTimeout
@@ -93,13 +93,13 @@ func (d *dialer) start() {
 				}
 				return
 			case <-d.errCh:
-				atomic.StoreUint32(&d.consecSuccesses, 0)
+				atomic.StoreInt32(&d.consecSuccesses, 0)
 				log.Tracef("Mark dialer %s as inactive, scheduling check", d.Label)
-				atomic.AddUint32(&d.consecFailures, 1)
+				atomic.AddInt32(&d.consecFailures, 1)
 			case <-timer.C:
 				ok := d.Check()
 				if ok {
-					atomic.StoreUint32(&d.consecFailures, 0)
+					atomic.StoreInt32(&d.consecFailures, 0)
 				} else {
 					d.errCh <- struct{}{}
 				}
@@ -109,12 +109,12 @@ func (d *dialer) start() {
 }
 
 func (d *dialer) metrics() metrics {
-	return metrics{atomic.LoadUint32(&d.consecSuccesses), atomic.LoadUint32(&d.consecFailures)}
+	return metrics{atomic.LoadInt32(&d.consecSuccesses), atomic.LoadInt32(&d.consecFailures)}
 
 }
 
 func (d *dialer) isActive() bool {
-	return atomic.LoadUint32(&d.consecSuccesses) > 0
+	return atomic.LoadInt32(&d.consecSuccesses) > 0
 }
 
 func (d *dialer) checkedDial(network, addr string) (net.Conn, error) {
@@ -122,7 +122,7 @@ func (d *dialer) checkedDial(network, addr string) (net.Conn, error) {
 	if err != nil {
 		d.onError(err)
 	} else {
-		atomic.AddUint32(&d.consecSuccesses, 1)
+		atomic.AddInt32(&d.consecSuccesses, 1)
 	}
 	return conn, err
 }
