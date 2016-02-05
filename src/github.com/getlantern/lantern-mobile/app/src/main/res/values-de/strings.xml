@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="app_name">Lantern</string>
+  <string name="action_settings">Einstellungen</string>
+  <string name="button_text">Start</string>
+  <string name="email_hint">E-Mail</string>
+  <string name="send_button">Senden</string>
+  <string name="on_text">Ein</string>
+  <string name="off_text">Aus</string>
+  <string name="desktop_option">Desktop-Version</string>
+  <string name="contact_option">Kontakt</string>
+  <string name="privacy_policy">Datenschutzerklärung</string>
+  <string name="share_option">Teilen</string>
+  <string name="quit_option">Beenden</string>
+  <string name="share_email_native"></string>
+  <string name="share_email_subject">Lantern Android</string>
+  <string name="share_chooser_text">Lantern Android teilen</string>
+  <string name="success_email">Lantern Desktop wurde an Sie gemailt!</string>
+  <string name="contact_email">team@getlantern.org</string>
+  <string name="contact_message">Hilf mir</string>
+  <string name="contact_subject">Lantern Android</string>
+</resources>

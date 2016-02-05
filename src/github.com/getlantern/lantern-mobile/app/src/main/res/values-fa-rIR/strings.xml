@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="app_name">‫لنترن</string>
+  <string name="action_settings">تنظیمات</string>
+  <string name="send_button">ارسال</string>
+  <string name="contact_option">‫تماس‬</string>
+  <string name="share_option">اشتراك گذاري</string>
+  <string name="quit_option">خروج</string>
+  <string name="share_email_native"></string>
+</resources>

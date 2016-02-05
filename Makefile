@@ -46,6 +46,7 @@ S3_BUCKET ?= lantern
 DOCKER_IMAGE_TAG := lantern-builder
 
 LANTERN_MOBILE_DIR := src/github.com/getlantern/lantern-mobile
+LANTERN_MOBILE_LIBS := $(LANTERN_MOBILE_DIR)/app/libs
 LANTERN_MOBILE_PKG := github.com/getlantern/lantern
 LANTERN_MOBILE_LIBRARY := liblantern.aar
 MOBILE_TESTBED := LanternMobileTestbed
@@ -137,6 +138,8 @@ define fpm-debian-build =
 endef
 
 all: binaries
+android: tun2socks android-lib android-sdk android-debug android-install android-run
+android-dist: genconfig android
 
 # This is to be called within the docker image.
 docker-genassets: require-npm
@@ -509,11 +512,39 @@ android-lib:
 	$(call build-tags) && \
 	gomobile bind -target=android -tags='headless' -o=$(LANTERN_MOBILE_LIBRARY) -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS" $(LANTERN_MOBILE_PKG) && \
 	mkdir -p $(MOBILE_TESTBED_LIBS) && cp -f $(LANTERN_MOBILE_LIBRARY) $(MOBILE_TESTBED_LIBS) && \
-	mkdir -p $(MOBILE_SDK_LIBS) && cp -f $(LANTERN_MOBILE_LIBRARY) $(MOBILE_SDK_LIBS)
+	mkdir -p $(MOBILE_SDK_LIBS) && cp -f $(LANTERN_MOBILE_LIBRARY) $(MOBILE_SDK_LIBS) && \
+	mkdir -p $(LANTERN_MOBILE_LIBS) && cp -f $(LANTERN_MOBILE_LIBRARY) $(LANTERN_MOBILE_LIBS)
 
 android-sdk: android-lib
 	(cd $(MOBILE_SDK) && gradle assembleDebug) && \
-	cp $(MOBILE_SDK)/sdk/build/outputs/aar/sdk-debug.aar $(MOBILE_TESTBED_LIBS)
+	cp $(MOBILE_SDK)/sdk/build/outputs/aar/sdk-debug.aar $(MOBILE_TESTBED_LIBS) && \
+	cp $(MOBILE_SDK)/sdk/build/outputs/aar/sdk-debug.aar $(LANTERN_MOBILE_LIBS)
+
+android-debug:
+	cd $(LANTERN_MOBILE_DIR)/app
+	gradle -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
+		clean \
+		assembleDebug
+
+tun2socks:
+	cd $(LANTERN_MOBILE_DIR) && ndk-build
+	mkdir -p $(LANTERN_MOBILE_DIR)/app/libs/armeabi-v7a
+	cp $(LANTERN_MOBILE_DIR)/libs/armeabi-v7a/libtun2socks.so $(LANTERN_MOBILE_DIR)/app/libs/armeabi-v7a/libtun2socks.so
+
+$(APK_FILE): build-android-debug
+
+android-install:
+	adb install -r $(APK_FILE)
+
+android-uninstall: $(APK_FILE)
+	adb uninstall -r $(ANDROID_PACKAGE)
+
+android-run:
+	$(call pkg_variables)
+	echo $(PACKAGE)
+	echo $(MAIN_ACTIVITY)
+	adb shell am start -n $(PACKAGE)/$(MAIN_ACTIVITY)
+	adb logcat | grep `adb shell ps | grep org.getlantern.lantern | cut -c10-15`
 
 clean:
 	@rm -f lantern_linux* && \

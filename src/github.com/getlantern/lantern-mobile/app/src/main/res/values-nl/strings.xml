@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="app_name">Lantern</string>
+  <string name="action_settings">Instellingen</string>
+  <string name="button_text">Begin</string>
+  <string name="drawer_open">Drawer Open</string>
+  <string name="drawer_close">Drawer Gesloten</string>
+  <string name="default_fragment">Standaard Fragment</string>
+  <string name="receive_lantern">Ontvang Lantern desktop via e-mail</string>
+  <string name="email_hint">E-mail</string>
+  <string name="send_button">Versturen</string>
+  <string name="on_text">Aan</string>
+  <string name="off_text">Uit</string>
+  <string name="desktop_option">Desktop Versie</string>
+  <string name="contact_option">Contact</string>
+  <string name="privacy_policy">Privacybeleid</string>
+  <string name="share_option">Delen</string>
+  <string name="quit_option">Stoppen</string>
+  <string name="share_email_native"></string>
+  <string name="share_email_subject">Lantern Android</string>
+  <string name="share_twitter">Bekijk ook Lantern Android: https://github.com/getlantern/lantern/blob/lantern-mobile/src/github.com/getlantern/lantern-mobile/latest-builds/lantern.apk</string>
+  <string name="share_facebook">Ik gebruik Lantern voor Android, download het hier: https://github.com/getlantern/lantern/blob/lantern-mobile/src/github.com/getlantern/lantern-mobile/latest-builds/lantern.apk</string>
+  <string name="share_email_gmail">Ik gebruik Lantern voor Android en heb het APK bestand bijgevoegd!</string>
+  <string name="share_sms">Ik gebruik Lantern voor Android, download het hier: https://github.com/getlantern/lantern/blob/lantern-mobile/src/github.com/getlantern/lantern-mobile/latest-builds/lantern.apk</string>
+  <string name="share_chooser_text">Deel Lantern Android</string>
+  <string name="success_email">Lantern Desktop is naar u toe gemaild! </string>
+  <string name="error_email">Een fout ondervonden tijdens het verzenden van Lantern Desktop. Probeer later opnieuw.</string>
+  <string name="contact_email">team@getlantern.org</string>
+  <string name="contact_message">Hulp</string>
+  <string name="contact_subject">Lantern Android</string>
+</resources>

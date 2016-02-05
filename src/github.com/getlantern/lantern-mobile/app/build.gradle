@@ -1,0 +1,70 @@
+apply plugin: 'com.android.application'
+apply plugin: 'io.fabric'
+
+android {
+
+    useLibrary 'org.apache.http.legacy'
+
+    compileSdkVersion rootProject.compileSdkVersion
+    buildToolsVersion rootProject.buildToolsVersion
+
+    defaultConfig {
+        applicationId "org.getlantern.lantern"
+        minSdkVersion rootProject.minSdkVersion
+        targetSdkVersion rootProject.targetSdkVersion
+        versionCode 1
+        versionName "1.0"
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        applicationVariants.all { variant ->
+            variant.outputs.each { output ->
+                output.outputFile = new File(
+                    output.outputFile.parent,
+                    output.outputFile.name.replace("app-debug", "lantern-debug")
+                )
+            }
+        }
+    }
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+}
+
+repositories {
+    flatDir {
+        dirs 'libs'
+    }
+    jcenter()
+    mavenCentral()
+    mavenLocal()
+    maven { url 'https://maven.fabric.io/public' }
+}
+
+dependencies {
+    compile(name:'liblantern', ext:'aar')
+    compile(name:'sdk-debug', ext:'aar')
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile gplay
+    compile appCompat
+    compile 'com.google.guava:guava:19.0'
+    compile 'com.mandrillapp.wrapper.lutung:lutung:0.0.6'
+    compile 'com.github.tony19:timber-loggly:1.0.1'
+    compile('com.crashlytics.sdk.android:crashlytics:2.5.3@aar') {
+        transitive = true
+    }
+}
+

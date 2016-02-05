@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Firetweet - Twitter client for Android
+  ~
+  ~  Copyright (C) 2012-2014 Mariotaku Lee <mariotaku.lee@gmail.com>
+  ~
+  ~  This program is free software: you can redistribute it and/or modify
+  ~  it under the terms of the GNU General Public License as published by
+  ~  the Free Software Foundation, either version 3 of the License, or
+  ~  (at your option) any later version.
+  ~
+  ~  This program is distributed in the hope that it will be useful,
+  ~  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~  GNU General Public License for more details.
+  ~
+  ~  You should have received a copy of the GNU General Public License
+  ~  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:screenOrientation="portrait"
+        android:background="@null">
+
+        <LinearLayout
+            android:padding="20dip"
+            android:layout_width="fill_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:id="@+id/updater_view"
+            android:gravity="center"
+            android:background="@drawable/update_border">
+
+            <ImageView
+                android:id="@+id/update_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:src="@drawable/lantern_icon"
+                android:scaleType="centerInside"/>
+
+            <TextView
+                android:id="@+id/update_available"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textSize="16sp"
+                android:fontFamily="sans-serif" 
+                android:singleLine="false"
+                android:layout_marginTop="10dp"  
+                android:layout_marginBottom="10dp"
+                android:textColor="#000000"
+                android:text="@string/update_available"
+                android:textAppearance="?android:attr/textAppearanceSmall"/>
+
+            <LinearLayout
+                android:id="@+id/updater"
+                android:layout_width="300dp"
+                android:layout_height="0dip"
+                android:gravity="center_vertical|bottom"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:padding="8dp">
+
+
+                <android.support.v7.internal.widget.TintButton
+                    android:id="@+id/not_now"
+                    style="?android:buttonStyleSmall"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="48dp"
+                    android:onClick="onClick"
+                    android:textSize="20sp"
+                    android:textColor="#38c6f3"
+                    android:background="@drawable/not_now_btn"
+                    android:text="@string/not_now"/>
+
+                <android.support.v7.internal.widget.TintButton
+                    android:id="@+id/install_update"
+                    style="?android:buttonStyleSmall"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="48dp"
+                    android:onClick="onClick"
+                    android:layout_marginLeft="10dp"
+                    android:textSize="20sp"
+                    android:textColor="@color/accent_white"
+                    android:background="@drawable/install_update_btn"
+                    android:text="@string/install_update"/>
+            </LinearLayout>
+        </LinearLayout>
+
+    </ScrollView>
+
+</merge>
