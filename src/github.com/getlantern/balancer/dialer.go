@@ -48,45 +48,39 @@ type Dialer struct {
 }
 
 var (
-	longDuration    = 1000000 * time.Hour
 	maxCheckTimeout = 5 * time.Second
 )
 
 type dialer struct {
 	*Dialer
-	active  int32
-	closeCh chan interface{}
-	errCh   chan time.Time
+	consecSuccesses uint32
+	consecFailures  uint32
+	closeCh         chan struct{}
+	errCh           chan struct{}
 }
 
 func (d *dialer) start() {
-	d.active = 1
+	d.consecSuccesses = 1 // be optimistic
 	// to avoid blocking sender, make it buffered
-	d.closeCh = make(chan interface{}, 1)
-	d.errCh = make(chan time.Time, 1)
+	d.closeCh = make(chan struct{}, 1)
+	d.errCh = make(chan struct{}, 1)
 	if d.Check == nil {
 		d.Check = d.defaultCheck
 	}
 
+	longDuration := 1000000 * time.Hour
 	go func() {
-		lastFailed := time.Time{}
-		lastCheckSucceeded := time.Time{}
-		consecCheckFailures := 0
 		timer := time.NewTimer(longDuration)
-
 		for {
-			if lastFailed.After(lastCheckSucceeded) {
-				atomic.StoreInt32(&d.active, 0)
-				log.Tracef("Mark dialer %s as inactive, scheduling check", d.Label)
-				timeout := time.Duration(consecCheckFailures*consecCheckFailures) * 100 * time.Millisecond
-				if timeout > maxCheckTimeout {
-					timeout = maxCheckTimeout
-				}
-				timer.Reset(timeout)
-			} else {
-				atomic.StoreInt32(&d.active, 1)
-				log.Tracef("Mark dialer %s as active", d.Label)
+			cf := atomic.LoadUint32(&d.consecFailures)
+			timeout := time.Duration(cf*cf) * 100 * time.Millisecond
+			if timeout > maxCheckTimeout {
+				timeout = maxCheckTimeout
 			}
+			if timeout == 0 {
+				timeout = longDuration
+			}
+			timer.Reset(timeout)
 			select {
 			case <-d.closeCh:
 				log.Tracef("Dialer %s stopped", d.Label)
@@ -94,16 +88,16 @@ func (d *dialer) start() {
 					d.OnClose()
 				}
 				return
-			case t := <-d.errCh:
-				lastFailed = t
+			case <-d.errCh:
+				atomic.StoreUint32(&d.consecSuccesses, 0)
+				log.Tracef("Mark dialer %s as inactive, scheduling check", d.Label)
+				atomic.AddUint32(&d.consecFailures, 1)
 			case <-timer.C:
 				ok := d.Check()
 				if ok {
-					lastCheckSucceeded = time.Now()
-					timer.Reset(longDuration)
-					consecCheckFailures = 0
+					atomic.StoreUint32(&d.consecFailures, 0)
 				} else {
-					consecCheckFailures += 1
+					d.errCh <- struct{}{}
 				}
 			}
 		}
@@ -111,12 +105,22 @@ func (d *dialer) start() {
 }
 
 func (d *dialer) isActive() bool {
-	return atomic.LoadInt32(&d.active) == 1
+	return atomic.LoadUint32(&d.consecSuccesses) > 0
+}
+
+func (d *dialer) checkedDial(network, addr string) (net.Conn, error) {
+	conn, err := d.Dial(network, addr)
+	if err != nil {
+		d.onError(err)
+	} else {
+		atomic.AddUint32(&d.consecSuccesses, 1)
+	}
+	return conn, err
 }
 
 func (d *dialer) onError(err error) {
 	select {
-	case d.errCh <- time.Now():
+	case d.errCh <- struct{}{}:
 		log.Trace("Error reported")
 	default:
 		log.Trace("Errors already pending, ignoring new one")
@@ -124,7 +128,7 @@ func (d *dialer) onError(err error) {
 }
 
 func (d *dialer) stop() {
-	d.closeCh <- nil
+	d.closeCh <- struct{}{}
 }
 
 func (d *dialer) defaultCheck() bool {

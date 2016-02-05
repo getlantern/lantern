@@ -95,11 +95,9 @@ func (b *Balancer) dialerAndConn(network, addr string, targetQOS int) (*Dialer, 
 			return nil, nil, fmt.Errorf("No dialers left on pass %v", i)
 		}
 		log.Debugf("Dialing %s://%s with %s", network, addr, d.Label)
-		conn, err := d.Dial(network, addr)
-
+		conn, err := d.checkedDial(network, addr)
 		if err != nil {
 			log.Errorf("Unable to dial via %v to %s://%s: %v on pass %v...continuing", d.Label, network, addr, err, i)
-			d.onError(err)
 			continue
 		}
 		log.Debugf("Successfully dialed via %v to %v://%v on pass %v", d.Label, network, addr, i)

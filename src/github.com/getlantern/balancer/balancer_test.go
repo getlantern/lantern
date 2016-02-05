@@ -29,19 +29,19 @@ func TestRandomDialer(t *testing.T) {
 				Label:  "A",
 				Weight: 90,
 			},
-			active: 1,
+			consecSuccesses: 1,
 		}, &dialer{
 			Dialer: &Dialer{
 				Label:  "B",
 				Weight: 9,
 			},
-			active: 1,
+			consecSuccesses: 1,
 		}, &dialer{
 			Dialer: &Dialer{
 				Label:  "C",
 				Weight: 1,
 			},
-			active: 1,
+			consecSuccesses: 1,
 		},
 	}
 
