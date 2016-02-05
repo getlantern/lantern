@@ -56,18 +56,9 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$htt
         return;
       }
 
-      var mc = new mandrill.Mandrill('fmYlUdjEpGGonI4NDx9xeA');
-
-      var message = {
-        "to": [
-          { "email": email }
-        ]
-      };
-
-      mc.messages.sendTemplate({
-        'template_name': 'lantern-mobile-message',
-        'template_content': {},
-        'message': message
+      mailer.send({
+        'to': email,
+        'template': 'lantern-mobile-message'
       });
 
       $rootScope.showMobileAd = false;
