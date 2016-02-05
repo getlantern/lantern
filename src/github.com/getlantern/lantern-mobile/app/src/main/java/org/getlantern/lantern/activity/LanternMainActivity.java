@@ -1,57 +1,30 @@
 package org.getlantern.lantern.activity;
 
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.content.ComponentName;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.Message;
 import android.os.StrictMode;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.VpnService;
-import android.net.Uri;
 import android.net.wifi.WifiManager;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageInfo;
-import android.app.Activity;
-import android.text.Html;
 import android.util.Log;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.AdapterView;
-import android.widget.CompoundButton;
-import android.widget.ListView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 import android.view.MenuItem;
 import android.view.KeyEvent;
-import android.view.View;
-import android.view.ViewGroup;
 import android.support.v7.app.AppCompatActivity;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.getlantern.lantern.config.LanternConfig;
 import org.getlantern.lantern.vpn.Service;
 import org.getlantern.lantern.model.UI;
 import org.getlantern.lantern.sdk.Utils;
-import org.getlantern.lantern.vpn.LanternVpn;
 import org.getlantern.lantern.R;
 
 
@@ -113,7 +86,6 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         try {
             // configure actions to be taken whenever slider changes state
             LanternUI.setupLanternSwitch();
-            LanternVpn.LanternUI = LanternUI;
         } catch (Exception e) {
             Log.d(TAG, "Got an exception " + e);
         }

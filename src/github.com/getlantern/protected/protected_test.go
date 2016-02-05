@@ -25,7 +25,7 @@ func (p *testprotector) Protect(fileDescriptor int) error {
 
 func TestConnect(t *testing.T) {
 	p := &testprotector{}
-	Configure(p, "8.8.8.8")
+	Configure(p.Protect, "8.8.8.8")
 	client := &http.Client{
 		Transport: &http.Transport{
 			Dial: func(netw, addr string) (net.Conn, error) {

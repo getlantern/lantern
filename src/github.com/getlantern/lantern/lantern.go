@@ -12,6 +12,8 @@ import (
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/logging"
 	"github.com/getlantern/golog"
+	"github.com/getlantern/protected"
+	"github.com/getlantern/tlsdialer"
 )
 
 var (
@@ -19,6 +21,20 @@ var (
 
 	startOnce sync.Once
 )
+
+type SocketProtector interface {
+	Protect(fileDescriptor int) error
+}
+
+// ProtectConnections allows connections made by Lantern to be protected from
+// routing via a VPN. This is useful when running Lantern as a VPN on Android,
+// because it keeps Lantern's own connections from being captured by the VPN and
+// resulting in an infinite loop.
+func ProtectConnections(dnsServer string, protector SocketProtector) {
+	protected.Configure(protector.Protect, dnsServer)
+	tlsdialer.OverrideResolve(protected.Resolve)
+	tlsdialer.OverrideDial(protected.Dial)
+}
 
 // StartResult provides information about the started Lantern
 type StartResult struct {

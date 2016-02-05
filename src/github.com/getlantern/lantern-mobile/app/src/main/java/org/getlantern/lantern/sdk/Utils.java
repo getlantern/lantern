@@ -2,20 +2,7 @@ package org.getlantern.lantern.sdk;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.AssetManager;
-import android.content.res.Resources;
 import android.net.ConnectivityManager;
-import android.util.Log;
-
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.io.InputStream;
-
-import java.util.Map;
-import java.util.HashMap;
-
-import org.yaml.snakeyaml.Yaml;
 
 public class Utils {
     private static final String PREFS_NAME = "LanternPrefs";

@@ -24,9 +24,7 @@ const (
 	dnsPort          = 53
 )
 
-type SocketProtector interface {
-	Protect(fileDescriptor int) error
-}
+type Protect func(fileDescriptor int) error
 
 type ProtectedConn struct {
 	net.Conn
@@ -39,12 +37,12 @@ type ProtectedConn struct {
 
 var (
 	log              = golog.LoggerFor("lantern-android.protected")
-	currentProtector SocketProtector
+	currentProtect   Protect
 	currentDnsServer string
 )
 
-func Configure(protector SocketProtector, dnsServer string) {
-	currentProtector = protector
+func Configure(protect Protect, dnsServer string) {
+	currentProtect = protect
 	if dnsServer != "" {
 		currentDnsServer = dnsServer
 	} else {
@@ -76,7 +74,7 @@ func Resolve(addr string) (*net.TCPAddr, error) {
 	// Here we protect the underlying socket from the
 	// VPN connection by passing the file descriptor
 	// back to Java for exclusion
-	err = currentProtector.Protect(socketFd)
+	err = currentProtect(socketFd)
 	if err != nil {
 		return nil, fmt.Errorf("Could not bind socket to system device: %v", err)
 	}
@@ -128,7 +126,7 @@ func Resolve(addr string) (*net.TCPAddr, error) {
 // - syscall API calls are used to create and bind to the
 //   specified system device (this is primarily
 //   used for Android VpnService routing functionality)
-func Dial(network, addr string, timeout time.Duration) (*ProtectedConn, error) {
+func Dial(network, addr string, timeout time.Duration) (net.Conn, error) {
 	host, port, err := SplitHostPort(addr)
 	if err != nil {
 		return nil, err
@@ -156,7 +154,7 @@ func Dial(network, addr string, timeout time.Duration) (*ProtectedConn, error) {
 	defer conn.cleanup()
 
 	// Actually protect the underlying socket here
-	err = currentProtector.Protect(conn.socketFd)
+	err = currentProtect(conn.socketFd)
 	if err != nil {
 		return nil, fmt.Errorf("Could not bind socket to system device: %v", err)
 	}
