@@ -506,7 +506,8 @@ genconfig:
 
 android-lib:
 	@source setenv.bash && \
-	gomobile bind -target=android -tags='headless' -o=$(LANTERN_MOBILE_LIBRARY) -ldflags='$(LDFLAGS) $$EXTRA_LDFLAGS' $(LANTERN_MOBILE_PKG) && \
+	$(call build-tags) && \
+	gomobile bind -target=android -tags='headless' -o=$(LANTERN_MOBILE_LIBRARY) -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS" $(LANTERN_MOBILE_PKG) && \
 	mkdir -p $(MOBILE_TESTBED_LIBS) && cp -f $(LANTERN_MOBILE_LIBRARY) $(MOBILE_TESTBED_LIBS) && \
 	mkdir -p $(MOBILE_SDK_LIBS) && cp -f $(LANTERN_MOBILE_LIBRARY) $(MOBILE_SDK_LIBS)
 

@@ -20,34 +20,20 @@ const expectedBody = "Google is built by a large team of engineers, designers, r
 
 type testProtector struct{}
 
-func TestProxyingHTTP(t *testing.T) {
+func TestProxying(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "testconfig")
 	if assert.NoError(t, err, "Unable to create temp configDir") {
 		defer os.RemoveAll(tmpDir)
-		addr, _, err := Start(tmpDir, 5000)
+		result, err := Start(tmpDir, 5000)
 		if assert.NoError(t, err, "Should have been able to start lantern") {
-			newAddr, _, err := Start("testapp", 5000)
+			newResult, err := Start("testapp", 5000)
 			if assert.NoError(t, err, "Should have been able to start lantern twice") {
-				if assert.Equal(t, addr, newAddr, "2nd start should have resulted in the same address") {
-					err = testProxiedRequest(newAddr, false)
-					assert.NoError(t, err, "Proxying request should have worked")
-				}
-			}
-		}
-	}
-}
-
-func TestProxyingSOCKS(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "testconfig")
-	if assert.NoError(t, err, "Unable to create temp configDir") {
-		defer os.RemoveAll(tmpDir)
-		_, addr, err := Start(tmpDir, 5000)
-		if assert.NoError(t, err, "Should have been able to start lantern") {
-			_, newAddr, err := Start("testapp", 5000)
-			if assert.NoError(t, err, "Should have been able to start lantern twice") {
-				if assert.Equal(t, addr, newAddr, "2nd start should have resulted in the same address") {
-					err = testProxiedRequest(newAddr, true)
-					assert.NoError(t, err, "Proxying request should have worked")
+				if assert.Equal(t, result.HTTPAddr, newResult.HTTPAddr, "2nd start should have resulted in the same address") {
+					err := testProxiedRequest(result.HTTPAddr, false)
+					if assert.NoError(t, err, "Proxying request via HTTP should have worked") {
+						err := testProxiedRequest(result.SOCKS5Addr, true)
+						assert.NoError(t, err, "Proxying request via SOCKS should have worked")
+					}
 				}
 			}
 		}

@@ -20,6 +20,12 @@ var (
 	startOnce sync.Once
 )
 
+// StartResult provides information about the started Lantern
+type StartResult struct {
+	HTTPAddr   string
+	SOCKS5Addr string
+}
+
 // Start starts a HTTP and SOCKS proxies at random addresses. It blocks up till
 // the given timeout waiting for the proxy to listen, and returns the addresses
 // at which it is listening (HTTP, SOCKS). If the proxy doesn't start within the
@@ -33,7 +39,7 @@ var (
 // start to use it, even as it finishes its initialization sequence. However,
 // initial activity may be slow, so clients with low read timeouts may
 // time out.
-func Start(configDir string, timeoutMillis int) (string, string, error) {
+func Start(configDir string, timeoutMillis int) (*StartResult, error) {
 	startOnce.Do(func() {
 		go run(configDir)
 	})
@@ -41,15 +47,15 @@ func Start(configDir string, timeoutMillis int) (string, string, error) {
 	start := time.Now()
 	addr, ok := client.Addr(time.Duration(timeoutMillis) * time.Millisecond)
 	if !ok {
-		return "", "", fmt.Errorf("HTTP Proxy didn't start within given timeout")
+		return nil, fmt.Errorf("HTTP Proxy didn't start within given timeout")
 	}
 	elapsed := time.Now().Sub(start)
 
 	socksAddr, ok := client.Socks5Addr((time.Duration(timeoutMillis) * time.Millisecond) - elapsed)
 	if !ok {
-		return "", "", fmt.Errorf("SOCKS5 Proxy didn't start within given timeout")
+		return nil, fmt.Errorf("SOCKS5 Proxy didn't start within given timeout")
 	}
-	return addr.(string), socksAddr.(string), nil
+	return &StartResult{addr.(string), socksAddr.(string)}, nil
 }
 
 // AddLoggingMetadata adds metadata for reporting to cloud logging services
