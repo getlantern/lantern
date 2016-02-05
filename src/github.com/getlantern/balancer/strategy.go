@@ -1,9 +1,35 @@
 package balancer
 
 import (
-	//"container/heap"
 	"math/rand"
 )
+
+func Sticky(dialers []*dialer) dialerHeap {
+	return dialerHeap{dialers, func(i, j int) bool {
+		mi := dialers[i].metrics()
+		mj := dialers[j].metrics()
+		return (mi.consecSuccesses - mi.consecFailures) <
+			(mj.consecSuccesses - mj.consecFailures)
+	}}
+}
+
+func RoundRobin(dialers []*dialer) dialerHeap {
+	return dialerHeap{dialers, func(i, j int) bool {
+		return i < j
+	}}
+}
+
+func Random(dialers []*dialer) dialerHeap {
+	return dialerHeap{dialers, func(i, j int) bool {
+		// we don't need good randomness, skip seeding
+		if rand.Intn(2) == 0 {
+			return false
+		}
+		return true
+	}}
+}
+
+type Strategy func(dialers []*dialer) dialerHeap
 
 type dialerHeap struct {
 	dialers  []*dialer
@@ -32,31 +58,4 @@ func (s *dialerHeap) Pop() interface{} {
 	x := old[n-1]
 	s.dialers = old[0 : n-1]
 	return x
-}
-
-type HeapCreater func(dialers []*dialer) dialerHeap
-
-func Sticky(dialers []*dialer) dialerHeap {
-	return dialerHeap{dialers, func(i, j int) bool {
-		mi := dialers[i].metrics()
-		mj := dialers[j].metrics()
-		return (mi.consecSuccesses - mi.consecFailures) <
-			(mj.consecSuccesses - mj.consecFailures)
-	}}
-}
-
-func RoundRobin(dialers []*dialer) dialerHeap {
-	return dialerHeap{dialers, func(i, j int) bool {
-		return i < j
-	}}
-}
-
-func Random(dialers []*dialer) dialerHeap {
-	return dialerHeap{dialers, func(i, j int) bool {
-		// we don't need good randomness, skip seeding
-		if rand.Intn(2) == 0 {
-			return false
-		}
-		return true
-	}}
 }

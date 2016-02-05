@@ -22,7 +22,7 @@ type Balancer struct {
 }
 
 // New creates a new Balancer using the supplied Dialers.
-func New(cr HeapCreater, dialers ...*Dialer) *Balancer {
+func New(st Strategy, dialers ...*Dialer) *Balancer {
 	trustedDialersCount := 0
 
 	var dls []*dialer
@@ -39,7 +39,7 @@ func New(cr HeapCreater, dialers ...*Dialer) *Balancer {
 		}
 	}
 
-	bal := &Balancer{cr(dls), cr(tdls)}
+	bal := &Balancer{st(dls), st(tdls)}
 	heap.Init(&bal.dialers)
 	heap.Init(&bal.trusted)
 	return bal
