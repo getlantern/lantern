@@ -21,7 +21,7 @@ type Balancer struct {
 	trusted dialerHeap
 }
 
-// New creates a new Balancer using the supplied Dialers.
+// New creates a new Balancer using the supplied strategy and Dialers.
 func New(st Strategy, dialers ...*Dialer) *Balancer {
 	trustedDialersCount := 0
 
@@ -83,6 +83,7 @@ func (b *Balancer) dialerAndConn(network, addr string, targetQOS int) (*Dialer, 
 		if d == nil {
 			return nil, nil, fmt.Errorf("No dialers left on pass %v", i)
 		}
+		heap.Push(&dialers, d)
 		log.Debugf("Dialing %s://%s with %s", network, addr, d.Label)
 		conn, err := d.checkedDial(network, addr)
 		if err != nil {

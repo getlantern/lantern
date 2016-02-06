@@ -4,6 +4,20 @@ import (
 	"math/rand"
 )
 
+// Random strategy gives even chance to each dialer, act as a baseline to other
+// strategies.
+func Random(dialers []*dialer) dialerHeap {
+	return dialerHeap{dialers, func(i, j int) bool {
+		// we don't need good randomness, skip seeding
+		if rand.Intn(2) == 0 {
+			return false
+		}
+		return true
+	}}
+}
+
+// Sticky strategy always pick the dialer with largest consecutive success
+// count or the smallest consecutive failure count
 func Sticky(dialers []*dialer) dialerHeap {
 	return dialerHeap{dialers, func(i, j int) bool {
 		mi := dialers[i].metrics()
@@ -13,6 +27,7 @@ func Sticky(dialers []*dialer) dialerHeap {
 	}}
 }
 
+// Fastest strategy always pick the dialer with lowest recent average connect time
 func Fastest(dialers []*dialer) dialerHeap {
 	return dialerHeap{dialers, func(i, j int) bool {
 		mi := dialers[i].metrics()
@@ -21,6 +36,8 @@ func Fastest(dialers []*dialer) dialerHeap {
 	}}
 }
 
+// QualityFirst strategy behaves the same as Fastest strategy when both dialers
+// are good recently, and falls back to Sticky strategy in other cases.
 func QualityFirst(dialers []*dialer) dialerHeap {
 	return dialerHeap{dialers, func(i, j int) bool {
 		mi := dialers[i].metrics()
@@ -34,11 +51,14 @@ func QualityFirst(dialers []*dialer) dialerHeap {
 	}}
 }
 
-/*func Weighted(ptSuccessRate, ptSpeed int) Strategy {
+// TODO: still need to implement algorithm correctly.
+// ptQuality: the percentage network quality contributes to total weight.
+// the rest (100 - ptQuality) will be contributed by recent average connect time.
+func Weighted(ptQuality int) Strategy {
 	return func(dialers []*dialer) dialerHeap {
+		pq := float64(ptQuality)
+		pt := float64(100 - ptQuality)
 		return dialerHeap{dialers, func(i, j int) bool {
-			pr := float64(ptSuccessRate)
-			pt := float64(ptSpeed)
 			m1 := dialers[i].metrics()
 			m2 := dialers[j].metrics()
 			r1 := float64(m1.consecSuccesses - m1.consecFailures)
@@ -46,30 +66,16 @@ func QualityFirst(dialers []*dialer) dialerHeap {
 			t1 := float64(m1.avgConnTime)
 			t2 := float64(m2.avgConnTime)
 
-			w1 := (r2/r1)*pr + (t1/t2)*pt
-			w2 := (r1/r2)*pr + (t2/t1)*pt
+			w1 := (r2/r1)*pq + (t1/t2)*pt
+			w2 := (r1/r2)*pq + (t2/t1)*pt
 			log.Tracef("w1=%f, w2=%f", w1, w2)
 			return w1 < w2
 		}}
 	}
-}*/
-
-func RoundRobin(dialers []*dialer) dialerHeap {
-	return dialerHeap{dialers, func(i, j int) bool {
-		return i < j
-	}}
 }
 
-func Random(dialers []*dialer) dialerHeap {
-	return dialerHeap{dialers, func(i, j int) bool {
-		// we don't need good randomness, skip seeding
-		if rand.Intn(2) == 0 {
-			return false
-		}
-		return true
-	}}
-}
-
+// Strategy determines the next dialer balancer will use give various
+// statistics of each dialer.
 type Strategy func(dialers []*dialer) dialerHeap
 
 type dialerHeap struct {
@@ -88,8 +94,6 @@ func (s dialerHeap) Less(i, j int) bool {
 }
 
 func (s *dialerHeap) Push(x interface{}) {
-	// Push and Pop use pointer receivers because they modify the slice's length,
-	// not just its contents.
 	s.dialers = append(s.dialers, x.(*dialer))
 }
 
