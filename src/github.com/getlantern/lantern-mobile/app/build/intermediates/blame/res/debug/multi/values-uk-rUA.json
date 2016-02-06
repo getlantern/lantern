@@ -1,0 +1,121 @@
+[
+    {
+        "outputFile": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/res/merged/debug/values-uk-rUA/values-uk-rUA.xml",
+        "map": [
+            {
+                "to": {
+                    "startLine": 2,
+                    "startColumn": 4,
+                    "startOffset": 55,
+                    "endColumn": 56,
+                    "endOffset": 107
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/res/values-uk-rUA/strings.xml",
+                    "position": {
+                        "startLine": 3,
+                        "startColumn": 2,
+                        "startOffset": 96,
+                        "endColumn": 54,
+                        "endOffset": 148
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 3,
+                    "startColumn": 4,
+                    "startOffset": 112,
+                    "endColumn": 44,
+                    "endOffset": 152
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/res/values-uk-rUA/strings.xml",
+                    "position": {
+                        "startLine": 2,
+                        "startColumn": 2,
+                        "startOffset": 53,
+                        "endColumn": 42,
+                        "endOffset": 93
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 4,
+                    "startColumn": 4,
+                    "startOffset": 157,
+                    "endColumn": 51,
+                    "endOffset": 204
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/res/values-uk-rUA/strings.xml",
+                    "position": {
+                        "startLine": 5,
+                        "startColumn": 2,
+                        "startOffset": 199,
+                        "endColumn": 49,
+                        "endOffset": 246
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 5,
+                    "startColumn": 4,
+                    "startOffset": 209,
+                    "endColumn": 45,
+                    "endOffset": 250
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/res/values-uk-rUA/strings.xml",
+                    "position": {
+                        "startLine": 6,
+                        "startColumn": 2,
+                        "startOffset": 249,
+                        "endColumn": 43,
+                        "endOffset": 290
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 6,
+                    "startColumn": 4,
+                    "startOffset": 255,
+                    "endColumn": 49,
+                    "endOffset": 300
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/res/values-uk-rUA/strings.xml",
+                    "position": {
+                        "startLine": 4,
+                        "startColumn": 2,
+                        "startOffset": 151,
+                        "endColumn": 47,
+                        "endOffset": 196
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 7,
+                    "startColumn": 4,
+                    "startOffset": 305,
+                    "endColumn": 39,
+                    "endOffset": 340
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/res/values-uk-rUA/strings.xml",
+                    "position": {
+                        "startLine": 7,
+                        "startColumn": 2,
+                        "startOffset": 293,
+                        "endColumn": 45,
+                        "endOffset": 336
+                    }
+                }
+            }
+        ]
+    }
+]

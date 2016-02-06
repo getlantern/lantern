@@ -1,0 +1,1052 @@
+[
+    {
+        "outputFile": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/res/merged/debug/values-fi/values-fi.xml",
+        "map": [
+            {
+                "to": {
+                    "startLine": 2,
+                    "startColumn": 4,
+                    "startOffset": 105,
+                    "endColumn": 107,
+                    "endOffset": 208
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.0.1/res/values-fi/values-fi.xml",
+                    "position": {
+                        "startLine": 4,
+                        "startColumn": 4,
+                        "startOffset": 280,
+                        "endColumn": 107,
+                        "endOffset": 383
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 3,
+                    "startColumn": 4,
+                    "startOffset": 213,
+                    "endColumn": 107,
+                    "endOffset": 316
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.0.1/res/values-fi/values-fi.xml",
+                    "position": {
+                        "startLine": 5,
+                        "startColumn": 4,
+                        "startOffset": 388,
+                        "endColumn": 107,
+                        "endOffset": 491
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 4,
+                    "startColumn": 4,
+                    "startOffset": 321,
+                    "endColumn": 122,
+                    "endOffset": 439
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.0.1/res/values-fi/values-fi.xml",
+                    "position": {
+                        "startLine": 6,
+                        "startColumn": 4,
+                        "startOffset": 496,
+                        "endColumn": 122,
+                        "endOffset": 614
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 5,
+                    "startColumn": 4,
+                    "startOffset": 444,
+                    "endColumn": 99,
+                    "endOffset": 539
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.0.1/res/values-fi/values-fi.xml",
+                    "position": {
+                        "startLine": 7,
+                        "startColumn": 4,
+                        "startOffset": 619,
+                        "endColumn": 99,
+                        "endOffset": 714
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 6,
+                    "startColumn": 4,
+                    "startOffset": 544,
+                    "endColumn": 100,
+                    "endOffset": 640
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.0.1/res/values-fi/values-fi.xml",
+                    "position": {
+                        "startLine": 8,
+                        "startColumn": 4,
+                        "startOffset": 719,
+                        "endColumn": 100,
+                        "endOffset": 815
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 7,
+                    "startColumn": 4,
+                    "startOffset": 645,
+                    "endColumn": 85,
+                    "endOffset": 726
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.0.1/res/values-fi/values-fi.xml",
+                    "position": {
+                        "startLine": 9,
+                        "startColumn": 4,
+                        "startOffset": 820,
+                        "endColumn": 85,
+                        "endOffset": 901
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 8,
+                    "startColumn": 4,
+                    "startOffset": 731,
+                    "endColumn": 104,
+                    "endOffset": 831
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.0.1/res/values-fi/values-fi.xml",
+                    "position": {
+                        "startLine": 10,
+                        "startColumn": 4,
+                        "startOffset": 906,
+                        "endColumn": 104,
+                        "endOffset": 1006
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 9,
+                    "startColumn": 4,
+                    "startOffset": 836,
+                    "endColumn": 117,
+                    "endOffset": 949
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.0.1/res/values-fi/values-fi.xml",
+                    "position": {
+                        "startLine": 11,
+                        "startColumn": 4,
+                        "startOffset": 1011,
+                        "endColumn": 117,
+                        "endOffset": 1124
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 10,
+                    "startColumn": 4,
+                    "startOffset": 954,
+                    "endColumn": 79,
+                    "endOffset": 1029
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.0.1/res/values-fi/values-fi.xml",
+                    "position": {
+                        "startLine": 12,
+                        "startColumn": 4,
+                        "startOffset": 1129,
+                        "endColumn": 79,
+                        "endOffset": 1204
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 11,
+                    "startColumn": 4,
+                    "startOffset": 1034,
+                    "endColumn": 106,
+                    "endOffset": 1136
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.0.1/res/values-fi/values-fi.xml",
+                    "position": {
+                        "startLine": 13,
+                        "startColumn": 4,
+                        "startOffset": 1209,
+                        "endColumn": 106,
+                        "endOffset": 1311
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 12,
+                    "startColumn": 4,
+                    "startOffset": 1141,
+                    "endColumn": 102,
+                    "endOffset": 1239
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.0.1/res/values-fi/values-fi.xml",
+                    "position": {
+                        "startLine": 14,
+                        "startColumn": 4,
+                        "startOffset": 1316,
+                        "endColumn": 102,
+                        "endOffset": 1414
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 13,
+                    "startColumn": 4,
+                    "startOffset": 1244,
+                    "endColumn": 96,
+                    "endOffset": 1336
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.0.1/res/values-fi/values-fi.xml",
+                    "position": {
+                        "startLine": 15,
+                        "startColumn": 4,
+                        "startOffset": 1419,
+                        "endColumn": 96,
+                        "endOffset": 1511
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 14,
+                    "startColumn": 4,
+                    "startOffset": 1341,
+                    "endColumn": 105,
+                    "endOffset": 1442
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.0.1/res/values-fi/values-fi.xml",
+                    "position": {
+                        "startLine": 16,
+                        "startColumn": 4,
+                        "startOffset": 1516,
+                        "endColumn": 105,
+                        "endOffset": 1617
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 15,
+                    "startColumn": 4,
+                    "startOffset": 1447,
+                    "endColumn": 98,
+                    "endOffset": 1541
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.0.1/res/values-fi/values-fi.xml",
+                    "position": {
+                        "startLine": 17,
+                        "startColumn": 4,
+                        "startOffset": 1622,
+                        "endColumn": 98,
+                        "endOffset": 1716
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 16,
+                    "startColumn": 4,
+                    "startOffset": 1546,
+                    "endColumn": 103,
+                    "endOffset": 1645
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.0.1/res/values-fi/values-fi.xml",
+                    "position": {
+                        "startLine": 18,
+                        "startColumn": 4,
+                        "startOffset": 1721,
+                        "endColumn": 103,
+                        "endOffset": 1820
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 17,
+                    "startColumn": 4,
+                    "startOffset": 1650,
+                    "endColumn": 118,
+                    "endOffset": 1764
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.0.1/res/values-fi/values-fi.xml",
+                    "position": {
+                        "startLine": 19,
+                        "startColumn": 4,
+                        "startOffset": 1825,
+                        "endColumn": 118,
+                        "endOffset": 1939
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 18,
+                    "startColumn": 4,
+                    "startOffset": 1769,
+                    "endColumn": 98,
+                    "endOffset": 1863
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.0.1/res/values-fi/values-fi.xml",
+                    "position": {
+                        "startLine": 20,
+                        "startColumn": 4,
+                        "startOffset": 1944,
+                        "endColumn": 98,
+                        "endOffset": 2038
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 19,
+                    "startColumn": 4,
+                    "startOffset": 1868,
+                    "endColumn": 53,
+                    "endOffset": 1917
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/res/values-fi/strings.xml",
+                    "position": {
+                        "startLine": 3,
+                        "startColumn": 2,
+                        "startOffset": 96,
+                        "endColumn": 51,
+                        "endOffset": 145
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 20,
+                    "startColumn": 4,
+                    "startOffset": 1922,
+                    "endColumn": 44,
+                    "endOffset": 1962
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/res/values-fi/strings.xml",
+                    "position": {
+                        "startLine": 2,
+                        "startColumn": 2,
+                        "startOffset": 53,
+                        "endColumn": 42,
+                        "endOffset": 93
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 21,
+                    "startColumn": 4,
+                    "startOffset": 1967,
+                    "endColumn": 173,
+                    "endOffset": 2136
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 6,
+                        "startColumn": 4,
+                        "startOffset": 656,
+                        "endColumn": 173,
+                        "endOffset": 825
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 22,
+                    "startColumn": 4,
+                    "startOffset": 2141,
+                    "endColumn": 153,
+                    "endOffset": 2290
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 19,
+                        "startColumn": 4,
+                        "startOffset": 2641,
+                        "endColumn": 153,
+                        "endOffset": 2790
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 23,
+                    "startColumn": 4,
+                    "startOffset": 2295,
+                    "endColumn": 111,
+                    "endOffset": 2402
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 17,
+                        "startColumn": 4,
+                        "startOffset": 2369,
+                        "endColumn": 111,
+                        "endOffset": 2476
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 24,
+                    "startColumn": 4,
+                    "startOffset": 2407,
+                    "endColumn": 131,
+                    "endOffset": 2534
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 15,
+                        "startColumn": 4,
+                        "startOffset": 2108,
+                        "endColumn": 131,
+                        "endOffset": 2235
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 25,
+                    "startColumn": 4,
+                    "startOffset": 2539,
+                    "endColumn": 165,
+                    "endOffset": 2700
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 14,
+                        "startColumn": 4,
+                        "startOffset": 1942,
+                        "endColumn": 165,
+                        "endOffset": 2103
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 26,
+                    "startColumn": 4,
+                    "startOffset": 2705,
+                    "endColumn": 132,
+                    "endOffset": 2833
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 13,
+                        "startColumn": 4,
+                        "startOffset": 1809,
+                        "endColumn": 132,
+                        "endOffset": 1937
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 27,
+                    "startColumn": 4,
+                    "startOffset": 2838,
+                    "endColumn": 168,
+                    "endOffset": 3002
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 8,
+                        "startColumn": 4,
+                        "startOffset": 996,
+                        "endColumn": 172,
+                        "endOffset": 1164
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 28,
+                    "startColumn": 4,
+                    "startOffset": 3007,
+                    "endColumn": 129,
+                    "endOffset": 3132
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 12,
+                        "startColumn": 4,
+                        "startOffset": 1679,
+                        "endColumn": 129,
+                        "endOffset": 1804
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 29,
+                    "startColumn": 4,
+                    "startOffset": 3137,
+                    "endColumn": 187,
+                    "endOffset": 3320
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 10,
+                        "startColumn": 4,
+                        "startOffset": 1296,
+                        "endColumn": 187,
+                        "endOffset": 1479
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 30,
+                    "startColumn": 4,
+                    "startOffset": 3325,
+                    "endColumn": 194,
+                    "endOffset": 3515
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 11,
+                        "startColumn": 4,
+                        "startOffset": 1484,
+                        "endColumn": 194,
+                        "endOffset": 1674
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 31,
+                    "startColumn": 4,
+                    "startOffset": 3520,
+                    "endColumn": 126,
+                    "endOffset": 3642
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 9,
+                        "startColumn": 4,
+                        "startOffset": 1169,
+                        "endColumn": 126,
+                        "endOffset": 1291
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 32,
+                    "startColumn": 4,
+                    "startOffset": 3647,
+                    "endColumn": 167,
+                    "endOffset": 3810
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 23,
+                        "startColumn": 4,
+                        "startOffset": 3206,
+                        "endColumn": 167,
+                        "endOffset": 3369
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 33,
+                    "startColumn": 4,
+                    "startOffset": 3815,
+                    "endColumn": 122,
+                    "endOffset": 3933
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 22,
+                        "startColumn": 4,
+                        "startOffset": 3083,
+                        "endColumn": 122,
+                        "endOffset": 3201
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 34,
+                    "startColumn": 4,
+                    "startOffset": 3938,
+                    "endColumn": 165,
+                    "endOffset": 4099
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 7,
+                        "startColumn": 4,
+                        "startOffset": 830,
+                        "endColumn": 165,
+                        "endOffset": 991
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 35,
+                    "startColumn": 4,
+                    "startOffset": 4104,
+                    "endColumn": 169,
+                    "endOffset": 4269
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 21,
+                        "startColumn": 4,
+                        "startOffset": 2913,
+                        "endColumn": 169,
+                        "endOffset": 3078
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 36,
+                    "startColumn": 4,
+                    "startOffset": 4274,
+                    "endColumn": 117,
+                    "endOffset": 4387
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 20,
+                        "startColumn": 4,
+                        "startOffset": 2795,
+                        "endColumn": 117,
+                        "endOffset": 2908
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 37,
+                    "startColumn": 4,
+                    "startOffset": 4392,
+                    "endColumn": 176,
+                    "endOffset": 4564
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 4,
+                        "startColumn": 4,
+                        "startOffset": 307,
+                        "endColumn": 176,
+                        "endOffset": 479
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 38,
+                    "startColumn": 4,
+                    "startOffset": 4569,
+                    "endColumn": 171,
+                    "endOffset": 4736
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 5,
+                        "startColumn": 4,
+                        "startOffset": 484,
+                        "endColumn": 171,
+                        "endOffset": 651
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 39,
+                    "startColumn": 4,
+                    "startOffset": 4741,
+                    "endColumn": 136,
+                    "endOffset": 4873
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 3,
+                        "startColumn": 4,
+                        "startOffset": 170,
+                        "endColumn": 136,
+                        "endOffset": 302
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 40,
+                    "startColumn": 4,
+                    "startOffset": 4878,
+                    "endColumn": 178,
+                    "endOffset": 5052
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 33,
+                        "startColumn": 4,
+                        "startOffset": 4672,
+                        "endColumn": 178,
+                        "endOffset": 4846
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 41,
+                    "startColumn": 4,
+                    "startOffset": 5057,
+                    "endColumn": 133,
+                    "endOffset": 5186
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 32,
+                        "startColumn": 4,
+                        "startOffset": 4538,
+                        "endColumn": 133,
+                        "endOffset": 4667
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 42,
+                    "startColumn": 4,
+                    "startOffset": 5191,
+                    "endColumn": 156,
+                    "endOffset": 5343
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 24,
+                        "startColumn": 4,
+                        "startOffset": 3374,
+                        "endColumn": 156,
+                        "endOffset": 3526
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 43,
+                    "startColumn": 4,
+                    "startOffset": 5348,
+                    "endColumn": 223,
+                    "endOffset": 5567
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 26,
+                        "startColumn": 4,
+                        "startOffset": 3657,
+                        "endColumn": 223,
+                        "endOffset": 3876
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 44,
+                    "startColumn": 4,
+                    "startOffset": 5572,
+                    "endColumn": 125,
+                    "endOffset": 5693
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 25,
+                        "startColumn": 4,
+                        "startOffset": 3531,
+                        "endColumn": 125,
+                        "endOffset": 3652
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 45,
+                    "startColumn": 4,
+                    "startOffset": 5698,
+                    "endColumn": 107,
+                    "endOffset": 5801
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 27,
+                        "startColumn": 4,
+                        "startOffset": 3881,
+                        "endColumn": 107,
+                        "endOffset": 3984
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 46,
+                    "startColumn": 4,
+                    "startOffset": 5806,
+                    "endColumn": 159,
+                    "endOffset": 5961
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 18,
+                        "startColumn": 4,
+                        "startOffset": 2481,
+                        "endColumn": 159,
+                        "endOffset": 2636
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 47,
+                    "startColumn": 4,
+                    "startOffset": 5966,
+                    "endColumn": 128,
+                    "endOffset": 6090
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 16,
+                        "startColumn": 4,
+                        "startOffset": 2240,
+                        "endColumn": 128,
+                        "endOffset": 2364
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 48,
+                    "startColumn": 4,
+                    "startOffset": 6095,
+                    "endColumn": 94,
+                    "endOffset": 6185
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 30,
+                        "startColumn": 4,
+                        "startOffset": 4194,
+                        "endColumn": 94,
+                        "endOffset": 4284
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 49,
+                    "startColumn": 4,
+                    "startOffset": 6190,
+                    "endColumn": 92,
+                    "endOffset": 6278
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 28,
+                        "startColumn": 4,
+                        "startOffset": 3989,
+                        "endColumn": 92,
+                        "endOffset": 4077
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 50,
+                    "startColumn": 4,
+                    "startOffset": 6283,
+                    "endColumn": 111,
+                    "endOffset": 6390
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 29,
+                        "startColumn": 4,
+                        "startOffset": 4082,
+                        "endColumn": 111,
+                        "endOffset": 4189
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 51,
+                    "startColumn": 4,
+                    "startOffset": 6395,
+                    "endColumn": 248,
+                    "endOffset": 6639
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/res/values-fi/common_strings.xml",
+                    "position": {
+                        "startLine": 31,
+                        "startColumn": 4,
+                        "startOffset": 4289,
+                        "endColumn": 248,
+                        "endOffset": 4533
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 52,
+                    "startColumn": 4,
+                    "startOffset": 6644,
+                    "endColumn": 46,
+                    "endOffset": 6686
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/res/values-fi/strings.xml",
+                    "position": {
+                        "startLine": 6,
+                        "startColumn": 2,
+                        "startOffset": 236,
+                        "endColumn": 44,
+                        "endOffset": 278
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 53,
+                    "startColumn": 4,
+                    "startOffset": 6691,
+                    "endColumn": 46,
+                    "endOffset": 6733
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/res/values-fi/strings.xml",
+                    "position": {
+                        "startLine": 4,
+                        "startColumn": 2,
+                        "startOffset": 148,
+                        "endColumn": 44,
+                        "endOffset": 190
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 54,
+                    "startColumn": 4,
+                    "startOffset": 6738,
+                    "endColumn": 39,
+                    "endOffset": 6773
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/res/values-fi/strings.xml",
+                    "position": {
+                        "startLine": 7,
+                        "startColumn": 2,
+                        "startOffset": 281,
+                        "endColumn": 45,
+                        "endOffset": 324
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 55,
+                    "startColumn": 4,
+                    "startOffset": 6778,
+                    "endColumn": 44,
+                    "endOffset": 6818
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/res/values-fi/strings.xml",
+                    "position": {
+                        "startLine": 5,
+                        "startColumn": 2,
+                        "startOffset": 193,
+                        "endColumn": 42,
+                        "endOffset": 233
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 56,
+                    "startColumn": 4,
+                    "startOffset": 6823,
+                    "endColumn": 100,
+                    "endOffset": 6919
+                },
+                "from": {
+                    "file": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.0.1/res/values-fi/values-fi.xml",
+                    "position": {
+                        "startLine": 21,
+                        "startColumn": 4,
+                        "startOffset": 2043,
+                        "endColumn": 100,
+                        "endOffset": 2139
+                    }
+                }
+            }
+        ]
+    }
+]

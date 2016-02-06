@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="common_google_play_services_notification_ticker" msgid="1852570676146674985">"Σφάλμα Υπηρεσιών Google Play"</string>
+    <string name="common_google_play_services_notification_needs_installation_title" msgid="8120534356798772974">"Μια εφαρμογή απαιτεί την εγκατάσταση των Υπηρεσιών Google Play."</string>
+    <string name="common_google_play_services_notification_needs_update_title" msgid="1388129345631079938">"Μια εφαρμογή απαιτεί την ενημέρωση των Υπηρεσιών Google Play."</string>
+    <string name="common_android_wear_notification_needs_update_text" msgid="473679118463211576">"Μια εφαρμογή απαιτεί την ενημέρωση της εφαρμογής Android Wear."</string>
+    <string name="common_google_play_services_needs_enabling_title" msgid="2583358409598976717">"Μια εφαρμογή απαιτεί την ενεργοποίηση των Υπηρεσιών Google Play."</string>
+    <string name="common_google_play_services_error_notification_requested_by_msg" msgid="2443362625939284971">"Υποβλήθηκε αίτημα από την εφαρμογή <xliff:g id="APP_NAME">%1$s</xliff:g>"</string>
+    <string name="common_google_play_services_install_title" msgid="26645092511305524">"Λήψη υπηρεσιών Google Play"</string>
+    <string name="common_google_play_services_install_text_phone" msgid="8685301130651051380">"Αυτή η εφαρμογή δεν θα εκτελεστεί χωρίς τις υπηρεσίες Google Play, οι οποίες λείπουν από το τηλέφωνό σας."</string>
+    <string name="common_google_play_services_install_text_tablet" msgid="1589957570365247855">"Αυτή η εφαρμογή δεν θα εκτελεστεί χωρίς τις υπηρεσίες Google Play, οι οποίες λείπουν από το tablet σας."</string>
+    <string name="common_google_play_services_install_button" msgid="8515591849428043265">"Λήψη υπηρεσιών Google Play"</string>
+    <string name="common_google_play_services_enable_title" msgid="529078775174559253">"Ενεργοποίηση υπηρεσιών Google Play"</string>
+    <string name="common_google_play_services_enable_text" msgid="7627896071867667758">"Αυτή η εφαρμογή δεν θα λειτουργήσει εάν δεν έχετε ενεργοποιήσει τις υπηρεσίες Google Play."</string>
+    <string name="common_google_play_services_enable_button" msgid="4181637455539816337">"Ενεργοπ. υπηρεσιών Google Play"</string>
+    <string name="common_google_play_services_update_title" msgid="6006316683626838685">"Ενημέρωση υπηρεσιών Google Play"</string>
+    <string name="common_android_wear_update_title" msgid="1366439133145190222">"Ενημέρωση Android Wear"</string>
+    <string name="common_google_play_services_update_text" msgid="448354684997260580">"Αυτή η εφαρμογή θα εκτελεστεί αφού ενημερώσετε τις υπηρεσίες Google Play."</string>
+    <string name="common_android_wear_update_text" msgid="3046420540094071256">"Αυτή η εφαρμογή δεν θα εκτελεστεί εάν δεν ενημερώσετε την εφαρμογή Android Wear."</string>
+    <string name="common_google_play_services_network_error_title" msgid="3827284619958211114">"Σφάλμα δικτύου"</string>
+    <string name="common_google_play_services_network_error_text" msgid="9038847255613537209">"Απαιτείται σύνδεση δεδομένων για να συνδεθείτε με τις Υπηρεσίες Google Play."</string>
+    <string name="common_google_play_services_invalid_account_title" msgid="1066672360770936753">"Μη έγκυρος λογαριασμός"</string>
+    <string name="common_google_play_services_invalid_account_text" msgid="4983316348021735578">"Ο συγκεκριμένος λογαριασμός δεν υπάρχει σε αυτήν τη συσκευή. Επιλέξτε έναν διαφορετικό λογαριασμό."</string>
+    <string name="common_google_play_services_unknown_issue" msgid="4762332809710093730">"Άγνωστο πρόβλημα με τις υπηρεσίες Google Play."</string>
+    <string name="common_google_play_services_unsupported_title" msgid="6334768798839376943">"Υπηρεσίες Google Play"</string>
+    <string name="common_google_play_services_unsupported_text" msgid="3542578567569488671">"Οι υπηρεσίες Google Play, στις οποίες βασίζονται ορισμένες από τις εφαρμογές σας, δεν υποστηρίζονται στη συσκευή σας. Επικοινωνήστε με τον κατασκευαστή για υποστήριξη."</string>
+    <string name="common_google_play_services_update_button" msgid="8932944190611227642">"Ενημέρωση"</string>
+    <string name="common_signin_button_text" msgid="9071884888741449141">"Σύνδεση"</string>
+    <string name="common_signin_button_text_long" msgid="2429381841831957106">"Συνδεθείτε στο Google"</string>
+    <string name="common_open_on_phone" msgid="411506735369601515">"Άνοιγμα στο τηλέφωνο"</string>
+    <string name="commono_google_play_services_api_unavailable_text" msgid="5000919058582214855">"Αυτή η εφαρμογή απαιτεί μία ή περισσότερες υπηρεσίες του Google Play που δεν είναι διαθέσιμες προς το παρόν. Επικοινωνήστε με τον προγραμματιστή για βοήθεια."</string>
+    <string name="common_google_play_services_sign_in_failed_title" msgid="8164948898147532159">"Η σύνδεση απέτυχε"</string>
+    <string name="common_google_play_services_sign_in_failed_text" msgid="5194079840165204725">"Σφάλμα κατά τη σύνδεση στον συγκεκριμένο λογαριασμό. Επιλέξτε έναν διαφορετικό λογαριασμό."</string>
+</resources>

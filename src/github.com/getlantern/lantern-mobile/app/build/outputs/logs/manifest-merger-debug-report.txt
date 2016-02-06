@@ -1,0 +1,207 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:2:1-70:12
+	package
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:3:5-37
+		INJECTED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml
+	android:versionName
+		INJECTED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:2:11-69
+	android:versionCode
+		INJECTED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml
+uses-sdk
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:5:5-73
+MERGED from [:liblantern:] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/liblantern/AndroidManifest.xml:2:1-39
+MERGED from [:sdk-debug:] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/sdk-debug/AndroidManifest.xml:7:5-9:41
+MERGED from [com.google.android.gms:play-services-analytics:7.0.0] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-analytics/7.0.0/AndroidManifest.xml:18:5-42
+MERGED from [com.google.android.gms:play-services-base:7.0.0] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/AndroidManifest.xml:18:5-42
+MERGED from [com.android.support:support-v4:23.0.1] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.android.support/support-v4/23.0.1/AndroidManifest.xml:20:5-43
+MERGED from [com.android.support:appcompat-v7:23.0.1] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.0.1/AndroidManifest.xml:20:5-43
+MERGED from [com.android.support:support-v4:23.0.1] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.android.support/support-v4/23.0.1/AndroidManifest.xml:20:5-43
+MERGED from [com.crashlytics.sdk.android:crashlytics:2.5.3] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.crashlytics.sdk.android/crashlytics/2.5.3/AndroidManifest.xml:7:5-43
+MERGED from [com.crashlytics.sdk.android:beta:1.1.4] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.crashlytics.sdk.android/beta/1.1.4/AndroidManifest.xml:7:5-43
+MERGED from [io.fabric.sdk.android:fabric:1.3.8] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/io.fabric.sdk.android/fabric/1.3.8/AndroidManifest.xml:23:5-43
+MERGED from [com.crashlytics.sdk.android:answers:1.3.4] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.crashlytics.sdk.android/answers/1.3.4/AndroidManifest.xml:7:5-43
+MERGED from [io.fabric.sdk.android:fabric:1.3.8] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/io.fabric.sdk.android/fabric/1.3.8/AndroidManifest.xml:23:5-43
+MERGED from [com.crashlytics.sdk.android:crashlytics-core:2.3.6] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.crashlytics.sdk.android/crashlytics-core/2.3.6/AndroidManifest.xml:7:5-43
+MERGED from [com.crashlytics.sdk.android:answers:1.3.4] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.crashlytics.sdk.android/answers/1.3.4/AndroidManifest.xml:7:5-43
+MERGED from [io.fabric.sdk.android:fabric:1.3.8] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/io.fabric.sdk.android/fabric/1.3.8/AndroidManifest.xml:23:5-43
+MERGED from [io.fabric.sdk.android:fabric:1.3.8] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/io.fabric.sdk.android/fabric/1.3.8/AndroidManifest.xml:23:5-43
+MERGED from [io.fabric.sdk.android:fabric:1.3.8] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/io.fabric.sdk.android/fabric/1.3.8/AndroidManifest.xml:23:5-43
+	android:targetSdkVersion
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:5:42-71
+		INJECTED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:5:15-41
+		INJECTED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml
+application
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:7:5-64:19
+MERGED from [com.google.android.gms:play-services-analytics:7.0.0] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-analytics/7.0.0/AndroidManifest.xml:19:5-20
+MERGED from [com.google.android.gms:play-services-base:7.0.0] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/AndroidManifest.xml:20:5-24:19
+MERGED from [com.android.support:support-v4:23.0.1] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.android.support/support-v4/23.0.1/AndroidManifest.xml:22:5-20
+MERGED from [com.android.support:appcompat-v7:23.0.1] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.0.1/AndroidManifest.xml:22:5-20
+MERGED from [com.android.support:support-v4:23.0.1] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.android.support/support-v4/23.0.1/AndroidManifest.xml:22:5-20
+MERGED from [com.crashlytics.sdk.android:crashlytics:2.5.3] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.crashlytics.sdk.android/crashlytics/2.5.3/AndroidManifest.xml:11:5-20
+MERGED from [com.crashlytics.sdk.android:beta:1.1.4] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.crashlytics.sdk.android/beta/1.1.4/AndroidManifest.xml:11:5-20
+MERGED from [io.fabric.sdk.android:fabric:1.3.8] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/io.fabric.sdk.android/fabric/1.3.8/AndroidManifest.xml:27:5-20
+MERGED from [com.crashlytics.sdk.android:answers:1.3.4] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.crashlytics.sdk.android/answers/1.3.4/AndroidManifest.xml:11:5-20
+MERGED from [io.fabric.sdk.android:fabric:1.3.8] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/io.fabric.sdk.android/fabric/1.3.8/AndroidManifest.xml:27:5-20
+MERGED from [com.crashlytics.sdk.android:crashlytics-core:2.3.6] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.crashlytics.sdk.android/crashlytics-core/2.3.6/AndroidManifest.xml:11:5-20
+MERGED from [com.crashlytics.sdk.android:answers:1.3.4] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.crashlytics.sdk.android/answers/1.3.4/AndroidManifest.xml:11:5-20
+MERGED from [io.fabric.sdk.android:fabric:1.3.8] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/io.fabric.sdk.android/fabric/1.3.8/AndroidManifest.xml:27:5-20
+MERGED from [io.fabric.sdk.android:fabric:1.3.8] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/io.fabric.sdk.android/fabric/1.3.8/AndroidManifest.xml:27:5-20
+MERGED from [io.fabric.sdk.android:fabric:1.3.8] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/io.fabric.sdk.android/fabric/1.3.8/AndroidManifest.xml:27:5-20
+	android:label
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:13:9-41
+	android:allowBackup
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:9:9-35
+	android:icon
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:11:9-46
+	android:persistent
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:10:9-34
+	android:theme
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:12:9-40
+	android:name
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:8:9-57
+provider#org.getlantern.lantern.model.ApkProvider
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:15:9-16:20
+	android:authorities
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:15:75-140
+	android:exported
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:15:141-165
+	android:name
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:15:19-74
+service#com.google.android.gms.analytics.AnalyticsService
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:18:9-20:39
+	android:enabled
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:19:13-35
+	android:exported
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:20:13-37
+	android:name
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:18:18-82
+activity#org.getlantern.lantern.activity.LanternMainActivity
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:22:9-43:20
+	android:screenOrientation
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:25:13-49
+	android:label
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:26:13-45
+	android:launchMode
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:24:13-44
+	android:name
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:23:13-57
+receiver#org.getlantern.lantern.LanternReceiver
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:28:13-37:24
+	android:name
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:28:23-54
+intent-filter#android.intent.action.ACTION_SHUTDOWN+android.intent.action.SCREEN_OFF+android.intent.action.SCREEN_ON+android.intent.action.USER_PRESENT+android.net.conn.CONNECTIVITY_CHANGE+android.net.wifi.STATE_CHANGE
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:29:17-36:33
+action#android.net.conn.CONNECTIVITY_CHANGE
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:30:21-82
+	android:name
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:30:29-80
+action#android.net.wifi.STATE_CHANGE
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:31:21-75
+	android:name
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:31:29-73
+action#android.intent.action.ACTION_SHUTDOWN
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:32:21-84
+	android:name
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:32:29-81
+action#android.intent.action.SCREEN_ON
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:33:21-78
+	android:name
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:33:29-75
+action#android.intent.action.SCREEN_OFF
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:34:21-79
+	android:name
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:34:29-76
+action#android.intent.action.USER_PRESENT
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:35:21-81
+	android:name
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:35:29-78
+intent-filter#android.intent.action.MAIN+android.intent.category.LAUNCHER
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:39:13-42:29
+action#android.intent.action.MAIN
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:40:17-69
+	android:name
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:40:25-66
+category#android.intent.category.LAUNCHER
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:41:17-77
+	android:name
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:41:27-74
+activity#org.getlantern.lantern.activity.UpdaterActivity
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:44:9-52:20
+	android:screenOrientation
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:46:13-49
+	android:windowSoftInputMode
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:47:13-55
+	android:theme
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:48:13-54
+	android:name
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:45:13-53
+intent-filter#android.intent.category.DEFAULT
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:49:13-51:29
+category#android.intent.category.DEFAULT
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:50:17-75
+	android:name
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:50:27-73
+service#org.getlantern.lantern.vpn.Service
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:54:9-59:19
+	android:permission
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:55:13-69
+	android:name
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:54:18-45
+intent-filter#android.net.VpnService
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:56:13-58:29
+action#android.net.VpnService
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:57:17-64
+	android:name
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:57:25-62
+meta-data#io.fabric.ApiKey
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:61:9-63:72
+	android:value
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:63:13-69
+	android:name
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:62:13-44
+uses-permission#android.permission.INTERNET
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:65:5-67
+MERGED from [com.crashlytics.sdk.android:crashlytics:2.5.3] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.crashlytics.sdk.android/crashlytics/2.5.3/AndroidManifest.xml:9:5-67
+MERGED from [com.crashlytics.sdk.android:beta:1.1.4] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.crashlytics.sdk.android/beta/1.1.4/AndroidManifest.xml:9:5-67
+MERGED from [io.fabric.sdk.android:fabric:1.3.8] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/io.fabric.sdk.android/fabric/1.3.8/AndroidManifest.xml:25:5-67
+MERGED from [com.crashlytics.sdk.android:answers:1.3.4] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.crashlytics.sdk.android/answers/1.3.4/AndroidManifest.xml:9:5-67
+MERGED from [io.fabric.sdk.android:fabric:1.3.8] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/io.fabric.sdk.android/fabric/1.3.8/AndroidManifest.xml:25:5-67
+MERGED from [com.crashlytics.sdk.android:crashlytics-core:2.3.6] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.crashlytics.sdk.android/crashlytics-core/2.3.6/AndroidManifest.xml:9:5-67
+MERGED from [com.crashlytics.sdk.android:answers:1.3.4] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.crashlytics.sdk.android/answers/1.3.4/AndroidManifest.xml:9:5-67
+MERGED from [io.fabric.sdk.android:fabric:1.3.8] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/io.fabric.sdk.android/fabric/1.3.8/AndroidManifest.xml:25:5-67
+MERGED from [io.fabric.sdk.android:fabric:1.3.8] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/io.fabric.sdk.android/fabric/1.3.8/AndroidManifest.xml:25:5-67
+MERGED from [io.fabric.sdk.android:fabric:1.3.8] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/io.fabric.sdk.android/fabric/1.3.8/AndroidManifest.xml:25:5-67
+	android:name
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:65:22-64
+uses-permission#android.permission.ACCESS_WIFI_STATE
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:66:5-75
+	android:name
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:66:22-73
+uses-permission#android.permission.ACCESS_NETWORK_STATE
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:67:5-78
+	android:name
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:67:22-76
+uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:68:5-81
+	android:name
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:68:22-78
+uses-permission#android.permission.READ_EXTERNAL_STORAGE
+ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:69:5-80
+	android:name
+		ADDED from /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/AndroidManifest.xml:69:22-77
+meta-data#com.google.android.gms.version
+ADDED from [com.google.android.gms:play-services-base:7.0.0] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/AndroidManifest.xml:21:9-23:69
+	android:value
+		ADDED from [com.google.android.gms:play-services-base:7.0.0] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/AndroidManifest.xml:23:13-66
+	android:name
+		ADDED from [com.google.android.gms:play-services-base:7.0.0] /Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/AndroidManifest.xml:22:13-58

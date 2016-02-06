@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2">
+    <string msgid="4600421777120114993" name="abc_action_bar_home_description">"హోమ్‌కు నావిగేట్ చేయండి"</string>
+    <string msgid="1397052879051804371" name="abc_action_bar_home_description_format">"%1$s, %2$s"</string>
+    <string msgid="6623331958280229229" name="abc_action_bar_home_subtitle_description_format">"%1$s, %2$s, %3$s"</string>
+    <string msgid="1594238315039666878" name="abc_action_bar_up_description">"పైకి నావిగేట్ చేయండి"</string>
+    <string msgid="3588849162933574182" name="abc_action_menu_overflow_description">"మరిన్ని ఎంపికలు"</string>
+    <string msgid="4076576682505996667" name="abc_action_mode_done">"పూర్తయింది"</string>
+    <string msgid="7468859129482906941" name="abc_activity_chooser_view_see_all">"అన్నీ చూడండి"</string>
+    <string msgid="2031811694353399454" name="abc_activitychooserview_choose_application">"అనువర్తనాన్ని ఎంచుకోండి"</string>
+    <string msgid="7723749260725869598" name="abc_search_hint">"శోధించు..."</string>
+    <string msgid="3691816814315814921" name="abc_searchview_description_clear">"ప్రశ్నను క్లియర్ చేయి"</string>
+    <string msgid="2550479030709304392" name="abc_searchview_description_query">"ప్రశ్న శోధించండి"</string>
+    <string msgid="8264924765203268293" name="abc_searchview_description_search">"శోధించు"</string>
+    <string msgid="8928215447528550784" name="abc_searchview_description_submit">"ప్రశ్నని సమర్పించు"</string>
+    <string msgid="893419373245838918" name="abc_searchview_description_voice">"వాయిస్ శోధన"</string>
+    <string msgid="3421042268587513524" name="abc_shareactionprovider_share_with">"వీరితో భాగస్వామ్యం చేయి"</string>
+    <string msgid="7165123711973476752" name="abc_shareactionprovider_share_with_application">"%sతో భాగస్వామ్యం చేయి"</string>
+    <string msgid="1603543279005712093" name="abc_toolbar_collapse_description">"కుదించండి"</string>
+    <string msgid="473679118463211576" name="common_android_wear_notification_needs_update_text">"ఒక అనువర్తనానికి Android Wear అనువర్తనాన్ని నవీకరించడం అవసరం."</string>
+    <string msgid="3046420540094071256" name="common_android_wear_update_text">"మీరు Android Wear అనువర్తనాన్ని నవీకరించకపోతే ఈ అనువర్తనం అమలు కాదు."</string>
+    <string msgid="1366439133145190222" name="common_android_wear_update_title">"Android Wearని నవీకరించండి"</string>
+    <string msgid="4181637455539816337" name="common_google_play_services_enable_button">"Google Play సేవలను ప్రారంభించు"</string>
+    <string msgid="7627896071867667758" name="common_google_play_services_enable_text">"మీరు Google Play సేవలను ప్రారంభిస్తే మినహా ఈ అనువర్తనం పని చేయదు."</string>
+    <string msgid="529078775174559253" name="common_google_play_services_enable_title">"Google Play సేవలను ప్రారంభించు"</string>
+    <string msgid="2443362625939284971" name="common_google_play_services_error_notification_requested_by_msg">"<ns1:g id="APP_NAME">%1$s</ns1:g> ద్వారా అభ్యర్థించబడింది"</string>
+    <string msgid="8515591849428043265" name="common_google_play_services_install_button">"Google Play సేవలను పొందండి"</string>
+    <string msgid="8685301130651051380" name="common_google_play_services_install_text_phone">"ఈ అనువర్తనం Google Play సేవలు లేకుండా అమలు కాదు, ఆ సేవలు మీ ఫోన్‌లో లేవు."</string>
+    <string msgid="1589957570365247855" name="common_google_play_services_install_text_tablet">"ఈ అనువర్తనం Google Play సేవలు లేకుండా అమలు కాదు, ఆ సేవలు మీ టాబ్లెట్‌లో లేవు."</string>
+    <string msgid="26645092511305524" name="common_google_play_services_install_title">"Google Play సేవలను పొందండి"</string>
+    <string msgid="4983316348021735578" name="common_google_play_services_invalid_account_text">"పేర్కొన్న ఖాతా ఈ పరికరంలో లేదు. దయచేసి వేరొక ఖాతాను ఎంచుకోండి."</string>
+    <string msgid="1066672360770936753" name="common_google_play_services_invalid_account_title">"చెల్లని ఖాతా"</string>
+    <string msgid="2583358409598976717" name="common_google_play_services_needs_enabling_title">"ఒక అనువర్తనానికి Google Play సేవలు ప్రారంభించబడాలి."</string>
+    <string msgid="9038847255613537209" name="common_google_play_services_network_error_text">"Google Play సేవలకు కనెక్ట్ చేయడానికి డేటా కనెక్షన్ అవసరం."</string>
+    <string msgid="3827284619958211114" name="common_google_play_services_network_error_title">"నెట్‌వర్క్ లోపం"</string>
+    <string msgid="8120534356798772974" name="common_google_play_services_notification_needs_installation_title">"ఒక అనువర్తనానికి Google Play సేవల యొక్క ఇన్‌స్టాలేషన్ అవసరం."</string>
+    <string msgid="1388129345631079938" name="common_google_play_services_notification_needs_update_title">"ఒక అనువర్తనానికి Google Play సేవలు నవీకరించబడటం అవసరం."</string>
+    <string msgid="1852570676146674985" name="common_google_play_services_notification_ticker">"Google Play సేవల లోపం"</string>
+    <string msgid="5194079840165204725" name="common_google_play_services_sign_in_failed_text">"పేర్కొన్న ఖాతాలో సైన్ ఇన్ చేయడంలో లోపం. దయచేసి వేరే ఖాతాను ఎంచుకోండి."</string>
+    <string msgid="8164948898147532159" name="common_google_play_services_sign_in_failed_title">"సైన్ ఇన్ విఫలమైంది"</string>
+    <string msgid="4762332809710093730" name="common_google_play_services_unknown_issue">"Google Play సేవలతో తెలియని సమస్య."</string>
+    <string msgid="3542578567569488671" name="common_google_play_services_unsupported_text">"మీ అనువర్తనాల్లో కొన్ని ఆధారపడే Google Play సేవలకు మీ పరికరంలో మద్దతు లేదు. దయచేసి సహాయం కోసం తయారీదారును సంప్రదించండి."</string>
+    <string msgid="6334768798839376943" name="common_google_play_services_unsupported_title">"Google Play సేవలు"</string>
+    <string msgid="8932944190611227642" name="common_google_play_services_update_button">"నవీకరించు"</string>
+    <string msgid="448354684997260580" name="common_google_play_services_update_text">"మీరు Google Play సేవలను నవీకరిస్తే మినహా ఈ అనువర్తనం అమలు కాదు."</string>
+    <string msgid="6006316683626838685" name="common_google_play_services_update_title">"Google Play సేవలను నవీకరించండి"</string>
+    <string msgid="411506735369601515" name="common_open_on_phone">"ఫోన్‌లో తెరవండి"</string>
+    <string msgid="9071884888741449141" name="common_signin_button_text">"సైన్ ఇన్ చేయి"</string>
+    <string msgid="2429381841831957106" name="common_signin_button_text_long">"Googleతో సైన్ ఇన్ చేయి"</string>
+    <string msgid="5000919058582214855" name="commono_google_play_services_api_unavailable_text">"ఈ అనువర్తనానికి ప్రస్తుతం అందుబాటులో లేని ఒకటి లేదా అంతకంటే ఎక్కువ Google Play సేవలు అవసరం. దయచేసి సహాయం కోసం డెవలపర్‌ను సంప్రదించండి."</string>
+    <string msgid="2869576371154716097" name="status_bar_notification_info_overflow">"999+"</string>
+</resources>

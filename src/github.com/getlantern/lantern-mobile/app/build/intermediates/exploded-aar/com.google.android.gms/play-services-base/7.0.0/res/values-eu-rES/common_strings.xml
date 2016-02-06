@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="common_google_play_services_notification_ticker" msgid="1852570676146674985">"Google Play zerbitzuen errorea"</string>
+    <string name="common_google_play_services_notification_needs_installation_title" msgid="8120534356798772974">"Aplikazio batek Google Play zerbitzuak instalatzea eskatzen du."</string>
+    <string name="common_google_play_services_notification_needs_update_title" msgid="1388129345631079938">"Aplikazio batek Google Play zerbitzuak eguneratzea eskatzen du."</string>
+    <string name="common_android_wear_notification_needs_update_text" msgid="473679118463211576">"Aplikazio batek Android Wear eguneratzea eskatzen du."</string>
+    <string name="common_google_play_services_needs_enabling_title" msgid="2583358409598976717">"Aplikazio batek Google Play zerbitzuak gaituta egotea eskatzen du."</string>
+    <string name="common_google_play_services_error_notification_requested_by_msg" msgid="2443362625939284971">"<xliff:g id="APP_NAME">%1$s</xliff:g> aplikazioak eskatu du"</string>
+    <string name="common_google_play_services_install_title" msgid="26645092511305524">"Lortu Google Play zerbitzuak"</string>
+    <string name="common_google_play_services_install_text_phone" msgid="8685301130651051380">"Aplikazio hau ez da exekutatuko Google Play zerbitzurik gabe, baina horiek ez daude telefonoan."</string>
+    <string name="common_google_play_services_install_text_tablet" msgid="1589957570365247855">"Aplikazio hau ez da exekutatuko Google Play zerbitzurik gabe, baina horiek ez daude tabletan."</string>
+    <string name="common_google_play_services_install_button" msgid="8515591849428043265">"Lortu Google Play zerbitzuak"</string>
+    <string name="common_google_play_services_enable_title" msgid="529078775174559253">"Gaitu Google Play zerbitzuak"</string>
+    <string name="common_google_play_services_enable_text" msgid="7627896071867667758">"Aplikazio honek ez du funtzionatuko Google Play zerbitzuak gaitzen ez badituzu."</string>
+    <string name="common_google_play_services_enable_button" msgid="4181637455539816337">"Gaitu Google Play zerbitzuak"</string>
+    <string name="common_google_play_services_update_title" msgid="6006316683626838685">"Eguneratu Google Play zerbitzuak"</string>
+    <string name="common_android_wear_update_title" msgid="1366439133145190222">"Eguneratu Android Wear"</string>
+    <string name="common_google_play_services_update_text" msgid="448354684997260580">"Aplikazio hau ez da exekutatuko Google Play zerbitzuak eguneratzen ez badituzu."</string>
+    <string name="common_android_wear_update_text" msgid="3046420540094071256">"Aplikazio hau ez da exekutatuko Android Wear aplikazioa eguneratu ezean."</string>
+    <string name="common_google_play_services_network_error_title" msgid="3827284619958211114">"Sareko errorea"</string>
+    <string name="common_google_play_services_network_error_text" msgid="9038847255613537209">"Datu-konexioa behar da Google Play zerbitzuetara konektatzeko."</string>
+    <string name="common_google_play_services_invalid_account_title" msgid="1066672360770936753">"Kontu baliogabea"</string>
+    <string name="common_google_play_services_invalid_account_text" msgid="4983316348021735578">"Zehaztutako kontua ez dago gailuan. Aukeratu beste kontu bat."</string>
+    <string name="common_google_play_services_unknown_issue" msgid="4762332809710093730">"Google Play zerbitzuekin arazo ezezaguna dago."</string>
+    <string name="common_google_play_services_unsupported_title" msgid="6334768798839376943">"Google Play zerbitzuak"</string>
+    <string name="common_google_play_services_unsupported_text" msgid="3542578567569488671">"Aplikazioetako batzuek behar dituzten Google Play zerbitzuak ez dira zure gailuan onartzen. Laguntza lortzeko, jarri fabrikatzailearen harremanetan."</string>
+    <string name="common_google_play_services_update_button" msgid="8932944190611227642">"Eguneratu"</string>
+    <string name="common_signin_button_text" msgid="9071884888741449141">"Hasi saioa"</string>
+    <string name="common_signin_button_text_long" msgid="2429381841831957106">"Hasi saioa Google-n"</string>
+    <string name="common_open_on_phone" msgid="411506735369601515">"Ireki telefonoan"</string>
+    <string name="commono_google_play_services_api_unavailable_text" msgid="5000919058582214855">"Aplikazio hau erabiltzeko unean erabilgarri ez dagoen beste Google Play zerbitzu bat behar da. Laguntza lortzeko, jarri garatzailearekin harremanetan."</string>
+    <string name="common_google_play_services_sign_in_failed_title" msgid="8164948898147532159">"Ezin izan da hasi saioa"</string>
+    <string name="common_google_play_services_sign_in_failed_text" msgid="5194079840165204725">"Errore bat gertatu da zehaztutako kontuan saioa hastean. Aukeratu beste kontu bat."</string>
+</resources>

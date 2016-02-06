@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2">
+    <string msgid="4600421777120114993" name="abc_action_bar_home_description">"Navigeer tuis"</string>
+    <string msgid="1397052879051804371" name="abc_action_bar_home_description_format">"%1$s, %2$s"</string>
+    <string msgid="6623331958280229229" name="abc_action_bar_home_subtitle_description_format">"%1$s, %2$s, %3$s"</string>
+    <string msgid="1594238315039666878" name="abc_action_bar_up_description">"Navigeer op"</string>
+    <string msgid="3588849162933574182" name="abc_action_menu_overflow_description">"Nog opsies"</string>
+    <string msgid="4076576682505996667" name="abc_action_mode_done">"Klaar"</string>
+    <string msgid="7468859129482906941" name="abc_activity_chooser_view_see_all">"Sien alles"</string>
+    <string msgid="2031811694353399454" name="abc_activitychooserview_choose_application">"Kies \'n program"</string>
+    <string msgid="7723749260725869598" name="abc_search_hint">"Soek …"</string>
+    <string msgid="3691816814315814921" name="abc_searchview_description_clear">"Vee navraag uit"</string>
+    <string msgid="2550479030709304392" name="abc_searchview_description_query">"Soeknavraag"</string>
+    <string msgid="8264924765203268293" name="abc_searchview_description_search">"Soek"</string>
+    <string msgid="8928215447528550784" name="abc_searchview_description_submit">"Dien navraag in"</string>
+    <string msgid="893419373245838918" name="abc_searchview_description_voice">"Stemsoektog"</string>
+    <string msgid="3421042268587513524" name="abc_shareactionprovider_share_with">"Deel met"</string>
+    <string msgid="7165123711973476752" name="abc_shareactionprovider_share_with_application">"Deel met %s"</string>
+    <string msgid="1603543279005712093" name="abc_toolbar_collapse_description">"Vou in"</string>
+    <string msgid="473679118463211576" name="common_android_wear_notification_needs_update_text">"\'n Program vereis \'n opdatering na die Android Wear-program."</string>
+    <string msgid="3046420540094071256" name="common_android_wear_update_text">"Hierdie program sal nie werk tensy jy die Android Wear-program opdateer nie."</string>
+    <string msgid="1366439133145190222" name="common_android_wear_update_title">"Dateer Android Wear op"</string>
+    <string msgid="4181637455539816337" name="common_google_play_services_enable_button">"Aktiveer Google Play-dienste"</string>
+    <string msgid="7627896071867667758" name="common_google_play_services_enable_text">"Hierdie program sal nie werk tensy jy Google Play-dienste aktiveer nie."</string>
+    <string msgid="529078775174559253" name="common_google_play_services_enable_title">"Aktiveer Google Play-dienste"</string>
+    <string msgid="2443362625939284971" name="common_google_play_services_error_notification_requested_by_msg">"Versoek deur <ns1:g id="APP_NAME">%1$s</ns1:g>"</string>
+    <string msgid="8515591849428043265" name="common_google_play_services_install_button">"Kry Google Play-dienste"</string>
+    <string msgid="8685301130651051380" name="common_google_play_services_install_text_phone">"Hierdie program sal nie loop sonder Google Play-dienste nie, wat nie op jou foon is nie."</string>
+    <string msgid="1589957570365247855" name="common_google_play_services_install_text_tablet">"Hierdie program sal nie loop sonder Google Play-dienste nie, wat nie op jou tablet is nie."</string>
+    <string msgid="26645092511305524" name="common_google_play_services_install_title">"Kry Google Play-dienste"</string>
+    <string msgid="4983316348021735578" name="common_google_play_services_invalid_account_text">"Die gespesifiseerde rekening bestaan nie op hierdie toestel nie. Kies asseblief \'n ander rekening."</string>
+    <string msgid="1066672360770936753" name="common_google_play_services_invalid_account_title">"Ongeldige rekening"</string>
+    <string msgid="2583358409598976717" name="common_google_play_services_needs_enabling_title">"\'n Program vereis dat Google Play Services geaktiveer word."</string>
+    <string msgid="9038847255613537209" name="common_google_play_services_network_error_text">"\'n Dataverbinding is nodig om aan Google Play-dienste te koppel."</string>
+    <string msgid="3827284619958211114" name="common_google_play_services_network_error_title">"Netwerkfout"</string>
+    <string msgid="8120534356798772974" name="common_google_play_services_notification_needs_installation_title">"\'n Program vereis dat Google Play Services geïnstalleer word."</string>
+    <string msgid="1388129345631079938" name="common_google_play_services_notification_needs_update_title">"\'n Program vereis dat Google Play Services opgedateer word."</string>
+    <string msgid="1852570676146674985" name="common_google_play_services_notification_ticker">"Google Play Services-fout"</string>
+    <string msgid="5194079840165204725" name="common_google_play_services_sign_in_failed_text">"Kon nie by die gespesifiseerde rekening aanmeld nie. Kies \'n ander rekening."</string>
+    <string msgid="8164948898147532159" name="common_google_play_services_sign_in_failed_title">"Kon nie aanmeld nie"</string>
+    <string msgid="4762332809710093730" name="common_google_play_services_unknown_issue">"Onbekende probleem met Google Play-dienste."</string>
+    <string msgid="3542578567569488671" name="common_google_play_services_unsupported_text">"Google Play-dienste, waarop sommige van jou programme staatmaak, werk nie met jou toestel nie. Kontak asseblief die vervaardiger vir bystand."</string>
+    <string msgid="6334768798839376943" name="common_google_play_services_unsupported_title">"Google Play-dienste"</string>
+    <string msgid="8932944190611227642" name="common_google_play_services_update_button">"Dateer op"</string>
+    <string msgid="448354684997260580" name="common_google_play_services_update_text">"Hierdie program sal nie loop nie, tensy jy Google Play-dienste opdateer."</string>
+    <string msgid="6006316683626838685" name="common_google_play_services_update_title">"Dateer Google Play-dienste op"</string>
+    <string msgid="411506735369601515" name="common_open_on_phone">"Maak op foon oop"</string>
+    <string msgid="9071884888741449141" name="common_signin_button_text">"Meld aan"</string>
+    <string msgid="2429381841831957106" name="common_signin_button_text_long">"Meld aan met Google"</string>
+    <string msgid="5000919058582214855" name="commono_google_play_services_api_unavailable_text">"Hierdie program vereis een of meer Google Play-dienste wat tans nie beskikbaar is nie. Kontak die ontwikkelaar vir bystand."</string>
+    <string msgid="2869576371154716097" name="status_bar_notification_info_overflow">"999+"</string>
+</resources>
