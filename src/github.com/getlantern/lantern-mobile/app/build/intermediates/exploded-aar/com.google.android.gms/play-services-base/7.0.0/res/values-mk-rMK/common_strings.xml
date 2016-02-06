@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="common_google_play_services_notification_ticker" msgid="1852570676146674985">"Грешка на услугите на Google Play"</string>
+    <string name="common_google_play_services_notification_needs_installation_title" msgid="8120534356798772974">"Апликацијата бара да се инсталираат услугите на Google Play."</string>
+    <string name="common_google_play_services_notification_needs_update_title" msgid="1388129345631079938">"Апликацијата бара да се ажурираат услугите на Google Play."</string>
+    <string name="common_android_wear_notification_needs_update_text" msgid="473679118463211576">"Една апликација бара ажурирање на апликацијата Android Wear."</string>
+    <string name="common_google_play_services_needs_enabling_title" msgid="2583358409598976717">"Апликацијата бара да се овозможат услугите на Google Play."</string>
+    <string name="common_google_play_services_error_notification_requested_by_msg" msgid="2443362625939284971">"Побарал <xliff:g id="APP_NAME">%1$s</xliff:g>"</string>
+    <string name="common_google_play_services_install_title" msgid="26645092511305524">"Преземи ги услугите на Google Play"</string>
+    <string name="common_google_play_services_install_text_phone" msgid="8685301130651051380">"Апликацијата нема да работи без услугите на Google Play, кои недостасуваат од вашиот телефон."</string>
+    <string name="common_google_play_services_install_text_tablet" msgid="1589957570365247855">"Апликацијата нема да работи без услугите на Google Play, кои недостасуваат од вашиот таблет."</string>
+    <string name="common_google_play_services_install_button" msgid="8515591849428043265">"Преземи ги услугите на Google Play"</string>
+    <string name="common_google_play_services_enable_title" msgid="529078775174559253">"Овозможи ги услугите на Google Play"</string>
+    <string name="common_google_play_services_enable_text" msgid="7627896071867667758">"Апликацијата нема да работи ако не ги овозможите услугите на Google Play."</string>
+    <string name="common_google_play_services_enable_button" msgid="4181637455539816337">"Овозможи ги услугите на Google Play"</string>
+    <string name="common_google_play_services_update_title" msgid="6006316683626838685">"Ажурирај ги услугите на Google Play"</string>
+    <string name="common_android_wear_update_title" msgid="1366439133145190222">"Ажурирај Android Wear"</string>
+    <string name="common_google_play_services_update_text" msgid="448354684997260580">"Апликацијата нема да работи ако не ги ажурирате услугите на Google Play."</string>
+    <string name="common_android_wear_update_text" msgid="3046420540094071256">"Апликацијата нема да работи ако не ја ажурирате апликацијата Android Wear."</string>
+    <string name="common_google_play_services_network_error_title" msgid="3827284619958211114">"Мрежна грешка"</string>
+    <string name="common_google_play_services_network_error_text" msgid="9038847255613537209">"Потребно е поврзување податоци за да се поврзете со услугите на Google Play."</string>
+    <string name="common_google_play_services_invalid_account_title" msgid="1066672360770936753">"Неважечка сметка"</string>
+    <string name="common_google_play_services_invalid_account_text" msgid="4983316348021735578">"Наведената сметка не постои на овој уред. Изберете друга сметка."</string>
+    <string name="common_google_play_services_unknown_issue" msgid="4762332809710093730">"Непознат проблем со услугите на Google Play."</string>
+    <string name="common_google_play_services_unsupported_title" msgid="6334768798839376943">"Услуги на Google Play"</string>
+    <string name="common_google_play_services_unsupported_text" msgid="3542578567569488671">"Уредот не ги поддржува услугите на Google Play на кои се потпираат некои од вашите апликации. Контактирајте со производителот за помош."</string>
+    <string name="common_google_play_services_update_button" msgid="8932944190611227642">"Ажурирај"</string>
+    <string name="common_signin_button_text" msgid="9071884888741449141">"Најави се"</string>
+    <string name="common_signin_button_text_long" msgid="2429381841831957106">"Најави се со Google"</string>
+    <string name="common_open_on_phone" msgid="411506735369601515">"Отвори на телефонот"</string>
+    <string name="commono_google_play_services_api_unavailable_text" msgid="5000919058582214855">"Оваа апликација бара една или повеќе услуги на Google Play што во моментов не се достапни. Контактирајте со програмерот за помош."</string>
+    <string name="common_google_play_services_sign_in_failed_title" msgid="8164948898147532159">"Пријавувањето не успеа"</string>
+    <string name="common_google_play_services_sign_in_failed_text" msgid="5194079840165204725">"Грешка при пријавување во наведената сметка. Изберете друга сметка."</string>
+</resources>

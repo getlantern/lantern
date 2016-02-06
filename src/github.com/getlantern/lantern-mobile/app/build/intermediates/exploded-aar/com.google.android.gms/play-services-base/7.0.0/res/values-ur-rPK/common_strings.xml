@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="common_google_play_services_notification_ticker" msgid="1852570676146674985">"‏Google Play سروسز کی خرابی"</string>
+    <string name="common_google_play_services_notification_needs_installation_title" msgid="8120534356798772974">"‏ایک ایپلیکیشن کیلئے Google Play سروسز کا انسٹال ہونا ضروری ہے۔"</string>
+    <string name="common_google_play_services_notification_needs_update_title" msgid="1388129345631079938">"‏ایک ایپلیکیشن کیلئے Google Play سروسز کیلئے ایک اپ ڈیٹ ضروری ہے۔"</string>
+    <string name="common_android_wear_notification_needs_update_text" msgid="473679118463211576">"‏ایک اپیلیکیشن کو Android Wear ایپ کیلئے ایک اپ ڈیٹ درکار ہے۔"</string>
+    <string name="common_google_play_services_needs_enabling_title" msgid="2583358409598976717">"‏ایک ایپلیکیشن کیلئے Google Play سروسز کا فعال ہونا ضروری ہے۔"</string>
+    <string name="common_google_play_services_error_notification_requested_by_msg" msgid="2443362625939284971">"<xliff:g id="APP_NAME">%1$s</xliff:g> کے ذریعے درخواست کی گئی"</string>
+    <string name="common_google_play_services_install_title" msgid="26645092511305524">"‏Google Play سروسز حاصل کریں"</string>
+    <string name="common_google_play_services_install_text_phone" msgid="8685301130651051380">"‏یہ ایپ Google Play سروسز کے بغیر نہیں چلے گی، جو آپ کے فون سے غائب ہے۔"</string>
+    <string name="common_google_play_services_install_text_tablet" msgid="1589957570365247855">"‏یہ ایپ Google Play سروسز کے بغیر نہیں چلے گی، جو آپ کے ٹیبلیٹ سے غائب ہے۔"</string>
+    <string name="common_google_play_services_install_button" msgid="8515591849428043265">"‏Google Play سروسز حاصل کریں"</string>
+    <string name="common_google_play_services_enable_title" msgid="529078775174559253">"‏Google Play سروسز فعال کریں"</string>
+    <string name="common_google_play_services_enable_text" msgid="7627896071867667758">"‏یہ ایپ تب تک کام نہیں کرے گی جب تک کہ آپ Google Play سروسز فعال نہیں کر لیتے ہیں۔"</string>
+    <string name="common_google_play_services_enable_button" msgid="4181637455539816337">"‏Google Play سروسز فعال کریں"</string>
+    <string name="common_google_play_services_update_title" msgid="6006316683626838685">"‏Google Play سروسز اپ ڈیٹ کریں"</string>
+    <string name="common_android_wear_update_title" msgid="1366439133145190222">"‏Android Wear کو اپ ڈیٹ کریں"</string>
+    <string name="common_google_play_services_update_text" msgid="448354684997260580">"‏یہ ایپ تب تک نہیں چلے گی جب تک کہ آپ Google Play سروسز اپ ڈیٹ نہیں کر لیتے ہیں۔"</string>
+    <string name="common_android_wear_update_text" msgid="3046420540094071256">"‏جب تک آپ Android Wear ایپ کو اپ ڈیٹ نہیں کر لیتے یہ ایپ نہیں چلے گی۔"</string>
+    <string name="common_google_play_services_network_error_title" msgid="3827284619958211114">"نیٹ ورک میں خرابی"</string>
+    <string name="common_google_play_services_network_error_text" msgid="9038847255613537209">"‏Google Play سروسز سے مربوط ہونے کیلئے ایک ڈیٹا کنکشن کی ضرورت ہے۔"</string>
+    <string name="common_google_play_services_invalid_account_title" msgid="1066672360770936753">"غلط اکاؤنٹ"</string>
+    <string name="common_google_play_services_invalid_account_text" msgid="4983316348021735578">"متعین اکاؤنٹ اس آلہ پر موجود نہیں ہے۔ براہ کرم ایک مختلف اکاؤنٹ منتخب کریں۔"</string>
+    <string name="common_google_play_services_unknown_issue" msgid="4762332809710093730">"‏Google Play سروسز کے ساتھ نامعلوم مسئلہ۔"</string>
+    <string name="common_google_play_services_unsupported_title" msgid="6334768798839376943">"‏Google Play سروسز"</string>
+    <string name="common_google_play_services_unsupported_text" msgid="3542578567569488671">"‏Google Play سروسز، جن پر آپ کی کچھ ایپلیکیشنز انحصار کرتی ہیں، آپ کے آلہ کے ذریعے تعاون یافتہ نہیں ہے۔ براہ کرم مدد کیلئے مینوفیکچرر سے رابطہ کریں۔"</string>
+    <string name="common_google_play_services_update_button" msgid="8932944190611227642">"اپ ڈیٹ کریں"</string>
+    <string name="common_signin_button_text" msgid="9071884888741449141">"سائن ان کریں"</string>
+    <string name="common_signin_button_text_long" msgid="2429381841831957106">"‏Google کے ساتھ سائن ان کریں"</string>
+    <string name="common_open_on_phone" msgid="411506735369601515">"فون پر کھولیں"</string>
+    <string name="commono_google_play_services_api_unavailable_text" msgid="5000919058582214855">"‏اس ایپ کیلئے ایک یا مزید Google Play سروسز درکار ہس جو فی الحال دستیاب نہیں ہے۔ براہ کرم مدد کیلئے ڈیولپر سے رابطہ کریں۔"</string>
+    <string name="common_google_play_services_sign_in_failed_title" msgid="8164948898147532159">"سائن ان کرنا ناکام ہوگیا"</string>
+    <string name="common_google_play_services_sign_in_failed_text" msgid="5194079840165204725">"متعینہ اکاؤنٹ میں سائن ان کرنے میں خرابی آگئی۔ براہ کرم ایک مختلف اکاؤنٹ منتخب کریں۔"</string>
+</resources>

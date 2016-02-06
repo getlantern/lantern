@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2">
+    <string msgid="4600421777120114993" name="abc_action_bar_home_description">"হোম এ নেভিগেট করুন"</string>
+    <string msgid="1397052879051804371" name="abc_action_bar_home_description_format">"%1$s, %2$s"</string>
+    <string msgid="6623331958280229229" name="abc_action_bar_home_subtitle_description_format">"%1$s, %2$s, %3$s"</string>
+    <string msgid="1594238315039666878" name="abc_action_bar_up_description">"উপরের দিকে নেভিগেট করুন"</string>
+    <string msgid="3588849162933574182" name="abc_action_menu_overflow_description">"আরো বিকল্প"</string>
+    <string msgid="4076576682505996667" name="abc_action_mode_done">"সম্পন্ন হয়েছে"</string>
+    <string msgid="7468859129482906941" name="abc_activity_chooser_view_see_all">"সবগুলো দেখুন"</string>
+    <string msgid="2031811694353399454" name="abc_activitychooserview_choose_application">"একটি অ্যাপ্লিকেশান চয়ন করুন"</string>
+    <string msgid="7723749260725869598" name="abc_search_hint">"অনুসন্ধান..."</string>
+    <string msgid="3691816814315814921" name="abc_searchview_description_clear">"ক্যোয়ারী সাফ করুন"</string>
+    <string msgid="2550479030709304392" name="abc_searchview_description_query">"ক্যোয়ারী অনুসন্ধান করুন"</string>
+    <string msgid="8264924765203268293" name="abc_searchview_description_search">"অনুসন্ধান করুন"</string>
+    <string msgid="8928215447528550784" name="abc_searchview_description_submit">"ক্যোয়ারী জমা দিন"</string>
+    <string msgid="893419373245838918" name="abc_searchview_description_voice">"ভয়েস অনুসন্ধান"</string>
+    <string msgid="3421042268587513524" name="abc_shareactionprovider_share_with">"এর সাথে ভাগ করুন"</string>
+    <string msgid="7165123711973476752" name="abc_shareactionprovider_share_with_application">"%s এর সাথে ভাগ করুন"</string>
+    <string msgid="1603543279005712093" name="abc_toolbar_collapse_description">"সঙ্কুচিত করুন"</string>
+    <string msgid="473679118463211576" name="common_android_wear_notification_needs_update_text">"একটি অ্যাপ্লিকেশানের জন্য Android Wear অ্যাপ্লিকেশানটির একটি আপডেট প্রয়োজন।"</string>
+    <string msgid="3046420540094071256" name="common_android_wear_update_text">"আপনি Android Wear অ্যাপ্লিকেশান আপডেট না করা পর্যন্ত এই অ্যাপ্লিকেশানটি চলবে না।"</string>
+    <string msgid="1366439133145190222" name="common_android_wear_update_title">"Android Wear আপডেট করুন"</string>
+    <string msgid="4181637455539816337" name="common_google_play_services_enable_button">"Google প্লে পরিষেবা সক্ষম করুন"</string>
+    <string msgid="7627896071867667758" name="common_google_play_services_enable_text">"আপনি যতক্ষণ  না Google প্লে পরিষেবা সক্ষম করবেন ততক্ষণ এই অ্যাপ্লিকেশানটি চলবে না৷"</string>
+    <string msgid="529078775174559253" name="common_google_play_services_enable_title">"Google প্লে পরিষেবা সক্ষম করুন"</string>
+    <string msgid="2443362625939284971" name="common_google_play_services_error_notification_requested_by_msg">"<ns1:g id="APP_NAME">%1$s</ns1:g> দ্বারা অনুরোধ করা হয়েছে"</string>
+    <string msgid="8515591849428043265" name="common_google_play_services_install_button">"Google প্লে পরিষেবা পান"</string>
+    <string msgid="8685301130651051380" name="common_google_play_services_install_text_phone">"Google প্লে পরিষেবা ছাড়া এই অ্যাপ্লিকেশানটি চলবে না, যেটি আপনার ফোনে অনুপস্থিত৷"</string>
+    <string msgid="1589957570365247855" name="common_google_play_services_install_text_tablet">"Google প্লে পরিষেবা ছাড়া এই অ্যাপ্লিকেশানটি চলবে না, যেটি আপনার ট্যাবলেটে অনুপস্থিত৷"</string>
+    <string msgid="26645092511305524" name="common_google_play_services_install_title">"Google প্লে পরিষেবা পান"</string>
+    <string msgid="4983316348021735578" name="common_google_play_services_invalid_account_text">"নির্দিষ্ট করা অ্যাকাউন্টটি ডিভাইসে বিদ্যমান নেই৷ দয়া করে একটি ভিন্ন অ্যাকাউন্ট চয়ন করুন৷"</string>
+    <string msgid="1066672360770936753" name="common_google_play_services_invalid_account_title">"অবৈধ অ্যাকাউন্ট"</string>
+    <string msgid="2583358409598976717" name="common_google_play_services_needs_enabling_title">"একটি অ্যাপ্লিকেশানের জন্য Google প্লে পরিষেবা সক্ষম করা প্রয়োজন৷"</string>
+    <string msgid="9038847255613537209" name="common_google_play_services_network_error_text">"Google প্লে পরিষেবা সংযোগ করতে একটি ডেটা সংযোগের প্রয়োজন৷"</string>
+    <string msgid="3827284619958211114" name="common_google_play_services_network_error_title">"নেটওয়ার্ক ত্রুটি"</string>
+    <string msgid="8120534356798772974" name="common_google_play_services_notification_needs_installation_title">"একটি অ্যাপ্লিকেশানের জন্য Google প্লে পরিষেবার ইনস্টল করা প্রয়োজন৷"</string>
+    <string msgid="1388129345631079938" name="common_google_play_services_notification_needs_update_title">"একটি অ্যাপ্লিকেশানের জন্য Google প্লে পরিষেবার একটি আপডেটের প্রয়োজন৷"</string>
+    <string msgid="1852570676146674985" name="common_google_play_services_notification_ticker">"Google প্লে পরিষেবার ত্রুটি"</string>
+    <string msgid="5194079840165204725" name="common_google_play_services_sign_in_failed_text">"নির্দিষ্ট অ্যাকাউন্টে সাইন ইন করার সময় ত্রুটি৷ দয়া করে একটি আলাদা অ্যাকাউন্ট চয়ন করুন৷"</string>
+    <string msgid="8164948898147532159" name="common_google_play_services_sign_in_failed_title">"সাইন ইন করতে ব্যর্থ হয়েছে"</string>
+    <string msgid="4762332809710093730" name="common_google_play_services_unknown_issue">"Google প্লে পরিষেবার সঙ্গে অজানা সমস্যা৷"</string>
+    <string msgid="3542578567569488671" name="common_google_play_services_unsupported_text">"Google প্লে পরিষেবা, যার উপর আপনার কিছু অ্যাপ্লিকেশান নির্ভর করে, আপনার ডিভাইসে সমর্থিত নয়৷ দয়া করে সহায়তার জন্য প্রস্তুতকারকের সাথে যোগাযোগ করুন৷"</string>
+    <string msgid="6334768798839376943" name="common_google_play_services_unsupported_title">"Google প্লে পরিষেবা"</string>
+    <string msgid="8932944190611227642" name="common_google_play_services_update_button">"আপডেট করুন"</string>
+    <string msgid="448354684997260580" name="common_google_play_services_update_text">"আপনি যতক্ষণ না Google প্লে পরিষেবা আপডেট ততক্ষণ এই অ্যাপ্লিকেশানটি চলবে না৷"</string>
+    <string msgid="6006316683626838685" name="common_google_play_services_update_title">"Google প্লে পরিষেবা আপডেট করুন"</string>
+    <string msgid="411506735369601515" name="common_open_on_phone">"ফোনে খুলুন"</string>
+    <string msgid="9071884888741449141" name="common_signin_button_text">"সাইন ইন করুন"</string>
+    <string msgid="2429381841831957106" name="common_signin_button_text_long">"Google এর মাধ্যমে সাইন ইন করুন"</string>
+    <string msgid="5000919058582214855" name="commono_google_play_services_api_unavailable_text">"এই অ্যাপ্লিকেশানটির এক বা একাধিক Google Play পরিষেবার প্রয়োজন যা বর্তমানে অনুপলব্ধ৷ সহায়তার জন্য অনুগ্রহ করে বিকাশকারীর সাথে যোগাযোগ করুন৷"</string>
+    <string msgid="2869576371154716097" name="status_bar_notification_info_overflow">"৯৯৯+"</string>
+</resources>

@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/res/merged/debug/raw/settings.yaml",
+        "source": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/src/main/res/raw/settings.yaml"
+    },
+    {
+        "merged": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/res/merged/debug/raw/gtm_analytics",
+        "source": "/Users/ox.to.a.cart/lantern2/src/github.com/getlantern/lantern-mobile/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-analytics/7.0.0/res/raw/gtm_analytics"
+    }
+]

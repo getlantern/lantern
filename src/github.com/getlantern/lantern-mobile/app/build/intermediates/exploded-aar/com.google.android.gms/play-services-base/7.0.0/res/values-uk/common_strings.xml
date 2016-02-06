@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="common_google_play_services_notification_ticker" msgid="1852570676146674985">"Помилка сервісів Google Play"</string>
+    <string name="common_google_play_services_notification_needs_installation_title" msgid="8120534356798772974">"Щоб додаток працював, потрібно встановити сервіси Google Play."</string>
+    <string name="common_google_play_services_notification_needs_update_title" msgid="1388129345631079938">"Щоб додаток працював, потрібно оновити сервіси Google Play."</string>
+    <string name="common_android_wear_notification_needs_update_text" msgid="473679118463211576">"Для роботи додатка потрібно оновити Android Wear."</string>
+    <string name="common_google_play_services_needs_enabling_title" msgid="2583358409598976717">"Щоб додаток працював, потрібно ввімкнути сервіси Google Play."</string>
+    <string name="common_google_play_services_error_notification_requested_by_msg" msgid="2443362625939284971">"Запит від додатка <xliff:g id="APP_NAME">%1$s</xliff:g>"</string>
+    <string name="common_google_play_services_install_title" msgid="26645092511305524">"Установіть сервіси Google Play"</string>
+    <string name="common_google_play_services_install_text_phone" msgid="8685301130651051380">"Ця програма не запуститься без Google Play Послуг, яких немає у вашому телефоні."</string>
+    <string name="common_google_play_services_install_text_tablet" msgid="1589957570365247855">"Ця програма не запуститься без Google Play Послуг, яких немає на вашому планшетному ПК."</string>
+    <string name="common_google_play_services_install_button" msgid="8515591849428043265">"Установити сервіси Google Play"</string>
+    <string name="common_google_play_services_enable_title" msgid="529078775174559253">"Увімкніть сервіси Google Play"</string>
+    <string name="common_google_play_services_enable_text" msgid="7627896071867667758">"Цей додаток не працюватиме, доки ви не ввімкнете сервіси Google Play."</string>
+    <string name="common_google_play_services_enable_button" msgid="4181637455539816337">"Увімкнути сервіси Google Play"</string>
+    <string name="common_google_play_services_update_title" msgid="6006316683626838685">"Оновіть сервіси Google Play"</string>
+    <string name="common_android_wear_update_title" msgid="1366439133145190222">"Оновити Android Wear"</string>
+    <string name="common_google_play_services_update_text" msgid="448354684997260580">"Цей додаток не запуститься, доки ви не оновите сервіси Google Play."</string>
+    <string name="common_android_wear_update_text" msgid="3046420540094071256">"Цей додаток запуститься, лише коли ви оновите Android Wear."</string>
+    <string name="common_google_play_services_network_error_title" msgid="3827284619958211114">"Помилка мережі"</string>
+    <string name="common_google_play_services_network_error_text" msgid="9038847255613537209">"Для під’єднання до сервісів Google Play потрібне з’єднання з мережею."</string>
+    <string name="common_google_play_services_invalid_account_title" msgid="1066672360770936753">"Недійсний обліковий запис"</string>
+    <string name="common_google_play_services_invalid_account_text" msgid="4983316348021735578">"Указаний обліковий запис не існує на цьому пристрої. Виберіть інший обліковий запис."</string>
+    <string name="common_google_play_services_unknown_issue" msgid="4762332809710093730">"Невідома проблема із сервісами Google Play."</string>
+    <string name="common_google_play_services_unsupported_title" msgid="6334768798839376943">"Сервіси Google Play"</string>
+    <string name="common_google_play_services_unsupported_text" msgid="3542578567569488671">"Ваш пристрій не підтримує Сервіси Google Play, від яких залежить робота деяких програм. Зверніться по допомогу до виробника."</string>
+    <string name="common_google_play_services_update_button" msgid="8932944190611227642">"Оновити"</string>
+    <string name="common_signin_button_text" msgid="9071884888741449141">"Увійти"</string>
+    <string name="common_signin_button_text_long" msgid="2429381841831957106">"Увійти в обл.запис Google"</string>
+    <string name="common_open_on_phone" msgid="411506735369601515">"Відкрити на телефоні"</string>
+    <string name="commono_google_play_services_api_unavailable_text" msgid="5000919058582214855">"Цей додаток використовує один або декілька сервісів Google Play, які зараз недоступні. Зверніться по допомогу до розробника."</string>
+    <string name="common_google_play_services_sign_in_failed_title" msgid="8164948898147532159">"Помилка під час входу"</string>
+    <string name="common_google_play_services_sign_in_failed_text" msgid="5194079840165204725">"Не вдалося ввійти в указаний обліковий запис. Виберіть інший."</string>
+</resources>

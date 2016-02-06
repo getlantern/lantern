@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="common_google_play_services_notification_ticker" msgid="1852570676146674985">"ข้อผิดพลาดของบริการ Google Play"</string>
+    <string name="common_google_play_services_notification_needs_installation_title" msgid="8120534356798772974">"แอปพลิเคชันหนึ่งจำเป็นต้องมีการติดตั้งบริการ Google Play"</string>
+    <string name="common_google_play_services_notification_needs_update_title" msgid="1388129345631079938">"แอปพลิเคชันหนึ่งจำเป็นต้องมีการอัปเดตสำหรับบริการ Google Play"</string>
+    <string name="common_android_wear_notification_needs_update_text" msgid="473679118463211576">"แอปพลิเคชันรายการหนึ่งต้องการให้อัปเดตแอป Android Wear"</string>
+    <string name="common_google_play_services_needs_enabling_title" msgid="2583358409598976717">"แอปพลิเคชันหนึ่งจำเป็นต้องมีบริการ Google Play เพื่อเปิดใช้งาน"</string>
+    <string name="common_google_play_services_error_notification_requested_by_msg" msgid="2443362625939284971">"ขอโดย <xliff:g id="APP_NAME">%1$s</xliff:g>"</string>
+    <string name="common_google_play_services_install_title" msgid="26645092511305524">"รับบริการ Google Play"</string>
+    <string name="common_google_play_services_install_text_phone" msgid="8685301130651051380">"แอปพลิเคชันนี้จะไม่ทำงานหากไม่มีบริการ Google Play ซึ่งไม่มีในโทรศัพท์ของคุณ"</string>
+    <string name="common_google_play_services_install_text_tablet" msgid="1589957570365247855">"แอปพลิเคชันนี้จะไม่ทำงานหากไม่มีบริการ Google Play ซึ่งไม่มีในแท็บเล็ตของคุณ"</string>
+    <string name="common_google_play_services_install_button" msgid="8515591849428043265">"รับบริการ Google Play"</string>
+    <string name="common_google_play_services_enable_title" msgid="529078775174559253">"เปิดใช้งานบริการ Google Play"</string>
+    <string name="common_google_play_services_enable_text" msgid="7627896071867667758">"แอปพลิเคชันนี้จะไม่ทำงานจนกว่าคุณจะเปิดใช้งานบริการ Google Play"</string>
+    <string name="common_google_play_services_enable_button" msgid="4181637455539816337">"เปิดใช้งานบริการ Google Play"</string>
+    <string name="common_google_play_services_update_title" msgid="6006316683626838685">"อัปเดตบริการ Google Play"</string>
+    <string name="common_android_wear_update_title" msgid="1366439133145190222">"อัปเดต Android Wear"</string>
+    <string name="common_google_play_services_update_text" msgid="448354684997260580">"แอปพลิเคชันนี้จะไม่ทำงานจนกว่าคุณจะอัปเดตบริการ Google Play"</string>
+    <string name="common_android_wear_update_text" msgid="3046420540094071256">"แอปนี้จะไม่ทำงานจนกว่าคุณจะอัปเดตแอป Android Wear"</string>
+    <string name="common_google_play_services_network_error_title" msgid="3827284619958211114">"ข้อผิดพลาดของเครือข่าย"</string>
+    <string name="common_google_play_services_network_error_text" msgid="9038847255613537209">"ต้องมีการเขื่อมต่อข้อมูลเพื่อเชื่อมต่อกับบริการ Google Play"</string>
+    <string name="common_google_play_services_invalid_account_title" msgid="1066672360770936753">"บัญชีไม่ถูกต้อง"</string>
+    <string name="common_google_play_services_invalid_account_text" msgid="4983316348021735578">"บัญชีที่ระบุไม่มีอยู่บนอุปกรณ์นี้ โปรดเลือกบัญชีอื่น"</string>
+    <string name="common_google_play_services_unknown_issue" msgid="4762332809710093730">"ปัญหาที่ไม่รู้จักของบริการ Google Play"</string>
+    <string name="common_google_play_services_unsupported_title" msgid="6334768798839376943">"บริการ Google Play"</string>
+    <string name="common_google_play_services_unsupported_text" msgid="3542578567569488671">"บริการ Google Play ซึ่งใช้งานในบางแอปพลิเคชัน ไม่ได้รับการสนับสนุนโดยอุปกรณ์ของคุณ โปรดติดต่อผู้ผลิตเพื่อขอรับความช่วยเหลือ"</string>
+    <string name="common_google_play_services_update_button" msgid="8932944190611227642">"อัปเดต"</string>
+    <string name="common_signin_button_text" msgid="9071884888741449141">"ลงชื่อใช้"</string>
+    <string name="common_signin_button_text_long" msgid="2429381841831957106">"ลงชื่อเข้าใช้ด้วย Google"</string>
+    <string name="common_open_on_phone" msgid="411506735369601515">"เปิดบนโทรศัพท์"</string>
+    <string name="commono_google_play_services_api_unavailable_text" msgid="5000919058582214855">"แอปนี้ต้องใช้บริการ Google Play อย่างน้อย 1 บริการ ซึ่งไม่พร้อมใช้งานในปัจจุบัน โปรดติดต่อนักพัฒนาซอฟต์แวร์เพื่อขอความช่วยเหลือ"</string>
+    <string name="common_google_play_services_sign_in_failed_title" msgid="8164948898147532159">"การลงชื่อเข้าใช้ล้มเหลว"</string>
+    <string name="common_google_play_services_sign_in_failed_text" msgid="5194079840165204725">"เกิดข้อผิดพลาดในการลงชื่อเข้าใช้บัญชีที่ระบุ โปรดเลือกบัญชีอื่น"</string>
+</resources>

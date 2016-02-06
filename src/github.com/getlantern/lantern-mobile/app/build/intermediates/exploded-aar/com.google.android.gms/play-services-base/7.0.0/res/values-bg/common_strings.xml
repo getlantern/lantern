@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="common_google_play_services_notification_ticker" msgid="1852570676146674985">"Грешка в услугите за Google Play"</string>
+    <string name="common_google_play_services_notification_needs_installation_title" msgid="8120534356798772974">"Приложение изисква инсталирането на услугите за Google Play."</string>
+    <string name="common_google_play_services_notification_needs_update_title" msgid="1388129345631079938">"Приложение изисква актуализирането на услугите за Google Play."</string>
+    <string name="common_android_wear_notification_needs_update_text" msgid="473679118463211576">"Приложение изисква актуализиране на Android Wear."</string>
+    <string name="common_google_play_services_needs_enabling_title" msgid="2583358409598976717">"Приложение изисква активирането на услугите за Google Play."</string>
+    <string name="common_google_play_services_error_notification_requested_by_msg" msgid="2443362625939284971">"Заявено от <xliff:g id="APP_NAME">%1$s</xliff:g>"</string>
+    <string name="common_google_play_services_install_title" msgid="26645092511305524">"Изтегляне на услугите за Google Play"</string>
+    <string name="common_google_play_services_install_text_phone" msgid="8685301130651051380">"Това приложение няма да се изпълнява без услугите за Google Play, които липсват в телефона ви."</string>
+    <string name="common_google_play_services_install_text_tablet" msgid="1589957570365247855">"Това приложение няма да се изпълнява без услугите за Google Play, които липсват в таблета ви."</string>
+    <string name="common_google_play_services_install_button" msgid="8515591849428043265">"Услуги за Google Play: Изтегл."</string>
+    <string name="common_google_play_services_enable_title" msgid="529078775174559253">"Активиране на услугите за Google Play"</string>
+    <string name="common_google_play_services_enable_text" msgid="7627896071867667758">"Това приложение няма да работи, освен ако не активирате услугите за Google Play."</string>
+    <string name="common_google_play_services_enable_button" msgid="4181637455539816337">"Услуги за Google Play: Актив."</string>
+    <string name="common_google_play_services_update_title" msgid="6006316683626838685">"Актуализиране на услугите за Google Play"</string>
+    <string name="common_android_wear_update_title" msgid="1366439133145190222">"Актуализиране на Android Wear"</string>
+    <string name="common_google_play_services_update_text" msgid="448354684997260580">"Това приложение няма да се изпълнява, освен ако не актуализирате услугите за Google Play."</string>
+    <string name="common_android_wear_update_text" msgid="3046420540094071256">"Това приложение няма да стартира, освен ако не актуализирате Android Wear."</string>
+    <string name="common_google_play_services_network_error_title" msgid="3827284619958211114">"Грешка в мрежата"</string>
+    <string name="common_google_play_services_network_error_text" msgid="9038847255613537209">"За свързване с услугите за Google Play се изисква връзка за данни."</string>
+    <string name="common_google_play_services_invalid_account_title" msgid="1066672360770936753">"Невалиден профил"</string>
+    <string name="common_google_play_services_invalid_account_text" msgid="4983316348021735578">"Посоченият профил не съществува на това устройство. Моля, изберете друг."</string>
+    <string name="common_google_play_services_unknown_issue" msgid="4762332809710093730">"Неизвестен проблем с услугите за Google Play."</string>
+    <string name="common_google_play_services_unsupported_title" msgid="6334768798839376943">"Услуги за Google Play"</string>
+    <string name="common_google_play_services_unsupported_text" msgid="3542578567569488671">"Услугите за Google Play, на които разчитат някои от приложенията ви, не се поддържат от устройството ви. Моля, свържете се с производителя за помощ."</string>
+    <string name="common_google_play_services_update_button" msgid="8932944190611227642">"Актуализиране"</string>
+    <string name="common_signin_button_text" msgid="9071884888741449141">"Вход"</string>
+    <string name="common_signin_button_text_long" msgid="2429381841831957106">"Вход с Google"</string>
+    <string name="common_open_on_phone" msgid="411506735369601515">"Отваряне в телефона"</string>
+    <string name="commono_google_play_services_api_unavailable_text" msgid="5000919058582214855">"За това приложение се изисква една или повече услуги за Google Play, които понастоящем не са налице. Моля, свържете се с програмиста за съдействие."</string>
+    <string name="common_google_play_services_sign_in_failed_title" msgid="8164948898147532159">"Влизането в профила не бе успешно"</string>
+    <string name="common_google_play_services_sign_in_failed_text" msgid="5194079840165204725">"При влизането в посочения профил възникна грешка. Моля, изберете друг."</string>
+</resources>

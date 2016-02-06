@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="common_google_play_services_notification_ticker" msgid="1852570676146674985">"Google Play सेवाएं त्रुटि"</string>
+    <string name="common_google_play_services_notification_needs_installation_title" msgid="8120534356798772974">"ऐप्लिकेशन के लिए Google Play सेवाएं इंस्टॉल किए जाने की आवश्यकता है."</string>
+    <string name="common_google_play_services_notification_needs_update_title" msgid="1388129345631079938">"ऐप्लिकेशन के लिए Google Play सेवाओं में नई जानकारी की आवश्यकता है."</string>
+    <string name="common_android_wear_notification_needs_update_text" msgid="473679118463211576">"ऐप्लिकेशन को Android Wear ऐप्स में अपडेट की आवश्यकता है."</string>
+    <string name="common_google_play_services_needs_enabling_title" msgid="2583358409598976717">"ऐप्लिकेशन के लिए Google Play सेवाएं सक्षम किए जाने की आवश्यकता है."</string>
+    <string name="common_google_play_services_error_notification_requested_by_msg" msgid="2443362625939284971">"<xliff:g id="APP_NAME">%1$s</xliff:g> के द्वारा अनुरोधित"</string>
+    <string name="common_google_play_services_install_title" msgid="26645092511305524">"Google Play सेवाएं पाएं"</string>
+    <string name="common_google_play_services_install_text_phone" msgid="8685301130651051380">"यह ऐप्स  Google Play सेवाओं के बिना नहीं चलेगा, जो आपके फ़ोन में नहीं हैं."</string>
+    <string name="common_google_play_services_install_text_tablet" msgid="1589957570365247855">"यह ऐप्स  Google Play सेवाओं के बिना नहीं चलेगा, जो आपके टेबलेट में नहीं हैं."</string>
+    <string name="common_google_play_services_install_button" msgid="8515591849428043265">"Google Play सेवाएं पाएं"</string>
+    <string name="common_google_play_services_enable_title" msgid="529078775174559253">"Google Play सेवाएं सक्षम करें"</string>
+    <string name="common_google_play_services_enable_text" msgid="7627896071867667758">"जब तक आप Google Play सेवाएं सक्षम नहीं करते, तब तक यह ऐप्स  कार्य नहीं करेगा."</string>
+    <string name="common_google_play_services_enable_button" msgid="4181637455539816337">"Google Play सेवाएं सक्षम करें"</string>
+    <string name="common_google_play_services_update_title" msgid="6006316683626838685">"Google Play सेवाएं से नई जानकारी"</string>
+    <string name="common_android_wear_update_title" msgid="1366439133145190222">"Android Wear अपडेट करें"</string>
+    <string name="common_google_play_services_update_text" msgid="448354684997260580">"जब तक आप Google Play सेवाओं से नई जानकारी नहीं लेते हैं, तब तक यह ऐप्स  नहीं चलेगा."</string>
+    <string name="common_android_wear_update_text" msgid="3046420540094071256">"यह ऐप्स तब तक नहीं चलेगा, जब तक कि आप Android Wear ऐप्स को अपडेट नहीं करते."</string>
+    <string name="common_google_play_services_network_error_title" msgid="3827284619958211114">"नेटवर्क त्रुटि"</string>
+    <string name="common_google_play_services_network_error_text" msgid="9038847255613537209">"Google Play सेवाओं से कनेक्ट करने के लिए डेटा कनेक्शन की आवश्यकता है."</string>
+    <string name="common_google_play_services_invalid_account_title" msgid="1066672360770936753">"अमान्य खाता"</string>
+    <string name="common_google_play_services_invalid_account_text" msgid="4983316348021735578">"निर्दिष्ट खाता इस डिवाइस पर मौजूद नहीं है. कृपया कोई भिन्न खाता चुनें."</string>
+    <string name="common_google_play_services_unknown_issue" msgid="4762332809710093730">"Google Play सेवाओं के साथ अज्ञात समस्या."</string>
+    <string name="common_google_play_services_unsupported_title" msgid="6334768798839376943">"Google Play सेवाएं"</string>
+    <string name="common_google_play_services_unsupported_text" msgid="3542578567569488671">"Google Play सेवाएं, जिन पर आपके कुछ ऐप्स  निर्भर करते हैं, आपके डिवाइस द्वारा समर्थित नहीं हैं. कृपया सहायता के लिए निर्माता से संपर्क करें."</string>
+    <string name="common_google_play_services_update_button" msgid="8932944190611227642">"नई जानकारी पाएं"</string>
+    <string name="common_signin_button_text" msgid="9071884888741449141">"प्रवेश करें"</string>
+    <string name="common_signin_button_text_long" msgid="2429381841831957106">"Google से प्रवेश करें"</string>
+    <string name="common_open_on_phone" msgid="411506735369601515">"फ़ोन पर खोलें"</string>
+    <string name="commono_google_play_services_api_unavailable_text" msgid="5000919058582214855">"इस ऐप को ऐसी एक या अधिक Google Play सेवाओं की आवश्‍यकता है जो वर्तमान में उपलब्‍ध नहीं हैं. कृपया सहायता के लिए डेवलपर से संपर्क करें."</string>
+    <string name="common_google_play_services_sign_in_failed_title" msgid="8164948898147532159">"प्रवेश करना विफल रहा"</string>
+    <string name="common_google_play_services_sign_in_failed_text" msgid="5194079840165204725">"निर्दिष्‍ट खाते में प्रवेश करने में त्रुटि. कृपया कोई भिन्‍न खाता चुनें."</string>
+</resources>

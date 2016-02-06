@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="liblantern-">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/app/build/intermediates/exploded-aar/liblantern/res" />
+      <root url="jar://$PROJECT_DIR$/app/build/intermediates/exploded-aar/liblantern/jars/classes.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
