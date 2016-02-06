@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/armon/go-socks5"
 	"github.com/getlantern/balancer"
 	"github.com/getlantern/eventual"
-	"github.com/getlantern/go-socks5"
 	"github.com/getlantern/golog"
 )
 
