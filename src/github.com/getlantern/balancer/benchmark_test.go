@@ -74,7 +74,8 @@ func runBenchmark(b *testing.B, bal *Balancer) {
 			b.Fatal("not equal!")
 		}
 	Skip:
-		c.Close()
+		// Use goto because defer has significant performance impact
+		_ = c.Close()
 	}
 	if b.N < 1000 {
 		return

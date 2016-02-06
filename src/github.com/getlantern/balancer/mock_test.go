@@ -62,8 +62,8 @@ func EchoServer() net.Listener {
 				log.Fatal(err)
 			}
 			go func(c net.Conn) {
-				io.Copy(c, c)
-				c.Close()
+				_, _ = io.Copy(c, c)
+				_ = c.Close()
 			}(conn)
 		}
 	}()
