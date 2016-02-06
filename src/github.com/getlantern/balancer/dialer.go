@@ -118,7 +118,7 @@ func (d *dialer) start() {
 }
 
 func (d *dialer) metrics() metrics {
-	return metrics{atomic.LoadInt32(&d.avgConnTime), atomic.LoadInt32(&d.consecSuccesses), atomic.LoadInt32(&d.consecFailures)}
+	return metrics{atomic.LoadInt64(&d.avgConnTime), atomic.LoadInt32(&d.consecSuccesses), atomic.LoadInt32(&d.consecFailures)}
 
 }
 
