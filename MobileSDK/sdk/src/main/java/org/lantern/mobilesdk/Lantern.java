@@ -31,18 +31,17 @@ public class Lantern {
      * <p>Starts Lantern at a random port, storing configuration information in the indicated
      * configDir and waiting up to timeoutMillis for the proxy to come online. If the proxy fails to
      * come online within the timeout, this throws an exception.</p>
-     *
+     * <p/>
      * <p>If a Lantern proxy is already running within this process, that proxy is reused.</p>
-     *
+     * <p/>
      * <p>Note - this does not wait for the entire initialization sequence to finish, just for the
      * proxy to be listening. Once the proxy is listening, one can start to use it, even as it
      * finishes its initialization sequence. However, initial activity may be slow, so clients with
      * low read timeouts may time out.</p>
      *
      * @param context
-     * @param timeoutMillis how long to wait for proxy to start listening (should be fairly quick)
+     * @param timeoutMillis       how long to wait for proxy to start listening (should be fairly quick)
      * @param analyticsTrackingId (optional tracking ID for tracking Google analytics)
-     *
      * @return the {@link go.lantern.Lantern.StartResult} with port information about the started
      * lantern
      */
@@ -55,19 +54,21 @@ public class Lantern {
         return result;
     }
 
-    private static go.lantern.Lantern.StartResult enable(String configDir, int timeoutMillis) {
+    private static go.lantern.Lantern.StartResult enable(String configDir, int timeoutMillis)
+            throws LanternNotRunningException {
         try {
             go.lantern.Lantern.StartResult result = go.lantern.Lantern.Start(configDir, timeoutMillis);
             String addr = result.getHTTPAddr();
-            String host = addr.split(":")[0];
-            String port = addr.split(":")[1];
+            int lastIndexOfColon = addr.lastIndexOf(':');
+            String host = addr.substring(0, lastIndexOfColon);
+            String port = addr.substring(lastIndexOfColon + 1);
             System.setProperty("http.proxyHost", host);
             System.setProperty("http.proxyPort", port);
             System.setProperty("https.proxyHost", host);
             System.setProperty("https.proxyPort", port);
             return result;
         } catch (Exception e) {
-            throw new RuntimeException("Unable to start Lantern: " + e.getMessage(), e);
+            throw new LanternNotRunningException("Unable to start Lantern: " + e.getMessage(), e);
         }
     }
 
@@ -100,9 +101,9 @@ public class Lantern {
 
     private static void sendSessionEvent(Context context, String trackingId, String action) {
         trackerFor(context, trackingId).send(new HitBuilders.EventBuilder()
-                        .setCategory("Session")
-                        .setLabel("android")
-                        .setAction(action)
+                .setCategory("Session")
+                .setLabel("android")
+                .setAction(action)
                 .build());
     }
 
