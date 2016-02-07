@@ -38,15 +38,15 @@ func BenchmarkWeighted(b *testing.B) {
 func benchmarkWithRandomlyFail(b *testing.B, s Strategy) {
 	d1 := RandomlyFail(1)
 	d2 := RandomlyFail(10)
-	d3 := RandomlyFail(50)
+	d3 := RandomlyFail(99)
 	bal := New(s, d1, d2, d3)
 	runBenchmark(b, bal)
 }
 
 func benchmarkWithRandomlyFailWithDelay(b *testing.B, s Strategy) {
-	d1 := RandomlyFailWithDelay(1, 10*time.Millisecond, 8*time.Millisecond)
-	d2 := RandomlyFailWithDelay(10, 10*time.Millisecond, 8*time.Millisecond)
-	d3 := RandomlyFailWithDelay(50, 10*time.Millisecond, 8*time.Millisecond)
+	d1 := RandomlyFailWithDelay(1, 10*time.Nanosecond, 8*time.Nanosecond)
+	d2 := RandomlyFailWithDelay(10, 10*time.Nanosecond, 8*time.Nanosecond)
+	d3 := RandomlyFailWithDelay(50, 10*time.Nanosecond, 8*time.Nanosecond)
 	bal := New(s, d1, d2, d3)
 	runBenchmark(b, bal)
 }
@@ -77,18 +77,23 @@ func runBenchmark(b *testing.B, bal *Balancer) {
 		// Use goto because defer has significant performance impact
 		_ = c.Close()
 	}
+	b.StopTimer()
+	defer b.StartTimer()
 	if b.N < 1000 {
 		return
 	}
-	var total int
+	var totalFailures, totalSuccesses int
+	var line string
 	for _, d := range bal.dialers.dialers {
 		re, err := regexp.Compile(d.Label)
 		if err != nil {
 			b.Fatalf("Regexp error: %s", err)
 		}
-		matches := re.FindAll(errBuf.Bytes(), -1)
-		b.Logf("%s: %d", d.Label, len(matches))
-		total = total + len(matches)
+		failures := len(re.FindAll(errBuf.Bytes(), -1))
+		successes := len(re.FindAll(outBuf.Bytes(), -1))
+		line = line + fmt.Sprintf("%s: %d/%d, ", d.Label, failures, failures+successes)
+		totalFailures = totalFailures + failures
+		totalSuccesses = totalSuccesses + successes
 	}
-	b.Logf("- Failed dial attempts: %d out of %d", total, b.N)
+	b.Logf("%s fail/total = %d/%d (%.1f%%) in %d runs", line, totalFailures, totalFailures+totalSuccesses, float64(totalFailures)*100/float64(totalFailures+totalSuccesses), b.N)
 }
