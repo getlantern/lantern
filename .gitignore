@@ -48,6 +48,5 @@ LanternMobileTestbed/app/libs/
 *.apk
 *.aar
 */.idea/workspace.xml */.idea/tasks.xml
-*/app/build
-*/sdk/build
 .gradle
+build
