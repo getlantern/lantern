@@ -16,9 +16,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Created by ox.to.a.cart on 1/28/16.
  */
 public class Lantern {
-    private static boolean enabled = false;
-
     private static final Map<String, Tracker> trackersById = new HashMap<>();
+    private static boolean enabled = false;
 
     static {
         // Track extra info about Android for logging to Loggly.
@@ -45,7 +44,8 @@ public class Lantern {
      * @return the {@link go.lantern.Lantern.StartResult} with port information about the started
      * lantern
      */
-    public synchronized static go.lantern.Lantern.StartResult enable(Context context, int timeoutMillis, String analyticsTrackingId) {
+    public synchronized static go.lantern.Lantern.StartResult enable(Context context, int timeoutMillis, String analyticsTrackingId)
+            throws LanternNotRunningException {
         String configDir = new File(context.getFilesDir().getAbsolutePath(), ".lantern").getAbsolutePath();
         go.lantern.Lantern.StartResult result = enable(configDir, timeoutMillis);
         if (analyticsTrackingId != null && !enabled) {
