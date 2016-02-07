@@ -50,3 +50,4 @@ LanternMobileTestbed/app/libs/
 */.idea/workspace.xml */.idea/tasks.xml
 */app/build
 */sdk/build
+.gradle

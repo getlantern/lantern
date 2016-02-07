@@ -4,8 +4,6 @@
       <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.tony19/loggly-client/1.0.3/f2e8e2ac31419d8f740bf56d2786c60d175dc354/loggly-client-1.0.3.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES>
-      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.tony19/loggly-client/1.0.3/9cbd718728f6fc45cc296cb2236f901a2ddd7548/loggly-client-1.0.3-sources.jar!/" />
-    </SOURCES>
+    <SOURCES />
   </library>
 </component>
