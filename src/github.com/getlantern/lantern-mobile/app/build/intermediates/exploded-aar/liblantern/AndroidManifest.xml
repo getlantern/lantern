@@ -1,2 +1,0 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="go.lantern.gojni">
-<uses-sdk android:minSdkVersion="15"/></manifest>
