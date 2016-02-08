@@ -99,7 +99,7 @@ html {
 
 @font-face{
     font-family:LBL;
-    src:url(./font/ProximaNova-Light.otf)
+    src:url(/font/ProximaNova-Light.otf)
 }
 
 div.end-censorship{
