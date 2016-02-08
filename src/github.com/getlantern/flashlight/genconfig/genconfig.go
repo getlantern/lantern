@@ -34,14 +34,16 @@ const (
 )
 
 var (
-	help            = flag.Bool("help", false, "Get usage help")
-	masqueradesFile = flag.String("masquerades", "", "Path to file containing list of pasquerades to use, with one space-separated 'ip domain' pair per line (e.g. masquerades.txt)")
-	blacklistFile   = flag.String("blacklist", "", "Path to file containing list of blacklisted domains, which will be excluded from the configuration even if present in the masquerades file (e.g. blacklist.txt)")
-	proxiedSitesDir = flag.String("proxiedsites", "proxiedsites", "Path to directory containing proxied site lists, which will be combined and proxied by Lantern")
-	minFreq         = flag.Float64("minfreq", 3.0, "Minimum frequency (percentage) for including CA cert in list of trusted certs, defaults to 3.0%")
+	help                = flag.Bool("help", false, "Get usage help")
+	masqueradesInFile   = flag.String("masquerades", "", "Path to file containing list of pasquerades to use, with one space-separated 'ip domain' pair per line (e.g. masquerades.txt)")
+	masqueradesOutFile  = flag.String("masquerades-out", "", "Path, if any, to write the go-formatted masquerades configuration.")
+	blacklistFile       = flag.String("blacklist", "", "Path to file containing list of blacklisted domains, which will be excluded from the configuration even if present in the masquerades file (e.g. blacklist.txt)")
+	proxiedSitesDir     = flag.String("proxiedsites", "proxiedsites", "Path to directory containing proxied site lists, which will be combined and proxied by Lantern")
+	proxiedSitesOutFile = flag.String("proxiedsites-out", "", "Path, if any, to write the go-formatted proxied sites configuration.")
+	minFreq             = flag.Float64("minfreq", 3.0, "Minimum frequency (percentage) for including CA cert in list of trusted certs, defaults to 3.0%")
 
-	// Note - you can get the content for the fallbacksFile from https://lanternctrl1-2.appspot.com/listfallbacks
-	fallbacksFile = flag.String("fallbacks", "fallbacks.yaml", "File containing json array of fallback information")
+	fallbacksFile    = flag.String("fallbacks", "fallbacks.yaml", "File containing yaml dict of fallback information")
+	fallbacksOutFile = flag.String("fallbacks-out", "", "Path, if any, to write the go-formatted fallback configuration.")
 )
 
 var (
@@ -91,9 +93,6 @@ func main() {
 	loadFallbacks()
 	loadFtVersion()
 
-	masqueradesTmpl := loadTemplate("masquerades.go.tmpl")
-	proxiedSitesTmpl := loadTemplate("proxiedsites.go.tmpl")
-	fallbacksTmpl := loadTemplate("fallbacks.go.tmpl")
 	yamlTmpl := loadTemplate("cloud.yaml.tmpl")
 
 	go feedMasquerades()
@@ -102,32 +101,42 @@ func main() {
 	generateTemplate(model, yamlTmpl, "cloud.yaml")
 	model = buildModel(cas, masqs, true)
 	generateTemplate(model, yamlTmpl, "lantern.yaml")
-	generateTemplate(model, masqueradesTmpl, "../config/masquerades.go")
-	_, err := run("gofmt", "-w", "../config/masquerades.go")
-	if err != nil {
-		log.Fatalf("Unable to format masquerades.go: %s", err)
+	var err error
+	if *masqueradesOutFile != "" {
+		masqueradesTmpl := loadTemplate("masquerades.go.tmpl")
+		generateTemplate(model, masqueradesTmpl, *masqueradesOutFile)
+		_, err = run("gofmt", "-w", *masqueradesOutFile)
+		if err != nil {
+			log.Fatalf("Unable to format %s: %s", *masqueradesOutFile, err)
+		}
 	}
-	generateTemplate(model, proxiedSitesTmpl, "../config/proxiedsites.go")
-	_, err = run("gofmt", "-w", "../config/proxiedsites.go")
-	if err != nil {
-		log.Fatalf("Unable to format proxiedsites.go: %s", err)
+	if *proxiedSitesOutFile != "" {
+		proxiedSitesTmpl := loadTemplate(*proxiedSitesOutFile)
+		generateTemplate(model, proxiedSitesTmpl, *proxiedSitesOutFile)
+		_, err = run("gofmt", "-w", *proxiedSitesOutFile)
+		if err != nil {
+			log.Fatalf("Unable to format %s: %s", *proxiedSitesOutFile, err)
+		}
 	}
-	generateTemplate(model, fallbacksTmpl, "../config/fallbacks.go")
-	_, err = run("gofmt", "-w", "../config/fallbacks.go")
-	if err != nil {
-		log.Fatalf("Unable to format fallbacks.go: %s", err)
+	if *fallbacksOutFile != "" {
+		fallbacksTmpl := loadTemplate(*fallbacksOutFile)
+		generateTemplate(model, fallbacksTmpl, *fallbacksOutFile)
+		_, err = run("gofmt", "-w", *fallbacksOutFile)
+		if err != nil {
+			log.Fatalf("Unable to format %s: %s", *fallbacksOutFile, err)
+		}
 	}
 }
 
 func loadMasquerades() {
-	if *masqueradesFile == "" {
+	if *masqueradesInFile == "" {
 		log.Error("Please specify a masquerades file")
 		flag.Usage()
 		os.Exit(2)
 	}
-	bytes, err := ioutil.ReadFile(*masqueradesFile)
+	bytes, err := ioutil.ReadFile(*masqueradesInFile)
 	if err != nil {
-		log.Fatalf("Unable to read masquerades file at %s: %s", *masqueradesFile, err)
+		log.Fatalf("Unable to read masquerades file at %s: %s", *masqueradesInFile, err)
 	}
 	masquerades = strings.Split(string(bytes), "\n")
 }
@@ -214,7 +223,7 @@ func loadFallbacks() {
 	}
 	err = yaml.Unmarshal(fallbacksBytes, &fallbacks)
 	if err != nil {
-		log.Fatalf("Unable to unmarshal json from %v: %v", *fallbacksFile, err)
+		log.Fatalf("Unable to unmarshal yaml from %v: %v", *fallbacksFile, err)
 	}
 }
 
