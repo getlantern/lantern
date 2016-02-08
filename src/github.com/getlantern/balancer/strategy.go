@@ -22,8 +22,9 @@ func Sticky(dialers []*dialer) dialerHeap {
 	return dialerHeap{dialers, func(i, j int) bool {
 		mi := dialers[i].metrics()
 		mj := dialers[j].metrics()
-		return (mi.consecSuccesses - mi.consecFailures) >
-			(mj.consecSuccesses - mj.consecFailures)
+		q1 := mi.consecSuccesses - mi.consecFailures
+		q2 := mj.consecSuccesses - mj.consecFailures
+		return q1 > q2
 	}}
 }
 
@@ -42,33 +43,33 @@ func QualityFirst(dialers []*dialer) dialerHeap {
 	return dialerHeap{dialers, func(i, j int) bool {
 		mi := dialers[i].metrics()
 		mj := dialers[j].metrics()
-		r1 := mi.consecSuccesses - mi.consecFailures
-		r2 := mj.consecSuccesses - mj.consecFailures
-		if r1 > 0 && r2 > 0 {
+		q1 := mi.consecSuccesses - mi.consecFailures
+		q2 := mj.consecSuccesses - mj.consecFailures
+		if q1 > 0 && q2 > 0 {
 			return mi.avgConnTime < mj.avgConnTime
 		}
-		return r1 > r2
+		return q1 > q2
 	}}
 }
 
 // TODO: still need to implement algorithm correctly.
 // ptQuality: the percentage network quality contributes to total weight.
 // the rest (100 - ptQuality) will be contributed by recent average connect time.
-func Weighted(ptQuality int) Strategy {
+func Weighted(ptQuality int, ptSpeed int) Strategy {
 	return func(dialers []*dialer) dialerHeap {
 		pq := float64(ptQuality)
-		pt := float64(100 - ptQuality)
+		pt := float64(ptSpeed)
 		return dialerHeap{dialers, func(i, j int) bool {
 			m1 := dialers[i].metrics()
 			m2 := dialers[j].metrics()
-			r1 := float64(m1.consecSuccesses - m1.consecFailures)
-			r2 := float64(m2.consecSuccesses - m2.consecFailures)
+			q1 := float64(m1.consecSuccesses - m1.consecFailures)
+			q2 := float64(m2.consecSuccesses - m2.consecFailures)
 			t1 := float64(m1.avgConnTime)
 			t2 := float64(m2.avgConnTime)
 
-			w1 := (r2/r1)*pq + (t1/t2)*pt
-			w2 := (r1/r2)*pq + (t2/t1)*pt
-			log.Tracef("w1=%f, w2=%f", w1, w2)
+			w1 := q2/(q1+q2)*pq + t1/(t1+t2)*pt
+			w2 := q1/(q1+q2)*pq + t2/(t1+t2)*pt
+			log.Tracef("q1=%f, q2=%f, t1=%f, t2=%f, w1=%f, w2=%f", q1, q2, t1, t2, w1, w2)
 			return w1 < w2
 		}}
 	}

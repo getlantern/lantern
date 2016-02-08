@@ -40,7 +40,7 @@ func TestQualityFirstStrategy(t *testing.T) {
 	assert.Equal(t, heap.Pop(&h), d2, "should select more reliable dialer even if it's slower")
 }
 
-/*func TestWeightedStrategy(t *testing.T) {
+func TestWeightedStrategy(t *testing.T) {
 	d1 := &dialer{consecSuccesses: 3, consecFailures: 0, avgConnTime: (100 * time.Millisecond).Nanoseconds()}
 	d2 := &dialer{consecSuccesses: 4, consecFailures: 0, avgConnTime: (100 * time.Millisecond).Nanoseconds()}
 	d3 := &dialer{consecSuccesses: 0, consecFailures: 1, avgConnTime: (10 * time.Millisecond).Nanoseconds()}
@@ -50,11 +50,15 @@ func TestQualityFirstStrategy(t *testing.T) {
 	heap.Init(&h)
 	assert.Equal(t, heap.Pop(&h), d2, "should select dialer with more successes")
 
-	h = Weighted(9, 1)([]*dialer{d1, d3})
+	h = Weighted(9, 1)([]*dialer{d2, d3})
 	heap.Init(&h)
-	assert.Equal(t, heap.Pop(&h), d3, "should select dialer with more successes")
+	assert.Equal(t, heap.Pop(&h), d2, "should select dialer with more successes")
 
 	h = Weighted(9, 1)([]*dialer{d1, d4})
 	heap.Init(&h)
+	assert.Equal(t, heap.Pop(&h), d4, "should select dialer with more successes")
+
+	h = Weighted(5, 5)([]*dialer{d1, d4})
+	heap.Init(&h)
 	assert.Equal(t, heap.Pop(&h), d1, "should select dialer with more successes")
-}*/
+}

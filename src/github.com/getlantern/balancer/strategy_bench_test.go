@@ -12,27 +12,27 @@ import (
 
 func BenchmarkRandom(b *testing.B) {
 	benchmarkWithRandomlyFail(b, Random)
-	benchmarkWithRandomlyFailWithDelay(b, Random)
+	benchmarkWithRandomlyFailWithVariedDelay(b, Random)
 }
 
 func BenchmarkSticky(b *testing.B) {
 	benchmarkWithRandomlyFail(b, Sticky)
-	benchmarkWithRandomlyFailWithDelay(b, Sticky)
+	benchmarkWithRandomlyFailWithVariedDelay(b, Sticky)
 }
 
 func BenchmarkFastest(b *testing.B) {
 	benchmarkWithRandomlyFail(b, Fastest)
-	benchmarkWithRandomlyFailWithDelay(b, Fastest)
+	benchmarkWithRandomlyFailWithVariedDelay(b, Fastest)
 }
 
 func BenchmarkQualityFirst(b *testing.B) {
 	benchmarkWithRandomlyFail(b, QualityFirst)
-	benchmarkWithRandomlyFailWithDelay(b, QualityFirst)
+	benchmarkWithRandomlyFailWithVariedDelay(b, QualityFirst)
 }
 
 func BenchmarkWeighted(b *testing.B) {
-	benchmarkWithRandomlyFail(b, Weighted(90))
-	benchmarkWithRandomlyFailWithDelay(b, Weighted(90))
+	benchmarkWithRandomlyFail(b, Weighted(9, 1))
+	benchmarkWithRandomlyFailWithVariedDelay(b, Weighted(9, 1))
 }
 
 func benchmarkWithRandomlyFail(b *testing.B, s Strategy) {
@@ -43,10 +43,10 @@ func benchmarkWithRandomlyFail(b *testing.B, s Strategy) {
 	runBenchmark(b, bal)
 }
 
-func benchmarkWithRandomlyFailWithDelay(b *testing.B, s Strategy) {
-	d1 := RandomlyFailWithDelay(1, 10*time.Nanosecond, 8*time.Nanosecond)
-	d2 := RandomlyFailWithDelay(10, 10*time.Nanosecond, 8*time.Nanosecond)
-	d3 := RandomlyFailWithDelay(50, 10*time.Nanosecond, 8*time.Nanosecond)
+func benchmarkWithRandomlyFailWithVariedDelay(b *testing.B, s Strategy) {
+	d1 := RandomlyFailWithVariedDelay(1, 10*time.Nanosecond, 8*time.Nanosecond)
+	d2 := RandomlyFailWithVariedDelay(10, 10*time.Nanosecond, 8*time.Nanosecond)
+	d3 := RandomlyFailWithVariedDelay(99, 10*time.Nanosecond, 8*time.Nanosecond)
 	bal := New(s, d1, d2, d3)
 	runBenchmark(b, bal)
 }

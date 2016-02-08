@@ -28,15 +28,12 @@ func (e *EchoConn) SetReadDeadline(t time.Time) (err error)  { return nil }
 func (e *EchoConn) SetWriteDeadline(t time.Time) (err error) { return nil }
 
 func RandomlyFail(failPercent int) *Dialer {
-	return RandomlyFailWithDelay(failPercent, 0, 0)
+	return RandomlyFailWithVariedDelay(failPercent, 10*time.Nanosecond, 0)
 }
 
-func RandomlyFailWithDelay(failPercent int, delay time.Duration, delta time.Duration) *Dialer {
+func RandomlyFailWithVariedDelay(failPercent int, delay time.Duration, delta time.Duration) *Dialer {
 	dn := delta.Nanoseconds()
 	label := fmt.Sprintf("'%d%% %s±%s'", failPercent, delay.String(), delta.String())
-	if delay == 0 {
-		label = fmt.Sprintf("'%d%%'", failPercent)
-	}
 	return &Dialer{
 		Label:   label,
 		Trusted: true,
