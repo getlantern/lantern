@@ -22,10 +22,10 @@ android {
 
     signingConfigs {
         release {
-            storeFile file("keystore.release.jks")
+            storeFile file(KEYSTORE_FILE)
             keyAlias "Lantern Release Key"
-            storePassword System.getenv("KSTOREPWD")
-            keyPassword System.getenv("KEYPWD")
+            storePassword KEYSTORE_PWD
+            keyPassword KEY_PWD
         }
     }
 
