@@ -47,6 +47,10 @@ lantern.yaml
 LanternMobileTestbed/app/libs/
 *.apk
 *.aar
-*/.idea/workspace.xml */.idea/tasks.xml
+local.properties
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/libraries
+.DS_Store
 .gradle
 build

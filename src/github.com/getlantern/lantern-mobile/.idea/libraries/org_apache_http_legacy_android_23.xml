@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="org.apache.http.legacy-android-23">
-    <CLASSES>
-      <root url="jar:///opt/adt-bundle-mac-x86_64-20130917/sdk/platforms/android-23/optional/org.apache.http.legacy.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>
