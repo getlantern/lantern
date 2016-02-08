@@ -1,1 +1,1 @@
-include ':app', ':libflashlight'
+include ':app'
