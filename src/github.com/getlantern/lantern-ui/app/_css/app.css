@@ -79,13 +79,16 @@ html {
   -ms-text-size-adjust: 100%;
 }
 
+/*
 a:focus {
   outline: thin dotted #333;
   outline: 5px auto -webkit-focus-ring-color;
   outline-offset: -2px;
 }
+*/
 
 a:hover,
+a:focus,
 a:active {
   outline: 0;
 }
