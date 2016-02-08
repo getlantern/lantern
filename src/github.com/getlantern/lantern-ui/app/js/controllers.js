@@ -1,8 +1,8 @@
 'use strict';
 
 app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$http', 'gaMgr',
-               'localStorageService',
-               function($rootScope, $scope, $compile, $window, $http, gaMgr, localStorageService) {
+               'localStorageService', 'BUILD_REVISION',
+               function($rootScope, $scope, $compile, $window, $http, gaMgr, localStorageService, BUILD_REVISION) {
     $scope.currentModal = 'none';
 
     $scope.loadScript = function(src) {
@@ -67,22 +67,17 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$htt
       gaMgr.trackSendLinkToMobile();
     };
 
-    $rootScope.lanternWelcomeKey = localStorageService.get('lanternWelcomeKey');
-    // $rootScope.lanternWelcomeKey = false;
+    $rootScope.lanternFirstTimeBuildVar = 'lanternFirstTimeBuild-'+BUILD_REVISION;
 
     $scope.closeModal = function() {
-      if (!$rootScope.lanternWelcomeKey) {
-        $rootScope.lanternWelcomeKey = true;
-        localStorageService.set('lanternWelcomeKey', true);
-      }
+      localStorageService.set($rootScope.lanternFirstTimeBuildVar, true);
       $scope.currentModal = 'none';
       $(".modal-backdrop").remove();
     };
 
-    if (!$rootScope.lanternWelcomeKey) {
-      //$scope.showModal('welcome');
-      $rootScope.showMobileAd = true;
+    if (!localStorageService.get($rootScope.lanternFirstTimeBuildVar)) {
       $scope.resetPlaceholder();
+      $rootScope.showMobileAd = true;
     };
 
 }]);
