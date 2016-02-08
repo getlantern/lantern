@@ -101,22 +101,21 @@ func (d *dialer) start() {
 				}
 				return
 			case <-d.errCh:
-				atomic.StoreInt32(&d.consecSuccesses, 0)
-				log.Tracef("Mark dialer %s as inactive, scheduling check", d.Label)
-				atomic.AddInt32(&d.consecFailures, 1)
+				d.markFailure()
 			case <-timer.C:
 				ok := d.Check()
 				if ok {
-					// Note: we don't calculate avgConnTime here as the time to
-					// check a dialer may be different from actual requests.
-					atomic.AddInt32(&d.consecSuccesses, 1)
-					atomic.StoreInt32(&d.consecFailures, 0)
+					d.markSuccess()
 				} else {
-					d.errCh <- struct{}{}
+					d.markFailure()
 				}
 			}
 		}
 	}()
+}
+
+func (d *dialer) stop() {
+	d.closeCh <- struct{}{}
 }
 
 func (d *dialer) metrics() metrics {
@@ -131,21 +130,13 @@ func (d *dialer) isActive() bool {
 	return atomic.LoadInt32(&d.consecSuccesses) > 0
 }
 
-func (d *dialer) updateAvgConnTime(t time.Duration) {
-	// Ref the declaration of avgConnTime for the rationale.
-	// Use integer arithmetic as the values should be large enough to safely
-	// ignore decimals.
-	newAvg := (atomic.LoadInt64(&d.avgConnTime) + t.Nanoseconds()) / 2
-	atomic.StoreInt64(&d.avgConnTime, newAvg)
-}
-
 func (d *dialer) checkedDial(network, addr string) (net.Conn, error) {
 	t := time.Now()
 	conn, err := d.Dial(network, addr)
 	if err != nil {
 		d.onError(err)
 	} else {
-		atomic.AddInt32(&d.consecSuccesses, 1)
+		d.markSuccess()
 		d.updateAvgConnTime(time.Now().Sub(t))
 	}
 	return conn, err
@@ -160,8 +151,24 @@ func (d *dialer) onError(err error) {
 	}
 }
 
-func (d *dialer) stop() {
-	d.closeCh <- struct{}{}
+func (d *dialer) updateAvgConnTime(t time.Duration) {
+	// Ref the declaration of avgConnTime for the rationale.
+	// Use integer arithmetic as the values should be large enough to safely
+	// ignore decimals.
+	newAvg := (atomic.LoadInt64(&d.avgConnTime) + t.Nanoseconds()) / 2
+	atomic.StoreInt64(&d.avgConnTime, newAvg)
+}
+
+func (d *dialer) markSuccess() {
+	newVal := atomic.AddInt32(&d.consecSuccesses, 1)
+	log.Tracef("Dialer %s consecutive successes: %d -> %d", d.Label, newVal-1, newVal)
+	atomic.StoreInt32(&d.consecFailures, 0)
+}
+
+func (d *dialer) markFailure() {
+	atomic.StoreInt32(&d.consecSuccesses, 0)
+	newVal := atomic.AddInt32(&d.consecFailures, 1)
+	log.Tracef("Dialer %s consecutive failures: %d -> %d", d.Label, newVal-1, newVal)
 }
 
 func (d *dialer) defaultCheck() bool {
