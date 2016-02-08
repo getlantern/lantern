@@ -5,6 +5,9 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$htt
                function($rootScope, $scope, $compile, $window, $http, gaMgr, localStorageService, BUILD_REVISION) {
     $scope.currentModal = 'none';
 
+    $rootScope.lanternFirstTimeBuildVar = 'lanternFirstTimeBuild-'+BUILD_REVISION;
+    $rootScope.lanternHideMobileAdVar = 'lanternHideMobileAd';
+
     $scope.loadScript = function(src) {
         (function() {
             var script  = document.createElement("script")
@@ -45,6 +48,11 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$htt
       $scope.inputPlaceholder = "you@example.com";
     }
 
+    $rootScope.hideMobileAd = function() {
+      $rootScope.showMobileAd = false;
+      localStorageService.set($rootScope.lanternHideMobileAdVar, true);
+    };
+
     $rootScope.sendMobileAppLink = function() {
       var email = $scope.email;
 
@@ -61,24 +69,33 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$htt
         'template': 'lantern-mobile-message'
       });
 
-      $rootScope.showMobileAd = false;
+      $rootScope.hideMobileAd();
+
       $scope.showModal("lantern-mobile-ad");
 
       gaMgr.trackSendLinkToMobile();
     };
 
-    $rootScope.lanternFirstTimeBuildVar = 'lanternFirstTimeBuild-'+BUILD_REVISION;
 
     $scope.closeModal = function() {
-      localStorageService.set($rootScope.lanternFirstTimeBuildVar, true);
+      $rootScope.hideMobileAd();
+
       $scope.currentModal = 'none';
       $(".modal-backdrop").remove();
     };
 
     if (!localStorageService.get($rootScope.lanternFirstTimeBuildVar)) {
+      // Force showing Ad.
+      localStorageService.set($rootScope.lanternHideMobileAdVar, "");
+      // Saving first time run.
+      localStorageService.set($rootScope.lanternFirstTimeBuildVar, true);
+    };
+
+    if (!localStorageService.get($rootScope.lanternHideMobileAdVar)) {
       $scope.resetPlaceholder();
       $rootScope.showMobileAd = true;
     };
+
 
 }]);
 
