@@ -514,10 +514,16 @@ genconfig:
 	source setenv.bash && \
 	(cd src/github.com/getlantern/flashlight/genconfig && ./genconfig.bash)
 
-$(ANDROID_LIB):
+bin/gomobile:
 	source setenv.bash && \
-	go install golang.org/x/mobile/cmd/gomobile && \
-	gomobile init && \
+	go install golang.org/x/mobile/cmd/gomobile
+
+pkg/gomobile: bin/gomobile
+	source setenv.bash && \
+	gomobile init
+
+$(ANDROID_LIB): bin/gomobile pkg/gomobile
+	source setenv.bash && \
 	$(call build-tags) && \
 	gomobile bind -target=android -tags='headless' -o=$(ANDROID_LIB) -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS" $(ANDROID_LIB_PKG)
 
@@ -585,6 +591,7 @@ clean:
 	rm -f *.deb && \
 	rm -f *.png && \
 	rm -rf *.app && \
+	rm -rf bin && \
 	rm -rf pkg && \
 	git checkout ./src/github.com/getlantern/flashlight/ui/resources.go && \
 	rm -f src/github.com/getlantern/flashlight/*.syso && \

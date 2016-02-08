@@ -15,7 +15,7 @@
 
 ### Requisites
 
-* [Go 1.4.x](https://golang.org/dl/).
+* [Go 1.6rc1 or higher](https://golang.org/dl/).
 * [Docker](https://www.docker.com/).
 * [GNU Make](https://www.gnu.org/software/make/)
 * An OSX or Linux host.
