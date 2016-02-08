@@ -128,6 +128,7 @@ docker-genassets: require-npm
 	LANTERN_UI="src/github.com/getlantern/lantern-ui" && \
 	APP="$$LANTERN_UI/app" && \
 	DIST="$$LANTERN_UI/dist" && \
+	echo 'var LANTERN_BUILD_REVISION = "$(GIT_REVISION_SHORTCODE)";' > $$APP/js/revision.js && \
 	if [[ ! -d $$DIST ]]; then \
 		UPDATE_DIST=true; \
 	fi && \
@@ -140,7 +141,6 @@ docker-genassets: require-npm
 			gulp build && \
 			cd -; \
 	fi && \
-	\
 	rm -f bin/tarfs bin/rsrc && \
 	go install github.com/getlantern/tarfs/tarfs && \
 	echo "// +build !stub" > $$DEST && \

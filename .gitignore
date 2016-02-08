@@ -44,3 +44,4 @@ installer-resources/darwin/lantern_versioned.dmg.json
 installer-resources/darwin/dmgbackground.png
 installer-resources/darwin/dmgbackground_versioned.svg
 src/github.com/getlantern/lantern-ui/dist
+src/github.com/getlantern/lantern-ui/app/js/revision.js
