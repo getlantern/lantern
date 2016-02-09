@@ -1,8 +1,24 @@
 /*!
- * angular-translate - v2.5.2 - 2014-12-10
- * http://github.com/angular-translate/angular-translate
- * Copyright (c) 2014 ; Licensed MIT
+ * angular-translate - v2.9.0 - 2016-01-24
+ * 
+ * Copyright (c) 2016 The angular-translate team, Pascal Precht; Licensed MIT
  */
+(function (root, factory) {
+  if (typeof define === 'function' && define.amd) {
+    // AMD. Register as an anonymous module unless amdModuleId is set
+    define([], function () {
+      return (factory());
+    });
+  } else if (typeof exports === 'object') {
+    // Node. Does not work with strict CommonJS, but
+    // only CommonJS-like environments that support module.exports,
+    // like Node.
+    module.exports = factory();
+  } else {
+    factory();
+  }
+}(this, function () {
+
 angular.module('pascalprecht.translate')
 /**
  * @ngdoc object
@@ -17,30 +33,75 @@ angular.module('pascalprecht.translate')
  *
  * @param {object} options Options object, which gets prefix, suffix and key.
  */
-.factory('$translateStaticFilesLoader', ['$q', '$http', function ($q, $http) {
+.factory('$translateStaticFilesLoader', $translateStaticFilesLoader);
+
+function $translateStaticFilesLoader($q, $http) {
+
+  'use strict';
 
   return function (options) {
 
-    if (!options || (!angular.isString(options.prefix) || !angular.isString(options.suffix))) {
-      throw new Error('Couldn\'t load static files, no prefix or suffix specified!');
+    if (!options || (!angular.isArray(options.files) && (!angular.isString(options.prefix) || !angular.isString(options.suffix)))) {
+      throw new Error('Couldn\'t load static files, no files and prefix or suffix specified!');
     }
 
-    var deferred = $q.defer();
+    if (!options.files) {
+      options.files = [{
+        prefix: options.prefix,
+        suffix: options.suffix
+      }];
+    }
 
-    $http(angular.extend({
-      url: [
-        options.prefix,
-        options.key,
-        options.suffix
-      ].join(''),
-      method: 'GET',
-      params: ''
-    }, options.$http)).success(function (data) {
-      deferred.resolve(data);
-    }).error(function (data) {
-      deferred.reject(options.key);
-    });
+    var load = function (file) {
+      if (!file || (!angular.isString(file.prefix) || !angular.isString(file.suffix))) {
+        throw new Error('Couldn\'t load static file, no prefix or suffix specified!');
+      }
 
-    return deferred.promise;
+      return $http(angular.extend({
+        url: [
+          file.prefix,
+          options.key,
+          file.suffix
+        ].join(''),
+        method: 'GET',
+        params: ''
+      }, options.$http))
+        .then(function(result) {
+          return result.data;
+        }, function () {
+          return $q.reject(options.key);
+        });
+    };
+
+    var promises = [],
+        length = options.files.length;
+
+    for (var i = 0; i < length; i++) {
+      promises.push(load({
+        prefix: options.files[i].prefix,
+        key: options.key,
+        suffix: options.files[i].suffix
+      }));
+    }
+
+    return $q.all(promises)
+      .then(function (data) {
+        var length = data.length,
+            mergedData = {};
+
+        for (var i = 0; i < length; i++) {
+          for (var key in data[i]) {
+            mergedData[key] = data[i][key];
+          }
+        }
+
+        return mergedData;
+      });
   };
-}]);
+}
+$translateStaticFilesLoader.$inject = ['$q', '$http'];
+
+$translateStaticFilesLoader.displayName = '$translateStaticFilesLoader';
+return 'pascalprecht.translate';
+
+}));

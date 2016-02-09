@@ -8,12 +8,12 @@
 @import url('filesystem:chrome-extension://__MSG_@@extension_id__/persistent/user.css');
 */
 
-@font-face { font-family: LBL; src: url('/font/ProximaNova-Light.otf'); }
+@font-face { font-family: LBL; src: url('../font/ProximaNova-Light.otf'); }
 
 * {
 	margin: 0;
 	padding: 0;
-	-webkit-user-select: none;
+	/*-webkit-user-select: none;*/
 }
 
 html, body {
@@ -99,7 +99,7 @@ html {
 
 @font-face{
     font-family:LBL;
-    src:url(./font/ProximaNova-Light.otf)
+    src:url(../font/ProximaNova-Light.otf)
 }
 
 div.end-censorship{
@@ -132,7 +132,7 @@ div.end-censorship{
 	text-align: center;
 	text-decoration: none;
     color: rgb(82,82,82);
-	-webkit-user-select: none;
+	/*-webkit-user-select: none;*/
 	-webkit-transition: -webkit-transform .3s ease-out, background .3s ease-in;
 }
 
