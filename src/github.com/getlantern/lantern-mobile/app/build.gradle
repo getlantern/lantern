@@ -20,12 +20,22 @@ android {
         abortOnError false
     }
 
+    signingConfigs {
+        release {
+            storeFile file(KEYSTORE_FILE)
+            keyAlias "Lantern Release Key"
+            storePassword KEYSTORE_PWD
+            keyPassword KEY_PWD
+        }
+    }
+
     buildTypes {
         debug {
             minifyEnabled false
         }
         release {
-            minifyEnabled false
+            minifyEnabled true
+            signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
         applicationVariants.all { variant ->

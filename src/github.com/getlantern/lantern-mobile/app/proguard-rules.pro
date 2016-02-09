@@ -15,3 +15,8 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+
+-useuniqueclassmembernames
+-keepattributes SourceFile,LineNumberTable
+-allowaccessmodification
+-ignorewarnings 
