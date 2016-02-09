@@ -15,7 +15,7 @@ on language bindings, see https://golang.org/x/mobile/cmd/gobind.
 The second way is to write an app entirely in Go. The APIs are limited
 to those that are portable between both Android and iOS, in particular
 OpenGL, audio, and other Android NDK-like APIs. An all-Go app should
-use this app package to initialze the app, manage its lifecycle, and
+use this app package to initialize the app, manage its lifecycle, and
 receive events.
 
 Building apps
@@ -24,8 +24,11 @@ Apps written entirely in Go have a main function, and can be built
 with `gomobile build`, which directly produces runnable output for
 Android and iOS.
 
-The gomobile tool can get installed with go get. For details, see
+The gomobile tool can get installed with go get. For reference, see
 https://golang.org/x/mobile/cmd/gomobile.
+
+For detailed instructions and documentation, see
+https://golang.org/wiki/Mobile.
 
 Event processing in Native Apps
 
@@ -52,12 +55,12 @@ goroutine as other code that calls OpenGL.
 	func main() {
 		app.Main(func(a app.App) {
 			for e := range a.Events() {
-				switch e := app.Filter(e).(type) {
+				switch e := a.Filter(e).(type) {
 				case lifecycle.Event:
 					// ...
 				case paint.Event:
 					log.Print("Call OpenGL here.")
-					a.EndPaint(e)
+					a.Publish()
 				}
 			}
 		})
@@ -66,10 +69,10 @@ goroutine as other code that calls OpenGL.
 An event is represented by the empty interface type interface{}. Any value can
 be an event. Commonly used types include Event types defined by the following
 packages:
-	- golang.org/x/mobile/event/config
 	- golang.org/x/mobile/event/lifecycle
 	- golang.org/x/mobile/event/mouse
 	- golang.org/x/mobile/event/paint
+	- golang.org/x/mobile/event/size
 	- golang.org/x/mobile/event/touch
 For example, touch.Event is the type that represents touch events. Other
 packages may define their own events, and send them on an app's event channel.

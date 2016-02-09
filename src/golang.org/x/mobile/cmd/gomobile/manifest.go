@@ -61,7 +61,6 @@ var manifestTmpl = template.Must(template.New("manifest").Parse(`
 	android:versionCode="1"
 	android:versionName="1.0">
 
-	<uses-sdk android:minSdkVersion="9" />
 	<application android:label="{{.Name}}" android:debuggable="true">
 	<activity android:name="org.golang.app.GoNativeActivity"
 		android:label="{{.Name}}"

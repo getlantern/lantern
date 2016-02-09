@@ -63,6 +63,7 @@ func init() {
 
 // Run runs a client proxy. It blocks as long as the proxy is running.
 func Run(httpProxyAddr string,
+	socksProxyAddr string,
 	configDir string,
 	stickyConfig bool,
 	proxyAll func() bool,
@@ -102,9 +103,19 @@ func Run(httpProxyAddr string,
 			}
 		}()
 
-		log.Debug("Starting client proxy")
-		err = client.ListenAndServe(httpProxyAddr, func() {
-			log.Debug("Started client proxy")
+		if socksProxyAddr != "" {
+			go func() {
+				log.Debug("Starting client SOCKS5 proxy")
+				err = client.ListenAndServeSOCKS5(socksProxyAddr)
+				if err != nil {
+					log.Errorf("Unable to start SOCKS5 proxy: %v", err)
+				}
+			}()
+		}
+
+		log.Debug("Starting client HTTP proxy")
+		err = client.ListenAndServeHTTP(httpProxyAddr, func() {
+			log.Debug("Started client HTTP proxy")
 			// We finally tell the config package to start polling for new configurations.
 			// This is the final step because the config polling itself uses the full
 			// proxying capabilities of Lantern, so it needs everything to be properly

@@ -10,8 +10,6 @@ license that can be found in the LICENSE file.
 	android:versionCode="1"
 	android:versionName="1.0">
 
-	<uses-sdk android:minSdkVersion="9" />
-
 	<!-- In order to access the network, your application manifest must
 	     specify the permission requirement. See the following page for
 	     details.

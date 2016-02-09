@@ -8,6 +8,13 @@
 
 #include <Foundation/Foundation.h>
 
+FOUNDATION_EXPORT const BOOL GoBasictypesABool;
+FOUNDATION_EXPORT const double GoBasictypesAFloat;
+FOUNDATION_EXPORT const int32_t GoBasictypesARune;
+FOUNDATION_EXPORT NSString* const GoBasictypesAString;
+FOUNDATION_EXPORT const int64_t GoBasictypesAnInt;
+FOUNDATION_EXPORT const int64_t GoBasictypesAnInt2;
+
 FOUNDATION_EXPORT BOOL GoBasictypesBool(BOOL p0);
 
 FOUNDATION_EXPORT NSData* GoBasictypesByteArrays(NSData* x);

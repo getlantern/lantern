@@ -16,9 +16,9 @@ import (
 var (
 	cwd          string
 	gomobilepath string // $GOPATH/pkg/gomobile
-	ndkccpath    string // $GOPATH/pkg/gomobile/android-{{.NDK}}
 
-	androidArmEnv  []string
+	androidEnv map[string][]string // android arch -> []string
+
 	darwinArmEnv   []string
 	darwinArm64Env []string
 	darwin386Env   []string
@@ -48,14 +48,9 @@ func buildEnvInit() (cleanup func(), err error) {
 
 	// Check the toolchain is in a good state.
 	// Pick a temporary directory for assembling an apk/app.
-	version, err := goVersion()
-	if err != nil {
-		return nil, err
-	}
 	if gomobilepath == "" {
 		return nil, errors.New("toolchain not installed, run `gomobile init`")
 	}
-
 	cleanupFn := func() {
 		if buildWork {
 			fmt.Printf("WORK=%s\n", tmpdir)
@@ -72,7 +67,7 @@ func buildEnvInit() (cleanup func(), err error) {
 		if err != nil {
 			return nil, errors.New("toolchain partially installed, run `gomobile init`")
 		}
-		if !bytes.Equal(installedVersion, version) {
+		if !bytes.Equal(installedVersion, goVersionOut) {
 			return nil, errors.New("toolchain out of date, run `gomobile init`")
 		}
 
@@ -97,23 +92,23 @@ func envInit() (err error) {
 
 	// Setup the cross-compiler environments.
 
-	// TODO(crawshaw): Remove ndkccpath global.
-	ndkccpath = filepath.Join(gomobilepath, "android-"+ndkVersion)
-	ndkccbin := filepath.Join(ndkccpath, "arm", "bin")
+	androidEnv = make(map[string][]string)
+	for arch, toolchain := range ndk {
+		if goVersion < toolchain.minGoVer {
+			continue
+		}
 
-	exe := ""
-	if goos == "windows" {
-		exe = ".exe"
+		androidEnv[arch] = []string{
+			"GOOS=android",
+			"GOARCH=" + arch,
+			"CC=" + toolchain.Path("gcc"),
+			"CXX=" + toolchain.Path("g++"),
+			"CGO_ENABLED=1",
+		}
+		if arch == "arm" {
+			androidEnv[arch] = append(androidEnv[arch], "GOARM=7")
+		}
 	}
-	androidArmEnv = []string{
-		"GOOS=android",
-		"GOARCH=arm",
-		"GOARM=7",
-		"CC=" + filepath.Join(ndkccbin, "arm-linux-androideabi-gcc"+exe),
-		"CXX=" + filepath.Join(ndkccbin, "arm-linux-androideabi-g++"+exe),
-		"CGO_ENABLED=1",
-	}
-	androidArmNM = filepath.Join(ndkccbin, "arm-linux-androideabi-nm"+exe)
 
 	if runtime.GOOS != "darwin" {
 		return nil
@@ -175,14 +170,14 @@ func envClang(sdkName string) (clang, cflags string, err error) {
 		return "clang-" + sdkName, "-isysroot=" + sdkName, nil
 	}
 	cmd := exec.Command("xcrun", "--sdk", sdkName, "--find", "clang")
-	out, err := cmd.Output()
+	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", "", fmt.Errorf("xcrun --find: %v\n%s", err, out)
 	}
 	clang = strings.TrimSpace(string(out))
 
 	cmd = exec.Command("xcrun", "--sdk", sdkName, "--show-sdk-path")
-	out, err = cmd.Output()
+	out, err = cmd.CombinedOutput()
 	if err != nil {
 		return "", "", fmt.Errorf("xcrun --show-sdk-path: %v\n%s", err, out)
 	}
@@ -254,4 +249,65 @@ func getenv(env []string, key string) string {
 
 func pkgdir(env []string) string {
 	return gomobilepath + "/pkg_" + getenv(env, "GOOS") + "_" + getenv(env, "GOARCH")
+}
+
+type ndkToolchain struct {
+	arch       string
+	abi        string
+	platform   string
+	gcc        string
+	toolPrefix string
+	minGoVer   goToolVersion
+}
+
+func (tc *ndkToolchain) Path(toolName string) string {
+	if goos == "windows" {
+		toolName += ".exe"
+	}
+	return filepath.Join(ndk.Root(), tc.arch, "bin", tc.toolPrefix+"-"+toolName)
+}
+
+type ndkConfig map[string]ndkToolchain // map: GOOS->androidConfig.
+
+func (nc ndkConfig) Root() string {
+	return filepath.Join(gomobilepath, "android-"+ndkVersion)
+}
+
+func (nc ndkConfig) Toolchain(arch string) ndkToolchain {
+	tc, ok := nc[arch]
+	if !ok || tc.minGoVer > goVersion {
+		panic(`unsupported architecture: ` + arch)
+	}
+	return tc
+}
+
+// TODO: share this with release.go
+var ndk = ndkConfig{
+	"arm": {
+		arch:       "arm",
+		abi:        "armeabi-v7a",
+		platform:   "android-15",
+		gcc:        "arm-linux-androideabi-4.8",
+		toolPrefix: "arm-linux-androideabi",
+		minGoVer:   go1_5,
+	},
+	/*
+		        "386": {
+		                arch:       "x86",
+		                abi:        "x86",
+		                platform:   "android-15",
+		                gcc:        "x86-4.8",
+		                toolPrefix: "i686-linux-android",
+				minGoVer: go1_6,
+
+		        },
+		        "amd64": {
+		                arch:       "x86_64",
+		                abi:        "x86_64",
+		                platform:   "android-21",
+		                gcc:        "x86_64-4.9",
+		                toolPrefix: "x86_64-linux-android",
+				minGoVer: go1_6,
+		        },
+	*/
 }

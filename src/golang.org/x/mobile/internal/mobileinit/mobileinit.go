@@ -7,3 +7,5 @@
 //
 // Long-term, some code in this package should consider moving into Go stdlib.
 package mobileinit
+
+import "C"

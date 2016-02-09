@@ -15,6 +15,16 @@ import (
 
 var (
 	log = golog.LoggerFor("tlsdialer")
+
+	resolve = func(addr string) (*net.TCPAddr, error) {
+		resolved, err := net.ResolveTCPAddr("tcp", addr)
+		if err != nil {
+			return nil, err
+		}
+		return resolved, nil
+	}
+
+	dialOverride func(network, addr string, timeout time.Duration) (net.Conn, error)
 )
 
 type timeoutError struct{}
@@ -38,6 +48,17 @@ type ConnWithTimings struct {
 	ResolvedAddr *net.TCPAddr
 	// VerifiedChains: like tls.ConnectionState.VerifiedChains
 	VerifiedChains [][]*x509.Certificate
+}
+
+// OverrideResolve allows overriding the DNS resolution function
+func OverrideResolve(override func(addr string) (*net.TCPAddr, error)) {
+	resolve = override
+}
+
+// OverrideDial allows specifying a function that will be used to dial in lieu
+// of a net.Dialer.
+func OverrideDial(override func(network, addr string, timeout time.Duration) (net.Conn, error)) {
+	dialOverride = override
 }
 
 // Like crypto/tls.Dial, but with the ability to control whether or not to
@@ -94,12 +115,12 @@ func DialForTimings(dialer *net.Dialer, network, addr string, sendServerName boo
 	var err error
 	if timeout == 0 {
 		log.Tracef("Resolving immediately")
-		result.ResolvedAddr, err = net.ResolveTCPAddr("tcp", addr)
+		result.ResolvedAddr, err = resolve(addr)
 	} else {
 		log.Tracef("Resolving on goroutine")
 		resolvedCh := make(chan *net.TCPAddr, 10)
 		go func() {
-			resolved, err := net.ResolveTCPAddr("tcp", addr)
+			resolved, err := resolve(addr)
 			log.Tracef("Resolution resulted in %s : %s", resolved, err)
 			resolvedCh <- resolved
 			errCh <- err
@@ -119,7 +140,14 @@ func DialForTimings(dialer *net.Dialer, network, addr string, sendServerName boo
 
 	log.Tracef("Dialing %s %s (%s)", network, addr, result.ResolvedAddr)
 	start = time.Now()
-	rawConn, err := dialer.Dial(network, result.ResolvedAddr.String())
+	resolvedAddr := result.ResolvedAddr.String()
+	var rawConn net.Conn
+	if dialOverride != nil {
+		log.Trace("Dialing with dialOverride")
+		rawConn, err = dialOverride(network, resolvedAddr, timeout)
+	} else {
+		rawConn, err = dialer.Dial(network, resolvedAddr)
+	}
 	if err != nil {
 		return result, err
 	}

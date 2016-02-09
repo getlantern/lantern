@@ -1,0 +1,46 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    repositories {
+        jcenter()
+        maven { url 'https://maven.fabric.io/public' }
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:1.5.0'
+        classpath 'io.fabric.tools:gradle:1.+'
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+ext {
+    commonPlugins = new File(projectDir, 'common-plugins.gradle')
+    internalScript = new File(projectDir, 'internal.gradle')
+
+    enableTestCodeCoverage = true
+    libflashlight = 'libflashlight+@aar'
+
+
+    compileSdkVersion = 23
+    targetSdkVersion = 23
+    minSdkVersion = 15
+    buildToolsVersion = '23.0.1'
+    buildNumber = 'dev'
+
+    lanternDir = projectDir.parentFile.parentFile
+    qualityScript = new File(lanternDir, 'quality.gradle')
+    deployScript = new File(lanternDir, 'deploy.gradle')
+
+    libs = fileTree(dir: 'libs', include: ['*.jar'])
+    appCompat = 'com.android.support:appcompat-v7:23.0.1'
+    gplay   = 'com.google.android.gms:play-services-analytics:7.0.0'
+    yaml    = 'org.yaml:snakeyaml:1.10'
+    mavenAntTasks = 'org.apache.maven:maven-ant-tasks:2.1.3'
+}
+
+allprojects {
+    repositories {
+        jcenter()
+    }
+}

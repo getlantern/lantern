@@ -10,10 +10,17 @@
 static NSString* errDomain = @"go.basictypes";
 
 @protocol goSeqRefInterface
--(GoSeqRef*) ref;
+-(GoSeqRef*) _ref;
 @end
 
 #define _DESCRIPTOR_ "basictypes"
+
+const BOOL GoBasictypesABool = YES;
+const double GoBasictypesAFloat = 0.2015;
+const int32_t GoBasictypesARune = 32;
+NSString* const GoBasictypesAString = @"a string";
+const int64_t GoBasictypesAnInt = 7LL;
+const int64_t GoBasictypesAnInt2 = 9223372036854775807LL;
 
 #define _CALL_Bool_ 1
 #define _CALL_ByteArrays_ 2

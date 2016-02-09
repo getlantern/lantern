@@ -13,11 +13,14 @@ package app
 #include <sys/utsname.h>
 #include <stdint.h>
 #include <pthread.h>
+#include <UIKit/UIDevice.h>
+#import <GLKit/GLKit.h>
 
 extern struct utsname sysInfo;
 
 void runApp(void);
-void setContext(void* context);
+void makeCurrentContext(GLintptr ctx);
+void swapBuffers(GLintptr ctx);
 uint64_t threadID();
 */
 import "C"
@@ -26,14 +29,12 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"unsafe"
 
-	"golang.org/x/mobile/event/config"
 	"golang.org/x/mobile/event/lifecycle"
 	"golang.org/x/mobile/event/paint"
+	"golang.org/x/mobile/event/size"
 	"golang.org/x/mobile/event/touch"
 	"golang.org/x/mobile/geom"
-	"golang.org/x/mobile/gl"
 )
 
 var initThreadID uint64
@@ -56,13 +57,14 @@ func main(f func(App)) {
 	}
 
 	go func() {
-		f(app{})
+		f(theApp)
 		// TODO(crawshaw): trigger runApp to return
 	}()
 	C.runApp()
 	panic("unexpected return from app.runApp")
 }
 
+var pixelsPerPt float32
 var screenScale int // [UIScreen mainScreen].scale, either 1, 2, or 3.
 
 //export setScreen
@@ -97,19 +99,26 @@ func setScreen(scale int) {
 }
 
 //export updateConfig
-func updateConfig(width, height int) {
-	widthPx := screenScale * width
-	heightPx := screenScale * height
-	eventsIn <- config.Event{
+func updateConfig(width, height, orientation int32) {
+	o := size.OrientationUnknown
+	switch orientation {
+	case C.UIDeviceOrientationPortrait, C.UIDeviceOrientationPortraitUpsideDown:
+		o = size.OrientationPortrait
+	case C.UIDeviceOrientationLandscapeLeft, C.UIDeviceOrientationLandscapeRight:
+		o = size.OrientationLandscape
+	}
+	widthPx := screenScale * int(width)
+	heightPx := screenScale * int(height)
+	theApp.eventsIn <- size.Event{
 		WidthPx:     widthPx,
 		HeightPx:    heightPx,
 		WidthPt:     geom.Pt(float32(widthPx) / pixelsPerPt),
 		HeightPt:    geom.Pt(float32(heightPx) / pixelsPerPt),
 		PixelsPerPt: pixelsPerPt,
+		Orientation: o,
 	}
+	theApp.eventsIn <- paint.Event{External: true}
 }
-
-var startedgl = false
 
 // touchIDs is the current active touches. The position in the array
 // is the ID, the value is the UITouch* pointer value.
@@ -150,7 +159,7 @@ func sendTouch(cTouch, cTouchType uintptr, x, y float32) {
 		touchIDs[id] = 0
 	}
 
-	eventsIn <- touch.Event{
+	theApp.eventsIn <- touch.Event{
 		X:        x,
 		Y:        y,
 		Sequence: touch.Sequence(id),
@@ -158,23 +167,50 @@ func sendTouch(cTouch, cTouchType uintptr, x, y float32) {
 	}
 }
 
-//export drawgl
-func drawgl(ctx uintptr) {
-	if !startedgl {
-		startedgl = true
-		C.setContext(unsafe.Pointer(ctx))
-		// TODO(crawshaw): not just on process start.
-		sendLifecycle(lifecycle.StageFocused)
-	}
+//export lifecycleDead
+func lifecycleDead() { theApp.sendLifecycle(lifecycle.StageDead) }
 
-	eventsIn <- paint.Event{}
+//export lifecycleAlive
+func lifecycleAlive() { theApp.sendLifecycle(lifecycle.StageAlive) }
+
+//export lifecycleVisible
+func lifecycleVisible() { theApp.sendLifecycle(lifecycle.StageVisible) }
+
+//export lifecycleFocused
+func lifecycleFocused() { theApp.sendLifecycle(lifecycle.StageFocused) }
+
+//export startloop
+func startloop(ctx C.GLintptr) {
+	go theApp.loop(ctx)
+}
+
+// loop is the primary drawing loop.
+//
+// After UIKit has captured the initial OS thread for processing UIKit
+// events in runApp, it starts loop on another goroutine. It is locked
+// to an OS thread for its OpenGL context.
+func (a *app) loop(ctx C.GLintptr) {
+	runtime.LockOSThread()
+	C.makeCurrentContext(ctx)
+
+	workAvailable := a.worker.WorkAvailable()
 
 	for {
 		select {
-		case <-gl.WorkAvailable:
-			gl.DoWork()
-		case <-endPaint:
-			return
+		case <-workAvailable:
+			a.worker.DoWork()
+		case <-theApp.publish:
+		loop1:
+			for {
+				select {
+				case <-workAvailable:
+					a.worker.DoWork()
+				default:
+					break loop1
+				}
+			}
+			C.swapBuffers(ctx)
+			theApp.publishResult <- PublishResult{}
 		}
 	}
 }
