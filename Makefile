@@ -575,12 +575,10 @@ android-dependencies: $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) 
 	cd $(LANTERN_MOBILE_DIR)/app
 	cp $(ANDROID_SDK_ANDROID_LIB) $(LANTERN_MOBILE_LIBS)
 
-$(LANTERN_MOBILE_ANDROID_DEBUG): android-dependencies
+android-debug: android-dependencies
 	gradle -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
 		clean \
 		assembleDebug
-
-android: $(LANTERN_MOBILE_ANDROID_DEBUG)
 
 android-release: require-version require-secrets android-dependencies
 	@echo "Generating distribution package for android..."
@@ -589,6 +587,9 @@ android-release: require-version require-secrets android-dependencies
 		clean \
 		assembleRelease
 	cp $(LANTERN_MOBILE_ANDROID_RELEASE) lantern-installer.apk
+
+android: android-debug
+	cp $(LANTERN_MOBILE_ANDROID_DEBUG) lantern-installer.apk
 
 android-install: $(LANTERN_MOBILE_ANDROID_DEBUG)
 	adb install -r $(LANTERN_MOBILE_ANDROID_DEBUG)
