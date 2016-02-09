@@ -416,6 +416,7 @@ packages: require-version require-secrets clean update-dist binaries package-win
 release-qa: require-version require-s3cmd
 	@BASE_NAME="lantern-installer-qa" && \
 	BASE_NAME_MANOTO="lantern-installer-qa-manoto" && \
+	rm -f $$BASE_NAME* && \
 	cp lantern-installer.exe $$BASE_NAME.exe && \
 	cp lantern-installer-manoto.exe $$BASE_NAME_MANOTO.exe && \
 	cp lantern-installer.dmg $$BASE_NAME.dmg && \
