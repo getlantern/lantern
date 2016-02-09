@@ -18,9 +18,9 @@ import (
 )
 
 var (
-	poolCh      = make(chan *x509.CertPool, 1)
-	candidateCh = make(chan *Masquerade, 1)
-	masqCh      = make(chan *Masquerade, 1)
+	poolCh        = make(chan *x509.CertPool, 1)
+	candidateChCh = make(chan chan *Masquerade, 1)
+	masqCh        = make(chan *Masquerade, 1)
 )
 
 func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
@@ -43,10 +43,11 @@ func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
 
 	// Make an unblocked channel the same size as our group
 	// of masquerades and push all of them into it.
-	candidateCh = make(chan *Masquerade, size)
+	candidateCh := make(chan *Masquerade, size)
 
 	go func() {
 		log.Debugf("Adding %v candidates...", size)
+		candidateChCh <- candidateCh
 		for _, arr := range masq {
 			for _, m := range arr {
 				candidateCh <- m
@@ -136,6 +137,8 @@ func (d *direct) Do(req *http.Request) (*http.Response, error) {
 // Dial persistently dials masquerades until one succeeds.
 func (d *direct) Dial(network, addr string) (net.Conn, error) {
 	gotFirst := false
+	candidateCh := <-candidateChCh
+	candidateChCh <- candidateCh
 	for {
 		select {
 		case m := <-candidateCh:
