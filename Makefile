@@ -72,7 +72,7 @@ LANTERN_MOBILE_TUN2SOCKS := $(LANTERN_MOBILE_ARM_LIBS)/libtun2socks.so
 LANTERN_MOBILE_ANDROID_LIB := $(LANTERN_MOBILE_LIBS)/$(ANDROID_LIB)
 LANTERN_MOBILE_ANDROID_SDK := $(LANTERN_MOBILE_LIBS)/sdk-debug.aar
 LANTERN_MOBILE_ANDROID_DEBUG := $(LANTERN_MOBILE_DIR)/app/build/outputs/apk/lantern-debug.apk
-LANTERN_MOBILE_ANDROID_RELEASE := $(LANTERN_MOBILE_DIR)/app/build/outputs/apk/lantern.apk
+LANTERN_MOBILE_ANDROID_RELEASE := $(LANTERN_MOBILE_DIR)/app/build/outputs/apk/app-release.apk
 
 LANTERN_YAML := lantern.yaml
 LANTERN_YAML_PATH := installer-resources/lantern.yaml
@@ -416,7 +416,6 @@ packages: require-version require-secrets clean update-dist binaries package-win
 release-qa: require-version require-s3cmd
 	@BASE_NAME="lantern-installer-qa" && \
 	BASE_NAME_MANOTO="lantern-installer-qa-manoto" && \
-	rm -f $$BASE_NAME* && \
 	cp lantern-installer.exe $$BASE_NAME.exe && \
 	cp lantern-installer-manoto.exe $$BASE_NAME_MANOTO.exe && \
 	cp lantern-installer.dmg $$BASE_NAME.dmg && \
@@ -425,6 +424,7 @@ release-qa: require-version require-s3cmd
 	cp lantern-manoto_*386.deb $$BASE_NAME_MANOTO-32-bit.deb && \
 	cp lantern_*amd64.deb $$BASE_NAME-64-bit.deb && \
 	cp lantern-manoto_*amd64.deb $$BASE_NAME_MANOTO-64-bit.deb && \
+	cp lantern-installer.apk $$BASE_NAME.apk && \
 	for NAME in $$(ls -1 $$BASE_NAME*.*); do \
 		shasum $$NAME | cut -d " " -f 1 > $$NAME.sha1 && \
 		echo "Uploading SHA-1 `cat $$NAME.sha1`" && \
@@ -570,24 +570,24 @@ $(LANTERN_MOBILE_ANDROID_SDK): $(ANDROID_SDK)
 	mkdir -p $(LANTERN_MOBILE_LIBS) && \
 	cp $(ANDROID_SDK) $(LANTERN_MOBILE_ANDROID_SDK)
 
-$(LANTERN_MOBILE_ANDROID): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK)
+android-dependencies: $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK)
 	cd $(LANTERN_MOBILE_DIR)/app
+	cp $(ANDROID_SDK_ANDROID_LIB) $(LANTERN_MOBILE_LIBS)
 
-$(LANTERN_MOBILE_ANDROID_DEBUG): $(LANTERN_MOBILE_ANDROID)
+$(LANTERN_MOBILE_ANDROID_DEBUG): android-dependencies
 	gradle -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
 		clean \
 		assembleDebug
 
 android: $(LANTERN_MOBILE_ANDROID_DEBUG)
 
-android-release: require-version require-secrets
+android-release: require-version require-secrets android-dependencies
 	@echo "Generating distribution package for android..."
 	cp $$SECRETS_DIR/android/keystore.release.jks $(LANTERN_MOBILE_DIR)/app
-	$(LANTERN_MOBILE_ANDROID)
 	gradle -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
 		clean \
 		assembleRelease
-
+	cp $(LANTERN_MOBILE_ANDROID_RELEASE) lantern-installer.apk
 
 android-install: $(LANTERN_MOBILE_ANDROID_DEBUG)
 	adb install -r $(LANTERN_MOBILE_ANDROID_DEBUG)
