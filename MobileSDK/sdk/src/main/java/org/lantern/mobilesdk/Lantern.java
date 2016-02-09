@@ -41,20 +41,20 @@ public class Lantern {
      * @param context
      * @param timeoutMillis       how long to wait for proxy to start listening (should be fairly quick)
      * @param analyticsTrackingId (optional tracking ID for tracking Google analytics)
-     * @return the {@link go.lantern.Lantern.StartResult} with port information about the started
+     * @return the {@link StartResult} with port information about the started
      * lantern
      */
-    public synchronized static go.lantern.Lantern.StartResult enable(Context context, int timeoutMillis, String analyticsTrackingId)
+    public synchronized static StartResult enable(Context context, int timeoutMillis, String analyticsTrackingId)
             throws LanternNotRunningException {
         String configDir = new File(context.getFilesDir().getAbsolutePath(), ".lantern").getAbsolutePath();
-        go.lantern.Lantern.StartResult result = enable(configDir, timeoutMillis);
+        StartResult result = enable(configDir, timeoutMillis);
         if (analyticsTrackingId != null && !enabled) {
             trackStartSession(context, analyticsTrackingId);
         }
         return result;
     }
 
-    private static go.lantern.Lantern.StartResult enable(String configDir, int timeoutMillis)
+    private static StartResult enable(String configDir, int timeoutMillis)
             throws LanternNotRunningException {
         try {
             go.lantern.Lantern.StartResult result = go.lantern.Lantern.Start(configDir, timeoutMillis);
@@ -66,7 +66,7 @@ public class Lantern {
             System.setProperty("http.proxyPort", port);
             System.setProperty("https.proxyHost", host);
             System.setProperty("https.proxyPort", port);
-            return result;
+            return new StartResult(result.getHTTPAddr(), result.getSOCKS5Addr());
         } catch (Exception e) {
             throw new LanternNotRunningException("Unable to start Lantern: " + e.getMessage(), e);
         }
