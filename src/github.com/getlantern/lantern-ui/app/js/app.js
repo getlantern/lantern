@@ -35,6 +35,7 @@ var app = angular.module('app', [
                    $resourceProvider, $translateProvider, DEFAULT_LANG) {
 
       $translateProvider.fallbackLanguage(DEFAULT_LANG).
+        uniformLanguageTag('java').
         determinePreferredLanguage().
         useStaticFilesLoader({
           prefix: './locale/',
