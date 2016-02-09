@@ -138,7 +138,12 @@ func (d *direct) Do(req *http.Request) (*http.Response, error) {
 func (d *direct) Dial(network, addr string) (net.Conn, error) {
 	gotFirst := false
 	candidateCh := <-candidateChCh
-	candidateChCh <- candidateCh
+	select {
+	case candidateChCh <- candidateCh:
+		// Repopulate the chan of candidate chans if there's room.
+	default:
+		// There's already an available chan, presumably from a new call to Configure.
+	}
 	for {
 		select {
 		case m := <-candidateCh:
