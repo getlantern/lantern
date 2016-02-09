@@ -71,7 +71,8 @@ LANTERN_MOBILE_ARM_LIBS := $(LANTERN_MOBILE_LIBS)/armeabi-v7a
 LANTERN_MOBILE_TUN2SOCKS := $(LANTERN_MOBILE_ARM_LIBS)/libtun2socks.so
 LANTERN_MOBILE_ANDROID_LIB := $(LANTERN_MOBILE_LIBS)/$(ANDROID_LIB)
 LANTERN_MOBILE_ANDROID_SDK := $(LANTERN_MOBILE_LIBS)/sdk-debug.aar
-LANTERN_MOBILE := $(LANTERN_MOBILE_DIR)/app/build/outputs/apk/lantern-debug.apk
+LANTERN_MOBILE_ANDROID_DEBUG := $(LANTERN_MOBILE_DIR)/app/build/outputs/apk/lantern-debug.apk
+LANTERN_MOBILE_ANDROID_RELEASE := $(LANTERN_MOBILE_DIR)/app/build/outputs/apk/lantern.apk
 
 LANTERN_YAML := lantern.yaml
 LANTERN_YAML_PATH := installer-resources/lantern.yaml
@@ -569,18 +570,27 @@ $(LANTERN_MOBILE_ANDROID_SDK): $(ANDROID_SDK)
 	mkdir -p $(LANTERN_MOBILE_LIBS) && \
 	cp $(ANDROID_SDK) $(LANTERN_MOBILE_ANDROID_SDK)
 
-$(LANTERN_MOBILE): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK)
+$(LANTERN_MOBILE_ANDROID): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK)
 	cd $(LANTERN_MOBILE_DIR)/app
+
+$(LANTERN_MOBILE_ANDROID_DEBUG): $(LANTERN_MOBILE_ANDROID)
 	gradle -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
 		clean \
 		assembleDebug
 
-android: $(LANTERN_MOBILE)
+android: $(LANTERN_MOBILE_ANDROID_DEBUG)
 
-android-debug: $(LANTERN_MOBILE)
+android-release: require-version require-secrets
+	@echo "Generating distribution package for android..."
+	cp $$SECRETS_DIR/android/keystore.release.jks $(LANTERN_MOBILE_DIR)/app
+	$(LANTERN_MOBILE_ANDROID)
+	gradle -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
+		clean \
+		assembleRelease
 
-android-install: $(LANTERN_MOBILE)
-	adb install -r $(LANTERN_MOBILE)
+
+android-install: $(LANTERN_MOBILE_ANDROID_DEBUG)
+	adb install -r $(LANTERN_MOBILE_ANDROID_DEBUG)
 
 clean:
 	rm -f lantern_linux* && \
@@ -605,5 +615,6 @@ clean:
 	rm -f $(LANTERN_MOBILE_TUN2SOCKS) && \
 	rm -f $(LANTERN_MOBILE_ANDROID_LIB) && \
 	rm -f $(LANTERN_MOBILE_ANDROID_SDK) && \
-	rm -rf $(LANTERN_MOBILE_DIR)/libs/armeabi* && \
-	rm -f $(LANTERN_MOBILE)
+	rm -f $(LANTERN_MOBILE_DIR)/libs/armeabi* && \
+	rm -f $(LANTERN_MOBILE_ANDROID_DEBUG) && \
+	rm -f $(LANTERN_MOBILE_ANDROID_RELEASE)
