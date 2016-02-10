@@ -77,7 +77,7 @@ LANTERN_MOBILE_ANDROID_RELEASE := $(LANTERN_MOBILE_DIR)/app/build/outputs/apk/ap
 LANTERN_YAML := lantern.yaml
 LANTERN_YAML_PATH := installer-resources/lantern.yaml
 
-.PHONY: packages clean docker tun2socks android-lib android-sdk android-testbed android-debug android-install
+.PHONY: packages clean docker tun2socks android-lib android-sdk android-testbed android-debug android-release android-install
 
 define build-tags
 	BUILD_TAGS="" && \
@@ -571,25 +571,24 @@ $(LANTERN_MOBILE_ANDROID_SDK): $(ANDROID_SDK)
 	mkdir -p $(LANTERN_MOBILE_LIBS) && \
 	cp $(ANDROID_SDK) $(LANTERN_MOBILE_ANDROID_SDK)
 
-android-dependencies: $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK)
-	cd $(LANTERN_MOBILE_DIR)/app
-	cp $(ANDROID_SDK_ANDROID_LIB) $(LANTERN_MOBILE_LIBS)
-
-android-debug: android-dependencies
+$(LANTERN_MOBILE_ANDROID_DEBUG): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK)
 	gradle -PlanternVersion=$(GIT_REVISION) -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
 		clean \
 		assembleDebug
 
-android-release: require-version require-secrets android-dependencies
+$(LANTERN_MOBILE_ANDROID_RELEASE): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK)
 	@echo "Generating distribution package for android..."
 	cp $$SECRETS_DIR/android/keystore.release.jks $(LANTERN_MOBILE_DIR)/app
+	cd $(LANTERN_MOBILE_DIR)/app
+	cp $(ANDROID_SDK_ANDROID_LIB) $(LANTERN_MOBILE_LIBS)
 	gradle -PlanternVersion=$$VERSION -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
 		clean \
 		assembleRelease
 	cp $(LANTERN_MOBILE_ANDROID_RELEASE) lantern-installer.apk
 
-android: android-debug
-	cp $(LANTERN_MOBILE_ANDROID_DEBUG) lantern-installer.apk
+android-debug: $(LANTERN_MOBILE_ANDROID_DEBUG)
+
+android-release: require-version require-secrets $(LANTERN_MOBILE_ANDROID_RELEASE)
 
 android-install: $(LANTERN_MOBILE_ANDROID_DEBUG)
 	adb install -r $(LANTERN_MOBILE_ANDROID_DEBUG)
@@ -617,6 +616,6 @@ clean:
 	rm -f $(LANTERN_MOBILE_TUN2SOCKS) && \
 	rm -f $(LANTERN_MOBILE_ANDROID_LIB) && \
 	rm -f $(LANTERN_MOBILE_ANDROID_SDK) && \
-	rm -f $(LANTERN_MOBILE_DIR)/libs/armeabi* && \
+	rm -rf $(LANTERN_MOBILE_DIR)/libs/armeabi* && \
 	rm -f $(LANTERN_MOBILE_ANDROID_DEBUG) && \
 	rm -f $(LANTERN_MOBILE_ANDROID_RELEASE)
