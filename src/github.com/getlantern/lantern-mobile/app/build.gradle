@@ -34,10 +34,10 @@ android {
     def code = incVersionNum()
 
     defaultConfig {
-	    minSdkVersion rootProject.minSdkVersion
-	    targetSdkVersion rootProject.targetSdkVersion
-	    applicationId "org.getlantern.lantern"
-	    versionCode code
+	minSdkVersion rootProject.minSdkVersion
+	targetSdkVersion rootProject.targetSdkVersion
+	applicationId "org.getlantern.lantern"
+	versionCode code
         versionName "1.0." + code
     }
 
