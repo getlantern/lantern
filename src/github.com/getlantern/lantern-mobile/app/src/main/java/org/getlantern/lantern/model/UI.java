@@ -109,6 +109,7 @@ public class UI {
 
     private TransitionDrawable offNavTrans = new TransitionDrawable(offTransColor);
     private TransitionDrawable onNavTrans = new TransitionDrawable(onTransColor);
+    
 
     private View mainView, desktopView, statusLayout;
 
@@ -153,8 +154,8 @@ public class UI {
         void runCommand();
     }
 
-    public void setVersionNum(final String latestVersion) {
-        versionNum.setText(latestVersion);
+    public void setVersionNum(final String appVersion, final String lanternVersion) {
+        versionNum.setText(String.format("%s-%s", appVersion, lanternVersion));
     }
 
     public void setupSideMenu() throws Exception {
