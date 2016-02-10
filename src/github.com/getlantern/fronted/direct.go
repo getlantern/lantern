@@ -18,9 +18,11 @@ import (
 )
 
 var (
-	poolCh      = make(chan *x509.CertPool, 1)
-	candidateCh = make(chan *Masquerade, 1)
-	masqCh      = make(chan *Masquerade, 1)
+	poolCh       = make(chan *x509.CertPool, 1)
+	_candidateCh = make(chan *Masquerade, 1)
+	masqCh       = make(chan *Masquerade, 1)
+
+	candidateChMutex sync.RWMutex
 )
 
 func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
@@ -43,7 +45,8 @@ func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
 
 	// Make an unblocked channel the same size as our group
 	// of masquerades and push all of them into it.
-	candidateCh = make(chan *Masquerade, size)
+	candidateCh := make(chan *Masquerade, size)
+	setCandidateCh(candidateCh)
 
 	go func() {
 		log.Debugf("Adding %v candidates...", size)
@@ -135,6 +138,7 @@ func (d *direct) Do(req *http.Request) (*http.Response, error) {
 
 // Dial persistently dials masquerades until one succeeds.
 func (d *direct) Dial(network, addr string) (net.Conn, error) {
+	candidateCh := getCandidateCh()
 	gotFirst := false
 	for {
 		select {
@@ -178,6 +182,19 @@ func (d *direct) Dial(network, addr string) (net.Conn, error) {
 			}
 		}
 	}
+}
+
+func getCandidateCh() chan *Masquerade {
+	candidateChMutex.RLock()
+	result := _candidateCh
+	candidateChMutex.RUnlock()
+	return result
+}
+
+func setCandidateCh(newCh chan *Masquerade) {
+	candidateChMutex.Lock()
+	_candidateCh = newCh
+	candidateChMutex.Unlock()
 }
 
 func (d *direct) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
