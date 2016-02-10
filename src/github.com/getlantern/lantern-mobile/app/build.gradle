@@ -2,12 +2,12 @@ apply plugin: 'com.android.application'
 apply plugin: 'io.fabric'
 
 def incVersionNum() {
- 	def versionPropsFile = file('version.properties')
-	def Properties versionProps = new Properties()
+    def versionPropsFile = file('version.properties')
+    def Properties versionProps = new Properties()
 
     // only try to load properties if version.properties 
     // file exists
-   if (versionPropsFile.exists()) {
+    if (versionPropsFile.exists()) {
 		versionProps.load(new FileInputStream(versionPropsFile))
 	}
     
