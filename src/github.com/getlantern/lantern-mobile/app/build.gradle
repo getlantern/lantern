@@ -1,20 +1,45 @@
 apply plugin: 'com.android.application'
 apply plugin: 'io.fabric'
 
+def incVersionNum() {
+ 	def versionPropsFile = file('version.properties')
+	def Properties versionProps = new Properties()
+
+    // only try to load properties if version.properties 
+    // file exists
+   if (versionPropsFile.exists()) {
+		versionProps.load(new FileInputStream(versionPropsFile))
+	}
+    
+    def value = 0
+    def runTasks = gradle.startParameter.taskNames
+    if ('assembleRelease' in runTasks) {
+        value = 1
+    }
+
+    def code = (versionProps['VERSION_CODE'] ?: "0").toInteger() + value
+    versionProps['VERSION_CODE'] = code.toString()
+    versionProps.store(versionPropsFile.newWriter(), null)
+
+    return code
+}
+
 android {
 
     useLibrary 'org.apache.http.legacy'
 
     compileSdkVersion rootProject.compileSdkVersion
-    buildToolsVersion rootProject.buildToolsVersion
+	buildToolsVersion rootProject.buildToolsVersion
 
-    defaultConfig {
-        applicationId "org.getlantern.lantern"
-        minSdkVersion rootProject.minSdkVersion
-        targetSdkVersion rootProject.targetSdkVersion
-        versionCode 1
-        versionName "1.0.1"
-    }
+    def code = incVersionNum()
+
+	defaultConfig {
+		minSdkVersion rootProject.minSdkVersion
+		targetSdkVersion rootProject.targetSdkVersion
+		applicationId "org.getlantern.lantern"
+		versionCode code
+		versionName "1.0." + code
+	}
 
     lintOptions {
         abortOnError false
@@ -30,14 +55,18 @@ android {
     }
 
     buildTypes {
+
         debug {
             minifyEnabled false
         }
+
         release {
             minifyEnabled true
+            shrinkResources true
             signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+
         applicationVariants.all { variant ->
 
             variant.buildConfigField "String", "LANTERN_VERSION", "\"$project.lanternVersion\""
