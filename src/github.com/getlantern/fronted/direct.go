@@ -13,16 +13,15 @@ import (
 	"sync"
 	"time"
 
+	"github.com/getlantern/eventual"
 	"github.com/getlantern/idletiming"
 	"github.com/getlantern/tlsdialer"
 )
 
 var (
 	poolCh       = make(chan *x509.CertPool, 1)
-	_candidateCh = make(chan *Masquerade, 1)
+	_candidateCh = eventual.NewValue()
 	masqCh       = make(chan *Masquerade, 1)
-
-	candidateChMutex sync.RWMutex
 )
 
 func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
@@ -185,16 +184,15 @@ func (d *direct) Dial(network, addr string) (net.Conn, error) {
 }
 
 func getCandidateCh() chan *Masquerade {
-	candidateChMutex.RLock()
-	result := _candidateCh
-	candidateChMutex.RUnlock()
-	return result
+	result, ok := _candidateCh.Get(5 * time.Minute)
+	if !ok {
+		panic("Unable to get candidateCh within 5 minutes")
+	}
+	return result.(chan *Masquerade)
 }
 
 func setCandidateCh(newCh chan *Masquerade) {
-	candidateChMutex.Lock()
-	_candidateCh = newCh
-	candidateChMutex.Unlock()
+	_candidateCh.Set(newCh)
 }
 
 func (d *direct) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
