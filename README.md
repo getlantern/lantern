@@ -336,6 +336,12 @@ SECRETS_DIR=$PATH_TO_TOO_MANY_SECRETS \
 VERSION=2.0.0-beta1 make android-release
 ```
 
+To install on the default device:
+
+```
+make android-install
+```
+
 ### Android Tips
 #### Uninstall for All Users
 If you use `adb` to install and debug an app to your Android device during
