@@ -7983,6 +7983,7 @@ body.giveMode #npending {
 #mobile-ad {
   width: 627px;
   height: 473px;
+
   border: 1px solid #000;
   text-align: center;
 
@@ -7994,11 +7995,6 @@ body.giveMode #npending {
 #mobile-ad form {
   padding: 0px;
   margin: 0px;
-}
-
-#mobile-ad-image {
-  width: 625px;
-  height: 312px;
 }
 
 #mobile-ad #get-the-app-via-email {
@@ -8129,4 +8125,22 @@ input.fail::-moz-placeholder {
 }
 input.fail:-ms-input-placeholder {
   color: red;
+}
+
+@media (max-width: 750px) {
+  #mobile-ad {
+    width: 502px;
+    height: 423px;
+  }
+  p.download-link b {
+    display: block;
+  }
+}
+
+@media (max-width: 600px) {
+  #mobile-ad {
+    top: 170px;
+    width: 376px;
+    height: 363px;
+  }
 }

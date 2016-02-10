@@ -1,10 +1,10 @@
 <div class="message">
   <a href="https://getlantern.org" target="_blank">
-  <img id="logo" src="/img/ui-header-logo.png"></a><br/><span ng-show="!backendIsGone || wsConnected">{{ 'WELCOME_TO_LANTERN_BLOCKED_SITES' | translate }}</span>
+  <img id="logo" src="/img/ui-header-logo.svg"></a><br/><span ng-show="!backendIsGone || wsConnected">{{ 'WELCOME_TO_LANTERN_BLOCKED_SITES' | translate }}</span>
 </div>
 
 <div id="mobile-ad" ng-show="showMobileAd">
-  <img ng-src="/img/mobile-ad/{{ 'LANG_ID' | translate }}/main.png" id="mobile-add-image" />
+  <img ng-src="/img/mobile-ad/{{ 'LANG_ID' | translate }}/main.png" id="mobile-ad-image" />
   <img ng-src="/img/mobile-ad/{{ 'LANG_ID' | translate }}/get-the-app-text.svg" id="get-the-app-via-email" />
   <form ng-submit="sendMobileAppLink()">
     <div class="mail-input-wrapper">

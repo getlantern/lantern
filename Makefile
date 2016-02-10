@@ -129,6 +129,7 @@ docker-genassets: require-npm
 	APP="$$LANTERN_UI/app" && \
 	DIST="$$LANTERN_UI/dist" && \
 	echo 'var LANTERN_BUILD_REVISION = "$(GIT_REVISION_SHORTCODE)";' > $$APP/js/revision.js && \
+	git update-index --assume-unchanged $$APP/js/revision.js && \
 	if [[ ! -d $$DIST ]]; then \
 		UPDATE_DIST=true; \
 	fi && \
