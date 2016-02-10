@@ -8,8 +8,8 @@ def incVersionNum() {
     // only try to load properties if version.properties 
     // file exists
     if (versionPropsFile.exists()) {
-		versionProps.load(new FileInputStream(versionPropsFile))
-	}
+       versionProps.load(new FileInputStream(versionPropsFile))
+    }
     
     def value = 0
     def runTasks = gradle.startParameter.taskNames
