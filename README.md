@@ -309,7 +309,7 @@ make android-testbed
 To create a debug build of the full lantern mobile app:
 
 ```
-make android
+make android-debug
 ```
 
 To install on the default device:
@@ -329,9 +329,17 @@ KEYSTORE_FILE=keystore.release.jks
 KEY_PWD=$KEY_PASSWORD
 ```
 
+Then it can be built with:
+
 ```sh
 SECRETS_DIR=$PATH_TO_TOO_MANY_SECRETS \
 VERSION=2.0.0-beta1 make android-release
+```
+
+To install on the default device:
+
+```
+make android-install
 ```
 
 ### Android Tips
