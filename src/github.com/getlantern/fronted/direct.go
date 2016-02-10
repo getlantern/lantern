@@ -45,7 +45,7 @@ func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
 	// Make an unblocked channel the same size as our group
 	// of masquerades and push all of them into it.
 	candidateCh := make(chan *Masquerade, size)
-	setCandidateCh(candidateCh)
+	_candidateCh.Set(candidateCh)
 
 	go func() {
 		log.Debugf("Adding %v candidates...", size)
@@ -189,10 +189,6 @@ func getCandidateCh() chan *Masquerade {
 		panic("Unable to get candidateCh within 5 minutes")
 	}
 	return result.(chan *Masquerade)
-}
-
-func setCandidateCh(newCh chan *Masquerade) {
-	_candidateCh.Set(newCh)
 }
 
 func (d *direct) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
