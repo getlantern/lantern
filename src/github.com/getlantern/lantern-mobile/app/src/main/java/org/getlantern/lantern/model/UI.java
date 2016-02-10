@@ -109,8 +109,6 @@ public class UI {
 
     private TransitionDrawable offNavTrans = new TransitionDrawable(offTransColor);
     private TransitionDrawable onNavTrans = new TransitionDrawable(onTransColor);
-    
-
     private View mainView, desktopView, statusLayout;
 
     public UI(LanternMainActivity activity, SharedPreferences mPrefs) {
