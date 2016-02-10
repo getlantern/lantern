@@ -8130,3 +8130,8 @@ input.fail::-moz-placeholder {
 input.fail:-ms-input-placeholder {
   color: red;
 }
+
+::-ms-clear
+{
+  display: none;
+}
