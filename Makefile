@@ -576,14 +576,14 @@ android-dependencies: $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) 
 	cp $(ANDROID_SDK_ANDROID_LIB) $(LANTERN_MOBILE_LIBS)
 
 android-debug: android-dependencies
-	gradle -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
+	gradle -PlanternVersion=$(GIT_REVISION) -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
 		clean \
 		assembleDebug
 
 android-release: require-version require-secrets android-dependencies
 	@echo "Generating distribution package for android..."
 	cp $$SECRETS_DIR/android/keystore.release.jks $(LANTERN_MOBILE_DIR)/app
-	gradle -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
+	gradle -PlanternVersion=$$VERSION -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
 		clean \
 		assembleRelease
 	cp $(LANTERN_MOBILE_ANDROID_RELEASE) lantern-installer.apk

@@ -39,6 +39,9 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
         applicationVariants.all { variant ->
+
+            variant.buildConfigField "String", "LANTERN_VERSION", "\"$project.lanternVersion\""
+
             variant.outputs.each { output ->
                 output.outputFile = new File(
                     output.outputFile.parent,
