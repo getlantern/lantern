@@ -34,11 +34,11 @@ android {
     def code = incVersionNum()
 
     defaultConfig {
-	minSdkVersion rootProject.minSdkVersion
-	targetSdkVersion rootProject.targetSdkVersion
-	applicationId "org.getlantern.lantern"
-	versionCode code
-	versionName "1.0." + code
+	    minSdkVersion rootProject.minSdkVersion
+	    targetSdkVersion rootProject.targetSdkVersion
+	    applicationId "org.getlantern.lantern"
+	    versionCode code
+        versionName "1.0." + code
     }
 
     lintOptions {
@@ -47,10 +47,12 @@ android {
 
     signingConfigs {
         release {
-            storeFile file(KEYSTORE_FILE)
-            keyAlias "Lantern Release Key"
-            storePassword KEYSTORE_PWD
-            keyPassword KEY_PWD
+            if (project.hasProperty("KEYSTORE_FILE")) {
+                storeFile file(KEYSTORE_FILE)
+                keyAlias "Lantern Release Key"
+                storePassword KEYSTORE_PWD
+                keyPassword KEY_PWD
+            }
         }
     }
 
