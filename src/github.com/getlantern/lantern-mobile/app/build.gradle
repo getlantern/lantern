@@ -29,7 +29,7 @@ android {
     useLibrary 'org.apache.http.legacy'
 
     compileSdkVersion rootProject.compileSdkVersion
-	buildToolsVersion rootProject.buildToolsVersion
+    buildToolsVersion rootProject.buildToolsVersion
 
     def code = incVersionNum()
 
