@@ -7,6 +7,11 @@ import (
 	"time"
 )
 
+const (
+	FALSE = 0
+	TRUE  = 1
+)
+
 // Value is an eventual value, meaning that callers wishing to access the value
 // block until the value is available.
 type Value interface {
@@ -25,7 +30,7 @@ type value struct {
 	val      atomic.Value
 	wg       sync.WaitGroup
 	updates  chan interface{}
-	gotFirst bool
+	gotFirst int32
 }
 
 // NewValue creates a new Value.
@@ -52,15 +57,20 @@ func (v *value) Set(val interface{}) {
 func (v *value) processUpdates() {
 	for val := range v.updates {
 		v.val.Store(val)
-		if !v.gotFirst {
+		if v.gotFirst == FALSE {
 			// Signal to blocking callers that we have the first value
 			v.wg.Done()
-			v.gotFirst = true
+			v.gotFirst = TRUE
 		}
 	}
 }
 
 func (v *value) Get(timeout time.Duration) (interface{}, bool) {
+	if atomic.LoadInt32(&v.gotFirst) == TRUE {
+		// Short-cut used once value has been set, to avoid extra goroutine
+		return v.val.Load(), true
+	}
+
 	valCh := make(chan interface{})
 	go func() {
 		v.wg.Wait()

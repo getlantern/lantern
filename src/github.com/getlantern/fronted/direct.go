@@ -13,14 +13,15 @@ import (
 	"sync"
 	"time"
 
+	"github.com/getlantern/eventual"
 	"github.com/getlantern/idletiming"
 	"github.com/getlantern/tlsdialer"
 )
 
 var (
-	poolCh      = make(chan *x509.CertPool, 1)
-	candidateCh = make(chan *Masquerade, 1)
-	masqCh      = make(chan *Masquerade, 1)
+	poolCh       = make(chan *x509.CertPool, 1)
+	_candidateCh = eventual.NewValue()
+	masqCh       = make(chan *Masquerade, 1)
 )
 
 func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
@@ -43,7 +44,8 @@ func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
 
 	// Make an unblocked channel the same size as our group
 	// of masquerades and push all of them into it.
-	candidateCh = make(chan *Masquerade, size)
+	candidateCh := make(chan *Masquerade, size)
+	_candidateCh.Set(candidateCh)
 
 	go func() {
 		log.Debugf("Adding %v candidates...", size)
@@ -135,6 +137,7 @@ func (d *direct) Do(req *http.Request) (*http.Response, error) {
 
 // Dial persistently dials masquerades until one succeeds.
 func (d *direct) Dial(network, addr string) (net.Conn, error) {
+	candidateCh := getCandidateCh()
 	gotFirst := false
 	for {
 		select {
@@ -178,6 +181,14 @@ func (d *direct) Dial(network, addr string) (net.Conn, error) {
 			}
 		}
 	}
+}
+
+func getCandidateCh() chan *Masquerade {
+	result, ok := _candidateCh.Get(5 * time.Minute)
+	if !ok {
+		panic("Unable to get candidateCh within 5 minutes")
+	}
+	return result.(chan *Masquerade)
 }
 
 func (d *direct) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
