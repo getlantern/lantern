@@ -63,7 +63,7 @@ This will take a while, be patient, you only need to do this once.
 ### Building for Development
 
 During development, you can build a lantern that includes race detection with
-the below.  Note - this currently only works on OS X using Go 1.5 (not 1.6rc1).
+the below.  Note - this currently only works using Go 1.5 (not 1.6rc1).
 
 ```sh
 make lantern
