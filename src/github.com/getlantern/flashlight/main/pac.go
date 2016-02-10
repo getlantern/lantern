@@ -9,17 +9,18 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/getlantern/detour"
 	"github.com/getlantern/filepersist"
 	"github.com/getlantern/pac"
 
+	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/ui"
 )
 
 var (
 	isPacOn        = int32(0)
-	proxyAddr      string
 	pacURL         string
 	muPACFile      sync.RWMutex
 	pacFile        []byte
@@ -61,11 +62,6 @@ func setUpPacTool() error {
 	return nil
 }
 
-func setProxyAddr(addr string) {
-	log.Debugf("Setting proxy address to: %v", addr)
-	proxyAddr = addr
-}
-
 func genPACFile() {
 	hostsString := "[]"
 	// only bypass sites if proxy all option is unset
@@ -105,8 +101,14 @@ func genPACFile() {
 			}
 			return "PROXY %s; DIRECT";
 		}`
+	proxyAddr, ok := client.Addr(5 * time.Minute)
+	if !ok {
+		panic("Unable to get proxy address within 5 minutes")
+	}
+	proxyAddrString := proxyAddr.(string)
+	log.Debugf("Setting proxy address to %v", proxyAddrString)
 	muPACFile.Lock()
-	pacFile = []byte(fmt.Sprintf(formatter, hostsString, proxyAddr))
+	pacFile = []byte(fmt.Sprintf(formatter, hostsString, proxyAddrString))
 	muPACFile.Unlock()
 }
 
