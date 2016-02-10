@@ -303,16 +303,35 @@ make android-testbed
 
 ### Lantern Mobile App
 
-To build the full lantern mobile app:
+
+## Debug
+
+To create a debug build of the full lantern mobile app:
 
 ```
-make android-debug
+make android
 ```
 
 To install on the default device:
 
 ```
 make android-install
+```
+
+## Release
+
+To create a release build, add the following to your 
+``gradle.properties`` file:
+
+```
+KEYSTORE_PWD=$KEYSTORE_PASSWORD
+KEYSTORE_FILE=keystore.release.jks
+KEY_PWD=$KEY_PASSWORD
+```
+
+```sh
+SECRETS_DIR=$PATH_TO_TOO_MANY_SECRETS \
+VERSION=2.0.0-beta1 make android-release
 ```
 
 ### Android Tips
