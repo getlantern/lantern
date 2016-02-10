@@ -8,8 +8,8 @@ def incVersionNum() {
     // only try to load properties if version.properties 
     // file exists
     if (versionPropsFile.exists()) {
-		versionProps.load(new FileInputStream(versionPropsFile))
-	}
+       versionProps.load(new FileInputStream(versionPropsFile))
+    }
     
     def value = 0
     def runTasks = gradle.startParameter.taskNames
@@ -29,17 +29,17 @@ android {
     useLibrary 'org.apache.http.legacy'
 
     compileSdkVersion rootProject.compileSdkVersion
-	buildToolsVersion rootProject.buildToolsVersion
+    buildToolsVersion rootProject.buildToolsVersion
 
     def code = incVersionNum()
 
-	defaultConfig {
-		minSdkVersion rootProject.minSdkVersion
-		targetSdkVersion rootProject.targetSdkVersion
-		applicationId "org.getlantern.lantern"
-		versionCode code
-		versionName "1.0." + code
-	}
+    defaultConfig {
+	minSdkVersion rootProject.minSdkVersion
+	targetSdkVersion rootProject.targetSdkVersion
+	applicationId "org.getlantern.lantern"
+	versionCode code
+	versionName "1.0." + code
+    }
 
     lintOptions {
         abortOnError false
