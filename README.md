@@ -60,6 +60,15 @@ This will take a while, be patient, you only need to do this once.
 
 ## Building Lantern binaries
 
+### Building for Development
+
+During development, you can build a lantern that includes race detection with
+the below.  Note - this currently only works on OS X using Go 1.5 (not 1.6rc1).
+
+```sh
+make lantern
+```
+
 ### Building for Linux
 
 If you want to build for Linux on all supported architectures, use:
