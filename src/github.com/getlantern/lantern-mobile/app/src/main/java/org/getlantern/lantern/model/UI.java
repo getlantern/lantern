@@ -110,7 +110,6 @@ public class UI {
     private TransitionDrawable offNavTrans = new TransitionDrawable(offTransColor);
     private TransitionDrawable onNavTrans = new TransitionDrawable(onTransColor);
 
-
     private View mainView, desktopView, statusLayout;
 
     public UI(LanternMainActivity activity, SharedPreferences mPrefs) {
@@ -155,15 +154,7 @@ public class UI {
     }
 
     public void setVersionNum(final String latestVersion) {
-
-        this.activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mPrefs.edit().putString("versionNum", latestVersion).commit();
-
-                versionNum.setText(latestVersion);
-            }
-        });
+        versionNum.setText(latestVersion);
     }
 
     public void setupSideMenu() throws Exception {
