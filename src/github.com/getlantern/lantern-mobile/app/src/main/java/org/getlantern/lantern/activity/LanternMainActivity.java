@@ -22,6 +22,7 @@ import android.view.MenuItem;
 import android.view.KeyEvent;
 import android.support.v7.app.AppCompatActivity;
 
+import org.getlantern.lantern.BuildConfig;
 import org.getlantern.lantern.vpn.Service;
 import org.getlantern.lantern.model.UI;
 import org.getlantern.lantern.sdk.Utils;
@@ -62,7 +63,7 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
 
 
         LanternUI = new UI(this, mPrefs);
-
+        LanternUI.setVersionNum(BuildConfig.LANTERN_VERSION);
 
         // the ACTION_SHUTDOWN intent is broadcast when the phone is
         // about to be shutdown. We register a receiver to make sure we
