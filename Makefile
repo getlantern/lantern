@@ -345,17 +345,9 @@ darwin-amd64: require-assets
 
 lantern: require-assets
 	@echo "Building development lantern" && \
-	export OSX_DEV_SDK=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX$(OSX_MIN_VERSION).sdk && \
-	if [[ "$$(uname -s)" == "Darwin" ]]; then \
-		source setenv.bash && \
-		$(call build-tags) && \
-		if [[ -d $$OSX_DEV_SDK ]]; then \
-			export CGO_CFLAGS="--sysroot $$OSX_DEV_SDK" && \
-			export CGO_LDFLAGS="--sysroot $$OSX_DEV_SDK"; \
-		fi \
-	fi
-	MACOSX_DEPLOYMENT_TARGET=$(OSX_MIN_VERSION) \
-	CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -race -o lantern -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -s" github.com/getlantern/flashlight/main; \
+	source setenv.bash && \
+	$(call build-tags) && \
+	CGO_ENABLED=1 go build -race -o lantern -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -s" github.com/getlantern/flashlight/main; \
 
 package-linux-386: require-version genassets linux-386
 	@echo "Generating distribution package for linux/386..." && \
