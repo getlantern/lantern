@@ -58,9 +58,10 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$htt
 
       $scope.resetPlaceholder();
 
-      if (!email) {
+      if (!email || !(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) {
         $scope.inputClass = "fail";
         $scope.inputPlaceholder = "Please enter a valid e-mail";
+        alert("Please check your e-mail address.");
         return;
       }
 

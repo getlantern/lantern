@@ -7983,7 +7983,6 @@ body.giveMode #npending {
 #mobile-ad {
   width: 627px;
   height: 473px;
-
   border: 1px solid #000;
   text-align: center;
 
@@ -8125,6 +8124,11 @@ input.fail::-moz-placeholder {
 }
 input.fail:-ms-input-placeholder {
   color: red;
+}
+
+::-ms-clear
+{
+  display: none;
 }
 
 @media (max-width: 750px) {
