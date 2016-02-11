@@ -13,13 +13,18 @@ import (
 )
 
 const (
-	serviceURL = "https://update.getlantern.org/update"
+	defaultUpdateServerURL = "https://update.getlantern.org"
 )
 
 var (
-	PublicKey []byte
-	Version   string
+	updateServerURL string
+	PublicKey       []byte
+	Version         string
 )
+
+func init() {
+	updateServerURL = defaultUpdateServerURL
+}
 
 var (
 	log = golog.LoggerFor("flashlight.autoupdate")
@@ -36,6 +41,11 @@ var (
 
 func Configure(cfg *config.Config) {
 	cfgMutex.Lock()
+
+	if cfg.UpdateServerURL != "" {
+		updateServerURL = cfg.UpdateServerURL
+	}
+
 	if cfg.Addr == lastAddr {
 		cfgMutex.Unlock()
 		log.Debug("Autoupdate configuration unchanged")
@@ -90,7 +100,7 @@ func applyNext() {
 	if httpClient != nil {
 		err := autoupdate.ApplyNext(&autoupdate.Config{
 			CurrentVersion: Version,
-			URL:            serviceURL,
+			URL:            updateServerURL + "/update",
 			PublicKey:      PublicKey,
 			HTTPClient:     httpClient,
 		})

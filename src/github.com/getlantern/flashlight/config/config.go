@@ -55,22 +55,23 @@ var (
 )
 
 type Config struct {
-	Version       int
-	CloudConfig   string
-	CloudConfigCA string
-	Addr          string
-	Role          string
-	InstanceId    string
-	CpuProfile    string
-	MemProfile    string
-	UIAddr        string // UI HTTP server address
-	AutoReport    *bool  // Report anonymous usage to GA
-	AutoLaunch    *bool  // Automatically launch Lantern on system startup
-	Stats         *statreporter.Config
-	Server        *server.ServerConfig
-	Client        *client.ClientConfig
-	ProxiedSites  *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
-	TrustedCAs    []*CA
+	Version         int
+	CloudConfig     string
+	CloudConfigCA   string
+	Addr            string
+	Role            string
+	InstanceId      string
+	CpuProfile      string
+	MemProfile      string
+	UpdateServerURL string
+	UIAddr          string // UI HTTP server address
+	AutoReport      *bool  // Report anonymous usage to GA
+	AutoLaunch      *bool  // Automatically launch Lantern on system startup
+	Stats           *statreporter.Config
+	Server          *server.ServerConfig
+	Client          *client.ClientConfig
+	ProxiedSites    *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
+	TrustedCAs      []*CA
 }
 
 // StartPolling starts the process of polling for new configuration files.
@@ -334,6 +335,10 @@ func (cfg *Config) ApplyDefaults() {
 
 	if cfg.UIAddr == "" {
 		cfg.UIAddr = "127.0.0.1:16823"
+	}
+
+	if cfg.UpdateServerURL == "" {
+		cfg.UpdateServerURL = "https://update.getlantern.org"
 	}
 
 	if cfg.CloudConfig == "" {
