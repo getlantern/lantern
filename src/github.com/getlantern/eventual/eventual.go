@@ -60,7 +60,7 @@ func (v *value) processUpdates() {
 		if v.gotFirst == FALSE {
 			// Signal to blocking callers that we have the first value
 			v.wg.Done()
-			v.gotFirst = TRUE
+			atomic.StoreInt32(&v.gotFirst, TRUE)
 		}
 	}
 }
