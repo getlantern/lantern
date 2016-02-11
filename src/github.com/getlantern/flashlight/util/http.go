@@ -232,7 +232,7 @@ func httpClient(rootCA string, proxyAddr string, persistent bool) (*http.Client,
 		if isLoopback(host) {
 			log.Debugf("Waiting for loopback proxy server to came online...")
 			// Waiting for proxy server to came online.
-			err := waitforserver.WaitForServer("tcp", proxyAddr, 60*time.Second)
+			err := waitforserver.WaitForServer("tcp", proxyAddr, 5*time.Minute)
 			if err != nil {
 				// Instead of finishing here we just log the error and continue, the client
 				// we are going to create will surely fail when used and return errors,
