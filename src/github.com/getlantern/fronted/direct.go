@@ -57,7 +57,7 @@ func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
 		tlsConfigs:  make(map[string]*tls.Config),
 		certPool:    pool,
 		candidates:  make(chan *Masquerade, size),
-		masquerades: make(chan *Masquerade, VetParallelism),
+		masquerades: make(chan *Masquerade, size),
 	}
 	_instance.Set(instance)
 	instance.vet(masquerades)
@@ -91,6 +91,9 @@ func (d *direct) vetSome() {
 		conn, masqueradesRemain, err := d.DialWith(d.candidates, d.masquerades, "tcp", "www.google.com")
 		if err == nil {
 			conn.Close()
+			waitTime := time.Duration(rand.Intn(60)) * time.Second
+			log.Tracef("Waiting %v before verifying another masquerade", waitTime)
+			time.Sleep(waitTime)
 		}
 		if !masqueradesRemain {
 			return
