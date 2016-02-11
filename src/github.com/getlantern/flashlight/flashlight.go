@@ -27,7 +27,6 @@ import (
 	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/logging"
 	"github.com/getlantern/flashlight/proxiedsites"
-	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/settings"
 	"github.com/getlantern/flashlight/statreporter"
 	"github.com/getlantern/flashlight/statserver"
@@ -209,7 +208,7 @@ func doMain() error {
 			// This will open a proxy on the address and port given by -addr
 			runClientProxy(cfg)
 		} else {
-			runServerProxy(cfg)
+			panic("Serving is not supported")
 		}
 	}()
 
@@ -408,61 +407,6 @@ func withHttpClient(addr string, withClient func(client *http.Client)) {
 		log.Errorf("Could not create HTTP client via %s: %s", addr, err)
 	} else {
 		withClient(httpClient)
-	}
-}
-
-// Runs the server-side proxy
-func runServerProxy(cfg *config.Config) {
-	useAllCores()
-
-	_, pkFile, err := config.InConfigDir("proxypk.pem")
-	if err != nil {
-		log.Fatal(err)
-	}
-	_, certFile, err := config.InConfigDir("servercert.pem")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	srv := &server.Server{
-		Addr:         cfg.Addr,
-		ReadTimeout:  0, // don't timeout
-		WriteTimeout: 0,
-		CertContext: &fronted.CertContext{
-			PKFile:         pkFile,
-			ServerCertFile: certFile,
-		},
-		AllowedPorts: []int{80, 443, 8080, 8443, 5222, 5223, 5228},
-
-		// We've observed high resource consumption from these countries for
-		// purposes unrelated to Lantern's mission, so we disallow them.
-		BannedCountries: []string{"PH"},
-	}
-
-	srv.Configure(cfg.Server)
-
-	// Continually poll for config updates and update server accordingly
-	go func() {
-		for {
-			cfg := <-configUpdates
-			if err := statreporter.Configure(cfg.Stats); err != nil {
-				log.Debugf("Error configuring statreporter: %v", err)
-			}
-
-			srv.Configure(cfg.Server)
-		}
-	}()
-
-	err = srv.ListenAndServe(func(update func(*server.ServerConfig) error) {
-		err := config.Update(func(cfg *config.Config) error {
-			return update(cfg.Server)
-		})
-		if err != nil {
-			log.Errorf("Error while trying to update: %v", err)
-		}
-	})
-	if err != nil {
-		log.Fatalf("Unable to run server proxy: %s", err)
 	}
 }
 

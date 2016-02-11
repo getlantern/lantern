@@ -13,97 +13,97 @@ import (
 	"sync"
 	"time"
 
+	"github.com/getlantern/eventual"
+	"github.com/getlantern/golog"
 	"github.com/getlantern/idletiming"
 	"github.com/getlantern/tlsdialer"
 )
 
-var (
-	poolCh      = make(chan *x509.CertPool, 1)
-	candidateCh = make(chan *Masquerade, 1)
-	masqCh      = make(chan *Masquerade, 1)
+const (
+	VetParallelism = 16
 )
 
+var (
+	log       = golog.LoggerFor("fronted")
+	_instance = eventual.NewValue()
+)
+
+type direct struct {
+	tlsConfigsMutex sync.Mutex
+	tlsConfigs      map[string]*tls.Config
+	certPool        *x509.CertPool
+	candidates      chan *Masquerade
+	masquerades     chan *Masquerade
+}
+
 func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
+	log.Debug("Configuring fronted")
 	if masquerades == nil || len(masquerades) == 0 {
 		log.Errorf("No masquerades!!")
+		return
 	}
 
 	// Make a copy of the masquerades to avoid data races.
-	masq := make(map[string][]*Masquerade)
-	for k, v := range masquerades {
-		c := make([]*Masquerade, len(v))
-		copy(c, v)
-		masq[k] = c
-	}
 	size := 0
-	for _, arr := range masq {
-		shuffle(arr)
-		size += len(arr)
+	for _, v := range masquerades {
+		size += len(v)
+	}
+	if size == 0 {
+		log.Errorf("No masquerades!!")
+		return
 	}
 
-	// Make an unblocked channel the same size as our group
-	// of masquerades and push all of them into it.
-	candidateCh = make(chan *Masquerade, size)
+	instance := &direct{
+		tlsConfigs:  make(map[string]*tls.Config),
+		certPool:    pool,
+		candidates:  make(chan *Masquerade, size),
+		masquerades: make(chan *Masquerade, VetParallelism),
+	}
+	_instance.Set(instance)
+	instance.vet(masquerades)
+}
 
-	go func() {
-		log.Debugf("Adding %v candidates...", size)
-		for _, arr := range masq {
-			for _, m := range arr {
-				candidateCh <- m
-			}
+func (d *direct) vet(initial map[string][]*Masquerade) {
+	log.Debug("Beginning vetting of candidates")
+	// Load candidates
+	for key, arr := range initial {
+		size := len(arr)
+		log.Tracef("Adding %d candidates for %v", size, key)
+		for i := 0; i < size; i++ {
+			// choose index uniformly in [i, n-1]
+			r := i + rand.Intn(size-i)
+			log.Trace("Adding candidate")
+			d.candidates <- arr[r]
 		}
-		poolCh <- pool
-	}()
-}
+	}
 
-func shuffle(slc []*Masquerade) {
-	n := len(slc)
-	for i := 0; i < n; i++ {
-		// choose index uniformly in [i, n-1]
-		r := i + rand.Intn(n-i)
-		slc[r], slc[i] = slc[i], slc[r]
+	// Vet in parallel
+	for i := 0; i < VetParallelism; i++ {
+		go d.vetSome()
 	}
 }
 
-func getCertPool() *x509.CertPool {
-	pool := <-poolCh
-	if len(poolCh) == 0 {
-		poolCh <- pool
+func (d *direct) vetSome() {
+	// We're just testing the ability to connect here, destination site doesn't
+	// really matter
+	for {
+		log.Trace("Vetting some")
+		conn, masqueradesRemain, err := d.DialWith(d.candidates, d.masquerades, "tcp", "www.google.com")
+		if err == nil {
+			conn.Close()
+		}
+		if !masqueradesRemain {
+			return
+		}
 	}
-	return pool
 }
 
-type direct struct {
-	tlsConfigs      map[string]*tls.Config
-	tlsConfigsMutex sync.Mutex
-}
-
-func NewDirect() *direct {
-	d := &direct{
-		tlsConfigs: make(map[string]*tls.Config),
+func NewDirectHttpClient(timeout time.Duration) *http.Client {
+	instance, ok := _instance.Get(timeout)
+	if !ok {
+		panic(fmt.Errorf("No DirectHttpClient available within %v", timeout))
 	}
-	return d
-}
-
-// directTransport is a wrapper struct enabling us to modify the protocol of outgoing
-// requests to make them all HTTP instead of potentially HTTPS, which breaks our particular
-// implemenation of direct domain fronting.
-type directTransport struct {
-	http.Transport
-}
-
-func (ddf *directTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
-	// The connection is already encrypted by domain fronting.  We need to rewrite URLs starting
-	// with "https://" to "http://", lest we get an error for doubling up on TLS.
-
-	// The RoundTrip interface requires that we not modify the memory in the request, so we just
-	// create a copy.
-	norm := new(http.Request)
-	*norm = *req // includes shallow copies of maps, but okay
-	norm.URL = new(url.URL)
-	*norm.URL = *req.URL
-	norm.URL.Scheme = "http"
-	return ddf.Transport.RoundTrip(norm)
+	return instance.(*direct).NewDirectHttpClient()
 }
 
 // NewDirectHttpClient creates a new http.Client that does direct domain fronting.
@@ -133,12 +133,19 @@ func (d *direct) Do(req *http.Request) (*http.Response, error) {
 	return nil, errors.New("Could not complete request even with retries")
 }
 
-// Dial persistently dials masquerades until one succeeds.
+// Dial dials the given address using a masquerade. If the available masquerade
+// fails, it retries with others until it either succeeds or exhausts the
+// available masquerades.
 func (d *direct) Dial(network, addr string) (net.Conn, error) {
+	conn, _, err := d.DialWith(d.masquerades, d.masquerades, network, addr)
+	return conn, err
+}
+
+func (d *direct) DialWith(in chan *Masquerade, out chan *Masquerade, network, addr string) (net.Conn, bool, error) {
 	gotFirst := false
 	for {
 		select {
-		case m := <-candidateCh:
+		case m := <-in:
 			gotFirst = true
 			log.Debugf("Dialing to %v", m)
 
@@ -153,7 +160,8 @@ func (d *direct) Dial(network, addr string) (net.Conn, error) {
 				if strings.Contains(err.Error(), "certificate") || strings.Contains(err.Error(), "handshake") {
 					log.Debugf("Not re-adding candidate that failed on error '%v'", err.Error())
 				} else {
-					candidateCh <- m
+					log.Debugf("Unexpected error dialing, keeping masquerade: %v", err)
+					in <- m
 				}
 			} else {
 				log.Debugf("Got successful connection to: %v", m)
@@ -161,7 +169,7 @@ func (d *direct) Dial(network, addr string) (net.Conn, error) {
 					log.Debugf("Could not perform successful head request: %v", err)
 				} else {
 					// Requeue the working connection
-					candidateCh <- m
+					out <- m
 					idleTimeout := 70 * time.Second
 
 					log.Debug("Wrapping connecting in idletiming connection")
@@ -172,46 +180,20 @@ func (d *direct) Dial(network, addr string) (net.Conn, error) {
 						}
 					})
 					log.Debug("Returning connection")
-					return conn, nil
+					return conn, true, nil
 				}
 			}
 		default:
 			if gotFirst {
-				return nil, errors.New("Could not dial any masquerade?")
+				return nil, false, errors.New("Could not dial any masquerade?")
 			}
 		}
 	}
 }
 
-// headCheck checks to make sure we can actually make a DDF head request through a
-// given masquerade. We don't reuse the underlying connection here because that confuses
-// the http.Client's internal transport.
-func (d *direct) headCheck(m *Masquerade) error {
-	trans := &http.Transport{
-		Dial: func(network, address string) (net.Conn, error) {
-			return d.dialServerWith(m)
-		},
-		TLSHandshakeTimeout: 40 * time.Second,
-	}
-
-	client := &http.Client{
-		Transport: trans,
-	}
-	url := "http://d2wi0vwulmtn99.cloudfront.net/cloud.yaml.gz"
-	if resp, err := client.Head(url); err != nil {
-		return err
-	} else {
-		if 200 != resp.StatusCode {
-			return fmt.Errorf("Unexpected response status: %v, %v", resp.StatusCode, resp.Status)
-		}
-	}
-	log.Debugf("Successfully passed HEAD request through: %v", m)
-	return nil
-}
-
 func (d *direct) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
 	tlsConfig := d.tlsConfig(masquerade)
-	dialTimeout := 30 * time.Second
+	dialTimeout := 10 * time.Second
 	sendServerNameExtension := false
 
 	cwt, err := tlsdialer.DialForTimings(
@@ -242,10 +224,57 @@ func (d *direct) tlsConfig(m *Masquerade) *tls.Config {
 			ClientSessionCache: tls.NewLRUClientSessionCache(1000),
 			InsecureSkipVerify: false,
 			ServerName:         m.Domain,
-			RootCAs:            getCertPool(),
+			RootCAs:            d.certPool,
 		}
 		d.tlsConfigs[m.Domain] = tlsConfig
 	}
 
 	return tlsConfig
+}
+
+// headCheck checks to make sure we can actually make a DDF head request through a
+// given masquerade. We don't reuse the underlying connection here because that confuses
+// the http.Client's internal transport.
+func (d *direct) headCheck(m *Masquerade) error {
+	trans := &http.Transport{
+		Dial: func(network, address string) (net.Conn, error) {
+			return d.dialServerWith(m)
+		},
+		TLSHandshakeTimeout: 40 * time.Second,
+	}
+
+	client := &http.Client{
+		Transport: trans,
+	}
+	url := "http://d2wi0vwulmtn99.cloudfront.net/cloud.yaml.gz"
+	if resp, err := client.Head(url); err != nil {
+		return err
+	} else {
+		if 200 != resp.StatusCode {
+			return fmt.Errorf("Unexpected response status: %v, %v", resp.StatusCode, resp.Status)
+		}
+	}
+	log.Debugf("Successfully passed HEAD request through: %v", m)
+	return nil
+}
+
+// directTransport is a wrapper struct enabling us to modify the protocol of outgoing
+// requests to make them all HTTP instead of potentially HTTPS, which breaks our particular
+// implemenation of direct domain fronting.
+type directTransport struct {
+	http.Transport
+}
+
+func (ddf *directTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+	// The connection is already encrypted by domain fronting.  We need to rewrite URLs starting
+	// with "https://" to "http://", lest we get an error for doubling up on TLS.
+
+	// The RoundTrip interface requires that we not modify the memory in the request, so we just
+	// create a copy.
+	norm := new(http.Request)
+	*norm = *req // includes shallow copies of maps, but okay
+	norm.URL = new(url.URL)
+	*norm.URL = *req.URL
+	norm.URL.Scheme = "http"
+	return ddf.Transport.RoundTrip(norm)
 }
