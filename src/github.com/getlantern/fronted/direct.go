@@ -145,32 +145,35 @@ func (d *direct) Dial(network, addr string) (net.Conn, error) {
 			// We do the full TLS connection here because in practice the domains at a given IP
 			// address can change frequently on CDNs, so the certificate may not match what
 			// we expect.
-			conn, err := d.dialServerWith(m)
-			if err != nil {
+			if conn, err := d.dialServerWith(m); err != nil {
 				log.Debugf("Could not dial to %v, %v", m.IpAddress, err)
 				// Don't re-add this candidate if it's any certificate error, as that
 				// will just keep failing and will waste connections. We can't access the underlying
-				// error at this point so just look for "certificate".
-				if strings.Contains(err.Error(), "certificate") {
-					log.Debugf("Continuing on certificate error")
+				// error at this point so just look for "certificate" and "handshake".
+				if strings.Contains(err.Error(), "certificate") || strings.Contains(err.Error(), "handshake") {
+					log.Debugf("Not re-adding candidate that failed on error '%v'", err.Error())
 				} else {
 					candidateCh <- m
 				}
 			} else {
 				log.Debugf("Got successful connection to: %v", m)
-				// Requeue the working connection
-				candidateCh <- m
-				idleTimeout := 70 * time.Second
+				if err := d.headCheck(m); err != nil {
+					log.Debugf("Could not perform successful head request: %v", err)
+				} else {
+					// Requeue the working connection
+					candidateCh <- m
+					idleTimeout := 70 * time.Second
 
-				log.Debug("Wrapping connecting in idletiming connection")
-				conn = idletiming.Conn(conn, idleTimeout, func() {
-					log.Debugf("Connection to %s via %s idle for %v, closing", addr, conn.RemoteAddr(), idleTimeout)
-					if err := conn.Close(); err != nil {
-						log.Debugf("Unable to close connection: %v", err)
-					}
-				})
-				log.Debug("Returning connection")
-				return conn, nil
+					log.Debug("Wrapping connecting in idletiming connection")
+					conn = idletiming.Conn(conn, idleTimeout, func() {
+						log.Debugf("Connection to %s via %s idle for %v, closing", addr, conn.RemoteAddr(), idleTimeout)
+						if err := conn.Close(); err != nil {
+							log.Debugf("Unable to close connection: %v", err)
+						}
+					})
+					log.Debug("Returning connection")
+					return conn, nil
+				}
 			}
 		default:
 			if gotFirst {
@@ -178,6 +181,32 @@ func (d *direct) Dial(network, addr string) (net.Conn, error) {
 			}
 		}
 	}
+}
+
+// headCheck checks to make sure we can actually make a DDF head request through a
+// given masquerade. We don't reuse the underlying connection here because that confuses
+// the http.Client's internal transport.
+func (d *direct) headCheck(m *Masquerade) error {
+	trans := &http.Transport{
+		Dial: func(network, address string) (net.Conn, error) {
+			return d.dialServerWith(m)
+		},
+		TLSHandshakeTimeout: 40 * time.Second,
+	}
+
+	client := &http.Client{
+		Transport: trans,
+	}
+	url := "http://d2wi0vwulmtn99.cloudfront.net/cloud.yaml.gz"
+	if resp, err := client.Head(url); err != nil {
+		return err
+	} else {
+		if 200 != resp.StatusCode {
+			return fmt.Errorf("Unexpected response status: %v, %v", resp.StatusCode, resp.Status)
+		}
+	}
+	log.Debugf("Successfully passed HEAD request through: %v", m)
+	return nil
 }
 
 func (d *direct) dialServerWith(masquerade *Masquerade) (net.Conn, error) {

@@ -111,34 +111,173 @@ var defaultTrustedCAs = []*CA{
 }
 
 var cloudflareMasquerades = []*Masquerade{}
-
 var cloudfrontMasquerades = []*Masquerade{
 	&Masquerade{
-		Domain:    "101.livere.co.kr",
-		IpAddress: "54.182.0.48",
-	},
-	&Masquerade{
 		Domain:    "Images-na.ssl-images-amazon.com",
-		IpAddress: "54.192.0.70",
+		IpAddress: "54.230.0.233",
 	},
 	&Masquerade{
-		Domain:    "a-ritani.com",
-		IpAddress: "54.192.0.2",
+		Domain:    "cloudfront.net",
+		IpAddress: "54.230.6.15",
 	},
 	&Masquerade{
-		Domain:    "1rx.io",
-		IpAddress: "54.239.200.149",
+		Domain:    "cloudfront.net",
+		IpAddress: "54.240.131.7",
 	},
 	&Masquerade{
-		Domain:    "1rx.io",
-		IpAddress: "54.230.3.195",
+		Domain:    "cloudfront.net",
+		IpAddress: "204.246.169.12",
 	},
 	&Masquerade{
-		Domain:    "1rx.io",
-		IpAddress: "204.246.169.62",
+		Domain:    "cloudfront.net",
+		IpAddress: "204.246.169.122",
 	},
 	&Masquerade{
-		Domain:    "1rx.io",
-		IpAddress: "54.182.1.99",
+		Domain:    "cloudfront.net",
+		IpAddress: "204.246.169.160",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "204.246.169.166",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "204.246.169.178",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "204.246.169.183",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "204.246.169.204",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "204.246.169.211",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "204.246.169.230",
+	},
+	&Masquerade{
+		Domain:    "constant.co",
+		IpAddress: "204.246.169.135",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "204.246.169.249",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "204.246.169.158",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "54.240.131.190",
+	},
+	&Masquerade{
+		Domain:    "cardgames.io",
+		IpAddress: "204.246.169.52",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "204.246.169.59",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "204.246.169.75",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "204.246.169.90",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "204.246.169.97",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "205.251.203.208",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "54.240.130.97",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "216.137.39.13",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "216.137.39.119",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "216.137.39.150",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "216.137.39.153",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "216.137.39.152",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "216.137.39.162",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "216.137.39.160",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "216.137.39.164",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "216.137.39.175",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "216.137.39.180",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "216.137.39.115",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "216.137.39.184",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "216.137.39.19",
+	},
+	&Masquerade{
+		Domain:    "happify.com",
+		IpAddress: "216.137.39.147",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "216.137.39.149",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "216.137.39.199",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "216.137.39.211",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "216.137.39.21",
+	},
+	&Masquerade{
+		Domain:    "cloudfront.net",
+		IpAddress: "216.137.39.207",
 	},
 }
