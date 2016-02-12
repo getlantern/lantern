@@ -138,6 +138,11 @@ func DialForTimings(dialer *net.Dialer, network, addr string, sendServerName boo
 	result.ResolutionTime = time.Now().Sub(start)
 	log.Tracef("Resolved addr %s to %s in %s", addr, result.ResolvedAddr, result.ResolutionTime)
 
+	hostname, _, err := net.SplitHostPort(addr)
+	if err != nil {
+		return result, fmt.Errorf("Unable to split host and port for %v: %v", addr, err)
+	}
+
 	log.Tracef("Dialing %s %s (%s)", network, addr, result.ResolvedAddr)
 	start = time.Now()
 	resolvedAddr := result.ResolvedAddr.String()
@@ -153,11 +158,6 @@ func DialForTimings(dialer *net.Dialer, network, addr string, sendServerName boo
 	}
 	result.ConnectTime = time.Now().Sub(start)
 	log.Tracef("Dialed in %s", result.ConnectTime)
-
-	hostname, _, err := net.SplitHostPort(addr)
-	if err != nil {
-		return result, fmt.Errorf("Unable to split host and port for %v: %v", addr, err)
-	}
 
 	if config == nil {
 		config = &tls.Config{}
