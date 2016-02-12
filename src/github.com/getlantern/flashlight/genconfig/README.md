@@ -4,8 +4,8 @@ We generally update the embedded configuration with each new Lantern release to 
 
 Make sure that any chained servers you want to bake in are populated in fallbacks.yaml.  You can generate this using the private lantern_aws/etc/fetchcfg.py, as follows: 
 ```
-./fetchcfg.py vltok1 > fallbacks.yaml
-./fetchcfg.py >> fallbacks.yaml
+./fetchcfg.py sea > fallbacks.yaml
+./fetchcfg.py etc >> fallbacks.yaml
 ```
 
 Once this is done, run ```./genconfig.bash```.
