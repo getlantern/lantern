@@ -36,6 +36,8 @@ var (
 	// logglyToken is populated at build time by crosscompile.bash. During
 	// development time, logglyToken will be empty and we won't log to Loggly.
 	logglyToken string
+	// to show client logs in separate Loggly source group
+	logglyTag = "lantern-client"
 
 	osVersion = ""
 
@@ -175,7 +177,7 @@ func enableLoggly(addrFN eventual.Getter, cloudConfigCA string, instanceId strin
 		lang:            lang,
 		tz:              time.Now().Format("MST"),
 		versionToLoggly: fmt.Sprintf("%v (%v)", version, revisionDate),
-		client:          loggly.New(logglyToken),
+		client:          loggly.New(logglyToken, logglyTag),
 	}
 	logglyWriter.client.Defaults["hostname"] = "hidden"
 	logglyWriter.client.Defaults["instanceid"] = instanceId
