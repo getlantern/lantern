@@ -38,15 +38,12 @@ const (
 // was successful, it also tests to make sure that the outbound request didn't
 // leak any Lantern or CloudFlare headers.
 func testRequest(testCase string, t *testing.T, requests chan *http.Request, https bool, certPool *x509.CertPool, expectedStatus int, expectedErr error) {
-	log.Debug("Testing request")
 	cfg := &config.Config{}
-	log.Debug("Applying defaults")
 	cfg.ApplyDefaults()
 	trustedCAs, err := cfg.GetTrustedCACerts()
 	if err != nil {
 		t.Fatal(err)
 	}
-	log.Debug("Configuring fronted")
 	fronted.Configure(trustedCAs, cfg.Client.MasqueradeSets)
 
 	log.Debug("Making request")
