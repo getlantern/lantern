@@ -88,7 +88,7 @@ func (d *direct) vetSome() {
 	// really matter
 	for {
 		log.Trace("Vetting some")
-		conn, masqueradesRemain, err := d.DialWith(d.candidates, d.masquerades, "tcp", "www.google.com")
+		conn, masqueradesRemain, err := d.dialWith(d.candidates, d.masquerades, "tcp", "www.google.com")
 		if err == nil {
 			conn.Close()
 			waitTime := time.Duration(rand.Intn(60)) * time.Second
@@ -140,58 +140,58 @@ func (d *direct) Do(req *http.Request) (*http.Response, error) {
 // fails, it retries with others until it either succeeds or exhausts the
 // available masquerades.
 func (d *direct) Dial(network, addr string) (net.Conn, error) {
-	conn, _, err := d.DialWith(d.masquerades, d.masquerades, network, addr)
+	conn, _, err := d.dialWith(d.masquerades, d.masquerades, network, addr)
 	return conn, err
 }
 
-func (d *direct) DialWith(in chan *Masquerade, out chan *Masquerade, network, addr string) (net.Conn, bool, error) {
-	gotFirst := false
-	for {
-		select {
-		case m := <-in:
-			gotFirst = true
-			log.Debugf("Dialing to %v", m)
+func (d *direct) dialWith(in chan *Masquerade, out chan *Masquerade, network, addr string) (net.Conn, bool, error) {
+	retryLater := make([]*Masquerade, 0)
+	defer func() {
+		for _, m := range retryLater {
+			in <- m
+		}
+	}()
 
-			// We do the full TLS connection here because in practice the domains at a given IP
-			// address can change frequently on CDNs, so the certificate may not match what
-			// we expect.
-			if conn, err := d.dialServerWith(m); err != nil {
-				log.Debugf("Could not dial to %v, %v", m.IpAddress, err)
-				// Don't re-add this candidate if it's any certificate error, as that
-				// will just keep failing and will waste connections. We can't access the underlying
-				// error at this point so just look for "certificate" and "handshake".
-				if strings.Contains(err.Error(), "certificate") || strings.Contains(err.Error(), "handshake") {
-					log.Debugf("Not re-adding candidate that failed on error '%v'", err.Error())
-				} else {
-					log.Debugf("Unexpected error dialing, keeping masquerade: %v", err)
-					in <- m
-				}
+	for m := range in {
+		log.Debugf("Dialing to %v", m)
+
+		// We do the full TLS connection here because in practice the domains at a given IP
+		// address can change frequently on CDNs, so the certificate may not match what
+		// we expect.
+		if conn, err := d.dialServerWith(m); err != nil {
+			log.Debugf("Could not dial to %v, %v", m.IpAddress, err)
+			// Don't re-add this candidate if it's any certificate error, as that
+			// will just keep failing and will waste connections. We can't access the underlying
+			// error at this point so just look for "certificate" and "handshake".
+			if strings.Contains(err.Error(), "certificate") || strings.Contains(err.Error(), "handshake") {
+				log.Debugf("Not re-adding candidate that failed on error '%v'", err.Error())
 			} else {
-				log.Debugf("Got successful connection to: %v", m)
-				if err := d.headCheck(m); err != nil {
-					log.Debugf("Could not perform successful head request: %v", err)
-				} else {
-					// Requeue the working connection
-					out <- m
-					idleTimeout := 70 * time.Second
-
-					log.Debug("Wrapping connecting in idletiming connection")
-					conn = idletiming.Conn(conn, idleTimeout, func() {
-						log.Debugf("Connection to %s via %s idle for %v, closing", addr, conn.RemoteAddr(), idleTimeout)
-						if err := conn.Close(); err != nil {
-							log.Debugf("Unable to close connection: %v", err)
-						}
-					})
-					log.Debug("Returning connection")
-					return conn, true, nil
-				}
+				log.Debugf("Unexpected error dialing, keeping masquerade: %v", err)
+				retryLater = append(retryLater, m)
 			}
-		default:
-			if gotFirst {
-				return nil, false, errors.New("Could not dial any masquerade?")
+		} else {
+			log.Debugf("Got successful connection to: %v", m)
+			if err := d.headCheck(m); err != nil {
+				log.Debugf("Could not perform successful head request: %v", err)
+			} else {
+				// Requeue the working connection
+				out <- m
+				idleTimeout := 70 * time.Second
+
+				log.Debug("Wrapping connecting in idletiming connection")
+				conn = idletiming.Conn(conn, idleTimeout, func() {
+					log.Debugf("Connection to %s via %s idle for %v, closing", addr, conn.RemoteAddr(), idleTimeout)
+					if err := conn.Close(); err != nil {
+						log.Debugf("Unable to close connection: %v", err)
+					}
+				})
+				log.Debug("Returning connection")
+				return conn, true, nil
 			}
 		}
 	}
+
+	return nil, false, errors.New("Could not dial any masquerade?")
 }
 
 func (d *direct) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
