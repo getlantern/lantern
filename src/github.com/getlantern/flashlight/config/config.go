@@ -27,7 +27,6 @@ import (
 
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/globals"
-	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/statreporter"
 	"github.com/getlantern/flashlight/util"
 )
@@ -68,7 +67,6 @@ type Config struct {
 	AutoReport      *bool  // Report anonymous usage to GA
 	AutoLaunch      *bool  // Automatically launch Lantern on system startup
 	Stats           *statreporter.Config
-	Server          *server.ServerConfig
 	Client          *client.ClientConfig
 	ProxiedSites    *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
 	TrustedCAs      []*CA
