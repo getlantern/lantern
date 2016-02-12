@@ -194,30 +194,47 @@ angular.module('app.services', [])
     };
   })
   .service('gaMgr', function ($window, DataStream, GOOGLE_ANALYTICS_DISABLE_KEY, GOOGLE_ANALYTICS_WEBPROP_ID) {
-    var ga = $window.ga;
+    window.gaDidInit = false;
 
-    ga('create', GOOGLE_ANALYTICS_WEBPROP_ID, {cookieDomain: 'none'});
-    ga('set', {
-      anonymizeIp: true,
-      forceSSL: true,
-      location: 'http://lantern-ui/',
-      hostname: 'lantern-ui',
-      title: 'lantern-ui'
-    });
+    // See: Under certain circumstances this "window.ga" function was not
+    // available when loading Safari. See
+    // https://github.com/getlantern/lantern/issues/3560
+    var ga = function() {
+      var ga = $window.ga;
+      if (ga) {
+        if (!window.gaDidInit) {
+          $window.gaDidInit = true;
+          ga('create', GOOGLE_ANALYTICS_WEBPROP_ID, {cookieDomain: 'none'});
+          ga('set', {
+            anonymizeIp: true,
+            forceSSL: true,
+            location: 'http://lantern-ui/',
+            hostname: 'lantern-ui',
+            title: 'lantern-ui'
+          });
+        }
+        return ga;
+      }
+      return function() {
+        console.log("ga is not defined.");
+      }
+    }
 
-    function trackPageView() {
-      ga('send', 'pageview');
+    var trackPageView = function() {
+      ga()('send', 'pageview');
     };
 
-    function trackSendLinkToMobile() {
-      ga('send', 'send-link-to-mobile');
+    var trackSendLinkToMobile = function() {
+      ga()('send', 'send-link-to-mobile');
     };
 
-    function trackCopyLink() {
-      ga('send', 'send-link-to-mobile');
+    var trackCopyLink = function() {
+      ga()('send', 'send-link-to-mobile');
     };
 
     return {
+      trackSendLinkToMobile: trackSendLinkToMobile,
+      trackCopyLink: trackCopyLink,
       trackPageView: trackPageView
     };
   })

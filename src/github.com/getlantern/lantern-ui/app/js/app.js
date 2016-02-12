@@ -287,6 +287,7 @@ var app = angular.module('app', [
         }
       }
     });
+
   });
 
 app.filter('urlencode', function() {
