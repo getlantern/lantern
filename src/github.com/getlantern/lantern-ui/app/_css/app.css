@@ -7996,11 +7996,6 @@ body.giveMode #npending {
   margin: 0px;
 }
 
-#mobile-ad-image {
-  width: 625px;
-  height: 312px;
-}
-
 #mobile-ad #get-the-app-via-email {
   width: 109px;
   height: 16.8px;
@@ -8129,4 +8124,27 @@ input.fail::-moz-placeholder {
 }
 input.fail:-ms-input-placeholder {
   color: red;
+}
+
+::-ms-clear
+{
+  display: none;
+}
+
+@media (max-width: 750px) {
+  #mobile-ad {
+    width: 502px;
+    height: 423px;
+  }
+  p.download-link b {
+    display: block;
+  }
+}
+
+@media (max-width: 600px) {
+  #mobile-ad {
+    top: 170px;
+    width: 376px;
+    height: 363px;
+  }
 }

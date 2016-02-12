@@ -55,3 +55,4 @@ local.properties
 .DS_Store
 .gradle
 build
+src/github.com/getlantern/lantern-ui/app/js/revision.js

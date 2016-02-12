@@ -6,14 +6,16 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
-	"net/http/httputil"
 	"net/url"
 	"os"
 	"testing"
 	"time"
 
 	"code.google.com/p/go-uuid/uuid"
+
 	"github.com/getlantern/fronted"
+
+	"github.com/getlantern/flashlight/config"
 )
 
 const (
@@ -36,6 +38,15 @@ const (
 // was successful, it also tests to make sure that the outbound request didn't
 // leak any Lantern or CloudFlare headers.
 func testRequest(testCase string, t *testing.T, requests chan *http.Request, https bool, certPool *x509.CertPool, expectedStatus int, expectedErr error) {
+	cfg := &config.Config{}
+	cfg.ApplyDefaults()
+	trustedCAs, err := cfg.GetTrustedCACerts()
+	if err != nil {
+		t.Fatal(err)
+	}
+	fronted.Configure(trustedCAs, cfg.Client.MasqueradeSets)
+
+	log.Debug("Making request")
 	httpClient := &http.Client{Transport: &http.Transport{
 		Proxy: func(req *http.Request) (*url.URL, error) {
 			return url.Parse("http://" + CLIENT_ADDR)
@@ -81,121 +92,6 @@ func testRequest(testCase string, t *testing.T, requests chan *http.Request, htt
 			}
 		}
 	}
-}
-
-// MockServer is an HTTP+S server that serves up simple responses
-type MockServer struct {
-	certContext *fronted.CertContext
-	requests    chan *http.Request // publishes received requests
-}
-
-func (srv *MockServer) init() error {
-	srv.certContext = &fronted.CertContext{
-		PKFile:         randomTempPath(),
-		ServerCertFile: randomTempPath(),
-	}
-
-	err := srv.certContext.InitServerCert(HOST)
-	if err != nil {
-		log.Errorf("Unable to initialize mock server cert: %s", err)
-	}
-
-	srv.requests = make(chan *http.Request, 100)
-	return nil
-}
-
-func (server *MockServer) deleteCerts() (err error) {
-	if err = os.Remove(server.certContext.PKFile); err != nil {
-		return err
-	}
-	err = os.Remove(server.certContext.ServerCertFile)
-	return
-}
-
-func (server *MockServer) run(t *testing.T) {
-	httpServer := &http.Server{
-		Addr:    HTTP_ADDR,
-		Handler: http.HandlerFunc(server.handle(t)),
-	}
-
-	httpsServer := &http.Server{
-		Addr:    HTTPS_ADDR,
-		Handler: http.HandlerFunc(server.handle(t)),
-	}
-
-	go func() {
-		t.Logf("About to start mock HTTP at: %s", httpServer.Addr)
-		err := httpServer.ListenAndServe()
-		if err != nil {
-			t.Errorf("Unable to start HTTP server: %s", err)
-		}
-	}()
-
-	go func() {
-		t.Logf("About to start mock HTTPS at: %s", httpsServer.Addr)
-		err := httpsServer.ListenAndServeTLS(server.certContext.ServerCertFile, server.certContext.PKFile)
-		if err != nil {
-			t.Errorf("Unable to start HTTP server: %s", err)
-		}
-	}()
-}
-
-func (server *MockServer) handle(t *testing.T) func(http.ResponseWriter, *http.Request) {
-	return func(resp http.ResponseWriter, req *http.Request) {
-		if _, err := resp.Write([]byte(EXPECTED_BODY)); err != nil {
-			t.Errorf("Unable to write response body: %v", err)
-		}
-		server.requests <- req
-	}
-}
-
-// MockCloudFlare is a ReverseProxy that pretends to be CloudFlare
-type MockCloudFlare struct {
-	certContext *fronted.CertContext
-}
-
-func (cf *MockCloudFlare) init() error {
-	cf.certContext = &fronted.CertContext{
-		PKFile:         randomTempPath(),
-		ServerCertFile: randomTempPath(),
-	}
-
-	err := cf.certContext.InitServerCert(HOST)
-	if err != nil {
-		log.Errorf("Unable to initialize mock CloudFlare server cert: %s", err)
-	}
-	return nil
-}
-
-func (cf *MockCloudFlare) deleteCerts() (err error) {
-	if err = os.Remove(cf.certContext.PKFile); err != nil {
-		return err
-	}
-	err = os.Remove(cf.certContext.ServerCertFile)
-	return
-}
-
-func (cf *MockCloudFlare) run(t *testing.T) error {
-	httpServer := &http.Server{
-		Addr: CF_ADDR,
-		Handler: &httputil.ReverseProxy{
-			Director: func(req *http.Request) {
-				req.URL.Scheme = "https"
-				req.URL.Host = SERVER_ADDR
-				req.Host = SERVER_ADDR
-			},
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{
-					// Real CloudFlare doesn't verify our cert, so mock doesn't
-					// either
-					InsecureSkipVerify: true,
-				},
-			},
-		},
-	}
-
-	t.Logf("About to start mock CloudFlare at: %s", httpServer.Addr)
-	return httpServer.ListenAndServeTLS(cf.certContext.ServerCertFile, cf.certContext.PKFile)
 }
 
 // randomTempPath creates a random file path in the temp folder (doesn't create

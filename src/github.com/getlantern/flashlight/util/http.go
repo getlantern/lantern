@@ -18,10 +18,6 @@ import (
 
 var (
 	log = golog.LoggerFor("flashlight.util")
-
-	// This is for doing direct domain fronting if necessary. We store this as
-	// an instance variable because it caches TLS session configs.
-	direct = fronted.NewDirect()
 )
 
 // HTTPFetcher is a simple interface for types that are able to fetch data over HTTP.
@@ -134,6 +130,7 @@ func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
 			errs <- err
 		} else {
 			log.Debug("Sending request via DDF")
+			direct := fronted.NewDirectHttpClient(5 * time.Minute)
 			if err := request(direct, req); err != nil {
 				log.Errorf("Fronted request failed: %v", err)
 			} else {
