@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/getlantern/flashlight/client"
-	"github.com/getlantern/flashlight/server"
 	"github.com/getlantern/flashlight/statreporter"
 )
 
@@ -34,10 +33,6 @@ var (
 func (updated *Config) applyFlags() error {
 	if updated.Client == nil {
 		updated.Client = &client.ClientConfig{}
-	}
-
-	if updated.Server == nil {
-		updated.Server = &server.ServerConfig{}
 	}
 
 	if updated.Stats == nil {
@@ -74,18 +69,6 @@ func (updated *Config) applyFlags() error {
 		case "proxyall":
 			updated.Client.ProxyAll = *proxyAll
 
-		// Server
-		case "portmap":
-			updated.Server.Portmap = *portmap
-		case "frontfqdns":
-			fqdns, err := server.ParseFrontFQDNs(*frontFQDNs)
-			if err == nil {
-				updated.Server.FrontFQDNs = fqdns
-			} else {
-				visitErr = err
-			}
-		case "registerat":
-			updated.Server.RegisterAt = *registerat
 		}
 	})
 	if visitErr != nil {
@@ -94,7 +77,6 @@ func (updated *Config) applyFlags() error {
 	// Settings that get set no matter what
 	updated.CpuProfile = *cpuprofile
 	updated.MemProfile = *memprofile
-	updated.Server.Unencrypted = *unencrypted
 
 	return nil
 }
