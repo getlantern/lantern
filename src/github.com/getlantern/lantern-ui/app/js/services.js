@@ -196,8 +196,8 @@ angular.module('app.services', [])
   .service('gaMgr', function ($window, DataStream, GOOGLE_ANALYTICS_DISABLE_KEY, GOOGLE_ANALYTICS_WEBPROP_ID) {
     window.gaDidInit = false;
 
-    // See: Under certain circumstances this "window.ga" function was not
-    // available when loading Safari. See
+    // Under certain circumstances this "window.ga" function was not available
+    // when loading Safari. See
     // https://github.com/getlantern/lantern/issues/3560
     var ga = function() {
       var ga = $window.ga;
