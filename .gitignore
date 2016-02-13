@@ -54,3 +54,5 @@ local.properties
 .DS_Store
 .gradle
 build
+keystore.release.jks
+

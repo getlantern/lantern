@@ -212,9 +212,11 @@ require-version:
 require-gh-token:
 	@if [[ -z "$$GH_TOKEN" ]]; then echo "GH_TOKEN environment value is required."; exit 1; fi
 
-require-secrets:
-	@if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
+require-secrets-dir:
 	if [[ -z "$$SECRETS_DIR" ]]; then echo "SECRETS_DIR environment value is required."; exit 1; fi
+
+require-secrets: require-secrets-dir
+	@if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi
 
 require-lantern-binaries:
 	@if [[ ! -d "$(LANTERN_BINARIES_PATH)" ]]; then \
@@ -578,7 +580,7 @@ $(LANTERN_MOBILE_ANDROID_DEBUG): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_AN
 
 $(LANTERN_MOBILE_ANDROID_RELEASE): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK)
 	@echo "Generating distribution package for android..."
-	cp $$SECRETS_DIR/android/keystore.release.jks $(LANTERN_MOBILE_DIR)/app
+	ln -s $$SECRETS_DIR/android/keystore.release.jks $(LANTERN_MOBILE_DIR)/app
 	cd $(LANTERN_MOBILE_DIR)/app
 	cp $(ANDROID_SDK_ANDROID_LIB) $(LANTERN_MOBILE_LIBS)
 	gradle -PlanternVersion=$$VERSION -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
@@ -588,7 +590,7 @@ $(LANTERN_MOBILE_ANDROID_RELEASE): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_
 
 android-debug: $(LANTERN_MOBILE_ANDROID_DEBUG)
 
-android-release: require-version require-secrets $(LANTERN_MOBILE_ANDROID_RELEASE)
+android-release: require-version require-secrets-dir $(LANTERN_MOBILE_ANDROID_RELEASE)
 
 android-install: $(LANTERN_MOBILE_ANDROID_DEBUG)
 	adb install -r $(LANTERN_MOBILE_ANDROID_DEBUG)
