@@ -22,6 +22,7 @@ import android.view.MenuItem;
 import android.view.KeyEvent;
 import android.support.v7.app.AppCompatActivity;
 
+import org.getlantern.lantern.BuildConfig;
 import org.getlantern.lantern.vpn.Service;
 import org.getlantern.lantern.model.UI;
 import org.getlantern.lantern.sdk.Utils;
@@ -32,7 +33,6 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
 
     private static final String TAG = "LanternMainActivity";
     private static final String PREFS_NAME = "LanternPrefs";
-    private static final int CHECK_NEW_VERSION_DELAY = 10000;
     private final static int REQUEST_VPN = 7777;
     private SharedPreferences mPrefs = null;
     private BroadcastReceiver mReceiver;
@@ -60,9 +60,7 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         context = getApplicationContext();
         mPrefs = Utils.getSharedPrefs(context);
 
-
         LanternUI = new UI(this, mPrefs);
-
 
         // the ACTION_SHUTDOWN intent is broadcast when the phone is
         // about to be shutdown. We register a receiver to make sure we
@@ -85,6 +83,11 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         // setup our UI
         try {
             // configure actions to be taken whenever slider changes state
+            PackageInfo pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+            String appVersion = pInfo.versionName;
+            Log.d(TAG, "Currently running Lantern version: " + appVersion);
+
+            LanternUI.setVersionNum(appVersion, BuildConfig.LANTERN_VERSION);
             LanternUI.setupLanternSwitch();
         } catch (Exception e) {
             Log.d(TAG, "Got an exception " + e);
@@ -293,29 +296,6 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
                     stopLantern();
                 }
             }
-        }
-    }
-
-    public void checkNewVersion() {
-        try {
-            final Context context = this;
-
-            String latestVersion = "test";
-
-            PackageInfo pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
-
-            String version = pInfo.versionName;
-            Log.d(TAG, "Current version of app is " + version);
-
-            if (latestVersion != null && !latestVersion.equals(version)) {
-                // Latest version of FireTweet and the version currently running differ
-                // display the update view
-                final Intent intent = new Intent(context, UpdaterActivity.class);
-                context.startActivity(intent);
-            }
-
-        } catch (PackageManager.NameNotFoundException e) {
-            Log.e(TAG, "Error fetching package information");
         }
     }
 }

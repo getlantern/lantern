@@ -71,12 +71,13 @@ LANTERN_MOBILE_ARM_LIBS := $(LANTERN_MOBILE_LIBS)/armeabi-v7a
 LANTERN_MOBILE_TUN2SOCKS := $(LANTERN_MOBILE_ARM_LIBS)/libtun2socks.so
 LANTERN_MOBILE_ANDROID_LIB := $(LANTERN_MOBILE_LIBS)/$(ANDROID_LIB)
 LANTERN_MOBILE_ANDROID_SDK := $(LANTERN_MOBILE_LIBS)/sdk-debug.aar
-LANTERN_MOBILE := $(LANTERN_MOBILE_DIR)/app/build/outputs/apk/lantern-debug.apk
+LANTERN_MOBILE_ANDROID_DEBUG := $(LANTERN_MOBILE_DIR)/app/build/outputs/apk/lantern-debug.apk
+LANTERN_MOBILE_ANDROID_RELEASE := $(LANTERN_MOBILE_DIR)/app/build/outputs/apk/app-release.apk
 
 LANTERN_YAML := lantern.yaml
 LANTERN_YAML_PATH := installer-resources/lantern.yaml
 
-.PHONY: packages clean docker tun2socks android-lib android-sdk android-testbed android-debug android-install
+.PHONY: packages clean docker tun2socks android-lib android-sdk android-testbed android-debug android-release android-install
 
 define build-tags
 	BUILD_TAGS="" && \
@@ -212,9 +213,11 @@ require-version:
 require-gh-token:
 	@if [[ -z "$$GH_TOKEN" ]]; then echo "GH_TOKEN environment value is required."; exit 1; fi
 
-require-secrets:
-	@if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
+require-secrets-dir:
 	if [[ -z "$$SECRETS_DIR" ]]; then echo "SECRETS_DIR environment value is required."; exit 1; fi
+
+require-secrets: require-secrets-dir
+	@if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi
 
 require-lantern-binaries:
 	@if [[ ! -d "$(LANTERN_BINARIES_PATH)" ]]; then \
@@ -431,6 +434,7 @@ release-qa: require-version require-s3cmd
 	cp lantern-manoto_*386.deb $$BASE_NAME_MANOTO-32-bit.deb && \
 	cp lantern_*amd64.deb $$BASE_NAME-64-bit.deb && \
 	cp lantern-manoto_*amd64.deb $$BASE_NAME_MANOTO-64-bit.deb && \
+	cp lantern-installer.apk $$BASE_NAME.apk && \
 	for NAME in $$(ls -1 $$BASE_NAME*.*); do \
 		shasum $$NAME | cut -d " " -f 1 > $$NAME.sha1 && \
 		echo "Uploading SHA-1 `cat $$NAME.sha1`" && \
@@ -576,18 +580,27 @@ $(LANTERN_MOBILE_ANDROID_SDK): $(ANDROID_SDK)
 	mkdir -p $(LANTERN_MOBILE_LIBS) && \
 	cp $(ANDROID_SDK) $(LANTERN_MOBILE_ANDROID_SDK)
 
-$(LANTERN_MOBILE): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK)
-	cd $(LANTERN_MOBILE_DIR)/app
-	gradle -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
+$(LANTERN_MOBILE_ANDROID_DEBUG): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK)
+	gradle -PlanternVersion=$(GIT_REVISION) -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
 		clean \
 		assembleDebug
 
-android: $(LANTERN_MOBILE)
+$(LANTERN_MOBILE_ANDROID_RELEASE): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK)
+	@echo "Generating distribution package for android..."
+	ln -s $$SECRETS_DIR/android/keystore.release.jks $(LANTERN_MOBILE_DIR)/app
+	cd $(LANTERN_MOBILE_DIR)/app
+	cp $(ANDROID_SDK_ANDROID_LIB) $(LANTERN_MOBILE_LIBS)
+	gradle -PlanternVersion=$$VERSION -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
+		clean \
+		assembleRelease
+	cp $(LANTERN_MOBILE_ANDROID_RELEASE) lantern-installer.apk
 
-android-debug: $(LANTERN_MOBILE)
+android-debug: $(LANTERN_MOBILE_ANDROID_DEBUG)
 
-android-install: $(LANTERN_MOBILE)
-	adb install -r $(LANTERN_MOBILE)
+android-release: require-version require-secrets-dir $(LANTERN_MOBILE_ANDROID_RELEASE)
+
+android-install: $(LANTERN_MOBILE_ANDROID_DEBUG)
+	adb install -r $(LANTERN_MOBILE_ANDROID_DEBUG)
 
 clean:
 	rm -f lantern && \
@@ -614,4 +627,5 @@ clean:
 	rm -f $(LANTERN_MOBILE_ANDROID_LIB) && \
 	rm -f $(LANTERN_MOBILE_ANDROID_SDK) && \
 	rm -rf $(LANTERN_MOBILE_DIR)/libs/armeabi* && \
-	rm -f $(LANTERN_MOBILE)
+	rm -f $(LANTERN_MOBILE_ANDROID_DEBUG) && \
+	rm -f $(LANTERN_MOBILE_ANDROID_RELEASE)

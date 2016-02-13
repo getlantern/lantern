@@ -175,7 +175,7 @@ Lantern on Windows is distributed as an installer built with
 [nsis](http://nsis.sourceforge.net/). The installer is built and signed with
 `make package-windows`.
 
-For `make package-windows` to be able to sign the executable, the environment varaibles
+For `make package-windows` to be able to sign the executable, the environment variables
 `SECRETS_DIR` and `BNS_CERT_PASS` must be set to point to the secrets directory
 and the
 [password](https://github.com/getlantern/too-many-secrets/blob/master/build-installers/env-vars.txt#L3)
@@ -312,7 +312,10 @@ make android-testbed
 
 ### Lantern Mobile App
 
-To build the full lantern mobile app:
+
+## Debug
+
+To create a debug build of the full lantern mobile app:
 
 ```
 make android-debug
@@ -322,6 +325,27 @@ To install on the default device:
 
 ```
 make android-install
+```
+
+## Release
+
+To create a release build, add the following to your
+``~/.gradle/gradle.properties`` file:
+
+```
+KEYSTORE_PWD=$KEYSTORE_PASSWORD
+KEYSTORE_FILE=keystore.release.jks
+KEY_PWD=$KEY_PASSWORD
+```
+
+You can find the exact values to add to your gradle.properties
+[here](https://github.com/getlantern/too-many-secrets/blob/master/android/keystore).
+
+Then it can be built with:
+
+```sh
+SECRETS_DIR=$PATH_TO_TOO_MANY_SECRETS \
+VERSION=2.0.0-beta1 make android-release
 ```
 
 ### Android Tips
