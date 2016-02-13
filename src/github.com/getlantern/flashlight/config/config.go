@@ -40,6 +40,8 @@ const (
 	// and because we only support falling back to direct domain fronting through
 	// the local proxy for HTTP.
 	frontedCloudConfigUrl = "http://d2wi0vwulmtn99.cloudfront.net/cloud.yaml.gz"
+
+	DefaultUpdateServerURL = "https://update.getlantern.org"
 )
 
 var (
@@ -53,16 +55,17 @@ var (
 )
 
 type Config struct {
-	configDir     string
-	Version       int
-	CloudConfig   string
-	CloudConfigCA string
-	CpuProfile    string
-	MemProfile    string
-	UIAddr        string // UI HTTP server address
-	Client        *client.ClientConfig
-	ProxiedSites  *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
-	TrustedCAs    []*CA
+	configDir       string
+	Version         int
+	CloudConfig     string
+	CloudConfigCA   string
+	CpuProfile      string
+	MemProfile      string
+	UpdateServerURL string
+	UIAddr          string // UI HTTP server address
+	Client          *client.ClientConfig
+	ProxiedSites    *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
+	TrustedCAs      []*CA
 }
 
 // StartPolling starts the process of polling for new configuration files.
@@ -349,6 +352,10 @@ func (updated *Config) applyFlags(flags map[string]interface{}) error {
 func (cfg *Config) ApplyDefaults() {
 	if cfg.UIAddr == "" {
 		cfg.UIAddr = "127.0.0.1:16823"
+	}
+
+	if cfg.UpdateServerURL == "" {
+		cfg.UpdateServerURL = "https://update.getlantern.org"
 	}
 
 	if cfg.CloudConfig == "" {

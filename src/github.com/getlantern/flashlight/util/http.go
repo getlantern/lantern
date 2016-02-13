@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"sync"
 	"time"
 
 	"github.com/getlantern/eventual"
@@ -17,10 +18,6 @@ import (
 
 var (
 	log = golog.LoggerFor("flashlight.util")
-
-	// This is for doing direct domain fronting if necessary. We store this as
-	// an instance variable because it caches TLS session configs.
-	direct = fronted.NewDirect()
 )
 
 // HTTPFetcher is a simple interface for types that are able to fetch data over HTTP.
@@ -36,7 +33,7 @@ func success(resp *http.Response) bool {
 // and direct fronted servers in parallel.
 func NewChainedAndFronted(proxyAddrFN eventual.Getter) *chainedAndFronted {
 	cf := &chainedAndFronted{proxyAddrFN: proxyAddrFN}
-	cf.fetcher = &dualFetcher{cf}
+	cf.setFetcher(&dualFetcher{cf})
 	return cf
 }
 
@@ -44,17 +41,31 @@ func NewChainedAndFronted(proxyAddrFN eventual.Getter) *chainedAndFronted {
 // servers.
 type chainedAndFronted struct {
 	proxyAddrFN eventual.Getter
-	fetcher     HTTPFetcher
+	_fetcher    HTTPFetcher
+	mu          sync.RWMutex
+}
+
+func (cf *chainedAndFronted) getFetcher() HTTPFetcher {
+	cf.mu.RLock()
+	result := cf._fetcher
+	cf.mu.RUnlock()
+	return result
+}
+
+func (cf *chainedAndFronted) setFetcher(fetcher HTTPFetcher) {
+	cf.mu.Lock()
+	cf._fetcher = fetcher
+	cf.mu.Unlock()
 }
 
 // Do will attempt to execute the specified HTTP request using only a chained fetcher
 func (cf *chainedAndFronted) Do(req *http.Request) (*http.Response, error) {
-	resp, err := cf.fetcher.Do(req)
+	resp, err := cf.getFetcher().Do(req)
 	if err != nil {
 		// If there's an error, switch back to using the dual fetcher.
-		cf.fetcher = &dualFetcher{cf}
+		cf.setFetcher(&dualFetcher{cf})
 	} else if !success(resp) {
-		cf.fetcher = &dualFetcher{cf}
+		cf.setFetcher(&dualFetcher{cf})
 	}
 	return resp, err
 }
@@ -119,6 +130,7 @@ func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
 			errs <- err
 		} else {
 			log.Debug("Sending request via DDF")
+			direct := fronted.NewDirectHttpClient(5 * time.Minute)
 			if err := request(direct, req); err != nil {
 				log.Errorf("Fronted request failed: %v", err)
 			} else {
@@ -136,7 +148,7 @@ func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
 				log.Errorf("Chained request failed %v", err)
 			} else {
 				log.Debug("Switching to chained fronter for future requests since it succeeded")
-				df.cf.fetcher = &chainedFetcher{}
+				df.cf.setFetcher(&chainedFetcher{})
 			}
 		}
 	}()

@@ -162,6 +162,8 @@ docker-genassets: require-npm
 	LANTERN_UI="src/github.com/getlantern/lantern-ui" && \
 	APP="$$LANTERN_UI/app" && \
 	DIST="$$LANTERN_UI/dist" && \
+	echo 'var LANTERN_BUILD_REVISION = "$(GIT_REVISION_SHORTCODE)";' > $$APP/js/revision.js && \
+	git update-index --assume-unchanged $$APP/js/revision.js && \
 	if [[ ! -d $$DIST ]]; then \
 		UPDATE_DIST=true; \
 	fi && \
@@ -174,7 +176,6 @@ docker-genassets: require-npm
 			gulp build && \
 			cd -; \
 	fi && \
-	\
 	rm -f bin/tarfs bin/rsrc && \
 	go install github.com/getlantern/tarfs/tarfs && \
 	echo "// +build !stub" > $$DEST && \
@@ -345,6 +346,12 @@ darwin-amd64: require-assets
 	else \
 		echo "-> Skipped: Can not compile Lantern for OSX on a non-OSX host."; \
 	fi
+
+lantern: require-assets
+	@echo "Building development lantern" && \
+	source setenv.bash && \
+	$(call build-tags) && \
+	CGO_ENABLED=1 go build -race -o lantern -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -s" github.com/getlantern/flashlight/main; \
 
 package-linux-386: require-version genassets linux-386
 	@echo "Generating distribution package for linux/386..." && \
@@ -596,6 +603,7 @@ android-install: $(LANTERN_MOBILE_ANDROID_DEBUG)
 	adb install -r $(LANTERN_MOBILE_ANDROID_DEBUG)
 
 clean:
+	rm -f lantern && \
 	rm -f lantern_linux* && \
 	rm -f lantern_darwin* && \
 	rm -f lantern_windows* && \

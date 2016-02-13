@@ -27,6 +27,7 @@ flashlight.yaml
 envvars.bash
 Lantern.app
 lantern.dmg
+lantern
 src/github.com/getlantern/autoupdate/_test_app/main.go
 src/github.com/getlantern/autoupdate/_test_app/autoupdate-binary-*
 src/github.com/getlantern/autoupdate/_test_app/main
@@ -55,4 +56,4 @@ local.properties
 .gradle
 build
 keystore.release.jks
-
+src/github.com/getlantern/lantern-ui/app/js/revision.js
