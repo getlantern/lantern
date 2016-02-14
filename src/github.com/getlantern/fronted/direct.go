@@ -251,7 +251,7 @@ func (d *direct) headCheck(m *Masquerade) error {
 	client := &http.Client{
 		Transport: trans,
 	}
-	url := "http://d2wi0vwulmtn99.cloudfront.net/cloud.yaml.gz"
+	url := "http://dlymairwlc89h.cloudfront.net/index.html"
 	if resp, err := client.Head(url); err != nil {
 		return err
 	} else {
