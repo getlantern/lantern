@@ -68,7 +68,10 @@ public abstract class Lantern {
 
     /**
      * Note - we use dynamic class loading to avoid loading unused classes into the caller's
-     * classloader (i.e. to avoid loading native dependencies when running as service).
+     * classloader (i.e. to avoid loading native dependencies when running as service). This is
+     * important because in some situations, it appears that including the Lantern native library
+     * inside the same process as an application can cause instability on some phones (e.g. Samsung
+     * Galaxy S4).
      *
      * @param implClassName
      * @return
