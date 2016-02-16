@@ -6,32 +6,23 @@ import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 
-
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Created by ox.to.a.cart on 1/28/16.
+ * API for embedding the EmbeddedLantern proxy
  */
-public class Lantern {
+public abstract class Lantern {
     private static final Map<String, Tracker> trackersById = new HashMap<>();
     private static boolean enabled = false;
 
-    static {
-        // Track extra info about Android for logging to Loggly.
-        Lantern.addLoggingMetadata("androidDevice", android.os.Build.DEVICE);
-        Lantern.addLoggingMetadata("androidModel", android.os.Build.MODEL);
-        Lantern.addLoggingMetadata("androidSdkVersion", "" + android.os.Build.VERSION.SDK_INT + " (" + android.os.Build.VERSION.RELEASE + ")");
-    }
-
     /**
-     * <p>Starts Lantern at a random port, storing configuration information in the indicated
+     * <p>Starts EmbeddedLantern at a random port, storing configuration information in the indicated
      * configDir and waiting up to timeoutMillis for the proxy to come online. If the proxy fails to
      * come online within the timeout, this throws an exception.</p>
      * <p/>
-     * <p>If a Lantern proxy is already running within this process, that proxy is reused.</p>
+     * <p>If a EmbeddedLantern proxy is already running within this process, that proxy is reused.</p>
      * <p/>
      * <p>Note - this does not wait for the entire initialization sequence to finish, just for the
      * proxy to be listening. Once the proxy is listening, one can start to use it, even as it
@@ -44,44 +35,77 @@ public class Lantern {
      * @return the {@link go.lantern.Lantern.StartResult} with port information about the started
      * lantern
      */
-    public synchronized static go.lantern.Lantern.StartResult enable(Context context, int timeoutMillis, String analyticsTrackingId)
+    public static StartResult enable(Context context, int timeoutMillis, String analyticsTrackingId)
             throws LanternNotRunningException {
-        String configDir = new File(context.getFilesDir().getAbsolutePath(), ".lantern").getAbsolutePath();
-        go.lantern.Lantern.StartResult result = enable(configDir, timeoutMillis);
-        if (analyticsTrackingId != null && !enabled) {
-            trackStartSession(context, analyticsTrackingId);
-        }
-        return result;
-    }
-
-    private static go.lantern.Lantern.StartResult enable(String configDir, int timeoutMillis)
-            throws LanternNotRunningException {
-        try {
-            go.lantern.Lantern.StartResult result = go.lantern.Lantern.Start(configDir, timeoutMillis);
-            String addr = result.getHTTPAddr();
-            int lastIndexOfColon = addr.lastIndexOf(':');
-            String host = addr.substring(0, lastIndexOfColon);
-            String port = addr.substring(lastIndexOfColon + 1);
-            System.setProperty("http.proxyHost", host);
-            System.setProperty("http.proxyPort", port);
-            System.setProperty("https.proxyHost", host);
-            System.setProperty("https.proxyPort", port);
-            return result;
-        } catch (Exception e) {
-            throw new LanternNotRunningException("Unable to start Lantern: " + e.getMessage(), e);
-        }
+        return doEnable(context, timeoutMillis, analyticsTrackingId, "org.lantern.mobilesdk.embedded.EmbeddedLantern");
     }
 
     /**
-     * Disables the Lantern proxy so that connections within this process will no longer be proxied.
-     * This leaves any background activity for the proxy running, and subsequent calls to
-     * {@link #enable(String, int)} will reuse the existing proxy in this process.
+     * Like {@link #enable(Context, int, String)} but runs the proxy in a Service.
+     *
+     * @param context
+     * @param timeoutMillis
+     * @param analyticsTrackingId
+     * @return
+     * @throws LanternNotRunningException
      */
-    public synchronized static void disable() {
+    public static StartResult enableAsService(Context context, int timeoutMillis, String analyticsTrackingId)
+            throws LanternNotRunningException {
+        return doEnable(context, timeoutMillis, analyticsTrackingId, "org.lantern.mobilesdk.LanternServiceManager");
+    }
+
+    private synchronized static StartResult doEnable(Context context, int timeoutMillis, String analyticsTrackingId, String implClassName)
+            throws LanternNotRunningException {
+        Lantern lantern = instanceOf(implClassName);
+        StartResult result = lantern.start(context, timeoutMillis);
+        proxyOn(result.getHTTPAddr());
+        if (analyticsTrackingId != null && !enabled) {
+            trackStartSession(context, analyticsTrackingId);
+        }
+        enabled = true;
+        return result;
+    }
+
+    /**
+     * Note - we use dynamic class loading to avoid loading unused classes into the caller's
+     * classloader (i.e. to avoid loading native dependencies when running as service).
+     *
+     * @param implClassName
+     * @return
+     * @throws LanternNotRunningException
+     */
+    private static Lantern instanceOf(String implClassName) throws LanternNotRunningException {
+        try {
+            Class<? extends Lantern> implClass = (Class<? extends Lantern>) Lantern.class.getClassLoader().loadClass(implClassName);
+            return implClass.newInstance();
+        } catch (Exception e) {
+            throw new LanternNotRunningException("Unable to get implementation class: " + e.getMessage(), e);
+        }
+    }
+
+    protected abstract StartResult start(Context context, int timeoutMillis) throws LanternNotRunningException;
+
+    private static void proxyOn(String addr) {
+        int lastIndexOfColon = addr.lastIndexOf(':');
+        String host = addr.substring(0, lastIndexOfColon);
+        String port = addr.substring(lastIndexOfColon + 1);
+        System.setProperty("http.proxyHost", host);
+        System.setProperty("http.proxyPort", port);
+        System.setProperty("https.proxyHost", host);
+        System.setProperty("https.proxyPort", port);
+    }
+
+    /**
+     * Disables the EmbeddedLantern proxy so that connections within this process will no longer be proxied.
+     * This leaves any background activity for the proxy running, and subsequent calls to
+     * {@link #enable(Context, int, String)} will reuse the existing proxy in this process.
+     */
+    public synchronized static void disable(Context context) {
         System.clearProperty("http.proxyHost");
         System.clearProperty("http.proxyPort");
         System.clearProperty("https.proxyHost");
         System.clearProperty("https.proxyPort");
+        // TODO: stop service if necessary
         enabled = false;
     }
 
@@ -124,5 +148,9 @@ public class Lantern {
         }
 
         return tracker;
+    }
+
+    public static String configDirFor(Context context) {
+        return new File(context.getFilesDir().getAbsolutePath(), ".lantern").getAbsolutePath();
     }
 }
