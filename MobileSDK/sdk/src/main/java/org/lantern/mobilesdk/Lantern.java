@@ -11,18 +11,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * API for embedding the EmbeddedLantern proxy
+ * API for embedding the Lantern proxy
  */
 public abstract class Lantern {
     private static final Map<String, Tracker> trackersById = new HashMap<>();
     private static boolean enabled = false;
 
     /**
-     * <p>Starts EmbeddedLantern at a random port, storing configuration information in the indicated
+     * <p>Starts Lantern at a random port, storing configuration information in the indicated
      * configDir and waiting up to timeoutMillis for the proxy to come online. If the proxy fails to
      * come online within the timeout, this throws an exception.</p>
      * <p/>
-     * <p>If a EmbeddedLantern proxy is already running within this process, that proxy is reused.</p>
+     * <p>If a Lantern proxy is already running within this process, that proxy is reused.</p>
      * <p/>
      * <p>Note - this does not wait for the entire initialization sequence to finish, just for the
      * proxy to be listening. Once the proxy is listening, one can start to use it, even as it
@@ -99,7 +99,7 @@ public abstract class Lantern {
     }
 
     /**
-     * Disables the EmbeddedLantern proxy so that connections within this process will no longer be proxied.
+     * Disables the Lantern proxy so that connections within this process will no longer be proxied.
      * This leaves any background activity for the proxy running, and subsequent calls to
      * {@link #enable(Context, int, String)} will reuse the existing proxy in this process.
      */

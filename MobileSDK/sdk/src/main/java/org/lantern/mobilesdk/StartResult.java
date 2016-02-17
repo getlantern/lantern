@@ -1,5 +1,9 @@
 package org.lantern.mobilesdk;
 
+/**
+ * This replaces go.lantern.Lantern.StartResult to avoid introducing a direct dependency to that
+ * library.
+ */
 public class StartResult {
     private String HTTPAddr;
     private String SOCKS5Addr;

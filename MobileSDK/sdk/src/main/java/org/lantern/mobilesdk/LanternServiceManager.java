@@ -13,6 +13,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * A {@link Lantern} that uses a service to actually run Lantern. It is important that this class
+ * not refer to the LanternService class directly in order to avoid loading the native library.
+ */
 public class LanternServiceManager extends Lantern {
     private static final String TAG = "LanternServiceManager";
 

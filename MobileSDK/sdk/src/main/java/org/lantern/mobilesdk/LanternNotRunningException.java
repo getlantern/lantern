@@ -1,7 +1,7 @@
 package org.lantern.mobilesdk;
 
 /**
- * Thrown to indicate that EmbeddedLantern is not running.
+ * Thrown to indicate that Lantern is not running.
  */
 public class LanternNotRunningException extends Exception {
     public LanternNotRunningException(String msg) {

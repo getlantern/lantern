@@ -1,29 +1,19 @@
 package org.lantern.mobilesdk.service;
 
 import android.app.IntentService;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Message;
 import android.util.Log;
 
-import org.lantern.mobilesdk.Lantern;
 import org.lantern.mobilesdk.LanternNotRunningException;
 import org.lantern.mobilesdk.LanternServiceManager;
 import org.lantern.mobilesdk.StartResult;
 import org.lantern.mobilesdk.embedded.EmbeddedLantern;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-
 /**
- * Service that allows running EmbeddedLantern in the background. It provides a binder that accepts
- * {@link Message}s telling it to start, to which it responds by broadcasting the result of
- * starting.
+ * Service that allows running {@link EmbeddedLantern} in the background. Whenever someone attempts
+ * to start the service, it starts Lantern and broadcasts the result so that
+ * {@link LanternServiceManager} knows at what address to find the proxy (or how to report an error
+ * if Lantern failed to start).
  */
 public class LanternService extends IntentService {
     private static final String TAG = "LanternService";
