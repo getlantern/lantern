@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	VetParallelism = 16
+	NumberToVetInitially = 20
 )
 
 var (
@@ -60,13 +60,14 @@ func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
 		candidates:  make(chan *Masquerade, size),
 		masquerades: make(chan *Masquerade, size),
 	}
+
 	_instance.Set(instance)
-	instance.vet(masquerades)
+	instance.loadCandidates(masquerades)
+	instance.vetInitial()
 }
 
-func (d *direct) vet(initial map[string][]*Masquerade) {
-	log.Debug("Beginning vetting of candidates")
-	// Load candidates
+func (d *direct) loadCandidates(initial map[string][]*Masquerade) {
+	log.Debug("Loading candidates")
 	for key, arr := range initial {
 		size := len(arr)
 		log.Tracef("Adding %d candidates for %v", size, key)
@@ -77,26 +78,28 @@ func (d *direct) vet(initial map[string][]*Masquerade) {
 			d.candidates <- arr[r]
 		}
 	}
+}
 
-	// Vet in parallel
-	for i := 0; i < VetParallelism; i++ {
-		go d.vetSome()
+func (d *direct) vetInitial() {
+	log.Debugf("Vetting %d initial candidates in parallel", NumberToVetInitially)
+	for i := 0; i < NumberToVetInitially; i++ {
+		go d.vetOne()
 	}
 }
 
-func (d *direct) vetSome() {
+func (d *direct) vetOne() {
 	// We're just testing the ability to connect here, destination site doesn't
 	// really matter
 	for {
-		log.Trace("Vetting some")
-		conn, masqueradesRemain, err := d.dialWith(d.candidates, d.masquerades, "tcp", "www.google.com")
+		log.Trace("Vetting one")
+		conn, masqueradesRemain, err := d.dialWith(d.candidates, "tcp", "www.google.com")
 		if err == nil {
 			conn.Close()
-			waitTime := time.Duration(rand.Intn(60)) * time.Second
-			log.Tracef("Waiting %v before verifying another masquerade", waitTime)
-			time.Sleep(waitTime)
+			log.Trace("Finished vetting one")
+			return
 		}
 		if !masqueradesRemain {
+			log.Trace("Nothing left to vet")
 			return
 		}
 	}
@@ -141,11 +144,11 @@ func (d *direct) Do(req *http.Request) (*http.Response, error) {
 // fails, it retries with others until it either succeeds or exhausts the
 // available masquerades.
 func (d *direct) Dial(network, addr string) (net.Conn, error) {
-	conn, _, err := d.dialWith(d.masquerades, d.masquerades, network, addr)
+	conn, _, err := d.dialWith(d.masquerades, network, addr)
 	return conn, err
 }
 
-func (d *direct) dialWith(in chan *Masquerade, out chan *Masquerade, network, addr string) (net.Conn, bool, error) {
+func (d *direct) dialWith(in chan *Masquerade, network, addr string) (net.Conn, bool, error) {
 	retryLater := make([]*Masquerade, 0)
 	defer func() {
 		for _, m := range retryLater {
@@ -153,7 +156,21 @@ func (d *direct) dialWith(in chan *Masquerade, out chan *Masquerade, network, ad
 		}
 	}()
 
-	for m := range in {
+	for {
+		var m *Masquerade
+		select {
+		case m = <-in:
+			log.Trace("Got vetted masquerade")
+		default:
+			log.Trace("No vetted masquerade found, falling back to unvetted candidate")
+			select {
+			case m = <-d.candidates:
+				log.Trace("Got unvetted masquerade")
+			default:
+				return nil, false, errors.New("Could not dial any masquerade?")
+			}
+		}
+
 		log.Debugf("Dialing to %v", m)
 
 		// We do the full TLS connection here because in practice the domains at a given IP
@@ -175,8 +192,8 @@ func (d *direct) dialWith(in chan *Masquerade, out chan *Masquerade, network, ad
 			if err := d.headCheck(m); err != nil {
 				log.Debugf("Could not perform successful head request: %v", err)
 			} else {
-				// Requeue the working connection
-				out <- m
+				// Requeue the working connection to masquerades
+				d.masquerades <- m
 				idleTimeout := 70 * time.Second
 
 				log.Debug("Wrapping connecting in idletiming connection")
@@ -191,8 +208,6 @@ func (d *direct) dialWith(in chan *Masquerade, out chan *Masquerade, network, ad
 			}
 		}
 	}
-
-	return nil, false, errors.New("Could not dial any masquerade?")
 }
 
 func (d *direct) dialServerWith(masquerade *Masquerade) (net.Conn, error) {

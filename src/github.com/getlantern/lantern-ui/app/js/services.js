@@ -202,7 +202,7 @@ angular.module('app.services', [])
     var ga = function() {
       var ga = $window.ga;
       if (ga) {
-        if (!window.gaDidInit) {
+        if (!$window.gaDidInit) {
           $window.gaDidInit = true;
           ga('create', GOOGLE_ANALYTICS_WEBPROP_ID, {cookieDomain: 'none'});
           ga('set', {
@@ -225,11 +225,11 @@ angular.module('app.services', [])
     };
 
     var trackSendLinkToMobile = function() {
-      ga()('send', 'send-link-to-mobile');
+      ga()('send', 'event', 'send-lantern-mobile-email');
     };
 
     var trackCopyLink = function() {
-      ga()('send', 'send-link-to-mobile');
+      ga()('send', 'event', 'copy-lantern-mobile-link');
     };
 
     return {
