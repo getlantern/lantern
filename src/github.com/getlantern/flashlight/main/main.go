@@ -168,8 +168,12 @@ func doMain() error {
 			settings.SetProxyAll(true)
 		}
 
+		listenAddr := *addr
+		if listenAddr == "" {
+			listenAddr = "localhost:8787"
+		}
 		err := flashlight.Run(
-			"localhost:8787",
+			listenAddr,
 			"localhost:8788",
 			*configdir,
 			*stickyConfig,
