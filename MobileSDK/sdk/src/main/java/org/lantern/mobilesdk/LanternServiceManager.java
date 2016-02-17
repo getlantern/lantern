@@ -67,7 +67,7 @@ public class LanternServiceManager extends Lantern {
         }, filter, null, new Handler(HANDLER_THREAD.getLooper()));
 
         Intent intent = serviceIntent(context);
-        intent.putExtra(CONFIG_DIR, Lantern.configDirFor(context));
+        intent.putExtra(CONFIG_DIR, Lantern.configDirFor(context, "-service"));
         intent.putExtra(TIMEOUT_MILLIS, timeoutMillis);
         context.startService(intent);
         try {

@@ -153,7 +153,7 @@ public abstract class Lantern {
         return tracker;
     }
 
-    public static String configDirFor(Context context) {
-        return new File(context.getFilesDir().getAbsolutePath(), ".lantern").getAbsolutePath();
+    public static String configDirFor(Context context, String suffix) {
+        return new File(context.getFilesDir().getAbsolutePath(), ".lantern" + suffix).getAbsolutePath();
     }
 }

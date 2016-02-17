@@ -82,7 +82,7 @@ public class Browse extends AppCompatActivity {
         toggle(view, false, false);
     }
 
-    private void toggle(final View view, boolean on, boolean asService) {
+    private void toggle(final View view, boolean on, final boolean asService) {
         view.setEnabled(false);
         getIPAddressView().setText("Toggling Lantern ...");
         getIPAddressView().setEnabled(false);
@@ -95,7 +95,11 @@ public class Browse extends AppCompatActivity {
                         Log.i(TAG, "Turning on proxy");
                         int startupTimeoutMillis = 30000;
                         String trackingId = "UA-21815217-17";
-                        Lantern.enableAsService(getApplicationContext(), startupTimeoutMillis, trackingId);
+                        if (asService) {
+                            Lantern.enableAsService(getApplicationContext(), startupTimeoutMillis, trackingId);
+                        } else {
+                            Lantern.enable(getApplicationContext(), startupTimeoutMillis, trackingId);
+                        }
                         Log.i(TAG, "Turned on proxy");
                     } else {
                         Log.i(TAG, "Turning off proxy");
