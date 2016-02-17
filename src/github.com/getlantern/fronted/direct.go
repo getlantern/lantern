@@ -91,7 +91,7 @@ func (d *direct) vetOne() {
 	// really matter
 	for {
 		log.Trace("Vetting one")
-		conn, masqueradesRemain, err := d.dialWith(d.candidates, d.masquerades, "tcp", "www.google.com")
+		conn, masqueradesRemain, err := d.dialWith(d.candidates, "tcp", "www.google.com")
 		if err == nil {
 			conn.Close()
 			log.Trace("Finished vetting one")
@@ -143,11 +143,11 @@ func (d *direct) Do(req *http.Request) (*http.Response, error) {
 // fails, it retries with others until it either succeeds or exhausts the
 // available masquerades.
 func (d *direct) Dial(network, addr string) (net.Conn, error) {
-	conn, _, err := d.dialWith(d.masquerades, d.masquerades, network, addr)
+	conn, _, err := d.dialWith(d.masquerades, network, addr)
 	return conn, err
 }
 
-func (d *direct) dialWith(in chan *Masquerade, out chan *Masquerade, network, addr string) (net.Conn, bool, error) {
+func (d *direct) dialWith(in chan *Masquerade, network, addr string) (net.Conn, bool, error) {
 	retryLater := make([]*Masquerade, 0)
 	defer func() {
 		for _, m := range retryLater {
@@ -191,8 +191,8 @@ func (d *direct) dialWith(in chan *Masquerade, out chan *Masquerade, network, ad
 			if err := d.headCheck(m); err != nil {
 				log.Debugf("Could not perform successful head request: %v", err)
 			} else {
-				// Requeue the working connection
-				out <- m
+				// Requeue the working connection to masquerades
+				d.masquerades <- m
 				idleTimeout := 70 * time.Second
 
 				log.Debug("Wrapping connecting in idletiming connection")
