@@ -148,7 +148,7 @@ func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
 				log.Errorf("Chained request failed %v", err)
 			} else {
 				log.Debug("Switching to chained fronter for future requests since it succeeded")
-				df.cf.setFetcher(&chainedFetcher{})
+				df.cf.setFetcher(&chainedFetcher{df.cf.proxyAddrFN})
 			}
 		}
 	}()
