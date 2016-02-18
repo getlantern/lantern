@@ -34,7 +34,7 @@ const (
 	cloudfront              = "cloudfront"
 	etag                    = "X-Lantern-Etag"
 	ifNoneMatch             = "X-Lantern-If-None-Match"
-	chainedCloudConfigUrl   = "http://config.getiantem.org/cloud.yaml.gz"
+	chainedCloudConfigUrl   = "https://config.getiantem.org/cloud.yaml.gz"
 
 	// This is over HTTP because proxies do not forward X-Forwarded-For with HTTPS
 	// and because we only support falling back to direct domain fronting through
@@ -457,9 +457,11 @@ func (cfg Config) cloudPollSleepTime() time.Duration {
 }
 
 func (cfg *Config) fetchCloudConfig(url string) ([]byte, error) {
-	req, err := http.NewRequest("GET", url, nil)
+	cb := "?" + uuid.New()
+	nocache := url + cb
+	req, err := http.NewRequest("GET", nocache, nil)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to construct request for cloud config at %s: %s", url, err)
+		return nil, fmt.Errorf("Unable to construct request for cloud config at %s: %s", nocache, err)
 	}
 	if lastCloudConfigETag[url] != "" {
 		// Don't bother fetching if unchanged
@@ -470,7 +472,7 @@ func (cfg *Config) fetchCloudConfig(url string) ([]byte, error) {
 	// Prevents intermediate nodes (domain-fronters) from caching the content
 	req.Header.Set("Cache-Control", "no-cache")
 	// Set the fronted URL to lookup the config in parallel using chained and domain fronted servers.
-	req.Header.Set("Lantern-Fronted-URL", frontedCloudConfigUrl)
+	req.Header.Set("Lantern-Fronted-URL", frontedCloudConfigUrl+cb)
 
 	// make sure to close the connection after reading the Body
 	// this prevents the occasional EOFs errors we're seeing with
