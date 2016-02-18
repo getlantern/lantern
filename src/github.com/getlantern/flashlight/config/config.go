@@ -50,8 +50,7 @@ var (
 	lastCloudConfigETag = map[string]string{}
 	r                   = regexp.MustCompile("\\d+\\.\\d+")
 	// Request the config via either chained servers or direct fronted servers.
-	cf     = util.NewChainedAndFronted()
-	random = rand.New(rand.NewSource(time.Now().UnixNano()))
+	cf = util.NewChainedAndFronted()
 )
 
 type Config struct {
@@ -464,7 +463,7 @@ func (cfg Config) cloudPollSleepTime() time.Duration {
 }
 
 func fetchCloudConfig(url string) ([]byte, error) {
-	cb := "?" + string(random.Uint32())
+	cb := "?" + uuid.New()
 	nocache := url + cb
 	req, err := http.NewRequest("GET", nocache, nil)
 	if err != nil {
