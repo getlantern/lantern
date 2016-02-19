@@ -34,7 +34,7 @@ const (
 	cloudfront              = "cloudfront"
 	etag                    = "X-Lantern-Etag"
 	ifNoneMatch             = "X-Lantern-If-None-Match"
-	chainedCloudConfigUrl   = "https://config.getiantem.org/cloud.yaml.gz"
+	chainedCloudConfigUrl   = "http://config.getiantem.org/cloud.yaml.gz"
 
 	// This is over HTTP because proxies do not forward X-Forwarded-For with HTTPS
 	// and because we only support falling back to direct domain fronting through
