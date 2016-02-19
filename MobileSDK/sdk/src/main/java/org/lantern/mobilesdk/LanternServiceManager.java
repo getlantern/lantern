@@ -63,6 +63,7 @@ public class LanternServiceManager extends Lantern {
                     error.set(intent.getStringExtra(ERROR));
                 }
                 latch.countDown();
+                context.unregisterReceiver(this);
             }
         }, filter, null, new Handler(HANDLER_THREAD.getLooper()));
 
