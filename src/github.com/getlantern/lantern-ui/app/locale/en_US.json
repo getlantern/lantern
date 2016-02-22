@@ -154,6 +154,7 @@
   "MANAGE_PROXIED_SITES": "Manage proxied sites...",
   "ADVANCED": "Advanced",
   "PROXY_ALL_TRAFFIC": "Proxy all traffic",
+  "MANAGE_SYSTEMPROXY": "Manage system proxy",
   "APP": "App",
   "AUTO_START": "Run Lantern automatically on system start",
   "SHOW_FRIEND_PROMPTS": "Prompt to friend contacts running Lantern",

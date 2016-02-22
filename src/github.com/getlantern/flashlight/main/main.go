@@ -257,9 +257,11 @@ func beforeStart(cfg *config.Config) bool {
 
 func afterStart(cfg *config.Config) {
 	onConfigUpdate(cfg)
-	pacOn()
-	addExitFunc(pacOff)
+	if settings.GetSystemProxy() {
+		pacOn()
+	}
 
+	addExitFunc(pacOff)
 	if showui && !*startup {
 		// Launch a browser window with Lantern but only after the pac
 		// URL and the proxy server are all up and running to avoid

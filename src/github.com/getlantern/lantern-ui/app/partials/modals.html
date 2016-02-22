@@ -223,8 +223,7 @@
       </label>
 
         <label class="checkbox">
-          <input type="checkbox" ng-model="model.settings.proxyAll" focus-on="show"
-          ng-click="changeProxyAll(model.settings.proxyAll)">
+          <input type="checkbox" ng-model="model.settings.proxyAll" focus-on="show" ng-click="changeProxyAll(model.settings.proxyAll)">
           {{ 'PROXY_ALL_TRAFFIC' | translate }}
         </label>
 
@@ -238,7 +237,14 @@
           </label>
         </div>
 
-        <div id="autoreport-warning" ng-show="!model.settings.autoReport">
+        <div>
+          <label class="checkbox">
+            <input type="checkbox" ng-model="model.settings.systemProxy" ng-click="changeSystemProxy(model.settings.systemProxy)">
+            {{ 'MANAGE_SYSTEMPROXY' | translate }}
+          </label>
+        </div>
+        
+		<div id="autoreport-warning" ng-show="!model.settings.autoReport">
           <i class="icon-exclamation-sign"></i>
           {{ 'NO_AUTOREPORT_WARNING' | translate }}
         </div>
