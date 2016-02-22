@@ -126,11 +126,13 @@ Section "uninstall"
     Sleep 1000
 
     RMDir /r "$SMPROGRAMS\Lantern"
-    RMDir /r "$INSTDIR"
 
     Delete "$DESKTOP\Lantern.lnk"
 
-    # Remove uninstaller from Add/Remove programs
+    Delete "$INSTDIR\lantern.exe"
+    Delete "$INSTDIR\uninstall.exe"
+    
+	# Remove uninstaller from Add/Remove programs
     DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern"
 
     # Don't run Lantern on startup.
