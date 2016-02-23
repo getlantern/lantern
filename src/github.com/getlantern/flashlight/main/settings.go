@@ -82,6 +82,53 @@ func LoadSettings(version, revisionDate, buildDate string) *Settings {
 	return settings
 }
 
+// start the settings service that synchronizes Lantern's configuration with every UI client
+func (s *Settings) start() error {
+	var err error
+
+	helloFn := func(write func(interface{}) error) error {
+		log.Debugf("Sending Lantern settings to new client")
+		s.Lock()
+		defer s.Unlock()
+		return write(s)
+	}
+	service, err = ui.Register(messageType, nil, helloFn)
+	return err
+}
+
+func (s *Settings) read() {
+	log.Debugf("Reading settings messages!!")
+	for message := range service.In {
+		log.Debugf("Read settings message!! %v", message)
+		msg := (message).(map[string]interface{})
+
+		if autoReport, ok := msg["autoReport"].(bool); ok {
+			s.SetAutoReport(autoReport)
+		} else if proxyAll, ok := msg["proxyAll"].(bool); ok {
+			s.SetProxyAll(proxyAll)
+		} else if autoLaunch, ok := msg["autoLaunch"].(bool); ok {
+			s.SetAutoLaunch(autoLaunch)
+		} else if systemProxy, ok := msg["systemProxy"].(bool); ok {
+			log.Debugf("Setting system proxy")
+			s.SetSystemProxy(systemProxy)
+		}
+	}
+}
+
+// Save saves settings to disk.
+func (s *Settings) Save() {
+	log.Debug("Saving settings")
+	s.Lock()
+	defer s.Unlock()
+	if bytes, err := yaml.Marshal(s); err != nil {
+		log.Errorf("Could not create yaml from settings %v", err)
+	} else if err := ioutil.WriteFile(path, bytes, 0644); err != nil {
+		log.Errorf("Could not write settings file %v", err)
+	} else {
+		log.Debugf("Saved settings to %s with contents %v", path, string(bytes))
+	}
+}
+
 // GetProxyAll returns whether or not to proxy all traffic.
 func (s *Settings) GetProxyAll() bool {
 	s.RLock()
@@ -125,8 +172,8 @@ func (s *Settings) GetSystemProxy() bool {
 	return s.SystemProxy
 }
 
-// setSystemProxy sets whether or not to set system proxy when lantern starts
-func (s *Settings) setSystemProxy(enable bool) {
+// SetSystemProxy sets whether or not to set system proxy when lantern starts
+func (s *Settings) SetSystemProxy(enable bool) {
 	s.Lock()
 	defer s.Unlock()
 	s.SystemProxy = enable
@@ -134,52 +181,5 @@ func (s *Settings) setSystemProxy(enable bool) {
 		go pacOn()
 	} else {
 		go pacOff()
-	}
-}
-
-// start the settings service that synchronizes Lantern's configuration with every UI client
-func (s *Settings) start() error {
-	var err error
-
-	helloFn := func(write func(interface{}) error) error {
-		log.Debugf("Sending Lantern settings to new client")
-		s.Lock()
-		defer s.Unlock()
-		return write(s)
-	}
-	service, err = ui.Register(messageType, nil, helloFn)
-	return err
-}
-
-func (s *Settings) read() {
-	log.Debugf("Reading settings messages!!")
-	for message := range service.In {
-		log.Debugf("Read settings message!! %v", message)
-		msg := (message).(map[string]interface{})
-
-		if autoReport, ok := msg["autoReport"].(bool); ok {
-			s.SetAutoReport(autoReport)
-		} else if proxyAll, ok := msg["proxyAll"].(bool); ok {
-			s.SetProxyAll(proxyAll)
-		} else if autoLaunch, ok := msg["autoLaunch"].(bool); ok {
-			s.SetAutoLaunch(autoLaunch)
-		} else if systemProxy, ok := msg["systemProxy"].(bool); ok {
-			log.Debugf("Setting system proxy")
-			s.setSystemProxy(systemProxy)
-		}
-	}
-}
-
-// Save saves settings to disk.
-func (s *Settings) Save() {
-	log.Debug("Saving settings")
-	s.Lock()
-	defer s.Unlock()
-	if bytes, err := yaml.Marshal(s); err != nil {
-		log.Errorf("Could not create yaml from settings %v", err)
-	} else if err := ioutil.WriteFile(path, bytes, 0644); err != nil {
-		log.Errorf("Could not write settings file %v", err)
-	} else {
-		log.Debugf("Saved settings to %s", path)
 	}
 }
