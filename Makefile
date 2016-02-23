@@ -199,7 +199,7 @@ docker-linux-arm:
 	$(call build-tags) && \
 	CGO_ENABLED=1 CC=arm-linux-gnueabi-gcc CXX=arm-linux-gnueabi-g++ CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 go build -a -o lantern_linux_arm -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight/main
 
-docker-windows-386:
+windows-386: require-assets
 	@source setenv.bash && \
 	$(call build-tags) && \
 	CGO_ENABLED=1 GOOS=windows GOARCH=386 go build -a -o lantern_windows_386.exe -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -H=windowsgui" github.com/getlantern/flashlight/main;
@@ -325,11 +325,6 @@ linux-arm: require-assets docker
 	@echo "Building linux/arm..." && \
 	$(call docker-up) && \
 	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="1" make docker-linux-arm'
-
-windows-386: require-assets docker
-	@echo "Building windows/386..." && \
-	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" make docker-windows-386'
 
 darwin-amd64: require-assets
 	@echo "Building darwin/amd64..." && \

@@ -27,15 +27,25 @@ tools for certain features.
 
 ### Docker Installation Instructions
 
-1. Get the [Docker Toolbox](https://www.docker.com/docker-toolbox)
-2. Install docker per [these instructions](https://docs.docker.com/mac/step_one/)
+The build scripts require a docker-machine called "default".
 
-After installation, you'll have a docker machine called `default`, which is what the build script uses. You'll probably want to increase the memory and cpu for the default machine, which will require you to recreate it:
+Instead of using the default docker-machine settings in step 3 below, you'll probably want higher
+memory and cpu. You can do that with:
 
 ```bash
-docker-machine rm default
 docker-machine create --driver virtualbox --virtualbox-cpu-count 2 --virtualbox-memory 4096 default
 ```
+
+If you already created the machine, you'll first have to
+
+```bash
+docker-machine stop default
+docker-machine rm default
+```
+
+1. Get [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
+2. Get and install the [Docker Toolbox](https://www.docker.com/docker-toolbox)
+3. Create a docker machine per [these instructions](https://docs.docker.com/machine/get-started/)
 
 ### Migrating from boot2docker
 
@@ -268,7 +278,7 @@ env variable.
 Building the mobile library and app requires the following:
 
 1. Install Java JDK 7 or 8
-2. Install Go 1.6rc1 or higher
+2. Install [Go 1.6 or higher](https://golang.org/dl/)
 3. Install [Android SDK Tools](http://developer.android.com/sdk/index.html#Other)
 4. Install NDK(http://developer.android.com/ndk/downloads/index.html)
 
@@ -277,7 +287,7 @@ components (replace the paths based on wherever you've installed the Android
 SDK and NDK).
 
 ```bash
-export ANDROID_HOME=/opt/adt-bundle-mac-x86_64-20130917/sdk
+export ANDROID_HOME=/opt/android-sdk/
 export PATH=$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools:$PATH
 export NDK_HOME=/opt/android-ndk-r10e
 export PATH=$NDK_HOME:$PATH
