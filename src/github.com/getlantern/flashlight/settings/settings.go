@@ -36,6 +36,7 @@ type Settings struct {
 	AutoReport   bool
 	AutoLaunch   bool
 	ProxyAll     bool
+	SystemProxy  bool
 
 	sync.RWMutex
 }
@@ -46,9 +47,10 @@ func Load(version, revisionDate, buildDate string) {
 	// Create default settings that may or may not be overridden from an existing file
 	// on disk.
 	settings = &Settings{
-		AutoReport: true,
-		AutoLaunch: true,
-		ProxyAll:   false,
+		AutoReport:  true,
+		AutoLaunch:  true,
+		ProxyAll:    false,
+		SystemProxy: true,
 	}
 
 	// Use settings from disk if they're available.
@@ -118,6 +120,20 @@ func SetAutoLaunch(auto bool) {
 	go launcher.CreateLaunchFile(auto)
 }
 
+// GetSystemProxy returns whether or not to set system proxy when lantern startups
+func GetSystemProxy() bool {
+	settings.RLock()
+	defer settings.RUnlock()
+	return settings.SystemProxy
+}
+
+// SetSystemProxy sets whether or not to set system proxy when lantern startups
+func SetSystemProxy(enable bool) {
+	settings.Lock()
+	defer settings.Unlock()
+	settings.SystemProxy = enable
+}
+
 // start the settings service that synchronizes Lantern's configuration with every UI client
 func start(baseSettings *Settings) error {
 	var err error
@@ -144,6 +160,8 @@ func read() {
 			SetProxyAll(proxyAll)
 		} else if autoLaunch, ok := msg["autoLaunch"].(bool); ok {
 			SetAutoLaunch(autoLaunch)
+		} else if systemProxy, ok := msg["systemProxy"].(bool); ok {
+			SetSystemProxy(systemProxy)
 		}
 	}
 }
