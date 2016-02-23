@@ -151,7 +151,7 @@
   "SETTINGS": "Settings",
   "MODE": "Mode",
   "PROXY": "Proxy",
-  "MANAGE_PROXIED_SITES": "Manage proxied sites...",
+  "MANAGE_PROXIED_SITES": "Manage proxied sites",
   "ADVANCED": "Advanced",
   "PROXY_ALL_TRAFFIC": "Proxy all traffic",
   "MANAGE_SYSTEMPROXY": "Manage system proxy",
