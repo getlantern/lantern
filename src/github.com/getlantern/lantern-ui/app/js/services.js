@@ -232,10 +232,21 @@ angular.module('app.services', [])
       ga()('send', 'event', 'copy-lantern-mobile-link');
     };
 
+    var trackSocialLink = function(name) {
+      ga()('send', 'social-link-' + name);
+    };
+
+    var trackBookmark = function(name) {
+      alert(name);
+      ga()('send', 'bookmark-' + name);
+    };
+
     return {
       trackSendLinkToMobile: trackSendLinkToMobile,
       trackCopyLink: trackCopyLink,
-      trackPageView: trackPageView
+      trackPageView: trackPageView,
+      trackSocialLink: trackSocialLink,
+      trackBookmark: trackBookmark
     };
   })
   .service('apiSrvc', function($http, API_URL_PREFIX) {

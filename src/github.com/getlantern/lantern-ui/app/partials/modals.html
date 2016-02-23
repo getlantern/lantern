@@ -267,9 +267,9 @@
   <div class="modal-body" id="settings">
     <div id="tell-your-friends">
       <ul class="social-icons">
-        <li class="weibo"><a target="_blank" href="http://service.weibo.com/share/share.php?title={{ 'LANTERN_MOBILE_SHARE' | translate | urlencode }}">Weibo</a>Weibo</li>
-        <li class="twitter"><a target="_blank" href="https://twitter.com/intent/tweet?text={{ 'LANTERN_MOBILE_SHARE' | translate | urlencode }}">Twitter</a>Twitter</li>
-        <li class="facebook"><a target="_blank" href="http://www.facebook.com/sharer.php?u={{ 'LANTERN_MOBILE_ANDROID' | translate }}">Facebook</a>Facebook</li>
+        <li class="weibo"><a target="_blank" ng-click="trackSocialLink('weibo')" href="http://service.weibo.com/share/share.php?title={{ 'LANTERN_MOBILE_SHARE' | translate | urlencode }}">Weibo</a>Weibo</li>
+        <li class="twitter"><a target="_blank" ng-click="trackSocialLink('twitter')" href="https://twitter.com/intent/tweet?text={{ 'LANTERN_MOBILE_SHARE' | translate | urlencode }}">Twitter</a>Twitter</li>
+        <li class="facebook"><a target="_blank" ng-click="trackSocialLink('facebook')" href="http://www.facebook.com/sharer.php?u={{ 'LANTERN_MOBILE_ANDROID' | translate }}">Facebook</a>Facebook</li>
       </ul>
       <p class="download-link">
         <b>{{ 'LANTERN_MOBILE_ANDROID_TEXT' | translate }}:</b> <a target="_blank" href="{{ 'LANTERN_MOBILE_ANDROID' | translate }}">{{ 'LANTERN_MOBILE_ANDROID' | translate }}</a>
