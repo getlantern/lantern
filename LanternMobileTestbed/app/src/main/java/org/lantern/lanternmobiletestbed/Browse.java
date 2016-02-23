@@ -31,11 +31,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Browse extends AppCompatActivity {
     private static final String TAG = "Browse";
     private static final String GEO_LOOKUP = "http://ipinfo.io/ip";
+    private static final int[] BUTTON_IDS = new int[] { R.id.onButton, R.id.onServiceButton, R.id.offButton };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,10 +70,22 @@ public class Browse extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void onToggleLantern(View view) {
+    public void on(View view) {
+        toggle(view, true, false);
+    }
+
+    public void onAsService(View view) {
+        toggle(view, true, true);
+    }
+
+    public void off(View view) {
+        toggle(view, false, false);
+    }
+
+    private void toggle(final View view, boolean on, final boolean asService) {
+        view.setEnabled(false);
         getIPAddressView().setText("Toggling Lantern ...");
         getIPAddressView().setEnabled(false);
-        ToggleButton button = (ToggleButton) view;
         new AsyncTask<Boolean, Void, String>() {
             @Override
             protected String doInBackground(Boolean... params) {
@@ -81,11 +95,15 @@ public class Browse extends AppCompatActivity {
                         Log.i(TAG, "Turning on proxy");
                         int startupTimeoutMillis = 30000;
                         String trackingId = "UA-21815217-17";
-                        Lantern.enable(getApplicationContext(), startupTimeoutMillis, trackingId);
+                        if (asService) {
+                            Lantern.enableAsService(getApplicationContext(), startupTimeoutMillis, trackingId);
+                        } else {
+                            Lantern.enable(getApplicationContext(), startupTimeoutMillis, trackingId);
+                        }
                         Log.i(TAG, "Turned on proxy");
                     } else {
                         Log.i(TAG, "Turning off proxy");
-                        Lantern.disable();
+                        Lantern.disable(getApplicationContext());
                         Log.i(TAG, "Turned off proxy");
                     }
                 } catch (Exception e) {
@@ -96,9 +114,14 @@ public class Browse extends AppCompatActivity {
 
             @Override
             protected void onPostExecute(String ipAddress) {
+                for (int id : BUTTON_IDS) {
+                    if (id != view.getId()) {
+                        findViewById(id).setEnabled(true);
+                    }
+                }
                 refreshIP(null);
             }
-        }.execute(button.isChecked());
+        }.execute(on);
     }
 
     public void refreshIP(View view) {
