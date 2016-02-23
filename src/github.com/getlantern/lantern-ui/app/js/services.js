@@ -232,13 +232,16 @@ angular.module('app.services', [])
       ga()('send', 'event', 'copy-lantern-mobile-link');
     };
 
+    var trackCopyLink = function() {
+      ga()('send', 'event', 'send-link-to-mobile');
+    };
+
     var trackSocialLink = function(name) {
-      ga()('send', 'social-link-' + name);
+      ga()('send', 'event', 'social-link-' + name);
     };
 
     var trackBookmark = function(name) {
-      alert(name);
-      ga()('send', 'bookmark-' + name);
+      ga()('send', 'event', 'bookmark-' + name);
     };
 
     return {
