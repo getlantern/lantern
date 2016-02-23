@@ -232,10 +232,6 @@ angular.module('app.services', [])
       ga()('send', 'event', 'copy-lantern-mobile-link');
     };
 
-    var trackCopyLink = function() {
-      ga()('send', 'event', 'send-link-to-mobile');
-    };
-
     var trackSocialLink = function(name) {
       ga()('send', 'event', 'social-link-' + name);
     };
@@ -247,7 +243,9 @@ angular.module('app.services', [])
     return {
       trackSendLinkToMobile: trackSendLinkToMobile,
       trackCopyLink: trackCopyLink,
-      trackPageView: trackPageView
+      trackPageView: trackPageView,
+      trackSocialLink: trackSocialLink,
+      trackBookmark: trackBookmark
     };
   })
   .service('apiSrvc', function($http, API_URL_PREFIX) {
