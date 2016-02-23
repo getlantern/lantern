@@ -13,6 +13,8 @@ import (
 	"github.com/getlantern/golog"
 	"github.com/getlantern/tarfs"
 	"github.com/skratchdot/open-golang/open"
+
+	"github.com/getlantern/flashlight/client"
 )
 
 const (
@@ -22,11 +24,12 @@ const (
 var (
 	log = golog.LoggerFor("flashlight.ui")
 
-	l            net.Listener
-	fs           *tarfs.FileSystem
-	Translations *tarfs.FileSystem
-	server       *http.Server
-	uiaddr       string
+	l             net.Listener
+	fs            *tarfs.FileSystem
+	Translations  *tarfs.FileSystem
+	server        *http.Server
+	uiaddr        string
+	proxiedUIAddr string
 
 	openedExternal = false
 	externalUrl    string
@@ -64,12 +67,16 @@ func Handle(p string, handler http.Handler) string {
 	return uiaddr + p
 }
 
-func Start(tcpAddr *net.TCPAddr, allowRemote bool, extUrl string) (err error) {
-	addr := tcpAddr
+func Start(requestedAddr string, allowRemote bool, extUrl string) (err error) {
+	addr, err := net.ResolveTCPAddr("tcp4", requestedAddr)
+	if err != nil {
+		return fmt.Errorf("Unable to resolve UI address: %v", err)
+	}
+
 	externalUrl = extUrl
 	if allowRemote {
 		// If we want to allow remote connections, we have to bind all interfaces
-		addr = &net.TCPAddr{Port: tcpAddr.Port}
+		addr = &net.TCPAddr{Port: addr.Port}
 	}
 	if l, err = net.ListenTCP("tcp4", addr); err != nil {
 		return fmt.Errorf("Unable to listen at %v: %v. Error is: %v", addr, l, err)
@@ -99,6 +106,7 @@ func Start(tcpAddr *net.TCPAddr, allowRemote bool, extUrl string) (err error) {
 		}
 	}()
 	uiaddr = fmt.Sprintf("http://%v", l.Addr().String())
+	proxiedUIAddr = fmt.Sprintf("http://%v", client.LanternSpecialDomain)
 	log.Debugf("UI available at %v", uiaddr)
 
 	return nil
@@ -111,9 +119,9 @@ func Start(tcpAddr *net.TCPAddr, allowRemote bool, extUrl string) (err error) {
 // asynchronously is not a problem.
 func Show() {
 	go func() {
-		err := open.Run(uiaddr)
+		err := open.Run(proxiedUIAddr)
 		if err != nil {
-			log.Errorf("Error opening page to `%v`: %v", uiaddr, err)
+			log.Errorf("Error opening page to `%v`: %v", proxiedUIAddr, err)
 		}
 
 		onceBody := func() {

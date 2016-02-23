@@ -76,7 +76,12 @@ func genPACFile() {
 	}
 	formatter :=
 		`var bypassDomains = %s;
+
+		var proxy = "PROXY %s; DIRECT";
 		function FindProxyForURL(url, host) {
+		  if (host.startsWith("%s")) {
+				return proxy;
+			}
 			if (isPlainHostName(host) // including localhost
 			|| shExpMatch(host, "*.local")) {
 				return "DIRECT";
@@ -99,7 +104,7 @@ func genPACFile() {
 					return "DIRECT";
 				}
 			}
-			return "PROXY %s; DIRECT";
+			return proxy;
 		}`
 	proxyAddr, ok := client.Addr(5 * time.Minute)
 	if !ok {
@@ -108,7 +113,7 @@ func genPACFile() {
 	proxyAddrString := proxyAddr.(string)
 	log.Debugf("Setting proxy address to %v", proxyAddrString)
 	muPACFile.Lock()
-	pacFile = []byte(fmt.Sprintf(formatter, hostsString, proxyAddrString))
+	pacFile = []byte(fmt.Sprintf(formatter, hostsString, proxyAddrString, client.LanternSpecialDomain))
 	muPACFile.Unlock()
 }
 
