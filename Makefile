@@ -436,9 +436,9 @@ release-qa: require-version require-s3cmd
 	cp lantern-manoto_*amd64.deb $$BASE_NAME_MANOTO-64-bit.deb && \
 	cp lantern-installer.apk $$BASE_NAME.apk && \
 	for NAME in $$(ls -1 $$BASE_NAME*.*); do \
-		shasum $$NAME | cut -d " " -f 1 > $$NAME.sha1 && \
-		echo "Uploading SHA-1 `cat $$NAME.sha1`" && \
-		$(S3CMD) put -P $$NAME.sha1 s3://$(S3_BUCKET) && \
+		shasum -a 256 $$NAME | cut -d " " -f 1 > $$NAME.sha256 && \
+		echo "Uploading SHA-256 `cat $$NAME.sha256`" && \
+		$(S3CMD) put -P $$NAME.sha256 s3://$(S3_BUCKET) && \
 		echo "Uploading $$NAME to S3" && \
 		$(S3CMD) put -P $$NAME s3://$(S3_BUCKET) && \
 		SUFFIX=$$(echo "$$NAME" | sed s/$$BASE_NAME//g) && \
