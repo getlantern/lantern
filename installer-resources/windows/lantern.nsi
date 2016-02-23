@@ -131,6 +131,9 @@ Section "uninstall"
 
     Delete "$INSTDIR\lantern.exe"
     Delete "$INSTDIR\uninstall.exe"
+    Delete "$INSTDIR\lantern.ico"
+    Delete "$INSTDIR\.packaged-lantern.yaml"
+    Delete "$INSTDIR\lantern.yaml"
     
 	# Remove uninstaller from Add/Remove programs
     DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern"
