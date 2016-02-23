@@ -536,7 +536,7 @@ pkg/gomobile: bin/gomobile
 $(ANDROID_LIB): bin/gomobile pkg/gomobile
 	source setenv.bash && \
 	$(call build-tags) && \
-	gomobile bind -target=android -tags='headless' -o=$(ANDROID_LIB) -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS" $(ANDROID_LIB_PKG)
+	gomobile bind -target=android -tags='headless' -o=$(ANDROID_LIB) -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -s" $(ANDROID_LIB_PKG)
 
 android-lib: $(ANDROID_LIB)
 
@@ -564,6 +564,9 @@ $(ANDROID_TESTBED): $(ANDROID_TESTBED_ANDROID_LIB) $(ANDROID_TESTBED_ANDROID_SDK
 		assembleDebug
 
 android-testbed: $(ANDROID_TESTBED)
+
+android-testbed-install: $(ANDROID_TESTBED)
+	adb install -r $(ANDROID_TESTBED)
 
 $(TUN2SOCKS):
 	cd $(LANTERN_MOBILE_DIR) && ndk-build
@@ -602,7 +605,19 @@ android-release: require-version require-secrets-dir $(LANTERN_MOBILE_ANDROID_RE
 android-install: $(LANTERN_MOBILE_ANDROID_DEBUG)
 	adb install -r $(LANTERN_MOBILE_ANDROID_DEBUG)
 
-clean:
+clean-mobile:
+	rm -f $(ANDROID_LIB) && \
+	rm -f $(ANDROID_SDK_ANDROID_LIB) && \
+	rm -f $(ANDROID_SDK) && \
+	rm -f $(ANDROID_TESTBED_ANDROID_LIB) && \
+	rm -f $(ANDROID_TESTBED_ANDROID_SDK) && \
+	rm -f $(ANDROID_TESTBED) && \
+	rm -f $(LANTERN_MOBILE_ANDROID_LIB) && \
+	rm -f $(LANTERN_MOBILE_ANDROID_SDK) && \
+	rm -f $(LANTERN_MOBILE_ANDROID_DEBUG) && \
+	rm -f $(LANTERN_MOBILE_ANDROID_RELEASE)
+
+clean: clean-mobile
 	rm -f lantern && \
 	rm -f lantern_linux* && \
 	rm -f lantern_darwin* && \
@@ -617,15 +632,5 @@ clean:
 	git checkout ./src/github.com/getlantern/flashlight/ui/resources.go && \
 	rm -f src/github.com/getlantern/flashlight/*.syso && \
 	rm -f *.dmg && \
-	rm -f $(ANDROID_LIB) && \
-	rm -f $(ANDROID_SDK_ANDROID_LIB) && \
-	rm -f $(ANDROID_SDK) && \
-	rm -f $(ANDROID_TESTBED_ANDROID_LIB) && \
-	rm -f $(ANDROID_TESTBED_ANDROID_SDK) && \
-	rm -f $(ANDROID_TESTBED) && \
 	rm -f $(LANTERN_MOBILE_TUN2SOCKS) && \
-	rm -f $(LANTERN_MOBILE_ANDROID_LIB) && \
-	rm -f $(LANTERN_MOBILE_ANDROID_SDK) && \
-	rm -rf $(LANTERN_MOBILE_DIR)/libs/armeabi* && \
-	rm -f $(LANTERN_MOBILE_ANDROID_DEBUG) && \
-	rm -f $(LANTERN_MOBILE_ANDROID_RELEASE)
+	rm -rf $(LANTERN_MOBILE_DIR)/libs/armeabi*
