@@ -87,6 +87,10 @@ angular.module('app.services', [])
         if (data.ProxyAll) {
             model.settings.proxyAll = true;
         }
+
+        if (data.SystemProxy) {
+            model.settings.systemProxy = true;
+        }
       },
       'LocalDiscovery': function(data) {
         model.localLanterns = data;
