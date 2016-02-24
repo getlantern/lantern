@@ -221,7 +221,8 @@ func beforeStart(cfg *config.Config) bool {
 	}
 
 	log.Debugf("Starting client UI at %v", *uiaddr)
-	if err = ui.Start(*uiaddr, !showui, startupUrl); err != nil {
+	actualUIAddr, err := ui.Start(*uiaddr, !showui, startupUrl)
+	if err != nil {
 		// This very likely means Lantern is already running on our port. Tell
 		// it to open a browser. This is useful, for example, when the user
 		// clicks the Lantern desktop shortcut when Lantern is already running.
@@ -229,6 +230,7 @@ func beforeStart(cfg *config.Config) bool {
 		exit(fmt.Errorf("Unable to start UI: %s", err))
 		return false
 	}
+	client.UIAddr = actualUIAddr
 
 	// Only run analytics once on startup.
 	if settings.IsAutoReport() {

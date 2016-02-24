@@ -26,6 +26,9 @@ const (
 var (
 	log = golog.LoggerFor("flashlight.client")
 
+	// Address at which UI is to be found
+	UIAddr string
+
 	addr      = eventual.NewValue()
 	socksAddr = eventual.NewValue()
 )
@@ -212,5 +215,5 @@ func isLanternSpecialDomain(addr string) bool {
 }
 
 func rewriteLanternSpecialDomain(addr string) string {
-	return "localhost:16823"
+	return UIAddr
 }

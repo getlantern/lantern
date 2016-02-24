@@ -67,10 +67,10 @@ func Handle(p string, handler http.Handler) string {
 	return uiaddr + p
 }
 
-func Start(requestedAddr string, allowRemote bool, extUrl string) (err error) {
+func Start(requestedAddr string, allowRemote bool, extUrl string) (string, error) {
 	addr, err := net.ResolveTCPAddr("tcp4", requestedAddr)
 	if err != nil {
-		return fmt.Errorf("Unable to resolve UI address: %v", err)
+		return "", fmt.Errorf("Unable to resolve UI address: %v", err)
 	}
 
 	externalUrl = extUrl
@@ -79,7 +79,7 @@ func Start(requestedAddr string, allowRemote bool, extUrl string) (err error) {
 		addr = &net.TCPAddr{Port: addr.Port}
 	}
 	if l, err = net.ListenTCP("tcp4", addr); err != nil {
-		return fmt.Errorf("Unable to listen at %v: %v. Error is: %v", addr, l, err)
+		return "", fmt.Errorf("Unable to listen at %v: %v. Error is: %v", addr, l, err)
 	}
 
 	// This allows a second Lantern running on the system to trigger the existing
@@ -109,7 +109,7 @@ func Start(requestedAddr string, allowRemote bool, extUrl string) (err error) {
 	proxiedUIAddr = fmt.Sprintf("http://%v", client.LanternSpecialDomain)
 	log.Debugf("UI available at %v", uiaddr)
 
-	return nil
+	return l.Addr().String(), nil
 }
 
 // Show opens the UI in a browser. Note we know the UI server is
