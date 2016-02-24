@@ -226,8 +226,13 @@ func beforeStart(cfg *config.Config) bool {
 		// This very likely means Lantern is already running on our port. Tell
 		// it to open a browser. This is useful, for example, when the user
 		// clicks the Lantern desktop shortcut when Lantern is already running.
-		showExistingUi(*uiaddr)
-		exit(fmt.Errorf("Unable to start UI: %s", err))
+		err2 := showExistingUi(*uiaddr)
+		if err2 != nil {
+			exit(fmt.Errorf("Unable to start UI: %s", err))
+		} else {
+			log.Debug("Lantern already running, showing existing UI")
+			exit(nil)
+		}
 		return false
 	}
 	client.UIAddr = actualUIAddr
@@ -292,7 +297,7 @@ func parseFlags() {
 
 // showExistingUi triggers an existing Lantern running on the same system to
 // open a browser to the Lantern start page.
-func showExistingUi(addr string) {
+func showExistingUi(addr string) error {
 	url := "http://" + addr + "/startup"
 	log.Debugf("Hitting local URL: %v", url)
 	resp, err := http.Get(url)
@@ -303,8 +308,11 @@ func showExistingUi(addr string) {
 				log.Debugf("Error closing body! %s", err)
 			}
 		}
+		return err
+	} else if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Unexpected response from existing Lantern: %d", resp.StatusCode)
 	} else {
-		log.Debugf("Got response from local Lantern: %v", resp.Status)
+		return nil
 	}
 }
 
