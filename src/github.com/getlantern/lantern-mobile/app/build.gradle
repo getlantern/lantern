@@ -5,12 +5,12 @@ def incVersionNum() {
     def versionPropsFile = file('version.properties')
     def Properties versionProps = new Properties()
 
-    // only try to load properties if version.properties 
+    // only try to load properties if version.properties
     // file exists
     if (versionPropsFile.exists()) {
        versionProps.load(new FileInputStream(versionPropsFile))
     }
-    
+
     def value = 0
     def runTasks = gradle.startParameter.taskNames
     if ('assembleRelease' in runTasks) {
@@ -66,7 +66,7 @@ android {
             minifyEnabled true
             shrinkResources true
             signingConfig signingConfigs.release
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro', '../../../../../MobileSDK/sdk/proguard-rules.pro'
         }
 
         applicationVariants.all { variant ->
@@ -111,4 +111,3 @@ dependencies {
         transitive = true
     }
 }
-
