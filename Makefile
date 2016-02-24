@@ -164,18 +164,12 @@ docker-genassets: require-npm
 	DIST="$$LANTERN_UI/dist" && \
 	echo 'var LANTERN_BUILD_REVISION = "$(GIT_REVISION_SHORTCODE)";' > $$APP/js/revision.js && \
 	git update-index --assume-unchanged $$APP/js/revision.js && \
-	if [[ ! -d $$DIST ]]; then \
-		UPDATE_DIST=true; \
-	fi && \
 	DEST="src/github.com/getlantern/flashlight/ui/resources.go" && \
-	\
-	if [ "$$UPDATE_DIST" ]; then \
-			cd $$LANTERN_UI && \
-			npm install && \
-			rm -Rf dist && \
-			gulp build && \
-			cd -; \
-	fi && \
+	cd $$LANTERN_UI && \
+	npm install && \
+	rm -Rf dist && \
+	gulp build && \
+	cd - && \
 	rm -f bin/tarfs bin/rsrc && \
 	go install github.com/getlantern/tarfs/tarfs && \
 	echo "// +build !stub" > $$DEST && \
@@ -265,8 +259,7 @@ docker: system-checks
 	cp Dockerfile $$DOCKER_CONTEXT && \
 	docker build -t $(DOCKER_IMAGE_TAG) $$DOCKER_CONTEXT;
 
-update-dist:
-	UPDATE_DIST=true make genassets
+update-dist: genassets
 
 linux: genassets linux-386 linux-amd64
 
