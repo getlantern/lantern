@@ -18,37 +18,24 @@
 * [Go 1.6rc1 or higher](https://golang.org/dl/).
 * [Docker](https://www.docker.com/).
 * [GNU Make](https://www.gnu.org/software/make/)
-* npm `brew install npm`
-* makensis `brew install makensis`
-* osslsigncode `brew install osslsigncode`
 * An OSX or Linux host.
 
 We are going to create a Docker image that will take care of compiling Lantern
-for Linux, in order to compile Lantern for OSX you'll need an OSX host, this is
-a limitation caused by Lantern depending on C code and OSX build tools for
-certain features.
+for Windows and Linux, in order to compile Lantern for OSX you'll need an OSX
+host, this is a limitation caused by Lantern depending on C code and OSX build
+tools for certain features.
 
 ### Docker Installation Instructions
 
-The build scripts require a docker-machine called "default".
+1. Get the [Docker Toolbox](https://www.docker.com/docker-toolbox)
+2. Install docker per [these instructions](https://docs.docker.com/mac/step_one/)
 
-Instead of using the default docker-machine settings in step 3 below, you'll probably want higher
-memory and cpu. You can do that with:
+After installation, you'll have a docker machine called `default`, which is what the build script uses. You'll probably want to increase the memory and cpu for the default machine, which will require you to recreate it:
 
 ```bash
+docker-machine rm default
 docker-machine create --driver virtualbox --virtualbox-cpu-count 2 --virtualbox-memory 4096 default
 ```
-
-If you already created the machine, you'll first have to
-
-```bash
-docker-machine stop default
-docker-machine rm default
-```
-
-1. Get [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
-2. Get and install the [Docker Toolbox](https://www.docker.com/docker-toolbox)
-3. Create a docker machine per [these instructions](https://docs.docker.com/machine/get-started/)
 
 ### Migrating from boot2docker
 
@@ -126,10 +113,6 @@ file lantern_windows_386.exe
 # lantern_windows_386.exe: PE32 executable for MS Windows (GUI) Intel 80386 32-bit
 ```
 
-IMPORTANT - Proxy settings on Windows 10 seem to be sensitive to code signing,
-so it's best to use `mage package-windows` as described below.
-
-
 ### Building for OSX
 
 Lantern supports the amd64 architecture on OSX. In order to build Lantern on
@@ -192,12 +175,12 @@ Lantern on Windows is distributed as an installer built with
 [nsis](http://nsis.sourceforge.net/). The installer is built and signed with
 `make package-windows`.
 
-For `make package-windows` to be able to sign the executable, the environment
-variables `SECRETS_DIR` and `BNS_CERT_PASS` must be set to point to the secrets
-directory and the password for `bns.pfx`. `bns.pfx` is not actually versioned
-because it is too secret, check with the team about how to get it.
-
-TODO: generate a testing signing key.
+For `make package-windows` to be able to sign the executable, the environment variables
+`SECRETS_DIR` and `BNS_CERT_PASS` must be set to point to the secrets directory
+and the
+[password](https://github.com/getlantern/too-many-secrets/blob/master/build-installers/env-vars.txt#L3)
+of the BNS certificate.  You can set the environment variables and run the
+script on one line, like this:
 
 ```sh
 SECRETS_DIR=$PATH_TO_TOO_MANY_SECRETS BNS_CERT_PASS='***' \
@@ -285,7 +268,7 @@ env variable.
 Building the mobile library and app requires the following:
 
 1. Install Java JDK 7 or 8
-2. Install [Go 1.6 or higher](https://golang.org/dl/)
+2. Install Go 1.6rc1 or higher
 3. Install [Android SDK Tools](http://developer.android.com/sdk/index.html#Other)
 4. Install NDK(http://developer.android.com/ndk/downloads/index.html)
 
@@ -294,7 +277,7 @@ components (replace the paths based on wherever you've installed the Android
 SDK and NDK).
 
 ```bash
-export ANDROID_HOME=/opt/android-sdk/
+export ANDROID_HOME=/opt/adt-bundle-mac-x86_64-20130917/sdk
 export PATH=$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools:$PATH
 export NDK_HOME=/opt/android-ndk-r10e
 export PATH=$NDK_HOME:$PATH
