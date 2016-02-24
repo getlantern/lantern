@@ -31,18 +31,26 @@ func Send(descriptor string, code int, req *C.uint8_t, reqlen C.size_t, res **C.
 	if fn == nil {
 		panic(fmt.Sprintf("invalid descriptor(%s) and code(0x%x)", descriptor, code))
 	}
-	in := new(seq.Buffer)
-	if reqlen > 0 {
-		in.Data = (*[maxSliceLen]byte)(unsafe.Pointer(req))[:reqlen]
-	}
-	out := new(seq.Buffer)
-	fn(out, in)
-	// BUG(hyangah): the function returning a go byte slice (so fn writes a pointer into 'out') is unsafe.
-	// After fn is complete here, Go runtime is free to collect or move the pointed byte slice
-	// contents. (Explicitly calling runtime.GC here will surface the problem?)
-	// Without pinning support from Go side, it will be hard to fix it without extra copying.
 
-	seqToBuf(res, reslen, out)
+	var in, out *seq.Buffer
+	if req != nil && reqlen > 0 {
+		in = &seq.Buffer{
+			Data: (*[maxSliceLen]byte)(unsafe.Pointer(req))[:reqlen],
+		}
+	}
+	if res != nil {
+		out = new(seq.Buffer)
+	}
+
+	fn(out, in)
+
+	if res != nil {
+		// BUG(hyangah): the function returning a go byte slice (so fn writes a pointer into 'out') is unsafe.
+		// After fn is complete here, Go runtime is free to collect or move the pointed byte slice
+		// contents. (Explicitly calling runtime.GC here will surface the problem?)
+		// Without pinning support from Go side, it will be hard to fix it without extra copying.
+		seqToBuf(res, reslen, out)
+	}
 }
 
 // DestroyRef is called by Java to inform Go it is done with a reference.

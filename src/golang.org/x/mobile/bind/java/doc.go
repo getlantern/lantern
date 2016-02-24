@@ -8,3 +8,5 @@
 //
 // Currently, this works only for android.
 package java
+
+import "C"

@@ -7,16 +7,13 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"sync"
 	"time"
 
+	"github.com/getlantern/eventual"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/keyman"
-	"github.com/getlantern/waitforserver"
-)
-
-const (
-	defaultAddr = "127.0.0.1:8787"
 )
 
 var (
@@ -34,37 +31,53 @@ func success(resp *http.Response) bool {
 
 // NewChainedAndFronted creates a new struct for accessing resources using chained
 // and direct fronted servers in parallel.
-func NewChainedAndFronted() *chainedAndFronted {
-	cf := &chainedAndFronted{}
-	cf.fetcher = &dualFetcher{cf}
+func NewChainedAndFronted(proxyAddrFN eventual.Getter) *chainedAndFronted {
+	cf := &chainedAndFronted{proxyAddrFN: proxyAddrFN}
+	cf.setFetcher(&dualFetcher{cf})
 	return cf
 }
 
 // ChainedAndFronted fetches HTTP data in parallel using both chained and fronted
 // servers.
 type chainedAndFronted struct {
-	fetcher HTTPFetcher
+	proxyAddrFN eventual.Getter
+	_fetcher    HTTPFetcher
+	mu          sync.RWMutex
+}
+
+func (cf *chainedAndFronted) getFetcher() HTTPFetcher {
+	cf.mu.RLock()
+	result := cf._fetcher
+	cf.mu.RUnlock()
+	return result
+}
+
+func (cf *chainedAndFronted) setFetcher(fetcher HTTPFetcher) {
+	cf.mu.Lock()
+	cf._fetcher = fetcher
+	cf.mu.Unlock()
 }
 
 // Do will attempt to execute the specified HTTP request using only a chained fetcher
 func (cf *chainedAndFronted) Do(req *http.Request) (*http.Response, error) {
-	resp, err := cf.fetcher.Do(req)
+	resp, err := cf.getFetcher().Do(req)
 	if err != nil {
 		// If there's an error, switch back to using the dual fetcher.
-		cf.fetcher = &dualFetcher{cf}
+		cf.setFetcher(&dualFetcher{cf})
 	} else if !success(resp) {
-		cf.fetcher = &dualFetcher{cf}
+		cf.setFetcher(&dualFetcher{cf})
 	}
 	return resp, err
 }
 
 type chainedFetcher struct {
+	proxyAddrFN eventual.Getter
 }
 
 // Do will attempt to execute the specified HTTP request using only a chained fetcher
 func (cf *chainedFetcher) Do(req *http.Request) (*http.Response, error) {
 	log.Debugf("Using chained fronter")
-	if client, err := HTTPClient("", defaultAddr); err != nil {
+	if client, err := HTTPClient("", cf.proxyAddrFN); err != nil {
 		log.Errorf("Could not create HTTP client: %v", err)
 		return nil, err
 	} else {
@@ -126,7 +139,7 @@ func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
 		}
 	}()
 	go func() {
-		if client, err := HTTPClient("", defaultAddr); err != nil {
+		if client, err := HTTPClient("", df.cf.proxyAddrFN); err != nil {
 			log.Errorf("Could not create HTTP client: %v", err)
 			errs <- err
 		} else {
@@ -135,58 +148,88 @@ func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
 				log.Errorf("Chained request failed %v", err)
 			} else {
 				log.Debug("Switching to chained fronter for future requests since it succeeded")
-				df.cf.fetcher = &chainedFetcher{}
+				df.cf.setFetcher(&chainedFetcher{df.cf.proxyAddrFN})
 			}
 		}
 	}()
 
-	for i := 0; i < 2; i++ {
-		select {
-		case resp := <-responses:
-			if i == 1 {
-				log.Debugf("Got second response -- sending")
-				return resp, nil
-			} else if success(resp) {
-				log.Debugf("Got good response")
-				// Returning preemptively here means the second response
-				// will not be closed properly. We need to ultimately
-				// handle that.
-				return resp, nil
-			} else {
-				log.Debugf("Got bad first response -- wait for second")
+	// Create channels for the final response or error. The response channel will be filled
+	// in the case of any successful response as well as a non-error response for the second
+	// response received. The error channel will only be filled if the first response is
+	// unsuccessful and the second is an error.
+	finalResponseCh := make(chan *http.Response, 1)
+	finalErrorCh := make(chan error, 1)
+
+	go readResponses(finalResponseCh, responses, finalErrorCh, errs)
+
+	select {
+	case resp := <-finalResponseCh:
+		return resp, nil
+	case err := <-finalErrorCh:
+		return nil, err
+	}
+}
+
+func readResponses(finalResponse chan *http.Response, responses chan *http.Response, finalErr chan error, errs chan error) {
+	select {
+	case resp := <-responses:
+		if success(resp) {
+			log.Debug("Got good first response")
+			finalResponse <- resp
+
+			// Just ignore the second response, but still process it.
+			select {
+			case resp := <-responses:
+				log.Debug("Closing second response body")
 				_ = resp.Body.Close()
+				return
+			case <-errs:
+				log.Debug("Ignoring error on second response")
+				return
 			}
-		case err := <-errs:
-			log.Debugf("Got an error: %v", err)
-			if i == 1 {
-				return nil, errors.New("All requests errored")
+		} else {
+			log.Debugf("Got bad first response -- wait for second")
+			_ = resp.Body.Close()
+			// Just use whatever we get from the second response.
+			select {
+			case resp := <-responses:
+				finalResponse <- resp
+			case err := <-errs:
+				finalErr <- err
 			}
 		}
+	case err := <-errs:
+		log.Debugf("Got an error: %v", err)
+		// Just use whatever we get from the second response.
+		select {
+		case resp := <-responses:
+			finalResponse <- resp
+		case err := <-errs:
+			finalErr <- err
+		}
 	}
-	return nil, errors.New("Reached end")
 }
 
 // PersistentHTTPClient creates an http.Client that persists across requests.
 // If rootCA is specified, the client will validate the server's certificate
 // on TLS connections against that RootCA. If proxyAddr is specified, the client
 // will proxy through the given http proxy.
-func PersistentHTTPClient(rootCA string, proxyAddr string) (*http.Client, error) {
-	return httpClient(rootCA, proxyAddr, true)
+func PersistentHTTPClient(rootCA string, proxyAddrFN eventual.Getter) (*http.Client, error) {
+	return httpClient(rootCA, proxyAddrFN, true)
 }
 
 // HTTPClient creates an http.Client. If rootCA is specified, the client will
 // validate the server's certificate on TLS connections against that RootCA. If
 // proxyAddr is specified, the client will proxy through the given http proxy.
-func HTTPClient(rootCA string, proxyAddr string) (*http.Client, error) {
-	return httpClient(rootCA, proxyAddr, false)
+func HTTPClient(rootCA string, proxyAddrFN eventual.Getter) (*http.Client, error) {
+	return httpClient(rootCA, proxyAddrFN, false)
 }
 
 // httpClient creates an http.Client. If rootCA is specified, the client will
 // validate the server's certificate on TLS connections against that RootCA. If
 // proxyAddr is specified, the client will proxy through the given http proxy.
-func httpClient(rootCA string, proxyAddr string, persistent bool) (*http.Client, error) {
-
-	log.Debugf("Creating new HTTPClient with proxy: %v", proxyAddr)
+func httpClient(rootCA string, proxyAddrFN eventual.Getter, persistent bool) (*http.Client, error) {
+	log.Debugf("Creating new HTTPClient with proxyAddrFN: %v", proxyAddrFN)
 
 	tr := &http.Transport{
 		Dial: (&net.Dialer{
@@ -215,51 +258,22 @@ func httpClient(rootCA string, proxyAddr string, persistent bool) (*http.Client,
 		}
 	}
 
-	if proxyAddr != "" {
-
-		host, _, err := net.SplitHostPort(proxyAddr)
-		if err != nil {
-			return nil, fmt.Errorf("Unable to split host and port for %v: %v", proxyAddr, err)
+	if proxyAddrFN != nil {
+		log.Debug("Waiting for proxy server to come online")
+		proxyAddr, ok := proxyAddrFN(60 * time.Second)
+		if !ok {
+			// Instead of finishing here we just log the error and continue, the client
+			// we are going to create will surely fail when used and return errors,
+			// those errors should be handled by the code that depends on such client.
+			log.Errorf("Proxy never came online")
 		}
-
-		noHostSpecified := host == ""
-		if noHostSpecified {
-			// For addresses of the form ":8080", prepend the loopback IP
-			host = "127.0.0.1"
-			proxyAddr = host + proxyAddr
-		}
-
-		if isLoopback(host) {
-			log.Debugf("Waiting for loopback proxy server to came online...")
-			// Waiting for proxy server to came online.
-			err := waitforserver.WaitForServer("tcp", proxyAddr, 5*time.Minute)
-			if err != nil {
-				// Instead of finishing here we just log the error and continue, the client
-				// we are going to create will surely fail when used and return errors,
-				// those errors should be handled by the code that depends on such client.
-				log.Errorf("Proxy never came online at %v: %q", proxyAddr, err)
-			}
-			log.Debugf("Connected to proxy on localhost")
-		} else {
-			log.Errorf("Attempting to proxy through server other than loopback %v", host)
-		}
+		log.Debugf("Connected to proxy")
 
 		tr.Proxy = func(req *http.Request) (*url.URL, error) {
-			return url.Parse("http://" + proxyAddr)
+			return url.Parse("http://" + proxyAddr.(string))
 		}
 	} else {
 		log.Errorf("Using direct http client with no proxyAddr")
 	}
 	return &http.Client{Transport: tr}, nil
-}
-
-func isLoopback(host string) bool {
-	if host == "localhost" {
-		return true
-	}
-	var ip net.IP
-	if ip = net.ParseIP(host); ip != nil {
-		return ip.IsLoopback()
-	}
-	return false
 }

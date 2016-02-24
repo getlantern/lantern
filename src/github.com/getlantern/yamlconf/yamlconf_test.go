@@ -63,8 +63,7 @@ func TestFileAndUpdate(t *testing.T) {
 		EmptyConfig: func() Config {
 			return &TestCfg{}
 		},
-		FilePath:         file.Name(),
-		FilePollInterval: pollInterval,
+		FilePath: file.Name(),
 	}
 
 	first, err := m.Init()
@@ -105,18 +104,6 @@ func TestFileAndUpdate(t *testing.T) {
 		// Wait for file update to get picked up
 		time.Sleep(pollInterval * 2)
 
-		// Push update to file
-		saveConfig(t, file, &TestCfg{
-			Version: 1,
-			N: &Nested{
-				S: "3",
-				I: 3,
-			},
-		})
-
-		// Wait for file update to get picked up
-		time.Sleep(pollInterval * 2)
-
 		// Perform update programmatically
 		err := m.Update(func(cfg Config) error {
 			tc := cfg.(*TestCfg)
@@ -132,15 +119,6 @@ func TestFileAndUpdate(t *testing.T) {
 	}()
 
 	updated := m.Next()
-	assert.Equal(t, &TestCfg{
-		Version: 1,
-		N: &Nested{
-			S: "3",
-			I: 3,
-		},
-	}, updated, "Config from updated file should contain correct data")
-
-	updated = m.Next()
 	assert.Equal(t, &TestCfg{
 		Version: 2,
 		N: &Nested{
@@ -168,8 +146,7 @@ func TestCustomPoll(t *testing.T) {
 		EmptyConfig: func() Config {
 			return &TestCfg{}
 		},
-		FilePath:         file.Name(),
-		FilePollInterval: pollInterval,
+		FilePath: file.Name(),
 		CustomPoll: func(currentCfg Config) (func(cfg Config) error, time.Duration, error) {
 			defer func() {
 				poll = poll + 1

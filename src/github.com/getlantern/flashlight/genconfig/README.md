@@ -1,10 +1,13 @@
-# Updating the global configuration
+# Updating the embedded configuration
 
-1. Make sure you have REDISCLOUD_PRODUCTION_URL set as an environment variable -- see https://github.com/getlantern/too-many-secrets/blob/master/lantern_aws/config_server.yaml#L2
-1. If you want to embed custom chained servers, make sure to have them populated in fallbacks.yaml and generated using the private lantern_aws/etc/fetchcfg.py. You can do this as follows:
+We generally update the embedded configuration with each new Lantern release to update fronting domains and to include new embedded servers.
+
+Make sure that any chained servers you want to bake in are populated in fallbacks.yaml.  You can generate this using the private lantern_aws/etc/fetchcfg.py, as follows: 
 ```
-./fetchcfg.py vltok1 > fallbacks.yaml
-./fetchcfg.py >> fallbacks.yaml
+./fetchcfg.py sea > fallbacks.yaml
+./fetchcfg.py etc >> fallbacks.yaml
 ```
-1. Run ```./genconfig.bash```
-1. Run ```./cfg2redis.py --global cloud.yaml -```
+
+Once this is done, copy the fallbacks.yaml to this directory and run ```./genconfig.bash```.
+
+(Note: we used to upload the global configuration for the config server manually from here, but we've automated that and moved it to the lantern_aws project.  Look there if you want to make any changes to the global configuration, other than masquerade updates.)

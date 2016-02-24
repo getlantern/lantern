@@ -77,6 +77,9 @@ static mem *mem_ensure(mem *m, uint32_t size) {
 }
 
 static mem *mem_get(JNIEnv *env, jobject obj) {
+	if (obj == NULL) {
+		return NULL;
+	}
 	// Storage space for pointer is always 64-bits, even on 32-bit
 	// machines. Cast to uintptr_t to avoid -Wint-to-pointer-cast.
 	return (mem*)(uintptr_t)(*env)->GetLongField(env, obj, memptr_id);
@@ -282,7 +285,7 @@ JNIEXPORT jstring JNICALL
 Java_go_Seq_readUTF16(JNIEnv *env, jobject obj) {
 	int32_t size = *MEM_READ(obj, int32_t);
 	if (size == 0) {
-		return NULL;
+		return (*env)->NewString(env, NULL, 0);
 	}
 	return (*env)->NewString(env, (jchar*)mem_read(env, obj, 2*size, 1), size);
 }
@@ -400,13 +403,20 @@ Java_go_Seq_destroyRef(JNIEnv *env, jclass clazz, jint refnum) {
 
 JNIEXPORT void JNICALL
 Java_go_Seq_send(JNIEnv *env, jclass clazz, jstring descriptor, jint code, jobject src_obj, jobject dst_obj) {
+	uint8_t* req = NULL;
+	size_t reqlen = 0;
 	mem *src = mem_get(env, src_obj);
-	if (src == NULL) {
-		LOG_FATAL("send src is NULL");
+	if (src != NULL) {
+		req = src->buf;
+		reqlen = src->len;
 	}
+
+	uint8_t** res = NULL;
+	size_t* reslen = NULL;
 	mem *dst = mem_get(env, dst_obj);
-	if (dst == NULL) {
-		LOG_FATAL("send dst is NULL");
+	if (dst != NULL) {
+		res = &dst->buf;
+		reslen = &dst->len;
 	}
 
 	GoString desc;
@@ -415,9 +425,13 @@ Java_go_Seq_send(JNIEnv *env, jclass clazz, jstring descriptor, jint code, jobje
 		LOG_FATAL("send GetStringUTFChars failed");
 	}
 	desc.n = (*env)->GetStringUTFLength(env, descriptor);
-	Send(desc, (GoInt)code, src->buf, src->len, &dst->buf, &dst->len);
+
+	Send(desc, (GoInt)code, req, reqlen, res, reslen);
 	(*env)->ReleaseStringUTFChars(env, descriptor, desc.p);
-	unpin_arrays(env, src);  // assume 'src' is no longer needed.
+
+	if (src != NULL) {
+		unpin_arrays(env, src);  // assume 'src' is no longer needed.
+	}
 }
 
 JNIEXPORT void JNICALL

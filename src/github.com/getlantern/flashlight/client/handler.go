@@ -5,11 +5,11 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"runtime"
+	"net/http/httputil"
 	"strconv"
 	"sync"
+	"time"
 
-	"github.com/getlantern/detour"
 	"github.com/getlantern/flashlight/logging"
 )
 
@@ -27,13 +27,13 @@ func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		// CONNECT requests are often used for HTTPS requests.
 		log.Tracef("Intercepting CONNECT %s", req.URL)
 		client.intercept(resp, req)
-	} else if rp, err := client.newReverseProxy(); err == nil {
+	} else if rp, ok := client.rp.Get(1 * time.Minute); ok {
 		// Direct proxying can only be used for plain HTTP connections.
 		log.Debugf("Reverse proxying %s %v", req.Method, req.URL)
-		rp.ServeHTTP(resp, req)
+		rp.(*httputil.ReverseProxy).ServeHTTP(resp, req)
 	} else {
 		log.Debugf("Could not get a reverse proxy connection -- responding bad gateway")
-		respondBadGateway(resp, fmt.Sprintf("Unable to get a connection: %s", err))
+		respondBadGateway(resp, "Unable to get a connection")
 	}
 }
 
@@ -80,7 +80,7 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 
 	// Establish outbound connection.
 	addr := hostIncludingPort(req, 443)
-	d := func(network, addr string) (net.Conn, error) {
+	d := client.proxiedDialer(func(network, addr string) (net.Conn, error) {
 		// UGLY HACK ALERT! In this case, we know we need to send a CONNECT request
 		// to the chained server. We need to send that request from chained/dialer.go
 		// though because only it knows about the authentication token to use.
@@ -89,13 +89,9 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 		// special "transport" in the dialer and send a CONNECT request in that
 		// case.
 		return client.getBalancer().Dial("connect", addr)
-	}
+	})
 
-	if runtime.GOOS == "android" || client.ProxyAll {
-		connOut, err = d("tcp", addr)
-	} else {
-		connOut, err = detour.Dialer(d)("tcp", addr)
-	}
+	connOut, err = d("tcp", addr)
 	if err != nil {
 		log.Debugf("Could not dial %v", err)
 		respondBadGatewayHijacked(clientConn, req)

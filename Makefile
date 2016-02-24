@@ -13,6 +13,7 @@ RUBY := $(shell which ruby 2> /dev/null)
 APPDMG := $(shell which appdmg 2> /dev/null)
 SVGEXPORT := $(shell which svgexport 2> /dev/null)
 
+DOCKERMACHINE := $(shell which docker-machine 2> /dev/null)
 BOOT2DOCKER := $(shell which boot2docker 2> /dev/null)
 
 GIT_REVISION_SHORTCODE := $(shell git rev-parse --short HEAD)
@@ -24,7 +25,7 @@ BUILD_DATE := $(shell date -u +%Y%m%d.%H%M%S)
 
 LOGGLY_TOKEN := 2b68163b-89b6-4196-b878-c1aca4bbdf84
 
-LDFLAGS := -w -X main.version $(GIT_REVISION) -X main.revisionDate $(REVISION_DATE) -X main.buildDate $(BUILD_DATE) -X github.com/getlantern/flashlight/logging.logglyToken \"$(LOGGLY_TOKEN)\"
+LDFLAGS := -X github.com/getlantern/flashlight/flashlight.Version=$(GIT_REVISION) -X github.com/getlantern/flashlight/flashlight.RevisionDate=$(REVISION_DATE) -X github.com/getlantern/flashlight/flashlight.BuildDate=$(BUILD_DATE) -X github.com/getlantern/flashlight/logging.logglyToken=$(LOGGLY_TOKEN) -X github.com/getlantern/flashlight/logging.logglyTag=$(LOGGLY_TAG)
 LANTERN_DESCRIPTION := Censorship circumvention tool
 LANTERN_EXTENDED_DESCRIPTION := Lantern allows you to access sites blocked by internet censorship.\nWhen you run it, Lantern reroutes traffic to selected domains through servers located where such domains are uncensored.
 
@@ -44,42 +45,74 @@ S3_BUCKET ?= lantern
 
 DOCKER_IMAGE_TAG := lantern-builder
 
-LANTERN_MOBILE_DIR := src/github.com/getlantern/lantern-mobile
-LANTERN_MOBILE_LIBRARY := libflashlight.aar
-DOCKER_MOBILE_IMAGE_TAG := lantern-mobile-builder
-LOGGLY_TOKEN_MOBILE := d730c074-1f0a-415d-8d71-1ebf1d8bd736
+S3_BUCKET ?= lantern
+ANDROID_S3_BUCKET ?= lantern-android
+ANDROID_BUILD_DIR := src/github.com/getlantern/lantern-mobile/app/build/outputs/apk
+LANTERN_DEBUG_APK := lantern-debug.apk
 
-FIRETWEET_MAIN_DIR ?= ../firetweet/firetweet/src/main/
+ANDROID_LIB_PKG := github.com/getlantern/lantern
+ANDROID_LIB := liblantern.aar
+
+ANDROID_SDK_DIR := MobileSDK
+ANDROID_SDK_LIBS := $(ANDROID_SDK_DIR)/sdk/libs/
+ANDROID_SDK_ANDROID_LIB := $(ANDROID_SDK_LIBS)/$(ANDROID_LIB)
+ANDROID_SDK := $(ANDROID_SDK_DIR)/sdk/build/outputs/aar/sdk-debug.aar
+
+ANDROID_TESTBED_DIR := LanternMobileTestbed
+ANDROID_TESTBED_LIBS := $(ANDROID_TESTBED_DIR)/app/libs/
+ANDROID_TESTBED_ANDROID_LIB := $(ANDROID_TESTBED_LIBS)/$(ANDROID_LIB)
+ANDROID_TESTBED_ANDROID_SDK := $(ANDROID_TESTBED_LIBS)/sdk-debug.aar
+ANDROID_TESTBED := $(ANDROID_TESTBED_DIR)/app/build/outputs/apk/app-debug.apk
+
+LANTERN_MOBILE_DIR := src/github.com/getlantern/lantern-mobile
+LANTERN_MOBILE_LIBS := $(LANTERN_MOBILE_DIR)/app/libs
+TUN2SOCKS := $(LANTERN_MOBILE_DIR)/libs/armeabi-v7a/libtun2socks.so
+LANTERN_MOBILE_ARM_LIBS := $(LANTERN_MOBILE_LIBS)/armeabi-v7a
+LANTERN_MOBILE_TUN2SOCKS := $(LANTERN_MOBILE_ARM_LIBS)/libtun2socks.so
+LANTERN_MOBILE_ANDROID_LIB := $(LANTERN_MOBILE_LIBS)/$(ANDROID_LIB)
+LANTERN_MOBILE_ANDROID_SDK := $(LANTERN_MOBILE_LIBS)/sdk-debug.aar
+LANTERN_MOBILE_ANDROID_DEBUG := $(LANTERN_MOBILE_DIR)/app/build/outputs/apk/lantern-debug.apk
+LANTERN_MOBILE_ANDROID_RELEASE := $(LANTERN_MOBILE_DIR)/app/build/outputs/apk/app-release.apk
 
 LANTERN_YAML := lantern.yaml
 LANTERN_YAML_PATH := installer-resources/lantern.yaml
 
-.PHONY: packages clean docker
+.PHONY: packages clean docker tun2socks android-lib android-sdk android-testbed android-debug android-release android-install
 
 define build-tags
 	BUILD_TAGS="" && \
+	EXTRA_LDFLAGS="" && \
 	if [[ ! -z "$$VERSION" ]]; then \
-		BUILD_TAGS="prod" && \
-		sed s/'packageVersion.*'/'packageVersion = "'$$VERSION'"'/ src/github.com/getlantern/flashlight/autoupdate.go | sed s/'!prod'/'prod'/ > src/github.com/getlantern/flashlight/autoupdate-prod.go; \
+		EXTRA_LDFLAGS="-X=github.com/getlantern/flashlight.compileTimePackageVersion=$$VERSION"; \
 	else \
-		echo "** VERSION was not set, using git revision instead ($(GIT_REVISION)). This is OK while in development."; \
+		echo "** VERSION was not set, using default version. This is OK while in development."; \
 	fi && \
 	if [[ ! -z "$$HEADLESS" ]]; then \
 		BUILD_TAGS="$$BUILD_TAGS headless"; \
 	fi && \
-	BUILD_TAGS=$$(echo $$BUILD_TAGS | xargs) && echo "Build tags: $$BUILD_TAGS"
+	BUILD_TAGS=$$(echo $$BUILD_TAGS | xargs) && echo "Build tags: $$BUILD_TAGS" && \
+	EXTRA_LDFLAGS=$$(echo $$EXTRA_LDFLAGS | xargs) && echo "Extra ldflags: $$EXTRA_LDFLAGS"
 endef
 
 define docker-up
 	if [[ "$$(uname -s)" == "Darwin" ]]; then \
-		if [[ -z "$(BOOT2DOCKER)" ]]; then \
-			echo 'Missing "boot2docker" command' && exit 1; \
-		fi && \
-		if [[ "$$($(BOOT2DOCKER) status)" != "running" ]]; then \
-			$(BOOT2DOCKER) up; \
-		fi && \
-		if [[ -z "$$DOCKER_HOST" ]]; then \
-			$$($(BOOT2DOCKER) shellinit 2>/dev/null); \
+		if [[ -z "$(DOCKERMACHINE)" ]]; then \
+		  if [[ -z "$(BOOT2DOCKER)" ]]; then \
+  			echo 'Missing "docker-machine" command' && exit 1; \
+			fi && \
+			echo "Falling back to using $(BOOT2DOCKER), recommend upgrading to latest docker toolbox from https://www.docker.com/docker-toolbox" && \
+			if [[ "$$($(BOOT2DOCKER) status)" != "running" ]]; then \
+				$(BOOT2DOCKER) up; \
+			fi && \
+			if [[ -z "$$DOCKER_HOST" ]]; then \
+				$$($(BOOT2DOCKER) shellinit 2>/dev/null); \
+			fi \
+		else \
+		  echo "Using $(DOCKERMACHINE)" && \
+			if [[ "$$($(DOCKERMACHINE) status default)" != "Running" ]]; then \
+				$(DOCKERMACHINE) start default; \
+			fi && \
+			$$($(DOCKERMACHINE) env default 2>/dev/null | head -4 | tr -d '"'); \
 		fi \
 	fi
 endef
@@ -121,6 +154,7 @@ define fpm-debian-build =
 endef
 
 all: binaries
+android-dist: genconfig android
 
 # This is to be called within the docker image.
 docker-genassets: require-npm
@@ -153,22 +187,22 @@ docker-genassets: require-npm
 docker-linux-386:
 	@source setenv.bash && \
 	$(call build-tags) && \
-	CGO_ENABLED=1 GOOS=linux GOARCH=386 go build -a -o lantern_linux_386 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
+	CGO_ENABLED=1 GOOS=linux GOARCH=386 go build -a -o lantern_linux_386 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight/main
 
 docker-linux-amd64:
 	@source setenv.bash && \
 	$(call build-tags) && \
-	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -a -o lantern_linux_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
+	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -a -o lantern_linux_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight/main
 
 docker-linux-arm:
 	@source setenv.bash && \
 	$(call build-tags) && \
-	CGO_ENABLED=1 CC=arm-linux-gnueabi-gcc CXX=arm-linux-gnueabi-g++ CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 go build -a -o lantern_linux_arm -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight
+	CGO_ENABLED=1 CC=arm-linux-gnueabi-gcc CXX=arm-linux-gnueabi-g++ CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 go build -a -o lantern_linux_arm -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight/main
 
 docker-windows-386:
 	@source setenv.bash && \
 	$(call build-tags) && \
-	CGO_ENABLED=1 GOOS=windows GOARCH=386 go build -a -o lantern_windows_386.exe -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -H=windowsgui" github.com/getlantern/flashlight;
+	CGO_ENABLED=1 GOOS=windows GOARCH=386 go build -a -o lantern_windows_386.exe -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -H=windowsgui" github.com/getlantern/flashlight/main;
 
 require-assets:
 	@if [ ! -f ./src/github.com/getlantern/flashlight/ui/resources.go ]; then make genassets; fi
@@ -179,9 +213,11 @@ require-version:
 require-gh-token:
 	@if [[ -z "$$GH_TOKEN" ]]; then echo "GH_TOKEN environment value is required."; exit 1; fi
 
-require-secrets:
-	@if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
+require-secrets-dir:
 	if [[ -z "$$SECRETS_DIR" ]]; then echo "SECRETS_DIR environment value is required."; exit 1; fi
+
+require-secrets: require-secrets-dir
+	@if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi
 
 require-lantern-binaries:
 	@if [[ ! -d "$(LANTERN_BINARIES_PATH)" ]]; then \
@@ -228,13 +264,6 @@ docker: system-checks
 	mkdir -p $$DOCKER_CONTEXT && \
 	cp Dockerfile $$DOCKER_CONTEXT && \
 	docker build -t $(DOCKER_IMAGE_TAG) $$DOCKER_CONTEXT;
-
-docker-mobile:
-	@$(call docker-up) && \
-	DOCKER_CONTEXT=.$(DOCKER_MOBILE_IMAGE_TAG)-context && \
-	mkdir -p $$DOCKER_CONTEXT && \
-	cp $(LANTERN_MOBILE_DIR)/Dockerfile $$DOCKER_CONTEXT && \
-	docker build -t $(DOCKER_MOBILE_IMAGE_TAG) $$DOCKER_CONTEXT
 
 update-dist:
 	UPDATE_DIST=true make genassets
@@ -313,10 +342,16 @@ darwin-amd64: require-assets
 			export CGO_LDFLAGS="--sysroot $$OSX_DEV_SDK"; \
 		fi && \
 		MACOSX_DEPLOYMENT_TARGET=$(OSX_MIN_VERSION) \
-		CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -a -o lantern_darwin_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) -s" github.com/getlantern/flashlight; \
+		CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -a -o lantern_darwin_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -s" github.com/getlantern/flashlight/main; \
 	else \
 		echo "-> Skipped: Can not compile Lantern for OSX on a non-OSX host."; \
 	fi
+
+lantern: require-assets
+	@echo "Building development lantern" && \
+	source setenv.bash && \
+	$(call build-tags) && \
+	CGO_ENABLED=1 go build -race -o lantern -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -s" github.com/getlantern/flashlight/main; \
 
 package-linux-386: require-version genassets linux-386
 	@echo "Generating distribution package for linux/386..." && \
@@ -399,10 +434,11 @@ release-qa: require-version require-s3cmd
 	cp lantern-manoto_*386.deb $$BASE_NAME_MANOTO-32-bit.deb && \
 	cp lantern_*amd64.deb $$BASE_NAME-64-bit.deb && \
 	cp lantern-manoto_*amd64.deb $$BASE_NAME_MANOTO-64-bit.deb && \
+	cp lantern-installer.apk $$BASE_NAME.apk && \
 	for NAME in $$(ls -1 $$BASE_NAME*.*); do \
-		shasum $$NAME | cut -d " " -f 1 > $$NAME.sha1 && \
-		echo "Uploading SHA-1 `cat $$NAME.sha1`" && \
-		$(S3CMD) put -P $$NAME.sha1 s3://$(S3_BUCKET) && \
+		shasum -a 256 $$NAME | cut -d " " -f 1 > $$NAME.sha256 && \
+		echo "Uploading SHA-256 `cat $$NAME.sha256`" && \
+		$(S3CMD) put -P $$NAME.sha256 s3://$(S3_BUCKET) && \
 		echo "Uploading $$NAME to S3" && \
 		$(S3CMD) put -P $$NAME s3://$(S3_BUCKET) && \
 		SUFFIX=$$(echo "$$NAME" | sed s/$$BASE_NAME//g) && \
@@ -480,7 +516,7 @@ test-and-cover:
 		source envvars.bash; \
 	fi && \
 	for pkg in $$(cat testpackages.txt); do \
-		go test -v -covermode=count -coverprofile=profile_tmp.cov $$pkg || exit 1; \
+		go test -v -tags="headless" -covermode=count -coverprofile=profile_tmp.cov $$pkg || exit 1; \
 		tail -n +2 profile_tmp.cov >> profile.cov; \
 	done
 
@@ -489,25 +525,100 @@ genconfig:
 	source setenv.bash && \
 	(cd src/github.com/getlantern/flashlight/genconfig && ./genconfig.bash)
 
-android-lib: docker-mobile
-	@source setenv.bash && \
-	cd $(LANTERN_MOBILE_DIR)
-	@$(call docker-up) && \
-	$(DOCKER) run -v $$PWD/src:/src $(DOCKER_MOBILE_IMAGE_TAG) /bin/bash -c \ "cd /src/github.com/getlantern/lantern-mobile && gomobile bind -target=android -o=$(LANTERN_MOBILE_LIBRARY) -ldflags="$(LDFLAGS)" ." && \
-	if [ -d "$(FIRETWEET_MAIN_DIR)" ]; then \
-		cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) $(FIRETWEET_MAIN_DIR)/libs/$(LANTERN_MOBILE_LIBRARY); \
-	else \
-		echo ""; \
-		echo "Either no FIRETWEET_MAIN_DIR variable was passed or the given value is not a";\
-		echo "directory. You'll have to copy the $(LANTERN_MOBILE_LIBRARY) file manually:"; \
-		echo ""; \
-		echo "cp -v $(LANTERN_MOBILE_DIR)/$(LANTERN_MOBILE_LIBRARY) \$$FIRETWEET_MAIN_DIR"; \
-	fi
+bin/gomobile:
+	source setenv.bash && \
+	go install golang.org/x/mobile/cmd/gomobile
 
-android-lib-dist: genconfig android-lib
+pkg/gomobile: bin/gomobile
+	source setenv.bash && \
+	gomobile init
 
-clean:
-	@rm -f lantern_linux* && \
+$(ANDROID_LIB): bin/gomobile pkg/gomobile
+	source setenv.bash && \
+	$(call build-tags) && \
+	gomobile bind -target=android -tags='headless' -o=$(ANDROID_LIB) -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -s" $(ANDROID_LIB_PKG)
+
+android-lib: $(ANDROID_LIB)
+
+$(ANDROID_SDK_ANDROID_LIB): $(ANDROID_LIB)
+	mkdir -p $(ANDROID_SDK_LIBS) && \
+	cp $(ANDROID_LIB) $(ANDROID_SDK_ANDROID_LIB)
+
+$(ANDROID_SDK): $(ANDROID_SDK_ANDROID_LIB)
+	(cd $(ANDROID_SDK_DIR) && gradle assembleDebug)
+
+android-sdk: $(ANDROID_SDK)
+
+$(ANDROID_TESTBED_ANDROID_LIB): $(ANDROID_LIB)
+	mkdir -p $(ANDROID_TESTBED_LIBS) && \
+	cp $(ANDROID_LIB) $(ANDROID_TESTBED_ANDROID_LIB)
+
+$(ANDROID_TESTBED_ANDROID_SDK): $(ANDROID_SDK)
+	mkdir -p $(ANDROID_TESTBED_LIBS) && \
+	cp $(ANDROID_SDK) $(ANDROID_TESTBED_ANDROID_SDK)
+
+$(ANDROID_TESTBED): $(ANDROID_TESTBED_ANDROID_LIB) $(ANDROID_TESTBED_ANDROID_SDK)
+	cd $(ANDROID_TESTBED_DIR)/app
+	gradle -b $(ANDROID_TESTBED_DIR)/app/build.gradle \
+		clean \
+		assembleDebug
+
+android-testbed: $(ANDROID_TESTBED)
+
+android-testbed-install: $(ANDROID_TESTBED)
+	adb install -r $(ANDROID_TESTBED)
+
+$(TUN2SOCKS):
+	cd $(LANTERN_MOBILE_DIR) && ndk-build
+
+$(LANTERN_MOBILE_TUN2SOCKS): $(TUN2SOCKS)
+	mkdir -p $(LANTERN_MOBILE_ARM_LIBS) && \
+	cp $(TUN2SOCKS) $(LANTERN_MOBILE_TUN2SOCKS)
+
+$(LANTERN_MOBILE_ANDROID_LIB): $(ANDROID_LIB)
+	mkdir -p $(LANTERN_MOBILE_LIBS) && \
+	cp $(ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_LIB)
+
+$(LANTERN_MOBILE_ANDROID_SDK): $(ANDROID_SDK)
+	mkdir -p $(LANTERN_MOBILE_LIBS) && \
+	cp $(ANDROID_SDK) $(LANTERN_MOBILE_ANDROID_SDK)
+
+$(LANTERN_MOBILE_ANDROID_DEBUG): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK)
+	gradle -PlanternVersion=$(GIT_REVISION) -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
+		clean \
+		assembleDebug
+
+$(LANTERN_MOBILE_ANDROID_RELEASE): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK)
+	@echo "Generating distribution package for android..."
+	ln -f -s $$SECRETS_DIR/android/keystore.release.jks $(LANTERN_MOBILE_DIR)/app
+	cd $(LANTERN_MOBILE_DIR)/app
+	gradle -PlanternVersion=$$VERSION -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
+		clean \
+		assembleRelease
+	cp $(LANTERN_MOBILE_ANDROID_RELEASE) lantern-installer.apk
+
+android-debug: $(LANTERN_MOBILE_ANDROID_DEBUG)
+
+android-release: require-version require-secrets-dir $(LANTERN_MOBILE_ANDROID_RELEASE)
+
+android-install: $(LANTERN_MOBILE_ANDROID_DEBUG)
+	adb install -r $(LANTERN_MOBILE_ANDROID_DEBUG)
+
+clean-mobile:
+	rm -f $(ANDROID_LIB) && \
+	rm -f $(ANDROID_SDK_ANDROID_LIB) && \
+	rm -f $(ANDROID_SDK) && \
+	rm -f $(ANDROID_TESTBED_ANDROID_LIB) && \
+	rm -f $(ANDROID_TESTBED_ANDROID_SDK) && \
+	rm -f $(ANDROID_TESTBED) && \
+	rm -f $(LANTERN_MOBILE_ANDROID_LIB) && \
+	rm -f $(LANTERN_MOBILE_ANDROID_SDK) && \
+	rm -f $(LANTERN_MOBILE_ANDROID_DEBUG) && \
+	rm -f $(LANTERN_MOBILE_ANDROID_RELEASE)
+
+clean: clean-mobile
+	rm -f lantern && \
+	rm -f lantern_linux* && \
 	rm -f lantern_darwin* && \
 	rm -f lantern_windows* && \
 	rm -f lantern-installer* && \
@@ -515,14 +626,10 @@ clean:
 	rm -f *.deb && \
 	rm -f *.png && \
 	rm -rf *.app && \
+	rm -rf bin && \
 	rm -rf pkg && \
 	git checkout ./src/github.com/getlantern/flashlight/ui/resources.go && \
 	rm -f src/github.com/getlantern/flashlight/*.syso && \
 	rm -f *.dmg && \
-	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/bin && \
-	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/bindings/go_bindings && \
-	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/gen && \
-	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/libs && \
-	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/res && \
-	rm -rf $(LANTERN_MOBILE_DIR)/libflashlight/src && \
-	rm -rf $(LANTERN_MOBILE_DIR)/app
+	rm -f $(LANTERN_MOBILE_TUN2SOCKS) && \
+	rm -rf $(LANTERN_MOBILE_DIR)/libs/armeabi*
