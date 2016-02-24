@@ -86,6 +86,35 @@ func binaryXML(r io.Reader) ([]byte, error) {
 		}
 		switch tok := tok.(type) {
 		case xml.StartElement:
+			// uses-sdk is synthesized by the writer, disallow declaration in manifest.
+			if tok.Name.Local == "uses-sdk" {
+				return nil, fmt.Errorf("unsupported manifest tag <uses-sdk .../>")
+			} else if tok.Name.Local == "application" {
+				// synthesize <uses-sdk/> before handling <application> token
+				attr := xml.Attr{
+					Name: xml.Name{
+						Space: "http://schemas.android.com/apk/res/android",
+						Local: "minSdkVersion",
+					},
+					Value: "15",
+				}
+				ba, err := pool.getAttr(attr)
+				if err != nil {
+					return nil, fmt.Errorf("failed to synthesize attr minSdkVersion=\"15\"")
+				}
+				elements = append(elements,
+					&binStartElement{
+						line: line - 1, // current testing strategy is not friendly to synthesized tags, -1 for would-be location
+						ns:   pool.getNS(""),
+						name: pool.get("uses-sdk"),
+						attr: []*binAttr{ba},
+					},
+					&binEndElement{
+						line: line - 1,
+						ns:   pool.getNS(""),
+						name: pool.get("uses-sdk"),
+					})
+			}
 			// Intercept namespace definitions.
 			var attr []*binAttr
 			for _, a := range tok.Attr {
@@ -237,16 +266,18 @@ func appendHeader(b []byte, typ headerType, size int) []byte {
 //
 // http://developer.android.com/reference/android/R.attr.html
 var resourceCodes = map[string]uint32{
-	"versionCode":      0x0101021b,
-	"versionName":      0x0101021c,
-	"minSdkVersion":    0x0101020c,
-	"windowFullscreen": 0x0101020d,
-	"label":            0x01010001,
-	"hasCode":          0x0101000c,
-	"debuggable":       0x0101000f,
-	"name":             0x01010003,
-	"configChanges":    0x0101001f,
-	"value":            0x01010024,
+	"versionCode":       0x0101021b,
+	"versionName":       0x0101021c,
+	"minSdkVersion":     0x0101020c,
+	"windowFullscreen":  0x0101020d,
+	"theme":             0x01010000,
+	"label":             0x01010001,
+	"hasCode":           0x0101000c,
+	"debuggable":        0x0101000f,
+	"name":              0x01010003,
+	"screenOrientation": 0x0101001e,
+	"configChanges":     0x0101001f,
+	"value":             0x01010024,
 }
 
 // http://developer.android.com/reference/android/R.attr.html#configChanges
@@ -265,6 +296,45 @@ var configChanges = map[string]uint32{
 	"smallestScreenSize": 0x0800,
 	"layoutDirection":    0x2000,
 	"fontScale":          0x40000000,
+}
+
+// http://developer.android.com/reference/android/R.attr.html#screenOrientation
+var screenOrientation = map[string]int{
+	"unspecified":      -1,
+	"landscape":        0,
+	"portrait":         1,
+	"user":             2,
+	"behind":           3,
+	"sensor":           4,
+	"nosensor":         5,
+	"sensorLandscape":  6,
+	"sensorPortrait":   7,
+	"reverseLandscape": 8,
+	"reversePortrait":  9,
+	"fullSensor":       10,
+	"userLandscape":    11,
+	"userPortrait":     12,
+	"fullUser":         13,
+	"locked":           14,
+}
+
+// reference is an alias used to write out correct type in bin.
+type reference uint32
+
+// http://developer.android.com/reference/android/R.style.html
+var theme = map[string]reference{
+	"Theme":                                   0x01030005,
+	"Theme_NoTitleBar":                        0x01030006,
+	"Theme_NoTitleBar_Fullscreen":             0x01030007,
+	"Theme_Black":                             0x01030008,
+	"Theme_Black_NoTitleBar":                  0x01030009,
+	"Theme_Black_NoTitleBar_Fullscreen":       0x0103000a,
+	"Theme_Light":                             0x0103000c,
+	"Theme_Light_NoTitleBar":                  0x0103000d,
+	"Theme_Light_NoTitleBar_Fullscreen":       0x0103000e,
+	"Theme_Translucent":                       0x0103000f,
+	"Theme_Translucent_NoTitleBar":            0x01030010,
+	"Theme_Translucent_NoTitleBar_Fullscreen": 0x01030011,
 }
 
 type lineReader struct {
@@ -400,6 +470,20 @@ func (p *binStringPool) getAttr(attr xml.Attr) (*binAttr, error) {
 			v |= configChanges[c]
 		}
 		a.data = v
+	case "screenOrientation":
+		v := 0
+		for _, c := range strings.Split(attr.Value, "|") {
+			v |= screenOrientation[c]
+		}
+		a.data = v
+	case "theme":
+		v := attr.Value
+		// strip prefix if present as only platform themes are supported
+		if idx := strings.Index(attr.Value, "/"); idx != -1 {
+			v = v[idx+1:]
+		}
+		v = strings.Replace(v, ".", "_", -1)
+		a.data = theme[v]
 	default:
 		a.data = p.get(attr.Value)
 	}
@@ -569,6 +653,12 @@ func (a *binAttr) append(b []byte) []byte {
 		b = appendU16(b, 8)          // size
 		b = append(b, 0)             // unused padding
 		b = append(b, 0x11)          // INT_HEX
+		b = appendU32(b, uint32(v))
+	case reference:
+		b = appendU32(b, 0xffffffff) // raw value
+		b = appendU16(b, 8)          // size
+		b = append(b, 0)             // unused padding
+		b = append(b, 0x01)          // REFERENCE
 		b = appendU32(b, uint32(v))
 	case *bstring:
 		b = appendU32(b, v.ind) // raw value

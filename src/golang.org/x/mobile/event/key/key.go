@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+//go:generate stringer -type=Code
+
 // Package key defines an event for physical keyboard keys.
 //
 // On-screen software keyboards do not send key events.
@@ -50,6 +52,13 @@ type Event struct {
 
 	// TODO: add a Device ID, for multiple input devices?
 	// TODO: add a time.Time?
+}
+
+func (e Event) String() string {
+	if e.Rune >= 0 {
+		return fmt.Sprintf("key.Event{%q (%v), %v, %v}", e.Rune, e.Code, e.Modifiers, e.Direction)
+	}
+	return fmt.Sprintf("key.Event{(%v), %v, %v}", e.Code, e.Modifiers, e.Direction)
 }
 
 // Direction is the direction of the key event.

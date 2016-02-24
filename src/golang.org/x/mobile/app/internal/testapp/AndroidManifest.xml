@@ -10,7 +10,7 @@ license that can be found in the LICENSE file.
 	android:versionCode="1"
 	android:versionName="1.0">
 
-	<uses-sdk android:minSdkVersion="9" />
+	<uses-sdk android:minSdkVersion="15" />
 	<!-- to talk to the host -->
 	<uses-permission android:name="android.permission.INTERNET" />
 	<application android:label="testapp" android:debuggable="true">

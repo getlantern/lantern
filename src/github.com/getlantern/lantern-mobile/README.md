@@ -1,257 +1,254 @@
-# Lantern on Android
+# Lantern Android
 
-```java
-import go.flashlight.Flashlight;
-```
+## Overview
 
-The `lantern-android` repository provides documentation and scripts for
-building a basic [flashlight][1] shared library that exports special methods
-that can be used from Java code, making it possible to run the [flashlight][1]
-client on Android devices.
+<img src="screenshots/screenshot1.png" height="330px" width="200px">
 
-```java
-try {
-  Flashlight.RunClientProxy("0.0.0.0:9192");
-} catch (Exception e) {
-  throw new RuntimeException(e);
-}
-```
+Lantern Android is an App that uses the Android [VpnService][4] API to route
+all device traffic through a packet interception service and subsequently the
+Lantern circumvention tool.
 
-## Prerequisites
+## Building Lantern Android
 
-* An OSX or Linux box
-* [docker][2]
-* [Android Studio][3]
-* [Go 1.4][4]
-* [GNUMake][6]
-* [Mercurial][7]: You can try installing it with `brew` or `macports`.
-
-### Setting up a development environment
-
-We're going to clone and use the [flashlight-build][5] repository, that
-project provides us with everything we need to build Lantern tools and
-libraries.
-
-```sh
-mkdir -p $GOPATH/src/github.com/getlantern
-cd $GOPATH/src/github.com/getlantern
-git clone https://github.com/getlantern/flashlight-build.git
-```
-
-## Building the Android library
-
-After cloning the repository use `make android` to build the Android library,
-this library is going to be built at
-`src/github.com/getlantern/lantern-android/app/libs/armeabi-v7a/libgojni.so`:
+Before building make sure you've compiled the Lantern proxy for Android:
 
 ```
+cd $GOPATH/src/github.com/getlantern/lantern
 make android-lib
-...
-BUILD SUCCESSFUL
-Total time: 4 seconds
 ```
 
-The `make` command will create a new
-`src/github.com/getlantern/lantern-android/app` subdirectory that will contain
-an Android example project. You may import the contents of the `app`
-subdirectory into Android Studio to see libflashlight working.
+### Building from Android Studio
 
-## Testing the example project
+#### Prerequisites
 
-Open [Android Studio][3] and in the welcome screen choose "Import Non-Android
-Studio project".
+* [Android Studio][1]
+* Git
+* [Android NDK][2]
 
-![Android Studio](https://cloud.githubusercontent.com/assets/385670/5712830/5f4cda3c-9a7b-11e4-85af-8af9d54e18c7.png)
+Download the most recent copy of the Lantern Android source code using `git`:
 
-You'll be prompted with a file dialog, browse to the `app` subdirectory and
-select it. Press *OK*.
-
-![App Subdirectory](https://cloud.githubusercontent.com/assets/385670/5769230/5431dec6-9cde-11e4-82ce-d3983471a1f1.png)
-
-On the next dialog you must define a destination for the project, hit *Next*.
-
-![Destination](https://cloud.githubusercontent.com/assets/385670/5712874/ad8265e6-9a7b-11e4-9018-671875dfdb17.png)
-
-After import you may be prompted to restart Android Studio.
-
-Now add a new *main activity* by right-clicking on the top most directory on
-the *Project* pane and selecting New->Activity->Blank Activity, the default
-values would be OK, click *Finish*.
-
-![Main Activity](https://cloud.githubusercontent.com/assets/385670/5712891/ca3573fe-9a7b-11e4-953d-d43b12fcdb62.png)
-
-Paste the following code on the `org.getlantern/example/MainActivity.java` file
-that was just added:
-
-```java
-package org.getlantern.example;
-
-import go.Go;
-import go.flashlight.Flashlight;
-import android.app.Activity;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import org.getlantern.example.R;
-
-
-public class MainActivity extends Activity {
-
-
-    private Button killButton;
-    private Button startButton;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        setContentView(R.layout.activity_main);
-
-        // Initializing application context.
-        Go.init(getApplicationContext());
-
-        killButton = (Button)findViewById(R.id.stopProxyButton);
-        startButton = (Button)findViewById(R.id.startProxyButton);
-
-        // Disabling stop button.
-        killButton.setEnabled(false);
-
-        // Enabling proxy button.
-        startButton.setEnabled(true);
-    }
-
-    public void stopProxyButtonOnClick(View v) {
-
-        Log.v("DEBUG", "Attempt to stop running proxy.");
-        try {
-            Flashlight.StopClientProxy();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        };
-
-        // Disabling stop button.
-        killButton.setEnabled(false);
-
-        // Enabling proxy button.
-        startButton.setEnabled(true);
-
-    }
-
-    public void startProxyButtonOnClick(View v) {
-        Log.v("DEBUG", "Attempt to run client proxy on :9192");
-
-        try {
-            Flashlight.RunClientProxy("0.0.0.0:9192");
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        // Enabling stop button.
-        killButton.setEnabled(true);
-
-        // Disabling proxy button.
-        startButton.setEnabled(false);
-    }
-}
+```
+mkdir -p ~/AndroidstudioProjects
+cd ~/AndroidstudioProjects
+git clone https://github.com/getlantern/lantern-mobile.git
 ```
 
-After this new activity is added the *design view* will be active, drag two
-buttons from the *Pallete* into the screen.
+In the welcome screen choose the "Open an existing Android Studio" option and
+select the `lantern` folder you just checked out with git.
 
-![Adding two buttons](https://cloud.githubusercontent.com/assets/385670/5769192/d9df19cc-9cdd-11e4-90d0-b37b6d6b3a41.png)
+### Building from the Command Line (beta, for development only)
 
-Select the first button and look for the *id* property on the Properties pane,
-set it to *startProxyButton* and name the button accordingly. Look for the
-*onClick* property and choose the *startProxyButtonOnClick* value from the drop
-down.
+#### Prerequisites
 
-The second button's *id* must be set to *stopProxyButton* and the *onClick* to
-*stopProxyButtonOnClick*.
+* Java Development Kit 1.7
+* Git
+* [Android NDK][2]
+* [Android SDK Tools][4] (if not using Android Studio)
+* Go (1.6 tip is best as it eliminates text-relocations and provides the best performance)
 
-Finally, hit the *Run app* action under the *Run* menu and deploy it to a real
-device or to an ARM-based emulator (armeabi-v7a).
+Replace the paths based on wherever you've installed the Android SDK and NDK
 
-![ARM-based emulator](https://cloud.githubusercontent.com/assets/385670/5985944/2e5016e0-a8b0-11e4-99fe-c9b4d325a5f4.png)
-
-I you're having configuration related problems when attempting to build, make
-sure your `AndroidManifest.xml` looks like this:
-
-```xml
-<?xml version="1.0" encoding="utf-8"?>
-<!--
-Copyright 2014 The Go Authors. All rights reserved.
-Use of this source code is governed by a BSD-style
-license that can be found in the LICENSE file.
--->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="org.getlantern.example" android:versionCode="1" android:versionName="1.0">
-
-  <application android:label="Flashlight">
-    <activity android:name="org.getlantern.example.MainActivity"
-      android:label="Flashlight"
-      android:exported="true">
-      <intent-filter>
-        <action android:name="android.intent.action.MAIN" />
-        <category android:name="android.intent.category.LAUNCHER" />
-      </intent-filter>
-    </activity>
-  </application>
-  <uses-permission android:name="android.permission.INTERNET" />
-</manifest>
+```bash
+export ANDROID_HOME=/opt/adt-bundle-mac-x86_64-20130917/sdk
+export PATH=$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/23.0.2/:$PATH
+export NDK_HOME=/opt/android-ndk-r10e
+export PATH=$NDK_HOME:$PATH
 ```
 
-If everything goes OK, you'll have two buttons and you can start `flashlight`
-by touching the *startProxyButton*.
+Using the sdk-manager (`$ANDROID_HOME/tools/android`), install Android 6.0 API
+23 and also the Android SDK Build Tools rev. 23.0.1.
 
-![Deploy to a device](https://cloud.githubusercontent.com/assets/385670/5712899/db6ddb34-9a7b-11e4-8841-6b6b12e46c27.png)
+#### Building `tun2socks`
 
-As long as the app is open, you'll be able to test the canonical example by
-finding the device's IP and sending it a special request:
+Lantern Android uses [tun2socks][3] to route intercepted VPN traffic through a
+local SOCKS server.
 
-```sh
-curl -x 10.10.100.97:9192 http://www.google.com/humans.txt
+```
+make build-tun2socks
+```
+
+#### Building, installing and running
+
+Build the Debug target:
+
+```
+make build-debug
+```
+
+Install it:
+
+```
+make install
+```
+
+Run the app on the device from the command line:
+
+```
+make run
+```
+
+By default, all three tasks will be run in order with:
+
+```
+make
+```
+
+Note - if you want to test with an emulator, run `android` and then choose
+Tools -> Manage AVDs.  Create an AVD (e.g. Nexus_4) and then run the emulator
+from the command line like so:
+
+```
+emulator -avd Nexus_4
+```
+
+The following settings seem to work well enough performance wise:
+
+```
+Device: 3.4" WQVGA 240x432
+Target: Android 5.1.1 - API Level 22
+CPU/ABI: ARM (armeabi-v7a)
+Keyboard: x Hardware keyboard present
+Skin: Skin with dynamic hardware controls
+Front Camera: None
+Back Camera: None
+Memory RAM: 2048
+VM Heap: 128
+Internal Storage: 200
+SD Card: 4GiB (probably more than necessary)
+Emulation Options: x Use Host GPU
+```
+
+#### Testing the app
+
+#### Debugging
+
+With Lantern Android running, to filter Logcat messages:
+
+```
+make logcat
+```
+
+#### Simulating tun2socks and lantern outside Android
+
+This is very useful when you can to check each moving part separately.
+
+Within Android, the [VpnService][4] creates a [TUN device][5] and configures
+the network to route all traffic to this virtual device, an app is listening on
+this device and has the ability to inspect, modify and reinject packets back to
+the device. Some special packets can ignore the tun device and pass to the
+Internet directly ([protected packages][6]).
+
+We are going to use a Linux virtual machine to simulate the `device <-> tun <->
+tun2sock <-> lantern <-> Internet` dance, on a normal Linux we don't have the
+[VpnService][4] API but we have the ability to create tun devices and route
+traffic at will.
+
+The main idea is to create a tun device, run a vanilla tun2socks and route all
+outgoing traffic to this device, everything but DNS server requests and a
+special route that goes directly to the virtual machine's host, which will be
+running a Lantern-SOCKs server.
+
+Let's create and configure this virtual machine:
+
+```
+cd /path/to/lantern-mobile
+vagrant up
+```
+
+While you're waiting for the vm to build up go back to the local machine (the
+vm's host) and compile the socks-server:
+
+```
+cd ~/go/src/github.com/getlantern/lantern
+source setenv.bash
+go build github.com/getlantern/lantern-mobile/lantern/socks-server
+```
+
+Run the server you've just compiled:
+
+```
+./socks-server
+# ...
+# DEBUG lantern-android.interceptor: interceptor.go:90 SOCKS proxy now listening on port: 8788
+# 2015/09/15 08:47:40 Go and play for 10 minutes.
+```
+
+Run a simple test with cURL and watch the `sock-server` output.
+
+```
+curl --socks5 127.0.0.1:8788 https://www.google.com/humans.txt
 # Google is built by a large team of engineers, designers, researchers, robots, and others in many different sites across the globe. It is updated continuously, and built with more tools and technologies than we can shake a stick at. If you'd like to help us out, see google.com/careers.
 ```
 
-You may not want everyone proxying through your phone! Tune the
-`RunClientProxy()` function on the `MainActivity.java` accordingly.
+The SOCKs server will run for 10 minutes and then it will exit, you can also
+stop it anytime with `^C`.
 
-If you chose to run flashlight inside an emulator instead of a real device, you
-must connect to it using telnet and set up port redirection to actually test
-the proxy.
+You can also cross-compile the tests we're going to run within the vm:
 
-Identify the port number your emulator is listening to
-
-![screen shot 2015-01-30 at 6 40 52 pm](https://cloud.githubusercontent.com/assets/385670/5985952/6afa23e2-a8b0-11e4-942a-384f483d331a.png)
-
-In this case its listening on the `5554` local port.
-
-Open a telnet session to the emulator and write the instruction `redir add
-tcp:9192:9192` to map the emulator's `9192` port to our local `9192` port.
-
-```sh
-telnet 127.0.0.1 5554
-# Trying 127.0.0.1...
-# Connected to localhost.
-# Escape character is '^]'.
-# Android Console: type 'help' for a list of commands
-# OK
-redir add tcp:9192:9192
-# OK
+```
+cd ~/go/src/github.com/getlantern/lantern
+make mobile-test-linux-amd64
+# ...
+# ok      github.com/getlantern/lantern-mobile/lantern    0.082s
 ```
 
-Now you'll be able to connect to the emulator's flashlight proxy through your
-local `9192` port:
+Once the build has finished log in into the new box:
 
-```sh
-curl -x 127.0.0.1:9192 https://www.google.com/humans.txt
-# Google is built by a large team of engineers, designers, researchers, robots, and others in many different sites across the globe. It is updated continuously, and built with more tools and technologies than we can shake a stick at. If you'd like to help us out, see google.com/careers.
+```
+vagrant ssh
 ```
 
-[1]: https://github.com/getlantern/flashlight
-[2]: https://www.docker.com/
-[3]: http://developer.android.com/tools/studio/index.html
-[4]: http://golang.org/
-[5]: https://github.com/getlantern/flashlight-build
-[6]: http://www.gnu.org/software/make/
-[7]: http://mercurial.selenic.com/wiki/Download
+And run the script that is going to setup
+
+```
+chmod +x /vagrant/vagrant-tun-up.sh
+/vagrant/vagrant-tun-up.sh
+```
+
+The script will ask you for a `HOST_IP`, this is the IP of the host machine
+which in my case is `10.0.0.101`:
+
+```
+HOST_IP=10.0.0.101 /vagrant/vagrant-tun-up.sh
+# NOTICE(tun2socks): initializing BadVPN tun2socks 1.999.130
+# NOTICE(tun2socks): entering event loop
+```
+
+Go back to your host and restart the socks-server.
+
+```
+./socks-server
+# ^C
+./socks-server
+# ...
+```
+
+Open another terminal without stopping the tun2socks process and we'll be ready
+to test everything.
+
+```
+vagrant ssh
+curl https://www.google.com/humans.txt
+# Google is built by a large team of engineers, designers, researchers, robots, and others in many different sites across the globe. It is updated continuously, and built with more tools and technologies than we can shake a stick at. If you'd like to help us out, see google.com/careers.
+```
+
+Make sure the request is catched by tun2socks and by the socks-server by
+watching each program's output.
+
+Finally, run the transparent test, which will basically do the same as a normal
+cURL through tun2socks and the socks-server:
+
+```
+/vagrant/lantern/lantern_mobile_test -test.v -test.run TestTransparentRequestPassingThroughTun0
+# ...
+# --- PASS: TestTransparentRequestPassingThroughTun0 (1.36s)
+# PASS
+```
+
+[1]: http://developer.android.com/tools/studio/index.html
+[2]: https://developer.android.com/ndk/downloads/index.html#download
+[3]: https://code.google.com/p/badvpn/wiki/tun2socks
+[4]: http://developer.android.com/reference/android/net/VpnService.html
+[5]: https://www.kernel.org/doc/Documentation/networking/tuntap.txt
+[6]: http://developer.android.com/reference/android/net/VpnService.html#protect(int)
+[7]: http://developer.android.com/sdk/index.html#Other

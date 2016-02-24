@@ -9,6 +9,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"html/template"
@@ -16,8 +17,15 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"unicode"
 	"unicode/utf8"
+)
+
+var (
+	gomobileName = "gomobile"
+	goVersionOut = []byte(nil)
+	goVersion    = go1_5
 )
 
 func printUsage(w io.Writer) {
@@ -27,8 +35,6 @@ func printUsage(w io.Writer) {
 	}
 	bufw.Flush()
 }
-
-var gomobileName = "gomobile"
 
 func main() {
 	gomobileName = os.Args[0]
@@ -53,6 +59,11 @@ func main() {
 		return
 	}
 
+	if err := determineGoVersion(); err != nil {
+		fmt.Fprintf(os.Stderr, "%s: %v\n", gomobileName, err)
+		os.Exit(1)
+	}
+
 	for _, cmd := range commands {
 		if cmd.Name == args[0] {
 			cmd.flag.Usage = func() {
@@ -72,6 +83,33 @@ func main() {
 	}
 	fmt.Fprintf(os.Stderr, "%s: unknown subcommand %q\nRun 'gomobile help' for usage.\n", os.Args[0], args[0])
 	os.Exit(2)
+}
+
+type goToolVersion int
+
+const (
+	go1_5 goToolVersion = iota
+	go1_6
+)
+
+func determineGoVersion() error {
+	gobin, err := exec.LookPath("go")
+	if err != nil {
+		return errors.New("go not found")
+	}
+	goVersionOut, err = exec.Command(gobin, "version").CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("'go version' failed: %v, %s", err, goVersionOut)
+	}
+	switch {
+	case bytes.HasPrefix(goVersionOut, []byte("go version go1.4")):
+		return errors.New("Go 1.5 or newer is required")
+	case bytes.HasPrefix(goVersionOut, []byte("go version go1.5")):
+		goVersion = go1_5
+	default:
+		goVersion = go1_6 // assume developers are working at tip
+	}
+	return nil
 }
 
 func help(args []string) {
@@ -125,7 +163,7 @@ func helpDocumentation(path string) {
 		w.WriteString(cmd.Long)
 	}
 
-	w.WriteString("*/\npackage main\n")
+	w.WriteString("*/\npackage main // import \"golang.org/x/mobile/cmd/gomobile\"\n")
 
 	if err := ioutil.WriteFile(path, w.Bytes(), 0666); err != nil {
 		log.Fatal(err)
@@ -162,11 +200,8 @@ To install:
 	$ go get golang.org/x/mobile/cmd/gomobile
 	$ gomobile init
 
-At least Go 1.5 is required. Until it is released, build tip from
-source: http://golang.org/doc/install/source
-
-Initialization rebuilds the standard library and may download
-the Android NDK compiler.
+At least Go 1.5 is required.
+For detailed instructions, see https://golang.org/wiki/Mobile.
 
 Usage:
 

@@ -48,6 +48,7 @@ func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
 	for _, v := range masquerades {
 		size += len(v)
 	}
+
 	if size == 0 {
 		log.Errorf("No masquerades!!")
 		return

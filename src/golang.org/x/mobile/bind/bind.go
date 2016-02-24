@@ -21,12 +21,16 @@ import (
 )
 
 // GenJava generates a Java API from a Go package.
-func GenJava(w io.Writer, fset *token.FileSet, pkg *types.Package) error {
+func GenJava(w io.Writer, fset *token.FileSet, pkg *types.Package, javaPkg string) error {
+	if javaPkg == "" {
+		javaPkg = javaPkgName(pkg.Name())
+	}
 	buf := new(bytes.Buffer)
 	g := &javaGen{
 		printer: &printer{buf: buf, indentEach: []byte("    ")},
 		fset:    fset,
 		pkg:     pkg,
+		javaPkg: javaPkg,
 	}
 	if err := g.gen(); err != nil {
 		return err
@@ -57,12 +61,17 @@ func GenGo(w io.Writer, fset *token.FileSet, pkg *types.Package) error {
 }
 
 // GenObjc generates the Objective-C API from a Go package.
-func GenObjc(w io.Writer, fset *token.FileSet, pkg *types.Package, isHeader bool) error {
+func GenObjc(w io.Writer, fset *token.FileSet, pkg *types.Package, prefix string, isHeader bool) error {
+	if prefix == "" {
+		prefix = "Go"
+	}
+
 	buf := new(bytes.Buffer)
 	g := &objcGen{
 		printer: &printer{buf: buf, indentEach: []byte("\t")},
 		fset:    fset,
 		pkg:     pkg,
+		prefix:  prefix,
 	}
 	var err error
 	if isHeader {

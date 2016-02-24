@@ -17,7 +17,21 @@ func GetString() (string, error) {
 	if err != nil {
 		return "", errors.New(fmt.Sprintf("Error calling system function 'uname': %s", err))
 	}
-	return fmt.Sprintf("%s", int8SliceToString(uts.Release[:])), nil
+
+	// Due to a mismatch in the uts.Release types depending on the architecture, we are
+	// forced to implement it right here to bypass Go's type checking of slices
+	utsRelease := uts.Release[:]
+	s := make([]byte, len(utsRelease))
+	strpos := 0
+	for strpos < len(utsRelease) {
+		if utsRelease[strpos] == 0 {
+			break
+		}
+		s[strpos] = uint8(utsRelease[strpos])
+		strpos++
+	}
+
+	return fmt.Sprintf("%s", string(s[:strpos])), nil
 }
 
 func GetHumanReadable() (string, error) {
@@ -41,17 +55,4 @@ func GetHumanReadable() (string, error) {
 	distribution := string(dstrBytes[1 : len(dstrBytes)-1])
 
 	return fmt.Sprintf("%s kernel: %s", distribution, kernel), nil
-}
-
-func int8SliceToString(ca []int8) string {
-	s := make([]byte, len(ca))
-	strpos := 0
-	for strpos < len(ca) {
-		if ca[strpos] == 0 {
-			break
-		}
-		s[strpos] = uint8(ca[strpos])
-		strpos++
-	}
-	return string(s[:strpos])
 }

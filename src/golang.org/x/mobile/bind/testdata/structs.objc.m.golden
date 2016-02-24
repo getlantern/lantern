@@ -10,13 +10,10 @@
 static NSString* errDomain = @"go.structs";
 
 @protocol goSeqRefInterface
--(GoSeqRef*) ref;
+-(GoSeqRef*) _ref;
 @end
 
 #define _DESCRIPTOR_ "structs"
-
-#define _CALL_Identity_ 1
-#define _CALL_IdentityWithError_ 2
 
 #define _GO_structs_S_DESCRIPTOR_ "go.structs.S"
 #define _GO_structs_S_FIELD_X_GET_ (0x00f)
@@ -31,14 +28,14 @@ static NSString* errDomain = @"go.structs";
 
 - (id)initWithRef:(id)ref {
 	self = [super init];
-	if (self) { _ref = ref; }
+	if (self) { __ref = ref; }
 	return self;
 }
 
-- (double)X {
+- (double)x {
 	GoSeq in_ = {};
 	GoSeq out_ = {};
-	go_seq_writeRef(&in_, self.ref);
+	go_seq_writeRef(&in_, self._ref);
 	go_seq_send(_GO_structs_S_DESCRIPTOR_, _GO_structs_S_FIELD_X_GET_, &in_, &out_);
 	double ret_ = go_seq_readFloat64(&out_);
 	go_seq_free(&in_);
@@ -49,17 +46,17 @@ static NSString* errDomain = @"go.structs";
 - (void)setX:(double)v {
 	GoSeq in_ = {};
 	GoSeq out_ = {};
-	go_seq_writeRef(&in_, self.ref);
+	go_seq_writeRef(&in_, self._ref);
 	go_seq_writeFloat64(&in_, v);
 	go_seq_send(_GO_structs_S_DESCRIPTOR_, _GO_structs_S_FIELD_X_SET_, &in_, &out_);
 	go_seq_free(&in_);
 	go_seq_free(&out_);
 }
 
-- (double)Y {
+- (double)y {
 	GoSeq in_ = {};
 	GoSeq out_ = {};
-	go_seq_writeRef(&in_, self.ref);
+	go_seq_writeRef(&in_, self._ref);
 	go_seq_send(_GO_structs_S_DESCRIPTOR_, _GO_structs_S_FIELD_Y_GET_, &in_, &out_);
 	double ret_ = go_seq_readFloat64(&out_);
 	go_seq_free(&in_);
@@ -70,17 +67,17 @@ static NSString* errDomain = @"go.structs";
 - (void)setY:(double)v {
 	GoSeq in_ = {};
 	GoSeq out_ = {};
-	go_seq_writeRef(&in_, self.ref);
+	go_seq_writeRef(&in_, self._ref);
 	go_seq_writeFloat64(&in_, v);
 	go_seq_send(_GO_structs_S_DESCRIPTOR_, _GO_structs_S_FIELD_Y_SET_, &in_, &out_);
 	go_seq_free(&in_);
 	go_seq_free(&out_);
 }
 
-- (BOOL)Identity:(GoStructsS**)ret0_ error:(NSError**)error {
+- (BOOL)identity:(GoStructsS**)ret0_ error:(NSError**)error {
 	GoSeq in_ = {};
 	GoSeq out_ = {};
-	go_seq_writeRef(&in_, self.ref);
+	go_seq_writeRef(&in_, self._ref);
 	go_seq_send(_GO_structs_S_DESCRIPTOR_, _GO_structs_S_Identity_, &in_, &out_);
 	GoSeqRef* ret0__ref = go_seq_readRef(&out_);
 	if (ret0_ != NULL) {
@@ -100,10 +97,10 @@ static NSString* errDomain = @"go.structs";
 	return ([_error length] == 0);
 }
 
-- (double)Sum {
+- (double)sum {
 	GoSeq in_ = {};
 	GoSeq out_ = {};
-	go_seq_writeRef(&in_, self.ref);
+	go_seq_writeRef(&in_, self._ref);
 	go_seq_send(_GO_structs_S_DESCRIPTOR_, _GO_structs_S_Sum_, &in_, &out_);
 	double ret0_ = go_seq_readFloat64(&out_);
 	go_seq_free(&in_);
@@ -113,12 +110,15 @@ static NSString* errDomain = @"go.structs";
 
 @end
 
+#define _CALL_Identity_ 1
+#define _CALL_IdentityWithError_ 2
+
 GoStructsS* GoStructsIdentity(GoStructsS* s) {
 	GoSeq in_ = {};
 	GoSeq out_ = {};
 	if ([(id<NSObject>)(s) isKindOfClass:[GoStructsS class]]) {
 		id<goSeqRefInterface> s_proxy = (id<goSeqRefInterface>)(s);
-		go_seq_writeRef(&in_, s_proxy.ref);
+		go_seq_writeRef(&in_, s_proxy._ref);
 	} else {
 		go_seq_writeObjcRef(&in_, s);
 	}
@@ -138,7 +138,7 @@ BOOL GoStructsIdentityWithError(GoStructsS* s, GoStructsS** ret0_, NSError** err
 	GoSeq out_ = {};
 	if ([(id<NSObject>)(s) isKindOfClass:[GoStructsS class]]) {
 		id<goSeqRefInterface> s_proxy = (id<goSeqRefInterface>)(s);
-		go_seq_writeRef(&in_, s_proxy.ref);
+		go_seq_writeRef(&in_, s_proxy._ref);
 	} else {
 		go_seq_writeObjcRef(&in_, s);
 	}

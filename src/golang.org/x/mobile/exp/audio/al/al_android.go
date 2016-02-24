@@ -13,30 +13,9 @@ package al
 #include <AL/al.h>
 #include <AL/alc.h>
 
-typedef enum {
-  AL_INIT_RESULT_OK,
-  AL_INIT_RESULT_CANNOT_ATTACH_JVM,
-  AL_INIT_RESULT_BAD_JNI_VERSION,
-  AL_INIT_RESULT_CANNOT_LOAD_SO
-} ALInitResult;
-
-ALInitResult al_init(void* vm, void* context, void** handle) {
-  JavaVM* current_vm = (JavaVM*)(vm);
-  JNIEnv* env;
-
-  int attached = 0;
-  switch ((*current_vm)->GetEnv(current_vm, (void**)&env, JNI_VERSION_1_6)) {
-  case JNI_OK:
-    break;
-  case JNI_EDETACHED:
-    if ((*current_vm)->AttachCurrentThread(current_vm, &env, 0) != 0) {
-      return AL_INIT_RESULT_CANNOT_ATTACH_JVM;
-    }
-    attached = 1;
-    break;
-  case JNI_EVERSION:
-    return AL_INIT_RESULT_BAD_JNI_VERSION;
-  }
+void al_init(uintptr_t java_vm, uintptr_t jni_env, jobject context, void** handle) {
+  JavaVM* vm = (JavaVM*)java_vm;
+  JNIEnv* env = (JNIEnv*)jni_env;
 
   jclass android_content_Context = (*env)->FindClass(env, "android/content/Context");
   jmethodID get_package_name = (*env)->GetMethodID(env, android_content_Context, "getPackageName", "()Ljava/lang/String;");
@@ -48,13 +27,6 @@ ALInitResult al_init(void* vm, void* context, void** handle) {
   strlcat(lib_path, "/lib/libopenal.so", sizeof(lib_path));
   *handle = dlopen(lib_path, RTLD_LAZY);
   (*env)->ReleaseStringUTFChars(env, package_name, cpackage_name);
-  if (attached) {
-    (*current_vm)->DetachCurrentThread(current_vm);
-  }
-  if (!*handle) {
-    return AL_INIT_RESULT_CANNOT_LOAD_SO;
-  }
-  return AL_INIT_RESULT_OK;
 }
 
 void call_alEnable(LPALENABLE fn, ALenum capability) {
@@ -195,6 +167,7 @@ ALboolean call_alIsBuffer(LPALISBUFFER fn, ALuint b) {
 */
 import "C"
 import (
+	"errors"
 	"log"
 	"unsafe"
 
@@ -247,18 +220,15 @@ var (
 )
 
 func initAL() {
-	ctx := mobileinit.Context{}
-	switch C.al_init(ctx.JavaVM(), ctx.AndroidContext(), &alHandle) {
-	case C.AL_INIT_RESULT_OK:
-		// No-op.
-	case C.AL_INIT_RESULT_CANNOT_ATTACH_JVM:
-		log.Fatal("al: cannot attach JVM")
-	case C.AL_INIT_RESULT_BAD_JNI_VERSION:
-		log.Fatal("al: bad JNI version")
-	case C.AL_INIT_RESULT_CANNOT_LOAD_SO:
-		log.Fatal("al: cannot load libopenal.so")
-	default:
-		log.Fatal("al: cannot initialize OpenAL library")
+	err := mobileinit.RunOnJVM(func(vm, env, ctx uintptr) error {
+		C.al_init(C.uintptr_t(vm), C.uintptr_t(env), C.jobject(ctx), &alHandle)
+		if alHandle == nil {
+			return errors.New("al: cannot load libopenal.so")
+		}
+		return nil
+	})
+	if err != nil {
+		log.Fatalf("al: %v", err)
 	}
 
 	alEnableFunc = C.LPALENABLE(fn("alEnable"))

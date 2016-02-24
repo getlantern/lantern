@@ -11,14 +11,6 @@
 #import <Cocoa/Cocoa.h>
 #import <Foundation/Foundation.h>
 #import <OpenGL/gl3.h>
-#import <QuartzCore/CVReturn.h>
-#import <QuartzCore/CVBase.h>
-
-static CVReturn displayLinkDraw(CVDisplayLinkRef displayLink, const CVTimeStamp* now, const CVTimeStamp* outputTime, CVOptionFlags flagsIn, CVOptionFlags* flagsOut, void* displayLinkContext)
-{
-	drawgl();
-	return kCVReturnSuccess;
-}
 
 void makeCurrentContext(GLintptr context) {
 	NSOpenGLContext* ctx = (NSOpenGLContext*)context;
@@ -33,10 +25,8 @@ uint64 threadID() {
 	return id;
 }
 
-
 @interface MobileGLView : NSOpenGLView<NSApplicationDelegate, NSWindowDelegate>
 {
-	CVDisplayLinkRef displayLink;
 }
 @end
 
@@ -45,13 +35,6 @@ uint64 threadID() {
 	[self setWantsBestResolutionOpenGLSurface:YES];
 	GLint swapInt = 1;
 	[[self openGLContext] setValues:&swapInt forParameter:NSOpenGLCPSwapInterval];
-
-	CVDisplayLinkCreateWithActiveCGDisplays(&displayLink);
-	CVDisplayLinkSetOutputCallback(displayLink, &displayLinkDraw, self);
-
-	CGLContextObj cglContext = [[self openGLContext] CGLContextObj];
-	CGLPixelFormatObj cglPixelFormat = [[self pixelFormat] CGLPixelFormatObj];
-	CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext(displayLink, cglContext, cglPixelFormat);
 
 	// Using attribute arrays in OpenGL 3.3 requires the use of a VBA.
 	// But VBAs don't exist in ES 2. So we bind a default one.
@@ -96,11 +79,8 @@ uint64 threadID() {
 }
 
 - (void)drawRect:(NSRect)theRect {
-	// Called during resize. Do an extra draw if we are visible.
-	// This gets rid of flicker when resizing.
-	if (CVDisplayLinkIsRunning(displayLink)) {
-		drawgl();
-	}
+	// Called during resize. This gets rid of flicker when resizing.
+	drawgl();
 }
 
 - (void)mouseDown:(NSEvent *)theEvent {
@@ -136,7 +116,6 @@ uint64 threadID() {
 	[[NSRunningApplication currentApplication] activateWithOptions:(NSApplicationActivateAllWindows | NSApplicationActivateIgnoringOtherApps)];
 	[self.window makeKeyAndOrderFront:self];
 	lifecycleVisible();
-	CVDisplayLinkStart(displayLink);
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
@@ -144,17 +123,14 @@ uint64 threadID() {
 }
 
 - (void)applicationDidHide:(NSNotification *)aNotification {
-	CVDisplayLinkStop(displayLink);
 	lifecycleAlive();
 }
 
 - (void)applicationWillUnhide:(NSNotification *)notification {
 	lifecycleVisible();
-	CVDisplayLinkStart(displayLink);
 }
 
 - (void)windowWillClose:(NSNotification *)notification {
-	CVDisplayLinkStop(displayLink);
 	lifecycleAlive();
 }
 @end
@@ -203,7 +179,6 @@ uint64 threadID() {
 	eventFlags(theEvent.modifierFlags);
 }
 @end
-
 
 void
 runApp(void) {

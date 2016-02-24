@@ -2,13 +2,18 @@ package analytics
 
 import (
 	"bytes"
+	"math"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"strconv"
+	"sync/atomic"
+	"time"
 
+	"github.com/getlantern/eventual"
+	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
-	"github.com/getlantern/flashlight/pubsub"
+	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/util"
 
 	"github.com/getlantern/golog"
@@ -21,18 +26,34 @@ const (
 
 var (
 	log = golog.LoggerFor("flashlight.analytics")
+
+	maxWaitForIP = math.MaxInt32 * time.Second
 )
 
-func Configure(cfg *config.Config, version string) {
-	if cfg.AutoReport != nil && *cfg.AutoReport {
-		pubsub.Sub(pubsub.IP, func(ip string) {
-			log.Debugf("Got IP %v -- starting analytics", ip)
-			go trackSession(ip, version, cfg.Addr, cfg.InstanceId)
-		})
+func Start(cfg *config.Config, version string) func() {
+	var addr atomic.Value
+	go func() {
+		ip := geolookup.GetIP(maxWaitForIP)
+		if ip == "" {
+			log.Errorf("No IP found within %v, not starting analytics session", maxWaitForIP)
+			return
+		}
+		addr.Store(ip)
+		log.Debugf("Starting analytics session with ip %v", ip)
+		startSession(ip, version, client.Addr, cfg.Client.DeviceID)
+	}()
+
+	stop := func() {
+		if addr.Load() != nil {
+			ip := addr.Load().(string)
+			log.Debugf("Ending analytics session with ip %v", ip)
+			endSession(ip, version, client.Addr, cfg.Client.DeviceID)
+		}
 	}
+	return stop
 }
 
-func trackSession(ip string, version string, proxyAddr string, clientId string) {
+func sessionVals(ip, version, clientId, sc string) string {
 	vals := make(url.Values, 0)
 
 	vals.Add("v", "1")
@@ -52,8 +73,24 @@ func trackSession(ip string, version string, proxyAddr string, clientId string) 
 	// Custom variable for the Lantern version
 	vals.Add("cd1", version)
 
-	args := vals.Encode()
+	// This forces the recording of the session duration. It must be either
+	// "start" or "end". See:
+	// https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters
+	vals.Add("sc", sc)
+	return vals.Encode()
+}
 
+func endSession(ip string, version string, proxyAddrFN eventual.Getter, clientId string) {
+	args := sessionVals(ip, version, clientId, "end")
+	trackSession(args, proxyAddrFN)
+}
+
+func startSession(ip string, version string, proxyAddrFN eventual.Getter, clientId string) {
+	args := sessionVals(ip, version, clientId, "start")
+	trackSession(args, proxyAddrFN)
+}
+
+func trackSession(args string, proxyAddrFN eventual.Getter) {
 	r, err := http.NewRequest("POST", ApiEndpoint, bytes.NewBufferString(args))
 
 	if err != nil {
@@ -71,9 +108,9 @@ func trackSession(ip string, version string, proxyAddr string, clientId string) 
 	}
 
 	var httpClient *http.Client
-	httpClient, err = util.HTTPClient("", proxyAddr)
+	httpClient, err = util.HTTPClient("", proxyAddrFN)
 	if err != nil {
-		log.Errorf("Could not create HTTP client via %s: %s", proxyAddr, err)
+		log.Errorf("Could not create HTTP client: %s", err)
 		return
 	}
 	resp, err := httpClient.Do(r)
