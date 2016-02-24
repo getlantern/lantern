@@ -18,12 +18,15 @@
 * [Go 1.6rc1 or higher](https://golang.org/dl/).
 * [Docker](https://www.docker.com/).
 * [GNU Make](https://www.gnu.org/software/make/)
+* npm `brew install npm`
+* makensis `brew install makensis`
+* osslsigncode `brew install osslsigncode`
 * An OSX or Linux host.
 
 We are going to create a Docker image that will take care of compiling Lantern
-for Windows and Linux, in order to compile Lantern for OSX you'll need an OSX
-host, this is a limitation caused by Lantern depending on C code and OSX build
-tools for certain features.
+for Linux, in order to compile Lantern for OSX you'll need an OSX host, this is
+a limitation caused by Lantern depending on C code and OSX build tools for
+certain features.
 
 ### Docker Installation Instructions
 
