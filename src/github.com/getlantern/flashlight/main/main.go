@@ -250,7 +250,7 @@ func afterStart(cfg *config.Config) {
 		// URL and the proxy server are all up and running to avoid
 		// race conditions where we change the proxy setup while the
 		// UI server and proxy server are still coming up.
-		// ui.Show()
+		ui.Show()
 	} else {
 		log.Debugf("Not opening browser. Startup is: %v", *startup)
 	}

@@ -157,7 +157,7 @@ all: binaries
 android-dist: genconfig android
 
 # This is to be called within the docker image.
-docker-genassets: require-npm
+genassets: require-npm
 	@source setenv.bash && \
 	LANTERN_UI="src/github.com/getlantern/lantern-ui" && \
 	APP="$$LANTERN_UI/app" && \
@@ -175,8 +175,9 @@ docker-genassets: require-npm
 	echo "// +build !stub" > $$DEST && \
 	echo " " >> $$DEST && \
 	tarfs -pkg ui $$DIST >> $$DEST && \
+	git update-index --assume-unchanged src/github.com/getlantern/flashlight/ui/resources.go && \
 	go install github.com/akavel/rsrc && \
-	rsrc -ico installer-resources/windows/lantern.ico -o src/github.com/getlantern/flashlight/lantern_windows_386.syso;
+	rsrc -ico installer-resources/windows/lantern.ico -o src/github.com/getlantern/flashlight/lantern_windows_386.syso
 
 docker-linux-386:
 	@source setenv.bash && \
@@ -196,7 +197,7 @@ docker-linux-arm:
 windows-386: require-assets
 	@source setenv.bash && \
 	$(call build-tags) && \
-	CGO_ENABLED=1 GOOS=windows GOARCH=386 go build -a -o lantern_windows_386.exe -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -H=windowsgui" github.com/getlantern/flashlight/main;
+	CGO_ENABLED=1 GOOS=windows GOARCH=386 go build -a -o lantern_windows_386.exe -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -H=windowsgui" github.com/getlantern/flashlight/main
 
 require-assets:
 	@if [ ! -f ./src/github.com/getlantern/flashlight/ui/resources.go ]; then make genassets; fi
@@ -233,24 +234,6 @@ docker-package-debian-amd64: require-version docker-linux-amd64
 docker-package-debian-arm: require-version docker-linux-arm
 	@$(call fpm-debian-build,"arm")
 	@echo "-> lantern_$(VERSION)_arm.deb"
-
-docker-package-windows: require-version docker-windows-386
-	@if [[ -z "$$BNS_CERT" ]]; then echo "BNS_CERT environment value is required."; exit 1; fi && \
-	if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
-	INSTALLER_RESOURCES="installer-resources/windows" && \
-	rm -f $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
-	rm -f $$INSTALLER_RESOURCES/$(LANTERN_YAML) && \
-	cp installer-resources/$(PACKAGED_YAML) $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
-	cp $(LANTERN_YAML_PATH) $$INSTALLER_RESOURCES/$(LANTERN_YAML) && \
-	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "lantern_windows_386.exe" -out "$$INSTALLER_RESOURCES/lantern.exe" && \
-	cat $$INSTALLER_RESOURCES/lantern.exe | bzip2 > update_windows_386.bz2 && \
-	ls -l lantern_windows_386.exe update_windows_386.bz2 && \
-	makensis -V1 -DVERSION=$$VERSION installer-resources/windows/lantern.nsi && \
-	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer.exe" && \
-	cp installer-resources/$(MANOTO_YAML) $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
-	cp $(LANTERN_YAML_PATH) $$INSTALLER_RESOURCES/$(LANTERN_YAML) && \
-	makensis -V1 -DVERSION=$$VERSION installer-resources/windows/lantern.nsi && \
-	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer-manoto.exe";
 
 docker: system-checks
 	@$(call docker-up) && \
@@ -296,13 +279,6 @@ require-ruby:
 	@if [[ -z "$(RUBY)" ]]; then echo 'Missing "ruby" command.'; exit 1; fi && \
 	(gem which octokit >/dev/null) || (echo 'Missing gem "octokit". Try sudo gem install octokit.' && exit 1) && \
 	(gem which mime-types >/dev/null) || (echo 'Missing gem "mime-types". Try sudo gem install mime-types.' && exit 1)
-
-genassets: docker
-	@echo "Generating assets..." && \
-	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c "cd /lantern && UPDATE_DIST=$$UPDATE_DIST make docker-genassets" && \
-	git update-index --assume-unchanged src/github.com/getlantern/flashlight/ui/resources.go && \
-	echo "OK"
 
 linux-386: require-assets docker
 	@echo "Building linux/386..." && \
@@ -362,8 +338,21 @@ package-windows: require-version windows
 	@echo "Generating distribution package for windows/386..." && \
 	if [[ -z "$$SECRETS_DIR" ]]; then echo "SECRETS_DIR environment value is required."; exit 1; fi && \
 	if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
-	$(call docker-up) && \
-	docker run -v $$PWD:/lantern -v $$SECRETS_DIR:/secrets -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && BNS_CERT="/secrets/bns.pfx" BNS_CERT_PASS="'$$BNS_CERT_PASS'" VERSION="'$$VERSION'" make docker-package-windows' && \
+	BNS_CERT="$$SECRETS_DIR/bns.pfx" && \
+	INSTALLER_RESOURCES="installer-resources/windows" && \
+	rm -f $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
+	rm -f $$INSTALLER_RESOURCES/$(LANTERN_YAML) && \
+	cp installer-resources/$(PACKAGED_YAML) $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
+	cp $(LANTERN_YAML_PATH) $$INSTALLER_RESOURCES/$(LANTERN_YAML) && \
+	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "lantern_windows_386.exe" -out "$$INSTALLER_RESOURCES/lantern.exe" && \
+	cat $$INSTALLER_RESOURCES/lantern.exe | bzip2 > update_windows_386.bz2 && \
+	ls -l lantern_windows_386.exe update_windows_386.bz2 && \
+	makensis -V1 -DVERSION=$$VERSION installer-resources/windows/lantern.nsi && \
+	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer.exe" && \
+	cp installer-resources/$(MANOTO_YAML) $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
+	cp $(LANTERN_YAML_PATH) $$INSTALLER_RESOURCES/$(LANTERN_YAML) && \
+	makensis -V1 -DVERSION=$$VERSION installer-resources/windows/lantern.nsi && \
+	osslsigncode sign -pkcs12 "$$BNS_CERT" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer-manoto.exe" && \
 	echo "-> lantern-installer.exe and lantern-installer-manoto.exe"
 
 package-darwin-manoto: require-version require-appdmg require-svgexport darwin
