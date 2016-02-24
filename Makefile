@@ -592,7 +592,6 @@ $(LANTERN_MOBILE_ANDROID_RELEASE): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_
 	@echo "Generating distribution package for android..."
 	ln -f -s $$SECRETS_DIR/android/keystore.release.jks $(LANTERN_MOBILE_DIR)/app
 	cd $(LANTERN_MOBILE_DIR)/app
-	cp $(ANDROID_SDK_ANDROID_LIB) $(LANTERN_MOBILE_LIBS)
 	gradle -PlanternVersion=$$VERSION -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
 		clean \
 		assembleRelease
