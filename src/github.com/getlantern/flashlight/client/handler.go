@@ -10,7 +10,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/getlantern/detour"
 	"github.com/getlantern/flashlight/logging"
 )
 
@@ -81,7 +80,7 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 
 	// Establish outbound connection.
 	addr := hostIncludingPort(req, 443)
-	d := func(network, addr string) (net.Conn, error) {
+	d := client.proxiedDialer(func(network, addr string) (net.Conn, error) {
 		// UGLY HACK ALERT! In this case, we know we need to send a CONNECT request
 		// to the chained server. We need to send that request from chained/dialer.go
 		// though because only it knows about the authentication token to use.
@@ -90,13 +89,9 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 		// special "transport" in the dialer and send a CONNECT request in that
 		// case.
 		return client.getBalancer().Dial("connect", addr)
-	}
+	})
 
-	if client.ProxyAll() {
-		connOut, err = d("tcp", addr)
-	} else {
-		connOut, err = detour.Dialer(d)("tcp", addr)
-	}
+	connOut, err = d("tcp", addr)
 	if err != nil {
 		log.Debugf("Could not dial %v", err)
 		respondBadGatewayHijacked(clientConn, req)

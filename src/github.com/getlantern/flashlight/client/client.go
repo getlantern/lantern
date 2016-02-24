@@ -5,17 +5,29 @@ import (
 	"net"
 	"net/http"
 	"reflect"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/armon/go-socks5"
 	"github.com/getlantern/balancer"
+	"github.com/getlantern/detour"
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/golog"
 )
 
+const (
+	// LanternSpecialDomain is a special domain for use by lantern that gets
+	// resolved to localhost by the proxy
+	LanternSpecialDomain          = "ui.lantern.io"
+	LanternSpecialDomainWithColon = "ui.lantern.io:"
+)
+
 var (
 	log = golog.LoggerFor("flashlight.client")
+
+	// Address at which UI is to be found
+	UIAddr string
 
 	addr      = eventual.NewValue()
 	socksAddr = eventual.NewValue()
@@ -178,4 +190,30 @@ func (client *Client) Configure(cfg *ClientConfig, proxyAll func() bool) {
 // client listener and underlying dialer connection pool
 func (client *Client) Stop() error {
 	return client.l.Close()
+}
+
+func (client *Client) proxiedDialer(orig func(network, addr string) (net.Conn, error)) func(network, addr string) (net.Conn, error) {
+	var proxied func(network, addr string) (net.Conn, error)
+	if client.ProxyAll() {
+		proxied = orig
+	} else {
+		proxied = detour.Dialer(orig)
+	}
+
+	return func(network, addr string) (net.Conn, error) {
+		if isLanternSpecialDomain(addr) {
+			rewritten := rewriteLanternSpecialDomain(addr)
+			log.Tracef("Rewriting %v to %v", addr, rewritten)
+			return net.Dial(network, rewritten)
+		}
+		return proxied(network, addr)
+	}
+}
+
+func isLanternSpecialDomain(addr string) bool {
+	return strings.Index(addr, LanternSpecialDomainWithColon) == 0
+}
+
+func rewriteLanternSpecialDomain(addr string) string {
+	return UIAddr
 }
