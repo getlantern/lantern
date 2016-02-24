@@ -126,6 +126,10 @@ file lantern_windows_386.exe
 # lantern_windows_386.exe: PE32 executable for MS Windows (GUI) Intel 80386 32-bit
 ```
 
+IMPORTANT - Proxy settings on Windows 10 seem to be sensitive to code signing,
+so it's best to use `mage package-windows` as described below.
+
+
 ### Building for OSX
 
 Lantern supports the amd64 architecture on OSX. In order to build Lantern on
@@ -188,12 +192,12 @@ Lantern on Windows is distributed as an installer built with
 [nsis](http://nsis.sourceforge.net/). The installer is built and signed with
 `make package-windows`.
 
-For `make package-windows` to be able to sign the executable, the environment variables
-`SECRETS_DIR` and `BNS_CERT_PASS` must be set to point to the secrets directory
-and the
-[password](https://github.com/getlantern/too-many-secrets/blob/master/build-installers/env-vars.txt#L3)
-of the BNS certificate.  You can set the environment variables and run the
-script on one line, like this:
+For `make package-windows` to be able to sign the executable, the environment
+variables `SECRETS_DIR` and `BNS_CERT_PASS` must be set to point to the secrets
+directory and the password for `bns.pfx`. `bns.pfx` is not actually versioned
+because it is too secret, check with the team about how to get it.
+
+TODO: generate a testing signing key.
 
 ```sh
 SECRETS_DIR=$PATH_TO_TOO_MANY_SECRETS BNS_CERT_PASS='***' \
