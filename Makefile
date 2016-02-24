@@ -242,6 +242,7 @@ docker: system-checks
 	cp Dockerfile $$DOCKER_CONTEXT && \
 	docker build -t $(DOCKER_IMAGE_TAG) $$DOCKER_CONTEXT;
 
+# Kept for backward-compatibility, but no different than genassets
 update-dist: genassets
 
 linux: genassets linux-386 linux-amd64
