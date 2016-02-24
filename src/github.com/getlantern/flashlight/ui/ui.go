@@ -106,6 +106,16 @@ func Start(requestedAddr string, allowRemote bool, extUrl string) (string, error
 		}
 	}()
 	uiaddr = fmt.Sprintf("http://%v", l.Addr().String())
+
+	// Note - we display the UI using the LanternSpecialDomain. This is necessary
+	// for Microsoft Edge on Windows 10 because, being a Windows Modern App, its
+	// default network isolation settings prevent it from opening websites on the
+	// loopback address. We get around this by exploiting the fact that Edge will
+	// happily connect to our proxy server running on the loopback interface. So,
+	// we use what looks like a real domain for the UI (ui.lantern.io), the proxy
+	// detects this and reroutes the traffic to the local UI server. The proxy is
+	// allowed to connect to loopback because it doesn't have the same restriction
+	// as Microsoft Edge.
 	proxiedUIAddr = fmt.Sprintf("http://%v", client.LanternSpecialDomain)
 	log.Debugf("UI available at %v", uiaddr)
 
