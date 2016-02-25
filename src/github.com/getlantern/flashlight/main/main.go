@@ -20,7 +20,6 @@ import (
 
 	"github.com/getlantern/flashlight"
 	"github.com/getlantern/flashlight/analytics"
-	"github.com/getlantern/flashlight/autoupdate"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/logging"
@@ -44,9 +43,7 @@ var (
 )
 
 func init() {
-	// Passing public key and version to the autoupdate service.
-	autoupdate.PublicKey = []byte(packagePublicKey)
-	autoupdate.Version = flashlight.PackageVersion
+	initUpdate()
 
 	rand.Seed(time.Now().UnixNano())
 
@@ -264,7 +261,7 @@ func afterStart(cfg *config.Config) {
 }
 
 func onConfigUpdate(cfg *config.Config) {
-	autoupdate.Configure(cfg)
+	configureUpdate(cfg)
 	proxiedsites.Configure(cfg.ProxiedSites)
 	log.Debugf("Proxy all traffic or not: %v", settings.GetProxyAll())
 	ServeProxyAllPacFile(settings.GetProxyAll())
