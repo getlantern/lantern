@@ -465,7 +465,7 @@ create-tag: require-version
 	@git tag -a "$$VERSION" -f --annotate -m"Tagged $$VERSION" && \
 	git push --tags -f
 
-test-and-cover:
+test-and-cover: $(RESOURCES_DOT_GO)
 	@echo "mode: count" > profile.cov && \
 	source setenv.bash && \
 	if [ -f envvars.bash ]; then \
