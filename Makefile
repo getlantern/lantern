@@ -274,7 +274,7 @@ do-package-windows: require-version windows
 docker-package-windows: $(BNS_CERT)
 	make docker-do-package-windows
 
-linux: linux-386 linux-amd64
+linux: linux-386 linux-amd64 linux-arm
 
 system-checks:
 	@if [[ -z "$(DOCKER)" ]]; then echo 'Missing "docker" command.'; exit 1; fi && \
@@ -328,7 +328,7 @@ lantern: require-assets
 	$(call build-tags) && \
 	CGO_ENABLED=1 go build -race -o lantern -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -s" github.com/getlantern/flashlight/main; \
 
-package-linux: require-version package-linux-386 package-linux-amd64
+package-linux: require-version package-linux-386 package-linux-amd64 package-linux-arm
 
 package-darwin-manoto: require-version require-appdmg require-svgexport darwin
 	@echo "Generating distribution package for darwin/amd64 manoto..." && \
