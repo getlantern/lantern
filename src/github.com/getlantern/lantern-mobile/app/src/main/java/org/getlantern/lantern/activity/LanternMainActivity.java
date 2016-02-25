@@ -55,7 +55,7 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         // support library, but with our custom design
         // we hide the default action bar
         if (getSupportActionBar() != null) {
-             getSupportActionBar().hide();
+            getSupportActionBar().hide();
         }
 
         context = getApplicationContext();
