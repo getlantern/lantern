@@ -16,14 +16,20 @@
 ### Requisites
 
 * [Go 1.6rc1 or higher](https://golang.org/dl/).
-* [Docker](https://www.docker.com/).
 * [GNU Make](https://www.gnu.org/software/make/)
 * An OSX or Linux host.
+
+For release builds, you'll want to use Docker as well:
+
+* [Docker](https://www.docker.com/).
 
 We are going to create a Docker image that will take care of compiling Lantern
 for Windows and Linux, in order to compile Lantern for OSX you'll need an OSX
 host, this is a limitation caused by Lantern depending on C code and OSX build
 tools for certain features.
+
+Any target can be run on Docker by prefixing it with 'docker-', e.g.
+`make windows` runs locally and `make docker-windows` runs in docker.
 
 ### Docker Installation Instructions
 
@@ -173,7 +179,7 @@ The background image for the DMG is
 
 Lantern on Windows is distributed as an installer built with
 [nsis](http://nsis.sourceforge.net/). The installer is built and signed with
-`make package-windows`.
+`make docker-package-windows`.
 
 For `make package-windows` to be able to sign the executable, the environment variables
 `SECRETS_DIR` and `BNS_CERT_PASS` must be set to point to the secrets directory
@@ -193,7 +199,7 @@ Lantern on Ubuntu is distributed as a `.deb` package. You can generate a Debian
 package with:
 
 ```sh
-VERSION=2.0.0-beta2 make package-linux
+VERSION=2.0.0-beta2 make docker-package-linux
 ```
 
 The version string must match the Debian requirements:
@@ -204,8 +210,8 @@ This will build both 386 and amd64 packages.
 
 ### Generating all packages
 
-Use the `make packages` task combining all the arguments that `package-linux`,
-`package-windows` and `package-darwin` require.
+Use the `make packages` task combining all the arguments that
+`package-linux`, `package-windows` and `package-darwin` require.
 
 ```sh
 SECRETS_DIR=$PATH_TO_TOO_MANY_SECRETS BNS_CERT_PASS='***' \
