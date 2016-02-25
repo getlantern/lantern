@@ -563,6 +563,9 @@ android-install: $(LANTERN_MOBILE_ANDROID_DEBUG)
 clean-assets:
 	rm -f $(RESOURCES_DOT_GO)
 
+# Provided for backward compatibility with how people used to use the makefile
+update-dist: clean-assets assets
+
 clean-bns-cert:
 	rm -f $(BNS_CERT)
 
