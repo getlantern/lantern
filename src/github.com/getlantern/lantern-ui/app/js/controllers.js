@@ -78,6 +78,14 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$htt
     };
 
 
+    $scope.trackBookmark = function(name) {
+      return gaMgr.trackBookmark(name);
+    };
+
+    $scope.trackLink = function(name) {
+      return gaMgr.trackLink(name);
+    };
+
     $scope.closeModal = function() {
       $rootScope.hideMobileAd();
 
@@ -171,7 +179,16 @@ app.controller('MobileAdCtrl', ['$scope', 'MODAL', 'gaMgr', function($scope, MOD
     $scope.linkCopied = true;
     //$scope.closeModal();
     gaMgr.trackCopyLink();
-  }
+  };
+
+  $scope.trackSocialLink = function(name) {
+    gaMgr.trackSocialLink(name);
+  };
+
+  $scope.trackLink = function(name) {
+    gaMgr.trackLink(name);
+  };
+
 }]);
 
 app.controller('ProxiedSitesCtrl', ['$rootScope', '$scope', '$filter', 'SETTING', 'INTERACTION', 'INPUT_PAT', 'MODAL', 'ProxiedSites', function($rootScope, $scope, $filter, SETTING, INTERACTION, INPUT_PAT, MODAL, ProxiedSites) {
