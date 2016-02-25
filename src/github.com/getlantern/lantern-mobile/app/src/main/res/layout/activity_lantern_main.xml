@@ -88,7 +88,7 @@
                 android:fontFamily="sans-serif"
                 android:layout_marginTop="14dp"
                 android:paddingLeft="10dp"
-                android:text="Desktop Version"
+                android:text="@string/desktop_option"
                 android:textSize="15sp"
                 android:textColor="#fff"
                 android:textStyle="bold" />
