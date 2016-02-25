@@ -351,7 +351,7 @@ lantern: require-assets
 	@echo "Building development lantern" && \
 	source setenv.bash && \
 	$(call build-tags) && \
-	CGO_ENABLED=1 go build -race -o lantern -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -s" github.com/getlantern/flashlight/main; \
+	CGO_ENABLED=1 go build -race -o lantern -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS" github.com/getlantern/flashlight/main; \
 
 package-linux-386: require-version genassets linux-386
 	@echo "Generating distribution package for linux/386..." && \
