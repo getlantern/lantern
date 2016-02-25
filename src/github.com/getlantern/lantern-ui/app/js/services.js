@@ -236,6 +236,10 @@ angular.module('app.services', [])
       ga()('send', 'event', 'social-link-' + name);
     };
 
+    var trackLink = function(name) {
+      ga()('send', 'event', 'link-' + name);
+    };
+
     var trackBookmark = function(name) {
       ga()('send', 'event', 'bookmark-' + name);
     };
@@ -245,6 +249,7 @@ angular.module('app.services', [])
       trackCopyLink: trackCopyLink,
       trackPageView: trackPageView,
       trackSocialLink: trackSocialLink,
+      trackLink: trackLink,
       trackBookmark: trackBookmark
     };
   })
