@@ -90,8 +90,8 @@ func genPACFile() {
 					return "DIRECT";
 				}
 			}
-			// Lantern desktop version proxies only http and https
-			if (url.substring(0, 4) != 'http') {
+			// Lantern desktop version proxies only http(s) and ws(s)
+			if (url.substring(0, 4) != 'http' && (url.substring(0, 2) != 'ws')) {
 				return "DIRECT";
 			}
 			for (var d in bypassDomains) {
