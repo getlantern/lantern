@@ -82,6 +82,9 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$htt
       return gaMgr.trackBookmark(name);
     };
 
+    $scope.trackLink = function(name) {
+      return gaMgr.trackLink(name);
+    };
 
     $scope.closeModal = function() {
       $rootScope.hideMobileAd();
@@ -180,6 +183,10 @@ app.controller('MobileAdCtrl', ['$scope', 'MODAL', 'gaMgr', function($scope, MOD
 
   $scope.trackSocialLink = function(name) {
     gaMgr.trackSocialLink(name);
+  };
+
+  $scope.trackLink = function(name) {
+    gaMgr.trackLink(name);
   };
 
 }]);
