@@ -204,6 +204,7 @@ linux-amd64: $(RESOURCES_DOT_GO)
 
 linux-arm: $(RESOURCES_DOT_GO)
 	@source setenv.bash && \
+	HEADLESS=1 && \
 	$(call build-tags) && \
 	CGO_ENABLED=1 CC=arm-linux-gnueabi-gcc CXX=arm-linux-gnueabi-g++ CGO_ENABLED=1 GOOS=linux GOARCH=arm GOARM=7 go build -a -o lantern_linux_arm -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -linkmode internal -extldflags \"-static\"" github.com/getlantern/flashlight/main
 
