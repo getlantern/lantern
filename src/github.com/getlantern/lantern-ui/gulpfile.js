@@ -1,3 +1,7 @@
+// es6-promise is required for script to work on older versions of nodejs like
+// what comes on old TravisCI build machines.
+require('es6-promise').polyfill();
+
 (function () {
   'use strict';
   var gulp = require('gulp');
