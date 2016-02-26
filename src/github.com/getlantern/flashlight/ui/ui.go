@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/getlantern/golog"
@@ -24,12 +25,13 @@ const (
 var (
 	log = golog.LoggerFor("flashlight.ui")
 
-	l             net.Listener
-	fs            *tarfs.FileSystem
-	Translations  *tarfs.FileSystem
-	server        *http.Server
-	uiaddr        string
-	proxiedUIAddr string
+	l               net.Listener
+	fs              *tarfs.FileSystem
+	Translations    *tarfs.FileSystem
+	server          *http.Server
+	uiaddr          string
+	proxiedUIAddr   string
+	preferProxiedUI int32
 
 	openedExternal = false
 	externalUrl    string
@@ -122,6 +124,27 @@ func Start(requestedAddr string, allowRemote bool, extUrl string) (string, error
 	return l.Addr().String(), nil
 }
 
+func PreferProxiedUI(val bool) string {
+	updated := int32(0)
+	if val {
+		updated = 1
+	}
+	atomic.StoreInt32(&preferProxiedUI, updated)
+	return getPreferredUIAddr()
+}
+
+func shouldPreferProxiedUI() bool {
+	return atomic.LoadInt32(&preferProxiedUI) == 1
+}
+
+func getPreferredUIAddr() string {
+	if shouldPreferProxiedUI() {
+		return proxiedUIAddr
+	} else {
+		return uiaddr
+	}
+}
+
 // Show opens the UI in a browser. Note we know the UI server is
 // *listening* at this point as long as Start is correctly called prior
 // to this method. It may not be reading yet, but since we're the only
@@ -129,9 +152,10 @@ func Start(requestedAddr string, allowRemote bool, extUrl string) (string, error
 // asynchronously is not a problem.
 func Show() {
 	go func() {
-		err := open.Run(proxiedUIAddr)
+		addr := getPreferredUIAddr()
+		err := open.Run(addr)
 		if err != nil {
-			log.Errorf("Error opening page to `%v`: %v", proxiedUIAddr, err)
+			log.Errorf("Error opening page to `%v`: %v", addr, err)
 		}
 
 		onceBody := func() {
