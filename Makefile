@@ -548,12 +548,11 @@ $(LANTERN_MOBILE_ANDROID_DEBUG): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_AN
 
 $(LANTERN_MOBILE_ANDROID_RELEASE): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK)
 	@echo "Generating distribution package for android..."
-	ln -f -s $$SECRETS_DIR/android/keystore.release.jks $(LANTERN_MOBILE_DIR)/app
-	cd $(LANTERN_MOBILE_DIR)/app
+	ln -f -s $$SECRETS_DIR/android/keystore.release.jks $(LANTERN_MOBILE_DIR)/app && \
 	gradle -PlanternVersion=$$VERSION -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
 		clean \
-		assembleRelease
-	cp $(LANTERN_MOBILE_ANDROID_RELEASE) lantern-installer.apk
+		assembleRelease && \
+	cp $(LANTERN_MOBILE_ANDROID_RELEASE) lantern-installer.apk;
 
 android-debug: $(LANTERN_MOBILE_ANDROID_DEBUG)
 
