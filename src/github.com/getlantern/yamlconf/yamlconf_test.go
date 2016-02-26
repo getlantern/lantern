@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"sync"
 	"testing"
@@ -15,8 +14,7 @@ import (
 )
 
 const (
-	FIXED_I       = 55
-	ConfigSrvAddr = "localhost:31432"
+	FIXED_I = 55
 )
 
 var (
@@ -55,14 +53,17 @@ func TestFileAndUpdate(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to create temp file: %s", err)
 	}
-	defer os.Remove(file.Name())
+	defer func() {
+		if err := os.Remove(file.Name()); err != nil {
+			t.Fatalf("Unable to remove file: %v", err)
+		}
+	}()
 
 	m := &Manager{
 		EmptyConfig: func() Config {
 			return &TestCfg{}
 		},
-		FilePath:         file.Name(),
-		FilePollInterval: pollInterval,
+		FilePath: file.Name(),
 	}
 
 	first, err := m.Init()
@@ -103,18 +104,6 @@ func TestFileAndUpdate(t *testing.T) {
 		// Wait for file update to get picked up
 		time.Sleep(pollInterval * 2)
 
-		// Push update to file
-		saveConfig(t, file, &TestCfg{
-			Version: 1,
-			N: &Nested{
-				S: "3",
-				I: 3,
-			},
-		})
-
-		// Wait for file update to get picked up
-		time.Sleep(pollInterval * 2)
-
 		// Perform update programmatically
 		err := m.Update(func(cfg Config) error {
 			tc := cfg.(*TestCfg)
@@ -131,15 +120,6 @@ func TestFileAndUpdate(t *testing.T) {
 
 	updated := m.Next()
 	assert.Equal(t, &TestCfg{
-		Version: 1,
-		N: &Nested{
-			S: "3",
-			I: 3,
-		},
-	}, updated, "Config from updated file should contain correct data")
-
-	updated = m.Next()
-	assert.Equal(t, &TestCfg{
 		Version: 2,
 		N: &Nested{
 			S: "4",
@@ -155,15 +135,18 @@ func TestCustomPoll(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to create temp file: %s", err)
 	}
-	defer os.Remove(file.Name())
+	defer func() {
+		if err := os.Remove(file.Name()); err != nil {
+			t.Fatalf("Unable to remove file: %s", err)
+		}
+	}()
 
 	poll := 0
 	m := &Manager{
 		EmptyConfig: func() Config {
 			return &TestCfg{}
 		},
-		FilePath:         file.Name(),
-		FilePollInterval: pollInterval,
+		FilePath: file.Name(),
 		CustomPoll: func(currentCfg Config) (func(cfg Config) error, time.Duration, error) {
 			defer func() {
 				poll = poll + 1
@@ -204,65 +187,6 @@ func TestCustomPoll(t *testing.T) {
 			I: FIXED_I,
 		},
 	}, updated, "Custom polled config should contain correct data")
-}
-
-func TestConfigServer(t *testing.T) {
-	file, err := ioutil.TempFile("", "yamlconf_test_")
-	if err != nil {
-		t.Fatalf("Unable to create temp file: %s", err)
-	}
-	defer os.Remove(file.Name())
-
-	m := &Manager{
-		EmptyConfig: func() Config {
-			return &TestCfg{}
-		},
-		FilePath:         file.Name(),
-		FilePollInterval: pollInterval,
-		ConfigServerAddr: ConfigSrvAddr,
-	}
-
-	_, err = m.Init()
-	if err != nil {
-		t.Fatalf("Unable to init manager: %s", err)
-	}
-	m.StartPolling()
-
-	newNested := &Nested{
-		S: "900",
-		I: 900,
-	}
-	nny, err := yaml.Marshal(newNested)
-	if err != nil {
-		t.Fatalf("Unable to marshal new nested into yaml: %s", err)
-	}
-
-	_, err = http.Post(fmt.Sprintf("http://%s/N", ConfigSrvAddr), "text/yaml", bytes.NewReader(nny))
-	assert.NoError(t, err, "POSTing to config server should succeed")
-
-	updated := m.Next()
-
-	assert.Equal(t, &TestCfg{
-		Version: 2,
-		N:       newNested,
-	}, updated, "Nested should have been updated by POST")
-
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("http://%s/N/I", ConfigSrvAddr), bytes.NewReader(nny))
-	if err != nil {
-		t.Fatalf("Unable to construct DELETE request: %s", err)
-	}
-	_, err = (&http.Client{}).Do(req)
-	assert.NoError(t, err, "DELETEing to config server should succeed")
-
-	updated = m.Next()
-
-	assert.Equal(t, &TestCfg{
-		Version: 3,
-		N: &Nested{
-			S: newNested.S,
-			I: FIXED_I,
-		},
-	}, updated, "Nested I should have reverted to default value after clearing")
 }
 
 func assertSavedConfigEquals(t *testing.T, file *os.File, expected *TestCfg) {

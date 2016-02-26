@@ -1,0 +1,4 @@
+Go bind android app example
+
+Set the GOPATH, GO, GOMOBILE variables in hello/build.gradle
+and import this project in Android Studio.

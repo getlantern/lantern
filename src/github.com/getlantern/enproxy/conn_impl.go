@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/http/httputil"
 
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/getlantern/idletiming"
@@ -42,9 +43,13 @@ func Dial(addr string, config *Config) (net.Conn, error) {
 
 	return idletiming.Conn(c, c.config.IdleTimeout, func() {
 		log.Debugf("Proxy connection to %s via %s idle for %v, closing", addr, proxyConn.conn.RemoteAddr(), c.config.IdleTimeout)
-		c.Close()
+		if err := c.Close(); err != nil {
+			log.Debugf("Unable to close connection: %v", err)
+		}
 		// Close the initial proxyConn just in case
-		proxyConn.conn.Close()
+		if err := proxyConn.conn.Close(); err != nil {
+			log.Debugf("Unable to close proxy connection: %v", err)
+		}
 	}), nil
 }
 
@@ -113,7 +118,9 @@ func (c *conn) redialProxyIfNecessary(proxyConn *connInfo) (*connInfo, error) {
 	proxyConn.closedMutex.Lock()
 	defer proxyConn.closedMutex.Unlock()
 	if proxyConn.closed || proxyConn.conn.TimesOutIn() < oneSecond {
-		proxyConn.conn.Close()
+		if err := proxyConn.conn.Close(); err != nil {
+			log.Debugf("Unable to close proxy connection: %v", err)
+		}
 		return c.dialProxy()
 	} else {
 		return proxyConn, nil
@@ -125,16 +132,17 @@ func (c *conn) doRequest(proxyConn *connInfo, host string, op string, request *r
 	if request != nil {
 		body = request.body
 	}
-	req, err := c.config.NewRequest(host, "POST", body)
+	path := c.id + "/" + c.addr + "/" + op
+	req, err := c.config.NewRequest(host, path, "POST", body)
 	if err != nil {
 		err = fmt.Errorf("Unable to construct request to %s via proxy %s: %s", c.addr, host, err)
 		return
 	}
-	req.Header.Set(X_ENPROXY_OP, op)
+	//req.Header.Set(X_ENPROXY_OP, op)
 	// Always send our connection id
-	req.Header.Set(X_ENPROXY_ID, c.id)
+	//req.Header.Set(X_ENPROXY_ID, c.id)
 	// Always send the address that we're trying to reach
-	req.Header.Set(X_ENPROXY_DEST_ADDR, c.addr)
+	//req.Header.Set(X_ENPROXY_DEST_ADDR, c.addr)
 	req.Header.Set("Content-type", "application/octet-stream")
 	if request != nil && request.length > 0 {
 		// Force identity encoding to appeas CDNs like Fastly that can't
@@ -160,9 +168,21 @@ func (c *conn) doRequest(proxyConn *connInfo, host string, op string, request *r
 	// Check response status
 	responseOK := resp.StatusCode >= 200 && resp.StatusCode < 300
 	if !responseOK {
-		err = fmt.Errorf("Bad response status for read: %s", resp.Status)
-		resp.Body.Close()
+		// This means we're getting something other than an OK response from the fronting provider
+		// itself, which is odd. Try to log the entire response for easier debugging.
+		full, er := httputil.DumpResponse(resp, true)
+		if er == nil {
+			err = fmt.Errorf("Bad response status for read from fronting provider: %s", string(full))
+		} else {
+			log.Errorf("Could not dump response: %v", er)
+			err = fmt.Errorf("Bad response status for read from fronting provider: %s", resp.Status)
+		}
+		if err := resp.Body.Close(); err != nil {
+			log.Debugf("Unable to close response body: %v", err)
+		}
 		resp = nil
+	} else {
+		log.Debugf("Got OK from fronting provider")
 	}
 
 	return

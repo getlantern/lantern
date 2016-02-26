@@ -66,29 +66,42 @@ angular.module('app.services', [])
         }
       },
       'Settings': function(data) {
-        console.log('Got Lantern default settings: ', data);
-        if (data && data.Version) {
-            // configure settings
-            // set default client to get-mode
-            model.settings = {};
-            model.settings.mode = 'get';
-            model.settings.version = data.Version + " (" + data.RevisionDate + ")";
+        if (data.Settings) {
+          var settings = data.Settings;
+          console.log('Got Lantern default settings: ', settings);
+          if (settings && settings.Version) {
+              // configure settings
+              // set default client to get-mode
+              model.settings = {};
+              model.settings.mode = 'get';
+              model.settings.version = settings.Version + " (" + settings.RevisionDate + ")";
+          }
+
+          if (settings.AutoReport) {
+              model.settings.autoReport = true;
+                  $rootScope.trackPageView();
+          }
+
+          if (settings.AutoLaunch) {
+              model.settings.autoLaunch = true;
+          }
+
+          if (settings.ProxyAll) {
+              model.settings.proxyAll = true;
+          }
+
+          if (settings.SystemProxy) {
+              model.settings.systemProxy = true;
+          }
         }
 
-        if (data.AutoReport) {
-            model.settings.autoReport = true;
-            if ($rootScope.lanternWelcomeKey) {
-                $rootScope.trackPageView();
-            }
+        if (data.RedirectTo) {
+          console.log('Redirecting UI to: ' + data.RedirectTo);
+          window.location = data.RedirectTo;
         }
-
-        if (data.AutoLaunch) {
-            model.settings.autoLaunch = true;
-        }
-
-        if (data.ProxyAll) {
-            model.settings.proxyAll = true;
-        }
+      },
+      'LocalDiscovery': function(data) {
+        model.localLanterns = data;
       },
       'ProxiedSites': function(data) {
         if (!$rootScope.entries) {
@@ -193,45 +206,63 @@ angular.module('app.services', [])
     };
   })
   .service('gaMgr', function ($window, DataStream, GOOGLE_ANALYTICS_DISABLE_KEY, GOOGLE_ANALYTICS_WEBPROP_ID) {
-    var ga = $window.ga;
+    window.gaDidInit = false;
 
-    ga('create', GOOGLE_ANALYTICS_WEBPROP_ID, {cookieDomain: 'none'});
-    ga('set', {
-      anonymizeIp: true,
-      forceSSL: true,
-      location: 'http://lantern-ui/',
-      hostname: 'lantern-ui',
-      title: 'lantern-ui'
-    });
-
-    function trackPageView(sessionControl) {
-      var trackers = ga.getAll();
-      for (var i =0; i < trackers.length; i++) {
-          var tracker = trackers[i];
-          if (tracker.b && tracker.b.data && tracker.b.data.w) {
-              var fields = tracker.b.data.w;
-              var gaObj = {
-                  clientId: '',
-                  clientVersion: '',
-                  language: '',
-                  screenColors: '',
-                  screenResolution: '',
-                  trackingId: '',
-                  viewPortSize: ''
-              };
-              for (var name in fields) {
-                var key = name.split(':')[1];
-                if (gaObj.hasOwnProperty(key)) {
-                    gaObj[key] = fields[name];
-                }
-              }
-              DataStream.send('Analytics', gaObj);
-          }
+    // Under certain circumstances this "window.ga" function was not available
+    // when loading Safari. See
+    // https://github.com/getlantern/lantern/issues/3560
+    var ga = function() {
+      var ga = $window.ga;
+      if (ga) {
+        if (!$window.gaDidInit) {
+          $window.gaDidInit = true;
+          ga('create', GOOGLE_ANALYTICS_WEBPROP_ID, {cookieDomain: 'none'});
+          ga('set', {
+            anonymizeIp: true,
+            forceSSL: true,
+            location: 'http://lantern-ui/',
+            hostname: 'lantern-ui',
+            title: 'lantern-ui'
+          });
+        }
+        return ga;
+      }
+      return function() {
+        console.log("ga is not defined.");
       }
     }
 
+    var trackPageView = function() {
+      ga()('send', 'pageview');
+    };
+
+    var trackSendLinkToMobile = function() {
+      ga()('send', 'event', 'send-lantern-mobile-email');
+    };
+
+    var trackCopyLink = function() {
+      ga()('send', 'event', 'copy-lantern-mobile-link');
+    };
+
+    var trackSocialLink = function(name) {
+      ga()('send', 'event', 'social-link-' + name);
+    };
+
+    var trackLink = function(name) {
+      ga()('send', 'event', 'link-' + name);
+    };
+
+    var trackBookmark = function(name) {
+      ga()('send', 'event', 'bookmark-' + name);
+    };
+
     return {
-      trackPageView: trackPageView
+      trackSendLinkToMobile: trackSendLinkToMobile,
+      trackCopyLink: trackCopyLink,
+      trackPageView: trackPageView,
+      trackSocialLink: trackSocialLink,
+      trackLink: trackLink,
+      trackBookmark: trackBookmark
     };
   })
   .service('apiSrvc', function($http, API_URL_PREFIX) {

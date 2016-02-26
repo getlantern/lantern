@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="app_name">Lantern</string>
+  <string name="action_settings">Thiết lập</string>
+  <string name="send_button">Gửi</string>
+  <string name="contact_option">Liên hệ</string>
+  <string name="quit_option">Thoát</string>
+  <string name="share_email_native"></string>
+</resources>

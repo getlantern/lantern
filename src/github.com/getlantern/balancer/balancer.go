@@ -57,6 +57,57 @@ func New(dialers ...*Dialer) *Balancer {
 	return bal
 }
 
+// AllAuthTokens() returns a list of all auth tokens for all dialers on this
+// balancer.
+func (b *Balancer) AllAuthTokens() []string {
+	result := make([]string, 0, len(b.dialers))
+	for i := 0; i < len(b.dialers); i++ {
+		result = append(result, b.dialers[i].AuthToken)
+	}
+	return result
+}
+
+func (b *Balancer) dialerAndConn(network, addr string, targetQOS int) (*Dialer, net.Conn, error) {
+	var dialers []*dialer
+
+	_, port, _ := net.SplitHostPort(addr)
+
+	// We try to identify HTTP traffic (as opposed to HTTPS) by port and only
+	// send HTTP traffic to dialers marked as trusted.
+	if port == "" || port == "80" || port == "8080" {
+		dialers = b.trusted
+		if len(b.trusted) == 0 {
+			log.Error("No trusted dialers!")
+		}
+	} else {
+		dialers = b.dialers
+	}
+
+	// To prevent dialing infinitely
+	attempts := 3
+	for i := 0; i < attempts; i++ {
+		if len(dialers) == 0 {
+			return nil, nil, fmt.Errorf("No dialers left to try on pass %v", i)
+		}
+		var d *dialer
+		d, dialers = randomDialer(dialers, targetQOS)
+		if d == nil {
+			return nil, nil, fmt.Errorf("No dialers left on pass %v", i)
+		}
+		log.Debugf("Dialing %s://%s with %s", network, addr, d.Label)
+		conn, err := d.Dial(network, addr)
+
+		if err != nil {
+			log.Errorf("Unable to dial via %v to %s://%s: %v on pass %v...continuing", d.Label, network, addr, err, i)
+			d.onError(err)
+			continue
+		}
+		log.Debugf("Successfully dialed via %v to %v://%v on pass %v", d.Label, network, addr, i)
+		return d.Dialer, conn, nil
+	}
+	return nil, nil, fmt.Errorf("Still unable to dial %s://%s after %d attempts", network, addr, attempts)
+}
+
 // DialQOS dials network, addr using one of the currently active configured
 // Dialers. It attempts to use a Dialer whose QOS is higher than targetQOS, but
 // will use the highest QOS Dialer(s) if none meet targetQOS. When multiple
@@ -67,41 +118,8 @@ func New(dialers ...*Dialer) *Balancer {
 // remaining Dialers until it either manages to connect, or runs out of dialers
 // in which case it returns an error.
 func (b *Balancer) DialQOS(network, addr string, targetQOS int) (net.Conn, error) {
-	var dialers []*dialer
-
-	_, port, _ := net.SplitHostPort(addr)
-
-	if len(b.trusted) == 0 {
-		log.Error("No trusted dialers!")
-	}
-
-	// We try to identify HTTP traffic (as opposed to HTTPS) by port and only
-	// send HTTP traffic to dialers marked as trusted.
-	if port == "" || port == "80" || port == "8080" {
-		dialers = b.trusted
-	} else {
-		dialers = b.dialers
-	}
-
-	for {
-		if len(dialers) == 0 {
-			return nil, fmt.Errorf("No dialers left to try")
-		}
-		var d *dialer
-		d, dialers = randomDialer(dialers, targetQOS)
-		if d == nil {
-			return nil, fmt.Errorf("No dialers left")
-		}
-		log.Debugf("Dialing %s://%s with %s", network, addr, d.Label)
-		conn, err := d.Dial(network, addr)
-		if err != nil {
-			log.Debugf("Unable to dial %s://%s: %s", network, addr, err)
-			d.onError(err)
-			continue
-		}
-		return conn, nil
-	}
-
+	_, conn, err := b.dialerAndConn(network, addr, targetQOS)
+	return conn, err
 }
 
 // Dial is like DialQOS with a targetQOS of 0.
@@ -145,7 +163,12 @@ func randomDialer(dialers []*dialer, targetQOS int) (chosen *dialer, others []*d
 		aw += d.Weight
 		if aw > t {
 			log.Tracef("Randomly selected dialer %s with weight %d, QOS %d", d.Label, d.Weight, d.QOS)
-			return d, withoutDialer(dialers, d)
+			// Leave at lest one dialer to try in next round
+			if len(dialers) < 2 {
+				return d, dialers
+			} else {
+				return d, withoutDialer(dialers, d)
+			}
 		}
 	}
 
@@ -157,10 +180,12 @@ func dialersMeetingQOS(dialers []*dialer, targetQOS int) ([]*dialer, int) {
 	filtered := make([]*dialer, 0)
 	highestQOS := 0
 	for _, d := range dialers {
+		/* Don't exclude inactive dialer as it's the only one we have
 		if !d.isActive() {
 			log.Trace("Excluding inactive dialer")
 			continue
 		}
+		*/
 
 		highestQOS = d.QOS // don't need to compare since dialers are already sorted by QOS (ascending)
 		if d.QOS >= targetQOS {

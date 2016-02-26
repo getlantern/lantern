@@ -32,6 +32,7 @@ int setUid()
 int togglePac(bool turnOn, const char* pacUrl)
 {
   NSString* nsPacUrl = [[NSString alloc] initWithCString: pacUrl encoding:NSUTF8StringEncoding];
+  NSString* nsOldPacUrl;
   int ret = RET_NO_ERROR;
   Boolean success;
 
@@ -90,7 +91,11 @@ int togglePac(bool turnOn, const char* pacUrl)
       [newPreferences setValue:[NSNumber numberWithInt:1] forKey:(NSString*)kSCPropNetProxiesProxyAutoConfigEnable];
       [newPreferences setValue:nsPacUrl forKey:(NSString*)kSCPropNetProxiesProxyAutoConfigURLString];
     } else {
-      [newPreferences setValue:[NSNumber numberWithInt:0] forKey:(NSString*)kSCPropNetProxiesProxyAutoConfigEnable];
+      nsOldPacUrl = [newPreferences valueForKey:(NSString*)kSCPropNetProxiesProxyAutoConfigURLString];
+      if (nsPacUrl.length == 0 || [nsPacUrl isEqualToString:nsOldPacUrl]) {
+        [newPreferences setValue:[NSNumber numberWithInt:0] forKey:(NSString*)kSCPropNetProxiesProxyAutoConfigEnable];
+        [newPreferences setValue:@"" forKey:(NSString*)kSCPropNetProxiesProxyAutoConfigURLString];
+      }
     }
 
     success = SCNetworkProtocolSetConfiguration(proxyProtocolRef, (__bridge CFDictionaryRef)newPreferences);

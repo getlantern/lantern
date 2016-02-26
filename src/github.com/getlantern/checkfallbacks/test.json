@@ -1,4 +1,4 @@
 [
-{"ip": "78.62.239.134", "auth_token": "a1", "cert": "-----CERTIFICATE-----\n", "protocol": "tcp", "port": "443"},
-{"ip": "178.62.239.34", "auth_token": "a2", "cert": "-----CERTIFICATE-----\n", "protocol": "udp", "port": "80"}
+{"addr": "78.62.239.134:443", "authtoken": "a1", "cert": "-----CERTIFICATE-----\n"},
+{"addr": "178.62.239.34:80", "authtoken": "a2", "cert": "-----CERTIFICATE-----\n"}
 ]

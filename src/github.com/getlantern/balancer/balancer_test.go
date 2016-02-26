@@ -66,7 +66,11 @@ func TestAll(t *testing.T) {
 	if err != nil {
 		log.Fatalf("Unable to listen: %s", err)
 	}
-	defer l.Close()
+	defer func() {
+		if err := l.Close(); err != nil {
+			log.Fatalf("Unable to close listener: %v", err)
+		}
+	}()
 	go func() {
 		for {
 			c, err := l.Accept()
@@ -140,7 +144,7 @@ func TestAll(t *testing.T) {
 		assert.Equal(t, int32(1), atomic.LoadInt32(&dialer1Closed), "Dialer 1 should have been closed")
 		_, err := b.Dial("tcp", addr)
 		if assert.Error(t, err, "Dialing on closed balancer should fail") {
-			assert.Contains(t, "No dialers left to try", err.Error(), "Error should have mentioned that there were no dialers left to try")
+			assert.Contains(t, "No dialers left to try on pass 0", err.Error(), "Error should have mentioned that there were no dialers left to try")
 		}
 	}()
 	conn, err := b.Dial("tcp", addr)
@@ -264,7 +268,11 @@ func newFailingDialer(num int32, dialedBy *int32, attempts *int32) *Dialer {
 }
 
 func doTestConn(t *testing.T, conn net.Conn) {
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			log.Debugf("Unable to close connection: %v", err)
+		}
+	}()
 
 	var wg sync.WaitGroup
 	wg.Add(2)

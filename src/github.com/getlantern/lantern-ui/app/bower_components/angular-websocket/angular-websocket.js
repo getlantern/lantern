@@ -9,6 +9,7 @@
   var isDefined  = angular.isDefined;
   var isObject   = angular.isObject;
   var isArray    = angular.isArray;
+  var forEach    = angular.forEach;
   var arraySlice = Array.prototype.slice;
   // ie8 wat
   if (!Array.prototype.indexOf) {
@@ -24,28 +25,6 @@
         if (from in this && this[from] === elt) { return from; }
       }
       return -1;
-    };
-  }
-  // ie8 wat
-  if (!Function.prototype.bind) {
-    Function.prototype.bind = function(oThis) {
-      if (typeof this !== 'function') {
-        // closest thing possible to the ECMAScript 5
-        // internal IsCallable function
-        throw new TypeError('Function.prototype.bind - what is trying to be bound is not callable');
-      }
-
-      var aArgs   = arraySlice.call(arguments, 1),
-          fToBind = this,
-          FNOP    = function() {},
-          fBound  = function() {
-            return fToBind.apply(this instanceof FNOP && oThis ? this : oThis, aArgs.concat(arraySlice.call(arguments)));
-          };
-
-      FNOP.prototype = this.prototype;
-      fBound.prototype = new FNOP();
-
-      return fBound;
     };
   }
 
@@ -69,13 +48,14 @@
       // this.buffer = [];
 
       // TODO: refactor options to use isDefined
-      this.scope              = options && options.scope             || $rootScope;
-      this.rootScopeFailover  = options && options.rootScopeFailover && true;
-      this.useApplyAsync      = options && options.useApplyAsync     || false;
-      this._reconnectAttempts = options && options.reconnectAttempts || 0;
-      this.initialTimeout     = options && options.initialTimeout    || 500; // 500ms
-      this.maxTimeout         = options && options.maxTimeout        || 5 * 60 * 1000; // 5 minutes
+      this.scope                       = options && options.scope                      || $rootScope;
+      this.rootScopeFailover           = options && options.rootScopeFailover          && true;
+      this.useApplyAsync               = options && options.useApplyAsync              || false;
+      this.initialTimeout              = options && options.initialTimeout             || 500; // 500ms
+      this.maxTimeout                  = options && options.maxTimeout                 || 5 * 60 * 1000; // 5 minutes
+      this.reconnectIfNotNormalClose   = options && options.reconnectIfNotNormalClose  || false;
 
+      this._reconnectAttempts = 0;
       this.sendQueue          = [];
       this.onOpenCallbacks    = [];
       this.onMessageCallbacks = [];
@@ -92,6 +72,7 @@
 
     }
 
+
     $WebSocket.prototype._readyStateConstants = {
       'CONNECTING': 0,
       'OPEN': 1,
@@ -99,6 +80,8 @@
       'CLOSED': 3,
       'RECONNECT_ABORTED': 4
     };
+
+    $WebSocket.prototype._normalCloseCode = 1000;
 
     $WebSocket.prototype._reconnectableStatusCodes = [
       4000
@@ -126,10 +109,10 @@
     $WebSocket.prototype._connect = function _connect(force) {
       if (force || !this.socket || this.socket.readyState !== this._readyStateConstants.OPEN) {
         this.socket = $websocketBackend.create(this.url, this.protocols);
-        this.socket.onmessage = this._onMessageHandler.bind(this);
-        this.socket.onopen  = this._onOpenHandler.bind(this);
-        this.socket.onerror = this._onErrorHandler.bind(this);
-        this.socket.onclose = this._onCloseHandler.bind(this);
+        this.socket.onmessage = angular.bind(this, this._onMessageHandler);
+        this.socket.onopen  = angular.bind(this, this._onOpenHandler);
+        this.socket.onerror = angular.bind(this, this._onErrorHandler);
+        this.socket.onclose = angular.bind(this, this._onCloseHandler);
       }
     };
 
@@ -203,7 +186,7 @@
 
     $WebSocket.prototype._onCloseHandler = function _onCloseHandler(event) {
       this.notifyCloseCallbacks(event);
-      if (this._reconnectableStatusCodes.indexOf(event.code) > -1) {
+      if ((this.reconnectIfNotNormalClose && event.code !== this._normalCloseCode) || this._reconnectableStatusCodes.indexOf(event.code) > -1) {
         this.reconnect();
       }
     };
@@ -286,13 +269,23 @@
         return self;
       }
 
+      if ($websocketBackend.isMocked && $websocketBackend.isMocked() &&
+              $websocketBackend.isConnected(this.url)) {
+        this._onMessageHandler($websocketBackend.mockSend());
+      }
+
       return promise;
     };
 
     $WebSocket.prototype.reconnect = function reconnect() {
       this.close();
 
-      $timeout(this._connect.bind(this), this._getBackoffDelay(++this._reconnectAttempts));
+      var backoffDelay = this._getBackoffDelay(++this._reconnectAttempts);
+
+      var backoffDelaySeconds = backoffDelay / 1000;
+      console.log('Reconnecting in ' + backoffDelaySeconds + ' seconds');
+
+      $timeout(angular.bind(this, this._connect), backoffDelay);
 
       return this;
     };
@@ -320,7 +313,7 @@
       this._internalConnectionState = state;
 
 
-      angular.forEach(this.sendQueue, function(pending) {
+      forEach(this.sendQueue, function(pending) {
         pending.deferred.reject('Message cancelled due to closed socket connection');
       });
     };
@@ -337,8 +330,8 @@
       });
     }
 
-    return function(url, protocols) {
-      return new $WebSocket(url, protocols);
+    return function(url, protocols, options) {
+      return new $WebSocket(url, protocols, options);
     };
   }
 
@@ -383,4 +376,7 @@
 
   angular.module('angular-websocket', ['ngWebSocket']);
 
+  if (typeof module === 'object' && typeof define !== 'function') {
+    module.exports = angular.module('ngWebSocket');
+  }
 }());

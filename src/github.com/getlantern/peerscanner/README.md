@@ -47,6 +47,10 @@ configuration.
 You need to set some environment variables to connect to CloudFlare.  See
 [envvars.bash](https://github.com/getlantern/too-few-secrets/blob/master/envvars.bash).
 
+To test it, use the `-cfldomain` command line flag, which specifies where to register/unregister servers.  We have the test domain flashlightproxy.com for this purpose, so you'd say `./peerscanner -cfldomain flashlightproxy.com`.  Also, for any flashlight server to register to your test peerscanner you'd have to call it with `./flashlight -registerat https://yourserverurl.org`.
+
+You may use [this test peerscanner](https://cloud.digitalocean.com/droplets/4467475) to test stuff.  `ps-test.getiantem.org` points to it.  It's normally turned off.  Whenever you want to test anything peerscanner related, feel free to log into it, copy over a new peerscanner binary, and start it.
+
 ## Duplicate Checking
 
 The program in dupecheck can be used to check the current CloudFlare DNS for

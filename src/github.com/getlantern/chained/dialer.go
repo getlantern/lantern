@@ -19,6 +19,9 @@ type Config struct {
 	// the server and is allowed to modify the http.Request before it passes to
 	// the server.
 	OnRequest func(req *http.Request)
+
+	// Label: a optional label for debugging.
+	Label string
 }
 
 // dialer is an implementation of proxy.Dialer that proxies traffic via an
@@ -38,12 +41,18 @@ func NewDialer(cfg Config) proxy.Dialer {
 func (d *dialer) Dial(network, addr string) (net.Conn, error) {
 	conn, err := d.DialServer()
 	if err != nil {
-		return nil, fmt.Errorf("Unable to dial server: %s", err)
+		return nil, fmt.Errorf("Unable to dial server %v: %s", d.Label, err)
 	}
-	err = d.sendCONNECT(network, addr, conn)
-	if err != nil {
-		conn.Close()
-		return nil, err
+	// Look for our special hacked "connect" transport used to signal
+	// that we should send a CONNECT request and tunnel all traffic through
+	// that.
+	if network == "connect" {
+		log.Debugf("Sending CONNECT REQUEST")
+		if err := d.sendCONNECT("tcp", addr, conn); err != nil {
+			// We discard this error, since we are only interested in sendCONNECT
+			_ = conn.Close()
+			return nil, err
+		}
 	}
 	return conn, nil
 }

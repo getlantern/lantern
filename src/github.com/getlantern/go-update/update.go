@@ -114,6 +114,7 @@ package update
 
 import (
 	"bytes"
+	"compress/bzip2"
 	"crypto"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -280,7 +281,11 @@ func (u *Update) FromFile(path string) (err error, errRecover error) {
 	if err != nil {
 		return
 	}
-	defer fp.Close()
+	defer func() {
+		if err := fp.Close(); err != nil {
+			fmt.Errorf("Unable to close file: %v\n", err)
+		}
+	}()
 
 	// do the update
 	return u.FromStream(fp)
@@ -325,8 +330,8 @@ func (u *Update) FromStream(updateWith io.Reader) (err error, errRecover error) 
 			return
 		}
 	case PATCHTYPE_NONE:
-		// no patch to apply, go on through
-		newBytes, err = ioutil.ReadAll(updateWith)
+		// no patch to apply, go on through (with bzip2 decoding).
+		newBytes, err = ioutil.ReadAll(bzip2.NewReader(updateWith))
 		if err != nil {
 			return
 		}
@@ -369,12 +374,18 @@ func (u *Update) FromStream(updateWith io.Reader) (err error, errRecover error) 
 	if err != nil {
 		return
 	}
-	defer fp.Close()
-	_, err = io.Copy(fp, bytes.NewReader(newBytes))
+	// We won't log this error, because it's always going to happen.
+	// TODO: Document why are we doing this second fp.Close() at all?
+	defer func() { _ = fp.Close() }()
+	if _, err = io.Copy(fp, bytes.NewReader(newBytes)); err != nil {
+		fmt.Errorf("Unable to copy data: %v\n", err)
+	}
 
 	// if we don't call fp.Close(), windows won't let us move the new executable
 	// because the file will still be "in use"
-	fp.Close()
+	if err := fp.Close(); err != nil {
+		fmt.Errorf("Unable to close file: %v\n", err)
+	}
 
 	// this is where we'll move the executable to so that we can swap in the updated replacement
 	oldPath := filepath.Join(updateDir, fmt.Sprintf(".%s.old", filename))
@@ -428,7 +439,9 @@ func (u *Update) CanUpdate() (err error) {
 	if err != nil {
 		return
 	}
-	fp.Close()
+	if err := fp.Close(); err != nil {
+		fmt.Errorf("Unable to close file: %v\n", err)
+	}
 
 	_ = os.Remove(newPath)
 	return
@@ -440,7 +453,11 @@ func applyPatch(patch io.Reader, updatePath string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer old.Close()
+	defer func() {
+		if err := old.Close(); err != nil {
+			fmt.Errorf("Unable to close file: %v\n", err)
+		}
+	}()
 
 	// apply the patch
 	applied := new(bytes.Buffer)
@@ -470,7 +487,11 @@ func ChecksumForFile(path string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			fmt.Errorf("Unable to close file: %v\n", err)
+		}
+	}()
 
 	return ChecksumForReader(f)
 }

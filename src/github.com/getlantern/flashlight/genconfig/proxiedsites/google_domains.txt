@@ -1,4 +1,5 @@
 # get from http://www.google.com/supported_domains and remove first dot
+googleapis.com
 google.com
 google.ad
 google.ae

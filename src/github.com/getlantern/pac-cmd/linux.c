@@ -1,5 +1,6 @@
 #include <gio/gio.h>
 #include <stdio.h>
+#include <string.h>
 #include "common.h"
 
 int togglePac(bool turnOn, const char* pacUrl)
@@ -26,17 +27,26 @@ int togglePac(bool turnOn, const char* pacUrl)
     }
   }
   else {
-    gboolean success = g_settings_set_string(setting, "mode", "none");
-    if (!success) {
-      fprintf(stderr, "error setting mode to none\n");
-      ret = SYSCALL_FAILED;
-      goto cleanup;
+    if (strlen(pacUrl) != 0) {
+      // clear pac setting only if it's equal to pacUrl
+      char* old_mode = g_settings_get_string(setting, "mode");
+      char* old_pac_url = g_settings_get_string(setting, "autoconfig-url");
+      if (strcmp(old_mode, "auto") != 0 || strcmp(old_pac_url, pacUrl) != 0 ) {
+	      fprintf(stderr, "current pac url setting is not %s, skipping\n", pacUrl);
+	      goto cleanup;
+      }
     }
     g_settings_reset(setting, "autoconfig-url");
-  }
+    gboolean success = g_settings_set_string(setting, "mode", "none");
+    if (!success) {
+	    fprintf(stderr, "error setting mode to none\n");
+	    ret = SYSCALL_FAILED;
+	    goto cleanup;
+    }
+}
 cleanup:
-  g_settings_sync();
-  g_object_unref(setting);
+g_settings_sync();
+g_object_unref(setting);
 
-  return ret;
+return ret;
 }

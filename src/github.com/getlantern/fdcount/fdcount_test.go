@@ -1,6 +1,7 @@
 package fdcount
 
 import (
+	"fmt"
 	"net"
 	"testing"
 	"time"
@@ -16,7 +17,11 @@ func TestTCP(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer l0.Close()
+	defer func() {
+		if err := l0.Close(); err != nil {
+			t.Fatalf("Unable to close listener: %v", err)
+		}
+	}()
 
 	start, fdc, err := Matching("TCP")
 	if err != nil {
@@ -34,7 +39,6 @@ func TestTCP(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer l.Close()
 	_, middle, err := Matching("TCP")
 	if err != nil {
 		t.Fatal(err)
@@ -55,7 +59,9 @@ func TestTCP(t *testing.T) {
 		assert.True(t, len(err.Error()) > 100)
 	}
 
-	l.Close()
+	if err := l.Close(); err != nil {
+		t.Fatalf("Unable to close listener: %v", err)
+	}
 	err = middle.AssertDelta(0)
 	if assert.Error(t, err, "Asserting wrong count should fail") {
 		assert.Contains(t, err.Error(), "Expected 0, have -1")
@@ -69,16 +75,17 @@ func TestWaitUntilNoneMatchOK(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to dial google: %v", err)
 	}
-	defer conn.Close()
 
-	wait := 250 * time.Millisecond
+	wait := 50 * time.Millisecond
 	start := time.Now()
 	go func() {
 		time.Sleep(wait)
-		conn.Close()
+		if err := conn.Close(); err != nil {
+			t.Fatalf("Unable to close connection: %v", err)
+		}
 	}()
 
-	err = WaitUntilNoneMatch("TCP", wait*2)
+	err = WaitUntilNoneMatch("TCP", wait*5)
 	elapsed := time.Now().Sub(start)
 	assert.NoError(t, err, "Waiting should have succeeded")
 	assert.True(t, elapsed >= wait, "Should have waited a while")
@@ -89,16 +96,22 @@ func TestWaitUntilNoneMatchTimeout(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to dial google: %v", err)
 	}
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			fmt.Printf("Unable to close connection: %v", err)
+		}
+	}()
 
-	wait := 500 * time.Millisecond
+	wait := 200 * time.Millisecond
 	start := time.Now()
 	go func() {
 		time.Sleep(wait)
-		conn.Close()
+		if err := conn.Close(); err != nil {
+			t.Fatalf("Unable to close connection: %v", err)
+		}
 	}()
 
-	err = WaitUntilNoneMatch("TCP", wait/2)
+	err = WaitUntilNoneMatch("TCP", wait/4)
 	elapsed := time.Now().Sub(start)
 	assert.Error(t, err, "Waiting should have failed")
 	assert.True(t, elapsed < wait, "Should have waited less than time to close conn")

@@ -1,3 +1,28 @@
+## 1.0.13 (2015-6-2)
+ Build:
+  - UpdatedevDependencies
+
+## 1.0.12 (2015-6-2)
+
+Features:
+  - Update to angular 1.3.15
+  - Added an alwaysReconnect option
+  - Can mock a websocket server for testing purpose.
+  - Use Angular's `bind` polyfill
+
+Bugfixes:
+  - Pass options to the $websocket constructor
+  - Fix MockWebsocket readyState and flush
+
+
+## 1.0.9 (2015-2-22)
+
+Features:
+  - Export module for better browserify support
+
+Bugfixes:
+  - Missing `ws` dependency for browserify
+
 ## 1.0.8 (2015-1-29)
 
 Features:

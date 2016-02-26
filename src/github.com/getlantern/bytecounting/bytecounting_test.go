@@ -42,7 +42,11 @@ func TestCounting(t *testing.T) {
 			atomic.AddInt64(&lw, bytes)
 		},
 	}
-	defer il.Close()
+	defer func() {
+		if err := il.Close(); err != nil {
+			t.Fatalf("Unable to close listener: %v", err)
+		}
+	}()
 
 	go func() {
 		conn, err := il.Accept()
@@ -50,9 +54,15 @@ func TestCounting(t *testing.T) {
 			t.Fatalf("Unable to accept: %s", err)
 		}
 		b := make([]byte, len(req))
-		conn.Read(b)
-		conn.Write(resp)
-		conn.Close()
+		if _, err := conn.Read(b); err != nil {
+			t.Fatalf("Unable to read from connection: %v", err)
+		}
+		if _, err := conn.Write(resp); err != nil {
+			t.Fatalf("Unable to write to connection: %v", err)
+		}
+		if err := conn.Close(); err != nil {
+			t.Fatalf("Unable to close connection: %v", err)
+		}
 	}()
 
 	addr := il.Addr().String()
@@ -76,31 +86,44 @@ func TestCounting(t *testing.T) {
 	assert.Equal(t, c.RemoteAddr(), conn.RemoteAddr(), "RemoteAddr should be same as on underlying")
 
 	// Test short ReadDeadline
-	conn.SetReadDeadline(time.Now().Add(-1 * time.Second))
+	if err := conn.SetReadDeadline(time.Now().Add(-1 * time.Second)); err != nil {
+		t.Fatalf("Unable to set read deadline: %v", err)
+	}
 	b := make([]byte, len(resp))
 	_, err = conn.Read(b)
 	assertTimeoutError(t, err)
-	conn.SetReadDeadline(time.Now().Add(1 * time.Hour))
+	if err := conn.SetReadDeadline(time.Now().Add(1 * time.Hour)); err != nil {
+		t.Fatalf("Unable to set read deadline: %v", err)
+	}
 
 	// Test short WriteDeadline
-	conn.SetWriteDeadline(time.Now().Add(-1 * time.Second))
+	if err := conn.SetWriteDeadline(time.Now().Add(-1 * time.Second)); err != nil {
+		t.Fatalf("Unable to set read deadline: %v", err)
+	}
 	_, err = conn.Write([]byte{})
 	assertTimeoutError(t, err)
-	conn.SetWriteDeadline(time.Now().Add(1 * time.Hour))
+	if err := conn.SetWriteDeadline(time.Now().Add(1 * time.Hour)); err != nil {
+		t.Fatalf("Unable to set read deadline: %v", err)
+	}
 
 	// Test short Deadline
-	conn.SetDeadline(time.Now().Add(-1 * time.Second))
+	if err := conn.SetDeadline(time.Now().Add(-1 * time.Second)); err != nil {
+		t.Fatalf("Unable to set read deadline: %v", err)
+	}
 	_, err = conn.Read(b)
 	assertTimeoutError(t, err)
 	_, err = conn.Write([]byte{})
 	assertTimeoutError(t, err)
-	conn.SetDeadline(time.Now().Add(1 * time.Hour))
+	if err := conn.SetDeadline(time.Now().Add(1 * time.Hour)); err != nil {
+		t.Fatalf("Unable to set read deadline: %v", err)
+	}
 
-	_, err = conn.Write(req)
-	if err != nil {
+	if _, err = conn.Write(req); err != nil {
 		t.Fatalf("Unable to write: %v", err)
 	}
-	ioutil.ReadAll(conn)
+	if _, err := ioutil.ReadAll(conn); err != nil {
+		t.Fatalf("Unable to read: %v", err)
+	}
 
 	assert.Equal(t, int64(len(resp)), cr, "Wrong number of bytes read by conn")
 	assert.Equal(t, int64(len(req)), cw, "Wrong number of bytes written by conn")

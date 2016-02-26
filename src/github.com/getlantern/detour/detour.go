@@ -51,7 +51,7 @@ var TimeoutToDetour = 3 * time.Second
 
 // if DirectAddrCh is set, when a direct connection is closed without any error,
 // the connection's remote address (in host:port format) will be send to it
-var DirectAddrCh chan string
+var DirectAddrCh chan string = make(chan string)
 
 var (
 	log = golog.LoggerFor("detour")
@@ -124,7 +124,9 @@ func Dialer(d dialFunc) dialFunc {
 					return dc, nil
 				}
 				log.Debugf("Dial %s to %s, dns hijacked, try detour", dc.stateDesc(), addr)
-				dc.conn.Close()
+				if err := dc.conn.Close(); err != nil {
+					log.Debugf("Unable to close connection: %v", err)
+				}
 			} else if detector.TamperingSuspected(err) {
 				log.Debugf("Dial %s to %s failed, try detour: %s", dc.stateDesc(), addr, err)
 			} else {
@@ -162,9 +164,13 @@ func (dc *Conn) Read(b []byte) (n int, err error) {
 		return dc.countedRead(b)
 	}
 	// wait for at most TimeoutToDetour to read
-	dc.getConn().SetReadDeadline(start.Add(TimeoutToDetour))
+	if err := dc.getConn().SetReadDeadline(start.Add(TimeoutToDetour)); err != nil {
+		log.Debugf("Unable to set read deadline: %v", err)
+	}
 	n, err = dc.countedRead(b)
-	dc.getConn().SetReadDeadline(dc.readDeadline)
+	if err := dc.getConn().SetReadDeadline(dc.readDeadline); err != nil {
+		log.Debugf("Unable to set read deadline: %v", err)
+	}
 
 	detector := blockDetector.Load().(*Detector)
 	if err != nil {
@@ -318,22 +324,30 @@ func (dc *Conn) RemoteAddr() net.Addr {
 
 // SetDeadline() implements the function from net.Conn
 func (dc *Conn) SetDeadline(t time.Time) error {
-	dc.SetReadDeadline(t)
-	dc.SetWriteDeadline(t)
+	if err := dc.SetReadDeadline(t); err != nil {
+		log.Debugf("Unable to set read deadline: %v", err)
+	}
+	if err := dc.SetWriteDeadline(t); err != nil {
+		log.Debugf("Unable to set write deadline: %v", err)
+	}
 	return nil
 }
 
 // SetReadDeadline() implements the function from net.Conn
 func (dc *Conn) SetReadDeadline(t time.Time) error {
 	dc.readDeadline = t
-	dc.getConn().SetReadDeadline(t)
+	if err := dc.getConn().SetReadDeadline(t); err != nil {
+		log.Debugf("Unable to set read deadline: %v", err)
+	}
 	return nil
 }
 
 // SetWriteDeadline() implements the function from net.Conn
 func (dc *Conn) SetWriteDeadline(t time.Time) error {
 	dc.writeDeadline = t
-	dc.getConn().SetWriteDeadline(t)
+	if err := dc.getConn().SetWriteDeadline(t); err != nil {
+		log.Debugf("Unable to set write deadline", err)
+	}
 	return nil
 }
 
@@ -389,10 +403,16 @@ func (dc *Conn) setConn(c net.Conn) {
 	oldConn := dc.conn
 	dc.conn = c
 	dc.muConn.Unlock()
-	dc.conn.SetReadDeadline(dc.readDeadline)
-	dc.conn.SetWriteDeadline(dc.writeDeadline)
+	if err := dc.conn.SetReadDeadline(dc.readDeadline); err != nil {
+		log.Debugf("Unable to set read deadline: %v", err)
+	}
+	if err := dc.conn.SetWriteDeadline(dc.writeDeadline); err != nil {
+		log.Debugf("Unable to set write deadline: %v", err)
+	}
 	log.Tracef("Replaced connection to %s from direct to detour and closing old one", dc.addr)
-	oldConn.Close()
+	if err := oldConn.Close(); err != nil {
+		log.Debugf("Unable to close old connection: %v", err)
+	}
 }
 
 func (dc *Conn) stateDesc() string {

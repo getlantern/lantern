@@ -12,13 +12,7 @@ var (
 	maxAssertAttempts = uint(7)
 )
 
-type Counter struct {
-	match         string
-	startingLines string
-	startingCount int
-}
-
-// Returns a count of the file descriptors matching the given string (not a
+// Matching returns a count of the file descriptors matching the given string (not a
 // regex). Also returns a Counter that can be used to check the delta of file
 // descriptors after this point.
 //
@@ -62,7 +56,14 @@ func WaitUntilNoneMatch(match string, timeout time.Duration) error {
 	return fmt.Errorf("%d lines still match %v\n\n%v", count, match, string(out))
 }
 
-// Asserts that the number of file descriptors added/removed since Counter was
+// Counter memorizes the number of file descriptors and compare them.
+type Counter struct {
+	match         string
+	startingLines string
+	startingCount int
+}
+
+// AssertDelta asserts that the number of file descriptors added/removed since Counter was
 // created equals the given number.
 func (c *Counter) AssertDelta(expected int) error {
 	var err error
@@ -99,7 +100,7 @@ func (c *Counter) matchingLines(out []byte) (string, int) {
 }
 
 func matchingLines(match string, out []byte) (string, int) {
-	lines := make([]string, 0)
+	var lines []string
 	for _, line := range strings.Split(string(out), "\n") {
 		if strings.Contains(line, match) {
 			lines = append(lines, line)

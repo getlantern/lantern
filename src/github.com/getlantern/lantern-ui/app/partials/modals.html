@@ -68,7 +68,7 @@
         </div>
         <form name="proxiedSitesForm" ng-init="setFormScope(this)">
           <textarea name="input" placeholder="example.com" required
-            split-array 
+            split-array
             dynamic
             ng-model="entries"
             ng-model-options="{ getterSetter: true }"
@@ -95,7 +95,7 @@
       <button type="button" class="btn" ng-click="resetProxiedSites(false)" tabindex="{{ show && 3 || '' }">{{ 'CANCEL' | translate }}</button>
 
       <!--<button type="button" class="btn" ng-click="resetProxiedSites(true)" tabindex="{{ show && 3 || '' }">{{ 'RESET' | translate }}</button>-->
-    <button id="continueFromProxiedSites" 
+    <button id="continueFromProxiedSites"
             type="button" class="btn btn-primary" tabindex="{{ show && 2 || '' }}"
             ng-disabled="updating || proxiedSitesForm.$invalid"
             ng-click="handleContinue()">{{ updating && 'UPDATING' || (hasUpdate && 'UPDATE') || (model.setupComplete && 'CLOSE' || 'CONTINUE') | translate }}</button>
@@ -179,7 +179,7 @@
       <summary><span class="capitalize">{{ 'VERSION' | upper | translate }}</span> {{ model.version.latest | version:true }}</summary>
       <dl class="dl-horizontal">
         <dt>{{ 'RELEASED' | translate }}</dt>
-        <!-- XXX include correct locale script from http://code.angularjs.org/1.0.8/i18n/ 
+        <!-- XXX include correct locale script from http://code.angularjs.org/1.0.8/i18n/
                  to properly localize this date string -->
         <dd><time>{{ model.version.latest.releaseDate | date:'longDate' }}</time>&nbsp;</dd>
         <dt ng-show="model.version.latest.infoUrl">{{ 'MORE_INFO' | translate }}</dt>
@@ -188,7 +188,7 @@
     </details>
     <p class="smaller indented">{{ 'UPDATE_AVAILABLE_PROMPT_RUNNING' | translate }}
       {{ 'VERSION' | translate }} {{ model.version.installed | version:true }},
-      <!-- XXX include correct locale script from http://code.angularjs.org/1.0.8/i18n/ 
+      <!-- XXX include correct locale script from http://code.angularjs.org/1.0.8/i18n/
                to properly localize this date string -->
       {{ 'RELEASED' | translate }} <time>{{ model.version.installed.releaseDate | date:'longDate' }}.</time></p><!-- XXX i18n -->
     <br>
@@ -223,8 +223,7 @@
       </label>
 
         <label class="checkbox">
-          <input type="checkbox" ng-model="model.settings.proxyAll" focus-on="show"
-          ng-click="changeProxyAll(model.settings.proxyAll)">
+          <input type="checkbox" ng-model="model.settings.proxyAll" focus-on="show" ng-click="changeProxyAll(model.settings.proxyAll)">
           {{ 'PROXY_ALL_TRAFFIC' | translate }}
         </label>
 
@@ -238,15 +237,53 @@
           </label>
         </div>
 
-        <div id="autoreport-warning" ng-show="!model.settings.autoReport">
+        <div>
+          <label class="checkbox">
+            <input type="checkbox" ng-model="model.settings.systemProxy" ng-click="changeSystemProxy(model.settings.systemProxy)">
+            {{ 'MANAGE_SYSTEMPROXY' | translate }}
+          </label>
+        </div>
+        
+		<div id="autoreport-warning" ng-show="!model.settings.autoReport">
           <i class="icon-exclamation-sign"></i>
           {{ 'NO_AUTOREPORT_WARNING' | translate }}
         </div>
 
+        <dt ng-if="model.localLanterns.length > 0">{{ 'LOCAL_LANTERNS' | translate }}</dt>
+        <dd ng-if="model.localLanterns.length > 0" id="local-lanterns-list">
+        <a ng-repeat="n in model.localLanterns" ng-click="openExternal(n)" class="local-lantern-link">
+            {{n}}<sup><i class="icon-external-link"></i></sup>
+        </a>
+        </dd>
       </dd>
     </dl>
   </div>
   <div class="modal-footer">
     <button type="button" id="settings-close" class="btn btn-primary" ng-click="closeModal()">{{ 'CLOSE' | translate }}</button>
+  </div>
+</div>
+
+<div ng-controller="MobileAdCtrl" ng-show="currentModal == 'lantern-mobile-ad'" modal="show" class="modal">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close" ng-click="closeModal()"><span aria-hidden="true">&times;</span></button>
+    <h3>
+      {{ 'TELL_YOUR_FRIENDS' | translate }}
+    </h3>
+  </div>
+  <div class="modal-body" id="settings">
+    <div id="tell-your-friends">
+      <ul class="social-icons">
+        <li class="weibo"><a target="_blank" ng-click="trackSocialLink('weibo')" href="http://service.weibo.com/share/share.php?title={{ 'LANTERN_MOBILE_SHARE' | translate | urlencode }}">Weibo</a>Weibo</li>
+        <li class="twitter"><a target="_blank" ng-click="trackSocialLink('twitter')" href="https://twitter.com/intent/tweet?text={{ 'LANTERN_MOBILE_SHARE' | translate | urlencode }}">Twitter</a>Twitter</li>
+        <li class="facebook"><a target="_blank" ng-click="trackSocialLink('facebook')" href="http://www.facebook.com/sharer.php?u={{ 'LANTERN_MOBILE_ANDROID' | translate }}">Facebook</a>Facebook</li>
+      </ul>
+      <p class="download-link">
+        <b>{{ 'LANTERN_MOBILE_ANDROID_TEXT' | translate }}:</b> <a ng-click="trackLink('lantern-mobile-modal')" target="_blank" href="{{ 'LANTERN_MOBILE_ANDROID' | translate }}">{{ 'LANTERN_MOBILE_ANDROID' | translate }}</a>
+      </p>
+      <button ngclipboard data-clipboard-text="{{ 'LANTERN_MOBILE_ANDROID' | translate }}" type="button" ng-attr-style="background: url('/img/mobile-ad/{{ 'LANG_ID' | translate }}/copy-link.svg')" ng-click="copyAndroidMobileLink()">
+        Copy link
+      </button>
+      <p ng-show="linkCopied" id="link-copied">Link copied</p>
+    </div>
   </div>
 </div>

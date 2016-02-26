@@ -39,10 +39,14 @@ func TestWrite(t *testing.T) {
 	addr := l.Addr().String()
 	il := Listener(l, serverTimeout, func(conn net.Conn) {
 		atomic.StoreInt32(&listenerIdled, 1)
-		conn.Close()
+		if err := conn.Close(); err != nil {
+			t.Errorf("Unable to close connection: %v", err)
+		}
 	})
 	defer func() {
-		il.Close()
+		if err := il.Close(); err != nil {
+			t.Errorf("Unable to close listener: %v", err)
+		}
 		time.Sleep(1 * time.Second)
 		err = fdc.AssertDelta(0)
 		if err != nil {
@@ -57,7 +61,9 @@ func TestWrite(t *testing.T) {
 		}
 		go func() {
 			// Discard data
-			io.Copy(ioutil.Discard, conn)
+			if _, err := io.Copy(ioutil.Discard, conn); err != nil {
+				t.Fatalf("Unable to discard data: %v", err)
+			}
 		}()
 	}()
 
@@ -70,7 +76,9 @@ func TestWrite(t *testing.T) {
 
 	c := Conn(conn, clientTimeout, func() {
 		atomic.StoreInt32(&connIdled, 1)
-		conn.Close()
+		if err := conn.Close(); err != nil {
+			t.Fatalf("Unable to close connection: %v", err)
+		}
 	})
 
 	// Write messages
@@ -82,7 +90,9 @@ func TestWrite(t *testing.T) {
 	}
 
 	// Now write msg with a really short deadline
-	c.SetWriteDeadline(time.Now().Add(1 * time.Nanosecond))
+	if err := c.SetWriteDeadline(time.Now().Add(1 * time.Nanosecond)); err != nil {
+		t.Fatalf("Unable to set write deadline: %v", err)
+	}
 	_, err = c.Write(msg)
 	if netErr, ok := err.(net.Error); ok {
 		if !netErr.Timeout() {
@@ -124,10 +134,14 @@ func TestRead(t *testing.T) {
 
 	il := Listener(l, serverTimeout, func(conn net.Conn) {
 		atomic.StoreInt32(&listenerIdled, 1)
-		conn.Close()
+		if err := conn.Close(); err != nil {
+			t.Fatalf("Unable to close connection: %v", err)
+		}
 	})
 	defer func() {
-		il.Close()
+		if err := il.Close(); err != nil {
+			t.Fatalf("Unable to close listener: %v", err)
+		}
 		time.Sleep(1 * time.Second)
 		err = fdc.AssertDelta(0)
 		if err != nil {
@@ -162,7 +176,9 @@ func TestRead(t *testing.T) {
 
 	c := Conn(conn, clientTimeout, func() {
 		atomic.StoreInt32(&connIdled, 1)
-		conn.Close()
+		if err := conn.Close(); err != nil {
+			t.Fatalf("Unable to close connection: %v", err)
+		}
 	})
 
 	// Read messages (we use a buffer matching the message size to make sure
@@ -182,7 +198,9 @@ func TestRead(t *testing.T) {
 	}
 
 	// Now read with a really short deadline
-	c.SetReadDeadline(time.Now().Add(1 * time.Nanosecond))
+	if err := c.SetReadDeadline(time.Now().Add(1 * time.Nanosecond)); err != nil {
+		t.Fatalf("Unable to set read deadline: %v", err)
+	}
 	_, err = c.Read(msg)
 	if netErr, ok := err.(net.Error); ok {
 		if !netErr.Timeout() {
@@ -214,7 +232,9 @@ func TestClose(t *testing.T) {
 		t.Fatalf("Unable to listen: %s", err)
 	}
 	defer func() {
-		l.Close()
+		if err := l.Close(); err != nil {
+			t.Fatalf("Unable to close listener: %v", err)
+		}
 		time.Sleep(1 * time.Second)
 		err = fdc.AssertDelta(0)
 		if err != nil {
@@ -230,7 +250,7 @@ func TestClose(t *testing.T) {
 
 	c := Conn(conn, clientTimeout, func() {})
 	for i := 0; i < 100; i++ {
-		c.Close()
+		_ = c.Close()
 	}
 }
 
