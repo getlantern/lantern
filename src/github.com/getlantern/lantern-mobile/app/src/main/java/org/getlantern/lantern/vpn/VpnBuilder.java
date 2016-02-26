@@ -60,16 +60,14 @@ public class VpnBuilder extends VpnService {
         DnsList.add(new IPAddress("8.8.8.8"));
     }
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
+    public void createBuilder() {
+
         // Set the locale to English
         // since the VpnBuilder encounters
         // issues with non-English numerals
+        // See https://code.google.com/p/android/issues/detail?id=61096
         Locale.setDefault(new Locale("en"));
-    }
 
-    public void createBuilder() {
         // Configure a builder while parsing the parameters.
         Builder builder = new Builder();
         builder.setMtu(VPN_MTU);
@@ -104,7 +102,13 @@ public class VpnBuilder extends VpnService {
 
         vpnThread = new Thread() {
             public void run() {
+
+                Locale defaultLocale = Locale.getDefault();
+
                 createBuilder();
+
+                // revert back to the user's default locale
+                Locale.setDefault(defaultLocale);
 
                 String udpgwAddr = "127.0.0.1:7300";
 

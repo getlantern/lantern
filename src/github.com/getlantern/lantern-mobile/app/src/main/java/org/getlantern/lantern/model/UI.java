@@ -74,8 +74,8 @@ public class UI {
 
     private static final String TAG = "LanternUI";
 
-    private ArrayList<NavItem> mNavItems;
-    private Map<String, Command> menuMap;
+    private ArrayList<NavItem> mNavItems = new ArrayList<NavItem>();
+    private Map<String, Command> menuMap = new HashMap<String, Command>();
 
     private DrawerLayout mDrawerLayout;
     private ObjectAnimator colorFadeIn, colorFadeOut;
@@ -100,6 +100,7 @@ public class UI {
     private TextView versionNum;
     private Button sendBtn;
     private View separator;
+    private Resources resources;
 
     private static final int onColor = Color.parseColor("#39C2D6");
     private static final int offColor = Color.parseColor("#FAFBFB"); 
@@ -112,9 +113,9 @@ public class UI {
     private View mainView, desktopView, statusLayout;
 
     public UI(LanternMainActivity activity, SharedPreferences mPrefs) {
-        this.mNavItems = new ArrayList<NavItem>();
         this.activity = activity;
         this.mPrefs = mPrefs;
+        this.resources = activity.getResources();
 
         this.mainView = (View)this.activity.findViewById(R.id.mainView); 
         this.desktopView = (View)this.activity.findViewById(R.id.desktopView);
@@ -134,8 +135,6 @@ public class UI {
         this.powerLantern = (ToggleButton)this.activity.findViewById(R.id.powerLantern);
 
         this.shareable = new Shareable(this.activity);
-
-        this.menuMap = new HashMap<String, Command>();
 
         this.configureEmailInput();
 
@@ -158,24 +157,28 @@ public class UI {
 
     public void setupSideMenu() throws Exception {
 
-        mNavItems.add(new NavItem("Share", R.drawable.ic_share));
-        mNavItems.add(new NavItem("Desktop Version", R.drawable.ic_desktop));
-        mNavItems.add(new NavItem("Contact", R.drawable.ic_contact));
-        mNavItems.add(new NavItem("Quit", R.drawable.ic_quit));
+        mNavItems.add(new NavItem(resources.getString(R.string.share_option), 
+                    R.drawable.ic_share));
+        mNavItems.add(new NavItem(resources.getString(R.string.desktop_option), 
+                    R.drawable.ic_desktop));
+        mNavItems.add(new NavItem(resources.getString(R.string.contact_option), 
+                    R.drawable.ic_contact));
+        mNavItems.add(new NavItem(resources.getString(R.string.quit_option), 
+                    R.drawable.ic_quit));
 
-        menuMap.put("Quit", new Command() { 
+        menuMap.put(resources.getString(R.string.quit_option), new Command() { 
             public void runCommand() { activity.quitLantern(); } 
         });
 
-        menuMap.put("Contact", new Command() { 
+        menuMap.put(resources.getString(R.string.contact_option), new Command() { 
             public void runCommand() { contactOption(); } 
         });
 
-        menuMap.put("Desktop Version", new Command() { 
+        menuMap.put(resources.getString(R.string.desktop_option), new Command() { 
             public void runCommand() { desktopOption(); } 
         });
 
-        menuMap.put("Share", new Command() { 
+        menuMap.put(resources.getString(R.string.share_option), new Command() { 
             public void runCommand() { shareable.showOption(); } 
         });   
 

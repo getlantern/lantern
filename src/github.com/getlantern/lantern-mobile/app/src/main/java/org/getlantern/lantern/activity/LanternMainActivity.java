@@ -55,7 +55,7 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         // we hide the default action bar
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
-        }  
+        }
 
         context = getApplicationContext();
         mPrefs = Utils.getSharedPrefs(context);
