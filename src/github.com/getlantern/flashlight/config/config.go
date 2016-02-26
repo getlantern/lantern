@@ -62,7 +62,6 @@ type Config struct {
 	CpuProfile      string
 	MemProfile      string
 	UpdateServerURL string
-	UIAddr          string // UI HTTP server address
 	Client          *client.ClientConfig
 	ProxiedSites    *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
 	TrustedCAs      []*CA
@@ -325,11 +324,6 @@ func (updated *Config) applyFlags(flags map[string]interface{}) error {
 			updated.CloudConfigCA = value.(string)
 		case "instanceid":
 			updated.Client.DeviceID = value.(string)
-
-		// HTTP-server
-		case "uiaddr":
-			updated.UIAddr = value.(string)
-
 		case "cpuprofile":
 			updated.CpuProfile = value.(string)
 		case "memprofile":
@@ -350,10 +344,6 @@ func (updated *Config) applyFlags(flags map[string]interface{}) error {
 // flashlight, this function should be updated to provide sensible defaults for
 // those settings.
 func (cfg *Config) ApplyDefaults() {
-	if cfg.UIAddr == "" {
-		cfg.UIAddr = "127.0.0.1:16823"
-	}
-
 	if cfg.UpdateServerURL == "" {
 		cfg.UpdateServerURL = "https://update.getlantern.org"
 	}
