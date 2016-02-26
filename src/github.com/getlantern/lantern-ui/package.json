@@ -35,7 +35,8 @@
     "gulp-minify-html": "^1.0.3",
     "gulp-rev": "^5.0.1",
     "gulp-uglify": "^1.2.0",
-    "gulp-usemin": "^0.3.11"
+    "gulp-usemin": "^0.3.11",
+    "es6-promise": "~3.1.2"
   },
   "analyze": false,
   "license": "GPLv3",
