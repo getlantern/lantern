@@ -36,7 +36,14 @@ PACKAGED_YAML := .packaged-lantern.yaml
 MANOTO_YAML := .packaged-lantern-manoto.yaml
 
 RESOURCES_DOT_GO := ./src/github.com/getlantern/flashlight/ui/resources.go
-BNS_CERT := bns.pfx
+
+ifdef SECRETS_DIR
+BNS_CERT := $(SECRETS_DIR)/bns.pfx
+DOCKER_VOLS = "-v $$PWD:/lantern $(SECRETS_VOL) -v $$SECRETS_DIR:/secrets"
+else
+BNS_CERT := "../secrets/bns.pfx"
+DOCKER_VOLS = "-v $$PWD:/lantern $(SECRETS_VOL)"
+endif
 
 LANTERN_BINARIES_PATH ?= ../lantern-binaries
 
@@ -164,7 +171,8 @@ docker-%: system-checks
 	mkdir -p $$DOCKER_CONTEXT && \
 	cp Dockerfile $$DOCKER_CONTEXT && \
 	docker build -t $(DOCKER_IMAGE_TAG) $$DOCKER_CONTEXT && \
-	docker run -v $$PWD:/lantern -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" SECRETS_DIR="'$$SECRETS_DIR'" BNS_CERT_PASS="'$$BNS_CERT_PASS'" make $*';
+	echo docker run `echo $(DOCKER_VOLS) | xargs` -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" BNS_CERT_PASS="'$$BNS_CERT_PASS'" make $*' && \
+	docker run `echo $(DOCKER_VOLS) | xargs` -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" BNS_CERT_PASS="'$$BNS_CERT_PASS'" make $*';
 
 all: binaries
 android-dist: genconfig android
@@ -178,6 +186,7 @@ $(RESOURCES_DOT_GO): $(NPM)
 	git update-index --assume-unchanged $$APP/js/revision.js && \
 	DEST="$@" && \
 	cd $$LANTERN_UI && \
+	rm -rf node_modules && \
 	npm install && \
 	rm -Rf dist && \
 	gulp build && \
@@ -225,8 +234,8 @@ require-secrets-dir:
 require-secrets: require-secrets-dir
 	@if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi
 
-$(BNS_CERT): require-secrets-dir
-	@cp -f $$SECRETS_DIR/$(BNS_CERT) $(BNS_CERT)
+$(BNS_CERT):
+	@if [[ ! -r "$(BNS_CERT)" ]]; then echo "Missing $(BNS_CERT)" && exit 1; fi
 
 require-lantern-binaries:
 	@if [[ ! -d "$(LANTERN_BINARIES_PATH)" ]]; then \
@@ -249,9 +258,7 @@ package-linux-arm: require-version linux-arm
 	@$(call fpm-debian-build,"arm")
 	@echo "-> lantern_$(VERSION)_arm.deb"
 
-package-windows: $(BNS_CERT) do-package-windows
-
-do-package-windows: require-version windows
+package-windows: $(BNS_CERT) require-version windows
 	@if [[ -z "$$BNS_CERT_PASS" ]]; then echo "BNS_CERT_PASS environment value is required."; exit 1; fi && \
 	INSTALLER_RESOURCES="installer-resources/windows" && \
 	rm -f $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
@@ -269,12 +276,7 @@ do-package-windows: require-version windows
 	osslsigncode sign -pkcs12 "$(BNS_CERT)" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer-manoto.exe" && \
 	echo "-> lantern-installer.exe and lantern-installer-manoto.exe"
 
-# We overwrite the implicit docker-package-windows rule to include a dependency
-# on $(BNS_CERT)
-docker-package-windows: $(BNS_CERT)
-	make docker-do-package-windows
-
-linux: linux-386 linux-amd64 linux-arm
+linux: linux-386 linux-amd64
 
 system-checks:
 	@if [[ -z "$(DOCKER)" ]]; then echo 'Missing "docker" command.'; exit 1; fi && \
@@ -328,7 +330,7 @@ lantern: require-assets
 	$(call build-tags) && \
 	CGO_ENABLED=1 go build -race -o lantern -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -s" github.com/getlantern/flashlight/main; \
 
-package-linux: require-version package-linux-386 package-linux-amd64 package-linux-arm
+package-linux: require-version package-linux-386 package-linux-amd64
 
 package-darwin-manoto: require-version require-appdmg require-svgexport darwin
 	@echo "Generating distribution package for darwin/amd64 manoto..." && \
@@ -566,10 +568,7 @@ clean-assets:
 # Provided for backward compatibility with how people used to use the makefile
 update-dist: clean-assets assets
 
-clean-bns-cert:
-	rm -f $(BNS_CERT)
-
-clean-desktop: clean-assets clean-bns-cert
+clean-desktop: clean-assets
 	rm -f lantern && \
 	rm -f lantern_linux* && \
 	rm -f lantern_darwin* && \
