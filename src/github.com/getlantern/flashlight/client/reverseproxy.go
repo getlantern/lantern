@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/getlantern/balancer"
-	"github.com/getlantern/detour"
 	"github.com/getlantern/flashlight/proxy"
 	"github.com/getlantern/flashlight/status"
 )
@@ -25,11 +24,7 @@ func (client *Client) newReverseProxy(bal *balancer.Balancer) *httputil.ReverseP
 	// challenge is that ReverseProxy reuses connections for
 	// different requests, so we might have to configure different
 	// ReverseProxies for different QOS's or something like that.
-	if client.ProxyAll() {
-		transport.Dial = bal.Dial
-	} else {
-		transport.Dial = detour.Dialer(bal.Dial)
-	}
+	transport.Dial = client.proxiedDialer(bal.Dial)
 
 	allAuthTokens := bal.AllAuthTokens()
 	return &httputil.ReverseProxy{

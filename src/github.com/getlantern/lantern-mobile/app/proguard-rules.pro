@@ -19,4 +19,4 @@
 -useuniqueclassmembernames
 -keepattributes SourceFile,LineNumberTable
 -allowaccessmodification
--ignorewarnings 
+-ignorewarnings

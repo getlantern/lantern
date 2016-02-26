@@ -13,6 +13,8 @@ import (
 	"github.com/getlantern/golog"
 	"github.com/getlantern/tarfs"
 	"github.com/skratchdot/open-golang/open"
+
+	"github.com/getlantern/flashlight/client"
 )
 
 const (
@@ -22,11 +24,12 @@ const (
 var (
 	log = golog.LoggerFor("flashlight.ui")
 
-	l            net.Listener
-	fs           *tarfs.FileSystem
-	Translations *tarfs.FileSystem
-	server       *http.Server
-	uiaddr       string
+	l             net.Listener
+	fs            *tarfs.FileSystem
+	Translations  *tarfs.FileSystem
+	server        *http.Server
+	uiaddr        string
+	proxiedUIAddr string
 
 	openedExternal = false
 	externalUrl    string
@@ -64,15 +67,19 @@ func Handle(p string, handler http.Handler) string {
 	return uiaddr + p
 }
 
-func Start(tcpAddr *net.TCPAddr, allowRemote bool, extUrl string) (err error) {
-	addr := tcpAddr
+func Start(requestedAddr string, allowRemote bool, extUrl string) (string, error) {
+	addr, err := net.ResolveTCPAddr("tcp4", requestedAddr)
+	if err != nil {
+		return "", fmt.Errorf("Unable to resolve UI address: %v", err)
+	}
+
 	externalUrl = extUrl
 	if allowRemote {
 		// If we want to allow remote connections, we have to bind all interfaces
-		addr = &net.TCPAddr{Port: tcpAddr.Port}
+		addr = &net.TCPAddr{Port: addr.Port}
 	}
 	if l, err = net.ListenTCP("tcp4", addr); err != nil {
-		return fmt.Errorf("Unable to listen at %v: %v. Error is: %v", addr, l, err)
+		return "", fmt.Errorf("Unable to listen at %v: %v. Error is: %v", addr, l, err)
 	}
 
 	// This allows a second Lantern running on the system to trigger the existing
@@ -99,9 +106,20 @@ func Start(tcpAddr *net.TCPAddr, allowRemote bool, extUrl string) (err error) {
 		}
 	}()
 	uiaddr = fmt.Sprintf("http://%v", l.Addr().String())
+
+	// Note - we display the UI using the LanternSpecialDomain. This is necessary
+	// for Microsoft Edge on Windows 10 because, being a Windows Modern App, its
+	// default network isolation settings prevent it from opening websites on the
+	// loopback address. We get around this by exploiting the fact that Edge will
+	// happily connect to our proxy server running on the loopback interface. So,
+	// we use what looks like a real domain for the UI (ui.lantern.io), the proxy
+	// detects this and reroutes the traffic to the local UI server. The proxy is
+	// allowed to connect to loopback because it doesn't have the same restriction
+	// as Microsoft Edge.
+	proxiedUIAddr = fmt.Sprintf("http://%v", client.LanternSpecialDomain)
 	log.Debugf("UI available at %v", uiaddr)
 
-	return nil
+	return l.Addr().String(), nil
 }
 
 // Show opens the UI in a browser. Note we know the UI server is
@@ -111,9 +129,9 @@ func Start(tcpAddr *net.TCPAddr, allowRemote bool, extUrl string) (err error) {
 // asynchronously is not a problem.
 func Show() {
 	go func() {
-		err := open.Run(uiaddr)
+		err := open.Run(proxiedUIAddr)
 		if err != nil {
-			log.Errorf("Error opening page to `%v`: %v", uiaddr, err)
+			log.Errorf("Error opening page to `%v`: %v", proxiedUIAddr, err)
 		}
 
 		onceBody := func() {

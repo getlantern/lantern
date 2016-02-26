@@ -21,17 +21,18 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_alignBottom="@+id/toggleButton" />
+        android:layout_alignBottom="@+id/offButton" />
 
-    <ToggleButton
+    <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="New ToggleButton"
-        android:id="@+id/toggleButton"
+        android:text="Off"
+        android:id="@+id/offButton"
+        android:onClick="off"
+        android:layout_marginTop="61dp"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:onClick="onToggleLantern" />
+        android:layout_alignParentEnd="true" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -53,5 +54,24 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="172dp" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="On"
+        android:id="@+id/onButton"
+        android:layout_alignTop="@+id/offButton"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:onClick="on" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="On (Service)"
+        android:id="@+id/onServiceButton"
+        android:onClick="onAsService"
+        android:layout_alignTop="@+id/offButton"
+        android:layout_centerHorizontal="true" />
 
 </RelativeLayout>
