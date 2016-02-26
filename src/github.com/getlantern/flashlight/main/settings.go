@@ -1,5 +1,4 @@
-// Package settings loads user-specific settings and exchanges them with the UI.
-package settings
+package main
 
 import (
 	"io/ioutil"
@@ -12,7 +11,6 @@ import (
 	"github.com/getlantern/yaml"
 
 	"github.com/getlantern/flashlight/ui"
-	"github.com/getlantern/golog"
 )
 
 const (
@@ -20,7 +18,6 @@ const (
 )
 
 var (
-	log        = golog.LoggerFor("flashlight.settings")
 	service    *ui.Service
 	settings   *Settings
 	httpClient *http.Client
@@ -36,19 +33,21 @@ type Settings struct {
 	AutoReport   bool
 	AutoLaunch   bool
 	ProxyAll     bool
+	SystemProxy  bool
 
 	sync.RWMutex
 }
 
 // Load loads the initial settings at startup, either from disk or using defaults.
-func Load(version, revisionDate, buildDate string) {
+func LoadSettings(version, revisionDate, buildDate string) *Settings {
 	log.Debug("Loading settings")
 	// Create default settings that may or may not be overridden from an existing file
 	// on disk.
 	settings = &Settings{
-		AutoReport: true,
-		AutoLaunch: true,
-		ProxyAll:   false,
+		AutoReport:  true,
+		AutoLaunch:  true,
+		ProxyAll:    false,
+		SystemProxy: true,
 	}
 
 	// Use settings from disk if they're available.
@@ -73,91 +72,128 @@ func Load(version, revisionDate, buildDate string) {
 	// application flow, but tests might call Load twice, for example, which we
 	// want to allow.
 	once.Do(func() {
-		err := start(settings)
+		err := settings.start()
 		if err != nil {
 			log.Errorf("Unable to register settings service: %q", err)
 			return
 		}
-		go read()
+		go settings.read()
 	})
+	return settings
 }
 
-// GetProxyAll returns whether or not to proxy all traffic.
-func GetProxyAll() bool {
-	settings.RLock()
-	defer settings.RUnlock()
-	return settings.ProxyAll
-}
-
-// SetProxyAll sets whether or not to proxy all traffic.
-func SetProxyAll(proxyAll bool) {
-	settings.Lock()
-	defer settings.Unlock()
-	settings.ProxyAll = proxyAll
-}
-
-// IsAutoReport returns whether or not to auto-report debugging and analytics data.
-func IsAutoReport() bool {
-	settings.RLock()
-	defer settings.RUnlock()
-	return settings.AutoReport
-}
-
-// SetAutoReport sets whether or not to auto-report debugging and analytics data.
-func SetAutoReport(auto bool) {
-	settings.Lock()
-	defer settings.Unlock()
-	settings.AutoReport = auto
-}
-
-// SetAutoLaunch sets whether or not to auto-launch Lantern on system startup.
-func SetAutoLaunch(auto bool) {
-	settings.Lock()
-	defer settings.Unlock()
-	settings.AutoLaunch = auto
-	go launcher.CreateLaunchFile(auto)
+type msg struct {
+	Settings   *Settings
+	RedirectTo string
 }
 
 // start the settings service that synchronizes Lantern's configuration with every UI client
-func start(baseSettings *Settings) error {
+func (s *Settings) start() error {
 	var err error
 
+	ui.PreferProxiedUI(s.SystemProxy)
 	helloFn := func(write func(interface{}) error) error {
 		log.Debugf("Sending Lantern settings to new client")
-		settings.Lock()
-		defer settings.Unlock()
-		return write(baseSettings)
+		s.Lock()
+		defer s.Unlock()
+		return write(&msg{Settings: s})
 	}
 	service, err = ui.Register(messageType, nil, helloFn)
 	return err
 }
 
-func read() {
-	log.Tracef("Reading settings messages!!")
+func (s *Settings) read() {
+	log.Debugf("Reading settings messages!!")
 	for message := range service.In {
-		log.Tracef("Read settings message!! %q", message)
+		log.Debugf("Read settings message!! %v", message)
 		msg := (message).(map[string]interface{})
 
 		if autoReport, ok := msg["autoReport"].(bool); ok {
-			SetAutoReport(autoReport)
+			s.SetAutoReport(autoReport)
 		} else if proxyAll, ok := msg["proxyAll"].(bool); ok {
-			SetProxyAll(proxyAll)
+			s.SetProxyAll(proxyAll)
 		} else if autoLaunch, ok := msg["autoLaunch"].(bool); ok {
-			SetAutoLaunch(autoLaunch)
+			s.SetAutoLaunch(autoLaunch)
+		} else if systemProxy, ok := msg["systemProxy"].(bool); ok {
+			log.Debugf("Setting system proxy")
+			s.SetSystemProxy(systemProxy)
 		}
 	}
 }
 
-// Saves settings to disk.
-func Save() {
+// Save saves settings to disk.
+func (s *Settings) Save() {
 	log.Debug("Saving settings")
-	settings.Lock()
-	defer settings.Unlock()
-	if bytes, err := yaml.Marshal(settings); err != nil {
+	s.Lock()
+	defer s.Unlock()
+	if bytes, err := yaml.Marshal(s); err != nil {
 		log.Errorf("Could not create yaml from settings %v", err)
 	} else if err := ioutil.WriteFile(path, bytes, 0644); err != nil {
 		log.Errorf("Could not write settings file %v", err)
 	} else {
-		log.Debugf("Saved settings to %s", path)
+		log.Debugf("Saved settings to %s with contents %v", path, string(bytes))
+	}
+}
+
+// GetProxyAll returns whether or not to proxy all traffic.
+func (s *Settings) GetProxyAll() bool {
+	s.RLock()
+	defer s.RUnlock()
+	return s.ProxyAll
+}
+
+// SetProxyAll sets whether or not to proxy all traffic.
+func (s *Settings) SetProxyAll(proxyAll bool) {
+	s.Lock()
+	defer s.Unlock()
+	s.ProxyAll = proxyAll
+}
+
+// IsAutoReport returns whether or not to auto-report debugging and analytics data.
+func (s *Settings) IsAutoReport() bool {
+	s.RLock()
+	defer s.RUnlock()
+	return s.AutoReport
+}
+
+// SetAutoReport sets whether or not to auto-report debugging and analytics data.
+func (s *Settings) SetAutoReport(auto bool) {
+	s.Lock()
+	defer s.Unlock()
+	s.AutoReport = auto
+}
+
+// SetAutoLaunch sets whether or not to auto-launch Lantern on system startup.
+func (s *Settings) SetAutoLaunch(auto bool) {
+	s.Lock()
+	defer s.Unlock()
+	s.AutoLaunch = auto
+	go launcher.CreateLaunchFile(auto)
+}
+
+// GetSystemProxy returns whether or not to set system proxy when lantern starts
+func (s *Settings) GetSystemProxy() bool {
+	s.RLock()
+	defer s.RUnlock()
+	return s.SystemProxy
+}
+
+// SetSystemProxy sets whether or not to set system proxy when lantern starts
+func (s *Settings) SetSystemProxy(enable bool) {
+	s.Lock()
+	defer s.Unlock()
+	changed := enable != s.SystemProxy
+	s.SystemProxy = enable
+	if changed {
+		if enable {
+			pacOn()
+		} else {
+			pacOff()
+		}
+		preferredUIAddr := ui.PreferProxiedUI(enable)
+		if !enable {
+			log.Debugf("System proxying disabled, redirect UI to: %v", preferredUIAddr)
+			service.Out <- &msg{RedirectTo: preferredUIAddr}
+		}
 	}
 }

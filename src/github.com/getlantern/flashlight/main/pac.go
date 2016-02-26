@@ -26,6 +26,7 @@ var (
 	pacFile        []byte
 	directHosts    = make(map[string]bool)
 	shouldProxyAll = int32(0)
+	onepac         = &sync.Once{}
 )
 
 func ServeProxyAllPacFile(b bool) {
@@ -138,17 +139,21 @@ func watchDirectAddrs() {
 
 func pacOn() {
 	log.Debug("Setting lantern as system proxy")
-	handler := func(resp http.ResponseWriter, req *http.Request) {
-		resp.Header().Set("Content-Type", "application/x-ns-proxy-autoconfig")
-		resp.WriteHeader(http.StatusOK)
-		muPACFile.RLock()
-		if _, err := resp.Write(pacFile); err != nil {
-			log.Debugf("Error writing response: %v", err)
+
+	// We can only add an HTTP handler once or we'll generate a panic.
+	onepac.Do(func() {
+		handler := func(resp http.ResponseWriter, req *http.Request) {
+			resp.Header().Set("Content-Type", "application/x-ns-proxy-autoconfig")
+			resp.WriteHeader(http.StatusOK)
+			muPACFile.RLock()
+			if _, err := resp.Write(pacFile); err != nil {
+				log.Debugf("Error writing response: %v", err)
+			}
+			muPACFile.RUnlock()
 		}
-		muPACFile.RUnlock()
-	}
+		pacURL = ui.Handle("/proxy_on.pac", http.HandlerFunc(handler))
+	})
 	genPACFile()
-	pacURL = ui.Handle("/proxy_on.pac", http.HandlerFunc(handler))
 	log.Debugf("Serving PAC file at %v", pacURL)
 	doPACOn(pacURL)
 	atomic.StoreInt32(&isPacOn, 1)
