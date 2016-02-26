@@ -66,30 +66,38 @@ angular.module('app.services', [])
         }
       },
       'Settings': function(data) {
-        console.log('Got Lantern default settings: ', data);
-        if (data && data.Version) {
-            // configure settings
-            // set default client to get-mode
-            model.settings = {};
-            model.settings.mode = 'get';
-            model.settings.version = data.Version + " (" + data.RevisionDate + ")";
+        if (data.Settings) {
+          var settings = data.Settings;
+          console.log('Got Lantern default settings: ', settings);
+          if (settings && settings.Version) {
+              // configure settings
+              // set default client to get-mode
+              model.settings = {};
+              model.settings.mode = 'get';
+              model.settings.version = settings.Version + " (" + settings.RevisionDate + ")";
+          }
+
+          if (settings.AutoReport) {
+              model.settings.autoReport = true;
+                  $rootScope.trackPageView();
+          }
+
+          if (settings.AutoLaunch) {
+              model.settings.autoLaunch = true;
+          }
+
+          if (settings.ProxyAll) {
+              model.settings.proxyAll = true;
+          }
+
+          if (settings.SystemProxy) {
+              model.settings.systemProxy = true;
+          }
         }
 
-        if (data.AutoReport) {
-            model.settings.autoReport = true;
-                $rootScope.trackPageView();
-        }
-
-        if (data.AutoLaunch) {
-            model.settings.autoLaunch = true;
-        }
-
-        if (data.ProxyAll) {
-            model.settings.proxyAll = true;
-        }
-
-        if (data.SystemProxy) {
-            model.settings.systemProxy = true;
+        if (data.RedirectTo) {
+          console.log('Redirecting UI to: ' + data.RedirectTo);
+          window.location = data.RedirectTo;
         }
       },
       'LocalDiscovery': function(data) {
@@ -236,10 +244,25 @@ angular.module('app.services', [])
       ga()('send', 'event', 'copy-lantern-mobile-link');
     };
 
+    var trackSocialLink = function(name) {
+      ga()('send', 'event', 'social-link-' + name);
+    };
+
+    var trackLink = function(name) {
+      ga()('send', 'event', 'link-' + name);
+    };
+
+    var trackBookmark = function(name) {
+      ga()('send', 'event', 'bookmark-' + name);
+    };
+
     return {
       trackSendLinkToMobile: trackSendLinkToMobile,
       trackCopyLink: trackCopyLink,
-      trackPageView: trackPageView
+      trackPageView: trackPageView,
+      trackSocialLink: trackSocialLink,
+      trackLink: trackLink,
+      trackBookmark: trackBookmark
     };
   })
   .service('apiSrvc', function($http, API_URL_PREFIX) {

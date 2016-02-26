@@ -82,15 +82,21 @@ func LoadSettings(version, revisionDate, buildDate string) *Settings {
 	return settings
 }
 
+type msg struct {
+	Settings   *Settings
+	RedirectTo string
+}
+
 // start the settings service that synchronizes Lantern's configuration with every UI client
 func (s *Settings) start() error {
 	var err error
 
+	ui.PreferProxiedUI(s.SystemProxy)
 	helloFn := func(write func(interface{}) error) error {
 		log.Debugf("Sending Lantern settings to new client")
 		s.Lock()
 		defer s.Unlock()
-		return write(s)
+		return write(&msg{Settings: s})
 	}
 	service, err = ui.Register(messageType, nil, helloFn)
 	return err
@@ -176,10 +182,18 @@ func (s *Settings) GetSystemProxy() bool {
 func (s *Settings) SetSystemProxy(enable bool) {
 	s.Lock()
 	defer s.Unlock()
+	changed := enable != s.SystemProxy
 	s.SystemProxy = enable
-	if enable {
-		pacOn()
-	} else {
-		pacOff()
+	if changed {
+		if enable {
+			pacOn()
+		} else {
+			pacOff()
+		}
+		preferredUIAddr := ui.PreferProxiedUI(enable)
+		if !enable {
+			log.Debugf("System proxying disabled, redirect UI to: %v", preferredUIAddr)
+			service.Out <- &msg{RedirectTo: preferredUIAddr}
+		}
 	}
 }

@@ -436,9 +436,9 @@ release-qa: require-version require-s3cmd
 	cp lantern-manoto_*amd64.deb $$BASE_NAME_MANOTO-64-bit.deb && \
 	cp lantern-installer.apk $$BASE_NAME.apk && \
 	for NAME in $$(ls -1 $$BASE_NAME*.*); do \
-		shasum $$NAME | cut -d " " -f 1 > $$NAME.sha1 && \
-		echo "Uploading SHA-1 `cat $$NAME.sha1`" && \
-		$(S3CMD) put -P $$NAME.sha1 s3://$(S3_BUCKET) && \
+		shasum -a 256 $$NAME | cut -d " " -f 1 > $$NAME.sha256 && \
+		echo "Uploading SHA-256 `cat $$NAME.sha256`" && \
+		$(S3CMD) put -P $$NAME.sha256 s3://$(S3_BUCKET) && \
 		echo "Uploading $$NAME to S3" && \
 		$(S3CMD) put -P $$NAME s3://$(S3_BUCKET) && \
 		SUFFIX=$$(echo "$$NAME" | sed s/$$BASE_NAME//g) && \
@@ -536,7 +536,7 @@ pkg/gomobile: bin/gomobile
 $(ANDROID_LIB): bin/gomobile pkg/gomobile
 	source setenv.bash && \
 	$(call build-tags) && \
-	gomobile bind -target=android -tags='headless' -o=$(ANDROID_LIB) -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS" $(ANDROID_LIB_PKG)
+	gomobile bind -target=android -tags='headless' -o=$(ANDROID_LIB) -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -s" $(ANDROID_LIB_PKG)
 
 android-lib: $(ANDROID_LIB)
 
@@ -565,6 +565,9 @@ $(ANDROID_TESTBED): $(ANDROID_TESTBED_ANDROID_LIB) $(ANDROID_TESTBED_ANDROID_SDK
 
 android-testbed: $(ANDROID_TESTBED)
 
+android-testbed-install: $(ANDROID_TESTBED)
+	adb install -r $(ANDROID_TESTBED)
+
 $(TUN2SOCKS):
 	cd $(LANTERN_MOBILE_DIR) && ndk-build
 
@@ -587,9 +590,8 @@ $(LANTERN_MOBILE_ANDROID_DEBUG): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_AN
 
 $(LANTERN_MOBILE_ANDROID_RELEASE): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK)
 	@echo "Generating distribution package for android..."
-	ln -s $$SECRETS_DIR/android/keystore.release.jks $(LANTERN_MOBILE_DIR)/app
+	ln -f -s $$SECRETS_DIR/android/keystore.release.jks $(LANTERN_MOBILE_DIR)/app
 	cd $(LANTERN_MOBILE_DIR)/app
-	cp $(ANDROID_SDK_ANDROID_LIB) $(LANTERN_MOBILE_LIBS)
 	gradle -PlanternVersion=$$VERSION -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
 		clean \
 		assembleRelease
@@ -602,7 +604,19 @@ android-release: require-version require-secrets-dir $(LANTERN_MOBILE_ANDROID_RE
 android-install: $(LANTERN_MOBILE_ANDROID_DEBUG)
 	adb install -r $(LANTERN_MOBILE_ANDROID_DEBUG)
 
-clean:
+clean-mobile:
+	rm -f $(ANDROID_LIB) && \
+	rm -f $(ANDROID_SDK_ANDROID_LIB) && \
+	rm -f $(ANDROID_SDK) && \
+	rm -f $(ANDROID_TESTBED_ANDROID_LIB) && \
+	rm -f $(ANDROID_TESTBED_ANDROID_SDK) && \
+	rm -f $(ANDROID_TESTBED) && \
+	rm -f $(LANTERN_MOBILE_ANDROID_LIB) && \
+	rm -f $(LANTERN_MOBILE_ANDROID_SDK) && \
+	rm -f $(LANTERN_MOBILE_ANDROID_DEBUG) && \
+	rm -f $(LANTERN_MOBILE_ANDROID_RELEASE)
+
+clean: clean-mobile
 	rm -f lantern && \
 	rm -f lantern_linux* && \
 	rm -f lantern_darwin* && \
@@ -617,15 +631,5 @@ clean:
 	git checkout ./src/github.com/getlantern/flashlight/ui/resources.go && \
 	rm -f src/github.com/getlantern/flashlight/*.syso && \
 	rm -f *.dmg && \
-	rm -f $(ANDROID_LIB) && \
-	rm -f $(ANDROID_SDK_ANDROID_LIB) && \
-	rm -f $(ANDROID_SDK) && \
-	rm -f $(ANDROID_TESTBED_ANDROID_LIB) && \
-	rm -f $(ANDROID_TESTBED_ANDROID_SDK) && \
-	rm -f $(ANDROID_TESTBED) && \
 	rm -f $(LANTERN_MOBILE_TUN2SOCKS) && \
-	rm -f $(LANTERN_MOBILE_ANDROID_LIB) && \
-	rm -f $(LANTERN_MOBILE_ANDROID_SDK) && \
-	rm -rf $(LANTERN_MOBILE_DIR)/libs/armeabi* && \
-	rm -f $(LANTERN_MOBILE_ANDROID_DEBUG) && \
-	rm -f $(LANTERN_MOBILE_ANDROID_RELEASE)
+	rm -rf $(LANTERN_MOBILE_DIR)/libs/armeabi*
