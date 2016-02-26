@@ -88,7 +88,7 @@
                 android:fontFamily="sans-serif"
                 android:layout_marginTop="14dp"
                 android:paddingLeft="10dp"
-                android:text="Desktop Version"
+                android:text="@string/desktop_option"
                 android:textSize="15sp"
                 android:textColor="#fff"
                 android:textStyle="bold" />
@@ -237,7 +237,7 @@
                     android:layout_marginTop="14dp"
                     android:gravity="center_horizontal"
                     android:paddingLeft="16dp"
-                    android:text="Lantern"
+                    android:text="@string/app_name"
                     android:textSize="15sp"
                     android:textColor="#fff"
                     android:textStyle="bold" />
