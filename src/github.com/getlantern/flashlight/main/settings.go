@@ -178,8 +178,8 @@ func (s *Settings) SetSystemProxy(enable bool) {
 	defer s.Unlock()
 	s.SystemProxy = enable
 	if enable {
-		go pacOn()
+		pacOn()
 	} else {
-		go pacOff()
+		pacOff()
 	}
 }
