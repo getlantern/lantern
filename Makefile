@@ -25,7 +25,7 @@ BUILD_DATE := $(shell date -u +%Y%m%d.%H%M%S)
 
 LOGGLY_TOKEN := 2b68163b-89b6-4196-b878-c1aca4bbdf84
 
-LDFLAGS := -X github.com/getlantern/flashlight/flashlight.Version=$(GIT_REVISION) -X github.com/getlantern/flashlight/flashlight.RevisionDate=$(REVISION_DATE) -X github.com/getlantern/flashlight/flashlight.BuildDate=$(BUILD_DATE) -X github.com/getlantern/flashlight/logging.logglyToken=$(LOGGLY_TOKEN) -X github.com/getlantern/flashlight/logging.logglyTag=$(LOGGLY_TAG)
+LDFLAGS := -X github.com/getlantern/flashlight.Version=$(GIT_REVISION) -X github.com/getlantern/flashlight.RevisionDate=$(REVISION_DATE) -X github.com/getlantern/flashlight.BuildDate=$(BUILD_DATE) -X github.com/getlantern/flashlight/logging.logglyToken=$(LOGGLY_TOKEN) -X github.com/getlantern/flashlight/logging.logglyTag=$(LOGGLY_TAG)
 LANTERN_DESCRIPTION := Censorship circumvention tool
 LANTERN_EXTENDED_DESCRIPTION := Lantern allows you to access sites blocked by internet censorship.\nWhen you run it, Lantern reroutes traffic to selected domains through servers located where such domains are uncensored.
 
@@ -93,7 +93,7 @@ define build-tags
 	BUILD_TAGS="" && \
 	EXTRA_LDFLAGS="" && \
 	if [[ ! -z "$$VERSION" ]]; then \
-		EXTRA_LDFLAGS="-X=github.com/getlantern/flashlight.compileTimePackageVersion=$$VERSION"; \
+		EXTRA_LDFLAGS="-X github.com/getlantern/flashlight.compileTimePackageVersion=$$VERSION"; \
 	else \
 		echo "** VERSION was not set, using default version. This is OK while in development."; \
 	fi && \
