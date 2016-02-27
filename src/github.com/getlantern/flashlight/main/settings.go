@@ -190,8 +190,8 @@ func (s *Settings) SetSystemProxy(enable bool) {
 		} else {
 			pacOff()
 		}
-		preferredUIAddr := ui.PreferProxiedUI(enable)
-		if !enable {
+		preferredUIAddr, addrChanged := ui.PreferProxiedUI(enable)
+		if !enable && addrChanged {
 			log.Debugf("System proxying disabled, redirect UI to: %v", preferredUIAddr)
 			service.Out <- &msg{RedirectTo: preferredUIAddr}
 		}

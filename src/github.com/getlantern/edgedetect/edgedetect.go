@@ -1,3 +1,5 @@
+// Package edgedetect provides support for detecing whether the default web
+// browser is Microsoft Edge.
 package edgedetect
 
 import (
@@ -8,6 +10,8 @@ var (
 	log = golog.LoggerFor("edgedetect")
 )
 
+// DefaultBrowserIsEdge returns true if and only if the default web browser is
+// Microsoft Edge.
 func DefaultBrowserIsEdge() bool {
 	return defaultBrowserIsEdge()
 }
