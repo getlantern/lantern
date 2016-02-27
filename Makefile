@@ -186,7 +186,6 @@ $(RESOURCES_DOT_GO): $(NPM)
 	git update-index --assume-unchanged $$APP/js/revision.js && \
 	DEST="$@" && \
 	cd $$LANTERN_UI && \
-	rm -rf node_modules && \
 	npm install && \
 	rm -Rf dist && \
 	gulp build && \
