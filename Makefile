@@ -324,7 +324,7 @@ darwin: $(RESOURCES_DOT_GO)
 		echo "-> Skipped: Can not compile Lantern for OSX on a non-OSX host."; \
 	fi
 
-lantern: require-assets
+lantern: $(RESOURCES_DOT_GO)
 	@echo "Building development lantern" && \
 	source setenv.bash && \
 	$(call build-tags) && \
