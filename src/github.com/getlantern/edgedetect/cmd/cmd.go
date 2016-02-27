@@ -1,3 +1,5 @@
+// This simple test program prints out whether or not the default browser is
+// Edge, which is useful for testing/debugging edgedetect.
 package main
 
 import (
