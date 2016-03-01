@@ -437,6 +437,21 @@ func (cfg *Config) applyClientDefaults() {
 		cfg.Client.ChainedServers = make(map[string]*client.ChainedServerInfo)
 	}
 
+	if cfg.Client.ProxiedCONNECTPorts == nil {
+		cfg.Client.ProxiedCONNECTPorts = []int{
+			// Standard HTTP(S) ports
+			80, 443,
+			// Common unprivileged HTTP(S) ports
+			8080, 8443,
+			// XMPP
+			5222, 5223, 5224,
+			// Android
+			5228, 5229,
+			// Google Hangouts (see https://support.google.com/a/answer/1279090?hl=en)
+			19302, 19303, 19304, 19305, 19306, 19307, 19308, 19309,
+		}
+	}
+
 	// Sort servers so that they're always in a predictable order
 	cfg.Client.SortServers()
 

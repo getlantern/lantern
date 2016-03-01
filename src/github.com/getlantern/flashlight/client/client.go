@@ -51,6 +51,10 @@ type Client struct {
 	// Unique identifier for this device
 	DeviceID string
 
+	// List of CONNECT ports that are proxied via the remote proxy. Other ports
+	// will be handled with direct connections.
+	ProxiedCONNECTPorts []int
+
 	priorCfg *ClientConfig
 	cfgMutex sync.RWMutex
 
@@ -175,6 +179,7 @@ func (client *Client) Configure(cfg *ClientConfig, proxyAll func() bool) {
 	log.Debugf("Proxy all traffic or not: %v", proxyAll())
 	client.ProxyAll = proxyAll
 	client.DeviceID = cfg.DeviceID
+	client.ProxiedCONNECTPorts = cfg.ProxiedCONNECTPorts
 
 	bal, err := client.initBalancer(cfg)
 	if err != nil {
