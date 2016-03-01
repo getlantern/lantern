@@ -55,6 +55,7 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 	port, err := strconv.Atoi(portString)
 	if err != nil {
 		respondBadGateway(resp, fmt.Sprintf("Unable to parse port %v for address %v: %v", addr, port, err))
+		return
 	}
 
 	var clientConn net.Conn
