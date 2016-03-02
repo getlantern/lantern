@@ -2,6 +2,7 @@
 # internet.
 client:
   firetweetversion: "{{.ftVersion}}"
+  proxiedconnectports: [80, 443, 8080, 8443, 5222, 5223, 5224, 5228, 5229, 7300, 19305, 19306, 19307, 19308, 19309]
   frontedservers: []
   chainedservers: {{range .fallbacks}}
     fallback-{{.ip}}:
