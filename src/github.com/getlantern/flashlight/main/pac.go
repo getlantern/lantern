@@ -21,18 +21,32 @@ import (
 )
 
 var (
-	shouldProxyAll func() bool
-	isPacOn        = int32(0)
-	pacURL         string
-	directHosts    = make(map[string]bool)
-	cfgMutex       sync.RWMutex
+	isPacOn     = int32(0)
+	pacURL      string
+	directHosts = make(map[string]bool)
+	cfgMutex    sync.RWMutex
 )
 
-func ServeProxyAllPacFile(newProxyAll func() bool) {
+func ServePACFile() {
 	cfgMutex.Lock()
 	defer cfgMutex.Unlock()
-	shouldProxyAll = newProxyAll
 	servePACFileIfNecessary()
+}
+
+func servePACFileIfNecessary() {
+	if pacURL == "" {
+		handler := func(resp http.ResponseWriter, req *http.Request) {
+			log.Trace("Serving PAC file")
+			resp.Header().Set("Content-Type", "application/x-ns-proxy-autoconfig")
+			resp.WriteHeader(http.StatusOK)
+			cfgMutex.RLock()
+			defer cfgMutex.RUnlock()
+			if _, err := genPACFile(resp); err != nil {
+				log.Debugf("Error writing response: %v", err)
+			}
+		}
+		pacURL = ui.Handle("/proxy_on.pac", http.HandlerFunc(handler))
+	}
 }
 
 func setUpPacTool() error {
@@ -63,7 +77,7 @@ func setUpPacTool() error {
 func genPACFile(w io.Writer) (int, error) {
 	hostsString := "[]"
 	// only bypass sites if proxy all option is unset
-	if !shouldProxyAll() {
+	if !settings.GetProxyAll() {
 		log.Trace("Not proxying all")
 		var hosts []string
 		for k, v := range directHosts {
@@ -161,21 +175,5 @@ func doPACOff(pacURL string) {
 	err := pac.Off(pacURL)
 	if err != nil {
 		log.Errorf("Unable to unset lantern as system proxy: %v", err)
-	}
-}
-
-func servePACFileIfNecessary() {
-	if pacURL == "" {
-		handler := func(resp http.ResponseWriter, req *http.Request) {
-			log.Trace("Serving PAC file")
-			resp.Header().Set("Content-Type", "application/x-ns-proxy-autoconfig")
-			resp.WriteHeader(http.StatusOK)
-			cfgMutex.RLock()
-			defer cfgMutex.RUnlock()
-			if _, err := genPACFile(resp); err != nil {
-				log.Debugf("Error writing response: %v", err)
-			}
-		}
-		pacURL = ui.Handle("/proxy_on.pac", http.HandlerFunc(handler))
 	}
 }

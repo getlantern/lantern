@@ -248,6 +248,7 @@ func beforeStart(cfg *config.Config) bool {
 
 func afterStart(cfg *config.Config) {
 	onConfigUpdate(cfg)
+	ServePACFile()
 	if settings.GetSystemProxy() {
 		pacOn()
 	}
@@ -267,7 +268,6 @@ func afterStart(cfg *config.Config) {
 func onConfigUpdate(cfg *config.Config) {
 	autoupdate.Configure(cfg)
 	proxiedsites.Configure(cfg.ProxiedSites)
-	ServeProxyAllPacFile(settings.GetProxyAll)
 }
 
 func i18nInit() {
