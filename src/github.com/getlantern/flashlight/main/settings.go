@@ -122,7 +122,7 @@ func (s *Settings) read() {
 }
 
 // Save saves settings to disk.
-func (s *Settings) Save() {
+func (s *Settings) save() {
 	log.Debug("Saving settings")
 	s.Lock()
 	defer s.Unlock()
@@ -145,7 +145,7 @@ func (s *Settings) GetProxyAll() bool {
 // SetProxyAll sets whether or not to proxy all traffic.
 func (s *Settings) SetProxyAll(proxyAll bool) {
 	s.Lock()
-	defer s.Unlock()
+	defer s.unlockAndSave()
 	s.ProxyAll = proxyAll
 	// Cycle the PAC file so that browser picks up changes
 	cyclePAC()
@@ -161,14 +161,14 @@ func (s *Settings) IsAutoReport() bool {
 // SetAutoReport sets whether or not to auto-report debugging and analytics data.
 func (s *Settings) SetAutoReport(auto bool) {
 	s.Lock()
-	defer s.Unlock()
+	defer s.unlockAndSave()
 	s.AutoReport = auto
 }
 
 // SetAutoLaunch sets whether or not to auto-launch Lantern on system startup.
 func (s *Settings) SetAutoLaunch(auto bool) {
 	s.Lock()
-	defer s.Unlock()
+	defer s.unlockAndSave()
 	s.AutoLaunch = auto
 	go launcher.CreateLaunchFile(auto)
 }
@@ -183,7 +183,7 @@ func (s *Settings) GetSystemProxy() bool {
 // SetSystemProxy sets whether or not to set system proxy when lantern starts
 func (s *Settings) SetSystemProxy(enable bool) {
 	s.Lock()
-	defer s.Unlock()
+	defer s.unlockAndSave()
 	changed := enable != s.SystemProxy
 	s.SystemProxy = enable
 	if changed {
@@ -198,4 +198,11 @@ func (s *Settings) SetSystemProxy(enable bool) {
 			service.Out <- &msg{RedirectTo: preferredUIAddr}
 		}
 	}
+}
+
+// unlockAndSave releases the lock on writing to settings and then saves settings.
+func (s *Settings) unlockAndSave() {
+	// Note locks in go aren't reentrant, so we need to unlock before save locks again.
+	s.Unlock()
+	s.save()
 }

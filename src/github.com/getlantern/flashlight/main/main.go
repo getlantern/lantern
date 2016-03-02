@@ -140,7 +140,6 @@ func doMain() error {
 		}
 	})
 	addExitFunc(quitSystray)
-	addExitFunc(settings.Save)
 
 	i18nInit()
 	if showui {
