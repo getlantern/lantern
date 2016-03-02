@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"path/filepath"
@@ -20,22 +21,18 @@ import (
 )
 
 var (
+	shouldProxyAll func() bool
 	isPacOn        = int32(0)
 	pacURL         string
-	muPACFile      sync.RWMutex
-	pacFile        []byte
 	directHosts    = make(map[string]bool)
-	shouldProxyAll = int32(0)
-	onepac         = &sync.Once{}
+	cfgMutex       sync.RWMutex
 )
 
-func ServeProxyAllPacFile(b bool) {
-	if b {
-		atomic.StoreInt32(&shouldProxyAll, 1)
-	} else {
-		atomic.StoreInt32(&shouldProxyAll, 0)
-	}
-	genPACFile()
+func ServeProxyAllPacFile(newProxyAll func() bool) {
+	cfgMutex.Lock()
+	defer cfgMutex.Unlock()
+	shouldProxyAll = newProxyAll
+	servePACFileIfNecessary()
 }
 
 func setUpPacTool() error {
@@ -63,10 +60,11 @@ func setUpPacTool() error {
 	return nil
 }
 
-func genPACFile() {
+func genPACFile(w io.Writer) (int, error) {
 	hostsString := "[]"
 	// only bypass sites if proxy all option is unset
-	if atomic.LoadInt32(&shouldProxyAll) == 0 {
+	if !shouldProxyAll() {
+		log.Trace("Not proxying all")
 		var hosts []string
 		for k, v := range directHosts {
 			if v {
@@ -74,7 +72,10 @@ func genPACFile() {
 			}
 		}
 		hostsString = "['" + strings.Join(hosts, "', '") + "']"
+	} else {
+		log.Trace("Proxying all")
 	}
+
 	formatter :=
 		`var bypassDomains = %s;
 		function FindProxyForURL(url, host) {
@@ -107,10 +108,8 @@ func genPACFile() {
 		panic("Unable to get proxy address within 5 minutes")
 	}
 	proxyAddrString := proxyAddr.(string)
-	log.Debugf("Setting proxy address to %v", proxyAddrString)
-	muPACFile.Lock()
-	pacFile = []byte(fmt.Sprintf(formatter, hostsString, proxyAddrString))
-	muPACFile.Unlock()
+	log.Tracef("Setting proxy address to %v", proxyAddrString)
+	return fmt.Fprintf(w, formatter, hostsString, proxyAddrString)
 }
 
 // watchDirectAddrs adds any site that has accessed directly without error to PAC file
@@ -128,7 +127,6 @@ func watchDirectAddrs() {
 			}
 			if !directHosts[host] {
 				directHosts[host] = true
-				genPACFile()
 				// reapply so browser will fetch the PAC URL again
 				doPACOff(pacURL)
 				doPACOn(pacURL)
@@ -139,21 +137,6 @@ func watchDirectAddrs() {
 
 func pacOn() {
 	log.Debug("Setting lantern as system proxy")
-
-	// We can only add an HTTP handler once or we'll generate a panic.
-	onepac.Do(func() {
-		handler := func(resp http.ResponseWriter, req *http.Request) {
-			resp.Header().Set("Content-Type", "application/x-ns-proxy-autoconfig")
-			resp.WriteHeader(http.StatusOK)
-			muPACFile.RLock()
-			if _, err := resp.Write(pacFile); err != nil {
-				log.Debugf("Error writing response: %v", err)
-			}
-			muPACFile.RUnlock()
-		}
-		pacURL = ui.Handle("/proxy_on.pac", http.HandlerFunc(handler))
-	})
-	genPACFile()
 	log.Debugf("Serving PAC file at %v", pacURL)
 	doPACOn(pacURL)
 	atomic.StoreInt32(&isPacOn, 1)
@@ -178,5 +161,21 @@ func doPACOff(pacURL string) {
 	err := pac.Off(pacURL)
 	if err != nil {
 		log.Errorf("Unable to unset lantern as system proxy: %v", err)
+	}
+}
+
+func servePACFileIfNecessary() {
+	if pacURL == "" {
+		handler := func(resp http.ResponseWriter, req *http.Request) {
+			log.Trace("Serving PAC file")
+			resp.Header().Set("Content-Type", "application/x-ns-proxy-autoconfig")
+			resp.WriteHeader(http.StatusOK)
+			cfgMutex.RLock()
+			defer cfgMutex.RUnlock()
+			if _, err := genPACFile(resp); err != nil {
+				log.Debugf("Error writing response: %v", err)
+			}
+		}
+		pacURL = ui.Handle("/proxy_on.pac", http.HandlerFunc(handler))
 	}
 }
