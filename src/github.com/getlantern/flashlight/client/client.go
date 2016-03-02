@@ -198,14 +198,16 @@ func (client *Client) Stop() error {
 }
 
 func (client *Client) proxiedDialer(orig func(network, addr string) (net.Conn, error)) func(network, addr string) (net.Conn, error) {
-	var proxied func(network, addr string) (net.Conn, error)
-	if client.ProxyAll() {
-		proxied = orig
-	} else {
-		proxied = detour.Dialer(orig)
-	}
+	detourDialer := detour.Dialer(orig)
 
 	return func(network, addr string) (net.Conn, error) {
+		var proxied func(network, addr string) (net.Conn, error)
+		if client.ProxyAll() {
+			proxied = orig
+		} else {
+			proxied = detourDialer
+		}
+
 		if isLanternSpecialDomain(addr) {
 			rewritten := rewriteLanternSpecialDomain(addr)
 			log.Tracef("Rewriting %v to %v", addr, rewritten)
