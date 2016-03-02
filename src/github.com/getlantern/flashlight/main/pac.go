@@ -31,11 +31,11 @@ func ServePACFile() {
 	cfgMutex.Lock()
 	defer cfgMutex.Unlock()
 	if pacURL == "" {
-		pacURL = ui.Handle("/proxy_on.pac", http.HandlerFunc(sercePACFile))
+		pacURL = ui.Handle("/proxy_on.pac", http.HandlerFunc(servePACFile))
 	}
 }
 
-func sercePACFile(resp http.ResponseWriter, req *http.Request) {
+func servePACFile(resp http.ResponseWriter, req *http.Request) {
 	log.Trace("Serving PAC file")
 	resp.Header().Set("Content-Type", "application/x-ns-proxy-autoconfig")
 	resp.WriteHeader(http.StatusOK)
