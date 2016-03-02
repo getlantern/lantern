@@ -142,12 +142,7 @@ func addDirectHost(host string) {
 	defer cfgMutex.Unlock()
 	if !directHosts[host] {
 		directHosts[host] = true
-		// prevents Lantern from accidently leave pac on after exits
-		if atomic.LoadInt32(&isPacOn) == 1 {
-			// reapply so browser will fetch the PAC URL again
-			doPACOff(pacURL)
-			doPACOn(pacURL)
-		}
+		cyclePAC()
 	}
 }
 
@@ -163,6 +158,15 @@ func pacOff() {
 		log.Debug("Unsetting lantern as system proxy")
 		doPACOff(pacURL)
 		log.Debug("Unset lantern as system proxy")
+	}
+}
+
+func cyclePAC() {
+	// prevents Lantern from accidently leave pac on after exits
+	if atomic.LoadInt32(&isPacOn) == 1 {
+		// reapply so browser will fetch the PAC URL again
+		doPACOff(pacURL)
+		doPACOn(pacURL)
 	}
 }
 

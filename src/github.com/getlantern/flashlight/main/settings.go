@@ -147,6 +147,8 @@ func (s *Settings) SetProxyAll(proxyAll bool) {
 	s.Lock()
 	defer s.Unlock()
 	s.ProxyAll = proxyAll
+	// Cycle the PAC file so that browser picks up changes
+	cyclePAC()
 }
 
 // IsAutoReport returns whether or not to auto-report debugging and analytics data.
