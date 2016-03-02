@@ -30,22 +30,19 @@ var (
 func ServePACFile() {
 	cfgMutex.Lock()
 	defer cfgMutex.Unlock()
-	servePACFileIfNecessary()
+	if pacURL == "" {
+		pacURL = ui.Handle("/proxy_on.pac", http.HandlerFunc(sercePACFile))
+	}
 }
 
-func servePACFileIfNecessary() {
-	if pacURL == "" {
-		handler := func(resp http.ResponseWriter, req *http.Request) {
-			log.Trace("Serving PAC file")
-			resp.Header().Set("Content-Type", "application/x-ns-proxy-autoconfig")
-			resp.WriteHeader(http.StatusOK)
-			cfgMutex.RLock()
-			defer cfgMutex.RUnlock()
-			if _, err := genPACFile(resp); err != nil {
-				log.Debugf("Error writing response: %v", err)
-			}
-		}
-		pacURL = ui.Handle("/proxy_on.pac", http.HandlerFunc(handler))
+func sercePACFile(resp http.ResponseWriter, req *http.Request) {
+	log.Trace("Serving PAC file")
+	resp.Header().Set("Content-Type", "application/x-ns-proxy-autoconfig")
+	resp.WriteHeader(http.StatusOK)
+	cfgMutex.RLock()
+	defer cfgMutex.RUnlock()
+	if _, err := genPACFile(resp); err != nil {
+		log.Debugf("Error writing response: %v", err)
 	}
 }
 
