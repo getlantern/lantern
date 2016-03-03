@@ -19,7 +19,7 @@
 * [Go 1.6 or higher](https://golang.org/dl/).
 * [GNU Make](https://www.gnu.org/software/make/)
 
-Then just run:
+To build and run Lantern desktop, just do:
 
 ```sh
 git clone https://github.com/getlantern/lantern.git
@@ -38,7 +38,7 @@ go build -o lantern github.com/getlantern/flashlight/main
 ./lantern
 ```
 
-## Mobile
+## Building Mobile
 
 ### Mobile Prerequisites
 
