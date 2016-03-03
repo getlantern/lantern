@@ -164,13 +164,28 @@ define docker-up
 	fi
 endef
 
+docker: docker-
+
 # This implicit rule allows prefix any existing target with "docker-" to make it
 # run in docker.
 docker-%: system-checks
 	@$(call docker-up) && \
+	echo "Building docker..." && \
 	DOCKER_CONTEXT=.$(DOCKER_IMAGE_TAG)-context && \
 	mkdir -p $$DOCKER_CONTEXT && \
 	cp Dockerfile $$DOCKER_CONTEXT && \
+	echo "Calling docker build..." && \
+	docker build -t $(DOCKER_IMAGE_TAG) $$DOCKER_CONTEXT && \
+	echo docker run `echo $(DOCKER_VOLS) | xargs` -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" BNS_CERT_PASS="'$$BNS_CERT_PASS'" make $*' && \
+	docker run `echo $(DOCKER_VOLS) | xargs` -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" BNS_CERT_PASS="'$$BNS_CERT_PASS'" make $*';
+
+docker-test: system-checks
+	@$(call docker-up) && \
+	echo "Building docker..." && \
+	DOCKER_CONTEXT=.$(DOCKER_IMAGE_TAG)-context && \
+	mkdir -p $$DOCKER_CONTEXT && \
+	cp Dockerfile $$DOCKER_CONTEXT && \
+	echo "Calling docker build..." && \
 	docker build -t $(DOCKER_IMAGE_TAG) $$DOCKER_CONTEXT && \
 	echo docker run `echo $(DOCKER_VOLS) | xargs` -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" BNS_CERT_PASS="'$$BNS_CERT_PASS'" make $*' && \
 	docker run `echo $(DOCKER_VOLS) | xargs` -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" BNS_CERT_PASS="'$$BNS_CERT_PASS'" make $*';
@@ -265,14 +280,17 @@ package-windows: $(BNS_CERT) require-version windows
 	rm -f $$INSTALLER_RESOURCES/$(LANTERN_YAML) && \
 	cp installer-resources/$(PACKAGED_YAML) $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
 	cp $(LANTERN_YAML_PATH) $$INSTALLER_RESOURCES/$(LANTERN_YAML) && \
+	echo "Signing Lantern Windows binary" && \
 	osslsigncode sign -pkcs12 "$(BNS_CERT)" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "lantern_windows_386.exe" -out "$$INSTALLER_RESOURCES/lantern.exe" && \
 	cat $$INSTALLER_RESOURCES/lantern.exe | bzip2 > update_windows_386.bz2 && \
 	ls -l lantern_windows_386.exe update_windows_386.bz2 && \
 	makensis -V1 -DVERSION=$$VERSION installer-resources/windows/lantern.nsi && \
+	echo "Signing Lantern Windows installer" && \
 	osslsigncode sign -pkcs12 "$(BNS_CERT)" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer.exe" && \
 	cp installer-resources/$(MANOTO_YAML) $$INSTALLER_RESOURCES/$(PACKAGED_YAML) && \
 	cp $(LANTERN_YAML_PATH) $$INSTALLER_RESOURCES/$(LANTERN_YAML) && \
 	makensis -V1 -DVERSION=$$VERSION installer-resources/windows/lantern.nsi && \
+	echo "Signing Lantern Windows installer Manoto version" && \
 	osslsigncode sign -pkcs12 "$(BNS_CERT)" -pass "$$BNS_CERT_PASS" -n "Lantern" -t http://timestamp.verisign.com/scripts/timstamp.dll -in "$$INSTALLER_RESOURCES/lantern-installer-unsigned.exe" -out "lantern-installer-manoto.exe" && \
 	echo "-> lantern-installer.exe and lantern-installer-manoto.exe"
 
