@@ -28,6 +28,12 @@ make lantern
 ./lantern
 ```
 
+During development, you'll likely want to do a clean build like this:
+
+```sh
+make clean-desktop lantern && ./lantern
+```
+
 ## Building Mobile
 
 ### Mobile Prerequisites
