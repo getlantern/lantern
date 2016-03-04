@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/armon/go-socks5"
@@ -42,9 +43,6 @@ type Client struct {
 	// WriteTimeout: (optional) timeout for write ops
 	WriteTimeout time.Duration
 
-	// ProxyAll: (optional) proxy all sites regardless of being blocked or not
-	ProxyAll func() bool
-
 	// MinQOS: (optional) the minimum QOS to require from proxies.
 	MinQOS int
 
@@ -54,6 +52,8 @@ type Client struct {
 	// List of CONNECT ports that are proxied via the remote proxy. Other ports
 	// will be handled with direct connections.
 	ProxiedCONNECTPorts []int
+
+	proxyAll atomic.Value
 
 	priorCfg *ClientConfig
 	cfgMutex sync.RWMutex
@@ -177,7 +177,7 @@ func (client *Client) Configure(cfg *ClientConfig, proxyAll func() bool) {
 	log.Debugf("Requiring minimum QOS of %d", cfg.MinQOS)
 	client.MinQOS = cfg.MinQOS
 	log.Debugf("Proxy all traffic or not: %v", proxyAll())
-	client.ProxyAll = proxyAll
+	client.proxyAll.Store(proxyAll)
 	client.DeviceID = cfg.DeviceID
 	client.ProxiedCONNECTPorts = cfg.ProxiedCONNECTPorts
 
@@ -195,6 +195,10 @@ func (client *Client) Configure(cfg *ClientConfig, proxyAll func() bool) {
 // client listener and underlying dialer connection pool
 func (client *Client) Stop() error {
 	return client.l.Close()
+}
+
+func (client *Client) ProxyAll() bool {
+	return client.proxyAll.Load().(func() bool)()
 }
 
 func (client *Client) proxiedDialer(orig func(network, addr string) (net.Conn, error)) func(network, addr string) (net.Conn, error) {
