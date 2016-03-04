@@ -24,17 +24,7 @@ To build and run Lantern desktop, just do:
 ```sh
 git clone https://github.com/getlantern/lantern.git
 cd lantern
-make docker
-./lantern
-```
-
-You can alternatively skip make entirely and just do:
-
-```sh
-git clone https://github.com/getlantern/lantern.git
-cd lantern
-source setenv.bash
-go build -o lantern github.com/getlantern/flashlight/main
+make lantern
 ./lantern
 ```
 
