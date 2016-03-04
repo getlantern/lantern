@@ -88,7 +88,7 @@ LANTERN_MOBILE_ANDROID_RELEASE := $(LANTERN_MOBILE_DIR)/app/build/outputs/apk/ap
 LANTERN_YAML := lantern.yaml
 LANTERN_YAML_PATH := installer-resources/lantern.yaml
 
-.PHONY: packages clean docker tun2socks android-lib android-sdk android-testbed android-debug android-release android-install
+.PHONY: packages clean tun2socks android-lib android-sdk android-testbed android-debug android-release android-install
 
 define build-tags
 	BUILD_TAGS="" && \
@@ -164,17 +164,13 @@ define docker-up
 	fi
 endef
 
-docker: docker-
-
 # This implicit rule allows prefix any existing target with "docker-" to make it
 # run in docker.
 docker-%: system-checks
 	@$(call docker-up) && \
-	echo "Building docker..." && \
 	DOCKER_CONTEXT=.$(DOCKER_IMAGE_TAG)-context && \
 	mkdir -p $$DOCKER_CONTEXT && \
 	cp Dockerfile $$DOCKER_CONTEXT && \
-	echo "Calling docker build..." && \
 	docker build -t $(DOCKER_IMAGE_TAG) $$DOCKER_CONTEXT && \
 	echo docker run `echo $(DOCKER_VOLS) | xargs` -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" BNS_CERT_PASS="'$$BNS_CERT_PASS'" make $*' && \
 	docker run `echo $(DOCKER_VOLS) | xargs` -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" BNS_CERT_PASS="'$$BNS_CERT_PASS'" make $*';
