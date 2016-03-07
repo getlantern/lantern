@@ -48,7 +48,7 @@ type Dialer struct {
 }
 
 var (
-	maxCheckTimeout = 5 * time.Second
+	maxCheckTimeout = 30 * time.Second
 )
 
 type metrics struct {
@@ -61,6 +61,8 @@ type dialer struct {
 	*Dialer
 	closeCh chan struct{}
 	errCh   chan struct{}
+
+	checkTimer *time.Timer
 
 	consecSuccesses int32
 	consecFailures  int32
@@ -76,23 +78,13 @@ func (d *dialer) start() {
 	// to avoid blocking sender, make it buffered
 	d.closeCh = make(chan struct{}, 1)
 	d.errCh = make(chan struct{}, 1)
+	d.checkTimer = time.NewTimer(maxCheckTimeout)
 	if d.Check == nil {
 		d.Check = d.defaultCheck
 	}
 
-	longDuration := 1000000 * time.Hour
 	go func() {
-		timer := time.NewTimer(longDuration)
 		for {
-			cf := atomic.LoadInt32(&d.consecFailures)
-			timeout := time.Duration(cf*cf) * 100 * time.Millisecond
-			if timeout > maxCheckTimeout {
-				timeout = maxCheckTimeout
-			}
-			if timeout == 0 {
-				timeout = longDuration
-			}
-			timer.Reset(timeout)
 			select {
 			case <-d.closeCh:
 				log.Tracef("Dialer %s stopped", d.Label)
@@ -102,13 +94,16 @@ func (d *dialer) start() {
 				return
 			case <-d.errCh:
 				d.markFailure()
-			case <-timer.C:
-				ok := d.Check()
-				if ok {
-					d.markSuccess()
-				} else {
-					d.markFailure()
-				}
+			case <-d.checkTimer.C:
+				go func() {
+					log.Tracef("Start checking dialer %s", d.Label)
+					ok := d.Check()
+					if ok {
+						d.markSuccess()
+					} else {
+						d.markFailure()
+					}
+				}()
 			}
 		}
 	}()
@@ -156,6 +151,7 @@ func (d *dialer) updateAvgConnTime(t time.Duration) {
 	// Use integer arithmetic as the values should be large enough to safely
 	// ignore decimals.
 	newAvg := (atomic.LoadInt64(&d.avgDialTime) + t.Nanoseconds()) / 2
+	log.Tracef("Dialer %s average dial time: %d", d.Label, newAvg)
 	atomic.StoreInt64(&d.avgDialTime, newAvg)
 }
 
@@ -163,19 +159,25 @@ func (d *dialer) markSuccess() {
 	newVal := atomic.AddInt32(&d.consecSuccesses, 1)
 	log.Tracef("Dialer %s consecutive successes: %d -> %d", d.Label, newVal-1, newVal)
 	atomic.StoreInt32(&d.consecFailures, 0)
+	d.checkTimer.Reset(maxCheckTimeout)
 }
 
 func (d *dialer) markFailure() {
 	atomic.StoreInt32(&d.consecSuccesses, 0)
-	newVal := atomic.AddInt32(&d.consecFailures, 1)
-	log.Tracef("Dialer %s consecutive failures: %d -> %d", d.Label, newVal-1, newVal)
+	newCF := atomic.AddInt32(&d.consecFailures, 1)
+	log.Tracef("Dialer %s consecutive failures: %d -> %d", d.Label, newCF-1, newCF)
+	nextCheck := time.Duration(newCF*newCF) * 100 * time.Millisecond
+	if nextCheck > maxCheckTimeout {
+		nextCheck = maxCheckTimeout
+	}
+	d.checkTimer.Reset(nextCheck)
 }
 
 func (d *dialer) defaultCheck() bool {
 	client := &http.Client{
 		Transport: &http.Transport{
 			DisableKeepAlives: true,
-			Dial:              d.Dial,
+			Dial:              d.checkedDial,
 		},
 	}
 	ok, timedOut, _ := withtimeout.Do(60*time.Second, func() (interface{}, error) {
