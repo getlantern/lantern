@@ -33,7 +33,7 @@ func Fastest(dialers []*dialer) dialerHeap {
 	return dialerHeap{dialers, func(i, j int) bool {
 		mi := dialers[i].metrics()
 		mj := dialers[j].metrics()
-		return mi.avgConnTime < mj.avgConnTime
+		return mi.avgDialTime < mj.avgDialTime
 	}}
 }
 
@@ -46,7 +46,7 @@ func QualityFirst(dialers []*dialer) dialerHeap {
 		q1 := mi.consecSuccesses - mi.consecFailures
 		q2 := mj.consecSuccesses - mj.consecFailures
 		if q1 > 0 && q2 > 0 {
-			return mi.avgConnTime < mj.avgConnTime
+			return mi.avgDialTime < mj.avgDialTime
 		}
 		return q1 > q2
 	}}
@@ -64,8 +64,8 @@ func Weighted(ptQuality int, ptSpeed int) Strategy {
 			m2 := dialers[j].metrics()
 			q1 := float64(m1.consecSuccesses - m1.consecFailures)
 			q2 := float64(m2.consecSuccesses - m2.consecFailures)
-			t1 := float64(m1.avgConnTime)
-			t2 := float64(m2.avgConnTime)
+			t1 := float64(m1.avgDialTime)
+			t2 := float64(m2.avgDialTime)
 
 			w1 := q2/(q1+q2)*pq + t1/(t1+t2)*pt
 			w2 := q1/(q1+q2)*pq + t2/(t1+t2)*pt

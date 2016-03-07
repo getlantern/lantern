@@ -18,8 +18,8 @@ func TestStickyStrategy(t *testing.T) {
 }
 
 func TestFastestStrategy(t *testing.T) {
-	d1 := &dialer{avgConnTime: (100 * time.Millisecond).Nanoseconds()}
-	d2 := &dialer{avgConnTime: (99 * time.Millisecond).Nanoseconds()}
+	d1 := &dialer{avgDialTime: (100 * time.Millisecond).Nanoseconds()}
+	d2 := &dialer{avgDialTime: (99 * time.Millisecond).Nanoseconds()}
 
 	h := Fastest([]*dialer{d1, d2})
 	heap.Init(&h)
@@ -27,9 +27,9 @@ func TestFastestStrategy(t *testing.T) {
 }
 
 func TestQualityFirstStrategy(t *testing.T) {
-	d1 := &dialer{consecSuccesses: 3, consecFailures: 0, avgConnTime: (10 * time.Millisecond).Nanoseconds()}
-	d2 := &dialer{consecSuccesses: 4, consecFailures: 0, avgConnTime: (100 * time.Millisecond).Nanoseconds()}
-	d3 := &dialer{consecSuccesses: 0, consecFailures: 1, avgConnTime: (10 * time.Millisecond).Nanoseconds()}
+	d1 := &dialer{consecSuccesses: 3, consecFailures: 0, avgDialTime: (10 * time.Millisecond).Nanoseconds()}
+	d2 := &dialer{consecSuccesses: 4, consecFailures: 0, avgDialTime: (100 * time.Millisecond).Nanoseconds()}
+	d3 := &dialer{consecSuccesses: 0, consecFailures: 1, avgDialTime: (10 * time.Millisecond).Nanoseconds()}
 
 	h := QualityFirst([]*dialer{d1, d2})
 	heap.Init(&h)
@@ -41,10 +41,10 @@ func TestQualityFirstStrategy(t *testing.T) {
 }
 
 func TestWeightedStrategy(t *testing.T) {
-	d1 := &dialer{consecSuccesses: 3, consecFailures: 0, avgConnTime: (100 * time.Millisecond).Nanoseconds()}
-	d2 := &dialer{consecSuccesses: 4, consecFailures: 0, avgConnTime: (100 * time.Millisecond).Nanoseconds()}
-	d3 := &dialer{consecSuccesses: 0, consecFailures: 1, avgConnTime: (10 * time.Millisecond).Nanoseconds()}
-	d4 := &dialer{consecSuccesses: 4, consecFailures: 0, avgConnTime: (150 * time.Millisecond).Nanoseconds()}
+	d1 := &dialer{consecSuccesses: 3, consecFailures: 0, avgDialTime: (100 * time.Millisecond).Nanoseconds()}
+	d2 := &dialer{consecSuccesses: 4, consecFailures: 0, avgDialTime: (100 * time.Millisecond).Nanoseconds()}
+	d3 := &dialer{consecSuccesses: 0, consecFailures: 1, avgDialTime: (10 * time.Millisecond).Nanoseconds()}
+	d4 := &dialer{consecSuccesses: 4, consecFailures: 0, avgDialTime: (150 * time.Millisecond).Nanoseconds()}
 
 	h := Weighted(9, 1)([]*dialer{d1, d2})
 	heap.Init(&h)
