@@ -77,7 +77,7 @@ func testByteExec(t *testing.T, be *Exec) os.FileInfo {
 	if err != nil {
 		t.Errorf("Unable to run helloworld program: %s", err)
 	}
-	assert.Equal(t, "Hello world\n", string(out), "Should receive expected output from helloworld program")
+	assert.Equal(t, "Hello world" + linefeed, string(out), "Should receive expected output from helloworld program")
 
 	fileInfo, err := os.Stat(be.Filename)
 	if err != nil {
