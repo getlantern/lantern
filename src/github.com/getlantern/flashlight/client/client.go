@@ -43,20 +43,10 @@ type Client struct {
 	// WriteTimeout: (optional) timeout for write ops
 	WriteTimeout time.Duration
 
-	// MinQOS: (optional) the minimum QOS to require from proxies.
-	MinQOS int
-
-	// Unique identifier for this device
-	DeviceID string
-
-	// List of CONNECT ports that are proxied via the remote proxy. Other ports
-	// will be handled with direct connections.
-	ProxiedCONNECTPorts []int
-
-	proxyAll atomic.Value
-
-	priorCfg *ClientConfig
-	cfgMutex sync.RWMutex
+	proxyAll  atomic.Value
+	cfgHolder atomic.Value
+	priorCfg  *ClientConfig
+	cfgMutex  sync.RWMutex
 
 	// Balanced CONNECT dialers.
 	bal eventual.Value
@@ -175,11 +165,9 @@ func (client *Client) Configure(cfg *ClientConfig, proxyAll func() bool) {
 	}
 
 	log.Debugf("Requiring minimum QOS of %d", cfg.MinQOS)
-	client.MinQOS = cfg.MinQOS
+	client.cfgHolder.Store(cfg)
 	log.Debugf("Proxy all traffic or not: %v", proxyAll())
 	client.proxyAll.Store(proxyAll)
-	client.DeviceID = cfg.DeviceID
-	client.ProxiedCONNECTPorts = cfg.ProxiedCONNECTPorts
 
 	bal, err := client.initBalancer(cfg)
 	if err != nil {
@@ -199,6 +187,10 @@ func (client *Client) Stop() error {
 
 func (client *Client) ProxyAll() bool {
 	return client.proxyAll.Load().(func() bool)()
+}
+
+func (client *Client) cfg() *ClientConfig {
+	return client.cfgHolder.Load().(*ClientConfig)
 }
 
 func (client *Client) proxiedDialer(orig func(network, addr string) (net.Conn, error)) func(network, addr string) (net.Conn, error) {
