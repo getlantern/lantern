@@ -2,7 +2,7 @@
 
 A command line tool to change proxy auto-config settings of operation system.
 
-Binaries included in repo. Simply `make` to build it again.
+Binaries included in repo. Simply `make` to build it again. You can also use the supplied xcode project to build on OSX, which is useful because it correctly sets things like the deployment target (10.6) and the code signing to use. To run it, simply type `xcodebuild`.
 
 Note - you will need to run make separately on each platform.
 
