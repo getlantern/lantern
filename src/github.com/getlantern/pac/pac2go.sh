@@ -14,6 +14,9 @@ then
   die "$0: Please set BNS_CERT and BNS_CERT_PASS to the bns_cert.p12 signing key and the password for that key"
 fi
 
+type go-bindata >/dev/null 2>&1 || die "Please install go-bindata with go get -u github.com/jteeuwen/go-bindata/..."
+type osslsigncode >/dev/null 2>&1 || die "Please install osslsigncode with brew install osslsigncode"
+
 BINPATH=../pac-cmd/binaries
 
 mv $BINPATH/windows/pac.exe $BINPATH/windows/pac
@@ -25,5 +28,5 @@ go-bindata -nomemcopy -nocompress -pkg pac -prefix $BINPATH/linux_386 -o pac_byt
 go-bindata -nomemcopy -nocompress -pkg pac -prefix $BINPATH/linux_amd64 -o pac_bytes_linux_amd64.go $BINPATH/linux_amd64
 #go-bindata -nomemcopy -nocompress -pkg pac -prefix $BINPATH/linux_arm -o pac_bytes_linux_arm.go $BINPATH/linux_arm
 
-codesign -s "Developer ID Application: Brave New Software Project, Inc" -f $BINPATH/darwin/pac || die "Could not sign macintosh"
+#codesign -s "Developer ID Application: Brave New Software Project, Inc" -f $BINPATH/darwin/pac || die "Could not sign macintosh"
 go-bindata -nomemcopy -nocompress -pkg pac -prefix $BINPATH/darwin -o pac_bytes_darwin.go $BINPATH/darwin
