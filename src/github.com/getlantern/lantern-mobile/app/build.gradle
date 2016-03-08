@@ -10,14 +10,16 @@ android {
 
     // Calculate the versionCode as the number of seconds from a fixed start point
     def start = new java.util.Date(2015, 1, 1).getTime()
-    def code = (int) ((new java.util.Date().getTime() - start) / 1000)
+    def now = new java.util.Date()
+    def nowFormatted = new java.text.SimpleDateFormat("yyyyMMddHHmmss").format(now)
+    def code = (int) ((now.getTime() - start) / 1000)
 
     defaultConfig {
 	    minSdkVersion rootProject.minSdkVersion
         targetSdkVersion rootProject.targetSdkVersion
         applicationId "org.getlantern.lantern"
         versionCode code
-        versionName "1.0." + code
+        versionName "1.0." + nowFormatted
     }
 
     lintOptions {
