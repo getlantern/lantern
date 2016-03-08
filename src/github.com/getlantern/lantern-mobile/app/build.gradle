@@ -8,10 +8,13 @@ android {
     compileSdkVersion rootProject.compileSdkVersion
     buildToolsVersion rootProject.buildToolsVersion
 
-    // Calculate the versionCode as the number of seconds from a fixed start point
-    def start = new java.util.Date(2015, 1, 1).getTime()
+    // Use now as the user-visible version
     def now = new java.util.Date()
     def nowFormatted = new java.text.SimpleDateFormat("yyyyMMddHHmmss").format(now)
+
+    // Calculate the versionCode as the number of seconds from a fixed start
+    // point so that it's always increasing.
+    def start = new java.util.Date(2015, 1, 1).getTime()
     def code = (int) ((now.getTime() - start) / 1000)
 
     defaultConfig {
