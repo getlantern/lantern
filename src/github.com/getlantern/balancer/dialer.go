@@ -3,6 +3,7 @@ package balancer
 import (
 	"net"
 	"net/http"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -44,10 +45,10 @@ var (
 
 type dialer struct {
 	*Dialer
-	closeCh chan struct{}
-	errCh   chan struct{}
-
-	checkTimer *time.Timer
+	closeCh      chan struct{}
+	errCh        chan struct{}
+	muCheckTimer sync.Mutex
+	checkTimer   *time.Timer
 
 	consecSuccesses int32
 	consecFailures  int32
@@ -142,7 +143,9 @@ func (d *dialer) markSuccess() {
 	newVal := atomic.AddInt32(&d.consecSuccesses, 1)
 	log.Tracef("Dialer %s consecutive successes: %d -> %d", d.Label, newVal-1, newVal)
 	atomic.StoreInt32(&d.consecFailures, 0)
+	d.muCheckTimer.Lock()
 	d.checkTimer.Reset(maxCheckTimeout)
+	d.muCheckTimer.Unlock()
 }
 
 func (d *dialer) markFailure() {
@@ -153,7 +156,9 @@ func (d *dialer) markFailure() {
 	if nextCheck > maxCheckTimeout {
 		nextCheck = maxCheckTimeout
 	}
+	d.muCheckTimer.Lock()
 	d.checkTimer.Reset(nextCheck)
+	d.muCheckTimer.Unlock()
 }
 
 func (d *dialer) defaultCheck() bool {
