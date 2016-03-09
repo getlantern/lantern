@@ -78,6 +78,39 @@ func TestRandomDialer(t *testing.T) {
 	assertWithinRangeOf(t, d3Attempts, 1000, 100)
 }
 
+func TestLoadBalancing(t *testing.T) {
+	addr, l := echoServer()
+	defer func() { _ = l.Close() }()
+	d1Attempts := 0
+	dialer1 := newLatencyDialer(1, 1*time.Millisecond, 100*time.Nanosecond, &d1Attempts)
+	d2Attempts := 0
+	dialer2 := newLatencyDialer(2, 1*time.Millisecond, 100*time.Nanosecond, &d2Attempts)
+	d3Attempts := 0
+	dialer3 := newLatencyDialer(3, 2*time.Millisecond, 100*time.Nanosecond, &d3Attempts)
+	d4Attempts := 0
+	dialer4 := newFailingDialer(1, func() bool {
+		// 5% fail rate
+		d4Attempts++
+		if rand.Intn(100) < 5 {
+			return false
+		}
+		return true
+	})
+
+	// Test success with failing dialer
+	b := New(QualityFirst, dialer1, dialer2, dialer3, dialer4)
+	defer b.Close()
+	for i := 0; i < 100; i++ {
+		_, err := b.Dial("tcp", addr)
+		assert.NoError(t, err, "Dialing should have succeeded")
+	}
+	// QualityFirst strategy provides some sort of load balancing, but not fair enough
+	assertWithinRangeOf(t, d1Attempts, 50, 40)
+	assertWithinRangeOf(t, d2Attempts, 50, 40)
+	assertWithinRangeOf(t, d3Attempts, 10, 10)
+	assertWithinRangeOf(t, d4Attempts, 2, 2)
+}
+
 func assertWithinRangeOf(t *testing.T, actual int, expected int, margin int) {
 	assert.True(t, actual >= expected-margin && actual <= expected+margin, fmt.Sprintf("%v not within %v of %v", actual, margin, expected))
 }
@@ -168,6 +201,19 @@ func newDialer(id int) *Dialer {
 	dialer := &Dialer{
 		Label: fmt.Sprintf("Dialer %d", id),
 		Dial: func(network, addr string) (net.Conn, error) {
+			return net.Dial(network, addr)
+		},
+	}
+	return dialer
+}
+
+func newLatencyDialer(id int, latency time.Duration, delta time.Duration, attempts *int) *Dialer {
+	dialer := &Dialer{
+		Label: fmt.Sprintf("Dialer %d", id),
+		Dial: func(network, addr string) (net.Conn, error) {
+			t := int64(latency) + rand.Int63n(int64(delta)*2) - int64(delta)
+			time.Sleep(time.Duration(t))
+			*attempts++
 			return net.Dial(network, addr)
 		},
 	}
