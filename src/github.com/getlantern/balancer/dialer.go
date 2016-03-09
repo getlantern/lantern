@@ -61,8 +61,8 @@ type dialer struct {
 
 func (d *dialer) Start() {
 	d.consecSuccesses = 1 // be optimistic
+	d.closeCh = make(chan struct{})
 	// to avoid blocking sender, make it buffered
-	d.closeCh = make(chan struct{}, 1)
 	d.errCh = make(chan struct{}, 1)
 	d.checkTimer = time.NewTimer(maxCheckTimeout)
 	if d.Check == nil {

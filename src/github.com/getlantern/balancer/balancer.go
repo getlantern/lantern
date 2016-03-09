@@ -6,6 +6,7 @@ import (
 	"container/heap"
 	"fmt"
 	"net"
+	"sync"
 
 	"github.com/getlantern/golog"
 )
@@ -20,6 +21,7 @@ var (
 
 // Balancer balances connections established by one or more Dialers.
 type Balancer struct {
+	mu      sync.Mutex
 	dialers dialerHeap
 	trusted dialerHeap
 }
@@ -39,7 +41,7 @@ func New(st Strategy, dialers ...*Dialer) *Balancer {
 		}
 	}
 
-	bal := &Balancer{st(dls), st(tdls)}
+	bal := &Balancer{dialers: st(dls), trusted: st(tdls)}
 	heap.Init(&bal.dialers)
 	heap.Init(&bal.trusted)
 	return bal
@@ -78,11 +80,13 @@ func (b *Balancer) Dial(network, addr string) (net.Conn, error) {
 		if dialers.Len() == 0 {
 			return nil, fmt.Errorf("No dialers left to try on pass %v", i)
 		}
+		b.mu.Lock()
+		// heap will re-adjust based on new metrics
 		d := heap.Pop(&dialers).(*dialer)
+		heap.Push(&dialers, d)
+		b.mu.Unlock()
 		log.Debugf("Dialing %s://%s with %s", network, addr, d.Label)
 		conn, err := d.CheckedDial(network, addr)
-		// heap will re-adjust based on new metrics
-		heap.Push(&dialers, d)
 		if err != nil {
 			log.Errorf("Unable to dial via %v to %s://%s: %v on pass %v...continuing", d.Label, network, addr, err, i)
 			continue

@@ -1,13 +1,11 @@
 package balancer
 
-import (
-	"math/rand"
-)
+import "math/rand"
 
 // Random strategy gives even chance to each dialer, act as a baseline to other
 // strategies.
 func Random(dialers []*dialer) dialerHeap {
-	return dialerHeap{dialers, func(i, j int) bool {
+	return dialerHeap{dialers: dialers, lessFunc: func(i, j int) bool {
 		// we don't need good randomness, skip seeding
 		if rand.Intn(2) == 0 {
 			return false
@@ -19,7 +17,7 @@ func Random(dialers []*dialer) dialerHeap {
 // Sticky strategy always pick the dialer with largest consecutive success
 // count or the smallest consecutive failure count
 func Sticky(dialers []*dialer) dialerHeap {
-	return dialerHeap{dialers, func(i, j int) bool {
+	return dialerHeap{dialers: dialers, lessFunc: func(i, j int) bool {
 		q1 := dialers[i].ConsecSuccesses() - dialers[i].ConsecFailures()
 		q2 := dialers[j].ConsecSuccesses() - dialers[j].ConsecFailures()
 		return q1 > q2
@@ -28,7 +26,7 @@ func Sticky(dialers []*dialer) dialerHeap {
 
 // Fastest strategy always pick the dialer with lowest recent average connect time
 func Fastest(dialers []*dialer) dialerHeap {
-	return dialerHeap{dialers, func(i, j int) bool {
+	return dialerHeap{dialers: dialers, lessFunc: func(i, j int) bool {
 		return dialers[i].AvgDialTime() < dialers[j].AvgDialTime()
 	}}
 }
@@ -36,7 +34,7 @@ func Fastest(dialers []*dialer) dialerHeap {
 // QualityFirst strategy behaves the same as Fastest strategy when both dialers
 // are good recently, and falls back to Sticky strategy in other cases.
 func QualityFirst(dialers []*dialer) dialerHeap {
-	return dialerHeap{dialers, func(i, j int) bool {
+	return dialerHeap{dialers: dialers, lessFunc: func(i, j int) bool {
 		q1 := dialers[i].ConsecSuccesses() - dialers[i].ConsecFailures()
 		q2 := dialers[j].ConsecSuccesses() - dialers[j].ConsecFailures()
 		if q1 > 0 && q2 > 0 {
@@ -53,7 +51,7 @@ func Weighted(ptQuality int, ptSpeed int) Strategy {
 	return func(dialers []*dialer) dialerHeap {
 		pq := float64(ptQuality)
 		pt := float64(ptSpeed)
-		return dialerHeap{dialers, func(i, j int) bool {
+		return dialerHeap{dialers: dialers, lessFunc: func(i, j int) bool {
 			q1 := float64(dialers[i].ConsecSuccesses() - dialers[i].ConsecFailures())
 			q2 := float64(dialers[j].ConsecSuccesses() - dialers[j].ConsecFailures())
 			t1 := float64(dialers[i].AvgDialTime())
@@ -73,7 +71,7 @@ type Strategy func(dialers []*dialer) dialerHeap
 
 type dialerHeap struct {
 	dialers  []*dialer
-	LessFunc func(i, j int) bool
+	lessFunc func(i, j int) bool
 }
 
 func (s *dialerHeap) Len() int { return len(s.dialers) }
@@ -83,7 +81,7 @@ func (s *dialerHeap) Swap(i, j int) {
 }
 
 func (s *dialerHeap) Less(i, j int) bool {
-	return s.LessFunc(i, j)
+	return s.lessFunc(i, j)
 }
 
 func (s *dialerHeap) Push(x interface{}) {
