@@ -122,8 +122,6 @@ func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 
 	return &balancer.Dialer{
 		Label:   label,
-		Weight:  s.Weight,
-		QOS:     s.QOS,
 		Trusted: s.Trusted,
 		Dial: func(network, addr string) (net.Conn, error) {
 			conn, err := d.Dial(network, addr)
