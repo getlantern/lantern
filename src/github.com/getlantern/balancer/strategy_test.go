@@ -60,5 +60,5 @@ func TestWeightedStrategy(t *testing.T) {
 
 	h = Weighted(5, 5)([]*dialer{d1, d4})
 	heap.Init(&h)
-	assert.Equal(t, heap.Pop(&h), d1, "should select dialer with more successes")
+	assert.Equal(t, heap.Pop(&h), d4, "should select dialer with more successes")
 }

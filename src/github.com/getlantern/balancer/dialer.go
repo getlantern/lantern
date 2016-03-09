@@ -14,15 +14,6 @@ type Dialer struct {
 	// Label: optional label with which to tag this dialer for debug logging.
 	Label string
 
-	// Weight: determines how often this Dialer is used relative to the other
-	// Dialers on the balancer.
-	Weight int
-
-	// QOS: identifies the quality of service provided by this dialer. Higher
-	// numbers equal higher quality. "Quality" in this case is loosely defined,
-	// but can mean things such as reliability, speed, etc.
-	QOS int
-
 	// Dial: this function dials the given network, addr.
 	Dial func(network, addr string) (net.Conn, error)
 
@@ -41,7 +32,7 @@ type Dialer struct {
 	// capped at 1 minute.
 	Check func() bool
 
-	// Determines wheter a dialer can be trusted with unencrypted traffic.
+	// Determines whether a dialer can be trusted with unencrypted traffic.
 	Trusted bool
 
 	AuthToken string
@@ -50,12 +41,6 @@ type Dialer struct {
 var (
 	maxCheckTimeout = 30 * time.Second
 )
-
-type metrics struct {
-	avgDialTime     int64
-	consecSuccesses int32
-	consecFailures  int32
-}
 
 type dialer struct {
 	*Dialer
@@ -73,7 +58,7 @@ type dialer struct {
 	avgDialTime int64
 }
 
-func (d *dialer) start() {
+func (d *dialer) Start() {
 	d.consecSuccesses = 1 // be optimistic
 	// to avoid blocking sender, make it buffered
 	d.closeCh = make(chan struct{}, 1)
@@ -109,23 +94,21 @@ func (d *dialer) start() {
 	}()
 }
 
-func (d *dialer) stop() {
+func (d *dialer) Stop() {
 	d.closeCh <- struct{}{}
 }
 
-func (d *dialer) metrics() metrics {
-	return metrics{
-		avgDialTime:     atomic.LoadInt64(&d.avgDialTime),
-		consecSuccesses: atomic.LoadInt32(&d.consecSuccesses),
-		consecFailures:  atomic.LoadInt32(&d.consecFailures),
-	}
+func (d *dialer) AvgDialTime() int64 {
+	return atomic.LoadInt64(&d.avgDialTime)
+}
+func (d *dialer) ConsecSuccesses() int32 {
+	return atomic.LoadInt32(&d.consecSuccesses)
+}
+func (d *dialer) ConsecFailures() int32 {
+	return atomic.LoadInt32(&d.consecFailures)
 }
 
-func (d *dialer) isActive() bool {
-	return atomic.LoadInt32(&d.consecSuccesses) > 0
-}
-
-func (d *dialer) checkedDial(network, addr string) (net.Conn, error) {
+func (d *dialer) CheckedDial(network, addr string) (net.Conn, error) {
 	t := time.Now()
 	conn, err := d.Dial(network, addr)
 	if err != nil {
@@ -177,7 +160,7 @@ func (d *dialer) defaultCheck() bool {
 	client := &http.Client{
 		Transport: &http.Transport{
 			DisableKeepAlives: true,
-			Dial:              d.checkedDial,
+			Dial:              d.CheckedDial,
 		},
 	}
 	ok, timedOut, _ := withtimeout.Do(60*time.Second, func() (interface{}, error) {
