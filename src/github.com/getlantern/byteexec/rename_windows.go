@@ -2,7 +2,7 @@ package byteexec
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 )
 
 func renameExecutable(orig string) string {
@@ -10,5 +10,5 @@ func renameExecutable(orig string) string {
 }
 
 func pathForRelativeFiles() (string, error) {
-	return path.Join(os.Getenv("APPDATA"), "byteexec"), nil
+	return filepath.Join(os.Getenv("APPDATA"), "byteexec"), nil
 }
