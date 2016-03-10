@@ -90,7 +90,7 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	sendToProxy := false
-	for _, proxiedPort := range client.ProxiedCONNECTPorts {
+	for _, proxiedPort := range client.cfg().ProxiedCONNECTPorts {
 		if port == proxiedPort {
 			sendToProxy = true
 			break
