@@ -2,9 +2,28 @@
 <resources>
   <string name="app_name">‫لنترن</string>
   <string name="action_settings">تنظیمات</string>
-  <string name="send_button">ارسال</string>
+  <string name="button_text">شروع</string>
+  <string name="drawer_open">کشو باز</string>
+  <string name="drawer_close">کشو بسته</string>
+  <string name="default_fragment">به طور پیش فرض قطعه</string>
+  <string name="email_hint">ایمیل</string>
+  <string name="on_text">روشن</string>
+  <string name="off_text">خاموش</string>
+  <string name="desktop_option">نسخه دسکتاپ</string>
   <string name="contact_option">‫تماس‬</string>
+  <string name="privacy_policy">حریم خصوصی</string>
   <string name="share_option">اشتراك گذاري</string>
   <string name="quit_option">خروج</string>
   <string name="share_email_native"></string>
+  <string name="share_email_subject">لنترن اندروید</string>
+  <string name="share_twitter">وارسی لنترن اندروید: https://github.com/getlantern/lantern/blob/lantern-mobile/src/github.com/getlantern/lantern-mobile/latest-builds/lantern.apk</string>
+  <string name="share_chooser_text">شروع لنترن اندروید</string>
+  <string name="contact_email">team@getlantern.org</string>
+  <string name="contact_message">کمکم کنید</string>
+  <string name="contact_subject">لنترن اندروید</string>
+  <string name="not_now">الان نه</string>
+  <string name="install_update">به روز رسانی</string>
+  <string name="error_update">ایراد در دانلود به روز رسانی</string>
+  <string name="language">زبان</string>
+  <string name="item_preview_country">ایالات متحده آمریکا</string>
 </resources>
