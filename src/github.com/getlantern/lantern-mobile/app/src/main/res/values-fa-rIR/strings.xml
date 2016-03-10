@@ -7,4 +7,5 @@
   <string name="share_option">اشتراك گذاري</string>
   <string name="quit_option">خروج</string>
   <string name="share_email_native"></string>
+  <string name="desktop_option">نسخه دسکتاپ</string>
 </resources>
