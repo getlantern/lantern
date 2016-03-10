@@ -242,6 +242,10 @@ Please, go to [README-dev](README-dev.md) for an in-depth explanation of the Lan
 
 Please visit [README-release](README-release.md) for details on building release versions of Lantern.
 
+### Translations README
+
+More info for dealing with translations is available in [README-translations](README-translations.md).
+
 ### Contributing changes
 Lantern is a [gost](https://github.com/getlantern/gost) project that
 provides repeatable builds and consolidated pull requests for lantern.
