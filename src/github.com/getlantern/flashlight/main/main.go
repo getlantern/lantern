@@ -25,7 +25,6 @@ import (
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/logging"
 	"github.com/getlantern/flashlight/proxiedsites"
-	"github.com/getlantern/flashlight/settings"
 	"github.com/getlantern/flashlight/ui"
 
 	"github.com/mitchellh/panicwrap"
@@ -50,7 +49,7 @@ func init() {
 
 	rand.Seed(time.Now().UnixNano())
 
-	settings.Load(flashlight.Version, flashlight.RevisionDate, flashlight.BuildDate)
+	settings = LoadSettings(flashlight.Version, flashlight.RevisionDate, flashlight.BuildDate)
 }
 
 func logPanic(msg string) {
@@ -141,7 +140,6 @@ func doMain() error {
 		}
 	})
 	addExitFunc(quitSystray)
-	addExitFunc(settings.Save)
 
 	i18nInit()
 	if showui {
@@ -249,9 +247,12 @@ func beforeStart(cfg *config.Config) bool {
 
 func afterStart(cfg *config.Config) {
 	onConfigUpdate(cfg)
-	pacOn()
-	addExitFunc(pacOff)
+	ServePACFile()
+	if settings.GetSystemProxy() {
+		pacOn()
+	}
 
+	addExitFunc(pacOff)
 	if showui && !*startup {
 		// Launch a browser window with Lantern but only after the pac
 		// URL and the proxy server are all up and running to avoid
@@ -266,8 +267,6 @@ func afterStart(cfg *config.Config) {
 func onConfigUpdate(cfg *config.Config) {
 	autoupdate.Configure(cfg)
 	proxiedsites.Configure(cfg.ProxiedSites)
-	log.Debugf("Proxy all traffic or not: %v", settings.GetProxyAll())
-	ServeProxyAllPacFile(settings.GetProxyAll())
 }
 
 func i18nInit() {

@@ -7982,12 +7982,12 @@ body.giveMode #npending {
 
 #mobile-ad {
   width: 627px;
-  height: 473px;
+  height: 440px;
   border: 1px solid #000;
   text-align: center;
 
   position: relative;
-  top: 140px;
+  top: 125px;
   margin: 0 auto;
 }
 
@@ -8001,7 +8001,7 @@ body.giveMode #npending {
   height: 16.8px;
   padding: 0px;
   margin: 0px;
-  margin-top: 20px;
+  margin-top: 5px;
 }
 
 #mobile-ad input {
@@ -8102,11 +8102,10 @@ body.giveMode #npending {
   margin: 0 auto;
 }
 
-
 .download-link {
   font-size: 9pt;
   display: block;
-  margin-top: 20px;
+  margin-top: 5px;
 }
 #link-copied {
   font-family: Roboto 10pt;
@@ -8131,20 +8130,32 @@ input.fail:-ms-input-placeholder {
   display: none;
 }
 
-@media (max-width: 750px) {
+@media (max-width: 750px), (max-height: 620px) {
   #mobile-ad {
-    width: 502px;
-    height: 423px;
+    width: 500px;
+    height: 390px;
   }
   p.download-link b {
     display: block;
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 600px), (max-height: 565px) {
   #mobile-ad {
-    top: 170px;
-    width: 376px;
-    height: 363px;
+    width: 375px;
+    height: 325px;
+  }
+}
+
+@media (max-width: 400px), (max-height: 500px) {
+  .message {
+    font-size: 14px;
+  }
+  #mobile-ad {
+    width: 300px;
+    height: 175px;
+  }
+  #mobile-ad-image {
+    display: none;
   }
 }

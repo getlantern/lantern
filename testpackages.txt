@@ -15,7 +15,7 @@ github.com/getlantern/flashlight
 github.com/getlantern/flashlight/client
 github.com/getlantern/flashlight/config
 github.com/getlantern/flashlight/logging
-github.com/getlantern/flashlight/settings
+github.com/getlantern/flashlight/main
 github.com/getlantern/flashlight/util
 github.com/getlantern/fronted
 github.com/getlantern/geolookup

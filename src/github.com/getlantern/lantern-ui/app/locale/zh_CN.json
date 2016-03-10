@@ -144,6 +144,7 @@
   "MANAGE_PROXIED_SITES": "管理已代理的站点…",
   "ADVANCED": "高级设置",
   "PROXY_ALL_TRAFFIC": "代理全部流量",
+  "MANAGE_SYSTEMPROXY": "设置系统代理",
   "APP": "应用",
   "AUTO_START": "系统启动时自动运行 Lantern",
   "SHOW_FRIEND_PROMPTS": "提示正在运行 Lantern 的好友",
