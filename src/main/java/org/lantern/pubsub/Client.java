@@ -85,7 +85,11 @@ public class Client implements Runnable {
     }
 
     public static byte[] utf8(String str) {
-        return str.getBytes(UTF8);
+        return str == null ? null : str.getBytes(UTF8);
+    }
+
+    public static String fromUTF8(byte[] bytes) {
+        return bytes == null ? null : new String(bytes, UTF8);
     }
 
     public Message read() throws InterruptedException {
@@ -334,9 +338,12 @@ public class Client implements Runnable {
             KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
             ks.load(null, null);
             addCertificate(ks, "isrgrootx1", "isrgrootx1.pem");
-            addCertificate(ks, "letsencryptauthorityx1", "letsencryptauthorityx1.der");
-            addCertificate(ks, "letsencryptauthorityx2", "letsencryptauthorityx2.der");
-            addCertificate(ks, "lets-encrypt-x2-cross-signed", "lets-encrypt-x2-cross-signed.der");
+            addCertificate(ks, "letsencryptauthorityx1",
+                    "letsencryptauthorityx1.der");
+            addCertificate(ks, "letsencryptauthorityx2",
+                    "letsencryptauthorityx2.der");
+            addCertificate(ks, "lets-encrypt-x2-cross-signed",
+                    "lets-encrypt-x2-cross-signed.der");
 
             TrustManagerFactory tmf = TrustManagerFactory
                     .getInstance(TrustManagerFactory.getDefaultAlgorithm());
