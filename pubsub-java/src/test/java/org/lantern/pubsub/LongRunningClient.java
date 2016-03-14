@@ -1,7 +1,6 @@
 package org.lantern.pubsub;
 
-import org.lantern.pubsub.Client;
-import org.lantern.pubsub.Message;
+import java.util.Random;
 
 public class LongRunningClient extends BaseClient {
     public static void main(String[] args) throws Exception {
@@ -10,13 +9,14 @@ public class LongRunningClient extends BaseClient {
             System.exit(1);
         }
 
+        Random rand = new Random(System.currentTimeMillis());
+        int id = Math.abs(rand.nextInt(100));
         Client client = newClient(args[0], TOPIC);
-        while (true) {
-            client.publish(TOPIC, BODY).send();
-            System.err.println("Published");
+        for (int i = 0; i < Integer.MAX_VALUE; i++) {
+            client.publish(TOPIC,
+                    Client.utf8(String.format("%03d|%2$d", id, i))).send();
             Message msg = client.read();
-            System.err.println("Got: " + new String(msg.getBody()));
-            System.err.println("Sleeping 2 minutes");
+            System.err.println(new String(msg.getBody()));
             Thread.sleep(2 * 60 * 1000);
         }
     }

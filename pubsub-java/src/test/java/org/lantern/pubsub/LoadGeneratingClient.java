@@ -9,6 +9,7 @@ import org.lantern.pubsub.Client;
  * with the Go perfclient.
  */
 public class LoadGeneratingClient extends BaseClient {
+    private static final byte[] BODY = Client.utf8("this is the message body");
     private static final long REPORT_INTERVAL = 10000;
     private static final long CHECK_INTERVAL = 1000;
     private static final long TARGET_TPS = 100000;

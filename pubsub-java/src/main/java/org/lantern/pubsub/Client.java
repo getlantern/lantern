@@ -214,7 +214,7 @@ public class Client implements Runnable {
 
     private void doReadLoop(MessageUnpacker in) throws IOException,
             InterruptedException {
-        while (true) {
+        while (in.hasNext()) {
             if (in.getNextFormat() == MessageFormat.NIL) {
                 in.skipValue();
                 continue;
