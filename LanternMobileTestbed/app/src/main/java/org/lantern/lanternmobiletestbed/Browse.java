@@ -9,30 +9,18 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.ToggleButton;
 
 import org.lantern.mobilesdk.Lantern;
+import org.lantern.pubsub.Client;
+import org.lantern.pubsub.Message;
+import org.lantern.pubsub.MessageHandler;
+import org.lantern.pubsub.PubSub;
 
 import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
-import java.net.ProxySelector;
-import java.net.SocketAddress;
-import java.net.URI;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class Browse extends AppCompatActivity {
     private static final String TAG = "Browse";
@@ -52,6 +40,12 @@ public class Browse extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_browse, menu);
+        PubSub.subscribe(getApplicationContext(), Client.utf8("topic"), new MessageHandler() {
+            @Override
+            public void onMessage(Message message) {
+                Log.i(TAG, "Message: " + new String(message.getBody()));
+            }
+        });
         return true;
     }
 

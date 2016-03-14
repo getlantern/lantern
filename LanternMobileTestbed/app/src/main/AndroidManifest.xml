@@ -27,6 +27,12 @@
             android:exported="false"
             android:process=":LanternService"
             />
+
+        <service
+            android:name="org.lantern.pubsub.PubSubService"
+            android:exported="false"
+            android:process=":PubSubService"
+            />
     </application>
 
 </manifest>
