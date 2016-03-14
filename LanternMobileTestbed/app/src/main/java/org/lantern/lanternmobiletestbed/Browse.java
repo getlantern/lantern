@@ -46,7 +46,7 @@ public class Browse extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         refreshIP(null);
-        PubSub.subscribe(getApplicationContext(), Client.utf8("topic"), "pubsub.notify('org.lantern.lanternmobiletestbed', 'lantern_icon', 'Lantern Notification', 'Test Body', 'Browse', 0);");
+        PubSub.subscribe(getApplicationContext(), Client.utf8("topic"), "pubsub.notify('org.lantern.lanternmobiletestbed', 'lantern_icon', 'Lantern Notification', pubsub.fromUTF8(body), 'Browse', 0);");
     }
 
     @Override
