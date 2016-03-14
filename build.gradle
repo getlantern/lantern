@@ -1,0 +1,32 @@
+buildscript {
+  repositories { jcenter() }
+  dependencies {
+    classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+  }
+}
+
+plugins {
+  id 'java'
+  id 'eclipse'
+  id 'com.github.johnrengelman.shadow' version '1.2.3'
+}
+
+repositories {
+  jcenter()
+}
+
+sourceCompatibility = '1.6'
+
+dependencies {
+  compile "org.msgpack:msgpack-core:0.8.3"
+  
+  testCompile 'junit:junit:4.12'
+}
+
+shadowJar {
+  classifier = 'fat'
+}
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '2.11'
+}
