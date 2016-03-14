@@ -7,8 +7,7 @@ public class BaseClient {
     public static final String SERVER = "pubsub.lantern.io";
     public static final int PORT = 14443;
     public static final byte[] TOPIC = Client.utf8("topic");
-    public static final byte[] BODY = Client.utf8("this is the message body");
-
+    
     protected static Client newClient(String authenticationKey,
             byte[]... initialTopics) {
         ClientConfig cfg = new ClientConfig(SERVER, PORT);
