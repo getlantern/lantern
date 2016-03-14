@@ -11,10 +11,11 @@ public class LongRunningClient extends BaseClient {
 
         Random rand = new Random(System.currentTimeMillis());
         int id = Math.abs(rand.nextInt(100));
-        Client client = newClient(args[0], TOPIC);
+        Client client = newClient(args[0]);
+        client.subscribe(TOPIC);
         for (int i = 0; i < Integer.MAX_VALUE; i++) {
             client.publish(TOPIC,
-                    Client.utf8(String.format("%03d|%2$d", id, i))).send();
+                    Client.utf8(String.format("%03d|%2$d", id, i)));
             Message msg = client.read();
             System.err.println(new String(msg.getBody()));
             Thread.sleep(2 * 60 * 1000);

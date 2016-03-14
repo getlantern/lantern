@@ -4,16 +4,21 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.security.KeyStore;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
@@ -41,6 +46,9 @@ public class Client implements Runnable {
             new LinkedBlockingQueue<Message>(1);
     private final ScheduledExecutorService scheduledExecutor = Executors
             .newSingleThreadScheduledExecutor();
+    private final AtomicReference<String> authenticationKey = new AtomicReference<String>();
+    private final Set<ByteBuffer> subscriptions = Collections
+            .newSetFromMap(new ConcurrentHashMap<ByteBuffer, Boolean>());
 
     private volatile Socket socket;
     private volatile MessagePacker packer;
@@ -53,8 +61,6 @@ public class Client implements Runnable {
         public long backoffBase;
         public long maxBackoff;
         public long keepalivePeriod;
-        public String authenticationKey;
-        public byte[][] initialTopics;
 
         public ClientConfig(String host, int port) {
             this.host = host;
@@ -101,25 +107,25 @@ public class Client implements Runnable {
         return in.poll(timeout, unit);
     }
 
-    public Sendable subscribe(byte[] topic) {
-        return new Sendable(this, new Message(Type.Subscribe, topic, null));
+    public void authenticate(String authenticationKey)
+            throws InterruptedException {
+        this.authenticationKey.set(authenticationKey);
+        new Sendable(this, new Message(Type.Authenticate, null,
+                utf8(authenticationKey))).send();
     }
 
-    public Sendable unsubscribe(byte[] topic) {
-        return new Sendable(this, new Message(Type.Unsubscribe, topic, null));
+    public void subscribe(byte[] topic) throws InterruptedException {
+        subscriptions.add(ByteBuffer.wrap(topic));
+        new Sendable(this, new Message(Type.Subscribe, topic, null)).send();
     }
 
-    public Sendable publish(byte[] topic, byte[] body) {
-        return new Sendable(this, new Message(Type.Publish, topic, body));
+    public void unsubscribe(byte[] topic) throws InterruptedException {
+        subscriptions.remove(ByteBuffer.wrap(topic));
+        new Sendable(this, new Message(Type.Unsubscribe, topic, null)).send();
     }
 
-    private Sendable authenticate(String authenticationKey) {
-        return new Sendable(this, new Message(Type.Authenticate, null,
-                utf8(authenticationKey)));
-    }
-
-    private Sendable keepAlive() {
-        return new Sendable(this, new Message(Type.KeepAlive, null, null));
+    public void publish(byte[] topic, byte[] body) throws InterruptedException {
+        new Sendable(this, new Message(Type.Publish, topic, body)).send();
     }
 
     public void run() {
@@ -195,14 +201,15 @@ public class Client implements Runnable {
     }
 
     private void sendInitialMessages() throws IOException, InterruptedException {
-        if (cfg.authenticationKey != null) {
-            authenticate(cfg.authenticationKey).sendImmediate();
+        String ak = authenticationKey.get();
+        if (ak != null) {
+            new Sendable(this, new Message(Type.Authenticate, null,
+                    utf8(ak))).sendImmediate();
         }
 
-        if (cfg.initialTopics != null) {
-            for (byte[] topic : cfg.initialTopics) {
-                subscribe(topic).sendImmediate();
-            }
+        for (ByteBuffer topic : subscriptions) {
+            new Sendable(this, new Message(Type.Subscribe, topic.array(), null))
+                    .sendImmediate();
         }
     }
 
@@ -242,7 +249,8 @@ public class Client implements Runnable {
 
     private final Runnable sendKeepalive = new Runnable() {
         public void run() {
-            outQueue.offer(keepAlive());
+            outQueue.offer(new Sendable(Client.this, new Message(
+                    Type.KeepAlive, null, null)));
         }
     };
 
@@ -267,7 +275,7 @@ public class Client implements Runnable {
         }
     }
 
-    public static class Sendable implements Runnable {
+    private static class Sendable implements Runnable {
         private final Client client;
         private final Message msg;
 
@@ -277,7 +285,7 @@ public class Client implements Runnable {
             this.msg = msg;
         }
 
-        public void send() throws InterruptedException {
+        private void send() throws InterruptedException {
             client.outQueue.put(this);
         }
 
