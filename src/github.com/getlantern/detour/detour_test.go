@@ -31,7 +31,7 @@ func proxyTo(proxiedURL string) func(network, addr string) (net.Conn, error) {
 func TestBlockedImmediately(t *testing.T) {
 	defer stopMockServers()
 	proxiedURL, _ := newMockServer(detourMsg)
-	TimeoutToDetour = 50 * time.Millisecond
+	DelayBeforeDetour = 50 * time.Millisecond
 	mockURL, mock := newMockServer(directMsg)
 
 	client := &http.Client{Timeout: 50 * time.Millisecond}
@@ -71,7 +71,7 @@ func TestBlockedImmediately(t *testing.T) {
 func TestBlockedAfterwards(t *testing.T) {
 	defer stopMockServers()
 	proxiedURL, _ := newMockServer(detourMsg)
-	TimeoutToDetour = 50 * time.Millisecond
+	DelayBeforeDetour = 50 * time.Millisecond
 	mockURL, mock := newMockServer(directMsg)
 	client := newClient(proxiedURL, 100*time.Millisecond)
 
@@ -95,7 +95,7 @@ func TestRemoveFromWhitelist(t *testing.T) {
 	defer stopMockServers()
 	proxiedURL, proxy := newMockServer(detourMsg)
 	proxy.Timeout(200*time.Millisecond, detourMsg)
-	TimeoutToDetour = 50 * time.Millisecond
+	DelayBeforeDetour = 50 * time.Millisecond
 	mockURL, _ := newMockServer(directMsg)
 	client := newClient(proxiedURL, 100*time.Millisecond)
 
@@ -113,7 +113,7 @@ func TestClosing(t *testing.T) {
 	defer stopMockServers()
 	proxiedURL, proxy := newMockServer(detourMsg)
 	proxy.Timeout(200*time.Millisecond, detourMsg)
-	TimeoutToDetour = 50 * time.Millisecond
+	DelayBeforeDetour = 50 * time.Millisecond
 	mockURL, mock := newMockServer(directMsg)
 	mock.Msg(directMsg)
 	DirectAddrCh = make(chan string)
@@ -130,7 +130,7 @@ func TestClosing(t *testing.T) {
 func TestIranRules(t *testing.T) {
 	defer stopMockServers()
 	proxiedURL, _ := newMockServer(detourMsg)
-	TimeoutToDetour = 50 * time.Millisecond
+	DelayBeforeDetour = 50 * time.Millisecond
 	SetCountry("IR")
 	u, mock := newMockServer(directMsg)
 	client := newClient(proxiedURL, 100*time.Millisecond)
