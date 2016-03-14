@@ -18,3 +18,5 @@
 
 # Keep
 -keep class org.lantern.pubsub.**
+-keep class org.mozilla.javascript.**
+-dontwarn org.mozilla.javascript.**

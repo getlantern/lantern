@@ -4,7 +4,12 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -41,52 +46,13 @@ public class Browse extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         refreshIP(null);
+        PubSub.subscribe(getApplicationContext(), Client.utf8("topic"), "pubsub.notify('org.lantern.lanternmobiletestbed', 'lantern_icon', 'Lantern Notification', 'Test Body', 'Browse', 0);");
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_browse, menu);
-        PubSub.subscribe(getApplicationContext(), Client.utf8("topic"), new MessageHandler() {
-            @Override
-            public void onMessage(Message message) {
-                String body = Client.fromUTF8(message.getBody());
-                Log.i(TAG, "Message: " + body);
-                NotificationCompat.Builder mBuilder =
-                        new NotificationCompat.Builder(getApplicationContext())
-                                .setSmallIcon(R.drawable.lantern_icon)
-                                .setContentTitle("Lantern Notification")
-                                .setContentText(body);
-                // Creates an explicit intent for an Activity in your app
-                Intent resultIntent = new Intent(getApplicationContext(), Browse.class);
-                PendingIntent resultPendingIntent = null;
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    // The stack builder object will contain an artificial back stack for the
-                    // started Activity.
-                    // This ensures that navigating backward from the Activity leads out of
-                    // your application to the Home screen.
-                    TaskStackBuilder stackBuilder = TaskStackBuilder.create(getApplicationContext());
-                    // Adds the back stack for the Intent (but not the Intent itself)
-                    stackBuilder.addParentStack(Browse.class);
-                    // Adds the Intent that starts the Activity to the top of the stack
-                    stackBuilder.addNextIntent(resultIntent);
-                    resultPendingIntent = stackBuilder.getPendingIntent(
-                            0,
-                            PendingIntent.FLAG_UPDATE_CURRENT);
-                } else {
-                    resultPendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-                }
-                mBuilder.setContentIntent(resultPendingIntent);
-
-                NotificationManager mNotificationManager =
-                        (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                // mId allows you to update the notification later on.
-                mNotificationManager.notify(5, mBuilder.build());
-
-                Log.i(TAG, "Notified");
-            }
-        });
         return true;
     }
 
