@@ -2,8 +2,6 @@ package org.lantern.pubsub;
 
 import java.util.Random;
 
-import org.lantern.pubsub.Client;
-
 /**
  * This client generates load for performance testing. Useful in conjunction
  * with the Go perfclient.
@@ -34,8 +32,7 @@ public class LoadGeneratingClient extends BaseClient {
         for (long i = 0; i < Long.MAX_VALUE; i++) {
             client.publish(
                     Client.utf8("perfclient" + random.nextInt(numClients)),
-                    BODY)
-                    .send();
+                    BODY);
             if (i % CHECK_INTERVAL == 0 && i > 0) {
                 long delta = System.currentTimeMillis() - checkStart;
                 checkStart = System.currentTimeMillis();
