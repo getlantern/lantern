@@ -48,6 +48,7 @@ lantern.yaml
 LanternMobileTestbed/app/libs/
 *.apk
 *.aar
+pubsub-java-fat.jar
 local.properties
 .idea/workspace.xml
 .idea/tasks.xml
