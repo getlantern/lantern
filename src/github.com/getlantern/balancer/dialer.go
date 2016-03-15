@@ -15,22 +15,20 @@ type Dialer struct {
 	// Label: optional label with which to tag this dialer for debug logging.
 	Label string
 
-	// Dial: this function dials the given network, addr.
-	Dial func(network, addr string) (net.Conn, error)
+	// DialFN: this function dials the given network, addr.
+	DialFN func(network, addr string) (net.Conn, error)
 
 	// OnClose: (optional) callback for when this dialer is stopped.
 	OnClose func()
 
-	// Check: (optional) - When dialing fails, this Dialer is deactivated (taken
-	// out of rotation). Check is a function that's used periodically after a
-	// failed dial to check whether or not Dial works again. As soon as there is
-	// a successful check, this Dialer will be activated (put back in rotation).
-	//
-	// If Check is not specified, a default Check will be used that makes an
-	// HTTP request to http://www.google.com/humans.txt using this Dialer.
+	// Check: (optional) - a function that's used to test reachibility metrics
+	// periodically or if the dialer was failed to connect.
 	//
 	// Checks are scheduled at exponentially increasing intervals that are
 	// capped at 1 minute.
+	//
+	// If Check is not specified, a default Check will be used that makes an
+	// HTTP request to http://www.google.com/humans.txt using this Dialer.
 	Check func() bool
 
 	// Determines whether a dialer can be trusted with unencrypted traffic.
@@ -40,30 +38,24 @@ type Dialer struct {
 }
 
 var (
-	maxCheckTimeout = 30 * time.Second
+	maxCheckTimeout = 1 * time.Minute
 )
 
 type dialer struct {
 	*Dialer
 	closeCh      chan struct{}
-	errCh        chan struct{}
 	muCheckTimer sync.Mutex
 	checkTimer   *time.Timer
 
 	consecSuccesses int32
 	consecFailures  int32
-	// It's actually the average of last connect time and previous average. so
-	// if the connect time for i iteration is t[i], after n iteration, its value
-	// will be 1/2(t[n] + 1/2(t[n-1] + 1/2(t[n-2) + ... + t[1]))...), most
-	// recent connect time contributes most to the value, seems a good indicator.
-	avgDialTime int64
+	// Ref dialer.EMADialTime() for the rationale
+	emaDialTime int64
 }
 
 func (d *dialer) Start() {
 	d.consecSuccesses = 1 // be optimistic
 	d.closeCh = make(chan struct{})
-	// to avoid blocking sender, make it buffered
-	d.errCh = make(chan struct{}, 1)
 	d.checkTimer = time.NewTimer(maxCheckTimeout)
 	if d.Check == nil {
 		d.Check = d.defaultCheck
@@ -78,18 +70,14 @@ func (d *dialer) Start() {
 					d.OnClose()
 				}
 				return
-			case <-d.errCh:
-				d.markFailure()
 			case <-d.checkTimer.C:
-				go func() {
-					log.Tracef("Start checking dialer %s", d.Label)
-					ok := d.Check()
-					if ok {
-						d.markSuccess()
-					} else {
-						d.markFailure()
-					}
-				}()
+				log.Tracef("Start checking dialer %s", d.Label)
+				ok := d.Check()
+				if ok {
+					d.markSuccess()
+				} else {
+					d.markFailure()
+				}
 			}
 		}
 	}()
@@ -99,8 +87,11 @@ func (d *dialer) Stop() {
 	d.closeCh <- struct{}{}
 }
 
-func (d *dialer) AvgDialTime() int64 {
-	return atomic.LoadInt64(&d.avgDialTime)
+// It's the Exponential moving average of dial time with an α of 0.5.
+// Ref https://en.wikipedia.org/wiki/Moving_average#Exponential_moving_average.
+// If it's not smooth enough, we can increase α by changing `updateEMADialTime`.
+func (d *dialer) EMADialTime() int64 {
+	return atomic.LoadInt64(&d.emaDialTime)
 }
 func (d *dialer) ConsecSuccesses() int32 {
 	return atomic.LoadInt32(&d.consecSuccesses)
@@ -109,39 +100,29 @@ func (d *dialer) ConsecFailures() int32 {
 	return atomic.LoadInt32(&d.consecFailures)
 }
 
-func (d *dialer) CheckedDial(network, addr string) (net.Conn, error) {
+func (d *dialer) dial(network, addr string) (net.Conn, error) {
 	t := time.Now()
-	conn, err := d.Dial(network, addr)
+	conn, err := d.DialFN(network, addr)
 	if err != nil {
-		d.onError(err)
+		d.markFailure()
 	} else {
 		d.markSuccess()
-		d.updateAvgConnTime(time.Now().Sub(t))
+		d.updateEMADialTime(time.Now().Sub(t))
 	}
 	return conn, err
 }
 
-func (d *dialer) onError(err error) {
-	select {
-	case d.errCh <- struct{}{}:
-		log.Trace("Error reported")
-	default:
-		log.Trace("Errors already pending, ignoring new one")
-	}
-}
-
-func (d *dialer) updateAvgConnTime(t time.Duration) {
-	// Ref the declaration of avgDialTime for the rationale.
-	// Use integer arithmetic as the values should be large enough to safely
-	// ignore decimals.
-	newAvg := (atomic.LoadInt64(&d.avgDialTime) + t.Nanoseconds()) / 2
-	log.Tracef("Dialer %s average dial time: %d", d.Label, newAvg)
-	atomic.StoreInt64(&d.avgDialTime, newAvg)
+func (d *dialer) updateEMADialTime(t time.Duration) {
+	// Ref dialer.EMADialTime() for the rationale.
+	// The values is large enough to safely ignore decimals.
+	newEMA := (atomic.LoadInt64(&d.emaDialTime) + t.Nanoseconds()) / 2
+	log.Tracef("Dialer %s EMA(exponential moving average) dial time: %d", d.Label, newEMA)
+	atomic.StoreInt64(&d.emaDialTime, newEMA)
 }
 
 func (d *dialer) markSuccess() {
-	newVal := atomic.AddInt32(&d.consecSuccesses, 1)
-	log.Tracef("Dialer %s consecutive successes: %d -> %d", d.Label, newVal-1, newVal)
+	newCS := atomic.AddInt32(&d.consecSuccesses, 1)
+	log.Tracef("Dialer %s consecutive successes: %d -> %d", d.Label, newCS-1, newCS)
 	atomic.StoreInt32(&d.consecFailures, 0)
 	d.muCheckTimer.Lock()
 	d.checkTimer.Reset(maxCheckTimeout)
@@ -165,7 +146,7 @@ func (d *dialer) defaultCheck() bool {
 	client := &http.Client{
 		Transport: &http.Transport{
 			DisableKeepAlives: true,
-			Dial:              d.CheckedDial,
+			Dial:              d.dial,
 		},
 	}
 	ok, timedOut, _ := withtimeout.Do(60*time.Second, func() (interface{}, error) {

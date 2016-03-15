@@ -169,7 +169,7 @@ func TestRecheck(t *testing.T) {
 func TestTrusted(t *testing.T) {
 	dialCount := 0
 	dialer := &Dialer{
-		Dial: func(network, addr string) (net.Conn, error) {
+		DialFN: func(network, addr string) (net.Conn, error) {
 			dialCount++
 			return nil, nil
 		},
@@ -217,7 +217,7 @@ func echoServer() (addr string, l net.Listener) {
 func newDialer(id int) *Dialer {
 	dialer := &Dialer{
 		Label: fmt.Sprintf("Dialer %d", id),
-		Dial: func(network, addr string) (net.Conn, error) {
+		DialFN: func(network, addr string) (net.Conn, error) {
 			return net.Dial(network, addr)
 		},
 	}
@@ -227,7 +227,7 @@ func newDialer(id int) *Dialer {
 func newLatencyDialer(id int, latency time.Duration, delta time.Duration, attempts *int32) *Dialer {
 	dialer := &Dialer{
 		Label: fmt.Sprintf("Dialer %d", id),
-		Dial: func(network, addr string) (net.Conn, error) {
+		DialFN: func(network, addr string) (net.Conn, error) {
 			t := int64(latency) + rand.Int63n(int64(delta)*2) - int64(delta)
 			time.Sleep(time.Duration(t))
 			atomic.AddInt32(attempts, 1)
@@ -241,7 +241,7 @@ func newLatencyDialer(id int, latency time.Duration, delta time.Duration, attemp
 func newCondDialer(id int32, beforeDial func() bool) *Dialer {
 	d := &Dialer{
 		Label: "Dialer " + strconv.Itoa(int(id)),
-		Dial: func(network, addr string) (net.Conn, error) {
+		DialFN: func(network, addr string) (net.Conn, error) {
 			if beforeDial() {
 				return nil, fmt.Errorf("Failing intentionally")
 			} else {

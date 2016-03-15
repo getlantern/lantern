@@ -27,7 +27,7 @@ func Sticky(dialers []*dialer) dialerHeap {
 // Fastest strategy always pick the dialer with lowest recent average connect time
 func Fastest(dialers []*dialer) dialerHeap {
 	return dialerHeap{dialers: dialers, lessFunc: func(i, j int) bool {
-		return dialers[i].AvgDialTime() < dialers[j].AvgDialTime()
+		return dialers[i].EMADialTime() < dialers[j].EMADialTime()
 	}}
 }
 
@@ -38,7 +38,7 @@ func QualityFirst(dialers []*dialer) dialerHeap {
 		q1 := dialers[i].ConsecSuccesses() - dialers[i].ConsecFailures()
 		q2 := dialers[j].ConsecSuccesses() - dialers[j].ConsecFailures()
 		if q1 > 0 && q2 > 0 {
-			return dialers[i].AvgDialTime() < dialers[j].AvgDialTime()
+			return dialers[i].EMADialTime() < dialers[j].EMADialTime()
 		}
 		return q1 > q2
 	}}
@@ -55,8 +55,8 @@ func Weighted(ptQuality int, ptSpeed int) Strategy {
 		return dialerHeap{dialers: dialers, lessFunc: func(i, j int) bool {
 			q1 := float64(dialers[i].ConsecSuccesses() - dialers[i].ConsecFailures())
 			q2 := float64(dialers[j].ConsecSuccesses() - dialers[j].ConsecFailures())
-			t1 := float64(dialers[i].AvgDialTime())
-			t2 := float64(dialers[i].AvgDialTime())
+			t1 := float64(dialers[i].EMADialTime())
+			t2 := float64(dialers[i].EMADialTime())
 
 			w1 := q2/(q1+q2)*pq + t1/(t1+t2)*pt
 			w2 := q1/(q1+q2)*pq + t2/(t1+t2)*pt

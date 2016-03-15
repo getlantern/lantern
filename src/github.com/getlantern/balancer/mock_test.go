@@ -37,7 +37,7 @@ func RandomlyFailWithVariedDelay(failPercent int, delay time.Duration, delta tim
 	return &Dialer{
 		Label:   label,
 		Trusted: true,
-		Dial: func(string, string) (net.Conn, error) {
+		DialFN: func(string, string) (net.Conn, error) {
 			var cdn int64
 			if dn != 0 {
 				cdn = rand.Int63n(dn*2) - dn
