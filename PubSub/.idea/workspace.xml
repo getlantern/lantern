@@ -37,10 +37,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="AutoStart.java" pinned="false" current-in-tab="true">
+      <file leaf-file-name="AutoStart.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/sdk/src/main/java/org/lantern/pubsub/AutoStart.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.30201343">
+            <state vertical-scroll-proportion="0.0">
               <caret line="9" column="99" selection-start-line="9" selection-start-column="27" selection-end-line="9" selection-end-column="99" />
               <folding>
                 <element signature="imports" expanded="true" />
@@ -49,19 +49,19 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="PubSubService.java" pinned="false" current-in-tab="false">
+      <file leaf-file-name="PubSubService.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/sdk/src/main/java/org/lantern/pubsub/PubSubService.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="82" column="45" selection-start-line="82" selection-start-column="45" selection-end-line="82" selection-end-column="45" />
+            <state vertical-scroll-proportion="0.6308725">
+              <caret line="64" column="45" selection-start-line="64" selection-start-column="45" selection-end-line="64" selection-end-column="45" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#711#712#0" expanded="true" />
                 <element signature="e#738#739#0" expanded="true" />
-                <element signature="e#1564#2271#0" expanded="true" />
-                <element signature="e#2270#2271#0" expanded="true" />
-                <element signature="e#2526#2985#0" expanded="true" />
-                <element signature="e#2984#2985#0" expanded="true" />
+                <element signature="e#1564#2612#0" expanded="true" />
+                <element signature="e#2611#2612#0" expanded="true" />
+                <element signature="e#2867#3326#0" expanded="true" />
+                <element signature="e#3325#3326#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -1750,9 +1750,9 @@
         <option value="$PROJECT_DIR$/sdk/proguard-rules.pro" />
         <option value="$PROJECT_DIR$/sdk/src/main/java/org/lantern/pubsub/MessageHandler.java" />
         <option value="$PROJECT_DIR$/sdk/build.gradle" />
-        <option value="$PROJECT_DIR$/sdk/src/main/java/org/lantern/pubsub/PubSubService.java" />
         <option value="$PROJECT_DIR$/sdk/src/main/java/org/lantern/pubsub/PubSub.java" />
         <option value="$PROJECT_DIR$/sdk/src/main/java/org/lantern/pubsub/AutoStart.java" />
+        <option value="$PROJECT_DIR$/sdk/src/main/java/org/lantern/pubsub/PubSubService.java" />
       </list>
     </option>
   </component>
@@ -2087,10 +2087,10 @@
             <element signature="imports" expanded="true" />
             <element signature="e#711#712#0" expanded="true" />
             <element signature="e#738#739#0" expanded="true" />
-            <element signature="e#1564#2271#0" expanded="true" />
-            <element signature="e#2270#2271#0" expanded="true" />
-            <element signature="e#2526#2985#0" expanded="true" />
-            <element signature="e#2984#2985#0" expanded="true" />
+            <element signature="e#1564#2612#0" expanded="true" />
+            <element signature="e#2611#2612#0" expanded="true" />
+            <element signature="e#2867#3326#0" expanded="true" />
+            <element signature="e#3325#3326#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -2125,10 +2125,10 @@
             <element signature="imports" expanded="true" />
             <element signature="e#711#712#0" expanded="true" />
             <element signature="e#738#739#0" expanded="true" />
-            <element signature="e#1564#2271#0" expanded="true" />
-            <element signature="e#2270#2271#0" expanded="true" />
-            <element signature="e#2526#2985#0" expanded="true" />
-            <element signature="e#2984#2985#0" expanded="true" />
+            <element signature="e#1564#2612#0" expanded="true" />
+            <element signature="e#2611#2612#0" expanded="true" />
+            <element signature="e#2867#3326#0" expanded="true" />
+            <element signature="e#3325#3326#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -2248,18 +2248,12 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/sdk/src/main/java/org/lantern/pubsub/PubSubService.java">
+    <entry file="file://$PROJECT_DIR$/sdk/src/main/java/org/lantern/pubsub/AutoStart.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="82" column="45" selection-start-line="82" selection-start-column="45" selection-end-line="82" selection-end-column="45" />
+          <caret line="9" column="99" selection-start-line="9" selection-start-column="27" selection-end-line="9" selection-end-column="99" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#711#712#0" expanded="true" />
-            <element signature="e#738#739#0" expanded="true" />
-            <element signature="e#1564#2271#0" expanded="true" />
-            <element signature="e#2270#2271#0" expanded="true" />
-            <element signature="e#2526#2985#0" expanded="true" />
-            <element signature="e#2984#2985#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -2278,12 +2272,18 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/sdk/src/main/java/org/lantern/pubsub/AutoStart.java">
+    <entry file="file://$PROJECT_DIR$/sdk/src/main/java/org/lantern/pubsub/PubSubService.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.30201343">
-          <caret line="9" column="99" selection-start-line="9" selection-start-column="27" selection-end-line="9" selection-end-column="99" />
+        <state vertical-scroll-proportion="0.6308725">
+          <caret line="64" column="45" selection-start-line="64" selection-start-column="45" selection-end-line="64" selection-end-column="45" />
           <folding>
             <element signature="imports" expanded="true" />
+            <element signature="e#711#712#0" expanded="true" />
+            <element signature="e#738#739#0" expanded="true" />
+            <element signature="e#1564#2612#0" expanded="true" />
+            <element signature="e#2611#2612#0" expanded="true" />
+            <element signature="e#2867#3326#0" expanded="true" />
+            <element signature="e#3325#3326#0" expanded="true" />
           </folding>
         </state>
       </provider>

@@ -59,6 +59,10 @@ public class PubSubService extends Service {
                     messageIntent.putExtra(PubSub.TOPIC, msg.getTopic());
                     messageIntent.putExtra(PubSub.BODY, msg.getBody());
                     Log.i(TAG, "Notifying of message");
+                    // TODO: right now, this publishes all messages in a way that anyone listening
+                    // for this intent can read them. Once we have multiple clients using a single
+                    // PubSubService, we should make sure to isolate them so they can't see each
+                    // others' notifications.
                     sendBroadcast(messageIntent);
                 } catch (InterruptedException ie) {
                     ie.printStackTrace();
