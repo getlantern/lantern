@@ -14,8 +14,8 @@ func Random(dialers []*dialer) dialerHeap {
 	}}
 }
 
-// Sticky strategy always pick the dialer with largest consecutive success
-// count or the smallest consecutive failure count
+// Sticky strategy always pick the dialer with the biggest difference between
+// consecutive successes and consecutive failures.
 func Sticky(dialers []*dialer) dialerHeap {
 	return dialerHeap{dialers: dialers, lessFunc: func(i, j int) bool {
 		q1 := dialers[i].ConsecSuccesses() - dialers[i].ConsecFailures()
@@ -48,6 +48,7 @@ func QualityFirst(dialers []*dialer) dialerHeap {
 // ptQuality: the percentage network quality contributes to total weight.
 // the rest (100 - ptQuality) will be contributed by recent average connect time.
 func Weighted(ptQuality int, ptSpeed int) Strategy {
+	log.Error("Using the Weighted balancer strategy.  This strategy is incomplete and may not work as expected.")
 	return func(dialers []*dialer) dialerHeap {
 		pq := float64(ptQuality)
 		pt := float64(ptSpeed)
