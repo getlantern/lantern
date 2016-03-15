@@ -1,19 +1,8 @@
 package org.lantern.lanternmobiletestbed;
 
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.app.TaskStackBuilder;
 import android.content.Context;
-import android.content.ContextWrapper;
-import android.content.Intent;
-import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -24,8 +13,6 @@ import android.widget.TextView;
 
 import org.lantern.mobilesdk.Lantern;
 import org.lantern.pubsub.Client;
-import org.lantern.pubsub.Message;
-import org.lantern.pubsub.MessageHandler;
 import org.lantern.pubsub.PubSub;
 
 import java.io.BufferedInputStream;
@@ -46,7 +33,7 @@ public class Browse extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         refreshIP(null);
-        PubSub.subscribe(getApplicationContext(), Client.utf8("topic"), "pubsub.notify('org.lantern.lanternmobiletestbed', 'lantern_icon', 'Lantern Notification', pubsub.fromUTF8(body), 'Browse', 0);");
+        PubSub.start(getApplicationContext());
     }
 
     @Override
