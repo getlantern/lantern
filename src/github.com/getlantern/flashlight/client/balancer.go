@@ -40,7 +40,7 @@ func (client *Client) initBalancer(cfg *ClientConfig) (*balancer.Balancer, error
 		}
 	}
 
-	bal := balancer.New(dialers...)
+	bal := balancer.New(balancer.QualityFirst, dialers...)
 	var oldBal *balancer.Balancer
 	var ok bool
 	ob, ok := client.bal.Get(0 * time.Millisecond)

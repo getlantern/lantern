@@ -146,7 +146,7 @@ func testFallbackServer(fb *client.ChainedServerInfo, workerID int) (output full
 	}
 	c := &http.Client{
 		Transport: &http.Transport{
-			Dial: dialer.Dial,
+			Dial: dialer.DialFN,
 		},
 	}
 	req, err := http.NewRequest("GET", "http://www.google.com/humans.txt", nil)
