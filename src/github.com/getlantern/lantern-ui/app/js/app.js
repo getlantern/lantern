@@ -188,8 +188,12 @@ var app = angular.module('app', [
         $translate.use(lang);
     };
 
-    $rootScope.trackPageView = function() {
-        gaMgr.trackPageView();
+    $rootScope.enableTracking = function() {
+      gaMgr.enable();
+    };
+
+    $rootScope.disableTracking = function() {
+      gaMgr.disable();
     };
 
     $rootScope.valByLang = function(name) {

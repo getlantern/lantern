@@ -63,32 +63,34 @@ angular.module('app.services', [])
             // set default client to get-mode
             model.settings = {};
             model.settings.mode = 'get';
-            model.settings.version = settings.version + " (" + settings.revision_date + ")";
+            model.settings.version = settings.version + " (" + settings.revisionDate + ")";
         }
 
-        if (settings.auto_report) {
-          model.settings.auto_report = true;
-          $rootScope.trackPageView();
+        if (settings.autoReport) {
+          model.settings.autoReport = true;
+          $rootScope.enableTracking();
+        } else {
+          $rootScope.disableTracking();
         }
 
-        if (settings.auto_launch) {
-          model.settings.auto_launch = true;
+        if (settings.autoLaunch) {
+          model.settings.autoLaunch = true;
         }
 
-        if (settings.proxy_all) {
-          model.settings.proxy_all = true;
+        if (settings.proxyAll) {
+          model.settings.proxyAll = true;
         }
 
-        if (settings.system_proxy) {
-          model.settings.system_proxy = true;
+        if (settings.systemProxy) {
+          model.settings.systemProxy = true;
         }
 
-        if (settings.redirect_to) {
-          console.log('Redirecting UI to: ' + settings.redirect_to);
-          window.location = settings.redirect_to;
+        if (settings.redirectTo) {
+          console.log('Redirecting UI to: ' + settings.redirectTo);
+          window.location = settings.redirectTo;
         }
       },
-      'local_discovery': function(data) {
+      'localDiscovery': function(data) {
         model.localLanterns = data;
       },
     };
@@ -151,12 +153,19 @@ angular.module('app.services', [])
   .service('gaMgr', function ($window, DataStream, GOOGLE_ANALYTICS_DISABLE_KEY, GOOGLE_ANALYTICS_WEBPROP_ID) {
     window.gaDidInit = false;
 
+    var enabled = false;
+
     // Under certain circumstances this "window.ga" function was not available
     // when loading Safari. See
     // https://github.com/getlantern/lantern/issues/3560
     var ga = function() {
       var ga = $window.ga;
       if (ga) {
+        if (!enabled) {
+          return function() {
+            console.log("ga is disabled.")
+          }
+        }
         if (!$window.gaDidInit) {
           $window.gaDidInit = true;
           ga('create', GOOGLE_ANALYTICS_WEBPROP_ID, {cookieDomain: 'none'});
@@ -167,6 +176,7 @@ angular.module('app.services', [])
             hostname: 'lantern-ui',
             title: 'lantern-ui'
           });
+          trackPageView(); // Only happens once.
         }
         return ga;
       }
@@ -176,6 +186,7 @@ angular.module('app.services', [])
     }
 
     var trackPageView = function() {
+      console.log("Tracked page view.");
       ga()('send', 'pageview');
     };
 
@@ -199,7 +210,20 @@ angular.module('app.services', [])
       ga()('send', 'event', 'bookmark-' + name);
     };
 
+    var enableTracking = function() {
+      console.log("enabling ga.")
+      enabled = true;
+      ga(); // this will send the pageview, if not previously sent.
+    };
+
+    var disableTracking = function() {
+      console.log("disabling ga.")
+      enabled = false;
+    };
+
     return {
+      enable: enableTracking,
+      disable: disableTracking,
       trackSendLinkToMobile: trackSendLinkToMobile,
       trackCopyLink: trackCopyLink,
       trackPageView: trackPageView,

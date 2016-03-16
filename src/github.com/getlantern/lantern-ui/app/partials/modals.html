@@ -57,18 +57,18 @@
       <dt>{{ 'APP' | translate }}</dt>
       <dd id="app-settings">
         <label class="checkbox">
-          <input type="checkbox" ng-model="model.settings.auto_launch" focus-on="show" ng-change="changeAutoLaunch(model.settings.auto_launch)">
+          <input type="checkbox" ng-model="model.settings.autoLaunch" focus-on="show" ng-change="changeAutoLaunch(model.settings.autoLaunch)">
           {{ 'AUTO_START' | translate }}
       </label>
 
         <label class="checkbox">
-          <input type="checkbox" ng-model="model.settings.proxy_all" focus-on="show" ng-click="changeProxyAll(model.settings.proxy_all)">
+          <input type="checkbox" ng-model="model.settings.proxyAll" focus-on="show" ng-click="changeProxyAll(model.settings.proxyAll)">
           {{ 'PROXY_ALL_TRAFFIC' | translate }}
         </label>
 
         <div>
           <label class="checkbox">
-            <input type="checkbox" ng-model="model.settings.auto_report" ng-change="changeReporting(model.settings.auto_report)">
+            <input type="checkbox" ng-model="model.settings.autoReport" ng-change="changeReporting(model.settings.autoReport)">
             {{ 'AUTOREPORT_PROMPT' | translate }}
             <a ng-click="openExternal(EXTERNAL_URL.autoReportPrivacy)" class="more-info">
               {{ 'MORE_INFO' | translate }}<sup><i class="icon-external-link"></i></sup>
@@ -78,12 +78,12 @@
 
         <div>
           <label class="checkbox">
-            <input type="checkbox" ng-model="model.settings.system_proxy" ng-click="changeSystemProxy(model.settings.system_proxy)">
+            <input type="checkbox" ng-model="model.settings.systemProxy" ng-click="changeSystemProxy(model.settings.systemProxy)">
             {{ 'MANAGE_SYSTEMPROXY' | translate }}
           </label>
         </div>
 
-		    <div id="autoreport-warning" ng-show="!model.settings.auto_report">
+		    <div id="autoreport-warning" ng-show="!model.settings.autoReport">
           <i class="icon-exclamation-sign"></i>
           {{ 'NO_AUTOREPORT_WARNING' | translate }}
         </div>

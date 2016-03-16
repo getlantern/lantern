@@ -29,16 +29,16 @@ var (
 
 // Settings is a struct of all settings unique to this particular Lantern instance.
 type Settings struct {
-	UserId    int    `json:"user_id,omitempty"`
-	UserToken string `json:"user_token,omitempty"`
+	UserId    int    `json:"userID,omitempty"`
+	UserToken string `json:"userToken,omitempty"`
 
 	Version      string `json:"version"`
-	BuildDate    string `json:"build_date"`
-	RevisionDate string `json:"revision_date"`
-	AutoReport   bool   `json:"auto_report"`
-	AutoLaunch   bool   `json:"auto_launch"`
-	ProxyAll     bool   `json:"proxy_all"`
-	SystemProxy  bool   `json:"system_proxy"`
+	BuildDate    string `json:"buildDate"`
+	RevisionDate string `json:"revisionDate"`
+	AutoReport   bool   `json:"autoReport"`
+	AutoLaunch   bool   `json:"autoLaunch"`
+	ProxyAll     bool   `json:"proxyAll"`
+	SystemProxy  bool   `json:"systemProxy"`
 
 	sync.RWMutex `json:"-" yaml:"-"`
 }
@@ -118,26 +118,26 @@ func (s *Settings) read() {
 
 		var v, ok bool
 
-		if v, ok = data["auto_report"].(bool); ok {
+		if v, ok = data["autoReport"].(bool); ok {
 			s.SetAutoReport(v)
 		}
 
-		if v, ok = data["proxy_all"].(bool); ok {
+		if v, ok = data["proxyAll"].(bool); ok {
 			s.SetProxyAll(v)
 		}
 
-		if v, ok = data["auto_launch"].(bool); ok {
+		if v, ok = data["autoLaunch"].(bool); ok {
 			s.SetAutoLaunch(v)
 		}
 
-		if v, ok = data["system_proxy"].(bool); ok {
+		if v, ok = data["systemProxy"].(bool); ok {
 			s.SetSystemProxy(v)
 		}
 
-		if data["user_id"] != nil {
+		if data["userID"] != nil {
 			// This is unmarshaled into a float64, I'm am converting it to string and
 			// then to float32 to catch the case when this is a float32.
-			if id, err := strconv.Atoi(fmt.Sprintf("%v", data["user_id"])); err == nil {
+			if id, err := strconv.Atoi(fmt.Sprintf("%v", data["userID"])); err == nil {
 				s.SetUserId(id)
 			}
 		}
@@ -236,7 +236,7 @@ func (s *Settings) SetSystemProxy(enable bool) {
 		preferredUIAddr, addrChanged := ui.PreferProxiedUI(enable)
 		if !enable && addrChanged {
 			log.Debugf("System proxying disabled, redirect UI to: %v", preferredUIAddr)
-			service.Out <- map[string]string{"redirect_to": preferredUIAddr}
+			service.Out <- map[string]string{"redirectTo": preferredUIAddr}
 		}
 	}
 }

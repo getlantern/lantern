@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	messageType = `local_discovery`
+	messageType = `localDiscovery`
 )
 
 var (

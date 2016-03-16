@@ -116,26 +116,26 @@ app.controller('SettingsCtrl', ['$scope', 'MODAL', 'DataStream', 'gaMgr', functi
   });
 
   $scope.changeReporting = function(value) {
-      DataStream.send('settings', {auto_report: value});
+      DataStream.send('settings', {autoReport: value});
   };
 
   $scope.changeAutoLaunch = function(value) {
-      DataStream.send('settings', {auto_launch: value});
+      DataStream.send('settings', {autoLaunch: value});
   }
 
   $scope.changeProxyAll = function(value) {
-      DataStream.send('settings', {proxy_all: value});
+      DataStream.send('settings', {proxyAll: value});
   }
 
   $scope.changeSystemProxy = function(value) {
-      DataStream.send('settings', {system_proxy: value});
+      DataStream.send('settings', {systemProxy: value});
   }
 
-  $scope.$watch('model.settings.system_proxy', function(value) {
+  $scope.$watch('model.settings.systemProxy', function(value) {
     $scope.systemProxy = value;
   });
 
-  $scope.$watch('model.settings.proxy_all', function(value) {
+  $scope.$watch('model.settings.proxyAll', function(value) {
     $scope.proxyAllSites = value;
   });
 }]);
