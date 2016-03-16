@@ -15,16 +15,16 @@ public class LoadGeneratingClient extends BaseClient {
     private static final Random random = new Random(System.currentTimeMillis());
 
     public static void main(String[] args) throws Exception {
-        if (args.length != 2) {
+        if (args.length != 1) {
             System.err
-                    .println("Please specify an authentication key and number of clients");
+                    .println("Please specify number of clients");
             System.exit(1);
         }
 
-        int numClients = Integer.parseInt(args[1]);
+        int numClients = Integer.parseInt(args[0]);
 
-        System.out.println("Server: " + args[0] + "   NumClients: "
-                + numClients + "   Target Delta: " + TARGET_DELTA);
+        System.out.println("NumClients: " + numClients + "   Target Delta: "
+                + TARGET_DELTA);
 
         Client client = newClient();
         long checkStart = System.currentTimeMillis();
