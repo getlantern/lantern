@@ -87,11 +87,6 @@ func LoadSettings(version, revisionDate, buildDate string) *Settings {
 	return settings
 }
 
-type msg struct {
-	*Settings  `json:",inline"`
-	RedirectTo string `json:"redirect_to"`
-}
-
 // start the settings service that synchronizes Lantern's configuration with every UI client
 func (s *Settings) start() error {
 	var err error
@@ -101,7 +96,7 @@ func (s *Settings) start() error {
 		log.Debugf("Sending Lantern settings to new client")
 		s.Lock()
 		defer s.Unlock()
-		return write(&msg{Settings: s})
+		return write(s)
 	}
 	service, err = ui.Register(messageType, nil, helloFn)
 	return err
@@ -114,37 +109,44 @@ func (s *Settings) read() {
 
 		// We're using a map here because we want to know when the user sends a
 		// false value.
-		msg := (message).(map[string]interface{})
+		var data map[string]interface{}
+		var decoded bool
+
+		if data, decoded = (message).(map[string]interface{}); !decoded {
+			continue
+		}
 
 		var v, ok bool
 
-		if v, ok = msg["auto_report"].(bool); ok {
+		if v, ok = data["auto_report"].(bool); ok {
 			s.SetAutoReport(v)
 		}
 
-		if v, ok = msg["proxy_all"].(bool); ok {
+		if v, ok = data["proxy_all"].(bool); ok {
 			s.SetProxyAll(v)
 		}
 
-		if v, ok = msg["auto_launch"].(bool); ok {
+		if v, ok = data["auto_launch"].(bool); ok {
 			s.SetAutoLaunch(v)
 		}
 
-		if v, ok = msg["system_proxy"].(bool); ok {
+		if v, ok = data["system_proxy"].(bool); ok {
 			s.SetSystemProxy(v)
 		}
 
-		if msg["user_id"] != nil {
+		if data["user_id"] != nil {
 			// This is unmarshaled into a float64, I'm am converting it to string and
 			// then to float32 to catch the case when this is a float32.
-			if id, err := strconv.Atoi(fmt.Sprintf("%v", msg["user_id"])); err == nil {
+			if id, err := strconv.Atoi(fmt.Sprintf("%v", data["user_id"])); err == nil {
 				s.SetUserId(id)
 			}
 		}
 
-		if token, ok := msg["token"].(string); ok {
+		if token, ok := data["token"].(string); ok {
 			s.SetToken(token)
 		}
+
+		service.Out <- s
 	}
 }
 
@@ -234,7 +236,7 @@ func (s *Settings) SetSystemProxy(enable bool) {
 		preferredUIAddr, addrChanged := ui.PreferProxiedUI(enable)
 		if !enable && addrChanged {
 			log.Debugf("System proxying disabled, redirect UI to: %v", preferredUIAddr)
-			service.Out <- &msg{RedirectTo: preferredUIAddr}
+			service.Out <- map[string]string{"redirect_to": preferredUIAddr}
 		}
 	}
 }
