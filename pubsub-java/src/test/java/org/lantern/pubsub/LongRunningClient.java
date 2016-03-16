@@ -4,11 +4,6 @@ import java.util.Random;
 
 public class LongRunningClient extends BaseClient {
     public static void main(String[] args) throws Exception {
-        if (args.length != 1) {
-            System.err.println("Please specify an authentication key");
-            System.exit(1);
-        }
-
         Random rand = new Random(System.currentTimeMillis());
         int id = Math.abs(rand.nextInt(100));
         Client client = newClient();
