@@ -46,7 +46,6 @@ public class Client implements Runnable {
             new LinkedBlockingQueue<Message>(1);
     private final ScheduledExecutorService scheduledExecutor = Executors
             .newSingleThreadScheduledExecutor();
-    private final AtomicReference<String> authenticationKey = new AtomicReference<String>();
     private final Set<ByteBuffer> subscriptions = Collections
             .newSetFromMap(new ConcurrentHashMap<ByteBuffer, Boolean>());
 
@@ -58,6 +57,7 @@ public class Client implements Runnable {
     public static class ClientConfig {
         private final String host;
         private final int port;
+        public String authenticationKey;
         public long backoffBase;
         public long maxBackoff;
         public long keepalivePeriod;
@@ -105,13 +105,6 @@ public class Client implements Runnable {
     public Message readTimeout(long timeout, TimeUnit unit)
             throws InterruptedException {
         return in.poll(timeout, unit);
-    }
-
-    public void authenticate(String authenticationKey)
-            throws InterruptedException {
-        this.authenticationKey.set(authenticationKey);
-        new Sendable(this, new Message(Type.Authenticate, null,
-                utf8(authenticationKey))).send();
     }
 
     public void subscribe(byte[] topic) throws InterruptedException {
@@ -201,10 +194,9 @@ public class Client implements Runnable {
     }
 
     private void sendInitialMessages() throws IOException, InterruptedException {
-        String ak = authenticationKey.get();
-        if (ak != null) {
+        if (cfg.authenticationKey != null) {
             new Sendable(this, new Message(Type.Authenticate, null,
-                    utf8(ak))).sendImmediate();
+                    utf8(cfg.authenticationKey))).sendImmediate();
         }
 
         for (ByteBuffer topic : subscriptions) {
