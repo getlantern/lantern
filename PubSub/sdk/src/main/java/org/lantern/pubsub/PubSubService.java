@@ -44,7 +44,7 @@ public class PubSubService extends Service {
     }
 
     private void initClient() {
-        Client.ClientConfig config = new Client.ClientConfig("pubsub.lantern.io", 14443);
+        Client.ClientConfig config = new Client.ClientConfig("pubsub-test.lantern.io", 14443);
         client = new Client(config);
         reader.start();
     }
