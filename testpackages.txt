@@ -34,4 +34,3 @@ github.com/getlantern/proxiedsites
 github.com/getlantern/lantern-android/client
 github.com/getlantern/lantern-android/libflashlight/bindings
 github.com/getlantern/checkfallbacks
-sasasa
