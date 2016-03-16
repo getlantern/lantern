@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"sync"
 
 	"github.com/getlantern/appdir"
@@ -14,7 +16,7 @@ import (
 )
 
 const (
-	messageType = `Settings`
+	messageType = `settings`
 )
 
 var (
@@ -27,15 +29,18 @@ var (
 
 // Settings is a struct of all settings unique to this particular Lantern instance.
 type Settings struct {
-	Version      string
-	BuildDate    string
-	RevisionDate string
-	AutoReport   bool
-	AutoLaunch   bool
-	ProxyAll     bool
-	SystemProxy  bool
+	UserId    int    `json:"user_id"`
+	UserToken string `json:"user_token"`
 
-	sync.RWMutex
+	Version      string `json:"version"`
+	BuildDate    string `json:"build_date"`
+	RevisionDate string `json:"revision_date"`
+	AutoReport   bool   `json:"auto_report"`
+	AutoLaunch   bool   `json:"auto_launch"`
+	ProxyAll     bool   `json:"proxy_all"`
+	SystemProxy  bool   `json:"system_proxy"`
+
+	sync.RWMutex `json:"-" yaml:"-"`
 }
 
 // Load loads the initial settings at startup, either from disk or using defaults.
@@ -83,8 +88,8 @@ func LoadSettings(version, revisionDate, buildDate string) *Settings {
 }
 
 type msg struct {
-	Settings   *Settings
-	RedirectTo string
+	*Settings  `json:",inline"`
+	RedirectTo string `json:"redirect_to"`
 }
 
 // start the settings service that synchronizes Lantern's configuration with every UI client
@@ -106,17 +111,39 @@ func (s *Settings) read() {
 	log.Debugf("Reading settings messages!!")
 	for message := range service.In {
 		log.Debugf("Read settings message!! %v", message)
+
+		// We're using a map here because we want to know when the user sends a
+		// false value.
 		msg := (message).(map[string]interface{})
 
-		if autoReport, ok := msg["autoReport"].(bool); ok {
-			s.SetAutoReport(autoReport)
-		} else if proxyAll, ok := msg["proxyAll"].(bool); ok {
-			s.SetProxyAll(proxyAll)
-		} else if autoLaunch, ok := msg["autoLaunch"].(bool); ok {
-			s.SetAutoLaunch(autoLaunch)
-		} else if systemProxy, ok := msg["systemProxy"].(bool); ok {
-			log.Debugf("Setting system proxy")
-			s.SetSystemProxy(systemProxy)
+		var v, ok bool
+
+		if v, ok = msg["auto_report"].(bool); ok {
+			s.SetAutoReport(v)
+		}
+
+		if v, ok = msg["proxy_all"].(bool); ok {
+			s.SetProxyAll(v)
+		}
+
+		if v, ok = msg["auto_launch"].(bool); ok {
+			s.SetAutoLaunch(v)
+		}
+
+		if v, ok = msg["system_proxy"].(bool); ok {
+			s.SetSystemProxy(v)
+		}
+
+		if msg["user_id"] != nil {
+			// This is unmarshaled into a float64, I'm am converting it to string and
+			// then to float32 to catch the case when this is a float32.
+			if id, err := strconv.Atoi(fmt.Sprintf("%v", msg["user_id"])); err == nil {
+				s.SetUserId(id)
+			}
+		}
+
+		if token, ok := msg["token"].(string); ok {
+			s.SetToken(token)
 		}
 	}
 }
@@ -178,6 +205,18 @@ func (s *Settings) GetSystemProxy() bool {
 	s.RLock()
 	defer s.RUnlock()
 	return s.SystemProxy
+}
+
+func (s *Settings) SetToken(token string) {
+	s.Lock()
+	defer s.unlockAndSave()
+	s.UserToken = token
+}
+
+func (s *Settings) SetUserId(id int) {
+	s.Lock()
+	defer s.unlockAndSave()
+	s.UserId = id
 }
 
 // SetSystemProxy sets whether or not to set system proxy when lantern starts
