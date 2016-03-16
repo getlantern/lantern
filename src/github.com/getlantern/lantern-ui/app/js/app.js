@@ -98,10 +98,10 @@ var app = angular.module('app', [
 
       ds.onMessage(function(raw) {
         var envelope = JSON.parse(raw.data);
-        if (typeof Messages[envelope.Type] != 'undefined') {
-          Messages[envelope.Type].call(this, envelope.Message);
+        if (typeof Messages[envelope.type] != 'undefined') {
+          Messages[envelope.type].call(this, envelope.message);
         } else {
-          console.log('Got unknown message type: ' + envelope.Type);
+          console.log('Got unknown message type: ' + envelope.type);
         };
       });
 
@@ -155,23 +155,6 @@ var app = angular.module('app', [
       return methods;
     }
   ])
-  .factory('ProxiedSites', ['$window', '$rootScope', 'DataStream', function($window, $rootScope, DataStream) {
-
-      var methods = {
-        update: function() {
-          console.log('UPDATE');
-          // dataStream.send(JSON.stringify($rootScope.updates));
-          DataStream.send('ProxiedSites', $rootScope.updates)
-        },
-        get: function() {
-          console.log('GET');
-          // dataStream.send(JSON.stringify({ action: 'get' }));
-          DataStream.send('ProxiedSites', {'action': 'get'});
-        }
-      };
-
-      return methods;
-  }])
   .run(function ($filter, $log, $rootScope, $timeout, $window, $websocket,
                  $translate, $http, apiSrvc, gaMgr, modelSrvc, ENUMS, EXTERNAL_URL, MODAL, CONTACT_FORM_MAXLEN) {
 

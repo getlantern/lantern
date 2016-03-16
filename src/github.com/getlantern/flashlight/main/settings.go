@@ -29,8 +29,8 @@ var (
 
 // Settings is a struct of all settings unique to this particular Lantern instance.
 type Settings struct {
-	UserId    int    `json:"user_id"`
-	UserToken string `json:"user_token"`
+	UserId    int    `json:"user_id,omitempty"`
+	UserToken string `json:"user_token,omitempty"`
 
 	Version      string `json:"version"`
 	BuildDate    string `json:"build_date"`

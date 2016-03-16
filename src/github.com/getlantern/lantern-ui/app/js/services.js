@@ -56,97 +56,40 @@ angular.module('app.services', [])
     }
 
     var fnList = {
-      'GeoLookup': function(data) {
-        console.log('Got GeoLookup information: ', data);
-        if (data && data.Location) {
-            model.location = {};
-            model.location.lon = data.Location.Longitude;
-            model.location.lat = data.Location.Latitude;
-            model.location.resolved = true;
+      'settings': function(settings) {
+        console.log('Got Lantern default settings: ', settings);
+        if (settings && settings.version) {
+            // configure settings
+            // set default client to get-mode
+            model.settings = {};
+            model.settings.mode = 'get';
+            model.settings.version = settings.version + " (" + settings.revision_date + ")";
+        }
+
+        if (settings.auto_report) {
+          model.settings.auto_report = true;
+          $rootScope.trackPageView();
+        }
+
+        if (settings.auto_launch) {
+          model.settings.auto_launch = true;
+        }
+
+        if (settings.proxy_all) {
+          model.settings.proxy_all = true;
+        }
+
+        if (settings.system_proxy) {
+          model.settings.system_proxy = true;
+        }
+
+        if (settings.redirect_to) {
+          console.log('Redirecting UI to: ' + settings.redirect_to);
+          window.location = settings.redirect_to;
         }
       },
-      'Settings': function(data) {
-        if (data.Settings) {
-          var settings = data.Settings;
-          console.log('Got Lantern default settings: ', settings);
-          if (settings && settings.Version) {
-              // configure settings
-              // set default client to get-mode
-              model.settings = {};
-              model.settings.mode = 'get';
-              model.settings.version = settings.Version + " (" + settings.RevisionDate + ")";
-          }
-
-          if (settings.AutoReport) {
-              model.settings.autoReport = true;
-                  $rootScope.trackPageView();
-          }
-
-          if (settings.AutoLaunch) {
-              model.settings.autoLaunch = true;
-          }
-
-          if (settings.ProxyAll) {
-              model.settings.proxyAll = true;
-          }
-
-          if (settings.SystemProxy) {
-              model.settings.systemProxy = true;
-          }
-        }
-
-        if (data.RedirectTo) {
-          console.log('Redirecting UI to: ' + data.RedirectTo);
-          window.location = data.RedirectTo;
-        }
-      },
-      'LocalDiscovery': function(data) {
+      'local_discovery': function(data) {
         model.localLanterns = data;
-      },
-      'ProxiedSites': function(data) {
-        if (!$rootScope.entries) {
-          console.log("Initializing proxied sites entries", data.Additions);
-          $rootScope.entries = data.Additions;
-          $rootScope.originalList = data.Additions;
-        } else {
-          var entries = $rootScope.entries.slice(0);
-          if (data.Additions) {
-            entries = _.union(entries, data.Additions);
-          }
-          if (data.Deletions) {
-            entries = _.difference(entries, data.Deletions)
-          }
-          entries = _.compact(entries);
-          entries.sort();
-
-          console.log("About to set entries", entries);
-          $rootScope.$apply(function() {
-            console.log("Setting entries", entries);
-            $rootScope.entries = entries;
-            $rootScope.originalList = entries;
-          })
-        }
-      },
-      'Stats': function(data) {
-        if (data.type != "peer") {
-          return;
-        }
-
-        if (!model.location) {
-          console.log("No location for self yet, queuing peer")
-          queuedFlashlightPeers[data.data.peerid] = data.data;
-          return;
-        }
-
-        $rootScope.$apply(function() {
-          if (queuedFlashlightPeers) {
-            console.log("Applying queued flashlight peers")
-            _.forEach(queuedFlashlightPeers, applyPeer);
-            queuedFlashlightPeers = null;
-          }
-
-          applyPeer(data.data);
-        });
       },
     };
 
