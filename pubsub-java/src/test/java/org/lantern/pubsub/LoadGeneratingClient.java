@@ -26,7 +26,7 @@ public class LoadGeneratingClient extends BaseClient {
         System.out.println("Server: " + args[0] + "   NumClients: "
                 + numClients + "   Target Delta: " + TARGET_DELTA);
 
-        Client client = newClient(args[0]);
+        Client client = newClient();
         long checkStart = System.currentTimeMillis();
         long reportStart = System.currentTimeMillis();
         for (long i = 0; i < Long.MAX_VALUE; i++) {

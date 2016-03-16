@@ -11,7 +11,7 @@ public class LongRunningClient extends BaseClient {
 
         Random rand = new Random(System.currentTimeMillis());
         int id = Math.abs(rand.nextInt(100));
-        Client client = newClient(args[0]);
+        Client client = newClient();
         client.subscribe(TOPIC);
         for (int i = 0; i < Integer.MAX_VALUE; i++) {
             client.publish(TOPIC,
