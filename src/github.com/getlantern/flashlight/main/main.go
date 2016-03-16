@@ -140,7 +140,6 @@ func doMain() error {
 		}
 	})
 	addExitFunc(quitSystray)
-	addExitFunc(settings.Save)
 
 	i18nInit()
 	if showui {
@@ -248,6 +247,7 @@ func beforeStart(cfg *config.Config) bool {
 
 func afterStart(cfg *config.Config) {
 	onConfigUpdate(cfg)
+	ServePACFile()
 	if settings.GetSystemProxy() {
 		pacOn()
 	}
@@ -267,8 +267,6 @@ func afterStart(cfg *config.Config) {
 func onConfigUpdate(cfg *config.Config) {
 	autoupdate.Configure(cfg)
 	proxiedsites.Configure(cfg.ProxiedSites)
-	log.Debugf("Proxy all traffic or not: %v", settings.GetProxyAll())
-	ServeProxyAllPacFile(settings.GetProxyAll())
 }
 
 func i18nInit() {

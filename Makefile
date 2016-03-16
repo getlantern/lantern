@@ -25,7 +25,8 @@ BUILD_DATE := $(shell date -u +%Y%m%d.%H%M%S)
 
 LOGGLY_TOKEN := 2b68163b-89b6-4196-b878-c1aca4bbdf84
 
-LDFLAGS := -X github.com/getlantern/flashlight/flashlight.Version=$(GIT_REVISION) -X github.com/getlantern/flashlight/flashlight.RevisionDate=$(REVISION_DATE) -X github.com/getlantern/flashlight/flashlight.BuildDate=$(BUILD_DATE) -X github.com/getlantern/flashlight/logging.logglyToken=$(LOGGLY_TOKEN) -X github.com/getlantern/flashlight/logging.logglyTag=$(LOGGLY_TAG)
+LDFLAGS_NOSTRIP := -X github.com/getlantern/flashlight.Version=$(GIT_REVISION) -X github.com/getlantern/flashlight.RevisionDate=$(REVISION_DATE) -X github.com/getlantern/flashlight.BuildDate=$(BUILD_DATE) -X github.com/getlantern/flashlight/logging.logglyToken=$(LOGGLY_TOKEN) -X github.com/getlantern/flashlight/logging.logglyTag=$(LOGGLY_TAG)
+LDFLAGS := $(LDFLAGS_NOSTRIP) -s
 LANTERN_DESCRIPTION := Censorship circumvention tool
 LANTERN_EXTENDED_DESCRIPTION := Lantern allows you to access sites blocked by internet censorship.\nWhen you run it, Lantern reroutes traffic to selected domains through servers located where such domains are uncensored.
 
@@ -87,13 +88,13 @@ LANTERN_MOBILE_ANDROID_RELEASE := $(LANTERN_MOBILE_DIR)/app/build/outputs/apk/ap
 LANTERN_YAML := lantern.yaml
 LANTERN_YAML_PATH := installer-resources/lantern.yaml
 
-.PHONY: packages clean docker tun2socks android-lib android-sdk android-testbed android-debug android-release android-install
+.PHONY: packages clean tun2socks android-lib android-sdk android-testbed android-debug android-release android-install
 
 define build-tags
 	BUILD_TAGS="" && \
 	EXTRA_LDFLAGS="" && \
 	if [[ ! -z "$$VERSION" ]]; then \
-		EXTRA_LDFLAGS="-X=github.com/getlantern/flashlight.compileTimePackageVersion=$$VERSION"; \
+		EXTRA_LDFLAGS="-X github.com/getlantern/flashlight.compileTimePackageVersion=$$VERSION"; \
 	else \
 		echo "** VERSION was not set, using default version. This is OK while in development."; \
 	fi && \
@@ -186,7 +187,6 @@ $(RESOURCES_DOT_GO): $(NPM)
 	git update-index --assume-unchanged $$APP/js/revision.js && \
 	DEST="$@" && \
 	cd $$LANTERN_UI && \
-	rm -rf node_modules && \
 	npm install && \
 	rm -Rf dist && \
 	gulp build && \
@@ -324,11 +324,11 @@ darwin: $(RESOURCES_DOT_GO)
 		echo "-> Skipped: Can not compile Lantern for OSX on a non-OSX host."; \
 	fi
 
-lantern: require-assets
+lantern: $(RESOURCES_DOT_GO)
 	@echo "Building development lantern" && \
 	source setenv.bash && \
 	$(call build-tags) && \
-	CGO_ENABLED=1 go build -race -o lantern -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS" github.com/getlantern/flashlight/main; \
+	CGO_ENABLED=1 go build -race -o lantern -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS_NOSTRIP) $$EXTRA_LDFLAGS" github.com/getlantern/flashlight/main; \
 
 package-linux: require-version package-linux-386 package-linux-amd64
 
@@ -338,6 +338,7 @@ package-darwin-manoto: require-version require-appdmg require-svgexport darwin
 		INSTALLER_RESOURCES="installer-resources/darwin" && \
 		rm -rf Lantern.app && \
 		cp -r $$INSTALLER_RESOURCES/Lantern.app_template Lantern.app && \
+		sed -i '' "s/VERSION_STRING/$$VERSION.$(REVISION_DATE)/" Lantern.app/Contents/Info.plist && \
 		mkdir Lantern.app/Contents/MacOS && \
 		cp -r lantern_darwin_amd64 Lantern.app/Contents/MacOS/lantern && \
 		mkdir Lantern.app/Contents/Resources/en.lproj && \
@@ -374,7 +375,7 @@ package-darwin: package-darwin-manoto
 
 binaries: docker-assets docker-linux docker-windows darwin
 
-packages: require-version require-secrets clean-desktop docker-assets docker-package-windows docker-package-linux package-darwin
+packages: require-version require-secrets clean-desktop clean-mobile docker-assets docker-package-windows docker-package-linux package-darwin android-release
 
 # Override implicit docker-packages to avoid building whole packages target in
 # docker, since it builds the pieces it needs in docker itself.
@@ -548,12 +549,11 @@ $(LANTERN_MOBILE_ANDROID_DEBUG): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_AN
 
 $(LANTERN_MOBILE_ANDROID_RELEASE): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK)
 	@echo "Generating distribution package for android..."
-	ln -f -s $$SECRETS_DIR/android/keystore.release.jks $(LANTERN_MOBILE_DIR)/app
-	cd $(LANTERN_MOBILE_DIR)/app
+	ln -f -s $$SECRETS_DIR/android/keystore.release.jks $(LANTERN_MOBILE_DIR)/app && \
 	gradle -PlanternVersion=$$VERSION -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
 		clean \
-		assembleRelease
-	cp $(LANTERN_MOBILE_ANDROID_RELEASE) lantern-installer.apk
+		assembleRelease && \
+	cp $(LANTERN_MOBILE_ANDROID_RELEASE) lantern-installer.apk;
 
 android-debug: $(LANTERN_MOBILE_ANDROID_DEBUG)
 

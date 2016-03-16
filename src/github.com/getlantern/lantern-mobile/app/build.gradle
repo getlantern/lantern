@@ -1,29 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'io.fabric'
 
-def incVersionNum() {
-    def versionPropsFile = file('version.properties')
-    def Properties versionProps = new Properties()
-
-    // only try to load properties if version.properties
-    // file exists
-    if (versionPropsFile.exists()) {
-       versionProps.load(new FileInputStream(versionPropsFile))
-    }
-
-    def value = 0
-    def runTasks = gradle.startParameter.taskNames
-    if ('assembleRelease' in runTasks) {
-        value = 1
-    }
-
-    def code = (versionProps['VERSION_CODE'] ?: "0").toInteger() + value
-    versionProps['VERSION_CODE'] = code.toString()
-    versionProps.store(versionPropsFile.newWriter(), null)
-
-    return code
-}
-
 android {
 
     useLibrary 'org.apache.http.legacy'
@@ -31,14 +8,21 @@ android {
     compileSdkVersion rootProject.compileSdkVersion
     buildToolsVersion rootProject.buildToolsVersion
 
-    def code = incVersionNum()
+    // Use now as the user-visible version
+    def now = new java.util.Date()
+    def nowFormatted = new java.text.SimpleDateFormat("yyyyMMddHHmmss").format(now)
+
+    // Calculate the versionCode as the number of seconds from a fixed start
+    // point so that it's always increasing.
+    def start = new java.util.Date(2015, 1, 1).getTime()
+    def code = (int) ((now.getTime() - start) / 1000)
 
     defaultConfig {
-	minSdkVersion rootProject.minSdkVersion
-	targetSdkVersion rootProject.targetSdkVersion
-	applicationId "org.getlantern.lantern"
-	versionCode code
-        versionName "1.0." + code
+	    minSdkVersion rootProject.minSdkVersion
+        targetSdkVersion rootProject.targetSdkVersion
+        applicationId "org.getlantern.lantern"
+        versionCode code
+        versionName "1.0." + nowFormatted
     }
 
     lintOptions {

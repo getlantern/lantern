@@ -13,6 +13,7 @@ import (
 
 	"github.com/getlantern/golog"
 	"github.com/getlantern/tarfs"
+	"github.com/getlantern/edgedetect"
 	"github.com/skratchdot/open-golang/open"
 
 	"github.com/getlantern/flashlight/client"
@@ -124,13 +125,15 @@ func Start(requestedAddr string, allowRemote bool, extUrl string) (string, error
 	return l.Addr().String(), nil
 }
 
-func PreferProxiedUI(val bool) string {
+func PreferProxiedUI(val bool) (newAddr string, addrChanged bool) {
+	previousPreferredUIAddr := getPreferredUIAddr()
 	updated := int32(0)
 	if val {
 		updated = 1
 	}
 	atomic.StoreInt32(&preferProxiedUI, updated)
-	return getPreferredUIAddr()
+	newPreferredUIAddr := getPreferredUIAddr()
+	return newPreferredUIAddr, newPreferredUIAddr != previousPreferredUIAddr
 }
 
 func shouldPreferProxiedUI() bool {
@@ -138,7 +141,8 @@ func shouldPreferProxiedUI() bool {
 }
 
 func getPreferredUIAddr() string {
-	if shouldPreferProxiedUI() {
+	// We only use the proxied UI address if the default browser is Microsoft Edge
+	if edgedetect.DefaultBrowserIsEdge() && shouldPreferProxiedUI() {
 		return proxiedUIAddr
 	} else {
 		return uiaddr

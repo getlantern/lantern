@@ -309,7 +309,11 @@ func (dc *Conn) Close() error {
 			}
 		}
 	}
-	return dc.getConn().Close()
+	conn := dc.getConn()
+	if conn == nil {
+		return nil
+	}
+	return conn.Close()
 }
 
 // LocalAddr() implements the function from net.Conn

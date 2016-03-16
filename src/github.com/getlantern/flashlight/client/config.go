@@ -13,9 +13,17 @@ var (
 
 // ClientConfig captures configuration information for a Client
 type ClientConfig struct {
-	MinQOS         int
+	// MinQOS: (optional) the minimum QOS to require from proxies.
+	MinQOS int
+
+	// Unique identifier for this device
+	DeviceID string
+
+	// List of CONNECT ports that are proxied via the remote proxy. Other ports
+	// will be handled with direct connections.
+	ProxiedCONNECTPorts []int
+
 	DumpHeaders    bool // whether or not to dump headers of requests and responses
-	DeviceID       string
 	FrontedServers []*FrontedServerInfo
 	ChainedServers map[string]*ChainedServerInfo
 	MasqueradeSets map[string][]*fronted.Masquerade

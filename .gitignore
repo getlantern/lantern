@@ -58,3 +58,5 @@ build
 keystore.release.jks
 src/github.com/getlantern/lantern-ui/app/js/revision.js
 bns.pfx
+cmd.exe
+lantern-installer*

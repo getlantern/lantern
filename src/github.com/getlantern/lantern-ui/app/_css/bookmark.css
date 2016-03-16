@@ -41,7 +41,8 @@ html {
 
 .backend-gone {
     font-family: LBL;
-    font-size: 24px;
+    font-size: 18px;
+    line-height: 20px;
     color: rgb(82,82,82);
     margin-top: 60px;
 }
@@ -70,8 +71,8 @@ html {
 
     color:rgb(82,82,82);
     font-family: LBL;
-	font-size: 24px;
-	line-height: 38px;
+	font-size: 18px;
+	line-height: 36px;
 	text-align: center;
 }
 
