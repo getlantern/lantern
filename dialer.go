@@ -19,6 +19,9 @@ type Config struct {
 	// the server and is allowed to modify the http.Request before it passes to
 	// the server.
 	OnRequest func(req *http.Request)
+
+	// Label: a optional label for debugging.
+	Label string
 }
 
 // dialer is an implementation of proxy.Dialer that proxies traffic via an
@@ -29,6 +32,7 @@ type dialer struct {
 	Config
 }
 
+// NewDialer creates a dialer{} based on the given Config.
 func NewDialer(cfg Config) proxy.Dialer {
 	return &dialer{Config: cfg}
 }
@@ -37,12 +41,18 @@ func NewDialer(cfg Config) proxy.Dialer {
 func (d *dialer) Dial(network, addr string) (net.Conn, error) {
 	conn, err := d.DialServer()
 	if err != nil {
-		return nil, fmt.Errorf("Unable to dial server: %s", err)
+		return nil, fmt.Errorf("Unable to dial server %v: %s", d.Label, err)
 	}
-	err = d.sendCONNECT(network, addr, conn)
-	if err != nil {
-		conn.Close()
-		return nil, err
+	// Look for our special hacked "connect" transport used to signal
+	// that we should send a CONNECT request and tunnel all traffic through
+	// that.
+	if network == "connect" {
+		log.Debugf("Sending CONNECT REQUEST")
+		if err := d.sendCONNECT("tcp", addr, conn); err != nil {
+			// We discard this error, since we are only interested in sendCONNECT
+			_ = conn.Close()
+			return nil, err
+		}
 	}
 	return conn, nil
 }
@@ -72,7 +82,7 @@ func (d *dialer) sendCONNECT(network, addr string, conn net.Conn) error {
 }
 
 func buildCONNECTRequest(addr string, onRequest func(req *http.Request)) (*http.Request, error) {
-	req, err := http.NewRequest(CONNECT, addr, nil)
+	req, err := http.NewRequest(httpConnectMethod, addr, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -88,8 +98,15 @@ func checkCONNECTResponse(r *bufio.Reader, req *http.Request) error {
 	if err != nil {
 		return fmt.Errorf("Error reading CONNECT response: %s", err)
 	}
-	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+	if !sameStatusCodeClass(http.StatusOK, resp.StatusCode) {
 		return fmt.Errorf("Bad status code on CONNECT response: %d", resp.StatusCode)
 	}
 	return nil
+}
+
+func sameStatusCodeClass(statusCode1 int, statusCode2 int) bool {
+	// HTTP response status code "classes" come in ranges of 100.
+	var classRange int = 100
+	// These are all integers, so division truncates.
+	return statusCode1/classRange == statusCode2/classRange
 }
