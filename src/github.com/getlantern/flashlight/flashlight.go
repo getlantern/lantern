@@ -71,11 +71,12 @@ func Run(httpProxyAddr string,
 	beforeStart func(cfg *config.Config) bool,
 	afterStart func(cfg *config.Config),
 	onConfigUpdate func(cfg *config.Config),
+	configFetcher *config.Fetcher,
 	onError func(err error)) error {
 	displayVersion()
 
 	log.Debug("Initializing configuration")
-	cfg, err := config.Init(PackageVersion, configDir, stickyConfig, flagsAsMap)
+	cfg, err := config.Init(configFetcher, PackageVersion, configDir, stickyConfig, flagsAsMap)
 	if err != nil {
 		return fmt.Errorf("Unable to initialize configuration: %v", err)
 	}
