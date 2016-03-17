@@ -18,6 +18,7 @@ package spew_test
 
 import (
 	"fmt"
+
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -41,7 +42,6 @@ func (f Flag) String() string {
 }
 
 type Bar struct {
-	flag Flag
 	data uintptr
 }
 
@@ -74,7 +74,6 @@ func ExampleDump() {
 		}
 
 		type Bar struct {
-			flag Flag
 			data uintptr
 		}
 
@@ -85,7 +84,7 @@ func ExampleDump() {
 	*/
 
 	// Setup some sample data structures for the example.
-	bar := Bar{Flag(flagTwo), uintptr(0)}
+	bar := Bar{uintptr(0)}
 	s1 := Foo{bar, map[interface{}]interface{}{"one": true}}
 	f := Flag(5)
 	b := []byte{
@@ -102,7 +101,6 @@ func ExampleDump() {
 	// Output:
 	// (spew_test.Foo) {
 	//  unexportedField: (spew_test.Bar) {
-	//   flag: (spew_test.Flag) flagTwo,
 	//   data: (uintptr) <nil>
 	//  },
 	//  ExportedField: (map[interface {}]interface {}) (len=1) {
@@ -172,7 +170,7 @@ func ExampleConfigState_Dump() {
 	scs2 := spew.ConfigState{Indent: " "}
 
 	// Setup some sample data structures for the example.
-	bar := Bar{Flag(flagTwo), uintptr(0)}
+	bar := Bar{uintptr(0)}
 	s1 := Foo{bar, map[interface{}]interface{}{"one": true}}
 
 	// Dump using the ConfigState instances.
@@ -182,7 +180,6 @@ func ExampleConfigState_Dump() {
 	// Output:
 	// (spew_test.Foo) {
 	// 	unexportedField: (spew_test.Bar) {
-	// 		flag: (spew_test.Flag) flagTwo,
 	// 		data: (uintptr) <nil>
 	// 	},
 	// 	ExportedField: (map[interface {}]interface {}) (len=1) {
@@ -191,7 +188,6 @@ func ExampleConfigState_Dump() {
 	// }
 	// (spew_test.Foo) {
 	//  unexportedField: (spew_test.Bar) {
-	//   flag: (spew_test.Flag) flagTwo,
 	//   data: (uintptr) <nil>
 	//  },
 	//  ExportedField: (map[interface {}]interface {}) (len=1) {
