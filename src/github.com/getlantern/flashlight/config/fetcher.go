@@ -1,0 +1,149 @@
+package config
+
+import (
+	"compress/gzip"
+	"fmt"
+	"io/ioutil"
+	"math/rand"
+	"net/http"
+	"time"
+
+	"github.com/getlantern/flashlight/util"
+	"github.com/getlantern/yamlconf"
+
+	"code.google.com/p/go-uuid/uuid"
+)
+
+const (
+	cloudConfigPollInterval = 1 * time.Minute
+	etag                    = "X-Lantern-Etag"
+	ifNoneMatch             = "X-Lantern-If-None-Match"
+	userIDHeader            = "X-Lantern-User-Id"
+	tokenHeader             = "X-Lantern-Pro-Token"
+	chainedCloudConfigURL   = "http://config.getiantem.org/cloud.yaml.gz"
+
+	// This is over HTTP because proxies do not forward X-Forwarded-For with HTTPS
+	// and because we only support falling back to direct domain fronting through
+	// the local proxy for HTTP.
+	frontedCloudConfigURL = "http://d2wi0vwulmtn99.cloudfront.net/cloud.yaml.gz"
+)
+
+// function for getting the user ID.
+type userIDFunc func() int
+
+// function for getting the user token.
+type tokenFunc func() string
+
+// Fetcher periodically fetches the latest cloud configuration.
+type Fetcher struct {
+	lastCloudConfigETag map[string]string
+	userID              userIDFunc
+	token               tokenFunc
+	httpFetcher         util.HTTPFetcher
+}
+
+// NewFetcher creates a new configuration fetcher with the specified
+// functions for obtaining the user ID and token if those are populated.
+func NewFetcher(id userIDFunc, tok tokenFunc, httpFetcher util.HTTPFetcher) *Fetcher {
+	return &Fetcher{lastCloudConfigETag: map[string]string{}, userID: id, token: tok, httpFetcher: httpFetcher}
+}
+
+func (cf *Fetcher) pollForConfig(currentCfg yamlconf.Config, stickyConfig bool) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
+	log.Debugf("Polling for config")
+	// By default, do nothing
+	mutate = func(ycfg yamlconf.Config) error {
+		// do nothing
+		return nil
+	}
+	cfg := currentCfg.(*Config)
+	waitTime = cf.cloudPollSleepTime()
+	if cfg.CloudConfig == "" {
+		log.Debugf("No cloud config URL!")
+		// Config doesn't have a CloudConfig, just ignore
+		return mutate, waitTime, nil
+	}
+	if stickyConfig {
+		log.Debugf("Not downloading remote config with sticky config flag set")
+		return mutate, waitTime, nil
+	}
+
+	if bytes, err := cf.fetchCloudConfig(chainedCloudConfigURL); err == nil {
+		// bytes will be nil if the config is unchanged (not modified)
+		if bytes != nil {
+			//log.Debugf("Downloaded config:\n %v", string(bytes))
+			mutate = func(ycfg yamlconf.Config) error {
+				log.Debugf("Merging cloud configuration")
+				cfg := ycfg.(*Config)
+				return cfg.updateFrom(bytes)
+			}
+		}
+	} else {
+		log.Errorf("Could not fetch cloud config %v", err)
+		return mutate, waitTime, err
+	}
+	return mutate, waitTime, nil
+}
+
+func (cf *Fetcher) fetchCloudConfig(url string) ([]byte, error) {
+	cb := "?" + uuid.New()
+	nocache := url + cb
+	req, err := http.NewRequest("GET", nocache, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to construct request for cloud config at %s: %s", nocache, err)
+	}
+	if cf.lastCloudConfigETag[url] != "" {
+		// Don't bother fetching if unchanged
+		req.Header.Set(ifNoneMatch, cf.lastCloudConfigETag[url])
+	}
+
+	req.Header.Set("Accept", "application/x-gzip")
+	// Prevents intermediate nodes (domain-fronters) from caching the content
+	req.Header.Set("Cache-Control", "no-cache")
+	// Set the fronted URL to lookup the config in parallel using chained and domain fronted servers.
+	req.Header.Set("Lantern-Fronted-URL", frontedCloudConfigURL+cb)
+
+	id := cf.userID()
+	if id != 0 {
+		req.Header.Set(userIDHeader, string(id))
+	}
+	tok := cf.token()
+	if tok != "" {
+		req.Header.Set(tokenHeader, tok)
+	}
+
+	// make sure to close the connection after reading the Body
+	// this prevents the occasional EOFs errors we're seeing with
+	// successive requests
+	req.Close = true
+
+	resp, err := cf.httpFetcher.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to fetch cloud config at %s: %s", url, err)
+	}
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Debugf("Error closing response body: %v", err)
+		}
+	}()
+
+	if resp.StatusCode == 304 {
+		log.Debugf("Config unchanged in cloud")
+		return nil, nil
+	} else if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Unexpected response status: %d", resp.StatusCode)
+	}
+
+	cf.lastCloudConfigETag[url] = resp.Header.Get(etag)
+	gzReader, err := gzip.NewReader(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to open gzip reader: %s", err)
+	}
+	log.Debugf("Fetched cloud config")
+	return ioutil.ReadAll(gzReader)
+}
+
+// cloudPollSleepTime adds some randomization to our requests to make them
+// less distinguishing on the network.
+func (cf *Fetcher) cloudPollSleepTime() time.Duration {
+	return time.Duration((cloudConfigPollInterval.Nanoseconds() / 2) + rand.Int63n(cloudConfigPollInterval.Nanoseconds()))
+}
