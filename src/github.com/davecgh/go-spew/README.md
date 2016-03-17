@@ -38,6 +38,12 @@ $ go get -u github.com/davecgh/go-spew/spew
 
 ## Quick Start
 
+Add this import line to the file you're working in:
+
+```Go
+import "github.com/davecgh/go-spew/spew"
+```
+
 To dump a variable with full newlines, indentation, type, and pointer
 information use Dump, Fdump, or Sdump:
 
@@ -57,6 +63,33 @@ spew.Printf("myVar1: %v -- myVar2: %+v", myVar1, myVar2)
 spew.Printf("myVar3: %#v -- myVar4: %#+v", myVar3, myVar4)
 spew.Fprintf(someWriter, "myVar1: %v -- myVar2: %+v", myVar1, myVar2)
 spew.Fprintf(someWriter, "myVar3: %#v -- myVar4: %#+v", myVar3, myVar4)
+```
+
+## Debugging a Web Application Example
+
+Here is an example of how you can use `spew.Sdump()` to help debug a web application. Please be sure to wrap your output using the `html.EscapeString()` function for safety reasons. You should also only use this debugging technique in a development environment, never in production.
+
+```Go
+package main
+
+import (
+    "fmt"
+    "html"
+    "net/http"
+
+    "github.com/davecgh/go-spew/spew"
+)
+
+func handler(w http.ResponseWriter, r *http.Request) {
+    w.Header().Set("Content-Type", "text/html")
+    fmt.Fprintf(w, "Hi there, %s!", r.URL.Path[1:])
+    fmt.Fprintf(w, "<!--\n" + html.EscapeString(spew.Sdump(w)) + "\n-->")
+}
+
+func main() {
+    http.HandleFunc("/", handler)
+    http.ListenAndServe(":8080", nil)
+}
 ```
 
 ## Sample Dump Output
@@ -121,7 +154,10 @@ options. See the ConfigState documentation for more details.
 
 * DisablePointerMethods
 	Disables invocation of error and Stringer interface methods on types
-	which only accept pointer receivers from non-pointer variables.
+	which only accept pointer receivers from non-pointer variables.  This option
+	relies on access to the unsafe package, so it will not have any effect when
+	running in environments without access to the unsafe package such as Google
+	App Engine or with the "disableunsafe" build tag specified.
 	Pointer method invocation is enabled by default.
 
 * ContinueOnMethod
@@ -132,10 +168,26 @@ options. See the ConfigState documentation for more details.
 	Specifies map keys should be sorted before being printed. Use
 	this to have a more deterministic, diffable output.  Note that
 	only native types (bool, int, uint, floats, uintptr and string)
-	are supported with other types sorted according to the
-	reflect.Value.String() output which guarantees display stability.
-	Natural map order is used by default.
+	and types which implement error or Stringer interfaces are supported,
+	with other types sorted according to the reflect.Value.String() output
+	which guarantees display stability.  Natural map order is used by
+	default.
+
+* SpewKeys
+	SpewKeys specifies that, as a last resort attempt, map keys should be
+	spewed to strings and sorted by those strings.  This is only considered
+	if SortKeys is true.
+
 ```
+
+## Unsafe Package Dependency
+
+This package relies on the unsafe package to perform some of the more advanced
+features, however it also supports a "limited" mode which allows it to work in
+environments where the unsafe package is not available.  By default, it will
+operate in this mode on Google App Engine.  The "disableunsafe" build tag may
+also be specified to force the package to build without using the unsafe
+package.
 
 ## License
 

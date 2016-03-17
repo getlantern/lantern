@@ -61,7 +61,10 @@ type ConfigState struct {
 	// with a pointer receiver could technically mutate the value, however,
 	// in practice, types which choose to satisify an error or Stringer
 	// interface with a pointer receiver should not be mutating their state
-	// inside these interface methods.
+	// inside these interface methods.  As a result, this option relies on
+	// access to the unsafe package, so it will not have any effect when
+	// running in environments without access to the unsafe package such as
+	// Google App Engine or with the "disableunsafe" build tag specified.
 	DisablePointerMethods bool
 
 	// ContinueOnMethod specifies whether or not recursion should continue once
@@ -76,10 +79,16 @@ type ConfigState struct {
 
 	// SortKeys specifies map keys should be sorted before being printed. Use
 	// this to have a more deterministic, diffable output.  Note that only
-	// native types (bool, int, uint, floats, uintptr and string) are supported
-	// with other types sorted according to the reflect.Value.String() output
-	// which guarantees display stability.
+	// native types (bool, int, uint, floats, uintptr and string) and types
+	// that support the error or Stringer interfaces (if methods are
+	// enabled) are supported, with other types sorted according to the
+	// reflect.Value.String() output which guarantees display stability.
 	SortKeys bool
+
+	// SpewKeys specifies that, as a last resort attempt, map keys should
+	// be spewed to strings and sorted by those strings.  This is only
+	// considered if SortKeys is true.
+	SpewKeys bool
 }
 
 // Config is the active configuration of the top-level functions.
