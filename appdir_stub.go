@@ -1,4 +1,4 @@
-// +build !windows,!darwin
+// +build !windows,!darwin,!linux
 
 package appdir
 
@@ -8,7 +8,7 @@ import (
 )
 
 func general(app string) string {
-	return inHomeDir(fmt.Sprintf(".%s", app))
+	return InHomeDir(fmt.Sprintf(".%s", app))
 }
 
 func logs(app string) string {
