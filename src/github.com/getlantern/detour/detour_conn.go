@@ -18,7 +18,6 @@ func newDetourConn(network, addr string, d dialFunc) *detourConn {
 	return &detourConn{
 		Conn: newEventualConn(
 			DialTimeout,
-			BufferSize,
 		),
 		network:    network,
 		addr:       addr,
@@ -37,10 +36,11 @@ func (c *detourConn) Dial(network, addr string) (ch chan error) {
 func (c *detourConn) Read(b []byte) chan ioResult {
 	ch := make(chan ioResult)
 	go func() {
+		c.setDetourable(false)
 		i, err := c.Conn.Read(b)
 		log.Tracef("Read %d bytes from detourConn to %s, err: %v", i, c.addr, err)
-		if err != nil && !c.isClosed() {
-			atomic.StoreInt32(&c.detourable, 0)
+		if err == nil {
+			c.setDetourable(true)
 		}
 		ch <- ioResult{i, err}
 	}()
@@ -51,9 +51,6 @@ func (c *detourConn) Write(b []byte) chan ioResult {
 	ch := make(chan ioResult)
 	go func() {
 		i, err := c.Conn.Write(b)
-		if err != nil && !c.isClosed() {
-			atomic.StoreInt32(&c.detourable, 0)
-		}
 		ch <- ioResult{i, err}
 	}()
 	return ch
@@ -68,6 +65,16 @@ func (c *detourConn) Close() (err error) {
 
 func (c *detourConn) isClosed() bool {
 	return atomic.LoadInt32(&c.closed) == 1
+}
+
+func (c *detourConn) setDetourable(b bool) {
+	if b {
+		log.Tracef("Set %s as detourable", c.addr)
+		atomic.StoreInt32(&c.detourable, 1)
+	} else {
+		log.Tracef("Set %s as not detourable", c.addr)
+		atomic.StoreInt32(&c.detourable, 0)
+	}
 }
 
 func (c *detourConn) Detourable() bool {

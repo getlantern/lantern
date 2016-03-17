@@ -17,10 +17,6 @@ type directConn struct {
 	shouldDetour  int32
 }
 
-const (
-	BufferSize = 8192
-)
-
 func detector() *Detector {
 	return blockDetector.Load().(*Detector)
 }
@@ -29,7 +25,6 @@ func newDirectConn(network, addr string, detourAllowed eventual.Value) *directCo
 	return &directConn{
 		Conn: newEventualConn(
 			DialTimeout,
-			BufferSize,
 		),
 		network:       network,
 		addr:          addr,
@@ -50,7 +45,6 @@ func (dc *directConn) Dial() (ch chan error) {
 				return nil, fmt.Errorf("DNS hijacked")
 			}
 			log.Tracef("Dial directly to %s succeeded", dc.addr)
-			dc.setShouldDetour(false)
 			return conn, nil
 		} else if detector().TamperingSuspected(err) {
 			log.Debugf("Dial directly to %s, tampering suspected: %s", dc.addr, err)
@@ -143,14 +137,6 @@ func (dc *directConn) doRead(b []byte, checker readChecker) (int, error) {
 
 func (dc *directConn) Close() (err error) {
 	err = dc.Conn.Close()
-	/*if dc.Conn.(*readBytesCounted).anyDataReceived() && !wlTemporarily(dc.addr) {
-		log.Tracef("no error found till closing, notify caller that %s can be dialed directly", dc.addr)
-		// just fire it, but not blocking if the chan is nil or no reader
-		select {
-		case DirectAddrCh <- dc.addr:
-		default:
-		}
-	}*/
 	return
 }
 

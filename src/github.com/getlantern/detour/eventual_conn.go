@@ -21,7 +21,7 @@ type eventualConn struct {
 	writeThrough bool
 }
 
-func newEventualConn(timeout time.Duration, bufferSize int) *eventualConn {
+func newEventualConn(timeout time.Duration) *eventualConn {
 	conn := &eventualConn{
 		conn:    eventual.NewValue(),
 		timeout: timeout,

@@ -108,6 +108,12 @@ func Dialer(d dialFunc) dialFunc {
 }
 
 func (c *conn) Read(b []byte) (int, error) {
+	allowed, valid := c.detourAllowed.Get(0)
+	if valid && !allowed.(bool) {
+		log.Tracef("detour is not allowed to %s, read directly", c.direct.addr)
+		result := <-c.direct.Read(b)
+		return result.i, result.err
+	}
 	bufDirect := make([]byte, len(b))
 	bufDetour := make([]byte, len(b))
 	chDirect := c.direct.Read(bufDirect)
@@ -132,12 +138,13 @@ func (c *conn) Read(b []byte) (int, error) {
 }
 
 func (c *conn) Write(b []byte) (int, error) {
-	detourAllowed := true
 	if atomic.CompareAndSwapInt32(&c.wroteFirst, 0, 1) {
-		detourAllowed = c.isHTTP && mightBeIdempotentHTTPRequest(b)
+		detourAllowed := c.isHTTP && mightBeIdempotentHTTPRequest(b)
 		c.detourAllowed.Set(detourAllowed)
 	}
-	if !detourAllowed {
+	allowed, valid := c.detourAllowed.Get(0)
+	if valid && !allowed.(bool) {
+		log.Tracef("detour is not allowed to %s, write directly", c.direct.addr)
 		result := <-c.direct.Write(b)
 		return result.i, result.err
 	}
@@ -158,7 +165,8 @@ func (c *conn) Close() error {
 	c.detour.Close()
 
 	log.Tracef("%s: Should detour? %v - Detourable? %v", c.direct.addr, c.direct.ShouldDetour(), c.detour.Detourable())
-	if !c.detour.Detourable() {
+	allowed, valid := c.detourAllowed.Get(0)
+	if valid && allowed.(bool) && !c.detour.Detourable() {
 		log.Tracef("Remove %s from blocked sites list", c.direct.addr)
 		RemoveFromWl(c.direct.addr)
 	} else if c.direct.ShouldDetour() {

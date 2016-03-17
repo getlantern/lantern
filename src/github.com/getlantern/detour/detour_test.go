@@ -4,7 +4,9 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
+	"sync"
 	"testing"
 	"time"
 
@@ -59,10 +61,19 @@ func TestBlockedImmediately(t *testing.T) {
 		assert.True(t, wlTemporarily(u.Host), "should be added to whitelist if reading times out")
 	}
 
+}
+
+func TestNonidempotentMethod(t *testing.T) {
+	defer stopMockServers()
+	proxiedURL, _ := newMockServer(detourMsg)
+	mockURL, mock := newMockServer(directMsg)
+	mock.Timeout(200*time.Millisecond, directMsg)
+
 	log.Trace("Test nonidempotent method")
-	client = newClient(proxiedURL, 50*time.Millisecond)
+	client := newClient(proxiedURL, 50*time.Millisecond)
+	u, _ := url.Parse(mockURL)
 	RemoveFromWl(u.Host)
-	resp, err = client.PostForm(mockURL, url.Values{"key": []string{"value"}})
+	_, err := client.PostForm(mockURL, url.Values{"key": []string{"value"}})
 	if assert.Error(t, err, "Non-idempotent method should not be detoured in same connection") {
 		assert.True(t, wlTemporarily(u.Host), "but should be added to whitelist so will detour next time")
 	}
@@ -154,6 +165,78 @@ func TestIranRules(t *testing.T) {
 	if assert.NoError(t, err, "should not error if dns hijacked in Iran") {
 		assertContent(t, resp, detourMsg, "should detour if dns hijacked in Iran")
 		assert.True(t, wlTemporarily(u.Host), "should be added to whitelist if dns hijacked")
+	}
+}
+
+/*func TestGetAddr(t *testing.T) {
+	defer stopMockServers()
+	mockURL, _ := newMockServer(directMsg)
+	proxiedURL, _ := newMockServer(detourMsg)
+	u, _ := url.Parse(mockURL)
+	d := Dialer(func(network, addr string) (net.Conn, error) {
+		u, _ := url.Parse(proxiedURL)
+		return net.Dial("tcp", u.Host)
+	})
+	c1, e1 := d("tcp", u.Host)
+	if assert.NoError(t, e1, "should dial server") {
+		assert.Equal(t, "tcp", c1.LocalAddr().Network())
+		assert.NotEmpty(t, c1.LocalAddr().String())
+		assert.Equal(t, "tcp", c1.RemoteAddr().Network())
+		assert.Equal(t, u.Host, c1.RemoteAddr().String(), "should get remote address of direct connection")
+	}
+	c2, e2 := d("tcp", "invalid:80")
+	u2, _ := url.Parse(proxiedURL)
+	if assert.NoError(t, e2, "should dial server") {
+		assert.Equal(t, "tcp", c2.LocalAddr().Network())
+		assert.NotEmpty(t, c2.LocalAddr().String())
+		assert.Equal(t, "tcp", c2.RemoteAddr().Network())
+		assert.Equal(t, u2.Host, c2.RemoteAddr().String(), "should get remote address of detour connection")
+	}
+}*/
+
+func TestConcurrency(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test concurrency in short mode.")
+	}
+	defer stopMockServers()
+	mockURL, _ := newMockServer(directMsg)
+	//mock.Timeout(1*time.Millisecond, directMsg)
+	listener, _ := net.Listen("tcp", "127.0.0.1:")
+	proxyURL, _ := url.Parse("http://" + listener.Addr().String())
+	go func() {
+		err := http.Serve(listener, &httputil.ReverseProxy{
+			Director: func(req *http.Request) {},
+			Transport: &http.Transport{
+				// This just detours to net.Dial, meaning that it doesn't accomplish any
+				// unblocking, it's just here for performance testing.
+				Dial: Dialer(net.Dial),
+			},
+			ErrorLog: log.AsStdLogger(),
+		})
+		if err != nil {
+			t.Fatal("Unable to start proxy")
+		}
+	}()
+	time.Sleep(100 * time.Millisecond) // allow proxy to start up
+	c := http.Client{Transport: &http.Transport{
+		DisableKeepAlives: true,
+		Proxy:             http.ProxyURL(proxyURL),
+	}}
+	var wg sync.WaitGroup
+	for i := 0; i < 5000; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			resp, err := c.Get(mockURL)
+			if err != nil {
+				t.Fatal(err)
+			}
+			_ = resp.Body.Close()
+			if resp.StatusCode != 200 {
+				t.Fatalf("Invalid status code %d", resp.StatusCode)
+			}
+		}()
+		wg.Wait()
 	}
 }
 
