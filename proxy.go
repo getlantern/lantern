@@ -38,7 +38,11 @@ func Test(t *testing.T, dialer Dialer) {
 			t.Fatalf("Unable to accept connection: %s", err)
 			return
 		}
-		defer conn.Close()
+		defer func() {
+			if err := conn.Close(); err != nil {
+				t.Logf("Unable to close connection: %v", err)
+			}
+		}()
 		b := make([]byte, 4)
 		_, err = io.ReadFull(conn, b)
 		if err != nil {
@@ -51,11 +55,15 @@ func Test(t *testing.T, dialer Dialer) {
 		}
 	}()
 
-	conn, err := dialer.Dial(sl.Addr().Network(), sl.Addr().String())
+	conn, err := dialer.Dial("connect", sl.Addr().String())
 	if err != nil {
 		t.Fatalf("Unable to dial via proxy: %s", err)
 	}
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			t.Logf("Unable to close connection: %v", err)
+		}
+	}()
 
 	_, err = conn.Write(ping)
 	if err != nil {
