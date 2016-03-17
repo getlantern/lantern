@@ -1,6 +1,10 @@
 flashlight [![Travis CI Status](https://travis-ci.org/getlantern/flashlight.svg?branch=master)](https://travis-ci.org/getlantern/flashlight)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/flashlight/badge.png)](https://coveralls.io/r/getlantern/flashlight)&nbsp;[![GoDoc](https://godoc.org/github.com/getlantern/flashlight?status.png)](http://godoc.org/github.com/getlantern/flashlight)
 ==========
 
+**WARNING**: The flashlight server will refuse to serve domain fronted traffic
+through most non-censored countries.  See 
+https://github.com/getlantern/flashlight-build/pull/141 for more details.
+
 Lightweight host-spoofing web proxy written in go.
 
 flashlight runs in one of two modes:
@@ -36,18 +40,37 @@ Usage of flashlight:
   -configdir="": directory in which to store configuration, including flashlight.yaml (defaults to current directory)
   -country="xx": 2 digit country code under which to report stats. Defaults to xx.
   -cpuprofile="": write cpu profile to given file
+  -frontfqdns="": YAML string representing a map from the name of each front provider to a FQDN that will reach this particular server via that provider (e.g. '{cloudflare: fl-001.getiantem.org, cloudfront: blablabla.cloudfront.net}')
+  -headless=false: if true, lantern will run with no ui
   -help=false: Get usage help
+  -httptest.serve="": if non-empty, httptest.NewServer serves on this address and blocks
   -instanceid="": instanceId under which to report stats to statshub. If not specified, no stats are reported.
   -memprofile="": write heap profile to given file
   -parentpid=0: the parent process's PID, used on Windows for killing flashlight when the parent disappears
   -portmap=0: try to map this port on the firewall to the port on which flashlight is listening, using UPnP or NAT-PMP. If mapping this port fails, flashlight will exit with status code 50
+  -proxyall=false: set to true to proxy all traffic through Lantern network
+  -registerat="": base URL for peer DNS registry at which to register (e.g. https://peerscanner.getiantem.org)
   -role="": either 'client' or 'server' (required)
-  -server="": FQDN of flashlight server when running in server mode (required)
-  -statsaddr="": host:port at which to make detailed stats available using server-sent events (optional)
   -statshub="pure-journey-3547.herokuapp.com": address of statshub server
-  -statsperiod=0: time in seconds to wait between reporting stats. If not specified, stats are not reported. If specified, statshub, instanceid and statsaddr must also be specified.
-  -waddelladdr="": if specified, connect to this waddell server and process NAT traversal requests inbound from waddell
-  -waddellcert="": if specified, use this cert (PEM-encoded) to authenticate connections to waddell.  Otherwise, a default certificate is used.
+  -statsperiod=0: time in seconds to wait between reporting stats. If not specified, stats are not reported. If specified, statshub, instanceid and statshubAddr must also be specified.
+  -test.bench="": regular expression to select benchmarks to run
+  -test.benchmem=false: print memory allocations for benchmarks
+  -test.benchtime=1s: approximate run time for each benchmark
+  -test.blockprofile="": write a goroutine blocking profile to the named file after execution
+  -test.blockprofilerate=1: if >= 0, calls runtime.SetBlockProfileRate()
+  -test.coverprofile="": write a coverage profile to the named file after execution
+  -test.cpu="": comma-separated list of number of CPUs to use for each test
+  -test.cpuprofile="": write a cpu profile to the named file during execution
+  -test.memprofile="": write a memory profile to the named file after execution
+  -test.memprofilerate=0: if >=0, sets runtime.MemProfileRate
+  -test.outputdir="": directory in which to write profiles
+  -test.parallel=1: maximum test parallelism
+  -test.run="": regular expression to select tests and examples to run
+  -test.short=false: run smaller test suite to save time
+  -test.timeout=0: if positive, sets an aggregate time limit for all tests
+  -test.v=false: verbose: print additional output
+  -uiaddr="": if specified, indicates host:port the UI HTTP server should be started on
+  -unencrypted=false: set to true to run server in unencrypted mode (no TLS)
 ```
 
 Example Client:
@@ -75,84 +98,9 @@ On the client, you should see something like this for every request:
 Handling request for: http://www.google.com/humans.txt
 ```
 
-### Building
+### Configuration Management
 
-Flashlight requires [Go 1.3.x](http://golang.org/dl/).
-
-It is convenient to build flashlight for multiple platforms using
-[gox](https://github.com/getlantern/gox).
-
-The typical cross-compilation setup doesn't work for anything that uses C code,
-which includes the DNS resolution code and some other things.  See
-[this blog](https://inconshreveable.com/04-30-2014/cross-compiling-golang-programs-with-native-libraries/)
-for more discussion.
-
-To deal with that, you need to use a Go installed using
-[gonative](https://github.com/getlantern/gonative). Ultimately, you can put this
-go wherever you like. Ox keeps his at ~/go_native.
-
-```bash
-go get github.com/mitchellh/gox
-go get github.com/getlantern/gonative
-cd ~
-gonative -version="1.3.3" -platforms="darwin_amd64 linux_386 linux_amd64 linux_arm windows_386"
-mv go go_native
-```
-
-Finally update your GOROOT and PATH to point at `~/go_native` instead of your
-previous go installation.  They should look something like this:
-
-```bash
-➜  flashlight git:(1606) ✗ echo $GOROOT
-/Users/ox.to.a.cart//go_native
-➜  flashlight git:(1606) ✗ which go
-/Users/ox.to.a.cart//go_native/bin/go
-```
-
-Now that you have go and gox set up, the binaries used for Lantern can be built
-with the `./crosscompile.bash` script. This script also sets the version of
-flashlight to the most recent annotated tag in git. An annotated tag can be
-added like this:
-
-```bash
-git tag -a v1.0.0 -m"Tagged 1.0.0"
-git push --tags
-```
-
-The script `tagandbuild.bash` tags and runs crosscompile.bash.
-
-`./tagandbuild.bash <tag>`
-
-Note - ./crosscompile.bash omits debug symbols to keep the build smaller.
-
-Note also that these binaries should also be signed for use in production, at
-least on OSX and Windows. On OSX the command to do this should resemble the
-following (assuming you have an associated code signing certificate):
-
-```
-codesign -s "Developer ID Application: Brave New Software Project, Inc" -f install/osx/pt/flashlight/flashlight
-```
-
-The script `copyexecutables.bash` takes care of signing the OS X executable and
-copying everything in the Lantern file tree.
-
-`copyexecutables.bash` will also optionally sign the Windows executable if the
-environment variables BNS_CERT and BNS_CERT_PASS are set to point to
-[bns-cert.p12](https://github.com/getlantern/too-many-secrets/blob/master/bns_cert.p12)
-and its [password](https://github.com/getlantern/too-many-secrets/blob/master/build-installers/env-vars.txt#L3).
-
-The code signing [certificate](https://github.com/getlantern/too-many-secrets/blob/master/osx-code-signing-certificate.p12)
-and [password](https://github.com/getlantern/too-many-secrets/blob/master/osx-code-signing-certificate.p12.txt)
-can be obtained from [too-many-secrets](https://github.com/getlantern/too-many-secrets).
-
-note - Signing windows code requires that the
-[osslsigncode](http://sourceforge.net/projects/osslsigncode/) utility be
-installed. On OS X with homebrew, you can do this with
-`brew install osslsigncode`.
-
-### Masquerade Host Management
-
-Masquerade host configuration is managed using utilities in the [`genconfig/`](genconfig/) subfolder.
+The configuration that will be fed to clients is managed using utilities in the [`genconfig/`](genconfig/) subfolder.
 
 #### Setup
 
@@ -184,3 +132,38 @@ To alter the list of domains or blacklist:
 2. `go run genconfig.go -domains domains.txt -blacklist blacklist.txt`.
 3. Commit the changed [`masquerades.go`](config/masquerades.go) and [`cloud.yaml`](genconfig/cloud.yaml) to git if you want.
 4. Upload cloud.yaml to s3 using [`udpateyaml.bash`](genconfig/updateyaml.bash) if you want.
+
+#### Managing proxied sites
+
+Lists of proxied sites are expected to live as text files in a directory, one
+domain per line.  You provide this directory to `genconfig` with the `-proxiedsites` argument.
+
+#### Managing chained proxies
+
+The IPs, access tokens, and other details that clients need in order to
+connect to the chained (that is, non-fronted) proxies we run are contained in
+a JSON file that normally lives in `genconfig/fallbacks.json` and is fed to `genconfig` with the optional `-fallbacks` argument.
+
+You only to concern yourself with this when the list of chained proxies
+changes (e.g., when we launch or kill some server).  To learn how to reenerate
+the `fallbacks.json` file in that case, see [the relevant
+section](https://github.com/getlantern/lantern_aws#regenerating-flashlightgenconfigfallbackjson)
+of the README of the lantern_aws project.
+
+##### Uploading to redis
+
+To add a bunch of servers to the queue of a datacenter, so they'll get pulled by the config server as necessary,
+
+- Compile a fallbacks.json that only includes the given servers.  The quickest way to do this would be to generate the fallbacks.json with a prefix that only includes these servers.
+
+- Generate a cloud.yaml from this fallbacks.json, as explained above.
+
+- In the `genconfig` directory, run `./cfg2redis.py cloud.yaml <dc>`, where `<dc>` is the datacenter where the servers are located.  Current values are 'doams3' for the Digital Ocean Amsterdam 3 datacenter, and 'vltok1' for the Vulture Tokyo datacenter.  Add the `--dc` option if you want to upload the datacenter configuration too (e.g., if this is a new datacenter), but of course make sure the cloud.yaml contains the right configuration for that datacenter (e.g. the right fronted round robin(s)).
+
+The cfg2redis has some prerequisites.  Just try it and it will tell you how to fulfill any missing ones.
+
+If you *only* want to update the datacenter configuration you may say
+
+    echo "[]" > fallbacks.json
+    ./genconfig.bash
+    ./cfg2redis.py --dc cloud.yaml doams3

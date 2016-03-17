@@ -1,10 +1,17 @@
 package main
 
 import (
+	"crypto/tls"
+	"encoding/base64"
+	"encoding/json"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"net"
+	"net/http"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"runtime"
 	"sort"
 	"strings"
@@ -15,32 +22,46 @@ import (
 	"github.com/getlantern/golog"
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/tlsdialer"
+	"github.com/getlantern/yaml"
+
+	"github.com/getlantern/flashlight/client"
 )
 
 const (
 	numberOfWorkers = 50
+	ftVersionFile   = `https://raw.githubusercontent.com/firetweet/downloads/master/version.txt`
+	defaultDeviceID = "555"
 )
 
 var (
-	help          = flag.Bool("help", false, "Get usage help")
-	domainsFile   = flag.String("domains", "", "Path to file containing list of domains to use, with one domain per line (e.g. domains.txt)")
-	blacklistFile = flag.String("blacklist", "", "Path to file containing list of blacklisted domains, which will be excluded from the configuration even if present in the domains file (e.g. blacklist.txt)")
-	minFreq       = flag.Float64("minfreq", 3.0, "Minimum frequency (percentage) for including CA cert in list of trusted certs, defaults to 3.0%")
+	help                = flag.Bool("help", false, "Get usage help")
+	masqueradesInFile   = flag.String("masquerades", "", "Path to file containing list of pasquerades to use, with one space-separated 'ip domain' pair per line (e.g. masquerades.txt)")
+	masqueradesOutFile  = flag.String("masquerades-out", "", "Path, if any, to write the go-formatted masquerades configuration.")
+	blacklistFile       = flag.String("blacklist", "", "Path to file containing list of blacklisted domains, which will be excluded from the configuration even if present in the masquerades file (e.g. blacklist.txt)")
+	proxiedSitesDir     = flag.String("proxiedsites", "proxiedsites", "Path to directory containing proxied site lists, which will be combined and proxied by Lantern")
+	proxiedSitesOutFile = flag.String("proxiedsites-out", "", "Path, if any, to write the go-formatted proxied sites configuration.")
+	minFreq             = flag.Float64("minfreq", 3.0, "Minimum frequency (percentage) for including CA cert in list of trusted certs, defaults to 3.0%")
+
+	fallbacksFile    = flag.String("fallbacks", "fallbacks.yaml", "File containing yaml dict of fallback information")
+	fallbacksOutFile = flag.String("fallbacks-out", "", "Path, if any, to write the go-formatted fallback configuration.")
 )
 
 var (
 	log = golog.LoggerFor("genconfig")
 
-	domains   []string
-	blacklist = make(map[string]bool)
+	masquerades []string
 
-	masqueradesTmpl string
-	yamlTmpl        string
+	blacklist    = make(filter)
+	proxiedSites = make(filter)
+	fallbacks    map[string]*client.ChainedServerInfo
+	ftVersion    string
 
-	domainsCh     = make(chan string)
+	inputCh       = make(chan string)
 	masqueradesCh = make(chan *masquerade)
 	wg            sync.WaitGroup
 )
+
+type filter map[string]bool
 
 type masquerade struct {
 	Domain    string
@@ -66,30 +87,113 @@ func main() {
 	log.Debugf("Using all %d cores on machine", numcores)
 	runtime.GOMAXPROCS(numcores)
 
-	loadDomains()
+	loadMasquerades()
+	loadProxiedSitesList()
 	loadBlacklist()
+	loadFallbacks()
+	loadFtVersion()
 
-	masqueradesTmpl = loadTemplate("masquerades.go.tmpl")
-	yamlTmpl = loadTemplate("cloud.yaml.tmpl")
+	yamlTmpl := loadTemplate("cloud.yaml.tmpl")
 
-	go feedDomains()
-	cas, masquerades := coalesceMasquerades()
-	model := buildModel(cas, masquerades)
-	generateTemplate(model, masqueradesTmpl, "../config/masquerades.go")
+	go feedMasquerades()
+	cas, masqs := coalesceMasquerades()
+	model := buildModel(cas, masqs, false)
 	generateTemplate(model, yamlTmpl, "cloud.yaml")
+	model = buildModel(cas, masqs, true)
+	generateTemplate(model, yamlTmpl, "lantern.yaml")
+	var err error
+	if *masqueradesOutFile != "" {
+		masqueradesTmpl := loadTemplate("masquerades.go.tmpl")
+		generateTemplate(model, masqueradesTmpl, *masqueradesOutFile)
+		_, err = run("gofmt", "-w", *masqueradesOutFile)
+		if err != nil {
+			log.Fatalf("Unable to format %s: %s", *masqueradesOutFile, err)
+		}
+	}
+	if *proxiedSitesOutFile != "" {
+		proxiedSitesTmpl := loadTemplate(*proxiedSitesOutFile)
+		generateTemplate(model, proxiedSitesTmpl, *proxiedSitesOutFile)
+		_, err = run("gofmt", "-w", *proxiedSitesOutFile)
+		if err != nil {
+			log.Fatalf("Unable to format %s: %s", *proxiedSitesOutFile, err)
+		}
+	}
+	if *fallbacksOutFile != "" {
+		fallbacksTmpl := loadTemplate(*fallbacksOutFile)
+		generateTemplate(model, fallbacksTmpl, *fallbacksOutFile)
+		_, err = run("gofmt", "-w", *fallbacksOutFile)
+		if err != nil {
+			log.Fatalf("Unable to format %s: %s", *fallbacksOutFile, err)
+		}
+	}
 }
 
-func loadDomains() {
-	if *domainsFile == "" {
-		log.Error("Please specify a domains file")
+func loadMasquerades() {
+	if *masqueradesInFile == "" {
+		log.Error("Please specify a masquerades file")
 		flag.Usage()
 		os.Exit(2)
 	}
-	domainsBytes, err := ioutil.ReadFile(*domainsFile)
+	bytes, err := ioutil.ReadFile(*masqueradesInFile)
 	if err != nil {
-		log.Fatalf("Unable to read domains file at %s: %s", *domainsFile, err)
+		log.Fatalf("Unable to read masquerades file at %s: %s", *masqueradesInFile, err)
 	}
-	domains = strings.Split(string(domainsBytes), "\n")
+	masquerades = strings.Split(string(bytes), "\n")
+}
+
+// Scans the proxied site directory and stores the sites in the files found
+func loadProxiedSites(path string, info os.FileInfo, err error) error {
+	if info.IsDir() {
+		// skip root directory
+		return nil
+	}
+	proxiedSiteBytes, err := ioutil.ReadFile(path)
+	if err != nil {
+		log.Fatalf("Unable to read blacklist file at %s: %s", path, err)
+	}
+	for _, domain := range strings.Split(string(proxiedSiteBytes), "\n") {
+		// skip empty lines, comments, and *.ir sites
+		// since we're focusing on Iran with this first release, we aren't adding *.ir sites
+		// to the global proxied sites
+		// to avoid proxying sites that are already unblocked there.
+		// This is a general problem when you aren't maintaining country-specific whitelists
+		// which will be addressed in the next phase
+		if domain != "" && !strings.HasPrefix(domain, "#") && !strings.HasSuffix(domain, ".ir") {
+			proxiedSites[domain] = true
+		}
+	}
+	return err
+}
+
+func loadProxiedSitesList() {
+	if *proxiedSitesDir == "" {
+		log.Error("Please specify a proxied site directory")
+		flag.Usage()
+		os.Exit(3)
+	}
+
+	err := filepath.Walk(*proxiedSitesDir, loadProxiedSites)
+	if err != nil {
+		log.Errorf("Could not open proxied site directory: %s", err)
+	}
+}
+
+func loadFtVersion() {
+	res, err := http.Get(ftVersionFile)
+	if err != nil {
+		log.Fatalf("Error fetching FireTweet version file: %s", err)
+	}
+
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			log.Debugf("Error closing response body: %v", err)
+		}
+	}()
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Fatalf("Could not read FT version file: %s", err)
+	}
+	ftVersion = strings.TrimSpace(string(body))
 }
 
 func loadBlacklist() {
@@ -107,6 +211,22 @@ func loadBlacklist() {
 	}
 }
 
+func loadFallbacks() {
+	if *fallbacksFile == "" {
+		log.Error("Please specify a fallbacks file")
+		flag.Usage()
+		os.Exit(2)
+	}
+	fallbacksBytes, err := ioutil.ReadFile(*fallbacksFile)
+	if err != nil {
+		log.Fatalf("Unable to read fallbacks file at %s: %s", *fallbacksFile, err)
+	}
+	err = yaml.Unmarshal(fallbacksBytes, &fallbacks)
+	if err != nil {
+		log.Fatalf("Unable to unmarshal yaml from %v: %v", *fallbacksFile, err)
+	}
+}
+
 func loadTemplate(name string) string {
 	bytes, err := ioutil.ReadFile(name)
 	if err != nil {
@@ -115,45 +235,56 @@ func loadTemplate(name string) string {
 	return string(bytes)
 }
 
-func feedDomains() {
+func feedMasquerades() {
 	wg.Add(numberOfWorkers)
 	for i := 0; i < numberOfWorkers; i++ {
 		go grabCerts()
 	}
 
-	for _, domain := range domains {
-		domainsCh <- domain
+	for _, masq := range masquerades {
+		if masq != "" {
+			inputCh <- masq
+		}
 	}
-	close(domainsCh)
+	close(inputCh)
 	wg.Wait()
 	close(masqueradesCh)
 }
 
-// grabCerts grabs certificates for the domains received on domainsCh and sends
+// grabCerts grabs certificates for the masquerades received on masqueradesCh and sends
 // *masquerades to masqueradesCh.
 func grabCerts() {
 	defer wg.Done()
 
-	for domain := range domainsCh {
+	for masq := range inputCh {
+		parts := strings.Split(masq, " ")
+		if len(parts) != 2 {
+			log.Error("Bad line! '" + masq + "'")
+			continue
+		}
+		ip := parts[0]
+		domain := parts[1]
 		_, blacklisted := blacklist[domain]
 		if blacklisted {
 			log.Tracef("Domain %s is blacklisted, skipping", domain)
 			continue
 		}
-		log.Tracef("Grabbing certs for domain: %s", domain)
+		log.Tracef("Grabbing certs for IP %s, domain %s", ip, domain)
 		cwt, err := tlsdialer.DialForTimings(&net.Dialer{
 			Timeout: 10 * time.Second,
-		}, "tcp", domain+":443", false, nil)
+		}, "tcp", ip+":443", false, &tls.Config{ServerName: domain})
 		if err != nil {
-			log.Errorf("Unable to dial domain %s: %s", domain, err)
+			log.Errorf("Unable to dial IP %s, domain %s: %s", ip, domain, err)
 			continue
 		}
-		cwt.Conn.Close()
+		if err := cwt.Conn.Close(); err != nil {
+			log.Debugf("Error closing connection: %v", err)
+		}
 		chain := cwt.VerifiedChains[0]
 		rootCA := chain[len(chain)-1]
 		rootCert, err := keyman.LoadCertificateFromX509(rootCA)
 		if err != nil {
-			log.Errorf("Unablet to load keyman certificate: %s", err)
+			log.Errorf("Unable to load keyman certificate: %s", err)
 			continue
 		}
 		ca := &castat{
@@ -162,7 +293,7 @@ func grabCerts() {
 		}
 		masqueradesCh <- &masquerade{
 			Domain:    domain,
-			IpAddress: cwt.ResolvedAddr.IP.String(),
+			IpAddress: ip,
 			RootCA:    ca,
 		}
 	}
@@ -205,21 +336,59 @@ func coalesceMasquerades() (map[string]*castat, []*masquerade) {
 	return trustedCAs, trustedMasquerades
 }
 
-func buildModel(cas map[string]*castat, masquerades []*masquerade) map[string]interface{} {
+func buildModel(cas map[string]*castat, masquerades []*masquerade, useFallbacks bool) map[string]interface{} {
 	casList := make([]*castat, 0, len(cas))
 	for _, ca := range cas {
 		casList = append(casList, ca)
 	}
 	sort.Sort(ByFreq(casList))
 	sort.Sort(ByDomain(masquerades))
+	ps := make([]string, 0, len(proxiedSites))
+	for site, _ := range proxiedSites {
+		ps = append(ps, site)
+	}
+	sort.Strings(ps)
+	fbs := make([]map[string]interface{}, 0, len(fallbacks))
+	if useFallbacks {
+		for _, f := range fallbacks {
+			fb := make(map[string]interface{})
+			fb["ip"] = f.Addr
+			fb["auth_token"] = f.AuthToken
+
+			cert := f.Cert
+			// Replace newlines in cert with newline literals
+			fb["cert"] = strings.Replace(cert, "\n", "\\n", -1)
+
+			info := f
+			dialer, err := info.Dialer(defaultDeviceID)
+			if err != nil {
+				log.Debugf("Skipping fallback %v because of error building dialer: %v", f.Addr, err)
+				continue
+			}
+			conn, err := dialer.Dial("tcp", "http://www.google.com")
+			if err != nil {
+				log.Debugf("Skipping fallback %v because dialing Google failed: %v", f.Addr, err)
+				continue
+			}
+			if err := conn.Close(); err != nil {
+				log.Debugf("Error closing connection: %v", err)
+			}
+
+			// Use this fallback
+			fbs = append(fbs, fb)
+		}
+	}
 	return map[string]interface{}{
-		"cas":         casList,
-		"masquerades": masquerades,
+		"cas":          casList,
+		"masquerades":  masquerades,
+		"proxiedsites": ps,
+		"fallbacks":    fbs,
+		"ftVersion":    ftVersion,
 	}
 }
 
 func generateTemplate(model map[string]interface{}, tmplString string, filename string) {
-	tmpl, err := template.New(filename).Parse(tmplString)
+	tmpl, err := template.New(filename).Funcs(funcMap).Parse(tmplString)
 	if err != nil {
 		log.Errorf("Unable to parse template: %s", err)
 		return
@@ -229,11 +398,39 @@ func generateTemplate(model map[string]interface{}, tmplString string, filename 
 		log.Errorf("Unable to create %s: %s", filename, err)
 		return
 	}
-	defer out.Close()
+	defer func() {
+		if err := out.Close(); err != nil {
+			log.Debugf("Error closing file: %v", err)
+		}
+	}()
 	err = tmpl.Execute(out, model)
 	if err != nil {
 		log.Errorf("Unable to generate %s: %s", filename, err)
 	}
+}
+
+func run(prg string, args ...string) (string, error) {
+	cmd := exec.Command(prg, args...)
+	log.Debugf("Running %s %s", prg, strings.Join(args, " "))
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("%s says %s", prg, string(out))
+	}
+	return string(out), nil
+}
+
+func base64Encode(sites []string) string {
+	raw, err := json.Marshal(sites)
+	if err != nil {
+		panic(fmt.Errorf("Unable to marshal proxied sites: %s", err))
+	}
+	b64 := base64.StdEncoding.EncodeToString(raw)
+	return b64
+}
+
+// the functions to be called from template
+var funcMap = template.FuncMap{
+	"encode": base64Encode,
 }
 
 type ByDomain []*masquerade

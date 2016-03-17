@@ -1,5 +1,6 @@
 flashlight
 flashlight.ex?
+autoupdate-prod.go
 *.tar.gz
 *.pem
 *.swo
@@ -7,3 +8,4 @@ flashlight.ex?
 *.pyc
 certs/errors.txt
 flashlight.yaml
+genconfig/genconfig

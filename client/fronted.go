@@ -1,17 +1,5 @@
 package client
 
-import (
-	"fmt"
-	"math"
-	"time"
-
-	"github.com/getlantern/balancer"
-	"github.com/getlantern/fronted"
-
-	"github.com/getlantern/flashlight/globals"
-	"github.com/getlantern/flashlight/statreporter"
-)
-
 // FrontedServerInfo captures configuration information for an upstream domain-
 // fronted server.
 type FrontedServerInfo struct {
@@ -21,9 +9,16 @@ type FrontedServerInfo struct {
 	// Port: the port (e.g. 443)
 	Port int
 
+	// PoolSize: size of connection pool to use. 0 disables connection pooling.
+	PoolSize int
+
 	// MasqueradeSet: the name of the masquerade set from ClientConfig that
 	// contains masquerade hosts to use for this server.
 	MasqueradeSet string
+
+	// MaxMasquerades: the maximum number of masquerades to verify. If 0,
+	// the masquerades are uncapped.
+	MaxMasquerades int
 
 	// InsecureSkipVerify: if true, server's certificate is not verified.
 	InsecureSkipVerify bool
@@ -47,91 +42,8 @@ type FrontedServerInfo struct {
 	// QOS: relative quality of service offered. Should be >= 0, with higher
 	// values indicating higher QOS.
 	QOS int
-}
 
-func (s *FrontedServerInfo) dialer(masqueradeSets map[string][]*fronted.Masquerade) *balancer.Dialer {
-	fd := fronted.NewDialer(&fronted.Config{
-		Host:               s.Host,
-		Port:               s.Port,
-		InsecureSkipVerify: s.InsecureSkipVerify,
-		BufferRequests:     s.BufferRequests,
-		DialTimeoutMillis:  s.DialTimeoutMillis,
-		RedialAttempts:     s.RedialAttempts,
-		OnDial:             withStats,
-		OnDialStats:        s.onDialStats,
-		Masquerades:        masqueradeSets[s.MasqueradeSet],
-		RootCAs:            globals.TrustedCAs,
-	})
-	masqueradeQualifier := ""
-	if s.MasqueradeSet != "" {
-		masqueradeQualifier = fmt.Sprintf(" using masquerade set %s", s.MasqueradeSet)
-	}
-	return &balancer.Dialer{
-		Label:  fmt.Sprintf("fronted proxy at %s:%d%s", s.Host, s.Port, masqueradeQualifier),
-		Weight: s.Weight,
-		QOS:    s.QOS,
-		Dial:   fd.Dial,
-		OnClose: func() {
-			err := fd.Close()
-			if err != nil {
-				log.Debugf("Unable to close fronted dialer: %s", err)
-			}
-		},
-	}
-}
-
-func (s *FrontedServerInfo) onDialStats(success bool, domain, addr string, resolutionTime, connectTime, handshakeTime time.Duration) {
-	if resolutionTime > 0 {
-		s.recordTiming("DNSLookup", resolutionTime)
-		if resolutionTime > 1*time.Second {
-			log.Debugf("DNS lookup for %s (%s) took %s", domain, addr, resolutionTime)
-		}
-	}
-
-	if connectTime > 0 {
-		s.recordTiming("TCPConnect", connectTime)
-		if connectTime > 5*time.Second {
-			log.Debugf("TCP connecting to %s (%s) took %s", domain, addr, connectTime)
-		}
-	}
-
-	if handshakeTime > 0 {
-		s.recordTiming("TLSHandshake", handshakeTime)
-		if handshakeTime > 5*time.Second {
-			log.Debugf("TLS handshake to %s (%s) took %s", domain, addr, handshakeTime)
-		}
-	}
-}
-
-// recordTimings records timing information for the given step in establishing
-// a connection. It always records that the step happened, and it records the
-// highest timing threshold exceeded by the step.  Thresholds are 1, 2, 4, 8,
-// and 16 seconds.
-//
-// For example, if calling this with step = "DNSLookup" and duration = 2.5
-// seconds, we will increment two gauges, "DNSLookup" and
-// "DNSLookupOver2Sec".
-//
-// The stats are qualified by MasqueradeSet (if specified), otherwise they're
-// qualified by host. For example, if the MasqueradeSet is "cloudflare", the
-// above stats would be recorded as "DNSLookupTocloudflare" and
-// "DNSLookupTocloudflareOver2Sec". If the MasqueradeSet is "" and the host is
-// "localhost", the stats would be recorded as "DNSLookupTolocalhost" and
-// "DNSLookupTolocalhostOver2Sec".
-func (s *FrontedServerInfo) recordTiming(step string, duration time.Duration) {
-	if s.MasqueradeSet != "" {
-		step = fmt.Sprintf("%sTo%s", step, s.MasqueradeSet)
-	} else {
-		step = fmt.Sprintf("%sTo%s", step, s.Host)
-	}
-	dims := statreporter.Dim("country", globals.Country)
-	dims.Gauge(step).Add(1)
-	for i := 4; i >= 0; i-- {
-		seconds := int(math.Pow(float64(2), float64(i)))
-		if duration > time.Duration(seconds)*time.Second {
-			key := fmt.Sprintf("%sOver%dSec", step, seconds)
-			dims.Gauge(key).Add(1)
-			return
-		}
-	}
+	// Trusted: Determines if a host can be trusted with unencrypted HTTP
+	// traffic.
+	Trusted bool
 }

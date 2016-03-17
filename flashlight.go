@@ -1,213 +1,151 @@
-// flashlight is a lightweight chained proxy that can run in client or server mode.
-package main
+package flashlight
 
 import (
-	"flag"
-	"math/rand"
-	"os"
-	"os/signal"
-	"runtime"
-	"runtime/pprof"
-	"time"
+	"fmt"
+	"sync"
 
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
 
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
-	"github.com/getlantern/flashlight/server"
-	"github.com/getlantern/flashlight/statreporter"
-	"github.com/getlantern/flashlight/statserver"
+	"github.com/getlantern/flashlight/geolookup"
+	"github.com/getlantern/flashlight/logging"
 )
 
 const (
-	// Exit Statuses
-	ConfigError    = 1
-	Interrupted    = 2
-	PortmapFailure = 50
+	// While in development mode we probably would not want auto-updates to be
+	// applied. Using a big number here prevents such auto-updates without
+	// disabling the feature completely. The "make package-*" tool will take care
+	// of bumping this version number so you don't have to do it by hand.
+	DefaultPackageVersion = "9999.99.99"
 )
 
 var (
-	log       = golog.LoggerFor("flashlight")
-	version   string
-	buildDate string
+	log = golog.LoggerFor("flashlight")
 
-	// Command-line Flags
-	help      = flag.Bool("help", false, "Get usage help")
-	parentPID = flag.Int("parentpid", 0, "the parent process's PID, used on Windows for killing flashlight when the parent disappears")
+	// compileTimePackageVersion is set at compile-time for production builds
+	compileTimePackageVersion string
 
-	configUpdates = make(chan *config.Config)
+	PackageVersion = bestPackageVersion()
+
+	Version      string
+	RevisionDate string // The revision date and time that is associated with the version string.
+	BuildDate    string // The actual date and time the binary was built.
+
+	cfgMutex sync.Mutex
 )
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
+func bestPackageVersion() string {
+	if compileTimePackageVersion != "" {
+		return compileTimePackageVersion
+	} else {
+		return DefaultPackageVersion
+	}
 }
 
-func main() {
+func init() {
+	log.Debugf("****************************** Package Version: %v", PackageVersion)
+	if PackageVersion != DefaultPackageVersion {
+		// packageVersion has precedence over GIT revision. This will happen when
+		// packing a version intended for release.
+		Version = PackageVersion
+	}
+
+	if Version == "" {
+		Version = "development"
+	}
+
+	if RevisionDate == "" {
+		RevisionDate = "now"
+	}
+}
+
+// Run runs a client proxy. It blocks as long as the proxy is running.
+func Run(httpProxyAddr string,
+	socksProxyAddr string,
+	configDir string,
+	stickyConfig bool,
+	proxyAll func() bool,
+	flagsAsMap map[string]interface{},
+	beforeStart func(cfg *config.Config) bool,
+	afterStart func(cfg *config.Config),
+	onConfigUpdate func(cfg *config.Config),
+	onError func(err error)) error {
 	displayVersion()
 
-	flag.Parse()
-	configUpdates = make(chan *config.Config)
-	cfg, err := config.Start(func(updated *config.Config) {
-		configUpdates <- updated
-	})
+	log.Debug("Initializing configuration")
+	cfg, err := config.Init(PackageVersion, configDir, stickyConfig, flagsAsMap)
 	if err != nil {
-		log.Fatalf("Unable to start configuration: %s", err)
-	}
-	if *help || cfg.Addr == "" || (cfg.Role != "server" && cfg.Role != "client") {
-		flag.Usage()
-		os.Exit(ConfigError)
+		return fmt.Errorf("Unable to initialize configuration: %v", err)
 	}
 
-	if cfg.CpuProfile != "" {
-		startCPUProfiling(cfg.CpuProfile)
-		defer stopCPUProfiling(cfg.CpuProfile)
+	client := client.NewClient()
+
+	if beforeStart(cfg) {
+		log.Debug("Preparing to start client proxy")
+		geolookup.Configure(client.Addr)
+		cfgMutex.Lock()
+		applyClientConfig(client, cfg, proxyAll)
+		cfgMutex.Unlock()
+
+		go func() {
+			err := config.Run(func(updated *config.Config) {
+				log.Debug("Applying updated configuration")
+				cfgMutex.Lock()
+				applyClientConfig(client, updated, proxyAll)
+				onConfigUpdate(updated)
+				cfgMutex.Unlock()
+				log.Debug("Applied updated configuration")
+			})
+			if err != nil {
+				onError(err)
+			}
+		}()
+
+		if socksProxyAddr != "" {
+			go func() {
+				log.Debug("Starting client SOCKS5 proxy")
+				err = client.ListenAndServeSOCKS5(socksProxyAddr)
+				if err != nil {
+					log.Errorf("Unable to start SOCKS5 proxy: %v", err)
+				}
+			}()
+		}
+
+		log.Debug("Starting client HTTP proxy")
+		err = client.ListenAndServeHTTP(httpProxyAddr, func() {
+			log.Debug("Started client HTTP proxy")
+			// We finally tell the config package to start polling for new configurations.
+			// This is the final step because the config polling itself uses the full
+			// proxying capabilities of Lantern, so it needs everything to be properly
+			// set up with at least an initial bootstrap config (on first run) to
+			// complete successfully.
+			config.StartPolling()
+			afterStart(cfg)
+		})
+		if err != nil {
+			log.Errorf("Error starting client proxy: %v", err)
+			onError(err)
+		}
 	}
 
-	if cfg.MemProfile != "" {
-		defer saveMemProfile(cfg.MemProfile)
-	}
+	return nil
+}
 
-	saveProfilingOnSigINT(cfg)
-
-	// Configure stats initially
-	configureStats(cfg, true)
-
-	log.Debugf("Running proxy")
-	if cfg.IsDownstream() {
-		runClientProxy(cfg)
+func applyClientConfig(client *client.Client, cfg *config.Config, proxyAll func() bool) {
+	certs, err := cfg.GetTrustedCACerts()
+	if err != nil {
+		log.Errorf("Unable to get trusted ca certs, not configuring fronted: %s", err)
 	} else {
-		runServerProxy(cfg)
+		fronted.Configure(certs, cfg.Client.MasqueradeSets)
 	}
+	logging.Configure(client.Addr, cfg.CloudConfigCA, cfg.Client.DeviceID,
+		Version, RevisionDate)
+	// Update client configuration
+	client.Configure(cfg.Client, proxyAll)
 }
 
 func displayVersion() {
-	if version == "" {
-		version = "development"
-	}
-	if buildDate == "" {
-		buildDate = "now"
-	}
-	log.Debugf("---- flashlight version %s (%s) ----", version, buildDate)
-}
-
-func configureStats(cfg *config.Config, failOnError bool) {
-	err := statreporter.Configure(cfg.Stats)
-	if err != nil {
-		log.Error(err)
-		if failOnError {
-			flag.Usage()
-			os.Exit(ConfigError)
-		}
-	}
-
-	if cfg.StatsAddr != "" {
-		statserver.Start(cfg.StatsAddr)
-	} else {
-		statserver.Stop()
-	}
-}
-
-// Runs the client-side proxy
-func runClientProxy(cfg *config.Config) {
-	client := &client.Client{
-		Addr:         cfg.Addr,
-		ReadTimeout:  0, // don't timeout
-		WriteTimeout: 0,
-	}
-
-	// Configure client initially
-	client.Configure(cfg.Client)
-
-	// Continually poll for config updates and update client accordingly
-	go func() {
-		for {
-			cfg := <-configUpdates
-			configureStats(cfg, false)
-			client.Configure(cfg.Client)
-		}
-	}()
-
-	err := client.ListenAndServe()
-	if err != nil {
-		log.Fatalf("Unable to run client proxy: %s", err)
-	}
-}
-
-// Runs the server-side proxy
-func runServerProxy(cfg *config.Config) {
-	useAllCores()
-
-	srv := &server.Server{
-		Addr:         cfg.Addr,
-		Host:         cfg.Server.AdvertisedHost,
-		ReadTimeout:  0, // don't timeout
-		WriteTimeout: 0,
-		CertContext: &fronted.CertContext{
-			PKFile:         config.InConfigDir("proxypk.pem"),
-			ServerCertFile: config.InConfigDir("servercert.pem"),
-		},
-	}
-
-	srv.Configure(cfg.Server)
-
-	// Continually poll for config updates and update server accordingly
-	go func() {
-		for {
-			cfg := <-configUpdates
-			configureStats(cfg, false)
-			srv.Configure(cfg.Server)
-		}
-	}()
-
-	err := srv.ListenAndServe()
-	if err != nil {
-		log.Fatalf("Unable to run server proxy: %s", err)
-	}
-}
-
-func useAllCores() {
-	numcores := runtime.NumCPU()
-	log.Debugf("Using all %d cores on machine", numcores)
-	runtime.GOMAXPROCS(numcores)
-}
-
-func startCPUProfiling(filename string) {
-	f, err := os.Create(filename)
-	if err != nil {
-		log.Fatal(err)
-	}
-	pprof.StartCPUProfile(f)
-	log.Debugf("Process will save cpu profile to %s after terminating", filename)
-}
-
-func stopCPUProfiling(filename string) {
-	log.Debugf("Saving CPU profile to: %s", filename)
-	pprof.StopCPUProfile()
-}
-
-func saveMemProfile(filename string) {
-	f, err := os.Create(filename)
-	if err != nil {
-		log.Errorf("Unable to create file to save memprofile: %s", err)
-		return
-	}
-	log.Debugf("Saving heap profile to: %s", filename)
-	pprof.WriteHeapProfile(f)
-	f.Close()
-}
-
-func saveProfilingOnSigINT(cfg *config.Config) {
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-	go func() {
-		<-c
-		if cfg.CpuProfile != "" {
-			stopCPUProfiling(cfg.CpuProfile)
-		}
-		if cfg.MemProfile != "" {
-			saveMemProfile(cfg.MemProfile)
-		}
-		os.Exit(Interrupted)
-	}()
+	log.Debugf("---- flashlight version: %s, release: %s, build revision date: %s ----", Version, PackageVersion, RevisionDate)
 }

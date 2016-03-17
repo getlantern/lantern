@@ -1,52 +1,63 @@
 package client
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/getlantern/balancer"
 )
 
+// getBalancer waits for a message from client.balCh to arrive and then it
+// writes it back to client.balCh before returning it as a value. This way we
+// always have a balancer at client.balCh and, if we don't have one, it would
+// block until one arrives.
 func (client *Client) getBalancer() *balancer.Balancer {
-	bal := <-client.balCh
-	client.balCh <- bal
-	return bal
+	bal, ok := client.bal.Get(24 * time.Hour)
+	if !ok {
+		panic("No balancer!")
+	}
+	return bal.(*balancer.Balancer)
 }
 
-func (client *Client) initBalancer(cfg *ClientConfig) *balancer.Balancer {
-	dialers := make([]*balancer.Dialer, 0, len(cfg.FrontedServers)+len(cfg.ChainedServers))
-
-	log.Debugf("Adding %d domain fronted servers", len(cfg.FrontedServers))
-	for _, s := range cfg.FrontedServers {
-		dialer := s.dialer(cfg.MasqueradeSets)
-		dialers = append(dialers, dialer)
+// initBalancer takes hosts from cfg.ChainedServers and it uses them to create a
+// balancer.
+func (client *Client) initBalancer(cfg *ClientConfig) (*balancer.Balancer, error) {
+	if len(cfg.ChainedServers) == 0 {
+		return nil, fmt.Errorf("No chained servers configured, not initializing balancer")
 	}
+	// The dialers slice must be large enough to handle all chained
+	// servers.
+	dialers := make([]*balancer.Dialer, 0, len(cfg.ChainedServers))
 
+	// Add chained (CONNECT proxy) servers.
 	log.Debugf("Adding %d chained servers", len(cfg.ChainedServers))
 	for _, s := range cfg.ChainedServers {
-		dialer, err := s.dialer()
+		dialer, err := s.Dialer(cfg.DeviceID)
 		if err == nil {
 			dialers = append(dialers, dialer)
 		} else {
-			log.Debugf("Unable to configure chained server for %s: %s", s.Addr)
+			log.Errorf("Unable to configure chained server. Received error: %v", err)
 		}
-
 	}
 
-	bal := balancer.New(dialers...)
+	bal := balancer.New(balancer.QualityFirst, dialers...)
+	var oldBal *balancer.Balancer
+	var ok bool
+	ob, ok := client.bal.Get(0 * time.Millisecond)
+	if ok {
+		oldBal = ob.(*balancer.Balancer)
+	}
 
-	if client.balInitialized {
-		log.Trace("Draining balancer channel")
-		old := <-client.balCh
+	log.Trace("Publishing balancer")
+	client.bal.Set(bal)
+
+	if oldBal != nil {
 		// Close old balancer on a goroutine to avoid blocking here
 		go func() {
-			old.Close()
+			oldBal.Close()
 			log.Debug("Closed old balancer")
 		}()
-	} else {
-		log.Trace("Creating balancer channel")
-		client.balCh = make(chan *balancer.Balancer, 1)
 	}
-	log.Trace("Publishing balancer")
-	client.balCh <- bal
-	client.balInitialized = true
 
-	return bal
+	return bal, nil
 }

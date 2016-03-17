@@ -1,58 +1,56 @@
 package client
 
 import (
+	"bytes"
+	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
 	"time"
 
 	"github.com/getlantern/balancer"
 	"github.com/getlantern/flashlight/proxy"
+	"github.com/getlantern/flashlight/status"
 )
 
-func (client *Client) getReverseProxy() *httputil.ReverseProxy {
-	rp := <-client.rpCh
-	client.rpCh <- rp
-	return rp
-}
+// newReverseProxy creates a reverse proxy that uses the client's balancer to
+// dial out.
+func (client *Client) newReverseProxy(bal *balancer.Balancer) *httputil.ReverseProxy {
+	transport := &http.Transport{
+		TLSHandshakeTimeout: 40 * time.Second,
+	}
 
-func (client *Client) initReverseProxy(bal *balancer.Balancer, dumpHeaders bool) {
-	rp := &httputil.ReverseProxy{
+	// TODO: would be good to make this sensitive to QOS, which
+	// right now is only respected for HTTPS connections. The
+	// challenge is that ReverseProxy reuses connections for
+	// different requests, so we might have to configure different
+	// ReverseProxies for different QOS's or something like that.
+	transport.Dial = client.proxiedDialer(bal.Dial)
+
+	allAuthTokens := bal.AllAuthTokens()
+	return &httputil.ReverseProxy{
+		// We need to set the authentication tokens for all servers that we might
+		// connect to because we don't know which one the dialer will actually
+		// pick. We also need to strip out X-Forwarded-For that reverseproxy adds
+		// because it confuses the upstream servers with the additional 127.0.0.1
+		// field when upstream servers are trying to determine the client IP.
+		// We need to add also the X-Lantern-Device-Id field.
 		Director: func(req *http.Request) {
-			// do nothing
+			// Add back the Host header which was stripped by the ReverseProxy. This
+			// is needed for sites that do virtual hosting.
+			req.Header.Set("Host", req.Host)
+			req.Header.Set("X-LANTERN-DEVICE-ID", client.cfg().DeviceID)
+			for _, authToken := range allAuthTokens {
+				req.Header.Add("X-LANTERN-AUTH-TOKEN", authToken)
+			}
 		},
-		Transport: withDumpHeaders(
-			dumpHeaders,
-			&http.Transport{
-				// We disable keepalives because some servers pretend to support
-				// keep-alives but close their connections immediately, which
-				// causes an error inside ReverseProxy.  This is not an issue
-				// for HTTPS because  the browser is responsible for handling
-				// the problem, which browsers like Chrome and Firefox already
-				// know to do.
-				//
-				// See https://code.google.com/p/go/issues/detail?id=4677
-				DisableKeepAlives: true,
-				// TODO: would be good to make this sensitive to QOS, which
-				// right now is only respected for HTTPS connections. The
-				// challenge is that ReverseProxy reuses connections for
-				// different requests, so we might have to configure different
-				// ReverseProxies for different QOS's or something like that.
-				Dial: bal.Dial,
-			}),
+		Transport: &errorRewritingRoundTripper{
+			&noForwardedForRoundTripper{withDumpHeaders(false, transport)},
+		},
 		// Set a FlushInterval to prevent overly aggressive buffering of
 		// responses, which helps keep memory usage down
 		FlushInterval: 250 * time.Millisecond,
+		ErrorLog:      log.AsStdLogger(),
 	}
-
-	if client.rpInitialized {
-		log.Trace("Draining reverse proxy channel")
-		<-client.rpCh
-	} else {
-		log.Trace("Creating reverse proxy channel")
-		client.rpCh = make(chan *httputil.ReverseProxy, 1)
-	}
-	log.Trace("Publishing reverse proxy")
-	client.rpCh <- rp
 }
 
 // withDumpHeaders creates a RoundTripper that uses the supplied RoundTripper
@@ -77,4 +75,62 @@ func (rt *headerDumpingRoundTripper) RoundTrip(req *http.Request) (resp *http.Re
 		proxy.DumpHeaders("Response", &resp.Header)
 	}
 	return
+}
+
+// The errorRewritingRoundTripper writes creates an special *http.Response when
+// the roundtripper fails for some reason.
+type errorRewritingRoundTripper struct {
+	orig http.RoundTripper
+}
+
+func (er *errorRewritingRoundTripper) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+	res, err := er.orig.RoundTrip(req)
+	if err != nil {
+		var htmlerr []byte
+
+		// If the request has an 'Accept' header preferring HTML, or
+		// doesn't have that header at all, render the error page.
+		switch req.Header.Get("Accept") {
+		case "text/html":
+			fallthrough
+		case "application/xhtml+xml":
+			fallthrough
+		case "":
+			// It is likely we will have lots of different errors to handle but for now
+			// we will only return a ErrorAccessingPage error.  This prevents the user
+			// from getting just a blank screen.
+			htmlerr, err = status.ErrorAccessingPage(req.Host, err)
+			if err != nil {
+				log.Debugf("Got error while generating status page: %q", err)
+			}
+		default:
+			// We know for sure that the requested resource is not HTML page,
+			// wrap the error message in http content, or http.ReverseProxy
+			// will response 500 Internal Server Error instead.
+			htmlerr = []byte(err.Error())
+		}
+
+		res = &http.Response{
+			Body: ioutil.NopCloser(bytes.NewBuffer(htmlerr)),
+		}
+		res.StatusCode = http.StatusServiceUnavailable
+		return res, nil
+	}
+	return res, err
+}
+
+// noForwardedForRoundTripper is a RoundTripper that strips out the
+// X-Forwarded-For header that was generated by the ReverseProxy. This is
+// is necessary because the Lantern config server assigns clients to proxies
+// based on the client's IPs, and it assumes that the client's ip is the first
+// in the X-Forwarded-For list. If we didn't strip out the X-Forwarded-For here,
+// every client IP would appear to be 127.0.0.1, and every client would get
+// assigned to the same server.
+type noForwardedForRoundTripper struct {
+	wrapped http.RoundTripper
+}
+
+func (rt *noForwardedForRoundTripper) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+	req.Header.Del("X-Forwarded-For")
+	return rt.wrapped.RoundTrip(req)
 }
