@@ -29,7 +29,8 @@ var (
 
 // Settings is a struct of all settings unique to this particular Lantern instance.
 type Settings struct {
-	UserId    int    `json:"userID,omitempty"`
+	DeviceID  string `json:"deviceID,omitempty"`
+	UserID    int    `json:"userID,omitempty"`
 	UserToken string `json:"userToken,omitempty"`
 
 	Version      string `json:"version"`
@@ -138,12 +139,16 @@ func (s *Settings) read() {
 			// This is unmarshaled into a float64, I'm am converting it to string and
 			// then to float32 to catch the case when this is a float32.
 			if id, err := strconv.Atoi(fmt.Sprintf("%v", data["userID"])); err == nil {
-				s.SetUserId(id)
+				s.SetUserID(id)
 			}
 		}
 
 		if token, ok := data["token"].(string); ok {
 			s.SetToken(token)
+		}
+
+		if deviceID, ok := data["deviceID"].(string); ok {
+			s.SetDeviceID(deviceID)
 		}
 
 		service.Out <- s
@@ -209,16 +214,22 @@ func (s *Settings) GetSystemProxy() bool {
 	return s.SystemProxy
 }
 
+func (s *Settings) SetDeviceID(deviceID string) {
+	s.Lock()
+	defer s.unlockAndSave()
+	s.DeviceID = deviceID
+}
+
 func (s *Settings) SetToken(token string) {
 	s.Lock()
 	defer s.unlockAndSave()
 	s.UserToken = token
 }
 
-func (s *Settings) SetUserId(id int) {
+func (s *Settings) SetUserID(id int) {
 	s.Lock()
 	defer s.unlockAndSave()
-	s.UserId = id
+	s.UserID = id
 }
 
 // SetSystemProxy sets whether or not to set system proxy when lantern starts
