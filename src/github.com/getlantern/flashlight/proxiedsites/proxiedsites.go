@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	messageType = `ProxiedSites`
+	messageType = `proxiedSites`
 )
 
 var (

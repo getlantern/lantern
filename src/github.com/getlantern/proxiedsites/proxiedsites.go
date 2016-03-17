@@ -22,8 +22,8 @@ var (
 
 // Delta represents modifications to the proxied sites list.
 type Delta struct {
-	Additions []string `json:"Additions, omitempty"`
-	Deletions []string `json:"Deletions, omitempty"`
+	Additions []string `json:"additions"`
+	Deletions []string `json:"deletions"`
 }
 
 // Merge merges the given delta into the existing one.

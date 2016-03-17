@@ -11,15 +11,15 @@ import (
 )
 
 const (
-	messageType  = `LocalDiscovery`
+	messageType = `localDiscovery`
 )
 
 var (
-	log           = golog.LoggerFor("flashlight.localdiscovery")
-	service       *ui.Service
-	mc            *multicast.Multicast
-	lastPeers     []multicast.PeerInfo
-	peersMutex    sync.Mutex
+	log        = golog.LoggerFor("flashlight.localdiscovery")
+	service    *ui.Service
+	mc         *multicast.Multicast
+	lastPeers  []multicast.PeerInfo
+	peersMutex sync.Mutex
 )
 
 // Start begins the local Lantern discovery process
