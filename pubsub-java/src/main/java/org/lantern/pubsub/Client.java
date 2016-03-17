@@ -81,7 +81,7 @@ public class Client implements Runnable {
             cfg.maxBackoff = 60 * 1000; // 1 minute
         }
         if (cfg.keepalivePeriod == 0) {
-            cfg.keepalivePeriod = 30 * 1000; // 30 seconds
+            cfg.keepalivePeriod = 20 * 1000; // 20 seconds
         }
 
         this.cfg = cfg;
