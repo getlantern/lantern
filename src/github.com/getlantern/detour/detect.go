@@ -61,10 +61,12 @@ func detectorByCountry(country string) *Detector {
 	if d == nil {
 		return &defaultDetector
 	}
-	return &Detector{d.DNSPoisoned,
-		func(err error) bool {
+	return &Detector{DNSPoisoned: d.DNSPoisoned,
+		TamperingSuspected: func(err error) bool {
 			return defaultDetector.TamperingSuspected(err) || d.TamperingSuspected(err)
 		},
-		d.FakeResponse,
+		FakeResponse: func(b []byte) bool {
+			return defaultDetector.FakeResponse(b) || d.FakeResponse(b)
+		},
 	}
 }

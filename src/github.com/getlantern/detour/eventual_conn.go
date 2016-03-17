@@ -11,36 +11,36 @@ import (
 )
 
 // A Conn that uses an eventually available underlying Conn. Writes will go into
-// a bounded buffer until the underlying Conn is available.
+// a bounded buffer until the underlying Conn is available. Reads will be
+// blocked until the underlying Conn is available or times out.
 type eventualConn struct {
-	conn        eventual.Value
-	timeout     time.Duration
-	writeBuf    *bytes.Buffer
-	writeMutex  sync.Mutex
-	writeToConn bool
+	conn         eventual.Value
+	timeout      time.Duration
+	writeBuf     bytes.Buffer
+	writeMutex   sync.Mutex
+	writeThrough bool
 }
 
 func newEventualConn(timeout time.Duration, bufferSize int) *eventualConn {
 	conn := &eventualConn{
-		conn:     eventual.NewValue(),
-		timeout:  timeout,
-		writeBuf: bytes.NewBuffer(make([]byte, 0)),
+		conn:    eventual.NewValue(),
+		timeout: timeout,
 	}
 
 	return conn
 }
 
-func (conn *eventualConn) Dial(dial func() (net.Conn, error)) (ch chan struct{}) {
-	ch = make(chan struct{})
+func (conn *eventualConn) Dial(dial func() (net.Conn, error)) chan error {
+	ch := make(chan error)
 	// Dial on a goroutine and report the result
 	go func() {
 		c, err := dial()
 		if err != nil {
 			conn.conn.Set(err)
-			ch <- struct{}{}
+			ch <- err
+			return
 		}
 		conn.writeMutex.Lock()
-		conn.writeToConn = true
 		if conn.writeBuf.Len() > 0 {
 			log.Trace("Flushing write buffer")
 			_, err := conn.writeBuf.WriteTo(c)
@@ -49,8 +49,9 @@ func (conn *eventualConn) Dial(dial func() (net.Conn, error)) (ch chan struct{})
 			}
 		}
 		conn.conn.Set(c)
+		conn.writeThrough = true
 		conn.writeMutex.Unlock()
-		ch <- struct{}{}
+		ch <- nil
 	}()
 	return ch
 }
@@ -66,7 +67,7 @@ func (conn *eventualConn) Read(b []byte) (n int, err error) {
 func (conn *eventualConn) Write(b []byte) (n int, err error) {
 	conn.writeMutex.Lock()
 	defer conn.writeMutex.Unlock()
-	if !conn.writeToConn {
+	if !conn.writeThrough {
 		log.Trace("Writing to buffer")
 		return conn.writeBuf.Write(b)
 	} else {
@@ -80,6 +81,7 @@ func (conn *eventualConn) Write(b []byte) (n int, err error) {
 }
 
 func (conn *eventualConn) Close() error {
+	conn.conn.Stop()
 	c, err := conn.getConn()
 	if err != nil {
 		return err
