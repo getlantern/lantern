@@ -92,7 +92,10 @@ func hasCustomChainedServer(configPath, name string) bool {
 
 	nc := len(cfg.Client.ChainedServers)
 
-	log.Debugf("Found %v chained servers", nc)
+	log.Debugf("Found %v chained servers in config on disk", nc)
+	for _, v := range cfg.Client.ChainedServers {
+		log.Debugf("chained server: %v", v)
+	}
 	// The config will have more than one but fewer than 10 chained servers
 	// if it has been given a custom config with a custom chained server
 	// list
@@ -299,26 +302,10 @@ func (cfg *Config) applyClientDefaults() {
 	}
 
 	// Make sure we always have at least one server
-	if cfg.Client.FrontedServers == nil {
-		cfg.Client.FrontedServers = make([]*client.FrontedServerInfo, 0)
-	}
 	if len(cfg.Client.ChainedServers) == 0 {
 		cfg.Client.ChainedServers = make(map[string]*client.ChainedServerInfo, len(fallbacks))
 		for key, fb := range fallbacks {
 			cfg.Client.ChainedServers[key] = fb
-		}
-	}
-
-	// Make sure all servers have a QOS and Weight configured
-	for _, server := range cfg.Client.FrontedServers {
-		if server.QOS == 0 {
-			server.QOS = 5
-		}
-		if server.Weight == 0 {
-			server.Weight = 100
-		}
-		if server.RedialAttempts == 0 {
-			server.RedialAttempts = 2
 		}
 	}
 
@@ -344,9 +331,6 @@ func (cfg *Config) applyClientDefaults() {
 		}
 	}
 
-	// Sort servers so that they're always in a predictable order
-	cfg.Client.SortServers()
-
 	if cfg.Client.DeviceID == "" {
 		// There is no true privacy or security in instance ID.  For that, we rely on
 		// transport security.  Hashing MAC would buy us nothing, since the space of
@@ -362,17 +346,14 @@ func (cfg *Config) applyClientDefaults() {
 func (updated *Config) updateFrom(updateBytes []byte) error {
 	// XXX: does this need a mutex, along with everyone that uses the config?
 	oldDeviceID := updated.Client.DeviceID
-	oldFrontedServers := updated.Client.FrontedServers
 	oldChainedServers := updated.Client.ChainedServers
 	oldMasqueradeSets := updated.Client.MasqueradeSets
 	oldTrustedCAs := updated.TrustedCAs
-	updated.Client.FrontedServers = []*client.FrontedServerInfo{}
 	updated.Client.ChainedServers = map[string]*client.ChainedServerInfo{}
 	updated.Client.MasqueradeSets = map[string][]*fronted.Masquerade{}
 	updated.TrustedCAs = []*CA{}
 	err := yaml.Unmarshal(updateBytes, updated)
 	if err != nil {
-		updated.Client.FrontedServers = oldFrontedServers
 		updated.Client.ChainedServers = oldChainedServers
 		updated.Client.MasqueradeSets = oldMasqueradeSets
 		updated.TrustedCAs = oldTrustedCAs
