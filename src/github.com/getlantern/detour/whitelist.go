@@ -10,9 +10,15 @@ type wlEntry struct {
 }
 
 var (
-	muWhitelist sync.RWMutex
-	whitelist   = make(map[string]wlEntry)
+	muWhitelist    sync.RWMutex
+	whitelist      = make(map[string]wlEntry)
+	forceWhitelist = make(map[string]wlEntry)
 )
+
+func ForceWhitelist(addr string) {
+	log.Tracef("Force whitelisting %v", addr)
+	forceWhitelist[addr] = wlEntry{true}
+}
 
 // AddToWl adds a domain to whitelist, all subdomains of this domain
 // are also considered to be in the whitelist.
@@ -44,9 +50,15 @@ func whitelisted(addr string) (in bool) {
 	muWhitelist.RLock()
 	defer muWhitelist.RUnlock()
 	for ; addr != ""; addr = getParentDomain(addr) {
-		_, in = whitelist[addr]
-		if in {
-			return
+		_, forced := forceWhitelist[addr]
+		if forced {
+			log.Tracef("%v is force whitelisted", addr)
+			return true
+		}
+		_, whitelisted := whitelist[addr]
+		if whitelisted {
+			log.Tracef("%v is whitelisted", addr)
+			return true
 		}
 	}
 	return

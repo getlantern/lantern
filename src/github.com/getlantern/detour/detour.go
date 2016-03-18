@@ -116,6 +116,7 @@ func Dialer(d dialFunc) dialFunc {
 	return func(network, addr string) (conn net.Conn, err error) {
 		dc := &Conn{dialDetour: d, network: network, addr: addr}
 		if !whitelisted(addr) {
+			log.Tracef("Attempting direct connection for %v", addr)
 			detector := blockDetector.Load().(*Detector)
 			dc.setState(stateInitial)
 			// always try direct connection first
@@ -136,6 +137,7 @@ func Dialer(d dialFunc) dialFunc {
 				return dc, err
 			}
 		}
+		log.Tracef("Detouring %v", addr)
 		// if whitelisted or dial directly failed, try detour
 		dc.setState(stateDetour)
 		dc.conn, err = dc.dialDetour(network, addr)
