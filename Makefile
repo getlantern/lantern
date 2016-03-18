@@ -192,11 +192,11 @@ $(RESOURCES_DOT_GO): $(NPM)
 	gulp build && \
 	cd - && \
 	rm -f bin/tarfs bin/rsrc && \
-	go get github.com/getlantern/tarfs/tarfs && \
+	go install github.com/getlantern/tarfs/tarfs && \
 	echo "// +build !stub" > $$DEST && \
 	echo " " >> $$DEST && \
 	tarfs -pkg ui $$DIST >> $$DEST && \
-	go get github.com/akavel/rsrc && \
+	go install github.com/akavel/rsrc && \
 	rsrc -ico installer-resources/windows/lantern.ico -o src/github.com/getlantern/flashlight/lantern_windows_386.syso
 
 assets: $(RESOURCES_DOT_GO)

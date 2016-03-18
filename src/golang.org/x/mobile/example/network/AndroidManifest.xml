@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Copyright 2015 The Go Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<manifest
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	package="org.golang.todo.network"
+	android:versionCode="1"
+	android:versionName="1.0">
+
+	<!-- In order to access the network, your application manifest must
+	     specify the permission requirement. See the following page for
+	     details.
+	     http://developer.android.com/guide/topics/manifest/manifest-intro.html#perms -->
+	<uses-permission android:name="android.permission.INTERNET" />
+
+	<application android:label="network" android:debuggable="true">
+
+	<activity android:name="org.golang.app.GoNativeActivity"
+		android:label="network"
+		android:configChanges="orientation|keyboardHidden">
+		<meta-data android:name="android.app.lib_name" android:value="network" />
+		<intent-filter>
+			<action android:name="android.intent.action.MAIN" />
+			<category android:name="android.intent.category.LAUNCHER" />
+		</intent-filter>
+	</activity>
+	</application>
+</manifest>

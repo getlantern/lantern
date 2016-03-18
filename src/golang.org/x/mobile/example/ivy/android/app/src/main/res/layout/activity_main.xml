@@ -1,0 +1,69 @@
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity"
+    android:id="@+id/layout"
+    android:background="@color/body">
+
+    <ScrollView
+        android:id="@+id/scroller"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:scrollbars="vertical"
+        android:fillViewport="false"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_above="@+id/layout_bottom"
+        android:padding="@dimen/abc_control_padding_material">
+
+        <WebView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/webView"
+            android:gravity="left|bottom"
+            android:textIsSelectable="true"
+            android:clickable="false"
+            android:background="@color/body" />
+
+    </ScrollView>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/layout_bottom"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true">
+
+        <EditText
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:id="@+id/editText"
+            android:gravity="top|left|start"
+            android:textStyle="normal"
+            android:inputType="textVisiblePassword"
+            android:hint="@string/editTextHelp"/>
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/imageButton"
+            android:background="@drawable/circle_shape"
+            android:src="@drawable/ic_done_white_24dp"
+            android:contentDescription="@string/ok"
+            android:onClick="onClick"
+            android:clickable="true"
+            android:padding="@dimen/abc_control_padding_material"
+            android:layout_margin="@dimen/abc_control_padding_material" />
+
+    </LinearLayout>
+
+</RelativeLayout>

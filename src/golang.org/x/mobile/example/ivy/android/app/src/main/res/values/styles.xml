@@ -1,0 +1,16 @@
+<resources>
+
+    <style name="IvyAppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorControlActivated">@color/sky</item>
+        <item name="colorPrimary">@color/blue</item>
+        <item name="colorPrimaryDark">@color/blue</item>
+        <item name="actionBarStyle">@style/MyActionBarLogo</item>
+    </style>
+
+
+    <style name="MyActionBarLogo" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="background">@color/blue</item>
+        <item name="logo">@mipmap/ic_launcher</item>
+        <item name="displayOptions">useLogo|showHome</item>
+    </style>
+</resources>
