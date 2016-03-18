@@ -4,7 +4,6 @@ go:
 install:
 - sudo apt-get install make -y
 - go get golang.org/x/tools/cmd/cover
-- go get -v github.com/axw/gocov/gocov
 - go get -v github.com/mattn/goveralls
 script:
 - openssl aes-256-cbc -K $encrypted_f217260732a9_key -iv $encrypted_f217260732a9_iv
