@@ -17,6 +17,8 @@ var (
 
 func ForceWhitelist(addr string) {
 	log.Tracef("Force whitelisting %v", addr)
+	muWhitelist.Lock()
+	defer muWhitelist.Unlock()
 	forceWhitelist[addr] = wlEntry{true}
 }
 
