@@ -214,22 +214,39 @@ func (s *Settings) GetSystemProxy() bool {
 	return s.SystemProxy
 }
 
+// SetDeviceID sets the device ID
 func (s *Settings) SetDeviceID(deviceID string) {
 	s.Lock()
 	defer s.unlockAndSave()
 	s.DeviceID = deviceID
 }
 
+// SetToken sets the user token
 func (s *Settings) SetToken(token string) {
 	s.Lock()
 	defer s.unlockAndSave()
 	s.UserToken = token
 }
 
+// GetToken returns the user token
+func (s *Settings) GetToken() string {
+	s.RLock()
+	defer s.RUnlock()
+	return s.UserToken
+}
+
+// SetUserID sets the user ID
 func (s *Settings) SetUserID(id int) {
 	s.Lock()
 	defer s.unlockAndSave()
 	s.UserID = id
+}
+
+// GetUserID returns the user ID
+func (s *Settings) GetUserID() int {
+	s.RLock()
+	defer s.RUnlock()
+	return s.UserID
 }
 
 // SetSystemProxy sets whether or not to set system proxy when lantern starts

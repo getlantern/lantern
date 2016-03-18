@@ -53,7 +53,7 @@ func init() {
 }
 
 func logPanic(msg string) {
-	cfg, err := config.Init(flashlight.PackageVersion, *configdir, *stickyConfig, flagsAsMap())
+	cfg, err := config.Init(settings, flashlight.PackageVersion, *configdir, *stickyConfig, flagsAsMap())
 	if err != nil {
 		panic("Error initializing config")
 	}
@@ -160,6 +160,7 @@ func doMain() error {
 		if listenAddr == "" {
 			listenAddr = "localhost:8787"
 		}
+
 		err := flashlight.Run(
 			listenAddr,
 			"localhost:8788",
@@ -170,6 +171,7 @@ func doMain() error {
 			beforeStart,
 			afterStart,
 			onConfigUpdate,
+			settings,
 			exit)
 		if err != nil {
 			exit(err)
@@ -210,21 +212,21 @@ func beforeStart(cfg *config.Config) bool {
 	}
 
 	bootstrap, err := config.ReadBootstrapSettings()
-	var startupUrl string
+	var startupURL string
 	if err != nil {
 		log.Errorf("Could not read settings? %v", err)
-		startupUrl = ""
+		startupURL = ""
 	} else {
-		startupUrl = bootstrap.StartupUrl
+		startupURL = bootstrap.StartupUrl
 	}
 
 	log.Debugf("Starting client UI at %v", *uiaddr)
-	actualUIAddr, err := ui.Start(*uiaddr, !showui, startupUrl)
+	actualUIAddr, err := ui.Start(*uiaddr, !showui, startupURL)
 	if err != nil {
 		// This very likely means Lantern is already running on our port. Tell
 		// it to open a browser. This is useful, for example, when the user
 		// clicks the Lantern desktop shortcut when Lantern is already running.
-		err2 := showExistingUi(*uiaddr)
+		err2 := showExistingUI(*uiaddr)
 		if err2 != nil {
 			exit(fmt.Errorf("Unable to start UI: %s", err))
 		} else {
@@ -296,7 +298,7 @@ func parseFlags() {
 
 // showExistingUi triggers an existing Lantern running on the same system to
 // open a browser to the Lantern start page.
-func showExistingUi(addr string) error {
+func showExistingUI(addr string) error {
 	url := "http://" + addr + "/startup"
 	log.Debugf("Hitting local URL: %v", url)
 	resp, err := http.Get(url)
