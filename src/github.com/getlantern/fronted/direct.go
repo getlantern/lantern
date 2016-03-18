@@ -61,9 +61,9 @@ func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
 		masquerades: make(chan *Masquerade, size),
 	}
 
-	_instance.Set(instance)
 	instance.loadCandidates(masquerades)
 	instance.vetInitial()
+	_instance.Set(instance)
 }
 
 func (d *direct) loadCandidates(initial map[string][]*Masquerade) {
