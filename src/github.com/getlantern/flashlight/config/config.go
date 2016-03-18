@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -15,6 +16,7 @@ import (
 	"code.google.com/p/go-uuid/uuid"
 
 	"github.com/getlantern/appdir"
+	"github.com/getlantern/detour"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/keyman"
@@ -57,6 +59,13 @@ type Fetcher interface {
 
 // StartPolling starts the process of polling for new configuration files.
 func StartPolling() {
+	// Force detour to whitelist chained domain
+	u, err := url.Parse(chainedCloudConfigURL)
+	if err != nil {
+		log.Fatalf("Unable to parse chained cloud config URL: %v", err)
+	}
+	detour.ForceWhitelist(u.Host)
+
 	// No-op if already started.
 	m.StartPolling()
 }
