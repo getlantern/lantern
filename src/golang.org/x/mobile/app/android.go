@@ -157,7 +157,6 @@ func onNativeWindowDestroyed(activity *C.ANativeActivity, window *C.ANativeWindo
 
 //export onInputQueueCreated
 func onInputQueueCreated(activity *C.ANativeActivity, q *C.AInputQueue) {
-	C.AInputQueue_detachLooper(q)
 	inputQueue <- q
 	<-inputQueueDone
 }

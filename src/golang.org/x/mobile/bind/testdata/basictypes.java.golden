@@ -7,79 +7,29 @@ package go.basictypes;
 import go.Seq;
 
 public abstract class Basictypes {
+    static {
+        Seq.touch(); // for loading the native library
+        init();
+    }
+    
     private Basictypes() {} // uninstantiable
+    
+    // touch is called from other bound packages to initialize this package
+    public static void touch() {}
+    
+    private static native void init();
     
     public static final boolean ABool = true;
     public static final double AFloat = 0.2015;
+    public static final String ALongString = "LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString,LongString";
     public static final int ARune = 32;
     public static final String AString = "a string";
     public static final long AnInt = 7L;
     public static final long AnInt2 = 9223372036854775807L;
-    public static boolean Bool(boolean p0) {
-        go.Seq _in = null;
-        go.Seq _out = null;
-        _out = new go.Seq();
-        boolean _result;
-        _in = new go.Seq();
-        _in.writeBool(p0);
-        Seq.send(DESCRIPTOR, CALL_Bool, _in, _out);
-        _result = _out.readBool();
-        return _result;
-    }
     
-    public static byte[] ByteArrays(byte[] x) {
-        go.Seq _in = null;
-        go.Seq _out = null;
-        _out = new go.Seq();
-        byte[] _result;
-        _in = new go.Seq();
-        _in.writeByteArray(x);
-        Seq.send(DESCRIPTOR, CALL_ByteArrays, _in, _out);
-        _result = _out.readByteArray();
-        return _result;
-    }
-    
-    public static void Error() throws Exception {
-        go.Seq _in = null;
-        go.Seq _out = null;
-        _out = new go.Seq();
-        Seq.send(DESCRIPTOR, CALL_Error, _in, _out);
-        String _err = _out.readString();
-        if (_err != null && !_err.isEmpty()) {
-            throw new Exception(_err);
-        }
-    }
-    
-    public static long ErrorPair() throws Exception {
-        go.Seq _in = null;
-        go.Seq _out = null;
-        _out = new go.Seq();
-        long _result;
-        Seq.send(DESCRIPTOR, CALL_ErrorPair, _in, _out);
-        _result = _out.readInt();
-        String _err = _out.readString();
-        if (_err != null && !_err.isEmpty()) {
-            throw new Exception(_err);
-        }
-        return _result;
-    }
-    
-    public static void Ints(byte x, short y, int z, long t, long u) {
-        go.Seq _in = null;
-        go.Seq _out = null;
-        _in = new go.Seq();
-        _in.writeInt8(x);
-        _in.writeInt16(y);
-        _in.writeInt32(z);
-        _in.writeInt64(t);
-        _in.writeInt(u);
-        Seq.send(DESCRIPTOR, CALL_Ints, _in, _out);
-    }
-    
-    private static final int CALL_Bool = 1;
-    private static final int CALL_ByteArrays = 2;
-    private static final int CALL_Error = 3;
-    private static final int CALL_ErrorPair = 4;
-    private static final int CALL_Ints = 5;
-    private static final String DESCRIPTOR = "basictypes";
+    public static native boolean Bool(boolean p0);
+    public static native byte[] ByteArrays(byte[] x);
+    public static native void Error() throws Exception;
+    public static native long ErrorPair() throws Exception;
+    public static native void Ints(byte x, short y, int z, long t, long u);
 }

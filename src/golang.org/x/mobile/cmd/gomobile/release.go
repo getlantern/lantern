@@ -53,6 +53,7 @@ type target struct {
 
 var targets = []target{
 	{"arm", "android-15", "arm-linux-androideabi-4.8", "arm-linux-androideabi"},
+	{"arm64", "android-21", "aarch64-linux-android-4.9", "aarch64-linux-android"},
 	{"x86", "android-15", "x86-4.8", "i686-linux-android"},
 	{"x86_64", "android-21", "x86_64-4.9", "x86_64-linux-android"},
 }

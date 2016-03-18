@@ -291,23 +291,29 @@ var ndk = ndkConfig{
 		toolPrefix: "arm-linux-androideabi",
 		minGoVer:   go1_5,
 	},
-	/*
-		        "386": {
-		                arch:       "x86",
-		                abi:        "x86",
-		                platform:   "android-15",
-		                gcc:        "x86-4.8",
-		                toolPrefix: "i686-linux-android",
-				minGoVer: go1_6,
+	"arm64": {
+		arch:       "arm64",
+		abi:        "arm64-v8a",
+		platform:   "android-21",
+		gcc:        "aarch64-linux-android-4.9",
+		toolPrefix: "aarch64-linux-android",
+		minGoVer:   go1_6,
+	},
 
-		        },
-		        "amd64": {
-		                arch:       "x86_64",
-		                abi:        "x86_64",
-		                platform:   "android-21",
-		                gcc:        "x86_64-4.9",
-		                toolPrefix: "x86_64-linux-android",
-				minGoVer: go1_6,
-		        },
-	*/
+	"386": {
+		arch:       "x86",
+		abi:        "x86",
+		platform:   "android-15",
+		gcc:        "x86-4.8",
+		toolPrefix: "i686-linux-android",
+		minGoVer:   go1_6,
+	},
+	"amd64": {
+		arch:       "x86_64",
+		abi:        "x86_64",
+		platform:   "android-21",
+		gcc:        "x86_64-4.9",
+		toolPrefix: "x86_64-linux-android",
+		minGoVer:   go1_6,
+	},
 }

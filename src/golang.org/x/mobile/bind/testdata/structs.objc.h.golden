@@ -9,6 +9,9 @@
 #include <Foundation/Foundation.h>
 
 @class GoStructsS;
+@class GoStructsS2;
+@protocol GoStructsI;
+@class GoStructsI;
 
 @interface GoStructsS : NSObject {
 }
@@ -23,8 +26,31 @@
 - (double)sum;
 @end
 
+@interface GoStructsS2 : NSObject {
+}
+@property(strong, readonly) id _ref;
+
+- (id)initWithRef:(id)ref;
+- (void)m;
+- (NSString*)string;
+@end
+
+@protocol GoStructsI
+- (void)m;
+@end
+
 FOUNDATION_EXPORT GoStructsS* GoStructsIdentity(GoStructsS* s);
 
 FOUNDATION_EXPORT BOOL GoStructsIdentityWithError(GoStructsS* s, GoStructsS** ret0_, NSError** error);
+
+@class GoStructsI;
+
+@interface GoStructsI : NSObject <GoStructsI> {
+}
+@property(strong, readonly) id _ref;
+
+- (id)initWithRef:(id)ref;
+- (void)m;
+@end
 
 #endif

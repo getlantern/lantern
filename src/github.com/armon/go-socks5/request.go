@@ -3,10 +3,8 @@ package socks5
 import (
 	"fmt"
 	"io"
-	"log"
 	"net"
 	"strings"
-	"time"
 )
 
 const (
@@ -183,14 +181,18 @@ func (s *Server) handleConnect(conn conn, req *Request) error {
 
 	// Start proxying
 	errCh := make(chan error, 2)
-	go proxy("target", target, req.bufConn, errCh, s.config.Logger)
-	go proxy("client", conn, target, errCh, s.config.Logger)
+	go proxy(target, req.bufConn, errCh)
+	go proxy(conn, target, errCh)
 
 	// Wait
-	select {
-	case e := <-errCh:
-		return e
+	for i := 0; i < 2; i++ {
+		e := <-errCh
+		if e != nil {
+			// return from this function closes target (and conn).
+			return e
+		}
 	}
+	return nil
 }
 
 // handleBind is used to handle a connect command
@@ -327,15 +329,10 @@ func sendReply(w io.Writer, resp uint8, addr *AddrSpec) error {
 
 // proxy is used to suffle data from src to destination, and sends errors
 // down a dedicated channel
-func proxy(name string, dst io.Writer, src io.Reader, errCh chan error, logger *log.Logger) {
-	// Copy
-	n, err := io.Copy(dst, src)
-
-	// Log, and sleep. This is jank but allows the otherside
-	// to finish a pending copy
-	logger.Printf("[DEBUG] socks: Copied %d bytes to %s", n, name)
-	time.Sleep(10 * time.Millisecond)
-
-	// Send any errors
+func proxy(dst io.Writer, src io.Reader, errCh chan error) {
+	_, err := io.Copy(dst, src)
+	if tcpConn, ok := dst.(*net.TCPConn); ok {
+		tcpConn.CloseWrite()
+	}
 	errCh <- err
 }

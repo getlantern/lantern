@@ -35,26 +35,32 @@ func goIOSBind(pkgs []*build.Package) error {
 		buildO = title + ".framework"
 	}
 
-	srcDir := filepath.Join(tmpdir, "src")
-	for _, pkg := range typesPkgs {
-		if err := binder.GenGo(pkg, srcDir); err != nil {
+	srcDir := filepath.Join(tmpdir, "src", "gomobile_bind")
+	for _, pkg := range binder.pkgs {
+		if err := binder.GenGo(pkg, binder.pkgs, srcDir); err != nil {
 			return err
 		}
 	}
 	mainFile := filepath.Join(tmpdir, "src/iosbin/main.go")
 	err = writeFile(mainFile, func(w io.Writer) error {
-		return iosBindTmpl.Execute(w, pkgs)
+		_, err := w.Write(iosBindFile)
+		return err
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create the binding package for iOS: %v", err)
 	}
 
-	objcDir := filepath.Join(tmpdir, "objc")
 	fileBases := make([]string, len(typesPkgs))
-	for i, pkg := range typesPkgs {
-		if fileBases[i], err = binder.GenObjc(pkg, objcDir); err != nil {
+	for i, pkg := range binder.pkgs {
+		if fileBases[i], err = binder.GenObjc(pkg, binder.pkgs, srcDir); err != nil {
 			return err
 		}
+	}
+	if err := binder.GenObjcSupport(srcDir); err != nil {
+		return err
+	}
+	if err := binder.GenGoSupport(srcDir); err != nil {
+		return err
 	}
 
 	cmd := exec.Command("xcrun", "lipo", "-create")
@@ -97,7 +103,7 @@ func goIOSBind(pkgs []*build.Package) error {
 		headerFiles[0] = title + ".h"
 		err = copyFile(
 			headers+"/"+title+".h",
-			tmpdir+"/objc/"+bindPrefix+title+".h",
+			srcDir+"/"+bindPrefix+title+".h",
 		)
 		if err != nil {
 			return err
@@ -107,7 +113,7 @@ func goIOSBind(pkgs []*build.Package) error {
 			headerFiles[i] = fileBase + ".h"
 			err = copyFile(
 				headers+"/"+fileBase+".h",
-				tmpdir+"/objc/"+fileBase+".h")
+				srcDir+"/"+fileBase+".h")
 			if err != nil {
 				return err
 			}
@@ -172,48 +178,20 @@ func goIOSBindArchive(name, path string, env, fileBases []string) (string, error
 		return "", err
 	}
 
-	objs, mfiles := make([]string, len(fileBases)), make([]string, len(fileBases))
-	for i, b := range fileBases {
-		objs[i], mfiles[i] = b+".o", b+".m"
-	}
-
-	args := append([]string{
-		"-I", ".",
-		"-g", "-O2",
-		"-fobjc-arc", // enable ARC
-		"-c",
-	}, mfiles...)
-
-	cmd := exec.Command(getenv(env, "CC"), args...)
-	cmd.Args = append(cmd.Args, strings.Split(getenv(env, "CGO_CFLAGS"), " ")...)
-	cmd.Dir = filepath.Join(tmpdir, "objc")
-	cmd.Env = append([]string{}, env...)
-	if err := runCmd(cmd); err != nil {
-		return "", err
-	}
-
-	arArgs := append([]string{"-q", "-s", archive}, objs...)
-	cmd = exec.Command("ar", arArgs...)
-	cmd.Dir = filepath.Join(tmpdir, "objc")
-	if err := runCmd(cmd); err != nil {
-		return "", err
-	}
 	return archive, nil
 }
 
-var iosBindTmpl = template.Must(template.New("ios.go").Parse(`
+var iosBindFile = []byte(`
 package main
 
 import (
-	_ "golang.org/x/mobile/bind/objc"
-{{range .}}	_ "../go_{{.Name}}"
-{{end}}
+	_ "../gomobile_bind"
 )
 
 import "C"
 
 func main() {}
-`))
+`)
 
 var iosBindHeaderTmpl = template.Must(template.New("ios.h").Parse(`
 // Objective-C API for talking to the following Go packages

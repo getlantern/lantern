@@ -7,14 +7,18 @@ package com.example;
 import go.Seq;
 
 public abstract class Customprefix {
-    private Customprefix() {} // uninstantiable
-    
-    public static void F() {
-        go.Seq _in = null;
-        go.Seq _out = null;
-        Seq.send(DESCRIPTOR, CALL_F, _in, _out);
+    static {
+        Seq.touch(); // for loading the native library
+        init();
     }
     
-    private static final int CALL_F = 1;
-    private static final String DESCRIPTOR = "customprefix";
+    private Customprefix() {} // uninstantiable
+    
+    // touch is called from other bound packages to initialize this package
+    public static void touch() {}
+    
+    private static native void init();
+    
+    
+    public static native void F();
 }

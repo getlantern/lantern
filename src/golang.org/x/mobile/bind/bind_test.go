@@ -33,6 +33,7 @@ var tests = []string{
 	"testdata/issue12403.go",
 	"testdata/try.go",
 	"testdata/vars.go",
+	"testdata/ignore.go",
 }
 
 var fset = token.NewFileSet()
@@ -89,17 +90,24 @@ func writeTempFile(t *testing.T, name string, contents []byte) string {
 }
 
 func TestGenObjc(t *testing.T) {
-	var suffixes = map[bool]string{
-		true:  ".objc.h.golden",
-		false: ".objc.m.golden",
+	var suffixes = map[fileType]string{
+		ObjcH:   ".objc.h.golden",
+		ObjcM:   ".objc.m.golden",
+		ObjcGoH: ".objc.go.h.golden",
 	}
 
 	for _, filename := range tests {
 		pkg := typeCheck(t, filename)
 
-		for isHeader, suffix := range suffixes {
+		for typ, suffix := range suffixes {
 			var buf bytes.Buffer
-			if err := GenObjc(&buf, fset, pkg, "", isHeader); err != nil {
+			conf := &GeneratorConfig{
+				Writer: &buf,
+				Fset:   fset,
+				Pkg:    pkg,
+				AllPkg: []*types.Package{pkg},
+			}
+			if err := GenObjc(conf, "", typ); err != nil {
 				t.Errorf("%s: %v", filename, err)
 				continue
 			}
@@ -121,26 +129,40 @@ func TestGenObjc(t *testing.T) {
 }
 
 func TestGenJava(t *testing.T) {
+	var suffixes = map[fileType]string{
+		Java:  ".java.golden",
+		JavaC: ".java.c.golden",
+		JavaH: ".java.h.golden",
+	}
+
 	for _, filename := range tests {
-		var buf bytes.Buffer
 		pkg := typeCheck(t, filename)
-		if err := GenJava(&buf, fset, pkg, ""); err != nil {
-			t.Errorf("%s: %v", filename, err)
-			continue
-		}
-		out := writeTempFile(t, "java", buf.Bytes())
-		defer os.Remove(out)
-		golden := filename[:len(filename)-len(".go")] + ".java.golden"
-		if diffstr := diff(golden, out); diffstr != "" {
-			t.Errorf("%s: does not match Java golden:\n%s", filename, diffstr)
-
-			if *updateFlag {
-				t.Logf("Updating %s...", golden)
-				if err := exec.Command("/bin/cp", out, golden).Run(); err != nil {
-					t.Errorf("Update failed: %s", err)
-				}
+		for typ, suffix := range suffixes {
+			var buf bytes.Buffer
+			conf := &GeneratorConfig{
+				Writer: &buf,
+				Fset:   fset,
+				Pkg:    pkg,
+				AllPkg: []*types.Package{pkg},
 			}
+			if err := GenJava(conf, "", typ); err != nil {
+				t.Errorf("%s: %v", filename, err)
+				continue
+			}
+			out := writeTempFile(t, "generated"+suffix, buf.Bytes())
+			defer os.Remove(out)
+			golden := filename[:len(filename)-len(".go")] + suffix
+			if diffstr := diff(golden, out); diffstr != "" {
+				t.Errorf("%s: does not match Java golden:\n%s", filename, diffstr)
 
+				if *updateFlag {
+					t.Logf("Updating %s...", golden)
+					if err := exec.Command("/bin/cp", out, golden).Run(); err != nil {
+						t.Errorf("Update failed: %s", err)
+					}
+				}
+
+			}
 		}
 	}
 }
@@ -149,7 +171,13 @@ func TestGenGo(t *testing.T) {
 	for _, filename := range tests {
 		var buf bytes.Buffer
 		pkg := typeCheck(t, filename)
-		if err := GenGo(&buf, fset, pkg); err != nil {
+		conf := &GeneratorConfig{
+			Writer: &buf,
+			Fset:   fset,
+			Pkg:    pkg,
+			AllPkg: []*types.Package{pkg},
+		}
+		if err := GenGo(conf); err != nil {
 			t.Errorf("%s: %v", filename, err)
 			continue
 		}
@@ -174,21 +202,38 @@ func TestCustomPrefix(t *testing.T) {
 	const isHeader = true
 	pkg := typeCheck(t, datafile)
 
+	conf := &GeneratorConfig{
+		Fset:   fset,
+		Pkg:    pkg,
+		AllPkg: []*types.Package{pkg},
+	}
 	testCases := []struct {
 		golden string
 		gen    func(w io.Writer) error
 	}{
 		{
 			"testdata/customprefix.java.golden",
-			func(w io.Writer) error { return GenJava(w, fset, pkg, "com.example") },
+			func(w io.Writer) error { conf.Writer = w; return GenJava(conf, "com.example", Java) },
+		},
+		{
+			"testdata/customprefix.java.h.golden",
+			func(w io.Writer) error { conf.Writer = w; return GenJava(conf, "com.example", JavaH) },
+		},
+		{
+			"testdata/customprefix.java.c.golden",
+			func(w io.Writer) error { conf.Writer = w; return GenJava(conf, "com.example", JavaC) },
+		},
+		{
+			"testdata/customprefix.objc.go.h.golden",
+			func(w io.Writer) error { conf.Writer = w; return GenObjc(conf, "EX", ObjcGoH) },
 		},
 		{
 			"testdata/customprefix.objc.h.golden",
-			func(w io.Writer) error { return GenObjc(w, fset, pkg, "EX", isHeader) },
+			func(w io.Writer) error { conf.Writer = w; return GenObjc(conf, "EX", ObjcH) },
 		},
 		{
 			"testdata/customprefix.objc.m.golden",
-			func(w io.Writer) error { return GenObjc(w, fset, pkg, "EX", !isHeader) },
+			func(w io.Writer) error { conf.Writer = w; return GenObjc(conf, "EX", ObjcM) },
 		},
 	}
 

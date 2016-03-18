@@ -1,10 +1,10 @@
 # panicwrap
 
 panicwrap is a Go library that re-executes a Go binary and monitors stderr
-output from the binary for a panic. When it find a panic, it executes a
+output from the binary for a panic. When it finds a panic, it executes a
 user-defined handler function. Stdout, stderr, stdin, signals, and exit
 codes continue to work as normal, making the existence of panicwrap mostly
-invisble to the end user until a panic actually occurs.
+invisible to the end user until a panic actually occurs.
 
 Since a panic is truly a bug in the program meant to crash the runtime,
 globally catching panics within Go applications is not supposed to be possible.
@@ -82,20 +82,27 @@ process to handle them.
 
 ## WHY?! Panics should CRASH!
 
-Yes, panics _should_ crash. They are 100% always indicative of bugs.
-However, in some cases, such as user-facing programs (programs like
+Yes, panics _should_ crash. They are 100% always indicative of bugs and having
+information on a production server or application as to what caused the panic is critical.
+
+### User Facing
+
+In user-facing programs (programs like
 [Packer](http://github.com/mitchellh/packer) or
 [Docker](http://github.com/dotcloud/docker)), it is up to the user to
 report such panics. This is unreliable, at best, and it would be better if the
 program could have a way to automatically report panics. panicwrap provides
 a way to do this.
 
-For backend applications, it is easier to detect crashes (since the application
-exits). However, it is still nice sometimes to more intelligently log
-panics in some way. For example, at [HashiCorp](http://www.hashicorp.com),
+### Server
+
+For backend applications, it is easier to detect crashes (since the application exits) 
+and having an idea as to why the crash occurs is equally important; 
+particularly on a production server. 
+
+At [HashiCorp](http://www.hashicorp.com),
 we use panicwrap to log panics to timestamped files with some additional
 data (configuration settings at the time, environmental variables, etc.)
 
 The goal of panicwrap is _not_ to hide panics. It is instead to provide
-a clean mechanism for handling them before bubbling the up to the user
-and ultimately crashing.
+a clean mechanism for capturing them and ultimately crashing.
