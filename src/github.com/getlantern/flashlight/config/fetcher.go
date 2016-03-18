@@ -32,19 +32,19 @@ const (
 // fetcher periodically fetches the latest cloud configuration.
 type fetcher struct {
 	lastCloudConfigETag map[string]string
-	user                userConfig
+	user                UserConfig
 	httpFetcher         util.HTTPFetcher
 }
 
-// userConfig retrieves any custom user info for fetching the config.
-type userConfig interface {
+// UserConfig retrieves any custom user info for fetching the config.
+type UserConfig interface {
 	GetUserID() int
 	GetToken() string
 }
 
 // NewFetcher creates a new configuration fetcher with the specified
-// functions for obtaining the user ID and token if those are populated.
-func NewFetcher(conf userConfig, httpFetcher util.HTTPFetcher) Fetcher {
+// interface for obtaining the user ID and token if those are populated.
+func NewFetcher(conf UserConfig, httpFetcher util.HTTPFetcher) Fetcher {
 	return &fetcher{lastCloudConfigETag: map[string]string{}, user: conf, httpFetcher: httpFetcher}
 }
 

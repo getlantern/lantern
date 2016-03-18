@@ -23,6 +23,7 @@ import (
 	"github.com/getlantern/yamlconf"
 
 	"github.com/getlantern/flashlight/client"
+	"github.com/getlantern/flashlight/util"
 )
 
 const (
@@ -123,7 +124,11 @@ func majorVersion(version string) string {
 // stickyConfig - if true, we ignore cloud updates
 // flags - map of flags (generally from command-line) that always get applied
 //         to the config.
-func Init(fetcher Fetcher, version string, configDir string, stickyConfig bool, flags map[string]interface{}) (*Config, error) {
+func Init(userConfig UserConfig, version string, configDir string, stickyConfig bool, flags map[string]interface{}) (*Config, error) {
+	// Request the config via either chained servers or direct fronted servers.
+	cf := util.NewChainedAndFronted(client.Addr)
+	fetcher := NewFetcher(userConfig, cf)
+
 	file := "lantern-" + version + ".yaml"
 	_, configPath, err := inConfigDir(configDir, file)
 	if err != nil {
