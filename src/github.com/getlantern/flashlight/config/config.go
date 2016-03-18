@@ -1,13 +1,10 @@
 package config
 
 import (
-	"compress/gzip"
 	"crypto/x509"
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
-	"math/rand"
-	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -32,28 +29,14 @@ import (
 )
 
 const (
-	CloudConfigPollInterval = 1 * time.Minute
-	cloudfront              = "cloudfront"
-	etag                    = "X-Lantern-Etag"
-	ifNoneMatch             = "X-Lantern-If-None-Match"
-	chainedCloudConfigUrl   = "http://config.getiantem.org/cloud.yaml.gz"
-
-	// This is over HTTP because proxies do not forward X-Forwarded-For with HTTPS
-	// and because we only support falling back to direct domain fronting through
-	// the local proxy for HTTP.
-	frontedCloudConfigUrl = "http://d2wi0vwulmtn99.cloudfront.net/cloud.yaml.gz"
-
+	cloudfront             = "cloudfront"
 	DefaultUpdateServerURL = "https://update.getlantern.org"
 )
 
 var (
-	log                 = golog.LoggerFor("flashlight.config")
-	m                   *yamlconf.Manager
-	lastCloudConfigETag = map[string]string{}
-	r                   = regexp.MustCompile("\\d+\\.\\d+")
-
-	// Request the config via either chained servers or direct fronted servers.
-	cf = util.NewChainedAndFronted(client.Addr)
+	log = golog.LoggerFor("flashlight.config")
+	m   *yamlconf.Manager
+	r   = regexp.MustCompile("\\d+\\.\\d+")
 )
 
 type Config struct {
@@ -69,15 +52,20 @@ type Config struct {
 	TrustedCAs      []*CA
 }
 
+// Fetcher is an interface for fetching config updates.
+type Fetcher interface {
+	pollForConfig(ycfg yamlconf.Config, sticky bool) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error)
+}
+
 // StartPolling starts the process of polling for new configuration files.
 func StartPolling() {
 	// Force detour to whitelist chained domain
-	u, err := url.Parse(chainedCloudConfigUrl)
+	u, err := url.Parse(chainedCloudConfigURL)
 	if err != nil {
 		log.Fatalf("Unable to parse chained cloud config URL: %v", err)
 	}
 	detour.ForceWhitelist(u.Host)
-	
+
 	// No-op if already started.
 	m.StartPolling()
 }
@@ -119,7 +107,10 @@ func hasCustomChainedServer(configPath, name string) bool {
 
 	nc := len(cfg.Client.ChainedServers)
 
-	log.Debugf("Found %v chained servers", nc)
+	log.Debugf("Found %v chained servers in config on disk", nc)
+	for _, v := range cfg.Client.ChainedServers {
+		log.Debugf("chained server: %v", v)
+	}
 	// The config will have more than one but fewer than 10 chained servers
 	// if it has been given a custom config with a custom chained server
 	// list
@@ -136,49 +127,17 @@ func majorVersion(version string) string {
 	return r.FindString(version)
 }
 
-// useGoodOldConfig is a one-time function for using older config files in the 2.x series.
-// It returns true if the file specified by configPath is ready, false otherwise.
-func useGoodOldConfig(configDir, configPath string) bool {
-	// If we already have a config file with the latest name, use that one.
-	// Otherwise, copy the most recent config file available.
-	exists := isGoodConfig(configPath)
-	if exists {
-		log.Debugf("Using existing config")
-		return true
-	}
-
-	files, err := ioutil.ReadDir(configDir)
-	if err != nil {
-		log.Errorf("Could not read config dir: %v", err)
-		return false
-	}
-
-	for _, file := range files {
-		if file.IsDir() {
-			continue
-		}
-		name := file.Name()
-		path := filepath.Join(configDir, name)
-		if isGoodConfig(path) {
-			// Just use the old config since configs in the 2.x series haven't changed.
-			if err := os.Rename(path, configPath); err != nil {
-				log.Errorf("Could not rename file from %v to %v: %v", path, configPath, err)
-			} else {
-				log.Debugf("Copied old config at %v to %v", path, configPath)
-				return true
-			}
-		}
-	}
-	return false
-}
-
 // Init initializes the configuration system.
 //
 // version - the version of lantern
 // stickyConfig - if true, we ignore cloud updates
 // flags - map of flags (generally from command-line) that always get applied
 //         to the config.
-func Init(version string, configDir string, stickyConfig bool, flags map[string]interface{}) (*Config, error) {
+func Init(userConfig UserConfig, version string, configDir string, stickyConfig bool, flags map[string]interface{}) (*Config, error) {
+	// Request the config via either chained servers or direct fronted servers.
+	cf := util.NewChainedAndFronted(client.Addr)
+	fetcher := NewFetcher(userConfig, cf)
+
 	file := "lantern-" + version + ".yaml"
 	_, configPath, err := inConfigDir(configDir, file)
 	if err != nil {
@@ -205,7 +164,7 @@ func Init(version string, configDir string, stickyConfig bool, flags map[string]
 			return cfg.applyFlags(flags)
 		},
 		CustomPoll: func(ycfg yamlconf.Config) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
-			return pollForConfig(ycfg, stickyConfig)
+			return fetcher.pollForConfig(ycfg, stickyConfig)
 		},
 	}
 	initial, err := m.Init()
@@ -218,42 +177,6 @@ func Init(version string, configDir string, stickyConfig bool, flags map[string]
 	}
 	log.Debug("Returning config")
 	return cfg, err
-}
-
-func pollForConfig(currentCfg yamlconf.Config, stickyConfig bool) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
-	log.Debugf("Polling for config")
-	// By default, do nothing
-	mutate = func(ycfg yamlconf.Config) error {
-		// do nothing
-		return nil
-	}
-	cfg := currentCfg.(*Config)
-	waitTime = cfg.cloudPollSleepTime()
-	if cfg.CloudConfig == "" {
-		log.Debugf("No cloud config URL!")
-		// Config doesn't have a CloudConfig, just ignore
-		return mutate, waitTime, nil
-	}
-	if stickyConfig {
-		log.Debugf("Not downloading remote config with sticky config flag set")
-		return mutate, waitTime, nil
-	}
-
-	if bytes, err := cfg.fetchCloudConfig(chainedCloudConfigUrl); err == nil {
-		// bytes will be nil if the config is unchanged (not modified)
-		if bytes != nil {
-			//log.Debugf("Downloaded config:\n %v", string(bytes))
-			mutate = func(ycfg yamlconf.Config) error {
-				log.Debugf("Merging cloud configuration")
-				cfg := ycfg.(*Config)
-				return cfg.updateFrom(bytes)
-			}
-		}
-	} else {
-		log.Errorf("Could not fetch cloud config %v", err)
-		return mutate, waitTime, err
-	}
-	return mutate, waitTime, nil
 }
 
 // Run runs the configuration system.
@@ -358,12 +281,14 @@ func (cfg *Config) ApplyDefaults() {
 	}
 
 	if cfg.CloudConfig == "" {
-		cfg.CloudConfig = chainedCloudConfigUrl
+		cfg.CloudConfig = chainedCloudConfigURL
 	}
 
-	if cfg.Client != nil {
-		cfg.applyClientDefaults()
+	if cfg.Client == nil {
+		cfg.Client = &client.ClientConfig{}
 	}
+
+	cfg.applyClientDefaults()
 
 	if cfg.ProxiedSites == nil {
 		log.Debugf("Adding empty proxiedsites")
@@ -384,13 +309,6 @@ func (cfg *Config) ApplyDefaults() {
 	if cfg.TrustedCAs == nil || len(cfg.TrustedCAs) == 0 {
 		cfg.TrustedCAs = defaultTrustedCAs
 	}
-
-	if cfg.Client.DeviceID == "" {
-		// There is no true privacy or security in instance ID.  For that, we rely on
-		// transport security.  Hashing MAC would buy us nothing, since the space of
-		// MACs is trivially mapped, especially since the salt would be known
-		cfg.Client.DeviceID = base64.StdEncoding.EncodeToString(uuid.NodeID())
-	}
 }
 
 func (cfg *Config) applyClientDefaults() {
@@ -403,41 +321,10 @@ func (cfg *Config) applyClientDefaults() {
 	}
 
 	// Make sure we always have at least one server
-	if cfg.Client.FrontedServers == nil {
-		cfg.Client.FrontedServers = make([]*client.FrontedServerInfo, 0)
-	}
-	if len(cfg.Client.FrontedServers) == 0 && len(cfg.Client.ChainedServers) == 0 {
-		/*
-			cfg.Client.FrontedServers = []*client.FrontedServerInfo{
-				&client.FrontedServerInfo{
-					Host:           defaultRoundRobin(),
-					Port:           443,
-					PoolSize:       0,
-					MasqueradeSet:  cloudflare,
-					MaxMasquerades: 20,
-					QOS:            10,
-					Weight:         4000,
-					Trusted:        true,
-				},
-			}
-
-		*/
+	if len(cfg.Client.ChainedServers) == 0 {
 		cfg.Client.ChainedServers = make(map[string]*client.ChainedServerInfo, len(fallbacks))
 		for key, fb := range fallbacks {
 			cfg.Client.ChainedServers[key] = fb
-		}
-	}
-
-	// Make sure all servers have a QOS and Weight configured
-	for _, server := range cfg.Client.FrontedServers {
-		if server.QOS == 0 {
-			server.QOS = 5
-		}
-		if server.Weight == 0 {
-			server.Weight = 100
-		}
-		if server.RedialAttempts == 0 {
-			server.RedialAttempts = 2
 		}
 	}
 
@@ -463,62 +350,13 @@ func (cfg *Config) applyClientDefaults() {
 		}
 	}
 
-	// Sort servers so that they're always in a predictable order
-	cfg.Client.SortServers()
-
-}
-
-func (cfg Config) cloudPollSleepTime() time.Duration {
-	return time.Duration((CloudConfigPollInterval.Nanoseconds() / 2) + rand.Int63n(CloudConfigPollInterval.Nanoseconds()))
-}
-
-func (cfg *Config) fetchCloudConfig(url string) ([]byte, error) {
-	cb := "?" + uuid.New()
-	nocache := url + cb
-	req, err := http.NewRequest("GET", nocache, nil)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to construct request for cloud config at %s: %s", nocache, err)
-	}
-	if lastCloudConfigETag[url] != "" {
-		// Don't bother fetching if unchanged
-		req.Header.Set(ifNoneMatch, lastCloudConfigETag[url])
+	if cfg.Client.DeviceID == "" {
+		// There is no true privacy or security in instance ID.  For that, we rely on
+		// transport security.  Hashing MAC would buy us nothing, since the space of
+		// MACs is trivially mapped, especially since the salt would be known
+		cfg.Client.DeviceID = base64.StdEncoding.EncodeToString(uuid.NodeID())
 	}
 
-	req.Header.Set("Accept", "application/x-gzip")
-	// Prevents intermediate nodes (domain-fronters) from caching the content
-	req.Header.Set("Cache-Control", "no-cache")
-	// Set the fronted URL to lookup the config in parallel using chained and domain fronted servers.
-	req.Header.Set("Lantern-Fronted-URL", frontedCloudConfigUrl+cb)
-
-	// make sure to close the connection after reading the Body
-	// this prevents the occasional EOFs errors we're seeing with
-	// successive requests
-	req.Close = true
-
-	resp, err := cf.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to fetch cloud config at %s: %s", url, err)
-	}
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			log.Debugf("Error closing response body: %v", err)
-		}
-	}()
-
-	if resp.StatusCode == 304 {
-		log.Debugf("Config unchanged in cloud")
-		return nil, nil
-	} else if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Unexpected response status: %d", resp.StatusCode)
-	}
-
-	lastCloudConfigETag[url] = resp.Header.Get(etag)
-	gzReader, err := gzip.NewReader(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to open gzip reader: %s", err)
-	}
-	log.Debugf("Fetched cloud config")
-	return ioutil.ReadAll(gzReader)
 }
 
 // updateFrom creates a new Config by 'merging' the given yaml into this Config.
@@ -527,17 +365,14 @@ func (cfg *Config) fetchCloudConfig(url string) ([]byte, error) {
 func (updated *Config) updateFrom(updateBytes []byte) error {
 	// XXX: does this need a mutex, along with everyone that uses the config?
 	oldDeviceID := updated.Client.DeviceID
-	oldFrontedServers := updated.Client.FrontedServers
 	oldChainedServers := updated.Client.ChainedServers
 	oldMasqueradeSets := updated.Client.MasqueradeSets
 	oldTrustedCAs := updated.TrustedCAs
-	updated.Client.FrontedServers = []*client.FrontedServerInfo{}
 	updated.Client.ChainedServers = map[string]*client.ChainedServerInfo{}
 	updated.Client.MasqueradeSets = map[string][]*fronted.Masquerade{}
 	updated.TrustedCAs = []*CA{}
 	err := yaml.Unmarshal(updateBytes, updated)
 	if err != nil {
-		updated.Client.FrontedServers = oldFrontedServers
 		updated.Client.ChainedServers = oldChainedServers
 		updated.Client.MasqueradeSets = oldMasqueradeSets
 		updated.TrustedCAs = oldTrustedCAs
@@ -550,7 +385,7 @@ func (updated *Config) updateFrom(updateBytes []byte) error {
 			wlDomains[domain] = true
 		}
 		updated.ProxiedSites.Cloud = make([]string, 0, len(wlDomains))
-		for domain, _ := range wlDomains {
+		for domain := range wlDomains {
 			updated.ProxiedSites.Cloud = append(updated.ProxiedSites.Cloud, domain)
 		}
 		sort.Strings(updated.ProxiedSites.Cloud)
