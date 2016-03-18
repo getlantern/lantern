@@ -1,6 +1,6 @@
 language: go
 go:
-- 1.4.3
+- 1.6
 install:
 - sudo apt-get install make -y
 - go get golang.org/x/tools/cmd/cover
