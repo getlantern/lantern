@@ -6,6 +6,7 @@ import (
 
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
+	"github.com/getlantern/proxiedsites"
 
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
@@ -71,7 +72,7 @@ func Run(httpProxyAddr string,
 	beforeStart func(cfg *config.Config) bool,
 	afterStart func(cfg *config.Config),
 	onConfigUpdate func(cfg *config.Config),
-	configFetcher *config.Fetcher,
+	configFetcher config.Fetcher,
 	onError func(err error)) error {
 	displayVersion()
 
@@ -145,6 +146,7 @@ func applyClientConfig(client *client.Client, cfg *config.Config, proxyAll func(
 		Version, RevisionDate)
 	// Update client configuration
 	client.Configure(cfg.Client, proxyAll)
+	proxiedsites.Configure(cfg.ProxiedSites)
 }
 
 func displayVersion() {

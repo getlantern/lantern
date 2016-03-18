@@ -49,6 +49,11 @@ type Config struct {
 	TrustedCAs      []*CA
 }
 
+// Fetcher is an interface for fetching config updates.
+type Fetcher interface {
+	pollForConfig(ycfg yamlconf.Config, sticky bool) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error)
+}
+
 // StartPolling starts the process of polling for new configuration files.
 func StartPolling() {
 	// No-op if already started.
@@ -118,7 +123,7 @@ func majorVersion(version string) string {
 // stickyConfig - if true, we ignore cloud updates
 // flags - map of flags (generally from command-line) that always get applied
 //         to the config.
-func Init(fetcher *Fetcher, version string, configDir string, stickyConfig bool, flags map[string]interface{}) (*Config, error) {
+func Init(fetcher Fetcher, version string, configDir string, stickyConfig bool, flags map[string]interface{}) (*Config, error) {
 	file := "lantern-" + version + ".yaml"
 	_, configPath, err := inConfigDir(configDir, file)
 	if err != nil {

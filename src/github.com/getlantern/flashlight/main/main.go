@@ -58,7 +58,7 @@ func logPanic(msg string) {
 	// We have to do the full version here because we're actually trying to
 	// submit this panic to our logs.
 	cf := util.NewChainedAndFronted(client.Addr)
-	configFetcher := config.NewFetcher(settings.GetUserID, settings.GetToken, cf)
+	configFetcher := config.NewFetcher(settings, cf)
 	cfg, err := config.Init(configFetcher, flashlight.PackageVersion, *configdir, *stickyConfig, flagsAsMap())
 	if err != nil {
 		panic("Error initializing config")
@@ -168,7 +168,7 @@ func doMain() error {
 		}
 		// Request the config via either chained servers or direct fronted servers.
 		cf := util.NewChainedAndFronted(client.Addr)
-		configFetcher := config.NewFetcher(settings.GetUserID, settings.GetToken, cf)
+		configFetcher := config.NewFetcher(settings, cf)
 		err := flashlight.Run(
 			listenAddr,
 			"localhost:8788",

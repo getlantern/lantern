@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"net/http/httputil"
 	"time"
 
 	"github.com/getlantern/flashlight/util"
@@ -28,27 +29,26 @@ const (
 	frontedCloudConfigURL = "http://d2wi0vwulmtn99.cloudfront.net/cloud.yaml.gz"
 )
 
-// function for getting the user ID.
-type userIDFunc func() int
-
-// function for getting the user token.
-type tokenFunc func() string
-
-// Fetcher periodically fetches the latest cloud configuration.
-type Fetcher struct {
+// fetcher periodically fetches the latest cloud configuration.
+type fetcher struct {
 	lastCloudConfigETag map[string]string
-	userID              userIDFunc
-	token               tokenFunc
+	user                userConfig
 	httpFetcher         util.HTTPFetcher
+}
+
+// userConfig retrieves any custom user info for fetching the config.
+type userConfig interface {
+	GetUserID() int
+	GetToken() string
 }
 
 // NewFetcher creates a new configuration fetcher with the specified
 // functions for obtaining the user ID and token if those are populated.
-func NewFetcher(id userIDFunc, tok tokenFunc, httpFetcher util.HTTPFetcher) *Fetcher {
-	return &Fetcher{lastCloudConfigETag: map[string]string{}, userID: id, token: tok, httpFetcher: httpFetcher}
+func NewFetcher(conf userConfig, httpFetcher util.HTTPFetcher) Fetcher {
+	return &fetcher{lastCloudConfigETag: map[string]string{}, user: conf, httpFetcher: httpFetcher}
 }
 
-func (cf *Fetcher) pollForConfig(currentCfg yamlconf.Config, stickyConfig bool) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
+func (cf *fetcher) pollForConfig(currentCfg yamlconf.Config, stickyConfig bool) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
 	log.Debugf("Polling for config")
 	// By default, do nothing
 	mutate = func(ycfg yamlconf.Config) error {
@@ -92,7 +92,7 @@ func (cf *Fetcher) pollForConfig(currentCfg yamlconf.Config, stickyConfig bool) 
 	return mutate, waitTime, nil
 }
 
-func (cf *Fetcher) fetchCloudConfig(url string) ([]byte, error) {
+func (cf *fetcher) fetchCloudConfig(url string) ([]byte, error) {
 	cb := "?" + uuid.New()
 	nocache := url + cb
 	req, err := http.NewRequest("GET", nocache, nil)
@@ -110,11 +110,11 @@ func (cf *Fetcher) fetchCloudConfig(url string) ([]byte, error) {
 	// Set the fronted URL to lookup the config in parallel using chained and domain fronted servers.
 	req.Header.Set("Lantern-Fronted-URL", frontedCloudConfigURL+cb)
 
-	id := cf.userID()
+	id := cf.user.GetUserID()
 	if id != 0 {
 		req.Header.Set(userIDHeader, string(id))
 	}
-	tok := cf.token()
+	tok := cf.user.GetToken()
 	if tok != "" {
 		req.Header.Set(tokenHeader, tok)
 	}
@@ -127,6 +127,12 @@ func (cf *Fetcher) fetchCloudConfig(url string) ([]byte, error) {
 	resp, err := cf.httpFetcher.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to fetch cloud config at %s: %s", url, err)
+	}
+	dump, err := httputil.DumpResponse(resp, false)
+	if err != nil {
+		log.Errorf("Could not dump response: %v", err)
+	} else {
+		log.Debugf("Response headers: \n%v", string(dump))
 	}
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
@@ -152,6 +158,6 @@ func (cf *Fetcher) fetchCloudConfig(url string) ([]byte, error) {
 
 // cloudPollSleepTime adds some randomization to our requests to make them
 // less distinguishing on the network.
-func (cf *Fetcher) cloudPollSleepTime() time.Duration {
+func (cf *fetcher) cloudPollSleepTime() time.Duration {
 	return time.Duration((cloudConfigPollInterval.Nanoseconds() / 2) + rand.Int63n(cloudConfigPollInterval.Nanoseconds()))
 }
