@@ -34,6 +34,7 @@ func (client *Client) initBalancer(cfg *ClientConfig) (*balancer.Balancer, error
 	for _, s := range cfg.ChainedServers {
 		dialer, err := s.Dialer(cfg.DeviceID)
 		if err == nil {
+			log.Debugf("Adding chained server: %v", s.Addr)
 			dialers = append(dialers, dialer)
 		} else {
 			log.Errorf("Unable to configure chained server. Received error: %v", err)

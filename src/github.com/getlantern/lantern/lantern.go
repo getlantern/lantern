@@ -79,12 +79,25 @@ func AddLoggingMetadata(key, value string) {
 	logging.SetExtraLogglyInfo(key, value)
 }
 
+//userConfig supplies user data for fetching user-specific configuration.
+type userConfig struct {
+}
+
+func (uc *userConfig) GetToken() string {
+	return ""
+}
+
+func (uc *userConfig) GetUserID() int {
+	return 0
+}
+
 func run(configDir string) {
 	err := os.MkdirAll(configDir, 0755)
 	if os.IsExist(err) {
 		log.Errorf("Unable to create configDir at %v: %v", configDir, err)
 		return
 	}
+
 	flashlight.Run("localhost:0", // listen for HTTP on random address
 		"localhost:0", // listen for SOCKS on random address
 		configDir,     // place to store lantern configuration
@@ -94,6 +107,7 @@ func run(configDir string) {
 		func(cfg *config.Config) bool { return true }, // beforeStart()
 		func(cfg *config.Config) {},                   // afterStart()
 		func(cfg *config.Config) {},                   // onConfigUpdate
-		func(err error) {},                            // onError
+		&userConfig{},
+		func(err error) {}, // onError
 	)
 }

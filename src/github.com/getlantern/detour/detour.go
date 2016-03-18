@@ -67,6 +67,11 @@ func init() {
 type dialFunc func(network, addr string) (net.Conn, error)
 
 type Conn struct {
+	// keep track of the total bytes read in this connection
+	// Keep it at the top to make sure 64-bit alignment, see
+	// https://golang.org/pkg/sync/atomic/#pkg-note-BUG
+	readBytes int64
+
 	muConn sync.RWMutex
 	// the actual connection, will change so protect it
 	// can't user atomic.Value as the concrete type may vary
@@ -77,9 +82,6 @@ type Conn struct {
 
 	// the function to dial detour if the site fails to connect directly
 	dialDetour dialFunc
-
-	// keep track of the total bytes read in this connection
-	readBytes int64
 
 	muLocalBuffer sync.Mutex
 	// localBuffer keep track of bytes sent through direct connection

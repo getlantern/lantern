@@ -226,7 +226,7 @@ func TestVariableTimeouts(t *testing.T) {
 	// The 1000-5000 microseconds limits are arbitrary. In some systems this may be too low/high.
 	// The algorithm will try to adapt if connections succeed and will lower the current limit,
 	// but it won't be allowed to timeout below the established lower boundary.
-	timeoutMin := 1000
+	timeoutMin := 500
 	timeoutMax := 5000
 	for i := 0; i < 500; i++ {
 		timeout := rand.Intn(timeoutMax) + 1
