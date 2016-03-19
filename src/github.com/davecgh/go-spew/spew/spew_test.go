@@ -19,10 +19,11 @@ package spew_test
 import (
 	"bytes"
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
 	"io/ioutil"
 	"os"
 	"testing"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 // spewFunc is used to identify which public function of the spew package or

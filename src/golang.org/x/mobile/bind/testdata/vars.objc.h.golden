@@ -22,7 +22,7 @@
 @protocol GoVarsI
 @end
 
-@interface GoVars : NSObject 
+@interface GoVars : NSObject
 + (BOOL) aBool;
 + (void) setABool:(BOOL)v;
 
@@ -59,6 +59,15 @@
 + (id<GoVarsI>) anInterface;
 + (void) setAnInterface:(id<GoVarsI>)v;
 
+@end
+
+@class GoVarsI;
+
+@interface GoVarsI : NSObject <GoVarsI> {
+}
+@property(strong, readonly) id _ref;
+
+- (id)initWithRef:(id)ref;
 @end
 
 #endif

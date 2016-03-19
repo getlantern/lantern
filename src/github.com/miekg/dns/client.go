@@ -39,14 +39,7 @@ type Client struct {
 // Exchange performs a synchronous UDP query. It sends the message m to the address
 // contained in a and waits for an reply. Exchange does not retry a failed query, nor
 // will it fall back to TCP in case of truncation.
-// If you need to send a DNS message on an already existing connection, you can use the
-// following:
-//
-//	co := &dns.Conn{Conn: c} // c is your net.Conn
-//	co.WriteMsg(m)
-//	in, err := co.ReadMsg()
-//	co.Close()
-//
+// See client.Exchange for more information on setting larger buffer sizes.
 func Exchange(m *Msg, a string) (r *Msg, err error) {
 	var co *Conn
 	co, err = DialTimeout("udp", a, dnsTimeout)
@@ -106,6 +99,10 @@ func ExchangeConn(c net.Conn, m *Msg) (r *Msg, err error) {
 //
 // Exchange does not retry a failed query, nor will it fall back to TCP in
 // case of truncation.
+// It is up to the caller to create a message that allows for larger responses to be
+// returned. Specifically this means adding an EDNS0 OPT RR that will advertise a larger
+// buffer, see SetEdns0. Messsages without an OPT RR will fallback to the historic limit
+// of 512 bytes.
 func (c *Client) Exchange(m *Msg, a string) (r *Msg, rtt time.Duration, err error) {
 	if !c.SingleInflight {
 		return c.exchange(m, a)
@@ -258,7 +255,7 @@ func (co *Conn) ReadMsgHeader(hdr *Header) ([]byte, error) {
 		}
 		p = make([]byte, l)
 		n, err = tcpRead(r, p)
-
+		co.rtt = time.Since(co.t)
 	default:
 		if co.UDPSize > MinMsgSize {
 			p = make([]byte, co.UDPSize)
@@ -266,6 +263,7 @@ func (co *Conn) ReadMsgHeader(hdr *Header) ([]byte, error) {
 			p = make([]byte, MinMsgSize)
 		}
 		n, err = co.Read(p)
+		co.rtt = time.Since(co.t)
 	}
 
 	if err != nil {
@@ -342,8 +340,6 @@ func (co *Conn) Read(p []byte) (n int, err error) {
 	if err != nil {
 		return n, err
 	}
-
-	co.rtt = time.Since(co.t)
 	return n, err
 }
 

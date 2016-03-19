@@ -42,6 +42,11 @@ var (
 )
 
 type dialer struct {
+	// Ref dialer.EMADialTime() for the rationale
+	// Keep it at the top to make sure 64-bit alignment, see
+	// https://golang.org/pkg/sync/atomic/#pkg-note-BUG
+	emaDialTime int64
+
 	*Dialer
 	closeCh      chan struct{}
 	muCheckTimer sync.Mutex
@@ -49,8 +54,6 @@ type dialer struct {
 
 	consecSuccesses int32
 	consecFailures  int32
-	// Ref dialer.EMADialTime() for the rationale
-	emaDialTime int64
 }
 
 func (d *dialer) Start() {

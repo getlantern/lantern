@@ -23,21 +23,21 @@ import org.golang.mobile.AARPublishArtifact
  * For gomobile bind command, see https://golang.org/x/mobile/cmd/gomobile
  */
 class GobindPlugin implements Plugin<Project> {
-    void apply(Project project) {
-	project.configurations.create("default")
- 	project.extensions.create('gobind', GobindExtension)
+	void apply(Project project) {
+		project.configurations.create("default")
+		project.extensions.create('gobind', GobindExtension)
 
-        Task gobindTask = project.tasks.create("gobind", GobindTask)
-	gobindTask.outputFile = project.file(project.name+".aar")
-	project.artifacts.add("default", new AARPublishArtifact(
-		'mylib',
-		null,
-		gobindTask))
+		Task gobindTask = project.tasks.create("gobind", GobindTask)
+		gobindTask.outputFile = project.file(project.name+".aar")
+		project.artifacts.add("default", new AARPublishArtifact(
+			'mylib',
+			null,
+			gobindTask))
 
-	Task cleanTask = project.tasks.create("clean", {
-		project.delete(project.name+".aar")
-	})
-    }
+		Task cleanTask = project.tasks.create("clean", {
+			project.delete(project.name+".aar")
+		})
+	}
 }
 
 class GobindTask extends DefaultTask implements OutputFileTask {
@@ -46,62 +46,68 @@ class GobindTask extends DefaultTask implements OutputFileTask {
 
 	@TaskAction
 	def gobind() {
-	    def pkg = project.gobind.pkg
-	    def gopath = (project.gobind.GOPATH ?: System.getenv("GOPATH"))?.trim()
-	    if (!pkg || !gopath) {
-		throw new GradleException('gobind.pkg and gobind.GOPATH must be set')
-	    }
+		def pkg = project.gobind.pkg.trim()
+		def gopath = (project.gobind.GOPATH ?: System.getenv("GOPATH"))?.trim()
+		if (!pkg || !gopath) {
+			throw new GradleException('gobind.pkg and gobind.GOPATH must be set')
+		}
 
-	    def paths = (gopath.split(File.pathSeparator).collect{ "$it/bin" } +
+		def paths = (gopath.split(File.pathSeparator).collect{ "$it/bin" } +
 			System.getenv("PATH").split(File.pathSeparator)).flatten()
-	    // Default installation path of go distribution.
-	    if (isWindows()) {
-		paths = paths + "c:\\Go\\bin"
-	    } else {
-		paths = paths + "/usr/local/go/bin"
-	    }
-
-	    def gomobile = (project.gobind.GOMOBILE ?: findExecutable("gomobile", paths))?.trim()
-	    def gobin = (project.gobind.GO ?: findExecutable("go", paths))?.trim()
-	    def gomobileFlags = project.gobind.GOMOBILEFLAGS?.trim()
-
-	    if (!gomobile || !gobin) {
-		throw new GradleException('failed to find gomobile/go tools. Set gobind.GOMOBILE and gobind.GO')
-	    }
-
-	    paths = [findDir(gomobile), findDir(gobin), paths].flatten()
-
-	    def androidHome = ""
-	    try {
-		    Properties properties = new Properties()
-		    properties.load(project.rootProject.file('local.properties').newDataInputStream())
-		    androidHome = properties.getProperty('sdk.dir')
-	    } catch (all) {
-		logger.info("failed to load local.properties.")
-	    }
-	    if (!androidHome?.trim()) {
-		// fallback to ANDROID_HOME
-		androidHome = System.getenv("ANDROID_HOME")
-	    }
-
-            project.exec {
-		executable(gomobile)
-
-		def cmd = ["bind", "-target=android", "-i", "-o", project.name+".aar"]
-		if (gomobileFlags) {
-			cmd = (cmd+gomobileFlags.split(" ")).flatten()
+		// Default installation path of go distribution.
+		if (isWindows()) {
+			paths = paths + "c:\\Go\\bin"
+		} else {
+			paths = paths + "/usr/local/go/bin"
 		}
-		cmd << pkg
 
-                args(cmd)
+		def gomobile = (project.gobind.GOMOBILE ?: findExecutable("gomobile", paths))?.trim()
+		def gobin = (project.gobind.GO ?: findExecutable("go", paths))?.trim()
+		def gomobileFlags = project.gobind.GOMOBILEFLAGS?.trim()
+		def goarch = project.gobind.GOARCH?.trim()
+
+		if (!gomobile || !gobin) {
+			throw new GradleException('failed to find gomobile/go tools. Set gobind.GOMOBILE and gobind.GO')
+		}
+
+		paths = [findDir(gomobile), findDir(gobin), paths].flatten()
+
+		def androidHome = ""
+		try {
+			Properties properties = new Properties()
+			properties.load(project.rootProject.file('local.properties').newDataInputStream())
+			androidHome = properties.getProperty('sdk.dir')
+		} catch (all) {
+			logger.info("failed to load local.properties.")
+		}
 		if (!androidHome?.trim()) {
-			throw new GradleException('Neither sdk.dir or ANDROID_HOME is set')
+			// fallback to ANDROID_HOME
+			androidHome = System.getenv("ANDROID_HOME")
 		}
-		environment("GOPATH", gopath)
-		environment("PATH", paths.join(File.pathSeparator))
-		environment("ANDROID_HOME", androidHome)
-	    }
-        }
+
+		project.exec {
+			executable(gomobile)
+
+			def cmd = ["bind", "-i", "-o", project.name+".aar", "-target"]
+			if (goarch) {
+				cmd = cmd+goarch.split(" ").collect{ 'android/'+it }.join(",")
+			} else {
+				cmd << "android"
+			}
+			if (gomobileFlags) {
+				cmd = cmd+gomobileFlags.split(" ")
+			}
+			cmd.addAll(pkg.split(" "))
+
+			args(cmd)
+			if (!androidHome?.trim()) {
+				throw new GradleException('Neither sdk.dir or ANDROID_HOME is set')
+			}
+			environment("GOPATH", gopath)
+			environment("PATH", paths.join(File.pathSeparator))
+			environment("ANDROID_HOME", androidHome)
+		}
+	}
 
 	def isWindows() {
 		return System.getProperty("os.name").startsWith("Windows")
@@ -114,7 +120,7 @@ class GobindTask extends DefaultTask implements OutputFileTask {
 		for (p in paths) {
 		   def f = new File(p + File.separator + name)
 		   if (f.exists()) {
-			return p + File.separator + name
+			   return p + File.separator + name
 		   }
 		}
 		throw new GradleException('binary ' + name + ' is not found in $PATH (' + paths + ')')
@@ -131,18 +137,21 @@ class GobindTask extends DefaultTask implements OutputFileTask {
 }
 
 class GobindExtension {
-    // Package to bind. (required)
-    def String pkg = ""
+	// Package to bind. Separate multiple packages with spaces. (required)
+	def String pkg = ""
 
-    // GOPATH: necessary for gomobile tool. (required)
-    def String GOPATH = System.getenv("GOPATH")
+	// GOPATH: necessary for gomobile tool. (required)
+	def String GOPATH = System.getenv("GOPATH")
 
-    // GO: path to go tool. (can omit if 'go' is in the paths visible by Android Studio)
-    def String GO = ""
+	// GOARCH: (List of) GOARCH to include.
+	def String GOARCH = ""
 
-    // GOMOBILE: path to gomobile binary. (can omit if 'gomobile' is under GOPATH)
-    def String GOMOBILE = ""
+	// GO: path to go tool. (can omit if 'go' is in the paths visible by Android Studio)
+	def String GO = ""
 
-    // GOMOBILEFLAGS: extra flags to be passed to gomobile command. (optional)
-    def String GOMOBILEFLAGS = ""
+	// GOMOBILE: path to gomobile binary. (can omit if 'gomobile' is under GOPATH)
+	def String GOMOBILE = ""
+
+	// GOMOBILEFLAGS: extra flags to be passed to gomobile command. (optional)
+	def String GOMOBILEFLAGS = ""
 }

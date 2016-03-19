@@ -64,14 +64,17 @@ func Conn(conn net.Conn, idleTimeout time.Duration, onIdle func()) *IdleTimingCo
 // IdleTimingConn is a net.Conn that wraps another net.Conn and that times out
 // if idle for more than idleTimeout.
 type IdleTimingConn struct {
-	conn             net.Conn
-	idleTimeout      time.Duration
-	halfIdleTimeout  time.Duration
+	// Keep them at the top to make sure 64-bit alignment, see
+	// https://golang.org/pkg/sync/atomic/#pkg-note-BUG
 	readDeadline     int64
 	writeDeadline    int64
-	activeCh         chan bool
-	closedCh         chan bool
 	lastActivityTime int64
+
+	conn            net.Conn
+	idleTimeout     time.Duration
+	halfIdleTimeout time.Duration
+	activeCh        chan bool
+	closedCh        chan bool
 }
 
 // TimesOutIn returns how much time is left before this connection will time

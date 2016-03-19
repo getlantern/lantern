@@ -1896,6 +1896,11 @@ func Copy(r RR) RR {
 	return r1
 }
 
+// Len returns the length (in octets) of the uncompressed RR in wire format.
+func Len(r RR) int {
+	return r.len()
+}
+
 // Copy returns a new *Msg which is a deep-copy of dns.
 func (dns *Msg) Copy() *Msg {
 	return dns.CopyTo(new(Msg))

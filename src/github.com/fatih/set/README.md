@@ -1,4 +1,4 @@
-# Set [![GoDoc](https://godoc.org/gopkg.in/fatih/set.v0?status.svg)](https://godoc.org/gopkg.in/fatih/set.v0) [![Build Status](https://travis-ci.org/fatih/set.svg)](https://travis-ci.org/fatih/set)
+# Set [![GoDoc](http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)](https://godoc.org/gopkg.in/fatih/set.v0) [![Build Status](http://img.shields.io/travis/fatih/set.svg?style=flat-square)](https://travis-ci.org/fatih/set)
 
 Set is a basic and simple, hash-based, **Set** data structure implementation
 in Go (Golang).
@@ -35,8 +35,13 @@ and use `set` as the package name inside the code.
 ```go
 
 // create a set with zero items
-s := set.New(set.ThreadSafe) // thread safe version
-s := set.New(set.NonThreadSafe) // non thread-safe version
+s := set.New()
+s := set.NewNonTS() // non thread-safe version
+
+// ... or with some initial values
+s := set.New("istanbul", "frankfurt", 30.123, "san francisco", 1234)
+s := set.NewNonTS("kenya", "ethiopia", "sumatra")
+
 ```
 
 #### Basic Operations
@@ -116,10 +121,8 @@ if t.IsSuperset(s) {
 
 ```go
 // let us initialize two sets with some values
-a := set.New(set.ThreadSafe)
-a := set.Add("ankara", "berlin", "san francisco")
-b := set.New(set.NonThreadSafe)
-b := set.Add("frankfurt", "berlin")
+a := set.New("ankara", "berlin", "san francisco")
+b := set.New("frankfurt", "berlin")
 
 // creates a new set with the items in a and b combined.
 // [frankfurt, berlin, ankara, san francisco]
@@ -151,12 +154,9 @@ a.Separate(b)
 #### Multiple Set Operations
 
 ```go
-a := set.New(set.ThreadSafe)
-a := set.Add("1", "3", "4", "5")
-b := set.New(set.ThreadSafe)
-b := set.Add("2", "3", "4", "5")
-c := set.New(set.ThreadSafe)
-c := set.Add("4", "5", "6", "7")
+a := set.New("1", "3", "4", "5")
+b := set.New("2", "3", "4", "5")
+c := set.New("4", "5", "6", "7")
 
 // creates a new set with items in a, b and c
 // [1 2 3 4 5 6 7]
@@ -179,8 +179,7 @@ into basic data types.
 
 ```go
 // create a set of mixed types
-s := set.New(set.ThreadSafe)
-s := set.Add("ankara", "5", "8", "san francisco", 13, 21)
+s := set.New("ankara", "5", "8", "san francisco", 13, 21)
 
 
 // convert s into a slice of strings (type is []string)
@@ -214,7 +213,7 @@ func main() {
 	var wg sync.WaitGroup // this is just for waiting until all goroutines finish
 
 	// Initialize our thread safe Set
-	s := set.New(set.ThreadSafe)
+	s := set.New()
 
 	// Add items concurrently (item1, item2, and so on)
 	for i := 0; i < 10; i++ {

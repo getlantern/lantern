@@ -42,14 +42,9 @@ var usage = `USAGE:
   Generates a .syso file with specified resources embedded in .rsrc section,
   aimed for consumption by Go linker when building Win32 excecutables.
 
-%s -data FILE.dat -o FILE.syso > FILE.c
-  Generates a .syso file with specified opaque binary blob embedded,
-  together with related .c file making it possible to access from Go code.
-  Theoretically cross-platform, but reportedly cannot compile together with cgo.
-
-The generated *.syso and *.c files should get automatically recognized
-by 'go build' command and linked into an executable/library, as long as
-there are any *.go files in the same directory.
+The generated *.syso files should get automatically recognized by 'go build'
+command and linked into an executable/library, as long as there are any *.go
+files in the same directory.
 
 OPTIONS:
 `
@@ -57,15 +52,16 @@ OPTIONS:
 func main() {
 	//TODO: allow in options advanced specification of multiple resources, as a tree (json?)
 	//FIXME: verify that data file size doesn't exceed uint32 max value
-	var fnamein, fnameico, fnamedata, fnameout string
+	var fnamein, fnameico, fnamedata, fnameout, arch string
 	flags := flag.NewFlagSet("", flag.ContinueOnError)
 	flags.StringVar(&fnamein, "manifest", "", "path to a Windows manifest file to embed")
 	flags.StringVar(&fnameico, "ico", "", "comma-separated list of paths to .ico files to embed")
-	flags.StringVar(&fnamedata, "data", "", "path to raw data file to embed")
+	flags.StringVar(&fnamedata, "data", "", "path to raw data file to embed [WARNING: useless for Go 1.4+]")
 	flags.StringVar(&fnameout, "o", "rsrc.syso", "name of output COFF (.res or .syso) file")
+	flags.StringVar(&arch, "arch", "386", "architecture of output file - one of: 386, [EXPERIMENTAL: amd64]")
 	_ = flags.Parse(os.Args[1:])
 	if fnameout == "" || (fnamein == "" && fnamedata == "" && fnameico == "") {
-		fmt.Fprintf(os.Stderr, usage, os.Args[0], os.Args[0])
+		fmt.Fprintf(os.Stderr, usage, os.Args[0])
 		flags.PrintDefaults()
 		os.Exit(1)
 	}
@@ -73,9 +69,9 @@ func main() {
 	var err error
 	switch {
 	case fnamein != "" || fnameico != "":
-		err = run(fnamein, fnameico, fnameout)
+		err = run(fnamein, fnameico, fnameout, arch)
 	case fnamedata != "":
-		err = rundata(fnamedata, fnameout)
+		err = rundata(fnamedata, fnameout, arch)
 	}
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -83,7 +79,7 @@ func main() {
 	}
 }
 
-func rundata(fnamedata, fnameout string) error {
+func rundata(fnamedata, fnameout, arch string) error {
 	if !strings.HasSuffix(fnameout, ".syso") {
 		return fmt.Errorf("Output file name '%s' must end with '.syso'", fnameout)
 	}
@@ -103,6 +99,10 @@ func rundata(fnamedata, fnameout string) error {
 	defer dat.Close()
 
 	coff := coff.NewRDATA()
+	err = coff.Arch(arch)
+	if err != nil {
+		return err
+	}
 	coff.AddData("_brsrc_"+symname, dat)
 	coff.AddData("_ersrc_"+symname, io.NewSectionReader(strings.NewReader("\000\000"), 0, 2)) // TODO: why? copied from as-generated
 	coff.Freeze()
@@ -125,7 +125,7 @@ void ·get_NAME(Slice a) {
 	return nil
 }
 
-func run(fnamein, fnameico, fnameout string) error {
+func run(fnamein, fnameico, fnameout, arch string) error {
 	newid := make(chan uint16)
 	go func() {
 		for i := uint16(1); ; i++ {
@@ -134,6 +134,10 @@ func run(fnamein, fnameico, fnameout string) error {
 	}()
 
 	coff := coff.NewRSRC()
+	err := coff.Arch(arch)
+	if err != nil {
+		return err
+	}
 
 	if fnamein != "" {
 		manifest, err := binutil.SizedOpen(fnamein)

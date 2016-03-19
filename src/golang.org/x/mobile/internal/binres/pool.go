@@ -17,6 +17,11 @@ const (
 // PoolRef is the i'th string in a pool.
 type PoolRef uint32
 
+// Resolve returns the string entry of PoolRef in pl.
+func (ref PoolRef) Resolve(pl *Pool) string {
+	return pl.strings[ref]
+}
+
 // Pool is a container for string and style span collections.
 //
 // Pool has the following structure marshalled:
@@ -47,6 +52,17 @@ type Pool struct {
 	strings []string
 	styles  []*Span
 	flags   uint32 // SortedFlag, UTF8Flag
+}
+
+// ref returns the PoolRef of s, inserting s if it doesn't exist.
+func (pl *Pool) ref(s string) PoolRef {
+	for i, x := range pl.strings {
+		if s == x {
+			return PoolRef(i)
+		}
+	}
+	pl.strings = append(pl.strings, s)
+	return PoolRef(len(pl.strings) - 1)
 }
 
 func (pl *Pool) IsSorted() bool { return pl.flags&SortedFlag == SortedFlag }
@@ -199,6 +215,7 @@ func (pl *Pool) MarshalBinary() ([]byte, error) {
 		putu32(buf, x)
 		buf = buf[4:]
 	}
+
 	for _, x := range strs {
 		putu16(buf, x)
 		buf = buf[2:]
@@ -233,28 +250,31 @@ func (spn *Span) UnmarshalBinary(bin []byte) error {
 // is also the same i'th element of the string pool.
 type Map struct {
 	chunkHeader
-	rs []uint32
+	rs []TableRef
 }
 
 func (m *Map) UnmarshalBinary(bin []byte) error {
 	(&m.chunkHeader).UnmarshalBinary(bin)
 	buf := bin[m.headerByteSize:m.byteSize]
-	m.rs = make([]uint32, len(buf)/4)
+	m.rs = make([]TableRef, len(buf)/4)
 	for i := range m.rs {
-		m.rs[i] = btou32(buf[i*4:])
+		m.rs[i] = TableRef(btou32(buf[i*4:]))
 	}
 	return nil
 }
 
 func (m *Map) MarshalBinary() ([]byte, error) {
-	bin := make([]byte, 8+len(m.rs)*4)
+	m.typ = ResXMLResourceMap
+	m.headerByteSize = 8
+	m.byteSize = uint32(m.headerByteSize) + uint32(len(m.rs)*4)
+	bin := make([]byte, m.byteSize)
 	b, err := m.chunkHeader.MarshalBinary()
 	if err != nil {
 		return nil, err
 	}
 	copy(bin, b)
 	for i, r := range m.rs {
-		putu32(bin[8+i*4:], r)
+		putu32(bin[8+i*4:], uint32(r))
 	}
 	return bin, nil
 }
