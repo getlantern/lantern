@@ -1,5 +1,3 @@
-// +build pro-experimental
-
 package ui
 
 import (
@@ -13,6 +11,7 @@ var proxyHandler = httputil.ReverseProxy{
 		r.URL.Scheme = "https"
 		r.URL.Host = "quiet-island-5559.herokuapp.com"
 		r.Host = r.URL.Host
+		log.Debugf("REQUEST: %v", r)
 	},
 }
 

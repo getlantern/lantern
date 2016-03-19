@@ -76,7 +76,7 @@ func Start(requestedAddr string, allowRemote bool, extUrl string) (string, error
 		return "", fmt.Errorf("Unable to resolve UI address: %v", err)
 	}
 
-	// initProServer("127.0.0.1:1233") // Experimental server.
+	initProServer("127.0.0.1:1233") // Experimental server.
 
 	externalUrl = extUrl
 	if allowRemote {
