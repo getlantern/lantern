@@ -51,6 +51,7 @@ func LoadSettings(version, revisionDate, buildDate string) *Settings {
 	// Create default settings that may or may not be overridden from an existing file
 	// on disk.
 	settings = &Settings{
+		DeviceID:    NewDeviceID(),
 		AutoReport:  true,
 		AutoLaunch:  true,
 		ProxyAll:    false,
@@ -144,7 +145,7 @@ func (s *Settings) read() {
 			}
 		}
 
-		if token, ok := data["token"].(string); ok {
+		if token, ok := data["userToken"].(string); ok {
 			s.SetToken(token)
 		}
 
