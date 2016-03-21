@@ -103,6 +103,7 @@ func TestRemoveFromWhitelist(t *testing.T) {
 	AddToWl(u.Host, false)
 	_, err := client.Get(mockURL)
 	if assert.Error(t, err, "should have error if reading times out through detour") {
+		time.Sleep(50 * time.Millisecond)
 		assert.False(t, whitelisted(u.Host), "should be removed from whitelist if reading times out through detour")
 	}
 
