@@ -543,14 +543,14 @@ $(LANTERN_MOBILE_ANDROID_SDK): $(ANDROID_SDK)
 	cp $(ANDROID_SDK) $(LANTERN_MOBILE_ANDROID_SDK)
 
 $(LANTERN_MOBILE_ANDROID_DEBUG): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK)
-	gradle -PlanternVersion=$(GIT_REVISION) -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
+	gradle -PlanternVersion=$(GIT_REVISION) -PlanternRevisionDate=$(REVISION_DATE) -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
 		clean \
 		assembleDebug
 
 $(LANTERN_MOBILE_ANDROID_RELEASE): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK)
 	@echo "Generating distribution package for android..."
 	ln -f -s $$SECRETS_DIR/android/keystore.release.jks $(LANTERN_MOBILE_DIR)/app && \
-	gradle -PlanternVersion=$$VERSION -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
+	gradle -PlanternVersion=$$VERSION -PlanternRevisionDate=$(REVISION_DATE) -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
 		clean \
 		assembleRelease && \
 	cp $(LANTERN_MOBILE_ANDROID_RELEASE) lantern-installer.apk;

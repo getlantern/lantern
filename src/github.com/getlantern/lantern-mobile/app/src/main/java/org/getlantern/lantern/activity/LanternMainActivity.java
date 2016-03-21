@@ -87,7 +87,7 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
             String appVersion = pInfo.versionName;
             Log.d(TAG, "Currently running Lantern version: " + appVersion);
 
-            LanternUI.setVersionNum(appVersion, BuildConfig.LANTERN_VERSION);
+            LanternUI.setVersionNum(appVersion);
             LanternUI.setupLanternSwitch();
         } catch (Exception e) {
             Log.d(TAG, "Got an exception " + e);
