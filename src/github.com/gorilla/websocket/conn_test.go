@@ -5,11 +5,14 @@
 package websocket
 
 import (
+	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net"
+	"reflect"
 	"testing"
 	"testing/iotest"
 	"time"
@@ -146,13 +149,15 @@ func TestControl(t *testing.T) {
 func TestCloseBeforeFinalFrame(t *testing.T) {
 	const bufSize = 512
 
+	expectedErr := &CloseError{Code: CloseNormalClosure, Text: "hello"}
+
 	var b1, b2 bytes.Buffer
 	wc := newConn(fakeNetConn{Reader: nil, Writer: &b1}, false, 1024, bufSize)
 	rc := newConn(fakeNetConn{Reader: &b1, Writer: &b2}, true, 1024, 1024)
 
 	w, _ := wc.NextWriter(BinaryMessage)
 	w.Write(make([]byte, bufSize+bufSize/2))
-	wc.WriteControl(CloseMessage, FormatCloseMessage(CloseNormalClosure, ""), time.Now().Add(10*time.Second))
+	wc.WriteControl(CloseMessage, FormatCloseMessage(expectedErr.Code, expectedErr.Text), time.Now().Add(10*time.Second))
 	w.Close()
 
 	op, r, err := rc.NextReader()
@@ -160,12 +165,12 @@ func TestCloseBeforeFinalFrame(t *testing.T) {
 		t.Fatalf("NextReader() returned %d, %v", op, err)
 	}
 	_, err = io.Copy(ioutil.Discard, r)
-	if err != errUnexpectedEOF {
-		t.Fatalf("io.Copy() returned %v, want %v", err, errUnexpectedEOF)
+	if !reflect.DeepEqual(err, expectedErr) {
+		t.Fatalf("io.Copy() returned %v, want %v", err, expectedErr)
 	}
 	_, _, err = rc.NextReader()
-	if err != io.EOF {
-		t.Fatalf("NextReader() returned %v, want %v", err, io.EOF)
+	if !reflect.DeepEqual(err, expectedErr) {
+		t.Fatalf("NextReader() returned %v, want %v", err, expectedErr)
 	}
 }
 
@@ -235,4 +240,128 @@ func TestUnderlyingConn(t *testing.T) {
 	if ul != fc {
 		t.Fatalf("Underlying conn is not what it should be.")
 	}
+}
+
+func TestBufioReadBytes(t *testing.T) {
+
+	// Test calling bufio.ReadBytes for value longer than read buffer size.
+
+	m := make([]byte, 512)
+	m[len(m)-1] = '\n'
+
+	var b1, b2 bytes.Buffer
+	wc := newConn(fakeNetConn{Reader: nil, Writer: &b1}, false, len(m)+64, len(m)+64)
+	rc := newConn(fakeNetConn{Reader: &b1, Writer: &b2}, true, len(m)-64, len(m)-64)
+
+	w, _ := wc.NextWriter(BinaryMessage)
+	w.Write(m)
+	w.Close()
+
+	op, r, err := rc.NextReader()
+	if op != BinaryMessage || err != nil {
+		t.Fatalf("NextReader() returned %d, %v", op, err)
+	}
+
+	br := bufio.NewReader(r)
+	p, err := br.ReadBytes('\n')
+	if err != nil {
+		t.Fatalf("ReadBytes() returned %v", err)
+	}
+	if len(p) != len(m) {
+		t.Fatalf("read returnd %d bytes, want %d bytes", len(p), len(m))
+	}
+}
+
+var closeErrorTests = []struct {
+	err   error
+	codes []int
+	ok    bool
+}{
+	{&CloseError{Code: CloseNormalClosure}, []int{CloseNormalClosure}, true},
+	{&CloseError{Code: CloseNormalClosure}, []int{CloseNoStatusReceived}, false},
+	{&CloseError{Code: CloseNormalClosure}, []int{CloseNoStatusReceived, CloseNormalClosure}, true},
+	{errors.New("hello"), []int{CloseNormalClosure}, false},
+}
+
+func TestCloseError(t *testing.T) {
+	for _, tt := range closeErrorTests {
+		ok := IsCloseError(tt.err, tt.codes...)
+		if ok != tt.ok {
+			t.Errorf("IsCloseError(%#v, %#v) returned %v, want %v", tt.err, tt.codes, ok, tt.ok)
+		}
+	}
+}
+
+var unexpectedCloseErrorTests = []struct {
+	err   error
+	codes []int
+	ok    bool
+}{
+	{&CloseError{Code: CloseNormalClosure}, []int{CloseNormalClosure}, false},
+	{&CloseError{Code: CloseNormalClosure}, []int{CloseNoStatusReceived}, true},
+	{&CloseError{Code: CloseNormalClosure}, []int{CloseNoStatusReceived, CloseNormalClosure}, false},
+	{errors.New("hello"), []int{CloseNormalClosure}, false},
+}
+
+func TestUnexpectedCloseErrors(t *testing.T) {
+	for _, tt := range unexpectedCloseErrorTests {
+		ok := IsUnexpectedCloseError(tt.err, tt.codes...)
+		if ok != tt.ok {
+			t.Errorf("IsUnexpectedCloseError(%#v, %#v) returned %v, want %v", tt.err, tt.codes, ok, tt.ok)
+		}
+	}
+}
+
+type blockingWriter struct {
+	c1, c2 chan struct{}
+}
+
+func (w blockingWriter) Write(p []byte) (int, error) {
+	// Allow main to continue
+	close(w.c1)
+	// Wait for panic in main
+	<-w.c2
+	return len(p), nil
+}
+
+func TestConcurrentWritePanic(t *testing.T) {
+	w := blockingWriter{make(chan struct{}), make(chan struct{})}
+	c := newConn(fakeNetConn{Reader: nil, Writer: w}, false, 1024, 1024)
+	go func() {
+		c.WriteMessage(TextMessage, []byte{})
+	}()
+
+	// wait for goroutine to block in write.
+	<-w.c1
+
+	defer func() {
+		close(w.c2)
+		if v := recover(); v != nil {
+			return
+		}
+	}()
+
+	c.WriteMessage(TextMessage, []byte{})
+	t.Fatal("should not get here")
+}
+
+type failingReader struct{}
+
+func (r failingReader) Read(p []byte) (int, error) {
+	return 0, io.EOF
+}
+
+func TestFailedConnectionReadPanic(t *testing.T) {
+	c := newConn(fakeNetConn{Reader: failingReader{}, Writer: nil}, false, 1024, 1024)
+
+	defer func() {
+		if v := recover(); v != nil {
+			return
+		}
+	}()
+
+	for i := 0; i < 20000; i++ {
+		c.ReadMessage()
+	}
+	t.Fatal("should not get here")
 }

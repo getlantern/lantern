@@ -26,4 +26,15 @@
 - (void)multipleUnnamedParams:(int)p0 p1:(NSString*)p1 p2:(int64_t)p2;
 @end
 
+@class GoIssue10788TestInterface;
+
+@interface GoIssue10788TestInterface : NSObject <GoIssue10788TestInterface> {
+}
+@property(strong, readonly) id _ref;
+
+- (id)initWithRef:(id)ref;
+- (void)doSomeWork:(GoIssue10788TestStruct*)s;
+- (void)multipleUnnamedParams:(int)p0 p1:(NSString*)p1 p2:(int64_t)p2;
+@end
+
 #endif

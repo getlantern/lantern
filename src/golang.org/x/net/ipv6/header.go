@@ -5,7 +5,7 @@
 package ipv6
 
 import (
-	"errors"
+	"encoding/binary"
 	"fmt"
 	"net"
 )
@@ -31,19 +31,19 @@ func (h *Header) String() string {
 	if h == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("ver: %v, tclass: %#x, flowlbl: %#x, payloadlen: %v, nxthdr: %v, hoplim: %v, src: %v, dst: %v", h.Version, h.TrafficClass, h.FlowLabel, h.PayloadLen, h.NextHeader, h.HopLimit, h.Src, h.Dst)
+	return fmt.Sprintf("ver=%d tclass=%#x flowlbl=%#x payloadlen=%d nxthdr=%d hoplim=%d src=%v dst=%v", h.Version, h.TrafficClass, h.FlowLabel, h.PayloadLen, h.NextHeader, h.HopLimit, h.Src, h.Dst)
 }
 
 // ParseHeader parses b as an IPv6 base header.
 func ParseHeader(b []byte) (*Header, error) {
 	if len(b) < HeaderLen {
-		return nil, errors.New("header too short")
+		return nil, errHeaderTooShort
 	}
 	h := &Header{
 		Version:      int(b[0]) >> 4,
 		TrafficClass: int(b[0]&0x0f)<<4 | int(b[1])>>4,
 		FlowLabel:    int(b[1]&0x0f)<<16 | int(b[2])<<8 | int(b[3]),
-		PayloadLen:   int(b[4])<<8 | int(b[5]),
+		PayloadLen:   int(binary.BigEndian.Uint16(b[4:6])),
 		NextHeader:   int(b[6]),
 		HopLimit:     int(b[7]),
 	}

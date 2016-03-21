@@ -8,13 +8,22 @@ import (
 	"log"
 	"net"
 	"os"
+	"runtime"
 
 	"golang.org/x/net/icmp"
-	"golang.org/x/net/internal/iana"
 	"golang.org/x/net/ipv6"
 )
 
 func ExamplePacketConn_nonPrivilegedPing() {
+	switch runtime.GOOS {
+	case "darwin":
+	case "linux":
+		log.Println("you may need to adjust the net.ipv4.ping_group_range kernel state")
+	default:
+		log.Println("not supported on", runtime.GOOS)
+		return
+	}
+
 	c, err := icmp.ListenPacket("udp6", "fe80::1%en0")
 	if err != nil {
 		log.Fatal(err)
@@ -41,7 +50,7 @@ func ExamplePacketConn_nonPrivilegedPing() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	rm, err := icmp.ParseMessage(iana.ProtocolIPv6ICMP, rb[:n])
+	rm, err := icmp.ParseMessage(58, rb[:n])
 	if err != nil {
 		log.Fatal(err)
 	}

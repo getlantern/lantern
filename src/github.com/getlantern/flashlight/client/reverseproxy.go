@@ -35,7 +35,10 @@ func (client *Client) newReverseProxy(bal *balancer.Balancer) *httputil.ReverseP
 		// field when upstream servers are trying to determine the client IP.
 		// We need to add also the X-Lantern-Device-Id field.
 		Director: func(req *http.Request) {
-			req.Header.Set("X-LANTERN-DEVICE-ID", client.DeviceID)
+			// Add back the Host header which was stripped by the ReverseProxy. This
+			// is needed for sites that do virtual hosting.
+			req.Header.Set("Host", req.Host)
+			req.Header.Set("X-LANTERN-DEVICE-ID", client.cfg().DeviceID)
 			for _, authToken := range allAuthTokens {
 				req.Header.Add("X-LANTERN-AUTH-TOKEN", authToken)
 			}

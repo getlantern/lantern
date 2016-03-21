@@ -17,7 +17,7 @@ func (p *DstUnreach) Len(proto int) int {
 		return 0
 	}
 	l, _ := multipartMessageBodyDataLen(proto, p.Data, p.Extensions)
-	return l
+	return 4 + l
 }
 
 // Marshal implements the Marshal method of MessageBody interface.

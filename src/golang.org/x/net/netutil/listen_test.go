@@ -2,11 +2,6 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// +build go1.3
-
-// (We only run this test on Go 1.3 because the HTTP client timeout behavior
-// was bad in previous releases, causing occasional deadlocks.)
-
 package netutil
 
 import (

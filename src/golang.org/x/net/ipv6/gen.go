@@ -58,7 +58,7 @@ func genzsys() error {
 	switch {
 	case runtime.GOOS == "dragonfly" || runtime.GOOS == "solaris":
 		b = bytes.Replace(b, []byte("package ipv6\n"), []byte("// +build "+runtime.GOOS+"\n\npackage ipv6\n"), 1)
-	case runtime.GOOS == "linux" && (runtime.GOARCH == "arm64" || runtime.GOARCH == "ppc64" || runtime.GOARCH == "ppc64le"):
+	case runtime.GOOS == "linux" && (runtime.GOARCH == "arm64" || runtime.GOARCH == "mips64" || runtime.GOARCH == "mips64le" || runtime.GOARCH == "ppc64" || runtime.GOARCH == "ppc64le"):
 		b = bytes.Replace(b, []byte("package ipv6\n"), []byte("// +build "+runtime.GOOS+","+runtime.GOARCH+"\n\npackage ipv6\n"), 1)
 	}
 	b, err = format.Source(b)

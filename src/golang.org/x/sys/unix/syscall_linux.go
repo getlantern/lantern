@@ -86,18 +86,29 @@ func Unlink(path string) error {
 
 //sys	unlinkat(dirfd int, path string, flags int) (err error)
 
-func Unlinkat(dirfd int, path string) error {
-	return unlinkat(dirfd, path, 0)
+func Unlinkat(dirfd int, path string, flags int) error {
+	return unlinkat(dirfd, path, flags)
 }
 
 //sys	utimes(path string, times *[2]Timeval) (err error)
 
-func Utimes(path string, tv []Timeval) (err error) {
+func Utimes(path string, tv []Timeval) error {
 	if tv == nil {
+		err := utimensat(AT_FDCWD, path, nil, 0)
+		if err != ENOSYS {
+			return err
+		}
 		return utimes(path, nil)
 	}
 	if len(tv) != 2 {
 		return EINVAL
+	}
+	var ts [2]Timespec
+	ts[0] = NsecToTimespec(TimevalToNsec(tv[0]))
+	ts[1] = NsecToTimespec(TimevalToNsec(tv[1]))
+	err := utimensat(AT_FDCWD, path, (*[2]Timespec)(unsafe.Pointer(&ts[0])), 0)
+	if err != ENOSYS {
+		return err
 	}
 	return utimes(path, (*[2]Timeval)(unsafe.Pointer(&tv[0])))
 }
@@ -886,6 +897,7 @@ func Getpgrp() (pid int) {
 //sys	Pause() (err error)
 //sys	PivotRoot(newroot string, putold string) (err error) = SYS_PIVOT_ROOT
 //sysnb prlimit(pid int, resource int, old *Rlimit, newlimit *Rlimit) (err error) = SYS_PRLIMIT64
+//sys   Prctl(option int, arg2 uintptr, arg3 uintptr, arg4 uintptr, arg5 uintptr) (err error)
 //sys	read(fd int, p []byte) (n int, err error)
 //sys	Removexattr(path string, attr string) (err error)
 //sys	Renameat(olddirfd int, oldpath string, newdirfd int, newpath string) (err error)
@@ -894,6 +906,7 @@ func Getpgrp() (pid int) {
 //sysnb	Setpgid(pid int, pgid int) (err error)
 //sysnb	Setsid() (pid int, err error)
 //sysnb	Settimeofday(tv *Timeval) (err error)
+//sys	Setns(fd int, nstype int) (err error)
 
 // issue 1435.
 // On linux Setuid and Setgid only affects the current thread, not the process.
@@ -920,7 +933,6 @@ func Setgid(uid int) (err error) {
 //sys	Unmount(target string, flags int) (err error) = SYS_UMOUNT2
 //sys	Unshare(flags int) (err error)
 //sys	Ustat(dev int, ubuf *Ustat_t) (err error)
-//sys	Utime(path string, buf *Utimbuf) (err error)
 //sys	write(fd int, p []byte) (n int, err error)
 //sys	exitThread(code int) (err error) = SYS_EXIT
 //sys	readlen(fd int, p *byte, np int) (n int, err error) = SYS_READ
@@ -1022,7 +1034,6 @@ func Munmap(b []byte) (err error) {
 // Personality
 // Poll
 // Ppoll
-// Prctl
 // Pselect6
 // Ptrace
 // Putpmsg

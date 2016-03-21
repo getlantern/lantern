@@ -7,18 +7,18 @@ package go.try_;
 import go.Seq;
 
 public abstract class Try {
-    private Try() {} // uninstantiable
-    
-    public static String This() {
-        go.Seq _in = null;
-        go.Seq _out = null;
-        _out = new go.Seq();
-        String _result;
-        Seq.send(DESCRIPTOR, CALL_This, _in, _out);
-        _result = _out.readString();
-        return _result;
+    static {
+        Seq.touch(); // for loading the native library
+        init();
     }
     
-    private static final int CALL_This = 1;
-    private static final String DESCRIPTOR = "try";
+    private Try() {} // uninstantiable
+    
+    // touch is called from other bound packages to initialize this package
+    public static void touch() {}
+    
+    private static native void init();
+    
+    
+    public static native String This();
 }

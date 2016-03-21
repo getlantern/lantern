@@ -52,7 +52,15 @@ func (ns *Namespace) UnmarshalBinary(bin []byte) error {
 }
 
 func (ns *Namespace) MarshalBinary() ([]byte, error) {
-	bin := make([]byte, 24)
+	if ns.end == nil {
+		ns.typ = ResXMLEndNamespace
+	} else {
+		ns.typ = ResXMLStartNamespace
+	}
+	ns.headerByteSize = 16
+	ns.byteSize = 24
+
+	bin := make([]byte, ns.byteSize)
 	b, err := ns.NodeHeader.MarshalBinary()
 	if err != nil {
 		return nil, err
@@ -88,6 +96,7 @@ func (el *Element) UnmarshalBinary(buf []byte) error {
 	buf = buf[el.headerByteSize:]
 	el.NS = PoolRef(btou32(buf))
 	el.Name = PoolRef(btou32(buf[4:]))
+
 	el.AttributeStart = btou16(buf[8:])
 	el.AttributeSize = btou16(buf[10:])
 	el.AttributeCount = btou16(buf[12:])
@@ -110,7 +119,17 @@ func (el *Element) UnmarshalBinary(buf []byte) error {
 }
 
 func (el *Element) MarshalBinary() ([]byte, error) {
-	bin := make([]byte, 16+20+len(el.attrs)*int(el.AttributeSize))
+	el.typ = ResXMLStartElement
+	el.headerByteSize = 16
+	el.AttributeSize = 20
+	el.AttributeStart = 20
+	el.AttributeCount = uint16(len(el.attrs))
+	el.IdIndex = 0
+	el.ClassIndex = 0
+	el.StyleIndex = 0
+	el.byteSize = uint32(el.headerByteSize) + uint32(el.AttributeStart) + uint32(len(el.attrs)*int(el.AttributeSize))
+
+	bin := make([]byte, el.byteSize)
 	b, err := el.NodeHeader.MarshalBinary()
 	if err != nil {
 		return nil, err
@@ -154,6 +173,10 @@ func (el *ElementEnd) UnmarshalBinary(bin []byte) error {
 }
 
 func (el *ElementEnd) MarshalBinary() ([]byte, error) {
+	el.typ = ResXMLEndElement
+	el.headerByteSize = 16
+	el.byteSize = 24
+
 	bin := make([]byte, 24)
 	b, err := el.NodeHeader.MarshalBinary()
 	if err != nil {
@@ -209,7 +232,11 @@ func (cdt *CharData) UnmarshalBinary(bin []byte) error {
 }
 
 func (cdt *CharData) MarshalBinary() ([]byte, error) {
-	bin := make([]byte, 28)
+	cdt.typ = ResXMLCharData
+	cdt.headerByteSize = 16
+	cdt.byteSize = 28
+
+	bin := make([]byte, cdt.byteSize)
 	b, err := cdt.NodeHeader.MarshalBinary()
 	if err != nil {
 		return nil, err

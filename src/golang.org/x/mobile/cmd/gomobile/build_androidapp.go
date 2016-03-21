@@ -173,6 +173,8 @@ func goAndroidBuild(pkg *build.Package, androidArchs []string) (map[string]bool,
 			src := dst
 			if arch == "arm" {
 				src = "lib/armeabi/libopenal.so"
+			} else if arch == "arm64" {
+				src = "lib/arm64/libopenal.so"
 			}
 			if err := apkwWriteFile(dst, filepath.Join(ndk.Root(), "openal/"+src)); err != nil {
 				return nil, err

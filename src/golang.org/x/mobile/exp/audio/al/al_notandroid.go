@@ -41,8 +41,32 @@ func alGetInteger(k int) int32 {
 	return int32(C.alGetInteger(C.ALenum(k)))
 }
 
+func alGetIntegerv(k int, v []int32) {
+	C.alGetIntegerv(C.ALenum(k), (*C.ALint)(unsafe.Pointer(&v[0])))
+}
+
 func alGetFloat(k int) float32 {
 	return float32(C.alGetFloat(C.ALenum(k)))
+}
+
+func alGetFloatv(k int, v []float32) {
+	C.alGetFloatv(C.ALenum(k), (*C.ALfloat)(unsafe.Pointer(&v[0])))
+}
+
+func alGetBoolean(k int) bool {
+	return C.alGetBoolean(C.ALenum(k)) == C.AL_TRUE
+}
+
+func alGetBooleanv(k int, v []bool) {
+	val := make([]C.ALboolean, len(v))
+	for i, bv := range v {
+		if bv {
+			val[i] = C.AL_TRUE
+		} else {
+			val[i] = C.AL_FALSE
+		}
+	}
+	C.alGetBooleanv(C.ALenum(k), &val[0])
 }
 
 func alGetString(v int) string {

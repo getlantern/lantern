@@ -5,7 +5,6 @@
 package webdav
 
 import (
-	"encoding/xml"
 	"fmt"
 	"io"
 	"mime"
@@ -13,6 +12,8 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+
+	"golang.org/x/net/webdav/internal/xml"
 )
 
 // Proppatch describes a property update instruction as defined in RFC 4918.
@@ -114,23 +115,23 @@ var liveProps = map[xml.Name]struct {
 	},
 	xml.Name{Space: "DAV:", Local: "getcontentlength"}: {
 		findFn: findContentLength,
-		dir:    true,
+		dir:    false,
 	},
 	xml.Name{Space: "DAV:", Local: "getlastmodified"}: {
 		findFn: findLastModified,
-		dir:    true,
+		dir:    false,
 	},
 	xml.Name{Space: "DAV:", Local: "creationdate"}: {
 		findFn: nil,
-		dir:    true,
+		dir:    false,
 	},
 	xml.Name{Space: "DAV:", Local: "getcontentlanguage"}: {
 		findFn: nil,
-		dir:    true,
+		dir:    false,
 	},
 	xml.Name{Space: "DAV:", Local: "getcontenttype"}: {
 		findFn: findContentType,
-		dir:    true,
+		dir:    false,
 	},
 	xml.Name{Space: "DAV:", Local: "getetag"}: {
 		findFn: findETag,
@@ -357,14 +358,18 @@ func findContentType(fs FileSystem, ls LockSystem, name string, fi os.FileInfo) 
 	defer f.Close()
 	// This implementation is based on serveContent's code in the standard net/http package.
 	ctype := mime.TypeByExtension(filepath.Ext(name))
-	if ctype == "" {
-		// Read a chunk to decide between utf-8 text and binary.
-		var buf [512]byte
-		n, _ := io.ReadFull(f, buf[:])
-		ctype = http.DetectContentType(buf[:n])
-		// Rewind file.
-		_, err = f.Seek(0, os.SEEK_SET)
+	if ctype != "" {
+		return ctype, nil
 	}
+	// Read a chunk to decide between utf-8 text and binary.
+	var buf [512]byte
+	n, err := io.ReadFull(f, buf[:])
+	if err != nil && err != io.EOF && err != io.ErrUnexpectedEOF {
+		return "", err
+	}
+	ctype = http.DetectContentType(buf[:n])
+	// Rewind file.
+	_, err = f.Seek(0, os.SEEK_SET)
 	return ctype, err
 }
 

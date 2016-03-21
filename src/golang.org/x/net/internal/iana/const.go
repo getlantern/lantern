@@ -38,7 +38,7 @@ const (
 	CongestionExperienced = 0x3 // CE (Congestion Experienced)
 )
 
-// Protocol Numbers, Updated: 2015-06-23
+// Protocol Numbers, Updated: 2015-10-06
 const (
 	ProtocolIP             = 0   // IPv4 encapsulation, pseudo protocol number
 	ProtocolHOPOPT         = 0   // IPv6 Hop-by-Hop Option
@@ -54,7 +54,6 @@ const (
 	ProtocolBBNRCCMON      = 10  // BBN RCC Monitoring
 	ProtocolNVPII          = 11  // Network Voice Protocol
 	ProtocolPUP            = 12  // PUP
-	ProtocolARGUS          = 13  // ARGUS
 	ProtocolEMCON          = 14  // EMCON
 	ProtocolXNET           = 15  // Cross Net Debugger
 	ProtocolCHAOS          = 16  // Chaos

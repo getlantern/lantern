@@ -5,6 +5,7 @@
 package bind
 
 import (
+	"fmt"
 	"go/types"
 	"log"
 )
@@ -100,6 +101,52 @@ func isErrorType(t types.Type) bool {
 	return types.Identical(t, types.Universe.Lookup("error").Type())
 }
 
+// isSigSupported returns whether the generators can handle a given
+// function signature
+func isSigSupported(t types.Type) bool {
+	sig := t.(*types.Signature)
+	params := sig.Params()
+	for i := 0; i < params.Len(); i++ {
+		if !isSupported(params.At(i).Type()) {
+			return false
+		}
+	}
+	res := sig.Results()
+	for i := 0; i < res.Len(); i++ {
+		if !isSupported(res.At(i).Type()) {
+			return false
+		}
+	}
+	return true
+}
+
+// isSupported returns whether the generators can handle the type.
+func isSupported(t types.Type) bool {
+	if isErrorType(t) {
+		return true
+	}
+	switch t := t.(type) {
+	case *types.Basic:
+		return true
+	case *types.Slice:
+		switch e := t.Elem().(type) {
+		case *types.Basic:
+			return e.Kind() == types.Uint8
+		}
+	case *types.Pointer:
+		switch t.Elem().(type) {
+		case *types.Named:
+			return true
+		}
+	case *types.Named:
+		switch t.Underlying().(type) {
+		case *types.Interface, *types.Pointer:
+			return true
+		}
+	}
+	return false
+}
+
 func isExported(t types.Type) bool {
 	if isErrorType(t) {
 		return true
@@ -113,5 +160,24 @@ func isExported(t types.Type) bool {
 		return isExported(t.Elem())
 	default:
 		return true
+	}
+}
+
+func isRefType(t types.Type) bool {
+	if isErrorType(t) {
+		return false
+	}
+	switch t := t.(type) {
+	case *types.Named:
+		switch u := t.Underlying().(type) {
+		case *types.Interface:
+			return true
+		default:
+			panic(fmt.Sprintf("unsupported named type: %s / %T", u, u))
+		}
+	case *types.Pointer:
+		return isRefType(t.Elem())
+	default:
+		return false
 	}
 }

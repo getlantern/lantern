@@ -179,6 +179,12 @@ HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 urlConnection.setRequestProperty("Connection", "close");
 ```
 
+## Building Lantern for running on a server
+To run Lantern on a server, you simply need to set a flag to build it in headless mode and then tell it to run on any local address as opposed to binding to localhost (so that it's accessible from other machines). You can do this as follows:
+
+1. ```HEADLESS=true make docker-linux``` or, if you're already running on Linux just ```HEADLESS=true make linux```
+1. ```./lantern_linux_amd64 --addr 0.0.0.0:8787``` or ```./lantern_linux_386 --addr 0.0.0.0:8787```
+
 ## Other
 ### Generating assets
 
@@ -235,6 +241,10 @@ Please, go to [README-dev](README-dev.md) for an in-depth explanation of the Lan
 ### Release README
 
 Please visit [README-release](README-release.md) for details on building release versions of Lantern.
+
+### Translations README
+
+More info for dealing with translations is available in [README-translations](README-translations.md).
 
 ### Contributing changes
 Lantern is a [gost](https://github.com/getlantern/gost) project that

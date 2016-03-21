@@ -337,6 +337,7 @@ package-darwin-manoto: require-version require-appdmg require-svgexport darwin
 		INSTALLER_RESOURCES="installer-resources/darwin" && \
 		rm -rf Lantern.app && \
 		cp -r $$INSTALLER_RESOURCES/Lantern.app_template Lantern.app && \
+		sed -i '' "s/VERSION_STRING/$$VERSION.$(REVISION_DATE)/" Lantern.app/Contents/Info.plist && \
 		mkdir Lantern.app/Contents/MacOS && \
 		cp -r lantern_darwin_amd64 Lantern.app/Contents/MacOS/lantern && \
 		mkdir Lantern.app/Contents/Resources/en.lproj && \

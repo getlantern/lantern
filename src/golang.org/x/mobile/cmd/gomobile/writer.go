@@ -74,6 +74,8 @@ import (
 	"fmt"
 	"hash"
 	"io"
+
+	"golang.org/x/mobile/internal/binres"
 )
 
 // NewWriter returns a new Writer writing an APK file to w.
@@ -234,7 +236,11 @@ func (w *Writer) clearCur() error {
 	}
 	if w.cur.name == "AndroidManifest.xml" {
 		buf := w.cur.w.(*bytes.Buffer)
-		b, err := binaryXML(buf)
+		bxml, err := binres.UnmarshalXML(buf)
+		if err != nil {
+			return err
+		}
+		b, err := bxml.MarshalBinary()
 		if err != nil {
 			return err
 		}

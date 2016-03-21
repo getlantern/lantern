@@ -9,6 +9,7 @@ import (
 	"net"
 	"reflect"
 	"runtime"
+	"strings"
 	"testing"
 )
 
@@ -110,5 +111,9 @@ func TestParseHeader(t *testing.T) {
 	}
 	if !reflect.DeepEqual(h, testHeader) {
 		t.Fatalf("got %#v; want %#v", h, testHeader)
+	}
+	s := h.String()
+	if strings.Contains(s, ",") {
+		t.Fatalf("should be space-separated values: %s", s)
 	}
 }

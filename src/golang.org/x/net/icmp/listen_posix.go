@@ -89,9 +89,9 @@ func ListenPacket(network, address string) (*PacketConn, error) {
 	}
 	switch proto {
 	case iana.ProtocolICMP:
-		return &PacketConn{c: c, ipc: ipv4.NewPacketConn(c)}, nil
+		return &PacketConn{c: c, p4: ipv4.NewPacketConn(c)}, nil
 	case iana.ProtocolIPv6ICMP:
-		return &PacketConn{c: c, ipc: ipv6.NewPacketConn(c)}, nil
+		return &PacketConn{c: c, p6: ipv6.NewPacketConn(c)}, nil
 	default:
 		return &PacketConn{c: c}, nil
 	}

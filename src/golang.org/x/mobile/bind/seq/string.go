@@ -4,12 +4,7 @@
 
 package seq
 
-import (
-	"errors"
-	"fmt"
-	"unicode/utf16"
-	"unsafe"
-)
+import "unicode/utf16"
 
 // Based heavily on package unicode/utf16 from the Go standard library.
 
@@ -29,22 +24,10 @@ const (
 	surrSelf = 0x10000
 )
 
-func writeUint16(b []byte, v rune) {
-	*(*uint16)(unsafe.Pointer(&b[0])) = uint16(v)
-}
-
-func (b *Buffer) WriteUTF16(s string) {
-	// The first 4 bytes is the length, as int32 (4-byte aligned).
-	// written last.
-	// The next n bytes is utf-16 string (1-byte aligned).
-	offset0 := align(b.Offset, 4)  // length.
-	offset1 := align(offset0+4, 1) // contents.
-
-	if len(b.Data)-offset1 < 4*len(s) {
-		// worst case estimate, everything is surrogate pair
-		b.grow(offset1 + 4*len(s) - len(b.Data))
-	}
-	data := b.Data[offset1:]
+// UTF16Encode utf16 encodes s into chars. It returns the resulting
+// length in units of uint16. It is assumed that the chars slice
+// has enough room for the encoded string.
+func UTF16Encode(s string, chars []uint16) int {
 	n := 0
 	for _, v := range s {
 		switch {
@@ -52,72 +35,15 @@ func (b *Buffer) WriteUTF16(s string) {
 			v = replacementChar
 			fallthrough
 		case v < surrSelf:
-			writeUint16(data[n:], v)
-			n += 2
+			chars[n] = uint16(v)
+			n += 1
 		default:
 			// surrogate pair, two uint16 values
 			r1, r2 := utf16.EncodeRune(v)
-			writeUint16(data[n:], r1)
-			writeUint16(data[n+2:], r2)
-			n += 4
+			chars[n] = uint16(r1)
+			chars[n+1] = uint16(r2)
+			n += 2
 		}
 	}
-
-	// write length at b.Data[b.Offset:], before contents.
-	// length is number of uint16 values, not number of bytes.
-	b.WriteInt32(int32(n / 2))
-
-	b.Offset = offset1 + n
-}
-
-func (b *Buffer) WriteUTF8(s string) {
-	n := len(s)
-	b.WriteInt32(int32(n))
-	if len(s) == 0 {
-		return
-	}
-	offset := align(b.Offset, 1)
-	if len(b.Data)-offset < n {
-		b.grow(offset + n - len(b.Data))
-	}
-	copy(b.Data[offset:], s)
-	b.Offset = offset + n
-}
-
-const maxSliceLen = (1<<31 - 1) / 2
-
-func (b *Buffer) ReadError() error {
-	if s := b.ReadString(); s != "" {
-		return errors.New(s)
-	}
-	return nil
-}
-
-func (b *Buffer) ReadUTF16() string {
-	size := int(b.ReadInt32())
-	if size == 0 {
-		return ""
-	}
-	if size < 0 {
-		panic(fmt.Sprintf("string size negative: %d", size))
-	}
-	offset := align(b.Offset, 1)
-	u := (*[maxSliceLen]uint16)(unsafe.Pointer(&b.Data[offset]))[:size]
-	s := string(utf16.Decode(u)) // TODO: save the []rune alloc
-	b.Offset = offset + 2*size
-
-	return s
-}
-
-func (b *Buffer) ReadUTF8() string {
-	size := int(b.ReadInt32())
-	if size == 0 {
-		return ""
-	}
-	if size < 0 {
-		panic(fmt.Sprintf("string size negative: %d", size))
-	}
-	offset := align(b.Offset, 1)
-	b.Offset = offset + size
-	return string(b.Data[offset : offset+size])
+	return n
 }

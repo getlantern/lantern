@@ -5,7 +5,6 @@
 package webdav
 
 import (
-	"encoding/xml"
 	"io"
 	"net/http"
 	"os"
@@ -14,6 +13,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"golang.org/x/net/webdav/internal/xml"
 )
 
 // slashClean is equivalent to but slightly more efficient than
