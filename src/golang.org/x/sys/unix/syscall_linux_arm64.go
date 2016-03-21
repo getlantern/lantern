@@ -70,7 +70,6 @@ func Lstat(path string, stat *Stat_t) (err error) {
 func Getpagesize() int { return 65536 }
 
 //sysnb	Gettimeofday(tv *Timeval) (err error)
-//sysnb	Time(t *Time_t) (tt Time_t, err error)
 
 func TimespecToNsec(ts Timespec) int64 { return int64(ts.Sec)*1e9 + int64(ts.Nsec) }
 
@@ -87,6 +86,26 @@ func NsecToTimeval(nsec int64) (tv Timeval) {
 	tv.Sec = nsec / 1e9
 	tv.Usec = nsec % 1e9 / 1e3
 	return
+}
+
+func Time(t *Time_t) (Time_t, error) {
+	var tv Timeval
+	err := Gettimeofday(&tv)
+	if err != nil {
+		return 0, err
+	}
+	if t != nil {
+		*t = Time_t(tv.Sec)
+	}
+	return Time_t(tv.Sec), nil
+}
+
+func Utime(path string, buf *Utimbuf) error {
+	tv := []Timeval{
+		{Sec: buf.Actime},
+		{Sec: buf.Modtime},
+	}
+	return Utimes(path, tv)
 }
 
 func Pipe(p []int) (err error) {
@@ -131,6 +150,10 @@ func (cmsg *Cmsghdr) SetLen(length int) {
 
 func InotifyInit() (fd int, err error) {
 	return InotifyInit1(0)
+}
+
+func Dup2(oldfd int, newfd int) (err error) {
+	return Dup3(oldfd, newfd, 0)
 }
 
 // TODO(dfc): constants that should be in zsysnum_linux_arm64.go, remove

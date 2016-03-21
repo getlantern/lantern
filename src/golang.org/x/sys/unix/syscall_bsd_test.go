@@ -7,6 +7,7 @@
 package unix_test
 
 import (
+	"runtime"
 	"testing"
 
 	"golang.org/x/sys/unix"
@@ -31,5 +32,16 @@ func TestGetfsstat(t *testing.T) {
 		if stat == empty {
 			t.Fatal("an empty Statfs_t struct was returned")
 		}
+	}
+}
+
+func TestSysctlRaw(t *testing.T) {
+	if runtime.GOOS == "openbsd" {
+		t.Skip("kern.proc.pid does not exist on OpenBSD")
+	}
+
+	_, err := unix.SysctlRaw("kern.proc.pid", unix.Getpid())
+	if err != nil {
+		t.Fatal(err)
 	}
 }

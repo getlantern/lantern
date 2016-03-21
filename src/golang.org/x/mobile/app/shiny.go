@@ -39,8 +39,8 @@ func main(f func(a App)) {
 
 		go f(theApp)
 
-		for e := range w.Events() {
-			theApp.Send(convertEvent(e))
+		for {
+			theApp.Send(convertEvent(w.NextEvent()))
 		}
 	})
 }

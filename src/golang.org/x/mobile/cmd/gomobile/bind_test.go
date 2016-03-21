@@ -106,15 +106,27 @@ rm -r -f "$WORK/fakegopath"
 mkdir -p $WORK/fakegopath/pkg
 cp $GOMOBILE/pkg_android_arm/golang.org/x/mobile/asset.a $WORK/fakegopath/pkg/android_arm/golang.org/x/mobile/asset.a
 mkdir -p $WORK/fakegopath/pkg/android_arm/golang.org/x/mobile
-mkdir -p $WORK/go_asset
-gobind -lang=go -outdir=$WORK/go_asset golang.org/x/mobile/asset
+mkdir -p $WORK/gomobile_bind
+gobind -lang=go -outdir=$WORK/gomobile_bind golang.org/x/mobile/asset
 mkdir -p $WORK/androidlib
-GOOS=android GOARCH=arm CC=$GOMOBILE/android-{{.NDK}}/arm/bin/arm-linux-androideabi-gcc{{.EXE}} CXX=$GOMOBILE/android-{{.NDK}}/arm/bin/arm-linux-androideabi-g++{{.EXE}} CGO_ENABLED=1 GOARM=7 go build -p={{.NumCPU}} -pkgdir=$GOMOBILE/pkg_android_arm -tags="" -x -buildmode=c-shared -o=$WORK/android/src/main/jniLibs/armeabi-v7a/libgojni.so $WORK/androidlib/main.go
 mkdir -p $WORK/android/src/main/java/{{.JavaPkgDir}}
 {{.GobindJavaCmd}} -outdir=$WORK/android/src/main/java/{{.JavaPkgDir}} golang.org/x/mobile/asset
+mkdir -p $WORK/gomobile_bind
+mkdir -p $WORK/gomobile_bind
+cp $GOPATH/src/golang.org/x/mobile/bind/java/seq_android.go.support $WORK/gomobile_bind/seq_android.go
+mkdir -p $WORK/gomobile_bind
+cp $GOPATH/src/golang.org/x/mobile/bind/java/seq_android.c.support $WORK/gomobile_bind/seq_android.c
+mkdir -p $WORK/gomobile_bind
+cp $GOPATH/src/golang.org/x/mobile/bind/java/seq.h $WORK/gomobile_bind/seq.h
+mkdir -p $WORK/gomobile_bind
+cp $GOPATH/src/golang.org/x/mobile/bind/seq.go.support $WORK/gomobile_bind/seq.go
+mkdir -p $WORK/gomobile_bind
 mkdir -p $WORK/android/src/main/java/go
+GOOS=android GOARCH=arm CC=$GOMOBILE/android-{{.NDK}}/arm/bin/arm-linux-androideabi-gcc{{.EXE}} CXX=$GOMOBILE/android-{{.NDK}}/arm/bin/arm-linux-androideabi-g++{{.EXE}} CGO_ENABLED=1 GOARM=7 go build -p={{.NumCPU}} -pkgdir=$GOMOBILE/pkg_android_arm -tags="" -x -buildmode=c-shared -o=$WORK/android/src/main/jniLibs/armeabi-v7a/libgojni.so $WORK/androidlib/main.go
 rm $WORK/android/src/main/java/go/Seq.java
 ln -s $GOPATH/src/golang.org/x/mobile/bind/java/Seq.java $WORK/android/src/main/java/go/Seq.java
+rm $WORK/android/src/main/java/go/LoadJNI.java
+ln -s $GOPATH/src/golang.org/x/mobile/bind/java/LoadJNI.java $WORK/android/src/main/java/go/LoadJNI.java
 PWD=$WORK/android/src/main/java javac -d $WORK/javac-output -source 1.7 -target 1.7 -bootclasspath {{.AndroidPlatform}}/android.jar *.java
 jar c -C $WORK/javac-output .
 `))

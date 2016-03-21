@@ -86,6 +86,7 @@ const (
 	BIOCSBLEN                         = 0xc0044266
 	BIOCSDLT                          = 0x80044278
 	BIOCSETF                          = 0x80104267
+	BIOCSETFNR                        = 0x8010427e
 	BIOCSETIF                         = 0x8020426c
 	BIOCSHDRCMPLT                     = 0x80044275
 	BIOCSRSIG                         = 0x80044273
@@ -152,33 +153,168 @@ const (
 	CSUSP                             = 0x1a
 	CTL_MAXNAME                       = 0xc
 	CTL_NET                           = 0x4
+	DLT_A429                          = 0xb8
+	DLT_A653_ICM                      = 0xb9
+	DLT_AIRONET_HEADER                = 0x78
+	DLT_AOS                           = 0xde
 	DLT_APPLE_IP_OVER_IEEE1394        = 0x8a
 	DLT_ARCNET                        = 0x7
+	DLT_ARCNET_LINUX                  = 0x81
 	DLT_ATM_CLIP                      = 0x13
 	DLT_ATM_RFC1483                   = 0xb
+	DLT_AURORA                        = 0x7e
 	DLT_AX25                          = 0x3
+	DLT_AX25_KISS                     = 0xca
+	DLT_BACNET_MS_TP                  = 0xa5
+	DLT_BLUETOOTH_HCI_H4              = 0xbb
+	DLT_BLUETOOTH_HCI_H4_WITH_PHDR    = 0xc9
+	DLT_CAN20B                        = 0xbe
+	DLT_CAN_SOCKETCAN                 = 0xe3
 	DLT_CHAOS                         = 0x5
 	DLT_CHDLC                         = 0x68
+	DLT_CISCO_IOS                     = 0x76
 	DLT_C_HDLC                        = 0x68
+	DLT_C_HDLC_WITH_DIR               = 0xcd
+	DLT_DBUS                          = 0xe7
+	DLT_DECT                          = 0xdd
+	DLT_DOCSIS                        = 0x8f
+	DLT_DVB_CI                        = 0xeb
+	DLT_ECONET                        = 0x73
 	DLT_EN10MB                        = 0x1
 	DLT_EN3MB                         = 0x2
+	DLT_ENC                           = 0x6d
+	DLT_ERF                           = 0xc5
+	DLT_ERF_ETH                       = 0xaf
+	DLT_ERF_POS                       = 0xb0
+	DLT_FC_2                          = 0xe0
+	DLT_FC_2_WITH_FRAME_DELIMS        = 0xe1
 	DLT_FDDI                          = 0xa
+	DLT_FLEXRAY                       = 0xd2
+	DLT_FRELAY                        = 0x6b
+	DLT_FRELAY_WITH_DIR               = 0xce
+	DLT_GCOM_SERIAL                   = 0xad
+	DLT_GCOM_T1E1                     = 0xac
+	DLT_GPF_F                         = 0xab
+	DLT_GPF_T                         = 0xaa
+	DLT_GPRS_LLC                      = 0xa9
+	DLT_GSMTAP_ABIS                   = 0xda
+	DLT_GSMTAP_UM                     = 0xd9
+	DLT_HHDLC                         = 0x79
+	DLT_IBM_SN                        = 0x92
+	DLT_IBM_SP                        = 0x91
 	DLT_IEEE802                       = 0x6
 	DLT_IEEE802_11                    = 0x69
 	DLT_IEEE802_11_RADIO              = 0x7f
 	DLT_IEEE802_11_RADIO_AVS          = 0xa3
+	DLT_IEEE802_15_4                  = 0xc3
+	DLT_IEEE802_15_4_LINUX            = 0xbf
+	DLT_IEEE802_15_4_NOFCS            = 0xe6
+	DLT_IEEE802_15_4_NONASK_PHY       = 0xd7
+	DLT_IEEE802_16_MAC_CPS            = 0xbc
+	DLT_IEEE802_16_MAC_CPS_RADIO      = 0xc1
+	DLT_IPFILTER                      = 0x74
+	DLT_IPMB                          = 0xc7
+	DLT_IPMB_LINUX                    = 0xd1
+	DLT_IPNET                         = 0xe2
+	DLT_IPOIB                         = 0xf2
+	DLT_IPV4                          = 0xe4
+	DLT_IPV6                          = 0xe5
+	DLT_IP_OVER_FC                    = 0x7a
+	DLT_JUNIPER_ATM1                  = 0x89
+	DLT_JUNIPER_ATM2                  = 0x87
+	DLT_JUNIPER_ATM_CEMIC             = 0xee
+	DLT_JUNIPER_CHDLC                 = 0xb5
+	DLT_JUNIPER_ES                    = 0x84
+	DLT_JUNIPER_ETHER                 = 0xb2
+	DLT_JUNIPER_FIBRECHANNEL          = 0xea
+	DLT_JUNIPER_FRELAY                = 0xb4
+	DLT_JUNIPER_GGSN                  = 0x85
+	DLT_JUNIPER_ISM                   = 0xc2
+	DLT_JUNIPER_MFR                   = 0x86
+	DLT_JUNIPER_MLFR                  = 0x83
+	DLT_JUNIPER_MLPPP                 = 0x82
+	DLT_JUNIPER_MONITOR               = 0xa4
+	DLT_JUNIPER_PIC_PEER              = 0xae
+	DLT_JUNIPER_PPP                   = 0xb3
+	DLT_JUNIPER_PPPOE                 = 0xa7
+	DLT_JUNIPER_PPPOE_ATM             = 0xa8
+	DLT_JUNIPER_SERVICES              = 0x88
+	DLT_JUNIPER_SRX_E2E               = 0xe9
+	DLT_JUNIPER_ST                    = 0xc8
+	DLT_JUNIPER_VP                    = 0xb7
+	DLT_JUNIPER_VS                    = 0xe8
+	DLT_LAPB_WITH_DIR                 = 0xcf
+	DLT_LAPD                          = 0xcb
+	DLT_LIN                           = 0xd4
+	DLT_LINUX_EVDEV                   = 0xd8
+	DLT_LINUX_IRDA                    = 0x90
+	DLT_LINUX_LAPD                    = 0xb1
+	DLT_LINUX_PPP_WITHDIRECTION       = 0xa6
 	DLT_LINUX_SLL                     = 0x71
 	DLT_LOOP                          = 0x6c
+	DLT_LTALK                         = 0x72
+	DLT_MATCHING_MAX                  = 0xf5
+	DLT_MATCHING_MIN                  = 0x68
+	DLT_MFR                           = 0xb6
+	DLT_MOST                          = 0xd3
+	DLT_MPEG_2_TS                     = 0xf3
+	DLT_MPLS                          = 0xdb
+	DLT_MTP2                          = 0x8c
+	DLT_MTP2_WITH_PHDR                = 0x8b
+	DLT_MTP3                          = 0x8d
+	DLT_MUX27010                      = 0xec
+	DLT_NETANALYZER                   = 0xf0
+	DLT_NETANALYZER_TRANSPARENT       = 0xf1
+	DLT_NFC_LLCP                      = 0xf5
+	DLT_NFLOG                         = 0xef
+	DLT_NG40                          = 0xf4
 	DLT_NULL                          = 0x0
+	DLT_PCI_EXP                       = 0x7d
 	DLT_PFLOG                         = 0x75
 	DLT_PFSYNC                        = 0x12
+	DLT_PPI                           = 0xc0
 	DLT_PPP                           = 0x9
 	DLT_PPP_BSDOS                     = 0x10
+	DLT_PPP_ETHER                     = 0x33
+	DLT_PPP_PPPD                      = 0xa6
 	DLT_PPP_SERIAL                    = 0x32
+	DLT_PPP_WITH_DIR                  = 0xcc
+	DLT_PPP_WITH_DIRECTION            = 0xa6
+	DLT_PRISM_HEADER                  = 0x77
 	DLT_PRONET                        = 0x4
+	DLT_RAIF1                         = 0xc6
 	DLT_RAW                           = 0xc
+	DLT_RIO                           = 0x7c
+	DLT_SCCP                          = 0x8e
+	DLT_SITA                          = 0xc4
 	DLT_SLIP                          = 0x8
 	DLT_SLIP_BSDOS                    = 0xf
+	DLT_STANAG_5066_D_PDU             = 0xed
+	DLT_SUNATM                        = 0x7b
+	DLT_SYMANTEC_FIREWALL             = 0x63
+	DLT_TZSP                          = 0x80
+	DLT_USB                           = 0xba
+	DLT_USB_LINUX                     = 0xbd
+	DLT_USB_LINUX_MMAPPED             = 0xdc
+	DLT_USER0                         = 0x93
+	DLT_USER1                         = 0x94
+	DLT_USER10                        = 0x9d
+	DLT_USER11                        = 0x9e
+	DLT_USER12                        = 0x9f
+	DLT_USER13                        = 0xa0
+	DLT_USER14                        = 0xa1
+	DLT_USER15                        = 0xa2
+	DLT_USER2                         = 0x95
+	DLT_USER3                         = 0x96
+	DLT_USER4                         = 0x97
+	DLT_USER5                         = 0x98
+	DLT_USER6                         = 0x99
+	DLT_USER7                         = 0x9a
+	DLT_USER8                         = 0x9b
+	DLT_USER9                         = 0x9c
+	DLT_WIHART                        = 0xdf
+	DLT_X2E_SERIAL                    = 0xd5
+	DLT_X2E_XORAYA                    = 0xd6
 	DT_BLK                            = 0x6
 	DT_CHR                            = 0x2
 	DT_DIR                            = 0x4
@@ -347,6 +483,7 @@ const (
 	IFT_PDP                           = 0xff
 	IFT_PFLOG                         = 0xf5
 	IFT_PFSYNC                        = 0xf6
+	IFT_PKTAP                         = 0xfe
 	IFT_PPP                           = 0x17
 	IFT_PROPMUX                       = 0x36
 	IFT_PROPVIRTUAL                   = 0x35
@@ -515,7 +652,7 @@ const (
 	IPV6_FAITH                        = 0x1d
 	IPV6_FLOWINFO_MASK                = 0xffffff0f
 	IPV6_FLOWLABEL_MASK               = 0xffff0f00
-	IPV6_FRAGTTL                      = 0x78
+	IPV6_FRAGTTL                      = 0x3c
 	IPV6_FW_ADD                       = 0x1e
 	IPV6_FW_DEL                       = 0x1f
 	IPV6_FW_FLUSH                     = 0x20
@@ -830,6 +967,7 @@ const (
 	RTF_LOCAL                         = 0x200000
 	RTF_MODIFIED                      = 0x20
 	RTF_MULTICAST                     = 0x800000
+	RTF_NOIFREF                       = 0x2000
 	RTF_PINNED                        = 0x100000
 	RTF_PRCLONING                     = 0x10000
 	RTF_PROTO1                        = 0x8000
@@ -1291,3 +1429,148 @@ const (
 	SIGXCPU   = syscall.Signal(0x18)
 	SIGXFSZ   = syscall.Signal(0x19)
 )
+
+// Error table
+var errors = [...]string{
+	1:   "operation not permitted",
+	2:   "no such file or directory",
+	3:   "no such process",
+	4:   "interrupted system call",
+	5:   "input/output error",
+	6:   "device not configured",
+	7:   "argument list too long",
+	8:   "exec format error",
+	9:   "bad file descriptor",
+	10:  "no child processes",
+	11:  "resource deadlock avoided",
+	12:  "cannot allocate memory",
+	13:  "permission denied",
+	14:  "bad address",
+	15:  "block device required",
+	16:  "resource busy",
+	17:  "file exists",
+	18:  "cross-device link",
+	19:  "operation not supported by device",
+	20:  "not a directory",
+	21:  "is a directory",
+	22:  "invalid argument",
+	23:  "too many open files in system",
+	24:  "too many open files",
+	25:  "inappropriate ioctl for device",
+	26:  "text file busy",
+	27:  "file too large",
+	28:  "no space left on device",
+	29:  "illegal seek",
+	30:  "read-only file system",
+	31:  "too many links",
+	32:  "broken pipe",
+	33:  "numerical argument out of domain",
+	34:  "result too large",
+	35:  "resource temporarily unavailable",
+	36:  "operation now in progress",
+	37:  "operation already in progress",
+	38:  "socket operation on non-socket",
+	39:  "destination address required",
+	40:  "message too long",
+	41:  "protocol wrong type for socket",
+	42:  "protocol not available",
+	43:  "protocol not supported",
+	44:  "socket type not supported",
+	45:  "operation not supported",
+	46:  "protocol family not supported",
+	47:  "address family not supported by protocol family",
+	48:  "address already in use",
+	49:  "can't assign requested address",
+	50:  "network is down",
+	51:  "network is unreachable",
+	52:  "network dropped connection on reset",
+	53:  "software caused connection abort",
+	54:  "connection reset by peer",
+	55:  "no buffer space available",
+	56:  "socket is already connected",
+	57:  "socket is not connected",
+	58:  "can't send after socket shutdown",
+	59:  "too many references: can't splice",
+	60:  "operation timed out",
+	61:  "connection refused",
+	62:  "too many levels of symbolic links",
+	63:  "file name too long",
+	64:  "host is down",
+	65:  "no route to host",
+	66:  "directory not empty",
+	67:  "too many processes",
+	68:  "too many users",
+	69:  "disc quota exceeded",
+	70:  "stale NFS file handle",
+	71:  "too many levels of remote in path",
+	72:  "RPC struct is bad",
+	73:  "RPC version wrong",
+	74:  "RPC prog. not avail",
+	75:  "program version wrong",
+	76:  "bad procedure for program",
+	77:  "no locks available",
+	78:  "function not implemented",
+	79:  "inappropriate file type or format",
+	80:  "authentication error",
+	81:  "need authenticator",
+	82:  "device power is off",
+	83:  "device error",
+	84:  "value too large to be stored in data type",
+	85:  "bad executable (or shared library)",
+	86:  "bad CPU type in executable",
+	87:  "shared library version mismatch",
+	88:  "malformed Mach-o file",
+	89:  "operation canceled",
+	90:  "identifier removed",
+	91:  "no message of desired type",
+	92:  "illegal byte sequence",
+	93:  "attribute not found",
+	94:  "bad message",
+	95:  "EMULTIHOP (Reserved)",
+	96:  "no message available on STREAM",
+	97:  "ENOLINK (Reserved)",
+	98:  "no STREAM resources",
+	99:  "not a STREAM",
+	100: "protocol error",
+	101: "STREAM ioctl timeout",
+	102: "operation not supported on socket",
+	103: "policy not found",
+	104: "state not recoverable",
+	105: "previous owner died",
+	106: "interface output queue is full",
+}
+
+// Signal table
+var signals = [...]string{
+	1:  "hangup",
+	2:  "interrupt",
+	3:  "quit",
+	4:  "illegal instruction",
+	5:  "trace/BPT trap",
+	6:  "abort trap",
+	7:  "EMT trap",
+	8:  "floating point exception",
+	9:  "killed",
+	10: "bus error",
+	11: "segmentation fault",
+	12: "bad system call",
+	13: "broken pipe",
+	14: "alarm clock",
+	15: "terminated",
+	16: "urgent I/O condition",
+	17: "suspended (signal)",
+	18: "suspended",
+	19: "continued",
+	20: "child exited",
+	21: "stopped (tty input)",
+	22: "stopped (tty output)",
+	23: "I/O possible",
+	24: "cputime limit exceeded",
+	25: "filesize limit exceeded",
+	26: "virtual timer expired",
+	27: "profiling timer expired",
+	28: "window size changes",
+	29: "information request",
+	30: "user defined signal 1",
+	31: "user defined signal 2",
+}

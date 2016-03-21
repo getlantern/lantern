@@ -67,21 +67,44 @@ func (v Orientation) slice() []float32 {
 	return []float32{v.Forward[0], v.Forward[1], v.Forward[2], v.Up[0], v.Up[1], v.Up[2]}
 }
 
-func geti(param int) int32 {
+// Geti returns the int32 value of the given parameter.
+func Geti(param int) int32 {
 	return alGetInteger(param)
 }
 
-func getf(param int) float32 {
+// Getiv returns the int32 vector value of the given parameter.
+func Getiv(param int, v []int32) {
+	alGetIntegerv(param, v)
+}
+
+// Getf returns the float32 value of the given parameter.
+func Getf(param int) float32 {
 	return alGetFloat(param)
 }
 
-func getString(param int) string {
+// Getfv returns the float32 vector value of the given parameter.
+func Getfv(param int, v []float32) {
+	alGetFloatv(param, v[:])
+}
+
+// Getb returns the bool value of the given parameter.
+func Getb(param int) bool {
+	return alGetBoolean(param)
+}
+
+// Getbv returns the bool vector value of the given parameter.
+func Getbv(param int, v []bool) {
+	alGetBooleanv(param, v)
+}
+
+// GetString returns the string value of the given parameter.
+func GetString(param int) string {
 	return alGetString(param)
 }
 
 // DistanceModel returns the distance model.
 func DistanceModel() int32 {
-	return geti(paramDistanceModel)
+	return Geti(paramDistanceModel)
 }
 
 // SetDistanceModel sets the distance model.
@@ -91,7 +114,7 @@ func SetDistanceModel(v int32) {
 
 // DopplerFactor returns the doppler factor.
 func DopplerFactor() float32 {
-	return getf(paramDopplerFactor)
+	return Getf(paramDopplerFactor)
 }
 
 // SetDopplerFactor sets the doppler factor.
@@ -101,7 +124,7 @@ func SetDopplerFactor(v float32) {
 
 // DopplerVelocity returns the doppler velocity.
 func DopplerVelocity() float32 {
-	return getf(paramDopplerVelocity)
+	return Getf(paramDopplerVelocity)
 }
 
 // SetDopplerVelocity sets the doppler velocity.
@@ -111,7 +134,7 @@ func SetDopplerVelocity(v float32) {
 
 // SpeedOfSound is the speed of sound in meters per second (m/s).
 func SpeedOfSound() float32 {
-	return getf(paramSpeedOfSound)
+	return Getf(paramSpeedOfSound)
 }
 
 // SetSpeedOfSound sets the speed of sound, its unit should be meters per second (m/s).
@@ -121,22 +144,22 @@ func SetSpeedOfSound(v float32) {
 
 // Vendor returns the vendor.
 func Vendor() string {
-	return getString(paramVendor)
+	return GetString(paramVendor)
 }
 
 // Version returns the version string.
 func Version() string {
-	return getString(paramVersion)
+	return GetString(paramVersion)
 }
 
 // Renderer returns the renderer information.
 func Renderer() string {
-	return getString(paramRenderer)
+	return GetString(paramRenderer)
 }
 
 // Extensions returns the enabled extensions.
 func Extensions() string {
-	return getString(paramExtensions)
+	return GetString(paramExtensions)
 }
 
 // Error returns the most recently generated error.
@@ -182,121 +205,127 @@ func DeleteSources(source ...Source) {
 
 // Gain returns the source gain.
 func (s Source) Gain() float32 {
-	return getSourcef(s, paramGain)
+	return s.Getf(paramGain)
 }
 
 // SetGain sets the source gain.
 func (s Source) SetGain(v float32) {
-	setSourcef(s, paramGain, v)
+	s.Setf(paramGain, v)
 }
 
 // MinGain returns the source's minimum gain setting.
 func (s Source) MinGain() float32 {
-	return getSourcef(s, paramMinGain)
+	return s.Getf(paramMinGain)
 }
 
 // SetMinGain sets the source's minimum gain setting.
 func (s Source) SetMinGain(v float32) {
-	setSourcef(s, paramMinGain, v)
+	s.Setf(paramMinGain, v)
 }
 
 // MaxGain returns the source's maximum gain setting.
 func (s Source) MaxGain() float32 {
-	return getSourcef(s, paramMaxGain)
+	return s.Getf(paramMaxGain)
 }
 
 // SetMaxGain sets the source's maximum gain setting.
 func (s Source) SetMaxGain(v float32) {
-	setSourcef(s, paramMaxGain, v)
+	s.Setf(paramMaxGain, v)
 }
 
 // Position returns the position of the source.
 func (s Source) Position() Vector {
 	v := Vector{}
-	getSourcefv(s, paramPosition, v[:])
+	s.Getfv(paramPosition, v[:])
 	return v
 }
 
 // SetPosition sets the position of the source.
 func (s Source) SetPosition(v Vector) {
-	setSourcefv(s, paramPosition, v[:])
+	s.Setfv(paramPosition, v[:])
 }
 
 // Velocity returns the source's velocity.
 func (s Source) Velocity() Vector {
 	v := Vector{}
-	getSourcefv(s, paramVelocity, v[:])
+	s.Getfv(paramVelocity, v[:])
 	return v
 }
 
 // SetVelocity sets the source's velocity.
 func (s Source) SetVelocity(v Vector) {
-	setSourcefv(s, paramVelocity, v[:])
+	s.Setfv(paramVelocity, v[:])
 }
 
 // Orientation returns the orientation of the source.
 func (s Source) Orientation() Orientation {
 	v := make([]float32, 6)
-	getSourcefv(s, paramOrientation, v)
+	s.Getfv(paramOrientation, v)
 	return orientationFromSlice(v)
 }
 
 // SetOrientation sets the orientation of the source.
 func (s Source) SetOrientation(o Orientation) {
-	setSourcefv(s, paramOrientation, o.slice())
+	s.Setfv(paramOrientation, o.slice())
 }
 
 // State returns the playing state of the source.
 func (s Source) State() int32 {
-	return getSourcei(s, paramSourceState)
+	return s.Geti(paramSourceState)
 }
 
 // BuffersQueued returns the number of the queued buffers.
 func (s Source) BuffersQueued() int32 {
-	return getSourcei(s, paramBuffersQueued)
+	return s.Geti(paramBuffersQueued)
 }
 
 // BuffersProcessed returns the number of the processed buffers.
 func (s Source) BuffersProcessed() int32 {
-	return getSourcei(s, paramBuffersProcessed)
+	return s.Geti(paramBuffersProcessed)
 }
 
 // OffsetSeconds returns the current playback position of the source in seconds.
 func (s Source) OffsetSeconds() int32 {
-	return getSourcei(s, paramSecOffset)
+	return s.Geti(paramSecOffset)
 }
 
 // OffsetSample returns the sample offset of the current playback position.
 func (s Source) OffsetSample() int32 {
-	return getSourcei(s, paramSampleOffset)
+	return s.Geti(paramSampleOffset)
 }
 
 // OffsetByte returns the byte offset of the current playback position.
 func (s Source) OffsetByte() int32 {
-	return getSourcei(s, paramByteOffset)
+	return s.Geti(paramByteOffset)
 }
 
-func getSourcei(s Source, param int) int32 {
+// Geti returns the int32 value of the given parameter.
+func (s Source) Geti(param int) int32 {
 	return alGetSourcei(s, param)
 }
 
-func getSourcef(s Source, param int) float32 {
+// Getf returns the float32 value of the given parameter.
+func (s Source) Getf(param int) float32 {
 	return alGetSourcef(s, param)
 }
 
-func getSourcefv(s Source, param int, v []float32) {
+// Getfv returns the float32 vector value of the given parameter.
+func (s Source) Getfv(param int, v []float32) {
 	alGetSourcefv(s, param, v)
 }
 
-func setSourcei(s Source, param int, v int32) {
+// Seti sets an int32 value for the given parameter.
+func (s Source) Seti(param int, v int32) {
 	alSourcei(s, param, v)
 }
 
-func setSourcef(s Source, param int, v float32) {
+// Setf sets a float32 value for the given parameter.
+func (s Source) Setf(param int, v float32) {
 	alSourcef(s, param, v)
 }
 
-func setSourcefv(s Source, param int, v []float32) {
+// Setfv sets a float32 vector value for the given parameter.
+func (s Source) Setfv(param int, v []float32) {
 	alSourcefv(s, param, v)
 }
 
@@ -312,63 +341,67 @@ func (s Source) UnqueueBuffers(buffer ...Buffer) {
 
 // ListenerGain returns the total gain applied to the final mix.
 func ListenerGain() float32 {
-	return getListenerf(paramGain)
+	return GetListenerf(paramGain)
 }
 
 // ListenerPosition returns the position of the listener.
 func ListenerPosition() Vector {
 	v := Vector{}
-	getListenerfv(paramPosition, v[:])
+	GetListenerfv(paramPosition, v[:])
 	return v
 }
 
 // ListenerVelocity returns the velocity of the listener.
 func ListenerVelocity() Vector {
 	v := Vector{}
-	getListenerfv(paramVelocity, v[:])
+	GetListenerfv(paramVelocity, v[:])
 	return v
 }
 
 // ListenerOrientation returns the orientation of the listener.
 func ListenerOrientation() Orientation {
 	v := make([]float32, 6)
-	getListenerfv(paramOrientation, v)
+	GetListenerfv(paramOrientation, v)
 	return orientationFromSlice(v)
 }
 
 // SetListenerGain sets the total gain that will be applied to the final mix.
 func SetListenerGain(v float32) {
-	setListenerf(paramGain, v)
+	SetListenerf(paramGain, v)
 }
 
 // SetListenerPosition sets the position of the listener.
 func SetListenerPosition(v Vector) {
-	setListenerfv(paramPosition, v[:])
+	SetListenerfv(paramPosition, v[:])
 }
 
 // SetListenerVelocity sets the velocity of the listener.
 func SetListenerVelocity(v Vector) {
-	setListenerfv(paramVelocity, v[:])
+	SetListenerfv(paramVelocity, v[:])
 }
 
 // SetListenerOrientation sets the orientation of the listener.
 func SetListenerOrientation(v Orientation) {
-	setListenerfv(paramOrientation, v.slice())
+	SetListenerfv(paramOrientation, v.slice())
 }
 
-func getListenerf(param int) float32 {
+// GetListenerf returns the float32 value of the listener parameter.
+func GetListenerf(param int) float32 {
 	return alGetListenerf(param)
 }
 
-func getListenerfv(param int, v []float32) {
+// GetListenerfv returns the float32 vector value of the listener parameter.
+func GetListenerfv(param int, v []float32) {
 	alGetListenerfv(param, v)
 }
 
-func setListenerf(param int, v float32) {
+// GetListenerf sets the float32 value for the listener parameter.
+func SetListenerf(param int, v float32) {
 	alListenerf(param, v)
 }
 
-func setListenerfv(param int, v []float32) {
+// GetListenerf sets the float32 vector value of the listener parameter.
+func SetListenerfv(param int, v []float32) {
 	alListenerfv(param, v)
 }
 
@@ -387,28 +420,29 @@ func DeleteBuffers(buffer ...Buffer) {
 	alDeleteBuffers(buffer)
 }
 
-func getBufferi(b Buffer, param int) int32 {
-	return alGetBufferi(b, param)
+// Geti returns the int32 value of the given parameter.
+func (b Buffer) Geti(param int) int32 {
+	return b.Geti(param)
 }
 
 // Frequency returns the frequency of the buffer data in Hertz (Hz).
 func (b Buffer) Frequency() int32 {
-	return getBufferi(b, paramFreq)
+	return b.Geti(paramFreq)
 }
 
 // Bits return the number of bits used to represent a sample.
 func (b Buffer) Bits() int32 {
-	return getBufferi(b, paramBits)
+	return b.Geti(paramBits)
 }
 
 // Channels return the number of the audio channels.
 func (b Buffer) Channels() int32 {
-	return getBufferi(b, paramChannels)
+	return b.Geti(paramChannels)
 }
 
 // Size returns the size of the data.
 func (b Buffer) Size() int32 {
-	return getBufferi(b, paramSize)
+	return b.Geti(paramSize)
 }
 
 // BufferData buffers PCM data to the current buffer.

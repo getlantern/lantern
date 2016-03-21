@@ -20,68 +20,110 @@ import (
 	"io"
 )
 
-// GenJava generates a Java API from a Go package.
-func GenJava(w io.Writer, fset *token.FileSet, pkg *types.Package, javaPkg string) error {
-	if javaPkg == "" {
-		javaPkg = javaPkgName(pkg.Name())
+type (
+	GeneratorConfig struct {
+		Writer io.Writer
+		Fset   *token.FileSet
+		Pkg    *types.Package
+		AllPkg []*types.Package
 	}
+
+	fileType int
+)
+
+const (
+	Java fileType = iota
+	JavaC
+	JavaH
+
+	ObjcM
+	ObjcH
+	ObjcGoH
+)
+
+// GenJava generates a Java API from a Go package.
+func GenJava(conf *GeneratorConfig, javaPkg string, ft fileType) error {
 	buf := new(bytes.Buffer)
 	g := &javaGen{
-		printer: &printer{buf: buf, indentEach: []byte("    ")},
-		fset:    fset,
-		pkg:     pkg,
 		javaPkg: javaPkg,
+		generator: &generator{
+			printer: &printer{buf: buf, indentEach: []byte("    ")},
+			fset:    conf.Fset,
+			allPkg:  conf.AllPkg,
+			pkg:     conf.Pkg,
+		},
 	}
-	if err := g.gen(); err != nil {
+	g.init()
+	var err error
+	switch ft {
+	case Java:
+		err = g.genJava()
+	case JavaC:
+		err = g.genC()
+	case JavaH:
+		err = g.genH()
+	default:
+		panic("invalid fileType")
+	}
+	if err != nil {
 		return err
 	}
-	_, err := io.Copy(w, buf)
+	_, err = io.Copy(conf.Writer, buf)
 	return err
 }
 
 // GenGo generates a Go stub to support foreign language APIs.
-func GenGo(w io.Writer, fset *token.FileSet, pkg *types.Package) error {
+func GenGo(conf *GeneratorConfig) error {
 	buf := new(bytes.Buffer)
 	g := &goGen{
-		printer: &printer{buf: buf, indentEach: []byte("\t")},
-		fset:    fset,
-		pkg:     pkg,
+		generator: &generator{
+			printer: &printer{buf: buf, indentEach: []byte("\t")},
+			fset:    conf.Fset,
+			allPkg:  conf.AllPkg,
+			pkg:     conf.Pkg,
+		},
 	}
+	g.init()
 	if err := g.gen(); err != nil {
 		return err
 	}
 	src := buf.Bytes()
 	srcf, err := format.Source(src)
 	if err != nil {
-		w.Write(src) // for debugging
+		conf.Writer.Write(src) // for debugging
 		return err
 	}
-	_, err = w.Write(srcf)
+	_, err = conf.Writer.Write(srcf)
 	return err
 }
 
 // GenObjc generates the Objective-C API from a Go package.
-func GenObjc(w io.Writer, fset *token.FileSet, pkg *types.Package, prefix string, isHeader bool) error {
-	if prefix == "" {
-		prefix = "Go"
-	}
-
+func GenObjc(conf *GeneratorConfig, prefix string, ft fileType) error {
 	buf := new(bytes.Buffer)
 	g := &objcGen{
-		printer: &printer{buf: buf, indentEach: []byte("\t")},
-		fset:    fset,
-		pkg:     pkg,
-		prefix:  prefix,
+		generator: &generator{
+			printer: &printer{buf: buf, indentEach: []byte("\t")},
+			fset:    conf.Fset,
+			allPkg:  conf.AllPkg,
+			pkg:     conf.Pkg,
+		},
+		prefix: prefix,
 	}
+	g.init()
 	var err error
-	if isHeader {
+	switch ft {
+	case ObjcH:
 		err = g.genH()
-	} else {
+	case ObjcM:
 		err = g.genM()
+	case ObjcGoH:
+		err = g.genGoH()
+	default:
+		panic("invalid fileType")
 	}
 	if err != nil {
 		return err
 	}
-	_, err = io.Copy(w, buf)
+	_, err = io.Copy(conf.Writer, buf)
 	return err
 }

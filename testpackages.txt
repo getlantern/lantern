@@ -22,6 +22,7 @@ github.com/getlantern/geolookup
 github.com/getlantern/golog
 github.com/getlantern/idletiming
 github.com/getlantern/keyman
+github.com/getlantern/lantern
 github.com/getlantern/multicast
 github.com/getlantern/osversion
 github.com/getlantern/pathreflect

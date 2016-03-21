@@ -63,7 +63,7 @@ are prefixed with 'Go' unless the -prefix flag is provided.
 
 The -v flag provides verbose output, including the list of packages built.
 
-The build flags -a, -i, -n, -x, -gcflags, -ldflags, -tags, and -work
+The build flags -a, -n, -x, -gcflags, -ldflags, -tags, and -work
 are shared with the build command. For documentation, see 'go help build'.
 
 
@@ -82,7 +82,10 @@ default) or ios.
 
 For -target android, if an AndroidManifest.xml is defined in the
 package directory, it is added to the APK output. Otherwise, a default
-manifest is generated.
+manifest is generated. By default, this builds a fat APK for all supported
+instruction sets (arm, 386, amd64, arm64). A subset of instruction sets can
+be selected by specifying target type with the architecture name. E.g.
+-target=android/arm,android/386.
 
 For -target ios, gomobile must be run on an OS X machine with Xcode
 installed. Support is not complete.

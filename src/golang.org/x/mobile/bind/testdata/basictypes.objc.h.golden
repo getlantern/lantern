@@ -10,6 +10,7 @@
 
 FOUNDATION_EXPORT const BOOL GoBasictypesABool;
 FOUNDATION_EXPORT const double GoBasictypesAFloat;
+FOUNDATION_EXPORT NSString* const GoBasictypesALongString;
 FOUNDATION_EXPORT const int32_t GoBasictypesARune;
 FOUNDATION_EXPORT NSString* const GoBasictypesAString;
 FOUNDATION_EXPORT const int64_t GoBasictypesAnInt;

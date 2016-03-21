@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"sync"
 
 	"github.com/getlantern/appdir"
@@ -14,7 +16,7 @@ import (
 )
 
 const (
-	messageType = `Settings`
+	messageType = `settings`
 )
 
 var (
@@ -27,15 +29,19 @@ var (
 
 // Settings is a struct of all settings unique to this particular Lantern instance.
 type Settings struct {
-	Version      string
-	BuildDate    string
-	RevisionDate string
-	AutoReport   bool
-	AutoLaunch   bool
-	ProxyAll     bool
-	SystemProxy  bool
+	DeviceID  string `json:"deviceID,omitempty"`
+	UserID    int    `json:"userID,omitempty"`
+	UserToken string `json:"userToken,omitempty"`
 
-	sync.RWMutex
+	Version      string `json:"version"`
+	BuildDate    string `json:"buildDate"`
+	RevisionDate string `json:"revisionDate"`
+	AutoReport   bool   `json:"autoReport"`
+	AutoLaunch   bool   `json:"autoLaunch"`
+	ProxyAll     bool   `json:"proxyAll"`
+	SystemProxy  bool   `json:"systemProxy"`
+
+	sync.RWMutex `json:"-" yaml:"-"`
 }
 
 // Load loads the initial settings at startup, either from disk or using defaults.
@@ -82,11 +88,6 @@ func LoadSettings(version, revisionDate, buildDate string) *Settings {
 	return settings
 }
 
-type msg struct {
-	Settings   *Settings
-	RedirectTo string
-}
-
 // start the settings service that synchronizes Lantern's configuration with every UI client
 func (s *Settings) start() error {
 	var err error
@@ -96,7 +97,7 @@ func (s *Settings) start() error {
 		log.Debugf("Sending Lantern settings to new client")
 		s.Lock()
 		defer s.Unlock()
-		return write(&msg{Settings: s})
+		return write(s)
 	}
 	service, err = ui.Register(messageType, nil, helloFn)
 	return err
@@ -106,18 +107,51 @@ func (s *Settings) read() {
 	log.Debugf("Reading settings messages!!")
 	for message := range service.In {
 		log.Debugf("Read settings message!! %v", message)
-		msg := (message).(map[string]interface{})
 
-		if autoReport, ok := msg["autoReport"].(bool); ok {
-			s.SetAutoReport(autoReport)
-		} else if proxyAll, ok := msg["proxyAll"].(bool); ok {
-			s.SetProxyAll(proxyAll)
-		} else if autoLaunch, ok := msg["autoLaunch"].(bool); ok {
-			s.SetAutoLaunch(autoLaunch)
-		} else if systemProxy, ok := msg["systemProxy"].(bool); ok {
-			log.Debugf("Setting system proxy")
-			s.SetSystemProxy(systemProxy)
+		// We're using a map here because we want to know when the user sends a
+		// false value.
+		var data map[string]interface{}
+		var decoded bool
+
+		if data, decoded = (message).(map[string]interface{}); !decoded {
+			continue
 		}
+
+		var v, ok bool
+
+		if v, ok = data["autoReport"].(bool); ok {
+			s.SetAutoReport(v)
+		}
+
+		if v, ok = data["proxyAll"].(bool); ok {
+			s.SetProxyAll(v)
+		}
+
+		if v, ok = data["autoLaunch"].(bool); ok {
+			s.SetAutoLaunch(v)
+		}
+
+		if v, ok = data["systemProxy"].(bool); ok {
+			s.SetSystemProxy(v)
+		}
+
+		if data["userID"] != nil {
+			// This is unmarshaled into a float64, I'm am converting it to string and
+			// then to float32 to catch the case when this is a float32.
+			if id, err := strconv.Atoi(fmt.Sprintf("%v", data["userID"])); err == nil {
+				s.SetUserID(id)
+			}
+		}
+
+		if token, ok := data["token"].(string); ok {
+			s.SetToken(token)
+		}
+
+		if deviceID, ok := data["deviceID"].(string); ok {
+			s.SetDeviceID(deviceID)
+		}
+
+		service.Out <- s
 	}
 }
 
@@ -180,6 +214,41 @@ func (s *Settings) GetSystemProxy() bool {
 	return s.SystemProxy
 }
 
+// SetDeviceID sets the device ID
+func (s *Settings) SetDeviceID(deviceID string) {
+	s.Lock()
+	defer s.unlockAndSave()
+	s.DeviceID = deviceID
+}
+
+// SetToken sets the user token
+func (s *Settings) SetToken(token string) {
+	s.Lock()
+	defer s.unlockAndSave()
+	s.UserToken = token
+}
+
+// GetToken returns the user token
+func (s *Settings) GetToken() string {
+	s.RLock()
+	defer s.RUnlock()
+	return s.UserToken
+}
+
+// SetUserID sets the user ID
+func (s *Settings) SetUserID(id int) {
+	s.Lock()
+	defer s.unlockAndSave()
+	s.UserID = id
+}
+
+// GetUserID returns the user ID
+func (s *Settings) GetUserID() int {
+	s.RLock()
+	defer s.RUnlock()
+	return s.UserID
+}
+
 // SetSystemProxy sets whether or not to set system proxy when lantern starts
 func (s *Settings) SetSystemProxy(enable bool) {
 	s.Lock()
@@ -195,7 +264,7 @@ func (s *Settings) SetSystemProxy(enable bool) {
 		preferredUIAddr, addrChanged := ui.PreferProxiedUI(enable)
 		if !enable && addrChanged {
 			log.Debugf("System proxying disabled, redirect UI to: %v", preferredUIAddr)
-			service.Out <- &msg{RedirectTo: preferredUIAddr}
+			service.Out <- map[string]string{"redirectTo": preferredUIAddr}
 		}
 	}
 }

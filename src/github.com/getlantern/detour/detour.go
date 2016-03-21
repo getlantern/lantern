@@ -67,6 +67,11 @@ func init() {
 type dialFunc func(network, addr string) (net.Conn, error)
 
 type Conn struct {
+	// keep track of the total bytes read in this connection
+	// Keep it at the top to make sure 64-bit alignment, see
+	// https://golang.org/pkg/sync/atomic/#pkg-note-BUG
+	readBytes int64
+
 	muConn sync.RWMutex
 	// the actual connection, will change so protect it
 	// can't user atomic.Value as the concrete type may vary
@@ -77,9 +82,6 @@ type Conn struct {
 
 	// the function to dial detour if the site fails to connect directly
 	dialDetour dialFunc
-
-	// keep track of the total bytes read in this connection
-	readBytes int64
 
 	muLocalBuffer sync.Mutex
 	// localBuffer keep track of bytes sent through direct connection
@@ -114,6 +116,7 @@ func Dialer(d dialFunc) dialFunc {
 	return func(network, addr string) (conn net.Conn, err error) {
 		dc := &Conn{dialDetour: d, network: network, addr: addr}
 		if !whitelisted(addr) {
+			log.Tracef("Attempting direct connection for %v", addr)
 			detector := blockDetector.Load().(*Detector)
 			dc.setState(stateInitial)
 			// always try direct connection first
@@ -134,6 +137,7 @@ func Dialer(d dialFunc) dialFunc {
 				return dc, err
 			}
 		}
+		log.Tracef("Detouring %v", addr)
 		// if whitelisted or dial directly failed, try detour
 		dc.setState(stateDetour)
 		dc.conn, err = dc.dialDetour(network, addr)

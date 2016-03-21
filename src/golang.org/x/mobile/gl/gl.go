@@ -166,9 +166,9 @@ func (ctx *context) BufferInit(target Enum, size int, usage Enum) {
 			fn: glfnBufferData,
 			a0: target.c(),
 			a1: uintptr(size),
-			a2: 0,
-			a3: usage.c(),
+			a2: usage.c(),
 		},
+		parg: unsafe.Pointer(nil),
 	})
 }
 
