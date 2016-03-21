@@ -18,8 +18,8 @@ var (
 
 	clientTimeout                 = 25 * time.Millisecond
 	serverTimeout                 = 10 * clientTimeout
-	slightlyLessThanClientTimeout = time.Duration(int64(float64(clientTimeout.Nanoseconds()) * 0.9))
-	slightlyMoreThanClientTimeout = time.Duration(int64(float64(clientTimeout.Nanoseconds()) * 1.1))
+	slightlyLessThanClientTimeout = time.Duration(int64(float64(clientTimeout.Nanoseconds()) * 0.5))
+	slightlyMoreThanClientTimeout = time.Duration(int64(float64(clientTimeout.Nanoseconds()) * 1.5))
 )
 
 func TestWrite(t *testing.T) {
