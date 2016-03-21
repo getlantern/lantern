@@ -13,6 +13,7 @@ import (
 	"syscall"
 	"testing"
 	"time"
+	"unsafe"
 
 	"golang.org/x/sys/windows/registry"
 )
@@ -679,4 +680,77 @@ func TestInvalidValues(t *testing.T) {
 			t.Errorf("unsupported type %d for %s value", test.Type, test.Name)
 		}
 	}
+}
+
+func TestGetMUIStringValue(t *testing.T) {
+	if err := registry.LoadRegLoadMUIString(); err != nil {
+		t.Skip("regLoadMUIString not supported; skipping")
+	}
+	if err := procGetDynamicTimeZoneInformation.Find(); err != nil {
+		t.Skipf("%s not supported; skipping", procGetDynamicTimeZoneInformation.Name)
+	}
+	var dtzi DynamicTimezoneinformation
+	if _, err := GetDynamicTimeZoneInformation(&dtzi); err != nil {
+		t.Fatal(err)
+	}
+	tzKeyName := syscall.UTF16ToString(dtzi.TimeZoneKeyName[:])
+	timezoneK, err := registry.OpenKey(registry.LOCAL_MACHINE,
+		`SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones\`+tzKeyName, registry.READ)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer timezoneK.Close()
+
+	type testType struct {
+		name string
+		want string
+	}
+	var tests = []testType{
+		{"MUI_Std", syscall.UTF16ToString(dtzi.StandardName[:])},
+	}
+	if dtzi.DynamicDaylightTimeDisabled == 0 {
+		tests = append(tests, testType{"MUI_Dlt", syscall.UTF16ToString(dtzi.DaylightName[:])})
+	}
+
+	for _, test := range tests {
+		got, err := timezoneK.GetMUIStringValue(test.name)
+		if err != nil {
+			t.Error("GetMUIStringValue:", err)
+		}
+
+		if got != test.want {
+			t.Errorf("GetMUIStringValue: %s: Got %q, want %q", test.name, got, test.want)
+		}
+	}
+}
+
+type DynamicTimezoneinformation struct {
+	Bias                        int32
+	StandardName                [32]uint16
+	StandardDate                syscall.Systemtime
+	StandardBias                int32
+	DaylightName                [32]uint16
+	DaylightDate                syscall.Systemtime
+	DaylightBias                int32
+	TimeZoneKeyName             [128]uint16
+	DynamicDaylightTimeDisabled uint8
+}
+
+var (
+	kernel32DLL = syscall.NewLazyDLL("kernel32")
+
+	procGetDynamicTimeZoneInformation = kernel32DLL.NewProc("GetDynamicTimeZoneInformation")
+)
+
+func GetDynamicTimeZoneInformation(dtzi *DynamicTimezoneinformation) (rc uint32, err error) {
+	r0, _, e1 := syscall.Syscall(procGetDynamicTimeZoneInformation.Addr(), 1, uintptr(unsafe.Pointer(dtzi)), 0, 0)
+	rc = uint32(r0)
+	if rc == 0xffffffff {
+		if e1 != 0 {
+			err = error(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
 }

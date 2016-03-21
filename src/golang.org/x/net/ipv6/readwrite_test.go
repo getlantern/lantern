@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"net"
 	"runtime"
+	"strings"
 	"sync"
 	"testing"
 
@@ -143,7 +144,10 @@ func TestPacketConnConcurrentReadWriteUnicastUDP(t *testing.T) {
 			t.Errorf("got %v; want %v", rb[:n], wb)
 			return
 		} else {
-			t.Logf("rcvd cmsg: %v", cm)
+			s := cm.String()
+			if strings.Contains(s, ",") {
+				t.Errorf("should be space-separated values: %s", s)
+			}
 		}
 	}
 	writer := func(toggle bool) {

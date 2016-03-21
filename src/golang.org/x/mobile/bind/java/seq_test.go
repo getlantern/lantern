@@ -13,12 +13,35 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 // TestJavaSeqTest runs java test SeqTest.java.
 // This requires the gradle command in PATH and
 // the Android SDK whose path is available through ANDROID_HOME environment variable.
 func TestJavaSeqTest(t *testing.T) {
+	runTest(t, []string{
+		"golang.org/x/mobile/bind/testpkg",
+		"golang.org/x/mobile/bind/testpkg/secondpkg",
+		"golang.org/x/mobile/bind/testpkg/simplepkg",
+	}, "SeqTest")
+}
+
+// TestJavaSeqBench runs java test SeqBench.java, with the same
+// environment requirements as TestJavaSeqTest.
+//
+// The benchmarks runs on the phone, so the benchmarkpkg implements
+// rudimentary timing logic and outputs benchcmp compatible runtimes
+// to logcat. Use
+//
+// adb logcat -v raw GoLog:* *:S
+//
+// while running the benchmark to see the results.
+func TestJavaSeqBench(t *testing.T) {
+	runTest(t, []string{"golang.org/x/mobile/bind/benchmark"}, "SeqBench")
+}
+
+func runTest(t *testing.T, pkgNames []string, javaCls string) {
 	if _, err := run("which gradle"); err != nil {
 		t.Skip("command gradle not found, skipping")
 	}
@@ -26,13 +49,17 @@ func TestJavaSeqTest(t *testing.T) {
 		t.Skip("ANDROID_HOME environment var not set, skipping")
 	}
 	if _, err := run("which gomobile"); err != nil {
-		_, err := run("go install golang.org/x/mobile/cmd/gomobile")
-		if err != nil {
-			t.Skip("gomobile not available, skipping")
+		t.Log("go install gomobile")
+		if _, err := run("go install golang.org/x/mobile/cmd/gomobile"); err != nil {
+			t.Fatalf("gomobile install failed: %v", err)
 		}
+		t.Log("gomobile init")
+		start := time.Now()
+		if _, err := run("gomobile init"); err != nil {
+			t.Fatalf("gomobile init failed: %v", err)
+		}
+		t.Logf("gomobile init took %v", time.Since(start))
 	}
-
-	// TODO(hyangah): gomobile init if necessary.
 
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -57,20 +84,20 @@ func TestJavaSeqTest(t *testing.T) {
 		}
 	}
 
-	buf, err := run("gomobile bind golang.org/x/mobile/bind/java/testpkg")
+	buf, err := run("gomobile bind -o pkg.aar " + strings.Join(pkgNames, " "))
 	if err != nil {
 		t.Logf("%s", buf)
 		t.Fatalf("failed to run gomobile bind: %v", err)
 	}
 
-	fname := filepath.Join(tmpdir, "libs", "testpkg.aar")
-	err = cp(fname, filepath.Join(tmpdir, "testpkg.aar"))
+	fname := filepath.Join(tmpdir, "libs", "pkg.aar")
+	err = cp(fname, filepath.Join(tmpdir, "pkg.aar"))
 	if err != nil {
-		t.Fatalf("failed to copy testpkg.aar: %v", err)
+		t.Fatalf("failed to copy pkg.aar: %v", err)
 	}
 
-	fname = filepath.Join(tmpdir, "src/androidTest/java/go/SeqTest.java")
-	err = cp(fname, filepath.Join(cwd, "SeqTest.java"))
+	fname = filepath.Join(tmpdir, "src/androidTest/java/go/"+javaCls+".java")
+	err = cp(fname, filepath.Join(cwd, javaCls+".java"))
 	if err != nil {
 		t.Fatalf("failed to copy SeqTest.java: %v", err)
 	}
@@ -128,7 +155,7 @@ const buildgradle = `buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:1.1.3'
+        classpath 'com.android.tools.build:gradle:1.5.0'
     }
 }
 
@@ -149,6 +176,6 @@ repositories {
 }
 dependencies {
     compile 'com.android.support:appcompat-v7:19.0.0'
-    compile(name: "testpkg", ext: "aar")
+    compile(name: "pkg", ext: "aar")
 }
 `

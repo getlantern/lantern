@@ -35,7 +35,7 @@ func multipartMessageOrigDatagramLen(proto int, b []byte) int {
 			return 128
 		}
 		r := len(b)
-		return (r + align) &^ (align - 1)
+		return (r + align - 1) & ^(align - 1)
 	}
 	switch proto {
 	case iana.ProtocolICMP:

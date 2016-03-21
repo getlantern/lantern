@@ -4,8 +4,6 @@
 
 package main
 
-// TODO(crawshaw): android/{386,arm64}
-
 import (
 	"archive/tar"
 	"bytes"
@@ -424,6 +422,25 @@ func fetchNDK() error {
 		}
 		if err := move(dst, ndkpath, "bin", "lib", "libexec"); err != nil {
 			return err
+		}
+
+		// ndk-r10e arm64 toolchain has a bug in ld.bfd and for aarch64
+		// ld.bfd is the default linker. Workaround by switching the
+		// default to ld.gold.
+		// TODO(hyangah): remove this when using the new version of ndk.
+		if toolchain.arch == "arm64" {
+			ld := filepath.Join(dst, "bin/aarch64-linux-android-ld")
+			ldgold := ld + ".gold"
+			if goos == "windows" {
+				ld += ".exe"
+				ldgold += ".exe"
+			}
+			if err := rm(ld); err != nil {
+				return err
+			}
+			if err := symlink(ldgold, ld); err != nil {
+				return err
+			}
 		}
 
 		linkpath := filepath.Join(dst, toolchain.toolPrefix+"/bin")

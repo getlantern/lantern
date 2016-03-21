@@ -69,9 +69,10 @@ package spew_test
 import (
 	"bytes"
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
 	"testing"
 	"unsafe"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 // formatterTest is used to describe a test to be perfomed against NewFormatter.
@@ -529,22 +530,26 @@ func addArrayFormatterTests() {
 	v2Addr := fmt.Sprintf("%p", pv2)
 	pv2Addr := fmt.Sprintf("%p", &pv2)
 	v2t := "[3]spew_test.pstringer"
-	v2s := "[stringer 1 stringer 2 stringer 3]"
+	v2sp := "[stringer 1 stringer 2 stringer 3]"
+	v2s := v2sp
+	if spew.UnsafeDisabled {
+		v2s = "[1 2 3]"
+	}
 	addFormatterTest("%v", v2, v2s)
-	addFormatterTest("%v", pv2, "<*>"+v2s)
-	addFormatterTest("%v", &pv2, "<**>"+v2s)
+	addFormatterTest("%v", pv2, "<*>"+v2sp)
+	addFormatterTest("%v", &pv2, "<**>"+v2sp)
 	addFormatterTest("%+v", nv2, "<nil>")
 	addFormatterTest("%+v", v2, v2s)
-	addFormatterTest("%+v", pv2, "<*>("+v2Addr+")"+v2s)
-	addFormatterTest("%+v", &pv2, "<**>("+pv2Addr+"->"+v2Addr+")"+v2s)
+	addFormatterTest("%+v", pv2, "<*>("+v2Addr+")"+v2sp)
+	addFormatterTest("%+v", &pv2, "<**>("+pv2Addr+"->"+v2Addr+")"+v2sp)
 	addFormatterTest("%+v", nv2, "<nil>")
 	addFormatterTest("%#v", v2, "("+v2t+")"+v2s)
-	addFormatterTest("%#v", pv2, "(*"+v2t+")"+v2s)
-	addFormatterTest("%#v", &pv2, "(**"+v2t+")"+v2s)
+	addFormatterTest("%#v", pv2, "(*"+v2t+")"+v2sp)
+	addFormatterTest("%#v", &pv2, "(**"+v2t+")"+v2sp)
 	addFormatterTest("%#v", nv2, "(*"+v2t+")"+"<nil>")
 	addFormatterTest("%#+v", v2, "("+v2t+")"+v2s)
-	addFormatterTest("%#+v", pv2, "(*"+v2t+")("+v2Addr+")"+v2s)
-	addFormatterTest("%#+v", &pv2, "(**"+v2t+")("+pv2Addr+"->"+v2Addr+")"+v2s)
+	addFormatterTest("%#+v", pv2, "(*"+v2t+")("+v2Addr+")"+v2sp)
+	addFormatterTest("%#+v", &pv2, "(**"+v2t+")("+pv2Addr+"->"+v2Addr+")"+v2sp)
 	addFormatterTest("%#+v", nv2, "(*"+v2t+")"+"<nil>")
 
 	// Array containing interfaces.
@@ -802,6 +807,9 @@ func addMapFormatterTests() {
 	pv2Addr := fmt.Sprintf("%p", &pv2)
 	v2t := "map[spew_test.pstringer]spew_test.pstringer"
 	v2s := "map[stringer one:stringer 1]"
+	if spew.UnsafeDisabled {
+		v2s = "map[one:1]"
+	}
 	addFormatterTest("%v", v2, v2s)
 	addFormatterTest("%v", pv2, "<*>"+v2s)
 	addFormatterTest("%v", &pv2, "<**>"+v2s)
@@ -959,23 +967,34 @@ func addStructFormatterTests() {
 	v3t := "spew_test.s3"
 	v3t2 := "spew_test.pstringer"
 	v3s := "{stringer test stringer test2}"
+	v3sp := v3s
 	v3s2 := "{s:stringer test S:stringer test2}"
+	v3s2p := v3s2
 	v3s3 := "{s:(" + v3t2 + ")stringer test S:(" + v3t2 + ")stringer test2}"
+	v3s3p := v3s3
+	if spew.UnsafeDisabled {
+		v3s = "{test test2}"
+		v3sp = "{test stringer test2}"
+		v3s2 = "{s:test S:test2}"
+		v3s2p = "{s:test S:stringer test2}"
+		v3s3 = "{s:(" + v3t2 + ")test S:(" + v3t2 + ")test2}"
+		v3s3p = "{s:(" + v3t2 + ")test S:(" + v3t2 + ")stringer test2}"
+	}
 	addFormatterTest("%v", v3, v3s)
-	addFormatterTest("%v", pv3, "<*>"+v3s)
-	addFormatterTest("%v", &pv3, "<**>"+v3s)
+	addFormatterTest("%v", pv3, "<*>"+v3sp)
+	addFormatterTest("%v", &pv3, "<**>"+v3sp)
 	addFormatterTest("%+v", nv3, "<nil>")
 	addFormatterTest("%+v", v3, v3s2)
-	addFormatterTest("%+v", pv3, "<*>("+v3Addr+")"+v3s2)
-	addFormatterTest("%+v", &pv3, "<**>("+pv3Addr+"->"+v3Addr+")"+v3s2)
+	addFormatterTest("%+v", pv3, "<*>("+v3Addr+")"+v3s2p)
+	addFormatterTest("%+v", &pv3, "<**>("+pv3Addr+"->"+v3Addr+")"+v3s2p)
 	addFormatterTest("%+v", nv3, "<nil>")
 	addFormatterTest("%#v", v3, "("+v3t+")"+v3s3)
-	addFormatterTest("%#v", pv3, "(*"+v3t+")"+v3s3)
-	addFormatterTest("%#v", &pv3, "(**"+v3t+")"+v3s3)
+	addFormatterTest("%#v", pv3, "(*"+v3t+")"+v3s3p)
+	addFormatterTest("%#v", &pv3, "(**"+v3t+")"+v3s3p)
 	addFormatterTest("%#v", nv3, "(*"+v3t+")"+"<nil>")
 	addFormatterTest("%#+v", v3, "("+v3t+")"+v3s3)
-	addFormatterTest("%#+v", pv3, "(*"+v3t+")("+v3Addr+")"+v3s3)
-	addFormatterTest("%#+v", &pv3, "(**"+v3t+")("+pv3Addr+"->"+v3Addr+")"+v3s3)
+	addFormatterTest("%#+v", pv3, "(*"+v3t+")("+v3Addr+")"+v3s3p)
+	addFormatterTest("%#+v", &pv3, "(**"+v3t+")("+pv3Addr+"->"+v3Addr+")"+v3s3p)
 	addFormatterTest("%#+v", nv3, "(*"+v3t+")"+"<nil>")
 
 	// Struct that contains embedded struct and field to same struct.
@@ -1478,11 +1497,62 @@ func TestFormatter(t *testing.T) {
 	}
 }
 
+type testStruct struct {
+	x int
+}
+
+func (ts testStruct) String() string {
+	return fmt.Sprintf("ts.%d", ts.x)
+}
+
+type testStructP struct {
+	x int
+}
+
+func (ts *testStructP) String() string {
+	return fmt.Sprintf("ts.%d", ts.x)
+}
+
 func TestPrintSortedKeys(t *testing.T) {
 	cfg := spew.ConfigState{SortKeys: true}
 	s := cfg.Sprint(map[int]string{1: "1", 3: "3", 2: "2"})
 	expected := "map[1:1 2:2 3:3]"
 	if s != expected {
-		t.Errorf("Sorted keys mismatch:\n  %v %v", s, expected)
+		t.Errorf("Sorted keys mismatch 1:\n  %v %v", s, expected)
+	}
+
+	s = cfg.Sprint(map[stringer]int{"1": 1, "3": 3, "2": 2})
+	expected = "map[stringer 1:1 stringer 2:2 stringer 3:3]"
+	if s != expected {
+		t.Errorf("Sorted keys mismatch 2:\n  %v %v", s, expected)
+	}
+
+	s = cfg.Sprint(map[pstringer]int{pstringer("1"): 1, pstringer("3"): 3, pstringer("2"): 2})
+	expected = "map[stringer 1:1 stringer 2:2 stringer 3:3]"
+	if spew.UnsafeDisabled {
+		expected = "map[1:1 2:2 3:3]"
+	}
+	if s != expected {
+		t.Errorf("Sorted keys mismatch 3:\n  %v %v", s, expected)
+	}
+
+	s = cfg.Sprint(map[testStruct]int{testStruct{1}: 1, testStruct{3}: 3, testStruct{2}: 2})
+	expected = "map[ts.1:1 ts.2:2 ts.3:3]"
+	if s != expected {
+		t.Errorf("Sorted keys mismatch 4:\n  %v %v", s, expected)
+	}
+
+	if !spew.UnsafeDisabled {
+		s = cfg.Sprint(map[testStructP]int{testStructP{1}: 1, testStructP{3}: 3, testStructP{2}: 2})
+		expected = "map[ts.1:1 ts.2:2 ts.3:3]"
+		if s != expected {
+			t.Errorf("Sorted keys mismatch 5:\n  %v %v", s, expected)
+		}
+	}
+
+	s = cfg.Sprint(map[customError]int{customError(1): 1, customError(3): 3, customError(2): 2})
+	expected = "map[error: 1:1 error: 2:2 error: 3:3]"
+	if s != expected {
+		t.Errorf("Sorted keys mismatch 6:\n  %v %v", s, expected)
 	}
 }

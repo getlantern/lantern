@@ -115,7 +115,7 @@ func doPing(tt pingTest, seq int) error {
 		return err
 	}
 
-	if tt.protocol == iana.ProtocolIPv6ICMP {
+	if tt.network != "udp6" && tt.protocol == iana.ProtocolIPv6ICMP {
 		var f ipv6.ICMPFilter
 		f.SetAll(true)
 		f.Accept(ipv6.ICMPTypeDestinationUnreachable)

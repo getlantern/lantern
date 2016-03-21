@@ -57,3 +57,14 @@ const (
 	ERRMAX     = 128
 	STATFIXLEN = 49
 )
+
+// Mount and bind flags
+const (
+	MREPL   = 0x0000
+	MBEFORE = 0x0001
+	MAFTER  = 0x0002
+	MORDER  = 0x0003
+	MCREATE = 0x0004
+	MCACHE  = 0x0010
+	MMASK   = 0x0017
+)

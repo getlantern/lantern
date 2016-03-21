@@ -42,7 +42,7 @@
 // The outgoing packets will be labeled DiffServ assured forwarding
 // class 1 low drop precedence, known as AF11 packets.
 //
-//			if err := ipv4.NewConn(c).SetTOS(DiffServAF11); err != nil {
+//			if err := ipv4.NewConn(c).SetTOS(0x28); err != nil {
 //				// error handling
 //			}
 //			if _, err := c.Write(data); err != nil {
@@ -124,7 +124,7 @@
 //
 // The application can also send both unicast and multicast packets.
 //
-//		p.SetTOS(DiffServCS0)
+//		p.SetTOS(0x0)
 //		p.SetTTL(16)
 //		if _, err := p.WriteTo(data, nil, src); err != nil {
 //			// error handling

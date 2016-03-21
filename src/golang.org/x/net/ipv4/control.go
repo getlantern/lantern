@@ -48,7 +48,7 @@ func (cm *ControlMessage) String() string {
 	if cm == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("ttl: %v, src: %v, dst: %v, ifindex: %v", cm.TTL, cm.Src, cm.Dst, cm.IfIndex)
+	return fmt.Sprintf("ttl=%d src=%v dst=%v ifindex=%d", cm.TTL, cm.Src, cm.Dst, cm.IfIndex)
 }
 
 // Ancillary data socket options

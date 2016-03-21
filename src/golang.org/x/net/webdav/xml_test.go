@@ -6,7 +6,6 @@ package webdav
 
 import (
 	"bytes"
-	"encoding/xml"
 	"fmt"
 	"io"
 	"net/http"
@@ -15,6 +14,8 @@ import (
 	"sort"
 	"strings"
 	"testing"
+
+	"golang.org/x/net/webdav/internal/xml"
 )
 
 func TestReadLockInfo(t *testing.T) {

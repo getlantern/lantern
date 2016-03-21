@@ -313,3 +313,130 @@ func dumpExtensions(i int, gotExts, wantExts []icmp.Extension) string {
 	}
 	return s[:len(s)-1]
 }
+
+var multipartMessageBodyLenTests = []struct {
+	proto int
+	in    icmp.MessageBody
+	out   int
+}{
+	{
+		iana.ProtocolICMP,
+		&icmp.DstUnreach{
+			Data: make([]byte, ipv4.HeaderLen),
+		},
+		4 + ipv4.HeaderLen, // unused and original datagram
+	},
+	{
+		iana.ProtocolICMP,
+		&icmp.TimeExceeded{
+			Data: make([]byte, ipv4.HeaderLen),
+		},
+		4 + ipv4.HeaderLen, // unused and original datagram
+	},
+	{
+		iana.ProtocolICMP,
+		&icmp.ParamProb{
+			Data: make([]byte, ipv4.HeaderLen),
+		},
+		4 + ipv4.HeaderLen, // [pointer, unused] and original datagram
+	},
+
+	{
+		iana.ProtocolICMP,
+		&icmp.ParamProb{
+			Data: make([]byte, ipv4.HeaderLen),
+			Extensions: []icmp.Extension{
+				&icmp.MPLSLabelStack{},
+			},
+		},
+		4 + 4 + 4 + 0 + 128, // [pointer, length, unused], extension header, object header, object payload, original datagram
+	},
+	{
+		iana.ProtocolICMP,
+		&icmp.ParamProb{
+			Data: make([]byte, 128),
+			Extensions: []icmp.Extension{
+				&icmp.MPLSLabelStack{},
+			},
+		},
+		4 + 4 + 4 + 0 + 128, // [pointer, length, unused], extension header, object header, object payload and original datagram
+	},
+	{
+		iana.ProtocolICMP,
+		&icmp.ParamProb{
+			Data: make([]byte, 129),
+			Extensions: []icmp.Extension{
+				&icmp.MPLSLabelStack{},
+			},
+		},
+		4 + 4 + 4 + 0 + 132, // [pointer, length, unused], extension header, object header, object payload and original datagram
+	},
+
+	{
+		iana.ProtocolIPv6ICMP,
+		&icmp.DstUnreach{
+			Data: make([]byte, ipv6.HeaderLen),
+		},
+		4 + ipv6.HeaderLen, // unused and original datagram
+	},
+	{
+		iana.ProtocolIPv6ICMP,
+		&icmp.PacketTooBig{
+			Data: make([]byte, ipv6.HeaderLen),
+		},
+		4 + ipv6.HeaderLen, // mtu and original datagram
+	},
+	{
+		iana.ProtocolIPv6ICMP,
+		&icmp.TimeExceeded{
+			Data: make([]byte, ipv6.HeaderLen),
+		},
+		4 + ipv6.HeaderLen, // unused and original datagram
+	},
+	{
+		iana.ProtocolIPv6ICMP,
+		&icmp.ParamProb{
+			Data: make([]byte, ipv6.HeaderLen),
+		},
+		4 + ipv6.HeaderLen, // pointer and original datagram
+	},
+
+	{
+		iana.ProtocolIPv6ICMP,
+		&icmp.DstUnreach{
+			Data: make([]byte, 127),
+			Extensions: []icmp.Extension{
+				&icmp.MPLSLabelStack{},
+			},
+		},
+		4 + 4 + 4 + 0 + 128, // [length, unused], extension header, object header, object payload and original datagram
+	},
+	{
+		iana.ProtocolIPv6ICMP,
+		&icmp.DstUnreach{
+			Data: make([]byte, 128),
+			Extensions: []icmp.Extension{
+				&icmp.MPLSLabelStack{},
+			},
+		},
+		4 + 4 + 4 + 0 + 128, // [length, unused], extension header, object header, object payload and original datagram
+	},
+	{
+		iana.ProtocolIPv6ICMP,
+		&icmp.DstUnreach{
+			Data: make([]byte, 129),
+			Extensions: []icmp.Extension{
+				&icmp.MPLSLabelStack{},
+			},
+		},
+		4 + 4 + 4 + 0 + 136, // [length, unused], extension header, object header, object payload and original datagram
+	},
+}
+
+func TestMultipartMessageBodyLen(t *testing.T) {
+	for i, tt := range multipartMessageBodyLenTests {
+		if out := tt.in.Len(tt.proto); out != tt.out {
+			t.Errorf("#%d: got %d; want %d", i, out, tt.out)
+		}
+	}
+}

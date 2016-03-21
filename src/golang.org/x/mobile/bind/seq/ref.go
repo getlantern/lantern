@@ -11,6 +11,7 @@ package seq
 
 import (
 	"fmt"
+	"runtime"
 	"sync"
 )
 
@@ -18,6 +19,9 @@ type countedObj struct {
 	obj interface{}
 	cnt int32
 }
+
+// also known to bind/java/Seq.java and bind/objc/seq_darwin.m
+const NullRefNum = 41
 
 // refs stores Go objects that have been passed to another language.
 var refs struct {
@@ -39,6 +43,58 @@ func init() {
 // boundary.
 type Ref struct {
 	Num int32
+}
+
+type proxy interface {
+	// Use a strange name and hope that user code does not implement it
+	Bind_proxy_refnum__() int32
+}
+
+// ToRefNum increments the reference count for an object and
+// returns its refnum.
+func ToRefNum(obj interface{}) int32 {
+	// We don't track foreign objects, so if obj is a proxy
+	// return its refnum.
+	if r, ok := obj.(proxy); ok {
+		refnum := r.Bind_proxy_refnum__()
+		if refnum <= 0 {
+			panic(fmt.Errorf("seq: proxy contained invalid Go refnum: %d", refnum))
+		}
+		return refnum
+	}
+	refs.Lock()
+	num := refs.refs[obj]
+	if num != 0 {
+		s := refs.objs[num]
+		refs.objs[num] = countedObj{s.obj, s.cnt + 1}
+	} else {
+		num = refs.next
+		refs.next--
+		if refs.next > 0 {
+			panic("refs.next underflow")
+		}
+		refs.refs[obj] = num
+		refs.objs[num] = countedObj{obj, 1}
+	}
+	refs.Unlock()
+
+	return int32(num)
+}
+
+// FromRefNum returns the Ref for a refnum. If the refnum specifies a
+// foreign object, a finalizer is set to track its lifetime.
+func FromRefNum(num int32) *Ref {
+	if num == NullRefNum {
+		return nil
+	}
+	ref := &Ref{num}
+	if ref.Num > 0 {
+		// This is a foreign object reference.
+		// Track its lifetime with a finalizer.
+		runtime.SetFinalizer(ref, FinalizeRef)
+	}
+
+	return ref
 }
 
 // Get returns the underlying object.

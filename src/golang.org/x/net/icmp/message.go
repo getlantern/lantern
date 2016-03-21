@@ -14,6 +14,7 @@
 package icmp // import "golang.org/x/net/icmp"
 
 import (
+	"encoding/binary"
 	"errors"
 	"net"
 	"syscall"
@@ -59,7 +60,7 @@ type Message struct {
 	Body     MessageBody // body
 }
 
-// Marshal returns the binary enconding of the ICMP message m.
+// Marshal returns the binary encoding of the ICMP message m.
 //
 // For an ICMPv4 message, the returned message always contains the
 // calculated checksum field.
@@ -94,7 +95,7 @@ func (m *Message) Marshal(psh []byte) ([]byte, error) {
 			return b, nil
 		}
 		off, l := 2*net.IPv6len, len(b)-len(psh)
-		b[off], b[off+1], b[off+2], b[off+3] = byte(l>>24), byte(l>>16), byte(l>>8), byte(l)
+		binary.BigEndian.PutUint32(b[off:off+4], uint32(l))
 	}
 	s := checksum(b)
 	// Place checksum back in header; using ^= avoids the
@@ -128,7 +129,7 @@ func ParseMessage(proto int, b []byte) (*Message, error) {
 		return nil, errMessageTooShort
 	}
 	var err error
-	m := &Message{Code: int(b[1]), Checksum: int(b[2])<<8 | int(b[3])}
+	m := &Message{Code: int(b[1]), Checksum: int(binary.BigEndian.Uint16(b[2:4]))}
 	switch proto {
 	case iana.ProtocolICMP:
 		m.Type = ipv4.ICMPType(b[0])

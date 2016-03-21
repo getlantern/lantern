@@ -71,12 +71,10 @@ func TestPacketConnReadWriteUnicastUDP(t *testing.T) {
 		if err := p.SetReadDeadline(time.Now().Add(100 * time.Millisecond)); err != nil {
 			t.Fatal(err)
 		}
-		if n, cm, _, err := p.ReadFrom(rb); err != nil {
+		if n, _, _, err := p.ReadFrom(rb); err != nil {
 			t.Fatal(err)
 		} else if !bytes.Equal(rb[:n], wb) {
 			t.Fatalf("got %v; want %v", rb[:n], wb)
-		} else {
-			t.Logf("rcvd cmsg: %v", cm)
 		}
 	}
 }
@@ -166,7 +164,7 @@ func TestPacketConnReadWriteUnicastICMP(t *testing.T) {
 		if err := p.SetReadDeadline(time.Now().Add(100 * time.Millisecond)); err != nil {
 			t.Fatal(err)
 		}
-		if n, cm, _, err := p.ReadFrom(rb); err != nil {
+		if n, _, _, err := p.ReadFrom(rb); err != nil {
 			switch runtime.GOOS {
 			case "darwin": // older darwin kernels have some limitation on receiving icmp packet through raw socket
 				t.Logf("not supported on %s", runtime.GOOS)
@@ -174,7 +172,6 @@ func TestPacketConnReadWriteUnicastICMP(t *testing.T) {
 			}
 			t.Fatal(err)
 		} else {
-			t.Logf("rcvd cmsg: %v", cm)
 			if m, err := icmp.ParseMessage(iana.ProtocolIPv6ICMP, rb[:n]); err != nil {
 				t.Fatal(err)
 			} else if m.Type != ipv6.ICMPTypeEchoReply || m.Code != 0 {

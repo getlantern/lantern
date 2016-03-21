@@ -5,6 +5,7 @@
 package icmp
 
 import (
+	"encoding/binary"
 	"net"
 	"strings"
 
@@ -89,7 +90,7 @@ func (ifi *InterfaceInfo) Marshal(proto int) ([]byte, error) {
 }
 
 func (ifi *InterfaceInfo) marshal(proto int, b []byte, attrs, l int) error {
-	b[0], b[1] = byte(l>>8), byte(l)
+	binary.BigEndian.PutUint16(b[:2], uint16(l))
 	b[2], b[3] = classInterfaceInfo, byte(ifi.Type)
 	for b = b[4:]; len(b) > 0 && attrs != 0; {
 		switch {
@@ -111,7 +112,7 @@ func (ifi *InterfaceInfo) marshal(proto int, b []byte, attrs, l int) error {
 }
 
 func (ifi *InterfaceInfo) marshalIfIndex(proto int, b []byte) []byte {
-	b[0], b[1], b[2], b[3] = byte(ifi.Interface.Index>>24), byte(ifi.Interface.Index>>16), byte(ifi.Interface.Index>>8), byte(ifi.Interface.Index)
+	binary.BigEndian.PutUint32(b[:4], uint32(ifi.Interface.Index))
 	return b[4:]
 }
 
@@ -119,18 +120,18 @@ func (ifi *InterfaceInfo) parseIfIndex(b []byte) ([]byte, error) {
 	if len(b) < 4 {
 		return nil, errMessageTooShort
 	}
-	ifi.Interface.Index = int(b[0])<<24 | int(b[1])<<16 | int(b[2])<<8 | int(b[3])
+	ifi.Interface.Index = int(binary.BigEndian.Uint32(b[:4]))
 	return b[4:], nil
 }
 
 func (ifi *InterfaceInfo) marshalIPAddr(proto int, b []byte) []byte {
 	switch proto {
 	case iana.ProtocolICMP:
-		b[0], b[1] = byte(afiIPv4>>8), byte(afiIPv4)
+		binary.BigEndian.PutUint16(b[:2], uint16(afiIPv4))
 		copy(b[4:4+net.IPv4len], ifi.Addr.IP.To4())
 		b = b[4+net.IPv4len:]
 	case iana.ProtocolIPv6ICMP:
-		b[0], b[1] = byte(afiIPv6>>8), byte(afiIPv6)
+		binary.BigEndian.PutUint16(b[:2], uint16(afiIPv6))
 		copy(b[4:4+net.IPv6len], ifi.Addr.IP.To16())
 		b = b[4+net.IPv6len:]
 	}
@@ -141,7 +142,7 @@ func (ifi *InterfaceInfo) parseIPAddr(b []byte) ([]byte, error) {
 	if len(b) < 4 {
 		return nil, errMessageTooShort
 	}
-	afi := int(b[0])<<8 | int(b[1])
+	afi := int(binary.BigEndian.Uint16(b[:2]))
 	b = b[4:]
 	switch afi {
 	case afiIPv4:
@@ -184,7 +185,7 @@ func (ifi *InterfaceInfo) parseName(b []byte) ([]byte, error) {
 }
 
 func (ifi *InterfaceInfo) marshalMTU(proto int, b []byte) []byte {
-	b[0], b[1], b[2], b[3] = byte(ifi.Interface.MTU>>24), byte(ifi.Interface.MTU>>16), byte(ifi.Interface.MTU>>8), byte(ifi.Interface.MTU)
+	binary.BigEndian.PutUint32(b[:4], uint32(ifi.Interface.MTU))
 	return b[4:]
 }
 
@@ -192,7 +193,7 @@ func (ifi *InterfaceInfo) parseMTU(b []byte) ([]byte, error) {
 	if len(b) < 4 {
 		return nil, errMessageTooShort
 	}
-	ifi.Interface.MTU = int(b[0])<<24 | int(b[1])<<16 | int(b[2])<<8 | int(b[3])
+	ifi.Interface.MTU = int(binary.BigEndian.Uint32(b[:4]))
 	return b[4:], nil
 }
 

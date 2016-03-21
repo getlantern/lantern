@@ -1,7 +1,6 @@
+// +build arm64,darwin
 // Created by cgo -godefs - DO NOT EDIT
 // cgo -godefs types_darwin.go
-
-// +build arm64,darwin
 
 package unix
 
@@ -132,9 +131,9 @@ type Fbootstraptransfer_t struct {
 }
 
 type Log2phys_t struct {
-	Flags       uint32
-	Contigbytes int64
-	Devoffset   int64
+	Flags     uint32
+	Pad_cgo_0 [8]byte
+	Pad_cgo_1 [8]byte
 }
 
 type Fsid struct {

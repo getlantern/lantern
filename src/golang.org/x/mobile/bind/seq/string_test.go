@@ -4,7 +4,10 @@
 
 package seq
 
-import "testing"
+import (
+	"testing"
+	"unicode/utf16"
+)
 
 var strData = []string{
 	"abcxyz09{}",
@@ -12,40 +15,14 @@ var strData = []string{
 	string([]rune{0xffff, 0x10000, 0x10001, 0x12345, 0x10ffff}),
 }
 
-var stringEncoder = map[string]struct {
-	write func(*Buffer, string)
-	read  func(*Buffer) string
-}{
-	"UTF16": {write: (*Buffer).WriteUTF16, read: (*Buffer).ReadUTF16},
-	"UTF8":  {write: (*Buffer).WriteUTF8, read: (*Buffer).ReadUTF8},
-}
-
 func TestString(t *testing.T) {
-	for encoding, f := range stringEncoder {
-		for _, test := range strData {
-			buf := new(Buffer)
-			f.write(buf, test)
-			buf.Offset = 0
-			got := f.read(buf)
-			if got != test {
-				t.Errorf("%s: got %q, want %q", encoding, got, test)
-			}
-		}
-	}
-}
-
-func TestSequential(t *testing.T) {
-	for encoding, f := range stringEncoder {
-		buf := new(Buffer)
-		for _, test := range strData {
-			f.write(buf, test)
-		}
-		buf.Offset = 0
-		for i, test := range strData {
-			got := f.read(buf)
-			if got != test {
-				t.Errorf("%s: %d: got %q, want %q", encoding, i, got, test)
-			}
+	for _, test := range strData {
+		chars := make([]uint16, 4*len(test))
+		nchars := UTF16Encode(test, chars)
+		chars = chars[:nchars]
+		got := string(utf16.Decode(chars))
+		if got != test {
+			t.Errorf("UTF16: got %q, want %q", got, test)
 		}
 	}
 }

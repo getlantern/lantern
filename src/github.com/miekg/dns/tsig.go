@@ -112,7 +112,7 @@ func TsigGenerate(m *Msg, secret, requestMAC string, timersOnly bool) ([]byte, s
 
 	t := new(TSIG)
 	var h hash.Hash
-	switch rr.Algorithm {
+	switch strings.ToLower(rr.Algorithm) {
 	case HmacMD5:
 		h = hmac.New(md5.New, []byte(rawsecret))
 	case HmacSHA1:
@@ -178,7 +178,7 @@ func TsigVerify(msg []byte, secret, requestMAC string, timersOnly bool) error {
 	}
 
 	var h hash.Hash
-	switch tsig.Algorithm {
+	switch strings.ToLower(tsig.Algorithm) {
 	case HmacMD5:
 		h = hmac.New(md5.New, rawsecret)
 	case HmacSHA1:
