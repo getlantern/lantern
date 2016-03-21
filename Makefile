@@ -504,7 +504,7 @@ pkg/gomobile: bin/gomobile
 $(ANDROID_LIB): bin/gomobile pkg/gomobile
 	@source setenv.bash && \
 	$(call build-tags) && \
-	gomobile bind -target=android -tags='headless' -o=$(ANDROID_LIB) -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -s" $(ANDROID_LIB_PKG)
+	gomobile bind -target=android/arm -tags='headless' -o=$(ANDROID_LIB) -ldflags="$(LDFLAGS) $$EXTRA_LDFLAGS -s" $(ANDROID_LIB_PKG)
 
 android-lib: $(ANDROID_LIB)
 

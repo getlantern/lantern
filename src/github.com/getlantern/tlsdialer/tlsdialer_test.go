@@ -205,13 +205,14 @@ func TestVariableTimeouts(t *testing.T) {
 	}
 
 	doTestTimeout := func(timeout time.Duration) (didTimeout bool) {
-		_, err := DialWithDialer(&net.Dialer{
+		conn, err := DialWithDialer(&net.Dialer{
 			Timeout: timeout,
 		}, "tcp", ADDR, false, &tls.Config{
 			RootCAs: cert.PoolContainingCert(),
 		})
 
 		if err == nil {
+			conn.Close()
 			return false
 		} else {
 			if neterr, isNetError := err.(net.Error); isNetError {
