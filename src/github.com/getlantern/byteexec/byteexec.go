@@ -31,12 +31,10 @@ import (
 	"github.com/getlantern/golog"
 )
 
-const (
-	fileMode = 0744
-)
-
 var (
 	log = golog.LoggerFor("Exec")
+
+	fileMode = os.FileMode(0744)
 
 	initMutex sync.Mutex
 )
