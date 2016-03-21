@@ -8,6 +8,7 @@ import (
 
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/golog"
+	"github.com/kardianos/osext"
 )
 
 const (
@@ -23,7 +24,8 @@ const (
 		<string>org.getlantern</string>
 		<key>ProgramArguments</key>
 		<array>
-		<string>/Applications/Lantern.app/Contents/MacOS/lantern</string>
+		<string>{{.Path}}</string>
+		<string>-startup</string>
 		</array>
 		<key>RunAtLoad</key>
         <{{.RunAtLoad}}/>
@@ -37,6 +39,7 @@ var (
 
 type Plist struct {
 	RunAtLoad bool
+	Path      string
 }
 
 func CreateLaunchFile(autoLaunch bool) {
@@ -44,10 +47,17 @@ func CreateLaunchFile(autoLaunch bool) {
 	var content bytes.Buffer
 	fname := appdir.InHomeDir(LaunchdPlistFile)
 
+	lanternPath, err := osext.Executable()
+	if err != nil {
+		log.Errorf("Could not get Lantern directory path: %q", err)
+		return
+	}
+	log.Debugf("Using lantern path: %v", lanternPath)
+
 	// Create plist template and set RunAtLoad property
 	t := template.Must(template.New("LaunchdPlist").Parse(LaunchdPlist))
 
-	err = t.Execute(&content, &Plist{RunAtLoad: autoLaunch})
+	err = t.Execute(&content, &Plist{RunAtLoad: autoLaunch, Path: lanternPath})
 	if err != nil {
 		log.Errorf("Error writing plist template: %q", err)
 		return

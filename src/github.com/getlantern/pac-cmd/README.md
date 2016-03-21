@@ -9,8 +9,11 @@ Note - you will need to run make separately on each platform.
 # Usage
 
 ```sh
-pac [on  <pac url> | off]
+pac on  <pac-url>
+pac off [old-pac-url]
 ```
+
+`pac off` with `old-pac-url` will turn off pac setting only if the existing pac url is equal to `old-pac-url`.
 
 #Notes
 

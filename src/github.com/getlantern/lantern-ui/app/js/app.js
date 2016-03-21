@@ -12,6 +12,7 @@ var app = angular.module('app', [
   'app.vis',
   'ngSanitize',
   'ngResource',
+  'ngclipboard',
   'ui.utils',
   'ui.showhide',
   'ui.validate',
@@ -33,12 +34,14 @@ var app = angular.module('app', [
   .config(function($tooltipProvider, $httpProvider,
                    $resourceProvider, $translateProvider, DEFAULT_LANG) {
 
-      $translateProvider.preferredLanguage(DEFAULT_LANG);
-
-      $translateProvider.useStaticFilesLoader({
+      $translateProvider.fallbackLanguage(DEFAULT_LANG).
+        uniformLanguageTag('java').
+        determinePreferredLanguage().
+        useStaticFilesLoader({
           prefix: './locale/',
           suffix: '.json'
-      });
+        });
+
     $httpProvider.defaults.useXDomain = true;
     delete $httpProvider.defaults.headers.common["X-Requested-With"];
     //$httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
@@ -85,12 +88,20 @@ var app = angular.module('app', [
 
       var ds = $websocket('ws://' + document.location.host + '/data');
 
+      // Register if the user navigated away, so we don't try to connect to the UI.
+      // Also, force closing the websocket
+      var userDidLeave = false;
+      $window.onbeforeunload = function() {
+        ds.close();
+        userDidLeave = true;
+      };
+
       ds.onMessage(function(raw) {
         var envelope = JSON.parse(raw.data);
-        if (typeof Messages[envelope.Type] != 'undefined') {
-          Messages[envelope.Type].call(this, envelope.Message);
+        if (typeof Messages[envelope.type] != 'undefined') {
+          Messages[envelope.type].call(this, envelope.message);
         } else {
-          console.log('Got unknown message type: ' + envelope.Type);
+          console.log('Got unknown message type: ' + envelope.type);
         };
       });
 
@@ -104,16 +115,30 @@ var app = angular.module('app', [
 
       ds.onClose(function(msg) {
         $rootScope.wsConnected = false;
-        // try to reconnect indefinitely
-        // when the websocket closes
-        $interval(function() {
-          console.log("Trying to reconnect to disconnected websocket");
-          ds = $websocket('ws://' + document.location.host + '/data');
-          ds.onOpen(function(msg) {
-            $window.location.reload();
-          });
-        }, WS_RECONNECT_INTERVAL);
+
         console.log("This websocket instance closed " + msg);
+
+        // If the user left, then don't try to reconnect. Causes a known bug lantern-#2721
+        // where some browsers will reconnect when navigating away, returning to Lantern
+        // home page
+        if (userDidLeave) {
+          return;
+        }
+
+        // Temporary workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=1192773
+        if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1) {
+          $rootScope.backendIsGone = true;
+          $rootScope.$digest()
+        } else {
+          // Try to reconnect indefinitely when the websocket closes
+          $interval(function() {
+            console.log("Trying to reconnect to disconnected websocket");
+            ds = $websocket('ws://' + document.location.host + '/data');
+            ds.onOpen(function(msg) {
+              $window.location.reload();
+            });
+          }, WS_RECONNECT_INTERVAL);
+        }
       });
 
       ds.onError(function(msg) {
@@ -130,23 +155,6 @@ var app = angular.module('app', [
       return methods;
     }
   ])
-  .factory('ProxiedSites', ['$window', '$rootScope', 'DataStream', function($window, $rootScope, DataStream) {
-
-      var methods = {
-        update: function() {
-          console.log('UPDATE');
-          // dataStream.send(JSON.stringify($rootScope.updates));
-          DataStream.send('ProxiedSites', $rootScope.updates)
-        },
-        get: function() {
-          console.log('GET');
-          // dataStream.send(JSON.stringify({ action: 'get' }));
-          DataStream.send('ProxiedSites', {'action': 'get'});
-        }
-      };
-
-      return methods;
-  }])
   .run(function ($filter, $log, $rootScope, $timeout, $window, $websocket,
                  $translate, $http, apiSrvc, gaMgr, modelSrvc, ENUMS, EXTERNAL_URL, MODAL, CONTACT_FORM_MAXLEN) {
 
@@ -180,13 +188,17 @@ var app = angular.module('app', [
         $translate.use(lang);
     };
 
-    $rootScope.trackPageView = function() {
-        gaMgr.trackPageView('start');
+    $rootScope.enableTracking = function() {
+      gaMgr.enable();
+    };
+
+    $rootScope.disableTracking = function() {
+      gaMgr.disable();
     };
 
     $rootScope.valByLang = function(name) {
         // use language-specific forums URL
-        if (name && $rootScope.lang && 
+        if (name && $rootScope.lang &&
             name.hasOwnProperty($rootScope.lang)) {
             return name[$rootScope.lang];
         }
@@ -239,22 +251,32 @@ var app = angular.module('app', [
     $rootScope.$watch("wsConnected", function(wsConnected) {
       var MILLIS_UNTIL_BACKEND_CONSIDERED_GONE = 10000;
       if (!wsConnected) {
-        // In 11 seconds, check if we're still not connected
-        $timeout(function() {
-          var lastConnectedAt = $rootScope.wsLastConnectedAt;
-          if (lastConnectedAt) {
-            var timeSinceLastConnected = new Date().getTime() - lastConnectedAt.getTime();
-            $log.debug("Time since last connect", timeSinceLastConnected);
-            if (timeSinceLastConnected > MILLIS_UNTIL_BACKEND_CONSIDERED_GONE) {
-              // If it's been more than 10 seconds since we last connect,
-              // treat the backend as gone
-              console.log("Backend is gone");
-              $rootScope.backendIsGone = true;
-            } else {
-              $rootScope.backendIsGone = false;
+        // Temporary workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=1192773
+        if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1) {
+          $rootScope.backendIsGone = true;
+        } else {
+          // In 11 seconds, check if we're still not connected
+          $timeout(function() {
+            var lastConnectedAt = $rootScope.wsLastConnectedAt;
+            if (lastConnectedAt) {
+              var timeSinceLastConnected = new Date().getTime() - lastConnectedAt.getTime();
+              $log.debug("Time since last connect", timeSinceLastConnected);
+              if (timeSinceLastConnected > MILLIS_UNTIL_BACKEND_CONSIDERED_GONE) {
+                // If it's been more than 10 seconds since we last connect,
+                // treat the backend as gone
+                console.log("Backend is gone");
+                $rootScope.backendIsGone = true;
+              } else {
+                $rootScope.backendIsGone = false;
+              }
             }
-          }
-        }, MILLIS_UNTIL_BACKEND_CONSIDERED_GONE + 1);
+          }, MILLIS_UNTIL_BACKEND_CONSIDERED_GONE + 1000);
+        }
       }
     });
+
   });
+
+app.filter('urlencode', function() {
+    return window.encodeURIComponent;
+});

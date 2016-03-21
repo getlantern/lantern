@@ -5,6 +5,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -13,6 +14,10 @@ import (
 const (
 	DEFAULT_BYTES_BEFORE_FLUSH = 1024768
 	DEFAULT_READ_BUFFER_SIZE   = 65536
+)
+
+var (
+	r = regexp.MustCompile("/(.*)/(.*)/(.*)/")
 )
 
 // Proxy is the server side to an enproxy.Client.  Proxy implements the
@@ -61,8 +66,8 @@ type Proxy struct {
 
 	// Allow: Optional function that checks whether the given request to the
 	// given destAddr is allowed.  If it is not allowed, this function should
-	// return an error.
-	Allow func(req *http.Request, destAddr string) error
+	// return the HTTP error code and an error.
+	Allow func(req *http.Request, destAddr string) (int, error)
 
 	// connMap: map of outbound connections by their id
 	connMap map[string]*lazyConn
@@ -128,44 +133,72 @@ func (p *Proxy) Serve(l net.Listener) error {
 	return httpServer.Serve(l)
 }
 
+func (p *Proxy) parseRequestPath(path string) (string, string, string, error) {
+	log.Debugf("Path is %v", path)
+	strs := r.FindStringSubmatch(path)
+	if len(strs) < 4 {
+		return "", "", "", fmt.Errorf("Unexpected request path: %v", path)
+	}
+	return strs[1], strs[2], strs[3], nil
+}
+
+func (p *Proxy) parseRequestProps(req *http.Request) (string, string, string, error) {
+	// If it's a reasonably long path, it likely follows our new request URI format:
+	// /X-Enproxy-Id/X-Enproxy-Dest-Addr/X-Enproxy-Op
+	if len(req.URL.Path) > 5 {
+		return p.parseRequestPath(req.URL.Path)
+	}
+
+	id := req.Header.Get(X_ENPROXY_ID)
+	if id == "" {
+		return "", "", "", fmt.Errorf("No id found in header %s", X_ENPROXY_ID)
+	}
+
+	addr := req.Header.Get(X_ENPROXY_DEST_ADDR)
+	if addr == "" {
+		return "", "", "", fmt.Errorf("No address found in header %s", X_ENPROXY_DEST_ADDR)
+	}
+
+	op := req.Header.Get(X_ENPROXY_OP)
+	return id, addr, op, nil
+}
+
 // ServeHTTP: implements the http.Handler interface
 func (p *Proxy) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	resp.Header().Set("Lantern-IP", req.Header.Get("X-Forwarded-For"))
+	resp.Header().Set("Lantern-Country", req.Header.Get("Cf-Ipcountry"))
+
 	if req.Method == "HEAD" {
 		// Just respond OK to HEAD requests (used for health checks)
 		resp.WriteHeader(200)
 		return
 	}
 
-	id := req.Header.Get(X_ENPROXY_ID)
-	if id == "" {
-		badGateway(resp, fmt.Sprintf("No id found in header %s", X_ENPROXY_ID))
+	id, addr, op, er := p.parseRequestProps(req)
+	if er != nil {
+		respond(http.StatusBadRequest, resp, er.Error())
+		log.Errorf("Could not parse enproxy data: %v", er)
 		return
 	}
+	log.Debugf("Parsed enproxy data id: %v, addr: %v, op: %v", id, addr, op)
 
-	addr := req.Header.Get(X_ENPROXY_DEST_ADDR)
-	if addr == "" {
-		badGateway(resp, fmt.Sprintf("No address found in header %s", X_ENPROXY_DEST_ADDR))
-		return
-	}
-
-	lc, isNew, err := p.getLazyConn(id, addr, req)
+	lc, isNew, err := p.getLazyConn(id, addr, req, resp)
 	if err != nil {
-		forbidden(resp, err.Error())
+		// Close the connection?
 		return
 	}
 	connOut, err := lc.get()
 	if err != nil {
-		badGateway(resp, fmt.Sprintf("Unable to get connOut: %s", err))
+		respond(http.StatusInternalServerError, resp, fmt.Sprintf("Unable to get outoing connection to destination server: %v", err))
 		return
 	}
 
-	op := req.Header.Get(X_ENPROXY_OP)
 	if op == OP_WRITE {
 		p.handleWrite(resp, req, lc, connOut, isNew)
 	} else if op == OP_READ {
 		p.handleRead(resp, req, lc, connOut, true)
 	} else {
-		badGateway(resp, fmt.Sprintf("Op %s not supported", op))
+		respond(http.StatusInternalServerError, resp, fmt.Sprintf("Operation not supported: %v", op))
 	}
 }
 
@@ -180,7 +213,7 @@ func (p *Proxy) handleWrite(resp http.ResponseWriter, req *http.Request, lc *laz
 		}
 	}
 	if err != nil && err != io.EOF {
-		badGateway(resp, fmt.Sprintf("Unable to write to connOut: %s", err))
+		respond(http.StatusInternalServerError, resp, fmt.Sprintf("Unable to write to connOut: %s", err))
 		return
 	}
 	host := ""
@@ -227,7 +260,9 @@ func (p *Proxy) handleRead(resp http.ResponseWriter, req *http.Request, lc *lazy
 	lastReadTime := time.Now()
 	for {
 		readDeadline := time.Now().Add(p.FlushTimeout)
-		connOut.SetReadDeadline(readDeadline)
+		if err := connOut.SetReadDeadline(readDeadline); err != nil {
+			log.Debugf("Unable to set read deadline: %v", err)
+		}
 
 		// Read
 		n, readErr := connOut.Read(b)
@@ -255,7 +290,9 @@ func (p *Proxy) handleRead(resp http.ResponseWriter, req *http.Request, lc *lazy
 			_, writeErr := resp.Write(b[:n])
 			if writeErr != nil {
 				log.Errorf("Error writing to response: %s", writeErr)
-				connOut.Close()
+				if err := connOut.Close(); err != nil {
+					log.Debugf("Unable to close out connection: %v", err)
+				}
 				return
 			}
 		}
@@ -311,25 +348,31 @@ func (p *Proxy) handleRead(resp http.ResponseWriter, req *http.Request, lc *lazy
 
 // getLazyConn gets the lazyConn corresponding to the given id and addr, or
 // creates a new one and saves it to connMap.
-func (p *Proxy) getLazyConn(id string, addr string, req *http.Request) (l *lazyConn, isNew bool, err error) {
+func (p *Proxy) getLazyConn(id string, addr string, req *http.Request, resp http.ResponseWriter) (l *lazyConn, isNew bool, err error) {
 	p.connMapMutex.RLock()
 	l = p.connMap[id]
 	p.connMapMutex.RUnlock()
-	if l == nil {
-		if p.Allow != nil {
-			log.Trace("Checking if connection is allowed")
-			err := p.Allow(req, addr)
-			if err != nil {
-				return nil, false, fmt.Errorf("Not allowed: %v", err)
-			}
-		}
-		l = p.newLazyConn(id, addr)
-		p.connMapMutex.Lock()
-		p.connMap[id] = l
-		p.connMapMutex.Unlock()
-		isNew = true
+	if l != nil {
+		return l, false, nil
 	}
-	return
+	return p.newOutgoingConn(id, addr, req, resp)
+}
+
+// newOutgoingConn creates a new outoing connection and stores it in the connection cache.
+func (p *Proxy) newOutgoingConn(id string, addr string, req *http.Request, resp http.ResponseWriter) (l *lazyConn, isNew bool, err error) {
+	if p.Allow != nil {
+		log.Trace("Checking if connection is allowed")
+		code, err := p.Allow(req, addr)
+		if err != nil {
+			respond(code, resp, err.Error())
+			return nil, false, fmt.Errorf("Not allowed: %v", err)
+		}
+	}
+	l = p.newLazyConn(id, addr)
+	p.connMapMutex.Lock()
+	p.connMap[id] = l
+	p.connMapMutex.Unlock()
+	return l, true, nil
 }
 
 func clientIpFor(req *http.Request) string {
@@ -347,12 +390,10 @@ func clientIpFor(req *http.Request) string {
 	return strings.TrimSpace(ips[0])
 }
 
-func badGateway(resp http.ResponseWriter, msg string) {
-	log.Errorf("Responding Bad Gateway: %s", msg)
-	resp.WriteHeader(http.StatusBadGateway)
-}
-
-func forbidden(resp http.ResponseWriter, msg string) {
-	log.Errorf("Responding Forbidden: %s", msg)
-	resp.WriteHeader(http.StatusForbidden)
+func respond(status int, resp http.ResponseWriter, msg string) {
+	log.Errorf(msg)
+	resp.WriteHeader(status)
+	if _, err := resp.Write([]byte(msg)); err != nil {
+		log.Debugf("Unable to write response: %v", err)
+	}
 }

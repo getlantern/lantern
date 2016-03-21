@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ivyapp="http://schemas.android.com/apk/res-auto">
+
+
+    <item
+        android:id="@+id/action_clear"
+        android:title="@string/action_clear"
+        ivyapp:showAsAction="always" />
+    <item
+        android:id="@+id/action_demo"
+        android:title="@string/action_demo"
+        ivyapp:showAsAction="collapseActionView" />
+    <item
+        android:id="@+id/action_help"
+        android:title="@string/action_help"
+        ivyapp:showAsAction="collapseActionView" />
+    <item
+        android:id="@+id/action_about"
+        android:title="@string/action_about"
+        ivyapp:showAsAction="collapseActionView" />
+
+</menu>

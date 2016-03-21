@@ -1,5 +1,5 @@
 {
-  "title": "Lantern",
+  "title": "Lantern __VERSION__",
   "icon": "../../Lantern.app/Contents/Resources/app.icns",
   "background": "dmgbackground.png",
   "icon-size": 100,

@@ -3,23 +3,29 @@ package geolookup
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
-	"time"
 
 	"github.com/getlantern/golog"
 )
 
 const (
-	geoServeEndpoint = `http://geo.getiantem.org/lookup/%s`
-	geoLookupTimeout = 60 * time.Second
+
+	// The CloudFlare endpoint can only be hit via chained proxies because domain
+	// fronting no longer works there.
+	cloudflareEndpoint = `http://geo.getiantem.org/lookup/%s`
+
+	// The CloudFront endpoint is used for "direct" domain fronted requests.
+	cloudfrontEndpoint = `http://d3u5fqukq7qrhd.cloudfront.net/lookup/%s`
 )
 
 var (
 	log = golog.LoggerFor("geolookup")
-
-	defaultHttpClient = &http.Client{}
 )
+
+// HTTPFetcher is a simple interface for types that are able to fetch geo data.
+type HTTPFetcher interface {
+	Do(req *http.Request) (*http.Response, error)
+}
 
 // The City structure corresponds to the data in the GeoIP2/GeoLite2 City
 // databases.
@@ -102,43 +108,50 @@ type Country struct {
 // LookupIPWithClient looks up the given IP using a geolocation service and returns a
 // City struct. If an httpClient was provided, it uses that, otherwise it uses
 // a default http.Client.
-func LookupIPWithClient(ipAddr string, httpClient *http.Client) (*City, error) {
-	if httpClient == nil {
-		log.Trace("Using default http.Client")
-		httpClient = defaultHttpClient
-	}
-	httpClient.Timeout = geoLookupTimeout
+func LookupIPWithClient(ipAddr string, fetcher HTTPFetcher) (*City, string, error) {
+	return LookupIPWithEndpoint(cloudflareEndpoint, ipAddr, fetcher)
+}
 
+// LookupIPWithEndpoint looks up the given IP using a geolocation service and returns a
+// City struct. If an httpClient was provided, it uses that, otherwise it uses
+// a default http.Client.
+func LookupIPWithEndpoint(endpoint string, ipAddr string, fetcher HTTPFetcher) (*City, string, error) {
 	var err error
 	var req *http.Request
 	var resp *http.Response
-
-	lookupURL := fmt.Sprintf(geoServeEndpoint, ipAddr)
+	lookupURL := fmt.Sprintf(endpoint, ipAddr)
 
 	if req, err = http.NewRequest("GET", lookupURL, nil); err != nil {
-		return nil, fmt.Errorf("Could not create request: %q", err)
+		return nil, "", fmt.Errorf("Could not create request: %q", err)
 	}
 
-	if resp, err = httpClient.Do(req); err != nil {
-		return nil, fmt.Errorf("Could not get response from server: %q", err)
+	frontedUrl := fmt.Sprintf(cloudfrontEndpoint, ipAddr)
+
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Lantern-Fronted-URL", frontedUrl)
+	log.Debugf("Fetching ip...")
+	if resp, err = fetcher.Do(req); err != nil {
+		return nil, "", fmt.Errorf("Could not get response from server: %q", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Debugf("Unable to close reponse body: %v", err)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
-		body := "body unreadable"
-		b, err := ioutil.ReadAll(resp.Body)
-		if err == nil {
-			body = string(b)
-		}
-		return nil, fmt.Errorf("Unexpected response status %d: %v", resp.StatusCode, body)
+		return nil, "", fmt.Errorf("Unexpected response status %d", resp.StatusCode)
 	}
+
+	ip := resp.Header.Get("X-Reflected-Ip")
 
 	decoder := json.NewDecoder(resp.Body)
 
 	city := &City{}
 	if err = decoder.Decode(city); err != nil {
-		return nil, err
+		return nil, ip, err
 	}
 
-	return city, nil
+	log.Debugf("Successfully looked up IP '%v' and country '%v'", ip, city.Country.IsoCode)
+	return city, ip, nil
 }

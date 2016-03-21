@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="versionNum" type="id"/>
+    <item name="updater" type="id"/>
+    <item name="powerLantern" type="id"/>
+    <item name="settings_icon" type="id"/>
+    <item name="toast_on" type="id"/>
+    <item name="toast_off" type="id"/>
+    <item name="editbox_shape" type="id"/>
+    <item name="update_available" type="id"/>
+</resources>

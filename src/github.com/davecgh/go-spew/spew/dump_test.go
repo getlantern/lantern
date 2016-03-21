@@ -64,9 +64,10 @@ package spew_test
 import (
 	"bytes"
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
 	"testing"
 	"unsafe"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 // dumpTest is used to describe a test to be perfomed against the Dump method.
@@ -333,13 +334,20 @@ func addArrayDumpTests() {
 	v2Addr := fmt.Sprintf("%p", pv2)
 	pv2Addr := fmt.Sprintf("%p", &pv2)
 	v2t := "spew_test.pstringer"
-	v2s := "(len=" + v2Len + " cap=" + v2Cap + ") {\n (" + v2t + ") (len=" +
-		v2i0Len + ") stringer 1,\n (" + v2t + ") (len=" + v2i1Len +
-		") stringer 2,\n (" + v2t + ") (len=" + v2i2Len + ") " +
-		"stringer 3\n}"
+	v2sp := "(len=" + v2Len + " cap=" + v2Cap + ") {\n (" + v2t +
+		") (len=" + v2i0Len + ") stringer 1,\n (" + v2t +
+		") (len=" + v2i1Len + ") stringer 2,\n (" + v2t +
+		") (len=" + v2i2Len + ") " + "stringer 3\n}"
+	v2s := v2sp
+	if spew.UnsafeDisabled {
+		v2s = "(len=" + v2Len + " cap=" + v2Cap + ") {\n (" + v2t +
+			") (len=" + v2i0Len + ") \"1\",\n (" + v2t + ") (len=" +
+			v2i1Len + ") \"2\",\n (" + v2t + ") (len=" + v2i2Len +
+			") " + "\"3\"\n}"
+	}
 	addDumpTest(v2, "([3]"+v2t+") "+v2s+"\n")
-	addDumpTest(pv2, "(*[3]"+v2t+")("+v2Addr+")("+v2s+")\n")
-	addDumpTest(&pv2, "(**[3]"+v2t+")("+pv2Addr+"->"+v2Addr+")("+v2s+")\n")
+	addDumpTest(pv2, "(*[3]"+v2t+")("+v2Addr+")("+v2sp+")\n")
+	addDumpTest(&pv2, "(**[3]"+v2t+")("+pv2Addr+"->"+v2Addr+")("+v2sp+")\n")
 	addDumpTest(nv2, "(*[3]"+v2t+")(<nil>)\n")
 
 	// Array containing interfaces.
@@ -586,6 +594,11 @@ func addMapDumpTests() {
 	m2t2 := "spew_test.pstringer"
 	m2s := "(len=" + m2Len + ") {\n (" + m2t1 + ") (len=" + k2Len + ") " +
 		"stringer one: (" + m2t2 + ") (len=" + v2Len + ") stringer 1\n}"
+	if spew.UnsafeDisabled {
+		m2s = "(len=" + m2Len + ") {\n (" + m2t1 + ") (len=" + k2Len +
+			") " + "\"one\": (" + m2t2 + ") (len=" + v2Len +
+			") \"1\"\n}"
+	}
 	addDumpTest(m2, "("+m2t+") "+m2s+"\n")
 	addDumpTest(pm2, "(*"+m2t+")("+m2Addr+")("+m2s+")\n")
 	addDumpTest(&pm2, "(**"+m2t+")("+pm2Addr+"->"+m2Addr+")("+m2s+")\n")
@@ -692,9 +705,16 @@ func addStructDumpTests() {
 	v3t2 := "spew_test.pstringer"
 	v3s := "{\n s: (" + v3t2 + ") (len=4) stringer test,\n S: (" + v3t2 +
 		") (len=5) stringer test2\n}"
+	v3sp := v3s
+	if spew.UnsafeDisabled {
+		v3s = "{\n s: (" + v3t2 + ") (len=4) \"test\",\n S: (" +
+			v3t2 + ") (len=5) \"test2\"\n}"
+		v3sp = "{\n s: (" + v3t2 + ") (len=4) \"test\",\n S: (" +
+			v3t2 + ") (len=5) stringer test2\n}"
+	}
 	addDumpTest(v3, "("+v3t+") "+v3s+"\n")
-	addDumpTest(pv3, "(*"+v3t+")("+v3Addr+")("+v3s+")\n")
-	addDumpTest(&pv3, "(**"+v3t+")("+pv3Addr+"->"+v3Addr+")("+v3s+")\n")
+	addDumpTest(pv3, "(*"+v3t+")("+v3Addr+")("+v3sp+")\n")
+	addDumpTest(&pv3, "(**"+v3t+")("+pv3Addr+"->"+v3Addr+")("+v3sp+")\n")
 	addDumpTest(nv3, "(*"+v3t+")(<nil>)\n")
 
 	// Struct that contains embedded struct and field to same struct.
@@ -974,13 +994,49 @@ func TestDump(t *testing.T) {
 func TestDumpSortedKeys(t *testing.T) {
 	cfg := spew.ConfigState{SortKeys: true}
 	s := cfg.Sdump(map[int]string{1: "1", 3: "3", 2: "2"})
-	expected := `(map[int]string) (len=3) {
-(int) 1: (string) (len=1) "1",
-(int) 2: (string) (len=1) "2",
-(int) 3: (string) (len=1) "3"
-}
-`
+	expected := "(map[int]string) (len=3) {\n(int) 1: (string) (len=1) " +
+		"\"1\",\n(int) 2: (string) (len=1) \"2\",\n(int) 3: (string) " +
+		"(len=1) \"3\"\n" +
+		"}\n"
 	if s != expected {
 		t.Errorf("Sorted keys mismatch:\n  %v %v", s, expected)
 	}
+
+	s = cfg.Sdump(map[stringer]int{"1": 1, "3": 3, "2": 2})
+	expected = "(map[spew_test.stringer]int) (len=3) {\n" +
+		"(spew_test.stringer) (len=1) stringer 1: (int) 1,\n" +
+		"(spew_test.stringer) (len=1) stringer 2: (int) 2,\n" +
+		"(spew_test.stringer) (len=1) stringer 3: (int) 3\n" +
+		"}\n"
+	if s != expected {
+		t.Errorf("Sorted keys mismatch:\n  %v %v", s, expected)
+	}
+
+	s = cfg.Sdump(map[pstringer]int{pstringer("1"): 1, pstringer("3"): 3, pstringer("2"): 2})
+	expected = "(map[spew_test.pstringer]int) (len=3) {\n" +
+		"(spew_test.pstringer) (len=1) stringer 1: (int) 1,\n" +
+		"(spew_test.pstringer) (len=1) stringer 2: (int) 2,\n" +
+		"(spew_test.pstringer) (len=1) stringer 3: (int) 3\n" +
+		"}\n"
+	if spew.UnsafeDisabled {
+		expected = "(map[spew_test.pstringer]int) (len=3) {\n" +
+			"(spew_test.pstringer) (len=1) \"1\": (int) 1,\n" +
+			"(spew_test.pstringer) (len=1) \"2\": (int) 2,\n" +
+			"(spew_test.pstringer) (len=1) \"3\": (int) 3\n" +
+			"}\n"
+	}
+	if s != expected {
+		t.Errorf("Sorted keys mismatch:\n  %v %v", s, expected)
+	}
+
+	s = cfg.Sdump(map[customError]int{customError(1): 1, customError(3): 3, customError(2): 2})
+	expected = "(map[spew_test.customError]int) (len=3) {\n" +
+		"(spew_test.customError) error: 1: (int) 1,\n" +
+		"(spew_test.customError) error: 2: (int) 2,\n" +
+		"(spew_test.customError) error: 3: (int) 3\n" +
+		"}\n"
+	if s != expected {
+		t.Errorf("Sorted keys mismatch:\n  %v %v", s, expected)
+	}
+
 }

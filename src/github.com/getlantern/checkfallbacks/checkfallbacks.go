@@ -8,20 +8,28 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/getlantern/flashlight/client"
-	"github.com/getlantern/golog"
 	"io/ioutil"
 	"net/http"
+	"net/http/httputil"
 	"os"
 	"runtime"
 	"strings"
 	"sync"
+
+	"github.com/getlantern/flashlight/client"
+	"github.com/getlantern/golog"
+)
+
+const (
+	DeviceID = "999999"
 )
 
 var (
 	help          = flag.Bool("help", false, "Get usage help")
+	verbose       = flag.Bool("verbose", false, "Be verbose (useful for manual testing)")
 	fallbacksFile = flag.String("fallbacks", "fallbacks.json", "File containing json array of fallback information")
 	numConns      = flag.Int("connections", 1, "Number of simultaneous connections")
+	verify        = flag.Bool("verify", false, "Verify the functionality of the fallback")
 
 	expectedBody = "Google is built by a large team of engineers, designers, researchers, robots, and others in many different sites across the globe. It is updated continuously, and built with more tools and technologies than we can shake a stick at. If you'd like to help us out, see google.com/careers.\n"
 )
@@ -29,15 +37,6 @@ var (
 var (
 	log = golog.LoggerFor("checkfallbacks")
 )
-
-type FallbackServer struct {
-	Protocol   string
-	IP         string
-	Port       string
-	Pt         bool
-	Cert       string
-	Auth_token string
-}
 
 func main() {
 	flag.Parse()
@@ -52,16 +51,22 @@ func main() {
 	log.Debugf("Using all %d cores on machine", numcores)
 
 	fallbacks := loadFallbacks(*fallbacksFile)
-	for err := range *testAllFallbacks(fallbacks) {
-		if err != nil {
-			fmt.Printf("[failed fallback check] %v\n", err)
+	outputCh := testAllFallbacks(fallbacks)
+	for out := range *outputCh {
+		if out.err != nil {
+			fmt.Printf("[failed fallback check] %v\n", out.err)
+		}
+		if *verbose && len(out.info) > 0 {
+			for _, msg := range out.info {
+				fmt.Printf("[output] %v\n", msg)
+			}
 		}
 	}
 }
 
 // Load the fallback servers list file. Failure to do so will result in
 // exiting the program.
-func loadFallbacks(filename string) (fallbacks []FallbackServer) {
+func loadFallbacks(filename string) (fallbacks []client.ChainedServerInfo) {
 	if filename == "" {
 		log.Error("Please specify a fallbacks file")
 		flag.Usage()
@@ -85,13 +90,18 @@ func loadFallbacks(filename string) (fallbacks []FallbackServer) {
 	return
 }
 
+type fullOutput struct {
+	err  error
+	info []string
+}
+
 // Test all fallback servers
-func testAllFallbacks(fallbacks []FallbackServer) (errors *chan error) {
-	errorsChan := make(chan error)
-	errors = &errorsChan
+func testAllFallbacks(fallbacks []client.ChainedServerInfo) (output *chan fullOutput) {
+	outputChan := make(chan fullOutput)
+	output = &outputChan
 
 	// Make
-	fbChan := make(chan FallbackServer)
+	fbChan := make(chan client.ChainedServerInfo)
 	// Channel fallback servers on-demand
 	go func() {
 		for _, val := range fallbacks {
@@ -112,59 +122,77 @@ func testAllFallbacks(fallbacks []FallbackServer) (errors *chan error) {
 			// Done() when closed (i.e. range exits)
 			go func(i int) {
 				for fb := range fbChan {
-					*errors <- fb.testFallbackServer(i)
+					*output <- testFallbackServer(&fb, i)
 				}
 				workersWg.Done()
 			}(i + 1)
 		}
 		workersWg.Wait()
 
-		close(errorsChan)
+		close(outputChan)
 	}()
 
 	return
 }
 
-// Perform the test of an individual FallbackServer
-func (fb *FallbackServer) testFallbackServer(workerId int) (err error) {
-	if fb.Pt {
-		return fmt.Errorf("Skipping fallback %v because it has pluggable transport enabled", fb.IP)
-	}
-
+// Perform the test of an individual server
+func testFallbackServer(fb *client.ChainedServerInfo, workerID int) (output fullOutput) {
 	// Test connectivity
-	info := &client.ChainedServerInfo{
-		Addr:      fb.IP + ":443",
-		Cert:      fb.Cert,
-		AuthToken: fb.Auth_token,
-		Pipelined: true,
-	}
-	dialer, err := info.Dialer()
+	fb.Pipelined = true
+	dialer, err := fb.Dialer(DeviceID)
 	if err != nil {
-		return fmt.Errorf("%v: error building dialer: %v", fb.IP, err)
+		output.err = fmt.Errorf("%v: error building dialer: %v", fb.Addr, err)
+		return
 	}
 	c := &http.Client{
 		Transport: &http.Transport{
-			Dial: dialer.Dial,
+			Dial: dialer.DialFN,
 		},
 	}
 	req, err := http.NewRequest("GET", "http://www.google.com/humans.txt", nil)
+	if err != nil {
+		output.err = fmt.Errorf("%v: NewRequest to humans.txt failed: %v", fb.Addr, err)
+		return
+	}
+	if *verbose {
+		reqStr, _ := httputil.DumpRequestOut(req, true)
+		output.info = []string{"\n" + string(reqStr)}
+	}
+
+	req.Header.Set("X-LANTERN-AUTH-TOKEN", fb.AuthToken)
 	resp, err := c.Do(req)
 	if err != nil {
-		return fmt.Errorf("%v: requesting humans.txt failed: %v", fb.IP, err)
+		output.err = fmt.Errorf("%v: requesting humans.txt failed: %v", fb.Addr, err)
+		return
 	}
-	defer resp.Body.Close()
+	if *verbose {
+		respStr, _ := httputil.DumpResponse(resp, true)
+		output.info = append(output.info, "\n"+string(respStr))
+	}
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Debugf("Unable to close response body: %v", err)
+		}
+	}()
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("%v: bad status code: %v", fb.IP, resp.StatusCode)
+		output.err = fmt.Errorf("%v: bad status code: %v", fb.Addr, resp.StatusCode)
+		return
 	}
 	bytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("%v: error reading response body: %v", fb.IP, err)
+		output.err = fmt.Errorf("%v: error reading response body: %v", fb.Addr, err)
+		return
 	}
 	body := string(bytes)
 	if body != expectedBody {
-		return fmt.Errorf("%v: wrong body: %s", fb.IP, body)
+		output.err = fmt.Errorf("%v: wrong body: %s", fb.Addr, body)
+		return
 	}
 
-	log.Debugf("Worker %d: Fallback %v OK.\n", workerId, fb.IP)
-	return nil
+	log.Debugf("Worker %d: Fallback %v OK.\n", workerID, fb.Addr)
+
+	if *verify {
+		verifyFallback(fb, c)
+	}
+	return
 }

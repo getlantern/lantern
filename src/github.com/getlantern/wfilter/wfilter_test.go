@@ -10,7 +10,13 @@ import (
 	"github.com/getlantern/testify/assert"
 )
 
-func TestLines(t *testing.T) {
+var expected = `1 A
+2 B
+3 C
+4 D
+`
+
+func TestLinePrepender(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 	i := int32(0)
 	w := LinePrepender(buf, func(w io.Writer) (int, error) {
@@ -38,8 +44,62 @@ func TestLines(t *testing.T) {
 	assert.Equal(t, expected, string(buf.Bytes()))
 }
 
-var expected = `1 A
-2 B
-3 C
-4 D
-`
+func TestSimplePrepender(t *testing.T) {
+	buf := bytes.NewBuffer(nil)
+	w := SimplePrepender(buf, func(w io.Writer) (int, error) {
+		return fmt.Fprintf(w, "++ ")
+	})
+
+	n, err := fmt.Fprint(w, "##")
+	if assert.NoError(t, err, "Error writing A") {
+		assert.Equal(t, 5, n, "Wrong bytes written for A")
+	}
+
+	n, err = fmt.Fprint(w, "##\n\n")
+	if assert.NoError(t, err, "Error writing A") {
+		assert.Equal(t, 7, n, "Wrong bytes written for A")
+	}
+
+	n, err = fmt.Fprint(w, "\n\n##\n\n")
+	if assert.NoError(t, err, "Error writing A") {
+		assert.Equal(t, 9, n, "Wrong bytes written for A")
+	}
+
+	w = SimplePrepender(buf, func(w io.Writer) (int, error) {
+		return fmt.Fprintf(w, "")
+	})
+
+	n, err = fmt.Fprint(w, "##")
+	if assert.NoError(t, err, "Error writing A") {
+		assert.Equal(t, 2, n, "Wrong bytes written for A")
+	}
+
+	n, err = fmt.Fprint(w, "##\n\n")
+	if assert.NoError(t, err, "Error writing A") {
+		assert.Equal(t, 4, n, "Wrong bytes written for A")
+	}
+
+	n, err = fmt.Fprint(w, "\n\n##\n\n")
+	if assert.NoError(t, err, "Error writing A") {
+		assert.Equal(t, 6, n, "Wrong bytes written for A")
+	}
+
+	w = SimplePrepender(buf, func(w io.Writer) (int, error) {
+		return fmt.Fprintf(w, "\n\n")
+	})
+
+	n, err = fmt.Fprint(w, "##")
+	if assert.NoError(t, err, "Error writing A") {
+		assert.Equal(t, 4, n, "Wrong bytes written for A")
+	}
+
+	n, err = fmt.Fprint(w, "##\n\n")
+	if assert.NoError(t, err, "Error writing A") {
+		assert.Equal(t, 6, n, "Wrong bytes written for A")
+	}
+
+	n, err = fmt.Fprint(w, "\n\n##\n\n")
+	if assert.NoError(t, err, "Error writing A") {
+		assert.Equal(t, 8, n, "Wrong bytes written for A")
+	}
+}

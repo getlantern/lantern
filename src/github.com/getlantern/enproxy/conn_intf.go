@@ -162,7 +162,7 @@ type Config struct {
 type dialFunc func(addr string) (net.Conn, error)
 
 // newRequestFunc is a function that builds a new request to the upstream proxy
-type newRequestFunc func(host string, method string, body io.Reader) (*http.Request, error)
+type newRequestFunc func(host, path, method string, body io.Reader) (*http.Request, error)
 
 // rwResponse is a response to a read or write
 type rwResponse struct {
@@ -252,7 +252,11 @@ func (c *conn) fail(err error) {
 		}
 	}
 
-	go c.Close()
+	go func() {
+		if err := c.Close(); err != nil {
+			log.Debugf("Unable to close connection: %v", err)
+		}
+	}()
 }
 
 func (c *conn) getAsyncErr() error {

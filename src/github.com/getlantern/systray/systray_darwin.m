@@ -52,8 +52,7 @@
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
   self->statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
-  NSZone *menuZone = [NSMenu menuZone];
-  self->menu = [[NSMenu allocWithZone:menuZone] init];
+  self->menu = [[NSMenu alloc] init];
   [self->menu setAutoenablesItems: FALSE];
   [self->statusItem setMenu:self->menu];
   systray_ready();

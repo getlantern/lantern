@@ -103,6 +103,7 @@ func TestRemoveFromWhitelist(t *testing.T) {
 	AddToWl(u.Host, false)
 	_, err := client.Get(mockURL)
 	if assert.Error(t, err, "should have error if reading times out through detour") {
+		time.Sleep(50 * time.Millisecond)
 		assert.False(t, whitelisted(u.Host), "should be removed from whitelist if reading times out through detour")
 	}
 
@@ -117,7 +118,9 @@ func TestClosing(t *testing.T) {
 	mock.Msg(directMsg)
 	DirectAddrCh = make(chan string)
 	{
-		newClient(proxiedURL, 100*time.Millisecond).Get(mockURL)
+		if _, err := newClient(proxiedURL, 100*time.Millisecond).Get(mockURL); err != nil {
+			log.Debugf("Unable to send GET request to mock URL: %v", err)
+		}
 	}
 	u, _ := url.Parse(mockURL)
 	addr := <-DirectAddrCh

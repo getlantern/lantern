@@ -1,3 +1,5 @@
+getiantem.org
+manototv.com
 firetweet.io
 herokuapp.com
 loggly.com
@@ -78,6 +80,7 @@ wordpress.com
 youtube.com
 
 # Iran-focused sites
+kaleme.com
 30mail.net
 advar-news.biz
 balatarin.com

@@ -3,7 +3,6 @@ package detour
 import (
 	"bytes"
 	"net"
-	"syscall"
 )
 
 // Detector is just a set of rules to check if a site is potentially blocked or not
@@ -44,18 +43,13 @@ var defaultDetector = Detector{
 		if ne, ok := err.(net.Error); ok && ne.Timeout() {
 			return true
 		}
-		if oe, ok := err.(*net.OpError); ok {
-			if oe.Err == syscall.EPIPE || oe.Err == syscall.ECONNRESET {
-				return true
-			}
-			// TCP RST triggers ECONNREFUSED instead of ECONNRESET on Android
-			// https://github.com/getlantern/lantern/issues/2375
-			// It's also beneficial to treat all ECONNREFUSED as being blocked
-			// to facilitate testing.
-			// https://github.com/getlantern/lantern/issues/2638#issuecomment-111769428
-			if oe.Err == syscall.ECONNREFUSED {
-				return true
-			}
+		if _, ok := err.(*net.OpError); ok {
+			// Let's be more aggressive on considering which errors are the
+			// symptom of being blocked, because we can't reliably enumerate all
+			// relevant errors. It's also a big plus if Lantern can help user to
+			// bypass those various network errors, e.g., unresolvable host, route
+			// errors, accessing IPv6 host from IPv4 network, etc.
+			return true
 		}
 		return false
 	},

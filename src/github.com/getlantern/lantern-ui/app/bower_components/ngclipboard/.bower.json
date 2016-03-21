@@ -1,0 +1,34 @@
+{
+  "name": "ngclipboard",
+  "version": "1.1.0",
+  "homepage": "https://github.com/sachinchoolur/ngclipboard",
+  "authors": [
+    "Sachin N <sachi77n@gmail.com>"
+  ],
+  "description": "Angularjs directive for clipboard.js",
+  "main": "dist/ngclipboard.js",
+  "keywords": [
+    "ngclipboard",
+    "copy",
+    "cut",
+    "clipboard",
+    "angularjs"
+  ],
+  "dependencies": {
+    "clipboard": "~1.5.5",
+    "angular": ">=1.2.0"
+  },
+  "ignore": [
+    "README.md",
+    "demo"
+  ],
+  "_release": "1.1.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "1.1.0",
+    "commit": "833edf8bbefa897856ffae63094152b17965a469"
+  },
+  "_source": "git://github.com/sachinchoolur/ngclipboard.git",
+  "_target": "~1.1.0",
+  "_originalSource": "ngclipboard"
+}

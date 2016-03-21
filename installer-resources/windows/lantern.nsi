@@ -3,7 +3,7 @@ Name "Lantern"
 # Installs Lantern and launches it
 # See http://nsis.sourceforge.net/Run_an_application_shortcut_after_an_install
 
-#AutoCloseWindow true
+AutoCloseWindow true
 
 !addplugindir nsis_plugins
 !include "nsis_includes/nsProcess.nsh"
@@ -50,6 +50,8 @@ Section
 
     File lantern.exe
     File lantern.ico
+    File .packaged-lantern.yaml
+    File lantern.yaml
 
     # Store installation folder
     WriteRegStr HKCU "Software\Lantern" "" $INSTDIR
@@ -78,11 +80,17 @@ Section
     CreateDirectory "$SMPROGRAMS\Lantern"
     CreateShortCut "$SMPROGRAMS\Lantern\Lantern.lnk" "$INSTDIR\lantern.exe" "" "$INSTDIR\lantern.ico" 0
     CreateShortCut "$SMPROGRAMS\Lantern\Uninstall Lantern.lnk" "$INSTDIR\uninstall.exe"
+    CreateShortCut "$DESKTOP\Lantern.lnk" "$INSTDIR\lantern.exe" "" "$INSTDIR\lantern.ico" 0
+
+    # This is a bad registry entry created by old Lantern versions.
+    DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "value"
+
+    # Add a registry key to set -clear-proxy-settings. See https://github.com/getlantern/lantern/issues/2776
+    WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Run" \
+                     "Lantern" "$\"$INSTDIR\lantern.exe$\" -clear-proxy-settings"
 
     # Launch Lantern
     ShellExecAsUser::ShellExecAsUser "" "$INSTDIR\lantern.exe"
-
-    ${nsProcess::Unload}
 
 SectionEnd
 # end default section
@@ -113,15 +121,25 @@ FunctionEnd
 # start uninstaller section
 Section "uninstall"
     # Stop Lantern if necessary
-    ${nsProcess::KillProcess} "lantern.exe" $R0
+    ${nsProcess::CloseProcess} "lantern.exe" $R0
     # Sleep for 1 second to process a chance to die and file to become writable
     Sleep 1000
 
     RMDir /r "$SMPROGRAMS\Lantern"
-    RMDir /r "$INSTDIR"
 
-    # Remove uninstaller from Add/Remove programs
+    Delete "$DESKTOP\Lantern.lnk"
+
+    Delete "$INSTDIR\lantern.exe"
+    Delete "$INSTDIR\uninstall.exe"
+    Delete "$INSTDIR\lantern.ico"
+    Delete "$INSTDIR\.packaged-lantern.yaml"
+    Delete "$INSTDIR\lantern.yaml"
+    
+	# Remove uninstaller from Add/Remove programs
     DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Lantern"
+
+    # Don't run Lantern on startup.
+    DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "Lantern"
 
     ${nsProcess::Unload}
 SectionEnd

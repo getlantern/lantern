@@ -1,137 +1,111 @@
 package geolookup
 
 import (
-	"fmt"
 	"math"
-	"math/rand"
-	"net/http"
-	"reflect"
-	"sync"
-	"sync/atomic"
 	"time"
 
-	"github.com/getlantern/geolookup"
+	"github.com/getlantern/eventual"
+	geo "github.com/getlantern/geolookup"
 	"github.com/getlantern/golog"
 
-	"github.com/getlantern/flashlight/pubsub"
-	"github.com/getlantern/flashlight/ui"
-)
-
-const (
-	messageType = `GeoLookup`
-
-	basePublishSeconds     = 30
-	publishSecondsVariance = basePublishSeconds - 10
-	retryWaitMillis        = 100
+	"github.com/getlantern/flashlight/util"
 )
 
 var (
 	log = golog.LoggerFor("flashlight.geolookup")
 
-	service  *ui.Service
-	client   atomic.Value
-	cfgMutex sync.Mutex
-	location atomic.Value
+	refreshRequest = make(chan interface{}, 1)
+	cf             util.HTTPFetcher
+	currentGeoInfo = eventual.NewValue()
+
+	waitForProxyTimeout = 1 * time.Minute
+	retryWaitMillis     = 100
+	maxRetryWait        = 30 * time.Second
 )
 
-func GetLocation() *geolookup.City {
-	l := location.Load()
-	if l == nil {
-		return nil
-	}
-	return l.(*geolookup.City)
+type geoInfo struct {
+	ip   string
+	city *geo.City
 }
 
-func GetCountry() string {
-	loc := GetLocation()
-	if loc == nil {
+// GetIP gets the IP. If the IP hasn't been determined yet, waits up to the
+// given timeout for an IP to become available.
+func GetIP(timeout time.Duration) string {
+	gi, ok := currentGeoInfo.Get(timeout)
+	if !ok || gi == nil {
 		return ""
 	}
-	return loc.Country.IsoCode
+	return gi.(*geoInfo).ip
 }
 
-// Configure configures geolookup to use the given http.Client to perform
-// lookups. geolookup runs in a continuous loop, periodically updating its
-// location and publishing updates to any connected clients. We do this
-// continually in order to detect when the computer's location has changed.
-func Configure(newClient *http.Client) {
-	cfgMutex.Lock()
-	defer cfgMutex.Unlock()
+// GetCountry gets the country. If the country hasn't been determined yet, waits
+// up to the given timeout for a country to become available.
+func GetCountry(timeout time.Duration) string {
+	gi, ok := currentGeoInfo.Get(timeout)
+	if !ok || gi == nil {
+		return ""
+	}
+	return gi.(*geoInfo).city.Country.IsoCode
+}
 
-	client.Store(newClient)
+// Configures geolookup to use the given proxyAddrFN to determine which proxy
+// to use.
+func Configure(proxyAddrFN eventual.Getter) {
+	cf = util.NewChainedAndFronted(proxyAddrFN)
+	Refresh()
+}
 
-	if service == nil {
-		err := registerService()
-		if err != nil {
-			log.Errorf("Unable to register service: %s", err)
-			return
-		}
-		go write()
-		go read()
-		log.Debug("Running")
+// Refresh refreshes the geolookup information by calling the remote geolookup
+// service. It will keep calling the service until it's able to determine an IP
+// and country.
+func Refresh() {
+	select {
+	case refreshRequest <- true:
+		log.Debug("Requested refresh")
+	default:
+		log.Debug("Refresh already in progress")
 	}
 }
 
-func registerService() error {
-	helloFn := func(write func(interface{}) error) error {
-		location := GetLocation()
-		if location == nil {
-			log.Trace("No lastKnownLocation, not sending anything to client")
-			return nil
-		}
-		log.Trace("Sending last known location to new client")
-		return write(location)
-	}
-
-	var err error
-	service, err = ui.Register(messageType, nil, helloFn)
-	return err
+func init() {
+	go run()
 }
 
-func write() {
+func run() {
+	for _ = range refreshRequest {
+		gi := lookup()
+		log.Debug("Got new geolocation info")
+		currentGeoInfo.Set(gi)
+	}
+}
+
+func lookup() *geoInfo {
 	consecutiveFailures := 0
 
 	for {
-		// Wait a random amount of time (to avoid looking too suspicious)
-		// Note - rand was seeded with the startup time in flashlight.go
-		n := rand.Intn(publishSecondsVariance)
-		wait := time.Duration(basePublishSeconds-publishSecondsVariance/2+n) * time.Second
-
-		oldLocation := GetLocation()
-		newLocation, err := geolookup.LookupIPWithClient("", client.Load().(*http.Client))
-		if err == nil {
-			consecutiveFailures = 0
-			if !reflect.DeepEqual(newLocation, oldLocation) {
-				log.Debugf("Location changed")
-				location.Store(newLocation)
-				pubsub.Pub(pubsub.Location, newLocation)
-			}
-			// Always publish location, even if unchanged
-			service.Out <- newLocation
-		} else {
-			msg := fmt.Sprintf("Unable to get current location: %s", err)
-			// When retrying after a failure, wait a different amount of time
-			retryWait := time.Duration(math.Pow(2, float64(consecutiveFailures))*float64(retryWaitMillis)) * time.Millisecond
-			if retryWait < wait {
-				log.Debug(msg)
-				wait = retryWait
-			} else {
-				log.Error(msg)
+		gi, err := doLookup()
+		if err != nil {
+			log.Debugf("Unable to get current location: %s", err)
+			wait := time.Duration(math.Pow(2, float64(consecutiveFailures))*float64(retryWaitMillis)) * time.Millisecond
+			if wait > maxRetryWait {
+				wait = maxRetryWait
 			}
 			log.Debugf("Waiting %v before retrying", wait)
+			time.Sleep(wait)
 			consecutiveFailures += 1
-			// If available, publish last known location
-			if oldLocation != nil {
-				service.Out <- oldLocation
-			}
+		} else {
+			log.Debugf("IP is %v", gi.ip)
+			return gi
 		}
-
-		time.Sleep(wait)
 	}
 }
 
-func read() {
-	for _ = range service.In {
-		// Discard message, just in case any message is sent to this service.
+func doLookup() (*geoInfo, error) {
+	city, ip, err := geo.LookupIPWithClient("", cf)
+
+	if err != nil {
+		log.Errorf("Could not lookup IP %v", err)
+		return nil, err
 	}
+	return &geoInfo{ip, city}, nil
 }

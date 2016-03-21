@@ -3,6 +3,7 @@ package coff
 import (
 	"debug/pe"
 	"encoding/binary"
+	"errors"
 	"io"
 	"reflect"
 	"regexp"
@@ -45,6 +46,14 @@ type RelocationEntry struct {
 	Type        uint16
 }
 
+// Values reverse-engineered from windres output; names from teh Internets.
+// Teh googlies Internets don't seem to have much to say about the AMD64 one,
+// unfortunately :/ but it works...
+const (
+	_IMAGE_REL_AMD64_ADDR32NB = 0x03
+	_IMAGE_REL_I386_DIR32NB   = 0x07
+)
+
 type Auxiliary [18]byte
 
 type Symbol struct {
@@ -79,11 +88,7 @@ var (
 	STRING_RSRC  = [8]byte{'.', 'r', 's', 'r', 'c', 0, 0, 0}
 	STRING_RDATA = [8]byte{'.', 'r', 'd', 'a', 't', 'a', 0, 0}
 
-	LANG_ENTRY  = DirEntry{NameOrId: 0x0409} //FIXME: language; what value should be here?
-	RELOC_ENTRY = RelocationEntry{
-		SymbolIndex: 0, // "(zero based) index in the Symbol table to which the reference refers. Once you have loaded the COFF file into memory and know where each symbol is, you find the new updated address for the given symbol and update the reference accordingly."
-		Type:        7, // according to ldpe.c, this decodes to: IMAGE_REL_I386_DIR32NB
-	}
+	LANG_ENTRY = DirEntry{NameOrId: 0x0409} //FIXME: language; what value should be here?
 )
 
 type Sizer interface {
@@ -107,8 +112,8 @@ type Coff struct {
 func NewRDATA() *Coff {
 	return &Coff{
 		pe.FileHeader{
-			Machine:              0x014c, //FIXME: find out how to differentiate this value, or maybe not necessary for Go
-			NumberOfSections:     1,      // .data
+			Machine:              pe.IMAGE_FILE_MACHINE_I386,
+			NumberOfSections:     1, // .data
 			TimeDateStamp:        0,
 			NumberOfSymbols:      2, // starting only with '.rdata', will increase; must include auxiliaries, apparently
 			SizeOfOptionalHeader: 0,
@@ -142,6 +147,24 @@ func NewRDATA() *Coff {
 		},
 		[]Sizer{},
 	}
+}
+
+// NOTE: must be called immediately after NewRSRC, before any other
+// functions.
+func (coff *Coff) Arch(arch string) error {
+	switch arch {
+	case "386":
+		coff.Machine = pe.IMAGE_FILE_MACHINE_I386
+	case "amd64":
+		// Sources:
+		// https://github.com/golang/go/blob/0e23ca41d99c82d301badf1b762888e2c69e6c57/src/debug/pe/pe.go#L116
+		// https://github.com/yasm/yasm/blob/7160679eee91323db98b0974596c7221eeff772c/modules/objfmts/coff/coff-objfmt.c#L38
+		// FIXME: currently experimental -- not sure if something more doesn't need to be changed
+		coff.Machine = pe.IMAGE_FILE_MACHINE_AMD64
+	default:
+		return errors.New("coff: unknown architecture: " + arch)
+	}
+	return nil
 }
 
 //NOTE: only usable for Coff created using NewRDATA
@@ -178,9 +201,9 @@ func (coff *Coff) addSymbol(s string) {
 func NewRSRC() *Coff {
 	return &Coff{
 		pe.FileHeader{
-			Machine:              0x014c, //FIXME: find out how to differentiate this value, or maybe not necessary for Go
-			NumberOfSections:     1,      // .rsrc
-			TimeDateStamp:        0,      // was also 0 in sample data from MinGW's windres.exe
+			Machine:              pe.IMAGE_FILE_MACHINE_I386,
+			NumberOfSections:     1, // .rsrc
+			TimeDateStamp:        0, // was also 0 in sample data from MinGW's windres.exe
 			NumberOfSymbols:      1,
 			SizeOfOptionalHeader: 0,
 			Characteristics:      0x0104, //FIXME: copied from windres.exe output, find out what should be here and why
@@ -217,7 +240,21 @@ func NewRSRC() *Coff {
 //NOTE: function assumes that 'id' is increasing on each entry
 //NOTE: only usable for Coff created using NewRSRC
 func (coff *Coff) AddResource(kind uint32, id uint16, data Sizer) {
-	coff.Relocations = append(coff.Relocations, RELOC_ENTRY)
+	re := RelocationEntry{
+		// "(zero based) index in the Symbol table to which the
+		// reference refers.  Once you have loaded the COFF file into
+		// memory and know where each symbol is, you find the new
+		// updated address for the given symbol and update the
+		// reference accordingly."
+		SymbolIndex: 0,
+	}
+	switch coff.Machine {
+	case pe.IMAGE_FILE_MACHINE_I386:
+		re.Type = _IMAGE_REL_I386_DIR32NB
+	case pe.IMAGE_FILE_MACHINE_AMD64:
+		re.Type = _IMAGE_REL_AMD64_ADDR32NB
+	}
+	coff.Relocations = append(coff.Relocations, re)
 	coff.SectionHeader32.NumberOfRelocations++
 
 	// find top level entry, inserting new if necessary at correct sorted position

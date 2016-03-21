@@ -21,10 +21,14 @@ func (c *conn) processReads() {
 		// or it will continuously receives data until hit EOF,
 		// which is a waste of bandwidth.
 		if proxyConn != nil {
-			proxyConn.conn.Close()
+			if err := proxyConn.conn.Close(); err != nil {
+				log.Debugf("Unable to close proxy connection: %v", err)
+			}
 		}
 		if resp != nil {
-			resp.Body.Close()
+			if err := resp.Body.Close(); err != nil {
+				log.Debugf("Unable to close response body: %v", err)
+			}
 		}
 		c.doneReadingCh <- true
 		decrement(&readingFinishing)
@@ -78,7 +82,9 @@ func (c *conn) processReads() {
 		if err != nil {
 			if err == io.EOF {
 				// Current response is done
-				resp.Body.Close()
+				if err := resp.Body.Close(); err != nil {
+					log.Debugf("Unable to close response body: %v", err)
+				}
 				resp = nil
 				if hitEOFUpstream {
 					// True EOF, stop reading

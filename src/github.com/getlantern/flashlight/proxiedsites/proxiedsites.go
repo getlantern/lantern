@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	messageType = `ProxiedSites`
+	messageType = `proxiedSites`
 )
 
 var (
@@ -94,10 +94,13 @@ func start() (err error) {
 
 func read() {
 	for msg := range service.In {
-		config.Update(func(updated *config.Config) error {
+		err := config.Update(func(updated *config.Config) error {
 			log.Debugf("Applying update from UI")
 			updated.ProxiedSites.Delta.Merge(msg.(*proxiedsites.Delta))
 			return nil
 		})
+		if err != nil {
+			log.Debugf("Error applying update from UI: %v", err)
+		}
 	}
 }

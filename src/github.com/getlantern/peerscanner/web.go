@@ -58,7 +58,7 @@ func startHttp() {
 func register(resp http.ResponseWriter, req *http.Request) {
 	name, ip, port, supportedFronts, err := getHostInfo(req)
 	if err == nil && !(port == "80" || port == "443") {
-		err = fmt.Errorf("Port %d not supported, only ports 80 and 443 are supported", port)
+		err = fmt.Errorf("Port %s not supported, only ports 80 and 443 are supported", port)
 	}
 	if err != nil {
 		resp.WriteHeader(http.StatusBadRequest)
@@ -81,12 +81,16 @@ func register(resp http.ResponseWriter, req *http.Request) {
 		resp.WriteHeader(200)
 		fmt.Fprintln(resp, "Connectivity to proxy confirmed")
 		if (supportedFronts & cloudfrontBit) == cloudfrontBit {
+			/* Temporarily disable CloudFront/DNSimple.
 			h.initCloudfront()
+			*/
 		}
 		fstr := "frontfqdns: {cloudflare: " + name + "." + *cfldomain
+		/* Temporarily disable CloudFront/DNSimple.
 		if h.cfrDist != nil {
 			fstr += ", cloudfront: " + h.cfrDist.Domain
 		}
+		*/
 		fstr += "}"
 		fmt.Fprintln(resp, fstr)
 

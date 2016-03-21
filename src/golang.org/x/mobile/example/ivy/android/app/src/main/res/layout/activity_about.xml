@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/about_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#EEFFFFFF"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="10dp"
+    android:weightSum="1"
+    tools:context="org.golang.ivy.About">
+
+    <ImageView
+        android:id="@+id/ivysketch"
+        android:src="@drawable/ivyabout"
+        android:layout_gravity="center_horizontal"
+        android:layout_width="256dp"
+        android:layout_height="256dp"
+        android:contentDescription="@string/ivysketch_desc" />
+
+    <WebView
+        android:id="@+id/about_ivy"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:text="@string/app_name"
+        android:textSize="@dimen/abc_text_size_headline_material" />
+
+</LinearLayout>

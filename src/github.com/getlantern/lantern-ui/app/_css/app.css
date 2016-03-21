@@ -79,13 +79,16 @@ html {
   -ms-text-size-adjust: 100%;
 }
 
+/*
 a:focus {
   outline: thin dotted #333;
   outline: 5px auto -webkit-focus-ring-color;
   outline-offset: -2px;
 }
+*/
 
 a:hover,
+a:focus,
 a:active {
   outline: 0;
 }
@@ -1014,7 +1017,7 @@ input[type="color"],
   margin-bottom: 9px;
   font-size: 14px;
   line-height: 18px;
-  color: #555;
+  color: #333;
   -webkit-border-radius: 4px;
   -moz-border-radius: 4px;
   border-radius: 4px;
@@ -6366,11 +6369,6 @@ html, body {
   height: 100%;
 }
 
-body {
-  background: url('../img/bg.png');
-  overflow: hidden;
-}
-
 small, .small {
   font-size: 13.3px;
 }
@@ -7602,8 +7600,8 @@ body[dir=rtl] #latestDetails dd {
 #vis-container, #vis {
   height: 100%;
   background-color: #fff;
-  overflow: scroll;
   position: relative;
+  overflow: auto;
 }
 
 #map {
@@ -7753,10 +7751,11 @@ body[dir=rtl] .tooltip .vis {
 
 #footer {
   width: 100%;
-  position: absolute;
+  position: fixed;
   right: 0;
   bottom: 0;
   left: 0;
+  height: 50px;
   z-index: 1051;
   line-height: 12px;
   text-align: center;
@@ -7768,10 +7767,10 @@ body[dir=rtl] .tooltip .vis {
   -o-transition: opacity 0.5s ease;
   -webkit-transition: opacity 0.5s ease;
   transition: opacity 0.5s ease;
-  background-color: rgba(229, 234, 234, 1.0);
-  padding: 12px 0;
+  background-color: #242525;
   color: #666667;
   z-index: auto;
+  overflow:hidden;
 }
 
 #footer:hover {
@@ -7802,16 +7801,16 @@ body[dir=rtl] .tooltip .vis {
   background: none;
 }
 #global-nav button {
-  border: none;  
+  border: none;
   outline: 0;
   z-index: -1;
   background: none;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
   -webkit-box-shadow: none;
   box-shadow: none;
 }
 #global-nav button i.lsf-icon {
-  color: #999;
+  color: #fff;
   line-height: 17px;
   font-size: 27px;
   vertical-align: middle;
@@ -7835,15 +7834,37 @@ body.giveMode #npending {
   bottom: 7.5px;
 }
 
+#share {
+    position: absolute;
+    left: 15px;
+    bottom: 10px;
+}
+
+#share span {
+    font: normal .875rem/1.4rem 'prxnv_r', sans-serif;
+    color: #fff;
+    float: left;
+    margin-top: 5px;
+    padding-left: 5px;
+}
+
+#share div {
+    float: left;
+    cursor: pointer;
+}
+
+#share div img {
+  width: 30px;
+}
+
 #appInfo {
-  font-size: 17px;
-  font-family: LBL;
+  font: normal .875rem/1.4rem 'prxnv_r', sans-serif;
   z-index: 1051;
-  color: #666667;
+  color: #fff;
   margin-bottom: 5px;
 }
 #appInfo a {
-  color: #666667;
+  color: #fff;
 }
 #appInfo .update-available * {
   color: #f00;
@@ -7955,4 +7976,186 @@ body.giveMode #npending {
 #langchooser li.active {
   font-weight: bold;
   background-color: #5586ff;
+}
+
+/* Ad for Lantern mobile */
+
+#mobile-ad {
+  width: 627px;
+  height: 440px;
+  border: 1px solid #000;
+  text-align: center;
+
+  position: relative;
+  top: 125px;
+  margin: 0 auto;
+}
+
+#mobile-ad form {
+  padding: 0px;
+  margin: 0px;
+}
+
+#mobile-ad #get-the-app-via-email {
+  width: 109px;
+  height: 16.8px;
+  padding: 0px;
+  margin: 0px;
+  margin-top: 5px;
+}
+
+#mobile-ad input {
+  border: none;
+  border-bottom: 1px solid #888;
+  border-radius: 0px;
+  font-size: 12pt;
+  width: 206px;
+  top: 20px;
+  padding: 0px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 0px;
+  height: 28px;
+  margin: 0 auto;
+
+  outline: none;
+  -webkit-box-shadow: none !important;
+  -moz-box-shadow: none !important;
+  box-shadow: none !important;
+}
+
+#mobile-ad button {
+  border: none;
+  margin: 0px;
+  padding: 0px;
+  width: 190px;
+  height: 42px;
+  top: 10px;
+  text-indent: -10000px;
+
+  display: block;
+  margin: 0 auto;
+}
+#mobile-ad .mail-input-wrapper {
+  display: block;
+}
+#mobile-ad .mail-input-wrapper .mail-input-icon {
+  margin-right: 10px;
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  background: url('../img/mobile-ad/email.svg');
+
+  text-indent: -10000px;
+}
+
+/* Tell your friends */
+#tell-your-friends {
+  text-align: center;
+}
+
+#tell-your-friends ul {
+  width: 314px;
+  height: 60px;
+  display: block;
+  margin: 0 auto;
+  margin-bottom: 80px;
+  margin-top: 40px;
+}
+#tell-your-friends ul li {
+  display: block;
+  padding: 0px;
+  margin: 0px;
+  float: left;
+  width: 52px;
+  margin-left: 26px;
+  text-align: center;
+}
+#tell-your-friends ul li a {
+  width: 52px;
+  height: 52px;
+  display: block;
+  text-indent: -10000px;
+}
+#tell-your-friends li.wechat a {
+  background: url('../img/mobile-ad/wechat.svg');
+}
+#tell-your-friends li.weibo a {
+  background: url('../img/mobile-ad/weibo.svg');
+}
+#tell-your-friends li.twitter a {
+  background: url('../img/mobile-ad/twitter.svg');
+}
+#tell-your-friends li.facebook a {
+  background: url('../img/mobile-ad/facebook.svg');
+}
+#tell-your-friends button {
+  border: none;
+  margin: 0px;
+  padding: 0px;
+  width: 128px;
+  height: 32px;
+  top: 10px;
+  text-indent: -10000px;
+
+  display: block;
+  margin: 0 auto;
+}
+
+.download-link {
+  font-size: 9pt;
+  display: block;
+  margin-top: 5px;
+}
+#link-copied {
+  font-family: Roboto 10pt;
+  color: #000000;
+}
+
+input.fail::-webkit-input-placeholder {
+  color: red;
+}
+input.fail:-moz-placeholder {
+  color: red;
+}
+input.fail::-moz-placeholder {
+  color: red;
+}
+input.fail:-ms-input-placeholder {
+  color: red;
+}
+
+::-ms-clear
+{
+  display: none;
+}
+
+@media (max-width: 750px), (max-height: 620px) {
+  #mobile-ad {
+    width: 500px;
+    height: 390px;
+  }
+  p.download-link b {
+    display: block;
+  }
+}
+
+@media (max-width: 600px), (max-height: 565px) {
+  #mobile-ad {
+    width: 375px;
+    height: 325px;
+  }
+}
+
+@media (max-width: 400px), (max-height: 500px) {
+  .message {
+    font-size: 14px;
+  }
+  #mobile-ad {
+    width: 300px;
+    height: 175px;
+  }
+  #mobile-ad-image {
+    display: none;
+  }
 }

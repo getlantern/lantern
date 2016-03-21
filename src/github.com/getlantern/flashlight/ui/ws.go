@@ -15,7 +15,11 @@ const (
 )
 
 var (
-	upgrader = &websocket.Upgrader{ReadBufferSize: 1024, WriteBufferSize: MaxMessageSize}
+	upgrader = &websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: MaxMessageSize,
+		// CheckOrigin:     func(r *http.Request) bool { return true }, // I need this to test Lantern UI from a different host.
+	}
 )
 
 // UIChannel represents a data channel to/from the UI. UIChannel will have one
@@ -67,7 +71,9 @@ func NewChannel(p string, onConnect ConnectFunc) *UIChannel {
 			})
 			if err != nil {
 				log.Errorf("Error processing onConnect, disconnecting websocket: %v", err)
-				ws.Close()
+				if err := ws.Close(); err != nil {
+					log.Debugf("Error closing WebSockets connection: %s", err)
+				}
 				c.m.Unlock()
 				return
 			}
@@ -110,7 +116,9 @@ func (c *UIChannel) write() {
 		log.Tracef("Closing all websockets to %v", c.URL)
 		c.m.Lock()
 		for _, conn := range c.conns {
-			conn.ws.Close()
+			if err := conn.ws.Close(); err != nil {
+				log.Debugf("Error closing WebSockets connection", err)
+			}
 			delete(c.conns, conn.id)
 		}
 		c.m.Unlock()
@@ -148,6 +156,9 @@ func (c *wsconn) read() {
 		if err != nil {
 			if err != io.EOF {
 				log.Debugf("Error reading from UI: %v", err)
+			}
+			if err := c.ws.Close(); err != nil {
+				log.Debugf("Error closing WebSockets connection", err)
 			}
 			return
 		}

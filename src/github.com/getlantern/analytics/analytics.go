@@ -3,10 +3,12 @@ package analytics
 import (
 	"bytes"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"runtime"
 	"strconv"
 
+	"github.com/getlantern/eventual"
 	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/golog"
 )
@@ -14,12 +16,13 @@ import (
 const (
 	ApiEndpoint       = `https://ssl.google-analytics.com/collect`
 	ProtocolVersion   = "1"
-	DefaultInstanceId = "1260961011.1389432370"
+	DefaultInstanceId = "555"
 )
 
 var (
 	log        = golog.LoggerFor("analytics")
 	httpClient *http.Client
+	ip         string
 )
 
 type HitType string
@@ -43,7 +46,7 @@ type Event struct {
 }
 
 type Payload struct {
-	InstanceId string `json:"clientId"`
+	ClientId string `json:"clientId"`
 
 	ClientVersion string `json:"clientVersion,omitempty"`
 
@@ -68,16 +71,21 @@ type Payload struct {
 	Event *Event
 }
 
-func Configure(trackingId string, version string, proxyAddr string) {
+func Configure(addr string, trackingId string, version string, proxyAddr string) {
+	ip = addr
 	var err error
 	go func() {
-		httpClient, err = util.HTTPClient("", proxyAddr)
+		httpClient, err = util.HTTPClient("", eventual.DefaultGetter(proxyAddr))
 		if err != nil {
 			log.Errorf("Could not create HTTP client via %s: %s", proxyAddr, err)
 			return
 		}
 		// Store new session info whenever client proxy is ready
-		sessionEvent(version, trackingId)
+		if status, err := sessionEvent(trackingId, version); err != nil {
+			log.Errorf("Unable to store new session info: %v", err)
+		} else {
+			log.Tracef("Storing new session info: %v", status)
+		}
 	}()
 }
 
@@ -87,15 +95,23 @@ func collectArgs(payload *Payload) string {
 
 	// Add default payload
 	vals.Add("v", ProtocolVersion)
+
+	// Override the users IP so we get accurate geo data.
+	vals.Add("uip", ip)
+
+	// Make call to anonymize the user's IP address.
+	vals.Add("aip", "1")
+
 	if payload.ClientVersion != "" {
 		vals.Add("_v", payload.ClientVersion)
 	}
 	if payload.TrackingId != "" {
 		vals.Add("tid", payload.TrackingId)
 	}
-	if payload.InstanceId != "" {
-		vals.Add("cid", payload.InstanceId)
+	if payload.ClientId != "" {
+		vals.Add("cid", payload.ClientId)
 	}
+
 	if payload.ScreenResolution != "" {
 		vals.Add("sr", payload.ScreenResolution)
 	}
@@ -137,12 +153,19 @@ func SendRequest(payload *Payload) (status bool, err error) {
 	args := collectArgs(payload)
 
 	r, err := http.NewRequest("POST", ApiEndpoint, bytes.NewBufferString(args))
-	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	r.Header.Add("Content-Length", strconv.Itoa(len(args)))
 
 	if err != nil {
 		log.Errorf("Error constructing GA request: %s", err)
 		return false, err
+	}
+
+	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	r.Header.Add("Content-Length", strconv.Itoa(len(args)))
+
+	if req, err := httputil.DumpRequestOut(r, true); err != nil {
+		log.Debugf("Could not dump request: %v", err)
+	} else {
+		log.Debugf("Full analytics request: %v", string(req))
 	}
 
 	resp, err := httpClient.Do(r)
@@ -151,8 +174,11 @@ func SendRequest(payload *Payload) (status bool, err error) {
 		return false, err
 	}
 	log.Debugf("Successfully sent request to GA: %s", resp.Status)
-	defer resp.Body.Close()
-
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Debugf("Unable to close response body: %v", err)
+		}
+	}()
 	return true, nil
 }
 
@@ -163,12 +189,11 @@ func sessionEvent(trackingId string, version string) (status bool, err error) {
 		HitType:    EventType,
 		TrackingId: trackingId,
 		Hostname:   "localhost",
-		InstanceId: DefaultInstanceId,
+		ClientId:   DefaultInstanceId,
 		Event: &Event{
 			Category: "Session",
 			Action:   "Start",
 			Label:    runtime.GOOS,
-			Value:    version,
 		},
 	}
 

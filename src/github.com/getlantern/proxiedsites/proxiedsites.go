@@ -10,7 +10,7 @@ import (
 
 	"github.com/getlantern/golog"
 
-	"gopkg.in/fatih/set.v0"
+	"github.com/fatih/set"
 )
 
 var (
@@ -22,8 +22,8 @@ var (
 
 // Delta represents modifications to the proxied sites list.
 type Delta struct {
-	Additions []string `json:"Additions, omitempty"`
-	Deletions []string `json:"Deletions, omitempty"`
+	Additions []string `json:"additions"`
+	Deletions []string `json:"deletions"`
 }
 
 // Merge merges the given delta into the existing one.
@@ -74,7 +74,9 @@ func toSet(s []string) set.Interface {
 	for i, s := range s {
 		is[i] = s
 	}
-	return set.NewNonTS(is...)
+	set := set.NewNonTS()
+	set.Add(is...)
+	return set
 }
 
 // toStrings converts a set into a slice of strings

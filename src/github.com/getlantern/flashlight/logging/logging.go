@@ -3,18 +3,22 @@ package logging
 import (
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/getlantern/appdir"
+	"github.com/getlantern/eventual"
 	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/go-loggly"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/jibber_jabber"
+	"github.com/getlantern/osversion"
 	"github.com/getlantern/rotator"
 	"github.com/getlantern/wfilter"
 )
@@ -24,21 +28,36 @@ const (
 )
 
 var (
-	log = golog.LoggerFor("flashlight.logging")
+	log          = golog.LoggerFor("flashlight.logging")
+	processStart = time.Now()
 
 	logFile *rotator.SizeRotator
 
 	// logglyToken is populated at build time by crosscompile.bash. During
 	// development time, logglyToken will be empty and we won't log to Loggly.
 	logglyToken string
+	// to show client logs in separate Loggly source group
+	logglyTag = "lantern-client"
+
+	osVersion = ""
 
 	errorOut io.Writer
 	debugOut io.Writer
 
-	lastAddr string
+	duplicates = make(map[string]bool)
+	dupLock    sync.Mutex
+
+	extraLogglyInfo = make(map[string]string)
 )
 
-func Init() error {
+func init() {
+	// Loggly has its own timestamp so don't bother adding it in message,
+	// moreover, golog always writes each line in whole, so we need not to care
+	// about line breaks.
+	initLogging()
+}
+
+func EnableFileLogging() error {
 	logdir := appdir.Logs("Lantern")
 	log.Debugf("Placing logs in %v", logdir)
 	if _, err := os.Stat(logdir); err != nil {
@@ -50,13 +69,11 @@ func Init() error {
 		}
 	}
 	logFile = rotator.NewSizeRotator(filepath.Join(logdir, "lantern.log"))
-	// Set log files to 1 MB
-	logFile.RotationSize = 1 * 1024 * 1024
-	// Keep up to 20 log files
-	logFile.MaxRotation = 20
+	// Set log files to 4 MB
+	logFile.RotationSize = 4 * 1024 * 1024
+	// Keep up to 5 log files
+	logFile.MaxRotation = 5
 
-	// Loggly has its own timestamp so don't bother adding it in message,
-	// moreover, golog always write each line in whole, so we need not to care about line breaks.
 	errorOut = timestamped(NonStopWriter(os.Stderr, logFile))
 	debugOut = timestamped(NonStopWriter(os.Stdout, logFile))
 	golog.SetOutputs(errorOut, debugOut)
@@ -64,88 +81,141 @@ func Init() error {
 	return nil
 }
 
-func Configure(addr string, cloudConfigCA string, instanceId string,
-	version string, buildDate string) {
+// Configure will set up logging. An empty "addr" will configure logging without a proxy
+// Returns a bool channel for optional blocking.
+func Configure(addrFN eventual.Getter, cloudConfigCA string, instanceId string,
+	version string, revisionDate string) (success chan bool) {
+	success = make(chan bool, 1)
+
+	// Note: Returning from this function must always add a result to the
+	// success channel.
 	if logglyToken == "" {
 		log.Debugf("No logglyToken, not sending error logs to Loggly")
+		success <- false
 		return
 	}
 
 	if version == "" {
-		log.Error("No version configured, Loggly won't include version information")
+		log.Error("No version configured, not sending error logs to Loggly")
+		success <- false
 		return
 	}
 
-	if buildDate == "" {
-		log.Error("No build date configured, Loggly won't include build date information")
-		return
-	}
-
-	if addr == lastAddr {
-		log.Debug("Logging configuration unchanged")
+	if revisionDate == "" {
+		log.Error("No build date configured, not sending error logs to Loggly")
+		success <- false
 		return
 	}
 
 	// Using a goroutine because we'll be using waitforserver and at this time
 	// the proxy is not yet ready.
 	go func() {
-		lastAddr = addr
-		enableLoggly(addr, cloudConfigCA, instanceId, version, buildDate)
+		enableLoggly(addrFN, cloudConfigCA, instanceId, version, revisionDate)
+		// Won't block, but will allow optional blocking on receiver
+		success <- true
 	}()
+	return
+}
+
+// SetExtraLogglyInfo supports setting an extra info value to include in Loggly
+// reports (for example Android application details)
+func SetExtraLogglyInfo(key, value string) {
+	extraLogglyInfo[key] = value
+}
+
+// Flush forces output flushing if the output is flushable
+func Flush() {
+	output := golog.GetOutputs().ErrorOut
+	if output, ok := output.(flushable); ok {
+		output.flush()
+	}
 }
 
 func Close() error {
-	golog.ResetOutputs()
-	return logFile.Close()
+	initLogging()
+	if logFile != nil {
+		return logFile.Close()
+	}
+	return nil
+}
+
+func initLogging() {
+	errorOut = timestamped(os.Stderr)
+	debugOut = timestamped(os.Stdout)
+	golog.SetOutputs(errorOut, debugOut)
 }
 
 // timestamped adds a timestamp to the beginning of log lines
 func timestamped(orig io.Writer) io.Writer {
-	return wfilter.LinePrepender(orig, func(w io.Writer) (int, error) {
-		return fmt.Fprintf(w, "%s - ", time.Now().In(time.UTC).Format(logTimestampFormat))
+	return wfilter.SimplePrepender(orig, func(w io.Writer) (int, error) {
+		ts := time.Now()
+		runningSecs := ts.Sub(processStart).Seconds()
+		secs := int(math.Mod(runningSecs, 60))
+		mins := int(runningSecs / 60)
+		return fmt.Fprintf(w, "%s - %dm%ds ", ts.In(time.UTC).Format(logTimestampFormat), mins, secs)
 	})
 }
 
-func enableLoggly(addr string, cloudConfigCA string, instanceId string,
-	version string, buildDate string) {
-	if addr == "" {
-		log.Error("No known proxy, won't report to Loggly")
-		removeLoggly()
-		return
-	}
+func enableLoggly(addrFN eventual.Getter, cloudConfigCA string, instanceId string,
+	version string, revisionDate string) {
 
-	client, err := util.PersistentHTTPClient(cloudConfigCA, addr)
+	client, err := util.PersistentHTTPClient(cloudConfigCA, addrFN)
 	if err != nil {
-		log.Errorf("Could not create proxied HTTP client, not logging to Loggly: %v", err)
+		log.Errorf("Could not create HTTP client, not logging to Loggly: %v", err)
 		removeLoggly()
 		return
 	}
 
-	log.Debugf("Sending error logs to Loggly via proxy at %v", addr)
+	if addrFN == nil {
+		log.Debug("Sending error logs to Loggly directly")
+	} else {
+		log.Debug("Sending error logs to Loggly via proxy")
+	}
 
 	lang, _ := jibber_jabber.DetectLanguage()
 	logglyWriter := &logglyErrorWriter{
 		lang:            lang,
 		tz:              time.Now().Format("MST"),
-		versionToLoggly: fmt.Sprintf("%v (%v)", version, buildDate),
-		client:          loggly.New(logglyToken),
+		versionToLoggly: fmt.Sprintf("%v (%v)", version, revisionDate),
+		client:          loggly.New(logglyToken, logglyTag),
 	}
 	logglyWriter.client.Defaults["hostname"] = "hidden"
 	logglyWriter.client.Defaults["instanceid"] = instanceId
+	if osStr, err := osversion.GetHumanReadable(); err == nil {
+		osVersion = osStr
+	}
 	logglyWriter.client.SetHTTPClient(client)
 	addLoggly(logglyWriter)
 }
 
 func addLoggly(logglyWriter io.Writer) {
-	if runtime.GOOS == "android" {
-		golog.SetOutputs(logglyWriter, os.Stdout)
-	} else {
-		golog.SetOutputs(NonStopWriter(errorOut, logglyWriter), debugOut)
-	}
+	golog.SetOutputs(NonStopWriter(errorOut, logglyWriter), debugOut)
 }
 
 func removeLoggly() {
 	golog.SetOutputs(errorOut, debugOut)
+}
+
+func isDuplicate(msg string) bool {
+	dupLock.Lock()
+	defer dupLock.Unlock()
+
+	if duplicates[msg] {
+		return true
+	}
+
+	// Implement a crude cap on the size of the map
+	if len(duplicates) < 1000 {
+		duplicates[msg] = true
+	}
+
+	return false
+}
+
+// flushable interface describes writers that can be flushed
+type flushable interface {
+	flush()
+	Write(p []byte) (n int, err error)
 }
 
 type logglyErrorWriter struct {
@@ -156,17 +226,28 @@ type logglyErrorWriter struct {
 }
 
 func (w logglyErrorWriter) Write(b []byte) (int, error) {
-	extra := map[string]string{
-		"logLevel":  "ERROR",
-		"osName":    runtime.GOOS,
-		"osArch":    runtime.GOARCH,
-		"osVersion": "",
-		"language":  w.lang,
-		"country":   geolookup.GetCountry(),
-		"timeZone":  w.tz,
-		"version":   w.versionToLoggly,
-	}
 	fullMessage := string(b)
+	if isDuplicate(fullMessage) {
+		log.Debugf("Not logging duplicate: %v", fullMessage)
+		return 0, nil
+	}
+
+	extra := map[string]string{
+		"logLevel":          "ERROR",
+		"osName":            runtime.GOOS,
+		"osArch":            runtime.GOARCH,
+		"osVersion":         osVersion,
+		"language":          w.lang,
+		"country":           geolookup.GetCountry(0),
+		"timeZone":          w.tz,
+		"version":           w.versionToLoggly,
+		"sessionUserAgents": getSessionUserAgents(),
+	}
+
+	// Add extra logging info
+	for key, val := range extraLogglyInfo {
+		extra[key] = val
+	}
 
 	// extract last 2 (at most) chunks of fullMessage to message, without prefix,
 	// so we can group logs with same reason in Loggly
@@ -212,6 +293,13 @@ func (w logglyErrorWriter) Write(b []byte) (int, error) {
 	return len(b), nil
 }
 
+// flush forces output, since it normally flushes based on an interval
+func (w *logglyErrorWriter) flush() {
+	if err := w.client.Flush(); err != nil {
+		log.Debugf("Error flushing loggly error writer: %v", err)
+	}
+}
+
 type nonStopWriter struct {
 	writers []io.Writer
 }
@@ -228,7 +316,17 @@ func NonStopWriter(writers ...io.Writer) io.Writer {
 // It never fails and always return the length of bytes passed in
 func (t *nonStopWriter) Write(p []byte) (int, error) {
 	for _, w := range t.writers {
-		w.Write(p)
+		// intentionally not checking for errors
+		_, _ = w.Write(p)
 	}
 	return len(p), nil
+}
+
+// flush forces output of the writers that may provide this functionality.
+func (t *nonStopWriter) flush() {
+	for _, w := range t.writers {
+		if w, ok := w.(flushable); ok {
+			w.flush()
+		}
+	}
 }

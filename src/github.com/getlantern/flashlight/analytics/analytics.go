@@ -1,96 +1,125 @@
 package analytics
 
 import (
+	"bytes"
+	"math"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
+	"strconv"
+	"sync/atomic"
+	"time"
 
+	"github.com/getlantern/eventual"
+	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
-	"github.com/mitchellh/mapstructure"
+	"github.com/getlantern/flashlight/geolookup"
+	"github.com/getlantern/flashlight/util"
 
-	"github.com/getlantern/analytics"
-	"github.com/getlantern/flashlight/ui"
 	"github.com/getlantern/golog"
 )
 
 const (
-	messageType = `Analytics`
-	TrackingId  = "UA-21815217-2"
+	trackingId  = "UA-21815217-12"
+	ApiEndpoint = `https://ssl.google-analytics.com/collect`
 )
 
 var (
-	log        = golog.LoggerFor("flashlight.analytics")
-	service    *ui.Service
-	httpClient *http.Client
-	hostName   *string
-	stopCh     chan bool
+	log = golog.LoggerFor("flashlight.analytics")
+
+	maxWaitForIP = math.MaxInt32 * time.Second
 )
 
-func Configure(cfg *config.Config, version string) {
-
-	if cfg.AutoReport != nil && *cfg.AutoReport {
-		analytics.Configure(TrackingId, version, cfg.Addr)
-
-		err := StartService()
-		if err != nil {
-			log.Errorf("Error starting analytics service: %q", err)
-		}
-	}
-}
-
-// Used with clients to track user interaction with the UI
-func StartService() error {
-
-	var err error
-
-	if service != nil {
-		return nil
-	}
-
-	newMessage := func() interface{} {
-		return &analytics.Payload{}
-	}
-
-	if service, err = ui.Register(messageType, newMessage, nil); err != nil {
-		log.Errorf("Unable to register analytics service: %q", err)
-		return err
-	}
-
-	stopCh = make(chan bool)
-
-	// process analytics messages
-	go read()
-
-	return err
-}
-
-func StopService() {
-	if service != nil && stopCh != nil {
-		ui.Unregister(messageType)
-		stopCh <- true
-		service = nil
-		log.Debug("Successfully stopped analytics service")
-	}
-}
-
-func read() {
-
-	for {
-		select {
-		case <-stopCh:
+func Start(cfg *config.Config, version string) func() {
+	var addr atomic.Value
+	go func() {
+		ip := geolookup.GetIP(maxWaitForIP)
+		if ip == "" {
+			log.Errorf("No IP found within %v, not starting analytics session", maxWaitForIP)
 			return
-		case msg := <-service.In:
-			log.Debugf("New UI analytics message: %q", msg)
-			var payload analytics.Payload
-			if err := mapstructure.Decode(msg, &payload); err != nil {
-				log.Errorf("Could not decode payload: %q", err)
-			} else {
-				// set to localhost on clients
-				payload.Hostname = "localhost"
-				payload.HitType = analytics.PageViewType
-				// for now, the only analytics messages we are
-				// currently receiving from the UI are initial page
-				// views which indicate new UI sessions
-				analytics.SendRequest(&payload)
-			}
 		}
+		addr.Store(ip)
+		log.Debugf("Starting analytics session with ip %v", ip)
+		startSession(ip, version, client.Addr, cfg.Client.DeviceID)
+	}()
+
+	stop := func() {
+		if addr.Load() != nil {
+			ip := addr.Load().(string)
+			log.Debugf("Ending analytics session with ip %v", ip)
+			endSession(ip, version, client.Addr, cfg.Client.DeviceID)
+		}
+	}
+	return stop
+}
+
+func sessionVals(ip, version, clientId, sc string) string {
+	vals := make(url.Values, 0)
+
+	vals.Add("v", "1")
+	vals.Add("cid", clientId)
+	vals.Add("tid", trackingId)
+
+	// Override the users IP so we get accurate geo data.
+	vals.Add("uip", ip)
+
+	// Make call to anonymize the user's IP address -- basically a policy thing where
+	// Google agrees not to store it.
+	vals.Add("aip", "1")
+
+	vals.Add("dp", "localhost")
+	vals.Add("t", "pageview")
+
+	// Custom variable for the Lantern version
+	vals.Add("cd1", version)
+
+	// This forces the recording of the session duration. It must be either
+	// "start" or "end". See:
+	// https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters
+	vals.Add("sc", sc)
+	return vals.Encode()
+}
+
+func endSession(ip string, version string, proxyAddrFN eventual.Getter, clientId string) {
+	args := sessionVals(ip, version, clientId, "end")
+	trackSession(args, proxyAddrFN)
+}
+
+func startSession(ip string, version string, proxyAddrFN eventual.Getter, clientId string) {
+	args := sessionVals(ip, version, clientId, "start")
+	trackSession(args, proxyAddrFN)
+}
+
+func trackSession(args string, proxyAddrFN eventual.Getter) {
+	r, err := http.NewRequest("POST", ApiEndpoint, bytes.NewBufferString(args))
+
+	if err != nil {
+		log.Errorf("Error constructing GA request: %s", err)
+		return
+	}
+
+	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	r.Header.Add("Content-Length", strconv.Itoa(len(args)))
+
+	if req, err := httputil.DumpRequestOut(r, true); err != nil {
+		log.Debugf("Could not dump request: %v", err)
+	} else {
+		log.Debugf("Full analytics request: %v", string(req))
+	}
+
+	var httpClient *http.Client
+	httpClient, err = util.HTTPClient("", proxyAddrFN)
+	if err != nil {
+		log.Errorf("Could not create HTTP client: %s", err)
+		return
+	}
+	resp, err := httpClient.Do(r)
+	if err != nil {
+		log.Errorf("Could not send HTTP request to GA: %s", err)
+		return
+	}
+	log.Debugf("Successfully sent request to GA: %s", resp.Status)
+	if err := resp.Body.Close(); err != nil {
+		log.Debugf("Unable to close response body: %v", err)
 	}
 }
