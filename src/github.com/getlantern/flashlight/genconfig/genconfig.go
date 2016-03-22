@@ -365,7 +365,7 @@ func buildModel(cas map[string]*castat, masquerades []*masquerade, useFallbacks 
 				log.Debugf("Skipping fallback %v because of error building dialer: %v", f.Addr, err)
 				continue
 			}
-			conn, err := dialer.Dial("tcp", "http://www.google.com")
+			conn, err := dialer.DialFN("tcp", "http://www.google.com")
 			if err != nil {
 				log.Debugf("Skipping fallback %v because dialing Google failed: %v", f.Addr, err)
 				continue
