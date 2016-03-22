@@ -13,12 +13,18 @@ import (
 	"net"
 	"os"
 	"time"
+
+	"github.com/getlantern/golog"
 )
 
 const (
 	PEM_HEADER_PRIVATE_KEY = "RSA PRIVATE KEY"
 	PEM_HEADER_PUBLIC_KEY  = "RSA PRIVATE KEY"
 	PEM_HEADER_CERTIFICATE = "CERTIFICATE"
+)
+
+var (
+	log = golog.LoggerFor("keyman")
 )
 
 // PrivateKey is a convenience wrapper for rsa.PrivateKey
@@ -80,7 +86,9 @@ func (key *PrivateKey) WriteToFile(filename string) (err error) {
 	if err := pem.Encode(keyOut, key.pemBlock()); err != nil {
 		return fmt.Errorf("Unable to PEM encode private key: %s", err)
 	}
-	keyOut.Close()
+	if err := keyOut.Close(); err != nil {
+		log.Debugf("Unable to close file: %v", err)
+	}
 	return
 }
 
@@ -228,7 +236,11 @@ func (cert *Certificate) WriteToFile(filename string) (err error) {
 	if err != nil {
 		return fmt.Errorf("Failed to open %s for writing: %s", filename, err)
 	}
-	defer certOut.Close()
+	defer func() {
+		if err := certOut.Close(); err != nil {
+			log.Debugf("Unable to close file: %v", err)
+		}
+	}()
 	return pem.Encode(certOut, cert.pemBlock())
 }
 
@@ -252,7 +264,11 @@ func (cert *Certificate) WriteToDERFile(filename string) (err error) {
 	if err != nil {
 		return fmt.Errorf("Failed to open %s for writing: %s", filename, err)
 	}
-	defer certOut.Close()
+	defer func() {
+		if err := certOut.Close(); err != nil {
+			log.Debugf("Unable to close file: %v", err)
+		}
+	}()
 	_, err = certOut.Write(cert.derBytes)
 	return err
 }
@@ -292,4 +308,49 @@ func bytesToCert(derBytes []byte) (*Certificate, error) {
 
 func (cert *Certificate) pemBlock() *pem.Block {
 	return &pem.Block{Type: PEM_HEADER_CERTIFICATE, Bytes: cert.derBytes}
+}
+
+/*******************************************************************************
+ * Utility Functions
+ ******************************************************************************/
+
+// StoredPKAndCert returns a PK and certificate for the given host, storing
+// these at the given pkfile and certfile paths and using the stored values on
+// subsequence calls.
+func StoredPKAndCert(pkfile string, certfile string, organization string, name string) (*PrivateKey, *Certificate, error) {
+	pk, err := LoadPKFromFile(pkfile)
+	if err != nil {
+		if os.IsNotExist(err) {
+			log.Debugf("Creating new PK at: %s", pkfile)
+			pk, err = GeneratePK(2048)
+			if err != nil {
+				return nil, nil, err
+			}
+			err = pk.WriteToFile(pkfile)
+			if err != nil {
+				return nil, nil, fmt.Errorf("Unable to save private key: %s", err)
+			}
+		} else {
+			return nil, nil, fmt.Errorf("Unable to read private key, even though it exists: %s", err)
+		}
+	}
+
+	cert, err := LoadCertificateFromFile(certfile)
+	if err != nil {
+		if os.IsNotExist(err) {
+			log.Debugf("Creating new server cert at: %s", certfile)
+			cert, err = pk.TLSCertificateFor(organization, name, time.Now().AddDate(10, 0, 0), true, nil)
+			if err != nil {
+				return nil, nil, err
+			}
+			err = cert.WriteToFile(certfile)
+			if err != nil {
+				return nil, nil, fmt.Errorf("Unable to save certificate: %s", err)
+			}
+		} else {
+			return nil, nil, fmt.Errorf("Unable to read certificate, even though it exists: %s", err)
+		}
+	}
+
+	return pk, cert, nil
 }
