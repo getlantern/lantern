@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/getlantern/testify/assert"
 )
 
 //userConfig supplies user data for fetching user-specific configuration.

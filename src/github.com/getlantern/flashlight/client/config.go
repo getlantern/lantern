@@ -24,5 +24,6 @@ type ClientConfig struct {
 
 	DumpHeaders    bool // whether or not to dump headers of requests and responses
 	ChainedServers map[string]*ChainedServerInfo
+	OBFS4Servers   map[string]*OBFS4ServerInfo
 	MasqueradeSets map[string][]*fronted.Masquerade
 }

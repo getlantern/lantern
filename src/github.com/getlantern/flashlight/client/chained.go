@@ -25,28 +25,18 @@ var ForceChainedProxyAddr string
 // If specified, auth token will be forced to this
 var ForceAuthToken string
 
-// ChainedServerInfo provides identity information for a chained server.
 type ChainedServerInfo struct {
 	// Addr: the host:port of the upstream proxy server
 	Addr string
 
-	// Pipelined: If true, requests to the chained server will be pipelined
-	Pipelined bool
-
 	// Cert: optional PEM encoded certificate for the server. If specified,
 	// server will be dialed using TLS over tcp. Otherwise, server will be
-	// dialed using plain tcp.
+	// dialed using plain tcp. For OBFS4 proxies, this is the Base64-encoded obfs4
+	// certificate.
 	Cert string
 
 	// AuthToken: the authtoken to present to the upstream server.
 	AuthToken string
-
-	// Weight: relative weight versus other servers (for round-robin)
-	Weight int
-
-	// QOS: relative quality of service offered. Should be >= 0, with higher
-	// values indicating higher QOS.
-	QOS int
 
 	// Trusted: Determines if a host can be trusted with plain HTTP traffic.
 	Trusted bool
@@ -95,6 +85,10 @@ func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 		}
 	}
 
+	return chainedDialer(s, deviceID, dial)
+}
+
+func chainedDialer(s *ChainedServerInfo, deviceID string, dial func() (net.Conn, error)) (*balancer.Dialer, error) {
 	// Is this a trusted proxy that we could use for HTTP traffic?
 	var trusted string
 	if s.Trusted {

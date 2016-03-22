@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/getlantern/testify/assert"
 )
 
 func TestNotPersistVersion(t *testing.T) {

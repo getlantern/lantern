@@ -6,7 +6,7 @@ package client
 	"net/http"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/getlantern/testify/assert"
 )
 
 func TestRespondBadGateway(t *testing.T) {
