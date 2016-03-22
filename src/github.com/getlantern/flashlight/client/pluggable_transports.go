@@ -6,6 +6,7 @@ import (
 	"net"
 
 	"github.com/Yawning/obfs4/transports/obfs4"
+	"github.com/getlantern/idletiming"
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/tlsdialer"
 
@@ -29,34 +30,52 @@ func defaultDialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 		addr = ForceChainedProxyAddr
 	}
 
+	var dial dialFN
+
 	if s.Cert == "" && !forceProxy {
 		log.Error("No Cert configured for chained server, will dial with plain tcp")
-		return func() (net.Conn, error) {
+		dial = func() (net.Conn, error) {
 			return netd.Dial("tcp", addr)
-		}, nil
+		}
+	} else {
+		log.Trace("Cert configured for chained server, will dial with tls over tcp")
+		cert, err := keyman.LoadCertificateFromPEMBytes([]byte(s.Cert))
+		if err != nil {
+			return nil, fmt.Errorf("Unable to parse certificate: %s", err)
+		}
+		x509cert := cert.X509()
+		sessionCache := tls.NewLRUClientSessionCache(1000)
+		dial = func() (net.Conn, error) {
+			conn, err := tlsdialer.DialWithDialer(netd, "tcp", addr, false, &tls.Config{
+				ClientSessionCache: sessionCache,
+				InsecureSkipVerify: true,
+			})
+			if err != nil {
+				return nil, err
+			}
+			if !forceProxy && !conn.ConnectionState().PeerCertificates[0].Equal(x509cert) {
+				if err := conn.Close(); err != nil {
+					log.Debugf("Error closing chained server connection: %s", err)
+				}
+				return nil, fmt.Errorf("Server's certificate didn't match expected!")
+			}
+			return conn, err
+		}
 	}
-	log.Trace("Cert configured for chained server, will dial with tls over tcp")
-	cert, err := keyman.LoadCertificateFromPEMBytes([]byte(s.Cert))
-	if err != nil {
-		return nil, fmt.Errorf("Unable to parse certificate: %s", err)
-	}
-	x509cert := cert.X509()
-	sessionCache := tls.NewLRUClientSessionCache(1000)
+
 	return func() (net.Conn, error) {
-		conn, err := tlsdialer.DialWithDialer(netd, "tcp", addr, false, &tls.Config{
-			ClientSessionCache: sessionCache,
-			InsecureSkipVerify: true,
-		})
+		conn, err := dial()
 		if err != nil {
 			return nil, err
 		}
-		if !forceProxy && !conn.ConnectionState().PeerCertificates[0].Equal(x509cert) {
+
+		conn = idletiming.Conn(conn, idleTimeout, func() {
+			log.Debugf("Proxy connection to %s via %s idle for %v, closing", addr, conn.RemoteAddr(), idleTimeout)
 			if err := conn.Close(); err != nil {
-				log.Debugf("Error closing chained server connection: %s", err)
+				log.Debugf("Unable to close connection: %v", err)
 			}
-			return nil, fmt.Errorf("Server's certificate didn't match expected!")
-		}
-		return conn, err
+		})
+		return conn, nil
 	}, nil
 }
 
