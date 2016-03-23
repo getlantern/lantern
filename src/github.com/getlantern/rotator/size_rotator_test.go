@@ -1,9 +1,10 @@
 package rotator
 
 import (
-	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+
+	"github.com/getlantern/testify/assert"
 )
 
 const (
@@ -99,11 +100,11 @@ func TestSizeRotation(t *testing.T) {
 	}
 	stat, _ = os.Lstat(path)
 	assert.NotNil(t, stat)
-	assert.EqualValues(t, stat.Size(), 10)
+	assert.Equal(t, stat.Size(), 10)
 
 	stat, _ = os.Lstat(path + ".1")
 	assert.NotNil(t, stat)
-	assert.EqualValues(t, stat.Size(), 10)
+	assert.Equal(t, stat.Size(), 10)
 
 }
 
@@ -128,11 +129,11 @@ func TestSizeAppendExist(t *testing.T) {
 
 	stat, _ := os.Lstat(path)
 	assert.NotNil(t, stat)
-	assert.EqualValues(t, 8, stat.Size())
+	assert.Equal(t, 8, stat.Size())
 
 	stat, _ = os.Lstat(path + ".1")
 	assert.NotNil(t, stat)
-	assert.EqualValues(t, 5, stat.Size())
+	assert.Equal(t, 5, stat.Size())
 
 }
 
@@ -168,20 +169,20 @@ func TestSizeMaxRotation(t *testing.T) {
 
 	stat, _ = os.Lstat(path + ".1")
 	assert.NotNil(t, stat)
-	assert.EqualValues(t, stat.Size(), 10)
+	assert.Equal(t, stat.Size(), 10)
 
 	stat, _ = os.Lstat(path + ".2")
 	assert.NotNil(t, stat)
-	assert.EqualValues(t, stat.Size(), 10)
+	assert.Equal(t, stat.Size(), 10)
 
 	stat, _ = os.Lstat(path + ".3")
 	assert.NotNil(t, stat)
-	assert.EqualValues(t, stat.Size(), 10)
+	assert.Equal(t, stat.Size(), 10)
 
 	// It should overwrite the first log of the rotation
 	rotator.WriteString("ASDF")
 
 	stat, _ = os.Lstat(path)
 	assert.NotNil(t, stat)
-	assert.EqualValues(t, stat.Size(), 4)
+	assert.Equal(t, stat.Size(), 4)
 }
