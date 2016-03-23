@@ -8,6 +8,7 @@ import (
 
 	"github.com/getlantern/balancer"
 	"github.com/getlantern/chained"
+	"github.com/getlantern/idletiming"
 )
 
 // Close connections idle for a period to avoid dangling connections.
@@ -84,7 +85,19 @@ func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 		Label:   label,
 		Trusted: s.Trusted,
 		DialFN: func(network, addr string) (net.Conn, error) {
-			return d.Dial(network, addr)
+			conn, err := d.Dial(network, addr)
+			if err != nil {
+				return nil, err
+			}
+
+			conn = idletiming.Conn(conn, idleTimeout, func() {
+				log.Debugf("Proxy connection to %s via %s idle for %v, closing", addr, conn.RemoteAddr(), idleTimeout)
+				if err := conn.Close(); err != nil {
+					log.Debugf("Unable to close connection: %v", err)
+				}
+			})
+
+			return conn, nil
 		},
 		AuthToken: authToken,
 	}, nil

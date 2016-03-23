@@ -6,7 +6,6 @@ import (
 	"net"
 
 	"github.com/Yawning/obfs4/transports/obfs4"
-	"github.com/getlantern/idletiming"
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/tlsdialer"
 
@@ -63,20 +62,7 @@ func defaultDialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 		}
 	}
 
-	return func() (net.Conn, error) {
-		conn, err := dial()
-		if err != nil {
-			return nil, err
-		}
-
-		conn = idletiming.Conn(conn, idleTimeout, func() {
-			log.Debugf("Proxy connection to %s via %s idle for %v, closing", addr, conn.RemoteAddr(), idleTimeout)
-			if err := conn.Close(); err != nil {
-				log.Debugf("Unable to close connection: %v", err)
-			}
-		})
-		return conn, nil
-	}, nil
+	return dial, nil
 }
 
 func obfs4DialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
