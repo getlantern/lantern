@@ -494,7 +494,7 @@ test: $(RESOURCES_DOT_GO)
 		source envvars.bash; \
 	fi && \
 	for pkg in $$(cat testpackages.txt); do \
-		go test -race -v -tags="headless" $$pkg; \
+		go test -race -v -tags="headless" $$pkg || exit 1; \
 	done
 
 genconfig:
