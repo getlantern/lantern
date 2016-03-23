@@ -102,7 +102,7 @@ func (c *IdleTimingConn) Read(b []byte) (int, error) {
 		if readDeadline != epoch && !maxDeadline.Before(readDeadline) {
 			// Caller's deadline is before ours, use it
 			if err := c.conn.SetReadDeadline(readDeadline); err != nil {
-				log.Errorf("Unable to set read deadline: %v", err)
+				log.Tracef("Unable to set read deadline: %v", err)
 			}
 			n, err := c.conn.Read(b)
 			c.markActive(n)
@@ -111,7 +111,7 @@ func (c *IdleTimingConn) Read(b []byte) (int, error) {
 		} else {
 			// Use our own deadline
 			if err := c.conn.SetReadDeadline(maxDeadline); err != nil {
-				log.Errorf("Unable to set read deadline: %v", err)
+				log.Tracef("Unable to set read deadline: %v", err)
 			}
 			n, err := c.conn.Read(b)
 			c.markActive(n)
@@ -143,7 +143,7 @@ func (c *IdleTimingConn) Write(b []byte) (int, error) {
 		if writeDeadline != epoch && !maxDeadline.Before(writeDeadline) {
 			// Caller's deadline is before ours, use it
 			if err := c.conn.SetWriteDeadline(writeDeadline); err != nil {
-				log.Errorf("Unable to set write deadline: %v", err)
+				log.Tracef("Unable to set write deadline: %v", err)
 			}
 			n, err := c.conn.Write(b)
 			c.markActive(n)
@@ -152,7 +152,7 @@ func (c *IdleTimingConn) Write(b []byte) (int, error) {
 		} else {
 			// Use our own deadline
 			if err := c.conn.SetWriteDeadline(maxDeadline); err != nil {
-				log.Errorf("Unable to set write deadline: %v", err)
+				log.Tracef("Unable to set write deadline: %v", err)
 			}
 			n, err := c.conn.Write(b)
 			c.markActive(n)
@@ -193,10 +193,10 @@ func (c *IdleTimingConn) RemoteAddr() net.Addr {
 
 func (c *IdleTimingConn) SetDeadline(t time.Time) error {
 	if err := c.SetReadDeadline(t); err != nil {
-		log.Errorf("Unable to set read deadline: %v", err)
+		log.Tracef("Unable to set read deadline: %v", err)
 	}
 	if err := c.SetWriteDeadline(t); err != nil {
-		log.Errorf("Unable to set write deadline: %v", err)
+		log.Tracef("Unable to set write deadline: %v", err)
 	}
 	return nil
 }
