@@ -8,7 +8,7 @@ install:
 script:
 - openssl aes-256-cbc -K $encrypted_f217260732a9_key -iv $encrypted_f217260732a9_iv
   -in envvars.bash.enc -out envvars.bash -d
-- make test
+- make test-and-cover
 after_success:
 - GOPATH=`pwd`:$GOPATH $HOME/gopath/bin/goveralls -coverprofile=profile.cov -service=travis-ci
 before_install:
