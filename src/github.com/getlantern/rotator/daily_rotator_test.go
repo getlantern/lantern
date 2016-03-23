@@ -1,10 +1,11 @@
 package rotator
 
 import (
-	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/getlantern/testify/assert"
 )
 
 func TestRotationNormalOutput(t *testing.T) {

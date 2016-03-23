@@ -1,9 +1,10 @@
 package rotator
 
 import (
-	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+
+	"github.com/getlantern/testify/assert"
 )
 
 const (
@@ -32,9 +33,11 @@ func TestSizeNormalOutput(t *testing.T) {
 
 	rotator := NewSizeRotator(path)
 	defer func() {
-		if err := rotator.Close(); err != nil {
-			t.Fatalf("Unable to close rotator: %v", err)
-		}
+		go func() {
+			if err := rotator.Close(); err != nil {
+				t.Fatalf("Unable to close rotator: %v", err)
+			}
+		}()
 	}()
 
 	if _, err := rotator.WriteString("SAMPLE LOG"); err != nil {
@@ -81,9 +84,11 @@ func TestSizeRotation(t *testing.T) {
 	rotator := NewSizeRotator(path)
 	rotator.RotationSize = 10
 	defer func() {
-		if err := rotator.Close(); err != nil {
-			t.Fatalf("Unable to close rotator: %v", err)
-		}
+		go func() {
+			if err := rotator.Close(); err != nil {
+				t.Fatalf("Unable to close rotator: %v", err)
+			}
+		}()
 	}()
 
 	if _, err := rotator.WriteString("0123456789"); err != nil {
@@ -99,11 +104,11 @@ func TestSizeRotation(t *testing.T) {
 	}
 	stat, _ = os.Lstat(path)
 	assert.NotNil(t, stat)
-	assert.EqualValues(t, stat.Size(), 10)
+	assert.Equal(t, stat.Size(), 10)
 
 	stat, _ = os.Lstat(path + ".1")
 	assert.NotNil(t, stat)
-	assert.EqualValues(t, stat.Size(), 10)
+	assert.Equal(t, stat.Size(), 10)
 
 }
 
@@ -128,11 +133,11 @@ func TestSizeAppendExist(t *testing.T) {
 
 	stat, _ := os.Lstat(path)
 	assert.NotNil(t, stat)
-	assert.EqualValues(t, 8, stat.Size())
+	assert.Equal(t, 8, stat.Size())
 
 	stat, _ = os.Lstat(path + ".1")
 	assert.NotNil(t, stat)
-	assert.EqualValues(t, 5, stat.Size())
+	assert.Equal(t, 5, stat.Size())
 
 }
 
@@ -145,9 +150,11 @@ func TestSizeMaxRotation(t *testing.T) {
 	rotator.RotationSize = 10
 	rotator.MaxRotation = 3
 	defer func() {
-		if err := rotator.Close(); err != nil {
-			t.Fatalf("Unable to close rotator: %v", err)
-		}
+		go func() {
+			if err := rotator.Close(); err != nil {
+				t.Fatalf("Unable to close rotator: %v", err)
+			}
+		}()
 	}()
 
 	if _, err := rotator.WriteString("0123456789"); err != nil {
@@ -168,20 +175,20 @@ func TestSizeMaxRotation(t *testing.T) {
 
 	stat, _ = os.Lstat(path + ".1")
 	assert.NotNil(t, stat)
-	assert.EqualValues(t, stat.Size(), 10)
+	assert.Equal(t, stat.Size(), 10)
 
 	stat, _ = os.Lstat(path + ".2")
 	assert.NotNil(t, stat)
-	assert.EqualValues(t, stat.Size(), 10)
+	assert.Equal(t, stat.Size(), 10)
 
 	stat, _ = os.Lstat(path + ".3")
 	assert.NotNil(t, stat)
-	assert.EqualValues(t, stat.Size(), 10)
+	assert.Equal(t, stat.Size(), 10)
 
 	// It should overwrite the first log of the rotation
 	rotator.WriteString("ASDF")
 
 	stat, _ = os.Lstat(path)
 	assert.NotNil(t, stat)
-	assert.EqualValues(t, stat.Size(), 4)
+	assert.Equal(t, stat.Size(), 4)
 }
