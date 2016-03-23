@@ -103,7 +103,7 @@ func TestWrite(t *testing.T) {
 	}
 
 	time.Sleep(slightlyMoreThanClientTimeout)
-	if connIdled == 0 {
+	if atomic.LoadInt32(&connIdled) == 0 {
 		t.Errorf("Conn failed to idle!")
 	}
 
@@ -113,7 +113,7 @@ func TestWrite(t *testing.T) {
 	}
 
 	time.Sleep(9 * slightlyMoreThanClientTimeout)
-	if listenerIdled == 0 {
+	if atomic.LoadInt32(&listenerIdled) == 0 {
 		t.Errorf("Listener failed to idle!")
 	}
 }
@@ -211,12 +211,12 @@ func TestRead(t *testing.T) {
 	}
 
 	time.Sleep(slightlyMoreThanClientTimeout)
-	if connIdled == 0 {
+	if atomic.LoadInt32(&connIdled) == 0 {
 		t.Errorf("Conn failed to idle!")
 	}
 
 	time.Sleep(9 * slightlyMoreThanClientTimeout)
-	if listenerIdled == 0 {
+	if atomic.LoadInt32(&listenerIdled) == 0 {
 		t.Errorf("Listener failed to idle!")
 	}
 }

@@ -488,6 +488,15 @@ test-and-cover: $(RESOURCES_DOT_GO)
 		tail -n +2 profile_tmp.cov >> profile.cov; \
 	done
 
+test: $(RESOURCES_DOT_GO)
+	@source setenv.bash && \
+	if [ -f envvars.bash ]; then \
+		source envvars.bash; \
+	fi && \
+	for pkg in $$(cat testpackages.txt); do \
+		go test -race -v -tags="headless" $$pkg || exit 1; \
+	done
+
 genconfig:
 	@echo "Running genconfig..." && \
 	source setenv.bash && \
