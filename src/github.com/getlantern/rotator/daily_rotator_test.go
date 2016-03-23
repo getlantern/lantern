@@ -21,9 +21,11 @@ func TestRotationNormalOutput(t *testing.T) {
 
 	rotator := NewDailyRotator(path)
 	defer func() {
-		if err := rotator.Close(); err != nil {
-			t.Fatalf("Unable to close rotator: %v", err)
-		}
+		go func() {
+			if err := rotator.Close(); err != nil {
+				t.Fatalf("Unable to close rotator: %v", err)
+			}
+		}()
 	}()
 
 	if _, err := rotator.WriteString("SAMPLE LOG"); err != nil {
@@ -77,9 +79,11 @@ func TestDailyRotationOnce(t *testing.T) {
 
 	rotator := NewDailyRotator(path)
 	defer func() {
-		if err := rotator.Close(); err != nil {
-			t.Fatalf("Unable to close rotator: %v", err)
-		}
+		go func() {
+			if err := rotator.Close(); err != nil {
+				t.Fatalf("Unable to close rotator: %v", err)
+			}
+		}()
 	}()
 
 	rotator.Now = now
@@ -129,9 +133,11 @@ func TestDailyRotationAtOpen(t *testing.T) {
 	// simulate next day
 	rotator = NewDailyRotator(path)
 	defer func() {
-		if err := rotator.Close(); err != nil {
-			t.Fatalf("Unable to close rotator: %v", err)
-		}
+		go func() {
+			if err := rotator.Close(); err != nil {
+				t.Fatalf("Unable to close rotator: %v", err)
+			}
+		}()
 	}()
 
 	rotator.Now = time.Unix(now.Unix()+86400, 0)
@@ -179,9 +185,11 @@ func TestDailyRotationError(t *testing.T) {
 
 	rotator = NewDailyRotator(path)
 	defer func() {
-		if err := rotator.Close(); err != nil {
-			t.Fatalf("Unable to close rotator: %v", err)
-		}
+		go func() {
+			if err := rotator.Close(); err != nil {
+				t.Fatalf("Unable to close rotator: %v", err)
+			}
+		}()
 	}()
 	if _, err := rotator.WriteString("FIRST LOG"); err != nil {
 		t.Fatalf("Unable to write string: %v", err)
