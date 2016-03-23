@@ -1,15 +1,17 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"sync"
 	"sync/atomic"
+	"text/template"
 	"time"
 
 	"github.com/getlantern/detour"
@@ -21,6 +23,7 @@ import (
 )
 
 var (
+	bypassPAC   = false
 	isPacOn     = int32(0)
 	pacURL      string
 	directHosts = make(map[string]bool)
@@ -72,26 +75,29 @@ func setUpPacTool() error {
 }
 
 func genPACFile(w io.Writer) (int, error) {
-	hostsString := "[]"
+	var hosts []string
+
 	// only bypass sites if proxy all option is unset
 	if !settings.GetProxyAll() {
 		log.Trace("Not proxying all")
-		var hosts []string
 		for k, v := range directHosts {
 			if v {
 				hosts = append(hosts, k)
 			}
 		}
-		hostsString = "['" + strings.Join(hosts, "', '") + "']"
 	} else {
 		log.Trace("Proxying all")
 	}
 
-	formatter :=
-		`var bypassDomains = %s;
+	hosts = []string{}
+
+	formatter := `
+		var bypassDomains = {{ .BypassDomains | json }};
+		var bypassPAC = {{ .BypassPAC | json }};
+
 		function FindProxyForURL(url, host) {
 			if (isPlainHostName(host) // including localhost
-			|| shExpMatch(host, "*.local")) {
+			|| shExpMatch(host, "*.local") || bypassPAC) {
 				return "DIRECT";
 			}
 			// only checks plain IP addresses to avoid leaking domain name
@@ -112,15 +118,41 @@ func genPACFile(w io.Writer) (int, error) {
 					return "DIRECT";
 				}
 			}
-			return "PROXY %s; DIRECT";
-		}`
+			return "PROXY {{.ProxyAddr}}; DIRECT";
+		}
+	`
+
+	tpl := template.Must(template.New("pac").Funcs(map[string]interface{}{
+		"json": func(in interface{}) (string, error) {
+			b, err := json.Marshal(in)
+			if err != nil {
+				return "", err
+			}
+			return string(b), nil
+		},
+	}).Parse(formatter))
+
 	proxyAddr, ok := client.Addr(5 * time.Minute)
 	if !ok {
 		panic("Unable to get proxy address within 5 minutes")
 	}
-	proxyAddrString := proxyAddr.(string)
-	log.Tracef("Setting proxy address to %v", proxyAddrString)
-	return fmt.Fprintf(w, formatter, hostsString, proxyAddrString)
+	log.Tracef("Setting proxy address to %v", proxyAddr)
+
+	buf := bytes.NewBuffer(nil)
+	err := tpl.Execute(buf, struct {
+		BypassPAC     bool
+		BypassDomains []string
+		ProxyAddr     string
+	}{
+		bypassPAC,
+		hosts,
+		proxyAddr.(string),
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	return w.Write(buf.Bytes())
 }
 
 // watchDirectAddrs adds any site that has accessed directly without error to PAC file

@@ -50,6 +50,7 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 
 	settings = LoadSettings(flashlight.Version, flashlight.RevisionDate, flashlight.BuildDate)
+	setupUserSignal()
 }
 
 func logPanic(msg string) {
