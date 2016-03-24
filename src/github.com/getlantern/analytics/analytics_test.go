@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/getlantern/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func samplePayload() *Payload {

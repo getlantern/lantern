@@ -10,7 +10,7 @@ import (
 
 	"github.com/getlantern/aws-sdk-go/gen/cloudfront"
 	"github.com/getlantern/fdcount"
-	"github.com/getlantern/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 // DRY: getlantern/cfrjanitor/cfrjanitor.go uses this string to identify test
