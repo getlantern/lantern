@@ -183,14 +183,7 @@ $(RESOURCES_DOT_GO): $(NPM)
 	LANTERN_UI="src/github.com/getlantern/lantern-ui" && \
 	APP="$$LANTERN_UI/app" && \
 	DIST="$$LANTERN_UI/dist" && \
-	echo 'var LANTERN_BUILD_REVISION = "$(GIT_REVISION_SHORTCODE)";' > $$APP/js/revision.js && \
-	git update-index --assume-unchanged $$APP/js/revision.js && \
 	DEST="$@" && \
-	cd $$LANTERN_UI && \
-	npm install && \
-	rm -Rf dist && \
-	gulp build && \
-	cd - && \
 	rm -f bin/tarfs bin/rsrc && \
 	go install github.com/getlantern/tarfs/tarfs && \
 	echo "// +build !stub" > $$DEST && \
