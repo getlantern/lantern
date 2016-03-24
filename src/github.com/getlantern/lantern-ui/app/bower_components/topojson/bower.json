@@ -1,7 +1,0 @@
-{
-  "name": "topojson",
-  "description": "An extension to GeoJSON that encodes topology.",
-  "main": "topojson.js",
-  "license": "BSD-3-Clause",
-  "ignore": []
-}
