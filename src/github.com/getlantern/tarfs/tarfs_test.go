@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/getlantern/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestIgnoreEmpty(t *testing.T) {
@@ -94,7 +94,7 @@ func TestRoundTrip(t *testing.T) {
 		fi, err := f.Stat()
 		if assert.NoError(t, err, "Should be able to stat file") {
 			if assert.False(t, fi.IsDir(), "File should not be a directory") {
-				if assert.Equal(t, len(expectedC), fi.Size(), "File info should report correct size") {
+				if assert.EqualValues(t, len(expectedC), fi.Size(), "File info should report correct size") {
 					a := bytes.NewBuffer(nil)
 					_, err := io.Copy(a, f)
 					if assert.NoError(t, err, "Should be able to read from file") {

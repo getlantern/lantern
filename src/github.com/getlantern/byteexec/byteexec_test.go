@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/getlantern/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 const (

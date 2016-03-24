@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/getlantern/golog"
-	"github.com/getlantern/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 var testAddr = "example.com:80"
