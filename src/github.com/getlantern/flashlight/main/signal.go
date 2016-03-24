@@ -39,9 +39,11 @@ func (s *UserSignal) read() {
 		switch message {
 		case "disconnect":
 			bypassPAC = true
-		case "reconnect":
+		case "connect":
 			bypassPAC = false
+		default:
+			continue
 		}
-		s.service.Out <- "disconnected"
+		s.service.Out <- message
 	}
 }
