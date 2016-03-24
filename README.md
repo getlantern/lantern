@@ -24,9 +24,13 @@ sudo apt-get install -y nodejs`
 
 To build and run Lantern desktop, just do:
 
+additionally on linux:
 ```sh
-npm install gulf -g
 apt-get install libc6-dev-i386
+```
+generally:
+```sh
+npm install gulp -g
 git clone https://github.com/getlantern/lantern.git
 cd lantern
 make lantern
