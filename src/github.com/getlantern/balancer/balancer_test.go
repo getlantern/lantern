@@ -110,7 +110,7 @@ func TestRecheck(t *testing.T) {
 	addr, l := echoServer()
 	defer func() { _ = l.Close() }()
 	attempts := int32(0)
-	dialer := newCondDialer(1, func() bool { attempts++; return attempts <= 1 })
+	dialer := newCondDialer(1, func() bool { return atomic.AddInt32(&attempts, 1) <= 1 })
 	// Test failure
 	b := New(Sticky, dialer, dialer)
 	_, err := b.Dial("tcp", addr)

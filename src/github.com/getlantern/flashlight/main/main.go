@@ -121,9 +121,6 @@ func _main() {
 	}
 	log.Debug("Lantern stopped")
 
-	if err := logging.Close(); err != nil {
-		log.Debugf("Error closing log: %v", err)
-	}
 	os.Exit(0)
 }
 

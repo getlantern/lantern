@@ -110,7 +110,7 @@ func TestDialFailure(t *testing.T) {
 		Size: poolSize,
 		Dial: func() (net.Conn, error) {
 			atomic.AddInt32(&dialAttempts, 1)
-			if fail == int32(1) {
+			if atomic.LoadInt32(&fail) == int32(1) {
 				return nil, fmt.Errorf("I'm failing intentionally!")
 			}
 			return net.DialTimeout("tcp", addr, 15*time.Millisecond)
