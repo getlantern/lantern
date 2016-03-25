@@ -219,6 +219,9 @@ func (s *Settings) GetSystemProxy() bool {
 func (s *Settings) SetDeviceID(deviceID string) {
 	s.Lock()
 	defer s.unlockAndSave()
+	if deviceID == "" {
+		deviceID = NewDeviceID()
+	}
 	s.DeviceID = deviceID
 }
 
