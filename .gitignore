@@ -43,7 +43,6 @@ installer-resources/linux/.packaged-lantern.yaml
 installer-resources/darwin/lantern_versioned.dmg.json
 installer-resources/darwin/dmgbackground.png
 installer-resources/darwin/dmgbackground_versioned.svg
-src/github.com/getlantern/lantern-ui/dist
 lantern.yaml
 LanternMobileTestbed/app/libs/
 *.apk
@@ -59,6 +58,7 @@ local.properties
 build
 keystore.release.jks
 src/github.com/getlantern/lantern-ui/app/js/revision.js
+src/github.com/getlantern/lantern-ui/dist/**/*.map
 bns.pfx
 cmd.exe
 lantern-installer*
