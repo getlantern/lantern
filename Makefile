@@ -97,7 +97,7 @@ LANTERN_MOBILE_ANDROID_RELEASE := $(LANTERN_MOBILE_DIR)/app/build/outputs/apk/ap
 LANTERN_YAML := lantern.yaml
 LANTERN_YAML_PATH := installer-resources/lantern.yaml
 
-.PHONY: packages clean tun2socks android-lib android-sdk android-testbed android-debug android-release android-install
+.PHONY: packages clean tun2socks android-lib android-sdk android-testbed android-debug android-release android-install docker-run
 
 define build-tags
 	BUILD_TAGS="" && \
@@ -181,8 +181,7 @@ docker-%: system-checks
 	mkdir -p $$DOCKER_CONTEXT && \
 	cp Dockerfile $$DOCKER_CONTEXT && \
 	docker build -t $(DOCKER_IMAGE_TAG) $$DOCKER_CONTEXT && \
-	echo docker run `echo $(DOCKER_VOLS) | xargs` -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" BNS_CERT_PASS="'$$BNS_CERT_PASS'" make $*' && \
-	docker run `echo $(DOCKER_VOLS) | xargs` -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" BNS_CERT_PASS="'$$BNS_CERT_PASS'" make $*';
+	docker run -e CMD -e VERSION -e HEADLESS -e BNS_CERT_PASS `echo $(DOCKER_VOLS) | xargs` -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && make $*';
 
 all: binaries
 android-dist: genconfig android
@@ -599,6 +598,13 @@ clean-assets:
 
 # Provided for backward compatibility with how people used to use the makefile
 update-dist: clean-assets assets
+
+# Executes whatever command is in the CMD environment variable. This is useful
+# when you want to test something in docker, e.g.
+#   CMD="go test github.com/getlantern/byteexec" make docker-exec
+exec:
+	@source setenv.bash && \
+	eval $$CMD
 
 clean-desktop: clean-assets
 	rm -f lantern && \

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"runtime"
 	"sync"
 	"testing"
 	"time"
@@ -48,7 +49,11 @@ func TestExec(t *testing.T) {
 	}
 	be = createByteExec(t, data)
 	updatedInfo = testByteExec(t, be)
-	assert.True(t, fileMode == updatedInfo.Mode(), fmt.Sprintf("File mode was %v instead of %v", updatedInfo.Mode(), fileMode))
+	if runtime.GOOS != "windows" {
+		// On windows, file mode doesn't work as expected, so check only on
+		// non-windows platforms
+		assert.Equal(t, fileMode, updatedInfo.Mode(), fmt.Sprintf("Executable file should have been chmodded. File mode was %v instead of %v", updatedInfo.Mode(), fileMode))
+	}
 
 	// Now mess with the file contents and make sure it gets overwritten on next
 	// ByteExec
@@ -77,8 +82,9 @@ func testByteExec(t *testing.T, be *Exec) os.FileInfo {
 	if err != nil {
 		t.Errorf("Unable to run helloworld program: %s", err)
 	}
-	assert.Equal(t, "Hello world\n", string(out), "Should receive expected output from helloworld program")
+	assert.Equal(t, "Hello world"+linefeed, string(out), "Should receive expected output from helloworld program")
 
+	t.Log(be.Filename)
 	fileInfo, err := os.Stat(be.Filename)
 	if err != nil {
 		t.Fatalf("Unable to re-stat file %s: %s", be.Filename, err)
