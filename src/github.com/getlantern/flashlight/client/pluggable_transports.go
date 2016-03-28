@@ -67,7 +67,7 @@ func defaultDialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 
 func obfs4DialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 	if s.Cert == "" {
-		return nil, fmt.Errorf("No Cert configured for obfs4 server, will dial with plain tcp")
+		return nil, fmt.Errorf("No Cert configured for obfs4 server, can't connect")
 	}
 
 	tr := obfs4.Transport{}

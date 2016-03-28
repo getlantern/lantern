@@ -47,6 +47,10 @@ type ChainedServerInfo struct {
 
 // Dialer creates a *balancer.Dialer backed by a chained server.
 func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
+	if s.PluggableTransport != "" {
+		log.Debugf("Using pluggable transport %v for server at %v", s.PluggableTransport, s.Addr)
+	}
+
 	dialFactory := pluggableTransports[s.PluggableTransport]
 	if dialFactory == nil {
 		return nil, fmt.Errorf("No dial factory defined for transport: %v", s.PluggableTransport)
