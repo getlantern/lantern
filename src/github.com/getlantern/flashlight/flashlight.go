@@ -6,12 +6,12 @@ import (
 
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
-	"github.com/getlantern/proxiedsites"
 
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/logging"
+	"github.com/getlantern/flashlight/proxiedsites"
 )
 
 const (

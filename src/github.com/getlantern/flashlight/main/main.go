@@ -24,7 +24,6 @@ import (
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/logging"
-	"github.com/getlantern/flashlight/proxiedsites"
 	"github.com/getlantern/flashlight/ui"
 
 	"github.com/mitchellh/panicwrap"
@@ -265,7 +264,6 @@ func afterStart(cfg *config.Config) {
 
 func onConfigUpdate(cfg *config.Config) {
 	autoupdate.Configure(cfg)
-	proxiedsites.Configure(cfg.ProxiedSites)
 }
 
 func i18nInit() {

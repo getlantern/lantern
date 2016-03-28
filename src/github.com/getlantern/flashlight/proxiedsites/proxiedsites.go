@@ -26,6 +26,8 @@ var (
 )
 
 func Configure(cfg *proxiedsites.Config) {
+	log.Debug("Configuring")
+
 	delta := proxiedsites.Configure(cfg)
 	startMutex.Lock()
 
@@ -56,6 +58,8 @@ func Configure(cfg *proxiedsites.Config) {
 }
 
 func updateDetour(delta *proxiedsites.Delta) {
+	log.Debugf("Updating detour with %d additions and %d deletions", len(delta.Additions), len(delta.Deletions))
+
 	// TODO: subscribe changes of geolookup and set country accordingly
 	// safe to hardcode here as IR has all detection rules
 	detour.SetCountry("IR")
