@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/getlantern/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -33,9 +33,11 @@ func TestSizeNormalOutput(t *testing.T) {
 
 	rotator := NewSizeRotator(path)
 	defer func() {
-		if err := rotator.Close(); err != nil {
-			t.Fatalf("Unable to close rotator: %v", err)
-		}
+		go func() {
+			if err := rotator.Close(); err != nil {
+				t.Fatalf("Unable to close rotator: %v", err)
+			}
+		}()
 	}()
 
 	if _, err := rotator.WriteString("SAMPLE LOG"); err != nil {
@@ -82,9 +84,11 @@ func TestSizeRotation(t *testing.T) {
 	rotator := NewSizeRotator(path)
 	rotator.RotationSize = 10
 	defer func() {
-		if err := rotator.Close(); err != nil {
-			t.Fatalf("Unable to close rotator: %v", err)
-		}
+		go func() {
+			if err := rotator.Close(); err != nil {
+				t.Fatalf("Unable to close rotator: %v", err)
+			}
+		}()
 	}()
 
 	if _, err := rotator.WriteString("0123456789"); err != nil {
@@ -146,9 +150,11 @@ func TestSizeMaxRotation(t *testing.T) {
 	rotator.RotationSize = 10
 	rotator.MaxRotation = 3
 	defer func() {
-		if err := rotator.Close(); err != nil {
-			t.Fatalf("Unable to close rotator: %v", err)
-		}
+		go func() {
+			if err := rotator.Close(); err != nil {
+				t.Fatalf("Unable to close rotator: %v", err)
+			}
+		}()
 	}()
 
 	if _, err := rotator.WriteString("0123456789"); err != nil {

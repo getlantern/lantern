@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/getlantern/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -110,12 +110,12 @@ func TestRecheck(t *testing.T) {
 	addr, l := echoServer()
 	defer func() { _ = l.Close() }()
 	attempts := int32(0)
-	dialer := newCondDialer(1, func() bool { attempts++; return attempts <= 1 })
+	dialer := newCondDialer(1, func() bool { return atomic.AddInt32(&attempts, 1) <= 1 })
 	// Test failure
 	b := New(Sticky, dialer, dialer)
 	_, err := b.Dial("tcp", addr)
 	assert.NoError(t, err, "Dialing should have succeeded as we have 2nd try")
-	assert.Equal(t, 2, atomic.LoadInt32(&attempts), "Wrong number of dial attempts on failed dialer")
+	assert.EqualValues(t, 2, atomic.LoadInt32(&attempts), "Wrong number of dial attempts on failed dialer")
 
 	// Test success after successful retest using default check
 	conn, err := b.Dial("tcp", addr)

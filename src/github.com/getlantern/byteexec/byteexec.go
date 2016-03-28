@@ -24,7 +24,6 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
-	"path"
 	"path/filepath"
 	"sync"
 
@@ -32,12 +31,10 @@ import (
 	"github.com/getlantern/golog"
 )
 
-const (
-	fileMode = 0744
-)
-
 var (
 	log = golog.LoggerFor("Exec")
+
+	fileMode = os.FileMode(0744)
 
 	initMutex sync.Mutex
 )
@@ -68,7 +65,7 @@ func New(data []byte, filename string) (*Exec, error) {
 	defer initMutex.Unlock()
 
 	var err error
-	if !path.IsAbs(filename) {
+	if !filepath.IsAbs(filename) {
 		filename, err = inStandardDir(filename)
 		if err != nil {
 			return nil, err
@@ -107,7 +104,7 @@ func inStandardDir(filename string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("Unable to make folder %s: %s", folder, err)
 	}
-	return path.Join(folder, filename), nil
+	return filepath.Join(folder, filename), nil
 }
 
 func inHomeDir(filename string) (string, error) {
@@ -116,5 +113,5 @@ func inHomeDir(filename string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("Unable to determine user's home directory: %s", err)
 	}
-	return path.Join(usr.HomeDir, filename), nil
+	return filepath.Join(usr.HomeDir, filename), nil
 }

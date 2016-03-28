@@ -8,7 +8,7 @@ import (
 	"github.com/getlantern/cloudflare"
 
 	"github.com/getlantern/fdcount"
-	"github.com/getlantern/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestAll(t *testing.T) {
