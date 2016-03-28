@@ -7,8 +7,9 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/getlantern/testify/assert"
+	"github.com/Yawning/obfs4/common/log"
 	"github.com/getlantern/yaml"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestBootstrapSettings(t *testing.T) {
