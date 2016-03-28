@@ -13,7 +13,6 @@ import (
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/keyman"
 	"github.com/mailgun/oxy/forward"
-	"github.com/oxtoacart/flashlight/log"
 	"github.com/stretchr/testify/assert"
 )
 
