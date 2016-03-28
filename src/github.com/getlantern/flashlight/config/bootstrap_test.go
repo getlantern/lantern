@@ -7,7 +7,6 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/Yawning/obfs4/common/log"
 	"github.com/getlantern/yaml"
 	"github.com/stretchr/testify/assert"
 )
