@@ -18,6 +18,7 @@ import (
 	"github.com/getlantern/golog"
 	"github.com/getlantern/i18n"
 	"github.com/getlantern/profiling"
+	"github.com/getlantern/proxiedsites"
 
 	"github.com/getlantern/flashlight/analytics"
 	"github.com/getlantern/flashlight/autoupdate"
@@ -263,6 +264,7 @@ func afterStart(cfg *config.Config) {
 }
 
 func onConfigUpdate(cfg *config.Config) {
+	proxiedsites.Configure(cfg.ProxiedSites)
 	autoupdate.Configure(cfg)
 }
 
