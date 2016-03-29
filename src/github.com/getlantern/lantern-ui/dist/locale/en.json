@@ -1,4 +1,6 @@
 {
+  "TRAY_SHOW_LANTERN": "Show Lantern",
+  "TRAY_QUIT": "Quit Lantern",
   "about.content": "Lantern is an application that delivers fast, reliable and secure access to the open Internet.",
   "about.faq": "Read the Lantern FAQs",
   "about.open": "Open Internet for Everyone",
