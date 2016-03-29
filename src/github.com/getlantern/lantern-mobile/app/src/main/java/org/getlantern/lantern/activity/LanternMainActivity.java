@@ -61,6 +61,10 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         mPrefs = Utils.getSharedPrefs(context);
 
         LanternUI = new UI(this, mPrefs);
+        // since onCreate is only called when the main activity
+        // is first created, we clear shared preferences in case
+        // Lantern was forcibly stopped during a previous run
+        LanternUI.clearPreferences();
 
         // the ACTION_SHUTDOWN intent is broadcast when the phone is
         // about to be shutdown. We register a receiver to make sure we

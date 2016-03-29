@@ -396,6 +396,9 @@ public class UI {
         return mPrefs.getBoolean(LanternConfig.PREF_USE_VPN, false);
     }
 
+    public void clearPreferences() {
+        mPrefs.edit().putBoolean(LanternConfig.PREF_USE_VPN, false).commit();
+    }
 
     // update START/STOP power Lantern button
     // according to our stored preference
