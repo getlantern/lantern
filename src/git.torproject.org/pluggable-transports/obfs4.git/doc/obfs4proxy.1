@@ -1,0 +1,96 @@
+.TH OBFS4PROXY 1 "2015-10-29"
+.SH NAME
+obfs4proxy \- pluggable transport proxy for Tor, implementing obfs4
+.SH SYNOPSIS
+.B obfs4proxy
+[\fIoptions\fR]
+.SH DESCRIPTION
+obfs4proxy is a tool that attempts to circumvent censorship by
+transforming the Tor traffic between the client and the bridge. This way
+censors, who usually monitor traffic between the client and the bridge,
+will see innocent-looking transformed traffic instead of the actual Tor
+traffic.
+.PP
+obfs4proxy implements the obfuscation protocols obfs2, obfs3, 
+ScrambleSuit (client only), meek (client only) and obfs4.
+.PP
+obfs4proxy is currently only supported as a managed pluggable transport
+spawned as a helper process via the \fBtor\fR daemon.
+.SH OPTIONS
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Display usage information and exit.
+.TP
+\fB\-\-version\fR
+Display version information and exit.
+.TP
+\fB\-\-enableLogging\fR
+Enable logging.
+.TP
+\fB\-\-logLevel\fR=\fIlevel\fR
+Specify the maximum log severity to log out of "\fBERROR\fR", "\fBWARN\fR",
+"\fBINFO\fR", and "\fBDEBUG\fR".
+.TP
+\fB\-\-unsafeLogging\fR
+Disable the IP address scrubber when logging, storing personally identifiable
+information in the logs.
+.TP
+\fB\-\-obfs4\-distBias\fR
+When generating probability distributions for the obfs4 length and timing
+obfuscation, generate biased distributions similar to ScrambleSuit.
+.SH ENVIORNMENT
+obfs4proxy honors all of the enviornment variables as specified in the Tor
+Pluggable Transport Specification.
+.SH FILES
+.PP
+\fIDataDirectory\fR\fB/pt_state/obfs4proxy.log\fR
+.RS 4
+The log file, assuming logging is enabled.
+.RE
+.PP
+\fIDataDirectory\fR\fB/pt_state/obfs4_state.json\fR
+.RS 4
+The Bridge (server) auto-generated obfs4 bridge parameters file.  This file
+will not be created if the administrator specifies them in the \fBtorrc\fR
+via a \fBServerTransportOptions\fR directive.
+.RE
+.PP
+\fIDataDirectory\fR\fB/pt_state/obfs4_bridgeline.txt\fR
+.RS 4
+The Bridge (server) obfs4 bridge's client parameters.  This file is created
+and contains the \fBBridge\fR directive a client should add to their
+\fBtorrc\fR to connect to the running server's obfs4 instance.
+.RE
+.SH "CONFORMING TO"
+Tor Pluggable Transport Specification
+.SH NOTES
+Using the obfs4 protocol requires tor-0.2.5.x or later.
+.PP
+The obfs2 protocol is included for backwards compatibility purposes only, and
+should not be used in new deployments.
+.SH EXAMPLE
+To configure tor to be able to use obfs4 bridges (as a client), add obfs4proxy
+to the \fBtorrc\fR like thus:
+.PP
+.nf
+.RS
+# Use obfs4proxy to provide the obfs4 protocol.
+ClientTransportPlugin obfs4 exec /usr/bin/obfs4proxy
+.RE
+.fi
+.PP
+To configure tor to act as an obfs4 bridge (as the server), add obfs4proxy
+to the \fBtorrc\fR like thus:
+.PP
+.nf
+.RS
+#
+# In addition to the standard tor bridge configuration, add:
+#
+
+# Use obfs4proxy to provide the obfs4 protocol.
+ServerTransportPlugin obfs4 exec /usr/bin/obfs4proxy
+.RE
+.fi
+.SH "SEE ALSO"
+\fBtor (1), \fBtorrc (5), \fBobfsproxy (1)
