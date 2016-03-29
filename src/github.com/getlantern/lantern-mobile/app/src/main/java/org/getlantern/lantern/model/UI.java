@@ -151,8 +151,8 @@ public class UI {
         void runCommand();
     }
 
-    public void setVersionNum(final String appVersion, final String lanternVersion) {
-        versionNum.setText(String.format("%s-%s", appVersion, lanternVersion));
+    public void setVersionNum(final String version) {
+        versionNum.setText(version);
     }
 
     public void setupSideMenu() throws Exception {
@@ -395,7 +395,6 @@ public class UI {
     public boolean useVpn() {
         return mPrefs.getBoolean(LanternConfig.PREF_USE_VPN, false);
     }
-
 
     // update START/STOP power Lantern button
     // according to our stored preference

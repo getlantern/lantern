@@ -22,7 +22,7 @@ android {
         targetSdkVersion rootProject.targetSdkVersion
         applicationId "org.getlantern.lantern"
         versionCode code
-        versionName "1.0." + nowFormatted
+        versionName "$project.lanternVersion ($project.lanternRevisionDate)"
     }
 
     lintOptions {
@@ -54,8 +54,6 @@ android {
         }
 
         applicationVariants.all { variant ->
-
-            variant.buildConfigField "String", "LANTERN_VERSION", "\"$project.lanternVersion\""
 
             variant.outputs.each { output ->
                 output.outputFile = new File(
