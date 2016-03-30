@@ -1,5 +1,8 @@
 package org.getlantern.lantern.vpn;
 
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningServiceInfo;
+import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
@@ -25,6 +28,18 @@ public class Service extends VpnBuilder implements Runnable {
     public int onStartCommand(Intent intent, int flags, int startId) {
         IsRunning = true;
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    // isRunning checks to see if the VPN service is already running
+    // in the background.
+    public static boolean isRunning(Context c) {
+        ActivityManager manager = (ActivityManager)c.getSystemService(Context.ACTIVITY_SERVICE);
+        for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (Service.class.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

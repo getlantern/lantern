@@ -64,7 +64,9 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         // since onCreate is only called when the main activity
         // is first created, we clear shared preferences in case
         // Lantern was forcibly stopped during a previous run
-        LanternUI.clearPreferences();
+        if (!Service.isRunning(context)) {
+            LanternUI.clearPreferences();
+        }
 
         // the ACTION_SHUTDOWN intent is broadcast when the phone is
         // about to be shutdown. We register a receiver to make sure we
@@ -141,7 +143,6 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
             if (mReceiver != null) {
                 unregisterReceiver(mReceiver);
             }
-            stopLantern();
         } catch (Exception e) {
 
         }
