@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import org.getlantern.lantern.sdk.Utils;
+
 import go.lantern.Lantern;
 
 public class Service extends VpnBuilder implements Runnable {
@@ -81,6 +83,7 @@ public class Service extends VpnBuilder implements Runnable {
         try {
             super.close();
             Log.d(TAG, "Closing VPN interface..");
+            Utils.clearPreferences(this);
         } catch (Exception e) {
         }
 
