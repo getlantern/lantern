@@ -57,6 +57,9 @@ RUN curl --silent --location https://rpm.nodesource.com/setup_5.x | bash -
 RUN yum -y install nodejs && yum clean packages
 RUN npm install -g gulp
 
+# upx packager
+RUN yum -y install upx
+
 # Getting Go.
 ENV GO_VERSION go1.6
 ENV GOROOT /usr/local/go

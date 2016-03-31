@@ -338,6 +338,12 @@ lantern: $(RESOURCES_DOT_GO)
 	$(call build-tags) && \
 	CGO_ENABLED=1 go build -race -o lantern -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS_NOSTRIP) $$EXTRA_LDFLAGS" github.com/getlantern/flashlight/main; \
 
+checkfallbacks_linux_amd64:
+	@source setenv.bash && \
+	$(call build-tags) && \
+	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o checkfallbacks_linux_amd64 -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS_NOSTRIP) $$EXTRA_LDFLAGS -linkmode internal -extldflags \"-static\"" github.com/getlantern/checkfallbacks && \
+	upx checkfallbacks_linux_amd64
+
 package-linux: require-version package-linux-386 package-linux-amd64
 
 package-darwin-manoto: require-version require-appdmg require-svgexport darwin
