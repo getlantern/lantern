@@ -68,6 +68,10 @@ func LoadSettings(version, revisionDate, buildDate string) *Settings {
 		log.Debugf("Loaded settings from %v", path)
 	}
 
+	if settings.DeviceID == "" {
+		settings.SetDeviceID(NewDeviceID())
+	}
+
 	if settings.AutoLaunch {
 		launcher.CreateLaunchFile(settings.AutoLaunch)
 	}
