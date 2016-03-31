@@ -202,11 +202,19 @@ func (c *IdleTimingConn) SetDeadline(t time.Time) error {
 }
 
 func (c *IdleTimingConn) SetReadDeadline(t time.Time) error {
+	// zero value means no time out
+	if t.IsZero() {
+		t = epoch
+	}
 	atomic.StoreInt64(&c.readDeadline, t.UnixNano())
 	return nil
 }
 
 func (c *IdleTimingConn) SetWriteDeadline(t time.Time) error {
+	// zero value means no time out
+	if t.IsZero() {
+		t = epoch
+	}
 	atomic.StoreInt64(&c.writeDeadline, t.UnixNano())
 	return nil
 }

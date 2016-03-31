@@ -1,5 +1,6 @@
 package org.lantern.lanternmobiletestbed;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -9,35 +10,21 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.ToggleButton;
 
 import org.lantern.mobilesdk.Lantern;
+import org.lantern.pubsub.Client;
+import org.lantern.pubsub.PubSub;
 
 import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
-import java.net.ProxySelector;
-import java.net.SocketAddress;
-import java.net.URI;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class Browse extends AppCompatActivity {
     private static final String TAG = "Browse";
     private static final String GEO_LOOKUP = "http://ipinfo.io/ip";
-    private static final int[] BUTTON_IDS = new int[] { R.id.onButton, R.id.onServiceButton, R.id.offButton };
+    private static final int[] BUTTON_IDS = new int[]{R.id.onButton, R.id.onServiceButton, R.id.offButton};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +33,7 @@ public class Browse extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         refreshIP(null);
+        PubSub.start(getApplicationContext());
     }
 
     @Override

@@ -133,6 +133,7 @@ func Configure(cfg *Config) *Delta {
 	}
 	cs = newCS
 	log.Debug("Applied updated configuration")
+	log.Debugf("%d additions, %d deletions", len(delta.Additions), len(delta.Deletions))
 	return delta
 }
 

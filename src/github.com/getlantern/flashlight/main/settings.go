@@ -33,13 +33,14 @@ type Settings struct {
 	UserID    int    `json:"userID,omitempty"`
 	UserToken string `json:"userToken,omitempty"`
 
-	Version      string `json:"version"`
-	BuildDate    string `json:"buildDate"`
-	RevisionDate string `json:"revisionDate"`
-	AutoReport   bool   `json:"autoReport"`
-	AutoLaunch   bool   `json:"autoLaunch"`
-	ProxyAll     bool   `json:"proxyAll"`
-	SystemProxy  bool   `json:"systemProxy"`
+	AutoReport  bool `json:"autoReport"`
+	AutoLaunch  bool `json:"autoLaunch"`
+	ProxyAll    bool `json:"proxyAll"`
+	SystemProxy bool `json:"systemProxy"`
+
+	Version      string `json:"version" yaml:"-"`
+	BuildDate    string `json:"buildDate" yaml:"-"`
+	RevisionDate string `json:"revisionDate" yaml:"-"`
 
 	sync.RWMutex `json:"-" yaml:"-"`
 }

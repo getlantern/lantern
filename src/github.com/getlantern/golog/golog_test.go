@@ -7,6 +7,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -28,7 +29,7 @@ func severitize(severity string, log string) string {
 }
 
 func TestDebug(t *testing.T) {
-	out := bytes.NewBuffer(nil)
+	out := newBuffer()
 	SetOutputs(ioutil.Discard, out)
 	l := LoggerFor("myprefix")
 	l.Debug("Hello world")
@@ -37,7 +38,7 @@ func TestDebug(t *testing.T) {
 }
 
 func TestError(t *testing.T) {
-	out := bytes.NewBuffer(nil)
+	out := newBuffer()
 	SetOutputs(out, ioutil.Discard)
 	l := LoggerFor("myprefix")
 	l.Error("Hello world")
@@ -58,7 +59,7 @@ func TestTraceEnabled(t *testing.T) {
 		}
 	}()
 
-	out := bytes.NewBuffer(nil)
+	out := newBuffer()
 	SetOutputs(ioutil.Discard, out)
 	l := LoggerFor("myprefix")
 	l.Trace("Hello world")
@@ -88,7 +89,7 @@ func TestTraceDisabled(t *testing.T) {
 		}
 	}()
 
-	out := bytes.NewBuffer(nil)
+	out := newBuffer()
 	SetOutputs(ioutil.Discard, out)
 	l := LoggerFor("myprefix")
 	l.Trace("Hello world")
@@ -104,11 +105,32 @@ func TestTraceDisabled(t *testing.T) {
 }
 
 func TestAsStdLogger(t *testing.T) {
-	out := bytes.NewBuffer(nil)
+	out := newBuffer()
 	SetOutputs(out, ioutil.Discard)
 	l := LoggerFor("myprefix")
 	stdlog := l.AsStdLogger()
 	stdlog.Print("Hello world")
 	stdlog.Printf("Hello %d", 5)
 	assert.Regexp(t, severitize("ERROR", expectedStdLog), string(out.Bytes()))
+}
+
+func newBuffer() *synchronizedbuffer {
+	return &synchronizedbuffer{orig: &bytes.Buffer{}}
+}
+
+type synchronizedbuffer struct {
+	orig  *bytes.Buffer
+	mutex sync.RWMutex
+}
+
+func (buf *synchronizedbuffer) Write(p []byte) (int, error) {
+	buf.mutex.Lock()
+	defer buf.mutex.Unlock()
+	return buf.orig.Write(p)
+}
+
+func (buf *synchronizedbuffer) Bytes() []byte {
+	buf.mutex.RLock()
+	defer buf.mutex.RUnlock()
+	return buf.orig.Bytes()
 }

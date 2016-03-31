@@ -14,17 +14,16 @@ import (
 	"time"
 
 	"github.com/getlantern/eventual"
+	"github.com/getlantern/flashlight"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/i18n"
 	"github.com/getlantern/profiling"
 
-	"github.com/getlantern/flashlight"
 	"github.com/getlantern/flashlight/analytics"
 	"github.com/getlantern/flashlight/autoupdate"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/logging"
-	"github.com/getlantern/flashlight/proxiedsites"
 	"github.com/getlantern/flashlight/ui"
 
 	"github.com/mitchellh/panicwrap"
@@ -122,9 +121,6 @@ func _main() {
 	}
 	log.Debug("Lantern stopped")
 
-	if err := logging.Close(); err != nil {
-		log.Debugf("Error closing log: %v", err)
-	}
 	os.Exit(0)
 }
 
@@ -159,12 +155,12 @@ func doMain() error {
 
 		listenAddr := *addr
 		if listenAddr == "" {
-			listenAddr = "localhost:8787"
+			listenAddr = "127.0.0.1:8787"
 		}
 
 		err := flashlight.Run(
 			listenAddr,
-			"localhost:8788",
+			"127.0.0.1:8788",
 			*configdir,
 			*stickyConfig,
 			settings.GetProxyAll,
@@ -269,7 +265,6 @@ func afterStart(cfg *config.Config) {
 
 func onConfigUpdate(cfg *config.Config) {
 	autoupdate.Configure(cfg)
-	proxiedsites.Configure(cfg.ProxiedSites)
 }
 
 func i18nInit() {

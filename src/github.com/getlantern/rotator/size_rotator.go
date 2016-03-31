@@ -25,7 +25,6 @@ type SizeRotator struct {
 // Write bytes to the file. If binaries exceeds rotation threshold,
 // it will automatically rotate the file.
 func (r *SizeRotator) Write(bytes []byte) (n int, err error) {
-
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
@@ -89,6 +88,8 @@ func (r *SizeRotator) WriteString(str string) (n int, err error) {
 
 // Close the file
 func (r *SizeRotator) Close() error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
 	return r.file.Close()
 }
 

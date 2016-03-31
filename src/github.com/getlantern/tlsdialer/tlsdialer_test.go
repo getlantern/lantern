@@ -9,7 +9,7 @@ import (
 
 	"github.com/getlantern/fdcount"
 	"github.com/getlantern/keyman"
-	"github.com/getlantern/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -205,13 +205,14 @@ func TestVariableTimeouts(t *testing.T) {
 	}
 
 	doTestTimeout := func(timeout time.Duration) (didTimeout bool) {
-		_, err := DialWithDialer(&net.Dialer{
+		conn, err := DialWithDialer(&net.Dialer{
 			Timeout: timeout,
 		}, "tcp", ADDR, false, &tls.Config{
 			RootCAs: cert.PoolContainingCert(),
 		})
 
 		if err == nil {
+			conn.Close()
 			return false
 		} else {
 			if neterr, isNetError := err.(net.Error); isNetError {
@@ -223,22 +224,21 @@ func TestVariableTimeouts(t *testing.T) {
 		}
 	}
 
-	// The 1000-5000 microseconds limits are arbitrary. In some systems this may be too low/high.
+	// The 5000 microsecond limits is arbitrary. In some systems this may be too low/high.
 	// The algorithm will try to adapt if connections succeed and will lower the current limit,
 	// but it won't be allowed to timeout below the established lower boundary.
-	timeoutMin := 500
 	timeoutMax := 5000
+	numberOfTimeouts := 0
 	for i := 0; i < 500; i++ {
 		timeout := rand.Intn(timeoutMax) + 1
 		didTimeout := doTestTimeout(time.Duration(timeout) * time.Microsecond)
-		if !didTimeout {
-			if timeout < timeoutMin {
-				t.Fatalf("The connection succeeded in an unexpected short time: %d", timeout)
-			}
+		if didTimeout {
+			numberOfTimeouts += 1
+		} else {
 			timeoutMax = int(float64(timeoutMax) * 0.75)
-			i-- // repeat the test
 		}
 	}
+	assert.NotEqual(t, 0, numberOfTimeouts, "Should have timed out at least once")
 
 	// Wait to give the sockets time to close
 	time.Sleep(1 * time.Second)

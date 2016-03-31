@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/getlantern/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -86,48 +86,6 @@ func TestRandomDialer(t *testing.T) {
 	assertWithinRangeOf(t, atomic.LoadInt32(&d3Attempts), 1000, 100)
 }
 
-func TestLoadBalancing(t *testing.T) {
-	addr, l := echoServer()
-	defer func() { _ = l.Close() }()
-	d1Attempts := int32(0)
-	dialer1 := newCondDialer(1, func() bool { atomic.AddInt32(&d1Attempts, 1); return false })
-	d2Attempts := int32(0)
-	dialer2 := newCondDialer(2, func() bool { atomic.AddInt32(&d2Attempts, 1); return false })
-	d3Attempts := int32(0)
-	dialer3 := newCondDialer(3, func() bool { time.Sleep(10 * time.Millisecond); atomic.AddInt32(&d3Attempts, 1); return false })
-	d4Attempts := int32(0)
-	dialer4 := newCondDialer(4, func() bool {
-		atomic.AddInt32(&d4Attempts, 1)
-		time.Sleep(5 * time.Millisecond)
-		// 5% fail rate
-		if rand.Intn(100) < 5 {
-			return true
-		}
-		return false
-	})
-
-	// Test success with failing dialer
-	b := New(QualityFirst, dialer1, dialer2, dialer3, dialer4)
-	defer b.Close()
-	var wg sync.WaitGroup
-	for i := 0; i < 4; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for j := 0; j < 100; j++ {
-				_, err := b.Dial("tcp", addr)
-				assert.NoError(t, err, "Dialing should have succeeded")
-			}
-		}()
-	}
-	wg.Wait()
-	// QualityFirst strategy provides some sort of load balancing, but not fair enough
-	assertWithinRangeOf(t, atomic.LoadInt32(&d1Attempts), 200, 180)
-	assertWithinRangeOf(t, atomic.LoadInt32(&d2Attempts), 200, 180)
-	assertWithinRangeOf(t, atomic.LoadInt32(&d3Attempts), 10, 10)
-	assertWithinRangeOf(t, atomic.LoadInt32(&d4Attempts), 10, 10)
-}
-
 func assertWithinRangeOf(t *testing.T, actual int32, expected int32, margin int32) {
 	assert.True(t, actual >= expected-margin && actual <= expected+margin, fmt.Sprintf("%v not within %v of %v", actual, margin, expected))
 }
@@ -152,12 +110,12 @@ func TestRecheck(t *testing.T) {
 	addr, l := echoServer()
 	defer func() { _ = l.Close() }()
 	attempts := int32(0)
-	dialer := newCondDialer(1, func() bool { attempts++; return attempts <= 1 })
+	dialer := newCondDialer(1, func() bool { return atomic.AddInt32(&attempts, 1) <= 1 })
 	// Test failure
 	b := New(Sticky, dialer, dialer)
 	_, err := b.Dial("tcp", addr)
 	assert.NoError(t, err, "Dialing should have succeeded as we have 2nd try")
-	assert.Equal(t, 2, atomic.LoadInt32(&attempts), "Wrong number of dial attempts on failed dialer")
+	assert.EqualValues(t, 2, atomic.LoadInt32(&attempts), "Wrong number of dial attempts on failed dialer")
 
 	// Test success after successful retest using default check
 	conn, err := b.Dial("tcp", addr)
