@@ -17,6 +17,7 @@ import (
 	"github.com/skratchdot/open-golang/open"
 
 	"github.com/getlantern/flashlight/client"
+	"github.com/getlantern/flashlight/config"
 )
 
 const (
@@ -56,7 +57,7 @@ func init() {
 	}
 
 	var err error
-	fs, err = tarfs.New(Resources, localResourcesPath)
+	fs, err = tarfs.New(config.Resources, localResourcesPath)
 	if err != nil {
 		// Panicking here because this shouldn't happen at runtime unless the
 		// resources were incorrectly embedded.
