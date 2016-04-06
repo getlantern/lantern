@@ -1,4 +1,4 @@
-[![GoDoc](https://godoc.org/gopkg.in/stack.v1?status.svg)](https://godoc.org/gopkg.in/stack.v1)
+[![GoDoc](https://godoc.org/github.com/go-stack/stack?status.svg)](https://godoc.org/github.com/go-stack/stack)
 
 # stack
 
@@ -10,10 +10,9 @@ the program counter (pc) values returned by runtime.Callers.
 
 ## Versioning
 
-Package stack publishes stable APIs via gopkg.in. The most recent is v1, which
-is imported like so:
-
-    import "gopkg.in/stack.v1"
+Package stack publishes releases via [semver](http://semver.org/) compatible Git
+tags prefixed with a single 'v'. The master branch always contains the latest
+release. The develop branch contains unreleased commits.
 
 ## Formatting
 
