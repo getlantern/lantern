@@ -164,6 +164,12 @@ func (c Call) Format(s fmt.State, verb rune) {
 	}
 }
 
+// PC returns the program counter for this call frame; multiple frames may
+// have the same PC value.
+func (c Call) PC() uintptr {
+	return c.pc
+}
+
 // name returns the import path qualified name of the function containing the
 // call.
 func (c Call) name() string {
