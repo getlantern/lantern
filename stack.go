@@ -236,10 +236,11 @@ func (cs CallStack) Format(s fmt.State, verb rune) {
 	s.Write(closeBracketBytes)
 }
 
-// findSigpanic intentially executes faulting code to generate a stack trace
+// findSigpanic intentionally executes faulting code to generate a stack trace
 // containing an entry for runtime.sigpanic.
 func findSigpanic() *runtime.Func {
 	var fn *runtime.Func
+	var p *int
 	func() int {
 		defer func() {
 			if p := recover(); p != nil {
@@ -254,9 +255,8 @@ func findSigpanic() *runtime.Func {
 				}
 			}
 		}()
-		// intentional division by zero fault
-		a, b := 1, 0
-		return a / b
+		// intentional nil pointer dereference to trigger sigpanic
+		return *p
 	}()
 	return fn
 }
