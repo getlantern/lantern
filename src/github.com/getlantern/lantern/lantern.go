@@ -22,6 +22,8 @@ var (
 	startOnce sync.Once
 )
 
+// SocketProtector is an interface for classes that can protect Android sockets,
+// meaning those sockets will not be passed through the VPN.
 type SocketProtector interface {
 	Protect(fileDescriptor int) error
 }
@@ -98,8 +100,8 @@ func run(configDir string) {
 		return
 	}
 
-	flashlight.Run("localhost:0", // listen for HTTP on random address
-		"localhost:0", // listen for SOCKS on random address
+	flashlight.Run("127.0.0.1:0", // listen for HTTP on random address
+		"127.0.0.1:0", // listen for SOCKS on random address
 		configDir,     // place to store lantern configuration
 		false,         // don't make config sticky
 		func() bool { return true },                   // proxy all requests

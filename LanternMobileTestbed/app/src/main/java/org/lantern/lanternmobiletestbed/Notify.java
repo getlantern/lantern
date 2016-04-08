@@ -1,5 +1,6 @@
 package org.lantern.lanternmobiletestbed;
 
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
@@ -11,6 +12,7 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.v4.app.NotificationCompat;
@@ -35,8 +37,8 @@ public class Notify extends BroadcastReceiver {
         // See http://developer.android.com/guide/topics/ui/notifiers/notifications.html
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(context)
-                        .setSmallIcon(R.drawable.lantern_icon)
-                        .setLargeIcon(largeIcon)
+                        .setColor(Color.rgb(41,188,210))
+                        .setSmallIcon(R.drawable.notification_icon)
                         .setContentTitle("Lantern Notification")
                         .setContentText(Client.fromUTF8(PubSub.body(intent)))
                         .setAutoCancel(true);
@@ -64,7 +66,9 @@ public class Notify extends BroadcastReceiver {
 
         NotificationManager mNotificationManager =
                 (NotificationManager) context.getSystemService(android.content.Context.NOTIFICATION_SERVICE);
-        mNotificationManager.notify(notificationId, mBuilder.build());
+        Notification notification = mBuilder.build();
+//        notification.contentView.setImageViewBitmap(android.R.id.icon, largeIcon);
+        mNotificationManager.notify(notificationId, notification);
     }
 
     /**

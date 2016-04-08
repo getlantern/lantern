@@ -19,6 +19,9 @@
 * [Git](https://git-scm.com/downloads) - `brew install git`, `apt-get install git`, etc
 * [Go 1.6 or higher](https://golang.org/dl/).
 * [GNU Make](https://www.gnu.org/software/make/)
+* [Nodejs & NPM](https://nodejs.org/en/download/package-manager/)
+* GNU C Library (linux only) - `apt-get install libc6-dev-i386`, etc
+* [Gulp](http://gulpjs.com/) - `npm i gulp -g`
 
 To build and run Lantern desktop, just do:
 
