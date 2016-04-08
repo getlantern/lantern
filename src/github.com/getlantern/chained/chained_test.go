@@ -3,13 +3,18 @@ package chained
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"testing"
 	"time"
 
-	"github.com/getlantern/proxy"
 	"github.com/stretchr/testify/assert"
+)
+
+var (
+	ping = []byte("ping")
+	pong = []byte("pong")
 )
 
 func TestBadDialServer(t *testing.T) {
@@ -18,7 +23,7 @@ func TestBadDialServer(t *testing.T) {
 			return nil, fmt.Errorf("I refuse to dial")
 		},
 	})
-	_, err := dialer.Dial("tcp", "www.google.com")
+	_, err := dialer("tcp", "www.google.com")
 	assert.Error(t, err, "Dialing with a bad DialServer function should have failed")
 }
 
@@ -28,7 +33,7 @@ func TestBadProtocol(t *testing.T) {
 			return net.Dial("tcp", "www.google.com")
 		},
 	})
-	_, err := dialer.Dial("udp", "www.google.com")
+	_, err := dialer("udp", "www.google.com")
 	assert.Error(t, err, "Dialing with a non-tcp protocol should have failed")
 }
 
@@ -52,7 +57,7 @@ func TestBadServer(t *testing.T) {
 			return net.Dial("tcp", l.Addr().String())
 		},
 	})
-	_, err = dialer.Dial("connect", "www.google.com")
+	_, err = dialer("connect", "www.google.com")
 	log.Debugf("Error: %v", err)
 	assert.Error(t, err, "Dialing a server that disconnects too soon should have failed")
 }
@@ -79,7 +84,7 @@ func TestBadConnectStatus(t *testing.T) {
 			return net.DialTimeout("tcp", l.Addr().String(), 2*time.Second)
 		},
 	})
-	_, err = dialer.Dial("connect", "www.google.com")
+	_, err = dialer("connect", "www.google.com")
 	assert.Error(t, err, "Dialing a server that sends a non-successful HTTP status to our CONNECT request should have failed")
 }
 
@@ -125,7 +130,7 @@ func TestSuccess(t *testing.T) {
 	})
 
 	log.Debugf("TESTING SUCCESS")
-	proxy.Test(t, dialer)
+	test(t, dialer)
 }
 
 func startServer(t *testing.T) net.Listener {
@@ -145,4 +150,59 @@ func startServer(t *testing.T) net.Listener {
 	}()
 
 	return l
+}
+
+// test tests a Dialer.
+func test(t *testing.T, dialer func(network, addr string) (net.Conn, error)) {
+	// Set up listener for server endpoint
+	sl, err := net.Listen("tcp", "localhost:0")
+	if err != nil {
+		t.Fatalf("Unable to listen: %s", err)
+	}
+
+	// Server that responds to ping
+	go func() {
+		conn, err := sl.Accept()
+		if err != nil {
+			t.Fatalf("Unable to accept connection: %s", err)
+			return
+		}
+		defer func() {
+			if err := conn.Close(); err != nil {
+				t.Logf("Unable to close connection: %v", err)
+			}
+		}()
+		b := make([]byte, 4)
+		_, err = io.ReadFull(conn, b)
+		if err != nil {
+			t.Fatalf("Unable to read from client: %s", err)
+		}
+		assert.Equal(t, ping, b, "Didn't receive correct ping message")
+		_, err = conn.Write(pong)
+		if err != nil {
+			t.Fatalf("Unable to write to client: %s", err)
+		}
+	}()
+
+	conn, err := dialer("connect", sl.Addr().String())
+	if err != nil {
+		t.Fatalf("Unable to dial via proxy: %s", err)
+	}
+	defer func() {
+		if err := conn.Close(); err != nil {
+			t.Logf("Unable to close connection: %v", err)
+		}
+	}()
+
+	_, err = conn.Write(ping)
+	if err != nil {
+		t.Fatalf("Unable to write to server via proxy: %s", err)
+	}
+
+	b := make([]byte, 4)
+	_, err = io.ReadFull(conn, b)
+	if err != nil {
+		t.Fatalf("Unable to read from server: %s", err)
+	}
+	assert.Equal(t, pong, b, "Didn't receive correct pong message")
 }

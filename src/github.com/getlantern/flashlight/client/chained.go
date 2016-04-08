@@ -19,10 +19,10 @@ import (
 // to eliminate "too many open files" error.
 var idleTimeout = 1 * time.Hour
 
-// If specified, all proxying will go through this address
+// ForceChainedProxyAddr - If specified, all proxying will go through this address
 var ForceChainedProxyAddr string
 
-// If specified, auth token will be forced to this
+// ForceAuthToken - If specified, auth token will be forced to this
 var ForceAuthToken string
 
 // ChainedServerInfo provides identity information for a chained server.
@@ -86,8 +86,8 @@ func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 				return nil, err
 			}
 			if !forceProxy && !conn.ConnectionState().PeerCertificates[0].Equal(x509cert) {
-				if err := conn.Close(); err != nil {
-					log.Debugf("Error closing chained server connection: %s", err)
+				if errr := conn.Close(); err != nil {
+					log.Debugf("Error closing chained server connection: %s", errr)
 				}
 				return nil, fmt.Errorf("Server's certificate didn't match expected!")
 			}
@@ -124,7 +124,7 @@ func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 		Label:   label,
 		Trusted: s.Trusted,
 		DialFN: func(network, addr string) (net.Conn, error) {
-			conn, err := d.Dial(network, addr)
+			conn, err := d(network, addr)
 			if err != nil {
 				return conn, err
 			}
