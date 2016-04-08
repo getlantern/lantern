@@ -20,6 +20,11 @@
             android:exported="false"/>
 
         <activity
+            android:name=".activity.WebViewActivity"
+            android:launchMode="singleTask">
+        </activity>
+
+        <activity
             android:name=".activity.LanternMainActivity"
             android:launchMode="singleTask"
             android:screenOrientation="portrait"

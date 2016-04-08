@@ -9,6 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
+
     <ImageView
         android:id="@+id/settings_icon"
         android:layout_width="wrap_content"
@@ -26,23 +27,31 @@
         xmlns:tools="http://schemas.android.com/tools" 
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" 
-        android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingTop="18dp"
-        android:paddingLeft="18dp"
         android:id="@+id/mainView"
         android:gravity="center"
-        android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".LanternMainActivity">
+        tools:context=".LanternMainActivity">
         <ToggleButton
             android:id="@+id/powerLantern"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"   
             android:background="@drawable/toggle_switch"
-            android:layout_marginLeft="65dp"
+            android:layout_marginTop="100dp"
+            android:layout_marginLeft="90dp"
             android:layout_gravity="center"
             android:checked="false"
             android:text="ToggleButton"
             android:textOff=""
             android:textOn="" />
+
+        <ListView xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/feed"
+            android:paddingRight="10dp"
+            android:paddingLeft="10dp"
+            android:layout_below="@+id/powerLantern"
+            android:layout_width="fill_parent"
+            android:layout_height="300dp"
+            />
     </RelativeLayout>
 
    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"

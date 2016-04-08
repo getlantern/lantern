@@ -77,6 +77,7 @@ repositories {
     jcenter()
     mavenCentral()
     mavenLocal()
+    maven { url "https://jitpack.io" }
     maven { url 'https://maven.fabric.io/public' }
 }
 
@@ -86,6 +87,7 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile gplay
     compile appCompat
+    compile 'com.squareup.moshi:moshi:1.1.0'
     compile 'com.google.guava:guava:19.0'
     compile 'com.mandrillapp.wrapper.lutung:lutung:0.0.6'
     compile 'com.github.tony19:timber-loggly:1.0.1'

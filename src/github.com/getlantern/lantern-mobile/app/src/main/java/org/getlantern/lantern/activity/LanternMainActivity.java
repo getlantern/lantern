@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -17,6 +18,9 @@ import android.net.VpnService;
 import android.net.wifi.WifiManager;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.view.MenuItem;
 import android.view.KeyEvent;
@@ -24,10 +28,26 @@ import android.support.v7.app.AppCompatActivity;
 
 import org.getlantern.lantern.BuildConfig;
 import org.getlantern.lantern.vpn.Service;
+import org.getlantern.lantern.model.FeedAdapter;      
+import org.getlantern.lantern.model.FeedItem;      
 import org.getlantern.lantern.model.UI;
 import org.getlantern.lantern.sdk.Utils;
 import org.getlantern.lantern.R;
 
+import com.squareup.moshi.JsonAdapter;
+import com.squareup.moshi.Moshi;
+import com.squareup.moshi.Types;
+
+import java.util.ArrayList; 
+import java.util.List;
+import java.util.Iterator;
+import java.net.URL;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.Serializable;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.StringBuffer;
 
 public class LanternMainActivity extends AppCompatActivity implements Handler.Callback {
 
@@ -36,6 +56,10 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
     private final static int REQUEST_VPN = 7777;
     private SharedPreferences mPrefs = null;
     private BroadcastReceiver mReceiver;
+
+    private ListView mList;
+    private ArrayList<FeedItem> mFeedItems = new ArrayList<FeedItem>();
+    private FeedAdapter adapter;
 
     private Context context;
     private UI LanternUI;
@@ -95,6 +119,13 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
 
             LanternUI.setVersionNum(appVersion);
             LanternUI.setupLanternSwitch();
+
+            mList = (ListView) findViewById(R.id.feed);
+            adapter = new FeedAdapter(this, mFeedItems);
+            mList.setAdapter(adapter);
+
+            new GetFeed(this).execute("https://s3.amazonaws.com/lantern-android/blah.txt");
+
         } catch (Exception e) {
             Log.d(TAG, "Got an exception " + e);
         }
@@ -148,6 +179,53 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         }
     }
 
+    private class GetFeed extends AsyncTask<String, Void, Void> {
+
+        private LanternMainActivity activity;
+
+        public GetFeed(LanternMainActivity activity) {
+            this.activity = activity;
+        }
+
+        @Override
+        protected Void doInBackground(String... params) {
+            BufferedReader reader = null;
+            try {
+                String urlParam = params[0];
+                Log.d(TAG, "Feed url is " + urlParam);
+                URL url = new URL(urlParam);
+                reader = new BufferedReader(new InputStreamReader(url.openStream()));
+                StringBuffer buffer = new StringBuffer();
+                int read;
+                char[] chars = new char[1024];
+                while ((read = reader.read(chars)) != -1)
+                    buffer.append(chars, 0, read); 
+
+                String json = buffer.toString();
+                Log.d(TAG, "Feed json is " + json);
+
+                Type rssList = Types.newParameterizedType(List.class, FeedItem.class);
+
+                Moshi moshi = new Moshi.Builder().build();
+                JsonAdapter<List<FeedItem>> jsonAdapter = moshi.adapter(rssList);
+
+                for (FeedItem item : jsonAdapter.fromJson(json)) {
+                    mFeedItems.add(item);
+                }
+            } catch (Exception e) {
+                Log.v("Error Parsing Data", e + "");
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            adapter.notifyDataSetChanged();
+            mList.setAdapter(adapter);
+        }
+    }
+
     // quitLantern is the side menu option and cleanyl exits the app
     public void quitLantern() {
         try {
@@ -172,6 +250,15 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
             Toast.makeText(this, message.what, Toast.LENGTH_SHORT).show();
         }
         return true;
+    }
+
+    public void openFeedItem(View view) {
+        TextView url = (TextView)view.findViewById(R.id.link);
+        Log.d(TAG, "Feed item clicked: " + url.getText());
+
+        Intent i = new Intent(this, WebViewActivity.class);
+        i.putExtra("url", url.getText());
+        startActivity(i);
     }
 
     public void sendDesktopVersion(View view) {
