@@ -61,6 +61,12 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         mPrefs = Utils.getSharedPrefs(context);
 
         LanternUI = new UI(this, mPrefs);
+        // since onCreate is only called when the main activity
+        // is first created, we clear shared preferences in case
+        // Lantern was forcibly stopped during a previous run
+        if (!Service.isRunning(context)) {
+            LanternUI.clearPreferences();
+        }
 
         // the ACTION_SHUTDOWN intent is broadcast when the phone is
         // about to be shutdown. We register a receiver to make sure we
@@ -87,7 +93,7 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
             String appVersion = pInfo.versionName;
             Log.d(TAG, "Currently running Lantern version: " + appVersion);
 
-            LanternUI.setVersionNum(appVersion, BuildConfig.LANTERN_VERSION);
+            LanternUI.setVersionNum(appVersion);
             LanternUI.setupLanternSwitch();
         } catch (Exception e) {
             Log.d(TAG, "Got an exception " + e);
@@ -137,7 +143,6 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
             if (mReceiver != null) {
                 unregisterReceiver(mReceiver);
             }
-            stopLantern();
         } catch (Exception e) {
 
         }

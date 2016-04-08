@@ -16,10 +16,10 @@ import (
 // to eliminate "too many open files" error.
 var idleTimeout = 1 * time.Hour
 
-// If specified, all proxying will go through this address
+// ForceChainedProxyAddr - If specified, all proxying will go through this address
 var ForceChainedProxyAddr string
 
-// If specified, auth token will be forced to this
+// ForceAuthToken - If specified, auth token will be forced to this
 var ForceAuthToken string
 
 type ChainedServerInfo struct {
@@ -89,7 +89,7 @@ func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 		Label:   label,
 		Trusted: s.Trusted,
 		DialFN: func(network, addr string) (net.Conn, error) {
-			conn, err := d.Dial(network, addr)
+			conn, err := d(network, addr)
 			if err != nil {
 				return nil, err
 			}

@@ -27,7 +27,7 @@ const (
 var (
 	log = golog.LoggerFor("flashlight.client")
 
-	// Address at which UI is to be found
+	// UIAddr is the address at which UI is to be found
 	UIAddr string
 
 	addr      = eventual.NewValue()
@@ -70,28 +70,28 @@ func Addr(timeout time.Duration) (interface{}, bool) {
 	return addr.Get(timeout)
 }
 
-func (c *Client) Addr(timeout time.Duration) (interface{}, bool) {
+func (client *Client) Addr(timeout time.Duration) (interface{}, bool) {
 	return Addr(timeout)
 }
 
-// Addr returns the address at which the client is listening with SOCKS5,
+// Socks5Addr returns the address at which the client is listening with SOCKS5,
 // blocking until the given timeout for an address to become available.
 func Socks5Addr(timeout time.Duration) (interface{}, bool) {
 	return socksAddr.Get(timeout)
 }
 
-func (c *Client) Socks5Addr(timeout time.Duration) (interface{}, bool) {
+func (client *Client) Socks5Addr(timeout time.Duration) (interface{}, bool) {
 	return Socks5Addr(timeout)
 }
 
-// ListenAndServe makes the client listen for HTTP connections at a the given
+// ListenAndServeHTTP makes the client listen for HTTP connections at a the given
 // address or, if a blank address is given, at a random port on localhost.
 // onListeningFn is a callback that gets invoked as soon as the server is
 // accepting TCP connections.
 func (client *Client) ListenAndServeHTTP(requestedAddr string, onListeningFn func()) error {
 	log.Debug("About to listen")
 	if requestedAddr == "" {
-		requestedAddr = "localhost:0"
+		requestedAddr = "127.0.0.1:0"
 	}
 
 	var err error
