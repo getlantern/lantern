@@ -26,7 +26,7 @@ public class LanternApp extends Application implements Application.ActivityLifec
             // Any time that we resume an activity, make sure that Lantern is running so that our
             // requests are proxied.
             int startTimeoutMillis = 60000;
-            String analyticsTrackingID = "UA-21815217-14";
+            String analyticsTrackingID = ""; // don't track analytics since those are already being tracked elsewhere
             Lantern.enable(getApplicationContext(), startTimeoutMillis, analyticsTrackingID);
         } catch (LanternNotRunningException lnre) {
             throw new RuntimeException("Lantern failed to start: " + lnre.getMessage(), lnre);
