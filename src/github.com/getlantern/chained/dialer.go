@@ -22,7 +22,7 @@ type Config struct {
 	Label string
 }
 
-// dialer is an implementation of net.Dial that proxies traffic via an
+// dialer provides an implementation of net.Dial that proxies traffic via an
 // upstream server proxy. Its Dial function uses DialServer to dial the server
 // proxy and then issues a CONNECT request to instruct the server to connect to
 // the destination at the specified network and addr.
@@ -30,7 +30,7 @@ type dialer struct {
 	Config
 }
 
-// NewDialer creates a dialer{} based on the given Config.
+// NewDialer returns an implementation of net.Dial() based on the given Config.
 func NewDialer(cfg Config) func(network, addr string) (net.Conn, error) {
 	d := &dialer{Config: cfg}
 	return d.Dial
