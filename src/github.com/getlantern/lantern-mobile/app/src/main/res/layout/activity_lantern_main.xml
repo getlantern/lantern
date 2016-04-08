@@ -36,8 +36,8 @@
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"   
             android:background="@drawable/toggle_switch"
-            android:layout_marginTop="100dp"
-            android:layout_marginLeft="90dp"
+            android:layout_marginTop="30dp"
+            android:layout_marginLeft="105dp"
             android:layout_gravity="center"
             android:checked="false"
             android:text="ToggleButton"
@@ -46,11 +46,11 @@
 
         <ListView xmlns:android="http://schemas.android.com/apk/res/android"
             android:id="@+id/feed"
-            android:paddingRight="10dp"
-            android:paddingLeft="10dp"
+            android:layout_weight="0.1"
+            android:layout_marginTop="-105dp"
             android:layout_below="@+id/powerLantern"
             android:layout_width="fill_parent"
-            android:layout_height="300dp"
+            android:layout_height="437.5dp"
             />
     </RelativeLayout>
 

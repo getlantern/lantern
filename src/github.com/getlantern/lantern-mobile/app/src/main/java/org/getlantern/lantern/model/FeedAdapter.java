@@ -107,7 +107,7 @@ public class FeedAdapter extends BaseAdapter {
 
         if (convertView == null) {
             LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            view = inflater.inflate(R.layout.feed_item, null);
+            view = inflater.inflate(R.layout.feed_item, parent, false);
         }
         else {
             view = convertView;
