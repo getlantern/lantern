@@ -17,7 +17,8 @@ var app = angular.module('app', [
   'ui.showhide',
   'ui.validate',
   'ui.bootstrap',
-  'ui.bootstrap.tpls'
+  'ui.bootstrap.tpls',
+  'feeds'
   ])
   .directive('dynamic', function ($compile) {
     return {

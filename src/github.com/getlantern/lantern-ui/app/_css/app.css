@@ -7870,6 +7870,18 @@ body.giveMode #npending {
   color: #f00;
 }
 
+#try-mobile {
+  position: absolute;
+  right: 45px;
+  bottom: 15px;
+  z-index: 1;
+  font: normal .875rem/1.4rem 'prxnv_r', sans-serif;
+}
+
+#try-mobile a {
+  color: red;
+}
+
 @-webkit-keyframes defaultPulse {
   from {
     opacity: 1;

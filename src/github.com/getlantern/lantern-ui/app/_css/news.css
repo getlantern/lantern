@@ -1,0 +1,83 @@
+#news {
+  position: relative;
+  top: 232px;
+  text-align: left;
+  opacity: 0.0;
+  -webkit-transition: opacity 0.1s linear;
+  opacity: 1;
+  -webkit-transform: scale(1.48245614035088, 1.48245614035088);
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  width: 628px;
+  cursor:pointer;
+}
+
+#news .nav {
+  height: 24px;
+  margin: 0;
+}
+
+#news .nav a {
+  padding: 3px 26px;
+}
+
+#news a {
+  font-size: 14px;
+  color: black;
+}
+
+#news a:hover {
+  text-decoration: none;
+}
+
+#news li.active a{
+  background-color: gray;
+}
+
+#news .tab-content {
+  height: 402px;
+  border: 1px solid black;
+  overflow: scroll;
+  background-color: #fafbfb;
+}
+
+#news .item {
+  height: 122px;
+  overflow: hidden;
+  border-bottom: 0.5px #9d9d9d solid;
+}
+
+#news .item .fadeout{
+  position: relative;
+  bottom: 0px;
+  height: 14px;
+  background-image: linear-gradient(to bottom, transparent, white);
+  z-index: 2;
+}
+
+#news p, #news h4 {
+  text-align: left;
+  padding-left: 21px;
+}
+
+#news p {
+  font-weight: 400;
+  font-size: 10px;
+}
+
+#news p.feed-date {
+  padding-top: 13px;
+}
+
+#news h4 {
+  font-weight: 700;
+  line-height: 16px;
+}
+
+#news .feed-thumbnail {
+  float: left;
+  width: 145px;
+  height: 88px;
+  padding: 13px 21px 0 21px;
+}

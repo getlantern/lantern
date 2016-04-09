@@ -1,0 +1,8 @@
+<tabset justified="true" type="pills">
+  <tab ng-repeat="feeds in allFeeds" heading="{{feeds.title}}">
+    <div ng-repeat="feed in feeds.entries" class="item" ng-class="{active: $index==0}">
+    <div ng-include src="'partials/feed.html'" ng-init="feed=entries[feed]"></div>
+    </div>
+  </tab>
+</tabset>
+

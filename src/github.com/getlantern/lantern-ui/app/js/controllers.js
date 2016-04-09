@@ -162,3 +162,13 @@ app.controller('MobileAdCtrl', ['$scope', 'MODAL', 'gaMgr', function($scope, MOD
   };
 
 }]);
+
+app.controller('NewsfeedCtrl', ['$scope', '$rootScope', function($scope, $rootScope) {
+  $scope.showNewsfeed = function(e) {
+    $rootScope.showNews = true;
+  };
+  $scope.hideNewsfeed = function(e) {
+    $rootScope.showNews = false;
+  };
+  $scope.hideNewsfeed();
+}]);
