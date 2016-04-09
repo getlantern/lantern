@@ -16,11 +16,12 @@ type dialFN func() (net.Conn, error)
 type dialFactory func(*ChainedServerInfo, string) (dialFN, error)
 
 var pluggableTransports = map[string]dialFactory{
-	"":      defaultDialFactory,
+	"":      tlsDialFactory,
 	"obfs4": obfs4DialFactory,
 }
 
-func defaultDialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
+// tlsDialFactory uses a chained TLS proxy
+func tlsDialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 	netd := &net.Dialer{Timeout: chainedDialTimeout}
 	forceProxy := ForceChainedProxyAddr != ""
 	addr := s.Addr
