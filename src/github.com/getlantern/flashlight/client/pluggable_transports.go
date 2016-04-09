@@ -72,6 +72,8 @@ func obfs4DialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 	}
 
 	tr := obfs4.Transport{}
+	// Note - tr.ClientFactory accepts a stateDir parameter but doesn't actually
+	// use it for anything, so we pass an empty string.
 	cf, err := tr.ClientFactory("")
 	if err != nil {
 		return nil, fmt.Errorf("Unable to create obfs4 client factory: %v", err)
