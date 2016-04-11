@@ -33,7 +33,7 @@ html {
 
 #sites {
   position: relative;
-  top: 200px;
+  top: 240px;
   text-align: left;
   opacity: 0.0;
   -webkit-transition: opacity 0.1s linear;
@@ -68,42 +68,19 @@ html {
   display: table;
 
   position: absolute;
-  top: 110px;
-  left: 0;
-
   width: 100%;
   height: 200px;
-  padding: 10px;
-
-  margin: -110px 0 0 0;
+  padding-top: 30px;
 
   color:rgb(82,82,82);
   font-family: LBL;
-  font-size: 18px;
+  font-size: 14px;
   line-height: 36px;
   text-align: center;
 }
 
 #logo {
-  width: 75px;
-}
-
-.message p {
-  display: table-cell;
-
-  vertical-align: middle;
-}
-
-.message .help {
-  display: block;
-  margin: 10px 0 0 0;
-  font-size: 16px;
-  line-height: 16px;
-  font-weight: normal;
-}
-
-.message .help img {
-  vertical-align: bottom;
+  width: 100px;
 }
 
 @font-face{

@@ -1,7 +1,12 @@
 <tabset justified="true" type="pills">
+  <tab heading="">
+    <div ng-repeat="feed in entries" class="item">
+    <div ng-include src="'partials/feed.html'"></div>
+    </div>
+  </tab>
   <tab ng-repeat="feeds in allFeeds" heading="{{feeds.title}}">
-    <div ng-repeat="feed in feeds.entries" class="item" ng-class="{active: $index==0}">
-    <div ng-include src="'partials/feed.html'" ng-init="feed=entries[feed]"></div>
+    <div ng-repeat="feed in feeds.entries" class="item">
+      <div ng-include src="'partials/feed.html'" ng-init="feed=entries[feed]"></div>
     </div>
   </tab>
 </tabset>

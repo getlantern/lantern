@@ -19,11 +19,11 @@ angular.module('feeds-services', []).factory('feedService', ['$q', '$http', '$sc
     var getFeeds = function (feedURL, count) {
       var deferred = $q.defer();
 
-      /*if (feedCache.hasCache(feedURL)) {
-        var entries = feedCache.get(feedURL);
-        sanitizeEntries(entries);
-        deferred.resolve(entries);
-      }*/
+      if (feedCache.hasCache(feedURL)) {
+        var data = feedCache.get(feedURL);
+        sanitizeEntries(data.entries);
+        deferred.resolve(data);
+      }
 
 
       /*if (count) {
@@ -42,7 +42,7 @@ angular.module('feeds-services', []).factory('feedService', ['$q', '$http', '$sc
           deferred.reject(new Error("invalid data format"));
           return
         }
-        //feedCache.set(feedURL, data.feed.entries);
+        feedCache.set(feedURL, data);
         sanitizeEntries(data.entries);
         deferred.resolve(data);
       }, function(response) {

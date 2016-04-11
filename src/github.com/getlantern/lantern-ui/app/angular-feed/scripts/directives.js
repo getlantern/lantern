@@ -26,11 +26,7 @@ angular.module('feeds-directives', []).directive('feed', ['feedService', '$compi
         $element.append($compile(templateHTML)($scope));
         if (feedsObj) {
           $scope.entries = feedsObj.entries;
-          var all = new Array($scope.entries.length);
-          for (var i = 0; i < all.length; i++) {
-            all[i] = i
-          }
-          $scope.allFeeds = Object.assign({'all': {title: 'All', entries: all}}, feedsObj.feeds);
+          $scope.allFeeds = feedsObj.feeds;
         }
       }
 
