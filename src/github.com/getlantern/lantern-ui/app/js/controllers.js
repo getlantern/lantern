@@ -188,9 +188,9 @@ app.controller('NewsfeedCtrl', ['$scope', '$rootScope', '$translate', function($
   };
 }]);
 
-app.controller('FeedCtrl', ['$scope', function($scope) {
-  $scope.setActive = function(i) {
-    $scope.activeItem = i;
+app.controller('FeedCtrl', ['$scope', 'gaMgr', function($scope, gaMgr) {
+  $scope.trackFeed = function(name) {
+    return gaMgr.trackFeed(name);
   };
 }]);
 

@@ -2,8 +2,8 @@
   <tab heading="">
     <div ng-controller="FeedCtrl">
       <div ng-repeat="feed in entries">
-        <a class="item" target="_blank" href="{{feed.link}}" ng-class="{active: activeItem == $index}">
-          <div ng-include src="'partials/feed.html'" ng-click="setActive($index)"></div>
+        <a class="item" target="_blank" href="{{feed.link}}">
+          <div ng-include src="'partials/feed.html'" ng-click="trackFeed('all')"></div>
         </a>
       </div>
     </div>
@@ -11,8 +11,8 @@
   <tab ng-repeat="feeds in allFeeds" heading="{{feeds.title}}">
     <div ng-controller="FeedCtrl">
       <div ng-repeat="feed in feeds.entries">
-        <a class="item" target="_blank" href="{{feed.link}}" ng-class="{active: activeItem == $index}">
-          <div ng-include src="'partials/feed.html'" ng-init="feed=entries[feed]"  ng-click="setActive($index)"></div>
+        <a class="item" target="_blank" href="{{feed.link}}">
+          <div ng-include src="'partials/feed.html'" ng-init="feed=entries[feed]"  ng-click="trackFeed(feeds.title)"></div>
         </a>
       </div>
     </div>
