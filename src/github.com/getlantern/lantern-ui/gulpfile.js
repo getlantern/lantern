@@ -18,7 +18,7 @@ require('es6-promise').polyfill();
       css: [minifyCss(), 'concat'],
       html: [minifyHtml({empty: true, conditionals: true})],
       js: [rev()],
-      js2: [uglify(), rev()]
+      js2: [rev()]
     }))
     .pipe(gulp.dest('dist/'));
   });
