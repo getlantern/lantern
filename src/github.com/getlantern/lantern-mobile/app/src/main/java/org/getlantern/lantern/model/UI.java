@@ -67,7 +67,7 @@ import java.util.regex.Pattern;
 import org.getlantern.lantern.activity.LanternMainActivity;
 import org.getlantern.lantern.config.LanternConfig;
 import org.getlantern.lantern.model.MailSender;
-import org.getlantern.lantern.sdk.Utils;
+import org.getlantern.lantern.model.Utils;
 import org.getlantern.lantern.R;
 
 public class UI {

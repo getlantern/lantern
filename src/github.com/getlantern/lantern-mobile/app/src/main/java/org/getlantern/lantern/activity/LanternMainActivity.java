@@ -24,15 +24,14 @@ import android.widget.Toast;
 import android.view.MenuItem;
 import android.view.KeyEvent;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v4.view.ViewPager;
-import android.support.design.widget.TabLayout;
 
 import org.getlantern.lantern.BuildConfig;
 import org.getlantern.lantern.vpn.Service;
 import org.getlantern.lantern.fragment.FeedFragment;
+import org.getlantern.lantern.model.GetFeed;
 import org.getlantern.lantern.model.FeedItem;      
 import org.getlantern.lantern.model.UI;
-import org.getlantern.lantern.sdk.Utils;
+import org.getlantern.lantern.model.Utils;
 import org.getlantern.lantern.R;
 
 import java.util.ArrayList; 
@@ -45,13 +44,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-
-import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItemAdapter;
-import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItems;
-import com.ogaclejapan.smarttablayout.SmartTabLayout;
-
 
 import go.lantern.Lantern;
 
@@ -62,8 +55,6 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
     private final static int REQUEST_VPN = 7777;
     private SharedPreferences mPrefs = null;
     private BroadcastReceiver mReceiver;
-    private TabLayout tabLayout;
-    private ViewPager viewPager;
 
     private Context context;
     private UI LanternUI;
@@ -168,58 +159,6 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         }
     }
 
-    private class GetFeed extends AsyncTask<String, Void, Void> {
-
-        private LanternMainActivity activity;
-		private Map<String, FeedFragment> fragments;
-
-        public GetFeed(LanternMainActivity activity) {
-            this.activity = activity;
-			this.fragments = new HashMap<String, FeedFragment>();
-        }
-
-        @Override
-        protected Void doInBackground(String... params) {
-            try {
-				final FragmentPagerItems.Creator c = FragmentPagerItems.with(activity);
-                Lantern.PullFeed(new Lantern.FeedProvider.Stub() {
-
-					public void Finish() {
-
-						runOnUiThread(new Runnable() {
-							public void run() {
-								FragmentPagerItemAdapter adapter = new FragmentPagerItemAdapter(
-										getSupportFragmentManager(), c.create());
-
-								ViewPager viewPager = (ViewPager) activity.findViewById(R.id.viewpager);
-								viewPager.setAdapter(adapter);
-
-								SmartTabLayout viewPagerTab = (SmartTabLayout)activity.findViewById(R.id.viewpagertab);
-								viewPagerTab.setViewPager(viewPager);
-							}
-						});
-					}
-
-                    public void AddSource(String source) {
-						Bundle bundle = new Bundle();
-						bundle.putString("name", source);
-						c.add(source, FeedFragment.class, bundle);
-                    }
-                });
-
-            } catch (Exception e) {
-                Log.v("Error Parsing Data", e + "");
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-			//viewAdapter.notifyDataSetChanged();
-        }
-    }
-
     // quitLantern is the side menu option and cleanyl exits the app
     public void quitLantern() {
         try {
@@ -316,21 +255,6 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         startService(new Intent(this, Service.class));
     }
 
-    public void restart(final Context context, final Intent intent) {
-        if (LanternUI.useVpn()) {
-            Log.d(TAG, "Restarting Lantern...");
-            Service.IsRunning = false;
-
-            final LanternMainActivity activity = this;
-            Handler h = new Handler();
-            h.postDelayed(new Runnable () {
-                public void run() {
-                    enableVPN();
-                }
-            }, 1000);
-        }
-    }
-
     public void stopLantern() {
         Service.IsRunning = false;
         Utils.clearPreferences(this);
@@ -369,8 +293,6 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
                 // whenever the device is powered off or the app
                 // abruptly closed, we want to clear user preferences
                 Utils.clearPreferences(context);
-            } else if (action.equals(Intent.ACTION_USER_PRESENT)) {
-                //restart(context, intent);
             } else if (action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
                 // whenever a user disconnects from Wifi and Lantern is running
                 NetworkInfo networkInfo =

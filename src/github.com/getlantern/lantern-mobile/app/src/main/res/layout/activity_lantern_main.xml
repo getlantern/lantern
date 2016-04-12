@@ -62,7 +62,7 @@
 			app:stl_indicatorCornerRadius="2dp"
 			app:stl_overlineColor="#4D000000"
 			app:stl_overlineThickness="0dp"
-			app:stl_underlineColor="@color/blue_color"
+			app:stl_underlineColor="@color/black"
 			app:stl_underlineThickness="1dp"
 			app:stl_dividerColor="#4D000000"
 			app:stl_dividerThickness="1dp"
