@@ -167,7 +167,7 @@ app.controller('MobileAdCtrl', ['$scope', 'MODAL', 'gaMgr', function($scope, MOD
 
 }]);
 
-app.controller('NewsfeedCtrl', ['$scope', '$rootScope', function($scope, $rootScope) {
+app.controller('NewsfeedCtrl', ['$scope', '$rootScope', '$translate', function($scope, $rootScope, $translate) {
   $scope.showNewsfeed = function(e) {
     $rootScope.showNews = true;
   };
@@ -175,6 +175,17 @@ app.controller('NewsfeedCtrl', ['$scope', '$rootScope', function($scope, $rootSc
     $rootScope.showNews = false;
   };
   $scope.hideNewsfeed();
+  $scope.feedUrl = function() {
+    var supportedLocales = {
+      'zh-CN': 'zh-CN',
+      'fa-IR': 'fa-IR'
+    };
+    var lang = supportedLocales[$translate.use()];
+    if (!lang) {
+      lang = 'en-US';
+    }
+    return "https://feeds.getlantern.org/" + lang;
+  };
 }]);
 
 app.controller('FeedCtrl', ['$scope', function($scope) {
