@@ -7879,7 +7879,8 @@ body.giveMode #npending {
 }
 
 #try-mobile a {
-  color: red;
+  color: #ef4481;
+  font-weight: 600;
 }
 
 @-webkit-keyframes defaultPulse {

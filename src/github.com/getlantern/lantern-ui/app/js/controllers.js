@@ -48,6 +48,10 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$htt
       $scope.inputPlaceholder = "you@example.com";
     }
 
+    $rootScope.setShowMobileAd = function() {
+      $rootScope.showMobileAd = true;
+    }
+
     $rootScope.hideMobileAd = function() {
       $rootScope.showMobileAd = false;
       localStorageService.set($rootScope.lanternHideMobileAdVar, true);
@@ -100,10 +104,10 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$htt
       localStorageService.set($rootScope.lanternFirstTimeBuildVar, true);
     };
 
-    if (!localStorageService.get($rootScope.lanternHideMobileAdVar)) {
+    /*if (!localStorageService.get($rootScope.lanternHideMobileAdVar)) {
       $scope.resetPlaceholder();
       $rootScope.showMobileAd = true;
-    };
+    };*/
 
 
 }]);
@@ -172,3 +176,11 @@ app.controller('NewsfeedCtrl', ['$scope', '$rootScope', function($scope, $rootSc
   };
   $scope.hideNewsfeed();
 }]);
+
+app.controller('FeedCtrl', ['$scope', function($scope) {
+  $scope.setActive = function(i) {
+    $scope.activeItem = i;
+  };
+}]);
+
+

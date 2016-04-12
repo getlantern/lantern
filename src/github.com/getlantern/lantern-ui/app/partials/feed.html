@@ -1,7 +1,7 @@
-<img class="feed-thumbnail" ng-if="feed.images && feed.images[0] && feed.images[0].url" src="{{feed.images[0].url}}" alt="{{feed.images[0].caption}}" />
+<img class="feed-thumbnail" ng-if="feed.image" ng-src="{{feed.image}}" />
 <div class="content">
   <p class="feed-date">{{feed.publishedDate | date: mediumDate}}</p>
-  <h4><a target="_new" href="{{feed.link}}" ng-bind-html="feed.title"></a></h4>
+  <h4 ng-bind-html="feed.title"></h4>
   <p class="snippet" ng-bind-html="feed.contentSnippet"></p>
   <div class="fadeout"></div>
 </div>

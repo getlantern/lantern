@@ -33,7 +33,7 @@ html {
 
 #sites {
   position: relative;
-  top: 240px;
+  top: 200px;
   text-align: left;
   opacity: 0.0;
   -webkit-transition: opacity 0.1s linear;
@@ -70,17 +70,18 @@ html {
   position: absolute;
   width: 100%;
   height: 200px;
-  padding-top: 30px;
+  padding-top: 10px;
 
   color:rgb(82,82,82);
   font-family: LBL;
   font-size: 14px;
+  font-weight: 600;
   line-height: 36px;
   text-align: center;
 }
 
 #logo {
-  width: 100px;
+  width: 75px;
 }
 
 @font-face{

@@ -1,12 +1,20 @@
 <tabset justified="true" type="pills">
   <tab heading="">
-    <div ng-repeat="feed in entries" class="item">
-    <div ng-include src="'partials/feed.html'"></div>
+    <div ng-controller="FeedCtrl">
+      <div ng-repeat="feed in entries">
+        <a class="item" target="_blank" href="{{feed.link}}" ng-class="{active: activeItem == $index}">
+          <div ng-include src="'partials/feed.html'" ng-click="setActive($index)"></div>
+        </a>
+      </div>
     </div>
   </tab>
   <tab ng-repeat="feeds in allFeeds" heading="{{feeds.title}}">
-    <div ng-repeat="feed in feeds.entries" class="item">
-      <div ng-include src="'partials/feed.html'" ng-init="feed=entries[feed]"></div>
+    <div ng-controller="FeedCtrl">
+      <div ng-repeat="feed in feeds.entries">
+        <a class="item" target="_blank" href="{{feed.link}}" ng-class="{active: activeItem == $index}">
+          <div ng-include src="'partials/feed.html'" ng-init="feed=entries[feed]"  ng-click="setActive($index)"></div>
+        </a>
+      </div>
     </div>
   </tab>
 </tabset>

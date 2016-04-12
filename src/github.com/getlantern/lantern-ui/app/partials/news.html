@@ -1,6 +1,6 @@
 <div id="news" ng-controller="NewsfeedCtrl" ng-show="!showMobileAd && showNews">
 <feed id="latest-feed" count="10"
-      url="http://lantern-everfeed-1.s3.amazonaws.com/latest.json"
+      url="http://lantern-everfeed-1.s3.amazonaws.com/en_US/feed.json"
       template-url="partials/feeds.html"
       on-feeds-loaded="showNewsfeed()"
       on-error="hideNewsfeed()"/>
