@@ -27,7 +27,7 @@ var (
 // flagsAsMap returns a map of all flags that were provided at runtime
 func flagsAsMap() map[string]interface{} {
 	flags := make(map[string]interface{})
-	flag.Visit(func(f *flag.Flag) {
+	flag.VisitAll(func(f *flag.Flag) {
 		flags[f.Name] = f.Value.(flag.Getter).Get()
 	})
 	// Some properties should always be included

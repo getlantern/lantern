@@ -8,7 +8,7 @@
 // src/github.com/getlantern/flashlight/icons/64on.ico
 // DO NOT EDIT!
 
-package main
+package icons
 
 import (
 	"fmt"

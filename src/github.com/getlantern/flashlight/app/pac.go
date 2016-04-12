@@ -1,4 +1,4 @@
-package main
+package app
 
 import (
 	"fmt"
@@ -17,6 +17,7 @@ import (
 	"github.com/getlantern/pac"
 
 	"github.com/getlantern/flashlight/client"
+	"github.com/getlantern/flashlight/icons"
 	"github.com/getlantern/flashlight/ui"
 )
 
@@ -52,7 +53,7 @@ func setUpPacTool() error {
 		// We have to use a short filepath here because Cocoa won't display the
 		// icon if the path is too long.
 		iconFile := filepath.Join("/tmp", "escalatelantern.ico")
-		icon, err := Asset("icons/32on.ico")
+		icon, err := icons.Asset("icons/32on.ico")
 		if err != nil {
 			return fmt.Errorf("Unable to load escalation prompt icon: %v", err)
 		} else {
