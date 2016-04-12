@@ -50,7 +50,7 @@
 			android:layout_below="@id/powerLantern"
 			android:layout_width="match_parent"
 			android:layout_height="48dp"
-			android:layout_marginTop="-80dp"
+			android:layout_marginTop="-95dp"
 			app:stl_indicatorAlwaysInCenter="false"
 			app:stl_indicatorWithoutPadding="false"
 			app:stl_indicatorInFront="false"

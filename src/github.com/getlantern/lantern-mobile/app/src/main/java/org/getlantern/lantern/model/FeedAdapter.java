@@ -27,7 +27,7 @@ import java.lang.ref.WeakReference;
  
 import org.getlantern.lantern.R;
 
-import com.loopj.android.image.SmartImageView;
+import com.koushikdutta.ion.Ion;
 
 public class FeedAdapter extends BaseAdapter {
 
@@ -75,7 +75,8 @@ public class FeedAdapter extends BaseAdapter {
         TextView titleView = (TextView) view.findViewById(R.id.title);
 		TextView descView = (TextView)view.findViewById(R.id.description);
 		TextView urlView = (TextView)view.findViewById(R.id.link);
-        SmartImageView imageView = (SmartImageView) view.findViewById(R.id.image);
+
+        ImageView imageView = (ImageView) view.findViewById(R.id.image);
 
 		FeedItem item = mFeedItems.get(position);
         titleView.setText( item.Title);
@@ -83,7 +84,10 @@ public class FeedAdapter extends BaseAdapter {
 		urlView.setText(item.Url);
 
 		if (item.Image != "") {
-			imageView.setImageUrl(item.Image);
+			Ion.with(mContext)
+			.load(item.Image)
+			.withBitmap()
+			.intoImageView(imageView);
 		}
 		//loadBitmap(item.Image, imageView);
         return view;
