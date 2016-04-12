@@ -63,7 +63,7 @@
   height: 122px;
   position: relative;
   overflow: hidden;
-  border-bottom: 0.5px #cccccc solid;
+  border-bottom: 1px #cccccc solid;
 }
 
 #news .item:hover {
