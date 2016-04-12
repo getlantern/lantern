@@ -261,5 +261,5 @@ func assertContent(t *testing.T, resp *http.Response, msg string, reason string)
 	b, err := ioutil.ReadAll(resp.Body)
 	assert.NoError(t, err, reason)
 	assert.Equal(t, msg, string(b), reason)
-	resp.Body.Close()
+	_ = resp.Body.Close()
 }

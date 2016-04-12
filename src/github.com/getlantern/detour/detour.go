@@ -23,7 +23,7 @@ var (
 )
 
 func init() {
-	blockDetector.Store(detectorByCountry(""))
+	SetCountry("")
 }
 
 func SetCountry(country string) {
@@ -32,13 +32,20 @@ func SetCountry(country string) {
 
 type dialFunc func(network, addr string) (net.Conn, error)
 
-type Timeout struct{}
+type ErrTimeout struct{}
 
-func (t Timeout) Timeout() bool   { return true }
-func (t Timeout) Temporary() bool { return true }
-func (t Timeout) Error() string   { return "dial timeout" }
+func (t ErrTimeout) Timeout() bool   { return true }
+func (t ErrTimeout) Temporary() bool { return true }
+func (t ErrTimeout) Error() string   { return "dial timeout" }
+
+type ErrClosed struct{}
+
+func (t ErrClosed) Timeout() bool   { return false }
+func (t ErrClosed) Temporary() bool { return false }
+func (t ErrClosed) Error() string   { return "connection closed" }
 
 type conn struct {
+	addr          string
 	direct        *directConn
 	detour        *detourConn
 	expectedConns int
@@ -59,14 +66,19 @@ func notBlocked(addr string) bool {
 // Dialer returns a function with same signature as net.Dialer.Dial().
 func Dialer(d dialFunc) dialFunc {
 	return func(network, addr string) (net.Conn, error) {
-		c := &conn{isHTTP: true}
-		c.detourAllowed = eventual.NewValue()
-		c.direct = newDirectConn(network, addr, c.detourAllowed)
-		c.detour = newDetourConn(network, addr, d)
-		c.closed = make(chan struct{})
+		// TODO: provide meaningful isHTTP
+		detourAllowed := eventual.NewValue()
+		c := &conn{
+			addr:          addr,
+			isHTTP:        true,
+			detourAllowed: detourAllowed,
+			direct:        newDirectConn(network, addr, detourAllowed),
+			detour:        newDetourConn(network, addr, d),
+			closed:        make(chan struct{}),
+			expectedConns: 1,
+		}
 		var chDialDirect = make(chan error)
 		var chDialDetour = make(chan error)
-		c.expectedConns = 1
 		if knownToBeBlocked(addr) {
 			chDialDetour = c.detour.Dial(network, addr)
 		} else {
@@ -80,37 +92,29 @@ func Dialer(d dialFunc) dialFunc {
 			}
 		}
 		t := time.NewTimer(DialTimeout)
-		var err error
+		var lastError error
 		for i := 0; i < c.expectedConns; i++ {
 			select {
-			case err = <-chDialDirect:
-				if err == nil {
+			case lastError = <-chDialDirect:
+				if lastError == nil {
 					return c, nil
 				}
-				if i == c.expectedConns-1 {
-					// return the last error
-					return nil, err
-				}
-			case err = <-chDialDetour:
-				if err == nil {
+			case lastError = <-chDialDetour:
+				if lastError == nil {
 					return c, nil
-				}
-				if i == c.expectedConns-1 {
-					// return the last error
-					return nil, err
 				}
 			case <-t.C:
-				return nil, Timeout{}
+				return nil, ErrTimeout{}
 			}
 		}
-		return c, nil
+		return nil, lastError
 	}
 }
 
 func (c *conn) Read(b []byte) (int, error) {
 	allowed, valid := c.detourAllowed.Get(0)
 	if valid && !allowed.(bool) {
-		log.Tracef("detour is not allowed to %s, read directly", c.direct.addr)
+		log.Tracef("detour is not allowed to %s, read directly", c.addr)
 		result := <-c.direct.Read(b)
 		return result.i, result.err
 	}
@@ -118,23 +122,24 @@ func (c *conn) Read(b []byte) (int, error) {
 	bufDetour := make([]byte, len(b))
 	chDirect := c.direct.Read(bufDirect)
 	chDetour := c.detour.Read(bufDetour)
+	var result ioResult
 	for i := 0; i < c.expectedConns; i++ {
 		select {
-		case result := <-chDirect:
-			if result.err == nil || i == c.expectedConns-1 {
+		case result = <-chDirect:
+			if result.err == nil {
 				_ = copy(b, bufDirect[:result.i])
-				return result.i, result.err
+				return result.i, nil
 			}
 		case result := <-chDetour:
-			if result.err == nil || i == c.expectedConns-1 {
+			if result.err == nil {
 				_ = copy(b, bufDetour[:result.i])
-				return result.i, result.err
+				return result.i, nil
 			}
 		case <-c.closed:
-			return 0, fmt.Errorf("Connection closed")
+			return 0, ErrClosed{}
 		}
 	}
-	panic("shoult not reach here")
+	return 0, result.err
 }
 
 func (c *conn) Write(b []byte) (int, error) {
@@ -144,7 +149,7 @@ func (c *conn) Write(b []byte) (int, error) {
 	}
 	allowed, valid := c.detourAllowed.Get(0)
 	if valid && !allowed.(bool) {
-		log.Tracef("detour is not allowed to %s, write directly", c.direct.addr)
+		log.Tracef("detour is not allowed to %s, write directly", c.addr)
 		result := <-c.direct.Write(b)
 		return result.i, result.err
 	}
@@ -154,28 +159,28 @@ func (c *conn) Write(b []byte) (int, error) {
 	case result := <-c.detour.Write(b):
 		return result.i, result.err
 	case <-c.closed:
-		return 0, fmt.Errorf("Connection closed")
+		return 0, ErrClosed{}
 	}
 }
 
 func (c *conn) Close() error {
 	close(c.closed)
 	c.detourAllowed.Stop()
-	c.direct.Close()
-	c.detour.Close()
+	_ = c.direct.Close()
+	_ = c.detour.Close()
 
-	log.Tracef("%s: Should detour? %v - Detourable? %v", c.direct.addr, c.direct.ShouldDetour(), c.detour.Detourable())
+	log.Tracef("%s: Should detour? %v - Detourable? %v", c.addr, c.direct.ShouldDetour(), c.detour.Detourable())
 	allowed, valid := c.detourAllowed.Get(0)
 	if valid && allowed.(bool) && !c.detour.Detourable() {
-		log.Tracef("Remove %s from blocked sites list", c.direct.addr)
-		RemoveFromWl(c.direct.addr)
+		log.Tracef("Remove %s from blocked sites list", c.addr)
+		RemoveFromWl(c.addr)
 	} else if c.direct.ShouldDetour() {
-		log.Tracef("Add %s to blocked sites list", c.direct.addr)
-		AddToWl(c.direct.addr, false)
+		log.Tracef("Add %s to blocked sites list", c.addr)
+		AddToWl(c.addr, false)
 	}
 	if !c.direct.ShouldDetour() {
 		select {
-		case DirectAddrCh <- c.direct.addr:
+		case DirectAddrCh <- c.addr:
 		default:
 		}
 	}
