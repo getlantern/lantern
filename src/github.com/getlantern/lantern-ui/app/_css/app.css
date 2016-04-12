@@ -7999,7 +7999,7 @@ body.giveMode #npending {
   text-align: center;
 
   position: relative;
-  top: 165px;
+  top: 125px;
   margin: 0 auto;
 }
 
@@ -8142,7 +8142,7 @@ input.fail:-ms-input-placeholder {
   display: none;
 }
 
-@media (max-width: 750px), (max-height: 700px) {
+@media (max-width: 750px), (max-height: 620px) {
   #mobile-ad {
     width: 500px;
     height: 390px;
@@ -8152,14 +8152,14 @@ input.fail:-ms-input-placeholder {
   }
 }
 
-@media (max-width: 600px), (max-height: 645px) {
+@media (max-width: 600px), (max-height: 565px) {
   #mobile-ad {
     width: 375px;
     height: 325px;
   }
 }
 
-@media (max-width: 400px), (max-height: 540px) {
+@media (max-width: 400px), (max-height: 500px) {
   .message {
     font-size: 14px;
   }
