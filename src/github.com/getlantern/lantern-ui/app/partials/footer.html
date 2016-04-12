@@ -40,8 +40,11 @@
   </div>
 
   <div id="try-mobile">
-    <a ng-click="setShowMobileAd()">
+    <a ng-click="setShowMobileAd()" ng-show="!showMobileAd">
       {{ 'TRY_LANTERN_FOR_ANDROID' | translate }}
+    </a>
+    <a ng-click="hideMobileAd()" ng-show="showMobileAd">
+      {{ 'FEED_LINK' | translate }}
     </a>
   </div>
   <div id="global-nav" class="btn-group" dir="ltr">
