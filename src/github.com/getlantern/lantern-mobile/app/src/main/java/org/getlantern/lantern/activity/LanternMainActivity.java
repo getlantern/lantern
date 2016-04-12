@@ -19,35 +19,41 @@ import android.net.wifi.WifiManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.view.MenuItem;
 import android.view.KeyEvent;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v4.view.ViewPager;
+import android.support.design.widget.TabLayout;
 
 import org.getlantern.lantern.BuildConfig;
 import org.getlantern.lantern.vpn.Service;
-import org.getlantern.lantern.model.FeedAdapter;      
+import org.getlantern.lantern.fragment.FeedFragment;
 import org.getlantern.lantern.model.FeedItem;      
 import org.getlantern.lantern.model.UI;
 import org.getlantern.lantern.sdk.Utils;
 import org.getlantern.lantern.R;
 
-import com.squareup.moshi.JsonAdapter;
-import com.squareup.moshi.Moshi;
-import com.squareup.moshi.Types;
-
 import java.util.ArrayList; 
 import java.util.List;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.net.URL;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.io.Serializable;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.StringBuffer;
+
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+
+import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItemAdapter;
+import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItems;
+import com.ogaclejapan.smarttablayout.SmartTabLayout;
+
+
+import go.lantern.Lantern;
 
 public class LanternMainActivity extends AppCompatActivity implements Handler.Callback {
 
@@ -56,10 +62,8 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
     private final static int REQUEST_VPN = 7777;
     private SharedPreferences mPrefs = null;
     private BroadcastReceiver mReceiver;
-
-    private ListView mList;
-    private ArrayList<FeedItem> mFeedItems = new ArrayList<FeedItem>();
-    private FeedAdapter adapter;
+    private TabLayout tabLayout;
+    private ViewPager viewPager;
 
     private Context context;
     private UI LanternUI;
@@ -120,25 +124,10 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
             LanternUI.setVersionNum(appVersion);
             LanternUI.setupLanternSwitch();
 
-            mList = (ListView) findViewById(R.id.feed);
-            adapter = new FeedAdapter(this, mFeedItems);
-            mList.setAdapter(adapter);
-
-            new GetFeed(this).execute("https://s3.amazonaws.com/lantern-android/blah.txt");
+			new GetFeed(this).execute("");
 
         } catch (Exception e) {
             Log.d(TAG, "Got an exception " + e);
-        }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        // we check if mPrefs has been initialized before
-        // since onCreate and onResume are always both called
-        if (mPrefs != null) {
-            LanternUI.setBtnStatus();
         }
     }
 
@@ -182,36 +171,42 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
     private class GetFeed extends AsyncTask<String, Void, Void> {
 
         private LanternMainActivity activity;
+		private Map<String, FeedFragment> fragments;
 
         public GetFeed(LanternMainActivity activity) {
             this.activity = activity;
+			this.fragments = new HashMap<String, FeedFragment>();
         }
 
         @Override
         protected Void doInBackground(String... params) {
-            BufferedReader reader = null;
             try {
-                String urlParam = params[0];
-                Log.d(TAG, "Feed url is " + urlParam);
-                URL url = new URL(urlParam);
-                reader = new BufferedReader(new InputStreamReader(url.openStream()));
-                StringBuffer buffer = new StringBuffer();
-                int read;
-                char[] chars = new char[1024];
-                while ((read = reader.read(chars)) != -1)
-                    buffer.append(chars, 0, read); 
+				final FragmentPagerItems.Creator c = FragmentPagerItems.with(activity);
+                Lantern.PullFeed(new Lantern.FeedProvider.Stub() {
 
-                String json = buffer.toString();
-                Log.d(TAG, "Feed json is " + json);
+					public void Finish() {
 
-                Type rssList = Types.newParameterizedType(List.class, FeedItem.class);
+						runOnUiThread(new Runnable() {
+							public void run() {
+								FragmentPagerItemAdapter adapter = new FragmentPagerItemAdapter(
+										getSupportFragmentManager(), c.create());
 
-                Moshi moshi = new Moshi.Builder().build();
-                JsonAdapter<List<FeedItem>> jsonAdapter = moshi.adapter(rssList);
+								ViewPager viewPager = (ViewPager) activity.findViewById(R.id.viewpager);
+								viewPager.setAdapter(adapter);
 
-                for (FeedItem item : jsonAdapter.fromJson(json)) {
-                    mFeedItems.add(item);
-                }
+								SmartTabLayout viewPagerTab = (SmartTabLayout)activity.findViewById(R.id.viewpagertab);
+								viewPagerTab.setViewPager(viewPager);
+							}
+						});
+					}
+
+                    public void AddSource(String source) {
+						Bundle bundle = new Bundle();
+						bundle.putString("name", source);
+						c.add(source, FeedFragment.class, bundle);
+                    }
+                });
+
             } catch (Exception e) {
                 Log.v("Error Parsing Data", e + "");
             }
@@ -221,8 +216,7 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            adapter.notifyDataSetChanged();
-            mList.setAdapter(adapter);
+			//viewAdapter.notifyDataSetChanged();
         }
     }
 

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
+import android.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,14 +30,28 @@ public class FeedAdapter extends BaseAdapter {
 	private static final String TAG = "FeedAdapter";
 	private static final int IO_BUFFER_SIZE = 4 * 1024;
 
+	private Context mContext;
+	private ArrayList<FeedItem> mFeedItems;
 
-
-    private Context mContext;
-    private ArrayList<FeedItem> mFeedItems;
+	private LruCache<String, Bitmap> mMemoryCache;
 
     public FeedAdapter(Context context, ArrayList<FeedItem> feedItems) {
         mContext = context;
         mFeedItems = feedItems;
+
+		final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
+
+		// Use 1/8th of the available memory for this memory cache.
+		final int cacheSize = maxMemory / 8;
+
+		mMemoryCache = new LruCache<String, Bitmap>(cacheSize) {
+			@Override
+			protected int sizeOf(String key, Bitmap bitmap) {
+				// The cache size will be measured in kilobytes rather than
+				// number of items.
+				return bitmap.getByteCount() / 1024;
+			}
+		};
     }
 
 	@Override
@@ -54,11 +69,31 @@ public class FeedAdapter extends BaseAdapter {
     public Object getItem(int position) {
         return mFeedItems.get(position);
     }
+ 
 
-	public static Bitmap loadBitmap(String url) {
+	public void addBitmapToMemoryCache(String key, Bitmap bitmap) {
+		if (getBitmapFromMemCache(key) == null) {
+			if (bitmap != null) {
+				mMemoryCache.put(key, bitmap);
+			}
+		}
+	}
+
+	public Bitmap getBitmapFromMemCache(String key) {
+		return mMemoryCache.get(key);
+	}
+	
+
+	public void loadBitmap(String url, ImageView imgView) {
 		Bitmap bitmap = null;
 		InputStream in = null;
 		BufferedOutputStream out = null;
+
+		final Bitmap cached = getBitmapFromMemCache(url);
+		if (cached != null) {
+			imgView.setImageBitmap(cached);
+       		return;
+		}
 
 		try {
 			in = new BufferedInputStream(new URL(url).openStream(), IO_BUFFER_SIZE);
@@ -80,7 +115,8 @@ public class FeedAdapter extends BaseAdapter {
 			closeStream(out);
 		}
 
-		return bitmap;
+		addBitmapToMemoryCache(url, bitmap);
+		imgView.setImageBitmap(bitmap);
 	}
 
 	private static void copy(InputStream in, OutputStream out) throws IOException {
@@ -122,7 +158,12 @@ public class FeedAdapter extends BaseAdapter {
         titleView.setText( item.Title);
 		descView.setText(item.Description);
 		urlView.setText(item.Url);
-		imageView.setImageBitmap(loadBitmap(item.Image));
+
+		if (item.Image.equals("")) {
+       		item.Image = "http://www2.warwick.ac.uk/fac/soc/economics/apps/templates/external_article_placeholder.jpg";
+		}
+
+		loadBitmap(item.Image, imageView);
         return view;
     }        
 

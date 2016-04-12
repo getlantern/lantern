@@ -86,7 +86,10 @@ dependencies {
     compile(name:'android-sdk-debug', ext:'aar')
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile gplay
-    compile appCompat
+	compile appCompat
+	compile 'com.ogaclejapan.smarttablayout:library:1.6.0@aar'
+    compile 'com.ogaclejapan.smarttablayout:utils-v4:1.6.0@aar'
+    compile 'com.android.support:design:23.1.1'
     compile 'com.squareup.moshi:moshi:1.1.0'
     compile 'com.google.guava:guava:19.0'
     compile 'com.mandrillapp.wrapper.lutung:lutung:0.0.6'

@@ -1,5 +1,6 @@
 <android.support.v4.widget.DrawerLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -44,14 +45,45 @@
             android:textOff=""
             android:textOn="" />
 
-        <ListView xmlns:android="http://schemas.android.com/apk/res/android"
-            android:id="@+id/feed"
-            android:layout_weight="0.1"
-            android:layout_marginTop="-105dp"
-            android:layout_below="@+id/powerLantern"
-            android:layout_width="fill_parent"
-            android:layout_height="437.5dp"
-            />
+		<com.ogaclejapan.smarttablayout.SmartTabLayout
+			android:id="@+id/viewpagertab"
+			android:layout_below="@id/powerLantern"
+			android:layout_width="match_parent"
+			android:layout_height="48dp"
+			android:layout_marginTop="-80dp"
+			app:stl_indicatorAlwaysInCenter="false"
+			app:stl_indicatorWithoutPadding="false"
+			app:stl_indicatorInFront="false"
+			app:stl_indicatorInterpolation="smart"
+			app:stl_indicatorGravity="bottom"
+			app:stl_indicatorColor="#40C4FF"
+			app:stl_indicatorThickness="4dp"
+			app:stl_indicatorWidth="auto"
+			app:stl_indicatorCornerRadius="2dp"
+			app:stl_overlineColor="#4D000000"
+			app:stl_overlineThickness="0dp"
+			app:stl_underlineColor="@color/blue_color"
+			app:stl_underlineThickness="1dp"
+			app:stl_dividerColor="#4D000000"
+			app:stl_dividerThickness="1dp"
+			app:stl_defaultTabBackground="?attr/selectableItemBackground"
+			app:stl_defaultTabTextAllCaps="true"
+			app:stl_defaultTabTextColor="#FC000000"
+			app:stl_defaultTabTextSize="12sp"
+			app:stl_defaultTabTextHorizontalPadding="16dp"
+			app:stl_defaultTabTextMinWidth="0dp"
+			app:stl_distributeEvenly="false"
+			app:stl_clickable="true"
+			app:stl_titleOffset="24dp"
+			app:stl_drawDecorationAfterTab="false"
+			/>
+
+		<android.support.v4.view.ViewPager
+			android:id="@+id/viewpager"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:layout_below="@id/viewpagertab"
+			/>
     </RelativeLayout>
 
    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"

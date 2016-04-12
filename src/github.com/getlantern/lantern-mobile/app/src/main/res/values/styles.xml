@@ -20,4 +20,15 @@
         <item name="android:background">@drawable/desktop_graphic</item>
     </style>
 
+    <style name="MyCustomTabLayout" parent="Widget.Design.TabLayout">
+        <item name="tabTextAppearance">@style/MyCustomTabText</item>
+        <item name="tabSelectedTextColor">@color/blue_color</item>
+    </style>
+
+    <style name="MyCustomTabText" parent="TextAppearance.AppCompat.Button">
+        <item name="android:background">@color/accent_white</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/blue_color</item>
+    </style>
+
 </resources>
