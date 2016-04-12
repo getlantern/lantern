@@ -131,14 +131,15 @@ func TestClosing(t *testing.T) {
 	DelayBeforeDetour = 20 * time.Millisecond
 	mockURL, mock := newMockServer(directMsg)
 	mock.Msg(directMsg)
-	DirectAddrCh = make(chan string)
+	ch := make(chan string)
+	SetDirectAddrCh(ch)
 	{
 		if _, err := newClient(proxiedURL, 50*time.Millisecond).Get(mockURL); err != nil {
 			log.Debugf("Unable to send GET request to mock URL: %v", err)
 		}
 	}
 	u, _ := url.Parse(mockURL)
-	addr := <-DirectAddrCh
+	addr := <-ch
 	assert.Equal(t, u.Host, addr, "should get notified when a direct connetion has no error while closing")
 }
 
@@ -223,7 +224,7 @@ func TestConcurrency(t *testing.T) {
 		Proxy:             http.ProxyURL(proxyURL),
 	}}
 	var wg sync.WaitGroup
-	for i := 0; i < 5000; i++ {
+	for i := 0; i < 1000; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()

@@ -14,16 +14,20 @@ import (
 var (
 	DelayBeforeDetour = 500 * time.Millisecond
 	DialTimeout       = 30 * time.Second
-	DirectAddrCh      chan string
 )
 
 var (
 	log           = golog.LoggerFor("detour")
+	directAddrCh  atomic.Value
 	blockDetector atomic.Value
 )
 
 func init() {
 	SetCountry("")
+}
+
+func SetDirectAddrCh(ch chan string) {
+	directAddrCh.Store(ch)
 }
 
 func SetCountry(country string) {
@@ -153,10 +157,13 @@ func (c *conn) Write(b []byte) (int, error) {
 		result := <-c.direct.Write(b)
 		return result.i, result.err
 	}
+
+	buf := make([]byte, len(b))
+	copy(buf, b)
 	select {
-	case result := <-c.direct.Write(b):
+	case result := <-c.direct.Write(buf):
 		return result.i, result.err
-	case result := <-c.detour.Write(b):
+	case result := <-c.detour.Write(buf):
 		return result.i, result.err
 	case <-c.closed:
 		return 0, ErrClosed{}
@@ -179,9 +186,11 @@ func (c *conn) Close() error {
 		AddToWl(c.addr, false)
 	}
 	if !c.direct.ShouldDetour() {
-		select {
-		case DirectAddrCh <- c.addr:
-		default:
+		if ch := directAddrCh.Load(); ch != nil {
+			select {
+			case ch.(chan string) <- c.addr:
+			default:
+			}
 		}
 	}
 	return nil
