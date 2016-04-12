@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/context"
 
 	"github.com/getlantern/golog"
+	"github.com/getlantern/tlsdefaults"
 
 	"github.com/getlantern/http-proxy/listeners"
 )
@@ -19,13 +20,9 @@ var (
 type listenerGenerator func(net.Listener) net.Listener
 
 type Server struct {
-	Addr net.Addr
-	Tls  bool
-
 	handler            http.Handler
 	httpServer         http.Server
 	listenerGenerators []listenerGenerator
-	listeners          []*net.Listener
 }
 
 func NewServer(handler http.Handler) *Server {
@@ -42,27 +39,25 @@ func (s *Server) AddListenerWrappers(listenerGens ...listenerGenerator) {
 	}
 }
 
-func (s *Server) ServeHTTP(addr string, readyCb func(addr string)) error {
+func (s *Server) ListenAndServeHTTP(addr string, readyCb func(addr string)) error {
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
 	}
-	s.Tls = false
 	log.Debugf("Listen http on %s", addr)
-	return s.doServe(listener, readyCb)
+	return s.Serve(listener, readyCb)
 }
 
-func (s *Server) ServeHTTPS(addr, keyfile, certfile string, readyCb func(addr string)) error {
-	listener, err := listenTLS(addr, keyfile, certfile)
+func (s *Server) ListenAndServeHTTPS(addr, keyfile, certfile string, readyCb func(addr string)) error {
+	listener, err := tlsdefaults.Listen(addr, keyfile, certfile)
 	if err != nil {
 		return err
 	}
-	s.Tls = true
 	log.Debugf("Listen https on %s", addr)
-	return s.doServe(listener, readyCb)
+	return s.Serve(listener, readyCb)
 }
 
-func (s *Server) doServe(listener net.Listener, readyCb func(addr string)) error {
+func (s *Server) Serve(listener net.Listener, readyCb func(addr string)) error {
 	cb := NewConnBag()
 
 	proxy := http.HandlerFunc(
@@ -96,23 +91,15 @@ func (s *Server) doServe(listener net.Listener, readyCb func(addr string)) error
 		ErrorLog: log.AsStdLogger(),
 	}
 
-	firstListener := listeners.NewDefaultListener(listener)
-	firstListenerPtr := &firstListener
-	s.listeners = []*net.Listener{firstListenerPtr}
+	l := listeners.NewDefaultListener(listener)
 
-	for _, li := range s.listenerGenerators {
-		newlis := li(*firstListenerPtr)
-		s.listeners = append(s.listeners, &newlis)
-		firstListenerPtr = &newlis
+	for _, wrap := range s.listenerGenerators {
+		l = wrap(l)
 	}
-
-	s.Addr = (*firstListenerPtr).Addr()
-	addrStr := s.Addr.String()
-	s.httpServer.Addr = addrStr
 
 	if readyCb != nil {
-		readyCb(addrStr)
+		readyCb(l.Addr().String())
 	}
 
-	return s.httpServer.Serve(*firstListenerPtr)
+	return s.httpServer.Serve(l)
 }

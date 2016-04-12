@@ -82,9 +82,9 @@ func main() {
 
 	// Serve HTTP/S
 	if *https {
-		err = srv.ServeHTTPS(*addr, *keyfile, *certfile, nil)
+		err = srv.ListenAndServeHTTPS(*addr, *keyfile, *certfile, nil)
 	} else {
-		err = srv.ServeHTTP(*addr, nil)
+		err = srv.ListenAndServeHTTP(*addr, nil)
 	}
 	if err != nil {
 		log.Errorf("Error serving: %v", err)
