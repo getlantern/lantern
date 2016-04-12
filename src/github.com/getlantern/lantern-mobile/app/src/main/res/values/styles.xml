@@ -20,6 +20,16 @@
         <item name="android:background">@drawable/desktop_graphic</item>
     </style>
 
+
+    <style name="FinestWebViewTheme.Light" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/webview_header</item>
+        <item name="colorPrimaryDark">@color/black</item>
+        <item name="colorAccent">@color/black</item>
+        <item name="android:textColorPrimary">@color/accent_white</item>
+        <item name="android:textColorSecondary">@color/silver</item>
+        <item name="windowActionModeOverlay">true</item>
+    </style>
+
     <style name="MyCustomTabLayout" parent="Widget.Design.TabLayout">
         <item name="tabTextAppearance">@style/MyCustomTabText</item>
         <item name="tabSelectedTextColor">@color/blue_color</item>

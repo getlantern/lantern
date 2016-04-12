@@ -3,7 +3,7 @@
   <component name="FacetManager">
     <facet type="android-gradle" name="Android-Gradle">
       <configuration>
-        <option name="GRADLE_PROJECT_PATH" value=":app" />
+        <option name="GRADLE_PROJECT_PATH" value=":" />
       </configuration>
     </facet>
     <facet type="android" name="Android">
@@ -14,10 +14,6 @@
         <option name="COMPILE_JAVA_TASK_NAME" value="compileDebugSources" />
         <option name="ASSEMBLE_TEST_TASK_NAME" value="assembleDebugAndroidTest" />
         <option name="COMPILE_JAVA_TEST_TASK_NAME" value="compileDebugAndroidTestSources" />
-        <afterSyncTasks>
-          <task>generateDebugAndroidTestSources</task>
-          <task>generateDebugSources</task>
-        </afterSyncTasks>
         <option name="ALLOW_USER_CONFIGURATION" value="false" />
         <option name="MANIFEST_FILE_RELATIVE_PATH" value="/src/main/AndroidManifest.xml" />
         <option name="RES_FOLDER_RELATIVE_PATH" value="/src/main/res" />

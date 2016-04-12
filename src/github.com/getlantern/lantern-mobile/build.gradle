@@ -2,11 +2,12 @@
 
 buildscript {
     repositories {
+        mavenCentral()
         jcenter()
         maven { url 'https://maven.fabric.io/public' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:1.5.0'
+        classpath 'com.android.tools.build:gradle:2.0.0-rc3'
         classpath 'io.fabric.tools:gradle:1.+'
 
         // NOTE: Do not place your application dependencies here; they belong
@@ -33,7 +34,7 @@ ext {
     deployScript = new File(lanternDir, 'deploy.gradle')
 
     libs = fileTree(dir: 'libs', include: ['*.jar'])
-    appCompat = 'com.android.support:appcompat-v7:23.0.1'
+    appCompat = 'com.android.support:appcompat-v7:23.2.1'
     gplay   = 'com.google.android.gms:play-services-analytics:7.0.0'
     yaml    = 'org.yaml:snakeyaml:1.10'
     mavenAntTasks = 'org.apache.maven:maven-ant-tasks:2.1.3'
@@ -41,6 +42,7 @@ ext {
 
 allprojects {
     repositories {
+        mavenCentral()
         jcenter()
     }
 }

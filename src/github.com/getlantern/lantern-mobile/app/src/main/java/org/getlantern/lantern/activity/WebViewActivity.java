@@ -24,6 +24,8 @@ import android.view.ViewGroup;
 
 import org.getlantern.lantern.R;
 
+import com.thefinestartist.finestwebview.FinestWebView;
+
 public class WebViewActivity extends Activity {
 
     private WebView webView;
@@ -35,9 +37,10 @@ public class WebViewActivity extends Activity {
         Intent intent = getIntent();
         String url = intent.getStringExtra("url"); 
 
-        webView = (WebView) findViewById(R.id.webview);
+        new FinestWebView.Builder(this).show(url);
+        /*webView = (WebView) findViewById(R.id.webview);
         webView.getSettings().setJavaScriptEnabled(true);
-        webView.loadUrl(url);
+        webView.loadUrl(url);*/
     }
 }
  

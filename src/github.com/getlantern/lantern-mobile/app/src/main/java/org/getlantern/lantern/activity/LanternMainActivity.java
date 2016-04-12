@@ -46,6 +46,8 @@ import java.io.InputStreamReader;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
 
+import com.thefinestartist.finestwebview.FinestWebView;
+
 import go.lantern.Lantern;
 
 public class LanternMainActivity extends AppCompatActivity implements Handler.Callback {
@@ -189,9 +191,7 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         TextView url = (TextView)view.findViewById(R.id.link);
         Log.d(TAG, "Feed item clicked: " + url.getText());
 
-        Intent i = new Intent(this, WebViewActivity.class);
-        i.putExtra("url", url.getText());
-        startActivity(i);
+        new FinestWebView.Builder(this).show(url.getText().toString());
     }
 
     public void sendDesktopVersion(View view) {

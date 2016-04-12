@@ -8,13 +8,13 @@ import android.util.Log;
 import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItemAdapter;
 import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItems;
 import com.ogaclejapan.smarttablayout.SmartTabLayout;
- 
+
 import org.getlantern.lantern.activity.LanternMainActivity;
 import org.getlantern.lantern.fragment.FeedFragment;
 import org.getlantern.lantern.R;
 
 import go.lantern.Lantern;
- 
+
 public class GetFeed extends AsyncTask<String, Void, Void> {
     private static final String TAG = "GetFeed";
 
@@ -31,7 +31,6 @@ public class GetFeed extends AsyncTask<String, Void, Void> {
             Lantern.PullFeed(new Lantern.FeedProvider.Stub() {
 
                 public void Finish() {
-
                     activity.runOnUiThread(new Runnable() {
                         public void run() {
                             FragmentPagerItemAdapter adapter = new FragmentPagerItemAdapter(
