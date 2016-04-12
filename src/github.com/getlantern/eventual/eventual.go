@@ -30,11 +30,12 @@ type Value interface {
 type Getter func(time.Duration) (interface{}, bool)
 
 type value struct {
-	val      atomic.Value
-	wg       sync.WaitGroup
-	updates  chan interface{}
-	gotFirst int32
-	stopped  int32
+	val       atomic.Value
+	wg        sync.WaitGroup
+	muUpdates sync.RWMutex
+	updates   chan interface{}
+	gotFirst  int32
+	stopped   int32
 }
 
 // NewValue creates a new Value.
@@ -57,7 +58,9 @@ func DefaultGetter(val interface{}) Getter {
 func (v *value) Set(val interface{}) {
 	// Prevent sending on closed channel
 	if atomic.LoadInt32(&v.stopped) == FALSE {
+		v.muUpdates.RLock()
 		v.updates <- val
+		v.muUpdates.RUnlock()
 	}
 }
 
@@ -79,7 +82,9 @@ func (v *value) processUpdates() {
 func (v *value) Stop() {
 	// Prevent closing multiple times
 	if atomic.CompareAndSwapInt32(&v.stopped, FALSE, TRUE) {
+		v.muUpdates.Lock()
 		close(v.updates)
+		v.muUpdates.Unlock()
 	}
 }
 
