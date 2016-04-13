@@ -21,21 +21,21 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
- 
+
 import java.net.URL;
 import java.lang.ref.WeakReference;
- 
+
 import org.getlantern.lantern.R;
 
 import com.koushikdutta.ion.Ion;
 
 public class FeedAdapter extends BaseAdapter {
 
-	private static final String TAG = "FeedAdapter";
-	private static final int IO_BUFFER_SIZE = 4 * 1024;
+    private static final String TAG = "FeedAdapter";
+    private static final int IO_BUFFER_SIZE = 4 * 1024;
 
-	private Context mContext;
-	private ArrayList<FeedItem> mFeedItems;
+    private Context mContext;
+    private ArrayList<FeedItem> mFeedItems;
 
 
     public FeedAdapter(Context context, ArrayList<FeedItem> feedItems) {
@@ -43,17 +43,17 @@ public class FeedAdapter extends BaseAdapter {
         mFeedItems = feedItems;
     }
 
-	@Override
-	public long getItemId(int position) {
-		return 0;
-	}
+    @Override
+    public long getItemId(int position) {
+        return 0;
+    }
 
 
     @Override
     public int getCount() {
         return mFeedItems.size();
     }
- 
+
     @Override
     public Object getItem(int position) {
         return mFeedItems.get(position);
@@ -73,23 +73,23 @@ public class FeedAdapter extends BaseAdapter {
         }
 
         TextView titleView = (TextView) view.findViewById(R.id.title);
-		TextView descView = (TextView)view.findViewById(R.id.description);
-		TextView urlView = (TextView)view.findViewById(R.id.link);
+        TextView descView = (TextView)view.findViewById(R.id.description);
+        TextView urlView = (TextView)view.findViewById(R.id.link);
 
         ImageView imageView = (ImageView) view.findViewById(R.id.image);
 
-		FeedItem item = mFeedItems.get(position);
+        FeedItem item = mFeedItems.get(position);
         titleView.setText( item.Title);
-		descView.setText(item.Description);
-		urlView.setText(item.Url);
+        descView.setText(item.Description);
+        urlView.setText(item.Url);
 
-		if (item.Image != "") {
-			Ion.with(mContext)
-			.load(item.Image)
-			.withBitmap()
-			.intoImageView(imageView);
-		}
-		//loadBitmap(item.Image, imageView);
+        if (item.Image != "") {
+            Ion.with(mContext)
+                .load(item.Image)
+                .withBitmap()
+                .intoImageView(imageView);
+        }
+        //loadBitmap(item.Image, imageView);
         return view;
     }        
 }
