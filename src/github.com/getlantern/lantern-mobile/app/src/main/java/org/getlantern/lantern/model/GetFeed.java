@@ -1,17 +1,9 @@
 package org.getlantern.lantern.model;
 
 import android.os.AsyncTask;
-import android.os.Bundle;
-import android.support.v4.view.ViewPager;
 import android.util.Log;
-import android.view.View;
-
-import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItemAdapter;
-import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItems;
-import com.ogaclejapan.smarttablayout.SmartTabLayout;
 
 import org.getlantern.lantern.activity.LanternMainActivity;
-import org.getlantern.lantern.R;
 
 import java.util.ArrayList; 
 import  java.util.Locale;
