@@ -37,7 +37,6 @@ public class GetFeed extends AsyncTask<String, Void, ArrayList<String>> {
 			Log.d(TAG, "Locale is " + locale + " proxy addr is " + proxyAddr);
 
 			Lantern.PullFeed(locale, proxyAddr, new Lantern.FeedProvider.Stub() {
-
 				public void AddSource(String source) {
 					sources.add(source);
 				}
@@ -54,8 +53,7 @@ public class GetFeed extends AsyncTask<String, Void, ArrayList<String>> {
 	@Override
 	protected void onPostExecute(ArrayList<String> sources) {
 		super.onPostExecute(sources);
-
-		activity.updateTabs(sources);
+		activity.setupFeed(sources);
 	}
 }   
 
