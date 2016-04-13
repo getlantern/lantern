@@ -4,6 +4,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
+import android.view.View;
 
 import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItemAdapter;
 import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItems;
@@ -69,6 +70,10 @@ public class GetFeed extends AsyncTask<String, Void, Void> {
     @Override
     protected void onPostExecute(Void aVoid) {
         super.onPostExecute(aVoid);
+        SmartTabLayout viewPagerTab = (SmartTabLayout)activity.findViewById(R.id.viewpagertab);
+        View tab = viewPagerTab.getTabAt(0);
+        tab.setSelected(true);
+
     }
 }   
 

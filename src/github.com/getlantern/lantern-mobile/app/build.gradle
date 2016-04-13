@@ -3,7 +3,6 @@ apply plugin: 'io.fabric'
 
 android {
 
-
     packagingOptions { 
         exclude 'META-INF/LICENSE.txt' 
         exclude 'META-INF/NOTICE.txt' 
@@ -93,7 +92,6 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile gplay
     compile 'com.android.support:support-v4:23.2.1'
-    compile 'com.android.support:support-annotations:23.2.1'
     compile 'com.android.support:appcompat-v7:23.2.1'
     compile 'com.android.support:design:23.2.1'
 
@@ -101,9 +99,7 @@ dependencies {
 	compile 'com.koushikdutta.ion:ion:2.+'
 	compile 'com.ogaclejapan.smarttablayout:library:1.6.0@aar'
     compile 'com.ogaclejapan.smarttablayout:utils-v4:1.6.0@aar'
-    compile 'com.google.guava:guava:19.0'
     compile 'com.mandrillapp.wrapper.lutung:lutung:0.0.6'
-    compile 'com.github.tony19:timber-loggly:1.0.1'
     compile('com.crashlytics.sdk.android:crashlytics:2.5.3@aar') {
         transitive = true
     }
