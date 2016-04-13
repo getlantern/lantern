@@ -119,7 +119,7 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
             LanternUI.setVersionNum(appVersion);
             LanternUI.setupLanternSwitch();
 
-            getFeed();
+            new GetFeed(this, startLocalProxy()).execute("");
 
         } catch (Exception e) {
             Log.d(TAG, "Got an exception " + e);
@@ -127,21 +127,26 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
     }
 
     @Override
-    public void onResume() {
+    protected void onResume() {
         super.onResume();
+
+        //  we check if mPrefs has been initialized before
+        // since onCreate and onResume are always both called
+        if (mPrefs != null) {
+            LanternUI.setBtnStatus();
+        }
     }
 
-    private void getFeed() {
+    private String startLocalProxy() {
         try {
-            // Any time that we resume an activity, make sure that Lantern is running so that our
-            // requests are proxied.
+
             int startTimeoutMillis = 60000;
             String analyticsTrackingID = ""; // don't track analytics since those are already being tracked elsewhere
             StartResult result = Lantern.enable(getApplicationContext(), startTimeoutMillis, analyticsTrackingID);
-            new GetFeed(this, result.getHTTPAddr()).execute("");
-        } catch (LanternNotRunningException lnre) {
+            return result.getHTTPAddr();
+        }  catch (LanternNotRunningException lnre) {
             throw new RuntimeException("Lantern failed to start: " + lnre.getMessage(), lnre);
-        }
+        }  
     }
 
     // override onKeyDown and onBackPressed default 
