@@ -40,16 +40,17 @@ var (
 )
 
 type Config struct {
-	configDir       string
-	Version         int
-	CloudConfig     string
-	CloudConfigCA   string
-	CpuProfile      string
-	MemProfile      string
-	UpdateServerURL string
-	Client          *client.ClientConfig
-	ProxiedSites    *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
-	TrustedCAs      []*CA
+	configDir          string
+	Version            int
+	CloudConfig        string
+	CloudConfigCA      string
+	FrontedCloudConfig string
+	CpuProfile         string
+	MemProfile         string
+	UpdateServerURL    string
+	Client             *client.ClientConfig
+	ProxiedSites       *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
+	TrustedCAs         []*CA
 }
 
 // Fetcher is an interface for fetching config updates.
@@ -282,6 +283,10 @@ func (cfg *Config) ApplyDefaults() {
 
 	if cfg.CloudConfig == "" {
 		cfg.CloudConfig = chainedCloudConfigURL
+	}
+
+	if cfg.FrontedCloudConfig == "" {
+		cfg.FrontedCloudConfig = frontedCloudConfigURL
 	}
 
 	if cfg.Client == nil {
