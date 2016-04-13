@@ -1,7 +1,6 @@
 package client
 
 import (
-	"crypto/tls"
 	"fmt"
 	"net"
 	"net/http"
@@ -10,8 +9,6 @@ import (
 	"github.com/getlantern/balancer"
 	"github.com/getlantern/chained"
 	"github.com/getlantern/idletiming"
-	"github.com/getlantern/keyman"
-	"github.com/getlantern/tlsdialer"
 )
 
 // Close connections idle for a period to avoid dangling connections.
@@ -54,36 +51,13 @@ func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 		log.Debugf("Using pluggable transport %v for server at %v", s.PluggableTransport, s.Addr)
 	}
 
-	var dial func() (net.Conn, error)
-	if s.Cert == "" && !forceProxy {
-		log.Error("No Cert configured for chained server, will dial with plain tcp")
-		dial = func() (net.Conn, error) {
-			return netd.Dial("tcp", addr)
-		}
-	} else {
-		log.Trace("Cert configured for chained server, will dial with tls over tcp")
-		cert, err := keyman.LoadCertificateFromPEMBytes([]byte(s.Cert))
-		if err != nil {
-			return nil, fmt.Errorf("Unable to parse certificate: %s", err)
-		}
-		x509cert := cert.X509()
-		sessionCache := tls.NewLRUClientSessionCache(1000)
-		dial = func() (net.Conn, error) {
-			conn, err := tlsdialer.DialWithDialer(netd, "tcp", addr, false, &tls.Config{
-				ClientSessionCache: sessionCache,
-				InsecureSkipVerify: true,
-			})
-			if err != nil {
-				return nil, err
-			}
-			if !forceProxy && !conn.ConnectionState().PeerCertificates[0].Equal(x509cert) {
-				if errr := conn.Close(); err != nil {
-					log.Debugf("Error closing chained server connection: %s", errr)
-				}
-				return nil, fmt.Errorf("Server's certificate didn't match expected!")
-			}
-			return conn, err
-		}
+	dialFactory := pluggableTransports[s.PluggableTransport]
+	if dialFactory == nil {
+		return nil, fmt.Errorf("No dial factory defined for transport: %v", s.PluggableTransport)
+	}
+	dial, err := dialFactory(s, deviceID)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to construct dialFN: %v", err)
 	}
 
 	// Is this a trusted proxy that we could use for HTTP traffic?
@@ -115,7 +89,7 @@ func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 		Label:   label,
 		Trusted: s.Trusted,
 		DialFN: func(network, addr string) (net.Conn, error) {
-			conn, err := d(network, addr)
+			conn, err := d.Dial(network, addr)
 			if err != nil {
 				return nil, err
 			}
