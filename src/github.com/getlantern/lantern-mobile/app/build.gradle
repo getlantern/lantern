@@ -91,13 +91,13 @@ dependencies {
     compile(name:'android-sdk-debug', ext:'aar')
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile gplay
-    compile 'com.android.support:support-v4:23.2.1'
-    compile 'com.android.support:appcompat-v7:23.2.1'
-    compile 'com.android.support:design:23.2.1'
+    compile 'com.android.support:support-v4:${rootProject.ext.supportLibVersion}'
+    compile 'com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}'
+    compile 'com.android.support:design:${rootProject.ext.supportLibVersion}'
 
     compile 'com.thefinestartist:finestwebview:1.2.3'
-	compile 'com.koushikdutta.ion:ion:2.+'
-	compile 'com.ogaclejapan.smarttablayout:library:1.6.0@aar'
+    compile 'com.koushikdutta.ion:ion:2.+'
+    compile 'com.ogaclejapan.smarttablayout:library:1.6.0@aar'
     compile 'com.ogaclejapan.smarttablayout:utils-v4:1.6.0@aar'
     compile 'com.mandrillapp.wrapper.lutung:lutung:0.0.6'
     compile('com.crashlytics.sdk.android:crashlytics:2.5.3@aar') {

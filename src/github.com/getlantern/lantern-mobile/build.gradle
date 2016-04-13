@@ -9,9 +9,6 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:2.0.0-rc3'
         classpath 'io.fabric.tools:gradle:1.+'
-
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
     }
 }
 
@@ -20,8 +17,6 @@ ext {
     internalScript = new File(projectDir, 'internal.gradle')
 
     enableTestCodeCoverage = true
-    libflashlight = 'libflashlight+@aar'
-
 
     compileSdkVersion = 23
     targetSdkVersion = 23
@@ -34,8 +29,8 @@ ext {
     deployScript = new File(lanternDir, 'deploy.gradle')
 
     libs = fileTree(dir: 'libs', include: ['*.jar'])
-    appCompat = 'com.android.support:appcompat-v7:23.2.1'
     gplay   = 'com.google.android.gms:play-services-analytics:7.0.0'
+    supportLibVersion = '23.2.1'
     yaml    = 'org.yaml:snakeyaml:1.10'
     mavenAntTasks = 'org.apache.maven:maven-ant-tasks:2.1.3'
 }
