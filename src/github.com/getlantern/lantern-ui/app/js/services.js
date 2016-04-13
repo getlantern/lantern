@@ -210,6 +210,10 @@ angular.module('app.services', [])
       ga()('send', 'event', 'bookmark-' + name);
     };
 
+    var trackFeed = function(name) {
+      ga()('send', 'event', 'feed-' + name);
+    };
+
     var enableTracking = function() {
       console.log("enabling ga.")
       enabled = true;
@@ -229,7 +233,8 @@ angular.module('app.services', [])
       trackPageView: trackPageView,
       trackSocialLink: trackSocialLink,
       trackLink: trackLink,
-      trackBookmark: trackBookmark
+      trackBookmark: trackBookmark,
+      trackFeed: trackFeed
     };
   })
   .service('apiSrvc', function($http, API_URL_PREFIX) {

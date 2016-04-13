@@ -1,0 +1,8 @@
+<img class="feed-thumbnail" ng-if="feed.image" ng-src="{{feed.image}}" />
+<div class="content">
+  <span class="feed-source"></span>
+  <p class="feed-date">{{feed.source}}&nbsp;{{feed.publishedDate | date: mediumDate}}</p>
+  <h4 ng-bind-html="feed.title"></h4>
+  <p class="snippet" ng-bind-html="renderContent(feed)"></p>
+  <div class="fadeout"></div>
+</div>

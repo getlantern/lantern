@@ -1,0 +1,6 @@
+<div id="news" ng-controller="NewsfeedCtrl" ng-show="!showMobileAd && showNews">
+<feed id="latest-feed" url="{{feedUrl()}}" fallback-url="https://feeds.getiantem.org/en_US/feed.json"
+      template-url="partials/feeds.html"
+      on-feeds-loaded="showNewsfeed()"
+      on-error="hideNewsfeed()"/>
+</div>

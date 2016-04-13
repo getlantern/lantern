@@ -17,7 +17,8 @@ var app = angular.module('app', [
   'ui.showhide',
   'ui.validate',
   'ui.bootstrap',
-  'ui.bootstrap.tpls'
+  'ui.bootstrap.tpls',
+  'feeds'
   ])
   .directive('dynamic', function ($compile) {
     return {
@@ -31,24 +32,24 @@ var app = angular.module('app', [
       }
     };
   })
-  .config(function($tooltipProvider, $httpProvider,
+  .config(['$tooltipProvider', '$httpProvider',
+                   '$resourceProvider', '$translateProvider', 'DEFAULT_LANG', function($tooltipProvider, $httpProvider,
                    $resourceProvider, $translateProvider, DEFAULT_LANG) {
+      $translateProvider.useStaticFilesLoader({
+        prefix: './locale/',
+        suffix: '.json'
+      })
+      .uniformLanguageTag('java')
+      .determinePreferredLanguage()
+      .fallbackLanguage(DEFAULT_LANG);
 
-      $translateProvider.fallbackLanguage(DEFAULT_LANG).
-        uniformLanguageTag('java').
-        determinePreferredLanguage().
-        useStaticFilesLoader({
-          prefix: './locale/',
-          suffix: '.json'
-        });
-
-    $httpProvider.defaults.useXDomain = true;
-    delete $httpProvider.defaults.headers.common["X-Requested-With"];
+      $httpProvider.defaults.useXDomain = true;
+      delete $httpProvider.defaults.headers.common["X-Requested-With"];
     //$httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
     $tooltipProvider.options({
       appendToBody: true
     });
-  })
+  }])
   // angular-ui config
   .value('ui.config', {
     animate: 'ui-hide',
@@ -155,8 +156,10 @@ var app = angular.module('app', [
       return methods;
     }
   ])
-  .run(function ($filter, $log, $rootScope, $timeout, $window, $websocket,
-                 $translate, $http, apiSrvc, gaMgr, modelSrvc, ENUMS, EXTERNAL_URL, MODAL, CONTACT_FORM_MAXLEN) {
+  .run(['$filter', '$log', '$rootScope', '$timeout', '$window', '$websocket',
+       '$translate', '$http', 'apiSrvc', 'gaMgr', 'modelSrvc', 'ENUMS', 'EXTERNAL_URL', 'MODAL', 'CONTACT_FORM_MAXLEN',
+       function($filter, $log, $rootScope, $timeout, $window, $websocket,
+                $translate, $http, apiSrvc, gaMgr, modelSrvc, ENUMS, EXTERNAL_URL, MODAL, CONTACT_FORM_MAXLEN) {
 
     var CONNECTIVITY = ENUMS.CONNECTIVITY,
         MODE = ENUMS.MODE,
@@ -275,7 +278,7 @@ var app = angular.module('app', [
       }
     });
 
-  });
+  }]);
 
 app.filter('urlencode', function() {
     return window.encodeURIComponent;
