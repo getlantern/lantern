@@ -134,47 +134,6 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
 		}
 	}
 
-	public void changeHeaderColor(boolean useVpn) {
-
-		if (feedAdapter != null) {
-			int c;
-			if (useVpn) {
-				c = getResources().getColor(R.color.accent_white); 
-			} else {
-				c = getResources().getColor(R.color.black); 
-			}
-			int count = feedAdapter.getCount();
-			for (int i = 0; i < count; i++) {
-				TextView view = (TextView) viewPagerTab.getTabAt(i);
-				view.setTextColor(c);
-			}
-
-		}
-
-	}
-
-	public void updateTabs(final ArrayList<String> sources) {
-		final FragmentPagerItems.Creator c = FragmentPagerItems.with(this);
-
-		for (String source : sources) {
-			Bundle bundle = new Bundle();
-			bundle.putString("name", source);
-			c.add(source, FeedFragment.class, bundle);
-		}
-
-		feedAdapter = new FragmentPagerItemAdapter(
-				this.getSupportFragmentManager(), c.create());
-
-		ViewPager viewPager = (ViewPager)this.findViewById(R.id.viewpager);
-		viewPager.setAdapter(feedAdapter);
-
-		viewPagerTab = (SmartTabLayout)this.findViewById(R.id.viewpagertab);
-		viewPagerTab.setViewPager(viewPager);
-
-		View tab = viewPagerTab.getTabAt(0);
-		tab.setSelected(true);
-	}
-
 	@Override
 	protected void onResume() {
 		super.onResume();
@@ -280,6 +239,49 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
 			.show(url.getText().toString());
 	}
 
+	public void changeFeedHeaderColor(boolean useVpn) {
+
+		if (feedAdapter != null) {
+			int c;
+			if (useVpn) {
+				c = getResources().getColor(R.color.accent_white); 
+			} else {
+				c = getResources().getColor(R.color.black); 
+			}
+			int count = feedAdapter.getCount();
+			for (int i = 0; i < count; i++) {
+				TextView view = (TextView) viewPagerTab.getTabAt(i);
+				view.setTextColor(c);
+			}
+
+		}
+
+	}
+
+	public void setupFeed(final ArrayList<String> sources) {
+		final FragmentPagerItems.Creator c = FragmentPagerItems.with(this);
+
+		for (String source : sources) {
+			Bundle bundle = new Bundle();
+			bundle.putString("name", source);
+			c.add(source, FeedFragment.class, bundle);
+		}
+
+		feedAdapter = new FragmentPagerItemAdapter(
+				this.getSupportFragmentManager(), c.create());
+
+		ViewPager viewPager = (ViewPager)this.findViewById(R.id.viewpager);
+		viewPager.setAdapter(feedAdapter);
+
+		viewPagerTab = (SmartTabLayout)this.findViewById(R.id.viewpagertab);
+		viewPagerTab.setViewPager(viewPager);
+
+		View tab = viewPagerTab.getTabAt(0);
+		tab.setSelected(true);
+	}
+
+
+
 	public void sendDesktopVersion(View view) {
 		if (LanternUI != null) {
 			LanternUI.sendDesktopVersion(view);
@@ -302,7 +304,7 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
 				Lantern.disable(this);
 
 				LanternUI.toggleSwitch(true);
-				changeHeaderColor(true);
+				changeFeedHeaderColor(true);
 				sendIntentToService();
 			}    
 		} catch (Exception e) {
@@ -333,7 +335,7 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
 	public void stopLantern() {
 		Service.IsRunning = false;
 		Utils.clearPreferences(this);
-		changeHeaderColor(false);
+		changeFeedHeaderColor(false);
 	}
 
 	@Override
@@ -341,10 +343,9 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
 		// Pass the event to ActionBarDrawerToggle
 		// If it returns true, then it has handled
 		// the nav drawer indicator touch event
-		if (LanternUI != null &&
-				LanternUI.optionSelected(item)) {
+		if (LanternUI != null && LanternUI.optionSelected(item)) {
 			return true;
-				}
+		}
 
 		// Handle your other action bar items...
 		return super.onOptionsItemSelected(item);
@@ -376,9 +377,8 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
 				if (LanternUI.useVpn() && 
 						networkInfo.getType() == ConnectivityManager.TYPE_WIFI &&
 						!networkInfo.isConnected()) {
-
 					stopLantern();
-						}
+				}
 			}
 		}
 	}
