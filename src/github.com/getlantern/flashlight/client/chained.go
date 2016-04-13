@@ -25,42 +25,33 @@ var ForceChainedProxyAddr string
 // ForceAuthToken - If specified, auth token will be forced to this
 var ForceAuthToken string
 
-// ChainedServerInfo provides identity information for a chained server.
 type ChainedServerInfo struct {
 	// Addr: the host:port of the upstream proxy server
 	Addr string
 
-	// Pipelined: If true, requests to the chained server will be pipelined
-	Pipelined bool
-
 	// Cert: optional PEM encoded certificate for the server. If specified,
 	// server will be dialed using TLS over tcp. Otherwise, server will be
-	// dialed using plain tcp.
+	// dialed using plain tcp. For OBFS4 proxies, this is the Base64-encoded obfs4
+	// certificate.
 	Cert string
 
 	// AuthToken: the authtoken to present to the upstream server.
 	AuthToken string
 
-	// Weight: relative weight versus other servers (for round-robin)
-	Weight int
-
-	// QOS: relative quality of service offered. Should be >= 0, with higher
-	// values indicating higher QOS.
-	QOS int
-
 	// Trusted: Determines if a host can be trusted with plain HTTP traffic.
 	Trusted bool
+
+	// PluggableTransport: If specified, a pluggable transport will be used
+	PluggableTransport string
+
+	// PluggableTransportSettings: Settings for pluggable transport
+	PluggableTransportSettings map[string]string
 }
 
 // Dialer creates a *balancer.Dialer backed by a chained server.
 func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
-	netd := &net.Dialer{Timeout: chainedDialTimeout}
-
-	forceProxy := ForceChainedProxyAddr != ""
-	addr := s.Addr
-	if forceProxy {
-		log.Errorf("Forcing proxying to server at %v instead of configured server at %v", ForceChainedProxyAddr, s.Addr)
-		addr = ForceChainedProxyAddr
+	if s.PluggableTransport != "" {
+		log.Debugf("Using pluggable transport %v for server at %v", s.PluggableTransport, s.Addr)
 	}
 
 	var dial func() (net.Conn, error)
@@ -100,7 +91,7 @@ func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 	if s.Trusted {
 		trusted = "(trusted) "
 	}
-	label := fmt.Sprintf("%schained proxy at %s", trusted, addr)
+	label := fmt.Sprintf("%schained proxy at %s [%v]", trusted, s.Addr, s.PluggableTransport)
 
 	ccfg := chained.Config{
 		DialServer: dial,
@@ -126,14 +117,16 @@ func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 		DialFN: func(network, addr string) (net.Conn, error) {
 			conn, err := d(network, addr)
 			if err != nil {
-				return conn, err
+				return nil, err
 			}
+
 			conn = idletiming.Conn(conn, idleTimeout, func() {
 				log.Debugf("Proxy connection to %s via %s idle for %v, closing", addr, conn.RemoteAddr(), idleTimeout)
 				if err := conn.Close(); err != nil {
 					log.Debugf("Unable to close connection: %v", err)
 				}
 			})
+
 			return conn, nil
 		},
 		AuthToken: authToken,

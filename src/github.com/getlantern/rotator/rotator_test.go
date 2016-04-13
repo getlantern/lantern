@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/getlantern/testify/assert"
 )
 
 func TestRotatorInterfaceByDailyRotator(t *testing.T) {

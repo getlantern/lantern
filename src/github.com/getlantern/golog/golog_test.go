@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/getlantern/testify/assert"
 )
 
 var (

@@ -13,7 +13,7 @@ import (
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/keyman"
 	"github.com/mailgun/oxy/forward"
-	"github.com/stretchr/testify/assert"
+	"github.com/getlantern/testify/assert"
 )
 
 func TestChainedAndFronted(t *testing.T) {

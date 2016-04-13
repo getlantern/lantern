@@ -320,17 +320,17 @@ func (cfg *Config) applyClientDefaults() {
 		cfg.Client.MasqueradeSets[cloudfront] = cloudfrontMasquerades
 	}
 
+	// Always make sure we have a map of ChainedServers
+	if cfg.Client.ChainedServers == nil {
+		cfg.Client.ChainedServers = make(map[string]*client.ChainedServerInfo)
+	}
+
 	// Make sure we always have at least one server
 	if len(cfg.Client.ChainedServers) == 0 {
 		cfg.Client.ChainedServers = make(map[string]*client.ChainedServerInfo, len(fallbacks))
 		for key, fb := range fallbacks {
 			cfg.Client.ChainedServers[key] = fb
 		}
-	}
-
-	// Always make sure we have a map of ChainedServers
-	if cfg.Client.ChainedServers == nil {
-		cfg.Client.ChainedServers = make(map[string]*client.ChainedServerInfo)
 	}
 
 	if cfg.Client.ProxiedCONNECTPorts == nil {
