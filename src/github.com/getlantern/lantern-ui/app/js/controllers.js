@@ -176,7 +176,10 @@ app.controller('NewsfeedCtrl', ['$scope', '$rootScope', '$translate', function($
   };
   $scope.hideNewsfeed();
   $scope.feedUrl = function() {
-    return "http://feeds.getlantern.org.s3-website-us-east-1.amazonaws.com/" + $translate.use() + "/feed.json";
+    var mapTable = { 'fa': 'fa_IR' };
+    var lang = $translate.use();
+    lang = mapTable[lang] || lang;
+    return "https://feeds.getiantem.org/" + lang + "/feed.json";
   };
 }]);
 

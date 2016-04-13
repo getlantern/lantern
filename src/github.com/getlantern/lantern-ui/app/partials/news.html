@@ -1,5 +1,5 @@
 <div id="news" ng-controller="NewsfeedCtrl" ng-show="!showMobileAd && showNews">
-<feed id="latest-feed" url="{{feedUrl()}}" fallback-url="http://feeds.getlantern.org.s3-website-us-east-1.amazonaws.com/en_US/feed.json"
+<feed id="latest-feed" url="{{feedUrl()}}" fallback-url="https://feeds.getiantem.org/en_US/feed.json"
       template-url="partials/feeds.html"
       on-feeds-loaded="showNewsfeed()"
       on-error="hideNewsfeed()"/>
