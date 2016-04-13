@@ -1,5 +1,5 @@
 <tabset justified="true" type="pills">
-  <tab heading="">
+  <tab heading="{{ 'ALL_FEEDS' | translate }}">
     <div ng-controller="FeedCtrl">
       <div ng-repeat="feed in entries">
         <a class="item" target="_blank" href="{{feed.link}}">
@@ -18,4 +18,3 @@
     </div>
   </tab>
 </tabset>
-
