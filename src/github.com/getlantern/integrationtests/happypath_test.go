@@ -193,7 +193,7 @@ func startApp(t *testing.T) error {
 		"headless":             true,
 		"proxyall":             true,
 		"configdir":            ".",
-		"stickyconfig":         true,
+		"stickyconfig":         false,
 		"clear-proxy-settings": false,
 		"uiaddr":               "127.0.0.1:16823",
 	}
