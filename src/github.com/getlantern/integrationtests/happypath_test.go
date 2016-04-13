@@ -46,39 +46,46 @@ var (
 func TestProxying(t *testing.T) {
 	config.CloudConfigPollInterval = 100 * time.Millisecond
 
+	// Web server serves known content for testing
 	httpAddr, httpsAddr, err := startWebServer(t)
 	if !assert.NoError(t, err) {
 		return
 	}
 
+	// This is the remote proxy server
 	err = startProxyServer(t)
 	if !assert.NoError(t, err) {
 		return
 	}
 
+	// This is a fake config server that serves up a config that points at our
+	// testing proxy server.
 	configAddr, err := startConfigServer(t)
 	if !assert.NoError(t, err) {
 		return
 	}
 
+	// We have to write out a config file so that Lantern doesn't try to use the
+	// default config, which would go to some remote proxies that can't talk to
+	// our fake config server.
 	err = writeConfig(configAddr)
 	if !assert.NoError(t, err) {
 		return
 	}
-	if true {
-		t.Fatalf("Done")
-	}
 
+	// Starts the Lantern App
 	err = startApp(t)
 	if !assert.NoError(t, err) {
 		return
 	}
 
-	makeRequest(t, httpAddr, httpsAddr)
+	// Makes a test request
+	testRequest(t, httpAddr, httpsAddr)
 
-	// Wait for a new config and try request again
-	time.Sleep(10 * time.Second)
-	makeRequest(t, httpAddr, httpsAddr)
+	// Switch to obfs4, wait for a new config and test request again
+	atomic.StoreUint32(&useOBFS4, 1)
+	time.Sleep(2 * time.Second)
+	testRequest(t, httpAddr, httpsAddr)
 }
 
 func startWebServer(t *testing.T) (string, string, error) {
@@ -165,6 +172,7 @@ func serveConfig(t *testing.T, configAddr string) func(http.ResponseWriter, *htt
 
 		w := gzip.NewWriter(resp)
 		w.Write(cfg)
+		w.Close()
 	}
 }
 
@@ -175,7 +183,7 @@ func writeConfig(configAddr string) error {
 		return fmt.Errorf("Unable to delete existing yaml config: %v", err)
 	}
 
-	cfg, err := buildConfig(configAddr, true)
+	cfg, err := buildConfig(configAddr, false)
 	if err != nil {
 		return err
 	}
@@ -201,6 +209,10 @@ func buildConfig(configAddr string, obfs4 bool) ([]byte, error) {
 	srv.AuthToken = Token
 	if obfs4 {
 		srv.Addr = OBFS4ServerAddr
+		srv.PluggableTransport = "obfs4"
+		srv.PluggableTransportSettings = map[string]string{
+			"iat-mode": "0",
+		}
 
 		bridgelineFile, err := ioutil.ReadFile("obfs4_bridgeline.txt")
 		if err != nil {
@@ -249,7 +261,7 @@ func startApp(t *testing.T) error {
 	return waitforserver.WaitForServer("tcp", LocalProxyAddr, 5*time.Second)
 }
 
-func makeRequest(t *testing.T, httpAddr string, httpsAddr string) {
+func testRequest(t *testing.T, httpAddr string, httpsAddr string) {
 	proxyURL, _ := url.Parse("http://" + LocalProxyAddr)
 	client := &http.Client{
 		Transport: &http.Transport{
