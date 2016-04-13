@@ -16,7 +16,7 @@ angular.module('feeds-services', []).factory('feedService', ['$q', '$http', '$sc
       }
     }
 
-    var getFeeds = function (feedURL, count) {
+    var getFeeds = function (feedURL, fallbackURL, count) {
       var deferred = $q.defer();
 
       if (feedCache.hasCache(feedURL)) {
@@ -31,12 +31,7 @@ angular.module('feeds-services', []).factory('feedService', ['$q', '$http', '$sc
         feed.setNumEntries(count);
       }*/
 
-      $http.get(feedURL).then(
-        function(response) {
-        if (response.status != 200) {
-          deferred.reject(new Error("invalid HTTP status: " + response.status));
-          return
-        }
+      var handleResponse = function (response) {
         var data = response.data
         if (!data.entries) {
           deferred.reject(new Error("invalid data format"));
@@ -45,9 +40,21 @@ angular.module('feeds-services', []).factory('feedService', ['$q', '$http', '$sc
         feedCache.set(feedURL, data);
         sanitizeEntries(data.entries);
         deferred.resolve(data);
-      }, function(response) {
+      };
+
+      var handleError = function(response) {
+        if (response.status) {
+          if (response.config.url === feedURL) {
+            $http.get(fallbackURL).then(handleResponse, handleError);
+            return
+          }
+          deferred.reject(new Error("invalid HTTP status: " + response.status));
+          return
+        }
         deferred.reject(response.error);
-      });
+      };
+
+      $http.get(feedURL).then(handleResponse, handleError);
       return deferred.promise;
     };
 

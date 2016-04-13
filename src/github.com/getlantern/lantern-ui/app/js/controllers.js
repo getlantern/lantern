@@ -176,22 +176,18 @@ app.controller('NewsfeedCtrl', ['$scope', '$rootScope', '$translate', function($
   };
   $scope.hideNewsfeed();
   $scope.feedUrl = function() {
-    var supportedLocales = {
-      'zh-CN': 'zh-CN',
-      'fa-IR': 'fa-IR'
-    };
-    var lang = supportedLocales[$translate.use()];
-    if (!lang) {
-      lang = 'en-US';
-    }
-    return "https://feeds.getlantern.org/" + lang;
+    return "http://feeds.getlantern.org.s3-website-us-east-1.amazonaws.com/" + $translate.use() + "/feed.json";
   };
 }]);
 
 app.controller('FeedCtrl', ['$scope', 'gaMgr', function($scope, gaMgr) {
+  $scope.renderContent = function(feed) {
+    if (feed.meta && feed.meta.description) {
+      return feed.meta.description;
+    }
+    return feed.contentSnippet;
+  };
   $scope.trackFeed = function(name) {
     return gaMgr.trackFeed(name);
   };
 }]);
-
-
