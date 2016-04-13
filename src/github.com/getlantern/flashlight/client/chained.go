@@ -89,7 +89,7 @@ func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 		Label:   label,
 		Trusted: s.Trusted,
 		DialFN: func(network, addr string) (net.Conn, error) {
-			conn, err := d.Dial(network, addr)
+			conn, err := d(network, addr)
 			if err != nil {
 				return nil, err
 			}
