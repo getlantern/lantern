@@ -9,6 +9,7 @@ import com.crashlytics.android.Crashlytics;
 import io.fabric.sdk.android.Fabric;
 
 import org.lantern.mobilesdk.Lantern;
+import org.lantern.mobilesdk.StartResult;
 import org.lantern.mobilesdk.LanternNotRunningException;
 
 public class LanternApp extends Application implements Application.ActivityLifecycleCallbacks {
@@ -22,15 +23,6 @@ public class LanternApp extends Application implements Application.ActivityLifec
 
     public void onActivityResumed(Activity activity) {
         Log.d(TAG, "Activity resumed");
-        try {
-            // Any time that we resume an activity, make sure that Lantern is running so that our
-            // requests are proxied.
-            int startTimeoutMillis = 60000;
-            String analyticsTrackingID = ""; // don't track analytics since those are already being tracked elsewhere
-            Lantern.enable(getApplicationContext(), startTimeoutMillis, analyticsTrackingID);
-        } catch (LanternNotRunningException lnre) {
-            throw new RuntimeException("Lantern failed to start: " + lnre.getMessage(), lnre);
-        }
     }
 
     // Below unused

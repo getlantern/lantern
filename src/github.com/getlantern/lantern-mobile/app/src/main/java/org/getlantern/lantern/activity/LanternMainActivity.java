@@ -48,7 +48,9 @@ import android.support.v4.app.FragmentPagerAdapter;
 
 import com.thefinestartist.finestwebview.FinestWebView;
 
-import go.lantern.Lantern;
+import org.lantern.mobilesdk.Lantern;
+import org.lantern.mobilesdk.StartResult;
+import org.lantern.mobilesdk.LanternNotRunningException;
 
 public class LanternMainActivity extends AppCompatActivity implements Handler.Callback {
 
@@ -117,10 +119,28 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
             LanternUI.setVersionNum(appVersion);
             LanternUI.setupLanternSwitch();
 
-			new GetFeed(this).execute("");
+            getFeed();
 
         } catch (Exception e) {
             Log.d(TAG, "Got an exception " + e);
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+    }
+
+    private void getFeed() {
+        try {
+            // Any time that we resume an activity, make sure that Lantern is running so that our
+            // requests are proxied.
+            int startTimeoutMillis = 60000;
+            String analyticsTrackingID = ""; // don't track analytics since those are already being tracked elsewhere
+            StartResult result = Lantern.enable(getApplicationContext(), startTimeoutMillis, analyticsTrackingID);
+            new GetFeed(this, result.getHTTPAddr()).execute("");
+        } catch (LanternNotRunningException lnre) {
+            throw new RuntimeException("Lantern failed to start: " + lnre.getMessage(), lnre);
         }
     }
 

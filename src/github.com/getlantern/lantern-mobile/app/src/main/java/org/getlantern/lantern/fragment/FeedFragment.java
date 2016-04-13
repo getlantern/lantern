@@ -44,9 +44,14 @@ public class FeedFragment extends Fragment {
     }
 
     public void NotifyDataSetChanged() {
-        if (adapter != null) {
-            adapter.notifyDataSetChanged(); 
-        }
+        getActivity().runOnUiThread(new Runnable() {
+            public void run() {
+
+                if (adapter != null) {
+                    adapter.notifyDataSetChanged(); 
+                }
+            }
+        });
     }   
  
     @Override
