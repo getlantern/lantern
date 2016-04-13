@@ -7,7 +7,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
-import android.widget.TextView;
 
 
 import org.getlantern.lantern.model.FeedAdapter;      
@@ -15,8 +14,6 @@ import org.getlantern.lantern.model.FeedItem;
 import org.getlantern.lantern.R;
 
 import java.util.ArrayList; 
-
-import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItem;
 
 import go.lantern.Lantern;                    
 
