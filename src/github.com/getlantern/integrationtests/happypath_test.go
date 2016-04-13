@@ -131,7 +131,7 @@ func startProxyServer(t *testing.T) error {
 		assert.NoError(t, err, "Proxy server should have been able to listen")
 	}()
 
-	return waitforserver.WaitForServer("tcp", ProxyServerAddr, 1*time.Second)
+	return waitforserver.WaitForServer("tcp", ProxyServerAddr, 10*time.Second)
 }
 
 func startConfigServer(t *testing.T) (string, error) {
@@ -258,7 +258,7 @@ func startApp(t *testing.T) error {
 		assert.NoError(t, err, "Unable to run app")
 	}()
 
-	return waitforserver.WaitForServer("tcp", LocalProxyAddr, 5*time.Second)
+	return waitforserver.WaitForServer("tcp", LocalProxyAddr, 10*time.Second)
 }
 
 func testRequest(t *testing.T, httpAddr string, httpsAddr string) {
