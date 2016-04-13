@@ -39,11 +39,19 @@
     </span>
   </div>
 
+  <div id="try-mobile">
+    <a ng-click="setShowMobileAd()" ng-show="!showMobileAd">
+      {{ 'TRY_LANTERN_FOR_ANDROID' | translate }}
+    </a>
+    <a ng-click="hideMobileAd()" ng-show="showMobileAd">
+      {{ 'FEED_LINK' | translate }}
+    </a>
+  </div>
   <div id="global-nav" class="btn-group" dir="ltr">
     <button type="button" class="btn btn-large btn-inverse"
-            ng-click="showModal('settings')"
-            ng-class="{active: model.modal == MODAL.settings}"
-            tooltip="{{ 'SETTINGS' | translate }}">
+      ng-click="showModal('settings')"
+      ng-class="{active: model.modal == MODAL.settings}"
+      tooltip="{{ 'SETTINGS' | translate }}">
       <i class="lsf-icon lsf-gear"></i>
     </button>
   </div>

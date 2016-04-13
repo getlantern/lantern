@@ -1,8 +1,8 @@
 'use strict';
 
-app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$http', 'gaMgr',
+app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$http', 'gaMgr', '$translate',
                'localStorageService', 'BUILD_REVISION',
-               function($rootScope, $scope, $compile, $window, $http, gaMgr, localStorageService, BUILD_REVISION) {
+               function($rootScope, $scope, $compile, $window, $http, gaMgr, $translate, localStorageService, BUILD_REVISION) {
     $scope.currentModal = 'none';
 
     $rootScope.lanternFirstTimeBuildVar = 'lanternFirstTimeBuild-'+BUILD_REVISION;
@@ -46,6 +46,22 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$htt
     $scope.resetPlaceholder = function() {
       $scope.inputClass = "";
       $scope.inputPlaceholder = "you@example.com";
+    }
+
+    $rootScope.mobileAdImgPath = function(name) {
+      var mapTable = {
+        'zh_CN': 'zh',
+        'zh': 'zh',
+        'fa_IR': 'fa',
+        'fa': 'fa'
+      };
+      var lang = $translate.use();
+      lang = mapTable[lang] || 'en';
+      return '/img/mobile-ad/' + lang + '/' + name;
+    }
+
+    $rootScope.setShowMobileAd = function() {
+      $rootScope.showMobileAd = true;
     }
 
     $rootScope.hideMobileAd = function() {
@@ -100,10 +116,10 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$htt
       localStorageService.set($rootScope.lanternFirstTimeBuildVar, true);
     };
 
-    if (!localStorageService.get($rootScope.lanternHideMobileAdVar)) {
+    /*if (!localStorageService.get($rootScope.lanternHideMobileAdVar)) {
       $scope.resetPlaceholder();
       $rootScope.showMobileAd = true;
-    };
+    };*/
 
 
 }]);
@@ -161,4 +177,32 @@ app.controller('MobileAdCtrl', ['$scope', 'MODAL', 'gaMgr', function($scope, MOD
     gaMgr.trackLink(name);
   };
 
+}]);
+
+app.controller('NewsfeedCtrl', ['$scope', '$rootScope', '$translate', function($scope, $rootScope, $translate) {
+  $scope.showNewsfeed = function(e) {
+    $rootScope.showNews = true;
+  };
+  $scope.hideNewsfeed = function(e) {
+    $rootScope.showNews = false;
+  };
+  $scope.hideNewsfeed();
+  $scope.feedUrl = function() {
+    var mapTable = { 'fa': 'fa_IR' };
+    var lang = $translate.use();
+    lang = mapTable[lang] || lang;
+    return "https://feeds.getiantem.org/" + lang + "/feed.json";
+  };
+}]);
+
+app.controller('FeedCtrl', ['$scope', 'gaMgr', function($scope, gaMgr) {
+  $scope.renderContent = function(feed) {
+    if (feed.meta && feed.meta.description) {
+      return feed.meta.description;
+    }
+    return feed.contentSnippet;
+  };
+  $scope.trackFeed = function(name) {
+    return gaMgr.trackFeed(name);
+  };
 }]);

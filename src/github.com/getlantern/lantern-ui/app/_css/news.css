@@ -1,0 +1,113 @@
+#news {
+  position: relative;
+  top: 135px;
+  text-align: left;
+  margin: 0 auto;
+  width: 628px;
+}
+
+#news .nav {
+  height: 24px;
+  margin: 0;
+}
+
+#news a {
+  font-size: 14px;
+  color: black;
+  cursor:pointer;
+}
+
+#news a:hover {
+  text-decoration: none;
+}
+
+#news .nav-pills > li > a {
+  color: #cccccc;
+  border-radius: 0;
+  font-weight: 700;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 3px 13px;
+  margin: 0;
+}
+
+#news .nav-pills > li.active > a{
+  color: black;
+  background-color: inherit;
+}
+
+#news .nav-pills > li:first-child > a {
+  height: 14px;
+  background-image: url(/img/ic_list_gray_24px.svg);
+  background-position: left center;
+  background-repeat: no-repeat;
+  padding-right: 26px;
+}
+
+#news .nav-pills > li:first-child.active > a {
+  background-image: url(/img/ic_list_black_24px.svg);
+}
+
+#news .tab-content {
+  border: 1px solid black;
+}
+
+#news .tab-pane {
+  height: 429px;
+  overflow: scroll;
+  background-color: #fafbfb;
+}
+
+#news .item {
+  display: block;
+  height: 122px;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px #cccccc solid;
+}
+
+#news .item:hover {
+  background-color: #eeeeee;
+}
+
+/*#news .item .fadeout{
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 20px;
+  background-image: linear-gradient(to bottom, transparent, white);
+  z-index: 2;
+}*/
+
+#news .feed-thumbnail {
+  float: left;
+  width: 145px;
+  height: 88px;
+  margin: 17px 21px;
+  border: 1px solid #000000;
+}
+
+#news .content {
+  text-align: left;
+  padding: 0 21px;
+}
+
+#news p {
+  font-weight: 400;
+  font-size: 10px;
+}
+
+#news p.feed-date {
+  padding-top: 13px;
+}
+
+#news h4 {
+  font-weight: 700;
+  line-height: 16px;
+}
+
+#news p.snippet {
+  line-height: 16px;
+  height: 48px;
+  overflow: hidden;
+}

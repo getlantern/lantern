@@ -12,6 +12,7 @@
     -->
     <!-- build:css style/app.css -->
     <link rel="stylesheet" href="_css/bookmark.css">
+    <link rel="stylesheet" href="_css/news.css">
     <link href="bower_components/select2/select2.css" rel="stylesheet">
     <link href="_css/app.css" rel="stylesheet">
     <link href="bower_components/normalize.css/normalize.css" rel="stylesheet">
@@ -48,6 +49,10 @@
     <!-- endbuild -->
 
     <!-- build:js2 js/app.js -->
+    <script src="angular-feed/scripts/services.js"></script>
+    <script src="angular-feed/scripts/directives.js"></script>
+    <script src="angular-feed/scripts/feeds.js"></script>
+    <script src="angular-feed/scripts/templates.js"></script>
     <script src="js/revision.js"></script>
     <script src="js/app.js"></script>
     <script src="js/constants.js"></script>
@@ -80,8 +85,15 @@
         <div class="backend-gone">{{ 'LANTERN_GONE' | translate }}</div>
     </div>
     </div>
+    <div class="message">
+      <a href="https://getlantern.org" target="_blank">
+      <img id="logo" src="/img/ui-header-logo.svg"></a><br/><span ng-show="!backendIsGone || wsConnected">{{ 'WELCOME_TO_LANTERN_BLOCKED_SITES' | translate }}</span>
+    </div>
+
     <div ng-include src="'partials/modals.html'"></div>
-    <div ng-include src="'partials/bookmarks.html'" id="vis-container"></div>
+    <div ng-include src="'partials/get-mobile.html'"></div>
+    <div ng-include src="'partials/bookmarks.html'"></div>
+    <div ng-include src="'partials/news.html'"></div>
     <div ng-include src="'partials/footer.html'"></div>
     <div ng-include src="'partials/developer.html'"></div>
   </body>

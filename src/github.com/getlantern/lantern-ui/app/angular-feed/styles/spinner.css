@@ -1,0 +1,69 @@
+
+.spinner div{
+    -webkit-animation: spinner-fade 1s linear infinite;
+    -opacity: 0;
+}
+.spinner div.bar1 {
+    -moz-transform:rotate(0deg) translate(0, -30px);
+    -webkit-transform:rotate(0deg) translate(0, -30px);
+    -webkit-animation-delay: 0s;
+}
+.spinner div.bar2 {
+    -moz-transform:rotate(45deg) translate(0, -30px);
+    -webkit-transform:rotate(45deg) translate(0, -30px);
+    -webkit-animation-delay: -0.875s;
+}
+.spinner div.bar3 {
+    -moz-transform:rotate(90deg) translate(0, -30px);
+    -webkit-transform:rotate(90deg) translate(0, -30px);
+    -webkit-animation-delay: -0.75s;
+}
+.spinner div.bar4 {
+    -moz-transform:rotate(135deg) translate(0, -30px);
+    -webkit-transform:rotate(135deg) translate(0, -30px);
+    -webkit-animation-delay: -0.625s;
+}
+.spinner div.bar5 {
+    -moz-transform:rotate(180deg) translate(0, -30px);
+    -webkit-transform:rotate(180deg) translate(0, -30px);
+    -webkit-animation-delay: -0.5s;
+}
+.spinner div.bar6 {
+    -moz-transform:rotate(225deg) translate(0, -30px);
+    -webkit-transform:rotate(225deg) translate(0, -30px);
+    -webkit-animation-delay: -0.375s;
+}
+.spinner div.bar7 {
+    -moz-transform:rotate(270deg) translate(0, -30px);
+    -webkit-transform:rotate(270deg) translate(0, -30px);
+    -webkit-animation-delay: -0.25s;
+}
+.spinner div.bar8 {
+    -moz-transform:rotate(315deg) translate(0, -30px);
+    -webkit-transform:rotate(315deg) translate(0, -30px);
+    -webkit-animation-delay: -0.125s;
+}
+
+.spinner {
+    position:relative;
+    height:50px;
+    -moz-border-radius:50px;
+    -webkit-border-radius: 50px;
+    border-radius: 50px;
+    float:left;
+    left: 48%;
+    -moz-transform:scale(0.5);
+    -webkit-transform:scale(0.5);
+}
+
+.spinner div {
+    width:10px;
+    height:25px;
+    background:black;
+    position:absolute;
+}
+
+@-webkit-keyframes spinner-fade {
+    from {opacity: 1;}
+    to {opacity: 0;}
+}

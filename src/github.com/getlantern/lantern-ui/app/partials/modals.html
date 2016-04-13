@@ -119,7 +119,7 @@
       <p class="download-link">
         <b>{{ 'LANTERN_MOBILE_ANDROID_TEXT' | translate }}:</b> <a ng-click="trackLink('lantern-mobile-modal')" target="_blank" href="{{ 'LANTERN_MOBILE_ANDROID' | translate }}">{{ 'LANTERN_MOBILE_ANDROID' | translate }}</a>
       </p>
-      <button ngclipboard data-clipboard-text="{{ 'LANTERN_MOBILE_ANDROID' | translate }}" type="button" ng-attr-style="background: url('/img/mobile-ad/{{ 'LANG_ID' | translate }}/copy-link.svg')" ng-click="copyAndroidMobileLink()">
+      <button ngclipboard data-clipboard-text="{{ 'LANTERN_MOBILE_ANDROID' | translate }}" type="button" ng-attr-style="background: url({{mobileAdImgPath('copy-link.svg')}})" ng-click="copyAndroidMobileLink()">
         Copy link
       </button>
       <p ng-show="linkCopied" id="link-copied">Link copied</p>
