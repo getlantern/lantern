@@ -38,6 +38,7 @@
 #news .tab-content {
   border: 1px solid black;
   margin: 0 auto;
+  height: 800px;
 }
 
 @media (min-width: 780px){
