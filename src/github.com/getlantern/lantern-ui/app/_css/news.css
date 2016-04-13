@@ -101,7 +101,8 @@
 }
 
 #news .tab-pane {
-  overflow: scroll;
+  overflow-y: scroll;
+  overflow-x: hidden;
   background-color: #fafbfb;
 }
 
