@@ -11,18 +11,19 @@ import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItems;
 import com.ogaclejapan.smarttablayout.SmartTabLayout;
 
 import org.getlantern.lantern.activity.LanternMainActivity;
-import org.getlantern.lantern.fragment.FeedFragment;
 import org.getlantern.lantern.R;
 
+import java.util.ArrayList; 
 import  java.util.Locale;
 
 import go.lantern.Lantern;
 
-public class GetFeed extends AsyncTask<String, Void, Void> {
+public class GetFeed extends AsyncTask<String, Void, ArrayList<String>> {
     private static final String TAG = "GetFeed";
 
     private LanternMainActivity activity;
-    private String proxyAddr = "";
+	private String proxyAddr = "";
+	private ArrayList<String> sources = new ArrayList<String>();
 
     public GetFeed(LanternMainActivity activity, String proxyAddr) {
         this.activity = activity;
@@ -30,36 +31,19 @@ public class GetFeed extends AsyncTask<String, Void, Void> {
     }
 
     @Override
-    protected Void doInBackground(String... params) {
+    protected ArrayList<String> doInBackground(String... params) {
         try {
-            final FragmentPagerItems.Creator c = FragmentPagerItems.with(activity);
             String locale = Locale.getDefault().toString();
-
             Log.d(TAG, "Locale is " + locale + " proxy addr is " + proxyAddr);
 
             Lantern.PullFeed(locale, proxyAddr, new Lantern.FeedProvider.Stub() {
 
-                public void Finish() {
-                    activity.runOnUiThread(new Runnable() {
-                        public void run() {
-                            FragmentPagerItemAdapter adapter = new FragmentPagerItemAdapter(
-                                    activity.getSupportFragmentManager(), c.create());
-
-                            ViewPager viewPager = (ViewPager) activity.findViewById(R.id.viewpager);
-                            viewPager.setAdapter(adapter);
-
-                            SmartTabLayout viewPagerTab = (SmartTabLayout)activity.findViewById(R.id.viewpagertab);
-                            viewPagerTab.setViewPager(viewPager);
-                        }
-                    });
-                }
-
                 public void AddSource(String source) {
-                    Bundle bundle = new Bundle();
-                    bundle.putString("name", source);
-                    c.add(source, FeedFragment.class, bundle);
+					sources.add(source);
                 }
             });
+
+			return sources;
 
         } catch (Exception e) {
             Log.v("Error Parsing Data", e + "");
@@ -68,12 +52,10 @@ public class GetFeed extends AsyncTask<String, Void, Void> {
     }
 
     @Override
-    protected void onPostExecute(Void aVoid) {
-        super.onPostExecute(aVoid);
-        SmartTabLayout viewPagerTab = (SmartTabLayout)activity.findViewById(R.id.viewpagertab);
-        View tab = viewPagerTab.getTabAt(0);
-        tab.setSelected(true);
+    protected void onPostExecute(ArrayList<String> sources) {
+        super.onPostExecute(sources);
 
+		activity.updateTabs(sources);
     }
 }   
 

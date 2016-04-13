@@ -33,7 +33,6 @@
         android:layout_centerVertical="true"
         android:layout_marginLeft="10dp"
         android:layout_toRightOf="@+id/image"
-        android:paddingTop="20dp"
         android:orientation="vertical" >
 
         <TextView xmlns:android="http://schemas.android.com/apk/res/android"

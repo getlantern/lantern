@@ -6,6 +6,7 @@
  
     <ListView xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/feed"
+        android:fastScrollEnabled="false"
         android:layout_weight="0.1"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"

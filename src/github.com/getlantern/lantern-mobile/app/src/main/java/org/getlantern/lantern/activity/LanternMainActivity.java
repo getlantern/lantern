@@ -24,6 +24,7 @@ import android.widget.Toast;
 import android.view.MenuItem;
 import android.view.KeyEvent;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v4.view.ViewPager;
 
 import org.getlantern.lantern.BuildConfig;
 import org.getlantern.lantern.vpn.Service;
@@ -47,6 +48,10 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
 
 import com.thefinestartist.finestwebview.FinestWebView;
+import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItemAdapter;
+import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItems;
+import com.ogaclejapan.smarttablayout.SmartTabLayout;
+ 
 
 import org.lantern.mobilesdk.Lantern;
 import org.lantern.mobilesdk.StartResult;
@@ -59,6 +64,9 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
     private final static int REQUEST_VPN = 7777;
     private SharedPreferences mPrefs = null;
     private BroadcastReceiver mReceiver;
+
+	private FragmentPagerItemAdapter feedAdapter;
+	private SmartTabLayout viewPagerTab;
 
     private Context context;
     private UI LanternUI;
@@ -126,6 +134,47 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         }
     }
 
+	public void changeHeaderColor(boolean useVpn) {
+
+		if (feedAdapter != null) {
+			int c;
+			if (useVpn) {
+				c = getResources().getColor(R.color.accent_white); 
+			} else {
+				c = getResources().getColor(R.color.black); 
+			}
+			int count = feedAdapter.getCount();
+			for (int i = 0; i < count; i++) {
+				TextView view = (TextView) viewPagerTab.getTabAt(i);
+				view.setTextColor(c);
+			}
+
+		}
+   	
+	}
+
+	public void updateTabs(final ArrayList<String> sources) {
+		final FragmentPagerItems.Creator c = FragmentPagerItems.with(this);
+
+		for (String source : sources) {
+			Bundle bundle = new Bundle();
+			bundle.putString("name", source);
+			c.add(source, FeedFragment.class, bundle);
+		}
+
+		feedAdapter = new FragmentPagerItemAdapter(
+				this.getSupportFragmentManager(), c.create());
+
+		ViewPager viewPager = (ViewPager)this.findViewById(R.id.viewpager);
+		viewPager.setAdapter(feedAdapter);
+
+		viewPagerTab = (SmartTabLayout)this.findViewById(R.id.viewpagertab);
+		viewPagerTab.setViewPager(viewPager);
+
+		View tab = viewPagerTab.getTabAt(0);
+		tab.setSelected(true);
+	}
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -138,8 +187,15 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
     }
 
     private String startLocalProxy() {
-        try {
 
+		// if the Lantern VPN is already running
+		// then we just fetch the feed without
+		// starting another local proxy
+		if (Service.IsRunning) {
+			return "";
+		}
+
+        try {
             int startTimeoutMillis = 60000;
             String analyticsTrackingID = ""; // don't track analytics since those are already being tracked elsewhere
             StartResult result = Lantern.enable(getApplicationContext(), startTimeoutMillis, analyticsTrackingID);
@@ -216,7 +272,12 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         TextView url = (TextView)view.findViewById(R.id.link);
         Log.d(TAG, "Feed item clicked: " + url.getText());
 
-        new FinestWebView.Builder(this).show(url.getText().toString());
+        new FinestWebView.Builder(this)
+            .webViewSupportMultipleWindows(true)
+            .webViewJavaScriptEnabled(true)
+            .webViewAllowFileAccessFromFileURLs(true)
+            .webViewJavaScriptCanOpenWindowsAutomatically(true)
+            .show(url.getText().toString());
     }
 
     public void sendDesktopVersion(View view) {
@@ -225,28 +286,25 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         }
     }
 
+    // Prompt the user to enable full-device VPN mode
     // Make a VPN connection from the client
     // We should only have one active VPN connection per client
-    private void startVpnService ()
-    {
-        Intent intent = VpnService.prepare(this);
-        if (intent != null) {
-            Log.w(TAG,"Requesting VPN connection");
-            startActivityForResult(intent, REQUEST_VPN);
-        } else {
-            Log.d(TAG, "VPN enabled, starting Lantern...");
-            LanternUI.toggleSwitch(true);
-            sendIntentToService();
-        }
-    }
-
-
-    // Prompt the user to enable full-device VPN mode
     public void enableVPN() {
         Log.d(TAG, "Load VPN configuration");
-
         try {
-            startVpnService();
+            Intent intent = VpnService.prepare(this);
+            if (intent != null) {
+                Log.w(TAG,"Requesting VPN connection");
+                startActivityForResult(intent, REQUEST_VPN);
+            } else {
+                Log.d(TAG, "VPN enabled, starting Lantern...");
+
+                Lantern.disable(this);
+
+                LanternUI.toggleSwitch(true);
+				changeHeaderColor(true);
+                sendIntentToService();
+            }    
         } catch (Exception e) {
             Log.d(TAG, "Could not establish VPN connection: " + e.getMessage());
         }
@@ -263,15 +321,7 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
                 LanternUI.toggleSwitch(false);
             } else {
                 LanternUI.toggleSwitch(true);
-
-                Handler h = new Handler();
-                h.postDelayed(new Runnable () {
-
-                    public void run ()
-                    {
-                        sendIntentToService();
-                    }
-                }, 1000);
+                sendIntentToService();
             }
         }
     }
@@ -283,6 +333,7 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
     public void stopLantern() {
         Service.IsRunning = false;
         Utils.clearPreferences(this);
+		changeHeaderColor(false);
     }
 
     @Override

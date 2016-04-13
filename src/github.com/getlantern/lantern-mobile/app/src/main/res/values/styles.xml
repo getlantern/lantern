@@ -1,14 +1,14 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <!-- Customize your theme here. -->
-         <item name="colorPrimary">@android:color/black</item>
-        <item name="elevation">0dp</item>
-        <item name="android:elevation">0dp</item>
-        <item name="android:windowContentOverlay">@null</item>
-        <item name="drawerArrowStyle">@style/DrawerArrowStyle</item>
-    </style>
+<style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <!-- Customize your theme here. -->
+     <item name="colorPrimary">@android:color/black</item>
+    <item name="elevation">0dp</item>
+    <item name="android:elevation">0dp</item>
+    <item name="android:windowContentOverlay">@null</item>
+    <item name="drawerArrowStyle">@style/DrawerArrowStyle</item>
+</style>
 
     <style name="DrawerArrowStyle" parent="@style/Widget.AppCompat.DrawerArrowToggle">
         <item name="spinBars">true</item>
