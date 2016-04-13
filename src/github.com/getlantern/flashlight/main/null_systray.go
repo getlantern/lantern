@@ -1,5 +1,9 @@
 // +build headless
 
+import (
+	"github.com/getlantern/flashlight/app"
+)
+
 package main
 
 func runOnSystrayReady(f func()) {
@@ -10,6 +14,6 @@ func runOnSystrayReady(f func()) {
 func quitSystray() {
 }
 
-func configureSystemTray() error {
+func configureSystemTray(a *app.App) error {
 	return nil
 }
