@@ -1,8 +1,8 @@
 'use strict';
 
-app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$http', 'gaMgr',
+app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$http', 'gaMgr', '$translate',
                'localStorageService', 'BUILD_REVISION',
-               function($rootScope, $scope, $compile, $window, $http, gaMgr, localStorageService, BUILD_REVISION) {
+               function($rootScope, $scope, $compile, $window, $http, gaMgr, $translate, localStorageService, BUILD_REVISION) {
     $scope.currentModal = 'none';
 
     $rootScope.lanternFirstTimeBuildVar = 'lanternFirstTimeBuild-'+BUILD_REVISION;
@@ -46,6 +46,18 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$htt
     $scope.resetPlaceholder = function() {
       $scope.inputClass = "";
       $scope.inputPlaceholder = "you@example.com";
+    }
+
+    $rootScope.mobileAdImgPath = function(name) {
+      var mapTable = {
+        'zh_CN': 'zh',
+        'zh': 'zh',
+        'fa_IR': 'fa',
+        'fa': 'fa'
+      };
+      var lang = $translate.use();
+      lang = mapTable[lang] || 'en';
+      return '/img/mobile-ad/' + lang + '/' + name;
     }
 
     $rootScope.setShowMobileAd = function() {
