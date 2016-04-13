@@ -7,7 +7,6 @@ import (
 )
 
 func runOnSystrayReady(f func()) {
-	showui = false
 	f()
 }
 
