@@ -1,10 +1,10 @@
 // +build headless
 
+package main
+
 import (
 	"github.com/getlantern/flashlight/app"
 )
-
-package main
 
 func runOnSystrayReady(f func()) {
 	showui = false
