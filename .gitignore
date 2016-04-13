@@ -63,3 +63,5 @@ bns.pfx
 cmd.exe
 lantern-installer*
 src/github.com/getlantern/rotator/test_daily.log
+checkfallbacks
+checkfallbacks_linux_amd64
