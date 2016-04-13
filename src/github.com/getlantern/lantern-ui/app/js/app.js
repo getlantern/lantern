@@ -35,17 +35,16 @@ var app = angular.module('app', [
   .config(['$tooltipProvider', '$httpProvider',
                    '$resourceProvider', '$translateProvider', 'DEFAULT_LANG', function($tooltipProvider, $httpProvider,
                    $resourceProvider, $translateProvider, DEFAULT_LANG) {
+      $translateProvider.useStaticFilesLoader({
+        prefix: './locale/',
+        suffix: '.json'
+      })
+      .uniformLanguageTag('java')
+      .determinePreferredLanguage()
+      .fallbackLanguage(DEFAULT_LANG);
 
-      $translateProvider.fallbackLanguage(DEFAULT_LANG).
-        uniformLanguageTag('java').
-        determinePreferredLanguage().
-        useStaticFilesLoader({
-          prefix: './locale/',
-          suffix: '.json'
-        });
-
-    $httpProvider.defaults.useXDomain = true;
-    delete $httpProvider.defaults.headers.common["X-Requested-With"];
+      $httpProvider.defaults.useXDomain = true;
+      delete $httpProvider.defaults.headers.common["X-Requested-With"];
     //$httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
     $tooltipProvider.options({
       appendToBody: true
