@@ -51,7 +51,7 @@ import com.thefinestartist.finestwebview.FinestWebView;
 import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItemAdapter;
 import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItems;
 import com.ogaclejapan.smarttablayout.SmartTabLayout;
- 
+
 
 import org.lantern.mobilesdk.Lantern;
 import org.lantern.mobilesdk.StartResult;
@@ -59,80 +59,80 @@ import org.lantern.mobilesdk.LanternNotRunningException;
 
 public class LanternMainActivity extends AppCompatActivity implements Handler.Callback {
 
-    private static final String TAG = "LanternMainActivity";
-    private static final String PREFS_NAME = "LanternPrefs";
-    private final static int REQUEST_VPN = 7777;
-    private SharedPreferences mPrefs = null;
-    private BroadcastReceiver mReceiver;
+	private static final String TAG = "LanternMainActivity";
+	private static final String PREFS_NAME = "LanternPrefs";
+	private final static int REQUEST_VPN = 7777;
+	private SharedPreferences mPrefs = null;
+	private BroadcastReceiver mReceiver;
 
 	private FragmentPagerItemAdapter feedAdapter;
 	private SmartTabLayout viewPagerTab;
 
-    private Context context;
-    private UI LanternUI;
-    private Handler mHandler;
+	private Context context;
+	private UI LanternUI;
+	private Handler mHandler;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
 
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
+		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+		StrictMode.setThreadPolicy(policy);
 
-        setContentView(R.layout.activity_lantern_main);
+		setContentView(R.layout.activity_lantern_main);
 
-        // we want to use the ActionBar from the AppCompat
-        // support library, but with our custom design
-        // we hide the default action bar
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().hide();
-        }
+		// we want to use the ActionBar from the AppCompat
+		// support library, but with our custom design
+		// we hide the default action bar
+		if (getSupportActionBar() != null) {
+			getSupportActionBar().hide();
+		}
 
-        context = getApplicationContext();
-        mPrefs = Utils.getSharedPrefs(context);
+		context = getApplicationContext();
+		mPrefs = Utils.getSharedPrefs(context);
 
-        LanternUI = new UI(this, mPrefs);
-        // since onCreate is only called when the main activity
-        // is first created, we clear shared preferences in case
-        // Lantern was forcibly stopped during a previous run
-        if (!Service.isRunning(context)) {
-            LanternUI.clearPreferences();
-        }
+		LanternUI = new UI(this, mPrefs);
+		// since onCreate is only called when the main activity
+		// is first created, we clear shared preferences in case
+		// Lantern was forcibly stopped during a previous run
+		if (!Service.isRunning(context)) {
+			LanternUI.clearPreferences();
+		}
 
-        // the ACTION_SHUTDOWN intent is broadcast when the phone is
-        // about to be shutdown. We register a receiver to make sure we
-        // clear the preferences and switch the VpnService to the off
-        // state when this happens
-        IntentFilter filter = new IntentFilter(Intent.ACTION_SHUTDOWN);
-        filter.addAction(Intent.ACTION_SHUTDOWN);
-        filter.addAction(Intent.ACTION_USER_PRESENT);
-        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-        filter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
+		// the ACTION_SHUTDOWN intent is broadcast when the phone is
+		// about to be shutdown. We register a receiver to make sure we
+		// clear the preferences and switch the VpnService to the off
+		// state when this happens
+		IntentFilter filter = new IntentFilter(Intent.ACTION_SHUTDOWN);
+		filter.addAction(Intent.ACTION_SHUTDOWN);
+		filter.addAction(Intent.ACTION_USER_PRESENT);
+		filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+		filter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
 
-        mReceiver = new LanternReceiver();
-        registerReceiver(mReceiver, filter);
+		mReceiver = new LanternReceiver();
+		registerReceiver(mReceiver, filter);
 
-        if (getIntent().getBooleanExtra("EXIT", false)) {
-            finish();
-            return;
-        }
+		if (getIntent().getBooleanExtra("EXIT", false)) {
+			finish();
+			return;
+		}
 
-        // setup our UI
-        try {
-            // configure actions to be taken whenever slider changes state
-            PackageInfo pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
-            String appVersion = pInfo.versionName;
-            Log.d(TAG, "Currently running Lantern version: " + appVersion);
+		// setup our UI
+		try {
+			// configure actions to be taken whenever slider changes state
+			PackageInfo pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+			String appVersion = pInfo.versionName;
+			Log.d(TAG, "Currently running Lantern version: " + appVersion);
 
-            LanternUI.setVersionNum(appVersion);
-            LanternUI.setupLanternSwitch();
+			LanternUI.setVersionNum(appVersion);
+			LanternUI.setupLanternSwitch();
 
-            new GetFeed(this, startLocalProxy()).execute("");
+			new GetFeed(this, startLocalProxy()).execute("");
 
-        } catch (Exception e) {
-            Log.d(TAG, "Got an exception " + e);
-        }
-    }
+		} catch (Exception e) {
+			Log.d(TAG, "Got an exception " + e);
+		}
+	}
 
 	public void changeHeaderColor(boolean useVpn) {
 
@@ -150,7 +150,7 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
 			}
 
 		}
-   	
+
 	}
 
 	public void updateTabs(final ArrayList<String> sources) {
@@ -175,18 +175,18 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
 		tab.setSelected(true);
 	}
 
-    @Override
-    protected void onResume() {
-        super.onResume();
+	@Override
+	protected void onResume() {
+		super.onResume();
 
-        //  we check if mPrefs has been initialized before
-        // since onCreate and onResume are always both called
-        if (mPrefs != null) {
-            LanternUI.setBtnStatus();
-        }
-    }
+		//  we check if mPrefs has been initialized before
+		// since onCreate and onResume are always both called
+		if (mPrefs != null) {
+			LanternUI.setBtnStatus();
+		}
+	}
 
-    private String startLocalProxy() {
+	private String startLocalProxy() {
 
 		// if the Lantern VPN is already running
 		// then we just fetch the feed without
@@ -195,191 +195,191 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
 			return "";
 		}
 
-        try {
-            int startTimeoutMillis = 60000;
-            String analyticsTrackingID = ""; // don't track analytics since those are already being tracked elsewhere
-            StartResult result = Lantern.enable(getApplicationContext(), startTimeoutMillis, analyticsTrackingID);
-            return result.getHTTPAddr();
-        }  catch (LanternNotRunningException lnre) {
-            throw new RuntimeException("Lantern failed to start: " + lnre.getMessage(), lnre);
-        }  
-    }
+		try {
+			int startTimeoutMillis = 60000;
+			String analyticsTrackingID = ""; // don't track analytics since those are already being tracked elsewhere
+			StartResult result = Lantern.enable(getApplicationContext(), startTimeoutMillis, analyticsTrackingID);
+			return result.getHTTPAddr();
+		}  catch (LanternNotRunningException lnre) {
+			throw new RuntimeException("Lantern failed to start: " + lnre.getMessage(), lnre);
+		}  
+	}
 
-    // override onKeyDown and onBackPressed default 
-    // behavior to prevent back button from interfering 
-    // with on/off switch
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event)  {
-        if (Integer.parseInt(android.os.Build.VERSION.SDK) > 5
-                && keyCode == KeyEvent.KEYCODE_BACK
-                && event.getRepeatCount() == 0) {
-            Log.d(TAG, "onKeyDown Called");
-            onBackPressed();
-            return true;
-        }
-        return super.onKeyDown(keyCode, event);
-    }
+	// override onKeyDown and onBackPressed default 
+	// behavior to prevent back button from interfering 
+	// with on/off switch
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event)  {
+		if (Integer.parseInt(android.os.Build.VERSION.SDK) > 5
+				&& keyCode == KeyEvent.KEYCODE_BACK
+				&& event.getRepeatCount() == 0) {
+			Log.d(TAG, "onKeyDown Called");
+			onBackPressed();
+			return true;
+				}
+		return super.onKeyDown(keyCode, event);
+	}
 
 
-    @Override
-    public void onBackPressed() {
-        Log.d(TAG, "onBackPressed Called");
-        Intent setIntent = new Intent(Intent.ACTION_MAIN);
-        setIntent.addCategory(Intent.CATEGORY_HOME);
-        setIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(setIntent);
-    }
+	@Override
+	public void onBackPressed() {
+		Log.d(TAG, "onBackPressed Called");
+		Intent setIntent = new Intent(Intent.ACTION_MAIN);
+		setIntent.addCategory(Intent.CATEGORY_HOME);
+		setIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		startActivity(setIntent);
+	}
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        try {
-            if (mReceiver != null) {
-                unregisterReceiver(mReceiver);
-            }
-        } catch (Exception e) {
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		try {
+			if (mReceiver != null) {
+				unregisterReceiver(mReceiver);
+			}
+		} catch (Exception e) {
 
-        }
-    }
+		}
+	}
 
-    // quitLantern is the side menu option and cleanyl exits the app
-    public void quitLantern() {
-        try {
-            Log.d(TAG, "About to exit Lantern...");
+	// quitLantern is the side menu option and cleanyl exits the app
+	public void quitLantern() {
+		try {
+			Log.d(TAG, "About to exit Lantern...");
 
-            stopLantern();
+			stopLantern();
 
-            // sleep for a few ms before exiting
-            Thread.sleep(200);
+			// sleep for a few ms before exiting
+			Thread.sleep(200);
 
-            finish();
-            moveTaskToBack(true);
+			finish();
+			moveTaskToBack(true);
 
-        } catch (Exception e) {
-            Log.e(TAG, "Got an exception when quitting Lantern " + e.getMessage());
-        }
-    }
+		} catch (Exception e) {
+			Log.e(TAG, "Got an exception when quitting Lantern " + e.getMessage());
+		}
+	}
 
-    @Override
-    public boolean handleMessage(Message message) {
-        if (message != null) {
-            Toast.makeText(this, message.what, Toast.LENGTH_SHORT).show();
-        }
-        return true;
-    }
+	@Override
+	public boolean handleMessage(Message message) {
+		if (message != null) {
+			Toast.makeText(this, message.what, Toast.LENGTH_SHORT).show();
+		}
+		return true;
+	}
 
-    public void openFeedItem(View view) {
-        TextView url = (TextView)view.findViewById(R.id.link);
-        Log.d(TAG, "Feed item clicked: " + url.getText());
+	public void openFeedItem(View view) {
+		TextView url = (TextView)view.findViewById(R.id.link);
+		Log.d(TAG, "Feed item clicked: " + url.getText());
 
-        new FinestWebView.Builder(this)
-            .webViewSupportMultipleWindows(true)
-            .webViewJavaScriptEnabled(true)
-            .webViewAllowFileAccessFromFileURLs(true)
-            .webViewJavaScriptCanOpenWindowsAutomatically(true)
-            .show(url.getText().toString());
-    }
+		new FinestWebView.Builder(this)
+			.webViewSupportMultipleWindows(true)
+			.webViewJavaScriptEnabled(true)
+			.webViewAllowFileAccessFromFileURLs(true)
+			.webViewJavaScriptCanOpenWindowsAutomatically(true)
+			.show(url.getText().toString());
+	}
 
-    public void sendDesktopVersion(View view) {
-        if (LanternUI != null) {
-            LanternUI.sendDesktopVersion(view);
-        }
-    }
+	public void sendDesktopVersion(View view) {
+		if (LanternUI != null) {
+			LanternUI.sendDesktopVersion(view);
+		}
+	}
 
-    // Prompt the user to enable full-device VPN mode
-    // Make a VPN connection from the client
-    // We should only have one active VPN connection per client
-    public void enableVPN() {
-        Log.d(TAG, "Load VPN configuration");
-        try {
-            Intent intent = VpnService.prepare(this);
-            if (intent != null) {
-                Log.w(TAG,"Requesting VPN connection");
-                startActivityForResult(intent, REQUEST_VPN);
-            } else {
-                Log.d(TAG, "VPN enabled, starting Lantern...");
+	// Prompt the user to enable full-device VPN mode
+	// Make a VPN connection from the client
+	// We should only have one active VPN connection per client
+	public void enableVPN() {
+		Log.d(TAG, "Load VPN configuration");
+		try {
+			Intent intent = VpnService.prepare(this);
+			if (intent != null) {
+				Log.w(TAG,"Requesting VPN connection");
+				startActivityForResult(intent, REQUEST_VPN);
+			} else {
+				Log.d(TAG, "VPN enabled, starting Lantern...");
 
-                Lantern.disable(this);
+				Lantern.disable(this);
 
-                LanternUI.toggleSwitch(true);
+				LanternUI.toggleSwitch(true);
 				changeHeaderColor(true);
-                sendIntentToService();
-            }    
-        } catch (Exception e) {
-            Log.d(TAG, "Could not establish VPN connection: " + e.getMessage());
-        }
-    }
+				sendIntentToService();
+			}    
+		} catch (Exception e) {
+			Log.d(TAG, "Could not establish VPN connection: " + e.getMessage());
+		}
+	}
 
-    @Override
-    protected void onActivityResult(int request, int response, Intent data) {
-        super.onActivityResult(request, response, data);
+	@Override
+	protected void onActivityResult(int request, int response, Intent data) {
+		super.onActivityResult(request, response, data);
 
-        if (request == REQUEST_VPN) {
-            if (response != RESULT_OK) {
-                // no permission given to open
-                // VPN connection; return to off state
-                LanternUI.toggleSwitch(false);
-            } else {
-                LanternUI.toggleSwitch(true);
-                sendIntentToService();
-            }
-        }
-    }
+		if (request == REQUEST_VPN) {
+			if (response != RESULT_OK) {
+				// no permission given to open
+				// VPN connection; return to off state
+				LanternUI.toggleSwitch(false);
+			} else {
+				LanternUI.toggleSwitch(true);
+				sendIntentToService();
+			}
+		}
+	}
 
-    private void sendIntentToService() {
-        startService(new Intent(this, Service.class));
-    }
+	private void sendIntentToService() {
+		startService(new Intent(this, Service.class));
+	}
 
-    public void stopLantern() {
-        Service.IsRunning = false;
-        Utils.clearPreferences(this);
+	public void stopLantern() {
+		Service.IsRunning = false;
+		Utils.clearPreferences(this);
 		changeHeaderColor(false);
-    }
+	}
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Pass the event to ActionBarDrawerToggle
-        // If it returns true, then it has handled
-        // the nav drawer indicator touch event
-        if (LanternUI != null &&
-                LanternUI.optionSelected(item)) {
-            return true;
-        }
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Pass the event to ActionBarDrawerToggle
+		// If it returns true, then it has handled
+		// the nav drawer indicator touch event
+		if (LanternUI != null &&
+				LanternUI.optionSelected(item)) {
+			return true;
+				}
 
-        // Handle your other action bar items...
-        return super.onOptionsItemSelected(item);
-    }
+		// Handle your other action bar items...
+		return super.onOptionsItemSelected(item);
+	}
 
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        if (LanternUI != null) {
-            LanternUI.syncState();
-        }
-    }
+	@Override
+	protected void onPostCreate(Bundle savedInstanceState) {
+		super.onPostCreate(savedInstanceState);
+		if (LanternUI != null) {
+			LanternUI.syncState();
+		}
+	}
 
-    // LanternReceiver is used to capture broadcasts 
-    // such as network connectivity and when the app
-    // is powered off
-    public class LanternReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (action.equals(Intent.ACTION_SHUTDOWN)) {
-                // whenever the device is powered off or the app
-                // abruptly closed, we want to clear user preferences
-                Utils.clearPreferences(context);
-            } else if (action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
-                // whenever a user disconnects from Wifi and Lantern is running
-                NetworkInfo networkInfo =
-                    intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
-                if (LanternUI.useVpn() && 
-                    networkInfo.getType() == ConnectivityManager.TYPE_WIFI &&
-                    !networkInfo.isConnected()) {
+	// LanternReceiver is used to capture broadcasts 
+	// such as network connectivity and when the app
+	// is powered off
+	public class LanternReceiver extends BroadcastReceiver {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String action = intent.getAction();
+			if (action.equals(Intent.ACTION_SHUTDOWN)) {
+				// whenever the device is powered off or the app
+				// abruptly closed, we want to clear user preferences
+				Utils.clearPreferences(context);
+			} else if (action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
+				// whenever a user disconnects from Wifi and Lantern is running
+				NetworkInfo networkInfo =
+					intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
+				if (LanternUI.useVpn() && 
+						networkInfo.getType() == ConnectivityManager.TYPE_WIFI &&
+						!networkInfo.isConnected()) {
 
-                    stopLantern();
-                }
-            }
-        }
-    }
+					stopLantern();
+						}
+			}
+		}
+	}
 }
