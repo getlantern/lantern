@@ -7,7 +7,6 @@
 
 #news .nav {
   height: 24px;
-  margin: 0;
   margin: 0 auto;
 }
 
@@ -34,18 +33,6 @@
 #news .nav-pills > li.active > a{
   color: black;
   background-color: inherit;
-}
-
-#news .nav-pills > li:first-child > a {
-  height: 14px;
-  background-image: url(/img/ic_list_gray_24px.svg);
-  background-position: left center;
-  background-repeat: no-repeat;
-  padding-right: 26px;
-}
-
-#news .nav-pills > li:first-child.active > a {
-  background-image: url(/img/ic_list_black_24px.svg);
 }
 
 #news .tab-content {
@@ -168,6 +155,6 @@
 
 #news p.snippet {
   line-height: 16px;
-  height: 48px;
+  height: 32px;
   overflow: hidden;
 }
