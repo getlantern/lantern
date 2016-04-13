@@ -186,7 +186,7 @@ app.controller('NewsfeedCtrl', ['$scope', '$rootScope', '$translate', function($
   $scope.hideNewsfeed = function(e) {
     $rootScope.showNews = false;
   };
-  $scope.hideNewsfeed();
+  $scope.showNewsfeed();
   $scope.feedUrl = function() {
     var mapTable = { 'fa': 'fa_IR' };
     var lang = $translate.use();
