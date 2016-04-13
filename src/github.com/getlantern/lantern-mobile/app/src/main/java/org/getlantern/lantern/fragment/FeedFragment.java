@@ -1,5 +1,5 @@
 package org.getlantern.lantern.fragment;
- 
+
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -8,11 +8,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.TextView;
- 
+
 
 import org.getlantern.lantern.model.FeedAdapter;      
 import org.getlantern.lantern.model.FeedItem;      
-
 import org.getlantern.lantern.R;
 
 import java.util.ArrayList; 
@@ -20,21 +19,21 @@ import java.util.ArrayList;
 import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItem;
 
 import go.lantern.Lantern;                    
- 
+
 public class FeedFragment extends Fragment {
 
     private static final String TAG = "FeedFragment";
 
     private FeedAdapter adapter;
-	private String feedName;
+    private String feedName;
     private ListView mList;
     private ArrayList<FeedItem> mFeedItems = new ArrayList<FeedItem>();
 
- 
+
     public FeedFragment() {
         this.feedName = "";
     }
- 
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,24 +45,23 @@ public class FeedFragment extends Fragment {
     public void NotifyDataSetChanged() {
         getActivity().runOnUiThread(new Runnable() {
             public void run() {
-
                 if (adapter != null) {
                     adapter.notifyDataSetChanged(); 
                 }
             }
         });
     }   
- 
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-		
-		View view = inflater.inflate(R.layout.feed_fragment, container, false);
+            Bundle savedInstanceState) {
+
+        View view = inflater.inflate(R.layout.feed_fragment, container, false);
 
         mList = (ListView)view.findViewById(R.id.feed);
         adapter = new FeedAdapter(getActivity(), mFeedItems);
         mList.setAdapter(adapter);
-		return view;
+        return view;
     }
 
     @Override

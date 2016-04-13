@@ -14,29 +14,29 @@ import org.lantern.mobilesdk.StartResult;
 import org.lantern.mobilesdk.LanternNotRunningException;
 
 public class LanternApp extends Application implements Application.ActivityLifecycleCallbacks {
-	private static final String TAG = "LanternApp";
+    private static final String TAG = "LanternApp";
 
-	@Override
-	public void onCreate() {
-		registerActivityLifecycleCallbacks(this);
-		Fabric.with(this, new Crashlytics());
-	}
+    @Override
+    public void onCreate() {
+        registerActivityLifecycleCallbacks(this);
+        Fabric.with(this, new Crashlytics());
+    }
 
-	public void onActivityResumed(Activity activity) {
-		Log.d(TAG, "Activity resumed");
-	}
+    public void onActivityResumed(Activity activity) {
+        Log.d(TAG, "Activity resumed");
+    }
 
-	// Below unused
-	public void onActivityCreated(Activity activity, Bundle savedInstanceState) {}
+    // Below unused
+    public void onActivityCreated(Activity activity, Bundle savedInstanceState) {}
 
-	public void onActivityDestroyed(Activity activity) {}
+    public void onActivityDestroyed(Activity activity) {}
 
-	public void onActivityPaused(Activity activity) {}
+    public void onActivityPaused(Activity activity) {}
 
-	public void onActivitySaveInstanceState(Activity activity, Bundle outState) {}
+    public void onActivitySaveInstanceState(Activity activity, Bundle outState) {}
 
-	public void onActivityStarted(Activity activity) {}
+    public void onActivityStarted(Activity activity) {}
 
-	public void onActivityStopped(Activity activity) {}
+    public void onActivityStopped(Activity activity) {}
 
 }

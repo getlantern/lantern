@@ -22,9 +22,6 @@ import java.io.OutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import java.net.URL;
-import java.lang.ref.WeakReference;
-
 import org.getlantern.lantern.R;
 
 import com.koushikdutta.ion.Ion;
