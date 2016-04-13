@@ -5,10 +5,11 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"net/url"
+	"os"
 	"testing"
 	"time"
 
-	"github.com/Yawning/obfs4/common/log"
 	"github.com/getlantern/http-proxy-lantern"
 	"github.com/getlantern/tlsdefaults"
 	"github.com/getlantern/waitforserver"
@@ -26,8 +27,8 @@ const (
 
 	Content  = "THIS IS SOME STATIC CONTENT FROM THE WEB SERVER"
 	Token    = "AF325DF3432FDS"
-	KeyFile  = "./key.pem"
-	CertFile = "./cert.pem"
+	KeyFile  = "./proxykey.pem"
+	CertFile = "./proxycert.pem"
 
 	Etag        = "X-Lantern-Etag"
 	IfNoneMatch = "X-Lantern-If-None-Match"
@@ -49,12 +50,16 @@ func TestProxying(t *testing.T) {
 		return
 	}
 
-	err = startApp(t, configAddr)
+	err = writeConfig(configAddr)
 	if !assert.NoError(t, err) {
 		return
 	}
 
-	time.Sleep(1 * time.Minute)
+	err = startApp(t)
+	if !assert.NoError(t, err) {
+		return
+	}
+
 	makeRequest(t, httpAddr)
 }
 
@@ -63,7 +68,7 @@ func startWebServer(t *testing.T) (string, string, error) {
 	if err != nil {
 		return "", "", fmt.Errorf("Unable to listen for HTTP connections: %v", err)
 	}
-	ls, err := tlsdefaults.Listen("localhost:0", "happypk.pem", "happycert.pem")
+	ls, err := tlsdefaults.Listen("localhost:0", "webkey.pem", "webcert.pem")
 	if err != nil {
 		return "", "", fmt.Errorf("Unable to listen for HTTPS connections: %v", err)
 	}
@@ -79,7 +84,7 @@ func startWebServer(t *testing.T) (string, string, error) {
 }
 
 func serveContent(resp http.ResponseWriter, req *http.Request) {
-	resp.WriteHeader(http.StatusFound)
+	resp.WriteHeader(http.StatusOK)
 	resp.Write([]byte(Content))
 }
 
@@ -90,6 +95,8 @@ func startProxyServer(t *testing.T) error {
 		Token:        Token,
 		Keyfile:      KeyFile,
 		CertFile:     CertFile,
+		IdleClose:    30,
+		HTTPS:        true,
 	}
 
 	go func() {
@@ -97,7 +104,7 @@ func startProxyServer(t *testing.T) error {
 		assert.NoError(t, err, "Proxy server should have been able to listen")
 	}()
 
-	return waitforserver.WaitForServer("tcp", ProxyServerAddr, 100*time.Millisecond)
+	return waitforserver.WaitForServer("tcp", ProxyServerAddr, 1*time.Second)
 }
 
 func startConfigServer(t *testing.T) (string, error) {
@@ -105,66 +112,87 @@ func startConfigServer(t *testing.T) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("Unable to listen for config server connection: %v", err)
 	}
+	configAddr := l.Addr().String()
 	go func() {
-		err := http.Serve(l, http.HandlerFunc(serveConfig(ProxyServerAddr)))
+		err := http.Serve(l, http.HandlerFunc(serveConfig(t, configAddr)))
 		assert.NoError(t, err, "Unable to serve config")
 	}()
-	return l.Addr().String(), nil
+	return configAddr, nil
 }
 
-func serveConfig(httpsAddr string) func(http.ResponseWriter, *http.Request) {
+func serveConfig(t *testing.T, configAddr string) func(http.ResponseWriter, *http.Request) {
 	return func(resp http.ResponseWriter, req *http.Request) {
 		if "1" == req.Header.Get(IfNoneMatch) {
 			resp.WriteHeader(http.StatusNotModified)
 			return
 		}
 
-		bytes, err := ioutil.ReadFile("./config-template.yaml")
+		cfg, err := buildConfig(configAddr)
 		if err != nil {
-			log.Errorf("Could not read config %v", err)
+			t.Error(err)
 			resp.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
-		cfg := &config.Config{}
-		err = yaml.Unmarshal(bytes, cfg)
-		if err != nil {
-			log.Errorf("Could not unmarshal config %v", err)
-			resp.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		cert, err := ioutil.ReadFile(CertFile)
-		if err != nil {
-			log.Errorf("Could not read cert %v", err)
-			resp.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		srv := cfg.Client.ChainedServers["fallback-template"]
-		srv.Addr = httpsAddr
-		srv.AuthToken = Token
-		srv.Cert = string(cert)
-		out, err := yaml.Marshal(cfg)
-		if err != nil {
-			log.Errorf("Could not marshal config %v", err)
-			resp.WriteHeader(http.StatusInternalServerError)
-			return
-		}
 		resp.Header().Set(Etag, "1")
-		resp.WriteHeader(http.StatusFound)
-		resp.Write(out)
+		resp.WriteHeader(http.StatusOK)
+		resp.Write(cfg)
 	}
 }
 
-func startApp(t *testing.T, configAddr string) error {
+func writeConfig(configAddr string) error {
+	filename := "lantern-9999.99.99.yaml"
+	err := os.Remove(filename)
+	if err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("Unable to delete existing yaml config: %v", err)
+	}
+
+	cfg, err := buildConfig(configAddr)
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(filename, cfg, 0644)
+}
+
+func buildConfig(configAddr string) ([]byte, error) {
+	bytes, err := ioutil.ReadFile("./config-template.yaml")
+	if err != nil {
+		return nil, fmt.Errorf("Could not read config %v", err)
+	}
+
+	cfg := &config.Config{}
+	err = yaml.Unmarshal(bytes, cfg)
+	if err != nil {
+		return nil, fmt.Errorf("Could not unmarshal config %v", err)
+	}
+	cfg.CloudConfig = "http://" + configAddr
+	cfg.FrontedCloudConfig = cfg.CloudConfig
+
+	cert, err := ioutil.ReadFile(CertFile)
+	if err != nil {
+		return nil, fmt.Errorf("Could not read cert %v", err)
+	}
+
+	srv := cfg.Client.ChainedServers["fallback-template"]
+	srv.Addr = ProxyServerAddr
+	srv.AuthToken = Token
+	srv.Cert = string(cert)
+	out, err := yaml.Marshal(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("Could not marshal config %v", err)
+	}
+
+	return out, nil
+}
+
+func startApp(t *testing.T) error {
 	flags := map[string]interface{}{
 		"addr":                 LocalProxyAddr,
-		"cloudconfig":          "http://" + configAddr,
 		"headless":             true,
 		"proxyall":             true,
 		"configdir":            ".",
-		"stickyconfig":         false,
+		"stickyconfig":         true,
 		"clear-proxy-settings": false,
 		"uiaddr":               "127.0.0.1:16823",
 	}
@@ -183,20 +211,19 @@ func startApp(t *testing.T, configAddr string) error {
 }
 
 func makeRequest(t *testing.T, addr string) {
+	proxyURL, _ := url.Parse("http://" + LocalProxyAddr)
 	client := &http.Client{
 		Transport: &http.Transport{
-			Dial: func(network, addr string) (net.Conn, error) {
-				return net.Dial("tcp", LocalProxyAddr)
-			},
+			Proxy: http.ProxyURL(proxyURL),
 		},
 	}
 
 	resp, err := client.Get("http://" + addr)
 	if assert.NoError(t, err, "Unable to GET") {
 		defer resp.Body.Close()
-		if assert.Equal(t, http.StatusFound, resp.StatusCode, "Bad response status") {
-			b, err := ioutil.ReadAll(resp.Body)
-			if assert.NoError(t, err, "Unable to read response") {
+		b, err := ioutil.ReadAll(resp.Body)
+		if assert.NoError(t, err, "Unable to read response") {
+			if assert.Equal(t, http.StatusOK, resp.StatusCode, "Bad response status: "+string(b)) {
 				assert.Equal(t, Content, string(b))
 			}
 		}

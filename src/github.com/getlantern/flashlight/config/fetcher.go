@@ -93,6 +93,8 @@ func (cf *fetcher) pollForConfig(currentCfg yamlconf.Config, stickyConfig bool) 
 }
 
 func (cf *fetcher) fetchCloudConfig(cfg *Config) ([]byte, error) {
+	log.Debugf("Fetching cloud config from %v (%v)", cfg.CloudConfig, cfg.FrontedCloudConfig)
+
 	url := cfg.CloudConfig
 	cb := "?" + uuid.New()
 	nocache := url + cb

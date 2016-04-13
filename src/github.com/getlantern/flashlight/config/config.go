@@ -255,6 +255,8 @@ func (updated *Config) applyFlags(flags map[string]interface{}) error {
 			updated.CloudConfig = value.(string)
 		case "cloudconfigca":
 			updated.CloudConfigCA = value.(string)
+		case "frontedconfig":
+			updated.FrontedCloudConfig = value.(string)
 		case "instanceid":
 			updated.Client.DeviceID = value.(string)
 		case "cpuprofile":
