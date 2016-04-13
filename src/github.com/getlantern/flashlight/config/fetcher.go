@@ -16,17 +16,20 @@ import (
 )
 
 const (
-	cloudConfigPollInterval = 1 * time.Minute
-	etag                    = "X-Lantern-Etag"
-	ifNoneMatch             = "X-Lantern-If-None-Match"
-	userIDHeader            = "X-Lantern-User-Id"
-	tokenHeader             = "X-Lantern-Pro-Token"
-	chainedCloudConfigURL   = "http://config.getiantem.org/cloud.yaml.gz"
+	etag                  = "X-Lantern-Etag"
+	ifNoneMatch           = "X-Lantern-If-None-Match"
+	userIDHeader          = "X-Lantern-User-Id"
+	tokenHeader           = "X-Lantern-Pro-Token"
+	chainedCloudConfigURL = "http://config.getiantem.org/cloud.yaml.gz"
 
 	// This is over HTTP because proxies do not forward X-Forwarded-For with HTTPS
 	// and because we only support falling back to direct domain fronting through
 	// the local proxy for HTTP.
 	frontedCloudConfigURL = "http://d2wi0vwulmtn99.cloudfront.net/cloud.yaml.gz"
+)
+
+var (
+	CloudConfigPollInterval = 1 * time.Minute
 )
 
 // fetcher periodically fetches the latest cloud configuration.
@@ -162,5 +165,5 @@ func (cf *fetcher) fetchCloudConfig(cfg *Config) ([]byte, error) {
 // cloudPollSleepTime adds some randomization to our requests to make them
 // less distinguishing on the network.
 func (cf *fetcher) cloudPollSleepTime() time.Duration {
-	return time.Duration((cloudConfigPollInterval.Nanoseconds() / 2) + rand.Int63n(cloudConfigPollInterval.Nanoseconds()))
+	return time.Duration((CloudConfigPollInterval.Nanoseconds() / 2) + rand.Int63n(CloudConfigPollInterval.Nanoseconds()))
 }

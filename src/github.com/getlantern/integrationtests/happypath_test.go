@@ -1,6 +1,7 @@
 package integrationtests
 
 import (
+	"compress/gzip"
 	"crypto/tls"
 	"fmt"
 	"io/ioutil"
@@ -8,6 +9,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -25,6 +28,7 @@ import (
 const (
 	LocalProxyAddr  = "localhost:18345"
 	ProxyServerAddr = "localhost:18346"
+	OBFS4ServerAddr = "localhost:18347"
 
 	Content  = "THIS IS SOME STATIC CONTENT FROM THE WEB SERVER"
 	Token    = "AF325DF3432FDS"
@@ -35,7 +39,13 @@ const (
 	IfNoneMatch = "X-Lantern-If-None-Match"
 )
 
+var (
+	useOBFS4 = uint32(0)
+)
+
 func TestProxying(t *testing.T) {
+	config.CloudConfigPollInterval = 100 * time.Millisecond
+
 	httpAddr, httpsAddr, err := startWebServer(t)
 	if !assert.NoError(t, err) {
 		return
@@ -55,12 +65,19 @@ func TestProxying(t *testing.T) {
 	if !assert.NoError(t, err) {
 		return
 	}
+	if true {
+		t.Fatalf("Done")
+	}
 
 	err = startApp(t)
 	if !assert.NoError(t, err) {
 		return
 	}
 
+	makeRequest(t, httpAddr, httpsAddr)
+
+	// Wait for a new config and try request again
+	time.Sleep(10 * time.Second)
 	makeRequest(t, httpAddr, httpsAddr)
 }
 
@@ -93,6 +110,8 @@ func startProxyServer(t *testing.T) error {
 	s := &httpproxylantern.Server{
 		TestingLocal: true,
 		Addr:         ProxyServerAddr,
+		Obfs4Addr:    OBFS4ServerAddr,
+		Obfs4Dir:     ".",
 		Token:        Token,
 		Keyfile:      KeyFile,
 		CertFile:     CertFile,
@@ -123,21 +142,29 @@ func startConfigServer(t *testing.T) (string, error) {
 
 func serveConfig(t *testing.T, configAddr string) func(http.ResponseWriter, *http.Request) {
 	return func(resp http.ResponseWriter, req *http.Request) {
-		if "1" == req.Header.Get(IfNoneMatch) {
+		obfs4 := atomic.LoadUint32(&useOBFS4) == 1
+		version := "1"
+		if obfs4 {
+			version = "2"
+		}
+
+		if req.Header.Get(IfNoneMatch) == version {
 			resp.WriteHeader(http.StatusNotModified)
 			return
 		}
 
-		cfg, err := buildConfig(configAddr)
+		cfg, err := buildConfig(configAddr, obfs4)
 		if err != nil {
 			t.Error(err)
 			resp.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
-		resp.Header().Set(Etag, "1")
+		resp.Header().Set(Etag, version)
 		resp.WriteHeader(http.StatusOK)
-		resp.Write(cfg)
+
+		w := gzip.NewWriter(resp)
+		w.Write(cfg)
 	}
 }
 
@@ -148,7 +175,7 @@ func writeConfig(configAddr string) error {
 		return fmt.Errorf("Unable to delete existing yaml config: %v", err)
 	}
 
-	cfg, err := buildConfig(configAddr)
+	cfg, err := buildConfig(configAddr, true)
 	if err != nil {
 		return err
 	}
@@ -156,7 +183,7 @@ func writeConfig(configAddr string) error {
 	return ioutil.WriteFile(filename, cfg, 0644)
 }
 
-func buildConfig(configAddr string) ([]byte, error) {
+func buildConfig(configAddr string, obfs4 bool) ([]byte, error) {
 	bytes, err := ioutil.ReadFile("./config-template.yaml")
 	if err != nil {
 		return nil, fmt.Errorf("Could not read config %v", err)
@@ -170,15 +197,26 @@ func buildConfig(configAddr string) ([]byte, error) {
 	cfg.CloudConfig = "http://" + configAddr
 	cfg.FrontedCloudConfig = cfg.CloudConfig
 
-	cert, err := ioutil.ReadFile(CertFile)
-	if err != nil {
-		return nil, fmt.Errorf("Could not read cert %v", err)
-	}
-
 	srv := cfg.Client.ChainedServers["fallback-template"]
-	srv.Addr = ProxyServerAddr
 	srv.AuthToken = Token
-	srv.Cert = string(cert)
+	if obfs4 {
+		srv.Addr = OBFS4ServerAddr
+
+		bridgelineFile, err := ioutil.ReadFile("obfs4_bridgeline.txt")
+		if err != nil {
+			return nil, fmt.Errorf("Could not read obfs4_bridgeline.txt: %v", err)
+		}
+		obfs4extract := regexp.MustCompile(".+cert=([^\\s]+).+")
+		srv.Cert = string(obfs4extract.FindSubmatch(bridgelineFile)[1])
+	} else {
+		srv.Addr = ProxyServerAddr
+
+		cert, err := ioutil.ReadFile(CertFile)
+		if err != nil {
+			return nil, fmt.Errorf("Could not read cert %v", err)
+		}
+		srv.Cert = string(cert)
+	}
 	out, err := yaml.Marshal(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("Could not marshal config %v", err)

@@ -65,3 +65,5 @@ lantern-installer*
 src/github.com/getlantern/rotator/test_daily.log
 src/github.com/getlantern/integrationtests/*.pem
 src/github.com/getlantern/integrationtests/lantern-9999.99.99.yaml
+src/github.com/getlantern/integrationtests/obfs4_bridgeline.txt
+src/github.com/getlantern/integrationtests/obfs4_state.json
