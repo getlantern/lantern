@@ -5,8 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -18,7 +16,6 @@ import android.net.VpnService;
 import android.net.wifi.WifiManager;
 import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.view.MenuItem;
@@ -26,26 +23,14 @@ import android.view.KeyEvent;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v4.view.ViewPager;
 
-import org.getlantern.lantern.BuildConfig;
 import org.getlantern.lantern.vpn.Service;
 import org.getlantern.lantern.fragment.FeedFragment;
 import org.getlantern.lantern.model.GetFeed;
-import org.getlantern.lantern.model.FeedItem;      
 import org.getlantern.lantern.model.UI;
 import org.getlantern.lantern.model.Utils;
 import org.getlantern.lantern.R;
 
 import java.util.ArrayList; 
-import java.util.List;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.net.URL;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentPagerAdapter;
 
 import com.thefinestartist.finestwebview.FinestWebView;
 import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItemAdapter;
@@ -383,7 +368,7 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
                         networkInfo.getType() == ConnectivityManager.TYPE_WIFI &&
                         !networkInfo.isConnected()) {
                     stopLantern();
-                        }
+                }
             }
         }
     }
