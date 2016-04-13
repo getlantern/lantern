@@ -1,6 +1,7 @@
 package integrationtests
 
 import (
+	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -35,7 +36,7 @@ const (
 )
 
 func TestProxying(t *testing.T) {
-	httpAddr, _, err := startWebServer(t)
+	httpAddr, httpsAddr, err := startWebServer(t)
 	if !assert.NoError(t, err) {
 		return
 	}
@@ -60,7 +61,7 @@ func TestProxying(t *testing.T) {
 		return
 	}
 
-	makeRequest(t, httpAddr)
+	makeRequest(t, httpAddr, httpsAddr)
 }
 
 func startWebServer(t *testing.T) (string, string, error) {
@@ -210,20 +211,28 @@ func startApp(t *testing.T) error {
 	return waitforserver.WaitForServer("tcp", LocalProxyAddr, 5*time.Second)
 }
 
-func makeRequest(t *testing.T, addr string) {
+func makeRequest(t *testing.T, httpAddr string, httpsAddr string) {
 	proxyURL, _ := url.Parse("http://" + LocalProxyAddr)
 	client := &http.Client{
 		Transport: &http.Transport{
 			Proxy: http.ProxyURL(proxyURL),
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
 		},
 	}
 
-	resp, err := client.Get("http://" + addr)
-	if assert.NoError(t, err, "Unable to GET") {
+	doRequest(t, client, "http://"+httpAddr)
+	doRequest(t, client, "https://"+httpsAddr)
+}
+
+func doRequest(t *testing.T, client *http.Client, url string) {
+	resp, err := client.Get(url)
+	if assert.NoError(t, err, "Unable to GET for "+url) {
 		defer resp.Body.Close()
 		b, err := ioutil.ReadAll(resp.Body)
-		if assert.NoError(t, err, "Unable to read response") {
-			if assert.Equal(t, http.StatusOK, resp.StatusCode, "Bad response status: "+string(b)) {
+		if assert.NoError(t, err, "Unable to read response for "+url) {
+			if assert.Equal(t, http.StatusOK, resp.StatusCode, "Bad response status for "+url+": "+string(b)) {
 				assert.Equal(t, Content, string(b))
 			}
 		}
