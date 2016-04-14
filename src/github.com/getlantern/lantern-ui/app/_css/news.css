@@ -128,10 +128,13 @@
   width: 145px;
   height: 88px;
   margin: 17px 21px;
+  overflow: hidden;
+  border: 1px solid #000000;
 }
 
 #news .feed-thumbnail img {
-  border: 1px solid #000000;
+  min-width: 145px;
+  min-height: 88px;
 }
 
 #news .content {

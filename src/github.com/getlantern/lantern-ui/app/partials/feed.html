@@ -1,6 +1,6 @@
 <a class="item" target="_blank" href="{{feed.link}}" ng-click="trackFeed(feedsTitle)">
-  <div class="feed-thumbnail">
-    <img ng-show="feed.image" ng-src="{{feed.image}}"/>
+  <div ng-if="feed.image" class="feed-thumbnail">
+    <img ng-src="{{feed.image}}"/>
   </div>
   <div class="content">
     <span class="feed-source"></span>
