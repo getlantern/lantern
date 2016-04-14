@@ -102,7 +102,6 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
             return;
         }
 
-        // setup our UI
         try {
             // configure actions to be taken whenever slider changes state
             PackageInfo pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
@@ -131,11 +130,10 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
     }
 
     private String startLocalProxy() {
-
         // if the Lantern VPN is already running
         // then we just fetch the feed without
         // starting another local proxy
-        if (Service.IsRunning) {
+        if (Service.isRunning(context)) {
             return "";
         }
 
@@ -268,6 +266,8 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
 
         View tab = viewPagerTab.getTabAt(0);
         tab.setSelected(true);
+
+        changeFeedHeaderColor(Service.IsRunning);
     }
 
 
