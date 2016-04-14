@@ -36,73 +36,78 @@
 }
 
 #news .tab-content {
+  overflow: hidden;
+}
+
+#news .feeds-container {
   border: 1px solid black;
   margin: 0 auto;
+  height: 800px;
+  overflow-y: scroll;
+  overflow-x: hidden;
 }
 
 @media (min-width: 780px){
-  #news .tab-content, #news .nav {
+  #news .feeds-container, #news .nav {
     width: 700px;
   }
 }
 
 @media (max-width: 780px){
-  #news .tab-content, #news .nav {
+  #news .feeds-container, #news .nav {
     width: 500px;
   }
 }
 
 @media (max-width: 600px) {
-  #news .tab-content, #news .nav {
+  #news .feeds-container, #news .nav {
     width: 450px;
   }
 }
 
 @media (max-width: 400px) {
-  #news .tab-content, #news .nav {
+  #news .feeds-container, #news .nav {
     width: 250px;
   }
 }
 
 @media screen and (max-height: 1020px) {
-  #news .tab-content {
+  #news .feeds-container {
     height: 700px;
   }
 }
 
 @media screen and (max-height: 920px) {
-  #news .tab-content {
+  #news .feeds-container {
     height: 600px;
   }
 }
 
 @media screen and (max-height: 820px) {
-  #news .tab-content {
+  #news .feeds-container {
     height: 500px;
   }
 }
 
 @media screen and (max-height: 720px) {
-  #news .tab-content {
+  #news .feeds-container {
     height: 400px;
   }
 }
 
 @media screen and (max-height: 620px) {
-  #news .tab-content {
+  #news .feeds-container {
     height: 300px;
   }
 }
 
 @media screen and (max-height: 520px) {
-  #news .tab-content{
+  #news .feeds-container{
     height: 200px;
   }
 }
 
-#news .tab-pane {
-  overflow-y: scroll;
-  overflow-x: hidden;
+#news .infinite-scroll {
   background-color: #fafbfb;
 }
 
@@ -118,21 +123,18 @@
   background-color: #eeeeee;
 }
 
-/*#news .item .fadeout{
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: 20px;
-  background-image: linear-gradient(to bottom, transparent, white);
-  z-index: 2;
-}*/
-
 #news .feed-thumbnail {
   float: left;
   width: 145px;
   height: 88px;
   margin: 17px 21px;
+  overflow: hidden;
   border: 1px solid #000000;
+}
+
+#news .feed-thumbnail img {
+  min-width: 145px;
+  min-height: 88px;
 }
 
 #news .content {
@@ -151,11 +153,36 @@
 
 #news h4 {
   font-weight: 700;
-  line-height: 16px;
+  line-height: 18px;
 }
 
+/* http://hackingui.com/front-end/a-pure-css-solution-for-multiline-text-truncation/ */
 #news p.snippet {
+  position: relative;
   line-height: 16px;
   height: 32px;
   overflow: hidden;
+  padding-right: 1em;
+  text-align: justify;
+}
+
+#news p.snippet:before {
+  content: '...';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+}
+
+#news p.snippet:after {
+  content: '';
+  position: absolute;
+  right: 0;
+  width: 1em;
+  height: 1em;
+  margin-top: 0.2em;
+  background: #fafbfb;
+}
+
+#news .item:hover p.snippet:after {
+  background-color: #eeeeee;
 }
