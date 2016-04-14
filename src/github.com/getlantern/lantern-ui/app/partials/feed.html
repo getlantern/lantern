@@ -1,5 +1,7 @@
 <a class="item" target="_blank" href="{{feed.link}}" ng-click="trackFeed(feedsTitle)">
-  <img class="feed-thumbnail" ng-if="feed.image" ng-src="{{feed.image}}" />
+  <div class="feed-thumbnail">
+    <img ng-show="feed.image" ng-src="{{feed.image}}"/>
+  </div>
   <div class="content">
     <span class="feed-source"></span>
     <p class="feed-date">{{feed.source}}&nbsp;{{feed.publishedDate | date: mediumDate}}</p>
