@@ -66,7 +66,6 @@ type FeedProvider interface {
 
 type FeedRetriever interface {
 	AddFeed(string, string, string, string)
-	Finish()
 }
 
 func FeedByName(name string, retriever FeedRetriever) {
@@ -76,7 +75,6 @@ func FeedByName(name string, retriever FeedRetriever) {
 				i.Image, i.Link)
 		}
 	}
-	retriever.Finish()
 }
 
 // GetFeed creates an http.Client and fetches the latest

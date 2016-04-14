@@ -65,19 +65,20 @@ public class FeedFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         Log.d(TAG, "Created view for " + this.feedName);
-        Thread feedThread = new Thread() {
+        new Thread() {
             public void run() {
+
                 Lantern.FeedByName(feedName, new Lantern.FeedRetriever.Stub() {
-                    public void AddFeed(String title, String desc, String image, String url) {
+                    public void AddFeed(String title, String desc, String image, 
+                            String url) {
                         mFeedItems.add(new FeedItem(title, desc, image, url));
                     }
-                    public void Finish() {
-                        Log.d(TAG, "Length of feed items: " + mFeedItems.size());
-                        NotifyDataSetChanged();
-                    }
                 });
+
+                Log.d(TAG, String.format("Feed %s has %d items", feedName, 
+                            mFeedItems.size()));
+                NotifyDataSetChanged();
             }
-        };
-        feedThread.start();
+        }.start();
     }
 }
