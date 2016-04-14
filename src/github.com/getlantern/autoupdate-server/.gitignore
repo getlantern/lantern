@@ -1,0 +1,7 @@
+*.swp
+*.sw?
+*.pem
+autoupdate-server
+assets/
+server/_tests
+server/patches

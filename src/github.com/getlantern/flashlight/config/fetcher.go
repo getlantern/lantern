@@ -16,20 +16,17 @@ import (
 )
 
 const (
-	etag                  = "X-Lantern-Etag"
-	ifNoneMatch           = "X-Lantern-If-None-Match"
-	userIDHeader          = "X-Lantern-User-Id"
-	tokenHeader           = "X-Lantern-Pro-Token"
-	chainedCloudConfigURL = "http://config.getiantem.org/cloud.yaml.gz"
+	cloudConfigPollInterval = 1 * time.Minute
+	etag                    = "X-Lantern-Etag"
+	ifNoneMatch             = "X-Lantern-If-None-Match"
+	userIDHeader            = "X-Lantern-User-Id"
+	tokenHeader             = "X-Lantern-Pro-Token"
+	chainedCloudConfigURL   = "http://config.getiantem.org/cloud.yaml.gz"
 
 	// This is over HTTP because proxies do not forward X-Forwarded-For with HTTPS
 	// and because we only support falling back to direct domain fronting through
 	// the local proxy for HTTP.
 	frontedCloudConfigURL = "http://d2wi0vwulmtn99.cloudfront.net/cloud.yaml.gz"
-)
-
-var (
-	CloudConfigPollInterval = 1 * time.Minute
 )
 
 // fetcher periodically fetches the latest cloud configuration.
@@ -70,7 +67,7 @@ func (cf *fetcher) pollForConfig(currentCfg yamlconf.Config, stickyConfig bool) 
 		return mutate, waitTime, nil
 	}
 
-	if bytes, err := cf.fetchCloudConfig(cfg); err == nil {
+	if bytes, err := cf.fetchCloudConfig(chainedCloudConfigURL); err == nil {
 		// bytes will be nil if the config is unchanged (not modified)
 		if bytes != nil {
 			//log.Debugf("Downloaded config:\n %v", string(bytes[:400]))
@@ -95,10 +92,7 @@ func (cf *fetcher) pollForConfig(currentCfg yamlconf.Config, stickyConfig bool) 
 	return mutate, waitTime, nil
 }
 
-func (cf *fetcher) fetchCloudConfig(cfg *Config) ([]byte, error) {
-	log.Debugf("Fetching cloud config from %v (%v)", cfg.CloudConfig, cfg.FrontedCloudConfig)
-
-	url := cfg.CloudConfig
+func (cf *fetcher) fetchCloudConfig(url string) ([]byte, error) {
 	cb := "?" + uuid.New()
 	nocache := url + cb
 	req, err := http.NewRequest("GET", nocache, nil)
@@ -114,7 +108,7 @@ func (cf *fetcher) fetchCloudConfig(cfg *Config) ([]byte, error) {
 	// Prevents intermediate nodes (domain-fronters) from caching the content
 	req.Header.Set("Cache-Control", "no-cache")
 	// Set the fronted URL to lookup the config in parallel using chained and domain fronted servers.
-	req.Header.Set("Lantern-Fronted-URL", cfg.FrontedCloudConfig+cb)
+	req.Header.Set("Lantern-Fronted-URL", frontedCloudConfigURL+cb)
 
 	id := cf.user.GetUserID()
 	if id != 0 {
@@ -165,5 +159,5 @@ func (cf *fetcher) fetchCloudConfig(cfg *Config) ([]byte, error) {
 // cloudPollSleepTime adds some randomization to our requests to make them
 // less distinguishing on the network.
 func (cf *fetcher) cloudPollSleepTime() time.Duration {
-	return time.Duration((CloudConfigPollInterval.Nanoseconds() / 2) + rand.Int63n(CloudConfigPollInterval.Nanoseconds()))
+	return time.Duration((cloudConfigPollInterval.Nanoseconds() / 2) + rand.Int63n(cloudConfigPollInterval.Nanoseconds()))
 }

@@ -1,0 +1,1393 @@
+{
+  "metadata":{
+    "apiVersion":"2014-11-13",
+    "endpointPrefix":"ecs",
+    "serviceAbbreviation":"Amazon ECS",
+    "serviceFullName":"Amazon EC2 Container Service",
+    "signatureVersion":"v4",
+    "signingName":"ecs",
+    "xmlNamespace":"http://ecs.amazonaws.com/doc/2014-11-13/",
+    "protocol":"query"
+  },
+  "documentation":"<p>Amazon EC2 Container Service (Amazon ECS) is a highly scalable, fast, container management service that makes it easy to run, stop, and manage Docker containers on a cluster of Amazon EC2 instances. Amazon ECS lets you launch and stop container-enabled applications with simple API calls, allows you to get the state of your cluster from a centralized service, and gives you access to many familiar Amazon EC2 features like security groups, Amazon EBS volumes, and IAM roles.</p> <p>You can use Amazon ECS to schedule the placement of containers across your cluster based on your resource needs, isolation policies, and availability requirements. Amazon EC2 Container Service eliminates the need for you to operate your own cluster management and configuration management systems or worry about scaling your management infrastructure.</p>",
+  "operations":{
+    "CreateCluster":{
+      "name":"CreateCluster",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateClusterRequest"},
+      "output":{
+        "shape":"CreateClusterResponse",
+        "resultWrapper":"CreateClusterResult"
+      },
+      "errors":[
+        {
+          "shape":"ServerException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by a server-side issue.</p>"
+        },
+        {
+          "shape":"ClientException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by something the client did, such as use an action or resource on behalf of a user that doesn't have permission to use the action or resource, or specify an identifier that is not valid.</p>"
+        }
+      ],
+      "documentation":"<p>Creates a new Amazon ECS cluster. By default, your account will receive a <code>default</code> cluster when you launch your first container instance. However, you can create your own cluster with a unique name with the <code>CreateCluster</code> action.</p> <important> <p>During the preview, each account is limited to two clusters.</p> </important>"
+    },
+    "DeleteCluster":{
+      "name":"DeleteCluster",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteClusterRequest"},
+      "output":{
+        "shape":"DeleteClusterResponse",
+        "resultWrapper":"DeleteClusterResult"
+      },
+      "errors":[
+        {
+          "shape":"ServerException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by a server-side issue.</p>"
+        },
+        {
+          "shape":"ClientException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by something the client did, such as use an action or resource on behalf of a user that doesn't have permission to use the action or resource, or specify an identifier that is not valid.</p>"
+        }
+      ],
+      "documentation":"<p>Deletes the specified cluster. You must deregister all container instances from this cluster before you may delete it. You can list the container instances in a cluster with <a>ListContainerInstances</a> and deregister them with <a>DeregisterContainerInstance</a>.</p>"
+    },
+    "DeregisterContainerInstance":{
+      "name":"DeregisterContainerInstance",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeregisterContainerInstanceRequest"},
+      "output":{
+        "shape":"DeregisterContainerInstanceResponse",
+        "resultWrapper":"DeregisterContainerInstanceResult"
+      },
+      "errors":[
+        {
+          "shape":"ServerException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by a server-side issue.</p>"
+        },
+        {
+          "shape":"ClientException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by something the client did, such as use an action or resource on behalf of a user that doesn't have permission to use the action or resource, or specify an identifier that is not valid.</p>"
+        }
+      ],
+      "documentation":"<p>Deregisters an Amazon ECS container instance from the specified cluster. This instance will no longer be available to run tasks.</p>"
+    },
+    "DeregisterTaskDefinition":{
+      "name":"DeregisterTaskDefinition",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeregisterTaskDefinitionRequest"},
+      "output":{
+        "shape":"DeregisterTaskDefinitionResponse",
+        "resultWrapper":"DeregisterTaskDefinitionResult"
+      },
+      "errors":[
+        {
+          "shape":"ServerException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by a server-side issue.</p>"
+        },
+        {
+          "shape":"ClientException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by something the client did, such as use an action or resource on behalf of a user that doesn't have permission to use the action or resource, or specify an identifier that is not valid.</p>"
+        }
+      ],
+      "documentation":"<p>Deregisters the specified task definition. You will no longer be able to run tasks from this definition after deregistration.</p>"
+    },
+    "DescribeClusters":{
+      "name":"DescribeClusters",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeClustersRequest"},
+      "output":{
+        "shape":"DescribeClustersResponse",
+        "resultWrapper":"DescribeClustersResult"
+      },
+      "errors":[
+        {
+          "shape":"ServerException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by a server-side issue.</p>"
+        },
+        {
+          "shape":"ClientException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by something the client did, such as use an action or resource on behalf of a user that doesn't have permission to use the action or resource, or specify an identifier that is not valid.</p>"
+        }
+      ],
+      "documentation":"<p>Describes one or more of your clusters.</p>"
+    },
+    "DescribeContainerInstances":{
+      "name":"DescribeContainerInstances",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeContainerInstancesRequest"},
+      "output":{
+        "shape":"DescribeContainerInstancesResponse",
+        "resultWrapper":"DescribeContainerInstancesResult"
+      },
+      "errors":[
+        {
+          "shape":"ServerException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by a server-side issue.</p>"
+        },
+        {
+          "shape":"ClientException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by something the client did, such as use an action or resource on behalf of a user that doesn't have permission to use the action or resource, or specify an identifier that is not valid.</p>"
+        }
+      ],
+      "documentation":"<p>Describes Amazon EC2 Container Service container instances. Returns metadata about registered and remaining resources on each container instance requested.</p>"
+    },
+    "DescribeTaskDefinition":{
+      "name":"DescribeTaskDefinition",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeTaskDefinitionRequest"},
+      "output":{
+        "shape":"DescribeTaskDefinitionResponse",
+        "resultWrapper":"DescribeTaskDefinitionResult"
+      },
+      "errors":[
+        {
+          "shape":"ServerException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by a server-side issue.</p>"
+        },
+        {
+          "shape":"ClientException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by something the client did, such as use an action or resource on behalf of a user that doesn't have permission to use the action or resource, or specify an identifier that is not valid.</p>"
+        }
+      ],
+      "documentation":"<p>Describes a task definition.</p>"
+    },
+    "DescribeTasks":{
+      "name":"DescribeTasks",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeTasksRequest"},
+      "output":{
+        "shape":"DescribeTasksResponse",
+        "resultWrapper":"DescribeTasksResult"
+      },
+      "errors":[
+        {
+          "shape":"ServerException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by a server-side issue.</p>"
+        },
+        {
+          "shape":"ClientException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by something the client did, such as use an action or resource on behalf of a user that doesn't have permission to use the action or resource, or specify an identifier that is not valid.</p>"
+        }
+      ],
+      "documentation":"<p>Describes a specified task or tasks.</p>"
+    },
+    "DiscoverPollEndpoint":{
+      "name":"DiscoverPollEndpoint",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DiscoverPollEndpointRequest"},
+      "output":{
+        "shape":"DiscoverPollEndpointResponse",
+        "resultWrapper":"DiscoverPollEndpointResult"
+      },
+      "errors":[
+        {
+          "shape":"ServerException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by a server-side issue.</p>"
+        },
+        {
+          "shape":"ClientException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by something the client did, such as use an action or resource on behalf of a user that doesn't have permission to use the action or resource, or specify an identifier that is not valid.</p>"
+        }
+      ],
+      "documentation":"<note><p>This action is only used by the Amazon EC2 Container Service agent, and it is not intended for use outside of the agent.</p></note> <p>Returns an endpoint for the Amazon EC2 Container Service agent to poll for updates.</p>"
+    },
+    "ListClusters":{
+      "name":"ListClusters",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListClustersRequest"},
+      "output":{
+        "shape":"ListClustersResponse",
+        "resultWrapper":"ListClustersResult"
+      },
+      "errors":[
+        {
+          "shape":"ServerException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by a server-side issue.</p>"
+        },
+        {
+          "shape":"ClientException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by something the client did, such as use an action or resource on behalf of a user that doesn't have permission to use the action or resource, or specify an identifier that is not valid.</p>"
+        }
+      ],
+      "documentation":"<p>Returns a list of existing clusters.</p>"
+    },
+    "ListContainerInstances":{
+      "name":"ListContainerInstances",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListContainerInstancesRequest"},
+      "output":{
+        "shape":"ListContainerInstancesResponse",
+        "resultWrapper":"ListContainerInstancesResult"
+      },
+      "errors":[
+        {
+          "shape":"ServerException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by a server-side issue.</p>"
+        },
+        {
+          "shape":"ClientException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by something the client did, such as use an action or resource on behalf of a user that doesn't have permission to use the action or resource, or specify an identifier that is not valid.</p>"
+        }
+      ],
+      "documentation":"<p>Returns a list of container instances in a specified cluster.</p>"
+    },
+    "ListTaskDefinitions":{
+      "name":"ListTaskDefinitions",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListTaskDefinitionsRequest"},
+      "output":{
+        "shape":"ListTaskDefinitionsResponse",
+        "resultWrapper":"ListTaskDefinitionsResult"
+      },
+      "errors":[
+        {
+          "shape":"ServerException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by a server-side issue.</p>"
+        },
+        {
+          "shape":"ClientException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by something the client did, such as use an action or resource on behalf of a user that doesn't have permission to use the action or resource, or specify an identifier that is not valid.</p>"
+        }
+      ],
+      "documentation":"<p>Returns a list of task definitions that are registered to your account. You can filter the results by family name with the <code>familyPrefix</code> parameter.</p>"
+    },
+    "ListTasks":{
+      "name":"ListTasks",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListTasksRequest"},
+      "output":{
+        "shape":"ListTasksResponse",
+        "resultWrapper":"ListTasksResult"
+      },
+      "errors":[
+        {
+          "shape":"ServerException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by a server-side issue.</p>"
+        },
+        {
+          "shape":"ClientException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by something the client did, such as use an action or resource on behalf of a user that doesn't have permission to use the action or resource, or specify an identifier that is not valid.</p>"
+        }
+      ],
+      "documentation":"<p>Returns a list of tasks for a specified cluster. You can filter the results by family name or by a particular container instance with the <code>family</code> and <code>containerInstance</code> parameters.</p>"
+    },
+    "RegisterContainerInstance":{
+      "name":"RegisterContainerInstance",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"RegisterContainerInstanceRequest"},
+      "output":{
+        "shape":"RegisterContainerInstanceResponse",
+        "resultWrapper":"RegisterContainerInstanceResult"
+      },
+      "errors":[
+        {
+          "shape":"ServerException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by a server-side issue.</p>"
+        },
+        {
+          "shape":"ClientException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by something the client did, such as use an action or resource on behalf of a user that doesn't have permission to use the action or resource, or specify an identifier that is not valid.</p>"
+        }
+      ],
+      "documentation":"<note><p>This action is only used by the Amazon EC2 Container Service agent, and it is not intended for use outside of the agent.</p></note> <p>Registers an Amazon EC2 instance into the specified cluster. This instance will become available to place containers on.</p>"
+    },
+    "RegisterTaskDefinition":{
+      "name":"RegisterTaskDefinition",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"RegisterTaskDefinitionRequest"},
+      "output":{
+        "shape":"RegisterTaskDefinitionResponse",
+        "resultWrapper":"RegisterTaskDefinitionResult"
+      },
+      "errors":[
+        {
+          "shape":"ServerException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by a server-side issue.</p>"
+        },
+        {
+          "shape":"ClientException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by something the client did, such as use an action or resource on behalf of a user that doesn't have permission to use the action or resource, or specify an identifier that is not valid.</p>"
+        }
+      ],
+      "documentation":"<p>Registers a new task definition from the supplied <code>family</code> and <code>containerDefinitions</code>.</p>"
+    },
+    "RunTask":{
+      "name":"RunTask",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"RunTaskRequest"},
+      "output":{
+        "shape":"RunTaskResponse",
+        "resultWrapper":"RunTaskResult"
+      },
+      "errors":[
+        {
+          "shape":"ServerException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by a server-side issue.</p>"
+        },
+        {
+          "shape":"ClientException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by something the client did, such as use an action or resource on behalf of a user that doesn't have permission to use the action or resource, or specify an identifier that is not valid.</p>"
+        }
+      ],
+      "documentation":"<p>Start a task using random placement and the default Amazon ECS scheduler. If you want to use your own scheduler or place a task on a specific container instance, use <code>StartTask</code> instead.</p>"
+    },
+    "StartTask":{
+      "name":"StartTask",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"StartTaskRequest"},
+      "output":{
+        "shape":"StartTaskResponse",
+        "resultWrapper":"StartTaskResult"
+      },
+      "errors":[
+        {
+          "shape":"ServerException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by a server-side issue.</p>"
+        },
+        {
+          "shape":"ClientException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by something the client did, such as use an action or resource on behalf of a user that doesn't have permission to use the action or resource, or specify an identifier that is not valid.</p>"
+        }
+      ],
+      "documentation":"<p>Starts a new task from the specified task definition on the specified container instance or instances. If you want to use the default Amazon ECS scheduler to place your task, use <code>RunTask</code> instead.</p>"
+    },
+    "StopTask":{
+      "name":"StopTask",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"StopTaskRequest"},
+      "output":{
+        "shape":"StopTaskResponse",
+        "resultWrapper":"StopTaskResult"
+      },
+      "errors":[
+        {
+          "shape":"ServerException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by a server-side issue.</p>"
+        },
+        {
+          "shape":"ClientException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by something the client did, such as use an action or resource on behalf of a user that doesn't have permission to use the action or resource, or specify an identifier that is not valid.</p>"
+        }
+      ],
+      "documentation":"<p>Stops a running task.</p>"
+    },
+    "SubmitContainerStateChange":{
+      "name":"SubmitContainerStateChange",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"SubmitContainerStateChangeRequest"},
+      "output":{
+        "shape":"SubmitContainerStateChangeResponse",
+        "resultWrapper":"SubmitContainerStateChangeResult"
+      },
+      "errors":[
+        {
+          "shape":"ServerException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by a server-side issue.</p>"
+        },
+        {
+          "shape":"ClientException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by something the client did, such as use an action or resource on behalf of a user that doesn't have permission to use the action or resource, or specify an identifier that is not valid.</p>"
+        }
+      ],
+      "documentation":"<note><p>This action is only used by the Amazon EC2 Container Service agent, and it is not intended for use outside of the agent.</p></note> <p>Sent to acknowledge that a container changed states.</p>"
+    },
+    "SubmitTaskStateChange":{
+      "name":"SubmitTaskStateChange",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"SubmitTaskStateChangeRequest"},
+      "output":{
+        "shape":"SubmitTaskStateChangeResponse",
+        "resultWrapper":"SubmitTaskStateChangeResult"
+      },
+      "errors":[
+        {
+          "shape":"ServerException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by a server-side issue.</p>"
+        },
+        {
+          "shape":"ClientException",
+          "exception":true,
+          "documentation":"<p>These errors are usually caused by something the client did, such as use an action or resource on behalf of a user that doesn't have permission to use the action or resource, or specify an identifier that is not valid.</p>"
+        }
+      ],
+      "documentation":"<note><p>This action is only used by the Amazon EC2 Container Service agent, and it is not intended for use outside of the agent.</p></note> <p>Sent to acknowledge that a task changed states.</p>"
+    }
+  },
+  "shapes":{
+    "Boolean":{"type":"boolean"},
+    "BoxedBoolean":{
+      "type":"boolean",
+      "box":true
+    },
+    "BoxedInteger":{
+      "type":"integer",
+      "box":true
+    },
+    "ClientException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"String"}
+      },
+      "exception":true,
+      "documentation":"<p>These errors are usually caused by something the client did, such as use an action or resource on behalf of a user that doesn't have permission to use the action or resource, or specify an identifier that is not valid.</p>"
+    },
+    "Cluster":{
+      "type":"structure",
+      "members":{
+        "clusterArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) that identifies the cluster. The ARN contains the <code>arn:aws:ecs</code> namespace, followed by the region of the cluster, the AWS account ID of the cluster owner, the <code>cluster</code> namespace, and then the cluster name. For example, arn:aws:ecs:<i>region</i>:<i>012345678910</i>:cluster/<i>test</i>.</p>"
+        },
+        "clusterName":{
+          "shape":"String",
+          "documentation":"<p>A user-generated string that you can use to identify your cluster.</p>"
+        },
+        "status":{
+          "shape":"String",
+          "documentation":"<p>The status of the cluster. The valid values are <code>ACTIVE</code> or <code>INACTIVE</code>. <code>ACTIVE</code> indicates that you can register container instances with the cluster and the associated instances can accept tasks.</p>"
+        }
+      },
+      "documentation":"<p>A regional grouping of one or more container instances on which you can run task requests. Each account receives a default cluster the first time you use the Amazon ECS service, but you may also create other clusters. Clusters may contain more than one instance type simultaneously.</p> <important> <p>During the preview, each account is limited to two clusters.</p> </important>"
+    },
+    "Clusters":{
+      "type":"list",
+      "member":{"shape":"Cluster"}
+    },
+    "Container":{
+      "type":"structure",
+      "members":{
+        "containerArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the container.</p>"
+        },
+        "taskArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the task.</p>"
+        },
+        "name":{
+          "shape":"String",
+          "documentation":"<p>The name of the container.</p>"
+        },
+        "lastStatus":{
+          "shape":"String",
+          "documentation":"<p>The last known status of the container.</p>"
+        },
+        "exitCode":{
+          "shape":"BoxedInteger",
+          "documentation":"<p>The exit code returned from the container.</p>"
+        },
+        "reason":{
+          "shape":"String",
+          "documentation":"<p>A short (255 max characters) human-readable string to provide additional detail about a running or stopped container.</p>"
+        },
+        "networkBindings":{"shape":"NetworkBindings"}
+      }
+    },
+    "ContainerDefinition":{
+      "type":"structure",
+      "members":{
+        "name":{
+          "shape":"String",
+          "documentation":"<p>The name of a container. If you are linking multiple containers together in a task definition, the <code>name</code> of one container can be entered in the <code>links</code> of another container to connect the containers.</p>"
+        },
+        "image":{
+          "shape":"String",
+          "documentation":"<p>The image used to start a container. This string is passed directly to the Docker daemon. Images in the Docker Hub registry are available by default. Other repositories are specified with <code><i>repository-url</i>/<i>image</i>:<i>tag</i></code>.</p>"
+        },
+        "cpu":{
+          "shape":"Integer",
+          "documentation":"<p>The number of <code>cpu</code> units reserved for the container. A container instance has 1,024 <code>cpu</code> units for every CPU core.</p>"
+        },
+        "memory":{
+          "shape":"Integer",
+          "documentation":"<p>The number of MiB of memory reserved for the container. Docker will allocate a minimum of 4 MiB of memory to a container.</p>"
+        },
+        "links":{
+          "shape":"StringList",
+          "documentation":"<p>The <code>link</code> parameter allows containers to communicate with each other without the need for port mappings, using the <code>name</code> parameter. For more information on linking Docker containers, see <a href=\"https://docs.docker.com/userguide/dockerlinks/\">https://docs.docker.com/userguide/dockerlinks/</a>.</p>"
+        },
+        "portMappings":{
+          "shape":"PortMappingList",
+          "documentation":"<p>The list of port mappings for the container.</p>"
+        },
+        "essential":{
+          "shape":"BoxedBoolean",
+          "documentation":"<p>If the <code>essential</code> parameter of a container is marked as <code>true</code>, the failure of that container will stop the task. If the <code>essential</code> parameter of a container is marked as <code>false</code>, then its failure will not affect the rest of the containers in a task.</p>"
+        },
+        "entryPoint":{
+          "shape":"StringList",
+          "documentation":"<p>The <code>ENTRYPOINT</code> that is passed to the container. For more information on the Docker <code>ENTRYPOINT</code> parameter, see <a href=\"https://docs.docker.com/reference/builder/#entrypoint\">https://docs.docker.com/reference/builder/#entrypoint</a>.</p>"
+        },
+        "command":{
+          "shape":"StringList",
+          "documentation":"<p>The <code>CMD</code> that is passed to the container. For more information on the Docker <code>CMD</code> parameter, see <a href=\"https://docs.docker.com/reference/builder/#cmd\">https://docs.docker.com/reference/builder/#cmd</a>.</p>"
+        },
+        "environment":{
+          "shape":"EnvironmentVariables",
+          "documentation":"<p>The environment variables to pass to a container.</p>"
+        }
+      },
+      "documentation":"<p>Container definitions are used in task definitions to describe the different containers that are launched as part of a task.</p>"
+    },
+    "ContainerDefinitions":{
+      "type":"list",
+      "member":{"shape":"ContainerDefinition"}
+    },
+    "ContainerInstance":{
+      "type":"structure",
+      "members":{
+        "containerInstanceArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the container instance. The ARN contains the <code>arn:aws:ecs</code> namespace, followed by the region of the container instance, the AWS account ID of the container instance owner, the <code>container-instance</code> namespace, and then the container instance UUID. For example, arn:aws:ecs:<i>region</i>:<i>aws_account_id</i>:container-instance/<i>container_instance_UUID</i>.</p>"
+        },
+        "ec2InstanceId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon EC2 instance ID of the container instance.</p>"
+        },
+        "remainingResources":{
+          "shape":"Resources",
+          "documentation":"<p>The remaining resources of the container instance that are available for new tasks.</p>"
+        },
+        "registeredResources":{
+          "shape":"Resources",
+          "documentation":"<p>The registered resources on the container instance that are in use by current tasks.</p>"
+        },
+        "status":{
+          "shape":"String",
+          "documentation":"<p>The status of the container instance. The valid values are <code>ACTIVE</code> or <code>INACTIVE</code>. <code>ACTIVE</code> indicates that the container instance can accept tasks.</p>"
+        },
+        "agentConnected":{
+          "shape":"Boolean",
+          "documentation":"<p>This parameter returns <code>true</code> if the agent is actually connected to Amazon ECS. Registered instances with an agent that may be unhealthy or stopped will return <code>false</code>, and instances without a connected agent cannot accept placement request.</p>"
+        }
+      },
+      "documentation":"<p>An Amazon EC2 instance that is running the Amazon ECS agent and has been registered with a cluster.</p>"
+    },
+    "ContainerInstances":{
+      "type":"list",
+      "member":{"shape":"ContainerInstance"}
+    },
+    "ContainerOverride":{
+      "type":"structure",
+      "members":{
+        "name":{
+          "shape":"String",
+          "documentation":"<p>The name of the container that receives the override.</p>"
+        },
+        "command":{
+          "shape":"StringList",
+          "documentation":"<p>The command to send to the container that receives the override.</p>"
+        }
+      }
+    },
+    "ContainerOverrides":{
+      "type":"list",
+      "member":{"shape":"ContainerOverride"}
+    },
+    "Containers":{
+      "type":"list",
+      "member":{"shape":"Container"}
+    },
+    "CreateClusterRequest":{
+      "type":"structure",
+      "members":{
+        "clusterName":{
+          "shape":"String",
+          "documentation":"<p>The name of your cluster. If you do not specify a name for your cluster, you will create a cluster named <code>default</code>.</p>"
+        }
+      }
+    },
+    "CreateClusterResponse":{
+      "type":"structure",
+      "members":{
+        "cluster":{
+          "shape":"Cluster",
+          "documentation":"<p>The full description of your new cluster.</p>"
+        }
+      }
+    },
+    "DeleteClusterRequest":{
+      "type":"structure",
+      "required":["cluster"],
+      "members":{
+        "cluster":{
+          "shape":"String",
+          "documentation":"<p>The cluster you want to delete.</p>"
+        }
+      }
+    },
+    "DeleteClusterResponse":{
+      "type":"structure",
+      "members":{
+        "cluster":{
+          "shape":"Cluster",
+          "documentation":"<p>The full description of the deleted cluster.</p>"
+        }
+      }
+    },
+    "DeregisterContainerInstanceRequest":{
+      "type":"structure",
+      "required":["containerInstance"],
+      "members":{
+        "cluster":{
+          "shape":"String",
+          "documentation":"<p>The short name or full Amazon Resource Name (ARN) of the cluster that hosts the container instance you want to deregister. If you do not specify a cluster, the default cluster is assumed.</p>"
+        },
+        "containerInstance":{
+          "shape":"String",
+          "documentation":"<p>The container instance UUID or full Amazon Resource Name (ARN) of the container instance you want to deregister. The ARN contains the <code>arn:aws:ecs</code> namespace, followed by the region of the container instance, the AWS account ID of the container instance owner, the <code>container-instance</code> namespace, and then the container instance UUID. For example, arn:aws:ecs:<i>region</i>:<i>aws_account_id</i>:container-instance/<i>container_instance_UUID</i>.</p>"
+        },
+        "force":{
+          "shape":"BoxedBoolean",
+          "documentation":"<p>Force the deregistration of the container instance. You can use the <code>force</code> parameter if you have several tasks running on a container instance and you don't want to run <code>StopTask</code> for each task before deregistering the container instance.</p>"
+        }
+      }
+    },
+    "DeregisterContainerInstanceResponse":{
+      "type":"structure",
+      "members":{
+        "containerInstance":{"shape":"ContainerInstance"}
+      }
+    },
+    "DeregisterTaskDefinitionRequest":{
+      "type":"structure",
+      "required":["taskDefinition"],
+      "members":{
+        "taskDefinition":{
+          "shape":"String",
+          "documentation":"<p>The <code>family</code> and <code>revision</code> (<code>family:revision</code>) or full Amazon Resource Name (ARN) of the task definition that you want to deregister.</p>"
+        }
+      }
+    },
+    "DeregisterTaskDefinitionResponse":{
+      "type":"structure",
+      "members":{
+        "taskDefinition":{
+          "shape":"TaskDefinition",
+          "documentation":"<p>The full description of the deregistered task.</p>"
+        }
+      }
+    },
+    "DescribeClustersRequest":{
+      "type":"structure",
+      "members":{
+        "clusters":{
+          "shape":"StringList",
+          "documentation":"<p>A space-separated list of cluster names or full cluster Amazon Resource Name (ARN) entries. If you do not specify a cluster, the default cluster is assumed.</p>"
+        }
+      }
+    },
+    "DescribeClustersResponse":{
+      "type":"structure",
+      "members":{
+        "clusters":{
+          "shape":"Clusters",
+          "documentation":"<p>The list of clusters.</p>"
+        },
+        "failures":{"shape":"Failures"}
+      }
+    },
+    "DescribeContainerInstancesRequest":{
+      "type":"structure",
+      "required":["containerInstances"],
+      "members":{
+        "cluster":{
+          "shape":"String",
+          "documentation":"<p>The short name or full Amazon Resource Name (ARN) of the cluster that hosts the container instances you want to describe. If you do not specify a cluster, the default cluster is assumed.</p>"
+        },
+        "containerInstances":{
+          "shape":"StringList",
+          "documentation":"<p>A space-separated list of container instance UUIDs or full Amazon Resource Name (ARN) entries.</p>"
+        }
+      }
+    },
+    "DescribeContainerInstancesResponse":{
+      "type":"structure",
+      "members":{
+        "containerInstances":{
+          "shape":"ContainerInstances",
+          "documentation":"<p>The list of container instances.</p>"
+        },
+        "failures":{"shape":"Failures"}
+      }
+    },
+    "DescribeTaskDefinitionRequest":{
+      "type":"structure",
+      "required":["taskDefinition"],
+      "members":{
+        "taskDefinition":{
+          "shape":"String",
+          "documentation":"<p>The <code>family</code> and <code>revision</code> (<code>family:revision</code>) or full Amazon Resource Name (ARN) of the task definition that you want to describe.</p>"
+        }
+      }
+    },
+    "DescribeTaskDefinitionResponse":{
+      "type":"structure",
+      "members":{
+        "taskDefinition":{
+          "shape":"TaskDefinition",
+          "documentation":"<p>The full task definition description.</p>"
+        }
+      }
+    },
+    "DescribeTasksRequest":{
+      "type":"structure",
+      "required":["tasks"],
+      "members":{
+        "cluster":{
+          "shape":"String",
+          "documentation":"<p>The short name or full Amazon Resource Name (ARN) of the cluster that hosts the task you want to describe. If you do not specify a cluster, the default cluster is assumed.</p>"
+        },
+        "tasks":{
+          "shape":"StringList",
+          "documentation":"<p>A space-separated list of task UUIDs or full Amazon Resource Name (ARN) entries.</p>"
+        }
+      }
+    },
+    "DescribeTasksResponse":{
+      "type":"structure",
+      "members":{
+        "tasks":{
+          "shape":"Tasks",
+          "documentation":"<p>The list of tasks.</p>"
+        },
+        "failures":{"shape":"Failures"}
+      }
+    },
+    "DiscoverPollEndpointRequest":{
+      "type":"structure",
+      "members":{
+        "containerInstance":{
+          "shape":"String",
+          "documentation":"<p>The container instance UUID or full Amazon Resource Name (ARN) of the container instance. The ARN contains the <code>arn:aws:ecs</code> namespace, followed by the region of the container instance, the AWS account ID of the container instance owner, the <code>container-instance</code> namespace, and then the container instance UUID. For example, arn:aws:ecs:<i>region</i>:<i>aws_account_id</i>:container-instance/<i>container_instance_UUID</i>.</p>"
+        }
+      }
+    },
+    "DiscoverPollEndpointResponse":{
+      "type":"structure",
+      "members":{
+        "endpoint":{
+          "shape":"String",
+          "documentation":"<p>The endpoint for the Amazon ECS agent to poll.</p>"
+        }
+      }
+    },
+    "Double":{"type":"double"},
+    "EnvironmentVariables":{
+      "type":"list",
+      "member":{"shape":"KeyValuePair"}
+    },
+    "Failure":{
+      "type":"structure",
+      "members":{
+        "arn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the failed resource.</p>"
+        },
+        "reason":{
+          "shape":"String",
+          "documentation":"<p>The reason for the failure.</p>"
+        }
+      }
+    },
+    "Failures":{
+      "type":"list",
+      "member":{"shape":"Failure"}
+    },
+    "Integer":{"type":"integer"},
+    "KeyValuePair":{
+      "type":"structure",
+      "members":{
+        "name":{
+          "shape":"String",
+          "documentation":"<p>The name of the key value pair.</p>"
+        },
+        "value":{
+          "shape":"String",
+          "documentation":"<p>The value of the key value pair.</p>"
+        }
+      }
+    },
+    "ListClustersRequest":{
+      "type":"structure",
+      "members":{
+        "nextToken":{
+          "shape":"String",
+          "documentation":"<p>The <code>nextToken</code> value returned from a previous paginated <code>ListClusters</code> request where <code>maxResults</code> was used and the results exceeded the value of that parameter. Pagination continues from the end of the previous results that returned the <code>nextToken</code> value. This value is <code>null</code> when there are no more results to return.</p>"
+        },
+        "maxResults":{
+          "shape":"BoxedInteger",
+          "documentation":"<p>The maximum number of cluster results returned by <code>ListClusters</code> in paginated output. When this parameter is used, <code>ListClusters</code> only returns <code>maxResults</code> results in a single page along with a <code>nextToken</code> response element. The remaining results of the initial request can be seen by sending another <code>ListClusters</code> request with the returned <code>nextToken</code> value. This value can be between 1 and 100. If this parameter is not used, then <code>ListClusters</code> returns up to 100 results and a <code>nextToken</code> value if applicable.</p>"
+        }
+      }
+    },
+    "ListClustersResponse":{
+      "type":"structure",
+      "members":{
+        "clusterArns":{
+          "shape":"StringList",
+          "documentation":"<p>The list of full Amazon Resource Name (ARN) entries for each cluster associated with your account.</p>"
+        },
+        "nextToken":{
+          "shape":"String",
+          "documentation":"<p>The <code>nextToken</code> value to include in a future <code>ListClusters</code> request. When the results of a <code>ListClusters</code> request exceed <code>maxResults</code>, this value can be used to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>"
+        }
+      }
+    },
+    "ListContainerInstancesRequest":{
+      "type":"structure",
+      "members":{
+        "cluster":{
+          "shape":"String",
+          "documentation":"<p>The short name or full Amazon Resource Name (ARN) of the cluster that hosts the container instances you want to list. If you do not specify a cluster, the default cluster is assumed..</p>"
+        },
+        "nextToken":{
+          "shape":"String",
+          "documentation":"<p>The <code>nextToken</code> value returned from a previous paginated <code>ListContainerInstances</code> request where <code>maxResults</code> was used and the results exceeded the value of that parameter. Pagination continues from the end of the previous results that returned the <code>nextToken</code> value. This value is <code>null</code> when there are no more results to return.</p>"
+        },
+        "maxResults":{
+          "shape":"BoxedInteger",
+          "documentation":"<p>The maximum number of container instance results returned by <code>ListContainerInstances</code> in paginated output. When this parameter is used, <code>ListContainerInstances</code> only returns <code>maxResults</code> results in a single page along with a <code>nextToken</code> response element. The remaining results of the initial request can be seen by sending another <code>ListContainerInstances</code> request with the returned <code>nextToken</code> value. This value can be between 1 and 100. If this parameter is not used, then <code>ListContainerInstances</code> returns up to 100 results and a <code>nextToken</code> value if applicable.</p>"
+        }
+      }
+    },
+    "ListContainerInstancesResponse":{
+      "type":"structure",
+      "members":{
+        "containerInstanceArns":{
+          "shape":"StringList",
+          "documentation":"<p>The list of container instance full Amazon Resource Name (ARN) entries for each container instance associated with the specified cluster.</p>"
+        },
+        "nextToken":{
+          "shape":"String",
+          "documentation":"<p>The <code>nextToken</code> value to include in a future <code>ListContainerInstances</code> request. When the results of a <code>ListContainerInstances</code> request exceed <code>maxResults</code>, this value can be used to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>"
+        }
+      }
+    },
+    "ListTaskDefinitionsRequest":{
+      "type":"structure",
+      "members":{
+        "familyPrefix":{
+          "shape":"String",
+          "documentation":"<p>The name of the family that you want to filter the <code>ListTaskDefinitions</code> results with. Specifying a <code>familyPrefix</code> will limit the listed task definitions to definitions that belong to that family.</p>"
+        },
+        "nextToken":{
+          "shape":"String",
+          "documentation":"<p>The <code>nextToken</code> value returned from a previous paginated <code>ListTaskDefinitions</code> request where <code>maxResults</code> was used and the results exceeded the value of that parameter. Pagination continues from the end of the previous results that returned the <code>nextToken</code> value. This value is <code>null</code> when there are no more results to return.</p>"
+        },
+        "maxResults":{
+          "shape":"BoxedInteger",
+          "documentation":"<p>The maximum number of task definition results returned by <code>ListTaskDefinitions</code> in paginated output. When this parameter is used, <code>ListTaskDefinitions</code> only returns <code>maxResults</code> results in a single page along with a <code>nextToken</code> response element. The remaining results of the initial request can be seen by sending another <code>ListTaskDefinitions</code> request with the returned <code>nextToken</code> value. This value can be between 1 and 100. If this parameter is not used, then <code>ListTaskDefinitions</code> returns up to 100 results and a <code>nextToken</code> value if applicable.</p>"
+        }
+      }
+    },
+    "ListTaskDefinitionsResponse":{
+      "type":"structure",
+      "members":{
+        "taskDefinitionArns":{
+          "shape":"StringList",
+          "documentation":"<p>The list of task definition Amazon Resource Name (ARN) entries for the <code>ListTaskDefintions</code> request.</p>"
+        },
+        "nextToken":{
+          "shape":"String",
+          "documentation":"<p>The <code>nextToken</code> value to include in a future <code>ListTaskDefinitions</code> request. When the results of a <code>ListTaskDefinitions</code> request exceed <code>maxResults</code>, this value can be used to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>"
+        }
+      }
+    },
+    "ListTasksRequest":{
+      "type":"structure",
+      "members":{
+        "cluster":{
+          "shape":"String",
+          "documentation":"<p>The short name or full Amazon Resource Name (ARN) of the cluster that hosts the tasks you want to list. If you do not specify a cluster, the default cluster is assumed..</p>"
+        },
+        "containerInstance":{
+          "shape":"String",
+          "documentation":"<p>The container instance UUID or full Amazon Resource Name (ARN) of the container instance that you want to filter the <code>ListTasks</code> results with. Specifying a <code>containerInstance</code> will limit the results to tasks that belong to that container instance.</p>"
+        },
+        "family":{
+          "shape":"String",
+          "documentation":"<p>The name of the family that you want to filter the <code>ListTasks</code> results with. Specifying a <code>family</code> will limit the results to tasks that belong to that family.</p>"
+        },
+        "nextToken":{
+          "shape":"String",
+          "documentation":"<p>The <code>nextToken</code> value returned from a previous paginated <code>ListTasks</code> request where <code>maxResults</code> was used and the results exceeded the value of that parameter. Pagination continues from the end of the previous results that returned the <code>nextToken</code> value. This value is <code>null</code> when there are no more results to return.</p>"
+        },
+        "maxResults":{
+          "shape":"BoxedInteger",
+          "documentation":"<p>The maximum number of task results returned by <code>ListTasks</code> in paginated output. When this parameter is used, <code>ListTasks</code> only returns <code>maxResults</code> results in a single page along with a <code>nextToken</code> response element. The remaining results of the initial request can be seen by sending another <code>ListTasks</code> request with the returned <code>nextToken</code> value. This value can be between 1 and 100. If this parameter is not used, then <code>ListTasks</code> returns up to 100 results and a <code>nextToken</code> value if applicable.</p>"
+        }
+      }
+    },
+    "ListTasksResponse":{
+      "type":"structure",
+      "members":{
+        "taskArns":{
+          "shape":"StringList",
+          "documentation":"<p>The list of task Amazon Resource Name (ARN) entries for the <code>ListTasks</code> request.</p>"
+        },
+        "nextToken":{
+          "shape":"String",
+          "documentation":"<p>The <code>nextToken</code> value to include in a future <code>ListTasks</code> request. When the results of a <code>ListTasks</code> request exceed <code>maxResults</code>, this value can be used to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>"
+        }
+      }
+    },
+    "Long":{"type":"long"},
+    "NetworkBinding":{
+      "type":"structure",
+      "members":{
+        "bindIP":{
+          "shape":"String",
+          "documentation":"<p>The IP address that the container is bound to on the container instance.</p>"
+        },
+        "containerPort":{
+          "shape":"BoxedInteger",
+          "documentation":"<p>The port number on the container that should be used with the network binding.</p>"
+        },
+        "hostPort":{
+          "shape":"BoxedInteger",
+          "documentation":"<p>The port number on the host that should be used with the network binding.</p>"
+        }
+      }
+    },
+    "NetworkBindings":{
+      "type":"list",
+      "member":{"shape":"NetworkBinding"}
+    },
+    "PortMapping":{
+      "type":"structure",
+      "members":{
+        "containerPort":{
+          "shape":"Integer",
+          "documentation":"<p>The port number on the container that should be used with the port mapping.</p>"
+        },
+        "hostPort":{
+          "shape":"Integer",
+          "documentation":"<p>The port number on the host that should be used with the port mapping.</p>"
+        }
+      },
+      "documentation":"<p>Port mappings allow containers to access ports on the host container instance to send or receive traffic. Port mappings are specified as part of the container definition.</p>"
+    },
+    "PortMappingList":{
+      "type":"list",
+      "member":{"shape":"PortMapping"}
+    },
+    "RegisterContainerInstanceRequest":{
+      "type":"structure",
+      "members":{
+        "cluster":{
+          "shape":"String",
+          "documentation":"<p>The short name or full Amazon Resource Name (ARN) of the cluster that you want to register your container instance with. If you do not specify a cluster, the default cluster is assumed..</p>"
+        },
+        "instanceIdentityDocument":{"shape":"String"},
+        "instanceIdentityDocumentSignature":{"shape":"String"},
+        "totalResources":{"shape":"Resources"}
+      }
+    },
+    "RegisterContainerInstanceResponse":{
+      "type":"structure",
+      "members":{
+        "containerInstance":{"shape":"ContainerInstance"}
+      }
+    },
+    "RegisterTaskDefinitionRequest":{
+      "type":"structure",
+      "required":[
+        "family",
+        "containerDefinitions"
+      ],
+      "members":{
+        "family":{
+          "shape":"String",
+          "documentation":"<p>You can specify a <code>family</code> for a task definition, which allows you to track multiple versions of the same task definition. You can think of the <code>family</code> as a name for your task definition.</p>"
+        },
+        "containerDefinitions":{
+          "shape":"ContainerDefinitions",
+          "documentation":"<p>A list of container definitions in JSON format that describe the different containers that make up your task.</p>"
+        }
+      }
+    },
+    "RegisterTaskDefinitionResponse":{
+      "type":"structure",
+      "members":{
+        "taskDefinition":{"shape":"TaskDefinition"}
+      }
+    },
+    "Resource":{
+      "type":"structure",
+      "members":{
+        "name":{
+          "shape":"String",
+          "documentation":"<p>The name of the resource, such as <code>CPU</code>, <code>MEMORY</code>, <code>PORTS</code>, or a user-defined resource.</p>"
+        },
+        "type":{
+          "shape":"String",
+          "documentation":"<p>The type of the resource, such as <code>INTEGER</code>, <code>DOUBLE</code>, <code>LONG</code>, or <code>STRINGSET</code>.</p>"
+        },
+        "doubleValue":{
+          "shape":"Double",
+          "documentation":"<p>When the <code>doubleValue</code> type is set, the value of the resource must be a double precision floating-point type.</p>"
+        },
+        "longValue":{
+          "shape":"Long",
+          "documentation":"<p>When the <code>longValue</code> type is set, the value of the resource must be an extended precision floating-point type.</p>"
+        },
+        "integerValue":{
+          "shape":"Integer",
+          "documentation":"<p>When the <code>integerValue</code> type is set, the value of the resource must be an integer.</p>"
+        },
+        "stringSetValue":{
+          "shape":"StringList",
+          "documentation":"<p>When the <code>stringSetValue</code> type is set, the value of the resource must be a string type.</p>"
+        }
+      },
+      "documentation":"<p>Describes the resources available for a container instance.</p>"
+    },
+    "Resources":{
+      "type":"list",
+      "member":{"shape":"Resource"}
+    },
+    "RunTaskRequest":{
+      "type":"structure",
+      "required":["taskDefinition"],
+      "members":{
+        "cluster":{
+          "shape":"String",
+          "documentation":"<p>The short name or full Amazon Resource Name (ARN) of the cluster that you want to run your task on. If you do not specify a cluster, the default cluster is assumed..</p>"
+        },
+        "taskDefinition":{
+          "shape":"String",
+          "documentation":"<p>The <code>family</code> and <code>revision</code> (<code>family:revision</code>) or full Amazon Resource Name (ARN) of the task definition that you want to run.</p>"
+        },
+        "overrides":{"shape":"TaskOverride"},
+        "count":{
+          "shape":"BoxedInteger",
+          "documentation":"<p>The number of instances of the specified task that you would like to place on your cluster.</p>"
+        }
+      }
+    },
+    "RunTaskResponse":{
+      "type":"structure",
+      "members":{
+        "tasks":{
+          "shape":"Tasks",
+          "documentation":"<p>A full description of the tasks that were run. Each task that was successfully placed on your cluster will be described here.</p>"
+        },
+        "failures":{
+          "shape":"Failures",
+          "documentation":"<p>Any failed tasks from your <code>RunTask</code> action are listed here.</p>"
+        }
+      }
+    },
+    "ServerException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"String"}
+      },
+      "exception":true,
+      "documentation":"<p>These errors are usually caused by a server-side issue.</p>"
+    },
+    "StartTaskRequest":{
+      "type":"structure",
+      "required":[
+        "taskDefinition",
+        "containerInstances"
+      ],
+      "members":{
+        "cluster":{
+          "shape":"String",
+          "documentation":"<p>The short name or full Amazon Resource Name (ARN) of the cluster that you want to start your task on. If you do not specify a cluster, the default cluster is assumed..</p>"
+        },
+        "taskDefinition":{
+          "shape":"String",
+          "documentation":"<p>The <code>family</code> and <code>revision</code> (<code>family:revision</code>) or full Amazon Resource Name (ARN) of the task definition that you want to start.</p>"
+        },
+        "overrides":{"shape":"TaskOverride"},
+        "containerInstances":{
+          "shape":"StringList",
+          "documentation":"<p>The container instance UUIDs or full Amazon Resource Name (ARN) entries for the container instances on which you would like to place your task.</p>"
+        }
+      }
+    },
+    "StartTaskResponse":{
+      "type":"structure",
+      "members":{
+        "tasks":{
+          "shape":"Tasks",
+          "documentation":"<p>A full description of the tasks that were started. Each task that was successfully placed on your container instances will be described here.</p>"
+        },
+        "failures":{
+          "shape":"Failures",
+          "documentation":"<p>Any failed tasks from your <code>StartTask</code> action are listed here.</p>"
+        }
+      }
+    },
+    "StopTaskRequest":{
+      "type":"structure",
+      "required":["task"],
+      "members":{
+        "cluster":{
+          "shape":"String",
+          "documentation":"<p>The short name or full Amazon Resource Name (ARN) of the cluster that hosts the task you want to stop. If you do not specify a cluster, the default cluster is assumed..</p>"
+        },
+        "task":{
+          "shape":"String",
+          "documentation":"<p>The task UUIDs or full Amazon Resource Name (ARN) entry of the task you would like to stop.</p>"
+        }
+      }
+    },
+    "StopTaskResponse":{
+      "type":"structure",
+      "members":{
+        "task":{"shape":"Task"}
+      }
+    },
+    "String":{"type":"string"},
+    "StringList":{
+      "type":"list",
+      "member":{"shape":"String"}
+    },
+    "SubmitContainerStateChangeRequest":{
+      "type":"structure",
+      "members":{
+        "cluster":{
+          "shape":"String",
+          "documentation":"<p>The short name or full Amazon Resource Name (ARN) of the cluster that hosts the container.</p>"
+        },
+        "task":{
+          "shape":"String",
+          "documentation":"<p>The task UUID or full Amazon Resource Name (ARN) of the task that hosts the container.</p>"
+        },
+        "containerName":{
+          "shape":"String",
+          "documentation":"<p>The name of the container.</p>"
+        },
+        "status":{
+          "shape":"String",
+          "documentation":"<p>The status of the state change request.</p>"
+        },
+        "exitCode":{
+          "shape":"BoxedInteger",
+          "documentation":"<p>The exit code returned for the state change request.</p>"
+        },
+        "reason":{
+          "shape":"String",
+          "documentation":"<p>The reason for the state change request.</p>"
+        },
+        "networkBindings":{
+          "shape":"NetworkBindings",
+          "documentation":"<p>The network bindings of the container.</p>"
+        }
+      }
+    },
+    "SubmitContainerStateChangeResponse":{
+      "type":"structure",
+      "members":{
+        "acknowledgment":{
+          "shape":"String",
+          "documentation":"<p>Acknowledgement of the state change.</p>"
+        }
+      }
+    },
+    "SubmitTaskStateChangeRequest":{
+      "type":"structure",
+      "members":{
+        "cluster":{
+          "shape":"String",
+          "documentation":"<p>The short name or full Amazon Resource Name (ARN) of the cluster that hosts the task.</p>"
+        },
+        "task":{
+          "shape":"String",
+          "documentation":"<p>The task UUID or full Amazon Resource Name (ARN) of the task in the state change request.</p>"
+        },
+        "status":{
+          "shape":"String",
+          "documentation":"<p>The status of the state change request.</p>"
+        },
+        "reason":{
+          "shape":"String",
+          "documentation":"<p>The reason for the state change request.</p>"
+        }
+      }
+    },
+    "SubmitTaskStateChangeResponse":{
+      "type":"structure",
+      "members":{
+        "acknowledgment":{
+          "shape":"String",
+          "documentation":"<p>Acknowledgement of the state change.</p>"
+        }
+      }
+    },
+    "Task":{
+      "type":"structure",
+      "members":{
+        "taskArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the task.</p>"
+        },
+        "clusterArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the of the cluster that hosts the task.</p>"
+        },
+        "taskDefinitionArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the of the task definition that creates the task.</p>"
+        },
+        "containerInstanceArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the container instances that host the task.</p>"
+        },
+        "overrides":{
+          "shape":"TaskOverride",
+          "documentation":"<p>One or more container overrides.</p>"
+        },
+        "lastStatus":{
+          "shape":"String",
+          "documentation":"<p>The last known status of the task.</p>"
+        },
+        "desiredStatus":{
+          "shape":"String",
+          "documentation":"<p>The desired status of the task.</p>"
+        },
+        "containers":{
+          "shape":"Containers",
+          "documentation":"<p>The containers associated with the task.</p>"
+        }
+      }
+    },
+    "TaskDefinition":{
+      "type":"structure",
+      "members":{
+        "taskDefinitionArn":{
+          "shape":"String",
+          "documentation":"<p>The full Amazon Resource Name (ARN) of the of the task definition.</p>"
+        },
+        "containerDefinitions":{
+          "shape":"ContainerDefinitions",
+          "documentation":"<p>A list of container definitions in JSON format that describe the different containers that make up your task.</p>"
+        },
+        "family":{
+          "shape":"String",
+          "documentation":"<p>The family of your task definition. You can think of the <code>family</code> as the name of your task definition.</p>"
+        },
+        "revision":{
+          "shape":"Integer",
+          "documentation":"<p>The revision of the task in a particular family. You can think of the revision as a version number of a task definition in a family. When you register a task definition for the first time, the revision is <code>1</code>, and each time you register a task definition in the same family, the revision value increases by one.</p>"
+        }
+      }
+    },
+    "TaskOverride":{
+      "type":"structure",
+      "members":{
+        "containerOverrides":{
+          "shape":"ContainerOverrides",
+          "documentation":"<p>One or more container overrides to send when running a task.</p>"
+        }
+      }
+    },
+    "Tasks":{
+      "type":"list",
+      "member":{"shape":"Task"}
+    }
+  }
+}

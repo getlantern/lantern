@@ -27,5 +27,5 @@ func main() {
 	fmt.Println("proxy set, Enter continue...")
 	var i int
 	fmt.Scanf("%d\n", &i)
-	pac.Off("localhost:12345/pac")
+	pac.Off()
 }
