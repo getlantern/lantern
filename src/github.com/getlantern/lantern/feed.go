@@ -76,11 +76,6 @@ func FeedByName(name string, retriever FeedRetriever) {
 	}
 }
 
-func handleError(err error, provider FeedProvider) {
-	feed = nil
-	log.Error(err)
-}
-
 // NumFeedEntries just returns the total number of entries
 // across all feeds
 func NumFeedEntries() int {
@@ -100,6 +95,11 @@ func CurrentFeed() *Feed {
 // so we just use the following instead to check for a nil feed
 func NullFeed() bool {
 	return (feed == nil)
+}
+
+func handleError(err error) {
+	feed = nil
+	log.Error(err)
 }
 
 // GetFeed creates an http.Client and fetches the latest
@@ -123,7 +123,7 @@ func GetFeed(locale string, proxyAddr string, provider FeedProvider) {
 	feedUrl := fmt.Sprintf(feedEndpoint, locale)
 
 	if req, err = http.NewRequest("GET", feedUrl, nil); err != nil {
-		handleError(fmt.Errorf("Error fetching feed: %v", err), provider)
+		handleError(fmt.Errorf("Error fetching feed: %v", err))
 		return
 	}
 
@@ -135,13 +135,13 @@ func GetFeed(locale string, proxyAddr string, provider FeedProvider) {
 	} else {
 		httpClient, err = util.HTTPClient("", eventual.DefaultGetter(proxyAddr))
 		if err != nil {
-			handleError(fmt.Errorf("Error creating client: %v", err), provider)
+			handleError(fmt.Errorf("Error creating client: %v", err))
 			return
 		}
 	}
 
 	if res, err = httpClient.Do(req); err != nil {
-		handleError(fmt.Errorf("Error fetching feed: %v", err), provider)
+		handleError(fmt.Errorf("Error fetching feed: %v", err))
 		return
 	}
 
@@ -149,19 +149,19 @@ func GetFeed(locale string, proxyAddr string, provider FeedProvider) {
 
 	gzReader, err := gzip.NewReader(res.Body)
 	if err != nil {
-		handleError(fmt.Errorf("Unable to open gzip reader: %s", err), provider)
+		handleError(fmt.Errorf("Unable to open gzip reader: %s", err))
 		return
 	}
 
 	contents, err := ioutil.ReadAll(gzReader)
 	if err != nil {
-		handleError(fmt.Errorf("Error reading feed: %v", err), provider)
+		handleError(fmt.Errorf("Error reading feed: %v", err))
 		return
 	}
 
 	err = json.Unmarshal(contents, feed)
 	if err != nil {
-		handleError(fmt.Errorf("Error parsing feed: %v", err), provider)
+		handleError(fmt.Errorf("Error parsing feed: %v", err))
 		return
 	}
 
