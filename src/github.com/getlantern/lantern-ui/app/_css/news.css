@@ -155,8 +155,30 @@
   line-height: 16px;
 }
 
+/* http://hackingui.com/front-end/a-pure-css-solution-for-multiline-text-truncation/ */
 #news p.snippet {
+  position: relative;
   line-height: 16px;
   height: 32px;
   overflow: hidden;
+  margin-right: -1em;
+  padding-right: 1em;
+  text-align: justify;
+}
+
+#news p.snippet:before {
+  content: '...';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+}
+
+#news p.snippet:after {
+  content: '';
+  position: absolute;
+  right: 0;
+  width: 1em;
+  height: 1em;
+  margin-top: 0.2em;
+  background: white;
 }
