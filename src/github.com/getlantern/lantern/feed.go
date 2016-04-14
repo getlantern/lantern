@@ -122,7 +122,11 @@ func GetFeed(locale string, proxyAddr string, provider FeedProvider) {
 		return
 	}
 
-	json.Unmarshal(contents, &feed)
+	err = json.Unmarshal(contents, &feed)
+	if err != nil {
+		log.Errorf("Error parsing feed: %v", err)
+		return
+	}
 	processFeed(provider)
 }
 
