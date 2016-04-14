@@ -21,8 +21,6 @@ const (
 var (
 	feed Feed
 
-	httpClient *http.Client
-
 	// locales we have separate feeds available for
 	supportedLocales = map[string]bool{
 		"en_US": true,
@@ -85,6 +83,7 @@ func GetFeed(locale string, proxyAddr string, provider FeedProvider) {
 	var err error
 	var req *http.Request
 	var res *http.Response
+	var httpClient *http.Client
 
 	if !supportedLocales[locale] {
 		// always default to English if we don't
