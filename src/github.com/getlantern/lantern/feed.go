@@ -1,6 +1,7 @@
 package lantern
 
 import (
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -10,7 +11,6 @@ import (
 
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/flashlight/util"
-	"github.com/getlantern/golog"
 )
 
 const (
@@ -20,8 +20,6 @@ const (
 )
 
 var (
-	log = golog.LoggerFor("feed")
-
 	feed *Feed
 
 	// locales we have separate feeds available for
@@ -119,6 +117,9 @@ func GetFeed(locale string, proxyAddr string, provider FeedProvider) error {
 		return err
 	}
 
+	// ask for gzipped feed content
+	req.Header.Add("Accept-Encoding", "gzip")
+
 	if proxyAddr == "" {
 		httpClient = &http.Client{}
 	} else {
@@ -135,8 +136,14 @@ func GetFeed(locale string, proxyAddr string, provider FeedProvider) error {
 	}
 
 	defer res.Body.Close()
-	contents, err := ioutil.ReadAll(res.Body)
 
+	gzReader, err := gzip.NewReader(res.Body)
+	if err != nil {
+		handleError(fmt.Errorf("Unable to open gzip reader: %s", err), provider)
+		return err
+	}
+
+	contents, err := ioutil.ReadAll(gzReader)
 	if err != nil {
 		handleError(fmt.Errorf("Error reading feed: %v", err), provider)
 		return err

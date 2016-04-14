@@ -32,6 +32,11 @@ public class GetFeed extends AsyncTask<String, Void, ArrayList<String>> {
 				public void AddSource(String source) {
 					sources.add(source);
 				}
+
+                public void DisplayError(String errMsg) {
+
+                }
+
 			});
 
 			return sources;
