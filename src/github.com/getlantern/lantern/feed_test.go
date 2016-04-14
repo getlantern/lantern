@@ -24,13 +24,11 @@ func (retriever *TestFeedRetriever) AddFeed(title, description,
 }
 
 func getFeed(t *testing.T, locale string) {
-	var err error
-
 	provider := &TestFeedProvider{}
-	err = GetFeed(locale, "", provider)
+	GetFeed(locale, "", provider)
 	count := NumFeedEntries()
 
-	if assert.NoError(t, err) {
+	if assert.NotNil(t, CurrentFeed()) {
 		assert.NotEqual(t, 0, count,
 			"No feed entries after processing")
 	}
