@@ -119,9 +119,7 @@ func serverStateFromArgs(stateDir string, args *pt.Args) (*obfs4ServerState, err
 	js.DrbgSeed, seedOk = args.Get(seedArg)
 	iatStr, iatOk := args.Get(iatArg)
 
-	// Either a private key, node id, and seed are ALL specified, or
-	// they should be loaded from the state file.
-	if !privKeyOk && !nodeIDOk && !seedOk {
+	if !privKeyOk && !nodeIDOk && !seedOk && !iatOk {
 		if err := jsonServerStateFromFile(stateDir, &js); err != nil {
 			return nil, err
 		}
@@ -131,12 +129,11 @@ func serverStateFromArgs(stateDir string, args *pt.Args) (*obfs4ServerState, err
 		return nil, fmt.Errorf("missing argument '%s'", nodeIDArg)
 	} else if !seedOk {
 		return nil, fmt.Errorf("missing argument '%s'", seedArg)
-	}
-
-	// The IAT mode should be independently configurable.
-	if iatOk {
-		// If the IAT mode is specified, attempt to parse and apply it
-		// as an override.
+	} else if !iatOk {
+		// Disable IAT if not specified.
+		return nil, fmt.Errorf("missing argument '%s'", iatArg)
+	} else {
+		// Parse and validate the iat-mode argument.
 		iatMode, err := strconv.Atoi(iatStr)
 		if err != nil {
 			return nil, fmt.Errorf("malformed iat-mode '%s'", iatStr)
@@ -171,8 +168,7 @@ func serverStateFromJSONServerState(stateDir string, js *jsonServerState) (*obfs
 		return nil, err
 	}
 
-	// Write back the possibly updated server state.
-	return st, writeJSONServerState(stateDir, js)
+	return st, nil
 }
 
 func jsonServerStateFromFile(stateDir string, js *jsonServerState) error {
@@ -219,15 +215,11 @@ func newJSONServerState(stateDir string, js *jsonServerState) (err error) {
 	js.DrbgSeed = st.drbgSeed.Hex()
 	js.IATMode = st.iatMode
 
-	return writeJSONServerState(stateDir, js)
-}
-
-func writeJSONServerState(stateDir string, js *jsonServerState) error {
-	var err error
 	var encoded []byte
 	if encoded, err = json.Marshal(js); err != nil {
-		return err
+		return
 	}
+
 	if err = ioutil.WriteFile(path.Join(stateDir, stateFile), encoded, 0600); err != nil {
 		return err
 	}

@@ -1,7 +1,4 @@
 Changes in version 0.0.7 - UNRELEASED:
- - Support configuring the obfs4 IAT parameter as the sole
-   ServerTransportOption on bridges, and correctly checkpoint the argument
-   to the state file.
 
 Changes in version 0.0.6 - 2016-01-25:
  - Delay transport factory initialization till after logging has been
