@@ -37,6 +37,7 @@
 
 #news .tab-content {
   overflow: hidden;
+  clear: both;
 }
 
 #news .feeds-container {
@@ -68,6 +69,30 @@
 @media (max-width: 400px) {
   #news .feeds-container, #news .nav {
     width: 250px;
+  }
+}
+
+@media screen and (max-height: 1420px) {
+  #news .feeds-container {
+    height: 1100px;
+  }
+}
+
+@media screen and (max-height: 1320px) {
+  #news .feeds-container {
+    height: 1000px;
+  }
+}
+
+@media screen and (max-height: 1220px) {
+  #news .feeds-container {
+    height: 900px;
+  }
+}
+
+@media screen and (max-height: 1120px) {
+  #news .feeds-container {
+    height: 800px;
   }
 }
 
