@@ -284,5 +284,3 @@ var app = angular.module('app', [
 app.filter('urlencode', function() {
     return window.encodeURIComponent;
 });
-
-angular.module('infinite-scroll').value('THROTTLE_MILLISECONDS', 1000);

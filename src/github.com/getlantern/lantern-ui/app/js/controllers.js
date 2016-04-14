@@ -187,11 +187,26 @@ app.controller('NewsfeedCtrl', ['$scope', '$rootScope', '$translate', function($
     $rootScope.showNews = false;
   };
   $scope.showNewsfeed();
+
   $scope.feedUrl = function() {
     var mapTable = { 'fa': 'fa_IR' };
     var lang = $translate.use();
     lang = mapTable[lang] || lang;
     return "https://feeds.getiantem.org/" + lang + "/feed.json";
+  };
+
+}]);
+
+app.controller('FeedTabCtrl', ['$scope', '$rootScope', '$translate', function($scope, $rootScope, $translate) {
+  $scope.tabActive = {};
+  $scope.selectTab = function (title) {
+    $scope.tabActive[title] = true;
+  };
+  $scope.deselectTab = function (title) {
+    $scope.tabActive[title] = false;
+  };
+  $scope.tabSelected = function (title) {
+    return $scope.tabActive[title] === true;
   };
 }]);
 
@@ -199,10 +214,15 @@ app.controller('FeedCtrl', ['$scope', 'gaMgr', function($scope, gaMgr) {
   var copiedFeedEntries = [];
   angular.copy($scope.feedEntries, copiedFeedEntries);
   $scope.entries = [];
+  $scope.containerId = function($index) {
+    return "#feeds-container-" + $index;
+  };
   $scope.addMoreItems = function() {
-    var more = copiedFeedEntries.splice(0, 10);
-    $scope.entries = $scope.entries.concat(more);
-    console.log($scope.feedsTitle + ": added " + more.length + " entries, total " + $scope.entries.length);
+    if ($scope.tabSelected($scope.feedsTitle)) {
+      var more = copiedFeedEntries.splice(0, 10);
+      $scope.entries = $scope.entries.concat(more);
+      console.log($scope.feedsTitle + ": added " + more.length + " entries, total " + $scope.entries.length);
+    }
   };
   $scope.renderContent = function(feed) {
     if (feed.meta && feed.meta.description) {
