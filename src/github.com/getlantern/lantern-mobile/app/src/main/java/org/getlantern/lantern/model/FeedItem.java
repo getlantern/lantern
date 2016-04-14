@@ -1,16 +1,32 @@
 package org.getlantern.lantern.model;
 
 public class FeedItem {
-    public String Title;
-    public String Description;
-    public String Image;
-    public String Url;
+    private String title;
+    private String description;
+    private String image;
+    private String url;
 
     public FeedItem(String mTitle, String mDesc, String mImage, String mUrl) {
-        Title = mTitle;
-        Description = mDesc;
-        Image = mImage;
-        Url = mUrl;
+        title = mTitle;
+        description = mDesc;
+        image = mImage;
+        url = mUrl;
     }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getImage() {
+        return image;
+    }                
+
+    public String getDescription() {
+        return description;
+    }               
+ 
+    public String getUrl() {
+        return url;
+    }                     
 }
  
