@@ -10,6 +10,7 @@ import (
 
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/flashlight/util"
+	"github.com/getlantern/golog"
 )
 
 const (
@@ -19,7 +20,9 @@ const (
 )
 
 var (
-	feed Feed
+	log = golog.LoggerFor("feed")
+
+	feed *Feed
 
 	// locales we have separate feeds available for
 	supportedLocales = map[string]bool{
@@ -60,6 +63,7 @@ type FeedItems []FeedItem
 
 type FeedProvider interface {
 	AddSource(string)
+	DisplayError(string)
 }
 
 type FeedRetriever interface {
@@ -75,15 +79,32 @@ func FeedByName(name string, retriever FeedRetriever) {
 	}
 }
 
+func handleError(err error, provider FeedProvider) {
+	log.Error(err)
+	provider.DisplayError(err.Error())
+}
+
+func NumFeedEntries() int {
+	count := len(feed.Entries)
+	log.Debugf("Number of feed entries: %d", count)
+	return count
+}
+
+func CurrentFeed() *Feed {
+	return feed
+}
+
 // GetFeed creates an http.Client and fetches the latest
 // Lantern public feed for displaying on the home screen.
 // If a proxyAddr is specified, the http.Client will proxy
 // through it
-func GetFeed(locale string, proxyAddr string, provider FeedProvider) {
+func GetFeed(locale string, proxyAddr string, provider FeedProvider) error {
 	var err error
 	var req *http.Request
 	var res *http.Response
 	var httpClient *http.Client
+
+	feed = &Feed{}
 
 	if !supportedLocales[locale] {
 		// always default to English if we don't
@@ -94,8 +115,8 @@ func GetFeed(locale string, proxyAddr string, provider FeedProvider) {
 	feedUrl := fmt.Sprintf(feedEndpoint, locale)
 
 	if req, err = http.NewRequest("GET", feedUrl, nil); err != nil {
-		log.Errorf("Error fetching feed: %v", err)
-		return
+		handleError(fmt.Errorf("Error fetching feed: %v", err), provider)
+		return err
 	}
 
 	if proxyAddr == "" {
@@ -103,30 +124,32 @@ func GetFeed(locale string, proxyAddr string, provider FeedProvider) {
 	} else {
 		httpClient, err = util.HTTPClient("", eventual.DefaultGetter(proxyAddr))
 		if err != nil {
-			log.Errorf("Error creating client: %v", err)
-			return
+			handleError(fmt.Errorf("Error creating client: %v", err), provider)
+			return err
 		}
 	}
 
 	if res, err = httpClient.Do(req); err != nil {
-		log.Errorf("Error fetching feed: %v", err)
-		return
+		handleError(fmt.Errorf("Error fetching feed: %v", err), provider)
+		return err
 	}
 
 	defer res.Body.Close()
 	contents, err := ioutil.ReadAll(res.Body)
 
 	if err != nil {
-		log.Errorf("Error reading body: %v", err)
-		return
+		handleError(fmt.Errorf("Error reading feed: %v", err), provider)
+		return err
 	}
 
-	err = json.Unmarshal(contents, &feed)
+	err = json.Unmarshal(contents, feed)
 	if err != nil {
-		log.Errorf("Error parsing feed: %v", err)
-		return
+		handleError(fmt.Errorf("Error parsing feed: %v", err), provider)
+		return err
 	}
+
 	processFeed(provider)
+	return nil
 }
 
 // processFeed is used after a feed has been downloaded
