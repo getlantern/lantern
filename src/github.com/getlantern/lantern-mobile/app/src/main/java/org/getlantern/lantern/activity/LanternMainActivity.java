@@ -111,8 +111,6 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
             LanternUI.setVersionNum(appVersion);
             LanternUI.setupLanternSwitch();
 
-            new GetFeed(this, startLocalProxy()).execute("");
-
         } catch (Exception e) {
             Log.d(TAG, "Got an exception " + e);
         }
@@ -122,6 +120,8 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
     protected void onResume() {
         super.onResume();
 
+        new GetFeed(this, startLocalProxy()).execute("");
+
         //  we check if mPrefs has been initialized before
         // since onCreate and onResume are always both called
         if (mPrefs != null) {
@@ -129,6 +129,9 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         }
     }
 
+    // startLocalProxy starts a separate instance of Lantern
+    // used for proxying requests we need to make even before
+    // the user enables full-device VPN mode
     private String startLocalProxy() {
         // if the Lantern VPN is already running
         // then we just fetch the feed without
