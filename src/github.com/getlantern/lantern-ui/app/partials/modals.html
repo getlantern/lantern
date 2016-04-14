@@ -12,7 +12,7 @@
 
 <div ng-show="currentModal == 'about'" class="modal">
   <div class="modal-header about">
-    <div>{{ 'LANTERN' | translate }} {{ 'VERSION' | translate }} {{ model.version.installed | version:true:true }}</div>
+    <div>{{ 'LANTERN' | translate }} {{ 'VERSION' | translate }} {{ model.settings.version }}</div>
     <div ng-show="model.dev" class="smaller">Development version. lantern-ui v{{ lanternUiVersion }}.</div>
     <div class="smaller">
       <a ng-click="openExternal(EXTERNAL_URL.homepage)">{{ 'HOMEPAGE' | translate }}<sup><i class="icon-external-link"></i></sup></a> ·
