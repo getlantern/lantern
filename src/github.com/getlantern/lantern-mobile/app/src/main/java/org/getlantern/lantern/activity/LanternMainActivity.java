@@ -155,13 +155,13 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         if (Integer.parseInt(android.os.Build.VERSION.SDK) > 5
                 && keyCode == KeyEvent.KEYCODE_BACK
                 && event.getRepeatCount() == 0) {
+
             Log.d(TAG, "onKeyDown Called");
             onBackPressed();
             return true;
-                }
+        }
         return super.onKeyDown(keyCode, event);
     }
-
 
     @Override
     public void onBackPressed() {
@@ -244,10 +244,11 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
     public void setupFeed(final ArrayList<String> sources) {
         final FragmentPagerItems.Creator c = FragmentPagerItems.with(this);
 
+        String all = getResources().getString(R.string.all_feeds);
         Bundle bundle = new Bundle();
-        bundle.putString("name", "all");
+        bundle.putString("name", all);
 
-        c.add("all", FeedFragment.class, bundle);
+        c.add(all, FeedFragment.class, bundle);
 
         for (String source : sources) {
             bundle = new Bundle();

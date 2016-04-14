@@ -293,7 +293,8 @@ public class UI {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
                     }
-                });
+                }
+        );
         alertDialog.show();
 
         Looper.loop();
