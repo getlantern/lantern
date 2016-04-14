@@ -36,74 +36,78 @@
 }
 
 #news .tab-content {
+  overflow: hidden;
+}
+
+#news .feeds-container {
   border: 1px solid black;
   margin: 0 auto;
   height: 800px;
+  overflow-y: scroll;
+  overflow-x: hidden;
 }
 
 @media (min-width: 780px){
-  #news .tab-content, #news .nav {
+  #news .feeds-container, #news .nav {
     width: 700px;
   }
 }
 
 @media (max-width: 780px){
-  #news .tab-content, #news .nav {
+  #news .feeds-container, #news .nav {
     width: 500px;
   }
 }
 
 @media (max-width: 600px) {
-  #news .tab-content, #news .nav {
+  #news .feeds-container, #news .nav {
     width: 450px;
   }
 }
 
 @media (max-width: 400px) {
-  #news .tab-content, #news .nav {
+  #news .feeds-container, #news .nav {
     width: 250px;
   }
 }
 
 @media screen and (max-height: 1020px) {
-  #news .tab-content {
+  #news .feeds-container {
     height: 700px;
   }
 }
 
 @media screen and (max-height: 920px) {
-  #news .tab-content {
+  #news .feeds-container {
     height: 600px;
   }
 }
 
 @media screen and (max-height: 820px) {
-  #news .tab-content {
+  #news .feeds-container {
     height: 500px;
   }
 }
 
 @media screen and (max-height: 720px) {
-  #news .tab-content {
+  #news .feeds-container {
     height: 400px;
   }
 }
 
 @media screen and (max-height: 620px) {
-  #news .tab-content {
+  #news .feeds-container {
     height: 300px;
   }
 }
 
 @media screen and (max-height: 520px) {
-  #news .tab-content{
+  #news .feeds-container{
     height: 200px;
   }
 }
 
-#news .tab-pane {
-  overflow-y: scroll;
-  overflow-x: hidden;
+#news .infinite-scroll {
   background-color: #fafbfb;
 }
 

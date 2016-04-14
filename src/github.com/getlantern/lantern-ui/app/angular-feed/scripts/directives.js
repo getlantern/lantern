@@ -25,7 +25,7 @@ angular.module('feeds-directives', []).directive('feed', ['feedService', '$compi
       function renderTemplate(templateHTML, feedsObj) {
         $element.append($compile(templateHTML)($scope));
         if (feedsObj) {
-          $scope.entries = feedsObj.entries;
+          $scope.allEntries = feedsObj.entries;
           $scope.allFeeds = feedsObj.feeds;
         }
       }

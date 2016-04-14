@@ -196,6 +196,14 @@ app.controller('NewsfeedCtrl', ['$scope', '$rootScope', '$translate', function($
 }]);
 
 app.controller('FeedCtrl', ['$scope', 'gaMgr', function($scope, gaMgr) {
+  var copiedFeedEntries = [];
+  angular.copy($scope.feedEntries, copiedFeedEntries);
+  $scope.entries = [];
+  $scope.addMoreItems = function() {
+    var more = copiedFeedEntries.splice(0, 10);
+    $scope.entries = $scope.entries.concat(more);
+    console.log($scope.feedsTitle + ": added " + more.length + " entries, total " + $scope.entries.length);
+  };
   $scope.renderContent = function(feed) {
     if (feed.meta && feed.meta.description) {
       return feed.meta.description;
@@ -205,4 +213,5 @@ app.controller('FeedCtrl', ['$scope', 'gaMgr', function($scope, gaMgr) {
   $scope.trackFeed = function(name) {
     return gaMgr.trackFeed(name);
   };
+  $scope.addMoreItems();
 }]);

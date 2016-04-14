@@ -21,7 +21,8 @@
     "topojson": "~1.6.18",
     "angular-websocket": "~1.0.8",
     "angular-local-storage": "~0.1.5",
-    "ngclipboard": "~1.1.0"
+    "ngclipboard": "~1.1.0",
+    "ngInfiniteScroll": "~1.2.2"
   },
   "devDependencies": {
     "angular-mocks": "1.4.9",

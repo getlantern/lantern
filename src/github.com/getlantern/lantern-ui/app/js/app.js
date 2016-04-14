@@ -13,6 +13,7 @@ var app = angular.module('app', [
   'ngSanitize',
   'ngResource',
   'ngclipboard',
+  'infinite-scroll',
   'ui.utils',
   'ui.showhide',
   'ui.validate',
@@ -283,3 +284,5 @@ var app = angular.module('app', [
 app.filter('urlencode', function() {
     return window.encodeURIComponent;
 });
+
+angular.module('infinite-scroll').value('THROTTLE_MILLISECONDS', 1000);
