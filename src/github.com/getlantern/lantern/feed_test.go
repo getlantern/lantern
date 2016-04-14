@@ -7,10 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var (
-	items FeedItems
-)
-
 type TestFeedProvider struct{}
 
 type TestFeedRetriever struct{}
