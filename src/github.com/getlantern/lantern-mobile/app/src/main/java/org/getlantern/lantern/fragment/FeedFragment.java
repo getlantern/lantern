@@ -14,6 +14,8 @@ import org.getlantern.lantern.model.FeedItem;
 import org.getlantern.lantern.R;
 
 import java.util.ArrayList; 
+import java.util.Collections;
+import java.util.List;
 
 import go.lantern.Lantern;                    
 
@@ -24,8 +26,7 @@ public class FeedFragment extends Fragment {
     private FeedAdapter adapter;
     private String feedName;
     private ListView mList;
-    private ArrayList<FeedItem> mFeedItems = new ArrayList<FeedItem>();
-
+    private List<FeedItem> mFeedItems;
 
     public FeedFragment() {
         this.feedName = "";
@@ -37,6 +38,7 @@ public class FeedFragment extends Fragment {
 
         Bundle bundle = getArguments();
         this.feedName = bundle.getString("name");
+        this.mFeedItems = Collections.synchronizedList(new ArrayList<FeedItem>());
     }
 
     public void NotifyDataSetChanged() {

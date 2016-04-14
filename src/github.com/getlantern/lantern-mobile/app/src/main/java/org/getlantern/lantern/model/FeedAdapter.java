@@ -8,7 +8,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.getlantern.lantern.R;
 
@@ -19,10 +19,10 @@ public class FeedAdapter extends BaseAdapter {
     private static final String TAG = "FeedAdapter";
 
     private Context mContext;
-    private ArrayList<FeedItem> mFeedItems;
+    private List<FeedItem> mFeedItems;
 
 
-    public FeedAdapter(Context context, ArrayList<FeedItem> feedItems) {
+    public FeedAdapter(Context context, List<FeedItem> feedItems) {
         mContext = context;
         mFeedItems = feedItems;
     }
@@ -63,13 +63,13 @@ public class FeedAdapter extends BaseAdapter {
         ImageView imageView = (ImageView) view.findViewById(R.id.image);
 
         FeedItem item = mFeedItems.get(position);
-        titleView.setText( item.Title);
-        descView.setText(item.Description);
-        urlView.setText(item.Url);
+        titleView.setText(item.getTitle());
+        descView.setText(item.getDescription());
+        urlView.setText(item.getUrl());
 
-        if (item.Image != "") {
+        if (item.getImage() != "") {
             Ion.with(mContext)
-                .load(item.Image)
+                .load(item.getImage())
                 .withBitmap()
                 .intoImageView(imageView);
         }
