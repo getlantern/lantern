@@ -1,4 +1,4 @@
-package integrationtests
+package app
 
 import (
 	"compress/gzip"
@@ -19,7 +19,6 @@ import (
 	"github.com/getlantern/waitforserver"
 	"github.com/getlantern/yaml"
 
-	"github.com/getlantern/flashlight/app"
 	"github.com/getlantern/flashlight/config"
 
 	"github.com/stretchr/testify/assert"
@@ -248,7 +247,7 @@ func startApp(t *testing.T) error {
 		"uiaddr":               "127.0.0.1:16823",
 	}
 
-	a := &app.App{
+	a := &App{
 		ShowUI: false,
 		Flags:  flags,
 	}
