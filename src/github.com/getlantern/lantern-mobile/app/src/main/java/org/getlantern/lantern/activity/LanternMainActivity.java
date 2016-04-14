@@ -213,6 +213,16 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         return true;
     }
 
+    public void refreshFeed(View view) {
+        Log.d(TAG, "Refresh feed clicked");
+        findViewById(R.id.feed_error).setVisibility(View.INVISIBLE);
+        new GetFeed(this, startLocalProxy()).execute("");
+    }
+
+    public void showFeedError() {
+        findViewById(R.id.feed_error).setVisibility(View.VISIBLE);
+    }
+
     public void openFeedItem(View view) {
         TextView url = (TextView)view.findViewById(R.id.link);
         Log.d(TAG, "Feed item clicked: " + url.getText());

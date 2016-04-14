@@ -61,7 +61,6 @@ type FeedItems []FeedItem
 
 type FeedProvider interface {
 	AddSource(string)
-	DisplayError(string)
 }
 
 type FeedRetriever interface {
@@ -78,10 +77,12 @@ func FeedByName(name string, retriever FeedRetriever) {
 }
 
 func handleError(err error, provider FeedProvider) {
+	feed = nil
 	log.Error(err)
-	provider.DisplayError(err.Error())
 }
 
+// NumFeedEntries just returns the total number of entries
+// across all feeds
 func NumFeedEntries() int {
 	count := len(feed.Entries)
 	log.Debugf("Number of feed entries: %d", count)
@@ -92,11 +93,20 @@ func CurrentFeed() *Feed {
 	return feed
 }
 
+// NullFeed is used to check for an error handling the feed
+// the idiomatic way of doing this is to return an error on
+// the Go side and try/catch the error on Java
+// but this ends up bloating the code unnecessarily
+// so we just use the following instead to check for a nil feed
+func NullFeed() bool {
+	return (feed == nil)
+}
+
 // GetFeed creates an http.Client and fetches the latest
 // Lantern public feed for displaying on the home screen.
 // If a proxyAddr is specified, the http.Client will proxy
 // through it
-func GetFeed(locale string, proxyAddr string, provider FeedProvider) error {
+func GetFeed(locale string, proxyAddr string, provider FeedProvider) {
 	var err error
 	var req *http.Request
 	var res *http.Response
@@ -114,7 +124,7 @@ func GetFeed(locale string, proxyAddr string, provider FeedProvider) error {
 
 	if req, err = http.NewRequest("GET", feedUrl, nil); err != nil {
 		handleError(fmt.Errorf("Error fetching feed: %v", err), provider)
-		return err
+		return
 	}
 
 	// ask for gzipped feed content
@@ -126,13 +136,13 @@ func GetFeed(locale string, proxyAddr string, provider FeedProvider) error {
 		httpClient, err = util.HTTPClient("", eventual.DefaultGetter(proxyAddr))
 		if err != nil {
 			handleError(fmt.Errorf("Error creating client: %v", err), provider)
-			return err
+			return
 		}
 	}
 
 	if res, err = httpClient.Do(req); err != nil {
 		handleError(fmt.Errorf("Error fetching feed: %v", err), provider)
-		return err
+		return
 	}
 
 	defer res.Body.Close()
@@ -140,23 +150,22 @@ func GetFeed(locale string, proxyAddr string, provider FeedProvider) error {
 	gzReader, err := gzip.NewReader(res.Body)
 	if err != nil {
 		handleError(fmt.Errorf("Unable to open gzip reader: %s", err), provider)
-		return err
+		return
 	}
 
 	contents, err := ioutil.ReadAll(gzReader)
 	if err != nil {
 		handleError(fmt.Errorf("Error reading feed: %v", err), provider)
-		return err
+		return
 	}
 
 	err = json.Unmarshal(contents, feed)
 	if err != nil {
 		handleError(fmt.Errorf("Error parsing feed: %v", err), provider)
-		return err
+		return
 	}
 
 	processFeed(provider)
-	return nil
 }
 
 // processFeed is used after a feed has been downloaded

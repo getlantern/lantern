@@ -24,33 +24,26 @@ public class GetFeed extends AsyncTask<String, Void, ArrayList<String>> {
 
     @Override
     protected ArrayList<String> doInBackground(String... params) {
-        try {
-            String locale = Locale.getDefault().toString();
-            Log.d(TAG, "Locale is " + locale + " proxy addr is " + proxyAddr);
+        String locale = Locale.getDefault().toString();
+        Log.d(TAG, String.format("Fetching public feed: locale=%s; proxy addr=%s", locale, proxyAddr));
 
-            Lantern.GetFeed(locale, proxyAddr, new Lantern.FeedProvider.Stub() {
-                public void AddSource(String source) {
-                    sources.add(source);
-                }
+        Lantern.GetFeed(locale, proxyAddr, new Lantern.FeedProvider.Stub() {
+            public void AddSource(String source) {
+                sources.add(source);
+            }
+        });
 
-                public void DisplayError(String errMsg) {
-
-                }
-
-            });
-
-            return sources;
-
-        } catch (Exception e) {
-            Log.v("Error Parsing Data", e + "");
-        }
-        return null;
+        return sources;
     }
 
     @Override
     protected void onPostExecute(ArrayList<String> sources) {
         super.onPostExecute(sources);
-        activity.setupFeed(sources);
+        if (sources.isEmpty() || Lantern.NullFeed()) {
+            activity.showFeedError();
+        } else {
+            activity.setupFeed(sources);
+        }
     }
 }   
 

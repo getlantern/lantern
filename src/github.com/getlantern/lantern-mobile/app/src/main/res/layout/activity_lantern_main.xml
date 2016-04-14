@@ -82,8 +82,14 @@
 			android:id="@+id/viewpager"
 			android:layout_width="match_parent"
 			android:layout_height="match_parent"
-			android:layout_below="@id/viewpagertab"
+			android:layout_below="@+id/viewpagertab"
 			/>
+
+        <include
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/viewpagertab"
+            layout="@layout/feed_error"/>
     </RelativeLayout>
 
    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
