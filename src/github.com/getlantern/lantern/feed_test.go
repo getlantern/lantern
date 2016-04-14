@@ -1,9 +1,8 @@
 package lantern
 
 import (
-	"testing"
-
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 type TestFeedProvider struct{}
