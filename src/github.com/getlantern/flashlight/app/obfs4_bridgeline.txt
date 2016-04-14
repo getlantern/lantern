@@ -1,0 +1,13 @@
+# obfs4 torrc client bridge line
+#
+# This file is an automatically generated bridge line based on
+# the current obfs4proxy configuration.  EDITING IT WILL HAVE
+# NO EFFECT.
+#
+# Before distributing this Bridge, edit the placeholder fields
+# to contain the actual values:
+#  <IP ADDRESS>  - The public IP address of your obfs4 bridge.
+#  <PORT>        - The TCP/IP port of your obfs4 bridge.
+#  <FINGERPRINT> - The bridge's fingerprint.
+
+Bridge obfs4 <IP ADDRESS>:<PORT> <FINGERPRINT> cert=Zx3FNO00oq0SF25jKXTRofbVDHdBkl0ITFXCo05f1LZbzat/e54GdBlyu98PkmCn9yHdNw iat-mode=0
