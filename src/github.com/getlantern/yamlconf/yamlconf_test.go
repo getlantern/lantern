@@ -72,8 +72,8 @@ func TestFileAndUpdate(t *testing.T) {
 		EmptyConfig: func() Config {
 			return &TestCfg{}
 		},
-		FilePath:       file.Name(),
-		ObfuscationKey: make([]byte, 16),
+		FilePath:  file.Name(),
+		Obfuscate: true,
 	}
 
 	first, err := m.Init()

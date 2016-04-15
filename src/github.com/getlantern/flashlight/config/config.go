@@ -166,6 +166,8 @@ func Init(userConfig UserConfig, version string, configDir string, stickyConfig 
 		CustomPoll: func(ycfg yamlconf.Config) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
 			return fetcher.pollForConfig(ycfg, stickyConfig)
 		},
+		// Obfuscate on-disk contents of YAML file
+		Obfuscate: flags["readableconfig"] == nil,
 	}
 	initial, err := m.Init()
 

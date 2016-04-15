@@ -103,16 +103,13 @@ type Manager struct {
 	// example for fetching config updates from a remote server.
 	CustomPoll func(currentCfg Config) (mutate func(cfg Config) error, waitTime time.Duration, err error)
 
-	// ObfuscationKey: if specified, the on-disk version of the config will be
-	// obfuscated by encrypting it using AES encryption with the ObfuscationKey as
-	// the cryptographic key. Use a key of 16, 24 or 32 bytes to select AES-128,
-	// AES-192 or AES-256.
+	// Obfuscate: if true, the on-disk version of the config will be obfuscated by
+	// encrypting it using AES-128 encryption.
 	//
 	// This does not provide any security, as the key is compiled into the
-	// application, it simply obfuscates the config so that it's not human
-	// readable. DO NOT REUSE A REAL ENCRYPTION KEY HERE, as this will leak that
-	// key to the world.
-	ObfuscationKey []byte
+	// application. This simply obfuscates the config so that it's not human
+	// readable.
+	Obfuscate bool
 
 	once      sync.Once
 	cfg       Config

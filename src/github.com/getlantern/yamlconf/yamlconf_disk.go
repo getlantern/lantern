@@ -12,6 +12,11 @@ import (
 	"github.com/getlantern/yaml"
 )
 
+var (
+	// Empty AES-128 key for obfuscation
+	obfuscationKey = make([]byte, 16)
+)
+
 func (m *Manager) loadFromDisk() error {
 	_, err := m.reloadFromDisk()
 	return err
@@ -28,7 +33,7 @@ func (m *Manager) reloadFromDisk() (bool, error) {
 	}
 
 	var cfg Config
-	if m.ObfuscationKey != nil {
+	if m.Obfuscate {
 		log.Trace("Attempting to read obfuscated config")
 		var err1, err2 error
 		cfg, err1 = m.doReadFromDisk(true)
@@ -41,9 +46,14 @@ func (m *Manager) reloadFromDisk() (bool, error) {
 		}
 	} else {
 		log.Trace("Attempting to read non-obfuscated config")
-		cfg, err = m.doReadFromDisk(false)
-		if err != nil {
-			return false, err
+		var err1, err2 error
+		cfg, err1 = m.doReadFromDisk(false)
+		if err1 != nil {
+			log.Tracef("Error reading non-obfuscated config from disk, try reading obfuscated: %v", err)
+			cfg, err2 = m.doReadFromDisk(true)
+			if err2 != nil {
+				return false, err1
+			}
 		}
 	}
 
@@ -76,7 +86,7 @@ func (m *Manager) doReadFromDisk(allowObfuscation bool) (Config, error) {
 	defer infile.Close()
 
 	var in io.Reader = infile
-	if allowObfuscation && m.ObfuscationKey != nil {
+	if allowObfuscation && m.Obfuscate {
 		// Read file as obfuscated with AES
 		stream, err := m.obfuscationStream()
 		if err != nil {
@@ -154,7 +164,7 @@ func (m *Manager) writeToDisk(cfg Config) error {
 	defer outfile.Close()
 
 	var out io.Writer = outfile
-	if m.ObfuscationKey != nil {
+	if m.Obfuscate {
 		// write file as obfuscated with AES
 		stream, err := m.obfuscationStream()
 		if err != nil {
@@ -184,7 +194,7 @@ func (m *Manager) hasChangedOnDisk() bool {
 }
 
 func (m *Manager) obfuscationStream() (cipher.Stream, error) {
-	block, err := aes.NewCipher(m.ObfuscationKey)
+	block, err := aes.NewCipher(obfuscationKey)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to initialize AES for obfuscation: %v", err)
 	}
