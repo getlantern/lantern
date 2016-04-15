@@ -1,5 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'io.fabric'
+apply plugin: 'com.google.gms.google-services'
 
 android {
 
@@ -99,7 +100,6 @@ dependencies {
     compile 'com.koushikdutta.ion:ion:2.+'
     compile 'com.ogaclejapan.smarttablayout:library:1.6.0@aar'
     compile 'com.ogaclejapan.smarttablayout:utils-v4:1.6.0@aar'
-
     compile 'com.mandrillapp.wrapper.lutung:lutung:0.0.7'
     compile('com.crashlytics.sdk.android:crashlytics:2.5.3@aar') {
         transitive = true
