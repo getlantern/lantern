@@ -6,7 +6,8 @@ import android.util.Log;
 import org.getlantern.lantern.activity.LanternMainActivity;
 
 import java.util.ArrayList; 
-import  java.util.Locale;
+import java.util.Collections;
+import java.util.Locale;
 
 import go.lantern.Lantern;
 
@@ -15,7 +16,6 @@ public class GetFeed extends AsyncTask<String, Void, ArrayList<String>> {
 
     private LanternMainActivity activity;
     private String proxyAddr = "";
-    private ArrayList<String> sources = new ArrayList<String>();
 
     public GetFeed(LanternMainActivity activity, String proxyAddr) {
         this.activity = activity;
@@ -26,6 +26,7 @@ public class GetFeed extends AsyncTask<String, Void, ArrayList<String>> {
     protected ArrayList<String> doInBackground(String... params) {
         String locale = Locale.getDefault().toString();
         Log.d(TAG, String.format("Fetching public feed: locale=%s; proxy addr=%s", locale, proxyAddr));
+        final ArrayList<String> sources = new ArrayList<String>();
 
         Lantern.GetFeed(locale, proxyAddr, new Lantern.FeedProvider.Stub() {
             public void AddSource(String source) {
@@ -33,6 +34,7 @@ public class GetFeed extends AsyncTask<String, Void, ArrayList<String>> {
             }
         });
 
+        Collections.sort(sources, String.CASE_INSENSITIVE_ORDER);
         return sources;
     }
 

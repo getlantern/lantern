@@ -257,12 +257,10 @@ public class LanternMainActivity extends AppCompatActivity implements
 
         if (sources != null && !sources.isEmpty()) {
             String all = getResources().getString(R.string.all_feeds);
-            Bundle bundle = new Bundle();
-            bundle.putString("name", all);
-            c.add(all, FeedFragment.class, bundle);
+            sources.add(0, all);
 
             for (String source : sources) {
-                bundle = new Bundle();
+                Bundle bundle = new Bundle();
                 bundle.putString("name", source);
                 c.add(source, FeedFragment.class, bundle);
             }

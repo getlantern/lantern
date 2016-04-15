@@ -28,10 +28,6 @@ public class FeedFragment extends Fragment {
     private ListView mList;
     private List<FeedItem> mFeedItems;
 
-    public FeedFragment() {
-        this.feedName = "";
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,6 +40,7 @@ public class FeedFragment extends Fragment {
     public void NotifyDataSetChanged(final List<FeedItem> items) {
         getActivity().runOnUiThread(new Runnable() {
             public void run() {
+                mFeedItems.clear();
                 mFeedItems.addAll(items);
                 Log.d(TAG, String.format("Feed %s has %d items", feedName, 
                             mFeedItems.size()));
