@@ -4,6 +4,8 @@ apply plugin: 'com.google.gms.google-services'
 
 android {
 
+    useLibrary 'org.apache.http.legacy'
+
     packagingOptions { 
         exclude 'META-INF/LICENSE.txt' 
         exclude 'META-INF/NOTICE.txt' 
