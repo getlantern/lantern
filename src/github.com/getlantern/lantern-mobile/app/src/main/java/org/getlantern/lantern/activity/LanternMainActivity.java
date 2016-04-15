@@ -1,6 +1,9 @@
 package org.getlantern.lantern.activity;
 
+import android.app.Application;
+import android.app.Activity;
 import android.content.BroadcastReceiver;
+import android.content.ComponentCallbacks2;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -42,14 +45,15 @@ import org.lantern.mobilesdk.Lantern;
 import org.lantern.mobilesdk.StartResult;
 import org.lantern.mobilesdk.LanternNotRunningException;
 
-public class LanternMainActivity extends AppCompatActivity implements Handler.Callback {
+public class LanternMainActivity extends AppCompatActivity implements 
+    Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
     private static final String TAG = "LanternMainActivity";
     private static final String PREFS_NAME = "LanternPrefs";
     private final static int REQUEST_VPN = 7777;
     private SharedPreferences mPrefs = null;
     private BroadcastReceiver mReceiver;
-
+    private boolean isInBackground = false;
     private FragmentPagerItemAdapter feedAdapter;
     private SmartTabLayout viewPagerTab;
 
@@ -60,6 +64,7 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getApplication().registerActivityLifecycleCallbacks(this);
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
@@ -178,6 +183,7 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        getApplication().unregisterActivityLifecycleCallbacks(this);
         try {
             if (mReceiver != null) {
                 unregisterReceiver(mReceiver);
@@ -203,14 +209,6 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         } catch (Exception e) {
             Log.e(TAG, "Got an exception when quitting Lantern " + e.getMessage());
         }
-    }
-
-    @Override
-    public boolean handleMessage(Message message) {
-        if (message != null) {
-            Toast.makeText(this, message.what, Toast.LENGTH_SHORT).show();
-        }
-        return true;
     }
 
     public void refreshFeed(View view) {
@@ -250,9 +248,7 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
                 TextView view = (TextView) viewPagerTab.getTabAt(i);
                 view.setTextColor(c);
             }
-
         }
-
     }
 
     public void setupFeed(final ArrayList<String> sources) {
@@ -390,4 +386,39 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
             }
         }
     }
+
+    public void onActivityResumed(Activity activity) { 
+        // we only want to refresh the public feed/try restarting
+        // the proxy whenever the returns to the foreground
+        // instead of every time the main activity is resumed
+        if (isInBackground) {
+            Log.d(TAG, "App in foreground");
+            isInBackground = false;
+            new GetFeed(this, startLocalProxy()).execute("");
+        }
+    }
+
+    // Below unused
+    public void onActivityCreated(Activity activity, Bundle savedInstanceState) {}
+
+    public void onActivityDestroyed(Activity activity) {}
+
+    public void onActivityPaused(Activity activity) {}
+
+    public void onActivitySaveInstanceState(Activity activity, Bundle outState) {}
+
+    public void onActivityStarted(Activity activity) {}
+
+    public void onActivityStopped(Activity activity) {}
+
+    @Override
+    public void onTrimMemory(int i) {
+        // this lets us know when the app process is no longer showing a user
+        // interface, i.e. when the app went into the background
+        if (i == ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN) {
+            Log.d(TAG, "App went to background");
+            isInBackground = true;
+        }
+    }
+
 }
