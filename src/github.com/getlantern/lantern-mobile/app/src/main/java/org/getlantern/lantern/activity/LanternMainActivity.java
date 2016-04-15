@@ -255,6 +255,7 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
     }
 
     public void setupFeed(final ArrayList<String> sources) {
+
         final FragmentPagerItems.Creator c = FragmentPagerItems.with(this);
 
         String all = getResources().getString(R.string.all_feeds);
@@ -263,10 +264,12 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
 
         c.add(all, FeedFragment.class, bundle);
 
-        for (String source : sources) {
-            bundle = new Bundle();
-            bundle.putString("name", source);
-            c.add(source, FeedFragment.class, bundle);
+        if (sources != null) {
+            for (String source : sources) {
+                bundle = new Bundle();
+                bundle.putString("name", source);
+                c.add(source, FeedFragment.class, bundle);
+            }
         }
 
         feedAdapter = new FragmentPagerItemAdapter(
