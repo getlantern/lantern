@@ -230,6 +230,7 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         new FinestWebView.Builder(this)
             .webViewSupportMultipleWindows(true)
             .webViewJavaScriptEnabled(true)
+            .swipeRefreshColorRes(R.color.black)
             .webViewAllowFileAccessFromFileURLs(true)
             .webViewJavaScriptCanOpenWindowsAutomatically(true)
             .show(url.getText().toString());
