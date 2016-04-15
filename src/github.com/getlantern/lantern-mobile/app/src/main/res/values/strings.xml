@@ -22,7 +22,7 @@
     <string name="share_facebook">I\'m using Lantern for Android, it\'s available here https://github.com/getlantern/lantern/blob/lantern-mobile/src/github.com/getlantern/lantern-mobile/latest-builds/lantern.apk</string>
     <string name="share_email_gmail">I\'m using Lantern for Android, and I\'ve attached the APK file!</string>
     <string name="share_sms">i\'m using Lantern for Android, download here https://github.com/getlantern/lantern/blob/lantern-mobile/src/github.com/getlantern/lantern-mobile/latest-builds/lantern.apk</string>
-
+    <string name="all_feeds">all</string>
     <string name="share_chooser_text">Share Lantern Android</string>
     <string name="success_email">Lantern Desktop has been e-mailed to you!</string>
     <string name="error_email">There was a problem sending you Lantern Desktop. Please try again later.</string>
@@ -34,4 +34,7 @@
     <string name="install_update">Update</string>
     <string name="error_update">Error Downloading Update</string>
     <string name="manual_update">Try manually installing the latest version from &lt;a href="https://lantern-android.io">here1&lt;/a></string>
+    <string name="feed.error.oops">Oops!</string>
+    <string name="feed.error.error_fetching_feed">Error Fetching Feed</string>
+    <string name="feed.error.try_again">Please try again</string>
 </resources>
