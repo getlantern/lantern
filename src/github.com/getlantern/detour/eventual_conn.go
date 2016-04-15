@@ -92,7 +92,7 @@ func (conn *eventualConn) Close() error {
 func (conn *eventualConn) LocalAddr() net.Addr {
 	c, err := conn.getConn()
 	if err != nil {
-		panic(err)
+		return nil
 	}
 	return c.LocalAddr()
 }
@@ -100,7 +100,7 @@ func (conn *eventualConn) LocalAddr() net.Addr {
 func (conn *eventualConn) RemoteAddr() net.Addr {
 	c, err := conn.getConn()
 	if err != nil {
-		panic(err)
+		return nil
 	}
 	return c.RemoteAddr()
 }

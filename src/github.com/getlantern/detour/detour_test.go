@@ -169,7 +169,7 @@ func TestIranRules(t *testing.T) {
 	}
 }
 
-/*func TestGetAddr(t *testing.T) {
+func TestGetAddr(t *testing.T) {
 	defer stopMockServers()
 	mockURL, _ := newMockServer(directMsg)
 	proxiedURL, _ := newMockServer(detourMsg)
@@ -193,7 +193,7 @@ func TestIranRules(t *testing.T) {
 		assert.Equal(t, "tcp", c2.RemoteAddr().Network())
 		assert.Equal(t, u2.Host, c2.RemoteAddr().String(), "should get remote address of detour connection")
 	}
-}*/
+}
 
 func TestConcurrency(t *testing.T) {
 	if testing.Short() {

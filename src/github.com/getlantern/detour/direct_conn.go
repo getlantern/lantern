@@ -9,7 +9,7 @@ import (
 )
 
 type directConn struct {
-	Conn          *eventualConn
+	net.Conn
 	network       string
 	addr          string
 	readFirst     int32
@@ -34,7 +34,7 @@ func newDirectConn(network, addr string, detourAllowed eventual.Value) *directCo
 }
 
 func (dc *directConn) Dial() (ch chan error) {
-	return dc.Conn.Dial(func() (net.Conn, error) {
+	return dc.Conn.(*eventualConn).Dial(func() (net.Conn, error) {
 		conn, err := net.DialTimeout(dc.network, dc.addr, DialTimeout)
 		if err == nil {
 			if detector().DNSPoisoned(conn) {

@@ -2,7 +2,6 @@ package detour
 
 import (
 	"bytes"
-	"fmt"
 	"net"
 	"sync/atomic"
 	"time"
@@ -36,17 +35,15 @@ func SetCountry(country string) {
 
 type dialFunc func(network, addr string) (net.Conn, error)
 
-type ErrTimeout struct{}
-
-func (t ErrTimeout) Timeout() bool   { return true }
-func (t ErrTimeout) Temporary() bool { return true }
-func (t ErrTimeout) Error() string   { return "dial timeout" }
-
+type ErrDialTimeout struct{}
 type ErrClosed struct{}
 
-func (t ErrClosed) Timeout() bool   { return false }
-func (t ErrClosed) Temporary() bool { return false }
-func (t ErrClosed) Error() string   { return "connection closed" }
+func (t ErrDialTimeout) Timeout() bool   { return true }
+func (t ErrDialTimeout) Temporary() bool { return true }
+func (t ErrDialTimeout) Error() string   { return "dial timeout" }
+func (t ErrClosed) Timeout() bool        { return false }
+func (t ErrClosed) Temporary() bool      { return false }
+func (t ErrClosed) Error() string        { return "connection closed" }
 
 type conn struct {
 	addr          string
@@ -108,7 +105,7 @@ func Dialer(d dialFunc) dialFunc {
 					return c, nil
 				}
 			case <-t.C:
-				return nil, ErrTimeout{}
+				return nil, ErrDialTimeout{}
 			}
 		}
 		return nil, lastError
@@ -159,7 +156,7 @@ func (c *conn) Write(b []byte) (int, error) {
 	}
 
 	buf := make([]byte, len(b))
-	copy(buf, b)
+	_ = copy(buf, b)
 	select {
 	case result := <-c.direct.Write(buf):
 		return result.i, result.err
@@ -197,23 +194,46 @@ func (c *conn) Close() error {
 }
 
 func (c *conn) LocalAddr() net.Addr {
-	return nil
+	addr := c.direct.LocalAddr()
+	if addr == nil {
+		addr = c.detour.LocalAddr()
+	}
+	return addr
 }
 
 func (c *conn) RemoteAddr() net.Addr {
-	return nil
+	addr := c.direct.RemoteAddr()
+	if addr == nil {
+		addr = c.detour.RemoteAddr()
+	}
+	return addr
 }
 
 func (c *conn) SetDeadline(t time.Time) error {
-	return fmt.Errorf("Not implemented")
+	e1 := c.direct.SetDeadline(t)
+	e2 := c.detour.SetDeadline(t)
+	if e1 != nil {
+		return e1
+	}
+	return e2
 }
 
 func (c *conn) SetReadDeadline(t time.Time) error {
-	return fmt.Errorf("Not implemented")
+	e1 := c.direct.SetReadDeadline(t)
+	e2 := c.detour.SetReadDeadline(t)
+	if e1 != nil {
+		return e1
+	}
+	return e2
 }
 
 func (c *conn) SetWriteDeadline(t time.Time) error {
-	return fmt.Errorf("Not implemented")
+	e1 := c.direct.SetWriteDeadline(t)
+	e2 := c.detour.SetWriteDeadline(t)
+	if e1 != nil {
+		return e1
+	}
+	return e2
 }
 
 type ioResult struct {
