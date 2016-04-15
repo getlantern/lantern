@@ -103,6 +103,17 @@ type Manager struct {
 	// example for fetching config updates from a remote server.
 	CustomPoll func(currentCfg Config) (mutate func(cfg Config) error, waitTime time.Duration, err error)
 
+	// ObfuscationKey: if specified, the on-disk version of the config will be
+	// obfuscated by encrypting it using AES encryption with the ObfuscationKey as
+	// the cryptographic key. Use a key of 16, 24 or 32 bytes to select AES-128,
+	// AES-192 or AES-256.
+	//
+	// This does not provide any security, as the key is compiled into the
+	// application, it simply obfuscates the config so that it's not human
+	// readable. DO NOT REUSE A REAL ENCRYPTION KEY HERE, as this will leak that
+	// key to the world.
+	ObfuscationKey []byte
+
 	once      sync.Once
 	cfg       Config
 	cfgMutex  sync.RWMutex
@@ -154,15 +165,16 @@ func (m *Manager) Init() (Config, error) {
 		// Always save whatever we loaded, which will cause defaults to be
 		// applied and formatting to be made consistent
 		copied, err := m.copy(m.cfg)
+		if err != nil {
+			return nil, fmt.Errorf("Unable to copy config: %v", err)
+		}
 		if m.PerSessionSetup != nil {
 			err := m.PerSessionSetup(copied)
 			if err != nil {
 				return nil, fmt.Errorf("Unable to perform one-time setup: %s", err)
 			}
 		}
-		if err == nil {
-			_, err = m.saveToDiskAndUpdate(copied)
-		}
+		_, err = m.saveToDiskAndUpdate(copied)
 		if err != nil {
 			return nil, fmt.Errorf("Unable to perform initial update of config on disk: %s", err)
 		}

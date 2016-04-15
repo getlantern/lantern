@@ -2,6 +2,7 @@ package yamlconf
 
 import (
 	"bytes"
+	"crypto/cipher"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -9,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/getlantern/yaml"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -59,22 +60,31 @@ func TestFileAndUpdate(t *testing.T) {
 		}
 	}()
 
+	// Create an initial config on disk
+	saveConfig(t, file, &TestCfg{
+		Version: 0,
+		N: &Nested{
+			S: "3",
+		},
+	})
+
 	m := &Manager{
 		EmptyConfig: func() Config {
 			return &TestCfg{}
 		},
-		FilePath: file.Name(),
+		FilePath:       file.Name(),
+		ObfuscationKey: make([]byte, 16),
 	}
 
 	first, err := m.Init()
 	if err != nil {
 		t.Fatalf("Unable to Init manager: %s", err)
 	}
-	m.StartPolling()
 
-	assertSavedConfigEquals(t, file, &TestCfg{
+	assertSavedConfigEquals(t, m, file, &TestCfg{
 		Version: 1,
 		N: &Nested{
+			S: "3",
 			I: FIXED_I,
 		},
 	})
@@ -82,6 +92,7 @@ func TestFileAndUpdate(t *testing.T) {
 	assert.Equal(t, &TestCfg{
 		Version: 1,
 		N: &Nested{
+			S: "3",
 			I: FIXED_I,
 		},
 	}, first, "First config should contain correct data")
@@ -90,16 +101,6 @@ func TestFileAndUpdate(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		// Push updates
-
-		// Push update with bad version file (this should not get emitted as an
-		// updated config)
-		saveConfig(t, file, &TestCfg{
-			Version: 0,
-			N: &Nested{
-				S: "3",
-				I: 3,
-			},
-		})
 
 		// Wait for file update to get picked up
 		time.Sleep(pollInterval * 2)
@@ -189,12 +190,21 @@ func TestCustomPoll(t *testing.T) {
 	}, updated, "Custom polled config should contain correct data")
 }
 
-func assertSavedConfigEquals(t *testing.T, file *os.File, expected *TestCfg) {
+func assertSavedConfigEquals(t *testing.T, m *Manager, file *os.File, expected *TestCfg) {
 	b, err := yaml.Marshal(expected)
 	if err != nil {
 		t.Fatalf("Unable to marshal expected to yaml: %s", err)
 	}
-	bod, err := ioutil.ReadFile(file.Name())
+	stream, err := m.obfuscationStream()
+	if !assert.NoError(t, err, "Unable to get obfuscation stream") {
+		return
+	}
+	infile, err := os.Open(file.Name())
+	if !assert.NoError(t, err, "Unable to open file") {
+		return
+	}
+	defer infile.Close()
+	bod, err := ioutil.ReadAll(&cipher.StreamReader{S: stream, R: infile})
 	if err != nil {
 		t.Errorf("Unable to read config from disk: %s", err)
 	}
