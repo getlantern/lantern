@@ -4,8 +4,6 @@ apply plugin: 'com.google.gms.google-services'
 
 android {
 
-    useLibrary 'org.apache.http.legacy'
-
     packagingOptions { 
         exclude 'META-INF/LICENSE.txt' 
         exclude 'META-INF/NOTICE.txt' 
@@ -102,7 +100,10 @@ dependencies {
     compile 'com.koushikdutta.ion:ion:2.+'
     compile 'com.ogaclejapan.smarttablayout:library:1.6.0@aar'
     compile 'com.ogaclejapan.smarttablayout:utils-v4:1.6.0@aar'
-    compile 'com.mandrillapp.wrapper.lutung:lutung:0.0.7'
+
+    compile ('com.mandrillapp.wrapper.lutung:lutung:0.0.7') {
+        exclude group: 'org.apache.commons', module: 'commons-io'
+    }
     compile('com.crashlytics.sdk.android:crashlytics:2.5.3@aar') {
         transitive = true
     }
