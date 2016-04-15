@@ -44,12 +44,12 @@ public class FeedFragment extends Fragment {
     public void NotifyDataSetChanged(final List<FeedItem> items) {
         getActivity().runOnUiThread(new Runnable() {
             public void run() {
+                mFeedItems.addAll(items);
                 Log.d(TAG, String.format("Feed %s has %d items", feedName, 
-                            items.size()));
+                            mFeedItems.size()));
                 if (adapter != null) {
                     adapter.notifyDataSetChanged(); 
                 }
-                mFeedItems.addAll(items);
             }
         });
     }   
