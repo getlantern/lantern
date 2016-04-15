@@ -6,7 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-import org.getlantern.lantern.sdk.Utils;
+import org.getlantern.lantern.model.Utils;
 
 import go.lantern.Lantern;
 
