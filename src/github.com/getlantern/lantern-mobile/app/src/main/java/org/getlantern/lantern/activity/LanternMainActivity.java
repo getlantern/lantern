@@ -255,18 +255,21 @@ public class LanternMainActivity extends AppCompatActivity implements
 
         final FragmentPagerItems.Creator c = FragmentPagerItems.with(this);
 
-        String all = getResources().getString(R.string.all_feeds);
-        Bundle bundle = new Bundle();
-        bundle.putString("name", all);
+        if (sources != null && !sources.isEmpty()) {
+            String all = getResources().getString(R.string.all_feeds);
+            Bundle bundle = new Bundle();
+            bundle.putString("name", all);
+            c.add(all, FeedFragment.class, bundle);
 
-        c.add(all, FeedFragment.class, bundle);
-
-        if (sources != null) {
             for (String source : sources) {
                 bundle = new Bundle();
                 bundle.putString("name", source);
                 c.add(source, FeedFragment.class, bundle);
             }
+        } else {
+            // if we get back zero sources, some issue occurred
+            // downloading and/or parsing the feed
+            showFeedError();
         }
 
         feedAdapter = new FragmentPagerItemAdapter(
@@ -279,7 +282,9 @@ public class LanternMainActivity extends AppCompatActivity implements
         viewPagerTab.setViewPager(viewPager);
 
         View tab = viewPagerTab.getTabAt(0);
-        tab.setSelected(true);
+        if (tab != null) {
+            tab.setSelected(true);
+        }
 
         changeFeedHeaderColor(Service.IsRunning);
     }
@@ -394,7 +399,7 @@ public class LanternMainActivity extends AppCompatActivity implements
         if (isInBackground) {
             Log.d(TAG, "App in foreground");
             isInBackground = false;
-            new GetFeed(this, startLocalProxy()).execute("");
+            refreshFeed(null);
         }
     }
 

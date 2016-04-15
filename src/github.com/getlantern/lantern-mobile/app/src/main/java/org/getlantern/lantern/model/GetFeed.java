@@ -40,10 +40,6 @@ public class GetFeed extends AsyncTask<String, Void, ArrayList<String>> {
     protected void onPostExecute(ArrayList<String> sources) {
         super.onPostExecute(sources);
         activity.setupFeed(sources);
-
-        if (sources == null || sources.isEmpty() || Lantern.NullFeed()) {
-            activity.showFeedError();
-        }
     }
 }   
 

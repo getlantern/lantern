@@ -90,15 +90,6 @@ func CurrentFeed() *Feed {
 	return feed
 }
 
-// NullFeed is used to check for an error handling the feed
-// the idiomatic way of doing this is to return an error on
-// the Go side and try/catch the error on Java
-// but this ends up bloating the code unnecessarily
-// so we just use the following instead to check for a nil feed
-func NullFeed() bool {
-	return (feed == nil)
-}
-
 func handleError(err error) {
 	feed = nil
 	log.Error(err)
