@@ -217,11 +217,15 @@ app.controller('FeedCtrl', ['$scope', 'gaMgr', function($scope, gaMgr) {
   $scope.containerId = function($index) {
     return "#feeds-container-" + $index;
   };
+  var count = 0;
+  $scope.tabVisible = function() {
+    return $scope.tabSelected($scope.feedsTitle);
+  };
   $scope.addMoreItems = function() {
-    if ($scope.tabSelected($scope.feedsTitle)) {
+    if ($scope.tabVisible()) {
       var more = copiedFeedEntries.splice(0, 10);
       $scope.entries = $scope.entries.concat(more);
-      console.log($scope.feedsTitle + ": added " + more.length + " entries, total " + $scope.entries.length);
+      //console.log($scope.feedsTitle + ": added " + more.length + " entries, total " + $scope.entries.length);
     }
   };
   $scope.renderContent = function(feed) {
