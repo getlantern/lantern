@@ -68,10 +68,12 @@ type FeedRetriever interface {
 }
 
 func FeedByName(name string, retriever FeedRetriever) {
-	if items, exists := feed.Items[name]; exists {
-		for _, i := range items {
-			retriever.AddFeed(i.Title, i.Description,
-				i.Image, i.Link)
+	if feed != nil && feed.Items != nil {
+		if items, exists := feed.Items[name]; exists {
+			for _, i := range items {
+				retriever.AddFeed(i.Title, i.Description,
+					i.Image, i.Link)
+			}
 		}
 	}
 }
