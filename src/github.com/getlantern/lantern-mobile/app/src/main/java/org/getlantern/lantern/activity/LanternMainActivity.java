@@ -388,9 +388,9 @@ public class LanternMainActivity extends AppCompatActivity implements
     }
 
     public void onActivityResumed(Activity activity) { 
-        // we only want to refresh the public feed/try restarting
-        // the proxy whenever the returns to the foreground
-        // instead of every time the main activity is resumed
+        // we only want to refresh the public feed whenever the
+        // app returns to the foreground instead of every
+        // time the main activity is resumed
         if (isInBackground) {
             Log.d(TAG, "App in foreground");
             isInBackground = false;
