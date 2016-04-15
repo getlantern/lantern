@@ -123,18 +123,26 @@ func genPACFile(w io.Writer) (int, error) {
 	return fmt.Fprintf(w, formatter, hostsString, proxyAddrString)
 }
 
-// watchDirectAddrs adds any site that has accessed directly without error to PAC file
-func watchDirectAddrs() {
+// watchDirectAddrs adds any site that has accessed directly without error to PAC file. Send to or close the channel it returns to stop watching.
+func watchDirectAddrs() (chStop chan struct{}) {
+	chStop = make(chan struct{})
 	go func() {
+		ch := make(chan string)
+		detour.SetDirectAddrCh(ch)
 		for {
-			addr := <-detour.DirectAddrCh
-			host, _, err := net.SplitHostPort(addr)
-			if err != nil {
-				panic("watchDirectAddrs() got malformated host:port pair")
+			select {
+			case <-chStop:
+				return
+			case addr := <-ch:
+				host, _, err := net.SplitHostPort(addr)
+				if err != nil {
+					panic("watchDirectAddrs() got malformated host:port pair")
+				}
+				addDirectHost(host)
 			}
-			addDirectHost(host)
 		}
 	}()
+	return
 }
 
 func addDirectHost(host string) {

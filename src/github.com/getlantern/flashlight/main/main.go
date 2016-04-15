@@ -242,7 +242,8 @@ func beforeStart(cfg *config.Config) bool {
 		stopAnalytics := analytics.Start(cfg, flashlight.Version)
 		addExitFunc(stopAnalytics)
 	}
-	watchDirectAddrs()
+	chStop := watchDirectAddrs()
+	addExitFunc(func() { close(chStop) })
 
 	return true
 }
