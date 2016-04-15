@@ -293,7 +293,7 @@ public class LanternMainActivity extends AppCompatActivity implements
         if (LanternUI != null) {
             LanternUI.sendDesktopVersion(view);
         }
-    }
+   }
 
     // Prompt the user to enable full-device VPN mode
     // Make a VPN connection from the client
@@ -307,9 +307,7 @@ public class LanternMainActivity extends AppCompatActivity implements
                 startActivityForResult(intent, REQUEST_VPN);
             } else {
                 Log.d(TAG, "VPN enabled, starting Lantern...");
-
-                Lantern.disable(this);
-
+                Lantern.disable(getApplicationContext());
                 LanternUI.toggleSwitch(true);
                 changeFeedHeaderColor(true);
                 sendIntentToService();
@@ -329,6 +327,7 @@ public class LanternMainActivity extends AppCompatActivity implements
                 // VPN connection; return to off state
                 LanternUI.toggleSwitch(false);
             } else {
+                Lantern.disable(getApplicationContext());
                 LanternUI.toggleSwitch(true);
                 sendIntentToService();
             }
