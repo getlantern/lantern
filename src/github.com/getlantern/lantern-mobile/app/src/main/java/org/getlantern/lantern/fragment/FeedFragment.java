@@ -41,12 +41,15 @@ public class FeedFragment extends Fragment {
         this.mFeedItems = Collections.synchronizedList(new ArrayList<FeedItem>());
     }
 
-    public void NotifyDataSetChanged() {
+    public void NotifyDataSetChanged(final List<FeedItem> items) {
         getActivity().runOnUiThread(new Runnable() {
             public void run() {
+                Log.d(TAG, String.format("Feed %s has %d items", feedName, 
+                            items.size()));
                 if (adapter != null) {
                     adapter.notifyDataSetChanged(); 
                 }
+                mFeedItems.addAll(items);
             }
         });
     }   
@@ -69,17 +72,16 @@ public class FeedFragment extends Fragment {
         Log.d(TAG, "Created view for " + this.feedName);
         new Thread() {
             public void run() {
+                final List<FeedItem> items = new ArrayList<FeedItem>();
 
                 Lantern.FeedByName(feedName, new Lantern.FeedRetriever.Stub() {
-                    public void AddFeed(String title, String desc, String image, 
-                            String url) {
-                        mFeedItems.add(new FeedItem(title, desc, image, url));
+                    public void AddFeed(String title, String desc, 
+                            String image, String url) {
+                        items.add(new FeedItem(title, desc, image, url));
                     }
                 });
 
-                Log.d(TAG, String.format("Feed %s has %d items", feedName, 
-                            mFeedItems.size()));
-                NotifyDataSetChanged();
+                NotifyDataSetChanged(items);
             }
         }.start();
     }
