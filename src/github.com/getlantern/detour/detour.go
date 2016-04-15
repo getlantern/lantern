@@ -73,7 +73,7 @@ func Dialer(d dialFunc) dialFunc {
 			addr:          addr,
 			isHTTP:        true,
 			detourAllowed: detourAllowed,
-			direct:        newDirectConn(network, addr, detourAllowed),
+			direct:        newDirectConn(network, addr),
 			detour:        newDetourConn(network, addr, d),
 			closed:        make(chan struct{}),
 			expectedConns: 1,
@@ -100,6 +100,9 @@ func Dialer(d dialFunc) dialFunc {
 				if lastError == nil {
 					return c, nil
 				}
+				// Since we couldn't even dial, it's okay to detour no matter whether this
+				// is idempotent HTTP traffic or not.
+				c.detourAllowed.Set(true)
 			case lastError = <-chDialDetour:
 				if lastError == nil {
 					return c, nil
@@ -148,7 +151,8 @@ func (c *conn) Write(b []byte) (int, error) {
 		detourAllowed := c.isHTTP && mightBeIdempotentHTTPRequest(b)
 		c.detourAllowed.Set(detourAllowed)
 	}
-	allowed, valid := c.detourAllowed.Get(0)
+	// make sure we got the value previously set
+	allowed, valid := c.detourAllowed.Get(1 * time.Hour)
 	if valid && !allowed.(bool) {
 		log.Tracef("detour is not allowed to %s, write directly", c.addr)
 		result := <-c.direct.Write(b)

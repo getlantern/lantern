@@ -4,32 +4,28 @@ import (
 	"fmt"
 	"net"
 	"sync/atomic"
-
-	"github.com/getlantern/eventual"
 )
 
 type directConn struct {
 	net.Conn
-	network       string
-	addr          string
-	readFirst     int32
-	detourAllowed eventual.Value
-	shouldDetour  int32
+	network      string
+	addr         string
+	readFirst    int32
+	shouldDetour int32
 }
 
 func detector() *Detector {
 	return blockDetector.Load().(*Detector)
 }
 
-func newDirectConn(network, addr string, detourAllowed eventual.Value) *directConn {
+func newDirectConn(network, addr string) *directConn {
 	return &directConn{
 		Conn: newEventualConn(
 			DialTimeout,
 		),
-		network:       network,
-		addr:          addr,
-		detourAllowed: detourAllowed,
-		shouldDetour:  1, // 1 means true, will change to 0 once connected
+		network:      network,
+		addr:         addr,
+		shouldDetour: 1, // 1 means true, will change to 0 once connected
 	}
 }
 
@@ -48,12 +44,8 @@ func (dc *directConn) Dial() (ch chan error) {
 			return conn, nil
 		} else if detector().TamperingSuspected(err) {
 			log.Debugf("Dial directly to %s, tampering suspected: %s", dc.addr, err)
-			// Since we couldn't even dial, it's okay to detour no matter whether this
-			// is idempotent HTTP traffic or not.
-			dc.detourAllowed.Set(true)
 		} else {
 			log.Debugf("Dial directly to %s failed: %s", dc.addr, err)
-			//c.detourAllowed.Set(false)
 		}
 		return nil, err
 	})
