@@ -233,5 +233,8 @@ app.controller('FeedCtrl', ['$scope', 'gaMgr', function($scope, gaMgr) {
   $scope.trackFeed = function(name) {
     return gaMgr.trackFeed(name);
   };
+  $scope.hideImage = function(feed) {
+    feed.image = null;
+  };
   $scope.addMoreItems();
 }]);
