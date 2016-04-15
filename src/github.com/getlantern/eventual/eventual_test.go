@@ -34,6 +34,26 @@ func TestSingle(t *testing.T) {
 	assert.Equal(t, goroutines, runtime.NumGoroutine(), "should not leave goroutine")
 }
 
+/*func TestHappenAfter(t *testing.T) {
+	v := NewValue()
+	defer v.Stop()
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		v.Set("hi")
+		wg.Done()
+	}()
+
+	go func() {
+		v, valid := v.Get(0)
+		if assert.True(t, valid, "Get should happen after Set") {
+			assert.Equal(t, "hi", v.(string), "Get should get correct value")
+		}
+		wg.Done()
+	}()
+	wg.Wait()
+}*/
+
 func BenchmarkGet(b *testing.B) {
 	v := NewValue()
 	go func() {
@@ -50,7 +70,7 @@ func TestConcurrent(t *testing.T) {
 	goroutines := runtime.NumGoroutine()
 	v := NewValue()
 
-	var sets int32 = 0
+	var sets int32
 
 	go func() {
 		var wg sync.WaitGroup

@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	FALSE = 0
-	TRUE  = 1
+	intFalse = 0
+	intTrue  = 1
 )
 
 // Value is an eventual value, meaning that callers wishing to access the value
@@ -57,7 +57,7 @@ func DefaultGetter(val interface{}) Getter {
 
 func (v *value) Set(val interface{}) {
 	// Prevent sending on closed channel
-	if atomic.LoadInt32(&v.stopped) == FALSE {
+	if atomic.LoadInt32(&v.stopped) == intFalse {
 		v.muUpdates.RLock()
 		v.updates <- val
 		v.muUpdates.RUnlock()
@@ -67,21 +67,21 @@ func (v *value) Set(val interface{}) {
 func (v *value) processUpdates() {
 	for val := range v.updates {
 		v.val.Store(val)
-		if v.gotFirst == FALSE {
+		if v.gotFirst == intFalse {
 			// Signal to blocking callers that we have the first value
 			v.wg.Done()
-			atomic.StoreInt32(&v.gotFirst, TRUE)
+			atomic.StoreInt32(&v.gotFirst, intTrue)
 		}
 	}
 	// Ensure Get() returns once Stop() is called
-	if atomic.LoadInt32(&v.gotFirst) == FALSE {
+	if atomic.LoadInt32(&v.gotFirst) == intFalse {
 		v.wg.Done()
 	}
 }
 
 func (v *value) Stop() {
 	// Prevent closing multiple times
-	if atomic.CompareAndSwapInt32(&v.stopped, FALSE, TRUE) {
+	if atomic.CompareAndSwapInt32(&v.stopped, intFalse, intTrue) {
 		v.muUpdates.Lock()
 		close(v.updates)
 		v.muUpdates.Unlock()
@@ -90,8 +90,9 @@ func (v *value) Stop() {
 
 // Get waits the value to be set and returns it, or returns nil if times out or
 // Stop() is called. valid will be false in latter case.
+// TODO: Get should happen after Set if no timeout provided.
 func (v *value) Get(timeout time.Duration) (ret interface{}, valid bool) {
-	if atomic.LoadInt32(&v.gotFirst) == TRUE {
+	if atomic.LoadInt32(&v.gotFirst) == intTrue {
 		// Short-cut used once value has been set, to avoid extra goroutine
 		return v.val.Load(), true
 	}
@@ -103,7 +104,6 @@ func (v *value) Get(timeout time.Duration) (ret interface{}, valid bool) {
 		v.wg.Wait()
 		valCh <- v.val.Load()
 	}()
-
 	select {
 	case val := <-valCh:
 		if val == nil { // when Stop() is called before value is set
