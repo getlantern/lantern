@@ -111,6 +111,8 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
             LanternUI.setVersionNum(appVersion);
             LanternUI.setupLanternSwitch();
 
+            new GetFeed(this, startLocalProxy()).execute("");
+
         } catch (Exception e) {
             Log.d(TAG, "Got an exception " + e);
         }
@@ -119,8 +121,6 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
     @Override
     protected void onResume() {
         super.onResume();
-
-        new GetFeed(this, startLocalProxy()).execute("");
 
         //  we check if mPrefs has been initialized before
         // since onCreate and onResume are always both called
