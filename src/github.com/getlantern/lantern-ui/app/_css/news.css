@@ -185,7 +185,7 @@
 #news p.snippet {
   position: relative;
   line-height: 16px;
-  height: 32px;
+  max-height: 32px;
   overflow: hidden;
   padding-right: 1em;
   text-align: justify;
