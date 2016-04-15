@@ -4,6 +4,8 @@ apply plugin: 'com.google.gms.google-services'
 
 android {
 
+    useLibrary 'org.apache.http.legacy'
+
     packagingOptions { 
         exclude 'META-INF/LICENSE.txt' 
         exclude 'META-INF/NOTICE.txt' 
@@ -90,13 +92,16 @@ repositories {
 dependencies {
     compile(name:'liblantern', ext:'aar')
     compile(name:'android-sdk-debug', ext:'aar')
+    compile(name:'finestwebview', ext:'aar')
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile gplay
-    compile 'com.android.support:support-v4:${rootProject.ext.supportLibVersion}'
-    compile 'com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}'
-    compile 'com.android.support:design:${rootProject.ext.supportLibVersion}'
+    compile 'com.android.support:support-v4:23.2.1'
+    compile 'com.android.support:appcompat-v7:23.2.1'
+    compile 'com.android.support:design:23.2.1'
 
-    compile 'com.thefinestartist:finestwebview:1.2.3'
+    compile 'com.nineoldandroids:library:2.4.0'
+    compile 'com.thefinestartist:utils:0.9.0'
+    compile 'com.google.guava:guava:19.0'
     compile 'com.koushikdutta.ion:ion:2.+'
     compile 'com.ogaclejapan.smarttablayout:library:1.6.0@aar'
     compile 'com.ogaclejapan.smarttablayout:utils-v4:1.6.0@aar'

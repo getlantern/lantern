@@ -231,6 +231,9 @@ public class LanternMainActivity extends AppCompatActivity implements
             .swipeRefreshColorRes(R.color.black)
             .webViewAllowFileAccessFromFileURLs(true)
             .webViewJavaScriptCanOpenWindowsAutomatically(true)
+            .webViewLoadWithProxy(startLocalProxy())
+            // if we aren't in full-device VPN mode, configure the 
+            // WebView to use our local proxy
             .show(url.getText().toString());
     }
 
