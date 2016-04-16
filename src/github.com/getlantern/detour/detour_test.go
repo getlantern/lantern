@@ -82,9 +82,9 @@ func TestNonidempotentMethod(t *testing.T) {
 func TestBlockedAfterwards(t *testing.T) {
 	defer stopMockServers()
 	proxiedURL, _ := newMockServer(detourMsg)
-	DelayBeforeDetour = 20 * time.Millisecond
+	DelayBeforeDetour = 50 * time.Millisecond
 	mockURL, mock := newMockServer(directMsg)
-	client := newClient(proxiedURL, 50*time.Millisecond)
+	client := newClient(proxiedURL, 100*time.Millisecond)
 
 	log.Trace("Test directly accessible")
 	mock.Msg(directMsg)
