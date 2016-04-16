@@ -211,6 +211,9 @@ func TestConcurrency(t *testing.T) {
 				// This just detours to net.Dial, meaning that it doesn't accomplish any
 				// unblocking, it's just here for performance testing.
 				Dial: Dialer(net.Dial),
+				// It is possible to reuse connection, but not simply via ReverseProxy.
+				// Omitting this field will mess up HTTP responses.
+				DisableKeepAlives: true,
 			},
 			ErrorLog: log.AsStdLogger(),
 		})
@@ -220,8 +223,7 @@ func TestConcurrency(t *testing.T) {
 	}()
 	time.Sleep(100 * time.Millisecond) // allow proxy to start up
 	c := http.Client{Transport: &http.Transport{
-		DisableKeepAlives: true,
-		Proxy:             http.ProxyURL(proxyURL),
+		Proxy: http.ProxyURL(proxyURL),
 	}}
 	var wg sync.WaitGroup
 	for i := 0; i < 1000; i++ {

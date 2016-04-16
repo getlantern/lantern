@@ -84,35 +84,35 @@ func (dc *directConn) Write(b []byte) chan ioResult {
 type readChecker func([]byte, error) error
 
 func (dc *directConn) checkFirstRead(b []byte, err error) error {
-	if err == nil {
-		if !detector().FakeResponse(b) {
-			return nil
-		}
-		log.Debugf("Read %d bytes from %s directly, response is hijacked", len(b), dc.addr)
-		dc.setShouldDetour(true)
-		return fmt.Errorf("response is hijacked")
-	}
-	log.Debugf("Error while read from %s directly (first): %s", dc.addr, err)
-	if detector().TamperingSuspected(err) {
-		dc.setShouldDetour(true)
-		return err
-	}
-	return err
-}
-
-func (dc *directConn) checkFollowupRead(b []byte, err error) error {
 	if err != nil {
+		log.Debugf("Error while read from %s directly (first): %s", dc.addr, err)
 		if detector().TamperingSuspected(err) {
-			log.Debugf("Seems %s is still blocked, should detour next time", dc.addr)
 			dc.setShouldDetour(true)
-			return err
 		}
 		return err
 	}
 	if detector().FakeResponse(b) {
-		log.Tracef("%s still content hijacked, add to whitelist to try detour next time", dc.addr)
+		log.Debugf("Read %d bytes from %s directly, response is hijacked", len(b), dc.addr)
 		dc.setShouldDetour(true)
-		return fmt.Errorf("content hijacked")
+		return fmt.Errorf("response is hijacked")
+	}
+	log.Tracef("Read %d bytes from %s directly (first)", len(b), dc.addr)
+	return nil
+}
+
+func (dc *directConn) checkFollowupRead(b []byte, err error) error {
+	if err != nil {
+		log.Debugf("Error while read from %s directly (follow-up): %s", dc.addr, err)
+		if detector().TamperingSuspected(err) {
+			log.Debugf("Seems %s is still blocked, should detour next time", dc.addr)
+			dc.setShouldDetour(true)
+		}
+		return err
+	}
+	if detector().FakeResponse(b) {
+		log.Tracef("%s is still content hijacked, should detour next time", dc.addr)
+		dc.setShouldDetour(true)
+		return fmt.Errorf("response is hijacked")
 	}
 	log.Tracef("Read %d bytes from %s directly (follow-up)", len(b), dc.addr)
 	return nil

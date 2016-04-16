@@ -130,14 +130,14 @@ func (c *conn) Read(b []byte) (int, error) {
 	for i := 0; i < c.expectedConns; i++ {
 		select {
 		case result = <-chDirect:
-			if result.err == nil {
+			if result.i > 0 {
 				_ = copy(b, bufDirect[:result.i])
-				return result.i, nil
+				return result.i, result.err
 			}
-		case result := <-chDetour:
-			if result.err == nil {
+		case result = <-chDetour:
+			if result.i > 0 {
 				_ = copy(b, bufDetour[:result.i])
-				return result.i, nil
+				return result.i, result.err
 			}
 		case <-c.closed:
 			return 0, ErrClosed{}
