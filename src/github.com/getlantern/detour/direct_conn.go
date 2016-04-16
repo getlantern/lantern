@@ -57,7 +57,7 @@ func (dc *directConn) Read(b []byte) chan ioResult {
 	if atomic.CompareAndSwapInt32(&dc.readFirst, 0, 1) {
 		checker = dc.checkFirstRead
 	}
-	ch := make(chan ioResult)
+	ch := make(chan ioResult, 1)
 	go func() {
 		result := ioResult{}
 		dc.setShouldDetour(true)
@@ -72,7 +72,7 @@ func (dc *directConn) Read(b []byte) chan ioResult {
 }
 
 func (dc *directConn) Write(b []byte) chan ioResult {
-	ch := make(chan ioResult)
+	ch := make(chan ioResult, 1)
 	go func() {
 		result := ioResult{}
 		result.i, result.err = dc.Conn.Write(b)

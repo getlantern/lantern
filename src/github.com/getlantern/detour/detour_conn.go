@@ -34,7 +34,7 @@ func (c *detourConn) Dial(network, addr string) (ch chan error) {
 }
 
 func (c *detourConn) Read(b []byte) chan ioResult {
-	ch := make(chan ioResult)
+	ch := make(chan ioResult, 1)
 	go func() {
 		i, err := c.Conn.Read(b)
 		log.Tracef("Read %d bytes from detourConn to %s, err: %v", i, c.addr, err)
@@ -47,7 +47,7 @@ func (c *detourConn) Read(b []byte) chan ioResult {
 }
 
 func (c *detourConn) Write(b []byte) chan ioResult {
-	ch := make(chan ioResult)
+	ch := make(chan ioResult, 1)
 	go func() {
 		i, err := c.Conn.Write(b)
 		ch <- ioResult{i, err}
