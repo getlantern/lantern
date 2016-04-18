@@ -30,11 +30,39 @@ func newEventualConn(timeout time.Duration) *eventualConn {
 	return conn
 }
 
+type dialResult struct {
+	c   net.Conn
+	err error
+}
+
+// Dial a connection using the dial function passed in, and returns a channel
+// that caller can wait to receive error returned by the dial function, or dialing
+// times out, or nil if dials successfully.
 func (conn *eventualConn) Dial(dial func() (net.Conn, error)) chan error {
+	var err error
+	var c net.Conn
 	ch := make(chan error)
 	// Dial on a goroutine and report the result
 	go func() {
-		c, err := dial()
+		chTimeout := time.After(conn.timeout)
+		chDial := make(chan dialResult)
+		go func() {
+			c, err := dial()
+			chDial <- dialResult{c, err}
+		}()
+		select {
+		case <-chTimeout:
+			c, err = nil, ErrDialTimeout{}
+			// Wait and close connection to prevent leaking
+			go func() {
+				result := <-chDial
+				if result.err == nil {
+					_ = result.c.Close()
+				}
+			}()
+		case result := <-chDial:
+			c, err = result.c, result.err
+		}
 		if err != nil {
 			conn.conn.Set(err)
 			ch <- err
