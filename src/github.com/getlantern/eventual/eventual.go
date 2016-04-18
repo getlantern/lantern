@@ -18,12 +18,13 @@ type Value interface {
 	// Set sets this Value to the given val.
 	Set(val interface{})
 
-	// Get gets the value, blocks until timeout for a value to become available if
-	// one isn't immediately available.
-	Get(timeout time.Duration) (interface{}, bool)
+	// Get waits for the value to be set and returns it, or returns nil if it
+	// times out or Close() is called. valid will be false in latter case.
+	Get(timeout time.Duration) (ret interface{}, valid bool)
 
-	// Stop clears the resources. Get will return immediately with nil value.
-	Stop()
+	// Close closes a value that's never meant to be Set again. Call Close() to
+	// prevent leaking goroutines.
+	Close()
 }
 
 // Getter is a functional interface for the Value.Get function
@@ -67,7 +68,7 @@ func (v *value) Set(val interface{}) {
 func (v *value) processUpdates() {
 	for val := range v.updates {
 		v.val.Store(val)
-		if v.gotFirst == intFalse {
+		if atomic.LoadInt32(&v.gotFirst) == intFalse {
 			// Signal to blocking callers that we have the first value
 			v.wg.Done()
 			atomic.StoreInt32(&v.gotFirst, intTrue)
@@ -79,7 +80,7 @@ func (v *value) processUpdates() {
 	}
 }
 
-func (v *value) Stop() {
+func (v *value) Close() {
 	// Prevent closing multiple times
 	if atomic.CompareAndSwapInt32(&v.stopped, intFalse, intTrue) {
 		v.muUpdates.Lock()
@@ -88,8 +89,6 @@ func (v *value) Stop() {
 	}
 }
 
-// Get waits the value to be set and returns it, or returns nil if times out or
-// Stop() is called. valid will be false in latter case.
 // TODO: Get should happen after Set if no timeout provided.
 func (v *value) Get(timeout time.Duration) (ret interface{}, valid bool) {
 	if atomic.LoadInt32(&v.gotFirst) == intTrue {

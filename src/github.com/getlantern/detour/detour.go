@@ -213,7 +213,7 @@ func (c *conn) Write(b []byte) (int, error) {
 
 func (c *conn) Close() error {
 	close(c.closed)
-	c.detourAllowed.Stop()
+	c.detourAllowed.Close()
 	_ = c.direct.Close()
 	_ = c.detour.Close()
 
