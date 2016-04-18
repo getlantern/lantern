@@ -211,6 +211,10 @@
   background: #fafbfb;
 }
 
+#news p.snippet img {
+  display: none;
+}
+
 #news .item:hover p.snippet:after {
   background-color: #eeeeee;
 }
