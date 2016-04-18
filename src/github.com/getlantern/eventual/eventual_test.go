@@ -54,6 +54,26 @@ func TestSingle(t *testing.T) {
 	wg.Wait()
 }*/
 
+func TestNoRace(t *testing.T) {
+	goroutines := runtime.NumGoroutine()
+	v := NewValue()
+	var wg sync.WaitGroup
+	wg.Add(20)
+	for i := 0; i < 10; i++ {
+		go func() {
+			v.Set("hi")
+			wg.Done()
+		}()
+		go func() {
+			v.Stop()
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+	time.Sleep(50 * time.Millisecond)
+	assert.Equal(t, goroutines, runtime.NumGoroutine(), "should not leave goroutine")
+}
+
 func BenchmarkGet(b *testing.B) {
 	v := NewValue()
 	go func() {

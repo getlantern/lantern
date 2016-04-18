@@ -73,7 +73,7 @@ func (v *value) processUpdates() {
 			atomic.StoreInt32(&v.gotFirst, intTrue)
 		}
 	}
-	// Ensure Get() returns once Stop() is called
+	// Ensure Get() to return when Stop() is called
 	if atomic.LoadInt32(&v.gotFirst) == intFalse {
 		v.wg.Done()
 	}
