@@ -4,7 +4,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/getlantern/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestTranslate(t *testing.T) {

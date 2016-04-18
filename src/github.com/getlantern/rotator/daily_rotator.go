@@ -110,6 +110,8 @@ func (r *DailyRotator) WriteString(str string) (n int, err error) {
 
 // Close the file
 func (r *DailyRotator) Close() error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
 	return r.file.Close()
 }
 

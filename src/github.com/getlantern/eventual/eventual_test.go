@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/getlantern/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -112,7 +112,7 @@ func TestConcurrent(t *testing.T) {
 	r, ok := v.Get(20 * time.Millisecond)
 	assert.True(t, ok, "Get should have succeed")
 	assert.Equal(t, "hi", r, "Wrong result")
-	assert.Equal(t, concurrency, atomic.LoadInt32(&sets), "Wrong number of successful Sets")
+	assert.EqualValues(t, concurrency, atomic.LoadInt32(&sets), "Wrong number of successful Sets")
 
 	v.Stop()
 	time.Sleep(50 * time.Millisecond)

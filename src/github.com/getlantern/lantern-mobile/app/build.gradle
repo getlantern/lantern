@@ -1,9 +1,17 @@
 apply plugin: 'com.android.application'
 apply plugin: 'io.fabric'
+apply plugin: 'com.google.gms.google-services'
 
 android {
 
     useLibrary 'org.apache.http.legacy'
+
+    packagingOptions { 
+        exclude 'META-INF/LICENSE.txt' 
+        exclude 'META-INF/NOTICE.txt' 
+        exclude 'META-INF/maven/commons-io/commons-io/pom.xml'
+        exclude 'META-INF/maven/commons-io/commons-io/pom.properties'
+    }
 
     compileSdkVersion rootProject.compileSdkVersion
     buildToolsVersion rootProject.buildToolsVersion
@@ -22,7 +30,7 @@ android {
         targetSdkVersion rootProject.targetSdkVersion
         applicationId "org.getlantern.lantern"
         versionCode code
-        versionName "1.0." + nowFormatted
+        versionName "$project.lanternVersion ($project.lanternRevisionDate)"
     }
 
     lintOptions {
@@ -55,8 +63,6 @@ android {
 
         applicationVariants.all { variant ->
 
-            variant.buildConfigField "String", "LANTERN_VERSION", "\"$project.lanternVersion\""
-
             variant.outputs.each { output ->
                 output.outputFile = new File(
                     output.outputFile.parent,
@@ -79,18 +85,30 @@ repositories {
     jcenter()
     mavenCentral()
     mavenLocal()
+    maven { url "https://jitpack.io" }
     maven { url 'https://maven.fabric.io/public' }
 }
 
 dependencies {
     compile(name:'liblantern', ext:'aar')
-    compile(name:'sdk-debug', ext:'aar')
+    compile(name:'android-sdk-debug', ext:'aar')
+    compile(name:'finestwebview', ext:'aar')
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile gplay
-    compile appCompat
+    compile "com.android.support:support-v4:${supportLibVersion}"
+    compile "com.android.support:appcompat-v7:${supportLibVersion}"
+    compile "com.android.support:design:${supportLibVersion}"
+
+    compile 'com.nineoldandroids:library:2.4.0'
+    compile 'com.thefinestartist:utils:0.9.0'
     compile 'com.google.guava:guava:19.0'
-    compile 'com.mandrillapp.wrapper.lutung:lutung:0.0.6'
-    compile 'com.github.tony19:timber-loggly:1.0.1'
+    compile 'com.koushikdutta.ion:ion:2.+'
+    compile 'com.ogaclejapan.smarttablayout:library:1.6.0@aar'
+    compile 'com.ogaclejapan.smarttablayout:utils-v4:1.6.0@aar'
+
+    compile ('com.mandrillapp.wrapper.lutung:lutung:0.0.7') {
+        exclude group: 'org.apache.commons', module: 'commons-io'
+    }
     compile('com.crashlytics.sdk.android:crashlytics:2.5.3@aar') {
         transitive = true
     }

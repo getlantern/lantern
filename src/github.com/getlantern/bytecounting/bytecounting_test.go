@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/getlantern/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -125,10 +125,10 @@ func TestCounting(t *testing.T) {
 		t.Fatalf("Unable to read: %v", err)
 	}
 
-	assert.Equal(t, int64(len(resp)), cr, "Wrong number of bytes read by conn")
-	assert.Equal(t, int64(len(req)), cw, "Wrong number of bytes written by conn")
-	assert.Equal(t, cr, lw, "Listener written should equal conn read")
-	assert.Equal(t, cw, lr, "Listener read should equal conn written")
+	assert.Equal(t, int64(len(resp)), atomic.LoadInt64(&cr), "Wrong number of bytes read by conn")
+	assert.Equal(t, int64(len(req)), atomic.LoadInt64(&cw), "Wrong number of bytes written by conn")
+	assert.Equal(t, atomic.LoadInt64(&cr), atomic.LoadInt64(&lw), "Listener written should equal conn read")
+	assert.Equal(t, atomic.LoadInt64(&cw), atomic.LoadInt64(&lr), "Listener read should equal conn written")
 }
 
 func assertTimeoutError(t *testing.T, err error) {

@@ -12,7 +12,7 @@
 
 <div ng-show="currentModal == 'about'" class="modal">
   <div class="modal-header about">
-    <div>{{ 'LANTERN' | translate }} {{ 'VERSION' | translate }} {{ model.version.installed | version:true:true }}</div>
+    <div>{{ 'LANTERN' | translate }} {{ 'VERSION' | translate }} {{ model.settings.version }}</div>
     <div ng-show="model.dev" class="smaller">Development version. lantern-ui v{{ lanternUiVersion }}.</div>
     <div class="smaller">
       <a ng-click="openExternal(EXTERNAL_URL.homepage)">{{ 'HOMEPAGE' | translate }}<sup><i class="icon-external-link"></i></sup></a> ·
@@ -119,7 +119,7 @@
       <p class="download-link">
         <b>{{ 'LANTERN_MOBILE_ANDROID_TEXT' | translate }}:</b> <a ng-click="trackLink('lantern-mobile-modal')" target="_blank" href="{{ 'LANTERN_MOBILE_ANDROID' | translate }}">{{ 'LANTERN_MOBILE_ANDROID' | translate }}</a>
       </p>
-      <button ngclipboard data-clipboard-text="{{ 'LANTERN_MOBILE_ANDROID' | translate }}" type="button" ng-attr-style="background: url('/img/mobile-ad/{{ 'LANG_ID' | translate }}/copy-link.svg')" ng-click="copyAndroidMobileLink()">
+      <button ngclipboard data-clipboard-text="{{ 'LANTERN_MOBILE_ANDROID' | translate }}" type="button" ng-attr-style="background: url({{mobileAdImgPath('copy-link.svg')}})" ng-click="copyAndroidMobileLink()">
         Copy link
       </button>
       <p ng-show="linkCopied" id="link-copied">Link copied</p>

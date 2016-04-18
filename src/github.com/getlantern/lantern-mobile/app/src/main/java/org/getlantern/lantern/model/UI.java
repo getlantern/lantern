@@ -67,7 +67,7 @@ import java.util.regex.Pattern;
 import org.getlantern.lantern.activity.LanternMainActivity;
 import org.getlantern.lantern.config.LanternConfig;
 import org.getlantern.lantern.model.MailSender;
-import org.getlantern.lantern.sdk.Utils;
+import org.getlantern.lantern.model.Utils;
 import org.getlantern.lantern.R;
 
 public class UI {
@@ -151,8 +151,8 @@ public class UI {
         void runCommand();
     }
 
-    public void setVersionNum(final String appVersion, final String lanternVersion) {
-        versionNum.setText(String.format("%s-%s", appVersion, lanternVersion));
+    public void setVersionNum(final String version) {
+        versionNum.setText(version);
     }
 
     public void setupSideMenu() throws Exception {
@@ -293,7 +293,8 @@ public class UI {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
                     }
-                });
+                }
+        );
         alertDialog.show();
 
         Looper.loop();
@@ -396,6 +397,9 @@ public class UI {
         return mPrefs.getBoolean(LanternConfig.PREF_USE_VPN, false);
     }
 
+    public void clearPreferences() {
+        mPrefs.edit().putBoolean(LanternConfig.PREF_USE_VPN, false).commit();
+    }
 
     // update START/STOP power Lantern button
     // according to our stored preference

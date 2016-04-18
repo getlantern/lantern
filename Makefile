@@ -91,13 +91,14 @@ LANTERN_MOBILE_ARM_LIBS := $(LANTERN_MOBILE_LIBS)/armeabi-v7a
 LANTERN_MOBILE_TUN2SOCKS := $(LANTERN_MOBILE_ARM_LIBS)/libtun2socks.so
 LANTERN_MOBILE_ANDROID_LIB := $(LANTERN_MOBILE_LIBS)/$(ANDROID_LIB)
 LANTERN_MOBILE_ANDROID_SDK := $(LANTERN_MOBILE_LIBS)/android-sdk-debug.aar
+LANTERN_MOBILE_PUBSUB  := $(LANTERN_MOBILE_LIBS)/pubsub-sdk-debug.aar
 LANTERN_MOBILE_ANDROID_DEBUG := $(LANTERN_MOBILE_DIR)/app/build/outputs/apk/lantern-debug.apk
 LANTERN_MOBILE_ANDROID_RELEASE := $(LANTERN_MOBILE_DIR)/app/build/outputs/apk/app-release.apk
 
 LANTERN_YAML := lantern.yaml
 LANTERN_YAML_PATH := installer-resources/lantern.yaml
 
-.PHONY: packages clean tun2socks android-lib android-sdk android-testbed android-debug android-release android-install
+.PHONY: packages clean tun2socks android-lib android-sdk android-testbed android-debug android-release android-install docker-run
 
 define build-tags
 	BUILD_TAGS="" && \
@@ -181,8 +182,7 @@ docker-%: system-checks
 	mkdir -p $$DOCKER_CONTEXT && \
 	cp Dockerfile $$DOCKER_CONTEXT && \
 	docker build -t $(DOCKER_IMAGE_TAG) $$DOCKER_CONTEXT && \
-	echo docker run `echo $(DOCKER_VOLS) | xargs` -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" BNS_CERT_PASS="'$$BNS_CERT_PASS'" make $*' && \
-	docker run `echo $(DOCKER_VOLS) | xargs` -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && VERSION="'$$VERSION'" HEADLESS="'$$HEADLESS'" BNS_CERT_PASS="'$$BNS_CERT_PASS'" make $*';
+	docker run -e CMD -e VERSION -e HEADLESS -e BNS_CERT_PASS `echo $(DOCKER_VOLS) | xargs` -t $(DOCKER_IMAGE_TAG) /bin/bash -c 'cd /lantern && make $*';
 
 all: binaries
 android-dist: genconfig android
@@ -484,8 +484,17 @@ test-and-cover: $(RESOURCES_DOT_GO)
 		source envvars.bash; \
 	fi && \
 	for pkg in $$(cat testpackages.txt); do \
-		go test -v -tags="headless" -covermode=count -coverprofile=profile_tmp.cov $$pkg || exit 1; \
+		go test -race -v -tags="headless" -covermode=atomic -coverprofile=profile_tmp.cov $$pkg || exit 1; \
 		tail -n +2 profile_tmp.cov >> profile.cov; \
+	done
+
+test: $(RESOURCES_DOT_GO)
+	@source setenv.bash && \
+	if [ -f envvars.bash ]; then \
+		source envvars.bash; \
+	fi && \
+	for pkg in $$(cat testpackages.txt); do \
+		go test -race -v -tags="headless" $$pkg || exit 1; \
 	done
 
 genconfig:
@@ -565,15 +574,19 @@ $(LANTERN_MOBILE_ANDROID_SDK): $(ANDROID_SDK)
 	@mkdir -p $(LANTERN_MOBILE_LIBS) && \
 	cp $(ANDROID_SDK) $(LANTERN_MOBILE_ANDROID_SDK)
 
-$(LANTERN_MOBILE_ANDROID_DEBUG): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK)
-	@gradle -PlanternVersion=$(GIT_REVISION) -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
+$(LANTERN_MOBILE_PUBSUB): $(PUBSUB)
+	@mkdir -p $(LANTERN_MOBILE_LIBS) && \
+	cp $(PUBSUB) $(LANTERN_MOBILE_PUBSUB)
+
+$(LANTERN_MOBILE_ANDROID_DEBUG): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK) $(LANTERN_MOBILE_PUBSUB)
+	@gradle -PlanternVersion=$(GIT_REVISION) -PlanternRevisionDate=$(REVISION_DATE) -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
 		clean \
 		assembleDebug
 
-$(LANTERN_MOBILE_ANDROID_RELEASE): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK)
+$(LANTERN_MOBILE_ANDROID_RELEASE): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK) $(LANTERN_MOBILE_PUBSUB)
 	@echo "Generating distribution package for android..."
 	ln -f -s $$SECRETS_DIR/android/keystore.release.jks $(LANTERN_MOBILE_DIR)/app && \
-	gradle -PlanternVersion=$$VERSION -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
+	gradle -PlanternVersion=$$VERSION -PlanternRevisionDate=$(REVISION_DATE) -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
 		clean \
 		assembleRelease && \
 	cp $(LANTERN_MOBILE_ANDROID_RELEASE) lantern-installer.apk;
@@ -590,6 +603,13 @@ clean-assets:
 
 # Provided for backward compatibility with how people used to use the makefile
 update-dist: clean-assets assets
+
+# Executes whatever command is in the CMD environment variable. This is useful
+# when you want to test something in docker, e.g.
+#   CMD="go test github.com/getlantern/byteexec" make docker-exec
+exec:
+	@source setenv.bash && \
+	eval $$CMD
 
 clean-desktop: clean-assets
 	rm -f lantern && \

@@ -6,7 +6,6 @@ import (
 
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
-	"github.com/getlantern/proxiedsites"
 
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
@@ -146,7 +145,6 @@ func applyClientConfig(client *client.Client, cfg *config.Config, proxyAll func(
 		Version, RevisionDate)
 	// Update client configuration
 	client.Configure(cfg.Client, proxyAll)
-	proxiedsites.Configure(cfg.ProxiedSites)
 }
 
 func displayVersion() {

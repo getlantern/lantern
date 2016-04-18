@@ -10,7 +10,7 @@ import (
 
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/keyman"
-	"github.com/getlantern/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCityLookup(t *testing.T) {
