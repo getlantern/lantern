@@ -98,14 +98,13 @@ func (conn *eventualConn) Write(b []byte) (n int, err error) {
 	if !conn.writeThrough {
 		log.Trace("Writing to buffer")
 		return conn.writeBuf.Write(b)
-	} else {
-		log.Trace("Writing to underlying conn")
-		c, err := conn.getConn()
-		if err != nil {
-			return 0, err
-		}
-		return c.Write(b)
 	}
+	log.Trace("Writing to underlying conn")
+	c, err := conn.getConn()
+	if err != nil {
+		return 0, err
+	}
+	return c.Write(b)
 }
 
 func (conn *eventualConn) Close() error {

@@ -11,8 +11,10 @@ import (
 )
 
 var (
+	// DelayBeforeDetour is a small delay before dialing detour to prefer direct connections over detour ones
 	DelayBeforeDetour = 500 * time.Millisecond
-	DialTimeout       = 30 * time.Second
+	// DialTimeout is the time elapsed before giving up dialing any connection
+	DialTimeout = 30 * time.Second
 )
 
 var (
@@ -25,25 +27,41 @@ func init() {
 	SetCountry("")
 }
 
+// SetDirectAddrCh set up a channel to receive directly accessible address in host:port format
 func SetDirectAddrCh(ch chan string) {
 	directAddrCh.Store(ch)
 }
 
+// SetCountry asks detour to use blocking detect rule specific to that country
 func SetCountry(country string) {
 	blockDetector.Store(detectorByCountry(country))
 }
 
 type dialFunc func(network, addr string) (net.Conn, error)
 
+// ErrDialTimeout means DialTimeout is exceeded
 type ErrDialTimeout struct{}
+
+// ErrClosed indicates that connection is closed during any operation
 type ErrClosed struct{}
 
-func (t ErrDialTimeout) Timeout() bool   { return true }
+// Timeout satisfy net.Error interface
+func (t ErrDialTimeout) Timeout() bool { return true }
+
+// Temporary satisfy net.Error interface
 func (t ErrDialTimeout) Temporary() bool { return true }
-func (t ErrDialTimeout) Error() string   { return "dial timeout" }
-func (t ErrClosed) Timeout() bool        { return false }
-func (t ErrClosed) Temporary() bool      { return false }
-func (t ErrClosed) Error() string        { return "connection closed" }
+
+// Error satisfy net.Error interface
+func (t ErrDialTimeout) Error() string { return "dial timeout" }
+
+// Timeout satisfy net.Error interface
+func (t ErrClosed) Timeout() bool { return false }
+
+// Temporary satisfy net.Error interface
+func (t ErrClosed) Temporary() bool { return false }
+
+// Error satisfy net.Error interface
+func (t ErrClosed) Error() string { return "connection closed" }
 
 type conn struct {
 	addr          string
@@ -65,7 +83,7 @@ func notBlocked(addr string) bool {
 }
 
 // Dialer returns a function with same signature as net.Dialer.Dial().
-func Dialer(d dialFunc) dialFunc {
+func Dialer(d dialFunc) func(network, addr string) (net.Conn, error) {
 	return func(network, addr string) (net.Conn, error) {
 		// TODO: provide meaningful isHTTP
 		c := &conn{

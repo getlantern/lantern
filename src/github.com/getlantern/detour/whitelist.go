@@ -15,6 +15,7 @@ var (
 	forceWhitelist = make(map[string]wlEntry)
 )
 
+// ForceWhitelist adds a domain to whitelist that will never be removed
 func ForceWhitelist(addr string) {
 	log.Tracef("Force whitelisting %v", addr)
 	muWhitelist.Lock()
@@ -30,12 +31,14 @@ func AddToWl(addr string, permanent bool) {
 	whitelist[addr] = wlEntry{permanent}
 }
 
+// RemoveFromWl removes a domain from whitelist
 func RemoveFromWl(addr string) {
 	muWhitelist.Lock()
 	defer muWhitelist.Unlock()
 	delete(whitelist, addr)
 }
 
+// DumpWhitelist dumps all domains in the whitelist as an array of string
 func DumpWhitelist() (wl []string) {
 	wl = make([]string, 1)
 	muWhitelist.Lock()

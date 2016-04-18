@@ -17,9 +17,9 @@ import (
 )
 
 var (
-	directMsg string = "hello direct"
-	detourMsg string = "hello detour"
-	iranResp  string = `HTTP/1.1 403 Forbidden
+	directMsg = "hello direct"
+	detourMsg = "hello detour"
+	iranResp  = `HTTP/1.1 403 Forbidden
 Connection:close
 
 <html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1256"><title>M1-6
