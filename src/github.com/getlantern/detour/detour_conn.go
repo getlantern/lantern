@@ -26,7 +26,7 @@ func newDetourConn(network, addr string, d dialFunc) *detourConn {
 	}
 }
 
-func (c *detourConn) Dial(network, addr string) (ch chan error) {
+func (c *detourConn) Dial() (ch chan error) {
 	return c.Conn.(*eventualConn).Dial(func() (net.Conn, error) {
 		c, err := c.dialFN(c.network, c.addr)
 		return c, err

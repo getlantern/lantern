@@ -182,6 +182,8 @@ func (client *Client) Configure(cfg *ClientConfig, proxyAll func() bool) {
 // Stop is called when the client is no longer needed. It closes the
 // client listener and underlying dialer connection pool
 func (client *Client) Stop() error {
+	client.bal.Stop()
+	client.rp.Stop()
 	return client.l.Close()
 }
 

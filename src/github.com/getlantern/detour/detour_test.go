@@ -1,11 +1,14 @@
 package detour
 
 import (
+	"bytes"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"runtime"
+	"runtime/pprof"
 	"sync"
 	"testing"
 	"time"
@@ -30,10 +33,10 @@ func TestBlockedImmediately(t *testing.T) {
 	mockURL, mock := newMockServer(directMsg)
 
 	client := &http.Client{Timeout: 50 * time.Millisecond}
-	mock.Timeout(200*time.Millisecond, directMsg)
+	mock.Timeout(100*time.Millisecond, directMsg)
 	resp, err := client.Get(mockURL)
 	assert.Error(t, err, "direct access to a timeout url should fail")
-
+	tracker := newGoRoutineTracker(t)
 	log.Trace("Test dialing times out")
 	client = newClient(proxiedURL, 50*time.Millisecond)
 	resp, err = client.Get("http://255.0.0.1") // it's reserved for future use so will always time out
@@ -60,23 +63,27 @@ func TestBlockedImmediately(t *testing.T) {
 		time.Sleep(50 * time.Millisecond)
 		assert.True(t, wlTemporarily(u.Host), "should be added to whitelist if reading times out")
 	}
-
+	time.Sleep(100 * time.Millisecond)
+	tracker.verify()
 }
 
 func TestNonidempotentMethod(t *testing.T) {
 	defer stopMockServers()
 	proxiedURL, _ := newMockServer(detourMsg)
 	mockURL, mock := newMockServer(directMsg)
-	mock.Timeout(200*time.Millisecond, directMsg)
+	mock.Timeout(100*time.Millisecond, directMsg)
 
 	log.Trace("Test nonidempotent method")
 	client := newClient(proxiedURL, 50*time.Millisecond)
 	u, _ := url.Parse(mockURL)
 	RemoveFromWl(u.Host)
+	tracker := newGoRoutineTracker(t)
 	_, err := client.PostForm(mockURL, url.Values{"key": []string{"value"}})
 	if assert.Error(t, err, "Non-idempotent method should not be detoured in same connection") {
 		assert.True(t, wlTemporarily(u.Host), "but should be added to whitelist so will detour next time")
 	}
+	time.Sleep(100 * time.Millisecond)
+	tracker.verify()
 }
 
 func TestBlockedAfterwards(t *testing.T) {
@@ -86,6 +93,7 @@ func TestBlockedAfterwards(t *testing.T) {
 	mockURL, mock := newMockServer(directMsg)
 	client := newClient(proxiedURL, 100*time.Millisecond)
 
+	tracker := newGoRoutineTracker(t)
 	log.Trace("Test directly accessible")
 	mock.Msg(directMsg)
 	u, _ := url.Parse(mockURL)
@@ -96,7 +104,7 @@ func TestBlockedAfterwards(t *testing.T) {
 	}
 
 	log.Trace("Test reading times out for a previously worked url")
-	mock.Timeout(200*time.Millisecond, directMsg)
+	mock.Timeout(100*time.Millisecond, directMsg)
 	resp, err = client.Get(mockURL)
 	if assert.NoError(t, err, "but should have no error for the second time") {
 		u, _ := url.Parse(mockURL)
@@ -104,6 +112,8 @@ func TestBlockedAfterwards(t *testing.T) {
 		time.Sleep(50 * time.Millisecond)
 		assert.True(t, wlTemporarily(u.Host), "should be added to whitelist if reading times out")
 	}
+	time.Sleep(100 * time.Millisecond)
+	tracker.verify()
 }
 
 func TestRemoveFromWhitelist(t *testing.T) {
@@ -225,6 +235,8 @@ func TestConcurrency(t *testing.T) {
 	c := http.Client{Transport: &http.Transport{
 		Proxy: http.ProxyURL(proxyURL),
 	}}
+
+	tracker := newGoRoutineTracker(t)
 	var wg sync.WaitGroup
 	for i := 0; i < 1000; i++ {
 		wg.Add(1)
@@ -241,6 +253,8 @@ func TestConcurrency(t *testing.T) {
 		}()
 		wg.Wait()
 	}
+	time.Sleep(100 * time.Millisecond)
+	tracker.verify()
 }
 
 func proxyTo(proxiedURL string) func(network, addr string) (net.Conn, error) {
@@ -265,4 +279,27 @@ func assertContent(t *testing.T, resp *http.Response, msg string, reason string)
 	assert.NoError(t, err, reason)
 	assert.Equal(t, msg, string(b), reason)
 	_ = resp.Body.Close()
+}
+
+type goRoutineTracker struct {
+	t     *testing.T
+	num   int
+	stack string
+}
+
+func newGoRoutineTracker(t *testing.T) *goRoutineTracker {
+	numGoroutine := runtime.NumGoroutine()
+	var buf bytes.Buffer
+	_ = pprof.Lookup("goroutine").WriteTo(&buf, 2)
+	return &goRoutineTracker{t, numGoroutine, buf.String()}
+}
+
+func (tk *goRoutineTracker) verify() {
+	numGoroutine := runtime.NumGoroutine()
+	if !assert.True(tk.t, numGoroutine <= tk.num, "should not leak goroutines") {
+		var buf bytes.Buffer
+		_ = pprof.Lookup("goroutine").WriteTo(&buf, 2)
+		tk.t.Logf("before: %s", tk.stack)
+		tk.t.Logf("after: %s", buf.String())
+	}
 }

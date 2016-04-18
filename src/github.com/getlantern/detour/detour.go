@@ -68,50 +68,72 @@ func notBlocked(addr string) bool {
 func Dialer(d dialFunc) dialFunc {
 	return func(network, addr string) (net.Conn, error) {
 		// TODO: provide meaningful isHTTP
-		detourAllowed := eventual.NewValue()
 		c := &conn{
 			addr:          addr,
 			isHTTP:        true,
-			detourAllowed: detourAllowed,
+			detourAllowed: eventual.NewValue(),
 			direct:        newDirectConn(network, addr),
 			detour:        newDetourConn(network, addr, d),
 			closed:        make(chan struct{}),
 			expectedConns: 1,
 		}
+
+		// Dial
 		var chDialDirect = make(chan error)
 		var chDialDetour = make(chan error)
 		if knownToBeBlocked(addr) {
-			chDialDetour = c.detour.Dial(network, addr)
+			chDialDetour = c.detour.Dial()
 		} else {
 			chDialDirect = c.direct.Dial()
 			if !notBlocked(addr) {
 				c.expectedConns = 2
-				go func() {
-					time.Sleep(DelayBeforeDetour)
-					chDialDetour <- <-c.detour.Dial(network, addr)
-				}()
+				time.AfterFunc(DelayBeforeDetour, func() {
+					chDialDetour <- <-c.detour.Dial()
+				})
 			}
 		}
-		t := time.NewTimer(DialTimeout)
-		var lastError error
-		for i := 0; i < c.expectedConns; i++ {
-			select {
-			case lastError = <-chDialDirect:
-				if lastError == nil {
-					return c, nil
+
+		// Wait for all dialing attempts. DialTimeout is applied to both
+		// connections, handling timeout here is unnecessary.
+		chFinalError := make(chan error)
+		go func() {
+			var lastError error
+			got := false
+			for i := 0; i < c.expectedConns; i++ {
+				select {
+				case lastError = <-chDialDirect:
+					if got {
+						continue
+					}
+					if lastError == nil {
+						chFinalError <- nil
+						got = true
+					} else {
+						// Since we couldn't even dial direct connection, it's okay to
+						// detour no matter if it is idempotent HTTP request or not.
+						c.detourAllowed.Set(true)
+					}
+				case lastError = <-chDialDetour:
+					if got {
+						continue
+					}
+					if lastError == nil {
+						chFinalError <- nil
+						got = true
+					}
 				}
-				// Since we couldn't even dial, it's okay to detour no matter whether this
-				// is idempotent HTTP traffic or not.
-				c.detourAllowed.Set(true)
-			case lastError = <-chDialDetour:
-				if lastError == nil {
-					return c, nil
-				}
-			case <-t.C:
-				return nil, ErrDialTimeout{}
 			}
+			if !got {
+				chFinalError <- lastError
+			}
+		}()
+
+		// Return to caller
+		finalError := <-chFinalError
+		if finalError != nil {
+			return nil, finalError
 		}
-		return nil, lastError
+		return c, nil
 	}
 }
 
