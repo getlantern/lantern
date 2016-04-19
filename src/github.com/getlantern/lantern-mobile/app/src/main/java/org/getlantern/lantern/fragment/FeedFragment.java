@@ -37,6 +37,10 @@ public class FeedFragment extends Fragment {
         this.mFeedItems = Collections.synchronizedList(new ArrayList<FeedItem>());
     }
 
+    public String getFeedName() {
+        return feedName;
+    }
+
     public void NotifyDataSetChanged(final List<FeedItem> items) {
         getActivity().runOnUiThread(new Runnable() {
             public void run() {
