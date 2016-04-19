@@ -10,7 +10,6 @@ import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.os.StrictMode;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
@@ -20,10 +19,10 @@ import android.net.wifi.WifiManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.view.MenuItem;
 import android.view.KeyEvent;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 
 import org.getlantern.lantern.vpn.Service;
@@ -56,6 +55,7 @@ public class LanternMainActivity extends AppCompatActivity implements
     private boolean isInBackground = false;
     private FragmentPagerItemAdapter feedAdapter;
     private SmartTabLayout viewPagerTab;
+    private String lastFeedSelected = "all";
 
     private Context context;
     private UI LanternUI;
@@ -225,6 +225,13 @@ public class LanternMainActivity extends AppCompatActivity implements
         TextView url = (TextView)view.findViewById(R.id.link);
         Log.d(TAG, "Feed item clicked: " + url.getText());
 
+        if (lastFeedSelected != null) {
+            // whenever a user clicks on an article, send a custom event to GA 
+            // that includes the source/feed category
+            Utils.sendFeedEvent(getApplicationContext(),
+                    String.format("feed-%s", lastFeedSelected));
+        }
+
         new FinestWebView.Builder(this)
             .webViewSupportMultipleWindows(true)
             .webViewJavaScriptEnabled(true)
@@ -238,8 +245,7 @@ public class LanternMainActivity extends AppCompatActivity implements
     }
 
     public void changeFeedHeaderColor(boolean useVpn) {
-
-        if (feedAdapter != null) {
+        if (feedAdapter != null && viewPagerTab != null) {
             int c;
             if (useVpn) {
                 c = getResources().getColor(R.color.accent_white); 
@@ -281,6 +287,17 @@ public class LanternMainActivity extends AppCompatActivity implements
 
         viewPagerTab = (SmartTabLayout)this.findViewById(R.id.viewpagertab);
         viewPagerTab.setViewPager(viewPager);
+
+        viewPagerTab.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                Fragment f = feedAdapter.getPage(position);
+                if (f instanceof FeedFragment) {
+                    lastFeedSelected = ((FeedFragment)f).getFeedName();
+                }
+            }
+        });
 
         View tab = viewPagerTab.getTabAt(0);
         if (tab != null) {
