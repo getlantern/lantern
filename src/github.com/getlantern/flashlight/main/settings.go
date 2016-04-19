@@ -51,7 +51,6 @@ func LoadSettings(version, revisionDate, buildDate string) *Settings {
 	// Create default settings that may or may not be overridden from an existing file
 	// on disk.
 	settings = &Settings{
-		DeviceID:    NewDeviceID(),
 		AutoReport:  true,
 		AutoLaunch:  true,
 		ProxyAll:    false,
@@ -66,6 +65,10 @@ func LoadSettings(version, revisionDate, buildDate string) *Settings {
 		// Just keep going with the original settings not from disk.
 	} else {
 		log.Debugf("Loaded settings from %v", path)
+	}
+
+	if settings.DeviceID == "" {
+		settings.SetDeviceID(NewDeviceID())
 	}
 
 	if settings.AutoLaunch {
