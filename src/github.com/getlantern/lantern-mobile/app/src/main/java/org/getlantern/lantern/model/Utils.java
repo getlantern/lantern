@@ -45,7 +45,7 @@ public class Utils {
     }
 
     public static void sendFeedEvent(Context context, String category) {
-        Log.d(TAG, "Logging custom feed event. Category is " + category);
+        Log.d(TAG, "Logging feed event. Category is " + category);
         trackerFor(context, analyticsTrackingID).send(new HitBuilders.EventBuilder()
                 .setCategory(category)
                 .setAction("click")
