@@ -134,7 +134,7 @@ public abstract class Lantern {
                 .build());
     }
 
-    private synchronized static Tracker trackerFor(Context context, String trackingId) {
+    public synchronized static Tracker trackerFor(Context context, String trackingId) {
         Tracker tracker = trackersById.get(trackingId);
 
         if (tracker == null) {
