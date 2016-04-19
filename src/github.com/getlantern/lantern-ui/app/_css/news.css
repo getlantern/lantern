@@ -179,6 +179,9 @@
 #news h4 {
   font-weight: 700;
   line-height: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* http://hackingui.com/front-end/a-pure-css-solution-for-multiline-text-truncation/ */
@@ -206,6 +209,10 @@
   height: 1em;
   margin-top: 0.2em;
   background: #fafbfb;
+}
+
+#news p.snippet img {
+  display: none;
 }
 
 #news .item:hover p.snippet:after {

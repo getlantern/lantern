@@ -1,6 +1,6 @@
 <a class="item" target="_blank" href="{{feed.link}}" ng-click="trackFeed(feedsTitle)">
   <div ng-if="feed.image" class="feed-thumbnail">
-    <img ng-src="{{feed.image}}" on-error="hideImage(feed)"/>
+    <img ng-src="{{feed.image}}" on-error="hideImage(feed)" data-pin-no-hover="true" />
   </div>
   <div class="content">
     <span class="feed-source"></span>
