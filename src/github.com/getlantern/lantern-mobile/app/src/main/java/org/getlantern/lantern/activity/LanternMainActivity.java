@@ -225,8 +225,12 @@ public class LanternMainActivity extends AppCompatActivity implements
         TextView url = (TextView)view.findViewById(R.id.link);
         Log.d(TAG, "Feed item clicked: " + url.getText());
 
-        Utils.sendFeedEvent(getApplicationContext(),
-                String.format("feed-%s", lastFeedSelected));
+        if (lastFeedSelected != null) {
+            // whenever a user clicks on an article, send a custom event to GA 
+            // that includes the source/feed category
+            Utils.sendFeedEvent(getApplicationContext(),
+                    String.format("feed-%s", lastFeedSelected));
+        }
 
         new FinestWebView.Builder(this)
             .webViewSupportMultipleWindows(true)
