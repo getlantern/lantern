@@ -71,13 +71,11 @@ func main() {
 	client.ForceChainedProxyAddr = *forceProxyAddr
 	client.ForceAuthToken = *forceAuthToken
 
-	showui := !*headless
-
-	if showui {
+	if a.ShowUI {
 		runOnSystrayReady(_main(a))
 	} else {
 		log.Debug("Running headless")
-		_main(a)
+		_main(a)()
 	}
 }
 
@@ -107,7 +105,7 @@ func doMain(a *app.App) error {
 	a.AddExitFunc(quitSystray)
 
 	i18nInit()
-	if !*headless {
+	if a.ShowUI {
 		if err := configureSystemTray(a); err != nil {
 			return err
 		}
