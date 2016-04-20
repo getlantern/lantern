@@ -1,11 +1,10 @@
-// package app implements the desktop application functionality of flashlight
+// Package app implements the desktop application functionality of flashlight
 package app
 
 import (
 	"fmt"
 	"math/rand"
 	"net/http"
-	_ "net/http/pprof"
 	"time"
 
 	"github.com/getlantern/eventual"
@@ -33,9 +32,10 @@ func init() {
 
 	rand.Seed(time.Now().UnixNano())
 
-	settings = LoadSettings(flashlight.Version, flashlight.RevisionDate, flashlight.BuildDate)
+	settings = loadSettings(flashlight.Version, flashlight.RevisionDate, flashlight.BuildDate)
 }
 
+// App is the core of the Lantern desktop application, in the form of a library.
 type App struct {
 	ShowUI      bool
 	Flags       map[string]interface{}
@@ -43,6 +43,7 @@ type App struct {
 	chExitFuncs chan func()
 }
 
+// Init initializes the App's state
 func (app *App) Init() {
 	app.exitCh = make(chan error, 1)
 	// use buffered channel to avoid blocking the caller of 'AddExitFunc'
@@ -50,6 +51,7 @@ func (app *App) Init() {
 	app.chExitFuncs = make(chan func(), 10)
 }
 
+// LogPanicAndExit logs a panic and then exits the application.
 func (app *App) LogPanicAndExit(msg string) {
 	cfg, err := config.Init(settings,
 		flashlight.PackageVersion,
@@ -74,6 +76,7 @@ func (app *App) LogPanicAndExit(msg string) {
 	app.Exit(nil)
 }
 
+// Run starts the app. It will block until the app exits.
 func (app *App) Run() error {
 	// Run below in separate goroutine as config.Init() can potentially block when Lantern runs
 	// for the first time. User can still quit Lantern through systray menu when it happens.
@@ -172,7 +175,7 @@ func (app *App) beforeStart(cfg *config.Config) bool {
 
 func (app *App) afterStart(cfg *config.Config) {
 	app.onConfigUpdate(cfg)
-	ServePACFile()
+	servePACFile()
 	if settings.GetSystemProxy() {
 		pacOn()
 	}
@@ -220,7 +223,7 @@ func (app *App) AddExitFunc(exitFunc func()) {
 	app.chExitFuncs <- exitFunc
 }
 
-// exit tells the application to exit, optionally supplying an error that caused
+// Exit tells the application to exit, optionally supplying an error that caused
 // the exit.
 func (app *App) Exit(err error) {
 	defer func() { app.exitCh <- err }()

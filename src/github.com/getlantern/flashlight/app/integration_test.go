@@ -213,18 +213,18 @@ func buildConfig(configAddr string, obfs4 bool) ([]byte, error) {
 			"iat-mode": "0",
 		}
 
-		bridgelineFile, err := ioutil.ReadFile("obfs4_bridgeline.txt")
-		if err != nil {
-			return nil, fmt.Errorf("Could not read obfs4_bridgeline.txt: %v", err)
+		bridgelineFile, err2 := ioutil.ReadFile("obfs4_bridgeline.txt")
+		if err2 != nil {
+			return nil, fmt.Errorf("Could not read obfs4_bridgeline.txt: %v", err2)
 		}
 		obfs4extract := regexp.MustCompile(".+cert=([^\\s]+).+")
 		srv.Cert = string(obfs4extract.FindSubmatch(bridgelineFile)[1])
 	} else {
 		srv.Addr = ProxyServerAddr
 
-		cert, err := ioutil.ReadFile(CertFile)
-		if err != nil {
-			return nil, fmt.Errorf("Could not read cert %v", err)
+		cert, err2 := ioutil.ReadFile(CertFile)
+		if err2 != nil {
+			return nil, fmt.Errorf("Could not read cert %v", err2)
 		}
 		srv.Cert = string(cert)
 	}

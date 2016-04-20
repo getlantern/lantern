@@ -45,8 +45,8 @@ type Settings struct {
 	sync.RWMutex `json:"-" yaml:"-"`
 }
 
-// Load loads the initial settings at startup, either from disk or using defaults.
-func LoadSettings(version, revisionDate, buildDate string) *Settings {
+// loadSettings loads the initial settings at startup, either from disk or using defaults.
+func loadSettings(version, revisionDate, buildDate string) *Settings {
 	log.Debug("Loading settings")
 	// Create default settings that may or may not be overridden from an existing file
 	// on disk.

@@ -28,15 +28,15 @@ var (
 	cfgMutex    sync.RWMutex
 )
 
-func ServePACFile() {
+func servePACFile() {
 	cfgMutex.Lock()
 	defer cfgMutex.Unlock()
 	if pacURL == "" {
-		pacURL = ui.Handle("/proxy_on.pac", http.HandlerFunc(servePACFile))
+		pacURL = ui.Handle("/proxy_on.pac", http.HandlerFunc(pacFileHandler))
 	}
 }
 
-func servePACFile(resp http.ResponseWriter, req *http.Request) {
+func pacFileHandler(resp http.ResponseWriter, req *http.Request) {
 	log.Trace("Serving PAC file")
 	resp.Header().Set("Content-Type", "application/x-ns-proxy-autoconfig")
 	resp.WriteHeader(http.StatusOK)
@@ -52,18 +52,16 @@ func setUpPacTool() error {
 	if runtime.GOOS == "darwin" {
 		// We have to use a short filepath here because Cocoa won't display the
 		// icon if the path is too long.
-		iconFile := filepath.Join("/tmp", "escalatelantern.ico")
+		iconFile = filepath.Join("/tmp", "escalatelantern.ico")
 		icon, err := icons.Asset("icons/32on.ico")
 		if err != nil {
 			return fmt.Errorf("Unable to load escalation prompt icon: %v", err)
-		} else {
-			err := filepersist.Save(iconFile, icon, 0644)
-			if err != nil {
-				return fmt.Errorf("Unable to persist icon to disk: %v", err)
-			} else {
-				log.Debugf("Saved icon file to: %v", iconFile)
-			}
 		}
+		err = filepersist.Save(iconFile, icon, 0644)
+		if err != nil {
+			return fmt.Errorf("Unable to persist icon to disk: %v", err)
+		}
+		log.Debugf("Saved icon file to: %v", iconFile)
 	}
 	err := pac.EnsureHelperToolPresent("pac-cmd", "Lantern would like to be your system proxy", iconFile)
 	if err != nil {
