@@ -11,6 +11,6 @@ func TestNotPersistVersion(t *testing.T) {
 	version := "version-not-on-disk"
 	revisionDate := "1970-1-1"
 	buildDate := "1970-1-1"
-	LoadSettings(version, revisionDate, buildDate)
+	loadSettings(version, revisionDate, buildDate)
 	assert.Equal(t, settings.Version, version, "Should be set to version")
 }
