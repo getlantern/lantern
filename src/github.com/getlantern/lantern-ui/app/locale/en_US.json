@@ -1,10 +1,10 @@
 {
-  "LANTERN_MOBILE_ANDROID": "https://s3.amazonaws.com/lantern-android/lantern-android-beta.apk",
+  "LANTERN_MOBILE_ANDROID": "https://bit.ly/lanternapk",
   "LANTERN_MOBILE_ANDROID_TEXT": "Android download link",
   "TRY_LANTERN_FOR_ANDROID": "Try Lantern for Android!",
   "FEED_LINK": "Lantern Feed",
   "ALL_FEEDS": "ALL",
-  "LANTERN_MOBILE_SHARE": "Trying out Lantern for Android! https://s3.amazonaws.com/lantern-android/lantern-android-beta.apk #getlantern",
+  "LANTERN_MOBILE_SHARE": "Trying out Lantern for Android! https://bit.ly/lanternapk #getlantern",
   "TELL_YOUR_FRIENDS": "Thanks! Tell your friends about Lantern Mobile",
   "HELP_TRANSLATE": "Help translate",
   "LANTERN": "Lantern",
