@@ -477,14 +477,18 @@ create-tag: require-version
 	@git tag -a "$$VERSION" -f --annotate -m"Tagged $$VERSION" && \
 	git push --tags -f
 
+# This target requires a file called testpackages.txt that lists all packages to
+# test, one package per line, with no trailing newline on the last package.
 test-and-cover: $(RESOURCES_DOT_GO)
 	@echo "mode: count" > profile.cov && \
 	source setenv.bash && \
 	if [ -f envvars.bash ]; then \
 		source envvars.bash; \
 	fi && \
-	for pkg in $$(cat testpackages.txt); do \
-		go test -race -v -tags="headless" -covermode=atomic -coverprofile=profile_tmp.cov $$pkg || exit 1; \
+	TP=$$(cat testpackages.txt) && \
+	CP=$$(echo -n $$TP | tr ' ', ',') && \
+	for pkg in $$TP; do \
+		go test -race -v -tags="headless" -covermode=atomic -coverpkg "$$CP" -coverprofile=profile_tmp.cov $$pkg || exit 1; \
 		tail -n +2 profile_tmp.cov >> profile.cov; \
 	done
 
