@@ -133,7 +133,7 @@ func (app *App) beforeStart(cfg *config.Config) bool {
 		//
 		// See: https://github.com/getlantern/lantern/issues/2776
 		log.Debug("Clearing proxy settings")
-		doPACOff(fmt.Sprintf("http://%s/proxy_on.pac", app.Flags["uiaddr"].(string)))
+		doPACOff(fmt.Sprintf("http://%s/proxy_on.pac", app.uiaddr()))
 		app.Exit(nil)
 	}
 
@@ -146,13 +146,13 @@ func (app *App) beforeStart(cfg *config.Config) bool {
 		startupURL = bootstrap.StartupUrl
 	}
 
-	log.Debugf("Starting client UI at %v", app.Flags["uiaddr"].(string))
-	actualUIAddr, err := ui.Start(app.Flags["uiaddr"].(string), !app.ShowUI, startupURL)
+	log.Debugf("Starting client UI at %v", app.uiaddr())
+	actualUIAddr, err := ui.Start(app.uiaddr(), !app.ShowUI, startupURL)
 	if err != nil {
 		// This very likely means Lantern is already running on our port. Tell
 		// it to open a browser. This is useful, for example, when the user
 		// clicks the Lantern desktop shortcut when Lantern is already running.
-		err2 := app.showExistingUI(app.Flags["uiaddr"].(string))
+		err2 := app.showExistingUI(app.uiaddr())
 		if err2 != nil {
 			app.Exit(fmt.Errorf("Unable to start UI: %s", err))
 		} else {
@@ -242,4 +242,8 @@ func (app *App) Exit(err error) {
 // WaitForExit waits for a request to exit the application.
 func (app *App) waitForExit() error {
 	return <-app.exitCh
+}
+
+func (app *App) uiaddr() string {
+	return app.Flags["uiaddr"].(string)
 }
