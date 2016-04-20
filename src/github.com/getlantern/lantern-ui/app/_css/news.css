@@ -174,11 +174,13 @@
 
 #news p.feed-date {
   padding-top: 13px;
+  font-size: 10px;
 }
 
 #news h4 {
   font-weight: 700;
-  line-height: 18px;
+  font-size: 14px;
+  line-height: 16px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
