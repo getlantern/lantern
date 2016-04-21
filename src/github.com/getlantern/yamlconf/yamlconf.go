@@ -156,25 +156,24 @@ func (m *Manager) Init() (Config, error) {
 	err := m.loadFromDisk()
 	if err != nil {
 		return nil, fmt.Errorf("Could not load config? %v", err)
-	} else {
-		log.Debugf("Loading per session setup")
+	}
+	log.Debugf("Loading per session setup")
 
-		// Always save whatever we loaded, which will cause defaults to be
-		// applied and formatting to be made consistent
-		copied, err := m.copy(m.cfg)
-		if err != nil {
-			return nil, fmt.Errorf("Unable to copy config: %v", err)
+	// Always save whatever we loaded, which will cause defaults to be
+	// applied and formatting to be made consistent
+	copied, err := m.copy(m.cfg)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to copy config: %v", err)
+	}
+	if m.PerSessionSetup != nil {
+		err2 := m.PerSessionSetup(copied)
+		if err2 != nil {
+			return nil, fmt.Errorf("Unable to perform one-time setup: %s", err2)
 		}
-		if m.PerSessionSetup != nil {
-			err := m.PerSessionSetup(copied)
-			if err != nil {
-				return nil, fmt.Errorf("Unable to perform one-time setup: %s", err)
-			}
-		}
-		_, err = m.saveToDiskAndUpdate(copied)
-		if err != nil {
-			return nil, fmt.Errorf("Unable to perform initial update of config on disk: %s", err)
-		}
+	}
+	_, err = m.saveToDiskAndUpdate(copied)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to perform initial update of config on disk: %s", err)
 	}
 
 	go m.processUpdates()

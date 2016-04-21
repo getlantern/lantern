@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	FIXED_I = 55
+	I = 55
 )
 
 var (
@@ -45,7 +45,7 @@ func (c *TestCfg) ApplyDefaults() {
 		c.N = &Nested{}
 	}
 	if c.N.I == 0 {
-		c.N.I = FIXED_I
+		c.N.I = I
 	}
 }
 
@@ -55,8 +55,8 @@ func TestFileAndUpdate(t *testing.T) {
 		t.Fatalf("Unable to create temp file: %s", err)
 	}
 	defer func() {
-		if err := os.Remove(file.Name()); err != nil {
-			t.Fatalf("Unable to remove file: %v", err)
+		if err2 := os.Remove(file.Name()); err2 != nil {
+			t.Fatalf("Unable to remove file: %v", err2)
 		}
 	}()
 
@@ -85,7 +85,7 @@ func TestFileAndUpdate(t *testing.T) {
 		Version: 1,
 		N: &Nested{
 			S: "3",
-			I: FIXED_I,
+			I: I,
 		},
 	})
 
@@ -93,7 +93,7 @@ func TestFileAndUpdate(t *testing.T) {
 		Version: 1,
 		N: &Nested{
 			S: "3",
-			I: FIXED_I,
+			I: I,
 		},
 	}, first, "First config should contain correct data")
 
@@ -137,8 +137,8 @@ func TestCustomPoll(t *testing.T) {
 		t.Fatalf("Unable to create temp file: %s", err)
 	}
 	defer func() {
-		if err := os.Remove(file.Name()); err != nil {
-			t.Fatalf("Unable to remove file: %s", err)
+		if err2 := os.Remove(file.Name()); err2 != nil {
+			t.Fatalf("Unable to remove file: %s", err2)
 		}
 	}()
 
@@ -185,7 +185,7 @@ func TestCustomPoll(t *testing.T) {
 		Version: 2,
 		N: &Nested{
 			S: "Modified",
-			I: FIXED_I,
+			I: I,
 		},
 	}, updated, "Custom polled config should contain correct data")
 }

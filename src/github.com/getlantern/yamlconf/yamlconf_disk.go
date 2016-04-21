@@ -88,9 +88,9 @@ func (m *Manager) doReadFromDisk(allowObfuscation bool) (Config, error) {
 	var in io.Reader = infile
 	if allowObfuscation && m.Obfuscate {
 		// Read file as obfuscated with AES
-		stream, err := m.obfuscationStream()
-		if err != nil {
-			return nil, err
+		stream, err2 := m.obfuscationStream()
+		if err2 != nil {
+			return nil, err2
 		}
 		in = &cipher.StreamReader{S: stream, R: in}
 	}
@@ -166,9 +166,9 @@ func (m *Manager) writeToDisk(cfg Config) error {
 	var out io.Writer = outfile
 	if m.Obfuscate {
 		// write file as obfuscated with AES
-		stream, err := m.obfuscationStream()
-		if err != nil {
-			return err
+		stream, err2 := m.obfuscationStream()
+		if err2 != nil {
+			return err2
 		}
 		out = &cipher.StreamWriter{S: stream, W: out}
 	}
