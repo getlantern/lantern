@@ -13,6 +13,7 @@ var app = angular.module('app', [
   'ngSanitize',
   'ngResource',
   'ngclipboard',
+  'infinite-scroll',
   'ui.utils',
   'ui.showhide',
   'ui.validate',

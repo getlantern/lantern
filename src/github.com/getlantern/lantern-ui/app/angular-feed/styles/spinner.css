@@ -45,13 +45,14 @@
 }
 
 .spinner {
-    position:relative;
+    position:absolute;
     height:50px;
     -moz-border-radius:50px;
     -webkit-border-radius: 50px;
     border-radius: 50px;
     float:left;
-    left: 48%;
+    top: 50%;
+    left: 50%;
     -moz-transform:scale(0.5);
     -webkit-transform:scale(0.5);
 }
