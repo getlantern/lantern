@@ -1,4 +1,4 @@
-# lantern [![Travis CI Status](https://travis-ci.org/getlantern/lantern.svg?branch=valencia)](https://travis-ci.org/getlantern/lantern)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/lantern/badge.png?branch=valencia)](https://coveralls.io/r/getlantern/lantern)&nbsp;[![ProjectTalk](http://www.projecttalk.io/images/gh_badge-3e578a9f437f841de7446bab9a49d103.svg?vsn=d)] (http://www.projecttalk.io/boards/getlantern%2Flantern?utm_campaign=gh-badge&utm_medium=badge&utm_source=github)
+# lantern [![Travis CI Status](https://travis-ci.org/getlantern/lantern.svg?branch=devel)](https://travis-ci.org/getlantern/lantern)&nbsp;[![Coverage Status](https://coveralls.io/repos/getlantern/lantern/badge.png?branch=devel)](https://coveralls.io/r/getlantern/lantern)&nbsp;[![ProjectTalk](http://www.projecttalk.io/images/gh_badge-3e578a9f437f841de7446bab9a49d103.svg?vsn=d)] (http://www.projecttalk.io/boards/getlantern%2Flantern?utm_campaign=gh-badge&utm_medium=badge&utm_source=github)
 
 **If you're looking for Lantern installers, you can find all of them at the following links:**
 - [Android](https://raw.githubusercontent.com/getlantern/lantern-binaries/master/lantern-installer-beta.apk)
@@ -261,7 +261,7 @@ Go code in Lantern must pass several tests:
 * Go vet
 * Go test -race
 
-You can find a generic [git-hook](https://github.com/getlantern/lantern/blob/valencia/pre-push)
+You can find a generic [git-hook](https://github.com/getlantern/lantern/blob/devel/pre-push)
 file, which can be used as a pre-push (or pre-commit) hook to automatically
 ensure these tests are passed before committing any code. Only Go packages in
 `src/github.com/getlantern` will be tested, and only those that have changes in
@@ -269,7 +269,7 @@ them.
 
 Install by copying it into the local `.git/hooks/` directory, with the `pre-push`
 file name if you want to run it before pushing. Alternatively, you can copy
-[pre-commit.hook](https://github.com/getlantern/lantern/blob/valencia/pre-commit)
+[pre-commit.hook](https://github.com/getlantern/lantern/blob/devel/pre-commit)
 to `pre-commit` to run it before each commit.
 
 ```bash
