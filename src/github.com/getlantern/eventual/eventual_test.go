@@ -75,7 +75,7 @@ func TestCancelAfterSet(t *testing.T) {
 	assert.Equal(t, 5, r, "Get got wrong value after cancel")
 
 	v.Set(10)
-	r, ok = v.Get(0)
+	r, _ = v.Get(0)
 	assert.Equal(t, 5, r, "Set after cancel should have no effect")
 }
 
