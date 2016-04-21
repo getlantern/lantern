@@ -1,10 +1,9 @@
 {
-    "LANTERN_MOBILE_ANDROID": "https://s3.amazonaws.com/lantern-android/lantern-android-beta.apk",
     "LANTERN_MOBILE_ANDROID_TEXT": "Android 版下载链接",
     "TRY_LANTERN_FOR_ANDROID": "尝试 Lantern 安卓版！",
     "FEED_LINK": "新闻速递",
     "ALL_FEEDS": "所有内容",
-    "LANTERN_MOBILE_SHARE": "来试试 Lantern for Android 版吧！ https://s3.amazonaws.com/lantern-android/lantern-android-beta.apk #getlantern",
+    "LANTERN_MOBILE_SHARE": "来试试 Lantern for Android 版吧！ %s #getlantern",
     "TELL_YOUR_FRIENDS": "谢谢！何不将 Lantern 移动版 推荐给朋友",
     "HELP_TRANSLATE": "帮助翻译",
     "LANTERN": "Lantern",
