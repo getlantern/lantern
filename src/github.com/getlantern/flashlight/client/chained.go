@@ -45,8 +45,7 @@ type ChainedServerInfo struct {
 	PluggableTransportSettings map[string]string
 }
 
-// Dialer creates a *balancer.Dialer backed by a chained server. The deviceID is
-// used to identify this device to the server.
+// Dialer creates a *balancer.Dialer backed by a chained server.
 func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 	if s.PluggableTransport != "" {
 		log.Debugf("Using pluggable transport %v for server at %v", s.PluggableTransport, s.Addr)

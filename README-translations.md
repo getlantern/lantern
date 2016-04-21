@@ -23,6 +23,8 @@ Check for typo or ambiguity before pushing anything to avoid creating unnecessar
 
 Login to Transifex site to add instructions on specific string to provide its context to translators.
 
+**Note also that Transifex will [automatically pull changes from GitHub once a day](http://docs.transifex.com/faq/#8-can-i-update-source-files-automatically), so you could simply wait for it to automatically update it.**
+
 ##Set up a new project.
 
 See the [Transifex tutorial](http://docs.transifex.com/tutorials/client/).

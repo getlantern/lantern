@@ -1,14 +1,15 @@
 package org.getlantern.lantern.activity;
 
+import android.app.Application;
+import android.app.Activity;
 import android.content.BroadcastReceiver;
+import android.content.ComponentCallbacks2;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.os.StrictMode;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
@@ -17,25 +18,44 @@ import android.net.VpnService;
 import android.net.wifi.WifiManager;
 import android.util.Log;
 import android.view.View;
-import android.widget.Toast;
+import android.widget.TextView;
 import android.view.MenuItem;
 import android.view.KeyEvent;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v4.app.Fragment;
+import android.support.v4.view.ViewPager;
 
-import org.getlantern.lantern.BuildConfig;
 import org.getlantern.lantern.vpn.Service;
+import org.getlantern.lantern.fragment.FeedFragment;
+import org.getlantern.lantern.model.GetFeed;
 import org.getlantern.lantern.model.UI;
-import org.getlantern.lantern.sdk.Utils;
+import org.getlantern.lantern.model.Utils;
 import org.getlantern.lantern.R;
 
+import java.util.ArrayList; 
 
-public class LanternMainActivity extends AppCompatActivity implements Handler.Callback {
+import com.thefinestartist.finestwebview.FinestWebView;
+import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItemAdapter;
+import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItems;
+import com.ogaclejapan.smarttablayout.SmartTabLayout;
+
+
+import org.lantern.mobilesdk.Lantern;
+import org.lantern.mobilesdk.StartResult;
+import org.lantern.mobilesdk.LanternNotRunningException;
+
+public class LanternMainActivity extends AppCompatActivity implements 
+    Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
     private static final String TAG = "LanternMainActivity";
     private static final String PREFS_NAME = "LanternPrefs";
     private final static int REQUEST_VPN = 7777;
     private SharedPreferences mPrefs = null;
     private BroadcastReceiver mReceiver;
+    private boolean isInBackground = false;
+    private FragmentPagerItemAdapter feedAdapter;
+    private SmartTabLayout viewPagerTab;
+    private String lastFeedSelected = "all";
 
     private Context context;
     private UI LanternUI;
@@ -44,6 +64,7 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getApplication().registerActivityLifecycleCallbacks(this);
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
@@ -86,7 +107,6 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
             return;
         }
 
-        // setup our UI
         try {
             // configure actions to be taken whenever slider changes state
             PackageInfo pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
@@ -95,6 +115,9 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
 
             LanternUI.setVersionNum(appVersion);
             LanternUI.setupLanternSwitch();
+
+            new GetFeed(this, startLocalProxy()).execute("");
+
         } catch (Exception e) {
             Log.d(TAG, "Got an exception " + e);
         }
@@ -104,11 +127,32 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
     protected void onResume() {
         super.onResume();
 
-        // we check if mPrefs has been initialized before
+        //  we check if mPrefs has been initialized before
         // since onCreate and onResume are always both called
         if (mPrefs != null) {
             LanternUI.setBtnStatus();
         }
+    }
+
+    // startLocalProxy starts a separate instance of Lantern
+    // used for proxying requests we need to make even before
+    // the user enables full-device VPN mode
+    private String startLocalProxy() {
+        // if the Lantern VPN is already running
+        // then we just fetch the feed without
+        // starting another local proxy
+        if (Service.isRunning(context)) {
+            return "";
+        }
+
+        try {
+            int startTimeoutMillis = 60000;
+            String analyticsTrackingID = ""; // don't track analytics since those are already being tracked elsewhere
+            StartResult result = Lantern.enable(getApplicationContext(), startTimeoutMillis, analyticsTrackingID);
+            return result.getHTTPAddr();
+        }  catch (LanternNotRunningException lnre) {
+            throw new RuntimeException("Lantern failed to start: " + lnre.getMessage(), lnre);
+        }  
     }
 
     // override onKeyDown and onBackPressed default 
@@ -119,13 +163,13 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         if (Integer.parseInt(android.os.Build.VERSION.SDK) > 5
                 && keyCode == KeyEvent.KEYCODE_BACK
                 && event.getRepeatCount() == 0) {
+
             Log.d(TAG, "onKeyDown Called");
             onBackPressed();
             return true;
         }
         return super.onKeyDown(keyCode, event);
     }
-
 
     @Override
     public void onBackPressed() {
@@ -139,6 +183,7 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        getApplication().unregisterActivityLifecycleCallbacks(this);
         try {
             if (mReceiver != null) {
                 unregisterReceiver(mReceiver);
@@ -166,42 +211,127 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         }
     }
 
-    @Override
-    public boolean handleMessage(Message message) {
-        if (message != null) {
-            Toast.makeText(this, message.what, Toast.LENGTH_SHORT).show();
-        }
-        return true;
+    public void refreshFeed(View view) {
+        Log.d(TAG, "Refresh feed clicked");
+        findViewById(R.id.feed_error).setVisibility(View.INVISIBLE);
+        new GetFeed(this, startLocalProxy()).execute("");
     }
+
+    public void showFeedError() {
+        findViewById(R.id.feed_error).setVisibility(View.VISIBLE);
+    }
+
+    public void openFeedItem(View view) {
+        TextView url = (TextView)view.findViewById(R.id.link);
+        Log.d(TAG, "Feed item clicked: " + url.getText());
+
+        if (lastFeedSelected != null) {
+            // whenever a user clicks on an article, send a custom event to GA 
+            // that includes the source/feed category
+            Utils.sendFeedEvent(getApplicationContext(),
+                    String.format("feed-%s", lastFeedSelected));
+        }
+
+        new FinestWebView.Builder(this)
+            .webViewSupportMultipleWindows(true)
+            .webViewJavaScriptEnabled(true)
+            .swipeRefreshColorRes(R.color.black)
+            .webViewAllowFileAccessFromFileURLs(true)
+            .webViewJavaScriptCanOpenWindowsAutomatically(true)
+            .webViewLoadWithProxy(startLocalProxy())
+            // if we aren't in full-device VPN mode, configure the 
+            // WebView to use our local proxy
+            .show(url.getText().toString());
+    }
+
+    public void changeFeedHeaderColor(boolean useVpn) {
+        if (feedAdapter != null && viewPagerTab != null) {
+            int c;
+            if (useVpn) {
+                c = getResources().getColor(R.color.accent_white); 
+            } else {
+                c = getResources().getColor(R.color.black); 
+            }
+            int count = feedAdapter.getCount();
+            for (int i = 0; i < count; i++) {
+                TextView view = (TextView) viewPagerTab.getTabAt(i);
+                view.setTextColor(c);
+            }
+        }
+    }
+
+    public void setupFeed(final ArrayList<String> sources) {
+
+        final FragmentPagerItems.Creator c = FragmentPagerItems.with(this);
+
+        if (sources != null && !sources.isEmpty()) {
+            String all = getResources().getString(R.string.all_feeds);
+            sources.add(0, all);
+
+            for (String source : sources) {
+                Bundle bundle = new Bundle();
+                bundle.putString("name", source);
+                c.add(source, FeedFragment.class, bundle);
+            }
+        } else {
+            // if we get back zero sources, some issue occurred
+            // downloading and/or parsing the feed
+            showFeedError();
+        }
+
+        feedAdapter = new FragmentPagerItemAdapter(
+                this.getSupportFragmentManager(), c.create());
+
+        ViewPager viewPager = (ViewPager)this.findViewById(R.id.viewpager);
+        viewPager.setAdapter(feedAdapter);
+
+        viewPagerTab = (SmartTabLayout)this.findViewById(R.id.viewpagertab);
+        viewPagerTab.setViewPager(viewPager);
+
+        viewPagerTab.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                Fragment f = feedAdapter.getPage(position);
+                if (f instanceof FeedFragment) {
+                    lastFeedSelected = ((FeedFragment)f).getFeedName();
+                }
+            }
+        });
+
+        View tab = viewPagerTab.getTabAt(0);
+        if (tab != null) {
+            tab.setSelected(true);
+        }
+
+        changeFeedHeaderColor(Service.IsRunning);
+    }
+
+
 
     public void sendDesktopVersion(View view) {
         if (LanternUI != null) {
             LanternUI.sendDesktopVersion(view);
         }
-    }
-
-    // Make a VPN connection from the client
-    // We should only have one active VPN connection per client
-    private void startVpnService ()
-    {
-        Intent intent = VpnService.prepare(this);
-        if (intent != null) {
-            Log.w(TAG,"Requesting VPN connection");
-            startActivityForResult(intent, REQUEST_VPN);
-        } else {
-            Log.d(TAG, "VPN enabled, starting Lantern...");
-            LanternUI.toggleSwitch(true);
-            sendIntentToService();
-        }
-    }
-
+   }
 
     // Prompt the user to enable full-device VPN mode
+    // Make a VPN connection from the client
+    // We should only have one active VPN connection per client
     public void enableVPN() {
         Log.d(TAG, "Load VPN configuration");
-
         try {
-            startVpnService();
+            Intent intent = VpnService.prepare(this);
+            if (intent != null) {
+                Log.w(TAG,"Requesting VPN connection");
+                startActivityForResult(intent, REQUEST_VPN);
+            } else {
+                Log.d(TAG, "VPN enabled, starting Lantern...");
+                Lantern.disable(getApplicationContext());
+                LanternUI.toggleSwitch(true);
+                changeFeedHeaderColor(true);
+                sendIntentToService();
+            }    
         } catch (Exception e) {
             Log.d(TAG, "Could not establish VPN connection: " + e.getMessage());
         }
@@ -217,16 +347,9 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
                 // VPN connection; return to off state
                 LanternUI.toggleSwitch(false);
             } else {
+                Lantern.disable(getApplicationContext());
                 LanternUI.toggleSwitch(true);
-
-                Handler h = new Handler();
-                h.postDelayed(new Runnable () {
-
-                    public void run ()
-                    {
-                        sendIntentToService();
-                    }
-                }, 1000);
+                sendIntentToService();
             }
         }
     }
@@ -235,24 +358,10 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         startService(new Intent(this, Service.class));
     }
 
-    public void restart(final Context context, final Intent intent) {
-        if (LanternUI.useVpn()) {
-            Log.d(TAG, "Restarting Lantern...");
-            Service.IsRunning = false;
-
-            final LanternMainActivity activity = this;
-            Handler h = new Handler();
-            h.postDelayed(new Runnable () {
-                public void run() {
-                    enableVPN();
-                }
-            }, 1000);
-        }
-    }
-
     public void stopLantern() {
         Service.IsRunning = false;
         Utils.clearPreferences(this);
+        changeFeedHeaderColor(false);
     }
 
     @Override
@@ -260,8 +369,7 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
         // Pass the event to ActionBarDrawerToggle
         // If it returns true, then it has handled
         // the nav drawer indicator touch event
-        if (LanternUI != null &&
-                LanternUI.optionSelected(item)) {
+        if (LanternUI != null && LanternUI.optionSelected(item)) {
             return true;
         }
 
@@ -288,19 +396,51 @@ public class LanternMainActivity extends AppCompatActivity implements Handler.Ca
                 // whenever the device is powered off or the app
                 // abruptly closed, we want to clear user preferences
                 Utils.clearPreferences(context);
-            } else if (action.equals(Intent.ACTION_USER_PRESENT)) {
-                //restart(context, intent);
             } else if (action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
                 // whenever a user disconnects from Wifi and Lantern is running
                 NetworkInfo networkInfo =
                     intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
                 if (LanternUI.useVpn() && 
-                    networkInfo.getType() == ConnectivityManager.TYPE_WIFI &&
-                    !networkInfo.isConnected()) {
-
+                        networkInfo.getType() == ConnectivityManager.TYPE_WIFI &&
+                        !networkInfo.isConnected()) {
                     stopLantern();
                 }
             }
         }
     }
+
+    public void onActivityResumed(Activity activity) { 
+        // we only want to refresh the public feed whenever the
+        // app returns to the foreground instead of every
+        // time the main activity is resumed
+        if (isInBackground) {
+            Log.d(TAG, "App in foreground");
+            isInBackground = false;
+            refreshFeed(null);
+        }
+    }
+
+    // Below unused
+    public void onActivityCreated(Activity activity, Bundle savedInstanceState) {}
+
+    public void onActivityDestroyed(Activity activity) {}
+
+    public void onActivityPaused(Activity activity) {}
+
+    public void onActivitySaveInstanceState(Activity activity, Bundle outState) {}
+
+    public void onActivityStarted(Activity activity) {}
+
+    public void onActivityStopped(Activity activity) {}
+
+    @Override
+    public void onTrimMemory(int i) {
+        // this lets us know when the app process is no longer showing a user
+        // interface, i.e. when the app went into the background
+        if (i == ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN) {
+            Log.d(TAG, "App went to background");
+            isInBackground = true;
+        }
+    }
+
 }
