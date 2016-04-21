@@ -49,14 +49,14 @@ func (pt *proxyTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	return cf.Do(req)
 }
 
-var ProxyHandler = &httputil.ReverseProxy{
+var proxyHandler = &httputil.ReverseProxy{
 	Transport: &proxyTransport{},
 	Director: func(r *http.Request) {
 		r.URL.Scheme = "https"
 		r.URL.Host = proAPIHost
 		r.Host = r.URL.Host
-		r.RequestURI = "" // http: Request.RequestURI can't be set in client requests.
-		r.Header.Set("Lantern-Fronted-URL", r.URL.String())
+		r.RequestURI = ""                                   // http: Request.RequestURI can't be set in client requests.
+		r.Header.Set("Lantern-Fronted-URL", r.URL.String()) // This is required by NewChainedAndFronted.
 		r.Header.Set("Access-Control-Allow-Headers", "X-Lantern-Device-Id, X-Lantern-Pro-Token, X-Lantern-User-Id")
 	},
 }
@@ -65,4 +65,8 @@ func Configure(proxyAddrFN eventual.Getter) {
 	cfMu.Lock()
 	defer cfMu.Unlock()
 	cf = util.NewChainedAndFronted(proxyAddrFN)
+}
+
+func InitProxy(addr string) error {
+	return http.ListenAndServe(addr, proxyHandler)
 }
