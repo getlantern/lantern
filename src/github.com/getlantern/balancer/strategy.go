@@ -1,6 +1,9 @@
 package balancer
 
-import "math/rand"
+import (
+	"math/rand"
+	"net/http"
+)
 
 // Random strategy gives even chance to each dialer, act as a baseline to other
 // strategies.
@@ -97,9 +100,11 @@ func (s *dialerHeap) Pop() interface{} {
 	return x
 }
 
-func (s *dialerHeap) AuthTokens() (tokens []string) {
+func (s *dialerHeap) onRequest(req *http.Request) {
 	for _, d := range s.dialers {
-		tokens = append(tokens, d.AuthToken)
+		if d.OnRequest != nil {
+			d.OnRequest(req)
+		}
 	}
 	return
 }
