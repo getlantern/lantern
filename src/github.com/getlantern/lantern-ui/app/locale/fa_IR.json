@@ -1,10 +1,9 @@
 {
-    "LANTERN_MOBILE_ANDROID": "https://s3.amazonaws.com/lantern-android/lantern-android-beta.apk",
     "LANTERN_MOBILE_ANDROID_TEXT": "لینک دانلود اندروید",
     "TRY_LANTERN_FOR_ANDROID": "لنترن برای اندروید را امتحان کن!",
     "FEED_LINK": "خروجی لنترن",
     "ALL_FEEDS": "همه",
-    "LANTERN_MOBILE_SHARE": "در حال استفاده کردن از لنترن هستم https://s3.amazonaws.com/lantern-android/lantern-android-beta.apk #getlantern",
+    "LANTERN_MOBILE_SHARE": "در حال استفاده کردن از لنترن هستم %s #getlantern",
     "TELL_YOUR_FRIENDS": "ممنون! به دوستان خود لنترن را معرفی کنید.",
     "HELP_TRANSLATE": "کمک برای ترجمه",
     "LANTERN": "لنترن",

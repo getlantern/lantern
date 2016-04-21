@@ -1,10 +1,9 @@
 {
-    "LANTERN_MOBILE_ANDROID": "https://s3.amazonaws.com/lantern-android/lantern-android-beta.apk",
     "LANTERN_MOBILE_ANDROID_TEXT": "Enlace de descarga de Android",
     "TRY_LANTERN_FOR_ANDROID": "¡Pruebe Lantern para Android!",
     "FEED_LINK": "Suscripción activa (feed) de Lantern",
     "ALL_FEEDS": "TODOS",
-    "LANTERN_MOBILE_SHARE": "¡Pruebe Lantern para Android! https://s3.amazonaws.com/lantern-android/lantern-android-beta.apk #getlantern",
+    "LANTERN_MOBILE_SHARE": "¡Pruebe Lantern para Android! %s #getlantern",
     "TELL_YOUR_FRIENDS": "¡Gracias! Hable a sus amigos acerca de Lantern Móvil",
     "HELP_TRANSLATE": "Ayudar a traducir",
     "LANTERN": "Lantern",
