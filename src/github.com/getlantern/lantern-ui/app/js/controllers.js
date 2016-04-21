@@ -1,8 +1,8 @@
 'use strict';
 
-app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$http', 'gaMgr', '$translate',
+app.controller('RootCtrl', ['$rootScope', '$scope', '$filter', '$compile', '$window', '$http', 'gaMgr', '$translate',
                'localStorageService', 'BUILD_REVISION',
-               function($rootScope, $scope, $compile, $window, $http, gaMgr, $translate, localStorageService, BUILD_REVISION) {
+               function($rootScope, $scope, $filter, $compile, $window, $http, gaMgr, $translate, localStorageService, BUILD_REVISION) {
     $scope.currentModal = 'none';
 
     $rootScope.lanternFirstTimeBuildVar = 'lanternFirstTimeBuild-'+BUILD_REVISION;
@@ -69,6 +69,15 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$htt
       localStorageService.set($rootScope.lanternHideMobileAdVar, true);
     };
 
+    $rootScope.mobileAppLink = function() {
+      return "https://bit.ly/lanternapk";
+    };
+
+    $rootScope.mobileShareContent = function() {
+      var fmt = $filter('translate')('LANTERN_MOBILE_SHARE');
+      return fmt.replace("%s", $rootScope.mobileAppLink());
+    };
+
     $rootScope.sendMobileAppLink = function() {
       var email = $scope.email;
 
@@ -76,8 +85,9 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$htt
 
       if (!email || !(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) {
         $scope.inputClass = "fail";
-        $scope.inputPlaceholder = "Please enter a valid e-mail";
-        alert("Please check your e-mail address.");
+        var t = $filter('translate');
+        $scope.inputPlaceholder = t("LANTERN_MOBILE_ENTER_VALID_EMAIL");
+        alert(t("LANTERN_MOBILE_CHECK_EMAIL"));
         return;
       }
 
