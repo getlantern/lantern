@@ -1,0 +1,40 @@
+<div id="error" ng-controller="ErrorCtrl" ng-show="showError">
+  <div id="oops">
+    {{ 'ERROR_OOPS' | translate }}
+  </div>
+  <div id="error-description">
+    {{ 'ERROR_DESCRIPTION' | translate }}
+  </div>
+  <div class="line1"></div>
+  <div id="error-reasons">
+    <ol>
+      <li>
+        <div>{{ 'BROWSER_EXTENSION_ISSUE' | translate }}</div>
+        <div><a ng-click="toggleShowExtensionHelp()">{{ 'WHAT_DO' | translate }}</a></div>
+        <div class="error-action ng-hide" ng-show="showExtensionHelp">
+          {{ 'EXTENSION_HELP' | translate }}
+        </div>
+      </li>
+      <li>
+        <div>{{ 'XUNLEI_ISSUE' | translate }}</div>
+        <div><a ng-click="toggleShowXunleiHelp()">{{ 'WHAT_DO' | translate }}</a></div>
+        <div class="error-action ng-hide" ng-show="showXunleiHelp">
+          {{ 'XUNLEI_HELP' | translate }}
+        </div>
+      </li>
+      <li>
+        <div>{{ 'ANOTHER_ISSUE' | translate }}</div>
+        <div><a ng-click="toggleShowConnectionHelp()">{{ 'WHAT_DO' | translate }}</a></div>
+        <div class="error-action ng-hide" ng-show="showConnectionHelp">
+          <div>{{ 'CONNECTION_HELP' | translate }}</div>
+          <div>Windows Vista/7/8/10: C:\Users\USERNAME\AppData\Roaming\Lantern\logs</div>
+          <div>Windows XP: C:\Documents and Settings\USERNAME\Application Data\Lantern\Logs</div>
+          <div>OSX: ~/Library/Logs/Lantern</div>
+          <div>Linux: ~/.lantern/logs</div>
+        </div>
+      </li>
+    </ol>
+  </div>
+  <div>
+  </div>
+</div>

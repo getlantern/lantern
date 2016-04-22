@@ -60,6 +60,10 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$filter', '$compile', '$win
       return '/img/mobile-ad/' + lang + '/' + name;
     }
 
+    $rootScope.setShowError = function() {
+      $rootScope.showError = true;
+    }
+
     $rootScope.setShowMobileAd = function() {
       $rootScope.showMobileAd = true;
     }
@@ -126,12 +130,21 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$filter', '$compile', '$win
       localStorageService.set($rootScope.lanternFirstTimeBuildVar, true);
     };
 
-    /*if (!localStorageService.get($rootScope.lanternHideMobileAdVar)) {
-      $scope.resetPlaceholder();
-      $rootScope.showMobileAd = true;
-    };*/
 
+    $rootScope.showError = false;
+    $rootScope.showExtensionHelp = false;
+    $rootScope.showXunleiHelp = false;
+    $rootScope.showConnectionHelp = false;
 
+    $rootScope.toggleShowExtensionHelp = function() {
+      $rootScope.showExtensionHelp = !$rootScope.showExtensionHelp;
+    }
+    $rootScope.toggleShowXunleiHelp = function() {
+      $rootScope.showXunleiHelp = !$rootScope.showXunleiHelp;
+    }
+    $rootScope.toggleShowConnectionHelp = function() {
+      $rootScope.showConnectionHelp = !$rootScope.showConnectionHelp;
+    }
 }]);
 
 app.controller('SettingsCtrl', ['$scope', 'MODAL', 'DataStream', 'gaMgr', function($scope, MODAL, DataStream, gaMgr) {
@@ -251,4 +264,8 @@ app.controller('FeedCtrl', ['$scope', 'gaMgr', function($scope, gaMgr) {
     feed.image = null;
   };
   $scope.addMoreItems();
+}]);
+
+app.controller('ErrorCtrl', ['$scope', 'gaMgr', function($scope, gaMgr) {
+
 }]);

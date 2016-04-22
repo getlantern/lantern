@@ -1,4 +1,13 @@
 {
+  "ERROR_OOPS": "Oops, something went wrong!",
+  "ERROR_DESCRIPTION": "Here are a couple of things that could be preventing Lantern from loading:",
+  "BROWSER_EXTENSION_ISSUE": "A browser extension in Chrome is preventing Lantern from loading.",
+  "XUNLEI_ISSUE": "Xunlei (Thunder Downloader) is installed.",
+  "ANOTHER_ISSUE": "There is another problem with Lantern.",
+  "WHAT_DO": "What can I do?",
+  "EXTENSION_HELP": "Try disabling them or sending traffic through Lantern running at 127.0.0.1:8787",
+  "XUNLEI_HELP": "Try uninstalling Xunlei for now",
+  "CONNECTION_HELP": "If your network seems to be otherwise working, please let us know on Facebook, GitHub, or our forums. You can also email your logs to support@getlantern.org. You can find your logs at:",
   "LANTERN_MOBILE_SHARE": "Trying out Lantern for Android! %s #getlantern",
   "LANTERN_MOBILE_ANDROID_TEXT": "Android download link",
   "TRY_LANTERN_FOR_ANDROID": "Try Lantern for Android!",
