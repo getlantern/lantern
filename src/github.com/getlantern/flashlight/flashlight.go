@@ -11,6 +11,7 @@ import (
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/logging"
+	"github.com/getlantern/flashlight/pro"
 	"github.com/getlantern/flashlight/proxiedsites"
 )
 
@@ -87,6 +88,7 @@ func Run(httpProxyAddr string,
 	if beforeStart(cfg) {
 		log.Debug("Preparing to start client proxy")
 		geolookup.Configure(client.Addr)
+		pro.Configure(client.Addr)
 		cfgMutex.Lock()
 		applyClientConfig(client, cfg, proxyAll)
 		cfgMutex.Unlock()
