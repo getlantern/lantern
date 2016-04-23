@@ -1,13 +1,12 @@
 #error {
   position: relative;
-  top: 200px;
-  text-align: left;
+  top: 125px;
   margin-left: auto;
   margin-right: auto;
-  text-align: center;
   width: 640px;
   padding-bottom:90px;
   font-family: LBL;
+  text-align: left;
 }
 
 #error #oops {
@@ -15,17 +14,15 @@
   color: #39C2D6;
   margin-bottom: 16px;
   font-weight: 700;
+  text-align: center;
 }
 
 #error #error-description {
+  display: inline-block;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px black solid;
   font-size: 18px;
-  margin-bottom: 16px;
-}
-
-#error .line1 {
-  height: 1px;
-  background-color: black;
-  margin-bottom: 16px;
 }
 
 #error #error-reasons {

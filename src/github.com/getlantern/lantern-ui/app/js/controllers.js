@@ -208,6 +208,7 @@ app.controller('NewsfeedCtrl', ['$scope', '$rootScope', '$translate', function($
   };
   $scope.hideNewsfeed = function(e) {
     $rootScope.showNews = false;
+    $rootScope.showError = true;
   };
   $scope.showNewsfeed();
 
@@ -267,5 +268,4 @@ app.controller('FeedCtrl', ['$scope', 'gaMgr', function($scope, gaMgr) {
 }]);
 
 app.controller('ErrorCtrl', ['$scope', 'gaMgr', function($scope, gaMgr) {
-
 }]);

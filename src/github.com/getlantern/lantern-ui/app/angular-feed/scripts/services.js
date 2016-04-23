@@ -37,7 +37,8 @@ angular.module('feeds-services', []).factory('feedService', ['$q', '$http', '$sc
           deferred.reject(new Error("invalid data format"));
           return
         }
-        feedCache.set(feedURL, data);
+        // Always get fresh copy, in hope to be more reactive to network errors
+        // feedCache.set(feedURL, data);
         sanitizeEntries(data.entries);
         deferred.resolve(data);
       };
