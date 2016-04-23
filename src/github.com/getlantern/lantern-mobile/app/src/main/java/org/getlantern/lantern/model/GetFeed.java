@@ -2,8 +2,11 @@ package org.getlantern.lantern.model;
 
 import android.os.AsyncTask;
 import android.util.Log;
+import android.view.View;
+import android.widget.ProgressBar;
 
 import org.getlantern.lantern.activity.LanternMainActivity;
+import org.getlantern.lantern.R;
 
 import java.util.ArrayList; 
 import java.util.Collections;
@@ -16,14 +19,20 @@ public class GetFeed extends AsyncTask<String, Void, ArrayList<String>> {
 
     private LanternMainActivity activity;
     private String proxyAddr = "";
+    private ProgressBar progressBar;
 
     public GetFeed(LanternMainActivity activity, String proxyAddr) {
         this.activity = activity;
         this.proxyAddr = proxyAddr;
+        progressBar = (ProgressBar)activity.findViewById(R.id.progressBar);
     }
 
     @Override
     protected ArrayList<String> doInBackground(String... params) {
+
+        // show progress bar
+        progressBar.setVisibility(View.VISIBLE);
+
         String locale = Locale.getDefault().toString();
         Log.d(TAG, String.format("Fetching public feed: locale=%s; proxy addr=%s", locale, proxyAddr));
         final ArrayList<String> sources = new ArrayList<String>();
@@ -41,6 +50,7 @@ public class GetFeed extends AsyncTask<String, Void, ArrayList<String>> {
     @Override
     protected void onPostExecute(ArrayList<String> sources) {
         super.onPostExecute(sources);
+        progressBar.setVisibility(View.GONE);
         activity.setupFeed(sources);
     }
 }   
