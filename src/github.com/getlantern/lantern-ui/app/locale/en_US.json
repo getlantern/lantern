@@ -1,10 +1,12 @@
 {
   "ERROR_OOPS": "Oops, something went wrong!",
   "ERROR_DESCRIPTION": "Here are a couple of things that could be preventing Lantern from loading:",
+  "PROXY_OFF_ISSUE": "'Manage system proxy' option is unintentionally disabled.",
   "BROWSER_EXTENSION_ISSUE": "A browser extension is preventing Lantern from loading.",
   "XUNLEI_ISSUE": "Xunlei (Thunder Downloader) is installed.",
   "ANOTHER_ISSUE": "There is another problem with Lantern.",
   "WHAT_DO": "What can I do?",
+  "PROXY_OFF_HELP": "Enable that option in Lantern settings.",
   "EXTENSION_HELP": "Try disabling them or sending traffic through Lantern running at 127.0.0.1:8787",
   "XUNLEI_HELP": "Try uninstalling Xunlei for now",
   "CONNECTION_HELP": "If your network seems to be otherwise working, please let us know on Facebook, GitHub, or our forums. You can also email your logs to support@getlantern.org. You can find your logs at:",

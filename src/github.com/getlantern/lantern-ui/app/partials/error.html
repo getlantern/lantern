@@ -7,6 +7,13 @@
   </div>
   <div id="error-reasons">
     <ol>
+      <li ng-show="!model.settings.systemProxy">
+        <div>{{ 'PROXY_OFF_ISSUE' | translate }}</div>
+        <div ng-show="!showExtensionHelp"><a ng-click="toggleShowExtensionHelp()">{{ 'WHAT_DO' | translate }}</a></div>
+        <div class="error-action ng-hide" ng-show="showExtensionHelp">
+          {{ 'PROXY_OFF_HELP' | translate }}
+        </div>
+      </li>
       <li>
         <div>{{ 'BROWSER_EXTENSION_ISSUE' | translate }}</div>
         <div ng-show="!showExtensionHelp"><a ng-click="toggleShowExtensionHelp()">{{ 'WHAT_DO' | translate }}</a></div>

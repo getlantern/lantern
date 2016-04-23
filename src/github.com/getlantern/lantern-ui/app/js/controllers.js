@@ -132,19 +132,6 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$filter', '$compile', '$win
 
 
     $rootScope.showError = false;
-    $rootScope.showExtensionHelp = false;
-    $rootScope.showXunleiHelp = false;
-    $rootScope.showConnectionHelp = false;
-
-    $rootScope.toggleShowExtensionHelp = function() {
-      $rootScope.showExtensionHelp = !$rootScope.showExtensionHelp;
-    }
-    $rootScope.toggleShowXunleiHelp = function() {
-      $rootScope.showXunleiHelp = !$rootScope.showXunleiHelp;
-    }
-    $rootScope.toggleShowConnectionHelp = function() {
-      $rootScope.showConnectionHelp = !$rootScope.showConnectionHelp;
-    }
 }]);
 
 app.controller('SettingsCtrl', ['$scope', 'MODAL', 'DataStream', 'gaMgr', function($scope, MODAL, DataStream, gaMgr) {
@@ -268,4 +255,22 @@ app.controller('FeedCtrl', ['$scope', 'gaMgr', function($scope, gaMgr) {
 }]);
 
 app.controller('ErrorCtrl', ['$scope', 'gaMgr', function($scope, gaMgr) {
+    $scope.showProxyOffHelp = false;
+    $scope.showExtensionHelp = false;
+    $scope.showXunleiHelp = false;
+    $scope.showConnectionHelp = false;
+
+    $scope.toggleShowProxyOffHelp = function() {
+      $scope.showProxyOffHelp = !$scope.showProxyOffHelp;
+    }
+    $scope.toggleShowExtensionHelp = function() {
+      $scope.showExtensionHelp = !$scope.showExtensionHelp;
+    }
+    $scope.toggleShowXunleiHelp = function() {
+      $scope.showXunleiHelp = !$scope.showXunleiHelp;
+    }
+    $scope.toggleShowConnectionHelp = function() {
+      $scope.showConnectionHelp = !$scope.showConnectionHelp;
+    }
+
 }]);
