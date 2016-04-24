@@ -116,9 +116,9 @@ func (app *App) Run() error {
 func (app *App) beforeStart(cfg *config.Config) bool {
 	log.Debug("Got first config")
 
-	if cfg.CpuProfile != "" || cfg.MemProfile != "" {
-		log.Debugf("Start profiling with cpu file %s and mem file %s", cfg.CpuProfile, cfg.MemProfile)
-		finishProfiling := profiling.Start(cfg.CpuProfile, cfg.MemProfile)
+	if cfg.CPUProfile != "" || cfg.MemProfile != "" {
+		log.Debugf("Start profiling with cpu file %s and mem file %s", cfg.CPUProfile, cfg.MemProfile)
+		finishProfiling := profiling.Start(cfg.CPUProfile, cfg.MemProfile)
 		app.AddExitFunc(finishProfiling)
 	}
 
