@@ -1,11 +1,9 @@
 package app
 
 import (
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
-	"strconv"
 	"sync"
 
 	"github.com/getlantern/appdir"
@@ -30,7 +28,7 @@ var (
 // Settings is a struct of all settings unique to this particular Lantern instance.
 type Settings struct {
 	DeviceID  string `json:"deviceID,omitempty"`
-	UserID    int    `json:"userID,omitempty"`
+	UserID    string `json:"userID,omitempty"`
 	UserToken string `json:"userToken,omitempty"`
 
 	AutoReport  bool `json:"autoReport"`
@@ -136,12 +134,8 @@ func (s *Settings) read() {
 			s.SetSystemProxy(v)
 		}
 
-		if data["userID"] != nil {
-			// This is unmarshaled into a float64, I'm am converting it to string and
-			// then to float32 to catch the case when this is a float32.
-			if id, err := strconv.Atoi(fmt.Sprintf("%v", data["userID"])); err == nil {
-				s.SetUserID(id)
-			}
+		if id, ok := data["userID"].(string); ok {
+			s.SetUserID(id)
 		}
 
 		if token, ok := data["token"].(string); ok {
@@ -237,14 +231,14 @@ func (s *Settings) GetToken() string {
 }
 
 // SetUserID sets the user ID
-func (s *Settings) SetUserID(id int) {
+func (s *Settings) SetUserID(id string) {
 	s.Lock()
 	defer s.unlockAndSave()
 	s.UserID = id
 }
 
 // GetUserID returns the user ID
-func (s *Settings) GetUserID() int {
+func (s *Settings) GetUserID() string {
 	s.RLock()
 	defer s.RUnlock()
 	return s.UserID

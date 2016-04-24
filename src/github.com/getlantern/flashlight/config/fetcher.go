@@ -29,6 +29,8 @@ const (
 )
 
 var (
+	// CloudConfigPollInterval is the period to wait befween checks for new
+	// global configuration settings.
 	CloudConfigPollInterval = 1 * time.Minute
 )
 
@@ -41,7 +43,7 @@ type fetcher struct {
 
 // UserConfig retrieves any custom user info for fetching the config.
 type UserConfig interface {
-	GetUserID() int
+	GetUserID() string
 	GetToken() string
 }
 
@@ -78,14 +80,14 @@ func (cf *fetcher) pollForConfig(currentCfg yamlconf.Config, stickyConfig bool) 
 				log.Debugf("Merging cloud configuration")
 				cfg := ycfg.(*Config)
 
-				err := cfg.updateFrom(bytes)
+				errr := cfg.updateFrom(bytes)
 				if cfg.Client.ChainedServers != nil {
 					log.Debugf("Adding %d chained servers", len(cfg.Client.ChainedServers))
 					for _, s := range cfg.Client.ChainedServers {
 						log.Debugf("Got chained server: %v", s.Addr)
 					}
 				}
-				return err
+				return errr
 			}
 		}
 	} else {
@@ -117,8 +119,8 @@ func (cf *fetcher) fetchCloudConfig(cfg *Config) ([]byte, error) {
 	req.Header.Set("Lantern-Fronted-URL", cfg.FrontedCloudConfig+cb)
 
 	id := cf.user.GetUserID()
-	if id != 0 {
-		req.Header.Set(userIDHeader, string(id))
+	if id != "" {
+		req.Header.Set(userIDHeader, id)
 	}
 	tok := cf.user.GetToken()
 	if tok != "" {
@@ -141,8 +143,8 @@ func (cf *fetcher) fetchCloudConfig(cfg *Config) ([]byte, error) {
 		log.Debugf("Response headers: \n%v", string(dump))
 	}
 	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			log.Debugf("Error closing response body: %v", err)
+		if errr := resp.Body.Close(); errr != nil {
+			log.Debugf("Error closing response body: %v", errr)
 		}
 	}()
 
