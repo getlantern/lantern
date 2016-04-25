@@ -155,8 +155,8 @@ func Init(userConfig UserConfig, version string, configDir string, stickyConfig 
 		// If this is our first run of this version of Lantern, use the embedded configuration
 		// file and use it to download our custom config file on this first poll for our
 		// config.
-		if errr := MakeInitialConfig(configPath); errr != nil {
-			return nil, errr
+		if err = MakeInitialConfig(configPath); err != nil {
+			return nil, err
 		}
 	}
 

@@ -72,27 +72,26 @@ func (cf *fetcher) pollForConfig(currentCfg yamlconf.Config, stickyConfig bool) 
 		return mutate, waitTime, nil
 	}
 
-	if bytes, err := cf.fetchCloudConfig(cfg); err == nil {
-		// bytes will be nil if the config is unchanged (not modified)
-		if bytes != nil {
-			//log.Debugf("Downloaded config:\n %v", string(bytes[:400]))
-			mutate = func(ycfg yamlconf.Config) error {
-				log.Debugf("Merging cloud configuration")
-				cfg := ycfg.(*Config)
-
-				errr := cfg.updateFrom(bytes)
-				if cfg.Client.ChainedServers != nil {
-					log.Debugf("Adding %d chained servers", len(cfg.Client.ChainedServers))
-					for _, s := range cfg.Client.ChainedServers {
-						log.Debugf("Got chained server: %v", s.Addr)
-					}
-				}
-				return errr
-			}
-		}
-	} else {
+	if bytes, err := cf.fetchCloudConfig(cfg); err != nil {
 		log.Errorf("Could not fetch cloud config %v", err)
 		return mutate, waitTime, err
+	} else if bytes != nil {
+		// bytes will be nil if the config is unchanged (not modified)
+		mutate = func(ycfg yamlconf.Config) error {
+			log.Debugf("Merging cloud configuration")
+			cfg := ycfg.(*Config)
+
+			err := cfg.updateFrom(bytes)
+			if cfg.Client.ChainedServers != nil {
+				log.Debugf("Adding %d chained servers", len(cfg.Client.ChainedServers))
+				for _, s := range cfg.Client.ChainedServers {
+					log.Debugf("Got chained server: %v", s.Addr)
+				}
+			}
+			return err
+		}
+	} else {
+		log.Debugf("Bytes are nil - config not modified.")
 	}
 	return mutate, waitTime, nil
 }
