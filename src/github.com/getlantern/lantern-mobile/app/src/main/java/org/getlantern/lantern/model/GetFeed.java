@@ -25,6 +25,11 @@ public class GetFeed extends AsyncTask<String, Void, ArrayList<String>> {
         this.activity = activity;
         this.proxyAddr = proxyAddr;
         progressBar = (ProgressBar)activity.findViewById(R.id.progressBar);
+    }
+
+    @Override
+    protected void onPreExecute() {
+        super.onPreExecute();
         // show progress bar
         progressBar.setVisibility(View.VISIBLE);
     }
