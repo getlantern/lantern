@@ -209,7 +209,8 @@ $(RESOURCES_DOT_GO): $(NPM)
 
 # Generates a syso file that embeds an icon for the Windows executable
 generate-windows-icon:
-	@rm -f bin/rsrc && \
+	@source setenv.bash && \
+	rm -f bin/rsrc && \
 	go install github.com/akavel/rsrc && \
   rsrc -ico installer-resources/windows/lantern.ico -o src/github.com/getlantern/flashlight/lantern_windows_386.syso
 
