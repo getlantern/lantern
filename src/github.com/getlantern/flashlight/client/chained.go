@@ -79,7 +79,7 @@ func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 
 	ccfg.OnRequest = func(req *http.Request) {
 		if authToken != "" {
-			req.Header.Set("X-LANTERN-AUTH-TOKEN", authToken)
+			req.Header.Add("X-LANTERN-AUTH-TOKEN", authToken)
 		}
 		req.Header.Set("X-LANTERN-DEVICE-ID", deviceID)
 	}
@@ -103,6 +103,6 @@ func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 
 			return conn, nil
 		},
-		AuthToken: authToken,
+		OnRequest: ccfg.OnRequest,
 	}, nil
 }
