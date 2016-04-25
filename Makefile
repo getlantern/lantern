@@ -200,13 +200,18 @@ $(RESOURCES_DOT_GO): $(NPM)
 	rm -Rf dist && \
 	gulp build && \
 	cd - && \
-	rm -f bin/tarfs bin/rsrc && \
+	rm -f bin/tarfs && \
 	go install github.com/getlantern/tarfs/tarfs && \
 	mv bin/tarfs.exe bin/tarfs ; \
 	echo "// +build !stub" > $$DEST && \
 	echo " " >> $$DEST && \
-	bin/tarfs -pkg ui $$DIST >> $$DEST && \
-	go install github.com/akavel/rsrc
+	bin/tarfs -pkg ui $$DIST >> $$DEST
+
+# Generates a syso file that embeds an icon for the Windows executable
+generate-windows-icon:
+	@rm -f bin/rsrc && \
+	go install github.com/akavel/rsrc && \
+  rsrc -ico installer-resources/windows/lantern.ico -o src/github.com/getlantern/flashlight/lantern_windows_386.syso
 
 assets: $(RESOURCES_DOT_GO)
 
@@ -333,17 +338,19 @@ darwin: $(RESOURCES_DOT_GO)
 		echo "-> Skipped: Can not compile Lantern for OSX on a non-OSX host."; \
 	fi
 
+BUILD_RACE := '-race'
+
+ifeq ($(OS),Windows_NT)
+	  # Race detection is not supported by Go Windows 386, so disable it. The -x
+		# is just a hack to allow us to pass something in place of -race below.
+		BUILD_RACE = '-x'
+endif
+
 lantern: $(RESOURCES_DOT_GO)
 	@echo "Building development lantern" && \
-	source setenv.bash && \
 	$(call build-tags) && \
-	CGO_ENABLED=1 go build -race -o lantern -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS_NOSTRIP) $$EXTRA_LDFLAGS" github.com/getlantern/flashlight/main; \
-
-lanternw: $(RESOURCES_DOT_GO)
-	@echo "Building development lantern for Windows 386" && \
 	source setenv.bash && \
-	$(call build-tags) && \
-	CGO_ENABLED=1 go build -o lantern -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS_NOSTRIP) $$EXTRA_LDFLAGS" github.com/getlantern/flashlight/main; \
+	CGO_ENABLED=1 go build $(BUILD_RACE) -o lantern -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS_NOSTRIP) $$EXTRA_LDFLAGS" github.com/getlantern/flashlight/main; \
 
 package-linux: require-version package-linux-386 package-linux-amd64
 
