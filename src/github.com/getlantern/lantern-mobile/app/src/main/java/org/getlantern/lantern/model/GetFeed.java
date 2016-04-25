@@ -25,14 +25,12 @@ public class GetFeed extends AsyncTask<String, Void, ArrayList<String>> {
         this.activity = activity;
         this.proxyAddr = proxyAddr;
         progressBar = (ProgressBar)activity.findViewById(R.id.progressBar);
+        // show progress bar
+        progressBar.setVisibility(View.VISIBLE);
     }
 
     @Override
     protected ArrayList<String> doInBackground(String... params) {
-
-        // show progress bar
-        progressBar.setVisibility(View.VISIBLE);
-
         String locale = Locale.getDefault().toString();
         Log.d(TAG, String.format("Fetching public feed: locale=%s; proxy addr=%s", locale, proxyAddr));
         final ArrayList<String> sources = new ArrayList<String>();
