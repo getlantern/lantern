@@ -44,7 +44,7 @@ angular.module('feeds-services', []).factory('feedService', ['$q', '$http', '$sc
 
       var handleError = function(response) {
         if (response.status) {
-          if (response.config.url === feedURL) {
+          if (response.config.url !== fallbackURL) {
             $http.get(fallbackURL).then(handleResponse, handleError);
             return
           }
