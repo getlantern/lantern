@@ -47,7 +47,8 @@ Building the mobile library and app requires the following:
 1. Install Java JDK 7 or 8
 2. Install Go 1.6 or higher
 3. Install [Android SDK Tools](http://developer.android.com/sdk/index.html#Other)
-4. Install NDK(http://developer.android.com/ndk/downloads/index.html)
+4. Install [NDK](http://developer.android.com/ndk/downloads/index.html)
+5. Install [Gradle](http://gradle.org/)
 
 Make sure to set these environment variables before trying to build any Android
 components (replace the paths based on wherever you've installed the Android
