@@ -105,10 +105,12 @@ dependencies {
     compile 'com.nineoldandroids:library:2.4.0'
     compile 'com.thefinestartist:utils:0.9.0'
     compile 'com.google.guava:guava:19.0'
+
     // SmartTabLayout dependencies
-    compile 'com.koushikdutta.ion:ion:2.+'
     compile 'com.ogaclejapan.smarttablayout:library:1.6.0@aar'
     compile 'com.ogaclejapan.smarttablayout:utils-v4:1.6.0@aar'
+
+    compile 'com.koushikdutta.ion:ion:2.+'
 
     compile ('com.mandrillapp.wrapper.lutung:lutung:0.0.7') {
         exclude group: 'org.apache.commons', module: 'commons-io'
