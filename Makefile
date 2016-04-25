@@ -189,7 +189,7 @@ android-dist: genconfig android
 
 $(RESOURCES_DOT_GO): $(NPM)
 	@source setenv.bash && \
-	LANTERN_UI="src/github.com/getlantern/lantern-ui" && \
+	LANTERN_UI="lantern-ui" && \
 	APP="$$LANTERN_UI/app" && \
 	DIST="$$LANTERN_UI/dist" && \
 	echo 'var LANTERN_BUILD_REVISION = "$(GIT_REVISION_SHORTCODE)";' > $$APP/js/revision.js && \
