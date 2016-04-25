@@ -202,11 +202,11 @@ $(RESOURCES_DOT_GO): $(NPM)
 	cd - && \
 	rm -f bin/tarfs bin/rsrc && \
 	go install github.com/getlantern/tarfs/tarfs && \
+	mv bin/tarfs.exe bin/tarfs ; \
 	echo "// +build !stub" > $$DEST && \
 	echo " " >> $$DEST && \
-	tarfs -pkg ui $$DIST >> $$DEST && \
-	go install github.com/akavel/rsrc && \
-	rsrc -ico installer-resources/windows/lantern.ico -o src/github.com/getlantern/flashlight/lantern_windows_386.syso
+	bin/tarfs -pkg ui $$DIST >> $$DEST && \
+	go install github.com/akavel/rsrc
 
 assets: $(RESOURCES_DOT_GO)
 
@@ -338,6 +338,12 @@ lantern: $(RESOURCES_DOT_GO)
 	source setenv.bash && \
 	$(call build-tags) && \
 	CGO_ENABLED=1 go build -race -o lantern -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS_NOSTRIP) $$EXTRA_LDFLAGS" github.com/getlantern/flashlight/main; \
+
+lanternw: $(RESOURCES_DOT_GO)
+	@echo "Building development lantern for Windows 386" && \
+	source setenv.bash && \
+	$(call build-tags) && \
+	CGO_ENABLED=1 go build -o lantern -tags="$$BUILD_TAGS" -ldflags="$(LDFLAGS_NOSTRIP) $$EXTRA_LDFLAGS" github.com/getlantern/flashlight/main; \
 
 package-linux: require-version package-linux-386 package-linux-amd64
 
