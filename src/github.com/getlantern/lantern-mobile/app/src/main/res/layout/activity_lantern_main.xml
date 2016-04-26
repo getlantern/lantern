@@ -32,14 +32,14 @@
         android:id="@+id/mainView"
         android:gravity="center"
         tools:context=".LanternMainActivity">
+
         <ToggleButton
             android:id="@+id/powerLantern"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"   
             android:background="@drawable/toggle_switch"
+            android:layout_centerHorizontal="true"
             android:layout_marginTop="20dp"
-            android:layout_marginLeft="105dp"
-            android:layout_gravity="center"
             android:checked="false"
             android:text="ToggleButton"
             android:textOff=""
