@@ -126,6 +126,15 @@ VERSION=2.0.0-beta1 make android-release
 ```
 
 ### Android Tips
+#### Android Studio
+To get the build working for Android Studio, you'll want to add the following
+dummy values to your ``~/.gradle/gradle.properties`` file:
+
+```
+lanternRevisionDate="April 26, 2016"
+lanternVersion=2.2.1
+```
+
 #### Uninstall for All Users
 If you use `adb` to install and debug an app to your Android device during
 development and then subsequently build a signed APK and try to install it on
