@@ -272,6 +272,7 @@ app.controller('ErrorCtrl', ['$scope', '$rootScope', 'gaMgr', '$sce', '$translat
 
     $rootScope.showError = function() {
       $rootScope.showError = true;
+      gaMgr.trackFeed("error");
     }
 
     $scope.showProxyOffHelp = false;
