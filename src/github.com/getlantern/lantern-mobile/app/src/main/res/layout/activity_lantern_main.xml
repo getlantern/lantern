@@ -32,6 +32,7 @@
         android:id="@+id/mainView"
         android:gravity="center"
         tools:context=".LanternMainActivity">
+
         <ToggleButton
             android:id="@+id/powerLantern"
             android:layout_height="wrap_content"
