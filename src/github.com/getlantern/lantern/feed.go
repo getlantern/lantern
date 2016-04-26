@@ -54,6 +54,7 @@ type FeedItem struct {
 	Link        string                 `json:"link"`
 	Image       string                 `json:"image"`
 	Meta        map[string]interface{} `json:"meta,omitempty"`
+	Content     string                 `json:"contentText"`
 	Description string                 `json:"-"`
 }
 
@@ -186,8 +187,12 @@ func processFeed(provider FeedProvider) {
 		if aDesc := entry.Meta["description"]; aDesc != nil {
 			desc = strings.TrimSpace(aDesc.(string))
 		}
-		min := int(math.Min(float64(len(desc)), 150))
-		feed.Entries[i].Description = desc[:min]
+
+		if desc == "" {
+			desc = entry.Content
+		}
+
+		feed.Entries[i].Description = desc
 	}
 
 	for _, s := range feed.Feeds {
