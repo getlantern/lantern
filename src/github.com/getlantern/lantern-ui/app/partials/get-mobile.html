@@ -6,9 +6,9 @@
       <span class="mail-input-icon">icon</span>
       <input ng-model="model.email" name="email" type="text" class="{{ inputClass }}" placeholder="{{ inputPlaceholder }}" autocomplete="off" />
     </div>
-    <button type="submit" ng-attr-style="background: url({{mobileAdImgPath('get-the-app.svg')}})">Get the app via e-mail</button>
+    <button type="submit" ng-attr-style="background: url({{mobileAdImgPath('get-the-app.svg')}})">{{ 'LANTERN_MOBILE_GET_APP_VIA_EMAIL' | translate }}</button>
   </form>
   <p class="download-link">
-    <b>{{ 'LANTERN_MOBILE_ANDROID_TEXT' | translate }}:</b> <a target="_blank" ng-click="trackLink('lantern-mobile-ad')" href="{{ 'LANTERN_MOBILE_ANDROID' | translate }}">{{ 'LANTERN_MOBILE_ANDROID' | translate }}</a>
+    <b>{{ 'LANTERN_MOBILE_ANDROID_TEXT' | translate }}:</b> <a target="_blank" ng-click="trackLink('lantern-mobile-ad')" href="{{ mobileAppLink() }}">{{ mobileAppLink() }}</a>
   </p>
 </div>

@@ -1,8 +1,8 @@
 'use strict';
 
-app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$http', 'gaMgr', '$translate',
+app.controller('RootCtrl', ['$rootScope', '$scope', '$filter', '$compile', '$window', '$http', 'gaMgr', '$translate',
                'localStorageService', 'BUILD_REVISION',
-               function($rootScope, $scope, $compile, $window, $http, gaMgr, $translate, localStorageService, BUILD_REVISION) {
+               function($rootScope, $scope, $filter, $compile, $window, $http, gaMgr, $translate, localStorageService, BUILD_REVISION) {
     $scope.currentModal = 'none';
 
     $rootScope.lanternFirstTimeBuildVar = 'lanternFirstTimeBuild-'+BUILD_REVISION;
@@ -69,6 +69,15 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$htt
       localStorageService.set($rootScope.lanternHideMobileAdVar, true);
     };
 
+    $rootScope.mobileAppLink = function() {
+      return "https://bit.ly/lanternapk";
+    };
+
+    $rootScope.mobileShareContent = function() {
+      var fmt = $filter('translate')('LANTERN_MOBILE_SHARE');
+      return fmt.replace("%s", $rootScope.mobileAppLink());
+    };
+
     $rootScope.sendMobileAppLink = function() {
       var email = $scope.email;
 
@@ -76,8 +85,9 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$compile', '$window', '$htt
 
       if (!email || !(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) {
         $scope.inputClass = "fail";
-        $scope.inputPlaceholder = "Please enter a valid e-mail";
-        alert("Please check your e-mail address.");
+        var t = $filter('translate');
+        $scope.inputPlaceholder = t("LANTERN_MOBILE_ENTER_VALID_EMAIL");
+        alert(t("LANTERN_MOBILE_CHECK_EMAIL"));
         return;
       }
 
@@ -186,16 +196,48 @@ app.controller('NewsfeedCtrl', ['$scope', '$rootScope', '$translate', function($
   $scope.hideNewsfeed = function(e) {
     $rootScope.showNews = false;
   };
-  $scope.hideNewsfeed();
+  $scope.showNewsfeed();
+
   $scope.feedUrl = function() {
     var mapTable = { 'fa': 'fa_IR' };
     var lang = $translate.use();
     lang = mapTable[lang] || lang;
     return "https://feeds.getiantem.org/" + lang + "/feed.json";
   };
+
+}]);
+
+app.controller('FeedTabCtrl', ['$scope', '$rootScope', '$translate', function($scope, $rootScope, $translate) {
+  $scope.tabActive = {};
+  $scope.selectTab = function (title) {
+    $scope.tabActive[title] = true;
+  };
+  $scope.deselectTab = function (title) {
+    $scope.tabActive[title] = false;
+  };
+  $scope.tabSelected = function (title) {
+    return $scope.tabActive[title] === true;
+  };
 }]);
 
 app.controller('FeedCtrl', ['$scope', 'gaMgr', function($scope, gaMgr) {
+  var copiedFeedEntries = [];
+  angular.copy($scope.feedEntries, copiedFeedEntries);
+  $scope.entries = [];
+  $scope.containerId = function($index) {
+    return "#feeds-container-" + $index;
+  };
+  var count = 0;
+  $scope.tabVisible = function() {
+    return $scope.tabSelected($scope.feedsTitle);
+  };
+  $scope.addMoreItems = function() {
+    if ($scope.tabVisible()) {
+      var more = copiedFeedEntries.splice(0, 10);
+      $scope.entries = $scope.entries.concat(more);
+      //console.log($scope.feedsTitle + ": added " + more.length + " entries, total " + $scope.entries.length);
+    }
+  };
   $scope.renderContent = function(feed) {
     if (feed.meta && feed.meta.description) {
       return feed.meta.description;
@@ -205,4 +247,8 @@ app.controller('FeedCtrl', ['$scope', 'gaMgr', function($scope, gaMgr) {
   $scope.trackFeed = function(name) {
     return gaMgr.trackFeed(name);
   };
+  $scope.hideImage = function(feed) {
+    feed.image = null;
+  };
+  $scope.addMoreItems();
 }]);
