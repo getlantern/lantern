@@ -60,10 +60,6 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$filter', '$compile', '$win
       return '/img/mobile-ad/' + lang + '/' + name;
     }
 
-    $rootScope.setShowError = function() {
-      $rootScope.showError = true;
-    }
-
     $rootScope.setShowMobileAd = function() {
       $rootScope.showMobileAd = true;
     }
@@ -175,7 +171,6 @@ app.controller('MobileAdCtrl', ['$scope', 'MODAL', 'gaMgr', function($scope, MOD
 
   $scope.copyAndroidMobileLink = function() {
     $scope.linkCopied = true;
-    //$scope.closeModal();
     gaMgr.trackCopyLink();
   };
 
@@ -195,7 +190,7 @@ app.controller('NewsfeedCtrl', ['$scope', '$rootScope', '$translate', function($
   };
   $scope.hideNewsfeed = function(e) {
     $rootScope.showNews = false;
-    $rootScope.showError = true;
+    $rootScope.showError();
   };
   $scope.showNewsfeed();
 
@@ -254,7 +249,31 @@ app.controller('FeedCtrl', ['$scope', 'gaMgr', function($scope, gaMgr) {
   $scope.addMoreItems();
 }]);
 
-app.controller('ErrorCtrl', ['$scope', 'gaMgr', function($scope, gaMgr) {
+app.controller('ErrorCtrl', ['$scope', '$rootScope', 'gaMgr', '$sce', '$translate', "deviceDetector",
+  function($scope, $rootScope, gaMgr, $sce, $translate, deviceDetector) {
+    // TOOD: notify GA we've hit the error page!
+
+    $scope.isMac = function() {
+      return deviceDetector.os == "mac";
+    }
+
+    $scope.isWindows = function() {
+      return deviceDetector.os == "windows";
+    }
+
+    $scope.isWindowsXp = function() {
+      return deviceDetector.os == "windows" &&
+        deviceDetector.os_version == "windows-xp"
+    }
+
+    $scope.isLinux = function() {
+      return deviceDetector.os == "linux";
+    }
+
+    $rootScope.showError = function() {
+      $rootScope.showError = true;
+    }
+
     $scope.showProxyOffHelp = false;
     $scope.showExtensionHelp = false;
     $scope.showXunleiHelp = false;
@@ -269,8 +288,16 @@ app.controller('ErrorCtrl', ['$scope', 'gaMgr', function($scope, gaMgr) {
     $scope.toggleShowXunleiHelp = function() {
       $scope.showXunleiHelp = !$scope.showXunleiHelp;
     }
+
     $scope.toggleShowConnectionHelp = function() {
+      $translate('CONNECTION_HELP', {
+        facebookLink: '<a href="https://www.facebook.com/getlantern/manager/?section=messages">Facebook</a>',
+        gitHubLink: '<a href="https://github.com/getlantern/lantern">GitHub</a>',
+        forumsLink: '<a href="https://groups.google.com/forum/#!forum/lantern-users-zh">forums</a>'
+      })
+        .then(function (translatedVal) {
+          $rootScope.connectionHelpText = translatedVal;
+        });
       $scope.showConnectionHelp = !$scope.showConnectionHelp;
     }
-
 }]);
