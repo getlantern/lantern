@@ -168,12 +168,12 @@ func (m *Manager) Init() (Config, error) {
 	if m.PerSessionSetup != nil {
 		err2 := m.PerSessionSetup(copied)
 		if err2 != nil {
-			return nil, fmt.Errorf("Unable to perform one-time setup: %s", err2)
+			return nil, fmt.Errorf("Unable to perform one-time setup: %v", err2)
 		}
 	}
 	_, err = m.saveToDiskAndUpdate(copied)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to perform initial update of config on disk: %s", err)
+		return nil, fmt.Errorf("Unable to perform initial update of config on disk: %v", err)
 	}
 
 	go m.processUpdates()
@@ -226,11 +226,11 @@ func (m *Manager) poll() time.Duration {
 	log.Debugf("Polling for new config from yamlconf")
 	mutate, waitTime, err := m.CustomPoll(m.getCfg())
 	if err != nil {
-		log.Errorf("Custom polling failed: %s", err)
+		log.Errorf("Custom polling failed: %v", err)
 	} else {
 		err = m.Update(mutate)
 		if err != nil {
-			log.Errorf("Unable to apply update from custom polling: %s", err)
+			log.Errorf("Unable to apply update from custom polling: %v", err)
 		}
 	}
 	return waitTime
