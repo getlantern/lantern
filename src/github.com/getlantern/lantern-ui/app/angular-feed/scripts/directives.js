@@ -1,5 +1,10 @@
 'use strict';
 
+/*
+Feeds directive shows localStorge cached feeds if available, and fetch server
+in same time. It re-renders the feeds when remote feeds fetched, or calls
+onError() if failed to fetch. The feeds will be cached for 24 hours.
+*/
 angular.module('feeds-directives', []).directive('feed', ['feedService', '$compile', '$templateCache', '$http', function (feedService, $compile, $templateCache, $http) {
   return  {
     restrict: 'E',

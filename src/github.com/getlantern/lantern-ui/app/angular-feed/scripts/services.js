@@ -36,7 +36,7 @@ angular.module('feeds-services', []).factory('feedService', ['$q', '$http', func
 }])
 
 .factory('feedCache', function () {
-  var CACHE_INTERVAL = 1000 * 60 * 5; //5 minutes
+  var CACHE_INTERVAL = 1000 * 60 * 50 * 24; // 1 day
 
   function cacheTimes() {
     if ('CACHE_TIMES' in localStorage) {
