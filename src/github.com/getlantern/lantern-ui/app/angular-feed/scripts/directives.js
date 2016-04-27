@@ -39,21 +39,25 @@ angular.module('feeds-directives', []).directive('feed', ['feedService', '$compi
         }
       }
 
-      function renderTemplate(templateHTML, feedsObj) {
-        $scope.allEntries = feedsObj.entries;
-        $scope.allFeeds = feedsObj.feeds;
-        $element.append($compile(templateHTML)($scope));
+      var templateRendered = false;
+      function renderTemplate(templateHTML) {
+        if (!templateRendered) {
+          $element.append($compile(templateHTML)($scope));
+        }
+        templateRendered = true;
       }
 
       function render(feedsObj) {
         sanitizeEntries(feedsObj.entries);
+        $scope.allEntries = feedsObj.entries;
+        $scope.allFeeds = feedsObj.feeds;
         if ($attrs.templateUrl) {
           $http.get($attrs.templateUrl, {cache: $templateCache}).success(function (templateHtml) {
-            renderTemplate(templateHtml, feedsObj);
+            renderTemplate(templateHtml);
           });
         }
         else {
-          renderTemplate($templateCache.get('feed-list.html'), feedsObj);
+          renderTemplate($templateCache.get('feed-list.html'));
         }
       }
 
