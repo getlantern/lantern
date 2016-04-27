@@ -9,7 +9,7 @@
   "PROXY_OFF_HELP": "Enable that option in Lantern settings.",
   "EXTENSION_HELP": "Try disabling them or sending traffic through Lantern running at 127.0.0.1:8787",
   "XUNLEI_HELP": "Try uninstalling Xunlei for now",
-  "CONNECTION_HELP": "<p>If your network seems to be otherwise working, please let us know on our {{forumsLink}}, {{facebookLink}}, or {{gitHubLink}}.</p><p>You can also email your logs to <a href=\"mailto:support@getlantern.org\">support@getlantern.org</a>. You can find your logs at:</p>",
+  "CONNECTION_HELP": "<p>If your network seems to be otherwise working, please let us know on our <a href=\"https://groups.google.com/forum/#!forum/lantern-users-zh\" target=\"_blank\">forums</a>, <a href=\"https://www.facebook.com/getlantern\" target=\"_blank\">Facebook</a>, or <a href=\"https://github.com/getlantern/lantern\" target=\"_blank\">GitHub</a>.</p><p>You can also email your logs to <a href=\"mailto:support@getlantern.org\">support@getlantern.org</a>. You can find your logs at:</p>",
   "LANTERN_MOBILE_SHARE": "Trying out Lantern for Android! %s #getlantern",
   "LANTERN_MOBILE_ANDROID_TEXT": "Android download link",
   "TRY_LANTERN_FOR_ANDROID": "Try Lantern for Android!",

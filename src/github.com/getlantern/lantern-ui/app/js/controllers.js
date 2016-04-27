@@ -294,14 +294,11 @@ app.controller('ErrorCtrl', ['$scope', '$rootScope', 'gaMgr', '$sce', '$translat
     }
 
     $scope.toggleShowConnectionHelp = function() {
-      $translate('CONNECTION_HELP', {
-        facebookLink: '<a href="https://www.facebook.com/getlantern/manager/?section=messages" target="_blank">Facebook</a>',
-        gitHubLink: '<a href="https://github.com/getlantern/lantern" target="_blank">GitHub</a>',
-        forumsLink: '<a href="https://groups.google.com/forum/#!forum/lantern-users-zh" target="_blank">forums</a>'
-      })
+      $translate('CONNECTION_HELP')
         .then(function (translatedVal) {
           $rootScope.connectionHelpText = translatedVal;
         });
+
       $scope.showConnectionHelp = !$scope.showConnectionHelp;
     }
 }]);
