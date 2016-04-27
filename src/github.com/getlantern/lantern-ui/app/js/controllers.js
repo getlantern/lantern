@@ -190,12 +190,15 @@ app.controller('NewsfeedCtrl', ['$scope', '$rootScope', '$translate', function($
   };
   $scope.hideNewsfeed = function(e) {
     $rootScope.showNews = false;
-    $rootScope.showError();
+    $rootScope.enableShowError();
   };
   $scope.showNewsfeed();
 
   $scope.feedUrl = function() {
-    var mapTable = { 'fa': 'fa_IR' };
+    var mapTable = {
+      'fa': 'fa_IR',
+      'zh': 'zh_CN'
+    };
     var lang = $translate.use();
     lang = mapTable[lang] || lang;
     return "https://feeds.getiantem.org/" + lang + "/feed.json";
@@ -270,7 +273,7 @@ app.controller('ErrorCtrl', ['$scope', '$rootScope', 'gaMgr', '$sce', '$translat
       return deviceDetector.os == "linux";
     }
 
-    $rootScope.showError = function() {
+    $rootScope.enableShowError = function() {
       $rootScope.showError = true;
       gaMgr.trackFeed("error");
     }

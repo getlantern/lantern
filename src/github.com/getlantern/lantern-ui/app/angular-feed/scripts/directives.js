@@ -8,7 +8,7 @@ angular.module('feeds-directives', []).directive('feed', ['feedService', '$compi
       onFeedsLoaded: '&',
       onError: '&onError'
     },
-    controller: ['$scope', '$element', '$attrs', '$timeout', function ($scope, $element, $attrs, $timeout) {
+    controller: ['$scope', '$element', '$attrs', '$q', '$sce', '$timeout', 'feedCache', function ($scope, $element, $attrs, $q, $sce, $timeout, feedCache) {
       $scope.$watch('finishedLoading', function (value) {
         if ($attrs.postRender && value) {
           $timeout(function () {
@@ -17,43 +17,71 @@ angular.module('feeds-directives', []).directive('feed', ['feedService', '$compi
         }
       });
 
-      $scope.allFeeds = [];
-
       var spinner = $templateCache.get('feed-spinner.html');
       $element.append($compile(spinner)($scope));
 
+      function sanitizeFeedEntry(feedEntry) {
+        feedEntry.title = $sce.trustAsHtml(feedEntry.title);
+        feedEntry.contentSnippet = $sce.trustAsHtml(feedEntry.contentSnippet);
+        feedEntry.content = $sce.trustAsHtml(feedEntry.content);
+        feedEntry.publishedDate = new Date(feedEntry.publishedDate).getTime();
+        return feedEntry;
+      }
+
+      function sanitizeEntries(entries) {
+        for (var i = 0; i < entries.length; i++) {
+          sanitizeFeedEntry(entries[i]);
+        }
+      }
+
       function renderTemplate(templateHTML, feedsObj) {
+        $scope.allEntries = feedsObj.entries;
+        $scope.allFeeds = feedsObj.feeds;
         $element.append($compile(templateHTML)($scope));
-        if (feedsObj) {
-          $scope.allEntries = feedsObj.entries;
-          $scope.allFeeds = feedsObj.feeds;
+      }
+
+      function render(feedsObj) {
+        sanitizeEntries(feedsObj.entries);
+        if ($attrs.templateUrl) {
+          $http.get($attrs.templateUrl, {cache: $templateCache}).success(function (templateHtml) {
+            renderTemplate(templateHtml, feedsObj);
+          });
+        }
+        else {
+          renderTemplate($templateCache.get('feed-list.html'), feedsObj);
         }
       }
 
       $attrs.$observe('url', function(url){
-        feedService.getFeeds(url, $attrs.fallbackUrl, $attrs.count).then(function (feedsObj) {
-          if ($attrs.templateUrl) {
-            $http.get($attrs.templateUrl, {cache: $templateCache}).success(function (templateHtml) {
-              renderTemplate(templateHtml, feedsObj);
-            });
-          }
-          else {
-            renderTemplate($templateCache.get('feed-list.html'), feedsObj);
-          }
-          if ($scope.onFeedsLoaded) {
-            $scope.onFeedsLoaded();
-          }
+        var deferred = $q.defer();
+        var feedsObj = feedCache.get(url);
+        if (feedsObj) {
+          deferred.resolve(feedsObj);
+          console.log("show feeds in cache");
+        }
+        feedService.getFeeds(url, $attrs.fallbackUrl).then(function (feedsObj) {
+          console.log("fresh copy of feeds loaded");
+          feedCache.set(url, feedsObj);
+          deferred.resolve(feedsObj);
         },function (error) {
+          console.log("fail to fetch feeds: " +  error);
           if ($scope.onError) {
             $scope.onError(error);
           }
-          console.error('Error loading feed:', error);
           $scope.error = error;
+        });
+
+        deferred.promise.then(function(feedsObj) {
+          render(feedsObj);
+          if ($scope.onFeedsLoaded) {
+            $scope.onFeedsLoaded();
+          }
         }).finally(function () {
           $element.find('.spinner').slideUp();
           $scope.$evalAsync('finishedLoading = true')
         });
+
       });
     }]
-  }
+  };
 }]);
