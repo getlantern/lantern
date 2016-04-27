@@ -33,7 +33,7 @@
         <div><a ng-click="toggleShowConnectionHelp()">{{ 'WHAT_DO' | translate }}</a></div>
 
         <div class="error-action ng-hide" ng-show="showConnectionHelp">
-          <div ng-bind-html="connectionHelpText"></div><br>
+          <div ng-bind-html="connectionHelpText"></div>
           <div ng-show="isWindows()">C:\Users\USERNAME\AppData\Roaming\Lantern\logs</div>
           <div ng-show="isWindowsXp()">C:\Documents and Settings\USERNAME\Application Data\Lantern\Logs</div>
           <div ng-show="isMac()">/Users/YOUR_USER_NAME/Library/Logs/Lantern</div>
