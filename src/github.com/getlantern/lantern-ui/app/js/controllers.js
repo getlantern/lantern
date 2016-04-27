@@ -126,12 +126,8 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$filter', '$compile', '$win
       localStorageService.set($rootScope.lanternFirstTimeBuildVar, true);
     };
 
-    /*if (!localStorageService.get($rootScope.lanternHideMobileAdVar)) {
-      $scope.resetPlaceholder();
-      $rootScope.showMobileAd = true;
-    };*/
 
-
+    $rootScope.showError = false;
 }]);
 
 app.controller('SettingsCtrl', ['$scope', 'MODAL', 'DataStream', 'gaMgr', function($scope, MODAL, DataStream, gaMgr) {
@@ -175,7 +171,6 @@ app.controller('MobileAdCtrl', ['$scope', 'MODAL', 'gaMgr', function($scope, MOD
 
   $scope.copyAndroidMobileLink = function() {
     $scope.linkCopied = true;
-    //$scope.closeModal();
     gaMgr.trackCopyLink();
   };
 
@@ -195,11 +190,15 @@ app.controller('NewsfeedCtrl', ['$scope', '$rootScope', '$translate', function($
   };
   $scope.hideNewsfeed = function(e) {
     $rootScope.showNews = false;
+    $rootScope.enableShowError();
   };
   $scope.showNewsfeed();
 
   $scope.feedUrl = function() {
-    var mapTable = { 'fa': 'fa_IR' };
+    var mapTable = {
+      'fa': 'fa_IR',
+      'zh': 'zh_CN'
+    };
     var lang = $translate.use();
     lang = mapTable[lang] || lang;
     return "https://feeds.getiantem.org/" + lang + "/feed.json";
@@ -251,4 +250,55 @@ app.controller('FeedCtrl', ['$scope', 'gaMgr', function($scope, gaMgr) {
     feed.image = null;
   };
   $scope.addMoreItems();
+}]);
+
+app.controller('ErrorCtrl', ['$scope', '$rootScope', 'gaMgr', '$sce', '$translate', "deviceDetector",
+  function($scope, $rootScope, gaMgr, $sce, $translate, deviceDetector) {
+    // TOOD: notify GA we've hit the error page!
+
+    $scope.isMac = function() {
+      return deviceDetector.os == "mac";
+    }
+
+    $scope.isWindows = function() {
+      return deviceDetector.os == "windows";
+    }
+
+    $scope.isWindowsXp = function() {
+      return deviceDetector.os == "windows" &&
+        deviceDetector.os_version == "windows-xp"
+    }
+
+    $scope.isLinux = function() {
+      return deviceDetector.os == "linux";
+    }
+
+    $rootScope.enableShowError = function() {
+      $rootScope.showError = true;
+      gaMgr.trackFeed("error");
+    }
+
+    $scope.showProxyOffHelp = false;
+    $scope.showExtensionHelp = false;
+    $scope.showXunleiHelp = false;
+    $scope.showConnectionHelp = false;
+
+    $scope.toggleShowProxyOffHelp = function() {
+      $scope.showProxyOffHelp = !$scope.showProxyOffHelp;
+    }
+    $scope.toggleShowExtensionHelp = function() {
+      $scope.showExtensionHelp = !$scope.showExtensionHelp;
+    }
+    $scope.toggleShowXunleiHelp = function() {
+      $scope.showXunleiHelp = !$scope.showXunleiHelp;
+    }
+
+    $scope.toggleShowConnectionHelp = function() {
+      $translate('CONNECTION_HELP')
+        .then(function (translatedVal) {
+          $rootScope.connectionHelpText = translatedVal;
+        });
+
+      $scope.showConnectionHelp = !$scope.showConnectionHelp;
+    }
 }]);
