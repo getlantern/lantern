@@ -43,8 +43,13 @@ type Settings struct {
 	sync.RWMutex `json:"-" yaml:"-"`
 }
 
-// loadSettings loads the initial settings at startup, either from disk or using defaults.
 func loadSettings(version, revisionDate, buildDate string) *Settings {
+	return loadSettingsFrom(version, revisionDate, buildDate, path)
+}
+
+// loadSettings loads the initial settings at startup, either from disk or using defaults.
+func loadSettingsFrom(version, revisionDate, buildDate, path string) *Settings {
+
 	log.Debug("Loading settings")
 	// Create default settings that may or may not be overridden from an existing file
 	// on disk.
@@ -82,7 +87,7 @@ func loadSettings(version, revisionDate, buildDate string) *Settings {
 			log.Errorf("Unable to register settings service: %q", err)
 			return
 		}
-		go settings.read()
+		go settings.read(service.In, service.Out)
 	})
 	return settings
 }
@@ -102,9 +107,9 @@ func (s *Settings) start() error {
 	return err
 }
 
-func (s *Settings) read() {
+func (s *Settings) read(in <-chan interface{}, out chan<- interface{}) {
 	log.Debugf("Reading settings messages!!")
-	for message := range service.In {
+	for message := range in {
 		log.Debugf("Read settings message!! %v", message)
 
 		// We're using a map here because we want to know when the user sends a
@@ -116,37 +121,30 @@ func (s *Settings) read() {
 			continue
 		}
 
-		var v, ok bool
+		s.checkBool(data, "autoReport", s.SetAutoReport)
+		s.checkBool(data, "proxyAll", s.SetProxyAll)
+		s.checkBool(data, "autoLaunch", s.SetAutoLaunch)
+		s.checkBool(data, "systemProxy", s.SetSystemProxy)
+		s.checkString(data, "userID", s.SetUserID)
+		s.checkString(data, "token", s.SetToken)
 
-		if v, ok = data["autoReport"].(bool); ok {
-			s.SetAutoReport(v)
-		}
+		out <- s
+	}
+}
 
-		if v, ok = data["proxyAll"].(bool); ok {
-			s.SetProxyAll(v)
-		}
+func (s *Settings) checkBool(data map[string]interface{}, name string, f func(bool)) {
+	if v, ok := data[name].(bool); ok {
+		f(v)
+	} else {
+		log.Errorf("Could not convert %v in %v", name, data)
+	}
+}
 
-		if v, ok = data["autoLaunch"].(bool); ok {
-			s.SetAutoLaunch(v)
-		}
-
-		if v, ok = data["systemProxy"].(bool); ok {
-			s.SetSystemProxy(v)
-		}
-
-		if id, ok := data["userID"].(string); ok {
-			s.SetUserID(id)
-		}
-
-		if token, ok := data["token"].(string); ok {
-			s.SetToken(token)
-		}
-
-		if deviceID, ok := data["deviceID"].(string); ok {
-			s.SetDeviceID(deviceID)
-		}
-
-		service.Out <- s
+func (s *Settings) checkString(data map[string]interface{}, name string, f func(string)) {
+	if v, ok := data[name].(string); ok {
+		f(v)
+	} else {
+		log.Errorf("Could not convert %v in %v", name, data)
 	}
 }
 
