@@ -55,7 +55,7 @@ public class LanternMainActivity extends AppCompatActivity implements
     private boolean isInBackground = false;
     private FragmentPagerItemAdapter feedAdapter;
     private SmartTabLayout viewPagerTab;
-    private String lastFeedSelected = "all";
+    private String lastFeedSelected;
 
     private Context context;
     private UI LanternUI;
@@ -70,6 +70,8 @@ public class LanternMainActivity extends AppCompatActivity implements
         StrictMode.setThreadPolicy(policy);
 
         setContentView(R.layout.activity_lantern_main);
+
+        lastFeedSelected = getResources().getString(R.string.all_feeds);
 
         // we want to use the ActionBar from the AppCompat
         // support library, but with our custom design

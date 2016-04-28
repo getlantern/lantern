@@ -36,6 +36,7 @@ type Feed struct {
 	Feeds   map[string]Source    `json:"feeds"`
 	Entries FeedItems            `json:"entries"`
 	Items   map[string]FeedItems `json:"-"`
+	Sorted  []string             `json:"sorted_feeds"`
 }
 
 // Source represents a feed authority,
@@ -99,7 +100,7 @@ func handleError(err error) {
 // Lantern public feed for displaying on the home screen.
 // If a proxyAddr is specified, the http.Client will proxy
 // through it
-func GetFeed(locale string, proxyAddr string, provider FeedProvider) {
+func GetFeed(locale string, all string, proxyAddr string, provider FeedProvider) {
 	var err error
 	var req *http.Request
 	var res *http.Response
@@ -158,25 +159,26 @@ func GetFeed(locale string, proxyAddr string, provider FeedProvider) {
 		return
 	}
 
-	processFeed(provider)
+	processFeed(all, provider)
 }
 
 // processFeed is used after a feed has been downloaded
 // to extract feed sources and items for processing.
-func processFeed(provider FeedProvider) {
+func processFeed(all string, provider FeedProvider) {
 
 	log.Debugf("Num of Feed Entries: %v", len(feed.Entries))
 
 	feed.Items = make(map[string]FeedItems)
 
-	// the 'all' tab contains every article
-	feed.Items["all"] = feed.Entries
+	// 'all' represents the translated text for the
+	// tab containing every article
+	feed.Items[all] = feed.Entries
 
 	// Get a list of feed sources & send those back to the UI
-	for _, s := range feed.Feeds {
-		if s.Title != "" {
-			log.Debugf("Adding feed source: %s", s.Title)
-			provider.AddSource(s.Title)
+	for _, s := range feed.Sorted {
+		if entry, ok := feed.Feeds[s]; ok {
+			log.Debugf("Adding feed source: %s", entry.Title)
+			provider.AddSource(entry.Title)
 		}
 	}
 
