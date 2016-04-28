@@ -45,7 +45,7 @@ import org.lantern.mobilesdk.StartResult;
 import org.lantern.mobilesdk.LanternNotRunningException;
 
 public class LanternMainActivity extends AppCompatActivity implements 
-    Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
+Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
     private static final String TAG = "LanternMainActivity";
     private static final String PREFS_NAME = "LanternPrefs";
@@ -169,7 +169,7 @@ public class LanternMainActivity extends AppCompatActivity implements
             Log.d(TAG, "onKeyDown Called");
             onBackPressed();
             return true;
-        }
+                }
         return super.onKeyDown(keyCode, event);
     }
 
@@ -315,7 +315,7 @@ public class LanternMainActivity extends AppCompatActivity implements
         if (LanternUI != null) {
             LanternUI.sendDesktopVersion(view);
         }
-   }
+    }
 
     // Prompt the user to enable full-device VPN mode
     // Make a VPN connection from the client
@@ -406,7 +406,7 @@ public class LanternMainActivity extends AppCompatActivity implements
                         networkInfo.getType() == ConnectivityManager.TYPE_WIFI &&
                         !networkInfo.isConnected()) {
                     stopLantern();
-                }
+                        }
             }
         }
     }
