@@ -244,6 +244,7 @@ func startApp(t *testing.T) error {
 		"configdir":            ".",
 		"stickyconfig":         false,
 		"clear-proxy-settings": false,
+		"readableconfig":       true,
 		"uiaddr":               "127.0.0.1:16823",
 	}
 

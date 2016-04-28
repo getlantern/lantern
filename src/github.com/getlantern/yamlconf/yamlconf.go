@@ -90,11 +90,20 @@ type Manager struct {
 	// FilePath: required, path to the config file on disk
 	FilePath string
 
-	// EmptyConfig: required, factor for new empty Configs
+	// ValidateConfig: optional. If specified, the config loaded from disk is
+	// validated with this function. If validation fails, the config is replaced
+	// with the result of DefaultConfig.
+	ValidateConfig func(cfg Config) error
+
+	// DefaultConfig: optional. If specified, and there's a problem reading the
+	// config from disk or that , this is used.
+	DefaultConfig func() (Config, error)
+
+	// EmptyConfig: required, factory for new empty Configs
 	EmptyConfig func() Config
 
-	// PerSessionSetup runs at the beginning of each session (for example applying command-line
-	// flags)
+	// PerSessionSetup runs at the beginning of each session (for example applying
+	// command-line flags)
 	PerSessionSetup func(currentCfg Config) error
 
 	// CustomPoll: optionally, specify a custom polling function that returns
@@ -102,6 +111,10 @@ type Manager struct {
 	// next poll, and an error (if polling itself failed). This is useful for
 	// example for fetching config updates from a remote server.
 	CustomPoll func(currentCfg Config) (mutate func(cfg Config) error, waitTime time.Duration, err error)
+
+	// Obfuscate: if true, the on-disk version of the config will be obfuscated by
+	// "encrypting" it with ROT13.
+	Obfuscate bool
 
 	once      sync.Once
 	cfg       Config
@@ -148,24 +161,24 @@ func (m *Manager) Init() (Config, error) {
 	err := m.loadFromDisk()
 	if err != nil {
 		return nil, fmt.Errorf("Could not load config? %v", err)
-	} else {
-		log.Debugf("Loading per session setup")
+	}
+	log.Debugf("Loading per session setup")
 
-		// Always save whatever we loaded, which will cause defaults to be
-		// applied and formatting to be made consistent
-		copied, err := m.copy(m.cfg)
-		if m.PerSessionSetup != nil {
-			err := m.PerSessionSetup(copied)
-			if err != nil {
-				return nil, fmt.Errorf("Unable to perform one-time setup: %s", err)
-			}
+	// Always save whatever we loaded, which will cause defaults to be
+	// applied and formatting to be made consistent
+	copied, err := m.copy(m.cfg)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to copy config: %v", err)
+	}
+	if m.PerSessionSetup != nil {
+		err2 := m.PerSessionSetup(copied)
+		if err2 != nil {
+			return nil, fmt.Errorf("Unable to perform one-time setup: %v", err2)
 		}
-		if err == nil {
-			_, err = m.saveToDiskAndUpdate(copied)
-		}
-		if err != nil {
-			return nil, fmt.Errorf("Unable to perform initial update of config on disk: %s", err)
-		}
+	}
+	_, err = m.saveToDiskAndUpdate(copied)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to perform initial update of config on disk: %v", err)
 	}
 
 	go m.processUpdates()
@@ -218,11 +231,11 @@ func (m *Manager) poll() time.Duration {
 	log.Debugf("Polling for new config from yamlconf")
 	mutate, waitTime, err := m.CustomPoll(m.getCfg())
 	if err != nil {
-		log.Errorf("Custom polling failed: %s", err)
+		log.Errorf("Custom polling failed: %v", err)
 	} else {
 		err = m.Update(mutate)
 		if err != nil {
-			log.Errorf("Unable to apply update from custom polling: %s", err)
+			log.Errorf("Unable to apply update from custom polling: %v", err)
 		}
 	}
 	return waitTime
