@@ -50,7 +50,6 @@ angular.module('feeds-services', []).factory('feedService', ['$q', '$http', func
     var timeInCache = name in CACHE_TIMES && name in localStorage && new Date().getTime() - CACHE_TIMES[name];
     return timeInCache < CACHE_INTERVAL;
   }
-}
 
   return {
     set: function (name, obj) {
