@@ -75,9 +75,9 @@ type CA struct {
 	Cert       string // PEM-encoded
 }
 
-// hasCustomChainedServer returns an error if the config doesn't have a custom
-// chained server.
-func hasCustomChainedServer(_cfg yamlconf.Config) error {
+// validateConfig checks whether the given config is valid and returns an error
+// if it isn't.
+func validateConfig(_cfg yamlconf.Config) error {
 	cfg, ok := _cfg.(*Config)
 	if !ok {
 		return fmt.Errorf("Config is not a flashlight config!")
@@ -122,7 +122,7 @@ func Init(userConfig UserConfig, version string, configDir string, stickyConfig 
 	m = &yamlconf.Manager{
 		FilePath: configPath,
 
-		ValidateConfig: hasCustomChainedServer,
+		ValidateConfig: validateConfig,
 
 		DefaultConfig: MakeInitialConfig,
 
