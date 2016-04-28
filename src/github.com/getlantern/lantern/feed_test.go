@@ -25,7 +25,7 @@ func (retriever *TestFeedRetriever) AddFeed(title, description,
 
 func getFeed(t *testing.T, locale string) {
 	provider := &TestFeedProvider{}
-	GetFeed(locale, "", provider)
+	GetFeed(locale, "all", "", provider)
 
 	if assert.NotNil(t, CurrentFeed()) {
 		assert.NotEqual(t, 0, NumFeedEntries(),
