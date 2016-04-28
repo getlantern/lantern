@@ -33,7 +33,7 @@ func (m *Manager) reloadFromDisk() (bool, error) {
 			return false, nil
 		}
 	} else if m.DefaultConfig == nil || !os.IsNotExist(err) {
-		return false, fmt.Errorf("Unable to stat config file %s: %s", m.FilePath, err)
+		return false, fmt.Errorf("Unable to stat config file %v: %v", m.FilePath, err)
 	}
 
 	cfg, err = readFromDisk(m.FilePath, m.Obfuscate, m.EmptyConfig)
@@ -128,13 +128,13 @@ func doReadFromDisk(filePath string, allowObfuscation bool, emptyConfig func() C
 
 	bytes, err := ioutil.ReadAll(in)
 	if err != nil {
-		return nil, fmt.Errorf("Error reading config from %s: %s", filePath, err)
+		return nil, fmt.Errorf("Error reading config from %v: %v", filePath, err)
 	}
 
 	cfg := emptyConfig()
 	err = yaml.Unmarshal(bytes, cfg)
 	if err != nil {
-		return nil, fmt.Errorf("Error unmarshaling config yaml from %s: %s", filePath, err)
+		return nil, fmt.Errorf("Error unmarshaling config yaml from %v: %v", filePath, err)
 	}
 
 	delta := time.Now().Sub(start)
@@ -187,7 +187,7 @@ func (m *Manager) saveToDiskAndUpdate(updated Config) (bool, error) {
 func (m *Manager) writeToDisk(cfg Config) error {
 	bytes, err := yaml.Marshal(cfg)
 	if err != nil {
-		return fmt.Errorf("Unable to marshal config yaml: %s", err)
+		return fmt.Errorf("Unable to marshal config yaml: %v", err)
 	}
 
 	outfile, err := os.OpenFile(m.FilePath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
@@ -207,11 +207,11 @@ func (m *Manager) writeToDisk(cfg Config) error {
 	}
 	_, err = out.Write(bytes)
 	if err != nil {
-		return fmt.Errorf("Unable to write config yaml to file %s: %s", m.FilePath, err)
+		return fmt.Errorf("Unable to write config yaml to file %v: %v", m.FilePath, err)
 	}
 	m.fileInfo, err = os.Stat(m.FilePath)
 	if err != nil {
-		return fmt.Errorf("Unable to stat file %s: %s", m.FilePath, err)
+		return fmt.Errorf("Unable to stat file %v: %v", m.FilePath, err)
 	}
 	return nil
 }
