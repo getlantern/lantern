@@ -7,4 +7,9 @@
   <string name="share_option">Comparteix</string>
   <string name="quit_option">Abandona</string>
   <string name="share_email_native"></string>
+  <string name="install_update">Actualitza</string>
+  <string name="language">Idioma</string>
+  <string name="yes">Sí</string>
+  <string name="no">No</string>
+  <string name="item_preview_country">Estats Units</string>
 </resources>

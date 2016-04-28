@@ -133,7 +133,6 @@
     <string name="credits_applied">Your credits will be applied to your account on the next billing cycle.</string>
     <string name="pro_invitation_subject">Invitation to Join Lantern Pro</string>
     <string name="receive_free_month">For a free month of Lantern Pro, use this referral code: %1$s ; You can download it from here: https://bit.ly/1M8x04u</string>
-    <string name="stripe_publishable_key">Blah</string> 
 	<string name="cancel_pro_confirmation">Are you sure? This action cannot be undone! You can sign up for Pro again at any time.</string>
 	<string name="yes">Yes</string>
 	<string name="no">No</string>
