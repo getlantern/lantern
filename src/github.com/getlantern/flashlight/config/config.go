@@ -75,16 +75,6 @@ type CA struct {
 	Cert       string // PEM-encoded
 }
 
-func exists(file string) (os.FileInfo, bool) {
-	if fi, err := os.Stat(file); os.IsNotExist(err) {
-		log.Debugf("File does not exist at %v", file)
-		return fi, false
-	} else {
-		log.Debugf("File exists at %v", file)
-		return fi, true
-	}
-}
-
 // hasCustomChainedServer returns an error if the config doesn't have a custom
 // chained server.
 func hasCustomChainedServer(_cfg yamlconf.Config) error {
