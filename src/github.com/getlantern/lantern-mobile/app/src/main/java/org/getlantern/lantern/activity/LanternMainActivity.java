@@ -56,6 +56,7 @@ public class LanternMainActivity extends AppCompatActivity implements
     private FragmentPagerItemAdapter feedAdapter;
     private SmartTabLayout viewPagerTab;
     private String lastFeedSelected = "all";
+    private View feedError;
 
     private Context context;
     private UI LanternUI;
@@ -70,6 +71,7 @@ public class LanternMainActivity extends AppCompatActivity implements
         StrictMode.setThreadPolicy(policy);
 
         setContentView(R.layout.activity_lantern_main);
+        feedError = findViewById(R.id.feed_error);
 
         // we want to use the ActionBar from the AppCompat
         // support library, but with our custom design
@@ -213,12 +215,12 @@ public class LanternMainActivity extends AppCompatActivity implements
 
     public void refreshFeed(View view) {
         Log.d(TAG, "Refresh feed clicked");
-        findViewById(R.id.feed_error).setVisibility(View.INVISIBLE);
+        feedError.setVisibility(View.INVISIBLE);
         new GetFeed(this, startLocalProxy()).execute("");
     }
 
     public void showFeedError() {
-        findViewById(R.id.feed_error).setVisibility(View.VISIBLE);
+        feedError.setVisibility(View.VISIBLE);
     }
 
     public void openFeedItem(View view) {
@@ -281,6 +283,10 @@ public class LanternMainActivity extends AppCompatActivity implements
 
         feedAdapter = new FragmentPagerItemAdapter(
                 this.getSupportFragmentManager(), c.create());
+
+        if (this.getSupportFragmentManager().getFragments() != null) {
+            this.getSupportFragmentManager().getFragments().clear();
+        }
 
         ViewPager viewPager = (ViewPager)this.findViewById(R.id.viewpager);
         viewPager.setAdapter(feedAdapter);
@@ -397,13 +403,21 @@ public class LanternMainActivity extends AppCompatActivity implements
                 // abruptly closed, we want to clear user preferences
                 Utils.clearPreferences(context);
             } else if (action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
-                // whenever a user disconnects from Wifi and Lantern is running
                 NetworkInfo networkInfo =
                     intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
-                if (LanternUI.useVpn() && 
-                        networkInfo.getType() == ConnectivityManager.TYPE_WIFI &&
-                        !networkInfo.isConnected()) {
-                    stopLantern();
+
+                if (networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
+                    if (networkInfo.isConnected()) {
+                        // automatically refresh feed when connectivity is detected
+                        refreshFeed(null);
+                    } else {
+                        // whenever a user disconnects from Wifi and Lantern is running
+                        if (LanternUI.useVpn()) {
+                            stopLantern();
+                        }
+                        // display feed error immediately
+                        showFeedError();
+                    }
                 }
             }
         }
