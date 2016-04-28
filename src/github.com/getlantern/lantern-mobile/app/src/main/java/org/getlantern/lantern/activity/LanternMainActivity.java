@@ -165,11 +165,10 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         if (Integer.parseInt(android.os.Build.VERSION.SDK) > 5
                 && keyCode == KeyEvent.KEYCODE_BACK
                 && event.getRepeatCount() == 0) {
-
             Log.d(TAG, "onKeyDown Called");
             onBackPressed();
             return true;
-                }
+        }
         return super.onKeyDown(keyCode, event);
     }
 
@@ -406,7 +405,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
                         networkInfo.getType() == ConnectivityManager.TYPE_WIFI &&
                         !networkInfo.isConnected()) {
                     stopLantern();
-                        }
+                }
             }
         }
     }
