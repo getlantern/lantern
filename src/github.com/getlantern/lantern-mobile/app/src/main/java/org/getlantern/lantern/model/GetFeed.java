@@ -17,7 +17,7 @@ public class GetFeed extends AsyncTask<String, Void, ArrayList<String>> {
     private static final String TAG = "GetFeed";
 
     private LanternMainActivity activity;
-    private String proxyAddr;
+    private String proxyAddr = "";
     private String allString;
     private ProgressBar progressBar;
 
