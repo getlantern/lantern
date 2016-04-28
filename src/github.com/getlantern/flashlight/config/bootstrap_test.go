@@ -34,28 +34,9 @@ func TestBootstrapSettings(t *testing.T) {
 
 	ps, errr := readSettingsFromFile(file.Name())
 	assert.Equal(t, "test", ps.StartupUrl, "Unexpected startup URL")
-	assert.True(t, errr == nil, "Should not be an error")
+	assert.NoError(t, errr, "Unable to read settings")
 
-	// Now do another full round trip, writing and reading
-	// Overwite local to avoid affecting actual Lantern instances
-	local = file.Name()
-	path, errrr := writeToDisk(ps)
-	assert.True(t, errrr == nil, "Should not be an error")
-	ps, err = readSettingsFromFile(path)
-	assert.Equal(t, "test", ps.StartupUrl, "Could not read data")
-	assert.Equal(t, local, path, "Wrote to unexpected path")
-	assert.True(t, err == nil, "Should not be an error")
-
-	url := "test"
-
-	ps, err = readSettingsFromFile(path)
-
-	log.Debugf("Wrote settings to: %v", path)
-	assert.Equal(t, url, ps.StartupUrl, "Could not read data")
-	assert.Equal(t, local, path, "Wrote to unexpected path")
-	assert.True(t, err == nil, "Should not be an error")
-
-	_, path, err = bootstrapPath(name)
+	_, path, err := bootstrapPath(name)
 	assert.True(t, err == nil, "Should not be an error")
 
 	var dir string

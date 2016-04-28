@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"reflect"
+	"time"
 
 	"github.com/getlantern/yaml"
 )
@@ -23,38 +24,38 @@ func (m *Manager) loadFromDisk() error {
 }
 
 func (m *Manager) reloadFromDisk() (bool, error) {
+	var cfg Config
+
 	fileInfo, err := os.Stat(m.FilePath)
-	if err != nil {
+	if err == nil {
+		if m.fileInfo == fileInfo {
+			log.Trace("Config unchanged on disk")
+			return false, nil
+		}
+	} else if m.DefaultConfig == nil || !os.IsNotExist(err) {
 		return false, fmt.Errorf("Unable to stat config file %s: %s", m.FilePath, err)
 	}
-	if m.fileInfo == fileInfo {
-		log.Trace("Config unchanged on disk")
-		return false, nil
-	}
 
-	var cfg Config
-	if m.Obfuscate {
-		log.Trace("Attempting to read obfuscated config")
-		var err1, err2 error
-		cfg, err1 = m.doReadFromDisk(true)
-		if err1 != nil {
-			log.Tracef("Error reading obfuscated config from disk, try reading non-obfuscated: %v", err)
-			cfg, err2 = m.doReadFromDisk(false)
-			if err2 != nil {
-				return false, err1
-			}
+	cfg, err = readFromDisk(m.FilePath, m.Obfuscate, m.EmptyConfig)
+	if err != nil {
+		if m.DefaultConfig == nil {
+			return false, err
 		}
-	} else {
-		log.Trace("Attempting to read non-obfuscated config")
-		var err1, err2 error
-		cfg, err1 = m.doReadFromDisk(false)
-		if err1 != nil {
-			log.Tracef("Error reading non-obfuscated config from disk, try reading obfuscated: %v", err)
-			cfg, err2 = m.doReadFromDisk(true)
+		log.Debugf("Error reading config from disk, replacing with default: %v", err)
+		cfg, err = m.DefaultConfig()
+	} else if m.ValidateConfig != nil {
+		if m.DefaultConfig == nil {
+			log.Debug("Not validating config because no DefaultConfig provided!")
+		} else {
+			err2 := m.ValidateConfig(cfg)
 			if err2 != nil {
-				return false, err1
+				log.Debugf("Config failed to validate, replacing with default: %v", err2)
 			}
+			cfg, err = m.DefaultConfig()
 		}
+	}
+	if err != nil {
+		return false, err
 	}
 
 	if m.cfg != nil && m.cfg.GetVersion() != cfg.GetVersion() {
@@ -78,17 +79,47 @@ func (m *Manager) reloadFromDisk() (bool, error) {
 	return true, nil
 }
 
-func (m *Manager) doReadFromDisk(allowObfuscation bool) (Config, error) {
-	infile, err := os.Open(m.FilePath)
+func readFromDisk(filePath string, allowObfuscation bool, emptyConfig func() Config) (Config, error) {
+	var cfg Config
+	if allowObfuscation {
+		log.Trace("Attempting to read obfuscated config")
+		var err1, err2 error
+		cfg, err1 = doReadFromDisk(filePath, true, emptyConfig)
+		if err1 != nil {
+			log.Tracef("Error reading obfuscated config from disk, try reading non-obfuscated: %v", err1)
+			cfg, err2 = doReadFromDisk(filePath, false, emptyConfig)
+			if err2 != nil {
+				return nil, fmt.Errorf("%v / %v", err1, err2)
+			}
+		}
+		return cfg, nil
+	}
+
+	log.Trace("Attempting to read non-obfuscated config")
+	var err1, err2 error
+	cfg, err1 = doReadFromDisk(filePath, false, emptyConfig)
+	if err1 != nil {
+		log.Tracef("Error reading non-obfuscated config from disk, try reading obfuscated: %v", err1)
+		cfg, err2 = doReadFromDisk(filePath, true, emptyConfig)
+		if err2 != nil {
+			return nil, fmt.Errorf("%v / %v", err1, err2)
+		}
+	}
+	return cfg, nil
+}
+
+func doReadFromDisk(filePath string, allowObfuscation bool, emptyConfig func() Config) (Config, error) {
+	start := time.Now()
+	infile, err := os.Open(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to open config file %v for reading: %v", m.FilePath, err)
+		return nil, fmt.Errorf("Unable to open config file %v for reading: %v", filePath, err)
 	}
 	defer infile.Close()
 
 	var in io.Reader = infile
-	if allowObfuscation && m.Obfuscate {
+	if allowObfuscation {
 		// Read file as obfuscated with AES
-		stream, err2 := m.obfuscationStream()
+		stream, err2 := obfuscationStream()
 		if err2 != nil {
 			return nil, err2
 		}
@@ -97,15 +128,17 @@ func (m *Manager) doReadFromDisk(allowObfuscation bool) (Config, error) {
 
 	bytes, err := ioutil.ReadAll(in)
 	if err != nil {
-		return nil, fmt.Errorf("Error reading config from %s: %s", m.FilePath, err)
+		return nil, fmt.Errorf("Error reading config from %s: %s", filePath, err)
 	}
 
-	cfg := m.EmptyConfig()
+	cfg := emptyConfig()
 	err = yaml.Unmarshal(bytes, cfg)
 	if err != nil {
-		return nil, fmt.Errorf("Error unmarshaling config yaml from %s: %s", m.FilePath, err)
+		return nil, fmt.Errorf("Error unmarshaling config yaml from %s: %s", filePath, err)
 	}
 
+	delta := time.Now().Sub(start)
+	log.Debugf("*********************** Read from disk in %v", delta)
 	return cfg, nil
 }
 
@@ -166,7 +199,7 @@ func (m *Manager) writeToDisk(cfg Config) error {
 	var out io.Writer = outfile
 	if m.Obfuscate {
 		// write file as obfuscated with AES
-		stream, err2 := m.obfuscationStream()
+		stream, err2 := obfuscationStream()
 		if err2 != nil {
 			return err2
 		}
@@ -193,7 +226,7 @@ func (m *Manager) hasChangedOnDisk() bool {
 	return hasChanged
 }
 
-func (m *Manager) obfuscationStream() (cipher.Stream, error) {
+func obfuscationStream() (cipher.Stream, error) {
 	block, err := aes.NewCipher(obfuscationKey)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to initialize AES for obfuscation: %v", err)

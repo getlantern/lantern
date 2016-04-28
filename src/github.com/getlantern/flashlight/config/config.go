@@ -4,13 +4,11 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
-	"strings"
 	"time"
 
 	"code.google.com/p/go-uuid/uuid"
@@ -87,25 +85,13 @@ func exists(file string) (os.FileInfo, bool) {
 	}
 }
 
-// hasCustomChainedServer returns whether or not the config file at the specified
-// path includes a custom chained server or not.
-func hasCustomChainedServer(configPath, name string) bool {
-	if !(strings.HasPrefix(name, "lantern") && strings.HasSuffix(name, ".yaml")) {
-		log.Debugf("File name does not match")
-		return false
+// hasCustomChainedServer returns an error if the config doesn't have a custom
+// chained server.
+func hasCustomChainedServer(_cfg yamlconf.Config) error {
+	cfg, ok := _cfg.(*Config)
+	if !ok {
+		return fmt.Errorf("Config is not a flashlight config!")
 	}
-	bytes, err := ioutil.ReadFile(configPath)
-	if err != nil {
-		log.Errorf("Could not read file %v", err)
-		return false
-	}
-	cfg := &Config{}
-	err = yaml.Unmarshal(bytes, cfg)
-	if err != nil {
-		log.Errorf("Could not unmarshal config %v", err)
-		return false
-	}
-
 	nc := len(cfg.Client.ChainedServers)
 
 	log.Debugf("Found %v chained servers in config on disk", nc)
@@ -115,13 +101,10 @@ func hasCustomChainedServer(configPath, name string) bool {
 	// The config will have more than one but fewer than 10 chained servers
 	// if it has been given a custom config with a custom chained server
 	// list
-	return nc > 0 && nc < 10
-}
-
-func isGoodConfig(configPath string) bool {
-	log.Debugf("Checking config path: %v", configPath)
-	fi, exists := exists(configPath)
-	return exists && hasCustomChainedServer(configPath, fi.Name())
+	if nc <= 0 || nc > 10 {
+		return fmt.Errorf("Inappropriate number of custom chained servers found: %d", nc)
+	}
+	return nil
 }
 
 func majorVersion(version string) string {
@@ -145,18 +128,14 @@ func Init(userConfig UserConfig, version string, configDir string, stickyConfig 
 		log.Errorf("Could not get config path? %v", err)
 		return nil, err
 	}
-	run := isGoodConfig(configPath)
-	if !run {
-		// If this is our first run of this version of Lantern, use the embedded configuration
-		// file and use it to download our custom config file on this first poll for our
-		// config.
-		if err := MakeInitialConfig(configPath); err != nil {
-			return nil, err
-		}
-	}
 
 	m = &yamlconf.Manager{
 		FilePath: configPath,
+
+		ValidateConfig: hasCustomChainedServer,
+
+		DefaultConfig: MakeInitialConfig,
+
 		EmptyConfig: func() yamlconf.Config {
 			return &Config{configDir: configDir}
 		},
@@ -168,7 +147,7 @@ func Init(userConfig UserConfig, version string, configDir string, stickyConfig 
 			return fetcher.pollForConfig(ycfg, stickyConfig)
 		},
 		// Obfuscate on-disk contents of YAML file
-		Obfuscate: flags["readableconfig"] == nil,
+		Obfuscate: flags["readableconfig"] == nil || !flags["readableconfig"].(bool),
 	}
 	initial, err := m.Init()
 

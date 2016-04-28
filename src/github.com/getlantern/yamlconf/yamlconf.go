@@ -90,11 +90,20 @@ type Manager struct {
 	// FilePath: required, path to the config file on disk
 	FilePath string
 
-	// EmptyConfig: required, factor for new empty Configs
+	// ValidateConfig: optional. If specified, the config loaded from disk is
+	// validated with this function. If validation fails, the config is replaced
+	// with the result of DefaultConfig.
+	ValidateConfig func(cfg Config) error
+
+	// DefaultConfig: optional. If specified, and there's a problem reading the
+	// config from disk or that , this is used.
+	DefaultConfig func() (Config, error)
+
+	// EmptyConfig: required, factory for new empty Configs
 	EmptyConfig func() Config
 
-	// PerSessionSetup runs at the beginning of each session (for example applying command-line
-	// flags)
+	// PerSessionSetup runs at the beginning of each session (for example applying
+	// command-line flags)
 	PerSessionSetup func(currentCfg Config) error
 
 	// CustomPoll: optionally, specify a custom polling function that returns
