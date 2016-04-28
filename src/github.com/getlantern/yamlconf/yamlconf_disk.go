@@ -50,8 +50,8 @@ func (m *Manager) reloadFromDisk() (bool, error) {
 			err2 := m.ValidateConfig(cfg)
 			if err2 != nil {
 				log.Debugf("Config failed to validate, replacing with default: %v", err2)
+				cfg, err = m.DefaultConfig()
 			}
-			cfg, err = m.DefaultConfig()
 		}
 	}
 	if err != nil {

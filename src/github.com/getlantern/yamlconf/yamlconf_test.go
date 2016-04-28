@@ -153,6 +153,12 @@ func doTestGoodFile(t *testing.T, obfuscate bool) {
 	saveConfig(t, file, obfuscate, defaultConfig)
 
 	m := &Manager{
+		ValidateConfig: func(cfg Config) error {
+			return nil
+		},
+		DefaultConfig: func() (Config, error) {
+			return &TestCfg{}, nil
+		},
 		EmptyConfig: func() Config {
 			return &TestCfg{}
 		},
