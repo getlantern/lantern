@@ -3,7 +3,7 @@
 /*
 Feeds directive shows localStorge cached feeds if available, and fetch server
 in same time. It re-renders the feeds when remote feeds fetched, or calls
-onError() if failed to fetch. The feeds will be cached for 24 hours.
+onError() if failed to fetch.
 */
 angular.module('feeds-directives', []).directive('feed', ['feedService', '$compile', '$templateCache', '$http', function (feedService, $compile, $templateCache, $http) {
   return  {
@@ -13,7 +13,7 @@ angular.module('feeds-directives', []).directive('feed', ['feedService', '$compi
       onFeedsLoaded: '&',
       onError: '&onError'
     },
-    controller: ['$scope', '$element', '$attrs', '$q', '$sce', '$timeout', 'feedCache', function ($scope, $element, $attrs, $q, $sce, $timeout, feedCache) {
+    controller: ['$scope', '$element', '$attrs', '$q', '$sce', '$timeout', 'feedCache', 'gaMgr', function ($scope, $element, $attrs, $q, $sce, $timeout, feedCache, gaMgr) {
       $scope.$watch('finishedLoading', function (value) {
         if ($attrs.postRender && value) {
           $timeout(function () {
@@ -69,7 +69,7 @@ angular.module('feeds-directives', []).directive('feed', ['feedService', '$compi
           render(feedsObj);
           deferred.resolve(feedsObj);
         } else {
-          feedService.getFeeds(url, $attrs.fallbackUrl).then(function (feedsObj) {
+          feedService.getFeeds(url, $attrs.fallbackUrl, gaMgr).then(function (feedsObj) {
             console.log("fresh copy of feeds loaded");
             feedCache.set(url, feedsObj);
             render(feedsObj);
