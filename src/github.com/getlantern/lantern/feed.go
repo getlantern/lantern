@@ -170,8 +170,8 @@ func processFeed(all string, provider FeedProvider) {
 
 	feed.Items = make(map[string]FeedItems)
 
-	// 'all' represents the translated text for the
-	// tab containing every article
+	// the 'all' translated string is used to represent
+	// the feed containing every article
 	feed.Items[all] = feed.Entries
 
 	// Get a list of feed sources & send those back to the UI
