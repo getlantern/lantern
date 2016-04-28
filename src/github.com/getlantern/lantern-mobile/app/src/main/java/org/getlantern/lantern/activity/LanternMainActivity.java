@@ -368,6 +368,7 @@ public class LanternMainActivity extends AppCompatActivity implements
         Service.IsRunning = false;
         Utils.clearPreferences(this);
         changeFeedHeaderColor(false);
+        LanternUI.setBtnStatus();
     }
 
     @Override
