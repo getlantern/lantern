@@ -3,6 +3,7 @@
     android:id="@+id/feed_error"
     android:layout_width="match_parent"
     android:layout_height="437dip"
+    android:onClick="refreshFeed"
     android:visibility="invisible"
     android:orientation="vertical"
     android:background="#FAFAFA"
@@ -54,6 +55,5 @@
         android:paddingTop="3dp"
         android:alpha=".25"
         android:clickable="true"
-        android:onClick="refreshFeed"
         android:src="@drawable/ic_refresh"/>
 </LinearLayout>

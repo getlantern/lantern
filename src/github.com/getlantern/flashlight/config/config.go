@@ -27,7 +27,9 @@ import (
 )
 
 const (
-	cloudfront             = "cloudfront"
+	cloudfront = "cloudfront"
+
+	// DefaultUpdateServerURL is the URL to fetch updates from.
 	DefaultUpdateServerURL = "https://update.getlantern.org"
 )
 
@@ -37,13 +39,16 @@ var (
 	r   = regexp.MustCompile("\\d+\\.\\d+")
 )
 
+// Config contains general configuration for Lantern either set globally via
+// the cloud, in command line flags, or in local customizations during
+// development.
 type Config struct {
 	configDir          string
 	Version            int
 	CloudConfig        string
 	CloudConfigCA      string
 	FrontedCloudConfig string
-	CpuProfile         string
+	CPUProfile         string
 	MemProfile         string
 	UpdateServerURL    string
 	Client             *client.ClientConfig
@@ -231,7 +236,7 @@ func (updated *Config) applyFlags(flags map[string]interface{}) error {
 		case "instanceid":
 			updated.Client.DeviceID = value.(string)
 		case "cpuprofile":
-			updated.CpuProfile = value.(string)
+			updated.CPUProfile = value.(string)
 		case "memprofile":
 			updated.MemProfile = value.(string)
 		}

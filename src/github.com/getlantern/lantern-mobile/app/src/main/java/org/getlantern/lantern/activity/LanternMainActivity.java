@@ -86,7 +86,7 @@ public class LanternMainActivity extends AppCompatActivity implements
         // is first created, we clear shared preferences in case
         // Lantern was forcibly stopped during a previous run
         if (!Service.isRunning(context)) {
-            LanternUI.clearPreferences();
+            Utils.clearPreferences(this);
         }
 
         // the ACTION_SHUTDOWN intent is broadcast when the phone is
