@@ -174,6 +174,19 @@ func processFeed(allStr string, provider FeedProvider) {
 
 	feed.Items = make(map[string]FeedItems)
 
+	// Add a (shortened) description to every article
+	for i, entry := range feed.Entries {
+		desc := ""
+		if aDesc := entry.Meta["description"]; aDesc != nil {
+			desc = strings.TrimSpace(aDesc.(string))
+		}
+
+		if desc == "" {
+			desc = entry.Content
+		}
+		feed.Entries[i].Description = desc
+	}
+
 	// the 'all' tab contains every article that's not associated with an
 	// excluded feed.
 	all := make(FeedItems, 0, len(feed.Entries))
@@ -190,20 +203,6 @@ func processFeed(allStr string, provider FeedProvider) {
 			log.Debugf("Adding feed source: %s", entry.Title)
 			provider.AddSource(entry.Title)
 		}
-	}
-
-	// Add a (shortened) description to every article
-	for i, entry := range feed.Entries {
-		desc := ""
-		if aDesc := entry.Meta["description"]; aDesc != nil {
-			desc = strings.TrimSpace(aDesc.(string))
-		}
-
-		if desc == "" {
-			desc = entry.Content
-		}
-
-		feed.Entries[i].Description = desc
 	}
 
 	for _, s := range feed.Feeds {
