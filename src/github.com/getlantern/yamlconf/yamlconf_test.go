@@ -2,7 +2,6 @@ package yamlconf
 
 import (
 	"bytes"
-	"crypto/cipher"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -11,7 +10,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/getlantern/rot13"
 	"github.com/getlantern/yaml"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -299,11 +300,7 @@ func assertSavedConfigEquals(t *testing.T, m *Manager, file *os.File, expected *
 	defer infile.Close()
 	var in io.Reader = infile
 	if obfuscate {
-		stream, err2 := obfuscationStream()
-		if !assert.NoError(t, err2, "Unable to get obfuscation stream") {
-			return
-		}
-		in = &cipher.StreamReader{S: stream, R: infile}
+		in = rot13.NewReader(infile)
 	}
 	bod, err := ioutil.ReadAll(in)
 	if err != nil {
@@ -321,11 +318,7 @@ func saveConfig(t *testing.T, file *os.File, obfuscate bool, updated *TestCfg) {
 	}
 	var out io.Writer = file
 	if obfuscate {
-		stream, err2 := obfuscationStream()
-		if !assert.NoError(t, err2, "Unable to get obfuscation stream") {
-			return
-		}
-		out = &cipher.StreamWriter{S: stream, W: file}
+		out = rot13.NewWriter(file)
 	}
 	_, err = out.Write(b)
 	if err == nil {

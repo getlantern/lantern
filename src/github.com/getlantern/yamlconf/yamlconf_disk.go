@@ -1,8 +1,6 @@
 package yamlconf
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -10,12 +8,8 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/getlantern/rot13"
 	"github.com/getlantern/yaml"
-)
-
-var (
-	// Empty AES-128 key for obfuscation
-	obfuscationKey = make([]byte, 16)
 )
 
 func (m *Manager) loadFromDisk() error {
@@ -118,12 +112,7 @@ func doReadFromDisk(filePath string, allowObfuscation bool, emptyConfig func() C
 
 	var in io.Reader = infile
 	if allowObfuscation {
-		// Read file as obfuscated with AES
-		stream, err2 := obfuscationStream()
-		if err2 != nil {
-			return nil, err2
-		}
-		in = &cipher.StreamReader{S: stream, R: in}
+		in = rot13.NewReader(infile)
 	}
 
 	bytes, err := ioutil.ReadAll(in)
@@ -198,12 +187,7 @@ func (m *Manager) writeToDisk(cfg Config) error {
 
 	var out io.Writer = outfile
 	if m.Obfuscate {
-		// write file as obfuscated with AES
-		stream, err2 := obfuscationStream()
-		if err2 != nil {
-			return err2
-		}
-		out = &cipher.StreamWriter{S: stream, W: out}
+		out = rot13.NewWriter(outfile)
 	}
 	_, err = out.Write(bytes)
 	if err != nil {
@@ -224,13 +208,4 @@ func (m *Manager) hasChangedOnDisk() bool {
 	}
 	hasChanged := nextFileInfo.Size() != m.fileInfo.Size() || nextFileInfo.ModTime() != m.fileInfo.ModTime()
 	return hasChanged
-}
-
-func obfuscationStream() (cipher.Stream, error) {
-	block, err := aes.NewCipher(obfuscationKey)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to initialize AES for obfuscation: %v", err)
-	}
-	iv := make([]byte, block.BlockSize())
-	return cipher.NewOFB(block, iv), nil
 }

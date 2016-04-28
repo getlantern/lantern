@@ -113,11 +113,7 @@ type Manager struct {
 	CustomPoll func(currentCfg Config) (mutate func(cfg Config) error, waitTime time.Duration, err error)
 
 	// Obfuscate: if true, the on-disk version of the config will be obfuscated by
-	// encrypting it using AES-128 encryption.
-	//
-	// This does not provide any security, as the key is compiled into the
-	// application. This simply obfuscates the config so that it's not human
-	// readable.
+	// "encrypting" it with ROT13.
 	Obfuscate bool
 
 	once      sync.Once
