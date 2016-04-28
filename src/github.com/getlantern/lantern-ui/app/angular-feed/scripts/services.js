@@ -2,7 +2,7 @@
 
 angular.module('feeds-services', []).factory('feedService', ['$q', '$http', function ($q, $http, $sce) {
 
-  var getFeeds = function (feedURL, fallbackURL) {
+  var getFeeds = function (feedURL, fallbackURL, gaMgr) {
     var deferred = $q.defer();
 
     var handleResponse = function (response) {
@@ -16,6 +16,7 @@ angular.module('feeds-services', []).factory('feedService', ['$q', '$http', func
 
     var handleError = function(response) {
       if (response.status) {
+        gaMgr.trackFeedError(response.config.url, response.status);
         if (response.config.url !== fallbackURL) {
           $http.get(fallbackURL).then(handleResponse, handleError);
           return;
