@@ -12,23 +12,25 @@
 #error #oops {
   font-size: 36px;
   color: #39C2D6;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
   font-weight: 700;
   text-align: center;
 }
 
 #error #error-description {
-  display: inline-block;
   padding-bottom: 16px;
   margin-bottom: 16px;
   border-bottom: 1px black solid;
   font-size: 18px;
+  text-align: center;
 }
 
 #error #error-reasons {
   font-size: 18px;
   text-align: left;
+  margin-left: 90px;
 }
+
 
 #error #error-reasons li {
   margin-bottom: 22px;
