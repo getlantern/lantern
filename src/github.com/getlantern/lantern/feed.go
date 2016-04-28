@@ -42,10 +42,11 @@ type Feed struct {
 // a place where content is fetched from
 // e.g. BBC, NYT, Reddit, etc.
 type Source struct {
-	FeedUrl string `json:"feedUrl"`
-	Title   string `json:"title"`
-	Url     string `json:"link"`
-	Entries []int  `json:"entries"`
+	FeedUrl        string `json:"feedUrl"`
+	Title          string `json:"title"`
+	Url            string `json:"link"`
+	ExcludeFromAll bool   `json:"excludeFromAll"`
+	Entries        []int  `json:"entries"`
 }
 
 type FeedItem struct {
@@ -54,6 +55,7 @@ type FeedItem struct {
 	Image       string                 `json:"image"`
 	Meta        map[string]interface{} `json:"meta,omitempty"`
 	Content     string                 `json:"contentText"`
+	Source      string                 `json:"source"`
 	Description string                 `json:"-"`
 }
 
@@ -169,8 +171,15 @@ func processFeed(provider FeedProvider) {
 
 	feed.Items = make(map[string]FeedItems)
 
-	// the 'all' tab contains every article
-	feed.Items["all"] = feed.Entries
+	// the 'all' tab contains every article that's not associated with an
+	// excluded feed.
+	all := make(FeedItems, 0, len(feed.Entries))
+	for _, entry := range feed.Entries {
+		if !feed.Feeds[entry.Source].ExcludeFromAll {
+			all = append(all, entry)
+		}
+	}
+	feed.Items["all"] = all
 
 	// Get a list of feed sources & send those back to the UI
 	for _, s := range feed.Feeds {
