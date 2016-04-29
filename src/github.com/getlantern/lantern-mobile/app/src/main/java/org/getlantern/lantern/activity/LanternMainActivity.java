@@ -416,8 +416,6 @@ public class LanternMainActivity extends AppCompatActivity implements
                         if (LanternUI.useVpn()) {
                             stopLantern();
                         }
-                        // display feed error immediately
-                        showFeedError();
                     }
                 }
             }
