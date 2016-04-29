@@ -197,11 +197,17 @@ func processFeed(allStr string, provider FeedProvider) {
 	}
 	feed.Items[allStr] = all
 
-	// Get a list of feed sources & send those back to the UI
-	for _, s := range feed.Sorted {
-		if entry, ok := feed.Feeds[s]; ok {
-			log.Debugf("Adding feed source: %s", entry.Title)
-			provider.AddSource(entry.Title)
+	// Get a list of feed sources and send those back to the UI
+	for _, source := range feed.Sorted {
+		if entry, exists := feed.Feeds[source]; exists {
+			if entry.Title != "" {
+				log.Debugf("Adding feed source: %s", entry.Title)
+				provider.AddSource(entry.Title)
+			} else {
+				log.Errorf("Skipping feed source: %s; missing title", source)
+			}
+		} else {
+			log.Errorf("Couldn't add feed: %s; missing from map", source)
 		}
 	}
 
