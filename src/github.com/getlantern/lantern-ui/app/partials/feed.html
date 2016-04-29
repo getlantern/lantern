@@ -3,8 +3,10 @@
     <img ng-src="{{feed.image}}" on-error="hideImage(feed)" data-pin-no-hover="true" />
   </div>
   <div class="content">
-    <span class="feed-source"></span>
-    <p class="feed-date">{{feed.source}}&nbsp;{{feed.publishedDate | date: mediumDate}}</p>
+    <p class="feed-meta">
+      <span>{{feed.source}}</span>
+      <span ng-show="feed.publishedDate">{{feed.publishedDate | date: "mediumDate"}}</span>
+    </p>
     <h4 ng-bind-html="feed.title"></h4>
     <p class="snippet" ng-bind-html="renderContent(feed)"></p>
   </div>
