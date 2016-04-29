@@ -33,6 +33,7 @@ angular.module('feeds-directives', []).directive('feed', ['feedService', '$compi
         return feedEntry;
       }
 
+      // the source field is the key of the feed, we need the feed title instead
       function replaceSource(feedEntry, feeds) {
           var source = feedEntry.source;
           if (source) {
@@ -50,6 +51,7 @@ angular.module('feeds-directives', []).directive('feed', ['feedService', '$compi
         }
       }
 
+      // convert the feeds object to an array with the order specified by an array of keys.
       function sort(feeds, order) {
         var sorted = []
         for (var key in order) {
@@ -63,6 +65,17 @@ angular.module('feeds-directives', []).directive('feed', ['feedService', '$compi
         return sorted
       }
 
+      // feeds.entries is a list of indexes in allEntries, replace them with actual entries
+      function replaceWithRealEntries(feeds, allEntries) {
+        for (var i in feeds) {
+          var feedEntries = feeds[i].entries
+          for (var j in feedEntries) {
+            feedEntries[j] = allEntries[feedEntries[j]]
+          }
+        }
+        return feeds
+      }
+
       var templateRendered = false;
       function renderTemplate(templateHTML) {
         if (!templateRendered) {
@@ -74,7 +87,7 @@ angular.module('feeds-directives', []).directive('feed', ['feedService', '$compi
       function render(feedsObj) {
         sanitizeEntries(feedsObj.entries, feedsObj.feeds);
         $scope.allEntries = feedsObj.entries;
-        $scope.allFeeds = sort(feedsObj.feeds, feedsObj.sorted_feeds);
+        $scope.allFeeds = replaceWithRealEntries(sort(feedsObj.feeds, feedsObj.sorted_feeds), feedsObj.entries);
         if ($attrs.templateUrl) {
           $http.get($attrs.templateUrl, {cache: $templateCache}).success(function (templateHtml) {
             renderTemplate(templateHtml);

@@ -15,8 +15,8 @@
       <div ng-init="feedsTitle = feeds.title;feedEntries = feeds.entries">
         <div ng-attr-id="feeds-container-{{$index}}" class="feeds-container" ng-controller="FeedCtrl">
           <div ng-if="tabVisible()" class="infinite-scroll" infinite-scroll="addMoreItems()" infinite-scroll-container="containerId($index)">
-            <div ng-repeat="feedId in entries">
-              <div ng-include src="'partials/feed.html'" ng-init="feed=allEntries[feedId]"></div>
+            <div ng-repeat="feed in entries">
+              <div ng-include src="'partials/feed.html'"></div>
             </div>
           </div>
         </div>
