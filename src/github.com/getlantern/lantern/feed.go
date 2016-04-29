@@ -15,7 +15,7 @@ import (
 const (
 	// the Feed endpoint where recent content is published to
 	// mostly just a compendium of RSS feeds
-	feedEndpoint = `https://feeds.getiantem.org/%s/feed.json`
+	defaultFeedEndpoint = `https://feeds.getiantem.org/%s/feed.json`
 )
 
 var (
@@ -104,6 +104,11 @@ func handleError(err error) {
 // through it
 func GetFeed(locale string, allStr string, proxyAddr string,
 	provider FeedProvider) {
+	doGetFeed(defaultFeedEndpoint, locale, allStr, proxyAddr, provider)
+}
+
+func doGetFeed(feedEndpoint string, locale string, allStr string,
+	proxyAddr string, provider FeedProvider) {
 
 	var err error
 	var req *http.Request
