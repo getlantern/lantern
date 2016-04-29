@@ -33,7 +33,7 @@ var (
 // Feed contains the data we get back
 // from the public feed
 type Feed struct {
-	Feeds   map[string]Source    `json:"feeds"`
+	Feeds   map[string]*Source   `json:"feeds"`
 	Entries FeedItems            `json:"entries"`
 	Items   map[string]FeedItems `json:"-"`
 	Sorted  []string             `json:"sorted_feeds"`
@@ -60,7 +60,7 @@ type FeedItem struct {
 	Description string                 `json:"-"`
 }
 
-type FeedItems []FeedItem
+type FeedItems []*FeedItem
 
 type FeedProvider interface {
 	AddSource(string)
