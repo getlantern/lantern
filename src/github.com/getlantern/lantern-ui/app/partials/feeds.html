@@ -4,7 +4,7 @@
       <div ng-init="feedsTitle = 'all';feedEntries = allEntries">
         <div id="feeds-container-all" class="feeds-container" ng-controller="FeedCtrl">
           <div ng-if="tabVisible()" class="infinite-scroll" infinite-scroll="addMoreItems()" infinite-scroll-container="'#feeds-container-all'">
-            <div ng-repeat="feed in entries" ng-if="!allFeeds[feed.source].excludeFromAll">
+            <div ng-repeat="feed in entries" ng-if="!feed.excludeFromAll">
               <div ng-include src="'partials/feed.html'"></div>
             </div>
           </div>

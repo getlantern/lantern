@@ -33,11 +33,14 @@ angular.module('feeds-directives', []).directive('feed', ['feedService', '$compi
         return feedEntry;
       }
 
-      // the source field is the key of the feed, we need the feed title instead
-      function replaceSource(feedEntry, feeds) {
+      // Add/replace below fields to an entry:
+      // 1. the source field of an entry is the key of the feed, we need the feed title instead.
+      // 2. if the feed one entry belongs to needs to be excluded from All tab, apply to the entry itself.
+      function updateEntryFields(feedEntry, feeds) {
           var source = feedEntry.source;
           if (source) {
             var feed = feeds[source];
+            feedEntry.excludeFromAll = feed.excludeFromAll;
             if (feed && feed.title) {
               feedEntry.source = feed.title;
             }
@@ -47,7 +50,7 @@ angular.module('feeds-directives', []).directive('feed', ['feedService', '$compi
       function sanitizeEntries(entries, feeds) {
         for (var i = 0; i < entries.length; i++) {
           sanitizeFeedEntry(entries[i]);
-          replaceSource(entries[i], feeds);
+          updateEntryFields(entries[i], feeds);
         }
       }
 
