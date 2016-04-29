@@ -33,9 +33,19 @@ angular.module('feeds-directives', []).directive('feed', ['feedService', '$compi
         return feedEntry;
       }
 
-      function sanitizeEntries(entries) {
+      function replaceSource(feedEntry, feeds) {
+          var source = feedEntry.source;
+          if (source) {
+            var feed = feeds[source];
+            if (feed && feed.title) {
+              feedEntry.source = feed.title;
+            }
+          }
+      }
+      function sanitizeEntries(entries, feeds) {
         for (var i = 0; i < entries.length; i++) {
           sanitizeFeedEntry(entries[i]);
+          replaceSource(entries[i], feeds);
         }
       }
 
@@ -48,7 +58,7 @@ angular.module('feeds-directives', []).directive('feed', ['feedService', '$compi
       }
 
       function render(feedsObj) {
-        sanitizeEntries(feedsObj.entries);
+        sanitizeEntries(feedsObj.entries, feedsObj.feeds);
         $scope.allEntries = feedsObj.entries;
         $scope.allFeeds = feedsObj.feeds;
         if ($attrs.templateUrl) {
