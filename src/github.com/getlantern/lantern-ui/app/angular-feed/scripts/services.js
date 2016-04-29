@@ -37,7 +37,7 @@ angular.module('feeds-services', []).factory('feedService', ['$q', '$http', func
 }])
 
 .factory('feedCache', function () {
-  var CACHE_INTERVAL = 1000 * 60 * 20; // 20 minutes
+  var CACHE_INTERVAL = 1000 * 60 * 50 * 24; // 1 day
 
   function cacheTimes() {
     if ('CACHE_TIMES' in localStorage) {
@@ -48,8 +48,7 @@ angular.module('feeds-services', []).factory('feedService', ['$q', '$http', func
 
   function hasCache(name) {
     var CACHE_TIMES = cacheTimes();
-    var timeInCache = name in CACHE_TIMES && name in localStorage && new Date().getTime() - CACHE_TIMES[name];
-    return timeInCache < CACHE_INTERVAL;
+    return name in CACHE_TIMES && name in localStorage && new Date().getTime() - CACHE_TIMES[name] < CACHE_INTERVAL;
   }
 
   return {

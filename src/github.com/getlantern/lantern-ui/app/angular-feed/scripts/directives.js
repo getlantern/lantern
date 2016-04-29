@@ -92,20 +92,20 @@ angular.module('feeds-directives', []).directive('feed', ['feedService', '$compi
           console.log("show feeds in cache");
           render(feedsObj);
           deferred.resolve(feedsObj);
-        } else {
-          feedService.getFeeds(url, $attrs.fallbackUrl, gaMgr).then(function (feedsObj) {
-            console.log("fresh copy of feeds loaded");
-            feedCache.set(url, feedsObj);
-            render(feedsObj);
-            deferred.resolve(feedsObj);
-          },function (error) {
-            console.error("fail to fetch feeds: " +  error);
-            if ($scope.onError) {
-              $scope.onError(error);
-            }
-            $scope.error = error;
-          });
         }
+
+        feedService.getFeeds(url, $attrs.fallbackUrl, gaMgr).then(function (feedsObj) {
+          console.log("fresh copy of feeds loaded");
+          feedCache.set(url, feedsObj);
+          render(feedsObj);
+          deferred.resolve(feedsObj);
+        },function (error) {
+          console.error("fail to fetch feeds: " +  error);
+          if ($scope.onError) {
+            $scope.onError(error);
+          }
+          $scope.error = error;
+        });
 
         deferred.promise.then(function(feedsObj) {
           if ($scope.onFeedsLoaded) {
