@@ -33,10 +33,34 @@ angular.module('feeds-directives', []).directive('feed', ['feedService', '$compi
         return feedEntry;
       }
 
-      function sanitizeEntries(entries) {
+      function replaceSource(feedEntry, feeds) {
+          var source = feedEntry.source;
+          if (source) {
+            var feed = feeds[source];
+            if (feed && feed.title) {
+              feedEntry.source = feed.title;
+            }
+          }
+      }
+
+      function sanitizeEntries(entries, feeds) {
         for (var i = 0; i < entries.length; i++) {
           sanitizeFeedEntry(entries[i]);
+          replaceSource(entries[i], feeds);
         }
+      }
+
+      function sort(feeds, order) {
+        var sorted = []
+        for (var key in order) {
+          var item = feeds[order[key]]
+          if (item) {
+            sorted.push(item)
+          } else {
+            console.error("feed " + item + " is not found in feeds!")
+          }
+        }
+        return sorted
       }
 
       var templateRendered = false;
@@ -48,9 +72,9 @@ angular.module('feeds-directives', []).directive('feed', ['feedService', '$compi
       }
 
       function render(feedsObj) {
-        sanitizeEntries(feedsObj.entries);
+        sanitizeEntries(feedsObj.entries, feedsObj.feeds);
         $scope.allEntries = feedsObj.entries;
-        $scope.allFeeds = feedsObj.feeds;
+        $scope.allFeeds = sort(feedsObj.feeds, feedsObj.sorted_feeds);
         if ($attrs.templateUrl) {
           $http.get($attrs.templateUrl, {cache: $templateCache}).success(function (templateHtml) {
             renderTemplate(templateHtml);

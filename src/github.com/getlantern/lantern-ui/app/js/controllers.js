@@ -241,7 +241,7 @@ app.controller('FeedCtrl', ['$scope', 'gaMgr', function($scope, gaMgr) {
     if (feed.meta && feed.meta.description) {
       return feed.meta.description;
     }
-    return feed.contentSnippet;
+    return feed.contentSnippetText;
   };
   $scope.trackFeed = function(name) {
     return gaMgr.trackFeed(name);
