@@ -9,13 +9,8 @@ import (
 	"strings"
 
 	"github.com/getlantern/eventual"
+	"github.com/getlantern/flashlight"
 	"github.com/getlantern/flashlight/util"
-)
-
-const (
-	// the Feed endpoint where recent content is published to
-	// mostly just a compendium of RSS feeds
-	feedEndpoint = `https://feeds.getiantem.org/%s/feed.json`
 )
 
 var (
@@ -118,7 +113,7 @@ func GetFeed(locale string, allStr string, proxyAddr string,
 		locale = "en_US"
 	}
 
-	feedUrl := fmt.Sprintf(feedEndpoint, locale)
+	feedUrl := flashlight.GetFeedURL(locale)
 
 	if req, err = http.NewRequest("GET", feedUrl, nil); err != nil {
 		handleError(fmt.Errorf("Error fetching feed: %v", err))
