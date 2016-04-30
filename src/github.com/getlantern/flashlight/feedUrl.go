@@ -15,19 +15,31 @@ const (
 )
 
 // GetFeedURL returns the URL to use for looking up the feed by looking up
-// the users country before defaulting to the specified backup locale if the
+// the users country before defaulting to the specified default locale if the
 // country can't be determined.
-func GetFeedURL(backupLocale string) string {
-	var locale = backupLocale
+func GetFeedURL(defaultLocale string) string {
+	locale := determineLocale(defaultLocale)
+	url := fmt.Sprintf(feedEndpoint, locale)
+	log.Debugf("Returning feed URL: %v", url)
+	return url
+}
+
+func determineLocale(defaultLocale string) string {
+	// As of this writing the only countries we know of where we want a unique
+	// feed for the country that's different from the dominantly installed
+	// language are Iran and Malaysia. In both countries english is the most
+	// common language on people's machines. We can therefor optimize a little
+	// bit here and skip the country lookup if the locale is not en_US.
+	if !strings.EqualFold("en_US", defaultLocale) {
+		return defaultLocale
+	}
 	country := geolookup.GetCountry(time.Duration(10) * time.Second)
 	if country == "" {
 		// This means the country lookup failed, so just use whatever the default is.
 		log.Debug("Could not lookup country")
-		locale = backupLocale
+		return defaultLocale
 	} else if strings.EqualFold("ir", country) {
-		locale = "fa_IR"
+		return "fa_IR"
 	}
-	url := fmt.Sprintf(feedEndpoint, locale)
-	log.Debugf("Returning feed URL: %v", url)
-	return url
+	return defaultLocale
 }
