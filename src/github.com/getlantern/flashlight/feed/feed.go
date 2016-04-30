@@ -29,6 +29,7 @@ var (
 		"en_US": true,
 		"fa_IR": true,
 		"fa":    true,
+		"ms_MY": true,
 		"zh_CN": true,
 	}
 	log            = golog.LoggerFor("feed")
