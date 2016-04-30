@@ -16,7 +16,6 @@ import (
 	"github.com/getlantern/tarfs"
 	"github.com/skratchdot/open-golang/open"
 
-	"github.com/getlantern/flashlight"
 	"github.com/getlantern/flashlight/client"
 )
 
@@ -104,7 +103,7 @@ func Start(requestedAddr string, allowRemote bool, extUrl string) (string, error
 	feedHandler := func(resp http.ResponseWriter, req *http.Request) {
 		vals := req.URL.Query()
 		defaultLang := vals.Get("lang")
-		url := flashlight.GetFeedURL(defaultLang)
+		url := feed.GetFeedURL(defaultLang)
 		http.Redirect(resp, req, url, http.StatusFound)
 	}
 

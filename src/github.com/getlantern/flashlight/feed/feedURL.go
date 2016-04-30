@@ -6,12 +6,18 @@ import (
 	"time"
 
 	"github.com/getlantern/flashlight/geolookup"
+	"github.com/getlantern/golog"
 )
 
 const (
 	// the Feed endpoint where recent content is published to
 	// mostly just a compendium of RSS feeds
-	feedEndpoint = `https://feeds.getiantem.org/%s/feed.json`
+	feedEndpoint = "https://feeds.getiantem.org/%s/feed.json"
+)
+
+var (
+	log            = golog.LoggerFor("feed")
+	EnFeedEndpoint = fmt.Sprintf(feedEndpoint, "en_US")
 )
 
 // GetFeedURL returns the URL to use for looking up the feed by looking up

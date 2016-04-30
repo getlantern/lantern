@@ -10,6 +10,7 @@ import (
 
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/flashlight"
+	"github.com/getlantern/flashlight/feed"
 	"github.com/getlantern/flashlight/util"
 )
 
