@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.StrictMode;
@@ -23,6 +24,7 @@ import android.view.MenuItem;
 import android.view.KeyEvent;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 
 import org.getlantern.lantern.vpn.Service;
@@ -134,6 +136,13 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         if (mPrefs != null) {
             LanternUI.setBtnStatus();
         }
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        // refresh your views here
+        super.onConfigurationChanged(newConfig);
+        this.recreate();
     }
 
     // startLocalProxy starts a separate instance of Lantern
@@ -267,6 +276,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         if (sources != null && !sources.isEmpty()) {
             String all = getResources().getString(R.string.all_feeds);
+            Log.d(TAG, "Adding all " + all);
             sources.add(0, all);
 
             for (String source : sources) {

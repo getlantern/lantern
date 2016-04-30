@@ -7,8 +7,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/getlantern/eventual"
+	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/util"
 )
 
