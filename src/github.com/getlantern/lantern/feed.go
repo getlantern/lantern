@@ -9,8 +9,7 @@ import (
 	"strings"
 
 	"github.com/getlantern/eventual"
-	"github.com/getlantern/flashlight"
-	"github.com/getlantern/flashlight/feed"
+	ff "github.com/getlantern/flashlight/feed"
 	"github.com/getlantern/flashlight/util"
 )
 
@@ -114,7 +113,7 @@ func GetFeed(locale string, allStr string, proxyAddr string,
 		locale = "en_US"
 	}
 
-	feedUrl := flashlight.GetFeedURL(locale)
+	feedUrl := ff.GetFeedURL(locale)
 
 	if req, err = http.NewRequest("GET", feedUrl, nil); err != nil {
 		handleError(fmt.Errorf("Error fetching feed: %v", err))
