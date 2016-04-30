@@ -68,13 +68,17 @@ type FeedItem struct {
 type FeedItems []*FeedItem
 
 type FeedProvider interface {
+	// AddSource: called for each new feed source
 	AddSource(string)
 }
 
 type FeedRetriever interface {
+	// AddFeed: used to add a new entry to a given feed
 	AddFeed(string, string, string, string)
 }
 
+// FeedByName checks the previously created feed for an
+// entry with the given source name
 func FeedByName(name string, retriever FeedRetriever) {
 	if feed != nil && feed.Items != nil {
 		if items, exists := feed.Items[name]; exists {
