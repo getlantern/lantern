@@ -17,6 +17,7 @@ import (
 	"github.com/skratchdot/open-golang/open"
 
 	"github.com/getlantern/flashlight/client"
+	"github.com/getlantern/flashlight/feed"
 )
 
 const (
