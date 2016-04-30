@@ -53,14 +53,18 @@ angular.module('feeds-services', []).factory('feedService', ['$q', '$http', func
 
   return {
     set: function (name, obj) {
-      localStorage.setItem(name, angular.toJson(obj));
+      var str = angular.toJson(obj);
+      var compressed = LZString.compressToUTF16(str);
+      localStorage.setItem(name, compressed);
       var CACHE_TIMES = cacheTimes();
       CACHE_TIMES[name] = new Date().getTime();
       localStorage.setItem('CACHE_TIMES', angular.toJson(CACHE_TIMES));
     },
     get: function (name) {
       if (hasCache(name)) {
-        return angular.fromJson(localStorage.getItem(name));
+        var compressed = localStorage.getItem(name);
+        var str = LZString.decompressFromUTF16(compressed);
+        return angular.fromJson(str);
       }
       return null;
     },
