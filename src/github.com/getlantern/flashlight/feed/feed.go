@@ -32,8 +32,7 @@ var (
 		"ms_MY": true,
 		"zh_CN": true,
 	}
-	log            = golog.LoggerFor("feed")
-	EnFeedEndpoint = fmt.Sprintf(feedEndpoint, en)
+	log = golog.LoggerFor("feed")
 )
 
 // Feed contains the data we get back
@@ -125,12 +124,12 @@ func GetFeed(locale string, allStr string, proxyAddr string,
 	if !supportedLocales[locale] {
 		// always default to English if we don't
 		// have a feed available in a specific locale
-		locale = "en_US"
+		locale = en
 	}
 
-	feedUrl := GetFeedURL(locale)
+	feedURL := GetFeedURL(locale)
 
-	if req, err = http.NewRequest("GET", feedUrl, nil); err != nil {
+	if req, err = http.NewRequest("GET", feedURL, nil); err != nil {
 		handleError(fmt.Errorf("Error fetching feed: %v", err))
 		return
 	}
@@ -242,6 +241,9 @@ func GetFeedURL(defaultLocale string) string {
 }
 
 func determineLocale(defaultLocale string) string {
+	if defaultLocale == "" {
+		defaultLocale = en
+	}
 	// As of this writing the only countries we know of where we want a unique
 	// feed for the country that's different from the dominantly installed
 	// language are Iran and Malaysia. In both countries english is the most
@@ -257,6 +259,8 @@ func determineLocale(defaultLocale string) string {
 		return defaultLocale
 	} else if strings.EqualFold("ir", country) {
 		return "fa_IR"
+	} else if strings.EqualFold("my", country) {
+		return "ms_MY"
 	}
 	return defaultLocale
 }
