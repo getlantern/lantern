@@ -38,6 +38,7 @@
     <script src="lib/angular-ui-bootstrap-tpls.js"></script>
 
     <script src="lib/mailer.js"></script>
+    <script src="lib/lz-string.min.js"></script>
 
     <script src="bower_components/clipboard/dist/clipboard.min.js"></script>
     <script src="bower_components/ngclipboard/src/ngclipboard.js"></script>
@@ -47,9 +48,6 @@
 
     <!-- we host a copy of google's analytics.js locally -->
     <script src="lib/analytics.js"></script>
-    <!--<script src="bower_components/ui-bootstrap/src/tooltip/tooltip.js"></script>-->
-    <!-- XXX see "XXX" in js/vis.js before switching to more recent topojson -->
-    <script src="lib/topojson.js"></script>
     <!-- endbuild -->
 
     <!-- build:js2 js/app.js -->
@@ -65,7 +63,6 @@
     <script src="js/services.js"></script>
     <script src="js/controllers.js"></script>
     <script src="js/directives.js"></script>
-    <script src="js/vis.js"></script>
     <!-- endbuild -->
 
     <link rel="shortcut icon" href="img/favicon.ico">
@@ -77,8 +74,7 @@
   </body>
 <![endif]-->
 <!--[if (!IE)|(gte IE 10)]><!-->
-  <body ng-controller="RootCtrl" ng-cloak lang="{{ lang }}" dir="{{ langDirection }}"
-    ng-class="{showVis: model.showVis, getMode: inGetMode, giveMode: inGiveMode}">
+  <body ng-controller="RootCtrl" ng-cloak lang="{{ lang }}" dir="{{ langDirection }}">
     <div id="fb-root"></div>
     <div id="waiting" ng-show="!wsConnected">
     <div ng-show="!backendIsGone">

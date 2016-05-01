@@ -162,6 +162,7 @@ func pacOff() {
 }
 
 func cyclePAC() {
+	log.Debug("Cycling the pac file")
 	// prevents Lantern from accidently leave pac on after exits
 	if atomic.LoadInt32(&isPacOn) == 1 {
 		// reapply so browser will fetch the PAC URL again
