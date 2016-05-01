@@ -201,9 +201,10 @@ app.controller('NewsfeedCtrl', ['$scope', '$rootScope', '$translate', function($
     };
     var lang = $translate.use();
     lang = mapTable[lang] || lang;
-    return "https://feeds.getiantem.org/" + lang + "/feed.json";
-  };
-
+    var url = "/feed?lang="+lang;
+    console.log("Requesting feed from "+url);
+    return url;
+  }
 }]);
 
 app.controller('FeedTabCtrl', ['$scope', '$rootScope', '$translate', function($scope, $rootScope, $translate) {
