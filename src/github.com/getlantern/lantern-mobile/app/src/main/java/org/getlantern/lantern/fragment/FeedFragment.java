@@ -42,6 +42,11 @@ public class FeedFragment extends Fragment {
         return feedName;
     }
 
+    // setFeedName is used to rename an existing feed fragment
+    public void setFeedName(String name) {
+        this.feedName = name;
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
@@ -85,7 +90,7 @@ public class FeedFragment extends Fragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        Log.d(TAG, "Created view for " + this.feedName);
+        Log.d(TAG, "onViewCreated for " + this.feedName);
         new LoadFeed().execute("");
     }
 }

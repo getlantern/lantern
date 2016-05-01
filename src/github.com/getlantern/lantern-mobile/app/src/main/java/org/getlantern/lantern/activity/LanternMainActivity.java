@@ -8,7 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.StrictMode;
@@ -24,7 +23,6 @@ import android.view.MenuItem;
 import android.view.KeyEvent;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 
 import org.getlantern.lantern.vpn.Service;
@@ -136,13 +134,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         if (mPrefs != null) {
             LanternUI.setBtnStatus();
         }
-    }
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        // refresh your views here
-        super.onConfigurationChanged(newConfig);
-        this.recreate();
     }
 
     // startLocalProxy starts a separate instance of Lantern
@@ -270,6 +261,28 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         }
     }
 
+    // Existing feed fragments may be re-used
+    // so we need to go through and rename any previous fragment 
+    // to the new feed name. This for instance accounts for the case 
+    // where a user changes his locale or we change the order of the feeds.
+    public void renameExistingFragments(final ArrayList<String> sources) {
+        if (feedAdapter == null) {
+            return;
+        }
+        int count = feedAdapter.getCount();
+        int size  = sources.size();
+
+        for (int i = 0; i < count; i++) {
+            FeedFragment f = (FeedFragment)feedAdapter.getPage(i);
+            if (f != null && f.getFeedName() != null && i < size) {
+                String newName = sources.get(i);
+                Log.d(TAG, "Existing fragment: " + f.getFeedName() + 
+                        "; renaming it " + newName);
+                f.setFeedName(newName);
+            }
+        }
+    }
+
     public void setupFeed(final ArrayList<String> sources) {
 
         final FragmentPagerItems.Creator c = FragmentPagerItems.with(this);
@@ -289,6 +302,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             // downloading and/or parsing the feed
             showFeedError();
         }
+
+        renameExistingFragments(sources);
 
         feedAdapter = new FragmentPagerItemAdapter(
                 this.getSupportFragmentManager(), c.create());
