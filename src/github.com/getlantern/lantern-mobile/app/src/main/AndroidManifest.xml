@@ -28,7 +28,6 @@
 
         <activity
             android:name=".activity.LanternMainActivity"
-            android:configChanges="layoutDirection|locale"
             android:launchMode="singleTask"
             android:screenOrientation="portrait"
             android:label="@string/app_name">
