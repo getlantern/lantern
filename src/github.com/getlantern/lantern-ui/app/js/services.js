@@ -214,6 +214,11 @@ angular.module('app.services', [])
       ga()('send', 'event', 'feed-' + name);
     };
 
+    var trackFeedError = function(url, statusCode) {
+      var eventName = 'feed-loading-error-' + url + "-status-"+statusCode;
+      ga()('send', 'event', eventName);
+    };
+
     var enableTracking = function() {
       console.log("enabling ga.")
       enabled = true;
@@ -234,7 +239,8 @@ angular.module('app.services', [])
       trackSocialLink: trackSocialLink,
       trackLink: trackLink,
       trackBookmark: trackBookmark,
-      trackFeed: trackFeed
+      trackFeed: trackFeed,
+      trackFeedError: trackFeedError
     };
   })
   .service('apiSrvc', function($http, API_URL_PREFIX) {

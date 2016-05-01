@@ -25,7 +25,7 @@ func (retriever *TestFeedRetriever) AddFeed(title, description,
 
 func getFeed(t *testing.T, locale string) {
 	provider := &TestFeedProvider{}
-	GetFeed(locale, "", provider)
+	GetFeed(locale, "all", "", provider)
 
 	if assert.NotNil(t, CurrentFeed()) {
 		assert.NotEqual(t, 0, NumFeedEntries(),
@@ -34,8 +34,17 @@ func getFeed(t *testing.T, locale string) {
 
 	feed := CurrentFeed()
 
-	assert.Equal(t, NumFeedEntries(), len(feed.Items["all"]),
-		"All feed items should be equal to total entries")
+	numBuzzFeedEntries := 0
+	buzzfeed := feed.Items["BuzzFeed"]
+	if buzzfeed != nil {
+		numBuzzFeedEntries = len(buzzfeed)
+	}
+	assert.Equal(t, NumFeedEntries()-numBuzzFeedEntries, len(feed.Items["all"]),
+		"All feed items should be equal to total entries minus BuzzFeed entries")
+
+	for _, entry := range feed.Items["all"] {
+		assert.NotEmpty(t, entry.Description)
+	}
 }
 
 func TestGetFeed(t *testing.T) {

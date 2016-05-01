@@ -33,19 +33,21 @@ var (
 // Feed contains the data we get back
 // from the public feed
 type Feed struct {
-	Feeds   map[string]Source    `json:"feeds"`
+	Feeds   map[string]*Source   `json:"feeds"`
 	Entries FeedItems            `json:"entries"`
 	Items   map[string]FeedItems `json:"-"`
+	Sorted  []string             `json:"sorted_feeds"`
 }
 
 // Source represents a feed authority,
 // a place where content is fetched from
 // e.g. BBC, NYT, Reddit, etc.
 type Source struct {
-	FeedUrl string `json:"feedUrl"`
-	Title   string `json:"title"`
-	Url     string `json:"link"`
-	Entries []int  `json:"entries"`
+	FeedUrl        string `json:"feedUrl"`
+	Title          string `json:"title"`
+	Url            string `json:"link"`
+	ExcludeFromAll bool   `json:"excludeFromAll"`
+	Entries        []int  `json:"entries"`
 }
 
 type FeedItem struct {
@@ -54,10 +56,11 @@ type FeedItem struct {
 	Image       string                 `json:"image"`
 	Meta        map[string]interface{} `json:"meta,omitempty"`
 	Content     string                 `json:"contentText"`
+	Source      string                 `json:"source"`
 	Description string                 `json:"-"`
 }
 
-type FeedItems []FeedItem
+type FeedItems []*FeedItem
 
 type FeedProvider interface {
 	AddSource(string)
@@ -99,7 +102,9 @@ func handleError(err error) {
 // Lantern public feed for displaying on the home screen.
 // If a proxyAddr is specified, the http.Client will proxy
 // through it
-func GetFeed(locale string, proxyAddr string, provider FeedProvider) {
+func GetFeed(locale string, allStr string, proxyAddr string,
+	provider FeedProvider) {
+
 	var err error
 	var req *http.Request
 	var res *http.Response
@@ -158,27 +163,16 @@ func GetFeed(locale string, proxyAddr string, provider FeedProvider) {
 		return
 	}
 
-	processFeed(provider)
+	processFeed(allStr, provider)
 }
 
 // processFeed is used after a feed has been downloaded
 // to extract feed sources and items for processing.
-func processFeed(provider FeedProvider) {
+func processFeed(allStr string, provider FeedProvider) {
 
 	log.Debugf("Num of Feed Entries: %v", len(feed.Entries))
 
 	feed.Items = make(map[string]FeedItems)
-
-	// the 'all' tab contains every article
-	feed.Items["all"] = feed.Entries
-
-	// Get a list of feed sources & send those back to the UI
-	for _, s := range feed.Feeds {
-		if s.Title != "" {
-			log.Debugf("Adding feed source: %s", s.Title)
-			provider.AddSource(s.Title)
-		}
-	}
 
 	// Add a (shortened) description to every article
 	for i, entry := range feed.Entries {
@@ -190,8 +184,31 @@ func processFeed(provider FeedProvider) {
 		if desc == "" {
 			desc = entry.Content
 		}
-
 		feed.Entries[i].Description = desc
+	}
+
+	// the 'all' tab contains every article that's not associated with an
+	// excluded feed.
+	all := make(FeedItems, 0, len(feed.Entries))
+	for _, entry := range feed.Entries {
+		if !feed.Feeds[entry.Source].ExcludeFromAll {
+			all = append(all, entry)
+		}
+	}
+	feed.Items[allStr] = all
+
+	// Get a list of feed sources and send those back to the UI
+	for _, source := range feed.Sorted {
+		if entry, exists := feed.Feeds[source]; exists {
+			if entry.Title != "" {
+				log.Debugf("Adding feed source: %s", entry.Title)
+				provider.AddSource(entry.Title)
+			} else {
+				log.Errorf("Skipping feed source: %s; missing title", source)
+			}
+		} else {
+			log.Errorf("Couldn't add feed: %s; missing from map", source)
+		}
 	}
 
 	for _, s := range feed.Feeds {

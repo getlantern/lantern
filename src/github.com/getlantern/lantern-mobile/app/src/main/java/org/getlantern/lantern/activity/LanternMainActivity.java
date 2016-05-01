@@ -45,7 +45,7 @@ import org.lantern.mobilesdk.StartResult;
 import org.lantern.mobilesdk.LanternNotRunningException;
 
 public class LanternMainActivity extends AppCompatActivity implements 
-    Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
+Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
     private static final String TAG = "LanternMainActivity";
     private static final String PREFS_NAME = "LanternPrefs";
@@ -55,8 +55,8 @@ public class LanternMainActivity extends AppCompatActivity implements
     private boolean isInBackground = false;
     private FragmentPagerItemAdapter feedAdapter;
     private SmartTabLayout viewPagerTab;
-    private String lastFeedSelected = "all";
     private View feedError;
+    private String lastFeedSelected;
 
     private Context context;
     private UI LanternUI;
@@ -71,7 +71,9 @@ public class LanternMainActivity extends AppCompatActivity implements
         StrictMode.setThreadPolicy(policy);
 
         setContentView(R.layout.activity_lantern_main);
+
         feedError = findViewById(R.id.feed_error);
+        lastFeedSelected = getResources().getString(R.string.all_feeds);
 
         // we want to use the ActionBar from the AppCompat
         // support library, but with our custom design
@@ -165,7 +167,6 @@ public class LanternMainActivity extends AppCompatActivity implements
         if (Integer.parseInt(android.os.Build.VERSION.SDK) > 5
                 && keyCode == KeyEvent.KEYCODE_BACK
                 && event.getRepeatCount() == 0) {
-
             Log.d(TAG, "onKeyDown Called");
             onBackPressed();
             return true;
@@ -319,7 +320,7 @@ public class LanternMainActivity extends AppCompatActivity implements
         if (LanternUI != null) {
             LanternUI.sendDesktopVersion(view);
         }
-   }
+    }
 
     // Prompt the user to enable full-device VPN mode
     // Make a VPN connection from the client
