@@ -285,10 +285,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         feedAdapter = new FragmentPagerItemAdapter(
                 this.getSupportFragmentManager(), c.create());
 
-        if (this.getSupportFragmentManager().getFragments() != null) {
-            this.getSupportFragmentManager().getFragments().clear();
-        }
-
         ViewPager viewPager = (ViewPager)this.findViewById(R.id.viewpager);
         viewPager.setAdapter(feedAdapter);
 
