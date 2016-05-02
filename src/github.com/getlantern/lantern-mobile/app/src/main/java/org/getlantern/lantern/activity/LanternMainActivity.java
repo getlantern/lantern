@@ -141,11 +141,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         }
     }
 
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-    }
-
     // startLocalProxy starts a separate instance of Lantern
     // used for proxying requests we need to make even before
     // the user enables full-device VPN mode
@@ -277,7 +272,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         if (sources != null && !sources.isEmpty()) {
             String all = getResources().getString(R.string.all_feeds);
-            Log.d(TAG, "Adding all " + all);
             sources.add(0, all);
 
             int i = 0;
