@@ -18,8 +18,8 @@ import (
 const (
 	// the Feed endpoint where recent content is published to
 	// mostly just a compendium of RSS feeds
-	feedEndpoint = "https://feeds.getiantem.org/%s/feed.json"
-	en           = "en_US"
+	defaultFeedEndpoint = "https://feeds.getiantem.org/%s/feed.json"
+	en                  = "en_US"
 )
 
 var (
@@ -113,6 +113,11 @@ func handleError(err error) {
 // through it
 func GetFeed(locale string, allStr string, proxyAddr string,
 	provider FeedProvider) {
+	doGetFeed(defaultFeedEndpoint, locale, allStr, proxyAddr, provider)
+}
+
+func doGetFeed(feedEndpoint string, locale string, allStr string,
+	proxyAddr string, provider FeedProvider) {
 
 	var err error
 	var req *http.Request
@@ -127,7 +132,7 @@ func GetFeed(locale string, allStr string, proxyAddr string,
 		locale = en
 	}
 
-	feedURL := GetFeedURL(locale)
+	feedURL := getFeedURL(feedEndpoint, locale)
 
 	if req, err = http.NewRequest("GET", feedURL, nil); err != nil {
 		handleError(fmt.Errorf("Error fetching feed: %v", err))
@@ -234,6 +239,10 @@ func processFeed(allStr string, provider FeedProvider) {
 // the users country before defaulting to the specified default locale if the
 // country can't be determined.
 func GetFeedURL(defaultLocale string) string {
+	return getFeedURL(defaultFeedEndpoint, defaultLocale)
+}
+
+func getFeedURL(feedEndpoint, defaultLocale string) string {
 	locale := determineLocale(defaultLocale)
 	url := fmt.Sprintf(feedEndpoint, locale)
 	log.Debugf("Returning feed URL: %v", url)

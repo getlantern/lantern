@@ -1,6 +1,8 @@
 package feed
 
 import (
+	"net"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -23,9 +25,9 @@ func (retriever *TestFeedRetriever) AddFeed(title, description,
 
 }
 
-func getFeed(t *testing.T, locale string) {
+func getFeed(t *testing.T, feedEndpoint string, locale string) {
 	provider := &TestFeedProvider{}
-	GetFeed(locale, "all", "", provider)
+	doGetFeed(feedEndpoint, locale, "all", "", provider)
 
 	if assert.NotNil(t, CurrentFeed()) {
 		assert.NotEqual(t, 0, NumFeedEntries(),
@@ -48,9 +50,26 @@ func getFeed(t *testing.T, locale string) {
 }
 
 func TestGetFeed(t *testing.T) {
-
+	httpAddr := startTestServer(t)
+	feedEndpoint := "http://" + httpAddr + `/%s.gz`
 	locales := []string{"en_US", "fa_IR", "invalid"}
 	for _, l := range locales {
-		getFeed(t, l)
+		getFeed(t, feedEndpoint, l)
 	}
+}
+
+func startTestServer(t *testing.T) string {
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("Unable to start test server: %v", err)
+	}
+
+	go func() {
+		err := http.Serve(l, http.FileServer(http.Dir("feeds")))
+		if err != nil {
+			t.Fatalf("Unable to serve HTTP: %v", err)
+		}
+	}()
+
+	return l.Addr().String()
 }
