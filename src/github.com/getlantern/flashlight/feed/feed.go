@@ -60,7 +60,7 @@ type FeedItem struct {
 	Link        string                 `json:"link"`
 	Image       string                 `json:"image"`
 	Meta        map[string]interface{} `json:"meta,omitempty"`
-	Content     string                 `json:"contentText"`
+	Content     string                 `json:"contentSnippetText"`
 	Source      string                 `json:"source"`
 	Description string                 `json:"-"`
 }
