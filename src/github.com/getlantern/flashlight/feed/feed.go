@@ -56,14 +56,13 @@ type Source struct {
 }
 
 type FeedItem struct {
-	Title string                 `json:"title"`
-	Link  string                 `json:"link"`
-	Image string                 `json:"image"`
-	Meta  map[string]interface{} `json:"meta,omitempty"`
-
-	Content     string `json:"contentSnippetText"`
-	Source      string `json:"source"`
-	Description string `json:"-"`
+	Title       string                 `json:"title"`
+	Link        string                 `json:"link"`
+	Image       string                 `json:"image"`
+	Meta        map[string]interface{} `json:"meta,omitempty"`
+	Content     string                 `json:"contentSnippetText"`
+	Source      string                 `json:"source"`
+	Description string                 `json:"-"`
 }
 
 type FeedItems []*FeedItem
