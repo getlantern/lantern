@@ -64,13 +64,6 @@ public class FeedFragment extends Fragment {
 
             final List<FeedItem> items = new ArrayList<FeedItem>();
 
-            // if the feed name is null or the empty string
-            // return an empty list of feed items
-            if (name == null || name.equals("")) {
-                Log.e("Invalid feed name encountered (%s), skipping", name);
-                return items;
-            }
-
             Lantern.FeedByName(name, new Lantern.FeedRetriever.Stub() {
                 public void AddFeed(String title, String desc, 
                         String image, String url) {
@@ -88,8 +81,11 @@ public class FeedFragment extends Fragment {
             mFeedItems.clear();
             mFeedItems.addAll(items);
 
-            Log.d(TAG, String.format("Feed %s has %d items", feedName, 
-                        items.size()));
+            if (feedName != null) {
+                Log.d(TAG, String.format("Feed %s has %d items", feedName, 
+                            items.size()));
+            }
+
             if (adapter != null) {
                 adapter.notifyDataSetChanged();
             }
@@ -99,7 +95,10 @@ public class FeedFragment extends Fragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        Log.d(TAG, "onViewCreated for " + this.feedName);
-        new LoadFeed().execute(this.feedName);
+        // only proceed if we have a valid feed name
+        if (this.feedName != null && !this.feedName.equals("")) {
+            Log.d(TAG, "onViewCreated for " + this.feedName);
+            new LoadFeed().execute(this.feedName);
+        }
     }
 }
