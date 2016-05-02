@@ -39,6 +39,7 @@ var app = angular.module('app', [
         prefix: './locale/',
         suffix: '.json'
       })
+      .useSanitizeValueStrategy('escape')
       .uniformLanguageTag('java')
       .determinePreferredLanguage()
       .fallbackLanguage(DEFAULT_LANG);

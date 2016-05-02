@@ -22,7 +22,7 @@ ext {
     compileSdkVersion = 23
     targetSdkVersion = 23
     minSdkVersion = 15
-    buildToolsVersion = '23.0.2'
+    buildToolsVersion = '23.0.3'
     buildNumber = 'dev'
 
     lanternDir = projectDir.parentFile.parentFile

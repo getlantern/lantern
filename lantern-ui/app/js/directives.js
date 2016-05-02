@@ -19,6 +19,15 @@ var directives = angular.module('app.directives', [])
         }
       });
     }
+  })
+  .directive('onError', function ($parse) {
+    return {
+      link: function(scope, element, attrs) {
+        element.bind('error', function() {
+          scope.$apply(attrs.onError);
+        });
+      }
+    };
   });
 
 // XXX https://github.com/angular/angular.js/issues/1050#issuecomment-9650293

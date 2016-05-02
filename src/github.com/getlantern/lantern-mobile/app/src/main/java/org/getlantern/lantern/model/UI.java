@@ -312,6 +312,13 @@ public class UI {
         final String email = emailInput.getText().toString();
         Log.d(TAG, "Sending Lantern Desktop to " + email);
 
+        if (!Utils.isNetworkAvailable(activity.getApplicationContext())) {
+            // show an error right away if there is no Internet connection
+            showAlertDialog("Lantern",
+                    activity.getResources().getString(R.string.error_email));
+            return;
+        }
+
         AsyncTask<Void, Void, Void> asyncTask = new AsyncTask<Void, Void, Void>() {
             @Override 
             public Void doInBackground(Void... arg) {
@@ -395,10 +402,6 @@ public class UI {
 
     public boolean useVpn() {
         return mPrefs.getBoolean(LanternConfig.PREF_USE_VPN, false);
-    }
-
-    public void clearPreferences() {
-        mPrefs.edit().putBoolean(LanternConfig.PREF_USE_VPN, false).commit();
     }
 
     // update START/STOP power Lantern button
