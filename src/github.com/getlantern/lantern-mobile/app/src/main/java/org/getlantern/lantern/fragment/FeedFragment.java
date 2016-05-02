@@ -83,7 +83,9 @@ public class FeedFragment extends Fragment {
 
             Log.d(TAG, String.format("Feed %s has %d items", feedName, 
                         items.size()));
-            adapter.notifyDataSetChanged();
+            if (adapter != null) {
+                adapter.notifyDataSetChanged();
+            }
         }
 
     }
