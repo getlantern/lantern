@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.StrictMode;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
@@ -60,7 +59,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
     private Context context;
     private UI LanternUI;
-    private Handler mHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
