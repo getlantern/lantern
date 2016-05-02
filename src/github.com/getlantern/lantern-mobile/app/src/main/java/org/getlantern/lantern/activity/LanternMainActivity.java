@@ -55,6 +55,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     private boolean isInBackground = false;
     private FragmentPagerItemAdapter feedAdapter;
     private SmartTabLayout viewPagerTab;
+    private View feedError;
     private String lastFeedSelected;
 
     private Context context;
@@ -71,6 +72,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         setContentView(R.layout.activity_lantern_main);
 
+        feedError = findViewById(R.id.feed_error);
         lastFeedSelected = getResources().getString(R.string.all_feeds);
 
         // we want to use the ActionBar from the AppCompat
@@ -214,12 +216,12 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
     public void refreshFeed(View view) {
         Log.d(TAG, "Refresh feed clicked");
-        findViewById(R.id.feed_error).setVisibility(View.INVISIBLE);
+        feedError.setVisibility(View.INVISIBLE);
         new GetFeed(this, startLocalProxy()).execute("");
     }
 
     public void showFeedError() {
-        findViewById(R.id.feed_error).setVisibility(View.VISIBLE);
+        feedError.setVisibility(View.VISIBLE);
     }
 
     public void openFeedItem(View view) {
@@ -363,6 +365,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         Service.IsRunning = false;
         Utils.clearPreferences(this);
         changeFeedHeaderColor(false);
+        LanternUI.setBtnStatus();
     }
 
     @Override
@@ -398,13 +401,19 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
                 // abruptly closed, we want to clear user preferences
                 Utils.clearPreferences(context);
             } else if (action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
-                // whenever a user disconnects from Wifi and Lantern is running
                 NetworkInfo networkInfo =
                     intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
-                if (LanternUI.useVpn() && 
-                        networkInfo.getType() == ConnectivityManager.TYPE_WIFI &&
-                        !networkInfo.isConnected()) {
-                    stopLantern();
+
+                if (networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
+                    if (networkInfo.isConnected()) {
+                        // automatically refresh feed when connectivity is detected
+                        refreshFeed(null);
+                    } else {
+                        // whenever a user disconnects from Wifi and Lantern is running
+                        if (LanternUI.useVpn()) {
+                            stopLantern();
+                        }
+                    }
                 }
             }
         }
