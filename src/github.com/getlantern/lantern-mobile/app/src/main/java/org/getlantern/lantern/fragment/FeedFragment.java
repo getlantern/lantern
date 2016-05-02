@@ -63,9 +63,12 @@ public class FeedFragment extends Fragment {
 
         @Override
         protected List<FeedItem> doInBackground(String... params) {
+
+            String name = params[0];
+
             final List<FeedItem> items = new ArrayList<FeedItem>();
 
-            Lantern.FeedByName(feedName, new Lantern.FeedRetriever.Stub() {
+            Lantern.FeedByName(name, new Lantern.FeedRetriever.Stub() {
                 public void AddFeed(String title, String desc, 
                         String image, String url) {
                     items.add(new FeedItem(title, desc, image, url));
@@ -94,6 +97,6 @@ public class FeedFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         Log.d(TAG, "onViewCreated for " + this.feedName);
-        new LoadFeed().execute("");
+        new LoadFeed().execute(this.feedName);
     }
 }
