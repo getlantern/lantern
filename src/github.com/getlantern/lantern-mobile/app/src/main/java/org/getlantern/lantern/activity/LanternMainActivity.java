@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.StrictMode;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
@@ -35,7 +34,7 @@ import org.getlantern.lantern.R;
 import java.util.ArrayList; 
 
 import com.thefinestartist.finestwebview.FinestWebView;
-import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItemAdapter;
+import com.ogaclejapan.smarttablayout.utils.v4.FragmentStatePagerItemAdapter;
 import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItems;
 import com.ogaclejapan.smarttablayout.SmartTabLayout;
 
@@ -53,14 +52,13 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     private SharedPreferences mPrefs = null;
     private BroadcastReceiver mReceiver;
     private boolean isInBackground = false;
-    private FragmentPagerItemAdapter feedAdapter;
+    private FragmentStatePagerItemAdapter feedAdapter;
     private SmartTabLayout viewPagerTab;
     private View feedError;
     private String lastFeedSelected;
 
     private Context context;
     private UI LanternUI;
-    private Handler mHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -272,6 +270,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             sources.add(0, all);
 
             for (String source : sources) {
+                Log.d(TAG, "Adding source: " + source);
                 Bundle bundle = new Bundle();
                 bundle.putString("name", source);
                 c.add(source, FeedFragment.class, bundle);
@@ -280,9 +279,10 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             // if we get back zero sources, some issue occurred
             // downloading and/or parsing the feed
             showFeedError();
+            return;
         }
 
-        feedAdapter = new FragmentPagerItemAdapter(
+        feedAdapter = new FragmentStatePagerItemAdapter(
                 this.getSupportFragmentManager(), c.create());
 
         ViewPager viewPager = (ViewPager)this.findViewById(R.id.viewpager);
