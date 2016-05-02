@@ -87,6 +87,8 @@ public class FeedFragment extends Fragment {
             }
 
             if (adapter != null) {
+                // notify feed adapter underlying data has changed
+                // and its time to refresh the view
                 adapter.notifyDataSetChanged();
             }
         }
@@ -95,8 +97,8 @@ public class FeedFragment extends Fragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        // only proceed if we have a valid feed name
         if (this.feedName != null && !this.feedName.equals("")) {
+            // only proceed if we have a valid feed name
             Log.d(TAG, "onViewCreated for " + this.feedName);
             new LoadFeed().execute(this.feedName);
         }
