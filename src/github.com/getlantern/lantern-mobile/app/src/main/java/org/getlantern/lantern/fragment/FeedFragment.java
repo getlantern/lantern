@@ -42,9 +42,8 @@ public class FeedFragment extends Fragment {
         return feedName;
     }
 
-    // setFeedName is used to rename an existing feed fragment
-    public void setFeedName(String name) {
-        this.feedName = name;
+    public void setFeedName(String feedName) {
+        this.feedName = feedName;
     }
 
     @Override

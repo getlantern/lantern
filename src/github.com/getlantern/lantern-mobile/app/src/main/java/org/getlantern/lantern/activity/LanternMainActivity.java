@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.StrictMode;
@@ -18,11 +19,14 @@ import android.net.VpnService;
 import android.net.wifi.WifiManager;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 import android.view.MenuItem;
 import android.view.KeyEvent;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 
 import org.getlantern.lantern.vpn.Service;
@@ -35,7 +39,8 @@ import org.getlantern.lantern.R;
 import java.util.ArrayList; 
 
 import com.thefinestartist.finestwebview.FinestWebView;
-import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItemAdapter;
+import com.ogaclejapan.smarttablayout.utils.v4.FragmentStatePagerItemAdapter;
+import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItem;
 import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItems;
 import com.ogaclejapan.smarttablayout.SmartTabLayout;
 
@@ -53,7 +58,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     private SharedPreferences mPrefs = null;
     private BroadcastReceiver mReceiver;
     private boolean isInBackground = false;
-    private FragmentPagerItemAdapter feedAdapter;
+    private FragmentStatePagerItemAdapter feedAdapter;
     private SmartTabLayout viewPagerTab;
     private String lastFeedSelected;
 
@@ -134,6 +139,11 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         if (mPrefs != null) {
             LanternUI.setBtnStatus();
         }
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
     }
 
     // startLocalProxy starts a separate instance of Lantern
@@ -261,28 +271,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         }
     }
 
-    // Existing feed fragments may be re-used
-    // so we need to go through and rename any previous fragment 
-    // to the new feed name. This for instance accounts for the case 
-    // where a user changes his locale or we change the order of the feeds.
-    public void renameExistingFragments(final ArrayList<String> sources) {
-        if (feedAdapter == null) {
-            return;
-        }
-        int count = feedAdapter.getCount();
-        int size  = sources.size();
-
-        for (int i = 0; i < count; i++) {
-            FeedFragment f = (FeedFragment)feedAdapter.getPage(i);
-            if (f != null && f.getFeedName() != null && i < size) {
-                String newName = sources.get(i);
-                Log.d(TAG, "Existing fragment: " + f.getFeedName() + 
-                        "; renaming it " + newName);
-                f.setFeedName(newName);
-            }
-        }
-    }
-
     public void setupFeed(final ArrayList<String> sources) {
 
         final FragmentPagerItems.Creator c = FragmentPagerItems.with(this);
@@ -292,20 +280,26 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             Log.d(TAG, "Adding all " + all);
             sources.add(0, all);
 
+            int i = 0;
             for (String source : sources) {
+                Log.d(TAG, "Adding source: " + source);
                 Bundle bundle = new Bundle();
                 bundle.putString("name", source);
-                c.add(source, FeedFragment.class, bundle);
+
+                FragmentPagerItem item = FragmentPagerItem.of(source, 
+                        FeedFragment.class, bundle);
+                FeedFragment f = (FeedFragment)item.instantiate(this, i++);
+                f.setFeedName(source);
+                c.add(item);
             }
         } else {
             // if we get back zero sources, some issue occurred
             // downloading and/or parsing the feed
             showFeedError();
+            return;
         }
 
-        renameExistingFragments(sources);
-
-        feedAdapter = new FragmentPagerItemAdapter(
+        feedAdapter = new FragmentStatePagerItemAdapter(
                 this.getSupportFragmentManager(), c.create());
 
         ViewPager viewPager = (ViewPager)this.findViewById(R.id.viewpager);
