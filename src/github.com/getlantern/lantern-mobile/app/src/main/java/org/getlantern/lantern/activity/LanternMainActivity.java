@@ -35,7 +35,6 @@ import java.util.ArrayList;
 
 import com.thefinestartist.finestwebview.FinestWebView;
 import com.ogaclejapan.smarttablayout.utils.v4.FragmentStatePagerItemAdapter;
-import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItem;
 import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItems;
 import com.ogaclejapan.smarttablayout.SmartTabLayout;
 
@@ -273,17 +272,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
                 Log.d(TAG, "Adding source: " + source);
                 Bundle bundle = new Bundle();
                 bundle.putString("name", source);
-
-                FragmentPagerItem item = FragmentPagerItem.of(source, 
-                        FeedFragment.class, bundle);
-                FeedFragment f = (FeedFragment)item.instantiate(this, position++);
-                // if a fragment already exists at the current position
-                // we are just changing its title here. whenever the fragment
-                // view is re-loaded, it will fetch the updated feed content
-                if (f != null) {
-                    f.setFeedName(source);
-                }
-                c.add(item);
+                c.add(source, FeedFragment.class, bundle);
             }
         } else {
             // if we get back zero sources, some issue occurred
