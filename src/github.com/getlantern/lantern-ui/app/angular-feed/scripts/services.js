@@ -37,7 +37,7 @@ angular.module('feeds-services', []).factory('feedService', ['$q', '$http', func
 }])
 
 .factory('feedCache', function () {
-  var CACHE_INTERVAL = 1000 * 60 * 20; // 20 minutes
+  var CACHE_INTERVAL = 1000 * 60 * 50 * 24; // 1 day
 
   function cacheTimes() {
     if ('CACHE_TIMES' in localStorage) {
@@ -48,20 +48,23 @@ angular.module('feeds-services', []).factory('feedService', ['$q', '$http', func
 
   function hasCache(name) {
     var CACHE_TIMES = cacheTimes();
-    var timeInCache = name in CACHE_TIMES && name in localStorage && new Date().getTime() - CACHE_TIMES[name];
-    return timeInCache < CACHE_INTERVAL;
+    return name in CACHE_TIMES && name in localStorage && new Date().getTime() - CACHE_TIMES[name] < CACHE_INTERVAL;
   }
 
   return {
     set: function (name, obj) {
-      localStorage.setItem(name, angular.toJson(obj));
+      var str = angular.toJson(obj);
+      var compressed = LZString.compressToUTF16(str);
+      localStorage.setItem(name, compressed);
       var CACHE_TIMES = cacheTimes();
       CACHE_TIMES[name] = new Date().getTime();
       localStorage.setItem('CACHE_TIMES', angular.toJson(CACHE_TIMES));
     },
     get: function (name) {
       if (hasCache(name)) {
-        return angular.fromJson(localStorage.getItem(name));
+        var compressed = localStorage.getItem(name);
+        var str = LZString.decompressFromUTF16(compressed);
+        return angular.fromJson(str);
       }
       return null;
     },

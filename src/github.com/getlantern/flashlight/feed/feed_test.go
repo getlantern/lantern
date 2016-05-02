@@ -1,4 +1,4 @@
-package lantern
+package feed
 
 import (
 	"net"

@@ -33,10 +33,50 @@ angular.module('feeds-directives', []).directive('feed', ['feedService', '$compi
         return feedEntry;
       }
 
-      function sanitizeEntries(entries) {
+      // Add/replace below fields to an entry:
+      // 1. the source field of an entry is the key of the feed, we need the feed title instead.
+      // 2. if the feed one entry belongs to needs to be excluded from All tab, apply to the entry itself.
+      function updateEntryFields(feedEntry, feeds) {
+          var source = feedEntry.source;
+          if (source) {
+            var feed = feeds[source];
+            feedEntry.excludeFromAll = feed.excludeFromAll;
+            if (feed && feed.title) {
+              feedEntry.source = feed.title;
+            }
+          }
+      }
+
+      function sanitizeEntries(entries, feeds) {
         for (var i = 0; i < entries.length; i++) {
           sanitizeFeedEntry(entries[i]);
+          updateEntryFields(entries[i], feeds);
         }
+      }
+
+      // convert the feeds object to an array with the order specified by an array of keys.
+      function sort(feeds, order) {
+        var sorted = []
+        for (var key in order) {
+          var item = feeds[order[key]]
+          if (item) {
+            sorted.push(item)
+          } else {
+            console.error("feed " + item + " is not found in feeds!")
+          }
+        }
+        return sorted
+      }
+
+      // feeds.entries is a list of indexes in allEntries, replace them with actual entries
+      function replaceWithRealEntries(feeds, allEntries) {
+        for (var i in feeds) {
+          var feedEntries = feeds[i].entries
+          for (var j in feedEntries) {
+            feedEntries[j] = allEntries[feedEntries[j]]
+          }
+        }
+        return feeds
       }
 
       var templateRendered = false;
@@ -48,9 +88,9 @@ angular.module('feeds-directives', []).directive('feed', ['feedService', '$compi
       }
 
       function render(feedsObj) {
-        sanitizeEntries(feedsObj.entries);
+        sanitizeEntries(feedsObj.entries, feedsObj.feeds);
         $scope.allEntries = feedsObj.entries;
-        $scope.allFeeds = feedsObj.feeds;
+        $scope.allFeeds = replaceWithRealEntries(sort(feedsObj.feeds, feedsObj.sorted_feeds), feedsObj.entries);
         if ($attrs.templateUrl) {
           $http.get($attrs.templateUrl, {cache: $templateCache}).success(function (templateHtml) {
             renderTemplate(templateHtml);
@@ -68,20 +108,20 @@ angular.module('feeds-directives', []).directive('feed', ['feedService', '$compi
           console.log("show feeds in cache");
           render(feedsObj);
           deferred.resolve(feedsObj);
-        } else {
-          feedService.getFeeds(url, $attrs.fallbackUrl, gaMgr).then(function (feedsObj) {
-            console.log("fresh copy of feeds loaded");
-            feedCache.set(url, feedsObj);
-            render(feedsObj);
-            deferred.resolve(feedsObj);
-          },function (error) {
-            console.error("fail to fetch feeds: " +  error);
-            if ($scope.onError) {
-              $scope.onError(error);
-            }
-            $scope.error = error;
-          });
         }
+
+        feedService.getFeeds(url, $attrs.fallbackUrl, gaMgr).then(function (feedsObj) {
+          console.log("fresh copy of feeds loaded");
+          feedCache.set(url, feedsObj);
+          render(feedsObj);
+          deferred.resolve(feedsObj);
+        },function (error) {
+          console.error("fail to fetch feeds: " +  error);
+          if ($scope.onError) {
+            $scope.onError(error);
+          }
+          $scope.error = error;
+        });
 
         deferred.promise.then(function(feedsObj) {
           if ($scope.onFeedsLoaded) {

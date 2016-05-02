@@ -54,6 +54,5 @@
         android:layout_below="@+id/errorFetchingFeed"
         android:paddingTop="3dp"
         android:alpha=".25"
-        android:clickable="true"
         android:src="@drawable/ic_refresh"/>
 </LinearLayout>
