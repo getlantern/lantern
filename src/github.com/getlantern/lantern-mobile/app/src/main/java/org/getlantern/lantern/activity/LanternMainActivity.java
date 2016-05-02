@@ -267,7 +267,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             String all = getResources().getString(R.string.all_feeds);
             sources.add(0, all);
 
-            int position = 0;
             for (String source : sources) {
                 Log.d(TAG, "Adding source: " + source);
                 Bundle bundle = new Bundle();
