@@ -67,6 +67,7 @@ public class FeedFragment extends Fragment {
             // if the feed name is null or the empty string
             // return an empty list of feed items
             if (name == null || name.equals("")) {
+                Log.e("Invalid feed name encountered (%s), skipping", name);
                 return items;
             }
 
