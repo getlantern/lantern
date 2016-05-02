@@ -24,7 +24,7 @@ public class FeedFragment extends Fragment {
     private static final String TAG = "FeedFragment";
 
     private FeedAdapter adapter;
-    private final String feedName;
+    private String feedName;
     private ListView mList;
     private List<FeedItem> mFeedItems;
 
@@ -35,7 +35,9 @@ public class FeedFragment extends Fragment {
         this.adapter = new FeedAdapter(getActivity(), mFeedItems);
 
         Bundle bundle = getArguments();
-        this.feedName = bundle.getString("name");
+        if (bundle != null) {
+            this.feedName = bundle.getString("name");
+        }
     }
 
     public String getFeedName() {
