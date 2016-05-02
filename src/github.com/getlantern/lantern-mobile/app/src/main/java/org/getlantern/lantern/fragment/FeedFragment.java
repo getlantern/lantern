@@ -24,7 +24,7 @@ public class FeedFragment extends Fragment {
     private static final String TAG = "FeedFragment";
 
     private FeedAdapter adapter;
-    private String feedName;
+    private final String feedName;
     private ListView mList;
     private List<FeedItem> mFeedItems;
 
@@ -35,17 +35,11 @@ public class FeedFragment extends Fragment {
         this.adapter = new FeedAdapter(getActivity(), mFeedItems);
 
         Bundle bundle = getArguments();
-        if (bundle != null) {
-            this.feedName = bundle.getString("name");
-        }
+        this.feedName = bundle.getString("name");
     }
 
     public String getFeedName() {
         return feedName;
-    }
-
-    public void setFeedName(String feedName) {
-        this.feedName = feedName;
     }
 
     @Override
@@ -59,7 +53,7 @@ public class FeedFragment extends Fragment {
         return view;
     }
 
-    protected class LoadFeed extends AsyncTask<String, Void, List<FeedItem>> {
+    private class LoadFeed extends AsyncTask<String, Void, List<FeedItem>> {
 
         @Override
         protected List<FeedItem> doInBackground(String... params) {
@@ -67,6 +61,12 @@ public class FeedFragment extends Fragment {
             String name = params[0];
 
             final List<FeedItem> items = new ArrayList<FeedItem>();
+
+            // if the feed name is null or the empty string
+            // return an empty list of feed items
+            if (name == null || name.equals("")) {
+                return items;
+            }
 
             Lantern.FeedByName(name, new Lantern.FeedRetriever.Stub() {
                 public void AddFeed(String title, String desc, 
@@ -81,6 +81,7 @@ public class FeedFragment extends Fragment {
         @Override
         protected void onPostExecute(List<FeedItem> items) {
             super.onPostExecute(items);
+
             mFeedItems.clear();
             mFeedItems.addAll(items);
 
@@ -90,7 +91,6 @@ public class FeedFragment extends Fragment {
                 adapter.notifyDataSetChanged();
             }
         }
-
     }
 
     @Override
