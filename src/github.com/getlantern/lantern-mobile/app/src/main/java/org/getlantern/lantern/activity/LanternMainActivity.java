@@ -274,7 +274,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             String all = getResources().getString(R.string.all_feeds);
             sources.add(0, all);
 
-            int i = 0;
+            int position = 0;
             for (String source : sources) {
                 Log.d(TAG, "Adding source: " + source);
                 Bundle bundle = new Bundle();
@@ -282,8 +282,13 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
                 FragmentPagerItem item = FragmentPagerItem.of(source, 
                         FeedFragment.class, bundle);
-                FeedFragment f = (FeedFragment)item.instantiate(this, i++);
-                f.setFeedName(source);
+                FeedFragment f = (FeedFragment)item.instantiate(this, position++);
+                // if a fragment already exists at the current position
+                // we are just changing its title here. whenever the fragment
+                // view is re-loaded, it will fetch the updated feed content
+                if (f != null) {
+                    f.setFeedName(source);
+                }
                 c.add(item);
             }
         } else {
