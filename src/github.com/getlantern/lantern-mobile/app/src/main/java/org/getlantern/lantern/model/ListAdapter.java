@@ -12,7 +12,7 @@ import java.util.ArrayList;
 
 import org.getlantern.lantern.R;
 
-class ListAdapter extends BaseAdapter {
+public class ListAdapter extends BaseAdapter {
 
     private Context mContext;
     private ArrayList<NavItem> mNavItems;
@@ -56,5 +56,9 @@ class ListAdapter extends BaseAdapter {
         iconView.setImageResource(mNavItems.get(position).mIcon);
 
         return view;
+    }
+
+    public void refresh() {
+        notifyDataSetChanged();
     }
 }

@@ -1,14 +1,25 @@
 package org.getlantern.lantern.activity;
 
+import android.animation.ArgbEvaluator;
+import android.animation.ObjectAnimator;
 import android.app.Application;
 import android.app.Activity;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ComponentCallbacks2;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
+import android.content.res.Configuration;
+import android.content.res.Resources;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.TransitionDrawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.StrictMode;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
@@ -16,22 +27,50 @@ import android.net.NetworkInfo;
 import android.net.VpnService;
 import android.net.wifi.WifiManager;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
+import android.widget.ToggleButton;
 import android.view.MenuItem;
 import android.view.KeyEvent;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.DrawerLayout;
 
+import org.getlantern.lantern.LanternApp;
 import org.getlantern.lantern.vpn.Service;
 import org.getlantern.lantern.fragment.FeedFragment;
 import org.getlantern.lantern.model.GetFeed;
-import org.getlantern.lantern.model.UI;
+import org.getlantern.lantern.model.ListAdapter;
+import org.getlantern.lantern.model.NavItem;
+import org.getlantern.lantern.model.SessionManager;
+import org.getlantern.lantern.model.Shareable;
 import org.getlantern.lantern.model.Utils;
 import org.getlantern.lantern.R;
 
 import java.util.ArrayList; 
+import java.util.Map;
+import java.util.HashMap;
+
+import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.Fullscreen;
+import org.androidannotations.annotations.ViewById;
 
 import com.thefinestartist.finestwebview.FinestWebView;
 import com.ogaclejapan.smarttablayout.utils.v4.FragmentStatePagerItemAdapter;
@@ -40,9 +79,9 @@ import com.ogaclejapan.smarttablayout.SmartTabLayout;
 
 
 import org.lantern.mobilesdk.Lantern;
-import org.lantern.mobilesdk.StartResult;
-import org.lantern.mobilesdk.LanternNotRunningException;
 
+@Fullscreen
+@EActivity(R.layout.activity_lantern_main)
 public class LanternMainActivity extends AppCompatActivity implements 
 Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
@@ -50,27 +89,72 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     private static final String PREFS_NAME = "LanternPrefs";
     private final static int REQUEST_VPN = 7777;
     private SharedPreferences mPrefs = null;
-    private BroadcastReceiver mReceiver;
+	private BroadcastReceiver mReceiver;
+	private Context context;
+
+	private NotificationManager mNotifier;
+	private final NotificationCompat.Builder mNotificationBuilder = new NotificationCompat.Builder(this);
+	private static final int NOTIFICATION_ID = 10002;
+
+	private Shareable shareable;
+
     private boolean isInBackground = false;
     private FragmentStatePagerItemAdapter feedAdapter;
     private SmartTabLayout viewPagerTab;
-    private View feedError;
     private String lastFeedSelected;
 
-    private Context context;
-    private UI LanternUI;
+	private ObjectAnimator colorFadeIn, colorFadeOut;
+	private ArrayList<NavItem> mNavItems = new ArrayList<NavItem>();
+	private Map<String, Command> menuMap = new HashMap<String, Command>();
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    private static final int onColor = Color.parseColor("#39C2D6");
+    private static final int offColor = Color.parseColor("#FFFFFF"); 
+
+    ColorDrawable[] offTransColor = {new ColorDrawable(offColor), new ColorDrawable(onColor)};
+    ColorDrawable[] onTransColor = {new ColorDrawable(onColor), new ColorDrawable(offColor)};     
+
+    private TransitionDrawable offNavTrans = new TransitionDrawable(offTransColor);
+    private TransitionDrawable onNavTrans = new TransitionDrawable(onTransColor);
+
+	private ImageView statusImage;
+    private Toast statusToast;
+
+	private SessionManager session;
+
+	@ViewById(R.id.versionNum)
+	TextView versionNum;
+
+	@ViewById(R.id.powerLantern)
+	ToggleButton powerLantern;
+
+	@ViewById(R.id.drawerLayout)
+	DrawerLayout mDrawerLayout;
+
+	@ViewById(R.id.drawerPane)
+	RelativeLayout mDrawerPane;
+
+	@ViewById(R.id.navList)
+    ListView mDrawerList;
+
+	@ViewById(R.id.feed_error)
+	View feedError;
+
+	@ViewById(R.id.settings_icon)
+	ImageView settingsIcon;
+
+	private ListAdapter listAdapter;
+	private ActionBarDrawerToggle mDrawerToggle;
+
+	private View statusLayout;
+
+	@AfterViews
+    void afterViews() {
+
         getApplication().registerActivityLifecycleCallbacks(this);
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
-        setContentView(R.layout.activity_lantern_main);
-
-        feedError = findViewById(R.id.feed_error);
         lastFeedSelected = getResources().getString(R.string.all_feeds);
 
         // we want to use the ActionBar from the AppCompat
@@ -80,15 +164,24 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             getSupportActionBar().hide();
         }
 
-        context = getApplicationContext();
-        mPrefs = Utils.getSharedPrefs(context);
+		// make sure to show status bar
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-        LanternUI = new UI(this, mPrefs);
+        context = getApplicationContext();
+		session = LanternApp.getSession();
+
+
+        mPrefs = Utils.getSharedPrefs(context);
+        mNotifier = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
+        setupNotifications();
+
+        //LanternUI = new UI(this, mPrefs);
+
         // since onCreate is only called when the main activity
         // is first created, we clear shared preferences in case
         // Lantern was forcibly stopped during a previous run
         if (!Service.isRunning(context)) {
-            Utils.clearPreferences(this);
+			session.clearVpnPreference();
         }
 
         // the ACTION_SHUTDOWN intent is broadcast when the phone is
@@ -104,58 +197,279 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         mReceiver = new LanternReceiver();
         registerReceiver(mReceiver, filter);
 
-        if (getIntent().getBooleanExtra("EXIT", false)) {
-            finish();
-            return;
-        }
+        // update version number that appears at the bottom of the side menu
+        // if we have it stored in shared preferences; otherwise, default to absent until
+        // Lantern starts
+        setVersionNum();
 
-        try {
-            // configure actions to be taken whenever slider changes state
-            PackageInfo pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
-            String appVersion = pInfo.versionName;
-            Log.d(TAG, "Currently running Lantern version: " + appVersion);
+        setupStatusToast();
 
-            LanternUI.setVersionNum(appVersion);
-            LanternUI.setupLanternSwitch();
+		setBtnStatus();
 
-            new GetFeed(this, startLocalProxy()).execute("");
+        setupSwitch();
 
-        } catch (Exception e) {
-            Log.d(TAG, "Got an exception " + e);
-        }
+        new GetFeed(this, session.startLocalProxy()).execute("");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
+        setupSideMenu();
+
         //  we check if mPrefs has been initialized before
         // since onCreate and onResume are always both called
         if (mPrefs != null) {
-            LanternUI.setBtnStatus();
+            setBtnStatus();
         }
     }
 
-    // startLocalProxy starts a separate instance of Lantern
-    // used for proxying requests we need to make even before
-    // the user enables full-device VPN mode
-    private String startLocalProxy() {
-        // if the Lantern VPN is already running
-        // then we just fetch the feed without
-        // starting another local proxy
-        if (Service.isRunning(context)) {
-            return "";
+    // update START/STOP power Lantern button
+    // according to our stored preference
+    public void setBtnStatus() {
+        boolean useVpn = session.useVpn();
+        powerLantern.setChecked(useVpn);
+
+        if (useVpn) {
+            this.mDrawerLayout.setBackgroundColor(onColor);
+            settingsIcon.setImageResource(R.drawable.menu_white);   
+        } else {
+            this.mDrawerLayout.setBackgroundColor(offColor);
+            settingsIcon.setImageResource(R.drawable.menu);   
         }
+    }
+
+
+    interface Command {
+        void runCommand();
+    }
+
+    // initialize and configure status toast (what's displayed
+    // whenever we use the on/off slider) 
+    public void setupStatusToast() {
+
+        colorFadeIn = ObjectAnimator.ofObject((View)mDrawerLayout, "backgroundColor", new ArgbEvaluator(), offColor, onColor);
+        colorFadeOut = ObjectAnimator.ofObject((View)mDrawerLayout, "backgroundColor", new ArgbEvaluator(), onColor, offColor);
+
+        colorFadeIn.setDuration(500);
+        colorFadeOut.setDuration(500);
+
+        onNavTrans.startTransition(500);
+        offNavTrans.startTransition(500);
+
+        LayoutInflater inflater = getLayoutInflater();
+        statusLayout = inflater.inflate(R.layout.status_layout, 
+                (ViewGroup)findViewById(R.id.status_layout_root));
+        statusImage = (ImageView)statusLayout.findViewById(R.id.status_image);
+        statusToast = new Toast(getApplicationContext());
+        statusToast.setGravity(Gravity.BOTTOM|Gravity.FILL_HORIZONTAL, 0, 0);
+        statusToast.setDuration(Toast.LENGTH_SHORT);
+    }
+
+    public void toggleSwitch(boolean useVpn) {
+		displayStatus(useVpn);
+		// store the updated preference 
+		session.updateVpnPreference(useVpn);
+    }
+
+
+    public void displayStatus(final boolean useVpn) {
+        final LanternMainActivity activity = this;
+        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+            @Override 
+            public void run() {
+                if (useVpn) {
+                    // whenever we switch 'on', we want to trigger the color
+                    // fade for the background color animation and switch
+                    // our image view to use the 'on' image resource
+                    colorFadeIn.start();
+                    statusImage.setImageResource(R.drawable.toast_on);
+                    settingsIcon.setImageResource(R.drawable.menu_white);   
+                } else {
+                    colorFadeOut.start();
+                    statusImage.setImageResource(R.drawable.toast_off); 
+                    settingsIcon.setImageResource(R.drawable.menu);
+                    powerLantern.setChecked(false);
+                }
+
+                statusToast.setView(statusLayout);
+                statusToast.show();
+            }
+        }, 10);
+    }
+
+
+
+    public void setVersionNum() {
+        try {
+            // configure actions to be taken whenever slider changes state
+            PackageInfo pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+            String appVersion = pInfo.versionName;
+            Log.d(TAG, "Currently running Lantern version: " + appVersion);
+            // update version number that appears at the bottom of the side menu
+            // if we have it stored in shared preferences; otherwise, default to absent until
+            // Lantern starts
+			versionNum.setText(appVersion);
+        } catch (android.content.pm.PackageManager.NameNotFoundException nne) {
+            Log.e(TAG, "Could not find package: " + nne.getMessage());
+        }
+    }
+
+    public void setupSideMenu() {
+
+		final LanternMainActivity activity = this;
+
+        Resources resources = getResources();
+
+        mNavItems.add(new NavItem(resources.getString(R.string.share_option), 
+                    R.drawable.ic_share));
+        mNavItems.add(new NavItem(resources.getString(R.string.desktop_option), 
+                    R.drawable.ic_desktop));
+        mNavItems.add(new NavItem(resources.getString(R.string.contact_option), 
+                    R.drawable.ic_contact));
+        mNavItems.add(new NavItem(resources.getString(R.string.newsfeed_off_option), 
+                    R.drawable.ic_contact));
+        mNavItems.add(new NavItem(resources.getString(R.string.quit_option), 
+                    R.drawable.ic_quit));
+
+        menuMap.put(resources.getString(R.string.quit_option), new Command() { 
+            public void runCommand() { quitLantern(); } 
+        });
+
+        menuMap.put(resources.getString(R.string.contact_option), new Command() { 
+            public void runCommand() { contactOption(); } 
+        });
+
+        menuMap.put(resources.getString(R.string.newsfeed_off_option), new Command() {
+            public void runCommand() { 
+
+            }
+        });
+
+        menuMap.put(resources.getString(R.string.desktop_option), new Command() { 
+            public void runCommand() { 
+                startActivity(new Intent(activity, DesktopActivity_.class));
+            } 
+        });
+
+        menuMap.put(resources.getString(R.string.share_option), new Command() { 
+            public void runCommand() { shareable.showOption(); } 
+        });   
+
+        // Populate the Navigtion Drawer with options
+        listAdapter = new ListAdapter(this, mNavItems);
+        mDrawerList.setAdapter(listAdapter);
+
+        // remove ListView border
+        mDrawerList.setDivider(null);
+
+        // Drawer Item click listeners
+        mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                selectItemFromDrawer(position);
+            }
+        });
+
+        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.drawer_open, R.string.drawer_close) {
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                invalidateOptionsMenu();
+            }
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                super.onDrawerClosed(drawerView);
+                Log.d(TAG, "onDrawerClosed: " + getTitle());
+                invalidateOptionsMenu();
+            }
+        };
+
+
+        settingsIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mDrawerLayout.openDrawer(Gravity.START);
+                Log.v(TAG, " click");         
+            }        
+        });
+
+
+        mDrawerLayout.setDrawerListener(mDrawerToggle);
+
+        /*ImageView backBtn = (ImageView)this.activity.findViewById(R.id.navAvatar);
+
+        backBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mainView.setVisibility(View.VISIBLE);
+                desktopView.setVisibility(View.INVISIBLE);
+
+                mDrawerLayout.closeDrawers();
+            }
+        });*/
+    }
+
+
+    public void setupSwitch() {
+
+        final LanternMainActivity activity = this;
+
+        setBtnStatus();
+
+        // START/STOP button to enable full-device VPN functionality
+        powerLantern.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                boolean isChecked = powerLantern.isChecked();
+
+                if (!Utils.isNetworkAvailable(activity.getApplicationContext())) {
+                    powerLantern.setChecked(false);
+					Utils.showAlertDialog(activity, "Lantern", 
+							getResources().getString(R.string.no_internet_connection));
+                    return;
+                }
+
+                // disable the on/off switch while the VpnService
+                // is updating the connection
+                powerLantern.setEnabled(false);
+
+                if (isChecked) {
+                    enableVPN();
+                } else {
+                    toggleSwitch(false);
+                    stopLantern();
+                }
+
+                // after 2000ms, enable the switch again
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        powerLantern.setEnabled(true);
+                    }
+                }, 2000);
+
+            }
+        });
+    } 
+
+    private void selectItemFromDrawer(int position) {
+        mDrawerList.setItemChecked(position, true);
 
         try {
-            int startTimeoutMillis = 60000;
-            String analyticsTrackingID = ""; // don't track analytics since those are already being tracked elsewhere
-            StartResult result = Lantern.enable(getApplicationContext(), startTimeoutMillis, analyticsTrackingID);
-            return result.getHTTPAddr();
-        }  catch (LanternNotRunningException lnre) {
-            throw new RuntimeException("Lantern failed to start: " + lnre.getMessage(), lnre);
-        }  
-    }
+            String title = mNavItems.get(position).getTitle();
+
+            Log.d(TAG, "Menu option " + title + " selected");
+            menuMap.get(title).runCommand();
+
+        } catch (Exception e) {
+
+        }
+
+        // Close the drawer
+        mDrawerLayout.closeDrawer(mDrawerPane);
+    }    
 
     // override onKeyDown and onBackPressed default 
     // behavior to prevent back button from interfering 
@@ -171,6 +485,17 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         }
         return super.onKeyDown(keyCode, event);
     }
+
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		//don't reload the current page when the orientation is changed
+		Log.d(TAG, "onConfigurationChanged() Called");
+		super.onConfigurationChanged(newConfig);
+
+		if (listAdapter != null) {
+			listAdapter.refresh();
+		}
+	}
 
     @Override
     public void onBackPressed() {
@@ -212,10 +537,25 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         }
     }
 
+	// opens an e-mail message with some default options
+	private void contactOption() {
+
+		String contactEmail = getResources().getString(R.string.contact_email);
+
+		Intent intent = new Intent(Intent.ACTION_SEND);
+		intent.setType("plain/text");
+		intent.putExtra(Intent.EXTRA_EMAIL, new String[] { contactEmail });
+		intent.putExtra(Intent.EXTRA_SUBJECT, R.string.contact_subject);
+		intent.putExtra(Intent.EXTRA_TEXT, R.string.contact_message);
+
+		startActivity(Intent.createChooser(intent, ""));
+	}
+
+
     public void refreshFeed(View view) {
         Log.d(TAG, "Refresh feed clicked");
         feedError.setVisibility(View.INVISIBLE);
-        new GetFeed(this, startLocalProxy()).execute("");
+        new GetFeed(this, session.startLocalProxy()).execute("");
     }
 
     public void showFeedError() {
@@ -239,7 +579,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             .swipeRefreshColorRes(R.color.black)
             .webViewAllowFileAccessFromFileURLs(true)
             .webViewJavaScriptCanOpenWindowsAutomatically(true)
-            .webViewLoadWithProxy(startLocalProxy())
+            .webViewLoadWithProxy(session.startLocalProxy())
             // if we aren't in full-device VPN mode, configure the 
             // WebView to use our local proxy
             .show(url.getText().toString());
@@ -310,14 +650,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         changeFeedHeaderColor(Service.IsRunning);
     }
 
-
-
-    public void sendDesktopVersion(View view) {
-        if (LanternUI != null) {
-            LanternUI.sendDesktopVersion(view);
-        }
-    }
-
     // Prompt the user to enable full-device VPN mode
     // Make a VPN connection from the client
     // We should only have one active VPN connection per client
@@ -331,12 +663,12 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             } else {
                 Log.d(TAG, "VPN enabled, starting Lantern...");
                 Lantern.disable(getApplicationContext());
-                LanternUI.toggleSwitch(true);
+                toggleSwitch(true);
                 changeFeedHeaderColor(true);
                 sendIntentToService();
             }    
         } catch (Exception e) {
-            Log.d(TAG, "Could not establish VPN connection: " + e.getMessage());
+            Log.e(TAG, "Could not establish VPN connection: " + e.getMessage());
         }
     }
 
@@ -348,24 +680,50 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             if (response != RESULT_OK) {
                 // no permission given to open
                 // VPN connection; return to off state
-                LanternUI.toggleSwitch(false);
+                toggleSwitch(false);
             } else {
                 Lantern.disable(getApplicationContext());
-                LanternUI.toggleSwitch(true);
+                toggleSwitch(true);
                 sendIntentToService();
             }
         }
     }
 
+    private void setupNotifications() {
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
+                new Intent(this, LanternMainActivity.class)
+                .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP),
+                0);
+
+        mNotificationBuilder
+            .setSmallIcon(R.drawable.status_on_white)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setContentTitle(getText(R.string.app_name))
+            .setWhen(System.currentTimeMillis())
+            .setContentIntent(pendingIntent)
+            .setOngoing(true);
+    }
+
     private void sendIntentToService() {
         startService(new Intent(this, Service.class));
+		showStatusIcon();
     }
+
+	public void showStatusIcon() {
+		if (mNotifier != null) {
+			mNotificationBuilder
+				.setTicker(getText(R.string.service_connected))
+				.setContentText(getText(R.string.service_connected));
+			mNotifier.notify(NOTIFICATION_ID, mNotificationBuilder.build());
+		}
+	}
 
     public void stopLantern() {
         Service.IsRunning = false;
         Utils.clearPreferences(this);
         changeFeedHeaderColor(false);
-        LanternUI.setBtnStatus();
+        setBtnStatus();
     }
 
     @Override
@@ -373,7 +731,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         // Pass the event to ActionBarDrawerToggle
         // If it returns true, then it has handled
         // the nav drawer indicator touch event
-        if (LanternUI != null && LanternUI.optionSelected(item)) {
+	   	if (mDrawerToggle.onOptionsItemSelected(item)) { 
             return true;
         }
 
@@ -384,8 +742,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        if (LanternUI != null) {
-            LanternUI.syncState();
+		if (mDrawerToggle != null) {
+			mDrawerToggle.syncState();
         }
     }
 
@@ -409,8 +767,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
                         // automatically refresh feed when connectivity is detected
                         refreshFeed(null);
                     } else {
-                        // whenever a user disconnects from Wifi and Lantern is running
-                        if (LanternUI.useVpn()) {
+						if (session.useVpn()) {
+							// whenever a user disconnects from Wifi and Lantern is running
                             stopLantern();
                         }
                     }
