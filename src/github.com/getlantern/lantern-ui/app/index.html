@@ -89,12 +89,20 @@
       <a href="https://getlantern.org" target="_blank">
       <img id="logo" src="/img/ui-header-logo.svg"></a><br/><span ng-hide="(backendIsGone && !wsConnected) || showError">{{ 'WELCOME_TO_LANTERN_BLOCKED_SITES' | translate }}</span>
     </div>
+    <div id="feedLink">
+      <div>
+        <a ng-click="showNewsfeed()" ng-show="!showNews">
+          {{ 'SHOW_NEWSFEED' | translate }}
+        </a>
+        <a ng-click="hideNewsfeed()" ng-show="showNews">
+          {{ 'HIDE_NEWSFEED' | translate }}
+        </a>
+      </div>
+    </div>
 
     <div ng-include src="'partials/modals.html'"></div>
     <div ng-include src="'partials/get-mobile.html'"></div>
-<!--
     <div ng-include src="'partials/bookmarks.html'"></div>
-  -->
     <div ng-include src="'partials/news.html'"></div>
     <div ng-include src="'partials/footer.html'"></div>
     <div ng-include src="'partials/developer.html'"></div>

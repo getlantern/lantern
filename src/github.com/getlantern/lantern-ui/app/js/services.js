@@ -210,6 +210,14 @@ angular.module('app.services', [])
       ga()('send', 'event', 'bookmark-' + name);
     };
 
+    var trackShowFeed = function() {
+      ga()('send', 'event', 'showFeed');
+    };
+
+    var trackHideFeed = function() {
+      ga()('send', 'event', 'hideFeed');
+    };
+
     var trackFeed = function(name) {
       ga()('send', 'event', 'feed-' + name);
     };
@@ -240,7 +248,9 @@ angular.module('app.services', [])
       trackLink: trackLink,
       trackBookmark: trackBookmark,
       trackFeed: trackFeed,
-      trackFeedError: trackFeedError
+      trackFeedError: trackFeedError,
+      trackShowFeed: trackShowFeed,
+      trackHideFeed: trackHideFeed
     };
   })
   .service('apiSrvc', function($http, API_URL_PREFIX) {
