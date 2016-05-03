@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -15,6 +16,17 @@ import (
 	"github.com/mailgun/oxy/forward"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestGetFileHash(t *testing.T) {
+	wd, _ := os.Getwd()
+	path := wd + "/hash.go"
+
+	hash, _ := GetFileHash(path)
+	//log.Debugf("Got hash! %x", hash)
+	log.Debugf("Got hash! %v", hash)
+	assert.Equal(t, "6a963b525e6edef36fa27eb2f6ef5d90ff74f3be229ca0c12d459cdd6c8c9876", hash,
+		"hashes not equal! has hashes.go changed?")
+}
 
 func TestChainedAndFronted(t *testing.T) {
 	fwd, _ := forward.New()
