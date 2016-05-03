@@ -116,6 +116,10 @@ angular.module('feeds-directives', []).directive('feed', ['feedService', '$compi
           render(feedsObj);
           deferred.resolve(feedsObj);
         },function (error) {
+          if (feedsObj) {
+            console.log("Using cached feed");
+            return;
+          }
           console.error("fail to fetch feeds: " +  error);
           if ($scope.onError) {
             $scope.onError(error);
