@@ -542,7 +542,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnClickListener {
     private void contactOption() {
 
         String contactEmail = getResources().getString(R.string.contact_email);
-
         Intent intent = new Intent(Intent.ACTION_SEND);
         intent.setType("plain/text");
         intent.putExtra(Intent.EXTRA_EMAIL, new String[] { contactEmail });
@@ -740,6 +739,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnClickListener {
                         if (session.useVpn()) {
                             // whenever a user disconnects from Wifi and Lantern is running
                             updateStatus(false);
+                            powerLantern.setChecked(false);
                             Service.IsRunning = false;
                         }
                     }
