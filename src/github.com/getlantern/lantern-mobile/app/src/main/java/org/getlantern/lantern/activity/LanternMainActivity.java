@@ -167,7 +167,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
         context = getApplicationContext();
         session = LanternApp.getSession();
 
-
         mPrefs = Utils.getSharedPrefs(context);
         mNotifier = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
         setupNotifications();
@@ -667,7 +666,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
 
     private void setupNotifications() {
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, LanternMainActivity.class)
+                new Intent(this, LanternMainActivity_.class)
                 .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP),
                 0);
 
