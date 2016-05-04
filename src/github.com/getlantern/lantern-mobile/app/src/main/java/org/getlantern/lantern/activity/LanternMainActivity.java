@@ -136,8 +136,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 	@ViewById(R.id.navList)
     ListView mDrawerList;
 
-	@ViewById(R.id.feed_error)
-	View feedError;
+	@ViewById
+	View feedError, feedView;
 
 	@ViewById(R.id.settings_icon)
 	ImageView settingsIcon;
@@ -173,9 +173,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         mPrefs = Utils.getSharedPrefs(context);
         mNotifier = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
-        setupNotifications();
-
-        //LanternUI = new UI(this, mPrefs);
+		setupNotifications();
 
         // since onCreate is only called when the main activity
         // is first created, we clear shared preferences in case
@@ -208,7 +206,18 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         setupSwitch();
 
-        new GetFeed(this, session.startLocalProxy()).execute("");
+		RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) powerLantern.getLayoutParams();
+
+		if (session.showNewsFeed()) {
+			feedView.setVisibility(View.VISIBLE);
+			lp.removeRule(RelativeLayout.CENTER_VERTICAL);
+			new GetFeed(this, session.startLocalProxy()).execute("");
+		} else {
+			feedView.setVisibility(View.INVISIBLE);
+			lp.addRule(RelativeLayout.CENTER_VERTICAL);
+		}
+		powerLantern.setLayoutParams(lp);
+
     }
 
     @Override
@@ -321,14 +330,21 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         Resources resources = getResources();
 
+		mNavItems.clear();
+
         mNavItems.add(new NavItem(resources.getString(R.string.share_option), 
                     R.drawable.ic_share));
         mNavItems.add(new NavItem(resources.getString(R.string.desktop_option), 
                     R.drawable.ic_desktop));
         mNavItems.add(new NavItem(resources.getString(R.string.contact_option), 
                     R.drawable.ic_contact));
-        mNavItems.add(new NavItem(resources.getString(R.string.newsfeed_off_option), 
-                    R.drawable.ic_contact));
+
+        if (session.showNewsFeed())  {
+			mNavItems.add(new NavItem(resources.getString(R.string.newsfeed_off_option), R.drawable.ic_feed));
+		} else {
+			mNavItems.add(new NavItem(resources.getString(R.string.newsfeed_option), R.drawable.ic_feed));
+		}
+		
         mNavItems.add(new NavItem(resources.getString(R.string.quit_option), 
                     R.drawable.ic_quit));
 
@@ -342,9 +358,17 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         menuMap.put(resources.getString(R.string.newsfeed_off_option), new Command() {
             public void runCommand() { 
-
+				session.updateNewsfeedPreference(false);
+				activity.recreate();
             }
         });
+
+		menuMap.put(resources.getString(R.string.newsfeed_option), new Command() {
+			public void runCommand() { 
+				session.updateNewsfeedPreference(true);
+				activity.recreate();
+			}
+		});
 
         menuMap.put(resources.getString(R.string.desktop_option), new Command() { 
             public void runCommand() { 
@@ -554,8 +578,10 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
     public void refreshFeed(View view) {
         Log.d(TAG, "Refresh feed clicked");
-        feedError.setVisibility(View.INVISIBLE);
-        new GetFeed(this, session.startLocalProxy()).execute("");
+		feedError.setVisibility(View.INVISIBLE);
+		if (session.showNewsFeed()) {
+			new GetFeed(this, session.startLocalProxy()).execute("");
+		}
     }
 
     public void showFeedError() {
