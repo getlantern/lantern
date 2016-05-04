@@ -386,10 +386,15 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
                 mDrawerList.setItemChecked(position, true);
-                String title = mNavItems.get(position).getTitle();
-                Log.d(TAG, "Menu option " + title + " selected");
-
-                menuMap.get(title).runCommand();
+                NavItem item;
+                if (position >= 0 && position < mNavItems.size()) {
+                    item = mNavItems.get(position);
+                    if (item != null) {
+                        String title = item.getTitle();
+                        Log.d(TAG, "Menu option " + title + " selected");
+                        menuMap.get(title).runCommand();
+                    }
+                }
 
                 // Close the drawer
                 mDrawerLayout.closeDrawer(mDrawerPane);
@@ -426,14 +431,16 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
     public void updateFeedview(final ListAdapter listAdapter,
         final ArrayList<NavItem> mNavItems,
         final Resources resources,
-        int menuOptionIndex, boolean showFeed) {
+        final int menuOptionIndex, final boolean showFeed) {
       
         session.updateNewsfeedPreference(showFeed);
         setupFeedView();
-        if (showFeed) {
-            mNavItems.get(menuOptionIndex).setTitle(resources.getString(R.string.newsfeed_off_option));
-        } else {
-            mNavItems.get(menuOptionIndex).setTitle(resources.getString(R.string.newsfeed_option));
+        if (menuOptionIndex >= 0 && menuOptionIndex < mNavItems.size()) {
+            if (showFeed) {
+                mNavItems.get(menuOptionIndex).setTitle(resources.getString(R.string.newsfeed_off_option));
+            } else {
+                mNavItems.get(menuOptionIndex).setTitle(resources.getString(R.string.newsfeed_option));
+            }
         }
         listAdapter.notifyDataSetChanged();
     }
