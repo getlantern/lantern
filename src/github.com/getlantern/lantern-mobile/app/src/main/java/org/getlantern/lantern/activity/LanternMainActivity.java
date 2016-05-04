@@ -91,8 +91,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnClickListener {
     private final NotificationCompat.Builder mNotificationBuilder = new NotificationCompat.Builder(this);
     private static final int NOTIFICATION_ID = 10002;
 
-    private Shareable shareable;
-
     private boolean isInBackground = false;
     private FragmentStatePagerItemAdapter feedAdapter;
     private SmartTabLayout viewPagerTab;
@@ -286,12 +284,12 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnClickListener {
     }
 
     public void setupSideMenu() {
+
         final LanternMainActivity activity = this;
 
         final Resources resources = getResources();
         
         final Map<String, Command> menuMap = new HashMap<String, Command>();
-
 
         final ArrayList<NavItem> mNavItems = new ArrayList<NavItem>() {{
             add(new NavItem(resources.getString(R.string.share_option),
@@ -324,25 +322,30 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnClickListener {
         });
 
         menuMap.put(resources.getString(R.string.newsfeed_off_option), new Command() {
-            public void runCommand() { 
+            public void runCommand() {
                 updateFeedview(listAdapter, mNavItems, resources, 3, false);
             }
         });
 
         menuMap.put(resources.getString(R.string.newsfeed_option), new Command() {
-            public void runCommand() { 
+            public void runCommand() {
                 updateFeedview(listAdapter, mNavItems, resources, 3, true);
             }
         });
 
         menuMap.put(resources.getString(R.string.desktop_option), new Command() { 
-            public void runCommand() { 
+            public void runCommand() {
                 startActivity(new Intent(activity, DesktopActivity_.class));
             } 
         });
 
         menuMap.put(resources.getString(R.string.share_option), new Command() { 
-            public void runCommand() { shareable.showOption(); } 
+            public void runCommand() {
+                final Shareable shareable = new Shareable(activity);
+                if (shareable != null) {
+                    shareable.showOption();
+                }
+            }
         });   
 
         // Populate the Navigtion Drawer with options
