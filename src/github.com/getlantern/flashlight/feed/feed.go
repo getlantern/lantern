@@ -132,7 +132,7 @@ func doRequest(httpClient *http.Client, feedURL string) (*http.Response, error) 
 		defer res.Body.Close()
 
 		err = fmt.Errorf("Unexpected response status %d fetching feed from %s",
-			feedURL, res.StatusCode)
+			res.StatusCode, feedURL)
 
 		// If we get an invalid response status, it could be because
 		// we don't have a feed available for the specified locale.
@@ -158,6 +158,7 @@ func doGetFeed(feedEndpoint string, locale string, allStr string,
 	feed = &Feed{}
 
 	if proxyAddr == "" {
+		// if no proxyAddr is supplied, use an ordinary http client
 		httpClient = &http.Client{}
 	} else {
 		httpClient, err = util.HTTPClient("", eventual.DefaultGetter(proxyAddr))
