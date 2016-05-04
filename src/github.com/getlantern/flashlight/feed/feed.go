@@ -91,13 +91,9 @@ func NumFeedEntries() int {
 	return count
 }
 
+// Returns the latest feed or nil if it doesn't exist
 func CurrentFeed() *Feed {
 	return feed
-}
-
-func handleError(err error) {
-	feed = nil
-	log.Error(err)
 }
 
 // GetFeed creates an http.Client and fetches the latest
@@ -107,6 +103,11 @@ func handleError(err error) {
 func GetFeed(locale string, allStr string, proxyAddr string,
 	provider FeedProvider) {
 	doGetFeed(defaultFeedEndpoint, locale, allStr, proxyAddr, provider)
+}
+
+func handleError(err error) {
+	feed = nil
+	log.Error(err)
 }
 
 func doRequest(httpClient *http.Client, feedURL string) (*http.Response, error) {
@@ -130,15 +131,17 @@ func doRequest(httpClient *http.Client, feedURL string) (*http.Response, error) 
 	if res.StatusCode != http.StatusOK {
 		defer res.Body.Close()
 
-		err = fmt.Errorf("Feed url: %s; unexpected response status: %d",
+		err = fmt.Errorf("Unexpected response status %d fetching feed from %s",
 			feedURL, res.StatusCode)
-		log.Error(err)
 
+		// If we get an invalid response status, it could be because
+		// we don't have a feed available for the specified locale.
 		if feedURL != fallbackEndpoint {
-			log.Debugf("Attempting to fetch fallback feed from %s",
-				fallbackEndpoint)
+			log.Debugf("%v; attempting to fetch fallback feed from %s",
+				err, fallbackEndpoint)
 			return doRequest(httpClient, fallbackEndpoint)
 		} else {
+			handleError(err)
 			return nil, err
 		}
 	}
