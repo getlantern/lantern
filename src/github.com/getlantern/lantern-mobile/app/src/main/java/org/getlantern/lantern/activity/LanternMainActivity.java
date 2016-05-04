@@ -739,9 +739,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnClickListener {
                     } else {
                         if (session.useVpn()) {
                             // whenever a user disconnects from Wifi and Lantern is running
-                            changeFeedHeaderColor(false);
+                            updateStatus(false);
                             Service.IsRunning = false;
-                            displayStatus(false);
                         }
                     }
                 }
