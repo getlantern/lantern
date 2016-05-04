@@ -19,7 +19,6 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.StrictMode;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
@@ -140,7 +139,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
     @ViewById(R.id.settings_icon)
     ImageView settingsIcon;
 
-    private ListAdapter listAdapter;
     private ActionBarDrawerToggle mDrawerToggle;
 
     private View statusLayout;
@@ -205,18 +203,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
         // START/STOP button to enable full-device VPN functionality
         powerLantern.setOnCheckedChangeListener(this);
 
-        RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) powerLantern.getLayoutParams();
-
-        if (session.showNewsFeed()) {
-            feedView.setVisibility(View.VISIBLE);
-            lp.removeRule(RelativeLayout.CENTER_VERTICAL);
-            new GetFeed(this, session.startLocalProxy()).execute("");
-        } else {
-            feedView.setVisibility(View.INVISIBLE);
-            lp.addRule(RelativeLayout.CENTER_VERTICAL);
-        }
-        powerLantern.setLayoutParams(lp);
-
+        setupFeedView();
     }
 
     @Override
@@ -230,6 +217,20 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
         if (mPrefs != null) {
             setBtnStatus();
         }
+    }
+
+    private void setupFeedView() {
+        RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) powerLantern.getLayoutParams();
+
+        if (session.showNewsFeed()) {
+            feedView.setVisibility(View.VISIBLE);
+            lp.removeRule(RelativeLayout.CENTER_VERTICAL);
+            new GetFeed(this, session.startLocalProxy()).execute("");
+        } else {
+            feedView.setVisibility(View.INVISIBLE);
+            lp.addRule(RelativeLayout.CENTER_VERTICAL);
+        }
+        powerLantern.setLayoutParams(lp);
     }
 
     // update START/STOP power Lantern button
@@ -316,7 +317,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
     }
 
     public void setupSideMenu() {
-
         final LanternMainActivity activity = this;
 
         final Resources resources = getResources();
@@ -332,6 +332,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
             add(new NavItem(resources.getString(R.string.contact_option), 
                         R.drawable.ic_contact));
         }};
+
+        final ListAdapter listAdapter = new ListAdapter(this, mNavItems);  
 
         if (session.showNewsFeed())  {
             mNavItems.add(new NavItem(resources.getString(R.string.newsfeed_off_option), R.drawable.ic_feed));
@@ -352,15 +354,13 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
 
         menuMap.put(resources.getString(R.string.newsfeed_off_option), new Command() {
             public void runCommand() { 
-                session.updateNewsfeedPreference(false);
-                activity.recreate();
+                updateFeedview(listAdapter, mNavItems, resources, 3, false);
             }
         });
 
         menuMap.put(resources.getString(R.string.newsfeed_option), new Command() {
             public void runCommand() { 
-                session.updateNewsfeedPreference(true);
-                activity.recreate();
+                updateFeedview(listAdapter, mNavItems, resources, 3, true);
             }
         });
 
@@ -375,7 +375,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
         });   
 
         // Populate the Navigtion Drawer with options
-        listAdapter = new ListAdapter(this, mNavItems);
         mDrawerList.setAdapter(listAdapter);
 
         // remove ListView border
@@ -422,6 +421,21 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
         });
 
         mDrawerLayout.setDrawerListener(mDrawerToggle);
+    }
+
+    public void updateFeedview(final ListAdapter listAdapter,
+        final ArrayList<NavItem> mNavItems,
+        final Resources resources,
+        int menuOptionIndex, boolean showFeed) {
+      
+        session.updateNewsfeedPreference(showFeed);
+        setupFeedView();
+        if (showFeed) {
+            mNavItems.get(menuOptionIndex).setTitle(resources.getString(R.string.newsfeed_off_option));
+        } else {
+            mNavItems.get(menuOptionIndex).setTitle(resources.getString(R.string.newsfeed_option));
+        }
+        listAdapter.refresh();
     }
 
     @Override
@@ -477,9 +491,9 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
         Log.d(TAG, "onConfigurationChanged() Called");
         super.onConfigurationChanged(newConfig);
 
-        if (listAdapter != null) {
+        /*if (listAdapter != null) {
             listAdapter.refresh();
-        }
+        }*/
     }
 
     @Override

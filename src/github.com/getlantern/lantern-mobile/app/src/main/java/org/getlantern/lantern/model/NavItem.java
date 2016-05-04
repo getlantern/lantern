@@ -12,5 +12,9 @@ public class NavItem {
     public String getTitle() {
         return mTitle;
     }
+
+    public void setTitle(String title) {
+        this.mTitle = title;
+    }
 }
 
