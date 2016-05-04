@@ -110,6 +110,10 @@ func handleError(err error) {
 	log.Error(err)
 }
 
+// doRequest creates an HTTP request for the given feedURL and returns an HTTP
+// response. If an invalid response status code is returned, it could be
+// because there is no feed available for the given locale so we automatically
+// default to the given fallback url.
 func doRequest(httpClient *http.Client, feedURL string) (*http.Response, error) {
 	var err error
 	var req *http.Request
