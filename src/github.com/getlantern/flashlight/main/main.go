@@ -236,7 +236,7 @@ func beforeStart(cfg *config.Config) bool {
 
 	// Only run analytics once on startup.
 	if settings.IsAutoReport() {
-		stopAnalytics := analytics.Start(cfg, flashlight.Version)
+		stopAnalytics := analytics.Start(cfg.Client.DeviceID, flashlight.Version)
 		addExitFunc(stopAnalytics)
 	}
 	watchDirectAddrs()
