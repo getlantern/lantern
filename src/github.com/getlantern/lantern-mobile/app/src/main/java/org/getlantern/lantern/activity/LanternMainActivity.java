@@ -739,6 +739,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnClickListener {
                         if (session.useVpn()) {
                             // whenever a user disconnects from Wifi and Lantern is running
                             updateStatus(false);
+                            Lantern.disable(getApplicationContext());
                             powerLantern.setChecked(false);
                             Service.IsRunning = false;
                         }
