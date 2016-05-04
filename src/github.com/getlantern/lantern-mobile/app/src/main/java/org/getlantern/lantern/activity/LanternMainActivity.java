@@ -104,8 +104,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
     private String lastFeedSelected;
 
     private ObjectAnimator colorFadeIn, colorFadeOut;
-    private ArrayList<NavItem> mNavItems = new ArrayList<NavItem>();
-    private Map<String, Command> menuMap = new HashMap<String, Command>();
 
     private static final int onColor = Color.parseColor("#39C2D6");
     private static final int offColor = Color.parseColor("#FFFFFF"); 
@@ -284,31 +282,23 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
 
 
     public void displayStatus(final boolean useVpn) {
-        final LanternMainActivity activity = this;
-        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-            @Override 
-            public void run() {
-                if (useVpn) {
-                    // whenever we switch 'on', we want to trigger the color
-                    // fade for the background color animation and switch
-                    // our image view to use the 'on' image resource
-                    colorFadeIn.start();
-                    statusImage.setImageResource(R.drawable.toast_on);
-                    settingsIcon.setImageResource(R.drawable.menu_white);   
-                } else {
-                    colorFadeOut.start();
-                    statusImage.setImageResource(R.drawable.toast_off); 
-                    settingsIcon.setImageResource(R.drawable.menu);
-                    powerLantern.setChecked(false);
-                }
+        if (useVpn) {
+            // whenever we switch 'on', we want to trigger the color
+            // fade for the background color animation and switch
+            // our image view to use the 'on' image resource
+            colorFadeIn.start();
+            statusImage.setImageResource(R.drawable.toast_on);
+            settingsIcon.setImageResource(R.drawable.menu_white);   
+        } else {
+            colorFadeOut.start();
+            statusImage.setImageResource(R.drawable.toast_off); 
+            settingsIcon.setImageResource(R.drawable.menu);
+            powerLantern.setChecked(false);
+        }
 
-                statusToast.setView(statusLayout);
-                statusToast.show();
-            }
-        }, 10);
+        statusToast.setView(statusLayout);
+        statusToast.show();
     }
-
-
 
     public void setVersionNum() {
         try {
@@ -329,16 +319,19 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
 
         final LanternMainActivity activity = this;
 
-        Resources resources = getResources();
+        final Resources resources = getResources();
+        
+        final Map<String, Command> menuMap = new HashMap<String, Command>();
 
-        mNavItems.clear();
 
-        mNavItems.add(new NavItem(resources.getString(R.string.share_option), 
-                    R.drawable.ic_share));
-        mNavItems.add(new NavItem(resources.getString(R.string.desktop_option), 
-                    R.drawable.ic_desktop));
-        mNavItems.add(new NavItem(resources.getString(R.string.contact_option), 
-                    R.drawable.ic_contact));
+        final ArrayList<NavItem> mNavItems = new ArrayList<NavItem>() {{
+            add(new NavItem(resources.getString(R.string.share_option),
+                        R.drawable.ic_share));
+            add(new NavItem(resources.getString(R.string.desktop_option), 
+                        R.drawable.ic_desktop));
+            add(new NavItem(resources.getString(R.string.contact_option), 
+                        R.drawable.ic_contact));
+        }};
 
         if (session.showNewsFeed())  {
             mNavItems.add(new NavItem(resources.getString(R.string.newsfeed_off_option), R.drawable.ic_feed));
@@ -392,7 +385,15 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
         mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                selectItemFromDrawer(position);
+
+                mDrawerList.setItemChecked(position, true);
+                String title = mNavItems.get(position).getTitle();
+                Log.d(TAG, "Menu option " + title + " selected");
+
+                menuMap.get(title).runCommand();
+
+                // Close the drawer
+                mDrawerLayout.closeDrawer(mDrawerPane);
             }
         });
 
@@ -419,7 +420,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
                 Log.v(TAG, " click");         
             }        
         });
-
 
         mDrawerLayout.setDrawerListener(mDrawerToggle);
     }
@@ -455,23 +455,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
             }
         }, 2000);
     }
-
-    private void selectItemFromDrawer(int position) {
-        mDrawerList.setItemChecked(position, true);
-
-        try {
-            String title = mNavItems.get(position).getTitle();
-
-            Log.d(TAG, "Menu option " + title + " selected");
-            menuMap.get(title).runCommand();
-
-        } catch (Exception e) {
-
-        }
-
-        // Close the drawer
-        mDrawerLayout.closeDrawer(mDrawerPane);
-    }    
 
     // override onKeyDown and onBackPressed default 
     // behavior to prevent back button from interfering 
