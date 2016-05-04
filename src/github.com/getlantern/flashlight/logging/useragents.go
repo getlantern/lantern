@@ -16,7 +16,9 @@ var (
 
 // AddUserAgentListener registers a listener for user agents.
 func AddUserAgentListener(listener func(string)) {
+	agentsMutex.Lock()
 	listeners = append(listeners, listener)
+	defer agentsMutex.Unlock()
 }
 
 // RegisterUserAgent tries to find the User-Agent in the HTTP request
