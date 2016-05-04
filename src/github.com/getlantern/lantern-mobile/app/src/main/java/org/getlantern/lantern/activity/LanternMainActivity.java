@@ -12,14 +12,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
-import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.TransitionDrawable;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.StrictMode;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
@@ -34,8 +31,6 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.AdapterView;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -83,7 +78,7 @@ import org.lantern.mobilesdk.Lantern;
 @Fullscreen
 @EActivity(R.layout.activity_lantern_main)
 public class LanternMainActivity extends AppCompatActivity implements 
-Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeListener {
+Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnClickListener {
 
     private static final String TAG = "LanternMainActivity";
     private static final String PREFS_NAME = "LanternPrefs";
@@ -199,7 +194,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
         setupStatusToast();
 
         // START/STOP button to enable full-device VPN functionality
-        powerLantern.setOnCheckedChangeListener(this);
+        powerLantern.setOnClickListener(this);
 
         showFeedview();
     }
@@ -447,7 +442,9 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
     }
 
     @Override
-    public void onCheckedChanged(CompoundButton toggleButton, boolean on) {
+    public void onClick(View view) {
+        boolean on = ((ToggleButton)view).isChecked();
+
         if (!Utils.isNetworkAvailable(getApplicationContext())) {
             powerLantern.setChecked(false);
             if (on) {
@@ -661,7 +658,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
         super.onActivityResult(request, response, data);
         if (request == REQUEST_VPN) {
             boolean useVpn = response == RESULT_OK;
-
             updateStatus(useVpn);
             if (useVpn) {
                 Lantern.disable(getApplicationContext());
