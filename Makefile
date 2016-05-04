@@ -2,19 +2,22 @@ SHELL := /bin/bash
 
 OSX_MIN_VERSION := 10.9
 
-DOCKER := $(shell which docker 2> /dev/null)
-GO := $(shell which go 2> /dev/null)
-NODE := $(shell which node 2> /dev/null)
-NPM := $(shell which npm 2> /dev/null)
-S3CMD := $(shell which s3cmd 2> /dev/null)
-WGET := $(shell which wget 2> /dev/null)
-RUBY := $(shell which ruby 2> /dev/null)
+get-command = $(shell which="$$(which $(1) 2> /dev/null)" && if [[ ! -z "$$which" ]]; then printf %q "$$which"; fi)
 
-APPDMG := $(shell which appdmg 2> /dev/null)
-SVGEXPORT := $(shell which svgexport 2> /dev/null)
+DOCKER 		:= $(call get-command,docker)
+GO 		:= $(call get-command,go)
+NODE 		:= $(call get-command,node)
+NPM 		:= $(call get-command,npm)
+GULP 		:= $(call get-command,gulp)
+S3CMD 		:= $(call get-command,s3cmd)
+WGET 		:= $(call get-command,wget)
+RUBY 		:= $(call get-command,ruby)
 
-DOCKERMACHINE := $(shell which docker-machine 2> /dev/null)
-BOOT2DOCKER := $(shell which boot2docker 2> /dev/null)
+APPDMG 		:= $(call get-command,appdmg)
+SVGEXPORT 	:= $(call get-command,svgexport)
+
+DOCKERMACHINE 	:= $(call get-command,docker-machine)
+BOOT2DOCKER 	:= $(call get-command,boot2docker)
 
 GIT_REVISION_SHORTCODE := $(shell git rev-parse --short HEAD)
 GIT_REVISION := $(shell git describe --abbrev=0 --tags --exact-match 2> /dev/null || git rev-parse --short HEAD)
@@ -187,7 +190,7 @@ docker-%: system-checks
 all: binaries
 android-dist: genconfig android
 
-$(RESOURCES_DOT_GO): $(NPM)
+$(RESOURCES_DOT_GO): require-npm require-gulp
 	@source setenv.bash && \
 	LANTERN_UI="lantern-ui" && \
 	APP="$$LANTERN_UI/app" && \
@@ -196,13 +199,12 @@ $(RESOURCES_DOT_GO): $(NPM)
 	git update-index --assume-unchanged $$APP/js/revision.js && \
 	DEST="$@" && \
 	cd $$LANTERN_UI && \
-	npm install && \
+	$(NPM) install && \
 	rm -Rf dist && \
-	gulp build && \
+	$(GULP) build && \
 	cd - && \
 	rm -f bin/tarfs && \
-	go install github.com/getlantern/tarfs/tarfs && \
-	mv bin/tarfs.exe bin/tarfs ; \
+	go build -o bin/tarfs github.com/getlantern/tarfs/tarfs && \
 	echo "// +build !stub" > $$DEST && \
 	echo " " >> $$DEST && \
 	bin/tarfs -pkg ui $$DIST >> $$DEST
@@ -308,6 +310,9 @@ require-mercurial:
 
 require-node:
 	@if [[ -z "$(NODE)" ]]; then echo 'Missing "node" command.'; exit 1; fi
+
+require-gulp: require-node
+	@if [[ -z "$(GULP)" ]]; then echo 'Missing "gulp" command. Try "npm install -g gulp-cli"'; exit 1; fi
 
 require-npm: require-node
 	@if [[ -z "$(NPM)" ]]; then echo 'Missing "npm" command.'; exit 1; fi
