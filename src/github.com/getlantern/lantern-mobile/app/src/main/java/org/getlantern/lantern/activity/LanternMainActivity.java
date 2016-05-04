@@ -201,7 +201,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
         // START/STOP button to enable full-device VPN functionality
         powerLantern.setOnCheckedChangeListener(this);
 
-        setupFeedview();
+        showFeedview();
     }
 
     @Override
@@ -213,20 +213,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
         //  we check if mPrefs has been initialized before
         // since onCreate and onResume are always both called
         setBtnStatus();
-    }
-
-    private void setupFeedview() {
-        RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) powerLantern.getLayoutParams();
-
-        if (session.showFeed()) {
-            feedView.setVisibility(View.VISIBLE);
-            lp.removeRule(RelativeLayout.CENTER_VERTICAL);
-            new GetFeed(this, session.startLocalProxy()).execute("");
-        } else {
-            feedView.setVisibility(View.INVISIBLE);
-            lp.addRule(RelativeLayout.CENTER_VERTICAL);
-        }
-        powerLantern.setLayoutParams(lp);
     }
 
     // update START/STOP power Lantern button
@@ -324,8 +310,10 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
         final ListAdapter listAdapter = new ListAdapter(this, mNavItems);  
 
         if (session.showFeed())  {
+            // 'Turn off Feed' when the feed is already shown
             mNavItems.add(new NavItem(resources.getString(R.string.newsfeed_off_option), R.drawable.ic_feed));
         } else {
+            // 'Try Lantern Feed' when the feed is already hidden
             mNavItems.add(new NavItem(resources.getString(R.string.newsfeed_option), R.drawable.ic_feed));
         }
         
@@ -374,9 +362,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
                 mDrawerList.setItemChecked(position, true);
-                NavItem item;
                 if (position >= 0 && position < mNavItems.size()) {
-                    item = mNavItems.get(position);
+                    NavItem item = mNavItems.get(position);
                     if (item != null) {
                         String title = item.getTitle();
                         Log.d(TAG, "Menu option " + title + " selected");
@@ -416,13 +403,32 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
         mDrawerLayout.setDrawerListener(mDrawerToggle);
     }
 
+    // showFeedview optionally fetches the feed depending on the
+    // user's preference and updates the position of the on/off switch
+    private void showFeedview() {
+        RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) powerLantern.getLayoutParams();
+
+        if (session.showFeed()) {
+            feedView.setVisibility(View.VISIBLE);
+            lp.removeRule(RelativeLayout.CENTER_VERTICAL);
+            new GetFeed(this, session.startLocalProxy()).execute("");
+        } else {
+            feedView.setVisibility(View.INVISIBLE);
+            lp.addRule(RelativeLayout.CENTER_VERTICAL);
+        }
+        powerLantern.setLayoutParams(lp);
+    }
+
+
+    // updateFeedview updates the UI to show/hide the newsfeed
     public void updateFeedview(final ListAdapter listAdapter,
         final ArrayList<NavItem> mNavItems,
         final Resources resources,
         final int menuOptionIndex, final boolean showFeed) {
       
+        // store show/hide feed preference
         session.updateFeedPreference(showFeed);
-        setupFeedview();
+        showFeedview();
 
         if (menuOptionIndex >= 0 && menuOptionIndex < mNavItems.size()) {
             if (showFeed) {
