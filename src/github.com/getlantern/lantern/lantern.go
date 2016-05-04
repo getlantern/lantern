@@ -39,6 +39,13 @@ func ProtectConnections(dnsServer string, protector SocketProtector) {
 	tlsdialer.OverrideDial(protected.Dial)
 }
 
+// RemoveOverrides removes the protected tlsdialer overrides
+// that allowed connections to bypass the VPN.
+func RemoveOverrides() {
+	tlsdialer.OverrideResolve(nil)
+	tlsdialer.OverrideDial(nil)
+}
+
 // StartResult provides information about the started Lantern
 type StartResult struct {
 	HTTPAddr   string

@@ -76,8 +76,10 @@ public class SessionManager {
         try {
             int startTimeoutMillis = 60000;
             String analyticsTrackingID = ""; // don't track analytics since those are already being tracked elsewhere
+            boolean updateProxySettings = true;
+
             StartResult result = org.lantern.mobilesdk.Lantern.enable(mContext, 
-                startTimeoutMillis, analyticsTrackingID);
+                startTimeoutMillis, updateProxySettings, analyticsTrackingID);
             return result.getHTTPAddr();
         }  catch (LanternNotRunningException lnre) {
             throw new RuntimeException("Lantern failed to start: " + lnre.getMessage(), lnre);
