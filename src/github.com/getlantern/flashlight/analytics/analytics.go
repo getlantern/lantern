@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"runtime"
 	"strconv"
 	"sync/atomic"
 	"time"
@@ -91,6 +92,12 @@ func sessionVals(ip, version, clientID, sc string) string {
 // GetExecutableHash returns the hash of the currently running executable.
 // If there's an error getting the hash, this returns
 func getExecutableHash() string {
+	// We don't know how to get a useful hash here for Android but also this
+	// code isn't currently called on Android, so just guard against Something
+	// bad happening here.
+	if runtime.GOOS == "android" {
+		return "android"
+	}
 	if lanternPath, err := osext.Executable(); err != nil {
 		log.Debugf("Could not get path to executable %v", err)
 		return err.Error()
