@@ -422,18 +422,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
 
 
         mDrawerLayout.setDrawerListener(mDrawerToggle);
-
-        /*ImageView backBtn = (ImageView)this.activity.findViewById(R.id.navAvatar);
-
-        backBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mainView.setVisibility(View.VISIBLE);
-                desktopView.setVisibility(View.INVISIBLE);
-
-                mDrawerLayout.closeDrawers();
-            }
-        });*/
     }
 
     @Override
