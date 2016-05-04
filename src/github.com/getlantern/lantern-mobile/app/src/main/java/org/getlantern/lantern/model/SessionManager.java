@@ -35,6 +35,8 @@ public class SessionManager {
         this.mPrefs = context.getSharedPreferences(PREFS_NAME, PRIVATE_MODE);
         this.editor = mPrefs.edit();
         if (showFeed()) {
+            // if the news feed should be shown
+            // start a local proxy before retrieving it
             startLocalProxy();
         }
     }
@@ -44,11 +46,11 @@ public class SessionManager {
     }
 
     public void updateVpnPreference(boolean useVpn) {
-        mPrefs.edit().putBoolean(PREF_USE_VPN, useVpn).commit();
+        editor.putBoolean(PREF_USE_VPN, useVpn).commit();
     }
 
     public void updateFeedPreference(boolean pref) {
-        mPrefs.edit().putBoolean(PREF_NEWSFEED, pref).commit();
+        editor.putBoolean(PREF_NEWSFEED, pref).commit();
     }   
 
     public boolean showFeed() {
@@ -56,7 +58,7 @@ public class SessionManager {
     }
 
     public void clearVpnPreference() {
-        mPrefs.edit().putBoolean(PREF_USE_VPN, false).commit();
+        editor.putBoolean(PREF_USE_VPN, false).commit();
     }
 
     // startLocalProxy starts a separate instance of Lantern
