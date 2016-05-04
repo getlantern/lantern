@@ -57,8 +57,4 @@ public class ListAdapter extends BaseAdapter {
 
         return view;
     }
-
-    public void refresh() {
-        notifyDataSetChanged();
-    }
 }

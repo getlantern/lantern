@@ -435,7 +435,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
         } else {
             mNavItems.get(menuOptionIndex).setTitle(resources.getString(R.string.newsfeed_option));
         }
-        listAdapter.refresh();
+        listAdapter.notifyDataSetChanged();
     }
 
     @Override
