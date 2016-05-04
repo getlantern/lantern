@@ -111,8 +111,8 @@ func handleError(err error) {
 }
 
 // doRequest creates an HTTP request for the given feedURL and returns an HTTP
-// response. If an invalid response status code is returned, it could be
-// because there is no feed available for the given locale so we automatically
+// response. If an invalid status code is returned, it could be
+// because there is no feed available for the given locale so we
 // default to the given fallback url.
 func doRequest(httpClient *http.Client, feedURL string) (*http.Response, error) {
 	var err error
@@ -138,8 +138,7 @@ func doRequest(httpClient *http.Client, feedURL string) (*http.Response, error) 
 		err = fmt.Errorf("Unexpected response status %d fetching feed from %s",
 			res.StatusCode, feedURL)
 
-		// If we get an invalid response status, it could be because
-		// we don't have a feed available for the specified locale.
+		// no feed available at the given URL, default to the English feed
 		if feedURL != fallbackEndpoint {
 			log.Debugf("%v; attempting to fetch fallback feed from %s",
 				err, fallbackEndpoint)
