@@ -449,10 +449,10 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
     @Override
     public void onCheckedChanged(CompoundButton toggleButton, boolean on) {
         if (!Utils.isNetworkAvailable(getApplicationContext())) {
+            powerLantern.setChecked(false);
             if (on) {
                 // User tried to turn Lantern on, but there's no 
                 // Internet connection available.
-                powerLantern.setChecked(false);
                 Utils.showAlertDialog(this, "Lantern", 
                         getResources().getString(R.string.no_internet_connection));
             } 
