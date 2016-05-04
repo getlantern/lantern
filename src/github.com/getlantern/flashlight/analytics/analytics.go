@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"runtime"
 	"strconv"
 	"sync/atomic"
 	"time"
@@ -15,13 +16,16 @@ import (
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/util"
+	"github.com/kardianos/osext"
 
 	"github.com/getlantern/golog"
 )
 
 const (
-	trackingId  = "UA-21815217-12"
-	ApiEndpoint = `https://ssl.google-analytics.com/collect`
+	trackingID = "UA-21815217-12"
+
+	// endpoint is the endpoint to report GA data to.
+	endpoint = `https://ssl.google-analytics.com/collect`
 )
 
 var (
@@ -30,6 +34,7 @@ var (
 	maxWaitForIP = math.MaxInt32 * time.Second
 )
 
+// Start starts the GA session with the given data.
 func Start(cfg *config.Config, version string) func() {
 	var addr atomic.Value
 	go func() {
@@ -53,12 +58,12 @@ func Start(cfg *config.Config, version string) func() {
 	return stop
 }
 
-func sessionVals(ip, version, clientId, sc string) string {
+func sessionVals(ip, version, clientID, sc string) string {
 	vals := make(url.Values, 0)
 
 	vals.Add("v", "1")
-	vals.Add("cid", clientId)
-	vals.Add("tid", trackingId)
+	vals.Add("cid", clientID)
+	vals.Add("tid", trackingID)
 
 	// Override the users IP so we get accurate geo data.
 	vals.Add("uip", ip)
@@ -73,6 +78,10 @@ func sessionVals(ip, version, clientId, sc string) string {
 	// Custom variable for the Lantern version
 	vals.Add("cd1", version)
 
+	// Custom dimension for the hash of the executable
+	hash := getExecutableHash()
+	vals.Add("cd2", hash)
+
 	// This forces the recording of the session duration. It must be either
 	// "start" or "end". See:
 	// https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters
@@ -80,18 +89,39 @@ func sessionVals(ip, version, clientId, sc string) string {
 	return vals.Encode()
 }
 
-func endSession(ip string, version string, proxyAddrFN eventual.Getter, clientId string) {
-	args := sessionVals(ip, version, clientId, "end")
+// GetExecutableHash returns the hash of the currently running executable.
+// If there's an error getting the hash, this returns
+func getExecutableHash() string {
+	// We don't know how to get a useful hash here for Android but also this
+	// code isn't currently called on Android, so just guard against Something
+	// bad happening here.
+	if runtime.GOOS == "android" {
+		return "android"
+	}
+	if lanternPath, err := osext.Executable(); err != nil {
+		log.Debugf("Could not get path to executable %v", err)
+		return err.Error()
+	} else {
+		if b, er := util.GetFileHash(lanternPath); er != nil {
+			return er.Error()
+		} else {
+			return b
+		}
+	}
+}
+
+func endSession(ip string, version string, proxyAddrFN eventual.Getter, clientID string) {
+	args := sessionVals(ip, version, clientID, "end")
 	trackSession(args, proxyAddrFN)
 }
 
-func startSession(ip string, version string, proxyAddrFN eventual.Getter, clientId string) {
-	args := sessionVals(ip, version, clientId, "start")
+func startSession(ip string, version string, proxyAddrFN eventual.Getter, clientID string) {
+	args := sessionVals(ip, version, clientID, "start")
 	trackSession(args, proxyAddrFN)
 }
 
 func trackSession(args string, proxyAddrFN eventual.Getter) {
-	r, err := http.NewRequest("POST", ApiEndpoint, bytes.NewBufferString(args))
+	r, err := http.NewRequest("POST", endpoint, bytes.NewBufferString(args))
 
 	if err != nil {
 		log.Errorf("Error constructing GA request: %s", err)
@@ -101,8 +131,8 @@ func trackSession(args string, proxyAddrFN eventual.Getter) {
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	r.Header.Add("Content-Length", strconv.Itoa(len(args)))
 
-	if req, err := httputil.DumpRequestOut(r, true); err != nil {
-		log.Debugf("Could not dump request: %v", err)
+	if req, er := httputil.DumpRequestOut(r, true); er != nil {
+		log.Debugf("Could not dump request: %v", er)
 	} else {
 		log.Debugf("Full analytics request: %v", string(req))
 	}
