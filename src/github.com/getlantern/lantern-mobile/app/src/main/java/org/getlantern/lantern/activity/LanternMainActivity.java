@@ -457,11 +457,11 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnClickListener {
         }
 
         if (on) {
-            Log.d(TAG, "Load VPN configuration");
             // Prompt the user to enable full-device VPN mode
             // Make a VPN connection from the client
             // We should only have one active VPN connection per client
             try {
+                Log.d(TAG, "Load VPN configuration");
                 Intent intent = VpnService.prepare(getApplicationContext());
                 if (intent != null) {
                     Log.w(TAG,"Requesting VPN connection");
