@@ -54,7 +54,7 @@
 			android:screenOrientation="portrait"
 			android:launchMode="singleTask"
 			android:configChanges="layoutDirection|locale"/>
-        <activity
+		<activity
             android:name=".activity.UpdaterActivity"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize"

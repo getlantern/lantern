@@ -89,23 +89,23 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     private static final String PREFS_NAME = "LanternPrefs";
     private final static int REQUEST_VPN = 7777;
     private SharedPreferences mPrefs = null;
-	private BroadcastReceiver mReceiver;
-	private Context context;
+    private BroadcastReceiver mReceiver;
+    private Context context;
 
-	private NotificationManager mNotifier;
-	private final NotificationCompat.Builder mNotificationBuilder = new NotificationCompat.Builder(this);
-	private static final int NOTIFICATION_ID = 10002;
+    private NotificationManager mNotifier;
+    private final NotificationCompat.Builder mNotificationBuilder = new NotificationCompat.Builder(this);
+    private static final int NOTIFICATION_ID = 10002;
 
-	private Shareable shareable;
+    private Shareable shareable;
 
     private boolean isInBackground = false;
     private FragmentStatePagerItemAdapter feedAdapter;
     private SmartTabLayout viewPagerTab;
     private String lastFeedSelected;
 
-	private ObjectAnimator colorFadeIn, colorFadeOut;
-	private ArrayList<NavItem> mNavItems = new ArrayList<NavItem>();
-	private Map<String, Command> menuMap = new HashMap<String, Command>();
+    private ObjectAnimator colorFadeIn, colorFadeOut;
+    private ArrayList<NavItem> mNavItems = new ArrayList<NavItem>();
+    private Map<String, Command> menuMap = new HashMap<String, Command>();
 
     private static final int onColor = Color.parseColor("#39C2D6");
     private static final int offColor = Color.parseColor("#FFFFFF"); 
@@ -116,38 +116,38 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     private TransitionDrawable offNavTrans = new TransitionDrawable(offTransColor);
     private TransitionDrawable onNavTrans = new TransitionDrawable(onTransColor);
 
-	private ImageView statusImage;
+    private ImageView statusImage;
     private Toast statusToast;
 
-	private SessionManager session;
+    private SessionManager session;
 
-	@ViewById(R.id.versionNum)
-	TextView versionNum;
+    @ViewById(R.id.versionNum)
+    TextView versionNum;
 
-	@ViewById(R.id.powerLantern)
-	ToggleButton powerLantern;
+    @ViewById(R.id.powerLantern)
+    ToggleButton powerLantern;
 
-	@ViewById(R.id.drawerLayout)
-	DrawerLayout mDrawerLayout;
+    @ViewById(R.id.drawerLayout)
+    DrawerLayout mDrawerLayout;
 
-	@ViewById(R.id.drawerPane)
-	RelativeLayout mDrawerPane;
+    @ViewById(R.id.drawerPane)
+    RelativeLayout mDrawerPane;
 
-	@ViewById(R.id.navList)
+    @ViewById(R.id.navList)
     ListView mDrawerList;
 
-	@ViewById
-	View feedError, feedView;
+    @ViewById
+    View feedError, feedView;
 
-	@ViewById(R.id.settings_icon)
-	ImageView settingsIcon;
+    @ViewById(R.id.settings_icon)
+    ImageView settingsIcon;
 
-	private ListAdapter listAdapter;
-	private ActionBarDrawerToggle mDrawerToggle;
+    private ListAdapter listAdapter;
+    private ActionBarDrawerToggle mDrawerToggle;
 
-	private View statusLayout;
+    private View statusLayout;
 
-	@AfterViews
+    @AfterViews
     void afterViews() {
 
         getApplication().registerActivityLifecycleCallbacks(this);
@@ -164,22 +164,22 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             getSupportActionBar().hide();
         }
 
-		// make sure to show status bar
+        // make sure to show status bar
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         context = getApplicationContext();
-		session = LanternApp.getSession();
+        session = LanternApp.getSession();
 
 
         mPrefs = Utils.getSharedPrefs(context);
         mNotifier = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
-		setupNotifications();
+        setupNotifications();
 
         // since onCreate is only called when the main activity
         // is first created, we clear shared preferences in case
         // Lantern was forcibly stopped during a previous run
         if (!Service.isRunning(context)) {
-			session.clearVpnPreference();
+            session.clearVpnPreference();
         }
 
         // the ACTION_SHUTDOWN intent is broadcast when the phone is
@@ -202,21 +202,21 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         setupStatusToast();
 
-		setBtnStatus();
+        setBtnStatus();
 
         setupSwitch();
 
-		RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) powerLantern.getLayoutParams();
+        RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) powerLantern.getLayoutParams();
 
-		if (session.showNewsFeed()) {
-			feedView.setVisibility(View.VISIBLE);
-			lp.removeRule(RelativeLayout.CENTER_VERTICAL);
-			new GetFeed(this, session.startLocalProxy()).execute("");
-		} else {
-			feedView.setVisibility(View.INVISIBLE);
-			lp.addRule(RelativeLayout.CENTER_VERTICAL);
-		}
-		powerLantern.setLayoutParams(lp);
+        if (session.showNewsFeed()) {
+            feedView.setVisibility(View.VISIBLE);
+            lp.removeRule(RelativeLayout.CENTER_VERTICAL);
+            new GetFeed(this, session.startLocalProxy()).execute("");
+        } else {
+            feedView.setVisibility(View.INVISIBLE);
+            lp.addRule(RelativeLayout.CENTER_VERTICAL);
+        }
+        powerLantern.setLayoutParams(lp);
 
     }
 
@@ -276,9 +276,9 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     }
 
     public void toggleSwitch(boolean useVpn) {
-		displayStatus(useVpn);
-		// store the updated preference 
-		session.updateVpnPreference(useVpn);
+        displayStatus(useVpn);
+        // store the updated preference 
+        session.updateVpnPreference(useVpn);
     }
 
 
@@ -318,7 +318,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             // update version number that appears at the bottom of the side menu
             // if we have it stored in shared preferences; otherwise, default to absent until
             // Lantern starts
-			versionNum.setText(appVersion);
+            versionNum.setText(appVersion);
         } catch (android.content.pm.PackageManager.NameNotFoundException nne) {
             Log.e(TAG, "Could not find package: " + nne.getMessage());
         }
@@ -326,11 +326,11 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
     public void setupSideMenu() {
 
-		final LanternMainActivity activity = this;
+        final LanternMainActivity activity = this;
 
         Resources resources = getResources();
 
-		mNavItems.clear();
+        mNavItems.clear();
 
         mNavItems.add(new NavItem(resources.getString(R.string.share_option), 
                     R.drawable.ic_share));
@@ -340,11 +340,11 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
                     R.drawable.ic_contact));
 
         if (session.showNewsFeed())  {
-			mNavItems.add(new NavItem(resources.getString(R.string.newsfeed_off_option), R.drawable.ic_feed));
-		} else {
-			mNavItems.add(new NavItem(resources.getString(R.string.newsfeed_option), R.drawable.ic_feed));
-		}
-		
+            mNavItems.add(new NavItem(resources.getString(R.string.newsfeed_off_option), R.drawable.ic_feed));
+        } else {
+            mNavItems.add(new NavItem(resources.getString(R.string.newsfeed_option), R.drawable.ic_feed));
+        }
+        
         mNavItems.add(new NavItem(resources.getString(R.string.quit_option), 
                     R.drawable.ic_quit));
 
@@ -358,17 +358,17 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         menuMap.put(resources.getString(R.string.newsfeed_off_option), new Command() {
             public void runCommand() { 
-				session.updateNewsfeedPreference(false);
-				activity.recreate();
+                session.updateNewsfeedPreference(false);
+                activity.recreate();
             }
         });
 
-		menuMap.put(resources.getString(R.string.newsfeed_option), new Command() {
-			public void runCommand() { 
-				session.updateNewsfeedPreference(true);
-				activity.recreate();
-			}
-		});
+        menuMap.put(resources.getString(R.string.newsfeed_option), new Command() {
+            public void runCommand() { 
+                session.updateNewsfeedPreference(true);
+                activity.recreate();
+            }
+        });
 
         menuMap.put(resources.getString(R.string.desktop_option), new Command() { 
             public void runCommand() { 
@@ -450,8 +450,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
                 if (!Utils.isNetworkAvailable(activity.getApplicationContext())) {
                     powerLantern.setChecked(false);
-					Utils.showAlertDialog(activity, "Lantern", 
-							getResources().getString(R.string.no_internet_connection));
+                    Utils.showAlertDialog(activity, "Lantern", 
+                            getResources().getString(R.string.no_internet_connection));
                     return;
                 }
 
@@ -510,16 +510,16 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         return super.onKeyDown(keyCode, event);
     }
 
-	@Override
-	public void onConfigurationChanged(Configuration newConfig) {
-		//don't reload the current page when the orientation is changed
-		Log.d(TAG, "onConfigurationChanged() Called");
-		super.onConfigurationChanged(newConfig);
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        //don't reload the current page when the orientation is changed
+        Log.d(TAG, "onConfigurationChanged() Called");
+        super.onConfigurationChanged(newConfig);
 
-		if (listAdapter != null) {
-			listAdapter.refresh();
-		}
-	}
+        if (listAdapter != null) {
+            listAdapter.refresh();
+        }
+    }
 
     @Override
     public void onBackPressed() {
@@ -561,27 +561,27 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         }
     }
 
-	// opens an e-mail message with some default options
-	private void contactOption() {
+    // opens an e-mail message with some default options
+    private void contactOption() {
 
-		String contactEmail = getResources().getString(R.string.contact_email);
+        String contactEmail = getResources().getString(R.string.contact_email);
 
-		Intent intent = new Intent(Intent.ACTION_SEND);
-		intent.setType("plain/text");
-		intent.putExtra(Intent.EXTRA_EMAIL, new String[] { contactEmail });
-		intent.putExtra(Intent.EXTRA_SUBJECT, R.string.contact_subject);
-		intent.putExtra(Intent.EXTRA_TEXT, R.string.contact_message);
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setType("plain/text");
+        intent.putExtra(Intent.EXTRA_EMAIL, new String[] { contactEmail });
+        intent.putExtra(Intent.EXTRA_SUBJECT, R.string.contact_subject);
+        intent.putExtra(Intent.EXTRA_TEXT, R.string.contact_message);
 
-		startActivity(Intent.createChooser(intent, ""));
-	}
+        startActivity(Intent.createChooser(intent, ""));
+    }
 
 
     public void refreshFeed(View view) {
         Log.d(TAG, "Refresh feed clicked");
-		feedError.setVisibility(View.INVISIBLE);
-		if (session.showNewsFeed()) {
-			new GetFeed(this, session.startLocalProxy()).execute("");
-		}
+        feedError.setVisibility(View.INVISIBLE);
+        if (session.showNewsFeed()) {
+            new GetFeed(this, session.startLocalProxy()).execute("");
+        }
     }
 
     public void showFeedError() {
@@ -733,17 +733,17 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
     private void sendIntentToService() {
         startService(new Intent(this, Service.class));
-		showStatusIcon();
+        showStatusIcon();
     }
 
-	public void showStatusIcon() {
-		if (mNotifier != null) {
-			mNotificationBuilder
-				.setTicker(getText(R.string.service_connected))
-				.setContentText(getText(R.string.service_connected));
-			mNotifier.notify(NOTIFICATION_ID, mNotificationBuilder.build());
-		}
-	}
+    public void showStatusIcon() {
+        if (mNotifier != null) {
+            mNotificationBuilder
+                .setTicker(getText(R.string.service_connected))
+                .setContentText(getText(R.string.service_connected));
+            mNotifier.notify(NOTIFICATION_ID, mNotificationBuilder.build());
+        }
+    }
 
     public void stopLantern() {
         Service.IsRunning = false;
@@ -757,7 +757,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         // Pass the event to ActionBarDrawerToggle
         // If it returns true, then it has handled
         // the nav drawer indicator touch event
-	   	if (mDrawerToggle.onOptionsItemSelected(item)) { 
+        if (mDrawerToggle.onOptionsItemSelected(item)) { 
             return true;
         }
 
@@ -768,8 +768,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-		if (mDrawerToggle != null) {
-			mDrawerToggle.syncState();
+        if (mDrawerToggle != null) {
+            mDrawerToggle.syncState();
         }
     }
 
@@ -793,8 +793,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
                         // automatically refresh feed when connectivity is detected
                         refreshFeed(null);
                     } else {
-						if (session.useVpn()) {
-							// whenever a user disconnects from Wifi and Lantern is running
+                        if (session.useVpn()) {
+                            // whenever a user disconnects from Wifi and Lantern is running
                             stopLantern();
                         }
                     }
