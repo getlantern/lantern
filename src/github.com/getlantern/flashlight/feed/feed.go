@@ -105,9 +105,10 @@ func GetFeed(locale string, allStr string, proxyAddr string,
 	doGetFeed(defaultFeedEndpoint, locale, allStr, proxyAddr, provider)
 }
 
+// handleError logs the given error message and sets the current feed to nil
 func handleError(err error) {
-	feed = nil
 	log.Error(err)
+	feed = nil
 }
 
 // doRequest creates an HTTP request for the given feedURL and returns an HTTP
