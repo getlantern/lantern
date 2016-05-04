@@ -189,11 +189,13 @@ app.controller('NewsfeedCtrl', ['$scope', '$rootScope', '$translate', 'gaMgr', '
   $rootScope.showNewsfeed = function() {
     $rootScope.showNews = true;
     localStorageService.set($rootScope.lanternShowNews, true);
+    $rootScope.showMobileAd = false;
     gaMgr.trackShowFeed();
   };
   $rootScope.hideNewsfeed = function() {
     $rootScope.showNews = false;
     localStorageService.set($rootScope.lanternShowNews, false);
+    $rootScope.showMobileAd = false;
     gaMgr.trackHideFeed();
   };
   $rootScope.showNewsfeedError = function() {
