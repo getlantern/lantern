@@ -17,6 +17,7 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.TransitionDrawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.StrictMode;
@@ -198,12 +199,10 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
 
         setupStatusToast();
 
-        setBtnStatus();
-
         // START/STOP button to enable full-device VPN functionality
         powerLantern.setOnCheckedChangeListener(this);
 
-        setupFeedView();
+        setupFeedview();
     }
 
     @Override
@@ -214,15 +213,13 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
 
         //  we check if mPrefs has been initialized before
         // since onCreate and onResume are always both called
-        if (mPrefs != null) {
-            setBtnStatus();
-        }
+        setBtnStatus();
     }
 
-    private void setupFeedView() {
+    private void setupFeedview() {
         RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) powerLantern.getLayoutParams();
 
-        if (session.showNewsFeed()) {
+        if (session.showFeed()) {
             feedView.setVisibility(View.VISIBLE);
             lp.removeRule(RelativeLayout.CENTER_VERTICAL);
             new GetFeed(this, session.startLocalProxy()).execute("");
@@ -240,11 +237,11 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
         powerLantern.setChecked(useVpn);
 
         if (useVpn) {
-            this.mDrawerLayout.setBackgroundColor(onColor);
             settingsIcon.setImageResource(R.drawable.menu_white);   
+            mDrawerLayout.setBackgroundColor(onColor);
         } else {
-            this.mDrawerLayout.setBackgroundColor(offColor);
             settingsIcon.setImageResource(R.drawable.menu);   
+            mDrawerLayout.setBackgroundColor(offColor);
         }
     }
 
@@ -275,13 +272,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
         statusToast.setDuration(Toast.LENGTH_SHORT);
     }
 
-    public void toggleSwitch(boolean useVpn) {
-        displayStatus(useVpn);
-        // store the updated preference 
-        session.updateVpnPreference(useVpn);
-    }
-
-
     public void displayStatus(final boolean useVpn) {
         if (useVpn) {
             // whenever we switch 'on', we want to trigger the color
@@ -294,7 +284,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
             colorFadeOut.start();
             statusImage.setImageResource(R.drawable.toast_off); 
             settingsIcon.setImageResource(R.drawable.menu);
-            powerLantern.setChecked(false);
         }
 
         statusToast.setView(statusLayout);
@@ -335,7 +324,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
 
         final ListAdapter listAdapter = new ListAdapter(this, mNavItems);  
 
-        if (session.showNewsFeed())  {
+        if (session.showFeed())  {
             mNavItems.add(new NavItem(resources.getString(R.string.newsfeed_off_option), R.drawable.ic_feed));
         } else {
             mNavItems.add(new NavItem(resources.getString(R.string.newsfeed_option), R.drawable.ic_feed));
@@ -434,7 +423,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
         final int menuOptionIndex, final boolean showFeed) {
       
         session.updateNewsfeedPreference(showFeed);
-        setupFeedView();
+        setupFeedview();
+
         if (menuOptionIndex >= 0 && menuOptionIndex < mNavItems.size()) {
             if (showFeed) {
                 mNavItems.get(menuOptionIndex).setTitle(resources.getString(R.string.newsfeed_off_option));
@@ -445,36 +435,47 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
         listAdapter.notifyDataSetChanged();
     }
 
+    private void updateVpnPref(boolean useVpn) {
+        displayStatus(useVpn);
+        changeFeedHeaderColor(useVpn);
+        session.updateVpnPreference(useVpn);
+    }
+
     @Override
-    public void onCheckedChanged(CompoundButton toggleButton, boolean isChecked) {
-
-        final LanternMainActivity activity = this;
-
-        if (!Utils.isNetworkAvailable(activity.getApplicationContext())) {
-            powerLantern.setChecked(false);
-            Utils.showAlertDialog(activity, "Lantern", 
-                    getResources().getString(R.string.no_internet_connection));
+    public void onCheckedChanged(CompoundButton toggleButton, boolean on) {
+        if (!Utils.isNetworkAvailable(getApplicationContext())) {
+            if (on) {
+                powerLantern.setChecked(false);
+                Utils.showAlertDialog(this, "Lantern", 
+                        getResources().getString(R.string.no_internet_connection));
+            } 
             return;
         }
 
-        // disable the on/off switch while the VpnService
-        // is updating the connection
-        powerLantern.setEnabled(false);
-
-        if (isChecked) {
-            enableVPN();
-        } else {
-            toggleSwitch(false);
-            stopLantern();
-        }
-
-        // after 2000ms, enable the switch again
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                powerLantern.setEnabled(true);
+        if (on) {
+            Log.d(TAG, "Load VPN configuration");
+            // Prompt the user to enable full-device VPN mode
+            // Make a VPN connection from the client
+            // We should only have one active VPN connection per client
+            try {
+                Intent intent = VpnService.prepare(getApplicationContext());
+                if (intent != null) {
+                    Log.w(TAG,"Requesting VPN connection");
+                    startActivityForResult(intent, REQUEST_VPN);
+                } else {
+                    Log.d(TAG, "VPN enabled, starting Lantern...");
+                    updateVpnPref(true);
+                    Lantern.disable(getApplicationContext());
+                    sendIntentToService();
+                }    
+            } catch (Exception e) {
+                Log.e(TAG, "Could not establish VPN connection: " + e.getMessage());
+                powerLantern.setChecked(false);
             }
-        }, 2000);
+        } else  {
+            Service.IsRunning = false;
+            updateVpnPref(false);
+        }
     }
 
     // override onKeyDown and onBackPressed default 
@@ -519,7 +520,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
         try {
             Log.d(TAG, "About to exit Lantern...");
 
-            stopLantern();
+            session.updateVpnPreference(false);
+            Service.IsRunning = false;
 
             // sleep for a few ms before exiting
             Thread.sleep(200);
@@ -550,7 +552,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
     public void refreshFeed(View view) {
         Log.d(TAG, "Refresh feed clicked");
         feedError.setVisibility(View.INVISIBLE);
-        if (session.showNewsFeed()) {
+        if (session.showFeed()) {
             new GetFeed(this, session.startLocalProxy()).execute("");
         }
     }
@@ -647,42 +649,19 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
         changeFeedHeaderColor(Service.IsRunning);
     }
 
-    // Prompt the user to enable full-device VPN mode
-    // Make a VPN connection from the client
-    // We should only have one active VPN connection per client
-    public void enableVPN() {
-        Log.d(TAG, "Load VPN configuration");
-        try {
-            Intent intent = VpnService.prepare(this);
-            if (intent != null) {
-                Log.w(TAG,"Requesting VPN connection");
-                startActivityForResult(intent, REQUEST_VPN);
-            } else {
-                Log.d(TAG, "VPN enabled, starting Lantern...");
-                Lantern.disable(getApplicationContext());
-                toggleSwitch(true);
-                changeFeedHeaderColor(true);
-                sendIntentToService();
-            }    
-        } catch (Exception e) {
-            Log.e(TAG, "Could not establish VPN connection: " + e.getMessage());
-        }
-    }
-
     @Override
     protected void onActivityResult(int request, int response, Intent data) {
         super.onActivityResult(request, response, data);
 
-        if (request == REQUEST_VPN) {
-            if (response != RESULT_OK) {
-                // no permission given to open
-                // VPN connection; return to off state
-                toggleSwitch(false);
-            } else {
-                Lantern.disable(getApplicationContext());
-                toggleSwitch(true);
-                sendIntentToService();
-            }
+        boolean useVpn = response == RESULT_OK;
+        // store the updated preference 
+        session.updateVpnPreference(useVpn);
+
+        if (useVpn) {
+            displayStatus(useVpn);
+
+            Lantern.disable(getApplicationContext());
+            sendIntentToService();
         }
     }
 
@@ -716,19 +695,12 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
         }
     }
 
-    public void stopLantern() {
-        Service.IsRunning = false;
-        Utils.clearPreferences(this);
-        changeFeedHeaderColor(false);
-        setBtnStatus();
-    }
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Pass the event to ActionBarDrawerToggle
         // If it returns true, then it has handled
         // the nav drawer indicator touch event
-        if (mDrawerToggle.onOptionsItemSelected(item)) { 
+        if (mDrawerToggle.onOptionsItemSelected(item)) {
             return true;
         }
 
@@ -766,7 +738,9 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
                     } else {
                         if (session.useVpn()) {
                             // whenever a user disconnects from Wifi and Lantern is running
-                            stopLantern();
+                            changeFeedHeaderColor(false);
+                            Service.IsRunning = false;
+                            displayStatus(false);
                         }
                     }
                 }
