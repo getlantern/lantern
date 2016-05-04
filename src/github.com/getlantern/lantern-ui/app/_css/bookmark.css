@@ -80,13 +80,37 @@ html {
   text-align: center;
 }
 
-#logo {
-  width: 75px;
-}
 
 @font-face{
   font-family:LBL;
   src:url(../font/ProximaNova-Light.otf)
+}
+
+#feedLink {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  display: inline-block;
+  background-color: #ff4081;
+}
+
+#feedLink div {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+#feedLink a {
+  color: white;
+  text-align: center;
+  margin-left: 16px;
+  margin-right: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: LBL;
+}
+
+#logo {
+  width: 75px;
 }
 
 div.end-censorship{

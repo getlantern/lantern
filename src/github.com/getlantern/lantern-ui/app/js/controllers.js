@@ -5,6 +5,7 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$filter', '$compile', '$win
                function($rootScope, $scope, $filter, $compile, $window, $http, gaMgr, $translate, localStorageService, BUILD_REVISION) {
     $scope.currentModal = 'none';
 
+    $rootScope.lanternShowNews = 'lanternShowNewsFeed';
     $rootScope.lanternFirstTimeBuildVar = 'lanternFirstTimeBuild-'+BUILD_REVISION;
     $rootScope.lanternHideMobileAdVar = 'lanternHideMobileAd';
 
@@ -184,16 +185,39 @@ app.controller('MobileAdCtrl', ['$scope', 'MODAL', 'gaMgr', function($scope, MOD
 
 }]);
 
-app.controller('NewsfeedCtrl', ['$scope', '$rootScope', '$translate', function($scope, $rootScope, $translate) {
-  $scope.showNewsfeed = function(e) {
+app.controller('NewsfeedCtrl', ['$scope', '$rootScope', '$translate', 'gaMgr', 'localStorageService', function($scope, $rootScope, $translate, gaMgr, localStorageService) {
+  $rootScope.showNewsfeed = function() {
     $rootScope.showNews = true;
+    localStorageService.set($rootScope.lanternShowNews, true);
+    $rootScope.showMobileAd = false;
+    gaMgr.trackShowFeed();
   };
-  $scope.hideNewsfeed = function(e) {
+  $rootScope.hideNewsfeed = function() {
+    $rootScope.showNews = false;
+    localStorageService.set($rootScope.lanternShowNews, false);
+    $rootScope.showMobileAd = false;
+    gaMgr.trackHideFeed();
+  };
+  $rootScope.showNewsfeedError = function() {
     $rootScope.showNews = false;
     $rootScope.enableShowError();
   };
-  $scope.showNewsfeed();
 
+  // Note local storage stores everything as strings.
+  if (localStorageService.get($rootScope.lanternShowNews) === "true") {
+    console.log("local storage set to show the feed");
+
+    // We just set the variable directly here to skip analytics, local
+    // storage, etc.
+    $rootScope.showNews = true;
+  } else {
+    console.log("local storage NOT set to show the feed");
+    $rootScope.showNews = false;
+  }
+
+  // The function for determing the URL of the feed. Note this is watched
+  // elsewhere so will get called a lot, but it's just calculating the url
+  // string so is cheap.
   $scope.feedUrl = function() {
     var mapTable = {
       'fa': 'fa_IR',
@@ -202,7 +226,6 @@ app.controller('NewsfeedCtrl', ['$scope', '$rootScope', '$translate', function($
     var lang = $translate.use();
     lang = mapTable[lang] || lang;
     var url = "/feed?lang="+lang;
-    console.log("Requesting feed from "+url);
     return url;
   }
 }]);

@@ -1,4 +1,6 @@
 {
+  "SHOW_NEWSFEED": "Check out the new Lantern newsfeed!",
+  "HIDE_NEWSFEED": "Take me back to the old look",
   "ERROR_OOPS": "Oops, something went wrong!",
   "ERROR_DESCRIPTION": "Here are a couple of things that could be preventing Lantern from loading:",
   "PROXY_OFF_ISSUE": "'Manage system proxy' option is unintentionally disabled.",
@@ -16,7 +18,7 @@
   "LANTERN_MOBILE_GET_APP_VIA_EMAIL": "Get the app via e-mail",
   "LANTERN_MOBILE_ENTER_VALID_EMAIL": "Please enter a valid e-mail",
   "LANTERN_MOBILE_CHECK_EMAIL": "Please check your e-mail address.",
-  "FEED_LINK": "Lantern Feed",
+  "FEED_LINK": "Hide Lantern for Android!",
   "ALL_FEEDS": "ALL",
   "TELL_YOUR_FRIENDS": "Thanks! Tell your friends about Lantern Mobile",
   "HELP_TRANSLATE": "Help translate",
