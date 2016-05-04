@@ -83,7 +83,7 @@ import org.lantern.mobilesdk.Lantern;
 @Fullscreen
 @EActivity(R.layout.activity_lantern_main)
 public class LanternMainActivity extends AppCompatActivity implements 
-Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
+Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeListener {
 
     private static final String TAG = "LanternMainActivity";
     private static final String PREFS_NAME = "LanternPrefs";
@@ -204,7 +204,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         setBtnStatus();
 
-        setupSwitch();
+        // START/STOP button to enable full-device VPN functionality
+        powerLantern.setOnCheckedChangeListener(this);
 
         RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) powerLantern.getLayoutParams();
 
@@ -435,48 +436,37 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         });*/
     }
 
-
-    public void setupSwitch() {
+    @Override
+    public void onCheckedChanged(CompoundButton toggleButton, boolean isChecked) {
 
         final LanternMainActivity activity = this;
 
-        setBtnStatus();
+        if (!Utils.isNetworkAvailable(activity.getApplicationContext())) {
+            powerLantern.setChecked(false);
+            Utils.showAlertDialog(activity, "Lantern", 
+                    getResources().getString(R.string.no_internet_connection));
+            return;
+        }
 
-        // START/STOP button to enable full-device VPN functionality
-        powerLantern.setOnClickListener(new OnClickListener() {
+        // disable the on/off switch while the VpnService
+        // is updating the connection
+        powerLantern.setEnabled(false);
+
+        if (isChecked) {
+            enableVPN();
+        } else {
+            toggleSwitch(false);
+            stopLantern();
+        }
+
+        // after 2000ms, enable the switch again
+        new Handler().postDelayed(new Runnable() {
             @Override
-            public void onClick(View v) {
-                boolean isChecked = powerLantern.isChecked();
-
-                if (!Utils.isNetworkAvailable(activity.getApplicationContext())) {
-                    powerLantern.setChecked(false);
-                    Utils.showAlertDialog(activity, "Lantern", 
-                            getResources().getString(R.string.no_internet_connection));
-                    return;
-                }
-
-                // disable the on/off switch while the VpnService
-                // is updating the connection
-                powerLantern.setEnabled(false);
-
-                if (isChecked) {
-                    enableVPN();
-                } else {
-                    toggleSwitch(false);
-                    stopLantern();
-                }
-
-                // after 2000ms, enable the switch again
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        powerLantern.setEnabled(true);
-                    }
-                }, 2000);
-
+            public void run() {
+                powerLantern.setEnabled(true);
             }
-        });
-    } 
+        }, 2000);
+    }
 
     private void selectItemFromDrawer(int position) {
         mDrawerList.setItemChecked(position, true);
