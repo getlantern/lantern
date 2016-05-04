@@ -15,6 +15,7 @@ import (
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/geolookup"
+	"github.com/getlantern/flashlight/logging"
 	"github.com/getlantern/flashlight/util"
 	"github.com/kardianos/osext"
 
@@ -32,12 +33,19 @@ var (
 	log = golog.LoggerFor("flashlight.analytics")
 
 	maxWaitForIP = math.MaxInt32 * time.Second
+
+	// This allows us to report a real user agent from clients we see on the
+	// proxy.
+	userAgent = eventual.NewValue()
 )
 
 // Start starts the GA session with the given data.
 func Start(cfg *config.Config, version string) func() {
 	var addr atomic.Value
 	go func() {
+		logging.AddUserAgentListener(func(agent string) {
+			userAgent.Set(agent)
+		})
 		ip := geolookup.GetIP(maxWaitForIP)
 		if ip == "" {
 			log.Errorf("No IP found within %v, not starting analytics session", maxWaitForIP)
@@ -75,17 +83,32 @@ func sessionVals(ip, version, clientID, sc string) string {
 	vals.Add("dp", "localhost")
 	vals.Add("t", "pageview")
 
-	// Custom variable for the Lantern version
+	// Custom dimension for the Lantern version
 	vals.Add("cd1", version)
+
+	// Also send the app version signifier. Unclear exactly what this does for
+	// web properties, but worth a try.
+	vals.Add("av", version)
 
 	// Custom dimension for the hash of the executable
 	hash := getExecutableHash()
 	vals.Add("cd2", hash)
 
+	// This sets the user agent to a real user agent the user is using. We
+	// wait 30 seconds for some traffic to come through.
+	ua, found := userAgent.Get(30 * time.Second)
+	if found {
+		vals.Add("ua", ua.(string))
+	}
+
 	// This forces the recording of the session duration. It must be either
 	// "start" or "end". See:
 	// https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters
 	vals.Add("sc", sc)
+
+	// Make this a non-interaction hit that bypasses things like bounce rate. See:
+	// https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#ni
+	vals.Add("ni", "1")
 	return vals.Encode()
 }
 
