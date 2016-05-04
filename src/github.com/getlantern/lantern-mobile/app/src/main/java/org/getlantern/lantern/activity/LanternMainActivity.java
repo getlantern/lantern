@@ -421,7 +421,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
         final Resources resources,
         final int menuOptionIndex, final boolean showFeed) {
       
-        session.updateNewsfeedPreference(showFeed);
+        session.updateFeedPreference(showFeed);
         setupFeedview();
 
         if (menuOptionIndex >= 0 && menuOptionIndex < mNavItems.size()) {
@@ -434,7 +434,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
         listAdapter.notifyDataSetChanged();
     }
 
-    private void updateVpnPref(boolean useVpn) {
+    private void updateStatus(boolean useVpn) {
         displayStatus(useVpn);
         changeFeedHeaderColor(useVpn);
         session.updateVpnPreference(useVpn);
@@ -444,6 +444,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
     public void onCheckedChanged(CompoundButton toggleButton, boolean on) {
         if (!Utils.isNetworkAvailable(getApplicationContext())) {
             if (on) {
+                // User tried to turn Lantern on, but there's no 
+                // Internet connection available.
                 powerLantern.setChecked(false);
                 Utils.showAlertDialog(this, "Lantern", 
                         getResources().getString(R.string.no_internet_connection));
@@ -463,7 +465,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
                     startActivityForResult(intent, REQUEST_VPN);
                 } else {
                     Log.d(TAG, "VPN enabled, starting Lantern...");
-                    updateVpnPref(true);
+                    updateStatus(true);
                     Lantern.disable(getApplicationContext());
                     sendIntentToService();
                 }    
@@ -473,7 +475,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
             }
         } else  {
             Service.IsRunning = false;
-            updateVpnPref(false);
+            updateStatus(false);
         }
     }
 
@@ -653,12 +655,9 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
         super.onActivityResult(request, response, data);
 
         boolean useVpn = response == RESULT_OK;
-        // store the updated preference 
-        session.updateVpnPreference(useVpn);
+        updateStatus(useVpn);
 
         if (useVpn) {
-            displayStatus(useVpn);
-
             Lantern.disable(getApplicationContext());
             sendIntentToService();
         }
