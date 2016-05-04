@@ -659,13 +659,14 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
     @Override
     protected void onActivityResult(int request, int response, Intent data) {
         super.onActivityResult(request, response, data);
+        if (request == REQUEST_VPN) {
+            boolean useVpn = response == RESULT_OK;
 
-        boolean useVpn = response == RESULT_OK;
-        updateStatus(useVpn);
-
-        if (useVpn) {
-            Lantern.disable(getApplicationContext());
-            sendIntentToService();
+            updateStatus(useVpn);
+            if (useVpn) {
+                Lantern.disable(getApplicationContext());
+                sendIntentToService();
+            }
         }
     }
 
