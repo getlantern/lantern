@@ -12,7 +12,7 @@ import (
 func GetFileHash(path string) (string, error) {
 	log.Debugf("Hashing file at path %v", path)
 	if f, err := os.Open(path); err != nil {
-		log.Errorf("test %v", err)
+		log.Errorf("Could not open file at %v, %v", path, err)
 		return "", err
 	} else {
 		defer f.Close()

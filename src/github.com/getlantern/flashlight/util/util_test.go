@@ -24,7 +24,9 @@ func TestGetFileHash(t *testing.T) {
 	hash, _ := GetFileHash(path)
 	//log.Debugf("Got hash! %x", hash)
 	log.Debugf("Got hash! %v", hash)
-	assert.Equal(t, "6a963b525e6edef36fa27eb2f6ef5d90ff74f3be229ca0c12d459cdd6c8c9876", hash,
+
+	// Update this with shasum -a 256 hash.go
+	assert.Equal(t, "388f24dd05f05e0fe50759f4e779a09f4cff93d9d59587d3b53125ea33d0e4a1", hash,
 		"hashes not equal! has hashes.go changed?")
 }
 
