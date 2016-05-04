@@ -32,6 +32,8 @@ func ServePACFile() {
 	defer cfgMutex.Unlock()
 	if pacURL == "" {
 		pacURL = ui.Handle("/proxy_on.pac", http.HandlerFunc(servePACFile))
+		// Trying to bypass Windows' PAC file cache.
+		pacURL = fmt.Sprintf("%s?_t=%d", pacURL, time.Now().UnixNano)
 	}
 }
 
@@ -72,6 +74,8 @@ func setUpPacTool() error {
 }
 
 func genPACFile(w io.Writer) (int, error) {
+	// TODO: we don't need to generate this thing everytime.
+
 	hostsString := "[]"
 	// only bypass sites if proxy all option is unset
 	if !settings.GetProxyAll() {
