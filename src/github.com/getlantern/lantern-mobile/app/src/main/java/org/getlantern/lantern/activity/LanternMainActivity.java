@@ -486,17 +486,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnCheckedChangeList
     }
 
     @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        //don't reload the current page when the orientation is changed
-        Log.d(TAG, "onConfigurationChanged() Called");
-        super.onConfigurationChanged(newConfig);
-
-        /*if (listAdapter != null) {
-            listAdapter.refresh();
-        }*/
-    }
-
-    @Override
     public void onBackPressed() {
         Log.d(TAG, "onBackPressed Called");
         Intent setIntent = new Intent(Intent.ACTION_MAIN);
