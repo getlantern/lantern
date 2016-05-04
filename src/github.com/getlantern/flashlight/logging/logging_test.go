@@ -23,11 +23,16 @@ func TestUserAgent(t *testing.T) {
 	listener := func(a string) {
 		userAgent.Set(a)
 	}
-	AddUserAgentListener(listener)
+
+	// Do an initial register just to test the duplicate agent paths.
 	RegisterUserAgent(agent)
 
-	// Just register again to hit the code path for duplicates.
-	RegisterUserAgent(agent)
+	AddUserAgentListener(listener)
+
+	go func() {
+		time.Sleep(200 * time.Millisecond)
+		RegisterUserAgent(agent)
+	}()
 
 	received, _ := userAgent.Get(4 * time.Second)
 	assert.Equal(t, agent, received.(string), "Unexpected agent!")

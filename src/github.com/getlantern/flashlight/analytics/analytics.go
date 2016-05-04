@@ -13,7 +13,6 @@ import (
 
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/flashlight/client"
-	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/logging"
 	"github.com/getlantern/flashlight/util"
@@ -34,47 +33,61 @@ var (
 
 	maxWaitForIP = math.MaxInt32 * time.Second
 
+	// We get the user agent to use from live data on the proxy, but don't wait
+	// for it forever!
+	maxWaitForUserAgent = 30 * time.Second
+
 	// This allows us to report a real user agent from clients we see on the
 	// proxy.
 	userAgent = eventual.NewValue()
+
+	// Hash of the executable
+	hash = getExecutableHash()
 )
 
 // Start starts the GA session with the given data.
-func Start(cfg *config.Config, version string) func() {
+func Start(deviceID, version string) func() {
+	return start(deviceID, version, geolookup.GetIP, maxWaitForUserAgent, trackSession)
+}
+
+// start starts the GA session with the given data.
+func start(deviceID, version string, ipFunc func(time.Duration) string, uaWait time.Duration,
+	transport func(string, eventual.Getter)) func() {
 	var addr atomic.Value
 	go func() {
 		logging.AddUserAgentListener(func(agent string) {
 			userAgent.Set(agent)
 		})
-		ip := geolookup.GetIP(maxWaitForIP)
+		ip := ipFunc(maxWaitForIP)
 		if ip == "" {
-			log.Errorf("No IP found within %v, not starting analytics session", maxWaitForIP)
-			return
+			log.Errorf("No IP found within %v", maxWaitForIP)
 		}
 		addr.Store(ip)
 		log.Debugf("Starting analytics session with ip %v", ip)
-		startSession(ip, version, client.Addr, cfg.Client.DeviceID)
+		startSession(ip, version, client.Addr, deviceID, transport, uaWait)
 	}()
 
 	stop := func() {
 		if addr.Load() != nil {
 			ip := addr.Load().(string)
 			log.Debugf("Ending analytics session with ip %v", ip)
-			endSession(ip, version, client.Addr, cfg.Client.DeviceID)
+			endSession(ip, version, client.Addr, deviceID, transport, uaWait)
 		}
 	}
 	return stop
 }
 
-func sessionVals(ip, version, clientID, sc string) string {
+func sessionVals(ip, version, clientID, sc string, uaWait time.Duration) string {
 	vals := make(url.Values, 0)
 
 	vals.Add("v", "1")
 	vals.Add("cid", clientID)
 	vals.Add("tid", trackingID)
 
-	// Override the users IP so we get accurate geo data.
-	vals.Add("uip", ip)
+	if ip != "" {
+		// Override the users IP so we get accurate geo data.
+		vals.Add("uip", ip)
+	}
 
 	// Make call to anonymize the user's IP address -- basically a policy thing where
 	// Google agrees not to store it.
@@ -91,12 +104,11 @@ func sessionVals(ip, version, clientID, sc string) string {
 	vals.Add("av", version)
 
 	// Custom dimension for the hash of the executable
-	hash := getExecutableHash()
 	vals.Add("cd2", hash)
 
 	// This sets the user agent to a real user agent the user is using. We
 	// wait 30 seconds for some traffic to come through.
-	ua, found := userAgent.Get(30 * time.Second)
+	ua, found := userAgent.Get(uaWait)
 	if found {
 		vals.Add("ua", ua.(string))
 	}
@@ -133,14 +145,16 @@ func getExecutableHash() string {
 	}
 }
 
-func endSession(ip string, version string, proxyAddrFN eventual.Getter, clientID string) {
-	args := sessionVals(ip, version, clientID, "end")
-	trackSession(args, proxyAddrFN)
+func endSession(ip string, version string, proxyAddrFN eventual.Getter,
+	clientID string, transport func(string, eventual.Getter), uaWait time.Duration) {
+	args := sessionVals(ip, version, clientID, "end", uaWait)
+	transport(args, proxyAddrFN)
 }
 
-func startSession(ip string, version string, proxyAddrFN eventual.Getter, clientID string) {
-	args := sessionVals(ip, version, clientID, "start")
-	trackSession(args, proxyAddrFN)
+func startSession(ip string, version string, proxyAddrFN eventual.Getter,
+	clientID string, transport func(string, eventual.Getter), uaWait time.Duration) {
+	args := sessionVals(ip, version, clientID, "start", uaWait)
+	transport(args, proxyAddrFN)
 }
 
 func trackSession(args string, proxyAddrFN eventual.Getter) {
