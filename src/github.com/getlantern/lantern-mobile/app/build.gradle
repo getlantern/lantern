@@ -126,7 +126,7 @@ dependencies {
 
 apt {
     arguments {
-        androidManifestFile variant.outputs[0].processResources.manifestFile
-        resourcePackageName 'org.getlantern.lantern'
+        resourcePackageName android.defaultConfig.applicationId
+        androidManifestFile variant.outputs[0]?.processResources?.manifestFile
     }
 }
