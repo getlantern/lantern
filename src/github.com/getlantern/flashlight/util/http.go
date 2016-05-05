@@ -118,6 +118,7 @@ func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
 				// If the local proxy can't connect to any upstread proxies, for example,
 				// it will return a 502.
 				err := fmt.Errorf("Bad response code: %v", resp.StatusCode)
+				_ = resp.Body.Close()
 				errs <- err
 				return err
 			}
