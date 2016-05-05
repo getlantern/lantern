@@ -110,20 +110,20 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
     private SessionManager session;
 
-    @ViewById(R.id.versionNum)
+    @ViewById
     TextView versionNum;
 
-    @ViewById(R.id.powerLantern)
+    @ViewById
     ToggleButton powerLantern;
 
-    @ViewById(R.id.drawerLayout)
-    DrawerLayout mDrawerLayout;
+    @ViewById
+    DrawerLayout drawerLayout;
 
-    @ViewById(R.id.drawerPane)
-    RelativeLayout mDrawerPane;
+    @ViewById
+    RelativeLayout drawerPane;
 
-    @ViewById(R.id.navList)
-    ListView mDrawerList;
+    @ViewById
+    ListView drawerList;
 
     @ViewById
     View feedError, feedView;
@@ -209,10 +209,10 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         if (useVpn) {
             menuIcon.setImageResource(R.drawable.menu_white);
-            mDrawerLayout.setBackgroundColor(onColor);
+            drawerLayout.setBackgroundColor(onColor);
         } else {
             menuIcon.setImageResource(R.drawable.menu);
-            mDrawerLayout.setBackgroundColor(offColor);
+            drawerLayout.setBackgroundColor(offColor);
         }
     }
 
@@ -225,8 +225,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     // whenever we use the on/off slider) 
     public void setupStatusToast() {
 
-        colorFadeIn = ObjectAnimator.ofObject((View)mDrawerLayout, "backgroundColor", new ArgbEvaluator(), offColor, onColor);
-        colorFadeOut = ObjectAnimator.ofObject((View)mDrawerLayout, "backgroundColor", new ArgbEvaluator(), onColor, offColor);
+        colorFadeIn = ObjectAnimator.ofObject((View)drawerLayout, "backgroundColor", new ArgbEvaluator(), offColor, onColor);
+        colorFadeOut = ObjectAnimator.ofObject((View)drawerLayout, "backgroundColor", new ArgbEvaluator(), onColor, offColor);
 
         colorFadeIn.setDuration(500);
         colorFadeOut.setDuration(500);
@@ -339,17 +339,17 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         });   
 
         // Populate the Navigtion Drawer with options
-        mDrawerList.setAdapter(listAdapter);
+        drawerList.setAdapter(listAdapter);
 
         // remove ListView border
-        mDrawerList.setDivider(null);
+        drawerList.setDivider(null);
 
         // Drawer Item click listeners
-        mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        drawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                mDrawerList.setItemChecked(position, true);
+                drawerList.setItemChecked(position, true);
                 if (position >= 0 && position < mNavItems.size()) {
                     NavItem item = mNavItems.get(position);
                     if (item != null) {
@@ -360,11 +360,11 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
                 }
 
                 // Close the drawer
-                mDrawerLayout.closeDrawer(mDrawerPane);
+                drawerLayout.closeDrawer(drawerPane);
             }
         });
 
-        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.drawer_open, R.string.drawer_close) {
+        mDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.drawer_open, R.string.drawer_close) {
             @Override
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
@@ -379,12 +379,12 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             }
         };
 
-        mDrawerLayout.setDrawerListener(mDrawerToggle);
+        drawerLayout.setDrawerListener(mDrawerToggle);
     }
 
     @Click(R.id.menuIcon)
     void menuButtonClicked() {
-        mDrawerLayout.openDrawer(Gravity.START);
+        drawerLayout.openDrawer(Gravity.START);
     }
 
     // showFeedview optionally fetches the feed depending on the

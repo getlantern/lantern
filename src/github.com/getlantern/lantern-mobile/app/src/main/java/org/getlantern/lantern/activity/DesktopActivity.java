@@ -31,16 +31,16 @@ public class DesktopActivity extends FragmentActivity {
 
     private static final String TAG = "DesktopActivity";
 
-    @ViewById(R.id.navAvatar)
+    @ViewById
     ImageView backBtn;
 
-    @ViewById(R.id.sendBtn)
+    @ViewById
     Button sendBtn;
 
-    @ViewById(R.id.sendEmail)
+    @ViewById
     EditText emailInput;
 
-    @ViewById(R.id.separator)
+    @ViewById
     View separator;
 
     @TextChange(R.id.sendEmail)
@@ -63,7 +63,7 @@ public class DesktopActivity extends FragmentActivity {
         }
     }
 
-    @Click(R.id.navAvatar)
+    @Click(R.id.backBtn)
     void returnHome() {
         startActivity(new Intent(this, LanternMainActivity_.class));
     }
