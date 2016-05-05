@@ -440,8 +440,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         powerLantern.setLayoutParams(lp);
     }
 
-    // removeRule is used to remove the center vertical attribute for the
-    // toggle switch while displaying the news feed
+    // removeRule updates a relative layout to remove the given rule 
+    // note: removeRule was only added in API level 17
     private void removeRule(RelativeLayout.LayoutParams lp, int rule) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) { // API 17
             lp.removeRule(rule);
