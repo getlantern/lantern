@@ -12,7 +12,7 @@
         android:orientation="vertical">
 
     <ImageView
-        android:id="@+id/settings_icon"
+        android:id="@+id/menuButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|left"
