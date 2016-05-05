@@ -33,7 +33,29 @@ func servePACFile() {
 	defer cfgMutex.Unlock()
 	if pacURL == "" {
 		pacURL = ui.Handle("/proxy_on.pac", http.HandlerFunc(pacFileHandler))
-		// Trying to bypass Windows' PAC file cache.
+
+		// This is a workaround for Windows 10 and Edge.
+		//
+		// Lantern changes the system's proxy settings a sets an URL like:
+		//
+		//   http://127.0.0.1:16823/proxy_on.pac
+		//
+		// This URL is verified by Windows, and if it works then the system sets it
+		// as system proxy.
+		//
+		// The problem here was that, after rebooting, this URL was checked before
+		// Lantern started, so it failed and was marked as invalid by the OS.
+		//
+		// After Lantern finally started and called pacOn() the URL was not being
+		// verified again, because it was the same URL the system tried to reach a
+		// few seconds before.
+		//
+		// Some browsers like Chrome or Firefox use the URL later in the game
+		// anyway when Lantern is running, but some others like Edge do not even
+		// try.
+		//
+		// By changing the URL here we are forcing the OS to check the URL whenever
+		// Lantern starts.
 		pacURL = pacURL + fmt.Sprintf("?%d", time.Now().UnixNano())
 	}
 }
