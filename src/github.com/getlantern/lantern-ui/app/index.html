@@ -89,7 +89,7 @@
       <a href="https://getlantern.org" target="_blank">
       <img id="logo" src="/img/ui-header-logo.svg"></a><br/><span ng-hide="(backendIsGone && !wsConnected) || showError">{{ 'WELCOME_TO_LANTERN_BLOCKED_SITES' | translate }}</span>
     </div>
-    <div id="feedLink">
+    <div id="feedLink" ng-class="{subtle: showNews}">
       <div>
         <a ng-click="showNewsfeed()" ng-show="!showNews">
           {{ 'SHOW_NEWSFEED' | translate }}
