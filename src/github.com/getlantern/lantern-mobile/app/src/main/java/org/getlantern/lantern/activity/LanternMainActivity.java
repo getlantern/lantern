@@ -27,7 +27,6 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.AdapterView;
@@ -57,12 +56,14 @@ import org.getlantern.lantern.model.SessionManager;
 import org.getlantern.lantern.model.Shareable;
 import org.getlantern.lantern.model.Utils;
 import org.getlantern.lantern.R;
+import org.lantern.mobilesdk.Lantern;
 
 import java.util.ArrayList; 
 import java.util.Map;
 import java.util.HashMap;
 
 import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.Fullscreen;
 import org.androidannotations.annotations.ViewById;
@@ -72,13 +73,10 @@ import com.ogaclejapan.smarttablayout.utils.v4.FragmentStatePagerItemAdapter;
 import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItems;
 import com.ogaclejapan.smarttablayout.SmartTabLayout;
 
-
-import org.lantern.mobilesdk.Lantern;
-
 @Fullscreen
 @EActivity(R.layout.activity_lantern_main)
 public class LanternMainActivity extends AppCompatActivity implements 
-Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnClickListener {
+Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
     private static final String TAG = "LanternMainActivity";
     private static final String PREFS_NAME = "LanternPrefs";
@@ -130,8 +128,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnClickListener {
     @ViewById
     View feedError, feedView;
 
-    @ViewById(R.id.settings_icon)
-    ImageView settingsIcon;
+    @ViewById
+    ImageView menuIcon;
 
     private ActionBarDrawerToggle mDrawerToggle;
 
@@ -191,9 +189,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnClickListener {
 
         setupStatusToast();
 
-        // START/STOP button to enable full-device VPN functionality
-        powerLantern.setOnClickListener(this);
-
         showFeedview();
     }
 
@@ -203,8 +198,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnClickListener {
 
         setupSideMenu();
 
-        //  we check if mPrefs has been initialized before
-        // since onCreate and onResume are always both called
         setBtnStatus();
     }
 
@@ -215,10 +208,10 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnClickListener {
         powerLantern.setChecked(useVpn);
 
         if (useVpn) {
-            settingsIcon.setImageResource(R.drawable.menu_white);   
+            menuIcon.setImageResource(R.drawable.menu_white);
             mDrawerLayout.setBackgroundColor(onColor);
         } else {
-            settingsIcon.setImageResource(R.drawable.menu);   
+            menuIcon.setImageResource(R.drawable.menu);
             mDrawerLayout.setBackgroundColor(offColor);
         }
     }
@@ -257,11 +250,11 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnClickListener {
             // our image view to use the 'on' image resource
             colorFadeIn.start();
             statusImage.setImageResource(R.drawable.toast_on);
-            settingsIcon.setImageResource(R.drawable.menu_white);   
+            menuIcon.setImageResource(R.drawable.menu_white);
         } else {
             colorFadeOut.start();
-            statusImage.setImageResource(R.drawable.toast_off); 
-            settingsIcon.setImageResource(R.drawable.menu);
+            statusImage.setImageResource(R.drawable.toast_off);
+            menuIcon.setImageResource(R.drawable.menu);
         }
 
         statusToast.setView(statusLayout);
@@ -284,13 +277,10 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnClickListener {
     }
 
     public void setupSideMenu() {
-
         final LanternMainActivity activity = this;
-
         final Resources resources = getResources();
-        
-        final Map<String, Command> menuMap = new HashMap<String, Command>();
 
+        final Map<String, Command> menuMap = new HashMap<String, Command>();
         final ArrayList<NavItem> mNavItems = new ArrayList<NavItem>() {{
             add(new NavItem(resources.getString(R.string.share_option),
                         R.drawable.ic_share));
@@ -389,16 +379,12 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnClickListener {
             }
         };
 
-
-        settingsIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mDrawerLayout.openDrawer(Gravity.START);
-                Log.v(TAG, " click");         
-            }        
-        });
-
         mDrawerLayout.setDrawerListener(mDrawerToggle);
+    }
+
+    @Click(R.id.menuIcon)
+    void menuButtonClicked() {
+        mDrawerLayout.openDrawer(Gravity.START);
     }
 
     // showFeedview optionally fetches the feed depending on the
@@ -444,8 +430,9 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2, OnClickListener {
         session.updateVpnPreference(useVpn);
     }
 
-    @Override
-    public void onClick(View view) {
+    @Click(R.id.powerLantern)
+    public void switchLantern(View view) {
+
         boolean on = ((ToggleButton)view).isChecked();
 
         if (!Utils.isNetworkAvailable(getApplicationContext())) {

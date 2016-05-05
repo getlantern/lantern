@@ -15,8 +15,11 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.support.v4.app.FragmentActivity;
 
+import org.androidannotations.annotations.AfterTextChange;
 import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.TextChange;
 import org.androidannotations.annotations.ViewById;
 
 import org.getlantern.lantern.model.MailSender;
@@ -40,43 +43,29 @@ public class DesktopActivity extends FragmentActivity {
     @ViewById(R.id.separator)
     View separator;
 
-    @AfterViews
-    void afterViews() {
+    @TextChange(R.id.sendEmail)
+    void emailInputTextChanged(CharSequence s, int start, int before, int count) {
+        if (Utils.isEmailValid(s.toString())) {
+            sendBtn.setBackgroundResource(R.drawable.send_btn_blue);
+            sendBtn.setClickable(true);
+        } else {
+            sendBtn.setBackgroundResource(R.drawable.send_btn);
+            sendBtn.setClickable(false);
+        }
+    }
 
-        final DesktopActivity activity = this;
+    @AfterTextChange(R.id.sendEmail)
+    void emailInputAfterTextChanged(Editable s) {
+        if (s.length() == 0) {
+            separator.setBackgroundResource(R.color.edittext_color);
+        } else {
+            separator.setBackgroundResource(R.color.blue_color);
+        }
+    }
 
-        backBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(activity, LanternMainActivity_.class));
-            }
-        });
-
-        emailInput.addTextChangedListener(new TextWatcher() {
-            public void afterTextChanged(Editable s) {
-                if (s.length() == 0) {
-                    separator.setBackgroundResource(R.color.edittext_color);
-                } else {
-                    separator.setBackgroundResource(R.color.blue_color);
-                }
-            }
-
-            public void beforeTextChanged(CharSequence s, int start,
-                    int count, int after) {
-            }
-
-            public void onTextChanged(CharSequence s, int start,
-                    int before, int count) {
-                if (Utils.isEmailValid(s.toString())) {
-                    sendBtn.setBackgroundResource(R.drawable.send_btn_blue);
-                    sendBtn.setClickable(true);
-                } else {
-                    sendBtn.setBackgroundResource(R.drawable.send_btn);
-                    sendBtn.setClickable(false);
-                }
-            }
-
-        });
+    @Click(R.id.navAvatar)
+    void returnHome() {
+        startActivity(new Intent(this, LanternMainActivity_.class));
     }
 
     public void sendDesktopVersion(View view) {
