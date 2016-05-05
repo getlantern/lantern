@@ -19,7 +19,6 @@ import android.graphics.drawable.TransitionDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
-import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.VpnService;
@@ -82,7 +81,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     private static final String TAG = "LanternMainActivity";
     private static final String PREFS_NAME = "LanternPrefs";
     private final static int REQUEST_VPN = 7777;
-    private SharedPreferences mPrefs = null;
     private BroadcastReceiver mReceiver;
     private Context context;
 
@@ -159,7 +157,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         context = getApplicationContext();
         session = LanternApp.getSession();
 
-        mPrefs = Utils.getSharedPrefs(context);
         mNotifier = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
         setupNotifications();
 
