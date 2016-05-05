@@ -762,6 +762,14 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
+
+            if (isInitialStickyBroadcast()) {
+                // We only want to handle connectivity changes
+                // so ignore the initial sticky broadcast for 
+                // NETWORK_STATE_CHANGED_ACTION.
+                return;
+            }
+
             if (action.equals(Intent.ACTION_SHUTDOWN)) {
                 // whenever the device is powered off or the app
                 // abruptly closed, we want to clear user preferences

@@ -13,8 +13,8 @@ public class LanternApp extends Application {
 
     @Override
     public void onCreate() {
+        super.onCreate();
         Fabric.with(this, new Crashlytics());
-
         session = new SessionManager(getApplicationContext());
     }
 
