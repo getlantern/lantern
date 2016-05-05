@@ -341,22 +341,15 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         // Drawer Item click listeners
         drawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-                drawerList.setItemChecked(position, true);
-                if (position >= 0 && position < mNavItems.size()) {
-                    NavItem item = mNavItems.get(position);
-                    if (item != null) {
-                        String title = item.getTitle();
-                        Log.d(TAG, "Menu option " + title + " selected");
-                        menuMap.get(title).runCommand();
-                    }
-                }
-
-                // Close the drawer
+            public void closeDrawer() {
                 drawerLayout.closeDrawer(drawerPane);
             }
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                drawerItemClicked(menuMap, mNavItems, position);
+            }
+
         });
 
         mDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.drawer_open, R.string.drawer_close) {
@@ -375,6 +368,52 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         };
 
         drawerLayout.setDrawerListener(mDrawerToggle);
+    }
+
+    // drawerItemClicked is called whenever an item in the 
+    // navigation menu is clicked on
+    void drawerItemClicked(final Map<String, Command> menuMap,
+            final ArrayList<NavItem> navItems,
+            final int position) {
+
+        if (position < 0 || position >= navItems.size()) {
+            menuError("Tried to access menu item outside index range"); 
+            return;
+        }
+
+        drawerList.setItemChecked(position, true);
+
+
+        NavItem item = navItems.get(position);
+        if (item == null) {
+            menuError(String.format("Missing navigation item at position: %d", 
+                        position));
+            return;
+        }
+
+        String title = item.getTitle();
+        if (title == null) {
+            menuError(String.format("Missing item title at position: %d", 
+                        position));
+            return;
+        }
+
+        Command cmd = menuMap.get(title);
+        if (cmd != null) {
+            Log.d(TAG, "Menu option " + title + " selected");
+            cmd.runCommand();
+        }
+
+        drawerLayout.closeDrawer(drawerPane);
+    }
+
+    // An error occurred performing some action on the 
+    // navigation drawer. Log the error and close the drawer
+    void menuError(String errMsg) {
+        if (errMsg != null) {
+            Log.e(TAG, errMsg);
+            drawerLayout.closeDrawer(drawerPane);
+        }
     }
 
     @Click(R.id.menuIcon)
