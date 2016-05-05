@@ -444,9 +444,9 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     // toggle switch while displaying the news feed
     private void removeRule(RelativeLayout.LayoutParams lp, int rule) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) { // API 17
-            lp.addRule(rule, 0);
-        } else {
             lp.removeRule(rule);
+        } else {
+            lp.addRule(rule, 0);
         }
     }
 
