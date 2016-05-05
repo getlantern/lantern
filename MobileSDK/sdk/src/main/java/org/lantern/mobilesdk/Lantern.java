@@ -31,7 +31,7 @@ public abstract class Lantern {
      *
      * @param context
      * @param timeoutMillis       how long to wait for proxy to start listening (should be fairly quick)
-     * @param updateProxySettings    whether or not to overwrite the application proxy settings
+     * @param updateProxySettings    whether or not to update the application proxy settings
      * @param analyticsTrackingId (optional tracking ID for tracking Google analytics)
      * @return the {@link go.lantern.Lantern.StartResult} with port information about the started
      * lantern
@@ -48,7 +48,7 @@ public abstract class Lantern {
      *
      * @param context
      * @param timeoutMillis
-     * @param updateProxySettings    whether or not to overwrite the application proxy settings
+     * @param updateProxySettings
      * @param analyticsTrackingId
      * @return
      * @throws LanternNotRunningException
