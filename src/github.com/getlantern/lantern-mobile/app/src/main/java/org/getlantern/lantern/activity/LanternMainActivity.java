@@ -376,7 +376,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         drawerList.setItemChecked(position, true);
 
-
         NavItem item = navItems.get(position);
         if (item == null) {
             menuError(String.format("Missing navigation item at position: %d", 
