@@ -182,13 +182,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         mReceiver = new LanternReceiver();
         registerReceiver(mReceiver, filter);
 
-        // update version number that appears at the bottom of the side menu
-        // if we have it stored in shared preferences; otherwise, default to absent until
-        // Lantern starts
         setVersionNum();
-
         setupStatusToast();
-
         showFeedview();
     }
 
@@ -197,7 +192,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         super.onResume();
 
         setupSideMenu();
-
         setBtnStatus();
     }
 
@@ -214,11 +208,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             menuIcon.setImageResource(R.drawable.menu);
             drawerLayout.setBackgroundColor(offColor);
         }
-    }
-
-
-    interface Command {
-        void runCommand();
     }
 
     // initialize and configure status toast (what's displayed
@@ -261,6 +250,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         statusToast.show();
     }
 
+    // setVersionNum updates the version number that appears at the 
+    // bottom of the side menu
     public void setVersionNum() {
         try {
             // configure actions to be taken whenever slider changes state
@@ -274,6 +265,10 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         } catch (android.content.pm.PackageManager.NameNotFoundException nne) {
             Log.e(TAG, "Could not find package: " + nne.getMessage());
         }
+    }
+
+    interface Command {
+        void runCommand();
     }
 
     public void setupSideMenu() {
