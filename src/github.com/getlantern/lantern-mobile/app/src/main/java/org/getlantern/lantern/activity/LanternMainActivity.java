@@ -276,7 +276,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         final Resources resources = getResources();
 
         final Map<String, Command> menuMap = new HashMap<String, Command>();
-        final ArrayList<NavItem> mNavItems = new ArrayList<NavItem>() {{
+        final ArrayList<NavItem> navItems = new ArrayList<NavItem>() {{
             add(new NavItem(resources.getString(R.string.share_option),
                         R.drawable.ic_share));
             add(new NavItem(resources.getString(R.string.desktop_option), 
@@ -285,17 +285,17 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
                         R.drawable.ic_contact));
         }};
 
-        final ListAdapter listAdapter = new ListAdapter(this, mNavItems);  
+        final ListAdapter listAdapter = new ListAdapter(this, navItems);  
 
         if (session.showFeed())  {
             // 'Turn off Feed' when the feed is already shown
-            mNavItems.add(new NavItem(resources.getString(R.string.newsfeed_off_option), R.drawable.ic_feed));
+            navItems.add(new NavItem(resources.getString(R.string.newsfeed_off_option), R.drawable.ic_feed));
         } else {
             // 'Try Lantern Feed' when the feed is already hidden
-            mNavItems.add(new NavItem(resources.getString(R.string.newsfeed_option), R.drawable.ic_feed));
+            navItems.add(new NavItem(resources.getString(R.string.newsfeed_option), R.drawable.ic_feed));
         }
         
-        mNavItems.add(new NavItem(resources.getString(R.string.quit_option), 
+        navItems.add(new NavItem(resources.getString(R.string.quit_option), 
                     R.drawable.ic_quit));
 
         menuMap.put(resources.getString(R.string.quit_option), new Command() { 
@@ -308,13 +308,13 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         menuMap.put(resources.getString(R.string.newsfeed_off_option), new Command() {
             public void runCommand() {
-                updateFeedview(listAdapter, mNavItems, resources, 3, false);
+                updateFeedview(listAdapter, navItems, resources, 3, false);
             }
         });
 
         menuMap.put(resources.getString(R.string.newsfeed_option), new Command() {
             public void runCommand() {
-                updateFeedview(listAdapter, mNavItems, resources, 3, true);
+                updateFeedview(listAdapter, navItems, resources, 3, true);
             }
         });
 
@@ -347,7 +347,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                drawerItemClicked(menuMap, mNavItems, position);
+                drawerItemClicked(menuMap, navItems, position);
             }
 
         });
@@ -440,7 +440,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
     // updateFeedview updates the UI to show/hide the newsfeed
     public void updateFeedview(final ListAdapter listAdapter,
-        final ArrayList<NavItem> mNavItems,
+        final ArrayList<NavItem> navItems,
         final Resources resources,
         final int menuOptionIndex, final boolean showFeed) {
       
@@ -448,14 +448,26 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         session.updateFeedPreference(showFeed);
         showFeedview();
 
-        if (menuOptionIndex >= 0 && menuOptionIndex < mNavItems.size()) {
-            if (showFeed) {
-                mNavItems.get(menuOptionIndex).setTitle(resources.getString(R.string.newsfeed_off_option));
-            } else {
-                mNavItems.get(menuOptionIndex).setTitle(resources.getString(R.string.newsfeed_option));
-            }
+        if (menuOptionIndex < 0 || menuOptionIndex >= navItems.size()) {
+            Log.e(TAG, "Invalid index for feed menu item");
+            return;
         }
-        listAdapter.notifyDataSetChanged();
+
+        NavItem item = navItems.get(menuOptionIndex);
+        if (item == null) {
+            Log.e(TAG, "Missing menu item for news feed");
+            return;
+        }
+
+        if (showFeed) {
+            item.setTitle(resources.getString(R.string.newsfeed_off_option));
+        } else {
+            item.setTitle(resources.getString(R.string.newsfeed_option));
+        }
+
+        if (listAdapter != null) {
+            listAdapter.notifyDataSetChanged();
+        }
     }
 
     private void updateStatus(boolean useVpn) {
