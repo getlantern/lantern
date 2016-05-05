@@ -67,7 +67,7 @@ public class FeedAdapter extends BaseAdapter {
         descView.setText(item.getDescription());
         urlView.setText(item.getUrl());
 
-        if (item.getImage() != "") {
+        if (!"".equals(item.getImage())) {
             Ion.with(mContext)
                 .load(item.getImage())
                 .withBitmap()
