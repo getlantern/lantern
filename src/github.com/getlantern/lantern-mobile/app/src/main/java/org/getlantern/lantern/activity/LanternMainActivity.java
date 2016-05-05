@@ -342,15 +342,10 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         // Drawer Item click listeners
         drawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            public void closeDrawer() {
-                drawerLayout.closeDrawer(drawerPane);
-            }
-
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 drawerItemClicked(menuMap, navItems, position);
             }
-
         });
 
         mDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.drawer_open, R.string.drawer_close) {
