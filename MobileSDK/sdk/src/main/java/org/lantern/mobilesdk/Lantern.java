@@ -48,13 +48,16 @@ public abstract class Lantern {
      *
      * @param context
      * @param timeoutMillis
+     * @param updateProxySettings    whether or not to overwrite the application proxy settings
      * @param analyticsTrackingId
      * @return
      * @throws LanternNotRunningException
      */
-    public static StartResult enableAsService(Context context, int timeoutMillis, String analyticsTrackingId)
+    public static StartResult enableAsService(Context context, int timeoutMillis, boolean updateProxySettings, 
+            String analyticsTrackingId)
             throws LanternNotRunningException {
-        return doEnable(context, timeoutMillis, analyticsTrackingId, true, "org.lantern.mobilesdk.LanternServiceManager");
+        return doEnable(context, timeoutMillis, analyticsTrackingId, updateProxySettings, 
+                "org.lantern.mobilesdk.LanternServiceManager");
     }
 
     private synchronized static StartResult doEnable(Context context, int timeoutMillis,
