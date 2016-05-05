@@ -33,7 +33,7 @@ func ServePACFile() {
 	if pacURL == "" {
 		pacURL = ui.Handle("/proxy_on.pac", http.HandlerFunc(servePACFile))
 		// Trying to bypass Windows' PAC file cache.
-		pacURL = fmt.Sprintf("%s?_t=%d", pacURL, time.Now().UnixNano)
+		pacURL = pacURL + fmt.Sprintf("?%d", time.Now().UnixNano())
 	}
 }
 
