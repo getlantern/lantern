@@ -94,6 +94,10 @@ html {
   background-color: #ff4081;
 }
 
+#feedLink.subtle {
+  background-color: #ccc;
+}
+
 #feedLink div {
   margin-top: 8px;
   margin-bottom: 8px;
