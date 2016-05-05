@@ -43,7 +43,7 @@ public class DesktopActivity extends FragmentActivity {
     @ViewById
     View separator;
 
-    @TextChange(R.id.sendEmail)
+    @TextChange(R.id.emailInput)
     void emailInputTextChanged(CharSequence s, int start, int before, int count) {
         if (Utils.isEmailValid(s.toString())) {
             sendBtn.setBackgroundResource(R.drawable.send_btn_blue);
@@ -54,7 +54,7 @@ public class DesktopActivity extends FragmentActivity {
         }
     }
 
-    @AfterTextChange(R.id.sendEmail)
+    @AfterTextChange(R.id.emailInput)
     void emailInputAfterTextChanged(Editable s) {
         if (s.length() == 0) {
             separator.setBackgroundResource(R.color.edittext_color);
