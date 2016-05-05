@@ -19,20 +19,13 @@ const (
 	// the Feed endpoint where recent content is published to
 	// mostly just a compendium of RSS feeds
 	defaultFeedEndpoint = "https://feeds.getiantem.org/%s/feed.json"
+	fallbackEndpoint    = "https://feeds.getiantem.org/en_US/feed.json"
 	en                  = "en_US"
 )
 
 var (
 	feed *Feed
-	// locales we have separate feeds available for
-	supportedLocales = map[string]bool{
-		"en_US": true,
-		"fa_IR": true,
-		"fa":    true,
-		"ms_MY": true,
-		"zh_CN": true,
-	}
-	log = golog.LoggerFor("feed")
+	log  = golog.LoggerFor("feed")
 )
 
 // Feed contains the data we get back
@@ -98,13 +91,9 @@ func NumFeedEntries() int {
 	return count
 }
 
+// Returns the latest feed or nil if it doesn't exist
 func CurrentFeed() *Feed {
 	return feed
-}
-
-func handleError(err error) {
-	feed = nil
-	log.Error(err)
 }
 
 // GetFeed creates an http.Client and fetches the latest
@@ -116,33 +105,64 @@ func GetFeed(locale string, allStr string, proxyAddr string,
 	doGetFeed(defaultFeedEndpoint, locale, allStr, proxyAddr, provider)
 }
 
-func doGetFeed(feedEndpoint string, locale string, allStr string,
-	proxyAddr string, provider FeedProvider) {
+// handleError logs the given error message and sets the current feed to nil
+func handleError(err error) {
+	log.Error(err)
+	feed = nil
+}
 
+// doRequest creates an HTTP request for the given feedURL and returns an HTTP
+// response. If an invalid status code is returned, it could be
+// because there is no feed available for the given locale so we
+// default to the given fallback url.
+func doRequest(httpClient *http.Client, feedURL string) (*http.Response, error) {
 	var err error
 	var req *http.Request
 	var res *http.Response
-	var httpClient *http.Client
-
-	feed = &Feed{}
-
-	if !supportedLocales[locale] {
-		// always default to English if we don't
-		// have a feed available in a specific locale
-		locale = en
-	}
-
-	feedURL := getFeedURL(feedEndpoint, locale)
 
 	if req, err = http.NewRequest("GET", feedURL, nil); err != nil {
 		handleError(fmt.Errorf("Error fetching feed: %v", err))
-		return
+		return nil, err
 	}
 
 	// ask for gzipped feed content
 	req.Header.Add("Accept-Encoding", "gzip")
 
+	if res, err = httpClient.Do(req); err != nil {
+		handleError(fmt.Errorf("Error fetching feed: %v", err))
+		return nil, err
+	}
+
+	if res.StatusCode != http.StatusOK {
+		defer res.Body.Close()
+
+		err = fmt.Errorf("Unexpected response status %d fetching feed from %s",
+			res.StatusCode, feedURL)
+
+		// no feed available at the given URL, default to the English feed
+		if feedURL != fallbackEndpoint {
+			log.Debugf("%v; attempting to fetch fallback feed from %s",
+				err, fallbackEndpoint)
+			return doRequest(httpClient, fallbackEndpoint)
+		} else {
+			handleError(err)
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func doGetFeed(feedEndpoint string, locale string, allStr string,
+	proxyAddr string, provider FeedProvider) {
+
+	var err error
+	var res *http.Response
+	var httpClient *http.Client
+
+	feed = &Feed{}
+
 	if proxyAddr == "" {
+		// if no proxyAddr is supplied, use an ordinary http client
 		httpClient = &http.Client{}
 	} else {
 		httpClient, err = util.HTTPClient("", eventual.DefaultGetter(proxyAddr))
@@ -152,7 +172,11 @@ func doGetFeed(feedEndpoint string, locale string, allStr string,
 		}
 	}
 
-	if res, err = httpClient.Do(req); err != nil {
+	feedURL := getFeedURL(feedEndpoint, locale)
+	log.Debugf("Downloading latest feed from %s", feedURL)
+
+	res, err = doRequest(httpClient, feedURL)
+	if err != nil {
 		handleError(fmt.Errorf("Error fetching feed: %v", err))
 		return
 	}
