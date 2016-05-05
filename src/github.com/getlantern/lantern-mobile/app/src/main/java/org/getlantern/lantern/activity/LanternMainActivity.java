@@ -16,6 +16,7 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.TransitionDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.content.SharedPreferences;
@@ -428,7 +429,9 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         if (session.showFeed()) {
             feedView.setVisibility(View.VISIBLE);
-            lp.removeRule(RelativeLayout.CENTER_VERTICAL);
+            removeRule(lp, RelativeLayout.CENTER_VERTICAL);
+
+            // now actually refresh the news feed
             new GetFeed(this, session.startLocalProxy()).execute("");
         } else {
             feedView.setVisibility(View.INVISIBLE);
@@ -437,6 +440,15 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         powerLantern.setLayoutParams(lp);
     }
 
+    // removeRule is used to remove the center vertical attribute for the
+    // toggle switch while displaying the news feed
+    private void removeRule(RelativeLayout.LayoutParams lp, int rule) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) { // API 17
+            lp.addRule(rule, 0);
+        } else {
+            lp.removeRule(rule);
+        }
+    }
 
     // updateFeedview updates the UI to show/hide the newsfeed
     public void updateFeedview(final ListAdapter listAdapter,
