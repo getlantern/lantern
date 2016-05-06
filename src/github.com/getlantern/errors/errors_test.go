@@ -25,7 +25,7 @@ func (r *stringReporter) Report(e *Error) {
 func TestWriteErrorAsJSON(t *testing.T) {
 	sr := &stringReporter{}
 	ReportTo(sr)
-	l := NewErrorCollector("my-package")
+	l := ErrorLoggerFor("my-package")
 	l.Log(io.EOF)
 	expected, _ := json.Marshal(struct {
 		Package string `json:"package"`
@@ -52,7 +52,7 @@ func (r *rawReporter) Report(e *Error) {
 func TestAnonymousError(t *testing.T) {
 	rr := &rawReporter{}
 	ReportTo(rr)
-	l := NewErrorCollector("my-proxy-package")
+	l := ErrorLoggerFor("my-proxy-package")
 	l.Log(errors.New("any error"))
 	expected := Error{
 		"my-proxy-package",
@@ -74,7 +74,7 @@ func TestAnonymousError(t *testing.T) {
 func TestCaptureError(t *testing.T) {
 	rr := &rawReporter{}
 	ReportTo(rr)
-	l := NewErrorCollector("my-proxy-package")
+	l := ErrorLoggerFor("my-proxy-package")
 	_, err := net.Dial("tcp", "an.non-existent.domain:80")
 	l.Log(err)
 	expected := Error{
@@ -91,13 +91,13 @@ func TestCaptureError(t *testing.T) {
 		nil,
 		nil,
 	}
-	assert.Equal(t, expected, *rr.err, "should log http error")
+	assert.Equal(t, expected, *rr.err, "should log dial error")
 }
 
 func TestCaptureApplicationError(t *testing.T) {
 	rr := &rawReporter{}
 	ReportTo(rr)
-	l := NewErrorCollector("application-logic")
+	l := ErrorLoggerFor("application-logic")
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		conn, _, _ := w.(http.Hijacker).Hijack()
 		_ = conn.Close()
@@ -117,5 +117,5 @@ func TestCaptureApplicationError(t *testing.T) {
 		nil,
 		nil,
 	}
-	assert.Equal(t, expected, *rr.err, "should log application error")
+	assert.Equal(t, expected, *rr.err, "should log http error")
 }

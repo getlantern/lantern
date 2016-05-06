@@ -1,13 +1,21 @@
 /*
-Package errors defines error interfaces and types used across Lantern project
-and implements functions to manipulate them.
+Package errors defines error types used across Lantern project and implements
+functions to manipulate them.
+
+  var errlog = errors.ErrorLoggerFor("package-name")
+  if n, err := Foo(); err != nil {
+    errlog.Error(err, withOp("foo"), withField("foo": "bar"))
+  }
 
 Guildlines to report error:
 
 1. Report at the end of error propagation chain, that is, before the code
-resumes from the error or makes a decision based on it. The purpose is to avoid
-reporting repetitively, and prevent lower level of code from depending on this
-package.
+resumes from the error or makes a decision based on it.
+
+2. Report when more relevant knowledge is available.
+
+The purpose is to avoid reporting repetitively, and prevent lower level of code
+from depending on this package.
 */
 package errors
 
@@ -121,7 +129,7 @@ type Error struct {
 	return buf.Bytes(), nil
 }*/
 
-type ErrorCollector struct {
+type ErrorLogger struct {
 	goPackage string
 	logger    golog.Logger
 	*systemInfo
@@ -159,7 +167,13 @@ func WithUserAgent(info *UserAgentInfo) withFunc {
 	}
 }
 
-func (c *ErrorCollector) Log(err error, with ...withFunc) {
+func WithField(k, v string) withFunc {
+	return func(e *Error) {
+		e.Extra[k] = v
+	}
+}
+
+func (c *ErrorLogger) Log(err error, with ...withFunc) {
 	errOp, goType, desc, extra := parseError(err)
 	actual := &Error{
 		GoPackage:  c.goPackage,
@@ -175,9 +189,9 @@ func (c *ErrorCollector) Log(err error, with ...withFunc) {
 	currentReporter.Report(actual)
 }
 
-func NewErrorCollector(goPackage string) *ErrorCollector {
+func ErrorLoggerFor(goPackage string) *ErrorLogger {
 	version, _ := osversion.GetHumanReadable()
-	return &ErrorCollector{
+	return &ErrorLogger{
 		goPackage: goPackage,
 		logger:    golog.LoggerFor(goPackage),
 		systemInfo: &systemInfo{
