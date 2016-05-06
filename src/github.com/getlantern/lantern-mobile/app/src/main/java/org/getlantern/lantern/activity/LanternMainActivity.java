@@ -212,8 +212,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     // whenever we use the on/off slider) 
     public void setupStatusToast() {
 
-        colorFadeIn = ObjectAnimator.ofObject((View)drawerLayout, "backgroundColor", new ArgbEvaluator(), offColor, onColor);
-        colorFadeOut = ObjectAnimator.ofObject((View)drawerLayout, "backgroundColor", new ArgbEvaluator(), onColor, offColor);
+        colorFadeIn = ObjectAnimator.ofObject(drawerLayout, "backgroundColor", new ArgbEvaluator(), offColor, onColor);
+        colorFadeOut = ObjectAnimator.ofObject(drawerLayout, "backgroundColor", new ArgbEvaluator(), onColor, offColor);
 
         colorFadeIn.setDuration(500);
         colorFadeOut.setDuration(500);
@@ -325,9 +325,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         menuMap.put(resources.getString(R.string.share_option), new Command() { 
             public void runCommand() {
                 final Shareable shareable = new Shareable(activity);
-                if (shareable != null) {
-                    shareable.showOption();
-                }
+                shareable.showOption();
             }
         });   
 
