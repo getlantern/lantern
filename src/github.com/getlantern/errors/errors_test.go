@@ -13,14 +13,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type rawReporter struct {
-	err Error
-}
-
-func (r *rawReporter) Report(e Error) {
-	r.err = e
-}
-
 type stringReporter struct {
 	buf bytes.Buffer
 }
@@ -29,47 +21,51 @@ func (r *stringReporter) Report(e Error) {
 	fmt.Fprintf(&r.buf, "%+v", string(toJSON(e)))
 }
 
-func (r *stringReporter) String() string {
-	return r.buf.String()
-}
-
 func TestWriteError(t *testing.T) {
 	sr := &stringReporter{}
 	ReportTo(sr)
-	l := NewProxyErrorCollector("my-module", ChainedServer)
+	l := NewProxyErrorCollector("my-package", ChainedProxy)
 	l.Log(io.EOF)
 	expected, _ := json.Marshal(struct {
-		Module    string `json:"module"`
+		Package   string `json:"package"`
 		Type      string `json:"type"`
 		Desc      string `json:"desc"`
 		ProxyType string `json:"proxyType"`
 	}{
-		"my-module",
+		"my-package",
 		"io.EOF",
 		"EOF",
-		"chained server",
+		"chained",
 	})
-	assert.Equal(t, string(expected), sr.String(), "should log io.EOF")
+	assert.Equal(t, string(expected), sr.buf.String(), "should log io.EOF")
+}
+
+type rawReporter struct {
+	err Error
+}
+
+func (r *rawReporter) Report(e Error) {
+	r.err = e
 }
 
 func TestCaptureProxyError(t *testing.T) {
 	rr := &rawReporter{}
 	ReportTo(rr)
-	l := NewProxyErrorCollector("my-proxy-module", ChainedServer)
+	l := NewProxyErrorCollector("my-proxy-package", ChainedProxy)
 	_, err := net.Dial("tcp", "an.non-existent.domain:80")
 	l.Log(err)
 	expected := ProxyError{
 		BasicError{
-			"my-proxy-module",
+			"my-proxy-package",
 			"net.DNSError",
 			"no such host",
+			"dial",
 			map[string]string{
 				"network": "tcp",
 				"domain":  "an.non-existent.domain",
 			},
 		},
-		ChainedServer,
-		"dial",
+		ChainedProxy,
 	}
 	assert.Equal(t, expected, *(rr.err.(*ProxyError)), "should log http error")
 }
@@ -77,7 +73,7 @@ func TestCaptureProxyError(t *testing.T) {
 func TestCaptureApplicationError(t *testing.T) {
 	rr := &rawReporter{}
 	ReportTo(rr)
-	l := NewProxyErrorCollector("application-logic", ChainedServer)
+	l := NewProxyErrorCollector("application-logic", ChainedProxy)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		conn, _, _ := w.(http.Hijacker).Hijack()
 		_ = conn.Close()
@@ -91,10 +87,10 @@ func TestCaptureApplicationError(t *testing.T) {
 			"application-logic",
 			"url.Error",
 			"EOF",
+			"Get",
 			map[string]string{},
 		},
-		ChainedServer,
-		"Get",
+		ChainedProxy,
 	}
 	assert.Equal(t, expected, *(rr.err.(*ProxyError)), "should log http error")
 }
