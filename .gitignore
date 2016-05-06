@@ -32,7 +32,6 @@ src/github.com/getlantern/autoupdate/_test_app/main.go
 src/github.com/getlantern/autoupdate/_test_app/autoupdate-binary-*
 src/github.com/getlantern/autoupdate/_test_app/main
 src/github.com/getlantern/flashlight/ui/resources.go
-src/github.com/getlantern/flashlight/*.syso
 src/github.com/getlantern/systray/sysdtray.sdf
 src/github.com/getlantern/systray/Debug
 src/github.com/getlantern/systray/Release
@@ -43,7 +42,7 @@ installer-resources/linux/.packaged-lantern.yaml
 installer-resources/darwin/lantern_versioned.dmg.json
 installer-resources/darwin/dmgbackground.png
 installer-resources/darwin/dmgbackground_versioned.svg
-src/github.com/getlantern/lantern-ui/dist
+lantern-ui/dist
 lantern.yaml
 LanternMobileTestbed/app/libs/
 *.apk
@@ -58,7 +57,7 @@ local.properties
 .gradle
 build
 keystore.release.jks
-src/github.com/getlantern/lantern-ui/app/js/revision.js
+lantern-ui/app/js/revision.js
 bns.pfx
 cmd.exe
 lantern-installer*
