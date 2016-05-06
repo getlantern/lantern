@@ -2,7 +2,6 @@
 Package errors defines error interfaces and types used across Lantern project
 and implements functions to manipulate them.
 */
-
 package errors
 
 import (
@@ -11,6 +10,7 @@ import (
 	"crypto/x509"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -18,125 +18,388 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"reflect"
 	"runtime"
 	"strconv"
 	"syscall"
 	"time"
+
+	"github.com/getlantern/golog"
 )
 
-type Error struct {
-	error
-	module string
+type ErrorType int
+
+const (
+	ProxyErrorType ErrorType = iota
+	SystemErrorType
+	ApplicationErrorType
+	UserAgentErrorType
+)
+
+type Error interface {
+	ErrorType() ErrorType
 }
 
+// Fields share by all error types
+type BasicError struct {
+	// Go module reports the error
+	Module string `json:"module"`
+	// Go type name or constant/var name for this error
+	GoType string `json:"type"`
+	// Error description, by either Go library or application
+	Desc string `json:"desc"`
+	// Any extra fields
+	Extra map[string]string `json:"extra,omitempty"`
+}
+
+// Customized marshaller to marshal extra fields to same level as other struct fields
+/*func (e BasicError) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	// safe to ignore return value as error returned is always nil
+	_, _ = buf.WriteString(fmt.Sprintf(`{"module":"%s","type":"%s","desc":"%s"`, e.Module, e.GoType, e.Desc))
+	if e.Extra != nil && len(e.Extra) > 0 {
+		_, _ = buf.WriteString(",")
+		for k, v := range e.Extra {
+			_, _ = buf.WriteString(fmt.Sprintf(`"%s":"%s"`, k, v))
+		}
+	}
+	_, _ = buf.WriteString("}")
+	return buf.Bytes(), nil
+}*/
+
+// type of the proxy channel
+type ProxyType int
+
+const (
+	// direct access, no proxying at all
+	Direct ProxyType = iota
+	// access through Lantern hosted chained server
+	ChainedServer
+	// access through peer in P2P network
+	ChainedPeer
+	// access through domain fronting
+	Fronted
+	// access through direct domain fronting
+	DirectFronted
+)
+
+var proxyTypeDesc = [...]string{
+	"direct",
+	"chained server",
+	"chained peer",
+	"fronted",
+	"direct fronted",
+}
+
+func (t ProxyType) String() string {
+	return proxyTypeDesc[t]
+}
+
+func (t ProxyType) MarshalJSON() ([]byte, error) {
+	return []byte(fmt.Sprintf(`"%s"`, t.String())), nil
+}
+
+// In which phase of the proxying progress, modeled after net.OpError.Op
+type ProxyOp string
+
+const (
+	ProxyOpDial  ProxyOp = "dial"
+	ProxyOpRead  ProxyOp = "read"
+	ProxyOpWrite ProxyOp = "write"
+	ProxyOpClose ProxyOp = "close"
+)
+
+// ProxyError represents any error happens during the lifetime of a proxy channel, or proxying requests through the channel.
+// Direct is also considered as one type of proxy channel.
 type ProxyError struct {
-	Error
-	via   via
-	layer layer
+	BasicError
+	ProxyType ProxyType `json:"proxyType"`
+	ProxyOp   ProxyOp   `json:"proxyOperation,omitempty"`
 }
 
+func (e *ProxyError) ErrorType() ErrorType {
+	return ProxyErrorType
+}
+
+// Customized marshaller because BasicError has customized marshaller.
+/*func (e ProxyError) MarshalJSON() ([]byte, error) {
+	be, _ := json.Marshal(e.BasicError)
+	return []byte(fmt.Sprintf(`{%s,"proxyType":"%s","proxyOperation":"%s","remoteAddr":"%s","localAddr":"%s"}`, string(be[1:len(be)-1]), e.ProxyType, e.ProxyOp, e.RemoteAddr, e.LocalAddr)), nil
+}*/
+
+// SystemError represents error to interacting with operation system, such as setting PAC, launching browser, show systray, etc, and any application logic that depends on local environment.
 type SystemError struct {
-	Error
+	BasicError
+	OSType    string `json:"osType"`
+	OSVersion string `json:"osVersion"`
+	OSArch    string `json:"osArch"`
 }
 
-type BrowserError struct {
-	Error
+func (e *SystemError) ErrorType() ErrorType {
+	return SystemErrorType
 }
 
-func New(err error) Error {
-	// interface
+// ApplicationError captures any error of Lantern's application logic, including fetching config, geolocating, analytics, etc.
+type ApplicationError struct {
+	BasicError
+}
+
+func (e *ApplicationError) ErrorType() ErrorType {
+	return ApplicationErrorType
+}
+
+// UserAgentError represents any error interacting with any browsers and applications using Lantern.
+type UserAgentError struct {
+	BasicError
+	UserAgent string
+}
+
+func (e *UserAgentError) ErrorType() ErrorType {
+	return UserAgentErrorType
+}
+
+type errorCollector struct {
+	module string
+	logger golog.Logger
+}
+
+type ProxyErrorCollector struct {
+	errorCollector
+	proxyType ProxyType
+}
+
+func (c *ProxyErrorCollector) Log(err error) {
+	c.LogWithOp("", err)
+}
+
+func (c *ProxyErrorCollector) LogWithOp(op ProxyOp, err error) {
+	errOp, goType, desc, extra := parseError(err)
+	// Caller supplied parameter first
+	if op == "" {
+		op = ProxyOp(errOp)
+	}
+	actual := &ProxyError{
+		BasicError: BasicError{
+			Module: c.module,
+			GoType: goType,
+			Desc:   desc,
+			Extra:  extra,
+		},
+		ProxyType: c.proxyType,
+		ProxyOp:   op,
+	}
+	currentReporter.Report(actual)
+}
+
+func NewProxyErrorCollector(module string, t ProxyType) *ProxyErrorCollector {
+	return &ProxyErrorCollector{
+		errorCollector: errorCollector{
+			module: module,
+			logger: golog.LoggerFor(module),
+		},
+		proxyType: t,
+	}
+}
+
+type Reporter interface {
+	Report(Error)
+}
+
+var currentReporter Reporter = &StdReporter{}
+
+func ReportTo(r Reporter) {
+	currentReporter = r
+}
+
+func toJSON(e Error) []byte {
+	b, err := json.Marshal(e)
+	if err != nil {
+		panic(fmt.Sprintf("failed to convert error to json: %+v", err))
+	}
+	return b
+}
+
+type StdReporter struct {
+}
+
+func (l StdReporter) Report(e Error) {
+	fmt.Printf("%+v", string(toJSON(e)))
+}
+
+func parseError(err error) (op string, goType string, desc string, extra map[string]string) {
+	extra = make(map[string]string)
+
+	// interfaces
 	if _, ok := err.(net.Error); ok {
-		switch err.(type) {
+		if opError, ok := err.(*net.OpError); ok {
+			op = opError.Op
+			if opError.Source != nil {
+				extra["localAddr"] = opError.Source.String()
+			}
+			if opError.Addr != nil {
+				extra["remoteAddr"] = opError.Addr.String()
+			}
+			extra["network"] = opError.Net
+			err = opError.Err
+		}
+		switch actual := err.(type) {
 		case *net.AddrError:
-		// case *net.DNSConfigError: no longer used by Go, leave here to make sure we don't miss anything
+			goType = "net.AddrError"
+			desc = actual.Err
+			extra["addr"] = actual.Addr
 		case *net.DNSError:
+			goType = "net.DNSError"
+			desc = actual.Err
+			extra["domain"] = actual.Name
+			if actual.Server != "" {
+				extra["dnsServer"] = actual.Server
+			}
 		case *net.InvalidAddrError:
-		case *net.OpError:
+			goType = "net.InvalidAddrError"
+			desc = actual.Error()
 		case *net.ParseError:
+			goType = "net.ParseError"
+			desc = "invalid " + actual.Type
+			extra["textToParse"] = actual.Text
 		case net.UnknownNetworkError:
+			goType = "net.UnknownNetworkError"
+			desc = "unknown network"
 		case syscall.Errno:
+			goType = "syscall.Errno"
+			desc = actual.Error()
+		case *url.Error:
+			goType = "url.Error"
+			desc = actual.Err.Error()
+			op = actual.Op
 		default:
+			goType = reflect.TypeOf(err).String()
+			desc = err.Error()
 		}
-		return Error{}
+		return
 	}
-	// struct
-	switch err.(type) {
+	if _, ok := err.(runtime.Error); ok {
+		desc = err.Error()
+		switch err.(type) {
+		case *runtime.TypeAssertionError:
+			goType = "runtime.TypeAssertionError"
+		default:
+			goType = reflect.TypeOf(err).String()
+		}
+		return
+	}
+
+	// structs
+	switch actual := err.(type) {
 	case *http.ProtocolError:
-		if name := httpProtocolErrors[err]; name != "" {
+		desc = actual.ErrorString
+		if name, ok := httpProtocolErrors[err]; ok {
+			goType = name
+		} else {
+			goType = "http.ProtocolError"
 		}
-	case *url.Error:
 	case url.EscapeError, *url.EscapeError:
+		goType = "url.EscapeError"
+		desc = "invalid URL escape"
 	case url.InvalidHostError, *url.InvalidHostError:
+		goType = "url.InvalidHostError"
+		desc = "invalid character in host name"
 	case *textproto.Error:
+		goType = "textproto.Error"
+		desc = actual.Error()
 	case textproto.ProtocolError, *textproto.ProtocolError:
-	case *os.LinkError:
-	case *os.PathError:
-	case *os.SyscallError:
-	case *exec.Error:
-	case *exec.ExitError:
-	case runtime.Error:
-	case *runtime.TypeAssertionError:
+		goType = "textproto.ProtocolError"
+		desc = actual.Error()
+
 	case tls.RecordHeaderError:
+		goType = "tls.RecordHeaderError"
+		desc = actual.Msg
+		extra["header"] = hex.EncodeToString(actual.RecordHeader[:])
 	case x509.CertificateInvalidError:
+		goType = "x509.CertificateInvalidError"
+		desc = actual.Error()
 	case x509.ConstraintViolationError:
+		goType = "x509.ConstraintViolationError"
+		desc = actual.Error()
 	case x509.HostnameError:
+		goType = "x509.HostnameError"
+		desc = actual.Error()
+		extra["host"] = actual.Host
 	case x509.InsecureAlgorithmError:
+		goType = "x509.InsecureAlgorithmError"
+		desc = actual.Error()
 	case x509.SystemRootsError:
+		goType = "x509.SystemRootsError"
+		desc = actual.Error()
 	case x509.UnhandledCriticalExtension:
+		goType = "x509.UnhandledCriticalExtension"
+		desc = actual.Error()
 	case x509.UnknownAuthorityError:
+		goType = "x509.UnknownAuthorityError"
+		desc = actual.Error()
 	case hex.InvalidByteError:
+		goType = "hex.InvalidByteError"
+		desc = "invalid byte"
 	case *json.InvalidUTF8Error:
+		goType = "json.InvalidUTF8Error"
+		desc = "invalid UTF-8 in string"
 	case *json.InvalidUnmarshalError:
+		goType = "json.InvalidUnmarshalError"
+		desc = actual.Error()
 	case *json.MarshalerError:
+		goType = "json.MarshalerError"
+		desc = actual.Error()
 	case *json.SyntaxError:
+		goType = "json.SyntaxError"
+		desc = actual.Error()
 	case *json.UnmarshalFieldError:
+		goType = "json.UnmarshalFieldError"
+		desc = actual.Error()
 	case *json.UnmarshalTypeError:
+		goType = "json.UnmarshalTypeError"
+		desc = actual.Error()
 	case *json.UnsupportedTypeError:
+		goType = "json.UnsupportedTypeError"
+		desc = actual.Error()
 	case *json.UnsupportedValueError:
+		goType = "json.UnsupportedValueError"
+		desc = actual.Error()
+
+	case *os.LinkError:
+		goType = "textproto.ProtocolError"
+		desc = actual.Error()
+	case *os.PathError:
+		goType = "os.PathError"
+		op = actual.Op
+		desc = actual.Err.Error()
+	case *os.SyscallError:
+		goType = "os.SyscallError"
+		op = actual.Syscall
+		desc = actual.Err.Error()
+	case *exec.Error:
+		goType = "exec.Error"
+		desc = actual.Err.Error()
+	case *exec.ExitError:
+		goType = "exec.ExitError"
+		desc = actual.Error()
+		// TODO: limit the length
+		extra["stderr"] = string(actual.Stderr)
 	case *strconv.NumError:
+		goType = "strconv.NumError"
+		desc = actual.Err.Error()
+		extra["function"] = actual.Func
 	case *time.ParseError:
+		goType = "time.ParseError"
+		desc = actual.Message
 	default:
-		if name := httpProtocolErrors[err]; name != "" {
+		desc = err.Error()
+		if t, ok := miscErrors[err]; ok {
+			goType = t
+		} else {
+			goType = reflect.TypeOf(err).String()
 		}
-		// errors.New
+		return
 	}
-	return Error{}
-}
-
-type layer int
-
-const (
-	PayloadLayer = iota
-	HTTPLayer
-	NetLayer
-)
-
-var layerDescription = [...]string{
-	"PayloadLayer",
-	"HTTPLayer",
-	"TCPLayer",
-}
-
-func (l layer) String() string {
-	return layerDescription[l]
-}
-
-type via int
-
-const (
-	viaDirect = iota
-	viaChained
-	viaFronted
-)
-
-var viaDescription = [...]string{
-	"viaDirect",
-	"viaChained",
-	"viaFronted",
-}
-
-func (v via) String() string {
-	return viaDescription[v]
+	return
 }
 
 var httpProtocolErrors = map[error]string{
@@ -171,12 +434,12 @@ var miscErrors = map[error]string{
 	http.ErrNoLocation:         "http.ErrNoLocation",
 	http.ErrSkipAltProtocol:    "http.ErrSkipAltProtocol",
 
-	io.EOF:              "http.EOF",
-	io.ErrClosedPipe:    "http.ErrClosedPipe",
-	io.ErrNoProgress:    "http.ErrNoProgress",
-	io.ErrShortBuffer:   "http.ErrShortBuffer",
-	io.ErrShortWrite:    "http.ErrShortWrite",
-	io.ErrUnexpectedEOF: "http.ErrUnexpectedEOF",
+	io.EOF:              "io.EOF",
+	io.ErrClosedPipe:    "io.ErrClosedPipe",
+	io.ErrNoProgress:    "io.ErrNoProgress",
+	io.ErrShortBuffer:   "io.ErrShortBuffer",
+	io.ErrShortWrite:    "io.ErrShortWrite",
+	io.ErrUnexpectedEOF: "io.ErrUnexpectedEOF",
 
 	os.ErrInvalid:    "os.ErrInvalid",
 	os.ErrPermission: "os.ErrPermission",
