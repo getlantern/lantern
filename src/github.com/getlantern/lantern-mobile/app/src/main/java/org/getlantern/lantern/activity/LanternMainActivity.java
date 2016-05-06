@@ -18,6 +18,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.StrictMode;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -494,6 +495,10 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             return;
         }
 
+        // disable the on/off switch while the VpnService
+        // is updating the connection
+        powerLantern.setEnabled(false);
+
         if (on) {
             // Prompt the user to enable full-device VPN mode
             // Make a VPN connection from the client
@@ -518,6 +523,14 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             Service.IsRunning = false;
             updateStatus(false);
         }
+
+        // after 2000ms, enable the switch again
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                powerLantern.setEnabled(true);
+            }
+        }, 2000);
     }
 
     // override onKeyDown and onBackPressed default 
