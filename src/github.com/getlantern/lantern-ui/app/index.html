@@ -91,10 +91,10 @@
     </div>
     <div id="feedLink" ng-class="{subtle: showNews}">
       <div>
-        <a ng-click="showNewsfeed()" ng-show="!showNews">
+        <a ng-click="showNewsfeed()" ng-show="!showNews && !showError">
           {{ 'SHOW_NEWSFEED' | translate }}
         </a>
-        <a ng-click="hideNewsfeed()" ng-show="showNews">
+        <a ng-click="hideNewsfeed()" ng-show="showNews || showError">
           {{ 'HIDE_NEWSFEED' | translate }}
         </a>
       </div>
