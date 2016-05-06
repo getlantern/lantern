@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'io.fabric'
 apply plugin: 'com.google.gms.google-services'
+apply plugin: 'android-apt'
 
 android {
 
@@ -117,5 +118,15 @@ dependencies {
     }
     compile('com.crashlytics.sdk.android:crashlytics:2.5.3@aar') {
         transitive = true
+    }
+
+    apt "org.androidannotations:androidannotations:" + androidAnnotationsVersion
+    compile("org.androidannotations:androidannotations-api:" + androidAnnotationsAPIVersion )
+}
+
+apt {
+    arguments {
+        resourcePackageName android.defaultConfig.applicationId
+        androidManifestFile variant.outputs[0]?.processResources?.manifestFile
     }
 }

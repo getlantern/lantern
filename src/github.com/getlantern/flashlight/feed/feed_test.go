@@ -45,7 +45,7 @@ func getFeed(t *testing.T, feedEndpoint string, locale string) {
 		"All feed items should be equal to total entries minus BuzzFeed entries")
 
 	for _, entry := range feed.Items["all"] {
-		assert.NotEmpty(t, entry.Description)
+		assert.NotEmpty(t, entry.Title)
 	}
 }
 

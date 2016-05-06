@@ -19,6 +19,8 @@
     <string name="service_connected">Lantern connected</string>
     <string name="desktop_option">Desktop Version</string>
     <string name="contact_option">Contact</string>
+    <string name="newsfeed_option">Try Lanten Feed</string>
+    <string name="newsfeed_off_option">Turn off Feed</string>
     <string name="privacy_policy">Privacy Policy</string>
     <string name="share_option">Share</string>
     <string name="quit_option">Quit</string>

@@ -27,7 +27,7 @@
             android:theme="@style/FinestWebViewTheme.Light" />
 
         <activity
-            android:name=".activity.LanternMainActivity"
+            android:name=".activity.LanternMainActivity_"
             android:launchMode="singleTask"
             android:configChanges="layoutDirection|locale"
             android:screenOrientation="portrait"
@@ -49,6 +49,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".activity.DesktopActivity_"
+            android:screenOrientation="portrait"
+            android:launchMode="singleTask"
+            android:configChanges="layoutDirection|locale"/>
         <activity
             android:name=".activity.UpdaterActivity"
             android:screenOrientation="portrait"

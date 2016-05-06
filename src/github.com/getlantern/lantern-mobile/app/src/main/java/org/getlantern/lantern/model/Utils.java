@@ -1,17 +1,26 @@
 package org.getlantern.lantern.model;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.util.Log;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.inputmethod.InputMethodManager;
 
-import com.google.android.gms.analytics.GoogleAnalytics;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentActivity;
+
 import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.getlantern.lantern.R;
+import org.getlantern.lantern.fragment.ErrorDialogFragment;
 import org.lantern.mobilesdk.Lantern;
 
 public class Utils {
@@ -32,6 +41,39 @@ public class Utils {
         if (mPrefs != null) {
             mPrefs.edit().remove(PREF_USE_VPN).commit();
         }
+    }
+
+    public static void hideKeyboard(Context context, View view) {
+        InputMethodManager inputMethodManager = (InputMethodManager)context.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
+
+    public static void showErrorDialog(final FragmentActivity activity, String error) {
+        DialogFragment fragment = ErrorDialogFragment.newInstance(R.string.validation_errors, error);
+        fragment.show(activity.getSupportFragmentManager(), "error");
+    }
+
+    public static boolean isEmailValid(String email) {
+        String expression = "^[\\w\\.-]+@([\\w\\-]+\\.)+[A-Z]{2,4}$";
+        Pattern pattern = Pattern.compile(expression, Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(email);
+        return matcher.matches();
+    }
+
+    public static void showAlertDialog(Activity activity, String title, String msg) {
+        Log.d(TAG, "Showing alert dialog...");
+
+        AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
+        alertDialog.setTitle(title);
+        alertDialog.setMessage(msg);
+        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+        }
+        );
+        alertDialog.show();
     }
 
     // isNetworkAvailable checks whether or not we are connected to
