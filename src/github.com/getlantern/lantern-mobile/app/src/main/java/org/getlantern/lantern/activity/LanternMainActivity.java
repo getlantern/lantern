@@ -42,6 +42,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
@@ -410,7 +411,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
     @Click(R.id.menuIcon)
     void menuButtonClicked() {
-        drawerLayout.openDrawer(Gravity.START);
+        drawerLayout.openDrawer(GravityCompat.START);
     }
 
     // showFeedview optionally fetches the feed depending on the
