@@ -129,6 +129,7 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$filter', '$compile', '$win
 
 
     $rootScope.showError = false;
+    $rootScope.showBookmarks = true;
 }]);
 
 app.controller('SettingsCtrl', ['$scope', 'MODAL', 'DataStream', 'gaMgr', function($scope, MODAL, DataStream, gaMgr) {
@@ -199,6 +200,13 @@ app.controller('NewsfeedCtrl', ['$scope', '$rootScope', '$translate', 'gaMgr', '
     gaMgr.trackHideFeed();
   };
   $rootScope.showNewsfeedError = function() {
+    console.log("Newsfeed error");
+    // If we're currently in newsfeed mode, we want to show the error
+    // and also not show the bookmarks, as otherwise the two will
+    // overlap.
+    if ($rootScope.showNews) {
+      $rootScope.showBookmarks = false;
+    }
     $rootScope.showNews = false;
     $rootScope.enableShowError();
   };
