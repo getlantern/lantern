@@ -1,10 +1,13 @@
 /*
-package errors defines error interfaces and types used across Lantern project
+Package errors defines error interfaces and types used across Lantern project
 and implements functions to manipulate them.
 
 Guildlines to report error:
 
-1. Report at the end of error propagation chain, that is, before the code resumes from the error or makes a decision based on the error, instead of immediately return the error to caller. The purpose is to avoid reporting repetitively, and prevent lower level of code from depending on this package.
+1. Report at the end of error propagation chain, that is, before the code
+resumes from the error or makes a decision based on it. The purpose is to avoid
+reporting repetitively, and prevent lower level of code from depending on this
+package.
 */
 package errors
 
@@ -29,22 +32,11 @@ import (
 	"time"
 
 	"github.com/getlantern/golog"
+	"github.com/getlantern/jibber_jabber"
+	"github.com/getlantern/osversion"
 )
 
-type ErrorType int
-
-const (
-	ProxyErrorType ErrorType = iota
-	SystemErrorType
-	ApplicationErrorType
-	UserAgentErrorType
-)
-
-type Error interface {
-	ErrorType() ErrorType
-}
-
-// In which phase of the proxying progress, modeled after net.OpError.Op
+// Op is the operation caused an error, modeled after net.OpError.Op
 type Op string
 
 const (
@@ -54,36 +46,19 @@ const (
 	OpClose Op = "close"
 )
 
-// Fields share by all error types
-type BasicError struct {
-	// Go package reports the error
-	GoPackage string `json:"package"`
-	// Go type name or constant/var name for this error
-	GoType string `json:"type"`
-	// Error description, by either Go library or application
-	Desc string `json:"desc"`
-	// The operation triggered this error to happen
-	Op Op `json:"operation,omitempty"`
-	// Any extra fields
-	Extra map[string]string `json:"extra,omitempty"`
+type systemInfo struct {
+	OSType    string `json:"osType"`
+	OSVersion string `json:"osVersion"`
+	OSArch    string `json:"osArch"`
 }
 
-// Customized marshaller to marshal extra fields to same level as other struct fields
-/*func (e BasicError) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	// safe to ignore return value as error returned is always nil
-	_, _ = buf.WriteString(fmt.Sprintf(`{"package":"%s","type":"%s","desc":"%s"`, e.GoPackage, e.GoType, e.Desc))
-	if e.Extra != nil && len(e.Extra) > 0 {
-		_, _ = buf.WriteString(",")
-		for k, v := range e.Extra {
-			_, _ = buf.WriteString(fmt.Sprintf(`"%s":"%s"`, k, v))
-		}
-	}
-	_, _ = buf.WriteString("}")
-	return buf.Bytes(), nil
-}*/
+type UserLocale struct {
+	TimeZone string `json:"timeZone,omitempty"`
+	Language string `json:"language,omitempty"`
+	Country  string `json:"country,omitempty"`
+}
 
-// type of the proxy channel
+// ProxyType is the type of various proxy channel
 type ProxyType string
 
 const (
@@ -97,99 +72,124 @@ const (
 	DirectFrontedProxy ProxyType = "DDF"
 )
 
-// ProxyError represents any error happens during the lifetime of a proxy channel, or proxying requests through the channel.
-// Direct is also considered as one type of proxy channel.
-type ProxyError struct {
-	BasicError
-	ProxyType ProxyType `json:"proxyType"`
+// ProxyingInfo encapsulates fields to describe an access through a proxy channel.
+type ProxyingInfo struct {
+	ProxyType  ProxyType `json:"proxyType,omitempty"`
+	LocalAddr  string    `json:"localAddr,omitempty"`
+	ProxyAddr  string    `json:"proxyAddr,omitempty"`
+	ProxyDC    string    `json:"proxyDataCenter,omitempty"`
+	OriginSite string    `json:"originSite,omitempty"`
+	Scheme     string    `json:"scheme,omitempty"`
 }
 
-func (e *ProxyError) ErrorType() ErrorType {
-	return ProxyErrorType
+// UserAgentInfo encapsulates traits of the browsers or 3rd party applications
+// directing traffic through Lantern.
+type UserAgentInfo struct {
+	UserAgent string `json:"userAgent,omitempty"`
 }
 
-// Customized marshaller because BasicError has customized marshaller.
-/*func (e ProxyError) MarshalJSON() ([]byte, error) {
-	be, _ := json.Marshal(e.BasicError)
-	return []byte(fmt.Sprintf(`{%s,"proxyType":"%s","operation":"%s","remoteAddr":"%s","localAddr":"%s"}`, string(be[1:len(be)-1]), e.ProxyType, e.Op, e.RemoteAddr, e.LocalAddr)), nil
+// Error wraps system and application errors in unified structure
+type Error struct {
+	// Go package reports the error
+	GoPackage string `json:"package"`
+	// Go type name or constant/variable name of the error
+	GoType string `json:"type"`
+	// Error description, by either Go library or application
+	Desc string `json:"desc"`
+	// The operation which triggers the error to happen
+	Op Op `json:"operation,omitempty"`
+	// Any extra fields
+	Extra map[string]string `json:"extra,omitempty"`
+	*systemInfo
+	*ProxyingInfo
+	*UserLocale
+	*UserAgentInfo
+}
+
+// Customized marshaller to marshal extra fields to same level as other struct fields
+/*func (e Error) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	// safe to ignore return value as error returned is always nil
+	_, _ = buf.WriteString(fmt.Sprintf(`{"package":"%s","type":"%s","desc":"%s"`, e.GoPackage, e.GoType, e.Desc))
+	if e.Extra != nil && len(e.Extra) > 0 {
+		_, _ = buf.WriteString(",")
+		for k, v := range e.Extra {
+			_, _ = buf.WriteString(fmt.Sprintf(`"%s":"%s"`, k, v))
+		}
+	}
+	_, _ = buf.WriteString("}")
+	return buf.Bytes(), nil
 }*/
 
-// SystemError represents error to interacting with operation system, such as setting PAC, launching browser, show systray, etc, and any application logic that depends on local environment.
-type SystemError struct {
-	BasicError
-	OSType    string `json:"osType"`
-	OSVersion string `json:"osVersion"`
-	OSArch    string `json:"osArch"`
-}
-
-func (e *SystemError) ErrorType() ErrorType {
-	return SystemErrorType
-}
-
-// ApplicationError captures any error of Lantern's application logic, including fetching config, geolocating, analytics, etc.
-type ApplicationError struct {
-	BasicError
-}
-
-func (e *ApplicationError) ErrorType() ErrorType {
-	return ApplicationErrorType
-}
-
-// UserAgentError represents any error interacting with any browsers and applications using Lantern.
-type UserAgentError struct {
-	BasicError
-	UserAgent string
-}
-
-func (e *UserAgentError) ErrorType() ErrorType {
-	return UserAgentErrorType
-}
-
-type errorCollector struct {
+type ErrorCollector struct {
 	goPackage string
 	logger    golog.Logger
+	*systemInfo
 }
 
-type ProxyErrorCollector struct {
-	errorCollector
-	proxyType ProxyType
-}
+type withFunc func(e *Error)
 
-func (c *ProxyErrorCollector) Log(err error) {
-	c.LogWithOp("", err)
-}
-
-func (c *ProxyErrorCollector) LogWithOp(op Op, err error) {
-	errOp, goType, desc, extra := parseError(err)
-	// Prefer caller supplied op over derived from error, if any
-	if op == "" {
-		op = Op(errOp)
+func WithOp(op Op) withFunc {
+	return func(e *Error) {
+		e.Op = op
 	}
-	actual := &ProxyError{
-		BasicError: BasicError{
-			GoPackage: c.goPackage,
-			GoType:    goType,
-			Desc:      desc,
-			Op:        op,
-			Extra:     extra,
-		},
-		ProxyType: c.proxyType,
+}
+
+func WithProxy(info *ProxyingInfo) withFunc {
+	return func(e *Error) {
+		e.ProxyingInfo = info
+	}
+}
+
+func WithLocale() withFunc {
+	return func(e *Error) {
+		lang, _ := jibber_jabber.DetectLanguage()
+		country, _ := jibber_jabber.DetectTerritory()
+		e.UserLocale = &UserLocale{
+			time.Now().Format("MST"),
+			lang,
+			country,
+		}
+	}
+}
+
+func WithUserAgent(info *UserAgentInfo) withFunc {
+	return func(e *Error) {
+		e.UserAgentInfo = info
+	}
+}
+
+func (c *ErrorCollector) Log(err error, with ...withFunc) {
+	errOp, goType, desc, extra := parseError(err)
+	actual := &Error{
+		GoPackage:  c.goPackage,
+		GoType:     goType,
+		Desc:       desc,
+		Op:         Op(errOp),
+		Extra:      extra,
+		systemInfo: c.systemInfo,
+	}
+	for _, f := range with {
+		f(actual)
 	}
 	currentReporter.Report(actual)
 }
 
-func NewProxyErrorCollector(goPackage string, t ProxyType) *ProxyErrorCollector {
-	return &ProxyErrorCollector{
-		errorCollector: errorCollector{
-			goPackage: goPackage,
-			logger:    golog.LoggerFor(goPackage),
+func NewErrorCollector(goPackage string) *ErrorCollector {
+	version, _ := osversion.GetHumanReadable()
+	return &ErrorCollector{
+		goPackage: goPackage,
+		logger:    golog.LoggerFor(goPackage),
+		systemInfo: &systemInfo{
+			OSType:    runtime.GOOS,
+			OSArch:    runtime.GOARCH,
+			OSVersion: version,
 		},
-		proxyType: t,
 	}
 }
 
 type Reporter interface {
-	Report(Error)
+	Report(*Error)
 }
 
 var currentReporter Reporter = &StdReporter{}
@@ -198,7 +198,7 @@ func ReportTo(r Reporter) {
 	currentReporter = r
 }
 
-func toJSON(e Error) []byte {
+func toJSON(e *Error) []byte {
 	b, err := json.Marshal(e)
 	if err != nil {
 		panic(fmt.Sprintf("failed to convert error to json: %+v", err))
@@ -209,7 +209,7 @@ func toJSON(e Error) []byte {
 type StdReporter struct {
 }
 
-func (l StdReporter) Report(e Error) {
+func (l StdReporter) Report(e *Error) {
 	fmt.Printf("%+v", string(toJSON(e)))
 }
 

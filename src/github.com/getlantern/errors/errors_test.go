@@ -3,6 +3,7 @@ package errors
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -17,63 +18,86 @@ type stringReporter struct {
 	buf bytes.Buffer
 }
 
-func (r *stringReporter) Report(e Error) {
+func (r *stringReporter) Report(e *Error) {
 	fmt.Fprintf(&r.buf, "%+v", string(toJSON(e)))
 }
 
-func TestWriteError(t *testing.T) {
+func TestWriteErrorAsJSON(t *testing.T) {
 	sr := &stringReporter{}
 	ReportTo(sr)
-	l := NewProxyErrorCollector("my-package", ChainedProxy)
+	l := NewErrorCollector("my-package")
 	l.Log(io.EOF)
 	expected, _ := json.Marshal(struct {
-		Package   string `json:"package"`
-		Type      string `json:"type"`
-		Desc      string `json:"desc"`
-		ProxyType string `json:"proxyType"`
+		Package string `json:"package"`
+		Type    string `json:"type"`
+		Desc    string `json:"desc"`
+		*systemInfo
 	}{
 		"my-package",
 		"io.EOF",
 		"EOF",
-		"chained",
+		l.systemInfo,
 	})
-	assert.Equal(t, string(expected), sr.buf.String(), "should log io.EOF")
+	assert.Equal(t, string(expected), sr.buf.String(), "should write io.EOF as expected JSON")
 }
 
 type rawReporter struct {
-	err Error
+	err *Error
 }
 
-func (r *rawReporter) Report(e Error) {
+func (r *rawReporter) Report(e *Error) {
 	r.err = e
 }
 
-func TestCaptureProxyError(t *testing.T) {
+func TestAnonymousError(t *testing.T) {
 	rr := &rawReporter{}
 	ReportTo(rr)
-	l := NewProxyErrorCollector("my-proxy-package", ChainedProxy)
+	l := NewErrorCollector("my-proxy-package")
+	l.Log(errors.New("any error"))
+	expected := Error{
+		"my-proxy-package",
+		"*errors.errorString",
+		"any error",
+		"",
+		map[string]string{},
+		l.systemInfo,
+		nil,
+		nil,
+		nil,
+	}
+	assert.Equal(t, expected, *rr.err, "should log errors created by errors.New")
+
+	l.Log(fmt.Errorf("any error"))
+	assert.Equal(t, expected, *rr.err, "should log errors created by fmt.Errorf")
+}
+
+func TestCaptureError(t *testing.T) {
+	rr := &rawReporter{}
+	ReportTo(rr)
+	l := NewErrorCollector("my-proxy-package")
 	_, err := net.Dial("tcp", "an.non-existent.domain:80")
 	l.Log(err)
-	expected := ProxyError{
-		BasicError{
-			"my-proxy-package",
-			"net.DNSError",
-			"no such host",
-			"dial",
-			map[string]string{
-				"network": "tcp",
-				"domain":  "an.non-existent.domain",
-			},
+	expected := Error{
+		"my-proxy-package",
+		"net.DNSError",
+		"no such host",
+		"dial",
+		map[string]string{
+			"network": "tcp",
+			"domain":  "an.non-existent.domain",
 		},
-		ChainedProxy,
+		l.systemInfo,
+		nil,
+		nil,
+		nil,
 	}
-	assert.Equal(t, expected, *(rr.err.(*ProxyError)), "should log http error")
+	assert.Equal(t, expected, *rr.err, "should log http error")
 }
 
 func TestCaptureApplicationError(t *testing.T) {
 	rr := &rawReporter{}
 	ReportTo(rr)
-	l := NewProxyErrorCollector("application-logic", ChainedProxy)
+	l := NewErrorCollector("application-logic")
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		conn, _, _ := w.(http.Hijacker).Hijack()
 		_ = conn.Close()
@@ -82,15 +106,16 @@ func TestCaptureApplicationError(t *testing.T) {
 
 	_, err := http.Get(ts.URL)
 	l.Log(err)
-	expected := ProxyError{
-		BasicError{
-			"application-logic",
-			"url.Error",
-			"EOF",
-			"Get",
-			map[string]string{},
-		},
-		ChainedProxy,
+	expected := Error{
+		"application-logic",
+		"url.Error",
+		"EOF",
+		"Get",
+		map[string]string{},
+		l.systemInfo,
+		nil,
+		nil,
+		nil,
 	}
-	assert.Equal(t, expected, *(rr.err.(*ProxyError)), "should log http error")
+	assert.Equal(t, expected, *rr.err, "should log application error")
 }
