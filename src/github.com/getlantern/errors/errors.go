@@ -44,16 +44,6 @@ import (
 	"github.com/getlantern/osversion"
 )
 
-// Op is the operation caused an error, modeled after net.OpError.Op
-type Op string
-
-const (
-	OpDial  Op = "dial"
-	OpRead  Op = "read"
-	OpWrite Op = "write"
-	OpClose Op = "close"
-)
-
 type systemInfo struct {
 	OSType    string `json:"osType"`
 	OSVersion string `json:"osVersion"`
@@ -105,7 +95,7 @@ type Error struct {
 	// Error description, by either Go library or application
 	Desc string `json:"desc"`
 	// The operation which triggers the error to happen
-	Op Op `json:"operation,omitempty"`
+	Op string `json:"operation,omitempty"`
 	// Any extra fields
 	Extra map[string]string `json:"extra,omitempty"`
 	*systemInfo
@@ -137,7 +127,7 @@ type ErrorLogger struct {
 
 type withFunc func(e *Error)
 
-func WithOp(op Op) withFunc {
+func WithOp(op string) withFunc {
 	return func(e *Error) {
 		e.Op = op
 	}
@@ -179,7 +169,7 @@ func (c *ErrorLogger) Log(err error, with ...withFunc) {
 		GoPackage:  c.goPackage,
 		GoType:     goType,
 		Desc:       desc,
-		Op:         Op(errOp),
+		Op:         errOp,
 		Extra:      extra,
 		systemInfo: c.systemInfo,
 	}
