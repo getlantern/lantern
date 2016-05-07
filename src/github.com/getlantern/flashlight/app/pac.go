@@ -11,6 +11,9 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+	"bufio"
+	"regexp"
+	"os"
 
 	"github.com/getlantern/detour"
 	"github.com/getlantern/filepersist"
@@ -70,8 +73,43 @@ func setUpPacTool() error {
 	return nil
 }
 
+func getHosts() []string {
+    hostFile := "/etc/hosts"
+    if runtime.GOOS == "windows" {
+        hostFile = "C:\\Windows\\System32\\drivers\\etc\\hosts"
+    }
+
+    file, err := os.Open(hostFile)
+    if err != nil {
+        return nil
+    }
+    defer file.Close()
+
+    scanner := bufio.NewScanner(file)
+    var hosts []string
+    for scanner.Scan() {
+    	line := scanner.Text()
+    	i := strings.IndexByte(line, '#')
+    	if  i != -1 {
+		line = line[0:i]
+        }
+        f := regexp.MustCompile("[^\\s]+").FindAllString(line, -1)
+        if len(f) >= 2 {
+                line = f[1]
+                hosts = append(hosts, line)
+        }
+    }
+
+    if err := scanner.Err(); err != nil {
+        return nil
+    }
+    return hosts
+}
+
 func genPACFile(w io.Writer) (int, error) {
 	hostsString := "[]"
+	byPassHosts := getHosts()
+
 	// only bypass sites if proxy all option is unset
 	if !settings.GetProxyAll() {
 		log.Trace("Not proxying all")
@@ -81,6 +119,9 @@ func genPACFile(w io.Writer) (int, error) {
 				hosts = append(hosts, k)
 			}
 		}
+                if byPassHosts != nil {
+                        hosts = append(hosts, byPassHosts...)
+                }
 		hostsString = "['" + strings.Join(hosts, "', '") + "']"
 	} else {
 		log.Trace("Proxying all")
