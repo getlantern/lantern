@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/getlantern/eventual"
@@ -20,7 +19,7 @@ import (
 )
 
 const (
-	NumberToVetInitially = 20
+	numberToVetInitially = 20
 )
 
 var (
@@ -29,13 +28,16 @@ var (
 )
 
 type direct struct {
-	tlsConfigsMutex sync.Mutex
-	tlsConfigs      map[string]*tls.Config
-	certPool        *x509.CertPool
-	candidates      chan *Masquerade
-	masquerades     chan *Masquerade
+	//tlsConfigsMutex sync.Mutex
+	//tlsConfigs      map[string]*tls.Config
+	tlsConfig *tls.Config
+	//certPool    *x509.CertPool
+	candidates  chan *Masquerade
+	masquerades chan *Masquerade
 }
 
+// Configure configures the direct domain fronter with the specified
+// masquerades to try.
 func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
 	log.Debug("Configuring fronted")
 	if masquerades == nil || len(masquerades) == 0 {
@@ -55,8 +57,12 @@ func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
 	}
 
 	instance := &direct{
-		tlsConfigs:  make(map[string]*tls.Config),
-		certPool:    pool,
+		//tlsConfigs:  make(map[string]*tls.Config),
+		tlsConfig: &tls.Config{
+			ClientSessionCache: tls.NewLRUClientSessionCache(1000),
+			InsecureSkipVerify: true,
+			RootCAs:            pool,
+		},
 		candidates:  make(chan *Masquerade, size),
 		masquerades: make(chan *Masquerade, size),
 	}
@@ -81,8 +87,8 @@ func (d *direct) loadCandidates(initial map[string][]*Masquerade) {
 }
 
 func (d *direct) vetInitial() {
-	log.Debugf("Vetting %d initial candidates in parallel", NumberToVetInitially)
-	for i := 0; i < NumberToVetInitially; i++ {
+	log.Debugf("Vetting %d initial candidates in parallel", numberToVetInitially)
+	for i := 0; i < numberToVetInitially; i++ {
 		go d.vetOne()
 	}
 }
@@ -211,9 +217,8 @@ func (d *direct) dialWith(in chan *Masquerade, network, addr string) (net.Conn, 
 }
 
 func (d *direct) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
-	tlsConfig := d.tlsConfig(masquerade)
+	//tlsConfig := d.tlsConfig(masquerade)
 	dialTimeout := 10 * time.Second
-	sendServerNameExtension := false
 
 	cwt, err := tlsdialer.DialForTimings(
 		&net.Dialer{
@@ -221,8 +226,8 @@ func (d *direct) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
 		},
 		"tcp",
 		masquerade.IpAddress+":443",
-		sendServerNameExtension, // SNI or no
-		tlsConfig)
+		false, // SNI or no
+		d.tlsConfig)
 
 	if err != nil && masquerade != nil {
 		err = fmt.Errorf("Unable to dial masquerade %s: %s", masquerade.Domain, err)
@@ -233,6 +238,7 @@ func (d *direct) dialServerWith(masquerade *Masquerade) (net.Conn, error) {
 // tlsConfig builds a tls.Config for dialing the upstream host. Constructed
 // tls.Configs are cached on a per-masquerade basis to enable client session
 // caching and reduce the amount of PEM certificate parsing.
+/*
 func (d *direct) tlsConfig(m *Masquerade) *tls.Config {
 	d.tlsConfigsMutex.Lock()
 	defer d.tlsConfigsMutex.Unlock()
@@ -241,8 +247,7 @@ func (d *direct) tlsConfig(m *Masquerade) *tls.Config {
 	if tlsConfig == nil {
 		tlsConfig = &tls.Config{
 			ClientSessionCache: tls.NewLRUClientSessionCache(1000),
-			InsecureSkipVerify: false,
-			ServerName:         m.Domain,
+			InsecureSkipVerify: true,
 			RootCAs:            d.certPool,
 		}
 		d.tlsConfigs[m.Domain] = tlsConfig
@@ -250,6 +255,7 @@ func (d *direct) tlsConfig(m *Masquerade) *tls.Config {
 
 	return tlsConfig
 }
+*/
 
 // headCheck checks to make sure we can actually make a DDF head request through a
 // given masquerade. We don't reuse the underlying connection here because that confuses
