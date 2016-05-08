@@ -4,7 +4,7 @@ functions to manipulate them.
 
   var elog = errlog.ErrorLoggerFor("package-name")
   if n, err := Foo(); err != nil {
-    elog.Error(err, errlog.WithOp("foo"), errlog.WithField("foo": "bar"))
+    elog.Log(err, errlog.WithOp("foo"), errlog.WithField("foo": "bar"))
   }
 
 Guildlines to report error:
@@ -154,6 +154,8 @@ type Error struct {
 	Op string `json:"operation,omitempty"`
 	// Any extra fields
 	Extra map[string]string `json:"extra,omitempty"`
+	// TODO: attach systemInfo in aggregator/reporter instead, as it remains
+	// the same in the lifetime of a program.
 	*systemInfo
 	*ProxyingInfo
 	*UserLocale
