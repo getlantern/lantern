@@ -31,12 +31,12 @@ func TestWriteErrorAsJSON(t *testing.T) {
 		Package string `json:"package"`
 		Type    string `json:"type"`
 		Desc    string `json:"desc"`
-		*systemInfo
+		*UserLocale
 	}{
 		"my-package",
 		"io.EOF",
 		"EOF",
-		l.systemInfo,
+		userLocale,
 	})
 	assert.Equal(t, string(expected), sr.buf.String(), "should write io.EOF as expected JSON")
 }
@@ -53,22 +53,49 @@ func TestAnonymousError(t *testing.T) {
 	rr := &rawReporter{}
 	ReportTo(rr)
 	l := ErrorLoggerFor("my-proxy-package")
-	l.Log(errors.New("any error"))
-	expected := Error{
-		"my-proxy-package",
-		"*errors.errorString",
-		"any error",
-		"",
-		map[string]string{},
-		l.systemInfo,
-		nil,
-		nil,
-		nil,
+	err := errors.New("any error")
+	l.Log(err)
+	expected := &Error{
+		Source:     err,
+		GoPackage:  "my-proxy-package",
+		GoType:     "*errors.errorString",
+		Desc:       "any error",
+		Op:         "",
+		Extra:      map[string]string{},
+		UserLocale: userLocale,
 	}
-	assert.Equal(t, expected, *rr.err, "should log errors created by errors.New")
+	assert.Equal(t, expected, rr.err, "should log errors created by errors.New")
 
 	l.Log(fmt.Errorf("any error"))
-	assert.Equal(t, expected, *rr.err, "should log errors created by fmt.Errorf")
+	assert.Equal(t, expected, rr.err, "should log errors created by fmt.Errorf")
+}
+
+func TestStructuredError(t *testing.T) {
+	rr := &rawReporter{}
+	ReportTo(rr)
+	l := ErrorLoggerFor("my-proxy-package")
+	source := errors.New("any error")
+	err := &Error{
+		Source:    source,
+		GoPackage: "specified package",
+		GoType:    "specified type",
+		Desc:      "specified desc",
+		Op:        "specified op",
+		Extra: map[string]string{
+			"extra1": "specified extra1",
+		},
+	}
+	l.Log(err)
+	expected := &Error{
+		Source:     source,
+		GoPackage:  err.GoPackage,
+		GoType:     err.GoType,
+		Desc:       err.Desc,
+		Op:         err.Op,
+		Extra:      err.Extra,
+		UserLocale: userLocale,
+	}
+	assert.Equal(t, expected, rr.err, "should log structured errors")
 }
 
 func TestCaptureError(t *testing.T) {
@@ -77,21 +104,19 @@ func TestCaptureError(t *testing.T) {
 	l := ErrorLoggerFor("my-proxy-package")
 	_, err := net.Dial("tcp", "an.non-existent.domain:80")
 	l.Log(err)
-	expected := Error{
-		"my-proxy-package",
-		"net.DNSError",
-		"no such host",
-		"dial",
-		map[string]string{
+	expected := &Error{
+		Source:    err,
+		GoPackage: "my-proxy-package",
+		GoType:    "net.DNSError",
+		Desc:      "no such host",
+		Op:        "dial",
+		Extra: map[string]string{
 			"network": "tcp",
 			"domain":  "an.non-existent.domain",
 		},
-		l.systemInfo,
-		nil,
-		nil,
-		nil,
+		UserLocale: userLocale,
 	}
-	assert.Equal(t, expected, *rr.err, "should log dial error")
+	assert.Equal(t, expected, rr.err, "should log dial error")
 }
 
 func TestCaptureApplicationError(t *testing.T) {
@@ -106,16 +131,14 @@ func TestCaptureApplicationError(t *testing.T) {
 
 	_, err := http.Get(ts.URL)
 	l.Log(err)
-	expected := Error{
-		"application-logic",
-		"url.Error",
-		"EOF",
-		"Get",
-		map[string]string{},
-		l.systemInfo,
-		nil,
-		nil,
-		nil,
+	expected := &Error{
+		Source:     err,
+		GoPackage:  "application-logic",
+		GoType:     "url.Error",
+		Desc:       "EOF",
+		Op:         "Get",
+		Extra:      map[string]string{},
+		UserLocale: userLocale,
 	}
-	assert.Equal(t, expected, *rr.err, "should log http error")
+	assert.Equal(t, expected, rr.err, "should log http error")
 }

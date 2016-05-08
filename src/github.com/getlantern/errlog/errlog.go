@@ -63,6 +63,29 @@ type systemInfo struct {
 	OSArch    string `json:"osArch"`
 }
 
+var (
+	defaultSystemInfo *systemInfo
+	userLocale        *UserLocale
+)
+
+func init() {
+	version, _ := osversion.GetHumanReadable()
+
+	defaultSystemInfo = &systemInfo{
+		OSType:    runtime.GOOS,
+		OSArch:    runtime.GOARCH,
+		OSVersion: version,
+	}
+
+	lang, _ := jibber_jabber.DetectLanguage()
+	country, _ := jibber_jabber.DetectTerritory()
+	userLocale = &UserLocale{
+		time.Now().Format("MST"),
+		lang,
+		country,
+	}
+}
+
 func (si *systemInfo) String() string {
 	var buf bytes.Buffer
 	if si.OSType != "" {
@@ -156,6 +179,8 @@ func (ul *UserAgentInfo) String() string {
 
 // Error wraps system and application errors in unified structure
 type Error struct {
+	// Source captures the underlying error that's wrapped by this Error
+	Source error `json:"-"`
 	// Go package reports the error
 	GoPackage string `json:"package"`
 	// Go type name or constant/variable name of the error
@@ -166,12 +191,14 @@ type Error struct {
 	Op string `json:"operation,omitempty"`
 	// Any extra fields
 	Extra map[string]string `json:"extra,omitempty"`
-	// TODO: attach systemInfo in aggregator/reporter instead, as it remains
-	// the same in the lifetime of a program.
-	*systemInfo
+
 	*ProxyingInfo
 	*UserLocale
 	*UserAgentInfo
+}
+
+func (e *Error) Error() string {
+	return e.String()
 }
 
 func (e *Error) String() string {
@@ -179,9 +206,6 @@ func (e *Error) String() string {
 	_, _ = buf.WriteString(e.Desc)
 	if e.Op != "" {
 		_, _ = buf.WriteString(" op=" + e.Op)
-	}
-	if e.systemInfo != nil {
-		_, _ = buf.WriteString(e.systemInfo.String())
 	}
 	if e.ProxyingInfo != nil {
 		_, _ = buf.WriteString(e.ProxyingInfo.String())
@@ -216,74 +240,56 @@ func (e *Error) String() string {
 type ErrorLogger struct {
 	goPackage string
 	logger    golog.Logger
-	*systemInfo
 }
 
-type withFunc func(e *Error)
-
-func WithOp(op string) withFunc {
-	return func(e *Error) {
-		e.Op = op
+func (c *ErrorLogger) Log(source error) {
+	err, ok := source.(*Error)
+	if !ok {
+		// Supplied error was not an Error, wrap it
+		err = &Error{Source: source}
 	}
+	c.applyDefaults(err)
+	currentReporter.Report(err)
+	c.logger.Error(err.String())
 }
 
-func WithProxy(info *ProxyingInfo) withFunc {
-	return func(e *Error) {
-		e.ProxyingInfo = info
+func (c *ErrorLogger) applyDefaults(err *Error) {
+	if err.GoPackage == "" {
+		// Default GoPackage
+		err.GoPackage = c.goPackage
 	}
-}
 
-func WithLocale() withFunc {
-	return func(e *Error) {
-		lang, _ := jibber_jabber.DetectLanguage()
-		country, _ := jibber_jabber.DetectTerritory()
-		e.UserLocale = &UserLocale{
-			time.Now().Format("MST"),
-			lang,
-			country,
+	if err.Source != nil {
+		errOp, goType, desc, extra := parseError(err.Source)
+		if err.Op == "" {
+			err.Op = errOp
+		}
+		if err.GoType == "" {
+			err.GoType = goType
+		}
+		if err.Desc == "" {
+			err.Desc = desc
+		}
+		if err.UserLocale == nil {
+			err.UserLocale = userLocale
+		}
+		if err.Extra == nil {
+			err.Extra = extra
+		} else {
+			for key, value := range extra {
+				_, found := err.Extra[key]
+				if !found {
+					err.Extra[key] = value
+				}
+			}
 		}
 	}
 }
 
-func WithUserAgent(ua string) withFunc {
-	return func(e *Error) {
-		e.UserAgentInfo = &UserAgentInfo{ua}
-	}
-}
-
-func WithField(k, v string) withFunc {
-	return func(e *Error) {
-		e.Extra[k] = v
-	}
-}
-
-func (c *ErrorLogger) Log(err error, with ...withFunc) {
-	errOp, goType, desc, extra := parseError(err)
-	actual := &Error{
-		GoPackage:  c.goPackage,
-		GoType:     goType,
-		Desc:       desc,
-		Op:         errOp,
-		Extra:      extra,
-		systemInfo: c.systemInfo,
-	}
-	for _, f := range with {
-		f(actual)
-	}
-	currentReporter.Report(actual)
-	c.logger.Error(actual.String())
-}
-
 func ErrorLoggerFor(goPackage string) *ErrorLogger {
-	version, _ := osversion.GetHumanReadable()
 	return &ErrorLogger{
 		goPackage: goPackage,
 		logger:    golog.LoggerFor(goPackage),
-		systemInfo: &systemInfo{
-			OSType:    runtime.GOOS,
-			OSArch:    runtime.GOARCH,
-			OSVersion: version,
-		},
 	}
 }
 
