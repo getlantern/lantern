@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	LocalUIDir = "../../../lantern-ui/app"
+	LocalUIDir = "../../../../../../lantern-ui/app"
 )
 
 var (

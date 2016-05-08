@@ -11,6 +11,7 @@ import (
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/tarfs"
 	"github.com/getlantern/yaml"
+	"github.com/getlantern/yamlconf"
 )
 
 var (
@@ -79,12 +80,12 @@ func readSettingsFromFile(yamlPath string) (*BootstrapSettings, error) {
 	return &s, nil
 }
 
-// MakeInitialConfig save baked-in config to the file specified by configPath
-func MakeInitialConfig(configPath string) error {
+// MakeInitialConfig returns a default configuration
+func MakeInitialConfig() (yamlconf.Config, error) {
 	dir, _, err := bootstrapPath(lanternYamlName)
 	if err != nil {
 		log.Errorf("Could not get bootstrap path %v", err)
-		return err
+		return nil, err
 	}
 
 	// We need to use tarfs here because the lantern.yaml needs to embedded
@@ -93,7 +94,7 @@ func MakeInitialConfig(configPath string) error {
 	fs, err := tarfs.New(Resources, dir)
 	if err != nil {
 		log.Errorf("Could not read resources? %v", err)
-		return err
+		return nil, err
 	}
 
 	// Get the yaml file from either the local file system or from an
@@ -102,14 +103,15 @@ func MakeInitialConfig(configPath string) error {
 	bytes, err := fs.GetIgnoreLocalEmpty("lantern.yaml")
 	if err != nil {
 		log.Errorf("Could not read bootstrap file %v", err)
-		return err
+		return nil, err
 	}
-	err = ioutil.WriteFile(configPath, bytes, 0644)
+	cfg := &Config{}
+	err = yaml.Unmarshal(bytes, cfg)
 	if err != nil {
-		log.Errorf("Could not write bootstrap file %v", err)
-		return err
+		log.Errorf("Could not parse YAML: %v", err)
+		return nil, err
 	}
-	return nil
+	return cfg, nil
 }
 
 func bootstrapPath(fileName string) (string, string, error) {
@@ -138,18 +140,4 @@ func bootstrapPath(fileName string) (string, string, error) {
 	fullPath := filepath.Join(yamldir, fileName)
 	log.Debugf("Opening bootstrap file from: %v", fullPath)
 	return yamldir, fullPath, nil
-}
-
-func writeToDisk(ps *BootstrapSettings) (string, error) {
-	data, err := yaml.Marshal(ps)
-	if err != nil {
-		log.Errorf("Could not write to disk: %v", err)
-		return "", err
-	}
-	err = ioutil.WriteFile(local, data, 0644)
-	if err != nil {
-		log.Errorf("Could not write to disk: %v", err)
-		return "", err
-	}
-	return local, nil
 }

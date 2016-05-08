@@ -26,7 +26,7 @@ func (client *Client) newReverseProxy(bal *balancer.Balancer) *httputil.ReverseP
 	// ReverseProxies for different QOS's or something like that.
 	transport.Dial = client.proxiedDialer(bal.Dial)
 
-	allAuthTokens := bal.AllAuthTokens()
+	onRequest := bal.OnRequest
 	return &httputil.ReverseProxy{
 		// We need to set the authentication tokens for all servers that we might
 		// connect to because we don't know which one the dialer will actually
@@ -38,10 +38,7 @@ func (client *Client) newReverseProxy(bal *balancer.Balancer) *httputil.ReverseP
 			// Add back the Host header which was stripped by the ReverseProxy. This
 			// is needed for sites that do virtual hosting.
 			req.Header.Set("Host", req.Host)
-			req.Header.Set("X-LANTERN-DEVICE-ID", client.cfg().DeviceID)
-			for _, authToken := range allAuthTokens {
-				req.Header.Add("X-LANTERN-AUTH-TOKEN", authToken)
-			}
+			onRequest(req)
 		},
 		Transport: &errorRewritingRoundTripper{
 			&noForwardedForRoundTripper{withDumpHeaders(false, transport)},

@@ -7,6 +7,8 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -14,6 +16,10 @@ import (
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/keyman"
+)
+
+const (
+	forceDF = "FORCE_DOMAINFRONT"
 )
 
 var (
@@ -139,20 +145,26 @@ func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
 			}
 		}
 	}()
-	go func() {
-		if client, err := HTTPClient("", df.cf.proxyAddrFN); err != nil {
-			log.Errorf("Could not create HTTP client: %v", err)
-			errs <- err
-		} else {
-			log.Debug("Sending chained request")
-			if err := request(client, req); err != nil {
-				log.Errorf("Chained request failed %v", err)
+
+	frontOnly, _ := strconv.ParseBool(os.Getenv(forceDF))
+	if frontOnly {
+		log.Debug("Forcing domain-fronting")
+	} else {
+		go func() {
+			if client, err := HTTPClient("", df.cf.proxyAddrFN); err != nil {
+				log.Errorf("Could not create HTTP client: %v", err)
+				errs <- err
 			} else {
-				log.Debug("Switching to chained fronter for future requests since it succeeded")
-				df.cf.setFetcher(&chainedFetcher{df.cf.proxyAddrFN})
+				log.Debug("Sending chained request")
+				if err := request(client, req); err != nil {
+					log.Errorf("Chained request failed %v", err)
+				} else {
+					log.Debug("Switching to chained fronter for future requests since it succeeded")
+					df.cf.setFetcher(&chainedFetcher{df.cf.proxyAddrFN})
+				}
 			}
-		}
-	}()
+		}()
+	}
 
 	// Create channels for the final response or error. The response channel will be filled
 	// in the case of any successful response as well as a non-error response for the second
