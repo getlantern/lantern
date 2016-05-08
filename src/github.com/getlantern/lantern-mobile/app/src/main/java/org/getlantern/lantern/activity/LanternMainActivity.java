@@ -86,10 +86,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     private BroadcastReceiver mReceiver;
     private Context context;
 
-    private NotificationManager mNotifier;
-    private final NotificationCompat.Builder mNotificationBuilder = new NotificationCompat.Builder(this);
-    private static final int NOTIFICATION_ID = 10002;
-
     private boolean isInBackground = false;
     private FragmentStatePagerItemAdapter feedAdapter;
     private SmartTabLayout viewPagerTab;
@@ -158,9 +154,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         context = getApplicationContext();
         session = LanternApp.getSession();
-
-        mNotifier = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
-        setupNotifications();
 
         // since onCreate is only called when the main activity
         // is first created, we clear shared preferences in case
@@ -716,34 +709,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         }
     }
 
-    private void setupNotifications() {
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, LanternMainActivity_.class)
-                .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP),
-                0);
-
-        mNotificationBuilder
-            .setSmallIcon(R.drawable.status_on_white)
-            .setCategory(NotificationCompat.CATEGORY_SERVICE)
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .setContentTitle(getText(R.string.app_name))
-            .setWhen(System.currentTimeMillis())
-            .setContentIntent(pendingIntent)
-            .setOngoing(true);
-    }
-
     private void sendIntentToService() {
         startService(new Intent(this, Service.class));
-        showStatusIcon();
-    }
-
-    public void showStatusIcon() {
-        if (mNotifier != null) {
-            mNotificationBuilder
-                .setTicker(getText(R.string.service_connected))
-                .setContentText(getText(R.string.service_connected));
-            mNotifier.notify(NOTIFICATION_ID, mNotificationBuilder.build());
-        }
     }
 
     @Override
