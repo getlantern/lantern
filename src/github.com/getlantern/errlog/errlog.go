@@ -3,9 +3,21 @@ Package errlog defines error types used across Lantern project and implements
 functions to manipulate them.
 
   var elog = errlog.ErrorLoggerFor("package-name")
+  //...
   if n, err := Foo(); err != nil {
-    elog.Log(err, errlog.WithOp("foo"), errlog.WithField("foo": "bar"))
+    elog.Log(err)
   }
+
+Log() method will try as much as possible to extract details from the error
+passed in, if it's errors defined in Go standard library. For application
+defined error type, at least the Go type name and what yourErr.Error() returns
+will be recorded.
+
+Extra parameters can be passed like this in any order.
+  elog.Log(err, errlog.WithOp("proxy"), errlog.WithUserAgent("Mozilla/5.0..."))
+
+Or to attach arbitrary data with the error.
+  elog.Log(err, errlog.WithField("foo": "bar"))
 
 Guildlines to report error:
 
