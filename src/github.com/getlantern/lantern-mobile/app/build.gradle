@@ -111,7 +111,7 @@ dependencies {
     compile 'com.ogaclejapan.smarttablayout:library:1.6.0@aar'
     compile 'com.ogaclejapan.smarttablayout:utils-v4:1.6.0@aar'
 
-    compile 'com.koushikdutta.ion:ion:2.+'
+    compile 'com.github.bumptech.glide:glide:3.7.0'
 
     compile ('com.mandrillapp.wrapper.lutung:lutung:0.0.7') {
         exclude group: 'org.apache.commons', module: 'commons-io'

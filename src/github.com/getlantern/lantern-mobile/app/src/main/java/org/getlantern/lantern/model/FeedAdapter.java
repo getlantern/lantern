@@ -1,6 +1,7 @@
 package org.getlantern.lantern.model;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,7 +13,7 @@ import java.util.List;
 
 import org.getlantern.lantern.R;
 
-import com.koushikdutta.ion.Ion;
+import com.bumptech.glide.Glide;
 
 public class FeedAdapter extends BaseAdapter {
 
@@ -68,10 +69,7 @@ public class FeedAdapter extends BaseAdapter {
         urlView.setText(item.getUrl());
 
         if (!"".equals(item.getImage())) {
-            Ion.with(mContext)
-                .load(item.getImage())
-                .withBitmap()
-                .intoImageView(imageView);
+            Glide.with(mContext).load(item.getImage()).into(imageView);
         }
         return view;
     }        
