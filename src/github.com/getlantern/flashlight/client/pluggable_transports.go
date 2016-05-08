@@ -25,14 +25,14 @@ func defaultDialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 	forceProxy := ForceChainedProxyAddr != ""
 	addr := s.Addr
 	if forceProxy {
-		log.Errorf("Forcing proxying to server at %v instead of configured server at %v", ForceChainedProxyAddr, s.Addr)
+		log.Debugf("Forcing proxying to server at %v instead of configured server at %v", ForceChainedProxyAddr, s.Addr)
 		addr = ForceChainedProxyAddr
 	}
 
 	var dial dialFN
 
 	if s.Cert == "" && !forceProxy {
-		log.Error("No Cert configured for chained server, will dial with plain tcp")
+		elog.Log(fmt.Errorf("No Cert configured for chained server, will dial with plain tcp"))
 		dial = func() (net.Conn, error) {
 			return netd.Dial("tcp", addr)
 		}

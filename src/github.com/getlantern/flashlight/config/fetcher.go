@@ -9,6 +9,7 @@ import (
 	"net/http/httputil"
 	"time"
 
+	"github.com/getlantern/errlog"
 	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/yamlconf"
 
@@ -73,7 +74,7 @@ func (cf *fetcher) pollForConfig(currentCfg yamlconf.Config, stickyConfig bool) 
 	}
 
 	if bytes, err := cf.fetchCloudConfig(cfg); err != nil {
-		log.Errorf("Could not fetch cloud config %v", err)
+		elog.Log(err, errlog.WithOp("fetch-cloud-config"))
 		return mutate, waitTime, err
 	} else if bytes != nil {
 		// bytes will be nil if the config is unchanged (not modified)
@@ -137,7 +138,7 @@ func (cf *fetcher) fetchCloudConfig(cfg *Config) ([]byte, error) {
 	}
 	dump, err := httputil.DumpResponse(resp, false)
 	if err != nil {
-		log.Errorf("Could not dump response: %v", err)
+		elog.Log(err, errlog.WithOp("dump-response"))
 	} else {
 		log.Debugf("Response headers: \n%v", string(dump))
 	}

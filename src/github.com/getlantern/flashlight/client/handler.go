@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/getlantern/errlog"
 	"github.com/getlantern/flashlight/logging"
 )
 
@@ -125,7 +126,7 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 	success := make(chan bool, 1)
 	go func() {
 		if e := respondOK(clientConn, req); e != nil {
-			log.Errorf("Unable to respond OK: %s", e)
+			elog.Log(e, errlog.WithOp("respondOK"), errlog.WithUserAgent(req.Header.Get("User-Agent")))
 			success <- false
 			return
 		}

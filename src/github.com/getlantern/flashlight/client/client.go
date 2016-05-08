@@ -13,6 +13,7 @@ import (
 	"github.com/armon/go-socks5"
 	"github.com/getlantern/balancer"
 	"github.com/getlantern/detour"
+	"github.com/getlantern/errlog"
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/golog"
 )
@@ -25,7 +26,8 @@ const (
 )
 
 var (
-	log = golog.LoggerFor("flashlight.client")
+	log  = golog.LoggerFor("flashlight.client")
+	elog = errlog.ErrorLoggerFor("flashlight.client")
 
 	// UIAddr is the address at which UI is to be found
 	UIAddr string
@@ -171,7 +173,7 @@ func (client *Client) Configure(cfg *ClientConfig, proxyAll func() bool) {
 
 	bal, err := client.initBalancer(cfg)
 	if err != nil {
-		log.Error(err)
+		elog.Log(err)
 	} else if bal != nil {
 		client.rp.Set(client.newReverseProxy(bal))
 	}

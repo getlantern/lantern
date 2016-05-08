@@ -2,6 +2,7 @@ package analytics
 
 import (
 	"bytes"
+	"fmt"
 	"math"
 	"net/http"
 	"net/http/httputil"
@@ -16,6 +17,7 @@ import (
 	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/util"
 
+	"github.com/getlantern/errlog"
 	"github.com/getlantern/golog"
 )
 
@@ -25,7 +27,8 @@ const (
 )
 
 var (
-	log = golog.LoggerFor("flashlight.analytics")
+	log  = golog.LoggerFor("flashlight.analytics")
+	elog = errlog.ErrorLoggerFor("flashlight.analytics")
 
 	maxWaitForIP = math.MaxInt32 * time.Second
 )
@@ -35,7 +38,10 @@ func Start(cfg *config.Config, version string) func() {
 	go func() {
 		ip := geolookup.GetIP(maxWaitForIP)
 		if ip == "" {
-			log.Errorf("No IP found within %v, not starting analytics session", maxWaitForIP)
+			elog.Log(fmt.Errorf("No IP found"),
+				errlog.WithOp("geolookup"),
+				errlog.WithField("waitSeconds", strconv.FormatInt(int64(maxWaitForIP/time.Second), 10)),
+			)
 			return
 		}
 		addr.Store(ip)
@@ -94,7 +100,7 @@ func trackSession(args string, proxyAddrFN eventual.Getter) {
 	r, err := http.NewRequest("POST", ApiEndpoint, bytes.NewBufferString(args))
 
 	if err != nil {
-		log.Errorf("Error constructing GA request: %s", err)
+		elog.Log(err, errlog.WithOp("new-ga-request"))
 		return
 	}
 
@@ -110,12 +116,12 @@ func trackSession(args string, proxyAddrFN eventual.Getter) {
 	var httpClient *http.Client
 	httpClient, err = util.HTTPClient("", proxyAddrFN)
 	if err != nil {
-		log.Errorf("Could not create HTTP client: %s", err)
+		elog.Log(err, errlog.WithOp("create-http-client"))
 		return
 	}
 	resp, err := httpClient.Do(r)
 	if err != nil {
-		log.Errorf("Could not send HTTP request to GA: %s", err)
+		elog.Log(err, errlog.WithOp("send-http-request"))
 		return
 	}
 	log.Debugf("Successfully sent request to GA: %s", resp.Status)

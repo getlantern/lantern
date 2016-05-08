@@ -1,10 +1,10 @@
 /*
-Package errors defines error types used across Lantern project and implements
+Package errlog defines error types used across Lantern project and implements
 functions to manipulate them.
 
-  var errlog = errors.ErrorLoggerFor("package-name")
+  var elog = errlog.ErrorLoggerFor("package-name")
   if n, err := Foo(); err != nil {
-    errlog.Error(err, withOp("foo"), withField("foo": "bar"))
+    elog.Error(err, errlog.WithOp("foo"), errlog.WithField("foo": "bar"))
   }
 
 Guildlines to report error:
@@ -17,10 +17,11 @@ resumes from the error or makes a decision based on it.
 The purpose is to avoid reporting repetitively, and prevent lower level of code
 from depending on this package.
 */
-package errors
+package errlog
 
 import (
 	"bufio"
+	"bytes"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/hex"
@@ -50,10 +51,38 @@ type systemInfo struct {
 	OSArch    string `json:"osArch"`
 }
 
+func (si *systemInfo) String() string {
+	var buf bytes.Buffer
+	if si.OSType != "" {
+		_, _ = buf.WriteString(" OSType=" + si.OSType)
+	}
+	if si.OSVersion != "" {
+		_, _ = buf.WriteString(" OSVersion=\"" + si.OSVersion + "\"")
+	}
+	if si.OSArch != "" {
+		_, _ = buf.WriteString(" OSArch=" + si.OSArch)
+	}
+	return buf.String()
+}
+
 type UserLocale struct {
 	TimeZone string `json:"timeZone,omitempty"`
 	Language string `json:"language,omitempty"`
 	Country  string `json:"country,omitempty"`
+}
+
+func (si *UserLocale) String() string {
+	var buf bytes.Buffer
+	if si.TimeZone != "" {
+		_, _ = buf.WriteString(" TimeZone=" + si.TimeZone)
+	}
+	if si.Language != "" {
+		_, _ = buf.WriteString(" Language=" + si.Language)
+	}
+	if si.Country != "" {
+		_, _ = buf.WriteString(" Country=" + si.Country)
+	}
+	return buf.String()
 }
 
 // ProxyType is the type of various proxy channel
@@ -80,10 +109,37 @@ type ProxyingInfo struct {
 	Scheme     string    `json:"scheme,omitempty"`
 }
 
+func (pi *ProxyingInfo) String() string {
+	var buf bytes.Buffer
+	if pi.ProxyType != "" {
+		_, _ = buf.WriteString(" ProxyType=" + string(pi.ProxyType))
+	}
+	if pi.LocalAddr != "" {
+		_, _ = buf.WriteString(" LocalAddr=" + pi.LocalAddr)
+	}
+	if pi.ProxyAddr != "" {
+		_, _ = buf.WriteString(" ProxyAddr=" + pi.ProxyAddr)
+	}
+	if pi.ProxyDC != "" {
+		_, _ = buf.WriteString(" ProxyDC=" + pi.ProxyDC)
+	}
+	if pi.OriginSite != "" {
+		_, _ = buf.WriteString(" OriginSite=" + pi.OriginSite)
+	}
+	if pi.Scheme != "" {
+		_, _ = buf.WriteString(" Scheme=" + pi.Scheme)
+	}
+	return buf.String()
+}
+
 // UserAgentInfo encapsulates traits of the browsers or 3rd party applications
 // directing traffic through Lantern.
 type UserAgentInfo struct {
 	UserAgent string `json:"userAgent,omitempty"`
+}
+
+func (ul *UserAgentInfo) String() string {
+	return fmt.Sprintf("UserAgent=%s", ul.UserAgent)
 }
 
 // Error wraps system and application errors in unified structure
@@ -102,6 +158,30 @@ type Error struct {
 	*ProxyingInfo
 	*UserLocale
 	*UserAgentInfo
+}
+
+func (e *Error) String() string {
+	var buf bytes.Buffer
+	_, _ = buf.WriteString(e.Desc)
+	if e.Op != "" {
+		_, _ = buf.WriteString(" op=" + e.Op)
+	}
+	if e.systemInfo != nil {
+		_, _ = buf.WriteString(e.systemInfo.String())
+	}
+	if e.ProxyingInfo != nil {
+		_, _ = buf.WriteString(e.ProxyingInfo.String())
+	}
+	if e.UserLocale != nil {
+		_, _ = buf.WriteString(e.UserLocale.String())
+	}
+	if e.UserAgentInfo != nil {
+		_, _ = buf.WriteString(e.UserAgentInfo.String())
+	}
+	for k, v := range e.Extra {
+		_, _ = buf.WriteString(" " + k + "=" + v)
+	}
+	return buf.String()
 }
 
 // Customized marshaller to marshal extra fields to same level as other struct fields
@@ -151,9 +231,9 @@ func WithLocale() withFunc {
 	}
 }
 
-func WithUserAgent(info *UserAgentInfo) withFunc {
+func WithUserAgent(ua string) withFunc {
 	return func(e *Error) {
-		e.UserAgentInfo = info
+		e.UserAgentInfo = &UserAgentInfo{ua}
 	}
 }
 
@@ -177,6 +257,7 @@ func (c *ErrorLogger) Log(err error, with ...withFunc) {
 		f(actual)
 	}
 	currentReporter.Report(actual)
+	c.logger.Error(actual.String())
 }
 
 func ErrorLoggerFor(goPackage string) *ErrorLogger {

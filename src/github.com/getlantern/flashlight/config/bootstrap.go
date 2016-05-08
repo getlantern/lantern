@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/getlantern/appdir"
+	"github.com/getlantern/errlog"
 	"github.com/getlantern/tarfs"
 	"github.com/getlantern/yaml"
 	"github.com/getlantern/yamlconf"
@@ -74,7 +75,7 @@ func readSettingsFromFile(yamlPath string) (*BootstrapSettings, error) {
 	err = yaml.Unmarshal([]byte(trimmed), &s)
 
 	if err != nil {
-		log.Errorf("Could not read yaml: %v", err)
+		elog.Log(err, errlog.WithOp("read-bootstrap-settings"))
 		return &BootstrapSettings{}, err
 	}
 	return &s, nil
@@ -84,7 +85,7 @@ func readSettingsFromFile(yamlPath string) (*BootstrapSettings, error) {
 func MakeInitialConfig() (yamlconf.Config, error) {
 	dir, _, err := bootstrapPath(lanternYamlName)
 	if err != nil {
-		log.Errorf("Could not get bootstrap path %v", err)
+		elog.Log(err, errlog.WithOp("get-bootstrap-path"))
 		return nil, err
 	}
 
@@ -93,7 +94,7 @@ func MakeInitialConfig() (yamlconf.Config, error) {
 	// however, to embed it in installers to change various settings.
 	fs, err := tarfs.New(Resources, dir)
 	if err != nil {
-		log.Errorf("Could not read resources? %v", err)
+		elog.Log(err, errlog.WithOp("read-tarfs"))
 		return nil, err
 	}
 
@@ -102,13 +103,13 @@ func MakeInitialConfig() (yamlconf.Config, error) {
 	// empty.
 	bytes, err := fs.GetIgnoreLocalEmpty("lantern.yaml")
 	if err != nil {
-		log.Errorf("Could not read bootstrap file %v", err)
+		elog.Log(err, errlog.WithOp("read-bootstrap-file"))
 		return nil, err
 	}
 	cfg := &Config{}
 	err = yaml.Unmarshal(bytes, cfg)
 	if err != nil {
-		log.Errorf("Could not parse YAML: %v", err)
+		elog.Log(err, errlog.WithOp("parse-yaml"))
 		return nil, err
 	}
 	return cfg, nil
@@ -117,7 +118,7 @@ func MakeInitialConfig() (yamlconf.Config, error) {
 func bootstrapPath(fileName string) (string, string, error) {
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
-		log.Errorf("Could not get current directory %v", err)
+		elog.Log(err, errlog.WithOp("get-cwd"))
 		return "", "", err
 	}
 	var yamldir string

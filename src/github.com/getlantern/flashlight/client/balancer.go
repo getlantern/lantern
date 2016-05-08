@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/getlantern/balancer"
+	"github.com/getlantern/errlog"
 )
 
 // getBalancer waits for a message from client.balCh to arrive and then it
@@ -37,7 +38,10 @@ func (client *Client) initBalancer(cfg *ClientConfig) (*balancer.Balancer, error
 			log.Debugf("Adding chained server: %v", s.Addr)
 			dialers = append(dialers, dialer)
 		} else {
-			log.Errorf("Unable to configure chained server. Received error: %v", err)
+			elog.Log(err, errlog.WithOp("configure"), errlog.WithProxy(&errlog.ProxyingInfo{
+				ProxyType: errlog.ChainedProxy,
+				ProxyAddr: s.Addr,
+			}))
 		}
 	}
 
