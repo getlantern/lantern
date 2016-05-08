@@ -2,10 +2,13 @@ package yamlconf
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"reflect"
+	"time"
 
+	"github.com/getlantern/rot13"
 	"github.com/getlantern/yaml"
 )
 
@@ -15,23 +18,38 @@ func (m *Manager) loadFromDisk() error {
 }
 
 func (m *Manager) reloadFromDisk() (bool, error) {
-	cfg := m.EmptyConfig()
+	var cfg Config
 
 	fileInfo, err := os.Stat(m.FilePath)
-	if err != nil {
-		return false, fmt.Errorf("Unable to stat config file %s: %s", m.FilePath, err)
+	if err == nil {
+		if m.fileInfo == fileInfo {
+			log.Trace("Config unchanged on disk")
+			return false, nil
+		}
+	} else if m.DefaultConfig == nil || !os.IsNotExist(err) {
+		return false, fmt.Errorf("Unable to stat config file %v: %v", m.FilePath, err)
 	}
-	if m.fileInfo == fileInfo {
-		log.Trace("Config unchanged on disk")
-		return false, nil
-	}
-	bytes, err := ioutil.ReadFile(m.FilePath)
+
+	cfg, err = readFromDisk(m.FilePath, m.Obfuscate, m.EmptyConfig)
 	if err != nil {
-		return false, fmt.Errorf("Error reading config from %s: %s", m.FilePath, err)
+		if m.DefaultConfig == nil {
+			return false, err
+		}
+		log.Debugf("Error reading config from disk, replacing with default: %v", err)
+		cfg, err = m.DefaultConfig()
+	} else if m.ValidateConfig != nil {
+		if m.DefaultConfig == nil {
+			log.Debug("Not validating config because no DefaultConfig provided!")
+		} else {
+			err2 := m.ValidateConfig(cfg)
+			if err2 != nil {
+				log.Debugf("Config failed to validate, replacing with default: %v", err2)
+				cfg, err = m.DefaultConfig()
+			}
+		}
 	}
-	err = yaml.Unmarshal(bytes, cfg)
 	if err != nil {
-		return false, fmt.Errorf("Error unmarshaling config yaml from %s: %s", m.FilePath, err)
+		return false, err
 	}
 
 	if m.cfg != nil && m.cfg.GetVersion() != cfg.GetVersion() {
@@ -53,6 +71,64 @@ func (m *Manager) reloadFromDisk() (bool, error) {
 	m.fileInfo = fileInfo
 
 	return true, nil
+}
+
+func readFromDisk(filePath string, allowObfuscation bool, emptyConfig func() Config) (Config, error) {
+	var cfg Config
+	if allowObfuscation {
+		log.Trace("Attempting to read obfuscated config")
+		var err1, err2 error
+		cfg, err1 = doReadFromDisk(filePath, true, emptyConfig)
+		if err1 != nil {
+			log.Tracef("Error reading obfuscated config from disk, try reading non-obfuscated: %v", err1)
+			cfg, err2 = doReadFromDisk(filePath, false, emptyConfig)
+			if err2 != nil {
+				return nil, fmt.Errorf("%v / %v", err1, err2)
+			}
+		}
+		return cfg, nil
+	}
+
+	log.Trace("Attempting to read non-obfuscated config")
+	var err1, err2 error
+	cfg, err1 = doReadFromDisk(filePath, false, emptyConfig)
+	if err1 != nil {
+		log.Tracef("Error reading non-obfuscated config from disk, try reading obfuscated: %v", err1)
+		cfg, err2 = doReadFromDisk(filePath, true, emptyConfig)
+		if err2 != nil {
+			return nil, fmt.Errorf("%v / %v", err1, err2)
+		}
+	}
+	return cfg, nil
+}
+
+func doReadFromDisk(filePath string, allowObfuscation bool, emptyConfig func() Config) (Config, error) {
+	start := time.Now()
+	infile, err := os.Open(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to open config file %v for reading: %v", filePath, err)
+	}
+	defer infile.Close()
+
+	var in io.Reader = infile
+	if allowObfuscation {
+		in = rot13.NewReader(infile)
+	}
+
+	bytes, err := ioutil.ReadAll(in)
+	if err != nil {
+		return nil, fmt.Errorf("Error reading config from %v: %v", filePath, err)
+	}
+
+	cfg := emptyConfig()
+	err = yaml.Unmarshal(bytes, cfg)
+	if err != nil {
+		return nil, fmt.Errorf("Error unmarshaling config yaml from %v: %v", filePath, err)
+	}
+
+	delta := time.Now().Sub(start)
+	log.Debugf("*********************** Read from disk in %v", delta)
+	return cfg, nil
 }
 
 func (m *Manager) saveToDiskAndUpdate(updated Config) (bool, error) {
@@ -89,7 +165,7 @@ func (m *Manager) saveToDiskAndUpdate(updated Config) (bool, error) {
 	log.Trace("Save updated")
 	err := m.writeToDisk(updated)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("Unable to write to disk: %v", err)
 	}
 
 	log.Trace("Point to updated")
@@ -100,15 +176,26 @@ func (m *Manager) saveToDiskAndUpdate(updated Config) (bool, error) {
 func (m *Manager) writeToDisk(cfg Config) error {
 	bytes, err := yaml.Marshal(cfg)
 	if err != nil {
-		return fmt.Errorf("Unable to marshal config yaml: %s", err)
+		return fmt.Errorf("Unable to marshal config yaml: %v", err)
 	}
-	err = ioutil.WriteFile(m.FilePath, bytes, 0644)
+
+	outfile, err := os.OpenFile(m.FilePath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
-		return fmt.Errorf("Unable to write config yaml to file %s: %s", m.FilePath, err)
+		return fmt.Errorf("Unable to open file %v for writing: %v", m.FilePath, err)
+	}
+	defer outfile.Close()
+
+	var out io.Writer = outfile
+	if m.Obfuscate {
+		out = rot13.NewWriter(outfile)
+	}
+	_, err = out.Write(bytes)
+	if err != nil {
+		return fmt.Errorf("Unable to write config yaml to file %v: %v", m.FilePath, err)
 	}
 	m.fileInfo, err = os.Stat(m.FilePath)
 	if err != nil {
-		return fmt.Errorf("Unable to stat file %s: %s", m.FilePath, err)
+		return fmt.Errorf("Unable to stat file %v: %v", m.FilePath, err)
 	}
 	return nil
 }

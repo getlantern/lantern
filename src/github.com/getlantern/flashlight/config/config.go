@@ -4,13 +4,11 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
-	"strings"
 	"time"
 
 	"code.google.com/p/go-uuid/uuid"
@@ -29,7 +27,9 @@ import (
 )
 
 const (
-	cloudfront             = "cloudfront"
+	cloudfront = "cloudfront"
+
+	// DefaultUpdateServerURL is the URL to fetch updates from.
 	DefaultUpdateServerURL = "https://update.getlantern.org"
 )
 
@@ -39,17 +39,21 @@ var (
 	r   = regexp.MustCompile("\\d+\\.\\d+")
 )
 
+// Config contains general configuration for Lantern either set globally via
+// the cloud, in command line flags, or in local customizations during
+// development.
 type Config struct {
-	configDir       string
-	Version         int
-	CloudConfig     string
-	CloudConfigCA   string
-	CpuProfile      string
-	MemProfile      string
-	UpdateServerURL string
-	Client          *client.ClientConfig
-	ProxiedSites    *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
-	TrustedCAs      []*CA
+	configDir          string
+	Version            int
+	CloudConfig        string
+	CloudConfigCA      string
+	FrontedCloudConfig string
+	CPUProfile         string
+	MemProfile         string
+	UpdateServerURL    string
+	Client             *client.ClientConfig
+	ProxiedSites       *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
+	TrustedCAs         []*CA
 }
 
 // Fetcher is an interface for fetching config updates.
@@ -76,35 +80,13 @@ type CA struct {
 	Cert       string // PEM-encoded
 }
 
-func exists(file string) (os.FileInfo, bool) {
-	if fi, err := os.Stat(file); os.IsNotExist(err) {
-		log.Debugf("File does not exist at %v", file)
-		return fi, false
-	} else {
-		log.Debugf("File exists at %v", file)
-		return fi, true
+// validateConfig checks whether the given config is valid and returns an error
+// if it isn't.
+func validateConfig(_cfg yamlconf.Config) error {
+	cfg, ok := _cfg.(*Config)
+	if !ok {
+		return fmt.Errorf("Config is not a flashlight config!")
 	}
-}
-
-// hasCustomChainedServer returns whether or not the config file at the specified
-// path includes a custom chained server or not.
-func hasCustomChainedServer(configPath, name string) bool {
-	if !(strings.HasPrefix(name, "lantern") && strings.HasSuffix(name, ".yaml")) {
-		log.Debugf("File name does not match")
-		return false
-	}
-	bytes, err := ioutil.ReadFile(configPath)
-	if err != nil {
-		log.Errorf("Could not read file %v", err)
-		return false
-	}
-	cfg := &Config{}
-	err = yaml.Unmarshal(bytes, cfg)
-	if err != nil {
-		log.Errorf("Could not unmarshal config %v", err)
-		return false
-	}
-
 	nc := len(cfg.Client.ChainedServers)
 
 	log.Debugf("Found %v chained servers in config on disk", nc)
@@ -114,13 +96,10 @@ func hasCustomChainedServer(configPath, name string) bool {
 	// The config will have more than one but fewer than 10 chained servers
 	// if it has been given a custom config with a custom chained server
 	// list
-	return nc > 0 && nc < 10
-}
-
-func isGoodConfig(configPath string) bool {
-	log.Debugf("Checking config path: %v", configPath)
-	fi, exists := exists(configPath)
-	return exists && hasCustomChainedServer(configPath, fi.Name())
+	if nc <= 0 || nc > 10 {
+		return fmt.Errorf("Inappropriate number of custom chained servers found: %d", nc)
+	}
+	return nil
 }
 
 func majorVersion(version string) string {
@@ -144,18 +123,14 @@ func Init(userConfig UserConfig, version string, configDir string, stickyConfig 
 		log.Errorf("Could not get config path? %v", err)
 		return nil, err
 	}
-	run := isGoodConfig(configPath)
-	if !run {
-		// If this is our first run of this version of Lantern, use the embedded configuration
-		// file and use it to download our custom config file on this first poll for our
-		// config.
-		if err := MakeInitialConfig(configPath); err != nil {
-			return nil, err
-		}
-	}
 
 	m = &yamlconf.Manager{
 		FilePath: configPath,
+
+		ValidateConfig: validateConfig,
+
+		DefaultConfig: MakeInitialConfig,
+
 		EmptyConfig: func() yamlconf.Config {
 			return &Config{configDir: configDir}
 		},
@@ -166,6 +141,8 @@ func Init(userConfig UserConfig, version string, configDir string, stickyConfig 
 		CustomPoll: func(ycfg yamlconf.Config) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
 			return fetcher.pollForConfig(ycfg, stickyConfig)
 		},
+		// Obfuscate on-disk contents of YAML file
+		Obfuscate: flags["readableconfig"] == nil || !flags["readableconfig"].(bool),
 	}
 	initial, err := m.Init()
 
@@ -254,10 +231,12 @@ func (updated *Config) applyFlags(flags map[string]interface{}) error {
 			updated.CloudConfig = value.(string)
 		case "cloudconfigca":
 			updated.CloudConfigCA = value.(string)
+		case "frontedconfig":
+			updated.FrontedCloudConfig = value.(string)
 		case "instanceid":
 			updated.Client.DeviceID = value.(string)
 		case "cpuprofile":
-			updated.CpuProfile = value.(string)
+			updated.CPUProfile = value.(string)
 		case "memprofile":
 			updated.MemProfile = value.(string)
 		}
@@ -282,6 +261,10 @@ func (cfg *Config) ApplyDefaults() {
 
 	if cfg.CloudConfig == "" {
 		cfg.CloudConfig = chainedCloudConfigURL
+	}
+
+	if cfg.FrontedCloudConfig == "" {
+		cfg.FrontedCloudConfig = frontedCloudConfigURL
 	}
 
 	if cfg.Client == nil {

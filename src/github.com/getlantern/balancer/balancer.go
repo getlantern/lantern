@@ -6,6 +6,7 @@ import (
 	"container/heap"
 	"fmt"
 	"net"
+	"net/http"
 	"sync"
 
 	"github.com/getlantern/golog"
@@ -21,7 +22,7 @@ var (
 
 // Balancer balances connections established by one or more Dialers.
 type Balancer struct {
-	mu      sync.Mutex
+	mu      sync.RWMutex
 	dialers dialerHeap
 	trusted dialerHeap
 }
@@ -47,10 +48,11 @@ func New(st Strategy, dialers ...*Dialer) *Balancer {
 	return bal
 }
 
-// AllAuthTokens() returns a list of all auth tokens for all dialers on this
-// balancer.
-func (b *Balancer) AllAuthTokens() []string {
-	return b.dialers.AuthTokens()
+// OnRequest calls Dialer.OnRequest for every dialer in this balancer.
+func (b *Balancer) OnRequest(req *http.Request) {
+	b.mu.RLock()
+	b.dialers.onRequest(req)
+	b.mu.RUnlock()
 }
 
 // Dial dials (network, addr) using one of the currently active configured

@@ -26,7 +26,7 @@ ext {
     minSdkVersion = 15
     androidAnnotationsVersion = '3.3.2'
     androidAnnotationsAPIVersion = '3.3.2'
-    buildToolsVersion = '23.0.2'
+    buildToolsVersion = '23.0.3'
     buildNumber = 'dev'
 
     lanternDir = projectDir.parentFile.parentFile
