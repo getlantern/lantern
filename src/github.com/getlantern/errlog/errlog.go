@@ -439,7 +439,7 @@ func parseError(err error) (op string, goType string, desc string, extra map[str
 		desc = actual.Error()
 
 	case *os.LinkError:
-		goType = "textproto.ProtocolError"
+		goType = "os.LinkError"
 		desc = actual.Error()
 	case *os.PathError:
 		goType = "os.PathError"
@@ -468,10 +468,9 @@ func parseError(err error) (op string, goType string, desc string, extra map[str
 		desc = err.Error()
 		if t, ok := miscErrors[err]; ok {
 			goType = t
-		} else {
-			goType = reflect.TypeOf(err).String()
+			return
 		}
-		return
+		goType = reflect.TypeOf(err).String()
 	}
 	return
 }
