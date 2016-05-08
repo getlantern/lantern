@@ -21,11 +21,11 @@ import (
 )
 
 var (
-	isPacOn     = int32(0)
-	pacURL      string
+	isPacOn       = int32(0)
+	pacURL        string
 	pacURLNoCache string
-	directHosts = make(map[string]bool)
-	cfgMutex    sync.RWMutex
+	directHosts   = make(map[string]bool)
+	cfgMutex      sync.RWMutex
 )
 
 func ServePACFile() {
