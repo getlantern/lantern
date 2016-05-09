@@ -149,10 +149,11 @@ func pipeData(clientConn net.Conn, connOut net.Conn, closeFunc func()) {
 		closeFunc()
 	}()
 
-	// Then start coyping from proxy to client.
+	// Then start copying from proxy to client.
 	if _, err := io.Copy(clientConn, connOut); err != nil {
 		log.Tracef("Error piping data from proxy to client: %s", err)
 	}
+	closeFunc()
 }
 
 func respondOK(writer io.Writer, req *http.Request) error {

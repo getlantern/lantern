@@ -1,7 +1,14 @@
 package org.getlantern.lantern.vpn;
 
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningServiceInfo;
+import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
+
+import org.getlantern.lantern.LanternApp;
+import org.getlantern.lantern.model.SessionManager;
+import org.getlantern.lantern.model.Utils;
 
 import go.lantern.Lantern;
 
@@ -9,6 +16,8 @@ public class Service extends VpnBuilder implements Runnable {
 
     private static final String TAG = "VpnService";
     public static boolean IsRunning = false;
+    private SessionManager session;
+
 
     private Thread mThread = null;
 
@@ -16,6 +25,8 @@ public class Service extends VpnBuilder implements Runnable {
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "VpnService created");
+        session = LanternApp.getSession();
+
         mThread = new Thread(this, "VpnService");
         mThread.start();
     }
@@ -25,6 +36,18 @@ public class Service extends VpnBuilder implements Runnable {
     public int onStartCommand(Intent intent, int flags, int startId) {
         IsRunning = true;
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    // isRunning checks to see if the VPN service is already running
+    // in the background.
+    public static boolean isRunning(Context c) {
+        ActivityManager manager = (ActivityManager)c.getSystemService(Context.ACTIVITY_SERVICE);
+        for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (Service.class.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -44,7 +67,8 @@ public class Service extends VpnBuilder implements Runnable {
             });
             int startTimeoutMillis = 60000;
             String analyticsTrackingID = "UA-21815217-14";
-            org.lantern.mobilesdk.StartResult result = org.lantern.mobilesdk.Lantern.enable(getApplicationContext(), startTimeoutMillis, analyticsTrackingID);
+            boolean updateProxySettings = false;
+            org.lantern.mobilesdk.StartResult result = org.lantern.mobilesdk.Lantern.enable(getApplicationContext(), startTimeoutMillis, updateProxySettings, analyticsTrackingID);
             configure(result.getSOCKS5Addr());
 
             while (IsRunning) {
@@ -66,7 +90,11 @@ public class Service extends VpnBuilder implements Runnable {
         try {
             super.close();
             Log.d(TAG, "Closing VPN interface..");
+            Lantern.RemoveOverrides();
+            session.updateVpnPreference(false);
+
         } catch (Exception e) {
+
         }
 
         stopSelf();

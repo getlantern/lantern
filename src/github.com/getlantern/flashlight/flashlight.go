@@ -11,8 +11,7 @@ import (
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/logging"
-	"github.com/getlantern/flashlight/pro"
-	"github.com/getlantern/flashlight/proxiedsites"
+    "github.com/getlantern/flashlight/pro"
 )
 
 const (
@@ -148,7 +147,6 @@ func applyClientConfig(client *client.Client, cfg *config.Config, proxyAll func(
 		Version, RevisionDate)
 	// Update client configuration
 	client.Configure(cfg.Client, proxyAll)
-	proxiedsites.Configure(cfg.ProxiedSites)
 }
 
 func displayVersion() {

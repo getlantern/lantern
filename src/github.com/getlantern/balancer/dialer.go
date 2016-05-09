@@ -34,7 +34,8 @@ type Dialer struct {
 	// Determines whether a dialer can be trusted with unencrypted traffic.
 	Trusted bool
 
-	AuthToken string
+	// Modifies any HTTP requests made using connections from this dialer.
+	OnRequest func(req *http.Request)
 }
 
 var (
@@ -158,7 +159,9 @@ func (d *dialer) defaultCheck() bool {
 			log.Errorf("Could not create HTTP request?")
 			return false, nil
 		}
-		req.Header.Set("X-LANTERN-AUTH-TOKEN", d.AuthToken)
+		if d.OnRequest != nil {
+			d.OnRequest(req)
+		}
 		resp, err := client.Do(req)
 		if err != nil {
 			log.Debugf("Error testing dialer %s to humans.txt: %s", d.Label, err)

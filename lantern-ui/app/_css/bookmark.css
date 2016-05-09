@@ -1,0 +1,187 @@
+/*
+@media screen and (max-width: 600px), screen and (max-height: 400px) {
+.url {
+opacity: 0 !important;
+}
+}*/
+/*
+@import url('filesystem:chrome-extension://__MSG_@@extension_id__/persistent/user.css');
+ */
+
+@font-face { font-family: LBL; src: url('../font/ProximaNova-Light.otf'); }
+
+* {
+  margin: 0;
+  padding: 0;
+  /*-webkit-user-select: none;*/
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+
+  background: #000;
+
+  position: relative;
+
+  overflow: hidden;
+}
+
+html {
+  background: #fff;
+}
+
+#sites {
+  position: relative;
+  top: 200px;
+  text-align: left;
+  opacity: 0.0;
+  -webkit-transition: opacity 0.1s linear;
+  opacity: 1;
+  -webkit-transform: scale(1.48245614035088, 1.48245614035088);
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  width: 650px;
+  padding-bottom:90px;
+  cursor:pointer;
+}
+
+.backend-gone {
+  font-family: LBL;
+  font-size: 18px;
+  line-height: 20px;
+  color: rgb(82,82,82);
+  margin-top: 60px;
+}
+
+.bookmark {
+  font-family: LBL;
+  font-weight: lighter;
+  background-size: 90%;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.message {
+  box-sizing: border-box;
+  display: table;
+
+  position: absolute;
+  width: 100%;
+  height: 200px;
+  padding-top: 10px;
+
+  color:rgb(82,82,82);
+  font-family: LBL;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 36px;
+  text-align: center;
+}
+
+
+@font-face{
+  font-family:LBL;
+  src:url(../font/ProximaNova-Light.otf)
+}
+
+#feedLink {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  display: inline-block;
+  background-color: #ff4081;
+}
+
+#feedLink.subtle {
+  background-color: #ccc;
+}
+
+#feedLink div {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+#feedLink a {
+  color: white;
+  text-align: center;
+  margin-left: 16px;
+  margin-right: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: LBL;
+}
+
+#logo {
+  width: 75px;
+}
+
+div.end-censorship{
+  width:auto;-
+  webkit-transform:none;
+  font-size:30px;
+  top:0;
+  margin-bottom: 30px;
+  font-size:40px;
+  font-family:LBL;
+  color:#fff;
+  text-align:left;
+  margin-left:auto;
+  margin-right:auto;
+  width:100%
+}
+
+.tile {
+  display: inline-block;
+  -webkit-user-drag: none;
+  position: relative;
+  width: 175px;
+  height: 105px;
+  margin-top: 5px;
+  padding-bottom: 13px;
+  font-size: 100px;
+  line-height: 200px;
+  font-family: LBL;
+  font-size: 12px;
+  text-align: center;
+  text-decoration: none;
+  color: rgb(82,82,82);
+  /*-webkit-user-select: none;*/
+  -webkit-transition: -webkit-transform .3s ease-out, background .3s ease-in;
+}
+
+.tile.top {
+  margin-top: 10px;
+}
+
+.tile:hover,
+.tile:active {
+  box-shadow: 0 0 3px #515151;
+}
+
+.tile.animate {
+  z-index: 1000;
+  text-shadow: none;
+  box-shadow: none;
+}
+
+.url {
+  font-size: 14px;
+  line-height: 20px;
+  display: inline-block;
+  position: absolute;
+  width: 100%;
+  height: 32px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-wrap: break-word;
+  white-space: nowrap;
+  text-align: center;
+  left: 0;
+  top: 100px;
+  opacity: 1.0;
+  font-family: LBL;
+}

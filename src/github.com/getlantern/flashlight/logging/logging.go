@@ -57,6 +57,7 @@ func init() {
 	initLogging()
 }
 
+// EnableFileLogging enables sending Lantern logs to a file.
 func EnableFileLogging() error {
 	logdir := appdir.Logs("Lantern")
 	log.Debugf("Placing logs in %v", logdir)
@@ -83,7 +84,7 @@ func EnableFileLogging() error {
 
 // Configure will set up logging. An empty "addr" will configure logging without a proxy
 // Returns a bool channel for optional blocking.
-func Configure(addrFN eventual.Getter, cloudConfigCA string, instanceId string,
+func Configure(addrFN eventual.Getter, cloudConfigCA string, instanceID string,
 	version string, revisionDate string) (success chan bool) {
 	success = make(chan bool, 1)
 
@@ -110,7 +111,7 @@ func Configure(addrFN eventual.Getter, cloudConfigCA string, instanceId string,
 	// Using a goroutine because we'll be using waitforserver and at this time
 	// the proxy is not yet ready.
 	go func() {
-		enableLoggly(addrFN, cloudConfigCA, instanceId, version, revisionDate)
+		enableLoggly(addrFN, cloudConfigCA, instanceID, version, revisionDate)
 		// Won't block, but will allow optional blocking on receiver
 		success <- true
 	}()
@@ -131,6 +132,7 @@ func Flush() {
 	}
 }
 
+// Close stops logging.
 func Close() error {
 	initLogging()
 	if logFile != nil {
@@ -156,7 +158,7 @@ func timestamped(orig io.Writer) io.Writer {
 	})
 }
 
-func enableLoggly(addrFN eventual.Getter, cloudConfigCA string, instanceId string,
+func enableLoggly(addrFN eventual.Getter, cloudConfigCA string, instanceID string,
 	version string, revisionDate string) {
 
 	client, err := util.PersistentHTTPClient(cloudConfigCA, addrFN)
@@ -180,7 +182,7 @@ func enableLoggly(addrFN eventual.Getter, cloudConfigCA string, instanceId strin
 		client:          loggly.New(logglyToken, logglyTag),
 	}
 	logglyWriter.client.Defaults["hostname"] = "hidden"
-	logglyWriter.client.Defaults["instanceid"] = instanceId
+	logglyWriter.client.Defaults["instanceid"] = instanceID
 	if osStr, err := osversion.GetHumanReadable(); err == nil {
 		osVersion = osStr
 	}
