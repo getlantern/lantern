@@ -2,6 +2,7 @@
 <resources>
   <string name="app_name">Lantern</string>
   <string name="action_settings">הגדרות</string>
+  <string name="send_button">לשלוח</string>
   <string name="contact_option">צור קשר</string>
   <string name="quit_option">צא</string>
   <string name="share_email_native"></string>

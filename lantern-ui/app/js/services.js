@@ -210,8 +210,21 @@ angular.module('app.services', [])
       ga()('send', 'event', 'bookmark-' + name);
     };
 
+    var trackShowFeed = function() {
+      ga()('send', 'event', 'showFeed');
+    };
+
+    var trackHideFeed = function() {
+      ga()('send', 'event', 'hideFeed');
+    };
+
     var trackFeed = function(name) {
       ga()('send', 'event', 'feed-' + name);
+    };
+
+    var trackFeedError = function(url, statusCode) {
+      var eventName = 'feed-loading-error-' + url + "-status-"+statusCode;
+      ga()('send', 'event', eventName);
     };
 
     var enableTracking = function() {
@@ -234,7 +247,10 @@ angular.module('app.services', [])
       trackSocialLink: trackSocialLink,
       trackLink: trackLink,
       trackBookmark: trackBookmark,
-      trackFeed: trackFeed
+      trackFeed: trackFeed,
+      trackFeedError: trackFeedError,
+      trackShowFeed: trackShowFeed,
+      trackHideFeed: trackHideFeed
     };
   })
   .service('apiSrvc', function($http, API_URL_PREFIX) {

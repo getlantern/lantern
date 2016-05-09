@@ -13,15 +13,16 @@
     <!-- build:css style/app.css -->
     <link rel="stylesheet" href="_css/bookmark.css">
     <link rel="stylesheet" href="_css/news.css">
-    <link href="bower_components/select2/select2.css" rel="stylesheet">
-    <link href="_css/app.css" rel="stylesheet">
-    <link href="bower_components/normalize.css/normalize.css" rel="stylesheet">
+    <link rel="stylesheet" href="_css/error.css">
+    <link rel="stylesheet" href="bower_components/select2/select2.css">
+    <link rel="stylesheet" href="_css/app.css">
+    <link rel="stylesheet" href="angular-feed/styles/spinner.css">
+    <link rel="stylesheet" href="bower_components/normalize.css/normalize.css">
     <!-- endbuild -->
 
     <!-- build:js js/lib.js -->
     <script src="bower_components/jquery/dist/jquery.min.js"></script>
     <script src="bower_components/jsonpatch/lib/jsonpatch.js"></script>
-    <script src="bower_components/d3/d3.min.js"></script>
     <script src="bower_components/lodash/lodash.min.js"></script>
     <script src="bower_components/select2/select2.js"></script>
     <script src="bower_components/cssesc/cssesc.js"></script>
@@ -37,15 +38,16 @@
     <script src="lib/angular-ui-bootstrap-tpls.js"></script>
 
     <script src="lib/mailer.js"></script>
+    <script src="lib/lz-string.min.js"></script>
 
     <script src="bower_components/clipboard/dist/clipboard.min.js"></script>
     <script src="bower_components/ngclipboard/src/ngclipboard.js"></script>
+    <script src='bower_components/ngInfiniteScroll/build/ng-infinite-scroll.min.js'></script>
+    <script src="bower_components/re-tree/re-tree.js"></script>
+    <script src="bower_components/ng-device-detector/ng-device-detector.js"></script>
 
     <!-- we host a copy of google's analytics.js locally -->
     <script src="lib/analytics.js"></script>
-    <!--<script src="bower_components/ui-bootstrap/src/tooltip/tooltip.js"></script>-->
-    <!-- XXX see "XXX" in js/vis.js before switching to more recent topojson -->
-    <script src="lib/topojson.js"></script>
     <!-- endbuild -->
 
     <!-- build:js2 js/app.js -->
@@ -61,7 +63,6 @@
     <script src="js/services.js"></script>
     <script src="js/controllers.js"></script>
     <script src="js/directives.js"></script>
-    <script src="js/vis.js"></script>
     <!-- endbuild -->
 
     <link rel="shortcut icon" href="img/favicon.ico">
@@ -73,8 +74,7 @@
   </body>
 <![endif]-->
 <!--[if (!IE)|(gte IE 10)]><!-->
-  <body ng-controller="RootCtrl" ng-cloak lang="{{ lang }}" dir="{{ langDirection }}"
-    ng-class="{showVis: model.showVis, getMode: inGetMode, giveMode: inGiveMode}">
+  <body ng-controller="RootCtrl" ng-cloak lang="{{ lang }}" dir="{{ langDirection }}">
     <div id="fb-root"></div>
     <div id="waiting" ng-show="!wsConnected">
     <div ng-show="!backendIsGone">
@@ -87,7 +87,17 @@
     </div>
     <div class="message">
       <a href="https://getlantern.org" target="_blank">
-      <img id="logo" src="/img/ui-header-logo.svg"></a><br/><span ng-show="!backendIsGone || wsConnected">{{ 'WELCOME_TO_LANTERN_BLOCKED_SITES' | translate }}</span>
+      <img id="logo" src="/img/ui-header-logo.svg"></a><br/><span ng-hide="(backendIsGone && !wsConnected) || showError">{{ 'WELCOME_TO_LANTERN_BLOCKED_SITES' | translate }}</span>
+    </div>
+    <div id="feedLink" ng-class="{subtle: showNews}">
+      <div>
+        <a ng-click="showNewsfeed()" ng-show="!showNews && !showError">
+          {{ 'SHOW_NEWSFEED' | translate }}
+        </a>
+        <a ng-click="hideNewsfeed()" ng-show="showNews || showError">
+          {{ 'HIDE_NEWSFEED' | translate }}
+        </a>
+      </div>
     </div>
 
     <div ng-include src="'partials/modals.html'"></div>
@@ -96,6 +106,7 @@
     <div ng-include src="'partials/news.html'"></div>
     <div ng-include src="'partials/footer.html'"></div>
     <div ng-include src="'partials/developer.html'"></div>
+    <div ng-include src="'partials/error.html'"></div>
   </body>
 <!--<![endif]-->
 </html>

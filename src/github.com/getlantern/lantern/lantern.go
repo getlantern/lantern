@@ -10,6 +10,7 @@ import (
 	"github.com/getlantern/flashlight"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
+	"github.com/getlantern/flashlight/feed"
 	"github.com/getlantern/flashlight/logging"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/protected"
@@ -38,10 +39,25 @@ func ProtectConnections(dnsServer string, protector SocketProtector) {
 	tlsdialer.OverrideDial(protected.Dial)
 }
 
+// RemoveOverrides removes the protected tlsdialer overrides
+// that allowed connections to bypass the VPN.
+func RemoveOverrides() {
+	tlsdialer.OverrideResolve(nil)
+	tlsdialer.OverrideDial(nil)
+}
+
 // StartResult provides information about the started Lantern
 type StartResult struct {
 	HTTPAddr   string
 	SOCKS5Addr string
+}
+
+type FeedProvider interface {
+	AddSource(string)
+}
+
+type FeedRetriever interface {
+	AddFeed(string, string, string, string)
 }
 
 // Start starts a HTTP and SOCKS proxies at random addresses. It blocks up till
@@ -112,4 +128,15 @@ func run(configDir string) {
 		&userConfig{},
 		func(err error) {}, // onError
 	)
+}
+
+// GetFeed fetches the public feed thats displayed on Lantern's main screen
+func GetFeed(locale string, allStr string, proxyAddr string,
+	provider FeedProvider) {
+	feed.GetFeed(locale, allStr, proxyAddr, provider)
+}
+
+// FeedByName grabs the feed results for a given feed source name
+func FeedByName(name string, retriever FeedRetriever) {
+	feed.FeedByName(name, retriever)
 }

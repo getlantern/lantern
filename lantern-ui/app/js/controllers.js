@@ -5,6 +5,7 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$filter', '$compile', '$win
                function($rootScope, $scope, $filter, $compile, $window, $http, gaMgr, $translate, localStorageService, BUILD_REVISION) {
     $scope.currentModal = 'none';
 
+    $rootScope.lanternShowNews = 'lanternShowNewsFeed';
     $rootScope.lanternFirstTimeBuildVar = 'lanternFirstTimeBuild-'+BUILD_REVISION;
     $rootScope.lanternHideMobileAdVar = 'lanternHideMobileAd';
 
@@ -126,12 +127,9 @@ app.controller('RootCtrl', ['$rootScope', '$scope', '$filter', '$compile', '$win
       localStorageService.set($rootScope.lanternFirstTimeBuildVar, true);
     };
 
-    /*if (!localStorageService.get($rootScope.lanternHideMobileAdVar)) {
-      $scope.resetPlaceholder();
-      $rootScope.showMobileAd = true;
-    };*/
 
-
+    $rootScope.showError = false;
+    $rootScope.showBookmarks = true;
 }]);
 
 app.controller('SettingsCtrl', ['$scope', 'MODAL', 'DataStream', 'gaMgr', function($scope, MODAL, DataStream, gaMgr) {
@@ -175,7 +173,6 @@ app.controller('MobileAdCtrl', ['$scope', 'MODAL', 'gaMgr', function($scope, MOD
 
   $scope.copyAndroidMobileLink = function() {
     $scope.linkCopied = true;
-    //$scope.closeModal();
     gaMgr.trackCopyLink();
   };
 
@@ -189,22 +186,59 @@ app.controller('MobileAdCtrl', ['$scope', 'MODAL', 'gaMgr', function($scope, MOD
 
 }]);
 
-app.controller('NewsfeedCtrl', ['$scope', '$rootScope', '$translate', function($scope, $rootScope, $translate) {
-  $scope.showNewsfeed = function(e) {
+app.controller('NewsfeedCtrl', ['$scope', '$rootScope', '$translate', 'gaMgr', 'localStorageService', function($scope, $rootScope, $translate, gaMgr, localStorageService) {
+  $rootScope.showNewsfeed = function() {
     $rootScope.showNews = true;
+    localStorageService.set($rootScope.lanternShowNews, true);
+    $rootScope.showMobileAd = false;
+    $rootScope.showBookmarks = false;
+    gaMgr.trackShowFeed();
   };
-  $scope.hideNewsfeed = function(e) {
+  $rootScope.hideNewsfeed = function() {
     $rootScope.showNews = false;
+    localStorageService.set($rootScope.lanternShowNews, false);
+    $rootScope.showMobileAd = false;
+    $rootScope.showBookmarks = true;
+    $rootScope.showError = false;
+    gaMgr.trackHideFeed();
   };
-  $scope.showNewsfeed();
+  $rootScope.showNewsfeedError = function() {
+    console.log("Newsfeed error");
+    // If we're currently in newsfeed mode, we want to show the error
+    // and also not show the bookmarks, as otherwise the two will
+    // overlap.
+    if ($rootScope.showNews) {
+      $rootScope.showBookmarks = false;
+    }
+    $rootScope.showNews = false;
+    $rootScope.enableShowError();
+  };
 
+  // Note local storage stores everything as strings.
+  if (localStorageService.get($rootScope.lanternShowNews) === "true") {
+    console.log("local storage set to show the feed");
+
+    // We just set the variable directly here to skip analytics, local
+    // storage, etc.
+    $rootScope.showNews = true;
+  } else {
+    console.log("local storage NOT set to show the feed");
+    $rootScope.showNews = false;
+  }
+
+  // The function for determing the URL of the feed. Note this is watched
+  // elsewhere so will get called a lot, but it's just calculating the url
+  // string so is cheap.
   $scope.feedUrl = function() {
-    var mapTable = { 'fa': 'fa_IR' };
+    var mapTable = {
+      'fa': 'fa_IR',
+      'zh': 'zh_CN'
+    };
     var lang = $translate.use();
     lang = mapTable[lang] || lang;
-    return "https://feeds.getiantem.org/" + lang + "/feed.json";
-  };
-
+    var url = "/feed?lang="+lang;
+    return url;
+  }
 }]);
 
 app.controller('FeedTabCtrl', ['$scope', '$rootScope', '$translate', function($scope, $rootScope, $translate) {
@@ -242,7 +276,7 @@ app.controller('FeedCtrl', ['$scope', 'gaMgr', function($scope, gaMgr) {
     if (feed.meta && feed.meta.description) {
       return feed.meta.description;
     }
-    return feed.contentSnippet;
+    return feed.contentSnippetText;
   };
   $scope.trackFeed = function(name) {
     return gaMgr.trackFeed(name);
@@ -251,4 +285,55 @@ app.controller('FeedCtrl', ['$scope', 'gaMgr', function($scope, gaMgr) {
     feed.image = null;
   };
   $scope.addMoreItems();
+}]);
+
+app.controller('ErrorCtrl', ['$scope', '$rootScope', 'gaMgr', '$sce', '$translate', "deviceDetector",
+  function($scope, $rootScope, gaMgr, $sce, $translate, deviceDetector) {
+    // TOOD: notify GA we've hit the error page!
+
+    $scope.isMac = function() {
+      return deviceDetector.os == "mac";
+    }
+
+    $scope.isWindows = function() {
+      return deviceDetector.os == "windows";
+    }
+
+    $scope.isWindowsXp = function() {
+      return deviceDetector.os == "windows" &&
+        deviceDetector.os_version == "windows-xp"
+    }
+
+    $scope.isLinux = function() {
+      return deviceDetector.os == "linux";
+    }
+
+    $rootScope.enableShowError = function() {
+      $rootScope.showError = true;
+      gaMgr.trackFeed("error");
+    }
+
+    $scope.showProxyOffHelp = false;
+    $scope.showExtensionHelp = false;
+    $scope.showXunleiHelp = false;
+    $scope.showConnectionHelp = false;
+
+    $scope.toggleShowProxyOffHelp = function() {
+      $scope.showProxyOffHelp = !$scope.showProxyOffHelp;
+    }
+    $scope.toggleShowExtensionHelp = function() {
+      $scope.showExtensionHelp = !$scope.showExtensionHelp;
+    }
+    $scope.toggleShowXunleiHelp = function() {
+      $scope.showXunleiHelp = !$scope.showXunleiHelp;
+    }
+
+    $scope.toggleShowConnectionHelp = function() {
+      $translate('CONNECTION_HELP')
+        .then(function (translatedVal) {
+          $rootScope.connectionHelpText = translatedVal;
+        });
+
+      $scope.showConnectionHelp = !$scope.showConnectionHelp;
+    }
 }]);

@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'io.fabric'
 apply plugin: 'com.google.gms.google-services'
+apply plugin: 'android-apt'
 
 android {
 
@@ -110,12 +111,22 @@ dependencies {
     compile 'com.ogaclejapan.smarttablayout:library:1.6.0@aar'
     compile 'com.ogaclejapan.smarttablayout:utils-v4:1.6.0@aar'
 
-    compile 'com.koushikdutta.ion:ion:2.+'
+    compile 'com.github.bumptech.glide:glide:3.7.0'
 
     compile ('com.mandrillapp.wrapper.lutung:lutung:0.0.7') {
         exclude group: 'org.apache.commons', module: 'commons-io'
     }
     compile('com.crashlytics.sdk.android:crashlytics:2.5.3@aar') {
         transitive = true
+    }
+
+    apt "org.androidannotations:androidannotations:" + androidAnnotationsVersion
+    compile("org.androidannotations:androidannotations-api:" + androidAnnotationsAPIVersion )
+}
+
+apt {
+    arguments {
+        resourcePackageName android.defaultConfig.applicationId
+        androidManifestFile variant.outputs[0]?.processResources?.manifestFile
     }
 }
