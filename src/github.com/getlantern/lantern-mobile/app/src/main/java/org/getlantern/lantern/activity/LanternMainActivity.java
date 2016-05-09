@@ -4,8 +4,6 @@ import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.app.Application;
 import android.app.Activity;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ComponentCallbacks2;
 import android.content.Context;
@@ -44,7 +42,6 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.GravityCompat;
-import android.support.v4.app.NotificationCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 
@@ -85,10 +82,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     private final static int REQUEST_VPN = 7777;
     private BroadcastReceiver mReceiver;
     private Context context;
-
-    private NotificationManager mNotifier;
-    private final NotificationCompat.Builder mNotificationBuilder = new NotificationCompat.Builder(this);
-    private static final int NOTIFICATION_ID = 10002;
 
     private boolean isInBackground = false;
     private FragmentStatePagerItemAdapter feedAdapter;
@@ -158,9 +151,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         context = getApplicationContext();
         session = LanternApp.getSession();
-
-        mNotifier = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
-        setupNotifications();
 
         // since onCreate is only called when the main activity
         // is first created, we clear shared preferences in case
@@ -411,6 +401,11 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     @Click(R.id.menuIcon)
     void menuButtonClicked() {
         drawerLayout.openDrawer(GravityCompat.START);
+    }
+
+    @Click(R.id.backBtn)
+    void backBtnClicked() {
+        drawerLayout.closeDrawer(drawerPane);
     }
 
     // showFeedview optionally fetches the feed depending on the
@@ -716,34 +711,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         }
     }
 
-    private void setupNotifications() {
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, LanternMainActivity_.class)
-                .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP),
-                0);
-
-        mNotificationBuilder
-            .setSmallIcon(R.drawable.status_on_white)
-            .setCategory(NotificationCompat.CATEGORY_SERVICE)
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .setContentTitle(getText(R.string.app_name))
-            .setWhen(System.currentTimeMillis())
-            .setContentIntent(pendingIntent)
-            .setOngoing(true);
-    }
-
     private void sendIntentToService() {
         startService(new Intent(this, Service.class));
-        showStatusIcon();
-    }
-
-    public void showStatusIcon() {
-        if (mNotifier != null) {
-            mNotificationBuilder
-                .setTicker(getText(R.string.service_connected))
-                .setContentText(getText(R.string.service_connected));
-            mNotifier.notify(NOTIFICATION_ID, mNotificationBuilder.build());
-        }
     }
 
     @Override

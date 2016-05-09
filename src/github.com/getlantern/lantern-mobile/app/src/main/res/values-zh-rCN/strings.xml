@@ -23,6 +23,8 @@
   <string name="desktop_option">桌面版</string>
   <string name="contact_option">联系</string>
   <string name="privacy_policy">隐私政策</string>
+  <string name="newsfeed_option">开启新闻流</string>
+  <string name="newsfeed_off_option">关闭新闻流</string>
   <string name="share_option">分享</string>
   <string name="quit_option">退出</string>
   <string name="share_email_native"></string>
