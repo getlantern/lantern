@@ -31,13 +31,16 @@ public abstract class Lantern {
      *
      * @param context
      * @param timeoutMillis       how long to wait for proxy to start listening (should be fairly quick)
+     * @param updateProxySettings    whether or not to update the application proxy settings
      * @param analyticsTrackingId (optional tracking ID for tracking Google analytics)
      * @return the {@link go.lantern.Lantern.StartResult} with port information about the started
      * lantern
      */
-    public static StartResult enable(Context context, int timeoutMillis, String analyticsTrackingId)
+    public static StartResult enable(Context context, int timeoutMillis, boolean updateProxySettings,
+            String analyticsTrackingId)
             throws LanternNotRunningException {
-        return doEnable(context, timeoutMillis, analyticsTrackingId, "org.lantern.mobilesdk.embedded.EmbeddedLantern");
+        return doEnable(context, timeoutMillis, analyticsTrackingId, updateProxySettings,
+                "org.lantern.mobilesdk.embedded.EmbeddedLantern");
     }
 
     /**
@@ -45,20 +48,26 @@ public abstract class Lantern {
      *
      * @param context
      * @param timeoutMillis
+     * @param updateProxySettings
      * @param analyticsTrackingId
      * @return
      * @throws LanternNotRunningException
      */
-    public static StartResult enableAsService(Context context, int timeoutMillis, String analyticsTrackingId)
+    public static StartResult enableAsService(Context context, int timeoutMillis, boolean updateProxySettings, 
+            String analyticsTrackingId)
             throws LanternNotRunningException {
-        return doEnable(context, timeoutMillis, analyticsTrackingId, "org.lantern.mobilesdk.LanternServiceManager");
+        return doEnable(context, timeoutMillis, analyticsTrackingId, updateProxySettings, 
+                "org.lantern.mobilesdk.LanternServiceManager");
     }
 
-    private synchronized static StartResult doEnable(Context context, int timeoutMillis, String analyticsTrackingId, String implClassName)
+    private synchronized static StartResult doEnable(Context context, int timeoutMillis,
+            String analyticsTrackingId, boolean updateProxySettings, String implClassName)
             throws LanternNotRunningException {
         Lantern lantern = instanceOf(implClassName);
         StartResult result = lantern.start(context, timeoutMillis);
-        proxyOn(result.getHTTPAddr());
+        if (updateProxySettings) {
+            proxyOn(result.getHTTPAddr());
+        }
         if (analyticsTrackingId != null && !enabled) {
             trackStartSession(context, analyticsTrackingId);
         }

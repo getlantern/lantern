@@ -124,6 +124,7 @@ func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
 				// If the local proxy can't connect to any upstread proxies, for example,
 				// it will return a 502.
 				err := fmt.Errorf("Bad response code: %v", resp.StatusCode)
+				_ = resp.Body.Close()
 				errs <- err
 				return err
 			}
@@ -191,9 +192,9 @@ func readResponses(finalResponse chan *http.Response, responses chan *http.Respo
 
 			// Just ignore the second response, but still process it.
 			select {
-			case resp := <-responses:
+			case response := <-responses:
 				log.Debug("Closing second response body")
-				_ = resp.Body.Close()
+				_ = response.Body.Close()
 				return
 			case <-errs:
 				log.Debug("Ignoring error on second response")
@@ -214,8 +215,8 @@ func readResponses(finalResponse chan *http.Response, responses chan *http.Respo
 		log.Debugf("Got an error: %v", err)
 		// Just use whatever we get from the second response.
 		select {
-		case resp := <-responses:
-			finalResponse <- resp
+		case response := <-responses:
+			finalResponse <- response
 		case err := <-errs:
 			finalErr <- err
 		}

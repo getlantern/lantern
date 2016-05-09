@@ -16,13 +16,14 @@ import (
 var (
 	log = golog.LoggerFor("tlsdialer")
 
-	resolve = func(addr string) (*net.TCPAddr, error) {
+	defaultResolve = func(addr string) (*net.TCPAddr, error) {
 		resolved, err := net.ResolveTCPAddr("tcp", addr)
 		if err != nil {
 			return nil, err
 		}
 		return resolved, nil
 	}
+	resolve = defaultResolve
 
 	dialOverride func(network, addr string, timeout time.Duration) (net.Conn, error)
 )
@@ -52,7 +53,11 @@ type ConnWithTimings struct {
 
 // OverrideResolve allows overriding the DNS resolution function
 func OverrideResolve(override func(addr string) (*net.TCPAddr, error)) {
-	resolve = override
+	if override == nil {
+		resolve = defaultResolve
+	} else {
+		resolve = override
+	}
 }
 
 // OverrideDial allows specifying a function that will be used to dial in lieu

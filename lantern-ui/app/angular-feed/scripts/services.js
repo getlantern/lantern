@@ -1,69 +1,43 @@
 'use strict';
 
-angular.module('feeds-services', []).factory('feedService', ['$q', '$http', '$sce', 'feedCache', function ($q, $http, $sce, feedCache) {
+angular.module('feeds-services', []).factory('feedService', ['$q', '$http', function ($q, $http, $sce) {
 
-    function sanitizeFeedEntry(feedEntry) {
-      feedEntry.title = $sce.trustAsHtml(feedEntry.title);
-      feedEntry.contentSnippet = $sce.trustAsHtml(feedEntry.contentSnippet);
-      feedEntry.content = $sce.trustAsHtml(feedEntry.content);
-      feedEntry.publishedDate = new Date(feedEntry.publishedDate).getTime();
-      return feedEntry;
-    }
+  var getFeeds = function (feedURL, fallbackURL, gaMgr) {
+    var deferred = $q.defer();
 
-    function sanitizeEntries(entries) {
-      for (var i = 0; i < entries.length; i++) {
-        sanitizeFeedEntry(entries[i]);
+    var handleResponse = function (response) {
+      var data = response.data;
+      if (!data.entries) {
+        deferred.reject(new Error("invalid data format"));
+        return;
       }
-    }
-
-    var getFeeds = function (feedURL, fallbackURL, count) {
-      var deferred = $q.defer();
-
-      if (feedCache.hasCache(feedURL)) {
-        var data = feedCache.get(feedURL);
-        sanitizeEntries(data.entries);
-        deferred.resolve(data);
-      }
-
-
-      /*if (count) {
-        feed.includeHistoricalEntries();
-        feed.setNumEntries(count);
-      }*/
-
-      var handleResponse = function (response) {
-        var data = response.data
-        if (!data.entries) {
-          deferred.reject(new Error("invalid data format"));
-          return
-        }
-        feedCache.set(feedURL, data);
-        sanitizeEntries(data.entries);
-        deferred.resolve(data);
-      };
-
-      var handleError = function(response) {
-        if (response.status) {
-          if (response.config.url === feedURL) {
-            $http.get(fallbackURL).then(handleResponse, handleError);
-            return
-          }
-          deferred.reject(new Error("invalid HTTP status: " + response.status));
-          return
-        }
-        deferred.reject(response.error);
-      };
-
-      $http.get(feedURL).then(handleResponse, handleError);
-      return deferred.promise;
+      deferred.resolve(data);
     };
 
-    return {
-      getFeeds: getFeeds
+    var handleError = function(response) {
+      if (response.status) {
+        gaMgr.trackFeedError(response.config.url, response.status);
+        if (response.config.url !== fallbackURL) {
+          $http.get(fallbackURL).then(handleResponse, handleError);
+          return;
+        }
+        deferred.reject(new Error("invalid HTTP status: " + response.status));
+        return;
+      }
+      deferred.reject(response.error);
     };
+
+    $http.get(feedURL).then(handleResponse, handleError);
+    return deferred.promise;
+  };
+
+  return {
+    getFeeds: getFeeds
+  };
 }])
+
 .factory('feedCache', function () {
-  var CACHE_INTERVAL = 1000 * 60 * 5; //5 minutes
+  var CACHE_INTERVAL = 1000 * 60 * 50 * 24; // 1 day
 
   function cacheTimes() {
     if ('CACHE_TIMES' in localStorage) {
@@ -79,14 +53,18 @@ angular.module('feeds-services', []).factory('feedService', ['$q', '$http', '$sc
 
   return {
     set: function (name, obj) {
-      localStorage.setItem(name, angular.toJson(obj));
+      var str = angular.toJson(obj);
+      var compressed = LZString.compressToUTF16(str);
+      localStorage.setItem(name, compressed);
       var CACHE_TIMES = cacheTimes();
       CACHE_TIMES[name] = new Date().getTime();
       localStorage.setItem('CACHE_TIMES', angular.toJson(CACHE_TIMES));
     },
     get: function (name) {
       if (hasCache(name)) {
-        return angular.fromJson(localStorage.getItem(name));
+        var compressed = localStorage.getItem(name);
+        var str = LZString.decompressFromUTF16(compressed);
+        return angular.fromJson(str);
       }
       return null;
     },

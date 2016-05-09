@@ -6,4 +6,7 @@
   <string name="contact_option">連絡先</string>
   <string name="quit_option">終了</string>
   <string name="share_email_native"></string>
+  <string name="install_update">アップデート</string>
+  <string name="language">言語</string>
+  <string name="item_preview_country">アメリカ合衆国</string>
 </resources>

@@ -135,15 +135,15 @@ func (cf *fetcher) fetchCloudConfig(cfg *Config) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to fetch cloud config at %s: %s", url, err)
 	}
-	dump, err := httputil.DumpResponse(resp, false)
-	if err != nil {
-		log.Errorf("Could not dump response: %v", err)
+	dump, dumperr := httputil.DumpResponse(resp, false)
+	if dumperr != nil {
+		log.Errorf("Could not dump response: %v", dumperr)
 	} else {
 		log.Debugf("Response headers: \n%v", string(dump))
 	}
 	defer func() {
-		if errr := resp.Body.Close(); errr != nil {
-			log.Debugf("Error closing response body: %v", errr)
+		if closeerr := resp.Body.Close(); closeerr != nil {
+			log.Debugf("Error closing response body: %v", closeerr)
 		}
 	}()
 
@@ -151,7 +151,10 @@ func (cf *fetcher) fetchCloudConfig(cfg *Config) ([]byte, error) {
 		log.Debugf("Config unchanged in cloud")
 		return nil, nil
 	} else if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Unexpected response status: %d", resp.StatusCode)
+		if dumperr != nil {
+			return nil, fmt.Errorf("Bad config response code: %v", resp.StatusCode)
+		}
+		return nil, fmt.Errorf("Bad config resp:\n%v", string(dump))
 	}
 
 	cf.lastCloudConfigETag[url] = resp.Header.Get(etag)

@@ -8,6 +8,7 @@
   <string name="default_fragment">Fragmento predefinido</string>
   <string name="receive_lantern">Receba o Lantern para PC por correio eletrónico</string>
   <string name="email_hint">E-mail</string>
+  <string name="send_button">Enviar</string>
   <string name="on_text">Lig.</string>
   <string name="off_text">Desl.</string>
   <string name="desktop_option">Versão de PC</string>
@@ -17,10 +18,7 @@
   <string name="quit_option">Sair</string>
   <string name="share_email_native"></string>
   <string name="share_email_subject">Lantern Android</string>
-  <string name="share_twitter">Veja o Lantern para Android: https://github.com/getlantern/lantern/blob/lantern-mobile/src/github.com/getlantern/lantern-mobile/latest-builds/lantern.apk</string>
-  <string name="share_facebook">Eu estou a usar a Lantern para Android, esta está disponível aqui https://github.com/getlantern/lantern/blob/lantern-mobile/src/github.com/getlantern/lantern-mobile/latest-builds/lantern.apk</string>
   <string name="share_email_gmail">Eu estou a usar Lantern para Android, e eu anexei o ficheiro APK!</string>
-  <string name="share_sms">Eu estou a usar a Lantern para Android, transfira aqui https://github.com/getlantern/lantern/blob/lantern-mobile/src/github.com/getlantern/lantern-mobile/latest-builds/lantern.apk</string>
   <string name="share_chooser_text">Partilhar Lantern Android</string>
   <string name="success_email">Lantern para PC foi-lhe enviado por correio eletrónico!</string>
   <string name="error_email">Ocorreu um problema ao enviar-lhe o Lantern para PC. Por favor, tente de novo mais tarde.</string>
@@ -31,5 +29,7 @@
   <string name="install_update">Atualizar</string>
   <string name="error_update">Erro ao Transferir a Atualização</string>
   <string name="language">Idioma</string>
+  <string name="yes">Sim</string>
+  <string name="no">Não</string>
   <string name="item_preview_country">Estados Unidos</string>
 </resources>

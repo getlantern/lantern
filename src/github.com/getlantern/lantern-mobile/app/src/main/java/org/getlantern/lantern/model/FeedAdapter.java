@@ -12,7 +12,7 @@ import java.util.List;
 
 import org.getlantern.lantern.R;
 
-import com.koushikdutta.ion.Ion;
+import com.bumptech.glide.Glide;
 
 public class FeedAdapter extends BaseAdapter {
 
@@ -67,11 +67,8 @@ public class FeedAdapter extends BaseAdapter {
         descView.setText(item.getDescription());
         urlView.setText(item.getUrl());
 
-        if (item.getImage() != "") {
-            Ion.with(mContext)
-                .load(item.getImage())
-                .withBitmap()
-                .intoImageView(imageView);
+        if (!"".equals(item.getImage())) {
+            Glide.with(mContext).load(item.getImage()).into(imageView);
         }
         return view;
     }        

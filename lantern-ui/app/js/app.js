@@ -9,10 +9,11 @@ var app = angular.module('app', [
   'app.filters',
   'app.services',
   'app.directives',
-  'app.vis',
   'ngSanitize',
   'ngResource',
   'ngclipboard',
+  'infinite-scroll',
+  'ng.deviceDetector',
   'ui.utils',
   'ui.showhide',
   'ui.validate',
@@ -39,7 +40,7 @@ var app = angular.module('app', [
         prefix: './locale/',
         suffix: '.json'
       })
-      .useSanitizeValueStrategy('escape')
+      .useSanitizeValueStrategy('sanitizeParameters')
       .uniformLanguageTag('java')
       .determinePreferredLanguage()
       .fallbackLanguage(DEFAULT_LANG);

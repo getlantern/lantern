@@ -17,6 +17,7 @@ import (
 	"github.com/skratchdot/open-golang/open"
 
 	"github.com/getlantern/flashlight/client"
+	"github.com/getlantern/flashlight/feed"
 )
 
 const (
@@ -97,7 +98,18 @@ func Start(requestedAddr string, allowRemote bool, extUrl string) (string, error
 		}
 		resp.WriteHeader(http.StatusOK)
 	}
+
+	// We use the backend to detect the user's country and redirect the browser
+	// to the correct URL that will itself be proxied over Lantern.
+	feedHandler := func(resp http.ResponseWriter, req *http.Request) {
+		vals := req.URL.Query()
+		defaultLang := vals.Get("lang")
+		url := feed.GetFeedURL(defaultLang)
+		http.Redirect(resp, req, url, http.StatusFound)
+	}
+
 	r.Handle("/startup", http.HandlerFunc(handler))
+	r.Handle("/feed", http.HandlerFunc(feedHandler))
 	r.Handle("/", http.FileServer(fs))
 
 	server = &http.Server{

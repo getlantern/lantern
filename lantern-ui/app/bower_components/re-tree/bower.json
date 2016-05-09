@@ -1,0 +1,28 @@
+{
+  "name": "re-tree",
+  "version": "0.0.2",
+  "homepage": "https://github.com/srfrnk/re-tree",
+  "authors": [
+    "srfrnk <srfrnk@gmail.com>"
+  ],
+  "description": "JavaScript Extended regular expression engine - client side, server side and 'angular side' ready.",
+  "main": "re-tree.js",
+  "keywords": [
+    "regular expressions",
+    "regexp",
+    "JavaScript",
+    "regex",
+    "nodejs",
+    "iojs",
+    "client",
+    "angularjs"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
