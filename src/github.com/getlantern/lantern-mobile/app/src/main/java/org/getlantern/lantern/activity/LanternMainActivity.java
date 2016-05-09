@@ -406,6 +406,11 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         drawerLayout.openDrawer(GravityCompat.START);
     }
 
+    @Click(R.id.backBtn)
+    void backBtnClicked() {
+        drawerLayout.closeDrawer(drawerPane);
+    }
+
     // showFeedview optionally fetches the feed depending on the
     // user's preference and updates the position of the on/off switch
     private void showFeedview() {
