@@ -7,7 +7,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-    "os"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -185,13 +185,13 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 		log.Debug("Forcing domain-fronting")
 	} else {
 		go func() {
-				log.Debug("Sending chained request")
-				if err := request(chainedFunc, req); err != nil {
-					log.Errorf("Chained request failed %v", err)
-				} else {
-					log.Debug("Switching to chained fronter for future requests since it succeeded")
-					df.cf.setFetcher(&chainedFetcher{df.cf.proxyAddrFN})
-				}
+			log.Debug("Sending chained request")
+			if err := request(chainedFunc, req); err != nil {
+				log.Errorf("Chained request failed %v", err)
+			} else {
+				log.Debug("Switching to chained fronter for future requests since it succeeded")
+				df.cf.setFetcher(&chainedFetcher{df.cf.proxyAddrFN})
+			}
 		}()
 	}
 
