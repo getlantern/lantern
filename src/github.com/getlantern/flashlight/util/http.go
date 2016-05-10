@@ -7,8 +7,9 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"os"
+    "os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -28,7 +29,7 @@ var (
 
 // HTTPFetcher is a simple interface for types that are able to fetch data over HTTP.
 type HTTPFetcher interface {
-	Do(req *http.Request) (*http.Response, error)
+	Do(*http.Request) (*http.Response, error)
 }
 
 func success(resp *http.Response) bool {
@@ -100,19 +101,49 @@ type dualFetcher struct {
 // arrive. Callers MUST use the Lantern-Fronted-URL HTTP header to
 // specify the fronted URL to use.
 func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
+	if directClient, err := HTTPClient("", df.cf.proxyAddrFN); err != nil {
+		log.Errorf("Could not create http client? %v", err)
+		return nil, err
+	} else {
+		frontedClient := fronted.NewDirectHttpClient(5 * time.Minute)
+		return df.do(req, directClient.Do, frontedClient.Do)
+	}
+}
+
+// Do will attempt to execute the specified HTTP request using both
+// chained and fronted servers, simply returning the first response to
+// arrive. Callers MUST use the Lantern-Fronted-URL HTTP header to
+// specify the fronted URL to use.
+func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*http.Response, error), ddfFunc func(*http.Request) (*http.Response, error)) (*http.Response, error) {
 	log.Debugf("Using dual fronter")
-	frontedUrl := req.Header.Get("Lantern-Fronted-URL")
+	frontedURL := req.Header.Get("Lantern-Fronted-URL")
 	req.Header.Del("Lantern-Fronted-URL")
 
-	if frontedUrl == "" {
+	if frontedURL == "" {
 		return nil, errors.New("Callers MUST specify the fronted URL in the Lantern-Fronted-URL header")
 	}
+
+	// Make a copy of the original requeest headers to include in the fronted
+	// request. This will ensure that things like the caching headers are
+	// included in both requests.
+	headersCopy := make(http.Header, len(req.Header))
+	for k, vv := range req.Header {
+		// Since we're doing domain fronting don't copy the host just in case
+		// it ever makes any difference under the covers.
+		if strings.EqualFold("Host", k) {
+			continue
+		}
+		vv2 := make([]string, len(vv))
+		copy(vv2, vv)
+		headersCopy[k] = vv2
+	}
+
 	responses := make(chan *http.Response, 2)
 	errs := make(chan error, 2)
 
-	request := func(client HTTPFetcher, req *http.Request) error {
-		if resp, err := client.Do(req); err != nil {
-			log.Errorf("Could not complete request with: %v, %v", frontedUrl, err)
+	request := func(clientFunc func(*http.Request) (*http.Response, error), req *http.Request) error {
+		if resp, err := clientFunc(req); err != nil {
+			log.Errorf("Could not complete request with: %v, %v", frontedURL, err)
 			errs <- err
 			return err
 		} else {
@@ -121,10 +152,12 @@ func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
 				responses <- resp
 				return nil
 			} else {
-				// If the local proxy can't connect to any upstread proxies, for example,
+				// If the local proxy can't connect to any upstream proxies, for example,
 				// it will return a 502.
 				err := fmt.Errorf("Bad response code: %v", resp.StatusCode)
-				_ = resp.Body.Close()
+				if resp.Body != nil {
+					_ = resp.Body.Close()
+				}
 				errs <- err
 				return err
 			}
@@ -132,13 +165,14 @@ func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
 	}
 
 	go func() {
-		if req, err := http.NewRequest("GET", frontedUrl, nil); err != nil {
-			log.Errorf("Could not create request for: %v, %v", frontedUrl, err)
+		if frontedReq, err := http.NewRequest("GET", frontedURL, nil); err != nil {
+			log.Errorf("Could not create request for: %v, %v", frontedURL, err)
 			errs <- err
 		} else {
 			log.Debug("Sending request via DDF")
-			direct := fronted.NewDirectHttpClient(5 * time.Minute)
-			if err := request(direct, req); err != nil {
+			frontedReq.Header = headersCopy
+
+			if err := request(ddfFunc, frontedReq); err != nil {
 				log.Errorf("Fronted request failed: %v", err)
 			} else {
 				log.Debug("Fronted request succeeded")
@@ -151,18 +185,13 @@ func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
 		log.Debug("Forcing domain-fronting")
 	} else {
 		go func() {
-			if client, err := HTTPClient("", df.cf.proxyAddrFN); err != nil {
-				log.Errorf("Could not create HTTP client: %v", err)
-				errs <- err
-			} else {
 				log.Debug("Sending chained request")
-				if err := request(client, req); err != nil {
+				if err := request(chainedFunc, req); err != nil {
 					log.Errorf("Chained request failed %v", err)
 				} else {
 					log.Debug("Switching to chained fronter for future requests since it succeeded")
 					df.cf.setFetcher(&chainedFetcher{df.cf.proxyAddrFN})
 				}
-			}
 		}()
 	}
 
