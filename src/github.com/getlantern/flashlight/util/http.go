@@ -113,6 +113,10 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 	frontedURL := req.Header.Get("Lantern-Fronted-URL")
 	req.Header.Del("Lantern-Fronted-URL")
 
+	if frontedURL == "" {
+		return nil, errors.New("Callers MUST specify the fronted URL in the Lantern-Fronted-URL header")
+	}
+
 	// Make a copy of the original requeest headers to include in the fronted
 	// request. This will ensure that things like the caching headers are
 	// included in both requests.
@@ -128,9 +132,6 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 		headersCopy[k] = vv2
 	}
 
-	if frontedURL == "" {
-		return nil, errors.New("Callers MUST specify the fronted URL in the Lantern-Fronted-URL header")
-	}
 	responses := make(chan *http.Response, 2)
 	errs := make(chan error, 2)
 
