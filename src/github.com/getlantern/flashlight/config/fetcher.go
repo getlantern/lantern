@@ -9,6 +9,7 @@ import (
 	"net/http/httputil"
 	"time"
 
+	"github.com/Yawning/obfs4/common/log"
 	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/yamlconf"
 
