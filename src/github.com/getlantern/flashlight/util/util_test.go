@@ -56,20 +56,31 @@ func TestChainedAndFrontedHeaders(t *testing.T) {
 		}, nil
 	}
 
+	frontedHeaders := eventual.NewValue()
 	frontedFunc := func(req *http.Request) (*http.Response, error) {
 		headers, _ := httputil.DumpRequest(req, false)
-		log.Debugf("Got request headers:\n%v", string(headers))
-		assert.Equal(t, etag, req.Header.Get("X-Lantern-If-None-Match"))
-		assert.Equal(t, "no-cache", req.Header.Get("Cache-Control"))
+		log.Debugf("Got FRONTED request headers:\n%v", string(headers))
+		frontedHeaders.Set(req.Header)
 		return &http.Response{
 			Status:     "200 OK",
 			StatusCode: 200,
 			Body:       ioutil.NopCloser(bytes.NewBufferString("Fronted")),
 		}, nil
 	}
+
 	df := &dualFetcher{&chainedAndFronted{}}
 
 	df.do(req, chainedFunc, frontedFunc)
+
+	headersVal, ok := frontedHeaders.Get(2 * time.Second)
+	assert.True(t, ok)
+	headers := headersVal.(http.Header)
+	assert.Equal(t, etag, headers.Get("X-Lantern-If-None-Match"))
+	assert.Equal(t, "no-cache", headers.Get("Cache-Control"))
+
+	// There should not be a host header here -- the go http client will populate
+	// it automatically based on the URL.
+	assert.Equal(t, "", headers.Get("Host"))
 }
 
 // TestChainedAndFronted tests to make sure chained and fronted requests are

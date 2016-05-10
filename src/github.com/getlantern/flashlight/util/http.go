@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strings"
 	"sync"
 	"time"
 
@@ -117,6 +118,11 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 	// included in both requests.
 	headersCopy := make(http.Header, len(req.Header))
 	for k, vv := range req.Header {
+		// Since we're doing domain fronting don't copy the host just in case
+		// it ever makes any difference under the covers.
+		if strings.EqualFold("Host", k) {
+			continue
+		}
 		vv2 := make([]string, len(vv))
 		copy(vv2, vv)
 		headersCopy[k] = vv2
