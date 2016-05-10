@@ -1,10 +1,12 @@
 package util
 
 import (
+	"bytes"
 	"crypto/x509"
 	"io/ioutil"
 	"net"
 	"net/http"
+	"net/http/httputil"
 	"os"
 	"strings"
 	"testing"
@@ -30,6 +32,62 @@ func TestGetFileHash(t *testing.T) {
 		"hashes not equal! has hashes.go changed?")
 }
 
+// TestChainedAndFrontedHeaders tests to make sure headers are correctly
+// copied to the fronted request from the original chained request.
+func TestChainedAndFrontedHeaders(t *testing.T) {
+	geo := "http://d3u5fqukq7qrhd.cloudfront.net/lookup/198.199.72.101"
+	req, err := http.NewRequest("GET", geo, nil)
+	if !assert.NoError(t, err) {
+		return
+	}
+	req.Header.Set("Lantern-Fronted-URL", geo)
+	req.Header.Set("Accept", "application/x-gzip")
+	// Prevents intermediate nodes (domain-fronters) from caching the content
+	req.Header.Set("Cache-Control", "no-cache")
+	etag := "473892jdfda"
+	req.Header.Set("X-Lantern-If-None-Match", etag)
+
+	// Make sure the chained response fails.
+	chainedFunc := func(req *http.Request) (*http.Response, error) {
+		headers, _ := httputil.DumpRequest(req, false)
+		log.Debugf("Got chained request headers:\n%v", string(headers))
+		return &http.Response{
+			Status:     "503 OK",
+			StatusCode: 503,
+		}, nil
+	}
+
+	frontedHeaders := eventual.NewValue()
+	frontedFunc := func(req *http.Request) (*http.Response, error) {
+		headers, _ := httputil.DumpRequest(req, false)
+		log.Debugf("Got FRONTED request headers:\n%v", string(headers))
+		frontedHeaders.Set(req.Header)
+		return &http.Response{
+			Status:     "200 OK",
+			StatusCode: 200,
+			Body:       ioutil.NopCloser(bytes.NewBufferString("Fronted")),
+		}, nil
+	}
+
+	df := &dualFetcher{&chainedAndFronted{}}
+
+	df.do(req, chainedFunc, frontedFunc)
+
+	headersVal, ok := frontedHeaders.Get(2 * time.Second)
+	if !assert.True(t, ok) {
+		return
+	}
+	headers := headersVal.(http.Header)
+	assert.Equal(t, etag, headers.Get("X-Lantern-If-None-Match"))
+	assert.Equal(t, "no-cache", headers.Get("Cache-Control"))
+
+	// There should not be a host header here -- the go http client will populate
+	// it automatically based on the URL.
+	assert.Equal(t, "", headers.Get("Host"))
+}
+
+// TestChainedAndFronted tests to make sure chained and fronted requests are
+// both working in parallel.
 func TestChainedAndFronted(t *testing.T) {
 	fwd, _ := forward.New()
 
