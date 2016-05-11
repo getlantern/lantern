@@ -118,7 +118,7 @@ func TestChainedAndFronted(t *testing.T) {
 	certs := trustedCATestCerts()
 	m := make(map[string][]*fronted.Masquerade)
 	m["cloudfront"] = cloudfrontMasquerades
-	fronted.Configure(certs, m)
+	fronted.Configure(certs, m, "")
 
 	geo := "http://d3u5fqukq7qrhd.cloudfront.net/lookup/198.199.72.101"
 	req, err := http.NewRequest("GET", geo, nil)
