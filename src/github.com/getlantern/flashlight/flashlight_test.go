@@ -44,7 +44,7 @@ func testRequest(testCase string, t *testing.T, requests chan *http.Request, htt
 	if err != nil {
 		t.Fatal(err)
 	}
-	fronted.Configure(trustedCAs, cfg.Client.MasqueradeSets)
+	fronted.Configure(trustedCAs, cfg.Client.MasqueradeSets, nil)
 
 	log.Debug("Making request")
 	httpClient := &http.Client{Transport: &http.Transport{

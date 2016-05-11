@@ -27,6 +27,7 @@ github.com/getlantern/multicast
 github.com/getlantern/osversion
 github.com/getlantern/pathreflect
 github.com/getlantern/proxiedsites
+github.com/getlantern/ringfile
 github.com/getlantern/rotator
 github.com/getlantern/tarfs
 github.com/getlantern/tlsdefaults
