@@ -16,7 +16,8 @@ public class EmbeddedLantern extends Lantern {
 
     @Override
     protected StartResult start(Context context, int timeoutMillis) throws LanternNotRunningException {
-        return start(configDirFor(context, ""), timeoutMillis);
+        String configDir = configDirFor(context, "");
+        return start(configDir, timeoutMillis);
     }
 
     public StartResult start(String configDir, int timeoutMillis) throws LanternNotRunningException {

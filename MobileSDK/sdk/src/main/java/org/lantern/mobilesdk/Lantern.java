@@ -1,6 +1,7 @@
 package org.lantern.mobilesdk;
 
 import android.content.Context;
+import android.content.pm.PackageInfo;
 
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.HitBuilders;
@@ -165,4 +166,9 @@ public abstract class Lantern {
     public static String configDirFor(Context context, String suffix) {
         return new File(context.getFilesDir().getAbsolutePath(), ".lantern" + suffix).getAbsolutePath();
     }
+
+    /*public static String appVersion(Context context) {
+        PackageInfo pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+        return pInfo.versionName;
+    }*/
 }

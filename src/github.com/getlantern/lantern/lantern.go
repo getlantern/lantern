@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/getlantern/flashlight"
+	"github.com/getlantern/flashlight/app"
+	"github.com/getlantern/flashlight/autoupdate"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/feed"
@@ -22,6 +24,13 @@ var (
 
 	startOnce sync.Once
 )
+
+func init() {
+	// Passing public key and version to the autoupdate service.
+	autoupdate.PublicKey = []byte(app.PackagePublicKey)
+	autoupdate.Version = flashlight.PackageVersion
+	log.Debugf("AUTO UPDATE BLAH: %s %v", autoupdate.Version, autoupdate.PublicKey)
+}
 
 // SocketProtector is an interface for classes that can protect Android sockets,
 // meaning those sockets will not be passed through the VPN.
@@ -123,11 +132,15 @@ func run(configDir string) {
 		func() bool { return true },                   // proxy all requests
 		make(map[string]interface{}),                  // no special configuration flags
 		func(cfg *config.Config) bool { return true }, // beforeStart()
-		func(cfg *config.Config) {},                   // afterStart()
-		func(cfg *config.Config) {},                   // onConfigUpdate
+		checkForUpdates,
+		func(cfg *config.Config) {}, // onConfigUpdate
 		&userConfig{},
 		func(err error) {}, // onError
 	)
+}
+
+func checkForUpdates(cfg *config.Config) {
+
 }
 
 // GetFeed fetches the public feed thats displayed on Lantern's main screen

@@ -27,7 +27,7 @@ var (
 
 func init() {
 	// Passing public key and version to the autoupdate service.
-	autoupdate.PublicKey = []byte(packagePublicKey)
+	autoupdate.PublicKey = []byte(PackagePublicKey)
 	autoupdate.Version = flashlight.PackageVersion
 
 	rand.Seed(time.Now().UnixNano())
