@@ -46,8 +46,8 @@ func doTest(t *testing.T, capacity int, expectedReads []string) {
 		return
 	}
 	defer os.RemoveAll(dir)
+	filename := filepath.Join(dir, "test")
 
-	filename := filepath.Join(dir, "file1")
 	b, err := New(filename, capacity)
 	if !assert.NoError(t, err, "Unable to create buffer") {
 		return
@@ -123,8 +123,16 @@ func doTest(t *testing.T, capacity int, expectedReads []string) {
 }
 
 func read(t *testing.T, b Buffer, expectedReads []string) error {
+	err := doRead(t, expectedReads, b.AllFromOldest)
+	if err != nil {
+		return err
+	}
+	return doRead(t, reverse(expectedReads), b.AllFromNewest)
+}
+
+func doRead(t *testing.T, expectedReads []string, readFN func(func(io.Reader) error) error) error {
 	var actualReads []string
-	err := b.AllFromOldest(func(r io.Reader) error {
+	err := readFN(func(r io.Reader) error {
 		p, err2 := ioutil.ReadAll(r)
 		if err2 != nil {
 			return err2
@@ -137,4 +145,12 @@ func read(t *testing.T, b Buffer, expectedReads []string) error {
 	}
 	assert.Equal(t, expectedReads, actualReads)
 	return nil
+}
+
+func reverse(expected []string) []string {
+	reversed := make([]string, 0, len(expected))
+	for i := len(expected) - 1; i >= 0; i-- {
+		reversed = append(reversed, expected[i])
+	}
+	return reversed
 }

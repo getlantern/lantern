@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sync"
 
 	"github.com/getlantern/golog"
 )
@@ -36,6 +37,13 @@ type Buffer interface {
 	// AllFromOldest iterates over all values in the Buffer starting at the
 	// oldest.
 	AllFromOldest(onValue func(io.Reader) error) error
+
+	// AllFromNewest iterates over all values in the Buffer starting at the
+	// newest.
+	AllFromNewest(onValue func(io.Reader) error) error
+
+	// Sync syncs all state do disk
+	Sync() error
 }
 
 type buffer struct {
@@ -47,6 +55,7 @@ type buffer struct {
 	fullHeaderSize int64
 	idxFile        *os.File
 	dataFiles      []*os.File
+	mutex          sync.RWMutex
 }
 
 type filepointer struct {
@@ -108,6 +117,9 @@ func openFile(filename string) (*os.File, error) {
 }
 
 func (b *buffer) Write(p []byte) (int, error) {
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+
 	dataFile := b.dataFiles[b.nextPointer.file]
 	dataFile.Seek(b.nextPointer.offset, 0)
 	n, err := dataFile.Write(p)
@@ -134,6 +146,7 @@ func (b *buffer) Write(p []byte) (int, error) {
 	if err != nil {
 		return 0, fmt.Errorf("Unable to write metadata: %v", err)
 	}
+
 	return n, err
 }
 
@@ -146,6 +159,9 @@ func (b *buffer) updatePointerForCurrent(n int) {
 }
 
 func (b *buffer) AllFromOldest(onValue func(io.Reader) error) error {
+	b.mutex.RLock()
+	defer b.mutex.RUnlock()
+
 	if b.size == 0 {
 		return nil
 	}
@@ -158,9 +174,45 @@ func (b *buffer) AllFromOldest(onValue func(io.Reader) error) error {
 
 	for i := 0; i < b.size; i++ {
 		idx := startIdx + i
-		if idx >= b.capacity {
+		if idx >= b.size {
 			// wrap
-			idx -= b.capacity
+			idx -= b.size
+		}
+		pointer := &b.pointers[idx]
+		dataFile := b.dataFiles[pointer.file]
+		_, err := dataFile.Seek(pointer.offset, 0)
+		if err != nil {
+			// Fail immediately
+			return fmt.Errorf("Unable to seek to next item: %v", err)
+		}
+		err = onValue(io.LimitReader(dataFile, pointer.length))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (b *buffer) AllFromNewest(onValue func(io.Reader) error) error {
+	b.mutex.RLock()
+	defer b.mutex.RUnlock()
+
+	if b.size == 0 {
+		return nil
+	}
+
+	startIdx := b.nextIdx - 1
+	if startIdx < 0 {
+		// wrap
+		startIdx = b.size - 1
+	}
+
+	for i := 0; i < b.size; i++ {
+		idx := startIdx - i
+		if idx < 0 {
+			// wrap
+			idx += b.size
 		}
 		pointer := &b.pointers[idx]
 		dataFile := b.dataFiles[pointer.file]
@@ -209,7 +261,6 @@ func (b *buffer) readMetadata(fileSize int64) error {
 		startReadIdx = 0
 	}
 	startReadIdx += startOffset
-	log.Debug(startReadIdx)
 	for i := 0; i < b.size; i++ {
 		readIdx := startReadIdx + i
 		writeIdx := i
@@ -220,7 +271,6 @@ func (b *buffer) readMetadata(fileSize int64) error {
 		if writeIdx >= b.capacity {
 			writeIdx -= b.capacity
 		}
-		log.Debugf("%d -> %d", readIdx, writeIdx)
 		start := headerSize + readIdx*filePointerSize
 		pointer := &b.pointers[writeIdx]
 		readPointer(p[start:], pointer)
@@ -228,11 +278,8 @@ func (b *buffer) readMetadata(fileSize int64) error {
 	}
 
 	if b.nextIdx >= b.capacity {
-		log.Debug("wrapping")
 		b.wrap()
 	}
-
-	log.Debugf("%d : %d : %d : %v", b.capacity, b.size, b.nextIdx, b.nextPointer)
 
 	return nil
 }
@@ -263,7 +310,6 @@ func readPointer(p []byte, pointer *filepointer) {
 	pointer.file = int(p[0])
 	pointer.offset = int64(endianness.Uint64(p[int8Size:]))
 	pointer.length = int64(endianness.Uint64(p[int8Size+int64Size:]))
-	log.Debugf("Read Pointer %d : %d : %d", pointer.file, pointer.offset, pointer.length)
 }
 
 func writePointer(p []byte, pointer *filepointer) {
@@ -285,7 +331,26 @@ func (b *buffer) truncate() error {
 	return finalError
 }
 
+func (b *buffer) Sync() error {
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+
+	var finalError error
+	allFiles := []*os.File{b.idxFile, b.dataFiles[0], b.dataFiles[1]}
+	for _, file := range allFiles {
+		err := file.Sync()
+		if err != nil {
+			log.Error(err)
+			finalError = fmt.Errorf("Unable to sync file %v: %v", file.Name(), err)
+		}
+	}
+	return finalError
+}
+
 func (b *buffer) Close() error {
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+
 	var finalError error
 	allFiles := []*os.File{b.idxFile, b.dataFiles[0], b.dataFiles[1]}
 	for _, file := range allFiles {

@@ -3,8 +3,10 @@ package fronted
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"math/rand"
 	"net"
 	"net/http"
@@ -16,16 +18,21 @@ import (
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/idletiming"
+	"github.com/getlantern/ringfile"
 	"github.com/getlantern/tlsdialer"
 )
 
 const (
-	numberToVetInitially = 20
+	numberToVetInitially = 10
+	cacheSize            = 1000
+	maxAllowedCachedAge  = 24 * time.Hour
+	cacheSyncInterval    = 5 * time.Second
 )
 
 var (
-	log       = golog.LoggerFor("fronted")
-	_instance = eventual.NewValue()
+	log                      = golog.LoggerFor("fronted")
+	_instance                = eventual.NewValue()
+	fillSentinel *Masquerade = nil
 )
 
 type direct struct {
@@ -34,15 +41,18 @@ type direct struct {
 	certPool        *x509.CertPool
 	candidates      chan *Masquerade
 	masquerades     chan *Masquerade
-	cacheDir        string
+	cache           ringfile.Buffer
+	toCache         chan *Masquerade
 }
 
-func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade, cacheDir string) {
+func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade, cacheFile string) {
 	log.Debug("Configuring fronted")
 	if masquerades == nil || len(masquerades) == 0 {
 		log.Errorf("No masquerades!!")
 		return
 	}
+
+	CloseCache()
 
 	// Make a copy of the masquerades to avoid data races.
 	size := 0
@@ -55,16 +65,95 @@ func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade, cacheD
 		return
 	}
 
-	instance := &direct{
+	d := &direct{
 		tlsConfigs:  make(map[string]*tls.Config),
 		certPool:    pool,
 		candidates:  make(chan *Masquerade, size),
 		masquerades: make(chan *Masquerade, size),
 	}
 
-	instance.loadCandidates(masquerades)
-	instance.vetInitial()
-	_instance.Set(instance)
+	numberToVet := numberToVetInitially
+	if cacheFile != "" {
+		log.Debugf("Caching successful masquerades to %v", cacheFile)
+
+		var err error
+		d.cache, err = ringfile.New(cacheFile, cacheSize)
+		if err != nil {
+			log.Errorf("Unable to create masquerade cache, not caching: %v", err)
+			d.cache = nil
+		} else {
+			d.toCache = make(chan *Masquerade, cacheSize)
+			go d.fillCache()
+			log.Debugf("Prepopulating masquerades with cached successes")
+			now := time.Now()
+			err = d.cache.AllFromNewest(func(r io.Reader) error {
+				m := &Masquerade{}
+				err2 := json.NewDecoder(r).Decode(m)
+				if err2 != nil {
+					return fmt.Errorf("Unable to decode JSON: %v", err2)
+				}
+				if now.Sub(m.LastVetted) < maxAllowedCachedAge {
+					log.Debugf("Prepopulating vetted masquerade for %v (%v)", m.Domain, m.IpAddress)
+					d.masquerades <- m
+					numberToVet--
+				}
+				return nil
+			})
+			if err != nil {
+				log.Errorf("Error prepopulating cached successes: %v", err)
+			}
+		}
+	}
+
+	d.loadCandidates(masquerades)
+	if numberToVet > 0 {
+		d.vetInitial(numberToVet)
+	} else {
+		log.Debug("Not vetting any masquerades because we have enough cached ones")
+	}
+	_instance.Set(d)
+}
+
+func (d *direct) fillCache() {
+	syncTimer := time.NewTimer(cacheSyncInterval)
+	for {
+		select {
+		case m := <-d.toCache:
+			if m == fillSentinel {
+				log.Debug("Cache closed, stop filling")
+				err := d.cache.Close()
+				if err != nil {
+					log.Errorf("Error closing cache: %v", err)
+				}
+				return
+			}
+			b, err := json.Marshal(m)
+			if err != nil {
+				log.Errorf("Unable to marshal Masquerade to JSON: %v", err)
+				break
+			}
+			log.Debugf("Caching vetted masquerade for %v (%v)", m.Domain, m.IpAddress)
+			d.cache.Write(b)
+		case <-syncTimer.C:
+			err := d.cache.Sync()
+			if err != nil {
+				log.Errorf("Unable to sync cache to disk: %v", err)
+			}
+			syncTimer.Reset(cacheSyncInterval)
+		}
+	}
+}
+
+// CloseCache closes any existing file cache.
+func CloseCache() {
+	_existing, ok := _instance.Get(0)
+	if ok && _existing != nil {
+		existing := _existing.(*direct)
+		if existing.cache != nil {
+			log.Debug("Closing cache file from existing instance")
+			existing.toCache <- fillSentinel
+		}
+	}
 }
 
 func (d *direct) loadCandidates(initial map[string][]*Masquerade) {
@@ -81,9 +170,9 @@ func (d *direct) loadCandidates(initial map[string][]*Masquerade) {
 	}
 }
 
-func (d *direct) vetInitial() {
-	log.Debugf("Vetting %d initial candidates in parallel", numberToVetInitially)
-	for i := 0; i < numberToVetInitially; i++ {
+func (d *direct) vetInitial(numberToVet int) {
+	log.Debugf("Vetting %d initial candidates in parallel", numberToVet)
+	for i := 0; i < numberToVet; i++ {
 		go d.vetOne()
 	}
 }
@@ -196,6 +285,10 @@ func (d *direct) dialWith(in chan *Masquerade, network string) (net.Conn, bool, 
 			} else {
 				// Requeue the working connection to masquerades
 				d.masquerades <- m
+				if d.cache != nil {
+					m.LastVetted = time.Now()
+					d.toCache <- m
+				}
 				idleTimeout := 70 * time.Second
 
 				log.Debug("Wrapping connecting in idletiming connection")
