@@ -1,5 +1,9 @@
-// Package ringfile provides a file-backed ring buffer that stores JSON-encoded
-// data.
+// Package ringfile provides a file-backed ring buffer that stores arbitrary
+// bytes. The data is stored in 3 files:
+//
+// _idx - contains indexing information for the items stored in the buffer
+// _1 and _2 - the actual data files. Two files are used to allow wrapping the
+//             buffer without overwriting old data.
 package ringfile
 
 import (
@@ -20,12 +24,12 @@ const (
 )
 
 var (
-	log = golog.LoggerFor("jsonring")
+	log = golog.LoggerFor("ringfile")
 
 	endianness = binary.BigEndian
 )
 
-// Buffer is a JSON ring buffer.
+// Buffer is a file-backed ring buffer.
 type Buffer interface {
 	io.WriteCloser
 
@@ -51,7 +55,7 @@ type filepointer struct {
 	length int64
 }
 
-// New create new Buffer backed by the given filename and capped to the given
+// New creates new Buffer backed by the given filename and capped to the given
 // capacity.
 func New(filename string, capacity int) (Buffer, error) {
 	dataFile1, err := openDataFile(filename, 1)
