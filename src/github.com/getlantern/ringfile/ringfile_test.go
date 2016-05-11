@@ -85,6 +85,41 @@ func doTest(t *testing.T, capacity int, expectedReads []string) {
 	if !assert.NoError(t, err, "Unable to close reopened buffer") {
 		return
 	}
+
+	// Reopen the buffer with an increased capacity and try reading again
+	b, err = New(filename, capacity+1)
+	if !assert.NoError(t, err, "Unable to reopen increased buffer") {
+		return
+	}
+
+	err = read(t, b, expectedReads)
+	if err != nil {
+		return
+	}
+
+	err = b.Close()
+	if !assert.NoError(t, err, "Unable to close reopened increased buffer") {
+		return
+	}
+
+	// Reopen the buffer with a decreased capacity and try reading again
+	b, err = New(filename, capacity-1)
+	if !assert.NoError(t, err, "Unable to reopen decreased buffer") {
+		return
+	}
+
+	if len(expectedReads) > capacity-1 {
+		expectedReads = expectedReads[1:]
+	}
+	err = read(t, b, expectedReads)
+	if err != nil {
+		return
+	}
+
+	err = b.Close()
+	if !assert.NoError(t, err, "Unable to close reopened decreased buffer") {
+		return
+	}
 }
 
 func read(t *testing.T, b Buffer, expectedReads []string) error {

@@ -39,14 +39,14 @@ type Buffer interface {
 }
 
 type buffer struct {
-	capacity    int
-	size        int
-	nextIdx     int
-	nextPointer filepointer
-	pointers    []filepointer
-	startOfData int64
-	idxFile     *os.File
-	dataFiles   []*os.File
+	capacity       int
+	size           int
+	nextIdx        int
+	nextPointer    filepointer
+	pointers       []filepointer
+	fullHeaderSize int64
+	idxFile        *os.File
+	dataFiles      []*os.File
 }
 
 type filepointer struct {
@@ -76,17 +76,17 @@ func New(filename string, capacity int) (Buffer, error) {
 		return nil, fmt.Errorf("Unable to stat file %v: %v", idxFile.Name(), err)
 	}
 	b := &buffer{
-		capacity:    capacity,
-		size:        0,
-		nextIdx:     0,
-		pointers:    make([]filepointer, capacity),
-		startOfData: int64(headerSize + capacity*filePointerSize),
-		idxFile:     idxFile,
-		dataFiles:   []*os.File{dataFile1, dataFile2},
+		capacity:       capacity,
+		size:           0,
+		nextIdx:        0,
+		pointers:       make([]filepointer, capacity),
+		fullHeaderSize: int64(headerSize + capacity*filePointerSize),
+		idxFile:        idxFile,
+		dataFiles:      []*os.File{dataFile1, dataFile2},
 	}
 	if fileInfo.Size() > 0 {
 		log.Debug("Index already contains data, read metadata")
-		err = b.readMetadata()
+		err = b.readMetadata(fileInfo.Size())
 		if err != nil {
 			return nil, err
 		}
@@ -184,47 +184,75 @@ func (b *buffer) wrap() {
 	b.nextPointer.offset = 0
 }
 
-func (b *buffer) readMetadata() error {
-	p := make([]byte, b.startOfData)
+func (b *buffer) readMetadata(fileSize int64) error {
+	p := make([]byte, fileSize)
 	_, err := io.ReadFull(b.idxFile, p)
 	if err != nil {
 		log.Debugf("Unable to read initial metadata from %v, discarding existing data: %v", b.idxFile.Name(), err)
 		return b.truncate()
 	}
-	b.size = int(endianness.Uint32(p[int32Size:]))
+	originalCapacity := int(endianness.Uint32(p))
+	originalSize := int(endianness.Uint32(p[int32Size:]))
+	originalNextIdx := int(endianness.Uint32(p[int32Size*2:]))
+	b.size = originalSize
+	startOffset := 0
 	if b.size > b.capacity {
-		log.Debug("Capacity reduced, ignoring existing data")
+		log.Debug("Capacity reduced, ignoring extra existing data")
+		startOffset = b.size - b.capacity
 		b.size = b.capacity
 	}
-	b.nextIdx = int(endianness.Uint32(p[int32Size*2:]))
 	readPointer(p[int32Size*3:], &b.nextPointer)
+
+	startReadIdx := originalNextIdx
+	if startReadIdx == originalSize {
+		// wrap
+		startReadIdx = 0
+	}
+	startReadIdx += startOffset
+	log.Debug(startReadIdx)
+	for i := 0; i < b.size; i++ {
+		readIdx := startReadIdx + i
+		writeIdx := i
+		if readIdx >= originalCapacity {
+			// wrap
+			readIdx -= originalCapacity
+		}
+		if writeIdx >= b.capacity {
+			writeIdx -= b.capacity
+		}
+		log.Debugf("%d -> %d", readIdx, writeIdx)
+		start := headerSize + readIdx*filePointerSize
+		pointer := &b.pointers[writeIdx]
+		readPointer(p[start:], pointer)
+		b.nextIdx = writeIdx + 1
+	}
+
 	if b.nextIdx >= b.capacity {
-		log.Debug("Next index exceeded capacity, wrap")
+		log.Debug("wrapping")
 		b.wrap()
 	}
 
-	for i := 0; i < b.size; i++ {
-		start := headerSize + i*filePointerSize
-		readPointer(p[start:], &b.pointers[i])
-	}
+	log.Debugf("%d : %d : %d : %v", b.capacity, b.size, b.nextIdx, b.nextPointer)
+
 	return nil
 }
 
 func (b *buffer) writeMetadata() error {
-	p := make([]byte, b.startOfData-int32Size)
-	// Save size, nextIdx and nextPointer
-	endianness.PutUint32(p, uint32(b.size))
-	endianness.PutUint32(p[int32Size:], uint32(b.nextIdx))
-	writePointer(p[int32Size*2:], &b.nextPointer)
+	p := make([]byte, b.fullHeaderSize)
+	// Save capacity, size, nextIdx and nextPointer
+	endianness.PutUint32(p, uint32(b.capacity))
+	endianness.PutUint32(p[int32Size:], uint32(b.size))
+	endianness.PutUint32(p[int32Size*2:], uint32(b.nextIdx))
+	writePointer(p[int32Size*3:], &b.nextPointer)
 
 	// Save all pointers
 	for i := 0; i < b.size; i++ {
-		start := headerSize - int32Size + i*filePointerSize
+		start := headerSize + i*filePointerSize
 		writePointer(p[start:], &b.pointers[i])
 	}
 
 	// Write to disk
-	_, err := b.idxFile.WriteAt(p, int32Size)
+	_, err := b.idxFile.WriteAt(p, 0)
 	if err != nil {
 		return fmt.Errorf("Unable to write metadata: %v", err)
 	}
@@ -235,6 +263,7 @@ func readPointer(p []byte, pointer *filepointer) {
 	pointer.file = int(p[0])
 	pointer.offset = int64(endianness.Uint64(p[int8Size:]))
 	pointer.length = int64(endianness.Uint64(p[int8Size+int64Size:]))
+	log.Debugf("Read Pointer %d : %d : %d", pointer.file, pointer.offset, pointer.length)
 }
 
 func writePointer(p []byte, pointer *filepointer) {
