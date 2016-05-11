@@ -35,7 +35,7 @@ func TestDirectDomainFronting(t *testing.T) {
 	certs := trustedCACerts(t)
 	m := make(map[string][]*Masquerade)
 	m["cloudfront"] = cloudfrontMasquerades
-	Configure(certs, m)
+	Configure(certs, m, "")
 
 	client := NewDirectHttpClient(30 * time.Second)
 

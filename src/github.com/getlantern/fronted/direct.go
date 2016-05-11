@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	NumberToVetInitially = 20
+	numberToVetInitially = 20
 )
 
 var (
@@ -34,9 +34,10 @@ type direct struct {
 	certPool        *x509.CertPool
 	candidates      chan *Masquerade
 	masquerades     chan *Masquerade
+	cacheDir        string
 }
 
-func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
+func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade, cacheDir string) {
 	log.Debug("Configuring fronted")
 	if masquerades == nil || len(masquerades) == 0 {
 		log.Errorf("No masquerades!!")
@@ -81,8 +82,8 @@ func (d *direct) loadCandidates(initial map[string][]*Masquerade) {
 }
 
 func (d *direct) vetInitial() {
-	log.Debugf("Vetting %d initial candidates in parallel", NumberToVetInitially)
-	for i := 0; i < NumberToVetInitially; i++ {
+	log.Debugf("Vetting %d initial candidates in parallel", numberToVetInitially)
+	for i := 0; i < numberToVetInitially; i++ {
 		go d.vetOne()
 	}
 }
@@ -92,7 +93,7 @@ func (d *direct) vetOne() {
 	// really matter
 	for {
 		log.Trace("Vetting one")
-		conn, masqueradesRemain, err := d.dialWith(d.candidates, "tcp", "www.google.com")
+		conn, masqueradesRemain, err := d.dialWith(d.candidates, "tcp")
 		if err == nil {
 			conn.Close()
 			log.Trace("Finished vetting one")
@@ -140,15 +141,16 @@ func (d *direct) Do(req *http.Request) (*http.Response, error) {
 	return nil, errors.New("Could not complete request even with retries")
 }
 
-// Dial dials the given address using a masquerade. If the available masquerade
-// fails, it retries with others until it either succeeds or exhausts the
-// available masquerades.
+// Dial dials out using a masquerade. If the available masquerade fails, it
+// retries with others until it either succeeds or exhausts the available
+// masquerades. The specified addr is ignored, it's simply included so that this
+// method satisfies the Transport.Dial interface.
 func (d *direct) Dial(network, addr string) (net.Conn, error) {
-	conn, _, err := d.dialWith(d.masquerades, network, addr)
+	conn, _, err := d.dialWith(d.masquerades, network)
 	return conn, err
 }
 
-func (d *direct) dialWith(in chan *Masquerade, network, addr string) (net.Conn, bool, error) {
+func (d *direct) dialWith(in chan *Masquerade, network string) (net.Conn, bool, error) {
 	retryLater := make([]*Masquerade, 0)
 	defer func() {
 		for _, m := range retryLater {
@@ -198,7 +200,7 @@ func (d *direct) dialWith(in chan *Masquerade, network, addr string) (net.Conn, 
 
 				log.Debug("Wrapping connecting in idletiming connection")
 				conn = idletiming.Conn(conn, idleTimeout, func() {
-					log.Debugf("Connection to %s via %s idle for %v, closing", addr, conn.RemoteAddr(), idleTimeout)
+					log.Debugf("Connection to %v idle for %v, closing", conn.RemoteAddr(), idleTimeout)
 					if err := conn.Close(); err != nil {
 						log.Debugf("Unable to close connection: %v", err)
 					}
