@@ -101,6 +101,8 @@ LANTERN_MOBILE_ANDROID_RELEASE := $(LANTERN_MOBILE_DIR)/app/build/outputs/apk/ap
 LANTERN_YAML := lantern.yaml
 LANTERN_YAML_PATH := installer-resources/lantern.yaml
 
+TEST_PACKAGES := $$(cd src; find github.com/getlantern -name "*_test.go"  | rev | cut -d "/" -f 2- | rev | sort -u)
+
 .PHONY: packages clean tun2socks android-lib android-sdk android-testbed android-debug android-release android-install docker-run
 
 define build-tags
@@ -496,15 +498,13 @@ create-tag: require-version
 	@git tag -a "$$VERSION" -f --annotate -m"Tagged $$VERSION" && \
 	git push --tags -f
 
-# This target requires a file called testpackages.txt that lists all packages to
-# test, one package per line, with no trailing newline on the last package.
 test-and-cover: $(RESOURCES_DOT_GO)
 	@echo "mode: count" > profile.cov && \
 	source setenv.bash && \
 	if [ -f envvars.bash ]; then \
 		source envvars.bash; \
 	fi && \
-	TP=$$(cat testpackages.txt) && \
+	TP=$$TEST_PACKAGES && \
 	CP=$$(echo -n $$TP | tr ' ', ',') && \
 	for pkg in $$TP; do \
 		go test -race -v -tags="headless" -covermode=atomic -coverpkg "$$CP" -coverprofile=profile_tmp.cov $$pkg || exit 1; \
@@ -516,7 +516,7 @@ test: $(RESOURCES_DOT_GO)
 	if [ -f envvars.bash ]; then \
 		source envvars.bash; \
 	fi && \
-	for pkg in $$(cat testpackages.txt); do \
+	for pkg in $$TEST_PACKAGES; do \
 		go test -race -v -tags="headless" $$pkg || exit 1; \
 	done
 
