@@ -14,6 +14,20 @@ var (
 	vals = []string{"", "There", "0"}
 )
 
+func TestReadWritePointer(t *testing.T) {
+	pointer := &filepointer{
+		file:   1,
+		offset: 26,
+		length: 97,
+	}
+
+	p := make([]byte, filePointerSize)
+	writePointer(p, pointer)
+	rt := &filepointer{}
+	readPointer(p, rt)
+	assert.Equal(t, pointer, rt)
+}
+
 func TestUnderCapacity(t *testing.T) {
 	doTest(t, len(vals)+1, vals)
 }
@@ -33,7 +47,8 @@ func doTest(t *testing.T, capacity int, expectedReads []string) {
 	}
 	defer os.RemoveAll(dir)
 
-	b, err := New(filepath.Join(dir, "file1"), capacity)
+	filename := filepath.Join(dir, "file1")
+	b, err := New(filename, capacity)
 	if !assert.NoError(t, err, "Unable to create buffer") {
 		return
 	}
@@ -45,8 +60,36 @@ func doTest(t *testing.T, capacity int, expectedReads []string) {
 		}
 	}
 
+	err = read(t, b, expectedReads)
+	if err != nil {
+		return
+	}
+
+	err = b.Close()
+	if !assert.NoError(t, err, "Unable to close buffer") {
+		return
+	}
+
+	// Reopen the buffer and try reading again
+	b, err = New(filename, capacity)
+	if !assert.NoError(t, err, "Unable to reopen buffer") {
+		return
+	}
+
+	err = read(t, b, expectedReads)
+	if err != nil {
+		return
+	}
+
+	err = b.Close()
+	if !assert.NoError(t, err, "Unable to close reopened buffer") {
+		return
+	}
+}
+
+func read(t *testing.T, b Buffer, expectedReads []string) error {
 	var actualReads []string
-	err = b.AllFromOldest(func(r io.Reader) error {
+	err := b.AllFromOldest(func(r io.Reader) error {
 		p, err2 := ioutil.ReadAll(r)
 		if err2 != nil {
 			return err2
@@ -54,7 +97,9 @@ func doTest(t *testing.T, capacity int, expectedReads []string) {
 		actualReads = append(actualReads, string(p))
 		return nil
 	})
-	if assert.NoError(t, err, "Unable to read AllFromOldest") {
-		assert.Equal(t, expectedReads, actualReads)
+	if !assert.NoError(t, err, "Unable to read AllFromOldest") {
+		return err
 	}
+	assert.Equal(t, expectedReads, actualReads)
+	return nil
 }
