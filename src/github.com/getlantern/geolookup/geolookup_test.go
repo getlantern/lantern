@@ -27,7 +27,7 @@ func TestCityLookup(t *testing.T) {
 
 	m := make(map[string][]*fronted.Masquerade)
 	m["cloudfront"] = masquerades
-	fronted.Configure(rootCAs, m)
+	fronted.Configure(rootCAs, m, "")
 	log.Debugf("Configured fronted")
 	client = fronted.NewDirectHttpClient(30 * time.Second)
 	cloudfrontEndpoint := `http://d3u5fqukq7qrhd.cloudfront.net/lookup/%v`
