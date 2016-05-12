@@ -240,7 +240,7 @@ func (b *buffer) wrap() {
 func (b *buffer) readMetadata(fileSize int64) error {
 	p := make([]byte, fileSize)
 	_, err := io.ReadFull(b.idxFile, p)
-	if err != nil {
+	if err != nil || fileSize < headerSize {
 		log.Debugf("Unable to read initial metadata from %v, discarding existing data: %v", b.idxFile.Name(), err)
 		return b.truncate()
 	}
