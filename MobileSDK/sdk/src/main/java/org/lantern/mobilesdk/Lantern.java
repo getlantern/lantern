@@ -1,7 +1,6 @@
 package org.lantern.mobilesdk;
 
 import android.content.Context;
-import android.content.pm.PackageInfo;
 
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.HitBuilders;
