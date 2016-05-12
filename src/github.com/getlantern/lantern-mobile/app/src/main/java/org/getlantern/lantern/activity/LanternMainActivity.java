@@ -48,6 +48,7 @@ import android.support.v4.widget.DrawerLayout;
 import org.getlantern.lantern.LanternApp;
 import org.getlantern.lantern.vpn.Service;
 import org.getlantern.lantern.fragment.FeedFragment;
+import org.getlantern.lantern.model.CheckUpdate;
 import org.getlantern.lantern.model.GetFeed;
 import org.getlantern.lantern.model.ListAdapter;
 import org.getlantern.lantern.model.NavItem;
@@ -55,7 +56,6 @@ import org.getlantern.lantern.model.SessionManager;
 import org.getlantern.lantern.model.Shareable;
 import org.getlantern.lantern.model.Utils;
 import org.getlantern.lantern.R;
-import org.lantern.mobilesdk.Lantern;
 
 import java.util.ArrayList; 
 import java.util.Map;
@@ -71,6 +71,8 @@ import com.thefinestartist.finestwebview.FinestWebView;
 import com.ogaclejapan.smarttablayout.utils.v4.FragmentStatePagerItemAdapter;
 import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItems;
 import com.ogaclejapan.smarttablayout.SmartTabLayout;
+
+import go.lantern.Lantern;
 
 @Fullscreen
 @EActivity(R.layout.activity_lantern_main)
@@ -267,6 +269,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         final Map<String, Command> menuMap = new HashMap<String, Command>();
         final ArrayList<NavItem> navItems = new ArrayList<NavItem>() {{
+            add(new NavItem(resources.getString(R.string.check_for_update),
+                        R.drawable.ic_contact));
             add(new NavItem(resources.getString(R.string.share_option),
                         R.drawable.ic_share));
             add(new NavItem(resources.getString(R.string.desktop_option), 
@@ -287,6 +291,12 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         
         navItems.add(new NavItem(resources.getString(R.string.quit_option), 
                     R.drawable.ic_quit));
+
+        menuMap.put(resources.getString(R.string.check_for_update), new Command() {
+            public void runCommand() {
+                new CheckUpdate(activity).execute("2.2.0");
+            }
+        });
 
         menuMap.put(resources.getString(R.string.quit_option), new Command() { 
             public void runCommand() { quitLantern(); } 
@@ -408,6 +418,17 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         drawerLayout.closeDrawer(drawerPane);
     }
 
+    public void updateAvailable(final String url) {
+        if (!"".equals(url)) {
+            Intent intent = new Intent(this, UpdaterActivity_.class);
+            intent.putExtra("updateUrl", url);
+            startActivity(intent);
+        } else {
+            String msg = "No update available!";
+            Utils.showAlertDialog(this, "Lantern", msg);
+        }
+    }
+
     // showFeedview optionally fetches the feed depending on the
     // user's preference and updates the position of the on/off switch
     private void showFeedview() {
@@ -507,7 +528,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
                 } else {
                     Log.d(TAG, "VPN enabled, starting Lantern...");
                     updateStatus(true);
-                    Lantern.disable(getApplicationContext());
+                    org.lantern.mobilesdk.Lantern.disable(getApplicationContext());
                     sendIntentToService();
                 }    
             } catch (Exception e) {
@@ -705,7 +726,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             boolean useVpn = response == RESULT_OK;
             updateStatus(useVpn);
             if (useVpn) {
-                Lantern.disable(getApplicationContext());
+                org.lantern.mobilesdk.Lantern.disable(getApplicationContext());
                 sendIntentToService();
             }
         }
@@ -767,7 +788,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
                         if (session.useVpn()) {
                             // whenever a user disconnects from Wifi and Lantern is running
                             updateStatus(false);
-                            Lantern.disable(getApplicationContext());
+                            org.lantern.mobilesdk.Lantern.disable(getApplicationContext());
                             powerLantern.setChecked(false);
                             Service.IsRunning = false;
                         }

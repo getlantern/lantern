@@ -68,7 +68,7 @@
                 android:padding="8dp">
 
 
-                <android.support.v7.internal.widget.TintButton
+                <Button
                     android:id="@+id/notNow"
                     style="?android:buttonStyleSmall"
                     android:layout_width="match_parent"
@@ -81,7 +81,7 @@
                     android:background="@drawable/not_now_btn"
                     android:text="@string/not_now"/>
 
-                <android.support.v7.internal.widget.TintButton
+                <Button
                     android:id="@+id/installUpdate"
                     style="?android:buttonStyleSmall"
                     android:layout_width="match_parent"

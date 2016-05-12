@@ -11,6 +11,9 @@ import (
 	"github.com/getlantern/go-update"
 	"github.com/getlantern/go-update/check"
 	"github.com/getlantern/golog"
+
+	"github.com/getlantern/eventual"
+	"github.com/getlantern/flashlight/util"
 )
 
 var (
@@ -76,7 +79,7 @@ func (cfg *Config) loop() error {
 		} else {
 			if res == nil {
 				log.Debug("No update available")
-			} else if cfg.isNewerVersion(res.Version) {
+			} else if isNewerVersion(cfg.version, res.Version) {
 				log.Debugf("Attempting to update to %s.", res.Version)
 				err, errRecover := res.Update()
 				if errRecover != nil {
@@ -98,30 +101,70 @@ func (cfg *Config) loop() error {
 	}
 }
 
-func (cfg *Config) isNewerVersion(newer string) bool {
+func CheckMobileUpdate(proxyAddr, version, URL string, publicKey []byte) (string, error) {
+
+	var httpClient *http.Client
+	var err error
+
+	if proxyAddr == "" {
+		// if no proxyAddr is supplied, use an ordinary http client
+		httpClient = &http.Client{}
+	} else {
+		httpClient, err = util.HTTPClient("", eventual.DefaultGetter(proxyAddr))
+		if err != nil {
+			return "", err
+		}
+	}
+
+	update.HTTPClient = httpClient
+
+	log.Debugf("Mobile version is %s", version)
+
+	res, err := checkUpdate("blah", version, URL, publicKey)
+	if err != nil {
+		log.Errorf("Error checking for update on mobile: %v", err)
+		return "", err
+	}
+
+	v, err := semver.Make(version)
+	if err != nil {
+		log.Errorf("Error checking for update; could not parse version number: %v", err)
+		return "", err
+	}
+
+	if isNewerVersion(v, res.Version) {
+		log.Debugf("Newer version of Lantern mobile available! %s", res.Version)
+		return res.Url, nil
+	}
+
+	log.Debugf("No new version available!")
+	return "", nil
+}
+
+func isNewerVersion(version semver.Version, newer string) bool {
 	nv, err := semver.Parse(newer)
 	if err != nil {
 		log.Errorf("Bad version string on update: %v", err)
 		return false
 	}
-	return nv.GT(cfg.version)
+	return nv.GT(version)
 }
 
-// check uses go-update to look for updates.
-func (cfg *Config) check() (res *check.Result, err error) {
+func checkUpdate(checkSum, currentVersion, URL string, publicKey []byte) (res *check.Result, err error) {
 	var up *update.Update
 
 	param := check.Params{
-		AppVersion: cfg.CurrentVersion,
+		AppVersion: currentVersion,
+		Checksum:   checkSum,
 	}
 
 	up = update.New().ApplyPatch(update.PATCHTYPE_BSDIFF)
 
-	if _, err = up.VerifySignatureWithPEM(cfg.PublicKey); err != nil {
+	if _, err = up.VerifySignatureWithPEM(publicKey); err != nil {
 		return nil, fmt.Errorf("Problem verifying signature of update: %v", err)
 	}
 
-	if res, err = param.CheckForUpdate(cfg.URL, up); err != nil {
+	if res, err = param.CheckForUpdate(URL, up); err != nil {
 		if err == check.NoUpdateAvailable {
 			return nil, nil
 		}
@@ -129,4 +172,9 @@ func (cfg *Config) check() (res *check.Result, err error) {
 	}
 
 	return res, nil
+}
+
+// check uses go-update to look for updates.
+func (cfg *Config) check() (res *check.Result, err error) {
+	return checkUpdate("", cfg.CurrentVersion, cfg.URL, cfg.PublicKey)
 }

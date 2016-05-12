@@ -55,7 +55,7 @@
             android:launchMode="singleTask"
             android:configChanges="layoutDirection|locale"/>
         <activity
-            android:name=".activity.UpdaterActivity"
+            android:name=".activity.UpdaterActivity_"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.Blank.Dialog">

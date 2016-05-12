@@ -6,96 +6,64 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
-import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Bundle;
 import android.util.Log;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Button;
-import android.view.Window;
 import android.view.View.OnClickListener;
-import android.view.View;
-import android.view.ViewGroup;
 
+import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.Click;
+import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.Extra;
+import org.androidannotations.annotations.ViewById;
+
+import go.lantern.Lantern;
+import org.getlantern.lantern.LanternApp;
+import org.getlantern.lantern.model.SessionManager;
 import org.getlantern.lantern.R;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URL;
-import java.net.URLConnection;
 
+@EActivity(R.layout.activity_updater)
 public class UpdaterActivity extends Activity {
 
     private static final String TAG = "UpdaterActivity";
-    private static final String APK_URL = "http://lantern-android.s3.amazonaws.com/lantern-android-beta.apk";
+
+    @Extra("updateUrl")
+    String updateUrl;
+
+    @ViewById
+    Button notNow;
 
     private UpdaterTask mUpdaterTask;
-    private TextView updateAvailableText;
     private ProgressDialog progressBar;
+    private SessionManager session;
 
     private boolean fileDownloading = false;
 
-
-    @Override
-    protected void onCreate(final Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        setContentView(R.layout.activity_updater);
-
-        progressBar =new ProgressDialog(this);
-        progressBar.setMessage("Updating Lantern");
-        progressBar.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        progressBar.setIndeterminate(false);
-        progressBar.setCancelable(true);
-        progressBar.setProgress(0);
-
-        progressBar.setButton(ProgressDialog.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
-
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                //Cancel download task
-                fileDownloading = false;
-                progressBar.cancel();
-            }
-        });
-
-        addDefaults();
+    @AfterViews
+    void afterViews() {
+        session = LanternApp.getSession();
     }
 
-    private void addDefaults() {
+    @Click(R.id.notNow)
+    void notNowClicked() {
+        finish();
+    }
 
-        Button btn=(Button) findViewById(R.id.not_now);
-        btn.setOnClickListener(new OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
-
-        btn = (Button)findViewById(R.id.install_update);
-        btn.setOnClickListener(new OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                runUpdater();
-            }
-        });
+    @Click(R.id.installUpdate)
+    void installUpdate() {
+        runUpdater();
     }
 
     private void runUpdater() {
+
+        Log.d(TAG, "Downloading latest version of Lantern from " + updateUrl);
         fileDownloading = true;
-        progressBar.show();
-        //progressBar.setVisibility(View.VISIBLE);
         
-        String[] updaterParams = {APK_URL};
+        String[] updaterParams = {updateUrl};
         mUpdaterTask = new UpdaterTask(this);
         mUpdaterTask.execute(updaterParams);
 
@@ -123,46 +91,47 @@ public class UpdaterActivity extends Activity {
         }
 
         @Override
-        protected String doInBackground(String... sUrl) {
-            String path = APK_PATH;
+        protected void onPreExecute() {
+            super.onPreExecute();
 
-            try {
-                Log.d(TAG, "Attempting to download new APK from " + sUrl[0]);
-                URL url = new URL(sUrl[0]);
-                URLConnection connection = url.openConnection();
-                connection.connect();
+            progressBar = new ProgressDialog(mActivity);
+            progressBar.setMessage("Updating Lantern");
+            progressBar.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+            progressBar.setIndeterminate(false);
+            progressBar.setCancelable(true);
+            progressBar.setProgress(0);
 
-                int fileLength = connection.getContentLength();
+            progressBar.setButton(ProgressDialog.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
 
-                // download the file
-                InputStream input = new BufferedInputStream(url.openStream());
-                OutputStream output = new FileOutputStream(path);
-
-                byte data[] = new byte[1024];
-                long total = 0;
-                int count;
-                while (fileDownloading && (count = input.read(data)) != -1) {
-                    total += count;
-                    int progress = (int) (total * 100 / fileLength);
-                    publishProgress(Integer.toString(progress));
-                    output.write(data, 0, count);
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    //Cancel download task
+                    fileDownloading = false;
+                    progressBar.cancel();
                 }
+            });
+            progressBar.show();
+        }
 
-                output.flush();
-                output.close();
-                input.close();
-            } catch (Exception e) {
-                Log.e(TAG, "Error installing new APK..");
-                Log.e(TAG, e.getMessage());
-                displayInstallError();
-            }
-            return path;
+        @Override
+        protected String doInBackground(String... sUrl) {
+            return Lantern.DownloadUpdate(session.startLocalProxy(),
+                    sUrl[0],
+                    APK_PATH, new Lantern.Updater.Stub() {
+                        public void ShowProgress(String percentage) {
+                            publishProgress(percentage);
+                        }
+
+                        public void DisplayError() {
+                            Error();
+                        }
+            });
         }
 
         // show an alert when the update fails
         // and mention where the user can download the latest version
         // this also dismisses the current updater activity
-        protected void displayInstallError() {
+        protected void Error() {
 
             AlertDialog alertDialog = new AlertDialog.Builder(mActivity).create();
             alertDialog.setTitle(context.getString(R.string.error_update));
@@ -182,6 +151,7 @@ public class UpdaterActivity extends Activity {
          */
         @Override
         protected void onProgressUpdate(String... progress) {
+            super.onProgressUpdate(progress);
             // setting progress percentage
             progressBar.setProgress(Integer.parseInt(progress[0]));
         }
@@ -189,7 +159,10 @@ public class UpdaterActivity extends Activity {
         // begin the installation by opening the resulting file
         @Override
         protected void onPostExecute(final String path) {
-
+            super.onPostExecute(path);
+ 
+            progressBar.dismiss();
+                                      
             if (!fileDownloading) {
                 finish();
                 return;
