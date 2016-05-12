@@ -51,21 +51,21 @@ func (pt *passThru) Read(p []byte) (int, error) {
 	return n, err
 }
 
-func doCheckUpdate(proxyAddrFN eventual.Getter, version, URL string, publicKey []byte) (string, error) {
+func doCheckUpdate(proxyAddr string, version, URL string, publicKey []byte) (string, error) {
 
 	var httpClient *http.Client
 	var err error
 
 	log.Debugf("Checking for new mobile version; current version: %s", version)
 
-	httpClient, err = util.HTTPClient("", proxyAddrFN)
+	httpClient, err = getHttpClient(proxyAddr)
 	if err != nil {
 		log.Errorf("Could not create HTTP client to download update: %v", err)
 		return "", err
 	}
 
 	// specify go-update should use our httpClient
-	update.HTTPClient = httpClient
+	update.SetHttpClient(httpClient)
 
 	res, err := checkUpdate(version, URL, publicKey)
 	if err != nil {
@@ -88,9 +88,25 @@ func doCheckUpdate(proxyAddrFN eventual.Getter, version, URL string, publicKey [
 	return "", nil
 }
 
-func CheckMobileUpdate(proxyAddrFN eventual.Getter, appVersion string) string {
+func getHttpClient(proxyAddr string) (*http.Client, error) {
+	var httpClient *http.Client
+	var err error
 
-	url, err := doCheckUpdate(proxyAddrFN, appVersion,
+	if proxyAddr == "" {
+		httpClient = &http.Client{}
+	} else {
+		httpClient, err = util.HTTPClient("", eventual.DefaultGetter(proxyAddr))
+		if err != nil {
+			log.Errorf("Could not create HTTP client: %v", err)
+			return nil, err
+		}
+	}
+
+	return httpClient, nil
+}
+
+func CheckMobileUpdate(proxyAddr, appVersion string) string {
+	url, err := doCheckUpdate(proxyAddr, appVersion,
 		updateStagingServer, []byte(PackagePublicKey))
 	if err != nil {
 		return ""

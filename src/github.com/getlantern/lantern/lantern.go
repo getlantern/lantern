@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/getlantern/autoupdate"
-	"github.com/getlantern/eventual"
 	"github.com/getlantern/flashlight"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
@@ -133,7 +132,7 @@ func run(configDir string) {
 
 // CheckForUpdates checks to see if a new version of Lantern is available
 func CheckForUpdates(proxyAddr string) string {
-	return autoupdate.CheckMobileUpdate(eventual.DefaultGetter(proxyAddr), compileTimePackageVersion)
+	return autoupdate.CheckMobileUpdate(proxyAddr, compileTimePackageVersion)
 }
 
 // UpdateMobile downloads the latest APK from the given url to apkPath

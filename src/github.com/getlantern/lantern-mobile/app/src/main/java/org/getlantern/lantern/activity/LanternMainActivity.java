@@ -178,7 +178,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         setupStatusToast();
         showFeedview();
 
-        checkUpdateAfterDelay();
+        checkUpdate();
     }
 
     @Override
@@ -309,13 +309,13 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         menuMap.put(resources.getString(R.string.newsfeed_off_option), new Command() {
             public void runCommand() {
-                updateFeedview(listAdapter, navItems, resources, 3, false);
+                updateFeedview(listAdapter, navItems, resources, 4, false);
             }
         });
 
         menuMap.put(resources.getString(R.string.newsfeed_option), new Command() {
             public void runCommand() {
-                updateFeedview(listAdapter, navItems, resources, 3, true);
+                updateFeedview(listAdapter, navItems, resources, 4, true);
             }
         });
 
@@ -425,10 +425,29 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         Utils.showAlertDialog(this, noUpdateTitle, noUpdateMsg);
     }
 
-    // checkUpdateAvailable grabs the current app version
-    // and checks to see if a new update is available.
-    // If an update is available, we start the Update activity
-    // If no update is available, an alert dialog is displayed
+    private void checkUpdate() {
+        final Handler updateHandler = new Handler();
+        final Runnable checkUpdate = new Runnable() {
+            @Override
+            public void run() {
+                // after 10s, check if a new version is available
+                boolean drawerOpen = drawerLayout != null && 
+                    drawerLayout.isDrawerOpen(GravityCompat.START);
+
+                if (!UpdateActivity.active && !drawerOpen) {
+                    checkUpdateAvailable();
+                }
+            }
+        };
+        // after 8s, show update popup
+        updateHandler.postDelayed(checkUpdate, 8000);
+    }
+
+    // checkUpdateAvailable compares the current app version
+    // with the latest available
+    // - If an update is available, we start the Update activity
+    //   and prompt the user to download it
+    // - If no update is available, an alert dialog is displayed
     private void checkUpdateAvailable() {
 
         Log.d(TAG, String.format("Currently running %s; seeing if a new version is available", appVersion));
@@ -445,19 +464,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         intent.putExtra("updateUrl", url);
         startActivity(intent);
     }
-
-    private void checkUpdateAfterDelay() {
-        final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                // after 10s, check if a new version is available
-                if (!UpdateActivity.active) {
-                    checkUpdateAvailable();
-                }
-            }
-        }, 10000);
-    } 
 
     // showFeedview optionally fetches the feed depending on the
     // user's preference and updates the position of the on/off switch
@@ -606,6 +612,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
         getApplication().unregisterActivityLifecycleCallbacks(this);
         try {
             if (mReceiver != null) {
@@ -836,7 +843,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             Log.d(TAG, "App in foreground");
             isInBackground = false;
             refreshFeed(null);
-            checkUpdateAfterDelay();
+            checkUpdate();
         }
     }
 

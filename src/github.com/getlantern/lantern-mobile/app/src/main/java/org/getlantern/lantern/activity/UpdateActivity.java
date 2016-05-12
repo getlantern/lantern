@@ -163,6 +163,7 @@ public class UpdateActivity extends Activity {
         @Override
         protected void onPostExecute(final String path) {
             super.onPostExecute(path);
+            progressBar.dismiss();
 
             if (path == null || path.equals("")) {
                 Log.d(TAG, "Error trying to download Lantern update; apk path missing");
@@ -170,8 +171,6 @@ public class UpdateActivity extends Activity {
                 return;
             }
  
-            progressBar.dismiss();
-                                      
             if (!fileDownloading) {
                 finish();
                 return;
