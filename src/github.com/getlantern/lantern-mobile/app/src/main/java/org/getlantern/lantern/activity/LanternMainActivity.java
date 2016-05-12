@@ -183,15 +183,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     protected void onResume() {
         super.onResume();
 
-        final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                // after 10s, check if a new version is available
-                checkUpdateAvailable();
-            }
-        }, 10000);
-
         setupSideMenu();
         setBtnStatus();
     }
@@ -830,6 +821,15 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             Log.d(TAG, "App in foreground");
             isInBackground = false;
             refreshFeed(null);
+
+            final Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    // after 10s, check if a new version is available
+                    checkUpdateAvailable();
+                }
+            }, 10000);
         }
     }
 
