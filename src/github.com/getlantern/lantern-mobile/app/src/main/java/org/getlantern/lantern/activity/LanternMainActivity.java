@@ -447,18 +447,14 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     }
 
     private void checkUpdateAfterDelay() {
-
-        if (UpdateActivity.active) {
-            Log.d(TAG, "Update view already open");
-            return;
-        }
-
         final Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
                 // after 10s, check if a new version is available
-                checkUpdateAvailable();
+                if (!UpdateActivity.active) {
+                    checkUpdateAvailable();
+                }
             }
         }, 10000);
     } 
