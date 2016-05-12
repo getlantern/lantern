@@ -120,6 +120,27 @@ func doTest(t *testing.T, capacity int, expectedReads []string) {
 	if !assert.NoError(t, err, "Unable to close reopened decreased buffer") {
 		return
 	}
+
+	// Corrupt the index and make sure we can still open the file
+	err = ioutil.WriteFile(filename+"_idx", []byte("garbage"), 0644)
+	if !assert.NoError(t, err, "Unable to corrupt index") {
+		return
+	}
+
+	b, err = New(filename, capacity-1)
+	if !assert.NoError(t, err, "Unable to reopen corrupted buffer") {
+		return
+	}
+
+	err = read(t, b, []string{})
+	if err != nil {
+		return
+	}
+
+	err = b.Close()
+	if !assert.NoError(t, err, "Unable to close corrupted buffer") {
+		return
+	}
 }
 
 func read(t *testing.T, b Buffer, expectedReads []string) error {
@@ -131,7 +152,7 @@ func read(t *testing.T, b Buffer, expectedReads []string) error {
 }
 
 func doRead(t *testing.T, expectedReads []string, readFN func(func(io.Reader) error) error) error {
-	var actualReads []string
+	actualReads := []string{}
 	err := readFN(func(r io.Reader) error {
 		p, err2 := ioutil.ReadAll(r)
 		if err2 != nil {
