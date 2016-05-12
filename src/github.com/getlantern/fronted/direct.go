@@ -3,8 +3,10 @@ package fronted
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"math/rand"
 	"net"
 	"net/http"
@@ -16,16 +18,21 @@ import (
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/idletiming"
+	"github.com/getlantern/ringfile"
 	"github.com/getlantern/tlsdialer"
 )
 
 const (
-	NumberToVetInitially = 20
+	numberToVetInitially = 10
+	cacheSize            = 1000
+	maxAllowedCachedAge  = 24 * time.Hour
+	cacheSyncInterval    = 5 * time.Second
 )
 
 var (
-	log       = golog.LoggerFor("fronted")
-	_instance = eventual.NewValue()
+	log                      = golog.LoggerFor("fronted")
+	_instance                = eventual.NewValue()
+	fillSentinel *Masquerade = nil
 )
 
 type direct struct {
@@ -34,14 +41,18 @@ type direct struct {
 	certPool        *x509.CertPool
 	candidates      chan *Masquerade
 	masquerades     chan *Masquerade
+	cache           ringfile.Buffer
+	toCache         chan *Masquerade
 }
 
-func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
+func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade, cacheFile string) {
 	log.Debug("Configuring fronted")
 	if masquerades == nil || len(masquerades) == 0 {
 		log.Errorf("No masquerades!!")
 		return
 	}
+
+	CloseCache()
 
 	// Make a copy of the masquerades to avoid data races.
 	size := 0
@@ -54,16 +65,96 @@ func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade) {
 		return
 	}
 
-	instance := &direct{
+	d := &direct{
 		tlsConfigs:  make(map[string]*tls.Config),
 		certPool:    pool,
 		candidates:  make(chan *Masquerade, size),
 		masquerades: make(chan *Masquerade, size),
 	}
 
-	instance.loadCandidates(masquerades)
-	instance.vetInitial()
-	_instance.Set(instance)
+	numberToVet := numberToVetInitially
+	if cacheFile != "" {
+		var err error
+		d.cache, err = ringfile.New(cacheFile, cacheSize)
+		if err != nil {
+			log.Errorf("Unable to create masquerade cache, not caching: %v", err)
+			d.cache = nil
+		} else {
+			log.Debugf("Caching successful masquerades to %v", cacheFile)
+			d.toCache = make(chan *Masquerade, cacheSize)
+			go d.fillCache()
+			log.Debugf("Attempting to prepopulate masquerades from cache")
+			// TODO: we could optimize startup time by only reading the first X
+			// masquerades synchronously and then reading the rest asynchronously.
+			now := time.Now()
+			err = d.cache.AllFromNewest(func(r io.Reader) error {
+				m := &Masquerade{}
+				err2 := json.NewDecoder(r).Decode(m)
+				if err2 != nil {
+					return fmt.Errorf("Unable to decode JSON: %v", err2)
+				}
+				if now.Sub(m.LastVetted) < maxAllowedCachedAge {
+					log.Debugf("Prepopulating vetted masquerade for %v (%v)", m.Domain, m.IpAddress)
+					d.masquerades <- m
+					numberToVet--
+				}
+				return nil
+			})
+			if err != nil {
+				log.Errorf("Error prepopulating cached masquerades: %v", err)
+			}
+		}
+	}
+
+	d.loadCandidates(masquerades)
+	if numberToVet > 0 {
+		d.vetInitial(numberToVet)
+	} else {
+		log.Debug("Not vetting any masquerades because we have enough cached ones")
+	}
+	_instance.Set(d)
+}
+
+func (d *direct) fillCache() {
+	syncTimer := time.NewTimer(cacheSyncInterval)
+	for {
+		select {
+		case m := <-d.toCache:
+			if m == fillSentinel {
+				log.Debug("Cache closed, stop filling")
+				err := d.cache.Close()
+				if err != nil {
+					log.Errorf("Error closing cache: %v", err)
+				}
+				return
+			}
+			b, err := json.Marshal(m)
+			if err != nil {
+				log.Errorf("Unable to marshal Masquerade to JSON: %v", err)
+				break
+			}
+			log.Debugf("Caching vetted masquerade for %v (%v)", m.Domain, m.IpAddress)
+			d.cache.Write(b)
+		case <-syncTimer.C:
+			err := d.cache.Sync()
+			if err != nil {
+				log.Errorf("Unable to sync cache to disk: %v", err)
+			}
+			syncTimer.Reset(cacheSyncInterval)
+		}
+	}
+}
+
+// CloseCache closes any existing file cache.
+func CloseCache() {
+	_existing, ok := _instance.Get(0)
+	if ok && _existing != nil {
+		existing := _existing.(*direct)
+		if existing.cache != nil {
+			log.Debug("Closing cache file from existing instance")
+			existing.toCache <- fillSentinel
+		}
+	}
 }
 
 func (d *direct) loadCandidates(initial map[string][]*Masquerade) {
@@ -80,9 +171,9 @@ func (d *direct) loadCandidates(initial map[string][]*Masquerade) {
 	}
 }
 
-func (d *direct) vetInitial() {
-	log.Debugf("Vetting %d initial candidates in parallel", NumberToVetInitially)
-	for i := 0; i < NumberToVetInitially; i++ {
+func (d *direct) vetInitial(numberToVet int) {
+	log.Debugf("Vetting %d initial candidates in parallel", numberToVet)
+	for i := 0; i < numberToVet; i++ {
 		go d.vetOne()
 	}
 }
@@ -92,7 +183,7 @@ func (d *direct) vetOne() {
 	// really matter
 	for {
 		log.Trace("Vetting one")
-		conn, masqueradesRemain, err := d.dialWith(d.candidates, "tcp", "www.google.com")
+		conn, masqueradesRemain, err := d.dialWith(d.candidates, "tcp")
 		if err == nil {
 			conn.Close()
 			log.Trace("Finished vetting one")
@@ -140,15 +231,16 @@ func (d *direct) Do(req *http.Request) (*http.Response, error) {
 	return nil, errors.New("Could not complete request even with retries")
 }
 
-// Dial dials the given address using a masquerade. If the available masquerade
-// fails, it retries with others until it either succeeds or exhausts the
-// available masquerades.
+// Dial dials out using a masquerade. If the available masquerade fails, it
+// retries with others until it either succeeds or exhausts the available
+// masquerades. The specified addr is ignored, it's simply included so that this
+// method satisfies the Transport.Dial interface.
 func (d *direct) Dial(network, addr string) (net.Conn, error) {
-	conn, _, err := d.dialWith(d.masquerades, network, addr)
+	conn, _, err := d.dialWith(d.masquerades, network)
 	return conn, err
 }
 
-func (d *direct) dialWith(in chan *Masquerade, network, addr string) (net.Conn, bool, error) {
+func (d *direct) dialWith(in chan *Masquerade, network string) (net.Conn, bool, error) {
 	retryLater := make([]*Masquerade, 0)
 	defer func() {
 		for _, m := range retryLater {
@@ -194,11 +286,20 @@ func (d *direct) dialWith(in chan *Masquerade, network, addr string) (net.Conn, 
 			} else {
 				// Requeue the working connection to masquerades
 				d.masquerades <- m
+				if d.cache != nil {
+					m.LastVetted = time.Now()
+					select {
+					case d.toCache <- m:
+						// ok
+					default:
+						// cache writing has fallen behind, drop masquerade
+					}
+				}
 				idleTimeout := 70 * time.Second
 
 				log.Debug("Wrapping connecting in idletiming connection")
 				conn = idletiming.Conn(conn, idleTimeout, func() {
-					log.Debugf("Connection to %s via %s idle for %v, closing", addr, conn.RemoteAddr(), idleTimeout)
+					log.Debugf("Connection to %v idle for %v, closing", conn.RemoteAddr(), idleTimeout)
 					if err := conn.Close(); err != nil {
 						log.Debugf("Unable to close connection: %v", err)
 					}
@@ -267,13 +368,13 @@ func (d *direct) headCheck(m *Masquerade) error {
 		Transport: trans,
 	}
 	url := "http://dlymairwlc89h.cloudfront.net/index.html"
-	if resp, err := client.Head(url); err != nil {
+	resp, err := client.Head(url)
+	if err != nil {
 		return err
-	} else {
-		defer resp.Body.Close()
-		if 200 != resp.StatusCode {
-			return fmt.Errorf("Unexpected response status: %v, %v", resp.StatusCode, resp.Status)
-		}
+	}
+	defer resp.Body.Close()
+	if 200 != resp.StatusCode {
+		return fmt.Errorf("Unexpected response status: %v, %v", resp.StatusCode, resp.Status)
 	}
 	log.Debugf("Successfully passed HEAD request through: %v", m)
 	return nil

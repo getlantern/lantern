@@ -2,10 +2,14 @@ package fronted
 
 import (
 	"crypto/x509"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/getlantern/keyman"
+	"github.com/stretchr/testify/assert"
 )
 
 func testEq(a, b []*Masquerade) bool {
@@ -32,10 +36,22 @@ func testEq(a, b []*Masquerade) bool {
 }
 
 func TestDirectDomainFronting(t *testing.T) {
+	dir, err := ioutil.TempDir("", "direct_test")
+	if !assert.NoError(t, err, "Unable to create temp dir") {
+		return
+	}
+	defer os.RemoveAll(dir)
+	cacheFile := filepath.Join(dir, "cachefile")
+	doTestDomainFronting(t, cacheFile)
+	// Then try again, this time reusing the existing cacheFile
+	doTestDomainFronting(t, cacheFile)
+}
+
+func doTestDomainFronting(t *testing.T, cacheFile string) {
 	certs := trustedCACerts(t)
 	m := make(map[string][]*Masquerade)
 	m["cloudfront"] = cloudfrontMasquerades
-	Configure(certs, m)
+	Configure(certs, m, cacheFile)
 
 	client := NewDirectHttpClient(30 * time.Second)
 
