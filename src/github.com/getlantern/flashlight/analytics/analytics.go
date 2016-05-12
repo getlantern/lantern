@@ -99,10 +99,6 @@ func sessionVals(ip, version, clientID, sc string, uaWait time.Duration) string 
 	// Custom dimension for the Lantern version
 	vals.Add("cd1", version)
 
-	// Also send the app version signifier. Unclear exactly what this does for
-	// web properties, but worth a try.
-	vals.Add("av", version)
-
 	// Custom dimension for the hash of the executable
 	vals.Add("cd2", hash)
 
