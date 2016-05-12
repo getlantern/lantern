@@ -83,6 +83,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     private final static int REQUEST_VPN = 7777;
     private BroadcastReceiver mReceiver;
     private Context context;
+    private String appVersion;
 
     private boolean isInBackground = false;
     private FragmentStatePagerItemAdapter feedAdapter;
@@ -247,7 +248,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         try {
             // configure actions to be taken whenever slider changes state
             PackageInfo pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
-            String appVersion = pInfo.versionName;
+            appVersion = pInfo.versionName;
             Log.d(TAG, "Currently running Lantern version: " + appVersion);
 
             // update version number that appears at the bottom of the side menu
@@ -416,10 +417,9 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         drawerLayout.closeDrawer(drawerPane);
     }
 
-    private void noUpdateAvailable(String currentVersion) {
+    private void noUpdateAvailable() {
         String noUpdateTitle = getResources().getString(R.string.no_update_available);
-        String noUpdateMsg = String.format(getResources().getString(R.string.have_latest_version),
-                currentVersion);
+        String noUpdateMsg = String.format(getResources().getString(R.string.have_latest_version), appVersion);
         Utils.showAlertDialog(this, noUpdateTitle, noUpdateMsg);
     }
 
@@ -429,20 +429,12 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     // If no update is available, an alert dialog is displayed
     private void checkUpdateAvailable() {
 
-        String currentVersion;
+        Log.d(TAG, String.format("Currently running %s; seeing if a new update is available", appVersion));
 
-        if (versionNum == null || (currentVersion = versionNum.getText().toString()).equals("")) {
-            Log.e(TAG, "No app version detected!");
-            return;
-        }
-
-        Log.d(TAG, String.format("Currently running %s; seeing if a new update is available", currentVersion));
-
-        String url = Lantern.CheckForUpdates(session.startLocalProxy(),
-                currentVersion);
+        String url = Lantern.CheckForUpdates(session.startLocalProxy());
 
         if (url == null || "".equals(url)) {
-            noUpdateAvailable(currentVersion);
+            noUpdateAvailable();
             return;
         }
 

@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/blang/semver"
 	"github.com/getlantern/eventual"
@@ -52,14 +51,14 @@ func (pt *passThru) Read(p []byte) (int, error) {
 	return n, err
 }
 
-func doCheckUpdate(proxyAddr, version, URL string, publicKey []byte) (string, error) {
+func doCheckUpdate(proxyAddrFN eventual.Getter, version, URL string, publicKey []byte) (string, error) {
 
 	var httpClient *http.Client
 	var err error
 
 	log.Debugf("Checking for new mobile version; current version: %s", version)
 
-	httpClient, err = util.HTTPClient("", eventual.DefaultGetter(proxyAddr))
+	httpClient, err = util.HTTPClient("", proxyAddrFN)
 	if err != nil {
 		log.Errorf("Could not create HTTP client to download update: %v", err)
 		return "", err
@@ -89,13 +88,9 @@ func doCheckUpdate(proxyAddr, version, URL string, publicKey []byte) (string, er
 	return "", nil
 }
 
-func CheckMobileUpdate(proxyAddr, appVersion string) string {
-	parts := strings.Split(appVersion, " ")
-	if len(parts) > 1 {
-		appVersion = parts[0]
-	}
+func CheckMobileUpdate(proxyAddrFN eventual.Getter, appVersion string) string {
 
-	url, err := doCheckUpdate(proxyAddr, appVersion,
+	url, err := doCheckUpdate(proxyAddrFN, appVersion,
 		updateStagingServer, []byte(PackagePublicKey))
 	if err != nil {
 		return ""

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/getlantern/autoupdate"
+	"github.com/getlantern/eventual"
 	"github.com/getlantern/flashlight"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
@@ -21,8 +22,15 @@ import (
 var (
 	log = golog.LoggerFor("lantern")
 
+	// compileTimePackageVersion is set at compile-time for production builds
+	compileTimePackageVersion string
+
 	startOnce sync.Once
 )
+
+func init() {
+	log.Debugf("COMPILE TIME PACKAGE VERSION: %s", compileTimePackageVersion)
+}
 
 // SocketProtector is an interface for classes that can protect Android sockets,
 // meaning those sockets will not be passed through the VPN.
@@ -120,16 +128,20 @@ func run(configDir string) {
 		func() bool { return true },                   // proxy all requests
 		make(map[string]interface{}),                  // no special configuration flags
 		func(cfg *config.Config) bool { return true }, // beforeStart()
-		func(cfg *config.Config) {},                   //  afterStart()
-		func(cfg *config.Config) {},                   // onConfigUpdate
+		func(cfg *config.Config) {},                   // afterStart
+		onConfigUpdate,
 		&userConfig{},
 		func(err error) {}, // onError
 	)
 }
 
+func onConfigUpdate(cfg *config.Config) {
+	autoupdate.CheckMobileUpdate(client.Addr, compileTimePackageVersion)
+}
+
 // CheckForUpdates checks to see if a new version of Lantern is available
-func CheckForUpdates(proxyAddr, appVersion string) string {
-	return autoupdate.CheckMobileUpdate(proxyAddr, appVersion)
+func CheckForUpdates(proxyAddr string) string {
+	return autoupdate.CheckMobileUpdate(eventual.DefaultGetter(proxyAddr), compileTimePackageVersion)
 }
 
 // UpdateMobile downloads the latest APK from the given url to apkPath

@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.TextView;
 import android.widget.Button;
 import android.view.View.OnClickListener;
 
@@ -63,7 +62,7 @@ public class UpdateActivity extends Activity {
         mUpdaterTask.execute(updaterParams);
     }
 
-    class UpdaterTask extends AsyncTask<String, String, String> {
+    private class UpdaterTask extends AsyncTask<String, String, String> implements DialogInterface.OnClickListener {
 
         private final UpdateActivity mActivity;
         private final Context context;
@@ -76,26 +75,27 @@ public class UpdateActivity extends Activity {
         }
 
         @Override
+        public void onClick(DialogInterface dialog, int which) {
+            //Cancel download task
+            fileDownloading = false;
+            progressBar.dismiss();
+            mActivity.finish();
+        }
+
+        @Override
         protected void onPreExecute() {
             super.onPreExecute();
 
             progressBar = new ProgressDialog(mActivity);
-            progressBar.setMessage("Updating Lantern");
+            progressBar.setMessage(getResources().getString(R.string.updating_lantern));
             progressBar.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
             progressBar.setIndeterminate(false);
             progressBar.setCancelable(true);
             progressBar.setProgress(0);
 
-            progressBar.setButton(ProgressDialog.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
+            String cancel = getResources().getString(R.string.cancel);
 
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    //Cancel download task
-                    fileDownloading = false;
-                    progressBar.dismiss();
-                    mActivity.finish();
-                }
-            });
+            progressBar.setButton(ProgressDialog.BUTTON_NEGATIVE, cancel, this);
             progressBar.show();
         }
 
