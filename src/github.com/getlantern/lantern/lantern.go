@@ -28,10 +28,6 @@ var (
 	startOnce sync.Once
 )
 
-func init() {
-	log.Debugf("COMPILE TIME PACKAGE VERSION: %s", compileTimePackageVersion)
-}
-
 // SocketProtector is an interface for classes that can protect Android sockets,
 // meaning those sockets will not be passed through the VPN.
 type SocketProtector interface {
@@ -128,19 +124,15 @@ func run(configDir string) {
 		func() bool { return true },                   // proxy all requests
 		make(map[string]interface{}),                  // no special configuration flags
 		func(cfg *config.Config) bool { return true }, // beforeStart()
-		func(cfg *config.Config) {},                   // afterStart
-		onConfigUpdate,
+		func(cfg *config.Config) {},                   // afterStart()
+		func(cfg *config.Config) {},                   // onConfigChange()
 		&userConfig{},
 		func(err error) {}, // onError
 	)
 }
 
-func onConfigUpdate(cfg *config.Config) {
-	autoupdate.CheckMobileUpdate(client.Addr, compileTimePackageVersion)
-}
-
 // CheckForUpdates checks to see if a new version of Lantern is available
-func CheckForUpdates(proxyAddr string) string {
+func CheckForUpdates(proxyAddr string, updater Updater) string {
 	return autoupdate.CheckMobileUpdate(eventual.DefaultGetter(proxyAddr), compileTimePackageVersion)
 }
 

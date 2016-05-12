@@ -183,6 +183,15 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     protected void onResume() {
         super.onResume();
 
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                // after 10s, check if a new version is available
+                checkUpdateAvailable();
+            }
+        }, 10000);
+
         setupSideMenu();
         setBtnStatus();
     }
@@ -429,7 +438,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     // If no update is available, an alert dialog is displayed
     private void checkUpdateAvailable() {
 
-        Log.d(TAG, String.format("Currently running %s; seeing if a new update is available", appVersion));
+        Log.d(TAG, String.format("Currently running %s; seeing if a new version is available", appVersion));
 
         String url = Lantern.CheckForUpdates(session.startLocalProxy());
 
