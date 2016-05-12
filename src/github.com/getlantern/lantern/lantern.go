@@ -120,7 +120,7 @@ func run(configDir string) {
 		func() bool { return true },                   // proxy all requests
 		make(map[string]interface{}),                  // no special configuration flags
 		func(cfg *config.Config) bool { return true }, // beforeStart()
-		func(cfg *config.Config) {},                   // onConfigUpdate
+		func(cfg *config.Config) {},                   //  afterStart()
 		func(cfg *config.Config) {},                   // onConfigUpdate
 		&userConfig{},
 		func(err error) {}, // onError
