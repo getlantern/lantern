@@ -3,10 +3,8 @@ package fronted
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"math/rand"
 	"net"
 	"net/http"
@@ -18,21 +16,16 @@ import (
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/idletiming"
-	"github.com/getlantern/ringfile"
 	"github.com/getlantern/tlsdialer"
 )
 
 const (
 	numberToVetInitially = 10
-	cacheSize            = 1000
-	maxAllowedCachedAge  = 24 * time.Hour
-	cacheSyncInterval    = 5 * time.Second
 )
 
 var (
-	log                      = golog.LoggerFor("fronted")
-	_instance                = eventual.NewValue()
-	fillSentinel *Masquerade = nil
+	log       = golog.LoggerFor("fronted")
+	_instance = eventual.NewValue()
 )
 
 type direct struct {
@@ -41,7 +34,8 @@ type direct struct {
 	certPool        *x509.CertPool
 	candidates      chan *Masquerade
 	masquerades     chan *Masquerade
-	cache           ringfile.Buffer
+	cacheFile       string
+	cache           []*Masquerade
 	toCache         chan *Masquerade
 }
 
@@ -70,40 +64,14 @@ func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade, cacheF
 		certPool:    pool,
 		candidates:  make(chan *Masquerade, size),
 		masquerades: make(chan *Masquerade, size),
+		cacheFile:   cacheFile,
+		cache:       make([]*Masquerade, 0),
+		toCache:     make(chan *Masquerade, maxCacheSize),
 	}
 
 	numberToVet := numberToVetInitially
-	if cacheFile != "" {
-		var err error
-		d.cache, err = ringfile.New(cacheFile, cacheSize)
-		if err != nil {
-			log.Errorf("Unable to create masquerade cache, not caching: %v", err)
-			d.cache = nil
-		} else {
-			log.Debugf("Caching successful masquerades to %v", cacheFile)
-			d.toCache = make(chan *Masquerade, cacheSize)
-			go d.fillCache()
-			log.Debugf("Attempting to prepopulate masquerades from cache")
-			// TODO: we could optimize startup time by only reading the first X
-			// masquerades synchronously and then reading the rest asynchronously.
-			now := time.Now()
-			err = d.cache.AllFromNewest(func(r io.Reader) error {
-				m := &Masquerade{}
-				err2 := json.NewDecoder(r).Decode(m)
-				if err2 != nil {
-					return fmt.Errorf("Unable to decode JSON: %v", err2)
-				}
-				if now.Sub(m.LastVetted) < maxAllowedCachedAge {
-					log.Debugf("Prepopulating vetted masquerade for %v (%v)", m.Domain, m.IpAddress)
-					d.masquerades <- m
-					numberToVet--
-				}
-				return nil
-			})
-			if err != nil {
-				log.Errorf("Error prepopulating cached masquerades: %v", err)
-			}
-		}
+	if d.cacheFile != "" {
+		numberToVet -= d.initCaching()
 	}
 
 	d.loadCandidates(masquerades)
@@ -113,48 +81,6 @@ func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade, cacheF
 		log.Debug("Not vetting any masquerades because we have enough cached ones")
 	}
 	_instance.Set(d)
-}
-
-func (d *direct) fillCache() {
-	syncTimer := time.NewTimer(cacheSyncInterval)
-	for {
-		select {
-		case m := <-d.toCache:
-			if m == fillSentinel {
-				log.Debug("Cache closed, stop filling")
-				err := d.cache.Close()
-				if err != nil {
-					log.Errorf("Error closing cache: %v", err)
-				}
-				return
-			}
-			b, err := json.Marshal(m)
-			if err != nil {
-				log.Errorf("Unable to marshal Masquerade to JSON: %v", err)
-				break
-			}
-			log.Debugf("Caching vetted masquerade for %v (%v)", m.Domain, m.IpAddress)
-			d.cache.Write(b)
-		case <-syncTimer.C:
-			err := d.cache.Sync()
-			if err != nil {
-				log.Errorf("Unable to sync cache to disk: %v", err)
-			}
-			syncTimer.Reset(cacheSyncInterval)
-		}
-	}
-}
-
-// CloseCache closes any existing file cache.
-func CloseCache() {
-	_existing, ok := _instance.Get(0)
-	if ok && _existing != nil {
-		existing := _existing.(*direct)
-		if existing.cache != nil {
-			log.Debug("Closing cache file from existing instance")
-			existing.toCache <- fillSentinel
-		}
-	}
 }
 
 func (d *direct) loadCandidates(initial map[string][]*Masquerade) {
