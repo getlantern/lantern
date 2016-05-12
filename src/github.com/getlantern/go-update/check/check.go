@@ -96,9 +96,6 @@ func (p *Params) CheckForUpdate(url string, up *update.Update) (*Result, error) 
 		p.Version = 1
 	}
 
-	log.Debugf("HEre.. url is %s os is %s arch is %s", url, p.OS, p.Arch)
-	log.Debugf("P IS %v", p)
-
 	// ignore errors auto-populating the checksum
 	// if it fails, you just won't be able to patch
 	if p.OS != "android" {
@@ -140,7 +137,6 @@ func (p *Params) CheckForUpdate(url string, up *update.Update) (*Result, error) 
 		log.Errorf("Error reading response body from update server: %v", err)
 		return nil, err
 	}
-	log.Debugf("UPDATE SERVER RESPONSE: %s %v", string(respBytes), respBytes)
 
 	result := &Result{up: up}
 	if err := json.Unmarshal(respBytes, result); err != nil {
