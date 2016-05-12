@@ -2,23 +2,17 @@
 package lantern
 
 import (
-	"compress/bzip2"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"sync"
 	"time"
 
 	"github.com/getlantern/autoupdate"
-	"github.com/getlantern/eventual"
 	"github.com/getlantern/flashlight"
-	"github.com/getlantern/flashlight/app"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/feed"
 	"github.com/getlantern/flashlight/logging"
-	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/protected"
 	"github.com/getlantern/tlsdialer"
@@ -59,13 +53,9 @@ type StartResult struct {
 	SOCKS5Addr string
 }
 
-type FeedProvider interface {
-	AddSource(string)
-}
-
-type FeedRetriever interface {
-	AddFeed(string, string, string, string)
-}
+type FeedProvider feed.FeedProvider
+type FeedRetriever feed.FeedRetriever
+type Updater autoupdate.Updater
 
 // Start starts a HTTP and SOCKS proxies at random addresses. It blocks up till
 // the given timeout waiting for the proxy to listen, and returns the addresses
@@ -137,114 +127,14 @@ func run(configDir string) {
 	)
 }
 
+// CheckForUpdates checks to see if a new version of Lantern is available
 func CheckForUpdates(proxyAddr, appVersion string) string {
-	url, err := autoupdate.CheckMobileUpdate(proxyAddr, appVersion,
-		"https://update-stage.getlantern.org/update",
-		[]byte(app.PackagePublicKey))
-	if err != nil {
-		log.Errorf("Error trying to fetch update: %v", err)
-		return ""
-	}
-	return url
+	return autoupdate.CheckMobileUpdate(proxyAddr, appVersion)
 }
 
-type Updater interface {
-	ShowProgress(string)
-	DisplayError()
-}
-
-// passThru wraps an existing io.Reader.
-type passThru struct {
-	io.Reader
-	Updater
-	total    int64 // Total # of bytes transferred
-	length   int64 // Expected length
-	progress float64
-}
-
-// Read 'overrides' the underlying io.Reader's Read method.
-// This is the one that will be called by io.Copy(). We simply
-// use it to keep track of byte counts and then forward the call.
-func (pt *passThru) Read(p []byte) (int, error) {
-	n, err := pt.Reader.Read(p)
-	if n > 0 {
-		pt.total += int64(n)
-		percentage := float64(pt.total) / float64(pt.length) * float64(100)
-		i := int(percentage / float64(10))
-		is := fmt.Sprintf("%v", i)
-		pt.Updater.ShowProgress(fmt.Sprintf("%d", int(percentage)))
-
-		if percentage-pt.progress > 2 {
-			fmt.Fprintf(os.Stderr, is)
-			pt.progress = percentage
-		}
-	}
-
-	return n, err
-}
-
+// UpdateMobile downloads the latest APK from the given url to apkPath
 func DownloadUpdate(proxyAddr, url, apkPath string, updater Updater) string {
-	log.Debugf("Attempting to download APK from %s", url)
-
-	var err error
-	var req *http.Request
-	var res *http.Response
-	var httpClient *http.Client
-
-	out, err := os.Create(apkPath)
-	if err != nil {
-		log.Errorf("Error creating APK path: %v", err)
-		return ""
-	}
-	defer out.Close()
-
-	if proxyAddr == "" {
-		// if no proxyAddr is supplied, use an ordinary http client
-		httpClient = &http.Client{}
-	} else {
-		httpClient, err = util.HTTPClient("", eventual.DefaultGetter(proxyAddr))
-		if err != nil {
-			log.Errorf("Error creating http client: %v", err)
-			updater.DisplayError()
-			return ""
-		}
-	}
-
-	if req, err = http.NewRequest("GET", url, nil); err != nil {
-		log.Errorf("Error downloading update: %v", err)
-		updater.DisplayError()
-		return ""
-	}
-
-	// ask for gzipped feed content
-	req.Header.Add("Accept-Encoding", "gzip")
-
-	if res, err = httpClient.Do(req); err != nil {
-		log.Errorf("Error requesting update: %v", err)
-		updater.DisplayError()
-		return ""
-	}
-
-	defer res.Body.Close()
-
-	bzip2Reader := bzip2.NewReader(res.Body)
-
-	readerpt := &passThru{Updater: updater, Reader: bzip2Reader, length: res.ContentLength}
-
-	/*contents, err := ioutil.ReadAll(readerpt)
-	if err != nil {
-		log.Errorf("Error downloading update: %v", err)
-		updater.DisplayError()
-		return
-	}*/
-
-	_, err = io.Copy(out, readerpt)
-	if err != nil {
-		log.Errorf("Error copying update: %v", err)
-		return ""
-	}
-
-	return apkPath
+	return autoupdate.UpdateMobile(proxyAddr, url, apkPath, updater)
 }
 
 // GetFeed fetches the public feed thats displayed on Lantern's main screen

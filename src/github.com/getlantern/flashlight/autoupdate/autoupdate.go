@@ -14,13 +14,11 @@ import (
 )
 
 var (
+	log = golog.LoggerFor("flashlight.autoupdate")
+
 	updateServerURL = config.DefaultUpdateServerURL
 	PublicKey       []byte
 	Version         string
-)
-
-var (
-	log = golog.LoggerFor("flashlight.autoupdate")
 
 	cfgMutex    sync.Mutex
 	updateMutex sync.Mutex
@@ -30,6 +28,11 @@ var (
 
 	applyNextAttemptTime = time.Hour * 2
 )
+
+func init() {
+	// Passing public key and version to the autoupdate service.
+	PublicKey = []byte(autoupdate.PackagePublicKey)
+}
 
 func Configure(cfg *config.Config) {
 	cfgMutex.Lock()

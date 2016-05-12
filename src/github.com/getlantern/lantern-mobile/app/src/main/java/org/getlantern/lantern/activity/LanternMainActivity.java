@@ -48,7 +48,6 @@ import android.support.v4.widget.DrawerLayout;
 import org.getlantern.lantern.LanternApp;
 import org.getlantern.lantern.vpn.Service;
 import org.getlantern.lantern.fragment.FeedFragment;
-import org.getlantern.lantern.model.CheckUpdate;
 import org.getlantern.lantern.model.GetFeed;
 import org.getlantern.lantern.model.ListAdapter;
 import org.getlantern.lantern.model.NavItem;
@@ -270,7 +269,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         final Map<String, Command> menuMap = new HashMap<String, Command>();
         final ArrayList<NavItem> navItems = new ArrayList<NavItem>() {{
             add(new NavItem(resources.getString(R.string.check_for_update),
-                        R.drawable.ic_contact));
+                        R.drawable.ic_update));
             add(new NavItem(resources.getString(R.string.share_option),
                         R.drawable.ic_share));
             add(new NavItem(resources.getString(R.string.desktop_option), 
@@ -294,7 +293,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         menuMap.put(resources.getString(R.string.check_for_update), new Command() {
             public void runCommand() {
-                new CheckUpdate(activity).execute("2.2.0");
+                checkUpdateAvailable();
             }
         });
 
@@ -418,15 +417,40 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         drawerLayout.closeDrawer(drawerPane);
     }
 
-    public void updateAvailable(final String url) {
-        if (!"".equals(url)) {
-            Intent intent = new Intent(this, UpdaterActivity_.class);
-            intent.putExtra("updateUrl", url);
-            startActivity(intent);
-        } else {
-            String msg = "No update available!";
-            Utils.showAlertDialog(this, "Lantern", msg);
+    private void noUpdateAvailable() {
+        String noUpdateTitle = getResources().getString(R.string.no_update_available);
+        String noUpdateMsg = String.format(getResources().getString(R.string.have_latest_version),
+                currentVersion);
+        Utils.showAlertDialog(this, noUpdateTitle, noUpdateMsg);
+    }
+
+    // checkUpdateAvailable grabs the current app version
+    // and checks to see if a new update is available.
+    // If an update is available, we start the Update activity
+    // If no update is available, an alert dialog is displayed
+    private void checkUpdateAvailable() {
+
+        String currentVersion;
+
+        if (versionNum == null || (currentVersion = versionNum.getText().toString()).equals("")) {
+            Log.e(TAG, "No app version detected!");
+            return;
         }
+
+        Log.d(TAG, String.format("Currently running %s; seeing if a new update is available", currentVersion));
+
+        String url = Lantern.CheckForUpdates(session.startLocalProxy(),
+                currentVersion);
+
+        if (url == null || "".equals(url)) {
+            noUpdateAvailable();
+            return;
+        }
+
+        // an updated version of Lantern is available at the given url
+        Intent intent = new Intent(this, UpdateActivity_.class);
+        intent.putExtra("updateUrl", url);
+        startActivity(intent);
     }
 
     // showFeedview optionally fetches the feed depending on the
