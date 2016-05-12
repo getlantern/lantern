@@ -249,9 +249,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             PackageInfo pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
             String appVersion = pInfo.versionName;
             Log.d(TAG, "Currently running Lantern version: " + appVersion);
+
             // update version number that appears at the bottom of the side menu
-            // if we have it stored in shared preferences; otherwise, default to absent until
-            // Lantern starts
             versionNum.setText(appVersion);
         } catch (android.content.pm.PackageManager.NameNotFoundException nne) {
             Log.e(TAG, "Could not find package: " + nne.getMessage());
@@ -417,7 +416,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         drawerLayout.closeDrawer(drawerPane);
     }
 
-    private void noUpdateAvailable() {
+    private void noUpdateAvailable(String currentVersion) {
         String noUpdateTitle = getResources().getString(R.string.no_update_available);
         String noUpdateMsg = String.format(getResources().getString(R.string.have_latest_version),
                 currentVersion);
@@ -443,7 +442,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
                 currentVersion);
 
         if (url == null || "".equals(url)) {
-            noUpdateAvailable();
+            noUpdateAvailable(currentVersion);
             return;
         }
 
