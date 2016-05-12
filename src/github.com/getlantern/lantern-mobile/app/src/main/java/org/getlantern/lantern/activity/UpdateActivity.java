@@ -11,6 +11,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Button;
 import android.view.View.OnClickListener;
+import android.view.View;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Click;
@@ -29,6 +30,7 @@ import java.io.File;
 public class UpdateActivity extends Activity {
 
     private static final String TAG = "UpdateActivity";
+    static boolean active = false;
 
     @Extra("updateUrl")
     String updateUrl;
@@ -41,6 +43,19 @@ public class UpdateActivity extends Activity {
     private SessionManager session;
 
     private boolean fileDownloading = false;
+
+    @Override
+    protected void onStart() {
+        super.onStop();
+        active = true;
+    }                  
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        active = false;
+    }
+    
 
     @AfterViews
     void afterViews() {
@@ -55,6 +70,7 @@ public class UpdateActivity extends Activity {
     @Click(R.id.installUpdate)
     void installUpdateClicked() {
         Log.d(TAG, "Downloading latest version of Lantern from " + updateUrl);
+
         fileDownloading = true;
 
         String[] updaterParams = {updateUrl};

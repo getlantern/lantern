@@ -177,6 +177,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         setVersionNum();
         setupStatusToast();
         showFeedview();
+
+        checkUpdateAfterDelay();
     }
 
     @Override
@@ -443,6 +445,23 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         intent.putExtra("updateUrl", url);
         startActivity(intent);
     }
+
+    private void checkUpdateAfterDelay() {
+
+        if (UpdateActivity.active) {
+            Log.d(TAG, "Update view already open");
+            return;
+        }
+
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                // after 10s, check if a new version is available
+                checkUpdateAvailable();
+            }
+        }, 10000);
+    } 
 
     // showFeedview optionally fetches the feed depending on the
     // user's preference and updates the position of the on/off switch
@@ -821,15 +840,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             Log.d(TAG, "App in foreground");
             isInBackground = false;
             refreshFeed(null);
-
-            final Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    // after 10s, check if a new version is available
-                    checkUpdateAvailable();
-                }
-            }, 10000);
+            checkUpdateAfterDelay();
         }
     }
 
