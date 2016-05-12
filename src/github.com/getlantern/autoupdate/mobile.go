@@ -137,7 +137,7 @@ func UpdateMobile(proxyAddr, url, apkPath string, updater Updater) string {
 	}
 	defer out.Close()
 
-	httpClient, err = util.HTTPClient("", eventual.DefaultGetter(proxyAddr))
+	httpClient, err = getHttpClient(proxyAddr)
 	if err != nil {
 		handleError(err, updater)
 		return ""
