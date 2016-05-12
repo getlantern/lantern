@@ -132,6 +132,7 @@ func (b *buffer) Write(p []byte) (int, error) {
 		return 0, err
 	}
 
+	currentIdx := b.nextIdx
 	b.nextIdx++
 	if b.nextIdx == b.capacity {
 		// Wrap
@@ -142,7 +143,7 @@ func (b *buffer) Write(p []byte) (int, error) {
 		b.size = b.capacity
 	}
 
-	err = b.writeMetadata()
+	err = b.writeMetadata(currentIdx)
 	if err != nil {
 		return 0, fmt.Errorf("Unable to write metadata: %v", err)
 	}
@@ -239,7 +240,7 @@ func (b *buffer) wrap() {
 func (b *buffer) readMetadata(fileSize int64) error {
 	p := make([]byte, fileSize)
 	_, err := io.ReadFull(b.idxFile, p)
-	if err != nil {
+	if err != nil || fileSize < headerSize {
 		log.Debugf("Unable to read initial metadata from %v, discarding existing data: %v", b.idxFile.Name(), err)
 		return b.truncate()
 	}
@@ -284,24 +285,28 @@ func (b *buffer) readMetadata(fileSize int64) error {
 	return nil
 }
 
-func (b *buffer) writeMetadata() error {
-	p := make([]byte, b.fullHeaderSize)
+func (b *buffer) writeMetadata(currentIdx int) error {
+	p := make([]byte, headerSize)
 	// Save capacity, size, nextIdx and nextPointer
 	endianness.PutUint32(p, uint32(b.capacity))
 	endianness.PutUint32(p[int32Size:], uint32(b.size))
 	endianness.PutUint32(p[int32Size*2:], uint32(b.nextIdx))
 	writePointer(p[int32Size*3:], &b.nextPointer)
 
-	// Save all pointers
-	for i := 0; i < b.size; i++ {
-		start := headerSize + i*filePointerSize
-		writePointer(p[start:], &b.pointers[i])
-	}
-
 	// Write to disk
 	_, err := b.idxFile.WriteAt(p, 0)
 	if err != nil {
-		return fmt.Errorf("Unable to write metadata: %v", err)
+		return fmt.Errorf("Unable to write header metadata: %v", err)
+	}
+
+	// Save updated pointer
+	p = make([]byte, filePointerSize)
+	writePointer(p, &b.pointers[currentIdx])
+
+	// Write to disk
+	_, err = b.idxFile.WriteAt(p, int64(headerSize+filePointerSize*currentIdx))
+	if err != nil {
+		return fmt.Errorf("Unable to write pointer metadata: %v", err)
 	}
 	return nil
 }
