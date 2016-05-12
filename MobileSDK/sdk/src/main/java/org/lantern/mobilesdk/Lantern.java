@@ -166,9 +166,4 @@ public abstract class Lantern {
     public static String configDirFor(Context context, String suffix) {
         return new File(context.getFilesDir().getAbsolutePath(), ".lantern" + suffix).getAbsolutePath();
     }
-
-    /*public static String appVersion(Context context) {
-        PackageInfo pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
-        return pInfo.versionName;
-    }*/
 }
