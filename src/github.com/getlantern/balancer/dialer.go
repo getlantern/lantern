@@ -74,6 +74,13 @@ func (d *dialer) Start() {
 				}
 				return
 			case <-d.checkTimer.C:
+				// We suspect that the check process may be causing users to get blacklisted.
+				// At the moment, it's not strictly necessary and won't be until we do
+				// multiple servers with pro, so let's skip it for now.
+				// TODO: reenable for Pro if necessary
+				if true {
+					continue
+				}
 				log.Tracef("Start checking dialer %s", d.Label)
 				ok := d.Check()
 				if ok {
