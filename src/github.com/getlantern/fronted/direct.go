@@ -212,14 +212,12 @@ func (d *direct) dialWith(in chan *Masquerade, network string) (net.Conn, bool, 
 			} else {
 				// Requeue the working connection to masquerades
 				d.masquerades <- m
-				if d.cache != nil {
-					m.LastVetted = time.Now()
-					select {
-					case d.toCache <- m:
-						// ok
-					default:
-						// cache writing has fallen behind, drop masquerade
-					}
+				m.LastVetted = time.Now()
+				select {
+				case d.toCache <- m:
+					// ok
+				default:
+					// cache writing has fallen behind, drop masquerade
 				}
 				idleTimeout := 70 * time.Second
 
