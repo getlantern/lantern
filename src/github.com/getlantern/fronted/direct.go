@@ -20,7 +20,10 @@ import (
 )
 
 const (
-	numberToVetInitially = 10
+	numberToVetInitially       = 10
+	defaultMaxAllowedCachedAge = 24 * time.Hour
+	defaultMaxCacheSize        = 1000
+	defaultCacheSaveInterval   = 5 * time.Second
 )
 
 var (
@@ -29,14 +32,17 @@ var (
 )
 
 type direct struct {
-	tlsConfigsMutex sync.Mutex
-	tlsConfigs      map[string]*tls.Config
-	certPool        *x509.CertPool
-	candidates      chan *Masquerade
-	masquerades     chan *Masquerade
-	cacheFile       string
-	cache           []*Masquerade
-	toCache         chan *Masquerade
+	tlsConfigsMutex     sync.Mutex
+	tlsConfigs          map[string]*tls.Config
+	certPool            *x509.CertPool
+	candidates          chan *Masquerade
+	masquerades         chan *Masquerade
+	maxAllowedCachedAge time.Duration
+	maxCacheSize        int
+	cacheSaveInterval   time.Duration
+	cacheFile           string
+	cache               []*Masquerade
+	toCache             chan *Masquerade
 }
 
 func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade, cacheFile string) {
@@ -60,13 +66,16 @@ func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade, cacheF
 	}
 
 	d := &direct{
-		tlsConfigs:  make(map[string]*tls.Config),
-		certPool:    pool,
-		candidates:  make(chan *Masquerade, size),
-		masquerades: make(chan *Masquerade, size),
-		cacheFile:   cacheFile,
-		cache:       make([]*Masquerade, 0),
-		toCache:     make(chan *Masquerade, maxCacheSize),
+		tlsConfigs:          make(map[string]*tls.Config),
+		certPool:            pool,
+		candidates:          make(chan *Masquerade, size),
+		masquerades:         make(chan *Masquerade, size),
+		maxAllowedCachedAge: defaultMaxAllowedCachedAge,
+		maxCacheSize:        defaultMaxCacheSize,
+		cacheSaveInterval:   defaultCacheSaveInterval,
+		cacheFile:           cacheFile,
+		cache:               make([]*Masquerade, 0),
+		toCache:             make(chan *Masquerade, defaultMaxCacheSize),
 	}
 
 	numberToVet := numberToVetInitially

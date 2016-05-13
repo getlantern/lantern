@@ -18,17 +18,16 @@ func TestCaching(t *testing.T) {
 	defer os.RemoveAll(dir)
 	cacheFile := filepath.Join(dir, "cachefile")
 
-	maxAllowedCachedAge = 250 * time.Millisecond
-	maxCacheSize = 2
-	cacheSaveInterval = 50 * time.Millisecond
-
 	makeDirect := func() *direct {
 		d := &direct{
-			candidates:  make(chan *Masquerade, 1000),
-			masquerades: make(chan *Masquerade, 1000),
-			cacheFile:   cacheFile,
-			cache:       make([]*Masquerade, 0),
-			toCache:     make(chan *Masquerade, maxCacheSize),
+			candidates:          make(chan *Masquerade, 1000),
+			masquerades:         make(chan *Masquerade, 1000),
+			maxAllowedCachedAge: 250 * time.Millisecond,
+			maxCacheSize:        2,
+			cacheSaveInterval:   50 * time.Millisecond,
+			cacheFile:           cacheFile,
+			cache:               make([]*Masquerade, 0),
+			toCache:             make(chan *Masquerade, 1000),
 		}
 		go d.fillCache()
 		return d
@@ -44,7 +43,7 @@ func TestCaching(t *testing.T) {
 	d.toCache <- mb
 	d.toCache <- mc
 
-	time.Sleep(cacheSaveInterval * 2)
+	time.Sleep(d.cacheSaveInterval * 2)
 	assert.Equal(t, []*Masquerade{mb, mc}, d.cache, "Wrong stuff cached")
 	d.closeCache()
 
@@ -55,7 +54,7 @@ func TestCaching(t *testing.T) {
 	assert.Equal(t, []*Masquerade{mb, mc}, d.cache, "Wrong stuff cached after reopening cache")
 	d.closeCache()
 
-	time.Sleep(maxAllowedCachedAge)
+	time.Sleep(d.maxAllowedCachedAge)
 	d = makeDirect()
 	d.prepopulateMasquerades()
 	assert.Empty(t, d.cache, "Cache should be empty after masquerades expire")
