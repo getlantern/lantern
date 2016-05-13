@@ -418,8 +418,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             removeRule(lp, RelativeLayout.CENTER_VERTICAL);
 
             // now actually refresh the news feed
-            session.startLocalProxy();
-            new GetFeed(this).execute("");
+            new GetFeed(this, session.startLocalProxy()).execute("");
         } else {
             feedView.setVisibility(View.INVISIBLE);
             lp.addRule(RelativeLayout.CENTER_VERTICAL);
@@ -603,8 +602,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         Log.d(TAG, "Refresh feed clicked");
         feedError.setVisibility(View.INVISIBLE);
         if (session.showFeed()) {
-            session.startLocalProxy();
-            new GetFeed(this).execute("");
+            new GetFeed(this, session.startLocalProxy()).execute("");
         }
     }
 

@@ -17,11 +17,13 @@ public class GetFeed extends AsyncTask<String, Void, ArrayList<String>> {
     private static final String TAG = "GetFeed";
 
     private LanternMainActivity activity;
+    private String proxyAddr = "";
     private String allString;
     private ProgressBar progressBar;
 
-    public GetFeed(LanternMainActivity activity) {
+    public GetFeed(LanternMainActivity activity, String proxyAddr) {
         this.activity = activity;
+        this.proxyAddr = proxyAddr;
         this.allString = activity.getResources().getString(R.string.all_feeds);
         progressBar = (ProgressBar)activity.findViewById(R.id.progressBar);
     }
@@ -36,10 +38,10 @@ public class GetFeed extends AsyncTask<String, Void, ArrayList<String>> {
     @Override
     protected ArrayList<String> doInBackground(String... params) {
         String locale = Locale.getDefault().toString();
-        Log.d(TAG, String.format("Fetching public feed: locale=%s;", locale));
+        Log.d(TAG, String.format("Fetching public feed: locale=%s; proxy addr=%s", locale, proxyAddr));
         final ArrayList<String> sources = new ArrayList<String>();
 
-        Lantern.GetFeed(locale, allString, new Lantern.FeedProvider.Stub() {
+        Lantern.GetFeed(locale, allString, proxyAddr, new Lantern.FeedProvider.Stub() {
             public void AddSource(String source) {
                 sources.add(source);
             }

@@ -101,8 +101,8 @@ func CurrentFeed() *Feed {
 
 // GetFeed creates an http.Client and fetches the latest
 // Lantern public feed for displaying on the home screen.
-func GetFeed(locale string, allStr string, provider FeedProvider) {
-	doGetFeed(defaultFeedEndpoint, locale, allStr, provider)
+func GetFeed(locale string, allStr string, shouldProxy bool, provider FeedProvider) {
+	doGetFeed(defaultFeedEndpoint, locale, shouldProxy, allStr, provider)
 }
 
 // handleError logs the given error message and sets the current feed to nil
@@ -152,15 +152,23 @@ func doRequest(httpClient *http.Client, feedURL string) (*http.Response, error) 
 	return res, nil
 }
 
-func doGetFeed(feedEndpoint string, locale string, allStr string,
+func doGetFeed(feedEndpoint string, locale string, shouldProxy bool, allStr string,
 	provider FeedProvider) {
 
 	var res *http.Response
 
-	httpClient, err := getHTTPClient()
-	if err != nil {
-		handleError(err)
-		return
+	var httpClient *http.Client
+	var err error
+	if !shouldProxy {
+		// Connect directly
+		httpClient = &http.Client{}
+	} else {
+		// Connect through proxy
+		httpClient, err = getHTTPClient()
+		if err != nil {
+			handleError(err)
+			return
+		}
 	}
 	feed = &Feed{}
 

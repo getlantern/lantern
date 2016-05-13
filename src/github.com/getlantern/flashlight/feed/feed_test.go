@@ -26,9 +26,8 @@ func (retriever *TestFeedRetriever) AddFeed(title, description,
 }
 
 func getFeed(t *testing.T, feedEndpoint string, locale string) {
-	setHTTPClient(&http.Client{})
 	provider := &TestFeedProvider{}
-	doGetFeed(feedEndpoint, locale, "all", provider)
+	doGetFeed(feedEndpoint, locale, false, "all", provider)
 
 	if assert.NotNil(t, CurrentFeed()) {
 		assert.NotEqual(t, 0, NumFeedEntries(),
@@ -73,10 +72,4 @@ func startTestServer(t *testing.T) string {
 	}()
 
 	return l.Addr().String()
-}
-
-func setHTTPClient(client *http.Client) {
-	httpClientMutex.Lock()
-	_httpClient = client
-	httpClientMutex.Unlock()
 }
