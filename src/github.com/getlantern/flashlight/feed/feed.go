@@ -303,10 +303,3 @@ func getHTTPClient() (*http.Client, error) {
 	httpClientMutex.Unlock()
 	return _httpClient, err
 }
-
-// For testing purposes
-func setHTTPClient(client *http.Client) {
-	httpClientMutex.Lock()
-	_httpClient = client
-	httpClientMutex.Unlock()
-}
