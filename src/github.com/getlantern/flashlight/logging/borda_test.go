@@ -3,6 +3,7 @@ package logging
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
@@ -16,7 +17,11 @@ var (
 func init() {
 	ts = newMockServer()
 
-	bordaURL = ts.URL
+	testEnv := os.Getenv("TEST_ENV")
+	if testEnv == "INTEGRATION" {
+		log.Debugf("Performing integration test -> using external networks and services")
+		bordaURL = ts.URL
+	}
 }
 
 func TestBordaClient(t *testing.T) {
