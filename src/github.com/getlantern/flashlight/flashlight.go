@@ -11,6 +11,7 @@ import (
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/logging"
+	"github.com/getlantern/flashlight/proxied"
 )
 
 const (
@@ -82,6 +83,7 @@ func Run(httpProxyAddr string,
 	}
 
 	client := client.NewClient()
+	proxied.SetProxyAddr(client.Addr)
 
 	if beforeStart(cfg) {
 		log.Debug("Preparing to start client proxy")

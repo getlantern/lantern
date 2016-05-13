@@ -15,6 +15,7 @@ import (
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/logging"
+	"github.com/getlantern/flashlight/proxied"
 	"github.com/getlantern/flashlight/util"
 	"github.com/kardianos/osext"
 
@@ -141,19 +142,19 @@ func getExecutableHash() string {
 	}
 }
 
-func endSession(ip string, version string, proxyAddrFN eventual.Getter,
-	clientID string, transport func(string, eventual.Getter), uaWait time.Duration) {
+func endSession(ip string, version string, clientID string,
+	transport func(string, eventual.Getter), uaWait time.Duration) {
 	args := sessionVals(ip, version, clientID, "end", uaWait)
 	transport(args, proxyAddrFN)
 }
 
-func startSession(ip string, version string, proxyAddrFN eventual.Getter,
-	clientID string, transport func(string, eventual.Getter), uaWait time.Duration) {
+func startSession(ip string, version string, clientID string,
+	transport func(string, eventual.Getter), uaWait time.Duration) {
 	args := sessionVals(ip, version, clientID, "start", uaWait)
 	transport(args, proxyAddrFN)
 }
 
-func trackSession(args string, proxyAddrFN eventual.Getter) {
+func trackSession(args string) {
 	r, err := http.NewRequest("POST", endpoint, bytes.NewBufferString(args))
 
 	if err != nil {
@@ -170,8 +171,7 @@ func trackSession(args string, proxyAddrFN eventual.Getter) {
 		log.Debugf("Full analytics request: %v", string(req))
 	}
 
-	var httpClient *http.Client
-	httpClient, err = util.HTTPClient("", proxyAddrFN)
+	httpClient, err := proxied.ChainedNonPersistent("")
 	if err != nil {
 		log.Errorf("Could not create HTTP client: %s", err)
 		return
