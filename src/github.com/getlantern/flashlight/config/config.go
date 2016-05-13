@@ -114,7 +114,7 @@ func majorVersion(version string) string {
 //         to the config.
 func Init(userConfig UserConfig, version string, configDir string, stickyConfig bool, flags map[string]interface{}) (*Config, error) {
 	// Request the config via either chained servers or direct fronted servers.
-	cf := util.NewChainedAndFronted(client.Addr)
+	cf := util.NewChainedAndFronted(client.Addr, true)
 	fetcher := NewFetcher(userConfig, cf)
 
 	file := "lantern-" + version + ".yaml"

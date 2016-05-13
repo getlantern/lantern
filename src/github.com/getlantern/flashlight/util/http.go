@@ -36,10 +36,17 @@ func success(resp *http.Response) bool {
 	return resp.StatusCode > 199 && resp.StatusCode < 400
 }
 
-// NewChainedAndFronted creates a new struct for accessing resources using chained
-// and direct fronted servers in parallel.
-func NewChainedAndFronted(proxyAddrFN eventual.Getter) *chainedAndFronted {
-	cf := &chainedAndFronted{proxyAddrFN: proxyAddrFN}
+// NewChainedAndFronted creates a new struct for accessing resources using
+// chained and direct fronted servers. If parallel is true, the request will be
+// sent to both servers. If false, we'll first try the chained option and only
+// fall back to direct fronting if chained fails. Once a chained requets
+// succeeds, we only used chained going forward unless it fails, at which point
+// we go back to the original regime.
+func NewChainedAndFronted(proxyAddrFN eventual.Getter, parallel bool) *chainedAndFronted {
+	cf := &chainedAndFronted{
+		proxyAddrFN: proxyAddrFN,
+		parallel:    parallel,
+	}
 	cf.setFetcher(&dualFetcher{cf})
 	return cf
 }
@@ -48,6 +55,7 @@ func NewChainedAndFronted(proxyAddrFN eventual.Getter) *chainedAndFronted {
 // servers.
 type chainedAndFronted struct {
 	proxyAddrFN eventual.Getter
+	parallel    bool
 	_fetcher    HTTPFetcher
 	mu          sync.RWMutex
 }
@@ -164,7 +172,7 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 		}
 	}
 
-	go func() {
+	doFronted := func() {
 		if frontedReq, err := http.NewRequest("GET", frontedURL, nil); err != nil {
 			log.Errorf("Could not create request for: %v, %v", frontedURL, err)
 			errs <- err
@@ -178,38 +186,60 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 				log.Debug("Fronted request succeeded")
 			}
 		}
-	}()
+	}
+
+	doChained := func() {
+		log.Debug("Sending chained request")
+		if err := request(chainedFunc, req); err != nil {
+			log.Errorf("Chained request failed %v", err)
+		} else {
+			log.Debug("Switching to chained fronter for future requests since it succeeded")
+			df.cf.setFetcher(&chainedFetcher{df.cf.proxyAddrFN})
+		}
+	}
+
+	getResponse := func() (*http.Response, error) {
+		select {
+		case resp := <-responses:
+			return resp, nil
+		case err := <-errs:
+			return nil, err
+		}
+	}
+
+	getResponseParallel := func() (*http.Response, error) {
+		// Create channels for the final response or error. The response channel will be filled
+		// in the case of any successful response as well as a non-error response for the second
+		// response received. The error channel will only be filled if the first response is
+		// unsuccessful and the second is an error.
+		finalResponseCh := make(chan *http.Response, 1)
+		finalErrorCh := make(chan error, 1)
+
+		go readResponses(finalResponseCh, responses, finalErrorCh, errs)
+
+		select {
+		case resp := <-finalResponseCh:
+			return resp, nil
+		case err := <-finalErrorCh:
+			return nil, err
+		}
+	}
 
 	frontOnly, _ := strconv.ParseBool(os.Getenv(forceDF))
 	if frontOnly {
 		log.Debug("Forcing domain-fronting")
-	} else {
-		go func() {
-			log.Debug("Sending chained request")
-			if err := request(chainedFunc, req); err != nil {
-				log.Errorf("Chained request failed %v", err)
-			} else {
-				log.Debug("Switching to chained fronter for future requests since it succeeded")
-				df.cf.setFetcher(&chainedFetcher{df.cf.proxyAddrFN})
-			}
-		}()
+		doFronted()
+		return getResponse()
 	}
 
-	// Create channels for the final response or error. The response channel will be filled
-	// in the case of any successful response as well as a non-error response for the second
-	// response received. The error channel will only be filled if the first response is
-	// unsuccessful and the second is an error.
-	finalResponseCh := make(chan *http.Response, 1)
-	finalErrorCh := make(chan error, 1)
-
-	go readResponses(finalResponseCh, responses, finalErrorCh, errs)
-
-	select {
-	case resp := <-finalResponseCh:
-		return resp, nil
-	case err := <-finalErrorCh:
-		return nil, err
+	if df.cf.parallel {
+		go doFronted()
+		go doChained()
+		return getResponseParallel()
 	}
+
+	doChained()
+	return getResponse()
 }
 
 func readResponses(finalResponse chan *http.Response, responses chan *http.Response, finalErr chan error, errs chan error) {
