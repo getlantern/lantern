@@ -11,11 +11,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mailgun/oxy/forward"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/keyman"
-	"github.com/mailgun/oxy/forward"
-	"github.com/stretchr/testify/assert"
+
+	"github.com/getlantern/flashlight/defaultmasquerades"
 )
 
 // TestChainedAndFrontedHeaders tests to make sure headers are correctly
@@ -111,7 +114,7 @@ func doTestChainedAndFronted(t *testing.T, build func() *http.Client) {
 
 	certs := trustedCATestCerts()
 	m := make(map[string][]*fronted.Masquerade)
-	m["cloudfront"] = cloudfrontMasquerades
+	m["cloudfront"] = defaultmasquerades.Cloudfront
 	fronted.Configure(certs, m)
 
 	geo := "http://d3u5fqukq7qrhd.cloudfront.net/lookup/198.199.72.101"
@@ -166,8 +169,8 @@ func doTestChainedAndFronted(t *testing.T, build func() *http.Client) {
 }
 
 func trustedCATestCerts() *x509.CertPool {
-	certs := make([]string, 0, len(defaultTrustedCAs))
-	for _, ca := range defaultTrustedCAs {
+	certs := make([]string, 0, len(defaultmasquerades.TrustedCAs))
+	for _, ca := range defaultmasquerades.TrustedCAs {
 		certs = append(certs, ca.Cert)
 	}
 	pool, err := keyman.PoolContainingCerts(certs...)
