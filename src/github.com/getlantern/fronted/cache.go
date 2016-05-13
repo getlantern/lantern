@@ -8,10 +8,6 @@ import (
 )
 
 var (
-	maxAllowedCachedAge = 24 * time.Hour
-	maxCacheSize        = 1000
-	cacheSaveInterval   = 5 * time.Second
-
 	// Nil value indicates end of cache filling
 	fillSentinel *Masquerade = nil
 )
@@ -37,7 +33,7 @@ func (d *direct) prepopulateMasquerades() int {
 		log.Debugf("Cache contained %d masquerades", len(masquerades))
 		now := time.Now()
 		for _, m := range masquerades {
-			if now.Sub(m.LastVetted) < maxAllowedCachedAge {
+			if now.Sub(m.LastVetted) < d.maxAllowedCachedAge {
 				select {
 				case d.masquerades <- m:
 					// submitted
@@ -53,7 +49,7 @@ func (d *direct) prepopulateMasquerades() int {
 }
 
 func (d *direct) fillCache() {
-	saveTimer := time.NewTimer(cacheSaveInterval)
+	saveTimer := time.NewTimer(d.cacheSaveInterval)
 	cacheChanged := false
 	for {
 		select {
@@ -71,9 +67,9 @@ func (d *direct) fillCache() {
 			}
 			log.Debug("Saving updated masquerade cache")
 			// Truncate cache to max length if necessary
-			if len(d.cache) > maxCacheSize {
-				truncated := make([]*Masquerade, maxCacheSize)
-				copy(truncated, d.cache[len(d.cache)-maxCacheSize:])
+			if len(d.cache) > d.maxCacheSize {
+				truncated := make([]*Masquerade, d.maxCacheSize)
+				copy(truncated, d.cache[len(d.cache)-d.maxCacheSize:])
 				d.cache = truncated
 			}
 			b, err := json.Marshal(d.cache)
@@ -86,7 +82,7 @@ func (d *direct) fillCache() {
 				log.Errorf("Unable to save cache to disk: %v", err)
 			}
 			cacheChanged = false
-			saveTimer.Reset(cacheSaveInterval)
+			saveTimer.Reset(d.cacheSaveInterval)
 		}
 	}
 }

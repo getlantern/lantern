@@ -43,7 +43,7 @@ func TestDirectDomainFronting(t *testing.T) {
 	defer os.RemoveAll(dir)
 	cacheFile := filepath.Join(dir, "cachefile")
 	doTestDomainFronting(t, cacheFile)
-	time.Sleep(cacheSaveInterval * 2)
+	time.Sleep(defaultCacheSaveInterval * 2)
 	// Then try again, this time reusing the existing cacheFile
 	doTestDomainFronting(t, cacheFile)
 }
