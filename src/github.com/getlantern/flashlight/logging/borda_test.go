@@ -12,7 +12,8 @@ import (
 )
 
 var (
-	ts *httptest.Server
+	ts              *httptest.Server
+	integrationTest = false
 )
 
 func init() {
@@ -21,6 +22,7 @@ func init() {
 	testEnv := os.Getenv("TEST_ENV")
 	if testEnv == "INTEGRATION" {
 		log.Debugf("Performing integration test -> using external networks and services")
+		integrationTest = true
 	} else {
 		bordaURL = ts.URL
 	}
@@ -31,6 +33,10 @@ func TestBordaClient(t *testing.T) {
 		&BordaReporterOptions{
 			MaxChunkSize: 5,
 		})
+
+	if !integrationTest {
+		bc.c.Transport = nil
+	}
 
 	assert.NotNil(t, bc)
 

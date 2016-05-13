@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	"github.com/getlantern/flashlight/proxied"
 )
 
 var (
@@ -58,7 +60,9 @@ func NewBordaReporter(opts *BordaReporterOptions) *BordaReporter {
 	}
 
 	return &BordaReporter{
-		c:       &http.Client{},
+		c: &http.Client{
+			Transport: proxied.ChainedThenFronted(),
+		},
 		options: opts,
 		mBuf:    make([]*Measurement, opts.MaxChunkSize),
 	}
