@@ -1,4 +1,8 @@
-package util
+// Package proxied provides  http.Client implementations that use various
+// combinations of chained and direct domain-fronted proxies.
+//
+// Remember to call SetProxyAddr before obtaining an http.Client.
+package proxied
 
 import (
 	"crypto/tls"
@@ -24,58 +28,82 @@ const (
 )
 
 var (
-	log = golog.LoggerFor("flashlight.util")
-)
+	log = golog.LoggerFor("flashlight.proxied")
 
-// HTTPFetcher is a simple interface for types that are able to fetch data over HTTP.
-type HTTPFetcher interface {
-	Do(*http.Request) (*http.Response, error)
-}
+	proxyAddrMutex sync.RWMutex
+	proxyAddr      = eventual.DefaultUnsetGetter()
+)
 
 func success(resp *http.Response) bool {
 	return resp.StatusCode > 199 && resp.StatusCode < 400
 }
 
-// NewChainedAndFronted creates a new struct for accessing resources using
-// chained and direct fronted servers. If parallel is true, the request will be
-// sent to both servers. If false, we'll first try the chained option and only
-// fall back to direct fronting if chained fails. Once a chained requets
-// succeeds, we only used chained going forward unless it fails, at which point
-// we go back to the original regime.
-func NewChainedAndFronted(proxyAddrFN eventual.Getter, parallel bool) *chainedAndFronted {
+// SetProxyAddr sets the eventual.Getter that's used to determine the proxy's
+// address. This MUST be called before attempting to use the proxied package.
+func SetProxyAddr(addr eventual.Getter) {
+	proxyAddrMutex.Lock()
+	proxyAddr = addr
+	proxyAddrMutex.Unlock()
+}
+
+func getProxyAddr() (string, bool) {
+	proxyAddrMutex.RLock()
+	addr, ok := proxyAddr(1 * time.Minute)
+	proxyAddrMutex.RUnlock()
+	if !ok {
+		return "", !ok
+	}
+	return addr.(string), true
+}
+
+// ParallelPreferChained creates a new http.RoundTripper that attempts to send
+// requests through both chained and direct fronted routes in parallel. Once a
+// chained request succeeds, subsequent requests will only go through Chained
+// servers unless and until a request fails, in which case we'll start trying
+// fronted requests again.
+func ParallelPreferChained() *http.Client {
 	cf := &chainedAndFronted{
-		proxyAddrFN: proxyAddrFN,
-		parallel:    parallel,
+		parallel: true,
 	}
 	cf.setFetcher(&dualFetcher{cf})
-	return cf
+	return &http.Client{Transport: cf}
+}
+
+// ChainedThenFronted creates a new http.RoundTripper that attempts to send
+// requests first through a chained server and then falls back to using a
+// direct fronted server if the chained route didn't work.
+func ChainedThenFronted() *http.Client {
+	cf := &chainedAndFronted{
+		parallel: false,
+	}
+	cf.setFetcher(&dualFetcher{cf})
+	return &http.Client{Transport: cf}
 }
 
 // ChainedAndFronted fetches HTTP data in parallel using both chained and fronted
 // servers.
 type chainedAndFronted struct {
-	proxyAddrFN eventual.Getter
-	parallel    bool
-	_fetcher    HTTPFetcher
-	mu          sync.RWMutex
+	parallel bool
+	_fetcher http.RoundTripper
+	mu       sync.RWMutex
 }
 
-func (cf *chainedAndFronted) getFetcher() HTTPFetcher {
+func (cf *chainedAndFronted) getFetcher() http.RoundTripper {
 	cf.mu.RLock()
 	result := cf._fetcher
 	cf.mu.RUnlock()
 	return result
 }
 
-func (cf *chainedAndFronted) setFetcher(fetcher HTTPFetcher) {
+func (cf *chainedAndFronted) setFetcher(fetcher http.RoundTripper) {
 	cf.mu.Lock()
 	cf._fetcher = fetcher
 	cf.mu.Unlock()
 }
 
 // Do will attempt to execute the specified HTTP request using only a chained fetcher
-func (cf *chainedAndFronted) Do(req *http.Request) (*http.Response, error) {
-	resp, err := cf.getFetcher().Do(req)
+func (cf *chainedAndFronted) RoundTrip(req *http.Request) (*http.Response, error) {
+	resp, err := cf.getFetcher().RoundTrip(req)
 	if err != nil {
 		// If there's an error, switch back to using the dual fetcher.
 		cf.setFetcher(&dualFetcher{cf})
@@ -86,18 +114,17 @@ func (cf *chainedAndFronted) Do(req *http.Request) (*http.Response, error) {
 }
 
 type chainedFetcher struct {
-	proxyAddrFN eventual.Getter
 }
 
 // Do will attempt to execute the specified HTTP request using only a chained fetcher
-func (cf *chainedFetcher) Do(req *http.Request) (*http.Response, error) {
+func (cf *chainedFetcher) RoundTrip(req *http.Request) (*http.Response, error) {
 	log.Debugf("Using chained fronter")
-	if client, err := HTTPClient("", cf.proxyAddrFN); err != nil {
+	client, err := ChainedNonPersistent("")
+	if err != nil {
 		log.Errorf("Could not create HTTP client: %v", err)
 		return nil, err
-	} else {
-		return client.Do(req)
 	}
+	return client.Do(req)
 }
 
 type dualFetcher struct {
@@ -108,20 +135,19 @@ type dualFetcher struct {
 // chained and fronted servers, simply returning the first response to
 // arrive. Callers MUST use the Lantern-Fronted-URL HTTP header to
 // specify the fronted URL to use.
-func (df *dualFetcher) Do(req *http.Request) (*http.Response, error) {
-	if directClient, err := HTTPClient("", df.cf.proxyAddrFN); err != nil {
+func (df *dualFetcher) RoundTrip(req *http.Request) (*http.Response, error) {
+	directClient, err := ChainedNonPersistent("")
+	if err != nil {
 		log.Errorf("Could not create http client? %v", err)
 		return nil, err
-	} else {
-		frontedClient := fronted.NewDirectHttpClient(5 * time.Minute)
-		return df.do(req, directClient.Do, frontedClient.Do)
 	}
+	frontedClient := fronted.NewDirectHttpClient(5 * time.Minute)
+	return df.do(req, directClient.Do, frontedClient.Do)
 }
 
 // Do will attempt to execute the specified HTTP request using both
-// chained and fronted servers, simply returning the first response to
-// arrive. Callers MUST use the Lantern-Fronted-URL HTTP header to
-// specify the fronted URL to use.
+// chained and fronted servers. Callers MUST use the Lantern-Fronted-URL HTTP
+// header to specify the fronted URL to use.
 func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*http.Response, error), ddfFunc func(*http.Request) (*http.Response, error)) (*http.Response, error) {
 	log.Debugf("Using dual fronter")
 	frontedURL := req.Header.Get("Lantern-Fronted-URL")
@@ -194,7 +220,7 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 			log.Errorf("Chained request failed %v", err)
 		} else {
 			log.Debug("Switching to chained fronter for future requests since it succeeded")
-			df.cf.setFetcher(&chainedFetcher{df.cf.proxyAddrFN})
+			df.cf.setFetcher(&chainedFetcher{})
 		}
 	}
 
@@ -287,27 +313,27 @@ func readResponses(finalResponse chan *http.Response, responses chan *http.Respo
 	}
 }
 
-// PersistentHTTPClient creates an http.Client that persists across requests.
-// If rootCA is specified, the client will validate the server's certificate
-// on TLS connections against that RootCA. If proxyAddr is specified, the client
-// will proxy through the given http proxy.
-func PersistentHTTPClient(rootCA string, proxyAddrFN eventual.Getter) (*http.Client, error) {
-	return httpClient(rootCA, proxyAddrFN, true)
+// ChainedPersistent creates an http.Client that persists across requests and
+// proxies through a chained server. If rootCA is specified, the client will
+// validate the server's certificate on TLS connections against that RootCA.
+func ChainedPersistent(rootCA string) (*http.Client, error) {
+	return chained(rootCA, true)
 }
 
-// HTTPClient creates an http.Client. If rootCA is specified, the client will
-// validate the server's certificate on TLS connections against that RootCA. If
-// proxyAddr is specified, the client will proxy through the given http proxy.
-func HTTPClient(rootCA string, proxyAddrFN eventual.Getter) (*http.Client, error) {
-	return httpClient(rootCA, proxyAddrFN, false)
+// ChainedNonPersistent creates an http.Client that proxies through a chained
+// server that does not use persistent connections. If rootCA is specified, the
+// client will validate the server's certificate on TLS connections against that
+// RootCA. If proxyAddr is specified, the client will proxy through the given
+// http proxy.
+func ChainedNonPersistent(rootCA string) (*http.Client, error) {
+	return chained(rootCA, false)
 }
 
 // httpClient creates an http.Client. If rootCA is specified, the client will
 // validate the server's certificate on TLS connections against that RootCA. If
-// proxyAddr is specified, the client will proxy through the given http proxy.
-func httpClient(rootCA string, proxyAddrFN eventual.Getter, persistent bool) (*http.Client, error) {
-	log.Debugf("Creating new HTTPClient with proxyAddrFN: %v", proxyAddrFN)
-
+// persistent is specified, the client will use a Transport that keeps alive
+// connections for later reuse.
+func chained(rootCA string, persistent bool) (*http.Client, error) {
 	tr := &http.Transport{
 		Dial: (&net.Dialer{
 			Timeout:   60 * time.Second,
@@ -335,22 +361,19 @@ func httpClient(rootCA string, proxyAddrFN eventual.Getter, persistent bool) (*h
 		}
 	}
 
-	if proxyAddrFN != nil {
-		log.Debug("Waiting for proxy server to come online")
-		proxyAddr, ok := proxyAddrFN(60 * time.Second)
-		if !ok {
-			// Instead of finishing here we just log the error and continue, the client
-			// we are going to create will surely fail when used and return errors,
-			// those errors should be handled by the code that depends on such client.
-			log.Errorf("Proxy never came online")
-		}
+	log.Debug("Waiting for proxy server to come online")
+	proxyAddr, ok := getProxyAddr()
+	if !ok {
+		// Instead of finishing here we just log the error and continue, the client
+		// we are going to create will surely fail when used and return errors,
+		// those errors should be handled by the code that depends on such client.
+		log.Errorf("Proxy never came online")
+	} else {
 		log.Debugf("Connected to proxy")
 
 		tr.Proxy = func(req *http.Request) (*url.URL, error) {
-			return url.Parse("http://" + proxyAddr.(string))
+			return url.Parse("http://" + proxyAddr)
 		}
-	} else {
-		log.Errorf("Using direct http client with no proxyAddr")
 	}
 	return &http.Client{Transport: tr}, nil
 }

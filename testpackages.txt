@@ -24,6 +24,7 @@ github.com/getlantern/keyman
 github.com/getlantern/lantern
 github.com/getlantern/osversion
 github.com/getlantern/pathreflect
+github.com/getlantern/proxied
 github.com/getlantern/proxiedsites
 github.com/getlantern/rotator
 github.com/getlantern/tarfs

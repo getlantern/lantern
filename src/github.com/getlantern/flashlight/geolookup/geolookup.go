@@ -8,14 +8,14 @@ import (
 	geo "github.com/getlantern/geolookup"
 	"github.com/getlantern/golog"
 
-	"github.com/getlantern/flashlight/util"
+	"github.com/getlantern/flashlight/proxied"
 )
 
 var (
 	log = golog.LoggerFor("flashlight.geolookup")
 
 	refreshRequest = make(chan interface{}, 1)
-	cf             util.HTTPFetcher
+	cf             proxied.HTTPFetcher
 	currentGeoInfo = eventual.NewValue()
 
 	waitForProxyTimeout = 1 * time.Minute
@@ -51,7 +51,7 @@ func GetCountry(timeout time.Duration) string {
 // Configures geolookup to use the given proxyAddrFN to determine which proxy
 // to use.
 func Configure(proxyAddrFN eventual.Getter) {
-	cf = util.NewChainedAndFronted(proxyAddrFN, true)
+	cf = proxied.ParallelPreferChained(proxyAddrFN)
 	Refresh()
 }
 
