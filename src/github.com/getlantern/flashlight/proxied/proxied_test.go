@@ -82,7 +82,7 @@ func TestChainedThenFronted(t *testing.T) {
 	doTestChainedAndFronted(t, ChainedThenFronted)
 }
 
-func doTestChainedAndFronted(t *testing.T, build func() *http.Client) {
+func doTestChainedAndFronted(t *testing.T, build func() http.RoundTripper) {
 	fwd, _ := forward.New()
 
 	sleep := 0 * time.Second
@@ -118,7 +118,7 @@ func doTestChainedAndFronted(t *testing.T, build func() *http.Client) {
 	assert.NoError(t, err)
 
 	cf := build()
-	resp, err := cf.Do(req)
+	resp, err := cf.RoundTrip(req)
 	assert.NoError(t, err)
 	body, err := ioutil.ReadAll(resp.Body)
 	assert.NoError(t, err)
@@ -134,7 +134,7 @@ func doTestChainedAndFronted(t *testing.T, build func() *http.Client) {
 	req.Header.Set("Lantern-Fronted-URL", bad)
 	assert.NoError(t, err)
 	cf = build()
-	resp, err = cf.Do(req)
+	resp, err = cf.RoundTrip(req)
 	assert.NoError(t, err)
 	log.Debugf("Got response in test")
 	body, err = ioutil.ReadAll(resp.Body)
@@ -150,7 +150,7 @@ func doTestChainedAndFronted(t *testing.T, build func() *http.Client) {
 	req.Header.Set("Lantern-Fronted-URL", geo)
 	assert.NoError(t, err)
 	cf = build()
-	resp, err = cf.Do(req)
+	resp, err = cf.RoundTrip(req)
 	if assert.NoError(t, err) {
 		if assert.Equal(t, 200, resp.StatusCode) {
 			body, err = ioutil.ReadAll(resp.Body)

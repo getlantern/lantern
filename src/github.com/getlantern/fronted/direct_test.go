@@ -1,6 +1,7 @@
 package fronted
 
 import (
+	"net/http"
 	"testing"
 	"time"
 )
@@ -30,8 +31,9 @@ func testEq(a, b []*Masquerade) bool {
 
 func TestDirectDomainFronting(t *testing.T) {
 	ConfigureForTest(t)
-	client := NewDirectHttpClient(30 * time.Second)
-
+	client := &http.Client{
+		Transport: NewDirect(30 * time.Second),
+	}
 	url := "https://d2wi0vwulmtn99.cloudfront.net/cloud.yaml.gz"
 	if resp, err := client.Head(url); err != nil {
 		t.Fatalf("Could not get response: %v", err)

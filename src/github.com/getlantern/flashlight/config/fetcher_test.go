@@ -22,8 +22,8 @@ func (uc *userConfig) GetUserID() string {
 // TestFetcher actually fetches a config file over the network.
 func TestFetcher(t *testing.T) {
 	// This will actually fetch the cloud config over the network.
-	fetcher := &http.Client{}
-	configFetcher := NewFetcher(&userConfig{}, fetcher)
+	rt := &http.Transport{}
+	configFetcher := NewFetcher(&userConfig{}, rt)
 
 	cfg := &Config{}
 	cfg.ApplyDefaults()

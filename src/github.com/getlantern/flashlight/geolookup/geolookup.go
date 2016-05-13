@@ -84,7 +84,7 @@ func lookup() *geoInfo {
 			}
 			log.Debugf("Waiting %v before retrying", wait)
 			time.Sleep(wait)
-			consecutiveFailures += 1
+			consecutiveFailures++
 		} else {
 			log.Debugf("IP is %v", gi.ip)
 			return gi
@@ -93,7 +93,7 @@ func lookup() *geoInfo {
 }
 
 func doLookup() (*geoInfo, error) {
-	city, ip, err := geo.LookupIPWithClient("", proxied.ParallelPreferChained())
+	city, ip, err := geo.LookupIP("", proxied.ParallelPreferChained())
 
 	if err != nil {
 		log.Errorf("Could not lookup IP %v", err)

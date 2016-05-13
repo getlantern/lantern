@@ -294,7 +294,11 @@ func getHTTPClient() (*http.Client, error) {
 	var err error
 	httpClientMutex.Lock()
 	if _httpClient == nil {
-		_httpClient, err = proxied.ChainedNonPersistent("")
+		var rt http.RoundTripper
+		rt, err = proxied.ChainedNonPersistent("")
+		if err == nil {
+			_httpClient = &http.Client{Transport: rt}
+		}
 	}
 	httpClientMutex.Unlock()
 	return _httpClient, err

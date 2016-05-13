@@ -170,12 +170,12 @@ func trackSession(args string) {
 		log.Debugf("Full analytics request: %v", string(req))
 	}
 
-	httpClient, err := proxied.ChainedNonPersistent("")
+	rt, err := proxied.ChainedNonPersistent("")
 	if err != nil {
 		log.Errorf("Could not create HTTP client: %s", err)
 		return
 	}
-	resp, err := httpClient.Do(r)
+	resp, err := rt.RoundTrip(r)
 	if err != nil {
 		log.Errorf("Could not send HTTP request to GA: %s", err)
 		return
