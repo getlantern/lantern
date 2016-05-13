@@ -32,6 +32,10 @@ var (
 
 	proxyAddrMutex sync.RWMutex
 	proxyAddr      = eventual.DefaultUnsetGetter()
+
+	// ErrChainedProxyUnavailable indicates that we weren't able to find a chained
+	// proxy.
+	ErrChainedProxyUnavailable = errors.New("chained proxy unavailable")
 )
 
 func success(resp *http.Response) bool {
@@ -361,19 +365,13 @@ func chained(rootCA string, persistent bool) (*http.Client, error) {
 		}
 	}
 
-	log.Debug("Waiting for proxy server to come online")
-	proxyAddr, ok := getProxyAddr()
-	if !ok {
-		// Instead of finishing here we just log the error and continue, the client
-		// we are going to create will surely fail when used and return errors,
-		// those errors should be handled by the code that depends on such client.
-		log.Errorf("Proxy never came online")
-	} else {
-		log.Debugf("Connected to proxy")
-
-		tr.Proxy = func(req *http.Request) (*url.URL, error) {
-			return url.Parse("http://" + proxyAddr)
+	tr.Proxy = func(req *http.Request) (*url.URL, error) {
+		proxyAddr, ok := getProxyAddr()
+		if !ok {
+			return nil, ErrChainedProxyUnavailable
 		}
+		return url.Parse("http://" + proxyAddr)
 	}
+
 	return &http.Client{Transport: tr}, nil
 }

@@ -14,7 +14,7 @@ import (
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/flashlight/geolookup"
-	"github.com/getlantern/flashlight/util"
+	"github.com/getlantern/flashlight/proxied"
 	"github.com/getlantern/go-loggly"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/jibber_jabber"
@@ -161,7 +161,7 @@ func timestamped(orig io.Writer) io.Writer {
 func enableLoggly(addrFN eventual.Getter, cloudConfigCA string, instanceID string,
 	version string, revisionDate string) {
 
-	client, err := util.PersistentHTTPClient(cloudConfigCA, addrFN)
+	client, err := proxied.ChainedPersistent(cloudConfigCA)
 	if err != nil {
 		log.Errorf("Could not create HTTP client, not logging to Loggly: %v", err)
 		removeLoggly()

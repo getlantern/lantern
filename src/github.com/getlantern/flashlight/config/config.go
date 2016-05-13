@@ -23,7 +23,8 @@ import (
 	"github.com/getlantern/yamlconf"
 
 	"github.com/getlantern/flashlight/client"
-	"github.com/getlantern/flashlight/util"
+	"github.com/getlantern/flashlight/defaultmasquerades"
+	"github.com/getlantern/flashlight/proxied"
 )
 
 const (
@@ -53,7 +54,7 @@ type Config struct {
 	UpdateServerURL    string
 	Client             *client.ClientConfig
 	ProxiedSites       *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
-	TrustedCAs         []*CA
+	TrustedCAs         []*defaultmasquerades.CA
 }
 
 // Fetcher is an interface for fetching config updates.
@@ -72,12 +73,6 @@ func StartPolling() {
 
 	// No-op if already started.
 	m.StartPolling()
-}
-
-// CA represents a certificate authority
-type CA struct {
-	CommonName string
-	Cert       string // PEM-encoded
 }
 
 // validateConfig checks whether the given config is valid and returns an error
@@ -114,7 +109,7 @@ func majorVersion(version string) string {
 //         to the config.
 func Init(userConfig UserConfig, version string, configDir string, stickyConfig bool, flags map[string]interface{}) (*Config, error) {
 	// Request the config via either chained servers or direct fronted servers.
-	cf := util.NewChainedAndFronted(client.Addr, true)
+	cf := proxied.ParallelPreferChained()
 	fetcher := NewFetcher(userConfig, cf)
 
 	file := "lantern-" + version + ".yaml"
@@ -290,7 +285,7 @@ func (cfg *Config) ApplyDefaults() {
 	}
 
 	if cfg.TrustedCAs == nil || len(cfg.TrustedCAs) == 0 {
-		cfg.TrustedCAs = defaultTrustedCAs
+		cfg.TrustedCAs = defaultmasquerades.TrustedCAs
 	}
 }
 
@@ -300,7 +295,7 @@ func (cfg *Config) applyClientDefaults() {
 		cfg.Client.MasqueradeSets = make(map[string][]*fronted.Masquerade)
 	}
 	if len(cfg.Client.MasqueradeSets) == 0 {
-		cfg.Client.MasqueradeSets[cloudfront] = cloudfrontMasquerades
+		cfg.Client.MasqueradeSets[cloudfront] = defaultmasquerades.Cloudfront
 	}
 
 	// Always make sure we have a map of ChainedServers
@@ -353,7 +348,7 @@ func (updated *Config) updateFrom(updateBytes []byte) error {
 	oldTrustedCAs := updated.TrustedCAs
 	updated.Client.ChainedServers = map[string]*client.ChainedServerInfo{}
 	updated.Client.MasqueradeSets = map[string][]*fronted.Masquerade{}
-	updated.TrustedCAs = []*CA{}
+	updated.TrustedCAs = []*defaultmasquerades.CA{}
 	err := yaml.Unmarshal(updateBytes, updated)
 	if err != nil {
 		updated.Client.ChainedServers = oldChainedServers

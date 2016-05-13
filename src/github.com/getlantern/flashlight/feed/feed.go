@@ -7,9 +7,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
-	"github.com/getlantern/eventual"
 	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/proxied"
 	"github.com/getlantern/golog"
@@ -25,7 +25,10 @@ const (
 
 var (
 	feed *Feed
-	log  = golog.LoggerFor("feed")
+
+	_httpClient     *http.Client
+	httpClientMutex sync.Mutex
+	log             = golog.LoggerFor("feed")
 )
 
 // Feed contains the data we get back
@@ -98,11 +101,8 @@ func CurrentFeed() *Feed {
 
 // GetFeed creates an http.Client and fetches the latest
 // Lantern public feed for displaying on the home screen.
-// If a proxyAddr is specified, the http.Client will proxy
-// through it
-func GetFeed(locale string, allStr string, proxyAddr string,
-	provider FeedProvider) {
-	doGetFeed(defaultFeedEndpoint, locale, allStr, proxyAddr, provider)
+func GetFeed(locale string, allStr string, provider FeedProvider) {
+	doGetFeed(defaultFeedEndpoint, locale, allStr, provider)
 }
 
 // handleError logs the given error message and sets the current feed to nil
@@ -153,24 +153,16 @@ func doRequest(httpClient *http.Client, feedURL string) (*http.Response, error) 
 }
 
 func doGetFeed(feedEndpoint string, locale string, allStr string,
-	proxyAddr string, provider FeedProvider) {
+	provider FeedProvider) {
 
-	var err error
 	var res *http.Response
-	var httpClient *http.Client
 
-	feed = &Feed{}
-
-	if proxyAddr == "" {
-		// if no proxyAddr is supplied, use an ordinary http client
-		httpClient = &http.Client{}
-	} else {
-		httpClient, err = proxied.HTTPClient("", eventual.DefaultGetter(proxyAddr))
-		if err != nil {
-			handleError(fmt.Errorf("Error creating client: %v", err))
-			return
-		}
+	httpClient, err := getHTTPClient()
+	if err != nil {
+		handleError(err)
+		return
 	}
+	feed = &Feed{}
 
 	feedURL := getFeedURL(feedEndpoint, locale)
 	log.Debugf("Downloading latest feed from %s", feedURL)
@@ -296,4 +288,21 @@ func determineLocale(defaultLocale string) string {
 		return "ms_MY"
 	}
 	return defaultLocale
+}
+
+func getHTTPClient() (*http.Client, error) {
+	var err error
+	httpClientMutex.Lock()
+	if _httpClient == nil {
+		_httpClient, err = proxied.ChainedNonPersistent("")
+	}
+	httpClientMutex.Unlock()
+	return _httpClient, err
+}
+
+// For testing purposes
+func setHTTPClient(client *http.Client) {
+	httpClientMutex.Lock()
+	_httpClient = client
+	httpClientMutex.Unlock()
 }

@@ -9,7 +9,6 @@ import (
 	"net/http/httputil"
 	"time"
 
-	"github.com/getlantern/flashlight/util"
 	"github.com/getlantern/yamlconf"
 
 	"code.google.com/p/go-uuid/uuid"
@@ -38,7 +37,7 @@ var (
 type fetcher struct {
 	lastCloudConfigETag map[string]string
 	user                UserConfig
-	httpFetcher         util.HTTPFetcher
+	httpClient          *http.Client
 }
 
 // UserConfig retrieves any custom user info for fetching the config.
@@ -49,8 +48,8 @@ type UserConfig interface {
 
 // NewFetcher creates a new configuration fetcher with the specified
 // interface for obtaining the user ID and token if those are populated.
-func NewFetcher(conf UserConfig, httpFetcher util.HTTPFetcher) Fetcher {
-	return &fetcher{lastCloudConfigETag: map[string]string{}, user: conf, httpFetcher: httpFetcher}
+func NewFetcher(conf UserConfig, httpClient *http.Client) Fetcher {
+	return &fetcher{lastCloudConfigETag: map[string]string{}, user: conf, httpClient: httpClient}
 }
 
 func (cf *fetcher) pollForConfig(currentCfg yamlconf.Config, stickyConfig bool) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
@@ -131,7 +130,7 @@ func (cf *fetcher) fetchCloudConfig(cfg *Config) ([]byte, error) {
 	// successive requests
 	req.Close = true
 
-	resp, err := cf.httpFetcher.Do(req)
+	resp, err := cf.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to fetch cloud config at %s: %s", url, err)
 	}
