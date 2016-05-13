@@ -43,20 +43,33 @@ func TestCaching(t *testing.T) {
 	d.toCache <- mb
 	d.toCache <- mc
 
+	readMasquerades := func() []*Masquerade {
+		var result []*Masquerade
+		for {
+			select {
+			case m := <-d.masquerades:
+				result = append(result, m)
+			default:
+				return result
+			}
+		}
+	}
+
+	// Fill the cache
 	time.Sleep(d.cacheSaveInterval * 2)
-	assert.EqualValues(t, []*Masquerade{mb, mc}, d.cache, "Wrong stuff cached")
 	d.closeCache()
 
 	time.Sleep(50 * time.Millisecond)
 
+	// Reopen cache file and make sure right data was in there
 	d = makeDirect()
 	d.prepopulateMasquerades()
-	assert.EqualValues(t, []*Masquerade{mb, mc}, d.cache, "Wrong stuff cached after reopening cache")
+	assert.Equal(t, []*Masquerade{mb, mc}, readMasquerades(), "Wrong stuff cached after reopening cache")
 	d.closeCache()
 
 	time.Sleep(d.maxAllowedCachedAge)
 	d = makeDirect()
 	d.prepopulateMasquerades()
-	assert.Empty(t, d.cache, "Cache should be empty after masquerades expire")
+	assert.Empty(t, readMasquerades(), "Cache should be empty after masquerades expire")
 	d.closeCache()
 }
