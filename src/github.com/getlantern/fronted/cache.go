@@ -7,13 +7,12 @@ import (
 	"time"
 )
 
-const (
+var (
 	maxAllowedCachedAge = 24 * time.Hour
 	maxCacheSize        = 1000
 	cacheSaveInterval   = 5 * time.Second
-)
 
-var (
+	// Nil value indicates end of cache filling
 	fillSentinel *Masquerade = nil
 )
 
@@ -35,6 +34,7 @@ func (d *direct) prepopulateMasquerades() int {
 			return 0
 		}
 
+		log.Debugf("Cache contained %d masquerades", len(masquerades))
 		now := time.Now()
 		for _, m := range masquerades {
 			if now.Sub(m.LastVetted) < maxAllowedCachedAge {
@@ -72,8 +72,8 @@ func (d *direct) fillCache() {
 			log.Debug("Saving updated masquerade cache")
 			// Truncate cache to max length if necessary
 			if len(d.cache) > maxCacheSize {
-				truncated := make([]*Masquerade, 1000)
-				copy(truncated, d.cache)
+				truncated := make([]*Masquerade, maxCacheSize)
+				copy(truncated, d.cache[len(d.cache)-maxCacheSize:])
 				d.cache = truncated
 			}
 			b, err := json.Marshal(d.cache)
@@ -98,6 +98,10 @@ func CloseCache() {
 	if ok && _existing != nil {
 		existing := _existing.(*direct)
 		log.Debug("Closing cache from existing instance")
-		existing.toCache <- fillSentinel
+		existing.closeCache()
 	}
+}
+
+func (d *direct) closeCache() {
+	d.toCache <- fillSentinel
 }
