@@ -45,12 +45,13 @@ func Configure(cfg *config.Config) {
 }
 
 func enableAutoupdate(cfg *config.Config) {
-	var err error
-
-	httpClient, err = proxied.ChainedNonPersistent(cfg.CloudConfigCA)
+	rt, err := proxied.ChainedNonPersistent(cfg.CloudConfigCA)
 	if err != nil {
 		log.Errorf("Could not create proxied HTTP client, disabling auto-updates: %v", err)
 		return
+	}
+	httpClient = &http.Client{
+		Transport: rt,
 	}
 
 	go watchForUpdate()

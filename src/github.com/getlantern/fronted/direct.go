@@ -105,31 +105,31 @@ func (d *direct) vetOne() {
 	}
 }
 
-func NewDirectHttpClient(timeout time.Duration) *http.Client {
+// NewDirect creates a new http.RoundTripper that does direct domain fronting.
+func NewDirect(timeout time.Duration) http.RoundTripper {
 	instance, ok := _instance.Get(timeout)
 	if !ok {
 		panic(fmt.Errorf("No DirectHttpClient available within %v", timeout))
 	}
-	return instance.(*direct).NewDirectHttpClient()
+	return instance.(*direct).NewDirect()
 }
 
-// NewDirectHttpClient creates a new http.Client that does direct domain fronting.
-func (d *direct) NewDirectHttpClient() *http.Client {
-	trans := &directTransport{}
-	trans.Dial = d.Dial
-	trans.TLSHandshakeTimeout = 40 * time.Second
-	trans.DisableKeepAlives = true
-	return &http.Client{
-		Transport: trans,
+// NewDirect creates a new http.RoundTripper that does direct domain fronting.
+func (d *direct) NewDirect() http.RoundTripper {
+	return &directTransport{
+		Transport: http.Transport{
+			Dial:                d.Dial,
+			TLSHandshakeTimeout: 40 * time.Second,
+			DisableKeepAlives:   true,
+		},
 	}
 }
 
-// Do continually retries a given request until it succeeds because some fronting providers
-// will return a 403 for some domains.
+// Do continually retries a given request until it succeeds because some
+// fronting providers will return a 403 for some domains.
 func (d *direct) Do(req *http.Request) (*http.Response, error) {
 	for i := 0; i < 6; i++ {
-		client := d.NewDirectHttpClient()
-		if resp, err := client.Do(req); err != nil {
+		if resp, err := d.NewDirect().RoundTrip(req); err != nil {
 			log.Errorf("Could not complete request %v", err)
 		} else if resp.StatusCode > 199 && resp.StatusCode < 400 {
 			return resp, err

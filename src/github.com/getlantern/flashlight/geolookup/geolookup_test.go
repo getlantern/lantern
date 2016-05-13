@@ -9,7 +9,7 @@ import (
 
 func TestFronted(t *testing.T) {
 	fronted.ConfigureForTest(t)
-	Configure()
+	Refresh()
 	country := GetCountry(5 * time.Second)
 	ip := GetIP(5 * time.Second)
 	if len(country) != 2 {

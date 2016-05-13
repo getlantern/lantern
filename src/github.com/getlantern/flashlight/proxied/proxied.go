@@ -65,23 +65,23 @@ func getProxyAddr() (string, bool) {
 // chained request succeeds, subsequent requests will only go through Chained
 // servers unless and until a request fails, in which case we'll start trying
 // fronted requests again.
-func ParallelPreferChained() *http.Client {
+func ParallelPreferChained() http.RoundTripper {
 	cf := &chainedAndFronted{
 		parallel: true,
 	}
 	cf.setFetcher(&dualFetcher{cf})
-	return &http.Client{Transport: cf}
+	return cf
 }
 
 // ChainedThenFronted creates a new http.RoundTripper that attempts to send
 // requests first through a chained server and then falls back to using a
 // direct fronted server if the chained route didn't work.
-func ChainedThenFronted() *http.Client {
+func ChainedThenFronted() http.RoundTripper {
 	cf := &chainedAndFronted{
 		parallel: false,
 	}
 	cf.setFetcher(&dualFetcher{cf})
-	return &http.Client{Transport: cf}
+	return cf
 }
 
 // ChainedAndFronted fetches HTTP data in parallel using both chained and fronted
@@ -123,12 +123,12 @@ type chainedFetcher struct {
 // Do will attempt to execute the specified HTTP request using only a chained fetcher
 func (cf *chainedFetcher) RoundTrip(req *http.Request) (*http.Response, error) {
 	log.Debugf("Using chained fronter")
-	client, err := ChainedNonPersistent("")
+	rt, err := ChainedNonPersistent("")
 	if err != nil {
 		log.Errorf("Could not create HTTP client: %v", err)
 		return nil, err
 	}
-	return client.Do(req)
+	return rt.RoundTrip(req)
 }
 
 type dualFetcher struct {
@@ -140,13 +140,13 @@ type dualFetcher struct {
 // arrive. Callers MUST use the Lantern-Fronted-URL HTTP header to
 // specify the fronted URL to use.
 func (df *dualFetcher) RoundTrip(req *http.Request) (*http.Response, error) {
-	directClient, err := ChainedNonPersistent("")
+	directRT, err := ChainedNonPersistent("")
 	if err != nil {
 		log.Errorf("Could not create http client? %v", err)
 		return nil, err
 	}
-	frontedClient := fronted.NewDirectHttpClient(5 * time.Minute)
-	return df.do(req, directClient.Do, frontedClient.Do)
+	frontedRT := fronted.NewDirect(5 * time.Minute)
+	return df.do(req, directRT.RoundTrip, frontedRT.RoundTrip)
 }
 
 // Do will attempt to execute the specified HTTP request using both
@@ -317,27 +317,27 @@ func readResponses(finalResponse chan *http.Response, responses chan *http.Respo
 	}
 }
 
-// ChainedPersistent creates an http.Client that persists across requests and
-// proxies through a chained server. If rootCA is specified, the client will
-// validate the server's certificate on TLS connections against that RootCA.
-func ChainedPersistent(rootCA string) (*http.Client, error) {
+// ChainedPersistent creates an http.RoundTripper that uses keepalive
+// connectionspersists and proxies through chained servers. If rootCA is
+// specified, the RoundTripper will validate the server's certificate on TLS
+// connections against that RootCA.
+func ChainedPersistent(rootCA string) (http.RoundTripper, error) {
 	return chained(rootCA, true)
 }
 
-// ChainedNonPersistent creates an http.Client that proxies through a chained
-// server that does not use persistent connections. If rootCA is specified, the
-// client will validate the server's certificate on TLS connections against that
-// RootCA. If proxyAddr is specified, the client will proxy through the given
-// http proxy.
-func ChainedNonPersistent(rootCA string) (*http.Client, error) {
+// ChainedNonPersistent creates an http.RoundTripper that proxies through
+// chained servers and does not use keepalive connections. If rootCA is
+// specified, the RoundTripper will validate the server's certificate on TLS
+// connections against that RootCA.
+func ChainedNonPersistent(rootCA string) (http.RoundTripper, error) {
 	return chained(rootCA, false)
 }
 
-// httpClient creates an http.Client. If rootCA is specified, the client will
-// validate the server's certificate on TLS connections against that RootCA. If
-// persistent is specified, the client will use a Transport that keeps alive
-// connections for later reuse.
-func chained(rootCA string, persistent bool) (*http.Client, error) {
+// chained creates an http.RoundTripper. If rootCA is specified, the
+// RoundTripper will validate the server's certificate on TLS connections
+// against that RootCA. If persistent is specified, the RoundTripper will use
+// keepalive connections across requests.
+func chained(rootCA string, persistent bool) (http.RoundTripper, error) {
 	tr := &http.Transport{
 		Dial: (&net.Dialer{
 			Timeout:   60 * time.Second,
@@ -373,5 +373,5 @@ func chained(rootCA string, persistent bool) (*http.Client, error) {
 		return url.Parse("http://" + proxyAddr)
 	}
 
-	return &http.Client{Transport: tr}, nil
+	return tr, nil
 }

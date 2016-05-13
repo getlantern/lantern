@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -160,7 +161,7 @@ func timestamped(orig io.Writer) io.Writer {
 func enableLoggly(cloudConfigCA string, instanceID string,
 	version string, revisionDate string) {
 
-	client, err := proxied.ChainedPersistent(cloudConfigCA)
+	rt, err := proxied.ChainedPersistent(cloudConfigCA)
 	if err != nil {
 		log.Errorf("Could not create HTTP client, not logging to Loggly: %v", err)
 		removeLoggly()
@@ -179,7 +180,7 @@ func enableLoggly(cloudConfigCA string, instanceID string,
 	if osStr, err := osversion.GetHumanReadable(); err == nil {
 		osVersion = osStr
 	}
-	logglyWriter.client.SetHTTPClient(client)
+	logglyWriter.client.SetHTTPClient(&http.Client{Transport: rt})
 	addLoggly(logglyWriter)
 }
 

@@ -100,17 +100,15 @@ type Country struct {
 	} `maxminddb:"traits"`
 }
 
-// LookupIPWithClient looks up the given IP using a geolocation service and returns a
-// City struct. If an httpClient was provided, it uses that, otherwise it uses
-// a default http.Client.
-func LookupIPWithClient(ipAddr string, client *http.Client) (*City, string, error) {
-	return LookupIPWithEndpoint(cloudflareEndpoint, ipAddr, client)
+// LookupIP looks up the given IP using a geolocation service and returns a
+// City struct. The http.RoundTripper is required.
+func LookupIP(ipAddr string, rt http.RoundTripper) (*City, string, error) {
+	return LookupIPWithEndpoint(cloudflareEndpoint, ipAddr, rt)
 }
 
-// LookupIPWithEndpoint looks up the given IP using a geolocation service and returns a
-// City struct. If an httpClient was provided, it uses that, otherwise it uses
-// a default http.Client.
-func LookupIPWithEndpoint(endpoint string, ipAddr string, client *http.Client) (*City, string, error) {
+// LookupIPWithEndpoint looks up the given IP using a geolocation service and
+// returns a City struct. The http.RoundTripper is required.
+func LookupIPWithEndpoint(endpoint string, ipAddr string, rt http.RoundTripper) (*City, string, error) {
 	var err error
 	var req *http.Request
 	var resp *http.Response
@@ -125,7 +123,7 @@ func LookupIPWithEndpoint(endpoint string, ipAddr string, client *http.Client) (
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Lantern-Fronted-URL", frontedUrl)
 	log.Debugf("Fetching ip...")
-	if resp, err = client.Do(req); err != nil {
+	if resp, err = rt.RoundTrip(req); err != nil {
 		return nil, "", fmt.Errorf("Could not get response from server: %q", err)
 	}
 	defer func() {

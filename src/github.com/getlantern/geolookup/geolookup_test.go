@@ -13,8 +13,8 @@ import (
 )
 
 func TestCityLookup(t *testing.T) {
-	client := &http.Client{}
-	city, _, err := LookupIPWithClient("198.199.72.101", client)
+	var rt http.RoundTripper = &http.Transport{}
+	city, _, err := LookupIP("198.199.72.101", rt)
 	if assert.NoError(t, err) {
 		assert.Equal(t, "New York", city.City.Names["en"])
 
@@ -22,26 +22,24 @@ func TestCityLookup(t *testing.T) {
 
 	// Now test with direct domain fronting.
 	fronted.ConfigureForTest(t)
-	client = fronted.NewDirectHttpClient(30 * time.Second)
+	rt = fronted.NewDirect(30 * time.Second)
 	cloudfrontEndpoint := `http://d3u5fqukq7qrhd.cloudfront.net/lookup/%v`
 
 	log.Debugf("Looking up IP with CloudFront")
-	city, _, err = LookupIPWithEndpoint(cloudfrontEndpoint, "198.199.72.101", client)
+	city, _, err = LookupIPWithEndpoint(cloudfrontEndpoint, "198.199.72.101", rt)
 	if assert.NoError(t, err) {
 		assert.Equal(t, "New York", city.City.Names["en"])
 	}
 }
 
-func TestNonDefaultClient(t *testing.T) {
+func TestFailingTransport(t *testing.T) {
 	// Set up a client that will fail
-	client := &http.Client{
-		Transport: &http.Transport{
-			Dial: func(network, addr string) (net.Conn, error) {
-				return nil, fmt.Errorf("Failing intentionally")
-			},
+	rt := &http.Transport{
+		Dial: func(network, addr string) (net.Conn, error) {
+			return nil, fmt.Errorf("Failing intentionally")
 		},
 	}
 
-	_, _, err := LookupIPWithClient("", client)
+	_, _, err := LookupIP("", rt)
 	assert.Error(t, err, "Using bad client should have resulted in error")
 }

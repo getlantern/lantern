@@ -37,7 +37,7 @@ var (
 type fetcher struct {
 	lastCloudConfigETag map[string]string
 	user                UserConfig
-	httpClient          *http.Client
+	rt                  http.RoundTripper
 }
 
 // UserConfig retrieves any custom user info for fetching the config.
@@ -48,8 +48,8 @@ type UserConfig interface {
 
 // NewFetcher creates a new configuration fetcher with the specified
 // interface for obtaining the user ID and token if those are populated.
-func NewFetcher(conf UserConfig, httpClient *http.Client) Fetcher {
-	return &fetcher{lastCloudConfigETag: map[string]string{}, user: conf, httpClient: httpClient}
+func NewFetcher(conf UserConfig, rt http.RoundTripper) Fetcher {
+	return &fetcher{lastCloudConfigETag: map[string]string{}, user: conf, rt: rt}
 }
 
 func (cf *fetcher) pollForConfig(currentCfg yamlconf.Config, stickyConfig bool) (mutate func(yamlconf.Config) error, waitTime time.Duration, err error) {
@@ -130,7 +130,7 @@ func (cf *fetcher) fetchCloudConfig(cfg *Config) ([]byte, error) {
 	// successive requests
 	req.Close = true
 
-	resp, err := cf.httpClient.Do(req)
+	resp, err := cf.rt.RoundTrip(req)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to fetch cloud config at %s: %s", url, err)
 	}
