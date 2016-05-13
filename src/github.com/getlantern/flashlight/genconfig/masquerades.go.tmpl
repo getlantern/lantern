@@ -2,14 +2,14 @@ package fronted
 
 import "github.com/getlantern/fronted"
 
-var TrustedCAs = []*CA{ {{range .cas}}
+var DefaultTrustedCAs = []*CA{ {{range .cas}}
 	&CA{
 		CommonName: "{{.CommonName}}",
 		Cert:       "{{.Cert}}",
 	}, {{end}}
 }
 
-var Cloudfront = []*Masquerade{ {{range .masquerades}}
+var DefaultCloudfrontMasquerades = []*Masquerade{ {{range .masquerades}}
 	&Masquerade{
 		Domain:    "{{.Domain}}",
 		IpAddress: "{{.IpAddress}}",
