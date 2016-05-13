@@ -74,3 +74,9 @@ func startTestServer(t *testing.T) string {
 
 	return l.Addr().String()
 }
+
+func setHTTPClient(client *http.Client) {
+	httpClientMutex.Lock()
+	_httpClient = client
+	httpClientMutex.Unlock()
+}
