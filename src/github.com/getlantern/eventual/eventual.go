@@ -56,6 +56,13 @@ func DefaultGetter(val interface{}) Getter {
 	}
 }
 
+// DefaultUnsetGetter builds a Getter that always !ok.
+func DefaultUnsetGetter() Getter {
+	return func(time.Duration) (interface{}, bool) {
+		return nil, false
+	}
+}
+
 func (v *value) Set(val interface{}) {
 	v.mutex.Lock()
 	defer v.mutex.Unlock()

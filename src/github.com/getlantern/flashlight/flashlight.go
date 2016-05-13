@@ -13,6 +13,7 @@ import (
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/logging"
+	"github.com/getlantern/flashlight/proxied"
 )
 
 const (
@@ -84,10 +85,11 @@ func Run(httpProxyAddr string,
 	}
 
 	client := client.NewClient()
+	proxied.SetProxyAddr(client.Addr)
 
 	if beforeStart(cfg) {
 		log.Debug("Preparing to start client proxy")
-		geolookup.Configure(client.Addr)
+		geolookup.Refresh()
 		cfgMutex.Lock()
 		applyClientConfig(client, cfg, proxyAll)
 		cfgMutex.Unlock()
@@ -143,8 +145,7 @@ func applyClientConfig(client *client.Client, cfg *config.Config, proxyAll func(
 	} else {
 		fronted.Configure(certs, cfg.Client.MasqueradeSets, filepath.Join(appdir.General("Lantern"), "masquerade_cache"))
 	}
-	logging.Configure(client.Addr, cfg.CloudConfigCA, cfg.Client.DeviceID,
-		Version, RevisionDate)
+	logging.Configure(cfg.CloudConfigCA, cfg.Client.DeviceID, Version, RevisionDate)
 	// Update client configuration
 	client.Configure(cfg.Client, proxyAll)
 }
