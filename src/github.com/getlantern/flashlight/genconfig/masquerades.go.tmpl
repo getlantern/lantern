@@ -1,4 +1,4 @@
-package defaultmasquerades
+package fronted
 
 import "github.com/getlantern/fronted"
 
@@ -9,10 +9,8 @@ var TrustedCAs = []*CA{ {{range .cas}}
 	}, {{end}}
 }
 
-var Cloudflare = []*fronted.Masquerade{}
-
-var Cloudfront = []*fronted.Masquerade{ {{range .masquerades}}
-	&fronted.Masquerade{
+var Cloudfront = []*Masquerade{ {{range .masquerades}}
+	&Masquerade{
 		Domain:    "{{.Domain}}",
 		IpAddress: "{{.IpAddress}}",
 	}, {{end}}

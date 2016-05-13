@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/getlantern/appdir"
-	"github.com/getlantern/eventual"
 	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/proxied"
 	"github.com/getlantern/go-loggly"
@@ -84,7 +83,7 @@ func EnableFileLogging() error {
 
 // Configure will set up logging. An empty "addr" will configure logging without a proxy
 // Returns a bool channel for optional blocking.
-func Configure(addrFN eventual.Getter, cloudConfigCA string, instanceID string,
+func Configure(cloudConfigCA string, instanceID string,
 	version string, revisionDate string) (success chan bool) {
 	success = make(chan bool, 1)
 
@@ -111,7 +110,7 @@ func Configure(addrFN eventual.Getter, cloudConfigCA string, instanceID string,
 	// Using a goroutine because we'll be using waitforserver and at this time
 	// the proxy is not yet ready.
 	go func() {
-		enableLoggly(addrFN, cloudConfigCA, instanceID, version, revisionDate)
+		enableLoggly(cloudConfigCA, instanceID, version, revisionDate)
 		// Won't block, but will allow optional blocking on receiver
 		success <- true
 	}()
@@ -158,7 +157,7 @@ func timestamped(orig io.Writer) io.Writer {
 	})
 }
 
-func enableLoggly(addrFN eventual.Getter, cloudConfigCA string, instanceID string,
+func enableLoggly(cloudConfigCA string, instanceID string,
 	version string, revisionDate string) {
 
 	client, err := proxied.ChainedPersistent(cloudConfigCA)
@@ -166,12 +165,6 @@ func enableLoggly(addrFN eventual.Getter, cloudConfigCA string, instanceID strin
 		log.Errorf("Could not create HTTP client, not logging to Loggly: %v", err)
 		removeLoggly()
 		return
-	}
-
-	if addrFN == nil {
-		log.Debug("Sending error logs to Loggly directly")
-	} else {
-		log.Debug("Sending error logs to Loggly via proxy")
 	}
 
 	lang, _ := jibber_jabber.DetectLanguage()

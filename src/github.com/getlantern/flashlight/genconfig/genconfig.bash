@@ -8,7 +8,7 @@ function die() {
 go run genconfig.go \
    -blacklist="blacklist.txt" \
    -masquerades="masquerades.txt" \
-   -masquerades-out="../masquerades/masquerades.go" \
+   -masquerades-out="../../fronted/masquerades.go" \
    -proxiedsites="proxiedsites" \
    -proxiedsites-out="../config/proxiedsites.go" \
    -fallbacks="fallbacks.yaml" \
