@@ -1,8 +1,16 @@
 package logging
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 	"time"
+)
+
+var (
+	bordaURL = "https://borda.getlantern.org/measurements"
 )
 
 // Measurement represents a measurement at a point in time. It maps to a "point"
@@ -56,27 +64,63 @@ func NewBordaReporter(opts *BordaReporterOptions) *BordaReporter {
 	}
 }
 
-func (b *BordaReporter) AddMeasurement(m *Measurement) error {
+func (b *BordaReporter) AddMeasurement(m *Measurement) (sent bool, err error) {
 	b.mBuf[b.nMeas] = m
-	b.nMeas = b.nMeas + 1
+	b.nMeas++
 
-	if b.nMeas > b.options.MaxChunkSize {
+	sent = false
+	if b.nMeas >= b.options.MaxChunkSize {
 		b.sendChunk()
 		b.nMeas = 0
+		sent = true
 	}
-	return nil
+	return
 }
 
 func (b *BordaReporter) sendChunk() error {
 	for i := 0; i < b.nMeas; i++ {
-		if err := sendMeasurement(b.mBuf[i]); err != nil {
-			// TODO, what to do?
+		if err := b.sendMeasurement(b.mBuf[i]); err != nil {
+			// Log as usual
+			log.Errorf("Error sending Measurement to Borda: %v", err)
 		}
 	}
 	return nil
 }
 
-func sendMeasurement(m *Measurement) error {
-	// TODO
-	return nil
+func (b *BordaReporter) sendMeasurement(m *Measurement) error {
+	jbytes, err := json.Marshal(*m)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(
+		http.MethodPost,
+		bordaURL,
+		bytes.NewBuffer(jbytes),
+	)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := b.c.Do(req)
+	if err != nil {
+		return err
+	}
+
+	switch resp.StatusCode {
+	case 201:
+		return nil
+	case 400:
+		errorMsg, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("Borda replied with 400, but error message couldn't be read: %v", err)
+		}
+		return fmt.Errorf("Borda replied with the error: %v", errorMsg)
+	default:
+		return fmt.Errorf("Borda replied with error %v", resp.Status)
+	}
+
+	return err
 }
