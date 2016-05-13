@@ -44,14 +44,14 @@ func TestCaching(t *testing.T) {
 	d.toCache <- mc
 
 	time.Sleep(d.cacheSaveInterval * 2)
-	assert.Equal(t, []*Masquerade{mb, mc}, d.cache, "Wrong stuff cached")
+	assert.EqualValues(t, []*Masquerade{mb, mc}, d.cache, "Wrong stuff cached")
 	d.closeCache()
 
 	time.Sleep(50 * time.Millisecond)
 
 	d = makeDirect()
 	d.prepopulateMasquerades()
-	assert.Equal(t, []*Masquerade{mb, mc}, d.cache, "Wrong stuff cached after reopening cache")
+	assert.EqualValues(t, []*Masquerade{mb, mc}, d.cache, "Wrong stuff cached after reopening cache")
 	d.closeCache()
 
 	time.Sleep(d.maxAllowedCachedAge)
