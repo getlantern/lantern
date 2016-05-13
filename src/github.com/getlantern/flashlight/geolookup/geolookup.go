@@ -51,7 +51,7 @@ func GetCountry(timeout time.Duration) string {
 // Configures geolookup to use the given proxyAddrFN to determine which proxy
 // to use.
 func Configure(proxyAddrFN eventual.Getter) {
-	cf = util.NewChainedAndFronted(proxyAddrFN)
+	cf = util.NewChainedAndFronted(proxyAddrFN, true)
 	Refresh()
 }
 
