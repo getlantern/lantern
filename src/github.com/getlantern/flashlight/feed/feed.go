@@ -11,7 +11,7 @@ import (
 
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/flashlight/geolookup"
-	"github.com/getlantern/flashlight/util"
+	"github.com/getlantern/flashlight/proxied"
 	"github.com/getlantern/golog"
 )
 
@@ -165,7 +165,7 @@ func doGetFeed(feedEndpoint string, locale string, allStr string,
 		// if no proxyAddr is supplied, use an ordinary http client
 		httpClient = &http.Client{}
 	} else {
-		httpClient, err = util.HTTPClient("", eventual.DefaultGetter(proxyAddr))
+		httpClient, err = proxied.HTTPClient("", eventual.DefaultGetter(proxyAddr))
 		if err != nil {
 			handleError(fmt.Errorf("Error creating client: %v", err))
 			return
