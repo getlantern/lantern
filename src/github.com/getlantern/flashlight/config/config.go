@@ -23,7 +23,6 @@ import (
 	"github.com/getlantern/yamlconf"
 
 	"github.com/getlantern/flashlight/client"
-	"github.com/getlantern/flashlight/defaultmasquerades"
 	"github.com/getlantern/flashlight/proxied"
 )
 
@@ -54,7 +53,7 @@ type Config struct {
 	UpdateServerURL    string
 	Client             *client.ClientConfig
 	ProxiedSites       *proxiedsites.Config // List of proxied site domains that get routed through Lantern rather than accessed directly
-	TrustedCAs         []*defaultmasquerades.CA
+	TrustedCAs         []*fronted.CA
 }
 
 // Fetcher is an interface for fetching config updates.
@@ -285,7 +284,7 @@ func (cfg *Config) ApplyDefaults() {
 	}
 
 	if cfg.TrustedCAs == nil || len(cfg.TrustedCAs) == 0 {
-		cfg.TrustedCAs = defaultmasquerades.TrustedCAs
+		cfg.TrustedCAs = fronted.DefaultTrustedCAs
 	}
 }
 
@@ -295,7 +294,7 @@ func (cfg *Config) applyClientDefaults() {
 		cfg.Client.MasqueradeSets = make(map[string][]*fronted.Masquerade)
 	}
 	if len(cfg.Client.MasqueradeSets) == 0 {
-		cfg.Client.MasqueradeSets[cloudfront] = defaultmasquerades.Cloudfront
+		cfg.Client.MasqueradeSets[cloudfront] = fronted.DefaultCloudfrontMasquerades
 	}
 
 	// Always make sure we have a map of ChainedServers
@@ -348,7 +347,7 @@ func (updated *Config) updateFrom(updateBytes []byte) error {
 	oldTrustedCAs := updated.TrustedCAs
 	updated.Client.ChainedServers = map[string]*client.ChainedServerInfo{}
 	updated.Client.MasqueradeSets = map[string][]*fronted.Masquerade{}
-	updated.TrustedCAs = []*defaultmasquerades.CA{}
+	updated.TrustedCAs = []*fronted.CA{}
 	err := yaml.Unmarshal(updateBytes, updated)
 	if err != nil {
 		updated.Client.ChainedServers = oldChainedServers

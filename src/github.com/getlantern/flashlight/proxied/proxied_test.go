@@ -2,7 +2,6 @@ package proxied
 
 import (
 	"bytes"
-	"crypto/x509"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -12,13 +11,11 @@ import (
 	"time"
 
 	"github.com/mailgun/oxy/forward"
-	"github.com/stretchr/testify/assert"
 
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/fronted"
-	"github.com/getlantern/keyman"
 
-	"github.com/getlantern/flashlight/defaultmasquerades"
+	"github.com/stretchr/testify/assert"
 )
 
 // TestChainedAndFrontedHeaders tests to make sure headers are correctly
@@ -112,10 +109,7 @@ func doTestChainedAndFronted(t *testing.T, build func() *http.Client) {
 
 	SetProxyAddr(eventual.DefaultGetter(l.Addr().String()))
 
-	certs := trustedCATestCerts()
-	m := make(map[string][]*fronted.Masquerade)
-	m["cloudfront"] = defaultmasquerades.Cloudfront
-	fronted.Configure(certs, m)
+	fronted.ConfigureForTest(t)
 
 	geo := "http://d3u5fqukq7qrhd.cloudfront.net/lookup/198.199.72.101"
 	req, err := http.NewRequest("GET", geo, nil)
@@ -166,21 +160,4 @@ func doTestChainedAndFronted(t *testing.T, build func() *http.Client) {
 		}
 		_ = resp.Body.Close()
 	}
-}
-
-func trustedCATestCerts() *x509.CertPool {
-	certs := make([]string, 0, len(defaultmasquerades.TrustedCAs))
-	for _, ca := range defaultmasquerades.TrustedCAs {
-		certs = append(certs, ca.Cert)
-	}
-	pool, err := keyman.PoolContainingCerts(certs...)
-	if err != nil {
-		log.Errorf("Could not create pool %v", err)
-	}
-	return pool
-}
-
-type CA struct {
-	CommonName string
-	Cert       string
 }
