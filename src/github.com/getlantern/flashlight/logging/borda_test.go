@@ -3,6 +3,7 @@ package logging
 import (
 	"net/http"
 	"net/http/httptest"
+	"net/http/httputil"
 	"os"
 	"testing"
 	"time"
@@ -20,6 +21,7 @@ func init() {
 	testEnv := os.Getenv("TEST_ENV")
 	if testEnv == "INTEGRATION" {
 		log.Debugf("Performing integration test -> using external networks and services")
+	} else {
 		bordaURL = ts.URL
 	}
 }
@@ -61,6 +63,15 @@ func TestBordaClient(t *testing.T) {
 
 func newMockServer() *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		httputil.DumpRequest(r, true)
+
+		dump, err := httputil.DumpRequest(r, true)
+		if err != nil {
+			log.Errorf("Error reading request: %v", err)
+		} else {
+			log.Tracef("Mock server received request: %v", string(dump))
+		}
+
 		w.WriteHeader(201)
 	}))
 
