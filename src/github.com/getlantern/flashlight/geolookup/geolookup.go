@@ -47,12 +47,6 @@ func GetCountry(timeout time.Duration) string {
 	return gi.(*geoInfo).city.Country.IsoCode
 }
 
-// Configures geolookup to use the given proxyAddrFN to determine which proxy
-// to use.
-func Configure() {
-	Refresh()
-}
-
 // Refresh refreshes the geolookup information by calling the remote geolookup
 // service. It will keep calling the service until it's able to determine an IP
 // and country.

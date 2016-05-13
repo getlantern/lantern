@@ -87,7 +87,7 @@ func Run(httpProxyAddr string,
 
 	if beforeStart(cfg) {
 		log.Debug("Preparing to start client proxy")
-		geolookup.Configure()
+		geolookup.Refresh()
 		cfgMutex.Lock()
 		applyClientConfig(client, cfg, proxyAll)
 		cfgMutex.Unlock()
