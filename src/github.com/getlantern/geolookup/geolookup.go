@@ -22,11 +22,6 @@ var (
 	log = golog.LoggerFor("geolookup")
 )
 
-// HTTPFetcher is a simple interface for types that are able to fetch geo data.
-type HTTPFetcher interface {
-	Do(req *http.Request) (*http.Response, error)
-}
-
 // The City structure corresponds to the data in the GeoIP2/GeoLite2 City
 // databases.
 type City struct {
@@ -108,14 +103,14 @@ type Country struct {
 // LookupIPWithClient looks up the given IP using a geolocation service and returns a
 // City struct. If an httpClient was provided, it uses that, otherwise it uses
 // a default http.Client.
-func LookupIPWithClient(ipAddr string, fetcher HTTPFetcher) (*City, string, error) {
-	return LookupIPWithEndpoint(cloudflareEndpoint, ipAddr, fetcher)
+func LookupIPWithClient(ipAddr string, client *http.Client) (*City, string, error) {
+	return LookupIPWithEndpoint(cloudflareEndpoint, ipAddr, client)
 }
 
 // LookupIPWithEndpoint looks up the given IP using a geolocation service and returns a
 // City struct. If an httpClient was provided, it uses that, otherwise it uses
 // a default http.Client.
-func LookupIPWithEndpoint(endpoint string, ipAddr string, fetcher HTTPFetcher) (*City, string, error) {
+func LookupIPWithEndpoint(endpoint string, ipAddr string, client *http.Client) (*City, string, error) {
 	var err error
 	var req *http.Request
 	var resp *http.Response
@@ -130,7 +125,7 @@ func LookupIPWithEndpoint(endpoint string, ipAddr string, fetcher HTTPFetcher) (
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Lantern-Fronted-URL", frontedUrl)
 	log.Debugf("Fetching ip...")
-	if resp, err = fetcher.Do(req); err != nil {
+	if resp, err = client.Do(req); err != nil {
 		return nil, "", fmt.Errorf("Could not get response from server: %q", err)
 	}
 	defer func() {

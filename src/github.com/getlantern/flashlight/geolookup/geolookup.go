@@ -15,7 +15,6 @@ var (
 	log = golog.LoggerFor("flashlight.geolookup")
 
 	refreshRequest = make(chan interface{}, 1)
-	cf             proxied.HTTPFetcher
 	currentGeoInfo = eventual.NewValue()
 
 	waitForProxyTimeout = 1 * time.Minute
@@ -50,8 +49,7 @@ func GetCountry(timeout time.Duration) string {
 
 // Configures geolookup to use the given proxyAddrFN to determine which proxy
 // to use.
-func Configure(proxyAddrFN eventual.Getter) {
-	cf = proxied.ParallelPreferChained(proxyAddrFN)
+func Configure() {
 	Refresh()
 }
 
@@ -101,7 +99,7 @@ func lookup() *geoInfo {
 }
 
 func doLookup() (*geoInfo, error) {
-	city, ip, err := geo.LookupIPWithClient("", cf)
+	city, ip, err := geo.LookupIPWithClient("", proxied.ParallelPreferChained())
 
 	if err != nil {
 		log.Errorf("Could not lookup IP %v", err)
