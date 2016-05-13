@@ -89,6 +89,14 @@ func TestChainedAndFrontedHeaders(t *testing.T) {
 // TestChainedAndFrontedParallel tests to make sure chained and fronted requests
 // are both working in parallel.
 func TestChainedAndFrontedParallel(t *testing.T) {
+	doTestChainedAndFronted(t, true)
+}
+
+func TestChainedAndFrontedSequential(t *testing.T) {
+	doTestChainedAndFronted(t, false)
+}
+
+func doTestChainedAndFronted(t *testing.T, parallel bool) {
 	fwd, _ := forward.New()
 
 	sleep := 0 * time.Second
@@ -126,7 +134,7 @@ func TestChainedAndFrontedParallel(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	cf := NewChainedAndFronted(proxyAddr, true)
+	cf := NewChainedAndFronted(proxyAddr, parallel)
 	resp, err := cf.Do(req)
 	assert.NoError(t, err)
 	body, err := ioutil.ReadAll(resp.Body)
@@ -142,7 +150,7 @@ func TestChainedAndFrontedParallel(t *testing.T) {
 	req, err = http.NewRequest("GET", geo, nil)
 	req.Header.Set("Lantern-Fronted-URL", bad)
 	assert.NoError(t, err)
-	cf = NewChainedAndFronted(proxyAddr, true)
+	cf = NewChainedAndFronted(proxyAddr, parallel)
 	resp, err = cf.Do(req)
 	assert.NoError(t, err)
 	log.Debugf("Got response in test")
@@ -158,7 +166,7 @@ func TestChainedAndFrontedParallel(t *testing.T) {
 	req, err = http.NewRequest("GET", bad, nil)
 	req.Header.Set("Lantern-Fronted-URL", geo)
 	assert.NoError(t, err)
-	cf = NewChainedAndFronted(proxyAddr, true)
+	cf = NewChainedAndFronted(proxyAddr, parallel)
 	resp, err = cf.Do(req)
 	if assert.NoError(t, err) {
 		if assert.Equal(t, 200, resp.StatusCode) {

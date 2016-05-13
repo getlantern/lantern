@@ -239,7 +239,12 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 	}
 
 	doChained()
-	return getResponse()
+	resp, err := getResponse()
+	if err != nil {
+		doFronted()
+		resp, err = getResponse()
+	}
+	return resp, err
 }
 
 func readResponses(finalResponse chan *http.Response, responses chan *http.Response, finalErr chan error, errs chan error) {
