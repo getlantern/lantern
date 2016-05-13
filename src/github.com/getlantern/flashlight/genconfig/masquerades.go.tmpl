@@ -1,18 +1,16 @@
-package config
+package fronted
 
 import "github.com/getlantern/fronted"
 
-var defaultTrustedCAs = []*CA{ {{range .cas}}
+var DefaultTrustedCAs = []*CA{ {{range .cas}}
 	&CA{
 		CommonName: "{{.CommonName}}",
 		Cert:       "{{.Cert}}",
 	}, {{end}}
 }
 
-var cloudflareMasquerades = []*fronted.Masquerade{}
-
-var cloudfrontMasquerades = []*fronted.Masquerade{ {{range .masquerades}}
-	&fronted.Masquerade{
+var DefaultCloudfrontMasquerades = []*Masquerade{ {{range .masquerades}}
+	&Masquerade{
 		Domain:    "{{.Domain}}",
 		IpAddress: "{{.IpAddress}}",
 	}, {{end}}
