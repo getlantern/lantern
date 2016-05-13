@@ -8,14 +8,13 @@ import (
 	geo "github.com/getlantern/geolookup"
 	"github.com/getlantern/golog"
 
-	"github.com/getlantern/flashlight/util"
+	"github.com/getlantern/flashlight/proxied"
 )
 
 var (
 	log = golog.LoggerFor("flashlight.geolookup")
 
 	refreshRequest = make(chan interface{}, 1)
-	cf             util.HTTPFetcher
 	currentGeoInfo = eventual.NewValue()
 
 	waitForProxyTimeout = 1 * time.Minute
@@ -46,13 +45,6 @@ func GetCountry(timeout time.Duration) string {
 		return ""
 	}
 	return gi.(*geoInfo).city.Country.IsoCode
-}
-
-// Configures geolookup to use the given proxyAddrFN to determine which proxy
-// to use.
-func Configure(proxyAddrFN eventual.Getter) {
-	cf = util.NewChainedAndFronted(proxyAddrFN)
-	Refresh()
 }
 
 // Refresh refreshes the geolookup information by calling the remote geolookup
@@ -92,7 +84,7 @@ func lookup() *geoInfo {
 			}
 			log.Debugf("Waiting %v before retrying", wait)
 			time.Sleep(wait)
-			consecutiveFailures += 1
+			consecutiveFailures++
 		} else {
 			log.Debugf("IP is %v", gi.ip)
 			return gi
@@ -101,7 +93,7 @@ func lookup() *geoInfo {
 }
 
 func doLookup() (*geoInfo, error) {
-	city, ip, err := geo.LookupIPWithClient("", cf)
+	city, ip, err := geo.LookupIP("", proxied.ParallelPreferChained())
 
 	if err != nil {
 		log.Errorf("Could not lookup IP %v", err)

@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"github.com/getlantern/eventual"
-	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/logging"
+	"github.com/getlantern/flashlight/proxied"
 	"github.com/getlantern/flashlight/util"
 	"github.com/kardianos/osext"
 
@@ -52,7 +52,7 @@ func Start(deviceID, version string) func() {
 
 // start starts the GA session with the given data.
 func start(deviceID, version string, ipFunc func(time.Duration) string, uaWait time.Duration,
-	transport func(string, eventual.Getter)) func() {
+	transport func(string)) func() {
 	var addr atomic.Value
 	go func() {
 		logging.AddUserAgentListener(func(agent string) {
@@ -64,14 +64,14 @@ func start(deviceID, version string, ipFunc func(time.Duration) string, uaWait t
 		}
 		addr.Store(ip)
 		log.Debugf("Starting analytics session with ip %v", ip)
-		startSession(ip, version, client.Addr, deviceID, transport, uaWait)
+		startSession(ip, version, deviceID, transport, uaWait)
 	}()
 
 	stop := func() {
 		if addr.Load() != nil {
 			ip := addr.Load().(string)
 			log.Debugf("Ending analytics session with ip %v", ip)
-			endSession(ip, version, client.Addr, deviceID, transport, uaWait)
+			endSession(ip, version, deviceID, transport, uaWait)
 		}
 	}
 	return stop
@@ -141,19 +141,19 @@ func getExecutableHash() string {
 	}
 }
 
-func endSession(ip string, version string, proxyAddrFN eventual.Getter,
-	clientID string, transport func(string, eventual.Getter), uaWait time.Duration) {
+func endSession(ip string, version string, clientID string,
+	transport func(string), uaWait time.Duration) {
 	args := sessionVals(ip, version, clientID, "end", uaWait)
-	transport(args, proxyAddrFN)
+	transport(args)
 }
 
-func startSession(ip string, version string, proxyAddrFN eventual.Getter,
-	clientID string, transport func(string, eventual.Getter), uaWait time.Duration) {
+func startSession(ip string, version string, clientID string,
+	transport func(string), uaWait time.Duration) {
 	args := sessionVals(ip, version, clientID, "start", uaWait)
-	transport(args, proxyAddrFN)
+	transport(args)
 }
 
-func trackSession(args string, proxyAddrFN eventual.Getter) {
+func trackSession(args string) {
 	r, err := http.NewRequest("POST", endpoint, bytes.NewBufferString(args))
 
 	if err != nil {
@@ -170,13 +170,12 @@ func trackSession(args string, proxyAddrFN eventual.Getter) {
 		log.Debugf("Full analytics request: %v", string(req))
 	}
 
-	var httpClient *http.Client
-	httpClient, err = util.HTTPClient("", proxyAddrFN)
+	rt, err := proxied.ChainedNonPersistent("")
 	if err != nil {
 		log.Errorf("Could not create HTTP client: %s", err)
 		return
 	}
-	resp, err := httpClient.Do(r)
+	resp, err := rt.RoundTrip(r)
 	if err != nil {
 		log.Errorf("Could not send HTTP request to GA: %s", err)
 		return

@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/getlantern/eventual"
 	"github.com/getlantern/flashlight"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/profiling"
@@ -66,7 +65,7 @@ func (app *App) LogPanicAndExit(msg string) {
 		panic("Error initializing logging")
 	}
 
-	<-logging.Configure(eventual.DefaultGetter(""), "", cfg.Client.DeviceID, flashlight.Version, flashlight.RevisionDate)
+	<-logging.Configure("", cfg.Client.DeviceID, flashlight.Version, flashlight.RevisionDate)
 
 	log.Error(msg)
 
