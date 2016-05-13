@@ -10,7 +10,7 @@
 
 **If you're looking for help, please visit below user forums:**
 
-| [English](https://groups.google.com/forum/#!forum/lantern-users-en) | [中文](https://groups.google.com/forum/#!forum/lantern-users-zh) | [فارسی](https://groups.google.com/forum/#!forum/lantern-users-fa) | [français](https://groups.google.com/forum/#!forum/lantern-users-fr)
+| [English](https://groups.google.com/forum/#!forum/lantern-users-en) | [中文](https://github.com/getlantern/forum) | [فارسی](https://groups.google.com/forum/#!forum/lantern-users-fa) | [français](https://groups.google.com/forum/#!forum/lantern-users-fr)
 
 ## Building Lantern
 
