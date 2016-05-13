@@ -131,9 +131,8 @@ func run(configDir string) {
 }
 
 // GetFeed fetches the public feed thats displayed on Lantern's main screen
-func GetFeed(locale string, allStr string, proxyAddr string,
-	provider FeedProvider) {
-	feed.GetFeed(locale, allStr, proxyAddr, provider)
+func GetFeed(locale string, allStr string, provider FeedProvider) {
+	feed.GetFeed(locale, allStr, provider)
 }
 
 // FeedByName grabs the feed results for a given feed source name
