@@ -64,7 +64,7 @@ func TestCaching(t *testing.T) {
 	// Reopen cache file and make sure right data was in there
 	d = makeDirect()
 	d.prepopulateMasquerades()
-	assert.Equal(t, []*Masquerade{mb, mc}, readMasquerades(), "Wrong stuff cached after reopening cache")
+	assert.EqualValues(t, []*Masquerade{mb, mc}, readMasquerades(), "Wrong stuff cached after reopening cache")
 	d.closeCache()
 
 	time.Sleep(d.maxAllowedCachedAge)
