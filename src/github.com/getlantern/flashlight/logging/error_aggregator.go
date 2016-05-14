@@ -3,8 +3,6 @@ package logging
 import (
 	"sync"
 	"time"
-
-	"github.com/getlantern/stack"
 )
 
 //
@@ -18,7 +16,7 @@ type Error struct {
 	// Source captures the underlying error that's wrapped by this Error
 	Source error `json:"-"`
 	// Stack is caller's stack when Error is created
-	Stack stack.CallStack `json:"-"`
+	//Stack stack.CallStack `json:"-"`
 	// TS is the timestamp when Error is created
 	TS time.Time `json:"timestamp"`
 	// Package is the package of the code when Error is created
@@ -43,7 +41,7 @@ type Error struct {
 	// ReportTS is the timestamp when Error is reported
 	ReportTS time.Time `json:"report_timestamp"`
 	// ReportStack is caller's stack when Error is reported
-	ReportStack stack.CallStack `json:"-"`
+	//ReportStack stack.CallStack `json:"-"`
 
 	//*ProxyingInfo
 	//*UserLocale
