@@ -1,6 +1,9 @@
 package logging
 
 import (
+	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/http/httputil"
@@ -69,16 +72,25 @@ func TestBordaClient(t *testing.T) {
 
 func newMockServer() *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		httputil.DumpRequest(r, true)
-
-		dump, err := httputil.DumpRequest(r, true)
-		if err != nil {
-			log.Errorf("Error reading request: %v", err)
-		} else {
-			log.Tracef("Mock server received request: %v", string(dump))
+		if log.IsTraceEnabled() {
+			httputil.DumpRequest(r, true)
+			dump, err := httputil.DumpRequest(r, true)
+			if err != nil {
+				log.Errorf("Error reading request: %v", err)
+			} else {
+				log.Tracef("Mock server received request: %v", string(dump))
+			}
 		}
 
-		w.WriteHeader(201)
+		decoder := json.NewDecoder(r.Body)
+		var m Measurement
+		err := decoder.Decode(&m)
+		if err != nil {
+			w.WriteHeader(500)
+			io.WriteString(w, fmt.Sprintf("Error decoding JSON request: %v", err))
+		} else {
+			w.WriteHeader(201)
+		}
 	}))
 
 	return ts
