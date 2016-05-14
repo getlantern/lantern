@@ -25,10 +25,9 @@ func TestCaching(t *testing.T) {
 			maxAllowedCachedAge: 250 * time.Millisecond,
 			maxCacheSize:        2,
 			cacheSaveInterval:   50 * time.Millisecond,
-			cacheFile:           cacheFile,
 			toCache:             make(chan *Masquerade, 1000),
 		}
-		go d.fillCache(make([]*Masquerade, 0))
+		go d.fillCache(make([]*Masquerade, 0), cacheFile)
 		return d
 	}
 
@@ -62,7 +61,7 @@ func TestCaching(t *testing.T) {
 
 	// Reopen cache file and make sure right data was in there
 	d = makeDirect()
-	d.prepopulateMasquerades()
+	d.prepopulateMasquerades(cacheFile)
 	masquerades := readMasquerades()
 	assert.Len(t, masquerades, 2, "Wrong number of masquerades read")
 	assert.Equal(t, "b", masquerades[0].Domain, "Wrong masquerade at position 0")
@@ -73,7 +72,7 @@ func TestCaching(t *testing.T) {
 
 	time.Sleep(d.maxAllowedCachedAge)
 	d = makeDirect()
-	d.prepopulateMasquerades()
+	d.prepopulateMasquerades(cacheFile)
 	assert.Empty(t, readMasquerades(), "Cache should be empty after masquerades expire")
 	d.closeCache()
 }
