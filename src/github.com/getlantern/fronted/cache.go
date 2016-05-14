@@ -12,16 +12,16 @@ var (
 	fillSentinel *Masquerade = nil
 )
 
-func (d *direct) initCaching() int {
-	cache := d.prepopulateMasquerades()
+func (d *direct) initCaching(cacheFile string) int {
+	cache := d.prepopulateMasquerades(cacheFile)
 	prevetted := len(cache)
-	go d.fillCache(cache)
+	go d.fillCache(cache, cacheFile)
 	return prevetted
 }
 
-func (d *direct) prepopulateMasquerades() []*Masquerade {
-	cache := make([]*Masquerade, 0)
-	file, err := os.Open(d.cacheFile)
+func (d *direct) prepopulateMasquerades(cacheFile string) []*Masquerade {
+	var cache []*Masquerade
+	file, err := os.Open(cacheFile)
 	if err == nil {
 		log.Debugf("Attempting to prepopulate masquerades from cache")
 		defer file.Close()
@@ -50,7 +50,7 @@ func (d *direct) prepopulateMasquerades() []*Masquerade {
 	return cache
 }
 
-func (d *direct) fillCache(cache []*Masquerade) {
+func (d *direct) fillCache(cache []*Masquerade, cacheFile string) {
 	saveTimer := time.NewTimer(d.cacheSaveInterval)
 	cacheChanged := false
 	for {
@@ -79,7 +79,7 @@ func (d *direct) fillCache(cache []*Masquerade) {
 				log.Errorf("Unable to marshal cache to JSON: %v", err)
 				break
 			}
-			err = ioutil.WriteFile(d.cacheFile, b, 0644)
+			err = ioutil.WriteFile(cacheFile, b, 0644)
 			if err != nil {
 				log.Errorf("Unable to save cache to disk: %v", err)
 			}

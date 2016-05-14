@@ -40,7 +40,6 @@ type direct struct {
 	maxAllowedCachedAge time.Duration
 	maxCacheSize        int
 	cacheSaveInterval   time.Duration
-	cacheFile           string
 	toCache             chan *Masquerade
 }
 
@@ -72,13 +71,12 @@ func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade, cacheF
 		maxAllowedCachedAge: defaultMaxAllowedCachedAge,
 		maxCacheSize:        defaultMaxCacheSize,
 		cacheSaveInterval:   defaultCacheSaveInterval,
-		cacheFile:           cacheFile,
 		toCache:             make(chan *Masquerade, defaultMaxCacheSize),
 	}
 
 	numberToVet := numberToVetInitially
-	if d.cacheFile != "" {
-		numberToVet -= d.initCaching()
+	if cacheFile != "" {
+		numberToVet -= d.initCaching(cacheFile)
 	}
 
 	d.loadCandidates(masquerades)
