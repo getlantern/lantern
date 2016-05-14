@@ -24,7 +24,7 @@ import (
 var (
 	isPacOn       = int32(0)
 	pacURL        string
-	pacURLNoCache string
+	pacURLNoCache atomic.Value
 	directHosts   = make(map[string]bool)
 	cfgMutex      sync.RWMutex
 )
@@ -197,16 +197,22 @@ func doPACOn(pacURL string) {
 	//
 	// By changing the URL here we are forcing the OS to check the URL whenever
 	// Lantern starts.
-	pacURLNoCache = fmt.Sprintf("?%d", time.Now().UnixNano())
+	noCache := fmt.Sprintf("?%d", time.Now().UnixNano())
+	pacURLNoCache.Store(noCache)
 
-	err := pac.On(pacURL + pacURLNoCache)
+	err := pac.On(pacURL + noCache)
 	if err != nil {
 		log.Errorf("Unable to set lantern as system proxy: %v", err)
 	}
 }
 
 func doPACOff(pacURL string) {
-	err := pac.Off(pacURL + pacURLNoCache)
+	var noCache string
+	_noCache := pacURLNoCache.Load()
+	if _noCache != nil {
+		noCache = _noCache.(string)
+	}
+	err := pac.Off(pacURL + noCache)
 	if err != nil {
 		log.Errorf("Unable to unset lantern as system proxy: %v", err)
 	}

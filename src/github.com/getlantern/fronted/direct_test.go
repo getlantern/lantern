@@ -1,9 +1,14 @@
 package fronted
 
 import (
+	"io/ioutil"
 	"net/http"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func testEq(a, b []*Masquerade) bool {
@@ -30,7 +35,20 @@ func testEq(a, b []*Masquerade) bool {
 }
 
 func TestDirectDomainFronting(t *testing.T) {
-	ConfigureForTest(t)
+	dir, err := ioutil.TempDir("", "direct_test")
+	if !assert.NoError(t, err, "Unable to create temp dir") {
+		return
+	}
+	defer os.RemoveAll(dir)
+	cacheFile := filepath.Join(dir, "cachefile")
+	doTestDomainFronting(t, cacheFile)
+	time.Sleep(defaultCacheSaveInterval * 2)
+	// Then try again, this time reusing the existing cacheFile
+	doTestDomainFronting(t, cacheFile)
+}
+
+func doTestDomainFronting(t *testing.T, cacheFile string) {
+	ConfigureCachingForTest(t, cacheFile)
 	client := &http.Client{
 		Transport: NewDirect(30 * time.Second),
 	}

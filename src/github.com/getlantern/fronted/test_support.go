@@ -10,10 +10,14 @@ import (
 // ConfigureForTest configures fronted for testing using default masquerades and
 // certificate authorities.
 func ConfigureForTest(t *testing.T) {
+	ConfigureCachingForTest(t, "")
+}
+
+func ConfigureCachingForTest(t *testing.T, cacheFile string) {
 	certs := trustedCACerts(t)
 	m := make(map[string][]*Masquerade)
 	m["cloudfront"] = DefaultCloudfrontMasquerades
-	Configure(certs, m)
+	Configure(certs, m, cacheFile)
 }
 
 func trustedCACerts(t *testing.T) *x509.CertPool {

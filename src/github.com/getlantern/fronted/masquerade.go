@@ -1,5 +1,9 @@
 package fronted
 
+import (
+	"time"
+)
+
 const (
 	NumWorkers = 10 // number of worker goroutines for verifying
 )
@@ -19,4 +23,7 @@ type Masquerade struct {
 	// IpAddress: pre-resolved ip address to use instead of Domain (if
 	// available)
 	IpAddress string
+
+	// LastVetted: the most recent time at which this Masquerade was vetted
+	LastVetted time.Time
 }

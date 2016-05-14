@@ -2,8 +2,10 @@ package flashlight
 
 import (
 	"fmt"
+	"path/filepath"
 	"sync"
 
+	"github.com/getlantern/appdir"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
 
@@ -141,7 +143,7 @@ func applyClientConfig(client *client.Client, cfg *config.Config, proxyAll func(
 	if err != nil {
 		log.Errorf("Unable to get trusted ca certs, not configuring fronted: %s", err)
 	} else {
-		fronted.Configure(certs, cfg.Client.MasqueradeSets)
+		fronted.Configure(certs, cfg.Client.MasqueradeSets, filepath.Join(appdir.General("Lantern"), "masquerade_cache"))
 	}
 	logging.Configure(cfg.CloudConfigCA, cfg.Client.DeviceID, Version, RevisionDate)
 	// Update client configuration
