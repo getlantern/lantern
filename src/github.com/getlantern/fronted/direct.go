@@ -41,7 +41,6 @@ type direct struct {
 	maxCacheSize        int
 	cacheSaveInterval   time.Duration
 	cacheFile           string
-	cache               []*Masquerade
 	toCache             chan *Masquerade
 }
 
@@ -74,7 +73,6 @@ func Configure(pool *x509.CertPool, masquerades map[string][]*Masquerade, cacheF
 		maxCacheSize:        defaultMaxCacheSize,
 		cacheSaveInterval:   defaultCacheSaveInterval,
 		cacheFile:           cacheFile,
-		cache:               make([]*Masquerade, 0),
 		toCache:             make(chan *Masquerade, defaultMaxCacheSize),
 	}
 

@@ -13,12 +13,14 @@ var (
 )
 
 func (d *direct) initCaching() int {
-	prevetted := d.prepopulateMasquerades()
-	go d.fillCache()
+	cache := d.prepopulateMasquerades()
+	prevetted := len(cache)
+	go d.fillCache(cache)
 	return prevetted
 }
 
-func (d *direct) prepopulateMasquerades() int {
+func (d *direct) prepopulateMasquerades() []*Masquerade {
+	cache := make([]*Masquerade, 0)
 	file, err := os.Open(d.cacheFile)
 	if err == nil {
 		log.Debugf("Attempting to prepopulate masquerades from cache")
@@ -27,7 +29,7 @@ func (d *direct) prepopulateMasquerades() int {
 		err := json.NewDecoder(file).Decode(&masquerades)
 		if err != nil {
 			log.Errorf("Error prepopulating cached masquerades: %v", err)
-			return 0
+			return cache
 		}
 
 		log.Debugf("Cache contained %d masquerades", len(masquerades))
@@ -37,7 +39,7 @@ func (d *direct) prepopulateMasquerades() int {
 				select {
 				case d.masquerades <- m:
 					// submitted
-					d.cache = append(d.cache, m)
+					cache = append(cache, m)
 				default:
 					// channel full, that's okay
 				}
@@ -45,10 +47,10 @@ func (d *direct) prepopulateMasquerades() int {
 		}
 	}
 
-	return len(d.cache)
+	return cache
 }
 
-func (d *direct) fillCache() {
+func (d *direct) fillCache(cache []*Masquerade) {
 	saveTimer := time.NewTimer(d.cacheSaveInterval)
 	cacheChanged := false
 	for {
@@ -59,7 +61,7 @@ func (d *direct) fillCache() {
 				return
 			}
 			log.Debugf("Caching vetted masquerade for %v (%v)", m.Domain, m.IpAddress)
-			d.cache = append(d.cache, m)
+			cache = append(cache, m)
 			cacheChanged = true
 		case <-saveTimer.C:
 			if !cacheChanged {
@@ -67,12 +69,12 @@ func (d *direct) fillCache() {
 			}
 			log.Debug("Saving updated masquerade cache")
 			// Truncate cache to max length if necessary
-			if len(d.cache) > d.maxCacheSize {
+			if len(cache) > d.maxCacheSize {
 				truncated := make([]*Masquerade, d.maxCacheSize)
-				copy(truncated, d.cache[len(d.cache)-d.maxCacheSize:])
-				d.cache = truncated
+				copy(truncated, cache[len(cache)-d.maxCacheSize:])
+				cache = truncated
 			}
-			b, err := json.Marshal(d.cache)
+			b, err := json.Marshal(cache)
 			if err != nil {
 				log.Errorf("Unable to marshal cache to JSON: %v", err)
 				break
