@@ -74,21 +74,22 @@ func (b *BordaReporter) AddMeasurement(m *Measurement) (sent bool, err error) {
 
 	sent = false
 	if b.nMeas >= b.options.MaxChunkSize {
-		b.sendChunk()
+		if _, err := b.sendChunk(); err != nil {
+			return sent, err
+		}
 		b.nMeas = 0
 		sent = true
 	}
-	return
+	return sent, nil
 }
 
-func (b *BordaReporter) sendChunk() error {
+func (b *BordaReporter) sendChunk() (nSent int, err error) {
 	for i := 0; i < b.nMeas; i++ {
 		if err := b.sendMeasurement(b.mBuf[i]); err != nil {
-			// Log as usual
-			log.Errorf("Error sending Measurement to Borda: %v", err)
+			return i, err
 		}
 	}
-	return nil
+	return b.nMeas, nil
 }
 
 func (b *BordaReporter) sendMeasurement(m *Measurement) error {
