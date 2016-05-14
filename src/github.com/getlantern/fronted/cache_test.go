@@ -34,9 +34,9 @@ func TestCaching(t *testing.T) {
 	}
 
 	now := time.Now()
-	ma := &Masquerade{Domain: "a", LastVetted: now}
-	mb := &Masquerade{Domain: "b", LastVetted: now}
-	mc := &Masquerade{Domain: "c", LastVetted: now}
+	ma := &Masquerade{Domain: "a", IpAddress: "1", LastVetted: now}
+	mb := &Masquerade{Domain: "b", IpAddress: "2", LastVetted: now}
+	mc := &Masquerade{Domain: "c", IpAddress: "3", LastVetted: now}
 
 	d := makeDirect()
 	d.toCache <- ma
@@ -64,7 +64,12 @@ func TestCaching(t *testing.T) {
 	// Reopen cache file and make sure right data was in there
 	d = makeDirect()
 	d.prepopulateMasquerades()
-	assert.EqualValues(t, []*Masquerade{mb, mc}, readMasquerades(), "Wrong stuff cached after reopening cache")
+	masquerades := readMasquerades()
+	assert.Len(t, masquerades, 2, "Wrong number of masquerades read")
+	assert.Equal(t, "b", masquerades[0].Domain, "Wrong masquerade at position 0")
+	assert.Equal(t, "2", masquerades[0].IpAddress, "Masquerade at position 0 has wrong IpAddress")
+	assert.Equal(t, "c", masquerades[1].Domain, "Wrong masquerade at position 0")
+	assert.Equal(t, "3", masquerades[1].IpAddress, "Masquerade at position 1 has wrong IpAddress")
 	d.closeCache()
 
 	time.Sleep(d.maxAllowedCachedAge)
