@@ -1,9 +1,9 @@
 package logging
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -92,18 +92,26 @@ func (b *BordaReporter) sendChunk() error {
 }
 
 func (b *BordaReporter) sendMeasurement(m *Measurement) error {
-	jbytes, err := json.Marshal(*m)
-	if err != nil {
-		return err
-	}
+	pr, pw := io.Pipe()
 
-	req, err := http.NewRequest(
-		http.MethodPost,
-		bordaURL,
-		bytes.NewBuffer(jbytes),
-	)
-	if err != nil {
+	encErr := make(chan error, 1)
+	go func() {
+		err := json.NewEncoder(pw).Encode(&m)
+		if err != nil {
+			encErr <- err
+		}
+		pw.Close()
+	}()
+
+	req, decErr := http.NewRequest(http.MethodPost, bordaURL, pr)
+
+	select {
+	case err := <-encErr:
 		return err
+	default:
+		if decErr != nil {
+			return decErr
+		}
 	}
 
 	req.Header.Set("Content-Type", "application/json")
