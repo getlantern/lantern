@@ -26,10 +26,9 @@ func TestCaching(t *testing.T) {
 			maxCacheSize:        2,
 			cacheSaveInterval:   50 * time.Millisecond,
 			cacheFile:           cacheFile,
-			cache:               make([]*Masquerade, 0),
 			toCache:             make(chan *Masquerade, 1000),
 		}
-		go d.fillCache()
+		go d.fillCache(make([]*Masquerade, 0))
 		return d
 	}
 
