@@ -6,6 +6,7 @@ import (
 	"net"
 
 	"github.com/Yawning/obfs4/transports/obfs4"
+	"github.com/getlantern/context"
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/tlsdialer"
 
@@ -34,29 +35,33 @@ func defaultDialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 	if s.Cert == "" && !forceProxy {
 		log.Error("No Cert configured for chained server, will dial with plain tcp")
 		dial = func() (net.Conn, error) {
-			return netd.Dial("tcp", addr)
+			defer proxyContext(s.Addr, "http").Exit()
+			conn, err := netd.Dial("tcp", addr)
+			return conn, log.IfError(err)
 		}
 	} else {
 		log.Trace("Cert configured for chained server, will dial with tls over tcp")
 		cert, err := keyman.LoadCertificateFromPEMBytes([]byte(s.Cert))
 		if err != nil {
-			return nil, fmt.Errorf("Unable to parse certificate: %s", err)
+			return nil, log.Errorf("Unable to parse certificate: %s", err)
 		}
 		x509cert := cert.X509()
 		sessionCache := tls.NewLRUClientSessionCache(1000)
 		dial = func() (net.Conn, error) {
+			defer proxyContext(s.Addr, "https").Exit()
+
 			conn, err := tlsdialer.DialWithDialer(netd, "tcp", addr, false, &tls.Config{
 				ClientSessionCache: sessionCache,
 				InsecureSkipVerify: true,
 			})
 			if err != nil {
-				return nil, err
+				return nil, log.IfError(err)
 			}
 			if !forceProxy && !conn.ConnectionState().PeerCertificates[0].Equal(x509cert) {
-				if err := conn.Close(); err != nil {
-					log.Debugf("Error closing chained server connection: %s", err)
+				if err2 := conn.Close(); err2 != nil {
+					log.Debugf("Error closing chained server connection: %s", err2)
 				}
-				return nil, fmt.Errorf("Server's certificate didn't match expected!")
+				return nil, log.Errorf("Server's certificate didn't match expected!")
 			}
 			return conn, err
 		}
@@ -73,7 +78,7 @@ func obfs4DialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 	tr := obfs4.Transport{}
 	cf, err := tr.ClientFactory("")
 	if err != nil {
-		return nil, fmt.Errorf("Unable to create obfs4 client factory: %v", err)
+		return nil, log.Errorf("Unable to create obfs4 client factory: %v", err)
 	}
 
 	ptArgs := &pt.Args{}
@@ -82,10 +87,21 @@ func obfs4DialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 
 	args, err := cf.ParseArgs(ptArgs)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to parse client args: %v", err)
+		return nil, log.Errorf("Unable to parse client args: %v", err)
 	}
 
 	return func() (net.Conn, error) {
+		defer proxyContext(s.Addr, "obfs4").Exit()
 		return cf.Dial("tcp", s.Addr, net.Dial, args)
 	}, nil
+}
+
+func proxyContext(addr string, protocol string) *context.Context {
+	ctx := context.Enter().Put("proxy_protocol", protocol)
+	host, port, err := net.SplitHostPort(addr)
+	if err == nil {
+		log.Debug("Adding proxy host")
+		ctx.Put("proxy_host", host).Put("proxy_port", port)
+	}
+	return ctx
 }

@@ -3,12 +3,15 @@ package client
 import (
 	"fmt"
 	"io"
+	"math/rand"
 	"net"
 	"net/http"
 	"net/http/httputil"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/getlantern/context"
 
 	"github.com/getlantern/flashlight/logging"
 )
@@ -21,12 +24,20 @@ const (
 // handler available from getHandler() and latest ReverseProxy available from
 // getReverseProxy().
 func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	logging.RegisterUserAgent(req.Header.Get("User-Agent"))
+	userAgent := req.Header.Get("User-Agent")
+	logging.RegisterUserAgent(userAgent)
+
+	ctx := context.Enter().
+		Put("op", "proxy").
+		Put("user_agent", userAgent).
+		Put("request_id", rand.Int63()).
+		Put("origin", req.Host)
+	defer ctx.Exit()
 
 	if req.Method == httpConnectMethod {
 		// CONNECT requests are often used for HTTPS requests.
 		log.Tracef("Intercepting CONNECT %s", req.URL)
-		client.intercept(resp, req)
+		client.intercept(resp, req, ctx)
 	} else if rp, ok := client.rp.Get(1 * time.Minute); ok {
 		// Direct proxying can only be used for plain HTTP connections.
 		log.Debugf("Reverse proxying %s %v", req.Method, req.URL)
@@ -40,7 +51,7 @@ func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 // intercept intercepts an HTTP CONNECT request, hijacks the underlying client
 // connection and starts piping the data over a new net.Conn obtained from the
 // given dial function.
-func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
+func (client *Client) intercept(resp http.ResponseWriter, req *http.Request, ctx *context.Context) {
 
 	if req.Method != httpConnectMethod {
 		panic("Intercept used for non-CONNECT request!")
@@ -123,31 +134,31 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	success := make(chan bool, 1)
-	go func() {
+	ctx.Go(func() {
 		if e := respondOK(clientConn, req); e != nil {
 			log.Errorf("Unable to respond OK: %s", e)
 			success <- false
 			return
 		}
 		success <- true
-	}()
+	})
 
 	if <-success {
 		// Pipe data between the client and the proxy.
-		pipeData(clientConn, connOut, func() { closeOnce.Do(closeConns) })
+		pipeData(clientConn, connOut, ctx, func() { closeOnce.Do(closeConns) })
 	}
 }
 
 // pipeData pipes data between the client and proxy connections.  It's also
 // responsible for responding to the initial CONNECT request with a 200 OK.
-func pipeData(clientConn net.Conn, connOut net.Conn, closeFunc func()) {
+func pipeData(clientConn net.Conn, connOut net.Conn, ctx *context.Context, closeFunc func()) {
 	// Start piping from client to proxy
-	go func() {
+	ctx.Go(func() {
 		if _, err := io.Copy(connOut, clientConn); err != nil {
 			log.Tracef("Error piping data from client to proxy: %s", err)
 		}
 		closeFunc()
-	}()
+	})
 
 	// Then start copying from proxy to client.
 	if _, err := io.Copy(clientConn, connOut); err != nil {
