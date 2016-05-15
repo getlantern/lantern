@@ -14,15 +14,30 @@ func TestStack(t *testing.T) {
 		Put("b", 2).
 		Put("c", 3)
 	c.Enter().
-		Put("c", 4).
+		PutDynamic("c", func() interface{} { return 4 }).
 		Put("d", 5)
 
 	var assertMutex sync.Mutex
-	assertContents := func(expected Map) {
+	assertContentsAsMap := func(expected Map) {
 		m := AsMap()
 		assertMutex.Lock()
 		assert.Equal(t, expected, m)
 		assertMutex.Unlock()
+	}
+
+	assertContentsAsRead := func(expected Map) {
+		m := make(Map)
+		Read(func(key string, value interface{}) {
+			m[key] = value
+		})
+		assertMutex.Lock()
+		assert.Equal(t, expected, m)
+		assertMutex.Unlock()
+	}
+
+	assertContents := func(expected Map) {
+		assertContentsAsMap(expected)
+		assertContentsAsRead(expected)
 	}
 
 	var wg sync.WaitGroup
@@ -72,6 +87,12 @@ func TestStack(t *testing.T) {
 	// Exit again, just for good measure
 	c.Exit()
 	assertContents(Map{})
+
+	readCalled := false
+	c.Read(func(key string, value interface{}) {
+		readCalled = true
+	})
+	assert.False(t, readCalled, "c.Read shouldn't be called on empty stack")
 
 	// Spawn a goroutine with no existing contexts
 	wg.Add(1)
