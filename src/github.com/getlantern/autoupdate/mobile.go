@@ -80,7 +80,7 @@ func doCheckUpdate(shouldProxy bool, version, URL string, publicKey []byte) (str
 	}
 
 	if isNewerVersion(v, res.Version) {
-		log.Debugf("Newer version of Lantern mobile available! %s", res.Version)
+		log.Debugf("Newer version of Lantern mobile available! %s at %s", res.Version, res.Url)
 		return res.Url, nil
 	}
 
