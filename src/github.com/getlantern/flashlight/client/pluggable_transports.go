@@ -92,7 +92,8 @@ func obfs4DialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 
 	return func() (net.Conn, error) {
 		defer proxyContext(s.Addr, "obfs4").Exit()
-		return cf.Dial("tcp", s.Addr, net.Dial, args)
+		conn, err := cf.Dial("tcp", s.Addr, net.Dial, args)
+		return conn, log.IfError(err)
 	}, nil
 }
 
