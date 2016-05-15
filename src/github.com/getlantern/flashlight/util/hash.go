@@ -5,6 +5,12 @@ import (
 	"encoding/hex"
 	"io"
 	"os"
+
+	"github.com/getlantern/golog"
+)
+
+var (
+	log = golog.LoggerFor("flashlight.util")
 )
 
 // GetFileHash returns the hex encoding of the sha-256 hash of the

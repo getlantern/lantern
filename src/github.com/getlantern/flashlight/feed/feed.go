@@ -7,11 +7,11 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
-	"github.com/getlantern/eventual"
 	"github.com/getlantern/flashlight/geolookup"
-	"github.com/getlantern/flashlight/util"
+	"github.com/getlantern/flashlight/proxied"
 	"github.com/getlantern/golog"
 )
 
@@ -25,7 +25,10 @@ const (
 
 var (
 	feed *Feed
-	log  = golog.LoggerFor("feed")
+
+	_httpClient     *http.Client
+	httpClientMutex sync.Mutex
+	log             = golog.LoggerFor("feed")
 )
 
 // Feed contains the data we get back
@@ -98,11 +101,8 @@ func CurrentFeed() *Feed {
 
 // GetFeed creates an http.Client and fetches the latest
 // Lantern public feed for displaying on the home screen.
-// If a proxyAddr is specified, the http.Client will proxy
-// through it
-func GetFeed(locale string, allStr string, proxyAddr string,
-	provider FeedProvider) {
-	doGetFeed(defaultFeedEndpoint, locale, allStr, proxyAddr, provider)
+func GetFeed(locale string, allStr string, shouldProxy bool, provider FeedProvider) {
+	doGetFeed(defaultFeedEndpoint, locale, shouldProxy, allStr, provider)
 }
 
 // handleError logs the given error message and sets the current feed to nil
@@ -152,25 +152,25 @@ func doRequest(httpClient *http.Client, feedURL string) (*http.Response, error) 
 	return res, nil
 }
 
-func doGetFeed(feedEndpoint string, locale string, allStr string,
-	proxyAddr string, provider FeedProvider) {
+func doGetFeed(feedEndpoint string, locale string, shouldProxy bool, allStr string,
+	provider FeedProvider) {
 
-	var err error
 	var res *http.Response
+
 	var httpClient *http.Client
-
-	feed = &Feed{}
-
-	if proxyAddr == "" {
-		// if no proxyAddr is supplied, use an ordinary http client
+	var err error
+	if !shouldProxy {
+		// Connect directly
 		httpClient = &http.Client{}
 	} else {
-		httpClient, err = util.HTTPClient("", eventual.DefaultGetter(proxyAddr))
+		// Connect through proxy
+		httpClient, err = getHTTPClient()
 		if err != nil {
-			handleError(fmt.Errorf("Error creating client: %v", err))
+			handleError(err)
 			return
 		}
 	}
+	feed = &Feed{}
 
 	feedURL := getFeedURL(feedEndpoint, locale)
 	log.Debugf("Downloading latest feed from %s", feedURL)
@@ -296,4 +296,18 @@ func determineLocale(defaultLocale string) string {
 		return "ms_MY"
 	}
 	return defaultLocale
+}
+
+func getHTTPClient() (*http.Client, error) {
+	var err error
+	httpClientMutex.Lock()
+	if _httpClient == nil {
+		var rt http.RoundTripper
+		rt, err = proxied.ChainedNonPersistent("")
+		if err == nil {
+			_httpClient = &http.Client{Transport: rt}
+		}
+	}
+	httpClientMutex.Unlock()
+	return _httpClient, err
 }
