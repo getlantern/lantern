@@ -30,7 +30,7 @@ android {
 	    minSdkVersion rootProject.minSdkVersion
         targetSdkVersion rootProject.targetSdkVersion
         applicationId "org.getlantern.lantern"
-        versionCode 1
+        versionCode code
         versionName "$project.lanternVersion ($project.lanternRevisionDate)"
     }
 
