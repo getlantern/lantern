@@ -100,7 +100,6 @@ func proxyContext(addr string, protocol string) *context.Context {
 	ctx := context.Enter().Put("proxy_protocol", protocol)
 	host, port, err := net.SplitHostPort(addr)
 	if err == nil {
-		log.Debug("Adding proxy host")
 		ctx.Put("proxy_host", host).Put("proxy_port", port)
 	}
 	return ctx
