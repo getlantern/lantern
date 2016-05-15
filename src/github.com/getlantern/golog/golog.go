@@ -18,10 +18,14 @@ import (
 	"strconv"
 	"strings"
 	"sync/atomic"
+
+	"github.com/oxtoacart/bpool"
 )
 
 var (
 	outs atomic.Value
+
+	bufferPool = bpool.NewBufferPool(200)
 )
 
 func init() {
@@ -134,7 +138,15 @@ func (l *logger) linePrefix(skipFrames int) string {
 }
 
 func (l *logger) print(out io.Writer, skipFrames int, severity string, arg interface{}) {
-	_, err := fmt.Fprintf(out, severity+" "+l.linePrefix(skipFrames)+"%s\n", arg)
+	buf := bufferPool.Get()
+	defer bufferPool.Put(buf)
+	buf.WriteString(severity)
+	buf.WriteString(" ")
+	buf.WriteString(l.linePrefix(skipFrames))
+	fmt.Fprintf(buf, "%v", arg)
+	printContextInfo(buf)
+	buf.WriteByte('\n')
+	_, err := out.Write(buf.Bytes())
 	if err != nil {
 		errorOnLogging(err)
 	}
@@ -144,7 +156,15 @@ func (l *logger) print(out io.Writer, skipFrames int, severity string, arg inter
 }
 
 func (l *logger) printf(out io.Writer, skipFrames int, severity string, message string, args ...interface{}) {
-	_, err := fmt.Fprintf(out, severity+" "+l.linePrefix(skipFrames)+message+"\n", args...)
+	buf := bufferPool.Get()
+	defer bufferPool.Put(buf)
+	buf.WriteString(severity)
+	buf.WriteString(" ")
+	buf.WriteString(l.linePrefix(skipFrames))
+	fmt.Fprintf(buf, message, args...)
+	printContextInfo(buf)
+	buf.WriteByte('\n')
+	_, err := out.Write(buf.Bytes())
 	if err != nil {
 		errorOnLogging(err)
 	}

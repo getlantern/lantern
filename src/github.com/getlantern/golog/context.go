@@ -3,9 +3,9 @@ package golog
 import (
 	"bytes"
 	"fmt"
+	"sort"
 
 	"github.com/getlantern/gls"
-	"github.com/oxtoacart/bpool"
 )
 
 var (
@@ -39,20 +39,26 @@ func (c *ContextManager) Clear() {
 	gls.Cleanup()
 }
 
-func withContextInfo(fn func(contextInfo string)) {
+func printContextInfo(buf *bytes.Buffer) {
 	gls.ReadAll(func(values gls.Values) error {
-		contextInfo := ""
 		if values != nil && len(values) > 0 {
-			buf := bytes.NewBuffer(make([]byte))
-			for key, value := range values {
-				buf.WriteString(" ")
+			buf.WriteString(" [")
+			var keys []string
+			for key := range values {
+				keys = append(keys, key)
+			}
+			sort.Strings(keys)
+			for i, key := range keys {
+				value := values[key]
+				if i > 0 {
+					buf.WriteString(" ")
+				}
 				buf.WriteString(key)
 				buf.WriteString("=")
-				fmt.Fprintf(&buf, "%v", value)
+				fmt.Fprintf(buf, "%v", value)
 			}
-			contextInfo = buf.String()
+			buf.WriteByte(']')
 		}
-		fn(contextInfo)
 		return nil
 	})
 }
