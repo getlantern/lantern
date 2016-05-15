@@ -23,8 +23,8 @@ type Updater interface {
 	ShowProgress(string)
 }
 
-// passThru wraps an existing io.Reader.
-type passThru struct {
+// byteCounter wraps an existing io.Reader.
+type byteCounter struct {
 	io.Reader
 	Updater
 	total    int64 // total bytes transferred
@@ -35,19 +35,20 @@ type passThru struct {
 // Read 'overrides' the underlying io.Reader's Read method.
 // This is the one that will be called by io.Copy(). We simply
 // use it to keep track of byte counts and then forward the call.
-func (pt *passThru) Read(p []byte) (int, error) {
+func (pt *byteCounter) Read(p []byte) (int, error) {
 	n, err := pt.Reader.Read(p)
 	if n > 0 {
 		pt.total += int64(n)
-		percentage := float64(pt.total) / float64(pt.length) * float64(100)
+		percentage := (float64(pt.total) / float64(pt.length)) * float64(100)
 		i := int(percentage / float64(10))
 		is := fmt.Sprintf("%v", i)
-		pt.Updater.ShowProgress(fmt.Sprintf("%d", int(percentage)))
 
 		if percentage-pt.progress > 2 {
 			fmt.Fprintf(os.Stderr, is)
 			pt.progress = percentage
+			pt.Updater.ShowProgress(fmt.Sprintf("%d", int(pt.progress)))
 		}
+
 	}
 
 	return n, err
@@ -92,10 +93,6 @@ func CheckMobileUpdate(shouldProxy bool, appVersion string) (string, error) {
 		updateStagingServer, []byte(PackagePublicKey))
 }
 
-func handleError(err error, updater Updater) {
-	log.Error(err)
-}
-
 // UpdateMobile downloads the latest APK from the given url to apkPath
 // If proxyAddr is specified, the client proxies through the given HTTP proxy
 // Updater is an interface for calling back to Java (whether to display download progress
@@ -108,19 +105,19 @@ func UpdateMobile(shouldProxy bool, url, apkPath string, updater Updater) string
 
 	out, err := os.Create(apkPath)
 	if err != nil {
-		handleError(err, updater)
+		log.Error(err)
 		return ""
 	}
 	defer out.Close()
 
 	httpClient, err := proxied.GetHTTPClient(shouldProxy)
 	if err != nil {
-		handleError(err, updater)
+		log.Error(err)
 		return ""
 	}
 
 	if req, err = http.NewRequest("GET", url, nil); err != nil {
-		handleError(fmt.Errorf("Error downloading update: %v", err), updater)
+		log.Errorf("Error downloading update: %v", err)
 		return ""
 	}
 
@@ -128,18 +125,21 @@ func UpdateMobile(shouldProxy bool, url, apkPath string, updater Updater) string
 	req.Header.Add("Accept-Encoding", "gzip")
 
 	if res, err = httpClient.Do(req); err != nil {
-		handleError(fmt.Errorf("Error requesting update: %v", err), updater)
+		log.Errorf("Error requesting update: %v", err)
 		return ""
 	}
 
 	defer res.Body.Close()
 
-	readerpt := &passThru{Updater: updater,
+	// We use a special byteCounter that storres a reference
+	// to the updater interface to make it easy to publish progress
+	// for how much of the update has been downloaded already.
+	bytespt := &byteCounter{Updater: updater,
 		Reader: bzip2.NewReader(res.Body), length: res.ContentLength}
 
-	_, err = io.Copy(out, readerpt)
+	_, err = io.Copy(out, bytespt)
 	if err != nil {
-		handleError(fmt.Errorf("Error copying update: %v", err), updater)
+		log.Errorf("Error copying update: %v", err)
 		return ""
 	}
 
