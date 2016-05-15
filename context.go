@@ -56,6 +56,10 @@ func (c *Context) Go(fn func()) {
 		contexts[id] = c
 		allmx.Unlock()
 		fn()
+		// Clean up the context
+		allmx.Lock()
+		delete(contexts, id)
+		allmx.Unlock()
 	}()
 }
 
