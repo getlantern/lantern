@@ -9,6 +9,7 @@ import (
 	"net/http/httputil"
 	"time"
 
+	"github.com/getlantern/context"
 	"github.com/getlantern/yamlconf"
 
 	"code.google.com/p/go-uuid/uuid"
@@ -96,6 +97,7 @@ func (cf *fetcher) pollForConfig(currentCfg yamlconf.Config, stickyConfig bool) 
 }
 
 func (cf *fetcher) fetchCloudConfig(cfg *Config) ([]byte, error) {
+	defer context.Enter().Put("internal_op", "configfetch").Exit()
 	log.Debugf("Fetching cloud config from %v (%v)", cfg.CloudConfig, cfg.FrontedCloudConfig)
 
 	url := cfg.CloudConfig

@@ -4,6 +4,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/getlantern/context"
 	"github.com/getlantern/eventual"
 	geo "github.com/getlantern/geolookup"
 	"github.com/getlantern/golog"
@@ -72,6 +73,8 @@ func run() {
 }
 
 func lookup() *geoInfo {
+	defer context.Enter().Put("internal_op", "geolookup").Exit()
+
 	consecutiveFailures := 0
 
 	for {

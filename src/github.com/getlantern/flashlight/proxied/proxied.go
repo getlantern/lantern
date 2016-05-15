@@ -17,6 +17,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/getlantern/context"
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
@@ -245,7 +246,9 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 		finalResponseCh := make(chan *http.Response, 1)
 		finalErrorCh := make(chan error, 1)
 
-		go readResponses(finalResponseCh, responses, finalErrorCh, errs)
+		context.Go(func() {
+			readResponses(finalResponseCh, responses, finalErrorCh, errs)
+		})
 
 		select {
 		case resp := <-finalResponseCh:
@@ -263,8 +266,8 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 	}
 
 	if df.cf.parallel {
-		go doFronted()
-		go doChained()
+		context.Go(doFronted)
+		context.Go(doChained)
 		return getResponseParallel()
 	}
 
