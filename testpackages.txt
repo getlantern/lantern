@@ -6,6 +6,7 @@ github.com/getlantern/byteexec
 github.com/getlantern/chained
 github.com/getlantern/checkfallbacks
 github.com/getlantern/connpool
+github.com/getlantern/context
 github.com/getlantern/deepcopy
 github.com/getlantern/detour
 github.com/getlantern/eventual

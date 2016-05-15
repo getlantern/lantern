@@ -22,6 +22,10 @@ var (
 	expectedStdLog   = expectedLog
 )
 
+func init() {
+	context.PutGlobal("global", "shouldn't show up")
+}
+
 func expected(severity string, log string) *regexp.Regexp {
 	return regexp.MustCompile(severitize(severity, log))
 }

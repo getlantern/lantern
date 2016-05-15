@@ -318,7 +318,7 @@ func errorOnLogging(err error) {
 }
 
 func printContext(buf *bytes.Buffer) {
-	values := context.AsMap()
+	values := context.AsMapWithGlobals()
 	if len(values) == 0 {
 		return
 	}
