@@ -32,8 +32,8 @@ func TestStack(t *testing.T) {
 	}
 
 	assertContents := func(expected Map) {
-		m := AsMap()
-		mg := AsMapWithGlobals()
+		mg := AsMap()
+		m := AsMapWithoutGlobals()
 		doAssertContents(expected, m)
 		expected["ga"] = "i"
 		expected["gb"] = "ii"
