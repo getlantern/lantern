@@ -28,7 +28,7 @@ func TestStack(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	Go(func() {
-		Enter().Put("e", 6)
+		defer Enter().Put("e", 6).Exit()
 		assertContents(Map{
 			"a": 1,
 			"b": 2,
@@ -69,13 +69,17 @@ func TestStack(t *testing.T) {
 	// Spawn a goroutine with no existing contexts
 	wg.Add(1)
 	Go(func() {
-		Enter().Put("f", 7)
+		defer Enter().Put("f", 7).Exit()
 		assertContents(Map{
 			"f": 7,
 		})
 		wg.Done()
 	})
 	wg.Wait()
+
+	allmx.RLock()
+	assert.Empty(t, contexts, "No contexts should be left")
+	allmx.RUnlock()
 }
 
 func BenchmarkPut(b *testing.B) {
