@@ -12,6 +12,7 @@ import (
 
 	"github.com/armon/go-socks5"
 	"github.com/getlantern/balancer"
+	"github.com/getlantern/context"
 	"github.com/getlantern/detour"
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/golog"
@@ -197,10 +198,15 @@ func (client *Client) proxiedDialer(orig func(network, addr string) (net.Conn, e
 	detourDialer := detour.Dialer(orig)
 
 	return func(network, addr string) (net.Conn, error) {
+		ctx := context.Enter()
+		defer ctx.Exit()
+
 		var proxied func(network, addr string) (net.Conn, error)
 		if client.ProxyAll() {
+			ctx.Put("detour", false)
 			proxied = orig
 		} else {
+			ctx.Put("detour", true)
 			proxied = detourDialer
 		}
 
