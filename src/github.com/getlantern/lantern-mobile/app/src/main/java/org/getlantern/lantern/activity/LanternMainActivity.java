@@ -295,7 +295,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         menuMap.put(resources.getString(R.string.check_for_update), new Command() {
             public void runCommand() {
-                checkUpdateAvailable();
+                checkUpdateAvailable(true);
             }
         });
 
@@ -419,7 +419,11 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         drawerLayout.closeDrawer(drawerPane);
     }
 
-    private void noUpdateAvailable() {
+    private void noUpdateAvailable(boolean showAlert) {
+        if (!showAlert) {
+            return;
+        }
+
         String noUpdateTitle = getResources().getString(R.string.no_update_available);
         String noUpdateMsg = String.format(getResources().getString(R.string.have_latest_version), appVersion);
         Utils.showAlertDialog(this, noUpdateTitle, noUpdateMsg);
@@ -434,8 +438,16 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
                 boolean drawerOpen = drawerLayout != null && 
                     drawerLayout.isDrawerOpen(GravityCompat.START);
 
-                if (!UpdateActivity.active && !drawerOpen) {
-                    checkUpdateAvailable();
+                // disable period checks for debug builds
+                // (you can still test updates from the side-menu)
+                boolean isDebuggable = Utils.isDebuggable(LanternMainActivity.this);
+
+                // if the update popup isn't already open
+                if (!isFinishing() && !isDebuggable &&
+                    !UpdateActivity.active && !drawerOpen) {
+
+                    checkUpdateAvailable(false);
+
                 }
             }
         };
@@ -448,14 +460,29 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     // - If an update is available, we start the Update activity
     //   and prompt the user to download it
     // - If no update is available, an alert dialog is displayed
-    private void checkUpdateAvailable() {
+    private void checkUpdateAvailable(boolean showAlert) {
+
+        String url;
 
         Log.d(TAG, String.format("Currently running %s; seeing if a new version is available", appVersion));
 
-        String url = Lantern.CheckForUpdates(session.startLocalProxy());
+        try {
+            url = Lantern.CheckForUpdates(session.startLocalProxy());
+        } catch (Exception e) {
+            Log.e(TAG, "Error trying to check for updates: " + e.getMessage());
+            e.printStackTrace();
+            // An error occurred trying to check for a new version of Lantern
+            if (showAlert) {
+                Utils.showAlertDialog(this, "Lantern",
+                        getResources().getString(R.string.error_checking_for_update));
+            }
+            return;
+        }
 
-        if (url == null || "".equals(url)) {
-            noUpdateAvailable();
+        // No error occurred but the returned url is empty which
+        // means no update is available
+        if (url == null || url.equals("")) {
+            noUpdateAvailable(showAlert);
             return;
         }
 

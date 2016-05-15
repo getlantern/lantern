@@ -5,6 +5,8 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.util.Log;
 import android.view.View;
@@ -41,6 +43,19 @@ public class Utils {
         if (mPrefs != null) {
             mPrefs.edit().remove(PREF_USE_VPN).commit();
         }
+    }
+
+    // isDebuggable checks the debuggable flag of the package
+    // to determine if the current build is a debug build
+    public static boolean isDebuggable(Context context) {
+        try {
+            return (context.getPackageManager().getPackageInfo(
+                        context.getPackageName(), 0).applicationInfo.flags &
+                    ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.e(TAG, "Error fetching package information");
+        }
+        return false;
     }
 
     public static void hideKeyboard(Context context, View view) {

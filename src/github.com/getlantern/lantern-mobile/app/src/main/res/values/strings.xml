@@ -21,6 +21,7 @@
     <string name="contact_option">Contact</string>
     <string name="check_for_update">Check for Update</string>
     <string name="no_update_available">You\'re up to date!</string>
+    <string name="error_checking_for_update">Error checking for new version of Lantern</string>
     <string name="have_latest_version">Lantern %1$s is the newest version available.</string>
     <string name="updating_lantern">Updating Lantern</string>
     <string name="cancel">Cancel</string>

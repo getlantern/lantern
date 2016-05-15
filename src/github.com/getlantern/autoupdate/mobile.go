@@ -25,7 +25,7 @@ type Updater interface {
 type passThru struct {
 	io.Reader
 	Updater
-	total    int64 // Total # of bytes transferred
+	total    int64 // total bytes transferred
 	length   int64 // Expected length
 	progress float64
 }
@@ -105,13 +105,9 @@ func getHttpClient(proxyAddr string) (*http.Client, error) {
 	return httpClient, nil
 }
 
-func CheckMobileUpdate(proxyAddr, appVersion string) string {
-	url, err := doCheckUpdate(proxyAddr, appVersion,
+func CheckMobileUpdate(proxyAddr, appVersion string) (string, error) {
+	return doCheckUpdate(proxyAddr, appVersion,
 		updateStagingServer, []byte(PackagePublicKey))
-	if err != nil {
-		return ""
-	}
-	return url
 }
 
 func handleError(err error, updater Updater) {
@@ -123,12 +119,13 @@ func handleError(err error, updater Updater) {
 // Updater is an interface for calling back to Java (whether to display download progress
 // or show an error message)
 func UpdateMobile(proxyAddr, url, apkPath string, updater Updater) string {
-	log.Debugf("Attempting to download APK from %s", url)
 
 	var err error
 	var req *http.Request
 	var res *http.Response
 	var httpClient *http.Client
+
+	log.Debugf("Attempting to download APK from %s", url)
 
 	out, err := os.Create(apkPath)
 	if err != nil {
@@ -158,9 +155,8 @@ func UpdateMobile(proxyAddr, url, apkPath string, updater Updater) string {
 
 	defer res.Body.Close()
 
-	bzip2Reader := bzip2.NewReader(res.Body)
-
-	readerpt := &passThru{Updater: updater, Reader: bzip2Reader, length: res.ContentLength}
+	readerpt := &passThru{Updater: updater,
+		Reader: bzip2.NewReader(res.Body), length: res.ContentLength}
 
 	_, err = io.Copy(out, readerpt)
 	if err != nil {

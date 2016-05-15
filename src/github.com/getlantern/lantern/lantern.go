@@ -131,7 +131,7 @@ func run(configDir string) {
 }
 
 // CheckForUpdates checks to see if a new version of Lantern is available
-func CheckForUpdates(proxyAddr string) string {
+func CheckForUpdates(proxyAddr string) (string, error) {
 	return autoupdate.CheckMobileUpdate(proxyAddr, compileTimePackageVersion)
 }
 
