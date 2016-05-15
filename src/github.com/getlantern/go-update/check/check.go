@@ -23,7 +23,7 @@ const (
 )
 
 var (
-	log = golog.LoggerFor("check")
+	log = golog.LoggerFor("go-update.check")
 )
 
 var NoUpdateAvailable error = fmt.Errorf("No update available")
