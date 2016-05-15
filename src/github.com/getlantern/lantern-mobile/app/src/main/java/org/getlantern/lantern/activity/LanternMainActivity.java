@@ -467,7 +467,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         Log.d(TAG, String.format("Currently running %s; seeing if a new version is available", appVersion));
 
         try {
-            url = Lantern.CheckForUpdates(session.startLocalProxy());
+            url = Lantern.CheckForUpdates(session.shouldProxy());
         } catch (Exception e) {
             Log.e(TAG, "Error trying to check for updates: " + e.getMessage());
             e.printStackTrace();
@@ -502,7 +502,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             removeRule(lp, RelativeLayout.CENTER_VERTICAL);
 
             // now actually refresh the news feed
-            new GetFeed(this, session.startLocalProxy()).execute("");
+            new GetFeed(this).execute(session.shouldProxy());
         } else {
             feedView.setVisibility(View.INVISIBLE);
             lp.addRule(RelativeLayout.CENTER_VERTICAL);
@@ -687,7 +687,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         Log.d(TAG, "Refresh feed clicked");
         feedError.setVisibility(View.INVISIBLE);
         if (session.showFeed()) {
-            new GetFeed(this, session.startLocalProxy()).execute("");
+            new GetFeed(this).execute(session.shouldProxy());
         }
     }
 

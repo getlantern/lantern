@@ -131,18 +131,18 @@ func run(configDir string) {
 }
 
 // CheckForUpdates checks to see if a new version of Lantern is available
-func CheckForUpdates(proxyAddr string) (string, error) {
-	return autoupdate.CheckMobileUpdate(proxyAddr, compileTimePackageVersion)
+func CheckForUpdates(shouldProxy bool) (string, error) {
+	return autoupdate.CheckMobileUpdate(shouldProxy, compileTimePackageVersion)
 }
 
 // UpdateMobile downloads the latest APK from the given url to apkPath
-func DownloadUpdate(proxyAddr, url, apkPath string, updater Updater) string {
-	return autoupdate.UpdateMobile(proxyAddr, url, apkPath, updater)
+func DownloadUpdate(url, apkPath string, shouldProxy bool, updater Updater) string {
+	return autoupdate.UpdateMobile(shouldProxy, url, apkPath, updater)
 }
 
 // GetFeed fetches the public feed thats displayed on Lantern's main screen
-func GetFeed(locale string, allStr string, proxyAddr string, provider FeedProvider) {
-	feed.GetFeed(locale, allStr, proxyAddr != "", provider)
+func GetFeed(locale string, allStr string, shouldProxy bool, provider FeedProvider) {
+	feed.GetFeed(locale, allStr, shouldProxy, provider)
 }
 
 // FeedByName grabs the feed results for a given feed source name

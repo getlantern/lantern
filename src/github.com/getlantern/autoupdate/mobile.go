@@ -6,15 +6,17 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"sync"
 
 	"github.com/blang/semver"
-	"github.com/getlantern/eventual"
-	"github.com/getlantern/flashlight/util"
+	"github.com/getlantern/flashlight/proxied"
 	"github.com/getlantern/go-update"
 )
 
 var (
 	updateStagingServer = "https://update-stage.getlantern.org/update"
+	_httpClient         *http.Client
+	httpClientMutex     sync.Mutex
 )
 
 type Updater interface {
@@ -51,16 +53,13 @@ func (pt *passThru) Read(p []byte) (int, error) {
 	return n, err
 }
 
-func doCheckUpdate(proxyAddr string, version, URL string, publicKey []byte) (string, error) {
-
-	var httpClient *http.Client
-	var err error
+func doCheckUpdate(shouldProxy bool, version, URL string, publicKey []byte) (string, error) {
 
 	log.Debugf("Checking for new mobile version; current version: %s", version)
 
-	httpClient, err = getHttpClient(proxyAddr)
+	httpClient, err := proxied.GetHTTPClient(shouldProxy)
 	if err != nil {
-		log.Errorf("Could not create HTTP client to download update: %v", err)
+		log.Errorf("Could not get HTTP client to download update: %v", err)
 		return "", err
 	}
 
@@ -88,25 +87,8 @@ func doCheckUpdate(proxyAddr string, version, URL string, publicKey []byte) (str
 	return "", nil
 }
 
-func getHttpClient(proxyAddr string) (*http.Client, error) {
-	var httpClient *http.Client
-	var err error
-
-	if proxyAddr == "" {
-		httpClient = &http.Client{}
-	} else {
-		httpClient, err = util.HTTPClient("", eventual.DefaultGetter(proxyAddr))
-		if err != nil {
-			log.Errorf("Could not create HTTP client: %v", err)
-			return nil, err
-		}
-	}
-
-	return httpClient, nil
-}
-
-func CheckMobileUpdate(proxyAddr, appVersion string) (string, error) {
-	return doCheckUpdate(proxyAddr, appVersion,
+func CheckMobileUpdate(shouldProxy bool, appVersion string) (string, error) {
+	return doCheckUpdate(shouldProxy, appVersion,
 		updateStagingServer, []byte(PackagePublicKey))
 }
 
@@ -118,12 +100,9 @@ func handleError(err error, updater Updater) {
 // If proxyAddr is specified, the client proxies through the given HTTP proxy
 // Updater is an interface for calling back to Java (whether to display download progress
 // or show an error message)
-func UpdateMobile(proxyAddr, url, apkPath string, updater Updater) string {
-
-	var err error
+func UpdateMobile(shouldProxy bool, url, apkPath string, updater Updater) string {
 	var req *http.Request
 	var res *http.Response
-	var httpClient *http.Client
 
 	log.Debugf("Attempting to download APK from %s", url)
 
@@ -134,7 +113,7 @@ func UpdateMobile(proxyAddr, url, apkPath string, updater Updater) string {
 	}
 	defer out.Close()
 
-	httpClient, err = getHttpClient(proxyAddr)
+	httpClient, err := proxied.GetHTTPClient(shouldProxy)
 	if err != nil {
 		handleError(err, updater)
 		return ""

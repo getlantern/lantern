@@ -119,7 +119,7 @@ public class UpdateActivity extends Activity {
         protected String doInBackground(String... params) {
 
             String updateUrl = params[0];
-            String proxyAddr = session.startLocalProxy();
+            boolean shouldProxy = session.shouldProxy();
 
             Lantern.Updater.Stub updater = new Lantern.Updater.Stub() {
                 public void ShowProgress(String percentage) {
@@ -127,8 +127,8 @@ public class UpdateActivity extends Activity {
                 }
             };
 
-            return Lantern.DownloadUpdate(proxyAddr, updateUrl,
-                APK_PATH, updater);
+            return Lantern.DownloadUpdate(updateUrl,
+                APK_PATH, shouldProxy, updater);
         }
 
         // show an alert when the update fails

@@ -13,17 +13,15 @@ import java.util.Locale;
 
 import go.lantern.Lantern;
 
-public class GetFeed extends AsyncTask<String, Void, ArrayList<String>> {
+public class GetFeed extends AsyncTask<Boolean, Void, ArrayList<String>> {
     private static final String TAG = "GetFeed";
 
     private LanternMainActivity activity;
-    private String proxyAddr = "";
     private String allString;
     private ProgressBar progressBar;
 
-    public GetFeed(LanternMainActivity activity, String proxyAddr) {
+    public GetFeed(LanternMainActivity activity) {
         this.activity = activity;
-        this.proxyAddr = proxyAddr;
         this.allString = activity.getResources().getString(R.string.all_feeds);
         progressBar = (ProgressBar)activity.findViewById(R.id.progressBar);
     }
@@ -36,12 +34,16 @@ public class GetFeed extends AsyncTask<String, Void, ArrayList<String>> {
     }
 
     @Override
-    protected ArrayList<String> doInBackground(String... params) {
+    protected ArrayList<String> doInBackground(Boolean... params) {
+
+        boolean shouldProxy = params[0];
+
         String locale = Locale.getDefault().toString();
-        Log.d(TAG, String.format("Fetching public feed: locale=%s; proxy addr=%s", locale, proxyAddr));
+        Log.d(TAG, String.format("Fetching public feed: locale=%s", locale));
+
         final ArrayList<String> sources = new ArrayList<String>();
 
-        Lantern.GetFeed(locale, allString, proxyAddr, new Lantern.FeedProvider.Stub() {
+        Lantern.GetFeed(locale, allString, shouldProxy, new Lantern.FeedProvider.Stub() {
             public void AddSource(String source) {
                 sources.add(source);
             }
