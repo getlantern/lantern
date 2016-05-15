@@ -6,6 +6,7 @@ import (
 	"net"
 
 	"github.com/Yawning/obfs4/transports/obfs4"
+	"github.com/getlantern/ctx"
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/tlsdialer"
 
@@ -34,6 +35,7 @@ func defaultDialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 	if s.Cert == "" && !forceProxy {
 		log.Error("No Cert configured for chained server, will dial with plain tcp")
 		dial = func() (net.Conn, error) {
+			ctxProxyInfo(s.Addr, "http")
 			return netd.Dial("tcp", addr)
 		}
 	} else {
@@ -45,6 +47,8 @@ func defaultDialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 		x509cert := cert.X509()
 		sessionCache := tls.NewLRUClientSessionCache(1000)
 		dial = func() (net.Conn, error) {
+			ctxProxyInfo(s.Addr, "https")
+
 			conn, err := tlsdialer.DialWithDialer(netd, "tcp", addr, false, &tls.Config{
 				ClientSessionCache: sessionCache,
 				InsecureSkipVerify: true,
@@ -86,6 +90,19 @@ func obfs4DialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 	}
 
 	return func() (net.Conn, error) {
+		ctxProxyInfo(s.Addr, "obfs4")
 		return cf.Dial("tcp", s.Addr, net.Dial, args)
 	}, nil
+}
+
+func ctxProxyInfo(addr string, protocol string) {
+	m := ctx.Map{
+		"proxy_protocol": protocol,
+	}
+	host, port, err := net.SplitHostPort(addr)
+	if err == nil {
+		m["proxy_host"] = host
+		m["proxy_port"] = port
+	}
+	ctx.SetAll(m)
 }
