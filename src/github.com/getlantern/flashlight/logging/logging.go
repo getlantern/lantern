@@ -13,14 +13,16 @@ import (
 	"time"
 
 	"github.com/getlantern/appdir"
-	"github.com/getlantern/flashlight/geolookup"
-	"github.com/getlantern/flashlight/proxied"
+	"github.com/getlantern/context"
 	"github.com/getlantern/go-loggly"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/jibber_jabber"
 	"github.com/getlantern/osversion"
 	"github.com/getlantern/rotator"
 	"github.com/getlantern/wfilter"
+
+	"github.com/getlantern/flashlight/geolookup"
+	"github.com/getlantern/flashlight/proxied"
 )
 
 const (
@@ -46,8 +48,6 @@ var (
 
 	duplicates = make(map[string]bool)
 	dupLock    sync.Mutex
-
-	extraLogglyInfo = make(map[string]string)
 )
 
 func init() {
@@ -108,20 +108,41 @@ func Configure(cloudConfigCA string, instanceID string,
 		return
 	}
 
+	initContext(instanceID, version, revisionDate)
+
 	// Using a goroutine because we'll be using waitforserver and at this time
 	// the proxy is not yet ready.
 	go func() {
-		enableLoggly(cloudConfigCA, instanceID, version, revisionDate)
+		enableLoggly(cloudConfigCA)
 		// Won't block, but will allow optional blocking on receiver
 		success <- true
 	}()
 	return
 }
 
+func initContext(instanceID string, version string, revisionDate string) {
+	context.PutGlobal("hostname", "hidden")
+	context.PutGlobal("instanceid", instanceID)
+	context.PutGlobal("osName", runtime.GOOS)
+	context.PutGlobal("osArch", runtime.GOARCH)
+	context.PutGlobal("version", fmt.Sprintf("%v (%v)", version, revisionDate))
+	context.PutGlobal("sessionUserAgents", getSessionUserAgents())
+	context.PutGlobalDynamic("country", func() interface{} { return geolookup.GetCountry(0) })
+	context.PutGlobalDynamic("timeZone", func() interface{} { return time.Now().Format("MST") })
+	context.PutGlobalDynamic("language", func() interface{} {
+		lang, _ := jibber_jabber.DetectLanguage()
+		return lang
+	})
+
+	if osStr, err := osversion.GetHumanReadable(); err == nil {
+		context.PutGlobal("osVersion", osStr)
+	}
+}
+
 // SetExtraLogglyInfo supports setting an extra info value to include in Loggly
 // reports (for example Android application details)
 func SetExtraLogglyInfo(key, value string) {
-	extraLogglyInfo[key] = value
+	context.PutGlobal(key, value)
 }
 
 // Flush forces output flushing if the output is flushable
@@ -158,9 +179,7 @@ func timestamped(orig io.Writer) io.Writer {
 	})
 }
 
-func enableLoggly(cloudConfigCA string, instanceID string,
-	version string, revisionDate string) {
-
+func enableLoggly(cloudConfigCA string) {
 	rt, err := proxied.ChainedPersistent(cloudConfigCA)
 	if err != nil {
 		log.Errorf("Could not create HTTP client, not logging to Loggly: %v", err)
@@ -168,17 +187,8 @@ func enableLoggly(cloudConfigCA string, instanceID string,
 		return
 	}
 
-	lang, _ := jibber_jabber.DetectLanguage()
 	logglyWriter := &logglyErrorWriter{
-		lang:            lang,
-		tz:              time.Now().Format("MST"),
-		versionToLoggly: fmt.Sprintf("%v (%v)", version, revisionDate),
-		client:          loggly.New(logglyToken, logglyTag),
-	}
-	logglyWriter.client.Defaults["hostname"] = "hidden"
-	logglyWriter.client.Defaults["instanceid"] = instanceID
-	if osStr, err := osversion.GetHumanReadable(); err == nil {
-		osVersion = osStr
+		client: loggly.New(logglyToken, logglyTag),
 	}
 	logglyWriter.client.SetHTTPClient(&http.Client{Transport: rt})
 	addLoggly(logglyWriter)
@@ -215,10 +225,7 @@ type flushable interface {
 }
 
 type logglyErrorWriter struct {
-	lang            string
-	tz              string
-	versionToLoggly string
-	client          *loggly.Client
+	client *loggly.Client
 }
 
 func (w logglyErrorWriter) Write(b []byte) (int, error) {
@@ -226,23 +233,6 @@ func (w logglyErrorWriter) Write(b []byte) (int, error) {
 	if isDuplicate(fullMessage) {
 		log.Debugf("Not logging duplicate: %v", fullMessage)
 		return 0, nil
-	}
-
-	extra := map[string]string{
-		"logLevel":          "ERROR",
-		"osName":            runtime.GOOS,
-		"osArch":            runtime.GOARCH,
-		"osVersion":         osVersion,
-		"language":          w.lang,
-		"country":           geolookup.GetCountry(0),
-		"timeZone":          w.tz,
-		"version":           w.versionToLoggly,
-		"sessionUserAgents": getSessionUserAgents(),
-	}
-
-	// Add extra logging info
-	for key, val := range extraLogglyInfo {
-		extra[key] = val
 	}
 
 	// extract last 2 (at most) chunks of fullMessage to message, without prefix,
@@ -276,7 +266,7 @@ func (w logglyErrorWriter) Write(b []byte) (int, error) {
 	prefix := fullMessage[0:firstColonPos]
 
 	m := loggly.Message{
-		"extra":        extra,
+		"extra":        context.AsMap(),
 		"locationInfo": prefix,
 		"message":      message,
 		"fullMessage":  fullMessage,
