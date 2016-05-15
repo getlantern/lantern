@@ -8,6 +8,10 @@ import (
 )
 
 func TestStack(t *testing.T) {
+	// Put globals first
+	PutGlobal("ga", "i")
+	PutGlobalDynamic("gb", func() interface{} { return "ii" })
+
 	c := Enter()
 	c.Put("a", 1)
 	penultimate := Enter().
@@ -21,26 +25,19 @@ func TestStack(t *testing.T) {
 	penultimate.Put("c", 3)
 
 	var assertMutex sync.Mutex
-	assertContentsAsMap := func(expected Map) {
-		m := AsMap()
+	doAssertContents := func(expected Map, actual Map) {
 		assertMutex.Lock()
-		assert.Equal(t, expected, m)
-		assertMutex.Unlock()
-	}
-
-	assertContentsAsRead := func(expected Map) {
-		m := make(Map)
-		Read(func(key string, value interface{}) {
-			m[key] = value
-		})
-		assertMutex.Lock()
-		assert.Equal(t, expected, m)
+		assert.Equal(t, expected, actual)
 		assertMutex.Unlock()
 	}
 
 	assertContents := func(expected Map) {
-		assertContentsAsMap(expected)
-		assertContentsAsRead(expected)
+		m := AsMap()
+		mg := AsMapWithGlobals()
+		doAssertContents(expected, m)
+		expected["ga"] = "i"
+		expected["gb"] = "ii"
+		doAssertContents(expected, mg)
 	}
 
 	assertContents(Map{
