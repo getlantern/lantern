@@ -40,6 +40,13 @@ func TestStack(t *testing.T) {
 	})
 	wg.Wait()
 
+	wg.Add(1)
+	Go(func() {
+		// This goroutine doesn't Exit. Still, we shouldn't leak anything.
+		wg.Done()
+	})
+	wg.Wait()
+
 	assertContents(Map{
 		"a": 1,
 		"b": 2,
