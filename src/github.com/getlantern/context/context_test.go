@@ -10,12 +10,15 @@ import (
 func TestStack(t *testing.T) {
 	c := Enter()
 	c.Put("a", 1)
-	Enter().
-		Put("b", 2).
-		Put("c", 3)
-	c.Enter().
+	penultimate := Enter().
+		Put("b", 2)
+	c = Enter().
 		PutDynamic("c", func() interface{} { return 4 }).
 		Put("d", 5)
+
+	// Put something in the penultimate context and make sure it doesn't override
+	// what's set in the ultimate context
+	penultimate.Put("c", 3)
 
 	var assertMutex sync.Mutex
 	assertContentsAsMap := func(expected Map) {
@@ -39,6 +42,13 @@ func TestStack(t *testing.T) {
 		assertContentsAsMap(expected)
 		assertContentsAsRead(expected)
 	}
+
+	assertContents(Map{
+		"a": 1,
+		"b": 2,
+		"c": 4,
+		"d": 5,
+	})
 
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -69,30 +79,27 @@ func TestStack(t *testing.T) {
 		"d": 5,
 	})
 
-	c.Exit()
+	c = c.Exit()
+	assert.NotNil(t, c)
 	assertContents(Map{
 		"a": 1,
 		"b": 2,
 		"c": 3,
 	})
 
-	c.Exit()
+	c = c.Exit()
+	assert.NotNil(t, c)
 	assertContents(Map{
 		"a": 1,
 	})
 
-	c.Exit()
+	// Last exit
+	assert.Nil(t, c.Exit())
 	assertContents(Map{})
 
 	// Exit again, just for good measure
-	c.Exit()
+	assert.Nil(t, c.Exit())
 	assertContents(Map{})
-
-	readCalled := false
-	c.Read(func(key string, value interface{}) {
-		readCalled = true
-	})
-	assert.False(t, readCalled, "c.Read shouldn't be called on empty stack")
 
 	// Spawn a goroutine with no existing contexts
 	wg.Add(1)
