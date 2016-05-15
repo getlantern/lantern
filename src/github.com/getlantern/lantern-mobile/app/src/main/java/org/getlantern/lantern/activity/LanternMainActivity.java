@@ -177,7 +177,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         setVersionNum();
         setupStatusToast();
         showFeedview();
-
         checkUpdate();
     }
 

@@ -79,12 +79,17 @@ func doCheckUpdate(shouldProxy bool, version, URL string, publicKey []byte) (str
 		return "", err
 	}
 
+	if res == nil {
+		log.Debugf("No new version available!")
+		return "", nil
+
+	}
+
 	if isNewerVersion(v, res.Version) {
 		log.Debugf("Newer version of Lantern mobile available! %s at %s", res.Version, res.Url)
 		return res.Url, nil
 	}
 
-	log.Debugf("No new version available!")
 	return "", nil
 }
 
