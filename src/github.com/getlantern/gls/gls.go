@@ -35,14 +35,31 @@ func SetValues(values Values) {
 	dataLock.Unlock()
 }
 
+// AddValues adds to the given values in this goroutine.
+func AddValues(values Values) {
+	gid := curGoroutineID()
+	dataLock.Lock()
+	existing := data[gid]
+	if existing == nil {
+		data[gid] = values
+	} else {
+		for key, value := range values {
+			existing[key] = value
+		}
+	}
+	dataLock.Unlock()
+}
+
 // Set sets the value by key and associates it with the current goroutine.
 func Set(key string, value interface{}) {
 	gid := curGoroutineID()
 	dataLock.Lock()
-	if data[gid] == nil {
-		data[gid] = Values{}
+	vals := data[gid]
+	if vals == nil {
+		data[gid] = Values{key: value}
+	} else {
+		vals[key] = value
 	}
-	data[gid][key] = value
 	dataLock.Unlock()
 }
 

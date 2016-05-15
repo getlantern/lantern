@@ -40,6 +40,19 @@ func TestGLSSetValues(t *testing.T) {
 	is.NotNil(v)
 	is.Equal(v, "value")
 
+	AddValues(Values{"a": 1, "b": 2})
+	v = Get("key")
+	is.NotNil(v)
+	is.Equal(v, "value")
+
+	v = Get("a")
+	is.NotNil(v)
+	is.Equal(v, 1)
+
+	v = Get("b")
+	is.NotNil(v)
+	is.Equal(v, 2)
+
 	SetValues(Values{"question": "what is the meaning of life", "answer": 42})
 	v = Get("key")
 	is.Nil(v)

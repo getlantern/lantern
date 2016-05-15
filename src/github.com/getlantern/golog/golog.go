@@ -19,6 +19,7 @@ import (
 	"strings"
 	"sync/atomic"
 
+	"github.com/getlantern/ctx"
 	"github.com/oxtoacart/bpool"
 )
 
@@ -144,7 +145,7 @@ func (l *logger) print(out io.Writer, skipFrames int, severity string, arg inter
 	buf.WriteString(" ")
 	buf.WriteString(l.linePrefix(skipFrames))
 	fmt.Fprintf(buf, "%v", arg)
-	printContextInfo(buf)
+	ctx.PrintTo(buf)
 	buf.WriteByte('\n')
 	_, err := out.Write(buf.Bytes())
 	if err != nil {
@@ -162,7 +163,7 @@ func (l *logger) printf(out io.Writer, skipFrames int, severity string, message 
 	buf.WriteString(" ")
 	buf.WriteString(l.linePrefix(skipFrames))
 	fmt.Fprintf(buf, message, args...)
-	printContextInfo(buf)
+	ctx.PrintTo(buf)
 	buf.WriteByte('\n')
 	_, err := out.Write(buf.Bytes())
 	if err != nil {

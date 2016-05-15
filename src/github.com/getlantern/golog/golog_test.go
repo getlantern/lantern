@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/getlantern/ctx"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -33,9 +35,9 @@ func TestDebug(t *testing.T) {
 	SetOutputs(ioutil.Discard, out)
 	l := LoggerFor("myprefix")
 	l.Debug("Hello world")
-	Context.Set("cvar1", "a")
-	Context.Set("cvar2", 2)
-	defer Context.Clear()
+	ctx.Set("cvar1", "a")
+	ctx.Set("cvar2", 2)
+	defer ctx.Clear()
 	l.Debugf("Hello %d", 5)
 	assert.Regexp(t, expected("DEBUG", expectedLog), string(out.Bytes()))
 }
@@ -45,9 +47,9 @@ func TestError(t *testing.T) {
 	SetOutputs(out, ioutil.Discard)
 	l := LoggerFor("myprefix")
 	l.Error("Hello world")
-	Context.Set("cvar1", "a")
-	Context.Set("cvar2", 2)
-	defer Context.Clear()
+	ctx.Set("cvar1", "a")
+	ctx.Set("cvar2", 2)
+	defer ctx.Clear()
 	l.Errorf("Hello %d", 5)
 
 	assert.Regexp(t, expected("ERROR", expectedLog), string(out.Bytes()))
@@ -116,9 +118,9 @@ func TestAsStdLogger(t *testing.T) {
 	l := LoggerFor("myprefix")
 	stdlog := l.AsStdLogger()
 	stdlog.Print("Hello world")
-	Context.Set("cvar1", "a")
-	Context.Set("cvar2", 2)
-	defer Context.Clear()
+	ctx.Set("cvar1", "a")
+	ctx.Set("cvar2", 2)
+	defer ctx.Clear()
 	stdlog.Printf("Hello %d", 5)
 	assert.Regexp(t, severitize("ERROR", expectedStdLog), string(out.Bytes()))
 }
