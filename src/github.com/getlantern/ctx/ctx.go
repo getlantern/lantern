@@ -1,6 +1,6 @@
 // Package ctx provides the ability to capture contextual information
 // and associate it to the current call context, even crossing goroutines.
-// It is a veneer around github.com/jtolds/gls.
+// It is a veneer around github.com/tylerb/gls.
 package ctx
 
 import (
