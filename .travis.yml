@@ -1,7 +1,7 @@
 language: go
 
 go:
-  - 1.6.2.
+  - 1.6.2
 
 install:
   - go get -d -t -v ./...
@@ -11,4 +11,5 @@ install:
   - go get -v github.com/mattn/goveralls
 
 script:
-  - $HOME/gopath/bin/goveralls -v -service travis-ci github.com/getlantern/context
+  - go test -race -v -covermode=atomic -coverprofile=profile.cov
+  - $HOME/gopath/bin/goveralls -coverprofile=profile.cov -service=travis-ci

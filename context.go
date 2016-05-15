@@ -16,9 +16,9 @@ type Map map[string]interface{}
 // Context is a context containing key->value pairs
 type Context struct {
 	id      uint64
-	stack   []Map
-	current Map
+	parent  *Context
 	initial Map
+	data    Map
 	mx      sync.RWMutex
 }
 
@@ -33,8 +33,10 @@ func Enter() *Context {
 	allmx.Lock()
 	c := contexts[id]
 	if c == nil {
-		c = makeContext(id, nil)
+		c = makeContext(id, nil, nil)
 		contexts[id] = c
+		allmx.Unlock()
+		return c
 	}
 	allmx.Unlock()
 	return c.Enter()
@@ -42,11 +44,14 @@ func Enter() *Context {
 
 // Enter enters a new level on this Context stack.
 func (c *Context) Enter() *Context {
-	c.mx.Lock()
-	c.current = make(map[string]interface{})
-	c.stack = append(c.stack, c.current)
-	c.mx.Unlock()
-	return c
+	c.mx.RLock()
+	id := c.id
+	c.mx.RUnlock()
+	next := makeContext(id, c, nil)
+	allmx.Lock()
+	contexts[id] = next
+	allmx.Unlock()
+	return next
 }
 
 // Go starts the given function on a new goroutine using a copy of the values
@@ -55,7 +60,7 @@ func (c *Context) Go(fn func()) {
 	initial := c.AsMap()
 	go func() {
 		id := curGoroutineID()
-		c := makeContext(id, initial)
+		c := makeContext(id, nil, initial)
 		allmx.Lock()
 		contexts[id] = c
 		allmx.Unlock()
@@ -78,35 +83,37 @@ func Go(fn func()) {
 	}
 }
 
-func makeContext(id uint64, initial Map) *Context {
+func makeContext(id uint64, parent *Context, initial Map) *Context {
 	return &Context{
 		id:      id,
-		stack:   make([]Map, 0),
+		parent:  parent,
 		initial: initial,
+		data:    make(Map),
 	}
 }
 
 // Exit exits the current level on this Context stack.
-func (c *Context) Exit() {
-	c.mx.Lock()
-	if len(c.stack) > 0 {
-		if len(c.stack) == 1 {
-			// Last level, remove Context
-			allmx.Lock()
-			delete(contexts, c.id)
-			allmx.Unlock()
-		} else {
-			c.current = c.stack[len(c.stack)-1]
-		}
-		c.stack = c.stack[:len(c.stack)-1]
+func (c *Context) Exit() *Context {
+	c.mx.RLock()
+	id := c.id
+	parent := c.parent
+	c.mx.RUnlock()
+	if parent == nil {
+		allmx.Lock()
+		delete(contexts, id)
+		allmx.Unlock()
+		return nil
 	}
-	c.mx.Unlock()
+	allmx.Lock()
+	contexts[id] = parent
+	allmx.Unlock()
+	return parent
 }
 
 // Put puts a key->value pair into the current level of the context stack.
 func (c *Context) Put(key string, value interface{}) *Context {
 	c.mx.Lock()
-	c.current[key] = value
+	c.data[key] = value
 	c.mx.Unlock()
 	return c
 }
@@ -116,7 +123,7 @@ func (c *Context) Put(key string, value interface{}) *Context {
 func (c *Context) PutDynamic(key string, valueFN func() interface{}) *Context {
 	value := &dynval{valueFN}
 	c.mx.Lock()
-	c.current[key] = value
+	c.data[key] = value
 	c.mx.Unlock()
 	return c
 }
@@ -124,34 +131,32 @@ func (c *Context) PutDynamic(key string, valueFN func() interface{}) *Context {
 // Read reads all values on the context stack, starting at the current level and
 // ascending. Duplicated keys at higher levels are not read.
 func (c *Context) Read(cb func(key string, value interface{})) {
-	c.mx.RLock()
-	if len(c.stack) == 0 {
-		return
-	}
 	knownKeys := make(Map, 0)
-	for i := len(c.stack) - 1; i >= -1; i-- {
-		var m Map
-		if i == -1 {
-			m = c.initial
-		} else {
-			m = c.stack[i]
-		}
-		if m != nil {
-			for key, value := range m {
-				_, alreadyRead := knownKeys[key]
-				if !alreadyRead {
-					switch v := value.(type) {
-					case *dynval:
-						cb(key, v.fn())
-					default:
-						cb(key, v)
-					}
-					knownKeys[key] = nil
+	for ctx := c; ctx != nil; {
+		ctx.mx.RLock()
+		read(knownKeys, cb, ctx.data)
+		read(knownKeys, cb, ctx.initial)
+		parent := ctx.parent
+		ctx.mx.RUnlock()
+		ctx = parent
+	}
+}
+
+func read(knownKeys Map, cb func(key string, value interface{}), m Map) {
+	if m != nil {
+		for key, value := range m {
+			_, alreadyRead := knownKeys[key]
+			if !alreadyRead {
+				switch v := value.(type) {
+				case *dynval:
+					cb(key, v.fn())
+				default:
+					cb(key, v)
 				}
+				knownKeys[key] = nil
 			}
 		}
 	}
-	c.mx.RUnlock()
 }
 
 // Read calls Read() on the Context stack associated with the current goroutine.
