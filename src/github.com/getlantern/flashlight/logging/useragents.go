@@ -1,8 +1,6 @@
 package logging
 
 import (
-	"bytes"
-	"fmt"
 	"regexp"
 	"sync"
 )
@@ -42,18 +40,4 @@ func RegisterUserAgent(agent string) {
 			}
 		}
 	}()
-}
-
-// getSessionUserAgents returns the user agents for this session.
-func getSessionUserAgents() string {
-	agentsMutex.Lock()
-	defer agentsMutex.Unlock()
-
-	var buffer bytes.Buffer
-
-	for key, val := range userAgents {
-		buffer.WriteString(key)
-		buffer.WriteString(fmt.Sprintf(": %d requests; ", val))
-	}
-	return string(buffer.String())
 }

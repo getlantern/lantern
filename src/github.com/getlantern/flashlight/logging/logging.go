@@ -123,12 +123,12 @@ func Configure(cloudConfigCA string, instanceID string,
 func initContext(instanceID string, version string, revisionDate string) {
 	context.PutGlobal("hostname", "hidden")
 	context.PutGlobal("instanceid", instanceID)
-	context.PutGlobal("osName", runtime.GOOS)
-	context.PutGlobal("osArch", runtime.GOARCH)
+	context.PutGlobal("osname", runtime.GOOS)
+	context.PutGlobal("osarch", runtime.GOARCH)
 	context.PutGlobal("version", fmt.Sprintf("%v (%v)", version, revisionDate))
-	context.PutGlobal("sessionUserAgents", getSessionUserAgents())
 	context.PutGlobalDynamic("country", func() interface{} { return geolookup.GetCountry(0) })
-	context.PutGlobalDynamic("timeZone", func() interface{} { return time.Now().Format("MST") })
+	context.PutGlobalDynamic("clientip", func() interface{} { return geolookup.GetIP(0) })
+	context.PutGlobalDynamic("timezone", func() interface{} { return time.Now().Format("MST") })
 	context.PutGlobalDynamic("language", func() interface{} {
 		lang, _ := jibber_jabber.DetectLanguage()
 		return lang
