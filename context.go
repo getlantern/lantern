@@ -16,11 +16,11 @@ type Map map[string]interface{}
 
 // Context is a context containing key->value pairs
 type Context struct {
-	id      uint64
-	parent  *Context
-	initial Map
-	data    Map
-	mx      sync.RWMutex
+	id           uint64
+	parent       *Context
+	branchedFrom *Context
+	data         Map
+	mx           sync.RWMutex
 }
 
 type dynval struct {
@@ -55,15 +55,13 @@ func (c *Context) Enter() *Context {
 	return next
 }
 
-// Go starts the given function on a new goroutine using a copy of the values
-// from the original context.
+// Go starts the given function on a new goroutine.
 func (c *Context) Go(fn func()) {
-	initial := c.AsMap()
 	go func() {
 		id := curGoroutineID()
-		c := makeContext(id, nil, initial)
+		next := makeContext(id, nil, c)
 		allmx.Lock()
-		contexts[id] = c
+		contexts[id] = next
 		allmx.Unlock()
 		fn()
 		// Clean up the context
@@ -84,12 +82,12 @@ func Go(fn func()) {
 	}
 }
 
-func makeContext(id uint64, parent *Context, initial Map) *Context {
+func makeContext(id uint64, parent *Context, branchedFrom *Context) *Context {
 	return &Context{
-		id:      id,
-		parent:  parent,
-		initial: initial,
-		data:    make(Map),
+		id:           id,
+		parent:       parent,
+		branchedFrom: branchedFrom,
+		data:         make(Map),
 	}
 }
 
@@ -147,20 +145,41 @@ func PutGlobalDynamic(key string, valueFN func() interface{}) {
 
 // AsMap returns a map containing all values along the stack.
 func (c *Context) AsMap() Map {
-	result := make(Map)
+	m := make(Map)
 	for ctx := c; ctx != nil; {
 		ctx.mx.RLock()
-		fill(result, ctx.data)
-		fill(result, ctx.initial)
+		ctx.fill(m)
 		parent := ctx.parent
 		ctx.mx.RUnlock()
 		ctx = parent
 	}
+	return m
+}
+
+func (c *Context) fill(m Map) {
+	for ctx := c; ctx != nil; {
+		ctx.mx.RLock()
+		fill(m, ctx.data)
+		next := ctx.parent
+		if next == nil {
+			next = ctx.branchedFrom
+		}
+		ctx.mx.RUnlock()
+		ctx = next
+	}
+}
+
+// AsMap returns a map containing all values along the stack, including globals.
+func AsMap() Map {
+	result := AsMapWithoutGlobals()
+	allmx.RLock()
+	fill(result, global)
+	allmx.RUnlock()
 	return result
 }
 
-// AsMap returns a map containing all values along the stack.
-func AsMap() Map {
+// AsMapWithoutGlobals is like AsMap but doesn't include globals.
+func AsMapWithoutGlobals() Map {
 	c := currentContext()
 	if c == nil {
 		return make(Map)
@@ -168,26 +187,16 @@ func AsMap() Map {
 	return c.AsMap()
 }
 
-// AsMapWithGlobals is like AsMap and includes everything from the global
-// context.
-func AsMapWithGlobals() Map {
-	result := AsMap()
-	allmx.RLock()
-	fill(result, global)
-	allmx.RUnlock()
-	return result
-}
-
-func fill(result Map, m Map) {
+func fill(m Map, from Map) {
 	if m != nil {
-		for key, value := range m {
-			_, alreadyRead := result[key]
+		for key, value := range from {
+			_, alreadyRead := m[key]
 			if !alreadyRead {
 				switch v := value.(type) {
 				case *dynval:
-					result[key] = v.fn()
+					m[key] = v.fn()
 				default:
-					result[key] = v
+					m[key] = v
 				}
 			}
 		}
