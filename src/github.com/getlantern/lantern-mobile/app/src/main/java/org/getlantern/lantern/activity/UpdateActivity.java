@@ -176,19 +176,19 @@ public class UpdateActivity extends Activity {
 
             progressBar.dismiss();
 
+            // update cancelled by the user
+            if (!fileDownloading) {
+                finish();
+                return;
+            }
+
             if (!result) {
                 Log.d(TAG, "Error trying to install Lantern update");
                 displayError();
                 return;
             }
  
-            if (!fileDownloading) {
-                finish();
-                return;
-            }
-
             Log.d(TAG, "About to install new version of Lantern Android");
-
             File apkFile = new File(APK_PATH);
             if (apkFile == null || !apkFile.isFile()) {
                 Log.e(TAG, "Error loading APK; not found at " + APK_PATH);
