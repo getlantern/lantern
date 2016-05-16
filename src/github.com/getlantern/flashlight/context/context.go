@@ -3,6 +3,7 @@
 package context
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 	"strings"
@@ -131,11 +132,8 @@ func (c *Context) Request(r *http.Request) *Context {
 		Put("http_request_scheme", r.URL.Scheme).
 		Put("http_request_host_in_url", r.URL.Host).
 		Put("http_request_host", r.Host).
-		Put("http_request_protocol", r.Proto).
-		Put("http_request_header_connection", strings.Join(r.Header["Connection"], ",")).
-		Put("http_request_header_accept", strings.Join(r.Header["Accept"], ",")).
-		Put("http_request_header_accept_language", strings.Join(r.Header["Accept-Language"], ",")).
-		Put("http_request_user_agent", r.Header.Get("User-Agent"))
+		Put("http_request_protocol", r.Proto)
+	c.putHeaders(r.Header, "http_request")
 	return c
 }
 
@@ -146,10 +144,20 @@ func (c *Context) Response(r *http.Response) *Context {
 		return c
 	}
 	c.ctx.Put("http_response_status_code", r.StatusCode).
-		Put("http_response_protocol", r.Proto).
-		Put("http_response_content_type", r.Header.Get("Content-Type"))
+		Put("http_response_protocol", r.Proto)
+	c.putHeaders(r.Header, "http_response")
 	c.Request(r.Request)
 	return c
+}
+
+func (c *Context) putHeaders(h http.Header, prefix string) {
+	for key, value := range h {
+		c.ctx.Put(fmt.Sprintf("%v_%v", prefix, sanitizeHeader(key)), strings.Join(value, ","))
+	}
+}
+
+func sanitizeHeader(key string) string {
+	return strings.TrimSpace(strings.Replace(key, "-", "_", -1))
 }
 
 // ChainedProxy attaches chained proxy information to the Context
