@@ -117,6 +117,8 @@ func Configure(cloudConfigCA string, instanceID string,
 		// Won't block, but will allow optional blocking on receiver
 		success <- true
 	}()
+
+	enableBorda()
 	return
 }
 
@@ -307,4 +309,10 @@ func (t *nonStopWriter) flush() {
 			w.flush()
 		}
 	}
+}
+
+func enableBorda() {
+	NewBordaReporter(&BordaReporterOptions{
+	//ReportInterval: 15 * time.Second,
+	})
 }
