@@ -9,8 +9,15 @@ import (
 
 func TestStack(t *testing.T) {
 	// Put globals first
+	PutGlobal("a", -1) // This will get overriden in specific contexts
 	PutGlobal("ga", "i")
 	PutGlobalDynamic("gb", func() interface{} { return "ii" })
+
+	// Use a Map as a Contextual
+	var contextual = Map{
+		"a":          0, // This will override whatever is in specific contexts
+		"contextual": "special",
+	}
 
 	c := Enter()
 	c.Put("a", 1)
@@ -34,10 +41,18 @@ func TestStack(t *testing.T) {
 	assertContents := func(expected Map) {
 		mg := AsMap()
 		m := AsMapWithoutGlobals()
+		mc := AsMapWith(contextual)
 		doAssertContents(expected, m)
 		expected["ga"] = "i"
 		expected["gb"] = "ii"
+		_, exists := expected["a"]
+		if !exists {
+			expected["a"] = -1
+		}
 		doAssertContents(expected, mg)
+		expected["a"] = 0
+		expected["contextual"] = "special"
+		doAssertContents(expected, mc)
 	}
 
 	assertContents(Map{

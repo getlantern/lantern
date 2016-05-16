@@ -11,8 +11,21 @@ var (
 	allmx sync.RWMutex
 )
 
-// Map is a map of key->value pairs
+// Contextual is an interface for anything that maintains its own context.
+type Contextual interface {
+	// Fill fills the given Map with all of this Contextual's context
+	Fill(m Map)
+}
+
+// Map is a map of key->value pairs.
 type Map map[string]interface{}
+
+// Fill implements the method from the Contextual interface.
+func (_m Map) Fill(m Map) {
+	for key, value := range _m {
+		m[key] = value
+	}
+}
 
 // Context is a context containing key->value pairs
 type Context struct {
@@ -146,13 +159,7 @@ func PutGlobalDynamic(key string, valueFN func() interface{}) {
 // AsMap returns a map containing all values along the stack.
 func (c *Context) AsMap() Map {
 	m := make(Map)
-	for ctx := c; ctx != nil; {
-		ctx.mx.RLock()
-		ctx.fill(m)
-		parent := ctx.parent
-		ctx.mx.RUnlock()
-		ctx = parent
-	}
+	c.fill(m)
 	return m
 }
 
@@ -185,6 +192,21 @@ func AsMapWithoutGlobals() Map {
 		return make(Map)
 	}
 	return c.AsMap()
+}
+
+// AsMapWith returns a map containing all values from the supplied Contextrual
+// plus any addition values from along the stack, including globals.
+func AsMapWith(cl Contextual) Map {
+	result := make(Map, 0)
+	cl.Fill(result)
+	c := currentContext()
+	if c != nil {
+		c.fill(result)
+	}
+	allmx.RLock()
+	fill(result, global)
+	allmx.RUnlock()
+	return result
 }
 
 func fill(m Map, from Map) {
