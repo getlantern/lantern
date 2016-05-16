@@ -19,14 +19,19 @@ func (u *TestUpdater) SetProgress(percentage int) {
 }
 
 func TestCheckUpdateAvailable(t *testing.T) {
+	// test with an older version number
 	doTestCheckUpdate(t, false, false, "2.2.0")
 }
 
 func TestCheckNoUpdateUnavailable(t *testing.T) {
+	// test with a blank version number
 	doTestCheckUpdate(t, true, true, "")
+	// test with a way newer version
 	doTestCheckUpdate(t, true, false, "9.3.3")
 }
 
+// urlEmpty and shouldErr are booleans that indicate whether or not
+// CheckMobileUpdate should return a blank url or non-nil error
 func doTestCheckUpdate(t *testing.T, urlEmpty, shouldErr bool, version string) string {
 	url, err := CheckMobileUpdate(false, version)
 
