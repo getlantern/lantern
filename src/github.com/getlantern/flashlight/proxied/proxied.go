@@ -25,7 +25,8 @@ import (
 )
 
 const (
-	forceDF = "FORCE_DOMAINFRONT"
+	forceDF           = "FORCE_DOMAINFRONT"
+	lanternFrontedURL = "Lantern-Fronted-URL"
 )
 
 var (
@@ -166,8 +167,9 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 	ctx := context.Enter().Request(req)
 	defer ctx.Exit()
 
-	frontedURL := req.Header.Get("Lantern-Fronted-URL")
-	req.Header.Del("Lantern-Fronted-URL")
+	parallel := df.cf.parallel
+	frontedURL := req.Header.Get(lanternFrontedURL)
+	req.Header.Del(lanternFrontedURL)
 
 	if frontedURL == "" {
 		return nil, errors.New("Callers MUST specify the fronted URL in the Lantern-Fronted-URL header")
@@ -191,14 +193,18 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 	responses := make(chan *http.Response, 2)
 	errs := make(chan error, 2)
 
-	request := func(clientFunc func(*http.Request) (*http.Response, error), req *http.Request) error {
+	request := func(asIs bool, clientFunc func(*http.Request) (*http.Response, error), req *http.Request) error {
 		resp, err := clientFunc(req)
 		if err != nil {
 			errs <- err
 			return err
 		}
 		ctx.Response(resp)
-		if success(resp) {
+		if asIs {
+			log.Debug("Passing response as is")
+			responses <- resp
+			return nil
+		} else if success(resp) {
 			log.Debugf("Got successful HTTP call!")
 			responses <- resp
 			return nil
@@ -217,21 +223,24 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 		ctx.
 			ProxyType(context.ProxyFronted).
 			Put("fronted_url", frontedURL)
-		if frontedReq, err := http.NewRequest("GET", frontedURL, nil); err != nil {
+		if frontedReq, err := http.NewRequest(req.Method, frontedURL, nil); err != nil {
 			errs <- errors.Wrap(err)
 		} else {
-			log.Debug("Sending request via DDF")
+			if !parallel {
+				frontedReq.Body = req.Body
+			}
+			log.Debugf("Sending request via DDF: %v", frontedReq.Body != nil)
 			frontedReq.Header = headersCopy
 
-			if err := request(ddfFunc, frontedReq); err == nil {
+			if err := request(!parallel, ddfFunc, frontedReq); err == nil {
 				log.Debug("Fronted request succeeded")
 			}
 		}
 	}
 
 	doChained := func() {
-		log.Debug("Sending chained request")
-		if err := request(chainedFunc, req); err == nil {
+		log.Debugf("Sending chained request: %v", req.Body != nil)
+		if err := request(false, chainedFunc, req); err == nil {
 			log.Debug("Switching to chained fronter for future requests since it succeeded")
 			df.cf.setFetcher(&chainedFetcher{})
 		}
@@ -273,7 +282,7 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 		return getResponse()
 	}
 
-	if df.cf.parallel {
+	if parallel {
 		context.Go(doFronted)
 		context.Go(doChained)
 		return getResponseParallel()
@@ -282,6 +291,7 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 	doChained()
 	resp, err := getResponse()
 	if err != nil {
+		log.Errorf("Chained failed, trying fronted: %v", err)
 		doFronted()
 		resp, err = getResponse()
 	}
@@ -384,7 +394,7 @@ func chained(rootCA string, persistent bool) (http.RoundTripper, error) {
 		return url.Parse("http://" + proxyAddr)
 	}
 
-	return wrap(func(req *http.Request) (*http.Response, error) {
+	return AsRoundTripper(func(req *http.Request) (*http.Response, error) {
 		ctx := context.Enter().ProxyType(context.ProxyChained).Request(req)
 		defer ctx.Exit()
 		resp, err := tr.RoundTrip(req)
@@ -393,7 +403,14 @@ func chained(rootCA string, persistent bool) (http.RoundTripper, error) {
 	}), nil
 }
 
-func wrap(fn func(req *http.Request) (*http.Response, error)) http.RoundTripper {
+// PrepareForFronting prepares the given request to be used with domain-
+// fronting.
+func PrepareForFronting(req *http.Request, frontedURL string) {
+	req.Header.Set(lanternFrontedURL, frontedURL)
+}
+
+// AsRoundTripper turns the given function into an http.RoundTripper.
+func AsRoundTripper(fn func(req *http.Request) (*http.Response, error)) http.RoundTripper {
 	return &rt{fn}
 }
 

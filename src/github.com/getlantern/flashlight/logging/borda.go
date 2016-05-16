@@ -3,7 +3,6 @@ package logging
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"sync"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/oxtoacart/bpool"
 
+	"github.com/getlantern/flashlight/context"
 	"github.com/getlantern/flashlight/proxied"
 )
 
@@ -73,9 +73,17 @@ func NewBordaReporter(opts *BordaReporterOptions) *BordaReporter {
 		opts.MaxBufferSize = 1000
 	}
 
+	rt := proxied.ChainedThenFronted()
+
 	b := &BordaReporter{
 		c: &http.Client{
-			Transport: proxied.ChainedThenFronted(),
+			Transport: proxied.AsRoundTripper(func(req *http.Request) (*http.Response, error) {
+				frontedURL := *req.URL
+				frontedURL.Host = "d157vud77ygy87.cloudfront.net"
+				context.Enter().BackgroundOp("report to borda").Request(req)
+				proxied.PrepareForFronting(req, frontedURL.String())
+				return rt.RoundTrip(req)
+			}),
 		},
 		options: opts,
 		buffer:  make(map[string]*Measurement, opts.MaxBufferSize),
@@ -86,16 +94,13 @@ func NewBordaReporter(opts *BordaReporterOptions) *BordaReporter {
 }
 
 // Report implements the interface golog.Reporter
-func (b *BordaReporter) Report(err error, ctx map[string]interface{}) {
-	_fields := bufferPool.Get()
-	defer bufferPool.Put(_fields)
-	encodeErr := json.NewEncoder(_fields).Encode(ctx)
+func (b *BordaReporter) Report(err error, logText string, ctx map[string]interface{}) {
+	fields, encodeErr := json.Marshal(ctx)
 	if encodeErr != nil {
 		log.Debugf("Unable to encode fields: %v", encodeErr)
 		return
 	}
 
-	fields := _fields.Bytes()
 	m := &Measurement{
 		Name:   "client_error",
 		Ts:     time.Now(),
@@ -134,6 +139,7 @@ func (b *BordaReporter) sendBatch() {
 	b.mx.Lock()
 	var copy map[string]*Measurement
 	if len(b.buffer) == 0 {
+		b.mx.Unlock()
 		log.Debug("Nothing to report")
 		return
 	}
@@ -146,12 +152,20 @@ func (b *BordaReporter) sendBatch() {
 	total := len(copy)
 
 	log.Debugf("Attempting to report %d measurements to Borda", total)
+	processed := make([]string, 0, len(copy))
 	for key, m := range copy {
-		err := b.sendMeasurement(m)
+		recoverable, err := b.sendMeasurement(m)
 		if err != nil {
-			log.Debugf("Unable to send measurement. Will stop batch and attempt again next time: %v", err)
-			break
+			if recoverable {
+				log.Debugf("Unable to send measurement. Will stop batch and attempt again next time: %v", err)
+				break
+			} else {
+				log.Debugf("Encountered unrecoverable error sending measurement, discarding: %v", err)
+			}
 		}
+		processed = append(processed, key)
+	}
+	for _, key := range processed {
 		delete(copy, key)
 	}
 
@@ -174,46 +188,35 @@ func (b *BordaReporter) sendBatch() {
 	}
 }
 
-func (b *BordaReporter) sendMeasurement(m *Measurement) error {
-	pr, pw := io.Pipe()
-
-	encErr := make(chan error, 1)
-	go func() {
-		err := json.NewEncoder(pw).Encode(&m)
-		if err != nil {
-			encErr <- err
-		}
-		pw.Close()
-	}()
-
-	req, decErr := http.NewRequest(http.MethodPost, bordaURL, pr)
-
-	select {
-	case err := <-encErr:
-		return err
-	default:
-		if decErr != nil {
-			return decErr
-		}
+func (b *BordaReporter) sendMeasurement(m *Measurement) (bool, error) {
+	buf := bufferPool.Get()
+	defer bufferPool.Put(buf)
+	err := json.NewEncoder(buf).Encode(m)
+	if err != nil {
+		return false, err
 	}
-
+	req, decErr := http.NewRequest(http.MethodPost, bordaURL, buf)
+	if decErr != nil {
+		return false, decErr
+	}
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := b.c.Do(req)
 	if err != nil {
-		return err
+		return true, err
 	}
 
 	switch resp.StatusCode {
 	case 201:
-		return nil
+		return false, nil
 	case 400:
 		errorMsg, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return fmt.Errorf("Borda replied with 400, but error message couldn't be read: %v", err)
+			return false, fmt.Errorf("Borda replied with 400, but error message couldn't be read: %v", err)
 		}
-		return fmt.Errorf("Borda replied with the error: %v", errorMsg)
+		err = fmt.Errorf("Borda replied with the error: %v", string(errorMsg))
+		return false, log.Errorf("%v JSON: %v", err, buf.String())
 	default:
-		return fmt.Errorf("Borda replied with error %v", resp.Status)
+		return false, fmt.Errorf("Borda replied with error %d", resp.StatusCode)
 	}
 }

@@ -163,9 +163,11 @@ func (l *logger) linePrefix(skipFrames int) string {
 	return fmt.Sprintf("%s%s:%d ", l.prefix, filepath.Base(file), line)
 }
 
-func (l *logger) print(out io.Writer, skipFrames int, severity string, arg interface{}) []byte {
-	buf := bufferPool.Get()
-	defer bufferPool.Put(buf)
+func (l *logger) print(out io.Writer, buf *bytes.Buffer, skipFrames int, severity string, arg interface{}) {
+	if buf == nil {
+		buf = bufferPool.Get()
+		defer bufferPool.Put(buf)
+	}
 	buf.WriteString(severity)
 	buf.WriteString(" ")
 	buf.WriteString(l.linePrefix(skipFrames))
@@ -180,12 +182,13 @@ func (l *logger) print(out io.Writer, skipFrames int, severity string, arg inter
 	if l.printStack {
 		l.doPrintStack()
 	}
-	return b
 }
 
-func (l *logger) printf(out io.Writer, skipFrames int, severity string, err error, message string, args ...interface{}) []byte {
-	buf := bufferPool.Get()
-	defer bufferPool.Put(buf)
+func (l *logger) printf(out io.Writer, buf *bytes.Buffer, skipFrames int, severity string, err error, message string, args ...interface{}) {
+	if buf == nil {
+		buf = bufferPool.Get()
+		defer bufferPool.Put(buf)
+	}
 	buf.WriteString(severity)
 	buf.WriteString(" ")
 	buf.WriteString(l.linePrefix(skipFrames))
@@ -200,15 +203,14 @@ func (l *logger) printf(out io.Writer, skipFrames int, severity string, err erro
 	if l.printStack {
 		l.doPrintStack()
 	}
-	return b
 }
 
 func (l *logger) Debug(arg interface{}) {
-	l.print(GetOutputs().DebugOut, 4, "DEBUG", arg)
+	l.print(GetOutputs().DebugOut, nil, 4, "DEBUG", arg)
 }
 
 func (l *logger) Debugf(message string, args ...interface{}) {
-	l.printf(GetOutputs().DebugOut, 4, "DEBUG", nil, message, args...)
+	l.printf(GetOutputs().DebugOut, nil, 4, "DEBUG", nil, message, args...)
 }
 
 func (l *logger) Error(arg interface{}) error {
@@ -223,57 +225,61 @@ func (l *logger) ErrorSkipFrames(arg interface{}, skipFrames int) error {
 	default:
 		err = fmt.Errorf("%v", e)
 	}
-	text := l.print(GetOutputs().ErrorOut, skipFrames+4, "ERROR", err)
-	return report(err, text)
+	buf := bufferPool.Get()
+	defer bufferPool.Put(buf)
+	l.print(GetOutputs().ErrorOut, buf, skipFrames+4, "ERROR", err)
+	return report(err, buf.String())
 }
 
 func (l *logger) Errorf(message string, args ...interface{}) error {
 	var err error
-	var text []byte
 	for _, arg := range args {
 		e, ok := arg.(error)
 		if ok {
-			fmt.Println("FOUND ERROR! " + e.Error())
 			err = e
 			break
 		}
 	}
+	buf := bufferPool.Get()
+	defer bufferPool.Put(buf)
 	if err == nil {
 		err = fmt.Errorf(message, args...)
-		text = l.print(GetOutputs().ErrorOut, 4, "ERROR", err)
+		l.print(GetOutputs().ErrorOut, buf, 4, "ERROR", err)
 	} else {
-		text = l.printf(GetOutputs().ErrorOut, 4, "ERROR", err, message, args...)
+		l.printf(GetOutputs().ErrorOut, buf, 4, "ERROR", err, message, args...)
 	}
-	return report(err, text)
+	return report(err, buf.String())
 }
 
 func (l *logger) IfError(err error) error {
 	if err != nil {
-		text := l.print(GetOutputs().ErrorOut, 4, "ERROR", err)
-		report(err, text)
+		buf := bufferPool.Get()
+		defer bufferPool.Put(buf)
+		l.print(GetOutputs().ErrorOut, buf, 4, "ERROR", err)
+		report(err, buf.String())
 	}
 	return err
 }
 
 func (l *logger) Fatal(arg interface{}) {
-	l.print(GetOutputs().ErrorOut, 4, "FATAL", arg)
+	l.print(GetOutputs().ErrorOut, nil, 4, "FATAL", arg)
 	os.Exit(1)
 }
 
 func (l *logger) Fatalf(message string, args ...interface{}) {
-	l.printf(GetOutputs().ErrorOut, 4, "FATAL", nil, message, args...)
+	l.printf(GetOutputs().ErrorOut, nil, 4, "FATAL", nil, message, args...)
 	os.Exit(1)
 }
 
 func (l *logger) Trace(arg interface{}) {
 	if l.traceOn {
-		l.print(GetOutputs().DebugOut, 4, "TRACE", arg)
+		l.print(GetOutputs().DebugOut, nil, 4, "TRACE", arg)
 	}
 }
 
 func (l *logger) Tracef(message string, args ...interface{}) {
 	if l.traceOn {
-		l.printf(GetOutputs().DebugOut, 4, "TRACE", nil, message, args...)
+		l.printf(GetOutputs().DebugOut, nil, 4, "TRACE", nil, message, args...)
 	}
 }
 
@@ -308,9 +314,9 @@ func (l *logger) newTraceWriter() io.Writer {
 			line, err := br.ReadString('\n')
 			if err == nil {
 				// Log the line (minus the trailing newline)
-				l.print(GetOutputs().DebugOut, 6, "TRACE", line[:len(line)-1])
+				l.print(GetOutputs().DebugOut, nil, 6, "TRACE", line[:len(line)-1])
 			} else {
-				l.printf(GetOutputs().DebugOut, 6, "TRACE", nil, "TraceWriter closed due to unexpected error: %v", err)
+				l.printf(GetOutputs().DebugOut, nil, 6, "TRACE", nil, "TraceWriter closed due to unexpected error: %v", err)
 				return
 			}
 		}
@@ -330,7 +336,7 @@ func (w *errorWriter) Write(p []byte) (n int, err error) {
 	if s[len(s)-1] == '\n' {
 		s = s[:len(s)-1]
 	}
-	w.l.print(GetOutputs().ErrorOut, 6, "ERROR", s)
+	w.l.print(GetOutputs().ErrorOut, nil, 6, "ERROR", s)
 	return len(p), nil
 }
 
@@ -363,6 +369,9 @@ func errorOnLogging(err error) {
 }
 
 func printContext(buf *bytes.Buffer, err interface{}) {
+	if err == nil {
+		return
+	}
 	// Note - we don't include globals when printing in order to avoid polluting the text log
 	values := context.AsMap(err, false)
 	if len(values) == 0 {
@@ -386,11 +395,12 @@ func printContext(buf *bytes.Buffer, err interface{}) {
 	buf.WriteByte(']')
 }
 
-func report(err error, text []byte) error {
+func report(err error, text string) error {
 	reportersMutex.RLock()
 	for _, reporter := range reporters {
 		// We include globals when reporting
-		reporter.Report(err, string(text), context.AsMap(err, true))
+		reporter.Report(err, text, context.AsMap(err, true))
 	}
+	reportersMutex.RUnlock()
 	return err
 }
