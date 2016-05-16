@@ -44,6 +44,11 @@ func (c *Context) Go(fn func()) {
 	c.ctx.Go(fn)
 }
 
+// Go mimics the similar method from context.
+func Go(fn func()) {
+	context.Go(fn)
+}
+
 // Exit mimics the similar method from context.Context
 func (c *Context) Exit() *Context {
 	ctx := c.ctx.Exit()
