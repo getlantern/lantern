@@ -94,8 +94,6 @@ func UpdateMobile(shouldProxy bool, url, apkPath string, updater Updater) error 
 	return doUpdateMobile(shouldProxy, url, out, updater)
 }
 
-// UpdateMobile downloads the latest APK from the given url to the apkPath destination
-// - if shouldProxy is true, the client proxies through the given HTTP proxy
 func doUpdateMobile(shouldProxy bool, url string, out *os.File, updater Updater) error {
 	var req *http.Request
 	var res *http.Response
