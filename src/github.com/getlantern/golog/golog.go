@@ -211,7 +211,7 @@ func (l *logger) Debugf(message string, args ...interface{}) {
 }
 
 func (l *logger) Error(arg interface{}) error {
-	return l.ErrorSkipFrames(arg, 0)
+	return l.ErrorSkipFrames(arg, 1)
 }
 
 func (l *logger) ErrorSkipFrames(arg interface{}, skipFrames int) error {
@@ -221,7 +221,6 @@ func (l *logger) ErrorSkipFrames(arg interface{}, skipFrames int) error {
 		err = e
 	default:
 		err = fmt.Errorf("%v", e)
-		skipFrames++
 	}
 	text := l.print(GetOutputs().ErrorOut, skipFrames+4, "ERROR", err)
 	return report(err, text)
