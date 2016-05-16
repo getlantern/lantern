@@ -121,6 +121,9 @@ func (c *Context) RequestID(v int64) *Context {
 
 // Request attaches key information of an `http.Request` to the Context.
 func (c *Context) Request(r *http.Request) *Context {
+	if r == nil {
+		return c
+	}
 	c.ctx.Put("http_request_method", r.Method).
 		Put("http_request_scheme", r.URL.Scheme).
 		Put("http_request_host_in_url", r.URL.Host).
@@ -136,12 +139,13 @@ func (c *Context) Request(r *http.Request) *Context {
 // Response attaches key information of an `http.Response` to the Context. If
 // the response has corresponding Request it will call Request internally.
 func (c *Context) Response(r *http.Response) *Context {
+	if r == nil {
+		return c
+	}
 	c.ctx.Put("http_response_status_code", r.StatusCode).
 		Put("http_response_protocol", r.Proto).
 		Put("http_response_content_type", r.Header.Get("Content-Type"))
-	if r.Request != nil {
-		c.Request(r.Request)
-	}
+	c.Request(r.Request)
 	return c
 }
 
