@@ -192,26 +192,25 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 	errs := make(chan error, 2)
 
 	request := func(clientFunc func(*http.Request) (*http.Response, error), req *http.Request) error {
-		if resp, err := clientFunc(req); err != nil {
+		resp, err := clientFunc(req)
+		if err != nil {
 			errs <- err
 			return err
-		} else {
-			ctx.Response(resp)
-			if success(resp) {
-				log.Debugf("Got successful HTTP call!")
-				responses <- resp
-				return nil
-			} else {
-				// If the local proxy can't connect to any upstream proxies, for example,
-				// it will return a 502.
-				err := errors.New(ErrUnsuccessfulResponseStatus)
-				if resp.Body != nil {
-					_ = resp.Body.Close()
-				}
-				errs <- err
-				return err
-			}
 		}
+		ctx.Response(resp)
+		if success(resp) {
+			log.Debugf("Got successful HTTP call!")
+			responses <- resp
+			return nil
+		}
+		// If the local proxy can't connect to any upstream proxies, for example,
+		// it will return a 502.
+		err = errors.New(ErrUnsuccessfulResponseStatus)
+		if resp.Body != nil {
+			_ = resp.Body.Close()
+		}
+		errs <- err
+		return err
 	}
 
 	doFronted := func() {
