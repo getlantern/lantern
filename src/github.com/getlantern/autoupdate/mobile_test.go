@@ -10,6 +10,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var (
+	updateServer = "https://update-stage.getlantern.org/update"
+)
+
 type TestUpdater struct {
 	Updater
 }
@@ -33,7 +37,7 @@ func TestCheckNoUpdateUnavailable(t *testing.T) {
 // urlEmpty and shouldErr are booleans that indicate whether or not
 // CheckMobileUpdate should return a blank url or non-nil error
 func doTestCheckUpdate(t *testing.T, urlEmpty, shouldErr bool, version string) string {
-	url, err := CheckMobileUpdate(false, version)
+	url, err := CheckMobileUpdate(false, updateServer, version)
 
 	if shouldErr {
 		assert.NotNil(t, err)

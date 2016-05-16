@@ -32,6 +32,11 @@ public class UpdateActivity extends Activity {
     private static final String TAG = "UpdateActivity";
     private static final String APK_PATH = "/sdcard/Lantern.apk";
 
+    private UpdaterTask mUpdaterTask;
+    private ProgressDialog progressBar;
+    private SessionManager session;
+    private boolean fileDownloading = false;
+
     static boolean active = false;
 
     @Extra("updateUrl")
@@ -39,12 +44,6 @@ public class UpdateActivity extends Activity {
 
     @ViewById
     Button notNow;
-
-    private UpdaterTask mUpdaterTask;
-    private ProgressDialog progressBar;
-    private SessionManager session;
-
-    private boolean fileDownloading = false;
 
     @Override
     protected void onStart() {

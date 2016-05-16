@@ -9,16 +9,12 @@ import (
 	"os"
 
 	"github.com/blang/semver"
-	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/proxied"
 	"github.com/getlantern/go-update"
 )
 
-var (
-	updateServer = config.DefaultUpdateServerURL
-	//updateServer = "https://update-stage.getlantern.org/update"
-)
-
+// Updater provides a SetProgress method to communicate the update download
+// progres with the Android UI
 type Updater interface {
 	SetProgress(int)
 }
@@ -32,9 +28,8 @@ type byteCounter struct {
 	progress float64 // How much of the update has been downloaded
 }
 
-// Read 'overrides' the underlying io.Reader's Read method.
-// This is the one that will be called by io.Copy(). We simply
-// use it to keep track of byte counts and then forward the call.
+// byteCounter keeps track of the byte count while transferring the update.
+// the percentage progress is published to Updater
 func (pt *byteCounter) Read(p []byte) (int, error) {
 	n, err := pt.Reader.Read(p)
 	if n > 0 {
@@ -64,16 +59,16 @@ func doCheckUpdate(shouldProxy bool, version, URL string, publicKey []byte) (str
 		return "", err
 	}
 
-	v, err := semver.Make(version)
-	if err != nil {
-		log.Errorf("Error checking for update; could not parse version number: %v", err)
-		return "", err
-	}
-
 	if res == nil {
 		log.Debugf("No new version available!")
 		return "", nil
 
+	}
+
+	v, err := semver.Make(version)
+	if err != nil {
+		log.Errorf("Error checking for update; could not parse version number: %v", err)
+		return "", err
 	}
 
 	if isNewerVersion(v, res.Version) {
@@ -85,7 +80,7 @@ func doCheckUpdate(shouldProxy bool, version, URL string, publicKey []byte) (str
 }
 
 // CheckMobileUpdate checks if a new update is available for mobile.
-func CheckMobileUpdate(shouldProxy bool, appVersion string) (string, error) {
+func CheckMobileUpdate(shouldProxy bool, updateServer, appVersion string) (string, error) {
 	return doCheckUpdate(shouldProxy, appVersion,
 		updateServer, []byte(PackagePublicKey))
 }

@@ -132,7 +132,8 @@ func run(configDir string) {
 
 // CheckForUpdates checks to see if a new version of Lantern is available
 func CheckForUpdates(shouldProxy bool) (string, error) {
-	return autoupdate.CheckMobileUpdate(shouldProxy, compileTimePackageVersion)
+	return autoupdate.CheckMobileUpdate(shouldProxy, config.DefaultUpdateServerURL,
+		compileTimePackageVersion)
 }
 
 // UpdateMobile downloads the latest APK from the given url to apkPath
