@@ -9,14 +9,12 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.Button;
 import android.view.View.OnClickListener;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.Extra;
-import org.androidannotations.annotations.ViewById;
 
 import go.lantern.Lantern;
 import org.getlantern.lantern.LanternApp;
@@ -40,9 +38,6 @@ public class UpdateActivity extends Activity {
 
     @Extra("updateUrl")
     String updateUrl;
-
-    @ViewById
-    Button notNow;
 
     @Override
     protected void onStart() {
