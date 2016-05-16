@@ -6,8 +6,6 @@ package proxied
 
 import (
 	"crypto/tls"
-	"errors"
-	"fmt"
 	"net"
 	"net/http"
 	"net/url"
@@ -17,11 +15,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/getlantern/context"
+	"github.com/getlantern/errors"
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/keyman"
+
+	"github.com/getlantern/flashlight/context"
 )
 
 const (
@@ -36,7 +36,10 @@ var (
 
 	// ErrChainedProxyUnavailable indicates that we weren't able to find a chained
 	// proxy.
-	ErrChainedProxyUnavailable = errors.New("chained proxy unavailable")
+	ErrChainedProxyUnavailable = "chained proxy unavailable"
+
+	// ErrUnsuccessfulResponseStatus indicates that a response status was unsuccessful
+	ErrUnsuccessfulResponseStatus = "unsuccessful response status"
 )
 
 func success(resp *http.Response) bool {
@@ -108,11 +111,17 @@ func (cf *chainedAndFronted) setFetcher(fetcher http.RoundTripper) {
 
 // Do will attempt to execute the specified HTTP request using only a chained fetcher
 func (cf *chainedAndFronted) RoundTrip(req *http.Request) (*http.Response, error) {
+	ctx := context.Enter().Request(req)
+	defer ctx.Exit()
+
 	resp, err := cf.getFetcher().RoundTrip(req)
+	ctx.Response(resp)
 	if err != nil {
+		log.Error(err)
 		// If there's an error, switch back to using the dual fetcher.
 		cf.setFetcher(&dualFetcher{cf})
 	} else if !success(resp) {
+		log.Error(ErrUnsuccessfulResponseStatus)
 		cf.setFetcher(&dualFetcher{cf})
 	}
 	return resp, err
@@ -126,7 +135,6 @@ func (cf *chainedFetcher) RoundTrip(req *http.Request) (*http.Response, error) {
 	log.Debugf("Using chained fronter")
 	rt, err := ChainedNonPersistent("")
 	if err != nil {
-		log.Errorf("Could not create HTTP client: %v", err)
 		return nil, err
 	}
 	return rt.RoundTrip(req)
@@ -143,8 +151,7 @@ type dualFetcher struct {
 func (df *dualFetcher) RoundTrip(req *http.Request) (*http.Response, error) {
 	directRT, err := ChainedNonPersistent("")
 	if err != nil {
-		log.Errorf("Could not create http client? %v", err)
-		return nil, err
+		return nil, errors.Wrap(err).Op("DFCreateChainedClient")
 	}
 	frontedRT := fronted.NewDirect(5 * time.Minute)
 	return df.do(req, directRT.RoundTrip, frontedRT.RoundTrip)
@@ -155,6 +162,10 @@ func (df *dualFetcher) RoundTrip(req *http.Request) (*http.Response, error) {
 // header to specify the fronted URL to use.
 func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*http.Response, error), ddfFunc func(*http.Request) (*http.Response, error)) (*http.Response, error) {
 	log.Debugf("Using dual fronter")
+
+	ctx := context.Enter().Request(req)
+	defer ctx.Exit()
+
 	frontedURL := req.Header.Get("Lantern-Fronted-URL")
 	req.Header.Del("Lantern-Fronted-URL")
 
@@ -182,10 +193,10 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 
 	request := func(clientFunc func(*http.Request) (*http.Response, error), req *http.Request) error {
 		if resp, err := clientFunc(req); err != nil {
-			log.Errorf("Could not complete request with: %v, %v", frontedURL, err)
 			errs <- err
 			return err
 		} else {
+			ctx.Response(resp)
 			if success(resp) {
 				log.Debugf("Got successful HTTP call!")
 				responses <- resp
@@ -193,7 +204,7 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 			} else {
 				// If the local proxy can't connect to any upstream proxies, for example,
 				// it will return a 502.
-				err := fmt.Errorf("Bad response code: %v", resp.StatusCode)
+				err := errors.New(ErrUnsuccessfulResponseStatus)
 				if resp.Body != nil {
 					_ = resp.Body.Close()
 				}
@@ -204,16 +215,16 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 	}
 
 	doFronted := func() {
+		ctx.
+			ProxyType(context.ProxyFronted).
+			Put("fronted_url", frontedURL)
 		if frontedReq, err := http.NewRequest("GET", frontedURL, nil); err != nil {
-			log.Errorf("Could not create request for: %v, %v", frontedURL, err)
-			errs <- err
+			errs <- errors.Wrap(err)
 		} else {
 			log.Debug("Sending request via DDF")
 			frontedReq.Header = headersCopy
 
-			if err := request(ddfFunc, frontedReq); err != nil {
-				log.Errorf("Fronted request failed: %v", err)
-			} else {
+			if err := request(ddfFunc, frontedReq); err == nil {
 				log.Debug("Fronted request succeeded")
 			}
 		}
@@ -221,9 +232,7 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 
 	doChained := func() {
 		log.Debug("Sending chained request")
-		if err := request(chainedFunc, req); err != nil {
-			log.Errorf("Chained request failed %v", err)
-		} else {
+		if err := request(chainedFunc, req); err == nil {
 			log.Debug("Switching to chained fronter for future requests since it succeeded")
 			df.cf.setFetcher(&chainedFetcher{})
 		}
@@ -361,7 +370,7 @@ func chained(rootCA string, persistent bool) (http.RoundTripper, error) {
 	if rootCA != "" {
 		caCert, err := keyman.LoadCertificateFromPEMBytes([]byte(rootCA))
 		if err != nil {
-			return nil, fmt.Errorf("Unable to decode rootCA: %s", err)
+			return nil, errors.Wrap(err).Op("DecodeRootCA")
 		}
 		tr.TLSClientConfig = &tls.Config{
 			RootCAs: caCert.PoolContainingCert(),
@@ -371,10 +380,28 @@ func chained(rootCA string, persistent bool) (http.RoundTripper, error) {
 	tr.Proxy = func(req *http.Request) (*url.URL, error) {
 		proxyAddr, ok := getProxyAddr()
 		if !ok {
-			return nil, ErrChainedProxyUnavailable
+			return nil, errors.New(ErrChainedProxyUnavailable)
 		}
 		return url.Parse("http://" + proxyAddr)
 	}
 
-	return tr, nil
+	return wrap(func(req *http.Request) (*http.Response, error) {
+		ctx := context.Enter().ProxyType(context.ProxyChained).Request(req)
+		defer ctx.Exit()
+		resp, err := tr.RoundTrip(req)
+		ctx.Response(resp)
+		return resp, errors.Wrap(err)
+	}), nil
+}
+
+func wrap(fn func(req *http.Request) (*http.Response, error)) http.RoundTripper {
+	return &rt{fn}
+}
+
+type rt struct {
+	fn func(*http.Request) (*http.Response, error)
+}
+
+func (rt *rt) RoundTrip(req *http.Request) (*http.Response, error) {
+	return rt.fn(req)
 }
