@@ -169,16 +169,13 @@ func (c *Context) fill(m Map) {
 	}
 }
 
-// AsMap returns a map containing all values along the stack, including globals.
-func AsMap() Map {
-	return AsMapWith(nil, true)
-}
-
-// AsMap returns a map containing all values from the supplied Contextual,
-// plus any addition values from along the stack, plus globals if so specified.
-func AsMapWith(cl Contextual, includeGlobals bool) Map {
+// AsMap returns a map containing all values from the supplied obj if it is a
+// Contextual, plus any addition values from along the stack, plus globals if so
+// specified.
+func AsMap(obj interface{}, includeGlobals bool) Map {
 	result := make(Map, 0)
-	if cl != nil {
+	cl, ok := obj.(Contextual)
+	if ok {
 		cl.Fill(result)
 	}
 	c := currentContext()

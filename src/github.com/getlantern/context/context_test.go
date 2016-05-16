@@ -39,20 +39,20 @@ func TestStack(t *testing.T) {
 	}
 
 	assertContents := func(expected Map) {
-		doAssertContents(expected, AsMapWith(nil, false), "AsMapwith(nil, false)")
+		doAssertContents(expected, AsMap(nil, false), "AsMapwith(nil, false)")
 		expected["ga"] = "i"
 		expected["gb"] = "ii"
 		_, exists := expected["a"]
 		if !exists {
 			expected["a"] = -1
 		}
-		doAssertContents(expected, AsMap(), "AsMap()")
+		doAssertContents(expected, AsMap(nil, true), "AsMap(nil, true)")
 		expected["a"] = 0
 		expected["contextual"] = "special"
-		doAssertContents(expected, AsMapWith(contextual, true), "AsMapWith(contextual, true)")
+		doAssertContents(expected, AsMap(contextual, true), "AsMapWith(contextual, true)")
 		delete(expected, "ga")
 		delete(expected, "gb")
-		doAssertContents(expected, AsMapWith(contextual, false), "AsMapWith(contextual, false)")
+		doAssertContents(expected, AsMap(contextual, false), "AsMapWith(contextual, false)")
 	}
 
 	assertContents(Map{
@@ -141,6 +141,6 @@ func BenchmarkAsMap(b *testing.B) {
 	Enter().Put("a", 1).Put("b", 2)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		AsMap()
+		AsMap(nil, true)
 	}
 }
