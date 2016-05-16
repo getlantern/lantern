@@ -178,21 +178,12 @@ func (c *Context) fill(m Map) {
 
 // AsMap returns a map containing all values along the stack, including globals.
 func AsMap() Map {
-	return AsMapWith(nil)
+	return AsMapWith(nil, true)
 }
 
-// AsMapWithoutGlobals is like AsMap but doesn't include globals.
-func AsMapWithoutGlobals() Map {
-	c := currentContext()
-	if c == nil {
-		return make(Map)
-	}
-	return c.AsMap()
-}
-
-// AsMapWith returns a map containing all values from the supplied Contextrual
-// plus any addition values from along the stack, including globals.
-func AsMapWith(cl Contextual) Map {
+// AsMap returns a map containing all values from the supplied Contextual,
+// plus any addition values from along the stack, plus globals if so specified.
+func AsMapWith(cl Contextual, includeGlobals bool) Map {
 	result := make(Map, 0)
 	if cl != nil {
 		cl.Fill(result)
@@ -201,9 +192,11 @@ func AsMapWith(cl Contextual) Map {
 	if c != nil {
 		c.fill(result)
 	}
-	allmx.RLock()
-	fill(result, global)
-	allmx.RUnlock()
+	if includeGlobals {
+		allmx.RLock()
+		fill(result, global)
+		allmx.RUnlock()
+	}
 	return result
 }
 
