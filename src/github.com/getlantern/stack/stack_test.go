@@ -10,10 +10,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/go-stack/stack"
+	"github.com/getlantern/stack"
 )
 
-const importPath = "github.com/go-stack/stack"
+const importPath = "github.com/getlantern/stack"
 
 type testType struct{}
 
@@ -40,6 +40,7 @@ func TestCallFormat(t *testing.T) {
 		t.Fatal("runtime.Caller(0) failed")
 	}
 	relFile2 := path.Join(importPath, filepath.Base(file2))
+	fullFunc := runtime.FuncForPC(pc2).Name()
 
 	data := []struct {
 		c    stack.Call
@@ -64,7 +65,9 @@ func TestCallFormat(t *testing.T) {
 		{c2, "meth", "%#s", file2},
 		{c2, "meth", "%d", fmt.Sprint(line2)},
 		{c2, "meth", "%n", "testType.testMethod"},
-		{c2, "meth", "%+n", runtime.FuncForPC(pc2).Name()},
+		{c2, "meth", "%+n", fullFunc},
+		{c2, "meth", "%k", "stack_test"},
+		{c2, "meth", "%+k", fullFunc[:strings.LastIndex(fullFunc, "/")+1] + "stack_test"},
 		{c2, "meth", "%v", fmt.Sprint(path.Base(file2), ":", line2)},
 		{c2, "meth", "%+v", fmt.Sprint(relFile2, ":", line2)},
 		{c2, "meth", "%#v", fmt.Sprint(file2, ":", line2)},
