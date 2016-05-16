@@ -99,9 +99,9 @@ func (e *Error) AsMap() context.Map {
 	return e.data
 }
 
-// ErrorOp attaches a hint of the operation triggers this Error. Many error
-// types returned by net and os package have Op pre-filled.
-func (e *Error) ErrorOp(op string) *Error {
+// Op attaches a hint of the operation triggers this Error. Many error types
+// returned by net and os package have Op pre-filled.
+func (e *Error) Op(op string) *Error {
 	e.data["error_op"] = op
 	return e
 }
@@ -153,7 +153,7 @@ func buildError(desc string, source error) *Error {
 		if desc == "" && source != nil {
 			desc = sourceDesc
 		}
-		e.ErrorOp(op)
+		e.Op(op)
 		errorType = goType
 		if extra != nil {
 			for key, value := range extra {
