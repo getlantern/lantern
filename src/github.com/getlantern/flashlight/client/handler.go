@@ -11,8 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/getlantern/context"
-
+	"github.com/getlantern/flashlight/context"
 	"github.com/getlantern/flashlight/logging"
 )
 
@@ -28,10 +27,10 @@ func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	logging.RegisterUserAgent(userAgent)
 
 	ctx := context.Enter().
-		Put("op", "proxy").
-		Put("user_agent", userAgent).
-		Put("request_id", rand.Int63()).
-		Put("origin", req.Host)
+		OuterOp("proxy").
+		UserAgent(userAgent).
+		RequestID(rand.Int63()).
+		Origin(req.Host)
 	defer ctx.Exit()
 
 	if req.Method == httpConnectMethod {

@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"net"
 
+	"git.torproject.org/pluggable-transports/goptlib.git"
+
 	"github.com/Yawning/obfs4/transports/obfs4"
-	"github.com/getlantern/context"
 	"github.com/getlantern/keyman"
 	"github.com/getlantern/tlsdialer"
 
-	"git.torproject.org/pluggable-transports/goptlib.git"
+	"github.com/getlantern/flashlight/context"
 )
 
 type dialFN func() (net.Conn, error)
@@ -35,7 +36,7 @@ func defaultDialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 	if s.Cert == "" && !forceProxy {
 		log.Error("No Cert configured for chained server, will dial with plain tcp")
 		dial = func() (net.Conn, error) {
-			defer proxyContext(s.Addr, "http").Exit()
+			defer context.Enter().ChainedProxy(s.Addr, "http").Exit()
 			conn, err := netd.Dial("tcp", addr)
 			return conn, log.IfError(err)
 		}
@@ -48,7 +49,7 @@ func defaultDialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 		x509cert := cert.X509()
 		sessionCache := tls.NewLRUClientSessionCache(1000)
 		dial = func() (net.Conn, error) {
-			defer proxyContext(s.Addr, "https").Exit()
+			defer context.Enter().ChainedProxy(s.Addr, "https").Exit()
 
 			conn, err := tlsdialer.DialWithDialer(netd, "tcp", addr, false, &tls.Config{
 				ClientSessionCache: sessionCache,
@@ -91,17 +92,8 @@ func obfs4DialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 	}
 
 	return func() (net.Conn, error) {
-		defer proxyContext(s.Addr, "obfs4").Exit()
+		defer context.Enter().ChainedProxy(s.Addr, "obfs4").Exit()
 		conn, err := cf.Dial("tcp", s.Addr, net.Dial, args)
 		return conn, log.IfError(err)
 	}, nil
-}
-
-func proxyContext(addr string, protocol string) *context.Context {
-	ctx := context.Enter().Put("proxy_protocol", protocol)
-	host, port, err := net.SplitHostPort(addr)
-	if err == nil {
-		ctx.Put("proxy_host", host).Put("proxy_port", port)
-	}
-	return ctx
 }
