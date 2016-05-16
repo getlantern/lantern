@@ -3,7 +3,6 @@ package client
 import (
 	"fmt"
 	"io"
-	"math/rand"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -29,7 +28,6 @@ func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	ctx := context.Enter().
 		OuterOp("proxy").
 		UserAgent(userAgent).
-		RequestID(rand.Int63()).
 		Origin(req.Host)
 	defer ctx.Exit()
 
