@@ -94,9 +94,11 @@ type Error struct {
 	data context.Map
 }
 
-// AsMap implements the method from the context.Contextual interface.
-func (e *Error) AsMap() context.Map {
-	return e.data
+// Fill implements the method from the context.Contextual interface.
+func (e *Error) Fill(m context.Map) {
+	for key, value := range e.data {
+		m[key] = value
+	}
 }
 
 // Op attaches a hint of the operation triggers this Error. Many error types
