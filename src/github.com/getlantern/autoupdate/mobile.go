@@ -13,13 +13,13 @@ import (
 	"github.com/getlantern/go-update"
 )
 
-// Updater provides a SetProgress method to communicate the update download
-// progres with the Android UI
 type Updater interface {
-	SetProgress(int)
+	// PublishProgress: publish percentage of update already downloaded
+	PublishProgress(int)
 }
 
-// byteCounter wraps an existing io.Reader.
+// byteCounter wraps an existing io.Reader and keeps track of the byte
+// count while downloading the latest update
 type byteCounter struct {
 	io.Reader // Underlying io.Reader to track bytes transferred
 	Updater
@@ -28,14 +28,12 @@ type byteCounter struct {
 	progress float64 // How much of the update has been downloaded
 }
 
-// byteCounter keeps track of the byte count while transferring the update.
-// the percentage progress is published to Updater
 func (pt *byteCounter) Read(p []byte) (int, error) {
 	n, err := pt.Reader.Read(p)
 	if n > 0 {
 		pt.total += int64(n)
 		percentage := float64(pt.total) / float64(pt.length) * float64(100)
-		pt.Updater.SetProgress(int(percentage))
+		pt.Updater.PublishProgress(int(percentage))
 	}
 	return n, err
 }
@@ -85,10 +83,8 @@ func CheckMobileUpdate(shouldProxy bool, updateServer, appVersion string) (strin
 		updateServer, []byte(PackagePublicKey))
 }
 
-// UpdateMobile downloads the latest APK from the given url to apkPath
+// UpdateMobile downloads the latest APK from the given url to file apkPath.
 // - if shouldProxy is true, the client proxies through the given HTTP proxy
-// Updater is an interface for calling back to Java (whether to display download progress
-// or show an error message)
 func UpdateMobile(shouldProxy bool, url, apkPath string, updater Updater) error {
 
 	out, err := os.Create(apkPath)
@@ -101,10 +97,8 @@ func UpdateMobile(shouldProxy bool, url, apkPath string, updater Updater) error 
 	return doUpdateMobile(shouldProxy, url, out, updater)
 }
 
-// UpdateMobile downloads the latest APK from the given url to apkPath
+// UpdateMobile downloads the latest APK from the given url to the apkPath destination
 // - if shouldProxy is true, the client proxies through the given HTTP proxy
-// Updater is an interface for calling back to Java (whether to display download progress
-// or show an error message)
 func doUpdateMobile(shouldProxy bool, url string, out *os.File, updater Updater) error {
 	var req *http.Request
 	var res *http.Response
