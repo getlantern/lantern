@@ -350,7 +350,7 @@ func errorOnLogging(err error) {
 
 func printContext(buf *bytes.Buffer, err interface{}) {
 	// Note - we don't include globals when printing in order to avoid polluting the text log
-	values := contextMap(err, false)
+	values := context.AsMap(err, false)
 	if len(values) == 0 {
 		return
 	}
@@ -376,16 +376,7 @@ func report(err error, text []byte) error {
 	reportersMutex.RLock()
 	for _, reporter := range reporters {
 		// We include globals when reporting
-		reporter.Report(err, string(text), contextMap(err, true))
+		reporter.Report(err, string(text), context.AsMap(err, true))
 	}
 	return err
-}
-
-func contextMap(err interface{}, includeGlobals bool) context.Map {
-	var cl context.Contextual
-	switch _cl := err.(type) {
-	case context.Contextual:
-		cl = _cl
-	}
-	return context.AsMapWith(cl, includeGlobals)
 }
