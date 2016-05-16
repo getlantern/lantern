@@ -111,9 +111,6 @@ func doUpdateMobile(shouldProxy bool, url string, out *os.File, updater Updater)
 		return err
 	}
 
-	// ask for gzipped feed content
-	req.Header.Add("Accept-Encoding", "gzip")
-
 	if res, err = httpClient.Do(req); err != nil {
 		log.Errorf("Error requesting update: %v", err)
 		return err
