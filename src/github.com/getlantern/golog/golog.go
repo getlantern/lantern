@@ -169,7 +169,7 @@ func (l *logger) print(out io.Writer, skipFrames int, severity string, arg inter
 	buf.WriteString(" ")
 	buf.WriteString(l.linePrefix(skipFrames))
 	fmt.Fprintf(buf, "%v", arg)
-	printContext(buf)
+	printContext(buf, arg)
 	buf.WriteByte('\n')
 	b := buf.Bytes()
 	_, err := out.Write(b)
@@ -189,7 +189,7 @@ func (l *logger) printf(out io.Writer, skipFrames int, severity string, message 
 	buf.WriteString(" ")
 	buf.WriteString(l.linePrefix(skipFrames))
 	fmt.Fprintf(buf, message, args...)
-	printContext(buf)
+	printContext(buf, nil)
 	buf.WriteByte('\n')
 	b := buf.Bytes()
 	_, err := out.Write(b)
@@ -348,9 +348,9 @@ func errorOnLogging(err error) {
 	fmt.Fprintf(os.Stderr, "Unable to log: %v\n", err)
 }
 
-func printContext(buf *bytes.Buffer) {
-	// Note - we don't include globals in order to avoid polluting the log
-	values := context.AsMapWithoutGlobals()
+func printContext(buf *bytes.Buffer, err interface{}) {
+	// Note - we don't include globals when printing in order to avoid polluting the text log
+	values := contextMap(err, false)
 	if len(values) == 0 {
 		return
 	}
@@ -375,14 +375,17 @@ func printContext(buf *bytes.Buffer) {
 func report(err error, text []byte) error {
 	reportersMutex.RLock()
 	for _, reporter := range reporters {
-		var ctx context.Map
-		switch cl := err.(type) {
-		case context.Contextual:
-			ctx = context.AsMapWith(cl)
-		default:
-			ctx = make(context.Map, 0)
-		}
-		reporter.Report(err, string(text), ctx)
+		// We include globals when reporting
+		reporter.Report(err, string(text), contextMap(err, true))
 	}
 	return err
+}
+
+func contextMap(err interface{}, includeGlobals bool) context.Map {
+	var cl context.Contextual
+	switch _cl := err.(type) {
+	case context.Contextual:
+		cl = _cl
+	}
+	return context.AsMapWith(cl, includeGlobals)
 }

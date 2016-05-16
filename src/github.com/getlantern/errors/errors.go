@@ -144,7 +144,7 @@ func (e *Error) attachStack(skip int) {
 
 func buildError(desc string, source error) *Error {
 	e := &Error{
-		data: context.AsMap(),
+		data: context.AsMapWith(nil, false),
 	}
 
 	errorType := "errors.Error"
