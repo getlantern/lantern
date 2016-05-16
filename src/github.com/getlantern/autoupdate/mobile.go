@@ -2,7 +2,6 @@ package autoupdate
 
 import (
 	"compress/bzip2"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -26,7 +25,7 @@ type byteCounter struct {
 	Updater
 	total    int64 // total bytes transferred
 	length   int64 // Expected length
-	progress float64
+	progress int64
 }
 
 // Read 'overrides' the underlying io.Reader's Read method.
@@ -37,17 +36,8 @@ func (pt *byteCounter) Read(p []byte) (int, error) {
 	if n > 0 {
 		pt.total += int64(n)
 		percentage := (float64(pt.total) / float64(pt.length)) * float64(100)
-		i := int(percentage / float64(10))
-		is := fmt.Sprintf("%v", i)
-
-		if percentage-pt.progress > 2 {
-			fmt.Fprintf(os.Stderr, is)
-			pt.progress = percentage
-			pt.Updater.SetProgress(int(pt.progress))
-		}
-
+		pt.Updater.SetProgress(int(percentage))
 	}
-
 	return n, err
 }
 
