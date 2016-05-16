@@ -60,7 +60,6 @@ func doCheckUpdate(shouldProxy bool, version, URL string, publicKey []byte) (str
 	if res == nil {
 		log.Debugf("No new version available!")
 		return "", nil
-
 	}
 
 	v, err := semver.Make(version)
@@ -86,14 +85,12 @@ func CheckMobileUpdate(shouldProxy bool, updateServer, appVersion string) (strin
 // UpdateMobile downloads the latest APK from the given url to file apkPath.
 // - if shouldProxy is true, the client proxies through the given HTTP proxy
 func UpdateMobile(shouldProxy bool, url, apkPath string, updater Updater) error {
-
 	out, err := os.Create(apkPath)
 	if err != nil {
 		log.Error(err)
 		return err
 	}
 	defer out.Close()
-
 	return doUpdateMobile(shouldProxy, url, out, updater)
 }
 
