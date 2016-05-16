@@ -32,27 +32,27 @@ func TestStack(t *testing.T) {
 	penultimate.Put("c", 3)
 
 	var assertMutex sync.Mutex
-	doAssertContents := func(expected Map, actual Map) {
+	doAssertContents := func(expected Map, actual Map, scope string) {
 		assertMutex.Lock()
-		assert.Equal(t, expected, actual)
+		assert.Equal(t, expected, actual, scope)
 		assertMutex.Unlock()
 	}
 
 	assertContents := func(expected Map) {
-		mg := AsMap()
-		m := AsMapWithoutGlobals()
-		mc := AsMapWith(contextual)
-		doAssertContents(expected, m)
+		doAssertContents(expected, AsMapWith(nil, false), "AsMapwith(nil, false)")
 		expected["ga"] = "i"
 		expected["gb"] = "ii"
 		_, exists := expected["a"]
 		if !exists {
 			expected["a"] = -1
 		}
-		doAssertContents(expected, mg)
+		doAssertContents(expected, AsMap(), "AsMap()")
 		expected["a"] = 0
 		expected["contextual"] = "special"
-		doAssertContents(expected, mc)
+		doAssertContents(expected, AsMapWith(contextual, true), "AsMapWith(contextual, true)")
+		delete(expected, "ga")
+		delete(expected, "gb")
+		doAssertContents(expected, AsMapWith(contextual, false), "AsMapWith(contextual, false)")
 	}
 
 	assertContents(Map{
