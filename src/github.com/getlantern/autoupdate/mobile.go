@@ -9,12 +9,14 @@ import (
 	"os"
 
 	"github.com/blang/semver"
+	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/proxied"
 	"github.com/getlantern/go-update"
 )
 
 var (
-	updateStagingServer = "https://update-stage.getlantern.org/update"
+	updateServer = config.DefaultUpdateServerURL
+	//updateServer = "https://update-stage.getlantern.org/update"
 )
 
 type Updater interface {
@@ -85,7 +87,7 @@ func doCheckUpdate(shouldProxy bool, version, URL string, publicKey []byte) (str
 // CheckMobileUpdate checks if a new update is available for mobile.
 func CheckMobileUpdate(shouldProxy bool, appVersion string) (string, error) {
 	return doCheckUpdate(shouldProxy, appVersion,
-		updateStagingServer, []byte(PackagePublicKey))
+		updateServer, []byte(PackagePublicKey))
 }
 
 // UpdateMobile downloads the latest APK from the given url to apkPath
