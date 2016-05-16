@@ -96,8 +96,10 @@ type Error struct {
 
 // Fill implements the method from the context.Contextual interface.
 func (e *Error) Fill(m context.Map) {
-	for key, value := range e.data {
-		m[key] = value
+	if e != nil {
+		for key, value := range e.data {
+			m[key] = value
+		}
 	}
 }
 

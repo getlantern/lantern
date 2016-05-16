@@ -312,7 +312,8 @@ func (t *nonStopWriter) flush() {
 }
 
 func enableBorda() {
-	NewBordaReporter(&BordaReporterOptions{
-	//ReportInterval: 15 * time.Second,
+	r := NewBordaReporter(&BordaReporterOptions{
+		ReportInterval: 5 * time.Second,
 	})
+	golog.ReportErrorsTo(r)
 }

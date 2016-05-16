@@ -14,6 +14,7 @@ import (
 	"github.com/getlantern/yamlconf"
 
 	"github.com/getlantern/flashlight/context"
+	"github.com/getlantern/flashlight/proxied"
 )
 
 const (
@@ -117,7 +118,7 @@ func (cf *fetcher) fetchCloudConfig(cfg *Config) ([]byte, error) {
 	// Prevents intermediate nodes (domain-fronters) from caching the content
 	req.Header.Set("Cache-Control", "no-cache")
 	// Set the fronted URL to lookup the config in parallel using chained and domain fronted servers.
-	req.Header.Set("Lantern-Fronted-URL", cfg.FrontedCloudConfig+cb)
+	proxied.PrepareForFronting(req, cfg.FrontedCloudConfig+cb)
 
 	id := cf.user.GetUserID()
 	if id != "" {
