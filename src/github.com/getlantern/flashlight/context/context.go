@@ -79,26 +79,6 @@ func PutGlobalDynamic(key string, valueFN func() interface{}) {
 	context.PutGlobalDynamic(key, valueFN)
 }
 
-// AsMap mimics the similar method from context.Context
-func (c *Context) AsMap() map[string]interface{} {
-	return c.ctx.AsMap()
-}
-
-// AsMap mimics the similar method from context
-func AsMap() map[string]interface{} {
-	return context.AsMap()
-}
-
-// AsMapWithoutGlobals mimics the similar method from context
-func AsMapWithoutGlobals() map[string]interface{} {
-	return context.AsMapWithoutGlobals()
-}
-
-// AsMapWith mimics the similar method from context
-func AsMapWith(cl context.Contextual) map[string]interface{} {
-	return context.AsMapWithoutGlobals()
-}
-
 // OuterOp attaches an operation to the Context.
 func (c *Context) OuterOp(v string) *Context {
 	c.ctx.Put("op", v)
