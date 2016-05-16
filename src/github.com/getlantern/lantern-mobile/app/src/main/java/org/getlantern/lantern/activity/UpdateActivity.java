@@ -134,6 +134,7 @@ public class UpdateActivity extends Activity {
                         APK_PATH, shouldProxy, updater);
 
                 return true;
+
             } catch (Exception e) {
                 Log.d(TAG, "Error downloading update: " + e.getMessage());
             }
@@ -189,10 +190,17 @@ public class UpdateActivity extends Activity {
 
             Log.d(TAG, "About to install new version of Lantern Android");
 
+            File apkFile = new File(APK_PATH);
+            if (apkFile == null || !apkFile.isFile()) {
+                Log.e(TAG, "Error loading APK; not found at " + APK_PATH);
+                displayError();
+                return;
+            }
+
             Intent i = new Intent();
             i.setAction(Intent.ACTION_VIEW);
             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            i.setDataAndType(Uri.fromFile(new File(APK_PATH)), "application/vnd.android.package-archive");
+            i.setDataAndType(Uri.fromFile(apkFile), "application/vnd.android.package-archive");
 
             this.context.startActivity(i);
 
