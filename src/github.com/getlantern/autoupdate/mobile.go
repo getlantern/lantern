@@ -23,11 +23,11 @@ type Updater interface {
 
 // byteCounter wraps an existing io.Reader.
 type byteCounter struct {
-	io.Reader
+	io.Reader // Underlying io.Reader to track bytes transferred
 	Updater
-	total    int64 // total bytes transferred
-	length   int64 // Expected length
-	progress float64
+	total    int64   // Total bytes transferred
+	length   int64   // Expected length
+	progress float64 // How much of the update has been downloaded
 }
 
 // Read 'overrides' the underlying io.Reader's Read method.
