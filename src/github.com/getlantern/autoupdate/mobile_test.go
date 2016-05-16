@@ -18,7 +18,7 @@ type TestUpdater struct {
 	Updater
 }
 
-func (u *TestUpdater) SetProgress(percentage int) {
+func (u *TestUpdater) PublishProgress(percentage int) {
 	log.Debugf("Current progress: %6.02d%%", percentage)
 }
 
@@ -59,11 +59,22 @@ func TestDoUpdate(t *testing.T) {
 	url := doTestCheckUpdate(t, false, false, "2.2.0")
 	assert.NotEmpty(t, url)
 
+	// create a temporary file to write the update to
 	out, err := ioutil.TempFile(os.TempDir(), "update")
 	assert.Nil(t, err)
 
 	defer os.Remove(out.Name())
 
-	err = doUpdateMobile(false, url, out, new(TestUpdater))
+	testUpdater := new(TestUpdater)
+
+	err = doUpdateMobile(false, url, out, testUpdater)
 	assert.Nil(t, err)
+
+	// check for an invalid apk path destination
+	err = UpdateMobile(false, url, "", testUpdater)
+	assert.NotNil(t, err)
+
+	// check for a missing url
+	err = doUpdateMobile(false, "", out, testUpdater)
+	assert.NotNil(t, err)
 }
