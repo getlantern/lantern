@@ -19,9 +19,9 @@ import (
 )
 
 var (
-	baseExpectedLog  = "myprefix: golog_test.go:([0-9]+) Hello world%v\nmyprefix: golog_test.go:([0-9]+) Hello 5 \\[cvar1=a cvar2=2\\]\n"
-	expectedLog      = fmt.Sprintf(baseExpectedLog, "")
-	expectedErrorLog = fmt.Sprintf(baseExpectedLog, " \\[cvar3=3 error=Hello world error_type=errors.Error\\]")
+	baseExpectedLog  = "myprefix: golog_test.go:([0-9]+) Hello world%v\nmyprefix: golog_test.go:([0-9]+) Hello 5 \\[cvar1=a cvar2=2%v\\]\n"
+	expectedLog      = fmt.Sprintf(baseExpectedLog, "", "")
+	expectedErrorLog = fmt.Sprintf(baseExpectedLog, " \\[cvar3=3 error=Hello world error_type=errors.Error\\]", " cvar3=3 error=Hello error_type=errors.Error")
 	expectedTraceLog = "myprefix: golog_test.go:([0-9]+) Hello world\nmyprefix: golog_test.go:([0-9]+) Hello 5\nmyprefix: golog_test.go:([0-9]+) Gravy\nmyprefix: golog_test.go:([0-9]+) TraceWriter closed due to unexpected error: EOF\n"
 	expectedStdLog   = expectedLog
 )
@@ -53,11 +53,12 @@ func TestError(t *testing.T) {
 	SetOutputs(out, ioutil.Discard)
 	l := LoggerFor("myprefix")
 	ctx := context.Enter().Put("cvar3", 3)
-	var err context.Contextual = errors.New("Hello world")
+	err1 := errors.New("Hello world")
+	err2 := errors.New("Hello")
 	ctx.Exit()
-	l.Error(err)
+	l.Error(err1)
 	defer context.Enter().Put("cvar1", "a").Put("cvar2", 2).Exit()
-	l.Errorf("Hello %d", 5)
+	l.Errorf("%v %d", err2, 5)
 	assert.Regexp(t, expected("ERROR", expectedErrorLog), string(out.Bytes()))
 }
 
