@@ -17,7 +17,7 @@ var (
 )
 
 type Updater interface {
-	ShowProgress(string)
+	SetProgress(int)
 }
 
 // byteCounter wraps an existing io.Reader.
@@ -43,7 +43,7 @@ func (pt *byteCounter) Read(p []byte) (int, error) {
 		if percentage-pt.progress > 2 {
 			fmt.Fprintf(os.Stderr, is)
 			pt.progress = percentage
-			pt.Updater.ShowProgress(fmt.Sprintf("%d", int(pt.progress)))
+			pt.Updater.SetProgress(int(pt.progress))
 		}
 
 	}
