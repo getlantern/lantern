@@ -30,6 +30,8 @@ import java.io.File;
 public class UpdateActivity extends Activity {
 
     private static final String TAG = "UpdateActivity";
+    private static final String APK_PATH = "/sdcard/Lantern.apk";
+
     static boolean active = false;
 
     @Extra("updateUrl")
@@ -69,7 +71,6 @@ public class UpdateActivity extends Activity {
 
     @Click(R.id.installUpdate)
     void installUpdateClicked() {
-        Log.d(TAG, "Downloading latest version of Lantern from " + updateUrl);
 
         fileDownloading = true;
 
@@ -78,12 +79,10 @@ public class UpdateActivity extends Activity {
         mUpdaterTask.execute(updaterParams);
     }
 
-    private class UpdaterTask extends AsyncTask<String, String, String> implements DialogInterface.OnClickListener {
+    private class UpdaterTask extends AsyncTask<String, Long, Boolean> implements DialogInterface.OnClickListener {
 
         private final UpdateActivity mActivity;
         private final Context context;
-
-        private static final String APK_PATH = "/sdcard/Lantern.apk";
 
         UpdaterTask(final UpdateActivity activity) {
             mActivity = activity;
@@ -116,25 +115,36 @@ public class UpdateActivity extends Activity {
         }
 
         @Override
-        protected String doInBackground(String... params) {
+        protected Boolean doInBackground(String... params) {
 
             String updateUrl = params[0];
+
+            Log.d(TAG, "Attempting to download update from " + updateUrl);
+
             boolean shouldProxy = session.shouldProxy();
 
-            Lantern.Updater.Stub updater = new Lantern.Updater.Stub() {
-                public void ShowProgress(String percentage) {
-                    publishProgress(percentage);
-                }
-            };
+            try {
 
-            return Lantern.DownloadUpdate(updateUrl,
-                APK_PATH, shouldProxy, updater);
+                Lantern.Updater.Stub updater = new Lantern.Updater.Stub() {
+                    public void SetProgress(long percentage) {
+                        publishProgress(percentage);
+                    }
+                };
+
+                Lantern.DownloadUpdate(updateUrl,
+                        APK_PATH, shouldProxy, updater);
+
+                return true;
+            } catch (Exception e) {
+                Log.d(TAG, "Error downloading update: " + e.getMessage());
+            }
+            return false;
         }
 
         // show an alert when the update fails
         // and mention where the user can download the latest version
         // this also dismisses the current updater activity
-        protected void Error() {
+        private void displayError() {
 
             AlertDialog alertDialog = new AlertDialog.Builder(mActivity).create();
             alertDialog.setTitle(context.getString(R.string.error_update));
@@ -153,21 +163,23 @@ public class UpdateActivity extends Activity {
          * Updating progress bar
          */
         @Override
-        protected void onProgressUpdate(String... progress) {
+        protected void onProgressUpdate(Long... progress) {
             super.onProgressUpdate(progress);
             // setting progress percentage
-            progressBar.setProgress(Integer.parseInt(progress[0]));
+            if (progress[0] != null) 
+                progressBar.setProgress(progress[0].intValue());
         }
 
         // begin the installation by opening the resulting file
         @Override
-        protected void onPostExecute(final String path) {
-            super.onPostExecute(path);
+        protected void onPostExecute(Boolean result) {
+            super.onPostExecute(result);
+
             progressBar.dismiss();
 
-            if (path == null || path.equals("")) {
-                Log.d(TAG, "Error trying to download Lantern update; apk path missing");
-                Error();
+            if (!result) {
+                Log.d(TAG, "Error trying to install Lantern update");
+                displayError();
                 return;
             }
  
@@ -181,7 +193,7 @@ public class UpdateActivity extends Activity {
             Intent i = new Intent();
             i.setAction(Intent.ACTION_VIEW);
             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            i.setDataAndType(Uri.fromFile(new File(path)), "application/vnd.android.package-archive");
+            i.setDataAndType(Uri.fromFile(new File(APK_PATH)), "application/vnd.android.package-archive");
 
             this.context.startActivity(i);
 

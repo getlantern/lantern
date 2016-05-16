@@ -136,8 +136,8 @@ func CheckForUpdates(shouldProxy bool) (string, error) {
 }
 
 // UpdateMobile downloads the latest APK from the given url to apkPath
-func DownloadUpdate(url, apkPath string, shouldProxy bool, updater Updater) string {
-	return autoupdate.UpdateMobile(shouldProxy, url, apkPath, updater)
+func DownloadUpdate(url, apkPath string, shouldProxy bool, updater Updater) {
+	autoupdate.UpdateMobile(shouldProxy, url, apkPath, updater)
 }
 
 // GetFeed fetches the public feed thats displayed on Lantern's main screen

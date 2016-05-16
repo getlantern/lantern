@@ -3,21 +3,31 @@
 package autoupdate
 
 import (
+	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUpdateAvailable(t *testing.T) {
-	doTestUpdate(t, false, false, "2.2.0")
+type TestUpdater struct {
+	Updater
 }
 
-func TestNoUpdateUnavailable(t *testing.T) {
-	doTestUpdate(t, true, true, "")
-	doTestUpdate(t, true, false, "9.3.3")
+func (u *TestUpdater) SetProgress(percentage int) {
+	log.Debugf("Current progress: %6.02d%%", percentage)
 }
 
-func doTestUpdate(t *testing.T, urlEmpty bool, shouldErr bool, version string) {
+func TestCheckUpdateAvailable(t *testing.T) {
+	doTestCheckUpdate(t, false, false, "2.2.0")
+}
+
+func TestCheckNoUpdateUnavailable(t *testing.T) {
+	doTestCheckUpdate(t, true, true, "")
+	doTestCheckUpdate(t, true, false, "9.3.3")
+}
+
+func doTestCheckUpdate(t *testing.T, urlEmpty, shouldErr bool, version string) string {
 	url, err := CheckMobileUpdate(false, version)
 
 	if shouldErr {
@@ -31,4 +41,20 @@ func doTestUpdate(t *testing.T, urlEmpty bool, shouldErr bool, version string) {
 	} else {
 		assert.NotEmpty(t, url)
 	}
+
+	return url
+}
+
+func TestDoUpdate(t *testing.T) {
+
+	url := doTestCheckUpdate(t, false, false, "2.2.0")
+	assert.NotEmpty(t, url)
+
+	out, err := ioutil.TempFile(os.TempDir(), "update")
+	assert.Nil(t, err)
+
+	defer os.Remove(out.Name())
+
+	err = doUpdateMobile(false, url, out, new(TestUpdater))
+	assert.Nil(t, err)
 }
