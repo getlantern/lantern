@@ -146,7 +146,7 @@ func buildError(desc string, source error) *Error {
 	e := &Error{
 		// We initialize the data using the current context, which allows the error
 		// to propagate contextual information to higher layers.
-		data: context.AsMapWith(nil, false),
+		data: context.AsMap(nil, false),
 	}
 
 	errorType := "errors.Error"
