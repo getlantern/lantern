@@ -152,7 +152,7 @@ func (c *Context) Response(r *http.Response) *Context {
 
 func (c *Context) putHeaders(h http.Header, prefix string) {
 	for key, value := range h {
-		c.ctx.Put(fmt.Sprintf("%v_%v", prefix, sanitizeHeader(key)), strings.Join(value, ","))
+		c.ctx.Put(fmt.Sprintf("%v_header_%v", prefix, sanitizeHeader(key)), strings.Join(value, ","))
 	}
 }
 
