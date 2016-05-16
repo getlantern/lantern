@@ -124,7 +124,7 @@ func run(configDir string) {
 		make(map[string]interface{}),                  // no special configuration flags
 		func(cfg *config.Config) bool { return true }, // beforeStart()
 		func(cfg *config.Config) {},                   // afterStart()
-		func(cfg *config.Config) {},                   // onConfigChange()
+		func(cfg *config.Config) {},                   // onConfigUpdate
 		&userConfig{},
 		func(err error) {}, // onError
 	)
@@ -136,12 +136,13 @@ func CheckForUpdates(shouldProxy bool) (string, error) {
 		compileTimePackageVersion)
 }
 
-// UpdateMobile downloads the latest APK from the given url to apkPath
+// DownloadUpdate downloads the latest APK from the given url to the apkPath
+// file destination.
 func DownloadUpdate(url, apkPath string, shouldProxy bool, updater Updater) {
 	autoupdate.UpdateMobile(shouldProxy, url, apkPath, updater)
 }
 
-// GetFeed fetches the public feed thats displayed on Lantern's main screen
+// GetFeed fetches the public feed thats displayed on Lantern's main screen.
 func GetFeed(locale string, allStr string, shouldProxy bool, provider FeedProvider) {
 	feed.GetFeed(locale, allStr, shouldProxy, provider)
 }
