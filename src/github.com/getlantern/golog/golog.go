@@ -1,4 +1,4 @@
-// package golog implements logging functions that log errors to stderr and
+// Package golog implements logging functions that log errors to stderr and
 // debug messages to stdout. Trace logging is also supported.
 // Trace logs go to stdout as well, but they are only written if the program
 // is run with environment variable "TRACE=true".
@@ -81,6 +81,8 @@ type Logger interface {
 
 	// Error logs to stderr
 	Error(arg interface{}) error
+	// Error logs to stderr, but caller can choose to skip frames
+	ErrorSkipFrames(arg interface{}, skipFrames int) error
 	// Errorf logs to stderr
 	Errorf(message string, args ...interface{}) error
 	// IfError logs to stderr iff and only if err is not nil
@@ -156,7 +158,7 @@ type logger struct {
 func (l *logger) linePrefix(skipFrames int) string {
 	runtime.Callers(skipFrames, l.pc)
 	funcForPc := runtime.FuncForPC(l.pc[0])
-	file, line := funcForPc.FileLine(l.pc[0])
+	file, line := funcForPc.FileLine(l.pc[0] - 1)
 	return fmt.Sprintf("%s%s:%d ", l.prefix, filepath.Base(file), line)
 }
 
@@ -209,14 +211,19 @@ func (l *logger) Debugf(message string, args ...interface{}) {
 }
 
 func (l *logger) Error(arg interface{}) error {
+	return l.ErrorSkipFrames(arg, 0)
+}
+
+func (l *logger) ErrorSkipFrames(arg interface{}, skipFrames int) error {
 	var err error
 	switch e := arg.(type) {
 	case error:
 		err = e
 	default:
 		err = fmt.Errorf("%v", e)
+		skipFrames++
 	}
-	text := l.print(GetOutputs().ErrorOut, 4, "ERROR", err)
+	text := l.print(GetOutputs().ErrorOut, skipFrames+4, "ERROR", err)
 	return report(err, text)
 }
 
