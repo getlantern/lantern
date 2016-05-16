@@ -62,7 +62,7 @@ public class SessionManager {
     }
 
     public boolean shouldProxy() {
-        return startLocalProxy().equals("");
+        return !"".equals(startLocalProxy());
     }
 
     // startLocalProxy starts a separate instance of Lantern
