@@ -156,13 +156,6 @@ func PutGlobalDynamic(key string, valueFN func() interface{}) {
 	allmx.Unlock()
 }
 
-// AsMap returns a map containing all values along the stack.
-func (c *Context) AsMap() Map {
-	m := make(Map)
-	c.fill(m)
-	return m
-}
-
 func (c *Context) fill(m Map) {
 	for ctx := c; ctx != nil; {
 		ctx.mx.RLock()

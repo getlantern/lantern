@@ -137,15 +137,7 @@ func BenchmarkPut(b *testing.B) {
 	}
 }
 
-func BenchmarkAsMapCheap(b *testing.B) {
-	c := Enter().Put("a", 1).Put("b", 2)
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		c.AsMap()
-	}
-}
-
-func BenchmarkAsMapExpensive(b *testing.B) {
+func BenchmarkAsMap(b *testing.B) {
 	Enter().Put("a", 1).Put("b", 2)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
