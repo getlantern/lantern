@@ -177,7 +177,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         setVersionNum();
         setupStatusToast();
         showFeedview();
-        checkUpdate();
+        checkUpdateAfterDelay();
     }
 
     @Override
@@ -428,7 +428,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         Utils.showAlertDialog(this, noUpdateTitle, noUpdateMsg);
     }
 
-    private void checkUpdate() {
+    private void checkUpdateAfterDelay() {
         final Handler updateHandler = new Handler();
         final Runnable checkUpdate = new Runnable() {
             @Override
@@ -441,21 +441,24 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
                 // (you can still test updates from the side-menu)
                 boolean isDebuggable = Utils.isDebuggable(LanternMainActivity.this);
 
-                // if the update popup isn't already open
+                // don't check for an update if 
+                // - the activity is currently finishing
+                // - its a debug build
+                // - the update popup is already open
+                // - the side-menu drawer is open
                 if (!isFinishing() && !isDebuggable &&
                     !UpdateActivity.active && !drawerOpen) {
 
                     checkUpdateAvailable(false);
-
                 }
             }
         };
+
         // after 8s, show update popup
         updateHandler.postDelayed(checkUpdate, 8000);
     }
 
-    // checkUpdateAvailable compares the current app version
-    // with the latest available
+    // checkUpdateAvailable compares the current app version with the latest available
     // - If an update is available, we start the Update activity
     //   and prompt the user to download it
     // - If no update is available, an alert dialog is displayed
@@ -869,7 +872,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             Log.d(TAG, "App in foreground");
             isInBackground = false;
             refreshFeed(null);
-            checkUpdate();
+            checkUpdateAfterDelay();
         }
     }
 
