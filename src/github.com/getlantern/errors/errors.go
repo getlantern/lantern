@@ -98,7 +98,8 @@ type Error struct {
 func (e *Error) Fill(m context.Map) {
 	if e != nil {
 		for key, value := range e.data {
-			m[key] = value
+			// Note - we scope everything as client_
+			m["client_"+key] = value
 		}
 	}
 }
@@ -137,7 +138,6 @@ func (e *Error) Error() string {
 }
 
 func (e *Error) attachStack(skip int) {
-	// TODO: reenable this
 	// caller := stack.Caller(skip)
 	// e.data["p"]
 	// e.Package = fmt.Sprintf("%+k", caller)

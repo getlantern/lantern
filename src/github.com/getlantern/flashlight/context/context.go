@@ -3,10 +3,8 @@
 package context
 
 import (
-	"fmt"
 	"net"
 	"net/http"
-	"strings"
 
 	"github.com/getlantern/context"
 )
@@ -86,25 +84,19 @@ func AsMap(obj interface{}, includeGlobals bool) map[string]interface{} {
 
 // OuterOp attaches an operation to the Context.
 func (c *Context) OuterOp(v string) *Context {
-	c.ctx.Put("op", v)
+	c.Put("op", v)
 	return c
 }
 
 // BackgroundOp attaches an inner (bottom level) operation to the Context.
 func (c *Context) BackgroundOp(v string) *Context {
-	c.ctx.Put("background_op", v)
+	c.Put("background_op", v)
 	return c
 }
 
 // UserAgent attaches a user agent to the Context.
 func (c *Context) UserAgent(v string) *Context {
-	c.ctx.Put("user_agent", v)
-	return c
-}
-
-// RequestID attaches a request id to the Context.
-func (c *Context) RequestID(v int64) *Context {
-	c.ctx.Put("request_id", v)
+	c.Put("user_agent", v)
 	return c
 }
 
@@ -113,13 +105,9 @@ func (c *Context) Request(r *http.Request) *Context {
 	if r == nil {
 		return c
 	}
-	c.ctx.Put("http_request_method", r.Method).
-		Put("http_request_scheme", r.URL.Scheme).
-		Put("http_request_host_in_url", r.URL.Host).
+	return c.Put("http_request_method", r.Method).
 		Put("http_request_host", r.Host).
-		Put("http_request_protocol", r.Proto)
-	c.putHeaders(r.Header, "http_request")
-	return c
+		Put("http_request_proto", r.Proto)
 }
 
 // Response attaches key information of an `http.Response` to the Context. If
@@ -128,37 +116,24 @@ func (c *Context) Response(r *http.Response) *Context {
 	if r == nil {
 		return c
 	}
-	c.ctx.Put("http_response_status_code", r.StatusCode).
-		Put("http_response_protocol", r.Proto)
-	c.putHeaders(r.Header, "http_response")
+	c.Put("http_response_status_code", r.StatusCode)
 	c.Request(r.Request)
 	return c
 }
 
-func (c *Context) putHeaders(h http.Header, prefix string) {
-	for key, value := range h {
-		c.ctx.Put(fmt.Sprintf("%v_header_%v", prefix, sanitizeHeader(key)), strings.Join(value, ","))
-	}
-}
-
-func sanitizeHeader(key string) string {
-	return strings.ToLower(strings.TrimSpace(strings.Replace(key, "-", "_", -1)))
-}
-
 // ChainedProxy attaches chained proxy information to the Context
 func (c *Context) ChainedProxy(addr string, protocol string) *Context {
-	c.ProxyType(ProxyChained)
-	c.ProxyAddr(addr)
-	return c.ProxyProtocol(protocol)
+	return c.ProxyType(ProxyChained).
+		ProxyAddr(addr).
+		ProxyProtocol(protocol)
 }
 
 // ProxyType attaches proxy type to the Context
 func (c *Context) ProxyType(v ProxyType) *Context {
-	c.ctx.Put("proxy_type", v)
-	return c
+	return c.Put("proxy_type", v)
 }
 
-// ProxyAddr attaches proxy server address to the Contetx
+// ProxyAddr attaches proxy server address to the Context
 func (c *Context) ProxyAddr(v string) *Context {
 	host, port, err := net.SplitHostPort(v)
 	if err == nil {
@@ -167,16 +142,9 @@ func (c *Context) ProxyAddr(v string) *Context {
 	return c
 }
 
-// ProxyProtocol attaches proxy server's protocol to the Contetx
+// ProxyProtocol attaches proxy server's protocol to the Context
 func (c *Context) ProxyProtocol(v string) *Context {
-	c.ctx.Put("proxy_protocol", v)
-	return c
-}
-
-// ProxyDatacenter attaches proxy server's datacenter to the Contetx
-func (c *Context) ProxyDatacenter(v string) *Context {
-	c.ctx.Put("proxy_datacenter", v)
-	return c
+	return c.Put("proxy_protocol", v)
 }
 
 // Origin attaches the origin to the Contetx
