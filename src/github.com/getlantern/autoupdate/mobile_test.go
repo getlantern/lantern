@@ -67,9 +67,6 @@ func TestDoUpdate(t *testing.T) {
 
 	testUpdater := new(TestUpdater)
 
-	err = doUpdateMobile(false, url, out, testUpdater)
-	assert.Nil(t, err)
-
 	// check for an invalid apk path destination
 	err = UpdateMobile(false, url, "", testUpdater)
 	assert.NotNil(t, err)
@@ -77,4 +74,9 @@ func TestDoUpdate(t *testing.T) {
 	// check for a missing url
 	err = doUpdateMobile(false, "", out, testUpdater)
 	assert.NotNil(t, err)
+
+	// successful update
+	err = doUpdateMobile(false, url, out, testUpdater)
+	assert.Nil(t, err)
+
 }
