@@ -72,6 +72,7 @@ var ErrNoFunc = errors.New("no call stack information")
 //    %s    source file
 //    %d    line number
 //    %n    function name
+//    %k    package name
 //    %v    equivalent to %s:%d
 //
 // It accepts the '+' and '#' flags for most of the verbs as follows.
@@ -79,6 +80,7 @@ var ErrNoFunc = errors.New("no call stack information")
 //    %+s   path of source file relative to the compile time GOPATH
 //    %#s   full path of source file
 //    %+n   import path qualified function name
+//    %+k   full package path
 //    %+v   equivalent to %+s:%d
 //    %#v   equivalent to %#s:%d
 func (c Call) Format(s fmt.State, verb rune) {
@@ -148,19 +150,27 @@ func (c Call) Format(s fmt.State, verb rune) {
 		buf := [6]byte{}
 		s.Write(strconv.AppendInt(buf[:0], int64(line), 10))
 
-	case 'n':
+	case 'n', 'k':
 		name := c.fn.Name()
-		if !s.Flag('+') {
+		var path, pkg string
+		if !s.Flag('+') || verb == 'k' {
 			const pathSep = "/"
 			if i := strings.LastIndex(name, pathSep); i != -1 {
-				name = name[i+len(pathSep):]
+				path, name = name[:i], name[i+len(pathSep):]
 			}
 			const pkgSep = "."
 			if i := strings.Index(name, pkgSep); i != -1 {
-				name = name[i+len(pkgSep):]
+				pkg, name = name[:i], name[i+len(pkgSep):]
 			}
 		}
-		io.WriteString(s, name)
+		if verb == 'n' {
+			io.WriteString(s, name)
+			return
+		}
+		if s.Flag('+') && path != "" {
+			pkg = path + "/" + pkg
+		}
+		io.WriteString(s, pkg)
 	}
 }
 
