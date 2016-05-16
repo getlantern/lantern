@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/getlantern/appdir"
-	"github.com/getlantern/context"
 	"github.com/getlantern/go-loggly"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/jibber_jabber"
@@ -21,6 +20,7 @@ import (
 	"github.com/getlantern/rotator"
 	"github.com/getlantern/wfilter"
 
+	"github.com/getlantern/flashlight/context"
 	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/proxied"
 )
@@ -125,17 +125,22 @@ func initContext(instanceID string, version string, revisionDate string) {
 	context.PutGlobal("instanceid", instanceID)
 	context.PutGlobal("osname", runtime.GOOS)
 	context.PutGlobal("osarch", runtime.GOARCH)
-	context.PutGlobal("version", fmt.Sprintf("%v (%v)", version, revisionDate))
+	context.PutGlobal("appversion", fmt.Sprintf("%v (%v)", version, revisionDate))
+	context.PutGlobal("goversion", runtime.Version())
 	context.PutGlobalDynamic("country", func() interface{} { return geolookup.GetCountry(0) })
 	context.PutGlobalDynamic("clientip", func() interface{} { return geolookup.GetIP(0) })
 	context.PutGlobalDynamic("timezone", func() interface{} { return time.Now().Format("MST") })
-	context.PutGlobalDynamic("language", func() interface{} {
+	context.PutGlobalDynamic("locale_language", func() interface{} {
 		lang, _ := jibber_jabber.DetectLanguage()
 		return lang
 	})
+	context.PutGlobalDynamic("locale_country", func() interface{} {
+		country, _ := jibber_jabber.DetectTerritory()
+		return country
+	})
 
 	if osStr, err := osversion.GetHumanReadable(); err == nil {
-		context.PutGlobal("osVersion", osStr)
+		context.PutGlobal("osversion", osStr)
 	}
 }
 

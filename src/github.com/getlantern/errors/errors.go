@@ -36,7 +36,6 @@ package errors
 
 import (
 	"bufio"
-	"bytes"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/hex"
@@ -57,76 +56,12 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/getlantern/golog"
-	localeDetector "github.com/getlantern/jibber_jabber"
-	osversion "github.com/getlantern/osversion"
-	"github.com/getlantern/stack"
+	"github.com/getlantern/context"
 )
-
-var (
-	curDirector *director
-)
-
-func init() {
-	Initialize("", nullReporter{}, true)
-}
-
-// Initialize initializes the package globally
-func Initialize(appVersion string, r Reporter, enableLogging bool) {
-	curDirector = newDirector(appVersion, r, enableLogging)
-}
-
-// director glues things together without place them in package namespace.
-type director struct {
-	si      *SystemInfo
-	r       Reporter
-	logging bool
-}
-
-func newDirector(appVersion string, r Reporter, logging bool) *director {
-	osVersion, _ := osversion.GetHumanReadable()
-	si := &SystemInfo{
-		OSType:     runtime.GOOS,
-		OSArch:     runtime.GOARCH,
-		OSVersion:  osVersion,
-		GoVersion:  runtime.Version(),
-		AppVersion: appVersion,
-	}
-	return &director{si, r, logging}
-}
-
-func (d *director) report(e *Error) {
-	e.ReportTS = time.Now()
-	caller := stack.Caller(2)
-	e.ReportFileLine = fmt.Sprintf("%+v", caller)
-	e.ReportStack = stack.Trace().TrimBelow(caller).TrimRuntime()
-	e.SystemInfo = d.si
-
-	d.r.Report(e)
-	if d.logging {
-		var pkg = fmt.Sprintf("%k", caller)
-		golog.LoggerFor(pkg).ErrorSkipFrames(e.Error(), 3)
-	}
-}
-
-// Reporter is an interface callers should implement to report captured errors.
-type Reporter interface {
-	// Report should not reference the Error object passed in after the
-	// function returns. Do a deep copy if you want to alter or store it.
-	Report(*Error)
-}
-
-type nullReporter struct{}
-
-func (l nullReporter) Report(*Error) {}
 
 // New creates an Error with supplied description
-func New(s string) (e *Error) {
-	e = &Error{
-		GoType: "errors.Error",
-		Desc:   s,
-		TS:     time.Now(),
-	}
+func New(desc string) (e *Error) {
+	e = buildError(desc, nil)
 	e.attachStack(2)
 	return
 }
@@ -139,11 +74,6 @@ func Wrap(err error) *Error {
 	return wrapSkipFrames(err, 1)
 }
 
-// Report is a shortcut for Wrap(err).Report()
-func Report(err error) {
-	wrapSkipFrames(err, 1).Report()
-}
-
 func wrapSkipFrames(err error, skip int) *Error {
 	if err == nil {
 		return nil
@@ -151,13 +81,9 @@ func wrapSkipFrames(err error, skip int) *Error {
 	if e, ok := err.(*Error); ok {
 		return e
 	}
-	e := &Error{
-		Source: err,
-		TS:     time.Now(),
-	}
+	e := buildError(err.Error(), err)
 	// always skip [Wrap, attachStack]
 	e.attachStack(2 + skip)
-	e.applyDefaults()
 	return e
 }
 
@@ -165,134 +91,18 @@ func wrapSkipFrames(err error, skip int) *Error {
 // reporting and logging. It's not meant to be created directly. User New(),
 // Wrap() and Report() instead.
 type Error struct {
-	// Source captures the underlying error that's wrapped by this Error
-	Source error `json:"-"`
-	// Stack is caller's stack when Error is created
-	Stack stack.CallStack `json:"-"`
-	// TS is the timestamp when Error is created
-	TS time.Time `json:"timestamp"`
-	// Package is the package of the code when Error is created
-	Package string `json:"package"` // lantern
-	// Func is the function name when Error is created
-	Func string `json:"func"` // foo.Bar
-	// FileLine is the file path relative to GOPATH together with the line when
-	// Error is created.
-	FileLine string `json:"file_line"` // github.com/lantern/foo.go:10
-	// Go type name or constant/variable name of the error
-	GoType string `json:"type"`
-	// Error description, by either Go library or application
-
-	Desc string `json:"desc"`
-	// The operation which triggers the error to happen
-	Op string `json:"operation,omitempty"`
-	// Any extra fields
-	Extra map[string]string `json:"extra,omitempty"`
-
-	// ReportFileLine is the file and line where the error is reported
-	ReportFileLine string `json:"report_file_line"`
-	// ReportTS is the timestamp when Error is reported
-	ReportTS time.Time `json:"report_timestamp"`
-	// ReportStack is caller's stack when Error is reported
-	ReportStack stack.CallStack `json:"-"`
-
-	*ProxyingInfo
-	*UserLocale
-	*HTTPRequest
-	*HTTPResponse
-	*SystemInfo
+	data context.Map
 }
 
-// Report calls the reporter supplied during Initialize. It will also call
-// golog.Error if errors package is initialized with enableLogging=true.
-func (e *Error) Report() {
-	curDirector.report(e)
+// AsMap implements the method from the context.Contextual interface.
+func (e *Error) AsMap() context.Map {
+	return e.data
 }
 
-// WithOp attaches a hint of the operation triggers this Error. Many error
+// ErrorOp attaches a hint of the operation triggers this Error. Many error
 // types returned by net and os package have Op pre-filled.
-func (e *Error) WithOp(op string) *Error {
-	e.Op = op
-	return e
-}
-
-// Request attaches key information of an `http.Request` to the Error.
-func (e *Error) Request(r *http.Request) *Error {
-	if e.HTTPRequest == nil {
-		e.HTTPRequest = &HTTPRequest{}
-	}
-	e.HTTPRequest.Method = r.Method
-	e.HTTPRequest.Scheme = r.URL.Scheme
-	e.HTTPRequest.HostInURL = r.URL.Host
-	e.HTTPRequest.Host = r.Host
-	e.HTTPRequest.Protocol = r.Proto
-	e.HTTPRequest.Connection = strings.Join(r.Header["Connection"], ",")
-	e.HTTPRequest.Accept = strings.Join(r.Header["Accept"], ",")
-	e.HTTPRequest.AcceptLanguage = strings.Join(r.Header["Accept-Language"], ",")
-	e.HTTPRequest.UserAgent = r.Header.Get("User-Agent")
-	return e
-}
-
-// Response attaches key information of an `http.Response` to the Error. If
-// the response has corresponding Request, and there's no HTTPRequest in the
-// Error, it will call Request internally.
-func (e *Error) Response(r *http.Response) *Error {
-	if e.HTTPResponse == nil {
-		e.HTTPResponse = &HTTPResponse{}
-	}
-	e.HTTPResponse.StatusCode = r.StatusCode
-	e.HTTPResponse.Protocol = r.Proto
-	e.HTTPResponse.ContentType = r.Header.Get("Content-Type")
-	if r.Request != nil && e.HTTPRequest == nil {
-		return e.Request(r.Request)
-	}
-	return e
-}
-
-// ProxyType attaches proxy type to an Error
-func (e *Error) ProxyType(v ProxyType) *Error {
-	if e.ProxyingInfo == nil {
-		e.ProxyingInfo = &ProxyingInfo{}
-	}
-	e.ProxyingInfo.ProxyType = v
-	return e
-}
-
-// ProxyAddr attaches proxy server address to an Error
-func (e *Error) ProxyAddr(v string) *Error {
-	if e.ProxyingInfo == nil {
-		e.ProxyingInfo = &ProxyingInfo{}
-	}
-	e.ProxyingInfo.ProxyAddr = v
-	return e
-}
-
-// ProxyDatacenter attaches proxy server's datacenter to an Error
-func (e *Error) ProxyDatacenter(v string) *Error {
-	if e.ProxyingInfo == nil {
-		e.ProxyingInfo = &ProxyingInfo{}
-	}
-	e.ProxyingInfo.Datacenter = v
-	return e
-}
-
-// OriginSite attaches the site to visit to an Error
-func (e *Error) OriginSite(v string) *Error {
-	if e.ProxyingInfo == nil {
-		e.ProxyingInfo = &ProxyingInfo{}
-	}
-	e.ProxyingInfo.OriginSite = v
-	return e
-}
-
-// WithLocale detects and attaches the user locale information to an Error
-func (e *Error) WithLocale() *Error {
-	lang, _ := localeDetector.DetectLanguage()
-	country, _ := localeDetector.DetectTerritory()
-	e.UserLocale = &UserLocale{
-		time.Now().Format("MST"),
-		lang,
-		country,
-	}
+func (e *Error) ErrorOp(op string) *Error {
+	e.data["error_op"] = op
 	return e
 }
 
@@ -300,251 +110,61 @@ func (e *Error) WithLocale() *Error {
 // underscore_divided_words, so all characters except letters and numbers will
 // be replaced with underscores, and all letters will be lowercased.
 func (e *Error) With(key string, value interface{}) *Error {
-	if e.Extra == nil {
-		e.Extra = make(map[string]string)
-	}
 	parts := strings.FieldsFunc(key, func(c rune) bool {
 		return !unicode.IsLetter(c) && !unicode.IsNumber(c)
 	})
 	k := strings.ToLower(strings.Join(parts, "_"))
 	switch actual := value.(type) {
 	case string:
-		e.Extra[k] = actual
+		e.data[k] = actual
 	case int:
-		e.Extra[k] = strconv.Itoa(actual)
+		e.data[k] = strconv.Itoa(actual)
 	case bool:
-		e.Extra[k] = strconv.FormatBool(actual)
+		e.data[k] = strconv.FormatBool(actual)
 	default:
-		e.Extra[k] = fmt.Sprint(value)
+		e.data[k] = fmt.Sprint(value)
 	}
 	return e
 }
 
 // Error satisfies the error interface
 func (e *Error) Error() string {
-	var buf bytes.Buffer
-	e.writeTo(&buf)
-	return buf.String()
-}
-
-func (e *Error) writeTo(w io.Writer) {
-	_, _ = io.WriteString(w, e.Desc)
-	if e.Op != "" {
-		_, _ = io.WriteString(w, " Op="+e.Op)
-	}
-	if e.ProxyingInfo != nil {
-		_, _ = io.WriteString(w, e.ProxyingInfo.String())
-	}
-	if e.UserLocale != nil {
-		_, _ = io.WriteString(w, e.UserLocale.String())
-	}
-	if e.HTTPRequest != nil {
-		_, _ = io.WriteString(w, e.HTTPRequest.String())
-	}
-	if e.HTTPResponse != nil {
-		_, _ = io.WriteString(w, e.HTTPResponse.String())
-	}
-	for k, v := range e.Extra {
-		_, _ = io.WriteString(w, " "+k+"="+v)
-	}
-	if e.Func != "" {
-		_, _ = io.WriteString(w, " Func="+e.Func)
-	}
-	if e.GoType != "" {
-		_, _ = io.WriteString(w, " GoType="+e.GoType)
-	}
-	if e.Package != "" {
-		_, _ = io.WriteString(w, " Package="+e.Package)
-	}
+	return e.data["error"].(string)
 }
 
 func (e *Error) attachStack(skip int) {
-	caller := stack.Caller(skip)
-	e.Package = fmt.Sprintf("%+k", caller)
-	e.Func = fmt.Sprintf("%n", caller)
-	e.FileLine = fmt.Sprintf("%+v", caller)
-	e.Stack = stack.Trace().TrimBelow(caller).TrimRuntime()
+	// TODO: reenable this
+	// caller := stack.Caller(skip)
+	// e.data["p"]
+	// e.Package = fmt.Sprintf("%+k", caller)
+	// e.Func = fmt.Sprintf("%n", caller)
+	// e.FileLine = fmt.Sprintf("%+v", caller)
+	// e.Stack = stack.Trace().TrimBelow(caller).TrimRuntime()
 }
 
-func (e *Error) applyDefaults() {
-	if e.Source == nil {
-		return
+func buildError(desc string, source error) *Error {
+	e := &Error{
+		data: context.AsMap(),
 	}
-	op, goType, desc, extra := parseError(e.Source)
-	if e.Op == "" {
-		e.Op = op
-	}
-	if e.GoType == "" {
-		e.GoType = goType
-	}
-	if e.Desc == "" {
-		e.Desc = desc
-	}
-	if e.Extra == nil {
-		e.Extra = extra
-	} else {
-		for key, value := range extra {
-			_, found := e.Extra[key]
-			if !found {
-				e.Extra[key] = value
+
+	errorType := "errors.Error"
+	if source != nil {
+		op, goType, sourceDesc, extra := parseError(source)
+		if desc == "" && source != nil {
+			desc = sourceDesc
+		}
+		e.ErrorOp(op)
+		errorType = goType
+		if extra != nil {
+			for key, value := range extra {
+				e.data[key] = value
 			}
 		}
 	}
-}
+	e.data["error"] = desc
+	e.data["error_type"] = errorType
 
-// SystemInfo wraps system information unchangeable during the program
-// execution.
-type SystemInfo struct {
-	OSType     string `json:"os_type"`
-	OSVersion  string `json:"os_version"`
-	OSArch     string `json:"os_arch"`
-	GoVersion  string `json:"go_version"`
-	AppVersion string `json:"app_version"`
-}
-
-// String returns the string representation of SystemInfo
-func (si *SystemInfo) String() string {
-	var buf bytes.Buffer
-	if si.OSType != "" {
-		_, _ = buf.WriteString(" OSType=" + si.OSType)
-	}
-	if si.OSVersion != "" {
-		_, _ = buf.WriteString(" OSVersion=\"" + si.OSVersion + "\"")
-	}
-	if si.OSArch != "" {
-		_, _ = buf.WriteString(" OSArch=" + si.OSArch)
-	}
-	if si.GoVersion != "" {
-		_, _ = buf.WriteString(" GoVersion=\"" + si.GoVersion + "\"")
-	}
-	if si.AppVersion != "" {
-		_, _ = buf.WriteString(" AppVersion=\"" + si.AppVersion + "\"")
-	}
-	return buf.String()
-}
-
-// UserLocale contains locale information gained from operation system.
-type UserLocale struct {
-	TimeZone string `json:"time_zone,omitempty"`
-	Language string `json:"language,omitempty"`
-	Country  string `json:"country,omitempty"`
-}
-
-// String returns the string representation of UserLocale
-func (si *UserLocale) String() string {
-	var buf bytes.Buffer
-	if si.TimeZone != "" {
-		_, _ = buf.WriteString(" TimeZone=" + si.TimeZone)
-	}
-	if si.Language != "" {
-		_, _ = buf.WriteString(" Language=" + si.Language)
-	}
-	if si.Country != "" {
-		_, _ = buf.WriteString(" Country=" + si.Country)
-	}
-	return buf.String()
-}
-
-// ProxyType is the type of various proxy channel
-type ProxyType string
-
-const (
-	// NoProxy means direct access, not proxying at all
-	NoProxy ProxyType = "no_proxy"
-	// ChainedProxy means access through Lantern hosted chained server
-	ChainedProxy ProxyType = "chained"
-	// FrontedProxy means access through domain fronting
-	FrontedProxy ProxyType = "fronted"
-	// DDF means access through direct domain fronting
-	DDF ProxyType = "DDF"
-)
-
-// ProxyingInfo encapsulates fields to describe an access through a proxy
-// channel.
-type ProxyingInfo struct {
-	// ProxyType is the type of proxy channel traffic is going through
-	ProxyType ProxyType `json:"proxy_type,omitempty"`
-	// ProxyAddr is the server traffic is proxied, if any
-	ProxyAddr string `json:"proxy_addr,omitempty"`
-	// Datacenter is the datacenter where the proxy server resides
-	Datacenter string `json:"proxy_datacenter,omitempty"`
-	// OriginSite is the site to visit, possibly with port
-	OriginSite string `json:"origin_site,omitempty"`
-}
-
-// String returns the string representation of ProxyingInfo
-func (pi *ProxyingInfo) String() string {
-	var buf bytes.Buffer
-	if pi.ProxyType != "" {
-		_, _ = buf.WriteString(" ProxyType=" + string(pi.ProxyType))
-	}
-	if pi.ProxyAddr != "" {
-		_, _ = buf.WriteString(" ProxyAddr=" + pi.ProxyAddr)
-	}
-	if pi.Datacenter != "" {
-		_, _ = buf.WriteString(" Datacenter=" + pi.Datacenter)
-	}
-	if pi.OriginSite != "" {
-		_, _ = buf.WriteString(" OriginSite=" + pi.OriginSite)
-	}
-	return buf.String()
-}
-
-// HTTPRequest encapsulates key fields of an http.Request
-type HTTPRequest struct {
-	// Method
-	Method string `json:"method,omitempty"`
-	// Scheme
-	Scheme string `json:"scheme,omitempty"`
-	// HostInURL
-	HostInURL string `json:"host_in_url,omitempty"`
-	// Host
-	Host string `json:"host,omitempty"`
-	// Protocol
-	Protocol string `json:"protocol,omitempty"`
-	// Connection header
-	Connection string `json:"connection,omitempty"`
-	// Accept header
-	Accept string `json:"accept,omitempty"`
-	// Accept-Language header
-	AcceptLanguage string `json:"accept_language,omitempty"`
-	// User-Agent header
-	UserAgent string `json:"user_agent,omitempty"`
-}
-
-func (r *HTTPRequest) String() string {
-	var buf bytes.Buffer
-	_, _ = buf.WriteString(fmt.Sprintf(" Request=\"%s %s://%s %s\"", r.Method, r.Scheme, r.HostInURL, r.Protocol))
-	if r.Host != "" {
-		_, _ = buf.WriteString(fmt.Sprintf(" Host=%s", r.Host))
-	}
-	if r.Connection != "" {
-		_, _ = buf.WriteString(fmt.Sprintf(" Connection=\"%s\"", r.Connection))
-	}
-	if r.Accept != "" {
-		_, _ = buf.WriteString(fmt.Sprintf(" Accept=\"%s\"", r.Accept))
-	}
-	if r.AcceptLanguage != "" {
-		_, _ = buf.WriteString(fmt.Sprintf(" Accept-Language=\"%s\"", r.AcceptLanguage))
-	}
-	if r.UserAgent != "" {
-		_, _ = buf.WriteString(fmt.Sprintf(" User-Agent=\"%s\"", r.UserAgent))
-	}
-	return buf.String()
-}
-
-// HTTPResponse encapsulates key fields of an http.Response
-type HTTPResponse struct {
-	// StatusCode
-	StatusCode int `json:"status_code,omitempty"`
-	// Protocol
-	Protocol string `json:"protocol,omitempty"`
-	// ContentType
-	ContentType string `json:"content_type,omitempty"`
-}
-
-func (r *HTTPResponse) String() string {
-	return fmt.Sprintf(" Response=\"%s %d\" Content-Type=\"%s\"", r.Protocol, r.StatusCode, r.ContentType)
+	return e
 }
 
 func parseError(err error) (op string, goType string, desc string, extra map[string]string) {
