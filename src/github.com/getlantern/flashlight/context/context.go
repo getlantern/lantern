@@ -20,8 +20,6 @@ const (
 	ProxyChained ProxyType = "chained"
 	// ProxyFronted means access through domain fronting
 	ProxyFronted ProxyType = "fronted"
-	// ProxyDDF means access through direct domain fronting
-	ProxyDDF ProxyType = "DDF"
 )
 
 // Context decorates a context.Context with convenience methods.
