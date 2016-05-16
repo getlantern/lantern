@@ -36,10 +36,6 @@ func TestUserAgent(t *testing.T) {
 
 	received, _ := userAgent.Get(4 * time.Second)
 	assert.Equal(t, agent, received.(string), "Unexpected agent!")
-
-	agents := getSessionUserAgents()
-
-	assert.True(t, strings.Contains(agents, "AppleWebKit"), "Expected agent not there!")
 }
 
 type BadWriter struct{}
@@ -66,11 +62,12 @@ func TestLoggly(t *testing.T) {
 	var result map[string]interface{}
 	loggly := loggly.New("token not required")
 	loggly.Writer = &buf
-	lw := logglyErrorWriter{client: loggly}
-	golog.SetOutputs(lw, nil)
+	r := logglyErrorReporter{client: loggly}
+	golog.ReportErrorsTo(r)
 	log := golog.LoggerFor("test")
 
 	log.Error("")
+	log.Debug(buf.String())
 	if assert.NoError(t, json.Unmarshal(buf.Bytes(), &result), "Unmarshal error") {
 		assert.Equal(t, "ERROR test", result["locationInfo"])
 		assert.Regexp(t, regexp.MustCompile("logging_test.go:([0-9]+)"), result["message"])

@@ -18,6 +18,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
 
 	"github.com/getlantern/context"
@@ -25,7 +26,9 @@ import (
 )
 
 var (
-	outs atomic.Value
+	outs           atomic.Value
+	reporters      []ErrorReporter
+	reportersMutex sync.RWMutex
 
 	bufferPool = bpool.NewBufferPool(200)
 )
@@ -49,9 +52,25 @@ func GetOutputs() *outputs {
 	return outs.Load().(*outputs)
 }
 
+func ReportErrorsTo(reporter ErrorReporter) {
+	reportersMutex.Lock()
+	reporters = append(reporters, reporter)
+	reportersMutex.Unlock()
+}
+
 type outputs struct {
 	ErrorOut io.Writer
 	DebugOut io.Writer
+}
+
+// ErrorReporter is an interface for things to which the logger will report
+// errors.
+type ErrorReporter interface {
+	// Reports the given error and corresponding logText along with associated
+	// context. This should return quickly as it executes on the critical code
+	// path. The recommended approach is to buffer as much as possible and discard
+	// new reports if the buffer becomes saturated.
+	Report(err error, logText string, ctx map[string]interface{})
 }
 
 type Logger interface {
@@ -141,7 +160,7 @@ func (l *logger) linePrefix(skipFrames int) string {
 	return fmt.Sprintf("%s%s:%d ", l.prefix, filepath.Base(file), line)
 }
 
-func (l *logger) print(out io.Writer, skipFrames int, severity string, arg interface{}) {
+func (l *logger) print(out io.Writer, skipFrames int, severity string, arg interface{}) []byte {
 	buf := bufferPool.Get()
 	defer bufferPool.Put(buf)
 	buf.WriteString(severity)
@@ -150,16 +169,18 @@ func (l *logger) print(out io.Writer, skipFrames int, severity string, arg inter
 	fmt.Fprintf(buf, "%v", arg)
 	printContext(buf)
 	buf.WriteByte('\n')
-	_, err := out.Write(buf.Bytes())
+	b := buf.Bytes()
+	_, err := out.Write(b)
 	if err != nil {
 		errorOnLogging(err)
 	}
 	if l.printStack {
 		l.doPrintStack()
 	}
+	return b
 }
 
-func (l *logger) printf(out io.Writer, skipFrames int, severity string, message string, args ...interface{}) {
+func (l *logger) printf(out io.Writer, skipFrames int, severity string, message string, args ...interface{}) []byte {
 	buf := bufferPool.Get()
 	defer bufferPool.Put(buf)
 	buf.WriteString(severity)
@@ -168,13 +189,15 @@ func (l *logger) printf(out io.Writer, skipFrames int, severity string, message 
 	fmt.Fprintf(buf, message, args...)
 	printContext(buf)
 	buf.WriteByte('\n')
-	_, err := out.Write(buf.Bytes())
+	b := buf.Bytes()
+	_, err := out.Write(b)
 	if err != nil {
 		errorOnLogging(err)
 	}
 	if l.printStack {
 		l.doPrintStack()
 	}
+	return b
 }
 
 func (l *logger) Debug(arg interface{}) {
@@ -193,19 +216,20 @@ func (l *logger) Error(arg interface{}) error {
 	default:
 		err = fmt.Errorf("%v", e)
 	}
-	l.print(GetOutputs().ErrorOut, 4, "ERROR", err)
-	return err
+	text := l.print(GetOutputs().ErrorOut, 4, "ERROR", err)
+	return report(err, text)
 }
 
 func (l *logger) Errorf(message string, args ...interface{}) error {
 	err := fmt.Errorf(message, args...)
-	l.print(GetOutputs().ErrorOut, 4, "ERROR", err)
-	return err
+	text := l.print(GetOutputs().ErrorOut, 4, "ERROR", err)
+	return report(err, text)
 }
 
 func (l *logger) IfError(err error) error {
 	if err != nil {
-		l.print(GetOutputs().ErrorOut, 4, "ERROR", err)
+		text := l.print(GetOutputs().ErrorOut, 4, "ERROR", err)
+		report(err, text)
 	}
 	return err
 }
@@ -339,4 +363,19 @@ func printContext(buf *bytes.Buffer) {
 		fmt.Fprintf(buf, "%v", value)
 	}
 	buf.WriteByte(']')
+}
+
+func report(err error, text []byte) error {
+	reportersMutex.RLock()
+	for _, reporter := range reporters {
+		var ctx context.Map
+		switch cl := err.(type) {
+		case context.Contextual:
+			ctx = context.AsMapWith(cl)
+		default:
+			ctx = make(context.Map, 0)
+		}
+		reporter.Report(err, string(text), ctx)
+	}
+	return err
 }

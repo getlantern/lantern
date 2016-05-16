@@ -91,19 +91,19 @@ func Configure(cloudConfigCA string, instanceID string,
 	// Note: Returning from this function must always add a result to the
 	// success channel.
 	if logglyToken == "" {
-		log.Debugf("No logglyToken, not sending error logs to Loggly")
+		log.Debugf("No logglyToken, not reporting errors")
 		success <- false
 		return
 	}
 
 	if version == "" {
-		log.Error("No version configured, not sending error logs to Loggly")
+		log.Error("No version configured, not reporting errors")
 		success <- false
 		return
 	}
 
 	if revisionDate == "" {
-		log.Error("No build date configured, not sending error logs to Loggly")
+		log.Error("No build date configured, not reporting errors")
 		success <- false
 		return
 	}
@@ -183,23 +183,12 @@ func enableLoggly(cloudConfigCA string) {
 	rt, err := proxied.ChainedPersistent(cloudConfigCA)
 	if err != nil {
 		log.Errorf("Could not create HTTP client, not logging to Loggly: %v", err)
-		removeLoggly()
 		return
 	}
 
-	logglyWriter := &logglyErrorWriter{
-		client: loggly.New(logglyToken, logglyTag),
-	}
-	logglyWriter.client.SetHTTPClient(&http.Client{Transport: rt})
-	addLoggly(logglyWriter)
-}
-
-func addLoggly(logglyWriter io.Writer) {
-	golog.SetOutputs(NonStopWriter(errorOut, logglyWriter), debugOut)
-}
-
-func removeLoggly() {
-	golog.SetOutputs(errorOut, debugOut)
+	client := loggly.New(logglyToken, logglyTag)
+	client.SetHTTPClient(&http.Client{Transport: rt})
+	golog.ReportErrorsTo(&logglyErrorReporter{client})
 }
 
 func isDuplicate(msg string) bool {
@@ -224,15 +213,14 @@ type flushable interface {
 	Write(p []byte) (n int, err error)
 }
 
-type logglyErrorWriter struct {
+type logglyErrorReporter struct {
 	client *loggly.Client
 }
 
-func (w logglyErrorWriter) Write(b []byte) (int, error) {
-	fullMessage := string(b)
+func (r logglyErrorReporter) Report(err error, fullMessage string, ctx map[string]interface{}) {
+	fmt.Fprintln(os.Stderr, "Message: "+fullMessage)
 	if isDuplicate(fullMessage) {
 		log.Debugf("Not logging duplicate: %v", fullMessage)
-		return 0, nil
 	}
 
 	// extract last 2 (at most) chunks of fullMessage to message, without prefix,
@@ -266,22 +254,21 @@ func (w logglyErrorWriter) Write(b []byte) (int, error) {
 	prefix := fullMessage[0:firstColonPos]
 
 	m := loggly.Message{
-		"extra":        context.AsMap(),
+		"extra":        ctx,
 		"locationInfo": prefix,
 		"message":      message,
 		"fullMessage":  fullMessage,
 	}
 
-	err := w.client.Send(m)
-	if err != nil {
-		return 0, err
+	err2 := r.client.Send(m)
+	if err2 != nil {
+		fmt.Fprintf(os.Stderr, "Unable to report to loggly: %v. Original error: %v\n", err2, err)
 	}
-	return len(b), nil
 }
 
 // flush forces output, since it normally flushes based on an interval
-func (w *logglyErrorWriter) flush() {
-	if err := w.client.Flush(); err != nil {
+func (r *logglyErrorReporter) flush() {
+	if err := r.client.Flush(); err != nil {
 		log.Debugf("Error flushing loggly error writer: %v", err)
 	}
 }
