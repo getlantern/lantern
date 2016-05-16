@@ -83,7 +83,8 @@ type Logger interface {
 	Error(arg interface{}) error
 	// Error logs to stderr, but caller can choose to skip frames
 	ErrorSkipFrames(arg interface{}, skipFrames int) error
-	// Errorf logs to stderr
+	// Errorf logs to stderr. It returns the first argument that's an error, or
+	// a new error built using fmt.Errorf if none of the arguments are errors.
 	Errorf(message string, args ...interface{}) error
 	// IfError logs to stderr iff and only if err is not nil
 	IfError(err error) error
@@ -182,18 +183,18 @@ func (l *logger) print(out io.Writer, skipFrames int, severity string, arg inter
 	return b
 }
 
-func (l *logger) printf(out io.Writer, skipFrames int, severity string, message string, args ...interface{}) []byte {
+func (l *logger) printf(out io.Writer, skipFrames int, severity string, err error, message string, args ...interface{}) []byte {
 	buf := bufferPool.Get()
 	defer bufferPool.Put(buf)
 	buf.WriteString(severity)
 	buf.WriteString(" ")
 	buf.WriteString(l.linePrefix(skipFrames))
 	fmt.Fprintf(buf, message, args...)
-	printContext(buf, nil)
+	printContext(buf, err)
 	buf.WriteByte('\n')
 	b := buf.Bytes()
-	_, err := out.Write(b)
-	if err != nil {
+	_, err2 := out.Write(b)
+	if err2 != nil {
 		errorOnLogging(err)
 	}
 	if l.printStack {
@@ -207,7 +208,7 @@ func (l *logger) Debug(arg interface{}) {
 }
 
 func (l *logger) Debugf(message string, args ...interface{}) {
-	l.printf(GetOutputs().DebugOut, 4, "DEBUG", message, args...)
+	l.printf(GetOutputs().DebugOut, 4, "DEBUG", nil, message, args...)
 }
 
 func (l *logger) Error(arg interface{}) error {
@@ -227,8 +228,22 @@ func (l *logger) ErrorSkipFrames(arg interface{}, skipFrames int) error {
 }
 
 func (l *logger) Errorf(message string, args ...interface{}) error {
-	err := fmt.Errorf(message, args...)
-	text := l.print(GetOutputs().ErrorOut, 4, "ERROR", err)
+	var err error
+	var text []byte
+	for _, arg := range args {
+		e, ok := arg.(error)
+		if ok {
+			fmt.Println("FOUND ERROR! " + e.Error())
+			err = e
+			break
+		}
+	}
+	if err == nil {
+		err = fmt.Errorf(message, args...)
+		text = l.print(GetOutputs().ErrorOut, 4, "ERROR", err)
+	} else {
+		text = l.printf(GetOutputs().ErrorOut, 4, "ERROR", err, message, args...)
+	}
 	return report(err, text)
 }
 
@@ -246,7 +261,7 @@ func (l *logger) Fatal(arg interface{}) {
 }
 
 func (l *logger) Fatalf(message string, args ...interface{}) {
-	l.printf(GetOutputs().ErrorOut, 4, "FATAL", message, args...)
+	l.printf(GetOutputs().ErrorOut, 4, "FATAL", nil, message, args...)
 	os.Exit(1)
 }
 
@@ -256,9 +271,9 @@ func (l *logger) Trace(arg interface{}) {
 	}
 }
 
-func (l *logger) Tracef(fmt string, args ...interface{}) {
+func (l *logger) Tracef(message string, args ...interface{}) {
 	if l.traceOn {
-		l.printf(GetOutputs().DebugOut, 4, "TRACE", fmt, args...)
+		l.printf(GetOutputs().DebugOut, 4, "TRACE", nil, message, args...)
 	}
 }
 
@@ -295,7 +310,7 @@ func (l *logger) newTraceWriter() io.Writer {
 				// Log the line (minus the trailing newline)
 				l.print(GetOutputs().DebugOut, 6, "TRACE", line[:len(line)-1])
 			} else {
-				l.printf(GetOutputs().DebugOut, 6, "TRACE", "TraceWriter closed due to unexpected error: %v", err)
+				l.printf(GetOutputs().DebugOut, 6, "TRACE", nil, "TraceWriter closed due to unexpected error: %v", err)
 				return
 			}
 		}
