@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"sync"
 
 	"github.com/blang/semver"
 	"github.com/getlantern/flashlight/proxied"
@@ -15,8 +14,6 @@ import (
 
 var (
 	updateStagingServer = "https://update-stage.getlantern.org/update"
-	_httpClient         *http.Client
-	httpClientMutex     sync.Mutex
 )
 
 type Updater interface {
