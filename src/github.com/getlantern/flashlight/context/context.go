@@ -79,6 +79,11 @@ func PutGlobalDynamic(key string, valueFN func() interface{}) {
 	context.PutGlobalDynamic(key, valueFN)
 }
 
+// AsMap mimics the interfaces from context
+func AsMap(obj interface{}, includeGlobals bool) map[string]interface{} {
+	return context.AsMap(obj, includeGlobals)
+}
+
 // OuterOp attaches an operation to the Context.
 func (c *Context) OuterOp(v string) *Context {
 	c.ctx.Put("op", v)
