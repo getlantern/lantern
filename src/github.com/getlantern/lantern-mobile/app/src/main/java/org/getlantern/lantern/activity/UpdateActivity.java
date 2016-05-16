@@ -11,7 +11,6 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Button;
 import android.view.View.OnClickListener;
-import android.view.View;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Click;
