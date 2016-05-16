@@ -51,7 +51,6 @@ func TestError(t *testing.T) {
 	l.Error("Hello world")
 	defer context.Enter().Put("cvar1", "a").Put("cvar2", 2).Exit()
 	l.Errorf("Hello %d", 5)
-
 	assert.Regexp(t, expected("ERROR", expectedLog), string(out.Bytes()))
 }
 
