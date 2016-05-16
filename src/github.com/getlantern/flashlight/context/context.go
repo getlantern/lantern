@@ -142,7 +142,7 @@ func (c *Context) putHeaders(h http.Header, prefix string) {
 }
 
 func sanitizeHeader(key string) string {
-	return strings.TrimSpace(strings.Replace(key, "-", "_", -1))
+	return strings.ToLower(strings.TrimSpace(strings.Replace(key, "-", "_", -1)))
 }
 
 // ChainedProxy attaches chained proxy information to the Context

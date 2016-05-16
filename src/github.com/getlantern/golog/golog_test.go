@@ -2,6 +2,7 @@ package golog
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -12,12 +13,15 @@ import (
 	"time"
 
 	"github.com/getlantern/context"
+	"github.com/getlantern/errors"
 
 	"github.com/stretchr/testify/assert"
 )
 
 var (
-	expectedLog      = "myprefix: golog_test.go:([0-9]+) Hello world\nmyprefix: golog_test.go:([0-9]+) Hello 5 \\[cvar1=a cvar2=2\\]\n"
+	baseExpectedLog  = "myprefix: golog_test.go:([0-9]+) Hello world%v\nmyprefix: golog_test.go:([0-9]+) Hello 5 \\[cvar1=a cvar2=2\\]\n"
+	expectedLog      = fmt.Sprintf(baseExpectedLog, "")
+	expectedErrorLog = fmt.Sprintf(baseExpectedLog, " \\[cvar3=3 error=Hello world error_type=errors.Error\\]")
 	expectedTraceLog = "myprefix: golog_test.go:([0-9]+) Hello world\nmyprefix: golog_test.go:([0-9]+) Hello 5\nmyprefix: golog_test.go:([0-9]+) Gravy\nmyprefix: golog_test.go:([0-9]+) TraceWriter closed due to unexpected error: EOF\n"
 	expectedStdLog   = expectedLog
 )
@@ -48,10 +52,13 @@ func TestError(t *testing.T) {
 	out := newBuffer()
 	SetOutputs(out, ioutil.Discard)
 	l := LoggerFor("myprefix")
-	l.Error("Hello world")
+	ctx := context.Enter().Put("cvar3", 3)
+	var err context.Contextual = errors.New("Hello world")
+	ctx.Exit()
+	l.Error(err)
 	defer context.Enter().Put("cvar1", "a").Put("cvar2", 2).Exit()
 	l.Errorf("Hello %d", 5)
-	assert.Regexp(t, expected("ERROR", expectedLog), string(out.Bytes()))
+	assert.Regexp(t, expected("ERROR", expectedErrorLog), string(out.Bytes()))
 }
 
 func TestTraceEnabled(t *testing.T) {
