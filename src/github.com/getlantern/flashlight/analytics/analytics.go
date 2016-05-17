@@ -11,8 +11,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/getlantern/eventual"
 	"github.com/getlantern/flashlight/geolookup"
+	"github.com/getlantern/flashlight/proxied"
 	"github.com/getlantern/flashlight/util"
 	"github.com/kardianos/osext"
 
@@ -42,7 +42,7 @@ func Start(deviceID, version string) func() {
 
 // start starts the GA session with the given data.
 func start(deviceID, version string, ipFunc func(time.Duration) string,
-	transport func(string, eventual.Getter)) func() {
+	transport func(string)) func() {
 	var addr atomic.Value
 	go func() {
 		ip := ipFunc(maxWaitForIP)
@@ -120,13 +120,13 @@ func getExecutableHash() string {
 }
 
 func endSession(ip string, version string,
-	clientID string, transport func(string, eventual.Getter)) {
+	clientID string, transport func(string)) {
 	args := sessionVals(ip, version, clientID, "end")
 	transport(args)
 }
 
 func startSession(ip string, version string,
-	clientID string, transport func(string, eventual.Getter)) {
+	clientID string, transport func(string)) {
 	args := sessionVals(ip, version, clientID, "start")
 	transport(args)
 }
