@@ -16,7 +16,7 @@ func TestAnalytics(t *testing.T) {
 	params := eventual.NewValue()
 	start("1", "2.2.0", func(time.Duration) string {
 		return "127.0.0.1"
-	}, 1*time.Millisecond, func(args string, addr eventual.Getter) {
+	}, func(args string, addr eventual.Getter) {
 		logger.Debugf("Got args %v", args)
 		params.Set(args)
 	})

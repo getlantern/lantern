@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"runtime"
 	"strconv"
 	"sync/atomic"
 	"time"
@@ -14,6 +15,7 @@ import (
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/util"
+	"github.com/kardianos/osext"
 
 	"github.com/getlantern/golog"
 )
@@ -30,18 +32,17 @@ var (
 
 	maxWaitForIP = math.MaxInt32 * time.Second
 
-	// We get the user agent to use from live data on the proxy, but don't wait
-	// for it forever!
-	maxWaitForUserAgent = 30 * time.Second
+	// Hash of the executable
+	hash = getExecutableHash()
 )
 
 // Start starts the GA session with the given data.
 func Start(deviceID, version string) func() {
-	return start(deviceID, version, geolookup.GetIP, maxWaitForUserAgent, trackSession)
+	return start(deviceID, version, geolookup.GetIP, trackSession)
 }
 
 // start starts the GA session with the given data.
-func start(deviceID, version string, ipFunc func(time.Duration) string, uaWait time.Duration,
+func start(deviceID, version string, ipFunc func(time.Duration) string,
 	transport func(string, eventual.Getter)) func() {
 	var addr atomic.Value
 	go func() {
@@ -51,20 +52,20 @@ func start(deviceID, version string, ipFunc func(time.Duration) string, uaWait t
 		}
 		addr.Store(ip)
 		log.Debugf("Starting analytics session with ip %v", ip)
-		startSession(ip, version, client.Addr, deviceID, transport, uaWait)
+		startSession(ip, version, client.Addr, deviceID, transport)
 	}()
 
 	stop := func() {
 		if addr.Load() != nil {
 			ip := addr.Load().(string)
 			log.Debugf("Ending analytics session with ip %v", ip)
-			endSession(ip, version, client.Addr, deviceID, transport, uaWait)
+			endSession(ip, version, client.Addr, deviceID, transport)
 		}
 	}
 	return stop
 }
 
-func sessionVals(ip, version, clientID, sc string, uaWait time.Duration) string {
+func sessionVals(ip, version, clientID, sc string) string {
 	vals := make(url.Values, 0)
 
 	vals.Add("v", "1")
@@ -86,6 +87,10 @@ func sessionVals(ip, version, clientID, sc string, uaWait time.Duration) string 
 	// Custom dimension for the Lantern version
 	vals.Add("cd1", version)
 
+	// Custom dimension for the hash of the executable. We combine the version
+	// to make it easier to interpret in GA.
+	vals.Add("cd2", version+"-"+hash)
+
 	// This forces the recording of the session duration. It must be either
 	// "start" or "end". See:
 	// https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters
@@ -94,15 +99,36 @@ func sessionVals(ip, version, clientID, sc string, uaWait time.Duration) string 
 	return vals.Encode()
 }
 
+// GetExecutableHash returns the hash of the currently running executable.
+// If there's an error getting the hash, this returns
+func getExecutableHash() string {
+	// We don't know how to get a useful hash here for Android but also this
+	// code isn't currently called on Android, so just guard against Something
+	// bad happening here.
+	if runtime.GOOS == "android" {
+		return "android"
+	}
+	if lanternPath, err := osext.Executable(); err != nil {
+		log.Debugf("Could not get path to executable %v", err)
+		return err.Error()
+	} else {
+		if b, er := util.GetFileHash(lanternPath); er != nil {
+			return er.Error()
+		} else {
+			return b
+		}
+	}
+}
+
 func endSession(ip string, version string, proxyAddrFN eventual.Getter,
-	clientID string, transport func(string, eventual.Getter), uaWait time.Duration) {
-	args := sessionVals(ip, version, clientID, "end", uaWait)
+	clientID string, transport func(string, eventual.Getter)) {
+	args := sessionVals(ip, version, clientID, "end")
 	transport(args, proxyAddrFN)
 }
 
 func startSession(ip string, version string, proxyAddrFN eventual.Getter,
-	clientID string, transport func(string, eventual.Getter), uaWait time.Duration) {
-	args := sessionVals(ip, version, clientID, "start", uaWait)
+	clientID string, transport func(string, eventual.Getter)) {
+	args := sessionVals(ip, version, clientID, "start")
 	transport(args, proxyAddrFN)
 }
 
