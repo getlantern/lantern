@@ -396,7 +396,7 @@ package-darwin: package-darwin-manoto
 
 binaries: docker-assets docker-linux docker-windows darwin
 
-packages: require-version require-secrets clean-desktop clean-mobile docker-assets docker-package-windows docker-package-linux package-darwin android-release
+packages: require-version require-secrets clean-desktop clean-mobile docker-assets docker-package-windows docker-package-linux package-darwin package-android
 
 # Override implicit docker-packages to avoid building whole packages target in
 # docker, since it builds the pieces it needs in docker itself.
@@ -427,7 +427,7 @@ release-qa: require-version require-s3cmd
 		$(S3CMD) cp s3://$(S3_BUCKET)/$$NAME s3://$(S3_BUCKET)/$$VERSIONED && \
 		$(S3CMD) setacl s3://$(S3_BUCKET)/$$VERSIONED --acl-public; \
 	done && \
-	for NAME in update_darwin_amd64 update_linux_386 update_linux_amd64 update_windows_386 ; do \
+	for NAME in update_darwin_amd64 update_linux_386 update_linux_amd64 update_windows_386 update_android_arm ; do \
 	    mv $$NAME.bz2 $$NAME-$$VERSION.bz2 && \
 		echo "Copying versioned name $$NAME-$$VERSION.bz2..." && \
 		$(S3CMD) put -P $$NAME-$$VERSION.bz2 s3://$(S3_BUCKET); \
@@ -616,6 +616,10 @@ android-install: $(LANTERN_MOBILE_ANDROID_DEBUG)
 
 clean-assets:
 	rm -f $(RESOURCES_DOT_GO)
+
+package-android: require-version require-secrets-dir $(LANTERN_MOBILE_ANDROID_RELEASE)
+	cat lantern-installer.apk | bzip2 > update_android_arm.bz2 && \
+	echo "-> lantern-installer.apk"
 
 # Provided for backward compatibility with how people used to use the makefile
 update-dist: clean-assets assets

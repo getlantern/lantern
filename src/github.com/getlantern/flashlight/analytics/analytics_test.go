@@ -1,6 +1,8 @@
 package analytics
 
 import (
+	"io/ioutil"
+	"net/http"
 	"strings"
 	"testing"
 	"time"
@@ -16,7 +18,7 @@ func TestAnalytics(t *testing.T) {
 	params := eventual.NewValue()
 	start("1", "2.2.0", func(time.Duration) string {
 		return "127.0.0.1"
-	}, 1*time.Millisecond, func(args string, addr eventual.Getter) {
+	}, func(args string) {
 		logger.Debugf("Got args %v", args)
 		params.Set(args)
 	})
@@ -27,4 +29,16 @@ func TestAnalytics(t *testing.T) {
 	argString := args.(string)
 	assert.True(t, strings.Contains(argString, "pageview"))
 	assert.True(t, strings.Contains(argString, "127.0.0.1"))
+
+	// Now actually hit the GA debug server to validate the hit.
+	url := "https://www.google-analytics.com/debug/collect?" + argString
+	resp, err := http.Get(url)
+	assert.Nil(t, err, "Should be nil")
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	assert.Nil(t, err, "Should be nil")
+
+	assert.True(t, strings.Contains(string(body), "\"valid\": true"), "Should be a valid hit")
 }
