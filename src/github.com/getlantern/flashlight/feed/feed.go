@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/getlantern/flashlight/geolookup"
@@ -26,9 +25,7 @@ const (
 var (
 	feed *Feed
 
-	_httpClient     *http.Client
-	httpClientMutex sync.Mutex
-	log             = golog.LoggerFor("feed")
+	log = golog.LoggerFor("feed")
 )
 
 // Feed contains the data we get back
@@ -157,19 +154,12 @@ func doGetFeed(feedEndpoint string, locale string, shouldProxy bool, allStr stri
 
 	var res *http.Response
 
-	var httpClient *http.Client
-	var err error
-	if !shouldProxy {
-		// Connect directly
-		httpClient = &http.Client{}
-	} else {
-		// Connect through proxy
-		httpClient, err = getHTTPClient()
-		if err != nil {
-			handleError(err)
-			return
-		}
+	httpClient, err := proxied.GetHTTPClient(shouldProxy)
+	if err != nil {
+		handleError(err)
+		return
 	}
+
 	feed = &Feed{}
 
 	feedURL := getFeedURL(feedEndpoint, locale)
@@ -296,18 +286,4 @@ func determineLocale(defaultLocale string) string {
 		return "ms_MY"
 	}
 	return defaultLocale
-}
-
-func getHTTPClient() (*http.Client, error) {
-	var err error
-	httpClientMutex.Lock()
-	if _httpClient == nil {
-		var rt http.RoundTripper
-		rt, err = proxied.ChainedNonPersistent("")
-		if err == nil {
-			_httpClient = &http.Client{Transport: rt}
-		}
-	}
-	httpClientMutex.Unlock()
-	return _httpClient, err
 }

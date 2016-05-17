@@ -76,7 +76,7 @@ func (cfg *Config) loop() error {
 		} else {
 			if res == nil {
 				log.Debug("No update available")
-			} else if cfg.isNewerVersion(res.Version) {
+			} else if isNewerVersion(cfg.version, res.Version) {
 				log.Debugf("Attempting to update to %s.", res.Version)
 				err, errRecover := res.Update()
 				if errRecover != nil {
@@ -98,30 +98,29 @@ func (cfg *Config) loop() error {
 	}
 }
 
-func (cfg *Config) isNewerVersion(newer string) bool {
+func isNewerVersion(version semver.Version, newer string) bool {
 	nv, err := semver.Parse(newer)
 	if err != nil {
 		log.Errorf("Bad version string on update: %v", err)
 		return false
 	}
-	return nv.GT(cfg.version)
+	return nv.GT(version)
 }
 
-// check uses go-update to look for updates.
-func (cfg *Config) check() (res *check.Result, err error) {
+func checkUpdate(currentVersion, URL string, publicKey []byte) (res *check.Result, err error) {
 	var up *update.Update
 
 	param := check.Params{
-		AppVersion: cfg.CurrentVersion,
+		AppVersion: currentVersion,
 	}
 
 	up = update.New().ApplyPatch(update.PATCHTYPE_BSDIFF)
 
-	if _, err = up.VerifySignatureWithPEM(cfg.PublicKey); err != nil {
+	if _, err = up.VerifySignatureWithPEM(publicKey); err != nil {
 		return nil, fmt.Errorf("Problem verifying signature of update: %v", err)
 	}
 
-	if res, err = param.CheckForUpdate(cfg.URL, up); err != nil {
+	if res, err = param.CheckForUpdate(URL, up); err != nil {
 		if err == check.NoUpdateAvailable {
 			return nil, nil
 		}
@@ -129,4 +128,9 @@ func (cfg *Config) check() (res *check.Result, err error) {
 	}
 
 	return res, nil
+}
+
+// check uses go-update to look for updates.
+func (cfg *Config) check() (res *check.Result, err error) {
+	return checkUpdate(cfg.CurrentVersion, cfg.URL, cfg.PublicKey)
 }

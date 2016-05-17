@@ -10,22 +10,13 @@ import android.net.ConnectivityManager;
 import android.net.LinkProperties;
 import android.net.VpnService;
 import android.os.Build;
-import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
-import java.net.NetworkInterface;
-import java.net.SocketException;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.net.InetAddress;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import org.getlantern.lantern.activity.LanternMainActivity;
 import org.getlantern.lantern.R;

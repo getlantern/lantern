@@ -1,8 +1,8 @@
-package app
+package autoupdate
 
 // This is the public key of the BNS cert. Incoming updates will be signed to
 // prevent MITM attacks.
-const packagePublicKey = `-----BEGIN PUBLIC KEY-----
+const PackagePublicKey = `-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxeReZ0VHDQ+/XYEHhFq0
 krT+a/+/mlhCkgJ/605KmPXqBv8qo5f1iK6C+TQ87264J4Z9yw0tRwcdY1/ofpH7
 Tywq3pBOgfrnnP9gFtquQ/tgzVkorQ0L51w9HLZ3cCjpaLpofIaztgbCIzsCT6kV

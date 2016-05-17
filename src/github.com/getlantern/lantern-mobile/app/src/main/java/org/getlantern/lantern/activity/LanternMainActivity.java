@@ -55,7 +55,6 @@ import org.getlantern.lantern.model.SessionManager;
 import org.getlantern.lantern.model.Shareable;
 import org.getlantern.lantern.model.Utils;
 import org.getlantern.lantern.R;
-import org.lantern.mobilesdk.Lantern;
 
 import java.util.ArrayList; 
 import java.util.Map;
@@ -72,6 +71,8 @@ import com.ogaclejapan.smarttablayout.utils.v4.FragmentStatePagerItemAdapter;
 import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItems;
 import com.ogaclejapan.smarttablayout.SmartTabLayout;
 
+import go.lantern.Lantern;
+
 @Fullscreen
 @EActivity(R.layout.activity_lantern_main)
 public class LanternMainActivity extends AppCompatActivity implements 
@@ -82,6 +83,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     private final static int REQUEST_VPN = 7777;
     private BroadcastReceiver mReceiver;
     private Context context;
+    private String appVersion;
 
     private boolean isInBackground = false;
     private FragmentStatePagerItemAdapter feedAdapter;
@@ -175,6 +177,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         setVersionNum();
         setupStatusToast();
         showFeedview();
+        checkUpdateAfterDelay();
     }
 
     @Override
@@ -246,11 +249,10 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         try {
             // configure actions to be taken whenever slider changes state
             PackageInfo pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
-            String appVersion = pInfo.versionName;
+            appVersion = pInfo.versionName;
             Log.d(TAG, "Currently running Lantern version: " + appVersion);
+
             // update version number that appears at the bottom of the side menu
-            // if we have it stored in shared preferences; otherwise, default to absent until
-            // Lantern starts
             versionNum.setText(appVersion);
         } catch (android.content.pm.PackageManager.NameNotFoundException nne) {
             Log.e(TAG, "Could not find package: " + nne.getMessage());
@@ -267,6 +269,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         final Map<String, Command> menuMap = new HashMap<String, Command>();
         final ArrayList<NavItem> navItems = new ArrayList<NavItem>() {{
+            add(new NavItem(resources.getString(R.string.check_for_update),
+                        R.drawable.ic_update));
             add(new NavItem(resources.getString(R.string.share_option),
                         R.drawable.ic_share));
             add(new NavItem(resources.getString(R.string.desktop_option), 
@@ -288,6 +292,12 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         navItems.add(new NavItem(resources.getString(R.string.quit_option), 
                     R.drawable.ic_quit));
 
+        menuMap.put(resources.getString(R.string.check_for_update), new Command() {
+            public void runCommand() {
+                checkUpdateAvailable(true);
+            }
+        });
+
         menuMap.put(resources.getString(R.string.quit_option), new Command() { 
             public void runCommand() { quitLantern(); } 
         });
@@ -298,13 +308,13 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         menuMap.put(resources.getString(R.string.newsfeed_off_option), new Command() {
             public void runCommand() {
-                updateFeedview(listAdapter, navItems, resources, 3, false);
+                updateFeedview(listAdapter, navItems, resources, 4, false);
             }
         });
 
         menuMap.put(resources.getString(R.string.newsfeed_option), new Command() {
             public void runCommand() {
-                updateFeedview(listAdapter, navItems, resources, 3, true);
+                updateFeedview(listAdapter, navItems, resources, 4, true);
             }
         });
 
@@ -408,6 +418,102 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         drawerLayout.closeDrawer(drawerPane);
     }
 
+    private void noUpdateAvailable(boolean showAlert) {
+        if (!showAlert) {
+            return;
+        }
+
+        String noUpdateTitle = getResources().getString(R.string.no_update_available);
+        String noUpdateMsg = String.format(getResources().getString(R.string.have_latest_version), appVersion);
+        Utils.showAlertDialog(this, noUpdateTitle, noUpdateMsg);
+    }
+
+    // checkUpdateAfterDelay checks to see if a newer version of Lantern is available
+    // after a small delay
+    private void checkUpdateAfterDelay() {
+
+        if (UpdateActivity.active) {
+            Log.d(TAG, "Update view already open! Not performing an additional check");
+            return;
+        }
+
+        // disable period checks for debug builds
+        // (you can still test updates from the side-menu)
+        boolean isDebuggable = Utils.isDebuggable(LanternMainActivity.this);
+        boolean drawerOpen = drawerLayout != null &&
+            drawerLayout.isDrawerOpen(GravityCompat.START);
+
+        // Don't check for an update if its a debug build or side-menu is open
+        if (isDebuggable || drawerOpen) {
+            Log.d(TAG, "Skipping update check");
+            return;
+        }
+
+        final Handler updateHandler = new Handler();
+        final Runnable checkUpdate = new Runnable() {
+            @Override
+            public void run() {
+                if (!isFinishing()) {
+                    checkUpdateAvailable(false);
+                }
+            }
+        };
+
+        // after 8s, show update popup
+        updateHandler.postDelayed(checkUpdate, 8000);
+    }
+
+    // checkUpdateAvailable compares the current app version with the latest available
+    // - If an update is available, we start the Update activity
+    //   and prompt the user to download it
+    // - If no update is available, an alert dialog is displayed
+    // - userClicked is a boolean used to indicate whether the udpate was triggered from
+    //   the side-menu or is an automatic check
+    private void checkUpdateAvailable(boolean userClicked) {
+
+        Log.d(TAG, String.format("Currently running %s; seeing if a new version is available", appVersion));
+
+        String url;
+
+        boolean isPlayVersion = Utils.isPlayVersion(LanternMainActivity.this);
+        if (isPlayVersion) {
+            // If the user installed the app via Google Play, we just open the Play store
+            // because self-updating will not work:
+            // "An app downloaded from Google Play may not modify, replace, or update itself 
+            // using any method other than Google Play's update mechanism"
+            // https://play.google.com/about/privacy-and-security.html#malicious-behavior
+            if (userClicked) {
+                Utils.openPlayStore(LanternMainActivity.this);
+            }
+            return;
+        }
+
+        try {
+            url = Lantern.CheckForUpdates(session.shouldProxy());
+        } catch (Exception e) {
+            Log.e(TAG, "Error trying to check for updates: " + e.getMessage());
+            e.printStackTrace();
+            // An error occurred trying to check for a new version of Lantern
+            if (userClicked) {
+                Utils.showAlertDialog(this, "Lantern",
+                        getResources().getString(R.string.error_checking_for_update));
+            }
+            return;
+        }
+
+        // No error occurred but the returned url is empty which
+        // means no update is available
+        if (url == null || url.equals("")) {
+            noUpdateAvailable(userClicked);
+            return;
+        }
+
+        // an updated version of Lantern is available at the given url
+        Intent intent = new Intent(this, UpdateActivity_.class);
+        intent.putExtra("updateUrl", url);
+        startActivity(intent);
+    }
+
     // showFeedview optionally fetches the feed depending on the
     // user's preference and updates the position of the on/off switch
     private void showFeedview() {
@@ -418,7 +524,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             removeRule(lp, RelativeLayout.CENTER_VERTICAL);
 
             // now actually refresh the news feed
-            new GetFeed(this, session.startLocalProxy()).execute("");
+            new GetFeed(this).execute(session.shouldProxy());
         } else {
             feedView.setVisibility(View.INVISIBLE);
             lp.addRule(RelativeLayout.CENTER_VERTICAL);
@@ -507,7 +613,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
                 } else {
                     Log.d(TAG, "VPN enabled, starting Lantern...");
                     updateStatus(true);
-                    Lantern.disable(getApplicationContext());
+                    org.lantern.mobilesdk.Lantern.disable(getApplicationContext());
                     sendIntentToService();
                 }    
             } catch (Exception e) {
@@ -555,6 +661,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
         getApplication().unregisterActivityLifecycleCallbacks(this);
         try {
             if (mReceiver != null) {
@@ -602,7 +709,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         Log.d(TAG, "Refresh feed clicked");
         feedError.setVisibility(View.INVISIBLE);
         if (session.showFeed()) {
-            new GetFeed(this, session.startLocalProxy()).execute("");
+            new GetFeed(this).execute(session.shouldProxy());
         }
     }
 
@@ -705,7 +812,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             boolean useVpn = response == RESULT_OK;
             updateStatus(useVpn);
             if (useVpn) {
-                Lantern.disable(getApplicationContext());
+                org.lantern.mobilesdk.Lantern.disable(getApplicationContext());
                 sendIntentToService();
             }
         }
@@ -767,7 +874,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
                         if (session.useVpn()) {
                             // whenever a user disconnects from Wifi and Lantern is running
                             updateStatus(false);
-                            Lantern.disable(getApplicationContext());
+                            org.lantern.mobilesdk.Lantern.disable(getApplicationContext());
                             powerLantern.setChecked(false);
                             Service.IsRunning = false;
                         }
@@ -785,6 +892,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             Log.d(TAG, "App in foreground");
             isInBackground = false;
             refreshFeed(null);
+            checkUpdateAfterDelay();
         }
     }
 

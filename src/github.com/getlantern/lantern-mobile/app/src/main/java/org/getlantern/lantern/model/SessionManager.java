@@ -61,6 +61,10 @@ public class SessionManager {
         editor.putBoolean(PREF_USE_VPN, false).commit();
     }
 
+    public boolean shouldProxy() {
+        return !"".equals(startLocalProxy());
+    }
+
     // startLocalProxy starts a separate instance of Lantern
     // used for proxying requests we need to make even before
     // the user enables full-device VPN mode

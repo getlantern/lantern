@@ -107,7 +107,7 @@ define build-tags
 	BUILD_TAGS="" && \
 	EXTRA_LDFLAGS="" && \
 	if [[ ! -z "$$VERSION" ]]; then \
-		EXTRA_LDFLAGS="-X github.com/getlantern/flashlight.compileTimePackageVersion=$$VERSION"; \
+		EXTRA_LDFLAGS="-X github.com/getlantern/lantern.compileTimePackageVersion=$$VERSION -X github.com/getlantern/flashlight.compileTimePackageVersion=$$VERSION"; \
 	else \
 		echo "** VERSION was not set, using default version. This is OK while in development."; \
 	fi && \
@@ -606,8 +606,7 @@ $(LANTERN_MOBILE_ANDROID_DEBUG): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_AN
 		clean \
 		assembleDebug
 
-$(LANTERN_MOBILE_ANDROID_RELEASE): $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK) $(LANTERN_MOBILE_PUBSUB)
-	@echo "Generating distribution package for android..."
+$(LANTERN_MOBILE_ANDROID_RELEASE): clean-mobile-lib $(LANTERN_MOBILE_TUN2SOCKS) $(LANTERN_MOBILE_ANDROID_LIB) $(LANTERN_MOBILE_ANDROID_SDK) $(LANTERN_MOBILE_PUBSUB)
 	ln -f -s $$SECRETS_DIR/android/keystore.release.jks $(LANTERN_MOBILE_DIR)/app && \
 	gradle -PlanternVersion=$$VERSION -PlanternRevisionDate=$(REVISION_DATE) -b $(LANTERN_MOBILE_DIR)/app/build.gradle \
 		clean \
@@ -625,6 +624,7 @@ clean-assets:
 	rm -f $(RESOURCES_DOT_GO)
 
 package-android: require-version require-secrets-dir $(LANTERN_MOBILE_ANDROID_RELEASE)
+	echo "Generating distribution package for Android" && \
 	cat lantern-installer.apk | bzip2 > update_android_arm.bz2 && \
 	echo "-> lantern-installer.apk"
 
@@ -652,6 +652,11 @@ clean-desktop: clean-assets
 	rm -f *.dmg && \
 	rm -f $(LANTERN_MOBILE_TUN2SOCKS) && \
 	rm -rf $(LANTERN_MOBILE_DIR)/libs/armeabi*
+
+clean-mobile-lib:
+	rm -f $(ANDROID_LIB) && \
+	rm -f $(LANTERN_MOBILE_ANDROID_LIB) && \
+	rm -f $(LANTERN_MOBILE_ANDROID_RELEASE)
 
 clean-mobile:
 	rm -f $(ANDROID_LIB) && \
