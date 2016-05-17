@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"runtime"
 	"strconv"
 	"sync/atomic"
 	"time"
@@ -14,9 +13,7 @@ import (
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/flashlight/client"
 	"github.com/getlantern/flashlight/geolookup"
-	"github.com/getlantern/flashlight/logging"
 	"github.com/getlantern/flashlight/util"
-	"github.com/kardianos/osext"
 
 	"github.com/getlantern/golog"
 )
@@ -36,13 +33,6 @@ var (
 	// We get the user agent to use from live data on the proxy, but don't wait
 	// for it forever!
 	maxWaitForUserAgent = 30 * time.Second
-
-	// This allows us to report a real user agent from clients we see on the
-	// proxy.
-	userAgent = eventual.NewValue()
-
-	// Hash of the executable
-	hash = getExecutableHash()
 )
 
 // Start starts the GA session with the given data.
@@ -55,9 +45,6 @@ func start(deviceID, version string, ipFunc func(time.Duration) string, uaWait t
 	transport func(string, eventual.Getter)) func() {
 	var addr atomic.Value
 	go func() {
-		logging.AddUserAgentListener(func(agent string) {
-			userAgent.Set(agent)
-		})
 		ip := ipFunc(maxWaitForIP)
 		if ip == "" {
 			log.Errorf("No IP found within %v", maxWaitForIP)
@@ -99,46 +86,12 @@ func sessionVals(ip, version, clientID, sc string, uaWait time.Duration) string 
 	// Custom dimension for the Lantern version
 	vals.Add("cd1", version)
 
-	// Custom dimension for the hash of the executable
-	vals.Add("cd2", hash)
-
-	// This sets the user agent to a real user agent the user is using. We
-	// wait 30 seconds for some traffic to come through.
-	ua, found := userAgent.Get(uaWait)
-	if found {
-		vals.Add("ua", ua.(string))
-	}
-
 	// This forces the recording of the session duration. It must be either
 	// "start" or "end". See:
 	// https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters
 	vals.Add("sc", sc)
 
-	// Make this a non-interaction hit that bypasses things like bounce rate. See:
-	// https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#ni
-	vals.Add("ni", "1")
 	return vals.Encode()
-}
-
-// GetExecutableHash returns the hash of the currently running executable.
-// If there's an error getting the hash, this returns
-func getExecutableHash() string {
-	// We don't know how to get a useful hash here for Android but also this
-	// code isn't currently called on Android, so just guard against Something
-	// bad happening here.
-	if runtime.GOOS == "android" {
-		return "android"
-	}
-	if lanternPath, err := osext.Executable(); err != nil {
-		log.Debugf("Could not get path to executable %v", err)
-		return err.Error()
-	} else {
-		if b, er := util.GetFileHash(lanternPath); er != nil {
-			return er.Error()
-		} else {
-			return b
-		}
-	}
 }
 
 func endSession(ip string, version string, proxyAddrFN eventual.Getter,
