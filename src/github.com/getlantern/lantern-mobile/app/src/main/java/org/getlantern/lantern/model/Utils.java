@@ -4,10 +4,12 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
+import android.net.Uri;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -58,22 +60,32 @@ public class Utils {
         return false;
     }
 
-	// isPlayInstalled checks to see if the user has Google Play installed
-	public static boolean isPlayInstalled(Context context) {
-		return isPackageInstalled(context, "com.android.vending");
+	// isPlayVersion checks whether or not the user installed Lantern via
+	// the Google Play store
+	public static boolean isPlayVersion(Context context) {
+		try {
+			String installer = context.getPackageManager()
+				.getInstallerPackageName(context.getPackageName());
+
+			return installer != null && installer.equals("com.android.vending");
+		} catch (Exception e) {
+			Log.e(TAG, "Error fetching package information: " + e.getMessage());
+		}
+
+		return false;
 	}
 
-	// isPackageInstalled checks to see if app packageName is already installed
-	public static boolean isPackageInstalled(Context context, String packagename) {
-		PackageManager pm = context.getPackageManager();
+	// openPlayStore opens Lantern's app details page in the Google Play store.
+	// - if we can't open the page in Play itself, resort to opening it in the browser
+	public static void openPlayStore(Context context) {
+		final String appPackageName = context.getPackageName();
 		try {
-			pm.getPackageInfo(packagename, PackageManager.GET_ACTIVITIES);
-			return true;
-		} catch (PackageManager.NameNotFoundException e) {
-			Log.e(TAG, "Error fetching package information: " + e.getMessage());
-			return false;
+			context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
+		} catch (android.content.ActivityNotFoundException anfe) {
+			context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName)));
 		}
 	}
+
 
     public static void hideKeyboard(Context context, View view) {
         InputMethodManager inputMethodManager = (InputMethodManager)context.getSystemService(Activity.INPUT_METHOD_SERVICE);

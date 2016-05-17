@@ -428,6 +428,8 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         Utils.showAlertDialog(this, noUpdateTitle, noUpdateMsg);
     }
 
+    // checkUpdateAfterDelay checks to see if a newer version of Lantern is available
+    // after a small delay
     private void checkUpdateAfterDelay() {
 
         if (UpdateActivity.active) {
@@ -438,18 +440,11 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         // disable period checks for debug builds
         // (you can still test updates from the side-menu)
         boolean isDebuggable = Utils.isDebuggable(LanternMainActivity.this);
-        boolean isPlayInstalled = Utils.isPlayInstalled(LanternMainActivity.this);
         boolean drawerOpen = drawerLayout != null &&
             drawerLayout.isDrawerOpen(GravityCompat.START);
 
-        // Don't check for an update if...
-        //
-        // - the update view is already open
-        // - its a debug build
-        // - Google Play is installed (then we rely on the user
-        //   updating via that channel)
-        // - the side-menu drawer is open
-        if (isDebuggable || isPlayInstalled || drawerOpen) {
+        // Don't check for an update if its a debug build or side-menu is open
+        if (isDebuggable || drawerOpen) {
             Log.d(TAG, "Skipping update check");
             return;
         }
@@ -472,7 +467,22 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     // - If an update is available, we start the Update activity
     //   and prompt the user to download it
     // - If no update is available, an alert dialog is displayed
-    private void checkUpdateAvailable(boolean showAlert) {
+    // - userClicked is a boolean used to indicate whether the udpate was triggered from
+    //   the side-menu or is an automatic check
+    private void checkUpdateAvailable(boolean userClicked) {
+
+        boolean isPlayVersion = Utils.isPlayVersion(LanternMainActivity.this);
+        if (isPlayVersion) {
+            // If the user installed the app via Google Play, we just open the Play store
+            // because self-updating will not work:
+            // "An app downloaded from Google Play may not modify, replace, or update itself 
+            // using any method other than Google Play's update mechanism"
+            // https://play.google.com/about/privacy-and-security.html#malicious-behavior
+            if (userClicked) {
+                Utils.openPlayStore(LanternMainActivity.this);
+            }
+            return;
+        }
 
         String url;
 
@@ -484,7 +494,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             Log.e(TAG, "Error trying to check for updates: " + e.getMessage());
             e.printStackTrace();
             // An error occurred trying to check for a new version of Lantern
-            if (showAlert) {
+            if (userClicked) {
                 Utils.showAlertDialog(this, "Lantern",
                         getResources().getString(R.string.error_checking_for_update));
             }
@@ -494,7 +504,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         // No error occurred but the returned url is empty which
         // means no update is available
         if (url == null || url.equals("")) {
-            noUpdateAvailable(showAlert);
+            noUpdateAvailable(userClicked);
             return;
         }
 
