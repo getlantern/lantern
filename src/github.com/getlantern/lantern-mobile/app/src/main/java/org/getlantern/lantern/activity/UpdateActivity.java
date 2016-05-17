@@ -41,7 +41,7 @@ public class UpdateActivity extends Activity {
 
     @Override
     protected void onStart() {
-        super.onStop();
+        super.onStart();
         active = true;
     }                  
 
