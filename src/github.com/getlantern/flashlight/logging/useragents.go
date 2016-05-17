@@ -11,15 +11,7 @@ var (
 	userAgents  = make(map[string]int)
 	agentsMutex = &sync.Mutex{}
 	reg         = regexp.MustCompile("^Go.*package http$")
-	listeners   = make([]func(string), 0)
 )
-
-// AddUserAgentListener registers a listener for user agents.
-func AddUserAgentListener(listener func(string)) {
-	agentsMutex.Lock()
-	defer agentsMutex.Unlock()
-	listeners = append(listeners, listener)
-}
 
 // RegisterUserAgent tries to find the User-Agent in the HTTP request
 // and keep track of the applications using Lantern during this session
@@ -34,11 +26,6 @@ func RegisterUserAgent(agent string) {
 				userAgents[agent] = n + 1
 			} else {
 				userAgents[agent] = 1
-
-				// Only notify listeners when we have a new agent.
-				for _, f := range listeners {
-					f(agent)
-				}
 			}
 		}
 	}()
