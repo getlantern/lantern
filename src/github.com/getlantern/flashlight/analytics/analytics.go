@@ -13,8 +13,6 @@ import (
 
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/flashlight/geolookup"
-	"github.com/getlantern/flashlight/logging"
-	"github.com/getlantern/flashlight/proxied"
 	"github.com/getlantern/flashlight/util"
 	"github.com/kardianos/osext"
 
@@ -33,51 +31,40 @@ var (
 
 	maxWaitForIP = math.MaxInt32 * time.Second
 
-	// We get the user agent to use from live data on the proxy, but don't wait
-	// for it forever!
-	maxWaitForUserAgent = 30 * time.Second
-
-	// This allows us to report a real user agent from clients we see on the
-	// proxy.
-	userAgent = eventual.NewValue()
-
 	// Hash of the executable
 	hash = getExecutableHash()
 )
 
 // Start starts the GA session with the given data.
 func Start(deviceID, version string) func() {
-	return start(deviceID, version, geolookup.GetIP, maxWaitForUserAgent, trackSession)
+	return start(deviceID, version, geolookup.GetIP, trackSession)
 }
 
 // start starts the GA session with the given data.
-func start(deviceID, version string, ipFunc func(time.Duration) string, uaWait time.Duration,
-	transport func(string)) func() {
+func start(deviceID, version string, ipFunc func(time.Duration) string,
+	transport func(string, eventual.Getter)) func() {
 	var addr atomic.Value
 	go func() {
-		logging.AddUserAgentListener(func(agent string) {
-			userAgent.Set(agent)
-		})
 		ip := ipFunc(maxWaitForIP)
 		if ip == "" {
 			log.Errorf("No IP found within %v", maxWaitForIP)
 		}
 		addr.Store(ip)
 		log.Debugf("Starting analytics session with ip %v", ip)
-		startSession(ip, version, deviceID, transport, uaWait)
+		startSession(ip, version, deviceID, transport)
 	}()
 
 	stop := func() {
 		if addr.Load() != nil {
 			ip := addr.Load().(string)
 			log.Debugf("Ending analytics session with ip %v", ip)
-			endSession(ip, version, deviceID, transport, uaWait)
+			endSession(ip, version, deviceID, transport)
 		}
 	}
 	return stop
 }
 
-func sessionVals(ip, version, clientID, sc string, uaWait time.Duration) string {
+func sessionVals(ip, version, clientID, sc string) string {
 	vals := make(url.Values, 0)
 
 	vals.Add("v", "1")
@@ -99,24 +86,15 @@ func sessionVals(ip, version, clientID, sc string, uaWait time.Duration) string 
 	// Custom dimension for the Lantern version
 	vals.Add("cd1", version)
 
-	// Custom dimension for the hash of the executable
-	vals.Add("cd2", hash)
-
-	// This sets the user agent to a real user agent the user is using. We
-	// wait 30 seconds for some traffic to come through.
-	ua, found := userAgent.Get(uaWait)
-	if found {
-		vals.Add("ua", ua.(string))
-	}
+	// Custom dimension for the hash of the executable. We combine the version
+	// to make it easier to interpret in GA.
+	vals.Add("cd2", version+"-"+hash)
 
 	// This forces the recording of the session duration. It must be either
 	// "start" or "end". See:
 	// https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters
 	vals.Add("sc", sc)
 
-	// Make this a non-interaction hit that bypasses things like bounce rate. See:
-	// https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#ni
-	vals.Add("ni", "1")
 	return vals.Encode()
 }
 
@@ -141,15 +119,15 @@ func getExecutableHash() string {
 	}
 }
 
-func endSession(ip string, version string, clientID string,
-	transport func(string), uaWait time.Duration) {
-	args := sessionVals(ip, version, clientID, "end", uaWait)
+func endSession(ip string, version string,
+	clientID string, transport func(string, eventual.Getter)) {
+	args := sessionVals(ip, version, clientID, "end")
 	transport(args)
 }
 
-func startSession(ip string, version string, clientID string,
-	transport func(string), uaWait time.Duration) {
-	args := sessionVals(ip, version, clientID, "start", uaWait)
+func startSession(ip string, version string,
+	clientID string, transport func(string, eventual.Getter)) {
+	args := sessionVals(ip, version, clientID, "start")
 	transport(args)
 }
 
