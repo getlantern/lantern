@@ -471,6 +471,10 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     //   the side-menu or is an automatic check
     private void checkUpdateAvailable(boolean userClicked) {
 
+        Log.d(TAG, String.format("Currently running %s; seeing if a new version is available", appVersion));
+
+        String url;
+
         boolean isPlayVersion = Utils.isPlayVersion(LanternMainActivity.this);
         if (isPlayVersion) {
             // If the user installed the app via Google Play, we just open the Play store
@@ -483,10 +487,6 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             }
             return;
         }
-
-        String url;
-
-        Log.d(TAG, String.format("Currently running %s; seeing if a new version is available", appVersion));
 
         try {
             url = Lantern.CheckForUpdates(session.shouldProxy());
