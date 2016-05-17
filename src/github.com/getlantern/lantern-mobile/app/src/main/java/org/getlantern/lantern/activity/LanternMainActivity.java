@@ -430,6 +430,11 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
     private void checkUpdateAfterDelay() {
 
+        if (UpdateActivity.active) {
+            Log.d(TAG, "Update view already open! Not performing an additional check");
+            return;
+        }
+
         // disable period checks for debug builds
         // (you can still test updates from the side-menu)
         boolean isDebuggable = Utils.isDebuggable(LanternMainActivity.this);
@@ -444,7 +449,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         // - Google Play is installed (then we rely on the user
         //   updating via that channel)
         // - the side-menu drawer is open
-        if (!UpdateActivity.active || isDebuggable || isPlayInstalled || drawerOpen) {
+        if (isDebuggable || isPlayInstalled || drawerOpen) {
             Log.d(TAG, "Skipping update check");
             return;
         }
