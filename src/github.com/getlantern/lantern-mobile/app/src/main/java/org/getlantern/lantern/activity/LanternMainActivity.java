@@ -429,26 +429,31 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     }
 
     private void checkUpdateAfterDelay() {
+
+        // disable period checks for debug builds
+        // (you can still test updates from the side-menu)
+        boolean isDebuggable = Utils.isDebuggable(LanternMainActivity.this);
+        boolean isPlayInstalled = Utils.isPlayInstalled(LanternMainActivity.this);
+        boolean drawerOpen = drawerLayout != null &&
+            drawerLayout.isDrawerOpen(GravityCompat.START);
+
+        // Don't check for an update if...
+        //
+        // - the update view is already open
+        // - its a debug build
+        // - Google Play is installed (then we rely on the user
+        //   updating via that channel)
+        // - the side-menu drawer is open
+        if (!UpdateActivity.active || isDebuggable || isPlayInstalled || drawerOpen) {
+            Log.d(TAG, "Skipping update check");
+            return;
+        }
+
         final Handler updateHandler = new Handler();
         final Runnable checkUpdate = new Runnable() {
             @Override
             public void run() {
-                // after 10s, check if a new version is available
-                boolean drawerOpen = drawerLayout != null && 
-                    drawerLayout.isDrawerOpen(GravityCompat.START);
-
-                // disable period checks for debug builds
-                // (you can still test updates from the side-menu)
-                boolean isDebuggable = Utils.isDebuggable(LanternMainActivity.this);
-
-                // don't check for an update if 
-                // - the activity is currently finishing
-                // - its a debug build
-                // - the update popup is already open
-                // - the side-menu drawer is open
-                if (!isFinishing() && !isDebuggable &&
-                    !UpdateActivity.active && !drawerOpen) {
-
+                if (!isFinishing()) {
                     checkUpdateAvailable(false);
                 }
             }
