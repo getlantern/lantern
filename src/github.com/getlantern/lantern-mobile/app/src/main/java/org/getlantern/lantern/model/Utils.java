@@ -53,10 +53,27 @@ public class Utils {
                         context.getPackageName(), 0).applicationInfo.flags &
                     ApplicationInfo.FLAG_DEBUGGABLE) != 0;
         } catch (PackageManager.NameNotFoundException e) {
-            Log.e(TAG, "Error fetching package information");
+            Log.e(TAG, "Error fetching package information: " + e.getMessage());
         }
         return false;
     }
+
+	// isPlayInstalled checks to see if the user has Google Play installed
+	public static boolean isPlayInstalled(Context context) {
+		return isPackageInstalled(context, "com.android.vending");
+	}
+
+	// isPackageInstalled checks to see if app packageName is already installed
+	public static boolean isPackageInstalled(Context context, String packagename) {
+		PackageManager pm = context.getPackageManager();
+		try {
+			pm.getPackageInfo(packagename, PackageManager.GET_ACTIVITIES);
+			return true;
+		} catch (PackageManager.NameNotFoundException e) {
+			Log.e(TAG, "Error fetching package information: " + e.getMessage());
+			return false;
+		}
+	}
 
     public static void hideKeyboard(Context context, View view) {
         InputMethodManager inputMethodManager = (InputMethodManager)context.getSystemService(Activity.INPUT_METHOD_SERVICE);
