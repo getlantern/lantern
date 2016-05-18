@@ -17,7 +17,8 @@ import (
 )
 
 const (
-	// While in development mode we probably would not want auto-updates to be
+	// DefaultPackageVersion is the default version of the package for auto-update
+	// purposes. while in development mode we probably would not want auto-updates to be
 	// applied. Using a big number here prevents such auto-updates without
 	// disabling the feature completely. The "make package-*" tool will take care
 	// of bumping this version number so you don't have to do it by hand.
@@ -30,11 +31,18 @@ var (
 	// compileTimePackageVersion is set at compile-time for production builds
 	compileTimePackageVersion string
 
+	// PackageVersion is the version of the package to use depending on if we're
+	// in development, production, etc.
 	PackageVersion = bestPackageVersion()
 
-	Version      string
+	// Version is the version of Lantern we're running.
+	Version string
+
+	// RevisionDate is the date of the most recent code revision.
 	RevisionDate string // The revision date and time that is associated with the version string.
-	BuildDate    string // The actual date and time the binary was built.
+
+	// BuildDate is the date the code was actually built.
+	BuildDate string // The actual date and time the binary was built.
 
 	cfgMutex sync.Mutex
 )
@@ -42,9 +50,8 @@ var (
 func bestPackageVersion() string {
 	if compileTimePackageVersion != "" {
 		return compileTimePackageVersion
-	} else {
-		return DefaultPackageVersion
 	}
+	return DefaultPackageVersion
 }
 
 func init() {
@@ -75,7 +82,8 @@ func Run(httpProxyAddr string,
 	afterStart func(cfg *config.Config),
 	onConfigUpdate func(cfg *config.Config),
 	userConfig config.UserConfig,
-	onError func(err error)) error {
+	onError func(err error),
+	deviceID string) error {
 	displayVersion()
 
 	log.Debug("Initializing configuration")
@@ -84,21 +92,21 @@ func Run(httpProxyAddr string,
 		return fmt.Errorf("Unable to initialize configuration: %v", err)
 	}
 
-	client := client.NewClient()
+	client := client.NewClient(proxyAll)
 	proxied.SetProxyAddr(client.Addr)
 
 	if beforeStart(cfg) {
 		log.Debug("Preparing to start client proxy")
 		geolookup.Refresh()
 		cfgMutex.Lock()
-		applyClientConfig(client, cfg, proxyAll)
+		applyClientConfig(client, cfg, deviceID)
 		cfgMutex.Unlock()
 
 		go func() {
 			err := config.Run(func(updated *config.Config) {
 				log.Debug("Applying updated configuration")
 				cfgMutex.Lock()
-				applyClientConfig(client, updated, proxyAll)
+				applyClientConfig(client, updated, deviceID)
 				onConfigUpdate(updated)
 				cfgMutex.Unlock()
 				log.Debug("Applied updated configuration")
@@ -138,16 +146,16 @@ func Run(httpProxyAddr string,
 	return nil
 }
 
-func applyClientConfig(client *client.Client, cfg *config.Config, proxyAll func() bool) {
+func applyClientConfig(client *client.Client, cfg *config.Config, deviceID string) {
 	certs, err := cfg.GetTrustedCACerts()
 	if err != nil {
 		log.Errorf("Unable to get trusted ca certs, not configuring fronted: %s", err)
 	} else {
 		fronted.Configure(certs, cfg.Client.MasqueradeSets, filepath.Join(appdir.General("Lantern"), "masquerade_cache"))
 	}
-	logging.Configure(cfg.CloudConfigCA, cfg.Client.DeviceID, Version, RevisionDate)
+	logging.Configure(cfg.CloudConfigCA, deviceID, Version, RevisionDate)
 	// Update client configuration
-	client.Configure(cfg.Client, proxyAll)
+	client.Configure(cfg.Client, deviceID)
 }
 
 func displayVersion() {
