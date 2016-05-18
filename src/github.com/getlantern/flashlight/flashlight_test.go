@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -16,6 +17,8 @@ import (
 	"github.com/getlantern/fronted"
 
 	"github.com/getlantern/flashlight/config"
+
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -38,13 +41,20 @@ const (
 // was successful, it also tests to make sure that the outbound request didn't
 // leak any Lantern or CloudFlare headers.
 func testRequest(testCase string, t *testing.T, requests chan *http.Request, https bool, certPool *x509.CertPool, expectedStatus int, expectedErr error) {
+	dir, err := ioutil.TempDir("", "direct_test")
+	if !assert.NoError(t, err, "Unable to create temp dir") {
+		return
+	}
+	defer os.RemoveAll(dir)
+	cacheFile := filepath.Join(dir, "cachefile")
+
 	cfg := &config.Config{}
 	cfg.ApplyDefaults()
 	trustedCAs, err := cfg.GetTrustedCACerts()
 	if err != nil {
 		t.Fatal(err)
 	}
-	fronted.Configure(trustedCAs, cfg.Client.MasqueradeSets)
+	fronted.Configure(trustedCAs, cfg.Client.MasqueradeSets, cacheFile)
 
 	log.Debug("Making request")
 	httpClient := &http.Client{Transport: &http.Transport{

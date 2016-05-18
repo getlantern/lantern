@@ -2,8 +2,10 @@ package flashlight
 
 import (
 	"fmt"
+	"path/filepath"
 	"sync"
 
+	"github.com/getlantern/appdir"
 	"github.com/getlantern/fronted"
 	"github.com/getlantern/golog"
 
@@ -11,7 +13,8 @@ import (
 	"github.com/getlantern/flashlight/config"
 	"github.com/getlantern/flashlight/geolookup"
 	"github.com/getlantern/flashlight/logging"
-    "github.com/getlantern/flashlight/pro"
+	"github.com/getlantern/flashlight/pro"
+	"github.com/getlantern/flashlight/proxied"
 )
 
 const (
@@ -83,11 +86,11 @@ func Run(httpProxyAddr string,
 	}
 
 	client := client.NewClient()
+	proxied.SetProxyAddr(client.Addr)
 
 	if beforeStart(cfg) {
 		log.Debug("Preparing to start client proxy")
-		geolookup.Configure(client.Addr)
-		pro.Configure(client.Addr)
+		geolookup.Refresh()
 		cfgMutex.Lock()
 		applyClientConfig(client, cfg, proxyAll)
 		cfgMutex.Unlock()
@@ -141,10 +144,10 @@ func applyClientConfig(client *client.Client, cfg *config.Config, proxyAll func(
 	if err != nil {
 		log.Errorf("Unable to get trusted ca certs, not configuring fronted: %s", err)
 	} else {
-		fronted.Configure(certs, cfg.Client.MasqueradeSets)
+		fronted.Configure(certs, cfg.Client.MasqueradeSets, filepath.Join(appdir.General("Lantern"), "masquerade_cache"))
 	}
-	logging.Configure(client.Addr, cfg.CloudConfigCA, cfg.Client.DeviceID,
-		Version, RevisionDate)
+	logging.Configure(cfg.CloudConfigCA, cfg.Client.DeviceID, Version, RevisionDate)
+	pro.Configure(cfg.CloudConfigCA)
 	// Update client configuration
 	client.Configure(cfg.Client, proxyAll)
 }

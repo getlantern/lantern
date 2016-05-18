@@ -22,11 +22,6 @@ var (
 	log = golog.LoggerFor("geolookup")
 )
 
-// HTTPFetcher is a simple interface for types that are able to fetch geo data.
-type HTTPFetcher interface {
-	Do(req *http.Request) (*http.Response, error)
-}
-
 // The City structure corresponds to the data in the GeoIP2/GeoLite2 City
 // databases.
 type City struct {
@@ -105,17 +100,15 @@ type Country struct {
 	} `maxminddb:"traits"`
 }
 
-// LookupIPWithClient looks up the given IP using a geolocation service and returns a
-// City struct. If an httpClient was provided, it uses that, otherwise it uses
-// a default http.Client.
-func LookupIPWithClient(ipAddr string, fetcher HTTPFetcher) (*City, string, error) {
-	return LookupIPWithEndpoint(cloudflareEndpoint, ipAddr, fetcher)
+// LookupIP looks up the given IP using a geolocation service and returns a
+// City struct. The http.RoundTripper is required.
+func LookupIP(ipAddr string, rt http.RoundTripper) (*City, string, error) {
+	return LookupIPWithEndpoint(cloudflareEndpoint, ipAddr, rt)
 }
 
-// LookupIPWithEndpoint looks up the given IP using a geolocation service and returns a
-// City struct. If an httpClient was provided, it uses that, otherwise it uses
-// a default http.Client.
-func LookupIPWithEndpoint(endpoint string, ipAddr string, fetcher HTTPFetcher) (*City, string, error) {
+// LookupIPWithEndpoint looks up the given IP using a geolocation service and
+// returns a City struct. The http.RoundTripper is required.
+func LookupIPWithEndpoint(endpoint string, ipAddr string, rt http.RoundTripper) (*City, string, error) {
 	var err error
 	var req *http.Request
 	var resp *http.Response
@@ -130,7 +123,7 @@ func LookupIPWithEndpoint(endpoint string, ipAddr string, fetcher HTTPFetcher) (
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Lantern-Fronted-URL", frontedUrl)
 	log.Debugf("Fetching ip...")
-	if resp, err = fetcher.Do(req); err != nil {
+	if resp, err = rt.RoundTrip(req); err != nil {
 		return nil, "", fmt.Errorf("Could not get response from server: %q", err)
 	}
 	defer func() {
