@@ -1,10 +1,13 @@
 package app
 
 import (
+	"encoding/base64"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
 	"sync"
+
+	"code.google.com/p/go-uuid/uuid"
 
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/launcher"
@@ -19,7 +22,6 @@ const (
 
 var (
 	service    *ui.Service
-	settings   *Settings
 	httpClient *http.Client
 	path       = filepath.Join(appdir.General("Lantern"), "settings.yaml")
 	once       = &sync.Once{}
@@ -49,11 +51,10 @@ func loadSettings(version, revisionDate, buildDate string) *Settings {
 
 // loadSettings loads the initial settings at startup, either from disk or using defaults.
 func loadSettingsFrom(version, revisionDate, buildDate, path string) *Settings {
-
 	log.Debug("Loading settings")
 	// Create default settings that may or may not be overridden from an existing file
 	// on disk.
-	settings = &Settings{
+	set := &Settings{
 		AutoReport:  true,
 		AutoLaunch:  true,
 		ProxyAll:    false,
@@ -63,33 +64,37 @@ func loadSettingsFrom(version, revisionDate, buildDate, path string) *Settings {
 	// Use settings from disk if they're available.
 	if bytes, err := ioutil.ReadFile(path); err != nil {
 		log.Debugf("Could not read file %v", err)
-	} else if err := yaml.Unmarshal(bytes, settings); err != nil {
+	} else if err := yaml.Unmarshal(bytes, set); err != nil {
 		log.Errorf("Could not load yaml %v", err)
 		// Just keep going with the original settings not from disk.
 	} else {
 		log.Debugf("Loaded settings from %v", path)
 	}
 
-	if settings.AutoLaunch {
-		launcher.CreateLaunchFile(settings.AutoLaunch)
+	// We always just set the device ID to the MAC address on the system. Note
+	// this ignores what's on disk, if anything.
+	set.DeviceID = base64.StdEncoding.EncodeToString(uuid.NodeID())
+
+	if set.AutoLaunch {
+		launcher.CreateLaunchFile(set.AutoLaunch)
 	}
 	// always override below 3 attributes as they are not meant to be persisted across versions
-	settings.Version = version
-	settings.BuildDate = buildDate
-	settings.RevisionDate = revisionDate
+	set.Version = version
+	set.BuildDate = buildDate
+	set.RevisionDate = revisionDate
 
 	// Only configure the UI once. This will typically be the case in the normal
 	// application flow, but tests might call Load twice, for example, which we
 	// want to allow.
 	once.Do(func() {
-		err := settings.start()
+		err := set.start()
 		if err != nil {
 			log.Errorf("Unable to register settings service: %q", err)
 			return
 		}
-		go settings.read(service.In, service.Out)
+		go set.read(service.In, service.Out)
 	})
-	return settings
+	return set
 }
 
 // start the settings service that synchronizes Lantern's configuration with every UI client
@@ -212,6 +217,13 @@ func (s *Settings) SetDeviceID(deviceID string) {
 	s.Lock()
 	defer s.unlockAndSave()
 	s.DeviceID = deviceID
+}
+
+// GetDeviceID returns the unique ID of this device.
+func (s *Settings) GetDeviceID() string {
+	s.RLock()
+	defer s.RUnlock()
+	return s.DeviceID
 }
 
 // SetToken sets the user token

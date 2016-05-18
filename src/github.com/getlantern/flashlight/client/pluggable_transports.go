@@ -53,8 +53,8 @@ func defaultDialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 				return nil, err
 			}
 			if !forceProxy && !conn.ConnectionState().PeerCertificates[0].Equal(x509cert) {
-				if err := conn.Close(); err != nil {
-					log.Debugf("Error closing chained server connection: %s", err)
+				if closeErr := conn.Close(); closeErr != nil {
+					log.Debugf("Error closing chained server connection: %s", closeErr)
 				}
 				return nil, fmt.Errorf("Server's certificate didn't match expected!")
 			}
