@@ -15,9 +15,6 @@ type ClientConfig struct {
 	// MinQOS: (optional) the minimum QOS to require from proxies.
 	MinQOS int
 
-	// Unique identifier for this device
-	DeviceID string
-
 	// List of CONNECT ports that are proxied via the remote proxy. Other ports
 	// will be handled with direct connections.
 	ProxiedCONNECTPorts []int
