@@ -182,7 +182,7 @@ func doGetFeed(feedEndpoint string, locale string, shouldProxy bool, allStr stri
 	}
 
 	defer func() {
-		if err = res.Body.Close(); err != nil {
+		if err := res.Body.Close(); err != nil {
 			handleError(fmt.Errorf("Error closing response body: %v", err))
 		}
 	}()
