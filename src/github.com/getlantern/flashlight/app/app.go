@@ -21,7 +21,8 @@ import (
 )
 
 var (
-	log = golog.LoggerFor("flashlight")
+	log      = golog.LoggerFor("flashlight")
+	settings *Settings
 )
 
 func init() {
@@ -52,20 +53,11 @@ func (app *App) Init() {
 
 // LogPanicAndExit logs a panic and then exits the application.
 func (app *App) LogPanicAndExit(msg string) {
-	cfg, err := config.Init(settings,
-		flashlight.PackageVersion,
-		app.Flags["configdir"].(string),
-		app.Flags["stickyconfig"].(bool),
-		app.Flags,
-	)
-	if err != nil {
-		panic("Error initializing config")
-	}
 	if err := logging.EnableFileLogging(); err != nil {
 		panic("Error initializing logging")
 	}
 
-	<-logging.Configure("", cfg.Client.DeviceID, flashlight.Version, flashlight.RevisionDate)
+	<-logging.Configure("", "dummy-device-id-for-panic", flashlight.Version, flashlight.RevisionDate)
 
 	log.Error(msg)
 
@@ -102,7 +94,8 @@ func (app *App) Run() error {
 			app.afterStart,
 			app.onConfigUpdate,
 			settings,
-			app.Exit)
+			app.Exit,
+			settings.GetDeviceID())
 		if err != nil {
 			app.Exit(err)
 			return
@@ -164,7 +157,7 @@ func (app *App) beforeStart(cfg *config.Config) bool {
 
 	// Only run analytics once on startup.
 	if settings.IsAutoReport() {
-		stopAnalytics := analytics.Start(cfg.Client.DeviceID, flashlight.Version)
+		stopAnalytics := analytics.Start(settings.GetDeviceID(), flashlight.Version)
 		app.AddExitFunc(stopAnalytics)
 	}
 	watchDirectAddrs()
