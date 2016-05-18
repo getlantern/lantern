@@ -90,7 +90,6 @@ func Run(httpProxyAddr string,
 
 	if beforeStart(cfg) {
 		log.Debug("Preparing to start client proxy")
-		pro.Configure(client.Addr)
 		geolookup.Refresh()
 		cfgMutex.Lock()
 		applyClientConfig(client, cfg, proxyAll)
@@ -148,6 +147,7 @@ func applyClientConfig(client *client.Client, cfg *config.Config, proxyAll func(
 		fronted.Configure(certs, cfg.Client.MasqueradeSets, filepath.Join(appdir.General("Lantern"), "masquerade_cache"))
 	}
 	logging.Configure(cfg.CloudConfigCA, cfg.Client.DeviceID, Version, RevisionDate)
+	pro.Configure(cfg.CloudConfigCA)
 	// Update client configuration
 	client.Configure(cfg.Client, proxyAll)
 }

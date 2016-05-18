@@ -8,8 +8,8 @@ import (
 	"net/http/httputil"
 	"sync"
 
-	"github.com/getlantern/eventual"
-	"github.com/getlantern/flashlight/util"
+	"github.com/getlantern/flashlight/proxied"
+	"github.com/getlantern/golog"
 )
 
 const (
@@ -17,8 +17,9 @@ const (
 )
 
 var (
-	cf   util.HTTPFetcher
-	cfMu sync.RWMutex
+	log      = golog.LoggerFor("flashlight.logging")
+	clientMu sync.RWMutex
+	httpC    *http.Client
 )
 
 type proxyTransport struct {
@@ -26,11 +27,13 @@ type proxyTransport struct {
 }
 
 func (pt *proxyTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	cfMu.RLock()
-	defer cfMu.RUnlock()
-	if cf == nil {
-		return nil, errors.New("Missing client")
+	clientMu.RLock()
+	defer clientMu.RUnlock()
+
+	if httpC == nil {
+		return nil, errors.New("Missing client.")
 	}
+
 	if req.Method == "OPTIONS" {
 		// No need to proxy the OPTIONS request.
 		res := &http.Response{
@@ -46,7 +49,7 @@ func (pt *proxyTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		}
 		return res, nil
 	}
-	return cf.Do(req)
+	return httpC.Do(req)
 }
 
 var proxyHandler = &httputil.ReverseProxy{
@@ -61,10 +64,17 @@ var proxyHandler = &httputil.ReverseProxy{
 	},
 }
 
-func Configure(proxyAddrFN eventual.Getter) {
-	cfMu.Lock()
-	defer cfMu.Unlock()
-	cf = util.NewChainedAndFronted(proxyAddrFN)
+func Configure(cloudConfigCA string) {
+	clientMu.Lock()
+	defer clientMu.Unlock()
+
+	rt, err := proxied.ChainedPersistent(cloudConfigCA)
+	if err != nil {
+		log.Errorf("Could not create HTTP client: %v", err)
+		return
+	}
+
+	httpC = &http.Client{Transport: rt}
 }
 
 func InitProxy(addr string) error {
