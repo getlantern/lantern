@@ -6,8 +6,6 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-
-	"github.com/getlantern/withtimeout"
 )
 
 // Dialer captures the configuration for dialing arbitrary addresses.
@@ -21,14 +19,11 @@ type Dialer struct {
 	// OnClose: (optional) callback for when this dialer is stopped.
 	OnClose func()
 
-	// Check: (optional) - a function that's used to test reachibility metrics
+	// Check: - a function that's used to test reachibility metrics
 	// periodically or if the dialer was failed to connect.
 	//
 	// Checks are scheduled at exponentially increasing intervals that are
-	// capped at 1 minute.
-	//
-	// If Check is not specified, a default Check will be used that makes an
-	// HTTP request to http://www.google.com/humans.txt using this Dialer.
+	// capped at MaxCheckTimeout.
 	Check func() bool
 
 	// Determines whether a dialer can be trusted with unencrypted traffic.
@@ -39,7 +34,8 @@ type Dialer struct {
 }
 
 var (
-	maxCheckTimeout = 1 * time.Minute
+	// The maximum wait time before checking an idle or failed dialer.
+	MaxCheckTimeout = 2 * time.Second
 )
 
 type dialer struct {
@@ -60,7 +56,7 @@ type dialer struct {
 func (d *dialer) Start() {
 	d.consecSuccesses = 1 // be optimistic
 	d.closeCh = make(chan struct{})
-	d.checkTimer = time.NewTimer(maxCheckTimeout)
+	d.checkTimer = time.NewTimer(MaxCheckTimeout)
 	if d.Check == nil {
 		d.Check = d.defaultCheck
 	}
@@ -75,13 +71,6 @@ func (d *dialer) Start() {
 				}
 				return
 			case <-d.checkTimer.C:
-				// We suspect that the check process may be causing users to get blacklisted.
-				// At the moment, it's not strictly necessary and won't be until we do
-				// multiple servers with pro, so let's skip it for now.
-				// TODO: reenable for Pro if necessary
-				if true {
-					continue
-				}
 				log.Tracef("Start checking dialer %s", d.Label)
 				ok := d.Check()
 				if ok {
@@ -127,7 +116,7 @@ func (d *dialer) updateEMADialTime(t time.Duration) {
 	// Ref dialer.EMADialTime() for the rationale.
 	// The values is large enough to safely ignore decimals.
 	newEMA := (atomic.LoadInt64(&d.emaDialTime) + t.Nanoseconds()) / 2
-	log.Tracef("Dialer %s EMA(exponential moving average) dial time: %d", d.Label, newEMA)
+	log.Tracef("Dialer %s EMA(exponential moving average) dial time: %v", d.Label, time.Duration(newEMA))
 	atomic.StoreInt64(&d.emaDialTime, newEMA)
 }
 
@@ -136,7 +125,7 @@ func (d *dialer) markSuccess() {
 	log.Tracef("Dialer %s consecutive successes: %d -> %d", d.Label, newCS-1, newCS)
 	atomic.StoreInt32(&d.consecFailures, 0)
 	d.muCheckTimer.Lock()
-	d.checkTimer.Reset(maxCheckTimeout)
+	d.checkTimer.Reset(MaxCheckTimeout)
 	d.muCheckTimer.Unlock()
 }
 
@@ -145,8 +134,8 @@ func (d *dialer) markFailure() {
 	newCF := atomic.AddInt32(&d.consecFailures, 1)
 	log.Tracef("Dialer %s consecutive failures: %d -> %d", d.Label, newCF-1, newCF)
 	nextCheck := time.Duration(newCF*newCF) * 100 * time.Millisecond
-	if nextCheck > maxCheckTimeout {
-		nextCheck = maxCheckTimeout
+	if nextCheck > MaxCheckTimeout {
+		nextCheck = MaxCheckTimeout
 	}
 	d.muCheckTimer.Lock()
 	d.checkTimer.Reset(nextCheck)
@@ -154,34 +143,6 @@ func (d *dialer) markFailure() {
 }
 
 func (d *dialer) defaultCheck() bool {
-	client := &http.Client{
-		Transport: &http.Transport{
-			DisableKeepAlives: true,
-			Dial:              d.dial,
-		},
-	}
-	ok, timedOut, _ := withtimeout.Do(60*time.Second, func() (interface{}, error) {
-		req, err := http.NewRequest("GET", "http://www.google.com/humans.txt", nil)
-		if err != nil {
-			log.Errorf("Could not create HTTP request?")
-			return false, nil
-		}
-		if d.OnRequest != nil {
-			d.OnRequest(req)
-		}
-		resp, err := client.Do(req)
-		if err != nil {
-			log.Debugf("Error testing dialer %s to humans.txt: %s", d.Label, err)
-			return false, nil
-		}
-		if err := resp.Body.Close(); err != nil {
-			log.Debugf("Unable to close response body: %v", err)
-		}
-		log.Tracef("Tested dialer %s to humans.txt, status code %d", d.Label, resp.StatusCode)
-		return resp.StatusCode == 200, nil
-	})
-	if timedOut {
-		log.Errorf("Timed out checking dialer at: %v", d.Label)
-	}
-	return !timedOut && ok.(bool)
+	log.Errorf("No check function provided for dialer %s", d.Label)
+	return false
 }
