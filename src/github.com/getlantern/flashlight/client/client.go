@@ -21,7 +21,7 @@ const (
 	// LanternSpecialDomain is a special domain for use by lantern that gets
 	// resolved to localhost by the proxy
 	LanternSpecialDomain          = "ui.lantern.io"
-	LanternSpecialDomainWithColon = "ui.lantern.io:"
+	lanternSpecialDomainWithColon = "ui.lantern.io:"
 )
 
 var (
@@ -30,7 +30,8 @@ var (
 	// UIAddr is the address at which UI is to be found
 	UIAddr string
 
-	addr      = eventual.NewValue()
+	addr = eventual.NewValue()
+
 	socksAddr = eventual.NewValue()
 )
 
@@ -43,7 +44,6 @@ type Client struct {
 	// WriteTimeout: (optional) timeout for write ops
 	WriteTimeout time.Duration
 
-	proxyAll  atomic.Value
 	cfgHolder atomic.Value
 	priorCfg  *ClientConfig
 	cfgMutex  sync.RWMutex
@@ -55,12 +55,18 @@ type Client struct {
 	rp eventual.Value
 
 	l net.Listener
+
+	proxyAll func() bool
 }
 
-func NewClient() *Client {
+// NewClient creates a new client that does things like starts the HTTP and
+// SOCKS proxies. It take a function for determing whether or not to proxy
+// all traffic.
+func NewClient(proxyAll func() bool) *Client {
 	return &Client{
-		bal: eventual.NewValue(),
-		rp:  eventual.NewValue(),
+		bal:      eventual.NewValue(),
+		rp:       eventual.NewValue(),
+		proxyAll: proxyAll,
 	}
 }
 
@@ -70,6 +76,8 @@ func Addr(timeout time.Duration) (interface{}, bool) {
 	return addr.Get(timeout)
 }
 
+// Addr returns the address at which the client is listening with HTTP, blocking
+// until the given timeout for an address to become available.
 func (client *Client) Addr(timeout time.Duration) (interface{}, bool) {
 	return Addr(timeout)
 }
@@ -80,6 +88,8 @@ func Socks5Addr(timeout time.Duration) (interface{}, bool) {
 	return socksAddr.Get(timeout)
 }
 
+// Socks5Addr returns the address at which the client is listening with SOCKS5,
+// blocking until the given timeout for an address to become available.
 func (client *Client) Socks5Addr(timeout time.Duration) (interface{}, bool) {
 	return Socks5Addr(timeout)
 }
@@ -116,6 +126,8 @@ func (client *Client) ListenAndServeHTTP(requestedAddr string, onListeningFn fun
 	return httpServer.Serve(l)
 }
 
+// ListenAndServeSOCKS5 starts the SOCKS server listening at the specified
+// address.
 func (client *Client) ListenAndServeSOCKS5(requestedAddr string) error {
 	var err error
 	var l net.Listener
@@ -148,7 +160,7 @@ func (client *Client) ListenAndServeSOCKS5(requestedAddr string) error {
 
 // Configure updates the client's configuration. Configure can be called
 // before or after ListenAndServe, and can be called multiple times.
-func (client *Client) Configure(cfg *ClientConfig, proxyAll func() bool) {
+func (client *Client) Configure(cfg *ClientConfig, deviceID string) {
 	client.cfgMutex.Lock()
 	defer client.cfgMutex.Unlock()
 
@@ -166,10 +178,8 @@ func (client *Client) Configure(cfg *ClientConfig, proxyAll func() bool) {
 
 	log.Debugf("Requiring minimum QOS of %d", cfg.MinQOS)
 	client.cfgHolder.Store(cfg)
-	log.Debugf("Proxy all traffic or not: %v", proxyAll())
-	client.proxyAll.Store(proxyAll)
 
-	bal, err := client.initBalancer(cfg)
+	bal, err := client.initBalancer(cfg, deviceID)
 	if err != nil {
 		log.Error(err)
 	} else if bal != nil {
@@ -185,10 +195,6 @@ func (client *Client) Stop() error {
 	return client.l.Close()
 }
 
-func (client *Client) ProxyAll() bool {
-	return client.proxyAll.Load().(func() bool)()
-}
-
 func (client *Client) cfg() *ClientConfig {
 	return client.cfgHolder.Load().(*ClientConfig)
 }
@@ -198,7 +204,7 @@ func (client *Client) proxiedDialer(orig func(network, addr string) (net.Conn, e
 
 	return func(network, addr string) (net.Conn, error) {
 		var proxied func(network, addr string) (net.Conn, error)
-		if client.ProxyAll() {
+		if client.proxyAll() {
 			proxied = orig
 		} else {
 			proxied = detourDialer
@@ -214,7 +220,7 @@ func (client *Client) proxiedDialer(orig func(network, addr string) (net.Conn, e
 }
 
 func isLanternSpecialDomain(addr string) bool {
-	return strings.Index(addr, LanternSpecialDomainWithColon) == 0
+	return strings.Index(addr, lanternSpecialDomainWithColon) == 0
 }
 
 func rewriteLanternSpecialDomain(addr string) string {

@@ -70,13 +70,13 @@ func (client *Client) intercept(resp http.ResponseWriter, req *http.Request) {
 	// after completed send / receive so that won't cause problem.
 	closeConns := func() {
 		if clientConn != nil {
-			if err := clientConn.Close(); err != nil {
-				log.Debugf("Error closing the out connection: %s", err)
+			if closeErr := clientConn.Close(); closeErr != nil {
+				log.Debugf("Error closing the out connection: %s", closeErr)
 			}
 		}
 		if connOut != nil {
-			if err := connOut.Close(); err != nil {
-				log.Debugf("Error closing the client connection: %s", err)
+			if closeErr := connOut.Close(); closeErr != nil {
+				log.Debugf("Error closing the client connection: %s", closeErr)
 			}
 		}
 	}
