@@ -126,7 +126,7 @@ func doRequest(httpClient *http.Client, feedURL string) (*http.Response, error) 
 	}
 
 	// ask for gzipped feed content
-	req.Header.Add("Accept-Encoding", "identity")
+	req.Header.Add("Accept-Encoding", "gzip")
 
 	if res, err = httpClient.Do(req); err != nil {
 		handleError(fmt.Errorf("Error fetching feed: %v", err))
