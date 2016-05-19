@@ -1,11 +1,18 @@
 package errors
 
 import (
+	"bytes"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/getlantern/context"
+	"github.com/getlantern/hidden"
 	"github.com/stretchr/testify/assert"
+)
+
+var (
+	replaceNumbers = regexp.MustCompile("[0-9]+")
 )
 
 func TestFull(t *testing.T) {
@@ -14,7 +21,7 @@ func TestFull(t *testing.T) {
 	// Iterate past the size of the hidden buffer
 	for i := 0; i < len(hiddenErrors)*2; i++ {
 		ctx := context.Enter().Put("ca", 100)
-		e := New(nil, "Hello %v", "There").Op("My Op").With("DaTa_1", i)
+		e := New("Hello %v", "There").Op("My Op").With("DaTa_1", i)
 		ctx.Exit()
 		if firstErr == nil {
 			firstErr = e
@@ -39,4 +46,32 @@ func TestFull(t *testing.T) {
 
 	e3 := Wrap(fmt.Errorf("I'm wrapping your text: %v", firstErr)).With("a", 2)
 	assert.Nil(t, e3.cause, "Wrapping an *Error that's no longer buffered should have yielded no cause")
+}
+
+func TestNewWithCause(t *testing.T) {
+	cause := New("World")
+	outer := New("Hello %v", cause)
+	assert.Equal(t, "Hello World", hidden.Clean(outer.Error()))
+	assert.Equal(t, cause, outer.cause)
+
+	// Make sure that stacktrace prints out okay
+	buf := &bytes.Buffer{}
+	print := outer.MultiLinePrinter()
+	for {
+		more := print(buf)
+		buf.WriteByte('\n')
+		if !more {
+			break
+		}
+	}
+	expected := `Hello World
+  at github.com/getlantern/errors.TestNewWithCause:999
+  at testing.tRunner:999
+  at runtime.goexit:999
+Caused by: World
+  at github.com/getlantern/errors.TestNewWithCause:999
+  at testing.tRunner:999
+  at runtime.goexit:999
+`
+	assert.Equal(t, expected, replaceNumbers.ReplaceAllString(hidden.Clean(buf.String()), "999"))
 }
