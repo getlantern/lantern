@@ -26,7 +26,7 @@ func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	logging.RegisterUserAgent(userAgent)
 
 	ctx := context.Enter().
-		OuterOp("proxy").
+		Op("proxy").
 		UserAgent(userAgent).
 		Origin(req.Host)
 	defer ctx.Exit()
