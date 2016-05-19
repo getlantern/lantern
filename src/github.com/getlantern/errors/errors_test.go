@@ -16,43 +16,44 @@ var (
 )
 
 func TestFull(t *testing.T) {
-	var firstErr *Error
+	var firstErr Error
 
 	// Iterate past the size of the hidden buffer
 	for i := 0; i < len(hiddenErrors)*2; i++ {
-		ctx := context.Enter().Put("ca", 100)
-		e := New("Hello %v", "There").Op("My Op").With("DaTa_1", i)
+		ctx := context.Enter().Put("ca", 100).Put("cd", 100)
+		e := New("Hello %v", "There").Op("My Op").With("DaTa_1", 1)
 		ctx.Exit()
 		if firstErr == nil {
 			firstErr = e
 		}
 		assert.Equal(t, "Hello There", e.Error()[:11])
 		ctx = context.Enter().Put("ca", 200).Put("cb", 200).Put("cc", 200)
-		e3 := Wrap(fmt.Errorf("I'm wrapping your text: %v", e)).With("dATA+1", 3).With("cb", 300)
+		e3 := Wrap(fmt.Errorf("I'm wrapping your text: %v", e)).Op("outer op").With("dATA+1", i).With("cb", 300)
 		ctx.Exit()
-		assert.Equal(t, e, e3.cause, "Wrapping a regular error should have extracted the contained *Error")
+		assert.Equal(t, e, e3.(*structured).cause, "Wrapping a regular error should have extracted the contained *Error")
 		m := make(context.Map)
 		e3.Fill(m)
-		assert.Equal(t, i, m["data_1"], "Cause's data should dominate all")
-		assert.Equal(t, 100, m["ca"], "Cause's context should dominate error")
+		assert.Equal(t, i, m["data_1"], "Error's data should dominate all")
+		assert.Equal(t, 200, m["ca"], "Error's context should dominate cause")
 		assert.Equal(t, 300, m["cb"], "Error's data should dominate its context")
 		assert.Equal(t, 200, m["cc"], "Error's context should come through")
-		assert.Equal(t, "My Op", e.data["error_op"], "Op should be available from cause")
+		assert.Equal(t, 100, m["cd"], "Cause's context should come through")
+		assert.Equal(t, "My Op", e.(*structured).data["error_op"], "Op should be available from cause")
 
-		for _, call := range e3.callStack {
+		for _, call := range e3.(*structured).callStack {
 			t.Logf("at %v", call)
 		}
 	}
 
 	e3 := Wrap(fmt.Errorf("I'm wrapping your text: %v", firstErr)).With("a", 2)
-	assert.Nil(t, e3.cause, "Wrapping an *Error that's no longer buffered should have yielded no cause")
+	assert.Nil(t, e3.(*structured).cause, "Wrapping an *Error that's no longer buffered should have yielded no cause")
 }
 
 func TestNewWithCause(t *testing.T) {
 	cause := New("World")
 	outer := New("Hello %v", cause)
 	assert.Equal(t, "Hello World", hidden.Clean(outer.Error()))
-	assert.Equal(t, cause, outer.cause)
+	assert.Equal(t, cause, outer.(*structured).cause)
 
 	// Make sure that stacktrace prints out okay
 	buf := &bytes.Buffer{}
@@ -74,4 +75,12 @@ Caused by: World
   at runtime.goexit:999
 `
 	assert.Equal(t, expected, replaceNumbers.ReplaceAllString(hidden.Clean(buf.String()), "999"))
+}
+
+func TestWrapNil(t *testing.T) {
+	assert.Nil(t, doWrapNil())
+}
+
+func doWrapNil() error {
+	return Wrap(nil)
 }

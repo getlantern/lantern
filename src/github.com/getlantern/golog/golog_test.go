@@ -19,7 +19,7 @@ import (
 
 var (
 	expectedLog      = "SEVERITY myprefix: golog_test.go:999 Hello world\nSEVERITY myprefix: golog_test.go:999 Hello true [cvarA=a cvarB=b]\n"
-	expectedErrorLog = `ERROR myprefix: golog_test.go:999 Hello world [cvarC=c cvarD=d error=world error_type=errors.Error]
+	expectedErrorLog = `ERROR myprefix: golog_test.go:999 Hello world [cvarC=c cvarD=d error=Hello world error_type=errors.Error]
 ERROR myprefix: golog_test.go:999   at github.com/getlantern/golog.TestError:999
 ERROR myprefix: golog_test.go:999   at testing.tRunner:999
 ERROR myprefix: golog_test.go:999   at runtime.goexit:999

@@ -14,7 +14,7 @@ be recorded.
 
 Extra fields can be chained in any order, at any time.
 
-  func Connect(addr string) *Error {
+  func Connect(addr string) *structured {
   	//...
     return errors.New("some error").ProxyAddr(addr).
 	  WithOp("connect").With("some_counter", 1)
@@ -65,18 +65,33 @@ import (
 // Error wraps system and application defined errors in unified structure for
 // reporting and logging. It's not meant to be created directly. User New(),
 // Wrap() and Report() instead.
-type Error struct {
+type Error interface {
+	error
+	context.Contextual
+	MultiLinePrinter() func(buf *bytes.Buffer) bool
+
+	// Op attaches a hint of the operation triggers this Error. Many error types
+	// returned by net and os package have Op pre-filled.
+	Op(op string) Error
+
+	// With attaches arbitrary field to the error. keys will be normalized as
+	// underscore_divided_words, so all characters except letters and numbers will
+	// be replaced with underscores, and all letters will be lowercased.
+	With(key string, value interface{}) Error
+}
+
+type structured struct {
 	id        uint64
 	hiddenID  string
 	data      context.Map
 	context   context.Map
-	cause     *Error
+	cause     Error
 	callStack stack.CallStack
 }
 
 // New creates an Error with supplied description and format arguments to the
 // description. If any of the arguments is an error, we use that as the cause.
-func New(desc string, args ...interface{}) (e *Error) {
+func New(desc string, args ...interface{}) Error {
 	var cause error
 	for _, arg := range args {
 		err, isError := arg.(error)
@@ -85,52 +100,51 @@ func New(desc string, args ...interface{}) (e *Error) {
 			break
 		}
 	}
-	e = buildError(fmt.Sprintf(desc, args...), nil, Wrap(cause))
+	e := buildError(fmt.Sprintf(desc, args...), nil, Wrap(cause))
 	e.attachStack(2)
-	return
+	return e
 }
 
 // Wrap creates an Error based on the information in an error instance.  It
 // returns nil if the error passed in is nil, so we can simply call
 // errors.Wrap(s.l.Close()) regardless there's an error or not. If the error is
 // already wrapped, it is returned as is.
-func Wrap(err error) *Error {
+func Wrap(err error) Error {
 	return wrapSkipFrames(err, 1)
 }
 
 // Fill implements the method from the context.Contextual interface.
-func (e *Error) Fill(m context.Map) {
+func (e *structured) Fill(m context.Map) {
 	if e != nil {
-		// Include the context
+		if e.cause != nil {
+			// Include data from cause, which supercedes context
+			e.cause.Fill(m)
+		}
+		// Include the context, which supercedes the cause
 		for key, value := range e.context {
 			m[key] = value
 		}
-		// Now include the error's data, which supercedes its own context
+		// Now include the error's data, which supercedes everything
 		for key, value := range e.data {
 			m[key] = value
-		}
-		if e.cause != nil {
-			// Include data from cause, which supercedes everything
-			e.cause.Fill(m)
 		}
 	}
 }
 
-// Op attaches a hint of the operation triggers this Error. Many error types
-// returned by net and os package have Op pre-filled.
-func (e *Error) Op(op string) *Error {
+func (e *structured) Op(op string) Error {
 	e.data["error_op"] = op
 	return e
 }
 
-// With attaches arbitrary field to the error. keys will be normalized as
-// underscore_divided_words, so all characters except letters and numbers will
-// be replaced with underscores, and all letters will be lowercased.
-func (e *Error) With(key string, value interface{}) *Error {
+func (e *structured) With(key string, value interface{}) Error {
 	parts := strings.FieldsFunc(key, func(c rune) bool {
 		return !unicode.IsLetter(c) && !unicode.IsNumber(c)
 	})
 	k := strings.ToLower(strings.Join(parts, "_"))
+	if k == "error" || k == "error_op" {
+		// Never overwrite these
+		return e
+	}
 	switch actual := value.(type) {
 	case string, int, bool, time.Time:
 		e.data[k] = actual
@@ -141,12 +155,12 @@ func (e *Error) With(key string, value interface{}) *Error {
 }
 
 // Error satisfies the error interface
-func (e *Error) Error() string {
+func (e *structured) Error() string {
 	return e.data["error"].(string) + e.hiddenID
 }
 
 // MultiLinePrinter implements the interface golog.MultiLine
-func (e *Error) MultiLinePrinter() func(buf *bytes.Buffer) bool {
+func (e *structured) MultiLinePrinter() func(buf *bytes.Buffer) bool {
 	first := true
 	indent := false
 	err := e
@@ -173,58 +187,58 @@ func (e *Error) MultiLinePrinter() func(buf *bytes.Buffer) bool {
 		fmt.Fprintf(buf, "%+n:%d", call, call)
 		stackPosition++
 		if stackPosition >= len(err.callStack) {
-			err = err.cause
-			indent = false
-			stackPosition = 0
-			switchedCause = true
+			switch cause := err.cause.(type) {
+			case *structured:
+				err = cause
+				indent = false
+				stackPosition = 0
+				switchedCause = true
+			default:
+				return false
+			}
 		}
 		return err != nil
 	}
 }
 
-func wrapSkipFrames(err error, skip int) *Error {
+func wrapSkipFrames(err error, skip int) Error {
 	if err == nil {
 		return nil
 	}
 
-	// Look for *Errors
-	if e, ok := err.(*Error); ok {
+	// Look for *structureds
+	if e, ok := err.(*structured); ok {
 		return e
 	}
 
-	var cause *Error
-	// Look for hidden *Errors
+	var cause Error
+	// Look for hidden *structureds
 	hiddenIDs, err2 := hidden.Extract(err.Error())
 	if err2 == nil && len(hiddenIDs) > 0 {
 		// Take the first hidden ID as our cause
 		cause = get(hiddenIDs[0])
 	}
 
-	// Create a new *Error
+	// Create a new *structured
 	e := buildError(err.Error(), err, cause)
 	// always skip [Wrap, attachStack]
 	e.attachStack(2 + skip)
 	return e
 }
 
-func (e *Error) attachStack(skip int) {
+func (e *structured) attachStack(skip int) {
 	call := stack.Caller(skip)
 	e.callStack = stack.Trace().TrimBelow(call)
-	// e.data["p"]
-	// e.Package = fmt.Sprintf("%+k", caller)
-	// e.Func = fmt.Sprintf("%n", caller)
-	// e.FileLine = fmt.Sprintf("%+v", caller)
-	// e.Stack = stack.Trace().TrimBelow(caller).TrimRuntime()
 }
 
-func buildError(desc string, wrapped error, cause *Error) *Error {
-	e := &Error{
+func buildError(desc string, wrapped error, cause Error) *structured {
+	e := &structured{
 		data: make(context.Map),
 		// We capture the current context to allow it to propagate to higher layers.
 		context: context.AsMap(nil, false),
 		cause:   cause,
 	}
-	save(e)
+	e.save()
 
 	errorType := "errors.Error"
 	if wrapped != nil {
