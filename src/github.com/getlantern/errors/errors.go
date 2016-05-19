@@ -74,8 +74,17 @@ type Error struct {
 	callStack stack.CallStack
 }
 
-// New creates an Error with supplied description
-func New(cause error, desc string, args ...interface{}) (e *Error) {
+// New creates an Error with supplied description and format arguments to the
+// description. If any of the arguments is an error, we use that as the cause.
+func New(desc string, args ...interface{}) (e *Error) {
+	var cause error
+	for _, arg := range args {
+		err, isError := arg.(error)
+		if isError {
+			cause = err
+			break
+		}
+	}
 	e = buildError(fmt.Sprintf(desc, args...), nil, Wrap(cause))
 	e.attachStack(2)
 	return

@@ -66,8 +66,8 @@ func TestError(t *testing.T) {
 	l := LoggerFor("myprefix")
 	ctx := context.Enter().Put("cvarC", "c")
 	err := errorReturner()
-	err1 := errors.New(err, "Hello %v", err)
-	err2 := errors.New(nil, "Hello")
+	err1 := errors.New("Hello %v", err)
+	err2 := errors.New("Hello")
 	ctx.Exit()
 	l.Error(err1)
 	defer context.Enter().Put("cvarA", "a").Put("cvarB", "b").Exit()
@@ -77,7 +77,7 @@ func TestError(t *testing.T) {
 
 func errorReturner() error {
 	defer context.Enter().Put("cvarD", "d").Exit()
-	return errors.New(nil, "world")
+	return errors.New("world")
 }
 
 func TestTraceEnabled(t *testing.T) {
