@@ -5,7 +5,6 @@ import (
 	"net"
 	"net/http"
 	"strings"
-	"sync/atomic"
 	"time"
 
 	"github.com/getlantern/balancer"
@@ -20,7 +19,7 @@ import (
 var idleTimeout = 1 * time.Hour
 
 // Lantern internal sites won't be used as check target.
-var internalSiteSuffix = "getiantem.org"
+var internalSiteSuffixes = []string{"getlantern.org", "getiantem.org", "lantern.io"}
 
 // ForceChainedProxyAddr - If specified, all proxying will go through this address
 var ForceChainedProxyAddr string
@@ -52,9 +51,10 @@ type ChainedServerInfo struct {
 	// PluggableTransportSettings: Settings for pluggable transport
 	PluggableTransportSettings map[string]string
 
-	//  the host:port used to check this server. It's set as the last dialed
-	//  host if the port is 80, except those with internalSiteSuffix.
-	checkTarget atomic.Value
+	//  A fixed length list of host:port used to check this server. Recently
+	//  dialed plain HTTP sites (port == 80) will be added until the list is
+	//  full, except those has internalSiteSuffixes.
+	checkTargets siteList
 }
 
 // Dialer creates a *balancer.Dialer backed by a chained server.
@@ -79,6 +79,9 @@ func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 	}
 	label := fmt.Sprintf("%schained proxy at %s [%v]", trusted, s.Addr, s.PluggableTransport)
 
+	// keep at most 10 sites to check, ignore others.
+	s.checkTargets.initIfNecessary(10)
+
 	ccfg := chained.Config{
 		DialServer: dial,
 		Label:      label,
@@ -87,7 +90,6 @@ func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 		},
 	}
 	d := chained.NewDialer(ccfg)
-
 	return &balancer.Dialer{
 		Label:   label,
 		Trusted: s.Trusted,
@@ -97,7 +99,7 @@ func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 				return nil, err
 			}
 
-			s.updateCheckTarget(addr)
+			s.addCheckTarget(addr)
 			conn = idletiming.Conn(conn, idleTimeout, func() {
 				log.Debugf("Proxy connection to %s via %s idle for %v, closing", addr, conn.RemoteAddr(), idleTimeout)
 				if err := conn.Close(); err != nil {
@@ -125,27 +127,14 @@ func (s *ChainedServerInfo) attachHeaders(req *http.Request, deviceID string) {
 	req.Header.Set("X-LANTERN-DEVICE-ID", deviceID)
 }
 
-func (s *ChainedServerInfo) updateCheckTarget(addr string) {
-	host, port, e := net.SplitHostPort(addr)
-	if e != nil {
-		log.Errorf("failed to split port from %s", addr)
-		return
-	}
-	if strings.HasSuffix(host, internalSiteSuffix) || port != "80" {
-		log.Tracef("Skip setting %s as check target", addr)
-		return
-	}
-	s.checkTarget.Store(addr)
-}
-
 func (s *ChainedServerInfo) check(dial func(string, string) (net.Conn, error), deviceID string) bool {
 	rt := &http.Transport{
 		DisableKeepAlives: true,
 		Dial:              dial,
 	}
 	var url string
-	checkTarget, targetSet := s.checkTarget.Load().(string)
-	if !targetSet {
+	checkTarget := s.checkTargets.get()
+	if checkTarget == "" {
 		url = "http://ping-chained-server"
 	} else {
 		url = fmt.Sprintf("http://%s/index.html", checkTarget)
@@ -155,7 +144,7 @@ func (s *ChainedServerInfo) check(dial func(string, string) (net.Conn, error), d
 		log.Errorf("Could not create HTTP request: %v", err)
 		return false
 	}
-	if !targetSet {
+	if checkTarget == "" {
 		req.Header.Set("X-Lantern-Ping", "small")
 	}
 
@@ -169,17 +158,70 @@ func (s *ChainedServerInfo) check(dial func(string, string) (net.Conn, error), d
 		if err := resp.Body.Close(); err != nil {
 			log.Debugf("Unable to close response body: %v", err)
 		}
-		good := resp.StatusCode < 500
 		msg := fmt.Sprintf("HEAD %s through chained server at %s, status code %d", url, s.Addr, resp.StatusCode)
-		if !good {
+		// < 500 means the check target is at least reachable through this
+		// chained server, no matter what the HTTP status code is.
+		//
+		// The only exception is that if chained server rejects current client
+		// because of invalid token, etc., we can't differentiate it from an
+		// status code from target site.
+		if reachable := resp.StatusCode < 500; !reachable {
 			log.Debug(msg)
-		} else {
-			log.Trace(msg)
+			return false, nil
 		}
-		return good, nil
+		log.Trace(msg)
+		if checkTarget != "" {
+			// can be used as check target again if no new sites is added
+			s.checkTargets.add(checkTarget)
+		}
+		return true, nil
 	})
 	if timedOut {
 		log.Errorf("Timed out checking dialer at: %v", s.Addr)
 	}
 	return !timedOut && ok.(bool)
+}
+
+func (s *ChainedServerInfo) addCheckTarget(addr string) {
+	host, port, e := net.SplitHostPort(addr)
+	if e != nil {
+		log.Errorf("failed to split port from %s", addr)
+		return
+	}
+	if port != "80" {
+		log.Tracef("Skip setting non-HTTP site %s as check target", addr)
+		return
+	}
+	for _, s := range internalSiteSuffixes {
+		if strings.HasSuffix(host, s) {
+			log.Tracef("Skip setting internal site %s as check target", addr)
+			return
+		}
+	}
+	s.checkTargets.add(addr)
+}
+
+type siteList struct {
+	ch chan string
+}
+
+func (q *siteList) initIfNecessary(size int) {
+	if q.ch == nil {
+		q.ch = make(chan string, size)
+	}
+}
+
+func (q *siteList) add(addr string) {
+	select {
+	case q.ch <- addr:
+	default:
+	}
+}
+
+func (q *siteList) get() (addr string) {
+	select {
+	case addr = <-q.ch:
+	default:
+	}
+	return
 }
