@@ -184,7 +184,6 @@ func (b *BordaReporter) doSendBatch(batch []*Measurement) error {
 		return log.Errorf("Unable to report measurements: %v", err)
 	}
 
-	log.Debug(buf.String())
 	req, decErr := http.NewRequest(http.MethodPost, bordaURL, buf)
 	if decErr != nil {
 		return err
