@@ -57,11 +57,23 @@ import (
 	"unicode"
 
 	"github.com/getlantern/context"
+	"github.com/getlantern/hidden"
 )
 
+// Error wraps system and application defined errors in unified structure for
+// reporting and logging. It's not meant to be created directly. User New(),
+// Wrap() and Report() instead.
+type Error struct {
+	id       uint64
+	hiddenID string
+	data     context.Map
+	context  context.Map
+	cause    *Error
+}
+
 // New creates an Error with supplied description
-func New(desc string) (e *Error) {
-	e = buildError(desc, nil)
+func New(cause error, desc string, args ...interface{}) (e *Error) {
+	e = buildError(fmt.Sprintf(desc, args...), nil, Wrap(cause))
 	e.attachStack(2)
 	return
 }
@@ -78,28 +90,41 @@ func wrapSkipFrames(err error, skip int) *Error {
 	if err == nil {
 		return nil
 	}
+
+	// Look for *Errors
 	if e, ok := err.(*Error); ok {
 		return e
 	}
-	e := buildError(err.Error(), err)
+
+	var cause *Error
+	// Look for hidden *Errors
+	hiddenIDs, err2 := hidden.Extract(err.Error())
+	if err2 == nil && len(hiddenIDs) > 0 {
+		// Take the first hidden ID as our cause
+		cause = get(hiddenIDs[0])
+	}
+
+	// Create a new *Error
+	e := buildError(err.Error(), err, cause)
 	// always skip [Wrap, attachStack]
 	e.attachStack(2 + skip)
 	return e
 }
 
-// Error wraps system and application defined errors in unified structure for
-// reporting and logging. It's not meant to be created directly. User New(),
-// Wrap() and Report() instead.
-type Error struct {
-	data context.Map
-}
-
 // Fill implements the method from the context.Contextual interface.
 func (e *Error) Fill(m context.Map) {
 	if e != nil {
+		// Include the context
+		for key, value := range e.context {
+			m[key] = value
+		}
+		// Now include the error's data, which supercedes its own context
 		for key, value := range e.data {
-			// Note - we scope everything as client_
-			m["client_"+key] = value
+			m[key] = value
+		}
+		if e.cause != nil {
+			// Include data from cause, which supercedes everything
+			e.cause.Fill(m)
 		}
 	}
 }
@@ -120,21 +145,22 @@ func (e *Error) With(key string, value interface{}) *Error {
 	})
 	k := strings.ToLower(strings.Join(parts, "_"))
 	switch actual := value.(type) {
-	case string:
+	case string, int, bool, time.Time:
 		e.data[k] = actual
-	case int:
-		e.data[k] = strconv.Itoa(actual)
-	case bool:
-		e.data[k] = strconv.FormatBool(actual)
 	default:
-		e.data[k] = fmt.Sprint(value)
+		e.data[k] = fmt.Sprint(actual)
 	}
 	return e
 }
 
 // Error satisfies the error interface
 func (e *Error) Error() string {
-	return e.data["error"].(string)
+	return e.data["error"].(string) + e.hiddenID
+}
+
+// Cause returns the cause of the error and implements the golog.Caused interface
+func (e *Error) Cause() error {
+	return e.cause
 }
 
 func (e *Error) attachStack(skip int) {
@@ -146,18 +172,20 @@ func (e *Error) attachStack(skip int) {
 	// e.Stack = stack.Trace().TrimBelow(caller).TrimRuntime()
 }
 
-func buildError(desc string, source error) *Error {
+func buildError(desc string, wrapped error, cause *Error) *Error {
 	e := &Error{
-		// We initialize the data using the current context, which allows the error
-		// to propagate contextual information to higher layers.
-		data: context.AsMap(nil, false),
+		data: make(context.Map),
+		// We capture the current context to allow it to propagate to higher layers.
+		context: context.AsMap(nil, false),
+		cause:   cause,
 	}
+	save(e)
 
 	errorType := "errors.Error"
-	if source != nil {
-		op, goType, sourceDesc, extra := parseError(source)
-		if desc == "" && source != nil {
-			desc = sourceDesc
+	if wrapped != nil {
+		op, goType, wrappedDesc, extra := parseError(wrapped)
+		if desc == "" {
+			desc = wrappedDesc
 		}
 		e.Op(op)
 		errorType = goType
@@ -167,7 +195,7 @@ func buildError(desc string, source error) *Error {
 			}
 		}
 	}
-	e.data["error"] = desc
+	e.data["error"] = hidden.Clean(desc)
 	e.data["error_type"] = errorType
 
 	return e
