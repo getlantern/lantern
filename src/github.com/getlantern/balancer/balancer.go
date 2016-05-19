@@ -1,4 +1,4 @@
-// package balancer provides load balancing of network connections per different
+// Package balancer provides load balancing of network connections per different
 // strategies.
 package balancer
 

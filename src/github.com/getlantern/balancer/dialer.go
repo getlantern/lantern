@@ -34,8 +34,9 @@ type Dialer struct {
 }
 
 var (
-	// The maximum wait time before checking an idle or failed dialer.
-	MaxCheckTimeout = 2 * time.Second
+	// MaxCheckTimeout is the maximum wait time before checking an idle or
+	// failed dialer.
+	MaxCheckTimeout = 1 * time.Minute
 )
 
 type dialer struct {
@@ -72,9 +73,14 @@ func (d *dialer) Start() {
 				return
 			case <-d.checkTimer.C:
 				log.Tracef("Start checking dialer %s", d.Label)
+				t := time.Now()
 				ok := d.Check()
 				if ok {
 					d.markSuccess()
+					// Check time is generally larger than dial time, but still
+					// meaningful when comparing latency across multiple
+					// dialers.
+					d.updateEMADialTime(time.Since(t))
 				} else {
 					d.markFailure()
 				}
@@ -107,7 +113,7 @@ func (d *dialer) dial(network, addr string) (net.Conn, error) {
 		d.markFailure()
 	} else {
 		d.markSuccess()
-		d.updateEMADialTime(time.Now().Sub(t))
+		d.updateEMADialTime(time.Since(t))
 	}
 	return conn, err
 }

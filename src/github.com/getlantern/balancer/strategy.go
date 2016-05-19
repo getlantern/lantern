@@ -10,10 +10,7 @@ import (
 func Random(dialers []*dialer) dialerHeap {
 	return dialerHeap{dialers: dialers, lessFunc: func(i, j int) bool {
 		// we don't need good randomness, skip seeding
-		if rand.Intn(2) == 0 {
-			return false
-		}
-		return true
+		return rand.Intn(2) != 0
 	}}
 }
 
