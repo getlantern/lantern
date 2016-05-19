@@ -73,6 +73,11 @@ type ErrorReporter interface {
 	Report(err error, logText string, ctx map[string]interface{})
 }
 
+// Caused is an interface for errors that know their cause
+type Caused interface {
+	Cause() error
+}
+
 type Logger interface {
 	// Debug logs to stdout
 	Debug(arg interface{})
