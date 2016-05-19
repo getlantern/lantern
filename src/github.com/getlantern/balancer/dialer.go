@@ -1,6 +1,7 @@
 package balancer
 
 import (
+	"math/rand"
 	"net"
 	"net/http"
 	"sync"
@@ -23,7 +24,7 @@ type Dialer struct {
 	// periodically or if the dialer was failed to connect.
 	//
 	// Checks are scheduled at exponentially increasing intervals that are
-	// capped at MaxCheckTimeout.
+	// capped at MaxCheckTimeout ± ½.
 	Check func() bool
 
 	// Determines whether a dialer can be trusted with unencrypted traffic.
@@ -34,8 +35,8 @@ type Dialer struct {
 }
 
 var (
-	// MaxCheckTimeout is the maximum wait time before checking an idle or
-	// failed dialer.
+	// MaxCheckTimeout is the average of maximum wait time before checking an idle or
+	// failed dialer. The real cap is a random duration between MaxCheckTimeout ± ½.
 	MaxCheckTimeout = 1 * time.Minute
 )
 
@@ -57,7 +58,7 @@ type dialer struct {
 func (d *dialer) Start() {
 	d.consecSuccesses = 1 // be optimistic
 	d.closeCh = make(chan struct{})
-	d.checkTimer = time.NewTimer(MaxCheckTimeout)
+	d.checkTimer = time.NewTimer(maxCheckTimeout())
 	if d.Check == nil {
 		d.Check = d.defaultCheck
 	}
@@ -131,7 +132,7 @@ func (d *dialer) markSuccess() {
 	log.Tracef("Dialer %s consecutive successes: %d -> %d", d.Label, newCS-1, newCS)
 	atomic.StoreInt32(&d.consecFailures, 0)
 	d.muCheckTimer.Lock()
-	d.checkTimer.Reset(MaxCheckTimeout)
+	d.checkTimer.Reset(maxCheckTimeout())
 	d.muCheckTimer.Unlock()
 }
 
@@ -141,7 +142,7 @@ func (d *dialer) markFailure() {
 	log.Tracef("Dialer %s consecutive failures: %d -> %d", d.Label, newCF-1, newCF)
 	nextCheck := time.Duration(newCF*newCF) * 100 * time.Millisecond
 	if nextCheck > MaxCheckTimeout {
-		nextCheck = MaxCheckTimeout
+		nextCheck = maxCheckTimeout()
 	}
 	d.muCheckTimer.Lock()
 	d.checkTimer.Reset(nextCheck)
@@ -151,4 +152,9 @@ func (d *dialer) markFailure() {
 func (d *dialer) defaultCheck() bool {
 	log.Errorf("No check function provided for dialer %s", d.Label)
 	return false
+}
+
+// adds randomization to make requests less distinguishable on the network.
+func maxCheckTimeout() time.Duration {
+	return time.Duration((MaxCheckTimeout.Nanoseconds() / 2) + rand.Int63n(MaxCheckTimeout.Nanoseconds()))
 }
