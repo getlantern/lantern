@@ -202,9 +202,8 @@ func newCondDialer(id int32, beforeDial func() bool) *Dialer {
 		DialFN: func(network, addr string) (net.Conn, error) {
 			if beforeDial() {
 				return nil, fmt.Errorf("Failing intentionally")
-			} else {
-				return net.Dial(network, addr)
 			}
+			return net.Dial(network, addr)
 		},
 	}
 	return d
