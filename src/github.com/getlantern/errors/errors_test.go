@@ -31,6 +31,10 @@ func TestFull(t *testing.T) {
 		assert.Equal(t, 300, m["cb"], "Error's data should dominate its context")
 		assert.Equal(t, 200, m["cc"], "Error's context should come through")
 		assert.Equal(t, "My Op", e.data["error_op"], "Op should be available from cause")
+
+		for _, call := range e3.callStack {
+			t.Logf("at %v", call)
+		}
 	}
 
 	e3 := Wrap(fmt.Errorf("I'm wrapping your text: %v", firstErr)).With("a", 2)

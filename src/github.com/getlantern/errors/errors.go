@@ -36,6 +36,7 @@ package errors
 
 import (
 	"bufio"
+	"bytes"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/hex"
@@ -58,17 +59,19 @@ import (
 
 	"github.com/getlantern/context"
 	"github.com/getlantern/hidden"
+	"github.com/getlantern/stack"
 )
 
 // Error wraps system and application defined errors in unified structure for
 // reporting and logging. It's not meant to be created directly. User New(),
 // Wrap() and Report() instead.
 type Error struct {
-	id       uint64
-	hiddenID string
-	data     context.Map
-	context  context.Map
-	cause    *Error
+	id        uint64
+	hiddenID  string
+	data      context.Map
+	context   context.Map
+	cause     *Error
+	callStack stack.CallStack
 }
 
 // New creates an Error with supplied description
@@ -84,31 +87,6 @@ func New(cause error, desc string, args ...interface{}) (e *Error) {
 // already wrapped, it is returned as is.
 func Wrap(err error) *Error {
 	return wrapSkipFrames(err, 1)
-}
-
-func wrapSkipFrames(err error, skip int) *Error {
-	if err == nil {
-		return nil
-	}
-
-	// Look for *Errors
-	if e, ok := err.(*Error); ok {
-		return e
-	}
-
-	var cause *Error
-	// Look for hidden *Errors
-	hiddenIDs, err2 := hidden.Extract(err.Error())
-	if err2 == nil && len(hiddenIDs) > 0 {
-		// Take the first hidden ID as our cause
-		cause = get(hiddenIDs[0])
-	}
-
-	// Create a new *Error
-	e := buildError(err.Error(), err, cause)
-	// always skip [Wrap, attachStack]
-	e.attachStack(2 + skip)
-	return e
 }
 
 // Fill implements the method from the context.Contextual interface.
@@ -158,13 +136,71 @@ func (e *Error) Error() string {
 	return e.data["error"].(string) + e.hiddenID
 }
 
-// Cause returns the cause of the error and implements the golog.Caused interface
-func (e *Error) Cause() error {
-	return e.cause
+// MultiLinePrinter implements the interface golog.MultiLine
+func (e *Error) MultiLinePrinter() func(buf *bytes.Buffer) bool {
+	first := true
+	indent := false
+	err := e
+	stackPosition := 0
+	switchedCause := false
+	return func(buf *bytes.Buffer) bool {
+		if indent {
+			buf.WriteString("  ")
+		}
+		if first {
+			buf.WriteString(e.Error())
+			first = false
+			indent = true
+			return true
+		}
+		if switchedCause {
+			fmt.Fprintf(buf, "Caused by: %v", err)
+			switchedCause = false
+			indent = true
+			return true
+		}
+		buf.WriteString("at ")
+		call := err.callStack[stackPosition]
+		fmt.Fprintf(buf, "%+n:%d", call, call)
+		stackPosition++
+		if stackPosition >= len(err.callStack) {
+			err = err.cause
+			indent = false
+			stackPosition = 0
+			switchedCause = true
+		}
+		return err != nil
+	}
+}
+
+func wrapSkipFrames(err error, skip int) *Error {
+	if err == nil {
+		return nil
+	}
+
+	// Look for *Errors
+	if e, ok := err.(*Error); ok {
+		return e
+	}
+
+	var cause *Error
+	// Look for hidden *Errors
+	hiddenIDs, err2 := hidden.Extract(err.Error())
+	if err2 == nil && len(hiddenIDs) > 0 {
+		// Take the first hidden ID as our cause
+		cause = get(hiddenIDs[0])
+	}
+
+	// Create a new *Error
+	e := buildError(err.Error(), err, cause)
+	// always skip [Wrap, attachStack]
+	e.attachStack(2 + skip)
+	return e
 }
 
 func (e *Error) attachStack(skip int) {
-	// caller := stack.Caller(skip)
+	call := stack.Caller(skip)
+	e.callStack = stack.Trace().TrimBelow(call)
 	// e.data["p"]
 	// e.Package = fmt.Sprintf("%+k", caller)
 	// e.Func = fmt.Sprintf("%n", caller)
