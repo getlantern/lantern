@@ -38,7 +38,7 @@ func defaultDialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 		dial = func() (net.Conn, error) {
 			defer context.Enter().ChainedProxy(s.Addr, "http").Exit()
 			conn, err := netd.Dial("tcp", addr)
-			return conn, log.IfError(err)
+			return conn, err
 		}
 	} else {
 		log.Trace("Cert configured for chained server, will dial with tls over tcp")
@@ -56,7 +56,7 @@ func defaultDialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 				InsecureSkipVerify: true,
 			})
 			if err != nil {
-				return nil, log.IfError(err)
+				return nil, err
 			}
 			if !forceProxy && !conn.ConnectionState().PeerCertificates[0].Equal(x509cert) {
 				if err2 := conn.Close(); err2 != nil {
@@ -94,6 +94,6 @@ func obfs4DialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 	return func() (net.Conn, error) {
 		defer context.Enter().ChainedProxy(s.Addr, "obfs4").Exit()
 		conn, err := cf.Dial("tcp", s.Addr, net.Dial, args)
-		return conn, log.IfError(err)
+		return conn, err
 	}, nil
 }

@@ -195,7 +195,7 @@ func enableLoggly(cloudConfigCA string) {
 
 	client := loggly.New(logglyToken, logglyTag)
 	client.SetHTTPClient(&http.Client{Transport: rt})
-	golog.ReportErrorsTo(&logglyErrorReporter{client})
+	golog.RegisterReporter(&logglyErrorReporter{client})
 }
 
 func isDuplicate(msg string) bool {
@@ -315,5 +315,5 @@ func enableBorda() {
 	r := NewBordaReporter(&BordaReporterOptions{
 		ReportInterval: 5 * time.Second,
 	})
-	golog.ReportErrorsTo(r)
+	golog.RegisterReporter(r)
 }

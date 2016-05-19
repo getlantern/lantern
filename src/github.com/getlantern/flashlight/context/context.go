@@ -82,8 +82,8 @@ func AsMap(obj interface{}, includeGlobals bool) map[string]interface{} {
 	return context.AsMap(obj, includeGlobals)
 }
 
-// OuterOp attaches an operation to the Context.
-func (c *Context) OuterOp(v string) *Context {
+// Op attaches an operation to the Context.
+func (c *Context) Op(v string) *Context {
 	c.Put("op", v)
 	return c
 }

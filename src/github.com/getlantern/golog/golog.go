@@ -53,7 +53,7 @@ func GetOutputs() *outputs {
 	return outs.Load().(*outputs)
 }
 
-func ReportErrorsTo(reporter ErrorReporter) {
+func RegisterReporter(reporter ErrorReporter) {
 	reportersMutex.Lock()
 	reporters = append(reporters, reporter)
 	reportersMutex.Unlock()
@@ -92,13 +92,11 @@ type Logger interface {
 
 	// Error logs to stderr
 	Error(arg interface{}) error
-	// Error logs to stderr, but caller can choose to skip frames
-	ErrorSkipFrames(arg interface{}, skipFrames int) error
+	// ReportedError logs to stderr and reports the error to registered reporters
+	ReportedError(err error) error
 	// Errorf logs to stderr. It returns the first argument that's an error, or
 	// a new error built using fmt.Errorf if none of the arguments are errors.
 	Errorf(message string, args ...interface{}) error
-	// IfError logs to stderr iff and only if err is not nil
-	IfError(err error) error
 
 	// Fatal logs to stderr and then exits with status 1
 	Fatal(arg interface{})
@@ -250,10 +248,16 @@ func (l *logger) Debugf(message string, args ...interface{}) {
 }
 
 func (l *logger) Error(arg interface{}) error {
-	return l.ErrorSkipFrames(arg, 1)
+	// TODO: for now this reports so that we continue to get stuff to loggly
+	// Once we're done integrating the new errors stuff, set this to false.
+	return l.errorSkipFrames(true, arg, 1)
 }
 
-func (l *logger) ErrorSkipFrames(arg interface{}, skipFrames int) error {
+func (l *logger) ReportedError(err error) error {
+	return l.errorSkipFrames(true, err, 1)
+}
+
+func (l *logger) errorSkipFrames(shouldReport bool, arg interface{}, skipFrames int) error {
 	var err error
 	switch e := arg.(type) {
 	case error:
@@ -264,7 +268,10 @@ func (l *logger) ErrorSkipFrames(arg interface{}, skipFrames int) error {
 	buf := bufferPool.Get()
 	defer bufferPool.Put(buf)
 	l.print(GetOutputs().ErrorOut, buf, skipFrames+4, "ERROR", err)
-	return report(err, buf.String())
+	if shouldReport {
+		return report(err, buf.String())
+	}
+	return err
 }
 
 func (l *logger) Errorf(message string, args ...interface{}) error {
@@ -278,23 +285,11 @@ func (l *logger) Errorf(message string, args ...interface{}) error {
 			break
 		}
 	}
-	buf := bufferPool.Get()
-	defer bufferPool.Put(buf)
 	if !hasError {
 		err = fmt.Errorf(message, args...)
-		l.print(GetOutputs().ErrorOut, buf, 4, "ERROR", err)
+		l.print(GetOutputs().ErrorOut, nil, 4, "ERROR", err)
 	} else {
-		l.printf(GetOutputs().ErrorOut, buf, 4, "ERROR", err, message, args...)
-	}
-	return report(err, buf.String())
-}
-
-func (l *logger) IfError(err error) error {
-	if err != nil {
-		buf := bufferPool.Get()
-		defer bufferPool.Put(buf)
-		l.print(GetOutputs().ErrorOut, buf, 4, "ERROR", err)
-		report(err, buf.String())
+		l.printf(GetOutputs().ErrorOut, nil, 4, "ERROR", err, message, args...)
 	}
 	return err
 }
