@@ -108,8 +108,8 @@ func (uc *userConfig) GetToken() string {
 	return ""
 }
 
-func (uc *userConfig) GetUserID() string {
-	return "0"
+func (uc *userConfig) GetUserID() int {
+	return 0
 }
 
 func run(configDir string) {
