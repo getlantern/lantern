@@ -222,9 +222,7 @@ func (s *Settings) GetSystemProxy() bool {
 
 // SetDeviceID sets the device ID
 func (s *Settings) SetDeviceID(deviceID string) {
-	s.Lock()
-	defer s.unlockAndSave()
-	s.DeviceID = deviceID
+	// Cannot set the device ID.
 }
 
 // GetDeviceID returns the unique ID of this device.
