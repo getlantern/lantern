@@ -108,7 +108,7 @@ func (uc *userConfig) GetToken() string {
 	return ""
 }
 
-func (uc *userConfig) GetUserID() float64 {
+func (uc *userConfig) GetUserID() int64 {
 	return 0
 }
 
