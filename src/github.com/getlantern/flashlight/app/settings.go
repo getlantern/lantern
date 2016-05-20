@@ -2,9 +2,11 @@ package app
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
+	"reflect"
 	"sync"
 
 	"code.google.com/p/go-uuid/uuid"
@@ -29,9 +31,9 @@ var (
 
 // Settings is a struct of all settings unique to this particular Lantern instance.
 type Settings struct {
-	DeviceID  string  `json:"deviceID,omitempty"`
-	UserID    float64 `json:"userID,omitempty"`
-	UserToken string  `json:"userToken,omitempty"`
+	DeviceID  string `json:"deviceID,omitempty"`
+	UserID    int64  `json:"userID,omitempty"`
+	UserToken string `json:"userToken,omitempty"`
 
 	AutoReport  bool `json:"autoReport"`
 	AutoLaunch  bool `json:"autoLaunch"`
@@ -145,11 +147,15 @@ func (s *Settings) checkBool(data map[string]interface{}, name string, f func(bo
 	}
 }
 
-func (s *Settings) checkNum(data map[string]interface{}, name string, f func(float64)) {
-	if v, ok := data[name].(float64); ok {
-		f(v)
+func (s *Settings) checkNum(data map[string]interface{}, name string, f func(int64)) {
+	if v, ok := data[name].(json.Number); ok {
+		if bigint, err := v.Int64(); err != nil {
+			log.Errorf("Could not get int64 value for %v with error %v", name, err)
+		} else {
+			f(bigint)
+		}
 	} else {
-		log.Errorf("Could not convert %v in %v", name, data)
+		log.Errorf("Could not convert %v of type %v", name, reflect.TypeOf(data[name]))
 	}
 }
 
@@ -163,7 +169,7 @@ func (s *Settings) checkString(data map[string]interface{}, name string, f func(
 
 // Save saves settings to disk.
 func (s *Settings) save() {
-	log.Debug("Saving settings")
+	log.Trace("Saving settings")
 	s.Lock()
 	defer s.Unlock()
 	if bytes, err := yaml.Marshal(s); err != nil {
@@ -171,7 +177,7 @@ func (s *Settings) save() {
 	} else if err := ioutil.WriteFile(path, bytes, 0644); err != nil {
 		log.Errorf("Could not write settings file %v", err)
 	} else {
-		log.Debugf("Saved settings to %s with contents %v", path, string(bytes))
+		log.Tracef("Saved settings to %s with contents %v", path, string(bytes))
 	}
 }
 
@@ -247,14 +253,14 @@ func (s *Settings) GetToken() string {
 }
 
 // SetUserID sets the user ID
-func (s *Settings) SetUserID(id float64) {
+func (s *Settings) SetUserID(id int64) {
 	s.Lock()
 	defer s.unlockAndSave()
 	s.UserID = id
 }
 
 // GetUserID returns the user ID
-func (s *Settings) GetUserID() float64 {
+func (s *Settings) GetUserID() int64 {
 	s.RLock()
 	defer s.RUnlock()
 	return s.UserID
