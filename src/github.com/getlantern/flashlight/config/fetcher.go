@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net/http"
 	"net/http/httputil"
+	"strconv"
 	"time"
 
 	"github.com/getlantern/yamlconf"
@@ -42,7 +43,7 @@ type fetcher struct {
 
 // UserConfig retrieves any custom user info for fetching the config.
 type UserConfig interface {
-	GetUserID() string
+	GetUserID() int
 	GetToken() string
 }
 
@@ -117,8 +118,8 @@ func (cf *fetcher) fetchCloudConfig(cfg *Config) ([]byte, error) {
 	req.Header.Set("Lantern-Fronted-URL", cfg.FrontedCloudConfig+cb)
 
 	id := cf.user.GetUserID()
-	if id != "" {
-		req.Header.Set(userIDHeader, id)
+	if id != 0 {
+		req.Header.Set(userIDHeader, strconv.Itoa(id))
 	}
 	tok := cf.user.GetToken()
 	if tok != "" {
