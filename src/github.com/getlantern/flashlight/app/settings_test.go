@@ -21,9 +21,10 @@ func TestRead(t *testing.T) {
 
 	defer os.Remove(tmpfile.Name()) // clean up
 
+	var uid float64
 	s := loadSettingsFrom("1", "1/1/1", "1/1/1", tmpfile.Name())
 	assert.Equal(t, s.GetProxyAll(), false)
-	assert.Equal(t, s.GetUserID(), 0)
+	assert.Equal(t, s.GetUserID(), uid)
 	assert.Equal(t, s.GetSystemProxy(), true)
 	assert.Equal(t, s.IsAutoReport(), true)
 
@@ -50,10 +51,11 @@ func TestRead(t *testing.T) {
 
 	<-out
 
+	uid = 890238588
 	assert.Equal(t, s.GetProxyAll(), true)
 	assert.Equal(t, s.GetSystemProxy(), false)
 	assert.Equal(t, s.IsAutoReport(), false)
-	assert.Equal(t, s.GetUserID(), 890238588)
+	assert.Equal(t, s.GetUserID(), uid)
 	assert.Equal(t, s.GetDeviceID(), base64.StdEncoding.EncodeToString(uuid.NodeID()))
 
 	// Test that setting something random doesn't break stuff.
@@ -76,13 +78,14 @@ func TestRead(t *testing.T) {
 	assert.Equal(t, true, s.GetProxyAll())
 }
 
-func TestCheckInt(t *testing.T) {
+func TestCheckNum(t *testing.T) {
 	set := &Settings{}
 	m := make(map[string]interface{})
 
-	m["test"] = 4809
-	set.checkInt(m, "test", func(val int) {
-		assert.Equal(t, 4809, val)
+	var val float64 = 4809
+	m["test"] = val
+	set.checkNum(m, "test", func(val float64) {
+		assert.Equal(t, val, val)
 	})
 
 	set.checkString(m, "test", func(val string) {
