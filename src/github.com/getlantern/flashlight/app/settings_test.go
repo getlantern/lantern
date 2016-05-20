@@ -63,6 +63,24 @@ func TestRead(t *testing.T) {
 	assert.Equal(t, true, s.GetProxyAll())
 }
 
+func TestCheckInt(t *testing.T) {
+	set := &Settings{}
+	m := make(map[string]interface{})
+
+	m["test"] = 4809
+	set.checkInt(m, "test", func(val int) {
+		assert.Equal(t, 4809, val)
+	})
+
+	set.checkString(m, "test", func(val string) {
+		assert.Fail(t, "Should not have been called")
+	})
+
+	set.checkBool(m, "test", func(val bool) {
+		assert.Fail(t, "Should not have been called")
+	})
+}
+
 func TestNotPersistVersion(t *testing.T) {
 	path = "./test.yaml"
 	version := "version-not-on-disk"
