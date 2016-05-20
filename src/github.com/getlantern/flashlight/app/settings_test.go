@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
 
 	"code.google.com/p/go-uuid/uuid"
@@ -21,7 +22,7 @@ func TestRead(t *testing.T) {
 
 	defer os.Remove(tmpfile.Name()) // clean up
 
-	var uid float64
+	var uid int64
 	s := loadSettingsFrom("1", "1/1/1", "1/1/1", tmpfile.Name())
 	assert.Equal(t, s.GetProxyAll(), false)
 	assert.Equal(t, s.GetUserID(), uid)
@@ -42,7 +43,11 @@ func TestRead(t *testing.T) {
 	}`)
 
 	var m map[string]interface{}
-	json.Unmarshal(data, &m)
+	d := json.NewDecoder(strings.NewReader(string(data)))
+
+	// Make sure to use json.Number here to avoid issues with 64 bit integers.
+	d.UseNumber()
+	err = d.Decode(&m)
 
 	in := make(chan interface{}, 100)
 	in <- m
@@ -70,11 +75,12 @@ func TestRead(t *testing.T) {
 	assert.Equal(t, s.GetToken(), token)
 
 	// Test with an actual user ID.
-	var id float64 = 483109
+	var id json.Number = "483109"
+	var expected int64 = 483109
 	m["userID"] = id
 	in <- m
 	<-out
-	assert.Equal(t, id, s.GetUserID())
+	assert.Equal(t, expected, s.GetUserID())
 	assert.Equal(t, true, s.GetProxyAll())
 }
 
@@ -82,11 +88,16 @@ func TestCheckNum(t *testing.T) {
 	set := &Settings{}
 	m := make(map[string]interface{})
 
-	var val float64 = 4809
+	var val json.Number = "4809"
 	m["test"] = val
-	set.checkNum(m, "test", func(val float64) {
+
+	var expected int64 = 4809
+	var received int64
+	set.checkNum(m, "test", func(val int64) {
+		received = val
 		assert.Equal(t, val, val)
 	})
+	assert.Equal(t, expected, received)
 
 	set.checkString(m, "test", func(val string) {
 		assert.Fail(t, "Should not have been called")

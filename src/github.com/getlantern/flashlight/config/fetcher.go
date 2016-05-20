@@ -43,7 +43,7 @@ type fetcher struct {
 
 // UserConfig retrieves any custom user info for fetching the config.
 type UserConfig interface {
-	GetUserID() float64
+	GetUserID() int64
 	GetToken() string
 }
 
@@ -119,8 +119,8 @@ func (cf *fetcher) fetchCloudConfig(cfg *Config) ([]byte, error) {
 
 	id := cf.user.GetUserID()
 	if id != 0 {
-		strId := strconv.FormatFloat(id, 'f', -1, 64)
-		req.Header.Set(userIDHeader, strId)
+		strID := strconv.FormatInt(id, 10)
+		req.Header.Set(userIDHeader, strID)
 	}
 	tok := cf.user.GetToken()
 	if tok != "" {
