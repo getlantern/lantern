@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -26,20 +27,21 @@ func TestRead(t *testing.T) {
 	assert.Equal(t, s.GetSystemProxy(), true)
 	assert.Equal(t, s.IsAutoReport(), true)
 
-	m := make(map[string]interface{})
+	// Start with raw JSON so we actually decode the map from scratch, as that
+	// will then simulate real world use where we rely on Go to generate the
+	// actual types of the JSON values. For example, all numbers will be
+	// decoded as float64.
+	var data = []byte(`{
+		"autoReport": false,
+		"proxyAll": true,
+		"autoLaunch": false,
+		"systemProxy": false,
+		"deviceID": "8208fja09493",
+		"userID": 890238588
+	}`)
 
-	m["autoReport"] = false
-	m["proxyAll"] = true
-	m["autoLaunch"] = false
-	m["systemProxy"] = false
-
-	// This should be a no-op because the device ID is fixed.
-	m["deviceID"] = "8208fja09493"
-
-	// These should not be booleans, but make sure things don't fail if we send
-	// bogus stuff.
-	m["userID"] = true
-	m["userToken"] = true
+	var m map[string]interface{}
+	json.Unmarshal(data, &m)
 
 	in := make(chan interface{}, 100)
 	in <- m
@@ -51,7 +53,7 @@ func TestRead(t *testing.T) {
 	assert.Equal(t, s.GetProxyAll(), true)
 	assert.Equal(t, s.GetSystemProxy(), false)
 	assert.Equal(t, s.IsAutoReport(), false)
-	assert.Equal(t, s.GetUserID(), 0)
+	assert.Equal(t, s.GetUserID(), 890238588)
 	assert.Equal(t, s.GetDeviceID(), base64.StdEncoding.EncodeToString(uuid.NodeID()))
 
 	// Test that setting something random doesn't break stuff.
@@ -66,7 +68,7 @@ func TestRead(t *testing.T) {
 	assert.Equal(t, s.GetToken(), token)
 
 	// Test with an actual user ID.
-	var id = 483109
+	var id float64 = 483109
 	m["userID"] = id
 	in <- m
 	<-out
