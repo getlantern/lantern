@@ -29,9 +29,9 @@ var (
 
 // Settings is a struct of all settings unique to this particular Lantern instance.
 type Settings struct {
-	DeviceID  string `json:"deviceID,omitempty"`
-	UserID    int    `json:"userID,omitempty"`
-	UserToken string `json:"userToken,omitempty"`
+	DeviceID  string  `json:"deviceID,omitempty"`
+	UserID    float64 `json:"userID,omitempty"`
+	UserToken string  `json:"userToken,omitempty"`
 
 	AutoReport  bool `json:"autoReport"`
 	AutoLaunch  bool `json:"autoLaunch"`
@@ -130,7 +130,7 @@ func (s *Settings) read(in <-chan interface{}, out chan<- interface{}) {
 		s.checkBool(data, "proxyAll", s.SetProxyAll)
 		s.checkBool(data, "autoLaunch", s.SetAutoLaunch)
 		s.checkBool(data, "systemProxy", s.SetSystemProxy)
-		s.checkInt(data, "userID", s.SetUserID)
+		s.checkNum(data, "userID", s.SetUserID)
 		s.checkString(data, "userToken", s.SetToken)
 
 		out <- s
@@ -145,9 +145,9 @@ func (s *Settings) checkBool(data map[string]interface{}, name string, f func(bo
 	}
 }
 
-func (s *Settings) checkInt(data map[string]interface{}, name string, f func(int)) {
-	if v, ok := data[name].(int); ok {
-		f(int(v))
+func (s *Settings) checkNum(data map[string]interface{}, name string, f func(float64)) {
+	if v, ok := data[name].(float64); ok {
+		f(v)
 	} else {
 		log.Errorf("Could not convert %v in %v", name, data)
 	}
@@ -247,14 +247,14 @@ func (s *Settings) GetToken() string {
 }
 
 // SetUserID sets the user ID
-func (s *Settings) SetUserID(id int) {
+func (s *Settings) SetUserID(id float64) {
 	s.Lock()
 	defer s.unlockAndSave()
 	s.UserID = id
 }
 
 // GetUserID returns the user ID
-func (s *Settings) GetUserID() int {
+func (s *Settings) GetUserID() float64 {
 	s.RLock()
 	defer s.RUnlock()
 	return s.UserID
