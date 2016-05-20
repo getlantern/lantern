@@ -146,7 +146,7 @@ func (s *Settings) checkBool(data map[string]interface{}, name string, f func(bo
 }
 
 func (s *Settings) checkInt(data map[string]interface{}, name string, f func(int)) {
-	if v, ok := data[name].(float64); ok {
+	if v, ok := data[name].(int); ok {
 		f(int(v))
 	} else {
 		log.Errorf("Could not convert %v in %v", name, data)

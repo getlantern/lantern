@@ -19,7 +19,7 @@ func TestRead(t *testing.T) {
 
 	s := loadSettingsFrom("1", "1/1/1", "1/1/1", tmpfile.Name())
 	assert.Equal(t, s.GetProxyAll(), false)
-	assert.Equal(t, s.GetUserID(), "")
+	assert.Equal(t, s.GetUserID(), 0)
 	assert.Equal(t, s.GetSystemProxy(), true)
 	assert.Equal(t, s.IsAutoReport(), true)
 
@@ -30,10 +30,10 @@ func TestRead(t *testing.T) {
 	m["autoLaunch"] = false
 	m["systemProxy"] = false
 
-	// These should be strings, but make sure things don't fail if we send
+	// These should not be booleans, but make sure things don't fail if we send
 	// bogus stuff.
 	m["userID"] = true
-	m["token"] = true
+	m["userToken"] = true
 
 	in := make(chan interface{}, 100)
 	in <- m
@@ -46,7 +46,7 @@ func TestRead(t *testing.T) {
 	assert.Equal(t, s.GetProxyAll(), true)
 	assert.Equal(t, s.GetSystemProxy(), false)
 	assert.Equal(t, s.IsAutoReport(), false)
-	assert.Equal(t, s.GetUserID(), "")
+	assert.Equal(t, s.GetUserID(), 0)
 
 	// Test that setting something random doesn't break stuff.
 	m["randomjfdklajfla"] = "fadldjfdla"
@@ -55,12 +55,12 @@ func TestRead(t *testing.T) {
 	assert.Equal(t, s.GetProxyAll(), true)
 
 	// Test with an actual user ID.
-	id := "qrueiquriqepuriop"
+	var id = 483109
 	m["userID"] = id
 	in <- m
 	<-out
-	assert.Equal(t, s.GetUserID(), id)
-	assert.Equal(t, s.GetProxyAll(), true)
+	assert.Equal(t, id, s.GetUserID())
+	assert.Equal(t, true, s.GetProxyAll())
 }
 
 func TestNotPersistVersion(t *testing.T) {
