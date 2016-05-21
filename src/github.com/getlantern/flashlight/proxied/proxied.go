@@ -291,7 +291,7 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 	doChained()
 	resp, err := getResponse()
 	if err != nil {
-		log.Errorf("Chained failed, trying fronted: %v", err)
+		log.ReportedError(errors.New("Chained failed, trying fronted: %v", err))
 		doFronted()
 		resp, err = getResponse()
 	}

@@ -6,6 +6,8 @@ import (
 	"net"
 	"net/http"
 	"strings"
+
+	"github.com/getlantern/errors"
 )
 
 // Config is a configuration for a Dialer.
@@ -40,7 +42,7 @@ func NewDialer(cfg Config) func(network, addr string) (net.Conn, error) {
 func (d *dialer) Dial(network, addr string) (net.Conn, error) {
 	conn, err := d.DialServer()
 	if err != nil {
-		return nil, fmt.Errorf("Unable to dial server %v: %s", d.Label, err)
+		return nil, errors.New("Unable to dial server %v: %s", d.Label, err)
 	}
 	// Look for our special hacked "connect" transport used to signal
 	// that we should send a CONNECT request and tunnel all traffic through
