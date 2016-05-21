@@ -320,7 +320,7 @@ func enableBorda() {
 			Transport: proxied.AsRoundTripper(func(req *http.Request) (*http.Response, error) {
 				frontedURL := *req.URL
 				frontedURL.Host = "d157vud77ygy87.cloudfront.net"
-				context.Enter().BackgroundOp("report to borda").Request(req)
+				defer context.Enter().BackgroundOp("report to borda").Request(req).Exit()
 				proxied.PrepareForFronting(req, frontedURL.String())
 				return rt.RoundTrip(req)
 			}),
