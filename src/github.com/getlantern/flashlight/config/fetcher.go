@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net/http"
 	"net/http/httputil"
+	"strconv"
 	"time"
 
 	"code.google.com/p/go-uuid/uuid"
@@ -45,7 +46,7 @@ type fetcher struct {
 
 // UserConfig retrieves any custom user info for fetching the config.
 type UserConfig interface {
-	GetUserID() string
+	GetUserID() int64
 	GetToken() string
 }
 
@@ -121,8 +122,9 @@ func (cf *fetcher) fetchCloudConfig(cfg *Config) ([]byte, error) {
 	proxied.PrepareForFronting(req, cfg.FrontedCloudConfig+cb)
 
 	id := cf.user.GetUserID()
-	if id != "" {
-		req.Header.Set(userIDHeader, id)
+	if id != 0 {
+		strID := strconv.FormatInt(id, 10)
+		req.Header.Set(userIDHeader, strID)
 	}
 	tok := cf.user.GetToken()
 	if tok != "" {

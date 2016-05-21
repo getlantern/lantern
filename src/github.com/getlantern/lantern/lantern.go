@@ -2,10 +2,13 @@
 package lantern
 
 import (
+	"encoding/base64"
 	"fmt"
 	"os"
 	"sync"
 	"time"
+
+	"code.google.com/p/go-uuid/uuid"
 
 	"github.com/getlantern/flashlight"
 	"github.com/getlantern/flashlight/client"
@@ -105,8 +108,8 @@ func (uc *userConfig) GetToken() string {
 	return ""
 }
 
-func (uc *userConfig) GetUserID() string {
-	return "0"
+func (uc *userConfig) GetUserID() int64 {
+	return 0
 }
 
 func run(configDir string) {
@@ -127,6 +130,7 @@ func run(configDir string) {
 		func(cfg *config.Config) {},                   // onConfigUpdate
 		&userConfig{},
 		func(err error) {}, // onError
+		base64.StdEncoding.EncodeToString(uuid.NodeID()),
 	)
 }
 

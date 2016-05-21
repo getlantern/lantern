@@ -3,6 +3,7 @@ package ui
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 )
 
@@ -153,7 +154,9 @@ func read() {
 		}
 
 		env := &Envelope{}
-		err = json.Unmarshal(b, env)
+		d := json.NewDecoder(strings.NewReader(string(b)))
+		d.UseNumber()
+		err = d.Decode(env)
 		if err != nil {
 			log.Errorf("Unable to unmarshal message of type %v: %v", envType.Type, err)
 			continue
