@@ -8,6 +8,7 @@ import (
 
 	"github.com/getlantern/balancer"
 	"github.com/getlantern/chained"
+	"github.com/getlantern/flashlight/context"
 	"github.com/getlantern/idletiming"
 )
 
@@ -91,6 +92,7 @@ func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 		Label:   label,
 		Trusted: s.Trusted,
 		DialFN: func(network, addr string) (net.Conn, error) {
+			defer context.Enter().ProxyType(context.ProxyChained).ProxyAddr(s.Addr)
 			conn, err := d(network, addr)
 			if err != nil {
 				return nil, err

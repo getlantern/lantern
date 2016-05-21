@@ -36,7 +36,8 @@ func defaultDialFactory(s *ChainedServerInfo, deviceID string) (dialFN, error) {
 	if s.Cert == "" && !forceProxy {
 		log.Error("No Cert configured for chained server, will dial with plain tcp")
 		dial = func() (net.Conn, error) {
-			defer context.Enter().ChainedProxy(s.Addr, "http").Exit()
+			ctx := context.Enter().ChainedProxy(s.Addr, "http")
+			defer ctx.Exit()
 			conn, err := netd.Dial("tcp", addr)
 			return conn, err
 		}
