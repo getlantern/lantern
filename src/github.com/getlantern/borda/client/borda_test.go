@@ -1,4 +1,4 @@
-package logging
+package borda
 
 import (
 	"encoding/json"
@@ -21,12 +21,11 @@ func TestBordaClient(t *testing.T) {
 	defer ts.Close()
 	bordaURL = ts.URL
 
-	bc := NewBordaReporter(
-		&BordaReporterOptions{
+	bc := NewReporter(
+		&Options{
 			ReportInterval: 100 * time.Millisecond,
 			MaxBufferSize:  5,
 		})
-	bc.c.Transport = nil
 
 	assert.NotNil(t, bc)
 

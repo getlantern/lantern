@@ -1,4 +1,4 @@
-package logging
+package borda
 
 import (
 	"encoding/json"
@@ -9,13 +9,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/getlantern/golog"
 	"github.com/oxtoacart/bpool"
-
-	"github.com/getlantern/flashlight/context"
-	"github.com/getlantern/flashlight/proxied"
 )
 
 var (
+	log = golog.LoggerFor("borda")
+
 	bordaURL = "https://borda.getlantern.org/measurements"
 
 	bufferPool = bpool.NewBufferPool(100)
@@ -49,25 +49,28 @@ type Measurement struct {
 	count int
 }
 
-type BordaReporterOptions struct {
+type Options struct {
 	// ReportInterval specifies how frequent to report
 	ReportInterval time.Duration
 
 	// MaxBufferSize specifies the maximum number of distinct measurements to
 	// buffer within the ReportInterval. Anything past this is discarded.
 	MaxBufferSize int
+
+	// Client used to report to Borda
+	Client *http.Client
 }
 
-type BordaReporter struct {
+type Reporter struct {
 	c       *http.Client
-	options *BordaReporterOptions
+	options *Options
 	buffer  map[string]*Measurement
 	mx      sync.Mutex
 }
 
-func NewBordaReporter(opts *BordaReporterOptions) *BordaReporter {
+func NewReporter(opts *Options) *Reporter {
 	if opts == nil {
-		opts = &BordaReporterOptions{}
+		opts = &Options{}
 	}
 	if opts.ReportInterval <= 0 {
 		log.Debugf("ReportInterval has to be greater than zero, defaulting to 5 minutes")
@@ -77,19 +80,12 @@ func NewBordaReporter(opts *BordaReporterOptions) *BordaReporter {
 		log.Debugf("MaxBufferSize has to be greater than zero, defaulting to 1000")
 		opts.MaxBufferSize = 1000
 	}
+	if opts.Client == nil {
+		opts.Client = &http.Client{}
+	}
 
-	rt := proxied.ChainedThenFronted()
-
-	b := &BordaReporter{
-		c: &http.Client{
-			Transport: proxied.AsRoundTripper(func(req *http.Request) (*http.Response, error) {
-				frontedURL := *req.URL
-				frontedURL.Host = "d157vud77ygy87.cloudfront.net"
-				context.Enter().BackgroundOp("report to borda").Request(req)
-				proxied.PrepareForFronting(req, frontedURL.String())
-				return rt.RoundTrip(req)
-			}),
-		},
+	b := &Reporter{
+		c:       opts.Client,
 		options: opts,
 		buffer:  make(map[string]*Measurement, opts.MaxBufferSize),
 	}
@@ -99,7 +95,7 @@ func NewBordaReporter(opts *BordaReporterOptions) *BordaReporter {
 }
 
 // Report implements the interface golog.Reporter
-func (b *BordaReporter) Report(err error, logText string, ctx map[string]interface{}) {
+func (b *Reporter) Report(err error, logText string, ctx map[string]interface{}) {
 	fields, encodeErr := json.Marshal(ctx)
 	if encodeErr != nil {
 		log.Debugf("Unable to encode fields: %v", encodeErr)
@@ -119,7 +115,7 @@ func (b *BordaReporter) Report(err error, logText string, ctx map[string]interfa
 	b.mx.Unlock()
 }
 
-func (b *BordaReporter) addMeasurement(key string, m *Measurement) {
+func (b *Reporter) addMeasurement(key string, m *Measurement) {
 	existing, found := b.buffer[key]
 	if found {
 		m.count = existing.count + 1
@@ -135,14 +131,14 @@ func (b *BordaReporter) addMeasurement(key string, m *Measurement) {
 	b.buffer[key] = m
 }
 
-func (b *BordaReporter) sendPeriodically() {
+func (b *Reporter) sendPeriodically() {
 	log.Debugf("Reporting errors to Borda every %v", b.options.ReportInterval)
 	for range time.NewTicker(b.options.ReportInterval).C {
 		b.sendBatch()
 	}
 }
 
-func (b *BordaReporter) sendBatch() {
+func (b *Reporter) sendBatch() {
 	b.mx.Lock()
 	if len(b.buffer) == 0 {
 		b.mx.Unlock()
@@ -178,7 +174,7 @@ func (b *BordaReporter) sendBatch() {
 	b.mx.Unlock()
 }
 
-func (b *BordaReporter) doSendBatch(batch []*Measurement) error {
+func (b *Reporter) doSendBatch(batch []*Measurement) error {
 	buf := bufferPool.Get()
 	defer bufferPool.Put(buf)
 	err := json.NewEncoder(buf).Encode(batch)

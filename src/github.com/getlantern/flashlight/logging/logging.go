@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/getlantern/appdir"
+	"github.com/getlantern/borda/client"
 	"github.com/getlantern/go-loggly"
 	"github.com/getlantern/golog"
 	"github.com/getlantern/jibber_jabber"
@@ -312,8 +313,18 @@ func (t *nonStopWriter) flush() {
 }
 
 func enableBorda() {
-	r := NewBordaReporter(&BordaReporterOptions{
+	rt := proxied.ChainedThenFronted()
+	r := borda.NewReporter(&borda.Options{
 		ReportInterval: 5 * time.Second,
+		Client: &http.Client{
+			Transport: proxied.AsRoundTripper(func(req *http.Request) (*http.Response, error) {
+				frontedURL := *req.URL
+				frontedURL.Host = "d157vud77ygy87.cloudfront.net"
+				context.Enter().BackgroundOp("report to borda").Request(req)
+				proxied.PrepareForFronting(req, frontedURL.String())
+				return rt.RoundTrip(req)
+			}),
+		},
 	})
 	golog.RegisterReporter(r)
 }
