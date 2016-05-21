@@ -20,14 +20,14 @@ import (
 var (
 	expectedLog      = "SEVERITY myprefix: golog_test.go:999 Hello world\nSEVERITY myprefix: golog_test.go:999 Hello true [cvarA=a cvarB=b]\n"
 	expectedErrorLog = `ERROR myprefix: golog_test.go:999 Hello world [cvarC=c cvarD=d error=Hello world error_type=errors.Error]
-ERROR myprefix: golog_test.go:999   at github.com/getlantern/golog.TestError:999
-ERROR myprefix: golog_test.go:999   at testing.tRunner:999
-ERROR myprefix: golog_test.go:999   at runtime.goexit:999
+ERROR myprefix: golog_test.go:999   at github.com/getlantern/golog.TestError (golog_test.go:999)
+ERROR myprefix: golog_test.go:999   at testing.tRunner (testing.go:999)
+ERROR myprefix: golog_test.go:999   at runtime.goexit (asm_amd999.s:999)
 ERROR myprefix: golog_test.go:999 Caused by: world
-ERROR myprefix: golog_test.go:999   at github.com/getlantern/golog.errorReturner:999
-ERROR myprefix: golog_test.go:999   at github.com/getlantern/golog.TestError:999
-ERROR myprefix: golog_test.go:999   at testing.tRunner:999
-ERROR myprefix: golog_test.go:999   at runtime.goexit:999
+ERROR myprefix: golog_test.go:999   at github.com/getlantern/golog.errorReturner (golog_test.go:999)
+ERROR myprefix: golog_test.go:999   at github.com/getlantern/golog.TestError (golog_test.go:999)
+ERROR myprefix: golog_test.go:999   at testing.tRunner (testing.go:999)
+ERROR myprefix: golog_test.go:999   at runtime.goexit (asm_amd999.s:999)
 ERROR myprefix: golog_test.go:999 Hello true [cvarA=a cvarB=b cvarC=c error=Hello error_type=errors.Error]
 `
 	expectedTraceLog = "TRACE myprefix: golog_test.go:999 Hello world\nTRACE myprefix: golog_test.go:999 Hello true\nTRACE myprefix: golog_test.go:999 Gravy\nTRACE myprefix: golog_test.go:999 TraceWriter closed due to unexpected error: EOF\n"
@@ -72,6 +72,7 @@ func TestError(t *testing.T) {
 	l.Error(err1)
 	defer context.Enter().Put("cvarA", "a").Put("cvarB", "b").Exit()
 	l.Errorf("%v %v", err2, true)
+	t.Log(out.String())
 	assert.Equal(t, expectedErrorLog, out.String())
 }
 

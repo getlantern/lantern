@@ -196,7 +196,7 @@ func enableLoggly(cloudConfigCA string) {
 
 	client := loggly.New(logglyToken, logglyTag)
 	client.SetHTTPClient(&http.Client{Transport: rt})
-	golog.RegisterReporter(&logglyErrorReporter{client})
+	golog.RegisterReporter(&logglyErrorReporter{client}, false)
 }
 
 func isDuplicate(msg string) bool {
@@ -326,5 +326,5 @@ func enableBorda() {
 			}),
 		},
 	})
-	golog.RegisterReporter(r)
+	golog.RegisterReporter(r, true)
 }

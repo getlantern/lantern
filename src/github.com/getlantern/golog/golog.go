@@ -27,9 +27,10 @@ import (
 )
 
 var (
-	outs           atomic.Value
-	reporters      []ErrorReporter
-	reportersMutex sync.RWMutex
+	outs                 atomic.Value
+	transparentReporters []ErrorReporter
+	explicitReporters    []ErrorReporter
+	reportersMutex       sync.RWMutex
 
 	bufferPool = bpool.NewBufferPool(200)
 )
@@ -53,9 +54,16 @@ func GetOutputs() *outputs {
 	return outs.Load().(*outputs)
 }
 
-func RegisterReporter(reporter ErrorReporter) {
+// RegisterReporter registers the given ErrorReporter. If explicit is true, the
+// reporter only receives errors logged with ReportedError, otherwise the
+// reporter receives all errors.
+func RegisterReporter(reporter ErrorReporter, explicit bool) {
 	reportersMutex.Lock()
-	reporters = append(reporters, reporter)
+	if explicit {
+		explicitReporters = append(explicitReporters, reporter)
+	} else {
+		transparentReporters = append(transparentReporters, reporter)
+	}
 	reportersMutex.Unlock()
 }
 
@@ -248,16 +256,14 @@ func (l *logger) Debugf(message string, args ...interface{}) {
 }
 
 func (l *logger) Error(arg interface{}) error {
-	// TODO: for now this reports so that we continue to get stuff to loggly
-	// Once we're done integrating the new errors stuff, set this to false.
-	return l.errorSkipFrames(true, arg, 1)
+	return l.errorSkipFrames(false, arg, 1)
 }
 
 func (l *logger) ReportedError(err error) error {
 	return l.errorSkipFrames(true, err, 1)
 }
 
-func (l *logger) errorSkipFrames(shouldReport bool, arg interface{}, skipFrames int) error {
+func (l *logger) errorSkipFrames(reportRequested bool, arg interface{}, skipFrames int) error {
 	var err error
 	switch e := arg.(type) {
 	case error:
@@ -268,10 +274,7 @@ func (l *logger) errorSkipFrames(shouldReport bool, arg interface{}, skipFrames 
 	buf := bufferPool.Get()
 	defer bufferPool.Put(buf)
 	l.print(GetOutputs().ErrorOut, buf, skipFrames+4, "ERROR", err)
-	if shouldReport {
-		return report(err, buf.String())
-	}
-	return err
+	return report(reportRequested, err, buf.String())
 }
 
 func (l *logger) Errorf(message string, args ...interface{}) error {
@@ -285,13 +288,15 @@ func (l *logger) Errorf(message string, args ...interface{}) error {
 			break
 		}
 	}
+	buf := bufferPool.Get()
+	defer bufferPool.Put(buf)
 	if !hasError {
 		err = fmt.Errorf(message, args...)
-		l.print(GetOutputs().ErrorOut, nil, 4, "ERROR", err)
+		l.print(GetOutputs().ErrorOut, buf, 4, "ERROR", err)
 	} else {
-		l.printf(GetOutputs().ErrorOut, nil, 4, "ERROR", err, message, args...)
+		l.printf(GetOutputs().ErrorOut, buf, 4, "ERROR", err, message, args...)
 	}
-	return err
+	return report(false, err, buf.String())
 }
 
 func (l *logger) Fatal(arg interface{}) {
@@ -425,11 +430,19 @@ func printContext(buf *bytes.Buffer, err interface{}) {
 	buf.WriteByte(']')
 }
 
-func report(err error, text string) error {
+func report(reportRequested bool, err error, text string) error {
 	reportersMutex.RLock()
-	for _, reporter := range reporters {
+	doReport := func(reporter ErrorReporter) {
 		// We include globals when reporting
 		reporter.Report(err, hidden.Clean(text), context.AsMap(err, true))
+	}
+	for _, reporter := range transparentReporters {
+		doReport(reporter)
+	}
+	if reportRequested {
+		for _, reporter := range explicitReporters {
+			doReport(reporter)
+		}
 	}
 	reportersMutex.RUnlock()
 	return err
