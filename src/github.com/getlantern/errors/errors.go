@@ -178,13 +178,20 @@ func (e *structured) MultiLinePrinter() func(buf *bytes.Buffer) bool {
 		}
 		if switchedCause {
 			fmt.Fprintf(buf, "Caused by: %v", err)
-			switchedCause = false
-			indent = true
+			if err.callStack != nil && len(err.callStack) > 0 {
+				switchedCause = false
+				indent = true
+				return true
+			}
+			if err.cause == nil {
+				return false
+			}
+			err = err.cause.(*structured)
 			return true
 		}
 		buf.WriteString("at ")
 		call := err.callStack[stackPosition]
-		fmt.Fprintf(buf, "%+n:%d", call, call)
+		fmt.Fprintf(buf, "%+n (%s:%d)", call, call, call)
 		stackPosition++
 		if stackPosition >= len(err.callStack) {
 			switch cause := err.cause.(type) {
@@ -220,10 +227,7 @@ func wrapSkipFrames(err error, skip int) Error {
 	}
 
 	// Create a new *structured
-	e := buildError(err.Error(), err, cause)
-	// always skip [Wrap, attachStack]
-	e.attachStack(2 + skip)
-	return e
+	return buildError(err.Error(), err, cause)
 }
 
 func (e *structured) attachStack(skip int) {
