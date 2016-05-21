@@ -15,8 +15,8 @@ func (uc *userConfig) GetToken() string {
 	return "token"
 }
 
-func (uc *userConfig) GetUserID() string {
-	return "10"
+func (uc *userConfig) GetUserID() int64 {
+	return 10
 }
 
 // TestFetcher actually fetches a config file over the network.

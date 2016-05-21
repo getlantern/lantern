@@ -2,7 +2,6 @@ package config
 
 import (
 	"crypto/x509"
-	"encoding/base64"
 	"fmt"
 	"net/url"
 	"os"
@@ -10,8 +9,6 @@ import (
 	"regexp"
 	"sort"
 	"time"
-
-	"code.google.com/p/go-uuid/uuid"
 
 	"github.com/getlantern/appdir"
 	"github.com/getlantern/detour"
@@ -227,8 +224,6 @@ func (updated *Config) applyFlags(flags map[string]interface{}) error {
 			updated.CloudConfigCA = value.(string)
 		case "frontedconfig":
 			updated.FrontedCloudConfig = value.(string)
-		case "instanceid":
-			updated.Client.DeviceID = value.(string)
 		case "cpuprofile":
 			updated.CPUProfile = value.(string)
 		case "memprofile":
@@ -326,14 +321,6 @@ func (cfg *Config) applyClientDefaults() {
 			19305, 19306, 19307, 19308, 19309,
 		}
 	}
-
-	if cfg.Client.DeviceID == "" {
-		// There is no true privacy or security in instance ID.  For that, we rely on
-		// transport security.  Hashing MAC would buy us nothing, since the space of
-		// MACs is trivially mapped, especially since the salt would be known
-		cfg.Client.DeviceID = base64.StdEncoding.EncodeToString(uuid.NodeID())
-	}
-
 }
 
 // updateFrom creates a new Config by 'merging' the given yaml into this Config.
@@ -341,7 +328,6 @@ func (cfg *Config) applyClientDefaults() {
 // update yaml  completely replace the ones in the original Config.
 func (updated *Config) updateFrom(updateBytes []byte) error {
 	// XXX: does this need a mutex, along with everyone that uses the config?
-	oldDeviceID := updated.Client.DeviceID
 	oldChainedServers := updated.Client.ChainedServers
 	oldMasqueradeSets := updated.Client.MasqueradeSets
 	oldTrustedCAs := updated.TrustedCAs
@@ -367,8 +353,5 @@ func (updated *Config) updateFrom(updateBytes []byte) error {
 		}
 		sort.Strings(updated.ProxiedSites.Cloud)
 	}
-
-	// Ignore DeviceID from yaml
-	updated.Client.DeviceID = oldDeviceID
 	return nil
 }

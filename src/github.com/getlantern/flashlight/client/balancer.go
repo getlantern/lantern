@@ -21,7 +21,7 @@ func (client *Client) getBalancer() *balancer.Balancer {
 
 // initBalancer takes hosts from cfg.ChainedServers and it uses them to create a
 // balancer.
-func (client *Client) initBalancer(cfg *ClientConfig) (*balancer.Balancer, error) {
+func (client *Client) initBalancer(cfg *ClientConfig, deviceID string) (*balancer.Balancer, error) {
 	if len(cfg.ChainedServers) == 0 {
 		return nil, fmt.Errorf("No chained servers configured, not initializing balancer")
 	}
@@ -32,7 +32,7 @@ func (client *Client) initBalancer(cfg *ClientConfig) (*balancer.Balancer, error
 	// Add chained (CONNECT proxy) servers.
 	log.Debugf("Adding %d chained servers", len(cfg.ChainedServers))
 	for _, s := range cfg.ChainedServers {
-		dialer, err := s.Dialer(cfg.DeviceID)
+		dialer, err := s.Dialer(deviceID)
 		if err == nil {
 			log.Debugf("Adding chained server: %v", s.Addr)
 			dialers = append(dialers, dialer)

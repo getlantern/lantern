@@ -22,6 +22,8 @@ var ForceChainedProxyAddr string
 // ForceAuthToken - If specified, auth token will be forced to this
 var ForceAuthToken string
 
+// ChainedServerInfo contains all the data for connecting to a given chained
+// server.
 type ChainedServerInfo struct {
 	// Addr: the host:port of the upstream proxy server
 	Addr string
