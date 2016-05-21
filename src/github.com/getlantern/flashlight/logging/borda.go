@@ -129,6 +129,8 @@ func (b *BordaReporter) addMeasurement(key string, m *Measurement) {
 	} else if len(b.buffer) == b.options.MaxBufferSize {
 		log.Debug("Buffer full, discarding measurement")
 		return
+	} else {
+		m.count = 1
 	}
 	b.buffer[key] = m
 }
@@ -150,9 +152,9 @@ func (b *BordaReporter) sendBatch() {
 	batch := make([]*Measurement, 0, len(b.buffer))
 	batchAsMap := make(map[string]*Measurement, len(b.buffer))
 	for key, m := range b.buffer {
-		if !strings.Contains(string(m.Fields), "client_error_count") {
-			// Append client_error_count to fields (this is a hack)
-			extra := fmt.Sprintf(`, "client_error_count": %d}`, m.count)
+		if !strings.Contains(string(m.Fields), "error_count") {
+			// Append error_count to fields (this is a hack)
+			extra := fmt.Sprintf(`, "error_count": %d}`, m.count)
 			m.Fields = append(m.Fields[:len(m.Fields)-1], extra...)
 		}
 		batch = append(batch, m)
