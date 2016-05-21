@@ -50,7 +50,7 @@ func TestFull(t *testing.T) {
 }
 
 func TestNewWithCause(t *testing.T) {
-	cause := New("World")
+	cause := buildCause()
 	outer := New("Hello %v", cause)
 	assert.Equal(t, "Hello World", hidden.Clean(outer.Error()))
 	assert.Equal(t, cause, outer.(*structured).cause)
@@ -66,15 +66,42 @@ func TestNewWithCause(t *testing.T) {
 		}
 	}
 	expected := `Hello World
-  at github.com/getlantern/errors.TestNewWithCause:999
-  at testing.tRunner:999
-  at runtime.goexit:999
+  at github.com/getlantern/errors.TestNewWithCause (errors_test.go:999)
+  at testing.tRunner (testing.go:999)
+  at runtime.goexit (asm_amd999.s:999)
 Caused by: World
-  at github.com/getlantern/errors.TestNewWithCause:999
-  at testing.tRunner:999
-  at runtime.goexit:999
+  at github.com/getlantern/errors.buildCause (errors_test.go:999)
+  at github.com/getlantern/errors.TestNewWithCause (errors_test.go:999)
+  at testing.tRunner (testing.go:999)
+  at runtime.goexit (asm_amd999.s:999)
+Caused by: orld
+Caused by: ld
+  at github.com/getlantern/errors.buildSubSubCause (errors_test.go:999)
+  at github.com/getlantern/errors.buildSubCause (errors_test.go:999)
+  at github.com/getlantern/errors.buildCause (errors_test.go:999)
+  at github.com/getlantern/errors.TestNewWithCause (errors_test.go:999)
+  at testing.tRunner (testing.go:999)
+  at runtime.goexit (asm_amd999.s:999)
+Caused by: d
 `
+
 	assert.Equal(t, expected, replaceNumbers.ReplaceAllString(hidden.Clean(buf.String()), "999"))
+}
+
+func buildCause() Error {
+	return New("W%v", buildSubCause())
+}
+
+func buildSubCause() error {
+	return fmt.Errorf("or%v", buildSubSubCause())
+}
+
+func buildSubSubCause() error {
+	return New("l%v", buildSubSubSubCause())
+}
+
+func buildSubSubSubCause() error {
+	return fmt.Errorf("d")
 }
 
 func TestWrapNil(t *testing.T) {

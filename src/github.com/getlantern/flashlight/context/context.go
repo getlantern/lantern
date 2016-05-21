@@ -85,15 +85,15 @@ func AsMap(obj interface{}, includeGlobals bool) map[string]interface{} {
 	return context.AsMap(obj, includeGlobals)
 }
 
-// Op attaches an operation to the Context.
+// Op attaches an operation to the Context (e.g. "proxy")
 func (c *Context) Op(v string) *Context {
 	c.Put("op", v)
 	return c
 }
 
-// BackgroundOp attaches an inner (bottom level) operation to the Context.
-func (c *Context) BackgroundOp(v string) *Context {
-	c.Put("background_op", v)
+// Process attaches a process to the Context (e.g. "fetch_config")
+func (c *Context) Process(v string) *Context {
+	c.Put("process", v)
 	return c
 }
 
