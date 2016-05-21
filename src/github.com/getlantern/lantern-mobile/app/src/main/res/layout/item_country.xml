@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="match_parent"
+    android:padding="5dp"
+    style="?android:attr/spinnerDropDownItemStyle"
+    android:singleLine="true"
+    android:layout_width="match_parent"
+    android:ellipsize="marquee">
+
+    <ImageView
+        android:layout_width="25.5dp"
+        android:layout_height="15dp"
+        android:id="@+id/intl_phone_edit__country__item_image"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:src="@drawable/country_us"
+        android:contentDescription="@string/item_image_contentDescription" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/intl_phone_edit__country__item_name"
+        android:text="@string/item_preview_country"
+        android:textColor="?android:textColorPrimary"
+        android:gravity="center_horizontal"
+        android:layout_toLeftOf="@+id/intl_phone_edit__country__item_dialcode"
+        android:layout_toStartOf="@+id/intl_phone_edit__country__item_dialcode"
+        android:layout_toRightOf="@+id/intl_phone_edit__country__item_image"
+        android:layout_toEndOf="@+id/intl_phone_edit__country__item_image" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/intl_phone_edit__country__item_dialcode"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:textColor="?android:textColorHint"
+        android:text="@string/item_preview_dialCode" />
+</RelativeLayout>

@@ -1,4 +1,4 @@
-package org.getlantern.lantern.fragment;
+package org.lantern.fragment;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -6,7 +6,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 
-import org.getlantern.lantern.R;
+import org.lantern.R;
 
 public class ErrorDialogFragment extends DialogFragment {
     public static ErrorDialogFragment newInstance(int titleId, String message) {

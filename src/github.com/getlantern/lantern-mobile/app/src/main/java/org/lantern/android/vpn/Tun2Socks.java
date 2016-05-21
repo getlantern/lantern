@@ -1,4 +1,4 @@
-package org.getlantern.lantern.android.vpn;
+package org.lantern.android.vpn;
 
 /*
  * Copyright (c) 2013, Psiphon Inc.

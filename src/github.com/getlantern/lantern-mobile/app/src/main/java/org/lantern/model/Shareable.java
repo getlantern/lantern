@@ -1,4 +1,4 @@
-package org.getlantern.lantern.model;
+package org.lantern.model;
 
 import android.content.Intent;
 import android.content.Context;
@@ -23,8 +23,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.getlantern.lantern.R;
-import org.getlantern.lantern.activity.LanternMainActivity;
+import org.lantern.R;
+import org.lantern.activity.LanternMainActivity;
 
 public class Shareable {
     private static final String TAG = "Shareable";

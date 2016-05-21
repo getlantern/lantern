@@ -1,4 +1,4 @@
-package org.getlantern.lantern.model;
+package org.lantern.model;
 
 import com.microtripit.mandrillapp.lutung.MandrillApi;
 import com.microtripit.mandrillapp.lutung.view.MandrillMessage;;

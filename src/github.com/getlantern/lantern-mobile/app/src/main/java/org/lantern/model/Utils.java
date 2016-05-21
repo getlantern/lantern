@@ -1,4 +1,4 @@
-package org.getlantern.lantern.model;
+package org.lantern.model;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -19,8 +19,8 @@ import com.google.android.gms.analytics.HitBuilders;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.getlantern.lantern.R;
-import org.getlantern.lantern.fragment.ErrorDialogFragment;
+import org.lantern.R;
+import org.lantern.fragment.ErrorDialogFragment;
 import org.lantern.mobilesdk.Lantern;
 
 public class Utils {

@@ -1,11 +1,11 @@
-package org.getlantern.lantern;
+package org.lantern;
 
 import android.app.Application;
 
 import com.crashlytics.android.Crashlytics;
 import io.fabric.sdk.android.Fabric;
 
-import org.getlantern.lantern.model.SessionManager;
+import org.lantern.model.SessionManager;
 
 public class LanternApp extends Application {
     private static final String TAG = "LanternApp";

@@ -1,4 +1,4 @@
-package org.getlantern.lantern.model;
+package org.lantern.model;
  
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -10,7 +10,7 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-import org.getlantern.lantern.R;
+import org.lantern.R;
 
 public class ListAdapter extends BaseAdapter {
 

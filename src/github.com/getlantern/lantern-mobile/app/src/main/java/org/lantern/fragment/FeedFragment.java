@@ -1,4 +1,4 @@
-package org.getlantern.lantern.fragment;
+package org.lantern.fragment;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -10,9 +10,9 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 
 
-import org.getlantern.lantern.model.FeedAdapter;      
-import org.getlantern.lantern.model.FeedItem;      
-import org.getlantern.lantern.R;
+import org.lantern.model.FeedAdapter;      
+import org.lantern.model.FeedItem;      
+import org.lantern.R;
 
 import java.util.ArrayList; 
 import java.util.List;

@@ -1,4 +1,4 @@
-package org.getlantern.lantern.vpn;
+package org.lantern.vpn;
 
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
@@ -6,9 +6,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-import org.getlantern.lantern.LanternApp;
-import org.getlantern.lantern.model.SessionManager;
-import org.getlantern.lantern.model.Utils;
+import org.lantern.LanternApp;
+import org.lantern.model.SessionManager;
+import org.lantern.model.Utils;
 
 import go.lantern.Lantern;
 

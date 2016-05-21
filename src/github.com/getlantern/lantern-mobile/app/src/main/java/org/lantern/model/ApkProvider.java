@@ -1,4 +1,4 @@
-package org.getlantern.lantern.model;
+package org.lantern.model;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -16,7 +16,7 @@ public class ApkProvider extends ContentProvider {
     private static final String CLASS_NAME = "ApkProvider";
  
     // The authority is the symbolic name for the provider class
-    public static final String AUTHORITY = "org.getlantern.lantern.gmailattach.provider";
+    public static final String AUTHORITY = "org.lantern.gmailattach.provider";
  
     // UriMatcher used to match against incoming requests
     private UriMatcher uriMatcher;

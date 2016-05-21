@@ -1,4 +1,4 @@
-package org.getlantern.lantern.model;
+package org.lantern.model;
 
 import android.content.Context;
 import android.content.Intent;
@@ -10,10 +10,10 @@ import android.util.Log;
 import java.util.HashMap;
 import java.util.Locale;
 
-import org.getlantern.lantern.activity.LanternMainActivity;
+import org.lantern.activity.LanternMainActivity;
 import org.lantern.mobilesdk.StartResult;
 import org.lantern.mobilesdk.LanternNotRunningException;
-import org.getlantern.lantern.vpn.Service;
+import org.lantern.vpn.Service;
 
 public class SessionManager {
 

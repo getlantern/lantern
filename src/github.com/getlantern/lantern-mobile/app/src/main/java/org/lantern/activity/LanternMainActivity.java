@@ -1,4 +1,4 @@
-package org.getlantern.lantern.activity;
+package org.lantern.activity;
 
 import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
@@ -45,16 +45,16 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 
-import org.getlantern.lantern.LanternApp;
-import org.getlantern.lantern.vpn.Service;
-import org.getlantern.lantern.fragment.FeedFragment;
-import org.getlantern.lantern.model.GetFeed;
-import org.getlantern.lantern.model.ListAdapter;
-import org.getlantern.lantern.model.NavItem;
-import org.getlantern.lantern.model.SessionManager;
-import org.getlantern.lantern.model.Shareable;
-import org.getlantern.lantern.model.Utils;
-import org.getlantern.lantern.R;
+import org.lantern.LanternApp;
+import org.lantern.vpn.Service;
+import org.lantern.fragment.FeedFragment;
+import org.lantern.model.GetFeed;
+import org.lantern.model.ListAdapter;
+import org.lantern.model.NavItem;
+import org.lantern.model.SessionManager;
+import org.lantern.model.Shareable;
+import org.lantern.model.Utils;
+import org.lantern.R;
 import org.lantern.mobilesdk.Lantern;
 
 import java.util.ArrayList; 

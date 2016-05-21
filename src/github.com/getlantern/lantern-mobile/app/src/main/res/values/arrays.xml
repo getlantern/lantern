@@ -1263,4 +1263,61 @@
         <item>223.252.0.0/15</item>
         <item>223.255.0.0/16</item>
     </string-array>
+
+    <string-array name="year_array">
+        <item>Year</item>
+        <item>2016</item>
+        <item>2017</item>
+        <item>2018</item>
+        <item>2019</item>
+        <item>2020</item>
+    </string-array>
+
+    <string-array name="month_array">
+        <item>Month</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+    </string-array>
+
+    <string-array translatable="false" name="special_locale_codes">
+        <item>ar_EG</item>
+        <item>fa_IR</item>
+        <item>zh_CN</item>
+        <item>zh_TW</item>
+    </string-array>
+
+    <string-array translatable="false" name="special_locale_names">
+        <item>العربية</item>
+        <item>فارسی-</item>
+        <item>中文 (简体)</item>
+        <item>中文 (繁體)</item>
+    </string-array>
+
+
+    <string-array name="languages" translatable="false">
+        <item>fr_FR</item>
+        <item>ms_MY</item>
+        <item>en_US</item>
+        <item>fa_IR</item>
+        <item>zh-CN</item>
+        <item>zh-TW</item>
+        <item>zh-HK</item>
+        <item>it_IT</item>
+        <item>pl_PL</item>
+        <item>es_MX</item>
+        <item>es_ES</item>
+        <item>tr_TR</item>
+        <item>ru_RU</item>
+        <item>de_DE</item>
+    </string-array>
 </resources>

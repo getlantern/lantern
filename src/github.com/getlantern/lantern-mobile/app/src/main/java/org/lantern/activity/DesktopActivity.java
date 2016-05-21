@@ -1,4 +1,4 @@
-package org.getlantern.lantern.activity;
+package org.lantern.activity;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -22,9 +22,9 @@ import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.TextChange;
 import org.androidannotations.annotations.ViewById;
 
-import org.getlantern.lantern.model.MailSender;
-import org.getlantern.lantern.model.Utils;
-import org.getlantern.lantern.R;
+import org.lantern.model.MailSender;
+import org.lantern.model.Utils;
+import org.lantern.R;
 
 @EActivity(R.layout.desktop_option)
 public class DesktopActivity extends FragmentActivity {

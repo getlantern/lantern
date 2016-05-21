@@ -1,4 +1,4 @@
-package org.getlantern.lantern.vpn;
+package org.lantern.vpn;
 
 import android.annotation.SuppressLint;
 import android.app.PendingIntent;
@@ -27,10 +27,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import org.getlantern.lantern.activity.LanternMainActivity;
-import org.getlantern.lantern.R;
+import org.lantern.activity.LanternMainActivity;
+import org.lantern.R;
 
-import org.getlantern.lantern.android.vpn.Tun2Socks;
+import org.lantern.android.vpn.Tun2Socks;
 
 /**
  * <p>This code is largely based on Shadowsocks code from

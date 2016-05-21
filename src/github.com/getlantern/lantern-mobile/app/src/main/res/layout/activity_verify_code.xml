@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" 
+    xmlns:lantern="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" 
+    android:background="@color/form_bg"
+    android:orientation="vertical"
+    android:baselineAligned="false"
+    android:id="@+id/verifyCodeView"
+    tools:context=".VerifyCodeActivity">
+
+    <fragment
+        android:id="@+id/titlebar_fragment"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        class="org.lantern.fragment.TitleBar"
+        lantern:backgroundColor="@drawable/nav_background"
+        lantern:titleText="@string/enter_verification_code"/>
+
+    <fragment
+        android:id="@+id/user_form_fragment"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        class="org.lantern.fragment.UserForm"
+        lantern:formType="verify"
+        lantern:sendBtnText="@string/submit_code"
+        lantern:formList="@array/enter_code_steps"/>
+
+</LinearLayout>     

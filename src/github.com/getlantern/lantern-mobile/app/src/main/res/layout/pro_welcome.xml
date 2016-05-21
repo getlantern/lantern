@@ -1,0 +1,143 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" 
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" 
+    android:orientation="vertical"
+    android:baselineAligned="false"
+    android:id="@+id/proWelcomeView"
+    tools:context=".WelcomeActivity">
+
+    <LinearLayout
+        android:id="@+id/welcome"
+        android:layout_centerVertical="true"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="322dp"
+        android:layout_weight="1"
+        android:background="@drawable/nav_background"
+        android:padding="8dp">
+
+        <TextView
+            android:id="@+id/welcome_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:layout_centerInParent="true"
+            android:gravity="center"
+            android:text="@string/pro_welcome_text"
+            android:layout_marginTop="10dp"
+            android:elevation="2dp"
+            android:textSize="17sp"
+            android:textColor="#FFFFFF"/>
+
+        <ImageView
+            android:id="@+id/pro_welcome"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/welcome_text"
+            android:adjustViewBounds="true"
+            android:scaleType="centerCrop"
+            android:layout_marginTop="-20dp"
+            android:paddingBottom="10dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/pro_welcome"/>
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/welcome"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFFFFF"
+        android:paddingTop="15dp"
+        android:paddingBottom="15dp"
+        android:layout_weight="1"
+        android:padding="8dp">
+
+        <LinearLayout android:orientation="vertical"
+            android:gravity="center"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/thanks_purchase"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginTop="5dp"
+                android:text="@string/thanks_purchase"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:alpha=".87"
+                android:layout_centerHorizontal="true"
+                android:gravity="center"
+                android:textColor="#000000"/>
+
+            <TextView
+                android:id="@+id/invite_friends"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginTop="20dp"
+                android:text="@string/invite_friends_welcome"
+                android:textSize="15sp"
+                android:alpha=".87"
+                android:layout_centerHorizontal="true"
+                android:gravity="center"
+                android:textColor="#000000"/>          
+
+            <TextView
+                android:id="@+id/start_inviting"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif"
+                android:layout_marginTop="-5dp"
+                android:layout_marginBottom="-5dp"
+                android:text="@string/start_inviting"
+                android:textSize="14sp"
+                android:alpha=".87"
+                android:gravity="center"
+                android:textColor="#000000"/>    
+
+
+            <Button
+                android:id="@+id/inviteFriendsBtn"
+                android:layout_height="36dp"
+                android:layout_width="216dp"
+                android:alpha=".87"
+                android:text="@string/invite_friends_btn"
+                android:fontFamily="sans-serif" 
+                android:textSize="14sp"
+                android:elevation="2dp"
+                android:minHeight="48dp"
+                android:textColor="#000000"
+                android:textAllCaps="true"
+                android:textStyle="bold"     
+                android:clickable = "true"
+                android:background="#B6E3EB"
+                android:layout_marginTop="30dp"  
+                android:layout_centerInParent="true"
+                android:onClick="inviteFriends" />
+
+            <Button
+                android:id="@+id/continueToProBtn"
+                android:layout_height="36dp"
+                android:layout_width="216dp"
+                android:text="@string/continue_to_pro"
+                android:fontFamily="sans-serif-medium" 
+                android:textSize="14sp"
+                android:elevation="2dp"
+                android:minHeight="48dp"
+                android:textAllCaps="true"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:clickable = "true"
+                android:layout_marginTop="15dp"
+                android:background="#0297A7"
+                android:layout_centerInParent="true"
+                android:onClick="continueToPro" />
+        </LinearLayout>
+    </RelativeLayout>
+</LinearLayout>

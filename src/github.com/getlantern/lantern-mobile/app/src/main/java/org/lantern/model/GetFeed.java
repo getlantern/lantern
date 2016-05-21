@@ -1,12 +1,12 @@
-package org.getlantern.lantern.model;
+package org.lantern.model;
 
 import android.os.AsyncTask;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 
-import org.getlantern.lantern.activity.LanternMainActivity;
-import org.getlantern.lantern.R;
+import org.lantern.activity.LanternMainActivity;
+import org.lantern.R;
 
 import java.util.ArrayList; 
 import java.util.Locale;
