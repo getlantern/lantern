@@ -28,7 +28,10 @@ type Context struct {
 
 // Enter mimics the similar method from context.Context
 func (c *Context) Enter() *Context {
-	return &Context{c.ctx.Enter()}
+	ctx := &Context{c.ctx.Enter()}
+	// Using "application" allows us to distinguish between errors from the
+	// lantern client vs other sources like the http-proxy, etc.
+	return ctx.Put("application", "lantern-client")
 }
 
 // Enter mimics the similar method from Context
