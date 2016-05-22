@@ -170,6 +170,7 @@ func Close() error {
 	if logFile != nil {
 		return logFile.Close()
 	}
+	bordaClient.Flush()
 	return nil
 }
 
