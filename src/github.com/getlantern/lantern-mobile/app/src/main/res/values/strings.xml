@@ -63,7 +63,6 @@
     <string name="previous_code">If you have previously received a referral code\r\nplease make sure to use the same email address.</string>
     <string name="payment_plans">Lantern PRO Payment Plans</string>
     <string name="features_text">Lantern PRO Features</string>
-    <string name="features_list"><![CDATA[ &#8226; Faster Connection Speed<br/>&#8226; Smarter Servers<br/>&#8226; Stronger Blocking Resistance ]]></string>
 	<string name="checkout">Checkout</string>
     <string name="cvc">CVC</string>
     <string name="card_number">Card Number</string>
@@ -145,4 +144,5 @@
     <string name="item_image_contentDescription">Country flag</string>
     <string name="item_preview_country">United States</string>
     <string name="item_preview_dialCode">+1</string>
+    <string name="stripe_publishable_key"></string>
 </resources>

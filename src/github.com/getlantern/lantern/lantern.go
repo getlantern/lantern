@@ -55,13 +55,8 @@ type StartResult struct {
 	SOCKS5Addr string
 }
 
-type FeedProvider interface {
-	AddSource(string)
-}
-
-type FeedRetriever interface {
-	AddFeed(string, string, string, string)
-}
+type FeedProvider feed.FeedProvider
+type FeedRetriever feed.FeedRetriever
 
 // Start starts a HTTP and SOCKS proxies at random addresses. It blocks up till
 // the given timeout waiting for the proxy to listen, and returns the addresses
@@ -135,8 +130,8 @@ func run(configDir string) {
 }
 
 // GetFeed fetches the public feed thats displayed on Lantern's main screen
-func GetFeed(locale string, allStr string, proxyAddr string, provider FeedProvider) {
-	feed.GetFeed(locale, allStr, proxyAddr != "", provider)
+func GetFeed(locale string, allStr string, shouldProxy bool, provider FeedProvider) {
+	feed.GetFeed(locale, allStr, shouldProxy, provider)
 }
 
 // FeedByName grabs the feed results for a given feed source name

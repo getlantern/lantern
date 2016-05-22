@@ -6,8 +6,6 @@ import android.content.res.Resources;
 import android.provider.Settings.Secure;
 import android.widget.TextView;
 
-import org.lantern.R;
-
 import go.lantern.Lantern;
 
 /**
@@ -29,10 +27,8 @@ public class ProUser extends Lantern.ProUser.Stub {
     private String[] invitees;
     private Resources res;
     private Context mContext;
-    private SessionManager session;
 
-    public ProUser(SessionManager session, Context context) {
-        this.session = session;
+    public ProUser(Context context) {
         this.deviceId = Secure.getString(context.getContentResolver(),
                 Secure.ANDROID_ID); 
         final ProUser user = this;
@@ -51,19 +47,8 @@ public class ProUser extends Lantern.ProUser.Stub {
         return id;
     }
 
-    public void SetUserData(String[] invitees) {
-        this.invitees = invitees;
-        String creditsText = String.format(res.getString(R.string.pro_credits_text, invitees.length));
-        TextView creditsTextView = (TextView)(((Activity) mContext).findViewById(R.id.pro_credits_text));
-        creditsTextView.setText(creditsText);
-    }
-
     public String Code() {
         return code;
-    }
-
-    public void ProUserStatus(String status) {
-        session.proUserStatus(status);
     }
 
     public String Referral() {
@@ -110,9 +95,9 @@ public class ProUser extends Lantern.ProUser.Stub {
         this.phoneNumber = number;
     }
 
-    public void setPlan(String plan) {
-        this.plan = plan;
-    }
+	public void setPlan(String plan) {
+		this.plan = plan;
+	}
 
     public String PhoneNumber() {
         return phoneNumber;
@@ -120,6 +105,10 @@ public class ProUser extends Lantern.ProUser.Stub {
 
     public String DeviceId() {
         return deviceId;
+    }
+
+    public String Locale() {
+        return "en_US";
     }
 
     public String Token() {

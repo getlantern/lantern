@@ -266,16 +266,28 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         final Resources resources = getResources();
 
         final Map<String, Command> menuMap = new HashMap<String, Command>();
-        final ArrayList<NavItem> navItems = new ArrayList<NavItem>() {{
-            add(new NavItem(resources.getString(R.string.share_option),
-                        R.drawable.ic_share));
-            add(new NavItem(resources.getString(R.string.desktop_option), 
-                        R.drawable.ic_desktop));
-            add(new NavItem(resources.getString(R.string.contact_option), 
-                        R.drawable.ic_contact));
-        }};
-
+        final ArrayList<NavItem> navItems = new ArrayList<NavItem>();
         final ListAdapter listAdapter = new ListAdapter(this, navItems);  
+
+
+        if (!session.isDeviceLinked()) {
+            navItems.add(new NavItem(resources.getString(R.string.authorize_device_pro), 
+                        R.drawable.sign_in));
+        }
+
+        if (!session.isProUser()) {
+            // 'Get Pro Now' menu option if not already a Pro user
+            navItems.add(new NavItem(resources.getString(R.string.get_pro_now), R.drawable.pro_now));
+        } else {
+            navItems.add(navItems.size(), new NavItem(resources.getString(R.string.pro_account_header), 
+                        R.drawable.sign_in));
+        }
+
+        navItems.add(new NavItem(resources.getString(R.string.free_pro_credits), R.drawable.get_free));
+        navItems.add(new NavItem(resources.getString(R.string.desktop_option), R.drawable.ic_desktop));
+        navItems.add(new NavItem(resources.getString(R.string.language), R.drawable.language));
+        navItems.add(new NavItem(resources.getString(R.string.share_option), R.drawable.ic_share));
+        navItems.add(new NavItem(resources.getString(R.string.contact_option), R.drawable.ic_contact));
 
         if (session.showFeed())  {
             // 'Turn off Feed' when the feed is already shown
@@ -288,6 +300,35 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         navItems.add(new NavItem(resources.getString(R.string.quit_option), 
                     R.drawable.ic_quit));
 
+        menuMap.put(resources.getString(R.string.authorize_device_pro), new Command() {
+            public void runCommand() {
+                Intent intent = new Intent(activity, SignInActivity.class);
+                intent.putExtra("signIn", true);
+                startActivity(intent);
+            } 
+        });
+
+        menuMap.put(resources.getString(R.string.get_pro_now), new Command() {
+            public void runCommand() {
+                Intent intent;
+                if (!session.deviceLinked()) {
+
+                } else if (session.isProUser()) {
+                    startActivity(new Intent(activity, ProAccountActivity_.class));
+                } else {
+                    startActivity(new Intent(activity, PlansActivity_.class)); 
+                }
+            }
+        });
+
+        menuMap.put(resources.getString(R.string.free_pro_credits), new Command() {
+            public void runCommand() { startActivity(new Intent(activity, InviteActivity_.class)); }
+        });
+
+        menuMap.put(resources.getString(R.string.language), new Command() {
+            public void runCommand() { startActivity(new Intent(activity, LanguageActivity_.class)); }
+        });                                                                                         
+        
         menuMap.put(resources.getString(R.string.quit_option), new Command() { 
             public void runCommand() { quitLantern(); } 
         });
@@ -298,13 +339,13 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
         menuMap.put(resources.getString(R.string.newsfeed_off_option), new Command() {
             public void runCommand() {
-                updateFeedview(listAdapter, navItems, resources, 3, false);
+                updateFeedview(listAdapter, navItems, resources, false);
             }
         });
 
         menuMap.put(resources.getString(R.string.newsfeed_option), new Command() {
             public void runCommand() {
-                updateFeedview(listAdapter, navItems, resources, 3, true);
+                updateFeedview(listAdapter, navItems, resources, true);
             }
         });
 
@@ -418,7 +459,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             removeRule(lp, RelativeLayout.CENTER_VERTICAL);
 
             // now actually refresh the news feed
-            new GetFeed(this, session.startLocalProxy()).execute("");
+            new GetFeed(this).execute(session.shouldProxy());
         } else {
             feedView.setVisibility(View.INVISIBLE);
             lp.addRule(RelativeLayout.CENTER_VERTICAL);
@@ -440,27 +481,21 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     public void updateFeedview(final ListAdapter listAdapter,
         final ArrayList<NavItem> navItems,
         final Resources resources,
-        final int menuOptionIndex, final boolean showFeed) {
+        final boolean showFeed) {
       
         // store show/hide feed preference
         session.updateFeedPreference(showFeed);
         showFeedview();
 
-        if (menuOptionIndex < 0 || menuOptionIndex >= navItems.size()) {
-            Log.e(TAG, "Invalid index for feed menu item");
-            return;
-        }
-
-        NavItem item = navItems.get(menuOptionIndex);
-        if (item == null) {
-            Log.e(TAG, "Missing menu item for news feed");
-            return;
-        }
-
-        if (showFeed) {
-            item.setTitle(resources.getString(R.string.newsfeed_off_option));
-        } else {
-            item.setTitle(resources.getString(R.string.newsfeed_option));
+        for (NavItem item: navItems) {
+            if (item != null && item.newsFeedItem(resources)) {
+                if (showFeed) {
+                    item.setTitle(resources.getString(R.string.newsfeed_off_option));
+                } else {
+                    item.setTitle(resources.getString(R.string.newsfeed_option));
+                }
+                break;
+            }
         }
 
         if (listAdapter != null) {
@@ -602,7 +637,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         Log.d(TAG, "Refresh feed clicked");
         feedError.setVisibility(View.INVISIBLE);
         if (session.showFeed()) {
-            new GetFeed(this, session.startLocalProxy()).execute("");
+            new GetFeed(this).execute(session.shouldProxy());
         }
     }
 

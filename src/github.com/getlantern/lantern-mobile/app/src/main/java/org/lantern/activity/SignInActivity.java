@@ -18,7 +18,7 @@ import org.lantern.R;
 
 import go.lantern.Lantern;
 
-public class SignInActivity extends ProActivity {
+public class SignInActivity extends FragmentActivity implements ProResponse {
 
     private static final String TAG = "SignInActivity";
 

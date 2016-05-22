@@ -1,20 +1,36 @@
 package org.lantern.model;
 
+import android.content.res.Resources;
+import org.lantern.R;
+
 public class NavItem {
-    String mTitle;
-    int mIcon;
+    private String title;
+    private int icon;
 
     public NavItem(String title, int icon) {
-        mTitle = title;
-        mIcon = icon;
+        this.title = title;
+        this.icon = icon;
     }
 
     public String getTitle() {
-        return mTitle;
+        return title;
+    }
+
+    public int getIcon() {
+        return icon;
     }
 
     public void setTitle(String title) {
-        this.mTitle = title;
+        this.title = title;
+    }
+
+    public boolean newsFeedItem(Resources res) {
+        if (title == null) {
+            return false;
+        }
+
+        return title.equals(res.getString(R.string.newsfeed_off_option)) ||
+            title.equals(res.getString(R.string.newsfeed_option));
     }
 }
 

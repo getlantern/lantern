@@ -22,7 +22,7 @@ import org.lantern.R;
 import go.lantern.Lantern;
 
 @EActivity(R.layout.activity_verify_code)
-public class VerifyCodeActivity extends ProActivity {
+public class VerifyCodeActivity extends FragmentActivity implements ProResponse {
     private static final String TAG = "VerifyCodeActivity";
 
     private SessionManager session;
@@ -48,13 +48,7 @@ public class VerifyCodeActivity extends ProActivity {
         // remove previous menu options
         // related to device linking
         // that we no longer need
-        mainActivity.removeOptions(false);
-
-        // check if user is a Pro user and update to 
-        // main screen if so
-        Lantern.UserData(
-                session.startLocalProxy(getApplicationContext()),
-                session.getUser());
+        mainActivity.setupSideMenu();
 
         if (SessionManager.chargeAmount != 0) {
             if (!session.isReferralApplied()) {

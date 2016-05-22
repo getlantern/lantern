@@ -9,7 +9,9 @@ import android.net.ConnectivityManager;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnFocusChangeListener;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
@@ -59,6 +61,25 @@ public class Utils {
         Matcher matcher = pattern.matcher(email);
         return matcher.matches();
     }
+
+
+
+    public static void configureEmailInput(final EditText emailInput, final View separator) {
+
+        OnFocusChangeListener focusListener = new OnFocusChangeListener() {
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    separator.setBackgroundResource(R.color.blue_color);
+                    emailInput.setCompoundDrawablesWithIntrinsicBounds(R.drawable.email_active, 0, 0, 0);
+                } else {
+                    separator.setBackgroundResource(R.color.edittext_color);
+                    emailInput.setCompoundDrawablesWithIntrinsicBounds(R.drawable.email_inactive, 0, 0, 0);    
+                }
+            }
+        };
+        emailInput.setOnFocusChangeListener(focusListener);
+    }
+
 
     public static void showAlertDialog(Activity activity, String title, String msg) {
         Log.d(TAG, "Showing alert dialog...");

@@ -1,25 +1,15 @@
 package org.lantern.activity;
 
-import android.app.Activity;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.support.v4.app.FragmentActivity;
 
-import org.androidannotations.annotations.AfterTextChange;
 import org.androidannotations.annotations.AfterViews;
-import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
-import org.androidannotations.annotations.TextChange;
 import org.androidannotations.annotations.ViewById;
 
 import org.lantern.model.MailSender;
@@ -32,9 +22,6 @@ public class DesktopActivity extends FragmentActivity {
     private static final String TAG = "DesktopActivity";
 
     @ViewById
-    ImageView backBtn;
-
-    @ViewById
     Button sendBtn;
 
     @ViewById
@@ -43,29 +30,9 @@ public class DesktopActivity extends FragmentActivity {
     @ViewById
     View separator;
 
-    @TextChange(R.id.emailInput)
-    void emailInputTextChanged(CharSequence s, int start, int before, int count) {
-        if (Utils.isEmailValid(s.toString())) {
-            sendBtn.setBackgroundResource(R.drawable.send_btn_blue);
-            sendBtn.setClickable(true);
-        } else {
-            sendBtn.setBackgroundResource(R.drawable.send_btn);
-            sendBtn.setClickable(false);
-        }
-    }
-
-    @AfterTextChange(R.id.emailInput)
-    void emailInputAfterTextChanged(Editable s) {
-        if (s.length() == 0) {
-            separator.setBackgroundResource(R.color.edittext_color);
-        } else {
-            separator.setBackgroundResource(R.color.blue_color);
-        }
-    }
-
-    @Click(R.id.backBtn)
-    void returnHome() {
-        startActivity(new Intent(this, LanternMainActivity_.class));
+    @AfterViews
+    void afterViews() {
+        Utils.configureEmailInput(emailInput, separator);
     }
 
     public void sendDesktopVersion(View view) {

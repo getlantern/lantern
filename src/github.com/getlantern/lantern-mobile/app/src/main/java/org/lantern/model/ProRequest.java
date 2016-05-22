@@ -3,8 +3,9 @@ package org.lantern.model;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import org.lantern.activity.ProActivity;
+import org.lantern.activity.ProResponse;
 import org.lantern.fragment.ProgressDialogFragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 
 import org.lantern.LanternApp;                   
@@ -20,24 +21,32 @@ public class ProRequest extends AsyncTask<String, Void, Boolean> {
 
     private ProgressDialogFragment progressFragment;
     private FragmentManager manager;
-    private ProActivity activity;
+    private ProResponse response;
     private String errMsg;
     private SessionManager session;
 
-    public ProRequest(ProActivity activity) {
-        this.activity = activity;
-        this.manager = activity.getSupportFragmentManager();
-        this.session = LanternApp.getSession();
-        progressFragment = ProgressDialogFragment.newInstance(R.string.progressMessage);
+    public ProRequest(ProResponse response) {
+        this.response = response;
+        if (response instanceof FragmentActivity) {
+            manager = ((FragmentActivity)response).getSupportFragmentManager();
+            progressFragment = ProgressDialogFragment.newInstance(R.string.progressMessage);
+        }
+        session = LanternApp.getSession();
+    }
+
+    @Override
+    protected void onPreExecute() {
+        super.onPreExecute();
+        if (progressFragment != null) {
+            progressFragment.show(manager, "progress");
+        }
     }
 
     @Override
     protected Boolean doInBackground(String... params) {
         String command = params[0];
-        progressFragment.show(manager, "progress");
         try {
-            String proxyAddr = session.startLocalProxy(activity.getApplicationContext());
-            return Lantern.ProRequest(proxyAddr, command, session.getUser());
+            return Lantern.ProRequest(session.shouldProxy(), command, session.getProUser());
         } catch (Exception e) {
             Log.e(TAG, "Pro API request error: " + e.getMessage());
         }
@@ -48,11 +57,14 @@ public class ProRequest extends AsyncTask<String, Void, Boolean> {
     protected void onPostExecute(Boolean success) {
         super.onPostExecute(success);
 
-        progressFragment.dismiss();
+        if (progressFragment != null) {
+            progressFragment.dismiss();
+        }
+
         if (success) {
-            activity.onSuccess();
+            response.onSuccess();
         } else {
-            activity.onError();
+            response.onError();
         }
     }
 }

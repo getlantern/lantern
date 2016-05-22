@@ -8,15 +8,10 @@ android {
     useLibrary 'org.apache.http.legacy'
 
     packagingOptions { 
-        exclude 'LICENSE.txt'
-        exclude 'LICENSE'
-        exclude 'NOTICE.txt'
-        exclude 'NOTICE'
-        exclude 'asm-license.txt'
-        exclude 'META-INF/LICENSE'
-        exclude 'META-INF/NOTICE'
         exclude 'META-INF/LICENSE.txt' 
         exclude 'META-INF/NOTICE.txt' 
+        exclude 'META-INF/maven/commons-io/commons-io/pom.xml'
+        exclude 'META-INF/maven/commons-io/commons-io/pom.properties'
     }
 
     compileSdkVersion rootProject.compileSdkVersion
@@ -32,6 +27,8 @@ android {
     def code = (int) ((now.getTime() - start) / 1000)
 
     defaultConfig {
+        // Enabling multidex support.
+        // multiDexEnabled true
 	    minSdkVersion rootProject.minSdkVersion
         targetSdkVersion rootProject.targetSdkVersion
         applicationId "org.getlantern.lantern"
@@ -122,13 +119,10 @@ dependencies {
     // FinestWebView dependencies
     compile 'com.nineoldandroids:library:2.4.0'
     compile 'com.thefinestartist:utils:0.9.0'
-    compile 'com.google.guava:guava:19.0'
 
-    compile 'org.greenrobot:eventbus:3.0.0'
     compile 'com.stripe:stripe-android:+'
     compile 'com.googlecode.libphonenumber:libphonenumber:7.2.1'
     compile 'info.hoang8f:android-segmented:1.0.6'
-
 
     // SmartTabLayout dependencies
     compile 'com.ogaclejapan.smarttablayout:library:1.6.0@aar'
@@ -146,10 +140,6 @@ dependencies {
     apt "org.androidannotations:androidannotations:" + androidAnnotationsVersion
     compile("org.androidannotations:androidannotations-api:" + androidAnnotationsAPIVersion )
 
-    testCompile 'junit:junit:4.12'
-    testCompile 'org.assertj:assertj-core:3.4.1'
-    testCompile 'org.mockito:mockito-core:1.+'
-
     // Testing-only dependencies
     androidTestCompile 'com.android.support.test:runner:0.4'
     androidTestCompile 'com.android.support.test:rules:0.4'
@@ -158,7 +148,7 @@ dependencies {
 
 apt {
     arguments {
-        resourcePackageName android.defaultConfig.applicationId
         androidManifestFile variant.outputs[0]?.processResources?.manifestFile
+        resourcePackageName 'org.lantern'
     }
 }

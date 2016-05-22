@@ -55,14 +55,8 @@ public class PlansActivity extends FragmentActivity {
 
     private SessionManager session;
 
-    @ViewById(R.id.month_btn)
-    Button monthBtn;
-
-    @ViewById(R.id.year_btn)
-    Button yearBtn;
-
-    @ViewById(R.id.features_list)
-    TextView featuresList;
+    @ViewById
+    Button monthBtn, yearBtn;
 
     @ViewById(R.id.plans_view)
     LinearLayout plansView;
@@ -73,8 +67,6 @@ public class PlansActivity extends FragmentActivity {
 
         monthBtn.setTag(monthCost);
         yearBtn.setTag(yearCost);
-
-        featuresList.setText(Html.fromHtml(getResources().getString(R.string.features_list)));
 
         plansView.bringToFront();
     }

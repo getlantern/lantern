@@ -45,7 +45,7 @@ import com.thefinestartist.finestwebview.FinestWebView;
 import info.hoang8f.android.segmented.SegmentedGroup;
 
 @EActivity(R.layout.checkout)
-public class PaymentActivity extends ProActivity implements View.OnClickListener {
+public class PaymentActivity extends FragmentActivity implements ProResponse, View.OnClickListener {
 
     private static final String TAG = "PaymentActivity";
     private static final String mCheckoutUrl = "https://s3.amazonaws.com/lantern-android/checkout.html?plan=%s";

@@ -25,7 +25,7 @@ import org.lantern.R;
 import go.lantern.Lantern;
 
 @EActivity(R.layout.activity_referral_code)
-public class ReferralCodeActivity extends ProActivity {
+public class ReferralCodeActivity extends FragmentActivity implements ProResponse {
     private static final String TAG = "ReferralCodeActivity";
 
     @ViewById

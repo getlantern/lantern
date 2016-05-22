@@ -172,7 +172,6 @@
         <!-- ************************** End PubSub Handling ************************************ -->
 
 
-
         <meta-data
             android:name="io.fabric.ApiKey"
             android:value="284fdb6578c78a774887f65e1a34b9024732a29c" />

@@ -29,7 +29,7 @@ import org.lantern.R;
 import go.lantern.Lantern;
 
 @EActivity(R.layout.pro_account)
-public class ProAccountActivity extends ProActivity {
+public class ProAccountActivity extends FragmentActivity implements ProResponse {
 
     @ViewById
     TextView proAccountText;
@@ -45,12 +45,7 @@ public class ProAccountActivity extends ProActivity {
 
         session = LanternApp.getSession();
 
-        if (session.getPlan() != null &&
-                session.getPlan().equals(SessionManager.Plan.YEAR)) {
-            proAccountText.setText(getResources().getString(R.string.pro_account_year_text));
-        } else {
-            proAccountText.setText(getResources().getString(R.string.pro_account_month_text));
-        }
+        session.setPlanText(proAccountText, getResources());
 
         final ProAccountActivity proAccountActivity = this;
 

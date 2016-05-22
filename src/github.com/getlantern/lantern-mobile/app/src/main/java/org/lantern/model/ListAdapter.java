@@ -52,8 +52,8 @@ public class ListAdapter extends BaseAdapter {
         TextView titleView = (TextView) view.findViewById(R.id.title);
         ImageView iconView = (ImageView) view.findViewById(R.id.icon);
 
-        titleView.setText( mNavItems.get(position).mTitle );
-        iconView.setImageResource(mNavItems.get(position).mIcon);
+        titleView.setText( mNavItems.get(position).getTitle() );
+        iconView.setImageResource(mNavItems.get(position).getIcon());
 
         return view;
     }
