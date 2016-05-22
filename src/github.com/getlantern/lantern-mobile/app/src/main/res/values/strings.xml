@@ -122,7 +122,6 @@
     <string name="pro_account_month_text">You currently have a Lantern PRO monthly account. Your account will automatically be charged for another month of Lantern Pro at the end of the billing cycle.</string>
     <string name="pro_account_year_text">You currently have a Lantern Pro yearly account. Your account will automatically be charged for another year at the end of the billing cycle.</string>
     <string name="cancel_pro_account">Cancel Pro Account</string>
-    <string name="authorize_device_pro">Authorize Device for PRO</string>
     <string name="account_verification">Account Verification</string>
     <string name="enter_verification_code">Enter Verification Code</string>
     <string name="referral_promotion">Referral Promotion</string>

@@ -66,37 +66,31 @@
             android:id="@+id/profileBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/nav_background"
-            android:paddingTop="15dp"
+            android:background="@drawable/nav_background_white"
+            android:layout_marginTop="20dp"
             android:paddingBottom="15dp"
             android:padding="8dp" >
             <ImageView
                 android:id="@+id/backBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:src="@drawable/abc_ic_ab_back_mtrl_am_alpha"/>
+                android:src="@drawable/menu"/>
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="52dp"
                 android:layout_centerVertical="true"
                 android:layout_marginLeft="15dp"
+                android:layout_marginTop="10dp"
                 android:layout_toRightOf="@+id/backBtn"
                 android:orientation="vertical" >
 
-                <TextView
-                    android:id="@+id/userName"
+                <ImageView
+                    android:id="@+id/logoText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif"
-                    android:layout_marginTop="14dp"
-                    android:gravity="center_horizontal"
-                    android:paddingLeft="16dp"
-                    android:text="@string/app_name"
-                    android:textSize="15sp"
-                    android:textColor="#fff"
-                    android:textStyle="bold" />
+                    android:src="@drawable/logo_text"/>
+
             </LinearLayout>
         </RelativeLayout>
         <!-- List of Actions (pages) -->

@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         class="org.lantern.fragment.TitleBar"
         lantern:backgroundColor="@drawable/nav_background_white"
-        lantern:titleText="@string/payment_plans"/>
+        lantern:titleText="@string/get_lantern_pro"/>
 
     <RelativeLayout
         android:id="@+id/plans_bottom_sheet"

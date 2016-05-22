@@ -271,13 +271,13 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
 
         if (!session.isDeviceLinked()) {
-            navItems.add(new NavItem(resources.getString(R.string.authorize_device_pro), 
+            navItems.add(new NavItem(resources.getString(R.string.sign_in_pro), 
                         R.drawable.sign_in));
         }
 
         if (!session.isProUser()) {
             // 'Get Pro Now' menu option if not already a Pro user
-            navItems.add(new NavItem(resources.getString(R.string.get_pro_now), R.drawable.pro_now));
+            navItems.add(new NavItem(resources.getString(R.string.get_lantern_pro), R.drawable.pro_now));
         } else {
             navItems.add(navItems.size(), new NavItem(resources.getString(R.string.pro_account_header), 
                         R.drawable.sign_in));
@@ -300,7 +300,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         navItems.add(new NavItem(resources.getString(R.string.quit_option), 
                     R.drawable.ic_quit));
 
-        menuMap.put(resources.getString(R.string.authorize_device_pro), new Command() {
+        menuMap.put(resources.getString(R.string.sign_in_pro), new Command() {
             public void runCommand() {
                 Intent intent = new Intent(activity, SignInActivity.class);
                 intent.putExtra("signIn", true);
@@ -308,7 +308,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             } 
         });
 
-        menuMap.put(resources.getString(R.string.get_pro_now), new Command() {
+        menuMap.put(resources.getString(R.string.get_lantern_pro), new Command() {
             public void runCommand() {
                 Intent intent;
                 if (session.isProUser()) {
