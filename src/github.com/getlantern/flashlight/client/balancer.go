@@ -32,13 +32,13 @@ func (client *Client) initBalancer(cfg *ClientConfig, deviceID string) (*balance
 	// Add chained (CONNECT proxy) servers.
 	log.Debugf("Adding %d chained servers", len(cfg.ChainedServers))
 	for _, s := range cfg.ChainedServers {
-		dialer, err := s.Dialer(deviceID)
-		if err == nil {
-			log.Debugf("Adding chained server: %v", s.Addr)
-			dialers = append(dialers, dialer)
-		} else {
+		dialer, err := ChainedDialer(s, deviceID)
+		if err != nil {
 			log.Errorf("Unable to configure chained server. Received error: %v", err)
+			continue
 		}
+		log.Debugf("Adding chained server: %v", s.Addr)
+		dialers = append(dialers, dialer)
 	}
 
 	bal := balancer.New(balancer.QualityFirst, dialers...)
