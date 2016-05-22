@@ -66,7 +66,7 @@
             android:id="@+id/profileBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="15dp"
+            android:layout_marginTop="10dp"
             android:padding="8dp" >
             <ImageView
                 android:id="@+id/backBtn"
