@@ -28,8 +28,6 @@ public class VerifyCodeActivity extends FragmentActivity implements ProResponse 
     private SessionManager session;
     private UserForm fragment;
 
-    public static LanternMainActivity mainActivity;
-
     @AfterViews
     void afterViews() {
         session = LanternApp.getSession();
@@ -45,10 +43,6 @@ public class VerifyCodeActivity extends FragmentActivity implements ProResponse 
     @Override
     public void onSuccess() {
         session.linkDevice();
-        // remove previous menu options
-        // related to device linking
-        // that we no longer need
-        mainActivity.setupSideMenu();
 
         if (SessionManager.chargeAmount != 0) {
             if (!session.isReferralApplied()) {

@@ -6,18 +6,22 @@ import android.content.res.Resources;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
+import android.provider.Settings.Secure;
 import android.util.Log;
 import android.widget.TextView;
+
+import java.util.Locale;
 
 import org.lantern.activity.SignInActivity;
 import org.lantern.activity.ProResponse;
 import org.lantern.mobilesdk.StartResult;
 import org.lantern.mobilesdk.LanternNotRunningException;
-import org.lantern.model.ProUser;
 import org.lantern.vpn.Service;
 import org.lantern.R;                                    
 
-public class SessionManager implements ProResponse {
+import go.lantern.Lantern;
+
+public class SessionManager extends Lantern.Session.Stub implements ProResponse {
 
     private static final String TAG = "SessionManager";
     private static final String PREF_NAME = "LanternSession";
@@ -28,7 +32,6 @@ public class SessionManager implements ProResponse {
 
     public static int chargeAmount = 0;
     public static String chargeStr = "";
-    private ProUser mProUser;
 
     private static final String USER_ID = "userid";
     private static final String PRO_USER = "prouser";
@@ -44,13 +47,20 @@ public class SessionManager implements ProResponse {
     private SharedPreferences mPrefs;
     private Editor editor;
 
+    private String phoneNumber;
+    private String stripeToken;
+    private String stripeEmail;
+    private String referral;
+    private String verifyCode;
+    private String plan;
+
+
     public SessionManager(Context context) {
         this.context = context;
         this.mPrefs = context.getSharedPreferences(PREF_NAME, PRIVATE_MODE);
-        this.mProUser = new ProUser(context);
         this.editor = mPrefs.edit();
 
-		new NewSession(context).execute();
+        new ProRequest(this).execute("newuser");
     }
 
 	@Override
@@ -62,52 +72,6 @@ public class SessionManager implements ProResponse {
 	public void onError() {
 
 	}
-
-    private class NewSession extends AsyncTask<Void, Void, ProUser> {
-
-        private boolean showFeed = false;
-        private Context context;
-
-        public NewSession(Context context) {
-            this.context = context;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            this.showFeed = showFeed();
-        }
-
-        @Override
-        protected ProUser doInBackground(Void... params) {
-            try {
-				ProUser user = new ProUser(context);
-				boolean shouldProxy = shouldProxy();
-				boolean status = go.lantern.Lantern.ProRequest(shouldProxy, "newuser", user);
-				if (status) {
-                	return user;
-				}
-            } catch (Exception e) {
-                Log.e(TAG, "Pro API request error: " + e.getMessage());
-            }
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(final ProUser user) {
-            super.onPostExecute(user);
-            if (user != null) {
-                Log.d(TAG, "Successfully created new Pro user: " + user.UserId());
-                setCode(user.Code());
-                setToken(user.Token());
-                setUserId(Long.toString(user.UserId()));
-                setDeviceId(user.DeviceId());
-            } else {
-                Log.e(TAG, "Could not create new Pro user");
-            }
-        }
-    }
 
 	public void checkProStatus() {
 		
@@ -147,12 +111,20 @@ public class SessionManager implements ProResponse {
 	}
 
 	public void setPhoneNumber(String number) {
-		mProUser.setPhoneNumber(number);
+        this.phoneNumber = number;
 	}
 
+    public String PhoneNumber() {
+        return phoneNumber;
+    }
+
 	public void setVerifyCode(String code) {
-		mProUser.setVerifyCode(code);
+        this.verifyCode = code;
 	}                 
+
+    public String VerifyCode() {
+        return this.verifyCode;
+    }
 
 	public void proUserStatus(String status) {
 		if (status.equals("active")) {
@@ -172,47 +144,64 @@ public class SessionManager implements ProResponse {
 	}
 
 	public void setStripeToken(String token) {
-		mProUser.setStripeToken(token);
+        this.stripeToken = token;
 	}
 
 	public void setStripeEmail(String email) {
-		mProUser.setStripeEmail(email);
+        this.stripeEmail = email;
 	}
 
-	private void setCode(String referral) {
+	public void SetCode(String referral) {
 		editor.putString(REFERRAL_CODE, referral).commit();
 	}      
 
-	private void setToken(String token) {
+	public void SetToken(String token) {
 		editor.putString(TOKEN, token).commit();
 	}
 
-	private void setUserId(String userId) {
-		editor.putString(USER_ID, userId).commit();
+    public String StripeToken() {
+        return this.stripeToken;
+    }
+
+    public String StripeEmail() {
+        return this.stripeEmail;
+    }
+
+	public void SetUserId(long userId) {
+		editor.putString(USER_ID, Long.toString(userId)).commit();
 	}
 
 	private void setDeviceId(String deviceId) {
 		editor.putString(DEVICE_ID, deviceId).commit();
 	}
 
+    public String DeviceId() {
+        String deviceId = mPrefs.getString(DEVICE_ID, null);
+        if (deviceId == null) {
+            deviceId = Secure.getString(context.getContentResolver(), Secure.ANDROID_ID); 
+            setDeviceId(deviceId);
+        }
+        return deviceId;
+    }
 
-    public String getCode() {
+
+    public String Code() {
         return mPrefs.getString(REFERRAL_CODE, "");
     }
 
-	public int UserId() {
-		String userIdStr = getUserId();
-		if (userIdStr.equals("")) {
-			return 0;
-		}
-		return Integer.parseInt(userIdStr);
+	public long UserId() {
+        String userId = mPrefs.getString(USER_ID, "");
+        if (userId.equals("")) {
+            return 0;
+        }
+		return Long.parseLong(userId);
 	}
 
 	public String getUserId() {
 		return mPrefs.getString(USER_ID, "");
 	}
 
-	public String getToken() {
+	public String Token() {
 		return mPrefs.getString(TOKEN, "");
 	}
 
@@ -234,12 +223,8 @@ public class SessionManager implements ProResponse {
 	}
 
 	public void setPlan(String plan) {
-		mProUser.setPlan(plan);
+        this.plan = plan;
 	}
-
-    public ProUser getProUser() {
-        return mProUser;
-    }
 
     public boolean useVpn() {
         return mPrefs.getBoolean(PREF_USE_VPN, false);
@@ -262,8 +247,20 @@ public class SessionManager implements ProResponse {
     }
 
 	public void setReferral(String referralCode) {
-		mProUser.setReferral(referralCode);
+        this.referral = referralCode;
 	}
+
+    public String Referral() {
+        return referral;
+    }
+
+    public String Plan() {
+        return plan;
+    }
+
+    public String Locale() {
+        return Locale.getDefault().toString(); 
+    }
 
 	public void setReferralApplied() {
 		editor.putBoolean(REFERRAL_APPLIED, true).commit();

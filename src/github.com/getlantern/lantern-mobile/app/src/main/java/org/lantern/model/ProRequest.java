@@ -18,8 +18,7 @@ public class ProRequest extends AsyncTask<String, Void, Boolean> {
 
     private static final String TAG = "ProRequest";
 
-
-    private ProgressDialogFragment progressFragment;
+    private ProgressDialogFragment progressFragment = null;
     private FragmentManager manager;
     private ProResponse response;
     private String errMsg;
@@ -46,7 +45,7 @@ public class ProRequest extends AsyncTask<String, Void, Boolean> {
     protected Boolean doInBackground(String... params) {
         String command = params[0];
         try {
-            return Lantern.ProRequest(session.shouldProxy(), command, session.getProUser());
+            return Lantern.ProRequest(session.shouldProxy(), command, session);
         } catch (Exception e) {
             Log.e(TAG, "Pro API request error: " + e.getMessage());
         }

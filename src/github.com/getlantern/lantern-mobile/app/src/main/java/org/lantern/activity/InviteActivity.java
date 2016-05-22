@@ -64,7 +64,7 @@ public class InviteActivity extends FragmentActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        this.code = session.getCode();
+        this.code = session.Code();
         Log.d(TAG, "referral code is " + this.code);
         referralCode.setText(this.code);
     }
