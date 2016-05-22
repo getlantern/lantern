@@ -50,24 +50,46 @@ type ChainedServerInfo struct {
 
 	// PluggableTransportSettings: Settings for pluggable transport
 	PluggableTransportSettings map[string]string
+}
 
+// ChainedDialer creates a *balancer.Dialer backed by a chained server.
+func ChainedDialer(si *ChainedServerInfo, deviceID string) (*balancer.Dialer, error) {
+	s, err := newServer(si)
+	if err != nil {
+		return nil, err
+	}
+	return s.dialer(deviceID)
+}
+
+type chainedServer struct {
+	*ChainedServerInfo
+	df dialFactory
 	//  A fixed length list of host:port used to check this server. Recently
 	//  dialed plain HTTP sites (port == 80) will be added until the list is
 	//  full, except those has internalSiteSuffixes.
 	checkTargets siteList
 }
 
-// Dialer creates a *balancer.Dialer backed by a chained server.
-func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
-	if s.PluggableTransport != "" {
-		log.Debugf("Using pluggable transport %v for server at %v", s.PluggableTransport, s.Addr)
+func newServer(si *ChainedServerInfo) (*chainedServer, error) {
+	if si.PluggableTransport != "" {
+		log.Debugf("Using pluggable transport %v for server at %v", si.PluggableTransport, si.Addr)
 	}
 
-	dialFactory := pluggableTransports[s.PluggableTransport]
+	dialFactory := pluggableTransports[si.PluggableTransport]
 	if dialFactory == nil {
-		return nil, fmt.Errorf("No dial factory defined for transport: %v", s.PluggableTransport)
+		return nil, fmt.Errorf("No dial factory defined for transport: %v", si.PluggableTransport)
 	}
-	dial, err := dialFactory(s, deviceID)
+
+	s := &chainedServer{ChainedServerInfo: si,
+		df:           dialFactory,
+		checkTargets: newSiteList(10), // keep at most 10 sites to check, ignore others.
+	}
+
+	return s, nil
+}
+
+func (s *chainedServer) dialer(deviceID string) (*balancer.Dialer, error) {
+	dial, err := s.df(s.ChainedServerInfo, deviceID)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to construct dialFN: %v", err)
 	}
@@ -78,9 +100,6 @@ func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 		trusted = "(trusted) "
 	}
 	label := fmt.Sprintf("%schained proxy at %s [%v]", trusted, s.Addr, s.PluggableTransport)
-
-	// keep at most 10 sites to check, ignore others.
-	s.checkTargets.initIfNecessary(10)
 
 	ccfg := chained.Config{
 		DialServer: dial,
@@ -116,7 +135,7 @@ func (s *ChainedServerInfo) Dialer(deviceID string) (*balancer.Dialer, error) {
 	}, nil
 }
 
-func (s *ChainedServerInfo) attachHeaders(req *http.Request, deviceID string) {
+func (s *chainedServer) attachHeaders(req *http.Request, deviceID string) {
 	authToken := s.AuthToken
 	if ForceAuthToken != "" {
 		authToken = ForceAuthToken
@@ -127,7 +146,7 @@ func (s *ChainedServerInfo) attachHeaders(req *http.Request, deviceID string) {
 	req.Header.Set("X-LANTERN-DEVICE-ID", deviceID)
 }
 
-func (s *ChainedServerInfo) check(dial func(string, string) (net.Conn, error), deviceID string) bool {
+func (s *chainedServer) check(dial func(string, string) (net.Conn, error), deviceID string) bool {
 	rt := &http.Transport{
 		DisableKeepAlives: true,
 		Dial:              dial,
@@ -182,7 +201,7 @@ func (s *ChainedServerInfo) check(dial func(string, string) (net.Conn, error), d
 	return !timedOut && ok.(bool)
 }
 
-func (s *ChainedServerInfo) addCheckTarget(addr string) {
+func (s *chainedServer) addCheckTarget(addr string) {
 	host, port, e := net.SplitHostPort(addr)
 	if e != nil {
 		log.Errorf("failed to split port from %s", addr)
@@ -205,20 +224,18 @@ type siteList struct {
 	ch chan string
 }
 
-func (q *siteList) initIfNecessary(size int) {
-	if q.ch == nil {
-		q.ch = make(chan string, size)
-	}
+func newSiteList(size int) siteList {
+	return siteList{make(chan string, size)}
 }
 
-func (q *siteList) add(addr string) {
+func (q siteList) add(addr string) {
 	select {
 	case q.ch <- addr:
 	default:
 	}
 }
 
-func (q *siteList) get() (addr string) {
+func (q siteList) get() (addr string) {
 	select {
 	case addr = <-q.ch:
 	default:
