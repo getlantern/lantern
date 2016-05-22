@@ -4,8 +4,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.TypedArray;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.graphics.Color;             
+import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -75,10 +76,17 @@ public class TitleBar extends Fragment {
             navHeader.setBackground(mBackground);
         }
 
+        mAvatar = (ImageView)view.findViewById(R.id.avatar);
         if (mTitleImage != null) {
-            mAvatar = (ImageView)view.findViewById(R.id.avatar);
             mAvatar.setImageDrawable(mTitleImage);
+        } else {
+            final Drawable backArrow = getResources().getDrawable(R.drawable.abc_ic_ab_back_mtrl_am_alpha);
+            backArrow.setColorFilter(getResources().getColor(R.color.black), PorterDuff.Mode.SRC_ATOP);
+            if (backArrow != null) {
+                mAvatar.setImageDrawable(backArrow);
+            }
         }
+
 
         return view;
     }

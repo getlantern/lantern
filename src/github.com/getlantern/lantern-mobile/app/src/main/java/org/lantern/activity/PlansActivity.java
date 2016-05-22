@@ -29,6 +29,7 @@ import android.widget.Toast;
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.ViewById;
+import org.androidannotations.annotations.res.StringArrayRes;
 
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -36,6 +37,7 @@ import java.util.Locale;
 import org.lantern.LanternApp;
 import org.lantern.activity.PaymentActivity;
 import org.lantern.activity.CheckoutActivity;
+import org.lantern.model.FeatureUi;
 import org.lantern.model.SessionManager;
 import org.lantern.R;
 
@@ -55,8 +57,14 @@ public class PlansActivity extends FragmentActivity {
 
     private SessionManager session;
 
+    @StringArrayRes(R.array.pro_features)
+    String[] proFeaturesList;
+
     @ViewById
     Button monthBtn, yearBtn;
+
+    @ViewById
+    LinearLayout leftFeatures, rightFeatures;
 
     @ViewById(R.id.plans_view)
     LinearLayout plansView;
@@ -64,6 +72,20 @@ public class PlansActivity extends FragmentActivity {
     @AfterViews
     void afterViews() {
         session = LanternApp.getSession();
+
+        int i = 0;
+        int mid = proFeaturesList.length/2;
+        for (String proFeature : proFeaturesList) {
+            final FeatureUi feature = new FeatureUi(this);
+            feature.text.setText(proFeature);
+
+            if (i < mid) 
+                leftFeatures.addView(feature);
+            else
+                rightFeatures.addView(feature);
+
+            i++;
+        }
 
         monthBtn.setTag(monthCost);
         yearBtn.setTag(yearCost);

@@ -54,6 +54,7 @@
     <string name="continue_to_checkout">Continue to Checkout</string>
     <string name="free_pro_credits">Free Pro Credits</string>
     <string name="get_pro_credits">Get Free Pro Credits</string>
+    <string name="get_free_months">Get Free Months</string>
     <string name="text_invite">Text Invite</string>
     <string name="email_invite">Email Invite</string>
     <string name="your_referral_code">Your Referral Code</string>
@@ -83,10 +84,10 @@
     <string-array name="pro_features">
         <item>Faster Speed</item>
         <item>More Reliable</item>
-        <item>Increased Privacy</item>
-        <item>Smarter Servers</item>
-        <item>More Blocking Resistance</item>
-        <item>Stronger Encryption</item>
+        <item>Unlimited Data</item>
+        <item>Multiple Devices</item>
+        <item>Blocking Resistant</item>
+        <item>No Bullshit</item>
     </string-array>
     <string-array name="enter_code_steps">
         <item>Enter the verification code you received via SMS</item>
@@ -125,7 +126,7 @@
     <string name="account_verification">Account Verification</string>
     <string name="enter_verification_code">Enter Verification Code</string>
     <string name="referral_promotion">Referral Promotion</string>
-    <string name="get_lantern_pro">Get Lantern PRO</string>
+    <string name="get_lantern_pro">Get Lantern Pro</string>
     <string name="upgrade_to_lantern_pro">Upgrade to Lantern Pro</string>
     <string name="no_wall_at_all">No wall at all.</string>
     <string name="buy_pro_now">Buy Pro Now</string>

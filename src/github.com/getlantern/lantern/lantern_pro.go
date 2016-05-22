@@ -108,6 +108,7 @@ func ProRequest(shouldProxy bool, command string, session Session) bool {
 
 	req, err := newRequest(shouldProxy, session)
 	if err != nil {
+		log.Errorf("Error creating new request: %v", err)
 		return false
 	}
 	req.session = session

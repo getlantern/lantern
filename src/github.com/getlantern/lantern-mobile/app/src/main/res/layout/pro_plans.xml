@@ -13,7 +13,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         class="org.lantern.fragment.TitleBar"
-        lantern:backgroundColor="@drawable/nav_background"
+        lantern:backgroundColor="@drawable/nav_background_white"
         lantern:titleText="@string/payment_plans"/>
 
     <RelativeLayout
@@ -31,45 +31,65 @@
             android:background="@drawable/zigzag"
             android:gravity="center"           
             android:layout_width="fill_parent"
-            android:layout_height="304dp">
+            android:layout_height="320dp">
 
             <ImageView
-                android:id="@+id/features_image"
+                android:id="@+id/wall"
                 android:layout_width="wrap_content"
                 android:layout_height="120dp"
                 android:paddingBottom="10dp"
+                android:layout_marginTop="24dp"
                 android:scaleType="fitXY"
                 android:layout_centerInParent="true"
                 android:adjustViewBounds="true"
-                android:src="@drawable/lantern_icon"/>
+                android:src="@drawable/wall"/>
 
             <TextView
-                android:id="@+id/features_text"
+                android:id="@+id/upgrade_to_lantern_pro"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="sans-serif"
+                android:fontFamily="sans-serif-medium"
                 android:layout_marginTop="10dp"
-                android:text="@string/features_text"
+                android:text="@string/upgrade_to_lantern_pro"
                 android:textSize="24sp"
-                android:textStyle="bold"
-                android:alpha=".87"
                 android:layout_centerHorizontal="true"
                 android:gravity="center"
                 android:textColor="#000000"/>
 
-            <TextView
-                android:id="@+id/features_list"
+            <LinearLayout
+                android:id="@+id/proFeatures"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="sans-serif"
-                android:paddingTop="5dp"
-                android:lineSpacingExtra="10dp"
-                android:text=""
-                android:textSize="14sp"
-                android:alpha=".54"
-                android:layout_centerHorizontal="true"
-                android:gravity="left"
-                android:textColor="#000000"/>
+                android:gravity="center"
+                android:textColor="@color/black"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:paddingTop="20dp"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:orientation="horizontal" >
+
+                <LinearLayout
+                    android:id="@+id/leftFeatures"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="left"
+                    android:layout_gravity="left"
+                    android:layout_weight="1"
+                    android:orientation="vertical" />
+
+                <LinearLayout
+                    android:id="@+id/rightFeatures"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="10dp"
+                    android:gravity="right"
+                    android:layout_gravity="right"
+                    android:layout_weight="1"
+                    android:orientation="vertical" />  
+
+
+            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout android:orientation="vertical"

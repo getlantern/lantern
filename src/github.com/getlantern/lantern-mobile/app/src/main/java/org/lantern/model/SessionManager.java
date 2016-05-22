@@ -13,7 +13,6 @@ import android.widget.TextView;
 import java.util.Locale;
 
 import org.lantern.activity.SignInActivity;
-import org.lantern.activity.ProResponse;
 import org.lantern.mobilesdk.StartResult;
 import org.lantern.mobilesdk.LanternNotRunningException;
 import org.lantern.vpn.Service;
@@ -21,7 +20,7 @@ import org.lantern.R;
 
 import go.lantern.Lantern;
 
-public class SessionManager extends Lantern.Session.Stub implements ProResponse {
+public class SessionManager extends Lantern.Session.Stub {
 
     private static final String TAG = "SessionManager";
     private static final String PREF_NAME = "LanternSession";
@@ -59,19 +58,7 @@ public class SessionManager extends Lantern.Session.Stub implements ProResponse 
         this.context = context;
         this.mPrefs = context.getSharedPreferences(PREF_NAME, PRIVATE_MODE);
         this.editor = mPrefs.edit();
-
-        new ProRequest(this).execute("newuser");
     }
-
-	@Override
-	public void onSuccess() {
-
-	}
-
-	@Override
-	public void onError() {
-
-	}
 
 	public void checkProStatus() {
 		

@@ -283,7 +283,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
                         R.drawable.sign_in));
         }
 
-        navItems.add(new NavItem(resources.getString(R.string.free_pro_credits), R.drawable.get_free));
+        navItems.add(new NavItem(resources.getString(R.string.get_free_months), R.drawable.get_free));
         navItems.add(new NavItem(resources.getString(R.string.desktop_option), R.drawable.ic_desktop));
         navItems.add(new NavItem(resources.getString(R.string.language), R.drawable.language));
         navItems.add(new NavItem(resources.getString(R.string.share_option), R.drawable.ic_share));
@@ -311,9 +311,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         menuMap.put(resources.getString(R.string.get_pro_now), new Command() {
             public void runCommand() {
                 Intent intent;
-                if (!session.deviceLinked()) {
-
-                } else if (session.isProUser()) {
+                if (session.isProUser()) {
                     startActivity(new Intent(activity, ProAccountActivity_.class));
                 } else {
                     startActivity(new Intent(activity, PlansActivity_.class)); 
@@ -321,7 +319,7 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             }
         });
 
-        menuMap.put(resources.getString(R.string.free_pro_credits), new Command() {
+        menuMap.put(resources.getString(R.string.get_free_months), new Command() {
             public void runCommand() { startActivity(new Intent(activity, InviteActivity_.class)); }
         });
 

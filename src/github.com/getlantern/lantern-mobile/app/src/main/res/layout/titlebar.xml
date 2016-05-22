@@ -3,12 +3,12 @@
     xmlns:lantern="http://schemas.android.com/apk/res-auto"
     android:id="@+id/navHeader"
     android:layout_width="match_parent"
-    android:background="@color/pro_blue_color"
+    android:background="@color/accent_white"
     android:layout_height="wrap_content">
 
     <RelativeLayout
         android:layout_width="fill_parent"
-        android:layout_height="70dp">
+        android:layout_height="52dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -39,7 +39,7 @@
                 android:paddingLeft="30dp"
                 android:text=""
                 android:textSize="20sp"
-                android:textColor="#fff"/>
+                android:textColor="@color/black"/>
         </LinearLayout>
     </RelativeLayout>
 </LinearLayout>

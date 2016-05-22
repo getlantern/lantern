@@ -13,13 +13,14 @@
     <TextView
         android:id="@+id/feature_text"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="23dp"
+        android:lineSpacingExtra="5dp"
         android:textSize="14sp"
-        android:alpha=".54"
+        android:alpha=".87"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
         android:fontFamily="sans-serif"
         android:paddingLeft="5dp"
         android:text=""
-        android:textColor="@color/accent_white"/>
+        android:textColor="@color/black"/>
 </LinearLayout>

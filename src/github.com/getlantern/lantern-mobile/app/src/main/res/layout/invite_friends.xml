@@ -15,15 +15,15 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         class="org.lantern.fragment.TitleBar"
-        lantern:backgroundColor="@color/pro_blue_color"
-        lantern:titleText="@string/free_pro_credits"/>
+        lantern:backgroundColor="@drawable/nav_background_white"
+        lantern:titleText="@string/get_free_months"/>
 
     <RelativeLayout
         android:id="@+id/credits_left"
         android:layout_width="fill_parent"
         android:layout_height="260dp"
         android:layout_weight="1"
-        android:background="@drawable/nav_background"
+        android:background="@drawable/nav_background_white"
         android:elevation="2dp">
 
         <ImageView
@@ -31,7 +31,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
-            android:src="@drawable/invite_friends"/>
+            android:src="@drawable/coins"/>
     </RelativeLayout>
 
     <RelativeLayout
@@ -197,10 +197,10 @@
                 android:elevation="2dp"
                 android:minHeight="48dp"
                 android:textAllCaps="true"
-                android:textColor="@color/black"
+                android:textColor="@color/pink"
                 android:textStyle="bold"     
                 android:clickable = "true"
-                android:background="#B6E3EB"
+                android:background="@drawable/text_invite"
                 android:layout_centerInParent="true"
                 android:onClick="textInvite" />
 
@@ -218,7 +218,7 @@
                 android:textStyle="bold"
                 android:clickable = "true"
                 android:layout_marginTop="10dp"
-                android:background="#0297A7"
+                android:background="@color/pink"
                 android:layout_centerInParent="true"
                 android:onClick="emailInvite" />
 
