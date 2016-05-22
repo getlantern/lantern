@@ -44,7 +44,7 @@
         <item name="android:paddingTop">12dp</item>
         <item name="android:paddingBottom">12dp</item>
         <item name="android:textColor">@color/buttonText</item>
-        <item name="android:background">@color/pro_blue_color</item>
+        <item name="android:background">@color/pink</item>
     </style>
 
     <style name="Save" parent="@style/Button">

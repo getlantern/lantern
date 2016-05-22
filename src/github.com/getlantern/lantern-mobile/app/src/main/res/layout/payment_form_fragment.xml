@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:paddingTop="20dp"
         android:paddingBottom="5dp"
-        android:drawableLeft="@drawable/email_inactive"
+        android:drawableLeft="@drawable/email_active"
         android:drawablePadding="10dip"
         android:ems="10"
         android:background="@null"

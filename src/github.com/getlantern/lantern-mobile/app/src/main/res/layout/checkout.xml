@@ -15,7 +15,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         class="org.lantern.fragment.TitleBar"
-        lantern:backgroundColor="@drawable/nav_background"
+        lantern:backgroundColor="@drawable/nav_background_white"
         lantern:titleText="@string/checkout"/>
 
     <info.hoang8f.android.segmented.SegmentedGroup
@@ -138,7 +138,7 @@
                 android:text=""
                 android:textSize="20sp"
                 android:textStyle="bold"     
-                android:textColor="@color/pro_blue_color"/>
+                android:textColor="@color/pink"/>
 
         </RelativeLayout>
 
@@ -157,7 +157,7 @@
             android:textColor="#FFFFFF"
             android:textStyle="bold"
             android:clickable = "true"
-            android:background="#0297A7"
+            android:background="@color/pink"
             android:layout_centerInParent="true"
             android:onClick="submitCard" />
 
