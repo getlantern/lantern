@@ -77,8 +77,8 @@
                 <View
                     android:id="@+id/separator"
                     android:background="@color/black"
-                    android:layout_marginTop="2dp"
-                    android:layout_marginLeft="40dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginLeft="35dp"
                     android:layout_below="@+id/emailInput"
                     android:layout_width = "270dp"
                     android:layout_height="1dip"
