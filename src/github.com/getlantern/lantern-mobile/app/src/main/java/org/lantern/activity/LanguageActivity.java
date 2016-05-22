@@ -1,29 +1,23 @@
 package org.lantern.activity;
 
-import android.app.Activity;
-import android.app.ListActivity;
 import android.content.Intent; 
 import android.content.res.Configuration; 
 import android.content.res.Resources; 
-import android.os.Bundle;
 import android.util.DisplayMetrics; 
 import android.util.Log;
-import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.ListView;
+
+import android.support.v4.app.FragmentActivity;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.ViewById;
+import org.androidannotations.annotations.ItemClick;
 
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Locale; 
 import java.util.Map;
 import java.util.HashMap;
@@ -31,13 +25,16 @@ import java.util.HashMap;
 import org.lantern.R;
 
 @EActivity(R.layout.languages)
-public class LanguageActivity extends ListActivity {
+public class LanguageActivity extends FragmentActivity {
 
     private static final String TAG = "LanguageActivity";
 
     private ArrayAdapter<String> adapter;
     private static ArrayList<String> languages;
 	private static Map<String, Locale> localeMap;
+
+    @ViewById(R.id.list)
+    ListView list;
 
     @AfterViews
     void afterViews() {
@@ -90,8 +87,13 @@ public class LanguageActivity extends ListActivity {
         Collections.sort(languages);
 
         adapter = new ArrayAdapter<String>(this, R.layout.language_item, R.id.title, languages);
-        setListAdapter(adapter); 
+        list.setAdapter(adapter); 
     }         
+
+    @ItemClick(R.id.list)
+    void listItemClicked(String lang) {
+        setLocale(lang);
+    }
 
     private static String toTitleCase(String s) {
         if (s.length() == 0) {
@@ -134,12 +136,6 @@ public class LanguageActivity extends ListActivity {
             }
         }
         return l.getDisplayName(l);
-    }
-
-    @Override
-    protected void onListItemClick(ListView list, View view, int position, long id) {
-        String lang = (String)getListView().getItemAtPosition(position);
-        setLocale(lang);
     }
 
     public void setLocale(String lang) { 

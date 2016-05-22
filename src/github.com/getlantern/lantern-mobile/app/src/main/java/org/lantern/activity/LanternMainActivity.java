@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -175,6 +176,14 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
         setVersionNum();
         setupStatusToast();
         showFeedview();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        // refresh feed whenever locale changes
+        refreshFeed(null);
     }
 
     @Override

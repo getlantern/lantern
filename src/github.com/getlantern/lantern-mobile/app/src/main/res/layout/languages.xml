@@ -16,7 +16,7 @@
         lantern:backgroundColor="@drawable/nav_background_white"
         lantern:titleText="@string/language"/>
 
-    <ListView android:id="@android:id/list"
+    <ListView android:id="@+id/list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@+id/titlebar_fragment"
