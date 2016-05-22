@@ -319,8 +319,10 @@ func (t *nonStopWriter) flush() {
 }
 
 // ReportSuccess reports a successful operation in the current context
-func ReportSuccess() {
-	reportErr := reportToBorda(map[string]float64{"success_count": 1}, context.AsMap(nil, true))
+func ReportSuccess(successOp string) {
+	ctx := context.AsMap(nil, true)
+	ctx["success_op"] = successOp
+	reportErr := reportToBorda(map[string]float64{"success_count": 1}, ctx)
 	if reportErr != nil {
 		log.Errorf("Error reporting success to borda: %v", reportErr)
 	}

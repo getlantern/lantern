@@ -225,7 +225,7 @@ func (client *Client) proxiedDialer(orig func(network, addr string) (net.Conn, e
 		}
 		conn, err := proxied(network, addr)
 		if err == nil {
-			logging.ReportSuccess()
+			logging.ReportSuccess("dial")
 		}
 		return conn, err
 	}
