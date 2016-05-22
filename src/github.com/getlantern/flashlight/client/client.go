@@ -16,6 +16,8 @@ import (
 	"github.com/getlantern/detour"
 	"github.com/getlantern/eventual"
 	"github.com/getlantern/golog"
+
+	"github.com/getlantern/flashlight/logging"
 )
 
 const (
@@ -221,7 +223,11 @@ func (client *Client) proxiedDialer(orig func(network, addr string) (net.Conn, e
 			log.Tracef("Rewriting %v to %v", addr, rewritten)
 			return net.Dial(network, rewritten)
 		}
-		return proxied(network, addr)
+		conn, err := proxied(network, addr)
+		if err == nil {
+			logging.ReportSuccess()
+		}
+		return conn, err
 	}
 }
 
