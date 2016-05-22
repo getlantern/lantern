@@ -48,14 +48,14 @@ public class WelcomeActivity extends FragmentActivity implements ProResponse {
             plan = data.getQueryParameter("plan");
         }
 
-        if (stripeToken != "" && stripeEmail != "") {
+        if (stripeToken != null && !"".equals(stripeToken)) {
             Log.d(TAG, "Stripe token is " + stripeToken +
                     "; email is " + stripeEmail + " ;" + plan);
 
             session.setProUser(stripeEmail, stripeToken,
                     plan);
-            new ProRequest(this).execute("purchase");
         }
+        new ProRequest(this).execute("purchase");
     }
 
     @Override

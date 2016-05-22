@@ -28,17 +28,16 @@
             android:text="@string/pro_welcome_text"
             android:layout_marginTop="10dp"
             android:elevation="2dp"
-            android:textSize="17sp"
+            android:textStyle="bold"     
+            android:textSize="19sp"
             android:textColor="@color/black"/>
 
         <ImageView
             android:id="@+id/pro_welcome"
-            android:layout_width="fill_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/welcome_text"
             android:adjustViewBounds="true"
-            android:scaleType="centerCrop"
-            android:layout_marginTop="-20dp"
             android:paddingBottom="10dp"
             android:background="@android:color/transparent"
             android:src="@drawable/pro_welcome"/>
@@ -128,7 +127,7 @@
                 android:elevation="2dp"
                 android:minHeight="48dp"
                 android:textAllCaps="true"
-                android:textColor="@color/accent_white"
+                android:textColor="@color/pink"
                 android:textStyle="bold"
                 android:clickable = "true"
                 android:layout_marginTop="15dp"

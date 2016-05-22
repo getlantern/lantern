@@ -317,14 +317,15 @@ Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
             } 
         });
 
+        menuMap.put(resources.getString(R.string.pro_account_header), new Command() {
+            public void runCommand() {
+                startActivity(new Intent(activity, ProAccountActivity_.class));
+            }
+        });
+
         menuMap.put(resources.getString(R.string.get_lantern_pro), new Command() {
             public void runCommand() {
-                Intent intent;
-                if (session.isProUser()) {
-                    startActivity(new Intent(activity, ProAccountActivity_.class));
-                } else {
-                    startActivity(new Intent(activity, PlansActivity_.class)); 
-                }
+                startActivity(new Intent(activity, PlansActivity_.class)); 
             }
         });
 
