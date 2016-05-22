@@ -35,9 +35,6 @@ public class LanguageActivity extends ListActivity {
 
     private static final String TAG = "LanguageActivity";
 
-    @ViewById(R.id.avatar)
-    ImageView mBackBtn;
-
     private ArrayAdapter<String> adapter;
     private static ArrayList<String> languages;
 	private static Map<String, Locale> localeMap;
@@ -91,15 +88,6 @@ public class LanguageActivity extends ListActivity {
         }
 
         Collections.sort(languages);
-
-
-        mBackBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "Back button pressed");
-                finish();
-            }
-        });
 
         adapter = new ArrayAdapter<String>(this, R.layout.language_item, R.id.title, languages);
         setListAdapter(adapter); 

@@ -30,11 +30,6 @@ public class DesktopActivity extends FragmentActivity {
     @ViewById
     View separator;
 
-    @AfterViews
-    void afterViews() {
-        Utils.configureEmailInput(emailInput, separator);
-    }
-
     public void sendDesktopVersion(View view) {
         final MailSender sender = new MailSender();
         final String email = emailInput.getText().toString();

@@ -7,46 +7,19 @@
     android:id="@+id/languagesView"
     tools:context=".LanguageActivity">
 
-    <RelativeLayout
-        android:id="@+id/navHeader"
+    <fragment
+        xmlns:lantern="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/titlebar_fragment"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:elevation="2dp"
-        android:background="@drawable/nav_background"
-        android:paddingTop="15dp"
-        android:padding="8dp">
-
-        <ImageView
-            android:id="@+id/avatar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:src="@drawable/abc_ic_ab_back_mtrl_am_alpha"/>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="52dp"
-            android:layout_centerVertical="true"
-            android:layout_marginLeft="15dp"
-            android:layout_toRightOf="@+id/avatar"
-            android:orientation="vertical" >
-
-            <TextView
-                android:id="@+id/header"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-medium"
-                android:layout_marginTop="10dp"
-                android:paddingLeft="10dp"
-                android:text="@string/language"
-                android:textSize="20sp"
-                android:textColor="#fff"/>
-        </LinearLayout>
-    </RelativeLayout>
+        class="org.lantern.fragment.TitleBar"
+        lantern:backgroundColor="@drawable/nav_background_white"
+        lantern:titleText="@string/language"/>
 
     <ListView android:id="@android:id/list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_below="@+id/titlebar_fragment"
         android:background="@color/card_bg"
         android:layout_weight="1"
         android:drawSelectorOnTop="false"/>

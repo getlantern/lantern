@@ -9,6 +9,7 @@
     <string name="lantern_desktop">Lantern Desktop</string>
     <string name="email_hint">Email</string>
     <string name="send_button">Send</string>
+    <string name="send_desktop">Send Desktop</string>
     <string name="send_sms">Send SMS</string>
     <string name="apply_promotion">Apply Promotion</string>
     <string name="submit_code">Submit Code</string>
