@@ -317,6 +317,14 @@ func (t *nonStopWriter) flush() {
 	}
 }
 
+// ReportSuccess reports a successful operation in the current context
+func ReportSuccess() {
+	reportErr := reportToBorda(map[string]float64{"success_count": 1}, context.AsMap(nil, true))
+	if reportErr != nil {
+		log.Errorf("Error reporting success to borda: %v", reportErr)
+	}
+}
+
 func initBorda() {
 	rt := proxied.ChainedThenFronted()
 
@@ -342,7 +350,10 @@ func initBorda() {
 
 func enableBorda() {
 	errorReporter := func(err error, logText string, ctx map[string]interface{}) {
-		reportToBorda(map[string]float64{"error_count": 1}, ctx)
+		reportErr := reportToBorda(map[string]float64{"error_count": 1}, ctx)
+		if reportErr != nil {
+			log.Errorf("Error reporting error to borda: %v", reportErr)
+		}
 	}
 
 	golog.RegisterReporter(errorReporter, true)

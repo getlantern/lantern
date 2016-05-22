@@ -61,6 +61,16 @@ type Options struct {
 	Client *http.Client
 }
 
+// Reducer is a function that merges the newValues into the existingValues for
+// a given measurement.
+type Reducer func(existingValues map[string]float64, newValues map[string]float64)
+
+// Submitter is a functon that submits measurements to borda. If the measurement
+// was successfully queued for submission, this returns nil.
+type Submitter func(values map[string]float64, dimensions map[string]interface{}) error
+
+type submitter func(key string, ts time.Time, values map[string]float64, jsonDimensions []byte) error
+
 // Client is a client that submits measurements to the borda server.
 type Client struct {
 	c            *http.Client
@@ -95,27 +105,26 @@ func NewClient(opts *Options) *Client {
 	return b
 }
 
-// Reducer is a function that merges the newValues into the existingValues for
-// a given measurement.
-type Reducer func(existingValues map[string]float64, newValues map[string]float64)
-
-// Submitter is a functon that submits measurements to borda. If the measurement
-// was successfully queued for submission, this returns nil.
-type Submitter func(values map[string]float64, dimensions map[string]interface{}) error
-
-type submitter func(key string, ts time.Time, values map[string]float64, jsonDimensions []byte) error
-
 // ReducingSubmitter returns a Submitter whose measurements are reduced using
 // the specified Reducer. name specifies the name of the measurements and
 // maxBufferSize specifies the maximum number of distinct measurements to buffer
 // within the BatchInterval. Anything past this is discarded.
-func (b *Client) ReducingSubmitter(name string, maxBufferSize int, reduce Reducer) Submitter {
+func (c *Client) ReducingSubmitter(name string, maxBufferSize int, reduce Reducer) Submitter {
 	if maxBufferSize <= 0 {
 		log.Debugf("maxBufferSize has to be greater than zero, defaulting to 1000")
 		maxBufferSize = 1000
 	}
-	buffer := make(map[string]*Measurement, maxBufferSize)
+	c.mx.Lock()
+	defer c.mx.Unlock()
+	bufferID := c.nextBufferID
+	c.nextBufferID++
 	submitter := func(key string, ts time.Time, values map[string]float64, jsonDimensions []byte) error {
+		buffer := c.buffers[bufferID]
+		if buffer == nil {
+			// Lazily initialize buffer
+			buffer = make(map[string]*Measurement)
+			c.buffers[bufferID] = buffer
+		}
 		existing, found := buffer[key]
 		if found {
 			reduce(existing.Values, values)
@@ -134,12 +143,7 @@ func (b *Client) ReducingSubmitter(name string, maxBufferSize int, reduce Reduce
 		}
 		return nil
 	}
-
-	b.mx.Lock()
-	b.buffers[b.nextBufferID] = buffer
-	b.submitters[b.nextBufferID] = submitter
-	b.nextBufferID++
-	b.mx.Unlock()
+	c.submitters[bufferID] = submitter
 
 	return func(values map[string]float64, dimensions map[string]interface{}) error {
 		jsonDimensions, encodeErr := json.Marshal(dimensions)
@@ -147,34 +151,35 @@ func (b *Client) ReducingSubmitter(name string, maxBufferSize int, reduce Reduce
 			return errors.New("Unable to marshal dimensions: %v", encodeErr)
 		}
 		key := string(jsonDimensions)
-		b.mx.Lock()
+		c.mx.Lock()
 		err := submitter(key, time.Now(), values, jsonDimensions)
-		b.mx.Unlock()
+		c.mx.Unlock()
 		return err
 	}
 }
 
-func (b *Client) sendPeriodically() {
-	log.Debugf("Reporting errors to Borda every %v", b.options.BatchInterval)
-	for range time.NewTicker(b.options.BatchInterval).C {
-		b.sendBatch()
+func (c *Client) sendPeriodically() {
+	log.Debugf("Reporting errors to Borda every %v", c.options.BatchInterval)
+	for range time.NewTicker(c.options.BatchInterval).C {
+		c.Flush()
 	}
 }
 
-func (b *Client) sendBatch() {
-	b.mx.Lock()
+// Flush flushes any currently buffered data.
+func (c *Client) Flush() {
+	c.mx.Lock()
 	numMeasurements := 0
-	for _, buffer := range b.buffers {
+	for _, buffer := range c.buffers {
 		numMeasurements += len(buffer)
 	}
 	if numMeasurements == 0 {
-		b.mx.Unlock()
+		c.mx.Unlock()
 		log.Debug("Nothing to report")
 		return
 	}
 	batch := make([]*Measurement, 0, numMeasurements)
 	bufferCopies := make(map[int]map[string]*Measurement)
-	for bufferID, buffer := range b.buffers {
+	for bufferID, buffer := range c.buffers {
 		bufferCopy := make(map[string]*Measurement, len(buffer))
 		bufferCopies[bufferID] = buffer
 		for key, m := range buffer {
@@ -183,28 +188,28 @@ func (b *Client) sendBatch() {
 		}
 	}
 	// Clear out buffers
-	b.buffers = make(map[int]map[string]*Measurement, len(b.buffers))
-	b.mx.Unlock()
+	c.buffers = make(map[int]map[string]*Measurement, len(c.buffers))
+	c.mx.Unlock()
 
 	log.Debugf("Attempting to report %d measurements to Borda", len(batch))
-	err := b.doSendBatch(batch)
+	err := c.doSendBatch(batch)
 	if err == nil {
 		log.Debugf("Sent %d measurements", len(batch))
 		return
 	}
 	log.Error(err)
 	log.Debugf("Rebuffering %d measurements", numMeasurements)
-	b.mx.Lock()
+	c.mx.Lock()
 	for bufferID, buffer := range bufferCopies {
-		submitter := b.submitters[bufferID]
+		submitter := c.submitters[bufferID]
 		for key, m := range buffer {
 			submitter(key, m.Ts, m.Values, m.Dimensions)
 		}
 	}
-	b.mx.Unlock()
+	c.mx.Unlock()
 }
 
-func (b *Client) doSendBatch(batch []*Measurement) error {
+func (c *Client) doSendBatch(batch []*Measurement) error {
 	buf := bufferPool.Get()
 	defer bufferPool.Put(buf)
 	err := json.NewEncoder(buf).Encode(batch)
@@ -218,7 +223,7 @@ func (b *Client) doSendBatch(batch []*Measurement) error {
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := b.c.Do(req)
+	resp, err := c.c.Do(req)
 	if err != nil {
 		return err
 	}

@@ -63,6 +63,21 @@ func TestBordaClient(t *testing.T) {
 			}
 		}
 	}
+
+	// Send another measurement and make sure that gets through too
+	values := map[string]float64{
+		"success_count": 1,
+	}
+	dims := map[string]interface{}{
+		"cc": "c",
+	}
+	submit(values, dims)
+	bc.Flush()
+	_ms, _ = submitted.Get(0)
+	if assert.Len(t, _ms, 1) {
+		ms := _ms.([]*Measurement)
+		assert.EqualValues(t, 1, ms[0].Values["success_count"])
+	}
 }
 
 func newMockServer(submitted eventual.Value) *httptest.Server {
