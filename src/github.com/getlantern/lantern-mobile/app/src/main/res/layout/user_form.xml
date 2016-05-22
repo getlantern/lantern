@@ -52,7 +52,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif" 
-                    android:textColor="#BDBDBD"/>
+                    android:textColor="@color/black"/>
 
             </LinearLayout>
 
@@ -101,8 +101,7 @@
                 android:drawableLeft="@drawable/email_inactive"
                 android:drawablePadding="10dip"
                 android:hint=""
-                android:ems="10"
-                android:textColor="#BDBDBD"
+                android:textColor="@color/black"
                 android:paddingRight="25dp"
                 android:autoText="false"
                 android:paddingTop="20dp"

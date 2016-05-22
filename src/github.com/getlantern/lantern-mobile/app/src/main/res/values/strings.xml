@@ -76,7 +76,8 @@
     <string name="feed.error.oops">Oops!</string>
     <string name="feed.error.error_fetching_feed">Error Fetching Feed</string>
     <string name="feed.error.try_again">Please try again</string>
-    <string name="sign_in_pro">Sign in to PRO</string>
+    <string name="authorize_device_pro">Authorize Device for Pro</string>
+    <string name="sign_in_pro">Sign in to Pro</string>
     <string-array name="sign_in_list">
         <item>Enter your email and we will send you a link</item>
         <item>Click the link to authorize this device to use your Lantern Pro account</item>
