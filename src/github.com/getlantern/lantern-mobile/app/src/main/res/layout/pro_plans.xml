@@ -1,0 +1,218 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" 
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" 
+    android:orientation="vertical"
+    android:baselineAligned="false"
+    android:id="@+id/inviteView"
+    tools:context=".PlansActivity">
+
+    <fragment
+        xmlns:lantern="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/titlebar_fragment"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        class="org.lantern.fragment.TitleBar"
+        lantern:backgroundColor="@drawable/nav_background"
+        lantern:titleText="@string/payment_plans"/>
+
+    <RelativeLayout
+        android:id="@+id/plans_bottom_sheet"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        android:layout_weight="1">
+
+
+        <LinearLayout
+            android:id="@+id/plans_view"
+            android:orientation="vertical"
+            android:scaleType="center"
+            android:background="@drawable/zigzag"
+            android:gravity="center"           
+            android:layout_width="fill_parent"
+            android:layout_height="304dp">
+
+            <ImageView
+                android:id="@+id/features_image"
+                android:layout_width="wrap_content"
+                android:layout_height="120dp"
+                android:paddingBottom="10dp"
+                android:scaleType="fitXY"
+                android:layout_centerInParent="true"
+                android:adjustViewBounds="true"
+                android:src="@drawable/lantern_icon"/>
+
+            <TextView
+                android:id="@+id/features_text"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif"
+                android:layout_marginTop="10dp"
+                android:text="@string/features_text"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:alpha=".87"
+                android:layout_centerHorizontal="true"
+                android:gravity="center"
+                android:textColor="#000000"/>
+
+            <TextView
+                android:id="@+id/features_list"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif"
+                android:paddingTop="5dp"
+                android:lineSpacingExtra="10dp"
+                android:text=""
+                android:textSize="14sp"
+                android:alpha=".54"
+                android:layout_centerHorizontal="true"
+                android:gravity="left"
+                android:textColor="#000000"/>
+        </LinearLayout>
+
+        <LinearLayout android:orientation="vertical"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:gravity="bottom"
+            android:layout_weight="1"
+            android:layout_height="256dp"
+            android:layout_width="match_parent">
+
+            <RelativeLayout 
+                android:id="@+id/year_plan"
+                android:layout_width="fill_parent"
+                android:layout_height="130dp"
+                android:layout_weight="1"
+                android:background="@drawable/year_background"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:paddingBottom="8dp">
+
+                <TextView
+                    android:id="@+id/best_value"
+                    android:layout_height="44dp"
+                    android:layout_width="104dp"
+                    android:gravity="center"
+                    android:elevation="1dp"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="5dp"
+                    android:layout_marginLeft="30dp"
+                    android:fontFamily="sans-serif-black"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:text="@string/best_value"
+                    android:background="@drawable/best_value"
+                    android:textColor="@color/accent_white"/>
+
+                <TextView
+                    android:id="@+id/year_plan_cost"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical ="true"
+                    android:layout_marginLeft="13dp"
+                    android:text="$4.99/mo"
+                    android:textSize="34sp"
+                    android:textStyle="bold"
+                    android:alpha=".87"
+                    android:textColor="@color/black"/>
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif"
+                    android:layout_below="@+id/year_plan_cost"
+                    android:layout_marginLeft="13dp"
+                    android:text="@string/twelve_months"
+                    android:alpha=".54"
+                    android:textColor="@color/black"/>
+
+                <Button
+                    android:id="@+id/yearBtn"
+                    android:layout_height="36dp"
+                    android:layout_width="88dp"
+                    android:text="@string/select"
+                    android:fontFamily="sans-serif-medium" 
+                    android:textSize="14sp"
+                    android:elevation="2dp"
+                    android:minHeight="48dp"
+                    android:textAllCaps="true"
+                    android:textColor="@color/accent_white"
+                    android:textStyle="bold"     
+                    android:clickable = "true"
+                    android:background="@color/pink"
+                    android:layout_marginRight="10dp"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical ="true"
+                    android:layout_centerInParent="true"
+                    android:onClick="selectPlan" />
+
+
+            </RelativeLayout>
+
+            <RelativeLayout 
+                android:id="@+id/month_plan"
+                android:layout_width="fill_parent"
+                android:layout_height="110dp"
+                android:layout_weight="1"
+                android:background="@color/month_plan_bg"
+                android:paddingRight="8dp"
+                android:paddingBottom="8dp"
+                android:paddingLeft="8dp">
+
+                <TextView
+                    android:id="@+id/month_plan_cost"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginLeft="13dp"
+                    android:text="$7.99/mo"
+                    android:textSize="34sp"
+                    android:textStyle="bold"
+                    android:alpha=".87"
+                    android:textColor="@color/black"/>
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif"
+                    android:layout_below="@+id/month_plan_cost"
+                    android:layout_marginLeft="13dp"
+                    android:text="@string/one_month"
+                    android:alpha=".54"
+                    android:textColor="@color/black"/>
+
+
+                <Button
+                    android:id="@+id/monthBtn"
+                    android:layout_height="36dp"
+                    android:layout_width="88dp"
+                    android:text="@string/select"
+                    android:fontFamily="sans-serif-medium" 
+                    android:textSize="14sp"
+                    android:elevation="2dp"
+                    android:minHeight="48dp"
+                    android:textAllCaps="true"
+                    android:textColor="@color/accent_white"
+                    android:textStyle="bold"     
+                    android:clickable = "true"
+                    android:background="@color/pink"
+                    android:layout_marginRight="10dp"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical ="true"
+                    android:layout_centerInParent="true"
+                    android:onClick="selectPlan" />
+
+            </RelativeLayout>
+
+
+        </LinearLayout>
+    </RelativeLayout>
+</LinearLayout>

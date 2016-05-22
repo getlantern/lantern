@@ -1,0 +1,166 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" 
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" 
+    android:orientation="vertical"
+    android:baselineAligned="false"
+    android:id="@+id/paymentView"
+    android:clickable="true" 
+    android:focusableInTouchMode="true"
+    tools:context=".PaymentActivity">
+
+    <fragment
+        xmlns:lantern="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/titlebar_fragment"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        class="org.lantern.fragment.TitleBar"
+        lantern:backgroundColor="@drawable/nav_background"
+        lantern:titleText="@string/checkout"/>
+
+    <info.hoang8f.android.segmented.SegmentedGroup
+        xmlns:segmentedgroup="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/segmented2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp"
+        android:gravity="center"
+        android:layout_centerInParent="true"
+        android:orientation="horizontal"
+        segmentedgroup:sc_border_width="2dp"
+        segmentedgroup:sc_corner_radius="2dp">
+
+        <RadioButton
+            android:id="@+id/cardBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="Card"
+            style="@style/RadioButton" />
+
+        <RadioButton
+            android:id="@+id/alipayBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:button="@android:color/transparent"
+            android:background="@drawable/alipay"
+            android:text="Alipay"
+            style="@style/RadioButton" />
+
+    </info.hoang8f.android.segmented.SegmentedGroup>
+
+
+    <WebView
+        android:id="@+id/webView"
+        android:scrollbars="vertical"
+        android:scrollbarAlwaysDrawVerticalTrack="true"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true" />                                                    
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools" 
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" 
+        android:orientation="vertical"
+        android:baselineAligned="false"
+        android:id="@+id/cardView"
+        android:clickable="true" 
+        android:focusableInTouchMode="true"
+        tools:context=".PaymentActivity">
+
+
+        <RelativeLayout 
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/activity_horizontal_margin"
+            android:paddingTop="@dimen/activity_vertical_margin"
+            android:paddingBottom="65dp"
+            android:layout_marginTop="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" 
+            android:orientation="vertical"
+            android:elevation="5dp"
+            android:background="@android:drawable/dialog_holo_light_frame"
+            android:gravity="center_vertical|bottom"
+            tools:context=".PaymentsActivity">
+
+            <fragment android:id="@+id/payment_form"
+                android:layout_below="@id/titlebar_fragment"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                class="org.lantern.fragment.PaymentFormFragment"/>
+        </RelativeLayout>
+
+        <View
+            android:background="@color/edittext_color"
+            android:layout_width = "fill_parent"
+            android:layout_height="1dip"
+            android:layout_marginLeft="45dp"
+            android:layout_marginRight="10dp"
+            android:layout_centerVertical ="true"
+            android:layout_alignParentTop="true"
+            />                               
+
+        <RelativeLayout 
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/total"
+            android:layout_width="216dp"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical ="true"
+            android:layout_gravity="center" 
+            android:layout_marginTop="25dp"
+            android:weightSum="2"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:fontFamily="sans-serif"
+                android:text="@string/total"
+                android:textSize="20sp"
+                android:textAllCaps="true"
+                android:textStyle="bold"     
+                android:textColor="@color/black"/>
+
+
+            <TextView         
+                android:id="@+id/chargeAmountView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:fontFamily="sans-serif"
+                android:text=""
+                android:textSize="20sp"
+                android:textStyle="bold"     
+                android:textColor="@color/pro_blue_color"/>
+
+        </RelativeLayout>
+
+        <Button
+            android:id="@+id/checkoutBtn"
+            android:layout_height="36dp"
+            android:layout_width="216dp"
+            android:layout_marginTop="10dp"
+            android:text="@string/checkout"
+            android:gravity="center"
+            android:layout_gravity="center" 
+            android:fontFamily="sans-serif-medium" 
+            android:textSize="14sp"
+            android:elevation="2dp"
+            android:minHeight="48dp"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:clickable = "true"
+            android:background="#0297A7"
+            android:layout_centerInParent="true"
+            android:onClick="submitCard" />
+
+    </LinearLayout>
+
+</LinearLayout>
