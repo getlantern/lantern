@@ -45,7 +45,7 @@
     <string name="install_update">Update</string>
     <string name="error_update">Error Downloading Update</string>
     <string name="manual_update">Try manually installing the latest version from &lt;a href="https://lantern-android.io">here1&lt;/a></string>
-    <string name="pro_welcome_text">Welcome to Lantern PRO!</string>
+    <string name="pro_welcome_text">Welcome to Lantern Pro!</string>
     <string name="thanks_purchase">Thanks for your purchase of Lantern PRO!</string>
     <string name="start_inviting">\r\nStart inviting!</string>
     <string name="invite_friends">Enter your e-mail to receive a code to share with your friends. Get a free month of PRO when they sign up!</string>
@@ -133,6 +133,7 @@
     <string name="buy_pro_now">Buy Pro Now</string>
     <string name="update_billing_info">Update Billing Info</string>
     <string name="pro_credits_text">Invite friends, get more Pro</string>
+    <string name="could_not_complete_purchase">Could not complete Pro purchase at this time. Try again later!</string>
     <string name="invalid_verification_code">Invalid verification code</string>
     <string name="invalid_payment_method">Invalid Payment method</string>
     <string name="unable_to_cancel_account">Unable to cancel Pro Account! Please contact team@getlantern.org</string>

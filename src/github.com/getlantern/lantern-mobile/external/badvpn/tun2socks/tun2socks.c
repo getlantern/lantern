@@ -271,7 +271,7 @@ void PsiphonLog(const char *levelStr, const char *channelStr, const char *msgStr
     jstring channel = (*g_env)->NewStringUTF(g_env, channelStr);
     jstring msg = (*g_env)->NewStringUTF(g_env, msgStr);
 
-    jclass cls = (*g_env)->FindClass(g_env, "org/getlantern/lantern/android/vpn/Tun2Socks");
+    jclass cls = (*g_env)->FindClass(g_env, "org/lantern/android/vpn/Tun2Socks");
     jmethodID logMethod = (*g_env)->GetStaticMethodID(g_env, cls, "logTun2Socks", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
     (*g_env)->CallStaticVoidMethod(g_env, cls, logMethod, level, channel, msg);
 
@@ -282,7 +282,7 @@ void PsiphonLog(const char *levelStr, const char *channelStr, const char *msgStr
     (*g_env)->DeleteLocalRef(g_env, msg);
 }
 
-JNIEXPORT jint JNICALL Java_org_getlantern_lantern_android_vpn_Tun2Socks_runTun2Socks(
+JNIEXPORT jint JNICALL Java_org_lantern_android_vpn_Tun2Socks_runTun2Socks(
     JNIEnv* env,
     jclass cls,
     jint vpnInterfaceFileDescriptor,
@@ -328,7 +328,7 @@ JNIEXPORT jint JNICALL Java_org_getlantern_lantern_android_vpn_Tun2Socks_runTun2
     return 1;
 }
 
-JNIEXPORT jint JNICALL Java_org_getlantern_lantern_android_vpn_Tun2Socks_terminateTun2Socks(
+JNIEXPORT jint JNICALL Java_org_lantern_android_vpn_Tun2Socks_terminateTun2Socks(
     jclass cls,
     JNIEnv* env)
 {

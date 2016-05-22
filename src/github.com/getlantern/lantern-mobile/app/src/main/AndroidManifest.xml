@@ -62,7 +62,7 @@
         </activity>
 
         <activity
-            android:name=".activity.WelcomeActivity"
+            android:name=".activity.WelcomeActivity_"
             android:screenOrientation="portrait"
             android:launchMode="singleTask"
             android:noHistory="true">

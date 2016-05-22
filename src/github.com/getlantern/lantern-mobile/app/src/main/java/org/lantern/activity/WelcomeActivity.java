@@ -9,29 +9,32 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;                          
+import android.support.v4.app.FragmentActivity;
+
+import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.ViewById;
+import org.androidannotations.annotations.ItemClick;
 
 import org.lantern.LanternApp;
 import org.lantern.model.ProRequest;
 import org.lantern.model.SessionManager;
+import org.lantern.model.Utils;
 import org.lantern.R;
 
 import go.lantern.Lantern;
 
-public class WelcomeActivity extends Activity {
+@EActivity(R.layout.pro_welcome)
+public class WelcomeActivity extends FragmentActivity implements ProResponse {
     private static final String TAG = "WelcomeActivity";
-
-    public static LanternMainActivity mainActivity;
 
     private String stripeToken, stripeEmail, plan;
     private Context mContext;
     private SessionManager session;
     private MediaPlayer mMediaPlayer;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        setContentView(R.layout.pro_welcome);
+    @AfterViews
+    void afterViews() {
 
         mContext = this.getApplicationContext();
         session = LanternApp.getSession();
@@ -51,14 +54,21 @@ public class WelcomeActivity extends Activity {
 
             session.setProUser(stripeEmail, stripeToken,
                     plan);
-            //new ProRequest(this).execute("purchase");
+            new ProRequest(this).execute("purchase");
         }
-
-        playWelcomeSound();
-
-        mainActivity.setupSideMenu();
     }
 
+    @Override
+    public void onError() {
+        Utils.showErrorDialog(this, 
+                getResources().getString(R.string.could_not_complete_purchase));
+    }
+
+    @Override
+    public void onSuccess() {
+        playWelcomeSound();
+    }
+  
     public void inviteFriends(View view) {
         Log.d(TAG, "Invite friends button clicked!");
         startActivity(new Intent(this, InviteActivity_.class));

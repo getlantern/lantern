@@ -243,7 +243,7 @@ public class PaymentActivity extends FragmentActivity implements ProResponse, Vi
 
     @Override
     public void onSuccess() {
-        Intent intent = new Intent(this, WelcomeActivity.class);
+        Intent intent = new Intent(this, WelcomeActivity_.class);
         this.startActivity(intent);
     }
 
