@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/getlantern/flashlight/context"
-	"github.com/getlantern/flashlight/logging"
 )
 
 const (
@@ -23,7 +22,6 @@ const (
 // getReverseProxy().
 func (client *Client) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	userAgent := req.Header.Get("User-Agent")
-	logging.RegisterUserAgent(userAgent)
 
 	ctx := context.Enter().
 		Op("proxy").

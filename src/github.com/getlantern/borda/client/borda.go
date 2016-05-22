@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strings"
 	"sync"
 	"time"
 
+	"github.com/getlantern/errors"
 	"github.com/getlantern/golog"
 	"github.com/oxtoacart/bpool"
 )
@@ -31,9 +31,15 @@ type Measurement struct {
 	// Ts records the time of the measurement.
 	Ts time.Time `json:"ts,omitempty"`
 
-	// Fields captures key/value pairs with details of the measurement. It maps to
-	// "tags" and "fields" in InfluxDB depending on which fields have been
-	// configured as Dimensions on the Collector.
+	// Values contains numeric values of the measurement. These will be stored as
+	// "fields" in InfluxDB.
+	//
+	// Example: { "num_errors": 67 }
+	Values map[string]float64 `json:"values,omitempty"`
+
+	// Dimensions captures key/value pairs which characterize the measurement.
+	// Dimensions are stored as "tags" or "fields" in InfluxDB depending on which
+	// dimensions have been configured as "IndexedDimensions" on the Collector.
 	//
 	// Example: { "requestid": "18af517b-004f-486c-9978-6cf60be7f1e9",
 	//            "ipv6": "2001:0db8:0a0b:12f0:0000:0000:0000:0001",
@@ -42,121 +48,142 @@ type Measurement struct {
 	//            "cpu_idle": 10.1,
 	//            "cpu_system": 53.3,
 	//            "cpu_user": 36.6,
-	//            "num_errors": 67,
 	//            "connected_to_internet": true }
-	Fields json.RawMessage `json:"fields,omitempty"`
-
-	count int
+	Dimensions json.RawMessage `json:"dimensions,omitempty"`
 }
 
+// Options provides configuration options for borda clients
 type Options struct {
-	// ReportInterval specifies how frequent to report
-	ReportInterval time.Duration
-
-	// MaxBufferSize specifies the maximum number of distinct measurements to
-	// buffer within the ReportInterval. Anything past this is discarded.
-	MaxBufferSize int
+	// BatchInterval specifies how frequent to report to borda
+	BatchInterval time.Duration
 
 	// Client used to report to Borda
 	Client *http.Client
 }
 
-type Reporter struct {
-	c       *http.Client
-	options *Options
-	buffer  map[string]*Measurement
-	mx      sync.Mutex
+// Client is a client that submits measurements to the borda server.
+type Client struct {
+	c            *http.Client
+	options      *Options
+	buffers      map[int]map[string]*Measurement
+	submitters   map[int]submitter
+	nextBufferID int
+	mx           sync.Mutex
 }
 
-func NewReporter(opts *Options) *Reporter {
+// NewClient creates a new borda client.
+func NewClient(opts *Options) *Client {
 	if opts == nil {
 		opts = &Options{}
 	}
-	if opts.ReportInterval <= 0 {
-		log.Debugf("ReportInterval has to be greater than zero, defaulting to 5 minutes")
-		opts.ReportInterval = 5 * time.Minute
-	}
-	if opts.MaxBufferSize <= 0 {
-		log.Debugf("MaxBufferSize has to be greater than zero, defaulting to 1000")
-		opts.MaxBufferSize = 1000
+	if opts.BatchInterval <= 0 {
+		log.Debugf("BatchInterval has to be greater than zero, defaulting to 5 minutes")
+		opts.BatchInterval = 5 * time.Minute
 	}
 	if opts.Client == nil {
 		opts.Client = &http.Client{}
 	}
 
-	b := &Reporter{
-		c:       opts.Client,
-		options: opts,
-		buffer:  make(map[string]*Measurement, opts.MaxBufferSize),
+	b := &Client{
+		c:          opts.Client,
+		options:    opts,
+		buffers:    make(map[int]map[string]*Measurement),
+		submitters: make(map[int]submitter),
 	}
 
 	go b.sendPeriodically()
 	return b
 }
 
-// Report implements the interface golog.Reporter
-func (b *Reporter) Report(err error, logText string, ctx map[string]interface{}) {
-	fields, encodeErr := json.Marshal(ctx)
-	if encodeErr != nil {
-		log.Debugf("Unable to encode fields: %v", encodeErr)
-		return
+// Reducer is a function that merges the newValues into the existingValues for
+// a given measurement.
+type Reducer func(existingValues map[string]float64, newValues map[string]float64)
+
+// Submitter is a functon that submits measurements to borda. If the measurement
+// was successfully queued for submission, this returns nil.
+type Submitter func(values map[string]float64, dimensions map[string]interface{}) error
+
+type submitter func(key string, ts time.Time, values map[string]float64, jsonDimensions []byte) error
+
+// ReducingSubmitter returns a Submitter whose measurements are reduced using
+// the specified Reducer. name specifies the name of the measurements and
+// maxBufferSize specifies the maximum number of distinct measurements to buffer
+// within the BatchInterval. Anything past this is discarded.
+func (b *Client) ReducingSubmitter(name string, maxBufferSize int, reduce Reducer) Submitter {
+	if maxBufferSize <= 0 {
+		log.Debugf("maxBufferSize has to be greater than zero, defaulting to 1000")
+		maxBufferSize = 1000
 	}
-
-	m := &Measurement{
-		Name:   "errors",
-		Ts:     time.Now(),
-		Fields: fields,
-	}
-
-	// Simplistic, non-generic aggregation based on fields
-	key := string(fields)
-	b.mx.Lock()
-	b.addMeasurement(key, m)
-	b.mx.Unlock()
-}
-
-func (b *Reporter) addMeasurement(key string, m *Measurement) {
-	existing, found := b.buffer[key]
-	if found {
-		m.count = existing.count + 1
-		if existing.Ts.After(m.Ts) {
-			m.Ts = existing.Ts
+	buffer := make(map[string]*Measurement, maxBufferSize)
+	submitter := func(key string, ts time.Time, values map[string]float64, jsonDimensions []byte) error {
+		existing, found := buffer[key]
+		if found {
+			reduce(existing.Values, values)
+			if ts.After(existing.Ts) {
+				existing.Ts = ts
+			}
+		} else if len(buffer) == maxBufferSize {
+			return errors.New("Exceeded max buffer size, discarding measurement")
+		} else {
+			buffer[key] = &Measurement{
+				Name:       name,
+				Ts:         ts,
+				Values:     values,
+				Dimensions: jsonDimensions,
+			}
 		}
-	} else if len(b.buffer) == b.options.MaxBufferSize {
-		log.Debug("Buffer full, discarding measurement")
-		return
-	} else {
-		m.count = 1
+		return nil
 	}
-	b.buffer[key] = m
+
+	b.mx.Lock()
+	b.buffers[b.nextBufferID] = buffer
+	b.submitters[b.nextBufferID] = submitter
+	b.nextBufferID++
+	b.mx.Unlock()
+
+	return func(values map[string]float64, dimensions map[string]interface{}) error {
+		jsonDimensions, encodeErr := json.Marshal(dimensions)
+		if encodeErr != nil {
+			return errors.New("Unable to marshal dimensions: %v", encodeErr)
+		}
+		key := string(jsonDimensions)
+		b.mx.Lock()
+		err := submitter(key, time.Now(), values, jsonDimensions)
+		b.mx.Unlock()
+		return err
+	}
 }
 
-func (b *Reporter) sendPeriodically() {
-	log.Debugf("Reporting errors to Borda every %v", b.options.ReportInterval)
-	for range time.NewTicker(b.options.ReportInterval).C {
+func (b *Client) sendPeriodically() {
+	log.Debugf("Reporting errors to Borda every %v", b.options.BatchInterval)
+	for range time.NewTicker(b.options.BatchInterval).C {
 		b.sendBatch()
 	}
 }
 
-func (b *Reporter) sendBatch() {
+func (b *Client) sendBatch() {
 	b.mx.Lock()
-	if len(b.buffer) == 0 {
+	numMeasurements := 0
+	for _, buffer := range b.buffers {
+		numMeasurements += len(buffer)
+	}
+	if numMeasurements == 0 {
 		b.mx.Unlock()
 		log.Debug("Nothing to report")
 		return
 	}
-	batch := make([]*Measurement, 0, len(b.buffer))
-	batchAsMap := make(map[string]*Measurement, len(b.buffer))
-	for key, m := range b.buffer {
-		if !strings.Contains(string(m.Fields), "error_count") {
-			// Append error_count to fields (this is a hack)
-			extra := fmt.Sprintf(`, "error_count": %d}`, m.count)
-			m.Fields = append(m.Fields[:len(m.Fields)-1], extra...)
+	batch := make([]*Measurement, 0, numMeasurements)
+	bufferCopies := make(map[int]map[string]*Measurement)
+	for bufferID, buffer := range b.buffers {
+		bufferCopy := make(map[string]*Measurement, len(buffer))
+		bufferCopies[bufferID] = buffer
+		for key, m := range buffer {
+			batch = append(batch, m)
+			bufferCopy[key] = m
 		}
-		batch = append(batch, m)
-		batchAsMap[key] = m
 	}
-	b.buffer = make(map[string]*Measurement, b.options.MaxBufferSize)
+	// Clear out buffers
+	b.buffers = make(map[int]map[string]*Measurement, len(b.buffers))
 	b.mx.Unlock()
 
 	log.Debugf("Attempting to report %d measurements to Borda", len(batch))
@@ -166,15 +193,18 @@ func (b *Reporter) sendBatch() {
 		return
 	}
 	log.Error(err)
-	log.Debugf("Rebuffering %d measurements", len(batchAsMap))
+	log.Debugf("Rebuffering %d measurements", numMeasurements)
 	b.mx.Lock()
-	for key, m := range batchAsMap {
-		b.addMeasurement(key, m)
+	for bufferID, buffer := range bufferCopies {
+		submitter := b.submitters[bufferID]
+		for key, m := range buffer {
+			submitter(key, m.Ts, m.Values, m.Dimensions)
+		}
 	}
 	b.mx.Unlock()
 }
 
-func (b *Reporter) doSendBatch(batch []*Measurement) error {
+func (b *Client) doSendBatch(batch []*Measurement) error {
 	buf := bufferPool.Get()
 	defer bufferPool.Put(buf)
 	err := json.NewEncoder(buf).Encode(batch)

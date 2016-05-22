@@ -3,14 +3,13 @@ package borda
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/http/httputil"
+	"sync/atomic"
 	"testing"
 	"time"
 
-	"github.com/getlantern/errors"
 	"github.com/getlantern/eventual"
 	"github.com/stretchr/testify/assert"
 )
@@ -21,37 +20,45 @@ func TestBordaClient(t *testing.T) {
 	defer ts.Close()
 	bordaURL = ts.URL
 
-	bc := NewReporter(
+	bc := NewClient(
 		&Options{
-			ReportInterval: 100 * time.Millisecond,
-			MaxBufferSize:  5,
+			BatchInterval: 100 * time.Millisecond,
 		})
-
 	assert.NotNil(t, bc)
+	submit := bc.ReducingSubmitter("errors", 5, func(existingValues map[string]float64, newValues map[string]float64) {
+		existingValues["error_count"] += newValues["error_count"]
+	})
 
-	err := errors.New("My Error").Op("My Op")
 	numUniqueErrors := 3
 	countOfEachError := 10
 	for i := 0; i < numUniqueErrors*countOfEachError; i++ {
-		ctx := map[string]interface{}{
-			"ca": i % numUniqueErrors,
+		values := map[string]float64{
+			"error_count": 1,
+		}
+		dims := map[string]interface{}{
+			"ca": (i % numUniqueErrors) + 1,
 			"cb": true,
 		}
-		bc.Report(err, "", ctx)
+		submit(values, dims)
 		_, sent := submitted.Get(0)
 		assert.False(t, sent, "Shouldn't have sent the measurements yet")
 	}
 
-	time.Sleep(bc.options.ReportInterval * 2)
+	time.Sleep(bc.options.BatchInterval * 3)
 	_ms, sent := submitted.Get(0)
 	if assert.True(t, sent, "Should have sent the measurements") {
 		ms := _ms.([]*Measurement)
 		if assert.Len(t, ms, numUniqueErrors, "Wrong number of measurements sent") {
 			for i := 0; i < numUniqueErrors; i++ {
-				var fields map[string]interface{}
-				err2 := json.Unmarshal(ms[i].Fields, &fields)
+				m := ms[i]
+				assert.EqualValues(t, countOfEachError, m.Values["error_count"])
+				var dims map[string]interface{}
+				err2 := json.Unmarshal(m.Dimensions, &dims)
 				if assert.NoError(t, err2) {
-					assert.EqualValues(t, countOfEachError, fields["error_count"])
+					ca := dims["ca"].(float64)
+					assert.True(t, 1 <= ca)
+					assert.True(t, ca <= 3)
+					assert.EqualValues(t, dims["cb"], true)
 				}
 			}
 		}
@@ -59,6 +66,7 @@ func TestBordaClient(t *testing.T) {
 }
 
 func newMockServer(submitted eventual.Value) *httptest.Server {
+	numberOfSuccesses := int32(0)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		httputil.DumpRequest(r, true)
 		dump, err := httputil.DumpRequest(r, true)
@@ -73,8 +81,12 @@ func newMockServer(submitted eventual.Value) *httptest.Server {
 		err = decoder.Decode(&ms)
 		if err != nil {
 			w.WriteHeader(500)
-			io.WriteString(w, fmt.Sprintf("Error decoding JSON request: %v", err))
+			fmt.Fprintf(w, "Error decoding JSON request: %v", err)
 		} else {
+			if atomic.AddInt32(&numberOfSuccesses, 1) == 1 {
+				w.WriteHeader(500)
+				fmt.Fprintf(w, "Failing on first success: %v", err)
+			}
 			w.WriteHeader(201)
 			submitted.Set(ms)
 		}

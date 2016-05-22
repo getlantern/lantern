@@ -82,15 +82,12 @@ type MultiLine interface {
 	MultiLinePrinter() func(buf *bytes.Buffer) bool
 }
 
-// ErrorReporter is an interface for things to which the logger will report
-// errors.
-type ErrorReporter interface {
-	// Reports the given error and corresponding logText along with associated
-	// context. This should return quickly as it executes on the critical code
-	// path. The recommended approach is to buffer as much as possible and discard
-	// new reports if the buffer becomes saturated.
-	Report(err error, logText string, ctx map[string]interface{})
-}
+// ErrorReporter is a function to which the logger will report errors.
+// It the given error and corresponding logText along with associated
+// context. This should return quickly as it executes on the critical code
+// path. The recommended approach is to buffer as much as possible and discard
+// new reports if the buffer becomes saturated.
+type ErrorReporter func(err error, logText string, ctx map[string]interface{})
 
 type Logger interface {
 	// Debug logs to stdout
@@ -434,7 +431,7 @@ func report(reportRequested bool, err error, text string) error {
 	reportersMutex.RLock()
 	doReport := func(reporter ErrorReporter) {
 		// We include globals when reporting
-		reporter.Report(err, hidden.Clean(text), context.AsMap(err, true))
+		reporter(err, hidden.Clean(text), context.AsMap(err, true))
 	}
 	for _, reporter := range transparentReporters {
 		doReport(reporter)
