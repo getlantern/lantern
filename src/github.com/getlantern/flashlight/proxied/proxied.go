@@ -220,6 +220,7 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 	}
 
 	doFronted := func() {
+		log.Debug("In fronted")
 		ctx.
 			ProxyType(context.ProxyFronted).
 			Put("fronted_url", frontedURL)
@@ -294,6 +295,7 @@ func (df *dualFetcher) do(req *http.Request, chainedFunc func(*http.Request) (*h
 		log.ReportedError(errors.New("Chained failed, trying fronted: %v", err))
 		doFronted()
 		resp, err = getResponse()
+		log.Debugf("Result of fronting: %v", err)
 	}
 	return resp, err
 }

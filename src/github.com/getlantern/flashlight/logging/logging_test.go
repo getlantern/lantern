@@ -7,30 +7,11 @@ import (
 	"regexp"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/getlantern/go-loggly"
 	"github.com/getlantern/golog"
 	"github.com/stretchr/testify/assert"
 )
-
-// Test to make sure user agent registration, listening, etc is all working.
-func TestUserAgent(t *testing.T) {
-	agent := "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.86 Safari/537.36"
-
-	// Do an initial register just to test the duplicate agent paths.
-	RegisterUserAgent(agent)
-
-	go func() {
-		RegisterUserAgent(agent)
-	}()
-
-	time.Sleep(200 * time.Millisecond)
-
-	agents := getSessionUserAgents()
-
-	assert.True(t, strings.Contains(agents, "AppleWebKit"), "Expected agent not in "+agents)
-}
 
 type BadWriter struct{}
 type GoodWriter struct{ counter int }
@@ -57,7 +38,7 @@ func TestLoggly(t *testing.T) {
 	loggly := loggly.New("token not required")
 	loggly.Writer = &buf
 	r := logglyErrorReporter{client: loggly}
-	golog.RegisterReporter(r)
+	golog.RegisterReporter(r.Report, false)
 	log := golog.LoggerFor("test")
 
 	log.Error("")

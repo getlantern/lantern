@@ -49,6 +49,9 @@ var (
 
 	duplicates = make(map[string]bool)
 	dupLock    sync.Mutex
+
+	bordaClient   *borda.Client
+	reportToBorda borda.Submitter
 )
 
 func init() {
@@ -174,6 +177,7 @@ func initLogging() {
 	errorOut = timestamped(os.Stderr)
 	debugOut = timestamped(os.Stdout)
 	golog.SetOutputs(errorOut, debugOut)
+	initBorda()
 }
 
 // timestamped adds a timestamp to the beginning of log lines
@@ -196,7 +200,8 @@ func enableLoggly(cloudConfigCA string) {
 
 	client := loggly.New(logglyToken, logglyTag)
 	client.SetHTTPClient(&http.Client{Transport: rt})
-	golog.RegisterReporter(&logglyErrorReporter{client}, false)
+	le := &logglyErrorReporter{client}
+	golog.RegisterReporter(le.Report, false)
 }
 
 func isDuplicate(msg string) bool {
@@ -312,10 +317,11 @@ func (t *nonStopWriter) flush() {
 	}
 }
 
-func enableBorda() {
+func initBorda() {
 	rt := proxied.ChainedThenFronted()
-	r := borda.NewReporter(&borda.Options{
-		ReportInterval: 5 * time.Second,
+
+	bordaClient = borda.NewClient(&borda.Options{
+		BatchInterval: 5 * time.Minute,
 		Client: &http.Client{
 			Transport: proxied.AsRoundTripper(func(req *http.Request) (*http.Response, error) {
 				frontedURL := *req.URL
@@ -326,5 +332,18 @@ func enableBorda() {
 			}),
 		},
 	})
-	golog.RegisterReporter(r, true)
+
+	reportToBorda = bordaClient.ReducingSubmitter("errors", 1000, func(existingValues map[string]float64, newValues map[string]float64) {
+		for key, value := range newValues {
+			existingValues[key] += value
+		}
+	})
+}
+
+func enableBorda() {
+	errorReporter := func(err error, logText string, ctx map[string]interface{}) {
+		reportToBorda(map[string]float64{"error_count": 1}, ctx)
+	}
+
+	golog.RegisterReporter(errorReporter, true)
 }
