@@ -75,7 +75,7 @@
                 android:layout_height="wrap_content"
                 android:paddingLeft="20dp"
                 android:paddingRight="20dp"
-                android:fontFamily="sans-serif-medium"
+                android:fontFamily="sans-serif"
                 android:layout_marginTop="20dp"
                 android:text="@string/invite_friends_welcome"
                 android:textSize="14sp"
@@ -83,20 +83,6 @@
                 android:layout_centerHorizontal="true"
                 android:gravity="center"
                 android:textColor="@color/black"/>          
-
-            <TextView
-                android:id="@+id/start_inviting"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans-serif"
-                android:layout_marginTop="-5dp"
-                android:layout_marginBottom="-5dp"
-                android:text="@string/start_inviting"
-                android:textSize="14sp"
-                android:alpha=".87"
-                android:gravity="center"
-                android:textColor="#000000"/>    
-
 
             <Button
                 android:id="@+id/inviteFriendsBtn"
